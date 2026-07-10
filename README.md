@@ -1,5 +1,8 @@
 # SpecBridge
 
+[![CI](https://github.com/HelloThisWorld/specbridge/actions/workflows/ci.yml/badge.svg)](https://github.com/HelloThisWorld/specbridge/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 An open, model-agnostic spec runtime for existing Kiro projects.
 
 Bring your current `.kiro/steering` and `.kiro/specs` files to Claude Code,
