@@ -1,0 +1,23 @@
+{
+  "specName": "notification-preferences",
+  "specType": "feature",
+  "workflowMode": "requirements-first",
+  "status": "DESIGN_APPROVED",
+  "approvals": {
+    "requirements": {
+      "approved": true,
+      "approvedAt": "2026-07-01T10:00:00Z"
+    },
+    "design": {
+      "approved": true,
+      "approvedAt": "2026-07-02T09:30:00Z"
+    }
+  },
+  "declaredImpactAreas": [
+    "src/notifications/**",
+    "tests/notifications/**"
+  ],
+  "verificationCommands": [
+    "npm test"
+  ]
+}

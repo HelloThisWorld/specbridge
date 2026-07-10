@@ -1,0 +1,16 @@
+{
+  "specName": "export-pipeline",
+  "specType": "feature",
+  "workflowMode": "design-first",
+  "status": "DESIGN_APPROVED",
+  "approvals": {
+    "design": {
+      "approved": true,
+      "approvedAt": "2026-06-20T15:00:00Z"
+    },
+    "requirements": {
+      "approved": true,
+      "approvedAt": "2026-06-22T11:00:00Z"
+    }
+  }
+}

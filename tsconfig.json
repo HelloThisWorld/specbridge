@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "paths": {
+      "@specbridge/core": ["./packages/core/src/index.ts"],
+      "@specbridge/compat-kiro": ["./packages/compat-kiro/src/index.ts"],
+      "@specbridge/drift": ["./packages/drift/src/index.ts"],
+      "@specbridge/runners": ["./packages/runners/src/index.ts"],
+      "@specbridge/reporting": ["./packages/reporting/src/index.ts"]
+    }
+  },
+  "include": [
+    "packages/*/src/**/*.ts",
+    "packages/*/tsup.config.ts",
+    "tests/**/*.ts",
+    "vitest.config.ts"
+  ]
+}

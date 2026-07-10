@@ -1,0 +1,36 @@
+{
+  "name": "@specbridge/drift",
+  "version": "0.1.0",
+  "description": "Deterministic spec-to-code drift primitives for SpecBridge (no LLM required).",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@specbridge/compat-kiro": "workspace:*",
+    "@specbridge/core": "workspace:*",
+    "execa": "^9.4.0",
+    "picomatch": "^4.0.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/picomatch": "^3.0.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0"
+  }
+}
