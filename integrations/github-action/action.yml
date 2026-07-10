@@ -1,0 +1,39 @@
+name: SpecBridge Compatibility Check
+description: >-
+  Read-only quality gate for Kiro-style specs: verifies the .kiro workspace is
+  healthy and every spec/steering file round-trips byte-identically.
+  PREVIEW: drift verification (spec verify) joins this action in a later
+  SpecBridge phase. Requires the specbridge CLI to be runnable (see README).
+branding:
+  icon: check-circle
+  color: blue
+
+inputs:
+  working-directory:
+    description: Directory containing the .kiro workspace.
+    required: false
+    default: '.'
+  specbridge-command:
+    description: >-
+      How to invoke the specbridge CLI. Once specbridge is published to npm
+      the default works as-is; until then point this at a built checkout,
+      e.g. "node /path/to/specbridge/packages/cli/dist/index.js".
+    required: false
+    default: 'npx --yes specbridge'
+  spec:
+    description: Limit the compat check to one spec name (default checks everything).
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: SpecBridge doctor (read-only)
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: ${{ inputs.specbridge-command }} doctor
+
+    - name: Round-trip compatibility check
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: ${{ inputs.specbridge-command }} compat check ${{ inputs.spec }}

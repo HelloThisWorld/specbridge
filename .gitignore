@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Test output
+coverage/
+
+# Tooling caches
+.eslintcache
+
+# Logs
+*.log
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# NOTE: `.specbridge/` directories are intentionally NOT ignored here.
+# The example projects commit sidecar state on purpose so the repository
+# demonstrates how SpecBridge stores runtime state outside `.kiro`.
+# End-user projects typically add `.specbridge/runs`, `.specbridge/cache`,
+# and `.specbridge/reports` to their own .gitignore.

@@ -1,0 +1,6 @@
+# Normalize all text files to LF in the repository.
+* text=auto eol=lf
+
+# Fixture files exercise byte-exact round-trip behavior (CRLF, BOM, UTF-8).
+# They must never be rewritten by git line-ending normalization.
+tests/fixtures/** -text

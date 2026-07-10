@@ -1,0 +1,1 @@
+Nested directory used by workspace-detection tests (walk-up from a subdirectory).

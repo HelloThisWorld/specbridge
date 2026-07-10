@@ -1,0 +1,32 @@
+{
+  "name": "@specbridge/runners",
+  "version": "0.1.0",
+  "description": "Model- and agent-agnostic runner adapters for SpecBridge (mock, Claude Code, Codex, stubs).",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@specbridge/core": "workspace:*",
+    "execa": "^9.4.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0"
+  }
+}
