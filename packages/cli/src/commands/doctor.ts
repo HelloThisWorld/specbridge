@@ -3,6 +3,8 @@ import type { Command } from 'commander';
 import { CLI_BIN, PRODUCT_NAME, hasErrors } from '@specbridge/core';
 import type { WorkspaceAnalysis } from '@specbridge/compat-kiro';
 import { analyzeWorkspace } from '@specbridge/compat-kiro';
+import type { SidecarAudit } from '@specbridge/workflow';
+import { auditSidecarState } from '@specbridge/workflow';
 import {
   addLine,
   createJsonReport,
@@ -38,7 +40,45 @@ function describeProgress(analysis: WorkspaceAnalysis['specs'][number]): string 
   return `${p.completed}/${p.total} tasks${optional}`;
 }
 
-function printReport(runtime: CliRuntime, analysis: WorkspaceAnalysis): void {
+function printSidecarSection(runtime: CliRuntime, audit: SidecarAudit): void {
+  runtime.out(sectionTitle('Sidecar state (.specbridge)'));
+  if (!audit.stateDirExists) {
+    runtime.out(infoLine('No workflow state yet', '(created by "spec new" or the first "spec approve")'));
+    runtime.out();
+    return;
+  }
+  const healthy = audit.entries.filter(
+    (entry) => entry.health === 'ok' && entry.hasSpecFolder,
+  ).length;
+  if (healthy > 0) {
+    runtime.out(okLine(`${healthy} spec state file${healthy === 1 ? '' : 's'} valid and in sync`));
+  }
+  for (const specName of audit.staleSpecs) {
+    runtime.out(
+      warnLine(`${specName}: an approved file changed after approval`, `(repair: ${CLI_BIN} spec approve ${specName} --stage <stage>)`),
+    );
+  }
+  for (const specName of audit.invalidStates.filter((name) => !audit.orphanStates.includes(name))) {
+    runtime.out(warnLine(`${specName}: sidecar state is invalid and was ignored`));
+  }
+  for (const specName of audit.orphanStates) {
+    runtime.out(warnLine(`${specName}: state file has no matching .kiro/specs/${specName}/ directory`));
+  }
+  if (audit.unmanagedSpecs.length > 0) {
+    runtime.out(
+      infoLine(
+        `${audit.unmanagedSpecs.length} spec${audit.unmanagedSpecs.length === 1 ? '' : 's'} without workflow state (unmanaged): ${audit.unmanagedSpecs.join(', ')}`,
+        '(normal for Kiro-only projects)',
+      ),
+    );
+  }
+  if (audit.unknownEntries.length > 0) {
+    runtime.out(infoLine(`Ignored non-state entries in state dir: ${audit.unknownEntries.join(', ')}`));
+  }
+  runtime.out();
+}
+
+function printReport(runtime: CliRuntime, analysis: WorkspaceAnalysis, audit: SidecarAudit): void {
   const { workspace } = analysis;
   runtime.out(reportTitle(`${PRODUCT_NAME} Doctor`));
   runtime.out();
@@ -112,6 +152,8 @@ function printReport(runtime: CliRuntime, analysis: WorkspaceAnalysis): void {
   }
   runtime.out();
 
+  printSidecarSection(runtime, audit);
+
   runtime.out(sectionTitle('Line endings'));
   const le = analysis.lineEndings;
   const parts: string[] = [];
@@ -148,6 +190,7 @@ function printReport(runtime: CliRuntime, analysis: WorkspaceAnalysis): void {
   const allDiagnostics = [
     ...analysis.diagnostics,
     ...analysis.specs.flatMap((spec) => spec.diagnostics),
+    ...audit.diagnostics,
   ];
   const visible = allDiagnostics.filter((d) => d.severity !== 'info');
   if (visible.length > 0) {
@@ -169,7 +212,7 @@ function printReport(runtime: CliRuntime, analysis: WorkspaceAnalysis): void {
   }
 }
 
-function toJson(analysis: WorkspaceAnalysis): unknown {
+function toJson(analysis: WorkspaceAnalysis, audit: SidecarAudit): unknown {
   return createJsonReport('specbridge.doctor/1', `${CLI_BIN} ${VERSION}`, {
     workspace: {
       rootDir: analysis.workspace.rootDir,
@@ -198,10 +241,25 @@ function toJson(analysis: WorkspaceAnalysis): unknown {
       roundTripSafe: spec.roundTrip.every((check) => check.identical),
       diagnostics: spec.diagnostics,
     })),
+    sidecar: {
+      stateDir: audit.stateDir,
+      stateDirExists: audit.stateDirExists,
+      states: audit.entries.map((entry) => ({
+        specName: entry.specName,
+        statePath: entry.statePath,
+        hasSpecFolder: entry.hasSpecFolder,
+        health: entry.health,
+        effectiveStatus: entry.effectiveStatus ?? null,
+      })),
+      orphanStates: audit.orphanStates,
+      unmanagedSpecs: audit.unmanagedSpecs,
+      staleSpecs: audit.staleSpecs,
+      invalidStates: audit.invalidStates,
+    },
     lineEndings: analysis.lineEndings,
     roundTripSafe: analysis.roundTripSafe,
     healthy: analysis.healthy,
-    diagnostics: analysis.diagnostics,
+    diagnostics: [...analysis.diagnostics, ...audit.diagnostics],
   });
 }
 
@@ -247,11 +305,16 @@ Examples:
       }
 
       const analysis = analyzeWorkspace(workspace);
+      const audit = auditSidecarState(
+        workspace,
+        analysis.specs.map((spec) => spec.folder),
+      );
       if (options.json === true) {
-        runtime.outRaw(serializeJsonReport(toJson(analysis)));
+        runtime.outRaw(serializeJsonReport(toJson(analysis, audit)));
       } else {
-        printReport(runtime, analysis);
+        printReport(runtime, analysis, audit);
       }
-      runtime.exitCode = analysis.healthy && analysis.roundTripSafe ? 0 : 1;
+      const auditHealthy = !hasErrors(audit.diagnostics);
+      runtime.exitCode = analysis.healthy && analysis.roundTripSafe && auditHealthy ? 0 : 1;
     });
 }

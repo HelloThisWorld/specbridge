@@ -1,0 +1,12 @@
+{
+  "specName": "legacy-shape",
+  "specType": "feature",
+  "workflowMode": "requirements-first",
+  "status": "DRAFT",
+  "approvals": {
+    "requirements": {
+      "approved": true,
+      "approvedAt": "2026-07-01T10:00:00Z"
+    }
+  }
+}

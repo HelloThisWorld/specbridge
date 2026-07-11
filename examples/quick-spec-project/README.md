@@ -7,5 +7,5 @@ the documents were not individually reviewed stage-by-stage.
 
 ```sh
 cd examples/quick-spec-project
-node ../../packages/cli/dist/index.js spec list     # WORKFLOW column reads quick
+node ../../packages/cli/dist/index.js spec list     # MODE column reads quick
 ```

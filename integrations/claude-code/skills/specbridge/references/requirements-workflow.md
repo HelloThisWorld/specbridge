@@ -1,8 +1,11 @@
 # Requirements workflow
 
-Use when creating or revising `requirements.md` for a spec (until
-`specbridge spec new` ships, create the file by hand at
-`.kiro/specs/<name>/requirements.md`).
+Use when creating or revising `requirements.md` for a spec. Start new specs
+with `specbridge spec new <name>` (offline templates); it creates
+`.kiro/specs/<name>/requirements.md` with the structure below, ready to fill
+in. Check your edits with `specbridge spec analyze <name> --stage
+requirements`, and record the user's sign-off with
+`specbridge spec approve <name> --stage requirements`.
 
 ## Structure to follow
 

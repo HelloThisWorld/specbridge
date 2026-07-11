@@ -23,8 +23,9 @@ verifier are stable (Phase K).
 | `read_steering` | `steering show` |
 | `list_specs` | `spec list` |
 | `read_spec` | `spec show --json` |
-| `create_spec` | `spec new` (Phase E) |
-| `analyze_spec` | `spec analyze` (Phase E) |
+| `create_spec` | `spec new` (CLI ✅ since v0.2) |
+| `analyze_spec` | `spec analyze` (CLI ✅ since v0.2) |
+| `approve_stage` | `spec approve` / `spec status` (CLI ✅ since v0.2) |
 | `get_next_tasks` | next-open-tasks from the tasks parser |
 | `record_task_evidence` | evidence store (Phase G) |
 | `sync_tasks` | `spec sync` (Phase H) |

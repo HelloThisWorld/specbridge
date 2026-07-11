@@ -12,6 +12,8 @@ export interface CliIo {
   /** Write exact text (no newline appended). */
   outRaw: (text: string) => void;
   err: (line: string) => void;
+  /** Clock used for every timestamp a command records (injectable in tests). */
+  now: () => Date;
 }
 
 export function defaultIo(): CliIo {
@@ -20,6 +22,7 @@ export function defaultIo(): CliIo {
     out: (line) => process.stdout.write(`${line}\n`),
     outRaw: (text) => process.stdout.write(text),
     err: (line) => process.stderr.write(`${line}\n`),
+    now: () => new Date(),
   };
 }
 
@@ -51,6 +54,10 @@ export class CliRuntime {
 
   tryWorkspace(): WorkspaceInfo | undefined {
     return resolveWorkspace(this.cwd);
+  }
+
+  now(): Date {
+    return this.io.now();
   }
 
   out(line = ''): void {

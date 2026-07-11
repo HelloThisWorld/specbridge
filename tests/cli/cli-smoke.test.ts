@@ -266,9 +266,6 @@ describe('specbridge compat check', () => {
 
 describe('planned commands are honest', () => {
   it.each([
-    ['spec', 'new', 'x'],
-    ['spec', 'analyze', 'x'],
-    ['spec', 'approve', 'x'],
     ['spec', 'run', 'x'],
     ['spec', 'sync', 'x'],
     ['spec', 'verify', 'x'],
@@ -293,7 +290,7 @@ describe('general CLI behavior', () => {
   it('--version exits 0', async () => {
     const result = await cli(standard, '--version');
     expect(result.code).toBe(0);
-    expect(result.stdout).toContain('0.1.0');
+    expect(result.stdout).toContain('0.2.0');
   });
 
   it('unknown commands exit 2', async () => {

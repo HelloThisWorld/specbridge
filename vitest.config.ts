@@ -13,10 +13,14 @@ export default defineConfig({
       { find: '@specbridge/drift', replacement: pkg('drift') },
       { find: '@specbridge/runners', replacement: pkg('runners') },
       { find: '@specbridge/reporting', replacement: pkg('reporting') },
+      { find: '@specbridge/workflow', replacement: pkg('workflow') },
     ],
   },
   test: {
     include: ['tests/**/*.test.ts'],
     environment: 'node',
+    // CLI output assertions must see the exact text users see with NO_COLOR;
+    // picocolors would otherwise force ANSI codes on Windows terminals.
+    env: { NO_COLOR: '1' },
   },
 });

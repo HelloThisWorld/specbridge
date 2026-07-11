@@ -73,6 +73,20 @@ Strategy. British spellings and common variants match.
   from files** — the layout is identical. SpecBridge reads it from sidecar
   state when present and reports `unknown` otherwise. It never guesses.
 
+## What SpecBridge writes (v0.2)
+
+`spec new` is the only v0.2 command that writes into `.kiro`, and only to
+create a **new** spec directory. Generated files are plain Markdown with LF
+endings and a trailing newline — no front matter, no HTML comments, no
+SpecBridge metadata of any kind — so Kiro opens them like any hand-written
+spec. Existing spec directories are never overwritten (no `--force` exists),
+and creation is atomic: a failure leaves no partial directory.
+
+Approvals (`spec approve`) write **only** to `.specbridge/`; the approved
+Markdown file is hashed byte-exactly and left untouched. `doctor` actively
+scans for SpecBridge metadata inside `.kiro` files and reports any hit as an
+error.
+
 ## The round-trip guarantee
 
 For every file SpecBridge can decode as UTF-8:

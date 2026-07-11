@@ -56,8 +56,13 @@ Reference guides in this skill:
 ## Command status (be honest with the user)
 
 Available now: `doctor`, `steering list/show`, `spec list/show/context`,
-`compat check`. The commands `spec new/analyze/approve/run/sync/verify/
-export` are planned and currently exit with a not-implemented message — if
-the user asks for them, do the equivalent manually following the reference
-guides, and say that is what you are doing. Never claim a planned command
-ran.
+`compat check`, and — since v0.2 — `spec new`, `spec analyze`,
+`spec approve` (with `--revoke`), and `spec status`. Prefer these commands
+over doing the equivalent by hand: `spec new` creates Kiro-compatible specs
+offline, `spec analyze` gates content deterministically, and `spec approve`
+records stage approvals (with byte-exact hashes) in `.specbridge/`.
+
+The commands `spec run/sync/verify/export` are still planned and exit with a
+not-implemented message — if the user asks for them, do the equivalent
+manually following the reference guides, and say that is what you are doing.
+Never claim a planned command ran.

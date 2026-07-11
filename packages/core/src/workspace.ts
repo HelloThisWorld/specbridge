@@ -1,4 +1,14 @@
-import { existsSync, mkdirSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import {
+  closeSync,
+  existsSync,
+  fsyncSync,
+  mkdirSync,
+  openSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeSync,
+} from 'node:fs';
 import path from 'node:path';
 import { SpecBridgeError, ioError } from './errors.js';
 import {
@@ -107,8 +117,9 @@ export function assertInsideWorkspace(rootDir: string, target: string): string {
 }
 
 /**
- * Atomic file write: write to a temp sibling, then rename over the target.
- * Guarantees readers never observe a half-written file.
+ * Atomic file write: write to a temp sibling, fsync, then rename over the
+ * target. Guarantees readers never observe a half-written file and the temp
+ * file never survives a failure.
  */
 export function writeFileAtomic(filePath: string, data: string | Buffer): void {
   const dir = path.dirname(filePath);
@@ -118,7 +129,13 @@ export function writeFileAtomic(filePath: string, data: string | Buffer): void {
   );
   try {
     mkdirSync(dir, { recursive: true });
-    writeFileSync(tempPath, data);
+    const fd = openSync(tempPath, 'w');
+    try {
+      writeSync(fd, typeof data === 'string' ? Buffer.from(data, 'utf8') : data);
+      fsyncSync(fd);
+    } finally {
+      closeSync(fd);
+    }
     renameSync(tempPath, filePath);
   } catch (cause) {
     rmSync(tempPath, { force: true });

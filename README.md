@@ -137,22 +137,68 @@ Result: OK — workspace is ready for SpecBridge
 
 ## CLI
 
-Working today (v0.1 — read-only, fully offline, no API key):
+Working today (fully offline, no model, no API key):
 
 | Command | What it does |
 | --- | --- |
-| `specbridge doctor` | Workspace health + compatibility report (never modifies files) |
+| `specbridge doctor` | Workspace health, compatibility, and sidecar-state report |
 | `specbridge steering list` | List steering files with inclusion modes |
 | `specbridge steering show <name>` | Print a steering file |
-| `specbridge spec list` | List specs with type, files, task progress, sidecar state |
-| `specbridge spec show <name>` | Spec summary; `--file`, `--raw`, `--json` |
+| `specbridge spec new <name>` | **v0.2** — create a Kiro-compatible spec from offline templates |
+| `specbridge spec analyze <name>` | **v0.2** — deterministic structural/consistency analysis |
+| `specbridge spec approve <name> --stage <s>` | **v0.2** — record (or `--revoke`) a stage approval with a byte-exact hash |
+| `specbridge spec status <name>` | **v0.2** — workflow status, stage approvals, stale detection |
+| `specbridge spec list` | List specs with type, mode, files, progress, approval health |
+| `specbridge spec show <name>` | Spec summary; `--file`, `--raw`, `--state`, `--analysis`, `--status`, `--json` |
 | `specbridge spec context <name>` | Agent-ready context (`--format json`, `--target claude-code`) |
 | `specbridge compat check [name]` | Prove the byte-identical no-op round trip |
 
-Planned commands (`spec new/analyze/approve/run/sync/verify/export`) are
-registered, marked "(planned)" in `--help`, and exit with an honest error —
-see the [roadmap](docs/roadmap.md). Every command supports `--help` with
-examples.
+Planned commands (`spec run/sync/verify/export`) are registered, marked
+"(planned)" in `--help`, and exit with an honest error — see the
+[roadmap](docs/roadmap.md). Every command supports `--help` with examples.
+
+## Spec authoring and approval (v0.2)
+
+Create specs, gate them through explicit approvals, and detect when an
+approved document changes — all offline, no LLM anywhere:
+
+```sh
+specbridge doctor
+
+specbridge spec new notification-preferences \
+  --mode requirements-first \
+  --description "Allow users to choose email and push notification preferences."
+
+specbridge spec analyze notification-preferences --stage requirements
+
+specbridge spec approve notification-preferences --stage requirements
+
+specbridge spec status notification-preferences
+```
+
+How it fits together:
+
+- **Templates, not generation.** `spec new` renders plain-Markdown templates
+  (feature: requirements-first / design-first / quick; bugfix: report + fix
+  design + plan). Generated placeholders like `<role>` are machine-
+  recognizable, so a fresh template cannot be approved by accident —
+  `spec analyze` reports them as errors until you write real content.
+- **Approval is recorded, never inferred.** `spec approve` runs the
+  deterministic analyzer (errors block, warnings do not), then stores the
+  SHA-256 of the exact file bytes plus a timestamp in
+  `.specbridge/state/specs/<name>.json`. The Markdown file is never touched.
+- **Stale approvals are caught.** Change one byte of an approved file and
+  `spec status` / `spec list` / `doctor` report `STALE_APPROVAL`, including
+  which dependent approvals are now invalid. Read-only commands never
+  rewrite state; re-approving is the explicit repair.
+- **Existing Kiro projects just work.** Specs without SpecBridge state are
+  reported as `unmanaged` and stay fully usable; the first successful
+  approval initializes sidecar state (`origin: existing-kiro-workspace`).
+
+Details: [spec authoring](docs/spec-authoring.md) ·
+[deterministic analysis](docs/spec-analysis.md) ·
+[approval workflow](docs/approval-workflow.md) ·
+[sidecar state](docs/sidecar-state.md).
 
 ## Compatibility guarantees
 
@@ -195,13 +241,15 @@ guessing when none exists.
   ([examples/requirements-first-project](examples/requirements-first-project))
 - **Design-first** — design → requirements → tasks
   ([examples/design-first-project](examples/design-first-project))
-- **Quick** — all files generated in one step
+- **Quick** — all files generated in one step, approvals in any order
   ([examples/quick-spec-project](examples/quick-spec-project))
 - **Bugfix** — `bugfix.md` (Current/Expected/Unchanged Behavior…) + design + tasks
   ([examples/bugfix-spec-project](examples/bugfix-spec-project))
 
-`specbridge spec new` (template mode, offline; runner mode optional) arrives
-in Phase E.
+All four are created offline by `specbridge spec new` (since v0.2) and gated
+by `spec approve` — see [docs/approval-workflow.md](docs/approval-workflow.md).
+Runner-assisted content generation is a separate, later phase and will always
+be opt-in.
 
 ## Claude Code integration
 
@@ -269,35 +317,45 @@ Configuration lives in `.specbridge/config.json`
   trusted project configuration, never from model output.
 - Logs never include secrets or environment variables.
 
-## Limitations (v0.1)
+## Limitations (v0.2)
 
-- Read-only: spec creation, approval, task execution, sync, and drift
-  verification CLI commands are not implemented yet (they fail honestly).
-- Files that are not valid UTF-8 are read best-effort and never edited.
+- Task execution, sync, drift-verification CLI, and export are not
+  implemented yet (they fail honestly; the drift library primitives exist).
+- `spec new` renders offline templates only — no model writes content in
+  v0.2, by design. Runner-assisted generation is a future opt-in.
+- Analysis is deterministic and structural; it cannot judge whether
+  requirements are *good*, only whether they are well-formed and complete.
 - Workflow order cannot be inferred without sidecar state (reported as
-  `unknown` — by design).
+  `unknown` — by design); the first approval of an existing Kiro spec infers
+  it only when unambiguous.
+- Files that are not valid UTF-8 are read best-effort and never edited.
 - The GitHub Action is a preview and needs specbridge installed in the workflow.
 - Setext (`===` underline) headings are not recognized as section boundaries;
   the bytes are preserved regardless.
 
 ## Roadmap
 
-Phase 1 (this release): read-only compatibility, doctor, listing, context,
-round-trip proof. Next: spec workflow (E), runner adapters (F), task
-execution with evidence (G), sync + drift verification (H), GitHub Action
-(I), Claude Code skill polish (J), optional MCP server (K).
+v0.1: read-only compatibility, doctor, listing, context, round-trip proof.
+v0.2 (this release): offline spec authoring, deterministic analysis,
+hash-based approvals, stale-approval detection. Next: runner adapters (F),
+task execution with evidence (G), sync + drift verification (H), GitHub
+Action (I), Claude Code skill polish (J), optional MCP server (K).
 Full detail: [docs/roadmap.md](docs/roadmap.md).
 
 ## Documentation
 
 [Architecture](docs/architecture.md) ·
 [Kiro compatibility](docs/kiro-compatibility.md) ·
+[Spec authoring](docs/spec-authoring.md) ·
+[Spec analysis](docs/spec-analysis.md) ·
+[Approval workflow](docs/approval-workflow.md) ·
 [Sidecar state](docs/sidecar-state.md) ·
 [Spec drift](docs/spec-drift.md) ·
 [Runner adapters](docs/runner-adapters.md) ·
 [Claude Code integration](docs/claude-code-integration.md) ·
 [Migration from Kiro](docs/migration-from-kiro.md) (spoiler: there is none) ·
-[Roadmap](docs/roadmap.md)
+[Roadmap](docs/roadmap.md) ·
+[Changelog](CHANGELOG.md)
 
 ## License and trademarks
 

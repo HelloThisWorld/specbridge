@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "1.0.0",
+  "specName": "payment-retry",
+  "specType": "feature",
+  "workflowMode": "requirements-first",
+  "origin": "created-by-specbridge",
+  "status": "TASKS_DRAFT",
+  "createdAt": "2026-07-01T09:00:00.000Z",
+  "updatedAt": "2026-07-03T10:00:00.000Z",
+  "stages": {
+    "requirements": {
+      "status": "approved",
+      "file": ".kiro/specs/payment-retry/requirements.md",
+      "approvedAt": "2026-07-01T10:00:00.000Z",
+      "approvedHash": "80658d9f683cb29bbd3a0c637f5345b88efc32fd0af8a9717e664c002f684183"
+    },
+    "design": {
+      "status": "approved",
+      "file": ".kiro/specs/payment-retry/design.md",
+      "approvedAt": "2026-07-03T10:00:00.000Z",
+      "approvedHash": "1254a27087fb61d4a2069b6696b0e12aced9c942f52b5317c6c609a40bc625cc"
+    },
+    "tasks": {
+      "status": "draft",
+      "file": ".kiro/specs/payment-retry/tasks.md",
+      "approvedAt": null,
+      "approvedHash": null
+    }
+  }
+}

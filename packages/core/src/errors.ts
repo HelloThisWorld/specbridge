@@ -1,6 +1,7 @@
 export type SpecBridgeErrorCode =
   | 'WORKSPACE_NOT_FOUND'
   | 'SPEC_NOT_FOUND'
+  | 'SPEC_ALREADY_EXISTS'
   | 'STEERING_NOT_FOUND'
   | 'SPEC_FILE_NOT_FOUND'
   | 'INVALID_ARGUMENT'

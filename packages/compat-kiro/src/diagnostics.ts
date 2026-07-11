@@ -1,4 +1,4 @@
-import type { Diagnostic, SpecState, TaskProgress, WorkspaceInfo } from '@specbridge/core';
+import type { Diagnostic, SpecWorkflowState, TaskProgress, WorkspaceInfo } from '@specbridge/core';
 import { EMPTY_TASK_PROGRESS, hasErrors, readSpecState } from '@specbridge/core';
 import { extractFrontMatter } from './steering-loader.js';
 import type { SteeringFileInfo } from './steering-loader.js';
@@ -28,7 +28,7 @@ import { checkNoopRoundTrip } from './roundtrip-writer.js';
 export interface SpecAnalysis {
   folder: SpecFolder;
   classification: SpecClassification;
-  state?: SpecState;
+  state?: SpecWorkflowState;
   documents: Partial<Record<'requirements' | 'design' | 'tasks' | 'bugfix', MarkdownDocument>>;
   requirements?: RequirementsModel;
   design?: DesignModel;

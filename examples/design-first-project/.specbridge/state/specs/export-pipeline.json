@@ -1,16 +1,30 @@
 {
+  "schemaVersion": "1.0.0",
   "specName": "export-pipeline",
   "specType": "feature",
   "workflowMode": "design-first",
-  "status": "DESIGN_APPROVED",
-  "approvals": {
+  "origin": "created-by-specbridge",
+  "status": "TASKS_DRAFT",
+  "createdAt": "2026-06-20T14:00:00.000Z",
+  "updatedAt": "2026-06-22T11:00:00.000Z",
+  "stages": {
     "design": {
-      "approved": true,
-      "approvedAt": "2026-06-20T15:00:00Z"
+      "status": "approved",
+      "file": ".kiro/specs/export-pipeline/design.md",
+      "approvedAt": "2026-06-20T15:00:00.000Z",
+      "approvedHash": "c563c19be7f6f2de7676d64c7f4c485968e931b30a45cd40cd2ed794988d0888"
     },
     "requirements": {
-      "approved": true,
-      "approvedAt": "2026-06-22T11:00:00Z"
+      "status": "approved",
+      "file": ".kiro/specs/export-pipeline/requirements.md",
+      "approvedAt": "2026-06-22T11:00:00.000Z",
+      "approvedHash": "ca15c1c46bbb0b8ea4bff4640268a90bb3c6d1a4d3aad306166cbf16de3c8c06"
+    },
+    "tasks": {
+      "status": "draft",
+      "file": ".kiro/specs/export-pipeline/tasks.md",
+      "approvedAt": null,
+      "approvedHash": null
     }
   }
 }

@@ -13,7 +13,8 @@ delete `.specbridge/`, and your Kiro project is exactly as it was.
 ├── config.json                  # runner configuration (no secrets, ever)
 ├── state/
 │   └── specs/
-│       └── <spec-name>.json     # workflow, status, approvals, impact areas
+│       └── <spec-name>.json     # workflow mode, stage approvals, hashes
+├── tmp/                         # spec-creation staging (removed after use)
 ├── runs/                        # per-run records (Phase G)
 ├── evidence/
 │   └── <spec-name>/<task>.json  # task evidence records (Phase G/H)
@@ -21,41 +22,67 @@ delete `.specbridge/`, and your Kiro project is exactly as it was.
 └── cache/                       # disposable
 ```
 
-Only `config.json` and `state/` exist in v0.1 workflows; the rest is created
-by later-phase commands. Nothing here is required — a workspace without
-`.specbridge/` is fully supported.
+Only `config.json`, `state/`, and the transient `tmp/` exist in v0.2
+workflows; the rest is created by later-phase commands. Nothing here is
+required — a workspace without `.specbridge/` is fully supported.
 
-## Spec state schema
+## Spec state schema (1.0.0)
 
-`.specbridge/state/specs/<name>.json` (validated with zod, unknown fields
-preserved for forward compatibility):
+`.specbridge/state/specs/<name>.json` is versioned and validated with zod;
+unknown fields written by newer 1.x versions survive a read-modify-write.
 
 ```json
 {
+  "schemaVersion": "1.0.0",
   "specName": "notification-preferences",
   "specType": "feature",
   "workflowMode": "requirements-first",
-  "status": "DESIGN_APPROVED",
-  "approvals": {
-    "requirements": { "approved": true, "approvedAt": "2026-07-01T10:00:00Z" },
-    "design": { "approved": true, "approvedAt": "2026-07-02T09:30:00Z" }
-  },
-  "declaredImpactAreas": ["src/notifications/**", "tests/notifications/**"],
-  "verificationCommands": ["npm test"]
+  "origin": "created-by-specbridge",
+  "status": "DESIGN_DRAFT",
+  "createdAt": "2026-07-01T09:00:00.000Z",
+  "updatedAt": "2026-07-01T10:00:00.000Z",
+  "stages": {
+    "requirements": {
+      "status": "approved",
+      "file": ".kiro/specs/notification-preferences/requirements.md",
+      "approvedAt": "2026-07-01T10:00:00.000Z",
+      "approvedHash": "a8571bce929fcce33ddf4ff6292e712a3efe1b267c4285cfabe0758d4c607317"
+    },
+    "design": {
+      "status": "draft",
+      "file": ".kiro/specs/notification-preferences/design.md",
+      "approvedAt": null,
+      "approvedHash": null
+    },
+    "tasks": {
+      "status": "blocked",
+      "file": ".kiro/specs/notification-preferences/tasks.md",
+      "approvedAt": null,
+      "approvedHash": null
+    }
+  }
 }
 ```
 
 - `workflowMode`: `requirements-first` | `design-first` | `quick`. The file
   layout cannot express this; without sidecar state SpecBridge reports
   `unknown`.
-- `status`: `DRAFT` → `REQUIREMENTS_APPROVED` → `DESIGN_APPROVED` →
-  `READY_FOR_EXECUTION` → `IN_PROGRESS` → `COMPLETE`.
-- `declaredImpactAreas` / `verificationCommands`: consumed by drift
-  verification (Phase H). Verification commands come from this trusted file
-  or explicit user input — never from model output.
+- `origin`: `created-by-specbridge`, or `existing-kiro-workspace` when the
+  state was initialized by the first approval of a pre-existing Kiro spec.
+- `status`: the workflow status derived from stage approvals — see
+  [approval-workflow.md](approval-workflow.md) for the per-mode state
+  machines.
+- `stages`: one entry per approvable stage, in workflow order. Bugfix specs
+  replace `requirements` with `bugfix`. `approvedHash` is the SHA-256 of the
+  exact approved file bytes; `blocked`/`draft` stages carry nulls. Approval
+  is only ever read from here — never inferred from file existence.
+- Stage `file` paths are workspace-relative with forward slashes and are
+  guarded against traversal when resolved.
 
-Invalid or corrupt state files degrade to warnings; the `.kiro` files always
-win.
+Invalid, legacy (pre-1.0.0), or corrupt state files degrade to warnings and
+the spec is treated as unmanaged; the `.kiro` files always win. Read-only
+commands never rewrite state — stale approvals are recomputed in memory and
+repaired only by an explicit re-approval.
 
 ## Evidence records
 

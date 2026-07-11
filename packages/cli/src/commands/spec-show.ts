@@ -1,7 +1,8 @@
 import type { Command } from 'commander';
-import { CLI_BIN, SpecBridgeError } from '@specbridge/core';
+import { CLI_BIN, SpecBridgeError, stateStageNames, stateStage } from '@specbridge/core';
 import type { SpecAnalysis } from '@specbridge/compat-kiro';
 import { analyzeSpec, requireSpec } from '@specbridge/compat-kiro';
+import { analyzeSpecWorkflow } from '@specbridge/workflow';
 import {
   createJsonReport,
   dim,
@@ -16,6 +17,8 @@ import {
 } from '@specbridge/reporting';
 import type { CliRuntime } from '../context.js';
 import { formatBytes, relPath } from '../context.js';
+import type { SpecWorkflowView } from '../workflow-view.js';
+import { loadWorkflowView } from '../workflow-view.js';
 import { VERSION } from '../version.js';
 
 const FILE_KINDS = ['requirements', 'design', 'tasks', 'bugfix'] as const;
@@ -51,7 +54,7 @@ function describeDocument(analysis: SpecAnalysis, kind: FileKind): string {
   }
 }
 
-function printSummary(runtime: CliRuntime, analysis: SpecAnalysis): void {
+function printSummary(runtime: CliRuntime, analysis: SpecAnalysis, view: SpecWorkflowView): void {
   const workspace = runtime.workspace();
   const { classification, folder } = analysis;
   runtime.out(reportTitle(`Spec: ${folder.name}`));
@@ -77,17 +80,20 @@ function printSummary(runtime: CliRuntime, analysis: SpecAnalysis): void {
   runtime.out();
 
   runtime.out(sectionTitle('Sidecar state'));
-  if (analysis.state !== undefined) {
-    const approvals: string[] = [];
-    const recorded = analysis.state.approvals;
-    if (recorded?.requirements?.approved === true) approvals.push('requirements ✓');
-    if (recorded?.design?.approved === true) approvals.push('design ✓');
-    if (recorded?.tasks?.approved === true) approvals.push('tasks ✓');
+  const state = analysis.state;
+  if (state !== undefined) {
+    const approvals = stateStageNames(state)
+      .filter((stage) => stateStage(state, stage)?.status === 'approved')
+      .map((stage) => `${stage} ✓`);
+    const stale = view.health === 'stale' ? ' — STALE_APPROVAL (an approved file changed)' : '';
     runtime.out(
       okLine(
-        `${analysis.state.status} (${analysis.state.workflowMode})${approvals.length > 0 ? ` — ${approvals.join(', ')}` : ''}`,
+        `${view.displayStatus} (${state.workflowMode})${approvals.length > 0 ? ` — ${approvals.join(', ')}` : ''}${stale}`,
       ),
     );
+    runtime.out(dim(`    Details: ${CLI_BIN} spec status ${folder.name}`));
+  } else if (view.health === 'invalid') {
+    runtime.out(warnLine('invalid sidecar state (ignored) — see diagnostics below'));
   } else {
     runtime.out(infoLine('none (this spec has only ever been used by Kiro — that is fine)'));
   }
@@ -125,7 +131,7 @@ function printSummary(runtime: CliRuntime, analysis: SpecAnalysis): void {
   }
 }
 
-function toJson(analysis: SpecAnalysis): unknown {
+function toJson(analysis: SpecAnalysis, view: SpecWorkflowView): unknown {
   return createJsonReport('specbridge.spec-show/1', `${CLI_BIN} ${VERSION}`, {
     name: analysis.folder.name,
     dir: analysis.folder.dir,
@@ -133,6 +139,8 @@ function toJson(analysis: SpecAnalysis): unknown {
     files: analysis.folder.files,
     extraDirs: analysis.folder.extraDirs,
     sidecarState: analysis.state ?? null,
+    approvalHealth: view.health,
+    effectiveStatus: view.displayStatus,
     requirements: analysis.requirements ?? null,
     design: analysis.design ?? null,
     tasks:
@@ -166,6 +174,9 @@ export function registerSpecShowCommand(spec: Command, runtime: CliRuntime): voi
     .description('Show a spec summary, one of its files, or the full parsed model')
     .option('--file <kind>', `print one file's content (${FILE_KINDS.join(', ')})`)
     .option('--raw', 'print raw file content without any summary framing')
+    .option('--state', 'print the sidecar workflow state (JSON) for this spec')
+    .option('--analysis', 'print deterministic analysis findings for this spec')
+    .option('--status', 'print a one-line workflow status for this spec')
     .option('--json', 'output the full parsed model as JSON')
     .addHelpText(
       'after',
@@ -174,15 +185,70 @@ Examples:
   ${CLI_BIN} spec show user-authentication
   ${CLI_BIN} spec show user-authentication --file tasks
   ${CLI_BIN} spec show user-authentication --file requirements --raw
+  ${CLI_BIN} spec show user-authentication --state
+  ${CLI_BIN} spec show user-authentication --analysis
   ${CLI_BIN} spec show login-timeout-fix --json`,
     )
-    .action((name: string, options: { file?: string; raw?: boolean; json?: boolean }) => {
+    .action(
+      (
+        name: string,
+        options: {
+          file?: string;
+          raw?: boolean;
+          json?: boolean;
+          state?: boolean;
+          analysis?: boolean;
+          status?: boolean;
+        },
+      ) => {
       const workspace = runtime.workspace();
       const folder = requireSpec(workspace, name);
       const analysis = analyzeSpec(workspace, folder);
+      const view = loadWorkflowView(workspace, folder.name);
 
       if (options.json === true) {
-        runtime.outRaw(serializeJsonReport(toJson(analysis)));
+        runtime.outRaw(serializeJsonReport(toJson(analysis, view)));
+        return;
+      }
+
+      if (options.state === true) {
+        for (const diagnostic of view.stateRead.diagnostics) {
+          runtime.out(severityLine(diagnostic.severity, diagnostic.message));
+        }
+        if (view.stateRead.state !== undefined) {
+          runtime.outRaw(`${JSON.stringify(view.stateRead.state, null, 2)}\n`);
+        } else if (!view.stateRead.exists) {
+          runtime.out(infoLine(`No sidecar state (approval state: unmanaged). Path: ${relPath(workspace, view.stateRead.path)}`));
+        }
+        return;
+      }
+
+      if (options.status === true) {
+        const mode = view.stateRead.state?.workflowMode ?? analysis.classification.workflowMode;
+        runtime.out(
+          `${folder.name}  ${analysis.classification.type}  ${mode}  ${view.displayStatus}`,
+        );
+        runtime.out(dim(`  Details: ${CLI_BIN} spec status ${folder.name}`));
+        return;
+      }
+
+      if (options.analysis === true) {
+        const result = analyzeSpecWorkflow(analysis, view.evaluation);
+        if (result.diagnostics.length === 0) {
+          runtime.out(okLine('no findings'));
+        } else {
+          for (const diagnostic of result.diagnostics) {
+            const location =
+              diagnostic.file !== undefined
+                ? ` [${relPath(workspace, diagnostic.file)}${diagnostic.line !== undefined ? `:${diagnostic.line}` : ''}]`
+                : '';
+            runtime.out(severityLine(diagnostic.severity, `${diagnostic.message}${location}`));
+          }
+        }
+        runtime.out();
+        runtime.out(
+          dim(`  ${result.errorCount} errors, ${result.warningCount} warnings — full report: ${CLI_BIN} spec analyze ${folder.name}`),
+        );
         return;
       }
 
@@ -220,6 +286,7 @@ Examples:
         return;
       }
 
-      printSummary(runtime, analysis);
-    });
+      printSummary(runtime, analysis, view);
+      },
+    );
 }
