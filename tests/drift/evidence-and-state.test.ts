@@ -1,10 +1,10 @@
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import type { SpecState, WorkspaceInfo } from '@specbridge/core';
+import type { WorkspaceInfo } from '@specbridge/core';
 import { readSpecState, writeSpecState } from '@specbridge/core';
 import { listTaskEvidence, writeTaskEvidence } from '@specbridge/drift';
-import { emptyTempDir } from '../helpers.js';
+import { emptyTempDir, testWorkflowState } from '../helpers.js';
 
 function tempWorkspace(): WorkspaceInfo {
   const rootDir = emptyTempDir();
@@ -19,17 +19,19 @@ function tempWorkspace(): WorkspaceInfo {
 describe('sidecar state and evidence storage', () => {
   it('round-trips spec state through .specbridge/state/specs/<name>.json', () => {
     const workspace = tempWorkspace();
-    const state: SpecState = {
+    const state = testWorkflowState({
       specName: 'notification-preferences',
-      specType: 'feature',
       workflowMode: 'requirements-first',
-      status: 'DESIGN_APPROVED',
-      approvals: {
-        requirements: { approved: true, approvedAt: '2026-07-01T10:00:00Z' },
-        design: { approved: true, approvedAt: '2026-07-02T09:30:00Z' },
+      status: 'DESIGN_DRAFT',
+      stages: {
+        requirements: {
+          status: 'approved',
+          approvedAt: '2026-07-01T10:00:00.000Z',
+          approvedHash: 'a'.repeat(64),
+        },
+        design: { status: 'draft' },
       },
-      declaredImpactAreas: ['src/notifications/**'],
-    };
+    });
     const statePath = writeSpecState(workspace, state);
     expect(statePath).toContain(path.join('.specbridge', 'state', 'specs'));
 
@@ -39,19 +41,15 @@ describe('sidecar state and evidence storage', () => {
     expect(read.state).toMatchObject({
       specName: 'notification-preferences',
       workflowMode: 'requirements-first',
-      status: 'DESIGN_APPROVED',
+      status: 'DESIGN_DRAFT',
+      schemaVersion: '1.0.0',
     });
+    expect(read.state?.stages.requirements?.approvedHash).toBe('a'.repeat(64));
   });
 
   it('degrades invalid sidecar state to a diagnostic instead of crashing', () => {
     const workspace = tempWorkspace();
-    // Write a structurally invalid state file by hand.
-    writeSpecState(workspace, {
-      specName: 'broken',
-      specType: 'feature',
-      workflowMode: 'quick',
-      status: 'DRAFT',
-    });
+    writeSpecState(workspace, testWorkflowState({ specName: 'broken' }));
     writeFileSync(path.join(workspace.sidecarDir, 'state', 'specs', 'broken.json'), '{not json');
     const read = readSpecState(workspace, 'broken');
     expect(read.state).toBeUndefined();

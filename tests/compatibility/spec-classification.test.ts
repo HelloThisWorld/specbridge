@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type { SpecState } from '@specbridge/core';
 import { resolveWorkspace } from '@specbridge/core';
 import { classifySpec, findSpec } from '@specbridge/compat-kiro';
-import { fixturePath } from '../helpers.js';
+import { fixturePath, testWorkflowState } from '../helpers.js';
 
 function folderOf(fixture: string, spec: string) {
   const ws = resolveWorkspace(fixturePath(fixture))!;
@@ -25,12 +24,11 @@ describe('spec classification', () => {
   });
 
   it('uses sidecar state for the workflow mode when available', () => {
-    const state: SpecState = {
+    const state = testWorkflowState({
       specName: 'user-authentication',
-      specType: 'feature',
       workflowMode: 'design-first',
       status: 'DESIGN_APPROVED',
-    };
+    });
     const result = classifySpec(folderOf('standard-feature', 'user-authentication'), state);
     expect(result.workflowMode).toBe('design-first');
   });
@@ -61,12 +59,12 @@ describe('spec classification', () => {
   });
 
   it('flags sidecar/file-layout type mismatches instead of guessing', () => {
-    const state: SpecState = {
+    const state = testWorkflowState({
       specName: 'login-timeout-fix',
       specType: 'feature',
       workflowMode: 'quick',
-      status: 'DRAFT',
-    };
+      status: 'READY_FOR_REVIEW',
+    });
     const result = classifySpec(folderOf('bugfix-spec', 'login-timeout-fix'), state);
     expect(result.type).toBe('bugfix');
     expect(result.diagnostics.some((d) => d.code === 'SIDECAR_TYPE_MISMATCH')).toBe(true);

@@ -11,9 +11,9 @@ implemented unless marked ✅ and covered by tests.
 | B — Read-only Kiro compatibility | workspace detection, steering, discovery, classification, tolerant parsers, `doctor`, `steering list/show`, `spec list/show/context` | ✅ v0.1 |
 | C — Round-trip safety | line-preserving model, no-op byte identity, surgical checkbox patcher, golden tests | ✅ v0.1 |
 | D — Docs & release readiness | README, compatibility docs, CI (3 OS × Node 20/22), examples, smoke tests | ✅ v0.1 |
-| E — Spec workflow | `spec new` (offline templates + optional runner mode), `spec analyze`, `spec approve`, sidecar approvals | 🚧 planned |
-| F — Runner adapters | real `claude-code` / `codex` generation; config plumbing (interface + mock + detection ship in v0.1) | 🚧 planned |
-| G — Task execution | `spec run`, run records under `.specbridge/runs/`, evidence-gated checkbox completion | 🚧 planned |
+| E — Spec workflow | `spec new` (offline templates), `spec analyze` (deterministic), `spec approve` (hash-based sidecar approvals, stale detection, revocation), `spec status` | ✅ v0.2 (runner-assisted generation moves to Phase F) |
+| F — Runner adapters | real `claude-code` / `codex` generation; config plumbing (interface + mock + detection ship in v0.1) | 🚧 planned — v0.3 candidate |
+| G — Task execution | `spec run`, run records under `.specbridge/runs/`, evidence-gated checkbox completion | 🚧 planned — v0.3 candidate |
 | H — Sync & drift verification | `spec sync`, `spec verify` CLI over the existing `@specbridge/drift` primitives, terminal/JSON/HTML reports, quality-gate exit codes | 🚧 planned (library primitives ✅ in v0.1) |
 | I — GitHub Action | drift gates on PRs, Markdown summaries, report artifacts (read-only preview action ships in v0.1) | 🚧 planned |
 | J — Claude Code skill | polish the shipped skill as commands land | 🚧 iterating (v0.1 skill covers read-only workflows) |
@@ -21,10 +21,18 @@ implemented unless marked ✅ and covered by tests.
 
 ## Command availability
 
-| Command | v0.1 |
+| Command | Status |
 | --- | --- |
-| `doctor`, `steering list/show`, `spec list/show/context`, `compat check` | ✅ implemented |
-| `spec new/analyze/approve/run/sync/verify/export` | ❌ registered as "(planned)", exit 2 with an honest message |
+| `doctor`, `steering list/show`, `spec list/show/context`, `compat check` | ✅ v0.1 (extended in v0.2 with workflow status and sidecar audits) |
+| `spec new`, `spec analyze`, `spec approve`, `spec status` | ✅ v0.2 — fully offline, no model, no API key |
+| `spec run/sync/verify/export` | ❌ registered as "(planned)", exit 2 with an honest message |
+
+## v0.3 candidates
+
+- Runner-assisted content generation for `spec new` (Phase F) — explicitly
+  opt-in; offline templates remain the default.
+- Task execution with evidence records (Phase G).
+- `spec verify` CLI over the drift primitives (Phase H).
 
 ## Sequencing rule
 

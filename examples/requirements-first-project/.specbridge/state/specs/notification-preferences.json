@@ -1,23 +1,30 @@
 {
+  "schemaVersion": "1.0.0",
   "specName": "notification-preferences",
   "specType": "feature",
   "workflowMode": "requirements-first",
-  "status": "DESIGN_APPROVED",
-  "approvals": {
+  "origin": "created-by-specbridge",
+  "status": "DESIGN_DRAFT",
+  "createdAt": "2026-07-01T09:00:00.000Z",
+  "updatedAt": "2026-07-01T10:00:00.000Z",
+  "stages": {
     "requirements": {
-      "approved": true,
-      "approvedAt": "2026-07-01T10:00:00Z"
+      "status": "approved",
+      "file": ".kiro/specs/notification-preferences/requirements.md",
+      "approvedAt": "2026-07-01T10:00:00.000Z",
+      "approvedHash": "7fa1e23db7ca25d0f1d745e1bf99fc4fea185606b15fa2231e09f2c0cbeb29a0"
     },
     "design": {
-      "approved": true,
-      "approvedAt": "2026-07-02T09:30:00Z"
+      "status": "draft",
+      "file": ".kiro/specs/notification-preferences/design.md",
+      "approvedAt": null,
+      "approvedHash": null
+    },
+    "tasks": {
+      "status": "blocked",
+      "file": ".kiro/specs/notification-preferences/tasks.md",
+      "approvedAt": null,
+      "approvedHash": null
     }
-  },
-  "declaredImpactAreas": [
-    "src/notifications/**",
-    "tests/notifications/**"
-  ],
-  "verificationCommands": [
-    "npm test"
-  ]
+  }
 }

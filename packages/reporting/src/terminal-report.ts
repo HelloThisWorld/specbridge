@@ -12,7 +12,17 @@ export const sym = {
   fail: '✗',
   info: '·',
   add: '+',
+  active: '●',
+  blocked: '○',
 } as const;
+
+export function activeLine(message: string, detail?: string): string {
+  return `  ${pc.cyan(sym.active)} ${message}${detail !== undefined ? ` ${pc.dim(detail)}` : ''}`;
+}
+
+export function blockedLine(message: string, detail?: string): string {
+  return `  ${pc.dim(sym.blocked)} ${message}${detail !== undefined ? ` ${pc.dim(detail)}` : ''}`;
+}
 
 export function okLine(message: string, detail?: string): string {
   return `  ${pc.green(sym.ok)} ${message}${detail !== undefined ? ` ${pc.dim(detail)}` : ''}`;

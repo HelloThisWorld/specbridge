@@ -8,5 +8,5 @@ than guessing.
 
 ```sh
 cd examples/design-first-project
-node ../../packages/cli/dist/index.js spec list     # WORKFLOW column reads design-first
+node ../../packages/cli/dist/index.js spec list     # MODE column reads design-first
 ```

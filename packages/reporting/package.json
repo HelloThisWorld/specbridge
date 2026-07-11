@@ -1,6 +1,6 @@
 {
   "name": "@specbridge/reporting",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Terminal, JSON, and self-contained HTML report rendering for SpecBridge.",
   "license": "MIT",
   "type": "module",
@@ -12,7 +12,9 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "engines": {
     "node": ">=20.0.0"
   },

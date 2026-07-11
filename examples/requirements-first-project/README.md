@@ -8,6 +8,6 @@ The `.kiro` files carry no SpecBridge metadata.
 
 ```sh
 cd examples/requirements-first-project
-node ../../packages/cli/dist/index.js spec list     # WORKFLOW column reads requirements-first
+node ../../packages/cli/dist/index.js spec list     # MODE column reads requirements-first
 node ../../packages/cli/dist/index.js spec show notification-preferences
 ```

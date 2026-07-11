@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "1.0.0",
+  "specName": "notification-preferences",
+  "specType": "feature",
+  "workflowMode": "requirements-first",
+  "origin": "created-by-specbridge",
+  "status": "REQUIREMENTS_DRAFT",
+  "createdAt": "2026-07-01T09:00:00.000Z",
+  "updatedAt": "2026-07-01T09:00:00.000Z",
+  "stages": {
+    "requirements": {
+      "status": "draft",
+      "file": ".kiro/specs/notification-preferences/requirements.md",
+      "approvedAt": null,
+      "approvedHash": null
+    },
+    "design": {
+      "status": "blocked",
+      "file": ".kiro/specs/notification-preferences/design.md",
+      "approvedAt": null,
+      "approvedHash": null
+    },
+    "tasks": {
+      "status": "blocked",
+      "file": ".kiro/specs/notification-preferences/tasks.md",
+      "approvedAt": null,
+      "approvedHash": null
+    }
+  }
+}

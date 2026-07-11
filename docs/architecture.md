@@ -9,17 +9,18 @@ instead of duplicating logic.
 
 | Package | Responsibility |
 | --- | --- |
-| `@specbridge/core` | Shared types, errors, workspace detection, path-safety guards, atomic writes, sidecar state (`.specbridge/`) |
+| `@specbridge/core` | Shared types, errors, workspace detection, path-safety guards, atomic writes, hashing, versioned sidecar state (`.specbridge/`) |
 | `@specbridge/compat-kiro` | Everything `.kiro`: line-preserving Markdown model, steering loader, spec discovery/classification, tolerant parsers, round-trip writer, workspace analysis, agent-context assembly |
+| `@specbridge/workflow` | v0.2 authoring and approval engine: spec-name validation, offline templates, atomic spec creation, deterministic analyzers, workflow state machine, approval hashing + stale detection, sidecar audits |
 | `@specbridge/drift` | Deterministic drift primitives: git-diff parsing, impact areas, requirement/task coverage, evidence storage, report assembly |
-| `@specbridge/runners` | Model/agent adapters behind one `AgentRunner` interface (mock implemented; CLI runners detection-only in v0.1) |
+| `@specbridge/runners` | Model/agent adapters behind one `AgentRunner` interface (mock implemented; CLI runners detection-only) |
 | `@specbridge/reporting` | Terminal formatting, JSON report envelope, self-contained HTML rendering |
 | `specbridge` (packages/cli) | Commander-based CLI wiring the above together |
 
 Dependency direction (arrows = "may import"):
 
 ```
-cli ──▶ compat-kiro ──▶ core
+cli ──▶ workflow ──▶ compat-kiro ──▶ core
 cli ──▶ reporting   ──▶ core
 drift ─▶ compat-kiro, core        (cli wires drift in Phase H)
 runners ─▶ core                   (cli wires runners in Phase F)
@@ -40,12 +41,16 @@ runners ─▶ core                   (cli wires runners in Phase F)
    `error`) and the bytes are preserved. A file with zero recognized
    structure is still a valid file.
 4. **Deterministic by default.** Default commands are offline and produce
-   deterministic output (no timestamps or random ids in v0.1 reports), which
-   keeps them testable and CI-friendly. Model invocation is always explicit
+   deterministic output; analysis of the same bytes always yields the same
+   findings, and the only nondeterminism in sidecar state is the timestamp
+   (behind an injectable clock in tests). Model invocation is always explicit
    and never required.
 5. **Honest stubs.** Documented-but-unimplemented commands and runners exist,
    are labeled "(planned)", and exit with `NOT_IMPLEMENTED` errors. Nothing
    pretends to work.
+6. **Approval is recorded, never inferred.** A stage is approved only when
+   sidecar state holds a hash of the exact approved bytes; read paths
+   recompute staleness in memory and never rewrite state.
 
 ## Data flow of a typical command
 

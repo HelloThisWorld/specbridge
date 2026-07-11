@@ -1,0 +1,34 @@
+{
+  "name": "@specbridge/workflow",
+  "version": "0.2.0",
+  "description": "Offline spec authoring and approval workflow for SpecBridge: templates, deterministic analysis, stage approvals, and stale-approval detection.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@specbridge/compat-kiro": "workspace:*",
+    "@specbridge/core": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0"
+  }
+}

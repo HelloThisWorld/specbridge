@@ -13,6 +13,7 @@ import { registerSpecContextCommand } from './commands/spec-context.js';
 import { registerSpecNewCommand } from './commands/spec-new.js';
 import { registerSpecAnalyzeCommand } from './commands/spec-analyze.js';
 import { registerSpecApproveCommand } from './commands/spec-approve.js';
+import { registerSpecStatusCommand } from './commands/spec-status.js';
 import { registerSpecSyncCommand } from './commands/spec-sync.js';
 import { registerSpecRunCommand } from './commands/spec-run.js';
 import { registerSpecVerifyCommand } from './commands/spec-verify.js';
@@ -60,6 +61,7 @@ honest error; nothing pretends to work before it does.`,
   registerSpecNewCommand(spec, runtime);
   registerSpecAnalyzeCommand(spec, runtime);
   registerSpecApproveCommand(spec, runtime);
+  registerSpecStatusCommand(spec, runtime);
   registerSpecRunCommand(spec, runtime);
   registerSpecSyncCommand(spec, runtime);
   registerSpecVerifyCommand(spec, runtime);

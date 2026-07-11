@@ -2,8 +2,8 @@ import type {
   Diagnostic,
   SpecCompleteness,
   SpecFileKind,
-  SpecState,
   SpecType,
+  SpecWorkflowState,
   WorkflowMode,
 } from '@specbridge/core';
 import type { SpecFolder } from './spec-discovery.js';
@@ -30,7 +30,7 @@ export interface SpecClassification {
 const FEATURE_REQUIRED: SpecFileKind[] = ['requirements', 'design', 'tasks'];
 const BUGFIX_REQUIRED: SpecFileKind[] = ['bugfix', 'design', 'tasks'];
 
-export function classifySpec(folder: SpecFolder, state?: SpecState): SpecClassification {
+export function classifySpec(folder: SpecFolder, state?: SpecWorkflowState): SpecClassification {
   const diagnostics: Diagnostic[] = [];
   const presentKinds: SpecFileKind[] = [...new Set(folder.files.map((f) => f.kind))].filter(
     (kind): kind is SpecFileKind => kind !== 'other',

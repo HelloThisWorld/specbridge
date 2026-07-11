@@ -1,17 +1,25 @@
 {
   "name": "specbridge",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "An open, model-agnostic spec runtime for existing Kiro projects. No conversion, no duplicated specs, no lock-in.",
   "license": "MIT",
   "type": "module",
   "bin": {
     "specbridge": "dist/index.js"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "engines": {
     "node": ">=20.0.0"
   },
-  "keywords": ["kiro", "specs", "spec-driven-development", "cli", "ai-agents"],
+  "keywords": [
+    "kiro",
+    "specs",
+    "spec-driven-development",
+    "cli",
+    "ai-agents"
+  ],
   "scripts": {
     "build": "tsup",
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
@@ -21,6 +29,7 @@
     "@specbridge/compat-kiro": "workspace:*",
     "@specbridge/core": "workspace:*",
     "@specbridge/reporting": "workspace:*",
+    "@specbridge/workflow": "workspace:*",
     "commander": "^12.1.0",
     "picocolors": "^1.1.0"
   },

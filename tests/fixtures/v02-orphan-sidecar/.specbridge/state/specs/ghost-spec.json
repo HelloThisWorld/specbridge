@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "1.0.0",
+  "specName": "ghost-spec",
+  "specType": "feature",
+  "workflowMode": "requirements-first",
+  "origin": "created-by-specbridge",
+  "status": "REQUIREMENTS_DRAFT",
+  "createdAt": "2026-07-01T09:00:00.000Z",
+  "updatedAt": "2026-07-01T09:00:00.000Z",
+  "stages": {
+    "requirements": {
+      "status": "draft",
+      "file": ".kiro/specs/ghost-spec/requirements.md",
+      "approvedAt": null,
+      "approvedHash": null
+    },
+    "design": {
+      "status": "blocked",
+      "file": ".kiro/specs/ghost-spec/design.md",
+      "approvedAt": null,
+      "approvedHash": null
+    },
+    "tasks": {
+      "status": "blocked",
+      "file": ".kiro/specs/ghost-spec/tasks.md",
+      "approvedAt": null,
+      "approvedHash": null
+    }
+  }
+}

@@ -4,7 +4,8 @@
  * Exits non-zero on the first failure. No network, no model, no API key.
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -121,7 +122,14 @@ run('sidecar workflow modes surface in spec list', {
   cwd: examples('requirements-first-project'),
   args: ['spec', 'list'],
   expectCode: 0,
-  expectStdout: ['requirements-first', 'DESIGN_APPROVED'],
+  expectStdout: ['requirements-first', 'DESIGN_DRAFT'],
+});
+
+run('spec status reports stage approvals from sidecar state', {
+  cwd: examples('requirements-first-project'),
+  args: ['spec', 'status', 'notification-preferences'],
+  expectCode: 0,
+  expectStdout: ['Status: DESIGN_DRAFT', 'Approved', 'Content unchanged since approval'],
 });
 
 run('bugfix example classifies from layout alone', {
@@ -136,6 +144,89 @@ run('planned commands fail honestly', {
   args: ['spec', 'run', 'user-authentication'],
   expectCode: 2,
   expectStderr: ['not implemented yet'],
+});
+
+// v0.2 authoring workflow, end to end, in a throwaway workspace.
+const scratch = mkdtempSync(path.join(os.tmpdir(), 'specbridge-smoke-'));
+mkdirSync(path.join(scratch, '.kiro'), { recursive: true });
+
+run('spec new creates a Kiro-compatible spec offline', {
+  cwd: scratch,
+  args: [
+    'spec',
+    'new',
+    'notification-preferences',
+    '--mode',
+    'requirements-first',
+    '--description',
+    'Allow users to select email and push notification preferences.',
+  ],
+  expectCode: 0,
+  expectStdout: ['Created spec: notification-preferences', 'requirements.md', 'sidecar workflow state'],
+});
+
+run('freshly generated placeholders block approval', {
+  cwd: scratch,
+  args: ['spec', 'approve', 'notification-preferences', '--stage', 'requirements'],
+  expectCode: 1,
+  expectStderr: ['Cannot approve requirements'],
+});
+
+writeFileSync(
+  path.join(scratch, '.kiro', 'specs', 'notification-preferences', 'requirements.md'),
+  [
+    '# Requirements Document',
+    '',
+    '## Introduction',
+    '',
+    'Allow users to select email and push notification preferences.',
+    '',
+    '## Requirements',
+    '',
+    '### Requirement 1: Channel selection',
+    '',
+    '**User Story:** As a user, I want to pick notification channels, so that I control where alerts arrive.',
+    '',
+    '#### Acceptance Criteria',
+    '',
+    '1. WHEN a user saves channel preferences, THE SYSTEM SHALL persist the selection.',
+    '2. IF the preferences service is unavailable, THEN THE SYSTEM SHALL keep the previous preferences.',
+    '',
+    '## Out of Scope',
+    '',
+    '- Digest scheduling.',
+    '',
+    '## Non-Functional Requirements',
+    '',
+    '- Security: preferences are only readable by their owner.',
+    '',
+  ].join('\n'),
+);
+
+run('spec analyze passes after real content is written', {
+  cwd: scratch,
+  args: ['spec', 'analyze', 'notification-preferences', '--stage', 'requirements'],
+  expectCode: 0,
+  expectStdout: ['Result: OK'],
+});
+
+run('spec approve records the stage approval', {
+  cwd: scratch,
+  args: ['spec', 'approve', 'notification-preferences', '--stage', 'requirements'],
+  expectCode: 0,
+  expectStdout: ['requirements approved', 'Status: DESIGN_DRAFT'],
+});
+
+writeFileSync(
+  path.join(scratch, '.kiro', 'specs', 'notification-preferences', 'requirements.md'),
+  '# Requirements Document\n\nmodified after approval\n',
+);
+
+run('spec status detects the stale approval', {
+  cwd: scratch,
+  args: ['spec', 'status', 'notification-preferences'],
+  expectCode: 0,
+  expectStdout: ['STALE_APPROVAL', 'Modified after approval'],
 });
 
 run('unknown spec errors helpfully', {
