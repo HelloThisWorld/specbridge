@@ -35,9 +35,18 @@ importers:
       '@specbridge/core':
         specifier: workspace:*
         version: link:../core
+      '@specbridge/evidence':
+        specifier: workspace:*
+        version: link:../evidence
+      '@specbridge/execution':
+        specifier: workspace:*
+        version: link:../execution
       '@specbridge/reporting':
         specifier: workspace:*
         version: link:../reporting
+      '@specbridge/runners':
+        specifier: workspace:*
+        version: link:../runners
       '@specbridge/workflow':
         specifier: workspace:*
         version: link:../workflow
@@ -112,6 +121,53 @@ importers:
         specifier: ^5.6.0
         version: 5.9.3
 
+  packages/evidence:
+    dependencies:
+      '@specbridge/core':
+        specifier: workspace:*
+        version: link:../core
+      '@specbridge/runners':
+        specifier: workspace:*
+        version: link:../runners
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
+    devDependencies:
+      tsup:
+        specifier: ^8.3.0
+        version: 8.5.1(postcss@8.5.16)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+
+  packages/execution:
+    dependencies:
+      '@specbridge/compat-kiro':
+        specifier: workspace:*
+        version: link:../compat-kiro
+      '@specbridge/core':
+        specifier: workspace:*
+        version: link:../core
+      '@specbridge/evidence':
+        specifier: workspace:*
+        version: link:../evidence
+      '@specbridge/runners':
+        specifier: workspace:*
+        version: link:../runners
+      '@specbridge/workflow':
+        specifier: workspace:*
+        version: link:../workflow
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
+    devDependencies:
+      tsup:
+        specifier: ^8.3.0
+        version: 8.5.1(postcss@8.5.16)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+
   packages/reporting:
     dependencies:
       '@specbridge/core':
@@ -136,6 +192,9 @@ importers:
       execa:
         specifier: ^9.4.0
         version: 9.6.1
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
     devDependencies:
       tsup:
         specifier: ^8.3.0

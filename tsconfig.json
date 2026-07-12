@@ -7,6 +7,8 @@
       "@specbridge/compat-kiro": ["./packages/compat-kiro/src/index.ts"],
       "@specbridge/drift": ["./packages/drift/src/index.ts"],
       "@specbridge/runners": ["./packages/runners/src/index.ts"],
+      "@specbridge/evidence": ["./packages/evidence/src/index.ts"],
+      "@specbridge/execution": ["./packages/execution/src/index.ts"],
       "@specbridge/reporting": ["./packages/reporting/src/index.ts"],
       "@specbridge/workflow": ["./packages/workflow/src/index.ts"]
     }

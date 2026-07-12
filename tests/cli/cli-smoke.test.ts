@@ -266,7 +266,6 @@ describe('specbridge compat check', () => {
 
 describe('planned commands are honest', () => {
   it.each([
-    ['spec', 'run', 'x'],
     ['spec', 'sync', 'x'],
     ['spec', 'verify', 'x'],
     ['spec', 'export', 'x'],
@@ -290,7 +289,15 @@ describe('general CLI behavior', () => {
   it('--version exits 0', async () => {
     const result = await cli(standard, '--version');
     expect(result.code).toBe(0);
-    expect(result.stdout).toContain('0.2.0');
+    const cliVersion = (
+      JSON.parse(
+        (await import('node:fs')).readFileSync(
+          fixturePath('..', '..', 'packages', 'cli', 'package.json'),
+          'utf8',
+        ),
+      ) as { version: string }
+    ).version;
+    expect(result.stdout).toContain(cliVersion);
   });
 
   it('unknown commands exit 2', async () => {

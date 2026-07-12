@@ -18,6 +18,11 @@ import { registerSpecSyncCommand } from './commands/spec-sync.js';
 import { registerSpecRunCommand } from './commands/spec-run.js';
 import { registerSpecVerifyCommand } from './commands/spec-verify.js';
 import { registerSpecExportCommand } from './commands/spec-export.js';
+import { registerSpecGenerateCommand } from './commands/spec-generate.js';
+import { registerSpecRefineCommand } from './commands/spec-refine.js';
+import { registerSpecAcceptTaskCommand } from './commands/spec-accept-task.js';
+import { registerRunnerCommands } from './commands/runner.js';
+import { registerRunCommands } from './commands/run.js';
 import { registerCompatCheckCommand } from './commands/compat-check.js';
 
 function buildProgram(runtime: CliRuntime): Command {
@@ -62,11 +67,16 @@ honest error; nothing pretends to work before it does.`,
   registerSpecAnalyzeCommand(spec, runtime);
   registerSpecApproveCommand(spec, runtime);
   registerSpecStatusCommand(spec, runtime);
+  registerSpecGenerateCommand(spec, runtime);
+  registerSpecRefineCommand(spec, runtime);
   registerSpecRunCommand(spec, runtime);
+  registerSpecAcceptTaskCommand(spec, runtime);
   registerSpecSyncCommand(spec, runtime);
   registerSpecVerifyCommand(spec, runtime);
   registerSpecExportCommand(spec, runtime);
 
+  registerRunnerCommands(program, runtime);
+  registerRunCommands(program, runtime);
   registerCompatCheckCommand(program, runtime);
 
   return program;

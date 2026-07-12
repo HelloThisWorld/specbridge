@@ -1,0 +1,38 @@
+{
+  "name": "@specbridge/execution",
+  "version": "0.3.0",
+  "description": "Task selection, bounded task context, runner orchestration, run records, and session resume for SpecBridge.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@specbridge/compat-kiro": "workspace:*",
+    "@specbridge/core": "workspace:*",
+    "@specbridge/evidence": "workspace:*",
+    "@specbridge/runners": "workspace:*",
+    "@specbridge/workflow": "workspace:*",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0"
+  }
+}

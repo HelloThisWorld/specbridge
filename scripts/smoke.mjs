@@ -141,9 +141,31 @@ run('bugfix example classifies from layout alone', {
 
 run('planned commands fail honestly', {
   cwd: kiroProject,
-  args: ['spec', 'run', 'user-authentication'],
+  args: ['spec', 'sync', 'user-authentication'],
   expectCode: 2,
   expectStderr: ['not implemented yet'],
+});
+
+// v0.3 runner diagnostics are read-only and offline.
+run('runner list shows honest runner statuses', {
+  cwd: kiroProject,
+  args: ['runner', 'list'],
+  expectCode: 0,
+  expectStdout: ['mock', 'not implemented in v0.3'],
+});
+
+run('runner doctor mock reports available with safety lines', {
+  cwd: kiroProject,
+  args: ['runner', 'doctor', 'mock'],
+  expectCode: 0,
+  expectStdout: ['Status: available', 'bypassPermissions is not enabled'],
+});
+
+run('spec run on an unmanaged spec fails with actionable guidance', {
+  cwd: kiroProject,
+  args: ['spec', 'run', 'user-authentication'],
+  expectCode: 1,
+  expectStderr: ['no SpecBridge workflow state', 'spec approve'],
 });
 
 // v0.2 authoring workflow, end to end, in a throwaway workspace.
