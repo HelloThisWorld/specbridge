@@ -9,12 +9,14 @@ import type {
 } from '@specbridge/core';
 import {
   SPEC_STATE_SCHEMA_VERSION,
+  TASK_PLAN_HASH_SEMANTICS_VERSION,
   readSpecState,
   sha256File,
   stateStage,
   writeSpecState,
 } from '@specbridge/core';
 import type { SpecAnalysis } from '@specbridge/compat-kiro';
+import { tryTaskPlanHashOfFile } from '@specbridge/compat-kiro';
 import type { Clock } from './clock.js';
 import { isoNow, systemClock } from './clock.js';
 import type { SpecAnalysisResult } from './analyzers.js';
@@ -167,6 +169,21 @@ export function newSpecState(
 
 function stageList(stages: StageName[]): string {
   return stages.join(', ');
+}
+
+/**
+ * A stage approval reset to draft. Every approval artifact — including the
+ * v0.4 plan-hash fields — is removed so the cleared entry validates and a
+ * later re-approval starts from a clean slate.
+ */
+function clearedApproval(stage: StageApproval): StageApproval {
+  const {
+    approvedPlanHash: _plan,
+    hashAlgorithm: _algorithm,
+    hashSemanticsVersion: _semantics,
+    ...rest
+  } = stage;
+  return { ...rest, status: 'draft', approvedAt: null, approvedHash: null };
 }
 
 function cloneStages(state: SpecWorkflowState): Record<string, StageApproval> {
@@ -360,22 +377,28 @@ export function approveStage(
     for (const dependent of dependentStages(shape, request.stage)) {
       const dependentStage = stages[dependent];
       if (dependentStage !== undefined && dependentStage.status === 'approved') {
-        stages[dependent] = {
-          ...dependentStage,
-          status: 'draft',
-          approvedAt: null,
-          approvedHash: null,
-        };
+        stages[dependent] = clearedApproval(dependentStage);
         invalidated.push(dependent);
       }
     }
   }
 
+  // The tasks stage additionally records a checkbox-normalized plan hash
+  // (semantics v2) so later `[ ]` → `[x]` progress does not read as a plan
+  // change. Other stages stay exact-byte only.
+  const planHash = request.stage === 'tasks' ? tryTaskPlanHashOfFile(filePath) : undefined;
   stages[request.stage] = {
     ...target,
     status: 'approved',
     approvedAt: isoNow(clock),
     approvedHash: hash,
+    ...(planHash !== undefined
+      ? {
+          approvedPlanHash: planHash,
+          hashAlgorithm: 'sha256' as const,
+          hashSemanticsVersion: TASK_PLAN_HASH_SEMANTICS_VERSION,
+        }
+      : {}),
   };
 
   const recomputed = recomputeStages(shape, {
@@ -424,17 +447,12 @@ function revoke(
   for (const dependent of dependentStages(shape, stage)) {
     const dependentStage = stages[dependent];
     if (dependentStage !== undefined && dependentStage.status === 'approved') {
-      stages[dependent] = {
-        ...dependentStage,
-        status: 'draft',
-        approvedAt: null,
-        approvedHash: null,
-      };
+      stages[dependent] = clearedApproval(dependentStage);
       invalidated.push(dependent);
     }
   }
 
-  stages[stage] = { ...target, status: 'draft', approvedAt: null, approvedHash: null };
+  stages[stage] = clearedApproval(target);
 
   const recomputed = recomputeStages(shape, {
     ...state,

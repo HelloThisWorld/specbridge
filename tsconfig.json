@@ -16,6 +16,8 @@
   "include": [
     "packages/*/src/**/*.ts",
     "packages/*/tsup.config.ts",
+    "integrations/github-action/src/**/*.ts",
+    "integrations/github-action/tsup.config.ts",
     "tests/**/*.ts",
     "vitest.config.ts"
   ]

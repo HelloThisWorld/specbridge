@@ -258,6 +258,56 @@ run('unknown spec errors helpfully', {
   expectStderr: ['Available specs:'],
 });
 
+// v0.4 deterministic drift verification — read-only, offline, no model.
+run('verify rules lists the stable rule registry', {
+  cwd: kiroProject,
+  args: ['verify', 'rules'],
+  expectCode: 0,
+  expectStdout: ['SBV001', 'SBV025', 'Changed file outside declared impact area'],
+});
+
+run('verify explain describes one rule with remediation', {
+  cwd: kiroProject,
+  args: ['verify', 'explain', 'SBV011'],
+  expectCode: 0,
+  expectStdout: ['SBV011', 'Triggered when', 'Resolution'],
+});
+
+// The stock example deliberately ships drift: task 2 is checked while its
+// subtasks 2.2/2.3 are open — verification must catch it (SBV010).
+run('spec verify detects the drift shipped in the example (read-only)', {
+  cwd: kiroProject,
+  args: ['spec', 'verify', 'user-authentication', '--working-tree'],
+  expectCode: 1,
+  expectStdout: [
+    'Spec Drift Verification',
+    'working tree vs HEAD',
+    'SBV010',
+    'FAILED',
+  ],
+});
+
+run('spec verify --json emits the versioned report schema', {
+  cwd: kiroProject,
+  args: ['spec', 'verify', 'user-authentication', '--json', '--fail-on', 'never'],
+  expectCode: 0,
+  expectStdout: ['"schemaVersion": "1.0.0"', '"ruleId": "SBV010"', '"specResults"'],
+});
+
+run('spec affected resolves the change mapping', {
+  cwd: kiroProject,
+  args: ['spec', 'affected', '--working-tree'],
+  expectCode: 0,
+  expectStdout: ['Affected specs'],
+});
+
+run('spec policy init --dry-run proposes a starter policy without writing', {
+  cwd: kiroProject,
+  args: ['spec', 'policy', 'init', 'user-authentication', '--mode', 'strict', '--dry-run'],
+  expectCode: 0,
+  expectStdout: ['dry run', 'Review this file before enforcing strict verification'],
+});
+
 // Version consistency between package.json and the version constant.
 const cliPackage = JSON.parse(
   readFileSync(path.join(repoRoot, 'packages', 'cli', 'package.json'), 'utf8'),

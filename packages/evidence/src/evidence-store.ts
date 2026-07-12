@@ -45,6 +45,31 @@ export const manualAcceptanceSchema = z.object({
   referencedRunId: z.string().optional(),
 });
 
+const SHA256_HEX = /^[0-9a-f]{64}$/;
+
+/**
+ * Spec-and-task identity captured when the evidence was recorded (added in
+ * v0.4; optional so every v0.3 record keeps validating). Verification uses
+ * these fields to decide deterministically whether evidence is still fresh:
+ * a changed approved hash, plan hash, or task fingerprint means the evidence
+ * no longer describes the current spec.
+ */
+export const evidenceSpecContextSchema = z
+  .object({
+    /** Approved exact-byte hash of requirements.md/bugfix.md at evidence time. */
+    documentHash: z.string().regex(SHA256_HEX).optional(),
+    /** Approved exact-byte hash of design.md at evidence time. */
+    designHash: z.string().regex(SHA256_HEX).optional(),
+    /** Checkbox-normalized plan hash of tasks.md at evidence time. */
+    tasksPlanHash: z.string().regex(SHA256_HEX).optional(),
+    /** Fingerprint of the task's id, title, and requirement refs. */
+    taskFingerprint: z.string().regex(SHA256_HEX).optional(),
+    /** Raw checkbox line text of the task at evidence time. */
+    taskText: z.string().optional(),
+  })
+  .passthrough();
+export type EvidenceSpecContext = z.infer<typeof evidenceSpecContextSchema>;
+
 export const taskEvidenceRecordSchema = z
   .object({
     schemaVersion: z.string().regex(/^\d+\.\d+\.\d+$/),
@@ -76,6 +101,7 @@ export const taskEvidenceRecordSchema = z
     warnings: z.array(z.string()),
     evaluatedAt: z.string(),
     manualAcceptance: manualAcceptanceSchema.optional(),
+    specContext: evidenceSpecContextSchema.optional(),
   })
   .passthrough();
 

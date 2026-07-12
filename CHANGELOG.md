@@ -1,5 +1,88 @@
 # Changelog
 
+## 0.4.0
+
+Added:
+
+- Deterministic spec drift rule engine (`@specbridge/drift`) with 25 stable,
+  documented rule IDs (`SBV001`–`SBV025`) across workspace, approval,
+  requirements, design, tasks, evidence, impact-area, verification-command,
+  protected-path, mapping, and git categories. Every diagnostic carries a
+  versioned schema, severity, category, message, remediation, source
+  location, structured evidence, and a deterministic/heuristic confidence
+  label. Heuristic rules never default to error severity.
+- `specbridge spec verify [name] | --changed | --all` — read-only
+  verification against a git comparison: `--diff base...head`,
+  `--base/--head`, `--working-tree` (default), or `--staged`, with
+  `--fail-on error|warning|never`, `--strict`, `--policy`, `--json`,
+  `--format terminal|json|markdown|html`, and `--output`. Exit codes:
+  0 passed, 1 threshold reached, 2 invalid input/policy/state, 3 comparison
+  unavailable, 4 command failed to start, 5 command timeout.
+- Requirement-to-task traceability extraction: requirement and acceptance
+  criterion IDs (`R1`, `R1.1`, `REQ-001`, `Requirement 1`, `AC-1`, `AC1.2`),
+  task references (`_Requirements: 1.1_`, `Requirements: R1`, `[R1]`,
+  keyword phrases as heuristics), explicit design path references, source
+  lines, and extraction-method provenance.
+- Task evidence freshness validation: recorded approved-content hashes,
+  checkbox-invariant task fingerprints, commit lineage, repository-path
+  safety, and timestamp fallbacks for v0.3 records. New evidence records a
+  `specContext` (approved hashes + task fingerprint) for exact drift checks.
+- Spec-specific verification policies under `.specbridge/policies/<spec>.json`
+  (versioned Zod schema; validated globs; advisory/strict modes; per-rule
+  severity overrides) with `spec policy init|show|validate`. `.git/**`
+  protection can never be configured away.
+- Affected-spec resolution (`spec affected`, `spec verify --changed`): spec
+  files, sidecar state, policy files, impact areas, accepted task evidence,
+  and explicit design references; unmapped files (SBV014) and ambiguous
+  mappings (SBV022) are reported, never silently ignored.
+- Trusted verification command orchestration for CI: policy-required
+  commands run by default, `--run-verification` runs everything configured,
+  `--no-run-verification` reuses passing results only from valid, fresh
+  evidence recorded at the exact current HEAD.
+- Verification reports: terminal, versioned JSON (`schemaVersion 1.0.0`,
+  validated before writing), GitHub-flavored Markdown (Step Summary ready),
+  and a self-contained HTML report (no scripts, no external requests,
+  CSS-only severity/spec filters).
+- Production GitHub Action (`integrations/github-action`, node20, bundled,
+  no pnpm or model required): pull_request/push/workflow_dispatch diff
+  resolution, validated inputs, ten documented outputs, bounded file/line
+  annotations with rule IDs, and a Step Summary. The committed bundle is
+  rebuilt and diffed in CI.
+- `specbridge verify rules` and `specbridge verify explain <rule-id>` —
+  deterministic, read-only rule inspection.
+
+Changed:
+
+- Task-plan approval hashing distinguishes checkbox progress from plan
+  changes (hash semantics v2): approving `tasks.md` now records an
+  `approvedPlanHash` (checkbox state normalized) beside the exact
+  `approvedHash`. `[ ]` → `[x]` progress keeps the approval effective; task
+  text, ID, hierarchy, or reference changes still invalidate it.
+  Requirements and design approvals remain exact-byte. Pre-v0.4 sidecar
+  state keeps validating with exact-byte semantics until the next sanctioned
+  write migrates it.
+- Verification reports use versioned schemas; reports are validated with Zod
+  before they are written.
+
+Security:
+
+- Verification needs no model, no API key, and no network access.
+- Verification commands come only from `.specbridge/config.json` — never
+  from spec text or model output; argv arrays only, no shell interpolation.
+- Git refs are validated (no option injection); git runs argv-only with
+  timeouts and output limits; SpecBridge never fetches, commits, or pushes.
+- Verification never writes to `.kiro`, approval state, task checkboxes, or
+  evidence; report artifacts are its only writes.
+- Policy globs reject absolute paths, traversal, null bytes, and malformed
+  patterns; evidence paths escaping the repository are flagged (SBV024);
+  symlinks escaping the repository are detected.
+- HTML reports escape all dynamic content and load nothing external.
+
+Deferred (documented on the roadmap, not claimed):
+
+- MCP server, Claude Code plugin bundle, additional production runners
+  (codex/gemini/ollama), extension SDK, template registry, SARIF output.
+
 ## 0.3.0
 
 Added:

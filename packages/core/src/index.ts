@@ -6,4 +6,5 @@ export * from './hash.js';
 export * from './spec-state.js';
 export * from './run-types.js';
 export * from './runner-output.js';
+export * from './verification-types.js';
 export * from './agent-config.js';

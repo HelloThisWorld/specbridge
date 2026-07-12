@@ -1,10 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
-import { MarkdownDocument } from '@specbridge/compat-kiro';
+import { MarkdownDocument, taskFingerprint, tryTaskPlanHashOfFile } from '@specbridge/compat-kiro';
 import type {
   AgentConfig,
   EvidenceStatus,
   ExecutionOutcome,
+  SpecWorkflowState,
   WorkspaceInfo,
 } from '@specbridge/core';
 import {
@@ -12,6 +13,7 @@ import {
   TASK_RUNNER_REPORT_JSON_SCHEMA,
   exitCodeForOutcome,
   readSpecState,
+  stateStage,
 } from '@specbridge/core';
 import type { RunnerRegistry, TaskExecutionResult } from '@specbridge/runners';
 import { ClaudeCodeRunner, buildClaudeInvocation, probeClaude } from '@specbridge/runners';
@@ -19,6 +21,7 @@ import type { Clock } from '@specbridge/workflow';
 import { evaluateWorkflow, systemClock } from '@specbridge/workflow';
 import type {
   ChangedFileRecord,
+  EvidenceSpecContext,
   SnapshotComparison,
   GitSnapshot,
   VerificationRunResult,
@@ -556,6 +559,7 @@ export async function finalizeTaskRun(
     }
   }
 
+  const specContext = buildEvidenceSpecContext(workspace, context.specName, stateNow, task);
   const evidenceRecord: TaskEvidenceRecord = {
     schemaVersion: EVIDENCE_SCHEMA_VERSION,
     runId,
@@ -563,6 +567,7 @@ export async function finalizeTaskRun(
     specName: context.specName,
     taskId: task.id,
     status: evidenceStatus,
+    specContext,
     runner: context.runnerName,
     ...(result.sessionId !== undefined ? { sessionId: result.sessionId } : {}),
     repository: {
@@ -641,6 +646,49 @@ export async function finalizeTaskRun(
     `${JSON.stringify({ schema: 'specbridge.task-run/1', report }, null, 2)}\n`,
   );
   return report;
+}
+
+/**
+ * Spec-and-task identity captured alongside evidence (v0.4). Verification
+ * later compares these values with the then-current approved state to decide
+ * deterministically whether the evidence is still fresh.
+ */
+export function buildEvidenceSpecContext(
+  workspace: WorkspaceInfo,
+  specName: string,
+  state: SpecWorkflowState | undefined,
+  task: Pick<SelectedTask, 'id' | 'title' | 'requirementRefs' | 'rawLineText'>,
+): EvidenceSpecContext {
+  const specContext: EvidenceSpecContext = {
+    taskFingerprint: taskFingerprint({
+      id: task.id,
+      title: task.title,
+      requirementRefs: task.requirementRefs,
+    }),
+    taskText: task.rawLineText,
+  };
+  if (state === undefined) return specContext;
+
+  const documentStage = stateStage(state, state.specType === 'bugfix' ? 'bugfix' : 'requirements');
+  if (documentStage?.status === 'approved' && documentStage.approvedHash !== null) {
+    specContext.documentHash = documentStage.approvedHash;
+  }
+  const designStage = stateStage(state, 'design');
+  if (designStage?.status === 'approved' && designStage.approvedHash !== null) {
+    specContext.designHash = designStage.approvedHash;
+  }
+  const tasksStage = stateStage(state, 'tasks');
+  if (tasksStage?.status === 'approved') {
+    // Prefer the recorded plan hash; fall back to hashing the current file
+    // (identical whenever the approval is effective, which evidence
+    // evaluation has already checked at this point).
+    const planHash =
+      typeof tasksStage.approvedPlanHash === 'string'
+        ? tasksStage.approvedPlanHash
+        : tryTaskPlanHashOfFile(path.join(workspace.kiroDir, 'specs', specName, 'tasks.md'));
+    if (planHash !== undefined) specContext.tasksPlanHash = planHash;
+  }
+  return specContext;
 }
 
 function applyConfiguredProtectedPaths(config: AgentConfig, comparison: SnapshotComparison): void {
