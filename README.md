@@ -152,10 +152,19 @@ Working today (fully offline, no model, no API key):
 | `specbridge spec show <name>` | Spec summary; `--file`, `--raw`, `--state`, `--analysis`, `--status`, `--json` |
 | `specbridge spec context <name>` | Agent-ready context (`--format json`, `--target claude-code`) |
 | `specbridge compat check [name]` | Prove the byte-identical no-op round trip |
+| `specbridge runner list / doctor / show` | **v0.3** — read-only runner diagnostics (executable, auth, capabilities) |
+| `specbridge spec generate <name> --stage <s>` | **v0.3** — model-assisted stage drafting (result stays draft) |
+| `specbridge spec refine <name> --stage <s>` | **v0.3** — model-assisted refinement with a unified diff |
+| `specbridge spec run <name>` | **v0.3** — execute ONE approved task; evidence-gated checkbox completion |
+| `specbridge spec accept-task <name> --task <id> --reason …` | **v0.3** — explicit, audited manual acceptance |
+| `specbridge run list / show / resume` | **v0.3** — inspect append-only run records; resume interrupted sessions |
 
-Planned commands (`spec run/sync/verify/export`) are registered, marked
+Planned commands (`spec sync/verify/export`) are registered, marked
 "(planned)" in `--help`, and exit with an honest error — see the
 [roadmap](docs/roadmap.md). Every command supports `--help` with examples.
+Exit codes: `0` success · `1` workflow/verification failure · `2` usage or
+configuration error · `3` runner unavailable · `4` runner failure ·
+`5` timeout/cancel · `6` safety violation.
 
 ## Spec authoring and approval (v0.2)
 
@@ -248,20 +257,65 @@ guessing when none exists.
 
 All four are created offline by `specbridge spec new` (since v0.2) and gated
 by `spec approve` — see [docs/approval-workflow.md](docs/approval-workflow.md).
-Runner-assisted content generation is a separate, later phase and will always
-be opt-in.
+Runner-assisted generation (since v0.3) is always explicit opt-in; offline
+templates remain the default.
+
+## Model-assisted authoring and task execution (v0.3)
+
+With a locally installed, locally authenticated Claude Code CLI (or the
+offline mock runner), SpecBridge can draft spec stages and execute approved
+tasks — with the safety model doing the real work:
+
+```sh
+specbridge runner doctor claude-code
+
+specbridge spec generate notification-preferences --stage requirements
+specbridge spec analyze  notification-preferences --stage requirements
+specbridge spec approve  notification-preferences --stage requirements
+
+specbridge spec generate notification-preferences --stage design
+specbridge spec approve  notification-preferences --stage design
+specbridge spec generate notification-preferences --stage tasks
+specbridge spec approve  notification-preferences --stage tasks
+
+specbridge spec run notification-preferences --task 2.3
+specbridge run show <run-id>
+```
+
+How it stays safe (details: [task execution](docs/task-execution.md),
+[evidence](docs/execution-evidence.md), [verification](docs/task-verification.md),
+[security](docs/security.md)):
+
+- **SpecBridge does not include Claude usage.** You install and authenticate
+  Claude Code yourself; SpecBridge only invokes the local executable and
+  never stores, proxies, or prints credentials.
+- **Model output is never proof.** The repository state is captured before
+  and after every run; the model's reported files/tests are stored as
+  claims and cross-checked against actual git evidence.
+- **Task completion requires evidence.** The checkbox flips only after
+  trusted verification commands (from `.specbridge/config.json`, argv
+  arrays, never from spec content or model output) pass — or after explicit,
+  audited manual acceptance with a reason.
+- **Generated stages are never auto-approved**, approved stages are never
+  overwritten, and one task runs per invocation (`--all` is sequential and
+  stops at the first unverified task).
+- **SpecBridge never enables `bypassPermissions`** or any permission-skip
+  flag — rejected at three layers — and never commits, pushes, or rolls
+  back your repository.
 
 ## Claude Code integration
 
-`specbridge spec context <name> --target claude-code` produces a single
-document with steering, spec content, task progress, and working agreements
-(surgical checkbox edits, `.kiro` is the source of truth, run
-`compat check` after edits).
+Two directions, both covered in
+[docs/claude-code-integration.md](docs/claude-code-integration.md):
 
-A Claude Code skill wrapping the CLI lives at
-[integrations/claude-code/skills/specbridge](integrations/claude-code/skills/specbridge/SKILL.md).
-The CLI remains the product core; the skill is a thin wrapper.
-More: [docs/claude-code-integration.md](docs/claude-code-integration.md).
+- **SpecBridge invokes Claude Code** (v0.3): `spec generate/refine/run` use
+  your locally installed, locally authenticated `claude` CLI as a runner —
+  see [docs/claude-code-runner.md](docs/claude-code-runner.md).
+- **Claude Code drives SpecBridge**: `spec context --target claude-code`
+  produces agent-ready context, and a skill wrapping the CLI lives at
+  [integrations/claude-code/skills/specbridge](integrations/claude-code/skills/specbridge/SKILL.md).
+  The CLI remains the product core; the skill is a thin wrapper that never
+  bypasses approval gates or edits checkboxes itself.
 
 ## Spec drift verification
 
@@ -297,32 +351,43 @@ require one.
 
 | Runner | Status |
 | --- | --- |
-| `mock` | ✅ Implemented — offline, deterministic, used by tests |
-| `claude-code` | 🚧 Detection only (`isAvailable`); generation lands in Phase F |
-| `codex` | 🚧 Detection only; generation lands in Phase F |
+| `mock` | ✅ Implemented — offline, deterministic, scenario-driven, used by CI |
+| `claude-code` | ✅ **v0.3** — local CLI runner: generation, refinement, task execution, resume |
+| `codex` | ❌ Stub — honestly not implemented (roadmap) |
 | `ollama` | ❌ Stub — honestly not implemented |
 | `openai-compatible` | ❌ Stub — honestly not implemented |
 
 Configuration lives in `.specbridge/config.json`
-([docs/runner-adapters.md](docs/runner-adapters.md)). Never commit API keys.
+([docs/agent-runners.md](docs/agent-runners.md)). Never commit API keys;
+SpecBridge stores no credentials of any kind.
 
 ## Security and privacy
 
 - Default commands are read-only and fully offline; no telemetry, no network.
-- Writes (later phases) are atomic, path-checked against traversal, and
-  confined to the workspace.
-- Spec content is treated as data — never executed as shell commands or
-  trusted as instructions.
+- Writes are atomic, path-checked against traversal, and confined to the
+  workspace; symlinks are never followed out of the repository.
+- Spec content and model output are treated as data — never executed as
+  shell commands or trusted as instructions.
 - Runner execution is always explicit; verification commands come from
-  trusted project configuration, never from model output.
-- Logs never include secrets or environment variables.
+  trusted project configuration (argv arrays, no shell), never from model
+  output; permission bypasses are rejected at three layers.
+- No credentials are ever collected, stored, or printed; logs never include
+  secrets or environment variables.
+- Full model: [docs/security.md](docs/security.md).
 
-## Limitations (v0.2)
+## Limitations (v0.3)
 
-- Task execution, sync, drift-verification CLI, and export are not
-  implemented yet (they fail honestly; the drift library primitives exist).
-- `spec new` renders offline templates only — no model writes content in
-  v0.2, by design. Runner-assisted generation is a future opt-in.
+- Sync, the drift-verification CLI, and export are not implemented yet (they
+  fail honestly; the drift library primitives exist). v0.3 does **not** yet
+  implement full spec-to-code drift analysis.
+- Claude Code is the only production runner; codex/ollama/openai-compatible
+  remain stubs. Claude usage happens under your own account and plan.
+- Task execution requires a git repository, sidecar workflow state, and
+  fully approved stages — by design; there is no force flag.
+- Tasks can only auto-verify when verification commands are configured;
+  with none configured, runs end `implemented-unverified`.
+- One task per run; `--all` is strictly sequential. Parallel execution,
+  agent teams, sandboxing, and automatic rollback are out of scope for v0.3.
 - Analysis is deterministic and structural; it cannot judge whether
   requirements are *good*, only whether they are well-formed and complete.
 - Workflow order cannot be inferred without sidecar state (reported as
@@ -336,10 +401,13 @@ Configuration lives in `.specbridge/config.json`
 ## Roadmap
 
 v0.1: read-only compatibility, doctor, listing, context, round-trip proof.
-v0.2 (this release): offline spec authoring, deterministic analysis,
-hash-based approvals, stale-approval detection. Next: runner adapters (F),
-task execution with evidence (G), sync + drift verification (H), GitHub
-Action (I), Claude Code skill polish (J), optional MCP server (K).
+v0.2: offline spec authoring, deterministic analysis, hash-based approvals,
+stale-approval detection. v0.3 (this release): agent runner contract, the
+Claude Code local runner, model-assisted generation/refinement, approved
+task execution with git snapshots, trusted verification, append-only
+evidence, verified-only checkbox completion, manual acceptance, and
+resumable sessions. Next: sync + drift verification CLI (H), GitHub Action
+gates (I), more runners, optional MCP server (K).
 Full detail: [docs/roadmap.md](docs/roadmap.md).
 
 ## Documentation
@@ -350,8 +418,15 @@ Full detail: [docs/roadmap.md](docs/roadmap.md).
 [Spec analysis](docs/spec-analysis.md) ·
 [Approval workflow](docs/approval-workflow.md) ·
 [Sidecar state](docs/sidecar-state.md) ·
+[Agent runners](docs/agent-runners.md) ·
+[Claude Code runner](docs/claude-code-runner.md) ·
+[Model-assisted authoring](docs/model-assisted-authoring.md) ·
+[Task execution](docs/task-execution.md) ·
+[Execution evidence](docs/execution-evidence.md) ·
+[Task verification](docs/task-verification.md) ·
+[Session resume](docs/session-resume.md) ·
+[Security](docs/security.md) ·
 [Spec drift](docs/spec-drift.md) ·
-[Runner adapters](docs/runner-adapters.md) ·
 [Claude Code integration](docs/claude-code-integration.md) ·
 [Migration from Kiro](docs/migration-from-kiro.md) (spoiler: there is none) ·
 [Roadmap](docs/roadmap.md) ·

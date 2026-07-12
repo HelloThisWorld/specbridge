@@ -1,6 +1,6 @@
 {
   "name": "@specbridge/core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Core types, errors, workspace detection, and sidecar state for SpecBridge.",
   "license": "MIT",
   "type": "module",

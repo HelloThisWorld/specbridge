@@ -4,28 +4,21 @@ SpecBridge is CLI-first; the Claude Code integration is a thin wrapper that
 teaches Claude Code to drive the CLI. The CLI remains the product core, so
 everything here also works with any other agent that can run shell commands.
 
-## Using SpecBridge with Claude Code today (v0.1)
+Two directions exist, and they compose:
 
-1. Build or install specbridge so the `specbridge` command (or
-   `node <repo>/packages/cli/dist/index.js`) is runnable in your project.
-2. Generate context for the spec you are working on:
+1. **SpecBridge invokes Claude Code** — the v0.3
+   [Claude Code runner](claude-code-runner.md): `spec generate`,
+   `spec refine`, and `spec run` spawn your locally installed `claude` CLI
+   with restricted tools, capture evidence, and gate checkbox completion.
+2. **Claude Code drives SpecBridge** — the skill below, for interactive
+   sessions where Claude Code is your terminal.
 
-   ```sh
-   specbridge spec context user-authentication --target claude-code
-   ```
+## Prerequisites
 
-3. Paste or pipe that document into Claude Code (or write it to a file with
-   `--out .specbridge/reports/context.md` and reference it). It contains
-   steering, the spec documents, task progress, the next open tasks, and
-   working agreements for editing `.kiro` files safely.
-4. After Claude Code edits `.kiro` files, prove nothing broke:
-
-   ```sh
-   specbridge compat check user-authentication
-   ```
-
-The `--target claude-code` variant adds those two commands to the working
-agreements so the agent self-verifies.
+- Install and authenticate Claude Code yourself; SpecBridge never handles
+  credentials (see [security](security.md)).
+- Verify readiness any time with `specbridge runner doctor claude-code`
+  (read-only).
 
 ## The skill
 
@@ -39,26 +32,44 @@ Install it by copying the `specbridge` skill directory into your project's
 cp -r integrations/claude-code/skills/specbridge .claude/skills/specbridge
 ```
 
-The skill instructs Claude Code to:
+The skill is a thin orchestration layer over the CLI. It duplicates no core
+logic — no workflow validation, no approval checks, no evidence evaluation,
+no checkbox editing, no runner invocation. It instructs Claude Code to:
 
-1. Detect existing `.kiro` specs (`specbridge doctor`, `spec list`).
-2. Never bypass the spec workflow; avoid writing code before requirements
-   and design exist unless the user explicitly wants a quick spec.
-3. Build context with `specbridge spec context` instead of ad-hoc file reads.
-4. Execute one task at a time and gather evidence (tests, diffs).
-5. Update only the finished task's checkbox (`[ ]` → `[x]`), surgically.
-6. Run `specbridge compat check` after touching `.kiro` files.
-7. Preserve `.kiro` compatibility absolutely — no reformatting, no metadata.
+1. Detect and inspect specs with `doctor`, `spec list`, `spec status`.
+2. Author stages through `spec generate` / `spec refine`, then hand approval
+   to the user via `spec analyze` + `spec approve` — never approving
+   anything itself.
+3. Execute tasks through `spec run` (one at a time), read the evidence
+   result, and inspect failures with `run show` before continuing.
+4. Resume interrupted runs with `run resume`, following refusals instead of
+   forcing them.
+5. Use `spec accept-task --reason` when the user explicitly accepts
+   manually verified work.
+6. Never bypass approval gates, never mark checkboxes directly, never edit
+   `.specbridge/` state, never use permission bypasses, and run
+   `compat check` after any manual `.kiro` edit.
 
-Commands that are still planned (`spec run`, `spec verify`) are marked as
-such in the skill; it never instructs the agent to pretend they exist.
+Suggested user-facing workflows: `/specbridge status <spec>`,
+`/specbridge generate <spec> <stage>`, `/specbridge implement <spec> <task>`,
+`/specbridge continue <run-id>`.
+
+Commands that are still planned (`spec sync`, `spec verify`, `spec export`)
+are marked as such in the skill; it never instructs the agent to pretend
+they exist.
+
+## Configuration safety
+
+SpecBridge never modifies `.claude/settings.json`, user-level or managed
+Claude configuration, authentication, MCP, or permission settings, and it
+installs no command hooks. If you tune Claude settings for SpecBridge
+workflows, do it yourself and understand the consequences — and never enable
+`bypassPermissions`; SpecBridge refuses to work with it anyway.
 
 ## Planned (later phases)
 
-- `specbridge spec run <name> --runner claude-code` — Phase F/G: SpecBridge
-  invokes Claude Code per task, records run metadata and evidence, and only
-  then updates the checkbox.
+- `specbridge integration install claude-code --project` — an installer that
+  writes only the skill directory (with `--dry-run`, no overwrites without
+  confirmation).
 - `specbridge spec verify` in the loop — Phase H: the agent repairs drift or
   explains why the spec should change.
-- Slash-command style workflows (`/specbridge list`, `/specbridge run <spec>`)
-  following whatever invocation format Claude Code recommends at that time.

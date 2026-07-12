@@ -1,50 +1,82 @@
 ---
 name: specbridge
-description: Work with Kiro-style specs (.kiro/steering and .kiro/specs) through the SpecBridge CLI — list specs, build agent context, execute tasks with evidence, and keep every .kiro file round-trip safe. Use when the project contains a .kiro directory or the user mentions specs, steering, requirements.md, design.md, tasks.md, or bugfix.md.
+description: Work with Kiro-style specs (.kiro/steering and .kiro/specs) through the SpecBridge CLI — list specs, generate and approve spec stages, execute approved tasks with evidence-gated completion, inspect and resume runs, and keep every .kiro file round-trip safe. Use when the project contains a .kiro directory or the user mentions specs, steering, requirements.md, design.md, tasks.md, or bugfix.md.
 ---
 
 # SpecBridge
 
 SpecBridge is a CLI that reads existing `.kiro` directories directly. Your
-job when this skill is active: follow the spec workflow, keep `.kiro` files
-byte-safe, and never mark work done without evidence.
+job when this skill is active: drive the spec workflow **through the CLI**,
+keep `.kiro` files byte-safe, and never mark work done without evidence.
 
 Run `specbridge` if it is on PATH; otherwise use
 `node <repo>/packages/cli/dist/index.js` from the SpecBridge checkout.
 
 ## Non-negotiable rules
 
-1. **`.kiro` is the source of truth.** Never move, rename, or reformat its
+1. **The CLI is the authority.** Never bypass SpecBridge approval gates,
+   never mark task checkboxes directly, never edit `.specbridge/` state by
+   hand. If a command refuses, relay its remediation — do not work around it.
+2. **`.kiro` is the source of truth.** Never move, rename, or reformat its
    files. Never add front matter, comments, or metadata to them.
-2. **Never bypass the spec workflow.** Do not write implementation code for
-   spec work before requirements and design content exists and the user has
-   accepted it — unless the user explicitly chooses a quick, one-shot spec.
-3. **Evidence before completion.** Never mark a task complete because you
-   *believe* the work is done. Run the project's tests/build first and cite
-   the results.
-4. **Surgical edits only.** To complete a task, change that one checkbox
-   from `[ ]` to `[x]` in tasks.md and touch nothing else — no renumbering,
-   no reflowing, no whitespace cleanup. Preserve the file's existing line
-   endings (LF or CRLF).
-5. **Verify after editing.** After any edit to a `.kiro` file, run
+3. **Evidence before completion.** `specbridge spec run` updates a checkbox
+   only after deterministic evidence (actual git changes + passing trusted
+   verification). Never claim a task is complete because a model said so.
+4. **No permission bypasses.** Never suggest or use
+   `--dangerously-skip-permissions` or `bypassPermissions` — SpecBridge
+   rejects them by design and so should you.
+5. **Verify after editing.** After any manual edit to a `.kiro` file, run
    `specbridge compat check <spec>` and confirm PASS.
 
-## Standard workflow
+## Standard workflows
 
-1. **Detect:** `specbridge doctor` — confirm the workspace is healthy.
-   `specbridge spec list` — see specs, types, and progress.
-2. **Load context:** `specbridge spec context <name> --target claude-code`.
-   Read the whole document; it contains steering, the spec files, task
-   progress, and the next open tasks. Prefer it over ad-hoc file reads.
-3. **Work one task at a time:** pick the first open task (the context lists
-   them), implement it, run the tests the spec's design/testing sections call
-   for.
-4. **Record the outcome:** state which files changed and which commands
-   passed (this becomes formal evidence tooling in a later SpecBridge phase).
-5. **Complete the checkbox** per rule 4, then re-run
-   `specbridge compat check <name>`.
-6. **Re-generate context** after the spec changes; never work from stale
-   context.
+**Status** — `/specbridge status <spec>`:
+1. `specbridge doctor` and `specbridge spec list` to see the workspace.
+2. `specbridge spec status <name>` for stage approvals and stale detection.
+
+**Author a stage** — `/specbridge generate <spec> <stage>`:
+1. `specbridge spec generate <name> --stage <stage>` (add
+   `--runner claude-code` or rely on the configured default).
+2. Read the result. If analysis errors kept the candidate from applying,
+   inspect it under `.specbridge/runs/<run-id>/` and iterate with
+   `specbridge spec refine <name> --stage <stage> --instruction "…"`.
+3. Show the user the draft; after their review:
+   `specbridge spec analyze <name> --stage <stage>` then
+   `specbridge spec approve <name> --stage <stage>`. Generated stages are
+   never auto-approved — approval is the user's explicit decision.
+
+**Implement a task** — `/specbridge implement <spec> <task>`:
+1. `specbridge runner doctor claude-code` (or the chosen runner) first.
+2. `specbridge spec run <name> --task <task-id>` (omit `--task` for the next
+   open task). One task per run; never parallelize.
+3. Read the result block. `VERIFIED` means the checkbox was updated.
+   Anything else: inspect with `specbridge run show <run-id>`, fix the cause
+   (e.g. failing verification), and either resume or rerun.
+4. If the user verified the work manually and asks to accept it:
+   `specbridge spec accept-task <name> --task <id> --reason "<their reason>"`.
+
+**Continue an interrupted run** — `/specbridge continue <run-id>`:
+1. `specbridge run show <run-id>` — read the outcome, failed verification,
+   and warnings before doing anything.
+2. `specbridge run resume <run-id>`. If resume is refused (divergence,
+   verified task, unsupported), follow the printed remediation instead of
+   forcing anything.
+
+## Command reference
+
+Read-only: `doctor`, `steering list/show`, `spec list/show/context/status`,
+`spec analyze`, `compat check`, `runner list/doctor/show`, `run list/show`.
+
+Offline authoring (v0.2): `spec new`, `spec approve [--revoke]`.
+
+Runner-assisted (v0.3): `spec generate`, `spec refine`, `spec run`,
+`spec accept-task`, `run resume`. All support `--json`; task execution
+requires every stage approved and a clean working tree (or an explicit
+`--allow-dirty`).
+
+Still planned (exit 2 honestly): `spec sync`, `spec verify`, `spec export` —
+if the user asks for them, do the nearest read-only equivalent manually and
+say that is what you did. Never claim a planned command ran.
 
 Reference guides in this skill:
 
@@ -52,17 +84,3 @@ Reference guides in this skill:
 - [references/design-workflow.md](references/design-workflow.md)
 - [references/task-execution.md](references/task-execution.md)
 - [references/verification-workflow.md](references/verification-workflow.md)
-
-## Command status (be honest with the user)
-
-Available now: `doctor`, `steering list/show`, `spec list/show/context`,
-`compat check`, and — since v0.2 — `spec new`, `spec analyze`,
-`spec approve` (with `--revoke`), and `spec status`. Prefer these commands
-over doing the equivalent by hand: `spec new` creates Kiro-compatible specs
-offline, `spec analyze` gates content deterministically, and `spec approve`
-records stage approvals (with byte-exact hashes) in `.specbridge/`.
-
-The commands `spec run/sync/verify/export` are still planned and exit with a
-not-implemented message — if the user asks for them, do the equivalent
-manually following the reference guides, and say that is what you are doing.
-Never claim a planned command ran.

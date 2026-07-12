@@ -4,3 +4,6 @@ export * from './result.js';
 export * from './workspace.js';
 export * from './hash.js';
 export * from './spec-state.js';
+export * from './run-types.js';
+export * from './runner-output.js';
+export * from './agent-config.js';
