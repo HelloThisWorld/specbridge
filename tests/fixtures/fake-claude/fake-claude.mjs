@@ -7,7 +7,7 @@
  * (inherited by the child process); every invocation can be recorded to
  * FAKE_CLAUDE_LOG for argv assertions. Fully offline, no network, no model.
  */
-import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, mkdirSync, readFileSync, writeFileSync, writeSync } from 'node:fs';
 import path from 'node:path';
 
 const args = process.argv.slice(2);
@@ -184,17 +184,36 @@ if (scenario === 'permission-denied') {
   process.exit(1);
 }
 
+// The huge-output scenarios must deliver their bytes DETERMINISTICALLY:
+// process.stdout.write queues asynchronously and process.exit discards the
+// queue, so on some platforms the child could exit having flushed less than
+// the parent's limit. Blocking writeSync either delivers everything or hits
+// EPIPE when the parent stops reading at its limit — both deterministic.
+function writeBlocking(fd, text) {
+  const buffer = Buffer.from(text);
+  let offset = 0;
+  while (offset < buffer.length) offset += writeSync(fd, buffer, offset);
+}
+
 if (scenario === 'huge-stdout') {
-  const chunk = 'x'.repeat(64 * 1024);
-  for (let i = 0; i < 400; i += 1) process.stdout.write(chunk);
-  emitEnvelope({ result: '{}' });
+  try {
+    const chunk = 'x'.repeat(64 * 1024);
+    for (let i = 0; i < 400; i += 1) writeBlocking(1, chunk);
+    writeBlocking(1, `${JSON.stringify({ type: 'result', session_id: sessionId, result: '{}' })}\n`);
+  } catch {
+    process.exit(1); // EPIPE: the parent enforced its output limit
+  }
   process.exit(0);
 }
 
 if (scenario === 'huge-stderr') {
-  const chunk = 'e'.repeat(64 * 1024);
-  for (let i = 0; i < 100; i += 1) process.stderr.write(chunk);
-  emitEnvelope({ result: '{}' });
+  try {
+    const chunk = 'e'.repeat(64 * 1024);
+    for (let i = 0; i < 100; i += 1) writeBlocking(2, chunk);
+    writeBlocking(1, `${JSON.stringify({ type: 'result', session_id: sessionId, result: '{}' })}\n`);
+  } catch {
+    process.exit(1); // EPIPE: the parent enforced its output limit
+  }
   process.exit(0);
 }
 
