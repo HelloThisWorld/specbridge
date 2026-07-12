@@ -1,0 +1,23 @@
+{
+  "name": "specbridge-github-action",
+  "version": "0.4.0",
+  "private": true,
+  "description": "GitHub Action for deterministic SpecBridge spec drift verification. No model, no API key, no network access required.",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsup",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@specbridge/compat-kiro": "workspace:*",
+    "@specbridge/core": "workspace:*",
+    "@specbridge/drift": "workspace:*",
+    "@specbridge/reporting": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0"
+  }
+}

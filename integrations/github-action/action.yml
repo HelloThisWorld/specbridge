@@ -1,39 +1,86 @@
-name: SpecBridge Compatibility Check
+name: SpecBridge Spec Drift Verification
 description: >-
-  Read-only quality gate for Kiro-style specs: verifies the .kiro workspace is
-  healthy and every spec/steering file round-trips byte-identically.
-  PREVIEW: drift verification (spec verify) joins this action in a later
-  SpecBridge phase. Requires the specbridge CLI to be runnable (see README).
+  Deterministic spec-to-code drift verification for Kiro-style specs:
+  approval drift, requirement-task traceability, task evidence freshness,
+  impact areas, protected paths, and trusted verification commands.
+  No model, no API key, no network access required.
 branding:
   icon: check-circle
   color: blue
 
 inputs:
-  working-directory:
-    description: Directory containing the .kiro workspace.
+  mode:
+    description: 'Spec selection: "single", "changed" (specs affected by the diff), or "all".'
     required: false
-    default: '.'
-  specbridge-command:
-    description: >-
-      How to invoke the specbridge CLI. Once specbridge is published to npm
-      the default works as-is; until then point this at a built checkout,
-      e.g. "node /path/to/specbridge/packages/cli/dist/index.js".
-    required: false
-    default: 'npx --yes specbridge'
+    default: changed
   spec:
-    description: Limit the compat check to one spec name (default checks everything).
+    description: Spec name to verify. Required when mode is "single".
     required: false
     default: ''
+  base-ref:
+    description: >-
+      Explicit base git ref. Overrides event-based resolution; required for
+      workflow_dispatch and other events without a comparison range.
+    required: false
+    default: ''
+  head-ref:
+    description: Explicit head git ref (defaults to HEAD when base-ref is set).
+    required: false
+    default: ''
+  fail-on:
+    description: 'Failure threshold: "error", "warning", or "never".'
+    required: false
+    default: error
+  strict:
+    description: Enable strict verification behavior (tightens, never loosens, spec policies).
+    required: false
+    default: 'false'
+  run-verification:
+    description: >-
+      Run the trusted verification commands configured in
+      .specbridge/config.json. When "false", only valid recorded evidence at
+      the exact current commit can satisfy policy-required commands.
+    required: false
+    default: 'true'
+  report-directory:
+    description: Directory (workspace-relative) for the generated JSON/Markdown/HTML reports.
+    required: false
+    default: .specbridge/action-reports
+  annotations:
+    description: Emit GitHub file/line annotations for findings.
+    required: false
+    default: 'true'
+  write-step-summary:
+    description: Write the Markdown report to the GitHub Step Summary.
+    required: false
+    default: 'true'
+  annotation-limit:
+    description: Maximum number of annotations to emit (0–1000).
+    required: false
+    default: '50'
+
+outputs:
+  result:
+    description: '"passed" or "failed".'
+  verification-id:
+    description: Unique id of this verification run.
+  spec-count:
+    description: Number of specs verified.
+  error-count:
+    description: Total error-severity findings.
+  warning-count:
+    description: Total warning-severity findings.
+  info-count:
+    description: Total info-severity findings.
+  json-report:
+    description: Workspace-relative path of the JSON report.
+  markdown-report:
+    description: Workspace-relative path of the Markdown report.
+  html-report:
+    description: Workspace-relative path of the self-contained HTML report.
+  affected-specs:
+    description: JSON array string of the verified spec names.
 
 runs:
-  using: composite
-  steps:
-    - name: SpecBridge doctor (read-only)
-      shell: bash
-      working-directory: ${{ inputs.working-directory }}
-      run: ${{ inputs.specbridge-command }} doctor
-
-    - name: Round-trip compatibility check
-      shell: bash
-      working-directory: ${{ inputs.working-directory }}
-      run: ${{ inputs.specbridge-command }} compat check ${{ inputs.spec }}
+  using: node20
+  main: dist/index.js

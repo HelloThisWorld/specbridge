@@ -4,7 +4,12 @@ import { analyzeSpec, parseTasks, requireSpec } from '@specbridge/compat-kiro';
 import { CLI_BIN, EXIT_CODES, SpecBridgeError, stateStage } from '@specbridge/core';
 import type { TaskEvidenceRecord } from '@specbridge/evidence';
 import { EVIDENCE_SCHEMA_VERSION, captureGitSnapshot, writeTaskEvidence } from '@specbridge/evidence';
-import { completeTaskCheckbox, readRunRecord, selectTask } from '@specbridge/execution';
+import {
+  buildEvidenceSpecContext,
+  completeTaskCheckbox,
+  readRunRecord,
+  selectTask,
+} from '@specbridge/execution';
 import {
   createJsonReport,
   dim,
@@ -139,6 +144,7 @@ Example:
           acceptedAt,
           ...(referencedRunId !== undefined ? { referencedRunId } : {}),
         },
+        specContext: buildEvidenceSpecContext(workspace, folder.name, spec.state, task),
       };
       const evidencePath = writeTaskEvidence(workspace, record);
 

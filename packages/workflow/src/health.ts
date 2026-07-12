@@ -8,6 +8,7 @@ import type {
   WorkspaceInfo,
 } from '@specbridge/core';
 import { stateStage, trySha256File } from '@specbridge/core';
+import { tryTaskPlanHashOfFile } from '@specbridge/compat-kiro';
 import type { WorkflowShape } from './state-machine.js';
 import {
   dependentStages,
@@ -42,6 +43,13 @@ export interface StageEvaluation {
   fileExists: boolean;
   /** Present for approved stages (undefined when the file is unreadable). */
   currentHash?: string;
+  /**
+   * Tasks stage only: true when the exact bytes changed after approval but
+   * the checkbox-normalized plan hash still matches — i.e. the only changes
+   * since approval are `[ ]`/`[x]` progress. The stage stays effectively
+   * approved in that case (hash semantics v2).
+   */
+  checkboxProgressOnly?: boolean;
   prerequisites: StageName[];
 }
 
@@ -97,9 +105,27 @@ export function evaluateWorkflow(
     const fileExists = currentHash !== undefined;
 
     let effective: EffectiveStageStatus;
+    let checkboxProgressOnly = false;
     if (stored.status === 'approved') {
       if (currentHash !== undefined && currentHash === stored.approvedHash) {
         effective = 'approved';
+      } else if (
+        stage === 'tasks' &&
+        currentHash !== undefined &&
+        typeof stored.approvedPlanHash === 'string' &&
+        tryTaskPlanHashOfFile(filePath) === stored.approvedPlanHash
+      ) {
+        // Only checkbox state changed since approval: the plan itself is the
+        // one that was approved (hash semantics v2), so the approval holds.
+        effective = 'approved';
+        checkboxProgressOnly = true;
+        diagnostics.push({
+          severity: 'info',
+          code: 'APPROVAL_CHECKBOX_PROGRESS',
+          message:
+            'tasks.md has checkbox progress since approval; the approved task plan itself is unchanged.',
+          file: filePath,
+        });
       } else {
         effective = 'modified-after-approval';
         staleStages.push(stage);
@@ -124,6 +150,7 @@ export function evaluateWorkflow(
       filePath,
       fileExists,
       ...(stored.status === 'approved' && currentHash !== undefined ? { currentHash } : {}),
+      ...(checkboxProgressOnly ? { checkboxProgressOnly } : {}),
       prerequisites: stagePrerequisites(shape, stage),
     });
   }

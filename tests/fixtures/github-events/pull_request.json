@@ -1,0 +1,9 @@
+{
+  "action": "synchronize",
+  "number": 42,
+  "pull_request": {
+    "number": 42,
+    "base": { "ref": "main", "sha": "BASE_SHA_PLACEHOLDER" },
+    "head": { "ref": "feature/settings", "sha": "HEAD_SHA_PLACEHOLDER" }
+  }
+}

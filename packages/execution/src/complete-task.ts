@@ -1,6 +1,18 @@
-import { MarkdownDocument, applyCheckboxState, writeDocumentAtomic } from '@specbridge/compat-kiro';
+import {
+  MarkdownDocument,
+  applyCheckboxState,
+  taskPlanHash,
+  writeDocumentAtomic,
+} from '@specbridge/compat-kiro';
 import type { StageName, WorkspaceInfo } from '@specbridge/core';
-import { SpecBridgeError, readSpecState, sha256File, stateStage, writeSpecState } from '@specbridge/core';
+import {
+  SpecBridgeError,
+  TASK_PLAN_HASH_SEMANTICS_VERSION,
+  readSpecState,
+  sha256File,
+  stateStage,
+  writeSpecState,
+} from '@specbridge/core';
 import type { Clock } from '@specbridge/workflow';
 import { isoNow } from '@specbridge/workflow';
 import { stageDocumentPath } from './write-stage.js';
@@ -75,6 +87,9 @@ export function completeTaskCheckbox(
   const after = document.lineAt(expected.line).text;
 
   // Re-record the tasks approval hash for SpecBridge's own sanctioned edit.
+  // The checkbox-normalized plan hash (semantics v2) is recorded alongside —
+  // a checkbox flip cannot change it, so this also migrates pre-v0.4 state
+  // that only stored the exact byte hash.
   let approvalRehashed = false;
   let newHash: string | undefined;
   const stateRead = readSpecState(workspace, specName);
@@ -82,11 +97,19 @@ export function completeTaskCheckbox(
     const tasksStage = stateStage(stateRead.state, 'tasks');
     if (tasksStage !== undefined && tasksStage.status === 'approved') {
       newHash = sha256File(filePath);
+      const planHash = taskPlanHash(MarkdownDocument.load(filePath));
       const nextState = {
         ...stateRead.state,
         stages: {
           ...stateRead.state.stages,
-          tasks: { ...tasksStage, approvedHash: newHash, approvedAt: isoNow(clock) },
+          tasks: {
+            ...tasksStage,
+            approvedHash: newHash,
+            approvedAt: isoNow(clock),
+            approvedPlanHash: planHash,
+            hashAlgorithm: 'sha256' as const,
+            hashSemanticsVersion: TASK_PLAN_HASH_SEMANTICS_VERSION,
+          },
         },
         updatedAt: isoNow(clock),
       };

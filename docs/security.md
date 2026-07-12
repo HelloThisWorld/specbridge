@@ -75,3 +75,43 @@ Failed commands, malformed output, permission denials, timeouts, and
 truncations are never hidden — every failure is reported with the exact
 reason and an actionable remediation, and the raw output stays on disk under
 `.specbridge/runs/<run-id>/`.
+
+## Verification safety (v0.4)
+
+`spec verify` and the GitHub Action add drift verification without adding
+any write or execution surface:
+
+- **Read-only by principle.** Verification never edits `.kiro` files, never
+  marks task checkboxes, never alters approval state, and never touches
+  evidence. Its only writes are report artifacts (command logs plus
+  `report.json` under `.specbridge/reports/<verification-id>/` when trusted
+  commands execute) and an explicitly requested `--output` file. A run with
+  neither writes nothing; tests hash the tree before and after to prove it.
+- **Commands are trusted configuration only.** Verification commands come
+  exclusively from `verification.commands` in `.specbridge/config.json` —
+  argv arrays with timeouts and output limits. Spec policies may only
+  *name* configured commands; commands or shell fragments found in spec
+  text, source files, or model output are never executed. Shell strings are
+  rejected by the config schema.
+- **Git is invoked defensively.** Refs are validated before use (no leading
+  `-`, no whitespace/glob/control characters — option injection is
+  impossible), git always runs as an argv array with timeouts and output
+  caps, `-z` output parsing keeps UTF-8 paths and spaces intact, and
+  SpecBridge never fetches, commits, or pushes. Diffs run `--relative` so a
+  nested workspace can never be judged against files outside its subtree.
+- **Policies are data.** `.specbridge/policies/<spec>.json` is a versioned
+  Zod schema with validated globs: absolute paths, `..` traversal, null
+  bytes, backslashes, and malformed patterns are rejected. Invalid policies
+  fail closed (SBV020, exit 2, defaults applied). `.git/**` protection
+  cannot be disabled or downgraded by any configuration layer.
+- **Evidence is checked before it is believed.** Recorded paths must stay
+  inside the repository (SBV024); recorded hashes and task fingerprints
+  must match the currently approved content; model-reported fields
+  (`runnerClaims`) are never treated as evidence.
+- **Reports leak nothing.** HTML output escapes all dynamic content, loads
+  no external resources, and contains no scripts; Markdown summaries carry
+  no raw command output and no environment data; only bounded stderr tails
+  appear in diagnostics.
+- **The GitHub Action needs no secrets.** No model, no API key, no network
+  access; it never modifies tracked files, and its bundle is rebuilt and
+  diffed in CI so the committed artifact provably matches the source.

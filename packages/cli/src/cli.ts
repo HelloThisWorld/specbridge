@@ -17,6 +17,9 @@ import { registerSpecStatusCommand } from './commands/spec-status.js';
 import { registerSpecSyncCommand } from './commands/spec-sync.js';
 import { registerSpecRunCommand } from './commands/spec-run.js';
 import { registerSpecVerifyCommand } from './commands/spec-verify.js';
+import { registerSpecAffectedCommand } from './commands/spec-affected.js';
+import { registerSpecPolicyCommand } from './commands/spec-policy.js';
+import { registerVerifyRuleCommands } from './commands/verify-rules.js';
 import { registerSpecExportCommand } from './commands/spec-export.js';
 import { registerSpecGenerateCommand } from './commands/spec-generate.js';
 import { registerSpecRefineCommand } from './commands/spec-refine.js';
@@ -73,8 +76,11 @@ honest error; nothing pretends to work before it does.`,
   registerSpecAcceptTaskCommand(spec, runtime);
   registerSpecSyncCommand(spec, runtime);
   registerSpecVerifyCommand(spec, runtime);
+  registerSpecAffectedCommand(spec, runtime);
+  registerSpecPolicyCommand(spec, runtime);
   registerSpecExportCommand(spec, runtime);
 
+  registerVerifyRuleCommands(program, runtime);
   registerRunnerCommands(program, runtime);
   registerRunCommands(program, runtime);
   registerCompatCheckCommand(program, runtime);

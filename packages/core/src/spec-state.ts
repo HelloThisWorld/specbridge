@@ -20,6 +20,17 @@ import { assertInsideWorkspace, writeFileAtomic } from './workspace.js';
 
 export const SPEC_STATE_SCHEMA_VERSION = '1.0.0';
 
+/**
+ * Approval-hash semantics version recorded per stage.
+ *
+ * Version "2" (v0.4) adds `approvedPlanHash` for the tasks stage: a SHA-256
+ * over the tasks document with only checkbox state characters normalized, so
+ * `[ ]` → `[x]` progress does not invalidate an approved task plan while any
+ * other byte change (task text, IDs, hierarchy, references) still does.
+ * Requirements, bugfix, and design approvals remain exact-byte hashes only.
+ */
+export const TASK_PLAN_HASH_SEMANTICS_VERSION = '2';
+
 const SHA256_HEX = /^[0-9a-f]{64}$/;
 
 export const stageApprovalSchema = z.object({
@@ -30,6 +41,19 @@ export const stageApprovalSchema = z.object({
   approvedAt: z.string().datetime({ offset: true }).nullable(),
   /** SHA-256 (hex) of the exact approved file bytes, or null when not approved. */
   approvedHash: z.string().regex(SHA256_HEX, 'must be a lowercase sha256 hex digest').nullable(),
+  /**
+   * Tasks stage only: SHA-256 of the approved document with checkbox state
+   * normalized (semantics version 2). Absent on stages approved before v0.4
+   * and on non-tasks stages; the exact `approvedHash` remains authoritative
+   * for audit either way.
+   */
+  approvedPlanHash: z
+    .string()
+    .regex(SHA256_HEX, 'must be a lowercase sha256 hex digest')
+    .nullable()
+    .optional(),
+  hashAlgorithm: z.literal('sha256').optional(),
+  hashSemanticsVersion: z.string().optional(),
 });
 
 export type StageApproval = z.infer<typeof stageApprovalSchema>;
@@ -92,6 +116,17 @@ export const specWorkflowStateSchema = z
           code: z.ZodIssueCode.custom,
           path: ['stages', name],
           message: 'a stage that is not approved must have null approvedAt and approvedHash',
+        });
+      }
+      if (
+        !approved &&
+        approval.approvedPlanHash !== null &&
+        approval.approvedPlanHash !== undefined
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['stages', name],
+          message: 'a stage that is not approved must not record approvedPlanHash',
         });
       }
     }

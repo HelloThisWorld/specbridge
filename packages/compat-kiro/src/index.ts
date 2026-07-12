@@ -10,3 +10,5 @@ export * from './bugfix-parser.js';
 export * from './roundtrip-writer.js';
 export * from './diagnostics.js';
 export * from './agent-context.js';
+export * from './task-plan-hash.js';
+export * from './traceability.js';

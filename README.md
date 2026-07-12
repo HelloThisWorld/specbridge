@@ -14,10 +14,27 @@ Codex, local models, or any supported coding agent.
 
 > Your `.kiro` specs remain the source of truth.
 
+Now with deterministic spec drift verification (v0.4) — Kiro helps you
+write specs; SpecBridge verifies whether the implementation still matches
+them:
+
+```text
+approved spec
+    + Git diff
+    + task evidence
+    + trusted verification
+          ↓
+    SpecBridge quality gate
+```
+
 ```sh
 cd your-kiro-project        # any project that already contains .kiro/
 npx specbridge doctor       # read-only health check — nothing is modified
 npx specbridge spec list
+
+npx specbridge spec verify --changed \
+  --diff origin/main...HEAD \
+  --run-verification        # deterministic, offline, no model required
 ```
 
 *(Until the first npm release, build from source — see
@@ -158,13 +175,18 @@ Working today (fully offline, no model, no API key):
 | `specbridge spec run <name>` | **v0.3** — execute ONE approved task; evidence-gated checkbox completion |
 | `specbridge spec accept-task <name> --task <id> --reason …` | **v0.3** — explicit, audited manual acceptance |
 | `specbridge run list / show / resume` | **v0.3** — inspect append-only run records; resume interrupted sessions |
+| `specbridge spec verify [name] \| --changed \| --all` | **v0.4** — deterministic drift verification against a git comparison (read-only) |
+| `specbridge spec affected` | **v0.4** — which specs does this change set touch (read-only) |
+| `specbridge spec policy init / show / validate` | **v0.4** — per-spec verification policies (impact areas, required commands, rule overrides) |
+| `specbridge verify rules / explain <id>` | **v0.4** — inspect the stable rule registry SBV001–SBV025 |
 
-Planned commands (`spec sync/verify/export`) are registered, marked
-"(planned)" in `--help`, and exit with an honest error — see the
-[roadmap](docs/roadmap.md). Every command supports `--help` with examples.
-Exit codes: `0` success · `1` workflow/verification failure · `2` usage or
-configuration error · `3` runner unavailable · `4` runner failure ·
-`5` timeout/cancel · `6` safety violation.
+Planned commands (`spec sync/export`) are registered, marked "(planned)" in
+`--help`, and exit with an honest error — see the [roadmap](docs/roadmap.md).
+Every command supports `--help` with examples. Exit codes: `0` success ·
+`1` workflow/verification failure · `2` usage or configuration error ·
+`3` runner unavailable / git comparison unavailable · `4` runner or
+verification-command start failure · `5` timeout/cancel · `6` safety
+violation ([details](docs/ci-quality-gates.md)).
 
 ## Spec authoring and approval (v0.2)
 
@@ -317,32 +339,79 @@ Two directions, both covered in
   The CLI remains the product core; the skill is a thin wrapper that never
   bypasses approval gates or edits checkboxes itself.
 
-## Spec drift verification
+## Spec drift verification (v0.4)
 
-The headline differentiator: deterministic, LLM-free verification that code
-changes match the spec — tasks marked done without evidence, changes outside
-declared impact areas, criteria no task references, and more.
-
-**Status:** the deterministic checks ship today as a tested library
-([`@specbridge/drift`](packages/drift)); the `specbridge spec verify` CLI
-command and CI gate land in Phase H. Design: [docs/spec-drift.md](docs/spec-drift.md).
-
-Planned CI usage:
+The headline differentiator: deterministic, LLM-free verification that
+implementation changes still match the approved specs. SpecBridge detects
+explicit traceability gaps, stale evidence, approval drift, out-of-scope
+file changes, and failed configured verification commands — it does **not**
+claim to semantically prove that code implements natural-language
+requirements, and findings based on pattern recognition are labelled
+heuristic and never default to error.
 
 ```sh
-npx specbridge spec verify --changed --fail-on-drift
+specbridge spec verify notification-preferences --working-tree
+specbridge spec verify notification-preferences --diff origin/main...HEAD --run-verification
+specbridge spec verify --changed --diff origin/main...HEAD
+specbridge spec verify --all --working-tree --fail-on warning
+specbridge spec affected --diff origin/main...HEAD
 ```
 
-Exit codes: `0` passed · `1` drift / quality-gate failure · `2` configuration
-or runtime error.
+What it checks (25 stable rule IDs, `specbridge verify rules`):
 
-## GitHub Action
+- **Approval drift** — approved requirements/design/task-plan content that
+  changed after approval (SBV002/SBV003). Checkbox-only `[ ]`→`[x]`
+  progress no longer invalidates an approved task plan (normalized plan
+  hash, v0.4); real plan edits still do.
+- **Evidence** — checked tasks without valid evidence, stale evidence
+  (spec or task changed after it was recorded), manual acceptance
+  labelled distinctly (SBV004/SBV011/SBV015/SBV024).
+- **Traceability** — requirements no task references, tasks referencing
+  unknown requirements, checked parents with open subtasks
+  (SBV007–SBV010).
+- **Scope** — changes outside declared impact areas, protected-path
+  modifications, files no spec claims (SBV005/SBV006/SBV014/SBV022).
+- **Trusted commands** — failed/missing/timed-out verification commands
+  from `.specbridge/config.json` (SBV012/SBV013/SBV025) — never from spec
+  text or model output.
 
-A preview composite action runs the read-only gates that exist today
-(`doctor` + `compat check`):
-[integrations/github-action](integrations/github-action/README.md). Drift
-gates join it in Phase H. CI for this repository runs on Linux, macOS, and
-Windows with Node 20 and 22 — no model, no API key.
+Reports: terminal, versioned JSON, GitHub-ready Markdown, and a
+self-contained HTML file. Verification is read-only — it never edits
+`.kiro`, checkboxes, approvals, or evidence. Everything is deterministic
+and offline: no model, no API key, no network.
+
+Docs: [spec drift verification](docs/spec-drift-verification.md) ·
+[rules](docs/verification-rules.md) · [policies](docs/verification-policy.md) ·
+[traceability](docs/requirement-task-traceability.md) ·
+[evidence freshness](docs/evidence-freshness.md) ·
+[affected specs](docs/affected-spec-detection.md) ·
+[CI quality gates](docs/ci-quality-gates.md).
+
+## GitHub Action (v0.4)
+
+A production node20 action wraps the same verification engine — no model,
+no API key, no pnpm, no network access:
+
+```yaml
+- uses: actions/checkout@v4
+  with:
+    fetch-depth: 0            # the action never fetches by itself
+
+- name: Verify spec alignment
+  uses: <owner>/specbridge/integrations/github-action@v0.4   # placeholder until published
+  with:
+    mode: changed
+    fail-on: error
+    run-verification: true
+```
+
+Pull-request and push diffs resolve from the event; `workflow_dispatch`
+takes explicit `base-ref`/`head-ref`. The action writes a Step Summary,
+emits bounded file/line annotations titled with rule IDs, exposes ten
+outputs, and uploads-ready reports land in `.specbridge/action-reports`.
+Details: [docs/github-action.md](docs/github-action.md) ·
+[integrations/github-action](integrations/github-action/README.md).
+CI for this repository runs on Linux, macOS, and Windows with Node 20/22.
 
 ## Supported runners
 
@@ -375,11 +444,15 @@ SpecBridge stores no credentials of any kind.
   secrets or environment variables.
 - Full model: [docs/security.md](docs/security.md).
 
-## Limitations (v0.3)
+## Limitations (v0.4)
 
-- Sync, the drift-verification CLI, and export are not implemented yet (they
-  fail honestly; the drift library primitives exist). v0.3 does **not** yet
-  implement full spec-to-code drift analysis.
+- Verification is deterministic, not semantic: it proves traceability,
+  approval, evidence, scope, and command facts — it cannot judge whether
+  code *correctly implements* a natural-language requirement, and it never
+  claims to. Heuristic findings (test-language detection, keyword
+  references, chore-task exclusion) are labelled and never default to error.
+- `spec sync` and `spec export` are not implemented yet (they fail
+  honestly). SARIF output is deferred.
 - Claude Code is the only production runner; codex/ollama/openai-compatible
   remain stubs. Claude usage happens under your own account and plan.
 - Task execution requires a git repository, sidecar workflow state, and
@@ -387,14 +460,21 @@ SpecBridge stores no credentials of any kind.
 - Tasks can only auto-verify when verification commands are configured;
   with none configured, runs end `implemented-unverified`.
 - One task per run; `--all` is strictly sequential. Parallel execution,
-  agent teams, sandboxing, and automatic rollback are out of scope for v0.3.
-- Analysis is deterministic and structural; it cannot judge whether
-  requirements are *good*, only whether they are well-formed and complete.
+  agent teams, sandboxing, and automatic rollback remain out of scope.
+- Verification requires git history: shallow clones fail with actionable
+  guidance (SBV021) rather than guessing; SpecBridge never fetches.
+- Sidecar state written before v0.4 has no normalized task-plan hash;
+  checkbox edits made outside SpecBridge read as stale until the next
+  approval or sanctioned write records it (documented migration).
+- Evidence recorded by v0.3 lacks `specContext` hashes; freshness then
+  falls back to recorded approval timestamps (deterministic but coarser).
 - Workflow order cannot be inferred without sidecar state (reported as
   `unknown` — by design); the first approval of an existing Kiro spec infers
   it only when unambiguous.
 - Files that are not valid UTF-8 are read best-effort and never edited.
-- The GitHub Action is a preview and needs specbridge installed in the workflow.
+- The GitHub Action needs `fetch-depth: 0` and a checked-out `.kiro`
+  workspace; it is not yet published to a marketplace tag (use the
+  placeholder path until then).
 - Setext (`===` underline) headings are not recognized as section boundaries;
   the bytes are preserved regardless.
 
@@ -402,12 +482,14 @@ SpecBridge stores no credentials of any kind.
 
 v0.1: read-only compatibility, doctor, listing, context, round-trip proof.
 v0.2: offline spec authoring, deterministic analysis, hash-based approvals,
-stale-approval detection. v0.3 (this release): agent runner contract, the
-Claude Code local runner, model-assisted generation/refinement, approved
-task execution with git snapshots, trusted verification, append-only
-evidence, verified-only checkbox completion, manual acceptance, and
-resumable sessions. Next: sync + drift verification CLI (H), GitHub Action
-gates (I), more runners, optional MCP server (K).
+stale-approval detection. v0.3: agent runner contract, the Claude Code local
+runner, model-assisted generation/refinement, approved task execution with
+git snapshots, trusted verification, append-only evidence, verified-only
+checkbox completion, manual acceptance, resumable sessions. v0.4 (this
+release): deterministic drift verification (rule engine SBV001–SBV025,
+policies, affected-spec resolution, evidence freshness, normalized task-plan
+approval hash, four report formats) and the production GitHub Action. Next:
+MCP server (K), more runners, `spec sync`/`spec export`, SARIF.
 Full detail: [docs/roadmap.md](docs/roadmap.md).
 
 ## Documentation
@@ -426,7 +508,14 @@ Full detail: [docs/roadmap.md](docs/roadmap.md).
 [Task verification](docs/task-verification.md) ·
 [Session resume](docs/session-resume.md) ·
 [Security](docs/security.md) ·
-[Spec drift](docs/spec-drift.md) ·
+[Spec drift verification](docs/spec-drift-verification.md) ·
+[Verification rules](docs/verification-rules.md) ·
+[Verification policy](docs/verification-policy.md) ·
+[Traceability](docs/requirement-task-traceability.md) ·
+[Evidence freshness](docs/evidence-freshness.md) ·
+[Affected specs](docs/affected-spec-detection.md) ·
+[GitHub Action](docs/github-action.md) ·
+[CI quality gates](docs/ci-quality-gates.md) ·
 [Claude Code integration](docs/claude-code-integration.md) ·
 [Migration from Kiro](docs/migration-from-kiro.md) (spoiler: there is none) ·
 [Roadmap](docs/roadmap.md) ·

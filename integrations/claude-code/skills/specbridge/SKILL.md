@@ -74,9 +74,16 @@ Runner-assisted (v0.3): `spec generate`, `spec refine`, `spec run`,
 requires every stage approved and a clean working tree (or an explicit
 `--allow-dirty`).
 
-Still planned (exit 2 honestly): `spec sync`, `spec verify`, `spec export` —
-if the user asks for them, do the nearest read-only equivalent manually and
-say that is what you did. Never claim a planned command ran.
+Drift verification (v0.4, read-only, offline): `spec verify <name>` /
+`spec verify --changed` / `spec verify --all` with `--diff base...head`,
+`--working-tree`, or `--staged`; `spec affected`; `spec policy
+init/show/validate`; `verify rules` / `verify explain <id>`. All support
+`--json`. Verification never edits .kiro files, checkboxes, approvals, or
+evidence — report findings, never "fix" them by editing state.
+
+Still planned (exit 2 honestly): `spec sync`, `spec export` — if the user
+asks for them, do the nearest read-only equivalent manually and say that is
+what you did. Never claim a planned command ran.
 
 Reference guides in this skill:
 

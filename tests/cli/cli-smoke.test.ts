@@ -265,15 +265,21 @@ describe('specbridge compat check', () => {
 });
 
 describe('planned commands are honest', () => {
+  // `spec verify` became a real command in v0.4; sync/export stay planned.
   it.each([
     ['spec', 'sync', 'x'],
-    ['spec', 'verify', 'x'],
     ['spec', 'export', 'x'],
   ])('%s %s exits 2 with a not-implemented message', async (...argv) => {
     const result = await cli(standard, ...argv);
     expect(result.code).toBe(2);
     expect(result.stderr).toContain('not implemented yet');
     expect(result.stderr).toContain('planned');
+  });
+
+  it('spec verify is implemented and errors helpfully for an unknown spec', async () => {
+    const result = await cli(standard, 'spec', 'verify', 'x');
+    expect(result.code).toBe(2);
+    expect(result.stderr).toContain('Spec "x" not found');
   });
 });
 

@@ -12,7 +12,7 @@ instead of duplicating logic.
 | `@specbridge/core` | Shared types, errors, workspace detection, path-safety guards, atomic writes, hashing, versioned sidecar state (`.specbridge/`) |
 | `@specbridge/compat-kiro` | Everything `.kiro`: line-preserving Markdown model, steering loader, spec discovery/classification, tolerant parsers, round-trip writer, workspace analysis, agent-context assembly |
 | `@specbridge/workflow` | v0.2 authoring and approval engine: spec-name validation, offline templates, atomic spec creation, deterministic analyzers, workflow state machine, approval hashing + stale detection, sidecar audits |
-| `@specbridge/drift` | Deterministic drift primitives: git-diff parsing, impact areas, requirement/task coverage, evidence storage, report assembly |
+| `@specbridge/drift` | Deterministic drift verification (v0.4): git comparison resolution, spec policies, the SBV001–SBV025 rule engine, affected-spec resolution, trusted-command orchestration, schema-validated report assembly — plus the v0.1 primitives |
 | `@specbridge/runners` | Model/agent adapters behind one `AgentRunner` interface (mock implemented; CLI runners detection-only) |
 | `@specbridge/reporting` | Terminal formatting, JSON report envelope, self-contained HTML rendering |
 | `specbridge` (packages/cli) | Commander-based CLI wiring the above together |
@@ -22,8 +22,9 @@ Dependency direction (arrows = "may import"):
 ```
 cli ──▶ workflow ──▶ compat-kiro ──▶ core
 cli ──▶ reporting   ──▶ core
-drift ─▶ compat-kiro, core        (cli wires drift in Phase H)
-runners ─▶ core                   (cli wires runners in Phase F)
+cli ──▶ drift ─▶ compat-kiro, core, workflow, evidence, runners
+runners ─▶ core
+integrations/github-action ─▶ drift, reporting, core (bundled; no CLI dependency)
 ```
 
 ## Design principles

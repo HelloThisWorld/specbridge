@@ -1,61 +1,110 @@
-# SpecBridge GitHub Action (preview)
+# SpecBridge GitHub Action
 
-Runs the read-only gates that exist in SpecBridge v0.1 on every PR:
+Deterministic spec drift verification for Kiro-style specs on every pull
+request or push:
 
-- `specbridge doctor` — the `.kiro` workspace is healthy (exit 1 otherwise)
-- `specbridge compat check` — every spec and steering file round-trips
-  byte-identically (exit 1 otherwise)
+- approval drift (`SBV002`, `SBV003`) and stale/missing task evidence
+  (`SBV004`, `SBV011`, `SBV015`)
+- requirement-to-task traceability gaps (`SBV007`–`SBV010`)
+- changes outside declared impact areas and protected-path modifications
+  (`SBV005`, `SBV006`, `SBV014`)
+- trusted verification commands from `.specbridge/config.json`
+  (`SBV012`, `SBV013`, `SBV025`)
 
-Neither step needs a model, an API key, or network access beyond installing
-the CLI.
+**No model, no API key, no Claude installation, no network access.** The
+action is a bundled node20 wrapper around the same `@specbridge/drift`
+engine the CLI uses — no rule logic is reimplemented here. It never modifies
+tracked project files; its only writes are the generated reports.
 
-## Status: preview
-
-- **Requires the specbridge CLI to be runnable.** The default
-  (`npx --yes specbridge`) works once specbridge is published to npm. Until
-  then, build from source in a prior step and set `specbridge-command`.
-- **Drift verification is not part of this action yet.** The planned inputs
-  below become real in the drift phase (Phase H/I); they are documented so
-  workflows can be sketched, not because they work today.
-
-## Usage (today)
+## Usage
 
 ```yaml
-- uses: actions/checkout@v4
+name: Verify specs
 
-- name: Verify .kiro spec compatibility
-  uses: <owner>/specbridge/integrations/github-action@v0.1
-  with:
-    working-directory: .
-    # spec: user-authentication   # optional: limit to one spec
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  specbridge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history: the action never fetches by itself, and the diff
+          # base of a PR usually lies outside a shallow clone.
+          fetch-depth: 0
+
+      - name: Verify spec alignment
+        id: specbridge
+        # Replace <owner> with the repository owner once published.
+        uses: <owner>/specbridge/integrations/github-action@v0.4
+        with:
+          mode: changed
+          fail-on: error
+          strict: false
+          run-verification: true
+
+      - name: Upload SpecBridge reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: specbridge-reports
+          path: .specbridge/action-reports
 ```
 
-Building from source until the npm release:
+## Diff resolution per event
 
-```yaml
-- uses: actions/checkout@v4
-  with: { repository: <owner>/specbridge, path: .specbridge-src }
-- run: cd .specbridge-src && corepack enable && pnpm install --frozen-lockfile && pnpm build
-- uses: <owner>/specbridge/integrations/github-action@v0.1
-  with:
-    specbridge-command: node ${{ github.workspace }}/.specbridge-src/packages/cli/dist/index.js
+| Event | Base | Head |
+| --- | --- | --- |
+| `pull_request` / `pull_request_target` | PR base SHA | PR head SHA |
+| `push` | `before` SHA | pushed SHA |
+| `workflow_dispatch` and others | `base-ref` input (required) | `head-ref` input or `HEAD` |
+
+The action never assumes `main`, never assumes the default branch exists
+locally, and never fetches. When history is missing (shallow clone), the run
+fails with `SBV021` and the `fetch-depth: 0` guidance above.
+
+## Inputs
+
+| Input | Default | Description |
+| --- | --- | --- |
+| `mode` | `changed` | `single`, `changed`, or `all` |
+| `spec` | — | Spec name; required when `mode: single` |
+| `base-ref` / `head-ref` | — | Explicit comparison refs (override the event) |
+| `fail-on` | `error` | `error`, `warning`, or `never` |
+| `strict` | `false` | Strict verification behavior (tightens policies) |
+| `run-verification` | `true` | Run trusted commands from `.specbridge/config.json` |
+| `report-directory` | `.specbridge/action-reports` | Where reports are written |
+| `annotations` | `true` | Emit file/line annotations |
+| `write-step-summary` | `true` | Write the Markdown report to the Step Summary |
+| `annotation-limit` | `50` | Maximum annotations (0–1000); the rest is summarized |
+
+## Outputs
+
+`result`, `verification-id`, `spec-count`, `error-count`, `warning-count`,
+`info-count`, `json-report`, `markdown-report`, `html-report` (paths relative
+to the workspace), and `affected-specs` (a JSON array string).
+
+## Exit behavior
+
+The step fails when the `fail-on` threshold is reached, when a policy is
+invalid, when the git comparison cannot be resolved, or when a required
+verification command fails to start or times out. The Step Summary and the
+report artifacts always explain why.
+
+## Building (maintainers)
+
+`dist/index.js` is a committed, reproducible bundle:
+
+```sh
+pnpm --filter specbridge-github-action build
+git diff --exit-code integrations/github-action/dist
 ```
 
-## Planned (Phase H/I — not implemented)
-
-```yaml
-- name: Verify spec alignment
-  uses: <owner>/specbridge/integrations/github-action@v1
-  with:
-    spec: notification-preferences
-    diff: origin/main...HEAD
-    fail-on-drift: true
-```
-
-The drift-phase action will detect changed specs, run the deterministic
-verifier, write a Markdown job summary, optionally upload HTML/JSON reports,
-and fail the PR on configured quality gates — still with no model required.
-Equivalent CLI: `npx specbridge spec verify --changed --fail-on-drift`.
-
-Exit codes across all SpecBridge gates: `0` pass · `1` drift/quality-gate
-failure · `2` configuration or runtime error.
+CI rebuilds the bundle and fails when the committed file drifts from the
+source.
