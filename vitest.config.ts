@@ -24,5 +24,9 @@ export default defineConfig({
     // CLI output assertions must see the exact text users see with NO_COLOR;
     // picocolors would otherwise force ANSI codes on Windows terminals.
     env: { NO_COLOR: '1' },
+    // The v0.3 execution tests are process-level integration tests (git
+    // snapshots, runner subprocesses, verification commands); slow CI
+    // runners regularly exceed the 5s default.
+    testTimeout: 30_000,
   },
 });

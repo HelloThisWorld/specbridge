@@ -165,9 +165,15 @@ export async function runSafeProcess(request: SafeProcessRequest): Promise<SafeP
   const stderr = typeof result.stderr === 'string' ? result.stderr : '';
 
   const spawnFailed = result.exitCode === undefined && !result.timedOut && !result.isCanceled;
-  const isMaxBuffer = 'isMaxBuffer' in result && result.isMaxBuffer === true;
-  const stdoutTruncated = isMaxBuffer && Buffer.byteLength(stdout, 'utf8') >= maxStdout;
-  const stderrTruncated = isMaxBuffer && Buffer.byteLength(stderr, 'utf8') >= maxStderr;
+  // Output-limit detection must not depend on execa's isMaxBuffer flag
+  // alone: on macOS a fast-exiting child can finish before the overflow is
+  // flagged, leaving truncated output on a "successful" result. Output at
+  // or beyond the configured limit is indistinguishable from an overflow
+  // (execa truncates TO the limit), so treat it as one — never parse it.
+  const stdoutTruncated = Buffer.byteLength(stdout, 'utf8') >= maxStdout;
+  const stderrTruncated = Buffer.byteLength(stderr, 'utf8') >= maxStderr;
+  const isMaxBuffer =
+    ('isMaxBuffer' in result && result.isMaxBuffer === true) || stdoutTruncated || stderrTruncated;
 
   let status: SafeProcessStatus;
   let failureReason: string | undefined;
