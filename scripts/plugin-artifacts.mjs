@@ -86,13 +86,21 @@ function collectExternalRuntimeDeps() {
     if (typeof manifest.name !== 'string' || typeof manifest.version !== 'string') continue;
     const key = `${manifest.name}@${manifest.version}`;
     if (seen.has(key)) continue;
+    // License-file discovery must behave identically on case-sensitive and
+    // case-insensitive filesystems: list the directory, match names
+    // case-insensitively, and pick deterministically (sorted, first match).
     let licenseText = '';
-    for (const candidate of ['LICENSE', 'LICENSE.md', 'LICENSE.txt', 'LICENCE', 'license', 'License.md']) {
-      const licensePath = path.join(packageDir, candidate);
-      if (existsSync(licensePath)) {
-        licenseText = readFileSync(licensePath, 'utf8');
-        break;
-      }
+    let entries = [];
+    try {
+      entries = readdirSync(packageDir);
+    } catch {
+      entries = [];
+    }
+    const licenseFile = entries
+      .filter((name) => /^licen[cs]e(\.(md|txt|markdown))?$/i.test(name))
+      .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase(), 'en') || a.localeCompare(b, 'en'))[0];
+    if (licenseFile !== undefined) {
+      licenseText = readFileSync(path.join(packageDir, licenseFile), 'utf8');
     }
     seen.set(key, {
       name: manifest.name,
