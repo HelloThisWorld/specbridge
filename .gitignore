@@ -8,6 +8,10 @@ dist/
 # The GitHub Action ships its reproducible bundle in-repo (checked in CI).
 !integrations/github-action/dist/
 
+# The Claude Code plugin ships its reproducible bundle in-repo too, so
+# installing the plugin straight from the GitHub marketplace source works.
+!integrations/claude-code-plugin/specbridge/dist/
+
 # Test output
 coverage/
 

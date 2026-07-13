@@ -27,6 +27,7 @@ import { registerSpecAcceptTaskCommand } from './commands/spec-accept-task.js';
 import { registerRunnerCommands } from './commands/runner.js';
 import { registerRunCommands } from './commands/run.js';
 import { registerCompatCheckCommand } from './commands/compat-check.js';
+import { registerMcpCommands } from './commands/mcp.js';
 
 function buildProgram(runtime: CliRuntime): Command {
   const program = new Command();
@@ -84,6 +85,7 @@ honest error; nothing pretends to work before it does.`,
   registerRunnerCommands(program, runtime);
   registerRunCommands(program, runtime);
   registerCompatCheckCommand(program, runtime);
+  registerMcpCommands(program, runtime);
 
   return program;
 }

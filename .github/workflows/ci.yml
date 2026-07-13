@@ -48,3 +48,13 @@ jobs:
       - name: GitHub Action bundle is reproducible
         if: matrix.os == 'ubuntu-latest'
         run: git diff --exit-code integrations/github-action/dist
+
+      - name: Validate the Claude Code plugin (deterministic, no Claude Code required)
+        run: pnpm validate:plugin
+
+      - name: Verify the isolated plugin bundle (mandatory self-containment check)
+        run: pnpm verify:plugin-bundle
+
+      - name: Claude Code plugin bundle is reproducible
+        if: matrix.os == 'ubuntu-latest'
+        run: git diff --exit-code integrations/claude-code-plugin/specbridge/dist

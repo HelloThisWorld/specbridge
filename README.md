@@ -14,9 +14,42 @@ Codex, local models, or any supported coding agent.
 
 > Your `.kiro` specs remain the source of truth.
 
-Now with deterministic spec drift verification (v0.4) — Kiro helps you
-write specs; SpecBridge verifies whether the implementation still matches
-them:
+New in v0.5 — a self-contained **Claude Code plugin** with a local MCP
+server and verified interactive task execution:
+
+```text
+/plugin marketplace add HelloThisWorld/specbridge
+/plugin install specbridge@specbridge-plugins
+/reload-plugins
+```
+
+Then, inside any project that contains `.kiro/`:
+
+```text
+/specbridge:doctor
+/specbridge:status
+/specbridge:implement notification-preferences 2.3
+/specbridge:verify
+```
+
+```text
+/specbridge:implement
+        ↓
+task_begin
+        ↓
+current Claude session edits
+        ↓
+task_complete
+        ↓
+Git evidence + trusted verification
+        ↓
+verified task completion
+```
+
+The plugin bundles everything (CLI + MCP server + skills) — no global npm
+install, no nested Claude processes, and stage approval stays an explicit
+human action. Deterministic spec drift verification (v0.4) still guards the
+other end:
 
 ```text
 approved spec
@@ -179,6 +212,8 @@ Working today (fully offline, no model, no API key):
 | `specbridge spec affected` | **v0.4** — which specs does this change set touch (read-only) |
 | `specbridge spec policy init / show / validate` | **v0.4** — per-spec verification policies (impact areas, required commands, rule overrides) |
 | `specbridge verify rules / explain <id>` | **v0.4** — inspect the stable rule registry SBV001–SBV025 |
+| `specbridge mcp serve / doctor / manifest / tools` | **v0.5** — local stdio MCP server (21 tools, 7 resources, 4 prompts) |
+| `specbridge run recover-lock` | **v0.5** — diagnose and explicitly recover the interactive execution lock |
 
 Planned commands (`spec sync/export`) are registered, marked "(planned)" in
 `--help`, and exit with an honest error — see the [roadmap](docs/roadmap.md).
@@ -444,7 +479,19 @@ SpecBridge stores no credentials of any kind.
   secrets or environment variables.
 - Full model: [docs/security.md](docs/security.md).
 
-## Limitations (v0.4)
+## Limitations (v0.5)
+
+- The MCP server is stdio-only and local-only: no HTTP/SSE/WebSocket
+  transport, no OAuth, no cloud hosting. One server process serves one
+  project root.
+- The plugin requires Node.js 20+ on PATH (the same requirement as Claude
+  Code) and a Git repository for interactive task execution.
+- Interactive execution is strictly one task per run per repository,
+  guarded by a lock file; recovery after a crash is explicit
+  (`specbridge run recover-lock`), never automatic.
+- Claude Code plugin-scoped MCP tool prefixes are host-generated; skills
+  reference tools by short name, and the effective prefixes are only
+  verifiable inside a real Claude Code session (`/mcp`).
 
 - Verification is deterministic, not semantic: it proves traceability,
   approval, evidence, scope, and command facts — it cannot judge whether
@@ -485,12 +532,14 @@ v0.2: offline spec authoring, deterministic analysis, hash-based approvals,
 stale-approval detection. v0.3: agent runner contract, the Claude Code local
 runner, model-assisted generation/refinement, approved task execution with
 git snapshots, trusted verification, append-only evidence, verified-only
-checkbox completion, manual acceptance, resumable sessions. v0.4 (this
-release): deterministic drift verification (rule engine SBV001–SBV025,
-policies, affected-spec resolution, evidence freshness, normalized task-plan
-approval hash, four report formats) and the production GitHub Action. Next:
-MCP server (K), more runners, `spec sync`/`spec export`, SARIF.
-Full detail: [docs/roadmap.md](docs/roadmap.md).
+checkbox completion, manual acceptance, resumable sessions. v0.4:
+deterministic drift verification (rule engine SBV001–SBV025, policies,
+affected-spec resolution, evidence freshness, four report formats) and the
+production GitHub Action. v0.5 (this release): the local stdio MCP server,
+direct interactive task execution, and the self-contained Claude Code
+plugin with its repository-local marketplace. Next — v0.6: production
+multi-runner support. v0.7: templates, plugin SDK, extension registry,
+community ecosystem. Full detail: [docs/roadmap.md](docs/roadmap.md).
 
 ## Documentation
 
@@ -517,6 +566,18 @@ Full detail: [docs/roadmap.md](docs/roadmap.md).
 [GitHub Action](docs/github-action.md) ·
 [CI quality gates](docs/ci-quality-gates.md) ·
 [Claude Code integration](docs/claude-code-integration.md) ·
+[MCP server](docs/mcp-server.md) ·
+[MCP tools](docs/mcp-tools.md) ·
+[MCP resources](docs/mcp-resources.md) ·
+[MCP prompts](docs/mcp-prompts.md) ·
+[Interactive task execution](docs/interactive-task-execution.md) ·
+[Claude Code plugin](docs/claude-code-plugin.md) ·
+[Plugin installation](docs/plugin-installation.md) ·
+[Plugin development](docs/plugin-development.md) ·
+[Plugin marketplace](docs/plugin-marketplace.md) ·
+[Plugin security](docs/plugin-security.md) ·
+[Plugin release](docs/plugin-release.md) ·
+[CLI/MCP parity](docs/cli-mcp-parity.md) ·
 [Migration from Kiro](docs/migration-from-kiro.md) (spoiler: there is none) ·
 [Roadmap](docs/roadmap.md) ·
 [Changelog](CHANGELOG.md)

@@ -115,3 +115,53 @@ any write or execution surface:
 - **The GitHub Action needs no secrets.** No model, no API key, no network
   access; it never modifies tracked files, and its bundle is rebuilt and
   diffed in CI so the committed artifact provably matches the source.
+
+## MCP and plugin safety (v0.5)
+
+The MCP server and Claude Code plugin add no new authority: they expose the
+same operations the CLI already gates, minus the human-only ones. Controls:
+
+- **No arbitrary tools.** There is no filesystem tool, no shell tool, no
+  Git tool, no user-supplied executable, and no user-supplied working
+  directory anywhere in the MCP surface.
+- **One project per process.** The project root is canonicalized at startup
+  and the workspace is pinned after first resolution; no tool argument can
+  retarget the server.
+- **No model-controlled approval.** Approval (and revocation, and manual
+  task acceptance) exists only as a human CLI action; the plugin's approve
+  skill cannot be model-invoked.
+- **Claims are never evidence.** `task_complete`'s reported fields are
+  recorded verbatim as claims; verification derives from Git snapshots and
+  trusted commands only.
+- **Candidate hash binding.** `spec_stage_apply` requires the exact
+  current-document hash and candidate hash that `spec_stage_validate`
+  reported, plus a literal acknowledgement — substitution between review
+  and apply fails closed, and there is no force option.
+- **Serialized writes, bounded output, stdio discipline.** State-changing
+  tools serialize behind a per-project mutex; responses are size-capped and
+  paginated; stdout carries protocol frames only and logs (stderr) never
+  contain file contents, prompts, environment values, or secrets.
+- **No automatic Git mutations** — commit, push, reset, stash, and rollback
+  do not exist in any code path, including violation handling.
+- **No draft MCP features.** The server targets the stable 2025-11-25
+  protocol through the pinned official SDK (1.29.0).
+
+## v0.5 threat model
+
+| Threat | Mitigation |
+| --- | --- |
+| Malicious spec content (instruction-like text in `.kiro` files) | Spec content is parsed as data; nothing in it is executed; prompts/instructions label it untrusted; verification commands cannot come from it. |
+| Prompt injection inside source code | Source is only ever read by the host session; SpecBridge executes nothing from it; `task_begin` instructions bound the session's mandate; evidence evaluation ignores narrative content entirely. |
+| Malicious MCP arguments | Zod schemas bound every input (sizes, enums, formats); names are never paths; refs are validated against option injection; unknown fields are rejected at the protocol layer. |
+| Path traversal via tool/resource parameters | Steering/spec/run identifiers reject `/`, `\`, `..`, and null bytes; every resolved write path passes the workspace-traversal guard. |
+| Symlink escape | Snapshot and protected-path hashing never follow symlinks; description-file and policy readers enforce workspace containment. |
+| stdout protocol corruption | Structured stderr-only logging; `mcp doctor` verifies zero stdout bytes during server construction; a process-level test asserts every stdout line is protocol JSON. |
+| Plugin cache path changes | The plugin references itself only via `${CLAUDE_PLUGIN_ROOT}` and relative paths; wrappers resolve their own location; validation rejects absolute build paths in any artifact. |
+| Forged run IDs | Run ids are format-validated and resolved only inside `.specbridge/runs`; an unknown id is SBMCP011; a non-interactive run cannot be completed interactively (SBMCP012). |
+| Stale task run completion | Completion requires the lock to still reference the run, approvals to be current (SBMCP005), and the task fingerprint plus exact line text to match (SBMCP013); finalized runs return idempotently. |
+| Repository divergence mid-run | HEAD motion and approved-hash changes are detected between snapshots; divergence blocks verification and is reported without rollback. |
+| Concurrent completion / abort races | A per-project write mutex serializes all state-changing tools in-process; the repository lock file serializes across processes; append-only evidence refuses duplicates. |
+| Candidate substitution between validate and apply | Dual hash binding (`expectedCurrentHash`, `expectedCandidateHash`) recomputed inside the write lock. |
+| Malicious verifier output | Verifier stdout/stderr is captured with size limits, stored under the run directory, and only bounded tails ever appear in reports; output is never parsed as instructions. |
+| Oversized content (DoS) | 1 MB document/candidate caps, 2 MB structured-response cap, 500-diagnostic cap, list pagination, and SBMCP018/SBMCP019 failures before memory blowups. |
+| Plugin supply-chain integrity | Pinned SDK, reproducible bundles, SHA-256 checksum manifest verified in CI, license report, and a validator that rejects workspace imports or absolute paths in the shipped artifact. |

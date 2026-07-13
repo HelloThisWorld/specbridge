@@ -44832,6 +44832,7 @@ async function verifySpecs(request) {
       );
     }
   }
+  const persistArtifacts = request.persistArtifacts !== false;
   let artifactsDir;
   const ensureArtifactsDir = () => {
     if (artifactsDir === void 0) {
@@ -44855,12 +44856,14 @@ async function verifySpecs(request) {
     evidenceBySpec,
     ...request.signal !== void 0 ? { signal: request.signal } : {},
     ...request.onProgress !== void 0 ? { onProgress: request.onProgress } : {},
-    onCommandFinished: (result, stdout, stderr) => {
-      const dir = ensureArtifactsDir();
-      const safeName = result.name.replace(/[^A-Za-z0-9._-]+/g, "-");
-      writeFileAtomic(import_path14.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
-      writeFileAtomic(import_path14.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
-    }
+    ...persistArtifacts ? {
+      onCommandFinished: (result, stdout, stderr) => {
+        const dir = ensureArtifactsDir();
+        const safeName = result.name.replace(/[^A-Za-z0-9._-]+/g, "-");
+        writeFileAtomic(import_path14.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
+        writeFileAtomic(import_path14.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
+      }
+    } : {}
   }) : { mode: "none", commands: [], missingRequired: [] };
   const rules = builtInVerificationRules();
   const diagnosticsBySpec = /* @__PURE__ */ new Map();
@@ -44933,7 +44936,7 @@ async function verifySpecs(request) {
     verificationCommands: commands.commands.map(toCommandReport)
   };
   verificationReportSchema.parse(report);
-  if (artifactsDir !== void 0) {
+  if (persistArtifacts && artifactsDir !== void 0) {
     writeFileAtomic(
       import_path14.default.join(artifactsDir, "report.json"),
       `${JSON.stringify(report, null, 2)}
@@ -45494,7 +45497,7 @@ function emptyToUndefined(value) {
 }
 
 // src/version.ts
-var ACTION_VERSION = "0.4.0";
+var ACTION_VERSION = "0.5.0";
 
 // src/main.ts
 function readEventPayload(eventPath) {

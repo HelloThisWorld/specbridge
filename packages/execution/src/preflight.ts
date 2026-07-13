@@ -68,6 +68,34 @@ export interface PreflightRequest {
   allowDirty?: boolean;
 }
 
+/**
+ * Working-tree paths that the clean-tree POLICY counts as dirty: everything
+ * except SpecBridge's own runtime state and `.kiro` stage files whose bytes
+ * still match their recorded approved hash (e.g. a tasks.md checkbox update
+ * SpecBridge itself made after a verified task). Snapshots and attribution
+ * still track every path. Shared by runner preflight and the interactive
+ * task lifecycle so both enforce the exact same policy.
+ */
+export function policyRelevantDirtyPaths(
+  before: GitSnapshot,
+  evaluation: WorkflowEvaluation,
+): string[] {
+  const approvedHashes = new Map<string, string>();
+  for (const stageEvaluation of evaluation.stages) {
+    if (stageEvaluation.stored.approvedHash !== null) {
+      approvedHashes.set(stageEvaluation.stored.file, stageEvaluation.stored.approvedHash);
+    }
+  }
+  return before.entries
+    .filter((entry) => {
+      if (entry.path.startsWith('.specbridge/')) return false;
+      const approvedHash = approvedHashes.get(entry.path);
+      if (approvedHash !== undefined && entry.contentHash === approvedHash) return false;
+      return true;
+    })
+    .map((entry) => entry.path);
+}
+
 export async function preflightTaskRun(
   deps: {
     workspace: WorkspaceInfo;
@@ -239,24 +267,7 @@ export async function preflightTaskRun(
       remediation: ['Initialize one with "git init" and commit the current state.'],
     });
   }
-  // The dirty-tree POLICY ignores SpecBridge's own runtime state and .kiro
-  // stage files whose bytes still match their recorded approved hash (e.g.
-  // a tasks.md checkbox update SpecBridge itself made after a verified
-  // task). Snapshots and attribution still track every path.
-  const approvedHashes = new Map<string, string>();
-  for (const stageEvaluation of evaluation.stages) {
-    if (stageEvaluation.stored.approvedHash !== null) {
-      approvedHashes.set(stageEvaluation.stored.file, stageEvaluation.stored.approvedHash);
-    }
-  }
-  const policyDirtyPaths = before.entries
-    .filter((entry) => {
-      if (entry.path.startsWith('.specbridge/')) return false;
-      const approvedHash = approvedHashes.get(entry.path);
-      if (approvedHash !== undefined && entry.contentHash === approvedHash) return false;
-      return true;
-    })
-    .map((entry) => entry.path);
+  const policyDirtyPaths = policyRelevantDirtyPaths(before, evaluation);
 
   const requireClean = config.execution.requireCleanWorkingTree;
   if (policyDirtyPaths.length > 0 && requireClean && !allowDirty) {

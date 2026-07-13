@@ -130,7 +130,13 @@ export type StageAuthoringOutcome =
 
 const READ_ONLY_STAGES: StageName[] = ['requirements', 'bugfix'];
 
-function candidateAnalysis(
+/**
+ * Deterministic analysis of a candidate stage document, in memory, at full
+ * draft strictness (placeholders and missing content are errors). Shared by
+ * runner-based authoring and the MCP spec_stage_validate/apply tools so a
+ * candidate is always judged by exactly the same rules.
+ */
+export function candidateAnalysis(
   spec: SpecAnalysis,
   stage: StageName,
   candidateMarkdown: string,

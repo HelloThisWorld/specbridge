@@ -1,0 +1,47 @@
+{
+  "name": "@specbridge/mcp-server",
+  "version": "0.5.0",
+  "description": "Local stdio MCP server exposing SpecBridge workspace, spec, task, run, and verification capabilities as typed tools, resources, and prompts.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "kiro",
+    "specs",
+    "spec-driven-development"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "@specbridge/compat-kiro": "workspace:*",
+    "@specbridge/core": "workspace:*",
+    "@specbridge/drift": "workspace:*",
+    "@specbridge/evidence": "workspace:*",
+    "@specbridge/execution": "workspace:*",
+    "@specbridge/workflow": "workspace:*",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0"
+  }
+}

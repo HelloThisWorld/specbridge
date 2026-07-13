@@ -5,6 +5,7 @@ import type { Diagnostic, WorkspaceInfo } from '@specbridge/core';
 import {
   EVIDENCE_STATUS_VALUES,
   EXECUTION_OUTCOMES,
+  INTERACTIVE_LIFECYCLE_STATUSES,
   RUN_KINDS,
   SpecBridgeError,
   assertInsideWorkspace,
@@ -44,6 +45,12 @@ export const runRecordSchema = z
     resumeSupported: z.boolean().default(false),
     promptVersion: z.string().optional(),
     warnings: z.array(z.string()).default([]),
+    /** Interactive runs (v0.5): lifecycle state of the run. */
+    lifecycleStatus: z.enum(INTERACTIVE_LIFECYCLE_STATUSES).optional(),
+    /** Interactive runs (v0.5): the host driving the run (e.g. "mcp"). */
+    host: z.string().optional(),
+    /** Interactive runs (v0.5): reason recorded when the run was aborted. */
+    abortReason: z.string().optional(),
   })
   .passthrough();
 

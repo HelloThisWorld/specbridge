@@ -14,10 +14,12 @@ implemented unless marked ✅ and covered by tests.
 | E — Spec workflow | `spec new` (offline templates), `spec analyze` (deterministic), `spec approve` (hash-based sidecar approvals, stale detection, revocation), `spec status` | ✅ v0.2 |
 | F — Runner adapters | generic runner contract, registry, deterministic mock scenarios, Claude Code detection/capabilities/invocation, `runner list/doctor/show`, model-assisted `spec generate`/`spec refine` | ✅ v0.3 (Claude Code only; codex/ollama/openai-compatible stay honest stubs) |
 | G — Task execution | `spec run` (one task per run, `--all` sequential), git before/after snapshots, trusted verification commands, append-only evidence, verified-only checkbox completion, `spec accept-task`, `run list/show/resume` | ✅ v0.3 |
-| H — Drift verification | `spec verify` (single/`--changed`/`--all`; diff/working-tree/staged), deterministic rule engine SBV001–SBV025, spec policies, affected-spec resolution, evidence freshness, normalized task-plan approval hash, terminal/JSON/Markdown/HTML reports, quality-gate exit codes, `spec affected`, `spec policy init/show/validate`, `verify rules/explain` | ✅ v0.4 (`spec sync` moved to v0.5) |
+| H — Drift verification | `spec verify` (single/`--changed`/`--all`; diff/working-tree/staged), deterministic rule engine SBV001–SBV025, spec policies, affected-spec resolution, evidence freshness, normalized task-plan approval hash, terminal/JSON/Markdown/HTML reports, quality-gate exit codes, `spec affected`, `spec policy init/show/validate`, `verify rules/explain` | ✅ v0.4 (`spec sync` still deferred) |
 | I — GitHub Action | node20 bundled action: event diff resolution, validated inputs, ten outputs, bounded rule-ID annotations, Step Summary, report artifacts; no model, no pnpm required | ✅ v0.4 |
-| J — Claude Code skill | keep the shipped skill aligned with new commands | ✅ updated for v0.3 (thin CLI wrapper, no duplicated logic) |
-| K — MCP server | same core packages exposed as MCP tools; not before CLI + drift are stable | 🚧 planned, documented in `integrations/mcp-server/` |
+| J — Claude Code skill | thin CLI-wrapper skill (superseded for plugin users by the v0.5 plugin skills; kept for CLI-first setups) | ✅ v0.3, plugin in v0.5 |
+| K — MCP server | local stdio server over the same core packages: 21 typed tools, 7 resources, 4 prompts, SBMCP error model, bounded outputs, per-project write mutex, `mcp serve/doctor/manifest/tools` | ✅ v0.5 (stdio only; SDK 1.29.0 pinned; protocol baseline 2025-11-25) |
+| L — Interactive execution | `task_begin`/`task_complete`/`task_abort`: the current host session implements tasks with v0.3 snapshots/verification/evidence and verified-only checkbox completion; repository lock + `run recover-lock` | ✅ v0.5 |
+| M — Claude Code plugin | self-contained plugin (bundled CLI + MCP server, 8 namespaced skills, human-only approve skill, local marketplace, ZIP artifact, isolated-copy verification) | ✅ v0.5 |
 
 ## Command availability
 
@@ -27,22 +29,31 @@ implemented unless marked ✅ and covered by tests.
 | `spec new`, `spec analyze`, `spec approve`, `spec status` | ✅ v0.2 — fully offline |
 | `runner list/doctor/show`, `spec generate/refine`, `spec run`, `spec accept-task`, `run list/show/resume` | ✅ v0.3 — mock runner offline; Claude Code via your local installation |
 | `spec verify`, `spec affected`, `spec policy init/show/validate`, `verify rules/explain` | ✅ v0.4 — deterministic, offline, read-only |
+| `mcp serve/doctor/manifest/tools`, `run recover-lock` | ✅ v0.5 |
+| `/specbridge:doctor·status·new·author·approve·implement·continue·verify` (plugin) | ✅ v0.5 |
 | `spec sync/export` | ❌ registered as "(planned)", exit 2 with an honest message |
 
-## v0.5 candidates
+## v0.6 (planned — not implemented)
 
-- MCP server (Phase K) exposing the read-only inspection and verification
-  APIs as tools.
-- Additional production runners (codex first) behind the existing contract.
-- `spec sync` (evidence-aware checkbox reconciliation) and `spec export`.
-- SARIF report output for code-scanning integrations (deliberately deferred
-  from v0.4).
-- Optional PR-comment publishing from the GitHub Action (today: Step
-  Summary + artifacts only; the action never posts by itself).
-- Cross-spec impact analysis heuristics — clearly labelled as heuristics.
-- Parallel task execution and worktree orchestration remain explicitly
-  **not** planned until the sequential evidence model has real-world
-  mileage.
+- Production multi-runner support behind the existing contract (codex
+  first; gemini/ollama/openai-compatible candidates), keeping the honest
+  detection/stub model until each runner actually works.
+
+## v0.7 (planned — not implemented)
+
+- Spec templates and a template registry.
+- A plugin SDK and extension registry for community-built integrations.
+- Community ecosystem documentation and contribution paths.
+
+## Explicitly not planned for now
+
+- Remote MCP transports (HTTP/SSE/WebSocket), MCP OAuth, or a cloud-hosted
+  SpecBridge service.
+- Automatic Git commits, pushes, pull requests, or rollback.
+- Parallel task execution / agent teams — not before the sequential
+  evidence model has real-world mileage.
+- SARIF output and PR-comment publishing from the GitHub Action (still
+  candidates, still deferred).
 
 ## Sequencing rule
 
@@ -63,3 +74,9 @@ files is the one unrecoverable failure mode this project cannot have.
 - Commit-lineage checks (`merge-base --is-ancestor`) treat unresolvable
   SHAs as `unknown` rather than stale; shallow local clones therefore skip
   that one freshness signal (content hashes still apply).
+- Claude Code plugin-scoped MCP tool names are documented and referenced by
+  short name; an end-to-end assertion of the host-generated prefixes needs
+  a Claude Code installation and is exercised manually, not in CI.
+- SIGINT/SIGTERM shutdown is asserted process-level on POSIX; on Windows,
+  Node cannot deliver these signals to a child, so clean shutdown is
+  covered by the transport-close path there.

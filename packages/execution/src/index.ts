@@ -10,3 +10,5 @@ export * from './preflight.js';
 export * from './complete-task.js';
 export * from './execute-task.js';
 export * from './resume-run.js';
+export * from './interactive-lock.js';
+export * from './interactive.js';

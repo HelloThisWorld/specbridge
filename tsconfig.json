@@ -10,7 +10,8 @@
       "@specbridge/evidence": ["./packages/evidence/src/index.ts"],
       "@specbridge/execution": ["./packages/execution/src/index.ts"],
       "@specbridge/reporting": ["./packages/reporting/src/index.ts"],
-      "@specbridge/workflow": ["./packages/workflow/src/index.ts"]
+      "@specbridge/workflow": ["./packages/workflow/src/index.ts"],
+      "@specbridge/mcp-server": ["./packages/mcp-server/src/index.ts"]
     }
   },
   "include": [
@@ -18,6 +19,7 @@
     "packages/*/tsup.config.ts",
     "integrations/github-action/src/**/*.ts",
     "integrations/github-action/tsup.config.ts",
+    "integrations/claude-code-plugin/tsup.config.ts",
     "tests/**/*.ts",
     "vitest.config.ts"
   ]

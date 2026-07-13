@@ -15,7 +15,8 @@ instead of duplicating logic.
 | `@specbridge/drift` | Deterministic drift verification (v0.4): git comparison resolution, spec policies, the SBV001–SBV025 rule engine, affected-spec resolution, trusted-command orchestration, schema-validated report assembly — plus the v0.1 primitives |
 | `@specbridge/runners` | Model/agent adapters behind one `AgentRunner` interface (mock implemented; CLI runners detection-only) |
 | `@specbridge/reporting` | Terminal formatting, JSON report envelope, self-contained HTML rendering |
-| `specbridge` (packages/cli) | Commander-based CLI wiring the above together |
+| `@specbridge/mcp-server` | v0.5 local stdio MCP server: typed tool/resource/prompt adapters over the packages above, SBMCP error model, bounded outputs, per-project write mutex — no duplicated logic |
+| `specbridge` (packages/cli) | Commander-based CLI wiring the above together (including `mcp serve/doctor/manifest/tools`) |
 
 Dependency direction (arrows = "may import"):
 
@@ -23,8 +24,10 @@ Dependency direction (arrows = "may import"):
 cli ──▶ workflow ──▶ compat-kiro ──▶ core
 cli ──▶ reporting   ──▶ core
 cli ──▶ drift ─▶ compat-kiro, core, workflow, evidence, runners
+cli ──▶ mcp-server ─▶ compat-kiro, core, workflow, execution, evidence, drift
 runners ─▶ core
 integrations/github-action ─▶ drift, reporting, core (bundled; no CLI dependency)
+integrations/claude-code-plugin ─▶ cli + mcp-server (bundled; self-contained at runtime)
 ```
 
 ## Design principles
