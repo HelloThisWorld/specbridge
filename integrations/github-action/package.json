@@ -1,6 +1,6 @@
 {
   "name": "specbridge-github-action",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "description": "GitHub Action for deterministic SpecBridge spec drift verification. No model, no API key, no network access required.",
   "license": "MIT",

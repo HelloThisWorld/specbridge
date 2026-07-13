@@ -1,6 +1,6 @@
 {
   "name": "specbridge-monorepo",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "description": "An open, model-agnostic spec runtime for existing Kiro projects.",
   "license": "MIT",
@@ -16,10 +16,15 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "build:plugin": "pnpm build && pnpm --filter specbridge-claude-plugin build",
+    "validate:plugin": "node scripts/validate-plugin.mjs",
+    "verify:plugin-bundle": "node scripts/verify-plugin-bundle.mjs",
+    "mcp:inspect": "npx @modelcontextprotocol/inspector node packages/mcp-server/dist/standalone.js --stdio"
   },
   "devDependencies": {
     "@eslint/js": "^9.14.0",
+    "@modelcontextprotocol/sdk": "1.29.0",
     "@types/node": "^20.17.0",
     "eslint": "^9.14.0",
     "typescript": "^5.6.0",

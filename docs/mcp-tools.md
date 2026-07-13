@@ -1,0 +1,64 @@
+# MCP tools
+
+Every tool has a stable name, a versioned Zod input and output schema,
+bounded input/output sizes, explicit `SBMCP` error behavior, and MCP
+annotations (`readOnlyHint`, `destructiveHint`, `idempotentHint`,
+`openWorldHint`). Annotations are UI hints — safety is enforced in the
+implementation, never by annotation. Successful results carry a concise
+human-readable text block plus deterministic `structuredContent`. Paths in
+output are repository-relative.
+
+There is deliberately **no** arbitrary-filesystem tool, **no**
+arbitrary-shell tool, **no** arbitrary-Git tool, and **no stage-approval
+tool** (approval is a human CLI action — see
+[cli-mcp-parity.md](cli-mcp-parity.md)).
+
+## Read-only tools
+
+| Tool | Purpose |
+| --- | --- |
+| `workspace_detect` | Detect the workspace: `.kiro` presence, steering/spec counts, sidecar + config status, Git summary. A missing workspace is a `found: false` result, not an error. |
+| `steering_list` | Steering documents with relative paths, sizes, content hashes, inclusion modes, diagnostics. |
+| `steering_read` | One steering document **by name** (never a path); body without front matter, hash, metadata. |
+| `spec_list` | Spec summaries (type, mode, workflow status, approval health, task progress, diagnostic counts) with filters (`type`, `status`, `staleApprovalsOnly`, `incompleteTasksOnly`) and pagination. |
+| `spec_read` | Canonical documents only (`requirements` \| `bugfix` \| `design` \| `tasks` \| `all`) with content, line counts, EOL/BOM/encoding metadata, and hashes. |
+| `spec_status` | The authoritative workflow state, exactly as the CLI computes it: per-stage stored + effective status, recorded and current hashes, stale-approval detection, task progress, suggested next actions. |
+| `spec_context` | Bounded agent-ready context (steering + documents + approval state + configured verification command names), `markdown` or `structured`, with a caller-boundable character limit. Never invokes a model. |
+| `spec_analyze` | The deterministic v0.2 analyzers (same bytes → same findings) for one stage or all, with `strict`. Never mutates approval state. |
+| `task_list` | Parsed task hierarchy: ids, checkbox states, parent/children, executable-leaf flags, requirement references, evidence summaries, source lines. |
+| `task_next` | The next deterministic executable leaf task — or the exact blockers. Never starts execution. |
+| `run_list` | Bounded run summaries (kind, run type, lifecycle, outcome, evidence status) with filters and pagination. Never raw prompts or logs. |
+| `run_read` | Safe single-run view: Git before/after summaries, changed files, verification outcomes, violations, warnings, artifact **names**. `prompt.md` and raw runner output never cross the boundary. |
+| `spec_affected` | v0.4 affected-spec resolution over a Git comparison: affected specs with match mechanisms, ambiguous mappings, unmapped changes. |
+| `spec_check_drift` | The deterministic SBV rule engine over one spec / changed specs / all specs. **Never executes commands and never persists reports.** |
+| `spec_stage_validate` | Validate a candidate stage document in memory: deterministic analysis, proposed diff, approval-invalidation effects, and the binding `candidateHash`. Writes nothing. |
+
+## State-changing tools
+
+| Tool | Purpose |
+| --- | --- |
+| `spec_create` | Offline Kiro-compatible spec templates. `apply: false` (default) is a pure preview; `apply: true` re-validates and creates atomically (temp dir + rename), refusing existing specs. |
+| `spec_stage_apply` | Atomically apply a **previously validated** candidate. Requires `expectedCurrentHash`, `expectedCandidateHash`, and the literal acknowledgement `"apply-reviewed-candidate"`; refuses hash mismatches (SBMCP017/SBMCP002), analysis errors (SBMCP016), and approved stages. Invalidates dependent approvals per workflow rules, preserves line endings, records an append-only `interactive-authoring` run. There is **no force option**. The stage remains unapproved. |
+| `spec_run_verification` | Deterministic drift rules **plus** the trusted verification commands from `.specbridge/config.json` (argv arrays; never from tool arguments or spec content), with timeouts and output limits. `persistReport: true` opts into writing under `.specbridge/reports`. Not read-only (it executes trusted local commands) but never changes spec content, approvals, or evidence. |
+| `task_begin` | Begin an interactive task run (see [interactive-task-execution.md](interactive-task-execution.md)): validates approvals + tree, acquires the repository lock, snapshots Git, returns bounded context, boundaries, protected paths, expected verification commands, and explicit agent instructions. Modifies no source files, invokes no model. |
+| `task_complete` | Finalize an interactive run: post-run snapshot, hash-exact change attribution, protected-path detection, trusted verification, v0.3 evidence evaluation, append-only evidence, and the verified-only surgical checkbox update. Reported fields are claims, never proof. Idempotent once finalized. |
+| `task_abort` | Close an active run with a required reason. Never resets files, never deletes evidence, never touches checkboxes; reports the remaining working-tree changes. Idempotent on finalized runs. |
+
+## Pagination and bounds
+
+List tools accept `limit` (default 50, max 200) and an opaque `cursor`
+scoped to that listing (a cursor from a different listing is rejected).
+Document content is capped at 1 MB, candidate input at 1 MB, structured
+responses at 2 MB, and diagnostics at 500 per response — all with explicit
+truncation flags. See [mcp-server.md](mcp-server.md) for the full table.
+
+## Tool naming and plugin scoping
+
+Internal tool names are short and stable (`workspace_detect`, `task_begin`,
+…). Claude Code scopes tools from **plugin-bundled** MCP servers with a
+host-generated prefix that is not necessarily the `mcp__<server>__<tool>`
+shape used for manually configured servers — check `/mcp` in your session
+for the effective names. The plugin's skills and this documentation refer to
+tools by their short names for exactly that reason, and nothing in
+`packages/mcp-server` hardcodes a prefix. `pnpm validate:plugin` checks that
+skills reference the real tool names.

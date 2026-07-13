@@ -308,6 +308,34 @@ run('spec policy init --dry-run proposes a starter policy without writing', {
   expectStdout: ['dry run', 'Review this file before enforcing strict verification'],
 });
 
+run('mcp doctor diagnoses the setup read-only', {
+  cwd: kiroProject,
+  args: ['mcp', 'doctor', '--verbose'],
+  expectCode: 0,
+  expectStdout: ['MCP doctor', 'kiro-workspace', 'stdio-cleanliness', 'MCP setup is healthy'],
+});
+
+run('mcp manifest reports identity and protocol baseline', {
+  cwd: kiroProject,
+  args: ['mcp', 'manifest'],
+  expectCode: 0,
+  expectStdout: ['specbridge', '2025-11-25', 'stdio', '21 tools'],
+});
+
+run('mcp tools lists the registry and the approval boundary', {
+  cwd: kiroProject,
+  args: ['mcp', 'tools'],
+  expectCode: 0,
+  expectStdout: ['workspace_detect', 'task_begin', 'spec_stage_apply', 'NOT an MCP tool'],
+});
+
+run('run recover-lock reports no lock cleanly', {
+  cwd: kiroProject,
+  args: ['run', 'recover-lock'],
+  expectCode: 0,
+  expectStdout: ['No interactive lock is held', 'nothing to recover'],
+});
+
 // Version consistency between package.json and the version constant.
 const cliPackage = JSON.parse(
   readFileSync(path.join(repoRoot, 'packages', 'cli', 'package.json'), 'utf8'),

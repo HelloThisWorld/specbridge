@@ -16,6 +16,7 @@ export default defineConfig({
       { find: '@specbridge/execution', replacement: pkg('execution') },
       { find: '@specbridge/reporting', replacement: pkg('reporting') },
       { find: '@specbridge/workflow', replacement: pkg('workflow') },
+      { find: '@specbridge/mcp-server', replacement: pkg('mcp-server') },
     ],
   },
   test: {

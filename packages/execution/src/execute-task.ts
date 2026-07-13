@@ -83,6 +83,13 @@ export interface TaskRunDeps {
   onProgress?: (message: string) => void;
 }
 
+/**
+ * The post-run pipeline never invokes a runner, so it does not need the
+ * registry. Interactive execution (v0.5) reuses it with these reduced deps;
+ * every `TaskRunDeps` value remains assignable.
+ */
+export type FinalizeDeps = Omit<TaskRunDeps, 'registry'> & { registry?: RunnerRegistry };
+
 export interface TaskRunRequest {
   specName: string;
   taskId?: string;
@@ -398,9 +405,9 @@ export interface FinalizeContext {
   result: TaskExecutionResult;
 }
 
-/** Shared post-run pipeline for task execution and resume. */
+/** Shared post-run pipeline for task execution, resume, and interactive runs. */
 export async function finalizeTaskRun(
-  deps: TaskRunDeps,
+  deps: FinalizeDeps,
   context: FinalizeContext,
 ): Promise<TaskRunReport> {
   const clock = deps.clock ?? systemClock;

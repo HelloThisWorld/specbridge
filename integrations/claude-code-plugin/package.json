@@ -1,0 +1,23 @@
+{
+  "name": "specbridge-claude-plugin",
+  "version": "0.5.0",
+  "private": true,
+  "description": "Build harness for the self-contained SpecBridge Claude Code plugin (bundled CLI + MCP server + skills).",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "bundle": "tsup",
+    "build": "tsup && node ../../scripts/plugin-artifacts.mjs",
+    "clean": "node -e \"const fs=require('node:fs');for(const f of ['cli.cjs','mcp-server.cjs','THIRD_PARTY_LICENSES.txt','checksums.json'])fs.rmSync(require('node:path').join('specbridge','dist',f),{force:true})\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@specbridge/mcp-server": "workspace:*",
+    "specbridge": "workspace:*",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0"
+  }
+}

@@ -57,14 +57,62 @@ export const EVIDENCE_STATUS_VALUES = [
 ] as const;
 export type EvidenceStatus = (typeof EVIDENCE_STATUS_VALUES)[number];
 
-/** Kinds of runs recorded under `.specbridge/runs/<run-id>/`. */
+/**
+ * Kinds of runs recorded under `.specbridge/runs/<run-id>/`.
+ *
+ * v0.3 kinds are unchanged. v0.5 adds the interactive kinds: an
+ * `interactive-execution` run is a task implemented directly by the current
+ * host agent session (through the MCP task_begin/task_complete lifecycle,
+ * never a nested runner process), and an `interactive-authoring` run records
+ * a validated stage candidate applied through spec_stage_apply.
+ */
 export const RUN_KINDS = [
   'task-execution',
   'task-resume',
   'stage-generation',
   'stage-refinement',
+  'interactive-execution',
+  'interactive-authoring',
 ] as const;
 export type RunKind = (typeof RUN_KINDS)[number];
+
+/**
+ * Coarse run-type discriminator over `RunKind` (v0.5): distinguishes runs
+ * driven by a nested runner process from runs performed by the current
+ * interactive host session. `deterministic-verification` is reserved for
+ * verification runs, which today persist reports (not run records).
+ */
+export const RUN_TYPES = [
+  'runner-execution',
+  'runner-authoring',
+  'interactive-execution',
+  'interactive-authoring',
+  'deterministic-verification',
+] as const;
+export type RunType = (typeof RUN_TYPES)[number];
+
+export function runTypeForKind(kind: RunKind): RunType {
+  switch (kind) {
+    case 'task-execution':
+    case 'task-resume':
+      return 'runner-execution';
+    case 'stage-generation':
+    case 'stage-refinement':
+      return 'runner-authoring';
+    case 'interactive-execution':
+      return 'interactive-execution';
+    case 'interactive-authoring':
+      return 'interactive-authoring';
+  }
+}
+
+/** Lifecycle states of an interactive execution run (v0.5). */
+export const INTERACTIVE_LIFECYCLE_STATUSES = [
+  'AWAITING_AGENT_CHANGES',
+  'COMPLETED',
+  'ABORTED',
+] as const;
+export type InteractiveLifecycleStatus = (typeof INTERACTIVE_LIFECYCLE_STATUSES)[number];
 
 /**
  * Documented CLI exit codes. Codes 0–2 are the v0.1/v0.2 contract and keep

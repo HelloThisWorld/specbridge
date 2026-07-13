@@ -1,3 +1,4 @@
 packages:
   - packages/*
   - integrations/github-action
+  - integrations/claude-code-plugin

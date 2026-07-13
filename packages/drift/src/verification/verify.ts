@@ -67,6 +67,13 @@ export interface VerifySpecsRequest {
    * report.json); a run without command execution writes nothing.
    */
   reportsDir?: string;
+  /**
+   * When false, no artifacts are written at all — command logs and
+   * report.json are skipped even when commands execute. Used by MCP callers
+   * whose persistence is an explicit opt-in. Default true (CLI behavior
+   * unchanged).
+   */
+  persistArtifacts?: boolean;
   clock?: () => Date;
   idFactory?: () => string;
   signal?: AbortSignal;
@@ -158,6 +165,7 @@ export async function verifySpecs(request: VerifySpecsRequest): Promise<VerifySp
   }
 
   // ---- Trusted verification commands ---------------------------------------
+  const persistArtifacts = request.persistArtifacts !== false;
   let artifactsDir: string | undefined;
   const ensureArtifactsDir = (): string => {
     if (artifactsDir === undefined) {
@@ -186,12 +194,20 @@ export async function verifySpecs(request: VerifySpecsRequest): Promise<VerifySp
         evidenceBySpec,
         ...(request.signal !== undefined ? { signal: request.signal } : {}),
         ...(request.onProgress !== undefined ? { onProgress: request.onProgress } : {}),
-        onCommandFinished: (result, stdout, stderr) => {
-          const dir = ensureArtifactsDir();
-          const safeName = result.name.replace(/[^A-Za-z0-9._-]+/g, '-');
-          writeFileAtomic(path.join(dir, 'commands', `${safeName}.stdout.log`), stdout);
-          writeFileAtomic(path.join(dir, 'commands', `${safeName}.stderr.log`), stderr);
-        },
+        ...(persistArtifacts
+          ? {
+              onCommandFinished: (
+                result: { name: string },
+                stdout: string,
+                stderr: string,
+              ): void => {
+                const dir = ensureArtifactsDir();
+                const safeName = result.name.replace(/[^A-Za-z0-9._-]+/g, '-');
+                writeFileAtomic(path.join(dir, 'commands', `${safeName}.stdout.log`), stdout);
+                writeFileAtomic(path.join(dir, 'commands', `${safeName}.stderr.log`), stderr);
+              },
+            }
+          : {}),
       })
     : { mode: 'none', commands: [], missingRequired: [] };
 
@@ -277,7 +293,7 @@ export async function verifySpecs(request: VerifySpecsRequest): Promise<VerifySp
   // Never emit an invalid report — validate before anything leaves this module.
   verificationReportSchema.parse(report);
 
-  if (artifactsDir !== undefined) {
+  if (persistArtifacts && artifactsDir !== undefined) {
     writeFileAtomic(
       path.join(artifactsDir, 'report.json'),
       `${JSON.stringify(report, null, 2)}\n`,

@@ -1,5 +1,89 @@
 # Changelog
 
+## 0.5.0
+
+Added:
+
+- Local stdio MCP server (`specbridge mcp serve`) built on the official
+  `@modelcontextprotocol/sdk` 1.29.0 (pinned; stable protocol baseline
+  2025-11-25): 21 typed tools with versioned Zod input/output schemas,
+  annotations, and the stable SBMCP001–SBMCP020 error envelope; 7 read-only
+  resources (`specbridge://…`); 4 workflow prompts for non-Claude clients;
+  bounded structured responses (pagination cursors, 1 MB documents, 2 MB
+  responses, 500-diagnostic cap); `specbridge mcp doctor|manifest|tools`.
+- Direct interactive task execution: `task_begin` → the CURRENT host session
+  edits source → `task_complete` (plus `task_abort`), reusing the v0.3 Git
+  snapshots, trusted verification commands, evidence evaluation, append-only
+  evidence, and the verified-only surgical checkbox update. Model-reported
+  fields are recorded as claims, never proof.
+- Interactive execution locking (`.specbridge/locks/interactive-task.lock`):
+  atomic acquisition, heartbeats, crash-tolerant staleness diagnosis, and
+  the explicit `specbridge run recover-lock [--remove] [--json]` recovery
+  command. Ambiguous or actively held locks are never removed.
+- Candidate stage authoring over MCP: `spec_stage_validate` (deterministic
+  analysis + diff + approval effects + candidate hash, read-only) and
+  `spec_stage_apply` (atomic, hash-bound to the reviewed bytes, dependent
+  approvals invalidated per workflow rules, append-only
+  `interactive-authoring` run record, no force option). Preview-first
+  `spec_create` (apply: false renders without writing).
+- Self-contained Claude Code plugin
+  (`integrations/claude-code-plugin/specbridge`): bundled `dist/cli.cjs` and
+  `dist/mcp-server.cjs` (no node_modules, no workspace resolution, no
+  monorepo paths), POSIX + Windows CLI wrappers, eight namespaced skills
+  (`/specbridge:doctor·status·new·author·approve·implement·continue·verify`),
+  third-party license report, and a SHA-256 checksum manifest.
+- Repository-local plugin marketplace (`.claude-plugin/marketplace.json`,
+  strict mode) so `/plugin marketplace add HelloThisWorld/specbridge` works
+  straight from a clone.
+- Isolated plugin bundle verification (`pnpm verify:plugin-bundle`): copies
+  the built plugin to an isolated space-containing directory, runs the
+  bundled CLI and wrappers against an outside fixture project, performs a
+  real MCP stdio handshake, and proves no monorepo path is required — plus
+  deterministic `pnpm validate:plugin` and the reproducible release ZIP
+  artifact `dist/specbridge-claude-plugin-0.5.0.zip`.
+
+Changed:
+
+- Claude Code plugin task execution now uses the current session
+  (task_begin/task_complete) instead of starting a nested Claude process;
+  the v0.3 runner workflow remains fully supported from the standalone CLI.
+- Shared core APIs are exposed consistently through CLI and MCP; the MCP
+  server is a thin typed adapter with no duplicated workflow, verification,
+  Git, evidence, approval, or Markdown-writing logic
+  (docs/cli-mcp-parity.md).
+- Run schemas now distinguish runner execution, interactive execution,
+  interactive authoring, and deterministic verification (new optional
+  `kind` values plus `lifecycleStatus`, `host`, and `abortReason`; every
+  v0.3 record keeps validating unchanged).
+
+Security:
+
+- No arbitrary filesystem, shell, or Git MCP tool; no user-supplied
+  executable or working directory; one pinned project root per server
+  process.
+- No model-controlled stage approval: approval is not an MCP tool or
+  prompt, and the plugin approve skill sets disable-model-invocation.
+- No nested Claude invocation from the plugin or MCP handlers — enforced by
+  automated content scans and tests.
+- No stdout logging under stdio (structured stderr only, verified
+  process-level); no secrets, prompts, or file contents in logs; run views
+  and resources never expose raw prompts or runner output;
+  `.specbridge/config.json` is only ever reported as a redacted status.
+- Candidate hash binding prevents validation/apply substitution; there is
+  no force option.
+- State-changing MCP operations serialize behind a per-project write mutex,
+  with the repository lock file guarding cross-process interactive runs.
+- No automatic Git commit, push, reset, stash, or rollback — including
+  after protected-path violations, which are reported instead.
+
+Deferred (documented on the roadmap, not claimed):
+
+- production multi-runner support (v0.6)
+- templates, plugin SDK, extension registry, community ecosystem (v0.7)
+- remote MCP transports (HTTP/SSE/WebSocket), MCP OAuth, cloud hosting
+- public marketplace submission; npm publication of the packages
+- `spec sync` / `spec export`, SARIF output, Action PR comments
+
 ## 0.4.0
 
 Added:
