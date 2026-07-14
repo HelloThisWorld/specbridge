@@ -20,6 +20,8 @@ implemented unless marked ✅ and covered by tests.
 | K — MCP server | local stdio server over the same core packages: 21 typed tools, 7 resources, 4 prompts, SBMCP error model, bounded outputs, per-project write mutex, `mcp serve/doctor/manifest/tools` | ✅ v0.5 (stdio only; SDK 1.29.0 pinned; protocol baseline 2025-11-25) |
 | L — Interactive execution | `task_begin`/`task_complete`/`task_abort`: the current host session implements tasks with v0.3 snapshots/verification/evidence and verified-only checkbox completion; repository lock + `run recover-lock` | ✅ v0.5 |
 | M — Claude Code plugin | self-contained plugin (bundled CLI + MCP server, 8 namespaced skills, human-only approve skill, local marketplace, ZIP artifact, isolated-copy verification) | ✅ v0.5 |
+| N — Capability-driven runner platform | versioned capability/operation/event/result/error contracts (frozen for v0.6.1 with snapshot tests), runner profiles, config schema v2 + explicit migration (`config doctor/migrate`), deterministic selection, explicit bounded authoring fallback, append-only attempt records, reusable conformance framework, `runner matrix/show/test/conformance/models` | ✅ v0.6.0 |
+| O — Production multi-runner | Codex CLI agent runner (read-only authoring sandbox, workspace-write execution, explicit-session resume, no unrestricted modes) and Ollama authoring runner (loopback-default model API, schema-validated structured output, bounded correction retry, authoring-only by capability); Claude Code runner migrated onto the shared contract unchanged | ✅ v0.6.0 |
 
 ## Command availability
 
@@ -31,19 +33,26 @@ implemented unless marked ✅ and covered by tests.
 | `spec verify`, `spec affected`, `spec policy init/show/validate`, `verify rules/explain` | ✅ v0.4 — deterministic, offline, read-only |
 | `mcp serve/doctor/manifest/tools`, `run recover-lock` | ✅ v0.5 |
 | `/specbridge:doctor·status·new·author·approve·implement·continue·verify` (plugin) | ✅ v0.5 |
+| `runner list/matrix/show/doctor/test/conformance/models`, `config doctor/migrate`, `spec generate/refine/run --runner <profile>`, `--show-runner-plan` | ✅ v0.6.0 — codex/ollama via your local installation; fake providers in CI |
 | `spec sync/export` | ❌ registered as "(planned)", exit 2 with an honest message |
 
-## v0.6 (planned — not implemented)
+## v0.6.1 (planned — not implemented)
 
-- Production multi-runner support behind the existing contract (codex
-  first; gemini/ollama/openai-compatible candidates), keeping the honest
-  detection/stub model until each runner actually works.
+New adapters against the FROZEN v0.6.0 contract (no core changes expected):
+
+- Gemini CLI runner.
+- OpenAI-compatible API authoring runner.
+- Antigravity CLI capability adapter.
+- MCP runner diagnostic tools.
+- Claude Code `/specbridge:runners` Skill.
 
 ## v0.7 (planned — not implemented)
 
 - Spec templates and a template registry.
-- A plugin SDK and extension registry for community-built integrations.
-- Community ecosystem documentation and contribution paths.
+- A plugin SDK and runner extension SDK distribution.
+- Analyzer and verifier SDKs.
+- An extension registry and community ecosystem documentation and
+  contribution paths.
 
 ## Explicitly not planned for now
 

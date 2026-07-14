@@ -15,8 +15,18 @@ import {
   readSpecState,
   stateStage,
 } from '@specbridge/core';
-import type { RunnerRegistry, TaskExecutionResult } from '@specbridge/runners';
-import { ClaudeCodeRunner, buildClaudeInvocation, probeClaude } from '@specbridge/runners';
+import type {
+  RunnerRegistry,
+  RunnerSelectionPlan,
+  TaskExecutionResult,
+} from '@specbridge/runners';
+import {
+  buildClaudeInvocation,
+  buildCodexInvocation,
+  composeNormalizedResult,
+  probeClaude,
+  probeCodex,
+} from '@specbridge/runners';
 import type { Clock } from '@specbridge/workflow';
 import { evaluateWorkflow, systemClock } from '@specbridge/workflow';
 import type {
@@ -49,6 +59,7 @@ import {
 } from './context.js';
 import type { TaskPreflight } from './preflight.js';
 import { preflightTaskRun } from './preflight.js';
+import { createAttempt, finalizeAttempt } from './attempt-store.js';
 import type { TaskPromptInput } from './prompts.js';
 import { PROMPT_CONTRACT_VERSION, buildTaskExecutionPrompt } from './prompts.js';
 import {
@@ -113,14 +124,64 @@ export interface TaskDryRunPlan {
   dirtyPaths: string[];
   verificationCommands: { name: string; argv: string[]; required: boolean }[];
   toolPolicy: 'implementation';
+  /** Claude profiles: the configured tool list. Other runners: empty. */
   tools: string[];
+  /** Claude profiles: the permission mode. Other runners: the boundary note. */
   permissionMode: string;
   timeoutMs: number;
   promptVersion: string;
   prompt: string;
+  /** v0.6: capability-checked selection plan for this run. */
+  runnerPlan?: RunnerSelectionPlan;
   argvPreview?: string[];
   expectedArtifacts: string[];
   warnings: string[];
+}
+
+/** Redacted argv preview for dry runs (agent CLI runners only). */
+async function taskArgvPreview(
+  deps: TaskRunDeps,
+  preflight: TaskPreflight,
+  prompt: string,
+  runIdPreview: string,
+): Promise<string[] | undefined> {
+  const profileConfig = preflight.profileConfig;
+  if (profileConfig === undefined) return undefined;
+  const execution = {
+    workspaceRoot: deps.workspace.rootDir,
+    runDir: path.join(deps.workspace.sidecarDir, 'runs', runIdPreview),
+    timeoutMs: preflight.timeoutMs,
+  };
+  if (profileConfig.runner === 'claude-code') {
+    const probe = await probeClaude(profileConfig);
+    if (!probe.found) return undefined;
+    const plan = buildClaudeInvocation({
+      config: profileConfig,
+      probe,
+      prompt,
+      toolPolicy: 'implementation',
+      outputJsonSchema: TASK_RUNNER_REPORT_JSON_SCHEMA,
+      sessionId: '<generated-session-uuid>',
+      execution,
+      materializeTempFiles: false,
+    });
+    return [plan.executable, ...plan.argv];
+  }
+  if (profileConfig.runner === 'codex-cli') {
+    const probe = await probeCodex(profileConfig);
+    if (!probe.found) return undefined;
+    const plan = buildCodexInvocation({
+      config: profileConfig,
+      probe,
+      prompt,
+      toolPolicy: 'implementation',
+      outputJsonSchema: TASK_RUNNER_REPORT_JSON_SCHEMA,
+      execution,
+      materializeTempFiles: false,
+    });
+    return [plan.executable, ...plan.argv];
+  }
+  return undefined;
 }
 
 export interface TaskRunReport {
@@ -154,6 +215,17 @@ export type TaskRunOutcome =
   | { kind: 'dry-run'; exitCode: number; plan: TaskDryRunPlan }
   | { kind: 'executed'; exitCode: number; report: TaskRunReport };
 
+/** Attempt boundary classification from the selection plan. */
+export function taskAttemptBoundary(
+  plan: RunnerSelectionPlan,
+): 'local-process' | 'loopback-endpoint' | 'network-endpoint' | 'in-process' {
+  if (plan.category === 'mock') return 'in-process';
+  if (plan.category === 'model-api') {
+    return plan.networkBacked ? 'network-endpoint' : 'loopback-endpoint';
+  }
+  return 'local-process';
+}
+
 function exitCodeForEvidence(status: EvidenceStatus, outcome: ExecutionOutcome): number {
   switch (status) {
     case 'verified':
@@ -173,13 +245,20 @@ function exitCodeForEvidence(status: EvidenceStatus, outcome: ExecutionOutcome):
   }
 }
 
+/** The safety-boundary line embedded in the shared prompt contract. */
+export function boundaryNoteFor(preflight: TaskPreflight): string {
+  return (
+    preflight.runner?.executionBoundaryNote?.('implementation') ??
+    'Repository access is bounded by the configured runner safety boundary. Permission bypasses are never used.'
+  );
+}
+
 function buildPrompt(deps: TaskRunDeps, preflight: TaskPreflight): string {
-  const { workspace, config } = deps;
+  const { workspace } = deps;
   const spec = preflight.spec;
   const state = preflight.state;
   const evaluation = preflight.evaluation;
   const task = preflight.task as SelectedTask;
-  const claudeConfig = config.runners['claude-code'];
   const documentStage = state?.specType === 'bugfix' ? 'bugfix' : 'requirements';
   const input: TaskPromptInput = {
     specName: spec.folder.name,
@@ -197,7 +276,7 @@ function buildPrompt(deps: TaskRunDeps, preflight: TaskPreflight): string {
         ? repositoryObservations(workspace.rootDir, preflight.before)
         : [],
     workspaceRootNote: workspaceRootNote(workspace),
-    allowedToolsNote: `Allowed tools: ${claudeConfig.tools.join(', ')} (Bash limited to the configured allow rules); permission mode: ${claudeConfig.permissionMode}. Permission bypasses are never used.`,
+    allowedToolsNote: boundaryNoteFor(preflight),
   };
   return buildTaskExecutionPrompt(input);
 }
@@ -237,31 +316,11 @@ export async function runApprovedTask(
 
   const task = preflight.task as SelectedTask;
   const prompt = buildPrompt(deps, preflight);
-  const claudeConfig = deps.config.runners['claude-code'];
+  const profileConfig = preflight.profileConfig;
 
   if (request.dryRun === true) {
     const runIdPreview = (deps.idFactory ?? randomUUID)();
-    let argvPreview: string[] | undefined;
-    if (preflight.runner instanceof ClaudeCodeRunner) {
-      const probe = await probeClaude(claudeConfig);
-      if (probe.found) {
-        const plan = buildClaudeInvocation({
-          config: claudeConfig,
-          probe,
-          prompt,
-          toolPolicy: 'implementation',
-          outputJsonSchema: TASK_RUNNER_REPORT_JSON_SCHEMA,
-          sessionId: '<generated-session-uuid>',
-          execution: {
-            workspaceRoot: deps.workspace.rootDir,
-            runDir: path.join(deps.workspace.sidecarDir, 'runs', runIdPreview),
-            timeoutMs: preflight.timeoutMs,
-          },
-          materializeTempFiles: false,
-        });
-        argvPreview = [plan.executable, ...plan.argv];
-      }
-    }
+    const argvPreview = await taskArgvPreview(deps, preflight, prompt, runIdPreview);
     const artifactBase = `.specbridge/runs/${runIdPreview}`;
     return {
       kind: 'dry-run',
@@ -279,11 +338,18 @@ export async function runApprovedTask(
           required: command.required,
         })),
         toolPolicy: 'implementation',
-        tools: [...claudeConfig.tools],
-        permissionMode: claudeConfig.permissionMode,
+        tools:
+          profileConfig !== undefined && profileConfig.runner === 'claude-code'
+            ? [...profileConfig.tools]
+            : [],
+        permissionMode:
+          profileConfig !== undefined && profileConfig.runner === 'claude-code'
+            ? profileConfig.permissionMode
+            : boundaryNoteFor(preflight),
         timeoutMs: preflight.timeoutMs,
         promptVersion: PROMPT_CONTRACT_VERSION,
         prompt,
+        ...(preflight.selectionPlan !== undefined ? { runnerPlan: preflight.selectionPlan } : {}),
         ...(argvPreview !== undefined ? { argvPreview } : {}),
         expectedArtifacts: [
           `${artifactBase}/run.json`,
@@ -350,6 +416,23 @@ export async function runApprovedTask(
 
   const runner = preflight.runner;
   if (runner === undefined) throw new Error('preflight.ok implies runner');
+  const selectionPlan = preflight.selectionPlan;
+  const attempt =
+    selectionPlan !== undefined
+      ? createAttempt(deps.workspace, {
+          runId,
+          profile: selectionPlan.profile,
+          runner: selectionPlan.runner,
+          category: selectionPlan.category,
+          supportLevel: selectionPlan.supportLevel,
+          operation: 'task-execution',
+          attemptKind: 'initial',
+          boundary: taskAttemptBoundary(selectionPlan),
+          model: request.model ?? selectionPlan.model,
+          capabilitySnapshot: preflight.detection?.capabilitySet ?? selectionPlan.declaredCapabilities,
+          createdAt,
+        })
+      : undefined;
   const result = await runner.executeTask(
     {
       specName: preflight.spec.folder.name,
@@ -369,6 +452,23 @@ export async function runApprovedTask(
       ...(request.maxBudgetUsd !== undefined ? { maxBudgetUsd: request.maxBudgetUsd } : {}),
     },
   );
+  if (attempt !== undefined && selectionPlan !== undefined) {
+    finalizeAttempt(deps.workspace, attempt, {
+      finishedAt: clock().toISOString(),
+      outcome: result.outcome,
+      durationMs: result.durationMs,
+      result,
+      normalized: composeNormalizedResult(
+        {
+          profile: selectionPlan.profile,
+          category: selectionPlan.category,
+          supportLevel: selectionPlan.supportLevel,
+          operation: 'task-execution',
+        },
+        result,
+      ),
+    });
+  }
 
   const report = await finalizeTaskRun(deps, {
     runId,

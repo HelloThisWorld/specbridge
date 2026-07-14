@@ -26693,8 +26693,9 @@ var coerce = {
 var NEVER2 = INVALID;
 
 // ../../packages/core/dist/index.js
-var import_fs4 = require("fs");
 var import_path3 = __toESM(require("path"), 1);
+var import_fs4 = require("fs");
+var import_path4 = __toESM(require("path"), 1);
 var PRODUCT_NAME = "SpecBridge";
 var CLI_BIN = "specbridge";
 var KIRO_DIR_NAME = ".kiro";
@@ -27351,7 +27352,14 @@ function reachesFailureThreshold(counts, threshold) {
 }
 var AGENT_CONFIG_SCHEMA_VERSION = "1.0.0";
 var FORBIDDEN_PERMISSION_MODE = "bypassPermissions";
-var FORBIDDEN_FLAG_FRAGMENTS = ["dangerously-skip-permissions", "dangerously_skip_permissions"];
+var FORBIDDEN_FLAG_FRAGMENTS = [
+  "dangerously-skip-permissions",
+  "dangerously_skip_permissions",
+  "dangerously-bypass-approvals-and-sandbox",
+  "danger-full-access",
+  "--yolo",
+  "skip-git-repo-check"
+];
 function containsNullByte(value) {
   return value.includes("\0");
 }
@@ -27359,6 +27367,23 @@ var safeString = external_exports.string().refine((value) => !containsNullByte(v
 var safeNonEmptyString = safeString.refine((value) => value.length > 0, {
   message: "must not be empty"
 });
+function forbiddenFragmentIssues(serialized) {
+  const issues = [];
+  const lower = serialized.toLowerCase();
+  for (const fragment of FORBIDDEN_FLAG_FRAGMENTS) {
+    if (lower.includes(fragment)) {
+      issues.push(
+        `configuration contains "${fragment}", which SpecBridge never passes to any runner. Remove it; there is no supported way to skip runner permission or sandbox checks.`
+      );
+    }
+  }
+  if (serialized.includes(FORBIDDEN_PERMISSION_MODE)) {
+    issues.push(
+      `"${FORBIDDEN_PERMISSION_MODE}" is not a supported permission mode. SpecBridge only supports: ${CLAUDE_PERMISSION_MODES.join(", ")}.`
+    );
+  }
+  return issues;
+}
 var verificationCommandSchema = external_exports.object({
   name: safeNonEmptyString,
   argv: external_exports.array(safeNonEmptyString).min(1, "argv must contain at least the executable").superRefine((argv, ctx) => {
@@ -27473,32 +27498,332 @@ var agentConfigSchema = external_exports.object({
     ctx.addIssue({
       code: external_exports.ZodIssueCode.custom,
       path: ["schemaVersion"],
-      message: `schema version ${config2.schemaVersion} is not supported by this SpecBridge version`
+      message: `schema version ${config2.schemaVersion} is not a v1 configuration`
     });
   }
-  const serialized = JSON.stringify(config2);
-  for (const fragment of FORBIDDEN_FLAG_FRAGMENTS) {
-    if (serialized.toLowerCase().includes(fragment)) {
+  for (const message of forbiddenFragmentIssues(JSON.stringify(config2))) {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message });
+  }
+});
+var RUNNER_CONFIG_SCHEMA_VERSION = "2.0.0";
+var BUILT_IN_PROFILE_NAMES = {
+  "claude-code": "claude-code",
+  "codex-cli": "codex-default",
+  ollama: "ollama-local",
+  mock: "mock"
+};
+var PROFILE_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+var LOOPBACK_HOSTNAMES = /* @__PURE__ */ new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
+function isLoopbackHostname(hostname2) {
+  return LOOPBACK_HOSTNAMES.has(hostname2) || /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname2);
+}
+function validateRunnerBaseUrl(raw, options) {
+  const problems = [];
+  if (raw.includes("\0")) {
+    return { ok: false, problems: ["must not contain null bytes"], loopback: false };
+  }
+  let url;
+  try {
+    url = new URL(raw);
+  } catch {
+    return { ok: false, problems: [`"${raw}" is not a valid absolute URL`], loopback: false };
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    problems.push(`unsupported URL scheme "${url.protocol}" \u2014 only http: and https: are allowed`);
+  }
+  if (url.username !== "" || url.password !== "") {
+    problems.push("must not embed credentials (username/password) in the URL");
+  }
+  if (url.hostname === "") {
+    problems.push("must include a hostname");
+  }
+  if (url.search !== "" || url.hash !== "") {
+    problems.push("must not include a query string or fragment");
+  }
+  const loopback = isLoopbackHostname(url.hostname);
+  if (url.protocol === "http:" && !loopback && options?.allowInsecureHttp !== true) {
+    problems.push(
+      'remote endpoints must use https: by default. For a private development endpoint, set "allowInsecureHttp": true on the profile (clearly labeled as insecure).'
+    );
+  }
+  return {
+    ok: problems.length === 0,
+    problems,
+    loopback,
+    protocol: url.protocol,
+    hostname: url.hostname,
+    port: url.port
+  };
+}
+var commandSpecSchema = external_exports.preprocess(
+  (value, ctx) => {
+    if (typeof value === "string") {
       ctx.addIssue({
         code: external_exports.ZodIssueCode.custom,
-        message: `configuration contains "${fragment}", which SpecBridge never passes to any runner. Remove it; there is no supported way to skip runner permission checks.`
+        message: `"${value}" is a shell command string. Runner commands must be {"executable": "...", "args": [...]} \u2014 arguments are never shell-interpolated.`
+      });
+      return external_exports.NEVER;
+    }
+    return value;
+  },
+  external_exports.object({
+    executable: safeNonEmptyString,
+    args: external_exports.array(safeNonEmptyString).default([])
+  }).strict()
+);
+var claudeProfileSchema = claudeRunnerConfigSchema.extend({
+  runner: external_exports.literal("claude-code")
+});
+var CODEX_SANDBOX_MODES = ["read-only", "workspace-write"];
+var codexProfileSchema = external_exports.object({
+  runner: external_exports.literal("codex-cli"),
+  enabled: external_exports.boolean().default(false),
+  command: commandSpecSchema.default({ executable: "codex", args: [] }),
+  model: safeNonEmptyString.nullable().default(null),
+  /** Sandbox for TASK EXECUTION. Authoring always runs read-only. */
+  sandbox: external_exports.enum(CODEX_SANDBOX_MODES).default("workspace-write"),
+  persistSessions: external_exports.boolean().default(true),
+  timeoutMs: external_exports.number().int().min(1e3).max(864e5).default(18e5),
+  maxStdoutBytes: external_exports.number().int().min(1024).default(10 * 1024 * 1024),
+  maxStderrBytes: external_exports.number().int().min(1024).default(1024 * 1024)
+}).passthrough();
+var ollamaProfileSchema = external_exports.object({
+  runner: external_exports.literal("ollama"),
+  enabled: external_exports.boolean().default(false),
+  baseUrl: safeNonEmptyString.default("http://127.0.0.1:11434"),
+  model: safeNonEmptyString.nullable().default(null),
+  temperature: external_exports.number().min(0).max(2).default(0),
+  timeoutMs: external_exports.number().int().min(1e3).max(864e5).default(3e5),
+  maximumInputCharacters: external_exports.number().int().min(1e3).default(5e5),
+  maximumOutputBytes: external_exports.number().int().min(1024).default(2097152),
+  /** Explicit development override for private plain-HTTP endpoints. */
+  allowInsecureHttp: external_exports.boolean().default(false)
+}).passthrough();
+var mockProfileSchema = mockRunnerConfigSchema.extend({
+  runner: external_exports.literal("mock")
+});
+var runnerProfileSchema = external_exports.discriminatedUnion("runner", [
+  claudeProfileSchema,
+  codexProfileSchema,
+  ollamaProfileSchema,
+  mockProfileSchema
+]);
+var runnerPolicySchema = external_exports.object({
+  allowAutomaticFallback: external_exports.boolean().default(false),
+  allowNetworkRunners: external_exports.boolean().default(true),
+  requireExplicitRunnerForNetworkAccess: external_exports.boolean().default(true),
+  requireExplicitRunnerForPaidApi: external_exports.boolean().default(true)
+}).passthrough();
+var operationDefaultsSchema = external_exports.object({
+  stageGeneration: safeNonEmptyString.nullable().default(null),
+  stageRefinement: safeNonEmptyString.nullable().default(null),
+  taskExecution: safeNonEmptyString.nullable().default(null)
+}).passthrough();
+var fallbacksSchema = external_exports.object({
+  stageGeneration: external_exports.array(safeNonEmptyString).default([]),
+  stageRefinement: external_exports.array(safeNonEmptyString).default([])
+}).passthrough();
+var CREDENTIAL_KEY_PATTERN = /^(api[-_]?keys?|auth[-_]?tokens?|access[-_]?tokens?|secrets?|passwords?|credentials?)$/i;
+function credentialKeyIssues(value, breadcrumb) {
+  if (value === null || typeof value !== "object") return [];
+  const issues = [];
+  for (const [key, child] of Object.entries(value)) {
+    if (CREDENTIAL_KEY_PATTERN.test(key)) {
+      issues.push(
+        `field "${[...breadcrumb, key].join(".")}" looks like a stored credential. SpecBridge never stores credential values; authenticate through the provider itself.`
+      );
+    }
+    issues.push(...credentialKeyIssues(child, [...breadcrumb, key]));
+  }
+  return issues;
+}
+var agentConfigV2Schema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  defaultRunner: safeNonEmptyString.default(BUILT_IN_PROFILE_NAMES["claude-code"]),
+  operationDefaults: operationDefaultsSchema.default({}),
+  runnerProfiles: external_exports.record(runnerProfileSchema).default({}),
+  runnerPolicy: runnerPolicySchema.default({}),
+  fallbacks: fallbacksSchema.default({}),
+  verification: verificationConfigSchema.default({}),
+  execution: executionPolicySchema.default({})
+}).passthrough().superRefine((config2, ctx) => {
+  if (!config2.schemaVersion.startsWith("2.")) {
+    ctx.addIssue({
+      code: external_exports.ZodIssueCode.custom,
+      path: ["schemaVersion"],
+      message: `schema version ${config2.schemaVersion} is not a v2 configuration`
+    });
+  }
+  for (const name of Object.keys(config2.runnerProfiles)) {
+    if (!PROFILE_NAME_PATTERN.test(name)) {
+      ctx.addIssue({
+        code: external_exports.ZodIssueCode.custom,
+        path: ["runnerProfiles", name],
+        message: `profile name "${name}" is invalid (allowed: letters, digits, ".", "_", "-")`
       });
     }
   }
-  if (serialized.includes(FORBIDDEN_PERMISSION_MODE)) {
-    ctx.addIssue({
-      code: external_exports.ZodIssueCode.custom,
-      message: `"${FORBIDDEN_PERMISSION_MODE}" is not a supported permission mode. SpecBridge only supports: ${CLAUDE_PERMISSION_MODES.join(", ")}.`
-    });
+  for (const [name, profile] of Object.entries(config2.runnerProfiles)) {
+    if (profile.runner === "ollama") {
+      const url = validateRunnerBaseUrl(profile.baseUrl, {
+        allowInsecureHttp: profile.allowInsecureHttp
+      });
+      for (const problem of url.problems) {
+        ctx.addIssue({
+          code: external_exports.ZodIssueCode.custom,
+          path: ["runnerProfiles", name, "baseUrl"],
+          message: problem
+        });
+      }
+    }
+  }
+  for (const message of forbiddenFragmentIssues(JSON.stringify(config2))) {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message });
+  }
+  for (const message of credentialKeyIssues(config2, [])) {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message });
   }
 });
-function defaultAgentConfig() {
-  return agentConfigSchema.parse({});
+function builtInClaudeProfile(base) {
+  return claudeProfileSchema.parse({ runner: "claude-code", ...base ?? {} });
+}
+function builtInMockProfile(base) {
+  return mockProfileSchema.parse({ runner: "mock", ...base ?? {} });
+}
+function builtInCodexProfile(executable) {
+  return codexProfileSchema.parse({
+    runner: "codex-cli",
+    enabled: false,
+    ...executable !== void 0 ? { command: { executable, args: [] } } : {}
+  });
+}
+function builtInOllamaProfile() {
+  return ollamaProfileSchema.parse({ runner: "ollama", enabled: false });
+}
+function withBuiltInProfiles(profiles, options) {
+  const result = {};
+  const add = (name, profile) => {
+    if (result[name] === void 0) result[name] = profile;
+  };
+  add(
+    BUILT_IN_PROFILE_NAMES["claude-code"],
+    profiles[BUILT_IN_PROFILE_NAMES["claude-code"]] ?? builtInClaudeProfile()
+  );
+  add(
+    BUILT_IN_PROFILE_NAMES["codex-cli"],
+    profiles[BUILT_IN_PROFILE_NAMES["codex-cli"]] ?? builtInCodexProfile(options?.codexExecutable)
+  );
+  add(
+    BUILT_IN_PROFILE_NAMES.ollama,
+    profiles[BUILT_IN_PROFILE_NAMES.ollama] ?? builtInOllamaProfile()
+  );
+  add(BUILT_IN_PROFILE_NAMES.mock, profiles[BUILT_IN_PROFILE_NAMES.mock] ?? builtInMockProfile());
+  for (const [name, profile] of Object.entries(profiles)) add(name, profile);
+  return result;
+}
+var V1_RUNNER_NAME_TO_PROFILE = {
+  "claude-code": BUILT_IN_PROFILE_NAMES["claude-code"],
+  mock: BUILT_IN_PROFILE_NAMES.mock,
+  codex: BUILT_IN_PROFILE_NAMES["codex-cli"],
+  ollama: BUILT_IN_PROFILE_NAMES.ollama
+};
+function v1CodexExecutable(v1) {
+  const entry = v1.runners["codex"];
+  if (entry === void 0 || typeof entry !== "object") return void 0;
+  const command = entry.command;
+  return typeof command === "string" && command.length > 0 ? command : void 0;
+}
+function resolveAgentConfigFromV1(v1) {
+  const profiles = {
+    [BUILT_IN_PROFILE_NAMES["claude-code"]]: builtInClaudeProfile(v1.runners["claude-code"]),
+    [BUILT_IN_PROFILE_NAMES.mock]: builtInMockProfile(v1.runners.mock)
+  };
+  return {
+    schemaVersion: RUNNER_CONFIG_SCHEMA_VERSION,
+    sourceSchemaVersion: v1.schemaVersion,
+    defaultRunner: V1_RUNNER_NAME_TO_PROFILE[v1.defaultRunner] ?? v1.defaultRunner,
+    operationDefaults: operationDefaultsSchema.parse({}),
+    runnerProfiles: withBuiltInProfiles(profiles, {
+      ...v1CodexExecutable(v1) !== void 0 ? { codexExecutable: v1CodexExecutable(v1) } : {}
+    }),
+    runnerPolicy: runnerPolicySchema.parse({}),
+    fallbacks: fallbacksSchema.parse({}),
+    verification: v1.verification,
+    execution: v1.execution
+  };
+}
+function resolveAgentConfigFromV2(v2) {
+  return {
+    schemaVersion: RUNNER_CONFIG_SCHEMA_VERSION,
+    sourceSchemaVersion: v2.schemaVersion,
+    defaultRunner: v2.defaultRunner,
+    operationDefaults: v2.operationDefaults,
+    runnerProfiles: withBuiltInProfiles(v2.runnerProfiles),
+    runnerPolicy: v2.runnerPolicy,
+    fallbacks: v2.fallbacks,
+    verification: v2.verification,
+    execution: v2.execution
+  };
+}
+function defaultResolvedAgentConfig() {
+  return {
+    schemaVersion: RUNNER_CONFIG_SCHEMA_VERSION,
+    sourceSchemaVersion: RUNNER_CONFIG_SCHEMA_VERSION,
+    defaultRunner: BUILT_IN_PROFILE_NAMES["claude-code"],
+    operationDefaults: operationDefaultsSchema.parse({}),
+    runnerProfiles: withBuiltInProfiles({}),
+    runnerPolicy: runnerPolicySchema.parse({}),
+    fallbacks: fallbacksSchema.parse({}),
+    verification: verificationConfigSchema.parse({}),
+    execution: executionPolicySchema.parse({})
+  };
+}
+function resolvedConfigDiagnostics(config2) {
+  const diagnostics = [];
+  const missing = (name, where) => {
+    diagnostics.push({
+      severity: "error",
+      code: "CONFIG_UNKNOWN_PROFILE",
+      message: `${where} references unknown runner profile "${name}". Configured profiles: ${Object.keys(config2.runnerProfiles).join(", ")}.`
+    });
+  };
+  if (config2.runnerProfiles[config2.defaultRunner] === void 0) {
+    missing(config2.defaultRunner, "defaultRunner");
+  }
+  for (const [operation, profile] of Object.entries(config2.operationDefaults)) {
+    if (typeof profile === "string" && config2.runnerProfiles[profile] === void 0) {
+      missing(profile, `operationDefaults.${operation}`);
+    }
+  }
+  for (const [operation, chain] of Object.entries(config2.fallbacks)) {
+    if (!Array.isArray(chain)) continue;
+    for (const profile of chain) {
+      if (typeof profile === "string" && config2.runnerProfiles[profile] === void 0) {
+        missing(profile, `fallbacks.${operation}`);
+      }
+    }
+  }
+  return diagnostics;
+}
+function fileSchemaVersion(parsed) {
+  if (parsed === null || typeof parsed !== "object") return void 0;
+  const version2 = parsed.schemaVersion;
+  return typeof version2 === "string" ? version2 : void 0;
+}
+function zodIssueSummary(error2) {
+  return error2.issues.map((issue2) => `${issue2.path.join(".") || "(root)"}: ${issue2.message}`).join("; ");
 }
 function readAgentConfig(workspace) {
-  const configPath = import_path3.default.join(workspace.sidecarDir, "config.json");
+  const configPath = import_path4.default.join(workspace.sidecarDir, "config.json");
   if (!(0, import_fs4.existsSync)(configPath)) {
-    return { path: configPath, exists: false, config: defaultAgentConfig(), diagnostics: [] };
+    return {
+      path: configPath,
+      exists: false,
+      config: defaultResolvedAgentConfig(),
+      sourceSchemaVersion: RUNNER_CONFIG_SCHEMA_VERSION,
+      needsMigration: false,
+      diagnostics: []
+    };
   }
   let parsed;
   try {
@@ -27507,6 +27832,7 @@ function readAgentConfig(workspace) {
     return {
       path: configPath,
       exists: true,
+      needsMigration: false,
       diagnostics: [
         {
           severity: "error",
@@ -27517,33 +27843,59 @@ function readAgentConfig(workspace) {
       ]
     };
   }
-  const result = agentConfigSchema.safeParse(parsed);
-  if (!result.success) {
-    const issues = result.error.issues.map((issue2) => `${issue2.path.join(".") || "(root)"}: ${issue2.message}`).join("; ");
-    return {
-      path: configPath,
-      exists: true,
-      diagnostics: [
-        {
-          severity: "error",
-          code: "CONFIG_INVALID_SHAPE",
-          message: `Configuration file is not a valid runner configuration: ${issues}`,
-          file: configPath
-        }
-      ]
-    };
+  const declaredVersion = fileSchemaVersion(parsed);
+  const isV2 = declaredVersion !== void 0 && declaredVersion.startsWith("2.");
+  const invalid = (issues) => ({
+    path: configPath,
+    exists: true,
+    ...declaredVersion !== void 0 ? { sourceSchemaVersion: declaredVersion } : {},
+    needsMigration: false,
+    diagnostics: [
+      {
+        severity: "error",
+        code: "CONFIG_INVALID_SHAPE",
+        message: `Configuration file is not a valid runner configuration: ${issues}`,
+        file: configPath
+      }
+    ]
+  });
+  let config2;
+  let sourceSchemaVersion;
+  if (isV2) {
+    const result = agentConfigV2Schema.safeParse(parsed);
+    if (!result.success) return invalid(zodIssueSummary(result.error));
+    config2 = resolveAgentConfigFromV2(result.data);
+    sourceSchemaVersion = result.data.schemaVersion;
+  } else {
+    const result = agentConfigSchema.safeParse(parsed);
+    if (!result.success) return invalid(zodIssueSummary(result.error));
+    config2 = resolveAgentConfigFromV1(result.data);
+    sourceSchemaVersion = result.data.schemaVersion;
   }
-  return { path: configPath, exists: true, config: result.data, diagnostics: [] };
+  const referenceErrors = resolvedConfigDiagnostics(config2).filter(
+    (diagnostic) => diagnostic.severity === "error"
+  );
+  if (referenceErrors.length > 0) {
+    return invalid(referenceErrors.map((diagnostic) => diagnostic.message).join("; "));
+  }
+  return {
+    path: configPath,
+    exists: true,
+    config: config2,
+    sourceSchemaVersion,
+    needsMigration: !isV2,
+    diagnostics: []
+  };
 }
 
 // ../../packages/compat-kiro/dist/index.js
 var import_fs6 = require("fs");
-var import_path4 = __toESM(require("path"), 1);
+var import_path5 = __toESM(require("path"), 1);
 var import_yaml = __toESM(require_dist(), 1);
 var import_fs7 = require("fs");
-var import_path5 = __toESM(require("path"), 1);
-var import_fs8 = require("fs");
 var import_path6 = __toESM(require("path"), 1);
+var import_fs8 = require("fs");
+var import_path7 = __toESM(require("path"), 1);
 var BOM = "\uFEFF";
 function splitLines(text) {
   const lines = [];
@@ -27806,7 +28158,7 @@ function steeringInfoFor(workspace, fileName) {
   if (steeringDir === void 0) {
     throw new SpecBridgeError("STEERING_NOT_FOUND", "Workspace has no .kiro/steering directory.");
   }
-  const filePath = import_path4.default.join(steeringDir, fileName);
+  const filePath = import_path5.default.join(steeringDir, fileName);
   const diagnostics = [];
   let inclusion = "always";
   let fileMatchPattern;
@@ -27910,7 +28262,7 @@ function kindForFileName(fileName) {
   return KNOWN_FILE_KINDS[fileName.toLowerCase()] ?? "other";
 }
 function readSpecFolder(specsDir, name) {
-  const dir = import_path5.default.join(specsDir, name);
+  const dir = import_path6.default.join(specsDir, name);
   const files = [];
   const extraDirs = [];
   for (const entry of (0, import_fs7.readdirSync)(dir, { withFileTypes: true })) {
@@ -27919,7 +28271,7 @@ function readSpecFolder(specsDir, name) {
       continue;
     }
     if (!entry.isFile()) continue;
-    const filePath = import_path5.default.join(dir, entry.name);
+    const filePath = import_path6.default.join(dir, entry.name);
     let sizeBytes = 0;
     try {
       sizeBytes = (0, import_fs7.statSync)(filePath).size;
@@ -28637,7 +28989,7 @@ var WORKING_AGREEMENTS = [
 ];
 function fileRelative(workspace, filePath) {
   if (filePath === void 0) return "(unknown)";
-  return import_path6.default.relative(workspace.rootDir, filePath).split(import_path6.default.sep).join("/");
+  return import_path7.default.relative(workspace.rootDir, filePath).split(import_path7.default.sep).join("/");
 }
 function progressLine(analysis) {
   const p = analysis.taskProgress;
@@ -29055,35 +29407,35 @@ function extractPathReferences(document) {
     for (const match of text.matchAll(BACKTICK_SPAN)) {
       const raw = match[1];
       if (raw === void 0) continue;
-      const path54 = normalizePathCandidate(raw);
-      if (path54 === void 0) continue;
-      const key = `${path54} ${i2}`;
+      const path53 = normalizePathCandidate(raw);
+      if (path53 === void 0) continue;
+      const key = `${path53} ${i2}`;
       if (seen.has(key)) continue;
       seen.add(key);
       references.push({
         raw,
-        path: path54,
+        path: path53,
         line: i2,
         method: "backtick-path",
         confidence: "deterministic",
-        isGlob: GLOB_CHARS.test(path54)
+        isGlob: GLOB_CHARS.test(path53)
       });
     }
     for (const match of text.matchAll(MARKDOWN_LINK)) {
       const raw = match[1];
       if (raw === void 0) continue;
-      const path54 = normalizePathCandidate(raw);
-      if (path54 === void 0) continue;
-      const key = `${path54} ${i2}`;
+      const path53 = normalizePathCandidate(raw);
+      if (path53 === void 0) continue;
+      const key = `${path53} ${i2}`;
       if (seen.has(key)) continue;
       seen.add(key);
       references.push({
         raw,
-        path: path54,
+        path: path53,
         line: i2,
         method: "markdown-link",
         confidence: "deterministic",
-        isGlob: GLOB_CHARS.test(path54)
+        isGlob: GLOB_CHARS.test(path53)
       });
     }
   }
@@ -33773,12 +34125,12 @@ function registerAllPrompts(server, context) {
 // ../../packages/evidence/dist/index.js
 var import_crypto2 = require("crypto");
 var import_fs10 = require("fs");
-var import_path8 = __toESM(require("path"), 1);
+var import_path9 = __toESM(require("path"), 1);
 
 // ../../packages/runners/dist/index.js
 var import_buffer = require("buffer");
 var import_fs9 = require("fs");
-var import_path7 = __toESM(require("path"), 1);
+var import_path8 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/is-plain-obj@4.1.0/node_modules/is-plain-obj/index.js
 function isPlainObject3(value) {
@@ -40556,6 +40908,7 @@ var {
 } = getIpcExport();
 
 // ../../packages/runners/dist/index.js
+var import_buffer2 = require("buffer");
 var DEFAULT_MAX_STDOUT_BYTES = 10 * 1024 * 1024;
 var DEFAULT_MAX_STDERR_BYTES = 1024 * 1024;
 function assertSafeToken(value, what) {
@@ -40579,15 +40932,15 @@ function isExecutableFile(candidate) {
 }
 function resolveExecutable(command, cwd) {
   if (command.includes("/") || command.includes("\\")) {
-    const resolved = import_path7.default.resolve(cwd, command);
+    const resolved = import_path8.default.resolve(cwd, command);
     return isExecutableFile(resolved) ? resolved : void 0;
   }
   const pathValue = process.env["PATH"] ?? process.env["Path"] ?? "";
   const extensions = process.platform === "win32" ? ["", ...(process.env["PATHEXT"] ?? ".COM;.EXE;.BAT;.CMD").split(";")] : [""];
-  for (const dir of pathValue.split(import_path7.default.delimiter)) {
+  for (const dir of pathValue.split(import_path8.default.delimiter)) {
     if (dir.length === 0) continue;
     for (const extension of extensions) {
-      const candidate = import_path7.default.join(dir, command + extension);
+      const candidate = import_path8.default.join(dir, command + extension);
       if (isExecutableFile(candidate)) return candidate;
     }
   }
@@ -40690,6 +41043,102 @@ async function runSafeProcess(request) {
     }
   };
 }
+var RUNNER_CAPABILITIES_SCHEMA_VERSION = "1.0.0";
+var RUNNER_CATEGORIES = ["agent-cli", "model-api", "mock", "experimental"];
+var RUNNER_SUPPORT_LEVELS = [
+  "production",
+  "preview",
+  "experimental",
+  "unavailable",
+  "incompatible"
+];
+var RUNNER_CAPABILITY_KEYS = [
+  "stageGeneration",
+  "stageRefinement",
+  "taskExecution",
+  "taskResume",
+  "structuredFinalOutput",
+  "streamingEvents",
+  "repositoryRead",
+  "repositoryWrite",
+  "sandbox",
+  "toolRestriction",
+  "usageReporting",
+  "costReporting",
+  "localOnly",
+  "requiresNetwork",
+  "supportsSystemPrompt",
+  "supportsJsonSchema",
+  "supportsCancellation"
+];
+var capabilitySetShape = Object.fromEntries(
+  RUNNER_CAPABILITY_KEYS.map((key) => [key, external_exports.boolean()])
+);
+var runnerCapabilitySetSchema = external_exports.object(capabilitySetShape).strict();
+var runnerCapabilitiesSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/).default(RUNNER_CAPABILITIES_SCHEMA_VERSION),
+  runner: external_exports.string().min(1),
+  category: external_exports.enum(RUNNER_CATEGORIES),
+  supportLevel: external_exports.enum(RUNNER_SUPPORT_LEVELS),
+  capabilities: runnerCapabilitySetSchema
+}).strict();
+function capabilitySet(enabled) {
+  const set = Object.fromEntries(
+    RUNNER_CAPABILITY_KEYS.map((key) => [key, false])
+  );
+  for (const key of enabled) set[key] = true;
+  return set;
+}
+var MOCK_CAPABILITY_SET = capabilitySet([
+  "stageGeneration",
+  "stageRefinement",
+  "taskExecution",
+  "taskResume",
+  "structuredFinalOutput",
+  "repositoryRead",
+  "repositoryWrite",
+  "sandbox",
+  "toolRestriction",
+  "localOnly",
+  "supportsSystemPrompt",
+  "supportsJsonSchema",
+  "supportsCancellation"
+]);
+var runnerUsageSchema = external_exports.object({
+  model: external_exports.string().nullable().default(null),
+  inputTokens: external_exports.number().int().nonnegative().nullable().default(null),
+  cachedInputTokens: external_exports.number().int().nonnegative().nullable().default(null),
+  outputTokens: external_exports.number().int().nonnegative().nullable().default(null),
+  reasoningTokens: external_exports.number().int().nonnegative().nullable().default(null),
+  requestCount: external_exports.number().int().nonnegative().nullable().default(null),
+  durationMs: external_exports.number().int().nonnegative()
+}).strict();
+var RUNNER_COST_SOURCES = [
+  "provider-reported",
+  "configured-estimate",
+  "unavailable"
+];
+var runnerCostSchema = external_exports.object({
+  currency: external_exports.string().nullable().default(null),
+  amount: external_exports.number().nonnegative().nullable().default(null),
+  source: external_exports.enum(RUNNER_COST_SOURCES)
+}).strict();
+var CLAUDE_DECLARED_CAPABILITIES = capabilitySet([
+  "stageGeneration",
+  "stageRefinement",
+  "taskExecution",
+  "taskResume",
+  "structuredFinalOutput",
+  "repositoryRead",
+  "repositoryWrite",
+  "toolRestriction",
+  "usageReporting",
+  "costReporting",
+  "requiresNetwork",
+  "supportsSystemPrompt",
+  "supportsJsonSchema",
+  "supportsCancellation"
+]);
 var claudeEnvelopeSchema = external_exports.object({
   type: external_exports.string().optional(),
   subtype: external_exports.string().optional(),
@@ -40699,12 +41148,223 @@ var claudeEnvelopeSchema = external_exports.object({
   structured_result: external_exports.unknown().optional(),
   permission_denials: external_exports.array(external_exports.unknown()).optional()
 }).passthrough();
+var RUNNER_ERROR_SCHEMA_VERSION = "1.0.0";
+var RUNNER_ERROR_CODES = [
+  "runner_not_found",
+  "runner_disabled",
+  "runner_incompatible",
+  "executable_not_found",
+  "endpoint_unreachable",
+  "authentication_required",
+  "permission_denied",
+  "sandbox_unavailable",
+  "structured_output_unsupported",
+  "structured_output_invalid",
+  "model_not_found",
+  "quota_exceeded",
+  "rate_limited",
+  "network_error",
+  "process_failed",
+  "api_error",
+  "cancelled",
+  "timed_out",
+  "output_limit_exceeded",
+  "repository_diverged",
+  "protected_path_modified",
+  "verification_failed",
+  "invalid_configuration",
+  "unsupported_operation"
+];
+var normalizedRunnerErrorSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/).default(RUNNER_ERROR_SCHEMA_VERSION),
+  code: external_exports.enum(RUNNER_ERROR_CODES),
+  /** Safe, human-readable message. Never contains credentials or env values. */
+  message: external_exports.string().min(1),
+  /** Actionable next steps for the local user. */
+  remediation: external_exports.array(external_exports.string()).default([]),
+  /** Whether an identical retry could plausibly succeed. */
+  retryable: external_exports.boolean(),
+  /** Short provider-specific code when one exists and is safe (e.g. "429"). */
+  providerCode: external_exports.string().max(120).optional(),
+  /** Redacted structured details (never raw provider payloads). */
+  details: external_exports.record(external_exports.union([external_exports.string(), external_exports.number(), external_exports.boolean(), external_exports.null()])).optional()
+}).strict();
+var CODEX_DECLARED_CAPABILITIES = capabilitySet([
+  "stageGeneration",
+  "stageRefinement",
+  "taskExecution",
+  "taskResume",
+  "structuredFinalOutput",
+  "streamingEvents",
+  "repositoryRead",
+  "repositoryWrite",
+  "sandbox",
+  "usageReporting",
+  "requiresNetwork",
+  "supportsJsonSchema",
+  "supportsCancellation"
+]);
+var RUNNER_EVENT_SCHEMA_VERSION = "1.0.0";
+var NORMALIZED_RUNNER_EVENT_TYPES = [
+  "runner.started",
+  "runner.completed",
+  "session.started",
+  "turn.started",
+  "turn.completed",
+  "message.delta",
+  "message.completed",
+  "tool.started",
+  "tool.completed",
+  "tool.failed",
+  "command.started",
+  "command.completed",
+  "file.changed",
+  "plan.updated",
+  "usage.updated",
+  "warning",
+  "error"
+];
+var MAX_EVENT_PAYLOAD_BYTES = 32 * 1024;
+var safePayloadValue = external_exports.union([external_exports.string(), external_exports.number(), external_exports.boolean(), external_exports.null()]);
+var normalizedRunnerEventSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/).default(RUNNER_EVENT_SCHEMA_VERSION),
+  type: external_exports.enum(NORMALIZED_RUNNER_EVENT_TYPES),
+  timestamp: external_exports.string().min(1),
+  /** Runner implementation name (e.g. "codex-cli"). */
+  runner: external_exports.string().min(1),
+  /** Runner profile name (e.g. "codex-default"). */
+  profile: external_exports.string().min(1),
+  runId: external_exports.string().min(1),
+  attemptId: external_exports.string().min(1),
+  providerSessionId: external_exports.string().optional(),
+  /** Original provider event type, when safe to record. */
+  providerEventType: external_exports.string().max(200).optional(),
+  /** Flat, safe payload: strings/numbers/booleans/null only, size-limited. */
+  payload: external_exports.record(safePayloadValue).default({})
+}).strict().superRefine((event, ctx) => {
+  const serialized = JSON.stringify(event.payload);
+  if (import_buffer2.Buffer.byteLength(serialized, "utf8") > MAX_EVENT_PAYLOAD_BYTES) {
+    ctx.addIssue({
+      code: external_exports.ZodIssueCode.custom,
+      path: ["payload"],
+      message: `event payload exceeds ${MAX_EVENT_PAYLOAD_BYTES} bytes`
+    });
+  }
+});
+var codexItemSchema = external_exports.object({
+  id: external_exports.string().optional(),
+  type: external_exports.string().optional(),
+  text: external_exports.string().optional(),
+  command: external_exports.string().optional(),
+  exit_code: external_exports.number().optional(),
+  status: external_exports.string().optional(),
+  changes: external_exports.array(external_exports.object({ path: external_exports.string().optional(), kind: external_exports.string().optional() }).passthrough()).optional()
+}).passthrough();
+var codexEventSchema = external_exports.object({
+  type: external_exports.string(),
+  thread_id: external_exports.string().optional(),
+  item: codexItemSchema.optional(),
+  usage: external_exports.object({
+    input_tokens: external_exports.number().optional(),
+    cached_input_tokens: external_exports.number().optional(),
+    output_tokens: external_exports.number().optional(),
+    reasoning_output_tokens: external_exports.number().optional()
+  }).passthrough().optional(),
+  error: external_exports.object({ message: external_exports.string().optional() }).passthrough().optional(),
+  message: external_exports.string().optional()
+}).passthrough();
+var ollamaVersionResponseSchema = external_exports.object({ version: external_exports.string() }).passthrough();
+var ollamaModelSchema = external_exports.object({
+  name: external_exports.string(),
+  size: external_exports.number().optional(),
+  modified_at: external_exports.string().optional(),
+  details: external_exports.object({
+    family: external_exports.string().optional(),
+    parameter_size: external_exports.string().optional(),
+    quantization_level: external_exports.string().optional()
+  }).passthrough().optional()
+}).passthrough();
+var ollamaTagsResponseSchema = external_exports.object({ models: external_exports.array(ollamaModelSchema).default([]) }).passthrough();
+var ollamaChatResponseSchema = external_exports.object({
+  model: external_exports.string().optional(),
+  message: external_exports.object({
+    role: external_exports.string().optional(),
+    content: external_exports.string().default(""),
+    thinking: external_exports.string().optional()
+  }).passthrough(),
+  done: external_exports.boolean().optional(),
+  prompt_eval_count: external_exports.number().optional(),
+  eval_count: external_exports.number().optional(),
+  total_duration: external_exports.number().optional()
+}).passthrough();
+var PROBE_MAX_BYTES = 1024 * 1024;
+var OLLAMA_DECLARED_CAPABILITIES = capabilitySet([
+  "stageGeneration",
+  "stageRefinement",
+  "structuredFinalOutput",
+  "usageReporting",
+  "localOnly",
+  "supportsSystemPrompt",
+  "supportsJsonSchema",
+  "supportsCancellation"
+]);
+var RUNNER_OPERATIONS = [
+  "stage-generation",
+  "stage-refinement",
+  "task-execution",
+  "task-resume",
+  "model-list",
+  "runner-test"
+];
+var NORMALIZED_RESULT_SCHEMA_VERSION = "1.0.0";
+var NORMALIZED_EXECUTION_OUTCOMES = [
+  "completed",
+  "blocked",
+  "failed",
+  "cancelled",
+  "timed-out",
+  "permission-denied",
+  "malformed-output",
+  "no-change",
+  "unavailable",
+  "incompatible",
+  "authentication-required",
+  "quota-exceeded",
+  "rate-limited"
+];
+var reportedTestClaimSchema = external_exports.object({
+  name: external_exports.string().min(1),
+  status: external_exports.enum(["passed", "failed", "skipped"])
+}).strict();
+var normalizedExecutionResultSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/).default(NORMALIZED_RESULT_SCHEMA_VERSION),
+  /** Runner implementation name (e.g. "codex-cli"). */
+  runner: external_exports.string().min(1),
+  /** Runner profile name (e.g. "codex-default"). */
+  profile: external_exports.string().min(1),
+  category: external_exports.enum(RUNNER_CATEGORIES),
+  supportLevel: external_exports.enum(RUNNER_SUPPORT_LEVELS),
+  operation: external_exports.enum(RUNNER_OPERATIONS),
+  outcome: external_exports.enum(NORMALIZED_EXECUTION_OUTCOMES),
+  summary: external_exports.string().default(""),
+  providerSessionId: external_exports.string().optional(),
+  /** Provider claims — informational only, never evidence. */
+  reportedChangedFiles: external_exports.array(external_exports.string()).default([]),
+  reportedCommands: external_exports.array(external_exports.string()).default([]),
+  reportedTests: external_exports.array(reportedTestClaimSchema).default([]),
+  blockingQuestions: external_exports.array(external_exports.string()).default([]),
+  remainingRisks: external_exports.array(external_exports.string()).default([]),
+  usage: runnerUsageSchema,
+  cost: runnerCostSchema,
+  error: normalizedRunnerErrorSchema.optional(),
+  warnings: external_exports.array(external_exports.string()).default([])
+}).strict();
 
 // ../../packages/evidence/dist/index.js
-var import_buffer2 = require("buffer");
+var import_buffer3 = require("buffer");
 var import_fs11 = require("fs");
-var import_path9 = __toESM(require("path"), 1);
 var import_path10 = __toESM(require("path"), 1);
+var import_path11 = __toESM(require("path"), 1);
 var GIT_SNAPSHOT_SCHEMA_VERSION = "1.0.0";
 var SNAPSHOT_EXCLUDED_PREFIXES = [".specbridge/"];
 var GIT_TIMEOUT_MS = 3e4;
@@ -40723,7 +41383,7 @@ async function git(workspaceRoot, argv) {
   return { ok: true, stdout: result.stdout };
 }
 function toPosix(relative) {
-  return relative.split(import_path8.default.sep).join("/");
+  return relative.split(import_path9.default.sep).join("/");
 }
 function hashFileIfRegular(absolutePath) {
   try {
@@ -40752,7 +41412,7 @@ function isExcluded(relativePath, excludedPrefixes) {
   return excludedPrefixes.some((prefix) => relativePath.startsWith(prefix));
 }
 function hashProtectedTree(workspaceRoot, relativeDir, into) {
-  const absoluteDir = import_path8.default.join(workspaceRoot, relativeDir);
+  const absoluteDir = import_path9.default.join(workspaceRoot, relativeDir);
   let entries;
   try {
     entries = (0, import_fs10.readdirSync)(absoluteDir, { withFileTypes: true });
@@ -40760,12 +41420,12 @@ function hashProtectedTree(workspaceRoot, relativeDir, into) {
     return;
   }
   for (const entry of entries) {
-    const relative = import_path8.default.join(relativeDir, entry.name);
+    const relative = import_path9.default.join(relativeDir, entry.name);
     if (entry.isSymbolicLink()) continue;
     if (entry.isDirectory()) {
       hashProtectedTree(workspaceRoot, relative, into);
     } else if (entry.isFile()) {
-      const hash = hashFileIfRegular(import_path8.default.join(workspaceRoot, relative));
+      const hash = hashFileIfRegular(import_path9.default.join(workspaceRoot, relative));
       if (hash !== void 0) into[toPosix(relative)] = hash;
     }
   }
@@ -40829,7 +41489,7 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
     if (isExcluded(rawEntry.path, excludedPrefixes)) continue;
     if (rawEntry.status === "??" && rawEntry.path.endsWith("/")) {
       const expanded = {};
-      hashProtectedTree(workspaceRoot, rawEntry.path.slice(0, -1).split("/").join(import_path8.default.sep), expanded);
+      hashProtectedTree(workspaceRoot, rawEntry.path.slice(0, -1).split("/").join(import_path9.default.sep), expanded);
       const files = Object.keys(expanded).sort();
       if (files.length === 0) {
         entries.push({ path: rawEntry.path, status: rawEntry.status });
@@ -40845,7 +41505,7 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
       }
       continue;
     }
-    const hash = hashFileIfRegular(import_path8.default.join(workspaceRoot, rawEntry.path.split("/").join(import_path8.default.sep)));
+    const hash = hashFileIfRegular(import_path9.default.join(workspaceRoot, rawEntry.path.split("/").join(import_path9.default.sep)));
     entries.push({
       path: rawEntry.path,
       status: rawEntry.status,
@@ -40855,9 +41515,9 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
   entries.sort((a2, b) => a2.path.localeCompare(b.path, "en"));
   const protectedHashes = {};
   hashProtectedTree(workspaceRoot, ".kiro", protectedHashes);
-  const configHash = hashFileIfRegular(import_path8.default.join(workspaceRoot, ".specbridge", "config.json"));
+  const configHash = hashFileIfRegular(import_path9.default.join(workspaceRoot, ".specbridge", "config.json"));
   if (configHash !== void 0) protectedHashes[".specbridge/config.json"] = configHash;
-  hashProtectedTree(workspaceRoot, import_path8.default.join(".specbridge", "state"), protectedHashes);
+  hashProtectedTree(workspaceRoot, import_path9.default.join(".specbridge", "state"), protectedHashes);
   return {
     schemaVersion: GIT_SNAPSHOT_SCHEMA_VERSION,
     capturedAt: now.toISOString(),
@@ -40984,7 +41644,7 @@ async function capturePatch(workspaceRoot, maximumPatchBytes) {
     return {
       captured: false,
       truncated: true,
-      byteLength: import_buffer2.Buffer.byteLength(result.stdout, "utf8"),
+      byteLength: import_buffer3.Buffer.byteLength(result.stdout, "utf8"),
       note: `patch exceeded the configured limit of ${maximumPatchBytes} bytes and was not retained; the changed-file list is complete`
     };
   }
@@ -41000,7 +41660,7 @@ async function capturePatch(workspaceRoot, maximumPatchBytes) {
     captured: true,
     truncated: false,
     patch: result.stdout,
-    byteLength: import_buffer2.Buffer.byteLength(result.stdout, "utf8")
+    byteLength: import_buffer3.Buffer.byteLength(result.stdout, "utf8")
   };
 }
 var TAIL_BYTES = 8 * 1024;
@@ -41137,13 +41797,13 @@ function taskIdDirName(taskId) {
 function evidenceTaskDir(workspace, specName, taskId) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path9.default.join(workspace.sidecarDir, "evidence", specName, taskIdDirName(taskId))
+    import_path10.default.join(workspace.sidecarDir, "evidence", specName, taskIdDirName(taskId))
   );
 }
 function writeTaskEvidence(workspace, record2) {
   const validated = taskEvidenceRecordSchema.parse(record2);
   const dir = evidenceTaskDir(workspace, validated.specName, validated.taskId);
-  const filePath = import_path9.default.join(dir, `${validated.runId}.json`);
+  const filePath = import_path10.default.join(dir, `${validated.runId}.json`);
   if ((0, import_fs11.existsSync)(filePath)) {
     throw new SpecBridgeError(
       "INVALID_STATE",
@@ -41161,7 +41821,7 @@ function listTaskEvidence(workspace, specName, taskId) {
   const diagnostics = [];
   for (const entry of (0, import_fs11.readdirSync)(dir, { withFileTypes: true })) {
     if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
-    const filePath = import_path9.default.join(dir, entry.name);
+    const filePath = import_path10.default.join(dir, entry.name);
     try {
       const parsed = JSON.parse((0, import_fs11.readFileSync)(filePath, "utf8"));
       const result = taskEvidenceRecordSchema.safeParse(parsed);
@@ -41289,7 +41949,7 @@ var ACCEPTED_STATUSES = /* @__PURE__ */ new Set(["verified", "manually-accepted"
 var FUTURE_SKEW_TOLERANCE_MS = 5 * 60 * 1e3;
 function evidencePathEscapesRepository(recordedPath) {
   if (recordedPath.includes("\0")) return true;
-  if (import_path10.default.isAbsolute(recordedPath) || /^[A-Za-z]:/.test(recordedPath)) return true;
+  if (import_path11.default.isAbsolute(recordedPath) || /^[A-Za-z]:/.test(recordedPath)) return true;
   return recordedPath.split(/[\\/]/).includes("..");
 }
 var CHECKBOX_STATE_PREFIX2 = /^([ \t]*[-*+][ \t]+\[)([ xX~-])(\])/;
@@ -41803,9 +42463,9 @@ function registerSteeringResources(server, context) {
 }
 
 // ../../packages/workflow/dist/index.js
-var import_path11 = __toESM(require("path"), 1);
-var import_fs12 = require("fs");
 var import_path12 = __toESM(require("path"), 1);
+var import_fs12 = require("fs");
+var import_path13 = __toESM(require("path"), 1);
 var systemClock = () => /* @__PURE__ */ new Date();
 function isoNow(clock) {
   return clock().toISOString();
@@ -42397,11 +43057,11 @@ function shortHash(hash) {
   return hash === null || hash === void 0 ? "(none)" : `${hash.slice(0, 12)}\u2026`;
 }
 function resolveStageFile(workspace, stage) {
-  const relative = stage.file.split("/").join(import_path11.default.sep);
-  const resolved = import_path11.default.resolve(workspace.rootDir, relative);
-  const check2 = import_path11.default.relative(workspace.rootDir, resolved);
-  if (check2.startsWith("..") || import_path11.default.isAbsolute(check2)) {
-    return import_path11.default.join(workspace.rootDir, ".specbridge", "invalid-path", import_path11.default.basename(stage.file));
+  const relative = stage.file.split("/").join(import_path12.default.sep);
+  const resolved = import_path12.default.resolve(workspace.rootDir, relative);
+  const check2 = import_path12.default.relative(workspace.rootDir, resolved);
+  if (check2.startsWith("..") || import_path12.default.isAbsolute(check2)) {
+    return import_path12.default.join(workspace.rootDir, ".specbridge", "invalid-path", import_path12.default.basename(stage.file));
   }
   return resolved;
 }
@@ -43155,7 +43815,7 @@ function newSpecState(specName, specType, mode, clock = systemClock) {
 }
 var DEFAULT_MAX_DESCRIPTION_BYTES = 1024 * 1024;
 function readDescriptionFile(workspace, fromFile, cwd, maxBytes) {
-  const resolved = import_path12.default.resolve(cwd, fromFile);
+  const resolved = import_path13.default.resolve(cwd, fromFile);
   assertInsideWorkspace(workspace.rootDir, resolved);
   let stats;
   try {
@@ -43232,7 +43892,7 @@ Valid examples: notification-preferences, auth-v2, payment-retry.`
   const title = requestedTitle !== void 0 && requestedTitle.length > 0 ? requestedTitle : titleFromSpecName(request.name);
   const dir = assertInsideWorkspace(
     workspace.rootDir,
-    import_path12.default.join(workspace.rootDir, KIRO_DIR_NAME, KIRO_SPECS_DIR, request.name)
+    import_path13.default.join(workspace.rootDir, KIRO_DIR_NAME, KIRO_SPECS_DIR, request.name)
   );
   if ((0, import_fs12.existsSync)(dir)) {
     let entries = [];
@@ -43263,17 +43923,17 @@ Valid examples: notification-preferences, auth-v2, payment-retry.`
   };
 }
 function executeSpecCreation(workspace, plan) {
-  const tmpParent = import_path12.default.join(workspace.sidecarDir, "tmp");
-  const tempDir = import_path12.default.join(
+  const tmpParent = import_path13.default.join(workspace.sidecarDir, "tmp");
+  const tempDir = import_path13.default.join(
     tmpParent,
     `spec-new-${plan.specName}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`
   );
-  const specsDir = import_path12.default.dirname(plan.dir);
+  const specsDir = import_path13.default.dirname(plan.dir);
   const writtenFiles = [];
   try {
     (0, import_fs12.mkdirSync)(tempDir, { recursive: true });
     for (const file of plan.files) {
-      writeFileAtomic(import_path12.default.join(tempDir, file.fileName), file.content);
+      writeFileAtomic(import_path13.default.join(tempDir, file.fileName), file.content);
     }
     (0, import_fs12.mkdirSync)(specsDir, { recursive: true });
     if ((0, import_fs12.existsSync)(plan.dir)) {
@@ -43288,7 +43948,7 @@ function executeSpecCreation(workspace, plan) {
       throw ioError("create spec directory", plan.dir, cause);
     }
     for (const file of plan.files) {
-      writtenFiles.push(import_path12.default.join(plan.dir, file.fileName));
+      writtenFiles.push(import_path13.default.join(plan.dir, file.fileName));
     }
     let statePath;
     try {
@@ -43374,7 +44034,7 @@ function toSpecSummary(bundle) {
 
 // ../../packages/mcp-server/src/version.ts
 var MCP_SERVER_NAME = "specbridge";
-var MCP_SERVER_VERSION = "0.5.0";
+var MCP_SERVER_VERSION = "0.6.0";
 var MCP_SERVER_TITLE = "SpecBridge";
 var MCP_PROTOCOL_BASELINE = "2025-11-25";
 
@@ -43485,14 +44145,14 @@ var import_node_fs7 = require("fs");
 
 // ../../packages/execution/dist/index.js
 var import_fs13 = require("fs");
-var import_path13 = __toESM(require("path"), 1);
-var import_fs14 = require("fs");
 var import_path14 = __toESM(require("path"), 1);
+var import_fs14 = require("fs");
 var import_path15 = __toESM(require("path"), 1);
-var import_fs15 = require("fs");
 var import_path16 = __toESM(require("path"), 1);
-var import_crypto3 = require("crypto");
+var import_fs15 = require("fs");
 var import_path17 = __toESM(require("path"), 1);
+var import_crypto3 = require("crypto");
+var import_path18 = __toESM(require("path"), 1);
 var RUN_RECORD_SCHEMA_VERSION = "1.0.0";
 var runRecordSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
@@ -43522,16 +44182,16 @@ var runRecordSchema = external_exports.object({
   abortReason: external_exports.string().optional()
 }).passthrough();
 function runsRootDir(workspace) {
-  return import_path13.default.join(workspace.sidecarDir, "runs");
+  return import_path14.default.join(workspace.sidecarDir, "runs");
 }
 function runDir(workspace, runId) {
   if (!/^[A-Za-z0-9._-]+$/.test(runId)) {
     throw new SpecBridgeError("INVALID_ARGUMENT", `Invalid run id "${runId}".`);
   }
-  return assertInsideWorkspace(workspace.rootDir, import_path13.default.join(runsRootDir(workspace), runId));
+  return assertInsideWorkspace(workspace.rootDir, import_path14.default.join(runsRootDir(workspace), runId));
 }
 function runArtifactPath(workspace, runId, fileName) {
-  return assertInsideWorkspace(workspace.rootDir, import_path13.default.join(runDir(workspace, runId), fileName));
+  return assertInsideWorkspace(workspace.rootDir, import_path14.default.join(runDir(workspace, runId), fileName));
 }
 function createRun(workspace, record2) {
   const validated = runRecordSchema.parse(record2);
@@ -43543,12 +44203,12 @@ function createRun(workspace, record2) {
     );
   }
   (0, import_fs13.mkdirSync)(dir, { recursive: true });
-  writeFileAtomic(import_path13.default.join(dir, "run.json"), `${JSON.stringify(validated, null, 2)}
+  writeFileAtomic(import_path14.default.join(dir, "run.json"), `${JSON.stringify(validated, null, 2)}
 `);
   return dir;
 }
 function readRunRecord(workspace, runId) {
-  const filePath = import_path13.default.join(runDir(workspace, runId), "run.json");
+  const filePath = import_path14.default.join(runDir(workspace, runId), "run.json");
   if (!(0, import_fs13.existsSync)(filePath)) return void 0;
   try {
     const parsed = JSON.parse((0, import_fs13.readFileSync)(filePath, "utf8"));
@@ -43565,7 +44225,7 @@ function updateRunRecord(workspace, runId, patch) {
   }
   const next = runRecordSchema.parse({ ...current, ...patch });
   writeFileAtomic(
-    import_path13.default.join(runDir(workspace, runId), "run.json"),
+    import_path14.default.join(runDir(workspace, runId), "run.json"),
     `${JSON.stringify(next, null, 2)}
 `
   );
@@ -43586,7 +44246,7 @@ function listRuns(workspace) {
         severity: "warning",
         code: "RUN_RECORD_UNREADABLE",
         message: `Run directory ${entry.name} has no readable run.json; ignoring it.`,
-        file: import_path13.default.join(root, entry.name)
+        file: import_path14.default.join(root, entry.name)
       });
     }
   }
@@ -43609,7 +44269,7 @@ function appendRunEvent(workspace, runId, event) {
 `, "utf8");
 }
 function readRunArtifactJson(workspace, runId, fileName) {
-  const filePath = import_path13.default.join(runDir(workspace, runId), fileName);
+  const filePath = import_path14.default.join(runDir(workspace, runId), fileName);
   if (!(0, import_fs13.existsSync)(filePath)) return void 0;
   try {
     return JSON.parse((0, import_fs13.readFileSync)(filePath, "utf8"));
@@ -43934,7 +44594,7 @@ function unifiedDiff(oldText, newText, options = {}) {
 function stageDocumentPath(workspace, specName, stage) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path14.default.join(workspace.kiroDir, "specs", specName, `${stage}.md`)
+    import_path15.default.join(workspace.kiroDir, "specs", specName, `${stage}.md`)
   );
 }
 function normalizeCandidateMarkdown(markdown) {
@@ -43964,6 +44624,31 @@ function writeStageDocument(workspace, specName, stage, markdown) {
     bytesWritten: Buffer.byteLength(content, "utf8")
   };
 }
+var attemptRecordSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  runId: external_exports.string().min(1),
+  attemptId: external_exports.string().min(1),
+  /** 1-based position within the run. */
+  attemptNumber: external_exports.number().int().min(1),
+  profile: external_exports.string().min(1),
+  runner: external_exports.string().min(1),
+  category: external_exports.string().min(1),
+  supportLevel: external_exports.string().min(1),
+  operation: external_exports.string().min(1),
+  /** Why this attempt exists: initial | correction-retry | transport-retry | fallback. */
+  attemptKind: external_exports.enum(["initial", "correction-retry", "transport-retry", "fallback"]),
+  /** The attempt this one retries/falls back from. */
+  parentAttemptId: external_exports.string().optional(),
+  /** Transport boundary: local process, loopback endpoint, or network. */
+  boundary: external_exports.enum(["local-process", "loopback-endpoint", "network-endpoint", "in-process"]),
+  model: external_exports.string().nullable().default(null),
+  capabilitySnapshot: runnerCapabilitySetSchema,
+  createdAt: external_exports.string().min(1),
+  finishedAt: external_exports.string().optional(),
+  outcome: external_exports.string().optional(),
+  errorCode: external_exports.string().optional(),
+  durationMs: external_exports.number().int().nonnegative().optional()
+}).passthrough();
 function candidateAnalysis(spec, stage, candidateMarkdown, virtualPath) {
   const document = MarkdownDocument.fromText(candidateMarkdown, virtualPath);
   const candidateSpec = {
@@ -44346,7 +45031,7 @@ function buildEvidenceSpecContext(workspace, specName, state, task) {
   }
   const tasksStage = stateStage(state, "tasks");
   if (tasksStage?.status === "approved") {
-    const planHash = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(import_path15.default.join(workspace.kiroDir, "specs", specName, "tasks.md"));
+    const planHash = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(import_path16.default.join(workspace.kiroDir, "specs", specName, "tasks.md"));
     if (planHash !== void 0) specContext.tasksPlanHash = planHash;
   }
   return specContext;
@@ -44372,7 +45057,7 @@ function applyConfiguredProtectedPaths(config2, comparison) {
 function taskLineIntact(workspace, specName, task) {
   try {
     const document = MarkdownDocument.load(
-      import_path15.default.join(workspace.kiroDir, "specs", specName, "tasks.md")
+      import_path16.default.join(workspace.kiroDir, "specs", specName, "tasks.md")
     );
     if (task.line >= document.lineCount) return false;
     return document.lineAt(task.line).text === task.rawLineText;
@@ -44394,7 +45079,7 @@ var interactiveLockSchema = external_exports.object({
 function interactiveLockPath(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path16.default.join(workspace.sidecarDir, "locks", "interactive-task.lock")
+    import_path17.default.join(workspace.sidecarDir, "locks", "interactive-task.lock")
   );
 }
 function readInteractiveLock(workspace) {
@@ -44432,7 +45117,7 @@ function acquireInteractiveLock(workspace, details) {
     createdAt: now,
     heartbeatAt: now
   };
-  (0, import_fs15.mkdirSync)(import_path16.default.dirname(lockPath), { recursive: true });
+  (0, import_fs15.mkdirSync)(import_path17.default.dirname(lockPath), { recursive: true });
   try {
     (0, import_fs15.writeFileSync)(lockPath, `${JSON.stringify(lock, null, 2)}
 `, { flag: "wx" });
@@ -44815,7 +45500,7 @@ async function completeInteractiveTask(deps, request) {
     );
   }
   const task = state.task;
-  const tasksPath = import_path17.default.join(workspace.kiroDir, "specs", record2.specName, "tasks.md");
+  const tasksPath = import_path18.default.join(workspace.kiroDir, "specs", record2.specName, "tasks.md");
   let taskIntact = false;
   try {
     const document = MarkdownDocument.load(tasksPath);
@@ -45118,19 +45803,19 @@ function registerRunResources(server, context) {
 
 // ../../packages/drift/dist/index.js
 var import_fs16 = require("fs");
-var import_path18 = __toESM(require("path"), 1);
+var import_path19 = __toESM(require("path"), 1);
 var import_picomatch = __toESM(require_picomatch2(), 1);
 var import_fs17 = require("fs");
-var import_path19 = __toESM(require("path"), 1);
-var import_fs18 = require("fs");
 var import_path20 = __toESM(require("path"), 1);
-var import_fs19 = require("fs");
+var import_fs18 = require("fs");
 var import_path21 = __toESM(require("path"), 1);
-var import_fs20 = require("fs");
+var import_fs19 = require("fs");
 var import_path22 = __toESM(require("path"), 1);
+var import_fs20 = require("fs");
+var import_path23 = __toESM(require("path"), 1);
 var import_fs21 = require("fs");
 var import_crypto4 = require("crypto");
-var import_path23 = __toESM(require("path"), 1);
+var import_path24 = __toESM(require("path"), 1);
 var taskEvidenceSchema = external_exports.object({
   taskId: external_exports.string().min(1),
   status: external_exports.enum(["recorded", "verified", "rejected"]),
@@ -45217,18 +45902,18 @@ var verificationPolicySchema = external_exports.object({
   }
 });
 function policyDir(workspace) {
-  return import_path18.default.join(workspace.sidecarDir, "policies");
+  return import_path19.default.join(workspace.sidecarDir, "policies");
 }
 function policyPath(workspace, specName) {
-  const resolved = import_path18.default.resolve(policyDir(workspace), `${specName}.json`);
-  const relative = import_path18.default.relative(workspace.rootDir, resolved);
-  if (relative.startsWith("..") || import_path18.default.isAbsolute(relative)) {
-    return import_path18.default.join(policyDir(workspace), "invalid-spec-name.json");
+  const resolved = import_path19.default.resolve(policyDir(workspace), `${specName}.json`);
+  const relative = import_path19.default.relative(workspace.rootDir, resolved);
+  if (relative.startsWith("..") || import_path19.default.isAbsolute(relative)) {
+    return import_path19.default.join(policyDir(workspace), "invalid-spec-name.json");
   }
   return resolved;
 }
 function readVerificationPolicy(workspace, specName, explicitPath) {
-  const filePath = explicitPath !== void 0 ? import_path18.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
+  const filePath = explicitPath !== void 0 ? import_path19.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
   if (!(0, import_fs16.existsSync)(filePath)) {
     return { path: filePath, exists: false, diagnostics: [] };
   }
@@ -45297,7 +45982,7 @@ function resolveEffectivePolicy(workspace, specName, options = {}) {
   const storedMode = policy?.mode ?? "advisory";
   const strictFromCli = options.strict === true && storedMode !== "strict";
   const mode = options.strict === true ? "strict" : storedMode;
-  const workspaceRelativePolicyPath = import_path18.default.relative(workspace.rootDir, read.path).split(import_path18.default.sep).join("/");
+  const workspaceRelativePolicyPath = import_path19.default.relative(workspace.rootDir, read.path).split(import_path19.default.sep).join("/");
   return {
     specName,
     mode,
@@ -45451,18 +46136,18 @@ function flagSymlinkEscapes(repoRoot, files) {
     try {
       return (0, import_fs17.realpathSync)(repoRoot);
     } catch {
-      return import_path19.default.resolve(repoRoot);
+      return import_path20.default.resolve(repoRoot);
     }
   })();
   for (const file of files) {
     if (file.changeType === "deleted") continue;
-    const absolute = import_path19.default.join(repoRoot, file.path.split("/").join(import_path19.default.sep));
+    const absolute = import_path20.default.join(repoRoot, file.path.split("/").join(import_path20.default.sep));
     try {
       const stats = (0, import_fs17.lstatSync)(absolute);
       if (!stats.isSymbolicLink()) continue;
       const target = (0, import_fs17.realpathSync)(absolute);
-      const relative = import_path19.default.relative(resolvedRoot, target);
-      if (relative.startsWith("..") || import_path19.default.isAbsolute(relative)) {
+      const relative = import_path20.default.relative(resolvedRoot, target);
+      if (relative.startsWith("..") || import_path20.default.isAbsolute(relative)) {
         file.symlinkOutsideRepository = true;
       }
     } catch {
@@ -45590,7 +46275,7 @@ async function resolveComparison(repoRoot, request, options = {}) {
     const known = new Set(files.map((file) => file.path));
     for (const token of untracked.stdout.split("\0")) {
       if (token.length === 0 || known.has(token)) continue;
-      const absolute = import_path19.default.join(repoRoot, token.split("/").join(import_path19.default.sep));
+      const absolute = import_path20.default.join(repoRoot, token.split("/").join(import_path20.default.sep));
       files.push({
         path: token,
         changeType: "untracked",
@@ -45670,7 +46355,7 @@ function specMatchReasons(specName, policy, validEvidencePaths, designPathRefere
 function readSpecEvidenceRecords(workspace, specName) {
   const byTask = /* @__PURE__ */ new Map();
   let invalidRecordCount = 0;
-  const specDir = import_path20.default.join(workspace.sidecarDir, "evidence", specName);
+  const specDir = import_path21.default.join(workspace.sidecarDir, "evidence", specName);
   if ((0, import_fs18.existsSync)(specDir)) {
     const taskDirs = (0, import_fs18.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
     for (const taskDir of taskDirs) {
@@ -45719,7 +46404,7 @@ async function buildSpecVerificationContext(options) {
     }
     if (effective("tasks") && tasksStage !== void 0) {
       const planHash = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(
-        import_path20.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path20.default.sep))
+        import_path21.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path21.default.sep))
       );
       if (planHash !== void 0) approved.tasksPlanHash = planHash;
     }
@@ -45941,7 +46626,7 @@ async function evaluateGlobalRules(rules, context) {
   return { diagnostics, disabledRules };
 }
 function repoRelative2(workspace, absolutePath) {
-  return import_path21.default.relative(workspace.rootDir, absolutePath).split(import_path21.default.sep).join("/");
+  return import_path22.default.relative(workspace.rootDir, absolutePath).split(import_path22.default.sep).join("/");
 }
 function isSpecInfraPath(candidate) {
   return candidate === ".git" || candidate.startsWith(".git/") || candidate.startsWith(".kiro/") || candidate.startsWith(".specbridge/");
@@ -46622,13 +47307,13 @@ var sbv018 = {
     if (designDocument === void 0) return [];
     const designFile = designDocument.filePath;
     const designRepoPath = designFile !== void 0 ? repoRelative2(context.workspace, designFile) : void 0;
-    const specDir = import_path21.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
+    const specDir = import_path22.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
     return context.traceability.designPathReferences.filter((reference) => !reference.isGlob).filter((reference) => {
-      const fromRoot = import_path21.default.join(
+      const fromRoot = import_path22.default.join(
         context.workspace.rootDir,
-        reference.path.split("/").join(import_path21.default.sep)
+        reference.path.split("/").join(import_path22.default.sep)
       );
-      const fromSpecDir = import_path21.default.join(specDir, reference.path.split("/").join(import_path21.default.sep));
+      const fromSpecDir = import_path22.default.join(specDir, reference.path.split("/").join(import_path22.default.sep));
       return !(0, import_fs19.existsSync)(fromRoot) && !(0, import_fs19.existsSync)(fromSpecDir);
     }).map(
       (reference) => makeDiagnostic({
@@ -46859,7 +47544,7 @@ function loadSpecMatchingInfo(workspace, folder, options) {
     }
   }
   const evidencePaths = /* @__PURE__ */ new Set();
-  const evidenceDir2 = import_path22.default.join(workspace.sidecarDir, "evidence", folder.name);
+  const evidenceDir2 = import_path23.default.join(workspace.sidecarDir, "evidence", folder.name);
   if ((0, import_fs20.existsSync)(evidenceDir2)) {
     for (const entry of (0, import_fs21.readdirSync)(evidenceDir2, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
@@ -46970,8 +47655,8 @@ async function verifySpecs(request) {
   let artifactsDir;
   const ensureArtifactsDir = () => {
     if (artifactsDir === void 0) {
-      const base = request.reportsDir ?? import_path23.default.join(workspace.sidecarDir, "reports");
-      artifactsDir = import_path23.default.join(base, verificationId);
+      const base = request.reportsDir ?? import_path24.default.join(workspace.sidecarDir, "reports");
+      artifactsDir = import_path24.default.join(base, verificationId);
     }
     return artifactsDir;
   };
@@ -46994,8 +47679,8 @@ async function verifySpecs(request) {
       onCommandFinished: (result, stdout, stderr) => {
         const dir = ensureArtifactsDir();
         const safeName = result.name.replace(/[^A-Za-z0-9._-]+/g, "-");
-        writeFileAtomic(import_path23.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
-        writeFileAtomic(import_path23.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
+        writeFileAtomic(import_path24.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
+        writeFileAtomic(import_path24.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
       }
     } : {}
   }) : { mode: "none", commands: [], missingRequired: [] };
@@ -47072,7 +47757,7 @@ async function verifySpecs(request) {
   verificationReportSchema.parse(report);
   if (persistArtifacts && artifactsDir !== void 0) {
     writeFileAtomic(
-      import_path23.default.join(artifactsDir, "report.json"),
+      import_path24.default.join(artifactsDir, "report.json"),
       `${JSON.stringify(report, null, 2)}
 `
     );

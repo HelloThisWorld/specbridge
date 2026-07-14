@@ -12,3 +12,5 @@ export * from './execute-task.js';
 export * from './resume-run.js';
 export * from './interactive-lock.js';
 export * from './interactive.js';
+export * from './attempt-store.js';
+export * from './conformance-execution.js';

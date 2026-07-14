@@ -4,7 +4,12 @@ Runners make SpecBridge model- and agent-agnostic: a runner wraps one way of
 invoking an AI coding agent. Default SpecBridge commands never require one;
 runner execution is always explicit.
 
-## The contract (v0.3)
+> **v0.6:** runners are now selected through capability-checked PROFILES
+> (`claude-code`, `codex-default`, `ollama-local`, `mock`) with a frozen
+> adapter contract. Start at **[runners.md](runners.md)**; this page keeps
+> the v0.3 execution-contract fundamentals, which are unchanged.
+
+## The contract (v0.3 core, extended by v0.6 capabilities)
 
 Every runner implements the same model-agnostic contract
 (`@specbridge/runners`):
@@ -25,8 +30,10 @@ orchestration lives in `@specbridge/execution` and evidence evaluation in
 ### Runner kinds and statuses
 
 Kinds: `mock` (offline, deterministic), `claude-code` (local Claude Code
-CLI), `unsupported` (honest stubs: `codex`, `ollama`, `openai-compatible` —
-documented on the [roadmap](roadmap.md), not implemented, never faked).
+CLI), `codex-cli` (local Codex CLI, v0.6), and `ollama` (local model API,
+authoring-only, v0.6). The v0.3-era `unsupported` stubs are gone — deferred
+providers (Gemini CLI, OpenAI-compatible, Antigravity) exist only on the
+[roadmap](roadmap.md) and are not registered as placeholders.
 
 Detection statuses: `available`, `unavailable`, `unauthenticated`,
 `incompatible`, `misconfigured`, `error`. Only `available` permits

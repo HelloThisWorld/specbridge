@@ -25,6 +25,7 @@ import { registerSpecGenerateCommand } from './commands/spec-generate.js';
 import { registerSpecRefineCommand } from './commands/spec-refine.js';
 import { registerSpecAcceptTaskCommand } from './commands/spec-accept-task.js';
 import { registerRunnerCommands } from './commands/runner.js';
+import { registerConfigCommands } from './commands/config.js';
 import { registerRunCommands } from './commands/run.js';
 import { registerCompatCheckCommand } from './commands/compat-check.js';
 import { registerMcpCommands } from './commands/mcp.js';
@@ -83,6 +84,7 @@ honest error; nothing pretends to work before it does.`,
 
   registerVerifyRuleCommands(program, runtime);
   registerRunnerCommands(program, runtime);
+  registerConfigCommands(program, runtime);
   registerRunCommands(program, runtime);
   registerCompatCheckCommand(program, runtime);
   registerMcpCommands(program, runtime);

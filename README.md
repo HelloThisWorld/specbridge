@@ -14,7 +14,46 @@ Codex, local models, or any supported coding agent.
 
 > Your `.kiro` specs remain the source of truth.
 
-New in v0.5 — a self-contained **Claude Code plugin** with a local MCP
+New in v0.6 — keep your existing `.kiro` specs and **choose a compatible
+coding agent or authoring model per operation**:
+
+```text
+                  Spec authoring     Task execution
+Claude Code             ✓                  ✓
+Codex CLI               ✓                  ✓
+Ollama                  ✓                  —
+```
+
+```bash
+specbridge runner matrix
+
+specbridge spec generate notification-preferences \
+  --stage requirements \
+  --runner ollama-local
+
+specbridge spec generate notification-preferences \
+  --stage design \
+  --runner codex-default
+
+specbridge spec run notification-preferences \
+  --task 2.3 \
+  --runner codex-default
+```
+
+Runner behavior is capability-driven: authoring-only model APIs (Ollama)
+can never execute tasks, task execution needs a safe sandbox or tool
+restriction, network-backed endpoints are never selected implicitly, and
+whatever runs, task completion still requires actual Git evidence plus
+trusted verification — never a provider claim. The live matrix above is
+generated from registered runner metadata (`specbridge runner matrix`); not
+every installed Codex version is compatible (`specbridge runner doctor
+codex-default` reports the exact capabilities).
+
+SpecBridge does not include provider subscriptions, hosted models, API
+usage, or authentication — you install and authenticate Claude Code, the
+Codex CLI, or Ollama yourself. See [docs/runners.md](docs/runners.md).
+
+From v0.5 — a self-contained **Claude Code plugin** with a local MCP
 server and verified interactive task execution:
 
 ```text
@@ -214,6 +253,9 @@ Working today (fully offline, no model, no API key):
 | `specbridge verify rules / explain <id>` | **v0.4** — inspect the stable rule registry SBV001–SBV025 |
 | `specbridge mcp serve / doctor / manifest / tools` | **v0.5** — local stdio MCP server (21 tools, 7 resources, 4 prompts) |
 | `specbridge run recover-lock` | **v0.5** — diagnose and explicitly recover the interactive execution lock |
+| `specbridge runner list / matrix / show / doctor` | **v0.6** — profile-based runner diagnostics and the generated capability matrix (read-only) |
+| `specbridge runner test / conformance / models <profile>` | **v0.6** — bounded structured-output probe (`--network`), conformance suite, provider-supported model listing |
+| `specbridge config doctor / migrate` | **v0.6** — configuration validation and the explicit v1 → v2 migration (dry-run by default, atomic apply with backup) |
 
 Planned commands (`spec sync/export`) are registered, marked "(planned)" in
 `--help`, and exit with an honest error — see the [roadmap](docs/roadmap.md).
@@ -317,25 +359,27 @@ by `spec approve` — see [docs/approval-workflow.md](docs/approval-workflow.md)
 Runner-assisted generation (since v0.3) is always explicit opt-in; offline
 templates remain the default.
 
-## Model-assisted authoring and task execution (v0.3)
+## Model-assisted authoring and task execution (v0.3, multi-runner since v0.6)
 
-With a locally installed, locally authenticated Claude Code CLI (or the
-offline mock runner), SpecBridge can draft spec stages and execute approved
-tasks — with the safety model doing the real work:
+With a locally installed, locally authenticated agent CLI (Claude Code or
+Codex), a local Ollama endpoint for authoring, or the offline mock runner,
+SpecBridge can draft spec stages and execute approved tasks — with the
+safety model doing the real work:
 
 ```sh
 specbridge runner doctor claude-code
+specbridge runner matrix
 
-specbridge spec generate notification-preferences --stage requirements
+specbridge spec generate notification-preferences --stage requirements --runner ollama-local
 specbridge spec analyze  notification-preferences --stage requirements
 specbridge spec approve  notification-preferences --stage requirements
 
-specbridge spec generate notification-preferences --stage design
+specbridge spec generate notification-preferences --stage design --runner codex-default
 specbridge spec approve  notification-preferences --stage design
 specbridge spec generate notification-preferences --stage tasks
 specbridge spec approve  notification-preferences --stage tasks
 
-specbridge spec run notification-preferences --task 2.3
+specbridge spec run notification-preferences --task 2.3 --runner codex-default
 specbridge run show <run-id>
 ```
 
@@ -451,19 +495,26 @@ CI for this repository runs on Linux, macOS, and Windows with Node 20/22.
 ## Supported runners
 
 Runners make SpecBridge model- and agent-agnostic. Default commands never
-require one.
+require one. Since v0.6, runners are configured as capability-checked
+PROFILES; the live matrix comes from `specbridge runner matrix`:
 
-| Runner | Status |
-| --- | --- |
-| `mock` | ✅ Implemented — offline, deterministic, scenario-driven, used by CI |
-| `claude-code` | ✅ **v0.3** — local CLI runner: generation, refinement, task execution, resume |
-| `codex` | ❌ Stub — honestly not implemented (roadmap) |
-| `ollama` | ❌ Stub — honestly not implemented |
-| `openai-compatible` | ❌ Stub — honestly not implemented |
+| Profile | Support | Author | Refine | Execute | Resume | Local |
+|---------|---------|--------|--------|---------|--------|-------|
+| claude-code | production | yes | yes | yes | yes | no |
+| codex-default | production | yes | yes | yes | yes | no |
+| ollama-local | production | yes | yes | no | no | yes |
+| mock | production | yes | yes | yes | yes | yes |
 
-Configuration lives in `.specbridge/config.json`
-([docs/agent-runners.md](docs/agent-runners.md)). Never commit API keys;
-SpecBridge stores no credentials of any kind.
+`codex-default` and `ollama-local` ship DISABLED until you enable them
+explicitly. Ollama is authoring-only by capability — it can never execute
+tasks or modify files. Gemini CLI, an OpenAI-compatible authoring runner,
+and Antigravity are planned for v0.6.1 (no placeholders are registered).
+
+Configuration lives in `.specbridge/config.json` (schema 2.0.0; v1 files
+stay readable, migration is explicit — see
+[docs/configuration-migration.md](docs/configuration-migration.md) and
+[docs/runners.md](docs/runners.md)). Never commit API keys; SpecBridge
+stores no credentials of any kind.
 
 ## Security and privacy
 
@@ -479,7 +530,7 @@ SpecBridge stores no credentials of any kind.
   secrets or environment variables.
 - Full model: [docs/security.md](docs/security.md).
 
-## Limitations (v0.5)
+## Limitations (v0.6)
 
 - The MCP server is stdio-only and local-only: no HTTP/SSE/WebSocket
   transport, no OAuth, no cloud hosting. One server process serves one
@@ -500,8 +551,18 @@ SpecBridge stores no credentials of any kind.
   references, chore-task exclusion) are labelled and never default to error.
 - `spec sync` and `spec export` are not implemented yet (they fail
   honestly). SARIF output is deferred.
-- Claude Code is the only production runner; codex/ollama/openai-compatible
-  remain stubs. Claude usage happens under your own account and plan.
+- Production runners are claude-code, codex-cli, ollama (authoring-only),
+  and mock. Gemini CLI, OpenAI-compatible, and Antigravity are deferred to
+  v0.6.1 and are not registered as placeholders. Provider usage happens
+  under your own accounts and plans; not every installed Codex version is
+  compatible (the doctor reports the exact missing capabilities).
+- Ollama cannot execute tasks or modify files — by capability, not by
+  configuration. Models are never pulled or selected automatically.
+- Codex resume needs an installed version with explicit session resume;
+  without it, resume is reported unsupported instead of guessed.
+- Authoring fallback exists only for explicitly configured chains, only for
+  stage generation/refinement, with bounded retries; there is no automatic
+  provider switching anywhere else.
 - Task execution requires a git repository, sidecar workflow state, and
   fully approved stages — by design; there is no force flag.
 - Tasks can only auto-verify when verification commands are configured;
@@ -535,10 +596,15 @@ git snapshots, trusted verification, append-only evidence, verified-only
 checkbox completion, manual acceptance, resumable sessions. v0.4:
 deterministic drift verification (rule engine SBV001–SBV025, policies,
 affected-spec resolution, evidence freshness, four report formats) and the
-production GitHub Action. v0.5 (this release): the local stdio MCP server,
-direct interactive task execution, and the self-contained Claude Code
-plugin with its repository-local marketplace. Next — v0.6: production
-multi-runner support. v0.7: templates, plugin SDK, extension registry,
+production GitHub Action. v0.5: the local stdio MCP server, direct
+interactive task execution, and the self-contained Claude Code plugin with
+its repository-local marketplace. v0.6.0 (this release): the
+capability-driven runner platform with a frozen adapter contract, runner
+profiles and explicit configuration migration, deterministic selection and
+bounded authoring fallback, the conformance framework, and the production
+Codex CLI and Ollama (authoring-only) runners. Next — v0.6.1: Gemini CLI,
+OpenAI-compatible authoring, Antigravity, MCP runner diagnostics, and the
+runner-management Skill. v0.7: templates, plugin SDK, extension registry,
 community ecosystem. Full detail: [docs/roadmap.md](docs/roadmap.md).
 
 ## Documentation
@@ -549,6 +615,19 @@ community ecosystem. Full detail: [docs/roadmap.md](docs/roadmap.md).
 [Spec analysis](docs/spec-analysis.md) ·
 [Approval workflow](docs/approval-workflow.md) ·
 [Sidecar state](docs/sidecar-state.md) ·
+[Runners (v0.6)](docs/runners.md) ·
+[Runner capabilities](docs/runner-capabilities.md) ·
+[Runner profiles](docs/runner-profiles.md) ·
+[Runner selection](docs/runner-selection.md) ·
+[Runner fallback](docs/runner-fallback.md) ·
+[Runner conformance](docs/runner-conformance.md) ·
+[Runner adapter contract](docs/runner-adapter-contract.md) ·
+[Codex CLI runner](docs/codex-cli-runner.md) ·
+[Ollama runner](docs/ollama-runner.md) ·
+[Network & data boundaries](docs/network-data-boundaries.md) ·
+[Runner security](docs/runner-security.md) ·
+[Runner troubleshooting](docs/runner-troubleshooting.md) ·
+[Configuration migration](docs/configuration-migration.md) ·
 [Agent runners](docs/agent-runners.md) ·
 [Claude Code runner](docs/claude-code-runner.md) ·
 [Model-assisted authoring](docs/model-assisted-authoring.md) ·

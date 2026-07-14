@@ -23,6 +23,7 @@ interface SpecGenerateOptions {
   dryRun?: boolean;
   json?: boolean;
   verbose?: boolean;
+  showRunnerPlan?: boolean;
   model?: string;
   maxTurns?: string;
   maxBudgetUsd?: string;
@@ -44,8 +45,9 @@ export function registerSpecGenerateCommand(spec: Command, runtime: CliRuntime):
     .command('generate <name>')
     .description('Generate one spec stage with a configured agent runner (result stays draft)')
     .requiredOption('--stage <stage>', `stage to generate: ${STAGE_NAMES.join(' | ')}`)
-    .option('--runner <name>', 'runner to use (default: config defaultRunner)')
+    .option('--runner <profile>', 'runner profile to use (default: operation default, then config defaultRunner)')
     .option('--dry-run', 'plan only: print the prompt and invocation, invoke nothing, write nothing')
+    .option('--show-runner-plan', 'print the capability-checked runner plan before the result')
     .option('--json', 'output a machine-readable JSON report')
     .option('--verbose', 'include diffs and extra warnings')
     .option('--model <model>', 'model override passed to the runner')
@@ -106,6 +108,7 @@ Examples:
       renderAuthoringOutcome(runtime, context.workspace, name, stage, outcome, {
         ...(options.json !== undefined ? { json: options.json } : {}),
         ...(options.verbose !== undefined ? { verbose: options.verbose } : {}),
+        ...(options.showRunnerPlan !== undefined ? { showRunnerPlan: options.showRunnerPlan } : {}),
         schema: 'specbridge.spec-generate/1',
       });
     });

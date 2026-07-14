@@ -36,13 +36,16 @@ async function cli(cwd: string, ...argv: string[]): Promise<CliResult> {
 }
 
 describe('runner commands', () => {
-  it('runner list shows every runner with honest status', async () => {
+  it('runner list shows every profile with honest status', async () => {
     const fixture = setupExecutionFixture();
     const result = await cli(fixture.root, 'runner', 'list');
     expect(result.code).toBe(0);
     expect(result.stdout).toContain('mock');
-    expect(result.stdout).toContain('codex');
-    expect(result.stdout).toContain('not implemented in v0.3');
+    // v0.6: real disabled-by-default profiles replaced the v0.3 stubs.
+    expect(result.stdout).toContain('codex-default');
+    expect(result.stdout).toContain('ollama-local');
+    expect(result.stdout).toContain('disabled');
+    expect(result.stdout).not.toContain('openai-compatible');
   });
 
   it('runner doctor mock reports available with exit 0', async () => {
@@ -50,7 +53,7 @@ describe('runner commands', () => {
     const result = await cli(fixture.root, 'runner', 'doctor', 'mock');
     expect(result.code).toBe(0);
     expect(result.stdout).toContain('Status: available');
-    expect(result.stdout).toContain('bypassPermissions is not enabled');
+    expect(result.stdout).toContain('No permission-bypass or unrestricted sandbox mode');
   });
 
   it('runner doctor claude-code (fake CLI) reports full capabilities', async () => {

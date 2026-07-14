@@ -19,16 +19,21 @@ import type {
   RunnerDetectionContext,
   RunnerDetectionResult,
   RunnerExecutionOptions,
+  RunnerSelfTestResult,
+  RunnerToolPolicy,
   StageGenerationInput,
   StageGenerationResult,
   TaskExecutionInput,
   TaskExecutionResult,
   TaskResumeInput,
 } from '../contract.js';
+import { effectiveSupportLevel } from '../contracts/capabilities.js';
+import type { RunnerCost, RunnerUsage } from '../contracts/usage.js';
+import { emptyUsage } from '../contracts/usage.js';
 import type { SafeProcessResult } from '../safe-process.js';
 import type { ClaudeProbe } from './detection.js';
-import { probeClaude } from './detection.js';
-import type { ClaudeInvocationPlan } from './invocation.js';
+import { CLAUDE_DECLARED_CAPABILITIES, claudeCapabilitySet, probeClaude } from './detection.js';
+import type { ClaudeEnvelope, ClaudeInvocationPlan } from './invocation.js';
 import {
   buildClaudeInvocation,
   cleanupTempFiles,
@@ -47,6 +52,8 @@ interface MappedResult {
   sessionId?: string;
   durationMs: number;
   warnings: string[];
+  usage?: RunnerUsage;
+  cost?: RunnerCost;
   report?: StageRunnerReport | TaskRunnerReport;
 }
 
@@ -63,6 +70,8 @@ interface MappedResult {
 export class ClaudeCodeRunner implements AgentRunner {
   readonly name = 'claude-code';
   readonly kind = 'claude-code';
+  readonly category = 'agent-cli';
+  readonly declaredCapabilities = CLAUDE_DECLARED_CAPABILITIES;
   private readonly config: ClaudeRunnerConfig;
   private probePromise: Promise<ClaudeProbe> | undefined;
 
@@ -96,6 +105,10 @@ export class ClaudeCodeRunner implements AgentRunner {
               'The claude-code runner is disabled in .specbridge/config.json (runners.claude-code.enabled = false).',
           },
         ],
+        category: this.category,
+        capabilitySet: this.declaredCapabilities,
+        supportLevel: effectiveSupportLevel('production', 'misconfigured'),
+        networkBacked: false,
       };
     }
     const probe = await this.probe(context.timeoutMs);
@@ -108,7 +121,68 @@ export class ClaudeCodeRunner implements AgentRunner {
       authentication: probe.authState,
       capabilities: probe.capabilities,
       diagnostics: probe.diagnostics,
+      category: this.category,
+      capabilitySet: claudeCapabilitySet(probe),
+      supportLevel: effectiveSupportLevel('production', probe.status),
+      // The Claude Code CLI talks to its provider itself; SpecBridge's own
+      // transport is a local child process.
+      networkBacked: false,
     };
+  }
+
+  executionBoundaryNote(policy: RunnerToolPolicy): string {
+    if (policy !== 'implementation') {
+      return 'Allowed tools: Read, Glob, Grep (read-only repository access). Permission bypasses are never used.';
+    }
+    return `Allowed tools: ${this.config.tools.join(', ')} (Bash limited to the configured allow rules); permission mode: ${this.config.permissionMode}. Permission bypasses are never used.`;
+  }
+
+  /** Minimal bounded structured-output probe (`runner test --network`). */
+  async selfTest(execution: RunnerExecutionOptions): Promise<RunnerSelfTestResult> {
+    const probe = await this.probe();
+    if (probe.status !== 'available') {
+      return { ok: false, detail: `claude-code is not available (status: ${probe.status})` };
+    }
+    const plan = buildClaudeInvocation({
+      config: this.config,
+      probe,
+      prompt:
+        'This is a connectivity self test. Do not read or modify any file. ' +
+        'Reply with exactly one JSON document: {"schemaVersion":"1.0.0","stage":"requirements",' +
+        '"markdown":"# Self Test","summary":"self test"} and nothing else.',
+      toolPolicy: 'read-only',
+      outputJsonSchema: STAGE_RUNNER_REPORT_JSON_SCHEMA,
+      execution,
+    });
+    const result = await runClaudeInvocation(plan, this.config, execution);
+    cleanupTempFiles(plan);
+    if (result.status !== 'ok') {
+      return {
+        ok: false,
+        detail: result.failureReason ?? `self test failed (${result.status})`,
+        process: result.observation,
+      };
+    }
+    const parsed = parseClaudeEnvelope(result.stdout);
+    const report =
+      parsed.structuredResult !== undefined
+        ? stageRunnerReportSchema.safeParse(parsed.structuredResult)
+        : parsed.reportText !== undefined
+          ? stageRunnerReportSchema.safeParse(safeJsonParse(parsed.reportText))
+          : undefined;
+    const usage = usageFromEnvelope(parsed.envelope, result.observation.durationMs);
+    return report !== undefined && report.success
+      ? {
+          ok: true,
+          detail: 'structured output validated',
+          process: result.observation,
+          ...(usage !== undefined ? { usage } : {}),
+        }
+      : {
+          ok: false,
+          detail: 'the runner responded but did not return a valid structured result',
+          process: result.observation,
+        };
   }
 
   async generateStage(
@@ -252,7 +326,14 @@ export class ClaudeCodeRunner implements AgentRunner {
 
     const parsed = parseClaudeEnvelope(processResult.stdout);
     const sessionId = parsed.envelope?.session_id;
-    const withSession = sessionId !== undefined ? { ...base, sessionId } : base;
+    const usage = usageFromEnvelope(parsed.envelope, processResult.observation.durationMs);
+    const cost = costFromEnvelope(parsed.envelope);
+    const withSession = {
+      ...base,
+      ...(sessionId !== undefined ? { sessionId } : {}),
+      ...(usage !== undefined ? { usage } : {}),
+      ...(cost !== undefined ? { cost } : {}),
+    };
 
     if (this.looksPermissionDenied(processResult, parsed.envelope?.subtype, parsed.envelope)) {
       return {
@@ -347,4 +428,52 @@ function mapReportedOutcome(
   reported: 'completed' | 'blocked' | 'failed' | 'no-change',
 ): ExecutionOutcome {
   return reported;
+}
+
+function safeJsonParse(raw: string): unknown {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return undefined;
+  }
+}
+
+function tolerantCount(value: unknown): number | null {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0 ? value : null;
+}
+
+/**
+ * Provider-reported usage from the result envelope, when the installed CLI
+ * emits it (`usage`, `num_turns`, `total_cost_usd` are envelope passthrough
+ * fields). Absent fields stay null — never guessed.
+ */
+export function usageFromEnvelope(
+  envelope: ClaudeEnvelope | undefined,
+  durationMs: number,
+): RunnerUsage | undefined {
+  if (envelope === undefined) return undefined;
+  const usage = (envelope as Record<string, unknown>)['usage'];
+  const numTurns = tolerantCount((envelope as Record<string, unknown>)['num_turns']);
+  if (usage === null || typeof usage !== 'object') {
+    if (numTurns === null) return undefined;
+    return { ...emptyUsage(durationMs), requestCount: numTurns };
+  }
+  const record = usage as Record<string, unknown>;
+  return {
+    model: null,
+    inputTokens: tolerantCount(record['input_tokens']),
+    cachedInputTokens: tolerantCount(record['cache_read_input_tokens']),
+    outputTokens: tolerantCount(record['output_tokens']),
+    reasoningTokens: null,
+    requestCount: numTurns,
+    durationMs: Math.max(0, Math.round(durationMs)),
+  };
+}
+
+/** Provider-reported cost from the envelope (`total_cost_usd`), when present. */
+export function costFromEnvelope(envelope: ClaudeEnvelope | undefined): RunnerCost | undefined {
+  if (envelope === undefined) return undefined;
+  const cost = (envelope as Record<string, unknown>)['total_cost_usd'];
+  if (typeof cost !== 'number' || !Number.isFinite(cost) || cost < 0) return undefined;
+  return { currency: 'USD', amount: cost, source: 'provider-reported' };
 }

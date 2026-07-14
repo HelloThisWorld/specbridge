@@ -23,6 +23,7 @@ interface SpecRefineOptions {
   dryRun?: boolean;
   json?: boolean;
   verbose?: boolean;
+  showRunnerPlan?: boolean;
   timeout?: string;
 }
 
@@ -76,8 +77,9 @@ export function registerSpecRefineCommand(spec: Command, runtime: CliRuntime): v
     .requiredOption('--stage <stage>', `stage to refine: ${STAGE_NAMES.join(' | ')}`)
     .option('--instruction <text>', 'refinement instruction')
     .option('--instruction-file <path>', 'file containing the refinement instruction')
-    .option('--runner <name>', 'runner to use (default: config defaultRunner)')
+    .option('--runner <profile>', 'runner profile to use (default: operation default, then config defaultRunner)')
     .option('--dry-run', 'plan only: print the prompt and invocation, invoke nothing, write nothing')
+    .option('--show-runner-plan', 'print the capability-checked runner plan before the result')
     .option('--json', 'output a machine-readable JSON report')
     .option('--verbose', 'print the unified diff and extra warnings')
     .option('--timeout <duration>', 'runner timeout (e.g. 90s, 15m)')
@@ -124,6 +126,7 @@ Examples:
       renderAuthoringOutcome(runtime, context.workspace, name, stage, outcome, {
         ...(options.json !== undefined ? { json: options.json } : {}),
         verbose: options.verbose === true || outcome.kind === 'applied',
+        ...(options.showRunnerPlan !== undefined ? { showRunnerPlan: options.showRunnerPlan } : {}),
         schema: 'specbridge.spec-refine/1',
       });
     });

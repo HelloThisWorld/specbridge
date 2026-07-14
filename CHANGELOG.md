@@ -1,5 +1,140 @@
 # Changelog
 
+## 0.6.0
+
+Added:
+
+- Capability-driven runner platform: core orchestration selects and gates
+  runners by DECLARED CAPABILITIES (17 stable keys), never by provider
+  names. Runner categories (`agent-cli`, `model-api`, `mock`,
+  `experimental`) and support levels (`production`, `preview`,
+  `experimental`, `unavailable`, `incompatible`) are explicit everywhere.
+- Versioned, FROZEN runner adapter contract for v0.6.1
+  (docs/runner-adapter-contract.md) with snapshot tests guarding categories,
+  support levels, operation names, capability keys, normalized outcomes,
+  normalized error codes, event types, and required adapter methods — plus a
+  minimal-adapter test proving new providers register without core changes.
+- Operation-specific capability validation: `stage-generation`,
+  `stage-refinement`, `task-execution`, `task-resume`, `model-list`,
+  `runner-test`, each with required capabilities and (for execution) a
+  required safe boundary (`sandbox` OR the documented `toolRestriction`
+  equivalent). Incompatible selections stop BEFORE any process spawn, HTTP
+  request, run record, or file change, and list the missing capabilities and
+  compatible configured profiles.
+- Normalized provider events (17 types, size-limited flat payloads, no
+  reasoning content), normalized execution results (13 outcomes), normalized
+  runner errors (24 stable codes with safe messages, remediation, and
+  retryability), and normalized usage/cost metadata (cost is
+  provider-reported, configured-estimate, or unavailable — never computed
+  from hardcoded pricing; local Ollama reports `unavailable`, not zero).
+- Versioned runner profiles (configuration schema 2.0.0): named
+  configurations of implementations (`codex-default`, `codex-fast`,
+  `ollama-qwen`, …) with per-profile executable/endpoint, model, timeout,
+  sandbox, and output limits; unique names; unknown implementations
+  rejected.
+- Configuration migration tools: `specbridge config doctor` (read-only) and
+  `specbridge config migrate --dry-run|--apply` (atomic write, recoverable
+  `config.v1.backup.json`, validated result). The v1 schema remains fully
+  readable before explicit migration; migration preserves the Claude Code
+  default behavior and trusted verification commands, adds Codex/Ollama
+  profiles DISABLED, and creates no credentials.
+- Deterministic runner selection with precedence explicit `--runner` →
+  operation default → global default, a capability-checked selection plan
+  (`--show-runner-plan`, dry-run output), and network-policy enforcement
+  (network-backed profiles are never selected implicitly).
+- Explicit authoring fallback policy: per-operation chains
+  (`fallbacks.stageGeneration/.stageRefinement`), bounded correction and
+  transport retries, and hard stop conditions (auth/permission/config
+  failures, cancellation, quota, repository modification, real results).
+  Disabled by default; never during task execution or resume.
+- Generated runner capability matrix: `specbridge runner matrix`
+  (`--json`, `--markdown`) from registered runner metadata; plus
+  `runner show <profile>`, `runner test <profile> [--network]`,
+  `runner conformance <profile> [--network]`, and
+  `runner models <profile>`.
+- Reusable runner conformance framework (detection, structured-output,
+  process-control, stage-generation, stage-refinement, task-execution,
+  resume) with capability-derived applicability; a runner is production only
+  when every applicable group passes. Conformance uses throwaway fixture
+  workspaces, requires `--network` for real-provider invocations, and runs
+  fully against fake providers in CI.
+- Production Codex CLI runner (`codex-cli`): read-only probes for
+  version/help/`exec --help`/`login status` (never a model request, never
+  credential files), JSONL event capture and normalization, JSON Schema
+  structured output with strict validation, read-only sandbox for authoring,
+  workspace-write sandbox for task execution, explicit-session resume
+  (`codex exec resume <id>`, never "latest"), and full failure
+  classification (auth, permission, sandbox, quota, rate limit, timeout,
+  cancellation, output limits).
+- Production Ollama authoring runner (`ollama`): loopback-default native
+  HTTP API with strict URL safety (no credentials in URLs, no file/ftp
+  schemes, HTTPS-by-default for remote endpoints with a labeled insecure
+  development override, redirects never followed), model listing without
+  inference, schema-validated non-streaming structured output at
+  temperature 0, ONE bounded correction retry, input/output size limits,
+  thinking-content redaction, and task execution refused by capability
+  before any request.
+- Append-only per-invocation attempt records under
+  `.specbridge/runs/<run-id>/attempts/<attempt-id>/`: capability snapshot,
+  operation, local/network boundary, model, normalized events and result,
+  process observation, error classification, and fallback lineage. Failed
+  attempts (including invalid structured-output candidates) are retained.
+- Fake-provider test infrastructure: a process-level fake Codex CLI
+  (26 scenarios) and a real loopback fake Ollama HTTP server (20 scenarios);
+  CI needs no real providers, no network, no models, no credentials.
+
+Changed:
+
+- The existing Claude Code runner now implements the shared capability
+  contract (category `agent-cli`, declared capability set, detection-derived
+  support level) with its v0.3–v0.5 behavior, process safety, permission
+  modes, resume, structured-output validation, and configuration semantics
+  preserved unchanged.
+- Runner selection validates operation capabilities before execution; task
+  execution is restricted to compatible agent CLI runners and model API
+  runners are authoring-only.
+- Provider output is normalized (events, results, errors, usage) before it
+  enters shared orchestration; run records now reference per-attempt
+  capability snapshots and attempt metadata.
+- The shared prompt contract (v1.1.0) parameterizes repository access:
+  agent CLIs receive read-only repository tools for authoring; model APIs
+  receive an explicit no-repository-access variant. The same core safety
+  sections appear for every provider (tested for semantic equivalence).
+- `runner list`/`doctor`/`show` are profile-based; the v0.3 `unsupported`
+  stub registrations (codex/ollama/openai-compatible) were replaced by real
+  disabled-by-default profiles, and deferred providers are no longer
+  registered at all.
+
+Security:
+
+- No provider credentials stored; credential-looking configuration keys are
+  rejected; no credential-file parsing anywhere.
+- No automatic paid or network-provider selection; no automatic
+  task-execution fallback or provider switching.
+- No unrestricted Codex execution mode (`danger-full-access`, bypass flags,
+  and repo-check skips rejected at three layers).
+- No source editing by Ollama (no repository access by construction).
+- No provider claims treated as task evidence; Git snapshots and trusted
+  verification remain the only completion authority.
+- No shell interpolation for runner commands (argv arrays only, both
+  schemas).
+- Explicit local and network data boundaries in every plan and attempt
+  record; provider reasoning content never exposed; provider event payloads
+  size-limited.
+
+Deferred to v0.6.1:
+
+- Gemini CLI runner.
+- OpenAI-compatible authoring runner.
+- Antigravity capability adapter.
+- MCP runner diagnostics.
+- Claude Code runner-management Skill (`/specbridge:runners`).
+
+Deferred to v0.7:
+
+- Templates, plugin SDK, runner extension SDK distribution, analyzer and
+  verifier SDKs, extension registry, community ecosystem.
+
 ## 0.5.0
 
 Added:

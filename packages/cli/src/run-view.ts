@@ -44,6 +44,26 @@ export function renderPreflightFailure(runtime: CliRuntime, preflight: TaskPrefl
       runtime.err(`  ${diagnostic.message}`);
     }
   }
+  if (failure.selection !== undefined) {
+    if (failure.selection.requiredCapabilities.length > 0) {
+      runtime.err('');
+      runtime.err('Required capabilities:');
+      for (const key of failure.selection.requiredCapabilities) runtime.err(`  ${key}`);
+    }
+    if (failure.selection.declaredCapabilities !== undefined) {
+      const declared = Object.entries(failure.selection.declaredCapabilities)
+        .filter(([, available]) => available)
+        .map(([key]) => key);
+      runtime.err('');
+      runtime.err('Detected capabilities:');
+      for (const key of declared) runtime.err(`  ${key}`);
+    }
+    if (failure.selection.compatibleProfiles.length > 0) {
+      runtime.err('');
+      runtime.err('Compatible configured profiles:');
+      for (const profile of failure.selection.compatibleProfiles) runtime.err(`  ${profile}`);
+    }
+  }
   if (failure.remediation.length > 0) {
     runtime.err('');
     runtime.err('Resolution:');
