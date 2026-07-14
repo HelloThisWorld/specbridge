@@ -2,12 +2,10 @@ import { mkdtempSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { isSpecBridgeError } from '@specbridge/core';
 import type { RunnerExecutionOptions } from '@specbridge/runners';
 import {
   ClaudeCodeRunner,
   MockRunner,
-  UnsupportedRunner,
   createDefaultRunnerRegistry,
 } from '@specbridge/runners';
 
@@ -26,29 +24,37 @@ const generationInput = {
 };
 
 describe('runner registry', () => {
-  it('registers the documented default runners', () => {
+  it('registers the documented default profiles in deterministic order', () => {
     const registry = createDefaultRunnerRegistry();
-    expect(registry.list().map((r) => r.name).sort()).toEqual([
+    expect(registry.listProfiles().map((profile) => profile.name)).toEqual([
       'claude-code',
-      'codex',
+      'codex-default',
+      'ollama-local',
       'mock',
-      'ollama',
-      'openai-compatible',
     ]);
   });
 
-  it('exposes honest runner kinds', () => {
+  it('exposes honest runner implementations per profile', () => {
     const registry = createDefaultRunnerRegistry();
     expect(registry.get('mock').kind).toBe('mock');
     expect(registry.get('claude-code').kind).toBe('claude-code');
-    expect(registry.get('codex').kind).toBe('unsupported');
-    expect(registry.get('ollama').kind).toBe('unsupported');
-    expect(registry.get('openai-compatible').kind).toBe('unsupported');
+    expect(registry.get('codex-default').kind).toBe('codex-cli');
+    expect(registry.get('ollama-local').kind).toBe('ollama');
+    // Deferred providers are NOT registered as placeholders.
+    expect(registry.has('openai-compatible')).toBe(false);
+    expect(registry.has('gemini')).toBe(false);
   });
 
-  it('throws a helpful error for unknown runners', () => {
+  it('new-provider profiles default to DISABLED', () => {
     const registry = createDefaultRunnerRegistry();
-    expect(() => registry.get('gpt-magic')).toThrowError(/Registered runners:/);
+    expect(registry.getProfile('codex-default').config.enabled).toBe(false);
+    expect(registry.getProfile('ollama-local').config.enabled).toBe(false);
+    expect(registry.getProfile('claude-code').config.enabled).toBe(true);
+  });
+
+  it('throws a helpful error for unknown profiles', () => {
+    const registry = createDefaultRunnerRegistry();
+    expect(() => registry.get('gpt-magic')).toThrowError(/Configured profiles:/);
   });
 });
 
@@ -100,14 +106,16 @@ describe('claude-code runner detection', () => {
   });
 });
 
-describe('unsupported runners are stubs, not fakes', () => {
-  it.each(['ollama', 'openai-compatible'])('%s reports unavailable and refuses to run', async (name) => {
-    const runner = new UnsupportedRunner(name, { plannedFor: 'a future release' });
-    const detection = await runner.detect({ workspaceRoot: process.cwd() });
-    expect(detection.status).toBe('unavailable');
-    expect(detection.kind).toBe('unsupported');
-    await expect(runner.generateStage(generationInput, executionOptions())).rejects.toSatisfy(
-      (error: unknown) => isSpecBridgeError(error) && error.code === 'NOT_IMPLEMENTED',
-    );
+describe('capability metadata (v0.6)', () => {
+  it('every registered runner reports category and a complete capability set', async () => {
+    const registry = createDefaultRunnerRegistry();
+    for (const profile of registry.listProfiles()) {
+      expect(profile.runner.category).toBeDefined();
+      expect(Object.keys(profile.runner.declaredCapabilities)).toHaveLength(17);
+    }
+    const mockDetection = await registry.get('mock').detect({ workspaceRoot: process.cwd() });
+    expect(mockDetection.category).toBe('mock');
+    expect(mockDetection.supportLevel).toBe('production');
+    expect(mockDetection.networkBacked).toBe(false);
   });
 });

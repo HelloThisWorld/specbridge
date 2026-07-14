@@ -55,6 +55,7 @@ export function idCounter(prefix = 'id'): () => string {
 }
 
 export const FAKE_CLAUDE_PATH = fixturePath('fake-claude', 'fake-claude.mjs');
+export const FAKE_CODEX_PATH = fixturePath('fake-codex', 'fake-codex.mjs');
 
 export interface ExecutionFixtureOptions {
   scenario?: MockScenario;
@@ -138,6 +139,107 @@ export function setupExecutionFixture(options: ExecutionFixtureOptions = {}): Ex
     approveAllStages(workspace, EXECUTION_SPEC, clock);
   }
   writeFixtureConfig(root, options);
+  const read = readAgentConfig(workspace);
+  if (read.config === undefined) {
+    throw new Error(`fixture config invalid: ${read.diagnostics.map((d) => d.message).join('; ')}`);
+  }
+  const registry = createDefaultRunnerRegistry(read.config);
+  const idFactory = idCounter('run');
+  return {
+    root,
+    workspace,
+    config: read.config,
+    registry,
+    specName: EXECUTION_SPEC,
+    clock,
+    idFactory,
+    deps: { workspace, config: read.config, registry, clock, idFactory },
+  };
+}
+
+/** v2 configuration options for multi-runner fixtures (v0.6). */
+export interface ExecutionFixtureV2Options {
+  /** Enable the fake Codex CLI profile "codex-default". */
+  useFakeCodex?: boolean;
+  /** Enable an Ollama profile "ollama-local" against this base URL. */
+  ollamaBaseUrl?: string;
+  ollamaModel?: string;
+  ollamaEnabled?: boolean;
+  ollamaTimeoutMs?: number;
+  ollamaMaximumOutputBytes?: number;
+  ollamaMaximumInputCharacters?: number;
+  useFakeClaude?: boolean;
+  defaultRunner?: string;
+  operationDefaults?: Record<string, string | null>;
+  fallbacks?: Record<string, string[]>;
+  verificationCommands?: Record<string, unknown>[];
+  execution?: Record<string, unknown>;
+  approve?: boolean;
+  extraTopLevel?: Record<string, unknown>;
+}
+
+export function writeFixtureConfigV2(root: string, options: ExecutionFixtureV2Options): void {
+  const profiles: Record<string, unknown> = {
+    mock: { runner: 'mock', enabled: true, scenario: 'success', changeFile: 'src/mock-change.txt' },
+  };
+  if (options.useFakeClaude === true) {
+    profiles['claude-code'] = {
+      runner: 'claude-code',
+      enabled: true,
+      command: process.execPath,
+      commandArgs: [FAKE_CLAUDE_PATH],
+      timeoutMs: 60_000,
+      maxTurns: 5,
+    };
+  }
+  if (options.useFakeCodex === true) {
+    profiles['codex-default'] = {
+      runner: 'codex-cli',
+      enabled: true,
+      command: { executable: process.execPath, args: [FAKE_CODEX_PATH] },
+      timeoutMs: 60_000,
+    };
+  }
+  if (options.ollamaBaseUrl !== undefined) {
+    profiles['ollama-local'] = {
+      runner: 'ollama',
+      enabled: options.ollamaEnabled ?? true,
+      baseUrl: options.ollamaBaseUrl,
+      model: options.ollamaModel ?? 'qwen-fake:7b',
+      timeoutMs: options.ollamaTimeoutMs ?? 30_000,
+      ...(options.ollamaMaximumOutputBytes !== undefined
+        ? { maximumOutputBytes: options.ollamaMaximumOutputBytes }
+        : {}),
+      ...(options.ollamaMaximumInputCharacters !== undefined
+        ? { maximumInputCharacters: options.ollamaMaximumInputCharacters }
+        : {}),
+    };
+  }
+  const config = {
+    schemaVersion: '2.0.0',
+    defaultRunner: options.defaultRunner ?? 'mock',
+    ...(options.operationDefaults !== undefined ? { operationDefaults: options.operationDefaults } : {}),
+    runnerProfiles: profiles,
+    ...(options.fallbacks !== undefined ? { fallbacks: options.fallbacks } : {}),
+    verification: { commands: options.verificationCommands ?? [passingCommand()] },
+    execution: options.execution ?? {},
+    ...(options.extraTopLevel ?? {}),
+  };
+  mkdirSync(path.join(root, '.specbridge'), { recursive: true });
+  writeFileSync(path.join(root, '.specbridge', 'config.json'), `${JSON.stringify(config, null, 2)}\n`, 'utf8');
+}
+
+/** Execution fixture with a v2 multi-runner configuration. */
+export function setupExecutionFixtureV2(options: ExecutionFixtureV2Options = {}): ExecutionFixture {
+  const root = copyFixtureToTemp('v03-ready-feature');
+  initGitRepo(root);
+  const workspace = resolveWorkspace(root);
+  if (workspace === undefined) throw new Error('fixture has no .kiro workspace');
+  const clock = tickingClock();
+  if (options.approve !== false) {
+    approveAllStages(workspace, EXECUTION_SPEC, clock);
+  }
+  writeFixtureConfigV2(root, options);
   const read = readAgentConfig(workspace);
   if (read.config === undefined) {
     throw new Error(`fixture config invalid: ${read.diagnostics.map((d) => d.message).join('; ')}`);

@@ -10,7 +10,7 @@ import {
   workspaceRootNote,
 } from './context.js';
 import type { TaskDryRunPlan, TaskRunDeps, TaskRunReport } from './execute-task.js';
-import { finalizeTaskRun } from './execute-task.js';
+import { boundaryNoteFor, finalizeTaskRun } from './execute-task.js';
 import { preflightTaskRun } from './preflight.js';
 import type { TaskPreflight } from './preflight.js';
 import { PROMPT_CONTRACT_VERSION, buildTaskResumePrompt } from './prompts.js';
@@ -129,10 +129,13 @@ export async function resumeRun(deps: TaskRunDeps, request: ResumeRequest): Prom
   }
 
   // Preflight the same task again (approvals, task existence, runner, git).
+  // The v0.6 capability check runs as task-resume: a runner without the
+  // taskResume capability is refused before any process or network work.
   const preflight = await preflightTaskRun(deps, {
     specName: original.specName,
     selector: { taskId: original.taskId },
     runnerName: original.runner,
+    operation: 'task-resume',
     ...(request.timeoutMs !== undefined ? { timeoutMs: request.timeoutMs } : {}),
   });
   if (!preflight.ok) {
@@ -218,7 +221,6 @@ export async function resumeRun(deps: TaskRunDeps, request: ResumeRequest): Prom
       .map((command) => `${command.name} (${command.argv.join(' ')}) exited ${command.exitCode ?? 'without a code'}`) ?? [];
 
   const state = preflight.state;
-  const claudeConfig = deps.config.runners['claude-code'];
   const documentStage = state?.specType === 'bugfix' ? 'bugfix' : 'requirements';
   const prompt = buildTaskResumePrompt({
     specName: original.specName,
@@ -233,7 +235,7 @@ export async function resumeRun(deps: TaskRunDeps, request: ResumeRequest): Prom
     requirementRefs: task.requirementRefs,
     repositoryObservations: repositoryObservations(workspace.rootDir, current),
     workspaceRootNote: workspaceRootNote(workspace),
-    allowedToolsNote: `Allowed tools: ${claudeConfig.tools.join(', ')} (Bash limited to the configured allow rules); permission mode: ${claudeConfig.permissionMode}. Permission bypasses are never used.`,
+    allowedToolsNote: boundaryNoteFor(preflight),
     previousSummary:
       previousResult?.report?.summary ?? previousResult?.failureReason ?? '(no summary recorded)',
     previousOutcome: String(original.outcome ?? 'unknown'),
@@ -243,6 +245,7 @@ export async function resumeRun(deps: TaskRunDeps, request: ResumeRequest): Prom
   });
 
   if (request.dryRun === true) {
+    const profileConfig = preflight.profileConfig;
     return {
       kind: 'dry-run',
       exitCode: EXIT_CODES.ok,
@@ -259,11 +262,18 @@ export async function resumeRun(deps: TaskRunDeps, request: ResumeRequest): Prom
           required: command.required,
         })),
         toolPolicy: 'implementation',
-        tools: [...claudeConfig.tools],
-        permissionMode: claudeConfig.permissionMode,
+        tools:
+          profileConfig !== undefined && profileConfig.runner === 'claude-code'
+            ? [...profileConfig.tools]
+            : [],
+        permissionMode:
+          profileConfig !== undefined && profileConfig.runner === 'claude-code'
+            ? profileConfig.permissionMode
+            : boundaryNoteFor(preflight),
         timeoutMs: preflight.timeoutMs,
         promptVersion: PROMPT_CONTRACT_VERSION,
         prompt,
+        ...(preflight.selectionPlan !== undefined ? { runnerPlan: preflight.selectionPlan } : {}),
         expectedArtifacts: [],
         warnings: preflight.warnings,
       },

@@ -8,3 +8,5 @@ export * from './run-types.js';
 export * from './runner-output.js';
 export * from './verification-types.js';
 export * from './agent-config.js';
+export * from './runner-config.js';
+export * from './config-migration.js';

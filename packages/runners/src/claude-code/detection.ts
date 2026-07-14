@@ -1,5 +1,7 @@
 import type { ClaudeRunnerConfig, Diagnostic, RunnerStatus } from '@specbridge/core';
 import type { RunnerAuthState, RunnerCapability, RunnerCapabilityId } from '../contract.js';
+import type { RunnerCapabilitySet } from '../contracts/capabilities.js';
+import { capabilitySet } from '../contracts/capabilities.js';
 import { runSafeProcess } from '../safe-process.js';
 
 /**
@@ -107,6 +109,52 @@ export interface ClaudeProbe {
   supportedFlags: Set<string>;
   status: RunnerStatus;
   diagnostics: Diagnostic[];
+}
+
+/**
+ * Claude Code capabilities when the local installation is fully available.
+ * `structuredFinalOutput` is honest without `--json-schema`: the adapter's
+ * validated JSON-extraction fallback passed structured-output conformance.
+ * Tool restriction + permission modes are the documented safe execution
+ * boundary (no OS sandbox; no bypass flags, ever).
+ */
+export const CLAUDE_DECLARED_CAPABILITIES: RunnerCapabilitySet = capabilitySet([
+  'stageGeneration',
+  'stageRefinement',
+  'taskExecution',
+  'taskResume',
+  'structuredFinalOutput',
+  'repositoryRead',
+  'repositoryWrite',
+  'toolRestriction',
+  'usageReporting',
+  'costReporting',
+  'requiresNetwork',
+  'supportsSystemPrompt',
+  'supportsJsonSchema',
+  'supportsCancellation',
+]);
+
+/** Downgrade declared capabilities to what the installed CLI actually has. */
+export function claudeCapabilitySet(probe: ClaudeProbe): RunnerCapabilitySet {
+  if (!probe.found) {
+    return capabilitySet([]);
+  }
+  const has = (id: RunnerCapabilityId): boolean =>
+    probe.capabilities.find((capability) => capability.id === id)?.available === true;
+  const set: RunnerCapabilitySet = { ...CLAUDE_DECLARED_CAPABILITIES };
+  const executionReady =
+    has('non-interactive') && has('json-output') && has('tool-restriction') && has('permission-modes');
+  set.taskExecution = executionReady;
+  set.taskResume = executionReady && has('resume');
+  set.toolRestriction = has('tool-restriction');
+  set.supportsJsonSchema = has('structured-output');
+  // The validated text fallback keeps structuredFinalOutput true as long as
+  // JSON output mode exists at all.
+  set.structuredFinalOutput = has('json-output');
+  set.stageGeneration = has('non-interactive') && has('json-output');
+  set.stageRefinement = set.stageGeneration;
+  return set;
 }
 
 const PROBE_TIMEOUT_MS = 15_000;

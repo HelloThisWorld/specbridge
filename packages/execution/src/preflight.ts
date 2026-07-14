@@ -2,12 +2,20 @@ import type { MarkdownDocument, SpecAnalysis, TasksModel } from '@specbridge/com
 import { analyzeSpec, requireSpec } from '@specbridge/compat-kiro';
 import type {
   AgentConfig,
+  RunnerProfileConfig,
   SpecWorkflowState,
   VerificationCommand,
   WorkspaceInfo,
 } from '@specbridge/core';
 import { EXIT_CODES } from '@specbridge/core';
-import type { AgentRunner, RunnerDetectionResult, RunnerRegistry } from '@specbridge/runners';
+import type {
+  AgentRunner,
+  RunnerDetectionResult,
+  RunnerRegistry,
+  RunnerSelectionFailure,
+  RunnerSelectionPlan,
+} from '@specbridge/runners';
+import { selectRunner } from '@specbridge/runners';
 import type { WorkflowEvaluation } from '@specbridge/workflow';
 import { evaluateWorkflow } from '@specbridge/workflow';
 import type { GitSnapshot } from '@specbridge/evidence';
@@ -18,7 +26,10 @@ import { openPredecessors, selectTask } from './task-selection.js';
 /**
  * Pre-run validation (§ execution prerequisites). Every check happens BEFORE
  * a runner is invoked; a failed prerequisite produces an actionable failure
- * and no agent process ever starts.
+ * and no agent process ever starts. Capability-based runner selection (v0.6)
+ * runs before detection probes, so an incapable runner (e.g. a model-API
+ * profile asked to execute a task) is refused before any process spawn or
+ * HTTP request and before any repository work.
  */
 
 export interface PreflightFailure {
@@ -31,6 +42,7 @@ export interface PreflightFailure {
     | 'task-already-complete'
     | 'task-not-leaf'
     | 'no-open-tasks'
+    | 'runner-not-selectable'
     | 'runner-unavailable'
     | 'git-unavailable'
     | 'dirty-working-tree';
@@ -38,6 +50,8 @@ export interface PreflightFailure {
   message: string;
   remediation: string[];
   detection?: RunnerDetectionResult;
+  /** v0.6: capability/selection refusal details. */
+  selection?: RunnerSelectionFailure;
   dirtyPaths?: string[];
 }
 
@@ -51,8 +65,13 @@ export interface TaskPreflight {
   tasksDocument?: MarkdownDocument;
   tasksModel?: TasksModel;
   task?: SelectedTask;
+  /** Selected profile name (v0.3 field name kept for compatibility). */
   runnerName: string;
   runner?: AgentRunner;
+  /** v0.6: the selected profile's validated configuration. */
+  profileConfig?: RunnerProfileConfig;
+  /** v0.6: the capability-checked selection plan. */
+  selectionPlan?: RunnerSelectionPlan;
   detection?: RunnerDetectionResult;
   before?: GitSnapshot;
   verificationCommands: VerificationCommand[];
@@ -64,8 +83,15 @@ export interface PreflightRequest {
   specName: string;
   selector: TaskSelector;
   runnerName?: string;
+  operation?: 'task-execution' | 'task-resume';
   timeoutMs?: number;
   allowDirty?: boolean;
+}
+
+/** Profile-specific execution timeout (falls back to 30 minutes). */
+export function profileTimeoutMs(config: RunnerProfileConfig | undefined): number {
+  if (config !== undefined && config.runner !== 'mock') return config.timeoutMs;
+  return 1_800_000;
 }
 
 /**
@@ -106,11 +132,25 @@ export async function preflightTaskRun(
   request: PreflightRequest,
 ): Promise<TaskPreflight> {
   const { workspace, config } = deps;
-  const runnerName = request.runnerName ?? config.defaultRunner;
   const allowDirty = request.allowDirty === true;
-  const timeoutMs = request.timeoutMs ?? config.runners['claude-code'].timeoutMs;
   const verificationCommands = config.verification.commands;
   const warnings: string[] = [];
+
+  // Capability-driven selection (v0.6): refused BEFORE probes, git work,
+  // process spawns, or HTTP requests. The selection failure lists the
+  // missing capabilities and every compatible configured profile.
+  const operation = request.operation ?? 'task-execution';
+  const runnerSelection = selectRunner(deps.registry, config, {
+    operation,
+    ...(request.runnerName !== undefined ? { explicitProfile: request.runnerName } : {}),
+  });
+  const runnerName = runnerSelection.ok
+    ? runnerSelection.plan.profile
+    : (runnerSelection.failure.profile ?? request.runnerName ?? config.defaultRunner);
+  const profileConfig = deps.registry.has(runnerName)
+    ? deps.registry.getProfile(runnerName).config
+    : undefined;
+  const timeoutMs = request.timeoutMs ?? profileTimeoutMs(profileConfig);
 
   const folder = requireSpec(workspace, request.specName);
   const spec = analyzeSpec(workspace, folder);
@@ -118,6 +158,8 @@ export async function preflightTaskRun(
     warnings,
     spec,
     runnerName,
+    ...(profileConfig !== undefined ? { profileConfig } : {}),
+    ...(runnerSelection.ok ? { selectionPlan: runnerSelection.plan } : {}),
     verificationCommands,
     timeoutMs,
     allowDirty,
@@ -128,6 +170,24 @@ export async function preflightTaskRun(
     ...base,
     ...extra,
   });
+
+  if (!runnerSelection.ok) {
+    const failure = runnerSelection.failure;
+    const missing = failure.missingCapabilities;
+    return fail({
+      code: 'runner-not-selectable',
+      exitCode: EXIT_CODES.usageError,
+      message: failure.error.message,
+      remediation: [
+        ...failure.error.remediation,
+        ...(missing.length > 0 ? [`Required capabilities: ${failure.requiredCapabilities.join(', ')}.`] : []),
+        ...(failure.compatibleProfiles.length > 0
+          ? [`Compatible configured profiles: ${failure.compatibleProfiles.join(', ')}.`]
+          : []),
+      ],
+      selection: failure,
+    });
+  }
 
   // Sidecar workflow state must exist — execution runs only on managed specs.
   if (spec.state === undefined) {

@@ -1,12 +1,15 @@
-import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { z } from 'zod';
-import type { Diagnostic } from './types.js';
-import type { WorkspaceInfo } from './workspace.js';
 
 /**
- * Versioned `.specbridge/config.json` schema for agent runners, trusted
- * verification commands, and execution policy (v0.3).
+ * The v1 (v0.3–v0.5) `.specbridge/config.json` file schema for agent
+ * runners, trusted verification commands, and execution policy.
+ *
+ * v0.6 introduces the v2 multi-runner schema and the version-transparent
+ * reader in ./runner-config.ts. This module stays authoritative for:
+ *   - parsing v1 files (still fully supported before explicit migration)
+ *   - the claude-code and mock runner option schemas (shared by v2 profiles)
+ *   - the verification and execution policy schemas (identical in v2)
  *
  * Safety rules enforced here, not downstream:
  *   - commands are argv arrays — shell strings are rejected outright
@@ -23,20 +26,57 @@ import type { WorkspaceInfo } from './workspace.js';
 
 export const AGENT_CONFIG_SCHEMA_VERSION = '1.0.0';
 
-const FORBIDDEN_PERMISSION_MODE = 'bypassPermissions';
-const FORBIDDEN_FLAG_FRAGMENTS = ['dangerously-skip-permissions', 'dangerously_skip_permissions'];
+export const FORBIDDEN_PERMISSION_MODE = 'bypassPermissions';
+/**
+ * Substrings that must never appear anywhere in a configuration file,
+ * whatever field they hide in. The v1 list covers Claude Code permission
+ * bypasses; v0.6 adds the unrestricted Codex execution modes.
+ */
+export const FORBIDDEN_FLAG_FRAGMENTS = [
+  'dangerously-skip-permissions',
+  'dangerously_skip_permissions',
+  'dangerously-bypass-approvals-and-sandbox',
+  'danger-full-access',
+  '--yolo',
+  'skip-git-repo-check',
+];
 
 function containsNullByte(value: string): boolean {
   return value.includes('\0');
 }
 
-const safeString = z
+export const safeString = z
   .string()
   .refine((value) => !containsNullByte(value), { message: 'must not contain null bytes' });
 
-const safeNonEmptyString = safeString.refine((value) => value.length > 0, {
+export const safeNonEmptyString = safeString.refine((value) => value.length > 0, {
   message: 'must not be empty',
 });
+
+/**
+ * Reject configurations that smuggle a permission bypass or unrestricted
+ * sandbox mode in, whatever field it hides in. Shared by the v1 and v2
+ * schemas (defense in depth).
+ */
+export function forbiddenFragmentIssues(serialized: string): string[] {
+  const issues: string[] = [];
+  const lower = serialized.toLowerCase();
+  for (const fragment of FORBIDDEN_FLAG_FRAGMENTS) {
+    if (lower.includes(fragment)) {
+      issues.push(
+        `configuration contains "${fragment}", which SpecBridge never passes to any runner. ` +
+          'Remove it; there is no supported way to skip runner permission or sandbox checks.',
+      );
+    }
+  }
+  if (serialized.includes(FORBIDDEN_PERMISSION_MODE)) {
+    issues.push(
+      `"${FORBIDDEN_PERMISSION_MODE}" is not a supported permission mode. ` +
+        `SpecBridge only supports: ${CLAUDE_PERMISSION_MODES.join(', ')}.`,
+    );
+  }
+  return issues;
+}
 
 /**
  * One trusted verification command. argv arrays only: `["pnpm", "test"]`.
@@ -151,7 +191,7 @@ export const mockRunnerConfigSchema = z
 export type MockRunnerConfig = z.infer<typeof mockRunnerConfigSchema>;
 
 /** Any other runner entry (unknown/unsupported): tolerated, surfaced honestly. */
-const genericRunnerConfigSchema = z
+export const genericRunnerConfigSchema = z
   .object({
     enabled: z.boolean().optional(),
     command: safeNonEmptyString.optional(),
@@ -210,95 +250,17 @@ export const agentConfigSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['schemaVersion'],
-        message: `schema version ${config.schemaVersion} is not supported by this SpecBridge version`,
+        message: `schema version ${config.schemaVersion} is not a v1 configuration`,
       });
     }
-    // Defense in depth: no configuration is allowed to smuggle a permission
-    // bypass in, whatever field it hides in.
-    const serialized = JSON.stringify(config);
-    for (const fragment of FORBIDDEN_FLAG_FRAGMENTS) {
-      if (serialized.toLowerCase().includes(fragment)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message:
-            `configuration contains "${fragment}", which SpecBridge never passes to any runner. ` +
-            'Remove it; there is no supported way to skip runner permission checks.',
-        });
-      }
-    }
-    if (serialized.includes(FORBIDDEN_PERMISSION_MODE)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          `"${FORBIDDEN_PERMISSION_MODE}" is not a supported permission mode. ` +
-          `SpecBridge only supports: ${CLAUDE_PERMISSION_MODES.join(', ')}.`,
-      });
+    for (const message of forbiddenFragmentIssues(JSON.stringify(config))) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message });
     }
   });
-export type AgentConfig = z.infer<typeof agentConfigSchema>;
+/** The v1 FILE shape. The resolved in-memory model is AgentConfig (v2). */
+export type AgentConfigFileV1 = z.infer<typeof agentConfigSchema>;
 
-/** The fully defaulted configuration used when no config file exists. */
-export function defaultAgentConfig(): AgentConfig {
+/** The fully defaulted v1 file configuration (kept for tests and migration). */
+export function defaultAgentConfig(): AgentConfigFileV1 {
   return agentConfigSchema.parse({});
-}
-
-export interface AgentConfigReadResult {
-  path: string;
-  exists: boolean;
-  /** Present when the file is absent (defaults) or parsed successfully. */
-  config?: AgentConfig;
-  diagnostics: Diagnostic[];
-}
-
-/**
- * Read and validate `.specbridge/config.json` for runner execution.
- *
- * Fail-closed contract: a config file that exists but cannot be validated
- * yields NO config (callers must refuse to execute), unlike the tolerant
- * v0.2 reader used by read-only commands.
- */
-export function readAgentConfig(workspace: WorkspaceInfo): AgentConfigReadResult {
-  const configPath = path.join(workspace.sidecarDir, 'config.json');
-  if (!existsSync(configPath)) {
-    return { path: configPath, exists: false, config: defaultAgentConfig(), diagnostics: [] };
-  }
-
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(readFileSync(configPath, 'utf8'));
-  } catch (cause) {
-    return {
-      path: configPath,
-      exists: true,
-      diagnostics: [
-        {
-          severity: 'error',
-          code: 'CONFIG_INVALID_JSON',
-          message: `Configuration file could not be parsed: ${cause instanceof Error ? cause.message : String(cause)}`,
-          file: configPath,
-        },
-      ],
-    };
-  }
-
-  const result = agentConfigSchema.safeParse(parsed);
-  if (!result.success) {
-    const issues = result.error.issues
-      .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`)
-      .join('; ');
-    return {
-      path: configPath,
-      exists: true,
-      diagnostics: [
-        {
-          severity: 'error',
-          code: 'CONFIG_INVALID_SHAPE',
-          message: `Configuration file is not a valid runner configuration: ${issues}`,
-          file: configPath,
-        },
-      ],
-    };
-  }
-
-  return { path: configPath, exists: true, config: result.data, diagnostics: [] };
 }

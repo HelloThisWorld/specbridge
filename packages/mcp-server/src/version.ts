@@ -8,7 +8,7 @@
  */
 
 export const MCP_SERVER_NAME = 'specbridge';
-export const MCP_SERVER_VERSION = '0.5.0';
+export const MCP_SERVER_VERSION = '0.6.0';
 export const MCP_SERVER_TITLE = 'SpecBridge';
 
 /** Pinned exact SDK dependency (see package.json; keep the two in sync). */

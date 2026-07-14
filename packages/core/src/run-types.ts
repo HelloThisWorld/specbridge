@@ -6,8 +6,19 @@
  * all speak the same language without importing each other.
  */
 
-/** Runner kinds shipped in v0.3. Unsupported runners are honest stubs. */
-export const AGENT_RUNNER_KINDS = ['mock', 'claude-code', 'unsupported'] as const;
+/**
+ * Runner implementation kinds. v0.3 shipped mock and claude-code (plus
+ * honest `unsupported` stubs); v0.6 adds the production codex-cli and ollama
+ * implementations. `unsupported` remains in the vocabulary so stored data
+ * referencing removed stubs stays readable.
+ */
+export const AGENT_RUNNER_KINDS = [
+  'mock',
+  'claude-code',
+  'codex-cli',
+  'ollama',
+  'unsupported',
+] as const;
 export type AgentRunnerKind = (typeof AGENT_RUNNER_KINDS)[number];
 
 /**

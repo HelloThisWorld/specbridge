@@ -146,19 +146,33 @@ run('planned commands fail honestly', {
   expectStderr: ['not implemented yet'],
 });
 
-// v0.3 runner diagnostics are read-only and offline.
-run('runner list shows honest runner statuses', {
+// Runner diagnostics are read-only and offline (profile-based since v0.6).
+run('runner list shows honest profile statuses', {
   cwd: kiroProject,
   args: ['runner', 'list'],
   expectCode: 0,
-  expectStdout: ['mock', 'not implemented in v0.3'],
+  expectStdout: ['mock', 'codex-default', 'ollama-local', 'disabled'],
+});
+
+run('runner matrix is generated from runner metadata', {
+  cwd: kiroProject,
+  args: ['runner', 'matrix'],
+  expectCode: 0,
+  expectStdout: ['Runner Capability Matrix', 'ollama-local'],
 });
 
 run('runner doctor mock reports available with safety lines', {
   cwd: kiroProject,
   args: ['runner', 'doctor', 'mock'],
   expectCode: 0,
-  expectStdout: ['Status: available', 'bypassPermissions is not enabled'],
+  expectStdout: ['Status: available', 'No permission-bypass or unrestricted sandbox mode'],
+});
+
+run('config doctor is read-only and reports the schema', {
+  cwd: kiroProject,
+  args: ['config', 'doctor'],
+  expectCode: 0,
+  expectStdout: ['no credential values stored'],
 });
 
 run('spec run on an unmanaged spec fails with actionable guidance', {
