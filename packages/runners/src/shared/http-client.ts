@@ -1,15 +1,18 @@
 import { Buffer } from 'node:buffer';
 
 /**
- * Safe bounded HTTP client for model-API runners (v0.6).
+ * Safe bounded HTTP client for model-API runners (v0.6, extended v0.6.1).
  *
  * Guarantees:
  *   - total request timeout (connect + headers + body)
  *   - AbortSignal cancellation (no request outlives its caller)
  *   - response size limit enforced while STREAMING (the connection is
  *     aborted at the limit; an oversized body is never buffered)
- *   - redirects are never followed (a redirect is a failure — a model
- *     endpoint must answer directly, not send data elsewhere)
+ *   - redirects are rejected by default (a redirect is a failure — a model
+ *     endpoint must answer directly, not send data elsewhere); a caller may
+ *     opt into BOUNDED redirect following, where the Authorization header
+ *     is never forwarded across origins, HTTPS never downgrades to HTTP,
+ *     unsupported schemes are rejected, and safe metadata is recorded
  *   - no credentials in URLs (validated before any request is built)
  *   - errors are safe messages, never raw provider payload dumps
  */
@@ -24,6 +27,17 @@ export interface SafeHttpRequest {
   signal?: AbortSignal;
   /** Expected content type (substring match, e.g. "application/json"). */
   expectJson?: boolean;
+  /**
+   * Extra request headers (v0.6.1). The Authorization header (and every
+   * other custom header) is dropped when a followed redirect crosses
+   * origins. Never logged; never included in results.
+   */
+  headers?: Record<string, string>;
+  /**
+   * Opt into bounded redirect following (v0.6.1). Absent = the v0.6.0
+   * behavior: any redirect is rejected.
+   */
+  maxRedirects?: number;
 }
 
 export type SafeHttpFailureKind =
@@ -35,6 +49,15 @@ export type SafeHttpFailureKind =
   | 'invalid-content-type'
   | 'http-error';
 
+/** Safe metadata about followed redirects (no headers, no credentials). */
+export interface SafeRedirectMetadata {
+  count: number;
+  /** Final URL actually answered (never contains credentials). */
+  finalUrl: string;
+  /** True when a cross-origin hop caused custom headers to be dropped. */
+  crossOrigin: boolean;
+}
+
 export type SafeHttpResult =
   | {
       ok: true;
@@ -42,6 +65,7 @@ export type SafeHttpResult =
       bodyText: string;
       bodyBytes: number;
       durationMs: number;
+      redirects?: SafeRedirectMetadata;
     }
   | {
       ok: false;
@@ -86,57 +110,144 @@ async function readBounded(
   return { text: Buffer.concat(chunks).toString('utf8'), bytes: total };
 }
 
+export interface RedirectDecision {
+  ok: boolean;
+  detail?: string;
+  nextUrl?: URL;
+}
+
+/** Validate one redirect hop against the safety rules (exported for tests). */
+export function checkRedirectTarget(current: URL, location: string): RedirectDecision {
+  let next: URL;
+  try {
+    next = new URL(location, current);
+  } catch {
+    return { ok: false, detail: `the redirect target "${location.slice(0, 200)}" is not a valid URL` };
+  }
+  if (next.protocol !== 'http:' && next.protocol !== 'https:') {
+    return {
+      ok: false,
+      detail: `the redirect target uses the unsupported scheme "${next.protocol}"`,
+    };
+  }
+  if (current.protocol === 'https:' && next.protocol === 'http:') {
+    return {
+      ok: false,
+      detail: 'the redirect would downgrade HTTPS to plain HTTP; downgrades are never followed',
+    };
+  }
+  if (next.username !== '' || next.password !== '') {
+    return { ok: false, detail: 'the redirect target embeds credentials; it is never followed' };
+  }
+  return { ok: true, nextUrl: next };
+}
+
 /** One bounded HTTP request. Never throws for transport-level failures. */
 export async function safeHttpRequest(request: SafeHttpRequest): Promise<SafeHttpResult> {
   const started = Date.now();
   const duration = (): number => Math.max(0, Date.now() - started);
   const externalAborted = (): boolean => request.signal?.aborted === true;
 
+  const maxRedirects = request.maxRedirects ?? 0;
+  const initialUrl = new URL(request.url);
+  const initialOrigin = initialUrl.origin;
+
+  let currentUrl = initialUrl;
+  let currentMethod: 'GET' | 'POST' = request.method;
+  let sendBody = request.body !== undefined;
+  let crossedOrigin = false;
+  let redirectCount = 0;
   let response: Response;
-  try {
-    response = await fetch(request.url, {
-      method: request.method,
-      redirect: 'manual',
-      signal: composeSignals(request.timeoutMs, request.signal),
-      ...(request.body !== undefined
-        ? {
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify(request.body),
-          }
-        : {}),
-    });
-  } catch (cause) {
-    if (externalAborted()) {
-      return { ok: false, kind: 'cancelled', detail: 'the request was cancelled', durationMs: duration() };
+
+  for (;;) {
+    const headers: Record<string, string> = {};
+    if (sendBody) headers['content-type'] = 'application/json';
+    if (request.headers !== undefined && !crossedOrigin) {
+      // Custom headers (including Authorization) travel only while the
+      // request stays on the configured origin.
+      for (const [name, value] of Object.entries(request.headers)) headers[name] = value;
     }
-    if (cause instanceof Error && (cause.name === 'TimeoutError' || cause.name === 'AbortError')) {
+    try {
+      response = await fetch(currentUrl.toString(), {
+        method: currentMethod,
+        redirect: 'manual',
+        signal: composeSignals(request.timeoutMs, request.signal),
+        headers,
+        ...(sendBody ? { body: JSON.stringify(request.body) } : {}),
+      });
+    } catch (cause) {
+      if (externalAborted()) {
+        return { ok: false, kind: 'cancelled', detail: 'the request was cancelled', durationMs: duration() };
+      }
+      if (cause instanceof Error && (cause.name === 'TimeoutError' || cause.name === 'AbortError')) {
+        return {
+          ok: false,
+          kind: 'timeout',
+          detail: `the request did not complete within ${request.timeoutMs} ms`,
+          durationMs: duration(),
+        };
+      }
+      const message = cause instanceof Error ? cause.message : String(cause);
       return {
         ok: false,
-        kind: 'timeout',
-        detail: `the request did not complete within ${request.timeoutMs} ms`,
+        kind: 'unreachable',
+        detail: `the endpoint could not be reached (${message.slice(0, 300)})`,
         durationMs: duration(),
       };
     }
-    const message = cause instanceof Error ? cause.message : String(cause);
-    return {
-      ok: false,
-      kind: 'unreachable',
-      detail: `the endpoint could not be reached (${message.slice(0, 300)})`,
-      durationMs: duration(),
-    };
+
+    if (response.status < 300 || response.status >= 400) break;
+
+    // Redirect handling. Default (maxRedirects 0): rejected outright —
+    // following one could send spec content to a different host than the
+    // one the user configured.
+    if (redirectCount >= maxRedirects) {
+      return {
+        ok: false,
+        kind: 'redirect-rejected',
+        status: response.status,
+        detail:
+          maxRedirects === 0
+            ? `the endpoint answered with a redirect (${response.status}); redirects are never followed`
+            : `the endpoint exceeded the bounded redirect limit of ${maxRedirects}`,
+        durationMs: duration(),
+      };
+    }
+    const location = response.headers.get('location');
+    if (location === null || location.length === 0) {
+      return {
+        ok: false,
+        kind: 'redirect-rejected',
+        status: response.status,
+        detail: `the endpoint answered with a redirect (${response.status}) without a target`,
+        durationMs: duration(),
+      };
+    }
+    const decision = checkRedirectTarget(currentUrl, location);
+    if (!decision.ok || decision.nextUrl === undefined) {
+      return {
+        ok: false,
+        kind: 'redirect-rejected',
+        status: response.status,
+        detail: decision.detail ?? 'the redirect was rejected',
+        durationMs: duration(),
+      };
+    }
+    redirectCount += 1;
+    if (decision.nextUrl.origin !== initialOrigin) crossedOrigin = true;
+    // 303 (and 301/302 on POST, per fetch semantics) switch to GET without a
+    // body; 307/308 preserve the method and body.
+    if (response.status === 303 || (currentMethod === 'POST' && (response.status === 301 || response.status === 302))) {
+      currentMethod = 'GET';
+      sendBody = false;
+    }
+    currentUrl = decision.nextUrl;
   }
 
-  // Redirects are rejected outright: following one could send spec content
-  // to a different host than the one the user configured.
-  if (response.status >= 300 && response.status < 400) {
-    return {
-      ok: false,
-      kind: 'redirect-rejected',
-      status: response.status,
-      detail: `the endpoint answered with a redirect (${response.status}); redirects are never followed`,
-      durationMs: duration(),
-    };
-  }
+  const redirects: SafeRedirectMetadata | undefined =
+    redirectCount > 0
+      ? { count: redirectCount, finalUrl: currentUrl.toString(), crossOrigin: crossedOrigin }
+      : undefined;
 
   let body: { text: string; bytes: number } | 'too-large';
   try {
@@ -200,5 +311,6 @@ export async function safeHttpRequest(request: SafeHttpRequest): Promise<SafeHtt
     bodyText: body.text,
     bodyBytes: body.bytes,
     durationMs: duration(),
+    ...(redirects !== undefined ? { redirects } : {}),
   };
 }

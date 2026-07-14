@@ -32,6 +32,13 @@ specbridge mcp manifest [--json]                # identity + capability counts
 specbridge mcp tools    [--json] [--verbose]    # tool/resource/prompt catalog
 ```
 
+v0.6.1 adds four read-only runner diagnostic tools (`runner_list`,
+`runner_show`, `runner_doctor`, `runner_matrix`) — thin adapters over the
+same shared runner services the CLI uses; see [mcp-tools.md](mcp-tools.md).
+They keep the stdio protocol clean (logs go to stderr only), redact
+credential-shaped values, never expose environment-variable values, never
+make an inference request, and remain strictly read-only.
+
 `mcp serve` defaults to stdio. `mcp doctor` validates the project root,
 `.kiro` availability, `.specbridge` configuration, package and protocol
 versions, registry integrity, stdio cleanliness, plugin bundle paths (when

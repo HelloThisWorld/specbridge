@@ -517,12 +517,17 @@ export async function runRunnerConformance(
     0,
   );
   const skippedChecks = groups.reduce((sum, group) => sum + group.skipped, 0);
+  // Preview/experimental adapters (v0.6.1: antigravity-cli) can pass their
+  // applicable checks but can never be CONFIRMED production by conformance —
+  // production assignment needs a production-declared adapter too.
+  const declaredProduction =
+    (context.profile.runner.declaredSupportLevel ?? 'production') === 'production';
   return {
     runner: context.profile.runner.name,
     profile: context.profile.name,
     groups,
     passed: failedChecks === 0,
-    productionConfirmed: failedChecks === 0 && skippedChecks === 0,
+    productionConfirmed: failedChecks === 0 && skippedChecks === 0 && declaredProduction,
     skippedChecks,
     failedChecks,
   };

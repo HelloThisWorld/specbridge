@@ -34199,7 +34199,10 @@ var RUNNER_CONFIG_SCHEMA_VERSION = "2.0.0";
 var BUILT_IN_PROFILE_NAMES = {
   "claude-code": "claude-code",
   "codex-cli": "codex-default",
+  "gemini-cli": "gemini-default",
   ollama: "ollama-local",
+  "openai-compatible": "openai-compatible-local",
+  "antigravity-cli": "antigravity",
   mock: "mock"
 };
 var PROFILE_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
@@ -34292,10 +34295,109 @@ var ollamaProfileSchema = external_exports.object({
 var mockProfileSchema = mockRunnerConfigSchema.extend({
   runner: external_exports.literal("mock")
 });
+var GEMINI_AUTHORING_APPROVAL_MODES = ["plan"];
+var GEMINI_EXECUTION_APPROVAL_MODES = ["auto_edit", "default"];
+var geminiProfileSchema = external_exports.object({
+  runner: external_exports.literal("gemini-cli"),
+  enabled: external_exports.boolean().default(false),
+  command: commandSpecSchema.default({ executable: "gemini", args: [] }),
+  model: safeNonEmptyString.nullable().default(null),
+  /** Authoring is always read-only; only plan mode is accepted. */
+  approvalModeForAuthoring: external_exports.enum(GEMINI_AUTHORING_APPROVAL_MODES).default("plan"),
+  /** Task execution may auto-approve EDITS only — never shell commands. */
+  approvalModeForExecution: external_exports.enum(GEMINI_EXECUTION_APPROVAL_MODES).default("auto_edit"),
+  /** Pass --sandbox when the installed CLI supports it. */
+  sandbox: external_exports.boolean().default(true),
+  /**
+   * Extra tools to allow during task execution, on top of the adapter's
+   * bounded read/edit set. Shell-execution tools are rejected.
+   */
+  allowedTools: external_exports.array(safeNonEmptyString).default([]).refine(
+    (tools) => tools.every((tool) => !/^(run_shell_command|shell|bash|execute_command|terminal)$/i.test(tool)),
+    {
+      message: "shell-execution tools cannot be allowed: SpecBridge never grants the Gemini CLI arbitrary shell access"
+    }
+  ),
+  /** Pass the extension-restriction flag when supported (default on). */
+  disabledExtensions: external_exports.boolean().default(true),
+  timeoutMs: external_exports.number().int().min(1e3).max(864e5).default(18e5),
+  maxStdoutBytes: external_exports.number().int().min(1024).default(10 * 1024 * 1024),
+  maxStderrBytes: external_exports.number().int().min(1024).default(1024 * 1024)
+}).passthrough();
+var OPENAI_COMPATIBLE_API_STYLES = ["chat-completions", "responses"];
+var OPENAI_COMPATIBLE_STRUCTURED_OUTPUT_MODES = [
+  "json-schema",
+  "json-object",
+  "strict-json-prompt"
+];
+var environmentVariableNameSchema = external_exports.string().regex(
+  /^[A-Za-z_][A-Za-z0-9_]*$/,
+  "must be an environment-variable NAME (letters, digits, underscore); SpecBridge never stores key values"
+);
+var FORBIDDEN_HEADER_NAME_PATTERN = /^(authorization|proxy-authorization|cookie|set-cookie|x-api-key|api-key|x-auth-token)$/i;
+var safeHeadersSchema = external_exports.record(external_exports.string().max(1024)).superRefine((headers, ctx) => {
+  for (const [name, value] of Object.entries(headers)) {
+    if (!/^[A-Za-z0-9-]+$/.test(name)) {
+      ctx.addIssue({
+        code: external_exports.ZodIssueCode.custom,
+        message: `header name "${name}" is invalid (letters, digits, and "-" only)`
+      });
+    }
+    if (FORBIDDEN_HEADER_NAME_PATTERN.test(name)) {
+      ctx.addIssue({
+        code: external_exports.ZodIssueCode.custom,
+        message: `header "${name}" would carry a credential value. SpecBridge never stores credentials; use apiKeyEnvironmentVariable (a variable NAME) instead.`
+      });
+    }
+    if (value.includes("\0") || value.includes("\n") || value.includes("\r")) {
+      ctx.addIssue({
+        code: external_exports.ZodIssueCode.custom,
+        message: `header "${name}" contains control characters`
+      });
+    }
+  }
+});
+var openAiCompatibleProfileSchema = external_exports.object({
+  runner: external_exports.literal("openai-compatible"),
+  enabled: external_exports.boolean().default(false),
+  baseUrl: safeNonEmptyString.default("http://127.0.0.1:8000/v1"),
+  apiStyle: external_exports.enum(OPENAI_COMPATIBLE_API_STYLES).default("chat-completions"),
+  model: safeNonEmptyString.nullable().default(null),
+  structuredOutput: external_exports.enum(OPENAI_COMPATIBLE_STRUCTURED_OUTPUT_MODES).default("json-schema"),
+  /**
+   * Explicit permission to fall back from the configured structured-output
+   * mode to the next weaker one when the endpoint rejects it. Off by
+   * default: an unsupported mode is an error, never a silent downgrade.
+   */
+  allowStructuredOutputFallback: external_exports.boolean().default(false),
+  /** Name of the environment variable holding the API key (never a value). */
+  apiKeyEnvironmentVariable: environmentVariableNameSchema.nullable().default(null),
+  /** Static capability declaration: the endpoint supports GET /models. */
+  modelsEndpoint: external_exports.boolean().default(false),
+  /** Custom safe headers (credential-bearing header names are rejected). */
+  headers: safeHeadersSchema.default({}),
+  temperature: external_exports.number().min(0).max(2).default(0),
+  timeoutMs: external_exports.number().int().min(1e3).max(864e5).default(3e5),
+  maximumInputCharacters: external_exports.number().int().min(1e3).default(5e5),
+  maximumOutputBytes: external_exports.number().int().min(1024).default(2097152),
+  /** Explicit development override for private plain-HTTP endpoints (INSECURE). */
+  allowInsecureHttp: external_exports.boolean().default(false)
+}).passthrough();
+var antigravityProfileSchema = external_exports.object({
+  runner: external_exports.literal("antigravity-cli"),
+  enabled: external_exports.boolean().default(false),
+  command: commandSpecSchema.default({ executable: "agy", args: [] }),
+  /** Always true: the adapter is experimental and cannot be marked otherwise. */
+  experimental: external_exports.literal(true).default(true),
+  timeoutMs: external_exports.number().int().min(1e3).max(6e5).default(3e4)
+}).passthrough();
 var runnerProfileSchema = external_exports.discriminatedUnion("runner", [
   claudeProfileSchema,
   codexProfileSchema,
+  geminiProfileSchema,
   ollamaProfileSchema,
+  openAiCompatibleProfileSchema,
+  antigravityProfileSchema,
   mockProfileSchema
 ]);
 var runnerPolicySchema = external_exports.object({
@@ -34354,7 +34456,7 @@ var agentConfigV2Schema = external_exports.object({
     }
   }
   for (const [name, profile] of Object.entries(config.runnerProfiles)) {
-    if (profile.runner === "ollama") {
+    if (profile.runner === "ollama" || profile.runner === "openai-compatible") {
       const url = validateRunnerBaseUrl(profile.baseUrl, {
         allowInsecureHttp: profile.allowInsecureHttp
       });
@@ -34390,6 +34492,15 @@ function builtInCodexProfile(executable) {
 function builtInOllamaProfile() {
   return ollamaProfileSchema.parse({ runner: "ollama", enabled: false });
 }
+function builtInGeminiProfile() {
+  return geminiProfileSchema.parse({ runner: "gemini-cli", enabled: false });
+}
+function builtInOpenAiCompatibleProfile() {
+  return openAiCompatibleProfileSchema.parse({ runner: "openai-compatible", enabled: false });
+}
+function builtInAntigravityProfile() {
+  return antigravityProfileSchema.parse({ runner: "antigravity-cli", enabled: false });
+}
 function withBuiltInProfiles(profiles, options) {
   const result = {};
   const add = (name, profile) => {
@@ -34404,8 +34515,20 @@ function withBuiltInProfiles(profiles, options) {
     profiles[BUILT_IN_PROFILE_NAMES["codex-cli"]] ?? builtInCodexProfile(options?.codexExecutable)
   );
   add(
+    BUILT_IN_PROFILE_NAMES["gemini-cli"],
+    profiles[BUILT_IN_PROFILE_NAMES["gemini-cli"]] ?? builtInGeminiProfile()
+  );
+  add(
     BUILT_IN_PROFILE_NAMES.ollama,
     profiles[BUILT_IN_PROFILE_NAMES.ollama] ?? builtInOllamaProfile()
+  );
+  add(
+    BUILT_IN_PROFILE_NAMES["openai-compatible"],
+    profiles[BUILT_IN_PROFILE_NAMES["openai-compatible"]] ?? builtInOpenAiCompatibleProfile()
+  );
+  add(
+    BUILT_IN_PROFILE_NAMES["antigravity-cli"],
+    profiles[BUILT_IN_PROFILE_NAMES["antigravity-cli"]] ?? builtInAntigravityProfile()
   );
   add(BUILT_IN_PROFILE_NAMES.mock, profiles[BUILT_IN_PROFILE_NAMES.mock] ?? builtInMockProfile());
   for (const [name, profile] of Object.entries(profiles)) add(name, profile);
@@ -41729,6 +41852,45 @@ var codexEventSchema = external_exports.object({
   error: external_exports.object({ message: external_exports.string().optional() }).passthrough().optional(),
   message: external_exports.string().optional()
 }).passthrough();
+var GEMINI_DECLARED_CAPABILITIES = capabilitySet([
+  "stageGeneration",
+  "stageRefinement",
+  "taskExecution",
+  "taskResume",
+  "structuredFinalOutput",
+  "streamingEvents",
+  "repositoryRead",
+  "repositoryWrite",
+  "sandbox",
+  "toolRestriction",
+  "usageReporting",
+  "requiresNetwork",
+  "supportsCancellation"
+]);
+var geminiEventSchema = external_exports.object({
+  type: external_exports.string(),
+  session_id: external_exports.string().optional(),
+  text: external_exports.string().optional(),
+  name: external_exports.string().optional(),
+  status: external_exports.string().optional(),
+  path: external_exports.string().optional(),
+  kind: external_exports.string().optional(),
+  command: external_exports.string().optional(),
+  input_tokens: external_exports.number().optional(),
+  output_tokens: external_exports.number().optional(),
+  cached_input_tokens: external_exports.number().optional(),
+  response: external_exports.string().optional(),
+  message: external_exports.string().optional()
+}).passthrough();
+var geminiJsonEnvelopeSchema = external_exports.object({
+  response: external_exports.string(),
+  stats: external_exports.object({
+    session_id: external_exports.string().optional(),
+    input_tokens: external_exports.number().optional(),
+    output_tokens: external_exports.number().optional(),
+    cached_input_tokens: external_exports.number().optional()
+  }).passthrough().optional()
+}).passthrough();
 var ollamaVersionResponseSchema = external_exports.object({ version: external_exports.string() }).passthrough();
 var ollamaModelSchema = external_exports.object({
   name: external_exports.string(),
@@ -41764,6 +41926,55 @@ var OLLAMA_DECLARED_CAPABILITIES = capabilitySet([
   "supportsJsonSchema",
   "supportsCancellation"
 ]);
+var chatCompletionResponseSchema = external_exports.object({
+  choices: external_exports.array(
+    external_exports.object({
+      message: external_exports.object({ content: external_exports.string().nullable() }).passthrough(),
+      finish_reason: external_exports.string().nullable().optional()
+    }).passthrough()
+  ).min(1),
+  model: external_exports.string().optional(),
+  usage: external_exports.object({
+    prompt_tokens: external_exports.number().optional(),
+    completion_tokens: external_exports.number().optional(),
+    prompt_tokens_details: external_exports.object({ cached_tokens: external_exports.number().optional() }).passthrough().optional()
+  }).passthrough().optional()
+}).passthrough();
+var responsesResponseSchema = external_exports.object({
+  output: external_exports.array(
+    external_exports.object({
+      type: external_exports.string().optional(),
+      content: external_exports.array(external_exports.object({ type: external_exports.string().optional(), text: external_exports.string().optional() }).passthrough()).optional()
+    }).passthrough()
+  ).optional(),
+  output_text: external_exports.string().optional(),
+  model: external_exports.string().optional(),
+  usage: external_exports.object({
+    input_tokens: external_exports.number().optional(),
+    output_tokens: external_exports.number().optional(),
+    input_tokens_details: external_exports.object({ cached_tokens: external_exports.number().optional() }).passthrough().optional()
+  }).passthrough().optional()
+}).passthrough();
+var openAiModelsResponseSchema = external_exports.object({
+  data: external_exports.array(
+    external_exports.object({
+      id: external_exports.string(),
+      owned_by: external_exports.string().optional(),
+      created: external_exports.number().optional()
+    }).passthrough()
+  ).default([])
+}).passthrough();
+var OPENAI_COMPATIBLE_DECLARED_CAPABILITIES = capabilitySet([
+  "stageGeneration",
+  "stageRefinement",
+  "structuredFinalOutput",
+  "usageReporting",
+  "localOnly",
+  "supportsSystemPrompt",
+  "supportsJsonSchema",
+  "supportsCancellation"
+]);
+var ANTIGRAVITY_DECLARED_CAPABILITIES = capabilitySet([]);
 var RUNNER_OPERATIONS = [
   "stage-generation",
   "stage-refinement",

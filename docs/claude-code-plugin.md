@@ -79,6 +79,14 @@ and controlled lifecycle operations and never duplicate core logic:
 - `continue` finishes an interrupted interactive run honestly (never
   presenting a fresh run as a resumption).
 - `verify` runs `spec_check_drift` and asks before `spec_run_verification`.
+- `runners` (v0.6.1) is read-only runner inspection: it calls
+  `runner_list` and `runner_matrix` (and `runner_show`/`runner_doctor`
+  for a named profile), explains categories and local-versus-network
+  boundaries, and recommends compatible profiles for an operation. It
+  never edits configuration, never invokes any provider or nested agent,
+  never sends a network request itself, and never starts a login. The
+  existing implementation workflow is unchanged: `task_begin` → the
+  current Claude Code session edits → `task_complete`.
 
 No skill uses `bypassPermissions`, `dangerously-skip-permissions`,
 unrestricted `Bash(*)`, or unrestricted `Write`, and no skill instructs

@@ -7,12 +7,12 @@ requested operation needs.
 
 ## Categories
 
-| Category | Meaning | v0.6.0 |
+| Category | Meaning | v0.6.1 |
 | --- | --- | --- |
-| `agent-cli` | local coding-agent CLI; may modify sources under a bounded sandbox/tool restriction | claude-code, codex-cli |
-| `model-api` | model endpoint; authoring only, no repository access | ollama |
+| `agent-cli` | local coding-agent CLI; may modify sources under a bounded sandbox/tool restriction | claude-code, codex-cli, gemini-cli |
+| `model-api` | model endpoint; authoring only, no repository access | ollama, openai-compatible |
 | `mock` | deterministic in-process runner for tests/conformance | mock |
-| `experimental` | reserved for detection-only integrations | (none) |
+| `experimental` | detection-only integrations | antigravity-cli |
 
 ## Support levels
 
@@ -25,6 +25,11 @@ requested operation needs.
 | `incompatible` | provider exists but required capabilities are unavailable |
 
 Detection only downgrades: `runner doctor` shows the effective level.
+Since v0.6.1 an adapter may DECLARE a non-production level
+(`AgentRunner.declaredSupportLevel`, additive and optional; absent means
+production). The antigravity-cli adapter declares `experimental`: it is
+never selected automatically and conformance can never confirm it
+production.
 
 ## Capability keys
 

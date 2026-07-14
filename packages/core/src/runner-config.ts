@@ -45,15 +45,30 @@ import {
 
 export const RUNNER_CONFIG_SCHEMA_VERSION = '2.0.0';
 
-/** Production runner implementations registered in v0.6.0. */
-export const RUNNER_IMPLEMENTATIONS = ['claude-code', 'codex-cli', 'ollama', 'mock'] as const;
+/**
+ * Runner implementations registered by the default registry. v0.6.0 shipped
+ * claude-code, codex-cli, ollama, and mock; v0.6.1 adds gemini-cli,
+ * openai-compatible (authoring only), and the experimental antigravity-cli.
+ */
+export const RUNNER_IMPLEMENTATIONS = [
+  'claude-code',
+  'codex-cli',
+  'gemini-cli',
+  'ollama',
+  'openai-compatible',
+  'antigravity-cli',
+  'mock',
+] as const;
 export type RunnerImplementation = (typeof RUNNER_IMPLEMENTATIONS)[number];
 
 /** Built-in profile names (synthesized when a config file omits them). */
 export const BUILT_IN_PROFILE_NAMES = {
   'claude-code': 'claude-code',
   'codex-cli': 'codex-default',
+  'gemini-cli': 'gemini-default',
   ollama: 'ollama-local',
+  'openai-compatible': 'openai-compatible-local',
+  'antigravity-cli': 'antigravity',
   mock: 'mock',
 } as const;
 
@@ -214,10 +229,174 @@ export const mockProfileSchema = mockRunnerConfigSchema.extend({
 });
 export type MockProfileConfig = z.infer<typeof mockProfileSchema>;
 
+/**
+ * Gemini CLI approval modes SpecBridge is allowed to pass. `yolo` is not a
+ * value of either enum and is additionally rejected by the invocation-layer
+ * assertion — there is no configuration that produces an unrestricted run.
+ */
+export const GEMINI_AUTHORING_APPROVAL_MODES = ['plan'] as const;
+export type GeminiAuthoringApprovalMode = (typeof GEMINI_AUTHORING_APPROVAL_MODES)[number];
+export const GEMINI_EXECUTION_APPROVAL_MODES = ['auto_edit', 'default'] as const;
+export type GeminiExecutionApprovalMode = (typeof GEMINI_EXECUTION_APPROVAL_MODES)[number];
+
+/**
+ * Gemini CLI profile (v0.6.1). The user installs and authenticates the
+ * Gemini CLI independently; SpecBridge never reads Google credential stores,
+ * never triggers a login, never trusts a folder, and never passes YOLO or
+ * any other unrestricted approval mode.
+ */
+export const geminiProfileSchema = z
+  .object({
+    runner: z.literal('gemini-cli'),
+    enabled: z.boolean().default(false),
+    command: commandSpecSchema.default({ executable: 'gemini', args: [] }),
+    model: safeNonEmptyString.nullable().default(null),
+    /** Authoring is always read-only; only plan mode is accepted. */
+    approvalModeForAuthoring: z.enum(GEMINI_AUTHORING_APPROVAL_MODES).default('plan'),
+    /** Task execution may auto-approve EDITS only — never shell commands. */
+    approvalModeForExecution: z.enum(GEMINI_EXECUTION_APPROVAL_MODES).default('auto_edit'),
+    /** Pass --sandbox when the installed CLI supports it. */
+    sandbox: z.boolean().default(true),
+    /**
+     * Extra tools to allow during task execution, on top of the adapter's
+     * bounded read/edit set. Shell-execution tools are rejected.
+     */
+    allowedTools: z
+      .array(safeNonEmptyString)
+      .default([])
+      .refine(
+        (tools) =>
+          tools.every((tool) => !/^(run_shell_command|shell|bash|execute_command|terminal)$/i.test(tool)),
+        {
+          message:
+            'shell-execution tools cannot be allowed: SpecBridge never grants the Gemini CLI arbitrary shell access',
+        },
+      ),
+    /** Pass the extension-restriction flag when supported (default on). */
+    disabledExtensions: z.boolean().default(true),
+    timeoutMs: z.number().int().min(1000).max(86_400_000).default(1_800_000),
+    maxStdoutBytes: z.number().int().min(1024).default(10 * 1024 * 1024),
+    maxStderrBytes: z.number().int().min(1024).default(1024 * 1024),
+  })
+  .passthrough();
+export type GeminiProfileConfig = z.infer<typeof geminiProfileSchema>;
+
+export const OPENAI_COMPATIBLE_API_STYLES = ['chat-completions', 'responses'] as const;
+export type OpenAiCompatibleApiStyle = (typeof OPENAI_COMPATIBLE_API_STYLES)[number];
+
+export const OPENAI_COMPATIBLE_STRUCTURED_OUTPUT_MODES = [
+  'json-schema',
+  'json-object',
+  'strict-json-prompt',
+] as const;
+export type OpenAiCompatibleStructuredOutputMode =
+  (typeof OPENAI_COMPATIBLE_STRUCTURED_OUTPUT_MODES)[number];
+
+/** Environment-variable NAMES only — never values. */
+const environmentVariableNameSchema = z
+  .string()
+  .regex(
+    /^[A-Za-z_][A-Za-z0-9_]*$/,
+    'must be an environment-variable NAME (letters, digits, underscore); SpecBridge never stores key values',
+  );
+
+/** Header names an openai-compatible profile may set. Credential-bearing
+ * headers are rejected: authentication goes through apiKeyEnvironmentVariable
+ * exclusively, so no key value can ever land in the configuration file. */
+const FORBIDDEN_HEADER_NAME_PATTERN = /^(authorization|proxy-authorization|cookie|set-cookie|x-api-key|api-key|x-auth-token)$/i;
+
+const safeHeadersSchema = z
+  .record(z.string().max(1024))
+  .superRefine((headers, ctx) => {
+    for (const [name, value] of Object.entries(headers)) {
+      if (!/^[A-Za-z0-9-]+$/.test(name)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `header name "${name}" is invalid (letters, digits, and "-" only)`,
+        });
+      }
+      if (FORBIDDEN_HEADER_NAME_PATTERN.test(name)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            `header "${name}" would carry a credential value. SpecBridge never stores credentials; ` +
+            'use apiKeyEnvironmentVariable (a variable NAME) instead.',
+        });
+      }
+      if (value.includes('\0') || value.includes('\n') || value.includes('\r')) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `header "${name}" contains control characters`,
+        });
+      }
+    }
+  });
+
+/**
+ * OpenAI-compatible model API profile (v0.6.1) — AUTHORING ONLY.
+ *
+ * No task execution, no tool loop, no repository writes. The endpoint is
+ * loopback by default; remote endpoints need HTTPS (or the explicit,
+ * clearly-insecure development override) and are never selected implicitly.
+ * Authentication is configured as an environment-variable NAME; the value is
+ * read at request time only and never stored, logged, or retained.
+ */
+export const openAiCompatibleProfileSchema = z
+  .object({
+    runner: z.literal('openai-compatible'),
+    enabled: z.boolean().default(false),
+    baseUrl: safeNonEmptyString.default('http://127.0.0.1:8000/v1'),
+    apiStyle: z.enum(OPENAI_COMPATIBLE_API_STYLES).default('chat-completions'),
+    model: safeNonEmptyString.nullable().default(null),
+    structuredOutput: z.enum(OPENAI_COMPATIBLE_STRUCTURED_OUTPUT_MODES).default('json-schema'),
+    /**
+     * Explicit permission to fall back from the configured structured-output
+     * mode to the next weaker one when the endpoint rejects it. Off by
+     * default: an unsupported mode is an error, never a silent downgrade.
+     */
+    allowStructuredOutputFallback: z.boolean().default(false),
+    /** Name of the environment variable holding the API key (never a value). */
+    apiKeyEnvironmentVariable: environmentVariableNameSchema.nullable().default(null),
+    /** Static capability declaration: the endpoint supports GET /models. */
+    modelsEndpoint: z.boolean().default(false),
+    /** Custom safe headers (credential-bearing header names are rejected). */
+    headers: safeHeadersSchema.default({}),
+    temperature: z.number().min(0).max(2).default(0),
+    timeoutMs: z.number().int().min(1000).max(86_400_000).default(300_000),
+    maximumInputCharacters: z.number().int().min(1000).default(500_000),
+    maximumOutputBytes: z.number().int().min(1024).default(2_097_152),
+    /** Explicit development override for private plain-HTTP endpoints (INSECURE). */
+    allowInsecureHttp: z.boolean().default(false),
+  })
+  .passthrough();
+export type OpenAiCompatibleProfileConfig = z.infer<typeof openAiCompatibleProfileSchema>;
+
+/**
+ * Antigravity CLI profile (v0.6.1) — EXPERIMENTAL, detection only.
+ *
+ * The adapter detects the executable, version, and documented capabilities.
+ * It never automates the interactive TUI, never uses a PTY, never logs in,
+ * and never executes authoring or tasks in v0.6.1.
+ */
+export const antigravityProfileSchema = z
+  .object({
+    runner: z.literal('antigravity-cli'),
+    enabled: z.boolean().default(false),
+    command: commandSpecSchema.default({ executable: 'agy', args: [] }),
+    /** Always true: the adapter is experimental and cannot be marked otherwise. */
+    experimental: z.literal(true).default(true),
+    timeoutMs: z.number().int().min(1000).max(600_000).default(30_000),
+  })
+  .passthrough();
+export type AntigravityProfileConfig = z.infer<typeof antigravityProfileSchema>;
+
 export const runnerProfileSchema = z.discriminatedUnion('runner', [
   claudeProfileSchema,
   codexProfileSchema,
+  geminiProfileSchema,
   ollamaProfileSchema,
+  openAiCompatibleProfileSchema,
+  antigravityProfileSchema,
   mockProfileSchema,
 ]);
 export type RunnerProfileConfig = z.infer<typeof runnerProfileSchema>;
@@ -305,7 +484,7 @@ export const agentConfigV2Schema = z
       }
     }
     for (const [name, profile] of Object.entries(config.runnerProfiles)) {
-      if (profile.runner === 'ollama') {
+      if (profile.runner === 'ollama' || profile.runner === 'openai-compatible') {
         const url = validateRunnerBaseUrl(profile.baseUrl, {
           allowInsecureHttp: profile.allowInsecureHttp,
         });
@@ -369,6 +548,18 @@ function builtInOllamaProfile(): OllamaProfileConfig {
   return ollamaProfileSchema.parse({ runner: 'ollama', enabled: false });
 }
 
+function builtInGeminiProfile(): GeminiProfileConfig {
+  return geminiProfileSchema.parse({ runner: 'gemini-cli', enabled: false });
+}
+
+function builtInOpenAiCompatibleProfile(): OpenAiCompatibleProfileConfig {
+  return openAiCompatibleProfileSchema.parse({ runner: 'openai-compatible', enabled: false });
+}
+
+function builtInAntigravityProfile(): AntigravityProfileConfig {
+  return antigravityProfileSchema.parse({ runner: 'antigravity-cli', enabled: false });
+}
+
 /** Add any missing built-in profiles (never overwrites configured ones). */
 function withBuiltInProfiles(
   profiles: Record<string, RunnerProfileConfig>,
@@ -388,8 +579,20 @@ function withBuiltInProfiles(
     profiles[BUILT_IN_PROFILE_NAMES['codex-cli']] ?? builtInCodexProfile(options?.codexExecutable),
   );
   add(
+    BUILT_IN_PROFILE_NAMES['gemini-cli'],
+    profiles[BUILT_IN_PROFILE_NAMES['gemini-cli']] ?? builtInGeminiProfile(),
+  );
+  add(
     BUILT_IN_PROFILE_NAMES.ollama,
     profiles[BUILT_IN_PROFILE_NAMES.ollama] ?? builtInOllamaProfile(),
+  );
+  add(
+    BUILT_IN_PROFILE_NAMES['openai-compatible'],
+    profiles[BUILT_IN_PROFILE_NAMES['openai-compatible']] ?? builtInOpenAiCompatibleProfile(),
+  );
+  add(
+    BUILT_IN_PROFILE_NAMES['antigravity-cli'],
+    profiles[BUILT_IN_PROFILE_NAMES['antigravity-cli']] ?? builtInAntigravityProfile(),
   );
   add(BUILT_IN_PROFILE_NAMES.mock, profiles[BUILT_IN_PROFILE_NAMES.mock] ?? builtInMockProfile());
   for (const [name, profile] of Object.entries(profiles)) add(name, profile);
@@ -627,6 +830,19 @@ export function isCodexProfile(profile: RunnerProfileConfig): profile is CodexPr
 }
 export function isOllamaProfile(profile: RunnerProfileConfig): profile is OllamaProfileConfig {
   return profile.runner === 'ollama';
+}
+export function isGeminiProfile(profile: RunnerProfileConfig): profile is GeminiProfileConfig {
+  return profile.runner === 'gemini-cli';
+}
+export function isOpenAiCompatibleProfile(
+  profile: RunnerProfileConfig,
+): profile is OpenAiCompatibleProfileConfig {
+  return profile.runner === 'openai-compatible';
+}
+export function isAntigravityProfile(
+  profile: RunnerProfileConfig,
+): profile is AntigravityProfileConfig {
+  return profile.runner === 'antigravity-cli';
 }
 export function isMockProfile(profile: RunnerProfileConfig): profile is MockProfileConfig {
   return profile.runner === 'mock';

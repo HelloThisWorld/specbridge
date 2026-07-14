@@ -35,6 +35,9 @@ importers:
       '@specbridge/mcp-server':
         specifier: workspace:*
         version: link:../../packages/mcp-server
+      '@specbridge/runners':
+        specifier: workspace:*
+        version: link:../../packages/runners
       specbridge:
         specifier: workspace:*
         version: link:../../packages/cli
@@ -246,6 +249,9 @@ importers:
       '@specbridge/execution':
         specifier: workspace:*
         version: link:../execution
+      '@specbridge/runners':
+        specifier: workspace:*
+        version: link:../runners
       '@specbridge/workflow':
         specifier: workspace:*
         version: link:../workflow

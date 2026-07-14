@@ -4,7 +4,10 @@ import type { AgentRunner } from './contract.js';
 import { MockRunner } from './mock-runner.js';
 import { ClaudeCodeRunner } from './claude-code/runner.js';
 import { CodexCliRunner } from './codex-cli/runner.js';
+import { GeminiCliRunner } from './gemini-cli/runner.js';
 import { OllamaRunner } from './ollama/runner.js';
+import { OpenAiCompatibleRunner } from './openai-compatible/runner.js';
+import { AntigravityCliRunner } from './antigravity-cli/runner.js';
 
 /**
  * Profile-based runner registry (v0.6).
@@ -79,15 +82,21 @@ export class RunnerRegistry {
   }
 }
 
-/** Instantiate the production adapter for a profile configuration. */
+/** Instantiate the registered adapter for a profile configuration. */
 export function instantiateRunner(config: RunnerProfileConfig): AgentRunner {
   switch (config.runner) {
     case 'claude-code':
       return new ClaudeCodeRunner(config);
     case 'codex-cli':
       return new CodexCliRunner(config);
+    case 'gemini-cli':
+      return new GeminiCliRunner(config);
     case 'ollama':
       return new OllamaRunner(config);
+    case 'openai-compatible':
+      return new OpenAiCompatibleRunner(config);
+    case 'antigravity-cli':
+      return new AntigravityCliRunner(config);
     case 'mock':
       return new MockRunner(config);
   }
@@ -96,8 +105,7 @@ export function instantiateRunner(config: RunnerProfileConfig): AgentRunner {
 /**
  * Build the default registry from the resolved configuration: one profile
  * entry per configured profile (built-ins are always present; new-provider
- * built-ins default to disabled). Deferred providers (Gemini, Antigravity,
- * OpenAI-compatible, …) are NOT registered — they exist only on the roadmap.
+ * built-ins default to disabled and are never selected implicitly).
  */
 export function createDefaultRunnerRegistry(config?: AgentConfig): RunnerRegistry {
   const resolved = config ?? defaultResolvedAgentConfig();

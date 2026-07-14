@@ -56,6 +56,8 @@ export function idCounter(prefix = 'id'): () => string {
 
 export const FAKE_CLAUDE_PATH = fixturePath('fake-claude', 'fake-claude.mjs');
 export const FAKE_CODEX_PATH = fixturePath('fake-codex', 'fake-codex.mjs');
+export const FAKE_GEMINI_PATH = fixturePath('fake-gemini', 'fake-gemini.mjs');
+export const FAKE_ANTIGRAVITY_PATH = fixturePath('fake-antigravity', 'fake-antigravity.mjs');
 
 export interface ExecutionFixtureOptions {
   scenario?: MockScenario;
@@ -161,6 +163,10 @@ export function setupExecutionFixture(options: ExecutionFixtureOptions = {}): Ex
 export interface ExecutionFixtureV2Options {
   /** Enable the fake Codex CLI profile "codex-default". */
   useFakeCodex?: boolean;
+  /** Enable the fake Gemini CLI profile "gemini-default" (v0.6.1). */
+  useFakeGemini?: boolean;
+  /** Extra fields merged into the fake Gemini profile. */
+  geminiProfileOverrides?: Record<string, unknown>;
   /** Enable an Ollama profile "ollama-local" against this base URL. */
   ollamaBaseUrl?: string;
   ollamaModel?: string;
@@ -168,6 +174,9 @@ export interface ExecutionFixtureV2Options {
   ollamaTimeoutMs?: number;
   ollamaMaximumOutputBytes?: number;
   ollamaMaximumInputCharacters?: number;
+  /** Enable an openai-compatible profile "openai-compatible-local" (v0.6.1). */
+  openAiBaseUrl?: string;
+  openAiProfileOverrides?: Record<string, unknown>;
   useFakeClaude?: boolean;
   defaultRunner?: string;
   operationDefaults?: Record<string, string | null>;
@@ -198,6 +207,25 @@ export function writeFixtureConfigV2(root: string, options: ExecutionFixtureV2Op
       enabled: true,
       command: { executable: process.execPath, args: [FAKE_CODEX_PATH] },
       timeoutMs: 60_000,
+    };
+  }
+  if (options.useFakeGemini === true) {
+    profiles['gemini-default'] = {
+      runner: 'gemini-cli',
+      enabled: true,
+      command: { executable: process.execPath, args: [FAKE_GEMINI_PATH] },
+      timeoutMs: 60_000,
+      ...(options.geminiProfileOverrides ?? {}),
+    };
+  }
+  if (options.openAiBaseUrl !== undefined) {
+    profiles['openai-compatible-local'] = {
+      runner: 'openai-compatible',
+      enabled: true,
+      baseUrl: options.openAiBaseUrl,
+      model: 'fake-oai-model',
+      timeoutMs: 30_000,
+      ...(options.openAiProfileOverrides ?? {}),
     };
   }
   if (options.ollamaBaseUrl !== undefined) {

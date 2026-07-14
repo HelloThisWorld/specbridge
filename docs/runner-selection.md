@@ -65,6 +65,17 @@ Other refusals: unknown profile (`runner_not_found`), disabled profile
 (`runner_disabled` — enable it explicitly), network-policy refusals (see
 below), and preview/experimental profiles selected implicitly.
 
+v0.6.1 adds no new selection rules — the new providers flow through the
+existing engine: `gemini-default`, `openai-compatible-local`, and
+`antigravity` default to disabled and are never selected implicitly;
+task execution can never select `openai-compatible` or `antigravity`
+(capability-refused before any request); the experimental `antigravity`
+profile requires explicit opt-in even when enabled; and authoring
+fallback may include Gemini or OpenAI-compatible only when the chain
+explicitly names them. There is no automatic task-execution fallback and
+no fallback after repository modification, authentication failure,
+permission failure, or cancellation — unchanged.
+
 ## Network policy
 
 `runnerPolicy` defaults:

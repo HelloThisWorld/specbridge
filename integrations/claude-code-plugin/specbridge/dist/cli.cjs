@@ -24514,7 +24514,10 @@ var RUNNER_CONFIG_SCHEMA_VERSION = "2.0.0";
 var BUILT_IN_PROFILE_NAMES = {
   "claude-code": "claude-code",
   "codex-cli": "codex-default",
+  "gemini-cli": "gemini-default",
   ollama: "ollama-local",
+  "openai-compatible": "openai-compatible-local",
+  "antigravity-cli": "antigravity",
   mock: "mock"
 };
 var PROFILE_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
@@ -24607,10 +24610,109 @@ var ollamaProfileSchema = external_exports.object({
 var mockProfileSchema = mockRunnerConfigSchema.extend({
   runner: external_exports.literal("mock")
 });
+var GEMINI_AUTHORING_APPROVAL_MODES = ["plan"];
+var GEMINI_EXECUTION_APPROVAL_MODES = ["auto_edit", "default"];
+var geminiProfileSchema = external_exports.object({
+  runner: external_exports.literal("gemini-cli"),
+  enabled: external_exports.boolean().default(false),
+  command: commandSpecSchema.default({ executable: "gemini", args: [] }),
+  model: safeNonEmptyString.nullable().default(null),
+  /** Authoring is always read-only; only plan mode is accepted. */
+  approvalModeForAuthoring: external_exports.enum(GEMINI_AUTHORING_APPROVAL_MODES).default("plan"),
+  /** Task execution may auto-approve EDITS only — never shell commands. */
+  approvalModeForExecution: external_exports.enum(GEMINI_EXECUTION_APPROVAL_MODES).default("auto_edit"),
+  /** Pass --sandbox when the installed CLI supports it. */
+  sandbox: external_exports.boolean().default(true),
+  /**
+   * Extra tools to allow during task execution, on top of the adapter's
+   * bounded read/edit set. Shell-execution tools are rejected.
+   */
+  allowedTools: external_exports.array(safeNonEmptyString).default([]).refine(
+    (tools) => tools.every((tool) => !/^(run_shell_command|shell|bash|execute_command|terminal)$/i.test(tool)),
+    {
+      message: "shell-execution tools cannot be allowed: SpecBridge never grants the Gemini CLI arbitrary shell access"
+    }
+  ),
+  /** Pass the extension-restriction flag when supported (default on). */
+  disabledExtensions: external_exports.boolean().default(true),
+  timeoutMs: external_exports.number().int().min(1e3).max(864e5).default(18e5),
+  maxStdoutBytes: external_exports.number().int().min(1024).default(10 * 1024 * 1024),
+  maxStderrBytes: external_exports.number().int().min(1024).default(1024 * 1024)
+}).passthrough();
+var OPENAI_COMPATIBLE_API_STYLES = ["chat-completions", "responses"];
+var OPENAI_COMPATIBLE_STRUCTURED_OUTPUT_MODES = [
+  "json-schema",
+  "json-object",
+  "strict-json-prompt"
+];
+var environmentVariableNameSchema = external_exports.string().regex(
+  /^[A-Za-z_][A-Za-z0-9_]*$/,
+  "must be an environment-variable NAME (letters, digits, underscore); SpecBridge never stores key values"
+);
+var FORBIDDEN_HEADER_NAME_PATTERN = /^(authorization|proxy-authorization|cookie|set-cookie|x-api-key|api-key|x-auth-token)$/i;
+var safeHeadersSchema = external_exports.record(external_exports.string().max(1024)).superRefine((headers, ctx) => {
+  for (const [name, value] of Object.entries(headers)) {
+    if (!/^[A-Za-z0-9-]+$/.test(name)) {
+      ctx.addIssue({
+        code: external_exports.ZodIssueCode.custom,
+        message: `header name "${name}" is invalid (letters, digits, and "-" only)`
+      });
+    }
+    if (FORBIDDEN_HEADER_NAME_PATTERN.test(name)) {
+      ctx.addIssue({
+        code: external_exports.ZodIssueCode.custom,
+        message: `header "${name}" would carry a credential value. SpecBridge never stores credentials; use apiKeyEnvironmentVariable (a variable NAME) instead.`
+      });
+    }
+    if (value.includes("\0") || value.includes("\n") || value.includes("\r")) {
+      ctx.addIssue({
+        code: external_exports.ZodIssueCode.custom,
+        message: `header "${name}" contains control characters`
+      });
+    }
+  }
+});
+var openAiCompatibleProfileSchema = external_exports.object({
+  runner: external_exports.literal("openai-compatible"),
+  enabled: external_exports.boolean().default(false),
+  baseUrl: safeNonEmptyString.default("http://127.0.0.1:8000/v1"),
+  apiStyle: external_exports.enum(OPENAI_COMPATIBLE_API_STYLES).default("chat-completions"),
+  model: safeNonEmptyString.nullable().default(null),
+  structuredOutput: external_exports.enum(OPENAI_COMPATIBLE_STRUCTURED_OUTPUT_MODES).default("json-schema"),
+  /**
+   * Explicit permission to fall back from the configured structured-output
+   * mode to the next weaker one when the endpoint rejects it. Off by
+   * default: an unsupported mode is an error, never a silent downgrade.
+   */
+  allowStructuredOutputFallback: external_exports.boolean().default(false),
+  /** Name of the environment variable holding the API key (never a value). */
+  apiKeyEnvironmentVariable: environmentVariableNameSchema.nullable().default(null),
+  /** Static capability declaration: the endpoint supports GET /models. */
+  modelsEndpoint: external_exports.boolean().default(false),
+  /** Custom safe headers (credential-bearing header names are rejected). */
+  headers: safeHeadersSchema.default({}),
+  temperature: external_exports.number().min(0).max(2).default(0),
+  timeoutMs: external_exports.number().int().min(1e3).max(864e5).default(3e5),
+  maximumInputCharacters: external_exports.number().int().min(1e3).default(5e5),
+  maximumOutputBytes: external_exports.number().int().min(1024).default(2097152),
+  /** Explicit development override for private plain-HTTP endpoints (INSECURE). */
+  allowInsecureHttp: external_exports.boolean().default(false)
+}).passthrough();
+var antigravityProfileSchema = external_exports.object({
+  runner: external_exports.literal("antigravity-cli"),
+  enabled: external_exports.boolean().default(false),
+  command: commandSpecSchema.default({ executable: "agy", args: [] }),
+  /** Always true: the adapter is experimental and cannot be marked otherwise. */
+  experimental: external_exports.literal(true).default(true),
+  timeoutMs: external_exports.number().int().min(1e3).max(6e5).default(3e4)
+}).passthrough();
 var runnerProfileSchema = external_exports.discriminatedUnion("runner", [
   claudeProfileSchema,
   codexProfileSchema,
+  geminiProfileSchema,
   ollamaProfileSchema,
+  openAiCompatibleProfileSchema,
+  antigravityProfileSchema,
   mockProfileSchema
 ]);
 var runnerPolicySchema = external_exports.object({
@@ -24669,7 +24771,7 @@ var agentConfigV2Schema = external_exports.object({
     }
   }
   for (const [name, profile] of Object.entries(config2.runnerProfiles)) {
-    if (profile.runner === "ollama") {
+    if (profile.runner === "ollama" || profile.runner === "openai-compatible") {
       const url = validateRunnerBaseUrl(profile.baseUrl, {
         allowInsecureHttp: profile.allowInsecureHttp
       });
@@ -24705,6 +24807,15 @@ function builtInCodexProfile(executable) {
 function builtInOllamaProfile() {
   return ollamaProfileSchema.parse({ runner: "ollama", enabled: false });
 }
+function builtInGeminiProfile() {
+  return geminiProfileSchema.parse({ runner: "gemini-cli", enabled: false });
+}
+function builtInOpenAiCompatibleProfile() {
+  return openAiCompatibleProfileSchema.parse({ runner: "openai-compatible", enabled: false });
+}
+function builtInAntigravityProfile() {
+  return antigravityProfileSchema.parse({ runner: "antigravity-cli", enabled: false });
+}
 function withBuiltInProfiles(profiles, options) {
   const result = {};
   const add = (name, profile) => {
@@ -24719,8 +24830,20 @@ function withBuiltInProfiles(profiles, options) {
     profiles[BUILT_IN_PROFILE_NAMES["codex-cli"]] ?? builtInCodexProfile(options?.codexExecutable)
   );
   add(
+    BUILT_IN_PROFILE_NAMES["gemini-cli"],
+    profiles[BUILT_IN_PROFILE_NAMES["gemini-cli"]] ?? builtInGeminiProfile()
+  );
+  add(
     BUILT_IN_PROFILE_NAMES.ollama,
     profiles[BUILT_IN_PROFILE_NAMES.ollama] ?? builtInOllamaProfile()
+  );
+  add(
+    BUILT_IN_PROFILE_NAMES["openai-compatible"],
+    profiles[BUILT_IN_PROFILE_NAMES["openai-compatible"]] ?? builtInOpenAiCompatibleProfile()
+  );
+  add(
+    BUILT_IN_PROFILE_NAMES["antigravity-cli"],
+    profiles[BUILT_IN_PROFILE_NAMES["antigravity-cli"]] ?? builtInAntigravityProfile()
   );
   add(BUILT_IN_PROFILE_NAMES.mock, profiles[BUILT_IN_PROFILE_NAMES.mock] ?? builtInMockProfile());
   for (const [name, profile] of Object.entries(profiles)) add(name, profile);
@@ -24925,10 +25048,28 @@ function migrateRunnersSection(v1, changes, warnings) {
   changes.push(
     `runnerProfiles.${BUILT_IN_PROFILE_NAMES.ollama} added DISABLED (loopback http://127.0.0.1:11434; enable it explicitly to use Ollama)`
   );
+  profiles[BUILT_IN_PROFILE_NAMES["gemini-cli"]] = { runner: "gemini-cli", enabled: false };
+  changes.push(
+    `runnerProfiles.${BUILT_IN_PROFILE_NAMES["gemini-cli"]} added DISABLED (enable it explicitly to use the Gemini CLI)`
+  );
+  profiles[BUILT_IN_PROFILE_NAMES["openai-compatible"]] = {
+    runner: "openai-compatible",
+    enabled: false
+  };
+  changes.push(
+    `runnerProfiles.${BUILT_IN_PROFILE_NAMES["openai-compatible"]} added DISABLED (loopback http://127.0.0.1:8000/v1; authoring only; enable it explicitly)`
+  );
+  profiles[BUILT_IN_PROFILE_NAMES["antigravity-cli"]] = {
+    runner: "antigravity-cli",
+    enabled: false
+  };
+  changes.push(
+    `runnerProfiles.${BUILT_IN_PROFILE_NAMES["antigravity-cli"]} added DISABLED (experimental detection only)`
+  );
   for (const name of Object.keys(v1.runners)) {
     if (!KNOWN_V1_RUNNERS.has(name)) {
       warnings.push(
-        `runners.${name} has no v0.6 runner implementation and was not migrated (it remains in the backup file; openai-compatible and similar providers are planned for v0.6.1).`
+        `runners.${name} has no registered runner implementation and was not migrated (it remains in the backup file).`
       );
     }
   }
@@ -25605,7 +25746,7 @@ function fullCommandPath(command) {
 }
 
 // ../../packages/cli/src/version.ts
-var VERSION = "0.6.0";
+var VERSION = "0.6.1";
 
 // ../../packages/cli/src/commands/doctor.ts
 var import_node_path2 = __toESM(require("path"), 1);
@@ -39706,6 +39847,1092 @@ function usageFromStream(stream, durationMs, model) {
     durationMs: Math.max(0, Math.round(durationMs))
   };
 }
+var GEMINI_CAPABILITY_PROBES = [
+  {
+    id: "headless",
+    label: "Headless prompt invocation (--prompt)",
+    tokens: ["--prompt"],
+    required: true
+  },
+  {
+    id: "output-json",
+    label: "Machine-readable output (--output-format json)",
+    tokens: ["--output-format"],
+    required: true
+  },
+  {
+    id: "output-stream-json",
+    label: "Streaming machine-readable events (stream-json)",
+    tokens: ["stream-json"],
+    required: false,
+    degradedNote: "the single JSON result envelope is used instead of streamed events"
+  },
+  {
+    id: "approval-mode",
+    label: "Approval-mode selection (--approval-mode)",
+    tokens: ["--approval-mode"],
+    required: true
+  },
+  {
+    id: "plan-mode",
+    label: "Read-only plan approval mode (plan)",
+    tokens: ["plan"],
+    required: false,
+    degradedNote: "authoring needs a read-only tool allowlist instead of plan mode"
+  },
+  {
+    id: "auto-edit-mode",
+    label: "Edit-only approval mode (auto_edit)",
+    tokens: ["auto_edit"],
+    required: false,
+    degradedNote: "task execution is unavailable without a bounded edit approval mode"
+  },
+  {
+    id: "sandbox",
+    label: "Sandboxed tool execution (--sandbox)",
+    tokens: ["--sandbox"],
+    required: false,
+    degradedNote: "the tool allowlist is the only execution boundary"
+  },
+  {
+    id: "allowed-tools",
+    label: "Tool allowlist (--allowed-tools)",
+    tokens: ["--allowed-tools"],
+    required: false,
+    degradedNote: "the sandbox is the only execution boundary"
+  },
+  {
+    id: "extension-restriction",
+    label: "Extension restriction (--extensions)",
+    tokens: ["--extensions"],
+    required: false,
+    degradedNote: "installed extensions cannot be disabled for SpecBridge runs"
+  },
+  {
+    id: "model-selection",
+    label: "Model selection (--model)",
+    tokens: ["--model"],
+    required: false,
+    degradedNote: "the provider default model is used"
+  },
+  {
+    id: "session-list",
+    label: "Session listing (--list-sessions)",
+    tokens: ["--list-sessions"],
+    required: false
+  },
+  {
+    id: "resume",
+    label: "Explicit session resume (--resume <session-id>)",
+    tokens: ["--resume"],
+    required: false,
+    degradedNote: "interrupted runs need a fresh attempt instead of a resume"
+  }
+];
+var GEMINI_DECLARED_CAPABILITIES = capabilitySet([
+  "stageGeneration",
+  "stageRefinement",
+  "taskExecution",
+  "taskResume",
+  "structuredFinalOutput",
+  "streamingEvents",
+  "repositoryRead",
+  "repositoryWrite",
+  "sandbox",
+  "toolRestriction",
+  "usageReporting",
+  "requiresNetwork",
+  "supportsCancellation"
+]);
+var PROBE_TIMEOUT_MS3 = 15e3;
+function tokenPresent2(helpText, token) {
+  const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|[\\s,=<[|])${escaped}(?![\\w-])`, "m").test(helpText);
+}
+async function probeGemini(config2, options) {
+  const diagnostics = [];
+  const timeoutMs = options?.timeoutMs ?? PROBE_TIMEOUT_MS3;
+  const base = {
+    executable: config2.command.executable,
+    commandArgs: config2.command.args
+  };
+  const invoke = (argv2) => runSafeProcess({
+    executable: config2.command.executable,
+    argv: [...config2.command.args, ...argv2],
+    cwd: process.cwd(),
+    timeoutMs,
+    ...options?.signal !== void 0 ? { signal: options.signal } : {},
+    maxStdoutBytes: 1024 * 1024,
+    maxStderrBytes: 256 * 1024
+  });
+  const emptyCapabilities = () => GEMINI_CAPABILITY_PROBES.map((probe) => ({
+    id: probe.id,
+    label: probe.label,
+    available: false,
+    required: probe.required
+  }));
+  const versionResult = await invoke(["--version"]);
+  if (versionResult.status === "spawn-failed") {
+    diagnostics.push({
+      severity: "error",
+      code: "RUNNER_EXECUTABLE_NOT_FOUND",
+      message: `Gemini CLI executable "${config2.command.executable}" could not be started. Install the Gemini CLI (the user installs and authenticates it independently) or set the profile command in .specbridge/config.json.`
+    });
+    return {
+      ...base,
+      found: false,
+      authState: "unknown",
+      capabilities: emptyCapabilities(),
+      supportedTokens: /* @__PURE__ */ new Set(),
+      status: "unavailable",
+      diagnostics
+    };
+  }
+  if (versionResult.status !== "ok") {
+    diagnostics.push({
+      severity: "error",
+      code: "RUNNER_VERSION_FAILED",
+      message: `"${config2.command.executable} --version" ${versionResult.failureReason ?? "produced no output"}.`
+    });
+    return {
+      ...base,
+      found: true,
+      authState: "unknown",
+      capabilities: emptyCapabilities(),
+      supportedTokens: /* @__PURE__ */ new Set(),
+      status: "error",
+      diagnostics
+    };
+  }
+  const version2 = versionResult.stdout.trim().split(/\r?\n/)[0]?.trim();
+  const help = await invoke(["--help"]);
+  const helpText = `${help.stdout}
+${help.stderr}`;
+  const helpUsable = help.status === "ok" && helpText.trim().length > 0;
+  if (!helpUsable) {
+    diagnostics.push({
+      severity: "error",
+      code: "RUNNER_HELP_FAILED",
+      message: `"${config2.command.executable} --help" ${help.failureReason ?? "produced no output"}; capabilities cannot be verified.`
+    });
+  }
+  const supportedTokens = /* @__PURE__ */ new Set();
+  const capabilities = GEMINI_CAPABILITY_PROBES.map((probe) => {
+    const available2 = helpUsable && probe.tokens.some((token) => tokenPresent2(helpText, token));
+    if (available2) for (const token of probe.tokens) supportedTokens.add(token);
+    return {
+      id: probe.id,
+      label: probe.label,
+      available: available2,
+      required: probe.required,
+      ...available2 || probe.degradedNote === void 0 ? {} : { detail: probe.degradedNote }
+    };
+  });
+  const authState = "unknown";
+  if (helpUsable) {
+    diagnostics.push({
+      severity: "info",
+      code: "RUNNER_AUTH_PROBE_UNSUPPORTED",
+      message: 'Authentication cannot be verified without a model request; it is reported as unknown (SpecBridge never reads Google credential files and never starts an interactive login). Use "specbridge runner test <profile> --network" for a minimal authenticated probe.'
+    });
+  }
+  const available = (id) => capabilities.find((capability) => capability.id === id)?.available === true;
+  const missingRequired = capabilities.filter((c3) => c3.required && !c3.available);
+  const authoringBoundary = available("plan-mode") || available("allowed-tools");
+  let status;
+  if (missingRequired.length > 0) {
+    status = "incompatible";
+    diagnostics.push({
+      severity: "error",
+      code: "RUNNER_MISSING_CAPABILITY",
+      message: `This Gemini CLI version is missing required capabilities: ${missingRequired.map((c3) => c3.label).join(", ")}. Update the Gemini CLI to a version with headless prompts, machine-readable output, and approval-mode control.`
+    });
+  } else if (helpUsable && !authoringBoundary) {
+    status = "incompatible";
+    diagnostics.push({
+      severity: "error",
+      code: "RUNNER_MISSING_CAPABILITY",
+      message: "This Gemini CLI version offers neither a plan approval mode nor a tool allowlist, so a read-only authoring boundary cannot be established. SpecBridge never weakens the boundary (and never uses YOLO) \u2014 update the Gemini CLI."
+    });
+  } else if (!helpUsable) {
+    status = "error";
+  } else {
+    status = "available";
+    for (const capability of capabilities.filter((c3) => !c3.required && !c3.available)) {
+      diagnostics.push({
+        severity: "warning",
+        code: "RUNNER_DEGRADED_CAPABILITY",
+        message: `Optional capability unavailable: ${capability.label}${capability.detail !== void 0 ? ` \u2014 ${capability.detail}` : ""}.`
+      });
+    }
+    if (!available("auto-edit-mode") || !available("allowed-tools") && !available("sandbox")) {
+      diagnostics.push({
+        severity: "warning",
+        code: "RUNNER_TASK_EXECUTION_UNAVAILABLE",
+        message: "Task execution is unavailable for this installation: file edits cannot be permitted without also permitting arbitrary shell commands (needs auto_edit plus a tool allowlist or sandbox). Authoring remains available. Use a claude-code or codex-cli profile for task execution."
+      });
+    }
+  }
+  return {
+    ...base,
+    found: true,
+    ...version2 !== void 0 && version2.length > 0 ? { version: version2 } : {},
+    authState,
+    capabilities,
+    supportedTokens,
+    status,
+    diagnostics
+  };
+}
+function probeAvailable2(probe, id) {
+  return probe.capabilities.find((capability) => capability.id === id)?.available === true;
+}
+function geminiCapabilitySet(probe) {
+  if (!probe.found) return capabilitySet([]);
+  const set = { ...GEMINI_DECLARED_CAPABILITIES };
+  const headless = probeAvailable2(probe, "headless") && probeAvailable2(probe, "output-json") && probeAvailable2(probe, "approval-mode");
+  const plan = probeAvailable2(probe, "plan-mode");
+  const allowedTools = probeAvailable2(probe, "allowed-tools");
+  const sandbox = probeAvailable2(probe, "sandbox");
+  const autoEdit = probeAvailable2(probe, "auto-edit-mode");
+  set.stageGeneration = headless && (plan || allowedTools);
+  set.stageRefinement = set.stageGeneration;
+  set.structuredFinalOutput = headless;
+  set.streamingEvents = probeAvailable2(probe, "output-stream-json");
+  set.sandbox = sandbox;
+  set.toolRestriction = allowedTools;
+  set.taskExecution = headless && autoEdit && (allowedTools || sandbox);
+  set.repositoryWrite = set.taskExecution;
+  set.taskResume = set.taskExecution && probeAvailable2(probe, "resume");
+  return set;
+}
+var GEMINI_FORBIDDEN_ARGUMENTS = [
+  "--yolo",
+  "-y",
+  "--dangerously-skip-permissions",
+  "--trust-folder",
+  "--trust"
+];
+var GEMINI_ALLOWED_APPROVAL_MODES = ["plan", "default", "auto_edit"];
+var GEMINI_READ_ONLY_TOOLS = [
+  "read_file",
+  "read_many_files",
+  "list_directory",
+  "glob",
+  "search_file_content"
+];
+var GEMINI_EDIT_TOOLS = ["replace", "write_file"];
+var GEMINI_FORBIDDEN_TOOLS = [
+  "run_shell_command",
+  "shell",
+  "bash",
+  "execute_command",
+  "terminal"
+];
+var SESSION_UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function isExplicitGeminiSessionId(value) {
+  return SESSION_UUID_PATTERN.test(value);
+}
+function assertNoForbiddenGeminiArguments(argv2) {
+  for (const argument of argv2) {
+    for (const forbidden of GEMINI_FORBIDDEN_ARGUMENTS) {
+      if (argument === forbidden) {
+        throw new SpecBridgeError(
+          "INVALID_STATE",
+          `Refusing to invoke the Gemini CLI: the argument vector contains "${forbidden}". SpecBridge never uses YOLO, never skips approvals, and never auto-trusts a workspace.`
+        );
+      }
+    }
+  }
+  const approvalIndex = argv2.indexOf("--approval-mode");
+  if (approvalIndex >= 0) {
+    const mode = argv2[approvalIndex + 1];
+    if (!GEMINI_ALLOWED_APPROVAL_MODES.includes(mode)) {
+      throw new SpecBridgeError(
+        "INVALID_STATE",
+        `Refusing to invoke the Gemini CLI with approval mode "${mode ?? "(missing)"}". Only ${GEMINI_ALLOWED_APPROVAL_MODES.join(", ")} are ever used \u2014 never yolo.`
+      );
+    }
+  }
+  const toolsIndex = argv2.indexOf("--allowed-tools");
+  if (toolsIndex >= 0) {
+    const tools = (argv2[toolsIndex + 1] ?? "").split(",");
+    for (const tool of tools) {
+      if (GEMINI_FORBIDDEN_TOOLS.includes(tool.trim().toLowerCase())) {
+        throw new SpecBridgeError(
+          "INVALID_STATE",
+          `Refusing to invoke the Gemini CLI with allowed tool "${tool}". SpecBridge never grants the Gemini CLI arbitrary shell access.`
+        );
+      }
+    }
+  }
+  const resumeIndex = argv2.indexOf("--resume");
+  if (resumeIndex >= 0) {
+    const session = argv2[resumeIndex + 1];
+    if (session === void 0 || !isExplicitGeminiSessionId(session)) {
+      throw new SpecBridgeError(
+        "INVALID_STATE",
+        `Refusing to resume the Gemini session "${session ?? "(missing)"}": resume requires an explicit session UUID \u2014 "latest", indexes, and ambiguous identifiers are never used.`
+      );
+    }
+  }
+}
+function buildGeminiInvocation(input) {
+  const { config: config2, probe, execution } = input;
+  const argv2 = [...config2.command.args];
+  const skippedFlags = [];
+  const supports = (token) => probe.supportedTokens.has(token);
+  const implementation = input.toolPolicy === "implementation";
+  argv2.push("--prompt");
+  const outputFormat = supports("stream-json") ? "stream-json" : "json";
+  argv2.push("--output-format", outputFormat);
+  const approvalMode = implementation ? config2.approvalModeForExecution : config2.approvalModeForAuthoring;
+  argv2.push("--approval-mode", approvalMode);
+  let allowedTools;
+  if (supports("--allowed-tools")) {
+    allowedTools = implementation ? [
+      ...GEMINI_READ_ONLY_TOOLS,
+      ...GEMINI_EDIT_TOOLS,
+      ...config2.allowedTools.filter(
+        (tool) => !GEMINI_FORBIDDEN_TOOLS.includes(tool.toLowerCase())
+      )
+    ] : [...GEMINI_READ_ONLY_TOOLS];
+    argv2.push("--allowed-tools", allowedTools.join(","));
+  } else {
+    skippedFlags.push("--allowed-tools");
+  }
+  if (config2.sandbox) {
+    if (supports("--sandbox")) argv2.push("--sandbox");
+    else skippedFlags.push("--sandbox");
+  }
+  if (config2.disabledExtensions) {
+    if (supports("--extensions")) argv2.push("--extensions", "none");
+    else skippedFlags.push("--extensions");
+  }
+  const model = execution.model ?? config2.model;
+  if (model !== null && model !== void 0) {
+    if (supports("--model")) argv2.push("--model", model);
+    else skippedFlags.push("--model");
+  }
+  if (input.resumeSessionId !== void 0) {
+    if (!isExplicitGeminiSessionId(input.resumeSessionId)) {
+      throw new SpecBridgeError(
+        "INVALID_ARGUMENT",
+        `Cannot resume Gemini session "${input.resumeSessionId}": an explicit session UUID is required ("latest", indexes, and ambiguous identifiers are never used).`
+      );
+    }
+    argv2.push("--resume", input.resumeSessionId);
+  }
+  assertNoForbiddenGeminiArguments(argv2);
+  return {
+    executable: config2.command.executable,
+    argv: argv2,
+    stdin: input.prompt,
+    outputFormat,
+    approvalMode,
+    ...allowedTools !== void 0 ? { allowedTools } : {},
+    skippedFlags
+  };
+}
+async function runGeminiInvocation(plan, config2, execution) {
+  assertNoForbiddenGeminiArguments(plan.argv);
+  return runSafeProcess({
+    executable: plan.executable,
+    argv: plan.argv,
+    cwd: execution.workspaceRoot,
+    timeoutMs: execution.timeoutMs,
+    ...execution.signal !== void 0 ? { signal: execution.signal } : {},
+    stdin: plan.stdin,
+    maxStdoutBytes: config2.maxStdoutBytes,
+    maxStderrBytes: config2.maxStderrBytes
+  });
+}
+var MAX_RETAINED_GEMINI_EVENTS = 5e3;
+var geminiEventSchema = external_exports.object({
+  type: external_exports.string(),
+  session_id: external_exports.string().optional(),
+  text: external_exports.string().optional(),
+  name: external_exports.string().optional(),
+  status: external_exports.string().optional(),
+  path: external_exports.string().optional(),
+  kind: external_exports.string().optional(),
+  command: external_exports.string().optional(),
+  input_tokens: external_exports.number().optional(),
+  output_tokens: external_exports.number().optional(),
+  cached_input_tokens: external_exports.number().optional(),
+  response: external_exports.string().optional(),
+  message: external_exports.string().optional()
+}).passthrough();
+var geminiJsonEnvelopeSchema = external_exports.object({
+  response: external_exports.string(),
+  stats: external_exports.object({
+    session_id: external_exports.string().optional(),
+    input_tokens: external_exports.number().optional(),
+    output_tokens: external_exports.number().optional(),
+    cached_input_tokens: external_exports.number().optional()
+  }).passthrough().optional()
+}).passthrough();
+function parseGeminiEventStream(stdout) {
+  const stream = {
+    events: [],
+    unparseableLines: 0,
+    truncated: false,
+    errors: []
+  };
+  let inputTokens = null;
+  let cachedInputTokens = null;
+  let outputTokens = null;
+  let requests = 0;
+  for (const line of stdout.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (trimmed.length === 0 || !trimmed.startsWith("{")) continue;
+    let parsed;
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch {
+      stream.unparseableLines += 1;
+      continue;
+    }
+    const event = geminiEventSchema.safeParse(parsed);
+    if (!event.success) {
+      stream.unparseableLines += 1;
+      continue;
+    }
+    if (stream.events.length < MAX_RETAINED_GEMINI_EVENTS) {
+      stream.events.push(event.data);
+    } else {
+      stream.truncated = true;
+    }
+    const data = event.data;
+    if (data.type === "session.started" && data.session_id !== void 0) {
+      stream.sessionId = data.session_id;
+    }
+    if (data.type === "usage") {
+      requests += 1;
+      inputTokens = (inputTokens ?? 0) + (data.input_tokens ?? 0);
+      cachedInputTokens = (cachedInputTokens ?? 0) + (data.cached_input_tokens ?? 0);
+      outputTokens = (outputTokens ?? 0) + (data.output_tokens ?? 0);
+    }
+    if (data.type === "result" && data.response !== void 0) {
+      stream.finalResponse = data.response;
+    }
+    if (data.type === "error") {
+      const message = data.message ?? data.text;
+      if (message !== void 0 && stream.errors.length < 20) {
+        stream.errors.push(boundedPayloadText(message, 500));
+      }
+    }
+  }
+  if (requests > 0 || inputTokens !== null || outputTokens !== null) {
+    stream.usage = {
+      inputTokens,
+      cachedInputTokens,
+      outputTokens,
+      reasoningTokens: null,
+      requestCount: Math.max(1, requests)
+    };
+  }
+  return stream;
+}
+function redactGeminiStdoutForRetention(stdout) {
+  return stdout.split(/\r?\n/).map((line) => {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("{") || !trimmed.includes('"thought"')) return line;
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed.type === "thought" && typeof parsed.text === "string") {
+        parsed.text = `[redacted reasoning: ${parsed.text.length} chars]`;
+        return JSON.stringify(parsed);
+      }
+    } catch {
+    }
+    return line;
+  }).join("\n");
+}
+function normalizeGeminiEvents(stream, context, timestamp) {
+  const normalized = [];
+  const push = (type, providerEventType, payload) => {
+    if (normalized.length >= MAX_RETAINED_GEMINI_EVENTS) return;
+    normalized.push(
+      normalizedRunnerEventSchema.parse({
+        type,
+        timestamp: timestamp(),
+        runner: context.runner,
+        profile: context.profile,
+        runId: context.runId,
+        attemptId: context.attemptId,
+        ...context.providerSessionId !== void 0 || stream.sessionId !== void 0 ? { providerSessionId: context.providerSessionId ?? stream.sessionId } : {},
+        providerEventType,
+        payload
+      })
+    );
+  };
+  for (const event of stream.events) {
+    switch (event.type) {
+      case "session.started":
+        push("session.started", event.type, {
+          ...event.session_id !== void 0 ? { sessionId: event.session_id } : {}
+        });
+        break;
+      case "thought":
+        push("message.completed", event.type, {
+          redacted: true,
+          textLength: event.text?.length ?? 0
+        });
+        break;
+      case "tool.started":
+        push("tool.started", event.type, {
+          ...event.name !== void 0 ? { tool: event.name } : {},
+          ...event.path !== void 0 ? { path: boundedPayloadText(event.path, 500) } : {}
+        });
+        break;
+      case "tool.completed":
+        push(
+          event.status === "failed" || event.status === "denied" ? "tool.failed" : "tool.completed",
+          event.type,
+          {
+            ...event.name !== void 0 ? { tool: event.name } : {},
+            ...event.status !== void 0 ? { status: event.status } : {}
+          }
+        );
+        break;
+      case "file.edited":
+        push("file.changed", event.type, {
+          ...event.path !== void 0 ? { path: boundedPayloadText(event.path, 500) } : {},
+          ...event.kind !== void 0 ? { kind: event.kind } : {}
+        });
+        break;
+      case "usage":
+        push("usage.updated", event.type, {
+          inputTokens: event.input_tokens ?? null,
+          cachedInputTokens: event.cached_input_tokens ?? null,
+          outputTokens: event.output_tokens ?? null
+        });
+        break;
+      case "result":
+        push("message.completed", event.type, {
+          textLength: event.response?.length ?? 0
+        });
+        break;
+      case "error":
+        push("error", event.type, {
+          message: boundedPayloadText(event.message ?? event.text ?? "error", 500)
+        });
+        break;
+      default:
+        break;
+    }
+  }
+  return normalized;
+}
+function classifyGeminiFailure(stderr, streamErrors) {
+  const haystack = `${stderr}
+${streamErrors.join("\n")}`.toLowerCase();
+  if (/please sign in|not logged in|login required|unauthorized|unauthenticated|401/.test(haystack)) {
+    return runnerError({
+      code: "authentication_required",
+      message: "The Gemini CLI reported an authentication failure.",
+      remediation: [
+        "Authenticate the Gemini CLI yourself (SpecBridge never handles credentials and never starts a login flow)."
+      ]
+    });
+  }
+  if (/resource_exhausted|quota exceeded|out of quota|usage limit/.test(haystack)) {
+    return runnerError({
+      code: "quota_exceeded",
+      message: "The provider reported an exhausted quota or usage limit.",
+      remediation: ["Check your provider plan and usage, then retry explicitly."]
+    });
+  }
+  if (/rate limit|too many requests|429/.test(haystack)) {
+    return runnerError({
+      code: "rate_limited",
+      message: "The provider reported a rate limit.",
+      remediation: ["Wait and retry explicitly."],
+      providerCode: "429"
+    });
+  }
+  if (/permission denied|approval (required|denied)|call rejected|not permitted/.test(haystack)) {
+    return runnerError({
+      code: "permission_denied",
+      message: "The Gemini CLI reported a permission denial.",
+      remediation: [
+        "SpecBridge never bypasses approvals (and never uses YOLO); narrow the task so it needs only repository reads and file edits."
+      ]
+    });
+  }
+  if (/network|connection|dns|econn|etimedout/.test(haystack)) {
+    return runnerError({
+      code: "network_error",
+      message: "The Gemini CLI reported a network failure.",
+      remediation: ["Check connectivity and retry explicitly."]
+    });
+  }
+  return runnerError({
+    code: "process_failed",
+    message: "The Gemini CLI exited with a failure.",
+    remediation: ["Inspect the retained stderr and event log in the run directory."]
+  });
+}
+var TASK_EXECUTION_REMEDIATION = [
+  "Authoring may remain available through the read-only boundary.",
+  'Use a claude-code or codex-cli profile for task execution ("specbridge runner list" shows compatible profiles).'
+];
+var GeminiCliRunner = class {
+  name = "gemini-cli";
+  kind = "gemini-cli";
+  category = "agent-cli";
+  declaredCapabilities = GEMINI_DECLARED_CAPABILITIES;
+  /** Orchestration may perform ONE structured-output correction retry. */
+  supportsStructuredOutputCorrection = true;
+  config;
+  probePromise;
+  constructor(config2) {
+    this.config = geminiProfileSchema.parse({ runner: "gemini-cli", ...config2 ?? {} });
+  }
+  /** Probe once per runner instance; detection is read-only but not free. */
+  probe(timeoutMs) {
+    this.probePromise ??= probeGemini(
+      this.config,
+      timeoutMs !== void 0 ? { timeoutMs } : void 0
+    );
+    return this.probePromise;
+  }
+  async detect(context) {
+    if (!this.config.enabled) {
+      return {
+        runner: this.name,
+        kind: this.kind,
+        status: "misconfigured",
+        executable: this.config.command.executable,
+        authentication: "unknown",
+        capabilities: [],
+        diagnostics: [
+          {
+            severity: "error",
+            code: "RUNNER_DISABLED",
+            message: "This Gemini profile is disabled in .specbridge/config.json (enabled = false). Enable it explicitly to use the Gemini CLI."
+          }
+        ],
+        category: this.category,
+        capabilitySet: this.declaredCapabilities,
+        supportLevel: effectiveSupportLevel("production", "misconfigured"),
+        networkBacked: false
+      };
+    }
+    const probe = await this.probe(context.timeoutMs);
+    return {
+      runner: this.name,
+      kind: this.kind,
+      status: probe.status,
+      executable: probe.executable,
+      ...probe.version !== void 0 ? { version: probe.version } : {},
+      authentication: probe.authState,
+      capabilities: probe.capabilities,
+      diagnostics: probe.diagnostics,
+      category: this.category,
+      capabilitySet: geminiCapabilitySet(probe),
+      supportLevel: effectiveSupportLevel("production", probe.status),
+      // The Gemini CLI talks to its provider itself; SpecBridge's own
+      // transport is a local child process.
+      networkBacked: false
+    };
+  }
+  executionBoundaryNote(policy) {
+    if (policy !== "implementation") {
+      return "Gemini plan mode / read-only tool allowlist: repository inspection only; no file writes; YOLO is never used.";
+    }
+    return `Gemini ${this.config.approvalModeForExecution} boundary: repository reads and file edits only; no arbitrary shell access; extensions disabled where supported; YOLO is never used.`;
+  }
+  listModels(_context) {
+    return Promise.resolve({
+      supported: false,
+      models: [],
+      detail: 'The Gemini CLI has no officially supported local model-listing command that avoids a model request; SpecBridge never guesses provider model names. Configure "model" on the profile explicitly.'
+    });
+  }
+  async generateStage(input, execution) {
+    const started = Date.now();
+    const probe = await this.probe();
+    const unavailable = this.unavailableResult(probe, started);
+    if (unavailable !== void 0) {
+      const { report: _report, ...rest2 } = unavailable;
+      return rest2;
+    }
+    const detected = geminiCapabilitySet(probe);
+    if (!detected.stageGeneration) {
+      const { report: _refusalReport, ...refusal } = this.capabilityRefusal(
+        started,
+        "authoring needs a proven read-only boundary (plan approval mode or a tool allowlist)",
+        ["Update the Gemini CLI to a version with plan mode or --allowed-tools."]
+      );
+      return refusal;
+    }
+    let prompt = input.prompt;
+    if (input.correction !== void 0) {
+      prompt = `${input.prompt}
+
+Your previous response was not a valid structured result. Validation problems: ${input.correction.problems}. Return ONLY one corrected JSON document matching the required schema \u2014 no prose, no code fences.`;
+    }
+    const plan = buildGeminiInvocation({
+      config: this.config,
+      probe,
+      prompt,
+      toolPolicy: input.toolPolicy,
+      execution
+    });
+    const processResult = await runGeminiInvocation(plan, this.config, execution);
+    const mapped = this.mapResult(processResult, plan, started, "stage");
+    const { report, ...rest } = mapped;
+    const stageReport = report;
+    return { ...rest, ...stageReport !== void 0 ? { report: stageReport } : {} };
+  }
+  async executeTask(input, execution) {
+    return this.runTask(input.prompt, execution, {});
+  }
+  async resumeTask(input, execution) {
+    if (!isExplicitGeminiSessionId(input.sessionId)) {
+      return {
+        runner: this.name,
+        outcome: "failed",
+        failureReason: `"${input.sessionId}" is not an explicit Gemini session UUID; "latest", indexes, and ambiguous identifiers are never resumed`,
+        rawStdout: "",
+        rawStderr: "",
+        durationMs: 0,
+        warnings: [],
+        resumeSupported: false,
+        error: runnerError({
+          code: "unsupported_operation",
+          message: "Gemini resume requires the explicit session UUID captured from the original run."
+        })
+      };
+    }
+    return this.runTask(input.prompt, execution, { resumeSessionId: input.sessionId });
+  }
+  async runTask(prompt, execution, session) {
+    const started = Date.now();
+    const probe = await this.probe();
+    const unavailable = this.unavailableResult(probe, started);
+    if (unavailable !== void 0) {
+      const { report: _report, ...rest2 } = unavailable;
+      return { ...rest2, resumeSupported: false };
+    }
+    const detected = geminiCapabilitySet(probe);
+    if (!detected.taskExecution) {
+      const refusal = this.capabilityRefusal(
+        started,
+        "file edits cannot be permitted without also permitting arbitrary shell commands (needs the auto_edit approval mode plus a tool allowlist or sandbox); SpecBridge never relaxes this policy and never uses YOLO",
+        TASK_EXECUTION_REMEDIATION
+      );
+      const { report: _report, ...rest2 } = refusal;
+      return { ...rest2, resumeSupported: false };
+    }
+    if (session.resumeSessionId !== void 0 && !detected.taskResume) {
+      const refusal = this.capabilityRefusal(
+        started,
+        "this Gemini CLI version does not support explicit session resume; start a fresh attempt instead",
+        ["Re-run the task without --resume; a new attempt is recorded append-only."]
+      );
+      const { report: _report, ...rest2 } = refusal;
+      return { ...rest2, resumeSupported: false };
+    }
+    const plan = buildGeminiInvocation({
+      config: this.config,
+      probe,
+      prompt,
+      toolPolicy: "implementation",
+      ...session.resumeSessionId !== void 0 ? { resumeSessionId: session.resumeSessionId } : {},
+      execution
+    });
+    const processResult = await runGeminiInvocation(plan, this.config, execution);
+    const mapped = this.mapResult(processResult, plan, started, "task");
+    if (session.resumeSessionId !== void 0 && mapped.sessionId !== void 0 && mapped.sessionId !== session.resumeSessionId) {
+      const { report: _report, ...rest2 } = mapped;
+      return {
+        ...rest2,
+        outcome: "failed",
+        failureReason: `the provider continued session ${mapped.sessionId} instead of the requested ${session.resumeSessionId}; the resume is not claimed as successful`,
+        error: runnerError({
+          code: "api_error",
+          message: "The Gemini session identity changed unexpectedly during resume.",
+          remediation: [
+            "Inspect the retained events, then start a fresh attempt (run lineage is preserved)."
+          ],
+          retryable: false,
+          providerCode: "session-mismatch"
+        }),
+        resumeSupported: false
+      };
+    }
+    const { report, sessionId, ...rest } = mapped;
+    const taskReport = report;
+    const effectiveSession = sessionId ?? session.resumeSessionId;
+    return {
+      ...rest,
+      ...taskReport !== void 0 ? { report: taskReport } : {},
+      ...effectiveSession !== void 0 ? { sessionId: effectiveSession } : {},
+      resumeSupported: detected.taskResume && effectiveSession !== void 0 && isExplicitGeminiSessionId(effectiveSession)
+    };
+  }
+  /** Minimal bounded structured-output probe (`runner test --network`). */
+  async selfTest(execution) {
+    const probe = await this.probe();
+    if (probe.status !== "available") {
+      return { ok: false, detail: `gemini-cli is not available (status: ${probe.status})` };
+    }
+    const result = await this.generateStage(
+      {
+        specName: "runner-self-test",
+        stage: "requirements",
+        intent: "generate",
+        prompt: 'This is a connectivity self test. Do not read or modify any file. Reply with exactly one JSON document: {"schemaVersion":"1.0.0","stage":"requirements","markdown":"# Self Test","summary":"self test"} and nothing else.\n\nStage to produce: requirements\n',
+        promptVersion: "self-test",
+        toolPolicy: "read-only"
+      },
+      { ...execution, timeoutMs: Math.min(execution.timeoutMs, 12e4) }
+    );
+    return {
+      ok: result.outcome === "completed" && result.report !== void 0,
+      detail: result.outcome === "completed" ? "structured output validated" : result.failureReason ?? `self test failed (${result.outcome})`,
+      ...result.usage !== void 0 ? { usage: result.usage } : {},
+      ...result.process !== void 0 ? { process: result.process } : {}
+    };
+  }
+  capabilityRefusal(started, reason, remediation) {
+    return {
+      runner: this.name,
+      outcome: "failed",
+      failureReason: `the installed Gemini CLI is incompatible with this operation: ${reason}`,
+      rawStdout: "",
+      rawStderr: "",
+      durationMs: Math.max(0, Date.now() - started),
+      warnings: [],
+      error: runnerError({
+        code: "runner_incompatible",
+        message: `The installed Gemini CLI lacks required safety capabilities: ${reason}.`,
+        remediation
+      })
+    };
+  }
+  unavailableResult(probe, started) {
+    if (probe.status === "available") return void 0;
+    const error2 = probe.status === "incompatible" ? runnerError({
+      code: "runner_incompatible",
+      message: "The installed Gemini CLI version lacks required capabilities.",
+      remediation: ['Run "specbridge runner doctor" for the exact missing capabilities.']
+    }) : probe.status === "misconfigured" ? runnerError({
+      code: "runner_disabled",
+      message: "This Gemini profile is disabled.",
+      remediation: ["Enable the profile in .specbridge/config.json explicitly."]
+    }) : probe.status === "error" ? runnerError({
+      code: "process_failed",
+      message: "The Gemini CLI could not be probed.",
+      remediation: ['Run "specbridge runner doctor" for details.']
+    }) : runnerError({
+      code: "executable_not_found",
+      message: `The Gemini CLI executable "${this.config.command.executable}" was not found.`,
+      remediation: ["Install the Gemini CLI or fix the profile command."]
+    });
+    return {
+      runner: this.name,
+      outcome: "failed",
+      failureReason: `the gemini-cli runner is not available (status: ${probe.status}); run "specbridge runner doctor" for details`,
+      rawStdout: "",
+      rawStderr: "",
+      durationMs: Date.now() - started,
+      warnings: probe.diagnostics.filter((d) => d.severity === "error").map((d) => d.message),
+      error: error2
+    };
+  }
+  /** Map a finished process + machine-readable output to a structured result. */
+  mapResult(processResult, plan, started, reportKind) {
+    const warnings = plan.skippedFlags.map(
+      (flag) => `flag ${flag} is unsupported by this Gemini CLI version and was skipped`
+    );
+    let stream;
+    let finalText;
+    let sessionId;
+    let usage;
+    let retainedStdout = processResult.stdout;
+    if (plan.outputFormat === "stream-json") {
+      stream = parseGeminiEventStream(processResult.stdout);
+      if (stream.truncated) {
+        warnings.push("the provider event stream exceeded the retention limit; older events were dropped");
+      }
+      finalText = stream.finalResponse;
+      sessionId = stream.sessionId;
+      if (stream.usage !== void 0) {
+        usage = {
+          model: this.config.model,
+          inputTokens: stream.usage.inputTokens,
+          cachedInputTokens: stream.usage.cachedInputTokens,
+          outputTokens: stream.usage.outputTokens,
+          reasoningTokens: stream.usage.reasoningTokens,
+          requestCount: stream.usage.requestCount,
+          durationMs: Math.max(0, processResult.observation.durationMs)
+        };
+      }
+      retainedStdout = redactGeminiStdoutForRetention(processResult.stdout);
+    } else {
+      const envelope = geminiJsonEnvelopeSchema.safeParse(safeJson(processResult.stdout));
+      if (envelope.success) {
+        finalText = envelope.data.response;
+        sessionId = envelope.data.stats?.session_id;
+        if (envelope.data.stats !== void 0) {
+          usage = {
+            model: this.config.model,
+            inputTokens: envelope.data.stats.input_tokens ?? null,
+            cachedInputTokens: envelope.data.stats.cached_input_tokens ?? null,
+            outputTokens: envelope.data.stats.output_tokens ?? null,
+            reasoningTokens: null,
+            requestCount: 1,
+            durationMs: Math.max(0, processResult.observation.durationMs)
+          };
+        }
+      }
+    }
+    const normalizedEvents = stream !== void 0 ? normalizeGeminiEvents(
+      stream,
+      { runner: this.name, profile: this.name, runId: "pending", attemptId: "pending" },
+      () => (/* @__PURE__ */ new Date()).toISOString()
+    ) : void 0;
+    const base = {
+      runner: this.name,
+      rawStdout: retainedStdout,
+      rawStderr: processResult.stderr,
+      process: processResult.observation,
+      durationMs: Math.max(0, Date.now() - started),
+      warnings,
+      ...normalizedEvents !== void 0 ? { normalizedEvents } : {},
+      ...usage !== void 0 ? { usage } : {},
+      ...sessionId !== void 0 ? { sessionId } : {}
+    };
+    switch (processResult.status) {
+      case "timeout":
+        return {
+          ...base,
+          outcome: "timed-out",
+          failureReason: processResult.failureReason ?? "timeout",
+          error: runnerError({
+            code: "timed_out",
+            message: "The Gemini process exceeded the configured timeout and was terminated.",
+            remediation: ["Increase the profile timeoutMs or narrow the task."]
+          })
+        };
+      case "cancelled":
+        return {
+          ...base,
+          outcome: "cancelled",
+          failureReason: processResult.failureReason ?? "cancelled",
+          error: runnerError({
+            code: "cancelled",
+            message: "The Gemini process was cancelled and terminated."
+          })
+        };
+      case "output-limit":
+        return {
+          ...base,
+          outcome: "failed",
+          failureReason: processResult.failureReason ?? "output limit exceeded",
+          error: runnerError({
+            code: "output_limit_exceeded",
+            message: "The Gemini process exceeded the configured output limit and was terminated.",
+            remediation: ["Raise maxStdoutBytes/maxStderrBytes on the profile if this was legitimate."]
+          })
+        };
+      case "spawn-failed":
+        return {
+          ...base,
+          outcome: "failed",
+          failureReason: processResult.failureReason ?? "spawn failed",
+          error: runnerError({
+            code: "executable_not_found",
+            message: `The Gemini CLI executable could not be started: ${processResult.failureReason ?? "unknown spawn failure"}.`,
+            remediation: ["Install the Gemini CLI or fix the profile command."]
+          })
+        };
+      case "ok":
+      case "nonzero-exit":
+        break;
+    }
+    if (processResult.status === "nonzero-exit") {
+      const error2 = classifyGeminiFailure(processResult.stderr, stream?.errors ?? []);
+      return {
+        ...base,
+        outcome: error2.code === "permission_denied" ? "permission-denied" : "failed",
+        failureReason: `${error2.message} (exit ${processResult.observation.exitCode ?? "unknown"})`,
+        error: error2
+      };
+    }
+    if (finalText === void 0 || finalText.trim().length === 0) {
+      return {
+        ...base,
+        outcome: "malformed-output",
+        failureReason: stream !== void 0 && stream.errors.length > 0 ? `the provider reported: ${stream.errors[0]}` : "the runner returned no final structured result",
+        error: runnerError({
+          code: "structured_output_invalid",
+          message: "The Gemini run produced no final structured result.",
+          remediation: ["Inspect the retained output in the run directory."]
+        })
+      };
+    }
+    const parsed = strictJsonParse2(finalText);
+    if (parsed === void 0) {
+      return {
+        ...base,
+        outcome: "malformed-output",
+        failureReason: "the final response is not a bare JSON document (extra prose is not accepted)",
+        error: runnerError({
+          code: "structured_output_invalid",
+          message: "The final Gemini response did not parse as a JSON document."
+        }),
+        ...reportKind === "stage" ? { invalidStructuredOutput: finalText.length > 1e5 ? finalText.slice(0, 1e5) : finalText } : {}
+      };
+    }
+    const schema = reportKind === "stage" ? stageRunnerReportSchema : taskRunnerReportSchema;
+    const validated = schema.safeParse(parsed);
+    if (!validated.success) {
+      const problems = validated.error.issues.map((issue2) => `${issue2.path.join(".") || "(root)"}: ${issue2.message}`).join("; ");
+      return {
+        ...base,
+        outcome: "malformed-output",
+        failureReason: `structured result does not match the report schema: ${problems}`,
+        error: runnerError({
+          code: "structured_output_invalid",
+          message: "The final Gemini response did not match the required report schema.",
+          details: { problems: problems.slice(0, 2e3) }
+        }),
+        ...reportKind === "stage" ? { invalidStructuredOutput: finalText.length > 1e5 ? finalText.slice(0, 1e5) : finalText } : {}
+      };
+    }
+    const report = validated.data;
+    const outcome = "outcome" in report ? report.outcome : "completed";
+    return {
+      ...base,
+      outcome,
+      report,
+      ...outcome === "completed" || outcome === "no-change" ? {} : { failureReason: `the agent reported "${outcome}"` }
+    };
+  }
+};
+function safeJson(raw) {
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith("{")) return void 0;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return void 0;
+  }
+}
+function strictJsonParse2(raw) {
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return void 0;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return void 0;
+  }
+}
 function composeSignals(timeoutMs, external) {
   const signals2 = [AbortSignal.timeout(timeoutMs)];
   if (external !== void 0) signals2.push(external);
@@ -39731,50 +40958,116 @@ async function readBounded(response, maxBytes) {
   }
   return { text: import_buffer3.Buffer.concat(chunks).toString("utf8"), bytes: total };
 }
+function checkRedirectTarget(current, location) {
+  let next;
+  try {
+    next = new URL(location, current);
+  } catch {
+    return { ok: false, detail: `the redirect target "${location.slice(0, 200)}" is not a valid URL` };
+  }
+  if (next.protocol !== "http:" && next.protocol !== "https:") {
+    return {
+      ok: false,
+      detail: `the redirect target uses the unsupported scheme "${next.protocol}"`
+    };
+  }
+  if (current.protocol === "https:" && next.protocol === "http:") {
+    return {
+      ok: false,
+      detail: "the redirect would downgrade HTTPS to plain HTTP; downgrades are never followed"
+    };
+  }
+  if (next.username !== "" || next.password !== "") {
+    return { ok: false, detail: "the redirect target embeds credentials; it is never followed" };
+  }
+  return { ok: true, nextUrl: next };
+}
 async function safeHttpRequest(request) {
   const started = Date.now();
   const duration3 = () => Math.max(0, Date.now() - started);
   const externalAborted = () => request.signal?.aborted === true;
+  const maxRedirects = request.maxRedirects ?? 0;
+  const initialUrl = new URL(request.url);
+  const initialOrigin = initialUrl.origin;
+  let currentUrl = initialUrl;
+  let currentMethod = request.method;
+  let sendBody = request.body !== void 0;
+  let crossedOrigin = false;
+  let redirectCount = 0;
   let response;
-  try {
-    response = await fetch(request.url, {
-      method: request.method,
-      redirect: "manual",
-      signal: composeSignals(request.timeoutMs, request.signal),
-      ...request.body !== void 0 ? {
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(request.body)
-      } : {}
-    });
-  } catch (cause) {
-    if (externalAborted()) {
-      return { ok: false, kind: "cancelled", detail: "the request was cancelled", durationMs: duration3() };
+  for (; ; ) {
+    const headers = {};
+    if (sendBody) headers["content-type"] = "application/json";
+    if (request.headers !== void 0 && !crossedOrigin) {
+      for (const [name, value] of Object.entries(request.headers)) headers[name] = value;
     }
-    if (cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError")) {
+    try {
+      response = await fetch(currentUrl.toString(), {
+        method: currentMethod,
+        redirect: "manual",
+        signal: composeSignals(request.timeoutMs, request.signal),
+        headers,
+        ...sendBody ? { body: JSON.stringify(request.body) } : {}
+      });
+    } catch (cause) {
+      if (externalAborted()) {
+        return { ok: false, kind: "cancelled", detail: "the request was cancelled", durationMs: duration3() };
+      }
+      if (cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError")) {
+        return {
+          ok: false,
+          kind: "timeout",
+          detail: `the request did not complete within ${request.timeoutMs} ms`,
+          durationMs: duration3()
+        };
+      }
+      const message = cause instanceof Error ? cause.message : String(cause);
       return {
         ok: false,
-        kind: "timeout",
-        detail: `the request did not complete within ${request.timeoutMs} ms`,
+        kind: "unreachable",
+        detail: `the endpoint could not be reached (${message.slice(0, 300)})`,
         durationMs: duration3()
       };
     }
-    const message = cause instanceof Error ? cause.message : String(cause);
-    return {
-      ok: false,
-      kind: "unreachable",
-      detail: `the endpoint could not be reached (${message.slice(0, 300)})`,
-      durationMs: duration3()
-    };
+    if (response.status < 300 || response.status >= 400) break;
+    if (redirectCount >= maxRedirects) {
+      return {
+        ok: false,
+        kind: "redirect-rejected",
+        status: response.status,
+        detail: maxRedirects === 0 ? `the endpoint answered with a redirect (${response.status}); redirects are never followed` : `the endpoint exceeded the bounded redirect limit of ${maxRedirects}`,
+        durationMs: duration3()
+      };
+    }
+    const location = response.headers.get("location");
+    if (location === null || location.length === 0) {
+      return {
+        ok: false,
+        kind: "redirect-rejected",
+        status: response.status,
+        detail: `the endpoint answered with a redirect (${response.status}) without a target`,
+        durationMs: duration3()
+      };
+    }
+    const decision = checkRedirectTarget(currentUrl, location);
+    if (!decision.ok || decision.nextUrl === void 0) {
+      return {
+        ok: false,
+        kind: "redirect-rejected",
+        status: response.status,
+        detail: decision.detail ?? "the redirect was rejected",
+        durationMs: duration3()
+      };
+    }
+    redirectCount += 1;
+    if (decision.nextUrl.origin !== initialOrigin) crossedOrigin = true;
+    if (response.status === 303 || currentMethod === "POST" && (response.status === 301 || response.status === 302)) {
+      currentMethod = "GET";
+      sendBody = false;
+    }
+    currentUrl = decision.nextUrl;
   }
-  if (response.status >= 300 && response.status < 400) {
-    return {
-      ok: false,
-      kind: "redirect-rejected",
-      status: response.status,
-      detail: `the endpoint answered with a redirect (${response.status}); redirects are never followed`,
-      durationMs: duration3()
-    };
-  }
+  const redirects = redirectCount > 0 ? { count: redirectCount, finalUrl: currentUrl.toString(), crossOrigin: crossedOrigin } : void 0;
   let body;
   try {
     body = await readBounded(response, request.maxResponseBytes);
@@ -39833,7 +41126,8 @@ async function safeHttpRequest(request) {
     status: response.status,
     bodyText: body.text,
     bodyBytes: body.bytes,
-    durationMs: duration3()
+    durationMs: duration3(),
+    ...redirects !== void 0 ? { redirects } : {}
   };
 }
 var ollamaVersionResponseSchema = external_exports.object({ version: external_exports.string() }).passthrough();
@@ -39863,13 +41157,13 @@ var ollamaChatResponseSchema = external_exports.object({
 function endpoint(config2, pathName) {
   return new URL(pathName, config2.baseUrl.endsWith("/") ? config2.baseUrl : `${config2.baseUrl}/`).toString();
 }
-var PROBE_TIMEOUT_MS3 = 1e4;
+var PROBE_TIMEOUT_MS4 = 1e4;
 var PROBE_MAX_BYTES = 1024 * 1024;
 function fetchOllamaVersion(config2, signal) {
   return safeHttpRequest({
     method: "GET",
     url: endpoint(config2, "api/version"),
-    timeoutMs: PROBE_TIMEOUT_MS3,
+    timeoutMs: PROBE_TIMEOUT_MS4,
     maxResponseBytes: PROBE_MAX_BYTES,
     ...signal !== void 0 ? { signal } : {},
     expectJson: true
@@ -39879,7 +41173,7 @@ function fetchOllamaModels(config2, signal) {
   return safeHttpRequest({
     method: "GET",
     url: endpoint(config2, "api/tags"),
-    timeoutMs: PROBE_TIMEOUT_MS3,
+    timeoutMs: PROBE_TIMEOUT_MS4,
     maxResponseBytes: PROBE_MAX_BYTES,
     ...signal !== void 0 ? { signal } : {},
     expectJson: true
@@ -40109,12 +41403,12 @@ var OllamaRunner = class {
     }
     capabilities.push({ id: "endpoint", label: "Endpoint reachable", available: true, required: true });
     let version2;
-    const versionParsed = ollamaVersionResponseSchema.safeParse(safeJson(versionResult.bodyText));
+    const versionParsed = ollamaVersionResponseSchema.safeParse(safeJson2(versionResult.bodyText));
     if (versionParsed.success) version2 = versionParsed.data.version;
     const tagsResult = await fetchOllamaModels(this.config, signal);
     let modelNames = [];
     if (tagsResult.ok) {
-      const tags = ollamaTagsResponseSchema.safeParse(safeJson(tagsResult.bodyText));
+      const tags = ollamaTagsResponseSchema.safeParse(safeJson2(tagsResult.bodyText));
       if (tags.success) modelNames = tags.data.models.map((model) => model.name);
       capabilities.push({ id: "model-list", label: "Model listing", available: tags.success, required: false });
     } else {
@@ -40174,7 +41468,7 @@ var OllamaRunner = class {
     if (!result.ok) {
       return { supported: true, models: [], detail: `model listing failed: ${result.detail}` };
     }
-    const tags = ollamaTagsResponseSchema.safeParse(safeJson(result.bodyText));
+    const tags = ollamaTagsResponseSchema.safeParse(safeJson2(result.bodyText));
     if (!tags.success) {
       return { supported: true, models: [], detail: "the endpoint returned an unexpected model list shape" };
     }
@@ -40261,7 +41555,7 @@ var OllamaRunner = class {
       return failure(classifyHttpFailure(result));
     }
     const retained = redactOllamaResponseForRetention(result.bodyText);
-    const parsedBody = ollamaChatResponseSchema.safeParse(safeJson(result.bodyText));
+    const parsedBody = ollamaChatResponseSchema.safeParse(safeJson2(result.bodyText));
     if (!parsedBody.success) {
       return failure(
         {
@@ -40278,7 +41572,7 @@ var OllamaRunner = class {
     }
     const usage = usageFromChat(parsedBody.data, model, Date.now() - started);
     const content = parsedBody.data.message.content;
-    const candidate = strictJsonParse2(content);
+    const candidate = strictJsonParse3(content);
     const report = candidate === void 0 ? void 0 : stageRunnerReportSchema.safeParse(candidate);
     if (report === void 0 || !report.success) {
       const problems = report !== void 0 && !report.success ? report.error.issues.map((issue2) => `${issue2.path.join(".") || "(root)"}: ${issue2.message}`).join("; ") : "the message content is not a bare JSON document";
@@ -40359,14 +41653,14 @@ var OllamaRunner = class {
     };
   }
 };
-function safeJson(raw) {
+function safeJson2(raw) {
   try {
     return JSON.parse(raw);
   } catch {
     return void 0;
   }
 }
-function strictJsonParse2(raw) {
+function strictJsonParse3(raw) {
   const trimmed = raw.trim();
   if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return void 0;
   try {
@@ -40386,6 +41680,921 @@ function usageFromChat(response, model, durationMs) {
     durationMs: Math.max(0, Math.round(durationMs))
   };
 }
+function buildOpenAiRequestBody(style, input) {
+  if (style === "chat-completions") {
+    const responseFormat = input.structuredOutput === "json-schema" ? {
+      response_format: {
+        type: "json_schema",
+        json_schema: { name: input.schemaName, strict: true, schema: input.jsonSchema }
+      }
+    } : input.structuredOutput === "json-object" ? { response_format: { type: "json_object" } } : {};
+    return {
+      model: input.model,
+      messages: input.messages,
+      temperature: input.temperature,
+      stream: false,
+      ...responseFormat
+    };
+  }
+  const textFormat = input.structuredOutput === "json-schema" ? {
+    text: {
+      format: {
+        type: "json_schema",
+        name: input.schemaName,
+        strict: true,
+        schema: input.jsonSchema
+      }
+    }
+  } : input.structuredOutput === "json-object" ? { text: { format: { type: "json_object" } } } : {};
+  return {
+    model: input.model,
+    input: input.messages.map((message) => ({
+      role: message.role,
+      content: [{ type: message.role === "assistant" ? "output_text" : "input_text", text: message.content }]
+    })),
+    temperature: input.temperature,
+    stream: false,
+    ...textFormat
+  };
+}
+var chatCompletionResponseSchema = external_exports.object({
+  choices: external_exports.array(
+    external_exports.object({
+      message: external_exports.object({ content: external_exports.string().nullable() }).passthrough(),
+      finish_reason: external_exports.string().nullable().optional()
+    }).passthrough()
+  ).min(1),
+  model: external_exports.string().optional(),
+  usage: external_exports.object({
+    prompt_tokens: external_exports.number().optional(),
+    completion_tokens: external_exports.number().optional(),
+    prompt_tokens_details: external_exports.object({ cached_tokens: external_exports.number().optional() }).passthrough().optional()
+  }).passthrough().optional()
+}).passthrough();
+var responsesResponseSchema = external_exports.object({
+  output: external_exports.array(
+    external_exports.object({
+      type: external_exports.string().optional(),
+      content: external_exports.array(external_exports.object({ type: external_exports.string().optional(), text: external_exports.string().optional() }).passthrough()).optional()
+    }).passthrough()
+  ).optional(),
+  output_text: external_exports.string().optional(),
+  model: external_exports.string().optional(),
+  usage: external_exports.object({
+    input_tokens: external_exports.number().optional(),
+    output_tokens: external_exports.number().optional(),
+    input_tokens_details: external_exports.object({ cached_tokens: external_exports.number().optional() }).passthrough().optional()
+  }).passthrough().optional()
+}).passthrough();
+function parseOpenAiResponse(style, bodyText) {
+  let parsed;
+  try {
+    parsed = JSON.parse(bodyText);
+  } catch {
+    return { problem: "the endpoint response is not valid JSON" };
+  }
+  if (style === "chat-completions") {
+    const result2 = chatCompletionResponseSchema.safeParse(parsed);
+    if (!result2.success) {
+      return { problem: "the endpoint response does not match the chat-completions shape" };
+    }
+    const content = result2.data.choices[0]?.message.content;
+    return {
+      ...content !== null && content !== void 0 ? { text: content } : { problem: "the response carries no message content" },
+      ...result2.data.model !== void 0 ? { model: result2.data.model } : {},
+      ...result2.data.usage !== void 0 ? {
+        usage: {
+          inputTokens: result2.data.usage.prompt_tokens ?? null,
+          cachedInputTokens: result2.data.usage.prompt_tokens_details?.cached_tokens ?? null,
+          outputTokens: result2.data.usage.completion_tokens ?? null
+        }
+      } : {}
+    };
+  }
+  const result = responsesResponseSchema.safeParse(parsed);
+  if (!result.success) {
+    return { problem: "the endpoint response does not match the responses shape" };
+  }
+  let text = result.data.output_text;
+  if (text === void 0 && result.data.output !== void 0) {
+    const parts = [];
+    for (const item of result.data.output) {
+      if (item.type !== void 0 && item.type !== "message") continue;
+      for (const content of item.content ?? []) {
+        if ((content.type === void 0 || content.type === "output_text") && content.text !== void 0) {
+          parts.push(content.text);
+        }
+      }
+    }
+    if (parts.length > 0) text = parts.join("");
+  }
+  return {
+    ...text !== void 0 ? { text } : { problem: "the response carries no output text" },
+    ...result.data.model !== void 0 ? { model: result.data.model } : {},
+    ...result.data.usage !== void 0 ? {
+      usage: {
+        inputTokens: result.data.usage.input_tokens ?? null,
+        cachedInputTokens: result.data.usage.input_tokens_details?.cached_tokens ?? null,
+        outputTokens: result.data.usage.output_tokens ?? null
+      }
+    } : {}
+  };
+}
+var openAiModelsResponseSchema = external_exports.object({
+  data: external_exports.array(
+    external_exports.object({
+      id: external_exports.string(),
+      owned_by: external_exports.string().optional(),
+      created: external_exports.number().optional()
+    }).passthrough()
+  ).default([])
+}).passthrough();
+function indicatesStructuredOutputUnsupported(status, bodyExcerpt) {
+  if (status !== 400 && status !== 422) return false;
+  const text = (bodyExcerpt ?? "").toLowerCase();
+  return /response_format|json_schema|json schema|structured output|text\.format/.test(text);
+}
+function redactSecretValue(text, secret) {
+  if (secret === void 0 || secret.length === 0) return text;
+  return text.split(secret).join("<redacted>");
+}
+function weakerStructuredOutputMode(mode) {
+  if (mode === "json-schema") return "json-object";
+  if (mode === "json-object") return "strict-json-prompt";
+  return void 0;
+}
+var OPENAI_COMPATIBLE_DECLARED_CAPABILITIES = capabilitySet([
+  "stageGeneration",
+  "stageRefinement",
+  "structuredFinalOutput",
+  "usageReporting",
+  "localOnly",
+  "supportsSystemPrompt",
+  "supportsJsonSchema",
+  "supportsCancellation"
+]);
+function classifyHttpFailure2(result, redact) {
+  switch (result.kind) {
+    case "timeout":
+      return {
+        outcome: "timed-out",
+        failureReason: result.detail,
+        error: runnerError({ code: "timed_out", message: `The endpoint request timed out: ${result.detail}.` })
+      };
+    case "cancelled":
+      return {
+        outcome: "cancelled",
+        failureReason: result.detail,
+        error: runnerError({ code: "cancelled", message: "The endpoint request was cancelled." })
+      };
+    case "response-too-large":
+      return {
+        outcome: "failed",
+        failureReason: result.detail,
+        error: runnerError({
+          code: "output_limit_exceeded",
+          message: "The endpoint response exceeded the configured size limit.",
+          remediation: ["Raise maximumOutputBytes on the profile if this was legitimate."]
+        })
+      };
+    case "redirect-rejected":
+      return {
+        outcome: "failed",
+        failureReason: result.detail,
+        error: runnerError({
+          code: "endpoint_unreachable",
+          message: `The endpoint redirect was refused: ${result.detail}.`,
+          remediation: ["Configure the final endpoint URL directly."],
+          retryable: false
+        })
+      };
+    case "invalid-content-type":
+      return {
+        outcome: "malformed-output",
+        failureReason: result.detail,
+        error: runnerError({
+          code: "api_error",
+          message: "The endpoint returned an unexpected content type.",
+          retryable: false
+        })
+      };
+    case "http-error": {
+      const status = result.status ?? 0;
+      const excerpt = redact(result.bodyExcerpt ?? "").toLowerCase();
+      if (status === 401 || status === 403) {
+        return {
+          outcome: "failed",
+          failureReason: result.detail,
+          error: runnerError({
+            code: "authentication_required",
+            message: `The endpoint refused the request (HTTP ${status}).`,
+            remediation: [
+              "Set the configured API-key environment variable before running (SpecBridge never stores key values)."
+            ],
+            providerCode: String(status)
+          })
+        };
+      }
+      if (status === 429 && /insufficient_quota|quota|billing/.test(excerpt)) {
+        return {
+          outcome: "failed",
+          failureReason: result.detail,
+          error: runnerError({
+            code: "quota_exceeded",
+            message: "The endpoint reported an exhausted quota.",
+            remediation: ["Check your provider plan and usage, then retry explicitly."],
+            providerCode: "429"
+          })
+        };
+      }
+      if (status === 429) {
+        return {
+          outcome: "failed",
+          failureReason: result.detail,
+          error: runnerError({
+            code: "rate_limited",
+            message: "The endpoint reported a rate limit (HTTP 429).",
+            providerCode: "429"
+          })
+        };
+      }
+      if (status === 404 && /model/.test(excerpt)) {
+        return {
+          outcome: "failed",
+          failureReason: result.detail,
+          error: runnerError({
+            code: "model_not_found",
+            message: "The configured model is not available on the endpoint.",
+            remediation: ['List models with "specbridge runner models <profile>" (when the endpoint supports it).'],
+            providerCode: "404"
+          })
+        };
+      }
+      return {
+        outcome: "failed",
+        failureReason: result.detail,
+        error: runnerError({
+          code: "api_error",
+          message: `The endpoint answered HTTP ${status}.`,
+          providerCode: String(status),
+          retryable: status >= 500
+        })
+      };
+    }
+    case "unreachable":
+      return {
+        outcome: "failed",
+        failureReason: result.detail,
+        error: runnerError({
+          code: "endpoint_unreachable",
+          message: "The endpoint could not be reached.",
+          remediation: ["Start the local server or fix the profile baseUrl."]
+        })
+      };
+  }
+}
+var OpenAiCompatibleRunner = class {
+  name = "openai-compatible";
+  kind = "openai-compatible";
+  category = "model-api";
+  declaredCapabilities;
+  /** Orchestration may perform ONE structured-output correction retry. */
+  supportsStructuredOutputCorrection = true;
+  config;
+  constructor(config2) {
+    this.config = openAiCompatibleProfileSchema.parse({
+      runner: "openai-compatible",
+      ...config2 ?? {}
+    });
+    this.declaredCapabilities = {
+      ...OPENAI_COMPATIBLE_DECLARED_CAPABILITIES,
+      // Native JSON Schema constraining is a per-endpoint capability the
+      // profile declares through its structured-output mode.
+      supportsJsonSchema: this.config.structuredOutput === "json-schema"
+    };
+  }
+  get baseUrl() {
+    return this.config.baseUrl;
+  }
+  urlValidation() {
+    return validateRunnerBaseUrl(this.config.baseUrl, {
+      allowInsecureHttp: this.config.allowInsecureHttp
+    });
+  }
+  /** The API-key VALUE, read at request time only. Never stored, never logged. */
+  apiKeyValue() {
+    const variable = this.config.apiKeyEnvironmentVariable;
+    if (variable === null) return void 0;
+    const value = process.env[variable];
+    return value !== void 0 && value.length > 0 ? value : void 0;
+  }
+  redact(text) {
+    return redactSecretValue(text, this.apiKeyValue());
+  }
+  requestHeaders() {
+    const headers = { ...this.config.headers };
+    const key = this.apiKeyValue();
+    if (key !== void 0) headers["authorization"] = `Bearer ${key}`;
+    return headers;
+  }
+  endpointUrl(pathSuffix) {
+    return `${this.config.baseUrl.replace(/\/+$/, "")}${pathSuffix}`;
+  }
+  profileCapabilities(loopback) {
+    return {
+      ...this.declaredCapabilities,
+      localOnly: loopback,
+      requiresNetwork: !loopback
+    };
+  }
+  async detect(context) {
+    const diagnostics = [];
+    const url = this.urlValidation();
+    const capabilities = [];
+    const keyVariable = this.config.apiKeyEnvironmentVariable;
+    const keyConfigured = keyVariable !== null;
+    const keyPresent = this.apiKeyValue() !== void 0;
+    const authentication = !keyConfigured ? "not-applicable" : keyPresent ? "unknown" : "unauthenticated";
+    const base = {
+      runner: this.name,
+      kind: "openai-compatible",
+      executable: this.config.baseUrl,
+      authentication,
+      category: this.category,
+      capabilitySet: this.profileCapabilities(url.loopback),
+      networkBacked: !url.loopback
+    };
+    if (!this.config.enabled) {
+      diagnostics.push({
+        severity: "error",
+        code: "RUNNER_DISABLED",
+        message: "This openai-compatible profile is disabled in .specbridge/config.json (enabled = false). Enable it explicitly to use the endpoint for spec authoring."
+      });
+      return { ...base, status: "misconfigured", capabilities, diagnostics, supportLevel: "production" };
+    }
+    if (!url.ok) {
+      for (const problem of url.problems) {
+        diagnostics.push({ severity: "error", code: "RUNNER_ENDPOINT_INVALID", message: `baseUrl: ${problem}` });
+      }
+      return { ...base, status: "misconfigured", capabilities, diagnostics, supportLevel: "production" };
+    }
+    if (!url.loopback) {
+      diagnostics.push({
+        severity: "warning",
+        code: "RUNNER_NETWORK_BACKED",
+        message: `The endpoint ${url.hostname ?? ""} is not loopback: requests leave this machine (network-backed). Explicit selection is required.`
+      });
+      if (this.config.allowInsecureHttp && url.protocol === "http:") {
+        diagnostics.push({
+          severity: "warning",
+          code: "RUNNER_INSECURE_HTTP",
+          message: "INSECURE: allowInsecureHttp permits plain HTTP to a non-loopback endpoint. Prompts and responses travel unencrypted; use HTTPS outside private development networks."
+        });
+      }
+    }
+    if (keyConfigured && !keyPresent) {
+      diagnostics.push({
+        severity: "error",
+        code: "RUNNER_API_KEY_VARIABLE_UNSET",
+        message: `The configured API-key environment variable "${keyVariable ?? ""}" is not set. Export it before running (SpecBridge stores only the variable NAME, never a value).`
+      });
+    }
+    capabilities.push({
+      id: "structured-output",
+      label: `Structured output (${this.config.structuredOutput})`,
+      available: true,
+      required: true,
+      detail: "the complete response is validated by SpecBridge with a bounded correction retry"
+    });
+    capabilities.push({
+      id: "api-style",
+      label: `API style: ${this.config.apiStyle}`,
+      available: true,
+      required: true
+    });
+    if (this.config.modelsEndpoint) {
+      const signal = context.timeoutMs !== void 0 ? AbortSignal.timeout(context.timeoutMs) : void 0;
+      const models = await safeHttpRequest({
+        method: "GET",
+        url: this.endpointUrl("/models"),
+        timeoutMs: Math.min(context.timeoutMs ?? 15e3, 15e3),
+        maxResponseBytes: 1024 * 1024,
+        headers: this.requestHeaders(),
+        maxRedirects: 3,
+        ...signal !== void 0 ? { signal } : {}
+      });
+      if (!models.ok) {
+        if (models.kind === "http-error" && (models.status === 401 || models.status === 403)) {
+          diagnostics.push({
+            severity: "error",
+            code: "RUNNER_UNAUTHENTICATED",
+            message: `The endpoint refused GET /models (HTTP ${models.status}). Configure and export the API-key variable yourself.`
+          });
+          capabilities.push({ id: "endpoint", label: "Endpoint reachable", available: true, required: true });
+          return { ...base, authentication: "unauthenticated", status: "unauthenticated", capabilities, diagnostics, supportLevel: "production" };
+        }
+        diagnostics.push({
+          severity: "error",
+          code: "RUNNER_ENDPOINT_UNREACHABLE",
+          message: `The endpoint is unreachable: ${this.redact(models.detail)}. Start the server or fix the profile baseUrl.`
+        });
+        capabilities.push({ id: "endpoint", label: "Endpoint reachable", available: false, required: true });
+        return { ...base, status: "unavailable", capabilities, diagnostics, supportLevel: "unavailable" };
+      }
+      capabilities.push({ id: "endpoint", label: "Endpoint reachable (GET /models)", available: true, required: true });
+      capabilities.push({ id: "model-list", label: "Model listing", available: true, required: false });
+    } else {
+      diagnostics.push({
+        severity: "info",
+        code: "RUNNER_REACHABILITY_NOT_PROBED",
+        message: 'Endpoint reachability was not probed: the profile declares no safe non-inference request (set "modelsEndpoint": true when the endpoint supports GET /models). Use "specbridge runner test <profile> --network" for a bounded inference probe.'
+      });
+    }
+    let status = "available";
+    if (this.config.model === null) {
+      status = "misconfigured";
+      diagnostics.push({
+        severity: "error",
+        code: "RUNNER_MODEL_NOT_CONFIGURED",
+        message: 'No model is configured for this profile. SpecBridge never selects or guesses a model \u2014 set "model" explicitly (use "specbridge runner models <profile>" when the endpoint lists models).'
+      });
+      capabilities.push({ id: "configured-model", label: "Configured model present", available: false, required: true });
+    } else {
+      capabilities.push({ id: "configured-model", label: "Configured model present", available: true, required: true });
+    }
+    if (keyConfigured && !keyPresent) status = "misconfigured";
+    return { ...base, status, capabilities, diagnostics, supportLevel: "production" };
+  }
+  executionBoundaryNote(_policy) {
+    return "Model API (authoring only): no repository access, no tools, no shell, no source modification; the returned document is an unapproved candidate.";
+  }
+  async listModels(context) {
+    if (!this.config.modelsEndpoint) {
+      return {
+        supported: false,
+        models: [],
+        detail: 'This profile does not declare a supported /models endpoint (set "modelsEndpoint": true when it exists). SpecBridge never guesses model names and never lists models by inference.'
+      };
+    }
+    const url = this.urlValidation();
+    if (!url.ok) {
+      return { supported: true, models: [], detail: `baseUrl invalid: ${url.problems.join("; ")}` };
+    }
+    const signal = context.timeoutMs !== void 0 ? AbortSignal.timeout(context.timeoutMs) : void 0;
+    const result = await safeHttpRequest({
+      method: "GET",
+      url: this.endpointUrl("/models"),
+      timeoutMs: Math.min(context.timeoutMs ?? 15e3, 15e3),
+      maxResponseBytes: 1024 * 1024,
+      expectJson: true,
+      headers: this.requestHeaders(),
+      maxRedirects: 3,
+      ...signal !== void 0 ? { signal } : {}
+    });
+    if (!result.ok) {
+      return { supported: true, models: [], detail: `model listing failed: ${this.redact(result.detail)}` };
+    }
+    const parsed = openAiModelsResponseSchema.safeParse(safeJson3(result.bodyText));
+    if (!parsed.success) {
+      return { supported: true, models: [], detail: "the endpoint returned an unexpected model list shape" };
+    }
+    return {
+      supported: true,
+      // Only fields the endpoint actually reports — capabilities are never
+      // inferred from a model name or provider branding.
+      models: parsed.data.data.map((model) => ({
+        name: model.id,
+        ...model.owned_by !== void 0 ? { family: model.owned_by } : {},
+        ...model.created !== void 0 ? { modifiedAt: new Date(model.created * 1e3).toISOString() } : {},
+        location: url.loopback ? "local" : "remote"
+      }))
+    };
+  }
+  async generateStage(input, execution) {
+    const started = Date.now();
+    const failure = (problem, rawStdout = "") => ({
+      runner: this.name,
+      outcome: problem.outcome,
+      failureReason: problem.failureReason,
+      rawStdout,
+      rawStderr: "",
+      durationMs: Math.max(0, Date.now() - started),
+      warnings: [],
+      error: problem.error,
+      cost: { currency: null, amount: null, source: "unavailable" }
+    });
+    const url = this.urlValidation();
+    if (!url.ok) {
+      return failure({
+        outcome: "failed",
+        failureReason: `the profile baseUrl is invalid: ${url.problems.join("; ")}`,
+        error: runnerError({
+          code: "invalid_configuration",
+          message: `The openai-compatible profile baseUrl is invalid: ${url.problems.join("; ")}`
+        })
+      });
+    }
+    const model = execution.model ?? this.config.model;
+    if (model === null || model === void 0) {
+      return failure({
+        outcome: "failed",
+        failureReason: "no model is configured for this profile",
+        error: runnerError({
+          code: "invalid_configuration",
+          message: "No model is configured; SpecBridge never selects one automatically.",
+          remediation: ['Set "model" on the profile explicitly.']
+        })
+      });
+    }
+    if (input.prompt.length > this.config.maximumInputCharacters) {
+      return failure({
+        outcome: "failed",
+        failureReason: `the assembled prompt (${input.prompt.length} characters) exceeds maximumInputCharacters (${this.config.maximumInputCharacters})`,
+        error: runnerError({
+          code: "invalid_configuration",
+          message: "The authoring input exceeds the configured size limit for this profile.",
+          remediation: ["Reduce the spec/steering context or raise maximumInputCharacters explicitly."]
+        })
+      });
+    }
+    const messages = [{ role: "user", content: input.prompt }];
+    if (input.correction !== void 0) {
+      messages.push(
+        { role: "assistant", content: input.correction.previousOutput },
+        {
+          role: "user",
+          content: `Your previous response was not a valid structured result. Validation problems: ${input.correction.problems}. Return ONLY one corrected JSON document matching the required schema \u2014 no prose, no code fences.`
+        }
+      );
+    }
+    const attempt = await this.requestOnce(model, messages, this.config.structuredOutput, execution);
+    if (!attempt.ok) {
+      if (attempt.unsupportedMode && this.config.allowStructuredOutputFallback && weakerStructuredOutputMode(this.config.structuredOutput) !== void 0) {
+        const weaker = weakerStructuredOutputMode(this.config.structuredOutput);
+        const retry = await this.requestOnce(model, messages, weaker, execution);
+        if (retry.ok) {
+          const result = this.mapCompleted(retry.body, retry.mode, model, started);
+          result.warnings.push(
+            `the endpoint rejected structured-output mode "${this.config.structuredOutput}"; the profile explicitly allows fallback and "${weaker}" was used`
+          );
+          return result;
+        }
+        return failure(retry.failure, retry.retained ?? "");
+      }
+      if (attempt.unsupportedMode) {
+        return failure(
+          {
+            outcome: "failed",
+            failureReason: `the endpoint does not support structured-output mode "${this.config.structuredOutput}"`,
+            error: runnerError({
+              code: "structured_output_unsupported",
+              message: `The endpoint rejected structured-output mode "${this.config.structuredOutput}".`,
+              remediation: [
+                'Configure a mode the endpoint supports (json-object or strict-json-prompt), or set "allowStructuredOutputFallback": true to permit the explicit downgrade.'
+              ]
+            })
+          },
+          attempt.retained ?? ""
+        );
+      }
+      return failure(attempt.failure, attempt.retained ?? "");
+    }
+    return this.mapCompleted(attempt.body, attempt.mode, model, started);
+  }
+  async requestOnce(model, messages, mode, execution) {
+    const path64 = this.config.apiStyle === "chat-completions" ? "/chat/completions" : "/responses";
+    const result = await safeHttpRequest({
+      method: "POST",
+      url: this.endpointUrl(path64),
+      body: buildOpenAiRequestBody(this.config.apiStyle, {
+        model,
+        messages,
+        temperature: this.config.temperature,
+        structuredOutput: mode,
+        jsonSchema: STAGE_RUNNER_REPORT_JSON_SCHEMA,
+        schemaName: "stage_runner_report"
+      }),
+      timeoutMs: execution.timeoutMs,
+      maxResponseBytes: this.config.maximumOutputBytes,
+      expectJson: true,
+      headers: this.requestHeaders(),
+      maxRedirects: 3,
+      ...execution.signal !== void 0 ? { signal: execution.signal } : {}
+    });
+    if (!result.ok) {
+      const unsupportedMode = mode !== "strict-json-prompt" && result.kind === "http-error" && indicatesStructuredOutputUnsupported(result.status, result.bodyExcerpt);
+      return {
+        ok: false,
+        failure: classifyHttpFailure2(result, (text) => this.redact(text)),
+        unsupportedMode,
+        ...result.kind === "http-error" && result.bodyExcerpt !== void 0 ? { retained: this.redact(result.bodyExcerpt) } : {}
+      };
+    }
+    return { ok: true, body: result.bodyText, mode };
+  }
+  mapCompleted(bodyText, mode, model, started) {
+    const retained = this.redact(bodyText);
+    const parsed = parseOpenAiResponse(this.config.apiStyle, bodyText);
+    const usage = {
+      model: parsed.model ?? model,
+      inputTokens: parsed.usage?.inputTokens ?? null,
+      cachedInputTokens: parsed.usage?.cachedInputTokens ?? null,
+      outputTokens: parsed.usage?.outputTokens ?? null,
+      reasoningTokens: null,
+      requestCount: 1,
+      durationMs: Math.max(0, Date.now() - started)
+    };
+    const base = {
+      runner: this.name,
+      rawStdout: retained,
+      rawStderr: "",
+      durationMs: Math.max(0, Date.now() - started),
+      warnings: [],
+      usage,
+      cost: { currency: null, amount: null, source: "unavailable" }
+    };
+    if (parsed.text === void 0) {
+      return {
+        ...base,
+        outcome: "malformed-output",
+        failureReason: parsed.problem ?? "the endpoint returned no usable content",
+        error: runnerError({
+          code: "api_error",
+          message: `The endpoint response could not be used: ${parsed.problem ?? "no content"}.`,
+          retryable: false
+        })
+      };
+    }
+    const candidate = strictJsonParse4(parsed.text);
+    const report = candidate === void 0 ? void 0 : stageRunnerReportSchema.safeParse(candidate);
+    if (report === void 0 || !report.success) {
+      const problems = report !== void 0 && !report.success ? report.error.issues.map((issue2) => `${issue2.path.join(".") || "(root)"}: ${issue2.message}`).join("; ") : "the response content is not a bare JSON document";
+      return {
+        ...base,
+        outcome: "malformed-output",
+        failureReason: `structured output invalid (${mode}): ${problems}`,
+        error: runnerError({
+          code: "structured_output_invalid",
+          message: "The model response did not validate against the stage report schema.",
+          details: { problems: problems.slice(0, 2e3) }
+        }),
+        // Retained for inspection and the bounded correction retry; never
+        // applied. (Bounded: the transport already enforces response limits.)
+        invalidStructuredOutput: parsed.text.length > 1e5 ? parsed.text.slice(0, 1e5) : parsed.text
+      };
+    }
+    return {
+      ...base,
+      outcome: "completed",
+      report: report.data
+    };
+  }
+  /**
+   * Task execution is NOT a capability of a model-API runner. Selection
+   * rejects the operation before any request; this defensive implementation
+   * exists only to satisfy the AgentRunner interface and performs no HTTP
+   * request and no repository access.
+   */
+  executeTask(_input, _execution) {
+    return Promise.resolve({
+      runner: this.name,
+      outcome: "failed",
+      failureReason: "the openai-compatible runner is authoring-only: it cannot execute implementation tasks and never modifies repository files",
+      rawStdout: "",
+      rawStderr: "",
+      durationMs: 0,
+      warnings: [],
+      resumeSupported: false,
+      error: runnerError({
+        code: "unsupported_operation",
+        message: "Model API runners cannot execute implementation tasks.",
+        remediation: ["Use an agent CLI profile (claude-code or codex-cli) for task execution."]
+      }),
+      cost: { currency: null, amount: null, source: "unavailable" }
+    });
+  }
+  /** Minimal bounded structured-output probe (`runner test --network`). */
+  async selfTest(execution) {
+    const result = await this.generateStage(
+      {
+        specName: "runner-self-test",
+        stage: "requirements",
+        intent: "generate",
+        prompt: 'This is a connectivity self test. Reply with exactly one JSON document: {"schemaVersion":"1.0.0","stage":"requirements","markdown":"# Self Test","summary":"self test"} and nothing else.',
+        promptVersion: "self-test",
+        toolPolicy: "read-only"
+      },
+      { ...execution, timeoutMs: Math.min(execution.timeoutMs, 6e4) }
+    );
+    return {
+      ok: result.outcome === "completed" && result.report !== void 0,
+      detail: result.outcome === "completed" ? "structured output validated" : result.failureReason ?? `self test failed (${result.outcome})`,
+      ...result.usage !== void 0 ? { usage: result.usage } : {}
+    };
+  }
+};
+function safeJson3(raw) {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return void 0;
+  }
+}
+function strictJsonParse4(raw) {
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return void 0;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return void 0;
+  }
+}
+var ANTIGRAVITY_DECLARED_CAPABILITIES = capabilitySet([]);
+var ANTIGRAVITY_OBSERVATION_PROBES = [
+  { id: "headless", label: "Documented headless invocation", tokens: ["--prompt", "--non-interactive", "--headless"] },
+  { id: "machine-readable", label: "Documented machine-readable output", tokens: ["--output-format", "--json"] },
+  { id: "structured-final-output", label: "Documented structured final output", tokens: ["json"] },
+  { id: "sandbox", label: "Documented sandbox / permission controls", tokens: ["--sandbox", "--approval-mode"] },
+  { id: "workspace-write-control", label: "Documented workspace-write controls", tokens: ["--allowed-tools", "workspace-write"] },
+  { id: "session-identity", label: "Documented session identity", tokens: ["--list-sessions", "--session"] },
+  { id: "resume", label: "Documented session resume", tokens: ["--resume"] }
+];
+var PROBE_TIMEOUT_MS5 = 15e3;
+function tokenPresent3(helpText, token) {
+  const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|[\\s,=<[|])${escaped}(?![\\w-])`, "m").test(helpText);
+}
+var AntigravityCliRunner = class {
+  name = "antigravity-cli";
+  kind = "antigravity-cli";
+  category = "experimental";
+  declaredCapabilities = ANTIGRAVITY_DECLARED_CAPABILITIES;
+  /** Experimental in v0.6.1 — never selected automatically, never production. */
+  declaredSupportLevel = "experimental";
+  config;
+  constructor(config2) {
+    this.config = antigravityProfileSchema.parse({ runner: "antigravity-cli", ...config2 ?? {} });
+  }
+  async detect(context) {
+    const diagnostics = [];
+    const base = {
+      runner: this.name,
+      kind: "antigravity-cli",
+      executable: this.config.command.executable,
+      // No safe offline status command is documented; credential files and
+      // private session stores are never read.
+      authentication: "unknown",
+      category: this.category,
+      capabilitySet: ANTIGRAVITY_DECLARED_CAPABILITIES,
+      networkBacked: false
+    };
+    const emptyCapabilities = () => ANTIGRAVITY_OBSERVATION_PROBES.map((probe) => ({
+      id: probe.id,
+      label: probe.label,
+      available: false,
+      required: false
+    }));
+    if (!this.config.enabled) {
+      diagnostics.push({
+        severity: "error",
+        code: "RUNNER_DISABLED",
+        message: "This Antigravity profile is disabled in .specbridge/config.json (enabled = false). It is experimental: enabling it only unlocks diagnostics, never automation."
+      });
+      return {
+        ...base,
+        status: "misconfigured",
+        capabilities: emptyCapabilities(),
+        diagnostics,
+        supportLevel: "experimental"
+      };
+    }
+    const timeoutMs = Math.min(context.timeoutMs ?? PROBE_TIMEOUT_MS5, this.config.timeoutMs);
+    const invoke = (argv2) => runSafeProcess({
+      executable: this.config.command.executable,
+      argv: [...this.config.command.args, ...argv2],
+      cwd: process.cwd(),
+      timeoutMs,
+      maxStdoutBytes: 1024 * 1024,
+      maxStderrBytes: 256 * 1024
+    });
+    const versionResult = await invoke(["--version"]);
+    if (versionResult.status === "spawn-failed") {
+      diagnostics.push({
+        severity: "error",
+        code: "RUNNER_EXECUTABLE_NOT_FOUND",
+        message: `Antigravity executable "${this.config.command.executable}" could not be started. Install it yourself or set the profile command in .specbridge/config.json.`
+      });
+      return {
+        ...base,
+        status: "unavailable",
+        capabilities: emptyCapabilities(),
+        diagnostics,
+        supportLevel: "experimental"
+      };
+    }
+    if (versionResult.status === "timeout") {
+      diagnostics.push({
+        severity: "error",
+        code: "RUNNER_INTERACTIVE_ONLY",
+        message: '"--version" did not return: the executable appears to start an interactive session. SpecBridge never automates a TUI (no PTY, no keystrokes, no screen scraping) \u2014 automation stays disabled.'
+      });
+      return {
+        ...base,
+        status: "incompatible",
+        capabilities: emptyCapabilities(),
+        diagnostics,
+        supportLevel: "experimental"
+      };
+    }
+    if (versionResult.status !== "ok") {
+      diagnostics.push({
+        severity: "error",
+        code: "RUNNER_VERSION_FAILED",
+        message: `"${this.config.command.executable} --version" ${versionResult.failureReason ?? "produced no output"}.`
+      });
+      return {
+        ...base,
+        status: "error",
+        capabilities: emptyCapabilities(),
+        diagnostics,
+        supportLevel: "experimental"
+      };
+    }
+    const version2 = versionResult.stdout.trim().split(/\r?\n/)[0]?.trim();
+    const help = await invoke(["--help"]);
+    const helpText = `${help.stdout}
+${help.stderr}`;
+    const helpUsable = help.status === "ok" && helpText.trim().length > 0;
+    const interactiveOnly = help.status === "timeout" || helpUsable && /interactive|tui/i.test(helpText) && !/--prompt|--non-interactive|--headless/i.test(helpText);
+    const capabilities = ANTIGRAVITY_OBSERVATION_PROBES.map((probe) => {
+      const available = helpUsable && probe.tokens.some((token) => tokenPresent3(helpText, token));
+      return {
+        id: probe.id,
+        label: probe.label,
+        available,
+        required: false,
+        detail: available ? "detected in help output \u2014 automation still stays disabled in v0.6.1" : "not proven for this installation"
+      };
+    });
+    const notProven = capabilities.filter((capability) => !capability.available);
+    if (interactiveOnly) {
+      diagnostics.push({
+        severity: "warning",
+        code: "RUNNER_INTERACTIVE_ONLY",
+        message: "This installation documents only an interactive workflow. SpecBridge never automates a TUI (no PTY, no keystroke injection, no ANSI screen parsing)."
+      });
+    }
+    if (notProven.length > 0) {
+      diagnostics.push({
+        severity: "info",
+        code: "RUNNER_CAPABILITY_NOT_PROVEN",
+        message: `Not proven for this installation: ${notProven.map((capability) => capability.label.toLowerCase()).join("; ")}.`
+      });
+    }
+    diagnostics.push({
+      severity: "info",
+      code: "RUNNER_EXPERIMENTAL",
+      message: "Antigravity support is experimental: executable and capability diagnostics only. Stage authoring, task execution, and resume are disabled until a documented, headless, structured-output contract passes the applicable conformance suite (not in v0.6.1)."
+    });
+    const status = helpUsable || help.status === "timeout" ? "available" : "error";
+    return {
+      ...base,
+      status,
+      ...version2 !== void 0 && version2.length > 0 ? { version: version2 } : {},
+      capabilities,
+      diagnostics,
+      supportLevel: "experimental"
+    };
+  }
+  executionBoundaryNote(_policy) {
+    return "Experimental: detection and diagnostics only; no authoring, no task execution, no automation.";
+  }
+  refusal() {
+    return {
+      runner: this.name,
+      outcome: "failed",
+      failureReason: "the antigravity-cli adapter is experimental: it detects capabilities only and never executes authoring or tasks",
+      rawStdout: "",
+      rawStderr: "",
+      durationMs: 0,
+      warnings: [],
+      error: runnerError({
+        code: "unsupported_operation",
+        message: "The experimental Antigravity adapter performs detection only in v0.6.1.",
+        remediation: [
+          "Use a claude-code, codex-cli, or gemini-cli profile for execution, or an authoring profile for spec drafting."
+        ]
+      })
+    };
+  }
+  /** Selection refuses every operation first; these are defense in depth. */
+  generateStage(_input, _execution) {
+    return Promise.resolve(this.refusal());
+  }
+  executeTask(_input, _execution) {
+    return Promise.resolve({ ...this.refusal(), resumeSupported: false });
+  }
+};
 var RunnerRegistry = class {
   profiles = /* @__PURE__ */ new Map();
   registerProfile(profile) {
@@ -40435,8 +42644,14 @@ function instantiateRunner(config2) {
       return new ClaudeCodeRunner(config2);
     case "codex-cli":
       return new CodexCliRunner(config2);
+    case "gemini-cli":
+      return new GeminiCliRunner(config2);
     case "ollama":
       return new OllamaRunner(config2);
+    case "openai-compatible":
+      return new OpenAiCompatibleRunner(config2);
+    case "antigravity-cli":
+      return new AntigravityCliRunner(config2);
     case "mock":
       return new MockRunner(config2);
   }
@@ -40606,7 +42821,7 @@ function composeNormalizedResult(context, result) {
   });
 }
 function profileTransport(config2) {
-  if (config2.runner === "ollama") {
+  if (config2.runner === "ollama" || config2.runner === "openai-compatible") {
     const url = validateRunnerBaseUrl(config2.baseUrl, {
       allowInsecureHttp: config2.allowInsecureHttp
     });
@@ -40622,11 +42837,11 @@ function profileTransport(config2) {
   return { networkBacked: false, localExecution: false };
 }
 function profileModel(config2) {
-  if (config2.runner === "mock") return null;
+  if (config2.runner === "mock" || config2.runner === "antigravity-cli") return null;
   return config2.model ?? null;
 }
-function declaredSupportLevel(_profile) {
-  return "production";
+function declaredSupportLevel(profile) {
+  return profile.runner.declaredSupportLevel ?? "production";
 }
 function constraintsFor(profile, operation) {
   const constraints = [];
@@ -40634,8 +42849,11 @@ function constraintsFor(profile, operation) {
     operation === "task-execution" || operation === "task-resume" ? "implementation" : "read-only"
   );
   if (boundary !== void 0) constraints.push(boundary);
-  if (profile.config.runner === "ollama") {
+  if (profile.config.runner === "ollama" || profile.config.runner === "openai-compatible") {
     constraints.push("Task execution and repository writes are not capabilities of this runner.");
+  }
+  if (profile.config.runner === "openai-compatible" && profile.config.allowInsecureHttp) {
+    constraints.push("INSECURE development override: plain HTTP to a remote endpoint is explicitly allowed.");
   }
   constraints.push("No commits, no pushes, no checkbox updates by the provider; evidence stays provider-independent.");
   return constraints;
@@ -40866,6 +43084,58 @@ function retryBackoffMs(retryIndex, jitterRatio = 0.2) {
   const base = Math.min(4e3, 250 * 2 ** retryIndex);
   const jitter = Math.floor(base * jitterRatio * Math.random());
   return base + jitter;
+}
+function runnerMatrixRows(profiles) {
+  return profiles.map((profile) => {
+    const operations = new Set(profileOperations(profile));
+    return {
+      profile: profile.name,
+      implementation: profile.runner.name,
+      category: profile.runner.category,
+      support: profile.runner.declaredSupportLevel ?? "production",
+      enabled: profile.config.enabled !== false,
+      author: operations.has("stage-generation"),
+      refine: operations.has("stage-refinement"),
+      execute: operations.has("task-execution"),
+      resume: operations.has("task-resume"),
+      local: profileTransport(profile.config).localExecution
+    };
+  });
+}
+function renderRunnerMatrixMarkdown(rows) {
+  const lines = [
+    "| Profile | Support | Author | Refine | Execute | Resume | Local |",
+    "|---------|---------|--------|--------|---------|--------|-------|"
+  ];
+  for (const row of rows) {
+    const yn = (value) => value ? "yes" : "no";
+    lines.push(
+      `| ${row.profile} | ${row.support} | ${yn(row.author)} | ${yn(row.refine)} | ${yn(row.execute)} | ${yn(row.resume)} | ${yn(row.local)} |`
+    );
+  }
+  return `${lines.join("\n")}
+`;
+}
+function runnerProfileSummary(profile) {
+  const transport = profileTransport(profile.config);
+  return {
+    profile: profile.name,
+    implementation: profile.runner.name,
+    category: profile.runner.category,
+    supportLevel: profile.runner.declaredSupportLevel ?? "production",
+    enabled: profile.config.enabled !== false,
+    model: profileModel(profile.config),
+    networkBacked: transport.networkBacked,
+    localExecution: transport.localExecution,
+    supportedOperations: profileOperations(profile)
+  };
+}
+function redactedRunnerProfileConfig(profile) {
+  const redacted = {};
+  for (const [key, value] of Object.entries(profile.config)) {
+    redacted[key] = /key|token|secret|password|credential/i.test(key) ? "<redacted>" : value;
+  }
+  return redacted;
 }
 function conformanceStagePrompt(stage) {
   return [
@@ -41217,12 +43487,13 @@ async function runRunnerConformance(context, executionGroups = []) {
     0
   );
   const skippedChecks = groups.reduce((sum, group) => sum + group.skipped, 0);
+  const declaredProduction = (context.profile.runner.declaredSupportLevel ?? "production") === "production";
   return {
     runner: context.profile.runner.name,
     profile: context.profile.name,
     groups,
     passed: failedChecks === 0,
-    productionConfirmed: failedChecks === 0 && skippedChecks === 0,
+    productionConfirmed: failedChecks === 0 && skippedChecks === 0 && declaredProduction,
     skippedChecks,
     failedChecks
   };
@@ -49168,34 +51439,6 @@ var OPERATION_SHORT = {
   "model-list": "Models",
   "runner-test": "Test"
 };
-function matrixRows(profiles) {
-  return profiles.map((profile) => {
-    const operations = new Set(profileOperations(profile));
-    return {
-      profile: profile.name,
-      support: "production",
-      author: operations.has("stage-generation"),
-      refine: operations.has("stage-refinement"),
-      execute: operations.has("task-execution"),
-      resume: operations.has("task-resume"),
-      local: profileTransport(profile.config).localExecution
-    };
-  });
-}
-function renderMatrixMarkdown(rows) {
-  const lines = [
-    "| Profile | Support | Author | Refine | Execute | Resume | Local |",
-    "|---------|---------|--------|--------|---------|--------|-------|"
-  ];
-  for (const row of rows) {
-    const yn = (value) => value ? "yes" : "no";
-    lines.push(
-      `| ${row.profile} | ${row.support} | ${yn(row.author)} | ${yn(row.refine)} | ${yn(row.execute)} | ${yn(row.resume)} | ${yn(row.local)} |`
-    );
-  }
-  return `${lines.join("\n")}
-`;
-}
 function printDoctorReport(runtime, profile, detection, verbose) {
   runtime.out(reportTitle(`Runner profile: ${profile.name}`));
   runtime.out(`Implementation: ${detection.runner} (${detection.category})`);
@@ -49339,7 +51582,7 @@ Examples:
   });
   runner.command("matrix").description("Capability matrix generated from registered runner metadata").option("--json", "output a machine-readable JSON report").option("--markdown", "output a Markdown table (used to generate docs)").action((options) => {
     const { registry: registry2 } = loadExecutionContext(runtime);
-    const rows = matrixRows(registry2.listProfiles());
+    const rows = runnerMatrixRows(registry2.listProfiles());
     if (options.json === true) {
       runtime.outRaw(
         serializeJsonReport(
@@ -49349,7 +51592,7 @@ Examples:
       return;
     }
     if (options.markdown === true) {
-      runtime.outRaw(renderMatrixMarkdown(rows));
+      runtime.outRaw(renderRunnerMatrixMarkdown(rows));
       return;
     }
     runtime.out(reportTitle("Runner Capability Matrix"));
@@ -49659,8 +51902,15 @@ Examples:
               "production status is confirmed only when nothing is skipped (rerun with --network)"
             )
           );
-        } else {
+        } else if (result.productionConfirmed) {
           runtime.out(okLine("All applicable conformance checks passed \u2014 production confirmed."));
+        } else {
+          runtime.out(
+            warnLine(
+              "All applicable conformance checks passed.",
+              "production is never confirmed for a preview/experimental adapter"
+            )
+          );
         }
       }
       runtime.exitCode = result.passed ? EXIT_CODES.ok : EXIT_CODES.gateFailure;
@@ -50377,7 +52627,7 @@ Examples:
   });
 }
 
-// ../../packages/mcp-server/dist/chunk-YZA6C4OQ.js
+// ../../packages/mcp-server/dist/chunk-GHY7GLQQ.js
 var import_buffer5 = require("buffer");
 var import_fs30 = require("fs");
 var import_path34 = __toESM(require("path"), 1);
@@ -60447,13 +62697,13 @@ var McpServer = class {
     }
     return registeredPrompt;
   }
-  _createRegisteredTool(name, title, description, inputSchema17, outputSchema22, annotations, execution, _meta, handler) {
+  _createRegisteredTool(name, title, description, inputSchema20, outputSchema26, annotations, execution, _meta, handler) {
     validateAndWarnToolName(name);
     const registeredTool = {
       title,
       description,
-      inputSchema: getZodSchemaObject(inputSchema17),
-      outputSchema: getZodSchemaObject(outputSchema22),
+      inputSchema: getZodSchemaObject(inputSchema20),
+      outputSchema: getZodSchemaObject(outputSchema26),
       annotations,
       execution,
       _meta,
@@ -60503,8 +62753,8 @@ var McpServer = class {
       throw new Error(`Tool ${name} is already registered`);
     }
     let description;
-    let inputSchema17;
-    let outputSchema22;
+    let inputSchema20;
+    let outputSchema26;
     let annotations;
     if (typeof rest[0] === "string") {
       description = rest.shift();
@@ -60512,7 +62762,7 @@ var McpServer = class {
     if (rest.length > 1) {
       const firstArg = rest[0];
       if (isZodRawShapeCompat(firstArg)) {
-        inputSchema17 = rest.shift();
+        inputSchema20 = rest.shift();
         if (rest.length > 1 && typeof rest[0] === "object" && rest[0] !== null && !isZodRawShapeCompat(rest[0])) {
           annotations = rest.shift();
         }
@@ -60524,7 +62774,7 @@ var McpServer = class {
       }
     }
     const callback = rest[0];
-    return this._createRegisteredTool(name, void 0, description, inputSchema17, outputSchema22, annotations, { taskSupport: "forbidden" }, void 0, callback);
+    return this._createRegisteredTool(name, void 0, description, inputSchema20, outputSchema26, annotations, { taskSupport: "forbidden" }, void 0, callback);
   }
   /**
    * Registers a tool with a config object and callback.
@@ -60533,8 +62783,8 @@ var McpServer = class {
     if (this._registeredTools[name]) {
       throw new Error(`Tool ${name} is already registered`);
     }
-    const { title, description, inputSchema: inputSchema17, outputSchema: outputSchema22, annotations, _meta } = config2;
-    return this._createRegisteredTool(name, title, description, inputSchema17, outputSchema22, annotations, { taskSupport: "forbidden" }, _meta, cb);
+    const { title, description, inputSchema: inputSchema20, outputSchema: outputSchema26, annotations, _meta } = config2;
+    return this._createRegisteredTool(name, title, description, inputSchema20, outputSchema26, annotations, { taskSupport: "forbidden" }, _meta, cb);
   }
   prompt(name, ...rest) {
     if (this._registeredPrompts[name]) {
@@ -60709,10 +62959,13 @@ var EMPTY_COMPLETION_RESULT = {
   }
 };
 
-// ../../packages/mcp-server/dist/chunk-YZA6C4OQ.js
+// ../../packages/mcp-server/dist/chunk-GHY7GLQQ.js
 var import_fs31 = require("fs");
 var import_fs32 = require("fs");
 var import_path36 = __toESM(require("path"), 1);
+var import_fs33 = require("fs");
+var import_os = __toESM(require("os"), 1);
+var import_path37 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 var import_node_process11 = __toESM(require("process"), 1);
@@ -60806,9 +63059,9 @@ var StdioServerTransport = class {
   }
 };
 
-// ../../packages/mcp-server/dist/chunk-YZA6C4OQ.js
+// ../../packages/mcp-server/dist/chunk-GHY7GLQQ.js
 var MCP_SERVER_NAME = "specbridge";
-var MCP_SERVER_VERSION = "0.6.0";
+var MCP_SERVER_VERSION = "0.6.1";
 var MCP_SERVER_TITLE = "SpecBridge";
 var MCP_SDK_VERSION = "1.29.0";
 var MCP_PROTOCOL_BASELINE = "2025-11-25";
@@ -64033,6 +66286,376 @@ ${commandLines.join("\n")}` : "No verification commands are configured.",
     })
   });
 }
+function loadRunnerToolContext(context) {
+  const workspace = context.requireWorkspace();
+  const config2 = requireAgentConfig(workspace);
+  return { workspace, config: config2, registry: createDefaultRunnerRegistry(config2) };
+}
+function requireProfile(registry2, name) {
+  if (!registry2.has(name)) {
+    throw new McpToolError(
+      "SBMCP002",
+      `Unknown runner profile "${name}". Configured profiles: ${registry2.listProfiles().map((profile) => profile.name).join(", ")}.`,
+      { remediation: ["Call runner_list to see every configured profile."] }
+    );
+  }
+  return registry2.getProfile(name);
+}
+var RUNNER_PROBE_TIMEOUT_MS = 2e4;
+var capabilitySetShape2 = external_exports.record(external_exports.boolean()).describe("Provider-independent capability keys to booleans");
+var profileSummaryShape = external_exports.object({
+  profile: external_exports.string(),
+  implementation: external_exports.string(),
+  category: external_exports.string(),
+  supportLevel: external_exports.string().describe("Adapter-declared support level"),
+  enabled: external_exports.boolean(),
+  model: external_exports.string().nullable(),
+  networkBacked: external_exports.boolean().describe("True when SpecBridge itself would leave this machine"),
+  localExecution: external_exports.boolean(),
+  supportedOperations: external_exports.array(external_exports.string())
+});
+var detectionCapabilityShape = external_exports.object({
+  id: external_exports.string(),
+  label: external_exports.string(),
+  available: external_exports.boolean(),
+  required: external_exports.boolean(),
+  detail: external_exports.string().optional()
+});
+var runnerDiagnosticShape = external_exports.object({
+  severity: external_exports.enum(["info", "warning", "error"]),
+  code: external_exports.string(),
+  message: external_exports.string()
+});
+var detectionViewShape = external_exports.object({
+  status: external_exports.string(),
+  supportLevel: external_exports.string().describe("Effective support level after detection"),
+  version: external_exports.string().nullable(),
+  authentication: external_exports.string(),
+  networkBacked: external_exports.boolean(),
+  capabilities: external_exports.array(detectionCapabilityShape),
+  detectedCapabilities: capabilitySetShape2,
+  diagnostics: external_exports.array(runnerDiagnosticShape)
+});
+var MAX_DIAGNOSTICS = 50;
+function toDetectionView(detection, verbose) {
+  const diagnostics = (verbose ? detection.diagnostics : detection.diagnostics.filter((diagnostic) => diagnostic.severity !== "info")).slice(0, MAX_DIAGNOSTICS);
+  return {
+    status: detection.status,
+    supportLevel: detection.supportLevel,
+    version: detection.version ?? null,
+    authentication: detection.authentication,
+    networkBacked: detection.networkBacked,
+    capabilities: detection.capabilities.map((capability) => ({
+      id: String(capability.id),
+      label: capability.label,
+      available: capability.available,
+      required: capability.required,
+      ...capability.detail !== void 0 ? { detail: capability.detail } : {}
+    })),
+    detectedCapabilities: detection.capabilitySet,
+    diagnostics: diagnostics.map((diagnostic) => ({
+      severity: diagnostic.severity,
+      code: diagnostic.code,
+      message: diagnostic.message
+    }))
+  };
+}
+var conformanceSummaryShape = external_exports.object({
+  passed: external_exports.boolean(),
+  productionConfirmed: external_exports.boolean(),
+  failedChecks: external_exports.number().int(),
+  skippedChecks: external_exports.number().int(),
+  groups: external_exports.array(
+    external_exports.object({
+      group: external_exports.string(),
+      applicable: external_exports.boolean(),
+      reason: external_exports.string().optional(),
+      passed: external_exports.boolean(),
+      skipped: external_exports.number().int()
+    })
+  ),
+  note: external_exports.string()
+});
+async function invocationFreeConformanceSummary(profile) {
+  const scratch = (0, import_fs33.mkdtempSync)(import_path37.default.join(import_os.default.tmpdir(), "specbridge-mcp-conformance-"));
+  let result;
+  try {
+    result = await runRunnerConformance({
+      profile,
+      workspaceRoot: scratch,
+      runDir: import_path37.default.join(scratch, ".specbridge-conformance-runs"),
+      invocationsAllowed: false,
+      timeoutMs: RUNNER_PROBE_TIMEOUT_MS
+    });
+  } finally {
+    (0, import_fs33.rmSync)(scratch, { recursive: true, force: true });
+  }
+  return {
+    passed: result.passed,
+    productionConfirmed: result.productionConfirmed,
+    failedChecks: result.failedChecks,
+    skippedChecks: result.skippedChecks,
+    groups: result.groups.map((group) => ({
+      group: group.group,
+      applicable: group.applicable,
+      ...group.reason !== void 0 ? { reason: group.reason } : {},
+      passed: group.passed,
+      skipped: group.skipped
+    })),
+    note: 'Invocation-free summary: checks that would invoke the provider are skipped here. Run "specbridge runner conformance <profile> --network" for the full suite.'
+  };
+}
+var inputSchema17 = {
+  enabledOnly: external_exports.boolean().optional().describe("Only profiles that are enabled in the configuration"),
+  detect: external_exports.boolean().optional().describe(
+    "Probe availability for the returned page (read-only version/help/reachability probes; slower \u2014 default false)"
+  ),
+  limit: limitArg,
+  cursor: cursorArg
+};
+var outputSchema22 = {
+  defaultRunner: external_exports.string(),
+  profiles: external_exports.array(
+    profileSummaryShape.extend({
+      availability: external_exports.string().optional().describe("Detection status (present when detect=true)")
+    })
+  ),
+  pagination: paginationShape
+};
+function registerRunnerListTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "runner_list",
+    title: "List runner profiles",
+    description: "List configured runner profiles: implementation, category, support level, enabled state, configured model, local/network classification, and supported operations. Optionally probes availability (read-only; never a model request). Supports pagination. Read-only.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true
+    },
+    inputSchema: inputSchema17,
+    outputSchema: outputSchema22,
+    handler: async (args) => {
+      const { workspace, config: config2, registry: registry2 } = loadRunnerToolContext(context);
+      const profiles = registry2.listProfiles().filter((profile) => args.enabledOnly !== true || profile.config.enabled !== false);
+      const page = paginate(profiles, {
+        ...args.limit !== void 0 ? { limit: args.limit } : {},
+        ...args.cursor !== void 0 ? { cursor: args.cursor } : {},
+        token: "runner_list"
+      });
+      const summaries = [];
+      for (const profile of page.items) {
+        const summary = runnerProfileSummary(profile);
+        if (args.detect === true) {
+          const detection = await profile.runner.detect({
+            workspaceRoot: workspace.rootDir,
+            timeoutMs: RUNNER_PROBE_TIMEOUT_MS
+          });
+          summaries.push({ ...summary, availability: detection.status });
+        } else {
+          summaries.push(summary);
+        }
+      }
+      const lines = summaries.map(
+        (summary) => `- ${summary.profile} [${summary.implementation}/${summary.category}] ${summary.enabled ? "enabled" : "disabled"}, support ${summary.supportLevel}${"availability" in summary && summary.availability !== void 0 ? `, ${summary.availability}` : ""}, operations: ${summary.supportedOperations.join(", ") || "(none)"}`
+      );
+      return {
+        text: `${page.totalCount} runner profile(s); default runner: ${config2.defaultRunner}.
+${lines.join("\n")}`,
+        structured: {
+          defaultRunner: config2.defaultRunner,
+          profiles: summaries,
+          pagination: {
+            totalCount: page.totalCount,
+            truncated: page.truncated,
+            ...page.nextCursor !== void 0 ? { nextCursor: page.nextCursor } : {}
+          }
+        }
+      };
+    }
+  });
+}
+var inputSchema18 = {
+  profile: external_exports.string().min(1).max(120).describe('Runner profile name (e.g. "gemini-default")')
+};
+var operationCompatibilityShape = external_exports.object({
+  operation: external_exports.string(),
+  supported: external_exports.boolean(),
+  missingCapabilities: external_exports.array(external_exports.string())
+});
+var outputSchema23 = {
+  summary: profileSummaryShape,
+  configuration: external_exports.record(external_exports.unknown()).describe("Redacted profile configuration (profiles can never store credential values)"),
+  declaredCapabilities: capabilitySetShape2,
+  detection: detectionViewShape,
+  operationCompatibility: external_exports.array(operationCompatibilityShape).describe("Per-operation support from DETECTED capabilities"),
+  conformance: conformanceSummaryShape,
+  boundary: external_exports.object({
+    networkBacked: external_exports.boolean(),
+    localExecution: external_exports.boolean(),
+    constraints: external_exports.array(external_exports.string())
+  }),
+  limitations: external_exports.array(external_exports.string()),
+  remediation: external_exports.array(external_exports.string())
+};
+function registerRunnerShowTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "runner_show",
+    title: "Show a runner profile",
+    description: "Show one runner profile: redacted configuration, declared and detected capabilities, operation compatibility, invocation-free conformance summary, network boundary, known limitations, and remediation. Read-only; never sends a model request.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true
+    },
+    inputSchema: inputSchema18,
+    outputSchema: outputSchema23,
+    handler: async (args) => {
+      const { workspace, registry: registry2 } = loadRunnerToolContext(context);
+      const profile = requireProfile(registry2, args.profile);
+      const summary = runnerProfileSummary(profile);
+      const detection = await profile.runner.detect({
+        workspaceRoot: workspace.rootDir,
+        probeCapabilities: true,
+        timeoutMs: RUNNER_PROBE_TIMEOUT_MS
+      });
+      const detectionView = toDetectionView(detection, true);
+      const conformance = await invocationFreeConformanceSummary(profile);
+      const operationCompatibility = RUNNER_OPERATIONS.filter(
+        (operation) => operation !== "model-list" && operation !== "runner-test"
+      ).map((operation) => {
+        const support = checkOperationSupport(operation, detection.capabilitySet);
+        return {
+          operation,
+          supported: support.supported,
+          missingCapabilities: [
+            ...support.missingCapabilities,
+            ...support.unsatisfiedBoundaries.flat()
+          ]
+        };
+      });
+      const boundaryNote = profile.runner.executionBoundaryNote?.("implementation");
+      const limitations = detectionView.diagnostics.filter((diagnostic) => diagnostic.severity !== "error").map((diagnostic) => diagnostic.message);
+      const remediation = detectionView.diagnostics.filter((diagnostic) => diagnostic.severity === "error").map((diagnostic) => diagnostic.message);
+      const supported = operationCompatibility.filter((entry) => entry.supported).map((entry) => entry.operation);
+      return {
+        text: `Profile ${args.profile} (${summary.implementation}, ${summary.category}): ${summary.enabled ? "enabled" : "disabled"}, status ${detection.status}, support ${detection.supportLevel}. Supported operations (detected): ${supported.join(", ") || "(none)"}.`,
+        structured: {
+          summary,
+          configuration: redactedRunnerProfileConfig(profile),
+          declaredCapabilities: profile.runner.declaredCapabilities,
+          detection: detectionView,
+          operationCompatibility,
+          conformance,
+          boundary: {
+            networkBacked: summary.networkBacked,
+            localExecution: summary.localExecution,
+            constraints: [
+              ...boundaryNote !== void 0 ? [boundaryNote] : [],
+              "No commits, no pushes, no checkbox updates by the provider; evidence stays provider-independent."
+            ]
+          },
+          limitations,
+          remediation
+        }
+      };
+    }
+  });
+}
+var inputSchema19 = {
+  profile: external_exports.string().min(1).max(120).optional().describe("Runner profile name (default: the configured default runner)"),
+  verbose: external_exports.boolean().optional().describe("Include informational diagnostics")
+};
+var outputSchema24 = {
+  profile: external_exports.string(),
+  implementation: external_exports.string(),
+  category: external_exports.string(),
+  enabled: external_exports.boolean(),
+  executable: external_exports.string().nullable().describe("Configured executable or endpoint"),
+  detection: detectionViewShape,
+  ready: external_exports.boolean().describe("True when the runner status is available")
+};
+function registerRunnerDoctorTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "runner_doctor",
+    title: "Diagnose a runner profile",
+    description: "Diagnose one runner profile: executable/endpoint presence, version, authentication state (never via credential files), detected capabilities, and actionable findings. Read-only: never a model request, never a login, never a configuration change.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true
+    },
+    inputSchema: inputSchema19,
+    outputSchema: outputSchema24,
+    handler: async (args) => {
+      const { workspace, config: config2, registry: registry2 } = loadRunnerToolContext(context);
+      const profileName = args.profile ?? config2.defaultRunner;
+      const profile = requireProfile(registry2, profileName);
+      const detection = await profile.runner.detect({
+        workspaceRoot: workspace.rootDir,
+        probeCapabilities: true,
+        timeoutMs: RUNNER_PROBE_TIMEOUT_MS
+      });
+      const view = toDetectionView(detection, args.verbose === true);
+      const findings = view.diagnostics.map((diagnostic) => `- [${diagnostic.severity}] ${diagnostic.message}`).join("\n");
+      return {
+        text: `Runner ${profileName} (${profile.runner.name}): status ${view.status}, support ${view.supportLevel}, authentication ${view.authentication}.${findings.length > 0 ? `
+${findings}` : ""}`,
+        structured: {
+          profile: profileName,
+          implementation: profile.runner.name,
+          category: profile.runner.category,
+          enabled: profile.config.enabled !== false,
+          executable: detection.executable ?? null,
+          detection: view,
+          ready: detection.status === "available"
+        }
+      };
+    }
+  });
+}
+var matrixRowShape = external_exports.object({
+  profile: external_exports.string(),
+  implementation: external_exports.string(),
+  category: external_exports.string(),
+  support: external_exports.string(),
+  enabled: external_exports.boolean(),
+  author: external_exports.boolean(),
+  refine: external_exports.boolean(),
+  execute: external_exports.boolean(),
+  resume: external_exports.boolean(),
+  local: external_exports.boolean()
+});
+var outputSchema25 = {
+  rows: external_exports.array(matrixRowShape),
+  markdown: external_exports.string().describe("The same matrix as a Markdown table")
+};
+function registerRunnerMatrixTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "runner_matrix",
+    title: "Runner capability matrix",
+    description: 'The authoritative runner capability matrix (author/refine/execute/resume per profile), generated from registered runner metadata \u2014 identical to "specbridge runner matrix". Read-only; no probes, no processes, no network.',
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    inputSchema: {},
+    outputSchema: outputSchema25,
+    handler: async () => {
+      const { registry: registry2 } = loadRunnerToolContext(context);
+      const rows = runnerMatrixRows(registry2.listProfiles());
+      const markdown = renderRunnerMatrixMarkdown(rows);
+      return {
+        text: markdown,
+        structured: { rows, markdown }
+      };
+    }
+  });
+}
 var TOOL_CATALOG = [
   { name: "workspace_detect", readOnly: true, summary: "Detect the Kiro-compatible workspace" },
   { name: "steering_list", readOnly: true, summary: "List steering documents" },
@@ -64048,6 +66671,10 @@ var TOOL_CATALOG = [
   { name: "run_read", readOnly: true, summary: "Safe single-run summary" },
   { name: "spec_affected", readOnly: true, summary: "Affected-spec resolution for a change set" },
   { name: "spec_check_drift", readOnly: true, summary: "Deterministic drift rules (no commands)" },
+  { name: "runner_list", readOnly: true, summary: "Runner profiles with capabilities and availability" },
+  { name: "runner_show", readOnly: true, summary: "One runner profile in depth (redacted)" },
+  { name: "runner_doctor", readOnly: true, summary: "Runner diagnostics (never a model request)" },
+  { name: "runner_matrix", readOnly: true, summary: "Authoritative runner capability matrix" },
   { name: "spec_create", readOnly: false, summary: "Preview-first offline spec creation" },
   { name: "spec_stage_validate", readOnly: true, summary: "Validate a stage candidate (no write)" },
   { name: "spec_stage_apply", readOnly: false, summary: "Apply a reviewed stage candidate atomically" },
@@ -64071,6 +66698,10 @@ function registerAllTools(server, context) {
   registerRunReadTool(server, context);
   registerSpecAffectedTool(server, context);
   registerSpecCheckDriftTool(server, context);
+  registerRunnerListTool(server, context);
+  registerRunnerShowTool(server, context);
+  registerRunnerDoctorTool(server, context);
+  registerRunnerMatrixTool(server, context);
   registerSpecCreateTool(server, context);
   registerSpecStageValidateTool(server, context);
   registerSpecStageApplyTool(server, context);
@@ -64241,8 +66872,8 @@ async function runMcpServe(argv2, io = {
 }
 
 // ../../packages/mcp-server/dist/index.js
-var import_fs33 = require("fs");
-var import_path37 = __toESM(require("path"), 1);
+var import_fs34 = require("fs");
+var import_path38 = __toESM(require("path"), 1);
 async function runMcpDoctor(options = {}) {
   const checks = [];
   const env = options.env ?? process.env;
@@ -64335,7 +66966,7 @@ async function runMcpDoctor(options = {}) {
   const pluginRoot = env["CLAUDE_PLUGIN_ROOT"];
   if (pluginRoot !== void 0 && pluginRoot.length > 0) {
     const missing = ["dist/mcp-server.cjs", "dist/cli.cjs"].filter(
-      (relative) => !(0, import_fs33.existsSync)(import_path37.default.join(pluginRoot, relative))
+      (relative) => !(0, import_fs34.existsSync)(import_path38.default.join(pluginRoot, relative))
     );
     checks.push(
       missing.length === 0 ? { name: "plugin-bundle", status: "ok", detail: `Bundled executables present under ${pluginRoot}` } : {

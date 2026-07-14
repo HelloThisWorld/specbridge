@@ -9,14 +9,19 @@
 /**
  * Runner implementation kinds. v0.3 shipped mock and claude-code (plus
  * honest `unsupported` stubs); v0.6 adds the production codex-cli and ollama
- * implementations. `unsupported` remains in the vocabulary so stored data
- * referencing removed stubs stays readable.
+ * implementations; v0.6.1 adds gemini-cli, openai-compatible (authoring
+ * only), and the experimental antigravity-cli — an ADDITIVE extension: no
+ * existing value changes meaning. `unsupported` remains in the vocabulary so
+ * stored data referencing removed stubs stays readable.
  */
 export const AGENT_RUNNER_KINDS = [
   'mock',
   'claude-code',
   'codex-cli',
+  'gemini-cli',
   'ollama',
+  'openai-compatible',
+  'antigravity-cli',
   'unsupported',
 ] as const;
 export type AgentRunnerKind = (typeof AGENT_RUNNER_KINDS)[number];

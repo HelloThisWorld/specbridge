@@ -30,10 +30,12 @@ orchestration lives in `@specbridge/execution` and evidence evaluation in
 ### Runner kinds and statuses
 
 Kinds: `mock` (offline, deterministic), `claude-code` (local Claude Code
-CLI), `codex-cli` (local Codex CLI, v0.6), and `ollama` (local model API,
-authoring-only, v0.6). The v0.3-era `unsupported` stubs are gone — deferred
-providers (Gemini CLI, OpenAI-compatible, Antigravity) exist only on the
-[roadmap](roadmap.md) and are not registered as placeholders.
+CLI), `codex-cli` (local Codex CLI, v0.6), `gemini-cli` (local Gemini CLI,
+v0.6.1), `ollama` (local model API, authoring-only, v0.6),
+`openai-compatible` (model API, authoring-only, v0.6.1), and
+`antigravity-cli` (experimental detection only, v0.6.1). The v0.3-era
+`unsupported` stubs are gone; the value remains in the vocabulary so
+stored data stays readable.
 
 Detection statuses: `available`, `unavailable`, `unauthenticated`,
 `incompatible`, `misconfigured`, `error`. Only `available` permits

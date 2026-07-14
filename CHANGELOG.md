@@ -1,5 +1,92 @@
 # Changelog
 
+## 0.6.1
+
+Added:
+
+- Gemini CLI adapter (`gemini-cli`, built-in profile `gemini-default`):
+  headless invocation through the frozen v0.6.0 runner contract with
+  bounded read-only capability detection (`--version`/`--help` token
+  probes; never a model request, login, or trusted-folder change).
+- Capability-gated Gemini authoring, task execution, and resume: authoring
+  through the plan approval mode or a read-only tool allowlist; task
+  execution only when the installed CLI proves a bounded edit policy
+  (auto_edit plus tool allowlist or sandbox) without arbitrary shell
+  access; resume only by explicit session UUID with session-identity
+  verification.
+- OpenAI-compatible authoring adapter (`openai-compatible`, built-in
+  profile `openai-compatible-local`): production stage generation and
+  refinement against chat-completions and responses API styles.
+- Configurable structured-output modes (`json-schema`, `json-object`,
+  `strict-json-prompt`) with complete-response Zod validation in every
+  mode and an explicit, warned, opt-in-only downgrade
+  (`allowStructuredOutputFallback`).
+- Experimental Antigravity CLI capability adapter (`antigravity-cli`,
+  built-in profile `antigravity`): executable/version/documented-capability
+  detection and transparent diagnostics only — no automation of any kind.
+- Read-only MCP runner diagnostic tools: `runner_list` (paginated),
+  `runner_show`, `runner_doctor`, `runner_matrix` — thin adapters over the
+  same shared runner services the CLI uses.
+- Claude Code `/specbridge:runners` Skill: list profiles, explain
+  categories and boundaries, diagnose one profile, and recommend
+  compatible profiles — driven exclusively by the MCP diagnostic tools.
+- Additional provider conformance fixtures: process-level fake Gemini and
+  Antigravity executables and a fake OpenAI-compatible loopback server
+  covering authentication, quota, rate-limit, timeout, cancellation,
+  oversized output, malformed/prose/fenced output, protected-path writes,
+  resume identity, and redirect scenarios — CI needs no real provider and
+  no network.
+- Explicit remote endpoint and redirect protections in the shared HTTP
+  client: opt-in bounded redirect following with cross-origin
+  authorization stripping, HTTPS-downgrade rejection, scheme validation,
+  and recorded safe redirect metadata (default behavior unchanged:
+  redirects rejected).
+
+Changed:
+
+- The runner capability matrix (CLI `runner matrix`, MCP `runner_matrix`,
+  README, docs) includes Gemini, OpenAI-compatible, and Antigravity and is
+  generated from one shared implementation in @specbridge/runners.
+- Provider diagnostics are available through both the CLI and MCP.
+- The plugin bundle includes the runner inspection workflow (nine skills).
+- Network-backed authoring reports exact data boundaries (endpoint, API
+  style, model, structured-output mode, documents, input size, whether a
+  network request will occur) before execution; dry-run performs no
+  request.
+- Additive contract extensions (no existing field, value, or code
+  changed): optional `AgentRunner.declaredSupportLevel` (absent =
+  production, the v0.6.0 behavior) and new `AgentRunnerKind` values
+  (`gemini-cli`, `openai-compatible`, `antigravity-cli`). All v0.6.0
+  contract snapshot tests pass unchanged.
+
+Security:
+
+- Gemini YOLO mode is forbidden at three layers (config schema enum plus
+  config-wide fragment rejection, argv assembly, pre-spawn assertion).
+- Gemini task execution requires a bounded safe edit policy; shell tools
+  are excluded from every allowlist and the policy is never relaxed.
+- Antigravity TUI and PTY automation are forbidden (no PTY library, no
+  keystroke injection, no ANSI parsing — enforced by tests).
+- API-key values are never stored: profiles hold an environment-variable
+  NAME only; the value is read at request time, redacted from every
+  retained byte, and never logged or passed to verification commands.
+- Authorization is never forwarded across origins on redirects, and
+  HTTPS-to-HTTP downgrades are rejected.
+- Generic API runners cannot modify source (authoring-only by capability;
+  task execution is rejected before any request).
+- No new provider is selected implicitly: all new profiles default
+  disabled, network profiles require explicit selection, experimental
+  profiles require explicit opt-in.
+- Provider claims remain non-authoritative: Git evidence and trusted
+  verification decide task completion, whatever runner executed.
+
+Deferred to v0.7:
+
+- templates and the template registry
+- plugin SDK and runner extension SDK distribution
+- analyzer SDK and verifier SDK
+- extension registry and community ecosystem
+
 ## 0.6.0
 
 Added:

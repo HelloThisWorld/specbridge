@@ -14,44 +14,54 @@ Codex, local models, or any supported coding agent.
 
 > Your `.kiro` specs remain the source of truth.
 
-New in v0.6 — keep your existing `.kiro` specs and **choose a compatible
+New in v0.6.1 — keep your existing `.kiro` specs and **choose a compatible
 coding agent or authoring model per operation**:
 
 ```text
-                  Spec authoring     Task execution
-Claude Code             ✓                  ✓
-Codex CLI               ✓                  ✓
-Ollama                  ✓                  —
+                  Spec authoring   Task execution
+Claude Code             yes             yes
+Codex CLI               yes             yes
+Gemini CLI              yes             capability-gated
+Ollama                  yes             no
+OpenAI-compatible       yes             no
+Antigravity CLI         experimental
 ```
 
 ```bash
 specbridge runner matrix
 
-specbridge spec generate notification-preferences \
-  --stage requirements \
-  --runner ollama-local
+specbridge runner doctor gemini-default
 
 specbridge spec generate notification-preferences \
+  --stage requirements \
+  --runner gemini-default
+
+specbridge spec refine notification-preferences \
   --stage design \
-  --runner codex-default
+  --runner openai-compatible-local
 
 specbridge spec run notification-preferences \
   --task 2.3 \
   --runner codex-default
 ```
 
-Runner behavior is capability-driven: authoring-only model APIs (Ollama)
-can never execute tasks, task execution needs a safe sandbox or tool
-restriction, network-backed endpoints are never selected implicitly, and
+Runner behavior is capability-driven: authoring-only model APIs (Ollama,
+OpenAI-compatible endpoints) can never execute tasks, task execution needs
+a proven safe boundary (Gemini task execution is enabled only when the
+installed CLI proves a bounded edit policy without arbitrary shell access —
+YOLO is never used), network-backed endpoints are never selected
+implicitly, the Antigravity adapter is experimental detection only, and
 whatever runs, task completion still requires actual Git evidence plus
 trusted verification — never a provider claim. The live matrix above is
 generated from registered runner metadata (`specbridge runner matrix`); not
-every installed Codex version is compatible (`specbridge runner doctor
-codex-default` reports the exact capabilities).
+every installed provider version is compatible (`specbridge runner doctor
+<profile>` reports the exact capabilities).
 
-SpecBridge does not include provider subscriptions, hosted models, API
-usage, or authentication — you install and authenticate Claude Code, the
-Codex CLI, or Ollama yourself. See [docs/runners.md](docs/runners.md).
+SpecBridge does not include provider subscriptions, hosted model usage,
+credentials, or authentication — you install and authenticate Claude Code,
+the Codex CLI, the Gemini CLI, Ollama, or your API endpoint yourself. API
+keys are referenced by environment-variable NAME only and never stored.
+See [docs/runners.md](docs/runners.md).
 
 From v0.5 — a self-contained **Claude Code plugin** with a local MCP
 server and verified interactive task execution:
@@ -251,11 +261,12 @@ Working today (fully offline, no model, no API key):
 | `specbridge spec affected` | **v0.4** — which specs does this change set touch (read-only) |
 | `specbridge spec policy init / show / validate` | **v0.4** — per-spec verification policies (impact areas, required commands, rule overrides) |
 | `specbridge verify rules / explain <id>` | **v0.4** — inspect the stable rule registry SBV001–SBV025 |
-| `specbridge mcp serve / doctor / manifest / tools` | **v0.5** — local stdio MCP server (21 tools, 7 resources, 4 prompts) |
+| `specbridge mcp serve / doctor / manifest / tools` | **v0.5** — local stdio MCP server (25 tools since v0.6.1, 7 resources, 4 prompts) |
 | `specbridge run recover-lock` | **v0.5** — diagnose and explicitly recover the interactive execution lock |
 | `specbridge runner list / matrix / show / doctor` | **v0.6** — profile-based runner diagnostics and the generated capability matrix (read-only) |
 | `specbridge runner test / conformance / models <profile>` | **v0.6** — bounded structured-output probe (`--network`), conformance suite, provider-supported model listing |
 | `specbridge config doctor / migrate` | **v0.6** — configuration validation and the explicit v1 → v2 migration (dry-run by default, atomic apply with backup) |
+| `specbridge runner doctor gemini-default / openai-compatible-local / antigravity` | **v0.6.1** — diagnostics for the new adapters; MCP `runner_list` / `runner_show` / `runner_doctor` / `runner_matrix` expose the same read-only services |
 
 Planned commands (`spec sync/export`) are registered, marked "(planned)" in
 `--help`, and exit with an honest error — see the [roadmap](docs/roadmap.md).
@@ -502,13 +513,21 @@ PROFILES; the live matrix comes from `specbridge runner matrix`:
 |---------|---------|--------|--------|---------|--------|-------|
 | claude-code | production | yes | yes | yes | yes | no |
 | codex-default | production | yes | yes | yes | yes | no |
+| gemini-default | production | yes | yes | yes | yes | no |
 | ollama-local | production | yes | yes | no | no | yes |
+| openai-compatible-local | production | yes | yes | no | no | yes |
+| antigravity | experimental | no | no | no | no | no |
 | mock | production | yes | yes | yes | yes | yes |
 
-`codex-default` and `ollama-local` ship DISABLED until you enable them
-explicitly. Ollama is authoring-only by capability — it can never execute
-tasks or modify files. Gemini CLI, an OpenAI-compatible authoring runner,
-and Antigravity are planned for v0.6.1 (no placeholders are registered).
+Every non-Claude profile ships DISABLED until you enable it explicitly.
+Ollama and OpenAI-compatible endpoints are authoring-only by capability —
+they can never execute tasks or modify files. Gemini task execution and
+resume are capability-gated: they work only when the installed Gemini CLI
+proves a bounded edit policy (auto_edit plus tool allowlist or sandbox)
+without arbitrary shell access — YOLO is never used, and an unsafe
+installation keeps safe authoring while task execution is refused with the
+exact gap. The Antigravity adapter is experimental capability detection
+only; it is not a production runner and executes nothing.
 
 Configuration lives in `.specbridge/config.json` (schema 2.0.0; v1 files
 stay readable, migration is explicit — see
@@ -530,7 +549,7 @@ stores no credentials of any kind.
   secrets or environment variables.
 - Full model: [docs/security.md](docs/security.md).
 
-## Limitations (v0.6)
+## Limitations (v0.6.1)
 
 - The MCP server is stdio-only and local-only: no HTTP/SSE/WebSocket
   transport, no OAuth, no cloud hosting. One server process serves one
@@ -551,15 +570,21 @@ stores no credentials of any kind.
   references, chore-task exclusion) are labelled and never default to error.
 - `spec sync` and `spec export` are not implemented yet (they fail
   honestly). SARIF output is deferred.
-- Production runners are claude-code, codex-cli, ollama (authoring-only),
-  and mock. Gemini CLI, OpenAI-compatible, and Antigravity are deferred to
-  v0.6.1 and are not registered as placeholders. Provider usage happens
-  under your own accounts and plans; not every installed Codex version is
-  compatible (the doctor reports the exact missing capabilities).
-- Ollama cannot execute tasks or modify files — by capability, not by
-  configuration. Models are never pulled or selected automatically.
-- Codex resume needs an installed version with explicit session resume;
-  without it, resume is reported unsupported instead of guessed.
+- Production runners are claude-code, codex-cli, gemini-cli, ollama
+  (authoring-only), openai-compatible (authoring-only), and mock; the
+  antigravity-cli adapter is experimental detection only. Provider usage
+  happens under your own accounts and plans; not every installed provider
+  version is compatible (the doctor reports the exact missing
+  capabilities). Not every Gemini CLI version supports safe task
+  execution, and not every OpenAI-compatible endpoint implements JSON
+  Schema or the Responses API — the profile declares what its endpoint
+  supports.
+- Ollama and OpenAI-compatible endpoints cannot execute tasks or modify
+  files — by capability, not by configuration. Models are never pulled or
+  selected automatically, and model output never proves implementation
+  correctness.
+- Codex and Gemini resume need an installed version with explicit session
+  resume; without it, resume is reported unsupported instead of guessed.
 - Authoring fallback exists only for explicitly configured chains, only for
   stage generation/refinement, with bounded retries; there is no automatic
   provider switching anywhere else.
