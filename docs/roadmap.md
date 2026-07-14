@@ -22,6 +22,7 @@ implemented unless marked ✅ and covered by tests.
 | M — Claude Code plugin | self-contained plugin (bundled CLI + MCP server, 8 namespaced skills, human-only approve skill, local marketplace, ZIP artifact, isolated-copy verification) | ✅ v0.5 |
 | N — Capability-driven runner platform | versioned capability/operation/event/result/error contracts (frozen for v0.6.1 with snapshot tests), runner profiles, config schema v2 + explicit migration (`config doctor/migrate`), deterministic selection, explicit bounded authoring fallback, append-only attempt records, reusable conformance framework, `runner matrix/show/test/conformance/models` | ✅ v0.6.0 |
 | O — Production multi-runner | Codex CLI agent runner (read-only authoring sandbox, workspace-write execution, explicit-session resume, no unrestricted modes) and Ollama authoring runner (loopback-default model API, schema-validated structured output, bounded correction retry, authoring-only by capability); Claude Code runner migrated onto the shared contract unchanged | ✅ v0.6.0 |
+| P — Adapter expansion | Gemini CLI runner (plan-mode/allowlist authoring, capability-gated bounded-edit task execution, explicit-UUID resume, never YOLO), OpenAI-compatible authoring runner (chat-completions + responses, explicit structured-output modes, env-var-name credentials, safe redirects), experimental Antigravity capability adapter (detection only, no PTY/TUI automation), read-only MCP runner diagnostics (`runner_list/show/doctor/matrix`), `/specbridge:runners` plugin skill | ✅ v0.6.1 |
 
 ## Command availability
 
@@ -34,17 +35,28 @@ implemented unless marked ✅ and covered by tests.
 | `mcp serve/doctor/manifest/tools`, `run recover-lock` | ✅ v0.5 |
 | `/specbridge:doctor·status·new·author·approve·implement·continue·verify` (plugin) | ✅ v0.5 |
 | `runner list/matrix/show/doctor/test/conformance/models`, `config doctor/migrate`, `spec generate/refine/run --runner <profile>`, `--show-runner-plan` | ✅ v0.6.0 — codex/ollama via your local installation; fake providers in CI |
+| `--runner gemini-default / openai-compatible-local`, `runner doctor antigravity`, MCP `runner_list/show/doctor/matrix`, `/specbridge:runners` | ✅ v0.6.1 — gemini/API endpoints via your own installation and accounts; fake providers in CI |
 | `spec sync/export` | ❌ registered as "(planned)", exit 2 with an honest message |
 
-## v0.6.1 (planned — not implemented)
+## v0.6.1 (✅ implemented)
 
-New adapters against the FROZEN v0.6.0 contract (no core changes expected):
+Adapter expansion against the FROZEN v0.6.0 contract (additive-only
+contract changes: optional `declaredSupportLevel`, new `AgentRunnerKind`
+values — every v0.6.0 snapshot test passes unchanged):
 
-- Gemini CLI runner.
-- OpenAI-compatible API authoring runner.
-- Antigravity CLI capability adapter.
-- MCP runner diagnostic tools.
-- Claude Code `/specbridge:runners` Skill.
+- Gemini CLI runner: safe read-only authoring (plan mode / tool
+  allowlist), capability-gated task execution (bounded edit policy, no
+  arbitrary shell, never YOLO), explicit-UUID resume.
+- OpenAI-compatible API authoring runner: chat-completions and responses
+  styles, explicit structured-output modes, environment-variable-name
+  credentials, bounded redirects with cross-origin authorization
+  stripping. Authoring only — no task execution through generic APIs.
+- Antigravity CLI capability adapter: EXPERIMENTAL detection and
+  diagnostics only; no TUI/PTY automation exists.
+- Read-only MCP runner diagnostic tools: `runner_list`, `runner_show`,
+  `runner_doctor`, `runner_matrix` over the shared runner services.
+- Claude Code `/specbridge:runners` Skill (MCP-diagnostics-driven,
+  read-only).
 
 ## v0.7 (planned — not implemented)
 

@@ -7,10 +7,18 @@ covered by tests.
 ## No credentials, ever
 
 - SpecBridge stores no credential values; configuration rejects
-  credential-looking keys outright.
+  credential-looking keys outright. The openai-compatible profile holds an
+  environment-variable NAME only (`apiKeyEnvironmentVariable`); the value
+  is read at request time from exactly that variable, redacted from every
+  retained byte, never logged, never stored in attempt metadata, never
+  passed to verification commands, and never forwarded across origins on
+  redirects. Credential-bearing custom header names are rejected by the
+  schema.
 - No provider credential files or private auth JSON are ever read;
   authentication status comes only from official safe commands (`claude
-  auth status`, `codex login status`) and is otherwise `unknown`.
+  auth status`, `codex login status`) and is otherwise `unknown` (Gemini
+  and Antigravity report `unknown` — no safe offline command exists, and
+  SpecBridge never reads Google credential stores or triggers a login).
 - Detection summarizes authentication output; it never echoes it (probe
   output can contain account details or tokens).
 - Argv audit records redact configured sensitive values; environment
@@ -26,8 +34,22 @@ covered by tests.
   layers. Authoring always runs `--sandbox read-only`; task execution
   always runs `--sandbox workspace-write` (narrowable to read-only, never
   broadenable).
-- Ollama: no repository access exists to bypass — the adapter has no file
-  APIs and refuses task execution before any request.
+- Gemini (v0.6.1): YOLO is forbidden at three layers — the profile schema
+  accepts only `plan` for authoring and `auto_edit`/`default` for
+  execution (`--yolo` is also a config-wide forbidden fragment), argv
+  assembly can never produce it, and a pre-spawn assertion refuses any
+  YOLO flag or approval-mode value. Authoring is read-only (plan mode plus
+  a repository-reading tool allowlist); task execution permits file edits
+  only — shell-execution tools are excluded from every allowlist and
+  rejected by the schema, and workspace trust is never granted. When the
+  installed version cannot prove this bounded edit policy, task execution
+  is `incompatible` — the policy is never relaxed.
+- Ollama / OpenAI-compatible: no repository access exists to bypass — the
+  adapters have no file APIs and refuse task execution before any request.
+- Antigravity (v0.6.1, experimental): detection only. No PTY, no
+  keystroke injection, no ANSI screen parsing, no TUI automation exists in
+  the implementation or its dependencies (enforced by tests); every
+  operation is refused before any process could start.
 
 ## No shell interpolation
 

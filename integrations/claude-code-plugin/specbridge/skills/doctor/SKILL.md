@@ -17,7 +17,7 @@ Diagnose the SpecBridge setup. Everything here is read-only — change nothing.
 3. If the MCP tool is unavailable, say so and suggest the bundled CLI check:
    `"${CLAUDE_PLUGIN_ROOT}/bin/specbridge" mcp doctor` — but do not run it
    without the user's go-ahead.
-4. Report the plugin version (0.5.0) and the MCP server version from the tool
+4. Report the plugin version (0.6.1) and the MCP server version from the tool
    results where shown.
 5. Suggest the next command:
    - no workspace → `/specbridge:new <spec-name> [description]`

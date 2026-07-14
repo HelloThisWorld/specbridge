@@ -42,7 +42,7 @@ describe('plugin structure', () => {
   it('plugin.json validates with real repository metadata', () => {
     const manifest = readJson('integrations/claude-code-plugin/specbridge/.claude-plugin/plugin.json');
     expect(manifest['name']).toBe('specbridge');
-    expect(manifest['version']).toBe('0.6.0');
+    expect(manifest['version']).toBe('0.6.1');
     expect(manifest['license']).toBe('MIT');
     expect((manifest['author'] as { name: string }).name).toBe('HelloThisWorld');
     expect(manifest['repository']).toBe('https://github.com/HelloThisWorld/specbridge');
@@ -55,7 +55,7 @@ describe('plugin structure', () => {
     const plugins = marketplace['plugins'] as { name: string; source: string; version: string }[];
     const entry = plugins.find((plugin) => plugin.name === 'specbridge');
     expect(entry).toBeDefined();
-    expect(entry?.version).toBe('0.6.0');
+    expect(entry?.version).toBe('0.6.1');
     // The relative source resolves to the plugin root.
     expect(path.resolve(repoRoot, entry?.source as string)).toBe(pluginRoot);
   });
@@ -78,9 +78,9 @@ describe('plugin structure', () => {
     expect(existsSync(path.join(pluginRoot, 'skills'))).toBe(true);
   });
 
-  it('all eight namespaced skills exist with unique names and valid frontmatter', () => {
+  it('all nine namespaced skills exist with unique names and valid frontmatter', () => {
     const dirs = readdirSync(skillsDir).sort();
-    expect(dirs).toEqual(['approve', 'author', 'continue', 'doctor', 'implement', 'new', 'status', 'verify']);
+    expect(dirs).toEqual(['approve', 'author', 'continue', 'doctor', 'implement', 'new', 'runners', 'status', 'verify']);
     const names = new Set<string>();
     for (const dir of dirs) {
       const markdown = skillMarkdown(dir);
@@ -97,8 +97,29 @@ describe('plugin structure', () => {
   it('the approve skill disables model invocation; no other skill grants tools', () => {
     const approve = frontmatterOf(skillMarkdown('approve'));
     expect(approve).toContain('disable-model-invocation: true');
-    for (const dir of ['author', 'continue', 'doctor', 'implement', 'new', 'status', 'verify']) {
+    for (const dir of ['author', 'continue', 'doctor', 'implement', 'new', 'runners', 'status', 'verify']) {
       expect(frontmatterOf(skillMarkdown(dir))).not.toContain('allowed-tools');
+    }
+  });
+
+  it('the runners skill uses only the MCP diagnostic tools and starts no provider', () => {
+    const runners = skillMarkdown('runners');
+    // It is driven by the read-only MCP diagnostics.
+    for (const tool of ['runner_list', 'runner_matrix', 'runner_show', 'runner_doctor']) {
+      expect(runners).toContain(tool);
+    }
+    // Read-only: no configuration edits, no provider invocation, no login.
+    expect(runners).toContain('Read-only');
+    expect(runners.toLowerCase()).not.toContain('bash(');
+    for (const [index, line] of runners.split('\n').entries()) {
+      // Any mention of invoking a provider, logging in, or editing config
+      // must be a prohibition, never an instruction.
+      if (/(start|invoke|launch) (gemini|codex|antigravity|ollama|api inference)/i.test(line)) {
+        expect(/never|not\b|no\b|don't/i.test(line), `runners:${index + 1} "${line.trim()}"`).toBe(true);
+      }
+      if (/login|authenticate/i.test(line)) {
+        expect(/never|not\b|no\b/i.test(line), `runners:${index + 1} "${line.trim()}"`).toBe(true);
+      }
     }
   });
 

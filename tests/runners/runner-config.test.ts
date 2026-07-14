@@ -54,7 +54,7 @@ describe('v2 configuration schema safety', () => {
   it('rejects unknown runner implementations', () => {
     const result = agentConfigV2Schema.safeParse({
       ...V2_BASE,
-      runnerProfiles: { magic: { runner: 'gemini-cli', enabled: true } },
+      runnerProfiles: { magic: { runner: 'not-a-registered-runner', enabled: true } },
     });
     expect(result.success).toBe(false);
   });

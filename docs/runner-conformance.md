@@ -46,3 +46,20 @@ specbridge runner conformance ollama-local --network --json
 - all applicable groups pass → `production` confirmed
 - a documented optional capability fails → at best `preview`
 - required production capabilities fail → `incompatible`
+- an adapter that DECLARES `preview` or `experimental` (v0.6.1:
+  antigravity-cli) can pass its applicable checks but is NEVER confirmed
+  production by conformance
+
+## v0.6.1 adapters
+
+- gemini-cli runs detection, structured-output, process-control,
+  stage-generation, stage-refinement, and — when its declared capabilities
+  include them — task-execution and resume.
+- openai-compatible runs detection, structured-output, HTTP process
+  control, stage-generation, and stage-refinement; task-execution and
+  resume are not applicable (authoring-only by capability).
+- antigravity-cli runs detection only (side-effect-free doctor); every
+  other group is not applicable, automatic selection is refused, and no
+  PTY/TUI automation exists to test.
+- CI additionally uses a fake Gemini child process, a fake Antigravity
+  executable, and a fake OpenAI-compatible loopback server.

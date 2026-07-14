@@ -260,6 +260,14 @@ export interface AgentRunner {
    * for authoring operations (see StageGenerationInput.correction).
    */
   readonly supportsStructuredOutputCorrection?: boolean;
+  /**
+   * v0.6.1 (additive, optional — existing adapters are unaffected): the
+   * support level the adapter itself declares. Absent means `production`
+   * (the v0.6.0 behavior). `preview`/`experimental` adapters are never
+   * selected automatically and can never be confirmed production by
+   * conformance.
+   */
+  readonly declaredSupportLevel?: RunnerSupportLevel;
 
   detect(context: RunnerDetectionContext): Promise<RunnerDetectionResult>;
 

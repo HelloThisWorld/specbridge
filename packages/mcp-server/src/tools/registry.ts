@@ -21,6 +21,10 @@ import { registerRunReadTool } from './run-read.js';
 import { registerSpecAffectedTool } from './spec-affected.js';
 import { registerSpecCheckDriftTool } from './spec-check-drift.js';
 import { registerSpecRunVerificationTool } from './spec-run-verification.js';
+import { registerRunnerListTool } from './runner-list.js';
+import { registerRunnerShowTool } from './runner-show.js';
+import { registerRunnerDoctorTool } from './runner-doctor.js';
+import { registerRunnerMatrixTool } from './runner-matrix.js';
 
 /**
  * The complete, closed tool registry.
@@ -54,6 +58,10 @@ export const TOOL_CATALOG: readonly ToolRegistryEntry[] = [
   { name: 'run_read', readOnly: true, summary: 'Safe single-run summary' },
   { name: 'spec_affected', readOnly: true, summary: 'Affected-spec resolution for a change set' },
   { name: 'spec_check_drift', readOnly: true, summary: 'Deterministic drift rules (no commands)' },
+  { name: 'runner_list', readOnly: true, summary: 'Runner profiles with capabilities and availability' },
+  { name: 'runner_show', readOnly: true, summary: 'One runner profile in depth (redacted)' },
+  { name: 'runner_doctor', readOnly: true, summary: 'Runner diagnostics (never a model request)' },
+  { name: 'runner_matrix', readOnly: true, summary: 'Authoritative runner capability matrix' },
   { name: 'spec_create', readOnly: false, summary: 'Preview-first offline spec creation' },
   { name: 'spec_stage_validate', readOnly: true, summary: 'Validate a stage candidate (no write)' },
   { name: 'spec_stage_apply', readOnly: false, summary: 'Apply a reviewed stage candidate atomically' },
@@ -78,6 +86,10 @@ export function registerAllTools(server: McpServer, context: ServerContext): voi
   registerRunReadTool(server, context);
   registerSpecAffectedTool(server, context);
   registerSpecCheckDriftTool(server, context);
+  registerRunnerListTool(server, context);
+  registerRunnerShowTool(server, context);
+  registerRunnerDoctorTool(server, context);
+  registerRunnerMatrixTool(server, context);
   registerSpecCreateTool(server, context);
   registerSpecStageValidateTool(server, context);
   registerSpecStageApplyTool(server, context);

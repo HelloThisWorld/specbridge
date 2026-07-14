@@ -1,10 +1,22 @@
-# Runner adapter contract (v0.6 — FROZEN for v0.6.1)
+# Runner adapter contract (v0.6 — FROZEN; implemented by the v0.6.1 adapters)
 
-This document defines the public adapter contract that v0.6.1 providers
-(Gemini CLI, OpenAI-compatible, Antigravity) will implement. The exported
+This document defines the public adapter contract the v0.6.1 providers
+(Gemini CLI, OpenAI-compatible, Antigravity) implement. The exported
 names below are stable; changing their shapes, discriminator values, or
 required methods is a breaking change and is guarded by the contract
 snapshot tests in `tests/runners/contracts.test.ts`.
+
+v0.6.1 made exactly two ADDITIVE, backward-compatible extensions (no
+existing field, value, meaning, or error code changed; every v0.6.0
+snapshot test passes unchanged):
+
+- `AgentRunner.declaredSupportLevel?` (optional) — the support level the
+  adapter itself declares. Absent means `production` (the v0.6.0
+  behavior). Preview/experimental adapters are never selected
+  automatically and can never be confirmed production by conformance.
+- New `AgentRunnerKind` values in `@specbridge/core`: `gemini-cli`,
+  `openai-compatible`, `antigravity-cli` (value additions to an existing
+  union; stored data referencing older kinds stays readable).
 
 Internal implementation details (adapter file layout, private helpers,
 prompt assembly internals) are NOT frozen.

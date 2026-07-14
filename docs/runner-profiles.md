@@ -38,10 +38,16 @@ implementation. Several profiles can share an implementation:
 
 ## Built-in profiles
 
-`claude-code` (enabled), `codex-default` (disabled), `ollama-local`
-(disabled), and `mock` (enabled) always exist — configuration entries
-override them. New-provider profiles are DISABLED until you enable them
-explicitly; nothing is ever silently enabled or selected.
+`claude-code` (enabled), `codex-default` (disabled), `gemini-default`
+(disabled, v0.6.1), `ollama-local` (disabled), `openai-compatible-local`
+(disabled, v0.6.1), `antigravity` (disabled, experimental, v0.6.1), and
+`mock` (enabled) always exist — configuration entries override them.
+New-provider profiles are DISABLED until you enable them explicitly;
+nothing is ever silently enabled or selected, and migration never enables
+a provider profile. See [gemini-cli-runner.md](gemini-cli-runner.md),
+[openai-compatible-runner.md](openai-compatible-runner.md), and
+[antigravity-cli-runner.md](antigravity-cli-runner.md) for the v0.6.1
+profile fields.
 
 ## Rules
 

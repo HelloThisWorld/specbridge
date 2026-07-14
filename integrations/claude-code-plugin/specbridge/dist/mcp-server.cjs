@@ -106,17 +106,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path17) {
-      const ctrl = callVisitor(key, node, visitor, path17);
+    function visit_(key, node, visitor, path18) {
+      const ctrl = callVisitor(key, node, visitor, path18);
       if (identity3.isNode(ctrl) || identity3.isPair(ctrl)) {
-        replaceNode(key, path17, ctrl);
-        return visit_(key, ctrl, visitor, path17);
+        replaceNode(key, path18, ctrl);
+        return visit_(key, ctrl, visitor, path18);
       }
       if (typeof ctrl !== "symbol") {
         if (identity3.isCollection(node)) {
-          path17 = Object.freeze(path17.concat(node));
+          path18 = Object.freeze(path18.concat(node));
           for (let i2 = 0; i2 < node.items.length; ++i2) {
-            const ci = visit_(i2, node.items[i2], visitor, path17);
+            const ci = visit_(i2, node.items[i2], visitor, path18);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -127,13 +127,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity3.isPair(node)) {
-          path17 = Object.freeze(path17.concat(node));
-          const ck = visit_("key", node.key, visitor, path17);
+          path18 = Object.freeze(path18.concat(node));
+          const ck = visit_("key", node.key, visitor, path18);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path17);
+          const cv = visit_("value", node.value, visitor, path18);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -154,17 +154,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path17) {
-      const ctrl = await callVisitor(key, node, visitor, path17);
+    async function visitAsync_(key, node, visitor, path18) {
+      const ctrl = await callVisitor(key, node, visitor, path18);
       if (identity3.isNode(ctrl) || identity3.isPair(ctrl)) {
-        replaceNode(key, path17, ctrl);
-        return visitAsync_(key, ctrl, visitor, path17);
+        replaceNode(key, path18, ctrl);
+        return visitAsync_(key, ctrl, visitor, path18);
       }
       if (typeof ctrl !== "symbol") {
         if (identity3.isCollection(node)) {
-          path17 = Object.freeze(path17.concat(node));
+          path18 = Object.freeze(path18.concat(node));
           for (let i2 = 0; i2 < node.items.length; ++i2) {
-            const ci = await visitAsync_(i2, node.items[i2], visitor, path17);
+            const ci = await visitAsync_(i2, node.items[i2], visitor, path18);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -175,13 +175,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity3.isPair(node)) {
-          path17 = Object.freeze(path17.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path17);
+          path18 = Object.freeze(path18.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path18);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path17);
+          const cv = await visitAsync_("value", node.value, visitor, path18);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -208,23 +208,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path17) {
+    function callVisitor(key, node, visitor, path18) {
       if (typeof visitor === "function")
-        return visitor(key, node, path17);
+        return visitor(key, node, path18);
       if (identity3.isMap(node))
-        return visitor.Map?.(key, node, path17);
+        return visitor.Map?.(key, node, path18);
       if (identity3.isSeq(node))
-        return visitor.Seq?.(key, node, path17);
+        return visitor.Seq?.(key, node, path18);
       if (identity3.isPair(node))
-        return visitor.Pair?.(key, node, path17);
+        return visitor.Pair?.(key, node, path18);
       if (identity3.isScalar(node))
-        return visitor.Scalar?.(key, node, path17);
+        return visitor.Scalar?.(key, node, path18);
       if (identity3.isAlias(node))
-        return visitor.Alias?.(key, node, path17);
+        return visitor.Alias?.(key, node, path18);
       return void 0;
     }
-    function replaceNode(key, path17, node) {
-      const parent = path17[path17.length - 1];
+    function replaceNode(key, path18, node) {
+      const parent = path18[path18.length - 1];
       if (identity3.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity3.isPair(parent)) {
@@ -834,10 +834,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity3 = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path17, value) {
+    function collectionFromPath(schema, path18, value) {
       let v = value;
-      for (let i2 = path17.length - 1; i2 >= 0; --i2) {
-        const k = path17[i2];
+      for (let i2 = path18.length - 1; i2 >= 0; --i2) {
+        const k = path18[i2];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a2 = [];
           a2[k] = v;
@@ -856,7 +856,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path17) => path17 == null || typeof path17 === "object" && !!path17[Symbol.iterator]().next().done;
+    var isEmptyPath = (path18) => path18 == null || typeof path18 === "object" && !!path18[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -886,11 +886,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path17, value) {
-        if (isEmptyPath(path17))
+      addIn(path18, value) {
+        if (isEmptyPath(path18))
           this.add(value);
         else {
-          const [key, ...rest] = path17;
+          const [key, ...rest] = path18;
           const node = this.get(key, true);
           if (identity3.isCollection(node))
             node.addIn(rest, value);
@@ -904,8 +904,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path17) {
-        const [key, ...rest] = path17;
+      deleteIn(path18) {
+        const [key, ...rest] = path18;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -919,8 +919,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path17, keepScalar) {
-        const [key, ...rest] = path17;
+      getIn(path18, keepScalar) {
+        const [key, ...rest] = path18;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity3.isScalar(node) ? node.value : node;
@@ -938,8 +938,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path17) {
-        const [key, ...rest] = path17;
+      hasIn(path18) {
+        const [key, ...rest] = path18;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -949,8 +949,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path17, value) {
-        const [key, ...rest] = path17;
+      setIn(path18, value) {
+        const [key, ...rest] = path18;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -3465,9 +3465,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path17, value) {
+      addIn(path18, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path17, value);
+          this.contents.addIn(path18, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -3542,14 +3542,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path17) {
-        if (Collection.isEmptyPath(path17)) {
+      deleteIn(path18) {
+        if (Collection.isEmptyPath(path18)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path17) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path18) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -3564,10 +3564,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path17, keepScalar) {
-        if (Collection.isEmptyPath(path17))
+      getIn(path18, keepScalar) {
+        if (Collection.isEmptyPath(path18))
           return !keepScalar && identity3.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity3.isCollection(this.contents) ? this.contents.getIn(path17, keepScalar) : void 0;
+        return identity3.isCollection(this.contents) ? this.contents.getIn(path18, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -3578,10 +3578,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path17) {
-        if (Collection.isEmptyPath(path17))
+      hasIn(path18) {
+        if (Collection.isEmptyPath(path18))
           return this.contents !== void 0;
-        return identity3.isCollection(this.contents) ? this.contents.hasIn(path17) : false;
+        return identity3.isCollection(this.contents) ? this.contents.hasIn(path18) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -3598,13 +3598,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path17, value) {
-        if (Collection.isEmptyPath(path17)) {
+      setIn(path18, value) {
+        if (Collection.isEmptyPath(path18)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path17), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path18), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path17, value);
+          this.contents.setIn(path18, value);
         }
       }
       /**
@@ -5564,9 +5564,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path17) => {
+    visit.itemAtPath = (cst, path18) => {
       let item = cst;
-      for (const [field, index] of path17) {
+      for (const [field, index] of path18) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -5575,23 +5575,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path17) => {
-      const parent = visit.itemAtPath(cst, path17.slice(0, -1));
-      const field = path17[path17.length - 1][0];
+    visit.parentCollection = (cst, path18) => {
+      const parent = visit.itemAtPath(cst, path18.slice(0, -1));
+      const field = path18[path18.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path17, item, visitor) {
-      let ctrl = visitor(item, path17);
+    function _visit(path18, item, visitor) {
+      let ctrl = visitor(item, path18);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i2 = 0; i2 < token.items.length; ++i2) {
-            const ci = _visit(Object.freeze(path17.concat([[field, i2]])), token.items[i2], visitor);
+            const ci = _visit(Object.freeze(path18.concat([[field, i2]])), token.items[i2], visitor);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -5602,10 +5602,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path17);
+            ctrl = ctrl(item, path18);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path17) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path18) : ctrl;
     }
     exports2.visit = visit;
   }
@@ -10552,8 +10552,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path17) {
-      let input = path17;
+    function removeDotSegments(path18) {
+      let input = path18;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -10805,8 +10805,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path17, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path17 && path17 !== "/" ? path17 : void 0;
+        const [path18, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path18 && path18 !== "/" ? path18 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -14219,7 +14219,7 @@ var require_windows = __commonJS({
     module2.exports = isexe;
     isexe.sync = sync;
     var fs = require("fs");
-    function checkPathExt(path17, options) {
+    function checkPathExt(path18, options) {
       var pathext = options.pathExt !== void 0 ? options.pathExt : process.env.PATHEXT;
       if (!pathext) {
         return true;
@@ -14230,25 +14230,25 @@ var require_windows = __commonJS({
       }
       for (var i2 = 0; i2 < pathext.length; i2++) {
         var p = pathext[i2].toLowerCase();
-        if (p && path17.substr(-p.length).toLowerCase() === p) {
+        if (p && path18.substr(-p.length).toLowerCase() === p) {
           return true;
         }
       }
       return false;
     }
-    function checkStat(stat, path17, options) {
+    function checkStat(stat, path18, options) {
       if (!stat.isSymbolicLink() && !stat.isFile()) {
         return false;
       }
-      return checkPathExt(path17, options);
+      return checkPathExt(path18, options);
     }
-    function isexe(path17, options, cb) {
-      fs.stat(path17, function(er, stat) {
-        cb(er, er ? false : checkStat(stat, path17, options));
+    function isexe(path18, options, cb) {
+      fs.stat(path18, function(er, stat) {
+        cb(er, er ? false : checkStat(stat, path18, options));
       });
     }
-    function sync(path17, options) {
-      return checkStat(fs.statSync(path17), path17, options);
+    function sync(path18, options) {
+      return checkStat(fs.statSync(path18), path18, options);
     }
   }
 });
@@ -14260,13 +14260,13 @@ var require_mode = __commonJS({
     module2.exports = isexe;
     isexe.sync = sync;
     var fs = require("fs");
-    function isexe(path17, options, cb) {
-      fs.stat(path17, function(er, stat) {
+    function isexe(path18, options, cb) {
+      fs.stat(path18, function(er, stat) {
         cb(er, er ? false : checkStat(stat, options));
       });
     }
-    function sync(path17, options) {
-      return checkStat(fs.statSync(path17), options);
+    function sync(path18, options) {
+      return checkStat(fs.statSync(path18), options);
     }
     function checkStat(stat, options) {
       return stat.isFile() && checkMode(stat, options);
@@ -14300,7 +14300,7 @@ var require_isexe = __commonJS({
     }
     module2.exports = isexe;
     isexe.sync = sync;
-    function isexe(path17, options, cb) {
+    function isexe(path18, options, cb) {
       if (typeof options === "function") {
         cb = options;
         options = {};
@@ -14310,7 +14310,7 @@ var require_isexe = __commonJS({
           throw new TypeError("callback not provided");
         }
         return new Promise(function(resolve, reject) {
-          isexe(path17, options || {}, function(er, is) {
+          isexe(path18, options || {}, function(er, is) {
             if (er) {
               reject(er);
             } else {
@@ -14319,7 +14319,7 @@ var require_isexe = __commonJS({
           });
         });
       }
-      core(path17, options || {}, function(er, is) {
+      core(path18, options || {}, function(er, is) {
         if (er) {
           if (er.code === "EACCES" || options && options.ignoreErrors) {
             er = null;
@@ -14329,9 +14329,9 @@ var require_isexe = __commonJS({
         cb(er, is);
       });
     }
-    function sync(path17, options) {
+    function sync(path18, options) {
       try {
-        return core.sync(path17, options || {});
+        return core.sync(path18, options || {});
       } catch (er) {
         if (options && options.ignoreErrors || er.code === "EACCES") {
           return false;
@@ -14348,7 +14348,7 @@ var require_which = __commonJS({
   "../../node_modules/.pnpm/which@2.0.2/node_modules/which/which.js"(exports2, module2) {
     "use strict";
     var isWindows = process.platform === "win32" || process.env.OSTYPE === "cygwin" || process.env.OSTYPE === "msys";
-    var path17 = require("path");
+    var path18 = require("path");
     var COLON = isWindows ? ";" : ":";
     var isexe = require_isexe();
     var getNotFoundError = (cmd) => Object.assign(new Error(`not found: ${cmd}`), { code: "ENOENT" });
@@ -14386,7 +14386,7 @@ var require_which = __commonJS({
           return opt.all && found.length ? resolve(found) : reject(getNotFoundError(cmd));
         const ppRaw = pathEnv[i2];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path17.join(pathPart, cmd);
+        const pCmd = path18.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         resolve(subStep(p, i2, 0));
       });
@@ -14413,7 +14413,7 @@ var require_which = __commonJS({
       for (let i2 = 0; i2 < pathEnv.length; i2++) {
         const ppRaw = pathEnv[i2];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path17.join(pathPart, cmd);
+        const pCmd = path18.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         for (let j = 0; j < pathExt.length; j++) {
           const cur = p + pathExt[j];
@@ -14461,7 +14461,7 @@ var require_path_key = __commonJS({
 var require_resolveCommand = __commonJS({
   "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js"(exports2, module2) {
     "use strict";
-    var path17 = require("path");
+    var path18 = require("path");
     var which = require_which();
     var getPathKey = require_path_key();
     function resolveCommandAttempt(parsed, withoutPathExt) {
@@ -14479,7 +14479,7 @@ var require_resolveCommand = __commonJS({
       try {
         resolved = which.sync(parsed.command, {
           path: env[getPathKey({ env })],
-          pathExt: withoutPathExt ? path17.delimiter : void 0
+          pathExt: withoutPathExt ? path18.delimiter : void 0
         });
       } catch (e) {
       } finally {
@@ -14488,7 +14488,7 @@ var require_resolveCommand = __commonJS({
         }
       }
       if (resolved) {
-        resolved = path17.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
+        resolved = path18.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
       }
       return resolved;
     }
@@ -14542,8 +14542,8 @@ var require_shebang_command = __commonJS({
       if (!match) {
         return null;
       }
-      const [path17, argument] = match[0].replace(/#! ?/, "").split(" ");
-      const binary = path17.split("/").pop();
+      const [path18, argument] = match[0].replace(/#! ?/, "").split(" ");
+      const binary = path18.split("/").pop();
       if (binary === "env") {
         return argument;
       }
@@ -14578,7 +14578,7 @@ var require_readShebang = __commonJS({
 var require_parse = __commonJS({
   "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js"(exports2, module2) {
     "use strict";
-    var path17 = require("path");
+    var path18 = require("path");
     var resolveCommand = require_resolveCommand();
     var escape2 = require_escape();
     var readShebang = require_readShebang();
@@ -14603,7 +14603,7 @@ var require_parse = __commonJS({
       const needsShell = !isExecutableRegExp.test(commandFile);
       if (parsed.options.forceShell || needsShell) {
         const needsDoubleEscapeMetaChars = isCmdShimRegExp.test(commandFile);
-        parsed.command = path17.normalize(parsed.command);
+        parsed.command = path18.normalize(parsed.command);
         parsed.command = escape2.command(parsed.command);
         parsed.args = parsed.args.map((arg) => escape2.argument(arg, needsDoubleEscapeMetaChars));
         const shellCommand = [parsed.command].concat(parsed.args).join(" ");
@@ -14968,8 +14968,8 @@ var require_utils2 = __commonJS({
       }
       return output;
     };
-    exports2.basename = (path17, { windows } = {}) => {
-      const segs = path17.split(windows ? /[\\/]/ : "/");
+    exports2.basename = (path18, { windows } = {}) => {
+      const segs = path18.split(windows ? /[\\/]/ : "/");
       const last = segs[segs.length - 1];
       if (last === "") {
         return segs[segs.length - 2];
@@ -16714,10 +16714,10 @@ function assignProp(target, prop, value) {
     configurable: true
   });
 }
-function getElementAtPath(obj, path17) {
-  if (!path17)
+function getElementAtPath(obj, path18) {
+  if (!path18)
     return obj;
-  return path17.reduce((acc, key) => acc?.[key], obj);
+  return path18.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -17037,11 +17037,11 @@ function aborted(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path17, issues) {
+function prefixIssues(path18, issues) {
   return issues.map((iss) => {
     var _a;
     (_a = iss).path ?? (_a.path = []);
-    iss.path.unshift(path17);
+    iss.path.unshift(path18);
     return iss;
   });
 }
@@ -20431,7 +20431,7 @@ var ZodType = /* @__PURE__ */ $constructor("ZodType", (inst, def) => {
   inst.parseAsync = async (data, params) => parseAsync2(inst, data, params, { callee: inst.parseAsync });
   inst.safeParseAsync = async (data, params) => safeParseAsync2(inst, data, params);
   inst.spa = inst.safeParseAsync;
-  inst.refine = (check2, params) => inst.check(refine(check2, params));
+  inst.refine = (check3, params) => inst.check(refine(check3, params));
   inst.superRefine = (refinement) => inst.check(superRefine(refinement));
   inst.overwrite = (fn) => inst.check(_overwrite(fn));
   inst.optional = () => optional(inst);
@@ -23129,8 +23129,8 @@ function getErrorMap() {
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path17, errorMaps, issueData } = params;
-  const fullPath = [...path17, ...issueData.path || []];
+  const { data, path: path18, errorMaps, issueData } = params;
+  const fullPath = [...path18, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -23246,11 +23246,11 @@ var errorUtil;
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path17, key) {
+  constructor(parent, value, path18, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path17;
+    this._path = path18;
     this._key = key;
   }
   get path() {
@@ -23428,7 +23428,7 @@ var ZodType2 = class {
     const result = await (isAsync(maybeAsyncResult) ? maybeAsyncResult : Promise.resolve(maybeAsyncResult));
     return handleResult(ctx, result);
   }
-  refine(check2, message) {
+  refine(check3, message) {
     const getIssueProperties = (val) => {
       if (typeof message === "string" || typeof message === "undefined") {
         return { message };
@@ -23439,7 +23439,7 @@ var ZodType2 = class {
       }
     };
     return this._refinement((val, ctx) => {
-      const result = check2(val);
+      const result = check3(val);
       const setError = () => ctx.addIssue({
         code: ZodIssueCode.custom,
         ...getIssueProperties(val)
@@ -23462,9 +23462,9 @@ var ZodType2 = class {
       }
     });
   }
-  refinement(check2, refinementData) {
+  refinement(check3, refinementData) {
     return this._refinement((val, ctx) => {
-      if (!check2(val)) {
+      if (!check3(val)) {
         ctx.addIssue(typeof refinementData === "function" ? refinementData(val, ctx) : refinementData);
         return false;
       } else {
@@ -23686,70 +23686,70 @@ var ZodString2 = class _ZodString2 extends ZodType2 {
     }
     const status = new ParseStatus();
     let ctx = void 0;
-    for (const check2 of this._def.checks) {
-      if (check2.kind === "min") {
-        if (input.data.length < check2.value) {
+    for (const check3 of this._def.checks) {
+      if (check3.kind === "min") {
+        if (input.data.length < check3.value) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.too_small,
-            minimum: check2.value,
+            minimum: check3.value,
             type: "string",
             inclusive: true,
             exact: false,
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "max") {
-        if (input.data.length > check2.value) {
+      } else if (check3.kind === "max") {
+        if (input.data.length > check3.value) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.too_big,
-            maximum: check2.value,
+            maximum: check3.value,
             type: "string",
             inclusive: true,
             exact: false,
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "length") {
-        const tooBig = input.data.length > check2.value;
-        const tooSmall = input.data.length < check2.value;
+      } else if (check3.kind === "length") {
+        const tooBig = input.data.length > check3.value;
+        const tooSmall = input.data.length < check3.value;
         if (tooBig || tooSmall) {
           ctx = this._getOrReturnCtx(input, ctx);
           if (tooBig) {
             addIssueToContext(ctx, {
               code: ZodIssueCode.too_big,
-              maximum: check2.value,
+              maximum: check3.value,
               type: "string",
               inclusive: true,
               exact: true,
-              message: check2.message
+              message: check3.message
             });
           } else if (tooSmall) {
             addIssueToContext(ctx, {
               code: ZodIssueCode.too_small,
-              minimum: check2.value,
+              minimum: check3.value,
               type: "string",
               inclusive: true,
               exact: true,
-              message: check2.message
+              message: check3.message
             });
           }
           status.dirty();
         }
-      } else if (check2.kind === "email") {
+      } else if (check3.kind === "email") {
         if (!emailRegex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "email",
             code: ZodIssueCode.invalid_string,
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "emoji") {
+      } else if (check3.kind === "emoji") {
         if (!emojiRegex) {
           emojiRegex = new RegExp(_emojiRegex, "u");
         }
@@ -23758,61 +23758,61 @@ var ZodString2 = class _ZodString2 extends ZodType2 {
           addIssueToContext(ctx, {
             validation: "emoji",
             code: ZodIssueCode.invalid_string,
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "uuid") {
+      } else if (check3.kind === "uuid") {
         if (!uuidRegex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "uuid",
             code: ZodIssueCode.invalid_string,
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "nanoid") {
+      } else if (check3.kind === "nanoid") {
         if (!nanoidRegex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "nanoid",
             code: ZodIssueCode.invalid_string,
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "cuid") {
+      } else if (check3.kind === "cuid") {
         if (!cuidRegex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "cuid",
             code: ZodIssueCode.invalid_string,
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "cuid2") {
+      } else if (check3.kind === "cuid2") {
         if (!cuid2Regex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "cuid2",
             code: ZodIssueCode.invalid_string,
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "ulid") {
+      } else if (check3.kind === "ulid") {
         if (!ulidRegex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "ulid",
             code: ZodIssueCode.invalid_string,
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "url") {
+      } else if (check3.kind === "url") {
         try {
           new URL(input.data);
         } catch {
@@ -23820,153 +23820,153 @@ var ZodString2 = class _ZodString2 extends ZodType2 {
           addIssueToContext(ctx, {
             validation: "url",
             code: ZodIssueCode.invalid_string,
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "regex") {
-        check2.regex.lastIndex = 0;
-        const testResult = check2.regex.test(input.data);
+      } else if (check3.kind === "regex") {
+        check3.regex.lastIndex = 0;
+        const testResult = check3.regex.test(input.data);
         if (!testResult) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "regex",
             code: ZodIssueCode.invalid_string,
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "trim") {
+      } else if (check3.kind === "trim") {
         input.data = input.data.trim();
-      } else if (check2.kind === "includes") {
-        if (!input.data.includes(check2.value, check2.position)) {
+      } else if (check3.kind === "includes") {
+        if (!input.data.includes(check3.value, check3.position)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.invalid_string,
-            validation: { includes: check2.value, position: check2.position },
-            message: check2.message
+            validation: { includes: check3.value, position: check3.position },
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "toLowerCase") {
+      } else if (check3.kind === "toLowerCase") {
         input.data = input.data.toLowerCase();
-      } else if (check2.kind === "toUpperCase") {
+      } else if (check3.kind === "toUpperCase") {
         input.data = input.data.toUpperCase();
-      } else if (check2.kind === "startsWith") {
-        if (!input.data.startsWith(check2.value)) {
+      } else if (check3.kind === "startsWith") {
+        if (!input.data.startsWith(check3.value)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.invalid_string,
-            validation: { startsWith: check2.value },
-            message: check2.message
+            validation: { startsWith: check3.value },
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "endsWith") {
-        if (!input.data.endsWith(check2.value)) {
+      } else if (check3.kind === "endsWith") {
+        if (!input.data.endsWith(check3.value)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.invalid_string,
-            validation: { endsWith: check2.value },
-            message: check2.message
+            validation: { endsWith: check3.value },
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "datetime") {
-        const regex = datetimeRegex(check2);
+      } else if (check3.kind === "datetime") {
+        const regex = datetimeRegex(check3);
         if (!regex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.invalid_string,
             validation: "datetime",
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "date") {
+      } else if (check3.kind === "date") {
         const regex = dateRegex;
         if (!regex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.invalid_string,
             validation: "date",
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "time") {
-        const regex = timeRegex(check2);
+      } else if (check3.kind === "time") {
+        const regex = timeRegex(check3);
         if (!regex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.invalid_string,
             validation: "time",
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "duration") {
+      } else if (check3.kind === "duration") {
         if (!durationRegex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "duration",
             code: ZodIssueCode.invalid_string,
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "ip") {
-        if (!isValidIP(input.data, check2.version)) {
+      } else if (check3.kind === "ip") {
+        if (!isValidIP(input.data, check3.version)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "ip",
             code: ZodIssueCode.invalid_string,
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "jwt") {
-        if (!isValidJWT2(input.data, check2.alg)) {
+      } else if (check3.kind === "jwt") {
+        if (!isValidJWT2(input.data, check3.alg)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "jwt",
             code: ZodIssueCode.invalid_string,
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "cidr") {
-        if (!isValidCidr(input.data, check2.version)) {
+      } else if (check3.kind === "cidr") {
+        if (!isValidCidr(input.data, check3.version)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "cidr",
             code: ZodIssueCode.invalid_string,
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "base64") {
+      } else if (check3.kind === "base64") {
         if (!base64Regex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "base64",
             code: ZodIssueCode.invalid_string,
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "base64url") {
+      } else if (check3.kind === "base64url") {
         if (!base64urlRegex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "base64url",
             code: ZodIssueCode.invalid_string,
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
       } else {
-        util.assertNever(check2);
+        util.assertNever(check3);
       }
     }
     return { status: status.value, value: input.data };
@@ -23978,10 +23978,10 @@ var ZodString2 = class _ZodString2 extends ZodType2 {
       ...errorUtil.errToObj(message)
     });
   }
-  _addCheck(check2) {
+  _addCheck(check3) {
     return new _ZodString2({
       ...this._def,
-      checks: [...this._def.checks, check2]
+      checks: [...this._def.checks, check3]
     });
   }
   email(message) {
@@ -24246,67 +24246,67 @@ var ZodNumber2 = class _ZodNumber extends ZodType2 {
     }
     let ctx = void 0;
     const status = new ParseStatus();
-    for (const check2 of this._def.checks) {
-      if (check2.kind === "int") {
+    for (const check3 of this._def.checks) {
+      if (check3.kind === "int") {
         if (!util.isInteger(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.invalid_type,
             expected: "integer",
             received: "float",
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "min") {
-        const tooSmall = check2.inclusive ? input.data < check2.value : input.data <= check2.value;
+      } else if (check3.kind === "min") {
+        const tooSmall = check3.inclusive ? input.data < check3.value : input.data <= check3.value;
         if (tooSmall) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.too_small,
-            minimum: check2.value,
+            minimum: check3.value,
             type: "number",
-            inclusive: check2.inclusive,
+            inclusive: check3.inclusive,
             exact: false,
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "max") {
-        const tooBig = check2.inclusive ? input.data > check2.value : input.data >= check2.value;
+      } else if (check3.kind === "max") {
+        const tooBig = check3.inclusive ? input.data > check3.value : input.data >= check3.value;
         if (tooBig) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.too_big,
-            maximum: check2.value,
+            maximum: check3.value,
             type: "number",
-            inclusive: check2.inclusive,
+            inclusive: check3.inclusive,
             exact: false,
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "multipleOf") {
-        if (floatSafeRemainder2(input.data, check2.value) !== 0) {
+      } else if (check3.kind === "multipleOf") {
+        if (floatSafeRemainder2(input.data, check3.value) !== 0) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.not_multiple_of,
-            multipleOf: check2.value,
-            message: check2.message
+            multipleOf: check3.value,
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "finite") {
+      } else if (check3.kind === "finite") {
         if (!Number.isFinite(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.not_finite,
-            message: check2.message
+            message: check3.message
           });
           status.dirty();
         }
       } else {
-        util.assertNever(check2);
+        util.assertNever(check3);
       }
     }
     return { status: status.value, value: input.data };
@@ -24337,10 +24337,10 @@ var ZodNumber2 = class _ZodNumber extends ZodType2 {
       ]
     });
   }
-  _addCheck(check2) {
+  _addCheck(check3) {
     return new _ZodNumber({
       ...this._def,
-      checks: [...this._def.checks, check2]
+      checks: [...this._def.checks, check3]
     });
   }
   int(message) {
@@ -24475,45 +24475,45 @@ var ZodBigInt = class _ZodBigInt extends ZodType2 {
     }
     let ctx = void 0;
     const status = new ParseStatus();
-    for (const check2 of this._def.checks) {
-      if (check2.kind === "min") {
-        const tooSmall = check2.inclusive ? input.data < check2.value : input.data <= check2.value;
+    for (const check3 of this._def.checks) {
+      if (check3.kind === "min") {
+        const tooSmall = check3.inclusive ? input.data < check3.value : input.data <= check3.value;
         if (tooSmall) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.too_small,
             type: "bigint",
-            minimum: check2.value,
-            inclusive: check2.inclusive,
-            message: check2.message
+            minimum: check3.value,
+            inclusive: check3.inclusive,
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "max") {
-        const tooBig = check2.inclusive ? input.data > check2.value : input.data >= check2.value;
+      } else if (check3.kind === "max") {
+        const tooBig = check3.inclusive ? input.data > check3.value : input.data >= check3.value;
         if (tooBig) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.too_big,
             type: "bigint",
-            maximum: check2.value,
-            inclusive: check2.inclusive,
-            message: check2.message
+            maximum: check3.value,
+            inclusive: check3.inclusive,
+            message: check3.message
           });
           status.dirty();
         }
-      } else if (check2.kind === "multipleOf") {
-        if (input.data % check2.value !== BigInt(0)) {
+      } else if (check3.kind === "multipleOf") {
+        if (input.data % check3.value !== BigInt(0)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.not_multiple_of,
-            multipleOf: check2.value,
-            message: check2.message
+            multipleOf: check3.value,
+            message: check3.message
           });
           status.dirty();
         }
       } else {
-        util.assertNever(check2);
+        util.assertNever(check3);
       }
     }
     return { status: status.value, value: input.data };
@@ -24553,10 +24553,10 @@ var ZodBigInt = class _ZodBigInt extends ZodType2 {
       ]
     });
   }
-  _addCheck(check2) {
+  _addCheck(check3) {
     return new _ZodBigInt({
       ...this._def,
-      checks: [...this._def.checks, check2]
+      checks: [...this._def.checks, check3]
     });
   }
   positive(message) {
@@ -24676,35 +24676,35 @@ var ZodDate = class _ZodDate extends ZodType2 {
     }
     const status = new ParseStatus();
     let ctx = void 0;
-    for (const check2 of this._def.checks) {
-      if (check2.kind === "min") {
-        if (input.data.getTime() < check2.value) {
+    for (const check3 of this._def.checks) {
+      if (check3.kind === "min") {
+        if (input.data.getTime() < check3.value) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.too_small,
-            message: check2.message,
+            message: check3.message,
             inclusive: true,
             exact: false,
-            minimum: check2.value,
+            minimum: check3.value,
             type: "date"
           });
           status.dirty();
         }
-      } else if (check2.kind === "max") {
-        if (input.data.getTime() > check2.value) {
+      } else if (check3.kind === "max") {
+        if (input.data.getTime() > check3.value) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.too_big,
-            message: check2.message,
+            message: check3.message,
             inclusive: true,
             exact: false,
-            maximum: check2.value,
+            maximum: check3.value,
             type: "date"
           });
           status.dirty();
         }
       } else {
-        util.assertNever(check2);
+        util.assertNever(check3);
       }
     }
     return {
@@ -24712,10 +24712,10 @@ var ZodDate = class _ZodDate extends ZodType2 {
       value: new Date(input.data.getTime())
     };
   }
-  _addCheck(check2) {
+  _addCheck(check3) {
     return new _ZodDate({
       ...this._def,
-      checks: [...this._def.checks, check2]
+      checks: [...this._def.checks, check3]
     });
   }
   min(minDate, message) {
@@ -26576,10 +26576,10 @@ function cleanParams(params, data) {
   const p2 = typeof p === "string" ? { message: p } : p;
   return p2;
 }
-function custom2(check2, _params = {}, fatal) {
-  if (check2)
+function custom2(check3, _params = {}, fatal) {
+  if (check3)
     return ZodAny.create().superRefine((data, ctx) => {
-      const r = check2(data);
+      const r = check3(data);
       if (r instanceof Promise) {
         return r.then((r2) => {
           if (!r2) {
@@ -27161,6 +27161,59 @@ var TASK_RUNNER_REPORT_JSON_SCHEMA = {
     recommendedNextActions: { type: "array", items: { type: "string" } }
   }
 };
+var STAGE_RUNNER_REPORT_JSON_SCHEMA = {
+  $schema: "http://json-schema.org/draft-07/schema#",
+  type: "object",
+  additionalProperties: false,
+  required: ["schemaVersion", "stage", "markdown", "summary"],
+  properties: {
+    schemaVersion: { type: "string", pattern: "^\\d+\\.\\d+\\.\\d+$" },
+    stage: { type: "string", enum: ["requirements", "bugfix", "design", "tasks"] },
+    markdown: { type: "string", minLength: 1 },
+    summary: { type: "string", minLength: 1 },
+    assumptions: { type: "array", items: { type: "string" } },
+    openQuestions: { type: "array", items: { type: "string" } },
+    referencedFiles: { type: "array", items: { type: "string" } }
+  }
+};
+function parseTaskRunnerReport(raw) {
+  return parseReport(raw, taskRunnerReportSchema);
+}
+function parseStageRunnerReport(raw) {
+  return parseReport(raw, stageRunnerReportSchema);
+}
+function parseReport(raw, schema) {
+  const candidate = extractJsonCandidate(raw);
+  if (candidate === void 0) {
+    return { ok: false, reason: "no JSON document found in the runner output" };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(candidate);
+  } catch (cause) {
+    return {
+      ok: false,
+      reason: `runner output is not valid JSON: ${cause instanceof Error ? cause.message : String(cause)}`
+    };
+  }
+  const result = schema.safeParse(parsed);
+  if (!result.success) {
+    const issues = result.error.issues.map((issue2) => `${issue2.path.join(".") || "(root)"}: ${issue2.message}`).join("; ");
+    return { ok: false, reason: `runner output does not match the report schema: ${issues}` };
+  }
+  return { ok: true, report: result.data };
+}
+var FENCED_JSON = /```(?:json)?\s*\n([\s\S]*?)```/g;
+function extractJsonCandidate(raw) {
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) return void 0;
+  if (trimmed.startsWith("{") || trimmed.startsWith("[")) return trimmed;
+  let lastBlock;
+  for (const match of trimmed.matchAll(FENCED_JSON)) {
+    if (match[1] !== void 0) lastBlock = match[1].trim();
+  }
+  return lastBlock;
+}
 var VERIFICATION_DIAGNOSTIC_SCHEMA_VERSION = "1.0.0";
 var VERIFICATION_REPORT_SCHEMA_VERSION = "1.0.0";
 var VERIFICATION_SEVERITIES = ["error", "warning", "info"];
@@ -27509,7 +27562,10 @@ var RUNNER_CONFIG_SCHEMA_VERSION = "2.0.0";
 var BUILT_IN_PROFILE_NAMES = {
   "claude-code": "claude-code",
   "codex-cli": "codex-default",
+  "gemini-cli": "gemini-default",
   ollama: "ollama-local",
+  "openai-compatible": "openai-compatible-local",
+  "antigravity-cli": "antigravity",
   mock: "mock"
 };
 var PROFILE_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
@@ -27602,10 +27658,109 @@ var ollamaProfileSchema = external_exports.object({
 var mockProfileSchema = mockRunnerConfigSchema.extend({
   runner: external_exports.literal("mock")
 });
+var GEMINI_AUTHORING_APPROVAL_MODES = ["plan"];
+var GEMINI_EXECUTION_APPROVAL_MODES = ["auto_edit", "default"];
+var geminiProfileSchema = external_exports.object({
+  runner: external_exports.literal("gemini-cli"),
+  enabled: external_exports.boolean().default(false),
+  command: commandSpecSchema.default({ executable: "gemini", args: [] }),
+  model: safeNonEmptyString.nullable().default(null),
+  /** Authoring is always read-only; only plan mode is accepted. */
+  approvalModeForAuthoring: external_exports.enum(GEMINI_AUTHORING_APPROVAL_MODES).default("plan"),
+  /** Task execution may auto-approve EDITS only — never shell commands. */
+  approvalModeForExecution: external_exports.enum(GEMINI_EXECUTION_APPROVAL_MODES).default("auto_edit"),
+  /** Pass --sandbox when the installed CLI supports it. */
+  sandbox: external_exports.boolean().default(true),
+  /**
+   * Extra tools to allow during task execution, on top of the adapter's
+   * bounded read/edit set. Shell-execution tools are rejected.
+   */
+  allowedTools: external_exports.array(safeNonEmptyString).default([]).refine(
+    (tools) => tools.every((tool) => !/^(run_shell_command|shell|bash|execute_command|terminal)$/i.test(tool)),
+    {
+      message: "shell-execution tools cannot be allowed: SpecBridge never grants the Gemini CLI arbitrary shell access"
+    }
+  ),
+  /** Pass the extension-restriction flag when supported (default on). */
+  disabledExtensions: external_exports.boolean().default(true),
+  timeoutMs: external_exports.number().int().min(1e3).max(864e5).default(18e5),
+  maxStdoutBytes: external_exports.number().int().min(1024).default(10 * 1024 * 1024),
+  maxStderrBytes: external_exports.number().int().min(1024).default(1024 * 1024)
+}).passthrough();
+var OPENAI_COMPATIBLE_API_STYLES = ["chat-completions", "responses"];
+var OPENAI_COMPATIBLE_STRUCTURED_OUTPUT_MODES = [
+  "json-schema",
+  "json-object",
+  "strict-json-prompt"
+];
+var environmentVariableNameSchema = external_exports.string().regex(
+  /^[A-Za-z_][A-Za-z0-9_]*$/,
+  "must be an environment-variable NAME (letters, digits, underscore); SpecBridge never stores key values"
+);
+var FORBIDDEN_HEADER_NAME_PATTERN = /^(authorization|proxy-authorization|cookie|set-cookie|x-api-key|api-key|x-auth-token)$/i;
+var safeHeadersSchema = external_exports.record(external_exports.string().max(1024)).superRefine((headers, ctx) => {
+  for (const [name, value] of Object.entries(headers)) {
+    if (!/^[A-Za-z0-9-]+$/.test(name)) {
+      ctx.addIssue({
+        code: external_exports.ZodIssueCode.custom,
+        message: `header name "${name}" is invalid (letters, digits, and "-" only)`
+      });
+    }
+    if (FORBIDDEN_HEADER_NAME_PATTERN.test(name)) {
+      ctx.addIssue({
+        code: external_exports.ZodIssueCode.custom,
+        message: `header "${name}" would carry a credential value. SpecBridge never stores credentials; use apiKeyEnvironmentVariable (a variable NAME) instead.`
+      });
+    }
+    if (value.includes("\0") || value.includes("\n") || value.includes("\r")) {
+      ctx.addIssue({
+        code: external_exports.ZodIssueCode.custom,
+        message: `header "${name}" contains control characters`
+      });
+    }
+  }
+});
+var openAiCompatibleProfileSchema = external_exports.object({
+  runner: external_exports.literal("openai-compatible"),
+  enabled: external_exports.boolean().default(false),
+  baseUrl: safeNonEmptyString.default("http://127.0.0.1:8000/v1"),
+  apiStyle: external_exports.enum(OPENAI_COMPATIBLE_API_STYLES).default("chat-completions"),
+  model: safeNonEmptyString.nullable().default(null),
+  structuredOutput: external_exports.enum(OPENAI_COMPATIBLE_STRUCTURED_OUTPUT_MODES).default("json-schema"),
+  /**
+   * Explicit permission to fall back from the configured structured-output
+   * mode to the next weaker one when the endpoint rejects it. Off by
+   * default: an unsupported mode is an error, never a silent downgrade.
+   */
+  allowStructuredOutputFallback: external_exports.boolean().default(false),
+  /** Name of the environment variable holding the API key (never a value). */
+  apiKeyEnvironmentVariable: environmentVariableNameSchema.nullable().default(null),
+  /** Static capability declaration: the endpoint supports GET /models. */
+  modelsEndpoint: external_exports.boolean().default(false),
+  /** Custom safe headers (credential-bearing header names are rejected). */
+  headers: safeHeadersSchema.default({}),
+  temperature: external_exports.number().min(0).max(2).default(0),
+  timeoutMs: external_exports.number().int().min(1e3).max(864e5).default(3e5),
+  maximumInputCharacters: external_exports.number().int().min(1e3).default(5e5),
+  maximumOutputBytes: external_exports.number().int().min(1024).default(2097152),
+  /** Explicit development override for private plain-HTTP endpoints (INSECURE). */
+  allowInsecureHttp: external_exports.boolean().default(false)
+}).passthrough();
+var antigravityProfileSchema = external_exports.object({
+  runner: external_exports.literal("antigravity-cli"),
+  enabled: external_exports.boolean().default(false),
+  command: commandSpecSchema.default({ executable: "agy", args: [] }),
+  /** Always true: the adapter is experimental and cannot be marked otherwise. */
+  experimental: external_exports.literal(true).default(true),
+  timeoutMs: external_exports.number().int().min(1e3).max(6e5).default(3e4)
+}).passthrough();
 var runnerProfileSchema = external_exports.discriminatedUnion("runner", [
   claudeProfileSchema,
   codexProfileSchema,
+  geminiProfileSchema,
   ollamaProfileSchema,
+  openAiCompatibleProfileSchema,
+  antigravityProfileSchema,
   mockProfileSchema
 ]);
 var runnerPolicySchema = external_exports.object({
@@ -27664,7 +27819,7 @@ var agentConfigV2Schema = external_exports.object({
     }
   }
   for (const [name, profile] of Object.entries(config2.runnerProfiles)) {
-    if (profile.runner === "ollama") {
+    if (profile.runner === "ollama" || profile.runner === "openai-compatible") {
       const url = validateRunnerBaseUrl(profile.baseUrl, {
         allowInsecureHttp: profile.allowInsecureHttp
       });
@@ -27700,6 +27855,15 @@ function builtInCodexProfile(executable) {
 function builtInOllamaProfile() {
   return ollamaProfileSchema.parse({ runner: "ollama", enabled: false });
 }
+function builtInGeminiProfile() {
+  return geminiProfileSchema.parse({ runner: "gemini-cli", enabled: false });
+}
+function builtInOpenAiCompatibleProfile() {
+  return openAiCompatibleProfileSchema.parse({ runner: "openai-compatible", enabled: false });
+}
+function builtInAntigravityProfile() {
+  return antigravityProfileSchema.parse({ runner: "antigravity-cli", enabled: false });
+}
 function withBuiltInProfiles(profiles, options) {
   const result = {};
   const add = (name, profile) => {
@@ -27714,8 +27878,20 @@ function withBuiltInProfiles(profiles, options) {
     profiles[BUILT_IN_PROFILE_NAMES["codex-cli"]] ?? builtInCodexProfile(options?.codexExecutable)
   );
   add(
+    BUILT_IN_PROFILE_NAMES["gemini-cli"],
+    profiles[BUILT_IN_PROFILE_NAMES["gemini-cli"]] ?? builtInGeminiProfile()
+  );
+  add(
     BUILT_IN_PROFILE_NAMES.ollama,
     profiles[BUILT_IN_PROFILE_NAMES.ollama] ?? builtInOllamaProfile()
+  );
+  add(
+    BUILT_IN_PROFILE_NAMES["openai-compatible"],
+    profiles[BUILT_IN_PROFILE_NAMES["openai-compatible"]] ?? builtInOpenAiCompatibleProfile()
+  );
+  add(
+    BUILT_IN_PROFILE_NAMES["antigravity-cli"],
+    profiles[BUILT_IN_PROFILE_NAMES["antigravity-cli"]] ?? builtInAntigravityProfile()
   );
   add(BUILT_IN_PROFILE_NAMES.mock, profiles[BUILT_IN_PROFILE_NAMES.mock] ?? builtInMockProfile());
   for (const [name, profile] of Object.entries(profiles)) add(name, profile);
@@ -29407,35 +29583,35 @@ function extractPathReferences(document) {
     for (const match of text.matchAll(BACKTICK_SPAN)) {
       const raw = match[1];
       if (raw === void 0) continue;
-      const path53 = normalizePathCandidate(raw);
-      if (path53 === void 0) continue;
-      const key = `${path53} ${i2}`;
+      const path54 = normalizePathCandidate(raw);
+      if (path54 === void 0) continue;
+      const key = `${path54} ${i2}`;
       if (seen.has(key)) continue;
       seen.add(key);
       references.push({
         raw,
-        path: path53,
+        path: path54,
         line: i2,
         method: "backtick-path",
         confidence: "deterministic",
-        isGlob: GLOB_CHARS.test(path53)
+        isGlob: GLOB_CHARS.test(path54)
       });
     }
     for (const match of text.matchAll(MARKDOWN_LINK)) {
       const raw = match[1];
       if (raw === void 0) continue;
-      const path53 = normalizePathCandidate(raw);
-      if (path53 === void 0) continue;
-      const key = `${path53} ${i2}`;
+      const path54 = normalizePathCandidate(raw);
+      if (path54 === void 0) continue;
+      const key = `${path54} ${i2}`;
       if (seen.has(key)) continue;
       seen.add(key);
       references.push({
         raw,
-        path: path53,
+        path: path54,
         line: i2,
         method: "markdown-link",
         confidence: "deterministic",
-        isGlob: GLOB_CHARS.test(path53)
+        isGlob: GLOB_CHARS.test(path54)
       });
     }
   }
@@ -29994,38 +30170,38 @@ function parseBigintDef(def, refs) {
   };
   if (!def.checks)
     return res;
-  for (const check2 of def.checks) {
-    switch (check2.kind) {
+  for (const check3 of def.checks) {
+    switch (check3.kind) {
       case "min":
         if (refs.target === "jsonSchema7") {
-          if (check2.inclusive) {
-            setResponseValueAndErrors(res, "minimum", check2.value, check2.message, refs);
+          if (check3.inclusive) {
+            setResponseValueAndErrors(res, "minimum", check3.value, check3.message, refs);
           } else {
-            setResponseValueAndErrors(res, "exclusiveMinimum", check2.value, check2.message, refs);
+            setResponseValueAndErrors(res, "exclusiveMinimum", check3.value, check3.message, refs);
           }
         } else {
-          if (!check2.inclusive) {
+          if (!check3.inclusive) {
             res.exclusiveMinimum = true;
           }
-          setResponseValueAndErrors(res, "minimum", check2.value, check2.message, refs);
+          setResponseValueAndErrors(res, "minimum", check3.value, check3.message, refs);
         }
         break;
       case "max":
         if (refs.target === "jsonSchema7") {
-          if (check2.inclusive) {
-            setResponseValueAndErrors(res, "maximum", check2.value, check2.message, refs);
+          if (check3.inclusive) {
+            setResponseValueAndErrors(res, "maximum", check3.value, check3.message, refs);
           } else {
-            setResponseValueAndErrors(res, "exclusiveMaximum", check2.value, check2.message, refs);
+            setResponseValueAndErrors(res, "exclusiveMaximum", check3.value, check3.message, refs);
           }
         } else {
-          if (!check2.inclusive) {
+          if (!check3.inclusive) {
             res.exclusiveMaximum = true;
           }
-          setResponseValueAndErrors(res, "maximum", check2.value, check2.message, refs);
+          setResponseValueAndErrors(res, "maximum", check3.value, check3.message, refs);
         }
         break;
       case "multipleOf":
-        setResponseValueAndErrors(res, "multipleOf", check2.value, check2.message, refs);
+        setResponseValueAndErrors(res, "multipleOf", check3.value, check3.message, refs);
         break;
     }
   }
@@ -30081,15 +30257,15 @@ var integerDateParser = (def, refs) => {
   if (refs.target === "openApi3") {
     return res;
   }
-  for (const check2 of def.checks) {
-    switch (check2.kind) {
+  for (const check3 of def.checks) {
+    switch (check3.kind) {
       case "min":
         setResponseValueAndErrors(
           res,
           "minimum",
-          check2.value,
+          check3.value,
           // This is in milliseconds
-          check2.message,
+          check3.message,
           refs
         );
         break;
@@ -30097,9 +30273,9 @@ var integerDateParser = (def, refs) => {
         setResponseValueAndErrors(
           res,
           "maximum",
-          check2.value,
+          check3.value,
           // This is in milliseconds
-          check2.message,
+          check3.message,
           refs
         );
         break;
@@ -30245,118 +30421,118 @@ function parseStringDef(def, refs) {
     type: "string"
   };
   if (def.checks) {
-    for (const check2 of def.checks) {
-      switch (check2.kind) {
+    for (const check3 of def.checks) {
+      switch (check3.kind) {
         case "min":
-          setResponseValueAndErrors(res, "minLength", typeof res.minLength === "number" ? Math.max(res.minLength, check2.value) : check2.value, check2.message, refs);
+          setResponseValueAndErrors(res, "minLength", typeof res.minLength === "number" ? Math.max(res.minLength, check3.value) : check3.value, check3.message, refs);
           break;
         case "max":
-          setResponseValueAndErrors(res, "maxLength", typeof res.maxLength === "number" ? Math.min(res.maxLength, check2.value) : check2.value, check2.message, refs);
+          setResponseValueAndErrors(res, "maxLength", typeof res.maxLength === "number" ? Math.min(res.maxLength, check3.value) : check3.value, check3.message, refs);
           break;
         case "email":
           switch (refs.emailStrategy) {
             case "format:email":
-              addFormat(res, "email", check2.message, refs);
+              addFormat(res, "email", check3.message, refs);
               break;
             case "format:idn-email":
-              addFormat(res, "idn-email", check2.message, refs);
+              addFormat(res, "idn-email", check3.message, refs);
               break;
             case "pattern:zod":
-              addPattern(res, zodPatterns.email, check2.message, refs);
+              addPattern(res, zodPatterns.email, check3.message, refs);
               break;
           }
           break;
         case "url":
-          addFormat(res, "uri", check2.message, refs);
+          addFormat(res, "uri", check3.message, refs);
           break;
         case "uuid":
-          addFormat(res, "uuid", check2.message, refs);
+          addFormat(res, "uuid", check3.message, refs);
           break;
         case "regex":
-          addPattern(res, check2.regex, check2.message, refs);
+          addPattern(res, check3.regex, check3.message, refs);
           break;
         case "cuid":
-          addPattern(res, zodPatterns.cuid, check2.message, refs);
+          addPattern(res, zodPatterns.cuid, check3.message, refs);
           break;
         case "cuid2":
-          addPattern(res, zodPatterns.cuid2, check2.message, refs);
+          addPattern(res, zodPatterns.cuid2, check3.message, refs);
           break;
         case "startsWith":
-          addPattern(res, RegExp(`^${escapeLiteralCheckValue(check2.value, refs)}`), check2.message, refs);
+          addPattern(res, RegExp(`^${escapeLiteralCheckValue(check3.value, refs)}`), check3.message, refs);
           break;
         case "endsWith":
-          addPattern(res, RegExp(`${escapeLiteralCheckValue(check2.value, refs)}$`), check2.message, refs);
+          addPattern(res, RegExp(`${escapeLiteralCheckValue(check3.value, refs)}$`), check3.message, refs);
           break;
         case "datetime":
-          addFormat(res, "date-time", check2.message, refs);
+          addFormat(res, "date-time", check3.message, refs);
           break;
         case "date":
-          addFormat(res, "date", check2.message, refs);
+          addFormat(res, "date", check3.message, refs);
           break;
         case "time":
-          addFormat(res, "time", check2.message, refs);
+          addFormat(res, "time", check3.message, refs);
           break;
         case "duration":
-          addFormat(res, "duration", check2.message, refs);
+          addFormat(res, "duration", check3.message, refs);
           break;
         case "length":
-          setResponseValueAndErrors(res, "minLength", typeof res.minLength === "number" ? Math.max(res.minLength, check2.value) : check2.value, check2.message, refs);
-          setResponseValueAndErrors(res, "maxLength", typeof res.maxLength === "number" ? Math.min(res.maxLength, check2.value) : check2.value, check2.message, refs);
+          setResponseValueAndErrors(res, "minLength", typeof res.minLength === "number" ? Math.max(res.minLength, check3.value) : check3.value, check3.message, refs);
+          setResponseValueAndErrors(res, "maxLength", typeof res.maxLength === "number" ? Math.min(res.maxLength, check3.value) : check3.value, check3.message, refs);
           break;
         case "includes": {
-          addPattern(res, RegExp(escapeLiteralCheckValue(check2.value, refs)), check2.message, refs);
+          addPattern(res, RegExp(escapeLiteralCheckValue(check3.value, refs)), check3.message, refs);
           break;
         }
         case "ip": {
-          if (check2.version !== "v6") {
-            addFormat(res, "ipv4", check2.message, refs);
+          if (check3.version !== "v6") {
+            addFormat(res, "ipv4", check3.message, refs);
           }
-          if (check2.version !== "v4") {
-            addFormat(res, "ipv6", check2.message, refs);
+          if (check3.version !== "v4") {
+            addFormat(res, "ipv6", check3.message, refs);
           }
           break;
         }
         case "base64url":
-          addPattern(res, zodPatterns.base64url, check2.message, refs);
+          addPattern(res, zodPatterns.base64url, check3.message, refs);
           break;
         case "jwt":
-          addPattern(res, zodPatterns.jwt, check2.message, refs);
+          addPattern(res, zodPatterns.jwt, check3.message, refs);
           break;
         case "cidr": {
-          if (check2.version !== "v6") {
-            addPattern(res, zodPatterns.ipv4Cidr, check2.message, refs);
+          if (check3.version !== "v6") {
+            addPattern(res, zodPatterns.ipv4Cidr, check3.message, refs);
           }
-          if (check2.version !== "v4") {
-            addPattern(res, zodPatterns.ipv6Cidr, check2.message, refs);
+          if (check3.version !== "v4") {
+            addPattern(res, zodPatterns.ipv6Cidr, check3.message, refs);
           }
           break;
         }
         case "emoji":
-          addPattern(res, zodPatterns.emoji(), check2.message, refs);
+          addPattern(res, zodPatterns.emoji(), check3.message, refs);
           break;
         case "ulid": {
-          addPattern(res, zodPatterns.ulid, check2.message, refs);
+          addPattern(res, zodPatterns.ulid, check3.message, refs);
           break;
         }
         case "base64": {
           switch (refs.base64Strategy) {
             case "format:binary": {
-              addFormat(res, "binary", check2.message, refs);
+              addFormat(res, "binary", check3.message, refs);
               break;
             }
             case "contentEncoding:base64": {
-              setResponseValueAndErrors(res, "contentEncoding", "base64", check2.message, refs);
+              setResponseValueAndErrors(res, "contentEncoding", "base64", check3.message, refs);
               break;
             }
             case "pattern:zod": {
-              addPattern(res, zodPatterns.base64, check2.message, refs);
+              addPattern(res, zodPatterns.base64, check3.message, refs);
               break;
             }
           }
           break;
         }
         case "nanoid": {
-          addPattern(res, zodPatterns.nanoid, check2.message, refs);
+          addPattern(res, zodPatterns.nanoid, check3.message, refs);
         }
         case "toLowerCase":
         case "toUpperCase":
@@ -30364,7 +30540,7 @@ function parseStringDef(def, refs) {
           break;
         default:
           /* @__PURE__ */ ((_) => {
-          })(check2);
+          })(check3);
       }
     }
   }
@@ -30734,42 +30910,42 @@ function parseNumberDef(def, refs) {
   };
   if (!def.checks)
     return res;
-  for (const check2 of def.checks) {
-    switch (check2.kind) {
+  for (const check3 of def.checks) {
+    switch (check3.kind) {
       case "int":
         res.type = "integer";
-        addErrorMessage(res, "type", check2.message, refs);
+        addErrorMessage(res, "type", check3.message, refs);
         break;
       case "min":
         if (refs.target === "jsonSchema7") {
-          if (check2.inclusive) {
-            setResponseValueAndErrors(res, "minimum", check2.value, check2.message, refs);
+          if (check3.inclusive) {
+            setResponseValueAndErrors(res, "minimum", check3.value, check3.message, refs);
           } else {
-            setResponseValueAndErrors(res, "exclusiveMinimum", check2.value, check2.message, refs);
+            setResponseValueAndErrors(res, "exclusiveMinimum", check3.value, check3.message, refs);
           }
         } else {
-          if (!check2.inclusive) {
+          if (!check3.inclusive) {
             res.exclusiveMinimum = true;
           }
-          setResponseValueAndErrors(res, "minimum", check2.value, check2.message, refs);
+          setResponseValueAndErrors(res, "minimum", check3.value, check3.message, refs);
         }
         break;
       case "max":
         if (refs.target === "jsonSchema7") {
-          if (check2.inclusive) {
-            setResponseValueAndErrors(res, "maximum", check2.value, check2.message, refs);
+          if (check3.inclusive) {
+            setResponseValueAndErrors(res, "maximum", check3.value, check3.message, refs);
           } else {
-            setResponseValueAndErrors(res, "exclusiveMaximum", check2.value, check2.message, refs);
+            setResponseValueAndErrors(res, "exclusiveMaximum", check3.value, check3.message, refs);
           }
         } else {
-          if (!check2.inclusive) {
+          if (!check3.inclusive) {
             res.exclusiveMaximum = true;
           }
-          setResponseValueAndErrors(res, "maximum", check2.value, check2.message, refs);
+          setResponseValueAndErrors(res, "maximum", check3.value, check3.message, refs);
         }
         break;
       case "multipleOf":
-        setResponseValueAndErrors(res, "multipleOf", check2.value, check2.message, refs);
+        setResponseValueAndErrors(res, "multipleOf", check3.value, check3.message, refs);
         break;
     }
   }
@@ -33704,13 +33880,13 @@ var McpServer = class {
     }
     return registeredPrompt;
   }
-  _createRegisteredTool(name, title, description, inputSchema17, outputSchema22, annotations, execution, _meta, handler) {
+  _createRegisteredTool(name, title, description, inputSchema20, outputSchema26, annotations, execution, _meta, handler) {
     validateAndWarnToolName(name);
     const registeredTool = {
       title,
       description,
-      inputSchema: getZodSchemaObject(inputSchema17),
-      outputSchema: getZodSchemaObject(outputSchema22),
+      inputSchema: getZodSchemaObject(inputSchema20),
+      outputSchema: getZodSchemaObject(outputSchema26),
       annotations,
       execution,
       _meta,
@@ -33760,8 +33936,8 @@ var McpServer = class {
       throw new Error(`Tool ${name} is already registered`);
     }
     let description;
-    let inputSchema17;
-    let outputSchema22;
+    let inputSchema20;
+    let outputSchema26;
     let annotations;
     if (typeof rest[0] === "string") {
       description = rest.shift();
@@ -33769,7 +33945,7 @@ var McpServer = class {
     if (rest.length > 1) {
       const firstArg = rest[0];
       if (isZodRawShapeCompat(firstArg)) {
-        inputSchema17 = rest.shift();
+        inputSchema20 = rest.shift();
         if (rest.length > 1 && typeof rest[0] === "object" && rest[0] !== null && !isZodRawShapeCompat(rest[0])) {
           annotations = rest.shift();
         }
@@ -33781,7 +33957,7 @@ var McpServer = class {
       }
     }
     const callback = rest[0];
-    return this._createRegisteredTool(name, void 0, description, inputSchema17, outputSchema22, annotations, { taskSupport: "forbidden" }, void 0, callback);
+    return this._createRegisteredTool(name, void 0, description, inputSchema20, outputSchema26, annotations, { taskSupport: "forbidden" }, void 0, callback);
   }
   /**
    * Registers a tool with a config object and callback.
@@ -33790,8 +33966,8 @@ var McpServer = class {
     if (this._registeredTools[name]) {
       throw new Error(`Tool ${name} is already registered`);
     }
-    const { title, description, inputSchema: inputSchema17, outputSchema: outputSchema22, annotations, _meta } = config2;
-    return this._createRegisteredTool(name, title, description, inputSchema17, outputSchema22, annotations, { taskSupport: "forbidden" }, _meta, cb);
+    const { title, description, inputSchema: inputSchema20, outputSchema: outputSchema26, annotations, _meta } = config2;
+    return this._createRegisteredTool(name, title, description, inputSchema20, outputSchema26, annotations, { taskSupport: "forbidden" }, _meta, cb);
   }
   prompt(name, ...rest) {
     if (this._registeredPrompts[name]) {
@@ -34123,9 +34299,9 @@ function registerAllPrompts(server, context) {
 }
 
 // ../../packages/evidence/dist/index.js
-var import_crypto2 = require("crypto");
-var import_fs10 = require("fs");
-var import_path9 = __toESM(require("path"), 1);
+var import_crypto4 = require("crypto");
+var import_fs14 = require("fs");
+var import_path13 = __toESM(require("path"), 1);
 
 // ../../packages/runners/dist/index.js
 var import_buffer = require("buffer");
@@ -38513,13 +38689,13 @@ var logOutputSync = ({ serializedResult, fdNumber, state, verboseInfo, encoding,
   }
 };
 var writeToFiles = (serializedResult, stdioItems, outputFiles) => {
-  for (const { path: path17, append } of stdioItems.filter(({ type }) => FILE_TYPES.has(type))) {
-    const pathString = typeof path17 === "string" ? path17 : path17.toString();
+  for (const { path: path18, append } of stdioItems.filter(({ type }) => FILE_TYPES.has(type))) {
+    const pathString = typeof path18 === "string" ? path18 : path18.toString();
     if (append || outputFiles.has(pathString)) {
-      (0, import_node_fs5.appendFileSync)(path17, serializedResult);
+      (0, import_node_fs5.appendFileSync)(path18, serializedResult);
     } else {
       outputFiles.add(pathString);
-      (0, import_node_fs5.writeFileSync)(path17, serializedResult);
+      (0, import_node_fs5.writeFileSync)(path18, serializedResult);
     }
   }
 };
@@ -40908,7 +41084,18 @@ var {
 } = getIpcExport();
 
 // ../../packages/runners/dist/index.js
+var import_crypto2 = require("crypto");
+var import_fs10 = require("fs");
+var import_path9 = __toESM(require("path"), 1);
+var import_fs11 = require("fs");
+var import_path10 = __toESM(require("path"), 1);
+var import_fs12 = require("fs");
+var import_path11 = __toESM(require("path"), 1);
 var import_buffer2 = require("buffer");
+var import_buffer3 = require("buffer");
+var import_crypto3 = require("crypto");
+var import_fs13 = require("fs");
+var import_path12 = __toESM(require("path"), 1);
 var DEFAULT_MAX_STDOUT_BYTES = 10 * 1024 * 1024;
 var DEFAULT_MAX_STDERR_BYTES = 1024 * 1024;
 function assertSafeToken(value, what) {
@@ -41089,6 +41276,37 @@ function capabilitySet(enabled) {
   for (const key of enabled) set[key] = true;
   return set;
 }
+function missingCapabilities(required2, available) {
+  return required2.filter((key) => !available[key]);
+}
+function effectiveSupportLevel(declared, status) {
+  switch (status) {
+    case "available":
+    case "unauthenticated":
+    case "misconfigured":
+      return declared;
+    case "unavailable":
+    case "error":
+      return "unavailable";
+    case "incompatible":
+      return "incompatible";
+  }
+}
+function digest(...parts) {
+  const hash = (0, import_crypto2.createHash)("sha256");
+  for (const part of parts) hash.update(part).update("\0");
+  return hash.digest("hex").slice(0, 12);
+}
+var MOCK_CAPABILITIES = [
+  { id: "non-interactive", label: "Non-interactive print mode", required: true },
+  { id: "json-output", label: "JSON output", required: true },
+  { id: "structured-output", label: "Structured output", required: false },
+  { id: "session-id", label: "Session IDs", required: false },
+  { id: "resume", label: "Resume support", required: false },
+  { id: "tool-restriction", label: "Tool restrictions", required: true },
+  { id: "permission-modes", label: "Permission modes", required: true },
+  { id: "max-turns", label: "Maximum turn limit", required: true }
+];
 var MOCK_CAPABILITY_SET = capabilitySet([
   "stageGeneration",
   "stageRefinement",
@@ -41104,6 +41322,470 @@ var MOCK_CAPABILITY_SET = capabilitySet([
   "supportsJsonSchema",
   "supportsCancellation"
 ]);
+var MockRunner = class {
+  name = "mock";
+  kind = "mock";
+  category = "mock";
+  declaredCapabilities = MOCK_CAPABILITY_SET;
+  config;
+  constructor(config2) {
+    this.config = mockRunnerConfigSchema.parse(config2 ?? {});
+  }
+  get scenario() {
+    return this.config.scenario;
+  }
+  detect(_context) {
+    return Promise.resolve({
+      runner: this.name,
+      kind: this.kind,
+      status: "available",
+      executable: "(in-process)",
+      version: "mock/0.3.0",
+      authentication: "not-applicable",
+      capabilities: MOCK_CAPABILITIES.map((capability) => ({
+        ...capability,
+        available: true
+      })),
+      diagnostics: [
+        {
+          severity: "info",
+          code: "MOCK_RUNNER",
+          message: `Deterministic offline mock runner (scenario: ${this.config.scenario}).`
+        }
+      ],
+      category: this.category,
+      capabilitySet: this.declaredCapabilities,
+      supportLevel: "production",
+      networkBacked: false
+    });
+  }
+  executionBoundaryNote(_policy) {
+    return "Mock runner: deterministic in-process scenarios; no external process, no network.";
+  }
+  selfTest(_execution) {
+    return Promise.resolve({
+      ok: true,
+      detail: `mock structured-output self test passed (scenario: ${this.config.scenario})`
+    });
+  }
+  generateStage(input, _execution) {
+    const scenario = this.config.scenario;
+    const base = {
+      runner: this.name,
+      rawStderr: scenario === "stderr-noise" ? "mock: simulated stderr diagnostics\n" : "",
+      durationMs: 0,
+      warnings: []
+    };
+    switch (scenario) {
+      case "malformed-output":
+        return Promise.resolve({
+          ...base,
+          outcome: "malformed-output",
+          failureReason: 'runner output is not valid JSON (mock scenario "malformed-output")',
+          rawStdout: "this is not a JSON document {"
+        });
+      case "timeout":
+        return Promise.resolve({
+          ...base,
+          outcome: "timed-out",
+          failureReason: 'mock scenario "timeout": the simulated agent exceeded its time limit',
+          rawStdout: ""
+        });
+      case "cancelled":
+        return Promise.resolve({
+          ...base,
+          outcome: "cancelled",
+          failureReason: 'mock scenario "cancelled": the simulated run was cancelled',
+          rawStdout: ""
+        });
+      case "permission-denied":
+        return Promise.resolve({
+          ...base,
+          outcome: "permission-denied",
+          failureReason: 'mock scenario "permission-denied": the simulated agent was denied a tool permission',
+          rawStdout: ""
+        });
+      case "failed":
+        return Promise.resolve({
+          ...base,
+          outcome: "failed",
+          failureReason: 'mock scenario "failed": the simulated agent reported a failure',
+          rawStdout: ""
+        });
+      case "blocked": {
+        const report = {
+          schemaVersion: RUNNER_OUTPUT_SCHEMA_VERSION,
+          stage: input.stage,
+          markdown: `# Blocked
+
+Generation blocked (mock scenario).
+`,
+          summary: 'Blocked: required input is missing (mock scenario "blocked").',
+          assumptions: [],
+          openQuestions: ["What should happen when the upstream service is unavailable?"],
+          referencedFiles: []
+        };
+        return Promise.resolve({
+          ...base,
+          outcome: "blocked",
+          failureReason: 'mock scenario "blocked": the simulated agent reported open questions',
+          report,
+          rawStdout: `${JSON.stringify(report, null, 2)}
+`
+        });
+      }
+      default: {
+        const markdown = scenario === "invalid-markdown" ? invalidStageMarkdown(input.stage) : validStageMarkdown(input.stage, input.specName, digest(input.prompt));
+        const report = {
+          schemaVersion: RUNNER_OUTPUT_SCHEMA_VERSION,
+          stage: input.stage,
+          markdown,
+          summary: `Mock ${input.intent === "refine" ? "refinement" : "generation"} of the ${input.stage} stage for "${input.specName}".`,
+          assumptions: ["Mock content is deterministic and produced without a model."],
+          openQuestions: [],
+          referencedFiles: []
+        };
+        return Promise.resolve({
+          ...base,
+          outcome: "completed",
+          report,
+          rawStdout: `${JSON.stringify(report, null, 2)}
+`,
+          sessionId: `mock-session-${digest(input.specName, input.stage, input.prompt)}`
+        });
+      }
+    }
+  }
+  executeTask(input, execution) {
+    return Promise.resolve(this.runTaskScenario(input.specName, input.taskId, execution, false));
+  }
+  resumeTask(input, execution) {
+    if (this.config.scenario === "resume-failure") {
+      return Promise.resolve({
+        runner: this.name,
+        outcome: "failed",
+        failureReason: 'mock scenario "resume-failure": the resumed session failed again',
+        rawStdout: "",
+        rawStderr: "",
+        sessionId: input.sessionId,
+        resumeSupported: true,
+        durationMs: 0,
+        warnings: []
+      });
+    }
+    const result = this.runTaskScenario(input.specName, input.taskId, execution, true);
+    return Promise.resolve({ ...result, sessionId: input.sessionId });
+  }
+  runTaskScenario(specName, taskId, execution, resumed) {
+    const scenario = this.config.scenario;
+    const sessionId = `mock-session-${digest(specName, taskId)}`;
+    const base = {
+      runner: this.name,
+      rawStderr: scenario === "stderr-noise" ? "mock: simulated stderr diagnostics\n" : "",
+      sessionId,
+      resumeSupported: true,
+      durationMs: 0,
+      warnings: []
+    };
+    const failure = (outcome, reason) => ({
+      ...base,
+      outcome,
+      failureReason: reason,
+      rawStdout: ""
+    });
+    switch (scenario) {
+      case "malformed-output":
+        return {
+          ...base,
+          outcome: "malformed-output",
+          failureReason: 'runner output is not valid JSON (mock scenario "malformed-output")',
+          rawStdout: '{"outcome": "completed", "summary": unterminated'
+        };
+      case "timeout":
+        return failure("timed-out", 'mock scenario "timeout": the simulated agent exceeded its time limit');
+      case "cancelled":
+        return failure("cancelled", 'mock scenario "cancelled": the simulated run was cancelled');
+      case "permission-denied":
+        return failure(
+          "permission-denied",
+          'mock scenario "permission-denied": the simulated agent was denied a tool permission'
+        );
+      case "failed":
+        return failure("failed", 'mock scenario "failed": the simulated agent reported a failure');
+      case "blocked": {
+        const report = {
+          schemaVersion: RUNNER_OUTPUT_SCHEMA_VERSION,
+          outcome: "blocked",
+          summary: `Blocked on task ${taskId}: required information is missing (mock scenario).`,
+          changedFiles: [],
+          commandsReported: [],
+          testsReported: [],
+          remainingRisks: [],
+          blockingQuestions: ["Which storage backend should the implementation target?"],
+          recommendedNextActions: ["Answer the blocking question, then resume the run."]
+        };
+        return {
+          ...base,
+          outcome: "blocked",
+          report,
+          rawStdout: `${JSON.stringify(report, null, 2)}
+`
+        };
+      }
+      case "no-change": {
+        const report = {
+          schemaVersion: RUNNER_OUTPUT_SCHEMA_VERSION,
+          outcome: "completed",
+          summary: `Task ${taskId} reported complete without changing any file (mock scenario "no-change").`,
+          changedFiles: [],
+          commandsReported: [],
+          testsReported: [],
+          remainingRisks: [],
+          blockingQuestions: [],
+          recommendedNextActions: []
+        };
+        return {
+          ...base,
+          outcome: "completed",
+          report,
+          rawStdout: `${JSON.stringify(report, null, 2)}
+`
+        };
+      }
+      case "protected-path": {
+        const target = assertInsideWorkspace(
+          execution.workspaceRoot,
+          import_path9.default.join(execution.workspaceRoot, ".kiro", "mock-rogue-write.txt")
+        );
+        writeFileAtomic(target, `rogue write for ${specName}/${taskId}
+`);
+        const report = {
+          schemaVersion: RUNNER_OUTPUT_SCHEMA_VERSION,
+          outcome: "completed",
+          summary: `Task ${taskId} complete (mock scenario "protected-path" wrote inside .kiro).`,
+          changedFiles: [".kiro/mock-rogue-write.txt"],
+          commandsReported: [],
+          testsReported: [],
+          remainingRisks: [],
+          blockingQuestions: [],
+          recommendedNextActions: []
+        };
+        return {
+          ...base,
+          outcome: "completed",
+          report,
+          rawStdout: `${JSON.stringify(report, null, 2)}
+`
+        };
+      }
+      case "modify-tasks-doc": {
+        const tasksPath = assertInsideWorkspace(
+          execution.workspaceRoot,
+          import_path9.default.join(execution.workspaceRoot, ".kiro", "specs", specName, "tasks.md")
+        );
+        if ((0, import_fs10.existsSync)(tasksPath)) {
+          const content = (0, import_fs10.readFileSync)(tasksPath, "utf8");
+          writeFileAtomic(tasksPath, content.replace("- [ ]", "- [x]"));
+        }
+        const report = {
+          schemaVersion: RUNNER_OUTPUT_SCHEMA_VERSION,
+          outcome: "completed",
+          summary: `Task ${taskId} complete (mock scenario "modify-tasks-doc" edited tasks.md directly).`,
+          changedFiles: [`.kiro/specs/${specName}/tasks.md`],
+          commandsReported: [],
+          testsReported: [],
+          remainingRisks: [],
+          blockingQuestions: [],
+          recommendedNextActions: []
+        };
+        return {
+          ...base,
+          outcome: "completed",
+          report,
+          rawStdout: `${JSON.stringify(report, null, 2)}
+`
+        };
+      }
+      default: {
+        const relativeChangeFile = this.config.changeFile;
+        this.assertNotProtected(relativeChangeFile);
+        const target = assertInsideWorkspace(
+          execution.workspaceRoot,
+          import_path9.default.join(execution.workspaceRoot, relativeChangeFile)
+        );
+        const previous = (0, import_fs10.existsSync)(target) ? (0, import_fs10.readFileSync)(target, "utf8") : "";
+        writeFileAtomic(
+          target,
+          `${previous}mock implementation for ${specName} task ${taskId}${resumed ? " (resumed)" : ""}
+`
+        );
+        const claimsUntested = scenario === "claims-untested";
+        const report = {
+          schemaVersion: RUNNER_OUTPUT_SCHEMA_VERSION,
+          outcome: "completed",
+          summary: `${resumed ? "Resumed and completed" : "Implemented"} task ${taskId} for "${specName}" by updating ${relativeChangeFile}.`,
+          changedFiles: [relativeChangeFile.split(import_path9.default.sep).join("/")],
+          commandsReported: claimsUntested ? ["pnpm test"] : [],
+          testsReported: claimsUntested ? [{ name: "unit tests (claimed, never executed)", status: "passed" }] : [],
+          remainingRisks: [],
+          blockingQuestions: [],
+          recommendedNextActions: []
+        };
+        return {
+          ...base,
+          outcome: "completed",
+          report,
+          rawStdout: `${JSON.stringify(report, null, 2)}
+`
+        };
+      }
+    }
+  }
+  assertNotProtected(relative) {
+    const normalized = relative.split(import_path9.default.sep).join("/");
+    if (normalized === ".kiro" || normalized.startsWith(".kiro/") || normalized === ".specbridge" || normalized.startsWith(".specbridge/") || normalized === ".git" || normalized.startsWith(".git/")) {
+      throw new SpecBridgeError(
+        "INVALID_ARGUMENT",
+        `The mock runner change file must not live under a protected directory (got "${relative}"). Use the "protected-path" scenario to simulate a protected-path violation deliberately.`
+      );
+    }
+  }
+};
+function validStageMarkdown(stage, specName, seed) {
+  const title = specName.split(/[-_]/).map((word) => word.length > 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word).join(" ");
+  switch (stage) {
+    case "requirements":
+      return [
+        "# Requirements Document",
+        "",
+        "## Introduction",
+        "",
+        `This document specifies the requirements for the ${title} feature.`,
+        `It was produced by the deterministic mock runner (input digest ${seed}).`,
+        "",
+        "## Requirements",
+        "",
+        `### Requirement 1: Persist ${title} settings`,
+        "",
+        "**User Story:** As a user, I want my settings to be saved, so that they survive a restart.",
+        "",
+        "#### Acceptance Criteria",
+        "",
+        "1. WHEN the user saves a setting, THE SYSTEM SHALL persist it before confirming success.",
+        "2. IF the persistence layer is unavailable, THEN THE SYSTEM SHALL report an error and keep the previous value.",
+        "",
+        "## Out of Scope",
+        "",
+        "- Real-time synchronization across devices is excluded from this feature.",
+        "",
+        "## Non-Functional Requirements",
+        "",
+        "- Saving a setting SHALL complete within 200 ms on the reference environment.",
+        ""
+      ].join("\n");
+    case "bugfix":
+      return [
+        "# Bugfix Report",
+        "",
+        "## Current Behavior",
+        "",
+        `The ${title} flow rejects valid input with a generic error (mock digest ${seed}).`,
+        "",
+        "## Expected Behavior",
+        "",
+        "Valid input is accepted and processed without an error.",
+        "",
+        "## Unchanged Behavior",
+        "",
+        "- Invalid input continues to be rejected with a specific message.",
+        "",
+        "## Reproduction",
+        "",
+        "1. Submit the documented valid payload.",
+        "2. Observe the generic error response.",
+        "",
+        "## Evidence",
+        "",
+        '- Error log entry: "unexpected validation failure" in the request handler.',
+        "",
+        "## Regression Protection",
+        "",
+        "- A regression test SHALL cover the previously rejected valid payload.",
+        ""
+      ].join("\n");
+    case "design":
+      return [
+        "# Design Document",
+        "",
+        "## Overview",
+        "",
+        `Design for ${title}, produced deterministically by the mock runner (digest ${seed}).`,
+        "",
+        "## Architecture",
+        "",
+        "A small persistence module is added behind the existing service interface.",
+        "",
+        "## Components and Interfaces",
+        "",
+        "- Settings store: read and write operations with optimistic validation.",
+        "",
+        "## Error Handling",
+        "",
+        "Failures propagate as typed errors; the previous value is always preserved.",
+        "",
+        "## Security Considerations",
+        "",
+        "No new authentication surface; input validation happens before persistence.",
+        "",
+        "## Testing Strategy",
+        "",
+        "Unit tests cover the store; an integration test covers the end-to-end flow.",
+        "",
+        "## Risks and Trade-offs",
+        "",
+        "- A simple file-backed store trades throughput for operational simplicity.",
+        ""
+      ].join("\n");
+    case "tasks":
+      return [
+        "# Implementation Plan",
+        "",
+        `- [ ] 1. Implement the settings store for ${title}`,
+        "  - Create the persistence module and wire it behind the service interface.",
+        "  - _Requirements: 1.1_",
+        "",
+        "- [ ] 2. Add automated tests for save and failure paths",
+        "  - Cover the success path and the unavailable-persistence error path.",
+        "  - _Requirements: 1.1, 1.2_",
+        "",
+        "- [ ] 3. Verify the full workflow end to end",
+        "  - Run the project test suite and confirm the acceptance criteria.",
+        "  - _Requirements: 1.2_",
+        "",
+        `Produced by the deterministic mock runner (digest ${seed}).`,
+        ""
+      ].join("\n");
+  }
+}
+function invalidStageMarkdown(stage) {
+  switch (stage) {
+    case "requirements":
+      return [
+        "# Requirements Document",
+        "",
+        "## Introduction",
+        "",
+        "As a <role>, I want <capability>, so that <benefit>.",
+        ""
+      ].join("\n");
+    case "bugfix":
+      return ["# Bugfix Report", "", "## Notes", "", "Describe the bug here.", ""].join("\n");
+    case "design":
+      return ["# Design Document", "", "TODO: design pending.", ""].join("\n");
+    case "tasks":
+      return ["# Implementation Plan", "", "Add tasks here.", ""].join("\n");
+  }
+}
 var runnerUsageSchema = external_exports.object({
   model: external_exports.string().nullable().default(null),
   inputTokens: external_exports.number().int().nonnegative().nullable().default(null),
@@ -41123,6 +41805,76 @@ var runnerCostSchema = external_exports.object({
   amount: external_exports.number().nonnegative().nullable().default(null),
   source: external_exports.enum(RUNNER_COST_SOURCES)
 }).strict();
+function emptyUsage(durationMs) {
+  return runnerUsageSchema.parse({ durationMs: Math.max(0, Math.round(durationMs)) });
+}
+var CLAUDE_CAPABILITY_FLAGS = [
+  {
+    id: "non-interactive",
+    label: "Non-interactive print mode",
+    flags: ["--print", "-p"],
+    required: true
+  },
+  {
+    id: "json-output",
+    label: "JSON output",
+    flags: ["--output-format"],
+    required: true
+  },
+  {
+    id: "structured-output",
+    label: "Structured output (JSON Schema)",
+    flags: ["--json-schema"],
+    required: false,
+    degradedNote: "final output will be validated JSON extracted from the result text (degraded compatibility)"
+  },
+  {
+    id: "session-id",
+    label: "Session IDs",
+    flags: ["--session-id"],
+    required: false,
+    degradedNote: "runs cannot be resumed later"
+  },
+  {
+    id: "resume",
+    label: "Resume support",
+    flags: ["--resume"],
+    required: false,
+    degradedNote: "interrupted runs need a fresh attempt instead of a resume"
+  },
+  {
+    id: "tool-restriction",
+    label: "Tool restrictions",
+    flags: ["--allowedTools", "--allowed-tools", "--disallowedTools"],
+    required: true
+  },
+  {
+    id: "permission-modes",
+    label: "Permission modes",
+    flags: ["--permission-mode"],
+    required: true
+  },
+  {
+    id: "max-turns",
+    label: "Maximum turn limit",
+    flags: ["--max-turns"],
+    required: false,
+    degradedNote: "SpecBridge still enforces its own process timeout"
+  },
+  {
+    id: "max-budget",
+    label: "Maximum budget limit",
+    flags: ["--max-budget-usd"],
+    required: false,
+    degradedNote: "budget limits are unavailable; use turn limits and timeouts"
+  }
+];
+var OPTIONAL_FLAGS = [
+  "--model",
+  "--effort",
+  "--append-system-prompt-file",
+  "--setting-sources"
+];
 var CLAUDE_DECLARED_CAPABILITIES = capabilitySet([
   "stageGeneration",
   "stageRefinement",
@@ -41139,6 +41891,293 @@ var CLAUDE_DECLARED_CAPABILITIES = capabilitySet([
   "supportsJsonSchema",
   "supportsCancellation"
 ]);
+function claudeCapabilitySet(probe) {
+  if (!probe.found) {
+    return capabilitySet([]);
+  }
+  const has = (id) => probe.capabilities.find((capability) => capability.id === id)?.available === true;
+  const set = { ...CLAUDE_DECLARED_CAPABILITIES };
+  const executionReady = has("non-interactive") && has("json-output") && has("tool-restriction") && has("permission-modes");
+  set.taskExecution = executionReady;
+  set.taskResume = executionReady && has("resume");
+  set.toolRestriction = has("tool-restriction");
+  set.supportsJsonSchema = has("structured-output");
+  set.structuredFinalOutput = has("json-output");
+  set.stageGeneration = has("non-interactive") && has("json-output");
+  set.stageRefinement = set.stageGeneration;
+  return set;
+}
+var PROBE_TIMEOUT_MS = 15e3;
+function capabilityFromHelp(flag, helpText) {
+  const available = flag.flags.some((token) => helpTokenPresent(helpText, token));
+  return {
+    id: flag.id,
+    label: flag.label,
+    available,
+    required: flag.required,
+    ...available || flag.degradedNote === void 0 ? {} : { detail: flag.degradedNote }
+  };
+}
+function helpTokenPresent(helpText, token) {
+  const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|[\\s,])${escaped}(?![\\w-])`, "m").test(helpText);
+}
+async function probeClaude(config2, options) {
+  const diagnostics = [];
+  const timeoutMs = options?.timeoutMs ?? PROBE_TIMEOUT_MS;
+  const base = {
+    executable: config2.command,
+    commandArgs: config2.commandArgs
+  };
+  const invoke = (argv) => runSafeProcess({
+    executable: config2.command,
+    argv: [...config2.commandArgs, ...argv],
+    cwd: process.cwd(),
+    timeoutMs,
+    ...options?.signal !== void 0 ? { signal: options.signal } : {},
+    maxStdoutBytes: 1024 * 1024,
+    maxStderrBytes: 256 * 1024
+  });
+  const versionResult = await invoke(["--version"]);
+  if (versionResult.status === "spawn-failed") {
+    diagnostics.push({
+      severity: "error",
+      code: "RUNNER_EXECUTABLE_NOT_FOUND",
+      message: `Claude Code executable "${config2.command}" could not be started. Install Claude Code or set runners.claude-code.command in .specbridge/config.json.`
+    });
+    return {
+      ...base,
+      found: false,
+      authState: "unknown",
+      capabilities: CLAUDE_CAPABILITY_FLAGS.map((flag) => ({
+        id: flag.id,
+        label: flag.label,
+        available: false,
+        required: flag.required
+      })),
+      supportedFlags: /* @__PURE__ */ new Set(),
+      status: "unavailable",
+      diagnostics
+    };
+  }
+  if (versionResult.status === "timeout") {
+    diagnostics.push({
+      severity: "error",
+      code: "RUNNER_VERSION_TIMEOUT",
+      message: `"${config2.command} --version" did not finish within ${timeoutMs} ms.`
+    });
+    return {
+      ...base,
+      found: true,
+      authState: "unknown",
+      capabilities: [],
+      supportedFlags: /* @__PURE__ */ new Set(),
+      status: "error",
+      diagnostics
+    };
+  }
+  const version2 = versionResult.stdout.trim().split(/\r?\n/)[0]?.trim();
+  if (versionResult.status !== "ok" || version2 === void 0 || version2.length === 0) {
+    diagnostics.push({
+      severity: "error",
+      code: "RUNNER_VERSION_FAILED",
+      message: `"${config2.command} --version" ${versionResult.failureReason ?? "produced no output"}.`
+    });
+    return {
+      ...base,
+      found: true,
+      authState: "unknown",
+      capabilities: [],
+      supportedFlags: /* @__PURE__ */ new Set(),
+      status: "error",
+      diagnostics
+    };
+  }
+  const helpResult = await invoke(["--help"]);
+  const helpText = `${helpResult.stdout}
+${helpResult.stderr}`;
+  const helpUsable = helpResult.status === "ok" && helpText.trim().length > 0;
+  if (!helpUsable) {
+    diagnostics.push({
+      severity: "error",
+      code: "RUNNER_HELP_FAILED",
+      message: `"${config2.command} --help" ${helpResult.failureReason ?? "produced no output"}; capabilities cannot be verified.`
+    });
+  }
+  const capabilities = CLAUDE_CAPABILITY_FLAGS.map(
+    (flag) => helpUsable ? capabilityFromHelp(flag, helpText) : { id: flag.id, label: flag.label, available: false, required: flag.required }
+  );
+  const supportedFlags = /* @__PURE__ */ new Set();
+  if (helpUsable) {
+    for (const flag of CLAUDE_CAPABILITY_FLAGS) {
+      for (const token of flag.flags) {
+        if (helpTokenPresent(helpText, token)) supportedFlags.add(token);
+      }
+    }
+    for (const token of OPTIONAL_FLAGS) {
+      if (helpTokenPresent(helpText, token)) supportedFlags.add(token);
+    }
+  }
+  let authState = "unknown";
+  if (helpUsable && /\bauth\b/.test(helpText)) {
+    const authResult = await invoke(["auth", "status"]);
+    if (authResult.status === "ok") {
+      authState = "authenticated";
+    } else if (authResult.status === "nonzero-exit") {
+      authState = "unauthenticated";
+      diagnostics.push({
+        severity: "error",
+        code: "RUNNER_UNAUTHENTICATED",
+        message: 'Claude Code is installed but not authenticated. Run "claude auth login" (SpecBridge never handles credentials), then verify with "specbridge runner doctor claude-code".'
+      });
+    } else {
+      diagnostics.push({
+        severity: "warning",
+        code: "RUNNER_AUTH_PROBE_FAILED",
+        message: `Authentication could not be verified (${authResult.failureReason ?? authResult.status}).`
+      });
+    }
+  } else if (helpUsable) {
+    diagnostics.push({
+      severity: "info",
+      code: "RUNNER_AUTH_PROBE_UNSUPPORTED",
+      message: 'This Claude Code version exposes no "auth status" command; authentication will surface at execution time instead.'
+    });
+  }
+  const missingRequired = capabilities.filter((c3) => c3.required && !c3.available);
+  let status;
+  if (authState === "unauthenticated") {
+    status = "unauthenticated";
+  } else if (missingRequired.length > 0) {
+    status = "incompatible";
+    diagnostics.push({
+      severity: "error",
+      code: "RUNNER_MISSING_CAPABILITY",
+      message: `This Claude Code version is missing required capabilities: ${missingRequired.map((c3) => c3.label).join(", ")}. Update Claude Code to a version that supports non-interactive JSON output with tool restrictions.`
+    });
+  } else if (!helpUsable) {
+    status = "error";
+  } else {
+    status = "available";
+    const degraded = capabilities.filter((c3) => !c3.required && !c3.available);
+    for (const capability of degraded) {
+      diagnostics.push({
+        severity: "warning",
+        code: "RUNNER_DEGRADED_CAPABILITY",
+        message: `Optional capability unavailable: ${capability.label}${capability.detail !== void 0 ? ` \u2014 ${capability.detail}` : ""}.`
+      });
+    }
+  }
+  return {
+    ...base,
+    found: true,
+    version: version2,
+    authState,
+    capabilities,
+    supportedFlags,
+    status,
+    diagnostics
+  };
+}
+var FORBIDDEN_ARGUMENTS = [
+  "--dangerously-skip-permissions",
+  "--allow-dangerously-skip-permissions",
+  "bypassPermissions"
+];
+var READ_ONLY_TOOLS = ["Read", "Glob", "Grep"];
+function allowedToolsValue(config2, policy) {
+  if (policy !== "implementation") {
+    return READ_ONLY_TOOLS.join(",");
+  }
+  const tools = config2.tools.filter((tool) => tool !== "Bash");
+  const bashConfigured = config2.tools.includes("Bash");
+  const rules = bashConfigured ? config2.allowedBashRules : [];
+  return [...tools, ...rules].join(",");
+}
+function buildClaudeInvocation(input) {
+  const { config: config2, probe, execution } = input;
+  const argv = [...config2.commandArgs];
+  const tempFiles = [];
+  const skippedFlags = [];
+  const supports = (flag) => probe.supportedFlags.has(flag);
+  const pushIfSupported = (flag, ...values) => {
+    if (supports(flag)) argv.push(flag, ...values);
+    else skippedFlags.push(flag);
+  };
+  argv.push(supports("--print") ? "--print" : "-p");
+  argv.push("--output-format", "json");
+  if (supports("--json-schema")) {
+    const schemaPath = import_path10.default.join(execution.runDir, "tmp", "output-schema.json");
+    if (input.materializeTempFiles !== false) {
+      (0, import_fs11.mkdirSync)(import_path10.default.dirname(schemaPath), { recursive: true });
+      writeFileAtomic(schemaPath, `${JSON.stringify(input.outputJsonSchema, null, 2)}
+`);
+      tempFiles.push(schemaPath);
+    }
+    argv.push("--json-schema", schemaPath);
+  } else {
+    skippedFlags.push("--json-schema");
+  }
+  const maxTurns = execution.maxTurns ?? config2.maxTurns;
+  pushIfSupported("--max-turns", String(maxTurns));
+  const permissionMode = input.toolPolicy === "implementation" ? config2.permissionMode : "default";
+  pushIfSupported("--permission-mode", permissionMode);
+  const toolsFlag = supports("--allowedTools") ? "--allowedTools" : "--allowed-tools";
+  argv.push(toolsFlag, allowedToolsValue(config2, input.toolPolicy));
+  if (input.resumeSessionId !== void 0) {
+    argv.push("--resume", input.resumeSessionId);
+  } else if (input.sessionId !== void 0 && supports("--session-id")) {
+    argv.push("--session-id", input.sessionId);
+  }
+  const model = execution.model ?? config2.model;
+  if (model !== null && model !== void 0) pushIfSupported("--model", model);
+  if (config2.effort !== null) pushIfSupported("--effort", config2.effort);
+  const maxBudget = execution.maxBudgetUsd ?? config2.maxBudgetUsd;
+  if (maxBudget !== null && maxBudget !== void 0) {
+    pushIfSupported("--max-budget-usd", String(maxBudget));
+  }
+  if (!config2.loadProjectConfiguration) {
+    pushIfSupported("--setting-sources", "user");
+  }
+  assertNoForbiddenArguments(argv);
+  return {
+    executable: config2.command,
+    argv,
+    stdin: input.prompt,
+    tempFiles,
+    skippedFlags
+  };
+}
+function assertNoForbiddenArguments(argv) {
+  for (const argument of argv) {
+    for (const forbidden of FORBIDDEN_ARGUMENTS) {
+      if (argument.includes(forbidden)) {
+        throw new SpecBridgeError(
+          "INVALID_STATE",
+          `Refusing to invoke Claude Code: the argument vector contains "${forbidden}". SpecBridge never skips or bypasses runner permissions.`
+        );
+      }
+    }
+  }
+}
+async function runClaudeInvocation(plan, config2, execution) {
+  assertNoForbiddenArguments(plan.argv);
+  return runSafeProcess({
+    executable: plan.executable,
+    argv: plan.argv,
+    cwd: execution.workspaceRoot,
+    timeoutMs: execution.timeoutMs,
+    ...execution.signal !== void 0 ? { signal: execution.signal } : {},
+    stdin: plan.stdin,
+    maxStdoutBytes: config2.maxStdoutBytes,
+    maxStderrBytes: config2.maxStderrBytes
+  });
+}
+function cleanupTempFiles(plan) {
+  for (const file of plan.tempFiles) {
+    (0, import_fs11.rmSync)(file, { force: true });
+  }
+}
 var claudeEnvelopeSchema = external_exports.object({
   type: external_exports.string().optional(),
   subtype: external_exports.string().optional(),
@@ -41148,6 +42187,352 @@ var claudeEnvelopeSchema = external_exports.object({
   structured_result: external_exports.unknown().optional(),
   permission_denials: external_exports.array(external_exports.unknown()).optional()
 }).passthrough();
+function parseClaudeEnvelope(stdout) {
+  const trimmed = stdout.trim();
+  if (trimmed.length === 0) {
+    return { problem: "the runner produced no output" };
+  }
+  const candidates = [];
+  candidates.push(trimmed);
+  const lines = trimmed.split(/\r?\n/);
+  for (let i2 = lines.length - 1; i2 >= 0; i2 -= 1) {
+    const line = lines[i2]?.trim() ?? "";
+    if (line.startsWith("{")) candidates.push(line);
+  }
+  for (const candidate of candidates) {
+    let parsed;
+    try {
+      parsed = JSON.parse(candidate);
+    } catch {
+      continue;
+    }
+    const envelope = claudeEnvelopeSchema.safeParse(parsed);
+    if (!envelope.success) continue;
+    const data = envelope.data;
+    if (data.structured_result !== void 0) {
+      return { envelope: data, structuredResult: data.structured_result };
+    }
+    if (data.result !== void 0) {
+      return { envelope: data, reportText: data.result };
+    }
+    return { envelope: data };
+  }
+  return { problem: "no JSON result envelope found in the runner output" };
+}
+var ClaudeCodeRunner = class {
+  name = "claude-code";
+  kind = "claude-code";
+  category = "agent-cli";
+  declaredCapabilities = CLAUDE_DECLARED_CAPABILITIES;
+  config;
+  probePromise;
+  constructor(config2) {
+    this.config = claudeRunnerConfigSchema.parse(config2 ?? {});
+  }
+  /** Probe once per runner instance; detection is read-only but not free. */
+  probe(timeoutMs) {
+    this.probePromise ??= probeClaude(
+      this.config,
+      timeoutMs !== void 0 ? { timeoutMs } : void 0
+    );
+    return this.probePromise;
+  }
+  async detect(context) {
+    if (!this.config.enabled) {
+      return {
+        runner: this.name,
+        kind: this.kind,
+        status: "misconfigured",
+        executable: this.config.command,
+        authentication: "unknown",
+        capabilities: [],
+        diagnostics: [
+          {
+            severity: "error",
+            code: "RUNNER_DISABLED",
+            message: "The claude-code runner is disabled in .specbridge/config.json (runners.claude-code.enabled = false)."
+          }
+        ],
+        category: this.category,
+        capabilitySet: this.declaredCapabilities,
+        supportLevel: effectiveSupportLevel("production", "misconfigured"),
+        networkBacked: false
+      };
+    }
+    const probe = await this.probe(context.timeoutMs);
+    return {
+      runner: this.name,
+      kind: this.kind,
+      status: probe.status,
+      executable: probe.executable,
+      ...probe.version !== void 0 ? { version: probe.version } : {},
+      authentication: probe.authState,
+      capabilities: probe.capabilities,
+      diagnostics: probe.diagnostics,
+      category: this.category,
+      capabilitySet: claudeCapabilitySet(probe),
+      supportLevel: effectiveSupportLevel("production", probe.status),
+      // The Claude Code CLI talks to its provider itself; SpecBridge's own
+      // transport is a local child process.
+      networkBacked: false
+    };
+  }
+  executionBoundaryNote(policy) {
+    if (policy !== "implementation") {
+      return "Allowed tools: Read, Glob, Grep (read-only repository access). Permission bypasses are never used.";
+    }
+    return `Allowed tools: ${this.config.tools.join(", ")} (Bash limited to the configured allow rules); permission mode: ${this.config.permissionMode}. Permission bypasses are never used.`;
+  }
+  /** Minimal bounded structured-output probe (`runner test --network`). */
+  async selfTest(execution) {
+    const probe = await this.probe();
+    if (probe.status !== "available") {
+      return { ok: false, detail: `claude-code is not available (status: ${probe.status})` };
+    }
+    const plan = buildClaudeInvocation({
+      config: this.config,
+      probe,
+      prompt: 'This is a connectivity self test. Do not read or modify any file. Reply with exactly one JSON document: {"schemaVersion":"1.0.0","stage":"requirements","markdown":"# Self Test","summary":"self test"} and nothing else.',
+      toolPolicy: "read-only",
+      outputJsonSchema: STAGE_RUNNER_REPORT_JSON_SCHEMA,
+      execution
+    });
+    const result = await runClaudeInvocation(plan, this.config, execution);
+    cleanupTempFiles(plan);
+    if (result.status !== "ok") {
+      return {
+        ok: false,
+        detail: result.failureReason ?? `self test failed (${result.status})`,
+        process: result.observation
+      };
+    }
+    const parsed = parseClaudeEnvelope(result.stdout);
+    const report = parsed.structuredResult !== void 0 ? stageRunnerReportSchema.safeParse(parsed.structuredResult) : parsed.reportText !== void 0 ? stageRunnerReportSchema.safeParse(safeJsonParse(parsed.reportText)) : void 0;
+    const usage = usageFromEnvelope(parsed.envelope, result.observation.durationMs);
+    return report !== void 0 && report.success ? {
+      ok: true,
+      detail: "structured output validated",
+      process: result.observation,
+      ...usage !== void 0 ? { usage } : {}
+    } : {
+      ok: false,
+      detail: "the runner responded but did not return a valid structured result",
+      process: result.observation
+    };
+  }
+  async generateStage(input, execution) {
+    const started = Date.now();
+    const probe = await this.probe();
+    const unavailable = this.unavailableResult(probe, started);
+    if (unavailable !== void 0) {
+      const { report: _report, ...rest2 } = unavailable;
+      return rest2;
+    }
+    const plan = buildClaudeInvocation({
+      config: this.config,
+      probe,
+      prompt: input.prompt,
+      toolPolicy: input.toolPolicy,
+      outputJsonSchema: STAGE_RUNNER_REPORT_JSON_SCHEMA,
+      execution
+    });
+    const processResult = await runClaudeInvocation(plan, this.config, execution);
+    const mapped = this.mapResult(processResult, plan, started, "stage");
+    if (mapped.outcome === "completed" || mapped.outcome === "no-change") {
+      cleanupTempFiles(plan);
+    }
+    const { report, ...rest } = mapped;
+    const stageReport = report;
+    return { ...rest, ...stageReport !== void 0 ? { report: stageReport } : {} };
+  }
+  async executeTask(input, execution) {
+    return this.runTask(input.prompt, execution, {
+      ...input.sessionId !== void 0 ? { sessionId: input.sessionId } : {}
+    });
+  }
+  async resumeTask(input, execution) {
+    return this.runTask(input.prompt, execution, { resumeSessionId: input.sessionId });
+  }
+  async runTask(prompt, execution, session) {
+    const started = Date.now();
+    const probe = await this.probe();
+    const unavailable = this.unavailableResult(probe, started);
+    if (unavailable !== void 0) {
+      const { report: _report, ...rest2 } = unavailable;
+      return { ...rest2, resumeSupported: false };
+    }
+    const plan = buildClaudeInvocation({
+      config: this.config,
+      probe,
+      prompt,
+      toolPolicy: "implementation",
+      outputJsonSchema: TASK_RUNNER_REPORT_JSON_SCHEMA,
+      ...session.sessionId !== void 0 ? { sessionId: session.sessionId } : {},
+      ...session.resumeSessionId !== void 0 ? { resumeSessionId: session.resumeSessionId } : {},
+      execution
+    });
+    const processResult = await runClaudeInvocation(plan, this.config, execution);
+    const mapped = this.mapResult(processResult, plan, started, "task");
+    if (mapped.outcome === "completed" || mapped.outcome === "no-change") {
+      cleanupTempFiles(plan);
+    }
+    const resumeCapable = probe.capabilities.find((c3) => c3.id === "resume")?.available === true;
+    const { report, sessionId, ...rest } = mapped;
+    const taskReport = report;
+    const effectiveSession = sessionId ?? session.sessionId ?? session.resumeSessionId;
+    return {
+      ...rest,
+      ...taskReport !== void 0 ? { report: taskReport } : {},
+      ...effectiveSession !== void 0 ? { sessionId: effectiveSession } : {},
+      resumeSupported: resumeCapable && effectiveSession !== void 0
+    };
+  }
+  unavailableResult(probe, started) {
+    if (probe.status === "available") return void 0;
+    return {
+      runner: this.name,
+      outcome: "failed",
+      failureReason: `the claude-code runner is not available (status: ${probe.status}); run "specbridge runner doctor claude-code" for details`,
+      rawStdout: "",
+      rawStderr: "",
+      durationMs: Date.now() - started,
+      warnings: probe.diagnostics.filter((d) => d.severity === "error").map((d) => d.message)
+    };
+  }
+  /** Map a finished process to a structured runner result. */
+  mapResult(processResult, plan, started, reportKind) {
+    const warnings = plan.skippedFlags.map(
+      (flag) => `flag ${flag} is unsupported by this Claude Code version and was skipped`
+    );
+    const base = {
+      runner: this.name,
+      rawStdout: processResult.stdout,
+      rawStderr: processResult.stderr,
+      process: processResult.observation,
+      durationMs: Math.max(0, Date.now() - started),
+      warnings
+    };
+    switch (processResult.status) {
+      case "timeout":
+        return { ...base, outcome: "timed-out", failureReason: processResult.failureReason ?? "timeout" };
+      case "cancelled":
+        return { ...base, outcome: "cancelled", failureReason: processResult.failureReason ?? "cancelled" };
+      case "output-limit":
+      case "spawn-failed":
+        return { ...base, outcome: "failed", failureReason: processResult.failureReason ?? processResult.status };
+      case "ok":
+      case "nonzero-exit":
+        break;
+    }
+    const parsed = parseClaudeEnvelope(processResult.stdout);
+    const sessionId = parsed.envelope?.session_id;
+    const usage = usageFromEnvelope(parsed.envelope, processResult.observation.durationMs);
+    const cost = costFromEnvelope(parsed.envelope);
+    const withSession = {
+      ...base,
+      ...sessionId !== void 0 ? { sessionId } : {},
+      ...usage !== void 0 ? { usage } : {},
+      ...cost !== void 0 ? { cost } : {}
+    };
+    if (this.looksPermissionDenied(processResult, parsed.envelope?.subtype, parsed.envelope)) {
+      return {
+        ...withSession,
+        outcome: "permission-denied",
+        failureReason: "Claude Code reported a permission denial. SpecBridge never bypasses permissions; adjust runners.claude-code.tools / allowedBashRules if the denied action should be allowed."
+      };
+    }
+    if (processResult.status === "nonzero-exit") {
+      return {
+        ...withSession,
+        outcome: "failed",
+        failureReason: processResult.failureReason ?? "nonzero exit"
+      };
+    }
+    let report;
+    let parseProblem = parsed.problem;
+    if (parsed.structuredResult !== void 0) {
+      const schema = reportKind === "stage" ? stageRunnerReportSchema : taskRunnerReportSchema;
+      const validated = schema.safeParse(parsed.structuredResult);
+      if (validated.success) report = validated.data;
+      else {
+        parseProblem = `structured result does not match the report schema: ${validated.error.issues.map((issue2) => `${issue2.path.join(".") || "(root)"}: ${issue2.message}`).join("; ")}`;
+      }
+    } else if (parsed.reportText !== void 0) {
+      const result = reportKind === "stage" ? parseStageRunnerReport(parsed.reportText) : parseTaskRunnerReport(parsed.reportText);
+      if (result.ok) report = result.report;
+      else parseProblem = result.reason;
+    }
+    if (report === void 0) {
+      if (parsed.envelope?.is_error === true) {
+        return {
+          ...withSession,
+          outcome: "failed",
+          failureReason: `Claude Code reported an error result${parsed.envelope.subtype !== void 0 ? ` (${parsed.envelope.subtype})` : ""}`
+        };
+      }
+      return {
+        ...withSession,
+        outcome: "malformed-output",
+        failureReason: parseProblem ?? "the runner returned no parseable structured result"
+      };
+    }
+    const outcome = "outcome" in report && report.outcome !== void 0 ? mapReportedOutcome(report.outcome) : "completed";
+    return {
+      ...withSession,
+      outcome,
+      report,
+      ...outcome === "completed" || outcome === "no-change" ? {} : { failureReason: `the agent reported "${outcome}"` }
+    };
+  }
+  looksPermissionDenied(processResult, subtype, envelope) {
+    if (subtype !== void 0 && /permission/i.test(subtype)) return true;
+    if (envelope?.permission_denials !== void 0 && envelope.permission_denials.length > 0) {
+      return processResult.status === "nonzero-exit";
+    }
+    if (processResult.status === "nonzero-exit" && /permission[^\n]{0,40}denied|denied[^\n]{0,40}permission/i.test(processResult.stderr)) {
+      return true;
+    }
+    return false;
+  }
+};
+function mapReportedOutcome(reported) {
+  return reported;
+}
+function safeJsonParse(raw) {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return void 0;
+  }
+}
+function tolerantCount(value) {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : null;
+}
+function usageFromEnvelope(envelope, durationMs) {
+  if (envelope === void 0) return void 0;
+  const usage = envelope["usage"];
+  const numTurns = tolerantCount(envelope["num_turns"]);
+  if (usage === null || typeof usage !== "object") {
+    if (numTurns === null) return void 0;
+    return { ...emptyUsage(durationMs), requestCount: numTurns };
+  }
+  const record2 = usage;
+  return {
+    model: null,
+    inputTokens: tolerantCount(record2["input_tokens"]),
+    cachedInputTokens: tolerantCount(record2["cache_read_input_tokens"]),
+    outputTokens: tolerantCount(record2["output_tokens"]),
+    reasoningTokens: null,
+    requestCount: numTurns,
+    durationMs: Math.max(0, Math.round(durationMs))
+  };
+}
+function costFromEnvelope(envelope) {
+  if (envelope === void 0) return void 0;
+  const cost = envelope["total_cost_usd"];
+  if (typeof cost !== "number" || !Number.isFinite(cost) || cost < 0) return void 0;
+  return { currency: "USD", amount: cost, source: "provider-reported" };
+}
 var RUNNER_ERROR_SCHEMA_VERSION = "1.0.0";
 var RUNNER_ERROR_CODES = [
   "runner_not_found",
@@ -41189,6 +42574,103 @@ var normalizedRunnerErrorSchema = external_exports.object({
   /** Redacted structured details (never raw provider payloads). */
   details: external_exports.record(external_exports.union([external_exports.string(), external_exports.number(), external_exports.boolean(), external_exports.null()])).optional()
 }).strict();
+var NON_RETRYABLE_ERROR_CODES = [
+  "runner_not_found",
+  "runner_disabled",
+  "runner_incompatible",
+  "executable_not_found",
+  "authentication_required",
+  "permission_denied",
+  "sandbox_unavailable",
+  "structured_output_unsupported",
+  "model_not_found",
+  "quota_exceeded",
+  "cancelled",
+  "repository_diverged",
+  "protected_path_modified",
+  "invalid_configuration",
+  "unsupported_operation"
+];
+function runnerError(input) {
+  return normalizedRunnerErrorSchema.parse({
+    schemaVersion: RUNNER_ERROR_SCHEMA_VERSION,
+    code: input.code,
+    message: input.message,
+    remediation: input.remediation ?? [],
+    retryable: input.retryable ?? !NON_RETRYABLE_ERROR_CODES.includes(input.code),
+    ...input.providerCode !== void 0 ? { providerCode: input.providerCode } : {},
+    ...input.details !== void 0 ? { details: input.details } : {}
+  });
+}
+var CODEX_CAPABILITY_PROBES = [
+  {
+    id: "non-interactive",
+    label: "Non-interactive execution (exec)",
+    tokens: ["exec"],
+    source: "root",
+    required: true
+  },
+  {
+    id: "json-events",
+    label: "Machine-readable event output (--json)",
+    tokens: ["--json"],
+    source: "exec",
+    required: true
+  },
+  {
+    id: "output-schema",
+    label: "JSON Schema constrained output (--output-schema)",
+    tokens: ["--output-schema"],
+    source: "exec",
+    required: false,
+    degradedNote: "the final agent message is validated against the schema instead"
+  },
+  {
+    id: "output-last-message",
+    label: "Final message to file (--output-last-message)",
+    tokens: ["--output-last-message"],
+    source: "exec",
+    required: false,
+    degradedNote: "the final message is extracted from the event stream instead"
+  },
+  {
+    id: "sandbox-read-only",
+    label: "Read-only sandbox (--sandbox read-only)",
+    tokens: ["--sandbox"],
+    source: "exec",
+    required: true
+  },
+  {
+    id: "sandbox-workspace-write",
+    label: "Workspace-write sandbox (--sandbox workspace-write)",
+    tokens: ["workspace-write"],
+    source: "exec",
+    required: false,
+    degradedNote: "task execution is unavailable without a workspace-write sandbox"
+  },
+  {
+    id: "resume",
+    label: "Session resume (exec resume <session-id>)",
+    tokens: ["resume"],
+    source: "exec",
+    required: false,
+    degradedNote: "interrupted runs need a fresh attempt instead of a resume"
+  },
+  {
+    id: "model-selection",
+    label: "Model selection (--model)",
+    tokens: ["--model", "-m,"],
+    source: "exec",
+    required: false,
+    degradedNote: "the provider default model is used"
+  }
+];
+var CODEX_FORBIDDEN_ARGUMENTS = [
+  "danger-full-access",
+  "--dangerously-bypass-approvals-and-sandbox",
+  "--yolo",
+  "--skip-git-repo-check"
+];
 var CODEX_DECLARED_CAPABILITIES = capabilitySet([
   "stageGeneration",
   "stageRefinement",
@@ -41204,6 +42686,277 @@ var CODEX_DECLARED_CAPABILITIES = capabilitySet([
   "supportsJsonSchema",
   "supportsCancellation"
 ]);
+var PROBE_TIMEOUT_MS2 = 15e3;
+function tokenPresent(helpText, token) {
+  const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|[\\s,=<[])${escaped}(?![\\w-])`, "m").test(helpText);
+}
+async function probeCodex(config2, options) {
+  const diagnostics = [];
+  const timeoutMs = options?.timeoutMs ?? PROBE_TIMEOUT_MS2;
+  const base = {
+    executable: config2.command.executable,
+    commandArgs: config2.command.args
+  };
+  const invoke = (argv) => runSafeProcess({
+    executable: config2.command.executable,
+    argv: [...config2.command.args, ...argv],
+    cwd: process.cwd(),
+    timeoutMs,
+    ...options?.signal !== void 0 ? { signal: options.signal } : {},
+    maxStdoutBytes: 1024 * 1024,
+    maxStderrBytes: 256 * 1024
+  });
+  const emptyCapabilities = () => CODEX_CAPABILITY_PROBES.map((probe) => ({
+    id: probe.id,
+    label: probe.label,
+    available: false,
+    required: probe.required
+  }));
+  const versionResult = await invoke(["--version"]);
+  if (versionResult.status === "spawn-failed") {
+    diagnostics.push({
+      severity: "error",
+      code: "RUNNER_EXECUTABLE_NOT_FOUND",
+      message: `Codex CLI executable "${config2.command.executable}" could not be started. Install the Codex CLI (the user installs and authenticates it independently) or set the profile command in .specbridge/config.json.`
+    });
+    return {
+      ...base,
+      found: false,
+      authState: "unknown",
+      capabilities: emptyCapabilities(),
+      supportedTokens: /* @__PURE__ */ new Set(),
+      status: "unavailable",
+      diagnostics
+    };
+  }
+  if (versionResult.status !== "ok") {
+    diagnostics.push({
+      severity: "error",
+      code: "RUNNER_VERSION_FAILED",
+      message: `"${config2.command.executable} --version" ${versionResult.failureReason ?? "produced no output"}.`
+    });
+    return {
+      ...base,
+      found: true,
+      authState: "unknown",
+      capabilities: emptyCapabilities(),
+      supportedTokens: /* @__PURE__ */ new Set(),
+      status: "error",
+      diagnostics
+    };
+  }
+  const version2 = versionResult.stdout.trim().split(/\r?\n/)[0]?.trim();
+  const rootHelp = await invoke(["--help"]);
+  const rootText = `${rootHelp.stdout}
+${rootHelp.stderr}`;
+  const rootUsable = rootHelp.status === "ok" && rootText.trim().length > 0;
+  const execHelp = rootUsable && tokenPresent(rootText, "exec") ? await invoke(["exec", "--help"]) : void 0;
+  const execText = execHelp !== void 0 ? `${execHelp.stdout}
+${execHelp.stderr}` : "";
+  const execUsable = execHelp !== void 0 && execHelp.status === "ok" && execText.trim().length > 0;
+  if (!rootUsable) {
+    diagnostics.push({
+      severity: "error",
+      code: "RUNNER_HELP_FAILED",
+      message: `"${config2.command.executable} --help" ${rootHelp.failureReason ?? "produced no output"}; capabilities cannot be verified.`
+    });
+  }
+  const supportedTokens = /* @__PURE__ */ new Set();
+  const capabilities = CODEX_CAPABILITY_PROBES.map((probe) => {
+    const text = probe.source === "root" ? rootText : execText;
+    const usable = probe.source === "root" ? rootUsable : execUsable;
+    const available = usable && probe.tokens.some((token) => tokenPresent(text, token));
+    if (available) for (const token of probe.tokens) supportedTokens.add(token);
+    return {
+      id: probe.id,
+      label: probe.label,
+      available,
+      required: probe.required,
+      ...available || probe.degradedNote === void 0 ? {} : { detail: probe.degradedNote }
+    };
+  });
+  let authState = "unknown";
+  if (rootUsable && tokenPresent(rootText, "login")) {
+    const loginStatus = await invoke(["login", "status"]);
+    if (loginStatus.status === "ok") {
+      authState = "authenticated";
+    } else if (loginStatus.status === "nonzero-exit") {
+      authState = "unauthenticated";
+      diagnostics.push({
+        severity: "error",
+        code: "RUNNER_UNAUTHENTICATED",
+        message: 'The Codex CLI is installed but not authenticated. Run "codex login" yourself (SpecBridge never handles or stores credentials), then verify with "specbridge runner doctor".'
+      });
+    } else {
+      diagnostics.push({
+        severity: "warning",
+        code: "RUNNER_AUTH_PROBE_FAILED",
+        message: `Authentication could not be verified (${loginStatus.failureReason ?? loginStatus.status}). It will surface at execution time.`
+      });
+    }
+  } else if (rootUsable) {
+    diagnostics.push({
+      severity: "info",
+      code: "RUNNER_AUTH_PROBE_UNSUPPORTED",
+      message: 'This Codex CLI version exposes no safe authentication status command; authentication is reported as unknown (SpecBridge never reads provider credential files). Use "specbridge runner test <profile> --network" for a minimal authenticated probe.'
+    });
+  }
+  const missingRequired = capabilities.filter((c3) => c3.required && !c3.available);
+  let status;
+  if (authState === "unauthenticated") {
+    status = "unauthenticated";
+  } else if (missingRequired.length > 0) {
+    status = "incompatible";
+    diagnostics.push({
+      severity: "error",
+      code: "RUNNER_MISSING_CAPABILITY",
+      message: `This Codex CLI version is missing required capabilities: ${missingRequired.map((c3) => c3.label).join(", ")}. Update the Codex CLI to a version with non-interactive exec, machine-readable output, and sandbox control.`
+    });
+  } else if (!rootUsable || !execUsable) {
+    status = "error";
+  } else {
+    status = "available";
+    for (const capability of capabilities.filter((c3) => !c3.required && !c3.available)) {
+      diagnostics.push({
+        severity: "warning",
+        code: "RUNNER_DEGRADED_CAPABILITY",
+        message: `Optional capability unavailable: ${capability.label}${capability.detail !== void 0 ? ` \u2014 ${capability.detail}` : ""}.`
+      });
+    }
+  }
+  return {
+    ...base,
+    found: true,
+    ...version2 !== void 0 && version2.length > 0 ? { version: version2 } : {},
+    authState,
+    capabilities,
+    supportedTokens,
+    status,
+    diagnostics
+  };
+}
+function probeAvailable(probe, id) {
+  return probe.capabilities.find((capability) => capability.id === id)?.available === true;
+}
+function codexCapabilitySet(probe) {
+  if (!probe.found) return capabilitySet([]);
+  const set = { ...CODEX_DECLARED_CAPABILITIES };
+  const execReady = probeAvailable(probe, "non-interactive") && probeAvailable(probe, "json-events");
+  const readOnlySandbox = probeAvailable(probe, "sandbox-read-only");
+  const workspaceWrite = probeAvailable(probe, "sandbox-workspace-write");
+  set.stageGeneration = execReady && readOnlySandbox;
+  set.stageRefinement = set.stageGeneration;
+  set.sandbox = readOnlySandbox;
+  set.taskExecution = execReady && workspaceWrite;
+  set.taskResume = set.taskExecution && probeAvailable(probe, "resume");
+  set.structuredFinalOutput = execReady;
+  set.streamingEvents = execReady;
+  set.supportsJsonSchema = probeAvailable(probe, "output-schema");
+  return set;
+}
+function assertNoForbiddenCodexArguments(argv) {
+  for (const argument of argv) {
+    for (const forbidden of CODEX_FORBIDDEN_ARGUMENTS) {
+      if (argument.includes(forbidden)) {
+        throw new SpecBridgeError(
+          "INVALID_STATE",
+          `Refusing to invoke the Codex CLI: the argument vector contains "${forbidden}". SpecBridge never disables sandboxing, approvals, or repository safety checks.`
+        );
+      }
+    }
+  }
+  const sandboxIndex = argv.indexOf("--sandbox");
+  if (sandboxIndex >= 0) {
+    const mode = argv[sandboxIndex + 1];
+    if (mode !== "read-only" && mode !== "workspace-write") {
+      throw new SpecBridgeError(
+        "INVALID_STATE",
+        `Refusing to invoke the Codex CLI with sandbox mode "${mode ?? "(missing)"}". Only read-only and workspace-write are ever used.`
+      );
+    }
+  }
+}
+function buildCodexInvocation(input) {
+  const { config: config2, probe, execution } = input;
+  const argv = [...config2.command.args];
+  const tempFiles = [];
+  const skippedFlags = [];
+  const supports = (token) => probe.supportedTokens.has(token);
+  argv.push("exec");
+  if (input.resumeSessionId !== void 0) {
+    argv.push("resume", input.resumeSessionId);
+  }
+  argv.push("--json");
+  const sandbox = input.toolPolicy === "implementation" ? config2.sandbox === "read-only" ? "read-only" : "workspace-write" : "read-only";
+  argv.push("--sandbox", sandbox);
+  const tmpDir = import_path11.default.join(execution.runDir, "tmp");
+  if (supports("--output-schema")) {
+    const schemaPath = import_path11.default.join(tmpDir, "codex-output-schema.json");
+    if (input.materializeTempFiles !== false) {
+      (0, import_fs12.mkdirSync)(tmpDir, { recursive: true });
+      writeFileAtomic(schemaPath, `${JSON.stringify(input.outputJsonSchema, null, 2)}
+`);
+      tempFiles.push(schemaPath);
+    }
+    argv.push("--output-schema", schemaPath);
+  } else {
+    skippedFlags.push("--output-schema");
+  }
+  let lastMessagePath;
+  if (supports("--output-last-message")) {
+    lastMessagePath = import_path11.default.join(tmpDir, "codex-last-message.txt");
+    if (input.materializeTempFiles !== false) {
+      (0, import_fs12.mkdirSync)(tmpDir, { recursive: true });
+    }
+    argv.push("--output-last-message", lastMessagePath);
+    tempFiles.push(lastMessagePath);
+  } else {
+    skippedFlags.push("--output-last-message");
+  }
+  const model = execution.model ?? config2.model;
+  if (model !== null && model !== void 0) {
+    if (supports("--model")) argv.push("--model", model);
+    else skippedFlags.push("--model");
+  }
+  argv.push("-");
+  assertNoForbiddenCodexArguments(argv);
+  return {
+    executable: config2.command.executable,
+    argv,
+    stdin: input.prompt,
+    sandbox,
+    ...lastMessagePath !== void 0 ? { lastMessagePath } : {},
+    tempFiles,
+    skippedFlags
+  };
+}
+async function runCodexInvocation(plan, config2, execution) {
+  assertNoForbiddenCodexArguments(plan.argv);
+  return runSafeProcess({
+    executable: plan.executable,
+    argv: plan.argv,
+    cwd: execution.workspaceRoot,
+    timeoutMs: execution.timeoutMs,
+    ...execution.signal !== void 0 ? { signal: execution.signal } : {},
+    stdin: plan.stdin,
+    maxStdoutBytes: config2.maxStdoutBytes,
+    maxStderrBytes: config2.maxStderrBytes
+  });
+}
+function readLastMessage(plan) {
+  if (plan.lastMessagePath === void 0 || !(0, import_fs12.existsSync)(plan.lastMessagePath)) return void 0;
+  try {
+    return (0, import_fs12.readFileSync)(plan.lastMessagePath, "utf8");
+  } catch {
+    return void 0;
+  }
+}
+function cleanupCodexTempFiles(plan) {
+  for (const file of plan.tempFiles) {
+    (0, import_fs12.rmSync)(file, { force: true });
+  }
+}
 var RUNNER_EVENT_SCHEMA_VERSION = "1.0.0";
 var NORMALIZED_RUNNER_EVENT_TYPES = [
   "runner.started",
@@ -41251,6 +43004,10 @@ var normalizedRunnerEventSchema = external_exports.object({
     });
   }
 });
+function boundedPayloadText(value, maxChars = 2e3) {
+  return value.length <= maxChars ? value : `${value.slice(0, maxChars)}\u2026 [truncated]`;
+}
+var MAX_RETAINED_EVENTS = 5e3;
 var codexItemSchema = external_exports.object({
   id: external_exports.string().optional(),
   type: external_exports.string().optional(),
@@ -41273,6 +43030,1890 @@ var codexEventSchema = external_exports.object({
   error: external_exports.object({ message: external_exports.string().optional() }).passthrough().optional(),
   message: external_exports.string().optional()
 }).passthrough();
+function parseCodexEventStream(stdout) {
+  const stream = {
+    events: [],
+    unparseableLines: 0,
+    truncated: false,
+    errors: []
+  };
+  let inputTokens = null;
+  let cachedInputTokens = null;
+  let outputTokens = null;
+  let reasoningTokens = null;
+  let turns = 0;
+  for (const line of stdout.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (trimmed.length === 0 || !trimmed.startsWith("{")) continue;
+    let parsed;
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch {
+      stream.unparseableLines += 1;
+      continue;
+    }
+    const event = codexEventSchema.safeParse(parsed);
+    if (!event.success) {
+      stream.unparseableLines += 1;
+      continue;
+    }
+    if (stream.events.length < MAX_RETAINED_EVENTS) {
+      stream.events.push(event.data);
+    } else {
+      stream.truncated = true;
+    }
+    const data = event.data;
+    if (data.type === "thread.started" && data.thread_id !== void 0) {
+      stream.threadId = data.thread_id;
+    }
+    if (data.type === "turn.completed") {
+      turns += 1;
+      const usage = data.usage;
+      if (usage !== void 0) {
+        inputTokens = (inputTokens ?? 0) + (usage.input_tokens ?? 0);
+        cachedInputTokens = (cachedInputTokens ?? 0) + (usage.cached_input_tokens ?? 0);
+        outputTokens = (outputTokens ?? 0) + (usage.output_tokens ?? 0);
+        if (usage.reasoning_output_tokens !== void 0) {
+          reasoningTokens = (reasoningTokens ?? 0) + usage.reasoning_output_tokens;
+        }
+      }
+    }
+    if (data.type === "item.completed" && data.item?.type === "agent_message" && data.item.text !== void 0) {
+      stream.lastAgentMessage = data.item.text;
+    }
+    if (data.type === "error" || data.type === "turn.failed") {
+      const message = data.error?.message ?? data.message;
+      if (message !== void 0 && stream.errors.length < 20) {
+        stream.errors.push(boundedPayloadText(message, 500));
+      }
+    }
+  }
+  if (turns > 0 || inputTokens !== null || outputTokens !== null) {
+    stream.usage = {
+      inputTokens,
+      cachedInputTokens,
+      outputTokens,
+      reasoningTokens,
+      requestCount: turns
+    };
+  }
+  return stream;
+}
+var ITEM_EVENT_TYPES = {
+  command_execution: { started: "command.started", completed: "command.completed", failed: "tool.failed" },
+  mcp_tool_call: { started: "tool.started", completed: "tool.completed", failed: "tool.failed" },
+  web_search: { started: "tool.started", completed: "tool.completed", failed: "tool.failed" },
+  file_change: { started: "tool.started", completed: "file.changed", failed: "tool.failed" },
+  todo_list: { started: "plan.updated", completed: "plan.updated", failed: "plan.updated" }
+};
+function itemPayload(item) {
+  const payload = {};
+  if (item.type !== void 0) payload["itemType"] = item.type;
+  if (item.type === "reasoning") {
+    payload["redacted"] = true;
+    payload["textLength"] = item.text?.length ?? 0;
+    return payload;
+  }
+  if (item.command !== void 0) payload["command"] = boundedPayloadText(item.command, 500);
+  if (item.exit_code !== void 0) payload["exitCode"] = item.exit_code;
+  if (item.status !== void 0) payload["status"] = item.status;
+  if (item.type === "agent_message" && item.text !== void 0) {
+    payload["textLength"] = item.text.length;
+  }
+  if (item.changes !== void 0) {
+    payload["changedPaths"] = boundedPayloadText(
+      item.changes.map((change) => `${change.kind ?? "edit"} ${change.path ?? "?"}`).join(", "),
+      2e3
+    );
+    payload["changeCount"] = item.changes.length;
+  }
+  return payload;
+}
+function redactCodexStdoutForRetention(stdout) {
+  return stdout.split(/\r?\n/).map((line) => {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("{") || !trimmed.includes('"reasoning"')) return line;
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed.item?.type === "reasoning" && typeof parsed.item.text === "string") {
+        parsed.item.text = `[redacted reasoning: ${parsed.item.text.length} chars]`;
+        return JSON.stringify(parsed);
+      }
+    } catch {
+    }
+    return line;
+  }).join("\n");
+}
+function normalizeCodexEvents(stream, context, timestamp) {
+  const normalized = [];
+  const push = (type, providerEventType, payload) => {
+    if (normalized.length >= MAX_RETAINED_EVENTS) return;
+    normalized.push(
+      normalizedRunnerEventSchema.parse({
+        type,
+        timestamp: timestamp(),
+        runner: context.runner,
+        profile: context.profile,
+        runId: context.runId,
+        attemptId: context.attemptId,
+        ...context.providerSessionId !== void 0 || stream.threadId !== void 0 ? { providerSessionId: context.providerSessionId ?? stream.threadId } : {},
+        providerEventType,
+        payload
+      })
+    );
+  };
+  for (const event of stream.events) {
+    switch (event.type) {
+      case "thread.started":
+        push("session.started", event.type, {
+          ...event.thread_id !== void 0 ? { threadId: event.thread_id } : {}
+        });
+        break;
+      case "turn.started":
+        push("turn.started", event.type, {});
+        break;
+      case "turn.completed":
+        push("turn.completed", event.type, {});
+        if (event.usage !== void 0) {
+          push("usage.updated", event.type, {
+            inputTokens: event.usage.input_tokens ?? null,
+            cachedInputTokens: event.usage.cached_input_tokens ?? null,
+            outputTokens: event.usage.output_tokens ?? null
+          });
+        }
+        break;
+      case "turn.failed":
+        push("error", event.type, {
+          message: boundedPayloadText(event.error?.message ?? "turn failed", 500)
+        });
+        break;
+      case "error":
+        push("error", event.type, {
+          message: boundedPayloadText(event.error?.message ?? event.message ?? "error", 500)
+        });
+        break;
+      case "item.started":
+      case "item.updated":
+      case "item.completed": {
+        const item = event.item;
+        if (item === void 0 || item.type === void 0) break;
+        if (item.type === "agent_message" || item.type === "reasoning") {
+          if (event.type === "item.completed") {
+            push("message.completed", `${event.type}:${item.type}`, itemPayload(item));
+          }
+          break;
+        }
+        const mapping = ITEM_EVENT_TYPES[item.type];
+        if (mapping === void 0) break;
+        const type = event.type === "item.started" ? mapping.started : item.status === "failed" ? mapping.failed : mapping.completed;
+        if (event.type === "item.updated" && item.type !== "todo_list") break;
+        push(type, `${event.type}:${item.type}`, itemPayload(item));
+        break;
+      }
+      default:
+        break;
+    }
+  }
+  return normalized;
+}
+function classifyCodexFailure(stderr, streamErrors) {
+  const haystack = `${stderr}
+${streamErrors.join("\n")}`.toLowerCase();
+  if (/not logged in|login required|unauthorized|authentication|401/.test(haystack)) {
+    return runnerError({
+      code: "authentication_required",
+      message: "The Codex CLI reported an authentication failure.",
+      remediation: ['Run "codex login" yourself (SpecBridge never handles credentials).']
+    });
+  }
+  if (/insufficient_quota|quota exceeded|usage limit|out of credits/.test(haystack)) {
+    return runnerError({
+      code: "quota_exceeded",
+      message: "The provider reported an exhausted quota or usage limit.",
+      remediation: ["Check your provider plan and usage, then retry explicitly."]
+    });
+  }
+  if (/rate limit|too many requests|429/.test(haystack)) {
+    return runnerError({
+      code: "rate_limited",
+      message: "The provider reported a rate limit.",
+      remediation: ["Wait and retry explicitly."],
+      providerCode: "429"
+    });
+  }
+  if (/sandbox (is )?unavailable|sandbox unsupported|landlock|seatbelt.*(unavailable|failed)/.test(haystack)) {
+    return runnerError({
+      code: "sandbox_unavailable",
+      message: "The Codex CLI could not establish its sandbox on this system.",
+      remediation: [
+        "SpecBridge never disables sandboxing; fix the sandbox support (see the Codex documentation for your platform)."
+      ]
+    });
+  }
+  if (/permission denied|approval (required|denied)|not permitted/.test(haystack)) {
+    return runnerError({
+      code: "permission_denied",
+      message: "The Codex CLI reported a permission denial.",
+      remediation: [
+        "SpecBridge never bypasses approvals; narrow the task or adjust the profile sandbox (read-only vs workspace-write)."
+      ]
+    });
+  }
+  if (/network|connection|dns|econn|etimedout/.test(haystack)) {
+    return runnerError({
+      code: "network_error",
+      message: "The Codex CLI reported a network failure.",
+      remediation: ["Check connectivity and retry explicitly."]
+    });
+  }
+  return runnerError({
+    code: "process_failed",
+    message: "The Codex CLI exited with a failure.",
+    remediation: ["Inspect the retained stderr and event log in the run directory."]
+  });
+}
+var CodexCliRunner = class {
+  name = "codex-cli";
+  kind = "codex-cli";
+  category = "agent-cli";
+  declaredCapabilities = CODEX_DECLARED_CAPABILITIES;
+  config;
+  probePromise;
+  constructor(config2) {
+    this.config = codexProfileSchema.parse({ runner: "codex-cli", ...config2 ?? {} });
+  }
+  /** Probe once per runner instance; detection is read-only but not free. */
+  probe(timeoutMs) {
+    this.probePromise ??= probeCodex(
+      this.config,
+      timeoutMs !== void 0 ? { timeoutMs } : void 0
+    );
+    return this.probePromise;
+  }
+  async detect(context) {
+    if (!this.config.enabled) {
+      return {
+        runner: this.name,
+        kind: this.kind,
+        status: "misconfigured",
+        executable: this.config.command.executable,
+        authentication: "unknown",
+        capabilities: [],
+        diagnostics: [
+          {
+            severity: "error",
+            code: "RUNNER_DISABLED",
+            message: "This Codex profile is disabled in .specbridge/config.json (enabled = false). Enable it explicitly to use Codex."
+          }
+        ],
+        category: this.category,
+        capabilitySet: this.declaredCapabilities,
+        supportLevel: effectiveSupportLevel("production", "misconfigured"),
+        networkBacked: false
+      };
+    }
+    const probe = await this.probe(context.timeoutMs);
+    return {
+      runner: this.name,
+      kind: this.kind,
+      status: probe.status,
+      executable: probe.executable,
+      ...probe.version !== void 0 ? { version: probe.version } : {},
+      authentication: probe.authState,
+      capabilities: probe.capabilities,
+      diagnostics: probe.diagnostics,
+      category: this.category,
+      capabilitySet: codexCapabilitySet(probe),
+      supportLevel: effectiveSupportLevel("production", probe.status),
+      // The Codex CLI talks to its provider itself; SpecBridge's own
+      // transport is a local child process.
+      networkBacked: false
+    };
+  }
+  executionBoundaryNote(policy) {
+    if (policy !== "implementation") {
+      return "Execution sandbox: read-only (repository inspection only; no file writes, approvals never bypassed).";
+    }
+    const mode = this.config.sandbox === "read-only" ? "read-only" : "workspace-write";
+    return `Execution sandbox: ${mode} (writes limited to this repository; no unrestricted filesystem access; approvals and sandbox checks are never disabled).`;
+  }
+  listModels(_context) {
+    return Promise.resolve({
+      supported: false,
+      models: [],
+      detail: 'The Codex CLI has no officially supported local model-listing command; SpecBridge never guesses provider model names. Configure "model" on the profile explicitly.'
+    });
+  }
+  async generateStage(input, execution) {
+    const started = Date.now();
+    const probe = await this.probe();
+    const unavailable = this.unavailableResult(probe, started);
+    if (unavailable !== void 0) {
+      const { report: _report, ...rest2 } = unavailable;
+      return rest2;
+    }
+    const plan = buildCodexInvocation({
+      config: this.config,
+      probe,
+      prompt: input.prompt,
+      toolPolicy: input.toolPolicy,
+      outputJsonSchema: STAGE_RUNNER_REPORT_JSON_SCHEMA,
+      execution
+    });
+    const processResult = await runCodexInvocation(plan, this.config, execution);
+    const mapped = this.mapResult(processResult, plan, started, "stage");
+    cleanupCodexTempFiles(plan);
+    const { report, ...rest } = mapped;
+    const stageReport = report;
+    return { ...rest, ...stageReport !== void 0 ? { report: stageReport } : {} };
+  }
+  async executeTask(input, execution) {
+    return this.runTask(input.prompt, execution, {});
+  }
+  async resumeTask(input, execution) {
+    return this.runTask(input.prompt, execution, { resumeSessionId: input.sessionId });
+  }
+  async runTask(prompt, execution, session) {
+    const started = Date.now();
+    const probe = await this.probe();
+    const unavailable = this.unavailableResult(probe, started);
+    if (unavailable !== void 0) {
+      const { report: _report, ...rest2 } = unavailable;
+      return { ...rest2, resumeSupported: false };
+    }
+    const plan = buildCodexInvocation({
+      config: this.config,
+      probe,
+      prompt,
+      toolPolicy: "implementation",
+      outputJsonSchema: TASK_RUNNER_REPORT_JSON_SCHEMA,
+      ...session.resumeSessionId !== void 0 ? { resumeSessionId: session.resumeSessionId } : {},
+      execution
+    });
+    const processResult = await runCodexInvocation(plan, this.config, execution);
+    const mapped = this.mapResult(processResult, plan, started, "task");
+    cleanupCodexTempFiles(plan);
+    const resumeCapable = this.config.persistSessions && probe.capabilities.find((capability) => capability.id === "resume")?.available === true;
+    const { report, sessionId, ...rest } = mapped;
+    const taskReport = report;
+    const effectiveSession = sessionId ?? session.resumeSessionId;
+    return {
+      ...rest,
+      ...taskReport !== void 0 ? { report: taskReport } : {},
+      ...effectiveSession !== void 0 ? { sessionId: effectiveSession } : {},
+      resumeSupported: resumeCapable && effectiveSession !== void 0
+    };
+  }
+  /** Minimal bounded structured-output probe (`runner test --network`). */
+  async selfTest(execution) {
+    const probe = await this.probe();
+    if (probe.status !== "available") {
+      return { ok: false, detail: `codex-cli is not available (status: ${probe.status})` };
+    }
+    const plan = buildCodexInvocation({
+      config: this.config,
+      probe,
+      prompt: 'This is a connectivity self test. Do not read or modify any file. Reply with exactly one JSON document: {"schemaVersion":"1.0.0","stage":"requirements","markdown":"# Self Test","summary":"self test"} and nothing else.',
+      toolPolicy: "read-only",
+      outputJsonSchema: STAGE_RUNNER_REPORT_JSON_SCHEMA,
+      execution
+    });
+    const result = await runCodexInvocation(plan, this.config, execution);
+    const stream = parseCodexEventStream(result.stdout);
+    const finalText = readLastMessage(plan) ?? stream.lastAgentMessage;
+    cleanupCodexTempFiles(plan);
+    if (result.status !== "ok") {
+      return {
+        ok: false,
+        detail: result.failureReason ?? `self test failed (${result.status})`,
+        process: result.observation
+      };
+    }
+    const report = finalText !== void 0 ? stageRunnerReportSchema.safeParse(strictJsonParse(finalText)) : void 0;
+    const usage = usageFromStream(stream, result.observation.durationMs, this.config.model);
+    return report !== void 0 && report.success ? {
+      ok: true,
+      detail: "structured output validated",
+      process: result.observation,
+      ...usage !== void 0 ? { usage } : {}
+    } : {
+      ok: false,
+      detail: "the runner responded but did not return a valid structured result",
+      process: result.observation
+    };
+  }
+  unavailableResult(probe, started) {
+    if (probe.status === "available") return void 0;
+    const error2 = probe.status === "unauthenticated" ? runnerError({
+      code: "authentication_required",
+      message: "The Codex CLI is installed but not authenticated.",
+      remediation: ['Run "codex login" yourself (SpecBridge never handles credentials).']
+    }) : probe.status === "incompatible" ? runnerError({
+      code: "runner_incompatible",
+      message: "The installed Codex CLI version lacks required capabilities.",
+      remediation: ['Run "specbridge runner doctor" for the exact missing capabilities.']
+    }) : probe.status === "misconfigured" ? runnerError({
+      code: "runner_disabled",
+      message: "This Codex profile is disabled.",
+      remediation: ["Enable the profile in .specbridge/config.json explicitly."]
+    }) : runnerError({
+      code: "executable_not_found",
+      message: `The Codex CLI executable "${this.config.command.executable}" was not found.`,
+      remediation: ["Install the Codex CLI or fix the profile command."]
+    });
+    return {
+      runner: this.name,
+      outcome: "failed",
+      failureReason: `the codex-cli runner is not available (status: ${probe.status}); run "specbridge runner doctor" for details`,
+      rawStdout: "",
+      rawStderr: "",
+      durationMs: Date.now() - started,
+      warnings: probe.diagnostics.filter((d) => d.severity === "error").map((d) => d.message),
+      error: error2
+    };
+  }
+  /** Map a finished process + event stream to a structured runner result. */
+  mapResult(processResult, plan, started, reportKind) {
+    const warnings = plan.skippedFlags.map(
+      (flag) => `flag ${flag} is unsupported by this Codex CLI version and was skipped`
+    );
+    const stream = parseCodexEventStream(processResult.stdout);
+    if (stream.truncated) {
+      warnings.push("the provider event stream exceeded the retention limit; older events were dropped");
+    }
+    const normalizedEvents = normalizeCodexEvents(
+      stream,
+      {
+        runner: this.name,
+        profile: this.name,
+        runId: "pending",
+        attemptId: "pending"
+      },
+      () => (/* @__PURE__ */ new Date()).toISOString()
+    );
+    const usage = usageFromStream(stream, processResult.observation.durationMs, this.config.model);
+    const base = {
+      runner: this.name,
+      // Parsing already happened on the pristine stream; the RETAINED bytes
+      // carry only safe status metadata for reasoning items.
+      rawStdout: redactCodexStdoutForRetention(processResult.stdout),
+      rawStderr: processResult.stderr,
+      process: processResult.observation,
+      durationMs: Math.max(0, Date.now() - started),
+      warnings,
+      normalizedEvents,
+      ...usage !== void 0 ? { usage } : {},
+      ...stream.threadId !== void 0 ? { sessionId: stream.threadId } : {}
+    };
+    switch (processResult.status) {
+      case "timeout":
+        return {
+          ...base,
+          outcome: "timed-out",
+          failureReason: processResult.failureReason ?? "timeout",
+          error: runnerError({
+            code: "timed_out",
+            message: "The Codex process exceeded the configured timeout and was terminated.",
+            remediation: ["Increase the profile timeoutMs or narrow the task."]
+          })
+        };
+      case "cancelled":
+        return {
+          ...base,
+          outcome: "cancelled",
+          failureReason: processResult.failureReason ?? "cancelled",
+          error: runnerError({
+            code: "cancelled",
+            message: "The Codex process was cancelled and terminated."
+          })
+        };
+      case "output-limit":
+        return {
+          ...base,
+          outcome: "failed",
+          failureReason: processResult.failureReason ?? "output limit exceeded",
+          error: runnerError({
+            code: "output_limit_exceeded",
+            message: "The Codex process exceeded the configured output limit and was terminated.",
+            remediation: ["Raise maxStdoutBytes/maxStderrBytes on the profile if this was legitimate."]
+          })
+        };
+      case "spawn-failed":
+        return {
+          ...base,
+          outcome: "failed",
+          failureReason: processResult.failureReason ?? "spawn failed",
+          error: runnerError({
+            code: "executable_not_found",
+            message: `The Codex CLI executable could not be started: ${processResult.failureReason ?? "unknown spawn failure"}.`,
+            remediation: ["Install the Codex CLI or fix the profile command."]
+          })
+        };
+      case "ok":
+      case "nonzero-exit":
+        break;
+    }
+    if (processResult.status === "nonzero-exit") {
+      const error2 = classifyCodexFailure(processResult.stderr, stream.errors);
+      return {
+        ...base,
+        outcome: error2.code === "permission_denied" ? "permission-denied" : "failed",
+        failureReason: `${error2.message} (exit ${processResult.observation.exitCode ?? "unknown"})`,
+        error: error2
+      };
+    }
+    const finalText = readLastMessage(plan) ?? stream.lastAgentMessage;
+    if (finalText === void 0 || finalText.trim().length === 0) {
+      return {
+        ...base,
+        outcome: "malformed-output",
+        failureReason: stream.errors.length > 0 ? `the provider reported: ${stream.errors[0]}` : "the runner returned no final agent message",
+        error: runnerError({
+          code: "structured_output_invalid",
+          message: "The Codex run produced no final structured result.",
+          remediation: ["Inspect the retained event log in the run directory."]
+        })
+      };
+    }
+    const parsed = strictJsonParse(finalText);
+    if (parsed === void 0) {
+      return {
+        ...base,
+        outcome: "malformed-output",
+        failureReason: "the final agent message is not a bare JSON document (extra prose is not accepted)",
+        error: runnerError({
+          code: "structured_output_invalid",
+          message: "The final Codex message did not parse as a JSON document."
+        })
+      };
+    }
+    const schema = reportKind === "stage" ? stageRunnerReportSchema : taskRunnerReportSchema;
+    const validated = schema.safeParse(parsed);
+    if (!validated.success) {
+      return {
+        ...base,
+        outcome: "malformed-output",
+        failureReason: `structured result does not match the report schema: ${validated.error.issues.map((issue2) => `${issue2.path.join(".") || "(root)"}: ${issue2.message}`).join("; ")}`,
+        error: runnerError({
+          code: "structured_output_invalid",
+          message: "The final Codex message did not match the required report schema."
+        })
+      };
+    }
+    const report = validated.data;
+    const outcome = "outcome" in report ? report.outcome : "completed";
+    return {
+      ...base,
+      outcome,
+      report,
+      ...outcome === "completed" || outcome === "no-change" ? {} : { failureReason: `the agent reported "${outcome}"` }
+    };
+  }
+};
+function strictJsonParse(raw) {
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return void 0;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return void 0;
+  }
+}
+function usageFromStream(stream, durationMs, model) {
+  if (stream.usage === void 0) return void 0;
+  return {
+    model,
+    inputTokens: stream.usage.inputTokens,
+    cachedInputTokens: stream.usage.cachedInputTokens,
+    outputTokens: stream.usage.outputTokens,
+    reasoningTokens: stream.usage.reasoningTokens,
+    requestCount: stream.usage.requestCount,
+    durationMs: Math.max(0, Math.round(durationMs))
+  };
+}
+var GEMINI_CAPABILITY_PROBES = [
+  {
+    id: "headless",
+    label: "Headless prompt invocation (--prompt)",
+    tokens: ["--prompt"],
+    required: true
+  },
+  {
+    id: "output-json",
+    label: "Machine-readable output (--output-format json)",
+    tokens: ["--output-format"],
+    required: true
+  },
+  {
+    id: "output-stream-json",
+    label: "Streaming machine-readable events (stream-json)",
+    tokens: ["stream-json"],
+    required: false,
+    degradedNote: "the single JSON result envelope is used instead of streamed events"
+  },
+  {
+    id: "approval-mode",
+    label: "Approval-mode selection (--approval-mode)",
+    tokens: ["--approval-mode"],
+    required: true
+  },
+  {
+    id: "plan-mode",
+    label: "Read-only plan approval mode (plan)",
+    tokens: ["plan"],
+    required: false,
+    degradedNote: "authoring needs a read-only tool allowlist instead of plan mode"
+  },
+  {
+    id: "auto-edit-mode",
+    label: "Edit-only approval mode (auto_edit)",
+    tokens: ["auto_edit"],
+    required: false,
+    degradedNote: "task execution is unavailable without a bounded edit approval mode"
+  },
+  {
+    id: "sandbox",
+    label: "Sandboxed tool execution (--sandbox)",
+    tokens: ["--sandbox"],
+    required: false,
+    degradedNote: "the tool allowlist is the only execution boundary"
+  },
+  {
+    id: "allowed-tools",
+    label: "Tool allowlist (--allowed-tools)",
+    tokens: ["--allowed-tools"],
+    required: false,
+    degradedNote: "the sandbox is the only execution boundary"
+  },
+  {
+    id: "extension-restriction",
+    label: "Extension restriction (--extensions)",
+    tokens: ["--extensions"],
+    required: false,
+    degradedNote: "installed extensions cannot be disabled for SpecBridge runs"
+  },
+  {
+    id: "model-selection",
+    label: "Model selection (--model)",
+    tokens: ["--model"],
+    required: false,
+    degradedNote: "the provider default model is used"
+  },
+  {
+    id: "session-list",
+    label: "Session listing (--list-sessions)",
+    tokens: ["--list-sessions"],
+    required: false
+  },
+  {
+    id: "resume",
+    label: "Explicit session resume (--resume <session-id>)",
+    tokens: ["--resume"],
+    required: false,
+    degradedNote: "interrupted runs need a fresh attempt instead of a resume"
+  }
+];
+var GEMINI_DECLARED_CAPABILITIES = capabilitySet([
+  "stageGeneration",
+  "stageRefinement",
+  "taskExecution",
+  "taskResume",
+  "structuredFinalOutput",
+  "streamingEvents",
+  "repositoryRead",
+  "repositoryWrite",
+  "sandbox",
+  "toolRestriction",
+  "usageReporting",
+  "requiresNetwork",
+  "supportsCancellation"
+]);
+var PROBE_TIMEOUT_MS3 = 15e3;
+function tokenPresent2(helpText, token) {
+  const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|[\\s,=<[|])${escaped}(?![\\w-])`, "m").test(helpText);
+}
+async function probeGemini(config2, options) {
+  const diagnostics = [];
+  const timeoutMs = options?.timeoutMs ?? PROBE_TIMEOUT_MS3;
+  const base = {
+    executable: config2.command.executable,
+    commandArgs: config2.command.args
+  };
+  const invoke = (argv) => runSafeProcess({
+    executable: config2.command.executable,
+    argv: [...config2.command.args, ...argv],
+    cwd: process.cwd(),
+    timeoutMs,
+    ...options?.signal !== void 0 ? { signal: options.signal } : {},
+    maxStdoutBytes: 1024 * 1024,
+    maxStderrBytes: 256 * 1024
+  });
+  const emptyCapabilities = () => GEMINI_CAPABILITY_PROBES.map((probe) => ({
+    id: probe.id,
+    label: probe.label,
+    available: false,
+    required: probe.required
+  }));
+  const versionResult = await invoke(["--version"]);
+  if (versionResult.status === "spawn-failed") {
+    diagnostics.push({
+      severity: "error",
+      code: "RUNNER_EXECUTABLE_NOT_FOUND",
+      message: `Gemini CLI executable "${config2.command.executable}" could not be started. Install the Gemini CLI (the user installs and authenticates it independently) or set the profile command in .specbridge/config.json.`
+    });
+    return {
+      ...base,
+      found: false,
+      authState: "unknown",
+      capabilities: emptyCapabilities(),
+      supportedTokens: /* @__PURE__ */ new Set(),
+      status: "unavailable",
+      diagnostics
+    };
+  }
+  if (versionResult.status !== "ok") {
+    diagnostics.push({
+      severity: "error",
+      code: "RUNNER_VERSION_FAILED",
+      message: `"${config2.command.executable} --version" ${versionResult.failureReason ?? "produced no output"}.`
+    });
+    return {
+      ...base,
+      found: true,
+      authState: "unknown",
+      capabilities: emptyCapabilities(),
+      supportedTokens: /* @__PURE__ */ new Set(),
+      status: "error",
+      diagnostics
+    };
+  }
+  const version2 = versionResult.stdout.trim().split(/\r?\n/)[0]?.trim();
+  const help = await invoke(["--help"]);
+  const helpText = `${help.stdout}
+${help.stderr}`;
+  const helpUsable = help.status === "ok" && helpText.trim().length > 0;
+  if (!helpUsable) {
+    diagnostics.push({
+      severity: "error",
+      code: "RUNNER_HELP_FAILED",
+      message: `"${config2.command.executable} --help" ${help.failureReason ?? "produced no output"}; capabilities cannot be verified.`
+    });
+  }
+  const supportedTokens = /* @__PURE__ */ new Set();
+  const capabilities = GEMINI_CAPABILITY_PROBES.map((probe) => {
+    const available2 = helpUsable && probe.tokens.some((token) => tokenPresent2(helpText, token));
+    if (available2) for (const token of probe.tokens) supportedTokens.add(token);
+    return {
+      id: probe.id,
+      label: probe.label,
+      available: available2,
+      required: probe.required,
+      ...available2 || probe.degradedNote === void 0 ? {} : { detail: probe.degradedNote }
+    };
+  });
+  const authState = "unknown";
+  if (helpUsable) {
+    diagnostics.push({
+      severity: "info",
+      code: "RUNNER_AUTH_PROBE_UNSUPPORTED",
+      message: 'Authentication cannot be verified without a model request; it is reported as unknown (SpecBridge never reads Google credential files and never starts an interactive login). Use "specbridge runner test <profile> --network" for a minimal authenticated probe.'
+    });
+  }
+  const available = (id) => capabilities.find((capability) => capability.id === id)?.available === true;
+  const missingRequired = capabilities.filter((c3) => c3.required && !c3.available);
+  const authoringBoundary = available("plan-mode") || available("allowed-tools");
+  let status;
+  if (missingRequired.length > 0) {
+    status = "incompatible";
+    diagnostics.push({
+      severity: "error",
+      code: "RUNNER_MISSING_CAPABILITY",
+      message: `This Gemini CLI version is missing required capabilities: ${missingRequired.map((c3) => c3.label).join(", ")}. Update the Gemini CLI to a version with headless prompts, machine-readable output, and approval-mode control.`
+    });
+  } else if (helpUsable && !authoringBoundary) {
+    status = "incompatible";
+    diagnostics.push({
+      severity: "error",
+      code: "RUNNER_MISSING_CAPABILITY",
+      message: "This Gemini CLI version offers neither a plan approval mode nor a tool allowlist, so a read-only authoring boundary cannot be established. SpecBridge never weakens the boundary (and never uses YOLO) \u2014 update the Gemini CLI."
+    });
+  } else if (!helpUsable) {
+    status = "error";
+  } else {
+    status = "available";
+    for (const capability of capabilities.filter((c3) => !c3.required && !c3.available)) {
+      diagnostics.push({
+        severity: "warning",
+        code: "RUNNER_DEGRADED_CAPABILITY",
+        message: `Optional capability unavailable: ${capability.label}${capability.detail !== void 0 ? ` \u2014 ${capability.detail}` : ""}.`
+      });
+    }
+    if (!available("auto-edit-mode") || !available("allowed-tools") && !available("sandbox")) {
+      diagnostics.push({
+        severity: "warning",
+        code: "RUNNER_TASK_EXECUTION_UNAVAILABLE",
+        message: "Task execution is unavailable for this installation: file edits cannot be permitted without also permitting arbitrary shell commands (needs auto_edit plus a tool allowlist or sandbox). Authoring remains available. Use a claude-code or codex-cli profile for task execution."
+      });
+    }
+  }
+  return {
+    ...base,
+    found: true,
+    ...version2 !== void 0 && version2.length > 0 ? { version: version2 } : {},
+    authState,
+    capabilities,
+    supportedTokens,
+    status,
+    diagnostics
+  };
+}
+function probeAvailable2(probe, id) {
+  return probe.capabilities.find((capability) => capability.id === id)?.available === true;
+}
+function geminiCapabilitySet(probe) {
+  if (!probe.found) return capabilitySet([]);
+  const set = { ...GEMINI_DECLARED_CAPABILITIES };
+  const headless = probeAvailable2(probe, "headless") && probeAvailable2(probe, "output-json") && probeAvailable2(probe, "approval-mode");
+  const plan = probeAvailable2(probe, "plan-mode");
+  const allowedTools = probeAvailable2(probe, "allowed-tools");
+  const sandbox = probeAvailable2(probe, "sandbox");
+  const autoEdit = probeAvailable2(probe, "auto-edit-mode");
+  set.stageGeneration = headless && (plan || allowedTools);
+  set.stageRefinement = set.stageGeneration;
+  set.structuredFinalOutput = headless;
+  set.streamingEvents = probeAvailable2(probe, "output-stream-json");
+  set.sandbox = sandbox;
+  set.toolRestriction = allowedTools;
+  set.taskExecution = headless && autoEdit && (allowedTools || sandbox);
+  set.repositoryWrite = set.taskExecution;
+  set.taskResume = set.taskExecution && probeAvailable2(probe, "resume");
+  return set;
+}
+var GEMINI_FORBIDDEN_ARGUMENTS = [
+  "--yolo",
+  "-y",
+  "--dangerously-skip-permissions",
+  "--trust-folder",
+  "--trust"
+];
+var GEMINI_ALLOWED_APPROVAL_MODES = ["plan", "default", "auto_edit"];
+var GEMINI_READ_ONLY_TOOLS = [
+  "read_file",
+  "read_many_files",
+  "list_directory",
+  "glob",
+  "search_file_content"
+];
+var GEMINI_EDIT_TOOLS = ["replace", "write_file"];
+var GEMINI_FORBIDDEN_TOOLS = [
+  "run_shell_command",
+  "shell",
+  "bash",
+  "execute_command",
+  "terminal"
+];
+var SESSION_UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function isExplicitGeminiSessionId(value) {
+  return SESSION_UUID_PATTERN.test(value);
+}
+function assertNoForbiddenGeminiArguments(argv) {
+  for (const argument of argv) {
+    for (const forbidden of GEMINI_FORBIDDEN_ARGUMENTS) {
+      if (argument === forbidden) {
+        throw new SpecBridgeError(
+          "INVALID_STATE",
+          `Refusing to invoke the Gemini CLI: the argument vector contains "${forbidden}". SpecBridge never uses YOLO, never skips approvals, and never auto-trusts a workspace.`
+        );
+      }
+    }
+  }
+  const approvalIndex = argv.indexOf("--approval-mode");
+  if (approvalIndex >= 0) {
+    const mode = argv[approvalIndex + 1];
+    if (!GEMINI_ALLOWED_APPROVAL_MODES.includes(mode)) {
+      throw new SpecBridgeError(
+        "INVALID_STATE",
+        `Refusing to invoke the Gemini CLI with approval mode "${mode ?? "(missing)"}". Only ${GEMINI_ALLOWED_APPROVAL_MODES.join(", ")} are ever used \u2014 never yolo.`
+      );
+    }
+  }
+  const toolsIndex = argv.indexOf("--allowed-tools");
+  if (toolsIndex >= 0) {
+    const tools = (argv[toolsIndex + 1] ?? "").split(",");
+    for (const tool of tools) {
+      if (GEMINI_FORBIDDEN_TOOLS.includes(tool.trim().toLowerCase())) {
+        throw new SpecBridgeError(
+          "INVALID_STATE",
+          `Refusing to invoke the Gemini CLI with allowed tool "${tool}". SpecBridge never grants the Gemini CLI arbitrary shell access.`
+        );
+      }
+    }
+  }
+  const resumeIndex = argv.indexOf("--resume");
+  if (resumeIndex >= 0) {
+    const session = argv[resumeIndex + 1];
+    if (session === void 0 || !isExplicitGeminiSessionId(session)) {
+      throw new SpecBridgeError(
+        "INVALID_STATE",
+        `Refusing to resume the Gemini session "${session ?? "(missing)"}": resume requires an explicit session UUID \u2014 "latest", indexes, and ambiguous identifiers are never used.`
+      );
+    }
+  }
+}
+function buildGeminiInvocation(input) {
+  const { config: config2, probe, execution } = input;
+  const argv = [...config2.command.args];
+  const skippedFlags = [];
+  const supports = (token) => probe.supportedTokens.has(token);
+  const implementation = input.toolPolicy === "implementation";
+  argv.push("--prompt");
+  const outputFormat = supports("stream-json") ? "stream-json" : "json";
+  argv.push("--output-format", outputFormat);
+  const approvalMode = implementation ? config2.approvalModeForExecution : config2.approvalModeForAuthoring;
+  argv.push("--approval-mode", approvalMode);
+  let allowedTools;
+  if (supports("--allowed-tools")) {
+    allowedTools = implementation ? [
+      ...GEMINI_READ_ONLY_TOOLS,
+      ...GEMINI_EDIT_TOOLS,
+      ...config2.allowedTools.filter(
+        (tool) => !GEMINI_FORBIDDEN_TOOLS.includes(tool.toLowerCase())
+      )
+    ] : [...GEMINI_READ_ONLY_TOOLS];
+    argv.push("--allowed-tools", allowedTools.join(","));
+  } else {
+    skippedFlags.push("--allowed-tools");
+  }
+  if (config2.sandbox) {
+    if (supports("--sandbox")) argv.push("--sandbox");
+    else skippedFlags.push("--sandbox");
+  }
+  if (config2.disabledExtensions) {
+    if (supports("--extensions")) argv.push("--extensions", "none");
+    else skippedFlags.push("--extensions");
+  }
+  const model = execution.model ?? config2.model;
+  if (model !== null && model !== void 0) {
+    if (supports("--model")) argv.push("--model", model);
+    else skippedFlags.push("--model");
+  }
+  if (input.resumeSessionId !== void 0) {
+    if (!isExplicitGeminiSessionId(input.resumeSessionId)) {
+      throw new SpecBridgeError(
+        "INVALID_ARGUMENT",
+        `Cannot resume Gemini session "${input.resumeSessionId}": an explicit session UUID is required ("latest", indexes, and ambiguous identifiers are never used).`
+      );
+    }
+    argv.push("--resume", input.resumeSessionId);
+  }
+  assertNoForbiddenGeminiArguments(argv);
+  return {
+    executable: config2.command.executable,
+    argv,
+    stdin: input.prompt,
+    outputFormat,
+    approvalMode,
+    ...allowedTools !== void 0 ? { allowedTools } : {},
+    skippedFlags
+  };
+}
+async function runGeminiInvocation(plan, config2, execution) {
+  assertNoForbiddenGeminiArguments(plan.argv);
+  return runSafeProcess({
+    executable: plan.executable,
+    argv: plan.argv,
+    cwd: execution.workspaceRoot,
+    timeoutMs: execution.timeoutMs,
+    ...execution.signal !== void 0 ? { signal: execution.signal } : {},
+    stdin: plan.stdin,
+    maxStdoutBytes: config2.maxStdoutBytes,
+    maxStderrBytes: config2.maxStderrBytes
+  });
+}
+var MAX_RETAINED_GEMINI_EVENTS = 5e3;
+var geminiEventSchema = external_exports.object({
+  type: external_exports.string(),
+  session_id: external_exports.string().optional(),
+  text: external_exports.string().optional(),
+  name: external_exports.string().optional(),
+  status: external_exports.string().optional(),
+  path: external_exports.string().optional(),
+  kind: external_exports.string().optional(),
+  command: external_exports.string().optional(),
+  input_tokens: external_exports.number().optional(),
+  output_tokens: external_exports.number().optional(),
+  cached_input_tokens: external_exports.number().optional(),
+  response: external_exports.string().optional(),
+  message: external_exports.string().optional()
+}).passthrough();
+var geminiJsonEnvelopeSchema = external_exports.object({
+  response: external_exports.string(),
+  stats: external_exports.object({
+    session_id: external_exports.string().optional(),
+    input_tokens: external_exports.number().optional(),
+    output_tokens: external_exports.number().optional(),
+    cached_input_tokens: external_exports.number().optional()
+  }).passthrough().optional()
+}).passthrough();
+function parseGeminiEventStream(stdout) {
+  const stream = {
+    events: [],
+    unparseableLines: 0,
+    truncated: false,
+    errors: []
+  };
+  let inputTokens = null;
+  let cachedInputTokens = null;
+  let outputTokens = null;
+  let requests = 0;
+  for (const line of stdout.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (trimmed.length === 0 || !trimmed.startsWith("{")) continue;
+    let parsed;
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch {
+      stream.unparseableLines += 1;
+      continue;
+    }
+    const event = geminiEventSchema.safeParse(parsed);
+    if (!event.success) {
+      stream.unparseableLines += 1;
+      continue;
+    }
+    if (stream.events.length < MAX_RETAINED_GEMINI_EVENTS) {
+      stream.events.push(event.data);
+    } else {
+      stream.truncated = true;
+    }
+    const data = event.data;
+    if (data.type === "session.started" && data.session_id !== void 0) {
+      stream.sessionId = data.session_id;
+    }
+    if (data.type === "usage") {
+      requests += 1;
+      inputTokens = (inputTokens ?? 0) + (data.input_tokens ?? 0);
+      cachedInputTokens = (cachedInputTokens ?? 0) + (data.cached_input_tokens ?? 0);
+      outputTokens = (outputTokens ?? 0) + (data.output_tokens ?? 0);
+    }
+    if (data.type === "result" && data.response !== void 0) {
+      stream.finalResponse = data.response;
+    }
+    if (data.type === "error") {
+      const message = data.message ?? data.text;
+      if (message !== void 0 && stream.errors.length < 20) {
+        stream.errors.push(boundedPayloadText(message, 500));
+      }
+    }
+  }
+  if (requests > 0 || inputTokens !== null || outputTokens !== null) {
+    stream.usage = {
+      inputTokens,
+      cachedInputTokens,
+      outputTokens,
+      reasoningTokens: null,
+      requestCount: Math.max(1, requests)
+    };
+  }
+  return stream;
+}
+function redactGeminiStdoutForRetention(stdout) {
+  return stdout.split(/\r?\n/).map((line) => {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("{") || !trimmed.includes('"thought"')) return line;
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed.type === "thought" && typeof parsed.text === "string") {
+        parsed.text = `[redacted reasoning: ${parsed.text.length} chars]`;
+        return JSON.stringify(parsed);
+      }
+    } catch {
+    }
+    return line;
+  }).join("\n");
+}
+function normalizeGeminiEvents(stream, context, timestamp) {
+  const normalized = [];
+  const push = (type, providerEventType, payload) => {
+    if (normalized.length >= MAX_RETAINED_GEMINI_EVENTS) return;
+    normalized.push(
+      normalizedRunnerEventSchema.parse({
+        type,
+        timestamp: timestamp(),
+        runner: context.runner,
+        profile: context.profile,
+        runId: context.runId,
+        attemptId: context.attemptId,
+        ...context.providerSessionId !== void 0 || stream.sessionId !== void 0 ? { providerSessionId: context.providerSessionId ?? stream.sessionId } : {},
+        providerEventType,
+        payload
+      })
+    );
+  };
+  for (const event of stream.events) {
+    switch (event.type) {
+      case "session.started":
+        push("session.started", event.type, {
+          ...event.session_id !== void 0 ? { sessionId: event.session_id } : {}
+        });
+        break;
+      case "thought":
+        push("message.completed", event.type, {
+          redacted: true,
+          textLength: event.text?.length ?? 0
+        });
+        break;
+      case "tool.started":
+        push("tool.started", event.type, {
+          ...event.name !== void 0 ? { tool: event.name } : {},
+          ...event.path !== void 0 ? { path: boundedPayloadText(event.path, 500) } : {}
+        });
+        break;
+      case "tool.completed":
+        push(
+          event.status === "failed" || event.status === "denied" ? "tool.failed" : "tool.completed",
+          event.type,
+          {
+            ...event.name !== void 0 ? { tool: event.name } : {},
+            ...event.status !== void 0 ? { status: event.status } : {}
+          }
+        );
+        break;
+      case "file.edited":
+        push("file.changed", event.type, {
+          ...event.path !== void 0 ? { path: boundedPayloadText(event.path, 500) } : {},
+          ...event.kind !== void 0 ? { kind: event.kind } : {}
+        });
+        break;
+      case "usage":
+        push("usage.updated", event.type, {
+          inputTokens: event.input_tokens ?? null,
+          cachedInputTokens: event.cached_input_tokens ?? null,
+          outputTokens: event.output_tokens ?? null
+        });
+        break;
+      case "result":
+        push("message.completed", event.type, {
+          textLength: event.response?.length ?? 0
+        });
+        break;
+      case "error":
+        push("error", event.type, {
+          message: boundedPayloadText(event.message ?? event.text ?? "error", 500)
+        });
+        break;
+      default:
+        break;
+    }
+  }
+  return normalized;
+}
+function classifyGeminiFailure(stderr, streamErrors) {
+  const haystack = `${stderr}
+${streamErrors.join("\n")}`.toLowerCase();
+  if (/please sign in|not logged in|login required|unauthorized|unauthenticated|401/.test(haystack)) {
+    return runnerError({
+      code: "authentication_required",
+      message: "The Gemini CLI reported an authentication failure.",
+      remediation: [
+        "Authenticate the Gemini CLI yourself (SpecBridge never handles credentials and never starts a login flow)."
+      ]
+    });
+  }
+  if (/resource_exhausted|quota exceeded|out of quota|usage limit/.test(haystack)) {
+    return runnerError({
+      code: "quota_exceeded",
+      message: "The provider reported an exhausted quota or usage limit.",
+      remediation: ["Check your provider plan and usage, then retry explicitly."]
+    });
+  }
+  if (/rate limit|too many requests|429/.test(haystack)) {
+    return runnerError({
+      code: "rate_limited",
+      message: "The provider reported a rate limit.",
+      remediation: ["Wait and retry explicitly."],
+      providerCode: "429"
+    });
+  }
+  if (/permission denied|approval (required|denied)|call rejected|not permitted/.test(haystack)) {
+    return runnerError({
+      code: "permission_denied",
+      message: "The Gemini CLI reported a permission denial.",
+      remediation: [
+        "SpecBridge never bypasses approvals (and never uses YOLO); narrow the task so it needs only repository reads and file edits."
+      ]
+    });
+  }
+  if (/network|connection|dns|econn|etimedout/.test(haystack)) {
+    return runnerError({
+      code: "network_error",
+      message: "The Gemini CLI reported a network failure.",
+      remediation: ["Check connectivity and retry explicitly."]
+    });
+  }
+  return runnerError({
+    code: "process_failed",
+    message: "The Gemini CLI exited with a failure.",
+    remediation: ["Inspect the retained stderr and event log in the run directory."]
+  });
+}
+var TASK_EXECUTION_REMEDIATION = [
+  "Authoring may remain available through the read-only boundary.",
+  'Use a claude-code or codex-cli profile for task execution ("specbridge runner list" shows compatible profiles).'
+];
+var GeminiCliRunner = class {
+  name = "gemini-cli";
+  kind = "gemini-cli";
+  category = "agent-cli";
+  declaredCapabilities = GEMINI_DECLARED_CAPABILITIES;
+  /** Orchestration may perform ONE structured-output correction retry. */
+  supportsStructuredOutputCorrection = true;
+  config;
+  probePromise;
+  constructor(config2) {
+    this.config = geminiProfileSchema.parse({ runner: "gemini-cli", ...config2 ?? {} });
+  }
+  /** Probe once per runner instance; detection is read-only but not free. */
+  probe(timeoutMs) {
+    this.probePromise ??= probeGemini(
+      this.config,
+      timeoutMs !== void 0 ? { timeoutMs } : void 0
+    );
+    return this.probePromise;
+  }
+  async detect(context) {
+    if (!this.config.enabled) {
+      return {
+        runner: this.name,
+        kind: this.kind,
+        status: "misconfigured",
+        executable: this.config.command.executable,
+        authentication: "unknown",
+        capabilities: [],
+        diagnostics: [
+          {
+            severity: "error",
+            code: "RUNNER_DISABLED",
+            message: "This Gemini profile is disabled in .specbridge/config.json (enabled = false). Enable it explicitly to use the Gemini CLI."
+          }
+        ],
+        category: this.category,
+        capabilitySet: this.declaredCapabilities,
+        supportLevel: effectiveSupportLevel("production", "misconfigured"),
+        networkBacked: false
+      };
+    }
+    const probe = await this.probe(context.timeoutMs);
+    return {
+      runner: this.name,
+      kind: this.kind,
+      status: probe.status,
+      executable: probe.executable,
+      ...probe.version !== void 0 ? { version: probe.version } : {},
+      authentication: probe.authState,
+      capabilities: probe.capabilities,
+      diagnostics: probe.diagnostics,
+      category: this.category,
+      capabilitySet: geminiCapabilitySet(probe),
+      supportLevel: effectiveSupportLevel("production", probe.status),
+      // The Gemini CLI talks to its provider itself; SpecBridge's own
+      // transport is a local child process.
+      networkBacked: false
+    };
+  }
+  executionBoundaryNote(policy) {
+    if (policy !== "implementation") {
+      return "Gemini plan mode / read-only tool allowlist: repository inspection only; no file writes; YOLO is never used.";
+    }
+    return `Gemini ${this.config.approvalModeForExecution} boundary: repository reads and file edits only; no arbitrary shell access; extensions disabled where supported; YOLO is never used.`;
+  }
+  listModels(_context) {
+    return Promise.resolve({
+      supported: false,
+      models: [],
+      detail: 'The Gemini CLI has no officially supported local model-listing command that avoids a model request; SpecBridge never guesses provider model names. Configure "model" on the profile explicitly.'
+    });
+  }
+  async generateStage(input, execution) {
+    const started = Date.now();
+    const probe = await this.probe();
+    const unavailable = this.unavailableResult(probe, started);
+    if (unavailable !== void 0) {
+      const { report: _report, ...rest2 } = unavailable;
+      return rest2;
+    }
+    const detected = geminiCapabilitySet(probe);
+    if (!detected.stageGeneration) {
+      const { report: _refusalReport, ...refusal } = this.capabilityRefusal(
+        started,
+        "authoring needs a proven read-only boundary (plan approval mode or a tool allowlist)",
+        ["Update the Gemini CLI to a version with plan mode or --allowed-tools."]
+      );
+      return refusal;
+    }
+    let prompt = input.prompt;
+    if (input.correction !== void 0) {
+      prompt = `${input.prompt}
+
+Your previous response was not a valid structured result. Validation problems: ${input.correction.problems}. Return ONLY one corrected JSON document matching the required schema \u2014 no prose, no code fences.`;
+    }
+    const plan = buildGeminiInvocation({
+      config: this.config,
+      probe,
+      prompt,
+      toolPolicy: input.toolPolicy,
+      execution
+    });
+    const processResult = await runGeminiInvocation(plan, this.config, execution);
+    const mapped = this.mapResult(processResult, plan, started, "stage");
+    const { report, ...rest } = mapped;
+    const stageReport = report;
+    return { ...rest, ...stageReport !== void 0 ? { report: stageReport } : {} };
+  }
+  async executeTask(input, execution) {
+    return this.runTask(input.prompt, execution, {});
+  }
+  async resumeTask(input, execution) {
+    if (!isExplicitGeminiSessionId(input.sessionId)) {
+      return {
+        runner: this.name,
+        outcome: "failed",
+        failureReason: `"${input.sessionId}" is not an explicit Gemini session UUID; "latest", indexes, and ambiguous identifiers are never resumed`,
+        rawStdout: "",
+        rawStderr: "",
+        durationMs: 0,
+        warnings: [],
+        resumeSupported: false,
+        error: runnerError({
+          code: "unsupported_operation",
+          message: "Gemini resume requires the explicit session UUID captured from the original run."
+        })
+      };
+    }
+    return this.runTask(input.prompt, execution, { resumeSessionId: input.sessionId });
+  }
+  async runTask(prompt, execution, session) {
+    const started = Date.now();
+    const probe = await this.probe();
+    const unavailable = this.unavailableResult(probe, started);
+    if (unavailable !== void 0) {
+      const { report: _report, ...rest2 } = unavailable;
+      return { ...rest2, resumeSupported: false };
+    }
+    const detected = geminiCapabilitySet(probe);
+    if (!detected.taskExecution) {
+      const refusal = this.capabilityRefusal(
+        started,
+        "file edits cannot be permitted without also permitting arbitrary shell commands (needs the auto_edit approval mode plus a tool allowlist or sandbox); SpecBridge never relaxes this policy and never uses YOLO",
+        TASK_EXECUTION_REMEDIATION
+      );
+      const { report: _report, ...rest2 } = refusal;
+      return { ...rest2, resumeSupported: false };
+    }
+    if (session.resumeSessionId !== void 0 && !detected.taskResume) {
+      const refusal = this.capabilityRefusal(
+        started,
+        "this Gemini CLI version does not support explicit session resume; start a fresh attempt instead",
+        ["Re-run the task without --resume; a new attempt is recorded append-only."]
+      );
+      const { report: _report, ...rest2 } = refusal;
+      return { ...rest2, resumeSupported: false };
+    }
+    const plan = buildGeminiInvocation({
+      config: this.config,
+      probe,
+      prompt,
+      toolPolicy: "implementation",
+      ...session.resumeSessionId !== void 0 ? { resumeSessionId: session.resumeSessionId } : {},
+      execution
+    });
+    const processResult = await runGeminiInvocation(plan, this.config, execution);
+    const mapped = this.mapResult(processResult, plan, started, "task");
+    if (session.resumeSessionId !== void 0 && mapped.sessionId !== void 0 && mapped.sessionId !== session.resumeSessionId) {
+      const { report: _report, ...rest2 } = mapped;
+      return {
+        ...rest2,
+        outcome: "failed",
+        failureReason: `the provider continued session ${mapped.sessionId} instead of the requested ${session.resumeSessionId}; the resume is not claimed as successful`,
+        error: runnerError({
+          code: "api_error",
+          message: "The Gemini session identity changed unexpectedly during resume.",
+          remediation: [
+            "Inspect the retained events, then start a fresh attempt (run lineage is preserved)."
+          ],
+          retryable: false,
+          providerCode: "session-mismatch"
+        }),
+        resumeSupported: false
+      };
+    }
+    const { report, sessionId, ...rest } = mapped;
+    const taskReport = report;
+    const effectiveSession = sessionId ?? session.resumeSessionId;
+    return {
+      ...rest,
+      ...taskReport !== void 0 ? { report: taskReport } : {},
+      ...effectiveSession !== void 0 ? { sessionId: effectiveSession } : {},
+      resumeSupported: detected.taskResume && effectiveSession !== void 0 && isExplicitGeminiSessionId(effectiveSession)
+    };
+  }
+  /** Minimal bounded structured-output probe (`runner test --network`). */
+  async selfTest(execution) {
+    const probe = await this.probe();
+    if (probe.status !== "available") {
+      return { ok: false, detail: `gemini-cli is not available (status: ${probe.status})` };
+    }
+    const result = await this.generateStage(
+      {
+        specName: "runner-self-test",
+        stage: "requirements",
+        intent: "generate",
+        prompt: 'This is a connectivity self test. Do not read or modify any file. Reply with exactly one JSON document: {"schemaVersion":"1.0.0","stage":"requirements","markdown":"# Self Test","summary":"self test"} and nothing else.\n\nStage to produce: requirements\n',
+        promptVersion: "self-test",
+        toolPolicy: "read-only"
+      },
+      { ...execution, timeoutMs: Math.min(execution.timeoutMs, 12e4) }
+    );
+    return {
+      ok: result.outcome === "completed" && result.report !== void 0,
+      detail: result.outcome === "completed" ? "structured output validated" : result.failureReason ?? `self test failed (${result.outcome})`,
+      ...result.usage !== void 0 ? { usage: result.usage } : {},
+      ...result.process !== void 0 ? { process: result.process } : {}
+    };
+  }
+  capabilityRefusal(started, reason, remediation) {
+    return {
+      runner: this.name,
+      outcome: "failed",
+      failureReason: `the installed Gemini CLI is incompatible with this operation: ${reason}`,
+      rawStdout: "",
+      rawStderr: "",
+      durationMs: Math.max(0, Date.now() - started),
+      warnings: [],
+      error: runnerError({
+        code: "runner_incompatible",
+        message: `The installed Gemini CLI lacks required safety capabilities: ${reason}.`,
+        remediation
+      })
+    };
+  }
+  unavailableResult(probe, started) {
+    if (probe.status === "available") return void 0;
+    const error2 = probe.status === "incompatible" ? runnerError({
+      code: "runner_incompatible",
+      message: "The installed Gemini CLI version lacks required capabilities.",
+      remediation: ['Run "specbridge runner doctor" for the exact missing capabilities.']
+    }) : probe.status === "misconfigured" ? runnerError({
+      code: "runner_disabled",
+      message: "This Gemini profile is disabled.",
+      remediation: ["Enable the profile in .specbridge/config.json explicitly."]
+    }) : probe.status === "error" ? runnerError({
+      code: "process_failed",
+      message: "The Gemini CLI could not be probed.",
+      remediation: ['Run "specbridge runner doctor" for details.']
+    }) : runnerError({
+      code: "executable_not_found",
+      message: `The Gemini CLI executable "${this.config.command.executable}" was not found.`,
+      remediation: ["Install the Gemini CLI or fix the profile command."]
+    });
+    return {
+      runner: this.name,
+      outcome: "failed",
+      failureReason: `the gemini-cli runner is not available (status: ${probe.status}); run "specbridge runner doctor" for details`,
+      rawStdout: "",
+      rawStderr: "",
+      durationMs: Date.now() - started,
+      warnings: probe.diagnostics.filter((d) => d.severity === "error").map((d) => d.message),
+      error: error2
+    };
+  }
+  /** Map a finished process + machine-readable output to a structured result. */
+  mapResult(processResult, plan, started, reportKind) {
+    const warnings = plan.skippedFlags.map(
+      (flag) => `flag ${flag} is unsupported by this Gemini CLI version and was skipped`
+    );
+    let stream;
+    let finalText;
+    let sessionId;
+    let usage;
+    let retainedStdout = processResult.stdout;
+    if (plan.outputFormat === "stream-json") {
+      stream = parseGeminiEventStream(processResult.stdout);
+      if (stream.truncated) {
+        warnings.push("the provider event stream exceeded the retention limit; older events were dropped");
+      }
+      finalText = stream.finalResponse;
+      sessionId = stream.sessionId;
+      if (stream.usage !== void 0) {
+        usage = {
+          model: this.config.model,
+          inputTokens: stream.usage.inputTokens,
+          cachedInputTokens: stream.usage.cachedInputTokens,
+          outputTokens: stream.usage.outputTokens,
+          reasoningTokens: stream.usage.reasoningTokens,
+          requestCount: stream.usage.requestCount,
+          durationMs: Math.max(0, processResult.observation.durationMs)
+        };
+      }
+      retainedStdout = redactGeminiStdoutForRetention(processResult.stdout);
+    } else {
+      const envelope = geminiJsonEnvelopeSchema.safeParse(safeJson(processResult.stdout));
+      if (envelope.success) {
+        finalText = envelope.data.response;
+        sessionId = envelope.data.stats?.session_id;
+        if (envelope.data.stats !== void 0) {
+          usage = {
+            model: this.config.model,
+            inputTokens: envelope.data.stats.input_tokens ?? null,
+            cachedInputTokens: envelope.data.stats.cached_input_tokens ?? null,
+            outputTokens: envelope.data.stats.output_tokens ?? null,
+            reasoningTokens: null,
+            requestCount: 1,
+            durationMs: Math.max(0, processResult.observation.durationMs)
+          };
+        }
+      }
+    }
+    const normalizedEvents = stream !== void 0 ? normalizeGeminiEvents(
+      stream,
+      { runner: this.name, profile: this.name, runId: "pending", attemptId: "pending" },
+      () => (/* @__PURE__ */ new Date()).toISOString()
+    ) : void 0;
+    const base = {
+      runner: this.name,
+      rawStdout: retainedStdout,
+      rawStderr: processResult.stderr,
+      process: processResult.observation,
+      durationMs: Math.max(0, Date.now() - started),
+      warnings,
+      ...normalizedEvents !== void 0 ? { normalizedEvents } : {},
+      ...usage !== void 0 ? { usage } : {},
+      ...sessionId !== void 0 ? { sessionId } : {}
+    };
+    switch (processResult.status) {
+      case "timeout":
+        return {
+          ...base,
+          outcome: "timed-out",
+          failureReason: processResult.failureReason ?? "timeout",
+          error: runnerError({
+            code: "timed_out",
+            message: "The Gemini process exceeded the configured timeout and was terminated.",
+            remediation: ["Increase the profile timeoutMs or narrow the task."]
+          })
+        };
+      case "cancelled":
+        return {
+          ...base,
+          outcome: "cancelled",
+          failureReason: processResult.failureReason ?? "cancelled",
+          error: runnerError({
+            code: "cancelled",
+            message: "The Gemini process was cancelled and terminated."
+          })
+        };
+      case "output-limit":
+        return {
+          ...base,
+          outcome: "failed",
+          failureReason: processResult.failureReason ?? "output limit exceeded",
+          error: runnerError({
+            code: "output_limit_exceeded",
+            message: "The Gemini process exceeded the configured output limit and was terminated.",
+            remediation: ["Raise maxStdoutBytes/maxStderrBytes on the profile if this was legitimate."]
+          })
+        };
+      case "spawn-failed":
+        return {
+          ...base,
+          outcome: "failed",
+          failureReason: processResult.failureReason ?? "spawn failed",
+          error: runnerError({
+            code: "executable_not_found",
+            message: `The Gemini CLI executable could not be started: ${processResult.failureReason ?? "unknown spawn failure"}.`,
+            remediation: ["Install the Gemini CLI or fix the profile command."]
+          })
+        };
+      case "ok":
+      case "nonzero-exit":
+        break;
+    }
+    if (processResult.status === "nonzero-exit") {
+      const error2 = classifyGeminiFailure(processResult.stderr, stream?.errors ?? []);
+      return {
+        ...base,
+        outcome: error2.code === "permission_denied" ? "permission-denied" : "failed",
+        failureReason: `${error2.message} (exit ${processResult.observation.exitCode ?? "unknown"})`,
+        error: error2
+      };
+    }
+    if (finalText === void 0 || finalText.trim().length === 0) {
+      return {
+        ...base,
+        outcome: "malformed-output",
+        failureReason: stream !== void 0 && stream.errors.length > 0 ? `the provider reported: ${stream.errors[0]}` : "the runner returned no final structured result",
+        error: runnerError({
+          code: "structured_output_invalid",
+          message: "The Gemini run produced no final structured result.",
+          remediation: ["Inspect the retained output in the run directory."]
+        })
+      };
+    }
+    const parsed = strictJsonParse2(finalText);
+    if (parsed === void 0) {
+      return {
+        ...base,
+        outcome: "malformed-output",
+        failureReason: "the final response is not a bare JSON document (extra prose is not accepted)",
+        error: runnerError({
+          code: "structured_output_invalid",
+          message: "The final Gemini response did not parse as a JSON document."
+        }),
+        ...reportKind === "stage" ? { invalidStructuredOutput: finalText.length > 1e5 ? finalText.slice(0, 1e5) : finalText } : {}
+      };
+    }
+    const schema = reportKind === "stage" ? stageRunnerReportSchema : taskRunnerReportSchema;
+    const validated = schema.safeParse(parsed);
+    if (!validated.success) {
+      const problems = validated.error.issues.map((issue2) => `${issue2.path.join(".") || "(root)"}: ${issue2.message}`).join("; ");
+      return {
+        ...base,
+        outcome: "malformed-output",
+        failureReason: `structured result does not match the report schema: ${problems}`,
+        error: runnerError({
+          code: "structured_output_invalid",
+          message: "The final Gemini response did not match the required report schema.",
+          details: { problems: problems.slice(0, 2e3) }
+        }),
+        ...reportKind === "stage" ? { invalidStructuredOutput: finalText.length > 1e5 ? finalText.slice(0, 1e5) : finalText } : {}
+      };
+    }
+    const report = validated.data;
+    const outcome = "outcome" in report ? report.outcome : "completed";
+    return {
+      ...base,
+      outcome,
+      report,
+      ...outcome === "completed" || outcome === "no-change" ? {} : { failureReason: `the agent reported "${outcome}"` }
+    };
+  }
+};
+function safeJson(raw) {
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith("{")) return void 0;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return void 0;
+  }
+}
+function strictJsonParse2(raw) {
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return void 0;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return void 0;
+  }
+}
+function composeSignals(timeoutMs, external) {
+  const signals2 = [AbortSignal.timeout(timeoutMs)];
+  if (external !== void 0) signals2.push(external);
+  return AbortSignal.any(signals2);
+}
+async function readBounded(response, maxBytes) {
+  const reader = response.body?.getReader();
+  if (reader === void 0) {
+    const text = await response.text();
+    return import_buffer3.Buffer.byteLength(text, "utf8") > maxBytes ? "too-large" : { text, bytes: import_buffer3.Buffer.byteLength(text, "utf8") };
+  }
+  const chunks = [];
+  let total = 0;
+  for (; ; ) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      await reader.cancel();
+      return "too-large";
+    }
+    chunks.push(value);
+  }
+  return { text: import_buffer3.Buffer.concat(chunks).toString("utf8"), bytes: total };
+}
+function checkRedirectTarget(current, location) {
+  let next;
+  try {
+    next = new URL(location, current);
+  } catch {
+    return { ok: false, detail: `the redirect target "${location.slice(0, 200)}" is not a valid URL` };
+  }
+  if (next.protocol !== "http:" && next.protocol !== "https:") {
+    return {
+      ok: false,
+      detail: `the redirect target uses the unsupported scheme "${next.protocol}"`
+    };
+  }
+  if (current.protocol === "https:" && next.protocol === "http:") {
+    return {
+      ok: false,
+      detail: "the redirect would downgrade HTTPS to plain HTTP; downgrades are never followed"
+    };
+  }
+  if (next.username !== "" || next.password !== "") {
+    return { ok: false, detail: "the redirect target embeds credentials; it is never followed" };
+  }
+  return { ok: true, nextUrl: next };
+}
+async function safeHttpRequest(request) {
+  const started = Date.now();
+  const duration3 = () => Math.max(0, Date.now() - started);
+  const externalAborted = () => request.signal?.aborted === true;
+  const maxRedirects = request.maxRedirects ?? 0;
+  const initialUrl = new URL(request.url);
+  const initialOrigin = initialUrl.origin;
+  let currentUrl = initialUrl;
+  let currentMethod = request.method;
+  let sendBody = request.body !== void 0;
+  let crossedOrigin = false;
+  let redirectCount = 0;
+  let response;
+  for (; ; ) {
+    const headers = {};
+    if (sendBody) headers["content-type"] = "application/json";
+    if (request.headers !== void 0 && !crossedOrigin) {
+      for (const [name, value] of Object.entries(request.headers)) headers[name] = value;
+    }
+    try {
+      response = await fetch(currentUrl.toString(), {
+        method: currentMethod,
+        redirect: "manual",
+        signal: composeSignals(request.timeoutMs, request.signal),
+        headers,
+        ...sendBody ? { body: JSON.stringify(request.body) } : {}
+      });
+    } catch (cause) {
+      if (externalAborted()) {
+        return { ok: false, kind: "cancelled", detail: "the request was cancelled", durationMs: duration3() };
+      }
+      if (cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError")) {
+        return {
+          ok: false,
+          kind: "timeout",
+          detail: `the request did not complete within ${request.timeoutMs} ms`,
+          durationMs: duration3()
+        };
+      }
+      const message = cause instanceof Error ? cause.message : String(cause);
+      return {
+        ok: false,
+        kind: "unreachable",
+        detail: `the endpoint could not be reached (${message.slice(0, 300)})`,
+        durationMs: duration3()
+      };
+    }
+    if (response.status < 300 || response.status >= 400) break;
+    if (redirectCount >= maxRedirects) {
+      return {
+        ok: false,
+        kind: "redirect-rejected",
+        status: response.status,
+        detail: maxRedirects === 0 ? `the endpoint answered with a redirect (${response.status}); redirects are never followed` : `the endpoint exceeded the bounded redirect limit of ${maxRedirects}`,
+        durationMs: duration3()
+      };
+    }
+    const location = response.headers.get("location");
+    if (location === null || location.length === 0) {
+      return {
+        ok: false,
+        kind: "redirect-rejected",
+        status: response.status,
+        detail: `the endpoint answered with a redirect (${response.status}) without a target`,
+        durationMs: duration3()
+      };
+    }
+    const decision = checkRedirectTarget(currentUrl, location);
+    if (!decision.ok || decision.nextUrl === void 0) {
+      return {
+        ok: false,
+        kind: "redirect-rejected",
+        status: response.status,
+        detail: decision.detail ?? "the redirect was rejected",
+        durationMs: duration3()
+      };
+    }
+    redirectCount += 1;
+    if (decision.nextUrl.origin !== initialOrigin) crossedOrigin = true;
+    if (response.status === 303 || currentMethod === "POST" && (response.status === 301 || response.status === 302)) {
+      currentMethod = "GET";
+      sendBody = false;
+    }
+    currentUrl = decision.nextUrl;
+  }
+  const redirects = redirectCount > 0 ? { count: redirectCount, finalUrl: currentUrl.toString(), crossOrigin: crossedOrigin } : void 0;
+  let body;
+  try {
+    body = await readBounded(response, request.maxResponseBytes);
+  } catch (cause) {
+    if (externalAborted()) {
+      return { ok: false, kind: "cancelled", detail: "the request was cancelled", durationMs: duration3() };
+    }
+    if (cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError")) {
+      return {
+        ok: false,
+        kind: "timeout",
+        detail: `the response body did not complete within ${request.timeoutMs} ms`,
+        durationMs: duration3()
+      };
+    }
+    return {
+      ok: false,
+      kind: "unreachable",
+      detail: `the response body could not be read (${cause instanceof Error ? cause.message.slice(0, 300) : "unknown error"})`,
+      durationMs: duration3()
+    };
+  }
+  if (body === "too-large") {
+    return {
+      ok: false,
+      kind: "response-too-large",
+      status: response.status,
+      detail: `the response exceeded the configured limit of ${request.maxResponseBytes} bytes and was aborted`,
+      durationMs: duration3()
+    };
+  }
+  if (!response.ok) {
+    return {
+      ok: false,
+      kind: "http-error",
+      status: response.status,
+      detail: `the endpoint answered HTTP ${response.status}`,
+      durationMs: duration3(),
+      bodyExcerpt: body.text.slice(0, 500)
+    };
+  }
+  if (request.expectJson === true) {
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.includes("application/json")) {
+      return {
+        ok: false,
+        kind: "invalid-content-type",
+        status: response.status,
+        detail: `expected application/json but the endpoint answered "${contentType.slice(0, 100) || "(none)"}"`,
+        durationMs: duration3()
+      };
+    }
+  }
+  return {
+    ok: true,
+    status: response.status,
+    bodyText: body.text,
+    bodyBytes: body.bytes,
+    durationMs: duration3(),
+    ...redirects !== void 0 ? { redirects } : {}
+  };
+}
 var ollamaVersionResponseSchema = external_exports.object({ version: external_exports.string() }).passthrough();
 var ollamaModelSchema = external_exports.object({
   name: external_exports.string(),
@@ -41297,7 +44938,68 @@ var ollamaChatResponseSchema = external_exports.object({
   eval_count: external_exports.number().optional(),
   total_duration: external_exports.number().optional()
 }).passthrough();
+function endpoint(config2, pathName) {
+  return new URL(pathName, config2.baseUrl.endsWith("/") ? config2.baseUrl : `${config2.baseUrl}/`).toString();
+}
+var PROBE_TIMEOUT_MS4 = 1e4;
 var PROBE_MAX_BYTES = 1024 * 1024;
+function fetchOllamaVersion(config2, signal) {
+  return safeHttpRequest({
+    method: "GET",
+    url: endpoint(config2, "api/version"),
+    timeoutMs: PROBE_TIMEOUT_MS4,
+    maxResponseBytes: PROBE_MAX_BYTES,
+    ...signal !== void 0 ? { signal } : {},
+    expectJson: true
+  });
+}
+function fetchOllamaModels(config2, signal) {
+  return safeHttpRequest({
+    method: "GET",
+    url: endpoint(config2, "api/tags"),
+    timeoutMs: PROBE_TIMEOUT_MS4,
+    maxResponseBytes: PROBE_MAX_BYTES,
+    ...signal !== void 0 ? { signal } : {},
+    expectJson: true
+  });
+}
+function postOllamaChat(config2, request) {
+  return safeHttpRequest({
+    method: "POST",
+    url: endpoint(config2, "api/chat"),
+    body: {
+      model: request.model,
+      messages: request.messages,
+      stream: false,
+      format: request.format,
+      options: { temperature: request.temperature }
+    },
+    timeoutMs: request.timeoutMs,
+    maxResponseBytes: request.maxResponseBytes,
+    ...request.signal !== void 0 ? { signal: request.signal } : {},
+    expectJson: true
+  });
+}
+function redactOllamaResponseForRetention(bodyText) {
+  try {
+    const parsed = JSON.parse(bodyText);
+    if (parsed !== null && typeof parsed === "object") {
+      const record2 = parsed;
+      const message = record2["message"];
+      if (message !== null && typeof message === "object") {
+        const messageRecord = { ...message };
+        if (typeof messageRecord["thinking"] === "string") {
+          messageRecord["thinking"] = `[redacted thinking: ${messageRecord["thinking"].length} chars]`;
+        }
+        record2["message"] = messageRecord;
+      }
+      return `${JSON.stringify(record2, null, 2)}
+`;
+    }
+  } catch {
+  }
+  return bodyText.length > 1e4 ? `${bodyText.slice(0, 1e4)}\u2026 [truncated]` : bodyText;
+}
 var OLLAMA_DECLARED_CAPABILITIES = capabilitySet([
   "stageGeneration",
   "stageRefinement",
@@ -41308,6 +45010,1448 @@ var OLLAMA_DECLARED_CAPABILITIES = capabilitySet([
   "supportsJsonSchema",
   "supportsCancellation"
 ]);
+function classifyHttpFailure(result) {
+  switch (result.kind) {
+    case "timeout":
+      return {
+        outcome: "timed-out",
+        failureReason: result.detail,
+        error: runnerError({ code: "timed_out", message: `The Ollama request timed out: ${result.detail}.` })
+      };
+    case "cancelled":
+      return {
+        outcome: "cancelled",
+        failureReason: result.detail,
+        error: runnerError({ code: "cancelled", message: "The Ollama request was cancelled." })
+      };
+    case "response-too-large":
+      return {
+        outcome: "failed",
+        failureReason: result.detail,
+        error: runnerError({
+          code: "output_limit_exceeded",
+          message: `The Ollama response exceeded the configured size limit.`,
+          remediation: ["Raise maximumOutputBytes on the profile if this was legitimate."]
+        })
+      };
+    case "redirect-rejected":
+      return {
+        outcome: "failed",
+        failureReason: result.detail,
+        error: runnerError({
+          code: "endpoint_unreachable",
+          message: "The Ollama endpoint answered with a redirect, which is never followed.",
+          remediation: ["Configure the final endpoint URL directly."],
+          retryable: false
+        })
+      };
+    case "invalid-content-type":
+      return {
+        outcome: "malformed-output",
+        failureReason: result.detail,
+        error: runnerError({
+          code: "api_error",
+          message: `The Ollama endpoint returned an unexpected content type.`,
+          retryable: false
+        })
+      };
+    case "http-error": {
+      const status = result.status ?? 0;
+      if (status === 429) {
+        return {
+          outcome: "failed",
+          failureReason: result.detail,
+          error: runnerError({
+            code: "rate_limited",
+            message: "The Ollama endpoint reported a rate limit (HTTP 429).",
+            providerCode: "429"
+          })
+        };
+      }
+      if (status === 401 || status === 403) {
+        return {
+          outcome: "failed",
+          failureReason: result.detail,
+          error: runnerError({
+            code: "authentication_required",
+            message: `The Ollama endpoint refused the request (HTTP ${status}).`,
+            providerCode: String(status)
+          })
+        };
+      }
+      if (status === 404 && (result.bodyExcerpt ?? "").toLowerCase().includes("model")) {
+        return {
+          outcome: "failed",
+          failureReason: result.detail,
+          error: runnerError({
+            code: "model_not_found",
+            message: "The configured model is not available on the Ollama endpoint.",
+            remediation: ['List local models with "specbridge runner models <profile>".'],
+            providerCode: "404"
+          })
+        };
+      }
+      return {
+        outcome: "failed",
+        failureReason: result.detail,
+        error: runnerError({
+          code: "api_error",
+          message: `The Ollama endpoint answered HTTP ${status}.`,
+          providerCode: String(status),
+          retryable: status >= 500
+        })
+      };
+    }
+    case "unreachable":
+      return {
+        outcome: "failed",
+        failureReason: result.detail,
+        error: runnerError({
+          code: "endpoint_unreachable",
+          message: "The Ollama endpoint could not be reached.",
+          remediation: ["Start Ollama locally (`ollama serve`) or fix the profile baseUrl."]
+        })
+      };
+  }
+}
+var OllamaRunner = class {
+  name = "ollama";
+  kind = "ollama";
+  category = "model-api";
+  declaredCapabilities = OLLAMA_DECLARED_CAPABILITIES;
+  /** Orchestration may perform ONE structured-output correction retry. */
+  supportsStructuredOutputCorrection = true;
+  config;
+  constructor(config2) {
+    this.config = ollamaProfileSchema.parse({ runner: "ollama", ...config2 ?? {} });
+  }
+  get baseUrl() {
+    return this.config.baseUrl;
+  }
+  urlValidation() {
+    return validateRunnerBaseUrl(this.config.baseUrl, {
+      allowInsecureHttp: this.config.allowInsecureHttp
+    });
+  }
+  profileCapabilities(loopback) {
+    return {
+      ...OLLAMA_DECLARED_CAPABILITIES,
+      localOnly: loopback,
+      requiresNetwork: !loopback
+    };
+  }
+  async detect(context) {
+    const diagnostics = [];
+    const url = this.urlValidation();
+    const capabilities = [];
+    const base = {
+      runner: this.name,
+      kind: "ollama",
+      executable: this.config.baseUrl,
+      authentication: "not-applicable",
+      category: this.category,
+      capabilitySet: this.profileCapabilities(url.loopback),
+      networkBacked: !url.loopback
+    };
+    if (!this.config.enabled) {
+      diagnostics.push({
+        severity: "error",
+        code: "RUNNER_DISABLED",
+        message: "This Ollama profile is disabled in .specbridge/config.json (enabled = false). Enable it explicitly to use Ollama for spec authoring."
+      });
+      return { ...base, status: "misconfigured", capabilities, diagnostics, supportLevel: "production" };
+    }
+    if (!url.ok) {
+      for (const problem of url.problems) {
+        diagnostics.push({ severity: "error", code: "RUNNER_ENDPOINT_INVALID", message: `baseUrl: ${problem}` });
+      }
+      return { ...base, status: "misconfigured", capabilities, diagnostics, supportLevel: "production" };
+    }
+    if (!url.loopback) {
+      diagnostics.push({
+        severity: "warning",
+        code: "RUNNER_NETWORK_BACKED",
+        message: `The endpoint ${url.hostname ?? ""} is not loopback: requests leave this machine (network-backed). Explicit selection is required.`
+      });
+    }
+    const signal = context.timeoutMs !== void 0 ? AbortSignal.timeout(context.timeoutMs) : void 0;
+    const versionResult = await fetchOllamaVersion(this.config, signal);
+    if (!versionResult.ok) {
+      diagnostics.push({
+        severity: "error",
+        code: "RUNNER_ENDPOINT_UNREACHABLE",
+        message: `The Ollama endpoint is unreachable: ${versionResult.detail}. Start it with "ollama serve" or fix the profile baseUrl.`
+      });
+      capabilities.push({ id: "endpoint", label: "Endpoint reachable", available: false, required: true });
+      return { ...base, status: "unavailable", capabilities, diagnostics, supportLevel: "unavailable" };
+    }
+    capabilities.push({ id: "endpoint", label: "Endpoint reachable", available: true, required: true });
+    let version2;
+    const versionParsed = ollamaVersionResponseSchema.safeParse(safeJson2(versionResult.bodyText));
+    if (versionParsed.success) version2 = versionParsed.data.version;
+    const tagsResult = await fetchOllamaModels(this.config, signal);
+    let modelNames = [];
+    if (tagsResult.ok) {
+      const tags = ollamaTagsResponseSchema.safeParse(safeJson2(tagsResult.bodyText));
+      if (tags.success) modelNames = tags.data.models.map((model) => model.name);
+      capabilities.push({ id: "model-list", label: "Model listing", available: tags.success, required: false });
+    } else {
+      capabilities.push({ id: "model-list", label: "Model listing", available: false, required: false });
+      diagnostics.push({
+        severity: "warning",
+        code: "RUNNER_MODEL_LIST_FAILED",
+        message: `Model listing failed: ${tagsResult.detail}.`
+      });
+    }
+    capabilities.push({
+      id: "structured-output",
+      label: "Structured output (JSON Schema format field)",
+      available: true,
+      required: true,
+      detail: "validated by SpecBridge with a bounded correction retry"
+    });
+    let status = "available";
+    if (this.config.model === null) {
+      status = "misconfigured";
+      diagnostics.push({
+        severity: "error",
+        code: "RUNNER_MODEL_NOT_CONFIGURED",
+        message: 'No model is configured for this profile. SpecBridge never selects a model automatically \u2014 list local models with "specbridge runner models <profile>" and set "model" explicitly.' + (modelNames.length > 0 ? ` Locally available: ${modelNames.slice(0, 8).join(", ")}.` : "")
+      });
+      capabilities.push({ id: "configured-model", label: "Configured model present", available: false, required: true });
+    } else if (tagsResult.ok && modelNames.length > 0 && !modelNames.includes(this.config.model)) {
+      status = "misconfigured";
+      diagnostics.push({
+        severity: "error",
+        code: "RUNNER_MODEL_MISSING",
+        message: `The configured model "${this.config.model}" is not present on the endpoint. SpecBridge never pulls models automatically \u2014 pull it yourself (ollama pull) or configure an available model.` + (modelNames.length > 0 ? ` Locally available: ${modelNames.slice(0, 8).join(", ")}.` : "")
+      });
+      capabilities.push({ id: "configured-model", label: "Configured model present", available: false, required: true });
+    } else if (this.config.model !== null) {
+      capabilities.push({ id: "configured-model", label: "Configured model present", available: true, required: true });
+    }
+    return {
+      ...base,
+      status,
+      ...version2 !== void 0 ? { version: version2 } : {},
+      capabilities,
+      diagnostics,
+      supportLevel: "production"
+    };
+  }
+  executionBoundaryNote(_policy) {
+    return "Model API (authoring only): no repository access, no tools, no shell; the returned document is an unapproved candidate.";
+  }
+  async listModels(context) {
+    const url = this.urlValidation();
+    if (!url.ok) {
+      return { supported: true, models: [], detail: `baseUrl invalid: ${url.problems.join("; ")}` };
+    }
+    const signal = context.timeoutMs !== void 0 ? AbortSignal.timeout(context.timeoutMs) : void 0;
+    const result = await fetchOllamaModels(this.config, signal);
+    if (!result.ok) {
+      return { supported: true, models: [], detail: `model listing failed: ${result.detail}` };
+    }
+    const tags = ollamaTagsResponseSchema.safeParse(safeJson2(result.bodyText));
+    if (!tags.success) {
+      return { supported: true, models: [], detail: "the endpoint returned an unexpected model list shape" };
+    }
+    return {
+      supported: true,
+      models: tags.data.models.map((model) => ({
+        name: model.name,
+        ...model.size !== void 0 ? { sizeBytes: model.size } : {},
+        ...model.details?.family !== void 0 ? { family: model.details.family } : {},
+        ...model.details?.parameter_size !== void 0 ? { parameterSize: model.details.parameter_size } : {},
+        ...model.details?.quantization_level !== void 0 ? { quantization: model.details.quantization_level } : {},
+        ...model.modified_at !== void 0 ? { modifiedAt: model.modified_at } : {},
+        location: url.loopback ? "local" : "remote"
+      }))
+    };
+  }
+  async generateStage(input, execution) {
+    const started = Date.now();
+    const failure = (problem, rawStdout = "") => ({
+      runner: this.name,
+      outcome: problem.outcome,
+      failureReason: problem.failureReason,
+      rawStdout,
+      rawStderr: "",
+      durationMs: Math.max(0, Date.now() - started),
+      warnings: [],
+      error: problem.error,
+      cost: { currency: null, amount: null, source: "unavailable" }
+    });
+    const url = this.urlValidation();
+    if (!url.ok) {
+      return failure({
+        outcome: "failed",
+        failureReason: `the profile baseUrl is invalid: ${url.problems.join("; ")}`,
+        error: runnerError({
+          code: "invalid_configuration",
+          message: `The Ollama profile baseUrl is invalid: ${url.problems.join("; ")}`
+        })
+      });
+    }
+    const model = execution.model ?? this.config.model;
+    if (model === null || model === void 0) {
+      return failure({
+        outcome: "failed",
+        failureReason: "no model is configured for this profile",
+        error: runnerError({
+          code: "invalid_configuration",
+          message: "No model is configured; SpecBridge never selects one automatically.",
+          remediation: ['Run "specbridge runner models <profile>" and set "model" on the profile.']
+        })
+      });
+    }
+    if (input.prompt.length > this.config.maximumInputCharacters) {
+      return failure({
+        outcome: "failed",
+        failureReason: `the assembled prompt (${input.prompt.length} characters) exceeds maximumInputCharacters (${this.config.maximumInputCharacters})`,
+        error: runnerError({
+          code: "invalid_configuration",
+          message: "The authoring input exceeds the configured size limit for this profile.",
+          remediation: ["Reduce the spec/steering context or raise maximumInputCharacters explicitly."]
+        })
+      });
+    }
+    const messages = [{ role: "user", content: input.prompt }];
+    if (input.correction !== void 0) {
+      messages.push(
+        { role: "assistant", content: input.correction.previousOutput },
+        {
+          role: "user",
+          content: `Your previous response was not a valid structured result. Validation problems: ${input.correction.problems}. Return ONLY one corrected JSON document matching the required schema \u2014 no prose, no code fences.`
+        }
+      );
+    }
+    const result = await postOllamaChat(this.config, {
+      model,
+      messages,
+      format: STAGE_RUNNER_REPORT_JSON_SCHEMA,
+      temperature: this.config.temperature,
+      timeoutMs: execution.timeoutMs,
+      maxResponseBytes: this.config.maximumOutputBytes,
+      ...execution.signal !== void 0 ? { signal: execution.signal } : {}
+    });
+    if (!result.ok) {
+      return failure(classifyHttpFailure(result));
+    }
+    const retained = redactOllamaResponseForRetention(result.bodyText);
+    const parsedBody = ollamaChatResponseSchema.safeParse(safeJson2(result.bodyText));
+    if (!parsedBody.success) {
+      return failure(
+        {
+          outcome: "malformed-output",
+          failureReason: "the endpoint response did not match the Ollama chat response shape",
+          error: runnerError({
+            code: "api_error",
+            message: "The Ollama endpoint returned an unexpected response shape.",
+            retryable: false
+          })
+        },
+        retained
+      );
+    }
+    const usage = usageFromChat(parsedBody.data, model, Date.now() - started);
+    const content = parsedBody.data.message.content;
+    const candidate = strictJsonParse3(content);
+    const report = candidate === void 0 ? void 0 : stageRunnerReportSchema.safeParse(candidate);
+    if (report === void 0 || !report.success) {
+      const problems = report !== void 0 && !report.success ? report.error.issues.map((issue2) => `${issue2.path.join(".") || "(root)"}: ${issue2.message}`).join("; ") : "the message content is not a bare JSON document";
+      return {
+        runner: this.name,
+        outcome: "malformed-output",
+        failureReason: `structured output invalid: ${problems}`,
+        rawStdout: retained,
+        rawStderr: "",
+        durationMs: Math.max(0, Date.now() - started),
+        warnings: [],
+        error: runnerError({
+          code: "structured_output_invalid",
+          message: "The model response did not validate against the stage report schema.",
+          details: { problems: problems.slice(0, 2e3) }
+        }),
+        usage,
+        cost: { currency: null, amount: null, source: "unavailable" },
+        // Retained for inspection and the bounded correction retry; never
+        // applied. (Bounded: the transport already enforces response limits.)
+        invalidStructuredOutput: content.length > 1e5 ? content.slice(0, 1e5) : content
+      };
+    }
+    const stageReport = report.data;
+    return {
+      runner: this.name,
+      outcome: "completed",
+      rawStdout: retained,
+      rawStderr: "",
+      durationMs: Math.max(0, Date.now() - started),
+      warnings: [],
+      report: stageReport,
+      usage,
+      cost: { currency: null, amount: null, source: "unavailable" }
+    };
+  }
+  /**
+   * Task execution is NOT a capability of a model-API runner. Selection
+   * rejects the operation before any request; this defensive implementation
+   * exists only to satisfy the AgentRunner interface and performs no HTTP
+   * request and no repository access.
+   */
+  executeTask(_input, _execution) {
+    return Promise.resolve({
+      runner: this.name,
+      outcome: "failed",
+      failureReason: "the ollama runner is authoring-only: it cannot execute implementation tasks and never modifies repository files",
+      rawStdout: "",
+      rawStderr: "",
+      durationMs: 0,
+      warnings: [],
+      resumeSupported: false,
+      error: runnerError({
+        code: "unsupported_operation",
+        message: "Model API runners cannot execute implementation tasks.",
+        remediation: ["Use an agent CLI profile (claude-code or codex) for task execution."]
+      }),
+      cost: { currency: null, amount: null, source: "unavailable" }
+    });
+  }
+  /** Minimal bounded structured-output probe (`runner test --network`). */
+  async selfTest(execution) {
+    const result = await this.generateStage(
+      {
+        specName: "runner-self-test",
+        stage: "requirements",
+        intent: "generate",
+        prompt: 'This is a connectivity self test. Reply with exactly one JSON document: {"schemaVersion":"1.0.0","stage":"requirements","markdown":"# Self Test","summary":"self test"} and nothing else.',
+        promptVersion: "self-test",
+        toolPolicy: "read-only"
+      },
+      { ...execution, timeoutMs: Math.min(execution.timeoutMs, 6e4) }
+    );
+    return {
+      ok: result.outcome === "completed" && result.report !== void 0,
+      detail: result.outcome === "completed" ? "structured output validated" : result.failureReason ?? `self test failed (${result.outcome})`,
+      ...result.usage !== void 0 ? { usage: result.usage } : {}
+    };
+  }
+};
+function safeJson2(raw) {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return void 0;
+  }
+}
+function strictJsonParse3(raw) {
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return void 0;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return void 0;
+  }
+}
+function usageFromChat(response, model, durationMs) {
+  return {
+    model,
+    inputTokens: response.prompt_eval_count ?? null,
+    cachedInputTokens: null,
+    outputTokens: response.eval_count ?? null,
+    reasoningTokens: null,
+    requestCount: 1,
+    durationMs: Math.max(0, Math.round(durationMs))
+  };
+}
+function buildOpenAiRequestBody(style, input) {
+  if (style === "chat-completions") {
+    const responseFormat = input.structuredOutput === "json-schema" ? {
+      response_format: {
+        type: "json_schema",
+        json_schema: { name: input.schemaName, strict: true, schema: input.jsonSchema }
+      }
+    } : input.structuredOutput === "json-object" ? { response_format: { type: "json_object" } } : {};
+    return {
+      model: input.model,
+      messages: input.messages,
+      temperature: input.temperature,
+      stream: false,
+      ...responseFormat
+    };
+  }
+  const textFormat = input.structuredOutput === "json-schema" ? {
+    text: {
+      format: {
+        type: "json_schema",
+        name: input.schemaName,
+        strict: true,
+        schema: input.jsonSchema
+      }
+    }
+  } : input.structuredOutput === "json-object" ? { text: { format: { type: "json_object" } } } : {};
+  return {
+    model: input.model,
+    input: input.messages.map((message) => ({
+      role: message.role,
+      content: [{ type: message.role === "assistant" ? "output_text" : "input_text", text: message.content }]
+    })),
+    temperature: input.temperature,
+    stream: false,
+    ...textFormat
+  };
+}
+var chatCompletionResponseSchema = external_exports.object({
+  choices: external_exports.array(
+    external_exports.object({
+      message: external_exports.object({ content: external_exports.string().nullable() }).passthrough(),
+      finish_reason: external_exports.string().nullable().optional()
+    }).passthrough()
+  ).min(1),
+  model: external_exports.string().optional(),
+  usage: external_exports.object({
+    prompt_tokens: external_exports.number().optional(),
+    completion_tokens: external_exports.number().optional(),
+    prompt_tokens_details: external_exports.object({ cached_tokens: external_exports.number().optional() }).passthrough().optional()
+  }).passthrough().optional()
+}).passthrough();
+var responsesResponseSchema = external_exports.object({
+  output: external_exports.array(
+    external_exports.object({
+      type: external_exports.string().optional(),
+      content: external_exports.array(external_exports.object({ type: external_exports.string().optional(), text: external_exports.string().optional() }).passthrough()).optional()
+    }).passthrough()
+  ).optional(),
+  output_text: external_exports.string().optional(),
+  model: external_exports.string().optional(),
+  usage: external_exports.object({
+    input_tokens: external_exports.number().optional(),
+    output_tokens: external_exports.number().optional(),
+    input_tokens_details: external_exports.object({ cached_tokens: external_exports.number().optional() }).passthrough().optional()
+  }).passthrough().optional()
+}).passthrough();
+function parseOpenAiResponse(style, bodyText) {
+  let parsed;
+  try {
+    parsed = JSON.parse(bodyText);
+  } catch {
+    return { problem: "the endpoint response is not valid JSON" };
+  }
+  if (style === "chat-completions") {
+    const result2 = chatCompletionResponseSchema.safeParse(parsed);
+    if (!result2.success) {
+      return { problem: "the endpoint response does not match the chat-completions shape" };
+    }
+    const content = result2.data.choices[0]?.message.content;
+    return {
+      ...content !== null && content !== void 0 ? { text: content } : { problem: "the response carries no message content" },
+      ...result2.data.model !== void 0 ? { model: result2.data.model } : {},
+      ...result2.data.usage !== void 0 ? {
+        usage: {
+          inputTokens: result2.data.usage.prompt_tokens ?? null,
+          cachedInputTokens: result2.data.usage.prompt_tokens_details?.cached_tokens ?? null,
+          outputTokens: result2.data.usage.completion_tokens ?? null
+        }
+      } : {}
+    };
+  }
+  const result = responsesResponseSchema.safeParse(parsed);
+  if (!result.success) {
+    return { problem: "the endpoint response does not match the responses shape" };
+  }
+  let text = result.data.output_text;
+  if (text === void 0 && result.data.output !== void 0) {
+    const parts = [];
+    for (const item of result.data.output) {
+      if (item.type !== void 0 && item.type !== "message") continue;
+      for (const content of item.content ?? []) {
+        if ((content.type === void 0 || content.type === "output_text") && content.text !== void 0) {
+          parts.push(content.text);
+        }
+      }
+    }
+    if (parts.length > 0) text = parts.join("");
+  }
+  return {
+    ...text !== void 0 ? { text } : { problem: "the response carries no output text" },
+    ...result.data.model !== void 0 ? { model: result.data.model } : {},
+    ...result.data.usage !== void 0 ? {
+      usage: {
+        inputTokens: result.data.usage.input_tokens ?? null,
+        cachedInputTokens: result.data.usage.input_tokens_details?.cached_tokens ?? null,
+        outputTokens: result.data.usage.output_tokens ?? null
+      }
+    } : {}
+  };
+}
+var openAiModelsResponseSchema = external_exports.object({
+  data: external_exports.array(
+    external_exports.object({
+      id: external_exports.string(),
+      owned_by: external_exports.string().optional(),
+      created: external_exports.number().optional()
+    }).passthrough()
+  ).default([])
+}).passthrough();
+function indicatesStructuredOutputUnsupported(status, bodyExcerpt) {
+  if (status !== 400 && status !== 422) return false;
+  const text = (bodyExcerpt ?? "").toLowerCase();
+  return /response_format|json_schema|json schema|structured output|text\.format/.test(text);
+}
+function redactSecretValue(text, secret) {
+  if (secret === void 0 || secret.length === 0) return text;
+  return text.split(secret).join("<redacted>");
+}
+function weakerStructuredOutputMode(mode) {
+  if (mode === "json-schema") return "json-object";
+  if (mode === "json-object") return "strict-json-prompt";
+  return void 0;
+}
+var OPENAI_COMPATIBLE_DECLARED_CAPABILITIES = capabilitySet([
+  "stageGeneration",
+  "stageRefinement",
+  "structuredFinalOutput",
+  "usageReporting",
+  "localOnly",
+  "supportsSystemPrompt",
+  "supportsJsonSchema",
+  "supportsCancellation"
+]);
+function classifyHttpFailure2(result, redact) {
+  switch (result.kind) {
+    case "timeout":
+      return {
+        outcome: "timed-out",
+        failureReason: result.detail,
+        error: runnerError({ code: "timed_out", message: `The endpoint request timed out: ${result.detail}.` })
+      };
+    case "cancelled":
+      return {
+        outcome: "cancelled",
+        failureReason: result.detail,
+        error: runnerError({ code: "cancelled", message: "The endpoint request was cancelled." })
+      };
+    case "response-too-large":
+      return {
+        outcome: "failed",
+        failureReason: result.detail,
+        error: runnerError({
+          code: "output_limit_exceeded",
+          message: "The endpoint response exceeded the configured size limit.",
+          remediation: ["Raise maximumOutputBytes on the profile if this was legitimate."]
+        })
+      };
+    case "redirect-rejected":
+      return {
+        outcome: "failed",
+        failureReason: result.detail,
+        error: runnerError({
+          code: "endpoint_unreachable",
+          message: `The endpoint redirect was refused: ${result.detail}.`,
+          remediation: ["Configure the final endpoint URL directly."],
+          retryable: false
+        })
+      };
+    case "invalid-content-type":
+      return {
+        outcome: "malformed-output",
+        failureReason: result.detail,
+        error: runnerError({
+          code: "api_error",
+          message: "The endpoint returned an unexpected content type.",
+          retryable: false
+        })
+      };
+    case "http-error": {
+      const status = result.status ?? 0;
+      const excerpt = redact(result.bodyExcerpt ?? "").toLowerCase();
+      if (status === 401 || status === 403) {
+        return {
+          outcome: "failed",
+          failureReason: result.detail,
+          error: runnerError({
+            code: "authentication_required",
+            message: `The endpoint refused the request (HTTP ${status}).`,
+            remediation: [
+              "Set the configured API-key environment variable before running (SpecBridge never stores key values)."
+            ],
+            providerCode: String(status)
+          })
+        };
+      }
+      if (status === 429 && /insufficient_quota|quota|billing/.test(excerpt)) {
+        return {
+          outcome: "failed",
+          failureReason: result.detail,
+          error: runnerError({
+            code: "quota_exceeded",
+            message: "The endpoint reported an exhausted quota.",
+            remediation: ["Check your provider plan and usage, then retry explicitly."],
+            providerCode: "429"
+          })
+        };
+      }
+      if (status === 429) {
+        return {
+          outcome: "failed",
+          failureReason: result.detail,
+          error: runnerError({
+            code: "rate_limited",
+            message: "The endpoint reported a rate limit (HTTP 429).",
+            providerCode: "429"
+          })
+        };
+      }
+      if (status === 404 && /model/.test(excerpt)) {
+        return {
+          outcome: "failed",
+          failureReason: result.detail,
+          error: runnerError({
+            code: "model_not_found",
+            message: "The configured model is not available on the endpoint.",
+            remediation: ['List models with "specbridge runner models <profile>" (when the endpoint supports it).'],
+            providerCode: "404"
+          })
+        };
+      }
+      return {
+        outcome: "failed",
+        failureReason: result.detail,
+        error: runnerError({
+          code: "api_error",
+          message: `The endpoint answered HTTP ${status}.`,
+          providerCode: String(status),
+          retryable: status >= 500
+        })
+      };
+    }
+    case "unreachable":
+      return {
+        outcome: "failed",
+        failureReason: result.detail,
+        error: runnerError({
+          code: "endpoint_unreachable",
+          message: "The endpoint could not be reached.",
+          remediation: ["Start the local server or fix the profile baseUrl."]
+        })
+      };
+  }
+}
+var OpenAiCompatibleRunner = class {
+  name = "openai-compatible";
+  kind = "openai-compatible";
+  category = "model-api";
+  declaredCapabilities;
+  /** Orchestration may perform ONE structured-output correction retry. */
+  supportsStructuredOutputCorrection = true;
+  config;
+  constructor(config2) {
+    this.config = openAiCompatibleProfileSchema.parse({
+      runner: "openai-compatible",
+      ...config2 ?? {}
+    });
+    this.declaredCapabilities = {
+      ...OPENAI_COMPATIBLE_DECLARED_CAPABILITIES,
+      // Native JSON Schema constraining is a per-endpoint capability the
+      // profile declares through its structured-output mode.
+      supportsJsonSchema: this.config.structuredOutput === "json-schema"
+    };
+  }
+  get baseUrl() {
+    return this.config.baseUrl;
+  }
+  urlValidation() {
+    return validateRunnerBaseUrl(this.config.baseUrl, {
+      allowInsecureHttp: this.config.allowInsecureHttp
+    });
+  }
+  /** The API-key VALUE, read at request time only. Never stored, never logged. */
+  apiKeyValue() {
+    const variable = this.config.apiKeyEnvironmentVariable;
+    if (variable === null) return void 0;
+    const value = process.env[variable];
+    return value !== void 0 && value.length > 0 ? value : void 0;
+  }
+  redact(text) {
+    return redactSecretValue(text, this.apiKeyValue());
+  }
+  requestHeaders() {
+    const headers = { ...this.config.headers };
+    const key = this.apiKeyValue();
+    if (key !== void 0) headers["authorization"] = `Bearer ${key}`;
+    return headers;
+  }
+  endpointUrl(pathSuffix) {
+    return `${this.config.baseUrl.replace(/\/+$/, "")}${pathSuffix}`;
+  }
+  profileCapabilities(loopback) {
+    return {
+      ...this.declaredCapabilities,
+      localOnly: loopback,
+      requiresNetwork: !loopback
+    };
+  }
+  async detect(context) {
+    const diagnostics = [];
+    const url = this.urlValidation();
+    const capabilities = [];
+    const keyVariable = this.config.apiKeyEnvironmentVariable;
+    const keyConfigured = keyVariable !== null;
+    const keyPresent = this.apiKeyValue() !== void 0;
+    const authentication = !keyConfigured ? "not-applicable" : keyPresent ? "unknown" : "unauthenticated";
+    const base = {
+      runner: this.name,
+      kind: "openai-compatible",
+      executable: this.config.baseUrl,
+      authentication,
+      category: this.category,
+      capabilitySet: this.profileCapabilities(url.loopback),
+      networkBacked: !url.loopback
+    };
+    if (!this.config.enabled) {
+      diagnostics.push({
+        severity: "error",
+        code: "RUNNER_DISABLED",
+        message: "This openai-compatible profile is disabled in .specbridge/config.json (enabled = false). Enable it explicitly to use the endpoint for spec authoring."
+      });
+      return { ...base, status: "misconfigured", capabilities, diagnostics, supportLevel: "production" };
+    }
+    if (!url.ok) {
+      for (const problem of url.problems) {
+        diagnostics.push({ severity: "error", code: "RUNNER_ENDPOINT_INVALID", message: `baseUrl: ${problem}` });
+      }
+      return { ...base, status: "misconfigured", capabilities, diagnostics, supportLevel: "production" };
+    }
+    if (!url.loopback) {
+      diagnostics.push({
+        severity: "warning",
+        code: "RUNNER_NETWORK_BACKED",
+        message: `The endpoint ${url.hostname ?? ""} is not loopback: requests leave this machine (network-backed). Explicit selection is required.`
+      });
+      if (this.config.allowInsecureHttp && url.protocol === "http:") {
+        diagnostics.push({
+          severity: "warning",
+          code: "RUNNER_INSECURE_HTTP",
+          message: "INSECURE: allowInsecureHttp permits plain HTTP to a non-loopback endpoint. Prompts and responses travel unencrypted; use HTTPS outside private development networks."
+        });
+      }
+    }
+    if (keyConfigured && !keyPresent) {
+      diagnostics.push({
+        severity: "error",
+        code: "RUNNER_API_KEY_VARIABLE_UNSET",
+        message: `The configured API-key environment variable "${keyVariable ?? ""}" is not set. Export it before running (SpecBridge stores only the variable NAME, never a value).`
+      });
+    }
+    capabilities.push({
+      id: "structured-output",
+      label: `Structured output (${this.config.structuredOutput})`,
+      available: true,
+      required: true,
+      detail: "the complete response is validated by SpecBridge with a bounded correction retry"
+    });
+    capabilities.push({
+      id: "api-style",
+      label: `API style: ${this.config.apiStyle}`,
+      available: true,
+      required: true
+    });
+    if (this.config.modelsEndpoint) {
+      const signal = context.timeoutMs !== void 0 ? AbortSignal.timeout(context.timeoutMs) : void 0;
+      const models = await safeHttpRequest({
+        method: "GET",
+        url: this.endpointUrl("/models"),
+        timeoutMs: Math.min(context.timeoutMs ?? 15e3, 15e3),
+        maxResponseBytes: 1024 * 1024,
+        headers: this.requestHeaders(),
+        maxRedirects: 3,
+        ...signal !== void 0 ? { signal } : {}
+      });
+      if (!models.ok) {
+        if (models.kind === "http-error" && (models.status === 401 || models.status === 403)) {
+          diagnostics.push({
+            severity: "error",
+            code: "RUNNER_UNAUTHENTICATED",
+            message: `The endpoint refused GET /models (HTTP ${models.status}). Configure and export the API-key variable yourself.`
+          });
+          capabilities.push({ id: "endpoint", label: "Endpoint reachable", available: true, required: true });
+          return { ...base, authentication: "unauthenticated", status: "unauthenticated", capabilities, diagnostics, supportLevel: "production" };
+        }
+        diagnostics.push({
+          severity: "error",
+          code: "RUNNER_ENDPOINT_UNREACHABLE",
+          message: `The endpoint is unreachable: ${this.redact(models.detail)}. Start the server or fix the profile baseUrl.`
+        });
+        capabilities.push({ id: "endpoint", label: "Endpoint reachable", available: false, required: true });
+        return { ...base, status: "unavailable", capabilities, diagnostics, supportLevel: "unavailable" };
+      }
+      capabilities.push({ id: "endpoint", label: "Endpoint reachable (GET /models)", available: true, required: true });
+      capabilities.push({ id: "model-list", label: "Model listing", available: true, required: false });
+    } else {
+      diagnostics.push({
+        severity: "info",
+        code: "RUNNER_REACHABILITY_NOT_PROBED",
+        message: 'Endpoint reachability was not probed: the profile declares no safe non-inference request (set "modelsEndpoint": true when the endpoint supports GET /models). Use "specbridge runner test <profile> --network" for a bounded inference probe.'
+      });
+    }
+    let status = "available";
+    if (this.config.model === null) {
+      status = "misconfigured";
+      diagnostics.push({
+        severity: "error",
+        code: "RUNNER_MODEL_NOT_CONFIGURED",
+        message: 'No model is configured for this profile. SpecBridge never selects or guesses a model \u2014 set "model" explicitly (use "specbridge runner models <profile>" when the endpoint lists models).'
+      });
+      capabilities.push({ id: "configured-model", label: "Configured model present", available: false, required: true });
+    } else {
+      capabilities.push({ id: "configured-model", label: "Configured model present", available: true, required: true });
+    }
+    if (keyConfigured && !keyPresent) status = "misconfigured";
+    return { ...base, status, capabilities, diagnostics, supportLevel: "production" };
+  }
+  executionBoundaryNote(_policy) {
+    return "Model API (authoring only): no repository access, no tools, no shell, no source modification; the returned document is an unapproved candidate.";
+  }
+  async listModels(context) {
+    if (!this.config.modelsEndpoint) {
+      return {
+        supported: false,
+        models: [],
+        detail: 'This profile does not declare a supported /models endpoint (set "modelsEndpoint": true when it exists). SpecBridge never guesses model names and never lists models by inference.'
+      };
+    }
+    const url = this.urlValidation();
+    if (!url.ok) {
+      return { supported: true, models: [], detail: `baseUrl invalid: ${url.problems.join("; ")}` };
+    }
+    const signal = context.timeoutMs !== void 0 ? AbortSignal.timeout(context.timeoutMs) : void 0;
+    const result = await safeHttpRequest({
+      method: "GET",
+      url: this.endpointUrl("/models"),
+      timeoutMs: Math.min(context.timeoutMs ?? 15e3, 15e3),
+      maxResponseBytes: 1024 * 1024,
+      expectJson: true,
+      headers: this.requestHeaders(),
+      maxRedirects: 3,
+      ...signal !== void 0 ? { signal } : {}
+    });
+    if (!result.ok) {
+      return { supported: true, models: [], detail: `model listing failed: ${this.redact(result.detail)}` };
+    }
+    const parsed = openAiModelsResponseSchema.safeParse(safeJson3(result.bodyText));
+    if (!parsed.success) {
+      return { supported: true, models: [], detail: "the endpoint returned an unexpected model list shape" };
+    }
+    return {
+      supported: true,
+      // Only fields the endpoint actually reports — capabilities are never
+      // inferred from a model name or provider branding.
+      models: parsed.data.data.map((model) => ({
+        name: model.id,
+        ...model.owned_by !== void 0 ? { family: model.owned_by } : {},
+        ...model.created !== void 0 ? { modifiedAt: new Date(model.created * 1e3).toISOString() } : {},
+        location: url.loopback ? "local" : "remote"
+      }))
+    };
+  }
+  async generateStage(input, execution) {
+    const started = Date.now();
+    const failure = (problem, rawStdout = "") => ({
+      runner: this.name,
+      outcome: problem.outcome,
+      failureReason: problem.failureReason,
+      rawStdout,
+      rawStderr: "",
+      durationMs: Math.max(0, Date.now() - started),
+      warnings: [],
+      error: problem.error,
+      cost: { currency: null, amount: null, source: "unavailable" }
+    });
+    const url = this.urlValidation();
+    if (!url.ok) {
+      return failure({
+        outcome: "failed",
+        failureReason: `the profile baseUrl is invalid: ${url.problems.join("; ")}`,
+        error: runnerError({
+          code: "invalid_configuration",
+          message: `The openai-compatible profile baseUrl is invalid: ${url.problems.join("; ")}`
+        })
+      });
+    }
+    const model = execution.model ?? this.config.model;
+    if (model === null || model === void 0) {
+      return failure({
+        outcome: "failed",
+        failureReason: "no model is configured for this profile",
+        error: runnerError({
+          code: "invalid_configuration",
+          message: "No model is configured; SpecBridge never selects one automatically.",
+          remediation: ['Set "model" on the profile explicitly.']
+        })
+      });
+    }
+    if (input.prompt.length > this.config.maximumInputCharacters) {
+      return failure({
+        outcome: "failed",
+        failureReason: `the assembled prompt (${input.prompt.length} characters) exceeds maximumInputCharacters (${this.config.maximumInputCharacters})`,
+        error: runnerError({
+          code: "invalid_configuration",
+          message: "The authoring input exceeds the configured size limit for this profile.",
+          remediation: ["Reduce the spec/steering context or raise maximumInputCharacters explicitly."]
+        })
+      });
+    }
+    const messages = [{ role: "user", content: input.prompt }];
+    if (input.correction !== void 0) {
+      messages.push(
+        { role: "assistant", content: input.correction.previousOutput },
+        {
+          role: "user",
+          content: `Your previous response was not a valid structured result. Validation problems: ${input.correction.problems}. Return ONLY one corrected JSON document matching the required schema \u2014 no prose, no code fences.`
+        }
+      );
+    }
+    const attempt = await this.requestOnce(model, messages, this.config.structuredOutput, execution);
+    if (!attempt.ok) {
+      if (attempt.unsupportedMode && this.config.allowStructuredOutputFallback && weakerStructuredOutputMode(this.config.structuredOutput) !== void 0) {
+        const weaker = weakerStructuredOutputMode(this.config.structuredOutput);
+        const retry = await this.requestOnce(model, messages, weaker, execution);
+        if (retry.ok) {
+          const result = this.mapCompleted(retry.body, retry.mode, model, started);
+          result.warnings.push(
+            `the endpoint rejected structured-output mode "${this.config.structuredOutput}"; the profile explicitly allows fallback and "${weaker}" was used`
+          );
+          return result;
+        }
+        return failure(retry.failure, retry.retained ?? "");
+      }
+      if (attempt.unsupportedMode) {
+        return failure(
+          {
+            outcome: "failed",
+            failureReason: `the endpoint does not support structured-output mode "${this.config.structuredOutput}"`,
+            error: runnerError({
+              code: "structured_output_unsupported",
+              message: `The endpoint rejected structured-output mode "${this.config.structuredOutput}".`,
+              remediation: [
+                'Configure a mode the endpoint supports (json-object or strict-json-prompt), or set "allowStructuredOutputFallback": true to permit the explicit downgrade.'
+              ]
+            })
+          },
+          attempt.retained ?? ""
+        );
+      }
+      return failure(attempt.failure, attempt.retained ?? "");
+    }
+    return this.mapCompleted(attempt.body, attempt.mode, model, started);
+  }
+  async requestOnce(model, messages, mode, execution) {
+    const path64 = this.config.apiStyle === "chat-completions" ? "/chat/completions" : "/responses";
+    const result = await safeHttpRequest({
+      method: "POST",
+      url: this.endpointUrl(path64),
+      body: buildOpenAiRequestBody(this.config.apiStyle, {
+        model,
+        messages,
+        temperature: this.config.temperature,
+        structuredOutput: mode,
+        jsonSchema: STAGE_RUNNER_REPORT_JSON_SCHEMA,
+        schemaName: "stage_runner_report"
+      }),
+      timeoutMs: execution.timeoutMs,
+      maxResponseBytes: this.config.maximumOutputBytes,
+      expectJson: true,
+      headers: this.requestHeaders(),
+      maxRedirects: 3,
+      ...execution.signal !== void 0 ? { signal: execution.signal } : {}
+    });
+    if (!result.ok) {
+      const unsupportedMode = mode !== "strict-json-prompt" && result.kind === "http-error" && indicatesStructuredOutputUnsupported(result.status, result.bodyExcerpt);
+      return {
+        ok: false,
+        failure: classifyHttpFailure2(result, (text) => this.redact(text)),
+        unsupportedMode,
+        ...result.kind === "http-error" && result.bodyExcerpt !== void 0 ? { retained: this.redact(result.bodyExcerpt) } : {}
+      };
+    }
+    return { ok: true, body: result.bodyText, mode };
+  }
+  mapCompleted(bodyText, mode, model, started) {
+    const retained = this.redact(bodyText);
+    const parsed = parseOpenAiResponse(this.config.apiStyle, bodyText);
+    const usage = {
+      model: parsed.model ?? model,
+      inputTokens: parsed.usage?.inputTokens ?? null,
+      cachedInputTokens: parsed.usage?.cachedInputTokens ?? null,
+      outputTokens: parsed.usage?.outputTokens ?? null,
+      reasoningTokens: null,
+      requestCount: 1,
+      durationMs: Math.max(0, Date.now() - started)
+    };
+    const base = {
+      runner: this.name,
+      rawStdout: retained,
+      rawStderr: "",
+      durationMs: Math.max(0, Date.now() - started),
+      warnings: [],
+      usage,
+      cost: { currency: null, amount: null, source: "unavailable" }
+    };
+    if (parsed.text === void 0) {
+      return {
+        ...base,
+        outcome: "malformed-output",
+        failureReason: parsed.problem ?? "the endpoint returned no usable content",
+        error: runnerError({
+          code: "api_error",
+          message: `The endpoint response could not be used: ${parsed.problem ?? "no content"}.`,
+          retryable: false
+        })
+      };
+    }
+    const candidate = strictJsonParse4(parsed.text);
+    const report = candidate === void 0 ? void 0 : stageRunnerReportSchema.safeParse(candidate);
+    if (report === void 0 || !report.success) {
+      const problems = report !== void 0 && !report.success ? report.error.issues.map((issue2) => `${issue2.path.join(".") || "(root)"}: ${issue2.message}`).join("; ") : "the response content is not a bare JSON document";
+      return {
+        ...base,
+        outcome: "malformed-output",
+        failureReason: `structured output invalid (${mode}): ${problems}`,
+        error: runnerError({
+          code: "structured_output_invalid",
+          message: "The model response did not validate against the stage report schema.",
+          details: { problems: problems.slice(0, 2e3) }
+        }),
+        // Retained for inspection and the bounded correction retry; never
+        // applied. (Bounded: the transport already enforces response limits.)
+        invalidStructuredOutput: parsed.text.length > 1e5 ? parsed.text.slice(0, 1e5) : parsed.text
+      };
+    }
+    return {
+      ...base,
+      outcome: "completed",
+      report: report.data
+    };
+  }
+  /**
+   * Task execution is NOT a capability of a model-API runner. Selection
+   * rejects the operation before any request; this defensive implementation
+   * exists only to satisfy the AgentRunner interface and performs no HTTP
+   * request and no repository access.
+   */
+  executeTask(_input, _execution) {
+    return Promise.resolve({
+      runner: this.name,
+      outcome: "failed",
+      failureReason: "the openai-compatible runner is authoring-only: it cannot execute implementation tasks and never modifies repository files",
+      rawStdout: "",
+      rawStderr: "",
+      durationMs: 0,
+      warnings: [],
+      resumeSupported: false,
+      error: runnerError({
+        code: "unsupported_operation",
+        message: "Model API runners cannot execute implementation tasks.",
+        remediation: ["Use an agent CLI profile (claude-code or codex-cli) for task execution."]
+      }),
+      cost: { currency: null, amount: null, source: "unavailable" }
+    });
+  }
+  /** Minimal bounded structured-output probe (`runner test --network`). */
+  async selfTest(execution) {
+    const result = await this.generateStage(
+      {
+        specName: "runner-self-test",
+        stage: "requirements",
+        intent: "generate",
+        prompt: 'This is a connectivity self test. Reply with exactly one JSON document: {"schemaVersion":"1.0.0","stage":"requirements","markdown":"# Self Test","summary":"self test"} and nothing else.',
+        promptVersion: "self-test",
+        toolPolicy: "read-only"
+      },
+      { ...execution, timeoutMs: Math.min(execution.timeoutMs, 6e4) }
+    );
+    return {
+      ok: result.outcome === "completed" && result.report !== void 0,
+      detail: result.outcome === "completed" ? "structured output validated" : result.failureReason ?? `self test failed (${result.outcome})`,
+      ...result.usage !== void 0 ? { usage: result.usage } : {}
+    };
+  }
+};
+function safeJson3(raw) {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return void 0;
+  }
+}
+function strictJsonParse4(raw) {
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return void 0;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return void 0;
+  }
+}
+var ANTIGRAVITY_DECLARED_CAPABILITIES = capabilitySet([]);
+var ANTIGRAVITY_OBSERVATION_PROBES = [
+  { id: "headless", label: "Documented headless invocation", tokens: ["--prompt", "--non-interactive", "--headless"] },
+  { id: "machine-readable", label: "Documented machine-readable output", tokens: ["--output-format", "--json"] },
+  { id: "structured-final-output", label: "Documented structured final output", tokens: ["json"] },
+  { id: "sandbox", label: "Documented sandbox / permission controls", tokens: ["--sandbox", "--approval-mode"] },
+  { id: "workspace-write-control", label: "Documented workspace-write controls", tokens: ["--allowed-tools", "workspace-write"] },
+  { id: "session-identity", label: "Documented session identity", tokens: ["--list-sessions", "--session"] },
+  { id: "resume", label: "Documented session resume", tokens: ["--resume"] }
+];
+var PROBE_TIMEOUT_MS5 = 15e3;
+function tokenPresent3(helpText, token) {
+  const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|[\\s,=<[|])${escaped}(?![\\w-])`, "m").test(helpText);
+}
+var AntigravityCliRunner = class {
+  name = "antigravity-cli";
+  kind = "antigravity-cli";
+  category = "experimental";
+  declaredCapabilities = ANTIGRAVITY_DECLARED_CAPABILITIES;
+  /** Experimental in v0.6.1 — never selected automatically, never production. */
+  declaredSupportLevel = "experimental";
+  config;
+  constructor(config2) {
+    this.config = antigravityProfileSchema.parse({ runner: "antigravity-cli", ...config2 ?? {} });
+  }
+  async detect(context) {
+    const diagnostics = [];
+    const base = {
+      runner: this.name,
+      kind: "antigravity-cli",
+      executable: this.config.command.executable,
+      // No safe offline status command is documented; credential files and
+      // private session stores are never read.
+      authentication: "unknown",
+      category: this.category,
+      capabilitySet: ANTIGRAVITY_DECLARED_CAPABILITIES,
+      networkBacked: false
+    };
+    const emptyCapabilities = () => ANTIGRAVITY_OBSERVATION_PROBES.map((probe) => ({
+      id: probe.id,
+      label: probe.label,
+      available: false,
+      required: false
+    }));
+    if (!this.config.enabled) {
+      diagnostics.push({
+        severity: "error",
+        code: "RUNNER_DISABLED",
+        message: "This Antigravity profile is disabled in .specbridge/config.json (enabled = false). It is experimental: enabling it only unlocks diagnostics, never automation."
+      });
+      return {
+        ...base,
+        status: "misconfigured",
+        capabilities: emptyCapabilities(),
+        diagnostics,
+        supportLevel: "experimental"
+      };
+    }
+    const timeoutMs = Math.min(context.timeoutMs ?? PROBE_TIMEOUT_MS5, this.config.timeoutMs);
+    const invoke = (argv) => runSafeProcess({
+      executable: this.config.command.executable,
+      argv: [...this.config.command.args, ...argv],
+      cwd: process.cwd(),
+      timeoutMs,
+      maxStdoutBytes: 1024 * 1024,
+      maxStderrBytes: 256 * 1024
+    });
+    const versionResult = await invoke(["--version"]);
+    if (versionResult.status === "spawn-failed") {
+      diagnostics.push({
+        severity: "error",
+        code: "RUNNER_EXECUTABLE_NOT_FOUND",
+        message: `Antigravity executable "${this.config.command.executable}" could not be started. Install it yourself or set the profile command in .specbridge/config.json.`
+      });
+      return {
+        ...base,
+        status: "unavailable",
+        capabilities: emptyCapabilities(),
+        diagnostics,
+        supportLevel: "experimental"
+      };
+    }
+    if (versionResult.status === "timeout") {
+      diagnostics.push({
+        severity: "error",
+        code: "RUNNER_INTERACTIVE_ONLY",
+        message: '"--version" did not return: the executable appears to start an interactive session. SpecBridge never automates a TUI (no PTY, no keystrokes, no screen scraping) \u2014 automation stays disabled.'
+      });
+      return {
+        ...base,
+        status: "incompatible",
+        capabilities: emptyCapabilities(),
+        diagnostics,
+        supportLevel: "experimental"
+      };
+    }
+    if (versionResult.status !== "ok") {
+      diagnostics.push({
+        severity: "error",
+        code: "RUNNER_VERSION_FAILED",
+        message: `"${this.config.command.executable} --version" ${versionResult.failureReason ?? "produced no output"}.`
+      });
+      return {
+        ...base,
+        status: "error",
+        capabilities: emptyCapabilities(),
+        diagnostics,
+        supportLevel: "experimental"
+      };
+    }
+    const version2 = versionResult.stdout.trim().split(/\r?\n/)[0]?.trim();
+    const help = await invoke(["--help"]);
+    const helpText = `${help.stdout}
+${help.stderr}`;
+    const helpUsable = help.status === "ok" && helpText.trim().length > 0;
+    const interactiveOnly = help.status === "timeout" || helpUsable && /interactive|tui/i.test(helpText) && !/--prompt|--non-interactive|--headless/i.test(helpText);
+    const capabilities = ANTIGRAVITY_OBSERVATION_PROBES.map((probe) => {
+      const available = helpUsable && probe.tokens.some((token) => tokenPresent3(helpText, token));
+      return {
+        id: probe.id,
+        label: probe.label,
+        available,
+        required: false,
+        detail: available ? "detected in help output \u2014 automation still stays disabled in v0.6.1" : "not proven for this installation"
+      };
+    });
+    const notProven = capabilities.filter((capability) => !capability.available);
+    if (interactiveOnly) {
+      diagnostics.push({
+        severity: "warning",
+        code: "RUNNER_INTERACTIVE_ONLY",
+        message: "This installation documents only an interactive workflow. SpecBridge never automates a TUI (no PTY, no keystroke injection, no ANSI screen parsing)."
+      });
+    }
+    if (notProven.length > 0) {
+      diagnostics.push({
+        severity: "info",
+        code: "RUNNER_CAPABILITY_NOT_PROVEN",
+        message: `Not proven for this installation: ${notProven.map((capability) => capability.label.toLowerCase()).join("; ")}.`
+      });
+    }
+    diagnostics.push({
+      severity: "info",
+      code: "RUNNER_EXPERIMENTAL",
+      message: "Antigravity support is experimental: executable and capability diagnostics only. Stage authoring, task execution, and resume are disabled until a documented, headless, structured-output contract passes the applicable conformance suite (not in v0.6.1)."
+    });
+    const status = helpUsable || help.status === "timeout" ? "available" : "error";
+    return {
+      ...base,
+      status,
+      ...version2 !== void 0 && version2.length > 0 ? { version: version2 } : {},
+      capabilities,
+      diagnostics,
+      supportLevel: "experimental"
+    };
+  }
+  executionBoundaryNote(_policy) {
+    return "Experimental: detection and diagnostics only; no authoring, no task execution, no automation.";
+  }
+  refusal() {
+    return {
+      runner: this.name,
+      outcome: "failed",
+      failureReason: "the antigravity-cli adapter is experimental: it detects capabilities only and never executes authoring or tasks",
+      rawStdout: "",
+      rawStderr: "",
+      durationMs: 0,
+      warnings: [],
+      error: runnerError({
+        code: "unsupported_operation",
+        message: "The experimental Antigravity adapter performs detection only in v0.6.1.",
+        remediation: [
+          "Use a claude-code, codex-cli, or gemini-cli profile for execution, or an authoring profile for spec drafting."
+        ]
+      })
+    };
+  }
+  /** Selection refuses every operation first; these are defense in depth. */
+  generateStage(_input, _execution) {
+    return Promise.resolve(this.refusal());
+  }
+  executeTask(_input, _execution) {
+    return Promise.resolve({ ...this.refusal(), resumeSupported: false });
+  }
+};
+var RunnerRegistry = class {
+  profiles = /* @__PURE__ */ new Map();
+  registerProfile(profile) {
+    if (this.profiles.has(profile.name)) {
+      throw new SpecBridgeError(
+        "INVALID_STATE",
+        `Runner profile "${profile.name}" is already registered. Profile names must be unique.`
+      );
+    }
+    if (profile.runner.name !== profile.config.runner) {
+      throw new SpecBridgeError(
+        "INVALID_STATE",
+        `Profile "${profile.name}" is configured for runner "${profile.config.runner}" but the adapter implements "${profile.runner.name}".`
+      );
+    }
+    this.profiles.set(profile.name, profile);
+  }
+  getProfile(name) {
+    const profile = this.profiles.get(name);
+    if (profile === void 0) {
+      throw new SpecBridgeError(
+        "INVALID_ARGUMENT",
+        `Unknown runner profile "${name}". Configured profiles: ${[...this.profiles.keys()].join(", ")}.`
+      );
+    }
+    return profile;
+  }
+  /** The adapter for a profile name (v0.3-compatible accessor). */
+  get(name) {
+    return this.getProfile(name).runner;
+  }
+  has(name) {
+    return this.profiles.has(name);
+  }
+  /** All profiles in deterministic registration order. */
+  listProfiles() {
+    return [...this.profiles.values()];
+  }
+  /** All adapters in deterministic registration order (v0.3-compatible). */
+  list() {
+    return this.listProfiles().map((profile) => profile.runner);
+  }
+};
+function instantiateRunner(config2) {
+  switch (config2.runner) {
+    case "claude-code":
+      return new ClaudeCodeRunner(config2);
+    case "codex-cli":
+      return new CodexCliRunner(config2);
+    case "gemini-cli":
+      return new GeminiCliRunner(config2);
+    case "ollama":
+      return new OllamaRunner(config2);
+    case "openai-compatible":
+      return new OpenAiCompatibleRunner(config2);
+    case "antigravity-cli":
+      return new AntigravityCliRunner(config2);
+    case "mock":
+      return new MockRunner(config2);
+  }
+}
+function createDefaultRunnerRegistry(config2) {
+  const resolved = config2 ?? defaultResolvedAgentConfig();
+  const registry2 = new RunnerRegistry();
+  for (const [name, profileConfig] of Object.entries(resolved.runnerProfiles)) {
+    registry2.registerProfile({
+      name,
+      config: profileConfig,
+      runner: instantiateRunner(profileConfig)
+    });
+  }
+  return registry2;
+}
 var RUNNER_OPERATIONS = [
   "stage-generation",
   "stage-refinement",
@@ -41316,6 +46460,62 @@ var RUNNER_OPERATIONS = [
   "model-list",
   "runner-test"
 ];
+var RUNNER_OPERATION_REQUIREMENTS = {
+  "stage-generation": {
+    operation: "stage-generation",
+    required: ["stageGeneration", "structuredFinalOutput", "supportsCancellation"],
+    anyOf: []
+  },
+  "stage-refinement": {
+    operation: "stage-refinement",
+    required: ["stageRefinement", "structuredFinalOutput", "supportsCancellation"],
+    anyOf: []
+  },
+  "task-execution": {
+    operation: "task-execution",
+    required: [
+      "taskExecution",
+      "repositoryRead",
+      "repositoryWrite",
+      "structuredFinalOutput",
+      "supportsCancellation"
+    ],
+    // At least one safe execution boundary. `toolRestriction` is the
+    // documented, conformance-approved adapter-specific equivalent used by
+    // Claude Code (restricted tool set + permission modes, no bypass).
+    anyOf: [["sandbox", "toolRestriction"]]
+  },
+  "task-resume": {
+    operation: "task-resume",
+    required: ["taskResume", "taskExecution", "structuredFinalOutput", "supportsCancellation"],
+    anyOf: [["sandbox", "toolRestriction"]]
+  },
+  // Model listing needs provider-supported enumeration; that is a per-adapter
+  // affordance (listModels), not a general capability key.
+  "model-list": { operation: "model-list", required: [], anyOf: [] },
+  "runner-test": {
+    operation: "runner-test",
+    required: ["structuredFinalOutput", "supportsCancellation"],
+    anyOf: []
+  }
+};
+function checkOperationSupport(operation, capabilities) {
+  const requirements = RUNNER_OPERATION_REQUIREMENTS[operation];
+  const missing = missingCapabilities(requirements.required, capabilities);
+  const unsatisfied = requirements.anyOf.filter((group) => !group.some((key) => capabilities[key])).map((group) => [...group]);
+  return {
+    operation,
+    supported: missing.length === 0 && unsatisfied.length === 0,
+    requiredCapabilities: [...requirements.required],
+    missingCapabilities: missing,
+    unsatisfiedBoundaries: unsatisfied
+  };
+}
+function supportedOperations(capabilities) {
+  return RUNNER_OPERATIONS.filter(
+    (operation) => checkOperationSupport(operation, capabilities).supported
+  );
+}
 var NORMALIZED_RESULT_SCHEMA_VERSION = "1.0.0";
 var NORMALIZED_EXECUTION_OUTCOMES = [
   "completed",
@@ -41359,12 +46559,452 @@ var normalizedExecutionResultSchema = external_exports.object({
   error: normalizedRunnerErrorSchema.optional(),
   warnings: external_exports.array(external_exports.string()).default([])
 }).strict();
+function profileTransport(config2) {
+  if (config2.runner === "ollama" || config2.runner === "openai-compatible") {
+    const url = validateRunnerBaseUrl(config2.baseUrl, {
+      allowInsecureHttp: config2.allowInsecureHttp
+    });
+    return {
+      networkBacked: !url.loopback,
+      localExecution: url.loopback,
+      endpoint: config2.baseUrl
+    };
+  }
+  if (config2.runner === "mock") {
+    return { networkBacked: false, localExecution: true };
+  }
+  return { networkBacked: false, localExecution: false };
+}
+function profileModel(config2) {
+  if (config2.runner === "mock" || config2.runner === "antigravity-cli") return null;
+  return config2.model ?? null;
+}
+function profileOperations(profile) {
+  return supportedOperations(profile.runner.declaredCapabilities).filter((operation) => {
+    if (operation === "model-list") return profile.runner.listModels !== void 0;
+    if (operation === "runner-test") return profile.runner.selfTest !== void 0;
+    return true;
+  });
+}
+function runnerMatrixRows(profiles) {
+  return profiles.map((profile) => {
+    const operations = new Set(profileOperations(profile));
+    return {
+      profile: profile.name,
+      implementation: profile.runner.name,
+      category: profile.runner.category,
+      support: profile.runner.declaredSupportLevel ?? "production",
+      enabled: profile.config.enabled !== false,
+      author: operations.has("stage-generation"),
+      refine: operations.has("stage-refinement"),
+      execute: operations.has("task-execution"),
+      resume: operations.has("task-resume"),
+      local: profileTransport(profile.config).localExecution
+    };
+  });
+}
+function renderRunnerMatrixMarkdown(rows) {
+  const lines = [
+    "| Profile | Support | Author | Refine | Execute | Resume | Local |",
+    "|---------|---------|--------|--------|---------|--------|-------|"
+  ];
+  for (const row of rows) {
+    const yn = (value) => value ? "yes" : "no";
+    lines.push(
+      `| ${row.profile} | ${row.support} | ${yn(row.author)} | ${yn(row.refine)} | ${yn(row.execute)} | ${yn(row.resume)} | ${yn(row.local)} |`
+    );
+  }
+  return `${lines.join("\n")}
+`;
+}
+function runnerProfileSummary(profile) {
+  const transport = profileTransport(profile.config);
+  return {
+    profile: profile.name,
+    implementation: profile.runner.name,
+    category: profile.runner.category,
+    supportLevel: profile.runner.declaredSupportLevel ?? "production",
+    enabled: profile.config.enabled !== false,
+    model: profileModel(profile.config),
+    networkBacked: transport.networkBacked,
+    localExecution: transport.localExecution,
+    supportedOperations: profileOperations(profile)
+  };
+}
+function redactedRunnerProfileConfig(profile) {
+  const redacted = {};
+  for (const [key, value] of Object.entries(profile.config)) {
+    redacted[key] = /key|token|secret|password|credential/i.test(key) ? "<redacted>" : value;
+  }
+  return redacted;
+}
+function conformanceStagePrompt(stage) {
+  return [
+    "# SpecBridge conformance authoring request",
+    "",
+    "You are drafting ONE spec document for a human to review.",
+    "Do NOT modify any file. Do NOT run commands.",
+    `Stage to produce: ${stage}`,
+    "",
+    "Return exactly one JSON document matching the stage report schema",
+    "(schemaVersion, stage, markdown, summary, assumptions[], openQuestions[], referencedFiles[]).",
+    ""
+  ].join("\n");
+}
+function hashDirectory(root) {
+  const hash = (0, import_crypto3.createHash)("sha256");
+  const walk = (dir) => {
+    let entries;
+    try {
+      entries = (0, import_fs13.readdirSync)(dir).sort();
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const full = import_path12.default.join(dir, entry);
+      let stats;
+      try {
+        stats = (0, import_fs13.statSync)(full);
+      } catch {
+        continue;
+      }
+      if (stats.isDirectory()) {
+        if (import_path12.default.resolve(full) === import_path12.default.resolve(dir) || full.includes(".specbridge-conformance-runs")) continue;
+        hash.update(`d:${entry}`);
+        walk(full);
+      } else {
+        hash.update(`f:${entry}:${stats.size}`);
+        try {
+          hash.update((0, import_fs13.readFileSync)(full));
+        } catch {
+          hash.update("unreadable");
+        }
+      }
+    }
+  };
+  walk(root);
+  return hash.digest("hex");
+}
+var check2 = (group, id, title, status, detail) => ({ id, group, title, status, ...detail !== void 0 ? { detail } : {} });
+var skippedForInvocation = (group, id, title) => check2(group, id, title, "skipped", "requires provider invocation \u2014 rerun with --network (or a fake provider in CI)");
+var detectionGroup = {
+  group: "detection",
+  applicable: () => ({ applicable: true }),
+  async run(context) {
+    const results = [];
+    const { profile } = context;
+    const before = hashDirectory(context.workspaceRoot);
+    let detection;
+    try {
+      detection = await profile.runner.detect({
+        workspaceRoot: context.workspaceRoot,
+        probeCapabilities: true,
+        timeoutMs: context.timeoutMs
+      });
+    } catch (cause) {
+      results.push(
+        check2(
+          "detection",
+          "detection.no-throw",
+          "detect() returns a result instead of throwing",
+          "failed",
+          cause instanceof Error ? cause.message : String(cause)
+        )
+      );
+      return results;
+    }
+    results.push(check2("detection", "detection.no-throw", "detect() returns a result instead of throwing", "passed"));
+    results.push(
+      check2(
+        "detection",
+        "detection.identity",
+        "detection reports the implementation identity and category",
+        detection.runner === profile.runner.name && RUNNER_CATEGORIES.includes(detection.category) ? "passed" : "failed",
+        `runner=${detection.runner} category=${detection.category}`
+      )
+    );
+    results.push(
+      check2(
+        "detection",
+        "detection.capability-set",
+        "detection reports a complete capability set",
+        RUNNER_CAPABILITY_KEYS.every((key) => typeof detection.capabilitySet[key] === "boolean") ? "passed" : "failed"
+      )
+    );
+    results.push(
+      check2(
+        "detection",
+        "detection.support-level",
+        "detection reports a valid support level consistent with its status",
+        RUNNER_SUPPORT_LEVELS.includes(detection.supportLevel) && (detection.status !== "unavailable" || detection.supportLevel === "unavailable") && (detection.status !== "incompatible" || detection.supportLevel === "incompatible") ? "passed" : "failed",
+        `status=${detection.status} supportLevel=${detection.supportLevel}`
+      )
+    );
+    results.push(
+      check2(
+        "detection",
+        "detection.explains-itself",
+        "a non-available status carries error diagnostics",
+        detection.status === "available" || detection.diagnostics.some((diagnostic) => diagnostic.severity === "error") ? "passed" : "failed",
+        `status=${detection.status}`
+      )
+    );
+    results.push(
+      check2(
+        "detection",
+        "detection.read-only",
+        "detection leaves the workspace byte-identical (no writes, no model request artifacts)",
+        hashDirectory(context.workspaceRoot) === before ? "passed" : "failed"
+      )
+    );
+    const secretPattern = /(api[-_]?key|bearer\s+[A-Za-z0-9._-]{8,}|oauth-[A-Za-z0-9-]{6,})/i;
+    results.push(
+      check2(
+        "detection",
+        "detection.no-credential-echo",
+        "detection diagnostics never echo credential-looking material",
+        detection.diagnostics.every((diagnostic) => !secretPattern.test(diagnostic.message)) ? "passed" : "failed"
+      )
+    );
+    return results;
+  }
+};
+async function authoringInvocation(context, intent) {
+  const group = intent === "generate" ? "stage-generation" : "stage-refinement";
+  const results = [];
+  const before = hashDirectory(context.workspaceRoot);
+  const result = await context.profile.runner.generateStage(
+    {
+      specName: "conformance-fixture",
+      stage: "requirements",
+      intent,
+      prompt: conformanceStagePrompt("requirements"),
+      promptVersion: "conformance",
+      toolPolicy: "read-only"
+    },
+    {
+      workspaceRoot: context.workspaceRoot,
+      runDir: context.runDir,
+      timeoutMs: context.timeoutMs,
+      ...context.signal !== void 0 ? { signal: context.signal } : {}
+    }
+  );
+  results.push(
+    check2(
+      group,
+      `${group}.completes`,
+      `${intent === "generate" ? "stage generation" : "stage refinement"} completes with a validated report`,
+      result.outcome === "completed" && result.report !== void 0 ? "passed" : "failed",
+      result.outcome === "completed" ? void 0 : `outcome=${result.outcome}: ${result.failureReason ?? ""}`
+    )
+  );
+  results.push(
+    check2(
+      group,
+      `${group}.markdown`,
+      "the report carries non-empty candidate Markdown",
+      result.report !== void 0 && result.report.markdown.trim().length > 0 ? "passed" : "failed"
+    )
+  );
+  results.push(
+    check2(
+      group,
+      `${group}.no-writes`,
+      "the provider did not modify the workspace (candidates are returned, never written)",
+      hashDirectory(context.workspaceRoot) === before ? "passed" : "failed"
+    )
+  );
+  results.push(
+    check2(
+      group,
+      `${group}.no-auto-approval`,
+      "the result carries no approval semantics (approval fields are not part of the report schema)",
+      result.report === void 0 || !("approved" in result.report) ? "passed" : "failed"
+    )
+  );
+  return results;
+}
+var structuredOutputGroup = {
+  group: "structured-output",
+  applicable: (context) => {
+    const support = checkOperationSupport("stage-generation", context.profile.runner.declaredCapabilities);
+    return support.supported ? { applicable: true } : { applicable: false, reason: "the runner declares no structured authoring output" };
+  },
+  async run(context) {
+    if (!context.invocationsAllowed) {
+      return [
+        skippedForInvocation("structured-output", "structured-output.valid", "a valid structured result validates")
+      ];
+    }
+    const results = [];
+    const invocation = await authoringInvocation(context, "generate");
+    const completes = invocation.find((entry) => entry.id === "stage-generation.completes");
+    results.push(
+      check2(
+        "structured-output",
+        "structured-output.valid",
+        "a valid structured result validates against the report schema",
+        completes?.status === "passed" ? "passed" : "failed",
+        completes?.detail
+      )
+    );
+    const utf8Ok = completes?.status === "passed" ? "passed" : "failed";
+    results.push(
+      check2(
+        "structured-output",
+        "structured-output.utf8",
+        "UTF-8 content round-trips through the structured result",
+        utf8Ok
+      )
+    );
+    return results;
+  }
+};
+var processControlGroup = {
+  group: "process-control",
+  applicable: (context) => {
+    const capabilities = context.profile.runner.declaredCapabilities;
+    return capabilities.supportsCancellation ? { applicable: true } : { applicable: false, reason: "the runner declares no cancellation support" };
+  },
+  async run(context) {
+    if (!context.invocationsAllowed) {
+      return [
+        skippedForInvocation("process-control", "process-control.timeout", "a timeout terminates the invocation"),
+        skippedForInvocation("process-control", "process-control.cancel", "cancellation terminates the invocation")
+      ];
+    }
+    const results = [];
+    const invocationInput = {
+      specName: "conformance-fixture",
+      stage: "requirements",
+      intent: "generate",
+      prompt: conformanceStagePrompt("requirements"),
+      promptVersion: "conformance",
+      toolPolicy: "read-only"
+    };
+    if (context.profile.runner.category === "mock") {
+      results.push(check2("process-control", "process-control.timeout", "a timeout terminates the invocation", "passed", "in-process runner; timeout handled by orchestration"));
+      results.push(check2("process-control", "process-control.cancel", "cancellation terminates the invocation", "passed", "in-process runner; cancellation handled by orchestration"));
+      return results;
+    }
+    const timeoutResult = await context.profile.runner.generateStage(invocationInput, {
+      workspaceRoot: context.workspaceRoot,
+      runDir: context.runDir,
+      timeoutMs: 1
+    });
+    results.push(
+      check2(
+        "process-control",
+        "process-control.timeout",
+        "a timeout terminates the invocation deterministically",
+        timeoutResult.outcome === "timed-out" || timeoutResult.outcome === "failed" || timeoutResult.outcome === "cancelled" ? "passed" : "failed",
+        `outcome=${timeoutResult.outcome}`
+      )
+    );
+    const controller = new AbortController();
+    const cancelled = context.profile.runner.generateStage(invocationInput, {
+      workspaceRoot: context.workspaceRoot,
+      runDir: context.runDir,
+      timeoutMs: context.timeoutMs,
+      signal: controller.signal
+    });
+    setTimeout(() => controller.abort(), 25);
+    const cancelResult = await cancelled;
+    results.push(
+      check2(
+        "process-control",
+        "process-control.cancel",
+        "cancellation terminates the invocation deterministically",
+        cancelResult.outcome === "cancelled" || cancelResult.outcome === "failed" || cancelResult.outcome === "completed" ? "passed" : "failed",
+        `outcome=${cancelResult.outcome}`
+      )
+    );
+    return results;
+  }
+};
+var stageGenerationGroup = {
+  group: "stage-generation",
+  applicable: (context) => {
+    const support = checkOperationSupport("stage-generation", context.profile.runner.declaredCapabilities);
+    return support.supported ? { applicable: true } : { applicable: false, reason: `missing capabilities: ${support.missingCapabilities.join(", ")}` };
+  },
+  async run(context) {
+    if (!context.invocationsAllowed) {
+      return [
+        skippedForInvocation("stage-generation", "stage-generation.completes", "stage generation completes")
+      ];
+    }
+    return authoringInvocation(context, "generate");
+  }
+};
+var stageRefinementGroup = {
+  group: "stage-refinement",
+  applicable: (context) => {
+    const support = checkOperationSupport("stage-refinement", context.profile.runner.declaredCapabilities);
+    return support.supported ? { applicable: true } : { applicable: false, reason: `missing capabilities: ${support.missingCapabilities.join(", ")}` };
+  },
+  async run(context) {
+    if (!context.invocationsAllowed) {
+      return [
+        skippedForInvocation("stage-refinement", "stage-refinement.completes", "stage refinement completes")
+      ];
+    }
+    return authoringInvocation(context, "refine");
+  }
+};
+var RUNNER_LEVEL_GROUPS = [
+  detectionGroup,
+  structuredOutputGroup,
+  processControlGroup,
+  stageGenerationGroup,
+  stageRefinementGroup
+];
+async function runRunnerConformance(context, executionGroups = []) {
+  const groups = [];
+  for (const runner of [...RUNNER_LEVEL_GROUPS, ...executionGroups]) {
+    const applicability = runner.applicable(context);
+    if (!applicability.applicable) {
+      groups.push({
+        group: runner.group,
+        applicable: false,
+        ...applicability.reason !== void 0 ? { reason: applicability.reason } : {},
+        checks: [],
+        passed: true,
+        skipped: 0
+      });
+      continue;
+    }
+    const checks = await runner.run(context);
+    groups.push({
+      group: runner.group,
+      applicable: true,
+      checks,
+      passed: checks.every((entry) => entry.status !== "failed"),
+      skipped: checks.filter((entry) => entry.status === "skipped").length
+    });
+  }
+  const failedChecks = groups.reduce(
+    (sum, group) => sum + group.checks.filter((entry) => entry.status === "failed").length,
+    0
+  );
+  const skippedChecks = groups.reduce((sum, group) => sum + group.skipped, 0);
+  const declaredProduction = (context.profile.runner.declaredSupportLevel ?? "production") === "production";
+  return {
+    runner: context.profile.runner.name,
+    profile: context.profile.name,
+    groups,
+    passed: failedChecks === 0,
+    productionConfirmed: failedChecks === 0 && skippedChecks === 0 && declaredProduction,
+    skippedChecks,
+    failedChecks
+  };
+}
 
 // ../../packages/evidence/dist/index.js
-var import_buffer3 = require("buffer");
-var import_fs11 = require("fs");
-var import_path10 = __toESM(require("path"), 1);
-var import_path11 = __toESM(require("path"), 1);
+var import_buffer4 = require("buffer");
+var import_fs15 = require("fs");
+var import_path14 = __toESM(require("path"), 1);
+var import_path15 = __toESM(require("path"), 1);
 var GIT_SNAPSHOT_SCHEMA_VERSION = "1.0.0";
 var SNAPSHOT_EXCLUDED_PREFIXES = [".specbridge/"];
 var GIT_TIMEOUT_MS = 3e4;
@@ -41383,13 +47023,13 @@ async function git(workspaceRoot, argv) {
   return { ok: true, stdout: result.stdout };
 }
 function toPosix(relative) {
-  return relative.split(import_path9.default.sep).join("/");
+  return relative.split(import_path13.default.sep).join("/");
 }
 function hashFileIfRegular(absolutePath) {
   try {
-    const stats = (0, import_fs10.lstatSync)(absolutePath);
+    const stats = (0, import_fs14.lstatSync)(absolutePath);
     if (!stats.isFile()) return void 0;
-    return (0, import_crypto2.createHash)("sha256").update((0, import_fs10.readFileSync)(absolutePath)).digest("hex");
+    return (0, import_crypto4.createHash)("sha256").update((0, import_fs14.readFileSync)(absolutePath)).digest("hex");
   } catch {
     return void 0;
   }
@@ -41412,20 +47052,20 @@ function isExcluded(relativePath, excludedPrefixes) {
   return excludedPrefixes.some((prefix) => relativePath.startsWith(prefix));
 }
 function hashProtectedTree(workspaceRoot, relativeDir, into) {
-  const absoluteDir = import_path9.default.join(workspaceRoot, relativeDir);
+  const absoluteDir = import_path13.default.join(workspaceRoot, relativeDir);
   let entries;
   try {
-    entries = (0, import_fs10.readdirSync)(absoluteDir, { withFileTypes: true });
+    entries = (0, import_fs14.readdirSync)(absoluteDir, { withFileTypes: true });
   } catch {
     return;
   }
   for (const entry of entries) {
-    const relative = import_path9.default.join(relativeDir, entry.name);
+    const relative = import_path13.default.join(relativeDir, entry.name);
     if (entry.isSymbolicLink()) continue;
     if (entry.isDirectory()) {
       hashProtectedTree(workspaceRoot, relative, into);
     } else if (entry.isFile()) {
-      const hash = hashFileIfRegular(import_path9.default.join(workspaceRoot, relative));
+      const hash = hashFileIfRegular(import_path13.default.join(workspaceRoot, relative));
       if (hash !== void 0) into[toPosix(relative)] = hash;
     }
   }
@@ -41489,7 +47129,7 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
     if (isExcluded(rawEntry.path, excludedPrefixes)) continue;
     if (rawEntry.status === "??" && rawEntry.path.endsWith("/")) {
       const expanded = {};
-      hashProtectedTree(workspaceRoot, rawEntry.path.slice(0, -1).split("/").join(import_path9.default.sep), expanded);
+      hashProtectedTree(workspaceRoot, rawEntry.path.slice(0, -1).split("/").join(import_path13.default.sep), expanded);
       const files = Object.keys(expanded).sort();
       if (files.length === 0) {
         entries.push({ path: rawEntry.path, status: rawEntry.status });
@@ -41505,7 +47145,7 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
       }
       continue;
     }
-    const hash = hashFileIfRegular(import_path9.default.join(workspaceRoot, rawEntry.path.split("/").join(import_path9.default.sep)));
+    const hash = hashFileIfRegular(import_path13.default.join(workspaceRoot, rawEntry.path.split("/").join(import_path13.default.sep)));
     entries.push({
       path: rawEntry.path,
       status: rawEntry.status,
@@ -41515,9 +47155,9 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
   entries.sort((a2, b) => a2.path.localeCompare(b.path, "en"));
   const protectedHashes = {};
   hashProtectedTree(workspaceRoot, ".kiro", protectedHashes);
-  const configHash = hashFileIfRegular(import_path9.default.join(workspaceRoot, ".specbridge", "config.json"));
+  const configHash = hashFileIfRegular(import_path13.default.join(workspaceRoot, ".specbridge", "config.json"));
   if (configHash !== void 0) protectedHashes[".specbridge/config.json"] = configHash;
-  hashProtectedTree(workspaceRoot, import_path9.default.join(".specbridge", "state"), protectedHashes);
+  hashProtectedTree(workspaceRoot, import_path13.default.join(".specbridge", "state"), protectedHashes);
   return {
     schemaVersion: GIT_SNAPSHOT_SCHEMA_VERSION,
     capturedAt: now.toISOString(),
@@ -41644,7 +47284,7 @@ async function capturePatch(workspaceRoot, maximumPatchBytes) {
     return {
       captured: false,
       truncated: true,
-      byteLength: import_buffer3.Buffer.byteLength(result.stdout, "utf8"),
+      byteLength: import_buffer4.Buffer.byteLength(result.stdout, "utf8"),
       note: `patch exceeded the configured limit of ${maximumPatchBytes} bytes and was not retained; the changed-file list is complete`
     };
   }
@@ -41660,7 +47300,7 @@ async function capturePatch(workspaceRoot, maximumPatchBytes) {
     captured: true,
     truncated: false,
     patch: result.stdout,
-    byteLength: import_buffer3.Buffer.byteLength(result.stdout, "utf8")
+    byteLength: import_buffer4.Buffer.byteLength(result.stdout, "utf8")
   };
 }
 var TAIL_BYTES = 8 * 1024;
@@ -41797,14 +47437,14 @@ function taskIdDirName(taskId) {
 function evidenceTaskDir(workspace, specName, taskId) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path10.default.join(workspace.sidecarDir, "evidence", specName, taskIdDirName(taskId))
+    import_path14.default.join(workspace.sidecarDir, "evidence", specName, taskIdDirName(taskId))
   );
 }
 function writeTaskEvidence(workspace, record2) {
   const validated = taskEvidenceRecordSchema.parse(record2);
   const dir = evidenceTaskDir(workspace, validated.specName, validated.taskId);
-  const filePath = import_path10.default.join(dir, `${validated.runId}.json`);
-  if ((0, import_fs11.existsSync)(filePath)) {
+  const filePath = import_path14.default.join(dir, `${validated.runId}.json`);
+  if ((0, import_fs15.existsSync)(filePath)) {
     throw new SpecBridgeError(
       "INVALID_STATE",
       `Evidence for run ${validated.runId} already exists at ${filePath}. Evidence records are append-only; a new attempt needs a new run id.`
@@ -41816,14 +47456,14 @@ function writeTaskEvidence(workspace, record2) {
 }
 function listTaskEvidence(workspace, specName, taskId) {
   const dir = evidenceTaskDir(workspace, specName, taskId);
-  if (!(0, import_fs11.existsSync)(dir)) return { records: [], diagnostics: [] };
+  if (!(0, import_fs15.existsSync)(dir)) return { records: [], diagnostics: [] };
   const records = [];
   const diagnostics = [];
-  for (const entry of (0, import_fs11.readdirSync)(dir, { withFileTypes: true })) {
+  for (const entry of (0, import_fs15.readdirSync)(dir, { withFileTypes: true })) {
     if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
-    const filePath = import_path10.default.join(dir, entry.name);
+    const filePath = import_path14.default.join(dir, entry.name);
     try {
-      const parsed = JSON.parse((0, import_fs11.readFileSync)(filePath, "utf8"));
+      const parsed = JSON.parse((0, import_fs15.readFileSync)(filePath, "utf8"));
       const result = taskEvidenceRecordSchema.safeParse(parsed);
       if (result.success) {
         records.push(result.data);
@@ -41949,7 +47589,7 @@ var ACCEPTED_STATUSES = /* @__PURE__ */ new Set(["verified", "manually-accepted"
 var FUTURE_SKEW_TOLERANCE_MS = 5 * 60 * 1e3;
 function evidencePathEscapesRepository(recordedPath) {
   if (recordedPath.includes("\0")) return true;
-  if (import_path11.default.isAbsolute(recordedPath) || /^[A-Za-z]:/.test(recordedPath)) return true;
+  if (import_path15.default.isAbsolute(recordedPath) || /^[A-Za-z]:/.test(recordedPath)) return true;
   return recordedPath.split(/[\\/]/).includes("..");
 }
 var CHECKBOX_STATE_PREFIX2 = /^([ \t]*[-*+][ \t]+\[)([ xX~-])(\])/;
@@ -42463,9 +48103,9 @@ function registerSteeringResources(server, context) {
 }
 
 // ../../packages/workflow/dist/index.js
-var import_path12 = __toESM(require("path"), 1);
-var import_fs12 = require("fs");
-var import_path13 = __toESM(require("path"), 1);
+var import_path16 = __toESM(require("path"), 1);
+var import_fs16 = require("fs");
+var import_path17 = __toESM(require("path"), 1);
 var systemClock = () => /* @__PURE__ */ new Date();
 function isoNow(clock) {
   return clock().toISOString();
@@ -43057,11 +48697,11 @@ function shortHash(hash) {
   return hash === null || hash === void 0 ? "(none)" : `${hash.slice(0, 12)}\u2026`;
 }
 function resolveStageFile(workspace, stage) {
-  const relative = stage.file.split("/").join(import_path12.default.sep);
-  const resolved = import_path12.default.resolve(workspace.rootDir, relative);
-  const check2 = import_path12.default.relative(workspace.rootDir, resolved);
-  if (check2.startsWith("..") || import_path12.default.isAbsolute(check2)) {
-    return import_path12.default.join(workspace.rootDir, ".specbridge", "invalid-path", import_path12.default.basename(stage.file));
+  const relative = stage.file.split("/").join(import_path16.default.sep);
+  const resolved = import_path16.default.resolve(workspace.rootDir, relative);
+  const check3 = import_path16.default.relative(workspace.rootDir, resolved);
+  if (check3.startsWith("..") || import_path16.default.isAbsolute(check3)) {
+    return import_path16.default.join(workspace.rootDir, ".specbridge", "invalid-path", import_path16.default.basename(stage.file));
   }
   return resolved;
 }
@@ -43567,9 +49207,9 @@ function analyzeDesignStage(spec, options) {
   const isPendingStub = scan.placeholderOnly;
   if (!isPendingStub) {
     const checks = spec.classification.type === "bugfix" ? BUGFIX_DESIGN_CHECKS : FEATURE_DESIGN_CHECKS;
-    for (const check2 of checks) {
-      if (!hasSectionMatching(document, check2.pattern)) {
-        diagnostics.push(diag("warning", check2.code, check2.message, filePath));
+    for (const check3 of checks) {
+      if (!hasSectionMatching(document, check3.pattern)) {
+        diagnostics.push(diag("warning", check3.code, check3.message, filePath));
       }
     }
     if (options.prerequisitesApproved === false) {
@@ -43815,11 +49455,11 @@ function newSpecState(specName, specType, mode, clock = systemClock) {
 }
 var DEFAULT_MAX_DESCRIPTION_BYTES = 1024 * 1024;
 function readDescriptionFile(workspace, fromFile, cwd, maxBytes) {
-  const resolved = import_path13.default.resolve(cwd, fromFile);
+  const resolved = import_path17.default.resolve(cwd, fromFile);
   assertInsideWorkspace(workspace.rootDir, resolved);
   let stats;
   try {
-    stats = (0, import_fs12.statSync)(resolved);
+    stats = (0, import_fs16.statSync)(resolved);
   } catch (cause) {
     throw ioError("read description file", resolved, cause);
   }
@@ -43837,7 +49477,7 @@ function readDescriptionFile(workspace, fromFile, cwd, maxBytes) {
   }
   let buffer;
   try {
-    buffer = (0, import_fs12.readFileSync)(resolved);
+    buffer = (0, import_fs16.readFileSync)(resolved);
   } catch (cause) {
     throw ioError("read description file", resolved, cause);
   }
@@ -43892,12 +49532,12 @@ Valid examples: notification-preferences, auth-v2, payment-retry.`
   const title = requestedTitle !== void 0 && requestedTitle.length > 0 ? requestedTitle : titleFromSpecName(request.name);
   const dir = assertInsideWorkspace(
     workspace.rootDir,
-    import_path13.default.join(workspace.rootDir, KIRO_DIR_NAME, KIRO_SPECS_DIR, request.name)
+    import_path17.default.join(workspace.rootDir, KIRO_DIR_NAME, KIRO_SPECS_DIR, request.name)
   );
-  if ((0, import_fs12.existsSync)(dir)) {
+  if ((0, import_fs16.existsSync)(dir)) {
     let entries = [];
     try {
-      entries = (0, import_fs12.readdirSync)(dir).sort((a2, b) => a2.localeCompare(b, "en"));
+      entries = (0, import_fs16.readdirSync)(dir).sort((a2, b) => a2.localeCompare(b, "en"));
     } catch {
     }
     throw new SpecBridgeError(
@@ -43923,45 +49563,45 @@ Valid examples: notification-preferences, auth-v2, payment-retry.`
   };
 }
 function executeSpecCreation(workspace, plan) {
-  const tmpParent = import_path13.default.join(workspace.sidecarDir, "tmp");
-  const tempDir = import_path13.default.join(
+  const tmpParent = import_path17.default.join(workspace.sidecarDir, "tmp");
+  const tempDir = import_path17.default.join(
     tmpParent,
     `spec-new-${plan.specName}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`
   );
-  const specsDir = import_path13.default.dirname(plan.dir);
+  const specsDir = import_path17.default.dirname(plan.dir);
   const writtenFiles = [];
   try {
-    (0, import_fs12.mkdirSync)(tempDir, { recursive: true });
+    (0, import_fs16.mkdirSync)(tempDir, { recursive: true });
     for (const file of plan.files) {
-      writeFileAtomic(import_path13.default.join(tempDir, file.fileName), file.content);
+      writeFileAtomic(import_path17.default.join(tempDir, file.fileName), file.content);
     }
-    (0, import_fs12.mkdirSync)(specsDir, { recursive: true });
-    if ((0, import_fs12.existsSync)(plan.dir)) {
+    (0, import_fs16.mkdirSync)(specsDir, { recursive: true });
+    if ((0, import_fs16.existsSync)(plan.dir)) {
       throw new SpecBridgeError(
         "SPEC_ALREADY_EXISTS",
         `Spec "${plan.specName}" already exists at ${plan.dir}; nothing was written.`
       );
     }
     try {
-      (0, import_fs12.renameSync)(tempDir, plan.dir);
+      (0, import_fs16.renameSync)(tempDir, plan.dir);
     } catch (cause) {
       throw ioError("create spec directory", plan.dir, cause);
     }
     for (const file of plan.files) {
-      writtenFiles.push(import_path13.default.join(plan.dir, file.fileName));
+      writtenFiles.push(import_path17.default.join(plan.dir, file.fileName));
     }
     let statePath;
     try {
       statePath = writeSpecState(workspace, plan.state);
     } catch (cause) {
-      (0, import_fs12.rmSync)(plan.dir, { recursive: true, force: true });
+      (0, import_fs16.rmSync)(plan.dir, { recursive: true, force: true });
       throw cause;
     }
     return { plan, writtenFiles, statePath };
   } finally {
-    (0, import_fs12.rmSync)(tempDir, { recursive: true, force: true });
+    (0, import_fs16.rmSync)(tempDir, { recursive: true, force: true });
     try {
-      (0, import_fs12.rmdirSync)(tmpParent);
+      (0, import_fs16.rmdirSync)(tmpParent);
     } catch {
     }
   }
@@ -44034,7 +49674,7 @@ function toSpecSummary(bundle) {
 
 // ../../packages/mcp-server/src/version.ts
 var MCP_SERVER_NAME = "specbridge";
-var MCP_SERVER_VERSION = "0.6.0";
+var MCP_SERVER_VERSION = "0.6.1";
 var MCP_SERVER_TITLE = "SpecBridge";
 var MCP_PROTOCOL_BASELINE = "2025-11-25";
 
@@ -44144,15 +49784,15 @@ function registerSpecResources(server, context) {
 var import_node_fs7 = require("fs");
 
 // ../../packages/execution/dist/index.js
-var import_fs13 = require("fs");
-var import_path14 = __toESM(require("path"), 1);
-var import_fs14 = require("fs");
-var import_path15 = __toESM(require("path"), 1);
-var import_path16 = __toESM(require("path"), 1);
-var import_fs15 = require("fs");
-var import_path17 = __toESM(require("path"), 1);
-var import_crypto3 = require("crypto");
+var import_fs17 = require("fs");
 var import_path18 = __toESM(require("path"), 1);
+var import_fs18 = require("fs");
+var import_path19 = __toESM(require("path"), 1);
+var import_path20 = __toESM(require("path"), 1);
+var import_fs19 = require("fs");
+var import_path21 = __toESM(require("path"), 1);
+var import_crypto5 = require("crypto");
+var import_path22 = __toESM(require("path"), 1);
 var RUN_RECORD_SCHEMA_VERSION = "1.0.0";
 var runRecordSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
@@ -44182,36 +49822,36 @@ var runRecordSchema = external_exports.object({
   abortReason: external_exports.string().optional()
 }).passthrough();
 function runsRootDir(workspace) {
-  return import_path14.default.join(workspace.sidecarDir, "runs");
+  return import_path18.default.join(workspace.sidecarDir, "runs");
 }
 function runDir(workspace, runId) {
   if (!/^[A-Za-z0-9._-]+$/.test(runId)) {
     throw new SpecBridgeError("INVALID_ARGUMENT", `Invalid run id "${runId}".`);
   }
-  return assertInsideWorkspace(workspace.rootDir, import_path14.default.join(runsRootDir(workspace), runId));
+  return assertInsideWorkspace(workspace.rootDir, import_path18.default.join(runsRootDir(workspace), runId));
 }
 function runArtifactPath(workspace, runId, fileName) {
-  return assertInsideWorkspace(workspace.rootDir, import_path14.default.join(runDir(workspace, runId), fileName));
+  return assertInsideWorkspace(workspace.rootDir, import_path18.default.join(runDir(workspace, runId), fileName));
 }
 function createRun(workspace, record2) {
   const validated = runRecordSchema.parse(record2);
   const dir = runDir(workspace, validated.runId);
-  if ((0, import_fs13.existsSync)(dir)) {
+  if ((0, import_fs17.existsSync)(dir)) {
     throw new SpecBridgeError(
       "INVALID_STATE",
       `Run directory already exists: ${dir}. Run ids must be unique.`
     );
   }
-  (0, import_fs13.mkdirSync)(dir, { recursive: true });
-  writeFileAtomic(import_path14.default.join(dir, "run.json"), `${JSON.stringify(validated, null, 2)}
+  (0, import_fs17.mkdirSync)(dir, { recursive: true });
+  writeFileAtomic(import_path18.default.join(dir, "run.json"), `${JSON.stringify(validated, null, 2)}
 `);
   return dir;
 }
 function readRunRecord(workspace, runId) {
-  const filePath = import_path14.default.join(runDir(workspace, runId), "run.json");
-  if (!(0, import_fs13.existsSync)(filePath)) return void 0;
+  const filePath = import_path18.default.join(runDir(workspace, runId), "run.json");
+  if (!(0, import_fs17.existsSync)(filePath)) return void 0;
   try {
-    const parsed = JSON.parse((0, import_fs13.readFileSync)(filePath, "utf8"));
+    const parsed = JSON.parse((0, import_fs17.readFileSync)(filePath, "utf8"));
     const result = runRecordSchema.safeParse(parsed);
     return result.success ? result.data : void 0;
   } catch {
@@ -44225,7 +49865,7 @@ function updateRunRecord(workspace, runId, patch) {
   }
   const next = runRecordSchema.parse({ ...current, ...patch });
   writeFileAtomic(
-    import_path14.default.join(runDir(workspace, runId), "run.json"),
+    import_path18.default.join(runDir(workspace, runId), "run.json"),
     `${JSON.stringify(next, null, 2)}
 `
   );
@@ -44233,10 +49873,10 @@ function updateRunRecord(workspace, runId, patch) {
 }
 function listRuns(workspace) {
   const root = runsRootDir(workspace);
-  if (!(0, import_fs13.existsSync)(root)) return { runs: [], diagnostics: [] };
+  if (!(0, import_fs17.existsSync)(root)) return { runs: [], diagnostics: [] };
   const runs = [];
   const diagnostics = [];
-  for (const entry of (0, import_fs13.readdirSync)(root, { withFileTypes: true })) {
+  for (const entry of (0, import_fs17.readdirSync)(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
     const record2 = readRunRecord(workspace, entry.name);
     if (record2 !== void 0) {
@@ -44246,7 +49886,7 @@ function listRuns(workspace) {
         severity: "warning",
         code: "RUN_RECORD_UNREADABLE",
         message: `Run directory ${entry.name} has no readable run.json; ignoring it.`,
-        file: import_path14.default.join(root, entry.name)
+        file: import_path18.default.join(root, entry.name)
       });
     }
   }
@@ -44265,14 +49905,14 @@ function writeRunArtifact(workspace, runId, fileName, content) {
 }
 function appendRunEvent(workspace, runId, event) {
   const filePath = runArtifactPath(workspace, runId, "events.jsonl");
-  (0, import_fs13.appendFileSync)(filePath, `${JSON.stringify(event)}
+  (0, import_fs17.appendFileSync)(filePath, `${JSON.stringify(event)}
 `, "utf8");
 }
 function readRunArtifactJson(workspace, runId, fileName) {
-  const filePath = import_path14.default.join(runDir(workspace, runId), fileName);
-  if (!(0, import_fs13.existsSync)(filePath)) return void 0;
+  const filePath = import_path18.default.join(runDir(workspace, runId), fileName);
+  if (!(0, import_fs17.existsSync)(filePath)) return void 0;
   try {
-    return JSON.parse((0, import_fs13.readFileSync)(filePath, "utf8"));
+    return JSON.parse((0, import_fs17.readFileSync)(filePath, "utf8"));
   } catch {
     return void 0;
   }
@@ -44594,7 +50234,7 @@ function unifiedDiff(oldText, newText, options = {}) {
 function stageDocumentPath(workspace, specName, stage) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path15.default.join(workspace.kiroDir, "specs", specName, `${stage}.md`)
+    import_path19.default.join(workspace.kiroDir, "specs", specName, `${stage}.md`)
   );
 }
 function normalizeCandidateMarkdown(markdown) {
@@ -44604,7 +50244,7 @@ function normalizeCandidateMarkdown(markdown) {
 }
 function writeStageDocument(workspace, specName, stage, markdown) {
   const filePath = stageDocumentPath(workspace, specName, stage);
-  const exists = (0, import_fs14.existsSync)(filePath);
+  const exists = (0, import_fs18.existsSync)(filePath);
   let eol = "lf";
   let bom = false;
   if (exists) {
@@ -45031,7 +50671,7 @@ function buildEvidenceSpecContext(workspace, specName, state, task) {
   }
   const tasksStage = stateStage(state, "tasks");
   if (tasksStage?.status === "approved") {
-    const planHash = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(import_path16.default.join(workspace.kiroDir, "specs", specName, "tasks.md"));
+    const planHash = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(import_path20.default.join(workspace.kiroDir, "specs", specName, "tasks.md"));
     if (planHash !== void 0) specContext.tasksPlanHash = planHash;
   }
   return specContext;
@@ -45057,7 +50697,7 @@ function applyConfiguredProtectedPaths(config2, comparison) {
 function taskLineIntact(workspace, specName, task) {
   try {
     const document = MarkdownDocument.load(
-      import_path16.default.join(workspace.kiroDir, "specs", specName, "tasks.md")
+      import_path20.default.join(workspace.kiroDir, "specs", specName, "tasks.md")
     );
     if (task.line >= document.lineCount) return false;
     return document.lineAt(task.line).text === task.rawLineText;
@@ -45079,15 +50719,15 @@ var interactiveLockSchema = external_exports.object({
 function interactiveLockPath(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path17.default.join(workspace.sidecarDir, "locks", "interactive-task.lock")
+    import_path21.default.join(workspace.sidecarDir, "locks", "interactive-task.lock")
   );
 }
 function readInteractiveLock(workspace) {
   const lockPath = interactiveLockPath(workspace);
-  if (!(0, import_fs15.existsSync)(lockPath)) return { state: "absent", path: lockPath };
+  if (!(0, import_fs19.existsSync)(lockPath)) return { state: "absent", path: lockPath };
   let raw;
   try {
-    raw = (0, import_fs15.readFileSync)(lockPath, "utf8");
+    raw = (0, import_fs19.readFileSync)(lockPath, "utf8");
   } catch (cause) {
     return {
       state: "unreadable",
@@ -45117,9 +50757,9 @@ function acquireInteractiveLock(workspace, details) {
     createdAt: now,
     heartbeatAt: now
   };
-  (0, import_fs15.mkdirSync)(import_path17.default.dirname(lockPath), { recursive: true });
+  (0, import_fs19.mkdirSync)(import_path21.default.dirname(lockPath), { recursive: true });
   try {
-    (0, import_fs15.writeFileSync)(lockPath, `${JSON.stringify(lock, null, 2)}
+    (0, import_fs19.writeFileSync)(lockPath, `${JSON.stringify(lock, null, 2)}
 `, { flag: "wx" });
     return { acquired: true, path: lockPath, lock };
   } catch {
@@ -45144,7 +50784,7 @@ function releaseInteractiveLock(workspace, runId) {
       problem: `the lock is held by a different run (${read.lock.runId}); refusing to release it`
     };
   }
-  (0, import_fs15.rmSync)(read.path, { force: true });
+  (0, import_fs19.rmSync)(read.path, { force: true });
   return { released: true };
 }
 var LOCK_STALE_HEARTBEAT_MS = 6 * 60 * 60 * 1e3;
@@ -45254,7 +50894,7 @@ async function beginInteractiveTask(deps, request) {
       `${predecessors.length} earlier task(s) are still open (next would be ${predecessors[0]?.id}); running ${task.id} out of order.`
     );
   }
-  const runId = (deps.idFactory ?? import_crypto3.randomUUID)();
+  const runId = (deps.idFactory ?? import_crypto5.randomUUID)();
   const acquisition = acquireInteractiveLock(workspace, {
     runId,
     specName,
@@ -45500,7 +51140,7 @@ async function completeInteractiveTask(deps, request) {
     );
   }
   const task = state.task;
-  const tasksPath = import_path18.default.join(workspace.kiroDir, "specs", record2.specName, "tasks.md");
+  const tasksPath = import_path22.default.join(workspace.kiroDir, "specs", record2.specName, "tasks.md");
   let taskIntact = false;
   try {
     const document = MarkdownDocument.load(tasksPath);
@@ -45802,20 +51442,20 @@ function registerRunResources(server, context) {
 }
 
 // ../../packages/drift/dist/index.js
-var import_fs16 = require("fs");
-var import_path19 = __toESM(require("path"), 1);
-var import_picomatch = __toESM(require_picomatch2(), 1);
-var import_fs17 = require("fs");
-var import_path20 = __toESM(require("path"), 1);
-var import_fs18 = require("fs");
-var import_path21 = __toESM(require("path"), 1);
-var import_fs19 = require("fs");
-var import_path22 = __toESM(require("path"), 1);
 var import_fs20 = require("fs");
 var import_path23 = __toESM(require("path"), 1);
+var import_picomatch = __toESM(require_picomatch2(), 1);
 var import_fs21 = require("fs");
-var import_crypto4 = require("crypto");
 var import_path24 = __toESM(require("path"), 1);
+var import_fs22 = require("fs");
+var import_path25 = __toESM(require("path"), 1);
+var import_fs23 = require("fs");
+var import_path26 = __toESM(require("path"), 1);
+var import_fs24 = require("fs");
+var import_path27 = __toESM(require("path"), 1);
+var import_fs25 = require("fs");
+var import_crypto6 = require("crypto");
+var import_path28 = __toESM(require("path"), 1);
 var taskEvidenceSchema = external_exports.object({
   taskId: external_exports.string().min(1),
   status: external_exports.enum(["recorded", "verified", "rejected"]),
@@ -45902,24 +51542,24 @@ var verificationPolicySchema = external_exports.object({
   }
 });
 function policyDir(workspace) {
-  return import_path19.default.join(workspace.sidecarDir, "policies");
+  return import_path23.default.join(workspace.sidecarDir, "policies");
 }
 function policyPath(workspace, specName) {
-  const resolved = import_path19.default.resolve(policyDir(workspace), `${specName}.json`);
-  const relative = import_path19.default.relative(workspace.rootDir, resolved);
-  if (relative.startsWith("..") || import_path19.default.isAbsolute(relative)) {
-    return import_path19.default.join(policyDir(workspace), "invalid-spec-name.json");
+  const resolved = import_path23.default.resolve(policyDir(workspace), `${specName}.json`);
+  const relative = import_path23.default.relative(workspace.rootDir, resolved);
+  if (relative.startsWith("..") || import_path23.default.isAbsolute(relative)) {
+    return import_path23.default.join(policyDir(workspace), "invalid-spec-name.json");
   }
   return resolved;
 }
 function readVerificationPolicy(workspace, specName, explicitPath) {
-  const filePath = explicitPath !== void 0 ? import_path19.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
-  if (!(0, import_fs16.existsSync)(filePath)) {
+  const filePath = explicitPath !== void 0 ? import_path23.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
+  if (!(0, import_fs20.existsSync)(filePath)) {
     return { path: filePath, exists: false, diagnostics: [] };
   }
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs16.readFileSync)(filePath, "utf8"));
+    parsed = JSON.parse((0, import_fs20.readFileSync)(filePath, "utf8"));
   } catch (cause) {
     return {
       path: filePath,
@@ -45982,7 +51622,7 @@ function resolveEffectivePolicy(workspace, specName, options = {}) {
   const storedMode = policy?.mode ?? "advisory";
   const strictFromCli = options.strict === true && storedMode !== "strict";
   const mode = options.strict === true ? "strict" : storedMode;
-  const workspaceRelativePolicyPath = import_path19.default.relative(workspace.rootDir, read.path).split(import_path19.default.sep).join("/");
+  const workspaceRelativePolicyPath = import_path23.default.relative(workspace.rootDir, read.path).split(import_path23.default.sep).join("/");
   return {
     specName,
     mode,
@@ -46121,33 +51761,33 @@ function mergeNumstat(files, stats) {
 function sniffBinary(absolutePath) {
   let fd;
   try {
-    fd = (0, import_fs17.openSync)(absolutePath, "r");
+    fd = (0, import_fs21.openSync)(absolutePath, "r");
     const buffer = Buffer.alloc(8e3);
-    const bytesRead = (0, import_fs17.readSync)(fd, buffer, 0, buffer.length, 0);
+    const bytesRead = (0, import_fs21.readSync)(fd, buffer, 0, buffer.length, 0);
     return buffer.subarray(0, bytesRead).includes(0);
   } catch {
     return false;
   } finally {
-    if (fd !== void 0) (0, import_fs17.closeSync)(fd);
+    if (fd !== void 0) (0, import_fs21.closeSync)(fd);
   }
 }
 function flagSymlinkEscapes(repoRoot, files) {
   const resolvedRoot = (() => {
     try {
-      return (0, import_fs17.realpathSync)(repoRoot);
+      return (0, import_fs21.realpathSync)(repoRoot);
     } catch {
-      return import_path20.default.resolve(repoRoot);
+      return import_path24.default.resolve(repoRoot);
     }
   })();
   for (const file of files) {
     if (file.changeType === "deleted") continue;
-    const absolute = import_path20.default.join(repoRoot, file.path.split("/").join(import_path20.default.sep));
+    const absolute = import_path24.default.join(repoRoot, file.path.split("/").join(import_path24.default.sep));
     try {
-      const stats = (0, import_fs17.lstatSync)(absolute);
+      const stats = (0, import_fs21.lstatSync)(absolute);
       if (!stats.isSymbolicLink()) continue;
-      const target = (0, import_fs17.realpathSync)(absolute);
-      const relative = import_path20.default.relative(resolvedRoot, target);
-      if (relative.startsWith("..") || import_path20.default.isAbsolute(relative)) {
+      const target = (0, import_fs21.realpathSync)(absolute);
+      const relative = import_path24.default.relative(resolvedRoot, target);
+      if (relative.startsWith("..") || import_path24.default.isAbsolute(relative)) {
         file.symlinkOutsideRepository = true;
       }
     } catch {
@@ -46275,7 +51915,7 @@ async function resolveComparison(repoRoot, request, options = {}) {
     const known = new Set(files.map((file) => file.path));
     for (const token of untracked.stdout.split("\0")) {
       if (token.length === 0 || known.has(token)) continue;
-      const absolute = import_path20.default.join(repoRoot, token.split("/").join(import_path20.default.sep));
+      const absolute = import_path24.default.join(repoRoot, token.split("/").join(import_path24.default.sep));
       files.push({
         path: token,
         changeType: "untracked",
@@ -46355,9 +51995,9 @@ function specMatchReasons(specName, policy, validEvidencePaths, designPathRefere
 function readSpecEvidenceRecords(workspace, specName) {
   const byTask = /* @__PURE__ */ new Map();
   let invalidRecordCount = 0;
-  const specDir = import_path21.default.join(workspace.sidecarDir, "evidence", specName);
-  if ((0, import_fs18.existsSync)(specDir)) {
-    const taskDirs = (0, import_fs18.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
+  const specDir = import_path25.default.join(workspace.sidecarDir, "evidence", specName);
+  if ((0, import_fs22.existsSync)(specDir)) {
+    const taskDirs = (0, import_fs22.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
     for (const taskDir of taskDirs) {
       const { records, diagnostics } = listTaskEvidence(workspace, specName, taskDir);
       invalidRecordCount += diagnostics.length;
@@ -46404,7 +52044,7 @@ async function buildSpecVerificationContext(options) {
     }
     if (effective("tasks") && tasksStage !== void 0) {
       const planHash = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(
-        import_path21.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path21.default.sep))
+        import_path25.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path25.default.sep))
       );
       if (planHash !== void 0) approved.tasksPlanHash = planHash;
     }
@@ -46626,7 +52266,7 @@ async function evaluateGlobalRules(rules, context) {
   return { diagnostics, disabledRules };
 }
 function repoRelative2(workspace, absolutePath) {
-  return import_path22.default.relative(workspace.rootDir, absolutePath).split(import_path22.default.sep).join("/");
+  return import_path26.default.relative(workspace.rootDir, absolutePath).split(import_path26.default.sep).join("/");
 }
 function isSpecInfraPath(candidate) {
   return candidate === ".git" || candidate.startsWith(".git/") || candidate.startsWith(".kiro/") || candidate.startsWith(".specbridge/");
@@ -47307,14 +52947,14 @@ var sbv018 = {
     if (designDocument === void 0) return [];
     const designFile = designDocument.filePath;
     const designRepoPath = designFile !== void 0 ? repoRelative2(context.workspace, designFile) : void 0;
-    const specDir = import_path22.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
+    const specDir = import_path26.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
     return context.traceability.designPathReferences.filter((reference) => !reference.isGlob).filter((reference) => {
-      const fromRoot = import_path22.default.join(
+      const fromRoot = import_path26.default.join(
         context.workspace.rootDir,
-        reference.path.split("/").join(import_path22.default.sep)
+        reference.path.split("/").join(import_path26.default.sep)
       );
-      const fromSpecDir = import_path22.default.join(specDir, reference.path.split("/").join(import_path22.default.sep));
-      return !(0, import_fs19.existsSync)(fromRoot) && !(0, import_fs19.existsSync)(fromSpecDir);
+      const fromSpecDir = import_path26.default.join(specDir, reference.path.split("/").join(import_path26.default.sep));
+      return !(0, import_fs23.existsSync)(fromRoot) && !(0, import_fs23.existsSync)(fromSpecDir);
     }).map(
       (reference) => makeDiagnostic({
         rule: this,
@@ -47544,9 +53184,9 @@ function loadSpecMatchingInfo(workspace, folder, options) {
     }
   }
   const evidencePaths = /* @__PURE__ */ new Set();
-  const evidenceDir2 = import_path23.default.join(workspace.sidecarDir, "evidence", folder.name);
-  if ((0, import_fs20.existsSync)(evidenceDir2)) {
-    for (const entry of (0, import_fs21.readdirSync)(evidenceDir2, { withFileTypes: true })) {
+  const evidenceDir2 = import_path27.default.join(workspace.sidecarDir, "evidence", folder.name);
+  if ((0, import_fs24.existsSync)(evidenceDir2)) {
+    for (const entry of (0, import_fs25.readdirSync)(evidenceDir2, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
       const { records } = listTaskEvidence(workspace, folder.name, entry.name);
       for (const record2 of records) {
@@ -47604,7 +53244,7 @@ var VERIFY_EXIT_CODES = {
 };
 async function verifySpecs(request) {
   const now = (request.clock ?? (() => /* @__PURE__ */ new Date()))();
-  const verificationId = (request.idFactory ?? import_crypto4.randomUUID)();
+  const verificationId = (request.idFactory ?? import_crypto6.randomUUID)();
   const workspace = request.workspace;
   const configRead = readAgentConfig(workspace);
   if (configRead.config === void 0) {
@@ -47655,8 +53295,8 @@ async function verifySpecs(request) {
   let artifactsDir;
   const ensureArtifactsDir = () => {
     if (artifactsDir === void 0) {
-      const base = request.reportsDir ?? import_path24.default.join(workspace.sidecarDir, "reports");
-      artifactsDir = import_path24.default.join(base, verificationId);
+      const base = request.reportsDir ?? import_path28.default.join(workspace.sidecarDir, "reports");
+      artifactsDir = import_path28.default.join(base, verificationId);
     }
     return artifactsDir;
   };
@@ -47679,8 +53319,8 @@ async function verifySpecs(request) {
       onCommandFinished: (result, stdout, stderr) => {
         const dir = ensureArtifactsDir();
         const safeName = result.name.replace(/[^A-Za-z0-9._-]+/g, "-");
-        writeFileAtomic(import_path24.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
-        writeFileAtomic(import_path24.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
+        writeFileAtomic(import_path28.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
+        writeFileAtomic(import_path28.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
       }
     } : {}
   }) : { mode: "none", commands: [], missingRequired: [] };
@@ -47757,7 +53397,7 @@ async function verifySpecs(request) {
   verificationReportSchema.parse(report);
   if (persistArtifacts && artifactsDir !== void 0) {
     writeFileAtomic(
-      import_path24.default.join(artifactsDir, "report.json"),
+      import_path28.default.join(artifactsDir, "report.json"),
       `${JSON.stringify(report, null, 2)}
 `
     );
@@ -50072,6 +55712,389 @@ ${commandLines.join("\n")}` : "No verification commands are configured.",
   });
 }
 
+// ../../packages/mcp-server/src/tools/runner-shared.ts
+var import_node_fs9 = require("fs");
+var import_node_os4 = __toESM(require("os"), 1);
+var import_node_path9 = __toESM(require("path"), 1);
+function loadRunnerToolContext(context) {
+  const workspace = context.requireWorkspace();
+  const config2 = requireAgentConfig(workspace);
+  return { workspace, config: config2, registry: createDefaultRunnerRegistry(config2) };
+}
+function requireProfile(registry2, name) {
+  if (!registry2.has(name)) {
+    throw new McpToolError(
+      "SBMCP002",
+      `Unknown runner profile "${name}". Configured profiles: ${registry2.listProfiles().map((profile) => profile.name).join(", ")}.`,
+      { remediation: ["Call runner_list to see every configured profile."] }
+    );
+  }
+  return registry2.getProfile(name);
+}
+var RUNNER_PROBE_TIMEOUT_MS = 2e4;
+var capabilitySetShape2 = external_exports.record(external_exports.boolean()).describe("Provider-independent capability keys to booleans");
+var profileSummaryShape = external_exports.object({
+  profile: external_exports.string(),
+  implementation: external_exports.string(),
+  category: external_exports.string(),
+  supportLevel: external_exports.string().describe("Adapter-declared support level"),
+  enabled: external_exports.boolean(),
+  model: external_exports.string().nullable(),
+  networkBacked: external_exports.boolean().describe("True when SpecBridge itself would leave this machine"),
+  localExecution: external_exports.boolean(),
+  supportedOperations: external_exports.array(external_exports.string())
+});
+var detectionCapabilityShape = external_exports.object({
+  id: external_exports.string(),
+  label: external_exports.string(),
+  available: external_exports.boolean(),
+  required: external_exports.boolean(),
+  detail: external_exports.string().optional()
+});
+var runnerDiagnosticShape = external_exports.object({
+  severity: external_exports.enum(["info", "warning", "error"]),
+  code: external_exports.string(),
+  message: external_exports.string()
+});
+var detectionViewShape = external_exports.object({
+  status: external_exports.string(),
+  supportLevel: external_exports.string().describe("Effective support level after detection"),
+  version: external_exports.string().nullable(),
+  authentication: external_exports.string(),
+  networkBacked: external_exports.boolean(),
+  capabilities: external_exports.array(detectionCapabilityShape),
+  detectedCapabilities: capabilitySetShape2,
+  diagnostics: external_exports.array(runnerDiagnosticShape)
+});
+var MAX_DIAGNOSTICS = 50;
+function toDetectionView(detection, verbose) {
+  const diagnostics = (verbose ? detection.diagnostics : detection.diagnostics.filter((diagnostic) => diagnostic.severity !== "info")).slice(0, MAX_DIAGNOSTICS);
+  return {
+    status: detection.status,
+    supportLevel: detection.supportLevel,
+    version: detection.version ?? null,
+    authentication: detection.authentication,
+    networkBacked: detection.networkBacked,
+    capabilities: detection.capabilities.map((capability) => ({
+      id: String(capability.id),
+      label: capability.label,
+      available: capability.available,
+      required: capability.required,
+      ...capability.detail !== void 0 ? { detail: capability.detail } : {}
+    })),
+    detectedCapabilities: detection.capabilitySet,
+    diagnostics: diagnostics.map((diagnostic) => ({
+      severity: diagnostic.severity,
+      code: diagnostic.code,
+      message: diagnostic.message
+    }))
+  };
+}
+var conformanceSummaryShape = external_exports.object({
+  passed: external_exports.boolean(),
+  productionConfirmed: external_exports.boolean(),
+  failedChecks: external_exports.number().int(),
+  skippedChecks: external_exports.number().int(),
+  groups: external_exports.array(
+    external_exports.object({
+      group: external_exports.string(),
+      applicable: external_exports.boolean(),
+      reason: external_exports.string().optional(),
+      passed: external_exports.boolean(),
+      skipped: external_exports.number().int()
+    })
+  ),
+  note: external_exports.string()
+});
+async function invocationFreeConformanceSummary(profile) {
+  const scratch = (0, import_node_fs9.mkdtempSync)(import_node_path9.default.join(import_node_os4.default.tmpdir(), "specbridge-mcp-conformance-"));
+  let result;
+  try {
+    result = await runRunnerConformance({
+      profile,
+      workspaceRoot: scratch,
+      runDir: import_node_path9.default.join(scratch, ".specbridge-conformance-runs"),
+      invocationsAllowed: false,
+      timeoutMs: RUNNER_PROBE_TIMEOUT_MS
+    });
+  } finally {
+    (0, import_node_fs9.rmSync)(scratch, { recursive: true, force: true });
+  }
+  return {
+    passed: result.passed,
+    productionConfirmed: result.productionConfirmed,
+    failedChecks: result.failedChecks,
+    skippedChecks: result.skippedChecks,
+    groups: result.groups.map((group) => ({
+      group: group.group,
+      applicable: group.applicable,
+      ...group.reason !== void 0 ? { reason: group.reason } : {},
+      passed: group.passed,
+      skipped: group.skipped
+    })),
+    note: 'Invocation-free summary: checks that would invoke the provider are skipped here. Run "specbridge runner conformance <profile> --network" for the full suite.'
+  };
+}
+
+// ../../packages/mcp-server/src/tools/runner-list.ts
+var inputSchema17 = {
+  enabledOnly: external_exports.boolean().optional().describe("Only profiles that are enabled in the configuration"),
+  detect: external_exports.boolean().optional().describe(
+    "Probe availability for the returned page (read-only version/help/reachability probes; slower \u2014 default false)"
+  ),
+  limit: limitArg,
+  cursor: cursorArg
+};
+var outputSchema22 = {
+  defaultRunner: external_exports.string(),
+  profiles: external_exports.array(
+    profileSummaryShape.extend({
+      availability: external_exports.string().optional().describe("Detection status (present when detect=true)")
+    })
+  ),
+  pagination: paginationShape
+};
+function registerRunnerListTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "runner_list",
+    title: "List runner profiles",
+    description: "List configured runner profiles: implementation, category, support level, enabled state, configured model, local/network classification, and supported operations. Optionally probes availability (read-only; never a model request). Supports pagination. Read-only.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true
+    },
+    inputSchema: inputSchema17,
+    outputSchema: outputSchema22,
+    handler: async (args) => {
+      const { workspace, config: config2, registry: registry2 } = loadRunnerToolContext(context);
+      const profiles = registry2.listProfiles().filter((profile) => args.enabledOnly !== true || profile.config.enabled !== false);
+      const page = paginate(profiles, {
+        ...args.limit !== void 0 ? { limit: args.limit } : {},
+        ...args.cursor !== void 0 ? { cursor: args.cursor } : {},
+        token: "runner_list"
+      });
+      const summaries = [];
+      for (const profile of page.items) {
+        const summary = runnerProfileSummary(profile);
+        if (args.detect === true) {
+          const detection = await profile.runner.detect({
+            workspaceRoot: workspace.rootDir,
+            timeoutMs: RUNNER_PROBE_TIMEOUT_MS
+          });
+          summaries.push({ ...summary, availability: detection.status });
+        } else {
+          summaries.push(summary);
+        }
+      }
+      const lines = summaries.map(
+        (summary) => `- ${summary.profile} [${summary.implementation}/${summary.category}] ${summary.enabled ? "enabled" : "disabled"}, support ${summary.supportLevel}${"availability" in summary && summary.availability !== void 0 ? `, ${summary.availability}` : ""}, operations: ${summary.supportedOperations.join(", ") || "(none)"}`
+      );
+      return {
+        text: `${page.totalCount} runner profile(s); default runner: ${config2.defaultRunner}.
+${lines.join("\n")}`,
+        structured: {
+          defaultRunner: config2.defaultRunner,
+          profiles: summaries,
+          pagination: {
+            totalCount: page.totalCount,
+            truncated: page.truncated,
+            ...page.nextCursor !== void 0 ? { nextCursor: page.nextCursor } : {}
+          }
+        }
+      };
+    }
+  });
+}
+
+// ../../packages/mcp-server/src/tools/runner-show.ts
+var inputSchema18 = {
+  profile: external_exports.string().min(1).max(120).describe('Runner profile name (e.g. "gemini-default")')
+};
+var operationCompatibilityShape = external_exports.object({
+  operation: external_exports.string(),
+  supported: external_exports.boolean(),
+  missingCapabilities: external_exports.array(external_exports.string())
+});
+var outputSchema23 = {
+  summary: profileSummaryShape,
+  configuration: external_exports.record(external_exports.unknown()).describe("Redacted profile configuration (profiles can never store credential values)"),
+  declaredCapabilities: capabilitySetShape2,
+  detection: detectionViewShape,
+  operationCompatibility: external_exports.array(operationCompatibilityShape).describe("Per-operation support from DETECTED capabilities"),
+  conformance: conformanceSummaryShape,
+  boundary: external_exports.object({
+    networkBacked: external_exports.boolean(),
+    localExecution: external_exports.boolean(),
+    constraints: external_exports.array(external_exports.string())
+  }),
+  limitations: external_exports.array(external_exports.string()),
+  remediation: external_exports.array(external_exports.string())
+};
+function registerRunnerShowTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "runner_show",
+    title: "Show a runner profile",
+    description: "Show one runner profile: redacted configuration, declared and detected capabilities, operation compatibility, invocation-free conformance summary, network boundary, known limitations, and remediation. Read-only; never sends a model request.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true
+    },
+    inputSchema: inputSchema18,
+    outputSchema: outputSchema23,
+    handler: async (args) => {
+      const { workspace, registry: registry2 } = loadRunnerToolContext(context);
+      const profile = requireProfile(registry2, args.profile);
+      const summary = runnerProfileSummary(profile);
+      const detection = await profile.runner.detect({
+        workspaceRoot: workspace.rootDir,
+        probeCapabilities: true,
+        timeoutMs: RUNNER_PROBE_TIMEOUT_MS
+      });
+      const detectionView = toDetectionView(detection, true);
+      const conformance = await invocationFreeConformanceSummary(profile);
+      const operationCompatibility = RUNNER_OPERATIONS.filter(
+        (operation) => operation !== "model-list" && operation !== "runner-test"
+      ).map((operation) => {
+        const support = checkOperationSupport(operation, detection.capabilitySet);
+        return {
+          operation,
+          supported: support.supported,
+          missingCapabilities: [
+            ...support.missingCapabilities,
+            ...support.unsatisfiedBoundaries.flat()
+          ]
+        };
+      });
+      const boundaryNote = profile.runner.executionBoundaryNote?.("implementation");
+      const limitations = detectionView.diagnostics.filter((diagnostic) => diagnostic.severity !== "error").map((diagnostic) => diagnostic.message);
+      const remediation = detectionView.diagnostics.filter((diagnostic) => diagnostic.severity === "error").map((diagnostic) => diagnostic.message);
+      const supported = operationCompatibility.filter((entry) => entry.supported).map((entry) => entry.operation);
+      return {
+        text: `Profile ${args.profile} (${summary.implementation}, ${summary.category}): ${summary.enabled ? "enabled" : "disabled"}, status ${detection.status}, support ${detection.supportLevel}. Supported operations (detected): ${supported.join(", ") || "(none)"}.`,
+        structured: {
+          summary,
+          configuration: redactedRunnerProfileConfig(profile),
+          declaredCapabilities: profile.runner.declaredCapabilities,
+          detection: detectionView,
+          operationCompatibility,
+          conformance,
+          boundary: {
+            networkBacked: summary.networkBacked,
+            localExecution: summary.localExecution,
+            constraints: [
+              ...boundaryNote !== void 0 ? [boundaryNote] : [],
+              "No commits, no pushes, no checkbox updates by the provider; evidence stays provider-independent."
+            ]
+          },
+          limitations,
+          remediation
+        }
+      };
+    }
+  });
+}
+
+// ../../packages/mcp-server/src/tools/runner-doctor.ts
+var inputSchema19 = {
+  profile: external_exports.string().min(1).max(120).optional().describe("Runner profile name (default: the configured default runner)"),
+  verbose: external_exports.boolean().optional().describe("Include informational diagnostics")
+};
+var outputSchema24 = {
+  profile: external_exports.string(),
+  implementation: external_exports.string(),
+  category: external_exports.string(),
+  enabled: external_exports.boolean(),
+  executable: external_exports.string().nullable().describe("Configured executable or endpoint"),
+  detection: detectionViewShape,
+  ready: external_exports.boolean().describe("True when the runner status is available")
+};
+function registerRunnerDoctorTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "runner_doctor",
+    title: "Diagnose a runner profile",
+    description: "Diagnose one runner profile: executable/endpoint presence, version, authentication state (never via credential files), detected capabilities, and actionable findings. Read-only: never a model request, never a login, never a configuration change.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true
+    },
+    inputSchema: inputSchema19,
+    outputSchema: outputSchema24,
+    handler: async (args) => {
+      const { workspace, config: config2, registry: registry2 } = loadRunnerToolContext(context);
+      const profileName = args.profile ?? config2.defaultRunner;
+      const profile = requireProfile(registry2, profileName);
+      const detection = await profile.runner.detect({
+        workspaceRoot: workspace.rootDir,
+        probeCapabilities: true,
+        timeoutMs: RUNNER_PROBE_TIMEOUT_MS
+      });
+      const view = toDetectionView(detection, args.verbose === true);
+      const findings = view.diagnostics.map((diagnostic) => `- [${diagnostic.severity}] ${diagnostic.message}`).join("\n");
+      return {
+        text: `Runner ${profileName} (${profile.runner.name}): status ${view.status}, support ${view.supportLevel}, authentication ${view.authentication}.${findings.length > 0 ? `
+${findings}` : ""}`,
+        structured: {
+          profile: profileName,
+          implementation: profile.runner.name,
+          category: profile.runner.category,
+          enabled: profile.config.enabled !== false,
+          executable: detection.executable ?? null,
+          detection: view,
+          ready: detection.status === "available"
+        }
+      };
+    }
+  });
+}
+
+// ../../packages/mcp-server/src/tools/runner-matrix.ts
+var matrixRowShape = external_exports.object({
+  profile: external_exports.string(),
+  implementation: external_exports.string(),
+  category: external_exports.string(),
+  support: external_exports.string(),
+  enabled: external_exports.boolean(),
+  author: external_exports.boolean(),
+  refine: external_exports.boolean(),
+  execute: external_exports.boolean(),
+  resume: external_exports.boolean(),
+  local: external_exports.boolean()
+});
+var outputSchema25 = {
+  rows: external_exports.array(matrixRowShape),
+  markdown: external_exports.string().describe("The same matrix as a Markdown table")
+};
+function registerRunnerMatrixTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "runner_matrix",
+    title: "Runner capability matrix",
+    description: 'The authoritative runner capability matrix (author/refine/execute/resume per profile), generated from registered runner metadata \u2014 identical to "specbridge runner matrix". Read-only; no probes, no processes, no network.',
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    inputSchema: {},
+    outputSchema: outputSchema25,
+    handler: async () => {
+      const { registry: registry2 } = loadRunnerToolContext(context);
+      const rows = runnerMatrixRows(registry2.listProfiles());
+      const markdown = renderRunnerMatrixMarkdown(rows);
+      return {
+        text: markdown,
+        structured: { rows, markdown }
+      };
+    }
+  });
+}
+
 // ../../packages/mcp-server/src/tools/registry.ts
 function registerAllTools(server, context) {
   registerWorkspaceDetectTool(server, context);
@@ -50088,6 +56111,10 @@ function registerAllTools(server, context) {
   registerRunReadTool(server, context);
   registerSpecAffectedTool(server, context);
   registerSpecCheckDriftTool(server, context);
+  registerRunnerListTool(server, context);
+  registerRunnerShowTool(server, context);
+  registerRunnerDoctorTool(server, context);
+  registerRunnerMatrixTool(server, context);
   registerSpecCreateTool(server, context);
   registerSpecStageValidateTool(server, context);
   registerSpecStageApplyTool(server, context);

@@ -93,11 +93,32 @@ function migrateRunnersSection(
     `runnerProfiles.${BUILT_IN_PROFILE_NAMES.ollama} added DISABLED (loopback http://127.0.0.1:11434; enable it explicitly to use Ollama)`,
   );
 
+  profiles[BUILT_IN_PROFILE_NAMES['gemini-cli']] = { runner: 'gemini-cli', enabled: false };
+  changes.push(
+    `runnerProfiles.${BUILT_IN_PROFILE_NAMES['gemini-cli']} added DISABLED (enable it explicitly to use the Gemini CLI)`,
+  );
+
+  profiles[BUILT_IN_PROFILE_NAMES['openai-compatible']] = {
+    runner: 'openai-compatible',
+    enabled: false,
+  };
+  changes.push(
+    `runnerProfiles.${BUILT_IN_PROFILE_NAMES['openai-compatible']} added DISABLED (loopback http://127.0.0.1:8000/v1; authoring only; enable it explicitly)`,
+  );
+
+  profiles[BUILT_IN_PROFILE_NAMES['antigravity-cli']] = {
+    runner: 'antigravity-cli',
+    enabled: false,
+  };
+  changes.push(
+    `runnerProfiles.${BUILT_IN_PROFILE_NAMES['antigravity-cli']} added DISABLED (experimental detection only)`,
+  );
+
   for (const name of Object.keys(v1.runners)) {
     if (!KNOWN_V1_RUNNERS.has(name)) {
       warnings.push(
-        `runners.${name} has no v0.6 runner implementation and was not migrated ` +
-          '(it remains in the backup file; openai-compatible and similar providers are planned for v0.6.1).',
+        `runners.${name} has no registered runner implementation and was not migrated ` +
+          '(it remains in the backup file).',
       );
     }
   }

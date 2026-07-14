@@ -75,7 +75,7 @@ describe('process-level stdio server', () => {
 
     // Identity through initialization.
     expect(client.getServerVersion()?.name).toBe('specbridge');
-    expect(client.getServerVersion()?.version).toBe('0.6.0');
+    expect(client.getServerVersion()?.version).toBe('0.6.1');
 
     // Capability listings.
     const tools = await client.listTools();
@@ -240,6 +240,6 @@ describe('process-level stdio server', () => {
     });
     const code = await waitForExit(child);
     expect(code).toBe(0);
-    expect(stdout.trim()).toBe('0.6.0');
+    expect(stdout.trim()).toBe('0.6.1');
   }, 30_000);
 });

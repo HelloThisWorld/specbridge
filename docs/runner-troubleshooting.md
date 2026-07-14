@@ -74,3 +74,44 @@ trusted verification) completes a task. Inspect `specbridge run show
 See [configuration-migration.md](configuration-migration.md); `specbridge
 config migrate --dry-run` is always safe (writes nothing), and applied
 migrations leave `config.v1.backup.json` for rollback.
+
+## Gemini: `incompatible` / task execution refused (v0.6.1)
+
+`specbridge runner doctor gemini-default` names the exact missing
+capability. Common cases:
+
+- No headless prompt, machine-readable output, or approval-mode support:
+  the installed version is incompatible; update the Gemini CLI.
+- No plan mode AND no tool allowlist: a read-only authoring boundary
+  cannot be proven — authoring is refused (SpecBridge never weakens the
+  boundary and never uses YOLO).
+- No auto_edit, or neither a tool allowlist nor a sandbox: file edits
+  cannot be permitted without also permitting arbitrary shell commands —
+  task execution is refused BEFORE the provider is invoked, authoring
+  stays available, and the doctor recommends compatible claude-code or
+  codex-cli profiles.
+- Authentication is reported `unknown` by design (no safe offline check);
+  `specbridge runner test gemini-default --network` runs one bounded
+  authenticated probe.
+
+## OpenAI-compatible: `structured_output_unsupported` (v0.6.1)
+
+The endpoint rejected the configured native structured-output mode.
+Configure a mode the endpoint supports (`json-object` or
+`strict-json-prompt`), or set `allowStructuredOutputFallback: true` to
+permit ONE explicit, warned downgrade. Nothing downgrades silently, and
+structured-output support is never inferred from provider branding.
+
+## OpenAI-compatible: authentication failures (v0.6.1)
+
+The profile stores only `apiKeyEnvironmentVariable` — export that variable
+before running. The doctor reports an unset variable explicitly; the value
+itself is never stored, logged, or displayed.
+
+## Antigravity: "Automation is disabled" (v0.6.1)
+
+Working as designed: the antigravity-cli adapter is experimental and
+detection-only. It reports what is detected and what is not proven (stable
+headless mode, structured final output, bounded edit permissions, session
+resume) and executes nothing. Use claude-code, codex-cli, or gemini-cli
+profiles for execution.

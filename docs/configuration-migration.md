@@ -34,8 +34,9 @@ Guarantees (tested):
 - Codex and Ollama are NOT enabled;
 - no credential value is created;
 - automatic fallback stays disabled;
-- unmappable v1 runner entries (e.g. `openai-compatible`) are reported and
-  remain in the backup (that provider is planned for v0.6.1).
+- new-provider profiles (Codex, Ollama, Gemini, OpenAI-compatible,
+  Antigravity) are added DISABLED; unmappable custom v1 runner entries are
+  reported and remain in the backup.
 
 ## Safety mechanics
 

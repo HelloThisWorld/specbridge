@@ -16,7 +16,9 @@ import {
   profileModel,
   profileOperations,
   profileTransport,
+  renderRunnerMatrixMarkdown,
   runRunnerConformance,
+  runnerMatrixRows,
   selectRunner,
 } from '@specbridge/runners';
 import { EXECUTION_CONFORMANCE_GROUPS } from '@specbridge/execution';
@@ -123,46 +125,6 @@ const OPERATION_SHORT: Record<RunnerOperation, string> = {
   'model-list': 'Models',
   'runner-test': 'Test',
 };
-
-interface MatrixRow {
-  profile: string;
-  support: string;
-  author: boolean;
-  refine: boolean;
-  execute: boolean;
-  resume: boolean;
-  local: boolean;
-}
-
-function matrixRows(profiles: RegisteredRunnerProfile[]): MatrixRow[] {
-  return profiles.map((profile) => {
-    const operations = new Set(profileOperations(profile));
-    return {
-      profile: profile.name,
-      support: 'production',
-      author: operations.has('stage-generation'),
-      refine: operations.has('stage-refinement'),
-      execute: operations.has('task-execution'),
-      resume: operations.has('task-resume'),
-      local: profileTransport(profile.config).localExecution,
-    };
-  });
-}
-
-/** Markdown capability matrix — the same source feeds docs and README. */
-export function renderMatrixMarkdown(rows: MatrixRow[]): string {
-  const lines = [
-    '| Profile | Support | Author | Refine | Execute | Resume | Local |',
-    '|---------|---------|--------|--------|---------|--------|-------|',
-  ];
-  for (const row of rows) {
-    const yn = (value: boolean): string => (value ? 'yes' : 'no');
-    lines.push(
-      `| ${row.profile} | ${row.support} | ${yn(row.author)} | ${yn(row.refine)} | ${yn(row.execute)} | ${yn(row.resume)} | ${yn(row.local)} |`,
-    );
-  }
-  return `${lines.join('\n')}\n`;
-}
 
 function printDoctorReport(
   runtime: CliRuntime,
@@ -350,7 +312,7 @@ Examples:
     .option('--markdown', 'output a Markdown table (used to generate docs)')
     .action((options: RunnerOptions) => {
       const { registry } = loadExecutionContext(runtime);
-      const rows = matrixRows(registry.listProfiles());
+      const rows = runnerMatrixRows(registry.listProfiles());
       if (options.json === true) {
         runtime.outRaw(
           serializeJsonReport(
@@ -360,7 +322,7 @@ Examples:
         return;
       }
       if (options.markdown === true) {
-        runtime.outRaw(renderMatrixMarkdown(rows));
+        runtime.outRaw(renderRunnerMatrixMarkdown(rows));
         return;
       }
       runtime.out(reportTitle('Runner Capability Matrix'));
@@ -712,8 +674,17 @@ Examples:
                 'production status is confirmed only when nothing is skipped (rerun with --network)',
               ),
             );
-          } else {
+          } else if (result.productionConfirmed) {
             runtime.out(okLine('All applicable conformance checks passed — production confirmed.'));
+          } else {
+            // Preview/experimental adapters can pass their applicable checks
+            // but are never confirmed production by conformance.
+            runtime.out(
+              warnLine(
+                'All applicable conformance checks passed.',
+                'production is never confirmed for a preview/experimental adapter',
+              ),
+            );
           }
         }
         runtime.exitCode = result.passed ? EXIT_CODES.ok : EXIT_CODES.gateFailure;

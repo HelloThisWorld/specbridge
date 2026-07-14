@@ -90,7 +90,7 @@ export function profileTransport(config: RunnerProfileConfig): {
   localExecution: boolean;
   endpoint?: string;
 } {
-  if (config.runner === 'ollama') {
+  if (config.runner === 'ollama' || config.runner === 'openai-compatible') {
     const url = validateRunnerBaseUrl(config.baseUrl, {
       allowInsecureHttp: config.allowInsecureHttp,
     });
@@ -108,14 +108,14 @@ export function profileTransport(config: RunnerProfileConfig): {
 }
 
 export function profileModel(config: RunnerProfileConfig): string | null {
-  if (config.runner === 'mock') return null;
+  if (config.runner === 'mock' || config.runner === 'antigravity-cli') return null;
   return config.model ?? null;
 }
 
-function declaredSupportLevel(_profile: RegisteredRunnerProfile): RunnerSupportLevel {
-  // All v0.6.0 registered implementations are production; preview or
-  // experimental adapters would declare their level on the adapter itself.
-  return 'production';
+function declaredSupportLevel(profile: RegisteredRunnerProfile): RunnerSupportLevel {
+  // v0.6.0 adapters declare no level and are production; v0.6.1 preview or
+  // experimental adapters declare their level on the adapter itself.
+  return profile.runner.declaredSupportLevel ?? 'production';
 }
 
 function constraintsFor(profile: RegisteredRunnerProfile, operation: RunnerOperation): string[] {
@@ -124,8 +124,11 @@ function constraintsFor(profile: RegisteredRunnerProfile, operation: RunnerOpera
     operation === 'task-execution' || operation === 'task-resume' ? 'implementation' : 'read-only',
   );
   if (boundary !== undefined) constraints.push(boundary);
-  if (profile.config.runner === 'ollama') {
+  if (profile.config.runner === 'ollama' || profile.config.runner === 'openai-compatible') {
     constraints.push('Task execution and repository writes are not capabilities of this runner.');
+  }
+  if (profile.config.runner === 'openai-compatible' && profile.config.allowInsecureHttp) {
+    constraints.push('INSECURE development override: plain HTTP to a remote endpoint is explicitly allowed.');
   }
   constraints.push('No commits, no pushes, no checkbox updates by the provider; evidence stays provider-independent.');
   return constraints;

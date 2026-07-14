@@ -45,7 +45,10 @@ describe('runner commands', () => {
     expect(result.stdout).toContain('codex-default');
     expect(result.stdout).toContain('ollama-local');
     expect(result.stdout).toContain('disabled');
-    expect(result.stdout).not.toContain('openai-compatible');
+    // v0.6.1: the new providers are registered but DISABLED by default.
+    expect(result.stdout).toContain('gemini-default');
+    expect(result.stdout).toContain('openai-compatible-local');
+    expect(result.stdout).toContain('antigravity');
   });
 
   it('runner doctor mock reports available with exit 0', async () => {

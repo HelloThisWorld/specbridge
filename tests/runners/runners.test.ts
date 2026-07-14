@@ -29,7 +29,10 @@ describe('runner registry', () => {
     expect(registry.listProfiles().map((profile) => profile.name)).toEqual([
       'claude-code',
       'codex-default',
+      'gemini-default',
       'ollama-local',
+      'openai-compatible-local',
+      'antigravity',
       'mock',
     ]);
   });
