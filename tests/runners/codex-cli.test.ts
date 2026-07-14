@@ -233,7 +233,7 @@ describe('codex authoring (read-only boundary)', () => {
     expect(existsSync(path.join(workspaceRoot, 'rogue-authoring-write.txt'))).toBe(false);
   });
 
-  it('normalizes machine-readable events and redacts reasoning content', async () => {
+  it('normalizes machine-readable events and redacts reasoning content everywhere', async () => {
     withScenario('success');
     const runner = new CodexCliRunner(fakeCodexConfig());
     const { workspaceRoot, runDir } = scratchDirs();
@@ -252,6 +252,11 @@ describe('codex authoring (read-only boundary)', () => {
       (event) => event.providerEventType === 'item.completed:reasoning',
     );
     expect(reasoning?.payload['redacted']).toBe(true);
+    // Reasoning content never survives into the RETAINED raw stream either —
+    // only a length marker does (the non-reasoning events stay intact).
+    expect(result.rawStdout).not.toContain('REASONING-SECRET-DO-NOT-EXPOSE');
+    expect(result.rawStdout).toContain('[redacted reasoning:');
+    expect(result.rawStdout).toContain('thread.started');
   });
 
   it('malformed final output fails safely', async () => {

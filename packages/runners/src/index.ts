@@ -60,6 +60,7 @@ export {
 export {
   parseCodexEventStream,
   normalizeCodexEvents,
+  redactCodexStdoutForRetention,
   MAX_RETAINED_EVENTS,
   type CodexEvent,
   type CodexEventStream,

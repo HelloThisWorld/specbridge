@@ -39204,6 +39204,21 @@ function itemPayload(item) {
   }
   return payload;
 }
+function redactCodexStdoutForRetention(stdout) {
+  return stdout.split(/\r?\n/).map((line) => {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("{") || !trimmed.includes('"reasoning"')) return line;
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed.item?.type === "reasoning" && typeof parsed.item.text === "string") {
+        parsed.item.text = `[redacted reasoning: ${parsed.item.text.length} chars]`;
+        return JSON.stringify(parsed);
+      }
+    } catch {
+    }
+    return line;
+  }).join("\n");
+}
 function normalizeCodexEvents(stream, context, timestamp) {
   const normalized = [];
   const push = (type, providerEventType, payload) => {
@@ -39554,7 +39569,9 @@ var CodexCliRunner = class {
     const usage = usageFromStream(stream, processResult.observation.durationMs, this.config.model);
     const base = {
       runner: this.name,
-      rawStdout: processResult.stdout,
+      // Parsing already happened on the pristine stream; the RETAINED bytes
+      // carry only safe status metadata for reasoning items.
+      rawStdout: redactCodexStdoutForRetention(processResult.stdout),
       rawStderr: processResult.stderr,
       process: processResult.observation,
       durationMs: Math.max(0, Date.now() - started),

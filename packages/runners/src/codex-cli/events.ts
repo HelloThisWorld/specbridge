@@ -173,6 +173,33 @@ function itemPayload(item: z.infer<typeof codexItemSchema>): Record<string, stri
 }
 
 /**
+ * Redact reasoning content from a raw JSONL stdout stream before it is
+ * retained as a run artifact. Parsing happens BEFORE this: the retained
+ * bytes keep every event's structure (and non-reasoning content) but
+ * reasoning text is replaced with a length marker — raw retention keeps
+ * only safe status metadata for reasoning, matching the Ollama adapter.
+ */
+export function redactCodexStdoutForRetention(stdout: string): string {
+  return stdout
+    .split(/\r?\n/)
+    .map((line) => {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith('{') || !trimmed.includes('"reasoning"')) return line;
+      try {
+        const parsed = JSON.parse(trimmed) as { item?: { type?: string; text?: string } };
+        if (parsed.item?.type === 'reasoning' && typeof parsed.item.text === 'string') {
+          parsed.item.text = `[redacted reasoning: ${parsed.item.text.length} chars]`;
+          return JSON.stringify(parsed);
+        }
+      } catch {
+        // Not JSON — leave the line untouched.
+      }
+      return line;
+    })
+    .join('\n');
+}
+
+/**
  * Normalize parsed Codex events. Reasoning items become `message.completed`
  * with a redacted payload — their content is intentionally absent.
  */

@@ -41,7 +41,11 @@ import {
   runCodexInvocation,
 } from './invocation.js';
 import type { CodexEventStream } from './events.js';
-import { normalizeCodexEvents, parseCodexEventStream } from './events.js';
+import {
+  normalizeCodexEvents,
+  parseCodexEventStream,
+  redactCodexStdoutForRetention,
+} from './events.js';
 
 /**
  * Codex CLI runner (v0.6): invokes the locally installed `codex` CLI in
@@ -413,7 +417,9 @@ export class CodexCliRunner implements AgentRunner {
     const usage = usageFromStream(stream, processResult.observation.durationMs, this.config.model);
     const base = {
       runner: this.name,
-      rawStdout: processResult.stdout,
+      // Parsing already happened on the pristine stream; the RETAINED bytes
+      // carry only safe status metadata for reasoning items.
+      rawStdout: redactCodexStdoutForRetention(processResult.stdout),
       rawStderr: processResult.stderr,
       process: processResult.observation,
       durationMs: Math.max(0, Date.now() - started),
