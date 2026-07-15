@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "rest-api",
+  "version": "1.0.0",
+  "displayName": "REST API",
+  "description": "A feature spec template for adding or changing a REST API endpoint: request/response contract, validation, status codes, authentication, idempotency, pagination, compatibility, observability, and rollout.",
+  "kind": "feature",
+  "supportedModes": ["requirements-first", "design-first", "quick"],
+  "defaultMode": "requirements-first",
+  "tags": ["api", "rest", "http", "backend"],
+  "files": [
+    {
+      "source": "files/requirements.md.template",
+      "target": "requirements.md",
+      "stage": "requirements",
+      "required": true
+    },
+    {
+      "source": "files/design.md.template",
+      "target": "design.md",
+      "stage": "design",
+      "required": true
+    },
+    {
+      "source": "files/tasks.md.template",
+      "target": "tasks.md",
+      "stage": "tasks",
+      "required": true
+    }
+  ],
+  "variables": [
+    {
+      "name": "actor",
+      "description": "Primary caller of the API (a user role or client system).",
+      "type": "string",
+      "required": false,
+      "default": "API client"
+    },
+    {
+      "name": "resourceName",
+      "description": "Name of the primary resource the endpoint exposes (singular, e.g. \"order\").",
+      "type": "string",
+      "required": false,
+      "default": "resource"
+    },
+    {
+      "name": "basePath",
+      "description": "Base URL path of the endpoint group (e.g. \"/api/v1/orders\").",
+      "type": "string",
+      "required": false,
+      "default": "/api/v1"
+    }
+  ],
+  "compatibility": {
+    "specbridge": ">=0.7.0 <1.0.0",
+    "kiroLayout": "1"
+  },
+  "license": "MIT",
+  "examples": [
+    "specbridge template apply rest-api --name orders-list-endpoint --var resourceName=order --var basePath=/api/v1/orders"
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "bugfix-regression",
+  "version": "1.0.0",
+  "displayName": "Bugfix Regression",
+  "description": "A bugfix spec template built around evidence: current vs expected behavior, unchanged behavior, reproduction, root cause, the smallest safe fix, and the regression tests that keep it fixed.",
+  "kind": "bugfix",
+  "supportedModes": ["requirements-first", "quick"],
+  "defaultMode": "requirements-first",
+  "tags": ["bugfix", "regression", "debugging", "quality"],
+  "files": [
+    {
+      "source": "files/bugfix.md.template",
+      "target": "bugfix.md",
+      "stage": "bugfix",
+      "required": true
+    },
+    {
+      "source": "files/design.md.template",
+      "target": "design.md",
+      "stage": "design",
+      "required": true
+    },
+    {
+      "source": "files/tasks.md.template",
+      "target": "tasks.md",
+      "stage": "tasks",
+      "required": true
+    }
+  ],
+  "variables": [
+    {
+      "name": "affectedArea",
+      "description": "Component, module, or user-facing surface where the bug appears.",
+      "type": "string",
+      "required": false,
+      "default": "the affected component"
+    },
+    {
+      "name": "severity",
+      "description": "Impact severity of the bug.",
+      "type": "enum",
+      "required": false,
+      "default": "medium",
+      "values": ["low", "medium", "high", "critical"]
+    }
+  ],
+  "compatibility": {
+    "specbridge": ">=0.7.0 <1.0.0",
+    "kiroLayout": "1"
+  },
+  "license": "MIT",
+  "examples": [
+    "specbridge template apply bugfix-regression --name checkout-total-rounding --var severity=high"
+  ]
+}

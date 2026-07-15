@@ -1,0 +1,12 @@
+# Implementation Plan
+
+- [ ] 1. Define the validation rules or enforcement policy for {{threatArea}} at the trust boundary.
+- [ ] 2. Implement the enforcement check on every entry point that crosses the boundary.
+- [ ] 3. Implement fail-closed behavior when the enforcement component is unavailable, with any deliberate fail-open exception documented and audited.
+- [ ] 4. Add rejection responses that reveal no internal detail an attacker could use.
+- [ ] 5. Add security event logging with stable reason codes and no secrets, credentials, or raw payloads.
+- [ ] 6. Write negative tests that reproduce each abuse case and prove the attack path is closed.
+- [ ] 7. Write regression tests proving legitimate request patterns still succeed.
+- [ ] 8. Verify dependency versions and configuration implicated in the weakness, and update or pin them.
+- [ ] 9. Measure the performance overhead of the new checks against the latency budget.
+- [ ] 10. Document the rollout plan, the monitoring to watch during rollout, and the rollback trigger.

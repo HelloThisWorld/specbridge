@@ -1,0 +1,66 @@
+# Requirements Document
+
+## Introduction
+
+**{{title}}**
+
+{{description}}
+
+This spec covers a measurable performance improvement judged by
+{{targetMetric}} under {{workload}}. "Make it faster" is not a requirement:
+every target below is a number, measured the same way as its baseline.
+
+## Glossary
+
+| Term | Definition |
+| --- | --- |
+| Baseline | The measured value of {{targetMetric}} before any change, under {{workload}}. |
+| Target | The required value of {{targetMetric}} after the change, measured identically. |
+| <term> | <definition> |
+
+## Requirements
+
+### Requirement 1: <numeric baseline and target>
+
+**User Story:** As a <stakeholder>, I want {{targetMetric}} improved from a measured baseline to a numeric target, so that <benefit tied to the number>.
+
+#### Acceptance Criteria
+
+1. WHEN the baseline is measured under {{workload}}, THE SYSTEM SHALL record {{targetMetric}} at <baseline value with unit> using <measurement method>.
+2. WHEN the optimized system is measured under the same {{workload}} with the same method, THE SYSTEM SHALL achieve {{targetMetric}} of <target value with unit> or better.
+3. IF the after measurement shows {{targetMetric}} regressing past <rollback threshold with unit>, THEN THE SYSTEM SHALL be reverted to the baseline behavior via <rollback mechanism>.
+
+### Requirement 2: <no functional or resource regressions>
+
+**User Story:** As a <stakeholder>, I want the optimization to preserve existing behavior, so that speed is never bought with correctness.
+
+#### Acceptance Criteria
+
+1. WHEN the optimized code path runs against the existing test suite, THE SYSTEM SHALL produce functional results identical to the baseline.
+2. WHEN {{targetMetric}} improves, THE SYSTEM SHALL keep <secondary metrics: error rate, memory, cost> within <numeric regression budget>.
+3. IF the optimization is disabled or rolled back, THEN THE SYSTEM SHALL return to baseline behavior without data loss or manual repair.
+
+### Requirement 3: <reproducible measurement>
+
+**User Story:** As a <reviewer>, I want the before and after numbers produced by one documented method, so that the claimed improvement is verifiable.
+
+#### Acceptance Criteria
+
+1. WHEN the measurement is repeated <run count> times under identical conditions, THE SYSTEM SHALL yield {{targetMetric}} results within <variance bound> of each other.
+2. IF the before and after measurements are taken under different <environment or workload conditions>, THEN THE COMPARISON SHALL be treated as invalid and repeated under matching conditions.
+
+## Non-Functional Requirements
+
+- Performance: {{targetMetric}} moves from <baseline value with unit> to <target value with unit> under {{workload}}.
+- Security: the optimization introduces no new exposure of sensitive data through <caching, precomputation, or shared state>.
+- Reliability: behavior under <peak load and failure conditions> is no worse than baseline.
+- Observability: {{targetMetric}} is continuously measurable in production so a regression is detected after rollout.
+- Compatibility: external behavior, APIs, and data formats are unchanged unless explicitly listed in this spec.
+
+## Edge Cases
+
+- Add edge cases here (cold-start vs. warm behavior, cache invalidation, pathological inputs, measurement noise, concurrent load).
+
+## Out of Scope
+
+- Add explicitly excluded behavior here.

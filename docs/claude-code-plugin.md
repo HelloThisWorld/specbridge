@@ -22,6 +22,8 @@ integrations/claude-code-plugin/specbridge/
 │   ├── approve/SKILL.md       /specbridge:approve <spec> <stage>   (human-only)
 │   ├── implement/SKILL.md     /specbridge:implement <spec> [task]
 │   ├── continue/SKILL.md      /specbridge:continue <run-id>
+│   ├── runners/SKILL.md       /specbridge:runners [profile]
+│   ├── templates/SKILL.md     /specbridge:templates [query | show … | apply …]
 │   └── verify/SKILL.md        /specbridge:verify [spec]
 ├── bin/
 │   ├── specbridge             POSIX wrapper → dist/cli.cjs
@@ -87,6 +89,13 @@ and controlled lifecycle operations and never duplicate core logic:
   never sends a network request itself, and never starts a login. The
   existing implementation workflow is unchanged: `task_begin` → the
   current Claude Code session edits → `task_complete`.
+- `templates` (v0.7.0) discovers templates with `template_list`/
+  `template_search`, inspects with `template_show`, always previews with
+  `template_preview`, and applies only after explicit user confirmation via
+  `template_apply` with the previewed `candidateHash` and the
+  `"apply-reviewed-template"` acknowledgement. It never installs,
+  uninstalls, or scaffolds templates (CLI-only operations), never renders
+  content itself, and never edits `.kiro` or `.specbridge` directly.
 
 No skill uses `bypassPermissions`, `dangerously-skip-permissions`,
 unrestricted `Bash(*)`, or unrestricted `Write`, and no skill instructs

@@ -1,0 +1,12 @@
+# Implementation Plan
+
+- [ ] 1. Define the work item contract for {{jobName}}: payload schema, idempotency key, and size limits.
+- [ ] 2. Implement the trigger and scheduling path that enqueues {{jobName}} work items.
+- [ ] 3. Implement the worker execution logic with explicit transaction boundaries.
+- [ ] 4. Implement idempotent processing so duplicate delivery produces the same outcome as one execution.
+- [ ] 5. Implement retries with backoff and route exhausted work items to the dead-letter destination.
+- [ ] 6. Implement the per-attempt timeout and the cancellation path.
+- [ ] 7. Add observability: metrics, structured logs with attempt number, and trace propagation from trigger to execution.
+- [ ] 8. Write integration tests for retry, duplicate delivery, timeout, cancellation, and dead-letter routing.
+- [ ] 9. Measure throughput and completion latency against the non-functional requirements.
+- [ ] 10. Verify existing consumers of the job output keep passing and document the rollout and rollback steps.

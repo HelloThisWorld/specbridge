@@ -1,5 +1,89 @@
 # Changelog
 
+## 0.7.0
+
+Added:
+
+- Versioned template manifest (`specbridge-template.json`, schema 1.0.0)
+  with strict validation: template IDs, semver versions, kinds, workflow
+  modes, file sets, typed variables (string/boolean/integer/enum with
+  constraints), compatibility ranges, and safe optional metadata.
+- Restricted deterministic template renderer: `{{variableName}}`
+  substitution only — one pass, no expressions, no conditionals, no
+  includes, no environment access, values never re-scanned.
+- Built-in template catalog bundled with SpecBridge (immutable at runtime,
+  embedded at build time so every bundle ships it).
+- Project-local template packs under `.specbridge/templates/<id>/`.
+- Deterministic local template search over IDs, display names,
+  descriptions, and tags (exact ID > ID prefix > exact tag > display-name
+  token > description token; no model, no network).
+- `template list | search | show | validate | preview | apply` CLI
+  commands; preview and `apply --dry-run` share the exact rendering path
+  with apply and write nothing.
+- Local template installation and uninstallation
+  (`template install <local-path>` / `template uninstall project:<id>`):
+  validated, script-free, atomic (temp directory + rename), never
+  overwriting; built-in templates cannot be uninstalled.
+- `template scaffold` — generates a complete community-ready template pack
+  (manifest, README with validation instructions and a contribution
+  checklist, plain-Markdown template files); no TypeScript required.
+- `spec new --template <reference> [--var key=value]`, delegating to the
+  same template application service (existing non-template `spec new`
+  behavior unchanged).
+- Append-only template operation records in
+  `.specbridge/template-records.jsonl` (apply/install/uninstall/scaffold)
+  storing variable names and rendered-content hashes, never values.
+- MCP template tools: `template_list`, `template_search`, `template_show`,
+  `template_preview` (read-only), and `template_apply` (candidate-hash
+  bound, acknowledgement-gated). Install/uninstall/scaffold remain
+  CLI-only.
+- Claude Code `/specbridge:templates` Skill: list/search/show/preview, and
+  apply only after explicit confirmation with the previewed candidate
+  hash.
+- Generated template gallery in `docs/templates.md`
+  (`pnpm generate:template-gallery`) with a CI drift check
+  (`pnpm check:template-gallery`); built-in packs are likewise embedded via
+  `pnpm generate:builtin-templates` with `pnpm check:builtin-templates`.
+- Template contribution workflow and documentation
+  (`docs/creating-templates.md`, `docs/template-manifest.md`,
+  `docs/template-rendering.md`, `docs/template-security.md`,
+  `docs/template-installation.md`, `docs/template-contribution-guide.md`).
+- Stable template error codes SBT001–SBT025 with remediation in every
+  message.
+
+Built-in templates:
+
+- REST API (`rest-api`)
+- CLI tool (`cli-tool`)
+- Database migration (`database-migration`)
+- Authentication (`authentication`)
+- Background job (`background-job`)
+- Event-driven service (`event-driven-service`)
+- Bugfix regression (`bugfix-regression`)
+- Performance optimization (`performance-optimization`)
+- Security hardening (`security-hardening`)
+- Refactoring (`refactoring`)
+
+Security:
+
+- No executable template code, lifecycle scripts, or shell execution.
+- No environment interpolation and no network access anywhere in the
+  template system (no remote registry, no URL or npm installation).
+- Path traversal and symlinks rejected; targets restricted to the exact
+  Kiro spec file set; variables never allowed in target paths.
+- One-pass rendering: substituted values are never re-rendered.
+- Bounded packs and output (20 files, 256 KB manifest, 1 MB per template
+  file, 5 MB per pack, 1 MB per rendered document).
+- Candidate-hash binding and an explicit acknowledgement for MCP apply.
+- Atomic installation and atomic spec creation; existing specs are never
+  overwritten; generated stages always start unapproved.
+
+Deferred to v0.7.1:
+
+- Extension/plugin SDK, runner SDK distribution, analyzer/verifier/exporter
+  SDKs.
+- Remote extension registry and community ecosystem index.
+
 ## 0.6.1
 
 Added:

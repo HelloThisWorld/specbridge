@@ -1,0 +1,74 @@
+# Design Document
+
+## Overview
+
+**{{title}}**
+
+{{description}}
+
+This design covers the `{{commandName}}` command surface and its output
+contract for the primary actor "{{actor}}".
+
+## Goals
+
+- Add concrete goals here.
+
+## Non-Goals
+
+- Add explicitly excluded goals here.
+
+## Architecture
+
+Describe where the command sits: <argument parser>, <command handlers>,
+<core logic they call>, and <output writers for human and machine formats>.
+
+## Components and Interfaces
+
+- Command(s): `{{commandName}} <subcommand>` — <purpose>.
+- Arguments and options: <positional arguments, flags, defaults, and conflicting combinations>.
+- Exit codes: <documented code per outcome class>.
+- Output contract: <human-readable stdout shape> and <machine-readable shape behind the structured output flag>.
+- Environment: <environment variables and configuration files read, with precedence order>.
+
+## Command-Line UX
+
+- Help text: <content shown for the help flag at each command level>.
+- Prompts: <which runs may prompt, and the non-interactive equivalent for each>.
+- Progress and color: <when progress and color are emitted, and how they are disabled when stdout is not a terminal>.
+
+## Control Flow
+
+Describe the main invocation path here: parse, validate, execute, format,
+exit.
+
+## Failure Handling
+
+- Validation failure: usage error on stderr, nonzero exit code, no side effects.
+- Runtime failure: <error message shape, exit code, and cleanup of partial state>.
+- Interruption: <behavior on Ctrl-C mid-operation and what state is left behind>.
+
+## Security Considerations
+
+- <Input validation for arguments, environment, and configuration; what never appears in output or logs; permissions of any files the command writes.>
+
+## Observability
+
+- <Verbose and debug flags, structured diagnostics on stderr, and any usage telemetry with its opt-in or opt-out behavior.>
+
+## Testing Strategy
+
+- Unit tests: <parsing, validation, and exit-code mapping per failure class>.
+- Integration tests: <end-to-end runs covering stdout/stderr separation, structured output, and non-interactive behavior>.
+- Platform tests: <the operating systems and shells the command must pass on>.
+
+## Rollout
+
+- <How the change ships: version bump, changelog entry, deprecation notices for renamed flags, and how existing scripts keep working.>
+
+## Risks and Trade-offs
+
+- Add known risks and accepted trade-offs here.
+
+## Alternatives Considered
+
+- Add rejected alternatives and why they were rejected here.

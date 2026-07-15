@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "authentication",
+  "version": "1.0.0",
+  "displayName": "Authentication",
+  "description": "A feature spec template for adding or changing authentication or authorization behavior: credential and session flow, authorization boundaries, wrong-credential and lockout behavior, expiry, revocation, replay protection, rate limiting, audit events, and security tests.",
+  "kind": "feature",
+  "supportedModes": ["requirements-first", "design-first", "quick"],
+  "defaultMode": "requirements-first",
+  "tags": ["authentication", "authorization", "security", "session", "identity"],
+  "files": [
+    {
+      "source": "files/requirements.md.template",
+      "target": "requirements.md",
+      "stage": "requirements",
+      "required": true
+    },
+    {
+      "source": "files/design.md.template",
+      "target": "design.md",
+      "stage": "design",
+      "required": true
+    },
+    {
+      "source": "files/tasks.md.template",
+      "target": "tasks.md",
+      "stage": "tasks",
+      "required": true
+    }
+  ],
+  "variables": [
+    {
+      "name": "actor",
+      "description": "Primary actor who authenticates (a user role or client system).",
+      "type": "string",
+      "required": false,
+      "default": "user"
+    },
+    {
+      "name": "sessionKind",
+      "description": "Kind of credential artifact issued after successful authentication.",
+      "type": "enum",
+      "required": false,
+      "default": "token",
+      "values": ["token", "cookie", "session"]
+    }
+  ],
+  "compatibility": {
+    "specbridge": ">=0.7.0 <1.0.0",
+    "kiroLayout": "1"
+  },
+  "license": "MIT",
+  "examples": [
+    "specbridge template apply authentication --name login-session-refresh --var actor=user --var sessionKind=token"
+  ]
+}

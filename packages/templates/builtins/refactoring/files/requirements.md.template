@@ -1,0 +1,75 @@
+# Requirements Document
+
+## Introduction
+
+**{{title}}**
+
+{{description}}
+
+This spec restructures {{componentName}} while preserving its externally
+observable behavior. Unchanged behavior is treated as a claim to verify
+with tests, not an assumption: even a pure refactor can change performance,
+timing, and error messages.
+
+## Glossary
+
+| Term | Definition |
+| --- | --- |
+| Behavior inventory | <the explicit list of observable behaviors of {{componentName}} that must not change> |
+| Checkpoint | <a point in the incremental plan where the build is releasable and revertible> |
+| <term> | <definition> |
+
+## Requirements
+
+### Requirement 1: <preserved observable behavior>
+
+**User Story:** As a consumer of {{componentName}}, I want its observable behavior verified unchanged after the restructuring, so that nothing built on it breaks.
+
+#### Acceptance Criteria
+
+1. WHEN any input from the behavior inventory is applied after a refactor step, THE SYSTEM SHALL produce the same observable output as the pre-refactor baseline.
+2. IF an inventoried behavior differs after a step, THEN THE SYSTEM SHALL be reverted to the previous checkpoint before any further steps proceed.
+
+### Requirement 2: <incremental steps with safe checkpoints>
+
+**User Story:** As the engineer performing the refactor, I want the restructuring split into steps with a releasable checkpoint after each, so that any step can be shipped or reverted on its own.
+
+#### Acceptance Criteria
+
+1. WHEN a refactor step completes, THE SYSTEM SHALL build cleanly and pass the full regression suite at that checkpoint.
+2. IF a checkpoint fails, THEN THE SYSTEM SHALL be restored to the previous checkpoint using <the rollback mechanism> without loss of data or history.
+
+### Requirement 3: <interface compatibility>
+
+**User Story:** As an external caller of {{componentName}}, I want its public interface contract unchanged, so that no caller has to change because of the refactor.
+
+#### Acceptance Criteria
+
+1. WHEN an external caller invokes {{componentName}} through its public interface, THE SYSTEM SHALL accept the same inputs and honor the same contract as before the refactor.
+2. IF an interface change is unavoidable, THEN THE SYSTEM SHALL provide <an adapter or deprecation path> so existing callers keep working during the transition.
+
+### Requirement 4: <bounded non-functional drift>
+
+**User Story:** As an operator, I want performance and timing drift from the refactor measured against a baseline, so that a "pure" refactor does not quietly degrade the service.
+
+#### Acceptance Criteria
+
+1. WHEN the post-refactor {{componentName}} runs <the benchmark scenarios>, THE SYSTEM SHALL stay within <the agreed budget> of the pre-refactor baseline.
+2. IF measured drift exceeds the budget, THEN THE SYSTEM SHALL be reverted to the last good checkpoint unless the drift is explicitly accepted in this spec.
+
+## Non-Functional Requirements
+
+- Performance: post-refactor performance stays within <budget> of the measured pre-refactor baseline.
+- Security: the refactor introduces no new external surface; validation and permission checks in {{componentName}} keep their current coverage.
+- Reliability: every checkpoint is releasable; a failed step is revertible via <the rollback mechanism>.
+- Observability: existing logs and metrics for {{componentName}} keep their meaning, or renames are documented for dashboards and alerts.
+- Compatibility: external callers and persisted data formats are unaffected, or a documented migration accompanies the change.
+
+## Edge Cases
+
+- Add edge cases here (error-message text that callers or tests match on, timing-sensitive consumers, reflection or serialization that depends on internal names, hidden couplings discovered mid-refactor).
+
+## Out of Scope
+
+- Behavior changes and new features: anything that alters the behavior inventory belongs in its own spec.
+- Add other explicitly excluded work here.

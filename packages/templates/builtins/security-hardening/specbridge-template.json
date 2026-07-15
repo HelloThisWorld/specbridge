@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "security-hardening",
+  "version": "1.0.0",
+  "displayName": "Security Hardening",
+  "description": "A feature spec template for closing a specific security weakness or hardening a trust boundary: threat and assets at risk, abuse cases, required secure behavior, an explicit fail-closed decision, logging without secret leakage, negative tests, and rollout.",
+  "kind": "feature",
+  "supportedModes": ["requirements-first", "design-first", "quick"],
+  "defaultMode": "requirements-first",
+  "tags": ["security", "hardening", "threat-model", "abuse-case", "defense"],
+  "files": [
+    {
+      "source": "files/requirements.md.template",
+      "target": "requirements.md",
+      "stage": "requirements",
+      "required": true
+    },
+    {
+      "source": "files/design.md.template",
+      "target": "design.md",
+      "stage": "design",
+      "required": true
+    },
+    {
+      "source": "files/tasks.md.template",
+      "target": "tasks.md",
+      "stage": "tasks",
+      "required": true
+    }
+  ],
+  "variables": [
+    {
+      "name": "threatArea",
+      "description": "The class of weakness being closed (e.g. \"input validation\", \"deserialization\", \"authentication\").",
+      "type": "string",
+      "required": false,
+      "default": "input validation"
+    },
+    {
+      "name": "assetName",
+      "description": "The primary asset at risk behind the boundary being hardened (e.g. \"customer records\").",
+      "type": "string",
+      "required": false,
+      "default": "the protected data"
+    }
+  ],
+  "compatibility": {
+    "specbridge": ">=0.7.0 <1.0.0",
+    "kiroLayout": "1"
+  },
+  "license": "MIT",
+  "examples": [
+    "specbridge template apply security-hardening --name harden-webhook-deserialization --var threatArea=deserialization"
+  ]
+}

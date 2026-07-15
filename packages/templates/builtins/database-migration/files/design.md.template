@@ -1,0 +1,94 @@
+# Design Document
+
+## Overview
+
+**{{title}}**
+
+{{description}}
+
+This design covers the schema change and backfill for the `{{tableName}}`
+table and the deployment order around them.
+
+## Goals
+
+- Add concrete goals here.
+
+## Non-Goals
+
+- Add explicitly excluded goals here.
+
+## Architecture
+
+Describe how the migration is orchestrated: <migration tooling and version
+tracking>, the phase split (expand, backfill, contract), and <where each
+phase runs — deploy pipeline, job runner, or manual gate>.
+
+## Schema Change
+
+- DDL: <the exact schema statements per phase — additive first, destructive last>.
+- Constraints and defaults: <new constraints, whether they are validated online, and default values for existing rows>.
+- Data types: <type changes and any precision or range implications>.
+
+## Data Migration and Backfill
+
+- Batching: <batch size, ordering key, and pacing between batches>.
+- Checkpointing: <how progress is recorded so an interrupted run resumes>.
+- Idempotency: <why re-running a batch cannot corrupt or double-write rows>.
+- Live writes: <how rows written during the backfill window are covered — dual-write, triggers, or a final sweep>.
+
+## Indexes and Locking
+
+- Index builds: <online or offline build strategy per index, and expected build time>.
+- Lock scope: <which statements take which locks on `{{tableName}}`, and the lock budget>.
+- Timeouts: <lock and statement timeouts so a stuck migration fails instead of blocking traffic>.
+
+## Backward Compatibility
+
+- <How the previous application release keeps working after each phase: additive columns with defaults, tolerant readers, dual-write or dual-read strategy.>
+
+## Affected Components
+
+- Add every code path that reads or writes `{{tableName}}` here, with the change each one needs.
+
+## Rollback Limitations
+
+Not every step of this migration is reversible. Identify each irreversible
+step explicitly and pair it with a mitigation instead of assuming a reverse
+migration exists.
+
+- Reversible steps: <steps with a tested reverse migration>.
+- Irreversible steps: <dropped columns, destructive rewrites, lost precision — and the point of no return in the rollout>.
+- Mitigations: <backups, snapshots, dark-read windows, or a delayed contract phase for each irreversible step>.
+
+## Failure Handling
+
+- Failed schema statement: <what state the database is in and how the run is retried or abandoned>.
+- Failed or stuck backfill batch: <retry policy, skip or dead-letter strategy, and alerting>.
+- Exceeded lock or duration budget: <abort criteria and who decides to resume>.
+
+## Security Considerations
+
+- <Credentials and privileges the migration runs with, audit trail for destructive statements, and where any data copies live and when they are deleted.>
+
+## Observability
+
+- <Progress metrics (batches, rows, duration), log fields per phase, and the dashboards or alerts watched during the run.>
+
+## Testing Strategy
+
+- Migration tests: <apply to an empty database and to a production-like dataset; assert schema and row outcomes>.
+- Interruption tests: <stop the backfill mid-run and verify a clean resume>.
+- Compatibility tests: <run the previous application release against the migrated schema>.
+- Validation queries: <row counts and integrity checks proving the backfill is complete and correct>.
+
+## Rollout
+
+- <Deployment order across schema, backfill, and application releases; stage gates between phases; and when the contract phase is safe to run.>
+
+## Risks and Trade-offs
+
+- Add known risks and accepted trade-offs here.
+
+## Alternatives Considered
+
+- Add rejected alternatives and why they were rejected here.

@@ -45,6 +45,12 @@ jobs:
       - name: CLI smoke test against the example Kiro workspace
         run: node scripts/smoke.mjs
 
+      - name: Built-in template module matches the packs on disk
+        run: pnpm check:builtin-templates
+
+      - name: Template gallery matches the built-in manifests
+        run: pnpm check:template-gallery
+
       - name: GitHub Action bundle is reproducible
         if: matrix.os == 'ubuntu-latest'
         run: git diff --exit-code integrations/github-action/dist

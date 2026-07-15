@@ -1,0 +1,12 @@
+# Implementation Plan
+
+- [ ] 1. Define the command surface for `{{commandName}}`: subcommands, arguments, options, and the documented exit-code set.
+- [ ] 2. Implement argument and option parsing with usage errors written to stderr and a nonzero exit code.
+- [ ] 3. Implement the core command behavior with results on stdout and diagnostics on stderr.
+- [ ] 4. Implement the machine-readable output mode behind a flag (e.g. `--json`) with a stable, documented shape.
+- [ ] 5. Implement non-interactive behavior: no prompts when stdin is not a terminal, with an explicit confirmation flag for destructive actions.
+- [ ] 6. Add exit-code mapping so every failure class exits with its documented code.
+- [ ] 7. Write unit tests for parsing, validation, and exit-code mapping.
+- [ ] 8. Write integration tests that run `{{commandName}}` end to end, including piped stdout and structured output.
+- [ ] 9. Verify behavior on every supported platform and shell, and record any differences.
+- [ ] 10. Document the command: help text, examples for interactive and scripted use, and the exit-code table.

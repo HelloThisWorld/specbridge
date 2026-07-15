@@ -1,6 +1,6 @@
 {
   "name": "@specbridge/evidence",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Git snapshots, trusted verification commands, and append-only task evidence for SpecBridge.",
   "license": "MIT",
   "type": "module",

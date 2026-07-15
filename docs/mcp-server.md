@@ -32,6 +32,11 @@ specbridge mcp manifest [--json]                # identity + capability counts
 specbridge mcp tools    [--json] [--verbose]    # tool/resource/prompt catalog
 ```
 
+v0.7.0 adds five template tools: read-only `template_list`,
+`template_search`, `template_show`, and `template_preview`, plus the
+candidate-hash-bound `template_apply` (acknowledgement-gated, atomic,
+never overwriting). Template install/uninstall/scaffold remain CLI-only.
+
 v0.6.1 adds four read-only runner diagnostic tools (`runner_list`,
 `runner_show`, `runner_doctor`, `runner_matrix`) — thin adapters over the
 same shared runner services the CLI uses; see [mcp-tools.md](mcp-tools.md).

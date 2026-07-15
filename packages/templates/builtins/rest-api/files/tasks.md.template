@@ -1,0 +1,12 @@
+# Implementation Plan
+
+- [ ] 1. Define the request and response contract for <method> `{{basePath}}/<path>`, including error bodies and status codes.
+- [ ] 2. Implement request validation and the machine-readable validation error body.
+- [ ] 3. Implement authentication and per-{{resourceName}} authorization checks.
+- [ ] 4. Implement the endpoint business logic and persistence path.
+- [ ] 5. Implement idempotency behavior for repeated requests.
+- [ ] 6. Implement pagination for list responses, if applicable.
+- [ ] 7. Add contract tests covering every documented status code.
+- [ ] 8. Add integration tests for authentication, authorization, validation, and not-found paths.
+- [ ] 9. Add observability: structured logs, metrics, and trace spans without secret leakage.
+- [ ] 10. Verify backward compatibility with existing consumers and document the rollout and rollback steps.

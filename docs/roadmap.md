@@ -23,6 +23,7 @@ implemented unless marked ✅ and covered by tests.
 | N — Capability-driven runner platform | versioned capability/operation/event/result/error contracts (frozen for v0.6.1 with snapshot tests), runner profiles, config schema v2 + explicit migration (`config doctor/migrate`), deterministic selection, explicit bounded authoring fallback, append-only attempt records, reusable conformance framework, `runner matrix/show/test/conformance/models` | ✅ v0.6.0 |
 | O — Production multi-runner | Codex CLI agent runner (read-only authoring sandbox, workspace-write execution, explicit-session resume, no unrestricted modes) and Ollama authoring runner (loopback-default model API, schema-validated structured output, bounded correction retry, authoring-only by capability); Claude Code runner migrated onto the shared contract unchanged | ✅ v0.6.0 |
 | P — Adapter expansion | Gemini CLI runner (plan-mode/allowlist authoring, capability-gated bounded-edit task execution, explicit-UUID resume, never YOLO), OpenAI-compatible authoring runner (chat-completions + responses, explicit structured-output modes, env-var-name credentials, safe redirects), experimental Antigravity capability adapter (detection only, no PTY/TUI automation), read-only MCP runner diagnostics (`runner_list/show/doctor/matrix`), `/specbridge:runners` plugin skill | ✅ v0.6.1 |
+| Q — Templates | versioned template manifest (schema 1.0.0), restricted one-pass renderer, 10 built-in templates (embedded at build time), project-local packs, deterministic search, `template list/search/show/validate/preview/apply/install/uninstall/scaffold`, `spec new --template`, append-only template records, MCP `template_list/search/show/preview/apply` (hash-bound apply), `/specbridge:templates` skill, generated gallery with CI drift checks | ✅ v0.7.0 (local-only; no remote registry) |
 
 ## Command availability
 
@@ -36,6 +37,7 @@ implemented unless marked ✅ and covered by tests.
 | `/specbridge:doctor·status·new·author·approve·implement·continue·verify` (plugin) | ✅ v0.5 |
 | `runner list/matrix/show/doctor/test/conformance/models`, `config doctor/migrate`, `spec generate/refine/run --runner <profile>`, `--show-runner-plan` | ✅ v0.6.0 — codex/ollama via your local installation; fake providers in CI |
 | `--runner gemini-default / openai-compatible-local`, `runner doctor antigravity`, MCP `runner_list/show/doctor/matrix`, `/specbridge:runners` | ✅ v0.6.1 — gemini/API endpoints via your own installation and accounts; fake providers in CI |
+| `template list/search/show/validate/preview/apply/install/uninstall/scaffold`, `spec new --template`, MCP `template_list/search/show/preview/apply`, `/specbridge:templates` | ✅ v0.7.0 — fully offline and deterministic; local sources only |
 | `spec sync/export` | ❌ registered as "(planned)", exit 2 with an honest message |
 
 ## v0.6.1 (✅ implemented)
@@ -58,9 +60,28 @@ values — every v0.6.0 snapshot test passes unchanged):
 - Claude Code `/specbridge:runners` Skill (MCP-diagnostics-driven,
   read-only).
 
-## v0.7 (planned — not implemented)
+## v0.7.0 (✅ implemented)
 
-- Spec templates and a template registry.
+Templates and template scaffolding — secure, deterministic, offline-first:
+
+- Versioned template manifest (`specbridge-template.json`, schema 1.0.0)
+  and a restricted one-pass `{{variable}}` renderer: no executable code,
+  no expressions, no environment access, no network, no recursion.
+- Ten built-in templates (rest-api, cli-tool, database-migration,
+  authentication, background-job, event-driven-service, bugfix-regression,
+  performance-optimization, security-hardening, refactoring), embedded at
+  build time and validated end to end in CI.
+- Project-local packs under `.specbridge/templates/` with validated,
+  atomic, script-free local installation — no remote registry, no URL or
+  npm installation.
+- `template list/search/show/validate/preview/apply/install/uninstall/
+  scaffold`, `spec new --template`, append-only template records, MCP
+  template tools with candidate-hash-bound apply, the
+  `/specbridge:templates` plugin skill, and a generated gallery
+  (`docs/templates.md`) with CI drift checks.
+
+## v0.7.1 (planned — not implemented)
+
 - A plugin SDK and runner extension SDK distribution.
 - Analyzer and verifier SDKs.
 - An extension registry and community ecosystem documentation and

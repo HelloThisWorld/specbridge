@@ -1,0 +1,92 @@
+# Design Document
+
+## Overview
+
+**{{title}}**
+
+{{description}}
+
+This design covers a {{sessionKind}}-based authentication and authorization
+flow for the primary actor "{{actor}}".
+
+## Goals
+
+- Add concrete goals here.
+
+## Non-Goals
+
+- Add explicitly excluded goals here.
+
+## Architecture
+
+Describe where authentication sits: the <entry points that require it>, the
+<identity store>, the <session store>, and every service that validates the
+{{sessionKind}}.
+
+## Components and Interfaces
+
+- Credential verification: <credential mechanism and where verification runs>.
+- Issuance: <what issues the {{sessionKind}}, its format, and its lifetime>.
+- Validation: <how each protected entry point validates the {{sessionKind}}>.
+- Authorization: <where the permission check runs and what it consults>.
+- Revocation: <the interface that invalidates a {{sessionKind}} before expiry>.
+
+## Credential and Session Flow
+
+Describe the main flow here: credential presentation, verification,
+{{sessionKind}} issuance, validation on subsequent requests, renewal, and
+sign-out.
+
+## Session Lifecycle
+
+- Expiry: <session lifetime and what the {{actor}} experiences at expiry>.
+- Renewal: <sliding or fixed expiry; how a renewal request is authenticated>.
+- Revocation: <triggers, propagation delay, and where revoked state is stored>.
+
+## Authorization Model
+
+- <Roles or permissions consulted, where the boundary is enforced, and the default when no rule matches (deny by default).>
+
+## Replay Protection
+
+- <How a captured {{sessionKind}} or one-time credential is prevented from being reused: one-time use, nonces, channel binding, or short expiry.>
+
+## Rate Limiting and Lockout
+
+- <Limits per account and per network origin, lockout threshold and duration, and the recovery path for a legitimate {{actor}}.>
+
+## Audit Events
+
+- <Events recorded (sign-in success and failure, issuance, revocation, lockout), their fields, and where they are stored.>
+
+## Failure Handling
+
+- Wrong credentials: generic failure response; no account-existence leak; the attempt counts toward lockout.
+- Identity or session store unavailable: <fail closed or degrade; what the {{actor}} sees>.
+- Lockout: <response shape, duration, and recovery path>.
+
+## Security Considerations
+
+- <Credential storage and transport, what deliberately never appears in logs, replay and fixation defenses, and how signing or encryption secrets are rotated.>
+
+## Observability
+
+- <Metrics (sign-in success rate, failure rate, lockouts, revocations), structured log fields, and alert thresholds — without credential material.>
+
+## Testing Strategy
+
+- Security tests: <wrong credentials, lockout, expired and revoked {{sessionKind}} rejection, replay attempts, authorization boundary probes>.
+- Integration tests: <happy-path sign-in, renewal, sign-out, and permission changes>.
+- Regression tests: <existing authenticated flows that must keep passing>.
+
+## Rollout
+
+- <Deployment order, coexistence with existing sessions, kill switch or rollback, and how existing sessions are migrated without a forced sign-out.>
+
+## Risks and Trade-offs
+
+- Add known risks and accepted trade-offs here.
+
+## Alternatives Considered
+
+- Add rejected alternatives and why they were rejected here.

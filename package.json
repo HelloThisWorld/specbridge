@@ -1,6 +1,6 @@
 {
   "name": "specbridge-monorepo",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "private": true,
   "description": "An open, model-agnostic spec runtime for existing Kiro projects.",
   "license": "MIT",
@@ -17,6 +17,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "smoke": "node scripts/smoke.mjs",
+    "generate:builtin-templates": "node scripts/generate-builtin-templates.mjs",
+    "check:builtin-templates": "node scripts/generate-builtin-templates.mjs --check",
+    "generate:template-gallery": "node scripts/generate-template-gallery.mjs",
+    "check:template-gallery": "node scripts/generate-template-gallery.mjs --check",
     "build:plugin": "pnpm build && pnpm --filter specbridge-claude-plugin build",
     "validate:plugin": "node scripts/validate-plugin.mjs",
     "verify:plugin-bundle": "node scripts/verify-plugin-bundle.mjs",

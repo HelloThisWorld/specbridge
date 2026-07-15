@@ -186,9 +186,49 @@ export function planSpecCreation(
       ? requestedTitle
       : titleFromSpecName(request.name);
 
+  const files = renderSpecTemplates(specType, mode, { title, description });
+
+  return planSpecCreationFromFiles(
+    workspace,
+    { name: request.name, specType, mode, title, description, descriptionIsPlaceholder, files },
+    clock,
+  );
+}
+
+/** A fully prepared spec: resolved inputs plus pre-rendered file contents. */
+export interface PreparedSpecFiles {
+  name: string;
+  specType: ConcreteSpecType;
+  mode: ConcreteWorkflowMode;
+  title: string;
+  description: string;
+  descriptionIsPlaceholder: boolean;
+  files: RenderedSpecFile[];
+}
+
+/**
+ * Build a creation plan from pre-rendered files. This is the shared tail of
+ * `planSpecCreation` and the entry point for the template system, which
+ * renders its own files but must go through the exact same name validation,
+ * existing-spec protection, sidecar state creation, and atomic execution.
+ */
+export function planSpecCreationFromFiles(
+  workspace: WorkspaceInfo,
+  prepared: PreparedSpecFiles,
+  clock: Clock = systemClock,
+): SpecCreationPlan {
+  const nameCheck = validateSpecName(prepared.name);
+  if (!nameCheck.valid) {
+    throw new SpecBridgeError(
+      'INVALID_ARGUMENT',
+      `Invalid spec name "${prepared.name}":\n${nameCheck.problems.map((p) => `  - ${p}`).join('\n')}\n` +
+        'Valid examples: notification-preferences, auth-v2, payment-retry.',
+    );
+  }
+
   const dir = assertInsideWorkspace(
     workspace.rootDir,
-    path.join(workspace.rootDir, KIRO_DIR_NAME, KIRO_SPECS_DIR, request.name),
+    path.join(workspace.rootDir, KIRO_DIR_NAME, KIRO_SPECS_DIR, prepared.name),
   );
 
   if (existsSync(dir)) {
@@ -200,27 +240,26 @@ export function planSpecCreation(
     }
     throw new SpecBridgeError(
       'SPEC_ALREADY_EXISTS',
-      `Spec "${request.name}" already exists at ${dir}.\n` +
+      `Spec "${prepared.name}" already exists at ${dir}.\n` +
         (entries.length > 0 ? `Existing files: ${entries.join(', ')}.\n` : '') +
-        `SpecBridge never overwrites an existing spec. Inspect it with "spec show ${request.name}", ` +
+        `SpecBridge never overwrites an existing spec. Inspect it with "spec show ${prepared.name}", ` +
         'or choose a different name.',
     );
   }
 
-  const files = renderSpecTemplates(specType, mode, { title, description });
-  const state = newSpecState(request.name, specType, mode, clock);
+  const state = newSpecState(prepared.name, prepared.specType, prepared.mode, clock);
 
   return {
-    specName: request.name,
-    specType,
-    mode,
-    title,
-    description,
-    descriptionIsPlaceholder,
+    specName: prepared.name,
+    specType: prepared.specType,
+    mode: prepared.mode,
+    title: prepared.title,
+    description: prepared.description,
+    descriptionIsPlaceholder: prepared.descriptionIsPlaceholder,
     dir,
-    files,
+    files: prepared.files,
     state,
-    statePath: specStatePath(workspace, request.name),
+    statePath: specStatePath(workspace, prepared.name),
   };
 }
 

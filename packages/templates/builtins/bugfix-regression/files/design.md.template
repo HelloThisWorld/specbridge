@@ -1,0 +1,35 @@
+# Fix Design
+
+## Root Cause
+
+Document the confirmed root cause here, with the evidence that confirms it.
+If the root cause is still suspected rather than confirmed, say so
+explicitly and list what would confirm it.
+
+## Proposed Fix
+
+Describe the smallest safe fix here. State why a smaller fix is not
+possible.
+
+## Affected Components
+
+- Add affected files and components in {{affectedArea}} here.
+
+## Failure Handling
+
+- Add failure modes introduced or fixed by this change here.
+- <What happens if the fix encounters data written by the buggy behavior.>
+
+## Alternatives Considered
+
+- Add rejected alternatives and why they were rejected here.
+
+## Regression Protection
+
+- Add the regression test that fails before the fix and passes after it here.
+- Add tests pinning the unchanged behavior listed in the bugfix document here.
+
+## Validation Strategy
+
+- Add the checks that prove the fix works here: the reproduction steps from
+  the bugfix document, the regression tests, and any data verification.

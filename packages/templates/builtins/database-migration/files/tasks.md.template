@@ -1,0 +1,12 @@
+# Implementation Plan
+
+- [ ] 1. Define the target schema for `{{tableName}}` and split the migration into expand, backfill, and contract phases.
+- [ ] 2. Write the expand-phase migration script with additive schema changes only.
+- [ ] 3. Implement the backfill as batched, checkpointed, idempotent steps with progress logging.
+- [ ] 4. Add index builds using an online strategy where available, with lock and statement timeouts set.
+- [ ] 5. Implement compatibility in the application (dual-write, tolerant reads, or a feature flag) for the rollout window.
+- [ ] 6. Document every irreversible step with its point of no return and the manual recovery path for each.
+- [ ] 7. Write validation queries that prove row counts and data integrity before and after the backfill.
+- [ ] 8. Measure migration and backfill duration and lock impact on a production-like dataset.
+- [ ] 9. Add automated tests covering an empty database, a populated database, and an interrupted backfill.
+- [ ] 10. Verify the full deployment order in a staging rehearsal, including the rollback path, and record the results.

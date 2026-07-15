@@ -1,0 +1,11 @@
+# Bugfix Implementation Plan
+
+- [ ] 1. Reproduce the bug with the deterministic steps from the bugfix document.
+- [ ] 2. Capture evidence (logs, failing test, source locations) before changing code.
+- [ ] 3. Confirm the root cause and record it in the fix design.
+- [ ] 4. Write a regression test that fails on the current behavior.
+- [ ] 5. Implement the smallest safe fix.
+- [ ] 6. Verify the regression test passes and the reproduction no longer occurs.
+- [ ] 7. Verify the unchanged behavior listed in the bugfix document still holds.
+- [ ] 8. Check for data written by the buggy behavior and repair it if required.
+- [ ] 9. Run the full validation checks and document remaining risks.

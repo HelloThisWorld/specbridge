@@ -1,0 +1,77 @@
+# Requirements Document
+
+## Introduction
+
+**{{title}}**
+
+{{description}}
+
+This spec covers a schema and/or data migration for the `{{tableName}}`
+table, including the backfill and the deployment order that keeps the
+running application working throughout.
+
+## Glossary
+
+| Term | Definition |
+| --- | --- |
+| {{tableName}} | <definition of the table and what a row represents> |
+| Backfill | <definition of the data migration step for existing rows> |
+| <term> | <definition> |
+
+## Requirements
+
+### Requirement 1: <schema change>
+
+**User Story:** As a <service owner>, I want <the schema change>, so that <benefit>.
+
+#### Acceptance Criteria
+
+1. WHEN the migration is applied to <target environment>, THE SYSTEM SHALL produce <the new schema shape> on the `{{tableName}}` table without losing or altering existing rows.
+2. IF the migration is applied a second time, THEN THE SYSTEM SHALL make no further changes and report success (idempotent or guarded by <migration version tracking>).
+3. WHEN the migration runs at <expected production data volume>, THE SYSTEM SHALL hold locks on `{{tableName}}` no longer than <lock budget>.
+
+### Requirement 2: <data migration and backfill>
+
+**User Story:** As a <service owner>, I want existing rows migrated in bounded batches, so that the database stays responsive during the backfill.
+
+#### Acceptance Criteria
+
+1. WHEN the backfill runs, THE SYSTEM SHALL migrate all existing `{{tableName}}` rows in batches of at most <batch size>.
+2. IF the backfill is interrupted, THEN THE SYSTEM SHALL resume from <checkpoint mechanism> without corrupting or double-writing rows.
+3. WHEN the backfill completes, THE SYSTEM SHALL report <a validation count or checksum> showing zero unmigrated rows.
+4. WHEN rows are written during the backfill window, THE SYSTEM SHALL migrate or preserve those writes so none are lost.
+
+### Requirement 3: <backward compatibility and deployment order>
+
+**User Story:** As a <release manager>, I want the previous and the new application release to work against the migrated schema, so that the rollout needs no downtime.
+
+#### Acceptance Criteria
+
+1. WHEN the schema change is deployed before the application change, THE SYSTEM SHALL keep the currently released application version working unchanged.
+2. IF the application is rolled back after the schema change, THEN THE SYSTEM SHALL keep the previous application release functional against the new schema.
+3. WHEN reads and writes occur during the migration window, THE SYSTEM SHALL return consistent results for <the affected queries>.
+
+### Requirement 4: <rollback and irreversibility>
+
+**User Story:** As a <service owner>, I want an honest, documented rollback path, so that a bad migration is contained without guesswork.
+
+#### Acceptance Criteria
+
+1. WHEN a rollback is executed before the backfill starts, THE SYSTEM SHALL restore the previous schema of the `{{tableName}}` table.
+2. IF a rollback is requested after an irreversible step has run (dropped columns, destructive rewrites, lost precision), THEN THE SYSTEM SHALL refuse an automatic reverse migration and report the documented manual recovery path.
+
+## Non-Functional Requirements
+
+- Performance: the migration and backfill complete within <duration budget> at <expected data volume> without exceeding <load budget> on the database.
+- Security: the migration runs with <least-privilege credentials>; production data is never copied outside <approved storage>.
+- Reliability: every step is idempotent or guarded by migration version tracking; an interrupted run leaves the database in a recoverable state.
+- Observability: progress, batch counts, row counts, and errors are emitted to <logs or metrics> throughout the run.
+- Compatibility: the previous and the new application release both operate against the migrated schema for the whole rollout window.
+
+## Edge Cases
+
+- Add edge cases here (rows inserted or updated mid-backfill, null or out-of-range values in existing data, replication lag on read replicas, long-running transactions blocking schema changes, retries after a partial batch failure).
+
+## Out of Scope
+
+- Add explicitly excluded behavior here.

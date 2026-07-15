@@ -1,0 +1,99 @@
+# Design Document
+
+## Overview
+
+**{{title}}**
+
+{{description}}
+
+This design covers the `{{eventName}}` event from producer to consumers,
+with {{deliverySemantics}} delivery and idempotent consumption as the
+default posture.
+
+## Goals
+
+- Add concrete goals here.
+
+## Non-Goals
+
+- Add explicitly excluded goals here.
+
+## Architecture
+
+Describe the event flow end to end: <producing service> publishes
+`{{eventName}}` to <topic, queue, or stream>, and <consuming services>
+subscribe via <subscription mechanism>. Name the kind of channel in use
+(e.g. a log-based stream or a work queue) and where this change sits in it.
+
+## Components and Interfaces
+
+- Producer: <service and code path that emits the event, and the transactional boundary it publishes from>.
+- Consumer(s): <services that subscribe, and the effect each applies>.
+- Channel: <topic, queue, or stream name, and its partitioning or routing scheme>.
+- Dead-letter destination: <where undeliverable events go and who owns them>.
+
+## Event Contract
+
+- Name and version: `{{eventName}}` <version>.
+- Payload schema: <fields, types, required vs. optional, size bounds>.
+- Envelope metadata: <event id, timestamp, correlation identifier, producer identity>.
+- Ordering key: <the key that groups events whose relative order matters, or state that none exists>.
+
+## Delivery Semantics
+
+This design commits to {{deliverySemantics}} delivery. Exactly-once
+delivery is deliberately not claimed — no broker provides it end to end —
+so the consumer side carries the burden:
+
+- At-least-once: duplicates are possible; every consumer effect must be idempotent (see Idempotency).
+- At-most-once: loss is possible; state the business justification for tolerating dropped events.
+- <Record which consequence applies to this change and how consumers are protected from it.>
+
+## Ordering
+
+- <Guarantee within an ordering key, behavior across keys, and what consumers may and may not assume.>
+
+## Idempotency
+
+- <Deduplication strategy: event-id tracking, natural keys, or conditional writes — and the retention window for deduplication state.>
+
+## Retries and Dead-Letter Behavior
+
+- Retry policy: <maximum attempts, backoff, and which failures are retryable vs. terminal>.
+- Dead-letter behavior: <destination, retained metadata, alerting, and the replay or repair procedure>.
+
+## Schema Evolution
+
+- <Compatibility rules for changing the payload: additive-only fields, tolerant readers, or an explicit versioned event — and how existing consumers keep working.>
+
+## Failure Handling
+
+- Broker unavailable at publish time: <outbox, buffer, retry, or fail the originating operation — and what the caller observes>.
+- Consumer crash mid-processing: <redelivery behavior and why the effect stays consistent>.
+- Poison message: <how a repeatedly failing event exits the retry loop without blocking the stream>.
+
+## Security Considerations
+
+- <Publish and subscribe authorization, payload data classification (no secrets in events), and encryption in transit and at rest.>
+
+## Observability
+
+- <Trace propagation from producer to consumer via the correlation identifier; metrics for publish rate, consumer lag, retry count, and dead-letter count; structured logs per event without logging full payloads.>
+
+## Testing Strategy
+
+- Contract tests: <producer output validated against the published schema; consumer tolerance for unknown fields>.
+- Idempotency tests: <the same event delivered twice yields exactly one effect>.
+- Failure tests: <broker outage at publish time, poison-message dead-lettering, redelivery after a consumer crash>.
+
+## Rollout
+
+- <Deployment order for producer and consumers, dual-publish or shadow-consume steps if the contract changes, and how the change is rolled back without stranding in-flight events.>
+
+## Risks and Trade-offs
+
+- Add known risks and accepted trade-offs here.
+
+## Alternatives Considered
+
+- Add rejected alternatives and why they were rejected here.
