@@ -1,0 +1,103 @@
+# Design Document
+
+## Overview
+
+**{{title}}**
+
+{{description}}
+
+This design restructures {{componentName}} while preserving its externally
+observable behavior. That preservation is a claim to be verified, not
+assumed: the plan pins behavior with tests first, then restructures in
+checkpointed steps, and measures what a "pure" refactor can still change —
+performance, timing, and error messages.
+
+## Goals
+
+- Add concrete goals here (the target structure and the maintainability problem it solves).
+
+## Non-Goals
+
+- Behavior changes: anything that alters the behavior inventory is out of scope.
+- Add other explicitly excluded goals here.
+
+## Architecture
+
+Describe the current structure of {{componentName}}, the target structure,
+and the path between them: <current modules and their coupling>, <target
+modules and their responsibilities>, <what moves, what splits, what merges>.
+
+## Motivation
+
+- <the concrete cost of the current structure: change velocity, defect rate, coupling, duplicated logic>.
+- <why now: the upcoming work this refactor makes cheaper or safer>.
+
+## Behavior Inventory
+
+- <observable behavior 1: inputs, outputs, side effects>.
+- <observable behavior 2>.
+- <error behavior: messages, codes, and exception types callers may depend on>.
+- <timing or ordering that consumers may depend on, even if undocumented>.
+
+## Refactor Boundaries
+
+- Inside the boundary: <code that may be freely restructured>.
+- Outside the boundary: <code, interfaces, and data formats that must not change>.
+- <the seams where the boundary is enforced: interfaces, contract tests>.
+
+## Affected Components and Interfaces
+
+- <component or module touched, and how>.
+- Public interface of {{componentName}}: <the contract that stays fixed>.
+- <internal interfaces that change, and their callers>.
+
+## Incremental Plan
+
+- Step 1: <the smallest self-contained restructuring> — checkpoint: <what proves it safe>.
+- Step 2: <the next step> — checkpoint: <what proves it safe>.
+- Rollback point after each step: <how a step is reverted independently>.
+
+## Compatibility
+
+- <external callers: why they are unaffected, or the adapter or deprecation path>.
+- <persisted data, serialized formats, and wire contracts: unchanged, or the migration that accompanies them>.
+
+## Completion Criteria
+
+- <measurable criterion 1: target module layout in place, dependency count reduced to a stated number>.
+- <measurable criterion 2: all characterization tests green, measured drift within budget>.
+- <dead code and temporary seams removed>.
+
+## Failure Handling
+
+- A failed checkpoint reverts to the previous checkpoint via <the rollback mechanism>; steps never stack unverified.
+- <how mid-step discoveries such as hidden couplings are triaged: absorb, defer, or abort>.
+
+## Security Considerations
+
+- <moved validation or permission checks and how their coverage is preserved; confirmation that no new external surface is introduced>.
+
+## Observability
+
+- <logs and metrics that keep their meaning across the refactor; renames documented for dashboards and alerts>.
+- <the baseline measurements taken before the refactor: performance, timing, error output>.
+
+## Testing Strategy
+
+- Characterization tests: <tests written first to pin the behavior inventory, including error messages and edge cases>.
+- Regression suite: <the full suite runs at every checkpoint; what a green run covers>.
+- Non-functional checks: <benchmark scenarios compared against the pre-refactor baseline>.
+
+## Rollout
+
+- <merge strategy: one checkpoint per merge or a staged branch; what ships when>.
+- <monitoring during rollout and the trigger for reverting a checkpoint>.
+
+## Risks and Trade-offs
+
+- Even a pure refactor can change performance, timing, and error messages; the baseline and budget make that drift visible instead of silent.
+- Add other known risks and accepted trade-offs here.
+
+## Alternatives Considered
+
+- Add rejected alternatives here (a rewrite, leaving the structure as-is, a different module split) and why they were rejected.

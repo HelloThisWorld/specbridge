@@ -105,11 +105,14 @@ function sbmcpCodeForSpecBridgeError(code: string): SbmcpCode {
       return 'SBMCP001';
     case 'SPEC_NOT_FOUND':
       return 'SBMCP003';
+    // TEMPLATE_ERROR carries its stable SBT code and remediation in the
+    // message; at the MCP layer template failures are invalid-input.
     case 'SPEC_ALREADY_EXISTS':
     case 'INVALID_ARGUMENT':
     case 'STEERING_NOT_FOUND':
     case 'SPEC_FILE_NOT_FOUND':
     case 'PATH_OUTSIDE_WORKSPACE':
+    case 'TEMPLATE_ERROR':
       return 'SBMCP002';
     case 'INVALID_STATE':
       return 'SBMCP012';

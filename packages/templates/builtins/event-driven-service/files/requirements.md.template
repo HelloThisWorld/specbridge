@@ -1,0 +1,67 @@
+# Requirements Document
+
+## Introduction
+
+**{{title}}**
+
+{{description}}
+
+This spec covers an event-driven change centered on the `{{eventName}}`
+event, with {{deliverySemantics}} delivery between the producer and its
+consumers.
+
+## Glossary
+
+| Term | Definition |
+| --- | --- |
+| {{eventName}} | <definition of the event and the state change it announces> |
+| <term> | <definition> |
+
+## Requirements
+
+### Requirement 1: <event publication>
+
+**User Story:** As a <producing service owner>, I want a `{{eventName}}` event published when <state change occurs>, so that <downstream benefit>.
+
+#### Acceptance Criteria
+
+1. WHEN <the triggering state change> is committed, THE SYSTEM SHALL publish a `{{eventName}}` event containing <required fields> within <time bound>.
+2. WHEN the event is published, THE SYSTEM SHALL include <correlation or trace identifier> so consumers can trace the event back to its cause.
+3. IF the event broker is unavailable, THEN THE SYSTEM SHALL <buffer, retry, or fail the originating operation> without losing the state change or publishing a partial event.
+
+### Requirement 2: <idempotent consumption>
+
+**User Story:** As a <consuming service owner>, I want `{{eventName}}` processing to be idempotent, so that repeated delivery never corrupts state.
+
+#### Acceptance Criteria
+
+1. WHEN a `{{eventName}}` event is received, THE SYSTEM SHALL apply <the intended effect> and acknowledge the event only after the effect is durable.
+2. WHEN the same event is delivered more than once, THE SYSTEM SHALL produce the same observable outcome as a single delivery.
+3. IF an event fails validation against the published schema, THEN THE SYSTEM SHALL route it to <dead-letter destination> with the failure reason instead of blocking the stream.
+4. IF processing fails transiently, THEN THE SYSTEM SHALL retry up to <retry limit> with <backoff strategy> before dead-lettering the event.
+
+### Requirement 3: <ordering and delivery guarantees>
+
+**User Story:** As a <consuming service owner>, I want the ordering and delivery guarantees of `{{eventName}}` stated explicitly, so that consumers are built against the real contract rather than assumptions.
+
+#### Acceptance Criteria
+
+1. WHEN events share <the ordering key>, THE SYSTEM SHALL deliver them to a consumer in publication order.
+2. WHEN events do not share <the ordering key>, THE SYSTEM SHALL make no cross-key ordering guarantee, and consumers SHALL NOT depend on cross-key order.
+3. IF a delivery cannot satisfy the {{deliverySemantics}} guarantee, THEN THE SYSTEM SHALL surface the failure through <alert or metric> rather than silently dropping or duplicating events.
+
+## Non-Functional Requirements
+
+- Performance: <expected end-to-end latency from state change to consumer effect, and peak event throughput>.
+- Security: events carry no secrets or raw credentials; publish and subscribe access is restricted to <authorized principals>.
+- Reliability: delivery is {{deliverySemantics}}; consumers are idempotent; dead-lettered events are retained for <retention period>.
+- Observability: every event carries a correlation identifier; publish, consume, retry, and dead-letter counts are measurable.
+- Compatibility: schema changes to `{{eventName}}` are backward compatible for existing consumers, or a documented versioning step.
+
+## Edge Cases
+
+- Add edge cases here (duplicate delivery bursts, out-of-order arrival across keys, poison messages, consumer restarts mid-batch, broker failover).
+
+## Out of Scope
+
+- Add explicitly excluded behavior here.

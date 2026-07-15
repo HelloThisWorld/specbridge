@@ -1,0 +1,76 @@
+# Requirements Document
+
+## Introduction
+
+**{{title}}**
+
+{{description}}
+
+This spec covers an authentication or authorization change for the primary
+actor "{{actor}}", using a {{sessionKind}}-based mechanism issued after
+successful sign-in.
+
+## Glossary
+
+| Term | Definition |
+| --- | --- |
+| {{sessionKind}} | <definition of the issued credential artifact and its lifetime> |
+| <term> | <definition> |
+
+## Requirements
+
+### Requirement 1: <credential verification and sign-in>
+
+**User Story:** As a {{actor}}, I want <to prove my identity via a credential mechanism>, so that <I can reach protected functionality>.
+
+#### Acceptance Criteria
+
+1. WHEN valid credentials are presented via <credential mechanism>, THE SYSTEM SHALL issue a {{sessionKind}} scoped to the authenticated {{actor}} and record a sign-in success audit event.
+2. IF the presented credentials are wrong, THEN THE SYSTEM SHALL reject the attempt with a generic failure response that does not reveal whether the account exists.
+3. WHEN <lockout threshold> consecutive failed attempts occur for one account, THE SYSTEM SHALL lock further attempts for <lockout duration> and record a lockout audit event.
+4. IF sign-in attempts from one <rate limit scope> exceed <rate limit>, THEN THE SYSTEM SHALL reject further attempts until the window resets.
+
+### Requirement 2: <expiry revocation and replay protection>
+
+**User Story:** As a {{actor}}, I want my {{sessionKind}} to stop working when it should, so that a stolen or stale credential cannot be reused.
+
+#### Acceptance Criteria
+
+1. WHEN a {{sessionKind}} older than <session lifetime> is presented, THE SYSTEM SHALL reject it and require re-authentication.
+2. WHEN a {{sessionKind}} is revoked by <revocation trigger>, THE SYSTEM SHALL reject it within <revocation propagation delay> even though its expiry has not passed.
+3. IF a one-time credential or renewal artifact is presented a second time, THEN THE SYSTEM SHALL reject the replay and record an audit event.
+
+### Requirement 3: <authorization boundaries>
+
+**User Story:** As a {{actor}}, I want my access limited to what my permissions allow, so that protected operations stay protected.
+
+#### Acceptance Criteria
+
+1. WHEN an authenticated {{actor}} requests an operation inside their authorization boundary, THE SYSTEM SHALL allow the operation.
+2. IF an authenticated {{actor}} requests an operation outside their authorization boundary, THEN THE SYSTEM SHALL deny it with <denial response> without revealing protected details.
+3. WHEN the permissions of a {{actor}} change, THE SYSTEM SHALL enforce the new boundary on subsequent requests within <propagation delay>.
+
+### Requirement 4: <audit trail of authentication events>
+
+**User Story:** As a <security reviewer>, I want authentication events recorded, so that incidents can be investigated after the fact.
+
+#### Acceptance Criteria
+
+1. WHEN a sign-in succeeds or fails, a {{sessionKind}} is issued or revoked, or a lockout starts, THE SYSTEM SHALL record an audit event containing <audit event fields> and never the credential itself.
+2. IF the audit destination is unavailable, THEN THE SYSTEM SHALL <fail closed or buffer events per the audit policy> instead of silently dropping events.
+
+## Non-Functional Requirements
+
+- Performance: <latency budget for credential verification and per-request {{sessionKind}} validation>.
+- Security: credentials are verified via <credential mechanism>; credential material never appears in logs; every authentication endpoint is rate limited.
+- Reliability: <behavior when the identity store or session store is unavailable>.
+- Observability: sign-in outcomes, lockouts, and revocations emit <metrics and structured log fields> without credential material.
+- Compatibility: existing authenticated sessions <survive or are migrated>; no {{actor}} is silently signed out without <notice policy>.
+
+## Edge Cases
+
+- Add edge cases here (clock skew between issuing and validating services, concurrent sign-ins for one account, revocation racing an in-flight request, expiry during a long-running operation).
+
+## Out of Scope
+
+- Add explicitly excluded behavior here (account registration, credential recovery, or federation changes, if unchanged).

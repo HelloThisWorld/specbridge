@@ -1,0 +1,94 @@
+# Design Document
+
+## Overview
+
+**{{title}}**
+
+{{description}}
+
+This design targets {{targetMetric}} under {{workload}}, moving it from a
+measured numeric baseline to a numeric target with one documented
+measurement method.
+
+## Goals
+
+- Add concrete goals here (each one a number: metric, baseline, target).
+
+## Non-Goals
+
+- Add explicitly excluded goals here (metrics deliberately allowed to stay flat).
+
+## Architecture
+
+Describe the system under optimization and where the change sits: <the
+request or data path involved>, <the layer being changed>, and the parts
+that stay untouched.
+
+## Baseline Measurement
+
+- Baseline: {{targetMetric}} = <baseline value with unit>, measured on <date and build>.
+- Evidence: <reference to the raw measurement output>.
+
+## Target
+
+- Target: {{targetMetric}} = <target value with unit> (<percentage> improvement over baseline).
+- Justification: <why this number — a service-level objective, a user-facing threshold, or a cost goal>.
+
+## Measurement Method
+
+- Tool and procedure: <profiler, benchmark harness, or load generator, and the exact invocation>.
+- Environment: <hardware, configuration, and data set — identical for before and after runs>.
+- Runs and statistics: <run count, warm-up policy, and the statistic reported (median, p95, mean)>.
+
+## Workload Definition
+
+- <What {{workload}} consists of: request mix, data volume, concurrency, and duration — precise enough for someone else to reproduce.>
+
+## Bottleneck Evidence
+
+- <Profile, trace, or measurement showing where the time or resource actually goes — the optimization must attack an evidenced bottleneck, not a guessed one.>
+
+## Proposed Optimization
+
+Describe the change itself here: <algorithmic change, caching, batching,
+query change, or concurrency change> and why it attacks the evidenced
+bottleneck.
+
+## Affected Components
+
+- <Modules, services, or code paths modified, and the blast radius of each.>
+
+## Constraints
+
+- <Hard limits the optimization must respect: memory budget, API compatibility, consistency requirements, cost ceiling.>
+
+## Failure Handling
+
+- Degradation: <what the optimized path does when its assumptions break (cold cache, stale precomputation, resource exhaustion)>.
+- Kill switch: <flag or configuration that reverts to the baseline path at runtime, if applicable>.
+
+## Security Considerations
+
+- <New caches, shared state, or precomputed data that could expose or retain sensitive information, and how that is prevented.>
+
+## Observability
+
+- <How {{targetMetric}} is measured continuously in production, the dashboard or alert that watches it, and the numeric regression threshold that pages someone.>
+
+## Testing Strategy
+
+- Correctness tests: <existing suite plus tests proving the optimized and baseline paths produce identical results>.
+- Before/after validation: <the measurement method run against the baseline and optimized builds, with both results recorded in this spec>.
+- Regression tests: <secondary metrics (error rate, memory, cost) checked against their numeric budgets>.
+
+## Rollout
+
+- <Staged rollout with the metric watched at each step, the numeric rollback trigger, and the rollback procedure.>
+
+## Risks and Trade-offs
+
+- Add known risks and accepted trade-offs here (regression risks, added complexity, memory-for-time trades).
+
+## Alternatives Considered
+
+- Add rejected alternatives and why they were rejected here (including doing nothing, with its measured cost).

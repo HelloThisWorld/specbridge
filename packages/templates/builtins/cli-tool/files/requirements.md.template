@@ -1,0 +1,75 @@
+# Requirements Document
+
+## Introduction
+
+**{{title}}**
+
+{{description}}
+
+This spec covers a command-line change to `{{commandName}}` used by the
+primary actor "{{actor}}", in interactive terminals and in scripts.
+
+## Glossary
+
+| Term | Definition |
+| --- | --- |
+| {{commandName}} | <definition of the command> |
+| <term> | <definition> |
+
+## Requirements
+
+### Requirement 1: <command purpose and arguments>
+
+**User Story:** As a {{actor}}, I want <capability via the command>, so that <benefit>.
+
+#### Acceptance Criteria
+
+1. WHEN `{{commandName}} <subcommand>` is invoked with valid arguments, THE SYSTEM SHALL <expected behavior> and exit with code 0.
+2. WHEN a required argument is missing, THE SYSTEM SHALL print a usage message naming the argument to stderr and exit with a nonzero code.
+3. IF an unknown option or a malformed value is supplied, THEN THE SYSTEM SHALL reject the invocation with an error on stderr naming the option and exit with a nonzero code.
+4. WHEN the command succeeds, THE SYSTEM SHALL write results to stdout only and keep diagnostics on stderr.
+
+### Requirement 2: <machine-readable output>
+
+**User Story:** As a {{actor}}, I want structured output behind a flag, so that scripts consume results without parsing prose.
+
+#### Acceptance Criteria
+
+1. WHEN the structured output flag (e.g. `--json`) is supplied, THE SYSTEM SHALL emit <output format> to stdout with a stable, documented shape.
+2. IF an error occurs while structured output is requested, THEN THE SYSTEM SHALL emit a machine-readable error with <error fields> and exit with a nonzero code.
+3. WHEN structured output is requested, THE SYSTEM SHALL keep human-oriented messages and progress output off stdout.
+
+### Requirement 3: <non-interactive and scripted use>
+
+**User Story:** As a {{actor}}, I want `{{commandName}}` to run unattended, so that CI jobs and scripts never hang on a prompt.
+
+#### Acceptance Criteria
+
+1. WHEN stdin is not a terminal, THE SYSTEM SHALL run without prompting and SHALL fail with a nonzero exit code when required input is missing.
+2. IF a destructive action normally asks for confirmation, THEN THE SYSTEM SHALL require <an explicit confirmation flag> in non-interactive runs instead of prompting.
+3. WHEN stdout is piped to another process, THE SYSTEM SHALL disable <interactive-only formatting such as color and progress bars>.
+
+### Requirement 4: <exit codes and error reporting>
+
+**User Story:** As a {{actor}}, I want documented exit codes, so that scripts branch on failure classes reliably.
+
+#### Acceptance Criteria
+
+1. WHEN the command completes, THE SYSTEM SHALL exit with a code from the documented set: 0 for success and <distinct nonzero codes per failure class>.
+2. IF an internal error occurs, THEN THE SYSTEM SHALL print a diagnostic message to stderr without a stack trace by default and exit with <the internal-error code>.
+
+## Non-Functional Requirements
+
+- Performance: <startup and completion time budget for a typical invocation>.
+- Security: arguments and environment input are validated before use; secrets never appear in stdout, stderr, or help examples.
+- Reliability: <behavior on interruption (Ctrl-C) and on partial failure — what state is left behind>.
+- Observability: <verbose or debug flag> writes diagnostics to stderr; normal runs stay quiet.
+- Compatibility: behavior is consistent across <supported operating systems and shells>; documented output shapes stay stable for existing scripts.
+
+## Edge Cases
+
+- Add edge cases here (broken pipe on stdout, very large input or output, non-UTF-8 arguments, missing locale, conflicting options, concurrent invocations sharing state).
+
+## Out of Scope
+
+- Add explicitly excluded behavior here.

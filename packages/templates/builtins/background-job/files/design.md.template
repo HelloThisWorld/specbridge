@@ -1,0 +1,87 @@
+# Design Document
+
+## Overview
+
+**{{title}}**
+
+{{description}}
+
+This design covers the asynchronous background job "{{jobName}}" from
+trigger to completion.
+
+## Goals
+
+- Add concrete goals here.
+
+## Non-Goals
+
+- Add explicitly excluded goals here.
+
+## Architecture
+
+Describe where {{jobName}} sits: the <trigger source>, the
+<queue or scheduler>, the <worker runtime>, and the downstream systems the
+job reads and writes.
+
+## Components and Interfaces
+
+- Trigger: <event, schedule, or manual action that produces work>.
+- Work item contract: <payload schema, size limits, and versioning>.
+- Worker: <where executions run and their concurrency limits>.
+- Status surface: <how the state of an execution is observed or queried>.
+- Dead-letter destination: <where exhausted work items land and how they are reprocessed>.
+
+## Trigger and Scheduling
+
+Describe how work is produced here: <schedule or event source>, batching,
+ordering guarantees, and the concurrency policy when triggers overlap.
+
+## Execution Model
+
+- <Unit of work, transaction boundaries, and what is persisted before, during, and after an execution.>
+
+## Idempotency and Duplicate Delivery
+
+- <How a redelivered or duplicated work item is made safe: idempotency keys, natural keys, or a transactional inbox.>
+
+## Retries and Dead Letters
+
+- <Retry limit, backoff strategy, and which errors count as retryable.>
+- <When a work item is routed to the dead-letter destination, and how dead-lettered items are inspected, alerted on, and reprocessed.>
+
+## Timeout and Cancellation
+
+- <Per-attempt timeout, how a stuck execution is stopped, and the cancellation path with its consistency guarantees.>
+
+## Failure Handling
+
+- Retryable failure: <classification, backoff, and attempt accounting>.
+- Non-retryable failure: routed to the dead-letter destination with the failure reason; no further retries.
+- Crash mid-execution: <how partially completed work is detected and made safe on redelivery>.
+- Downstream dependency unavailable: <pause or circuit behavior and queue growth bounds>.
+
+## Security Considerations
+
+- <Worker identity and least privilege, payload protection in transit and at rest, and what deliberately never appears in logs.>
+
+## Observability
+
+- <Metrics (executions, failures, retries, dead letters, duration, queue depth), structured log fields with attempt number, and trace propagation from trigger to execution.>
+
+## Testing Strategy
+
+- Unit tests: <execution logic, including idempotency under duplicate delivery>.
+- Integration tests: <trigger to completion, retry after failure, timeout, cancellation, and dead-letter routing>.
+- Regression tests: <existing consumers of the job output that must keep passing>.
+
+## Rollout
+
+- <Deployment order for producer and worker, draining or pausing the queue during deploy, feature flag or shadow run, and rollback without losing queued work.>
+
+## Risks and Trade-offs
+
+- Add known risks and accepted trade-offs here.
+
+## Alternatives Considered
+
+- Add rejected alternatives and why they were rejected here.

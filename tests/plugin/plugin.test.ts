@@ -42,7 +42,7 @@ describe('plugin structure', () => {
   it('plugin.json validates with real repository metadata', () => {
     const manifest = readJson('integrations/claude-code-plugin/specbridge/.claude-plugin/plugin.json');
     expect(manifest['name']).toBe('specbridge');
-    expect(manifest['version']).toBe('0.6.1');
+    expect(manifest['version']).toBe('0.7.0');
     expect(manifest['license']).toBe('MIT');
     expect((manifest['author'] as { name: string }).name).toBe('HelloThisWorld');
     expect(manifest['repository']).toBe('https://github.com/HelloThisWorld/specbridge');
@@ -55,7 +55,7 @@ describe('plugin structure', () => {
     const plugins = marketplace['plugins'] as { name: string; source: string; version: string }[];
     const entry = plugins.find((plugin) => plugin.name === 'specbridge');
     expect(entry).toBeDefined();
-    expect(entry?.version).toBe('0.6.1');
+    expect(entry?.version).toBe('0.7.0');
     // The relative source resolves to the plugin root.
     expect(path.resolve(repoRoot, entry?.source as string)).toBe(pluginRoot);
   });
@@ -78,9 +78,20 @@ describe('plugin structure', () => {
     expect(existsSync(path.join(pluginRoot, 'skills'))).toBe(true);
   });
 
-  it('all nine namespaced skills exist with unique names and valid frontmatter', () => {
+  it('all ten namespaced skills exist with unique names and valid frontmatter', () => {
     const dirs = readdirSync(skillsDir).sort();
-    expect(dirs).toEqual(['approve', 'author', 'continue', 'doctor', 'implement', 'new', 'runners', 'status', 'verify']);
+    expect(dirs).toEqual([
+      'approve',
+      'author',
+      'continue',
+      'doctor',
+      'implement',
+      'new',
+      'runners',
+      'status',
+      'templates',
+      'verify',
+    ]);
     const names = new Set<string>();
     for (const dir of dirs) {
       const markdown = skillMarkdown(dir);
@@ -97,9 +108,29 @@ describe('plugin structure', () => {
   it('the approve skill disables model invocation; no other skill grants tools', () => {
     const approve = frontmatterOf(skillMarkdown('approve'));
     expect(approve).toContain('disable-model-invocation: true');
-    for (const dir of ['author', 'continue', 'doctor', 'implement', 'new', 'runners', 'status', 'verify']) {
+    for (const dir of ['author', 'continue', 'doctor', 'implement', 'new', 'runners', 'status', 'templates', 'verify']) {
       expect(frontmatterOf(skillMarkdown(dir))).not.toContain('allowed-tools');
     }
+  });
+
+  it('the templates skill previews before applying and never installs or edits directly', () => {
+    const templates = skillMarkdown('templates');
+    // Driven by the MCP template tools, preview-first with hash binding.
+    for (const tool of ['template_list', 'template_search', 'template_show', 'template_preview', 'template_apply']) {
+      expect(templates).toContain(tool);
+    }
+    expect(templates).toContain('candidateHash');
+    expect(templates).toContain('apply-reviewed-template');
+    expect(templates.toLowerCase().replace(/\s+/g, ' ')).toContain('stop until they answer');
+    // No unrestricted Bash, no direct .kiro/.specbridge edits, no install/
+    // uninstall/scaffold via the skill, no remote registry claims.
+    expect(templates.toLowerCase()).not.toContain('bash(');
+    expect(templates).toContain('Never edit\n`.kiro` or `.specbridge` yourself');
+    expect(templates).toContain('CLI-only');
+    expect(templates.toLowerCase()).not.toContain('registry.com');
+    expect(templates.toLowerCase()).toContain('no remote registry');
+    const frontmatter = frontmatterOf(templates);
+    expect(frontmatter).not.toContain('allowed-tools');
   });
 
   it('the runners skill uses only the MCP diagnostic tools and starts no provider', () => {
@@ -232,6 +263,6 @@ describe('bundle safety', () => {
       [path.join(repoRoot, 'scripts', 'verify-plugin-bundle.mjs')],
       { cwd: repoRoot, encoding: 'utf8' },
     );
-    expect(output).toContain('all 8 checks passed');
+    expect(output).toContain('all 11 checks passed');
   }, 300_000);
 });

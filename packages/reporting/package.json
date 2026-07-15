@@ -1,6 +1,6 @@
 {
   "name": "@specbridge/reporting",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Terminal, JSON, and self-contained HTML report rendering for SpecBridge.",
   "license": "MIT",
   "type": "module",

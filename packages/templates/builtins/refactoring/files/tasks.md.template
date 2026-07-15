@@ -1,0 +1,12 @@
+# Implementation Plan
+
+- [ ] 1. Define the behavior inventory for {{componentName}}: every externally observable behavior that must not change.
+- [ ] 2. Write characterization tests that pin the inventoried behavior, including error messages and edge cases, before any restructuring begins.
+- [ ] 3. Measure the pre-refactor baseline for performance, timing, and error output.
+- [ ] 4. Define the incremental steps, with a releasable checkpoint and a rollback point after each step.
+- [ ] 5. Implement the first restructuring step and run the full regression suite at its checkpoint.
+- [ ] 6. Implement the remaining steps one checkpoint at a time, keeping the build releasable after each.
+- [ ] 7. Verify interface compatibility for all external callers of {{componentName}}.
+- [ ] 8. Measure post-refactor performance and timing against the baseline and record any drift.
+- [ ] 9. Remove dead code and temporary seams left behind by the restructuring.
+- [ ] 10. Verify the measurable completion criteria from the design document and record any accepted deviations.

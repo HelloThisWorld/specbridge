@@ -106,17 +106,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path18) {
-      const ctrl = callVisitor(key, node, visitor, path18);
+    function visit_(key, node, visitor, path19) {
+      const ctrl = callVisitor(key, node, visitor, path19);
       if (identity3.isNode(ctrl) || identity3.isPair(ctrl)) {
-        replaceNode(key, path18, ctrl);
-        return visit_(key, ctrl, visitor, path18);
+        replaceNode(key, path19, ctrl);
+        return visit_(key, ctrl, visitor, path19);
       }
       if (typeof ctrl !== "symbol") {
         if (identity3.isCollection(node)) {
-          path18 = Object.freeze(path18.concat(node));
+          path19 = Object.freeze(path19.concat(node));
           for (let i2 = 0; i2 < node.items.length; ++i2) {
-            const ci = visit_(i2, node.items[i2], visitor, path18);
+            const ci = visit_(i2, node.items[i2], visitor, path19);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -127,13 +127,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity3.isPair(node)) {
-          path18 = Object.freeze(path18.concat(node));
-          const ck = visit_("key", node.key, visitor, path18);
+          path19 = Object.freeze(path19.concat(node));
+          const ck = visit_("key", node.key, visitor, path19);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path18);
+          const cv = visit_("value", node.value, visitor, path19);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -154,17 +154,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path18) {
-      const ctrl = await callVisitor(key, node, visitor, path18);
+    async function visitAsync_(key, node, visitor, path19) {
+      const ctrl = await callVisitor(key, node, visitor, path19);
       if (identity3.isNode(ctrl) || identity3.isPair(ctrl)) {
-        replaceNode(key, path18, ctrl);
-        return visitAsync_(key, ctrl, visitor, path18);
+        replaceNode(key, path19, ctrl);
+        return visitAsync_(key, ctrl, visitor, path19);
       }
       if (typeof ctrl !== "symbol") {
         if (identity3.isCollection(node)) {
-          path18 = Object.freeze(path18.concat(node));
+          path19 = Object.freeze(path19.concat(node));
           for (let i2 = 0; i2 < node.items.length; ++i2) {
-            const ci = await visitAsync_(i2, node.items[i2], visitor, path18);
+            const ci = await visitAsync_(i2, node.items[i2], visitor, path19);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -175,13 +175,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity3.isPair(node)) {
-          path18 = Object.freeze(path18.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path18);
+          path19 = Object.freeze(path19.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path19);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path18);
+          const cv = await visitAsync_("value", node.value, visitor, path19);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -208,23 +208,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path18) {
+    function callVisitor(key, node, visitor, path19) {
       if (typeof visitor === "function")
-        return visitor(key, node, path18);
+        return visitor(key, node, path19);
       if (identity3.isMap(node))
-        return visitor.Map?.(key, node, path18);
+        return visitor.Map?.(key, node, path19);
       if (identity3.isSeq(node))
-        return visitor.Seq?.(key, node, path18);
+        return visitor.Seq?.(key, node, path19);
       if (identity3.isPair(node))
-        return visitor.Pair?.(key, node, path18);
+        return visitor.Pair?.(key, node, path19);
       if (identity3.isScalar(node))
-        return visitor.Scalar?.(key, node, path18);
+        return visitor.Scalar?.(key, node, path19);
       if (identity3.isAlias(node))
-        return visitor.Alias?.(key, node, path18);
+        return visitor.Alias?.(key, node, path19);
       return void 0;
     }
-    function replaceNode(key, path18, node) {
-      const parent = path18[path18.length - 1];
+    function replaceNode(key, path19, node) {
+      const parent = path19[path19.length - 1];
       if (identity3.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity3.isPair(parent)) {
@@ -834,10 +834,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity3 = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path18, value) {
+    function collectionFromPath(schema, path19, value) {
       let v = value;
-      for (let i2 = path18.length - 1; i2 >= 0; --i2) {
-        const k = path18[i2];
+      for (let i2 = path19.length - 1; i2 >= 0; --i2) {
+        const k = path19[i2];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a2 = [];
           a2[k] = v;
@@ -856,7 +856,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path18) => path18 == null || typeof path18 === "object" && !!path18[Symbol.iterator]().next().done;
+    var isEmptyPath = (path19) => path19 == null || typeof path19 === "object" && !!path19[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -886,11 +886,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path18, value) {
-        if (isEmptyPath(path18))
+      addIn(path19, value) {
+        if (isEmptyPath(path19))
           this.add(value);
         else {
-          const [key, ...rest] = path18;
+          const [key, ...rest] = path19;
           const node = this.get(key, true);
           if (identity3.isCollection(node))
             node.addIn(rest, value);
@@ -904,8 +904,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path18) {
-        const [key, ...rest] = path18;
+      deleteIn(path19) {
+        const [key, ...rest] = path19;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -919,8 +919,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path18, keepScalar) {
-        const [key, ...rest] = path18;
+      getIn(path19, keepScalar) {
+        const [key, ...rest] = path19;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity3.isScalar(node) ? node.value : node;
@@ -938,8 +938,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path18) {
-        const [key, ...rest] = path18;
+      hasIn(path19) {
+        const [key, ...rest] = path19;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -949,8 +949,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path18, value) {
-        const [key, ...rest] = path18;
+      setIn(path19, value) {
+        const [key, ...rest] = path19;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -1672,12 +1672,12 @@ var require_log = __commonJS({
       if (logLevel === "debug")
         console.log(...messages);
     }
-    function warn(logLevel, warning) {
+    function warn(logLevel, warning2) {
       if (logLevel === "debug" || logLevel === "warn") {
         if (typeof node_process.emitWarning === "function")
-          node_process.emitWarning(warning);
+          node_process.emitWarning(warning2);
         else
-          console.warn(warning);
+          console.warn(warning2);
       }
     }
     exports2.debug = debug;
@@ -3465,9 +3465,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path18, value) {
+      addIn(path19, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path18, value);
+          this.contents.addIn(path19, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -3542,14 +3542,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path18) {
-        if (Collection.isEmptyPath(path18)) {
+      deleteIn(path19) {
+        if (Collection.isEmptyPath(path19)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path18) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path19) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -3564,10 +3564,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path18, keepScalar) {
-        if (Collection.isEmptyPath(path18))
+      getIn(path19, keepScalar) {
+        if (Collection.isEmptyPath(path19))
           return !keepScalar && identity3.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity3.isCollection(this.contents) ? this.contents.getIn(path18, keepScalar) : void 0;
+        return identity3.isCollection(this.contents) ? this.contents.getIn(path19, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -3578,10 +3578,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path18) {
-        if (Collection.isEmptyPath(path18))
+      hasIn(path19) {
+        if (Collection.isEmptyPath(path19))
           return this.contents !== void 0;
-        return identity3.isCollection(this.contents) ? this.contents.hasIn(path18) : false;
+        return identity3.isCollection(this.contents) ? this.contents.hasIn(path19) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -3598,13 +3598,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path18, value) {
-        if (Collection.isEmptyPath(path18)) {
+      setIn(path19, value) {
+        if (Collection.isEmptyPath(path19)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path18), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path19), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path18, value);
+          this.contents.setIn(path19, value);
         }
       }
       /**
@@ -5146,9 +5146,9 @@ var require_composer = __commonJS({
         this.prelude = [];
         this.errors = [];
         this.warnings = [];
-        this.onError = (source, code, message, warning) => {
+        this.onError = (source, code, message, warning2) => {
           const pos = getErrorPos(source);
-          if (warning)
+          if (warning2)
             this.warnings.push(new errors.YAMLWarning(pos, code, message));
           else
             this.errors.push(new errors.YAMLParseError(pos, code, message));
@@ -5221,10 +5221,10 @@ ${cb}` : comment;
           console.dir(token, { depth: null });
         switch (token.type) {
           case "directive":
-            this.directives.add(token.source, (offset, message, warning) => {
+            this.directives.add(token.source, (offset, message, warning2) => {
               const pos = getErrorPos(token);
               pos[0] += offset;
-              this.onError(pos, "BAD_DIRECTIVE", message, warning);
+              this.onError(pos, "BAD_DIRECTIVE", message, warning2);
             });
             this.prelude.push(token.source);
             this.atDirectives = true;
@@ -5564,9 +5564,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path18) => {
+    visit.itemAtPath = (cst, path19) => {
       let item = cst;
-      for (const [field, index] of path18) {
+      for (const [field, index] of path19) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -5575,23 +5575,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path18) => {
-      const parent = visit.itemAtPath(cst, path18.slice(0, -1));
-      const field = path18[path18.length - 1][0];
+    visit.parentCollection = (cst, path19) => {
+      const parent = visit.itemAtPath(cst, path19.slice(0, -1));
+      const field = path19[path19.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path18, item, visitor) {
-      let ctrl = visitor(item, path18);
+    function _visit(path19, item, visitor) {
+      let ctrl = visitor(item, path19);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i2 = 0; i2 < token.items.length; ++i2) {
-            const ci = _visit(Object.freeze(path18.concat([[field, i2]])), token.items[i2], visitor);
+            const ci = _visit(Object.freeze(path19.concat([[field, i2]])), token.items[i2], visitor);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -5602,10 +5602,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path18);
+            ctrl = ctrl(item, path19);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path18) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path19) : ctrl;
     }
     exports2.visit = visit;
   }
@@ -7266,7 +7266,7 @@ var require_public_api = __commonJS({
       const doc = parseDocument(src, options);
       if (!doc)
         return null;
-      doc.warnings.forEach((warning) => log.warn(doc.options.logLevel, warning));
+      doc.warnings.forEach((warning2) => log.warn(doc.options.logLevel, warning2));
       if (doc.errors.length > 0) {
         if (doc.options.logLevel !== "silent")
           throw doc.errors[0];
@@ -10552,8 +10552,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path18) {
-      let input = path18;
+    function removeDotSegments(path19) {
+      let input = path19;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -10805,8 +10805,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path18, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path18 && path18 !== "/" ? path18 : void 0;
+        const [path19, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path19 && path19 !== "/" ? path19 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -14219,7 +14219,7 @@ var require_windows = __commonJS({
     module2.exports = isexe;
     isexe.sync = sync;
     var fs = require("fs");
-    function checkPathExt(path18, options) {
+    function checkPathExt(path19, options) {
       var pathext = options.pathExt !== void 0 ? options.pathExt : process.env.PATHEXT;
       if (!pathext) {
         return true;
@@ -14230,25 +14230,25 @@ var require_windows = __commonJS({
       }
       for (var i2 = 0; i2 < pathext.length; i2++) {
         var p = pathext[i2].toLowerCase();
-        if (p && path18.substr(-p.length).toLowerCase() === p) {
+        if (p && path19.substr(-p.length).toLowerCase() === p) {
           return true;
         }
       }
       return false;
     }
-    function checkStat(stat, path18, options) {
+    function checkStat(stat, path19, options) {
       if (!stat.isSymbolicLink() && !stat.isFile()) {
         return false;
       }
-      return checkPathExt(path18, options);
+      return checkPathExt(path19, options);
     }
-    function isexe(path18, options, cb) {
-      fs.stat(path18, function(er, stat) {
-        cb(er, er ? false : checkStat(stat, path18, options));
+    function isexe(path19, options, cb) {
+      fs.stat(path19, function(er, stat) {
+        cb(er, er ? false : checkStat(stat, path19, options));
       });
     }
-    function sync(path18, options) {
-      return checkStat(fs.statSync(path18), path18, options);
+    function sync(path19, options) {
+      return checkStat(fs.statSync(path19), path19, options);
     }
   }
 });
@@ -14260,13 +14260,13 @@ var require_mode = __commonJS({
     module2.exports = isexe;
     isexe.sync = sync;
     var fs = require("fs");
-    function isexe(path18, options, cb) {
-      fs.stat(path18, function(er, stat) {
+    function isexe(path19, options, cb) {
+      fs.stat(path19, function(er, stat) {
         cb(er, er ? false : checkStat(stat, options));
       });
     }
-    function sync(path18, options) {
-      return checkStat(fs.statSync(path18), options);
+    function sync(path19, options) {
+      return checkStat(fs.statSync(path19), options);
     }
     function checkStat(stat, options) {
       return stat.isFile() && checkMode(stat, options);
@@ -14300,7 +14300,7 @@ var require_isexe = __commonJS({
     }
     module2.exports = isexe;
     isexe.sync = sync;
-    function isexe(path18, options, cb) {
+    function isexe(path19, options, cb) {
       if (typeof options === "function") {
         cb = options;
         options = {};
@@ -14310,7 +14310,7 @@ var require_isexe = __commonJS({
           throw new TypeError("callback not provided");
         }
         return new Promise(function(resolve, reject) {
-          isexe(path18, options || {}, function(er, is) {
+          isexe(path19, options || {}, function(er, is) {
             if (er) {
               reject(er);
             } else {
@@ -14319,7 +14319,7 @@ var require_isexe = __commonJS({
           });
         });
       }
-      core(path18, options || {}, function(er, is) {
+      core(path19, options || {}, function(er, is) {
         if (er) {
           if (er.code === "EACCES" || options && options.ignoreErrors) {
             er = null;
@@ -14329,9 +14329,9 @@ var require_isexe = __commonJS({
         cb(er, is);
       });
     }
-    function sync(path18, options) {
+    function sync(path19, options) {
       try {
-        return core.sync(path18, options || {});
+        return core.sync(path19, options || {});
       } catch (er) {
         if (options && options.ignoreErrors || er.code === "EACCES") {
           return false;
@@ -14348,7 +14348,7 @@ var require_which = __commonJS({
   "../../node_modules/.pnpm/which@2.0.2/node_modules/which/which.js"(exports2, module2) {
     "use strict";
     var isWindows = process.platform === "win32" || process.env.OSTYPE === "cygwin" || process.env.OSTYPE === "msys";
-    var path18 = require("path");
+    var path19 = require("path");
     var COLON = isWindows ? ";" : ":";
     var isexe = require_isexe();
     var getNotFoundError = (cmd) => Object.assign(new Error(`not found: ${cmd}`), { code: "ENOENT" });
@@ -14386,7 +14386,7 @@ var require_which = __commonJS({
           return opt.all && found.length ? resolve(found) : reject(getNotFoundError(cmd));
         const ppRaw = pathEnv[i2];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path18.join(pathPart, cmd);
+        const pCmd = path19.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         resolve(subStep(p, i2, 0));
       });
@@ -14413,7 +14413,7 @@ var require_which = __commonJS({
       for (let i2 = 0; i2 < pathEnv.length; i2++) {
         const ppRaw = pathEnv[i2];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path18.join(pathPart, cmd);
+        const pCmd = path19.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         for (let j = 0; j < pathExt.length; j++) {
           const cur = p + pathExt[j];
@@ -14461,7 +14461,7 @@ var require_path_key = __commonJS({
 var require_resolveCommand = __commonJS({
   "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js"(exports2, module2) {
     "use strict";
-    var path18 = require("path");
+    var path19 = require("path");
     var which = require_which();
     var getPathKey = require_path_key();
     function resolveCommandAttempt(parsed, withoutPathExt) {
@@ -14479,7 +14479,7 @@ var require_resolveCommand = __commonJS({
       try {
         resolved = which.sync(parsed.command, {
           path: env[getPathKey({ env })],
-          pathExt: withoutPathExt ? path18.delimiter : void 0
+          pathExt: withoutPathExt ? path19.delimiter : void 0
         });
       } catch (e) {
       } finally {
@@ -14488,7 +14488,7 @@ var require_resolveCommand = __commonJS({
         }
       }
       if (resolved) {
-        resolved = path18.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
+        resolved = path19.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
       }
       return resolved;
     }
@@ -14542,8 +14542,8 @@ var require_shebang_command = __commonJS({
       if (!match) {
         return null;
       }
-      const [path18, argument] = match[0].replace(/#! ?/, "").split(" ");
-      const binary = path18.split("/").pop();
+      const [path19, argument] = match[0].replace(/#! ?/, "").split(" ");
+      const binary = path19.split("/").pop();
       if (binary === "env") {
         return argument;
       }
@@ -14578,7 +14578,7 @@ var require_readShebang = __commonJS({
 var require_parse = __commonJS({
   "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js"(exports2, module2) {
     "use strict";
-    var path18 = require("path");
+    var path19 = require("path");
     var resolveCommand = require_resolveCommand();
     var escape2 = require_escape();
     var readShebang = require_readShebang();
@@ -14603,7 +14603,7 @@ var require_parse = __commonJS({
       const needsShell = !isExecutableRegExp.test(commandFile);
       if (parsed.options.forceShell || needsShell) {
         const needsDoubleEscapeMetaChars = isCmdShimRegExp.test(commandFile);
-        parsed.command = path18.normalize(parsed.command);
+        parsed.command = path19.normalize(parsed.command);
         parsed.command = escape2.command(parsed.command);
         parsed.args = parsed.args.map((arg) => escape2.argument(arg, needsDoubleEscapeMetaChars));
         const shellCommand = [parsed.command].concat(parsed.args).join(" ");
@@ -14968,8 +14968,8 @@ var require_utils2 = __commonJS({
       }
       return output;
     };
-    exports2.basename = (path18, { windows } = {}) => {
-      const segs = path18.split(windows ? /[\\/]/ : "/");
+    exports2.basename = (path19, { windows } = {}) => {
+      const segs = path19.split(windows ? /[\\/]/ : "/");
       const last = segs[segs.length - 1];
       if (last === "") {
         return segs[segs.length - 2];
@@ -16714,10 +16714,10 @@ function assignProp(target, prop, value) {
     configurable: true
   });
 }
-function getElementAtPath(obj, path18) {
-  if (!path18)
+function getElementAtPath(obj, path19) {
+  if (!path19)
     return obj;
-  return path18.reduce((acc, key) => acc?.[key], obj);
+  return path19.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -17037,11 +17037,11 @@ function aborted(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path18, issues) {
+function prefixIssues(path19, issues) {
   return issues.map((iss) => {
     var _a;
     (_a = iss).path ?? (_a.path = []);
-    iss.path.unshift(path18);
+    iss.path.unshift(path19);
     return iss;
   });
 }
@@ -17124,7 +17124,7 @@ var initializer = (inst, def) => {
 };
 var $ZodError = $constructor("$ZodError", initializer);
 var $ZodRealError = $constructor("$ZodError", initializer, { Parent: Error });
-function flattenError(error2, mapper = (issue2) => issue2.message) {
+function flattenError(error2, mapper = (issue3) => issue3.message) {
   const fieldErrors = {};
   const formErrors = [];
   for (const sub of error2.issues) {
@@ -17138,31 +17138,31 @@ function flattenError(error2, mapper = (issue2) => issue2.message) {
   return { formErrors, fieldErrors };
 }
 function formatError(error2, _mapper) {
-  const mapper = _mapper || function(issue2) {
-    return issue2.message;
+  const mapper = _mapper || function(issue3) {
+    return issue3.message;
   };
   const fieldErrors = { _errors: [] };
   const processError = (error3) => {
-    for (const issue2 of error3.issues) {
-      if (issue2.code === "invalid_union" && issue2.errors.length) {
-        issue2.errors.map((issues) => processError({ issues }));
-      } else if (issue2.code === "invalid_key") {
-        processError({ issues: issue2.issues });
-      } else if (issue2.code === "invalid_element") {
-        processError({ issues: issue2.issues });
-      } else if (issue2.path.length === 0) {
-        fieldErrors._errors.push(mapper(issue2));
+    for (const issue3 of error3.issues) {
+      if (issue3.code === "invalid_union" && issue3.errors.length) {
+        issue3.errors.map((issues) => processError({ issues }));
+      } else if (issue3.code === "invalid_key") {
+        processError({ issues: issue3.issues });
+      } else if (issue3.code === "invalid_element") {
+        processError({ issues: issue3.issues });
+      } else if (issue3.path.length === 0) {
+        fieldErrors._errors.push(mapper(issue3));
       } else {
         let curr = fieldErrors;
         let i2 = 0;
-        while (i2 < issue2.path.length) {
-          const el = issue2.path[i2];
-          const terminal = i2 === issue2.path.length - 1;
+        while (i2 < issue3.path.length) {
+          const el = issue3.path[i2];
+          const terminal = i2 === issue3.path.length - 1;
           if (!terminal) {
             curr[el] = curr[el] || { _errors: [] };
           } else {
             curr[el] = curr[el] || { _errors: [] };
-            curr[el]._errors.push(mapper(issue2));
+            curr[el]._errors.push(mapper(issue3));
           }
           curr = curr[el];
           i2++;
@@ -19011,31 +19011,31 @@ var error = () => {
     jwt: "JWT",
     template_literal: "input"
   };
-  return (issue2) => {
-    switch (issue2.code) {
+  return (issue3) => {
+    switch (issue3.code) {
       case "invalid_type":
-        return `Invalid input: expected ${issue2.expected}, received ${parsedType(issue2.input)}`;
+        return `Invalid input: expected ${issue3.expected}, received ${parsedType(issue3.input)}`;
       case "invalid_value":
-        if (issue2.values.length === 1)
-          return `Invalid input: expected ${stringifyPrimitive(issue2.values[0])}`;
-        return `Invalid option: expected one of ${joinValues(issue2.values, "|")}`;
+        if (issue3.values.length === 1)
+          return `Invalid input: expected ${stringifyPrimitive(issue3.values[0])}`;
+        return `Invalid option: expected one of ${joinValues(issue3.values, "|")}`;
       case "too_big": {
-        const adj = issue2.inclusive ? "<=" : "<";
-        const sizing = getSizing(issue2.origin);
+        const adj = issue3.inclusive ? "<=" : "<";
+        const sizing = getSizing(issue3.origin);
         if (sizing)
-          return `Too big: expected ${issue2.origin ?? "value"} to have ${adj}${issue2.maximum.toString()} ${sizing.unit ?? "elements"}`;
-        return `Too big: expected ${issue2.origin ?? "value"} to be ${adj}${issue2.maximum.toString()}`;
+          return `Too big: expected ${issue3.origin ?? "value"} to have ${adj}${issue3.maximum.toString()} ${sizing.unit ?? "elements"}`;
+        return `Too big: expected ${issue3.origin ?? "value"} to be ${adj}${issue3.maximum.toString()}`;
       }
       case "too_small": {
-        const adj = issue2.inclusive ? ">=" : ">";
-        const sizing = getSizing(issue2.origin);
+        const adj = issue3.inclusive ? ">=" : ">";
+        const sizing = getSizing(issue3.origin);
         if (sizing) {
-          return `Too small: expected ${issue2.origin} to have ${adj}${issue2.minimum.toString()} ${sizing.unit}`;
+          return `Too small: expected ${issue3.origin} to have ${adj}${issue3.minimum.toString()} ${sizing.unit}`;
         }
-        return `Too small: expected ${issue2.origin} to be ${adj}${issue2.minimum.toString()}`;
+        return `Too small: expected ${issue3.origin} to be ${adj}${issue3.minimum.toString()}`;
       }
       case "invalid_format": {
-        const _issue = issue2;
+        const _issue = issue3;
         if (_issue.format === "starts_with") {
           return `Invalid string: must start with "${_issue.prefix}"`;
         }
@@ -19045,18 +19045,18 @@ var error = () => {
           return `Invalid string: must include "${_issue.includes}"`;
         if (_issue.format === "regex")
           return `Invalid string: must match pattern ${_issue.pattern}`;
-        return `Invalid ${Nouns[_issue.format] ?? issue2.format}`;
+        return `Invalid ${Nouns[_issue.format] ?? issue3.format}`;
       }
       case "not_multiple_of":
-        return `Invalid number: must be a multiple of ${issue2.divisor}`;
+        return `Invalid number: must be a multiple of ${issue3.divisor}`;
       case "unrecognized_keys":
-        return `Unrecognized key${issue2.keys.length > 1 ? "s" : ""}: ${joinValues(issue2.keys, ", ")}`;
+        return `Unrecognized key${issue3.keys.length > 1 ? "s" : ""}: ${joinValues(issue3.keys, ", ")}`;
       case "invalid_key":
-        return `Invalid key in ${issue2.origin}`;
+        return `Invalid key in ${issue3.origin}`;
       case "invalid_union":
         return "Invalid input";
       case "invalid_element":
-        return `Invalid value in ${issue2.origin}`;
+        return `Invalid value in ${issue3.origin}`;
       default:
         return `Invalid input`;
     }
@@ -20377,7 +20377,7 @@ var initializer2 = (inst, issues) => {
       // enumerable: false,
     },
     addIssue: {
-      value: (issue2) => inst.issues.push(issue2)
+      value: (issue3) => inst.issues.push(issue3)
       // enumerable: false,
     },
     addIssues: {
@@ -20841,11 +20841,11 @@ var ZodTransform = /* @__PURE__ */ $constructor("ZodTransform", (inst, def) => {
   $ZodTransform.init(inst, def);
   ZodType.init(inst, def);
   inst._zod.parse = (payload, _ctx) => {
-    payload.addIssue = (issue2) => {
-      if (typeof issue2 === "string") {
-        payload.issues.push(util_exports.issue(issue2, payload.value, def));
+    payload.addIssue = (issue3) => {
+      if (typeof issue3 === "string") {
+        payload.issues.push(util_exports.issue(issue3, payload.value, def));
       } else {
-        const _issue = issue2;
+        const _issue = issue3;
         if (_issue.fatal)
           _issue.continue = false;
         _issue.code ?? (_issue.code = "custom");
@@ -20992,11 +20992,11 @@ function refine(fn, _params = {}) {
 }
 function superRefine(fn) {
   const ch = check((payload) => {
-    payload.addIssue = (issue2) => {
-      if (typeof issue2 === "string") {
-        payload.issues.push(util_exports.issue(issue2, payload.value, ch._zod.def));
+    payload.addIssue = (issue3) => {
+      if (typeof issue3 === "string") {
+        payload.issues.push(util_exports.issue(issue3, payload.value, ch._zod.def));
       } else {
-        const _issue = issue2;
+        const _issue = issue3;
         if (_issue.fatal)
           _issue.continue = false;
         _issue.code ?? (_issue.code = "custom");
@@ -22943,31 +22943,31 @@ var ZodError2 = class _ZodError extends Error {
     this.issues = issues;
   }
   format(_mapper) {
-    const mapper = _mapper || function(issue2) {
-      return issue2.message;
+    const mapper = _mapper || function(issue3) {
+      return issue3.message;
     };
     const fieldErrors = { _errors: [] };
     const processError = (error2) => {
-      for (const issue2 of error2.issues) {
-        if (issue2.code === "invalid_union") {
-          issue2.unionErrors.map(processError);
-        } else if (issue2.code === "invalid_return_type") {
-          processError(issue2.returnTypeError);
-        } else if (issue2.code === "invalid_arguments") {
-          processError(issue2.argumentsError);
-        } else if (issue2.path.length === 0) {
-          fieldErrors._errors.push(mapper(issue2));
+      for (const issue3 of error2.issues) {
+        if (issue3.code === "invalid_union") {
+          issue3.unionErrors.map(processError);
+        } else if (issue3.code === "invalid_return_type") {
+          processError(issue3.returnTypeError);
+        } else if (issue3.code === "invalid_arguments") {
+          processError(issue3.argumentsError);
+        } else if (issue3.path.length === 0) {
+          fieldErrors._errors.push(mapper(issue3));
         } else {
           let curr = fieldErrors;
           let i2 = 0;
-          while (i2 < issue2.path.length) {
-            const el = issue2.path[i2];
-            const terminal = i2 === issue2.path.length - 1;
+          while (i2 < issue3.path.length) {
+            const el = issue3.path[i2];
+            const terminal = i2 === issue3.path.length - 1;
             if (!terminal) {
               curr[el] = curr[el] || { _errors: [] };
             } else {
               curr[el] = curr[el] || { _errors: [] };
-              curr[el]._errors.push(mapper(issue2));
+              curr[el]._errors.push(mapper(issue3));
             }
             curr = curr[el];
             i2++;
@@ -22992,7 +22992,7 @@ var ZodError2 = class _ZodError extends Error {
   get isEmpty() {
     return this.issues.length === 0;
   }
-  flatten(mapper = (issue2) => issue2.message) {
+  flatten(mapper = (issue3) => issue3.message) {
     const fieldErrors = {};
     const formErrors = [];
     for (const sub of this.issues) {
@@ -23016,30 +23016,30 @@ ZodError2.create = (issues) => {
 };
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/locales/en.js
-var errorMap = (issue2, _ctx) => {
+var errorMap = (issue3, _ctx) => {
   let message;
-  switch (issue2.code) {
+  switch (issue3.code) {
     case ZodIssueCode.invalid_type:
-      if (issue2.received === ZodParsedType.undefined) {
+      if (issue3.received === ZodParsedType.undefined) {
         message = "Required";
       } else {
-        message = `Expected ${issue2.expected}, received ${issue2.received}`;
+        message = `Expected ${issue3.expected}, received ${issue3.received}`;
       }
       break;
     case ZodIssueCode.invalid_literal:
-      message = `Invalid literal value, expected ${JSON.stringify(issue2.expected, util.jsonStringifyReplacer)}`;
+      message = `Invalid literal value, expected ${JSON.stringify(issue3.expected, util.jsonStringifyReplacer)}`;
       break;
     case ZodIssueCode.unrecognized_keys:
-      message = `Unrecognized key(s) in object: ${util.joinValues(issue2.keys, ", ")}`;
+      message = `Unrecognized key(s) in object: ${util.joinValues(issue3.keys, ", ")}`;
       break;
     case ZodIssueCode.invalid_union:
       message = `Invalid input`;
       break;
     case ZodIssueCode.invalid_union_discriminator:
-      message = `Invalid discriminator value. Expected ${util.joinValues(issue2.options)}`;
+      message = `Invalid discriminator value. Expected ${util.joinValues(issue3.options)}`;
       break;
     case ZodIssueCode.invalid_enum_value:
-      message = `Invalid enum value. Expected ${util.joinValues(issue2.options)}, received '${issue2.received}'`;
+      message = `Invalid enum value. Expected ${util.joinValues(issue3.options)}, received '${issue3.received}'`;
       break;
     case ZodIssueCode.invalid_arguments:
       message = `Invalid function arguments`;
@@ -23051,50 +23051,50 @@ var errorMap = (issue2, _ctx) => {
       message = `Invalid date`;
       break;
     case ZodIssueCode.invalid_string:
-      if (typeof issue2.validation === "object") {
-        if ("includes" in issue2.validation) {
-          message = `Invalid input: must include "${issue2.validation.includes}"`;
-          if (typeof issue2.validation.position === "number") {
-            message = `${message} at one or more positions greater than or equal to ${issue2.validation.position}`;
+      if (typeof issue3.validation === "object") {
+        if ("includes" in issue3.validation) {
+          message = `Invalid input: must include "${issue3.validation.includes}"`;
+          if (typeof issue3.validation.position === "number") {
+            message = `${message} at one or more positions greater than or equal to ${issue3.validation.position}`;
           }
-        } else if ("startsWith" in issue2.validation) {
-          message = `Invalid input: must start with "${issue2.validation.startsWith}"`;
-        } else if ("endsWith" in issue2.validation) {
-          message = `Invalid input: must end with "${issue2.validation.endsWith}"`;
+        } else if ("startsWith" in issue3.validation) {
+          message = `Invalid input: must start with "${issue3.validation.startsWith}"`;
+        } else if ("endsWith" in issue3.validation) {
+          message = `Invalid input: must end with "${issue3.validation.endsWith}"`;
         } else {
-          util.assertNever(issue2.validation);
+          util.assertNever(issue3.validation);
         }
-      } else if (issue2.validation !== "regex") {
-        message = `Invalid ${issue2.validation}`;
+      } else if (issue3.validation !== "regex") {
+        message = `Invalid ${issue3.validation}`;
       } else {
         message = "Invalid";
       }
       break;
     case ZodIssueCode.too_small:
-      if (issue2.type === "array")
-        message = `Array must contain ${issue2.exact ? "exactly" : issue2.inclusive ? `at least` : `more than`} ${issue2.minimum} element(s)`;
-      else if (issue2.type === "string")
-        message = `String must contain ${issue2.exact ? "exactly" : issue2.inclusive ? `at least` : `over`} ${issue2.minimum} character(s)`;
-      else if (issue2.type === "number")
-        message = `Number must be ${issue2.exact ? `exactly equal to ` : issue2.inclusive ? `greater than or equal to ` : `greater than `}${issue2.minimum}`;
-      else if (issue2.type === "bigint")
-        message = `Number must be ${issue2.exact ? `exactly equal to ` : issue2.inclusive ? `greater than or equal to ` : `greater than `}${issue2.minimum}`;
-      else if (issue2.type === "date")
-        message = `Date must be ${issue2.exact ? `exactly equal to ` : issue2.inclusive ? `greater than or equal to ` : `greater than `}${new Date(Number(issue2.minimum))}`;
+      if (issue3.type === "array")
+        message = `Array must contain ${issue3.exact ? "exactly" : issue3.inclusive ? `at least` : `more than`} ${issue3.minimum} element(s)`;
+      else if (issue3.type === "string")
+        message = `String must contain ${issue3.exact ? "exactly" : issue3.inclusive ? `at least` : `over`} ${issue3.minimum} character(s)`;
+      else if (issue3.type === "number")
+        message = `Number must be ${issue3.exact ? `exactly equal to ` : issue3.inclusive ? `greater than or equal to ` : `greater than `}${issue3.minimum}`;
+      else if (issue3.type === "bigint")
+        message = `Number must be ${issue3.exact ? `exactly equal to ` : issue3.inclusive ? `greater than or equal to ` : `greater than `}${issue3.minimum}`;
+      else if (issue3.type === "date")
+        message = `Date must be ${issue3.exact ? `exactly equal to ` : issue3.inclusive ? `greater than or equal to ` : `greater than `}${new Date(Number(issue3.minimum))}`;
       else
         message = "Invalid input";
       break;
     case ZodIssueCode.too_big:
-      if (issue2.type === "array")
-        message = `Array must contain ${issue2.exact ? `exactly` : issue2.inclusive ? `at most` : `less than`} ${issue2.maximum} element(s)`;
-      else if (issue2.type === "string")
-        message = `String must contain ${issue2.exact ? `exactly` : issue2.inclusive ? `at most` : `under`} ${issue2.maximum} character(s)`;
-      else if (issue2.type === "number")
-        message = `Number must be ${issue2.exact ? `exactly` : issue2.inclusive ? `less than or equal to` : `less than`} ${issue2.maximum}`;
-      else if (issue2.type === "bigint")
-        message = `BigInt must be ${issue2.exact ? `exactly` : issue2.inclusive ? `less than or equal to` : `less than`} ${issue2.maximum}`;
-      else if (issue2.type === "date")
-        message = `Date must be ${issue2.exact ? `exactly` : issue2.inclusive ? `smaller than or equal to` : `smaller than`} ${new Date(Number(issue2.maximum))}`;
+      if (issue3.type === "array")
+        message = `Array must contain ${issue3.exact ? `exactly` : issue3.inclusive ? `at most` : `less than`} ${issue3.maximum} element(s)`;
+      else if (issue3.type === "string")
+        message = `String must contain ${issue3.exact ? `exactly` : issue3.inclusive ? `at most` : `under`} ${issue3.maximum} character(s)`;
+      else if (issue3.type === "number")
+        message = `Number must be ${issue3.exact ? `exactly` : issue3.inclusive ? `less than or equal to` : `less than`} ${issue3.maximum}`;
+      else if (issue3.type === "bigint")
+        message = `BigInt must be ${issue3.exact ? `exactly` : issue3.inclusive ? `less than or equal to` : `less than`} ${issue3.maximum}`;
+      else if (issue3.type === "date")
+        message = `Date must be ${issue3.exact ? `exactly` : issue3.inclusive ? `smaller than or equal to` : `smaller than`} ${new Date(Number(issue3.maximum))}`;
       else
         message = "Invalid input";
       break;
@@ -23105,14 +23105,14 @@ var errorMap = (issue2, _ctx) => {
       message = `Intersection results could not be merged`;
       break;
     case ZodIssueCode.not_multiple_of:
-      message = `Number must be a multiple of ${issue2.multipleOf}`;
+      message = `Number must be a multiple of ${issue3.multipleOf}`;
       break;
     case ZodIssueCode.not_finite:
       message = "Number must be finite";
       break;
     default:
       message = _ctx.defaultError;
-      util.assertNever(issue2);
+      util.assertNever(issue3);
   }
   return { message };
 };
@@ -23129,8 +23129,8 @@ function getErrorMap() {
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path18, errorMaps, issueData } = params;
-  const fullPath = [...path18, ...issueData.path || []];
+  const { data, path: path19, errorMaps, issueData } = params;
+  const fullPath = [...path19, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -23156,7 +23156,7 @@ var makeIssue = (params) => {
 var EMPTY_PATH = [];
 function addIssueToContext(ctx, issueData) {
   const overrideMap = getErrorMap();
-  const issue2 = makeIssue({
+  const issue3 = makeIssue({
     issueData,
     data: ctx.data,
     path: ctx.path,
@@ -23171,7 +23171,7 @@ function addIssueToContext(ctx, issueData) {
       // then global default map
     ].filter((x) => !!x)
   });
-  ctx.common.issues.push(issue2);
+  ctx.common.issues.push(issue3);
 }
 var ParseStatus = class _ParseStatus {
   constructor() {
@@ -23246,11 +23246,11 @@ var errorUtil;
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path18, key) {
+  constructor(parent, value, path19, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path18;
+    this._path = path19;
     this._key = key;
   }
   get path() {
@@ -25129,9 +25129,9 @@ var ZodObject2 = class _ZodObject extends ZodType2 {
       ...this._def,
       unknownKeys: "strict",
       ...message !== void 0 ? {
-        errorMap: (issue2, ctx) => {
-          const defaultError = this._def.errorMap?.(issue2, ctx).message ?? ctx.defaultError;
-          if (issue2.code === "unrecognized_keys")
+        errorMap: (issue3, ctx) => {
+          const defaultError = this._def.errorMap?.(issue3, ctx).message ?? ctx.defaultError;
+          if (issue3.code === "unrecognized_keys")
             return {
               message: errorUtil.errToObj(message).message ?? defaultError
             };
@@ -27198,7 +27198,7 @@ function parseReport(raw, schema) {
   }
   const result = schema.safeParse(parsed);
   if (!result.success) {
-    const issues = result.error.issues.map((issue2) => `${issue2.path.join(".") || "(root)"}: ${issue2.message}`).join("; ");
+    const issues = result.error.issues.map((issue3) => `${issue3.path.join(".") || "(root)"}: ${issue3.message}`).join("; ");
     return { ok: false, reason: `runner output does not match the report schema: ${issues}` };
   }
   return { ok: true, report: result.data };
@@ -27987,7 +27987,7 @@ function fileSchemaVersion(parsed) {
   return typeof version2 === "string" ? version2 : void 0;
 }
 function zodIssueSummary(error2) {
-  return error2.issues.map((issue2) => `${issue2.path.join(".") || "(root)"}: ${issue2.message}`).join("; ");
+  return error2.issues.map((issue3) => `${issue3.path.join(".") || "(root)"}: ${issue3.message}`).join("; ");
 }
 function readAgentConfig(workspace) {
   const configPath = import_path4.default.join(workspace.sidecarDir, "config.json");
@@ -29690,11 +29690,14 @@ function sbmcpCodeForSpecBridgeError(code) {
       return "SBMCP001";
     case "SPEC_NOT_FOUND":
       return "SBMCP003";
+    // TEMPLATE_ERROR carries its stable SBT code and remediation in the
+    // message; at the MCP layer template failures are invalid-input.
     case "SPEC_ALREADY_EXISTS":
     case "INVALID_ARGUMENT":
     case "STEERING_NOT_FOUND":
     case "SPEC_FILE_NOT_FOUND":
     case "PATH_OUTSIDE_WORKSPACE":
+    case "TEMPLATE_ERROR":
       return "SBMCP002";
     case "INVALID_STATE":
       return "SBMCP012";
@@ -33297,8 +33300,8 @@ function validateToolName(name) {
 function issueToolNameWarning(name, warnings) {
   if (warnings.length > 0) {
     console.warn(`Tool name validation warning for "${name}":`);
-    for (const warning of warnings) {
-      console.warn(`  - ${warning}`);
+    for (const warning2 of warnings) {
+      console.warn(`  - ${warning2}`);
     }
     console.warn("Tool registration will proceed, but this may cause compatibility issues.");
     console.warn("Consider updating the tool name to conform to the MCP tool naming standard.");
@@ -33880,13 +33883,13 @@ var McpServer = class {
     }
     return registeredPrompt;
   }
-  _createRegisteredTool(name, title, description, inputSchema20, outputSchema26, annotations, execution, _meta, handler) {
+  _createRegisteredTool(name, title, description, inputSchema25, outputSchema31, annotations, execution, _meta, handler) {
     validateAndWarnToolName(name);
     const registeredTool = {
       title,
       description,
-      inputSchema: getZodSchemaObject(inputSchema20),
-      outputSchema: getZodSchemaObject(outputSchema26),
+      inputSchema: getZodSchemaObject(inputSchema25),
+      outputSchema: getZodSchemaObject(outputSchema31),
       annotations,
       execution,
       _meta,
@@ -33936,8 +33939,8 @@ var McpServer = class {
       throw new Error(`Tool ${name} is already registered`);
     }
     let description;
-    let inputSchema20;
-    let outputSchema26;
+    let inputSchema25;
+    let outputSchema31;
     let annotations;
     if (typeof rest[0] === "string") {
       description = rest.shift();
@@ -33945,7 +33948,7 @@ var McpServer = class {
     if (rest.length > 1) {
       const firstArg = rest[0];
       if (isZodRawShapeCompat(firstArg)) {
-        inputSchema20 = rest.shift();
+        inputSchema25 = rest.shift();
         if (rest.length > 1 && typeof rest[0] === "object" && rest[0] !== null && !isZodRawShapeCompat(rest[0])) {
           annotations = rest.shift();
         }
@@ -33957,7 +33960,7 @@ var McpServer = class {
       }
     }
     const callback = rest[0];
-    return this._createRegisteredTool(name, void 0, description, inputSchema20, outputSchema26, annotations, { taskSupport: "forbidden" }, void 0, callback);
+    return this._createRegisteredTool(name, void 0, description, inputSchema25, outputSchema31, annotations, { taskSupport: "forbidden" }, void 0, callback);
   }
   /**
    * Registers a tool with a config object and callback.
@@ -33966,8 +33969,8 @@ var McpServer = class {
     if (this._registeredTools[name]) {
       throw new Error(`Tool ${name} is already registered`);
     }
-    const { title, description, inputSchema: inputSchema20, outputSchema: outputSchema26, annotations, _meta } = config2;
-    return this._createRegisteredTool(name, title, description, inputSchema20, outputSchema26, annotations, { taskSupport: "forbidden" }, _meta, cb);
+    const { title, description, inputSchema: inputSchema25, outputSchema: outputSchema31, annotations, _meta } = config2;
+    return this._createRegisteredTool(name, title, description, inputSchema25, outputSchema31, annotations, { taskSupport: "forbidden" }, _meta, cb);
   }
   prompt(name, ...rest) {
     if (this._registeredPrompts[name]) {
@@ -38689,13 +38692,13 @@ var logOutputSync = ({ serializedResult, fdNumber, state, verboseInfo, encoding,
   }
 };
 var writeToFiles = (serializedResult, stdioItems, outputFiles) => {
-  for (const { path: path18, append } of stdioItems.filter(({ type }) => FILE_TYPES.has(type))) {
-    const pathString = typeof path18 === "string" ? path18 : path18.toString();
+  for (const { path: path19, append } of stdioItems.filter(({ type }) => FILE_TYPES.has(type))) {
+    const pathString = typeof path19 === "string" ? path19 : path19.toString();
     if (append || outputFiles.has(pathString)) {
-      (0, import_node_fs5.appendFileSync)(path18, serializedResult);
+      (0, import_node_fs5.appendFileSync)(path19, serializedResult);
     } else {
       outputFiles.add(pathString);
-      (0, import_node_fs5.writeFileSync)(path18, serializedResult);
+      (0, import_node_fs5.writeFileSync)(path19, serializedResult);
     }
   }
 };
@@ -42455,7 +42458,7 @@ var ClaudeCodeRunner = class {
       const validated = schema.safeParse(parsed.structuredResult);
       if (validated.success) report = validated.data;
       else {
-        parseProblem = `structured result does not match the report schema: ${validated.error.issues.map((issue2) => `${issue2.path.join(".") || "(root)"}: ${issue2.message}`).join("; ")}`;
+        parseProblem = `structured result does not match the report schema: ${validated.error.issues.map((issue3) => `${issue3.path.join(".") || "(root)"}: ${issue3.message}`).join("; ")}`;
       }
     } else if (parsed.reportText !== void 0) {
       const result = reportKind === "stage" ? parseStageRunnerReport(parsed.reportText) : parseTaskRunnerReport(parsed.reportText);
@@ -43593,7 +43596,7 @@ var CodexCliRunner = class {
       return {
         ...base,
         outcome: "malformed-output",
-        failureReason: `structured result does not match the report schema: ${validated.error.issues.map((issue2) => `${issue2.path.join(".") || "(root)"}: ${issue2.message}`).join("; ")}`,
+        failureReason: `structured result does not match the report schema: ${validated.error.issues.map((issue3) => `${issue3.path.join(".") || "(root)"}: ${issue3.message}`).join("; ")}`,
         error: runnerError({
           code: "structured_output_invalid",
           message: "The final Codex message did not match the required report schema."
@@ -44676,7 +44679,7 @@ Your previous response was not a valid structured result. Validation problems: $
     const schema = reportKind === "stage" ? stageRunnerReportSchema : taskRunnerReportSchema;
     const validated = schema.safeParse(parsed);
     if (!validated.success) {
-      const problems = validated.error.issues.map((issue2) => `${issue2.path.join(".") || "(root)"}: ${issue2.message}`).join("; ");
+      const problems = validated.error.issues.map((issue3) => `${issue3.path.join(".") || "(root)"}: ${issue3.message}`).join("; ");
       return {
         ...base,
         outcome: "malformed-output",
@@ -45359,7 +45362,7 @@ var OllamaRunner = class {
     const candidate = strictJsonParse3(content);
     const report = candidate === void 0 ? void 0 : stageRunnerReportSchema.safeParse(candidate);
     if (report === void 0 || !report.success) {
-      const problems = report !== void 0 && !report.success ? report.error.issues.map((issue2) => `${issue2.path.join(".") || "(root)"}: ${issue2.message}`).join("; ") : "the message content is not a bare JSON document";
+      const problems = report !== void 0 && !report.success ? report.error.issues.map((issue3) => `${issue3.path.join(".") || "(root)"}: ${issue3.message}`).join("; ") : "the message content is not a bare JSON document";
       return {
         runner: this.name,
         outcome: "malformed-output",
@@ -46112,7 +46115,7 @@ var OpenAiCompatibleRunner = class {
     const candidate = strictJsonParse4(parsed.text);
     const report = candidate === void 0 ? void 0 : stageRunnerReportSchema.safeParse(candidate);
     if (report === void 0 || !report.success) {
-      const problems = report !== void 0 && !report.success ? report.error.issues.map((issue2) => `${issue2.path.join(".") || "(root)"}: ${issue2.message}`).join("; ") : "the response content is not a bare JSON document";
+      const problems = report !== void 0 && !report.success ? report.error.issues.map((issue3) => `${issue3.path.join(".") || "(root)"}: ${issue3.message}`).join("; ") : "the response content is not a bare JSON document";
       return {
         ...base,
         outcome: "malformed-output",
@@ -49530,9 +49533,26 @@ Valid examples: notification-preferences, auth-v2, payment-retry.`
   }
   const requestedTitle = request.title?.trim();
   const title = requestedTitle !== void 0 && requestedTitle.length > 0 ? requestedTitle : titleFromSpecName(request.name);
+  const files = renderSpecTemplates(specType, mode, { title, description });
+  return planSpecCreationFromFiles(
+    workspace,
+    { name: request.name, specType, mode, title, description, descriptionIsPlaceholder, files },
+    clock
+  );
+}
+function planSpecCreationFromFiles(workspace, prepared, clock = systemClock) {
+  const nameCheck = validateSpecName(prepared.name);
+  if (!nameCheck.valid) {
+    throw new SpecBridgeError(
+      "INVALID_ARGUMENT",
+      `Invalid spec name "${prepared.name}":
+${nameCheck.problems.map((p) => `  - ${p}`).join("\n")}
+Valid examples: notification-preferences, auth-v2, payment-retry.`
+    );
+  }
   const dir = assertInsideWorkspace(
     workspace.rootDir,
-    import_path17.default.join(workspace.rootDir, KIRO_DIR_NAME, KIRO_SPECS_DIR, request.name)
+    import_path17.default.join(workspace.rootDir, KIRO_DIR_NAME, KIRO_SPECS_DIR, prepared.name)
   );
   if ((0, import_fs16.existsSync)(dir)) {
     let entries = [];
@@ -49542,24 +49562,23 @@ Valid examples: notification-preferences, auth-v2, payment-retry.`
     }
     throw new SpecBridgeError(
       "SPEC_ALREADY_EXISTS",
-      `Spec "${request.name}" already exists at ${dir}.
+      `Spec "${prepared.name}" already exists at ${dir}.
 ` + (entries.length > 0 ? `Existing files: ${entries.join(", ")}.
-` : "") + `SpecBridge never overwrites an existing spec. Inspect it with "spec show ${request.name}", or choose a different name.`
+` : "") + `SpecBridge never overwrites an existing spec. Inspect it with "spec show ${prepared.name}", or choose a different name.`
     );
   }
-  const files = renderSpecTemplates(specType, mode, { title, description });
-  const state = newSpecState(request.name, specType, mode, clock);
+  const state = newSpecState(prepared.name, prepared.specType, prepared.mode, clock);
   return {
-    specName: request.name,
-    specType,
-    mode,
-    title,
-    description,
-    descriptionIsPlaceholder,
+    specName: prepared.name,
+    specType: prepared.specType,
+    mode: prepared.mode,
+    title: prepared.title,
+    description: prepared.description,
+    descriptionIsPlaceholder: prepared.descriptionIsPlaceholder,
     dir,
-    files,
+    files: prepared.files,
     state,
-    statePath: specStatePath(workspace, request.name)
+    statePath: specStatePath(workspace, prepared.name)
   };
 }
 function executeSpecCreation(workspace, plan) {
@@ -49674,7 +49693,7 @@ function toSpecSummary(bundle) {
 
 // ../../packages/mcp-server/src/version.ts
 var MCP_SERVER_NAME = "specbridge";
-var MCP_SERVER_VERSION = "0.6.1";
+var MCP_SERVER_VERSION = "0.7.0";
 var MCP_SERVER_TITLE = "SpecBridge";
 var MCP_PROTOCOL_BASELINE = "2025-11-25";
 
@@ -51508,9 +51527,9 @@ function validateGlobPattern(pattern) {
   return void 0;
 }
 var globPatternSchema = external_exports.string().superRefine((pattern, ctx) => {
-  const issue2 = validateGlobPattern(pattern);
-  if (issue2 !== void 0) {
-    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message: issue2.reason });
+  const issue3 = validateGlobPattern(pattern);
+  if (issue3 !== void 0) {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message: issue3.reason });
   }
 });
 var policyRuleOverrideSchema = external_exports.object({
@@ -51576,7 +51595,7 @@ function readVerificationPolicy(workspace, specName, explicitPath) {
   }
   const result = verificationPolicySchema.safeParse(parsed);
   if (!result.success) {
-    const issues = result.error.issues.map((issue2) => `${issue2.path.join(".") || "(root)"}: ${issue2.message}`).join("; ");
+    const issues = result.error.issues.map((issue3) => `${issue3.path.join(".") || "(root)"}: ${issue3.message}`).join("; ");
     return {
       path: filePath,
       exists: true,
@@ -56095,6 +56114,2070 @@ function registerRunnerMatrixTool(server, context) {
   });
 }
 
+// ../../packages/templates/dist/index.js
+var import_fs26 = require("fs");
+var import_path29 = __toESM(require("path"), 1);
+var import_fs27 = require("fs");
+var import_path30 = __toESM(require("path"), 1);
+var import_fs28 = require("fs");
+var import_path31 = __toESM(require("path"), 1);
+var import_path32 = __toESM(require("path"), 1);
+var SPECBRIDGE_VERSION = "0.7.0";
+var TEMPLATE_ERROR_CODES = {
+  SBT001: "template not found",
+  SBT002: "ambiguous template reference",
+  SBT003: "invalid template ID",
+  SBT004: "invalid manifest",
+  SBT005: "unsupported template schema",
+  SBT006: "incompatible SpecBridge version",
+  SBT007: "invalid source path",
+  SBT008: "path traversal detected",
+  SBT009: "symlink rejected",
+  SBT010: "undeclared template file",
+  SBT011: "invalid target file",
+  SBT012: "duplicate target file",
+  SBT013: "missing required variable",
+  SBT014: "unknown variable",
+  SBT015: "invalid variable value",
+  SBT016: "unresolved placeholder",
+  SBT017: "rendered output invalid",
+  SBT018: "rendered output too large",
+  SBT019: "template pack too large",
+  SBT020: "spec already exists",
+  SBT021: "template already installed",
+  SBT022: "built-in template cannot be uninstalled",
+  SBT023: "candidate hash mismatch",
+  SBT024: "acknowledgement required",
+  SBT025: "template operation failed"
+};
+var TemplateError = class extends SpecBridgeError {
+  templateCode;
+  /** Actionable next step, always present. */
+  remediation;
+  constructor(templateCode, detail, remediation, details) {
+    super("TEMPLATE_ERROR", `${templateCode} (${TEMPLATE_ERROR_CODES[templateCode]}): ${detail} ${remediation}`, {
+      ...details,
+      templateCode
+    });
+    this.name = "TemplateError";
+    this.templateCode = templateCode;
+    this.remediation = remediation;
+  }
+};
+var MAX_TEMPLATE_ID_LENGTH = 64;
+var TEMPLATE_ID_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
+function validateTemplateId(id) {
+  const problems = [];
+  if (id.length === 0) {
+    problems.push("ID must not be empty.");
+    return { valid: false, problems };
+  }
+  if (id.includes("\0")) {
+    problems.push("ID must not contain null bytes.");
+    return { valid: false, problems };
+  }
+  if (id.length > MAX_TEMPLATE_ID_LENGTH) {
+    problems.push(`ID must be at most ${MAX_TEMPLATE_ID_LENGTH} characters (got ${id.length}).`);
+  }
+  if (/[A-Z]/.test(id)) {
+    problems.push("ID must use lowercase letters only.");
+  }
+  if (/_/.test(id)) {
+    problems.push("ID must use hyphens, not underscores.");
+  }
+  if (/[\\/]/.test(id) || id.includes("..")) {
+    problems.push('ID must not contain path separators or "..".');
+  }
+  if (/\s/.test(id)) {
+    problems.push("ID must not contain spaces.");
+  }
+  if (id.startsWith("-") || id.endsWith("-")) {
+    problems.push("ID must not start or end with a hyphen.");
+  }
+  if (id.includes("--")) {
+    problems.push("ID must not contain repeated hyphens.");
+  }
+  if (problems.length === 0 && !TEMPLATE_ID_PATTERN.test(id)) {
+    problems.push(
+      "ID must start with a lowercase letter and contain only lowercase letters, digits, and single hyphens."
+    );
+  }
+  return { valid: problems.length === 0, problems };
+}
+function formatTemplateReference(source, id) {
+  return `${source}:${id}`;
+}
+function parseTemplateReference(raw) {
+  const trimmed = raw.trim();
+  const colon = trimmed.indexOf(":");
+  if (colon === -1) {
+    return validateTemplateId(trimmed).valid ? { source: void 0, id: trimmed } : void 0;
+  }
+  const source = trimmed.slice(0, colon);
+  const id = trimmed.slice(colon + 1);
+  if (source !== "builtin" && source !== "project") {
+    return void 0;
+  }
+  return validateTemplateId(id).valid ? { source, id } : void 0;
+}
+var TEMPLATE_PACK_LIMITS = {
+  /** Maximum number of files in a pack (manifest and README included). */
+  maxPackFiles: 20,
+  /** Maximum size of specbridge-template.json in bytes. */
+  maxManifestBytes: 256 * 1024,
+  /** Maximum size of a single template file in bytes. */
+  maxTemplateFileBytes: 1024 * 1024,
+  /** Maximum total pack size in bytes. */
+  maxTotalPackBytes: 5 * 1024 * 1024,
+  /** Maximum size of one rendered document in bytes. */
+  maxRenderedFileBytes: 1024 * 1024,
+  /** Maximum length of a supplied variable value in characters. */
+  maxVariableValueLength: 1e5
+};
+var VERSION_PATTERN = /^(\d+)\.(\d+)\.(\d+)$/;
+var COMPARATOR_PATTERN = /^(>=|<=|>|<|=)?(\d+)\.(\d+)\.(\d+)$/;
+function parseSemver(version2) {
+  const match = VERSION_PATTERN.exec(version2);
+  if (!match) return void 0;
+  return [Number(match[1]), Number(match[2]), Number(match[3])];
+}
+function compareSemver(a2, b) {
+  for (let i2 = 0; i2 < 3; i2 += 1) {
+    const left = a2[i2] ?? 0;
+    const right = b[i2] ?? 0;
+    if (left !== right) return left < right ? -1 : 1;
+  }
+  return 0;
+}
+function validateSemverRange(range) {
+  const parts = range.trim().split(/\s+/);
+  if (parts.length === 0 || parts.length === 1 && parts[0] === "") {
+    return { valid: false, problem: "range must not be empty" };
+  }
+  for (const part of parts) {
+    if (!COMPARATOR_PATTERN.test(part)) {
+      return {
+        valid: false,
+        problem: `unsupported comparator "${part}" \u2014 use space-separated comparators like ">=0.7.0 <1.0.0" with operators >=, <=, >, <, or =`
+      };
+    }
+  }
+  return { valid: true };
+}
+function semverSatisfies(version2, range) {
+  const target = parseSemver(version2);
+  if (!target) return false;
+  const parts = range.trim().split(/\s+/);
+  for (const part of parts) {
+    const match = COMPARATOR_PATTERN.exec(part);
+    if (!match) return false;
+    const operator = match[1] ?? "=";
+    const bound = [Number(match[2]), Number(match[3]), Number(match[4])];
+    const cmp = compareSemver(target, bound);
+    switch (operator) {
+      case ">=":
+        if (cmp < 0) return false;
+        break;
+      case "<=":
+        if (cmp > 0) return false;
+        break;
+      case ">":
+        if (cmp <= 0) return false;
+        break;
+      case "<":
+        if (cmp >= 0) return false;
+        break;
+      case "=":
+        if (cmp !== 0) return false;
+        break;
+      default:
+        return false;
+    }
+  }
+  return true;
+}
+var TEMPLATE_MANIFEST_FILE_NAME = "specbridge-template.json";
+var SUPPORTED_KIRO_LAYOUT = "1";
+var BUILTIN_VARIABLE_NAMES = [
+  "specName",
+  "title",
+  "description",
+  "kind",
+  "mode",
+  "generatedDate"
+];
+var ALLOWED_TARGETS = {
+  feature: ["requirements.md", "design.md", "tasks.md"],
+  bugfix: ["bugfix.md", "design.md", "tasks.md"]
+};
+var TARGET_STAGES = {
+  "requirements.md": "requirements",
+  "bugfix.md": "bugfix",
+  "design.md": "design",
+  "tasks.md": "tasks"
+};
+var VARIABLE_NAME_PATTERN = /^[a-z][a-zA-Z0-9]*$/;
+var TAG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+var SEMVER_PATTERN = /^\d+\.\d+\.\d+$/;
+var SOURCE_PATH_PATTERN = /^files\/[a-z0-9][a-z0-9.-]*\.template$/;
+var MAX_VARIABLE_NAME_LENGTH = 64;
+var MAX_PATTERN_LENGTH = 200;
+function checkSafePattern(pattern) {
+  if (pattern.length > MAX_PATTERN_LENGTH) {
+    return `pattern exceeds ${MAX_PATTERN_LENGTH} characters`;
+  }
+  if (/\\[1-9]/.test(pattern)) {
+    return "backreferences (\\1\u2013\\9) are not allowed";
+  }
+  if (/\)[*+?{]/.test(pattern)) {
+    return "quantified groups like (\u2026)+ are not allowed";
+  }
+  try {
+    new RegExp(pattern, "u");
+  } catch (cause) {
+    return `not a valid regular expression: ${cause instanceof Error ? cause.message : String(cause)}`;
+  }
+  return void 0;
+}
+var templateVariableSchema = external_exports.object({
+  name: external_exports.string().min(1).max(MAX_VARIABLE_NAME_LENGTH),
+  description: external_exports.string().min(1).max(500),
+  type: external_exports.enum(["string", "boolean", "integer", "enum"]),
+  required: external_exports.boolean().default(false),
+  default: external_exports.union([external_exports.string(), external_exports.boolean(), external_exports.number()]).optional(),
+  /** Allowed values; required for and exclusive to `enum` variables. */
+  values: external_exports.array(external_exports.string().min(1).max(200)).min(1).max(50).optional(),
+  minLength: external_exports.number().int().min(0).optional(),
+  maxLength: external_exports.number().int().min(0).optional(),
+  minimum: external_exports.number().int().optional(),
+  maximum: external_exports.number().int().optional(),
+  /** Restricted safe regular expression the (string) value must match. */
+  pattern: external_exports.string().optional()
+}).strict();
+var templateFileSchema = external_exports.object({
+  source: external_exports.string().min(1),
+  target: external_exports.string().min(1),
+  stage: external_exports.enum(["requirements", "bugfix", "design", "tasks"]),
+  required: external_exports.boolean().default(true)
+}).strict();
+var templateCompatibilitySchema = external_exports.object({
+  specbridge: external_exports.string().min(1),
+  kiroLayout: external_exports.string().min(1)
+}).strict();
+var templateManifestSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(SEMVER_PATTERN),
+  id: external_exports.string().min(1),
+  version: external_exports.string().regex(SEMVER_PATTERN),
+  displayName: external_exports.string().min(1).max(100),
+  description: external_exports.string().min(1).max(500),
+  kind: external_exports.enum(["feature", "bugfix"]),
+  supportedModes: external_exports.array(external_exports.enum(["requirements-first", "design-first", "quick"])).min(1).max(3),
+  defaultMode: external_exports.enum(["requirements-first", "design-first", "quick"]),
+  tags: external_exports.array(external_exports.string().min(1).max(32)).max(12),
+  files: external_exports.array(templateFileSchema).min(1).max(TEMPLATE_PACK_LIMITS.maxPackFiles),
+  variables: external_exports.array(templateVariableSchema).max(30),
+  compatibility: templateCompatibilitySchema,
+  license: external_exports.string().min(1).max(50),
+  /** Optional safe metadata — inert strings, never executed or fetched. */
+  author: external_exports.string().min(1).max(200).optional(),
+  homepage: external_exports.string().min(1).max(500).optional(),
+  repository: external_exports.string().min(1).max(500).optional(),
+  examples: external_exports.array(external_exports.string().min(1).max(500)).max(5).optional(),
+  deprecated: external_exports.boolean().optional(),
+  replacement: external_exports.string().min(1).optional(),
+  /**
+   * Opt-in for the deterministic `generatedDate` built-in variable
+   * (YYYY-MM-DD from an injectable clock). Off by default so rendering is
+   * fully input-determined unless a template explicitly asks for the date.
+   */
+  generatedDate: external_exports.boolean().optional()
+}).strict();
+function issue2(code, category, message) {
+  return { code, category, severity: "error", message };
+}
+function checkSourcePath(source) {
+  if (source.includes("\0")) return "contains a null byte";
+  if (source.includes("\\")) return "must use forward slashes";
+  if (source.startsWith("/") || /^[A-Za-z]:/.test(source)) return "must not be an absolute path";
+  if (source.split("/").includes("..") || source.split("/").includes(".")) {
+    return 'must not contain "." or ".." segments';
+  }
+  if (!SOURCE_PATH_PATTERN.test(source)) {
+    return "must match files/<lowercase-name>.template (e.g. files/requirements.md.template)";
+  }
+  return void 0;
+}
+function checkManifestSemantics(manifest) {
+  const issues = [];
+  const idCheck = validateTemplateId(manifest.id);
+  if (!idCheck.valid) {
+    for (const problem of idCheck.problems) {
+      issues.push(issue2("SBT003", "manifest", `Template ID "${manifest.id}": ${problem}`));
+    }
+  }
+  const majorVersion = manifest.schemaVersion.split(".")[0];
+  if (majorVersion !== "1") {
+    issues.push(
+      issue2(
+        "SBT005",
+        "manifest",
+        `schemaVersion ${manifest.schemaVersion} is not supported; this SpecBridge understands schema 1.x.`
+      )
+    );
+  }
+  if (!manifest.supportedModes.includes(manifest.defaultMode)) {
+    issues.push(
+      issue2(
+        "SBT004",
+        "manifest",
+        `defaultMode "${manifest.defaultMode}" is not in supportedModes [${manifest.supportedModes.join(", ")}].`
+      )
+    );
+  }
+  if (new Set(manifest.supportedModes).size !== manifest.supportedModes.length) {
+    issues.push(issue2("SBT004", "manifest", "supportedModes contains duplicates."));
+  }
+  for (const tag of manifest.tags) {
+    if (!TAG_PATTERN.test(tag)) {
+      issues.push(
+        issue2("SBT004", "manifest", `Tag "${tag}" must be lowercase letters/digits with single hyphens.`)
+      );
+    }
+  }
+  if (new Set(manifest.tags).size !== manifest.tags.length) {
+    issues.push(issue2("SBT004", "manifest", "tags contains duplicates."));
+  }
+  const allowed = ALLOWED_TARGETS[manifest.kind];
+  const seenTargets = /* @__PURE__ */ new Set();
+  const seenSources = /* @__PURE__ */ new Set();
+  for (const file of manifest.files) {
+    const sourceProblem = checkSourcePath(file.source);
+    if (sourceProblem !== void 0) {
+      const code = /absolute/.test(sourceProblem) || /"\.\."/.test(sourceProblem) ? "SBT008" : "SBT007";
+      issues.push(issue2(code, "paths", `File source "${file.source}" ${sourceProblem}.`));
+    }
+    if (seenSources.has(file.source)) {
+      issues.push(issue2("SBT004", "files", `File source "${file.source}" is declared twice.`));
+    }
+    seenSources.add(file.source);
+    if (!allowed.includes(file.target)) {
+      issues.push(
+        issue2(
+          "SBT011",
+          "kiro-layout",
+          `Target "${file.target}" is not an allowed ${manifest.kind} spec file. Allowed targets: ${allowed.join(", ")}. Variables are never allowed in target paths.`
+        )
+      );
+      continue;
+    }
+    if (seenTargets.has(file.target)) {
+      issues.push(issue2("SBT012", "files", `Target "${file.target}" is declared more than once.`));
+    }
+    seenTargets.add(file.target);
+    const expectedStage = TARGET_STAGES[file.target];
+    if (expectedStage !== void 0 && file.stage !== expectedStage) {
+      issues.push(
+        issue2(
+          "SBT004",
+          "files",
+          `Target "${file.target}" must declare stage "${expectedStage}" (got "${file.stage}").`
+        )
+      );
+    }
+    if (!file.required) {
+      issues.push(
+        issue2(
+          "SBT004",
+          "kiro-layout",
+          `Target "${file.target}" is marked optional, but Kiro layout ${SUPPORTED_KIRO_LAYOUT} requires all ${manifest.kind} files. Set "required": true.`
+        )
+      );
+    }
+  }
+  for (const target of allowed) {
+    if (!seenTargets.has(target)) {
+      issues.push(
+        issue2(
+          "SBT004",
+          "kiro-layout",
+          `A ${manifest.kind} template must render "${target}", but no file declares it as a target.`
+        )
+      );
+    }
+  }
+  const seenVariables = /* @__PURE__ */ new Set();
+  for (const variable of manifest.variables) {
+    if (!VARIABLE_NAME_PATTERN.test(variable.name)) {
+      issues.push(
+        issue2(
+          "SBT004",
+          "variables",
+          `Variable name "${variable.name}" must match [a-z][a-zA-Z0-9]* (lower camelCase).`
+        )
+      );
+    }
+    if (BUILTIN_VARIABLE_NAMES.includes(variable.name)) {
+      issues.push(
+        issue2(
+          "SBT004",
+          "variables",
+          `Variable "${variable.name}" shadows a built-in variable. Built-ins (${BUILTIN_VARIABLE_NAMES.join(", ")}) are provided by SpecBridge and cannot be redeclared.`
+        )
+      );
+    }
+    if (seenVariables.has(variable.name)) {
+      issues.push(issue2("SBT004", "variables", `Variable "${variable.name}" is declared twice.`));
+    }
+    seenVariables.add(variable.name);
+    if (variable.type === "enum") {
+      if (variable.values === void 0) {
+        issues.push(
+          issue2("SBT004", "variables", `Enum variable "${variable.name}" must declare "values".`)
+        );
+      } else if (new Set(variable.values).size !== variable.values.length) {
+        issues.push(
+          issue2("SBT004", "variables", `Enum variable "${variable.name}" has duplicate values.`)
+        );
+      }
+    } else if (variable.values !== void 0) {
+      issues.push(
+        issue2("SBT004", "variables", `"values" is only allowed on enum variables ("${variable.name}").`)
+      );
+    }
+    if (variable.type !== "string" && (variable.minLength !== void 0 || variable.maxLength !== void 0 || variable.pattern !== void 0)) {
+      issues.push(
+        issue2(
+          "SBT004",
+          "variables",
+          `minLength/maxLength/pattern are only allowed on string variables ("${variable.name}").`
+        )
+      );
+    }
+    if (variable.type !== "integer" && (variable.minimum !== void 0 || variable.maximum !== void 0)) {
+      issues.push(
+        issue2("SBT004", "variables", `minimum/maximum are only allowed on integer variables ("${variable.name}").`)
+      );
+    }
+    if (variable.minLength !== void 0 && variable.maxLength !== void 0 && variable.minLength > variable.maxLength) {
+      issues.push(
+        issue2("SBT004", "variables", `Variable "${variable.name}": minLength exceeds maxLength.`)
+      );
+    }
+    if (variable.minimum !== void 0 && variable.maximum !== void 0 && variable.minimum > variable.maximum) {
+      issues.push(issue2("SBT004", "variables", `Variable "${variable.name}": minimum exceeds maximum.`));
+    }
+    if (variable.pattern !== void 0) {
+      const patternProblem = checkSafePattern(variable.pattern);
+      if (patternProblem !== void 0) {
+        issues.push(
+          issue2("SBT004", "variables", `Variable "${variable.name}" pattern rejected: ${patternProblem}.`)
+        );
+      }
+    }
+    if (variable.default !== void 0) {
+      const defaultType = typeof variable.default;
+      const expected = {
+        string: "string",
+        boolean: "boolean",
+        integer: "number",
+        enum: "string"
+      };
+      if (defaultType !== expected[variable.type]) {
+        issues.push(
+          issue2(
+            "SBT004",
+            "variables",
+            `Variable "${variable.name}" default must be a ${expected[variable.type]} (got ${defaultType}).`
+          )
+        );
+      }
+      if (variable.required) {
+        issues.push(
+          issue2(
+            "SBT004",
+            "variables",
+            `Variable "${variable.name}" is required and also has a default \u2014 pick one.`
+          )
+        );
+      }
+    }
+  }
+  const rangeCheck = validateSemverRange(manifest.compatibility.specbridge);
+  if (!rangeCheck.valid) {
+    issues.push(
+      issue2(
+        "SBT004",
+        "compatibility",
+        `compatibility.specbridge is invalid: ${rangeCheck.problem ?? "unparseable range"}.`
+      )
+    );
+  }
+  if (manifest.compatibility.kiroLayout !== SUPPORTED_KIRO_LAYOUT) {
+    issues.push(
+      issue2(
+        "SBT006",
+        "compatibility",
+        `compatibility.kiroLayout "${manifest.compatibility.kiroLayout}" is not supported (this SpecBridge supports layout "${SUPPORTED_KIRO_LAYOUT}").`
+      )
+    );
+  }
+  if (manifest.replacement !== void 0 && !validateTemplateId(manifest.replacement).valid) {
+    issues.push(
+      issue2("SBT004", "manifest", `replacement "${manifest.replacement}" is not a valid template ID.`)
+    );
+  }
+  return issues;
+}
+function parseTemplateManifest(text) {
+  if (Buffer.byteLength(text, "utf8") > TEMPLATE_PACK_LIMITS.maxManifestBytes) {
+    return {
+      issues: [
+        issue2(
+          "SBT019",
+          "limits",
+          `Manifest exceeds ${TEMPLATE_PACK_LIMITS.maxManifestBytes} bytes. Manifests are metadata, not content.`
+        )
+      ]
+    };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch (cause) {
+    return {
+      issues: [
+        issue2(
+          "SBT004",
+          "manifest",
+          `Manifest is not valid JSON: ${cause instanceof Error ? cause.message : String(cause)}.`
+        )
+      ]
+    };
+  }
+  if (typeof parsed === "object" && parsed !== null) {
+    const declared = parsed["schemaVersion"];
+    if (typeof declared === "string" && SEMVER_PATTERN.test(declared) && declared.split(".")[0] !== "1") {
+      return {
+        issues: [
+          issue2(
+            "SBT005",
+            "manifest",
+            `schemaVersion ${declared} is not supported; this SpecBridge understands schema 1.x. Upgrade SpecBridge or use a 1.x template.`
+          )
+        ]
+      };
+    }
+  }
+  const result = templateManifestSchema.safeParse(parsed);
+  if (!result.success) {
+    return {
+      issues: result.error.issues.slice(0, 25).map(
+        (zodIssue) => issue2(
+          "SBT004",
+          "manifest",
+          `${zodIssue.path.length > 0 ? zodIssue.path.join(".") : "manifest"}: ${zodIssue.message}`
+        )
+      )
+    };
+  }
+  const semanticIssues = checkManifestSemantics(result.data);
+  if (semanticIssues.some((entry) => entry.severity === "error")) {
+    return { manifest: result.data, issues: semanticIssues };
+  }
+  return { manifest: result.data, issues: semanticIssues };
+}
+var PLACEHOLDER_PATTERN = /\{\{([^{}\r\n]*)\}\}/g;
+var VALID_PLACEHOLDER_NAME = /^[a-z][a-zA-Z0-9]*$/;
+function renderTemplateText(sourceLabel, text, values) {
+  const parts = [];
+  let lastIndex = 0;
+  PLACEHOLDER_PATTERN.lastIndex = 0;
+  let match;
+  while ((match = PLACEHOLDER_PATTERN.exec(text)) !== null) {
+    parts.push(text.slice(lastIndex, match.index));
+    lastIndex = match.index + match[0].length;
+    const inner = match[1] ?? "";
+    if (!VALID_PLACEHOLDER_NAME.test(inner)) {
+      throw new TemplateError(
+        "SBT016",
+        `${sourceLabel} contains a malformed placeholder "${truncatePlaceholder(match[0])}".`,
+        "Placeholders must be exactly {{variableName}} with a name matching [a-z][a-zA-Z0-9]*. Literal double braces are not supported in template files.",
+        { source: sourceLabel }
+      );
+    }
+    const value = values.get(inner);
+    if (value === void 0) {
+      throw new TemplateError(
+        "SBT016",
+        `${sourceLabel} references "{{${inner}}}", which is not a declared or built-in variable.`,
+        'Declare the variable in the manifest "variables" array, or remove the placeholder.',
+        { source: sourceLabel, variable: inner }
+      );
+    }
+    parts.push(value);
+  }
+  parts.push(text.slice(lastIndex));
+  const rendered = parts.join("");
+  const renderedBytes = Buffer.byteLength(rendered, "utf8");
+  if (renderedBytes > TEMPLATE_PACK_LIMITS.maxRenderedFileBytes) {
+    throw new TemplateError(
+      "SBT018",
+      `Rendering ${sourceLabel} produced ${renderedBytes} bytes (limit ${TEMPLATE_PACK_LIMITS.maxRenderedFileBytes}).`,
+      "Shorten the template or the supplied variable values.",
+      { source: sourceLabel, bytes: renderedBytes }
+    );
+  }
+  return rendered;
+}
+function truncatePlaceholder(raw) {
+  return raw.length > 40 ? `${raw.slice(0, 40)}\u2026` : raw;
+}
+function collectPlaceholders(text) {
+  const names = [];
+  const malformed = [];
+  const seen = /* @__PURE__ */ new Set();
+  PLACEHOLDER_PATTERN.lastIndex = 0;
+  let match;
+  while ((match = PLACEHOLDER_PATTERN.exec(text)) !== null) {
+    const inner = match[1] ?? "";
+    if (!VALID_PLACEHOLDER_NAME.test(inner)) {
+      malformed.push(truncatePlaceholder(match[0]));
+      continue;
+    }
+    if (!seen.has(inner)) {
+      seen.add(inner);
+      names.push(inner);
+    }
+  }
+  return { names, malformed };
+}
+function rejectNullBytes(name, value) {
+  if (value.includes("\0")) {
+    throw new TemplateError(
+      "SBT015",
+      `Variable "${name}" contains a null byte.`,
+      "Remove the null byte from the value.",
+      { variable: name }
+    );
+  }
+}
+function coerceValue(variable, raw) {
+  const name = variable.name;
+  switch (variable.type) {
+    case "string": {
+      if (typeof raw !== "string") {
+        throw invalidValue(name, `expected a string, got ${typeof raw}`);
+      }
+      if (raw.length > TEMPLATE_PACK_LIMITS.maxVariableValueLength) {
+        throw invalidValue(name, `value exceeds ${TEMPLATE_PACK_LIMITS.maxVariableValueLength} characters`);
+      }
+      if (variable.minLength !== void 0 && raw.length < variable.minLength) {
+        throw invalidValue(name, `value is shorter than minLength ${variable.minLength}`);
+      }
+      if (variable.maxLength !== void 0 && raw.length > variable.maxLength) {
+        throw invalidValue(name, `value is longer than maxLength ${variable.maxLength}`);
+      }
+      if (variable.pattern !== void 0) {
+        if (raw.length > 2e3) {
+          throw invalidValue(name, "values checked against a pattern must be at most 2000 characters");
+        }
+        if (!new RegExp(variable.pattern, "u").test(raw)) {
+          throw invalidValue(name, `value does not match pattern ${variable.pattern}`);
+        }
+      }
+      return raw;
+    }
+    case "boolean": {
+      if (typeof raw === "boolean") return raw ? "true" : "false";
+      if (raw === "true") return "true";
+      if (raw === "false") return "false";
+      throw invalidValue(name, `expected true or false, got "${String(raw)}"`);
+    }
+    case "integer": {
+      let value;
+      if (typeof raw === "number") {
+        value = raw;
+      } else if (typeof raw === "string" && /^-?\d+$/.test(raw.trim())) {
+        value = Number(raw.trim());
+      } else {
+        throw invalidValue(name, `expected an integer, got "${String(raw)}"`);
+      }
+      if (!Number.isSafeInteger(value)) {
+        throw invalidValue(name, "value is not a safe integer");
+      }
+      if (variable.minimum !== void 0 && value < variable.minimum) {
+        throw invalidValue(name, `value is below minimum ${variable.minimum}`);
+      }
+      if (variable.maximum !== void 0 && value > variable.maximum) {
+        throw invalidValue(name, `value is above maximum ${variable.maximum}`);
+      }
+      return String(value);
+    }
+    case "enum": {
+      if (typeof raw !== "string") {
+        throw invalidValue(name, `expected one of ${(variable.values ?? []).join(", ")}`);
+      }
+      if (!(variable.values ?? []).includes(raw)) {
+        throw invalidValue(
+          name,
+          `"${raw}" is not an allowed value. Allowed: ${(variable.values ?? []).join(", ")}`
+        );
+      }
+      return raw;
+    }
+  }
+}
+function invalidValue(name, detail) {
+  return new TemplateError("SBT015", `Variable "${name}": ${detail}.`, "Fix the value and retry.", {
+    variable: name
+  });
+}
+function formatGeneratedDate(clock) {
+  return clock().toISOString().slice(0, 10);
+}
+function resolveVariables(manifest, supplied, builtins) {
+  const values = /* @__PURE__ */ new Map();
+  for (const [name, raw] of [
+    ["specName", builtins.specName],
+    ["title", builtins.title],
+    ["description", builtins.description],
+    ["kind", builtins.kind],
+    ["mode", builtins.mode]
+  ]) {
+    rejectNullBytes(name, raw);
+    values.set(name, raw);
+  }
+  if (manifest.generatedDate === true) {
+    values.set("generatedDate", formatGeneratedDate(builtins.clock));
+  }
+  const declared = new Map(manifest.variables.map((variable) => [variable.name, variable]));
+  for (const name of Object.keys(supplied)) {
+    if (BUILTIN_VARIABLE_NAMES.includes(name)) {
+      throw new TemplateError(
+        "SBT014",
+        `"${name}" is a built-in variable and cannot be supplied with --var.`,
+        name === "title" || name === "description" ? `Use the --${name} option instead.` : "Built-in values are derived from the spec name, kind, and mode.",
+        { variable: name }
+      );
+    }
+    if (!declared.has(name)) {
+      const known = [...declared.keys()];
+      throw new TemplateError(
+        "SBT014",
+        `Variable "${name}" is not declared by this template.`,
+        known.length > 0 ? `Declared variables: ${known.join(", ")}.` : "This template declares no variables.",
+        { variable: name }
+      );
+    }
+  }
+  const variableNames = [];
+  for (const variable of manifest.variables) {
+    const raw = supplied[variable.name];
+    if (raw === void 0) {
+      if (variable.required) {
+        throw new TemplateError(
+          "SBT013",
+          `Required variable "${variable.name}" was not supplied.`,
+          `Pass --var ${variable.name}=<value>. ${variable.description}`,
+          { variable: variable.name }
+        );
+      }
+      if (variable.default !== void 0) {
+        const coerced2 = coerceValue(variable, variable.default);
+        rejectNullBytes(variable.name, coerced2);
+        values.set(variable.name, coerced2);
+        variableNames.push(variable.name);
+      } else {
+        values.set(variable.name, "");
+        variableNames.push(variable.name);
+      }
+      continue;
+    }
+    if (typeof raw === "string") rejectNullBytes(variable.name, raw);
+    const coerced = coerceValue(variable, raw);
+    rejectNullBytes(variable.name, coerced);
+    values.set(variable.name, coerced);
+    variableNames.push(variable.name);
+  }
+  return { values, variableNames };
+}
+var EXTRA_ALLOWED_FILES = ["README.md", "LICENSE"];
+var MAX_PACK_DEPTH = 3;
+function issue22(code, category, message, file) {
+  return file === void 0 ? { code, category, severity: "error", message } : { code, category, severity: "error", message, file };
+}
+function warning(code, category, message, file) {
+  return file === void 0 ? { code, category, severity: "warning", message } : { code, category, severity: "warning", message, file };
+}
+function readTemplatePackDirectory(dir) {
+  const rootStat = statNoFollow(dir);
+  if (rootStat.isSymbolicLink()) {
+    throw new TemplateError("SBT009", `Template pack path is a symlink: ${dir}.`, "Point at the real directory.", {
+      path: dir
+    });
+  }
+  if (!rootStat.isDirectory()) {
+    throw new TemplateError(
+      "SBT007",
+      `Template pack path is not a directory: ${dir}.`,
+      "Point at a directory containing specbridge-template.json.",
+      { path: dir }
+    );
+  }
+  const files = /* @__PURE__ */ new Map();
+  let totalBytes = 0;
+  const walk = (currentDir, relative, depth) => {
+    if (depth > MAX_PACK_DEPTH) {
+      throw new TemplateError(
+        "SBT019",
+        `Template pack nests deeper than ${MAX_PACK_DEPTH} directories at ${relative}.`,
+        "Template packs are flat: a manifest, README.md, and a files/ directory.",
+        { path: currentDir }
+      );
+    }
+    const entries = (0, import_fs26.readdirSync)(currentDir, { withFileTypes: true }).sort(
+      (a2, b) => a2.name.localeCompare(b.name, "en")
+    );
+    for (const entry of entries) {
+      const entryPath = import_path29.default.join(currentDir, entry.name);
+      const entryRelative = relative === "" ? entry.name : `${relative}/${entry.name}`;
+      const stat = statNoFollow(entryPath);
+      if (stat.isSymbolicLink()) {
+        throw new TemplateError(
+          "SBT009",
+          `Template pack contains a symlink: ${entryRelative}.`,
+          "Remove the symlink; packs must contain regular files only.",
+          { path: entryPath }
+        );
+      }
+      if (stat.isDirectory()) {
+        walk(entryPath, entryRelative, depth + 1);
+        continue;
+      }
+      if (!stat.isFile()) {
+        throw new TemplateError(
+          "SBT007",
+          `Template pack contains a non-regular file: ${entryRelative}.`,
+          "Packs may contain regular text files only.",
+          { path: entryPath }
+        );
+      }
+      if (files.size >= TEMPLATE_PACK_LIMITS.maxPackFiles) {
+        throw new TemplateError(
+          "SBT019",
+          `Template pack has more than ${TEMPLATE_PACK_LIMITS.maxPackFiles} files.`,
+          "Remove files that are not the manifest, README.md, LICENSE, or declared template files.",
+          { path: dir }
+        );
+      }
+      const perFileLimit = Math.max(
+        TEMPLATE_PACK_LIMITS.maxTemplateFileBytes,
+        TEMPLATE_PACK_LIMITS.maxManifestBytes
+      );
+      if (stat.size > perFileLimit) {
+        throw new TemplateError(
+          "SBT019",
+          `${entryRelative} is ${stat.size} bytes (per-file limit ${perFileLimit}).`,
+          "Template files are Markdown documents, not data payloads.",
+          { path: entryPath }
+        );
+      }
+      totalBytes += stat.size;
+      if (totalBytes > TEMPLATE_PACK_LIMITS.maxTotalPackBytes) {
+        throw new TemplateError(
+          "SBT019",
+          `Template pack exceeds ${TEMPLATE_PACK_LIMITS.maxTotalPackBytes} bytes in total.`,
+          "Reduce the pack size.",
+          { path: dir }
+        );
+      }
+      const buffer = (0, import_fs26.readFileSync)(entryPath);
+      const text = buffer.toString("utf8");
+      if (!Buffer.from(text, "utf8").equals(buffer)) {
+        throw new TemplateError(
+          "SBT025",
+          `${entryRelative} is not valid UTF-8 text.`,
+          "Template packs contain UTF-8 text files only; binary content is rejected.",
+          { path: entryPath }
+        );
+      }
+      if (text.includes("\0")) {
+        throw new TemplateError(
+          "SBT025",
+          `${entryRelative} contains binary (null-byte) content.`,
+          "Template packs contain plain text files only.",
+          { path: entryPath }
+        );
+      }
+      files.set(entryRelative, text);
+    }
+  };
+  walk(dir, "", 0);
+  return { origin: dir, files };
+}
+function statNoFollow(target) {
+  try {
+    return (0, import_fs26.lstatSync)(target);
+  } catch (cause) {
+    throw new TemplateError(
+      "SBT007",
+      `Cannot read template pack path ${target}: ${cause instanceof Error ? cause.message : String(cause)}.`,
+      "Check that the path exists and is readable.",
+      { path: target }
+    );
+  }
+}
+function loadTemplatePack(data, options = {}) {
+  const issues = [];
+  const manifestText = data.files.get(TEMPLATE_MANIFEST_FILE_NAME);
+  const readme = data.files.get("README.md");
+  let manifest;
+  if (manifestText === void 0) {
+    issues.push(
+      issue22(
+        "SBT004",
+        "manifest",
+        `Pack has no ${TEMPLATE_MANIFEST_FILE_NAME} at its root. Every template pack starts with a manifest.`
+      )
+    );
+  } else {
+    const parsed = parseTemplateManifest(manifestText);
+    manifest = parsed.manifest;
+    issues.push(...parsed.issues);
+  }
+  if (readme === void 0) {
+    const message = "Pack has no README.md. A README with usage instructions is required for built-in and community-ready templates.";
+    issues.push(
+      options.requireReadme === true ? issue22("SBT004", "documentation", message) : warning("SBT004", "documentation", message)
+    );
+  }
+  if (manifest !== void 0) {
+    const declaredSources = new Set(manifest.files.map((file) => file.source));
+    for (const file of manifest.files) {
+      if (!data.files.has(file.source)) {
+        issues.push(
+          issue22("SBT007", "paths", `Declared source "${file.source}" does not exist in the pack.`, file.source)
+        );
+      }
+    }
+    for (const packFile of data.files.keys()) {
+      if (packFile === TEMPLATE_MANIFEST_FILE_NAME) continue;
+      if (EXTRA_ALLOWED_FILES.includes(packFile)) continue;
+      if (declaredSources.has(packFile)) continue;
+      issues.push(
+        issue22(
+          "SBT010",
+          "files",
+          `"${packFile}" is not the manifest, README.md, LICENSE, or a declared template file. Undeclared files are rejected \u2014 nothing outside the manifest can ever be rendered.`,
+          packFile
+        )
+      );
+    }
+    for (const file of manifest.files) {
+      const content = data.files.get(file.source);
+      if (content === void 0) continue;
+      const bytes = Buffer.byteLength(content, "utf8");
+      if (bytes > TEMPLATE_PACK_LIMITS.maxTemplateFileBytes) {
+        issues.push(
+          issue22(
+            "SBT019",
+            "limits",
+            `"${file.source}" is ${bytes} bytes (limit ${TEMPLATE_PACK_LIMITS.maxTemplateFileBytes}).`,
+            file.source
+          )
+        );
+      }
+    }
+    const declaredVariables = new Set(manifest.variables.map((variable) => variable.name));
+    const availableBuiltins = new Set(
+      BUILTIN_VARIABLE_NAMES.filter(
+        (name) => name !== "generatedDate" || manifest?.generatedDate === true
+      )
+    );
+    for (const file of manifest.files) {
+      const content = data.files.get(file.source);
+      if (content === void 0) continue;
+      const { names, malformed } = collectPlaceholders(content);
+      for (const bad of malformed) {
+        issues.push(
+          issue22(
+            "SBT016",
+            "rendering",
+            `"${file.source}" contains a malformed placeholder "${bad}". Placeholders must be exactly {{variableName}}.`,
+            file.source
+          )
+        );
+      }
+      for (const name of names) {
+        if (!declaredVariables.has(name) && !availableBuiltins.has(name)) {
+          const hint = name === "generatedDate" ? 'Set "generatedDate": true in the manifest to opt in to the generated date.' : 'Declare it in the manifest "variables" array or remove the placeholder.';
+          issues.push(
+            issue22(
+              "SBT016",
+              "rendering",
+              `"${file.source}" references undeclared variable "{{${name}}}". ${hint}`,
+              file.source
+            )
+          );
+        }
+      }
+    }
+    const version2 = options.specbridgeVersion ?? SPECBRIDGE_VERSION;
+    if (!semverSatisfies(version2, manifest.compatibility.specbridge)) {
+      issues.push(
+        issue22(
+          "SBT006",
+          "compatibility",
+          `Template requires SpecBridge ${manifest.compatibility.specbridge}, but this is ${version2}.`
+        )
+      );
+    }
+  }
+  return {
+    origin: data.origin,
+    manifest,
+    manifestText,
+    readme,
+    files: data.files,
+    issues,
+    valid: !issues.some((entry) => entry.severity === "error")
+  };
+}
+function checkRenderedDocument(sourceLabel, target, rendered) {
+  const issues = [];
+  if (rendered.trim().length === 0) {
+    issues.push(issue22("SBT017", "rendering", `"${sourceLabel}" renders to an empty document.`, sourceLabel));
+    return issues;
+  }
+  if (!/^#\s+\S/m.test(rendered)) {
+    issues.push(
+      issue22(
+        "SBT017",
+        "rendering",
+        `"${sourceLabel}" renders without a top-level "# " heading; Kiro spec files start with one.`,
+        sourceLabel
+      )
+    );
+  }
+  if (!rendered.endsWith("\n")) {
+    issues.push(
+      warning("SBT017", "rendering", `"${sourceLabel}" does not end with a newline.`, sourceLabel)
+    );
+  }
+  if (rendered.includes("\r\n")) {
+    issues.push(
+      warning("SBT017", "rendering", `"${sourceLabel}" renders with CRLF line endings; generated files use LF.`, sourceLabel)
+    );
+  }
+  issues.push(
+    ...parserDiagnostics(target, rendered).map(
+      (diagnostic) => warning("SBT017", "rendering", `${target}: ${diagnostic.message}`, sourceLabel)
+    )
+  );
+  return issues;
+}
+function parserDiagnostics(target, rendered) {
+  const document = MarkdownDocument.fromText(rendered, target);
+  const stage = TARGET_STAGES[target];
+  switch (stage) {
+    case "requirements":
+      return parseRequirements(document).diagnostics;
+    case "design":
+      return parseDesign(document).diagnostics;
+    case "tasks":
+      return parseTasks(document).diagnostics;
+    case "bugfix":
+      return parseBugfix(document).diagnostics;
+    default:
+      return [];
+  }
+}
+var BUILTIN_TEMPLATE_PACKS = [
+  {
+    id: "authentication",
+    files: {
+      "files/design.md.template": '# Design Document\n\n## Overview\n\n**{{title}}**\n\n{{description}}\n\nThis design covers a {{sessionKind}}-based authentication and authorization\nflow for the primary actor "{{actor}}".\n\n## Goals\n\n- Add concrete goals here.\n\n## Non-Goals\n\n- Add explicitly excluded goals here.\n\n## Architecture\n\nDescribe where authentication sits: the <entry points that require it>, the\n<identity store>, the <session store>, and every service that validates the\n{{sessionKind}}.\n\n## Components and Interfaces\n\n- Credential verification: <credential mechanism and where verification runs>.\n- Issuance: <what issues the {{sessionKind}}, its format, and its lifetime>.\n- Validation: <how each protected entry point validates the {{sessionKind}}>.\n- Authorization: <where the permission check runs and what it consults>.\n- Revocation: <the interface that invalidates a {{sessionKind}} before expiry>.\n\n## Credential and Session Flow\n\nDescribe the main flow here: credential presentation, verification,\n{{sessionKind}} issuance, validation on subsequent requests, renewal, and\nsign-out.\n\n## Session Lifecycle\n\n- Expiry: <session lifetime and what the {{actor}} experiences at expiry>.\n- Renewal: <sliding or fixed expiry; how a renewal request is authenticated>.\n- Revocation: <triggers, propagation delay, and where revoked state is stored>.\n\n## Authorization Model\n\n- <Roles or permissions consulted, where the boundary is enforced, and the default when no rule matches (deny by default).>\n\n## Replay Protection\n\n- <How a captured {{sessionKind}} or one-time credential is prevented from being reused: one-time use, nonces, channel binding, or short expiry.>\n\n## Rate Limiting and Lockout\n\n- <Limits per account and per network origin, lockout threshold and duration, and the recovery path for a legitimate {{actor}}.>\n\n## Audit Events\n\n- <Events recorded (sign-in success and failure, issuance, revocation, lockout), their fields, and where they are stored.>\n\n## Failure Handling\n\n- Wrong credentials: generic failure response; no account-existence leak; the attempt counts toward lockout.\n- Identity or session store unavailable: <fail closed or degrade; what the {{actor}} sees>.\n- Lockout: <response shape, duration, and recovery path>.\n\n## Security Considerations\n\n- <Credential storage and transport, what deliberately never appears in logs, replay and fixation defenses, and how signing or encryption secrets are rotated.>\n\n## Observability\n\n- <Metrics (sign-in success rate, failure rate, lockouts, revocations), structured log fields, and alert thresholds \u2014 without credential material.>\n\n## Testing Strategy\n\n- Security tests: <wrong credentials, lockout, expired and revoked {{sessionKind}} rejection, replay attempts, authorization boundary probes>.\n- Integration tests: <happy-path sign-in, renewal, sign-out, and permission changes>.\n- Regression tests: <existing authenticated flows that must keep passing>.\n\n## Rollout\n\n- <Deployment order, coexistence with existing sessions, kill switch or rollback, and how existing sessions are migrated without a forced sign-out.>\n\n## Risks and Trade-offs\n\n- Add known risks and accepted trade-offs here.\n\n## Alternatives Considered\n\n- Add rejected alternatives and why they were rejected here.\n',
+      "files/requirements.md.template": '# Requirements Document\n\n## Introduction\n\n**{{title}}**\n\n{{description}}\n\nThis spec covers an authentication or authorization change for the primary\nactor "{{actor}}", using a {{sessionKind}}-based mechanism issued after\nsuccessful sign-in.\n\n## Glossary\n\n| Term | Definition |\n| --- | --- |\n| {{sessionKind}} | <definition of the issued credential artifact and its lifetime> |\n| <term> | <definition> |\n\n## Requirements\n\n### Requirement 1: <credential verification and sign-in>\n\n**User Story:** As a {{actor}}, I want <to prove my identity via a credential mechanism>, so that <I can reach protected functionality>.\n\n#### Acceptance Criteria\n\n1. WHEN valid credentials are presented via <credential mechanism>, THE SYSTEM SHALL issue a {{sessionKind}} scoped to the authenticated {{actor}} and record a sign-in success audit event.\n2. IF the presented credentials are wrong, THEN THE SYSTEM SHALL reject the attempt with a generic failure response that does not reveal whether the account exists.\n3. WHEN <lockout threshold> consecutive failed attempts occur for one account, THE SYSTEM SHALL lock further attempts for <lockout duration> and record a lockout audit event.\n4. IF sign-in attempts from one <rate limit scope> exceed <rate limit>, THEN THE SYSTEM SHALL reject further attempts until the window resets.\n\n### Requirement 2: <expiry revocation and replay protection>\n\n**User Story:** As a {{actor}}, I want my {{sessionKind}} to stop working when it should, so that a stolen or stale credential cannot be reused.\n\n#### Acceptance Criteria\n\n1. WHEN a {{sessionKind}} older than <session lifetime> is presented, THE SYSTEM SHALL reject it and require re-authentication.\n2. WHEN a {{sessionKind}} is revoked by <revocation trigger>, THE SYSTEM SHALL reject it within <revocation propagation delay> even though its expiry has not passed.\n3. IF a one-time credential or renewal artifact is presented a second time, THEN THE SYSTEM SHALL reject the replay and record an audit event.\n\n### Requirement 3: <authorization boundaries>\n\n**User Story:** As a {{actor}}, I want my access limited to what my permissions allow, so that protected operations stay protected.\n\n#### Acceptance Criteria\n\n1. WHEN an authenticated {{actor}} requests an operation inside their authorization boundary, THE SYSTEM SHALL allow the operation.\n2. IF an authenticated {{actor}} requests an operation outside their authorization boundary, THEN THE SYSTEM SHALL deny it with <denial response> without revealing protected details.\n3. WHEN the permissions of a {{actor}} change, THE SYSTEM SHALL enforce the new boundary on subsequent requests within <propagation delay>.\n\n### Requirement 4: <audit trail of authentication events>\n\n**User Story:** As a <security reviewer>, I want authentication events recorded, so that incidents can be investigated after the fact.\n\n#### Acceptance Criteria\n\n1. WHEN a sign-in succeeds or fails, a {{sessionKind}} is issued or revoked, or a lockout starts, THE SYSTEM SHALL record an audit event containing <audit event fields> and never the credential itself.\n2. IF the audit destination is unavailable, THEN THE SYSTEM SHALL <fail closed or buffer events per the audit policy> instead of silently dropping events.\n\n## Non-Functional Requirements\n\n- Performance: <latency budget for credential verification and per-request {{sessionKind}} validation>.\n- Security: credentials are verified via <credential mechanism>; credential material never appears in logs; every authentication endpoint is rate limited.\n- Reliability: <behavior when the identity store or session store is unavailable>.\n- Observability: sign-in outcomes, lockouts, and revocations emit <metrics and structured log fields> without credential material.\n- Compatibility: existing authenticated sessions <survive or are migrated>; no {{actor}} is silently signed out without <notice policy>.\n\n## Edge Cases\n\n- Add edge cases here (clock skew between issuing and validating services, concurrent sign-ins for one account, revocation racing an in-flight request, expiry during a long-running operation).\n\n## Out of Scope\n\n- Add explicitly excluded behavior here (account registration, credential recovery, or federation changes, if unchanged).\n',
+      "files/tasks.md.template": "# Implementation Plan\n\n- [ ] 1. Define the credential verification flow and the {{sessionKind}} format, lifetime, and issuance path.\n- [ ] 2. Implement credential verification with a generic failure response that does not reveal account existence.\n- [ ] 3. Implement {{sessionKind}} validation at every protected entry point, including expiry checks.\n- [ ] 4. Implement revocation so a revoked {{sessionKind}} is rejected before its expiry.\n- [ ] 5. Implement lockout and rate limiting for repeated failed sign-in attempts.\n- [ ] 6. Implement the authorization boundary check and its deny-by-default behavior.\n- [ ] 7. Add replay protection for one-time credentials and renewal requests.\n- [ ] 8. Add audit events for sign-in success and failure, issuance, revocation, and lockout without recording credential material.\n- [ ] 9. Write security tests covering wrong credentials, lockout, expired and revoked {{sessionKind}} rejection, replay, and authorization boundary probes.\n- [ ] 10. Verify existing authenticated flows keep passing and document the rollout and rollback steps.\n",
+      "README.md": '# Authentication template\n\nA feature spec template for adding or changing authentication or\nauthorization behavior.\n\nIt pre-structures the spec around the questions authentication changes\nalways raise: the credential and session flow, authorization boundaries,\nwrong-credential and lockout behavior, expiry, revocation, replay\nprotection, rate limiting, audit events, and security tests. It is\nvendor-neutral by design \u2014 it names mechanisms, not products.\n\n## Usage\n\n```bash\nspecbridge template preview authentication \\\n  --name login-session-refresh \\\n  --var actor=user \\\n  --var sessionKind=token\n\nspecbridge template apply authentication \\\n  --name login-session-refresh \\\n  --var actor=user \\\n  --var sessionKind=token\n```\n\n## Variables\n\n| Variable | Type | Default | Purpose |\n| --- | --- | --- | --- |\n| `actor` | string | `user` | Primary actor who authenticates (a user role or client system). |\n| `sessionKind` | enum: `token`, `cookie`, `session` | `token` | Kind of credential artifact issued after successful authentication. |\n\nThe built-in variables `specName`, `title`, `description`, `kind`, and\n`mode` are always available and are set by `--name`, `--title`, and\n`--description`.\n\n## What you still fill in\n\nThe rendered documents contain `<angle-bracket>` placeholders and\n"Add \u2026 here." lines by design. `specbridge spec analyze` blocks approval\nuntil they are replaced with real content. The template gives structure;\nthe engineering judgment stays with you.\n',
+      "specbridge-template.json": '{\n  "schemaVersion": "1.0.0",\n  "id": "authentication",\n  "version": "1.0.0",\n  "displayName": "Authentication",\n  "description": "A feature spec template for adding or changing authentication or authorization behavior: credential and session flow, authorization boundaries, wrong-credential and lockout behavior, expiry, revocation, replay protection, rate limiting, audit events, and security tests.",\n  "kind": "feature",\n  "supportedModes": ["requirements-first", "design-first", "quick"],\n  "defaultMode": "requirements-first",\n  "tags": ["authentication", "authorization", "security", "session", "identity"],\n  "files": [\n    {\n      "source": "files/requirements.md.template",\n      "target": "requirements.md",\n      "stage": "requirements",\n      "required": true\n    },\n    {\n      "source": "files/design.md.template",\n      "target": "design.md",\n      "stage": "design",\n      "required": true\n    },\n    {\n      "source": "files/tasks.md.template",\n      "target": "tasks.md",\n      "stage": "tasks",\n      "required": true\n    }\n  ],\n  "variables": [\n    {\n      "name": "actor",\n      "description": "Primary actor who authenticates (a user role or client system).",\n      "type": "string",\n      "required": false,\n      "default": "user"\n    },\n    {\n      "name": "sessionKind",\n      "description": "Kind of credential artifact issued after successful authentication.",\n      "type": "enum",\n      "required": false,\n      "default": "token",\n      "values": ["token", "cookie", "session"]\n    }\n  ],\n  "compatibility": {\n    "specbridge": ">=0.7.0 <1.0.0",\n    "kiroLayout": "1"\n  },\n  "license": "MIT",\n  "examples": [\n    "specbridge template apply authentication --name login-session-refresh --var actor=user --var sessionKind=token"\n  ]\n}\n'
+    }
+  },
+  {
+    id: "background-job",
+    files: {
+      "files/design.md.template": '# Design Document\n\n## Overview\n\n**{{title}}**\n\n{{description}}\n\nThis design covers the asynchronous background job "{{jobName}}" from\ntrigger to completion.\n\n## Goals\n\n- Add concrete goals here.\n\n## Non-Goals\n\n- Add explicitly excluded goals here.\n\n## Architecture\n\nDescribe where {{jobName}} sits: the <trigger source>, the\n<queue or scheduler>, the <worker runtime>, and the downstream systems the\njob reads and writes.\n\n## Components and Interfaces\n\n- Trigger: <event, schedule, or manual action that produces work>.\n- Work item contract: <payload schema, size limits, and versioning>.\n- Worker: <where executions run and their concurrency limits>.\n- Status surface: <how the state of an execution is observed or queried>.\n- Dead-letter destination: <where exhausted work items land and how they are reprocessed>.\n\n## Trigger and Scheduling\n\nDescribe how work is produced here: <schedule or event source>, batching,\nordering guarantees, and the concurrency policy when triggers overlap.\n\n## Execution Model\n\n- <Unit of work, transaction boundaries, and what is persisted before, during, and after an execution.>\n\n## Idempotency and Duplicate Delivery\n\n- <How a redelivered or duplicated work item is made safe: idempotency keys, natural keys, or a transactional inbox.>\n\n## Retries and Dead Letters\n\n- <Retry limit, backoff strategy, and which errors count as retryable.>\n- <When a work item is routed to the dead-letter destination, and how dead-lettered items are inspected, alerted on, and reprocessed.>\n\n## Timeout and Cancellation\n\n- <Per-attempt timeout, how a stuck execution is stopped, and the cancellation path with its consistency guarantees.>\n\n## Failure Handling\n\n- Retryable failure: <classification, backoff, and attempt accounting>.\n- Non-retryable failure: routed to the dead-letter destination with the failure reason; no further retries.\n- Crash mid-execution: <how partially completed work is detected and made safe on redelivery>.\n- Downstream dependency unavailable: <pause or circuit behavior and queue growth bounds>.\n\n## Security Considerations\n\n- <Worker identity and least privilege, payload protection in transit and at rest, and what deliberately never appears in logs.>\n\n## Observability\n\n- <Metrics (executions, failures, retries, dead letters, duration, queue depth), structured log fields with attempt number, and trace propagation from trigger to execution.>\n\n## Testing Strategy\n\n- Unit tests: <execution logic, including idempotency under duplicate delivery>.\n- Integration tests: <trigger to completion, retry after failure, timeout, cancellation, and dead-letter routing>.\n- Regression tests: <existing consumers of the job output that must keep passing>.\n\n## Rollout\n\n- <Deployment order for producer and worker, draining or pausing the queue during deploy, feature flag or shadow run, and rollback without losing queued work.>\n\n## Risks and Trade-offs\n\n- Add known risks and accepted trade-offs here.\n\n## Alternatives Considered\n\n- Add rejected alternatives and why they were rejected here.\n',
+      "files/requirements.md.template": '# Requirements Document\n\n## Introduction\n\n**{{title}}**\n\n{{description}}\n\nThis spec covers the asynchronous background job "{{jobName}}": what\ntriggers it, how it is scheduled, and how it behaves under retries,\nduplicate delivery, timeouts, and cancellation.\n\n## Glossary\n\n| Term | Definition |\n| --- | --- |\n| {{jobName}} | <definition of the job and its unit of work> |\n| <term> | <definition> |\n\n## Requirements\n\n### Requirement 1: <trigger and scheduling>\n\n**User Story:** As a <operator or dependent system>, I want {{jobName}} to run when <trigger occurs>, so that <benefit>.\n\n#### Acceptance Criteria\n\n1. WHEN <the trigger event arrives or the schedule fires>, THE SYSTEM SHALL enqueue one execution of {{jobName}} carrying <work item payload>.\n2. WHEN an execution of {{jobName}} starts, THE SYSTEM SHALL record <execution start marker> including the trigger that caused it.\n3. IF the trigger fires while a previous execution is still running, THEN THE SYSTEM SHALL <run concurrently, skip, or queue> according to <the declared concurrency policy>.\n\n### Requirement 2: <retries idempotency and duplicate delivery>\n\n**User Story:** As a <operator>, I want repeated or duplicated executions to be safe, so that retries and redelivery never corrupt data.\n\n#### Acceptance Criteria\n\n1. WHEN an execution of {{jobName}} fails with a retryable error, THE SYSTEM SHALL retry it up to <retry limit> times with <backoff strategy>.\n2. WHEN the same work item is delivered more than once, THE SYSTEM SHALL produce the same observable outcome as exactly one successful execution.\n3. IF an execution fails with a non-retryable error, THEN THE SYSTEM SHALL stop retrying and route the work item to <dead-letter destination> with the failure reason.\n\n### Requirement 3: <timeout cancellation and dead letters>\n\n**User Story:** As a <operator>, I want stuck or cancelled work bounded and visible, so that failures stay recoverable.\n\n#### Acceptance Criteria\n\n1. WHEN an execution of {{jobName}} exceeds <per-attempt timeout>, THE SYSTEM SHALL stop it and count the attempt as a retryable failure.\n2. WHEN cancellation is requested, THE SYSTEM SHALL stop the execution at <cancellation point> and leave persisted data in a consistent state.\n3. IF a work item reaches <dead-letter destination>, THEN THE SYSTEM SHALL emit <alert or metric> so an operator can inspect and reprocess it.\n\n## Non-Functional Requirements\n\n- Performance: <expected throughput, queue depth bounds, and completion latency for {{jobName}}>.\n- Security: the worker runs with <least-privilege identity>; sensitive payload fields are <protected in transit and at rest> and never logged.\n- Reliability: <behavior when the queue, the scheduler, or a downstream dependency is unavailable>.\n- Observability: every execution emits <structured log fields, metrics, and trace spans> including attempt number and outcome.\n- Compatibility: existing consumers of the output of {{jobName}} are not broken; <additive changes only, or a documented versioning step>.\n\n## Edge Cases\n\n- Add edge cases here (clock skew around scheduled runs, redelivery after a crash mid-execution, poison messages, cancellation racing a retry, partial downstream failures).\n\n## Out of Scope\n\n- Add explicitly excluded behavior here.\n',
+      "files/tasks.md.template": "# Implementation Plan\n\n- [ ] 1. Define the work item contract for {{jobName}}: payload schema, idempotency key, and size limits.\n- [ ] 2. Implement the trigger and scheduling path that enqueues {{jobName}} work items.\n- [ ] 3. Implement the worker execution logic with explicit transaction boundaries.\n- [ ] 4. Implement idempotent processing so duplicate delivery produces the same outcome as one execution.\n- [ ] 5. Implement retries with backoff and route exhausted work items to the dead-letter destination.\n- [ ] 6. Implement the per-attempt timeout and the cancellation path.\n- [ ] 7. Add observability: metrics, structured logs with attempt number, and trace propagation from trigger to execution.\n- [ ] 8. Write integration tests for retry, duplicate delivery, timeout, cancellation, and dead-letter routing.\n- [ ] 9. Measure throughput and completion latency against the non-functional requirements.\n- [ ] 10. Verify existing consumers of the job output keep passing and document the rollout and rollback steps.\n",
+      "README.md": '# Background Job template\n\nA feature spec template for adding or changing an asynchronous background\njob or worker.\n\nIt pre-structures the spec around the questions background jobs always\nraise: the trigger and scheduling policy, retries and backoff, idempotency\nunder duplicate delivery, timeouts, dead-letter behavior, cancellation,\nobservability, and tests. It is vendor-neutral by design \u2014 any queue,\nscheduler, or worker runtime fits.\n\n## Usage\n\n```bash\nspecbridge template preview background-job \\\n  --name invoice-export-worker \\\n  --var jobName=invoice-export\n\nspecbridge template apply background-job \\\n  --name invoice-export-worker \\\n  --var jobName=invoice-export\n```\n\n## Variables\n\n| Variable | Type | Default | Purpose |\n| --- | --- | --- | --- |\n| `jobName` | string | `background-job` | Short name of the job or worker (lowercase-hyphen). |\n\nThe built-in variables `specName`, `title`, `description`, `kind`, and\n`mode` are always available and are set by `--name`, `--title`, and\n`--description`.\n\n## What you still fill in\n\nThe rendered documents contain `<angle-bracket>` placeholders and\n"Add \u2026 here." lines by design. `specbridge spec analyze` blocks approval\nuntil they are replaced with real content. The template gives structure;\nthe engineering judgment stays with you.\n',
+      "specbridge-template.json": '{\n  "schemaVersion": "1.0.0",\n  "id": "background-job",\n  "version": "1.0.0",\n  "displayName": "Background Job",\n  "description": "A feature spec template for adding or changing an asynchronous background job or worker: trigger, scheduling, retries, idempotency, duplicate delivery, timeouts, dead-letter behavior, cancellation, observability, and tests.",\n  "kind": "feature",\n  "supportedModes": ["requirements-first", "design-first", "quick"],\n  "defaultMode": "requirements-first",\n  "tags": ["background-job", "worker", "queue", "async", "scheduling"],\n  "files": [\n    {\n      "source": "files/requirements.md.template",\n      "target": "requirements.md",\n      "stage": "requirements",\n      "required": true\n    },\n    {\n      "source": "files/design.md.template",\n      "target": "design.md",\n      "stage": "design",\n      "required": true\n    },\n    {\n      "source": "files/tasks.md.template",\n      "target": "tasks.md",\n      "stage": "tasks",\n      "required": true\n    }\n  ],\n  "variables": [\n    {\n      "name": "jobName",\n      "description": "Short name of the job or worker (lowercase-hyphen, e.g. \\"invoice-export\\").",\n      "type": "string",\n      "required": false,\n      "default": "background-job"\n    }\n  ],\n  "compatibility": {\n    "specbridge": ">=0.7.0 <1.0.0",\n    "kiroLayout": "1"\n  },\n  "license": "MIT",\n  "examples": [\n    "specbridge template apply background-job --name invoice-export-worker --var jobName=invoice-export"\n  ]\n}\n'
+    }
+  },
+  {
+    id: "bugfix-regression",
+    files: {
+      "files/bugfix.md.template": "# Bugfix Document\n\n## Summary\n\n**{{title}}**\n\n{{description}}\n\nSeverity: {{severity}}. Affected area: {{affectedArea}}.\n\n## Current Behavior\n\nDescribe the observed incorrect behavior here, exactly as it happens.\n\n## Expected Behavior\n\nDescribe the correct behavior here, with the authoritative source for why\nit is correct (spec, documentation, prior release behavior).\n\n## Unchanged Behavior\n\n- List behavior in {{affectedArea}} that must remain unchanged here.\n- List adjacent features that share code with the fix here.\n\n## Reproduction\n\n1. Add deterministic reproduction steps here.\n2. <input or state required>\n3. <action that triggers the bug>\n4. <observed incorrect result>\n\n## Evidence\n\n- Logs: add relevant log lines here.\n- Error messages: add exact error text here.\n- Screenshots: add links or paths here.\n- Failing tests: add failing test names here.\n- Relevant source locations: add file paths here.\n- First known bad version or commit: <version or commit, if known>.\n\n## Constraints\n\n- Add implementation or compatibility constraints here.\n- <Data already written by the buggy behavior and whether it needs repair.>\n\n## Regression Risks\n\n- Add behavior that could regress here.\n- <Callers or consumers relying on the buggy behavior, if any.>\n",
+      "files/design.md.template": "# Fix Design\n\n## Root Cause\n\nDocument the confirmed root cause here, with the evidence that confirms it.\nIf the root cause is still suspected rather than confirmed, say so\nexplicitly and list what would confirm it.\n\n## Proposed Fix\n\nDescribe the smallest safe fix here. State why a smaller fix is not\npossible.\n\n## Affected Components\n\n- Add affected files and components in {{affectedArea}} here.\n\n## Failure Handling\n\n- Add failure modes introduced or fixed by this change here.\n- <What happens if the fix encounters data written by the buggy behavior.>\n\n## Alternatives Considered\n\n- Add rejected alternatives and why they were rejected here.\n\n## Regression Protection\n\n- Add the regression test that fails before the fix and passes after it here.\n- Add tests pinning the unchanged behavior listed in the bugfix document here.\n\n## Validation Strategy\n\n- Add the checks that prove the fix works here: the reproduction steps from\n  the bugfix document, the regression tests, and any data verification.\n",
+      "files/tasks.md.template": "# Bugfix Implementation Plan\n\n- [ ] 1. Reproduce the bug with the deterministic steps from the bugfix document.\n- [ ] 2. Capture evidence (logs, failing test, source locations) before changing code.\n- [ ] 3. Confirm the root cause and record it in the fix design.\n- [ ] 4. Write a regression test that fails on the current behavior.\n- [ ] 5. Implement the smallest safe fix.\n- [ ] 6. Verify the regression test passes and the reproduction no longer occurs.\n- [ ] 7. Verify the unchanged behavior listed in the bugfix document still holds.\n- [ ] 8. Check for data written by the buggy behavior and repair it if required.\n- [ ] 9. Run the full validation checks and document remaining risks.\n",
+      "README.md": '# Bugfix Regression template\n\nA bugfix spec template that keeps the fix honest: evidence before root\ncause, root cause before fix, and regression tests before done.\n\nIt follows the bugfix format SpecBridge analyzes: current behavior,\nexpected behavior, unchanged behavior, reproduction, evidence, root cause,\nthe smallest safe fix, regression tests, and verification.\n\n## Usage\n\n```bash\nspecbridge template preview bugfix-regression \\\n  --name checkout-total-rounding \\\n  --var severity=high\n\nspecbridge template apply bugfix-regression \\\n  --name checkout-total-rounding \\\n  --var severity=high\n```\n\n## Variables\n\n| Variable | Type | Default | Purpose |\n| --- | --- | --- | --- |\n| `affectedArea` | string | `the affected component` | Where the bug appears. |\n| `severity` | enum (`low`, `medium`, `high`, `critical`) | `medium` | Impact severity. |\n\nThe built-in variables `specName`, `title`, `description`, `kind`, and\n`mode` are always available and are set by `--name`, `--title`, and\n`--description`.\n\n## What you still fill in\n\nThe rendered documents contain `<angle-bracket>` placeholders and\n"Add \u2026 here." lines by design. `specbridge spec analyze` blocks approval\nuntil they are replaced with real reproduction steps and evidence.\n',
+      "specbridge-template.json": '{\n  "schemaVersion": "1.0.0",\n  "id": "bugfix-regression",\n  "version": "1.0.0",\n  "displayName": "Bugfix Regression",\n  "description": "A bugfix spec template built around evidence: current vs expected behavior, unchanged behavior, reproduction, root cause, the smallest safe fix, and the regression tests that keep it fixed.",\n  "kind": "bugfix",\n  "supportedModes": ["requirements-first", "quick"],\n  "defaultMode": "requirements-first",\n  "tags": ["bugfix", "regression", "debugging", "quality"],\n  "files": [\n    {\n      "source": "files/bugfix.md.template",\n      "target": "bugfix.md",\n      "stage": "bugfix",\n      "required": true\n    },\n    {\n      "source": "files/design.md.template",\n      "target": "design.md",\n      "stage": "design",\n      "required": true\n    },\n    {\n      "source": "files/tasks.md.template",\n      "target": "tasks.md",\n      "stage": "tasks",\n      "required": true\n    }\n  ],\n  "variables": [\n    {\n      "name": "affectedArea",\n      "description": "Component, module, or user-facing surface where the bug appears.",\n      "type": "string",\n      "required": false,\n      "default": "the affected component"\n    },\n    {\n      "name": "severity",\n      "description": "Impact severity of the bug.",\n      "type": "enum",\n      "required": false,\n      "default": "medium",\n      "values": ["low", "medium", "high", "critical"]\n    }\n  ],\n  "compatibility": {\n    "specbridge": ">=0.7.0 <1.0.0",\n    "kiroLayout": "1"\n  },\n  "license": "MIT",\n  "examples": [\n    "specbridge template apply bugfix-regression --name checkout-total-rounding --var severity=high"\n  ]\n}\n'
+    }
+  },
+  {
+    id: "cli-tool",
+    files: {
+      "files/design.md.template": '# Design Document\n\n## Overview\n\n**{{title}}**\n\n{{description}}\n\nThis design covers the `{{commandName}}` command surface and its output\ncontract for the primary actor "{{actor}}".\n\n## Goals\n\n- Add concrete goals here.\n\n## Non-Goals\n\n- Add explicitly excluded goals here.\n\n## Architecture\n\nDescribe where the command sits: <argument parser>, <command handlers>,\n<core logic they call>, and <output writers for human and machine formats>.\n\n## Components and Interfaces\n\n- Command(s): `{{commandName}} <subcommand>` \u2014 <purpose>.\n- Arguments and options: <positional arguments, flags, defaults, and conflicting combinations>.\n- Exit codes: <documented code per outcome class>.\n- Output contract: <human-readable stdout shape> and <machine-readable shape behind the structured output flag>.\n- Environment: <environment variables and configuration files read, with precedence order>.\n\n## Command-Line UX\n\n- Help text: <content shown for the help flag at each command level>.\n- Prompts: <which runs may prompt, and the non-interactive equivalent for each>.\n- Progress and color: <when progress and color are emitted, and how they are disabled when stdout is not a terminal>.\n\n## Control Flow\n\nDescribe the main invocation path here: parse, validate, execute, format,\nexit.\n\n## Failure Handling\n\n- Validation failure: usage error on stderr, nonzero exit code, no side effects.\n- Runtime failure: <error message shape, exit code, and cleanup of partial state>.\n- Interruption: <behavior on Ctrl-C mid-operation and what state is left behind>.\n\n## Security Considerations\n\n- <Input validation for arguments, environment, and configuration; what never appears in output or logs; permissions of any files the command writes.>\n\n## Observability\n\n- <Verbose and debug flags, structured diagnostics on stderr, and any usage telemetry with its opt-in or opt-out behavior.>\n\n## Testing Strategy\n\n- Unit tests: <parsing, validation, and exit-code mapping per failure class>.\n- Integration tests: <end-to-end runs covering stdout/stderr separation, structured output, and non-interactive behavior>.\n- Platform tests: <the operating systems and shells the command must pass on>.\n\n## Rollout\n\n- <How the change ships: version bump, changelog entry, deprecation notices for renamed flags, and how existing scripts keep working.>\n\n## Risks and Trade-offs\n\n- Add known risks and accepted trade-offs here.\n\n## Alternatives Considered\n\n- Add rejected alternatives and why they were rejected here.\n',
+      "files/requirements.md.template": '# Requirements Document\n\n## Introduction\n\n**{{title}}**\n\n{{description}}\n\nThis spec covers a command-line change to `{{commandName}}` used by the\nprimary actor "{{actor}}", in interactive terminals and in scripts.\n\n## Glossary\n\n| Term | Definition |\n| --- | --- |\n| {{commandName}} | <definition of the command> |\n| <term> | <definition> |\n\n## Requirements\n\n### Requirement 1: <command purpose and arguments>\n\n**User Story:** As a {{actor}}, I want <capability via the command>, so that <benefit>.\n\n#### Acceptance Criteria\n\n1. WHEN `{{commandName}} <subcommand>` is invoked with valid arguments, THE SYSTEM SHALL <expected behavior> and exit with code 0.\n2. WHEN a required argument is missing, THE SYSTEM SHALL print a usage message naming the argument to stderr and exit with a nonzero code.\n3. IF an unknown option or a malformed value is supplied, THEN THE SYSTEM SHALL reject the invocation with an error on stderr naming the option and exit with a nonzero code.\n4. WHEN the command succeeds, THE SYSTEM SHALL write results to stdout only and keep diagnostics on stderr.\n\n### Requirement 2: <machine-readable output>\n\n**User Story:** As a {{actor}}, I want structured output behind a flag, so that scripts consume results without parsing prose.\n\n#### Acceptance Criteria\n\n1. WHEN the structured output flag (e.g. `--json`) is supplied, THE SYSTEM SHALL emit <output format> to stdout with a stable, documented shape.\n2. IF an error occurs while structured output is requested, THEN THE SYSTEM SHALL emit a machine-readable error with <error fields> and exit with a nonzero code.\n3. WHEN structured output is requested, THE SYSTEM SHALL keep human-oriented messages and progress output off stdout.\n\n### Requirement 3: <non-interactive and scripted use>\n\n**User Story:** As a {{actor}}, I want `{{commandName}}` to run unattended, so that CI jobs and scripts never hang on a prompt.\n\n#### Acceptance Criteria\n\n1. WHEN stdin is not a terminal, THE SYSTEM SHALL run without prompting and SHALL fail with a nonzero exit code when required input is missing.\n2. IF a destructive action normally asks for confirmation, THEN THE SYSTEM SHALL require <an explicit confirmation flag> in non-interactive runs instead of prompting.\n3. WHEN stdout is piped to another process, THE SYSTEM SHALL disable <interactive-only formatting such as color and progress bars>.\n\n### Requirement 4: <exit codes and error reporting>\n\n**User Story:** As a {{actor}}, I want documented exit codes, so that scripts branch on failure classes reliably.\n\n#### Acceptance Criteria\n\n1. WHEN the command completes, THE SYSTEM SHALL exit with a code from the documented set: 0 for success and <distinct nonzero codes per failure class>.\n2. IF an internal error occurs, THEN THE SYSTEM SHALL print a diagnostic message to stderr without a stack trace by default and exit with <the internal-error code>.\n\n## Non-Functional Requirements\n\n- Performance: <startup and completion time budget for a typical invocation>.\n- Security: arguments and environment input are validated before use; secrets never appear in stdout, stderr, or help examples.\n- Reliability: <behavior on interruption (Ctrl-C) and on partial failure \u2014 what state is left behind>.\n- Observability: <verbose or debug flag> writes diagnostics to stderr; normal runs stay quiet.\n- Compatibility: behavior is consistent across <supported operating systems and shells>; documented output shapes stay stable for existing scripts.\n\n## Edge Cases\n\n- Add edge cases here (broken pipe on stdout, very large input or output, non-UTF-8 arguments, missing locale, conflicting options, concurrent invocations sharing state).\n\n## Out of Scope\n\n- Add explicitly excluded behavior here.\n',
+      "files/tasks.md.template": "# Implementation Plan\n\n- [ ] 1. Define the command surface for `{{commandName}}`: subcommands, arguments, options, and the documented exit-code set.\n- [ ] 2. Implement argument and option parsing with usage errors written to stderr and a nonzero exit code.\n- [ ] 3. Implement the core command behavior with results on stdout and diagnostics on stderr.\n- [ ] 4. Implement the machine-readable output mode behind a flag (e.g. `--json`) with a stable, documented shape.\n- [ ] 5. Implement non-interactive behavior: no prompts when stdin is not a terminal, with an explicit confirmation flag for destructive actions.\n- [ ] 6. Add exit-code mapping so every failure class exits with its documented code.\n- [ ] 7. Write unit tests for parsing, validation, and exit-code mapping.\n- [ ] 8. Write integration tests that run `{{commandName}}` end to end, including piped stdout and structured output.\n- [ ] 9. Verify behavior on every supported platform and shell, and record any differences.\n- [ ] 10. Document the command: help text, examples for interactive and scripted use, and the exit-code table.\n",
+      "README.md": '# Command-Line Tool template\n\nA feature spec template for adding or changing a command-line tool or\ncommand.\n\nIt pre-structures the spec around the questions CLI changes always raise:\nthe command surface (subcommands, arguments, options), exit codes,\nstdout/stderr discipline, machine-readable output, non-interactive and\nscripted use, platform compatibility, error handling, and tests.\n\n## Usage\n\n```bash\nspecbridge template preview cli-tool \\\n  --name my-tool \\\n  --var commandName=mycli\n\nspecbridge template apply cli-tool \\\n  --name my-tool \\\n  --var commandName=mycli\n```\n\n## Variables\n\n| Variable | Type | Default | Purpose |\n| --- | --- | --- | --- |\n| `commandName` | string | `mycli` | Name of the command the spec covers. |\n| `actor` | string | `developer` | Primary user of the command. |\n\nThe built-in variables `specName`, `title`, `description`, `kind`, and\n`mode` are always available and are set by `--name`, `--title`, and\n`--description`.\n\n## What you still fill in\n\nThe rendered documents contain `<angle-bracket>` placeholders and\n"Add \u2026 here." lines by design. `specbridge spec analyze` blocks approval\nuntil they are replaced with real content. The template gives structure;\nthe engineering judgment stays with you.\n',
+      "specbridge-template.json": '{\n  "schemaVersion": "1.0.0",\n  "id": "cli-tool",\n  "version": "1.0.0",\n  "displayName": "Command-Line Tool",\n  "description": "A feature spec template for adding or changing a command-line tool or command: command surface, arguments and options, exit codes, stdout/stderr behavior, machine-readable output, non-interactive use, platform compatibility, error handling, and tests.",\n  "kind": "feature",\n  "supportedModes": ["requirements-first", "design-first", "quick"],\n  "defaultMode": "requirements-first",\n  "tags": ["cli", "command-line", "tooling", "developer-experience", "ux"],\n  "files": [\n    {\n      "source": "files/requirements.md.template",\n      "target": "requirements.md",\n      "stage": "requirements",\n      "required": true\n    },\n    {\n      "source": "files/design.md.template",\n      "target": "design.md",\n      "stage": "design",\n      "required": true\n    },\n    {\n      "source": "files/tasks.md.template",\n      "target": "tasks.md",\n      "stage": "tasks",\n      "required": true\n    }\n  ],\n  "variables": [\n    {\n      "name": "commandName",\n      "description": "Name of the command the spec covers (e.g. \\"mycli\\").",\n      "type": "string",\n      "required": false,\n      "default": "mycli"\n    },\n    {\n      "name": "actor",\n      "description": "Primary user of the command (a role, e.g. \\"developer\\").",\n      "type": "string",\n      "required": false,\n      "default": "developer"\n    }\n  ],\n  "compatibility": {\n    "specbridge": ">=0.7.0 <1.0.0",\n    "kiroLayout": "1"\n  },\n  "license": "MIT",\n  "examples": [\n    "specbridge template apply cli-tool --name my-tool --var commandName=mycli"\n  ]\n}\n'
+    }
+  },
+  {
+    id: "database-migration",
+    files: {
+      "files/design.md.template": "# Design Document\n\n## Overview\n\n**{{title}}**\n\n{{description}}\n\nThis design covers the schema change and backfill for the `{{tableName}}`\ntable and the deployment order around them.\n\n## Goals\n\n- Add concrete goals here.\n\n## Non-Goals\n\n- Add explicitly excluded goals here.\n\n## Architecture\n\nDescribe how the migration is orchestrated: <migration tooling and version\ntracking>, the phase split (expand, backfill, contract), and <where each\nphase runs \u2014 deploy pipeline, job runner, or manual gate>.\n\n## Schema Change\n\n- DDL: <the exact schema statements per phase \u2014 additive first, destructive last>.\n- Constraints and defaults: <new constraints, whether they are validated online, and default values for existing rows>.\n- Data types: <type changes and any precision or range implications>.\n\n## Data Migration and Backfill\n\n- Batching: <batch size, ordering key, and pacing between batches>.\n- Checkpointing: <how progress is recorded so an interrupted run resumes>.\n- Idempotency: <why re-running a batch cannot corrupt or double-write rows>.\n- Live writes: <how rows written during the backfill window are covered \u2014 dual-write, triggers, or a final sweep>.\n\n## Indexes and Locking\n\n- Index builds: <online or offline build strategy per index, and expected build time>.\n- Lock scope: <which statements take which locks on `{{tableName}}`, and the lock budget>.\n- Timeouts: <lock and statement timeouts so a stuck migration fails instead of blocking traffic>.\n\n## Backward Compatibility\n\n- <How the previous application release keeps working after each phase: additive columns with defaults, tolerant readers, dual-write or dual-read strategy.>\n\n## Affected Components\n\n- Add every code path that reads or writes `{{tableName}}` here, with the change each one needs.\n\n## Rollback Limitations\n\nNot every step of this migration is reversible. Identify each irreversible\nstep explicitly and pair it with a mitigation instead of assuming a reverse\nmigration exists.\n\n- Reversible steps: <steps with a tested reverse migration>.\n- Irreversible steps: <dropped columns, destructive rewrites, lost precision \u2014 and the point of no return in the rollout>.\n- Mitigations: <backups, snapshots, dark-read windows, or a delayed contract phase for each irreversible step>.\n\n## Failure Handling\n\n- Failed schema statement: <what state the database is in and how the run is retried or abandoned>.\n- Failed or stuck backfill batch: <retry policy, skip or dead-letter strategy, and alerting>.\n- Exceeded lock or duration budget: <abort criteria and who decides to resume>.\n\n## Security Considerations\n\n- <Credentials and privileges the migration runs with, audit trail for destructive statements, and where any data copies live and when they are deleted.>\n\n## Observability\n\n- <Progress metrics (batches, rows, duration), log fields per phase, and the dashboards or alerts watched during the run.>\n\n## Testing Strategy\n\n- Migration tests: <apply to an empty database and to a production-like dataset; assert schema and row outcomes>.\n- Interruption tests: <stop the backfill mid-run and verify a clean resume>.\n- Compatibility tests: <run the previous application release against the migrated schema>.\n- Validation queries: <row counts and integrity checks proving the backfill is complete and correct>.\n\n## Rollout\n\n- <Deployment order across schema, backfill, and application releases; stage gates between phases; and when the contract phase is safe to run.>\n\n## Risks and Trade-offs\n\n- Add known risks and accepted trade-offs here.\n\n## Alternatives Considered\n\n- Add rejected alternatives and why they were rejected here.\n",
+      "files/requirements.md.template": "# Requirements Document\n\n## Introduction\n\n**{{title}}**\n\n{{description}}\n\nThis spec covers a schema and/or data migration for the `{{tableName}}`\ntable, including the backfill and the deployment order that keeps the\nrunning application working throughout.\n\n## Glossary\n\n| Term | Definition |\n| --- | --- |\n| {{tableName}} | <definition of the table and what a row represents> |\n| Backfill | <definition of the data migration step for existing rows> |\n| <term> | <definition> |\n\n## Requirements\n\n### Requirement 1: <schema change>\n\n**User Story:** As a <service owner>, I want <the schema change>, so that <benefit>.\n\n#### Acceptance Criteria\n\n1. WHEN the migration is applied to <target environment>, THE SYSTEM SHALL produce <the new schema shape> on the `{{tableName}}` table without losing or altering existing rows.\n2. IF the migration is applied a second time, THEN THE SYSTEM SHALL make no further changes and report success (idempotent or guarded by <migration version tracking>).\n3. WHEN the migration runs at <expected production data volume>, THE SYSTEM SHALL hold locks on `{{tableName}}` no longer than <lock budget>.\n\n### Requirement 2: <data migration and backfill>\n\n**User Story:** As a <service owner>, I want existing rows migrated in bounded batches, so that the database stays responsive during the backfill.\n\n#### Acceptance Criteria\n\n1. WHEN the backfill runs, THE SYSTEM SHALL migrate all existing `{{tableName}}` rows in batches of at most <batch size>.\n2. IF the backfill is interrupted, THEN THE SYSTEM SHALL resume from <checkpoint mechanism> without corrupting or double-writing rows.\n3. WHEN the backfill completes, THE SYSTEM SHALL report <a validation count or checksum> showing zero unmigrated rows.\n4. WHEN rows are written during the backfill window, THE SYSTEM SHALL migrate or preserve those writes so none are lost.\n\n### Requirement 3: <backward compatibility and deployment order>\n\n**User Story:** As a <release manager>, I want the previous and the new application release to work against the migrated schema, so that the rollout needs no downtime.\n\n#### Acceptance Criteria\n\n1. WHEN the schema change is deployed before the application change, THE SYSTEM SHALL keep the currently released application version working unchanged.\n2. IF the application is rolled back after the schema change, THEN THE SYSTEM SHALL keep the previous application release functional against the new schema.\n3. WHEN reads and writes occur during the migration window, THE SYSTEM SHALL return consistent results for <the affected queries>.\n\n### Requirement 4: <rollback and irreversibility>\n\n**User Story:** As a <service owner>, I want an honest, documented rollback path, so that a bad migration is contained without guesswork.\n\n#### Acceptance Criteria\n\n1. WHEN a rollback is executed before the backfill starts, THE SYSTEM SHALL restore the previous schema of the `{{tableName}}` table.\n2. IF a rollback is requested after an irreversible step has run (dropped columns, destructive rewrites, lost precision), THEN THE SYSTEM SHALL refuse an automatic reverse migration and report the documented manual recovery path.\n\n## Non-Functional Requirements\n\n- Performance: the migration and backfill complete within <duration budget> at <expected data volume> without exceeding <load budget> on the database.\n- Security: the migration runs with <least-privilege credentials>; production data is never copied outside <approved storage>.\n- Reliability: every step is idempotent or guarded by migration version tracking; an interrupted run leaves the database in a recoverable state.\n- Observability: progress, batch counts, row counts, and errors are emitted to <logs or metrics> throughout the run.\n- Compatibility: the previous and the new application release both operate against the migrated schema for the whole rollout window.\n\n## Edge Cases\n\n- Add edge cases here (rows inserted or updated mid-backfill, null or out-of-range values in existing data, replication lag on read replicas, long-running transactions blocking schema changes, retries after a partial batch failure).\n\n## Out of Scope\n\n- Add explicitly excluded behavior here.\n",
+      "files/tasks.md.template": "# Implementation Plan\n\n- [ ] 1. Define the target schema for `{{tableName}}` and split the migration into expand, backfill, and contract phases.\n- [ ] 2. Write the expand-phase migration script with additive schema changes only.\n- [ ] 3. Implement the backfill as batched, checkpointed, idempotent steps with progress logging.\n- [ ] 4. Add index builds using an online strategy where available, with lock and statement timeouts set.\n- [ ] 5. Implement compatibility in the application (dual-write, tolerant reads, or a feature flag) for the rollout window.\n- [ ] 6. Document every irreversible step with its point of no return and the manual recovery path for each.\n- [ ] 7. Write validation queries that prove row counts and data integrity before and after the backfill.\n- [ ] 8. Measure migration and backfill duration and lock impact on a production-like dataset.\n- [ ] 9. Add automated tests covering an empty database, a populated database, and an interrupted backfill.\n- [ ] 10. Verify the full deployment order in a staging rehearsal, including the rollback path, and record the results.\n",
+      "README.md": '# Database Migration template\n\nA feature spec template for a schema and/or data migration.\n\nIt pre-structures the spec around the questions migrations always raise:\nthe schema change itself, the batched data backfill, backward compatibility\nand zero-downtime deployment order, indexes and locking, rollback\nlimitations (including steps that cannot be reversed), performance,\nvalidation, and observability.\n\n## Usage\n\n```bash\nspecbridge template preview database-migration \\\n  --name orders-status-backfill \\\n  --var tableName=orders\n\nspecbridge template apply database-migration \\\n  --name orders-status-backfill \\\n  --var tableName=orders\n```\n\n## Variables\n\n| Variable | Type | Default | Purpose |\n| --- | --- | --- | --- |\n| `tableName` | string | `records` | Primary table the migration changes. |\n\nThe built-in variables `specName`, `title`, `description`, `kind`, and\n`mode` are always available and are set by `--name`, `--title`, and\n`--description`.\n\n## What you still fill in\n\nThe rendered documents contain `<angle-bracket>` placeholders and\n"Add \u2026 here." lines by design. `specbridge spec analyze` blocks approval\nuntil they are replaced with real content. In particular, the "Rollback\nLimitations" section only stays honest if you identify the genuinely\nirreversible steps yourself. The template gives structure; the engineering\njudgment stays with you.\n',
+      "specbridge-template.json": '{\n  "schemaVersion": "1.0.0",\n  "id": "database-migration",\n  "version": "1.0.0",\n  "displayName": "Database Migration",\n  "description": "A feature spec template for a schema or data migration: the schema change, batched backfill, backward compatibility, zero-downtime deployment order, indexes and locking, rollback limitations, validation, and observability.",\n  "kind": "feature",\n  "supportedModes": ["requirements-first", "design-first", "quick"],\n  "defaultMode": "requirements-first",\n  "tags": ["database", "migration", "schema", "sql", "backfill"],\n  "files": [\n    {\n      "source": "files/requirements.md.template",\n      "target": "requirements.md",\n      "stage": "requirements",\n      "required": true\n    },\n    {\n      "source": "files/design.md.template",\n      "target": "design.md",\n      "stage": "design",\n      "required": true\n    },\n    {\n      "source": "files/tasks.md.template",\n      "target": "tasks.md",\n      "stage": "tasks",\n      "required": true\n    }\n  ],\n  "variables": [\n    {\n      "name": "tableName",\n      "description": "Primary table the migration changes (e.g. \\"orders\\").",\n      "type": "string",\n      "required": false,\n      "default": "records"\n    }\n  ],\n  "compatibility": {\n    "specbridge": ">=0.7.0 <1.0.0",\n    "kiroLayout": "1"\n  },\n  "license": "MIT",\n  "examples": [\n    "specbridge template apply database-migration --name orders-status-backfill --var tableName=orders"\n  ]\n}\n'
+    }
+  },
+  {
+    id: "event-driven-service",
+    files: {
+      "files/design.md.template": "# Design Document\n\n## Overview\n\n**{{title}}**\n\n{{description}}\n\nThis design covers the `{{eventName}}` event from producer to consumers,\nwith {{deliverySemantics}} delivery and idempotent consumption as the\ndefault posture.\n\n## Goals\n\n- Add concrete goals here.\n\n## Non-Goals\n\n- Add explicitly excluded goals here.\n\n## Architecture\n\nDescribe the event flow end to end: <producing service> publishes\n`{{eventName}}` to <topic, queue, or stream>, and <consuming services>\nsubscribe via <subscription mechanism>. Name the kind of channel in use\n(e.g. a log-based stream or a work queue) and where this change sits in it.\n\n## Components and Interfaces\n\n- Producer: <service and code path that emits the event, and the transactional boundary it publishes from>.\n- Consumer(s): <services that subscribe, and the effect each applies>.\n- Channel: <topic, queue, or stream name, and its partitioning or routing scheme>.\n- Dead-letter destination: <where undeliverable events go and who owns them>.\n\n## Event Contract\n\n- Name and version: `{{eventName}}` <version>.\n- Payload schema: <fields, types, required vs. optional, size bounds>.\n- Envelope metadata: <event id, timestamp, correlation identifier, producer identity>.\n- Ordering key: <the key that groups events whose relative order matters, or state that none exists>.\n\n## Delivery Semantics\n\nThis design commits to {{deliverySemantics}} delivery. Exactly-once\ndelivery is deliberately not claimed \u2014 no broker provides it end to end \u2014\nso the consumer side carries the burden:\n\n- At-least-once: duplicates are possible; every consumer effect must be idempotent (see Idempotency).\n- At-most-once: loss is possible; state the business justification for tolerating dropped events.\n- <Record which consequence applies to this change and how consumers are protected from it.>\n\n## Ordering\n\n- <Guarantee within an ordering key, behavior across keys, and what consumers may and may not assume.>\n\n## Idempotency\n\n- <Deduplication strategy: event-id tracking, natural keys, or conditional writes \u2014 and the retention window for deduplication state.>\n\n## Retries and Dead-Letter Behavior\n\n- Retry policy: <maximum attempts, backoff, and which failures are retryable vs. terminal>.\n- Dead-letter behavior: <destination, retained metadata, alerting, and the replay or repair procedure>.\n\n## Schema Evolution\n\n- <Compatibility rules for changing the payload: additive-only fields, tolerant readers, or an explicit versioned event \u2014 and how existing consumers keep working.>\n\n## Failure Handling\n\n- Broker unavailable at publish time: <outbox, buffer, retry, or fail the originating operation \u2014 and what the caller observes>.\n- Consumer crash mid-processing: <redelivery behavior and why the effect stays consistent>.\n- Poison message: <how a repeatedly failing event exits the retry loop without blocking the stream>.\n\n## Security Considerations\n\n- <Publish and subscribe authorization, payload data classification (no secrets in events), and encryption in transit and at rest.>\n\n## Observability\n\n- <Trace propagation from producer to consumer via the correlation identifier; metrics for publish rate, consumer lag, retry count, and dead-letter count; structured logs per event without logging full payloads.>\n\n## Testing Strategy\n\n- Contract tests: <producer output validated against the published schema; consumer tolerance for unknown fields>.\n- Idempotency tests: <the same event delivered twice yields exactly one effect>.\n- Failure tests: <broker outage at publish time, poison-message dead-lettering, redelivery after a consumer crash>.\n\n## Rollout\n\n- <Deployment order for producer and consumers, dual-publish or shadow-consume steps if the contract changes, and how the change is rolled back without stranding in-flight events.>\n\n## Risks and Trade-offs\n\n- Add known risks and accepted trade-offs here.\n\n## Alternatives Considered\n\n- Add rejected alternatives and why they were rejected here.\n",
+      "files/requirements.md.template": "# Requirements Document\n\n## Introduction\n\n**{{title}}**\n\n{{description}}\n\nThis spec covers an event-driven change centered on the `{{eventName}}`\nevent, with {{deliverySemantics}} delivery between the producer and its\nconsumers.\n\n## Glossary\n\n| Term | Definition |\n| --- | --- |\n| {{eventName}} | <definition of the event and the state change it announces> |\n| <term> | <definition> |\n\n## Requirements\n\n### Requirement 1: <event publication>\n\n**User Story:** As a <producing service owner>, I want a `{{eventName}}` event published when <state change occurs>, so that <downstream benefit>.\n\n#### Acceptance Criteria\n\n1. WHEN <the triggering state change> is committed, THE SYSTEM SHALL publish a `{{eventName}}` event containing <required fields> within <time bound>.\n2. WHEN the event is published, THE SYSTEM SHALL include <correlation or trace identifier> so consumers can trace the event back to its cause.\n3. IF the event broker is unavailable, THEN THE SYSTEM SHALL <buffer, retry, or fail the originating operation> without losing the state change or publishing a partial event.\n\n### Requirement 2: <idempotent consumption>\n\n**User Story:** As a <consuming service owner>, I want `{{eventName}}` processing to be idempotent, so that repeated delivery never corrupts state.\n\n#### Acceptance Criteria\n\n1. WHEN a `{{eventName}}` event is received, THE SYSTEM SHALL apply <the intended effect> and acknowledge the event only after the effect is durable.\n2. WHEN the same event is delivered more than once, THE SYSTEM SHALL produce the same observable outcome as a single delivery.\n3. IF an event fails validation against the published schema, THEN THE SYSTEM SHALL route it to <dead-letter destination> with the failure reason instead of blocking the stream.\n4. IF processing fails transiently, THEN THE SYSTEM SHALL retry up to <retry limit> with <backoff strategy> before dead-lettering the event.\n\n### Requirement 3: <ordering and delivery guarantees>\n\n**User Story:** As a <consuming service owner>, I want the ordering and delivery guarantees of `{{eventName}}` stated explicitly, so that consumers are built against the real contract rather than assumptions.\n\n#### Acceptance Criteria\n\n1. WHEN events share <the ordering key>, THE SYSTEM SHALL deliver them to a consumer in publication order.\n2. WHEN events do not share <the ordering key>, THE SYSTEM SHALL make no cross-key ordering guarantee, and consumers SHALL NOT depend on cross-key order.\n3. IF a delivery cannot satisfy the {{deliverySemantics}} guarantee, THEN THE SYSTEM SHALL surface the failure through <alert or metric> rather than silently dropping or duplicating events.\n\n## Non-Functional Requirements\n\n- Performance: <expected end-to-end latency from state change to consumer effect, and peak event throughput>.\n- Security: events carry no secrets or raw credentials; publish and subscribe access is restricted to <authorized principals>.\n- Reliability: delivery is {{deliverySemantics}}; consumers are idempotent; dead-lettered events are retained for <retention period>.\n- Observability: every event carries a correlation identifier; publish, consume, retry, and dead-letter counts are measurable.\n- Compatibility: schema changes to `{{eventName}}` are backward compatible for existing consumers, or a documented versioning step.\n\n## Edge Cases\n\n- Add edge cases here (duplicate delivery bursts, out-of-order arrival across keys, poison messages, consumer restarts mid-batch, broker failover).\n\n## Out of Scope\n\n- Add explicitly excluded behavior here.\n",
+      "files/tasks.md.template": "# Implementation Plan\n\n- [ ] 1. Define the `{{eventName}}` event contract: payload schema, envelope metadata, ordering key, and version.\n- [ ] 2. Document the {{deliverySemantics}} delivery guarantee and its consequence for consumers in the event contract.\n- [ ] 3. Implement event publication from the producer, including the transactional boundary (e.g. an outbox) that keeps state changes and events consistent.\n- [ ] 4. Implement the consumer effect with idempotent processing and acknowledgment only after the effect is durable.\n- [ ] 5. Implement the retry policy and dead-letter routing for failing events.\n- [ ] 6. Add trace propagation and metrics for publish rate, consumer lag, retries, and dead-letter counts.\n- [ ] 7. Write contract tests validating producer output and consumer tolerance against the published schema.\n- [ ] 8. Write failure tests covering duplicate delivery, broker outage at publish time, and poison-message dead-lettering.\n- [ ] 9. Verify schema-evolution compatibility with existing consumers and document the replay procedure for dead-lettered events.\n- [ ] 10. Document the rollout order for producer and consumers and the rollback path for in-flight events.\n",
+      "README.md": '# Event-Driven Service template\n\nA feature spec template for a producer/consumer change on an event bus,\nqueue, or stream.\n\nIt pre-structures the spec around the questions event-driven changes always\nraise: the event contract, delivery semantics (an explicit at-least-once or\nat-most-once decision \u2014 never a claimed exactly-once), ordering, idempotent\nconsumption, retries and dead-letter behavior, schema evolution, tracing,\ncontract tests, and rollout.\n\n## Usage\n\n```bash\nspecbridge template preview event-driven-service \\\n  --name order-events \\\n  --var eventName=order-created\n\nspecbridge template apply event-driven-service \\\n  --name order-events \\\n  --var eventName=order-created\n```\n\n## Variables\n\n| Variable | Type | Default | Purpose |\n| --- | --- | --- | --- |\n| `eventName` | string | `resource-updated` | Name of the primary event produced or consumed. |\n| `deliverySemantics` | enum | `at-least-once` | Delivery guarantee the design commits to (`at-least-once` or `at-most-once`). |\n\nThe built-in variables `specName`, `title`, `description`, `kind`, and\n`mode` are always available and are set by `--name`, `--title`, and\n`--description`.\n\n## What you still fill in\n\nThe rendered documents contain `<angle-bracket>` placeholders and\n"Add \u2026 here." lines by design. `specbridge spec analyze` blocks approval\nuntil they are replaced with real content. The template gives structure;\nthe engineering judgment stays with you.\n',
+      "specbridge-template.json": '{\n  "schemaVersion": "1.0.0",\n  "id": "event-driven-service",\n  "version": "1.0.0",\n  "displayName": "Event-Driven Service",\n  "description": "A feature spec template for a producer/consumer change on an event bus, queue, or stream: event contract, delivery semantics, ordering, idempotency, retries, dead-letter behavior, schema evolution, tracing, and rollout.",\n  "kind": "feature",\n  "supportedModes": ["requirements-first", "design-first", "quick"],\n  "defaultMode": "requirements-first",\n  "tags": ["events", "messaging", "queue", "streaming", "async"],\n  "files": [\n    {\n      "source": "files/requirements.md.template",\n      "target": "requirements.md",\n      "stage": "requirements",\n      "required": true\n    },\n    {\n      "source": "files/design.md.template",\n      "target": "design.md",\n      "stage": "design",\n      "required": true\n    },\n    {\n      "source": "files/tasks.md.template",\n      "target": "tasks.md",\n      "stage": "tasks",\n      "required": true\n    }\n  ],\n  "variables": [\n    {\n      "name": "eventName",\n      "description": "Name of the primary event the change produces or consumes (e.g. \\"order-created\\").",\n      "type": "string",\n      "required": false,\n      "default": "resource-updated"\n    },\n    {\n      "name": "deliverySemantics",\n      "description": "Delivery guarantee the design commits to. Exactly-once is deliberately not an option; pair at-least-once with idempotent consumers.",\n      "type": "enum",\n      "required": false,\n      "default": "at-least-once",\n      "values": ["at-least-once", "at-most-once"]\n    }\n  ],\n  "compatibility": {\n    "specbridge": ">=0.7.0 <1.0.0",\n    "kiroLayout": "1"\n  },\n  "license": "MIT",\n  "examples": [\n    "specbridge template apply event-driven-service --name order-events --var eventName=order-created"\n  ]\n}\n'
+    }
+  },
+  {
+    id: "performance-optimization",
+    files: {
+      "files/design.md.template": "# Design Document\n\n## Overview\n\n**{{title}}**\n\n{{description}}\n\nThis design targets {{targetMetric}} under {{workload}}, moving it from a\nmeasured numeric baseline to a numeric target with one documented\nmeasurement method.\n\n## Goals\n\n- Add concrete goals here (each one a number: metric, baseline, target).\n\n## Non-Goals\n\n- Add explicitly excluded goals here (metrics deliberately allowed to stay flat).\n\n## Architecture\n\nDescribe the system under optimization and where the change sits: <the\nrequest or data path involved>, <the layer being changed>, and the parts\nthat stay untouched.\n\n## Baseline Measurement\n\n- Baseline: {{targetMetric}} = <baseline value with unit>, measured on <date and build>.\n- Evidence: <reference to the raw measurement output>.\n\n## Target\n\n- Target: {{targetMetric}} = <target value with unit> (<percentage> improvement over baseline).\n- Justification: <why this number \u2014 a service-level objective, a user-facing threshold, or a cost goal>.\n\n## Measurement Method\n\n- Tool and procedure: <profiler, benchmark harness, or load generator, and the exact invocation>.\n- Environment: <hardware, configuration, and data set \u2014 identical for before and after runs>.\n- Runs and statistics: <run count, warm-up policy, and the statistic reported (median, p95, mean)>.\n\n## Workload Definition\n\n- <What {{workload}} consists of: request mix, data volume, concurrency, and duration \u2014 precise enough for someone else to reproduce.>\n\n## Bottleneck Evidence\n\n- <Profile, trace, or measurement showing where the time or resource actually goes \u2014 the optimization must attack an evidenced bottleneck, not a guessed one.>\n\n## Proposed Optimization\n\nDescribe the change itself here: <algorithmic change, caching, batching,\nquery change, or concurrency change> and why it attacks the evidenced\nbottleneck.\n\n## Affected Components\n\n- <Modules, services, or code paths modified, and the blast radius of each.>\n\n## Constraints\n\n- <Hard limits the optimization must respect: memory budget, API compatibility, consistency requirements, cost ceiling.>\n\n## Failure Handling\n\n- Degradation: <what the optimized path does when its assumptions break (cold cache, stale precomputation, resource exhaustion)>.\n- Kill switch: <flag or configuration that reverts to the baseline path at runtime, if applicable>.\n\n## Security Considerations\n\n- <New caches, shared state, or precomputed data that could expose or retain sensitive information, and how that is prevented.>\n\n## Observability\n\n- <How {{targetMetric}} is measured continuously in production, the dashboard or alert that watches it, and the numeric regression threshold that pages someone.>\n\n## Testing Strategy\n\n- Correctness tests: <existing suite plus tests proving the optimized and baseline paths produce identical results>.\n- Before/after validation: <the measurement method run against the baseline and optimized builds, with both results recorded in this spec>.\n- Regression tests: <secondary metrics (error rate, memory, cost) checked against their numeric budgets>.\n\n## Rollout\n\n- <Staged rollout with the metric watched at each step, the numeric rollback trigger, and the rollback procedure.>\n\n## Risks and Trade-offs\n\n- Add known risks and accepted trade-offs here (regression risks, added complexity, memory-for-time trades).\n\n## Alternatives Considered\n\n- Add rejected alternatives and why they were rejected here (including doing nothing, with its measured cost).\n",
+      "files/requirements.md.template": '# Requirements Document\n\n## Introduction\n\n**{{title}}**\n\n{{description}}\n\nThis spec covers a measurable performance improvement judged by\n{{targetMetric}} under {{workload}}. "Make it faster" is not a requirement:\nevery target below is a number, measured the same way as its baseline.\n\n## Glossary\n\n| Term | Definition |\n| --- | --- |\n| Baseline | The measured value of {{targetMetric}} before any change, under {{workload}}. |\n| Target | The required value of {{targetMetric}} after the change, measured identically. |\n| <term> | <definition> |\n\n## Requirements\n\n### Requirement 1: <numeric baseline and target>\n\n**User Story:** As a <stakeholder>, I want {{targetMetric}} improved from a measured baseline to a numeric target, so that <benefit tied to the number>.\n\n#### Acceptance Criteria\n\n1. WHEN the baseline is measured under {{workload}}, THE SYSTEM SHALL record {{targetMetric}} at <baseline value with unit> using <measurement method>.\n2. WHEN the optimized system is measured under the same {{workload}} with the same method, THE SYSTEM SHALL achieve {{targetMetric}} of <target value with unit> or better.\n3. IF the after measurement shows {{targetMetric}} regressing past <rollback threshold with unit>, THEN THE SYSTEM SHALL be reverted to the baseline behavior via <rollback mechanism>.\n\n### Requirement 2: <no functional or resource regressions>\n\n**User Story:** As a <stakeholder>, I want the optimization to preserve existing behavior, so that speed is never bought with correctness.\n\n#### Acceptance Criteria\n\n1. WHEN the optimized code path runs against the existing test suite, THE SYSTEM SHALL produce functional results identical to the baseline.\n2. WHEN {{targetMetric}} improves, THE SYSTEM SHALL keep <secondary metrics: error rate, memory, cost> within <numeric regression budget>.\n3. IF the optimization is disabled or rolled back, THEN THE SYSTEM SHALL return to baseline behavior without data loss or manual repair.\n\n### Requirement 3: <reproducible measurement>\n\n**User Story:** As a <reviewer>, I want the before and after numbers produced by one documented method, so that the claimed improvement is verifiable.\n\n#### Acceptance Criteria\n\n1. WHEN the measurement is repeated <run count> times under identical conditions, THE SYSTEM SHALL yield {{targetMetric}} results within <variance bound> of each other.\n2. IF the before and after measurements are taken under different <environment or workload conditions>, THEN THE COMPARISON SHALL be treated as invalid and repeated under matching conditions.\n\n## Non-Functional Requirements\n\n- Performance: {{targetMetric}} moves from <baseline value with unit> to <target value with unit> under {{workload}}.\n- Security: the optimization introduces no new exposure of sensitive data through <caching, precomputation, or shared state>.\n- Reliability: behavior under <peak load and failure conditions> is no worse than baseline.\n- Observability: {{targetMetric}} is continuously measurable in production so a regression is detected after rollout.\n- Compatibility: external behavior, APIs, and data formats are unchanged unless explicitly listed in this spec.\n\n## Edge Cases\n\n- Add edge cases here (cold-start vs. warm behavior, cache invalidation, pathological inputs, measurement noise, concurrent load).\n\n## Out of Scope\n\n- Add explicitly excluded behavior here.\n',
+      "files/tasks.md.template": "# Implementation Plan\n\n- [ ] 1. Define the measurement method: tool, environment, {{workload}} composition, run count, and reported statistic.\n- [ ] 2. Measure the baseline for {{targetMetric}} and record the numeric value and raw output in the spec.\n- [ ] 3. Create a profiling or tracing capture that identifies the bottleneck, and attach the evidence to the design.\n- [ ] 4. Define the numeric target for {{targetMetric}} and the regression budgets for secondary metrics.\n- [ ] 5. Implement the optimization behind a kill switch or feature flag where feasible.\n- [ ] 6. Write correctness tests proving the optimized path produces results identical to the baseline path.\n- [ ] 7. Measure the optimized build with the identical method and workload, and record the before/after comparison.\n- [ ] 8. Verify secondary metrics stay within their regression budgets.\n- [ ] 9. Add production monitoring for {{targetMetric}} with an alert on the numeric regression threshold.\n- [ ] 10. Document the rollout steps, the numeric rollback trigger, and the rollback procedure.\n",
+      "README.md": '# Performance Optimization template\n\nA feature spec template for a measurable performance improvement.\n\nIt pre-structures the spec around the questions performance work always\nraises: the numeric baseline, the numeric target, the measurement method,\nthe workload definition, evidence for the bottleneck, constraints,\nregression risks, before/after validation, and rollback. "Make it faster"\nnever appears \u2014 every goal is a number measured the same way twice.\n\n## Usage\n\n```bash\nspecbridge template preview performance-optimization \\\n  --name checkout-latency \\\n  --var targetMetric="p95 latency"\n\nspecbridge template apply performance-optimization \\\n  --name checkout-latency \\\n  --var targetMetric="p95 latency"\n```\n\n## Variables\n\n| Variable | Type | Default | Purpose |\n| --- | --- | --- | --- |\n| `targetMetric` | string | `p95 latency` | The single metric the optimization is judged by. |\n| `workload` | string | `steady-state production traffic` | The workload under which the metric is measured. |\n\nThe built-in variables `specName`, `title`, `description`, `kind`, and\n`mode` are always available and are set by `--name`, `--title`, and\n`--description`.\n\n## What you still fill in\n\nThe rendered documents contain `<angle-bracket>` placeholders and\n"Add \u2026 here." lines by design. `specbridge spec analyze` blocks approval\nuntil they are replaced with real content. The template gives structure;\nthe engineering judgment stays with you.\n',
+      "specbridge-template.json": '{\n  "schemaVersion": "1.0.0",\n  "id": "performance-optimization",\n  "version": "1.0.0",\n  "displayName": "Performance Optimization",\n  "description": "A feature spec template for a measurable performance improvement: numeric baseline and target, measurement method, workload definition, bottleneck evidence, constraints, regression risks, before/after validation, and rollback.",\n  "kind": "feature",\n  "supportedModes": ["requirements-first", "design-first", "quick"],\n  "defaultMode": "requirements-first",\n  "tags": ["performance", "optimization", "profiling", "latency", "benchmarking"],\n  "files": [\n    {\n      "source": "files/requirements.md.template",\n      "target": "requirements.md",\n      "stage": "requirements",\n      "required": true\n    },\n    {\n      "source": "files/design.md.template",\n      "target": "design.md",\n      "stage": "design",\n      "required": true\n    },\n    {\n      "source": "files/tasks.md.template",\n      "target": "tasks.md",\n      "stage": "tasks",\n      "required": true\n    }\n  ],\n  "variables": [\n    {\n      "name": "targetMetric",\n      "description": "The single metric the optimization is judged by (e.g. \\"p95 latency\\", \\"throughput\\", \\"peak memory\\").",\n      "type": "string",\n      "required": false,\n      "default": "p95 latency"\n    },\n    {\n      "name": "workload",\n      "description": "The workload under which the metric is measured (e.g. \\"steady-state production traffic\\", \\"nightly batch import\\").",\n      "type": "string",\n      "required": false,\n      "default": "steady-state production traffic"\n    }\n  ],\n  "compatibility": {\n    "specbridge": ">=0.7.0 <1.0.0",\n    "kiroLayout": "1"\n  },\n  "license": "MIT",\n  "examples": [\n    "specbridge template apply performance-optimization --name checkout-latency --var targetMetric=\\"p95 latency\\""\n  ]\n}\n'
+    }
+  },
+  {
+    id: "refactoring",
+    files: {
+      "files/design.md.template": '# Design Document\n\n## Overview\n\n**{{title}}**\n\n{{description}}\n\nThis design restructures {{componentName}} while preserving its externally\nobservable behavior. That preservation is a claim to be verified, not\nassumed: the plan pins behavior with tests first, then restructures in\ncheckpointed steps, and measures what a "pure" refactor can still change \u2014\nperformance, timing, and error messages.\n\n## Goals\n\n- Add concrete goals here (the target structure and the maintainability problem it solves).\n\n## Non-Goals\n\n- Behavior changes: anything that alters the behavior inventory is out of scope.\n- Add other explicitly excluded goals here.\n\n## Architecture\n\nDescribe the current structure of {{componentName}}, the target structure,\nand the path between them: <current modules and their coupling>, <target\nmodules and their responsibilities>, <what moves, what splits, what merges>.\n\n## Motivation\n\n- <the concrete cost of the current structure: change velocity, defect rate, coupling, duplicated logic>.\n- <why now: the upcoming work this refactor makes cheaper or safer>.\n\n## Behavior Inventory\n\n- <observable behavior 1: inputs, outputs, side effects>.\n- <observable behavior 2>.\n- <error behavior: messages, codes, and exception types callers may depend on>.\n- <timing or ordering that consumers may depend on, even if undocumented>.\n\n## Refactor Boundaries\n\n- Inside the boundary: <code that may be freely restructured>.\n- Outside the boundary: <code, interfaces, and data formats that must not change>.\n- <the seams where the boundary is enforced: interfaces, contract tests>.\n\n## Affected Components and Interfaces\n\n- <component or module touched, and how>.\n- Public interface of {{componentName}}: <the contract that stays fixed>.\n- <internal interfaces that change, and their callers>.\n\n## Incremental Plan\n\n- Step 1: <the smallest self-contained restructuring> \u2014 checkpoint: <what proves it safe>.\n- Step 2: <the next step> \u2014 checkpoint: <what proves it safe>.\n- Rollback point after each step: <how a step is reverted independently>.\n\n## Compatibility\n\n- <external callers: why they are unaffected, or the adapter or deprecation path>.\n- <persisted data, serialized formats, and wire contracts: unchanged, or the migration that accompanies them>.\n\n## Completion Criteria\n\n- <measurable criterion 1: target module layout in place, dependency count reduced to a stated number>.\n- <measurable criterion 2: all characterization tests green, measured drift within budget>.\n- <dead code and temporary seams removed>.\n\n## Failure Handling\n\n- A failed checkpoint reverts to the previous checkpoint via <the rollback mechanism>; steps never stack unverified.\n- <how mid-step discoveries such as hidden couplings are triaged: absorb, defer, or abort>.\n\n## Security Considerations\n\n- <moved validation or permission checks and how their coverage is preserved; confirmation that no new external surface is introduced>.\n\n## Observability\n\n- <logs and metrics that keep their meaning across the refactor; renames documented for dashboards and alerts>.\n- <the baseline measurements taken before the refactor: performance, timing, error output>.\n\n## Testing Strategy\n\n- Characterization tests: <tests written first to pin the behavior inventory, including error messages and edge cases>.\n- Regression suite: <the full suite runs at every checkpoint; what a green run covers>.\n- Non-functional checks: <benchmark scenarios compared against the pre-refactor baseline>.\n\n## Rollout\n\n- <merge strategy: one checkpoint per merge or a staged branch; what ships when>.\n- <monitoring during rollout and the trigger for reverting a checkpoint>.\n\n## Risks and Trade-offs\n\n- Even a pure refactor can change performance, timing, and error messages; the baseline and budget make that drift visible instead of silent.\n- Add other known risks and accepted trade-offs here.\n\n## Alternatives Considered\n\n- Add rejected alternatives here (a rewrite, leaving the structure as-is, a different module split) and why they were rejected.\n',
+      "files/requirements.md.template": '# Requirements Document\n\n## Introduction\n\n**{{title}}**\n\n{{description}}\n\nThis spec restructures {{componentName}} while preserving its externally\nobservable behavior. Unchanged behavior is treated as a claim to verify\nwith tests, not an assumption: even a pure refactor can change performance,\ntiming, and error messages.\n\n## Glossary\n\n| Term | Definition |\n| --- | --- |\n| Behavior inventory | <the explicit list of observable behaviors of {{componentName}} that must not change> |\n| Checkpoint | <a point in the incremental plan where the build is releasable and revertible> |\n| <term> | <definition> |\n\n## Requirements\n\n### Requirement 1: <preserved observable behavior>\n\n**User Story:** As a consumer of {{componentName}}, I want its observable behavior verified unchanged after the restructuring, so that nothing built on it breaks.\n\n#### Acceptance Criteria\n\n1. WHEN any input from the behavior inventory is applied after a refactor step, THE SYSTEM SHALL produce the same observable output as the pre-refactor baseline.\n2. IF an inventoried behavior differs after a step, THEN THE SYSTEM SHALL be reverted to the previous checkpoint before any further steps proceed.\n\n### Requirement 2: <incremental steps with safe checkpoints>\n\n**User Story:** As the engineer performing the refactor, I want the restructuring split into steps with a releasable checkpoint after each, so that any step can be shipped or reverted on its own.\n\n#### Acceptance Criteria\n\n1. WHEN a refactor step completes, THE SYSTEM SHALL build cleanly and pass the full regression suite at that checkpoint.\n2. IF a checkpoint fails, THEN THE SYSTEM SHALL be restored to the previous checkpoint using <the rollback mechanism> without loss of data or history.\n\n### Requirement 3: <interface compatibility>\n\n**User Story:** As an external caller of {{componentName}}, I want its public interface contract unchanged, so that no caller has to change because of the refactor.\n\n#### Acceptance Criteria\n\n1. WHEN an external caller invokes {{componentName}} through its public interface, THE SYSTEM SHALL accept the same inputs and honor the same contract as before the refactor.\n2. IF an interface change is unavoidable, THEN THE SYSTEM SHALL provide <an adapter or deprecation path> so existing callers keep working during the transition.\n\n### Requirement 4: <bounded non-functional drift>\n\n**User Story:** As an operator, I want performance and timing drift from the refactor measured against a baseline, so that a "pure" refactor does not quietly degrade the service.\n\n#### Acceptance Criteria\n\n1. WHEN the post-refactor {{componentName}} runs <the benchmark scenarios>, THE SYSTEM SHALL stay within <the agreed budget> of the pre-refactor baseline.\n2. IF measured drift exceeds the budget, THEN THE SYSTEM SHALL be reverted to the last good checkpoint unless the drift is explicitly accepted in this spec.\n\n## Non-Functional Requirements\n\n- Performance: post-refactor performance stays within <budget> of the measured pre-refactor baseline.\n- Security: the refactor introduces no new external surface; validation and permission checks in {{componentName}} keep their current coverage.\n- Reliability: every checkpoint is releasable; a failed step is revertible via <the rollback mechanism>.\n- Observability: existing logs and metrics for {{componentName}} keep their meaning, or renames are documented for dashboards and alerts.\n- Compatibility: external callers and persisted data formats are unaffected, or a documented migration accompanies the change.\n\n## Edge Cases\n\n- Add edge cases here (error-message text that callers or tests match on, timing-sensitive consumers, reflection or serialization that depends on internal names, hidden couplings discovered mid-refactor).\n\n## Out of Scope\n\n- Behavior changes and new features: anything that alters the behavior inventory belongs in its own spec.\n- Add other explicitly excluded work here.\n',
+      "files/tasks.md.template": "# Implementation Plan\n\n- [ ] 1. Define the behavior inventory for {{componentName}}: every externally observable behavior that must not change.\n- [ ] 2. Write characterization tests that pin the inventoried behavior, including error messages and edge cases, before any restructuring begins.\n- [ ] 3. Measure the pre-refactor baseline for performance, timing, and error output.\n- [ ] 4. Define the incremental steps, with a releasable checkpoint and a rollback point after each step.\n- [ ] 5. Implement the first restructuring step and run the full regression suite at its checkpoint.\n- [ ] 6. Implement the remaining steps one checkpoint at a time, keeping the build releasable after each.\n- [ ] 7. Verify interface compatibility for all external callers of {{componentName}}.\n- [ ] 8. Measure post-refactor performance and timing against the baseline and record any drift.\n- [ ] 9. Remove dead code and temporary seams left behind by the restructuring.\n- [ ] 10. Verify the measurable completion criteria from the design document and record any accepted deviations.\n",
+      "README.md": '# Refactoring template\n\nA feature spec template for a behavior-preserving restructuring.\n\nIt pre-structures the spec around the questions refactors always raise: the\nexplicit inventory of behavior that must not change, the motivation, the\nboundaries of the refactor, affected components and interfaces,\ncompatibility, an incremental plan with safe checkpoints, regression tests,\nrollback points, and measurable completion criteria. It treats "unchanged\nbehavior" as a claim to verify with tests, not an assumption \u2014 even a pure\nrefactor can change performance, timing, and error messages.\n\n## Usage\n\n```bash\nspecbridge template preview refactoring \\\n  --name extract-billing-module \\\n  --var componentName=billing\n\nspecbridge template apply refactoring \\\n  --name extract-billing-module \\\n  --var componentName=billing\n```\n\n## Variables\n\n| Variable | Type | Default | Purpose |\n| --- | --- | --- | --- |\n| `componentName` | string | `the component` | The component, module, or subsystem being restructured. |\n\nThe built-in variables `specName`, `title`, `description`, `kind`, and\n`mode` are always available and are set by `--name`, `--title`, and\n`--description`.\n\n## What you still fill in\n\nThe rendered documents contain `<angle-bracket>` placeholders and\n"Add \u2026 here." lines by design. `specbridge spec analyze` blocks approval\nuntil they are replaced with real content. The template gives structure;\nthe judgment about what must not change stays with you.\n',
+      "specbridge-template.json": '{\n  "schemaVersion": "1.0.0",\n  "id": "refactoring",\n  "version": "1.0.0",\n  "displayName": "Refactoring",\n  "description": "A feature spec template for a behavior-preserving restructuring: an explicit inventory of behavior that must not change, refactor boundaries, an incremental plan with safe checkpoints, regression tests, rollback points, and measurable completion criteria.",\n  "kind": "feature",\n  "supportedModes": ["requirements-first", "design-first", "quick"],\n  "defaultMode": "requirements-first",\n  "tags": ["refactoring", "maintainability", "tech-debt", "restructuring", "regression-safety"],\n  "files": [\n    {\n      "source": "files/requirements.md.template",\n      "target": "requirements.md",\n      "stage": "requirements",\n      "required": true\n    },\n    {\n      "source": "files/design.md.template",\n      "target": "design.md",\n      "stage": "design",\n      "required": true\n    },\n    {\n      "source": "files/tasks.md.template",\n      "target": "tasks.md",\n      "stage": "tasks",\n      "required": true\n    }\n  ],\n  "variables": [\n    {\n      "name": "componentName",\n      "description": "The component, module, or subsystem being restructured (e.g. \\"billing\\").",\n      "type": "string",\n      "required": false,\n      "default": "the component"\n    }\n  ],\n  "compatibility": {\n    "specbridge": ">=0.7.0 <1.0.0",\n    "kiroLayout": "1"\n  },\n  "license": "MIT",\n  "examples": [\n    "specbridge template apply refactoring --name extract-billing-module --var componentName=billing"\n  ]\n}\n'
+    }
+  },
+  {
+    id: "rest-api",
+    files: {
+      "files/design.md.template": "# Design Document\n\n## Overview\n\n**{{title}}**\n\n{{description}}\n\nThis design covers the `{{resourceName}}` endpoints under `{{basePath}}`.\n\n## Goals\n\n- Add concrete goals here.\n\n## Non-Goals\n\n- Add explicitly excluded goals here.\n\n## Architecture\n\nDescribe where the endpoint sits: <router/controller layer>, <service layer>,\n<data access>, and any upstream/downstream services it calls.\n\n## Components and Interfaces\n\n- Endpoint(s): <method> `{{basePath}}/<path>` \u2014 <purpose>.\n- Request contract: <headers, path/query parameters, body schema, size limits>.\n- Response contract: <status codes and body schema per outcome>.\n- Error model: <error body shape and stable error codes>.\n- Authentication and authorization: <mechanism and the check per {{resourceName}}>.\n\n## Data Model\n\n- Add new or changed data structures for the {{resourceName}} resource here.\n\n## Control Flow\n\nDescribe the main request path here: validation, authorization, business\nlogic, persistence, response mapping.\n\n## Failure Handling\n\n- Validation failure: 400 with field-level detail; no state change.\n- Downstream dependency failure: <timeout, retry, and fallback behavior; status code returned>.\n- Concurrent modification: <locking or compare-and-set strategy; conflict status code>.\n\n## Idempotency\n\n- <How repeated requests are made safe: idempotency keys, natural keys, or upsert semantics.>\n\n## Pagination\n\n- <Cursor or offset strategy, page-size bounds, and ordering guarantees \u2014 or state why the endpoint returns no collections.>\n\n## Compatibility\n\n- <How existing consumers keep working: additive fields only, tolerant readers, or an explicit version step.>\n\n## Security Considerations\n\n- <Input validation boundaries, authorization checks per resource, rate limiting, and what deliberately never appears in logs.>\n\n## Observability\n\n- <Structured log fields, metrics (rate, errors, duration), and trace propagation for the endpoint.>\n\n## Testing Strategy\n\n- Contract tests: <request/response pairs pinned for every documented status code>.\n- Integration tests: <happy path plus authentication, authorization, validation, and not-found paths>.\n- Regression tests: <existing consumer scenarios that must keep passing>.\n\n## Rollout\n\n- <Deployment order, feature flag or dark-launch strategy, and how the change is rolled back without breaking consumers.>\n\n## Risks and Trade-offs\n\n- Add known risks and accepted trade-offs here.\n\n## Alternatives Considered\n\n- Add rejected alternatives and why they were rejected here.\n",
+      "files/requirements.md.template": '# Requirements Document\n\n## Introduction\n\n**{{title}}**\n\n{{description}}\n\nThis spec covers a REST API change under `{{basePath}}` exposing the\n`{{resourceName}}` resource to the primary actor "{{actor}}".\n\n## Glossary\n\n| Term | Definition |\n| --- | --- |\n| {{resourceName}} | <definition of the resource> |\n| <term> | <definition> |\n\n## Requirements\n\n### Requirement 1: <endpoint purpose>\n\n**User Story:** As a {{actor}}, I want <capability via the endpoint>, so that <benefit>.\n\n#### Acceptance Criteria\n\n1. WHEN a valid request is received at <method> `{{basePath}}/<path>`, THE SYSTEM SHALL respond with <status code> and <response body shape>.\n2. WHEN the request body fails validation, THE SYSTEM SHALL respond with 400 and a machine-readable error body naming each invalid field.\n3. IF the caller is not authenticated, THEN THE SYSTEM SHALL respond with 401 without leaking whether the {{resourceName}} exists.\n4. IF the caller is authenticated but not authorized for the {{resourceName}}, THEN THE SYSTEM SHALL respond with 403 or 404 according to <the project\'s information-disclosure policy>.\n5. WHEN the requested {{resourceName}} does not exist, THE SYSTEM SHALL respond with 404 and a stable error code.\n\n### Requirement 2: <idempotency and repeated requests>\n\n**User Story:** As a {{actor}}, I want repeated identical requests to be safe, so that retries never corrupt state.\n\n#### Acceptance Criteria\n\n1. WHEN the same <idempotency key or natural key> is submitted twice, THE SYSTEM SHALL <return the first result / reject the duplicate> without duplicating side effects.\n2. IF a request is retried after a timeout, THEN THE SYSTEM SHALL produce the same observable outcome as a single successful request.\n\n### Requirement 3: <pagination and list behavior>\n\n**User Story:** As a {{actor}}, I want bounded list responses, so that large collections stay usable.\n\n#### Acceptance Criteria\n\n1. WHEN a list request exceeds the page size, THE SYSTEM SHALL return at most <page size> items and a cursor or link to the next page.\n2. WHEN an invalid cursor is supplied, THE SYSTEM SHALL respond with 400 and a stable error code.\n\n## Non-Functional Requirements\n\n- Performance: <expected latency budget and throughput for the endpoint>.\n- Security: requests are authenticated via <mechanism>; authorization is enforced per {{resourceName}}; input is validated before any state change.\n- Reliability: <availability expectations and behavior under downstream failure>.\n- Observability: every request emits <structured log fields / metrics / trace spans> without logging secrets or full payloads.\n- Compatibility: existing consumers of `{{basePath}}` are not broken; additive changes only, or a documented versioning step.\n\n## Edge Cases\n\n- Add edge cases here (oversized payloads, concurrent writes to the same {{resourceName}}, clock skew on expiry fields, partial downstream failures).\n\n## Out of Scope\n\n- Add explicitly excluded behavior here.\n',
+      "files/tasks.md.template": "# Implementation Plan\n\n- [ ] 1. Define the request and response contract for <method> `{{basePath}}/<path>`, including error bodies and status codes.\n- [ ] 2. Implement request validation and the machine-readable validation error body.\n- [ ] 3. Implement authentication and per-{{resourceName}} authorization checks.\n- [ ] 4. Implement the endpoint business logic and persistence path.\n- [ ] 5. Implement idempotency behavior for repeated requests.\n- [ ] 6. Implement pagination for list responses, if applicable.\n- [ ] 7. Add contract tests covering every documented status code.\n- [ ] 8. Add integration tests for authentication, authorization, validation, and not-found paths.\n- [ ] 9. Add observability: structured logs, metrics, and trace spans without secret leakage.\n- [ ] 10. Verify backward compatibility with existing consumers and document the rollout and rollback steps.\n",
+      "README.md": '# REST API template\n\nA feature spec template for adding or changing a REST API endpoint.\n\nIt pre-structures the spec around the questions REST changes always raise:\nthe request/response contract, validation and status codes, authentication\nand authorization, idempotency, pagination, backward compatibility,\nobservability, contract tests, and rollout.\n\n## Usage\n\n```bash\nspecbridge template preview rest-api \\\n  --name orders-list-endpoint \\\n  --var resourceName=order \\\n  --var basePath=/api/v1/orders\n\nspecbridge template apply rest-api \\\n  --name orders-list-endpoint \\\n  --var resourceName=order \\\n  --var basePath=/api/v1/orders\n```\n\n## Variables\n\n| Variable | Type | Default | Purpose |\n| --- | --- | --- | --- |\n| `actor` | string | `API client` | Primary caller of the API. |\n| `resourceName` | string | `resource` | Primary resource the endpoint exposes (singular). |\n| `basePath` | string | `/api/v1` | Base URL path of the endpoint group. |\n\nThe built-in variables `specName`, `title`, `description`, `kind`, and\n`mode` are always available and are set by `--name`, `--title`, and\n`--description`.\n\n## What you still fill in\n\nThe rendered documents contain `<angle-bracket>` placeholders and\n"Add \u2026 here." lines by design. `specbridge spec analyze` blocks approval\nuntil they are replaced with real content. The template gives structure;\nthe engineering judgment stays with you.\n',
+      "specbridge-template.json": '{\n  "schemaVersion": "1.0.0",\n  "id": "rest-api",\n  "version": "1.0.0",\n  "displayName": "REST API",\n  "description": "A feature spec template for adding or changing a REST API endpoint: request/response contract, validation, status codes, authentication, idempotency, pagination, compatibility, observability, and rollout.",\n  "kind": "feature",\n  "supportedModes": ["requirements-first", "design-first", "quick"],\n  "defaultMode": "requirements-first",\n  "tags": ["api", "rest", "http", "backend"],\n  "files": [\n    {\n      "source": "files/requirements.md.template",\n      "target": "requirements.md",\n      "stage": "requirements",\n      "required": true\n    },\n    {\n      "source": "files/design.md.template",\n      "target": "design.md",\n      "stage": "design",\n      "required": true\n    },\n    {\n      "source": "files/tasks.md.template",\n      "target": "tasks.md",\n      "stage": "tasks",\n      "required": true\n    }\n  ],\n  "variables": [\n    {\n      "name": "actor",\n      "description": "Primary caller of the API (a user role or client system).",\n      "type": "string",\n      "required": false,\n      "default": "API client"\n    },\n    {\n      "name": "resourceName",\n      "description": "Name of the primary resource the endpoint exposes (singular, e.g. \\"order\\").",\n      "type": "string",\n      "required": false,\n      "default": "resource"\n    },\n    {\n      "name": "basePath",\n      "description": "Base URL path of the endpoint group (e.g. \\"/api/v1/orders\\").",\n      "type": "string",\n      "required": false,\n      "default": "/api/v1"\n    }\n  ],\n  "compatibility": {\n    "specbridge": ">=0.7.0 <1.0.0",\n    "kiroLayout": "1"\n  },\n  "license": "MIT",\n  "examples": [\n    "specbridge template apply rest-api --name orders-list-endpoint --var resourceName=order --var basePath=/api/v1/orders"\n  ]\n}\n'
+    }
+  },
+  {
+    id: "security-hardening",
+    files: {
+      "files/design.md.template": "# Design Document\n\n## Overview\n\n**{{title}}**\n\n{{description}}\n\nThis design closes a specific weakness in {{threatArea}} that puts\n{{assetName}} at risk. Its claims stay scoped to that weakness: shipping\nthis change hardens one boundary; it does not make the system secure as a\nwhole.\n\n## Goals\n\n- Add concrete goals here (the weakness closed and the boundary hardened).\n\n## Non-Goals\n\n- Certifying the system as secure: only the named weakness is addressed.\n- Add other explicitly excluded goals here.\n\n## Architecture\n\nDescribe where the enforcement sits: <the entry points>, <the trust\nboundary>, <the enforcement component>, and the assets behind it. Explain\nwhy the check cannot be bypassed by any path that crosses the boundary.\n\n## Threat Model\n\n- Weakness: <the specific weakness in {{threatArea}} being closed>.\n- Assets at risk: {{assetName}} and <other assets reachable through the boundary>.\n- Attacker: <who can reach the boundary and with what privileges>.\n- Impact if exploited: <confidentiality, integrity, or availability impact>.\n\n## Trust Boundary\n\n- Boundary: <where untrusted data or callers meet trusted code>.\n- Entry points crossing it: <every route, queue, file, or job input that crosses the boundary>.\n- Enforcement point: <the single place the check runs and why no path skips it>.\n\n## Abuse Cases\n\n- <abuse case 1: the attack this change stops, step by step>.\n- <abuse case 2: a variant or adjacent misuse that was considered>.\n\n## Required Secure Behavior\n\n- <the validation or enforcement rule, stated precisely: allow-list, schema, limits>.\n- <what a rejection looks like to the caller, with no internal detail exposed>.\n\n## Affected Components\n\n- <component or module changed, and how>.\n- <interfaces or contracts touched by the enforcement change>.\n\n## Dependency Implications\n\n- <libraries or services implicated in the weakness: versions to update or pin, configuration to change>.\n- <new dependencies introduced by the fix and why they are trusted>.\n\n## Failure Handling\n\n- Default decision: the enforcement path fails closed \u2014 if the check cannot run, the operation is denied.\n- <any deliberate fail-open exception: the specific path it covers, its justification, and the audit event it emits>.\n- <behavior when a downstream dependency of the check times out>.\n\n## Security Considerations\n\n- <defense in depth behind the boundary and least privilege for the enforcement component>.\n- <how the change avoids introducing new weaknesses: parser choice, resource limits, error paths>.\n\n## Observability\n\n- <security events logged with stable reason codes, and their exact fields>.\n- What never appears in logs: secrets, credentials, tokens, raw payloads.\n- <metrics and alerts: rejection rate, enforcement failures, fail-open exceptions exercised>.\n\n## Testing Strategy\n\n- Negative tests: <one test per abuse case proving the attack no longer works>.\n- Regression tests: <legitimate request patterns that must keep succeeding>.\n- Failure-path tests: <the enforcement component made unavailable to prove the fail-closed decision>.\n\n## Rollout\n\n- <deployment order, monitor-only or shadow mode first if applicable, rejection-rate monitoring, and the rollback trigger>.\n\n## Risks and Trade-offs\n\n- Add known risks and accepted trade-offs here (false positives on legitimate traffic, added latency, operational load).\n\n## Alternatives Considered\n\n- Add rejected alternatives and why they were rejected here.\n",
+      "files/requirements.md.template": "# Requirements Document\n\n## Introduction\n\n**{{title}}**\n\n{{description}}\n\nThis spec closes a specific weakness in {{threatArea}} that puts\n{{assetName}} at risk. Its claims are scoped to that weakness: the change\nhardens one boundary and does not certify the system as secure.\n\n## Glossary\n\n| Term | Definition |\n| --- | --- |\n| Trust boundary | <where untrusted data or callers meet trusted code in this change> |\n| {{threatArea}} | <the specific weakness class being closed> |\n| <term> | <definition> |\n\n## Requirements\n\n### Requirement 1: <enforcement at the trust boundary>\n\n**User Story:** As a security engineer, I want {{threatArea}} enforced at <the trust boundary>, so that {{assetName}} is no longer exposed to the identified weakness.\n\n#### Acceptance Criteria\n\n1. WHEN data or a request crosses <the trust boundary>, THE SYSTEM SHALL validate it against <the allow-list, schema, or policy> before any further processing.\n2. WHEN validation rejects an input, THE SYSTEM SHALL leave {{assetName}} and all other state unchanged.\n3. IF the input fails validation, THEN THE SYSTEM SHALL return <the rejection response> without revealing internal detail an attacker could use.\n\n### Requirement 2: <fail closed by default>\n\n**User Story:** As an operator, I want the enforcement path to fail closed, so that an outage in the check never becomes a bypass.\n\n#### Acceptance Criteria\n\n1. IF the enforcement component is unavailable or times out, THEN THE SYSTEM SHALL deny the operation instead of continuing without the check.\n2. WHEN a deliberate fail-open exception applies to <a specific documented path>, THE SYSTEM SHALL emit an audit event every time the exception is exercised.\n\n### Requirement 3: <security logging without secret leakage>\n\n**User Story:** As an incident responder, I want rejections and enforcement failures logged with stable reason codes, so that abuse is investigable without leaking secrets.\n\n#### Acceptance Criteria\n\n1. WHEN a request is rejected at the boundary, THE SYSTEM SHALL log <the event fields> with a stable reason code.\n2. THE SYSTEM SHALL keep secrets, credentials, tokens, and raw payloads out of security log events.\n3. IF writing the log event fails, THEN THE SYSTEM SHALL still enforce the boundary decision.\n\n### Requirement 4: <legitimate use preserved>\n\n**User Story:** As a legitimate caller, I want valid requests to keep succeeding after the hardening, so that closing the weakness does not become an outage.\n\n#### Acceptance Criteria\n\n1. WHEN a well-formed request within documented limits crosses the boundary, THE SYSTEM SHALL produce the same observable outcome as before the hardening.\n2. IF monitoring shows legitimate traffic being rejected during rollout, THEN THE SYSTEM SHALL be rolled back or the rule corrected before rollout continues.\n\n## Non-Functional Requirements\n\n- Performance: the enforcement check stays within <latency budget> per request at <expected load>.\n- Security: enforcement runs on every path across the trust boundary with no bypass route; the enforcement component itself runs with least privilege.\n- Reliability: the fail-closed decision is explicit; <availability expectation for the enforcement component>.\n- Observability: rejections, enforcement failures, and exercised fail-open exceptions are visible in <logs, metrics, alerts> without secret leakage.\n- Compatibility: legitimate callers documented in <the baseline traffic inventory> keep working unchanged.\n\n## Edge Cases\n\n- Add edge cases here (oversized or deeply nested inputs, encoding tricks, replayed requests, partial enforcement-component failure, the boundary crossed via a background job).\n\n## Out of Scope\n\n- Weaknesses outside {{threatArea}}: this spec closes one named weakness and makes no claim that the system as a whole is secure.\n- Add other explicitly excluded behavior here.\n",
+      "files/tasks.md.template": "# Implementation Plan\n\n- [ ] 1. Define the validation rules or enforcement policy for {{threatArea}} at the trust boundary.\n- [ ] 2. Implement the enforcement check on every entry point that crosses the boundary.\n- [ ] 3. Implement fail-closed behavior when the enforcement component is unavailable, with any deliberate fail-open exception documented and audited.\n- [ ] 4. Add rejection responses that reveal no internal detail an attacker could use.\n- [ ] 5. Add security event logging with stable reason codes and no secrets, credentials, or raw payloads.\n- [ ] 6. Write negative tests that reproduce each abuse case and prove the attack path is closed.\n- [ ] 7. Write regression tests proving legitimate request patterns still succeed.\n- [ ] 8. Verify dependency versions and configuration implicated in the weakness, and update or pin them.\n- [ ] 9. Measure the performance overhead of the new checks against the latency budget.\n- [ ] 10. Document the rollout plan, the monitoring to watch during rollout, and the rollback trigger.\n",
+      "README.md": '# Security Hardening template\n\nA feature spec template for closing a specific security weakness or\nhardening a trust boundary.\n\nIt pre-structures the spec around the questions hardening work always\nraises: the threat and the assets at risk, the trust boundary and its entry\npoints, abuse cases, the required secure behavior, an explicit fail-closed\nor fail-open decision, logging without secret leakage, dependency\nimplications, negative tests that prove the attack no longer works, and\nrollout. Its claims stay scoped to the weakness being closed \u2014 applying the\ntemplate does not certify a system as secure.\n\n## Usage\n\n```bash\nspecbridge template preview security-hardening \\\n  --name harden-webhook-deserialization \\\n  --var threatArea=deserialization\n\nspecbridge template apply security-hardening \\\n  --name harden-webhook-deserialization \\\n  --var threatArea=deserialization\n```\n\n## Variables\n\n| Variable | Type | Default | Purpose |\n| --- | --- | --- | --- |\n| `threatArea` | string | `input validation` | The class of weakness being closed. |\n| `assetName` | string | `the protected data` | The primary asset at risk behind the boundary. |\n\nThe built-in variables `specName`, `title`, `description`, `kind`, and\n`mode` are always available and are set by `--name`, `--title`, and\n`--description`.\n\n## What you still fill in\n\nThe rendered documents contain `<angle-bracket>` placeholders and\n"Add \u2026 here." lines by design. `specbridge spec analyze` blocks approval\nuntil they are replaced with real content. The template gives structure;\nthe threat analysis and the engineering judgment stay with you.\n',
+      "specbridge-template.json": '{\n  "schemaVersion": "1.0.0",\n  "id": "security-hardening",\n  "version": "1.0.0",\n  "displayName": "Security Hardening",\n  "description": "A feature spec template for closing a specific security weakness or hardening a trust boundary: threat and assets at risk, abuse cases, required secure behavior, an explicit fail-closed decision, logging without secret leakage, negative tests, and rollout.",\n  "kind": "feature",\n  "supportedModes": ["requirements-first", "design-first", "quick"],\n  "defaultMode": "requirements-first",\n  "tags": ["security", "hardening", "threat-model", "abuse-case", "defense"],\n  "files": [\n    {\n      "source": "files/requirements.md.template",\n      "target": "requirements.md",\n      "stage": "requirements",\n      "required": true\n    },\n    {\n      "source": "files/design.md.template",\n      "target": "design.md",\n      "stage": "design",\n      "required": true\n    },\n    {\n      "source": "files/tasks.md.template",\n      "target": "tasks.md",\n      "stage": "tasks",\n      "required": true\n    }\n  ],\n  "variables": [\n    {\n      "name": "threatArea",\n      "description": "The class of weakness being closed (e.g. \\"input validation\\", \\"deserialization\\", \\"authentication\\").",\n      "type": "string",\n      "required": false,\n      "default": "input validation"\n    },\n    {\n      "name": "assetName",\n      "description": "The primary asset at risk behind the boundary being hardened (e.g. \\"customer records\\").",\n      "type": "string",\n      "required": false,\n      "default": "the protected data"\n    }\n  ],\n  "compatibility": {\n    "specbridge": ">=0.7.0 <1.0.0",\n    "kiroLayout": "1"\n  },\n  "license": "MIT",\n  "examples": [\n    "specbridge template apply security-hardening --name harden-webhook-deserialization --var threatArea=deserialization"\n  ]\n}\n'
+    }
+  }
+];
+function projectTemplatesDir(workspace) {
+  return import_path30.default.join(workspace.sidecarDir, "templates");
+}
+function builtinEntries(options) {
+  const entries = [];
+  for (const packData of BUILTIN_TEMPLATE_PACKS) {
+    const pack = loadTemplatePack(
+      { origin: `builtin:${packData.id}`, files: new Map(Object.entries(packData.files)) },
+      {
+        requireReadme: true,
+        ...options.specbridgeVersion !== void 0 ? { specbridgeVersion: options.specbridgeVersion } : {}
+      }
+    );
+    entries.push({
+      source: "builtin",
+      id: packData.id,
+      ref: formatTemplateReference("builtin", packData.id),
+      pack,
+      valid: pack.valid && pack.manifest?.id === packData.id
+    });
+  }
+  return entries;
+}
+function projectEntries(workspace, options, diagnostics) {
+  if (workspace === void 0) return [];
+  const dir = projectTemplatesDir(workspace);
+  if (!(0, import_fs27.existsSync)(dir)) return [];
+  const entries = [];
+  let names;
+  try {
+    names = (0, import_fs27.readdirSync)(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory() && !entry.isSymbolicLink()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
+  } catch (cause) {
+    diagnostics.push({
+      severity: "warning",
+      code: "TEMPLATE_DIR_UNREADABLE",
+      message: `Cannot read ${dir}: ${cause instanceof Error ? cause.message : String(cause)}`
+    });
+    return [];
+  }
+  for (const name of names) {
+    const packDir = import_path30.default.join(dir, name);
+    let pack;
+    try {
+      const data = readTemplatePackDirectory(packDir);
+      pack = loadTemplatePack(
+        data,
+        options.specbridgeVersion !== void 0 ? { specbridgeVersion: options.specbridgeVersion } : {}
+      );
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : String(cause);
+      const failure = {
+        code: cause instanceof TemplateError ? cause.templateCode : "SBT025",
+        category: "files",
+        severity: "error",
+        message
+      };
+      pack = {
+        origin: packDir,
+        manifest: void 0,
+        manifestText: void 0,
+        readme: void 0,
+        files: /* @__PURE__ */ new Map(),
+        issues: [failure],
+        valid: false
+      };
+    }
+    const manifestMismatch = pack.manifest !== void 0 && pack.manifest.id !== name;
+    if (manifestMismatch) {
+      pack.issues.push({
+        code: "SBT004",
+        category: "manifest",
+        severity: "error",
+        message: `Installed directory "${name}" does not match manifest id "${pack.manifest?.id}".`
+      });
+    }
+    entries.push({
+      source: "project",
+      id: name,
+      ref: formatTemplateReference("project", name),
+      pack,
+      valid: pack.valid && !manifestMismatch
+    });
+  }
+  return entries;
+}
+function loadTemplateCatalog(workspace, options = {}) {
+  const diagnostics = [];
+  const source = options.source ?? "all";
+  const entries = [];
+  if (source === "all" || source === "builtin") {
+    entries.push(...builtinEntries(options));
+  }
+  if (source === "all" || source === "project") {
+    entries.push(...projectEntries(workspace, options, diagnostics));
+  }
+  entries.sort(
+    (a2, b) => a2.source === b.source ? a2.id.localeCompare(b.id, "en") : a2.source === "builtin" ? -1 : 1
+  );
+  return { entries, diagnostics };
+}
+function resolveTemplate(catalog, rawReference) {
+  const reference = parseTemplateReference(rawReference);
+  if (reference === void 0) {
+    throw new TemplateError(
+      "SBT003",
+      `"${rawReference}" is not a valid template reference.`,
+      'Use a template ID like "rest-api" or a qualified reference like "builtin:rest-api" or "project:my-template".',
+      { reference: rawReference }
+    );
+  }
+  const matches = catalog.entries.filter(
+    (entry) => entry.id === reference.id && (reference.source === void 0 || entry.source === reference.source)
+  );
+  if (matches.length === 0) {
+    const suggestions = catalog.entries.filter((entry) => entry.id.includes(reference.id) || reference.id.includes(entry.id)).map((entry) => entry.ref).slice(0, 5);
+    throw new TemplateError(
+      "SBT001",
+      `Template "${rawReference}" was not found.`,
+      suggestions.length > 0 ? `Did you mean: ${suggestions.join(", ")}? Run "specbridge template list" to see all templates.` : 'Run "specbridge template list" to see available templates.',
+      { reference: rawReference }
+    );
+  }
+  if (matches.length > 1) {
+    throw new TemplateError(
+      "SBT002",
+      `Template ID "${reference.id}" exists in multiple sources.`,
+      `Use a qualified reference: ${matches.map((entry) => entry.ref).join(" or ")}.`,
+      { reference: rawReference, candidates: matches.map((entry) => entry.ref) }
+    );
+  }
+  const match = matches[0];
+  if (match === void 0) {
+    throw new TemplateError("SBT001", `Template "${rawReference}" was not found.`, 'Run "specbridge template list".');
+  }
+  return match;
+}
+function resolveValidTemplate(catalog, rawReference) {
+  const entry = resolveTemplate(catalog, rawReference);
+  if (!entry.valid || entry.pack.manifest === void 0) {
+    const problems = entry.pack.issues.filter((item) => item.severity === "error").slice(0, 5).map((item) => `${item.code}: ${item.message}`);
+    throw new TemplateError(
+      "SBT004",
+      `Template ${entry.ref} failed validation and cannot be used.` + (problems.length > 0 ? ` Problems: ${problems.join(" | ")}` : ""),
+      `Run "specbridge template validate ${entry.ref}" for the full report.`,
+      { reference: entry.ref }
+    );
+  }
+  return entry;
+}
+var DEFAULT_SEARCH_LIMIT = 20;
+var MAX_SEARCH_LIMIT = 50;
+var SCORE_EXACT_ID = 1e3;
+var SCORE_ID_PREFIX = 800;
+var SCORE_EXACT_TAG = 600;
+var SCORE_DISPLAY_NAME_TOKEN = 400;
+var SCORE_DESCRIPTION_TOKEN = 200;
+function tokenize(text) {
+  return text.toLowerCase().split(/[^a-z0-9]+/u).filter((token) => token.length > 0);
+}
+function clampSearchLimit(requested) {
+  if (requested === void 0 || !Number.isFinite(requested)) return DEFAULT_SEARCH_LIMIT;
+  return Math.max(1, Math.min(Math.trunc(requested), MAX_SEARCH_LIMIT));
+}
+function scoreEntry(entry, query, queryTokens) {
+  const manifest = entry.pack.manifest;
+  const id = entry.id.toLowerCase();
+  const tags = (manifest?.tags ?? []).map((tag) => tag.toLowerCase());
+  const displayTokens = tokenize(manifest?.displayName ?? "");
+  const descriptionTokens = new Set(tokenize(manifest?.description ?? ""));
+  let score = 0;
+  if (id === query) score += SCORE_EXACT_ID;
+  else if (id.startsWith(query)) score += SCORE_ID_PREFIX;
+  for (const token of queryTokens) {
+    if (tags.includes(token)) score += SCORE_EXACT_TAG;
+    if (displayTokens.includes(token)) score += SCORE_DISPLAY_NAME_TOKEN;
+    if (descriptionTokens.has(token)) score += SCORE_DESCRIPTION_TOKEN;
+    if (token !== query && id.split("-").includes(token)) score += SCORE_ID_PREFIX / 2;
+  }
+  return score;
+}
+function searchTemplates(catalog, rawQuery, options = {}) {
+  const query = rawQuery.trim().toLowerCase();
+  if (query.length === 0) return [];
+  const queryTokens = tokenize(query);
+  const limit = clampSearchLimit(options.limit);
+  return catalog.entries.map((entry) => ({ entry, score: scoreEntry(entry, query, queryTokens) })).filter((result) => result.score > 0).sort((a2, b) => a2.score !== b.score ? b.score - a2.score : a2.entry.ref.localeCompare(b.entry.ref, "en")).slice(0, limit);
+}
+var TEMPLATE_RECORDS_FILE_NAME = "template-records.jsonl";
+var TEMPLATE_RECORD_TYPES = [
+  "template-apply",
+  "template-install",
+  "template-uninstall",
+  "template-scaffold"
+];
+var baseRecordShape = {
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  recordId: external_exports.string().min(1).max(100),
+  type: external_exports.enum(TEMPLATE_RECORD_TYPES),
+  createdAt: external_exports.string().datetime(),
+  result: external_exports.enum(["ok", "failed"])
+};
+var templateApplyRecordSchema = external_exports.object({
+  ...baseRecordShape,
+  type: external_exports.literal("template-apply"),
+  templateRef: external_exports.string(),
+  templateId: external_exports.string(),
+  templateVersion: external_exports.string(),
+  templateSource: external_exports.enum(["builtin", "project"]),
+  manifestHash: external_exports.string(),
+  specName: external_exports.string(),
+  specKind: external_exports.enum(["feature", "bugfix"]),
+  workflowMode: external_exports.enum(["requirements-first", "design-first", "quick"]),
+  /** Workspace-relative POSIX target path -> sha256 of rendered bytes. */
+  renderedFiles: external_exports.array(external_exports.object({ target: external_exports.string(), hash: external_exports.string() })),
+  /** Safe variable NAMES only; values are never stored. */
+  variableNames: external_exports.array(external_exports.string()),
+  createdPaths: external_exports.array(external_exports.string())
+}).passthrough();
+var templateInstallRecordSchema = external_exports.object({
+  ...baseRecordShape,
+  type: external_exports.literal("template-install"),
+  templateRef: external_exports.string(),
+  templateId: external_exports.string(),
+  templateVersion: external_exports.string(),
+  manifestHash: external_exports.string(),
+  /** Workspace-relative source the pack was copied from. */
+  sourcePath: external_exports.string(),
+  installedPath: external_exports.string()
+}).passthrough();
+var templateUninstallRecordSchema = external_exports.object({
+  ...baseRecordShape,
+  type: external_exports.literal("template-uninstall"),
+  templateRef: external_exports.string(),
+  templateId: external_exports.string(),
+  uninstalledPath: external_exports.string()
+}).passthrough();
+var templateScaffoldRecordSchema = external_exports.object({
+  ...baseRecordShape,
+  type: external_exports.literal("template-scaffold"),
+  templateId: external_exports.string(),
+  kind: external_exports.enum(["feature", "bugfix"]),
+  outputPath: external_exports.string()
+}).passthrough();
+var templateRecordSchema = external_exports.discriminatedUnion("type", [
+  templateApplyRecordSchema,
+  templateInstallRecordSchema,
+  templateUninstallRecordSchema,
+  templateScaffoldRecordSchema
+]);
+function templateRecordsPath(workspace) {
+  return import_path31.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
+}
+var recordCounter = 0;
+function newTemplateRecordId(clock = systemClock) {
+  recordCounter += 1;
+  return `template-${clock().getTime().toString(36)}-${process.pid.toString(36)}-${recordCounter}`;
+}
+function appendTemplateRecord(workspace, record2) {
+  const validated = templateRecordSchema.parse(record2);
+  const filePath = templateRecordsPath(workspace);
+  try {
+    (0, import_fs28.mkdirSync)(workspace.sidecarDir, { recursive: true });
+    (0, import_fs28.appendFileSync)(filePath, `${JSON.stringify(validated)}
+`, "utf8");
+  } catch (cause) {
+    throw ioError("append template record to", filePath, cause);
+  }
+}
+function nowIso(clock) {
+  return isoNow(clock);
+}
+function rethrowSpecExists(cause, specName) {
+  if (isSpecBridgeError(cause) && cause.code === "SPEC_ALREADY_EXISTS") {
+    throw new TemplateError(
+      "SBT020",
+      `Spec "${specName}" already exists.`,
+      `SpecBridge never overwrites an existing spec. Choose a different --name or inspect the existing spec with "specbridge spec show ${specName}".`,
+      { specName }
+    );
+  }
+  throw cause;
+}
+function candidateHashForFiles(identity3, files) {
+  const payload = {
+    schema: "specbridge.template-candidate/1",
+    ...identity3,
+    files: files.map((file) => ({ target: file.fileName, hash: sha256Hex(file.content) }))
+  };
+  return sha256Hex(JSON.stringify(payload));
+}
+function planTemplateApplication(workspace, catalog, request, clock = systemClock) {
+  const entry = resolveValidTemplate(catalog, request.reference);
+  const manifest = entry.pack.manifest;
+  const manifestText = entry.pack.manifestText;
+  if (manifest === void 0 || manifestText === void 0) {
+    throw new TemplateError("SBT004", `Template ${entry.ref} has no readable manifest.`, "Re-install the template.");
+  }
+  const diagnostics = [];
+  if (manifest.deprecated === true) {
+    diagnostics.push({
+      severity: "warning",
+      code: "TEMPLATE_DEPRECATED",
+      message: `Template ${entry.ref} is deprecated.` + (manifest.replacement !== void 0 ? ` Consider "${manifest.replacement}" instead.` : "")
+    });
+  }
+  const mode = request.mode ?? manifest.defaultMode;
+  if (!manifest.supportedModes.includes(mode)) {
+    throw new TemplateError(
+      "SBT015",
+      `Template ${entry.ref} does not support mode "${mode}".`,
+      `Supported modes: ${manifest.supportedModes.join(", ")} (default: ${manifest.defaultMode}).`,
+      { reference: entry.ref, mode }
+    );
+  }
+  try {
+    planSpecCreationFromFiles(
+      workspace,
+      {
+        name: request.specName,
+        specType: manifest.kind,
+        mode,
+        title: "placeholder",
+        description: "placeholder",
+        descriptionIsPlaceholder: true,
+        files: []
+      },
+      clock
+    );
+  } catch (cause) {
+    rethrowSpecExists(cause, request.specName);
+  }
+  const requestedTitle = request.title?.trim();
+  const title = requestedTitle !== void 0 && requestedTitle.length > 0 ? requestedTitle : titleFromSpecName(request.specName);
+  const requestedDescription = request.description?.trim();
+  const descriptionIsPlaceholder = requestedDescription === void 0 || requestedDescription.length === 0;
+  const description = descriptionIsPlaceholder ? manifest.kind === "bugfix" ? DEFAULT_BUGFIX_DESCRIPTION : DEFAULT_FEATURE_DESCRIPTION : requestedDescription;
+  const resolved = resolveVariables(manifest, request.variables ?? {}, {
+    specName: request.specName,
+    title,
+    description,
+    kind: manifest.kind,
+    mode,
+    clock
+  });
+  const files = [];
+  for (const file of manifest.files) {
+    const source = entry.pack.files.get(file.source);
+    if (source === void 0) {
+      throw new TemplateError(
+        "SBT007",
+        `Template ${entry.ref} declares "${file.source}" but the pack does not contain it.`,
+        `Run "specbridge template validate ${entry.ref}".`,
+        { reference: entry.ref, source: file.source }
+      );
+    }
+    const content = renderTemplateText(file.source, source, resolved.values);
+    const stage = TARGET_STAGES[file.target];
+    if (stage === void 0) {
+      throw new TemplateError(
+        "SBT011",
+        `Template ${entry.ref} declares invalid target "${file.target}".`,
+        `Run "specbridge template validate ${entry.ref}".`,
+        { reference: entry.ref, target: file.target }
+      );
+    }
+    const structural = checkRenderedDocument(file.source, file.target, content);
+    const errors = structural.filter((issueItem) => issueItem.severity === "error");
+    if (errors.length > 0) {
+      throw new TemplateError(
+        "SBT017",
+        `Rendered "${file.target}" is not a valid spec document: ${errors.map((issueItem) => issueItem.message).join(" | ")}`,
+        "Fix the template file or the supplied variable values, then preview again.",
+        { reference: entry.ref, target: file.target }
+      );
+    }
+    for (const warningItem of structural) {
+      diagnostics.push({
+        severity: "warning",
+        code: "TEMPLATE_RENDER_WARNING",
+        message: warningItem.message
+      });
+    }
+    files.push({ fileName: file.target, stage, content });
+  }
+  let specPlan;
+  try {
+    specPlan = planSpecCreationFromFiles(
+      workspace,
+      {
+        name: request.specName,
+        specType: manifest.kind,
+        mode,
+        title,
+        description,
+        descriptionIsPlaceholder,
+        files
+      },
+      clock
+    );
+  } catch (cause) {
+    rethrowSpecExists(cause, request.specName);
+  }
+  const manifestHash = sha256Hex(manifestText);
+  const candidateHash = candidateHashForFiles(
+    {
+      templateRef: entry.ref,
+      templateVersion: manifest.version,
+      manifestHash,
+      specName: request.specName,
+      kind: manifest.kind,
+      mode
+    },
+    files
+  );
+  return {
+    templateRef: entry.ref,
+    templateId: entry.id,
+    templateVersion: manifest.version,
+    templateSource: entry.source,
+    manifest,
+    manifestHash,
+    mode,
+    variableNames: resolved.variableNames,
+    specPlan,
+    candidateHash,
+    diagnostics
+  };
+}
+function toPosix2(relative) {
+  return relative.split(import_path32.default.sep).join("/");
+}
+function executeTemplateApplication(workspace, plan, clock = systemClock, recordId) {
+  let creation;
+  try {
+    creation = executeSpecCreation(workspace, plan.specPlan);
+  } catch (cause) {
+    rethrowSpecExists(cause, plan.specPlan.specName);
+  }
+  const id = recordId ?? newTemplateRecordId(clock);
+  const record2 = {
+    schemaVersion: "1.0.0",
+    recordId: id,
+    type: "template-apply",
+    createdAt: nowIso(clock),
+    result: "ok",
+    templateRef: plan.templateRef,
+    templateId: plan.templateId,
+    templateVersion: plan.templateVersion,
+    templateSource: plan.templateSource,
+    manifestHash: plan.manifestHash,
+    specName: plan.specPlan.specName,
+    specKind: plan.specPlan.specType,
+    workflowMode: plan.mode,
+    renderedFiles: plan.specPlan.files.map((file) => ({
+      target: file.fileName,
+      hash: sha256Hex(file.content)
+    })),
+    variableNames: plan.variableNames,
+    createdPaths: [
+      ...creation.writtenFiles.map((file) => toPosix2(import_path32.default.relative(workspace.rootDir, file))),
+      toPosix2(import_path32.default.relative(workspace.rootDir, creation.statePath))
+    ]
+  };
+  appendTemplateRecord(workspace, record2);
+  return { plan, creation, recordId: id };
+}
+
+// ../../packages/mcp-server/src/tools/template-shared.ts
+var templateSourceInput = external_exports.enum(["builtin", "project", "all"]);
+function catalogFor(context, source) {
+  const workspace = context.requireWorkspace();
+  return loadTemplateCatalog(workspace, { source: source ?? "all" });
+}
+var templateSummaryShape = external_exports.object({
+  ref: external_exports.string().describe("Qualified reference, e.g. builtin:rest-api"),
+  id: external_exports.string(),
+  source: external_exports.enum(["builtin", "project"]),
+  valid: external_exports.boolean(),
+  displayName: external_exports.string().nullable(),
+  version: external_exports.string().nullable(),
+  description: external_exports.string().nullable(),
+  kind: external_exports.enum(["feature", "bugfix"]).nullable(),
+  supportedModes: external_exports.array(external_exports.enum(["requirements-first", "design-first", "quick"])),
+  defaultMode: external_exports.enum(["requirements-first", "design-first", "quick"]).nullable(),
+  tags: external_exports.array(external_exports.string()),
+  deprecated: external_exports.boolean(),
+  errors: external_exports.array(external_exports.string()).describe("Validation errors (SBT codes) for invalid templates")
+});
+function entrySummary(entry) {
+  const manifest = entry.pack.manifest;
+  return {
+    ref: entry.ref,
+    id: entry.id,
+    source: entry.source,
+    valid: entry.valid,
+    displayName: manifest?.displayName ?? null,
+    version: manifest?.version ?? null,
+    description: manifest?.description ?? null,
+    kind: manifest?.kind ?? null,
+    supportedModes: manifest?.supportedModes ?? [],
+    defaultMode: manifest?.defaultMode ?? null,
+    tags: manifest?.tags ?? [],
+    deprecated: manifest?.deprecated === true,
+    errors: entry.pack.issues.filter((issue3) => issue3.severity === "error").slice(0, 10).map((issue3) => `${issue3.code}: ${issue3.message}`)
+  };
+}
+function filterEntries(entries, filters) {
+  let result = entries;
+  if (filters.kind !== void 0) {
+    result = result.filter((entry) => entry.pack.manifest?.kind === filters.kind);
+  }
+  if (filters.mode !== void 0) {
+    result = result.filter((entry) => entry.pack.manifest?.supportedModes.includes(filters.mode) === true);
+  }
+  if (filters.tag !== void 0) {
+    result = result.filter((entry) => entry.pack.manifest?.tags.includes(filters.tag) === true);
+  }
+  return result;
+}
+var templateVariablesInput = external_exports.record(external_exports.union([external_exports.string().max(1e5), external_exports.number(), external_exports.boolean()])).optional().describe("Template variables by name (scalars only)");
+
+// ../../packages/mcp-server/src/tools/template-list.ts
+var inputSchema20 = {
+  source: templateSourceInput.optional().describe("Restrict to one source (default all)"),
+  kind: external_exports.enum(["feature", "bugfix"]).optional(),
+  mode: external_exports.enum(["requirements-first", "design-first", "quick"]).optional(),
+  tag: external_exports.string().max(32).optional(),
+  limit: external_exports.number().int().min(1).optional(),
+  cursor: external_exports.string().optional()
+};
+var outputSchema26 = {
+  templates: external_exports.array(templateSummaryShape),
+  totalCount: external_exports.number().int(),
+  nextCursor: external_exports.string().nullable()
+};
+function registerTemplateListTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "template_list",
+    title: "List spec templates",
+    description: "List built-in and project-local spec templates with metadata and validation status. Deterministic and offline: no registry, no network, no model.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    inputSchema: inputSchema20,
+    outputSchema: outputSchema26,
+    handler: async (args) => {
+      const catalog = catalogFor(context, args.source);
+      const filtered = filterEntries(catalog.entries, args);
+      const page = paginate(filtered.map(entrySummary), {
+        limit: clampListLimit(args.limit),
+        ...args.cursor !== void 0 ? { cursor: args.cursor } : {},
+        token: "template-list"
+      });
+      const text = page.items.length === 0 ? "No templates match the given filters." : page.items.map((template) => `- ${template.ref} v${template.version ?? "?"} \u2014 ${template.displayName ?? "(invalid)"}`).join("\n");
+      return {
+        text,
+        structured: {
+          templates: page.items,
+          totalCount: filtered.length,
+          nextCursor: page.nextCursor ?? null
+        }
+      };
+    }
+  });
+}
+
+// ../../packages/mcp-server/src/tools/template-search.ts
+var inputSchema21 = {
+  query: external_exports.string().min(1).max(200).describe("Keyword query matched against ID, name, description, tags"),
+  source: templateSourceInput.optional(),
+  kind: external_exports.enum(["feature", "bugfix"]).optional(),
+  mode: external_exports.enum(["requirements-first", "design-first", "quick"]).optional(),
+  limit: external_exports.number().int().min(1).max(MAX_SEARCH_LIMIT).optional()
+};
+var outputSchema27 = {
+  results: external_exports.array(templateSummaryShape.extend({ score: external_exports.number().int() })),
+  totalCount: external_exports.number().int()
+};
+function registerTemplateSearchTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "template_search",
+    title: "Search spec templates",
+    description: "Deterministic local keyword search over template IDs, display names, descriptions, and tags. Ranking: exact ID, ID prefix, exact tag, display-name token, description token. No model, no network.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    inputSchema: inputSchema21,
+    outputSchema: outputSchema27,
+    handler: async (args) => {
+      const catalog = catalogFor(context, args.source);
+      const filtered = { entries: filterEntries(catalog.entries, args), diagnostics: catalog.diagnostics };
+      const results = searchTemplates(filtered, args.query, args.limit !== void 0 ? { limit: args.limit } : {});
+      const summaries = results.map((result) => ({ ...entrySummary(result.entry), score: result.score }));
+      const text = summaries.length === 0 ? `No templates match "${args.query}".` : summaries.map((result) => `- ${result.ref} (score ${result.score}) \u2014 ${result.displayName ?? ""}`).join("\n");
+      return { text, structured: { results: summaries, totalCount: summaries.length } };
+    }
+  });
+}
+
+// ../../packages/mcp-server/src/tools/template-show.ts
+var inputSchema22 = {
+  reference: external_exports.string().min(1).max(150).describe("Template reference: rest-api, builtin:rest-api, or project:my-template")
+};
+var variableShape = external_exports.object({
+  name: external_exports.string(),
+  description: external_exports.string(),
+  type: external_exports.enum(["string", "boolean", "integer", "enum"]),
+  required: external_exports.boolean(),
+  default: external_exports.union([external_exports.string(), external_exports.boolean(), external_exports.number()]).nullable(),
+  values: external_exports.array(external_exports.string()).nullable()
+});
+var outputSchema28 = {
+  template: templateSummaryShape,
+  license: external_exports.string().nullable(),
+  compatibility: external_exports.object({ specbridge: external_exports.string(), kiroLayout: external_exports.string() }).nullable(),
+  variables: external_exports.array(variableShape),
+  files: external_exports.array(external_exports.object({ target: external_exports.string(), stage: external_exports.string() })),
+  builtinVariables: external_exports.array(external_exports.string()),
+  examples: external_exports.array(external_exports.string()),
+  readme: external_exports.string().nullable().describe("Template README (truncated if large)"),
+  issues: external_exports.array(external_exports.object({ code: external_exports.string(), category: external_exports.string(), severity: external_exports.string(), message: external_exports.string() }))
+};
+function registerTemplateShowTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "template_show",
+    title: "Show one spec template",
+    description: "Show a template in depth: metadata, declared variables, target files, README, and validation status. Read-only. Ambiguous unqualified references fail with the qualified candidates.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    inputSchema: inputSchema22,
+    outputSchema: outputSchema28,
+    handler: async (args) => {
+      const catalog = catalogFor(context);
+      const entry = resolveTemplate(catalog, args.reference);
+      const manifest = entry.pack.manifest;
+      const summary = entrySummary(entry);
+      const readme = entry.pack.readme !== void 0 ? truncateText(entry.pack.readme, LIMITS.maximumShortTextChars) : void 0;
+      const text = [
+        `${entry.ref} \u2014 ${manifest?.displayName ?? "(invalid template)"} v${manifest?.version ?? "?"}`,
+        manifest?.description ?? "",
+        manifest !== void 0 ? `Variables: ${manifest.variables.map((variable) => variable.name).join(", ") || "(none)"}` : `Invalid: ${summary.errors.join(" | ")}`
+      ].filter((line) => line.length > 0).join("\n");
+      return {
+        text,
+        structured: {
+          template: summary,
+          license: manifest?.license ?? null,
+          compatibility: manifest?.compatibility ?? null,
+          variables: (manifest?.variables ?? []).map((variable) => ({
+            name: variable.name,
+            description: variable.description,
+            type: variable.type,
+            required: variable.required,
+            default: variable.default ?? null,
+            values: variable.values ?? null
+          })),
+          files: (manifest?.files ?? []).map((file) => ({ target: file.target, stage: file.stage })),
+          builtinVariables: ["specName", "title", "description", "kind", "mode"],
+          examples: manifest?.examples ?? [],
+          readme: readme?.text ?? null,
+          issues: entry.pack.issues.map((issue3) => ({
+            code: issue3.code,
+            category: issue3.category,
+            severity: issue3.severity,
+            message: issue3.message
+          }))
+        }
+      };
+    }
+  });
+}
+
+// ../../packages/mcp-server/src/tools/template-preview.ts
+var inputSchema23 = {
+  reference: external_exports.string().min(1).max(150).describe("Template reference (qualified or unique unqualified)"),
+  specName: external_exports.string().min(1).max(120).describe("Name of the spec that would be created"),
+  mode: external_exports.enum(["requirements-first", "design-first", "quick"]).optional().describe("Workflow mode (default: the template's defaultMode)"),
+  title: external_exports.string().max(300).optional(),
+  description: external_exports.string().max(LIMITS.maximumShortTextChars).optional(),
+  variables: templateVariablesInput
+};
+var renderedFileShape = external_exports.object({
+  target: external_exports.string().describe("File name inside .kiro/specs/<specName>/"),
+  stage: external_exports.string(),
+  bytes: external_exports.number().int(),
+  content: external_exports.string().describe("Rendered content (truncated if very large)"),
+  truncated: external_exports.boolean()
+});
+var outputSchema29 = {
+  template: external_exports.object({ ref: external_exports.string(), version: external_exports.string(), source: external_exports.string() }),
+  specName: external_exports.string(),
+  specKind: external_exports.enum(["feature", "bugfix"]),
+  mode: external_exports.enum(["requirements-first", "design-first", "quick"]),
+  title: external_exports.string(),
+  candidateHash: external_exports.string().describe("Echo this to template_apply as expectedCandidateHash after review"),
+  variableNames: external_exports.array(external_exports.string()),
+  files: external_exports.array(renderedFileShape),
+  targetDir: external_exports.string().describe("Repository-relative spec directory"),
+  statePath: external_exports.string().describe("Repository-relative sidecar state path"),
+  proposedStatus: external_exports.string().describe("Initial workflow status (all stages unapproved)"),
+  diagnostics: external_exports.array(external_exports.object({ severity: external_exports.string(), code: external_exports.string(), message: external_exports.string() })),
+  suggestedNextSteps: external_exports.array(external_exports.string())
+};
+function registerTemplatePreviewTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "template_preview",
+    title: "Preview a template application",
+    description: "Render a template into candidate spec files without writing anything. Returns the rendered content, diagnostics, target paths, the proposed sidecar state, and the candidate hash that template_apply requires. Shares the exact rendering path with apply.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    inputSchema: inputSchema23,
+    outputSchema: outputSchema29,
+    handler: async (args) => {
+      if (args.description !== void 0) {
+        if (Buffer.byteLength(args.description, "utf8") > LIMITS.maximumShortTextChars * 4) {
+          args.description = args.description.slice(0, LIMITS.maximumShortTextChars);
+        }
+      }
+      const workspace = context.requireWorkspace();
+      const catalog = catalogFor(context);
+      const plan = planTemplateApplication(
+        workspace,
+        catalog,
+        {
+          reference: args.reference,
+          specName: args.specName,
+          ...args.mode !== void 0 ? { mode: args.mode } : {},
+          ...args.title !== void 0 ? { title: args.title } : {},
+          ...args.description !== void 0 ? { description: args.description } : {},
+          variables: args.variables ?? {}
+        },
+        context.clock
+      );
+      const files = plan.specPlan.files.map((file) => {
+        const truncated = truncateText(file.content, LIMITS.maximumDocumentBytes);
+        return {
+          target: file.fileName,
+          stage: file.stage,
+          bytes: Buffer.byteLength(file.content, "utf8"),
+          content: truncated.text,
+          truncated: truncated.truncated
+        };
+      });
+      return {
+        text: `Preview of "${args.specName}" from ${plan.templateRef} v${plan.templateVersion} \u2014 nothing was written.
+` + files.map((file) => `- ${file.target} (${file.stage}, ${file.bytes} bytes)`).join("\n") + `
+Candidate hash: ${plan.candidateHash}`,
+        structured: {
+          template: { ref: plan.templateRef, version: plan.templateVersion, source: plan.templateSource },
+          specName: plan.specPlan.specName,
+          specKind: plan.specPlan.specType,
+          mode: plan.mode,
+          title: plan.specPlan.title,
+          candidateHash: plan.candidateHash,
+          variableNames: plan.variableNames,
+          files,
+          targetDir: repoRelative(workspace, plan.specPlan.dir),
+          statePath: repoRelative(workspace, plan.specPlan.statePath),
+          proposedStatus: plan.specPlan.state.status,
+          diagnostics: plan.diagnostics.map((diagnostic) => ({
+            severity: diagnostic.severity,
+            code: diagnostic.code,
+            message: diagnostic.message
+          })),
+          suggestedNextSteps: [
+            "Review the rendered files and diagnostics above.",
+            'Call template_apply with the same inputs, expectedCandidateHash set to candidateHash, and acknowledgement "apply-reviewed-template".'
+          ]
+        }
+      };
+    }
+  });
+}
+
+// ../../packages/mcp-server/src/tools/template-apply.ts
+var inputSchema24 = {
+  reference: external_exports.string().min(1).max(150).describe("Template reference (qualified or unique unqualified)"),
+  specName: external_exports.string().min(1).max(120).describe("Name of the spec to create"),
+  mode: external_exports.enum(["requirements-first", "design-first", "quick"]).optional(),
+  title: external_exports.string().max(300).optional(),
+  description: external_exports.string().max(LIMITS.maximumShortTextChars).optional(),
+  variables: templateVariablesInput,
+  expectedCandidateHash: external_exports.string().min(1).describe("candidateHash returned by template_preview for these exact inputs"),
+  acknowledgement: external_exports.literal("apply-reviewed-template").describe("Confirms the rendered preview was reviewed")
+};
+var outputSchema30 = {
+  applied: external_exports.boolean(),
+  template: external_exports.object({ ref: external_exports.string(), version: external_exports.string(), source: external_exports.string() }),
+  specName: external_exports.string(),
+  specKind: external_exports.enum(["feature", "bugfix"]),
+  mode: external_exports.enum(["requirements-first", "design-first", "quick"]),
+  candidateHash: external_exports.string(),
+  createdPaths: external_exports.array(external_exports.string()).describe("Repository-relative paths that were created"),
+  statePath: external_exports.string(),
+  initialStatus: external_exports.string().describe("All generated stages start unapproved"),
+  recordId: external_exports.string().describe("Append-only template-apply record ID"),
+  suggestedNextSteps: external_exports.array(external_exports.string())
+};
+function registerTemplateApplyTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "template_apply",
+    title: "Apply a reviewed template",
+    description: "Create a new spec from a template, atomically, after template_preview. Requires the candidate hash from the preview and the acknowledgement string. Never overwrites an existing spec, never marks a stage approved, and appends an auditable template-apply record.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false
+    },
+    inputSchema: inputSchema24,
+    outputSchema: outputSchema30,
+    handler: async (args) => context.withWriteLock(async () => {
+      const workspace = context.requireWorkspace();
+      const catalog = catalogFor(context);
+      const plan = planTemplateApplication(
+        workspace,
+        catalog,
+        {
+          reference: args.reference,
+          specName: args.specName,
+          ...args.mode !== void 0 ? { mode: args.mode } : {},
+          ...args.title !== void 0 ? { title: args.title } : {},
+          ...args.description !== void 0 ? { description: args.description } : {},
+          variables: args.variables ?? {}
+        },
+        context.clock
+      );
+      if (plan.candidateHash !== args.expectedCandidateHash) {
+        throw new McpToolError(
+          "SBMCP002",
+          `SBT023 (candidate hash mismatch): the re-rendered candidate (${plan.candidateHash}) does not match expectedCandidateHash (${args.expectedCandidateHash}). The template or the inputs changed since the preview.`,
+          {
+            remediation: [
+              "Call template_preview again with the same inputs.",
+              "Review the new rendered output.",
+              "Retry template_apply with the new candidateHash."
+            ],
+            details: { expected: args.expectedCandidateHash, actual: plan.candidateHash }
+          }
+        );
+      }
+      const result = executeTemplateApplication(workspace, plan, context.clock);
+      const createdPaths = [
+        ...result.creation.writtenFiles.map((file) => repoRelative(workspace, file)),
+        repoRelative(workspace, result.creation.statePath)
+      ];
+      return {
+        text: `Created spec "${plan.specPlan.specName}" from ${plan.templateRef} v${plan.templateVersion} (${plan.specPlan.specType}, ${plan.mode}). All stages start unapproved. Record: ${result.recordId}.`,
+        structured: {
+          applied: true,
+          template: { ref: plan.templateRef, version: plan.templateVersion, source: plan.templateSource },
+          specName: plan.specPlan.specName,
+          specKind: plan.specPlan.specType,
+          mode: plan.mode,
+          candidateHash: plan.candidateHash,
+          createdPaths,
+          statePath: repoRelative(workspace, result.creation.statePath),
+          initialStatus: plan.specPlan.state.status,
+          recordId: result.recordId,
+          suggestedNextSteps: [
+            "Replace the remaining placeholders in the first stage document with real content.",
+            `Validate with spec_analyze ("${plan.specPlan.specName}").`,
+            "Approval stays a human CLI action: specbridge spec approve."
+          ]
+        }
+      };
+    })
+  });
+}
+
 // ../../packages/mcp-server/src/tools/registry.ts
 function registerAllTools(server, context) {
   registerWorkspaceDetectTool(server, context);
@@ -56115,7 +58198,12 @@ function registerAllTools(server, context) {
   registerRunnerShowTool(server, context);
   registerRunnerDoctorTool(server, context);
   registerRunnerMatrixTool(server, context);
+  registerTemplateListTool(server, context);
+  registerTemplateSearchTool(server, context);
+  registerTemplateShowTool(server, context);
+  registerTemplatePreviewTool(server, context);
   registerSpecCreateTool(server, context);
+  registerTemplateApplyTool(server, context);
   registerSpecStageValidateTool(server, context);
   registerSpecStageApplyTool(server, context);
   registerSpecRunVerificationTool(server, context);

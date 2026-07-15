@@ -1,0 +1,12 @@
+# Implementation Plan
+
+- [ ] 1. Define the `{{eventName}}` event contract: payload schema, envelope metadata, ordering key, and version.
+- [ ] 2. Document the {{deliverySemantics}} delivery guarantee and its consequence for consumers in the event contract.
+- [ ] 3. Implement event publication from the producer, including the transactional boundary (e.g. an outbox) that keeps state changes and events consistent.
+- [ ] 4. Implement the consumer effect with idempotent processing and acknowledgment only after the effect is durable.
+- [ ] 5. Implement the retry policy and dead-letter routing for failing events.
+- [ ] 6. Add trace propagation and metrics for publish rate, consumer lag, retries, and dead-letter counts.
+- [ ] 7. Write contract tests validating producer output and consumer tolerance against the published schema.
+- [ ] 8. Write failure tests covering duplicate delivery, broker outage at publish time, and poison-message dead-lettering.
+- [ ] 9. Verify schema-evolution compatibility with existing consumers and document the replay procedure for dead-lettered events.
+- [ ] 10. Document the rollout order for producer and consumers and the rollback path for in-flight events.

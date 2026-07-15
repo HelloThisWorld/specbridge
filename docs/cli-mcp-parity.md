@@ -11,7 +11,10 @@ over both. This table maps every capability to its surfaces:
 | List/read specs | `spec list/show` | `spec_list`, `spec_read` | `status` |
 | Spec status | `spec status` | `spec_status` | `status` |
 | Agent context | `spec context` | `spec_context` | (used internally) |
-| Create templates | `spec new` | `spec_create` (preview→apply) | `new` |
+| Create a spec | `spec new` | `spec_create` (preview→apply) | `new` |
+| Discover templates | `template list/search/show/validate` | `template_list`, `template_search`, `template_show` | `templates` |
+| Apply a template | `template preview/apply`, `spec new --template` | `template_preview` + `template_apply` (hash-bound) | `templates` (after confirmation) |
+| Manage template packs | `template install/uninstall/scaffold` | **no** (deliberately CLI-only) | **no** |
 | Analyze spec | `spec analyze` | `spec_analyze` | `author`/`status` |
 | Apply authored stage | `spec generate/refine` (runner-drafted) | `spec_stage_validate` + `spec_stage_apply` (session-drafted) | `author` |
 | **Approve stage** | `spec approve` | **no direct model tool** | `approve` (human-invoked CLI) |

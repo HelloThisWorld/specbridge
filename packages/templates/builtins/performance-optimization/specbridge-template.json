@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "performance-optimization",
+  "version": "1.0.0",
+  "displayName": "Performance Optimization",
+  "description": "A feature spec template for a measurable performance improvement: numeric baseline and target, measurement method, workload definition, bottleneck evidence, constraints, regression risks, before/after validation, and rollback.",
+  "kind": "feature",
+  "supportedModes": ["requirements-first", "design-first", "quick"],
+  "defaultMode": "requirements-first",
+  "tags": ["performance", "optimization", "profiling", "latency", "benchmarking"],
+  "files": [
+    {
+      "source": "files/requirements.md.template",
+      "target": "requirements.md",
+      "stage": "requirements",
+      "required": true
+    },
+    {
+      "source": "files/design.md.template",
+      "target": "design.md",
+      "stage": "design",
+      "required": true
+    },
+    {
+      "source": "files/tasks.md.template",
+      "target": "tasks.md",
+      "stage": "tasks",
+      "required": true
+    }
+  ],
+  "variables": [
+    {
+      "name": "targetMetric",
+      "description": "The single metric the optimization is judged by (e.g. \"p95 latency\", \"throughput\", \"peak memory\").",
+      "type": "string",
+      "required": false,
+      "default": "p95 latency"
+    },
+    {
+      "name": "workload",
+      "description": "The workload under which the metric is measured (e.g. \"steady-state production traffic\", \"nightly batch import\").",
+      "type": "string",
+      "required": false,
+      "default": "steady-state production traffic"
+    }
+  ],
+  "compatibility": {
+    "specbridge": ">=0.7.0 <1.0.0",
+    "kiroLayout": "1"
+  },
+  "license": "MIT",
+  "examples": [
+    "specbridge template apply performance-optimization --name checkout-latency --var targetMetric=\"p95 latency\""
+  ]
+}

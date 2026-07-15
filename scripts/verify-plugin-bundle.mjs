@@ -16,7 +16,7 @@
  * No Claude Code, no network, no model.
  */
 import { execFileSync, spawn } from 'node:child_process';
-import { cpSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -77,6 +77,40 @@ try {
   check('bundled CLI reads the fixture workspace', doctor.includes('sample-spec'));
 } catch (cause) {
   check('bundled CLI reads the fixture workspace', false, String(cause));
+}
+
+// Built-in templates ship inside the bundle: list and preview must work in
+// the isolated fixture with no monorepo and no network.
+try {
+  const list = execFileSync(process.execPath, [cliBundle, 'template', 'list', '--json'], {
+    cwd: fixtureRoot,
+    encoding: 'utf8',
+    env: { ...process.env, NO_COLOR: '1' },
+  });
+  const parsed = JSON.parse(list);
+  const refs = (parsed.data?.templates ?? []).map((template) => template.ref);
+  check(
+    'isolated bundle lists the built-in template catalog',
+    refs.includes('builtin:rest-api') && refs.length >= 10,
+    refs.join(','),
+  );
+} catch (cause) {
+  check('isolated bundle lists the built-in template catalog', false, String(cause));
+}
+try {
+  const preview = execFileSync(
+    process.execPath,
+    [cliBundle, 'template', 'preview', 'rest-api', '--name', 'bundle-preview-check', '--json'],
+    { cwd: fixtureRoot, encoding: 'utf8', env: { ...process.env, NO_COLOR: '1' } },
+  );
+  const parsed = JSON.parse(preview);
+  const rendered = (parsed.data?.files ?? []).some(
+    (file) => typeof file.content === 'string' && file.content.includes('# Requirements Document'),
+  );
+  const specsDir = path.join(fixtureRoot, '.kiro', 'specs', 'bundle-preview-check');
+  check('isolated bundle previews a template without writing', rendered && !existsSync(specsDir));
+} catch (cause) {
+  check('isolated bundle previews a template without writing', false, String(cause));
 }
 
 // POSIX wrapper end-to-end where a POSIX shell exists.
@@ -168,6 +202,13 @@ async function verifyMcpServer() {
     const tools = await waitFor(2);
     const toolNames = (tools.result?.tools ?? []).map((tool) => tool.name);
     check('isolated server lists the tool registry', toolNames.includes('workspace_detect') && toolNames.includes('task_begin'), toolNames.join(','));
+    check(
+      'isolated server exposes the template tools',
+      ['template_list', 'template_search', 'template_show', 'template_preview', 'template_apply'].every((name) =>
+        toolNames.includes(name),
+      ),
+      toolNames.filter((name) => name.startsWith('template_')).join(','),
+    );
 
     send({
       jsonrpc: '2.0',

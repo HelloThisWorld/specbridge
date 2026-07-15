@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "event-driven-service",
+  "version": "1.0.0",
+  "displayName": "Event-Driven Service",
+  "description": "A feature spec template for a producer/consumer change on an event bus, queue, or stream: event contract, delivery semantics, ordering, idempotency, retries, dead-letter behavior, schema evolution, tracing, and rollout.",
+  "kind": "feature",
+  "supportedModes": ["requirements-first", "design-first", "quick"],
+  "defaultMode": "requirements-first",
+  "tags": ["events", "messaging", "queue", "streaming", "async"],
+  "files": [
+    {
+      "source": "files/requirements.md.template",
+      "target": "requirements.md",
+      "stage": "requirements",
+      "required": true
+    },
+    {
+      "source": "files/design.md.template",
+      "target": "design.md",
+      "stage": "design",
+      "required": true
+    },
+    {
+      "source": "files/tasks.md.template",
+      "target": "tasks.md",
+      "stage": "tasks",
+      "required": true
+    }
+  ],
+  "variables": [
+    {
+      "name": "eventName",
+      "description": "Name of the primary event the change produces or consumes (e.g. \"order-created\").",
+      "type": "string",
+      "required": false,
+      "default": "resource-updated"
+    },
+    {
+      "name": "deliverySemantics",
+      "description": "Delivery guarantee the design commits to. Exactly-once is deliberately not an option; pair at-least-once with idempotent consumers.",
+      "type": "enum",
+      "required": false,
+      "default": "at-least-once",
+      "values": ["at-least-once", "at-most-once"]
+    }
+  ],
+  "compatibility": {
+    "specbridge": ">=0.7.0 <1.0.0",
+    "kiroLayout": "1"
+  },
+  "license": "MIT",
+  "examples": [
+    "specbridge template apply event-driven-service --name order-events --var eventName=order-created"
+  ]
+}

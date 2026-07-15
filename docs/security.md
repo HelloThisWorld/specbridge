@@ -165,3 +165,15 @@ same operations the CLI already gates, minus the human-only ones. Controls:
 | Malicious verifier output | Verifier stdout/stderr is captured with size limits, stored under the run directory, and only bounded tails ever appear in reports; output is never parsed as instructions. |
 | Oversized content (DoS) | 1 MB document/candidate caps, 2 MB structured-response cap, 500-diagnostic cap, list pagination, and SBMCP018/SBMCP019 failures before memory blowups. |
 | Plugin supply-chain integrity | Pinned SDK, reproducible bundles, SHA-256 checksum manifest verified in CI, license report, and a validator that rejects workspace imports or absolute paths in the shipped artifact. |
+
+## v0.7.0 template safety
+
+Templates are data, not code: no scripts, no shell, no environment access,
+no network, one-pass `{{variable}}` rendering with bounded packs and
+output, symlink and traversal rejection, atomic install and spec creation,
+candidate-hash binding for MCP apply, and append-only operation records
+that store variable names and hashes — never values. The full template
+threat model (malicious manifests and placeholders, recursive injection,
+traversal, symlink escape, oversized/binary payloads, ambiguous shadowing,
+candidate substitution, and supply-chain limitations) lives in
+[template-security.md](template-security.md).

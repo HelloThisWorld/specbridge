@@ -1,0 +1,12 @@
+# Implementation Plan
+
+- [ ] 1. Define the measurement method: tool, environment, {{workload}} composition, run count, and reported statistic.
+- [ ] 2. Measure the baseline for {{targetMetric}} and record the numeric value and raw output in the spec.
+- [ ] 3. Create a profiling or tracing capture that identifies the bottleneck, and attach the evidence to the design.
+- [ ] 4. Define the numeric target for {{targetMetric}} and the regression budgets for secondary metrics.
+- [ ] 5. Implement the optimization behind a kill switch or feature flag where feasible.
+- [ ] 6. Write correctness tests proving the optimized path produces results identical to the baseline path.
+- [ ] 7. Measure the optimized build with the identical method and workload, and record the before/after comparison.
+- [ ] 8. Verify secondary metrics stay within their regression budgets.
+- [ ] 9. Add production monitoring for {{targetMetric}} with an alert on the numeric regression threshold.
+- [ ] 10. Document the rollout steps, the numeric rollback trigger, and the rollback procedure.

@@ -1,0 +1,12 @@
+# Implementation Plan
+
+- [ ] 1. Define the credential verification flow and the {{sessionKind}} format, lifetime, and issuance path.
+- [ ] 2. Implement credential verification with a generic failure response that does not reveal account existence.
+- [ ] 3. Implement {{sessionKind}} validation at every protected entry point, including expiry checks.
+- [ ] 4. Implement revocation so a revoked {{sessionKind}} is rejected before its expiry.
+- [ ] 5. Implement lockout and rate limiting for repeated failed sign-in attempts.
+- [ ] 6. Implement the authorization boundary check and its deny-by-default behavior.
+- [ ] 7. Add replay protection for one-time credentials and renewal requests.
+- [ ] 8. Add audit events for sign-in success and failure, issuance, revocation, and lockout without recording credential material.
+- [ ] 9. Write security tests covering wrong credentials, lockout, expired and revoked {{sessionKind}} rejection, replay, and authorization boundary probes.
+- [ ] 10. Verify existing authenticated flows keep passing and document the rollout and rollback steps.

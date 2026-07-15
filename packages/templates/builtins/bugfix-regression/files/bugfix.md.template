@@ -1,0 +1,49 @@
+# Bugfix Document
+
+## Summary
+
+**{{title}}**
+
+{{description}}
+
+Severity: {{severity}}. Affected area: {{affectedArea}}.
+
+## Current Behavior
+
+Describe the observed incorrect behavior here, exactly as it happens.
+
+## Expected Behavior
+
+Describe the correct behavior here, with the authoritative source for why
+it is correct (spec, documentation, prior release behavior).
+
+## Unchanged Behavior
+
+- List behavior in {{affectedArea}} that must remain unchanged here.
+- List adjacent features that share code with the fix here.
+
+## Reproduction
+
+1. Add deterministic reproduction steps here.
+2. <input or state required>
+3. <action that triggers the bug>
+4. <observed incorrect result>
+
+## Evidence
+
+- Logs: add relevant log lines here.
+- Error messages: add exact error text here.
+- Screenshots: add links or paths here.
+- Failing tests: add failing test names here.
+- Relevant source locations: add file paths here.
+- First known bad version or commit: <version or commit, if known>.
+
+## Constraints
+
+- Add implementation or compatibility constraints here.
+- <Data already written by the buggy behavior and whether it needs repair.>
+
+## Regression Risks
+
+- Add behavior that could regress here.
+- <Callers or consumers relying on the buggy behavior, if any.>

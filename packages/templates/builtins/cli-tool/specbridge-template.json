@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "cli-tool",
+  "version": "1.0.0",
+  "displayName": "Command-Line Tool",
+  "description": "A feature spec template for adding or changing a command-line tool or command: command surface, arguments and options, exit codes, stdout/stderr behavior, machine-readable output, non-interactive use, platform compatibility, error handling, and tests.",
+  "kind": "feature",
+  "supportedModes": ["requirements-first", "design-first", "quick"],
+  "defaultMode": "requirements-first",
+  "tags": ["cli", "command-line", "tooling", "developer-experience", "ux"],
+  "files": [
+    {
+      "source": "files/requirements.md.template",
+      "target": "requirements.md",
+      "stage": "requirements",
+      "required": true
+    },
+    {
+      "source": "files/design.md.template",
+      "target": "design.md",
+      "stage": "design",
+      "required": true
+    },
+    {
+      "source": "files/tasks.md.template",
+      "target": "tasks.md",
+      "stage": "tasks",
+      "required": true
+    }
+  ],
+  "variables": [
+    {
+      "name": "commandName",
+      "description": "Name of the command the spec covers (e.g. \"mycli\").",
+      "type": "string",
+      "required": false,
+      "default": "mycli"
+    },
+    {
+      "name": "actor",
+      "description": "Primary user of the command (a role, e.g. \"developer\").",
+      "type": "string",
+      "required": false,
+      "default": "developer"
+    }
+  ],
+  "compatibility": {
+    "specbridge": ">=0.7.0 <1.0.0",
+    "kiroLayout": "1"
+  },
+  "license": "MIT",
+  "examples": [
+    "specbridge template apply cli-tool --name my-tool --var commandName=mycli"
+  ]
+}

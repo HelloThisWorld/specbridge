@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "refactoring",
+  "version": "1.0.0",
+  "displayName": "Refactoring",
+  "description": "A feature spec template for a behavior-preserving restructuring: an explicit inventory of behavior that must not change, refactor boundaries, an incremental plan with safe checkpoints, regression tests, rollback points, and measurable completion criteria.",
+  "kind": "feature",
+  "supportedModes": ["requirements-first", "design-first", "quick"],
+  "defaultMode": "requirements-first",
+  "tags": ["refactoring", "maintainability", "tech-debt", "restructuring", "regression-safety"],
+  "files": [
+    {
+      "source": "files/requirements.md.template",
+      "target": "requirements.md",
+      "stage": "requirements",
+      "required": true
+    },
+    {
+      "source": "files/design.md.template",
+      "target": "design.md",
+      "stage": "design",
+      "required": true
+    },
+    {
+      "source": "files/tasks.md.template",
+      "target": "tasks.md",
+      "stage": "tasks",
+      "required": true
+    }
+  ],
+  "variables": [
+    {
+      "name": "componentName",
+      "description": "The component, module, or subsystem being restructured (e.g. \"billing\").",
+      "type": "string",
+      "required": false,
+      "default": "the component"
+    }
+  ],
+  "compatibility": {
+    "specbridge": ">=0.7.0 <1.0.0",
+    "kiroLayout": "1"
+  },
+  "license": "MIT",
+  "examples": [
+    "specbridge template apply refactoring --name extract-billing-module --var componentName=billing"
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "database-migration",
+  "version": "1.0.0",
+  "displayName": "Database Migration",
+  "description": "A feature spec template for a schema or data migration: the schema change, batched backfill, backward compatibility, zero-downtime deployment order, indexes and locking, rollback limitations, validation, and observability.",
+  "kind": "feature",
+  "supportedModes": ["requirements-first", "design-first", "quick"],
+  "defaultMode": "requirements-first",
+  "tags": ["database", "migration", "schema", "sql", "backfill"],
+  "files": [
+    {
+      "source": "files/requirements.md.template",
+      "target": "requirements.md",
+      "stage": "requirements",
+      "required": true
+    },
+    {
+      "source": "files/design.md.template",
+      "target": "design.md",
+      "stage": "design",
+      "required": true
+    },
+    {
+      "source": "files/tasks.md.template",
+      "target": "tasks.md",
+      "stage": "tasks",
+      "required": true
+    }
+  ],
+  "variables": [
+    {
+      "name": "tableName",
+      "description": "Primary table the migration changes (e.g. \"orders\").",
+      "type": "string",
+      "required": false,
+      "default": "records"
+    }
+  ],
+  "compatibility": {
+    "specbridge": ">=0.7.0 <1.0.0",
+    "kiroLayout": "1"
+  },
+  "license": "MIT",
+  "examples": [
+    "specbridge template apply database-migration --name orders-status-backfill --var tableName=orders"
+  ]
+}

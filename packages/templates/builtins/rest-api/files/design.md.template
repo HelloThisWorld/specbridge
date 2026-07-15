@@ -1,0 +1,83 @@
+# Design Document
+
+## Overview
+
+**{{title}}**
+
+{{description}}
+
+This design covers the `{{resourceName}}` endpoints under `{{basePath}}`.
+
+## Goals
+
+- Add concrete goals here.
+
+## Non-Goals
+
+- Add explicitly excluded goals here.
+
+## Architecture
+
+Describe where the endpoint sits: <router/controller layer>, <service layer>,
+<data access>, and any upstream/downstream services it calls.
+
+## Components and Interfaces
+
+- Endpoint(s): <method> `{{basePath}}/<path>` — <purpose>.
+- Request contract: <headers, path/query parameters, body schema, size limits>.
+- Response contract: <status codes and body schema per outcome>.
+- Error model: <error body shape and stable error codes>.
+- Authentication and authorization: <mechanism and the check per {{resourceName}}>.
+
+## Data Model
+
+- Add new or changed data structures for the {{resourceName}} resource here.
+
+## Control Flow
+
+Describe the main request path here: validation, authorization, business
+logic, persistence, response mapping.
+
+## Failure Handling
+
+- Validation failure: 400 with field-level detail; no state change.
+- Downstream dependency failure: <timeout, retry, and fallback behavior; status code returned>.
+- Concurrent modification: <locking or compare-and-set strategy; conflict status code>.
+
+## Idempotency
+
+- <How repeated requests are made safe: idempotency keys, natural keys, or upsert semantics.>
+
+## Pagination
+
+- <Cursor or offset strategy, page-size bounds, and ordering guarantees — or state why the endpoint returns no collections.>
+
+## Compatibility
+
+- <How existing consumers keep working: additive fields only, tolerant readers, or an explicit version step.>
+
+## Security Considerations
+
+- <Input validation boundaries, authorization checks per resource, rate limiting, and what deliberately never appears in logs.>
+
+## Observability
+
+- <Structured log fields, metrics (rate, errors, duration), and trace propagation for the endpoint.>
+
+## Testing Strategy
+
+- Contract tests: <request/response pairs pinned for every documented status code>.
+- Integration tests: <happy path plus authentication, authorization, validation, and not-found paths>.
+- Regression tests: <existing consumer scenarios that must keep passing>.
+
+## Rollout
+
+- <Deployment order, feature flag or dark-launch strategy, and how the change is rolled back without breaking consumers.>
+
+## Risks and Trade-offs
+
+- Add known risks and accepted trade-offs here.
+
+## Alternatives Considered
+
+- Add rejected alternatives and why they were rejected here.

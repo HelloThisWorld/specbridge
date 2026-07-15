@@ -21,7 +21,7 @@ the v0.5 threat model in [security.md](security.md).
 
 ## The skills' permission surface
 
-- Eight of the nine skills declare **no** `allowed-tools` at all: they use
+- Nine of the ten skills declare **no** `allowed-tools` at all: they use
   the plugin's MCP tools under Claude Code's normal permission system.
 - The `approve` skill declares exactly one narrow allowance —
   `Bash("${CLAUDE_PLUGIN_ROOT}/bin/specbridge" spec approve *)` — for the

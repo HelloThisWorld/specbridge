@@ -1,0 +1,66 @@
+# Requirements Document
+
+## Introduction
+
+**{{title}}**
+
+{{description}}
+
+This spec covers the asynchronous background job "{{jobName}}": what
+triggers it, how it is scheduled, and how it behaves under retries,
+duplicate delivery, timeouts, and cancellation.
+
+## Glossary
+
+| Term | Definition |
+| --- | --- |
+| {{jobName}} | <definition of the job and its unit of work> |
+| <term> | <definition> |
+
+## Requirements
+
+### Requirement 1: <trigger and scheduling>
+
+**User Story:** As a <operator or dependent system>, I want {{jobName}} to run when <trigger occurs>, so that <benefit>.
+
+#### Acceptance Criteria
+
+1. WHEN <the trigger event arrives or the schedule fires>, THE SYSTEM SHALL enqueue one execution of {{jobName}} carrying <work item payload>.
+2. WHEN an execution of {{jobName}} starts, THE SYSTEM SHALL record <execution start marker> including the trigger that caused it.
+3. IF the trigger fires while a previous execution is still running, THEN THE SYSTEM SHALL <run concurrently, skip, or queue> according to <the declared concurrency policy>.
+
+### Requirement 2: <retries idempotency and duplicate delivery>
+
+**User Story:** As a <operator>, I want repeated or duplicated executions to be safe, so that retries and redelivery never corrupt data.
+
+#### Acceptance Criteria
+
+1. WHEN an execution of {{jobName}} fails with a retryable error, THE SYSTEM SHALL retry it up to <retry limit> times with <backoff strategy>.
+2. WHEN the same work item is delivered more than once, THE SYSTEM SHALL produce the same observable outcome as exactly one successful execution.
+3. IF an execution fails with a non-retryable error, THEN THE SYSTEM SHALL stop retrying and route the work item to <dead-letter destination> with the failure reason.
+
+### Requirement 3: <timeout cancellation and dead letters>
+
+**User Story:** As a <operator>, I want stuck or cancelled work bounded and visible, so that failures stay recoverable.
+
+#### Acceptance Criteria
+
+1. WHEN an execution of {{jobName}} exceeds <per-attempt timeout>, THE SYSTEM SHALL stop it and count the attempt as a retryable failure.
+2. WHEN cancellation is requested, THE SYSTEM SHALL stop the execution at <cancellation point> and leave persisted data in a consistent state.
+3. IF a work item reaches <dead-letter destination>, THEN THE SYSTEM SHALL emit <alert or metric> so an operator can inspect and reprocess it.
+
+## Non-Functional Requirements
+
+- Performance: <expected throughput, queue depth bounds, and completion latency for {{jobName}}>.
+- Security: the worker runs with <least-privilege identity>; sensitive payload fields are <protected in transit and at rest> and never logged.
+- Reliability: <behavior when the queue, the scheduler, or a downstream dependency is unavailable>.
+- Observability: every execution emits <structured log fields, metrics, and trace spans> including attempt number and outcome.
+- Compatibility: existing consumers of the output of {{jobName}} are not broken; <additive changes only, or a documented versioning step>.
+
+## Edge Cases
+
+- Add edge cases here (clock skew around scheduled runs, redelivery after a crash mid-execution, poison messages, cancellation racing a retry, partial downstream failures).
+
+## Out of Scope
+
+- Add explicitly excluded behavior here.

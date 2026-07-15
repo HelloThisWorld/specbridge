@@ -25,6 +25,11 @@ import { registerRunnerListTool } from './runner-list.js';
 import { registerRunnerShowTool } from './runner-show.js';
 import { registerRunnerDoctorTool } from './runner-doctor.js';
 import { registerRunnerMatrixTool } from './runner-matrix.js';
+import { registerTemplateListTool } from './template-list.js';
+import { registerTemplateSearchTool } from './template-search.js';
+import { registerTemplateShowTool } from './template-show.js';
+import { registerTemplatePreviewTool } from './template-preview.js';
+import { registerTemplateApplyTool } from './template-apply.js';
 
 /**
  * The complete, closed tool registry.
@@ -62,7 +67,12 @@ export const TOOL_CATALOG: readonly ToolRegistryEntry[] = [
   { name: 'runner_show', readOnly: true, summary: 'One runner profile in depth (redacted)' },
   { name: 'runner_doctor', readOnly: true, summary: 'Runner diagnostics (never a model request)' },
   { name: 'runner_matrix', readOnly: true, summary: 'Authoritative runner capability matrix' },
+  { name: 'template_list', readOnly: true, summary: 'List built-in and project spec templates' },
+  { name: 'template_search', readOnly: true, summary: 'Deterministic local template search' },
+  { name: 'template_show', readOnly: true, summary: 'One template in depth (variables, files, README)' },
+  { name: 'template_preview', readOnly: true, summary: 'Render a template without writing (candidate hash)' },
   { name: 'spec_create', readOnly: false, summary: 'Preview-first offline spec creation' },
+  { name: 'template_apply', readOnly: false, summary: 'Hash-bound spec creation from a reviewed template' },
   { name: 'spec_stage_validate', readOnly: true, summary: 'Validate a stage candidate (no write)' },
   { name: 'spec_stage_apply', readOnly: false, summary: 'Apply a reviewed stage candidate atomically' },
   { name: 'spec_run_verification', readOnly: false, summary: 'Drift rules + trusted configured commands' },
@@ -90,7 +100,12 @@ export function registerAllTools(server: McpServer, context: ServerContext): voi
   registerRunnerShowTool(server, context);
   registerRunnerDoctorTool(server, context);
   registerRunnerMatrixTool(server, context);
+  registerTemplateListTool(server, context);
+  registerTemplateSearchTool(server, context);
+  registerTemplateShowTool(server, context);
+  registerTemplatePreviewTool(server, context);
   registerSpecCreateTool(server, context);
+  registerTemplateApplyTool(server, context);
   registerSpecStageValidateTool(server, context);
   registerSpecStageApplyTool(server, context);
   registerSpecRunVerificationTool(server, context);

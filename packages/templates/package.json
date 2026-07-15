@@ -1,0 +1,36 @@
+{
+  "name": "@specbridge/templates",
+  "version": "0.7.0",
+  "description": "Secure, deterministic, offline-first spec templates for SpecBridge: versioned manifests, a restricted one-pass renderer, built-in and project-local template packs, deterministic search, and atomic Kiro-compatible spec creation.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@specbridge/compat-kiro": "workspace:*",
+    "@specbridge/core": "workspace:*",
+    "@specbridge/workflow": "workspace:*",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0"
+  }
+}

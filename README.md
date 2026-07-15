@@ -14,7 +14,33 @@ Codex, local models, or any supported coding agent.
 
 > Your `.kiro` specs remain the source of truth.
 
-New in v0.6.1 — keep your existing `.kiro` specs and **choose a compatible
+New in v0.7.0 — **reusable spec templates, without executable generators or
+platform lock-in**:
+
+```bash
+specbridge template search migration
+
+specbridge template preview database-migration \
+  --name add-payment-status-index \
+  --var tableName=payments
+
+specbridge template apply database-migration \
+  --name add-payment-status-index \
+  --var tableName=payments
+```
+
+Ten built-in templates ship with SpecBridge — `rest-api`, `cli-tool`,
+`database-migration`, `authentication`, `background-job`,
+`event-driven-service`, `bugfix-regression`, `performance-optimization`,
+`security-hardening`, `refactoring` — plus project-local packs, local
+installation, and `template scaffold` for community templates. Templates
+are plain Markdown plus a JSON manifest: rendering is deterministic and
+offline (`{{variable}}` substitution only — no scripts, no network, no
+model), preview writes nothing, apply never overwrites an existing spec,
+and generated stages start unapproved like every other spec. See
+[docs/templates.md](docs/templates.md).
+
+From v0.6.1 — keep your existing `.kiro` specs and **choose a compatible
 coding agent or authoring model per operation**:
 
 ```text
@@ -261,12 +287,16 @@ Working today (fully offline, no model, no API key):
 | `specbridge spec affected` | **v0.4** — which specs does this change set touch (read-only) |
 | `specbridge spec policy init / show / validate` | **v0.4** — per-spec verification policies (impact areas, required commands, rule overrides) |
 | `specbridge verify rules / explain <id>` | **v0.4** — inspect the stable rule registry SBV001–SBV025 |
-| `specbridge mcp serve / doctor / manifest / tools` | **v0.5** — local stdio MCP server (25 tools since v0.6.1, 7 resources, 4 prompts) |
+| `specbridge mcp serve / doctor / manifest / tools` | **v0.5** — local stdio MCP server (30 tools since v0.7.0, 7 resources, 4 prompts) |
 | `specbridge run recover-lock` | **v0.5** — diagnose and explicitly recover the interactive execution lock |
 | `specbridge runner list / matrix / show / doctor` | **v0.6** — profile-based runner diagnostics and the generated capability matrix (read-only) |
 | `specbridge runner test / conformance / models <profile>` | **v0.6** — bounded structured-output probe (`--network`), conformance suite, provider-supported model listing |
 | `specbridge config doctor / migrate` | **v0.6** — configuration validation and the explicit v1 → v2 migration (dry-run by default, atomic apply with backup) |
 | `specbridge runner doctor gemini-default / openai-compatible-local / antigravity` | **v0.6.1** — diagnostics for the new adapters; MCP `runner_list` / `runner_show` / `runner_doctor` / `runner_matrix` expose the same read-only services |
+| `specbridge template list / search / show / validate` | **v0.7.0** — deterministic, offline template discovery and validation (read-only) |
+| `specbridge template preview / apply [--dry-run]` | **v0.7.0** — one rendering path; preview writes nothing, apply is atomic and never overwrites |
+| `specbridge template install / uninstall / scaffold` | **v0.7.0** — local, script-free pack installation and community-template scaffolding |
+| `specbridge spec new <name> --template <ref> --var k=v` | **v0.7.0** — template-based spec creation through the same service |
 
 Planned commands (`spec sync/export`) are registered, marked "(planned)" in
 `--help`, and exit with an honest error — see the [roadmap](docs/roadmap.md).
@@ -549,7 +579,7 @@ stores no credentials of any kind.
   secrets or environment variables.
 - Full model: [docs/security.md](docs/security.md).
 
-## Limitations (v0.6.1)
+## Limitations (v0.7.0)
 
 - The MCP server is stdio-only and local-only: no HTTP/SSE/WebSocket
   transport, no OAuth, no cloud hosting. One server process serves one
@@ -570,6 +600,13 @@ stores no credentials of any kind.
   references, chore-task exclusion) are labelled and never default to error.
 - `spec sync` and `spec export` are not implemented yet (they fail
   honestly). SARIF output is deferred.
+- Templates are local-only: there is no remote registry, no GitHub/npm/URL
+  installation, and no signed packs in v0.7.0. Template rendering is plain
+  `{{variable}}` substitution — no expressions, no conditionals, and
+  literal double braces are not supported in template files. Rendered
+  Markdown can still contain untrusted prose; SpecBridge control rules
+  (approvals, protected paths, verification) are never overridable by
+  template content.
 - Production runners are claude-code, codex-cli, gemini-cli, ollama
   (authoring-only), openai-compatible (authoring-only), and mock; the
   antigravity-cli adapter is experimental detection only. Provider usage
@@ -623,13 +660,16 @@ deterministic drift verification (rule engine SBV001–SBV025, policies,
 affected-spec resolution, evidence freshness, four report formats) and the
 production GitHub Action. v0.5: the local stdio MCP server, direct
 interactive task execution, and the self-contained Claude Code plugin with
-its repository-local marketplace. v0.6.0 (this release): the
-capability-driven runner platform with a frozen adapter contract, runner
-profiles and explicit configuration migration, deterministic selection and
-bounded authoring fallback, the conformance framework, and the production
-Codex CLI and Ollama (authoring-only) runners. Next — v0.6.1: Gemini CLI,
-OpenAI-compatible authoring, Antigravity, MCP runner diagnostics, and the
-runner-management Skill. v0.7: templates, plugin SDK, extension registry,
+its repository-local marketplace. v0.6.0: the capability-driven runner
+platform with a frozen adapter contract, runner profiles and explicit
+configuration migration, deterministic selection and bounded authoring
+fallback, the conformance framework, and the production Codex CLI and
+Ollama (authoring-only) runners. v0.6.1: Gemini CLI, OpenAI-compatible
+authoring, Antigravity, MCP runner diagnostics, and the runner-management
+Skill. v0.7.0 (this release): the offline template system — versioned
+manifests, a restricted deterministic renderer, ten built-in templates,
+project-local packs, local installation, scaffolding, MCP template tools,
+and the templates Skill. Next — v0.7.1: plugin SDK, extension registry,
 community ecosystem. Full detail: [docs/roadmap.md](docs/roadmap.md).
 
 ## Documentation
@@ -638,6 +678,13 @@ community ecosystem. Full detail: [docs/roadmap.md](docs/roadmap.md).
 [Kiro compatibility](docs/kiro-compatibility.md) ·
 [Spec authoring](docs/spec-authoring.md) ·
 [Spec analysis](docs/spec-analysis.md) ·
+[Templates](docs/templates.md) ·
+[Creating templates](docs/creating-templates.md) ·
+[Template manifest](docs/template-manifest.md) ·
+[Template rendering](docs/template-rendering.md) ·
+[Template installation](docs/template-installation.md) ·
+[Template security](docs/template-security.md) ·
+[Template contribution guide](docs/template-contribution-guide.md) ·
 [Approval workflow](docs/approval-workflow.md) ·
 [Sidecar state](docs/sidecar-state.md) ·
 [Runners (v0.6)](docs/runners.md) ·

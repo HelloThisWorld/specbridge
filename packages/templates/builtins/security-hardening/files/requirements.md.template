@@ -1,0 +1,76 @@
+# Requirements Document
+
+## Introduction
+
+**{{title}}**
+
+{{description}}
+
+This spec closes a specific weakness in {{threatArea}} that puts
+{{assetName}} at risk. Its claims are scoped to that weakness: the change
+hardens one boundary and does not certify the system as secure.
+
+## Glossary
+
+| Term | Definition |
+| --- | --- |
+| Trust boundary | <where untrusted data or callers meet trusted code in this change> |
+| {{threatArea}} | <the specific weakness class being closed> |
+| <term> | <definition> |
+
+## Requirements
+
+### Requirement 1: <enforcement at the trust boundary>
+
+**User Story:** As a security engineer, I want {{threatArea}} enforced at <the trust boundary>, so that {{assetName}} is no longer exposed to the identified weakness.
+
+#### Acceptance Criteria
+
+1. WHEN data or a request crosses <the trust boundary>, THE SYSTEM SHALL validate it against <the allow-list, schema, or policy> before any further processing.
+2. WHEN validation rejects an input, THE SYSTEM SHALL leave {{assetName}} and all other state unchanged.
+3. IF the input fails validation, THEN THE SYSTEM SHALL return <the rejection response> without revealing internal detail an attacker could use.
+
+### Requirement 2: <fail closed by default>
+
+**User Story:** As an operator, I want the enforcement path to fail closed, so that an outage in the check never becomes a bypass.
+
+#### Acceptance Criteria
+
+1. IF the enforcement component is unavailable or times out, THEN THE SYSTEM SHALL deny the operation instead of continuing without the check.
+2. WHEN a deliberate fail-open exception applies to <a specific documented path>, THE SYSTEM SHALL emit an audit event every time the exception is exercised.
+
+### Requirement 3: <security logging without secret leakage>
+
+**User Story:** As an incident responder, I want rejections and enforcement failures logged with stable reason codes, so that abuse is investigable without leaking secrets.
+
+#### Acceptance Criteria
+
+1. WHEN a request is rejected at the boundary, THE SYSTEM SHALL log <the event fields> with a stable reason code.
+2. THE SYSTEM SHALL keep secrets, credentials, tokens, and raw payloads out of security log events.
+3. IF writing the log event fails, THEN THE SYSTEM SHALL still enforce the boundary decision.
+
+### Requirement 4: <legitimate use preserved>
+
+**User Story:** As a legitimate caller, I want valid requests to keep succeeding after the hardening, so that closing the weakness does not become an outage.
+
+#### Acceptance Criteria
+
+1. WHEN a well-formed request within documented limits crosses the boundary, THE SYSTEM SHALL produce the same observable outcome as before the hardening.
+2. IF monitoring shows legitimate traffic being rejected during rollout, THEN THE SYSTEM SHALL be rolled back or the rule corrected before rollout continues.
+
+## Non-Functional Requirements
+
+- Performance: the enforcement check stays within <latency budget> per request at <expected load>.
+- Security: enforcement runs on every path across the trust boundary with no bypass route; the enforcement component itself runs with least privilege.
+- Reliability: the fail-closed decision is explicit; <availability expectation for the enforcement component>.
+- Observability: rejections, enforcement failures, and exercised fail-open exceptions are visible in <logs, metrics, alerts> without secret leakage.
+- Compatibility: legitimate callers documented in <the baseline traffic inventory> keep working unchanged.
+
+## Edge Cases
+
+- Add edge cases here (oversized or deeply nested inputs, encoding tricks, replayed requests, partial enforcement-component failure, the boundary crossed via a background job).
+
+## Out of Scope
+
+- Weaknesses outside {{threatArea}}: this spec closes one named weakness and makes no claim that the system as a whole is secure.
+- Add other explicitly excluded behavior here.

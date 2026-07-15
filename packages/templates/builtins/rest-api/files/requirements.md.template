@@ -1,0 +1,65 @@
+# Requirements Document
+
+## Introduction
+
+**{{title}}**
+
+{{description}}
+
+This spec covers a REST API change under `{{basePath}}` exposing the
+`{{resourceName}}` resource to the primary actor "{{actor}}".
+
+## Glossary
+
+| Term | Definition |
+| --- | --- |
+| {{resourceName}} | <definition of the resource> |
+| <term> | <definition> |
+
+## Requirements
+
+### Requirement 1: <endpoint purpose>
+
+**User Story:** As a {{actor}}, I want <capability via the endpoint>, so that <benefit>.
+
+#### Acceptance Criteria
+
+1. WHEN a valid request is received at <method> `{{basePath}}/<path>`, THE SYSTEM SHALL respond with <status code> and <response body shape>.
+2. WHEN the request body fails validation, THE SYSTEM SHALL respond with 400 and a machine-readable error body naming each invalid field.
+3. IF the caller is not authenticated, THEN THE SYSTEM SHALL respond with 401 without leaking whether the {{resourceName}} exists.
+4. IF the caller is authenticated but not authorized for the {{resourceName}}, THEN THE SYSTEM SHALL respond with 403 or 404 according to <the project's information-disclosure policy>.
+5. WHEN the requested {{resourceName}} does not exist, THE SYSTEM SHALL respond with 404 and a stable error code.
+
+### Requirement 2: <idempotency and repeated requests>
+
+**User Story:** As a {{actor}}, I want repeated identical requests to be safe, so that retries never corrupt state.
+
+#### Acceptance Criteria
+
+1. WHEN the same <idempotency key or natural key> is submitted twice, THE SYSTEM SHALL <return the first result / reject the duplicate> without duplicating side effects.
+2. IF a request is retried after a timeout, THEN THE SYSTEM SHALL produce the same observable outcome as a single successful request.
+
+### Requirement 3: <pagination and list behavior>
+
+**User Story:** As a {{actor}}, I want bounded list responses, so that large collections stay usable.
+
+#### Acceptance Criteria
+
+1. WHEN a list request exceeds the page size, THE SYSTEM SHALL return at most <page size> items and a cursor or link to the next page.
+2. WHEN an invalid cursor is supplied, THE SYSTEM SHALL respond with 400 and a stable error code.
+
+## Non-Functional Requirements
+
+- Performance: <expected latency budget and throughput for the endpoint>.
+- Security: requests are authenticated via <mechanism>; authorization is enforced per {{resourceName}}; input is validated before any state change.
+- Reliability: <availability expectations and behavior under downstream failure>.
+- Observability: every request emits <structured log fields / metrics / trace spans> without logging secrets or full payloads.
+- Compatibility: existing consumers of `{{basePath}}` are not broken; additive changes only, or a documented versioning step.
+
+## Edge Cases
+
+- Add edge cases here (oversized payloads, concurrent writes to the same {{resourceName}}, clock skew on expiry fields, partial downstream failures).
+
+## Out of Scope
+
+- Add explicitly excluded behavior here.

@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "background-job",
+  "version": "1.0.0",
+  "displayName": "Background Job",
+  "description": "A feature spec template for adding or changing an asynchronous background job or worker: trigger, scheduling, retries, idempotency, duplicate delivery, timeouts, dead-letter behavior, cancellation, observability, and tests.",
+  "kind": "feature",
+  "supportedModes": ["requirements-first", "design-first", "quick"],
+  "defaultMode": "requirements-first",
+  "tags": ["background-job", "worker", "queue", "async", "scheduling"],
+  "files": [
+    {
+      "source": "files/requirements.md.template",
+      "target": "requirements.md",
+      "stage": "requirements",
+      "required": true
+    },
+    {
+      "source": "files/design.md.template",
+      "target": "design.md",
+      "stage": "design",
+      "required": true
+    },
+    {
+      "source": "files/tasks.md.template",
+      "target": "tasks.md",
+      "stage": "tasks",
+      "required": true
+    }
+  ],
+  "variables": [
+    {
+      "name": "jobName",
+      "description": "Short name of the job or worker (lowercase-hyphen, e.g. \"invoice-export\").",
+      "type": "string",
+      "required": false,
+      "default": "background-job"
+    }
+  ],
+  "compatibility": {
+    "specbridge": ">=0.7.0 <1.0.0",
+    "kiroLayout": "1"
+  },
+  "license": "MIT",
+  "examples": [
+    "specbridge template apply background-job --name invoice-export-worker --var jobName=invoice-export"
+  ]
+}

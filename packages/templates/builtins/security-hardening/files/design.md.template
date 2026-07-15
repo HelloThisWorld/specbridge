@@ -1,0 +1,95 @@
+# Design Document
+
+## Overview
+
+**{{title}}**
+
+{{description}}
+
+This design closes a specific weakness in {{threatArea}} that puts
+{{assetName}} at risk. Its claims stay scoped to that weakness: shipping
+this change hardens one boundary; it does not make the system secure as a
+whole.
+
+## Goals
+
+- Add concrete goals here (the weakness closed and the boundary hardened).
+
+## Non-Goals
+
+- Certifying the system as secure: only the named weakness is addressed.
+- Add other explicitly excluded goals here.
+
+## Architecture
+
+Describe where the enforcement sits: <the entry points>, <the trust
+boundary>, <the enforcement component>, and the assets behind it. Explain
+why the check cannot be bypassed by any path that crosses the boundary.
+
+## Threat Model
+
+- Weakness: <the specific weakness in {{threatArea}} being closed>.
+- Assets at risk: {{assetName}} and <other assets reachable through the boundary>.
+- Attacker: <who can reach the boundary and with what privileges>.
+- Impact if exploited: <confidentiality, integrity, or availability impact>.
+
+## Trust Boundary
+
+- Boundary: <where untrusted data or callers meet trusted code>.
+- Entry points crossing it: <every route, queue, file, or job input that crosses the boundary>.
+- Enforcement point: <the single place the check runs and why no path skips it>.
+
+## Abuse Cases
+
+- <abuse case 1: the attack this change stops, step by step>.
+- <abuse case 2: a variant or adjacent misuse that was considered>.
+
+## Required Secure Behavior
+
+- <the validation or enforcement rule, stated precisely: allow-list, schema, limits>.
+- <what a rejection looks like to the caller, with no internal detail exposed>.
+
+## Affected Components
+
+- <component or module changed, and how>.
+- <interfaces or contracts touched by the enforcement change>.
+
+## Dependency Implications
+
+- <libraries or services implicated in the weakness: versions to update or pin, configuration to change>.
+- <new dependencies introduced by the fix and why they are trusted>.
+
+## Failure Handling
+
+- Default decision: the enforcement path fails closed — if the check cannot run, the operation is denied.
+- <any deliberate fail-open exception: the specific path it covers, its justification, and the audit event it emits>.
+- <behavior when a downstream dependency of the check times out>.
+
+## Security Considerations
+
+- <defense in depth behind the boundary and least privilege for the enforcement component>.
+- <how the change avoids introducing new weaknesses: parser choice, resource limits, error paths>.
+
+## Observability
+
+- <security events logged with stable reason codes, and their exact fields>.
+- What never appears in logs: secrets, credentials, tokens, raw payloads.
+- <metrics and alerts: rejection rate, enforcement failures, fail-open exceptions exercised>.
+
+## Testing Strategy
+
+- Negative tests: <one test per abuse case proving the attack no longer works>.
+- Regression tests: <legitimate request patterns that must keep succeeding>.
+- Failure-path tests: <the enforcement component made unavailable to prove the fail-closed decision>.
+
+## Rollout
+
+- <deployment order, monitor-only or shadow mode first if applicable, rejection-rate monitoring, and the rollback trigger>.
+
+## Risks and Trade-offs
+
+- Add known risks and accepted trade-offs here (false positives on legitimate traffic, added latency, operational load).
+
+## Alternatives Considered
+
+- Add rejected alternatives and why they were rejected here.
