@@ -1,0 +1,409 @@
+{
+  "generatedBy": "agent-skill-verification-template scripts/aggregate-specbridge-results.mjs",
+  "subject": "SpecBridge v0.7.1 Claude Code plugin skills (11)",
+  "adapter": "llm (OpenAI-compatible, llama.cpp llama-server)",
+  "modelFile": "gemma-4-26B-A4B-it-UD-Q4_K_M.gguf",
+  "gate": {
+    "runsPerCase": 1,
+    "threshold": 0.8
+  },
+  "allPassed": true,
+  "skills": [
+    {
+      "skill": "status",
+      "harnessSkill": {
+        "name": "specbridge-status",
+        "version": "1.0.0"
+      },
+      "model": {
+        "name": "llm",
+        "type": "openai-compatible-live"
+      },
+      "cases": 3,
+      "passRate": 1,
+      "schemaValidRate": 1,
+      "citationValidRate": 1,
+      "p95LatencyMs": 20645,
+      "tokensIn": 16998,
+      "tokensOut": 3149,
+      "result": "PASSED",
+      "perCase": [
+        {
+          "id": "sb_status_one",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_status_list",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_status_unknown",
+          "result": "PASSED",
+          "passRate": 1
+        }
+      ]
+    },
+    {
+      "skill": "doctor",
+      "harnessSkill": {
+        "name": "specbridge-doctor",
+        "version": "1.0.0"
+      },
+      "model": {
+        "name": "llm",
+        "type": "openai-compatible-live"
+      },
+      "cases": 3,
+      "passRate": 1,
+      "schemaValidRate": 1,
+      "citationValidRate": 1,
+      "p95LatencyMs": 33524,
+      "tokensIn": 5522,
+      "tokensOut": 4164,
+      "result": "PASSED",
+      "perCase": [
+        {
+          "id": "sb_doctor_health",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_doctor_census",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_doctor_fix",
+          "result": "PASSED",
+          "passRate": 1
+        }
+      ]
+    },
+    {
+      "skill": "new",
+      "harnessSkill": {
+        "name": "specbridge-new",
+        "version": "1.0.0"
+      },
+      "model": {
+        "name": "llm",
+        "type": "openai-compatible-live"
+      },
+      "cases": 3,
+      "passRate": 1,
+      "schemaValidRate": 1,
+      "citationValidRate": 1,
+      "p95LatencyMs": 16506,
+      "tokensIn": 9332,
+      "tokensOut": 2544,
+      "result": "PASSED",
+      "perCase": [
+        {
+          "id": "sb_new_template",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_new_model",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_new_create",
+          "result": "PASSED",
+          "passRate": 1
+        }
+      ]
+    },
+    {
+      "skill": "author",
+      "harnessSkill": {
+        "name": "specbridge-author",
+        "version": "1.0.0"
+      },
+      "model": {
+        "name": "llm",
+        "type": "openai-compatible-live"
+      },
+      "cases": 3,
+      "passRate": 1,
+      "schemaValidRate": 1,
+      "citationValidRate": 1,
+      "p95LatencyMs": 150091,
+      "tokensIn": 25180,
+      "tokensOut": 14181,
+      "result": "PASSED",
+      "perCase": [
+        {
+          "id": "sb_author_analyze",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_author_next",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_author_write",
+          "result": "PASSED",
+          "passRate": 1
+        }
+      ]
+    },
+    {
+      "skill": "approve",
+      "harnessSkill": {
+        "name": "specbridge-approve",
+        "version": "1.0.0"
+      },
+      "model": {
+        "name": "llm",
+        "type": "openai-compatible-live"
+      },
+      "cases": 3,
+      "passRate": 1,
+      "schemaValidRate": 1,
+      "citationValidRate": 1,
+      "p95LatencyMs": 49448,
+      "tokensIn": 23893,
+      "tokensOut": 5836,
+      "result": "PASSED",
+      "perCase": [
+        {
+          "id": "sb_approve_ready",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_approve_do",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_approve_force",
+          "result": "PASSED",
+          "passRate": 1
+        }
+      ]
+    },
+    {
+      "skill": "implement",
+      "harnessSkill": {
+        "name": "specbridge-implement",
+        "version": "1.0.0"
+      },
+      "model": {
+        "name": "llm",
+        "type": "openai-compatible-live"
+      },
+      "cases": 3,
+      "passRate": 1,
+      "schemaValidRate": 1,
+      "citationValidRate": 1,
+      "p95LatencyMs": 19651,
+      "tokensIn": 16653,
+      "tokensOut": 3181,
+      "result": "PASSED",
+      "perCase": [
+        {
+          "id": "sb_implement_next",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_implement_progress",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_implement_execute",
+          "result": "PASSED",
+          "passRate": 1
+        }
+      ]
+    },
+    {
+      "skill": "continue",
+      "harnessSkill": {
+        "name": "specbridge-continue",
+        "version": "1.0.0"
+      },
+      "model": {
+        "name": "llm",
+        "type": "openai-compatible-live"
+      },
+      "cases": 3,
+      "passRate": 1,
+      "schemaValidRate": 1,
+      "citationValidRate": 1,
+      "p95LatencyMs": 19460,
+      "tokensIn": 13949,
+      "tokensOut": 3172,
+      "result": "PASSED",
+      "perCase": [
+        {
+          "id": "sb_continue_done",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_continue_where",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_continue_finish",
+          "result": "PASSED",
+          "passRate": 1
+        }
+      ]
+    },
+    {
+      "skill": "verify",
+      "harnessSkill": {
+        "name": "specbridge-verify",
+        "version": "1.0.0"
+      },
+      "model": {
+        "name": "llm",
+        "type": "openai-compatible-live"
+      },
+      "cases": 3,
+      "passRate": 1,
+      "schemaValidRate": 1,
+      "citationValidRate": 1,
+      "p95LatencyMs": 11896,
+      "tokensIn": 8054,
+      "tokensOut": 2215,
+      "result": "PASSED",
+      "perCase": [
+        {
+          "id": "sb_verify_sbv026",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_verify_first",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_verify_tamper",
+          "result": "PASSED",
+          "passRate": 1
+        }
+      ]
+    },
+    {
+      "skill": "runners",
+      "harnessSkill": {
+        "name": "specbridge-runners",
+        "version": "1.0.0"
+      },
+      "model": {
+        "name": "llm",
+        "type": "openai-compatible-live"
+      },
+      "cases": 3,
+      "passRate": 1,
+      "schemaValidRate": 1,
+      "citationValidRate": 1,
+      "p95LatencyMs": 147027,
+      "tokensIn": 9372,
+      "tokensOut": 13054,
+      "result": "PASSED",
+      "perCase": [
+        {
+          "id": "sb_runners_list",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_runners_codex",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_runners_enable",
+          "result": "PASSED",
+          "passRate": 1
+        }
+      ]
+    },
+    {
+      "skill": "templates",
+      "harnessSkill": {
+        "name": "specbridge-templates",
+        "version": "1.0.0"
+      },
+      "model": {
+        "name": "llm",
+        "type": "openai-compatible-live"
+      },
+      "cases": 3,
+      "passRate": 1,
+      "schemaValidRate": 1,
+      "citationValidRate": 1,
+      "p95LatencyMs": 12411,
+      "tokensIn": 7100,
+      "tokensOut": 1843,
+      "result": "PASSED",
+      "perCase": [
+        {
+          "id": "sb_templates_rest",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_templates_bugfix",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_templates_apply",
+          "result": "PASSED",
+          "passRate": 1
+        }
+      ]
+    },
+    {
+      "skill": "extensions",
+      "harnessSkill": {
+        "name": "specbridge-extensions",
+        "version": "1.0.0"
+      },
+      "model": {
+        "name": "llm",
+        "type": "openai-compatible-live"
+      },
+      "cases": 3,
+      "passRate": 1,
+      "schemaValidRate": 1,
+      "citationValidRate": 1,
+      "p95LatencyMs": 12219,
+      "tokensIn": 11375,
+      "tokensOut": 2402,
+      "result": "PASSED",
+      "perCase": [
+        {
+          "id": "sb_extensions_list",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_extensions_enable_howto",
+          "result": "PASSED",
+          "passRate": 1
+        },
+        {
+          "id": "sb_extensions_install",
+          "result": "PASSED",
+          "passRate": 1
+        }
+      ]
+    }
+  ]
+}
