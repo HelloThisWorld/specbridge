@@ -90,9 +90,18 @@ importers:
       '@specbridge/execution':
         specifier: workspace:*
         version: link:../execution
+      '@specbridge/extension-sdk':
+        specifier: workspace:*
+        version: link:../extension-sdk
+      '@specbridge/extensions':
+        specifier: workspace:*
+        version: link:../extensions
       '@specbridge/mcp-server':
         specifier: workspace:*
         version: link:../mcp-server
+      '@specbridge/registry':
+        specifier: workspace:*
+        version: link:../registry
       '@specbridge/reporting':
         specifier: workspace:*
         version: link:../reporting
