@@ -1,0 +1,34 @@
+{
+  "id": "example-analyzer",
+  "displayName": "example-analyzer",
+  "description": "Deterministic spec diagnostics contributed by the example-analyzer analyzer extension.",
+  "kind": "analyzer",
+  "latestVersion": "1.0.0",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "archiveUrl": "https://example.invalid/specbridge-extensions/example-analyzer-1.0.0.specbridge-extension.zip",
+      "sha256": "4d2ed293339ac609b5a0db4e6810c4a621541e3c2c0fa850693831ea196f71d9",
+      "manifest": {
+        "protocolVersion": "1.0.0",
+        "compatibility": {
+          "specbridge": ">=0.7.1 <1.0.0"
+        },
+        "permissions": {
+          "specRead": true,
+          "repositoryRead": false,
+          "repositoryWrite": false,
+          "network": false,
+          "childProcess": false,
+          "environmentVariables": []
+        }
+      }
+    }
+  ],
+  "repository": "https://github.com/HelloThisWorld/specbridge",
+  "license": "MIT",
+  "keywords": [
+    "analyzer",
+    "specbridge-extension"
+  ]
+}

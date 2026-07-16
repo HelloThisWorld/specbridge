@@ -1,0 +1,14 @@
+{
+  "name": "specbridge-extension-example-verifier",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Verification diagnostics contributed by the example-verifier verifier extension.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "devDependencies": {
+    "@specbridge/extension-sdk": "^0.7.1"
+  }
+}

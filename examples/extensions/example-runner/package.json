@@ -1,0 +1,14 @@
+{
+  "name": "specbridge-extension-example-runner",
+  "version": "1.0.0",
+  "private": true,
+  "description": "An out-of-process runner adapter provided by the example-runner extension.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "devDependencies": {
+    "@specbridge/extension-sdk": "^0.7.1"
+  }
+}

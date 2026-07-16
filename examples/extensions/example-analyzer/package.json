@@ -1,0 +1,14 @@
+{
+  "name": "specbridge-extension-example-analyzer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Deterministic spec diagnostics contributed by the example-analyzer analyzer extension.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "devDependencies": {
+    "@specbridge/extension-sdk": "^0.7.1"
+  }
+}

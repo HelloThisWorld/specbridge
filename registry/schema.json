@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SpecBridge extension registry index",
+  "description": "A metadata index of SpecBridge extensions. Registries never contain executable content; archive sha256 values prove download integrity, not publisher identity, and listing is not endorsement.",
+  "type": "object",
+  "required": ["schemaVersion", "name", "updatedAt", "extensions"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "updatedAt": { "type": "string" },
+    "extensions": {
+      "type": "array",
+      "maxItems": 2000,
+      "items": {
+        "type": "object",
+        "required": ["id", "displayName", "description", "kind", "latestVersion", "versions", "license"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$", "maxLength": 64 },
+          "displayName": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "description": { "type": "string", "minLength": 1, "maxLength": 500 },
+          "kind": { "enum": ["template-provider", "analyzer", "verifier", "exporter", "runner"] },
+          "latestVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+          "versions": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 50,
+            "items": {
+              "type": "object",
+              "required": ["version", "archiveUrl", "sha256", "manifest"],
+              "additionalProperties": false,
+              "properties": {
+                "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+                "archiveUrl": { "type": "string", "pattern": "^https://" },
+                "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+                "manifest": {
+                  "type": "object",
+                  "required": ["protocolVersion", "compatibility", "permissions"],
+                  "properties": {
+                    "protocolVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+                    "compatibility": {
+                      "type": "object",
+                      "required": ["specbridge"],
+                      "properties": { "specbridge": { "type": "string" } }
+                    },
+                    "permissions": {
+                      "type": "object",
+                      "required": [
+                        "specRead",
+                        "repositoryRead",
+                        "repositoryWrite",
+                        "network",
+                        "childProcess",
+                        "environmentVariables"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "specRead": { "type": "boolean" },
+                        "repositoryRead": { "type": "boolean" },
+                        "repositoryWrite": { "type": "boolean" },
+                        "network": { "type": "boolean" },
+                        "childProcess": { "type": "boolean" },
+                        "environmentVariables": {
+                          "type": "array",
+                          "maxItems": 16,
+                          "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{0,127}$" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "repository": { "type": "string", "pattern": "^https://" },
+          "homepage": { "type": "string", "pattern": "^https://" },
+          "license": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "keywords": { "type": "array", "maxItems": 12, "items": { "type": "string", "maxLength": 30 } },
+          "deprecated": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

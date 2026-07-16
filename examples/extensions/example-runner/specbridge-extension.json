@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1.0.0",
+  "protocolVersion": "1.0.0",
+  "id": "example-runner",
+  "version": "1.0.0",
+  "displayName": "example-runner",
+  "description": "An out-of-process runner adapter provided by the example-runner extension.",
+  "kind": "runner",
+  "entrypoint": "dist/extension.cjs",
+  "compatibility": {
+    "specbridge": ">=0.7.1 <1.0.0",
+    "extensionSdk": ">=0.7.1 <1.0.0"
+  },
+  "capabilities": {
+    "operations": [
+      "runner.detect",
+      "runner.generateStage",
+      "runner.executeTask"
+    ]
+  },
+  "permissions": {
+    "specRead": true,
+    "repositoryRead": true,
+    "repositoryWrite": true,
+    "network": false,
+    "childProcess": false,
+    "environmentVariables": []
+  },
+  "license": "MIT",
+  "keywords": [
+    "runner",
+    "specbridge-extension"
+  ]
+}

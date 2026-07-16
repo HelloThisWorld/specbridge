@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0.0",
+  "protocolVersion": "1.0.0",
+  "id": "example-verifier",
+  "version": "1.0.0",
+  "displayName": "example-verifier",
+  "description": "Verification diagnostics contributed by the example-verifier verifier extension.",
+  "kind": "verifier",
+  "entrypoint": "dist/extension.cjs",
+  "compatibility": {
+    "specbridge": ">=0.7.1 <1.0.0",
+    "extensionSdk": ">=0.7.1 <1.0.0"
+  },
+  "capabilities": {
+    "operations": [
+      "verifier.verify"
+    ]
+  },
+  "permissions": {
+    "specRead": true,
+    "repositoryRead": false,
+    "repositoryWrite": false,
+    "network": false,
+    "childProcess": false,
+    "environmentVariables": []
+  },
+  "license": "MIT",
+  "keywords": [
+    "verifier",
+    "specbridge-extension"
+  ]
+}

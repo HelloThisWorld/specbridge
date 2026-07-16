@@ -106,17 +106,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path19) {
-      const ctrl = callVisitor(key, node, visitor, path19);
+    function visit_(key, node, visitor, path20) {
+      const ctrl = callVisitor(key, node, visitor, path20);
       if (identity3.isNode(ctrl) || identity3.isPair(ctrl)) {
-        replaceNode(key, path19, ctrl);
-        return visit_(key, ctrl, visitor, path19);
+        replaceNode(key, path20, ctrl);
+        return visit_(key, ctrl, visitor, path20);
       }
       if (typeof ctrl !== "symbol") {
         if (identity3.isCollection(node)) {
-          path19 = Object.freeze(path19.concat(node));
+          path20 = Object.freeze(path20.concat(node));
           for (let i2 = 0; i2 < node.items.length; ++i2) {
-            const ci = visit_(i2, node.items[i2], visitor, path19);
+            const ci = visit_(i2, node.items[i2], visitor, path20);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -127,13 +127,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity3.isPair(node)) {
-          path19 = Object.freeze(path19.concat(node));
-          const ck = visit_("key", node.key, visitor, path19);
+          path20 = Object.freeze(path20.concat(node));
+          const ck = visit_("key", node.key, visitor, path20);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path19);
+          const cv = visit_("value", node.value, visitor, path20);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -154,17 +154,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path19) {
-      const ctrl = await callVisitor(key, node, visitor, path19);
+    async function visitAsync_(key, node, visitor, path20) {
+      const ctrl = await callVisitor(key, node, visitor, path20);
       if (identity3.isNode(ctrl) || identity3.isPair(ctrl)) {
-        replaceNode(key, path19, ctrl);
-        return visitAsync_(key, ctrl, visitor, path19);
+        replaceNode(key, path20, ctrl);
+        return visitAsync_(key, ctrl, visitor, path20);
       }
       if (typeof ctrl !== "symbol") {
         if (identity3.isCollection(node)) {
-          path19 = Object.freeze(path19.concat(node));
+          path20 = Object.freeze(path20.concat(node));
           for (let i2 = 0; i2 < node.items.length; ++i2) {
-            const ci = await visitAsync_(i2, node.items[i2], visitor, path19);
+            const ci = await visitAsync_(i2, node.items[i2], visitor, path20);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -175,13 +175,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity3.isPair(node)) {
-          path19 = Object.freeze(path19.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path19);
+          path20 = Object.freeze(path20.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path20);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path19);
+          const cv = await visitAsync_("value", node.value, visitor, path20);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -208,23 +208,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path19) {
+    function callVisitor(key, node, visitor, path20) {
       if (typeof visitor === "function")
-        return visitor(key, node, path19);
+        return visitor(key, node, path20);
       if (identity3.isMap(node))
-        return visitor.Map?.(key, node, path19);
+        return visitor.Map?.(key, node, path20);
       if (identity3.isSeq(node))
-        return visitor.Seq?.(key, node, path19);
+        return visitor.Seq?.(key, node, path20);
       if (identity3.isPair(node))
-        return visitor.Pair?.(key, node, path19);
+        return visitor.Pair?.(key, node, path20);
       if (identity3.isScalar(node))
-        return visitor.Scalar?.(key, node, path19);
+        return visitor.Scalar?.(key, node, path20);
       if (identity3.isAlias(node))
-        return visitor.Alias?.(key, node, path19);
+        return visitor.Alias?.(key, node, path20);
       return void 0;
     }
-    function replaceNode(key, path19, node) {
-      const parent = path19[path19.length - 1];
+    function replaceNode(key, path20, node) {
+      const parent = path20[path20.length - 1];
       if (identity3.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity3.isPair(parent)) {
@@ -834,10 +834,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity3 = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path19, value) {
+    function collectionFromPath(schema, path20, value) {
       let v = value;
-      for (let i2 = path19.length - 1; i2 >= 0; --i2) {
-        const k = path19[i2];
+      for (let i2 = path20.length - 1; i2 >= 0; --i2) {
+        const k = path20[i2];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a2 = [];
           a2[k] = v;
@@ -856,7 +856,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path19) => path19 == null || typeof path19 === "object" && !!path19[Symbol.iterator]().next().done;
+    var isEmptyPath = (path20) => path20 == null || typeof path20 === "object" && !!path20[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -886,11 +886,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path19, value) {
-        if (isEmptyPath(path19))
+      addIn(path20, value) {
+        if (isEmptyPath(path20))
           this.add(value);
         else {
-          const [key, ...rest] = path19;
+          const [key, ...rest] = path20;
           const node = this.get(key, true);
           if (identity3.isCollection(node))
             node.addIn(rest, value);
@@ -904,8 +904,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path19) {
-        const [key, ...rest] = path19;
+      deleteIn(path20) {
+        const [key, ...rest] = path20;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -919,8 +919,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path19, keepScalar) {
-        const [key, ...rest] = path19;
+      getIn(path20, keepScalar) {
+        const [key, ...rest] = path20;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity3.isScalar(node) ? node.value : node;
@@ -938,8 +938,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path19) {
-        const [key, ...rest] = path19;
+      hasIn(path20) {
+        const [key, ...rest] = path20;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -949,8 +949,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path19, value) {
-        const [key, ...rest] = path19;
+      setIn(path20, value) {
+        const [key, ...rest] = path20;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -3465,9 +3465,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path19, value) {
+      addIn(path20, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path19, value);
+          this.contents.addIn(path20, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -3542,14 +3542,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path19) {
-        if (Collection.isEmptyPath(path19)) {
+      deleteIn(path20) {
+        if (Collection.isEmptyPath(path20)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path19) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path20) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -3564,10 +3564,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path19, keepScalar) {
-        if (Collection.isEmptyPath(path19))
+      getIn(path20, keepScalar) {
+        if (Collection.isEmptyPath(path20))
           return !keepScalar && identity3.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity3.isCollection(this.contents) ? this.contents.getIn(path19, keepScalar) : void 0;
+        return identity3.isCollection(this.contents) ? this.contents.getIn(path20, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -3578,10 +3578,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path19) {
-        if (Collection.isEmptyPath(path19))
+      hasIn(path20) {
+        if (Collection.isEmptyPath(path20))
           return this.contents !== void 0;
-        return identity3.isCollection(this.contents) ? this.contents.hasIn(path19) : false;
+        return identity3.isCollection(this.contents) ? this.contents.hasIn(path20) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -3598,13 +3598,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path19, value) {
-        if (Collection.isEmptyPath(path19)) {
+      setIn(path20, value) {
+        if (Collection.isEmptyPath(path20)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path19), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path20), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path19, value);
+          this.contents.setIn(path20, value);
         }
       }
       /**
@@ -5564,9 +5564,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path19) => {
+    visit.itemAtPath = (cst, path20) => {
       let item = cst;
-      for (const [field, index] of path19) {
+      for (const [field, index] of path20) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -5575,23 +5575,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path19) => {
-      const parent = visit.itemAtPath(cst, path19.slice(0, -1));
-      const field = path19[path19.length - 1][0];
+    visit.parentCollection = (cst, path20) => {
+      const parent = visit.itemAtPath(cst, path20.slice(0, -1));
+      const field = path20[path20.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path19, item, visitor) {
-      let ctrl = visitor(item, path19);
+    function _visit(path20, item, visitor) {
+      let ctrl = visitor(item, path20);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i2 = 0; i2 < token.items.length; ++i2) {
-            const ci = _visit(Object.freeze(path19.concat([[field, i2]])), token.items[i2], visitor);
+            const ci = _visit(Object.freeze(path20.concat([[field, i2]])), token.items[i2], visitor);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -5602,10 +5602,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path19);
+            ctrl = ctrl(item, path20);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path19) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path20) : ctrl;
     }
     exports2.visit = visit;
   }
@@ -10552,8 +10552,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path19) {
-      let input = path19;
+    function removeDotSegments(path20) {
+      let input = path20;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -10805,8 +10805,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path19, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path19 && path19 !== "/" ? path19 : void 0;
+        const [path20, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path20 && path20 !== "/" ? path20 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -14219,7 +14219,7 @@ var require_windows = __commonJS({
     module2.exports = isexe;
     isexe.sync = sync;
     var fs = require("fs");
-    function checkPathExt(path19, options) {
+    function checkPathExt(path20, options) {
       var pathext = options.pathExt !== void 0 ? options.pathExt : process.env.PATHEXT;
       if (!pathext) {
         return true;
@@ -14230,25 +14230,25 @@ var require_windows = __commonJS({
       }
       for (var i2 = 0; i2 < pathext.length; i2++) {
         var p = pathext[i2].toLowerCase();
-        if (p && path19.substr(-p.length).toLowerCase() === p) {
+        if (p && path20.substr(-p.length).toLowerCase() === p) {
           return true;
         }
       }
       return false;
     }
-    function checkStat(stat, path19, options) {
+    function checkStat(stat, path20, options) {
       if (!stat.isSymbolicLink() && !stat.isFile()) {
         return false;
       }
-      return checkPathExt(path19, options);
+      return checkPathExt(path20, options);
     }
-    function isexe(path19, options, cb) {
-      fs.stat(path19, function(er, stat) {
-        cb(er, er ? false : checkStat(stat, path19, options));
+    function isexe(path20, options, cb) {
+      fs.stat(path20, function(er, stat) {
+        cb(er, er ? false : checkStat(stat, path20, options));
       });
     }
-    function sync(path19, options) {
-      return checkStat(fs.statSync(path19), path19, options);
+    function sync(path20, options) {
+      return checkStat(fs.statSync(path20), path20, options);
     }
   }
 });
@@ -14260,13 +14260,13 @@ var require_mode = __commonJS({
     module2.exports = isexe;
     isexe.sync = sync;
     var fs = require("fs");
-    function isexe(path19, options, cb) {
-      fs.stat(path19, function(er, stat) {
+    function isexe(path20, options, cb) {
+      fs.stat(path20, function(er, stat) {
         cb(er, er ? false : checkStat(stat, options));
       });
     }
-    function sync(path19, options) {
-      return checkStat(fs.statSync(path19), options);
+    function sync(path20, options) {
+      return checkStat(fs.statSync(path20), options);
     }
     function checkStat(stat, options) {
       return stat.isFile() && checkMode(stat, options);
@@ -14300,7 +14300,7 @@ var require_isexe = __commonJS({
     }
     module2.exports = isexe;
     isexe.sync = sync;
-    function isexe(path19, options, cb) {
+    function isexe(path20, options, cb) {
       if (typeof options === "function") {
         cb = options;
         options = {};
@@ -14310,7 +14310,7 @@ var require_isexe = __commonJS({
           throw new TypeError("callback not provided");
         }
         return new Promise(function(resolve, reject) {
-          isexe(path19, options || {}, function(er, is) {
+          isexe(path20, options || {}, function(er, is) {
             if (er) {
               reject(er);
             } else {
@@ -14319,7 +14319,7 @@ var require_isexe = __commonJS({
           });
         });
       }
-      core(path19, options || {}, function(er, is) {
+      core(path20, options || {}, function(er, is) {
         if (er) {
           if (er.code === "EACCES" || options && options.ignoreErrors) {
             er = null;
@@ -14329,9 +14329,9 @@ var require_isexe = __commonJS({
         cb(er, is);
       });
     }
-    function sync(path19, options) {
+    function sync(path20, options) {
       try {
-        return core.sync(path19, options || {});
+        return core.sync(path20, options || {});
       } catch (er) {
         if (options && options.ignoreErrors || er.code === "EACCES") {
           return false;
@@ -14348,7 +14348,7 @@ var require_which = __commonJS({
   "../../node_modules/.pnpm/which@2.0.2/node_modules/which/which.js"(exports2, module2) {
     "use strict";
     var isWindows = process.platform === "win32" || process.env.OSTYPE === "cygwin" || process.env.OSTYPE === "msys";
-    var path19 = require("path");
+    var path20 = require("path");
     var COLON = isWindows ? ";" : ":";
     var isexe = require_isexe();
     var getNotFoundError = (cmd) => Object.assign(new Error(`not found: ${cmd}`), { code: "ENOENT" });
@@ -14386,7 +14386,7 @@ var require_which = __commonJS({
           return opt.all && found.length ? resolve(found) : reject(getNotFoundError(cmd));
         const ppRaw = pathEnv[i2];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path19.join(pathPart, cmd);
+        const pCmd = path20.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         resolve(subStep(p, i2, 0));
       });
@@ -14413,7 +14413,7 @@ var require_which = __commonJS({
       for (let i2 = 0; i2 < pathEnv.length; i2++) {
         const ppRaw = pathEnv[i2];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path19.join(pathPart, cmd);
+        const pCmd = path20.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         for (let j = 0; j < pathExt.length; j++) {
           const cur = p + pathExt[j];
@@ -14461,7 +14461,7 @@ var require_path_key = __commonJS({
 var require_resolveCommand = __commonJS({
   "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js"(exports2, module2) {
     "use strict";
-    var path19 = require("path");
+    var path20 = require("path");
     var which = require_which();
     var getPathKey = require_path_key();
     function resolveCommandAttempt(parsed, withoutPathExt) {
@@ -14479,7 +14479,7 @@ var require_resolveCommand = __commonJS({
       try {
         resolved = which.sync(parsed.command, {
           path: env[getPathKey({ env })],
-          pathExt: withoutPathExt ? path19.delimiter : void 0
+          pathExt: withoutPathExt ? path20.delimiter : void 0
         });
       } catch (e) {
       } finally {
@@ -14488,7 +14488,7 @@ var require_resolveCommand = __commonJS({
         }
       }
       if (resolved) {
-        resolved = path19.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
+        resolved = path20.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
       }
       return resolved;
     }
@@ -14542,8 +14542,8 @@ var require_shebang_command = __commonJS({
       if (!match) {
         return null;
       }
-      const [path19, argument] = match[0].replace(/#! ?/, "").split(" ");
-      const binary = path19.split("/").pop();
+      const [path20, argument] = match[0].replace(/#! ?/, "").split(" ");
+      const binary = path20.split("/").pop();
       if (binary === "env") {
         return argument;
       }
@@ -14578,7 +14578,7 @@ var require_readShebang = __commonJS({
 var require_parse = __commonJS({
   "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js"(exports2, module2) {
     "use strict";
-    var path19 = require("path");
+    var path20 = require("path");
     var resolveCommand = require_resolveCommand();
     var escape2 = require_escape();
     var readShebang = require_readShebang();
@@ -14603,7 +14603,7 @@ var require_parse = __commonJS({
       const needsShell = !isExecutableRegExp.test(commandFile);
       if (parsed.options.forceShell || needsShell) {
         const needsDoubleEscapeMetaChars = isCmdShimRegExp.test(commandFile);
-        parsed.command = path19.normalize(parsed.command);
+        parsed.command = path20.normalize(parsed.command);
         parsed.command = escape2.command(parsed.command);
         parsed.args = parsed.args.map((arg) => escape2.argument(arg, needsDoubleEscapeMetaChars));
         const shellCommand = [parsed.command].concat(parsed.args).join(" ");
@@ -14693,7 +14693,7 @@ var require_cross_spawn = __commonJS({
     var cp = require("child_process");
     var parse3 = require_parse();
     var enoent = require_enoent();
-    function spawn2(command, args, options) {
+    function spawn3(command, args, options) {
       const parsed = parse3(command, args, options);
       const spawned = cp.spawn(parsed.command, parsed.args, parsed.options);
       enoent.hookChildProcess(spawned, parsed);
@@ -14705,8 +14705,8 @@ var require_cross_spawn = __commonJS({
       result.error = result.error || enoent.verifyENOENTSync(result.status, parsed);
       return result;
     }
-    module2.exports = spawn2;
-    module2.exports.spawn = spawn2;
+    module2.exports = spawn3;
+    module2.exports.spawn = spawn3;
     module2.exports.sync = spawnSync2;
     module2.exports._parse = parse3;
     module2.exports._enoent = enoent;
@@ -14968,8 +14968,8 @@ var require_utils2 = __commonJS({
       }
       return output;
     };
-    exports2.basename = (path19, { windows } = {}) => {
-      const segs = path19.split(windows ? /[\\/]/ : "/");
+    exports2.basename = (path20, { windows } = {}) => {
+      const segs = path20.split(windows ? /[\\/]/ : "/");
       const last = segs[segs.length - 1];
       if (last === "") {
         return segs[segs.length - 2];
@@ -16714,10 +16714,10 @@ function assignProp(target, prop, value) {
     configurable: true
   });
 }
-function getElementAtPath(obj, path19) {
-  if (!path19)
+function getElementAtPath(obj, path20) {
+  if (!path20)
     return obj;
-  return path19.reduce((acc, key) => acc?.[key], obj);
+  return path20.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -17037,11 +17037,11 @@ function aborted(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path19, issues) {
+function prefixIssues(path20, issues) {
   return issues.map((iss) => {
     var _a;
     (_a = iss).path ?? (_a.path = []);
-    iss.path.unshift(path19);
+    iss.path.unshift(path20);
     return iss;
   });
 }
@@ -23129,8 +23129,8 @@ function getErrorMap() {
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path19, errorMaps, issueData } = params;
-  const fullPath = [...path19, ...issueData.path || []];
+  const { data, path: path20, errorMaps, issueData } = params;
+  const fullPath = [...path20, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -23246,11 +23246,11 @@ var errorUtil;
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path19, key) {
+  constructor(parent, value, path20, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path19;
+    this._path = path20;
     this._key = key;
   }
   get path() {
@@ -27347,6 +27347,33 @@ var verificationSummarySchema = external_exports.object({
   warnings: external_exports.number().int().min(0),
   info: external_exports.number().int().min(0)
 });
+var EXTENSION_VERIFIER_STATUS_VALUES = [
+  "passed",
+  "warning",
+  "failed",
+  "not-applicable",
+  "error"
+];
+var NAMESPACED_EXTENSION_RULE_ID_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\/[A-Z][A-Z0-9_-]{0,63}$/;
+var extensionVerifierDiagnosticSchema = external_exports.object({
+  ruleId: external_exports.string().regex(NAMESPACED_EXTENSION_RULE_ID_PATTERN),
+  severity: external_exports.enum(["info", "warning", "error"]),
+  message: external_exports.string().min(1),
+  file: external_exports.string().nullable(),
+  line: external_exports.number().int().min(1).nullable(),
+  remediation: external_exports.string().nullable(),
+  confidence: external_exports.enum(["deterministic", "heuristic"])
+});
+var extensionVerifierReportEntrySchema = external_exports.object({
+  extensionId: external_exports.string().min(1),
+  extensionVersion: external_exports.string().min(1),
+  specName: external_exports.string().min(1),
+  required: external_exports.boolean(),
+  status: external_exports.enum(EXTENSION_VERIFIER_STATUS_VALUES),
+  summary: external_exports.string().nullable(),
+  durationMs: external_exports.number().int().min(0),
+  diagnostics: external_exports.array(extensionVerifierDiagnosticSchema).max(1e3)
+});
 var verificationReportSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
   tool: external_exports.object({
@@ -27364,7 +27391,9 @@ var verificationReportSchema = external_exports.object({
   specResults: external_exports.array(specVerificationResultSchema),
   /** Diagnostics not attributable to a single selected spec. */
   globalDiagnostics: external_exports.array(verificationDiagnosticSchema),
-  verificationCommands: external_exports.array(verificationCommandReportSchema)
+  verificationCommands: external_exports.array(verificationCommandReportSchema),
+  /** v0.7.1: results from policy-configured extension verifiers (optional). */
+  extensionVerifiers: external_exports.array(extensionVerifierReportEntrySchema).optional()
 });
 var SEVERITY_RANK = {
   error: 0,
@@ -27754,6 +27783,18 @@ var antigravityProfileSchema = external_exports.object({
   experimental: external_exports.literal(true).default(true),
   timeoutMs: external_exports.number().int().min(1e3).max(6e5).default(3e4)
 }).passthrough();
+var extensionRunnerProfileSchema = external_exports.object({
+  runner: external_exports.literal("extension"),
+  /** ID of the installed, enabled runner extension this profile uses. */
+  extensionId: external_exports.string().min(1).max(64),
+  /** Extension profiles must be explicitly enabled to register at all. */
+  enabled: external_exports.boolean().default(false),
+  model: external_exports.string().min(1).max(200).optional(),
+  /** Per-operation timeout in milliseconds. */
+  timeoutMs: external_exports.number().int().min(1).max(36e5).default(3e5),
+  /** Extension-owned configuration passed through the protocol verbatim. */
+  configuration: external_exports.record(external_exports.unknown()).default({})
+}).strict();
 var runnerProfileSchema = external_exports.discriminatedUnion("runner", [
   claudeProfileSchema,
   codexProfileSchema,
@@ -27761,7 +27802,8 @@ var runnerProfileSchema = external_exports.discriminatedUnion("runner", [
   ollamaProfileSchema,
   openAiCompatibleProfileSchema,
   antigravityProfileSchema,
-  mockProfileSchema
+  mockProfileSchema,
+  extensionRunnerProfileSchema
 ]);
 var runnerPolicySchema = external_exports.object({
   allowAutomaticFallback: external_exports.boolean().default(false),
@@ -38692,13 +38734,13 @@ var logOutputSync = ({ serializedResult, fdNumber, state, verboseInfo, encoding,
   }
 };
 var writeToFiles = (serializedResult, stdioItems, outputFiles) => {
-  for (const { path: path19, append } of stdioItems.filter(({ type }) => FILE_TYPES.has(type))) {
-    const pathString = typeof path19 === "string" ? path19 : path19.toString();
+  for (const { path: path20, append } of stdioItems.filter(({ type }) => FILE_TYPES.has(type))) {
+    const pathString = typeof path20 === "string" ? path20 : path20.toString();
     if (append || outputFiles.has(pathString)) {
-      (0, import_node_fs5.appendFileSync)(path19, serializedResult);
+      (0, import_node_fs5.appendFileSync)(path20, serializedResult);
     } else {
       outputFiles.add(pathString);
-      (0, import_node_fs5.writeFileSync)(path19, serializedResult);
+      (0, import_node_fs5.writeFileSync)(path20, serializedResult);
     }
   }
 };
@@ -44728,8 +44770,8 @@ function composeSignals(timeoutMs, external) {
 async function readBounded(response, maxBytes) {
   const reader = response.body?.getReader();
   if (reader === void 0) {
-    const text = await response.text();
-    return import_buffer3.Buffer.byteLength(text, "utf8") > maxBytes ? "too-large" : { text, bytes: import_buffer3.Buffer.byteLength(text, "utf8") };
+    const buffer2 = import_buffer3.Buffer.from(await response.arrayBuffer());
+    return buffer2.length > maxBytes ? "too-large" : { text: buffer2.toString("utf8"), bytes: buffer2.length, buffer: buffer2 };
   }
   const chunks = [];
   let total = 0;
@@ -44743,7 +44785,8 @@ async function readBounded(response, maxBytes) {
     }
     chunks.push(value);
   }
-  return { text: import_buffer3.Buffer.concat(chunks).toString("utf8"), bytes: total };
+  const buffer = import_buffer3.Buffer.concat(chunks);
+  return { text: buffer.toString("utf8"), bytes: total, buffer };
 }
 function checkRedirectTarget(current, location) {
   let next;
@@ -44913,6 +44956,10 @@ async function safeHttpRequest(request) {
     status: response.status,
     bodyText: body.text,
     bodyBytes: body.bytes,
+    // v0.7.1 (additive): byte-exact body for binary downloads (extension
+    // archives). UTF-8 decoding is lossy for binary content, so callers that
+    // need exact bytes opt in here.
+    ...request.binaryBody === true ? { bodyBase64: body.buffer.toString("base64") } : {},
     durationMs: duration3(),
     ...redirects !== void 0 ? { redirects } : {}
   };
@@ -45620,7 +45667,7 @@ var OPENAI_COMPATIBLE_DECLARED_CAPABILITIES = capabilitySet([
   "supportsJsonSchema",
   "supportsCancellation"
 ]);
-function classifyHttpFailure2(result, redact) {
+function classifyHttpFailure2(result, redact2) {
   switch (result.kind) {
     case "timeout":
       return {
@@ -45667,7 +45714,7 @@ function classifyHttpFailure2(result, redact) {
       };
     case "http-error": {
       const status = result.status ?? 0;
-      const excerpt = redact(result.bodyExcerpt ?? "").toLowerCase();
+      const excerpt = redact2(result.bodyExcerpt ?? "").toLowerCase();
       if (status === 401 || status === 403) {
         return {
           outcome: "failed",
@@ -46425,7 +46472,7 @@ var RunnerRegistry = class {
     return this.listProfiles().map((profile) => profile.runner);
   }
 };
-function instantiateRunner(config2) {
+function instantiateRunner(config2, options = {}) {
   switch (config2.runner) {
     case "claude-code":
       return new ClaudeCodeRunner(config2);
@@ -46441,16 +46488,30 @@ function instantiateRunner(config2) {
       return new AntigravityCliRunner(config2);
     case "mock":
       return new MockRunner(config2);
+    case "extension": {
+      if (options.extensionRunner === void 0) {
+        throw new SpecBridgeError(
+          "INVALID_STATE",
+          `Runner profile uses extension "${config2.extensionId}", but no extension runner factory is available in this context.`
+        );
+      }
+      return options.extensionRunner(config2);
+    }
   }
 }
-function createDefaultRunnerRegistry(config2) {
+function createDefaultRunnerRegistry(config2, options = {}) {
   const resolved = config2 ?? defaultResolvedAgentConfig();
   const registry2 = new RunnerRegistry();
   for (const [name, profileConfig] of Object.entries(resolved.runnerProfiles)) {
+    if (profileConfig.runner === "extension") {
+      if (profileConfig.enabled !== true || options.extensionRunner === void 0) {
+        continue;
+      }
+    }
     registry2.registerProfile({
       name,
       config: profileConfig,
-      runner: instantiateRunner(profileConfig)
+      runner: instantiateRunner(profileConfig, options)
     });
   }
   return registry2;
@@ -49693,7 +49754,7 @@ function toSpecSummary(bundle) {
 
 // ../../packages/mcp-server/src/version.ts
 var MCP_SERVER_NAME = "specbridge";
-var MCP_SERVER_VERSION = "0.7.0";
+var MCP_SERVER_VERSION = "0.7.1";
 var MCP_SERVER_TITLE = "SpecBridge";
 var MCP_PROTOCOL_BASELINE = "2025-11-25";
 
@@ -51550,7 +51611,21 @@ var verificationPolicySchema = external_exports.object({
   rules: external_exports.record(
     external_exports.string().regex(VERIFICATION_RULE_ID_PATTERN, "rule keys must look like SBV005"),
     policyRuleOverrideSchema
-  ).default({})
+  ).default({}),
+  /**
+   * v0.7.1: explicit extension verifier opt-ins. Each named extension must
+   * be installed AND enabled; a required extension that fails (or cannot
+   * run) fails the gate via SBV026, an optional one warns. Built-in rules —
+   * including protected-path checks — always run and cannot be disabled by
+   * extensions.
+   */
+  extensionVerifiers: external_exports.array(
+    external_exports.object({
+      extension: external_exports.string().min(1).max(64),
+      required: external_exports.boolean().default(false),
+      configuration: external_exports.record(external_exports.unknown()).default({})
+    }).passthrough()
+  ).default([])
 }).passthrough().superRefine((policy, ctx) => {
   if (!policy.schemaVersion.startsWith("1.")) {
     ctx.addIssue({
@@ -51653,6 +51728,11 @@ function resolveEffectivePolicy(workspace, specName, options = {}) {
     requireRequirementTaskLinks: policy?.requireRequirementTaskLinks ?? false,
     requireTestEvidence: policy?.requireTestEvidence ?? false,
     ruleOverrides: { ...policy?.rules ?? {} },
+    extensionVerifiers: (policy?.extensionVerifiers ?? []).map((entry) => ({
+      extension: entry.extension,
+      required: entry.required,
+      configuration: entry.configuration
+    })),
     ...read.exists ? { policyPath: workspaceRelativePolicyPath } : {},
     policyExists: read.exists,
     policyDiagnostics: read.diagnostics
@@ -53158,6 +53238,19 @@ var sbv024 = {
     return diagnostics;
   }
 };
+var sbv026 = {
+  id: "SBV026",
+  title: "Extension verifier reported failure",
+  category: "verification-command",
+  defaultSeverity: { advisory: "error", strict: "error" },
+  confidence: "deterministic",
+  scope: "spec",
+  triggeredWhen: "A policy-configured extension verifier reported failure, or a required extension verifier could not run (not installed, disabled, stale grant, crash, or timeout). Required verifiers error; optional verifiers warn.",
+  resolution: "Inspect the extensionVerifiers section of the report, fix what the extension found, or repair the extension with `specbridge extension doctor <id>`. Remove the entry from the spec policy to stop running it.",
+  evaluate() {
+    return [];
+  }
+};
 function builtInVerificationRules() {
   return [
     sbv001,
@@ -53184,7 +53277,8 @@ function builtInVerificationRules() {
     sbv022,
     sbv023,
     sbv024,
-    sbv025
+    sbv025,
+    sbv026
   ];
 }
 function isInfrastructurePath(candidate) {
@@ -53369,6 +53463,79 @@ async function verifySpecs(request) {
       globalDiagnostics.push(diagnostic);
     }
   }
+  const extensionVerifierResults = [];
+  let extensionVerifiersConfigured = false;
+  for (const context of specContexts) {
+    const entries = context.policy.extensionVerifiers;
+    if (entries.length === 0) {
+      continue;
+    }
+    extensionVerifiersConfigured = true;
+    const changedFiles = (selectionMode === "single" ? context.changedFiles : context.specChangedFiles).map((file) => ({ path: file.path, changeType: file.changeType }));
+    let entryResults;
+    if (request.extensionVerifiers === void 0) {
+      entryResults = entries.map((entry) => ({
+        extensionId: entry.extension,
+        extensionVersion: "unknown",
+        specName: context.specName,
+        required: entry.required,
+        status: "error",
+        summary: "no extension verifier runner is available in this verification context",
+        durationMs: 0,
+        diagnostics: []
+      }));
+    } else {
+      try {
+        entryResults = await request.extensionVerifiers({
+          specName: context.specName,
+          entries,
+          changedFiles
+        });
+      } catch (cause) {
+        entryResults = entries.map((entry) => ({
+          extensionId: entry.extension,
+          extensionVersion: "unknown",
+          specName: context.specName,
+          required: entry.required,
+          status: "error",
+          summary: cause instanceof Error ? cause.message : String(cause),
+          durationMs: 0,
+          diagnostics: []
+        }));
+      }
+    }
+    const sbv026Override = context.policy.ruleOverrides["SBV026"];
+    for (const entryResult of entryResults) {
+      extensionVerifierResults.push(entryResult);
+      const problem = entryResult.status === "failed" || entryResult.status === "error";
+      const warningStatus = entryResult.status === "warning";
+      if (!problem && !warningStatus || sbv026Override?.enabled === false) {
+        continue;
+      }
+      const severity = entryResult.required && problem ? sbv026Override?.severity === "warning" ? "warning" : "error" : "warning";
+      diagnosticsBySpec.get(context.specName)?.push({
+        schemaVersion: VERIFICATION_DIAGNOSTIC_SCHEMA_VERSION,
+        ruleId: "SBV026",
+        title: "Extension verifier reported failure",
+        severity,
+        category: "verification-command",
+        message: `Extension verifier "${entryResult.extensionId}" (${entryResult.required ? "required" : "optional"}) reported ${entryResult.status}` + (entryResult.summary !== null ? `: ${entryResult.summary}` : "."),
+        remediation: `See the extensionVerifiers section of the report for the extension diagnostics, or run \`specbridge extension doctor ${entryResult.extensionId}\` if the extension could not run.`,
+        specName: context.specName,
+        taskId: null,
+        requirementId: null,
+        file: null,
+        evidence: {
+          extensionId: entryResult.extensionId,
+          extensionVersion: entryResult.extensionVersion,
+          status: entryResult.status,
+          required: entryResult.required,
+          diagnosticCount: entryResult.diagnostics.length
+        },
+        confidence: "deterministic"
+      });
+    }
+  }
   const specResults = specContexts.map((context) => {
     const diagnostics = sortVerificationDiagnostics(diagnosticsBySpec.get(context.specName) ?? []);
     const counts = countDiagnostics(diagnostics);
@@ -53411,7 +53578,8 @@ async function verifySpecs(request) {
     },
     specResults,
     globalDiagnostics: sortedGlobal,
-    verificationCommands: commands.commands.map(toCommandReport)
+    verificationCommands: commands.commands.map(toCommandReport),
+    ...extensionVerifiersConfigured ? { extensionVerifiers: extensionVerifierResults } : {}
   };
   verificationReportSchema.parse(report);
   if (persistArtifacts && artifactsDir !== void 0) {
@@ -55735,384 +55903,913 @@ ${commandLines.join("\n")}` : "No verification commands are configured.",
 var import_node_fs9 = require("fs");
 var import_node_os4 = __toESM(require("os"), 1);
 var import_node_path9 = __toESM(require("path"), 1);
-function loadRunnerToolContext(context) {
-  const workspace = context.requireWorkspace();
-  const config2 = requireAgentConfig(workspace);
-  return { workspace, config: config2, registry: createDefaultRunnerRegistry(config2) };
+
+// ../../packages/extension-sdk/dist/index.js
+var import_crypto7 = require("crypto");
+var EXTENSION_RULE_ID_PATTERN = /^[A-Z][A-Z0-9_-]{0,63}$/;
+var MAX_EXTENSION_DIAGNOSTICS = 1e3;
+var EXTENSION_DIAGNOSTIC_SEVERITIES = ["info", "warning", "error"];
+var EXTENSION_CONFIDENCE_LEVELS = ["deterministic", "heuristic"];
+var extensionDiagnosticSchema = external_exports.object({
+  ruleId: external_exports.string().regex(EXTENSION_RULE_ID_PATTERN, "rule IDs are UPPERCASE tokens like RULE001"),
+  severity: external_exports.enum(EXTENSION_DIAGNOSTIC_SEVERITIES),
+  message: external_exports.string().min(1).max(2e3),
+  file: external_exports.string().min(1).max(500).optional(),
+  line: external_exports.number().int().min(1).optional(),
+  column: external_exports.number().int().min(1).optional(),
+  remediation: external_exports.string().min(1).max(2e3).optional(),
+  confidence: external_exports.enum(EXTENSION_CONFIDENCE_LEVELS)
+}).strict();
+var extensionDiagnosticsArraySchema = external_exports.array(extensionDiagnosticSchema).max(MAX_EXTENSION_DIAGNOSTICS);
+var MAX_ANALYZER_CONTENT_CHARS = 1024 * 1024;
+var CONTENT = external_exports.string().max(MAX_ANALYZER_CONTENT_CHARS);
+var analyzerInputSchema = external_exports.object({
+  specName: external_exports.string().min(1).max(200),
+  specType: external_exports.string().min(1).max(40),
+  workflowMode: external_exports.string().min(1).max(40),
+  stage: external_exports.string().min(1).max(40),
+  stageFile: external_exports.string().min(1).max(300).optional(),
+  stageContent: CONTENT,
+  /** Approved prerequisite stage content, keyed by stage name. */
+  approvedContent: external_exports.record(CONTENT).optional(),
+  /** Steering documents, keyed by file name (only with specRead). */
+  steering: external_exports.record(CONTENT).optional(),
+  sourceMetadata: external_exports.object({
+    specDir: external_exports.string().min(1).max(300).optional(),
+    origin: external_exports.string().min(1).max(100).optional()
+  }).strict().optional(),
+  configuration: external_exports.record(external_exports.unknown()).optional()
+}).strict();
+var analyzerResultSchema = external_exports.object({
+  diagnostics: extensionDiagnosticsArraySchema,
+  summary: external_exports.string().min(1).max(2e3).optional()
+}).strict();
+var EXTENSION_KINDS = [
+  "template-provider",
+  "analyzer",
+  "verifier",
+  "exporter",
+  "runner"
+];
+function isExecutableKind(kind) {
+  return kind !== "template-provider";
 }
-function requireProfile(registry2, name) {
-  if (!registry2.has(name)) {
-    throw new McpToolError(
-      "SBMCP002",
-      `Unknown runner profile "${name}". Configured profiles: ${registry2.listProfiles().map((profile) => profile.name).join(", ")}.`,
-      { remediation: ["Call runner_list to see every configured profile."] }
+var EXTENSION_OPERATIONS_BY_KIND = {
+  "template-provider": [],
+  analyzer: ["analyzer.analyze"],
+  verifier: ["verifier.verify"],
+  exporter: ["exporter.export"],
+  runner: [
+    "runner.detect",
+    "runner.generateStage",
+    "runner.refineStage",
+    "runner.executeTask",
+    "runner.resumeTask",
+    "runner.listModels"
+  ]
+};
+var ALL_EXTENSION_OPERATIONS = Object.freeze(
+  Object.values(EXTENSION_OPERATIONS_BY_KIND).flat()
+);
+var MAX_DECLARED_OPERATIONS = 16;
+var extensionCapabilitiesSchema = external_exports.object({
+  operations: external_exports.array(external_exports.string().min(1).max(80)).max(MAX_DECLARED_OPERATIONS)
+}).strict();
+function operationsForKind(kind) {
+  return EXTENSION_OPERATIONS_BY_KIND[kind];
+}
+function isOperationAllowedForKind(kind, operation) {
+  return EXTENSION_OPERATIONS_BY_KIND[kind].includes(operation);
+}
+var REQUIRED_OPERATIONS_BY_KIND = {
+  "template-provider": [],
+  analyzer: ["analyzer.analyze"],
+  verifier: ["verifier.verify"],
+  exporter: ["exporter.export"],
+  runner: ["runner.detect"]
+};
+var EXTENSION_ERROR_CODES = {
+  SBE001: "extension not found",
+  SBE002: "ambiguous extension reference",
+  SBE003: "invalid extension ID",
+  SBE004: "invalid extension manifest",
+  SBE005: "unsupported extension schema",
+  SBE006: "incompatible SpecBridge version",
+  SBE007: "incompatible protocol version",
+  SBE008: "invalid extension package",
+  SBE009: "checksum mismatch",
+  SBE010: "forbidden package file",
+  SBE011: "symlink rejected",
+  SBE012: "invalid entrypoint",
+  SBE013: "extension already installed",
+  SBE014: "extension not installed",
+  SBE015: "extension disabled",
+  SBE016: "permission acknowledgement required",
+  SBE017: "permission hash mismatch",
+  SBE018: "permission grant stale",
+  SBE019: "extension handshake failed",
+  SBE020: "extension identity mismatch",
+  SBE021: "unsupported extension operation",
+  SBE022: "extension protocol corrupted",
+  SBE023: "extension timed out",
+  SBE024: "extension cancelled",
+  SBE025: "extension output too large",
+  SBE026: "extension process failed",
+  SBE027: "extension conformance failed",
+  SBE028: "extension in use",
+  SBE029: "active profile references extension",
+  SBE030: "extension operation failed"
+};
+function extensionIssue(code, category, severity, message, file) {
+  return file === void 0 ? { code, category, severity, message } : { code, category, severity, message, file };
+}
+var MAX_EXPORTER_FILES = 100;
+var MAX_EXPORTER_FILE_CHARS = 5 * 1024 * 1024;
+var MAX_EXPORTER_INPUT_CONTENT_CHARS = 1024 * 1024;
+var EXPORT_OUTPUT_PATH_PATTERN = /^(?:[A-Za-z0-9][A-Za-z0-9._-]*\/)*[A-Za-z0-9][A-Za-z0-9._-]*$/;
+var exporterInputSchema = external_exports.object({
+  specName: external_exports.string().min(1).max(200),
+  specType: external_exports.string().min(1).max(40),
+  workflowMode: external_exports.string().min(1).max(40),
+  /** Stage documents keyed by stage name (requirements, design, tasks). */
+  stages: external_exports.record(external_exports.string().max(MAX_EXPORTER_INPUT_CONTENT_CHARS)),
+  approvals: external_exports.record(
+    external_exports.object({
+      status: external_exports.string().min(1).max(40),
+      approvedAt: external_exports.string().min(1).max(60).optional()
+    }).strict()
+  ).optional(),
+  metadata: external_exports.object({
+    specbridgeVersion: external_exports.string().min(1).max(40).optional(),
+    exportedAt: external_exports.string().min(1).max(60).optional()
+  }).strict().optional(),
+  configuration: external_exports.record(external_exports.unknown()).optional()
+}).strict();
+var exporterFileSchema = external_exports.object({
+  path: external_exports.string().min(1).max(500).regex(EXPORT_OUTPUT_PATH_PATTERN, "must be a safe relative forward-slash path"),
+  mediaType: external_exports.string().min(3).max(100),
+  content: external_exports.string().max(MAX_EXPORTER_FILE_CHARS)
+}).strict();
+var exporterResultSchema = external_exports.object({
+  files: external_exports.array(exporterFileSchema).min(0).max(MAX_EXPORTER_FILES),
+  diagnostics: extensionDiagnosticsArraySchema.optional(),
+  summary: external_exports.string().min(1).max(2e3).optional()
+}).strict();
+var MAX_EXTENSION_ID_LENGTH = 64;
+var EXTENSION_ID_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
+function validateExtensionId(id) {
+  const problems = [];
+  if (id.length === 0) {
+    problems.push("ID is empty");
+    return { valid: false, problems };
+  }
+  if (id.length > MAX_EXTENSION_ID_LENGTH) {
+    problems.push(`ID exceeds ${MAX_EXTENSION_ID_LENGTH} characters`);
+  }
+  if (id.includes("\0")) {
+    problems.push("ID contains a null byte");
+  }
+  if (/\s/u.test(id)) {
+    problems.push("ID must not contain whitespace");
+  }
+  if (id.includes("_")) {
+    problems.push("ID must not contain underscores");
+  }
+  if (id.includes("/") || id.includes("\\")) {
+    problems.push("ID must not contain path separators");
+  }
+  if (id.includes("..")) {
+    problems.push('ID must not contain ".."');
+  }
+  if (!EXTENSION_ID_PATTERN.test(id)) {
+    problems.push(
+      "ID must use lowercase letters and digits separated by single hyphens, start with a letter, and must not start or end with a hyphen"
     );
   }
-  return registry2.getProfile(name);
+  return { valid: problems.length === 0, problems };
 }
-var RUNNER_PROBE_TIMEOUT_MS = 2e4;
-var capabilitySetShape2 = external_exports.record(external_exports.boolean()).describe("Provider-independent capability keys to booleans");
-var profileSummaryShape = external_exports.object({
-  profile: external_exports.string(),
-  implementation: external_exports.string(),
-  category: external_exports.string(),
-  supportLevel: external_exports.string().describe("Adapter-declared support level"),
-  enabled: external_exports.boolean(),
-  model: external_exports.string().nullable(),
-  networkBacked: external_exports.boolean().describe("True when SpecBridge itself would leave this machine"),
-  localExecution: external_exports.boolean(),
-  supportedOperations: external_exports.array(external_exports.string())
-});
-var detectionCapabilityShape = external_exports.object({
-  id: external_exports.string(),
-  label: external_exports.string(),
-  available: external_exports.boolean(),
-  required: external_exports.boolean(),
-  detail: external_exports.string().optional()
-});
-var runnerDiagnosticShape = external_exports.object({
-  severity: external_exports.enum(["info", "warning", "error"]),
-  code: external_exports.string(),
-  message: external_exports.string()
-});
-var detectionViewShape = external_exports.object({
-  status: external_exports.string(),
-  supportLevel: external_exports.string().describe("Effective support level after detection"),
-  version: external_exports.string().nullable(),
-  authentication: external_exports.string(),
-  networkBacked: external_exports.boolean(),
-  capabilities: external_exports.array(detectionCapabilityShape),
-  detectedCapabilities: capabilitySetShape2,
-  diagnostics: external_exports.array(runnerDiagnosticShape)
-});
-var MAX_DIAGNOSTICS = 50;
-function toDetectionView(detection, verbose) {
-  const diagnostics = (verbose ? detection.diagnostics : detection.diagnostics.filter((diagnostic) => diagnostic.severity !== "info")).slice(0, MAX_DIAGNOSTICS);
+var MAX_PERMISSION_ENVIRONMENT_VARIABLES = 16;
+var ENVIRONMENT_VARIABLE_NAME_PATTERN = /^[A-Z][A-Z0-9_]{0,127}$/;
+var extensionPermissionsSchema = external_exports.object({
+  specRead: external_exports.boolean(),
+  repositoryRead: external_exports.boolean(),
+  repositoryWrite: external_exports.boolean(),
+  network: external_exports.boolean(),
+  childProcess: external_exports.boolean(),
+  environmentVariables: external_exports.array(external_exports.string().regex(ENVIRONMENT_VARIABLE_NAME_PATTERN)).max(MAX_PERMISSION_ENVIRONMENT_VARIABLES)
+}).strict();
+function normalizePermissions(permissions) {
   return {
-    status: detection.status,
-    supportLevel: detection.supportLevel,
-    version: detection.version ?? null,
-    authentication: detection.authentication,
-    networkBacked: detection.networkBacked,
-    capabilities: detection.capabilities.map((capability) => ({
-      id: String(capability.id),
-      label: capability.label,
-      available: capability.available,
-      required: capability.required,
-      ...capability.detail !== void 0 ? { detail: capability.detail } : {}
-    })),
-    detectedCapabilities: detection.capabilitySet,
-    diagnostics: diagnostics.map((diagnostic) => ({
-      severity: diagnostic.severity,
-      code: diagnostic.code,
-      message: diagnostic.message
-    }))
+    specRead: permissions.specRead,
+    repositoryRead: permissions.repositoryRead,
+    repositoryWrite: permissions.repositoryWrite,
+    network: permissions.network,
+    childProcess: permissions.childProcess,
+    environmentVariables: [...new Set(permissions.environmentVariables)].sort()
   };
 }
-var conformanceSummaryShape = external_exports.object({
-  passed: external_exports.boolean(),
-  productionConfirmed: external_exports.boolean(),
-  failedChecks: external_exports.number().int(),
-  skippedChecks: external_exports.number().int(),
-  groups: external_exports.array(
-    external_exports.object({
-      group: external_exports.string(),
-      applicable: external_exports.boolean(),
-      reason: external_exports.string().optional(),
-      passed: external_exports.boolean(),
-      skipped: external_exports.number().int()
-    })
-  ),
-  note: external_exports.string()
-});
-async function invocationFreeConformanceSummary(profile) {
-  const scratch = (0, import_node_fs9.mkdtempSync)(import_node_path9.default.join(import_node_os4.default.tmpdir(), "specbridge-mcp-conformance-"));
-  let result;
-  try {
-    result = await runRunnerConformance({
-      profile,
-      workspaceRoot: scratch,
-      runDir: import_node_path9.default.join(scratch, ".specbridge-conformance-runs"),
-      invocationsAllowed: false,
-      timeoutMs: RUNNER_PROBE_TIMEOUT_MS
-    });
-  } finally {
-    (0, import_node_fs9.rmSync)(scratch, { recursive: true, force: true });
+function computePermissionHash(input) {
+  const normalized = normalizePermissions(input.permissions);
+  const canonical = JSON.stringify({
+    extensionId: input.extensionId,
+    extensionVersion: input.extensionVersion,
+    manifestSha256: input.manifestSha256,
+    permissions: {
+      childProcess: normalized.childProcess,
+      environmentVariables: normalized.environmentVariables,
+      network: normalized.network,
+      repositoryRead: normalized.repositoryRead,
+      repositoryWrite: normalized.repositoryWrite,
+      specRead: normalized.specRead
+    }
+  });
+  return (0, import_crypto7.createHash)("sha256").update(canonical, "utf8").digest("hex");
+}
+function describePermissions(permissions) {
+  const normalized = normalizePermissions(permissions);
+  const lines = [];
+  lines.push(`specRead: ${normalized.specRead ? "yes \u2014 receives bounded spec content" : "no"}`);
+  lines.push(
+    `repositoryRead: ${normalized.repositoryRead ? "yes \u2014 may receive selected repository content" : "no"}`
+  );
+  lines.push(
+    `repositoryWrite: ${normalized.repositoryWrite ? "yes \u2014 may modify repository files from its own process" : "no"}`
+  );
+  lines.push(`network: ${normalized.network ? "yes \u2014 may access the network from its own process" : "no"}`);
+  lines.push(
+    `childProcess: ${normalized.childProcess ? "yes \u2014 may spawn child processes from its own process" : "no"}`
+  );
+  lines.push(
+    normalized.environmentVariables.length === 0 ? "environmentVariables: none" : `environmentVariables: ${normalized.environmentVariables.join(", ")}`
+  );
+  return lines;
+}
+var VERSION_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
+var COMPARATOR_PATTERN = /^(>=|<=|>|<|=)?(\d+\.\d+\.\d+)$/;
+function parseSemver(version2) {
+  const match = VERSION_PATTERN.exec(version2);
+  if (!match) {
+    return void 0;
   }
-  return {
-    passed: result.passed,
-    productionConfirmed: result.productionConfirmed,
-    failedChecks: result.failedChecks,
-    skippedChecks: result.skippedChecks,
-    groups: result.groups.map((group) => ({
-      group: group.group,
-      applicable: group.applicable,
-      ...group.reason !== void 0 ? { reason: group.reason } : {},
-      passed: group.passed,
-      skipped: group.skipped
-    })),
-    note: 'Invocation-free summary: checks that would invoke the provider are skipped here. Run "specbridge runner conformance <profile> --network" for the full suite.'
-  };
+  const [, major, minor, patch] = match;
+  if (major === void 0 || minor === void 0 || patch === void 0) {
+    return void 0;
+  }
+  return { major: Number(major), minor: Number(minor), patch: Number(patch) };
 }
-
-// ../../packages/mcp-server/src/tools/runner-list.ts
-var inputSchema17 = {
-  enabledOnly: external_exports.boolean().optional().describe("Only profiles that are enabled in the configuration"),
-  detect: external_exports.boolean().optional().describe(
-    "Probe availability for the returned page (read-only version/help/reachability probes; slower \u2014 default false)"
-  ),
-  limit: limitArg,
-  cursor: cursorArg
-};
-var outputSchema22 = {
-  defaultRunner: external_exports.string(),
-  profiles: external_exports.array(
-    profileSummaryShape.extend({
-      availability: external_exports.string().optional().describe("Detection status (present when detect=true)")
-    })
-  ),
-  pagination: paginationShape
-};
-function registerRunnerListTool(server, context) {
-  registerDefinedTool(server, context, {
-    name: "runner_list",
-    title: "List runner profiles",
-    description: "List configured runner profiles: implementation, category, support level, enabled state, configured model, local/network classification, and supported operations. Optionally probes availability (read-only; never a model request). Supports pagination. Read-only.",
-    annotations: {
-      readOnlyHint: true,
-      destructiveHint: false,
-      idempotentHint: true,
-      openWorldHint: true
-    },
-    inputSchema: inputSchema17,
-    outputSchema: outputSchema22,
-    handler: async (args) => {
-      const { workspace, config: config2, registry: registry2 } = loadRunnerToolContext(context);
-      const profiles = registry2.listProfiles().filter((profile) => args.enabledOnly !== true || profile.config.enabled !== false);
-      const page = paginate(profiles, {
-        ...args.limit !== void 0 ? { limit: args.limit } : {},
-        ...args.cursor !== void 0 ? { cursor: args.cursor } : {},
-        token: "runner_list"
-      });
-      const summaries = [];
-      for (const profile of page.items) {
-        const summary = runnerProfileSummary(profile);
-        if (args.detect === true) {
-          const detection = await profile.runner.detect({
-            workspaceRoot: workspace.rootDir,
-            timeoutMs: RUNNER_PROBE_TIMEOUT_MS
-          });
-          summaries.push({ ...summary, availability: detection.status });
-        } else {
-          summaries.push(summary);
-        }
-      }
-      const lines = summaries.map(
-        (summary) => `- ${summary.profile} [${summary.implementation}/${summary.category}] ${summary.enabled ? "enabled" : "disabled"}, support ${summary.supportLevel}${"availability" in summary && summary.availability !== void 0 ? `, ${summary.availability}` : ""}, operations: ${summary.supportedOperations.join(", ") || "(none)"}`
+function compareSemver(a2, b) {
+  if (a2.major !== b.major) {
+    return a2.major - b.major;
+  }
+  if (a2.minor !== b.minor) {
+    return a2.minor - b.minor;
+  }
+  return a2.patch - b.patch;
+}
+function validateSemverRange(range) {
+  if (range.trim().length === 0) {
+    return { valid: false, problem: "range is empty" };
+  }
+  if (/[|^~*x]/i.test(range)) {
+    return {
+      valid: false,
+      problem: "only >=, <=, >, <, and = comparators joined by spaces are supported"
+    };
+  }
+  const comparators = range.trim().split(/\s+/);
+  for (const comparator of comparators) {
+    const match = COMPARATOR_PATTERN.exec(comparator);
+    if (!match || parseSemver(match[2] ?? "") === void 0) {
+      return { valid: false, problem: `invalid comparator "${comparator}"` };
+    }
+  }
+  return { valid: true };
+}
+function semverSatisfies(version2, range) {
+  const parsed = parseSemver(version2);
+  if (!parsed) {
+    return false;
+  }
+  if (!validateSemverRange(range).valid) {
+    return false;
+  }
+  for (const comparator of range.trim().split(/\s+/)) {
+    const match = COMPARATOR_PATTERN.exec(comparator);
+    if (!match) {
+      return false;
+    }
+    const operator = match[1] ?? "=";
+    const bound = parseSemver(match[2] ?? "");
+    if (!bound) {
+      return false;
+    }
+    const cmp = compareSemver(parsed, bound);
+    const ok = operator === "=" && cmp === 0 || operator === ">" && cmp > 0 || operator === ">=" && cmp >= 0 || operator === "<" && cmp < 0 || operator === "<=" && cmp <= 0;
+    if (!ok) {
+      return false;
+    }
+  }
+  return true;
+}
+function sameMajor(a2, b) {
+  const left = parseSemver(a2);
+  const right = parseSemver(b);
+  return left !== void 0 && right !== void 0 && left.major === right.major;
+}
+var EXTENSION_MANIFEST_SCHEMA_VERSION = "1.0.0";
+var EXTENSION_PROTOCOL_VERSION = "1.0.0";
+var EXTENSION_MANIFEST_FILE_NAME = "specbridge-extension.json";
+var MAX_EXTENSION_MANIFEST_BYTES = 256 * 1024;
+var SEMVER_STRING = external_exports.string().regex(/^\d+\.\d+\.\d+$/, "must be a strict X.Y.Z version");
+var ENTRYPOINT_PATTERN = /^(?:[a-z0-9][a-z0-9._-]*\/)*[a-z0-9][a-z0-9._-]*\.(?:cjs|mjs|js)$/;
+var extensionAuthorSchema = external_exports.object({
+  name: external_exports.string().min(1).max(200),
+  email: external_exports.string().min(3).max(320).optional(),
+  url: external_exports.string().min(1).max(500).optional()
+}).strict();
+var extensionCompatibilitySchema = external_exports.object({
+  specbridge: external_exports.string().min(1).max(100),
+  extensionSdk: external_exports.string().min(1).max(100).optional()
+}).strict();
+var extensionManifestSchema = external_exports.object({
+  schemaVersion: SEMVER_STRING,
+  protocolVersion: SEMVER_STRING,
+  id: external_exports.string().min(1).max(64),
+  version: SEMVER_STRING,
+  displayName: external_exports.string().min(1).max(100),
+  description: external_exports.string().min(1).max(500),
+  kind: external_exports.enum(EXTENSION_KINDS),
+  entrypoint: external_exports.string().min(1).max(300).optional(),
+  compatibility: extensionCompatibilitySchema,
+  capabilities: extensionCapabilitiesSchema,
+  permissions: extensionPermissionsSchema,
+  license: external_exports.string().min(1).max(100),
+  author: extensionAuthorSchema.optional(),
+  homepage: external_exports.string().min(1).max(500).optional(),
+  repository: external_exports.string().min(1).max(500).optional(),
+  keywords: external_exports.array(external_exports.string().min(1).max(30)).max(12).optional(),
+  deprecated: external_exports.boolean().optional(),
+  replacement: external_exports.string().min(1).max(64).optional(),
+  examples: external_exports.array(external_exports.string().min(1).max(300)).max(5).optional(),
+  configurationSchema: external_exports.record(external_exports.unknown()).optional(),
+  minimumNodeVersion: SEMVER_STRING.optional()
+}).strict();
+function checkUrl(field, value, issues) {
+  if (value === void 0) {
+    return;
+  }
+  if (!/^https:\/\/[^\s]+$/u.test(value)) {
+    issues.push(
+      extensionIssue("SBE004", "manifest", "error", `${field} must be an https:// URL`)
+    );
+  }
+}
+function checkManifestSemantics(manifest) {
+  const issues = [];
+  const idCheck = validateExtensionId(manifest.id);
+  if (!idCheck.valid) {
+    for (const problem of idCheck.problems) {
+      issues.push(extensionIssue("SBE003", "manifest", "error", `id: ${problem}`));
+    }
+  }
+  if (!sameMajor(manifest.protocolVersion, EXTENSION_PROTOCOL_VERSION)) {
+    issues.push(
+      extensionIssue(
+        "SBE007",
+        "protocol",
+        "error",
+        `protocolVersion ${manifest.protocolVersion} is not compatible with supported protocol ${EXTENSION_PROTOCOL_VERSION} (major versions must match)`
+      )
+    );
+  }
+  const rangeCheck = validateSemverRange(manifest.compatibility.specbridge);
+  if (!rangeCheck.valid) {
+    issues.push(
+      extensionIssue(
+        "SBE004",
+        "compatibility",
+        "error",
+        `compatibility.specbridge: ${rangeCheck.problem ?? "invalid range"}`
+      )
+    );
+  }
+  if (manifest.compatibility.extensionSdk !== void 0) {
+    const sdkRange = validateSemverRange(manifest.compatibility.extensionSdk);
+    if (!sdkRange.valid) {
+      issues.push(
+        extensionIssue(
+          "SBE004",
+          "compatibility",
+          "error",
+          `compatibility.extensionSdk: ${sdkRange.problem ?? "invalid range"}`
+        )
       );
-      return {
-        text: `${page.totalCount} runner profile(s); default runner: ${config2.defaultRunner}.
-${lines.join("\n")}`,
-        structured: {
-          defaultRunner: config2.defaultRunner,
-          profiles: summaries,
-          pagination: {
-            totalCount: page.totalCount,
-            truncated: page.truncated,
-            ...page.nextCursor !== void 0 ? { nextCursor: page.nextCursor } : {}
-          }
-        }
-      };
     }
-  });
+  }
+  if (isExecutableKind(manifest.kind)) {
+    if (manifest.entrypoint === void 0) {
+      issues.push(
+        extensionIssue(
+          "SBE012",
+          "manifest",
+          "error",
+          `kind "${manifest.kind}" is executable and requires an entrypoint`
+        )
+      );
+    } else if (manifest.entrypoint.includes("\0") || manifest.entrypoint.includes("\\") || manifest.entrypoint.includes("..") || manifest.entrypoint.startsWith("/") || /^[a-zA-Z]:/.test(manifest.entrypoint) || !ENTRYPOINT_PATTERN.test(manifest.entrypoint)) {
+      issues.push(
+        extensionIssue(
+          "SBE012",
+          "paths",
+          "error",
+          `entrypoint "${manifest.entrypoint}" must be a relative forward-slash path to a .cjs, .mjs, or .js file inside the package`
+        )
+      );
+    }
+  } else if (manifest.entrypoint !== void 0) {
+    issues.push(
+      extensionIssue(
+        "SBE004",
+        "manifest",
+        "error",
+        "template-provider extensions are data-only and must not declare an entrypoint"
+      )
+    );
+  }
+  const declared = manifest.capabilities.operations;
+  const seen = /* @__PURE__ */ new Set();
+  for (const operation of declared) {
+    if (seen.has(operation)) {
+      issues.push(
+        extensionIssue("SBE004", "capabilities", "error", `duplicate operation "${operation}"`)
+      );
+    }
+    seen.add(operation);
+    if (!isOperationAllowedForKind(manifest.kind, operation)) {
+      issues.push(
+        extensionIssue(
+          "SBE021",
+          "capabilities",
+          "error",
+          `operation "${operation}" is not valid for kind "${manifest.kind}" (allowed: ${operationsForKind(manifest.kind).join(", ") || "none"})`
+        )
+      );
+    }
+  }
+  for (const required2 of REQUIRED_OPERATIONS_BY_KIND[manifest.kind]) {
+    if (!seen.has(required2)) {
+      issues.push(
+        extensionIssue(
+          "SBE004",
+          "capabilities",
+          "error",
+          `kind "${manifest.kind}" must declare the "${required2}" operation`
+        )
+      );
+    }
+  }
+  if (manifest.kind === "template-provider" && declared.length > 0) {
+    issues.push(
+      extensionIssue(
+        "SBE004",
+        "capabilities",
+        "error",
+        "template-provider extensions must not declare operations"
+      )
+    );
+  }
+  if (manifest.kind === "template-provider") {
+    const p = manifest.permissions;
+    if (p.repositoryRead || p.repositoryWrite || p.network || p.childProcess || p.environmentVariables.length > 0) {
+      issues.push(
+        extensionIssue(
+          "SBE004",
+          "permissions",
+          "error",
+          "template-provider extensions are data-only and may not request repositoryRead, repositoryWrite, network, childProcess, or environment variables"
+        )
+      );
+    }
+  }
+  const uniqueVariables = new Set(manifest.permissions.environmentVariables);
+  if (uniqueVariables.size !== manifest.permissions.environmentVariables.length) {
+    issues.push(
+      extensionIssue(
+        "SBE004",
+        "permissions",
+        "error",
+        "permissions.environmentVariables contains duplicate names"
+      )
+    );
+  }
+  if (manifest.replacement !== void 0) {
+    const replacementCheck = validateExtensionId(manifest.replacement);
+    if (!replacementCheck.valid) {
+      issues.push(
+        extensionIssue("SBE004", "manifest", "error", "replacement must be a valid extension ID")
+      );
+    }
+    if (manifest.deprecated !== true) {
+      issues.push(
+        extensionIssue(
+          "SBE004",
+          "manifest",
+          "warning",
+          "replacement is set but deprecated is not true"
+        )
+      );
+    }
+  }
+  checkUrl("homepage", manifest.homepage, issues);
+  checkUrl("repository", manifest.repository, issues);
+  return issues;
 }
-
-// ../../packages/mcp-server/src/tools/runner-show.ts
-var inputSchema18 = {
-  profile: external_exports.string().min(1).max(120).describe('Runner profile name (e.g. "gemini-default")')
+function parseExtensionManifest(text) {
+  const issues = [];
+  if (Buffer.byteLength(text, "utf8") > MAX_EXTENSION_MANIFEST_BYTES) {
+    issues.push(
+      extensionIssue(
+        "SBE008",
+        "limits",
+        "error",
+        `manifest exceeds ${MAX_EXTENSION_MANIFEST_BYTES} bytes`,
+        EXTENSION_MANIFEST_FILE_NAME
+      )
+    );
+    return { issues };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch (error2) {
+    issues.push(
+      extensionIssue(
+        "SBE004",
+        "manifest",
+        "error",
+        `manifest is not valid JSON: ${error2 instanceof Error ? error2.message : String(error2)}`,
+        EXTENSION_MANIFEST_FILE_NAME
+      )
+    );
+    return { issues };
+  }
+  if (typeof parsed === "object" && parsed !== null && "schemaVersion" in parsed) {
+    const rawVersion = parsed.schemaVersion;
+    if (typeof rawVersion === "string") {
+      const parsedVersion = parseSemver(rawVersion);
+      const supported = parseSemver(EXTENSION_MANIFEST_SCHEMA_VERSION);
+      if (parsedVersion && supported && parsedVersion.major !== supported.major) {
+        issues.push(
+          extensionIssue(
+            "SBE005",
+            "manifest",
+            "error",
+            `schemaVersion ${rawVersion} is not supported (supported major: ${supported.major})`,
+            EXTENSION_MANIFEST_FILE_NAME
+          )
+        );
+        return { issues };
+      }
+    }
+  }
+  const result = extensionManifestSchema.safeParse(parsed);
+  if (!result.success) {
+    for (const zodIssue of result.error.issues.slice(0, 25)) {
+      issues.push(
+        extensionIssue(
+          "SBE004",
+          "manifest",
+          "error",
+          `${zodIssue.path.join(".") || "(root)"}: ${zodIssue.message}`,
+          EXTENSION_MANIFEST_FILE_NAME
+        )
+      );
+    }
+    return { issues };
+  }
+  issues.push(...checkManifestSemantics(result.data));
+  return { manifest: result.data, issues };
+}
+var RUNNER_EXECUTION_OUTCOMES = [
+  "completed",
+  "blocked",
+  "failed",
+  "cancelled",
+  "timed-out",
+  "permission-denied",
+  "malformed-output",
+  "no-change"
+];
+var RUNNER_CAPABILITY_SET_KEYS = [
+  "stageGeneration",
+  "stageRefinement",
+  "taskExecution",
+  "taskResume",
+  "structuredFinalOutput",
+  "streamingEvents",
+  "repositoryRead",
+  "repositoryWrite",
+  "sandbox",
+  "toolRestriction",
+  "usageReporting",
+  "costReporting",
+  "localOnly",
+  "requiresNetwork",
+  "supportsSystemPrompt",
+  "supportsJsonSchema",
+  "supportsCancellation"
+];
+var capabilityShape = Object.fromEntries(
+  RUNNER_CAPABILITY_SET_KEYS.map((key) => [key, external_exports.boolean()])
+);
+var runnerCapabilitySetMirrorSchema = external_exports.object(capabilityShape).strict();
+var runnerDiagnosticSchema = external_exports.object({
+  severity: external_exports.enum(["info", "warning", "error"]),
+  code: external_exports.string().min(1).max(100),
+  message: external_exports.string().min(1).max(2e3)
+}).strict();
+var runnerDetectInputSchema = external_exports.object({
+  probeCapabilities: external_exports.boolean().optional(),
+  timeoutMs: external_exports.number().int().min(1).optional(),
+  /** Present only when repositoryRead or repositoryWrite was granted. */
+  workspaceRoot: external_exports.string().min(1).max(1e3).optional()
+}).strict();
+var runnerDetectOutputSchema = external_exports.object({
+  available: external_exports.boolean(),
+  version: external_exports.string().min(1).max(100).optional(),
+  authentication: external_exports.enum(["authenticated", "unauthenticated", "unknown", "not-applicable"]),
+  capabilitySet: runnerCapabilitySetMirrorSchema,
+  networkBacked: external_exports.boolean(),
+  diagnostics: external_exports.array(runnerDiagnosticSchema).max(100)
+}).strict();
+var MAX_PROMPT_CHARS = 1024 * 1024;
+var MAX_RAW_OUTPUT_CHARS = 2 * 1024 * 1024;
+var runnerExecutionEnvelopeSchema = external_exports.object({
+  timeoutMs: external_exports.number().int().min(1),
+  model: external_exports.string().min(1).max(200).optional(),
+  maxTurns: external_exports.number().int().min(1).optional(),
+  maxBudgetUsd: external_exports.number().min(0).optional(),
+  /** Present only when repositoryRead or repositoryWrite was granted. */
+  workspaceRoot: external_exports.string().min(1).max(1e3).optional(),
+  /** Present only when repositoryWrite was granted. */
+  runDir: external_exports.string().min(1).max(1e3).optional()
+}).strict();
+var runnerStageInputSchema = external_exports.object({
+  specName: external_exports.string().min(1).max(200),
+  stage: external_exports.string().min(1).max(40),
+  intent: external_exports.enum(["generate", "refine"]),
+  prompt: external_exports.string().max(MAX_PROMPT_CHARS),
+  promptVersion: external_exports.string().min(1).max(40),
+  toolPolicy: external_exports.enum(["read-only", "inspect-only", "implementation"]),
+  correction: external_exports.object({
+    previousOutput: external_exports.string().max(MAX_RAW_OUTPUT_CHARS),
+    problems: external_exports.string().max(1e4)
+  }).strict().optional(),
+  execution: runnerExecutionEnvelopeSchema
+}).strict();
+var runnerTaskInputSchema = external_exports.object({
+  specName: external_exports.string().min(1).max(200),
+  taskId: external_exports.string().min(1).max(100),
+  prompt: external_exports.string().max(MAX_PROMPT_CHARS),
+  promptVersion: external_exports.string().min(1).max(40),
+  toolPolicy: external_exports.literal("implementation"),
+  sessionId: external_exports.string().min(1).max(200).optional(),
+  execution: runnerExecutionEnvelopeSchema
+}).strict();
+var runnerUsageMirrorSchema = external_exports.object({
+  model: external_exports.string().max(200).nullable().optional(),
+  inputTokens: external_exports.number().int().min(0).nullable().optional(),
+  cachedInputTokens: external_exports.number().int().min(0).nullable().optional(),
+  outputTokens: external_exports.number().int().min(0).nullable().optional(),
+  reasoningTokens: external_exports.number().int().min(0).nullable().optional(),
+  requestCount: external_exports.number().int().min(0).nullable().optional()
+}).strict();
+var runnerCostMirrorSchema = external_exports.object({
+  currency: external_exports.string().max(10).nullable().optional(),
+  amount: external_exports.number().min(0).nullable().optional()
+}).strict();
+var runnerResultBaseShape = {
+  outcome: external_exports.enum(RUNNER_EXECUTION_OUTCOMES),
+  failureReason: external_exports.string().min(1).max(2e3).optional(),
+  rawStdout: external_exports.string().max(MAX_RAW_OUTPUT_CHARS),
+  rawStderr: external_exports.string().max(MAX_RAW_OUTPUT_CHARS),
+  sessionId: external_exports.string().min(1).max(200).optional(),
+  durationMs: external_exports.number().int().min(0),
+  warnings: external_exports.array(external_exports.string().min(1).max(1e3)).max(100),
+  /** Structured report claim — JSON matching the frozen report schemas. */
+  report: external_exports.record(external_exports.unknown()).optional(),
+  usage: runnerUsageMirrorSchema.optional(),
+  cost: runnerCostMirrorSchema.optional(),
+  invalidStructuredOutput: external_exports.string().max(MAX_RAW_OUTPUT_CHARS).optional()
 };
-var operationCompatibilityShape = external_exports.object({
-  operation: external_exports.string(),
+var runnerStageOutputSchema = external_exports.object(runnerResultBaseShape).strict();
+var runnerTaskOutputSchema = external_exports.object({
+  ...runnerResultBaseShape,
+  resumeSupported: external_exports.boolean()
+}).strict();
+var runnerModelListOutputSchema = external_exports.object({
   supported: external_exports.boolean(),
-  missingCapabilities: external_exports.array(external_exports.string())
-});
-var outputSchema23 = {
-  summary: profileSummaryShape,
-  configuration: external_exports.record(external_exports.unknown()).describe("Redacted profile configuration (profiles can never store credential values)"),
-  declaredCapabilities: capabilitySetShape2,
-  detection: detectionViewShape,
-  operationCompatibility: external_exports.array(operationCompatibilityShape).describe("Per-operation support from DETECTED capabilities"),
-  conformance: conformanceSummaryShape,
-  boundary: external_exports.object({
-    networkBacked: external_exports.boolean(),
-    localExecution: external_exports.boolean(),
-    constraints: external_exports.array(external_exports.string())
-  }),
-  limitations: external_exports.array(external_exports.string()),
-  remediation: external_exports.array(external_exports.string())
+  models: external_exports.array(
+    external_exports.object({
+      name: external_exports.string().min(1).max(200),
+      sizeBytes: external_exports.number().int().min(0).optional(),
+      family: external_exports.string().min(1).max(100).optional(),
+      parameterSize: external_exports.string().min(1).max(40).optional(),
+      quantization: external_exports.string().min(1).max(40).optional(),
+      modifiedAt: external_exports.string().min(1).max(60).optional(),
+      location: external_exports.enum(["local", "remote", "unknown"]).optional()
+    }).strict()
+  ).max(500),
+  detail: external_exports.string().min(1).max(2e3).optional()
+}).strict();
+var VERIFIER_STATUS_VALUES = ["passed", "warning", "failed", "not-applicable"];
+var MAX_VERIFIER_CHANGED_FILES = 2e3;
+var MAX_VERIFIER_FILE_CONTENT_CHARS = 1024 * 1024;
+var verifierChangedFileSchema = external_exports.object({
+  path: external_exports.string().min(1).max(500),
+  changeType: external_exports.enum(["added", "modified", "deleted", "renamed", "unknown"]),
+  additions: external_exports.number().int().min(0).optional(),
+  deletions: external_exports.number().int().min(0).optional()
+}).strict();
+var verifierInputSchema = external_exports.object({
+  specName: external_exports.string().min(1).max(200),
+  taskId: external_exports.string().min(1).max(100).optional(),
+  requirementIds: external_exports.array(external_exports.string().min(1).max(100)).max(500).optional(),
+  changedFiles: external_exports.array(verifierChangedFileSchema).max(MAX_VERIFIER_CHANGED_FILES),
+  diffStats: external_exports.object({
+    files: external_exports.number().int().min(0),
+    additions: external_exports.number().int().min(0),
+    deletions: external_exports.number().int().min(0)
+  }).strict().optional(),
+  /** Safe summaries of existing evidence — never raw credentials or env. */
+  evidenceSummary: external_exports.object({
+    outcome: external_exports.string().min(1).max(60).optional(),
+    evidenceStatus: external_exports.string().min(1).max(60).optional(),
+    commandsRun: external_exports.number().int().min(0).optional(),
+    testsReported: external_exports.number().int().min(0).optional()
+  }).strict().optional(),
+  commandResults: external_exports.array(
+    external_exports.object({
+      name: external_exports.string().min(1).max(200),
+      exitCode: external_exports.number().int(),
+      durationMs: external_exports.number().int().min(0).optional()
+    }).strict()
+  ).max(100).optional(),
+  /**
+   * Selected repository file content. Present only when the extension holds
+   * the repositoryRead permission and the host explicitly included files.
+   */
+  files: external_exports.record(external_exports.string().max(MAX_VERIFIER_FILE_CONTENT_CHARS)).optional(),
+  configuration: external_exports.record(external_exports.unknown()).optional()
+}).strict();
+var verifierResultSchema = external_exports.object({
+  status: external_exports.enum(VERIFIER_STATUS_VALUES),
+  diagnostics: extensionDiagnosticsArraySchema,
+  summary: external_exports.string().min(1).max(2e3).optional()
+}).strict();
+var OPERATION_SCHEMAS = {
+  "analyzer.analyze": { input: analyzerInputSchema, output: analyzerResultSchema },
+  "verifier.verify": { input: verifierInputSchema, output: verifierResultSchema },
+  "exporter.export": { input: exporterInputSchema, output: exporterResultSchema },
+  "runner.detect": { input: runnerDetectInputSchema, output: runnerDetectOutputSchema },
+  "runner.generateStage": { input: runnerStageInputSchema, output: runnerStageOutputSchema },
+  "runner.refineStage": { input: runnerStageInputSchema, output: runnerStageOutputSchema },
+  "runner.executeTask": { input: runnerTaskInputSchema, output: runnerTaskOutputSchema },
+  "runner.resumeTask": { input: runnerTaskInputSchema, output: runnerTaskOutputSchema },
+  "runner.listModels": {
+    input: external_exports.object({}).strict(),
+    output: runnerModelListOutputSchema
+  }
 };
-function registerRunnerShowTool(server, context) {
-  registerDefinedTool(server, context, {
-    name: "runner_show",
-    title: "Show a runner profile",
-    description: "Show one runner profile: redacted configuration, declared and detected capabilities, operation compatibility, invocation-free conformance summary, network boundary, known limitations, and remediation. Read-only; never sends a model request.",
-    annotations: {
-      readOnlyHint: true,
-      destructiveHint: false,
-      idempotentHint: true,
-      openWorldHint: true
-    },
-    inputSchema: inputSchema18,
-    outputSchema: outputSchema23,
-    handler: async (args) => {
-      const { workspace, registry: registry2 } = loadRunnerToolContext(context);
-      const profile = requireProfile(registry2, args.profile);
-      const summary = runnerProfileSummary(profile);
-      const detection = await profile.runner.detect({
-        workspaceRoot: workspace.rootDir,
-        probeCapabilities: true,
-        timeoutMs: RUNNER_PROBE_TIMEOUT_MS
-      });
-      const detectionView = toDetectionView(detection, true);
-      const conformance = await invocationFreeConformanceSummary(profile);
-      const operationCompatibility = RUNNER_OPERATIONS.filter(
-        (operation) => operation !== "model-list" && operation !== "runner-test"
-      ).map((operation) => {
-        const support = checkOperationSupport(operation, detection.capabilitySet);
-        return {
-          operation,
-          supported: support.supported,
-          missingCapabilities: [
-            ...support.missingCapabilities,
-            ...support.unsatisfiedBoundaries.flat()
-          ]
-        };
-      });
-      const boundaryNote = profile.runner.executionBoundaryNote?.("implementation");
-      const limitations = detectionView.diagnostics.filter((diagnostic) => diagnostic.severity !== "error").map((diagnostic) => diagnostic.message);
-      const remediation = detectionView.diagnostics.filter((diagnostic) => diagnostic.severity === "error").map((diagnostic) => diagnostic.message);
-      const supported = operationCompatibility.filter((entry) => entry.supported).map((entry) => entry.operation);
-      return {
-        text: `Profile ${args.profile} (${summary.implementation}, ${summary.category}): ${summary.enabled ? "enabled" : "disabled"}, status ${detection.status}, support ${detection.supportLevel}. Supported operations (detected): ${supported.join(", ") || "(none)"}.`,
-        structured: {
-          summary,
-          configuration: redactedRunnerProfileConfig(profile),
-          declaredCapabilities: profile.runner.declaredCapabilities,
-          detection: detectionView,
-          operationCompatibility,
-          conformance,
-          boundary: {
-            networkBacked: summary.networkBacked,
-            localExecution: summary.localExecution,
-            constraints: [
-              ...boundaryNote !== void 0 ? [boundaryNote] : [],
-              "No commits, no pushes, no checkbox updates by the provider; evidence stays provider-independent."
-            ]
-          },
-          limitations,
-          remediation
-        }
-      };
-    }
-  });
+function operationSchemas(operation) {
+  return Object.prototype.hasOwnProperty.call(OPERATION_SCHEMAS, operation) ? OPERATION_SCHEMAS[operation] : void 0;
 }
+var MAX_PROTOCOL_MESSAGE_BYTES = 2 * 1024 * 1024;
+var EXTENSION_PROTOCOL_METHODS = [
+  "initialize",
+  "extension.getMetadata",
+  "extension.invoke",
+  "extension.cancel",
+  "extension.shutdown"
+];
+var REQUEST_ID = external_exports.string().min(1).max(128);
+var extensionRequestSchema = external_exports.object({
+  jsonrpc: external_exports.literal("2.0"),
+  id: REQUEST_ID,
+  method: external_exports.enum(EXTENSION_PROTOCOL_METHODS),
+  params: external_exports.record(external_exports.unknown()).optional()
+}).strict();
+var extensionResponseErrorSchema = external_exports.object({
+  code: external_exports.number().int(),
+  message: external_exports.string().min(1).max(4e3),
+  data: external_exports.record(external_exports.unknown()).optional()
+}).strict();
+var extensionResponseSchema = external_exports.object({
+  jsonrpc: external_exports.literal("2.0"),
+  id: REQUEST_ID,
+  result: external_exports.unknown().optional(),
+  error: extensionResponseErrorSchema.optional()
+}).strict().refine(
+  (message) => message.result === void 0 !== (message.error === void 0),
+  "response must carry exactly one of result or error"
+);
+var initializeParamsSchema = external_exports.object({
+  protocolVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  specbridgeVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  extensionId: external_exports.string().min(1).max(64),
+  extensionVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  operation: external_exports.string().min(1).max(80).optional(),
+  grantedPermissions: extensionPermissionsSchema
+}).strict();
+var initializeResultSchema = external_exports.object({
+  protocolVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  extensionId: external_exports.string().min(1).max(64),
+  extensionVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  capabilities: extensionCapabilitiesSchema
+}).strict();
+var getMetadataResultSchema = external_exports.object({
+  id: external_exports.string().min(1).max(64),
+  version: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  kind: external_exports.string().min(1).max(40),
+  displayName: external_exports.string().min(1).max(100),
+  protocolVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/)
+}).strict();
+var invokeParamsSchema = external_exports.object({
+  operation: external_exports.string().min(1).max(80),
+  payload: external_exports.unknown(),
+  configuration: external_exports.record(external_exports.unknown()).optional()
+}).strict();
+var invokeResultSchema = external_exports.object({
+  operation: external_exports.string().min(1).max(80),
+  output: external_exports.unknown()
+}).strict();
+var cancelParamsSchema = external_exports.object({
+  targetId: REQUEST_ID
+}).strict();
+var cancelResultSchema = external_exports.object({
+  cancelled: external_exports.boolean()
+}).strict();
+var shutdownResultSchema = external_exports.object({
+  ok: external_exports.literal(true)
+}).strict();
+function serializeProtocolMessage(message) {
+  const line = JSON.stringify(message);
+  if (Buffer.byteLength(line, "utf8") > MAX_PROTOCOL_MESSAGE_BYTES) {
+    throw new Error(
+      `protocol message exceeds ${MAX_PROTOCOL_MESSAGE_BYTES} bytes and cannot be sent`
+    );
+  }
+  return `${line}
+`;
+}
+function createLineDecoder(options) {
+  const maxLineBytes = options.maxLineBytes ?? MAX_PROTOCOL_MESSAGE_BYTES;
+  let buffered = Buffer.alloc(0);
+  let overflowed = false;
+  const push = (chunk) => {
+    if (overflowed) {
+      return;
+    }
+    const incoming = typeof chunk === "string" ? Buffer.from(chunk, "utf8") : chunk;
+    buffered = buffered.length === 0 ? Buffer.from(incoming) : Buffer.concat([buffered, incoming]);
+    let newlineIndex = buffered.indexOf(10);
+    while (newlineIndex >= 0) {
+      const lineBuffer = buffered.subarray(0, newlineIndex);
+      buffered = buffered.subarray(newlineIndex + 1);
+      if (lineBuffer.length > maxLineBytes) {
+        overflowed = true;
+        options.onOverflow(lineBuffer.length);
+        return;
+      }
+      const line = lineBuffer.toString("utf8").replace(/\r$/, "");
+      if (line.trim().length > 0) {
+        options.onLine(line);
+      }
+      newlineIndex = buffered.indexOf(10);
+    }
+    if (buffered.length > maxLineBytes) {
+      overflowed = true;
+      options.onOverflow(buffered.length);
+    }
+  };
+  const end = () => {
+    if (overflowed || buffered.length === 0) {
+      return;
+    }
+    const line = buffered.toString("utf8").replace(/\r$/, "");
+    buffered = Buffer.alloc(0);
+    if (line.trim().length > 0) {
+      options.onLine(line);
+    }
+  };
+  return { push, end };
+}
+var TEMPLATE_PROVIDER_TEMPLATES_DIR = "templates";
+var MAX_TEMPLATE_PROVIDER_PACKS = 20;
 
-// ../../packages/mcp-server/src/tools/runner-doctor.ts
-var inputSchema19 = {
-  profile: external_exports.string().min(1).max(120).optional().describe("Runner profile name (default: the configured default runner)"),
-  verbose: external_exports.boolean().optional().describe("Include informational diagnostics")
-};
-var outputSchema24 = {
-  profile: external_exports.string(),
-  implementation: external_exports.string(),
-  category: external_exports.string(),
-  enabled: external_exports.boolean(),
-  executable: external_exports.string().nullable().describe("Configured executable or endpoint"),
-  detection: detectionViewShape,
-  ready: external_exports.boolean().describe("True when the runner status is available")
-};
-function registerRunnerDoctorTool(server, context) {
-  registerDefinedTool(server, context, {
-    name: "runner_doctor",
-    title: "Diagnose a runner profile",
-    description: "Diagnose one runner profile: executable/endpoint presence, version, authentication state (never via credential files), detected capabilities, and actionable findings. Read-only: never a model request, never a login, never a configuration change.",
-    annotations: {
-      readOnlyHint: true,
-      destructiveHint: false,
-      idempotentHint: true,
-      openWorldHint: true
-    },
-    inputSchema: inputSchema19,
-    outputSchema: outputSchema24,
-    handler: async (args) => {
-      const { workspace, config: config2, registry: registry2 } = loadRunnerToolContext(context);
-      const profileName = args.profile ?? config2.defaultRunner;
-      const profile = requireProfile(registry2, profileName);
-      const detection = await profile.runner.detect({
-        workspaceRoot: workspace.rootDir,
-        probeCapabilities: true,
-        timeoutMs: RUNNER_PROBE_TIMEOUT_MS
-      });
-      const view = toDetectionView(detection, args.verbose === true);
-      const findings = view.diagnostics.map((diagnostic) => `- [${diagnostic.severity}] ${diagnostic.message}`).join("\n");
-      return {
-        text: `Runner ${profileName} (${profile.runner.name}): status ${view.status}, support ${view.supportLevel}, authentication ${view.authentication}.${findings.length > 0 ? `
-${findings}` : ""}`,
-        structured: {
-          profile: profileName,
-          implementation: profile.runner.name,
-          category: profile.runner.category,
-          enabled: profile.config.enabled !== false,
-          executable: detection.executable ?? null,
-          detection: view,
-          ready: detection.status === "available"
-        }
-      };
-    }
-  });
-}
-
-// ../../packages/mcp-server/src/tools/runner-matrix.ts
-var matrixRowShape = external_exports.object({
-  profile: external_exports.string(),
-  implementation: external_exports.string(),
-  category: external_exports.string(),
-  support: external_exports.string(),
-  enabled: external_exports.boolean(),
-  author: external_exports.boolean(),
-  refine: external_exports.boolean(),
-  execute: external_exports.boolean(),
-  resume: external_exports.boolean(),
-  local: external_exports.boolean()
-});
-var outputSchema25 = {
-  rows: external_exports.array(matrixRowShape),
-  markdown: external_exports.string().describe("The same matrix as a Markdown table")
-};
-function registerRunnerMatrixTool(server, context) {
-  registerDefinedTool(server, context, {
-    name: "runner_matrix",
-    title: "Runner capability matrix",
-    description: 'The authoritative runner capability matrix (author/refine/execute/resume per profile), generated from registered runner metadata \u2014 identical to "specbridge runner matrix". Read-only; no probes, no processes, no network.',
-    annotations: {
-      readOnlyHint: true,
-      destructiveHint: false,
-      idempotentHint: true,
-      openWorldHint: false
-    },
-    inputSchema: {},
-    outputSchema: outputSchema25,
-    handler: async () => {
-      const { registry: registry2 } = loadRunnerToolContext(context);
-      const rows = runnerMatrixRows(registry2.listProfiles());
-      const markdown = renderRunnerMatrixMarkdown(rows);
-      return {
-        text: markdown,
-        structured: { rows, markdown }
-      };
-    }
-  });
-}
+// ../../packages/extensions/dist/index.js
+var import_fs29 = require("fs");
+var import_path33 = __toESM(require("path"), 1);
 
 // ../../packages/templates/dist/index.js
 var import_fs26 = require("fs");
@@ -56122,7 +56819,7 @@ var import_path30 = __toESM(require("path"), 1);
 var import_fs28 = require("fs");
 var import_path31 = __toESM(require("path"), 1);
 var import_path32 = __toESM(require("path"), 1);
-var SPECBRIDGE_VERSION = "0.7.0";
+var SPECBRIDGE_VERSION = "0.7.1";
 var TEMPLATE_ERROR_CODES = {
   SBT001: "template not found",
   SBT002: "ambiguous template reference",
@@ -56207,6 +56904,9 @@ function validateTemplateId(id) {
 function formatTemplateReference(source, id) {
   return `${source}:${id}`;
 }
+function formatExtensionTemplateReference(extensionId, id) {
+  return `extension:${extensionId}/${id}`;
+}
 function parseTemplateReference(raw) {
   const trimmed = raw.trim();
   const colon = trimmed.indexOf(":");
@@ -56215,6 +56915,18 @@ function parseTemplateReference(raw) {
   }
   const source = trimmed.slice(0, colon);
   const id = trimmed.slice(colon + 1);
+  if (source === "extension") {
+    const slash = id.indexOf("/");
+    if (slash <= 0 || slash === id.length - 1) {
+      return void 0;
+    }
+    const extensionId = id.slice(0, slash);
+    const templateId = id.slice(slash + 1);
+    if (!validateTemplateId(extensionId).valid || !validateTemplateId(templateId).valid) {
+      return void 0;
+    }
+    return { source: `extension:${extensionId}`, id: templateId };
+  }
   if (source !== "builtin" && source !== "project") {
     return void 0;
   }
@@ -56234,14 +56946,14 @@ var TEMPLATE_PACK_LIMITS = {
   /** Maximum length of a supplied variable value in characters. */
   maxVariableValueLength: 1e5
 };
-var VERSION_PATTERN = /^(\d+)\.(\d+)\.(\d+)$/;
-var COMPARATOR_PATTERN = /^(>=|<=|>|<|=)?(\d+)\.(\d+)\.(\d+)$/;
-function parseSemver(version2) {
-  const match = VERSION_PATTERN.exec(version2);
+var VERSION_PATTERN2 = /^(\d+)\.(\d+)\.(\d+)$/;
+var COMPARATOR_PATTERN2 = /^(>=|<=|>|<|=)?(\d+)\.(\d+)\.(\d+)$/;
+function parseSemver2(version2) {
+  const match = VERSION_PATTERN2.exec(version2);
   if (!match) return void 0;
   return [Number(match[1]), Number(match[2]), Number(match[3])];
 }
-function compareSemver(a2, b) {
+function compareSemver2(a2, b) {
   for (let i2 = 0; i2 < 3; i2 += 1) {
     const left = a2[i2] ?? 0;
     const right = b[i2] ?? 0;
@@ -56249,13 +56961,13 @@ function compareSemver(a2, b) {
   }
   return 0;
 }
-function validateSemverRange(range) {
+function validateSemverRange2(range) {
   const parts = range.trim().split(/\s+/);
   if (parts.length === 0 || parts.length === 1 && parts[0] === "") {
     return { valid: false, problem: "range must not be empty" };
   }
   for (const part of parts) {
-    if (!COMPARATOR_PATTERN.test(part)) {
+    if (!COMPARATOR_PATTERN2.test(part)) {
       return {
         valid: false,
         problem: `unsupported comparator "${part}" \u2014 use space-separated comparators like ">=0.7.0 <1.0.0" with operators >=, <=, >, <, or =`
@@ -56264,16 +56976,16 @@ function validateSemverRange(range) {
   }
   return { valid: true };
 }
-function semverSatisfies(version2, range) {
-  const target = parseSemver(version2);
+function semverSatisfies2(version2, range) {
+  const target = parseSemver2(version2);
   if (!target) return false;
   const parts = range.trim().split(/\s+/);
   for (const part of parts) {
-    const match = COMPARATOR_PATTERN.exec(part);
+    const match = COMPARATOR_PATTERN2.exec(part);
     if (!match) return false;
     const operator = match[1] ?? "=";
     const bound = [Number(match[2]), Number(match[3]), Number(match[4])];
-    const cmp = compareSemver(target, bound);
+    const cmp = compareSemver2(target, bound);
     switch (operator) {
       case ">=":
         if (cmp < 0) return false;
@@ -56407,7 +57119,7 @@ function checkSourcePath(source) {
   }
   return void 0;
 }
-function checkManifestSemantics(manifest) {
+function checkManifestSemantics2(manifest) {
   const issues = [];
   const idCheck = validateTemplateId(manifest.id);
   if (!idCheck.valid) {
@@ -56602,7 +57314,7 @@ function checkManifestSemantics(manifest) {
       }
     }
   }
-  const rangeCheck = validateSemverRange(manifest.compatibility.specbridge);
+  const rangeCheck = validateSemverRange2(manifest.compatibility.specbridge);
   if (!rangeCheck.valid) {
     issues.push(
       issue2(
@@ -56680,7 +57392,7 @@ function parseTemplateManifest(text) {
       )
     };
   }
-  const semanticIssues = checkManifestSemantics(result.data);
+  const semanticIssues = checkManifestSemantics2(result.data);
   if (semanticIssues.some((entry) => entry.severity === "error")) {
     return { manifest: result.data, issues: semanticIssues };
   }
@@ -57123,7 +57835,7 @@ function loadTemplatePack(data, options = {}) {
       }
     }
     const version2 = options.specbridgeVersion ?? SPECBRIDGE_VERSION;
-    if (!semverSatisfies(version2, manifest.compatibility.specbridge)) {
+    if (!semverSatisfies2(version2, manifest.compatibility.specbridge)) {
       issues.push(
         issue22(
           "SBT006",
@@ -57379,6 +58091,36 @@ function projectEntries(workspace, options, diagnostics) {
   }
   return entries;
 }
+function extensionEntries(options) {
+  const entries = [];
+  for (const input of options.extensionPacks ?? []) {
+    const pack = loadTemplatePack(input.data, {
+      requireReadme: true,
+      ...options.specbridgeVersion !== void 0 ? { specbridgeVersion: options.specbridgeVersion } : {}
+    });
+    const manifestMismatch = pack.manifest !== void 0 && pack.manifest.id !== input.templateId;
+    if (manifestMismatch) {
+      pack.issues.push({
+        code: "SBT004",
+        category: "manifest",
+        severity: "error",
+        message: `Extension pack directory "${input.templateId}" does not match manifest id "${pack.manifest?.id}".`
+      });
+    }
+    entries.push({
+      source: `extension:${input.extensionId}`,
+      id: input.templateId,
+      ref: formatExtensionTemplateReference(input.extensionId, input.templateId),
+      pack,
+      valid: pack.valid && !manifestMismatch
+    });
+  }
+  return entries;
+}
+var SOURCE_RANK = { builtin: 0, project: 1 };
+function sourceRank(source) {
+  return SOURCE_RANK[source] ?? 2;
+}
 function loadTemplateCatalog(workspace, options = {}) {
   const diagnostics = [];
   const source = options.source ?? "all";
@@ -57389,8 +58131,11 @@ function loadTemplateCatalog(workspace, options = {}) {
   if (source === "all" || source === "project") {
     entries.push(...projectEntries(workspace, options, diagnostics));
   }
+  if (source === "all" || source === "extension") {
+    entries.push(...extensionEntries(options));
+  }
   entries.sort(
-    (a2, b) => a2.source === b.source ? a2.id.localeCompare(b.id, "en") : a2.source === "builtin" ? -1 : 1
+    (a2, b) => sourceRank(a2.source) - sourceRank(b.source) || a2.id.localeCompare(b.id, "en") || a2.ref.localeCompare(b.ref, "en")
   );
   return { entries, diagnostics };
 }
@@ -57400,7 +58145,7 @@ function resolveTemplate(catalog, rawReference) {
     throw new TemplateError(
       "SBT003",
       `"${rawReference}" is not a valid template reference.`,
-      'Use a template ID like "rest-api" or a qualified reference like "builtin:rest-api" or "project:my-template".',
+      'Use a template ID like "rest-api" or a qualified reference like "builtin:rest-api", "project:my-template", or "extension:<extension-id>/<template-id>".',
       { reference: rawReference }
     );
   }
@@ -57501,7 +58246,7 @@ var templateApplyRecordSchema = external_exports.object({
   templateRef: external_exports.string(),
   templateId: external_exports.string(),
   templateVersion: external_exports.string(),
-  templateSource: external_exports.enum(["builtin", "project"]),
+  templateSource: external_exports.string().min(1).max(200),
   manifestHash: external_exports.string(),
   specName: external_exports.string(),
   specKind: external_exports.enum(["feature", "bugfix"]),
@@ -57761,16 +58506,2226 @@ function executeTemplateApplication(workspace, plan, clock = systemClock, record
   return { plan, creation, recordId: id };
 }
 
+// ../../packages/extensions/dist/index.js
+var import_crypto8 = require("crypto");
+var import_fs30 = require("fs");
+var import_path34 = __toESM(require("path"), 1);
+var import_child_process = require("child_process");
+var import_fs31 = require("fs");
+var import_path35 = __toESM(require("path"), 1);
+var ExtensionError = class extends SpecBridgeError {
+  extensionCode;
+  /** Actionable next step, always present. */
+  remediation;
+  constructor(extensionCode, detail, remediation, details) {
+    super(
+      "EXTENSION_ERROR",
+      `${extensionCode} (${EXTENSION_ERROR_CODES[extensionCode]}): ${detail} ${remediation}`,
+      { ...details, extensionCode }
+    );
+    this.name = "ExtensionError";
+    this.extensionCode = extensionCode;
+    this.remediation = remediation;
+  }
+};
+function isExtensionError(value) {
+  return value instanceof ExtensionError;
+}
+var EXTENSION_LIMITS = {
+  /** specbridge-extension.json document size. */
+  maxManifestBytes: 256 * 1024,
+  /** checksums.json document size. */
+  maxChecksumsBytes: 256 * 1024,
+  /** Packaged archive size on disk. */
+  maxArchiveBytes: 50 * 1024 * 1024,
+  /** Total size of all extracted/loaded package files. */
+  maxExtractedTotalBytes: 100 * 1024 * 1024,
+  /** Number of files in a package or archive. */
+  maxArchiveFileCount: 1e3,
+  /** Directory nesting depth inside a package. */
+  maxPackageDepth: 8,
+  /** Bytes the host retains from an extension's stdout protocol stream. */
+  maxProcessStdoutBytes: 10 * 1024 * 1024,
+  /** Bytes the host retains from an extension's stderr log stream. */
+  maxProcessStderrBytes: 5 * 1024 * 1024,
+  /** Time for the process to answer `initialize`. */
+  startupTimeoutMs: 1e4,
+  /** Default per-operation timeout. */
+  defaultOperationTimeoutMs: 5 * 6e4,
+  /** Grace period between SIGTERM and SIGKILL on shutdown. */
+  forceKillAfterMs: 2e3
+};
+var PACKAGE_PATH_SEGMENT_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+var MAX_PACKAGE_PATH_LENGTH = 400;
+function checkPackageRelativePath(relativePath) {
+  if (relativePath.length === 0) {
+    return "path is empty";
+  }
+  if (relativePath.length > MAX_PACKAGE_PATH_LENGTH) {
+    return `path exceeds ${MAX_PACKAGE_PATH_LENGTH} characters`;
+  }
+  if (relativePath.includes("\0")) {
+    return "path contains a null byte";
+  }
+  if (relativePath.includes("\\")) {
+    return "path contains a backslash (use forward slashes)";
+  }
+  if (relativePath.startsWith("/") || /^[A-Za-z]:/.test(relativePath)) {
+    return "path is absolute";
+  }
+  for (const segment of relativePath.split("/")) {
+    if (segment === "") {
+      return "path contains an empty segment";
+    }
+    if (segment === "." || segment === "..") {
+      return "path contains a traversal segment";
+    }
+    if (!PACKAGE_PATH_SEGMENT_PATTERN.test(segment)) {
+      return `path segment "${segment}" contains unsupported characters`;
+    }
+  }
+  return void 0;
+}
+var FORBIDDEN_PACKAGE_DIRECTORIES = [
+  "node_modules",
+  ".git",
+  ".kiro",
+  ".specbridge",
+  ".pnpm-store",
+  ".npm"
+];
+var FORBIDDEN_PACKAGE_FILE_SUFFIXES = [
+  ".map",
+  ".exe",
+  ".dll",
+  ".so",
+  ".dylib",
+  ".bat",
+  ".cmd",
+  ".ps1",
+  ".sh",
+  ".pem",
+  ".key"
+];
+var FORBIDDEN_PACKAGE_FILE_NAMES = [".env", ".npmrc", ".netrc", "id_rsa"];
+function checkForbiddenPackagePath(relativePath) {
+  const segments = relativePath.split("/");
+  for (const segment of segments) {
+    for (const forbidden of FORBIDDEN_PACKAGE_DIRECTORIES) {
+      if (segment === forbidden) {
+        return `"${forbidden}" directories are not allowed in extension packages`;
+      }
+    }
+  }
+  const fileName = segments[segments.length - 1] ?? "";
+  for (const forbidden of FORBIDDEN_PACKAGE_FILE_NAMES) {
+    if (fileName === forbidden) {
+      return `"${forbidden}" files are not allowed in extension packages`;
+    }
+  }
+  const lower = fileName.toLowerCase();
+  for (const suffix of FORBIDDEN_PACKAGE_FILE_SUFFIXES) {
+    if (lower.endsWith(suffix)) {
+      return `"${suffix}" files are not allowed in extension packages`;
+    }
+  }
+  return void 0;
+}
+var DOS_DATE = 2026 - 1980 << 9 | 1 << 5 | 1;
+var EXTENSION_CHECKSUMS_FILE_NAME = "checksums.json";
+var extensionChecksumsSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  algorithm: external_exports.literal("sha256"),
+  files: external_exports.record(external_exports.string().regex(/^[0-9a-f]{64}$/))
+}).strict();
+function sha256HexOf(data) {
+  return (0, import_crypto8.createHash)("sha256").update(data).digest("hex");
+}
+function parseExtensionChecksums(text) {
+  const issues = [];
+  if (Buffer.byteLength(text, "utf8") > EXTENSION_LIMITS.maxChecksumsBytes) {
+    issues.push(
+      extensionIssue(
+        "SBE008",
+        "limits",
+        "error",
+        `checksums.json exceeds ${EXTENSION_LIMITS.maxChecksumsBytes} bytes`,
+        EXTENSION_CHECKSUMS_FILE_NAME
+      )
+    );
+    return { issues };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch (error2) {
+    issues.push(
+      extensionIssue(
+        "SBE008",
+        "checksums",
+        "error",
+        `checksums.json is not valid JSON: ${error2 instanceof Error ? error2.message : String(error2)}`,
+        EXTENSION_CHECKSUMS_FILE_NAME
+      )
+    );
+    return { issues };
+  }
+  const result = extensionChecksumsSchema.safeParse(parsed);
+  if (!result.success) {
+    for (const zodIssue of result.error.issues.slice(0, 10)) {
+      issues.push(
+        extensionIssue(
+          "SBE008",
+          "checksums",
+          "error",
+          `checksums.json ${zodIssue.path.join(".") || "(root)"}: ${zodIssue.message}`,
+          EXTENSION_CHECKSUMS_FILE_NAME
+        )
+      );
+    }
+    return { issues };
+  }
+  for (const declaredPath of Object.keys(result.data.files)) {
+    const problem = checkPackageRelativePath(declaredPath);
+    if (problem !== void 0) {
+      issues.push(
+        extensionIssue("SBE008", "checksums", "error", `checksums.json entry "${declaredPath}": ${problem}`)
+      );
+    }
+  }
+  if (issues.length > 0) {
+    return { issues };
+  }
+  return { checksums: result.data, issues };
+}
+function verifyExtensionChecksums(checksums, files) {
+  const issues = [];
+  const declared = new Set(Object.keys(checksums.files));
+  for (const [name, content] of files) {
+    if (name === EXTENSION_CHECKSUMS_FILE_NAME) {
+      continue;
+    }
+    const expected = checksums.files[name];
+    if (expected === void 0) {
+      issues.push(
+        extensionIssue(
+          "SBE008",
+          "checksums",
+          "error",
+          `file "${name}" is present but not declared in checksums.json`,
+          name
+        )
+      );
+      continue;
+    }
+    declared.delete(name);
+    const actual = sha256HexOf(content);
+    if (actual !== expected) {
+      issues.push(
+        extensionIssue(
+          "SBE009",
+          "checksums",
+          "error",
+          `file "${name}" does not match its declared sha256 (expected ${expected}, got ${actual})`,
+          name
+        )
+      );
+    }
+  }
+  for (const missing of declared) {
+    issues.push(
+      extensionIssue(
+        "SBE009",
+        "checksums",
+        "error",
+        `checksums.json declares "${missing}" but the file is missing from the package`,
+        missing
+      )
+    );
+  }
+  return issues;
+}
+var FORBIDDEN_LIFECYCLE_SCRIPTS = [
+  "preinstall",
+  "install",
+  "postinstall",
+  "prepare",
+  "prepublish",
+  "prepublishOnly",
+  "preuninstall",
+  "postuninstall"
+];
+function readExtensionPackageDirectory(dir) {
+  const rootStat = (0, import_fs29.lstatSync)(dir, { throwIfNoEntry: false });
+  if (rootStat === void 0 || !rootStat.isDirectory()) {
+    throw new ExtensionError(
+      "SBE008",
+      `"${dir}" is not a readable directory.`,
+      "Point the command at an extension package directory or archive."
+    );
+  }
+  if (rootStat.isSymbolicLink()) {
+    throw new ExtensionError(
+      "SBE011",
+      `"${dir}" is a symbolic link.`,
+      "Extension packages must be plain directories; copy the real files instead."
+    );
+  }
+  const files = /* @__PURE__ */ new Map();
+  let totalBytes = 0;
+  const walk = (currentDir, relativePrefix, depth) => {
+    if (depth > EXTENSION_LIMITS.maxPackageDepth) {
+      throw new ExtensionError(
+        "SBE008",
+        `directory nesting exceeds ${EXTENSION_LIMITS.maxPackageDepth} levels at "${relativePrefix}".`,
+        "Flatten the package layout."
+      );
+    }
+    for (const entry of (0, import_fs29.readdirSync)(currentDir, { withFileTypes: true })) {
+      const relativePath = relativePrefix === "" ? entry.name : `${relativePrefix}/${entry.name}`;
+      if (entry.isSymbolicLink()) {
+        throw new ExtensionError(
+          "SBE011",
+          `package entry "${relativePath}" is a symbolic link.`,
+          "Extension packages must not contain symlinks; copy the real files instead."
+        );
+      }
+      const pathProblem = checkPackageRelativePath(relativePath);
+      if (pathProblem !== void 0) {
+        throw new ExtensionError(
+          "SBE008",
+          `package entry "${relativePath}": ${pathProblem}.`,
+          "Rename the file to a safe relative path."
+        );
+      }
+      if (entry.isDirectory()) {
+        const forbidden = checkForbiddenPackagePath(`${relativePath}/x`);
+        if (forbidden !== void 0) {
+          throw new ExtensionError(
+            "SBE010",
+            `package directory "${relativePath}" is forbidden: ${forbidden}.`,
+            "Remove the directory before validating or packaging."
+          );
+        }
+        walk(import_path33.default.join(currentDir, entry.name), relativePath, depth + 1);
+        continue;
+      }
+      if (!entry.isFile()) {
+        throw new ExtensionError(
+          "SBE008",
+          `package entry "${relativePath}" is not a regular file.`,
+          "Extension packages may only contain plain files and directories."
+        );
+      }
+      if (files.size >= EXTENSION_LIMITS.maxArchiveFileCount) {
+        throw new ExtensionError(
+          "SBE008",
+          `package contains more than ${EXTENSION_LIMITS.maxArchiveFileCount} files.`,
+          "Reduce the package contents."
+        );
+      }
+      const content = (0, import_fs29.readFileSync)(import_path33.default.join(currentDir, entry.name));
+      totalBytes += content.length;
+      if (totalBytes > EXTENSION_LIMITS.maxExtractedTotalBytes) {
+        throw new ExtensionError(
+          "SBE008",
+          `package exceeds the ${EXTENSION_LIMITS.maxExtractedTotalBytes} byte total size limit.`,
+          "Reduce the package contents."
+        );
+      }
+      files.set(relativePath, content);
+    }
+  };
+  walk(dir, "", 1);
+  return files;
+}
+function decodeUtf8Strict(name, content) {
+  const text = content.toString("utf8");
+  if (!Buffer.from(text, "utf8").equals(content) || text.includes("\0")) {
+    return void 0;
+  }
+  return text;
+}
+function loadExtensionPackage(files, options = {}) {
+  const issues = [];
+  const specbridgeVersion = options.specbridgeVersion ?? SPECBRIDGE_VERSION;
+  const checksumsPolicy = options.checksums ?? "require";
+  for (const name of files.keys()) {
+    const pathProblem = checkPackageRelativePath(name);
+    if (pathProblem !== void 0) {
+      issues.push(extensionIssue("SBE008", "paths", "error", `file "${name}": ${pathProblem}`, name));
+      continue;
+    }
+    const forbidden = checkForbiddenPackagePath(name);
+    if (forbidden !== void 0) {
+      issues.push(extensionIssue("SBE010", "files", "error", `file "${name}": ${forbidden}`, name));
+    }
+  }
+  const manifestBytes = files.get(EXTENSION_MANIFEST_FILE_NAME);
+  if (manifestBytes === void 0) {
+    issues.push(
+      extensionIssue(
+        "SBE004",
+        "manifest",
+        "error",
+        `package has no ${EXTENSION_MANIFEST_FILE_NAME} at its root`
+      )
+    );
+    return { files, issues, valid: false };
+  }
+  const manifestText = decodeUtf8Strict(EXTENSION_MANIFEST_FILE_NAME, manifestBytes);
+  if (manifestText === void 0) {
+    issues.push(
+      extensionIssue(
+        "SBE004",
+        "manifest",
+        "error",
+        `${EXTENSION_MANIFEST_FILE_NAME} is not valid UTF-8`,
+        EXTENSION_MANIFEST_FILE_NAME
+      )
+    );
+    return { files, issues, valid: false };
+  }
+  const parsed = parseExtensionManifest(manifestText);
+  issues.push(...parsed.issues);
+  const manifest = parsed.manifest;
+  if (manifest === void 0) {
+    return { files, issues, valid: false };
+  }
+  const manifestSha256 = sha256HexOf(manifestBytes);
+  const permissionHash = computePermissionHash({
+    extensionId: manifest.id,
+    extensionVersion: manifest.version,
+    manifestSha256,
+    permissions: manifest.permissions
+  });
+  if (!semverSatisfies(specbridgeVersion, manifest.compatibility.specbridge)) {
+    issues.push(
+      extensionIssue(
+        "SBE006",
+        "compatibility",
+        "error",
+        `extension requires SpecBridge ${manifest.compatibility.specbridge}, but this is SpecBridge ${specbridgeVersion}`
+      )
+    );
+  }
+  if (files.get("README.md") === void 0) {
+    issues.push(extensionIssue("SBE008", "documentation", "error", "package has no README.md"));
+  }
+  if (files.get("LICENSE") === void 0) {
+    issues.push(extensionIssue("SBE008", "documentation", "error", "package has no LICENSE file"));
+  }
+  const checksumsBytes = files.get(EXTENSION_CHECKSUMS_FILE_NAME);
+  if (checksumsBytes === void 0) {
+    issues.push(
+      extensionIssue(
+        "SBE009",
+        "checksums",
+        checksumsPolicy === "require" ? "error" : "warning",
+        checksumsPolicy === "require" ? `package has no ${EXTENSION_CHECKSUMS_FILE_NAME}; every runtime file must be declared` : `source has no ${EXTENSION_CHECKSUMS_FILE_NAME} yet; \`specbridge extension package\` will generate it`
+      )
+    );
+  } else {
+    const checksumsText = decodeUtf8Strict(EXTENSION_CHECKSUMS_FILE_NAME, checksumsBytes);
+    if (checksumsText === void 0) {
+      issues.push(
+        extensionIssue(
+          "SBE008",
+          "checksums",
+          "error",
+          `${EXTENSION_CHECKSUMS_FILE_NAME} is not valid UTF-8`,
+          EXTENSION_CHECKSUMS_FILE_NAME
+        )
+      );
+    } else {
+      const checksumsResult = parseExtensionChecksums(checksumsText);
+      issues.push(...checksumsResult.issues);
+      if (checksumsResult.checksums !== void 0) {
+        issues.push(...verifyExtensionChecksums(checksumsResult.checksums, files));
+      }
+    }
+  }
+  if (isExecutableKind(manifest.kind) && manifest.entrypoint !== void 0) {
+    if (files.get(manifest.entrypoint) === void 0) {
+      issues.push(
+        extensionIssue(
+          "SBE012",
+          "paths",
+          "error",
+          `declared entrypoint "${manifest.entrypoint}" does not exist in the package`,
+          manifest.entrypoint
+        )
+      );
+    }
+  }
+  const packageJsonBytes = files.get("package.json");
+  if (packageJsonBytes !== void 0) {
+    const packageJsonText = decodeUtf8Strict("package.json", packageJsonBytes);
+    if (packageJsonText !== void 0) {
+      try {
+        const packageJson = JSON.parse(packageJsonText);
+        const scripts = packageJson.scripts ?? {};
+        for (const script of FORBIDDEN_LIFECYCLE_SCRIPTS) {
+          if (typeof scripts === "object" && scripts !== null && script in scripts) {
+            issues.push(
+              extensionIssue(
+                "SBE010",
+                "files",
+                "error",
+                `package.json declares the "${script}" lifecycle script; SpecBridge never runs lifecycle scripts and packages must not rely on them`,
+                "package.json"
+              )
+            );
+          }
+        }
+      } catch {
+        issues.push(
+          extensionIssue("SBE008", "files", "error", "package.json is not valid JSON", "package.json")
+        );
+      }
+    }
+  }
+  if (manifest.kind === "template-provider") {
+    issues.push(...validateTemplateProviderPacks(manifest, files, specbridgeVersion));
+  }
+  const valid = !issues.some((issue3) => issue3.severity === "error");
+  return valid ? { manifest, manifestSha256, permissionHash, files, issues, valid } : { manifest, manifestSha256, permissionHash, files, issues, valid };
+}
+function validateTemplateProviderPacks(manifest, files, specbridgeVersion) {
+  const issues = [];
+  const prefix = `${TEMPLATE_PROVIDER_TEMPLATES_DIR}/`;
+  const packs = /* @__PURE__ */ new Map();
+  for (const [name, content] of files) {
+    if (!name.startsWith(prefix)) {
+      continue;
+    }
+    const rest = name.slice(prefix.length);
+    const slash = rest.indexOf("/");
+    if (slash <= 0) {
+      issues.push(
+        extensionIssue(
+          "SBE008",
+          "files",
+          "error",
+          `"${name}" must live inside templates/<template-id>/`,
+          name
+        )
+      );
+      continue;
+    }
+    const packId = rest.slice(0, slash);
+    const packRelative = rest.slice(slash + 1);
+    const idCheck = validateExtensionId(packId);
+    if (!idCheck.valid) {
+      issues.push(
+        extensionIssue(
+          "SBE008",
+          "files",
+          "error",
+          `template pack directory "${packId}" is not a valid template ID`,
+          name
+        )
+      );
+      continue;
+    }
+    const text = decodeUtf8Strict(name, content);
+    if (text === void 0) {
+      issues.push(
+        extensionIssue("SBE008", "files", "error", `template file "${name}" is not valid UTF-8`, name)
+      );
+      continue;
+    }
+    const pack = packs.get(packId) ?? /* @__PURE__ */ new Map();
+    pack.set(packRelative, text);
+    packs.set(packId, pack);
+  }
+  if (packs.size === 0) {
+    issues.push(
+      extensionIssue(
+        "SBE008",
+        "files",
+        "error",
+        `template-provider packages must contain at least one template pack under ${prefix}<template-id>/`
+      )
+    );
+    return issues;
+  }
+  if (packs.size > MAX_TEMPLATE_PROVIDER_PACKS) {
+    issues.push(
+      extensionIssue(
+        "SBE008",
+        "limits",
+        "error",
+        `template-provider packages may contribute at most ${MAX_TEMPLATE_PROVIDER_PACKS} template packs`
+      )
+    );
+    return issues;
+  }
+  for (const [packId, packFiles] of packs) {
+    const loaded = loadTemplatePack(
+      { origin: `extension:${manifest.id}/${packId}`, files: packFiles },
+      { requireReadme: true, specbridgeVersion }
+    );
+    if (loaded.manifest !== void 0 && loaded.manifest.id !== packId) {
+      issues.push(
+        extensionIssue(
+          "SBE008",
+          "files",
+          "error",
+          `template pack directory "${packId}" contains a manifest with id "${loaded.manifest.id}"`
+        )
+      );
+    }
+    for (const templateIssue of loaded.issues) {
+      if (templateIssue.severity !== "error") {
+        continue;
+      }
+      issues.push(
+        extensionIssue(
+          "SBE008",
+          "files",
+          "error",
+          `template pack "${packId}": ${templateIssue.code} ${templateIssue.message}`
+        )
+      );
+    }
+  }
+  return issues;
+}
+var EXTENSIONS_DIR_NAME = "extensions";
+var EXTENSION_STATE_FILE_NAME = "state.json";
+var EXTENSION_GRANTS_FILE_NAME = "grants.json";
+var EXTENSION_STATE_SCHEMA_VERSION = "1.0.0";
+function extensionsDir(workspace) {
+  return import_path34.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
+}
+function installedRootDir(workspace) {
+  return import_path34.default.join(extensionsDir(workspace), "installed");
+}
+function installedVersionDir(workspace, id, version2) {
+  if (!validateExtensionId(id).valid || parseSemver(version2) === void 0) {
+    throw new ExtensionError(
+      "SBE003",
+      `"${id}@${version2}" is not a valid extension reference.`,
+      "Use a valid extension ID and X.Y.Z version."
+    );
+  }
+  const dir = import_path34.default.join(installedRootDir(workspace), id, version2);
+  assertInsideWorkspace(workspace.rootDir, dir);
+  return dir;
+}
+var installedExtensionRecordSchema = external_exports.object({
+  id: external_exports.string().min(1),
+  version: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  kind: external_exports.string().min(1),
+  displayName: external_exports.string().min(1),
+  description: external_exports.string().min(1),
+  source: external_exports.string().min(1),
+  installedAt: external_exports.string().min(1),
+  archiveSha256: external_exports.string().regex(/^[0-9a-f]{64}$/).optional(),
+  manifestSha256: external_exports.string().regex(/^[0-9a-f]{64}$/),
+  permissionHash: external_exports.string().regex(/^[0-9a-f]{64}$/),
+  entrypoint: external_exports.string().min(1).optional(),
+  installRecordId: external_exports.string().min(1),
+  conformanceStatus: external_exports.enum(["passed", "failed"]).optional(),
+  conformanceAt: external_exports.string().min(1).optional(),
+  lastDoctorResult: external_exports.enum(["ok", "failed"]).optional(),
+  lastDoctorAt: external_exports.string().min(1).optional()
+}).passthrough();
+var extensionStateSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  installed: external_exports.array(installedExtensionRecordSchema),
+  enabled: external_exports.record(external_exports.object({ version: external_exports.string().regex(/^\d+\.\d+\.\d+$/) }).passthrough())
+}).passthrough();
+var permissionGrantSchema = external_exports.object({
+  version: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  manifestSha256: external_exports.string().regex(/^[0-9a-f]{64}$/),
+  permissionHash: external_exports.string().regex(/^[0-9a-f]{64}$/),
+  acceptedAt: external_exports.string().min(1)
+}).passthrough();
+var permissionGrantsSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  grants: external_exports.record(permissionGrantSchema)
+}).passthrough();
+function emptyExtensionState() {
+  return { schemaVersion: EXTENSION_STATE_SCHEMA_VERSION, installed: [], enabled: {} };
+}
+function emptyPermissionGrants() {
+  return { schemaVersion: EXTENSION_STATE_SCHEMA_VERSION, grants: {} };
+}
+function readValidatedJson(filePath, schema, empty, label) {
+  if (!(0, import_fs30.existsSync)(filePath)) {
+    return { value: empty, diagnostics: [], exists: false };
+  }
+  let text;
+  try {
+    text = (0, import_fs30.readFileSync)(filePath, "utf8");
+  } catch (cause) {
+    return {
+      value: empty,
+      exists: true,
+      diagnostics: [
+        {
+          severity: "error",
+          code: "EXTENSION_STATE_UNREADABLE",
+          message: `${label} could not be read: ${cause instanceof Error ? cause.message : String(cause)}`,
+          file: filePath
+        }
+      ]
+    };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return {
+      value: empty,
+      exists: true,
+      diagnostics: [
+        {
+          severity: "error",
+          code: "EXTENSION_STATE_INVALID_JSON",
+          message: `${label} is not valid JSON; fix or remove the file (SpecBridge never repairs it silently)`,
+          file: filePath
+        }
+      ]
+    };
+  }
+  const result = schema.safeParse(parsed);
+  if (!result.success) {
+    return {
+      value: empty,
+      exists: true,
+      diagnostics: [
+        {
+          severity: "error",
+          code: "EXTENSION_STATE_INVALID_SHAPE",
+          message: `${label} does not match the expected schema: ${result.error.issues[0]?.message ?? "unknown"}`,
+          file: filePath
+        }
+      ]
+    };
+  }
+  return { value: result.data, diagnostics: [], exists: true };
+}
+function extensionStatePath(workspace) {
+  return import_path34.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
+}
+function permissionGrantsPath(workspace) {
+  return import_path34.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
+}
+function readExtensionState(workspace) {
+  const { value, diagnostics, exists } = readValidatedJson(
+    extensionStatePath(workspace),
+    extensionStateSchema,
+    emptyExtensionState(),
+    "extension state"
+  );
+  return { state: value, diagnostics, exists };
+}
+function readPermissionGrants(workspace) {
+  const { value, diagnostics } = readValidatedJson(
+    permissionGrantsPath(workspace),
+    permissionGrantsSchema,
+    emptyPermissionGrants(),
+    "permission grants"
+  );
+  return { grants: value, diagnostics };
+}
+var extensionOperationRecordSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  recordId: external_exports.string().min(1),
+  type: external_exports.enum(["install", "uninstall", "enable", "disable", "export"]),
+  at: external_exports.string().min(1),
+  extensionId: external_exports.string().min(1),
+  version: external_exports.string().min(1),
+  details: external_exports.record(external_exports.unknown()).optional()
+}).passthrough();
+function installedVersions(state, id) {
+  return state.installed.filter((record2) => record2.id === id).sort((a2, b) => {
+    const left = parseSemver(a2.version);
+    const right = parseSemver(b.version);
+    if (left === void 0 || right === void 0) {
+      return a2.version.localeCompare(b.version, "en");
+    }
+    return compareSemver(right, left);
+  });
+}
+function resolveInstalled(state, id, version2) {
+  const versions = installedVersions(state, id);
+  if (versions.length === 0) {
+    throw new ExtensionError(
+      "SBE014",
+      `extension "${id}" is not installed.`,
+      `Install it first with \`specbridge extension install <source>\`.`,
+      { extensionId: id }
+    );
+  }
+  if (version2 !== void 0) {
+    const match = versions.find((record2) => record2.version === version2);
+    if (match === void 0) {
+      throw new ExtensionError(
+        "SBE014",
+        `extension "${id}" version ${version2} is not installed (installed: ${versions.map((record2) => record2.version).join(", ")}).`,
+        "Pass one of the installed versions or install the requested version.",
+        { extensionId: id, version: version2 }
+      );
+    }
+    return match;
+  }
+  const enabledVersion = state.enabled[id]?.version;
+  if (enabledVersion !== void 0) {
+    const enabledRecord = versions.find((record2) => record2.version === enabledVersion);
+    if (enabledRecord !== void 0) {
+      return enabledRecord;
+    }
+  }
+  const newest = versions[0];
+  if (newest === void 0) {
+    throw new ExtensionError(
+      "SBE014",
+      `extension "${id}" is not installed.`,
+      "Install it first with `specbridge extension install <source>`."
+    );
+  }
+  return newest;
+}
+function isEnabled(state, id, version2) {
+  const enabled = state.enabled[id];
+  if (enabled === void 0) {
+    return false;
+  }
+  return version2 === void 0 ? true : enabled.version === version2;
+}
+function describeEnablement(workspace, id, version2) {
+  const { state } = readExtensionState(workspace);
+  const record2 = resolveInstalled(state, id, version2);
+  const dir = installedVersionDir(workspace, record2.id, record2.version);
+  const files = readExtensionPackageDirectory(dir);
+  const validation = loadExtensionPackage(files);
+  const errors = validation.issues.filter((issue3) => issue3.severity === "error");
+  if (errors.length > 0 || validation.manifest === void 0 || validation.permissionHash === void 0 || validation.manifestSha256 === void 0) {
+    const first = errors[0];
+    throw new ExtensionError(
+      "SBE008",
+      `installed extension "${record2.id}@${record2.version}" failed integrity validation${first === void 0 ? "" : `: [${first.code}] ${first.message}`}.`,
+      "Uninstall and reinstall the extension from a trusted source.",
+      { extensionId: record2.id, version: record2.version }
+    );
+  }
+  const { grants } = readPermissionGrants(workspace);
+  const grant = grants.grants[record2.id];
+  const grantStatus = grant === void 0 ? "none" : grant.permissionHash === validation.permissionHash ? "current" : "stale";
+  return {
+    record: record2,
+    manifest: validation.manifest,
+    permissions: validation.manifest.permissions,
+    permissionLines: describePermissions(validation.manifest.permissions),
+    permissionHash: validation.permissionHash,
+    manifestSha256: validation.manifestSha256,
+    enabled: isEnabled(state, record2.id, record2.version),
+    grantStatus
+  };
+}
+function requireEnabledExtension(workspace, id) {
+  const { state } = readExtensionState(workspace);
+  const enabled = state.enabled[id];
+  if (enabled === void 0) {
+    const installed = state.installed.some((record2) => record2.id === id);
+    if (!installed) {
+      throw new ExtensionError(
+        "SBE001",
+        `extension "${id}" is not installed.`,
+        "Install it with `specbridge extension install <source>` and enable it explicitly.",
+        { extensionId: id }
+      );
+    }
+    throw new ExtensionError(
+      "SBE015",
+      `extension "${id}" is installed but disabled.`,
+      `Enable it with \`specbridge extension enable ${id} --accept-permissions <hash>\`.`,
+      { extensionId: id }
+    );
+  }
+  const preview = describeEnablement(workspace, id, enabled.version);
+  const { grants } = readPermissionGrants(workspace);
+  const grant = grants.grants[id];
+  if (grant === void 0) {
+    throw new ExtensionError(
+      "SBE016",
+      `extension "${id}" has no stored permission grant.`,
+      `Re-enable it with \`specbridge extension enable ${id} --accept-permissions ${preview.permissionHash}\`.`,
+      { extensionId: id }
+    );
+  }
+  if (grant.permissionHash !== preview.permissionHash || grant.version !== enabled.version) {
+    throw new ExtensionError(
+      "SBE018",
+      `the stored permission grant for "${id}" no longer matches the installed extension (the manifest, version, or permissions changed after acceptance).`,
+      `Review the permissions and re-enable with \`specbridge extension enable ${id} --accept-permissions ${preview.permissionHash}\`.`,
+      { extensionId: id }
+    );
+  }
+  return {
+    record: preview.record,
+    manifest: preview.manifest,
+    installedDir: installedVersionDir(workspace, preview.record.id, preview.record.version),
+    permissionHash: preview.permissionHash,
+    manifestSha256: preview.manifestSha256
+  };
+}
+var BASE_ENVIRONMENT_ALLOWLIST = [
+  "PATH",
+  "SYSTEMROOT",
+  "SYSTEMDRIVE",
+  "WINDIR",
+  "COMSPEC",
+  "TEMP",
+  "TMP",
+  "HOME",
+  "USERPROFILE",
+  "LANG",
+  "LC_ALL",
+  "TZ"
+];
+function resolveEntrypoint(installedDir, entrypoint) {
+  const problem = checkPackageRelativePath(entrypoint);
+  if (problem !== void 0) {
+    throw new ExtensionError("SBE012", `entrypoint "${entrypoint}": ${problem}.`, "Fix the extension manifest.");
+  }
+  const resolved = import_path35.default.join(installedDir, ...entrypoint.split("/"));
+  const relative = import_path35.default.relative(installedDir, resolved);
+  if (relative.startsWith("..") || import_path35.default.isAbsolute(relative)) {
+    throw new ExtensionError(
+      "SBE012",
+      `entrypoint "${entrypoint}" escapes the installed extension directory.`,
+      "Fix the extension manifest."
+    );
+  }
+  let current = installedDir;
+  for (const segment of relative.split(import_path35.default.sep)) {
+    current = import_path35.default.join(current, segment);
+    const stat = (0, import_fs31.lstatSync)(current, { throwIfNoEntry: false });
+    if (stat === void 0) {
+      throw new ExtensionError(
+        "SBE012",
+        `entrypoint "${entrypoint}" does not exist in the installed extension.`,
+        "Reinstall the extension."
+      );
+    }
+    if (stat.isSymbolicLink()) {
+      throw new ExtensionError(
+        "SBE011",
+        `entrypoint path component "${segment}" is a symbolic link.`,
+        "Reinstall the extension from a trusted source."
+      );
+    }
+  }
+  const finalStat = (0, import_fs31.lstatSync)(resolved, { throwIfNoEntry: false });
+  if (finalStat === void 0 || !finalStat.isFile()) {
+    throw new ExtensionError(
+      "SBE012",
+      `entrypoint "${entrypoint}" is not a regular file.`,
+      "Reinstall the extension."
+    );
+  }
+  return resolved;
+}
+function buildSanitizedEnvironment(granted, source = process.env) {
+  const environment = {};
+  for (const name of BASE_ENVIRONMENT_ALLOWLIST) {
+    const value = source[name];
+    if (value !== void 0) {
+      environment[name] = value;
+    }
+  }
+  for (const name of granted) {
+    const value = source[name];
+    if (value !== void 0) {
+      environment[name] = value;
+    }
+  }
+  return environment;
+}
+function spawnExtensionProcess(options) {
+  const entrypointPath = resolveEntrypoint(options.installedDir, options.entrypoint);
+  const environment = buildSanitizedEnvironment(
+    options.grantedEnvironmentVariables,
+    options.environment ?? process.env
+  );
+  const maxStdoutBytes = options.maxStdoutBytes ?? EXTENSION_LIMITS.maxProcessStdoutBytes;
+  const maxStderrBytes = options.maxStderrBytes ?? EXTENSION_LIMITS.maxProcessStderrBytes;
+  let child;
+  try {
+    child = (0, import_child_process.spawn)(process.execPath, [entrypointPath], {
+      cwd: options.installedDir,
+      env: environment,
+      stdio: ["pipe", "pipe", "pipe"],
+      windowsHide: true,
+      shell: false
+    });
+  } catch (cause) {
+    throw new ExtensionError(
+      "SBE026",
+      `failed to start the extension process: ${cause instanceof Error ? cause.message : String(cause)}.`,
+      "Check that Node.js can execute the installed entrypoint."
+    );
+  }
+  const lineListeners = [];
+  const corruptionListeners = [];
+  const exitListeners = [];
+  let stderrBuffer = "";
+  let stderrBytes = 0;
+  let stdoutByteCount = 0;
+  let killedFlag = false;
+  let forceKillTimer;
+  const decoder = createLineDecoder({
+    onLine: (line) => {
+      for (const listener of lineListeners) {
+        listener(line);
+      }
+    },
+    onOverflow: (bytes) => {
+      for (const listener of corruptionListeners) {
+        listener(`stdout line of ${bytes} bytes exceeds the protocol message limit`);
+      }
+    }
+  });
+  child.stdout?.on("data", (chunk) => {
+    stdoutByteCount += chunk.length;
+    if (stdoutByteCount > maxStdoutBytes) {
+      for (const listener of corruptionListeners) {
+        listener(`stdout exceeded the ${maxStdoutBytes} byte limit`);
+      }
+      return;
+    }
+    decoder.push(chunk);
+  });
+  child.stderr?.on("data", (chunk) => {
+    if (stderrBytes >= maxStderrBytes) {
+      return;
+    }
+    stderrBytes += chunk.length;
+    stderrBuffer += chunk.toString("utf8");
+    if (stderrBuffer.length > maxStderrBytes) {
+      stderrBuffer = stderrBuffer.slice(0, maxStderrBytes);
+    }
+  });
+  const exited = new Promise((resolve) => {
+    let settled = false;
+    const settle = (exit) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      if (forceKillTimer !== void 0) {
+        clearTimeout(forceKillTimer);
+        forceKillTimer = void 0;
+      }
+      for (const listener of exitListeners) {
+        listener(exit);
+      }
+      resolve(exit);
+    };
+    child.once("exit", (code, signal) => {
+      settle({ code: code ?? void 0, signal: signal ?? void 0 });
+    });
+    child.once("error", () => {
+      settle({ code: void 0, signal: void 0 });
+    });
+  });
+  const terminate = () => {
+    if (killedFlag) {
+      return;
+    }
+    killedFlag = true;
+    try {
+      child.stdin?.end();
+    } catch {
+    }
+    try {
+      child.kill("SIGTERM");
+    } catch {
+    }
+    forceKillTimer = setTimeout(() => {
+      try {
+        child.kill("SIGKILL");
+      } catch {
+      }
+    }, EXTENSION_LIMITS.forceKillAfterMs);
+    forceKillTimer.unref?.();
+  };
+  return {
+    send: (line) => {
+      try {
+        child.stdin?.write(line);
+      } catch {
+      }
+    },
+    onLine: (listener) => {
+      lineListeners.push(listener);
+    },
+    onProtocolCorruption: (listener) => {
+      corruptionListeners.push(listener);
+    },
+    onExit: (listener) => {
+      exitListeners.push(listener);
+    },
+    stderrText: () => stderrBuffer,
+    stdoutBytes: () => stdoutByteCount,
+    terminate,
+    killed: () => killedFlag,
+    exited
+  };
+}
+var MAX_PROTOCOL_LOG_LINES = 200;
+var SHUTDOWN_GRACE_MS = 1e3;
+function redact(text, secrets) {
+  let redacted = text;
+  for (const secret of secrets) {
+    if (secret.length >= 4) {
+      redacted = redacted.split(secret).join("[redacted]");
+    }
+  }
+  return redacted;
+}
+var InvocationSession = class {
+  constructor(handle, secrets) {
+    this.handle = handle;
+    this.secrets = secrets;
+    handle.onLine((line) => this.onLine(line));
+    handle.onProtocolCorruption((detail) => {
+      this.corrupted = detail;
+      this.failAll();
+      handle.terminate();
+    });
+    handle.onExit(() => this.failAll());
+  }
+  handle;
+  secrets;
+  pending = /* @__PURE__ */ new Map();
+  protocolLog = [];
+  corrupted;
+  nextId = 0;
+  get corruptionDetail() {
+    return this.corrupted;
+  }
+  get log() {
+    return this.protocolLog;
+  }
+  record(direction, line) {
+    if (this.protocolLog.length < MAX_PROTOCOL_LOG_LINES) {
+      this.protocolLog.push(`${direction} ${redact(line, this.secrets)}`);
+    }
+  }
+  onLine(line) {
+    this.record("recv", line);
+    let parsed;
+    try {
+      parsed = JSON.parse(line);
+    } catch {
+      this.corrupted = "stdout produced a non-JSON line";
+      this.failAll();
+      this.handle.terminate();
+      return;
+    }
+    const response = extensionResponseSchema.safeParse(parsed);
+    if (!response.success) {
+      this.corrupted = "stdout produced a line that is not a valid protocol response";
+      this.failAll();
+      this.handle.terminate();
+      return;
+    }
+    const resolver = this.pending.get(response.data.id);
+    if (resolver === void 0) {
+      this.corrupted = `received a response for unknown request id "${response.data.id}"`;
+      this.failAll();
+      this.handle.terminate();
+      return;
+    }
+    this.pending.delete(response.data.id);
+    resolver(response.data);
+  }
+  failAll() {
+    for (const [, resolver] of this.pending) {
+      resolver({
+        jsonrpc: "2.0",
+        id: "terminated",
+        error: { code: -32603, message: "extension process terminated" }
+      });
+    }
+    this.pending.clear();
+  }
+  /** The id the next request() call will use. */
+  peekNextId() {
+    return `host-${this.nextId + 1}`;
+  }
+  request(method, params, timeoutMs) {
+    this.nextId += 1;
+    const id = `host-${this.nextId}`;
+    const line = serializeProtocolMessage({ jsonrpc: "2.0", id, method, params });
+    this.record("send", line.trimEnd());
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        resolve("timeout");
+      }, timeoutMs);
+      timer.unref?.();
+      this.pending.set(id, (response) => {
+        clearTimeout(timer);
+        resolve(response);
+      });
+      this.handle.send(line);
+    });
+  }
+};
+function protocolError(session, detail) {
+  const effective = session.corruptionDetail ?? detail;
+  const isOversize = effective.includes("exceeds the protocol message limit") || effective.includes("byte limit");
+  return new ExtensionError(
+    isOversize ? "SBE025" : "SBE022",
+    `${effective}.`,
+    isOversize ? "The extension produced more output than the protocol allows; reduce its result size." : "The extension violated the stdio protocol. Report this to the extension author; stdout must carry protocol messages only and logs must go to stderr."
+  );
+}
+function validateHandshake(enabled, result, operation) {
+  const parsed = initializeResultSchema.safeParse(result);
+  if (!parsed.success) {
+    throw new ExtensionError(
+      "SBE019",
+      "the extension returned an invalid initialize result.",
+      "Rebuild the extension with a compatible extension SDK."
+    );
+  }
+  const manifest = enabled.manifest;
+  if (parsed.data.extensionId !== manifest.id || parsed.data.extensionVersion !== manifest.version) {
+    throw new ExtensionError(
+      "SBE020",
+      `the running extension identifies as ${parsed.data.extensionId}@${parsed.data.extensionVersion}, but the installed manifest declares ${manifest.id}@${manifest.version}.`,
+      "Reinstall the extension from a trusted source."
+    );
+  }
+  const major = (version2) => version2.split(".")[0] ?? "";
+  if (major(parsed.data.protocolVersion) !== major(EXTENSION_PROTOCOL_VERSION)) {
+    throw new ExtensionError(
+      "SBE007",
+      `the extension speaks protocol ${parsed.data.protocolVersion}, this SpecBridge speaks ${EXTENSION_PROTOCOL_VERSION}.`,
+      "Install an extension version compatible with this SpecBridge release."
+    );
+  }
+  const declared = new Set(manifest.capabilities.operations);
+  for (const reported of parsed.data.capabilities.operations) {
+    if (!declared.has(reported)) {
+      throw new ExtensionError(
+        "SBE021",
+        `the extension reported operation "${reported}" that its manifest does not declare.`,
+        "Runtime capability escalation is not allowed; reinstall a consistent extension version."
+      );
+    }
+  }
+  if (!parsed.data.capabilities.operations.includes(operation)) {
+    throw new ExtensionError(
+      "SBE021",
+      `the extension does not support the requested operation "${operation}".`,
+      `Declared operations: ${parsed.data.capabilities.operations.join(", ") || "none"}.`
+    );
+  }
+}
+async function invokeExtensionOperation(enabled, options) {
+  const manifest = enabled.manifest;
+  if (manifest.entrypoint === void 0) {
+    throw new ExtensionError(
+      "SBE012",
+      `extension "${manifest.id}" is data-only and cannot be invoked.`,
+      "Only executable extension kinds support invocation."
+    );
+  }
+  if (!manifest.capabilities.operations.includes(options.operation)) {
+    throw new ExtensionError(
+      "SBE021",
+      `extension "${manifest.id}" does not declare operation "${options.operation}".`,
+      `Declared operations: ${manifest.capabilities.operations.join(", ") || "none"}.`
+    );
+  }
+  const environment = options.environment ?? process.env;
+  const secrets = [];
+  for (const name of manifest.permissions.environmentVariables) {
+    const value = environment[name];
+    if (value !== void 0 && value.length > 0) {
+      secrets.push(value);
+    }
+  }
+  const startedAt = Date.now();
+  const handle = spawnExtensionProcess({
+    installedDir: enabled.installedDir,
+    entrypoint: manifest.entrypoint,
+    grantedEnvironmentVariables: manifest.permissions.environmentVariables,
+    environment
+  });
+  const session = new InvocationSession(handle, secrets);
+  const finishOutcome = (output) => ({
+    output,
+    durationMs: Date.now() - startedAt,
+    stderr: redact(handle.stderrText(), secrets),
+    protocolLog: session.log
+  });
+  const fail = (error2) => {
+    handle.terminate();
+    throw error2;
+  };
+  try {
+    const startupTimeoutMs = options.startupTimeoutMs ?? EXTENSION_LIMITS.startupTimeoutMs;
+    const initResponse = await session.request(
+      "initialize",
+      {
+        protocolVersion: EXTENSION_PROTOCOL_VERSION,
+        specbridgeVersion: options.specbridgeVersion ?? SPECBRIDGE_VERSION,
+        extensionId: manifest.id,
+        extensionVersion: manifest.version,
+        operation: options.operation,
+        grantedPermissions: manifest.permissions
+      },
+      startupTimeoutMs
+    );
+    if (initResponse === "timeout") {
+      fail(
+        new ExtensionError(
+          "SBE019",
+          `the extension did not answer initialize within ${startupTimeoutMs} ms.`,
+          "Check `specbridge extension doctor` and the extension logs (stderr)."
+        )
+      );
+      throw new Error("unreachable");
+    }
+    if (session.corruptionDetail !== void 0) {
+      fail(protocolError(session, "protocol corrupted during initialize"));
+    }
+    if (initResponse.error !== void 0) {
+      fail(
+        new ExtensionError(
+          "SBE019",
+          `initialize failed: ${initResponse.error.message}.`,
+          "Check the extension logs (stderr) and its compatibility declaration."
+        )
+      );
+    }
+    validateHandshake(enabled, initResponse.result, options.operation);
+    const timeoutMs = options.timeoutMs ?? EXTENSION_LIMITS.defaultOperationTimeoutMs;
+    const invokeId = session.peekNextId();
+    let cancelRequested = false;
+    const onAbort = () => {
+      cancelRequested = true;
+      void session.request("extension.cancel", { targetId: invokeId }, 1e3);
+    };
+    if (options.signal !== void 0) {
+      if (options.signal.aborted) {
+        fail(
+          new ExtensionError(
+            "SBE024",
+            `operation "${options.operation}" was cancelled before it started.`,
+            "No result was used; re-run the operation when ready."
+          )
+        );
+      }
+      options.signal.addEventListener("abort", onAbort, { once: true });
+    }
+    const invokeResponse = await session.request(
+      "extension.invoke",
+      {
+        operation: options.operation,
+        payload: options.payload,
+        ...options.configuration === void 0 ? {} : { configuration: options.configuration }
+      },
+      timeoutMs
+    );
+    if (options.signal !== void 0) {
+      options.signal.removeEventListener("abort", onAbort);
+    }
+    if (invokeResponse === "timeout") {
+      fail(
+        new ExtensionError(
+          "SBE023",
+          `operation "${options.operation}" timed out after ${timeoutMs} ms.`,
+          "Increase the timeout or investigate the extension; the process was terminated."
+        )
+      );
+      throw new Error("unreachable");
+    }
+    if (session.corruptionDetail !== void 0) {
+      fail(protocolError(session, "protocol corrupted during invocation"));
+    }
+    if (cancelRequested) {
+      fail(
+        new ExtensionError(
+          "SBE024",
+          `operation "${options.operation}" was cancelled.`,
+          "No result was used; re-run the operation when ready."
+        )
+      );
+    }
+    if (invokeResponse.error !== void 0) {
+      const extensionCode = invokeResponse.error.data?.["extensionCode"];
+      fail(
+        new ExtensionError(
+          extensionCode === "SBE024" ? "SBE024" : extensionCode === "SBE025" ? "SBE025" : "SBE030",
+          `operation "${options.operation}" failed: ${invokeResponse.error.message}.`,
+          "Check the extension logs (stderr tail) for details."
+        )
+      );
+    }
+    const invokeResult = invokeResultSchema.safeParse(invokeResponse.result);
+    if (!invokeResult.success || invokeResult.data.operation !== options.operation) {
+      fail(protocolError(session, "the invoke result envelope is invalid"));
+      throw new Error("unreachable");
+    }
+    const schemas = operationSchemas(options.operation);
+    let output = invokeResult.data.output;
+    if (schemas !== void 0) {
+      const validated = schemas.output.safeParse(output);
+      if (!validated.success) {
+        fail(
+          new ExtensionError(
+            "SBE030",
+            `the extension returned an invalid ${options.operation} result: ${validated.error.issues[0]?.path.join(".") ?? ""} ` + `${validated.error.issues[0]?.message ?? "unknown"}`.trim() + ".",
+            "Report this to the extension author; the result was discarded."
+          )
+        );
+      } else {
+        output = validated.data;
+      }
+    }
+    await session.request("extension.shutdown", {}, SHUTDOWN_GRACE_MS);
+    handle.terminate();
+    await handle.exited;
+    return finishOutcome(output);
+  } finally {
+    handle.terminate();
+  }
+}
+function deriveDeclaredCapabilities(manifest) {
+  if (manifest === void 0) {
+    return capabilitySet([]);
+  }
+  const operations = new Set(manifest.capabilities.operations);
+  const permissions = manifest.permissions;
+  const enabled = [];
+  if (operations.has("runner.generateStage")) enabled.push("stageGeneration");
+  if (operations.has("runner.refineStage")) enabled.push("stageRefinement");
+  if (operations.has("runner.executeTask")) enabled.push("taskExecution");
+  if (operations.has("runner.resumeTask")) enabled.push("taskResume");
+  if (operations.has("runner.generateStage") || operations.has("runner.executeTask")) {
+    enabled.push("structuredFinalOutput");
+  }
+  if (operations.has("runner.executeTask")) {
+    enabled.push("toolRestriction");
+  }
+  if (permissions.repositoryRead) enabled.push("repositoryRead");
+  if (permissions.repositoryWrite) enabled.push("repositoryWrite");
+  if (permissions.network) enabled.push("requiresNetwork");
+  else enabled.push("localOnly");
+  enabled.push("supportsCancellation");
+  return capabilitySet(enabled);
+}
+function usageFrom(output, durationMs) {
+  const usage = output.usage;
+  if (usage === void 0) {
+    return void 0;
+  }
+  return {
+    model: usage.model ?? null,
+    inputTokens: usage.inputTokens ?? null,
+    cachedInputTokens: usage.cachedInputTokens ?? null,
+    outputTokens: usage.outputTokens ?? null,
+    reasoningTokens: usage.reasoningTokens ?? null,
+    requestCount: usage.requestCount ?? null,
+    durationMs: Math.max(0, Math.round(durationMs))
+  };
+}
+function costFrom(output) {
+  const cost = output.cost;
+  if (cost === void 0) {
+    return void 0;
+  }
+  const amount = cost.amount ?? null;
+  return {
+    currency: cost.currency ?? null,
+    amount,
+    source: amount !== null ? "provider-reported" : "unavailable"
+  };
+}
+function failureError(cause) {
+  const message = cause instanceof Error ? cause.message : String(cause);
+  const code = isExtensionError(cause) ? cause.extensionCode === "SBE023" ? "timed_out" : cause.extensionCode === "SBE024" ? "cancelled" : "process_failed" : "process_failed";
+  return runnerError({
+    code,
+    message,
+    remediation: ["Run `specbridge extension doctor` for the extension and check its stderr logs."]
+  });
+}
+function failureOutcome(cause) {
+  if (isExtensionError(cause)) {
+    if (cause.extensionCode === "SBE023") return "timed-out";
+    if (cause.extensionCode === "SBE024") return "cancelled";
+  }
+  return "failed";
+}
+var ExtensionRunnerProxy = class {
+  constructor(workspace, config2) {
+    this.workspace = workspace;
+    this.config = config2;
+    this.declaredCapabilities = deriveDeclaredCapabilities(this.tryResolve()?.manifest);
+  }
+  workspace;
+  config;
+  name = "extension";
+  kind = "extension";
+  category = "experimental";
+  declaredCapabilities;
+  declaredSupportLevel = "preview";
+  tryResolve() {
+    try {
+      return this.resolve();
+    } catch {
+      return void 0;
+    }
+  }
+  resolve() {
+    const enabled = requireEnabledExtension(this.workspace, this.config.extensionId);
+    if (enabled.manifest.kind !== "runner") {
+      throw new Error(
+        `extension "${this.config.extensionId}" is a ${enabled.manifest.kind} extension, not a runner`
+      );
+    }
+    return enabled;
+  }
+  executionEnvelope(enabled, execution) {
+    const permissions = enabled.manifest.permissions;
+    return {
+      timeoutMs: execution.timeoutMs,
+      ...execution.model !== void 0 || this.config.model !== void 0 ? { model: execution.model ?? this.config.model } : {},
+      ...execution.maxTurns !== void 0 ? { maxTurns: execution.maxTurns } : {},
+      ...execution.maxBudgetUsd !== void 0 ? { maxBudgetUsd: execution.maxBudgetUsd } : {},
+      // Repository locations cross the boundary only with repository access.
+      ...permissions.repositoryRead || permissions.repositoryWrite ? { workspaceRoot: execution.workspaceRoot } : {},
+      ...permissions.repositoryWrite ? { runDir: execution.runDir } : {}
+    };
+  }
+  async detect(context) {
+    let enabled;
+    try {
+      enabled = this.resolve();
+    } catch (cause) {
+      return {
+        runner: this.name,
+        kind: this.kind,
+        status: "misconfigured",
+        authentication: "unknown",
+        capabilities: [],
+        diagnostics: [
+          {
+            severity: "error",
+            code: "EXTENSION_RUNNER_UNAVAILABLE",
+            message: cause instanceof Error ? cause.message : String(cause)
+          }
+        ],
+        category: this.category,
+        capabilitySet: capabilitySet([]),
+        supportLevel: "unavailable",
+        networkBacked: false
+      };
+    }
+    try {
+      const permissions = enabled.manifest.permissions;
+      const outcome = await invokeExtensionOperation(enabled, {
+        operation: "runner.detect",
+        payload: {
+          ...context.probeCapabilities !== void 0 ? { probeCapabilities: context.probeCapabilities } : {},
+          ...context.timeoutMs !== void 0 ? { timeoutMs: context.timeoutMs } : {},
+          ...permissions.repositoryRead || permissions.repositoryWrite ? { workspaceRoot: context.workspaceRoot } : {}
+        },
+        ...Object.keys(this.config.configuration).length > 0 ? { configuration: this.config.configuration } : {},
+        timeoutMs: context.timeoutMs ?? 3e4
+      });
+      const detected = runnerDetectOutputSchema.parse(outcome.output);
+      const effective = Object.fromEntries(
+        Object.entries(this.declaredCapabilities).map(([key, declared]) => [
+          key,
+          declared && detected.capabilitySet[key]
+        ])
+      );
+      const status = detected.available ? "available" : detected.authentication === "unauthenticated" ? "unauthenticated" : "unavailable";
+      return {
+        runner: this.name,
+        kind: this.kind,
+        status,
+        ...enabled.manifest.entrypoint !== void 0 ? { executable: enabled.manifest.entrypoint } : {},
+        version: enabled.manifest.version,
+        authentication: detected.authentication,
+        capabilities: [],
+        diagnostics: detected.diagnostics.map((diagnostic) => ({
+          severity: diagnostic.severity,
+          code: diagnostic.code,
+          message: diagnostic.message
+        })),
+        category: this.category,
+        capabilitySet: effective,
+        supportLevel: status === "available" ? this.declaredSupportLevel : "unavailable",
+        networkBacked: detected.networkBacked
+      };
+    } catch (cause) {
+      return {
+        runner: this.name,
+        kind: this.kind,
+        status: "error",
+        version: enabled.manifest.version,
+        authentication: "unknown",
+        capabilities: [],
+        diagnostics: [
+          {
+            severity: "error",
+            code: "EXTENSION_RUNNER_DETECT_FAILED",
+            message: cause instanceof Error ? cause.message : String(cause)
+          }
+        ],
+        category: this.category,
+        capabilitySet: capabilitySet([]),
+        supportLevel: "unavailable",
+        networkBacked: false
+      };
+    }
+  }
+  async generateStage(input, execution) {
+    const startedAt = Date.now();
+    try {
+      const enabled = this.resolve();
+      const operation = input.intent === "refine" && enabled.manifest.capabilities.operations.includes("runner.refineStage") ? "runner.refineStage" : "runner.generateStage";
+      const outcome = await invokeExtensionOperation(enabled, {
+        operation,
+        payload: {
+          specName: input.specName,
+          stage: input.stage,
+          intent: input.intent,
+          prompt: input.prompt,
+          promptVersion: input.promptVersion,
+          toolPolicy: input.toolPolicy,
+          ...input.correction !== void 0 ? { correction: input.correction } : {},
+          execution: this.executionEnvelope(enabled, execution)
+        },
+        ...Object.keys(this.config.configuration).length > 0 ? { configuration: this.config.configuration } : {},
+        timeoutMs: execution.timeoutMs,
+        ...execution.signal !== void 0 ? { signal: execution.signal } : {}
+      });
+      const output = runnerStageOutputSchema.parse(outcome.output);
+      return this.stageResult(output, Date.now() - startedAt);
+    } catch (cause) {
+      return {
+        runner: this.name,
+        outcome: failureOutcome(cause),
+        failureReason: cause instanceof Error ? cause.message : String(cause),
+        rawStdout: "",
+        rawStderr: "",
+        durationMs: Date.now() - startedAt,
+        warnings: [],
+        error: failureError(cause)
+      };
+    }
+  }
+  stageResult(output, durationMs) {
+    const usage = usageFrom(output, durationMs);
+    const cost = costFrom(output);
+    let report;
+    const warnings = [...output.warnings];
+    let invalidStructuredOutput = output.invalidStructuredOutput;
+    if (output.report !== void 0) {
+      const parsed = parseStageRunnerReport(JSON.stringify(output.report));
+      if (parsed.ok) {
+        report = parsed.report;
+      } else {
+        warnings.push(`extension stage report failed validation: ${parsed.reason}`);
+        invalidStructuredOutput = invalidStructuredOutput ?? JSON.stringify(output.report);
+      }
+    }
+    return {
+      runner: this.name,
+      outcome: output.outcome,
+      ...output.failureReason !== void 0 ? { failureReason: output.failureReason } : {},
+      rawStdout: output.rawStdout,
+      rawStderr: output.rawStderr,
+      ...output.sessionId !== void 0 ? { sessionId: output.sessionId } : {},
+      durationMs,
+      warnings,
+      ...report !== void 0 ? { report } : {},
+      ...usage !== void 0 ? { usage } : {},
+      ...cost !== void 0 ? { cost } : {},
+      ...invalidStructuredOutput !== void 0 ? { invalidStructuredOutput } : {}
+    };
+  }
+  async executeTask(input, execution) {
+    return this.runTaskOperation("runner.executeTask", input, execution);
+  }
+  async resumeTask(input, execution) {
+    return this.runTaskOperation("runner.resumeTask", input, execution);
+  }
+  async runTaskOperation(operation, input, execution) {
+    const startedAt = Date.now();
+    try {
+      const enabled = this.resolve();
+      const outcome = await invokeExtensionOperation(enabled, {
+        operation,
+        payload: {
+          specName: input.specName,
+          taskId: input.taskId,
+          prompt: input.prompt,
+          promptVersion: input.promptVersion,
+          toolPolicy: input.toolPolicy,
+          ..."sessionId" in input && input.sessionId !== void 0 ? { sessionId: input.sessionId } : {},
+          execution: this.executionEnvelope(enabled, execution)
+        },
+        ...Object.keys(this.config.configuration).length > 0 ? { configuration: this.config.configuration } : {},
+        timeoutMs: execution.timeoutMs,
+        ...execution.signal !== void 0 ? { signal: execution.signal } : {}
+      });
+      const output = runnerTaskOutputSchema.parse(outcome.output);
+      const durationMs = Date.now() - startedAt;
+      const usage = usageFrom(output, durationMs);
+      const cost = costFrom(output);
+      let report;
+      const warnings = [...output.warnings];
+      let invalidStructuredOutput = output.invalidStructuredOutput;
+      if (output.report !== void 0) {
+        const parsed = parseTaskRunnerReport(JSON.stringify(output.report));
+        if (parsed.ok) {
+          report = parsed.report;
+        } else {
+          warnings.push(`extension task report failed validation: ${parsed.reason}`);
+          invalidStructuredOutput = invalidStructuredOutput ?? JSON.stringify(output.report);
+        }
+      }
+      return {
+        runner: this.name,
+        outcome: output.outcome,
+        ...output.failureReason !== void 0 ? { failureReason: output.failureReason } : {},
+        rawStdout: output.rawStdout,
+        rawStderr: output.rawStderr,
+        ...output.sessionId !== void 0 ? { sessionId: output.sessionId } : {},
+        durationMs,
+        warnings,
+        ...report !== void 0 ? { report } : {},
+        ...usage !== void 0 ? { usage } : {},
+        ...cost !== void 0 ? { cost } : {},
+        ...invalidStructuredOutput !== void 0 ? { invalidStructuredOutput } : {},
+        resumeSupported: output.resumeSupported
+      };
+    } catch (cause) {
+      return {
+        runner: this.name,
+        outcome: failureOutcome(cause),
+        failureReason: cause instanceof Error ? cause.message : String(cause),
+        rawStdout: "",
+        rawStderr: "",
+        durationMs: Date.now() - startedAt,
+        warnings: [],
+        error: failureError(cause),
+        resumeSupported: false
+      };
+    }
+  }
+  async listModels(context) {
+    try {
+      const enabled = this.resolve();
+      if (!enabled.manifest.capabilities.operations.includes("runner.listModels")) {
+        return {
+          supported: false,
+          models: [],
+          detail: "this runner extension does not declare model listing"
+        };
+      }
+      const outcome = await invokeExtensionOperation(enabled, {
+        operation: "runner.listModels",
+        payload: {},
+        timeoutMs: context.timeoutMs ?? 3e4
+      });
+      const output = runnerModelListOutputSchema.parse(outcome.output);
+      return {
+        supported: output.supported,
+        models: output.models.map((model) => ({
+          name: model.name,
+          ...model.sizeBytes !== void 0 ? { sizeBytes: model.sizeBytes } : {},
+          ...model.family !== void 0 ? { family: model.family } : {},
+          ...model.parameterSize !== void 0 ? { parameterSize: model.parameterSize } : {},
+          ...model.quantization !== void 0 ? { quantization: model.quantization } : {},
+          ...model.modifiedAt !== void 0 ? { modifiedAt: model.modifiedAt } : {},
+          ...model.location !== void 0 ? { location: model.location } : {}
+        })),
+        ...output.detail !== void 0 ? { detail: output.detail } : {}
+      };
+    } catch (cause) {
+      return {
+        supported: false,
+        models: [],
+        detail: cause instanceof Error ? cause.message : String(cause)
+      };
+    }
+  }
+  executionBoundaryNote() {
+    return "Runner extension: executes out of process behind the versioned extension protocol; its report is a claim \u2014 git evidence, verification, and protected-path checks remain authoritative.";
+  }
+};
+function createExtensionRunnerFactory(workspace) {
+  return (config2) => new ExtensionRunnerProxy(workspace, config2);
+}
+function collectExtensionTemplatePacks(workspace) {
+  if (workspace === void 0) {
+    return { packs: [], diagnostics: [] };
+  }
+  const { state, diagnostics: stateDiagnostics } = readExtensionState(workspace);
+  const diagnostics = [...stateDiagnostics];
+  const packs = [];
+  for (const id of Object.keys(state.enabled).sort((a2, b) => a2.localeCompare(b, "en"))) {
+    const record2 = state.installed.find(
+      (candidate) => candidate.id === id && candidate.version === state.enabled[id]?.version
+    );
+    if (record2 === void 0 || record2.kind !== "template-provider") {
+      continue;
+    }
+    try {
+      const enabled = requireEnabledExtension(workspace, id);
+      const files = readExtensionPackageDirectory(enabled.installedDir);
+      const prefix = `${TEMPLATE_PROVIDER_TEMPLATES_DIR}/`;
+      const grouped = /* @__PURE__ */ new Map();
+      for (const [name, content] of files) {
+        if (!name.startsWith(prefix)) {
+          continue;
+        }
+        const rest = name.slice(prefix.length);
+        const slash = rest.indexOf("/");
+        if (slash <= 0) {
+          continue;
+        }
+        const templateId = rest.slice(0, slash);
+        const packRelative = rest.slice(slash + 1);
+        const pack = grouped.get(templateId) ?? /* @__PURE__ */ new Map();
+        pack.set(packRelative, content.toString("utf8"));
+        grouped.set(templateId, pack);
+      }
+      for (const [templateId, packFiles] of grouped) {
+        packs.push({
+          extensionId: id,
+          templateId,
+          data: { origin: `extension:${id}/${templateId}`, files: packFiles }
+        });
+      }
+    } catch (cause) {
+      diagnostics.push({
+        severity: "warning",
+        code: "EXTENSION_TEMPLATES_UNAVAILABLE",
+        message: `template-provider extension "${id}" is enabled but its templates are unavailable: ${cause instanceof Error ? cause.message : String(cause)}`
+      });
+    }
+  }
+  return { packs, diagnostics };
+}
+
+// ../../packages/mcp-server/src/tools/runner-shared.ts
+function loadRunnerToolContext(context) {
+  const workspace = context.requireWorkspace();
+  const config2 = requireAgentConfig(workspace);
+  return {
+    workspace,
+    config: config2,
+    registry: createDefaultRunnerRegistry(config2, {
+      extensionRunner: createExtensionRunnerFactory(workspace)
+    })
+  };
+}
+function requireProfile(registry2, name) {
+  if (!registry2.has(name)) {
+    throw new McpToolError(
+      "SBMCP002",
+      `Unknown runner profile "${name}". Configured profiles: ${registry2.listProfiles().map((profile) => profile.name).join(", ")}.`,
+      { remediation: ["Call runner_list to see every configured profile."] }
+    );
+  }
+  return registry2.getProfile(name);
+}
+var RUNNER_PROBE_TIMEOUT_MS = 2e4;
+var capabilitySetShape2 = external_exports.record(external_exports.boolean()).describe("Provider-independent capability keys to booleans");
+var profileSummaryShape = external_exports.object({
+  profile: external_exports.string(),
+  implementation: external_exports.string(),
+  category: external_exports.string(),
+  supportLevel: external_exports.string().describe("Adapter-declared support level"),
+  enabled: external_exports.boolean(),
+  model: external_exports.string().nullable(),
+  networkBacked: external_exports.boolean().describe("True when SpecBridge itself would leave this machine"),
+  localExecution: external_exports.boolean(),
+  supportedOperations: external_exports.array(external_exports.string())
+});
+var detectionCapabilityShape = external_exports.object({
+  id: external_exports.string(),
+  label: external_exports.string(),
+  available: external_exports.boolean(),
+  required: external_exports.boolean(),
+  detail: external_exports.string().optional()
+});
+var runnerDiagnosticShape = external_exports.object({
+  severity: external_exports.enum(["info", "warning", "error"]),
+  code: external_exports.string(),
+  message: external_exports.string()
+});
+var detectionViewShape = external_exports.object({
+  status: external_exports.string(),
+  supportLevel: external_exports.string().describe("Effective support level after detection"),
+  version: external_exports.string().nullable(),
+  authentication: external_exports.string(),
+  networkBacked: external_exports.boolean(),
+  capabilities: external_exports.array(detectionCapabilityShape),
+  detectedCapabilities: capabilitySetShape2,
+  diagnostics: external_exports.array(runnerDiagnosticShape)
+});
+var MAX_DIAGNOSTICS = 50;
+function toDetectionView(detection, verbose) {
+  const diagnostics = (verbose ? detection.diagnostics : detection.diagnostics.filter((diagnostic) => diagnostic.severity !== "info")).slice(0, MAX_DIAGNOSTICS);
+  return {
+    status: detection.status,
+    supportLevel: detection.supportLevel,
+    version: detection.version ?? null,
+    authentication: detection.authentication,
+    networkBacked: detection.networkBacked,
+    capabilities: detection.capabilities.map((capability) => ({
+      id: String(capability.id),
+      label: capability.label,
+      available: capability.available,
+      required: capability.required,
+      ...capability.detail !== void 0 ? { detail: capability.detail } : {}
+    })),
+    detectedCapabilities: detection.capabilitySet,
+    diagnostics: diagnostics.map((diagnostic) => ({
+      severity: diagnostic.severity,
+      code: diagnostic.code,
+      message: diagnostic.message
+    }))
+  };
+}
+var conformanceSummaryShape = external_exports.object({
+  passed: external_exports.boolean(),
+  productionConfirmed: external_exports.boolean(),
+  failedChecks: external_exports.number().int(),
+  skippedChecks: external_exports.number().int(),
+  groups: external_exports.array(
+    external_exports.object({
+      group: external_exports.string(),
+      applicable: external_exports.boolean(),
+      reason: external_exports.string().optional(),
+      passed: external_exports.boolean(),
+      skipped: external_exports.number().int()
+    })
+  ),
+  note: external_exports.string()
+});
+async function invocationFreeConformanceSummary(profile) {
+  const scratch = (0, import_node_fs9.mkdtempSync)(import_node_path9.default.join(import_node_os4.default.tmpdir(), "specbridge-mcp-conformance-"));
+  let result;
+  try {
+    result = await runRunnerConformance({
+      profile,
+      workspaceRoot: scratch,
+      runDir: import_node_path9.default.join(scratch, ".specbridge-conformance-runs"),
+      invocationsAllowed: false,
+      timeoutMs: RUNNER_PROBE_TIMEOUT_MS
+    });
+  } finally {
+    (0, import_node_fs9.rmSync)(scratch, { recursive: true, force: true });
+  }
+  return {
+    passed: result.passed,
+    productionConfirmed: result.productionConfirmed,
+    failedChecks: result.failedChecks,
+    skippedChecks: result.skippedChecks,
+    groups: result.groups.map((group) => ({
+      group: group.group,
+      applicable: group.applicable,
+      ...group.reason !== void 0 ? { reason: group.reason } : {},
+      passed: group.passed,
+      skipped: group.skipped
+    })),
+    note: 'Invocation-free summary: checks that would invoke the provider are skipped here. Run "specbridge runner conformance <profile> --network" for the full suite.'
+  };
+}
+
+// ../../packages/mcp-server/src/tools/runner-list.ts
+var inputSchema17 = {
+  enabledOnly: external_exports.boolean().optional().describe("Only profiles that are enabled in the configuration"),
+  detect: external_exports.boolean().optional().describe(
+    "Probe availability for the returned page (read-only version/help/reachability probes; slower \u2014 default false)"
+  ),
+  limit: limitArg,
+  cursor: cursorArg
+};
+var outputSchema22 = {
+  defaultRunner: external_exports.string(),
+  profiles: external_exports.array(
+    profileSummaryShape.extend({
+      availability: external_exports.string().optional().describe("Detection status (present when detect=true)")
+    })
+  ),
+  pagination: paginationShape
+};
+function registerRunnerListTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "runner_list",
+    title: "List runner profiles",
+    description: "List configured runner profiles: implementation, category, support level, enabled state, configured model, local/network classification, and supported operations. Optionally probes availability (read-only; never a model request). Supports pagination. Read-only.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true
+    },
+    inputSchema: inputSchema17,
+    outputSchema: outputSchema22,
+    handler: async (args) => {
+      const { workspace, config: config2, registry: registry2 } = loadRunnerToolContext(context);
+      const profiles = registry2.listProfiles().filter((profile) => args.enabledOnly !== true || profile.config.enabled !== false);
+      const page = paginate(profiles, {
+        ...args.limit !== void 0 ? { limit: args.limit } : {},
+        ...args.cursor !== void 0 ? { cursor: args.cursor } : {},
+        token: "runner_list"
+      });
+      const summaries = [];
+      for (const profile of page.items) {
+        const summary = runnerProfileSummary(profile);
+        if (args.detect === true) {
+          const detection = await profile.runner.detect({
+            workspaceRoot: workspace.rootDir,
+            timeoutMs: RUNNER_PROBE_TIMEOUT_MS
+          });
+          summaries.push({ ...summary, availability: detection.status });
+        } else {
+          summaries.push(summary);
+        }
+      }
+      const lines = summaries.map(
+        (summary) => `- ${summary.profile} [${summary.implementation}/${summary.category}] ${summary.enabled ? "enabled" : "disabled"}, support ${summary.supportLevel}${"availability" in summary && summary.availability !== void 0 ? `, ${summary.availability}` : ""}, operations: ${summary.supportedOperations.join(", ") || "(none)"}`
+      );
+      return {
+        text: `${page.totalCount} runner profile(s); default runner: ${config2.defaultRunner}.
+${lines.join("\n")}`,
+        structured: {
+          defaultRunner: config2.defaultRunner,
+          profiles: summaries,
+          pagination: {
+            totalCount: page.totalCount,
+            truncated: page.truncated,
+            ...page.nextCursor !== void 0 ? { nextCursor: page.nextCursor } : {}
+          }
+        }
+      };
+    }
+  });
+}
+
+// ../../packages/mcp-server/src/tools/runner-show.ts
+var inputSchema18 = {
+  profile: external_exports.string().min(1).max(120).describe('Runner profile name (e.g. "gemini-default")')
+};
+var operationCompatibilityShape = external_exports.object({
+  operation: external_exports.string(),
+  supported: external_exports.boolean(),
+  missingCapabilities: external_exports.array(external_exports.string())
+});
+var outputSchema23 = {
+  summary: profileSummaryShape,
+  configuration: external_exports.record(external_exports.unknown()).describe("Redacted profile configuration (profiles can never store credential values)"),
+  declaredCapabilities: capabilitySetShape2,
+  detection: detectionViewShape,
+  operationCompatibility: external_exports.array(operationCompatibilityShape).describe("Per-operation support from DETECTED capabilities"),
+  conformance: conformanceSummaryShape,
+  boundary: external_exports.object({
+    networkBacked: external_exports.boolean(),
+    localExecution: external_exports.boolean(),
+    constraints: external_exports.array(external_exports.string())
+  }),
+  limitations: external_exports.array(external_exports.string()),
+  remediation: external_exports.array(external_exports.string())
+};
+function registerRunnerShowTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "runner_show",
+    title: "Show a runner profile",
+    description: "Show one runner profile: redacted configuration, declared and detected capabilities, operation compatibility, invocation-free conformance summary, network boundary, known limitations, and remediation. Read-only; never sends a model request.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true
+    },
+    inputSchema: inputSchema18,
+    outputSchema: outputSchema23,
+    handler: async (args) => {
+      const { workspace, registry: registry2 } = loadRunnerToolContext(context);
+      const profile = requireProfile(registry2, args.profile);
+      const summary = runnerProfileSummary(profile);
+      const detection = await profile.runner.detect({
+        workspaceRoot: workspace.rootDir,
+        probeCapabilities: true,
+        timeoutMs: RUNNER_PROBE_TIMEOUT_MS
+      });
+      const detectionView = toDetectionView(detection, true);
+      const conformance = await invocationFreeConformanceSummary(profile);
+      const operationCompatibility = RUNNER_OPERATIONS.filter(
+        (operation) => operation !== "model-list" && operation !== "runner-test"
+      ).map((operation) => {
+        const support = checkOperationSupport(operation, detection.capabilitySet);
+        return {
+          operation,
+          supported: support.supported,
+          missingCapabilities: [
+            ...support.missingCapabilities,
+            ...support.unsatisfiedBoundaries.flat()
+          ]
+        };
+      });
+      const boundaryNote = profile.runner.executionBoundaryNote?.("implementation");
+      const limitations = detectionView.diagnostics.filter((diagnostic) => diagnostic.severity !== "error").map((diagnostic) => diagnostic.message);
+      const remediation = detectionView.diagnostics.filter((diagnostic) => diagnostic.severity === "error").map((diagnostic) => diagnostic.message);
+      const supported = operationCompatibility.filter((entry) => entry.supported).map((entry) => entry.operation);
+      return {
+        text: `Profile ${args.profile} (${summary.implementation}, ${summary.category}): ${summary.enabled ? "enabled" : "disabled"}, status ${detection.status}, support ${detection.supportLevel}. Supported operations (detected): ${supported.join(", ") || "(none)"}.`,
+        structured: {
+          summary,
+          configuration: redactedRunnerProfileConfig(profile),
+          declaredCapabilities: profile.runner.declaredCapabilities,
+          detection: detectionView,
+          operationCompatibility,
+          conformance,
+          boundary: {
+            networkBacked: summary.networkBacked,
+            localExecution: summary.localExecution,
+            constraints: [
+              ...boundaryNote !== void 0 ? [boundaryNote] : [],
+              "No commits, no pushes, no checkbox updates by the provider; evidence stays provider-independent."
+            ]
+          },
+          limitations,
+          remediation
+        }
+      };
+    }
+  });
+}
+
+// ../../packages/mcp-server/src/tools/runner-doctor.ts
+var inputSchema19 = {
+  profile: external_exports.string().min(1).max(120).optional().describe("Runner profile name (default: the configured default runner)"),
+  verbose: external_exports.boolean().optional().describe("Include informational diagnostics")
+};
+var outputSchema24 = {
+  profile: external_exports.string(),
+  implementation: external_exports.string(),
+  category: external_exports.string(),
+  enabled: external_exports.boolean(),
+  executable: external_exports.string().nullable().describe("Configured executable or endpoint"),
+  detection: detectionViewShape,
+  ready: external_exports.boolean().describe("True when the runner status is available")
+};
+function registerRunnerDoctorTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "runner_doctor",
+    title: "Diagnose a runner profile",
+    description: "Diagnose one runner profile: executable/endpoint presence, version, authentication state (never via credential files), detected capabilities, and actionable findings. Read-only: never a model request, never a login, never a configuration change.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true
+    },
+    inputSchema: inputSchema19,
+    outputSchema: outputSchema24,
+    handler: async (args) => {
+      const { workspace, config: config2, registry: registry2 } = loadRunnerToolContext(context);
+      const profileName = args.profile ?? config2.defaultRunner;
+      const profile = requireProfile(registry2, profileName);
+      const detection = await profile.runner.detect({
+        workspaceRoot: workspace.rootDir,
+        probeCapabilities: true,
+        timeoutMs: RUNNER_PROBE_TIMEOUT_MS
+      });
+      const view = toDetectionView(detection, args.verbose === true);
+      const findings = view.diagnostics.map((diagnostic) => `- [${diagnostic.severity}] ${diagnostic.message}`).join("\n");
+      return {
+        text: `Runner ${profileName} (${profile.runner.name}): status ${view.status}, support ${view.supportLevel}, authentication ${view.authentication}.${findings.length > 0 ? `
+${findings}` : ""}`,
+        structured: {
+          profile: profileName,
+          implementation: profile.runner.name,
+          category: profile.runner.category,
+          enabled: profile.config.enabled !== false,
+          executable: detection.executable ?? null,
+          detection: view,
+          ready: detection.status === "available"
+        }
+      };
+    }
+  });
+}
+
+// ../../packages/mcp-server/src/tools/runner-matrix.ts
+var matrixRowShape = external_exports.object({
+  profile: external_exports.string(),
+  implementation: external_exports.string(),
+  category: external_exports.string(),
+  support: external_exports.string(),
+  enabled: external_exports.boolean(),
+  author: external_exports.boolean(),
+  refine: external_exports.boolean(),
+  execute: external_exports.boolean(),
+  resume: external_exports.boolean(),
+  local: external_exports.boolean()
+});
+var outputSchema25 = {
+  rows: external_exports.array(matrixRowShape),
+  markdown: external_exports.string().describe("The same matrix as a Markdown table")
+};
+function registerRunnerMatrixTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "runner_matrix",
+    title: "Runner capability matrix",
+    description: 'The authoritative runner capability matrix (author/refine/execute/resume per profile), generated from registered runner metadata \u2014 identical to "specbridge runner matrix". Read-only; no probes, no processes, no network.',
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    inputSchema: {},
+    outputSchema: outputSchema25,
+    handler: async () => {
+      const { registry: registry2 } = loadRunnerToolContext(context);
+      const rows = runnerMatrixRows(registry2.listProfiles());
+      const markdown = renderRunnerMatrixMarkdown(rows);
+      return {
+        text: markdown,
+        structured: { rows, markdown }
+      };
+    }
+  });
+}
+
 // ../../packages/mcp-server/src/tools/template-shared.ts
-var templateSourceInput = external_exports.enum(["builtin", "project", "all"]);
+var templateSourceInput = external_exports.enum(["builtin", "project", "extension", "all"]);
 function catalogFor(context, source) {
   const workspace = context.requireWorkspace();
-  return loadTemplateCatalog(workspace, { source: source ?? "all" });
+  const extensionTemplates = collectExtensionTemplatePacks(workspace);
+  return loadTemplateCatalog(workspace, {
+    source: source ?? "all",
+    extensionPacks: [...extensionTemplates.packs]
+  });
 }
 var templateSummaryShape = external_exports.object({
   ref: external_exports.string().describe("Qualified reference, e.g. builtin:rest-api"),
   id: external_exports.string(),
-  source: external_exports.enum(["builtin", "project"]),
+  source: external_exports.string().min(1).max(100),
   valid: external_exports.boolean(),
   displayName: external_exports.string().nullable(),
   version: external_exports.string().nullable(),
