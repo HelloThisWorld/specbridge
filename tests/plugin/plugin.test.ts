@@ -78,13 +78,14 @@ describe('plugin structure', () => {
     expect(existsSync(path.join(pluginRoot, 'skills'))).toBe(true);
   });
 
-  it('all ten namespaced skills exist with unique names and valid frontmatter', () => {
+  it('all eleven namespaced skills exist with unique names and valid frontmatter', () => {
     const dirs = readdirSync(skillsDir).sort();
     expect(dirs).toEqual([
       'approve',
       'author',
       'continue',
       'doctor',
+      'extensions',
       'implement',
       'new',
       'runners',
@@ -108,7 +109,7 @@ describe('plugin structure', () => {
   it('the approve skill disables model invocation; no other skill grants tools', () => {
     const approve = frontmatterOf(skillMarkdown('approve'));
     expect(approve).toContain('disable-model-invocation: true');
-    for (const dir of ['author', 'continue', 'doctor', 'implement', 'new', 'runners', 'status', 'templates', 'verify']) {
+    for (const dir of ['author', 'continue', 'doctor', 'extensions', 'implement', 'new', 'runners', 'status', 'templates', 'verify']) {
       expect(frontmatterOf(skillMarkdown(dir))).not.toContain('allowed-tools');
     }
   });

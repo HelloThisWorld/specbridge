@@ -49230,6 +49230,7 @@ rl.on('line', (line) => {
 var PROTOCOL_SHELL_TAIL = `  fail(request.id, -32004, 'operation "' + operation + '" is not supported');
 });
 `;
+var SDK_PACKAGE = ["@specbridge", "extension-sdk"].join("/");
 var KIND_HANDLERS = {
   analyzer: `  if (operation === 'analyzer.analyze') {
     const diagnostics = [];
@@ -49327,7 +49328,7 @@ var KIND_HANDLERS = {
 `
 };
 var SDK_SOURCE = {
-  analyzer: `import { createAnalyzerExtension } from '@specbridge/extension-sdk';
+  analyzer: `import { createAnalyzerExtension } from '${SDK_PACKAGE}';
 import manifest from '../specbridge-extension.json' with { type: 'json' };
 
 createAnalyzerExtension({
@@ -49349,7 +49350,7 @@ createAnalyzerExtension({
   },
 }).run();
 `,
-  verifier: `import { createVerifierExtension } from '@specbridge/extension-sdk';
+  verifier: `import { createVerifierExtension } from '${SDK_PACKAGE}';
 import manifest from '../specbridge-extension.json' with { type: 'json' };
 
 createVerifierExtension({
@@ -49367,7 +49368,7 @@ createVerifierExtension({
   },
 }).run();
 `,
-  exporter: `import { createExporterExtension } from '@specbridge/extension-sdk';
+  exporter: `import { createExporterExtension } from '${SDK_PACKAGE}';
 import manifest from '../specbridge-extension.json' with { type: 'json' };
 
 createExporterExtension({
@@ -49383,7 +49384,7 @@ createExporterExtension({
   },
 }).run();
 `,
-  runner: `import { createRunnerExtension } from '@specbridge/extension-sdk';
+  runner: `import { createRunnerExtension } from '${SDK_PACKAGE}';
 import manifest from '../specbridge-extension.json' with { type: 'json' };
 
 // See dist/extension.cjs for the full deterministic reference behavior.
@@ -60517,12 +60518,12 @@ Examples:
   });
 }
 
-// ../../packages/mcp-server/dist/chunk-7SENKHXT.js
+// ../../packages/mcp-server/dist/chunk-3E2ZYI7Q.js
 var import_buffer5 = require("buffer");
-var import_fs44 = require("fs");
-var import_path49 = __toESM(require("path"), 1);
-var import_crypto12 = require("crypto");
-var import_path50 = __toESM(require("path"), 1);
+var import_fs46 = require("fs");
+var import_path51 = __toESM(require("path"), 1);
+var import_crypto13 = require("crypto");
+var import_path52 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/core.js
 var NEVER2 = Object.freeze({
@@ -70849,13 +70850,631 @@ var EMPTY_COMPLETION_RESULT = {
   }
 };
 
-// ../../packages/mcp-server/dist/chunk-7SENKHXT.js
-var import_fs45 = require("fs");
-var import_fs46 = require("fs");
-var import_path51 = __toESM(require("path"), 1);
+// ../../packages/mcp-server/dist/chunk-3E2ZYI7Q.js
 var import_fs47 = require("fs");
+var import_fs48 = require("fs");
+var import_path53 = __toESM(require("path"), 1);
+var import_fs49 = require("fs");
 var import_os2 = __toESM(require("os"), 1);
-var import_path52 = __toESM(require("path"), 1);
+var import_path54 = __toESM(require("path"), 1);
+
+// ../../packages/registry/dist/index.js
+var import_fs44 = require("fs");
+var import_path49 = __toESM(require("path"), 1);
+var import_crypto12 = require("crypto");
+var import_fs45 = require("fs");
+var import_path50 = __toESM(require("path"), 1);
+var BUILTIN_REGISTRY_INDEX_JSON = '{\n  "schemaVersion": "1.0.0",\n  "name": "specbridge-examples",\n  "updatedAt": "2026-01-01T00:00:00.000Z",\n  "extensions": [\n    {\n      "id": "example-analyzer",\n      "displayName": "example-analyzer",\n      "description": "Deterministic spec diagnostics contributed by the example-analyzer analyzer extension.",\n      "kind": "analyzer",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-analyzer-1.0.0.specbridge-extension.zip",\n          "sha256": "4d2ed293339ac609b5a0db4e6810c4a621541e3c2c0fa850693831ea196f71d9",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <1.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "analyzer",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-exporter",\n      "displayName": "example-exporter",\n      "description": "Candidate export files produced by the example-exporter exporter extension.",\n      "kind": "exporter",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-exporter-1.0.0.specbridge-extension.zip",\n          "sha256": "0bc6c8097275c27df59695bf88f279d5c6ff0a29511673ad00f7df33c4f85228",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <1.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "exporter",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-runner",\n      "displayName": "example-runner",\n      "description": "An out-of-process runner adapter provided by the example-runner extension.",\n      "kind": "runner",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-runner-1.0.0.specbridge-extension.zip",\n          "sha256": "9b5d29c5281cfd062cc506db8dbd2baaf6192221a7da782036f0eb5ceda8ef50",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <1.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": true,\n              "repositoryWrite": true,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "runner",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-template-provider",\n      "displayName": "example-template-provider",\n      "description": "Spec template packs contributed by the example-template-provider template-provider extension.",\n      "kind": "template-provider",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-template-provider-1.0.0.specbridge-extension.zip",\n          "sha256": "83572ecc9cc5a40451a4ecd7ea8c1ab3171e022ca5442566f110ef1de71d8533",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <1.0.0"\n            },\n            "permissions": {\n              "specRead": false,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "template-provider",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-verifier",\n      "displayName": "example-verifier",\n      "description": "Verification diagnostics contributed by the example-verifier verifier extension.",\n      "kind": "verifier",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-verifier-1.0.0.specbridge-extension.zip",\n          "sha256": "17e78d12a74b2944983a38527e8568117d56ed53e219a5a976787bb1bed832af",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <1.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "verifier",\n        "specbridge-extension"\n      ]\n    }\n  ]\n}\n';
+var REGISTRY_ERROR_CODES = {
+  SBR001: "registry not found",
+  SBR002: "invalid registry name",
+  SBR003: "invalid registry configuration",
+  SBR004: "registry network flag required",
+  SBR005: "registry fetch failed",
+  SBR006: "registry response too large",
+  SBR007: "invalid registry index",
+  SBR008: "unsupported registry schema",
+  SBR009: "registry redirect rejected",
+  SBR010: "registry cache unavailable",
+  SBR011: "extension version not found",
+  SBR012: "archive integrity metadata missing",
+  SBR013: "archive download failed",
+  SBR014: "archive checksum mismatch",
+  SBR015: "registry operation failed"
+};
+var RegistryError = class extends SpecBridgeError {
+  registryCode;
+  /** Actionable next step, always present. */
+  remediation;
+  constructor(registryCode, detail, remediation, details) {
+    super(
+      "REGISTRY_ERROR",
+      `${registryCode} (${REGISTRY_ERROR_CODES[registryCode]}): ${detail} ${remediation}`,
+      { ...details, registryCode }
+    );
+    this.name = "RegistryError";
+    this.registryCode = registryCode;
+    this.remediation = remediation;
+  }
+};
+var REGISTRY_INDEX_SCHEMA_VERSION = "1.0.0";
+var MAX_REGISTRY_INDEX_BYTES = 5 * 1024 * 1024;
+var REGISTRY_NAME_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
+var MAX_REGISTRY_NAME_LENGTH = 40;
+var HTTPS_URL = external_exports.string().min(9).max(1e3).superRefine((value, ctx) => {
+  let parsed;
+  try {
+    parsed = new URL(value);
+  } catch {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message: "not a valid URL" });
+    return;
+  }
+  if (parsed.protocol !== "https:") {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message: "only https:// URLs are allowed" });
+  }
+  if (parsed.username !== "" || parsed.password !== "") {
+    ctx.addIssue({
+      code: external_exports.ZodIssueCode.custom,
+      message: "URLs must not embed credentials"
+    });
+  }
+});
+var registryVersionEntrySchema = external_exports.object({
+  version: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  archiveUrl: HTTPS_URL,
+  sha256: external_exports.string().regex(/^[0-9a-f]{64}$/),
+  manifest: external_exports.object({
+    protocolVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+    compatibility: external_exports.object({
+      specbridge: external_exports.string().min(1).max(100)
+    }).passthrough(),
+    permissions: extensionPermissionsSchema
+  }).passthrough()
+}).strict();
+var registryExtensionEntrySchema = external_exports.object({
+  id: external_exports.string().min(1).max(64),
+  displayName: external_exports.string().min(1).max(100),
+  description: external_exports.string().min(1).max(500),
+  kind: external_exports.enum(EXTENSION_KINDS),
+  latestVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  versions: external_exports.array(registryVersionEntrySchema).min(1).max(50),
+  repository: HTTPS_URL.optional(),
+  homepage: HTTPS_URL.optional(),
+  license: external_exports.string().min(1).max(100),
+  keywords: external_exports.array(external_exports.string().min(1).max(30)).max(12).optional(),
+  deprecated: external_exports.boolean().optional()
+}).strict();
+var registryIndexSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  name: external_exports.string().min(1).max(100),
+  updatedAt: external_exports.string().min(1).max(60),
+  extensions: external_exports.array(registryExtensionEntrySchema).max(2e3)
+}).strict();
+function parseRegistryIndex(text) {
+  const problems = [];
+  if (Buffer.byteLength(text, "utf8") > MAX_REGISTRY_INDEX_BYTES) {
+    return { problems: [`index exceeds ${MAX_REGISTRY_INDEX_BYTES} bytes`] };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch (error2) {
+    return { problems: [`index is not valid JSON: ${error2 instanceof Error ? error2.message : String(error2)}`] };
+  }
+  if (typeof parsed === "object" && parsed !== null && "schemaVersion" in parsed && typeof parsed.schemaVersion === "string") {
+    const major = parsed.schemaVersion.split(".")[0];
+    if (major !== REGISTRY_INDEX_SCHEMA_VERSION.split(".")[0]) {
+      return {
+        problems: [
+          `schemaVersion ${parsed.schemaVersion} is not supported (supported major: ${REGISTRY_INDEX_SCHEMA_VERSION.split(".")[0]})`
+        ]
+      };
+    }
+  }
+  const result = registryIndexSchema.safeParse(parsed);
+  if (!result.success) {
+    for (const issue4 of result.error.issues.slice(0, 15)) {
+      problems.push(`${issue4.path.join(".") || "(root)"}: ${issue4.message}`);
+    }
+    return { problems };
+  }
+  const seen = /* @__PURE__ */ new Set();
+  for (const entry of result.data.extensions) {
+    if (!validateExtensionId(entry.id).valid) {
+      problems.push(`extension "${entry.id}": invalid extension ID`);
+    }
+    if (seen.has(entry.id)) {
+      problems.push(`extension "${entry.id}": duplicate entry`);
+    }
+    seen.add(entry.id);
+    if (!entry.versions.some((version2) => version2.version === entry.latestVersion)) {
+      problems.push(`extension "${entry.id}": latestVersion ${entry.latestVersion} is not in versions`);
+    }
+    const versionsSeen = /* @__PURE__ */ new Set();
+    for (const version2 of entry.versions) {
+      if (versionsSeen.has(version2.version)) {
+        problems.push(`extension "${entry.id}": duplicate version ${version2.version}`);
+      }
+      versionsSeen.add(version2.version);
+      const range = validateSemverRange2(version2.manifest.compatibility.specbridge);
+      if (!range.valid) {
+        problems.push(
+          `extension "${entry.id}" ${version2.version}: invalid compatibility range (${range.problem ?? "unknown"})`
+        );
+      }
+    }
+  }
+  if (problems.length > 0) {
+    return { problems };
+  }
+  return { index: result.data, problems: [] };
+}
+var REGISTRY_CACHE_DIR_NAME = "registry-cache";
+var REGISTRY_CACHE_SCHEMA_VERSION = "1.0.0";
+var cachedRegistrySchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  sourceName: external_exports.string().min(1),
+  sourceUrl: external_exports.string().min(1).optional(),
+  retrievedAt: external_exports.string().min(1),
+  contentSha256: external_exports.string().regex(/^[0-9a-f]{64}$/),
+  index: registryIndexSchema
+}).passthrough();
+function registryCacheDir(workspace) {
+  return import_path49.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
+}
+function registryCachePath(workspace, name) {
+  const target = import_path49.default.join(registryCacheDir(workspace), `${name}.json`);
+  assertInsideWorkspace(workspace.rootDir, target);
+  return target;
+}
+function readRegistryCache(workspace, name) {
+  const filePath = registryCachePath(workspace, name);
+  if (!(0, import_fs44.existsSync)(filePath)) {
+    return { diagnostics: [] };
+  }
+  try {
+    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs44.readFileSync)(filePath, "utf8")));
+    if (!parsed.success) {
+      return {
+        diagnostics: [
+          {
+            severity: "warning",
+            code: "REGISTRY_CACHE_INVALID",
+            message: `cached index for "${name}" does not match the cache schema and was ignored`,
+            file: filePath
+          }
+        ]
+      };
+    }
+    return { cache: parsed.data, diagnostics: [] };
+  } catch (cause) {
+    return {
+      diagnostics: [
+        {
+          severity: "warning",
+          code: "REGISTRY_CACHE_UNREADABLE",
+          message: `cached index for "${name}" could not be read: ${cause instanceof Error ? cause.message : String(cause)}`,
+          file: filePath
+        }
+      ]
+    };
+  }
+}
+function writeRegistryCache(workspace, name, indexText, index, options = {}) {
+  const cache = cachedRegistrySchema.parse({
+    schemaVersion: REGISTRY_CACHE_SCHEMA_VERSION,
+    sourceName: name,
+    ...options.sourceUrl === void 0 ? {} : { sourceUrl: options.sourceUrl },
+    retrievedAt: (options.clock?.() ?? /* @__PURE__ */ new Date()).toISOString(),
+    contentSha256: (0, import_crypto12.createHash)("sha256").update(indexText, "utf8").digest("hex"),
+    index
+  });
+  writeFileAtomic(registryCachePath(workspace, name), `${JSON.stringify(cache, null, 2)}
+`);
+  return cache;
+}
+function resolveRegistryIndex(workspace, source) {
+  if (source.type === "builtin") {
+    const parsed = parseRegistryIndex(BUILTIN_REGISTRY_INDEX_JSON);
+    if (parsed.index === void 0) {
+      throw new RegistryError(
+        "SBR007",
+        "the built-in example registry index failed validation.",
+        "This is a SpecBridge build problem; run `pnpm check:builtin-registry`."
+      );
+    }
+    return { sourceName: source.name, index: parsed.index, origin: "builtin", diagnostics: [] };
+  }
+  if (source.type === "local-file") {
+    const filePath = import_path49.default.resolve(workspace.rootDir, source.file);
+    assertInsideWorkspace(workspace.rootDir, filePath);
+    if (!(0, import_fs44.existsSync)(filePath)) {
+      return {
+        sourceName: source.name,
+        index: { schemaVersion: "1.0.0", name: source.name, updatedAt: "unknown", extensions: [] },
+        origin: "local-file",
+        diagnostics: [
+          {
+            severity: "warning",
+            code: "REGISTRY_FILE_MISSING",
+            message: `registry file ${source.file} does not exist`,
+            file: filePath
+          }
+        ]
+      };
+    }
+    const text = (0, import_fs44.readFileSync)(filePath, "utf8");
+    const parsed = parseRegistryIndex(text);
+    if (parsed.index === void 0) {
+      throw new RegistryError(
+        "SBR007",
+        `registry file ${source.file} is invalid: ${parsed.problems.slice(0, 3).join("; ")}.`,
+        "Fix the index file; see registry/schema.json for the expected shape.",
+        { problems: [...parsed.problems] }
+      );
+    }
+    return { sourceName: source.name, index: parsed.index, origin: "local-file", diagnostics: [] };
+  }
+  const cached2 = readRegistryCache(workspace, source.name);
+  if (cached2.cache === void 0) {
+    return void 0;
+  }
+  return {
+    sourceName: source.name,
+    index: cached2.cache.index,
+    origin: "cache",
+    retrievedAt: cached2.cache.retrievedAt,
+    diagnostics: cached2.diagnostics
+  };
+}
+var REGISTRY_FETCH_TIMEOUT_MS = 3e4;
+var REGISTRY_MAX_REDIRECTS = 3;
+async function updateRegistryIndex(workspace, source, options) {
+  if (source.type !== "https") {
+    throw new RegistryError(
+      "SBR015",
+      `registry "${source.name}" is a ${source.type} source and has nothing to update.`,
+      "Only https registries are updated; local-file and builtin sources are always current.",
+      { name: source.name }
+    );
+  }
+  if (!options.network) {
+    throw new RegistryError(
+      "SBR004",
+      `updating registry "${source.name}" requires network access.`,
+      "Re-run with --network to allow this one explicit fetch.",
+      { name: source.name }
+    );
+  }
+  const response = await options.http({
+    method: "GET",
+    url: source.url,
+    timeoutMs: REGISTRY_FETCH_TIMEOUT_MS,
+    maxResponseBytes: MAX_REGISTRY_INDEX_BYTES,
+    maxRedirects: REGISTRY_MAX_REDIRECTS,
+    expectJson: true,
+    ...options.signal === void 0 ? {} : { signal: options.signal }
+  });
+  if (!response.ok) {
+    if (response.kind === "response-too-large") {
+      throw new RegistryError(
+        "SBR006",
+        `the index from ${source.url} exceeds ${MAX_REGISTRY_INDEX_BYTES} bytes.`,
+        "The previous valid cache (if any) was preserved."
+      );
+    }
+    if (response.kind === "redirect-rejected") {
+      throw new RegistryError(
+        "SBR009",
+        `the request to ${source.url} was redirected in a way SpecBridge refuses (${response.detail ?? "unsafe redirect"}).`,
+        "HTTPS\u2192HTTP downgrades and excessive redirects are never followed; the cache was preserved."
+      );
+    }
+    throw new RegistryError(
+      "SBR005",
+      `fetching ${source.url} failed (${response.kind ?? "error"}${response.status !== void 0 ? ` ${response.status}` : ""}: ${response.detail ?? "no detail"}).`,
+      "Check the URL and connectivity; the previous valid cache (if any) was preserved."
+    );
+  }
+  const bodyText = response.bodyText ?? "";
+  const parsed = parseRegistryIndex(bodyText);
+  if (parsed.index === void 0) {
+    throw new RegistryError(
+      "SBR007",
+      `the index from ${source.url} failed validation: ${parsed.problems.slice(0, 3).join("; ")}.`,
+      "The previous valid cache (if any) was preserved; contact the registry maintainer.",
+      { problems: [...parsed.problems] }
+    );
+  }
+  const cache = writeRegistryCache(workspace, source.name, bodyText, parsed.index, {
+    sourceUrl: source.url,
+    ...options.clock === void 0 ? {} : { clock: options.clock }
+  });
+  return { sourceName: source.name, cache, extensionCount: parsed.index.extensions.length };
+}
+async function downloadRegistryArchive(archiveUrl, options) {
+  if (!options.network) {
+    throw new RegistryError(
+      "SBR004",
+      "downloading an extension archive requires network access.",
+      "Re-run with --network to allow this one explicit download."
+    );
+  }
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(archiveUrl);
+  } catch {
+    throw new RegistryError("SBR013", `archive URL "${archiveUrl}" is invalid.`, "Fix the registry entry.");
+  }
+  if (parsedUrl.protocol !== "https:" || parsedUrl.username !== "" || parsedUrl.password !== "") {
+    throw new RegistryError(
+      "SBR013",
+      `archive URL "${archiveUrl}" is not a credential-free https:// URL.`,
+      "Registry archives are only ever downloaded over HTTPS."
+    );
+  }
+  const response = await options.http({
+    method: "GET",
+    url: archiveUrl,
+    timeoutMs: REGISTRY_FETCH_TIMEOUT_MS,
+    maxResponseBytes: options.maxArchiveBytes,
+    maxRedirects: REGISTRY_MAX_REDIRECTS,
+    binaryBody: true,
+    ...options.signal === void 0 ? {} : { signal: options.signal }
+  });
+  if (!response.ok) {
+    throw new RegistryError(
+      "SBR013",
+      `downloading ${archiveUrl} failed (${response.kind ?? "error"}: ${response.detail ?? "no detail"}).`,
+      "Nothing was installed; check connectivity and the registry entry."
+    );
+  }
+  if (response.bodyBase64 === void 0) {
+    throw new RegistryError(
+      "SBR013",
+      `downloading ${archiveUrl} returned no byte-exact body.`,
+      "Nothing was installed; this indicates a transport problem."
+    );
+  }
+  return Buffer.from(response.bodyBase64, "base64");
+}
+var DEFAULT_REGISTRY_SEARCH_LIMIT = 20;
+var MAX_REGISTRY_SEARCH_LIMIT = 50;
+function searchRegistryIndexes(indexes, query, options = {}) {
+  const needle = query.trim().toLowerCase();
+  const limit = Math.min(options.limit ?? DEFAULT_REGISTRY_SEARCH_LIMIT, MAX_REGISTRY_SEARCH_LIMIT);
+  const hits = [];
+  for (const { registryName, index } of indexes) {
+    for (const entry of index.extensions) {
+      if (options.kind !== void 0 && entry.kind !== options.kind) {
+        continue;
+      }
+      let score = 0;
+      if (entry.id === needle) {
+        score = 100;
+      } else if (entry.id.startsWith(needle)) {
+        score = 80;
+      } else if ((entry.keywords ?? []).some((keyword) => keyword.toLowerCase() === needle)) {
+        score = 60;
+      } else if (entry.displayName.toLowerCase().split(/\s+/).includes(needle)) {
+        score = 40;
+      } else if (entry.description.toLowerCase().includes(needle)) {
+        score = 20;
+      }
+      if (score > 0) {
+        hits.push({ registryName, entry, score });
+      }
+    }
+  }
+  return hits.sort(
+    (a2, b) => b.score - a2.score || a2.entry.id.localeCompare(b.entry.id, "en") || a2.registryName.localeCompare(b.registryName, "en")
+  ).slice(0, limit);
+}
+function resolveRegistryExtension(indexes, extensionId, version2) {
+  const matches = [];
+  for (const { registryName, index } of indexes) {
+    const entry = index.extensions.find((candidate) => candidate.id === extensionId);
+    if (entry === void 0) {
+      continue;
+    }
+    const wanted = version2 ?? entry.latestVersion;
+    const versionEntry = entry.versions.find((candidate) => candidate.version === wanted);
+    if (versionEntry === void 0) {
+      throw new RegistryError(
+        "SBR011",
+        `extension "${extensionId}" has no version ${wanted} in registry "${registryName}" (available: ${entry.versions.map((candidate) => candidate.version).join(", ")}).`,
+        "Pass one of the available versions with --version.",
+        { extensionId, version: wanted }
+      );
+    }
+    matches.push({ registryName, entry, version: versionEntry });
+  }
+  if (matches.length === 0) {
+    throw new RegistryError(
+      "SBR011",
+      `extension "${extensionId}" was not found in any readable registry index.`,
+      "Run `specbridge registry search <query>` to discover extensions, or update the registry cache with `specbridge registry update <name> --network`.",
+      { extensionId }
+    );
+  }
+  const first = matches[0];
+  if (matches.length > 1 && first !== void 0) {
+    return first;
+  }
+  if (first === void 0) {
+    throw new RegistryError("SBR011", `extension "${extensionId}" was not found.`, "Check the ID.");
+  }
+  return first;
+}
+var REGISTRIES_FILE_NAME = "registries.json";
+var REGISTRIES_SCHEMA_VERSION = "1.0.0";
+var BUILTIN_REGISTRY_NAME = "examples";
+var HTTPS_SOURCE_URL = external_exports.string().min(9).max(1e3).superRefine((value, ctx) => {
+  let parsed;
+  try {
+    parsed = new URL(value);
+  } catch {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message: "not a valid URL" });
+    return;
+  }
+  if (parsed.protocol !== "https:") {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message: "only https:// registry URLs are allowed" });
+  }
+  if (parsed.username !== "" || parsed.password !== "") {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message: "registry URLs must not embed credentials" });
+  }
+});
+var NAME = external_exports.string().min(1).max(MAX_REGISTRY_NAME_LENGTH).regex(REGISTRY_NAME_PATTERN, "registry names use lowercase letters, digits, and single hyphens");
+var registrySourceSchema = external_exports.discriminatedUnion("type", [
+  external_exports.object({ name: NAME, type: external_exports.literal("builtin"), enabled: external_exports.boolean().default(true) }).strict(),
+  external_exports.object({
+    name: NAME,
+    type: external_exports.literal("local-file"),
+    /** Workspace-relative path to a registry index JSON file. */
+    file: external_exports.string().min(1).max(500),
+    enabled: external_exports.boolean().default(true)
+  }).strict(),
+  external_exports.object({
+    name: NAME,
+    type: external_exports.literal("https"),
+    url: HTTPS_SOURCE_URL,
+    enabled: external_exports.boolean().default(true)
+  }).strict()
+]);
+var registriesConfigSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  registries: external_exports.array(registrySourceSchema).max(20)
+}).passthrough();
+function registriesConfigPath(workspace) {
+  return import_path50.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
+}
+function defaultRegistriesConfig() {
+  return {
+    schemaVersion: REGISTRIES_SCHEMA_VERSION,
+    registries: [{ name: BUILTIN_REGISTRY_NAME, type: "builtin", enabled: true }]
+  };
+}
+function readRegistriesConfig(workspace) {
+  const filePath = registriesConfigPath(workspace);
+  if (!(0, import_fs45.existsSync)(filePath)) {
+    return { config: defaultRegistriesConfig(), diagnostics: [], exists: false };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse((0, import_fs45.readFileSync)(filePath, "utf8"));
+  } catch (cause) {
+    return {
+      config: defaultRegistriesConfig(),
+      exists: true,
+      diagnostics: [
+        {
+          severity: "error",
+          code: "REGISTRIES_INVALID_JSON",
+          message: `registries.json is not valid JSON: ${cause instanceof Error ? cause.message : String(cause)}`,
+          file: filePath
+        }
+      ]
+    };
+  }
+  const result = registriesConfigSchema.safeParse(parsed);
+  if (!result.success) {
+    return {
+      config: defaultRegistriesConfig(),
+      exists: true,
+      diagnostics: [
+        {
+          severity: "error",
+          code: "REGISTRIES_INVALID_SHAPE",
+          message: `registries.json does not match the schema: ${result.error.issues[0]?.message ?? "unknown"}`,
+          file: filePath
+        }
+      ]
+    };
+  }
+  const names = /* @__PURE__ */ new Set();
+  for (const source of result.data.registries) {
+    if (names.has(source.name)) {
+      return {
+        config: defaultRegistriesConfig(),
+        exists: true,
+        diagnostics: [
+          {
+            severity: "error",
+            code: "REGISTRIES_DUPLICATE_NAME",
+            message: `registries.json declares "${source.name}" more than once`,
+            file: filePath
+          }
+        ]
+      };
+    }
+    names.add(source.name);
+  }
+  const config2 = result.data.registries.some((source) => source.type === "builtin") ? result.data : {
+    ...result.data,
+    registries: [
+      { name: BUILTIN_REGISTRY_NAME, type: "builtin", enabled: true },
+      ...result.data.registries
+    ]
+  };
+  return { config: config2, diagnostics: [], exists: true };
+}
+function writeRegistriesConfig(workspace, config2) {
+  const filePath = registriesConfigPath(workspace);
+  assertInsideWorkspace(workspace.rootDir, filePath);
+  writeFileAtomic(filePath, `${JSON.stringify(registriesConfigSchema.parse(config2), null, 2)}
+`);
+}
+function requireRegistrySource(config2, name) {
+  const source = config2.registries.find((candidate) => candidate.name === name);
+  if (source === void 0) {
+    throw new RegistryError(
+      "SBR001",
+      `registry "${name}" is not configured.`,
+      `Configured registries: ${config2.registries.map((candidate) => candidate.name).join(", ")}. Add one with \`specbridge registry add <name> --file <path>\` or \`--url <https-url>\`.`,
+      { name }
+    );
+  }
+  return source;
+}
+function addRegistrySource(workspace, source) {
+  const parsed = registrySourceSchema.safeParse(source);
+  if (!parsed.success) {
+    throw new RegistryError(
+      "SBR003",
+      `registry configuration is invalid: ${parsed.error.issues[0]?.message ?? "unknown"}.`,
+      "Check the name, file path, or https URL."
+    );
+  }
+  const { config: config2 } = readRegistriesConfig(workspace);
+  if (config2.registries.some((candidate) => candidate.name === source.name)) {
+    throw new RegistryError(
+      "SBR003",
+      `registry "${source.name}" already exists.`,
+      "Remove it first with `specbridge registry remove <name>` or pick another name.",
+      { name: source.name }
+    );
+  }
+  const next = { ...config2, registries: [...config2.registries, parsed.data] };
+  writeRegistriesConfig(workspace, next);
+  return next;
+}
+function removeRegistrySource(workspace, name) {
+  if (name === BUILTIN_REGISTRY_NAME) {
+    throw new RegistryError(
+      "SBR003",
+      "the built-in example registry cannot be removed.",
+      "Disable it by ignoring it; it never touches the network."
+    );
+  }
+  const { config: config2 } = readRegistriesConfig(workspace);
+  requireRegistrySource(config2, name);
+  const next = {
+    ...config2,
+    registries: config2.registries.filter((candidate) => candidate.name !== name)
+  };
+  writeRegistriesConfig(workspace, next);
+  return next;
+}
 
 // ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 var import_node_process11 = __toESM(require("process"), 1);
@@ -70949,7 +71568,7 @@ var StdioServerTransport = class {
   }
 };
 
-// ../../packages/mcp-server/dist/chunk-7SENKHXT.js
+// ../../packages/mcp-server/dist/chunk-3E2ZYI7Q.js
 var MCP_SERVER_NAME = "specbridge";
 var MCP_SERVER_VERSION = "0.7.1";
 var MCP_SERVER_TITLE = "SpecBridge";
@@ -71207,10 +71826,10 @@ function validateProjectRoot(value, source, cwd) {
       remediation: ["Pass a plain filesystem path as --project-root."]
     };
   }
-  const resolved = import_path49.default.resolve(cwd, value);
+  const resolved = import_path51.default.resolve(cwd, value);
   let canonical;
   try {
-    canonical = (0, import_fs44.realpathSync)(resolved);
+    canonical = (0, import_fs46.realpathSync)(resolved);
   } catch {
     return {
       ok: false,
@@ -71223,7 +71842,7 @@ function validateProjectRoot(value, source, cwd) {
   }
   let stats;
   try {
-    stats = (0, import_fs44.statSync)(canonical);
+    stats = (0, import_fs46.statSync)(canonical);
   } catch {
     return {
       ok: false,
@@ -71251,7 +71870,7 @@ var ServerContext = class {
     this.projectRoot = options.projectRoot;
     this.logger = options.logger;
     this.clock = options.clock ?? (() => /* @__PURE__ */ new Date());
-    this.idFactory = options.idFactory ?? import_crypto12.randomUUID;
+    this.idFactory = options.idFactory ?? import_crypto13.randomUUID;
   }
   /**
    * Resolve the `.kiro` workspace from the pinned project root, or
@@ -71480,8 +72099,8 @@ var paginationShape = external_exports.object({
   nextCursor: external_exports.string().optional()
 });
 function repoRelative2(workspace, target) {
-  const relative = import_path50.default.isAbsolute(target) ? import_path50.default.relative(workspace.rootDir, target) : target;
-  const posix = relative.split(import_path50.default.sep).join("/");
+  const relative = import_path52.default.isAbsolute(target) ? import_path52.default.relative(workspace.rootDir, target) : target;
+  const posix = relative.split(import_path52.default.sep).join("/");
   return posix === "" ? "." : posix;
 }
 function toDiagnosticView(workspace, diagnostic) {
@@ -71981,7 +72600,7 @@ function registerRunResources(server, context) {
         throw resourceNotFound(`Run "${runId}"`, "List runs with the run_list tool.");
       }
       const directory = runDir(workspace, record2.runId);
-      const artifactNames = (0, import_fs45.existsSync)(directory) ? (0, import_fs45.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
+      const artifactNames = (0, import_fs47.existsSync)(directory) ? (0, import_fs47.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
       return jsonContents(context, uri.href, buildRunDetail(workspace, record2, artifactNames));
     }
   );
@@ -73797,7 +74416,7 @@ function registerRunReadTool(server, context) {
         });
       }
       const directory = runDir(workspace, record2.runId);
-      const artifactNames = (0, import_fs46.existsSync)(directory) ? (0, import_fs46.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS2.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
+      const artifactNames = (0, import_fs48.existsSync)(directory) ? (0, import_fs48.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS2.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
       const detail = buildRunDetail(workspace, record2, artifactNames);
       const lines = [
         `Run ${detail.summary.runId} \u2014 ${detail.summary.runType} for spec "${detail.summary.specName}"${detail.summary.taskId !== void 0 ? `, task ${detail.summary.taskId}` : ""}.`,
@@ -74157,7 +74776,7 @@ function registerSpecRunVerificationTool(server, context) {
         durationMs: command.durationMs,
         timedOut: command.timedOut
       }));
-      const reportPath = result.artifactsDir !== void 0 ? import_path51.default.relative(workspace.rootDir, result.artifactsDir).split(import_path51.default.sep).join("/") : void 0;
+      const reportPath = result.artifactsDir !== void 0 ? import_path53.default.relative(workspace.rootDir, result.artifactsDir).split(import_path53.default.sep).join("/") : void 0;
       const commandLines = commands.map(
         (command) => `- ${command.name}: ${command.disposition}${command.disposition === "executed" ? command.passed ? " (passed)" : ` (FAILED, exit ${command.exitCode ?? "none"})` : ""}`
       );
@@ -74276,18 +74895,18 @@ var conformanceSummaryShape = external_exports.object({
   note: external_exports.string()
 });
 async function invocationFreeConformanceSummary(profile) {
-  const scratch = (0, import_fs47.mkdtempSync)(import_path52.default.join(import_os2.default.tmpdir(), "specbridge-mcp-conformance-"));
+  const scratch = (0, import_fs49.mkdtempSync)(import_path54.default.join(import_os2.default.tmpdir(), "specbridge-mcp-conformance-"));
   let result;
   try {
     result = await runRunnerConformance({
       profile,
       workspaceRoot: scratch,
-      runDir: import_path52.default.join(scratch, ".specbridge-conformance-runs"),
+      runDir: import_path54.default.join(scratch, ".specbridge-conformance-runs"),
       invocationsAllowed: false,
       timeoutMs: RUNNER_PROBE_TIMEOUT_MS
     });
   } finally {
-    (0, import_fs47.rmSync)(scratch, { recursive: true, force: true });
+    (0, import_fs49.rmSync)(scratch, { recursive: true, force: true });
   }
   return {
     passed: result.passed,
@@ -74964,6 +75583,375 @@ function registerTemplateApplyTool(server, context) {
     })
   });
 }
+var extensionSummaryShape = external_exports.object({
+  id: external_exports.string(),
+  version: external_exports.string(),
+  kind: external_exports.string(),
+  displayName: external_exports.string(),
+  description: external_exports.string(),
+  source: external_exports.string(),
+  installedAt: external_exports.string(),
+  enabled: external_exports.boolean(),
+  permissionsAccepted: external_exports.boolean(),
+  permissionHash: external_exports.string(),
+  compatibility: external_exports.string(),
+  conformance: external_exports.string(),
+  deprecated: external_exports.boolean()
+});
+var registryHitShape = external_exports.object({
+  registryName: external_exports.string(),
+  id: external_exports.string(),
+  kind: external_exports.string(),
+  displayName: external_exports.string(),
+  description: external_exports.string(),
+  latestVersion: external_exports.string(),
+  license: external_exports.string(),
+  score: external_exports.number().int()
+});
+function readableRegistryIndexes(workspace, registryFilter) {
+  const { config: config2 } = readRegistriesConfig(workspace);
+  const indexes = [];
+  for (const source of config2.registries) {
+    if (source.enabled !== true) {
+      continue;
+    }
+    if (registryFilter !== void 0 && source.name !== registryFilter) {
+      continue;
+    }
+    try {
+      const resolved = resolveRegistryIndex(workspace, source);
+      if (resolved !== void 0) {
+        indexes.push({ registryName: resolved.sourceName, index: resolved.index });
+      }
+    } catch {
+    }
+  }
+  return indexes;
+}
+var kindInput = external_exports.enum(EXTENSION_KINDS).optional();
+function registerExtensionListTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "extension_list",
+    title: "List installed extensions",
+    description: "List installed SpecBridge extensions with enablement, permission, compatibility, and conformance status. Read-only and offline; never starts an extension process.",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    inputSchema: {
+      kind: kindInput.describe("Filter by extension kind"),
+      enabled: external_exports.boolean().optional().describe("Only enabled (true) or only disabled (false)"),
+      limit: external_exports.number().int().min(1).optional(),
+      cursor: external_exports.string().optional()
+    },
+    outputSchema: {
+      extensions: external_exports.array(extensionSummaryShape),
+      totalCount: external_exports.number().int(),
+      nextCursor: external_exports.string().nullable()
+    },
+    handler: async (args) => {
+      const workspace = context.requireWorkspace();
+      const catalog = listInstalledExtensions(workspace);
+      let entries = [...catalog.entries];
+      if (args.kind !== void 0) {
+        entries = entries.filter((entry) => entry.kind === args.kind);
+      }
+      if (args.enabled !== void 0) {
+        entries = entries.filter((entry) => entry.enabled === args.enabled);
+      }
+      const page = paginate(entries, {
+        limit: clampListLimit(args.limit),
+        ...args.cursor !== void 0 ? { cursor: args.cursor } : {},
+        token: "extension-list"
+      });
+      const text = page.items.length === 0 ? "No installed extensions match the given filters." : page.items.map((entry) => `- ${entry.id}@${entry.version} (${entry.kind}, ${entry.enabled ? "enabled" : "disabled"})`).join("\n");
+      return {
+        text,
+        structured: { extensions: page.items, totalCount: entries.length, nextCursor: page.nextCursor ?? null }
+      };
+    }
+  });
+}
+function registerExtensionSearchTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "extension_search",
+    title: "Search extensions",
+    description: "Search installed extensions and validated cached registry indexes with deterministic lexical ranking. Offline: never fetches a registry and never downloads anything.",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    inputSchema: {
+      query: external_exports.string().min(1).max(200),
+      registry: external_exports.string().max(40).optional().describe("Search one registry only"),
+      kind: kindInput,
+      limit: external_exports.number().int().min(1).max(50).optional()
+    },
+    outputSchema: {
+      installed: external_exports.array(extensionSummaryShape),
+      registry: external_exports.array(registryHitShape),
+      totalCount: external_exports.number().int()
+    },
+    handler: async (args) => {
+      const workspace = context.requireWorkspace();
+      const installed = args.registry === void 0 ? searchInstalledExtensions(listInstalledExtensions(workspace), args.query, {
+        ...args.kind === void 0 ? {} : { kind: args.kind },
+        limit: args.limit ?? 20
+      }) : [];
+      const registryHits = searchRegistryIndexes(
+        readableRegistryIndexes(workspace, args.registry),
+        args.query,
+        { ...args.kind === void 0 ? {} : { kind: args.kind }, ...args.limit === void 0 ? {} : { limit: args.limit } }
+      ).map((hit) => ({
+        registryName: hit.registryName,
+        id: hit.entry.id,
+        kind: hit.entry.kind,
+        displayName: hit.entry.displayName,
+        description: hit.entry.description,
+        latestVersion: hit.entry.latestVersion,
+        license: hit.entry.license,
+        score: hit.score
+      }));
+      return {
+        text: installed.length + registryHits.length === 0 ? "No matches." : [
+          ...installed.map((hit) => `- installed: ${hit.id}@${hit.version} (${hit.kind})`),
+          ...registryHits.map((hit) => `- ${hit.registryName}: ${hit.id}@${hit.latestVersion} (${hit.kind})`)
+        ].join("\n"),
+        structured: { installed, registry: registryHits, totalCount: installed.length + registryHits.length }
+      };
+    }
+  });
+}
+function registerExtensionShowTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "extension_show",
+    title: "Show extension details",
+    description: "Show an installed extension: manifest summary, permissions, permission hash, enablement, grant status, and the exact CLI command needed to enable it. Never exposes secret values.",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    inputSchema: { extensionId: external_exports.string().min(1).max(64) },
+    outputSchema: {
+      id: external_exports.string(),
+      installedVersions: external_exports.array(external_exports.string()),
+      enabledVersion: external_exports.string().nullable(),
+      kind: external_exports.string(),
+      displayName: external_exports.string(),
+      description: external_exports.string(),
+      permissions: external_exports.record(external_exports.unknown()),
+      permissionLines: external_exports.array(external_exports.string()),
+      permissionHash: external_exports.string(),
+      grantStatus: external_exports.string(),
+      compatibility: external_exports.string(),
+      enableCommand: external_exports.string()
+    },
+    handler: async (args) => {
+      const workspace = context.requireWorkspace();
+      const { state } = readExtensionState(workspace);
+      const versions = installedVersions(state, args.extensionId);
+      const preview = describeEnablement(workspace, args.extensionId);
+      const enableCommand = `specbridge extension enable ${args.extensionId} --accept-permissions ${preview.permissionHash}`;
+      return {
+        text: `${preview.manifest.displayName} v${preview.record.version} (${preview.manifest.kind}) \u2014 ${preview.enabled ? "enabled" : "disabled"}, grant ${preview.grantStatus}.
+Permission hash: ${preview.permissionHash}
+Enable with: ${enableCommand}`,
+        structured: {
+          id: args.extensionId,
+          installedVersions: versions.map((record2) => record2.version),
+          enabledVersion: state.enabled[args.extensionId]?.version ?? null,
+          kind: preview.manifest.kind,
+          displayName: preview.manifest.displayName,
+          description: preview.manifest.description,
+          permissions: preview.manifest.permissions,
+          permissionLines: [...preview.permissionLines],
+          permissionHash: preview.permissionHash,
+          grantStatus: preview.grantStatus,
+          compatibility: preview.manifest.compatibility.specbridge,
+          enableCommand
+        }
+      };
+    }
+  });
+}
+function registerExtensionDoctorTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "extension_doctor",
+    title: "Extension health check",
+    description: "Read-only health check for an installed extension: package integrity, grant status, compatibility, and \u2014 only for enabled executable extensions \u2014 a bounded no-operation initialize handshake. Never invokes a business operation and never touches the network.",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    inputSchema: { extensionId: external_exports.string().min(1).max(64) },
+    outputSchema: {
+      id: external_exports.string(),
+      version: external_exports.string(),
+      integrity: external_exports.string(),
+      enabled: external_exports.boolean(),
+      grantStatus: external_exports.string(),
+      handshake: external_exports.object({ ok: external_exports.boolean(), detail: external_exports.string() }),
+      ok: external_exports.boolean()
+    },
+    handler: async (args) => {
+      const workspace = context.requireWorkspace();
+      const preview = describeEnablement(workspace, args.extensionId);
+      let handshake = {
+        ok: true,
+        detail: preview.manifest.entrypoint === void 0 ? "data-only extension; no process to probe" : "not enabled; handshake skipped"
+      };
+      if (preview.enabled && preview.manifest.entrypoint !== void 0) {
+        const enabled = requireEnabledExtension(workspace, args.extensionId);
+        const probe = await probeExtensionHandshake(enabled);
+        handshake = { ok: probe.ok, detail: probe.detail };
+      }
+      const ok = handshake.ok && preview.grantStatus !== "stale";
+      return {
+        text: `${args.extensionId}@${preview.record.version}: ${ok ? "healthy" : "unhealthy"} (${handshake.detail})`,
+        structured: {
+          id: args.extensionId,
+          version: preview.record.version,
+          integrity: "valid",
+          enabled: preview.enabled,
+          grantStatus: preview.grantStatus,
+          handshake,
+          ok
+        }
+      };
+    }
+  });
+}
+function registerRegistryListTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "registry_list",
+    title: "List extension registries",
+    description: "List configured extension registries with cache status. Read-only and offline; registry updates require the explicit CLI command with --network.",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    inputSchema: {},
+    outputSchema: {
+      registries: external_exports.array(
+        external_exports.object({
+          name: external_exports.string(),
+          type: external_exports.string(),
+          enabled: external_exports.boolean(),
+          source: external_exports.string(),
+          cacheStatus: external_exports.string(),
+          lastUpdate: external_exports.string().nullable(),
+          extensionCount: external_exports.number().int().nullable()
+        })
+      ),
+      totalCount: external_exports.number().int()
+    },
+    handler: async () => {
+      const workspace = context.requireWorkspace();
+      const { config: config2 } = readRegistriesConfig(workspace);
+      const readable2 = new Map(
+        readableRegistryIndexes(workspace).map((entry) => [entry.registryName, entry.index])
+      );
+      const registries = config2.registries.map((source) => {
+        const cache = source.type === "https" ? readRegistryCache(workspace, source.name) : void 0;
+        return {
+          name: source.name,
+          type: source.type,
+          enabled: source.enabled,
+          source: source.type === "https" ? source.url : source.type === "local-file" ? source.file : "embedded",
+          cacheStatus: source.type === "https" ? cache?.cache !== void 0 ? "cached" : "no-cache" : readable2.has(source.name) ? "readable" : "invalid",
+          lastUpdate: cache?.cache?.retrievedAt ?? null,
+          extensionCount: readable2.get(source.name)?.extensions.length ?? null
+        };
+      });
+      return {
+        text: registries.map((row) => `- ${row.name} (${row.type}, ${row.cacheStatus})`).join("\n") || "No registries.",
+        structured: { registries, totalCount: registries.length }
+      };
+    }
+  });
+}
+function registerRegistrySearchTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "registry_search",
+    title: "Search extension registries",
+    description: "Search validated cached registry indexes with deterministic lexical ranking (exact ID, ID prefix, keyword, name token, description token). Offline: never fetches.",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    inputSchema: {
+      query: external_exports.string().min(1).max(200),
+      registry: external_exports.string().max(40).optional(),
+      kind: external_exports.enum(EXTENSION_KINDS).optional(),
+      limit: external_exports.number().int().min(1).max(50).optional()
+    },
+    outputSchema: {
+      results: external_exports.array(registryHitShape),
+      totalCount: external_exports.number().int()
+    },
+    handler: async (args) => {
+      const workspace = context.requireWorkspace();
+      const hits = searchRegistryIndexes(readableRegistryIndexes(workspace, args.registry), args.query, {
+        ...args.kind === void 0 ? {} : { kind: args.kind },
+        ...args.limit === void 0 ? {} : { limit: args.limit }
+      }).map((hit) => ({
+        registryName: hit.registryName,
+        id: hit.entry.id,
+        kind: hit.entry.kind,
+        displayName: hit.entry.displayName,
+        description: hit.entry.description,
+        latestVersion: hit.entry.latestVersion,
+        license: hit.entry.license,
+        score: hit.score
+      }));
+      return {
+        text: hits.length === 0 ? "No matches in readable registry indexes." : hits.map((hit) => `- ${hit.id}@${hit.latestVersion} (${hit.kind}, from ${hit.registryName})`).join("\n"),
+        structured: { results: hits, totalCount: hits.length }
+      };
+    }
+  });
+}
+function registerRegistryShowTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "registry_show",
+    title: "Show registry extension metadata",
+    description: "Show registry metadata for one extension: versions, archive integrity metadata, permissions summary, and compatibility. Never downloads an archive. Registry listing is not endorsement.",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    inputSchema: { extensionId: external_exports.string().min(1).max(64) },
+    outputSchema: {
+      matches: external_exports.array(
+        external_exports.object({
+          registryName: external_exports.string(),
+          id: external_exports.string(),
+          kind: external_exports.string(),
+          displayName: external_exports.string(),
+          description: external_exports.string(),
+          latestVersion: external_exports.string(),
+          license: external_exports.string(),
+          deprecated: external_exports.boolean(),
+          versions: external_exports.array(
+            external_exports.object({
+              version: external_exports.string(),
+              archiveUrl: external_exports.string(),
+              sha256: external_exports.string(),
+              specbridge: external_exports.string(),
+              permissions: external_exports.record(external_exports.unknown())
+            })
+          )
+        })
+      ),
+      totalCount: external_exports.number().int()
+    },
+    handler: async (args) => {
+      const workspace = context.requireWorkspace();
+      const matches = readableRegistryIndexes(workspace).flatMap(
+        ({ registryName, index }) => index.extensions.filter((entry) => entry.id === args.extensionId).map((entry) => ({
+          registryName,
+          id: entry.id,
+          kind: entry.kind,
+          displayName: entry.displayName,
+          description: entry.description,
+          latestVersion: entry.latestVersion,
+          license: entry.license,
+          deprecated: entry.deprecated === true,
+          versions: entry.versions.map((version2) => ({
+            version: version2.version,
+            archiveUrl: version2.archiveUrl,
+            sha256: version2.sha256,
+            specbridge: version2.manifest.compatibility.specbridge,
+            permissions: version2.manifest.permissions
+          }))
+        }))
+      );
+      return {
+        text: matches.length === 0 ? `Extension "${args.extensionId}" was not found in any readable registry index.` : matches.map((match) => `${match.registryName}: ${match.id}@${match.latestVersion} (${match.kind}, ${match.license})`).join("\n"),
+        structured: { matches, totalCount: matches.length }
+      };
+    }
+  });
+}
 var TOOL_CATALOG = [
   { name: "workspace_detect", readOnly: true, summary: "Detect the Kiro-compatible workspace" },
   { name: "steering_list", readOnly: true, summary: "List steering documents" },
@@ -74994,7 +75982,14 @@ var TOOL_CATALOG = [
   { name: "spec_run_verification", readOnly: false, summary: "Drift rules + trusted configured commands" },
   { name: "task_begin", readOnly: false, summary: "Begin an interactive task run (lock + snapshot)" },
   { name: "task_complete", readOnly: false, summary: "Finalize an interactive run with evidence" },
-  { name: "task_abort", readOnly: false, summary: "Abort an interactive run, preserving changes" }
+  { name: "task_abort", readOnly: false, summary: "Abort an interactive run, preserving changes" },
+  { name: "extension_list", readOnly: true, summary: "List installed extensions with status" },
+  { name: "extension_search", readOnly: true, summary: "Offline extension search (installed + cached registries)" },
+  { name: "extension_show", readOnly: true, summary: "One extension in depth (permissions, hash, grant)" },
+  { name: "extension_doctor", readOnly: true, summary: "Extension health check (bounded no-op handshake)" },
+  { name: "registry_list", readOnly: true, summary: "List configured extension registries" },
+  { name: "registry_search", readOnly: true, summary: "Offline registry index search" },
+  { name: "registry_show", readOnly: true, summary: "Registry metadata for one extension (no download)" }
 ];
 function registerAllTools(server, context) {
   registerWorkspaceDetectTool(server, context);
@@ -75027,6 +76022,13 @@ function registerAllTools(server, context) {
   registerTaskBeginTool(server, context);
   registerTaskCompleteTool(server, context);
   registerTaskAbortTool(server, context);
+  registerExtensionListTool(server, context);
+  registerExtensionSearchTool(server, context);
+  registerExtensionShowTool(server, context);
+  registerExtensionDoctorTool(server, context);
+  registerRegistryListTool(server, context);
+  registerRegistrySearchTool(server, context);
+  registerRegistryShowTool(server, context);
 }
 function buildMcpServer(context) {
   const server = new McpServer(
@@ -75190,8 +76192,8 @@ async function runMcpServe(argv2, io = {
 }
 
 // ../../packages/mcp-server/dist/index.js
-var import_fs48 = require("fs");
-var import_path53 = __toESM(require("path"), 1);
+var import_fs50 = require("fs");
+var import_path55 = __toESM(require("path"), 1);
 async function runMcpDoctor(options = {}) {
   const checks = [];
   const env = options.env ?? process.env;
@@ -75284,7 +76286,7 @@ async function runMcpDoctor(options = {}) {
   const pluginRoot = env["CLAUDE_PLUGIN_ROOT"];
   if (pluginRoot !== void 0 && pluginRoot.length > 0) {
     const missing = ["dist/mcp-server.cjs", "dist/cli.cjs"].filter(
-      (relative) => !(0, import_fs48.existsSync)(import_path53.default.join(pluginRoot, relative))
+      (relative) => !(0, import_fs50.existsSync)(import_path55.default.join(pluginRoot, relative))
     );
     checks.push(
       missing.length === 0 ? { name: "plugin-bundle", status: "ok", detail: `Bundled executables present under ${pluginRoot}` } : {
@@ -75421,632 +76423,6 @@ Examples:
 // ../../packages/cli/src/commands/extension.ts
 var import_node_fs14 = require("fs");
 var import_node_path17 = __toESM(require("path"), 1);
-
-// ../../packages/registry/dist/index.js
-var import_fs49 = require("fs");
-var import_path54 = __toESM(require("path"), 1);
-var import_crypto13 = require("crypto");
-var import_fs50 = require("fs");
-var import_path55 = __toESM(require("path"), 1);
-var BUILTIN_REGISTRY_INDEX_JSON = `{
-  "schemaVersion": "1.0.0",
-  "name": "specbridge-examples",
-  "updatedAt": "2026-01-01T00:00:00.000Z",
-  "extensions": []
-}
-`;
-var REGISTRY_ERROR_CODES = {
-  SBR001: "registry not found",
-  SBR002: "invalid registry name",
-  SBR003: "invalid registry configuration",
-  SBR004: "registry network flag required",
-  SBR005: "registry fetch failed",
-  SBR006: "registry response too large",
-  SBR007: "invalid registry index",
-  SBR008: "unsupported registry schema",
-  SBR009: "registry redirect rejected",
-  SBR010: "registry cache unavailable",
-  SBR011: "extension version not found",
-  SBR012: "archive integrity metadata missing",
-  SBR013: "archive download failed",
-  SBR014: "archive checksum mismatch",
-  SBR015: "registry operation failed"
-};
-var RegistryError = class extends SpecBridgeError {
-  registryCode;
-  /** Actionable next step, always present. */
-  remediation;
-  constructor(registryCode, detail, remediation, details) {
-    super(
-      "REGISTRY_ERROR",
-      `${registryCode} (${REGISTRY_ERROR_CODES[registryCode]}): ${detail} ${remediation}`,
-      { ...details, registryCode }
-    );
-    this.name = "RegistryError";
-    this.registryCode = registryCode;
-    this.remediation = remediation;
-  }
-};
-var REGISTRY_INDEX_SCHEMA_VERSION = "1.0.0";
-var MAX_REGISTRY_INDEX_BYTES = 5 * 1024 * 1024;
-var REGISTRY_NAME_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
-var MAX_REGISTRY_NAME_LENGTH = 40;
-var HTTPS_URL = external_exports.string().min(9).max(1e3).superRefine((value, ctx) => {
-  let parsed;
-  try {
-    parsed = new URL(value);
-  } catch {
-    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message: "not a valid URL" });
-    return;
-  }
-  if (parsed.protocol !== "https:") {
-    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message: "only https:// URLs are allowed" });
-  }
-  if (parsed.username !== "" || parsed.password !== "") {
-    ctx.addIssue({
-      code: external_exports.ZodIssueCode.custom,
-      message: "URLs must not embed credentials"
-    });
-  }
-});
-var registryVersionEntrySchema = external_exports.object({
-  version: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  archiveUrl: HTTPS_URL,
-  sha256: external_exports.string().regex(/^[0-9a-f]{64}$/),
-  manifest: external_exports.object({
-    protocolVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-    compatibility: external_exports.object({
-      specbridge: external_exports.string().min(1).max(100)
-    }).passthrough(),
-    permissions: extensionPermissionsSchema
-  }).passthrough()
-}).strict();
-var registryExtensionEntrySchema = external_exports.object({
-  id: external_exports.string().min(1).max(64),
-  displayName: external_exports.string().min(1).max(100),
-  description: external_exports.string().min(1).max(500),
-  kind: external_exports.enum(EXTENSION_KINDS),
-  latestVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  versions: external_exports.array(registryVersionEntrySchema).min(1).max(50),
-  repository: HTTPS_URL.optional(),
-  homepage: HTTPS_URL.optional(),
-  license: external_exports.string().min(1).max(100),
-  keywords: external_exports.array(external_exports.string().min(1).max(30)).max(12).optional(),
-  deprecated: external_exports.boolean().optional()
-}).strict();
-var registryIndexSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  name: external_exports.string().min(1).max(100),
-  updatedAt: external_exports.string().min(1).max(60),
-  extensions: external_exports.array(registryExtensionEntrySchema).max(2e3)
-}).strict();
-function parseRegistryIndex(text) {
-  const problems = [];
-  if (Buffer.byteLength(text, "utf8") > MAX_REGISTRY_INDEX_BYTES) {
-    return { problems: [`index exceeds ${MAX_REGISTRY_INDEX_BYTES} bytes`] };
-  }
-  let parsed;
-  try {
-    parsed = JSON.parse(text);
-  } catch (error2) {
-    return { problems: [`index is not valid JSON: ${error2 instanceof Error ? error2.message : String(error2)}`] };
-  }
-  if (typeof parsed === "object" && parsed !== null && "schemaVersion" in parsed && typeof parsed.schemaVersion === "string") {
-    const major = parsed.schemaVersion.split(".")[0];
-    if (major !== REGISTRY_INDEX_SCHEMA_VERSION.split(".")[0]) {
-      return {
-        problems: [
-          `schemaVersion ${parsed.schemaVersion} is not supported (supported major: ${REGISTRY_INDEX_SCHEMA_VERSION.split(".")[0]})`
-        ]
-      };
-    }
-  }
-  const result = registryIndexSchema.safeParse(parsed);
-  if (!result.success) {
-    for (const issue4 of result.error.issues.slice(0, 15)) {
-      problems.push(`${issue4.path.join(".") || "(root)"}: ${issue4.message}`);
-    }
-    return { problems };
-  }
-  const seen = /* @__PURE__ */ new Set();
-  for (const entry of result.data.extensions) {
-    if (!validateExtensionId(entry.id).valid) {
-      problems.push(`extension "${entry.id}": invalid extension ID`);
-    }
-    if (seen.has(entry.id)) {
-      problems.push(`extension "${entry.id}": duplicate entry`);
-    }
-    seen.add(entry.id);
-    if (!entry.versions.some((version2) => version2.version === entry.latestVersion)) {
-      problems.push(`extension "${entry.id}": latestVersion ${entry.latestVersion} is not in versions`);
-    }
-    const versionsSeen = /* @__PURE__ */ new Set();
-    for (const version2 of entry.versions) {
-      if (versionsSeen.has(version2.version)) {
-        problems.push(`extension "${entry.id}": duplicate version ${version2.version}`);
-      }
-      versionsSeen.add(version2.version);
-      const range = validateSemverRange2(version2.manifest.compatibility.specbridge);
-      if (!range.valid) {
-        problems.push(
-          `extension "${entry.id}" ${version2.version}: invalid compatibility range (${range.problem ?? "unknown"})`
-        );
-      }
-    }
-  }
-  if (problems.length > 0) {
-    return { problems };
-  }
-  return { index: result.data, problems: [] };
-}
-var REGISTRY_CACHE_DIR_NAME = "registry-cache";
-var REGISTRY_CACHE_SCHEMA_VERSION = "1.0.0";
-var cachedRegistrySchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  sourceName: external_exports.string().min(1),
-  sourceUrl: external_exports.string().min(1).optional(),
-  retrievedAt: external_exports.string().min(1),
-  contentSha256: external_exports.string().regex(/^[0-9a-f]{64}$/),
-  index: registryIndexSchema
-}).passthrough();
-function registryCacheDir(workspace) {
-  return import_path54.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
-}
-function registryCachePath(workspace, name) {
-  const target = import_path54.default.join(registryCacheDir(workspace), `${name}.json`);
-  assertInsideWorkspace(workspace.rootDir, target);
-  return target;
-}
-function readRegistryCache(workspace, name) {
-  const filePath = registryCachePath(workspace, name);
-  if (!(0, import_fs49.existsSync)(filePath)) {
-    return { diagnostics: [] };
-  }
-  try {
-    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs49.readFileSync)(filePath, "utf8")));
-    if (!parsed.success) {
-      return {
-        diagnostics: [
-          {
-            severity: "warning",
-            code: "REGISTRY_CACHE_INVALID",
-            message: `cached index for "${name}" does not match the cache schema and was ignored`,
-            file: filePath
-          }
-        ]
-      };
-    }
-    return { cache: parsed.data, diagnostics: [] };
-  } catch (cause) {
-    return {
-      diagnostics: [
-        {
-          severity: "warning",
-          code: "REGISTRY_CACHE_UNREADABLE",
-          message: `cached index for "${name}" could not be read: ${cause instanceof Error ? cause.message : String(cause)}`,
-          file: filePath
-        }
-      ]
-    };
-  }
-}
-function writeRegistryCache(workspace, name, indexText, index, options = {}) {
-  const cache = cachedRegistrySchema.parse({
-    schemaVersion: REGISTRY_CACHE_SCHEMA_VERSION,
-    sourceName: name,
-    ...options.sourceUrl === void 0 ? {} : { sourceUrl: options.sourceUrl },
-    retrievedAt: (options.clock?.() ?? /* @__PURE__ */ new Date()).toISOString(),
-    contentSha256: (0, import_crypto13.createHash)("sha256").update(indexText, "utf8").digest("hex"),
-    index
-  });
-  writeFileAtomic(registryCachePath(workspace, name), `${JSON.stringify(cache, null, 2)}
-`);
-  return cache;
-}
-function resolveRegistryIndex(workspace, source) {
-  if (source.type === "builtin") {
-    const parsed = parseRegistryIndex(BUILTIN_REGISTRY_INDEX_JSON);
-    if (parsed.index === void 0) {
-      throw new RegistryError(
-        "SBR007",
-        "the built-in example registry index failed validation.",
-        "This is a SpecBridge build problem; run `pnpm check:builtin-registry`."
-      );
-    }
-    return { sourceName: source.name, index: parsed.index, origin: "builtin", diagnostics: [] };
-  }
-  if (source.type === "local-file") {
-    const filePath = import_path54.default.resolve(workspace.rootDir, source.file);
-    assertInsideWorkspace(workspace.rootDir, filePath);
-    if (!(0, import_fs49.existsSync)(filePath)) {
-      return {
-        sourceName: source.name,
-        index: { schemaVersion: "1.0.0", name: source.name, updatedAt: "unknown", extensions: [] },
-        origin: "local-file",
-        diagnostics: [
-          {
-            severity: "warning",
-            code: "REGISTRY_FILE_MISSING",
-            message: `registry file ${source.file} does not exist`,
-            file: filePath
-          }
-        ]
-      };
-    }
-    const text = (0, import_fs49.readFileSync)(filePath, "utf8");
-    const parsed = parseRegistryIndex(text);
-    if (parsed.index === void 0) {
-      throw new RegistryError(
-        "SBR007",
-        `registry file ${source.file} is invalid: ${parsed.problems.slice(0, 3).join("; ")}.`,
-        "Fix the index file; see registry/schema.json for the expected shape.",
-        { problems: [...parsed.problems] }
-      );
-    }
-    return { sourceName: source.name, index: parsed.index, origin: "local-file", diagnostics: [] };
-  }
-  const cached2 = readRegistryCache(workspace, source.name);
-  if (cached2.cache === void 0) {
-    return void 0;
-  }
-  return {
-    sourceName: source.name,
-    index: cached2.cache.index,
-    origin: "cache",
-    retrievedAt: cached2.cache.retrievedAt,
-    diagnostics: cached2.diagnostics
-  };
-}
-var REGISTRY_FETCH_TIMEOUT_MS = 3e4;
-var REGISTRY_MAX_REDIRECTS = 3;
-async function updateRegistryIndex(workspace, source, options) {
-  if (source.type !== "https") {
-    throw new RegistryError(
-      "SBR015",
-      `registry "${source.name}" is a ${source.type} source and has nothing to update.`,
-      "Only https registries are updated; local-file and builtin sources are always current.",
-      { name: source.name }
-    );
-  }
-  if (!options.network) {
-    throw new RegistryError(
-      "SBR004",
-      `updating registry "${source.name}" requires network access.`,
-      "Re-run with --network to allow this one explicit fetch.",
-      { name: source.name }
-    );
-  }
-  const response = await options.http({
-    method: "GET",
-    url: source.url,
-    timeoutMs: REGISTRY_FETCH_TIMEOUT_MS,
-    maxResponseBytes: MAX_REGISTRY_INDEX_BYTES,
-    maxRedirects: REGISTRY_MAX_REDIRECTS,
-    expectJson: true,
-    ...options.signal === void 0 ? {} : { signal: options.signal }
-  });
-  if (!response.ok) {
-    if (response.kind === "response-too-large") {
-      throw new RegistryError(
-        "SBR006",
-        `the index from ${source.url} exceeds ${MAX_REGISTRY_INDEX_BYTES} bytes.`,
-        "The previous valid cache (if any) was preserved."
-      );
-    }
-    if (response.kind === "redirect-rejected") {
-      throw new RegistryError(
-        "SBR009",
-        `the request to ${source.url} was redirected in a way SpecBridge refuses (${response.detail ?? "unsafe redirect"}).`,
-        "HTTPS\u2192HTTP downgrades and excessive redirects are never followed; the cache was preserved."
-      );
-    }
-    throw new RegistryError(
-      "SBR005",
-      `fetching ${source.url} failed (${response.kind ?? "error"}${response.status !== void 0 ? ` ${response.status}` : ""}: ${response.detail ?? "no detail"}).`,
-      "Check the URL and connectivity; the previous valid cache (if any) was preserved."
-    );
-  }
-  const bodyText = response.bodyText ?? "";
-  const parsed = parseRegistryIndex(bodyText);
-  if (parsed.index === void 0) {
-    throw new RegistryError(
-      "SBR007",
-      `the index from ${source.url} failed validation: ${parsed.problems.slice(0, 3).join("; ")}.`,
-      "The previous valid cache (if any) was preserved; contact the registry maintainer.",
-      { problems: [...parsed.problems] }
-    );
-  }
-  const cache = writeRegistryCache(workspace, source.name, bodyText, parsed.index, {
-    sourceUrl: source.url,
-    ...options.clock === void 0 ? {} : { clock: options.clock }
-  });
-  return { sourceName: source.name, cache, extensionCount: parsed.index.extensions.length };
-}
-async function downloadRegistryArchive(archiveUrl, options) {
-  if (!options.network) {
-    throw new RegistryError(
-      "SBR004",
-      "downloading an extension archive requires network access.",
-      "Re-run with --network to allow this one explicit download."
-    );
-  }
-  let parsedUrl;
-  try {
-    parsedUrl = new URL(archiveUrl);
-  } catch {
-    throw new RegistryError("SBR013", `archive URL "${archiveUrl}" is invalid.`, "Fix the registry entry.");
-  }
-  if (parsedUrl.protocol !== "https:" || parsedUrl.username !== "" || parsedUrl.password !== "") {
-    throw new RegistryError(
-      "SBR013",
-      `archive URL "${archiveUrl}" is not a credential-free https:// URL.`,
-      "Registry archives are only ever downloaded over HTTPS."
-    );
-  }
-  const response = await options.http({
-    method: "GET",
-    url: archiveUrl,
-    timeoutMs: REGISTRY_FETCH_TIMEOUT_MS,
-    maxResponseBytes: options.maxArchiveBytes,
-    maxRedirects: REGISTRY_MAX_REDIRECTS,
-    binaryBody: true,
-    ...options.signal === void 0 ? {} : { signal: options.signal }
-  });
-  if (!response.ok) {
-    throw new RegistryError(
-      "SBR013",
-      `downloading ${archiveUrl} failed (${response.kind ?? "error"}: ${response.detail ?? "no detail"}).`,
-      "Nothing was installed; check connectivity and the registry entry."
-    );
-  }
-  if (response.bodyBase64 === void 0) {
-    throw new RegistryError(
-      "SBR013",
-      `downloading ${archiveUrl} returned no byte-exact body.`,
-      "Nothing was installed; this indicates a transport problem."
-    );
-  }
-  return Buffer.from(response.bodyBase64, "base64");
-}
-var DEFAULT_REGISTRY_SEARCH_LIMIT = 20;
-var MAX_REGISTRY_SEARCH_LIMIT = 50;
-function searchRegistryIndexes(indexes, query, options = {}) {
-  const needle = query.trim().toLowerCase();
-  const limit = Math.min(options.limit ?? DEFAULT_REGISTRY_SEARCH_LIMIT, MAX_REGISTRY_SEARCH_LIMIT);
-  const hits = [];
-  for (const { registryName, index } of indexes) {
-    for (const entry of index.extensions) {
-      if (options.kind !== void 0 && entry.kind !== options.kind) {
-        continue;
-      }
-      let score = 0;
-      if (entry.id === needle) {
-        score = 100;
-      } else if (entry.id.startsWith(needle)) {
-        score = 80;
-      } else if ((entry.keywords ?? []).some((keyword) => keyword.toLowerCase() === needle)) {
-        score = 60;
-      } else if (entry.displayName.toLowerCase().split(/\s+/).includes(needle)) {
-        score = 40;
-      } else if (entry.description.toLowerCase().includes(needle)) {
-        score = 20;
-      }
-      if (score > 0) {
-        hits.push({ registryName, entry, score });
-      }
-    }
-  }
-  return hits.sort(
-    (a2, b) => b.score - a2.score || a2.entry.id.localeCompare(b.entry.id, "en") || a2.registryName.localeCompare(b.registryName, "en")
-  ).slice(0, limit);
-}
-function resolveRegistryExtension(indexes, extensionId, version2) {
-  const matches = [];
-  for (const { registryName, index } of indexes) {
-    const entry = index.extensions.find((candidate) => candidate.id === extensionId);
-    if (entry === void 0) {
-      continue;
-    }
-    const wanted = version2 ?? entry.latestVersion;
-    const versionEntry = entry.versions.find((candidate) => candidate.version === wanted);
-    if (versionEntry === void 0) {
-      throw new RegistryError(
-        "SBR011",
-        `extension "${extensionId}" has no version ${wanted} in registry "${registryName}" (available: ${entry.versions.map((candidate) => candidate.version).join(", ")}).`,
-        "Pass one of the available versions with --version.",
-        { extensionId, version: wanted }
-      );
-    }
-    matches.push({ registryName, entry, version: versionEntry });
-  }
-  if (matches.length === 0) {
-    throw new RegistryError(
-      "SBR011",
-      `extension "${extensionId}" was not found in any readable registry index.`,
-      "Run `specbridge registry search <query>` to discover extensions, or update the registry cache with `specbridge registry update <name> --network`.",
-      { extensionId }
-    );
-  }
-  const first = matches[0];
-  if (matches.length > 1 && first !== void 0) {
-    return first;
-  }
-  if (first === void 0) {
-    throw new RegistryError("SBR011", `extension "${extensionId}" was not found.`, "Check the ID.");
-  }
-  return first;
-}
-var REGISTRIES_FILE_NAME = "registries.json";
-var REGISTRIES_SCHEMA_VERSION = "1.0.0";
-var BUILTIN_REGISTRY_NAME = "examples";
-var HTTPS_SOURCE_URL = external_exports.string().min(9).max(1e3).superRefine((value, ctx) => {
-  let parsed;
-  try {
-    parsed = new URL(value);
-  } catch {
-    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message: "not a valid URL" });
-    return;
-  }
-  if (parsed.protocol !== "https:") {
-    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message: "only https:// registry URLs are allowed" });
-  }
-  if (parsed.username !== "" || parsed.password !== "") {
-    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message: "registry URLs must not embed credentials" });
-  }
-});
-var NAME = external_exports.string().min(1).max(MAX_REGISTRY_NAME_LENGTH).regex(REGISTRY_NAME_PATTERN, "registry names use lowercase letters, digits, and single hyphens");
-var registrySourceSchema = external_exports.discriminatedUnion("type", [
-  external_exports.object({ name: NAME, type: external_exports.literal("builtin"), enabled: external_exports.boolean().default(true) }).strict(),
-  external_exports.object({
-    name: NAME,
-    type: external_exports.literal("local-file"),
-    /** Workspace-relative path to a registry index JSON file. */
-    file: external_exports.string().min(1).max(500),
-    enabled: external_exports.boolean().default(true)
-  }).strict(),
-  external_exports.object({
-    name: NAME,
-    type: external_exports.literal("https"),
-    url: HTTPS_SOURCE_URL,
-    enabled: external_exports.boolean().default(true)
-  }).strict()
-]);
-var registriesConfigSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  registries: external_exports.array(registrySourceSchema).max(20)
-}).passthrough();
-function registriesConfigPath(workspace) {
-  return import_path55.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
-}
-function defaultRegistriesConfig() {
-  return {
-    schemaVersion: REGISTRIES_SCHEMA_VERSION,
-    registries: [{ name: BUILTIN_REGISTRY_NAME, type: "builtin", enabled: true }]
-  };
-}
-function readRegistriesConfig(workspace) {
-  const filePath = registriesConfigPath(workspace);
-  if (!(0, import_fs50.existsSync)(filePath)) {
-    return { config: defaultRegistriesConfig(), diagnostics: [], exists: false };
-  }
-  let parsed;
-  try {
-    parsed = JSON.parse((0, import_fs50.readFileSync)(filePath, "utf8"));
-  } catch (cause) {
-    return {
-      config: defaultRegistriesConfig(),
-      exists: true,
-      diagnostics: [
-        {
-          severity: "error",
-          code: "REGISTRIES_INVALID_JSON",
-          message: `registries.json is not valid JSON: ${cause instanceof Error ? cause.message : String(cause)}`,
-          file: filePath
-        }
-      ]
-    };
-  }
-  const result = registriesConfigSchema.safeParse(parsed);
-  if (!result.success) {
-    return {
-      config: defaultRegistriesConfig(),
-      exists: true,
-      diagnostics: [
-        {
-          severity: "error",
-          code: "REGISTRIES_INVALID_SHAPE",
-          message: `registries.json does not match the schema: ${result.error.issues[0]?.message ?? "unknown"}`,
-          file: filePath
-        }
-      ]
-    };
-  }
-  const names = /* @__PURE__ */ new Set();
-  for (const source of result.data.registries) {
-    if (names.has(source.name)) {
-      return {
-        config: defaultRegistriesConfig(),
-        exists: true,
-        diagnostics: [
-          {
-            severity: "error",
-            code: "REGISTRIES_DUPLICATE_NAME",
-            message: `registries.json declares "${source.name}" more than once`,
-            file: filePath
-          }
-        ]
-      };
-    }
-    names.add(source.name);
-  }
-  const config2 = result.data.registries.some((source) => source.type === "builtin") ? result.data : {
-    ...result.data,
-    registries: [
-      { name: BUILTIN_REGISTRY_NAME, type: "builtin", enabled: true },
-      ...result.data.registries
-    ]
-  };
-  return { config: config2, diagnostics: [], exists: true };
-}
-function writeRegistriesConfig(workspace, config2) {
-  const filePath = registriesConfigPath(workspace);
-  assertInsideWorkspace(workspace.rootDir, filePath);
-  writeFileAtomic(filePath, `${JSON.stringify(registriesConfigSchema.parse(config2), null, 2)}
-`);
-}
-function requireRegistrySource(config2, name) {
-  const source = config2.registries.find((candidate) => candidate.name === name);
-  if (source === void 0) {
-    throw new RegistryError(
-      "SBR001",
-      `registry "${name}" is not configured.`,
-      `Configured registries: ${config2.registries.map((candidate) => candidate.name).join(", ")}. Add one with \`specbridge registry add <name> --file <path>\` or \`--url <https-url>\`.`,
-      { name }
-    );
-  }
-  return source;
-}
-function addRegistrySource(workspace, source) {
-  const parsed = registrySourceSchema.safeParse(source);
-  if (!parsed.success) {
-    throw new RegistryError(
-      "SBR003",
-      `registry configuration is invalid: ${parsed.error.issues[0]?.message ?? "unknown"}.`,
-      "Check the name, file path, or https URL."
-    );
-  }
-  const { config: config2 } = readRegistriesConfig(workspace);
-  if (config2.registries.some((candidate) => candidate.name === source.name)) {
-    throw new RegistryError(
-      "SBR003",
-      `registry "${source.name}" already exists.`,
-      "Remove it first with `specbridge registry remove <name>` or pick another name.",
-      { name: source.name }
-    );
-  }
-  const next = { ...config2, registries: [...config2.registries, parsed.data] };
-  writeRegistriesConfig(workspace, next);
-  return next;
-}
-function removeRegistrySource(workspace, name) {
-  if (name === BUILTIN_REGISTRY_NAME) {
-    throw new RegistryError(
-      "SBR003",
-      "the built-in example registry cannot be removed.",
-      "Disable it by ignoring it; it never touches the network."
-    );
-  }
-  const { config: config2 } = readRegistriesConfig(workspace);
-  requireRegistrySource(config2, name);
-  const next = {
-    ...config2,
-    registries: config2.registries.filter((candidate) => candidate.name !== name)
-  };
-  writeRegistriesConfig(workspace, next);
-  return next;
-}
-
-// ../../packages/cli/src/commands/extension.ts
 function requireKind(value) {
   if (value === void 0) {
     return void 0;

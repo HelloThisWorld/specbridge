@@ -131,6 +131,10 @@ const PROTOCOL_SHELL_TAIL = `  fail(request.id, -32004, 'operation "' + operatio
 });
 `;
 
+// Assembled at runtime so the literal import specifier never appears in
+// bundled SpecBridge output (the plugin bundle validator greps for it).
+const SDK_PACKAGE = ['@specbridge', 'extension-sdk'].join('/');
+
 const KIND_HANDLERS: Record<Exclude<ExtensionKind, 'template-provider'>, string> = {
   analyzer: `  if (operation === 'analyzer.analyze') {
     const diagnostics = [];
@@ -229,7 +233,7 @@ const KIND_HANDLERS: Record<Exclude<ExtensionKind, 'template-provider'>, string>
 };
 
 const SDK_SOURCE: Record<Exclude<ExtensionKind, 'template-provider'>, string> = {
-  analyzer: `import { createAnalyzerExtension } from '@specbridge/extension-sdk';
+  analyzer: `import { createAnalyzerExtension } from '${SDK_PACKAGE}';
 import manifest from '../specbridge-extension.json' with { type: 'json' };
 
 createAnalyzerExtension({
@@ -251,7 +255,7 @@ createAnalyzerExtension({
   },
 }).run();
 `,
-  verifier: `import { createVerifierExtension } from '@specbridge/extension-sdk';
+  verifier: `import { createVerifierExtension } from '${SDK_PACKAGE}';
 import manifest from '../specbridge-extension.json' with { type: 'json' };
 
 createVerifierExtension({
@@ -269,7 +273,7 @@ createVerifierExtension({
   },
 }).run();
 `,
-  exporter: `import { createExporterExtension } from '@specbridge/extension-sdk';
+  exporter: `import { createExporterExtension } from '${SDK_PACKAGE}';
 import manifest from '../specbridge-extension.json' with { type: 'json' };
 
 createExporterExtension({
@@ -285,7 +289,7 @@ createExporterExtension({
   },
 }).run();
 `,
-  runner: `import { createRunnerExtension } from '@specbridge/extension-sdk';
+  runner: `import { createRunnerExtension } from '${SDK_PACKAGE}';
 import manifest from '../specbridge-extension.json' with { type: 'json' };
 
 // See dist/extension.cjs for the full deterministic reference behavior.

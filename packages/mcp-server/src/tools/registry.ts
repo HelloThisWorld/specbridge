@@ -30,6 +30,17 @@ import { registerTemplateSearchTool } from './template-search.js';
 import { registerTemplateShowTool } from './template-show.js';
 import { registerTemplatePreviewTool } from './template-preview.js';
 import { registerTemplateApplyTool } from './template-apply.js';
+import {
+  registerExtensionDoctorTool,
+  registerExtensionListTool,
+  registerExtensionSearchTool,
+  registerExtensionShowTool,
+} from './extension-tools.js';
+import {
+  registerRegistryListTool,
+  registerRegistrySearchTool,
+  registerRegistryShowTool,
+} from './registry-tools.js';
 
 /**
  * The complete, closed tool registry.
@@ -79,6 +90,13 @@ export const TOOL_CATALOG: readonly ToolRegistryEntry[] = [
   { name: 'task_begin', readOnly: false, summary: 'Begin an interactive task run (lock + snapshot)' },
   { name: 'task_complete', readOnly: false, summary: 'Finalize an interactive run with evidence' },
   { name: 'task_abort', readOnly: false, summary: 'Abort an interactive run, preserving changes' },
+  { name: 'extension_list', readOnly: true, summary: 'List installed extensions with status' },
+  { name: 'extension_search', readOnly: true, summary: 'Offline extension search (installed + cached registries)' },
+  { name: 'extension_show', readOnly: true, summary: 'One extension in depth (permissions, hash, grant)' },
+  { name: 'extension_doctor', readOnly: true, summary: 'Extension health check (bounded no-op handshake)' },
+  { name: 'registry_list', readOnly: true, summary: 'List configured extension registries' },
+  { name: 'registry_search', readOnly: true, summary: 'Offline registry index search' },
+  { name: 'registry_show', readOnly: true, summary: 'Registry metadata for one extension (no download)' },
 ] as const;
 
 export function registerAllTools(server: McpServer, context: ServerContext): void {
@@ -112,4 +130,11 @@ export function registerAllTools(server: McpServer, context: ServerContext): voi
   registerTaskBeginTool(server, context);
   registerTaskCompleteTool(server, context);
   registerTaskAbortTool(server, context);
+  registerExtensionListTool(server, context);
+  registerExtensionSearchTool(server, context);
+  registerExtensionShowTool(server, context);
+  registerExtensionDoctorTool(server, context);
+  registerRegistryListTool(server, context);
+  registerRegistrySearchTool(server, context);
+  registerRegistryShowTool(server, context);
 }

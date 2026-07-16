@@ -37,6 +37,7 @@
     "@specbridge/drift": "workspace:*",
     "@specbridge/extension-sdk": "workspace:*",
     "@specbridge/extensions": "workspace:*",
+    "@specbridge/registry": "workspace:*",
     "@specbridge/evidence": "workspace:*",
     "@specbridge/execution": "workspace:*",
     "@specbridge/runners": "workspace:*",

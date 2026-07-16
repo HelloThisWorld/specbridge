@@ -305,6 +305,9 @@ importers:
       '@specbridge/extensions':
         specifier: workspace:*
         version: link:../extensions
+      '@specbridge/registry':
+        specifier: workspace:*
+        version: link:../registry
       '@specbridge/runners':
         specifier: workspace:*
         version: link:../runners

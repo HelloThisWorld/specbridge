@@ -333,7 +333,7 @@ run('mcp manifest reports identity and protocol baseline', {
   cwd: kiroProject,
   args: ['mcp', 'manifest'],
   expectCode: 0,
-  expectStdout: ['specbridge', '2025-11-25', 'stdio', '30 tools'],
+  expectStdout: ['specbridge', '2025-11-25', 'stdio', '37 tools'],
 });
 
 run('mcp tools lists the registry and the approval boundary', {
