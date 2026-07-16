@@ -10,6 +10,8 @@ export type SpecBridgeErrorCode =
   | 'IO_ERROR'
   | 'INVALID_STATE'
   | 'TEMPLATE_ERROR'
+  | 'EXTENSION_ERROR'
+  | 'REGISTRY_ERROR'
   | 'NOT_IMPLEMENTED';
 
 export class SpecBridgeError extends Error {

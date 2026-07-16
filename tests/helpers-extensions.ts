@@ -1,7 +1,16 @@
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { requireWorkspace, type WorkspaceInfo } from '@specbridge/core';
 import type { ExtensionManifest } from '@specbridge/extension-sdk';
+import {
+  computeExtensionChecksums,
+  describeEnablement,
+  enableExtension,
+  installExtensionFromDirectory,
+  requireEnabledExtension,
+  type EnabledExtension,
+} from '@specbridge/extensions';
 
 /** A valid analyzer manifest; override fields per test. */
 export function analyzerManifest(overrides?: Partial<ExtensionManifest>): ExtensionManifest {
@@ -112,12 +121,76 @@ export function writeExtensionFiles(dir: string, files: ExtensionFileMap): void 
   }
 }
 
+/**
+ * Build a complete, valid extension package file map: manifest, README,
+ * LICENSE, entrypoint (for executable kinds), and computed checksums.
+ */
+export function buildExtensionPackageFiles(
+  manifest: ExtensionManifest,
+  extras: ExtensionFileMap = {},
+): Map<string, Buffer> {
+  const files = new Map<string, Buffer>();
+  files.set('specbridge-extension.json', Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`, 'utf8'));
+  files.set('README.md', Buffer.from(`# ${manifest.displayName}\n\n${manifest.description}\n`, 'utf8'));
+  files.set('LICENSE', Buffer.from('MIT License (test fixture)\n', 'utf8'));
+  if (manifest.entrypoint !== undefined && extras[manifest.entrypoint] === undefined) {
+    files.set(manifest.entrypoint, Buffer.from(PLAIN_ANALYZER_ENTRYPOINT, 'utf8'));
+  }
+  for (const [name, content] of Object.entries(extras)) {
+    files.set(name, Buffer.from(content, 'utf8'));
+  }
+  const checksums = computeExtensionChecksums(files);
+  files.set('checksums.json', Buffer.from(`${JSON.stringify(checksums, null, 2)}\n`, 'utf8'));
+  return files;
+}
+
+/** Write a package file map to a fresh temp directory. */
+export function writePackageDir(files: ReadonlyMap<string, Buffer>): string {
+  const dir = mkdtempSync(path.join(tmpdir(), 'sb-extpkg-'));
+  for (const [name, content] of files) {
+    const target = path.join(dir, ...name.split('/'));
+    mkdirSync(path.dirname(target), { recursive: true });
+    writeFileSync(target, content);
+  }
+  return dir;
+}
+
+/** Install a package into a workspace and return the workspace info. */
+export function installTestExtension(
+  workspaceRoot: string,
+  manifest: ExtensionManifest,
+  extras: ExtensionFileMap = {},
+): WorkspaceInfo {
+  const workspace = requireWorkspace(workspaceRoot);
+  const dir = writePackageDir(buildExtensionPackageFiles(manifest, extras));
+  installExtensionFromDirectory(dir, { workspace, sourceLabel: `local-directory:${dir}` });
+  return workspace;
+}
+
+/** Install + enable in one step; returns the enabled extension gate result. */
+export async function installAndEnableTestExtension(
+  workspaceRoot: string,
+  manifest: ExtensionManifest,
+  extras: ExtensionFileMap = {},
+): Promise<{ workspace: WorkspaceInfo; enabled: EnabledExtension }> {
+  const workspace = installTestExtension(workspaceRoot, manifest, extras);
+  const preview = describeEnablement(workspace, manifest.id);
+  await enableExtension({
+    workspace,
+    id: manifest.id,
+    acceptPermissions: preview.permissionHash,
+  });
+  return { workspace, enabled: requireEnabledExtension(workspace, manifest.id) };
+}
+
 /** A minimal working analyzer extension entrypoint written in plain CJS. */
 export const PLAIN_ANALYZER_ENTRYPOINT = `'use strict';
 // Minimal SpecBridge analyzer extension implementing the stdio protocol
 // directly (no SDK) so tests exercise the protocol, not the SDK.
 const readline = require('node:readline');
-const manifest = require('./specbridge-extension.json');
+const path = require('node:path');
+// cwd is always the installed extension directory.
+const manifest = require(path.join(process.cwd(), 'specbridge-extension.json'));
 const rl = readline.createInterface({ input: process.stdin, terminal: false });
 function send(message) { process.stdout.write(JSON.stringify(message) + '\\n'); }
 rl.on('line', (line) => {

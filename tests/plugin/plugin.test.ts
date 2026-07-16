@@ -42,7 +42,7 @@ describe('plugin structure', () => {
   it('plugin.json validates with real repository metadata', () => {
     const manifest = readJson('integrations/claude-code-plugin/specbridge/.claude-plugin/plugin.json');
     expect(manifest['name']).toBe('specbridge');
-    expect(manifest['version']).toBe('0.7.0');
+    expect(manifest['version']).toBe('0.7.1');
     expect(manifest['license']).toBe('MIT');
     expect((manifest['author'] as { name: string }).name).toBe('HelloThisWorld');
     expect(manifest['repository']).toBe('https://github.com/HelloThisWorld/specbridge');
@@ -55,7 +55,7 @@ describe('plugin structure', () => {
     const plugins = marketplace['plugins'] as { name: string; source: string; version: string }[];
     const entry = plugins.find((plugin) => plugin.name === 'specbridge');
     expect(entry).toBeDefined();
-    expect(entry?.version).toBe('0.7.0');
+    expect(entry?.version).toBe('0.7.1');
     // The relative source resolves to the plugin root.
     expect(path.resolve(repoRoot, entry?.source as string)).toBe(pluginRoot);
   });

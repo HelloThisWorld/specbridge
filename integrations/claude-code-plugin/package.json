@@ -1,6 +1,6 @@
 {
   "name": "specbridge-claude-plugin",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "private": true,
   "description": "Build harness for the self-contained SpecBridge Claude Code plugin (bundled CLI + MCP server + skills).",
   "license": "MIT",

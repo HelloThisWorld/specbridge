@@ -1,6 +1,6 @@
 {
   "name": "@specbridge/runners",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Model- and agent-agnostic runner adapters for SpecBridge (mock, Claude Code, Codex, stubs).",
   "license": "MIT",
   "type": "module",
