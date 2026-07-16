@@ -1,0 +1,35 @@
+{
+  "name": "@specbridge/registry",
+  "version": "0.7.1",
+  "description": "SpecBridge extension registry support: versioned registry index schema, built-in and local-file and HTTPS registry sources, validated atomic caching, deterministic offline search, and archive integrity metadata. A registry is a metadata index — it never executes code.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@specbridge/core": "workspace:*",
+    "@specbridge/extension-sdk": "workspace:*",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0"
+  }
+}

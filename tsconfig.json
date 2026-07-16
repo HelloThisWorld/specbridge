@@ -12,7 +12,10 @@
       "@specbridge/reporting": ["./packages/reporting/src/index.ts"],
       "@specbridge/workflow": ["./packages/workflow/src/index.ts"],
       "@specbridge/templates": ["./packages/templates/src/index.ts"],
-      "@specbridge/mcp-server": ["./packages/mcp-server/src/index.ts"]
+      "@specbridge/mcp-server": ["./packages/mcp-server/src/index.ts"],
+      "@specbridge/extension-sdk": ["./packages/extension-sdk/src/index.ts"],
+      "@specbridge/extensions": ["./packages/extensions/src/index.ts"],
+      "@specbridge/registry": ["./packages/registry/src/index.ts"]
     }
   },
   "include": [
