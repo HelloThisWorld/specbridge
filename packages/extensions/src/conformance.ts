@@ -94,14 +94,20 @@ const PRIMARY_OPERATION: Record<string, string> = {
  */
 export async function runExtensionConformance(
   enabled: EnabledExtension,
-  options: { operationTimeoutMs?: number } = {},
+  options: {
+    operationTimeoutMs?: number;
+    /** `verify-if-present` for source directories under development. */
+    checksums?: 'require' | 'verify-if-present';
+  } = {},
 ): Promise<ExtensionConformanceResult> {
   const manifest = enabled.manifest;
   const checks: ExtensionConformanceCheck[] = [];
   const timeoutMs = options.operationTimeoutMs ?? 30_000;
 
-  // 1. The installed package must validate (manifest, checksums, layout).
-  const validation = loadExtensionPackage(readExtensionPackageDirectory(enabled.installedDir));
+  // 1. The package must validate (manifest, checksums, layout).
+  const validation = loadExtensionPackage(readExtensionPackageDirectory(enabled.installedDir), {
+    checksums: options.checksums ?? 'require',
+  });
   const validationErrors = validation.issues.filter((issue) => issue.severity === 'error');
   checks.push(
     check(

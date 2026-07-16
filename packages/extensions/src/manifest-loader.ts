@@ -162,10 +162,20 @@ function decodeUtf8Strict(name: string, content: Buffer): string | undefined {
  */
 export function loadExtensionPackage(
   files: ReadonlyMap<string, Buffer>,
-  options: { specbridgeVersion?: string } = {},
+  options: {
+    specbridgeVersion?: string;
+    /**
+     * `require` (default): checksums.json must exist and match — used for
+     * archives and installed packages. `verify-if-present`: a source
+     * directory under development may not have one yet; packaging generates
+     * it, so absence is only a warning there.
+     */
+    checksums?: 'require' | 'verify-if-present';
+  } = {},
 ): ExtensionPackageValidation {
   const issues: ExtensionValidationIssue[] = [];
   const specbridgeVersion = options.specbridgeVersion ?? SPECBRIDGE_VERSION;
+  const checksumsPolicy = options.checksums ?? 'require';
 
   for (const name of files.keys()) {
     const pathProblem = checkPackageRelativePath(name);
@@ -245,8 +255,11 @@ export function loadExtensionPackage(
       extensionIssue(
         'SBE009',
         'checksums',
-        'error',
-        `package has no ${EXTENSION_CHECKSUMS_FILE_NAME}; every runtime file must be declared`,
+        checksumsPolicy === 'require' ? 'error' : 'warning',
+        checksumsPolicy === 'require'
+          ? `package has no ${EXTENSION_CHECKSUMS_FILE_NAME}; every runtime file must be declared`
+          : `source has no ${EXTENSION_CHECKSUMS_FILE_NAME} yet; ` +
+            '`specbridge extension package` will generate it',
       ),
     );
   } else {
