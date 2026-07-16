@@ -11,6 +11,10 @@ dist/
 # The Claude Code plugin ships its reproducible bundle in-repo too, so
 # installing the plugin straight from the GitHub marketplace source works.
 !integrations/claude-code-plugin/specbridge/dist/
+# Reference extensions ship their committed self-contained entrypoints;
+# locally built archives stay ignored.
+!examples/extensions/*/dist/
+examples/extensions/*/dist/*.zip
 
 # Test output
 coverage/
