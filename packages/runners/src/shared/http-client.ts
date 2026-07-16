@@ -38,6 +38,11 @@ export interface SafeHttpRequest {
    * behavior: any redirect is rejected.
    */
   maxRedirects?: number;
+  /**
+   * v0.7.1 (additive): include a byte-exact base64 body in the result for
+   * binary downloads. `bodyText` stays UTF-8 (lossy for binary content).
+   */
+  binaryBody?: boolean;
 }
 
 export type SafeHttpFailureKind =
@@ -64,6 +69,8 @@ export type SafeHttpResult =
       status: number;
       bodyText: string;
       bodyBytes: number;
+      /** Byte-exact body, present only when `binaryBody: true` was requested. */
+      bodyBase64?: string;
       durationMs: number;
       redirects?: SafeRedirectMetadata;
     }
@@ -89,11 +96,13 @@ function composeSignals(timeoutMs: number, external?: AbortSignal): AbortSignal 
 async function readBounded(
   response: Response,
   maxBytes: number,
-): Promise<{ text: string; bytes: number } | 'too-large'> {
+): Promise<{ text: string; bytes: number; buffer: Buffer } | 'too-large'> {
   const reader = response.body?.getReader();
   if (reader === undefined) {
-    const text = await response.text();
-    return Buffer.byteLength(text, 'utf8') > maxBytes ? 'too-large' : { text, bytes: Buffer.byteLength(text, 'utf8') };
+    const buffer = Buffer.from(await response.arrayBuffer());
+    return buffer.length > maxBytes
+      ? 'too-large'
+      : { text: buffer.toString('utf8'), bytes: buffer.length, buffer };
   }
   const chunks: Uint8Array[] = [];
   let total = 0;
@@ -107,7 +116,8 @@ async function readBounded(
     }
     chunks.push(value);
   }
-  return { text: Buffer.concat(chunks).toString('utf8'), bytes: total };
+  const buffer = Buffer.concat(chunks);
+  return { text: buffer.toString('utf8'), bytes: total, buffer };
 }
 
 export interface RedirectDecision {
@@ -249,7 +259,7 @@ export async function safeHttpRequest(request: SafeHttpRequest): Promise<SafeHtt
       ? { count: redirectCount, finalUrl: currentUrl.toString(), crossOrigin: crossedOrigin }
       : undefined;
 
-  let body: { text: string; bytes: number } | 'too-large';
+  let body: { text: string; bytes: number; buffer: Buffer } | 'too-large';
   try {
     body = await readBounded(response, request.maxResponseBytes);
   } catch (cause) {
@@ -310,6 +320,10 @@ export async function safeHttpRequest(request: SafeHttpRequest): Promise<SafeHtt
     status: response.status,
     bodyText: body.text,
     bodyBytes: body.bytes,
+    // v0.7.1 (additive): byte-exact body for binary downloads (extension
+    // archives). UTF-8 decoding is lossy for binary content, so callers that
+    // need exact bytes opt in here.
+    ...(request.binaryBody === true ? { bodyBase64: body.buffer.toString('base64') } : {}),
     durationMs: duration(),
     ...(redirects !== undefined ? { redirects } : {}),
   };

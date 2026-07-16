@@ -18,6 +18,9 @@ export default defineConfig({
       { find: '@specbridge/workflow', replacement: pkg('workflow') },
       { find: '@specbridge/templates', replacement: pkg('templates') },
       { find: '@specbridge/mcp-server', replacement: pkg('mcp-server') },
+      { find: '@specbridge/extension-sdk', replacement: pkg('extension-sdk') },
+      { find: '@specbridge/extensions', replacement: pkg('extensions') },
+      { find: '@specbridge/registry', replacement: pkg('registry') },
     ],
   },
   test: {

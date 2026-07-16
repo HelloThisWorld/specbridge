@@ -188,6 +188,72 @@ export const verificationSummarySchema = z.object({
 });
 export type VerificationSummary = z.infer<typeof verificationSummarySchema>;
 
+/**
+ * v0.7.1: one extension verifier's contribution to a verification run.
+ * Extension verifiers are explicit policy opt-ins that run out of process;
+ * their diagnostics stay namespaced (`<extension-id>/<RULE>`) and separate
+ * from built-in `SBV` diagnostics. The built-in quality gate remains
+ * authoritative: extension results feed it only through the SBV026 rollup
+ * rule, and extensions can never mark tasks complete or change evidence.
+ */
+export const EXTENSION_VERIFIER_STATUS_VALUES = [
+  'passed',
+  'warning',
+  'failed',
+  'not-applicable',
+  'error',
+] as const;
+export type ExtensionVerifierStatus = (typeof EXTENSION_VERIFIER_STATUS_VALUES)[number];
+
+export const NAMESPACED_EXTENSION_RULE_ID_PATTERN =
+  /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\/[A-Z][A-Z0-9_-]{0,63}$/;
+
+export const extensionVerifierDiagnosticSchema = z.object({
+  ruleId: z.string().regex(NAMESPACED_EXTENSION_RULE_ID_PATTERN),
+  severity: z.enum(['info', 'warning', 'error']),
+  message: z.string().min(1),
+  file: z.string().nullable(),
+  line: z.number().int().min(1).nullable(),
+  remediation: z.string().nullable(),
+  confidence: z.enum(['deterministic', 'heuristic']),
+});
+export type ExtensionVerifierDiagnostic = z.infer<typeof extensionVerifierDiagnosticSchema>;
+
+export const extensionVerifierReportEntrySchema = z.object({
+  extensionId: z.string().min(1),
+  extensionVersion: z.string().min(1),
+  specName: z.string().min(1),
+  required: z.boolean(),
+  status: z.enum(EXTENSION_VERIFIER_STATUS_VALUES),
+  summary: z.string().nullable(),
+  durationMs: z.number().int().min(0),
+  diagnostics: z.array(extensionVerifierDiagnosticSchema).max(1000),
+});
+export type ExtensionVerifierReportEntry = z.infer<typeof extensionVerifierReportEntrySchema>;
+
+/** One policy opt-in for an extension verifier. */
+export interface ExtensionVerifierPolicyEntry {
+  extension: string;
+  required: boolean;
+  configuration: Record<string, unknown>;
+}
+
+/** Input handed to the injected extension-verifier hook, per spec. */
+export interface ExtensionVerifierHookInput {
+  specName: string;
+  entries: readonly ExtensionVerifierPolicyEntry[];
+  changedFiles: ReadonlyArray<{ path: string; changeType: string }>;
+}
+
+/**
+ * Injected by the CLI (backed by @specbridge/extensions) so the verification
+ * engine stays free of extension dependencies. The hook must never throw:
+ * extension failures are reported as `status: 'error'` entries.
+ */
+export type ExtensionVerifierHook = (
+  input: ExtensionVerifierHookInput,
+) => Promise<ExtensionVerifierReportEntry[]>;
+
 export const verificationReportSchema = z.object({
   schemaVersion: z.string().regex(/^\d+\.\d+\.\d+$/),
   tool: z.object({
@@ -206,6 +272,8 @@ export const verificationReportSchema = z.object({
   /** Diagnostics not attributable to a single selected spec. */
   globalDiagnostics: z.array(verificationDiagnosticSchema),
   verificationCommands: z.array(verificationCommandReportSchema),
+  /** v0.7.1: results from policy-configured extension verifiers (optional). */
+  extensionVerifiers: z.array(extensionVerifierReportEntrySchema).optional(),
 });
 export type VerificationReport = z.infer<typeof verificationReportSchema>;
 

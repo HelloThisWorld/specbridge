@@ -1,6 +1,6 @@
 {
   "name": "@specbridge/mcp-server",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Local stdio MCP server exposing SpecBridge workspace, spec, task, run, and verification capabilities as typed tools, resources, and prompts.",
   "license": "MIT",
   "type": "module",
@@ -35,6 +35,9 @@
     "@specbridge/compat-kiro": "workspace:*",
     "@specbridge/core": "workspace:*",
     "@specbridge/drift": "workspace:*",
+    "@specbridge/extension-sdk": "workspace:*",
+    "@specbridge/extensions": "workspace:*",
+    "@specbridge/registry": "workspace:*",
     "@specbridge/evidence": "workspace:*",
     "@specbridge/execution": "workspace:*",
     "@specbridge/runners": "workspace:*",

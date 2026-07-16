@@ -3,9 +3,13 @@ import path from 'node:path';
 import type { Diagnostic, WorkspaceInfo } from '@specbridge/core';
 import { BUILTIN_TEMPLATE_PACKS } from './builtin-packs.generated.js';
 import { TemplateError } from './errors.js';
-import type { TemplateReference, TemplateSource } from './ids.js';
-import { formatTemplateReference, parseTemplateReference } from './ids.js';
-import type { LoadedTemplatePack } from './pack.js';
+import type { TemplateEntrySource, TemplateReference, TemplateSource } from './ids.js';
+import {
+  formatExtensionTemplateReference,
+  formatTemplateReference,
+  parseTemplateReference,
+} from './ids.js';
+import type { LoadedTemplatePack, TemplatePackData } from './pack.js';
 import { loadTemplatePack, readTemplatePackDirectory } from './pack.js';
 import type { TemplateValidationIssue } from './types.js';
 
@@ -25,13 +29,24 @@ export function projectTemplatesDir(workspace: WorkspaceInfo): string {
 }
 
 export interface TemplateCatalogEntry {
-  source: TemplateSource;
+  source: TemplateEntrySource;
   id: string;
-  /** Qualified reference, e.g. `builtin:rest-api`. */
+  /** Qualified reference, e.g. `builtin:rest-api` or `extension:api-pack/rest-api`. */
   ref: string;
   pack: LoadedTemplatePack;
   /** No error-severity issues. Invalid entries are listed but not applied. */
   valid: boolean;
+}
+
+/**
+ * One template pack contributed by an enabled template-provider extension.
+ * The extension host validates the pack at install time; the catalog
+ * revalidates it here like any other pack (data-only, never a process).
+ */
+export interface ExtensionTemplatePackInput {
+  extensionId: string;
+  templateId: string;
+  data: TemplatePackData;
 }
 
 export interface TemplateCatalog {
@@ -43,9 +58,16 @@ export interface TemplateCatalog {
 
 export interface LoadCatalogOptions {
   /** Restrict discovery to one source. Default: all. */
-  source?: TemplateSource | 'all';
+  source?: TemplateSource | 'extension' | 'all';
   /** Override the version used for compatibility checks (tests). */
   specbridgeVersion?: string;
+  /**
+   * Packs contributed by enabled template-provider extensions. Callers that
+   * integrate extensions (CLI, MCP) collect these via @specbridge/extensions
+   * and pass them in; the templates package itself never reads extension
+   * state, keeping the dependency direction one-way.
+   */
+  extensionPacks?: readonly ExtensionTemplatePackInput[];
 }
 
 function builtinEntries(options: LoadCatalogOptions): TemplateCatalogEntry[] {
@@ -147,9 +169,44 @@ function projectEntries(
   return entries;
 }
 
+function extensionEntries(options: LoadCatalogOptions): TemplateCatalogEntry[] {
+  const entries: TemplateCatalogEntry[] = [];
+  for (const input of options.extensionPacks ?? []) {
+    const pack = loadTemplatePack(input.data, {
+      requireReadme: true,
+      ...(options.specbridgeVersion !== undefined
+        ? { specbridgeVersion: options.specbridgeVersion }
+        : {}),
+    });
+    const manifestMismatch = pack.manifest !== undefined && pack.manifest.id !== input.templateId;
+    if (manifestMismatch) {
+      pack.issues.push({
+        code: 'SBT004',
+        category: 'manifest',
+        severity: 'error',
+        message: `Extension pack directory "${input.templateId}" does not match manifest id "${pack.manifest?.id}".`,
+      });
+    }
+    entries.push({
+      source: `extension:${input.extensionId}`,
+      id: input.templateId,
+      ref: formatExtensionTemplateReference(input.extensionId, input.templateId),
+      pack,
+      valid: pack.valid && !manifestMismatch,
+    });
+  }
+  return entries;
+}
+
+const SOURCE_RANK: Record<string, number> = { builtin: 0, project: 1 };
+
+function sourceRank(source: TemplateEntrySource): number {
+  return SOURCE_RANK[source] ?? 2;
+}
+
 /**
  * Discover all templates. Deterministic: built-ins first, then project
- * templates, each sorted by ID.
+ * templates, then extension-contributed templates, each sorted by ID.
  */
 export function loadTemplateCatalog(
   workspace: WorkspaceInfo | undefined,
@@ -164,8 +221,14 @@ export function loadTemplateCatalog(
   if (source === 'all' || source === 'project') {
     entries.push(...projectEntries(workspace, options, diagnostics));
   }
-  entries.sort((a, b) =>
-    a.source === b.source ? a.id.localeCompare(b.id, 'en') : a.source === 'builtin' ? -1 : 1,
+  if (source === 'all' || source === 'extension') {
+    entries.push(...extensionEntries(options));
+  }
+  entries.sort(
+    (a, b) =>
+      sourceRank(a.source) - sourceRank(b.source) ||
+      a.id.localeCompare(b.id, 'en') ||
+      a.ref.localeCompare(b.ref, 'en'),
   );
   return { entries, diagnostics };
 }
@@ -184,7 +247,8 @@ export function resolveTemplate(catalog: TemplateCatalog, rawReference: string):
     throw new TemplateError(
       'SBT003',
       `"${rawReference}" is not a valid template reference.`,
-      'Use a template ID like "rest-api" or a qualified reference like "builtin:rest-api" or "project:my-template".',
+      'Use a template ID like "rest-api" or a qualified reference like "builtin:rest-api", ' +
+        '"project:my-template", or "extension:<extension-id>/<template-id>".',
       { reference: rawReference },
     );
   }

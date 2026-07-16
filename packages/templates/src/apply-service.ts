@@ -12,6 +12,7 @@ import {
 } from '@specbridge/workflow';
 import type { TemplateCatalog, TemplateCatalogEntry } from './catalog.js';
 import { resolveValidTemplate } from './catalog.js';
+import type { TemplateEntrySource } from './ids.js';
 import { TemplateError } from './errors.js';
 import type { TemplateManifest } from './manifest.js';
 import { TARGET_STAGES } from './manifest.js';
@@ -46,7 +47,7 @@ export interface TemplateApplicationPlan {
   templateRef: string;
   templateId: string;
   templateVersion: string;
-  templateSource: 'builtin' | 'project';
+  templateSource: TemplateEntrySource;
   manifest: TemplateManifest;
   /** sha256 of the manifest text, binding the plan to the exact template. */
   manifestHash: string;

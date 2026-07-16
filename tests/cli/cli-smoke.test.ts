@@ -265,15 +265,22 @@ describe('specbridge compat check', () => {
 });
 
 describe('planned commands are honest', () => {
-  // `spec verify` became a real command in v0.4; sync/export stay planned.
-  it.each([
-    ['spec', 'sync', 'x'],
-    ['spec', 'export', 'x'],
-  ])('%s %s exits 2 with a not-implemented message', async (...argv) => {
-    const result = await cli(standard, ...argv);
+  // `spec verify` became real in v0.4; `spec export` became real in v0.7.1
+  // (exporter extensions); sync stays planned.
+  it.each([['spec', 'sync', 'x']])(
+    '%s %s exits 2 with a not-implemented message',
+    async (...argv) => {
+      const result = await cli(standard, ...argv);
+      expect(result.code).toBe(2);
+      expect(result.stderr).toContain('not implemented yet');
+      expect(result.stderr).toContain('planned');
+    },
+  );
+
+  it('spec export is implemented and requires an exporter extension', async () => {
+    const result = await cli(standard, 'spec', 'export', 'x');
     expect(result.code).toBe(2);
-    expect(result.stderr).toContain('not implemented yet');
-    expect(result.stderr).toContain('planned');
+    expect(result.stderr).toContain('--extension');
   });
 
   it('spec verify is implemented and errors helpfully for an unknown spec', async () => {

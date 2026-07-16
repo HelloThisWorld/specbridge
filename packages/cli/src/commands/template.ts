@@ -37,6 +37,7 @@ import {
   serializeJsonReport,
   warnLine,
 } from '@specbridge/reporting';
+import { collectExtensionTemplatePacks } from '@specbridge/extensions';
 import type { CliRuntime } from '../context.js';
 import { relPath } from '../context.js';
 import { VERSION } from '../version.js';
@@ -121,14 +122,17 @@ function requireMode(value: string | undefined): ConcreteWorkflowMode | undefine
 }
 
 function catalogFor(runtime: CliRuntime, source?: string): TemplateCatalog {
-  if (source !== undefined && !['builtin', 'project', 'all'].includes(source)) {
+  if (source !== undefined && !['builtin', 'project', 'extension', 'all'].includes(source)) {
     throw new SpecBridgeError(
       'INVALID_ARGUMENT',
-      `Unknown --source "${source}". Valid sources: builtin, project, all.`,
+      `Unknown --source "${source}". Valid sources: builtin, project, extension, all.`,
     );
   }
-  return loadTemplateCatalog(runtime.tryWorkspace(), {
-    source: (source ?? 'all') as 'builtin' | 'project' | 'all',
+  const workspace = runtime.tryWorkspace();
+  const extensionTemplates = collectExtensionTemplatePacks(workspace);
+  return loadTemplateCatalog(workspace, {
+    source: (source ?? 'all') as 'builtin' | 'project' | 'extension' | 'all',
+    extensionPacks: [...extensionTemplates.packs],
   });
 }
 

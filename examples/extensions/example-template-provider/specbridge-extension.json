@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1.0.0",
+  "protocolVersion": "1.0.0",
+  "id": "example-template-provider",
+  "version": "1.0.0",
+  "displayName": "example-template-provider",
+  "description": "Spec template packs contributed by the example-template-provider template-provider extension.",
+  "kind": "template-provider",
+  "compatibility": {
+    "specbridge": ">=0.7.1 <1.0.0",
+    "extensionSdk": ">=0.7.1 <1.0.0"
+  },
+  "capabilities": {
+    "operations": []
+  },
+  "permissions": {
+    "specRead": false,
+    "repositoryRead": false,
+    "repositoryWrite": false,
+    "network": false,
+    "childProcess": false,
+    "environmentVariables": []
+  },
+  "license": "MIT",
+  "keywords": [
+    "template-provider",
+    "specbridge-extension"
+  ]
+}

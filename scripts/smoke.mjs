@@ -333,7 +333,7 @@ run('mcp manifest reports identity and protocol baseline', {
   cwd: kiroProject,
   args: ['mcp', 'manifest'],
   expectCode: 0,
-  expectStdout: ['specbridge', '2025-11-25', 'stdio', '30 tools'],
+  expectStdout: ['specbridge', '2025-11-25', 'stdio', '37 tools'],
 });
 
 run('mcp tools lists the registry and the approval boundary', {
@@ -349,6 +349,102 @@ run('run recover-lock reports no lock cleanly', {
   expectCode: 0,
   expectStdout: ['No interactive lock is held', 'nothing to recover'],
 });
+
+// --- v0.7.1 extension ecosystem -------------------------------------------
+// Full contributor+user journey in a throwaway workspace: scaffold →
+// validate → package → install (disabled, no code execution) → show
+// (permission hash) → enable (exact hash) → doctor → registry offline flow.
+{
+  const extProject = mkdtempSync(path.join(os.tmpdir(), 'sb-smoke-ext-'));
+  mkdirSync(path.join(extProject, '.kiro', 'specs'), { recursive: true });
+  const scaffoldDir = path.join(extProject, 'demo-analyzer');
+
+  run('extension list starts empty', {
+    cwd: extProject,
+    args: ['extension', 'list'],
+    expectCode: 0,
+    expectStdout: ['Installed extensions (0)'],
+  });
+  run('extension scaffold generates a working analyzer', {
+    cwd: extProject,
+    args: ['extension', 'scaffold', 'demo-analyzer', '--kind', 'analyzer', '--output', scaffoldDir],
+    expectCode: 0,
+    expectStdout: ['Scaffolded analyzer extension: demo-analyzer', 'dist/extension.cjs'],
+  });
+  run('extension validate accepts the scaffold', {
+    cwd: extProject,
+    args: ['extension', 'validate', scaffoldDir],
+    expectCode: 0,
+    expectStdout: ['valid'],
+  });
+  run('extension package builds a deterministic archive with a SHA-256', {
+    cwd: extProject,
+    args: ['extension', 'package', scaffoldDir],
+    expectCode: 0,
+    expectStdout: ['.specbridge-extension.zip', 'sha256:', 'integrity, not publisher identity'],
+  });
+  run('extension conformance passes with explicit --yes', {
+    cwd: extProject,
+    args: ['extension', 'conformance', scaffoldDir, '--yes'],
+    expectCode: 0,
+    expectStdout: ['conformant'],
+  });
+  const archivePath = path.join(scaffoldDir, 'dist', 'demo-analyzer-1.0.0.specbridge-extension.zip');
+  run('extension install stays disabled and prints the permission hash', {
+    cwd: extProject,
+    args: ['extension', 'install', archivePath],
+    expectCode: 0,
+    expectStdout: ['installed (disabled; no code was executed)', 'permission hash:'],
+  });
+  const showResult = spawnSync(process.execPath, [cliPath, 'extension', 'show', 'demo-analyzer', '--json'], {
+    cwd: extProject,
+    encoding: 'utf8',
+    env: { ...process.env, NO_COLOR: '1' },
+  });
+  const permissionHash = JSON.parse(showResult.stdout).data.permissionHash;
+  run('extension enable requires the exact permission hash', {
+    cwd: extProject,
+    args: ['extension', 'enable', 'demo-analyzer', '--accept-permissions', 'f'.repeat(64)],
+    expectCode: 2,
+    expectStderr: ['SBE017'],
+  });
+  run('extension enable succeeds with the exact hash', {
+    cwd: extProject,
+    args: ['extension', 'enable', 'demo-analyzer', '--accept-permissions', permissionHash],
+    expectCode: 0,
+    expectStdout: ['enabled', 'grant stored'],
+  });
+  run('extension doctor reports a healthy handshake', {
+    cwd: extProject,
+    args: ['extension', 'doctor', 'demo-analyzer'],
+    expectCode: 0,
+    expectStdout: ['handshake'],
+  });
+  run('registry list shows the built-in examples registry', {
+    cwd: extProject,
+    args: ['registry', 'list'],
+    expectCode: 0,
+    expectStdout: ['examples', 'builtin'],
+  });
+  run('registry search finds reference extensions offline', {
+    cwd: extProject,
+    args: ['registry', 'search', 'example-analyzer'],
+    expectCode: 0,
+    expectStdout: ['example-analyzer@1.0.0'],
+  });
+  run('registry update without --network is refused (SBR004)', {
+    cwd: extProject,
+    args: ['registry', 'add', 'community', '--url', 'https://example.invalid/index.json'],
+    expectCode: 0,
+    expectStdout: ['added'],
+  });
+  run('registry update refuses without --network', {
+    cwd: extProject,
+    args: ['registry', 'update', 'community'],
+    expectCode: 1,
+    expectStdout: ['SBR004'],
+  });
+}
 
 // Version consistency between package.json and the version constant.
 const cliPackage = JSON.parse(

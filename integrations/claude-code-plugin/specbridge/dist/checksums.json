@@ -1,18 +1,18 @@
 {
   "schema": "specbridge.plugin-checksums/1",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "files": {
     "THIRD_PARTY_LICENSES.txt": {
       "sha256": "c76d5d842432eac81300734011486b23740b4588d571cb813ec3113a09873289",
       "bytes": 153474
     },
     "cli.cjs": {
-      "sha256": "ea0bff1d7a4d717c154e2e65481689171d01515eae0d9392d55000f5727a97a6",
-      "bytes": 2742703
+      "sha256": "d0ae4fff662f5dadee2c39efe6354fe596001d55262b7301a6fa83f4682d239c",
+      "bytes": 3017639
     },
     "mcp-server.cjs": {
-      "sha256": "620f8d4778b4c6ab3c00e76b78203861d09a35ea0bd5e576c6e7715040aa3ec6",
-      "bytes": 2243836
+      "sha256": "d97fadb2146a73fc96cb64d2f331979dd7818af7481de00dec3481ace8b8e08a",
+      "bytes": 2399581
     }
   }
 }

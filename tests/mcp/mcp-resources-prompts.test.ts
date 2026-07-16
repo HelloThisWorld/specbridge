@@ -110,7 +110,7 @@ describe('resources', () => {
     try {
       const read = await session.client.readResource({ uri: 'specbridge://verification/rules' });
       const parsed = JSON.parse(resourceText(read)) as { rules: { id: string }[] };
-      expect(parsed.rules.length).toBe(25);
+      expect(parsed.rules.length).toBe(26);
       expect(parsed.rules[0]?.id).toMatch(/^SBV\d{3}$/);
     } finally {
       await session.close();

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0.0",
+  "protocolVersion": "1.0.0",
+  "id": "example-analyzer",
+  "version": "1.0.0",
+  "displayName": "example-analyzer",
+  "description": "Deterministic spec diagnostics contributed by the example-analyzer analyzer extension.",
+  "kind": "analyzer",
+  "entrypoint": "dist/extension.cjs",
+  "compatibility": {
+    "specbridge": ">=0.7.1 <1.0.0",
+    "extensionSdk": ">=0.7.1 <1.0.0"
+  },
+  "capabilities": {
+    "operations": [
+      "analyzer.analyze"
+    ]
+  },
+  "permissions": {
+    "specRead": true,
+    "repositoryRead": false,
+    "repositoryWrite": false,
+    "network": false,
+    "childProcess": false,
+    "environmentVariables": []
+  },
+  "license": "MIT",
+  "keywords": [
+    "analyzer",
+    "specbridge-extension"
+  ]
+}

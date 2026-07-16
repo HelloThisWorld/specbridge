@@ -1,0 +1,37 @@
+{
+  "name": "@specbridge/extensions",
+  "version": "0.7.1",
+  "description": "SpecBridge extension host: manifest and package validation, checksum-verified local installation, explicit permission grants, the out-of-process stdio protocol client and process host, kind-specific invocation boundaries, conformance testing, scaffolding, and deterministic packaging.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@specbridge/core": "workspace:*",
+    "@specbridge/extension-sdk": "workspace:*",
+    "@specbridge/runners": "workspace:*",
+    "@specbridge/templates": "workspace:*",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0"
+  }
+}

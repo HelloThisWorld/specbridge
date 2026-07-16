@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { collectExtensionTemplatePacks } from '@specbridge/extensions';
 import type { TemplateCatalog, TemplateCatalogEntry } from '@specbridge/templates';
 import { loadTemplateCatalog } from '@specbridge/templates';
 import type { ServerContext } from '../context.js';
@@ -10,17 +11,21 @@ import type { ServerContext } from '../context.js';
  * by qualified references only.
  */
 
-export const templateSourceInput = z.enum(['builtin', 'project', 'all']);
+export const templateSourceInput = z.enum(['builtin', 'project', 'extension', 'all']);
 
-export function catalogFor(context: ServerContext, source?: 'builtin' | 'project' | 'all'): TemplateCatalog {
+export function catalogFor(context: ServerContext, source?: 'builtin' | 'project' | 'extension' | 'all'): TemplateCatalog {
   const workspace = context.requireWorkspace();
-  return loadTemplateCatalog(workspace, { source: source ?? 'all' });
+  const extensionTemplates = collectExtensionTemplatePacks(workspace);
+  return loadTemplateCatalog(workspace, {
+    source: source ?? 'all',
+    extensionPacks: [...extensionTemplates.packs],
+  });
 }
 
 export const templateSummaryShape = z.object({
   ref: z.string().describe('Qualified reference, e.g. builtin:rest-api'),
   id: z.string(),
-  source: z.enum(['builtin', 'project']),
+  source: z.string().min(1).max(100),
   valid: z.boolean(),
   displayName: z.string().nullable(),
   version: z.string().nullable(),

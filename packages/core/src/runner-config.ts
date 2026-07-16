@@ -390,6 +390,28 @@ export const antigravityProfileSchema = z
   .passthrough();
 export type AntigravityProfileConfig = z.infer<typeof antigravityProfileSchema>;
 
+/**
+ * v0.7.1: a profile backed by an installed runner *extension* (out-of-process
+ * stdio adapter behind the frozen v0.6.0 runner contract). Backward
+ * compatible: a new discriminated-union variant, nothing else changes.
+ * Extension profiles start disabled and are never selected automatically.
+ */
+export const extensionRunnerProfileSchema = z
+  .object({
+    runner: z.literal('extension'),
+    /** ID of the installed, enabled runner extension this profile uses. */
+    extensionId: z.string().min(1).max(64),
+    /** Extension profiles must be explicitly enabled to register at all. */
+    enabled: z.boolean().default(false),
+    model: z.string().min(1).max(200).optional(),
+    /** Per-operation timeout in milliseconds. */
+    timeoutMs: z.number().int().min(1).max(3_600_000).default(300_000),
+    /** Extension-owned configuration passed through the protocol verbatim. */
+    configuration: z.record(z.unknown()).default({}),
+  })
+  .strict();
+export type ExtensionRunnerProfileConfig = z.infer<typeof extensionRunnerProfileSchema>;
+
 export const runnerProfileSchema = z.discriminatedUnion('runner', [
   claudeProfileSchema,
   codexProfileSchema,
@@ -398,8 +420,15 @@ export const runnerProfileSchema = z.discriminatedUnion('runner', [
   openAiCompatibleProfileSchema,
   antigravityProfileSchema,
   mockProfileSchema,
+  extensionRunnerProfileSchema,
 ]);
 export type RunnerProfileConfig = z.infer<typeof runnerProfileSchema>;
+
+export function isExtensionRunnerProfile(
+  profile: RunnerProfileConfig,
+): profile is ExtensionRunnerProfileConfig {
+  return profile.runner === 'extension';
+}
 
 // ---------------------------------------------------------------------------
 // Policy, defaults, fallbacks

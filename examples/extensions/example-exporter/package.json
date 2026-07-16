@@ -1,0 +1,14 @@
+{
+  "name": "specbridge-extension-example-exporter",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Candidate export files produced by the example-exporter exporter extension.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "devDependencies": {
+    "@specbridge/extension-sdk": "^0.7.1"
+  }
+}

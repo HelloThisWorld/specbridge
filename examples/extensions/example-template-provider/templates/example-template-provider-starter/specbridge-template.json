@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "example-template-provider-starter",
+  "version": "1.0.0",
+  "displayName": "Starter Template",
+  "description": "A starter feature template contributed by this template-provider extension.",
+  "kind": "feature",
+  "supportedModes": [
+    "requirements-first",
+    "quick"
+  ],
+  "defaultMode": "requirements-first",
+  "tags": [
+    "starter"
+  ],
+  "files": [
+    {
+      "source": "files/requirements.md.template",
+      "target": "requirements.md",
+      "stage": "requirements",
+      "required": true
+    },
+    {
+      "source": "files/design.md.template",
+      "target": "design.md",
+      "stage": "design",
+      "required": true
+    },
+    {
+      "source": "files/tasks.md.template",
+      "target": "tasks.md",
+      "stage": "tasks",
+      "required": true
+    }
+  ],
+  "variables": [],
+  "compatibility": {
+    "specbridge": ">=0.7.0 <1.0.0",
+    "kiroLayout": "1"
+  },
+  "license": "MIT"
+}

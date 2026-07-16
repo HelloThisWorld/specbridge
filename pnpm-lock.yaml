@@ -90,9 +90,18 @@ importers:
       '@specbridge/execution':
         specifier: workspace:*
         version: link:../execution
+      '@specbridge/extension-sdk':
+        specifier: workspace:*
+        version: link:../extension-sdk
+      '@specbridge/extensions':
+        specifier: workspace:*
+        version: link:../extensions
       '@specbridge/mcp-server':
         specifier: workspace:*
         version: link:../mcp-server
+      '@specbridge/registry':
+        specifier: workspace:*
+        version: link:../registry
       '@specbridge/reporting':
         specifier: workspace:*
         version: link:../reporting
@@ -232,6 +241,44 @@ importers:
         specifier: ^5.6.0
         version: 5.9.3
 
+  packages/extension-sdk:
+    dependencies:
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
+    devDependencies:
+      tsup:
+        specifier: ^8.3.0
+        version: 8.5.1(postcss@8.5.16)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+
+  packages/extensions:
+    dependencies:
+      '@specbridge/core':
+        specifier: workspace:*
+        version: link:../core
+      '@specbridge/extension-sdk':
+        specifier: workspace:*
+        version: link:../extension-sdk
+      '@specbridge/runners':
+        specifier: workspace:*
+        version: link:../runners
+      '@specbridge/templates':
+        specifier: workspace:*
+        version: link:../templates
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
+    devDependencies:
+      tsup:
+        specifier: ^8.3.0
+        version: 8.5.1(postcss@8.5.16)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+
   packages/mcp-server:
     dependencies:
       '@modelcontextprotocol/sdk':
@@ -252,6 +299,15 @@ importers:
       '@specbridge/execution':
         specifier: workspace:*
         version: link:../execution
+      '@specbridge/extension-sdk':
+        specifier: workspace:*
+        version: link:../extension-sdk
+      '@specbridge/extensions':
+        specifier: workspace:*
+        version: link:../extensions
+      '@specbridge/registry':
+        specifier: workspace:*
+        version: link:../registry
       '@specbridge/runners':
         specifier: workspace:*
         version: link:../runners
@@ -261,6 +317,25 @@ importers:
       '@specbridge/workflow':
         specifier: workspace:*
         version: link:../workflow
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
+    devDependencies:
+      tsup:
+        specifier: ^8.3.0
+        version: 8.5.1(postcss@8.5.16)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+
+  packages/registry:
+    dependencies:
+      '@specbridge/core':
+        specifier: workspace:*
+        version: link:../core
+      '@specbridge/extension-sdk':
+        specifier: workspace:*
+        version: link:../extension-sdk
       zod:
         specifier: ^3.23.8
         version: 3.25.76

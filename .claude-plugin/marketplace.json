@@ -9,7 +9,7 @@
       "name": "specbridge",
       "source": "./integrations/claude-code-plugin/specbridge",
       "description": "Kiro-compatible spec workflows, verified interactive task execution, and deterministic drift checks.",
-      "version": "0.7.0",
+      "version": "0.7.1",
       "license": "MIT",
       "keywords": [
         "spec-driven-development",

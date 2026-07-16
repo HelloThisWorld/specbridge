@@ -968,7 +968,7 @@ var require_command = __commonJS({
     "use strict";
     var EventEmitter2 = require("events").EventEmitter;
     var childProcess = require("child_process");
-    var path41 = require("path");
+    var path59 = require("path");
     var fs = require("fs");
     var process11 = require("process");
     var { Argument: Argument2, humanReadableArgName } = require_argument();
@@ -1901,9 +1901,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
         let launchWithNode = false;
         const sourceExt = [".js", ".ts", ".tsx", ".mjs", ".cjs"];
         function findFile(baseDir, baseName) {
-          const localBin = path41.resolve(baseDir, baseName);
+          const localBin = path59.resolve(baseDir, baseName);
           if (fs.existsSync(localBin)) return localBin;
-          if (sourceExt.includes(path41.extname(baseName))) return void 0;
+          if (sourceExt.includes(path59.extname(baseName))) return void 0;
           const foundExt = sourceExt.find(
             (ext) => fs.existsSync(`${localBin}${ext}`)
           );
@@ -1921,17 +1921,17 @@ Expecting one of '${allowedValues.join("', '")}'`);
           } catch (err) {
             resolvedScriptPath = this._scriptPath;
           }
-          executableDir = path41.resolve(
-            path41.dirname(resolvedScriptPath),
+          executableDir = path59.resolve(
+            path59.dirname(resolvedScriptPath),
             executableDir
           );
         }
         if (executableDir) {
           let localFile = findFile(executableDir, executableFile);
           if (!localFile && !subcommand._executableFile && this._scriptPath) {
-            const legacyName = path41.basename(
+            const legacyName = path59.basename(
               this._scriptPath,
-              path41.extname(this._scriptPath)
+              path59.extname(this._scriptPath)
             );
             if (legacyName !== this._name) {
               localFile = findFile(
@@ -1942,7 +1942,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
           }
           executableFile = localFile || executableFile;
         }
-        launchWithNode = sourceExt.includes(path41.extname(executableFile));
+        launchWithNode = sourceExt.includes(path59.extname(executableFile));
         let proc;
         if (process11.platform !== "win32") {
           if (launchWithNode) {
@@ -2782,7 +2782,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @return {Command}
        */
       nameFromFilename(filename) {
-        this._name = path41.basename(filename, path41.extname(filename));
+        this._name = path59.basename(filename, path59.extname(filename));
         return this;
       }
       /**
@@ -2796,9 +2796,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @param {string} [path]
        * @return {(string|null|Command)}
        */
-      executableDir(path48) {
-        if (path48 === void 0) return this._executableDir;
-        this._executableDir = path48;
+      executableDir(path60) {
+        if (path60 === void 0) return this._executableDir;
+        this._executableDir = path60;
         return this;
       }
       /**
@@ -3179,17 +3179,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path41) {
-      const ctrl = callVisitor(key, node, visitor, path41);
+    function visit_(key, node, visitor, path59) {
+      const ctrl = callVisitor(key, node, visitor, path59);
       if (identity3.isNode(ctrl) || identity3.isPair(ctrl)) {
-        replaceNode(key, path41, ctrl);
-        return visit_(key, ctrl, visitor, path41);
+        replaceNode(key, path59, ctrl);
+        return visit_(key, ctrl, visitor, path59);
       }
       if (typeof ctrl !== "symbol") {
         if (identity3.isCollection(node)) {
-          path41 = Object.freeze(path41.concat(node));
+          path59 = Object.freeze(path59.concat(node));
           for (let i2 = 0; i2 < node.items.length; ++i2) {
-            const ci = visit_(i2, node.items[i2], visitor, path41);
+            const ci = visit_(i2, node.items[i2], visitor, path59);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -3200,13 +3200,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity3.isPair(node)) {
-          path41 = Object.freeze(path41.concat(node));
-          const ck = visit_("key", node.key, visitor, path41);
+          path59 = Object.freeze(path59.concat(node));
+          const ck = visit_("key", node.key, visitor, path59);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path41);
+          const cv = visit_("value", node.value, visitor, path59);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -3227,17 +3227,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path41) {
-      const ctrl = await callVisitor(key, node, visitor, path41);
+    async function visitAsync_(key, node, visitor, path59) {
+      const ctrl = await callVisitor(key, node, visitor, path59);
       if (identity3.isNode(ctrl) || identity3.isPair(ctrl)) {
-        replaceNode(key, path41, ctrl);
-        return visitAsync_(key, ctrl, visitor, path41);
+        replaceNode(key, path59, ctrl);
+        return visitAsync_(key, ctrl, visitor, path59);
       }
       if (typeof ctrl !== "symbol") {
         if (identity3.isCollection(node)) {
-          path41 = Object.freeze(path41.concat(node));
+          path59 = Object.freeze(path59.concat(node));
           for (let i2 = 0; i2 < node.items.length; ++i2) {
-            const ci = await visitAsync_(i2, node.items[i2], visitor, path41);
+            const ci = await visitAsync_(i2, node.items[i2], visitor, path59);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -3248,13 +3248,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity3.isPair(node)) {
-          path41 = Object.freeze(path41.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path41);
+          path59 = Object.freeze(path59.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path59);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path41);
+          const cv = await visitAsync_("value", node.value, visitor, path59);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -3281,23 +3281,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path41) {
+    function callVisitor(key, node, visitor, path59) {
       if (typeof visitor === "function")
-        return visitor(key, node, path41);
+        return visitor(key, node, path59);
       if (identity3.isMap(node))
-        return visitor.Map?.(key, node, path41);
+        return visitor.Map?.(key, node, path59);
       if (identity3.isSeq(node))
-        return visitor.Seq?.(key, node, path41);
+        return visitor.Seq?.(key, node, path59);
       if (identity3.isPair(node))
-        return visitor.Pair?.(key, node, path41);
+        return visitor.Pair?.(key, node, path59);
       if (identity3.isScalar(node))
-        return visitor.Scalar?.(key, node, path41);
+        return visitor.Scalar?.(key, node, path59);
       if (identity3.isAlias(node))
-        return visitor.Alias?.(key, node, path41);
+        return visitor.Alias?.(key, node, path59);
       return void 0;
     }
-    function replaceNode(key, path41, node) {
-      const parent = path41[path41.length - 1];
+    function replaceNode(key, path59, node) {
+      const parent = path59[path59.length - 1];
       if (identity3.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity3.isPair(parent)) {
@@ -3907,10 +3907,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity3 = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path41, value) {
+    function collectionFromPath(schema, path59, value) {
       let v = value;
-      for (let i2 = path41.length - 1; i2 >= 0; --i2) {
-        const k = path41[i2];
+      for (let i2 = path59.length - 1; i2 >= 0; --i2) {
+        const k = path59[i2];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a2 = [];
           a2[k] = v;
@@ -3929,7 +3929,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path41) => path41 == null || typeof path41 === "object" && !!path41[Symbol.iterator]().next().done;
+    var isEmptyPath = (path59) => path59 == null || typeof path59 === "object" && !!path59[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -3959,11 +3959,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path41, value) {
-        if (isEmptyPath(path41))
+      addIn(path59, value) {
+        if (isEmptyPath(path59))
           this.add(value);
         else {
-          const [key, ...rest] = path41;
+          const [key, ...rest] = path59;
           const node = this.get(key, true);
           if (identity3.isCollection(node))
             node.addIn(rest, value);
@@ -3977,8 +3977,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path41) {
-        const [key, ...rest] = path41;
+      deleteIn(path59) {
+        const [key, ...rest] = path59;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -3992,8 +3992,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path41, keepScalar) {
-        const [key, ...rest] = path41;
+      getIn(path59, keepScalar) {
+        const [key, ...rest] = path59;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity3.isScalar(node) ? node.value : node;
@@ -4011,8 +4011,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path41) {
-        const [key, ...rest] = path41;
+      hasIn(path59) {
+        const [key, ...rest] = path59;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -4022,8 +4022,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path41, value) {
-        const [key, ...rest] = path41;
+      setIn(path59, value) {
+        const [key, ...rest] = path59;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -6538,9 +6538,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path41, value) {
+      addIn(path59, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path41, value);
+          this.contents.addIn(path59, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -6615,14 +6615,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path41) {
-        if (Collection.isEmptyPath(path41)) {
+      deleteIn(path59) {
+        if (Collection.isEmptyPath(path59)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path41) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path59) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -6637,10 +6637,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path41, keepScalar) {
-        if (Collection.isEmptyPath(path41))
+      getIn(path59, keepScalar) {
+        if (Collection.isEmptyPath(path59))
           return !keepScalar && identity3.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity3.isCollection(this.contents) ? this.contents.getIn(path41, keepScalar) : void 0;
+        return identity3.isCollection(this.contents) ? this.contents.getIn(path59, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -6651,10 +6651,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path41) {
-        if (Collection.isEmptyPath(path41))
+      hasIn(path59) {
+        if (Collection.isEmptyPath(path59))
           return this.contents !== void 0;
-        return identity3.isCollection(this.contents) ? this.contents.hasIn(path41) : false;
+        return identity3.isCollection(this.contents) ? this.contents.hasIn(path59) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -6671,13 +6671,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path41, value) {
-        if (Collection.isEmptyPath(path41)) {
+      setIn(path59, value) {
+        if (Collection.isEmptyPath(path59)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path41), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path59), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path41, value);
+          this.contents.setIn(path59, value);
         }
       }
       /**
@@ -8637,9 +8637,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path41) => {
+    visit.itemAtPath = (cst, path59) => {
       let item = cst;
-      for (const [field, index] of path41) {
+      for (const [field, index] of path59) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -8648,23 +8648,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path41) => {
-      const parent = visit.itemAtPath(cst, path41.slice(0, -1));
-      const field = path41[path41.length - 1][0];
+    visit.parentCollection = (cst, path59) => {
+      const parent = visit.itemAtPath(cst, path59.slice(0, -1));
+      const field = path59[path59.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path41, item, visitor) {
-      let ctrl = visitor(item, path41);
+    function _visit(path59, item, visitor) {
+      let ctrl = visitor(item, path59);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i2 = 0; i2 < token.items.length; ++i2) {
-            const ci = _visit(Object.freeze(path41.concat([[field, i2]])), token.items[i2], visitor);
+            const ci = _visit(Object.freeze(path59.concat([[field, i2]])), token.items[i2], visitor);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -8675,10 +8675,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path41);
+            ctrl = ctrl(item, path59);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path41) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path59) : ctrl;
     }
     exports2.visit = visit;
   }
@@ -10436,7 +10436,7 @@ var require_windows = __commonJS({
     module2.exports = isexe;
     isexe.sync = sync;
     var fs = require("fs");
-    function checkPathExt(path41, options) {
+    function checkPathExt(path59, options) {
       var pathext = options.pathExt !== void 0 ? options.pathExt : process.env.PATHEXT;
       if (!pathext) {
         return true;
@@ -10447,25 +10447,25 @@ var require_windows = __commonJS({
       }
       for (var i2 = 0; i2 < pathext.length; i2++) {
         var p = pathext[i2].toLowerCase();
-        if (p && path41.substr(-p.length).toLowerCase() === p) {
+        if (p && path59.substr(-p.length).toLowerCase() === p) {
           return true;
         }
       }
       return false;
     }
-    function checkStat(stat, path41, options) {
+    function checkStat(stat, path59, options) {
       if (!stat.isSymbolicLink() && !stat.isFile()) {
         return false;
       }
-      return checkPathExt(path41, options);
+      return checkPathExt(path59, options);
     }
-    function isexe(path41, options, cb) {
-      fs.stat(path41, function(er, stat) {
-        cb(er, er ? false : checkStat(stat, path41, options));
+    function isexe(path59, options, cb) {
+      fs.stat(path59, function(er, stat) {
+        cb(er, er ? false : checkStat(stat, path59, options));
       });
     }
-    function sync(path41, options) {
-      return checkStat(fs.statSync(path41), path41, options);
+    function sync(path59, options) {
+      return checkStat(fs.statSync(path59), path59, options);
     }
   }
 });
@@ -10477,13 +10477,13 @@ var require_mode = __commonJS({
     module2.exports = isexe;
     isexe.sync = sync;
     var fs = require("fs");
-    function isexe(path41, options, cb) {
-      fs.stat(path41, function(er, stat) {
+    function isexe(path59, options, cb) {
+      fs.stat(path59, function(er, stat) {
         cb(er, er ? false : checkStat(stat, options));
       });
     }
-    function sync(path41, options) {
-      return checkStat(fs.statSync(path41), options);
+    function sync(path59, options) {
+      return checkStat(fs.statSync(path59), options);
     }
     function checkStat(stat, options) {
       return stat.isFile() && checkMode(stat, options);
@@ -10517,7 +10517,7 @@ var require_isexe = __commonJS({
     }
     module2.exports = isexe;
     isexe.sync = sync;
-    function isexe(path41, options, cb) {
+    function isexe(path59, options, cb) {
       if (typeof options === "function") {
         cb = options;
         options = {};
@@ -10527,7 +10527,7 @@ var require_isexe = __commonJS({
           throw new TypeError("callback not provided");
         }
         return new Promise(function(resolve, reject) {
-          isexe(path41, options || {}, function(er, is) {
+          isexe(path59, options || {}, function(er, is) {
             if (er) {
               reject(er);
             } else {
@@ -10536,7 +10536,7 @@ var require_isexe = __commonJS({
           });
         });
       }
-      core(path41, options || {}, function(er, is) {
+      core(path59, options || {}, function(er, is) {
         if (er) {
           if (er.code === "EACCES" || options && options.ignoreErrors) {
             er = null;
@@ -10546,9 +10546,9 @@ var require_isexe = __commonJS({
         cb(er, is);
       });
     }
-    function sync(path41, options) {
+    function sync(path59, options) {
       try {
-        return core.sync(path41, options || {});
+        return core.sync(path59, options || {});
       } catch (er) {
         if (options && options.ignoreErrors || er.code === "EACCES") {
           return false;
@@ -10565,7 +10565,7 @@ var require_which = __commonJS({
   "../../node_modules/.pnpm/which@2.0.2/node_modules/which/which.js"(exports2, module2) {
     "use strict";
     var isWindows = process.platform === "win32" || process.env.OSTYPE === "cygwin" || process.env.OSTYPE === "msys";
-    var path41 = require("path");
+    var path59 = require("path");
     var COLON = isWindows ? ";" : ":";
     var isexe = require_isexe();
     var getNotFoundError = (cmd) => Object.assign(new Error(`not found: ${cmd}`), { code: "ENOENT" });
@@ -10603,7 +10603,7 @@ var require_which = __commonJS({
           return opt.all && found.length ? resolve(found) : reject(getNotFoundError(cmd));
         const ppRaw = pathEnv[i2];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path41.join(pathPart, cmd);
+        const pCmd = path59.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         resolve(subStep(p, i2, 0));
       });
@@ -10630,7 +10630,7 @@ var require_which = __commonJS({
       for (let i2 = 0; i2 < pathEnv.length; i2++) {
         const ppRaw = pathEnv[i2];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path41.join(pathPart, cmd);
+        const pCmd = path59.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         for (let j = 0; j < pathExt.length; j++) {
           const cur = p + pathExt[j];
@@ -10678,7 +10678,7 @@ var require_path_key = __commonJS({
 var require_resolveCommand = __commonJS({
   "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js"(exports2, module2) {
     "use strict";
-    var path41 = require("path");
+    var path59 = require("path");
     var which = require_which();
     var getPathKey = require_path_key();
     function resolveCommandAttempt(parsed, withoutPathExt) {
@@ -10696,7 +10696,7 @@ var require_resolveCommand = __commonJS({
       try {
         resolved = which.sync(parsed.command, {
           path: env[getPathKey({ env })],
-          pathExt: withoutPathExt ? path41.delimiter : void 0
+          pathExt: withoutPathExt ? path59.delimiter : void 0
         });
       } catch (e) {
       } finally {
@@ -10705,7 +10705,7 @@ var require_resolveCommand = __commonJS({
         }
       }
       if (resolved) {
-        resolved = path41.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
+        resolved = path59.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
       }
       return resolved;
     }
@@ -10759,8 +10759,8 @@ var require_shebang_command = __commonJS({
       if (!match) {
         return null;
       }
-      const [path41, argument] = match[0].replace(/#! ?/, "").split(" ");
-      const binary = path41.split("/").pop();
+      const [path59, argument] = match[0].replace(/#! ?/, "").split(" ");
+      const binary = path59.split("/").pop();
       if (binary === "env") {
         return argument;
       }
@@ -10795,7 +10795,7 @@ var require_readShebang = __commonJS({
 var require_parse = __commonJS({
   "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js"(exports2, module2) {
     "use strict";
-    var path41 = require("path");
+    var path59 = require("path");
     var resolveCommand = require_resolveCommand();
     var escape2 = require_escape();
     var readShebang = require_readShebang();
@@ -10820,7 +10820,7 @@ var require_parse = __commonJS({
       const needsShell = !isExecutableRegExp.test(commandFile);
       if (parsed.options.forceShell || needsShell) {
         const needsDoubleEscapeMetaChars = isCmdShimRegExp.test(commandFile);
-        parsed.command = path41.normalize(parsed.command);
+        parsed.command = path59.normalize(parsed.command);
         parsed.command = escape2.command(parsed.command);
         parsed.args = parsed.args.map((arg) => escape2.argument(arg, needsDoubleEscapeMetaChars));
         const shellCommand = [parsed.command].concat(parsed.args).join(" ");
@@ -10910,7 +10910,7 @@ var require_cross_spawn = __commonJS({
     var cp = require("child_process");
     var parse3 = require_parse();
     var enoent = require_enoent();
-    function spawn2(command, args, options) {
+    function spawn3(command, args, options) {
       const parsed = parse3(command, args, options);
       const spawned = cp.spawn(parsed.command, parsed.args, parsed.options);
       enoent.hookChildProcess(spawned, parsed);
@@ -10922,8 +10922,8 @@ var require_cross_spawn = __commonJS({
       result.error = result.error || enoent.verifyENOENTSync(result.status, parsed);
       return result;
     }
-    module2.exports = spawn2;
-    module2.exports.spawn = spawn2;
+    module2.exports = spawn3;
+    module2.exports.spawn = spawn3;
     module2.exports.sync = spawnSync2;
     module2.exports._parse = parse3;
     module2.exports._enoent = enoent;
@@ -11185,8 +11185,8 @@ var require_utils = __commonJS({
       }
       return output;
     };
-    exports2.basename = (path41, { windows } = {}) => {
-      const segs = path41.split(windows ? /[\\/]/ : "/");
+    exports2.basename = (path59, { windows } = {}) => {
+      const segs = path59.split(windows ? /[\\/]/ : "/");
       const last = segs[segs.length - 1];
       if (last === "") {
         return segs[segs.length - 2];
@@ -15893,8 +15893,8 @@ var require_utils2 = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path41) {
-      let input = path41;
+    function removeDotSegments(path59) {
+      let input = path59;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -16146,8 +16146,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path41, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path41 && path41 !== "/" ? path41 : void 0;
+        const [path59, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path59 && path59 !== "/" ? path59 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -20056,8 +20056,8 @@ function getErrorMap() {
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path41, errorMaps, issueData } = params;
-  const fullPath = [...path41, ...issueData.path || []];
+  const { data, path: path59, errorMaps, issueData } = params;
+  const fullPath = [...path59, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -20173,11 +20173,11 @@ var errorUtil;
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path41, key) {
+  constructor(parent, value, path59, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path41;
+    this._path = path59;
     this._key = key;
   }
   get path() {
@@ -20355,7 +20355,7 @@ var ZodType = class {
     const result = await (isAsync(maybeAsyncResult) ? maybeAsyncResult : Promise.resolve(maybeAsyncResult));
     return handleResult(ctx, result);
   }
-  refine(check4, message) {
+  refine(check5, message) {
     const getIssueProperties = (val) => {
       if (typeof message === "string" || typeof message === "undefined") {
         return { message };
@@ -20366,7 +20366,7 @@ var ZodType = class {
       }
     };
     return this._refinement((val, ctx) => {
-      const result = check4(val);
+      const result = check5(val);
       const setError = () => ctx.addIssue({
         code: ZodIssueCode.custom,
         ...getIssueProperties(val)
@@ -20389,9 +20389,9 @@ var ZodType = class {
       }
     });
   }
-  refinement(check4, refinementData) {
+  refinement(check5, refinementData) {
     return this._refinement((val, ctx) => {
-      if (!check4(val)) {
+      if (!check5(val)) {
         ctx.addIssue(typeof refinementData === "function" ? refinementData(val, ctx) : refinementData);
         return false;
       } else {
@@ -20613,70 +20613,70 @@ var ZodString = class _ZodString2 extends ZodType {
     }
     const status = new ParseStatus();
     let ctx = void 0;
-    for (const check4 of this._def.checks) {
-      if (check4.kind === "min") {
-        if (input.data.length < check4.value) {
+    for (const check5 of this._def.checks) {
+      if (check5.kind === "min") {
+        if (input.data.length < check5.value) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.too_small,
-            minimum: check4.value,
+            minimum: check5.value,
             type: "string",
             inclusive: true,
             exact: false,
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "max") {
-        if (input.data.length > check4.value) {
+      } else if (check5.kind === "max") {
+        if (input.data.length > check5.value) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.too_big,
-            maximum: check4.value,
+            maximum: check5.value,
             type: "string",
             inclusive: true,
             exact: false,
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "length") {
-        const tooBig = input.data.length > check4.value;
-        const tooSmall = input.data.length < check4.value;
+      } else if (check5.kind === "length") {
+        const tooBig = input.data.length > check5.value;
+        const tooSmall = input.data.length < check5.value;
         if (tooBig || tooSmall) {
           ctx = this._getOrReturnCtx(input, ctx);
           if (tooBig) {
             addIssueToContext(ctx, {
               code: ZodIssueCode.too_big,
-              maximum: check4.value,
+              maximum: check5.value,
               type: "string",
               inclusive: true,
               exact: true,
-              message: check4.message
+              message: check5.message
             });
           } else if (tooSmall) {
             addIssueToContext(ctx, {
               code: ZodIssueCode.too_small,
-              minimum: check4.value,
+              minimum: check5.value,
               type: "string",
               inclusive: true,
               exact: true,
-              message: check4.message
+              message: check5.message
             });
           }
           status.dirty();
         }
-      } else if (check4.kind === "email") {
+      } else if (check5.kind === "email") {
         if (!emailRegex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "email",
             code: ZodIssueCode.invalid_string,
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "emoji") {
+      } else if (check5.kind === "emoji") {
         if (!emojiRegex) {
           emojiRegex = new RegExp(_emojiRegex, "u");
         }
@@ -20685,61 +20685,61 @@ var ZodString = class _ZodString2 extends ZodType {
           addIssueToContext(ctx, {
             validation: "emoji",
             code: ZodIssueCode.invalid_string,
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "uuid") {
+      } else if (check5.kind === "uuid") {
         if (!uuidRegex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "uuid",
             code: ZodIssueCode.invalid_string,
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "nanoid") {
+      } else if (check5.kind === "nanoid") {
         if (!nanoidRegex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "nanoid",
             code: ZodIssueCode.invalid_string,
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "cuid") {
+      } else if (check5.kind === "cuid") {
         if (!cuidRegex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "cuid",
             code: ZodIssueCode.invalid_string,
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "cuid2") {
+      } else if (check5.kind === "cuid2") {
         if (!cuid2Regex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "cuid2",
             code: ZodIssueCode.invalid_string,
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "ulid") {
+      } else if (check5.kind === "ulid") {
         if (!ulidRegex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "ulid",
             code: ZodIssueCode.invalid_string,
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "url") {
+      } else if (check5.kind === "url") {
         try {
           new URL(input.data);
         } catch {
@@ -20747,153 +20747,153 @@ var ZodString = class _ZodString2 extends ZodType {
           addIssueToContext(ctx, {
             validation: "url",
             code: ZodIssueCode.invalid_string,
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "regex") {
-        check4.regex.lastIndex = 0;
-        const testResult = check4.regex.test(input.data);
+      } else if (check5.kind === "regex") {
+        check5.regex.lastIndex = 0;
+        const testResult = check5.regex.test(input.data);
         if (!testResult) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "regex",
             code: ZodIssueCode.invalid_string,
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "trim") {
+      } else if (check5.kind === "trim") {
         input.data = input.data.trim();
-      } else if (check4.kind === "includes") {
-        if (!input.data.includes(check4.value, check4.position)) {
+      } else if (check5.kind === "includes") {
+        if (!input.data.includes(check5.value, check5.position)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.invalid_string,
-            validation: { includes: check4.value, position: check4.position },
-            message: check4.message
+            validation: { includes: check5.value, position: check5.position },
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "toLowerCase") {
+      } else if (check5.kind === "toLowerCase") {
         input.data = input.data.toLowerCase();
-      } else if (check4.kind === "toUpperCase") {
+      } else if (check5.kind === "toUpperCase") {
         input.data = input.data.toUpperCase();
-      } else if (check4.kind === "startsWith") {
-        if (!input.data.startsWith(check4.value)) {
+      } else if (check5.kind === "startsWith") {
+        if (!input.data.startsWith(check5.value)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.invalid_string,
-            validation: { startsWith: check4.value },
-            message: check4.message
+            validation: { startsWith: check5.value },
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "endsWith") {
-        if (!input.data.endsWith(check4.value)) {
+      } else if (check5.kind === "endsWith") {
+        if (!input.data.endsWith(check5.value)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.invalid_string,
-            validation: { endsWith: check4.value },
-            message: check4.message
+            validation: { endsWith: check5.value },
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "datetime") {
-        const regex = datetimeRegex(check4);
+      } else if (check5.kind === "datetime") {
+        const regex = datetimeRegex(check5);
         if (!regex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.invalid_string,
             validation: "datetime",
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "date") {
+      } else if (check5.kind === "date") {
         const regex = dateRegex;
         if (!regex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.invalid_string,
             validation: "date",
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "time") {
-        const regex = timeRegex(check4);
+      } else if (check5.kind === "time") {
+        const regex = timeRegex(check5);
         if (!regex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.invalid_string,
             validation: "time",
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "duration") {
+      } else if (check5.kind === "duration") {
         if (!durationRegex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "duration",
             code: ZodIssueCode.invalid_string,
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "ip") {
-        if (!isValidIP(input.data, check4.version)) {
+      } else if (check5.kind === "ip") {
+        if (!isValidIP(input.data, check5.version)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "ip",
             code: ZodIssueCode.invalid_string,
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "jwt") {
-        if (!isValidJWT(input.data, check4.alg)) {
+      } else if (check5.kind === "jwt") {
+        if (!isValidJWT(input.data, check5.alg)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "jwt",
             code: ZodIssueCode.invalid_string,
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "cidr") {
-        if (!isValidCidr(input.data, check4.version)) {
+      } else if (check5.kind === "cidr") {
+        if (!isValidCidr(input.data, check5.version)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "cidr",
             code: ZodIssueCode.invalid_string,
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "base64") {
+      } else if (check5.kind === "base64") {
         if (!base64Regex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "base64",
             code: ZodIssueCode.invalid_string,
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "base64url") {
+      } else if (check5.kind === "base64url") {
         if (!base64urlRegex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "base64url",
             code: ZodIssueCode.invalid_string,
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
       } else {
-        util.assertNever(check4);
+        util.assertNever(check5);
       }
     }
     return { status: status.value, value: input.data };
@@ -20905,10 +20905,10 @@ var ZodString = class _ZodString2 extends ZodType {
       ...errorUtil.errToObj(message)
     });
   }
-  _addCheck(check4) {
+  _addCheck(check5) {
     return new _ZodString2({
       ...this._def,
-      checks: [...this._def.checks, check4]
+      checks: [...this._def.checks, check5]
     });
   }
   email(message) {
@@ -21173,67 +21173,67 @@ var ZodNumber = class _ZodNumber extends ZodType {
     }
     let ctx = void 0;
     const status = new ParseStatus();
-    for (const check4 of this._def.checks) {
-      if (check4.kind === "int") {
+    for (const check5 of this._def.checks) {
+      if (check5.kind === "int") {
         if (!util.isInteger(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.invalid_type,
             expected: "integer",
             received: "float",
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "min") {
-        const tooSmall = check4.inclusive ? input.data < check4.value : input.data <= check4.value;
+      } else if (check5.kind === "min") {
+        const tooSmall = check5.inclusive ? input.data < check5.value : input.data <= check5.value;
         if (tooSmall) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.too_small,
-            minimum: check4.value,
+            minimum: check5.value,
             type: "number",
-            inclusive: check4.inclusive,
+            inclusive: check5.inclusive,
             exact: false,
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "max") {
-        const tooBig = check4.inclusive ? input.data > check4.value : input.data >= check4.value;
+      } else if (check5.kind === "max") {
+        const tooBig = check5.inclusive ? input.data > check5.value : input.data >= check5.value;
         if (tooBig) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.too_big,
-            maximum: check4.value,
+            maximum: check5.value,
             type: "number",
-            inclusive: check4.inclusive,
+            inclusive: check5.inclusive,
             exact: false,
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "multipleOf") {
-        if (floatSafeRemainder(input.data, check4.value) !== 0) {
+      } else if (check5.kind === "multipleOf") {
+        if (floatSafeRemainder(input.data, check5.value) !== 0) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.not_multiple_of,
-            multipleOf: check4.value,
-            message: check4.message
+            multipleOf: check5.value,
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "finite") {
+      } else if (check5.kind === "finite") {
         if (!Number.isFinite(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.not_finite,
-            message: check4.message
+            message: check5.message
           });
           status.dirty();
         }
       } else {
-        util.assertNever(check4);
+        util.assertNever(check5);
       }
     }
     return { status: status.value, value: input.data };
@@ -21264,10 +21264,10 @@ var ZodNumber = class _ZodNumber extends ZodType {
       ]
     });
   }
-  _addCheck(check4) {
+  _addCheck(check5) {
     return new _ZodNumber({
       ...this._def,
-      checks: [...this._def.checks, check4]
+      checks: [...this._def.checks, check5]
     });
   }
   int(message) {
@@ -21402,45 +21402,45 @@ var ZodBigInt = class _ZodBigInt extends ZodType {
     }
     let ctx = void 0;
     const status = new ParseStatus();
-    for (const check4 of this._def.checks) {
-      if (check4.kind === "min") {
-        const tooSmall = check4.inclusive ? input.data < check4.value : input.data <= check4.value;
+    for (const check5 of this._def.checks) {
+      if (check5.kind === "min") {
+        const tooSmall = check5.inclusive ? input.data < check5.value : input.data <= check5.value;
         if (tooSmall) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.too_small,
             type: "bigint",
-            minimum: check4.value,
-            inclusive: check4.inclusive,
-            message: check4.message
+            minimum: check5.value,
+            inclusive: check5.inclusive,
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "max") {
-        const tooBig = check4.inclusive ? input.data > check4.value : input.data >= check4.value;
+      } else if (check5.kind === "max") {
+        const tooBig = check5.inclusive ? input.data > check5.value : input.data >= check5.value;
         if (tooBig) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.too_big,
             type: "bigint",
-            maximum: check4.value,
-            inclusive: check4.inclusive,
-            message: check4.message
+            maximum: check5.value,
+            inclusive: check5.inclusive,
+            message: check5.message
           });
           status.dirty();
         }
-      } else if (check4.kind === "multipleOf") {
-        if (input.data % check4.value !== BigInt(0)) {
+      } else if (check5.kind === "multipleOf") {
+        if (input.data % check5.value !== BigInt(0)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.not_multiple_of,
-            multipleOf: check4.value,
-            message: check4.message
+            multipleOf: check5.value,
+            message: check5.message
           });
           status.dirty();
         }
       } else {
-        util.assertNever(check4);
+        util.assertNever(check5);
       }
     }
     return { status: status.value, value: input.data };
@@ -21480,10 +21480,10 @@ var ZodBigInt = class _ZodBigInt extends ZodType {
       ]
     });
   }
-  _addCheck(check4) {
+  _addCheck(check5) {
     return new _ZodBigInt({
       ...this._def,
-      checks: [...this._def.checks, check4]
+      checks: [...this._def.checks, check5]
     });
   }
   positive(message) {
@@ -21603,35 +21603,35 @@ var ZodDate = class _ZodDate extends ZodType {
     }
     const status = new ParseStatus();
     let ctx = void 0;
-    for (const check4 of this._def.checks) {
-      if (check4.kind === "min") {
-        if (input.data.getTime() < check4.value) {
+    for (const check5 of this._def.checks) {
+      if (check5.kind === "min") {
+        if (input.data.getTime() < check5.value) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.too_small,
-            message: check4.message,
+            message: check5.message,
             inclusive: true,
             exact: false,
-            minimum: check4.value,
+            minimum: check5.value,
             type: "date"
           });
           status.dirty();
         }
-      } else if (check4.kind === "max") {
-        if (input.data.getTime() > check4.value) {
+      } else if (check5.kind === "max") {
+        if (input.data.getTime() > check5.value) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             code: ZodIssueCode.too_big,
-            message: check4.message,
+            message: check5.message,
             inclusive: true,
             exact: false,
-            maximum: check4.value,
+            maximum: check5.value,
             type: "date"
           });
           status.dirty();
         }
       } else {
-        util.assertNever(check4);
+        util.assertNever(check5);
       }
     }
     return {
@@ -21639,10 +21639,10 @@ var ZodDate = class _ZodDate extends ZodType {
       value: new Date(input.data.getTime())
     };
   }
-  _addCheck(check4) {
+  _addCheck(check5) {
     return new _ZodDate({
       ...this._def,
-      checks: [...this._def.checks, check4]
+      checks: [...this._def.checks, check5]
     });
   }
   min(minDate, message) {
@@ -23503,10 +23503,10 @@ function cleanParams(params, data) {
   const p2 = typeof p === "string" ? { message: p } : p;
   return p2;
 }
-function custom(check4, _params = {}, fatal) {
-  if (check4)
+function custom(check5, _params = {}, fatal) {
+  if (check5)
     return ZodAny.create().superRefine((data, ctx) => {
-      const r = check4(data);
+      const r = check5(data);
       if (r instanceof Promise) {
         return r.then((r2) => {
           if (!r2) {
@@ -24299,6 +24299,33 @@ var verificationSummarySchema = external_exports.object({
   warnings: external_exports.number().int().min(0),
   info: external_exports.number().int().min(0)
 });
+var EXTENSION_VERIFIER_STATUS_VALUES = [
+  "passed",
+  "warning",
+  "failed",
+  "not-applicable",
+  "error"
+];
+var NAMESPACED_EXTENSION_RULE_ID_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\/[A-Z][A-Z0-9_-]{0,63}$/;
+var extensionVerifierDiagnosticSchema = external_exports.object({
+  ruleId: external_exports.string().regex(NAMESPACED_EXTENSION_RULE_ID_PATTERN),
+  severity: external_exports.enum(["info", "warning", "error"]),
+  message: external_exports.string().min(1),
+  file: external_exports.string().nullable(),
+  line: external_exports.number().int().min(1).nullable(),
+  remediation: external_exports.string().nullable(),
+  confidence: external_exports.enum(["deterministic", "heuristic"])
+});
+var extensionVerifierReportEntrySchema = external_exports.object({
+  extensionId: external_exports.string().min(1),
+  extensionVersion: external_exports.string().min(1),
+  specName: external_exports.string().min(1),
+  required: external_exports.boolean(),
+  status: external_exports.enum(EXTENSION_VERIFIER_STATUS_VALUES),
+  summary: external_exports.string().nullable(),
+  durationMs: external_exports.number().int().min(0),
+  diagnostics: external_exports.array(extensionVerifierDiagnosticSchema).max(1e3)
+});
 var verificationReportSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
   tool: external_exports.object({
@@ -24316,7 +24343,9 @@ var verificationReportSchema = external_exports.object({
   specResults: external_exports.array(specVerificationResultSchema),
   /** Diagnostics not attributable to a single selected spec. */
   globalDiagnostics: external_exports.array(verificationDiagnosticSchema),
-  verificationCommands: external_exports.array(verificationCommandReportSchema)
+  verificationCommands: external_exports.array(verificationCommandReportSchema),
+  /** v0.7.1: results from policy-configured extension verifiers (optional). */
+  extensionVerifiers: external_exports.array(extensionVerifierReportEntrySchema).optional()
 });
 var SEVERITY_RANK = {
   error: 0,
@@ -24706,6 +24735,18 @@ var antigravityProfileSchema = external_exports.object({
   experimental: external_exports.literal(true).default(true),
   timeoutMs: external_exports.number().int().min(1e3).max(6e5).default(3e4)
 }).passthrough();
+var extensionRunnerProfileSchema = external_exports.object({
+  runner: external_exports.literal("extension"),
+  /** ID of the installed, enabled runner extension this profile uses. */
+  extensionId: external_exports.string().min(1).max(64),
+  /** Extension profiles must be explicitly enabled to register at all. */
+  enabled: external_exports.boolean().default(false),
+  model: external_exports.string().min(1).max(200).optional(),
+  /** Per-operation timeout in milliseconds. */
+  timeoutMs: external_exports.number().int().min(1).max(36e5).default(3e5),
+  /** Extension-owned configuration passed through the protocol verbatim. */
+  configuration: external_exports.record(external_exports.unknown()).default({})
+}).strict();
 var runnerProfileSchema = external_exports.discriminatedUnion("runner", [
   claudeProfileSchema,
   codexProfileSchema,
@@ -24713,7 +24754,8 @@ var runnerProfileSchema = external_exports.discriminatedUnion("runner", [
   ollamaProfileSchema,
   openAiCompatibleProfileSchema,
   antigravityProfileSchema,
-  mockProfileSchema
+  mockProfileSchema,
+  extensionRunnerProfileSchema
 ]);
 var runnerPolicySchema = external_exports.object({
   allowAutomaticFallback: external_exports.boolean().default(false),
@@ -25078,11 +25120,11 @@ function migrateRunnersSection(v1, changes, warnings) {
 function planConfigMigration(raw) {
   const declared = raw !== null && typeof raw === "object" ? raw.schemaVersion : void 0;
   if (typeof declared === "string" && declared.startsWith("2.")) {
-    const check4 = agentConfigV2Schema.safeParse(raw);
-    if (!check4.success) {
+    const check5 = agentConfigV2Schema.safeParse(raw);
+    if (!check5.success) {
       return {
         kind: "invalid",
-        problems: check4.error.issues.map(
+        problems: check5.error.issues.map(
           (issue4) => `${issue4.path.join(".") || "(root)"}: ${issue4.message}`
         )
       };
@@ -25746,7 +25788,7 @@ function fullCommandPath(command) {
 }
 
 // ../../packages/cli/src/version.ts
-var VERSION = "0.7.0";
+var VERSION = "0.7.1";
 
 // ../../packages/cli/src/commands/doctor.ts
 var import_node_path2 = __toESM(require("path"), 1);
@@ -26883,21 +26925,21 @@ function analyzeWorkspace(workspace) {
   const steeringRoundTrip = steering.filter((info) => info.diagnostics.every((d) => d.code !== "STEERING_UNREADABLE")).map((info) => checkNoopRoundTrip(info.path));
   const lineEndings = { lf: 0, crlf: 0, cr: 0, mixed: 0, none: 0 };
   const allChecks = [...steeringRoundTrip, ...specs.flatMap((spec) => spec.roundTrip)];
-  for (const check4 of allChecks) {
-    if (check4.eol === "lf") lineEndings.lf += 1;
-    else if (check4.eol === "crlf") lineEndings.crlf += 1;
-    else if (check4.eol === "cr") lineEndings.cr += 1;
-    else if (check4.eol === "mixed") lineEndings.mixed += 1;
+  for (const check5 of allChecks) {
+    if (check5.eol === "lf") lineEndings.lf += 1;
+    else if (check5.eol === "crlf") lineEndings.crlf += 1;
+    else if (check5.eol === "cr") lineEndings.cr += 1;
+    else if (check5.eol === "mixed") lineEndings.mixed += 1;
     else lineEndings.none += 1;
   }
-  const roundTripSafe = allChecks.every((check4) => check4.identical);
+  const roundTripSafe = allChecks.every((check5) => check5.identical);
   if (!roundTripSafe) {
-    for (const check4 of allChecks.filter((c3) => !c3.identical)) {
+    for (const check5 of allChecks.filter((c3) => !c3.identical)) {
       diagnostics.push({
         severity: "error",
         code: "ROUND_TRIP_UNSAFE",
-        message: `No-op round trip is not byte-identical (${check4.reason ?? "unknown reason"}).`,
-        file: check4.file
+        message: `No-op round trip is not byte-identical (${check5.reason ?? "unknown reason"}).`,
+        file: check5.file
       });
     }
   }
@@ -27341,35 +27383,35 @@ function extractPathReferences(document) {
     for (const match of text.matchAll(BACKTICK_SPAN)) {
       const raw = match[1];
       if (raw === void 0) continue;
-      const path56 = normalizePathCandidate(raw);
-      if (path56 === void 0) continue;
-      const key = `${path56} ${i2}`;
+      const path59 = normalizePathCandidate(raw);
+      if (path59 === void 0) continue;
+      const key = `${path59} ${i2}`;
       if (seen.has(key)) continue;
       seen.add(key);
       references.push({
         raw,
-        path: path56,
+        path: path59,
         line: i2,
         method: "backtick-path",
         confidence: "deterministic",
-        isGlob: GLOB_CHARS.test(path56)
+        isGlob: GLOB_CHARS.test(path59)
       });
     }
     for (const match of text.matchAll(MARKDOWN_LINK)) {
       const raw = match[1];
       if (raw === void 0) continue;
-      const path56 = normalizePathCandidate(raw);
-      if (path56 === void 0) continue;
-      const key = `${path56} ${i2}`;
+      const path59 = normalizePathCandidate(raw);
+      if (path59 === void 0) continue;
+      const key = `${path59} ${i2}`;
       if (seen.has(key)) continue;
       seen.add(key);
       references.push({
         raw,
-        path: path56,
+        path: path59,
         line: i2,
         method: "markdown-link",
         confidence: "deterministic",
-        isGlob: GLOB_CHARS.test(path56)
+        isGlob: GLOB_CHARS.test(path59)
       });
     }
   }
@@ -27974,8 +28016,8 @@ function shortHash(hash) {
 function resolveStageFile(workspace, stage) {
   const relative = stage.file.split("/").join(import_path9.default.sep);
   const resolved = import_path9.default.resolve(workspace.rootDir, relative);
-  const check4 = import_path9.default.relative(workspace.rootDir, resolved);
-  if (check4.startsWith("..") || import_path9.default.isAbsolute(check4)) {
+  const check5 = import_path9.default.relative(workspace.rootDir, resolved);
+  if (check5.startsWith("..") || import_path9.default.isAbsolute(check5)) {
     return import_path9.default.join(workspace.rootDir, ".specbridge", "invalid-path", import_path9.default.basename(stage.file));
   }
   return resolved;
@@ -28482,9 +28524,9 @@ function analyzeDesignStage(spec, options) {
   const isPendingStub = scan.placeholderOnly;
   if (!isPendingStub) {
     const checks = spec.classification.type === "bugfix" ? BUGFIX_DESIGN_CHECKS : FEATURE_DESIGN_CHECKS;
-    for (const check4 of checks) {
-      if (!hasSectionMatching(document, check4.pattern)) {
-        diagnostics.push(diag("warning", check4.code, check4.message, filePath));
+    for (const check5 of checks) {
+      if (!hasSectionMatching(document, check5.pattern)) {
+        diagnostics.push(diag("warning", check5.code, check5.message, filePath));
       }
     }
     if (options.prerequisitesApproved === false) {
@@ -29420,7 +29462,7 @@ function toJson(analysis, audit) {
       presentKinds: spec.classification.presentKinds,
       missingKinds: spec.classification.missingKinds,
       taskProgress: spec.taskProgress,
-      roundTripSafe: spec.roundTrip.every((check4) => check4.identical),
+      roundTripSafe: spec.roundTrip.every((check5) => check5.identical),
       diagnostics: spec.diagnostics
     })),
     sidecar: {
@@ -29765,7 +29807,7 @@ function printSummary(runtime, analysis, view) {
       runtime.out(severityLine(diagnostic.severity, `${diagnostic.message}${location}`));
     }
   }
-  const roundTripOk = analysis.roundTrip.every((check4) => check4.identical);
+  const roundTripOk = analysis.roundTrip.every((check5) => check5.identical);
   runtime.out();
   if (roundTripOk) {
     runtime.out(okLine("Round-trip safe: all Markdown files reserialize byte-identically"));
@@ -29987,7 +30029,7 @@ var import_path15 = __toESM(require("path"), 1);
 var import_fs16 = require("fs");
 var import_os = require("os");
 var import_path16 = __toESM(require("path"), 1);
-var SPECBRIDGE_VERSION = "0.7.0";
+var SPECBRIDGE_VERSION = "0.7.1";
 var TEMPLATE_ERROR_CODES = {
   SBT001: "template not found",
   SBT002: "ambiguous template reference",
@@ -30072,6 +30114,9 @@ function validateTemplateId(id) {
 function formatTemplateReference(source, id) {
   return `${source}:${id}`;
 }
+function formatExtensionTemplateReference(extensionId, id) {
+  return `extension:${extensionId}/${id}`;
+}
 function parseTemplateReference(raw) {
   const trimmed = raw.trim();
   const colon = trimmed.indexOf(":");
@@ -30080,6 +30125,18 @@ function parseTemplateReference(raw) {
   }
   const source = trimmed.slice(0, colon);
   const id = trimmed.slice(colon + 1);
+  if (source === "extension") {
+    const slash = id.indexOf("/");
+    if (slash <= 0 || slash === id.length - 1) {
+      return void 0;
+    }
+    const extensionId = id.slice(0, slash);
+    const templateId = id.slice(slash + 1);
+    if (!validateTemplateId(extensionId).valid || !validateTemplateId(templateId).valid) {
+      return void 0;
+    }
+    return { source: `extension:${extensionId}`, id: templateId };
+  }
   if (source !== "builtin" && source !== "project") {
     return void 0;
   }
@@ -31330,6 +31387,36 @@ function projectEntries(workspace, options, diagnostics) {
   }
   return entries;
 }
+function extensionEntries(options) {
+  const entries = [];
+  for (const input of options.extensionPacks ?? []) {
+    const pack = loadTemplatePack(input.data, {
+      requireReadme: true,
+      ...options.specbridgeVersion !== void 0 ? { specbridgeVersion: options.specbridgeVersion } : {}
+    });
+    const manifestMismatch = pack.manifest !== void 0 && pack.manifest.id !== input.templateId;
+    if (manifestMismatch) {
+      pack.issues.push({
+        code: "SBT004",
+        category: "manifest",
+        severity: "error",
+        message: `Extension pack directory "${input.templateId}" does not match manifest id "${pack.manifest?.id}".`
+      });
+    }
+    entries.push({
+      source: `extension:${input.extensionId}`,
+      id: input.templateId,
+      ref: formatExtensionTemplateReference(input.extensionId, input.templateId),
+      pack,
+      valid: pack.valid && !manifestMismatch
+    });
+  }
+  return entries;
+}
+var SOURCE_RANK = { builtin: 0, project: 1 };
+function sourceRank(source) {
+  return SOURCE_RANK[source] ?? 2;
+}
 function loadTemplateCatalog(workspace, options = {}) {
   const diagnostics = [];
   const source = options.source ?? "all";
@@ -31340,8 +31427,11 @@ function loadTemplateCatalog(workspace, options = {}) {
   if (source === "all" || source === "project") {
     entries.push(...projectEntries(workspace, options, diagnostics));
   }
+  if (source === "all" || source === "extension") {
+    entries.push(...extensionEntries(options));
+  }
   entries.sort(
-    (a2, b) => a2.source === b.source ? a2.id.localeCompare(b.id, "en") : a2.source === "builtin" ? -1 : 1
+    (a2, b) => sourceRank(a2.source) - sourceRank(b.source) || a2.id.localeCompare(b.id, "en") || a2.ref.localeCompare(b.ref, "en")
   );
   return { entries, diagnostics };
 }
@@ -31351,7 +31441,7 @@ function resolveTemplate(catalog, rawReference) {
     throw new TemplateError(
       "SBT003",
       `"${rawReference}" is not a valid template reference.`,
-      'Use a template ID like "rest-api" or a qualified reference like "builtin:rest-api" or "project:my-template".',
+      'Use a template ID like "rest-api" or a qualified reference like "builtin:rest-api", "project:my-template", or "extension:<extension-id>/<template-id>".',
       { reference: rawReference }
     );
   }
@@ -31452,7 +31542,7 @@ var templateApplyRecordSchema = external_exports.object({
   templateRef: external_exports.string(),
   templateId: external_exports.string(),
   templateVersion: external_exports.string(),
-  templateSource: external_exports.enum(["builtin", "project"]),
+  templateSource: external_exports.string().min(1).max(200),
   manifestHash: external_exports.string(),
   specName: external_exports.string(),
   specKind: external_exports.enum(["feature", "bugfix"]),
@@ -32294,1261 +32384,936 @@ function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId)
 }
 
 // ../../packages/cli/src/commands/template.ts
-var import_node_fs = require("fs");
-var import_node_path4 = __toESM(require("path"), 1);
-var WORKFLOW_MODES = ["requirements-first", "design-first", "quick"];
-var SPEC_TYPES = ["feature", "bugfix"];
-function collectVar(value, previous = []) {
-  return [...previous, value];
+var import_node_fs6 = require("fs");
+var import_node_path9 = __toESM(require("path"), 1);
+
+// ../../packages/extensions/dist/index.js
+var import_zlib = require("zlib");
+
+// ../../packages/extension-sdk/dist/index.js
+var import_crypto2 = require("crypto");
+var EXTENSION_RULE_ID_PATTERN = /^[A-Z][A-Z0-9_-]{0,63}$/;
+var MAX_EXTENSION_DIAGNOSTICS = 1e3;
+var EXTENSION_DIAGNOSTIC_SEVERITIES = ["info", "warning", "error"];
+var EXTENSION_CONFIDENCE_LEVELS = ["deterministic", "heuristic"];
+var extensionDiagnosticSchema = external_exports.object({
+  ruleId: external_exports.string().regex(EXTENSION_RULE_ID_PATTERN, "rule IDs are UPPERCASE tokens like RULE001"),
+  severity: external_exports.enum(EXTENSION_DIAGNOSTIC_SEVERITIES),
+  message: external_exports.string().min(1).max(2e3),
+  file: external_exports.string().min(1).max(500).optional(),
+  line: external_exports.number().int().min(1).optional(),
+  column: external_exports.number().int().min(1).optional(),
+  remediation: external_exports.string().min(1).max(2e3).optional(),
+  confidence: external_exports.enum(EXTENSION_CONFIDENCE_LEVELS)
+}).strict();
+var extensionDiagnosticsArraySchema = external_exports.array(extensionDiagnosticSchema).max(MAX_EXTENSION_DIAGNOSTICS);
+function namespaceRuleId(extensionId, ruleId) {
+  return `${extensionId}/${ruleId}`;
 }
-function parseVars(options) {
-  const variables = {};
-  for (const raw of options.var ?? []) {
-    const eq = raw.indexOf("=");
-    if (eq <= 0) {
-      throw new SpecBridgeError(
-        "INVALID_ARGUMENT",
-        `Invalid --var "${raw}". Use --var key=value (e.g. --var tableName=payments).`
-      );
-    }
-    const key = raw.slice(0, eq);
-    if (key in variables) {
-      throw new SpecBridgeError("INVALID_ARGUMENT", `--var "${key}" was supplied more than once.`);
-    }
-    variables[key] = raw.slice(eq + 1);
-  }
-  return variables;
+var MAX_ANALYZER_CONTENT_CHARS = 1024 * 1024;
+var CONTENT = external_exports.string().max(MAX_ANALYZER_CONTENT_CHARS);
+var analyzerInputSchema = external_exports.object({
+  specName: external_exports.string().min(1).max(200),
+  specType: external_exports.string().min(1).max(40),
+  workflowMode: external_exports.string().min(1).max(40),
+  stage: external_exports.string().min(1).max(40),
+  stageFile: external_exports.string().min(1).max(300).optional(),
+  stageContent: CONTENT,
+  /** Approved prerequisite stage content, keyed by stage name. */
+  approvedContent: external_exports.record(CONTENT).optional(),
+  /** Steering documents, keyed by file name (only with specRead). */
+  steering: external_exports.record(CONTENT).optional(),
+  sourceMetadata: external_exports.object({
+    specDir: external_exports.string().min(1).max(300).optional(),
+    origin: external_exports.string().min(1).max(100).optional()
+  }).strict().optional(),
+  configuration: external_exports.record(external_exports.unknown()).optional()
+}).strict();
+var analyzerResultSchema = external_exports.object({
+  diagnostics: extensionDiagnosticsArraySchema,
+  summary: external_exports.string().min(1).max(2e3).optional()
+}).strict();
+var EXTENSION_KINDS = [
+  "template-provider",
+  "analyzer",
+  "verifier",
+  "exporter",
+  "runner"
+];
+function isExecutableKind(kind) {
+  return kind !== "template-provider";
 }
-function splitTemplateInputs(options) {
-  const { title: varTitle, description: varDescription, ...variables } = parseVars(options);
-  for (const [name, optionValue, varValue] of [
-    ["title", options.title, varTitle],
-    ["description", options.description, varDescription]
-  ]) {
-    if (optionValue !== void 0 && varValue !== void 0) {
-      throw new SpecBridgeError(
-        "INVALID_ARGUMENT",
-        `Both --${name} and --var ${name}=\u2026 were supplied. Use one of them.`
-      );
-    }
+var EXTENSION_OPERATIONS_BY_KIND = {
+  "template-provider": [],
+  analyzer: ["analyzer.analyze"],
+  verifier: ["verifier.verify"],
+  exporter: ["exporter.export"],
+  runner: [
+    "runner.detect",
+    "runner.generateStage",
+    "runner.refineStage",
+    "runner.executeTask",
+    "runner.resumeTask",
+    "runner.listModels"
+  ]
+};
+var ALL_EXTENSION_OPERATIONS = Object.freeze(
+  Object.values(EXTENSION_OPERATIONS_BY_KIND).flat()
+);
+var MAX_DECLARED_OPERATIONS = 16;
+var extensionCapabilitiesSchema = external_exports.object({
+  operations: external_exports.array(external_exports.string().min(1).max(80)).max(MAX_DECLARED_OPERATIONS)
+}).strict();
+function operationsForKind(kind) {
+  return EXTENSION_OPERATIONS_BY_KIND[kind];
+}
+function isOperationAllowedForKind(kind, operation) {
+  return EXTENSION_OPERATIONS_BY_KIND[kind].includes(operation);
+}
+var REQUIRED_OPERATIONS_BY_KIND = {
+  "template-provider": [],
+  analyzer: ["analyzer.analyze"],
+  verifier: ["verifier.verify"],
+  exporter: ["exporter.export"],
+  runner: ["runner.detect"]
+};
+var EXTENSION_ERROR_CODES = {
+  SBE001: "extension not found",
+  SBE002: "ambiguous extension reference",
+  SBE003: "invalid extension ID",
+  SBE004: "invalid extension manifest",
+  SBE005: "unsupported extension schema",
+  SBE006: "incompatible SpecBridge version",
+  SBE007: "incompatible protocol version",
+  SBE008: "invalid extension package",
+  SBE009: "checksum mismatch",
+  SBE010: "forbidden package file",
+  SBE011: "symlink rejected",
+  SBE012: "invalid entrypoint",
+  SBE013: "extension already installed",
+  SBE014: "extension not installed",
+  SBE015: "extension disabled",
+  SBE016: "permission acknowledgement required",
+  SBE017: "permission hash mismatch",
+  SBE018: "permission grant stale",
+  SBE019: "extension handshake failed",
+  SBE020: "extension identity mismatch",
+  SBE021: "unsupported extension operation",
+  SBE022: "extension protocol corrupted",
+  SBE023: "extension timed out",
+  SBE024: "extension cancelled",
+  SBE025: "extension output too large",
+  SBE026: "extension process failed",
+  SBE027: "extension conformance failed",
+  SBE028: "extension in use",
+  SBE029: "active profile references extension",
+  SBE030: "extension operation failed"
+};
+function extensionIssue(code2, category, severity, message, file) {
+  return file === void 0 ? { code: code2, category, severity, message } : { code: code2, category, severity, message, file };
+}
+var MAX_EXPORTER_FILES = 100;
+var MAX_EXPORTER_FILE_CHARS = 5 * 1024 * 1024;
+var MAX_EXPORTER_INPUT_CONTENT_CHARS = 1024 * 1024;
+var EXPORT_OUTPUT_PATH_PATTERN = /^(?:[A-Za-z0-9][A-Za-z0-9._-]*\/)*[A-Za-z0-9][A-Za-z0-9._-]*$/;
+var exporterInputSchema = external_exports.object({
+  specName: external_exports.string().min(1).max(200),
+  specType: external_exports.string().min(1).max(40),
+  workflowMode: external_exports.string().min(1).max(40),
+  /** Stage documents keyed by stage name (requirements, design, tasks). */
+  stages: external_exports.record(external_exports.string().max(MAX_EXPORTER_INPUT_CONTENT_CHARS)),
+  approvals: external_exports.record(
+    external_exports.object({
+      status: external_exports.string().min(1).max(40),
+      approvedAt: external_exports.string().min(1).max(60).optional()
+    }).strict()
+  ).optional(),
+  metadata: external_exports.object({
+    specbridgeVersion: external_exports.string().min(1).max(40).optional(),
+    exportedAt: external_exports.string().min(1).max(60).optional()
+  }).strict().optional(),
+  configuration: external_exports.record(external_exports.unknown()).optional()
+}).strict();
+var exporterFileSchema = external_exports.object({
+  path: external_exports.string().min(1).max(500).regex(EXPORT_OUTPUT_PATH_PATTERN, "must be a safe relative forward-slash path"),
+  mediaType: external_exports.string().min(3).max(100),
+  content: external_exports.string().max(MAX_EXPORTER_FILE_CHARS)
+}).strict();
+var exporterResultSchema = external_exports.object({
+  files: external_exports.array(exporterFileSchema).min(0).max(MAX_EXPORTER_FILES),
+  diagnostics: extensionDiagnosticsArraySchema.optional(),
+  summary: external_exports.string().min(1).max(2e3).optional()
+}).strict();
+var MAX_EXTENSION_ID_LENGTH = 64;
+var EXTENSION_ID_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
+function validateExtensionId(id) {
+  const problems = [];
+  if (id.length === 0) {
+    problems.push("ID is empty");
+    return { valid: false, problems };
   }
+  if (id.length > MAX_EXTENSION_ID_LENGTH) {
+    problems.push(`ID exceeds ${MAX_EXTENSION_ID_LENGTH} characters`);
+  }
+  if (id.includes("\0")) {
+    problems.push("ID contains a null byte");
+  }
+  if (/\s/u.test(id)) {
+    problems.push("ID must not contain whitespace");
+  }
+  if (id.includes("_")) {
+    problems.push("ID must not contain underscores");
+  }
+  if (id.includes("/") || id.includes("\\")) {
+    problems.push("ID must not contain path separators");
+  }
+  if (id.includes("..")) {
+    problems.push('ID must not contain ".."');
+  }
+  if (!EXTENSION_ID_PATTERN.test(id)) {
+    problems.push(
+      "ID must use lowercase letters and digits separated by single hyphens, start with a letter, and must not start or end with a hyphen"
+    );
+  }
+  return { valid: problems.length === 0, problems };
+}
+var MAX_PERMISSION_ENVIRONMENT_VARIABLES = 16;
+var ENVIRONMENT_VARIABLE_NAME_PATTERN = /^[A-Z][A-Z0-9_]{0,127}$/;
+var extensionPermissionsSchema = external_exports.object({
+  specRead: external_exports.boolean(),
+  repositoryRead: external_exports.boolean(),
+  repositoryWrite: external_exports.boolean(),
+  network: external_exports.boolean(),
+  childProcess: external_exports.boolean(),
+  environmentVariables: external_exports.array(external_exports.string().regex(ENVIRONMENT_VARIABLE_NAME_PATTERN)).max(MAX_PERMISSION_ENVIRONMENT_VARIABLES)
+}).strict();
+function normalizePermissions(permissions) {
   return {
-    title: options.title ?? varTitle,
-    description: options.description ?? varDescription,
-    variables
+    specRead: permissions.specRead,
+    repositoryRead: permissions.repositoryRead,
+    repositoryWrite: permissions.repositoryWrite,
+    network: permissions.network,
+    childProcess: permissions.childProcess,
+    environmentVariables: [...new Set(permissions.environmentVariables)].sort()
   };
 }
-function requireMode(value) {
-  if (value === void 0) return void 0;
-  if (!WORKFLOW_MODES.includes(value)) {
-    throw new SpecBridgeError(
-      "INVALID_ARGUMENT",
-      `Unknown --mode "${value}". Valid modes: ${WORKFLOW_MODES.join(", ")}.`
-    );
-  }
-  return value;
-}
-function catalogFor(runtime, source) {
-  if (source !== void 0 && !["builtin", "project", "all"].includes(source)) {
-    throw new SpecBridgeError(
-      "INVALID_ARGUMENT",
-      `Unknown --source "${source}". Valid sources: builtin, project, all.`
-    );
-  }
-  return loadTemplateCatalog(runtime.tryWorkspace(), {
-    source: source ?? "all"
+function computePermissionHash(input) {
+  const normalized = normalizePermissions(input.permissions);
+  const canonical = JSON.stringify({
+    extensionId: input.extensionId,
+    extensionVersion: input.extensionVersion,
+    manifestSha256: input.manifestSha256,
+    permissions: {
+      childProcess: normalized.childProcess,
+      environmentVariables: normalized.environmentVariables,
+      network: normalized.network,
+      repositoryRead: normalized.repositoryRead,
+      repositoryWrite: normalized.repositoryWrite,
+      specRead: normalized.specRead
+    }
   });
+  return (0, import_crypto2.createHash)("sha256").update(canonical, "utf8").digest("hex");
 }
-function entryToJson(entry) {
-  const manifest = entry.pack.manifest;
-  return {
-    ref: entry.ref,
-    id: entry.id,
-    source: entry.source,
-    valid: entry.valid,
-    displayName: manifest?.displayName ?? null,
-    version: manifest?.version ?? null,
-    description: manifest?.description ?? null,
-    kind: manifest?.kind ?? null,
-    supportedModes: manifest?.supportedModes ?? [],
-    defaultMode: manifest?.defaultMode ?? null,
-    tags: manifest?.tags ?? [],
-    compatibility: manifest?.compatibility ?? null,
-    deprecated: manifest?.deprecated ?? false,
-    errors: entry.pack.issues.filter((issue4) => issue4.severity === "error").map((issue4) => `${issue4.code}: ${issue4.message}`)
-  };
-}
-function applyFilters(entries, filters) {
-  let result = entries;
-  if (filters.kind !== void 0) {
-    if (!SPEC_TYPES.includes(filters.kind)) {
-      throw new SpecBridgeError(
-        "INVALID_ARGUMENT",
-        `Unknown --kind "${filters.kind}". Valid kinds: ${SPEC_TYPES.join(", ")}.`
-      );
-    }
-    result = result.filter((entry) => entry.pack.manifest?.kind === filters.kind);
-  }
-  if (filters.mode !== void 0) {
-    const mode = requireMode(filters.mode);
-    result = result.filter((entry) => entry.pack.manifest?.supportedModes.includes(mode) === true);
-  }
-  if (filters.tag !== void 0) {
-    result = result.filter((entry) => entry.pack.manifest?.tags.includes(filters.tag) === true);
-  }
-  return result;
-}
-function printEntryLine(runtime, entry) {
-  const manifest = entry.pack.manifest;
-  if (!entry.valid || manifest === void 0) {
-    runtime.out(failLine(`${entry.ref}`, '(invalid \u2014 run "template validate" for details)'));
-    return;
-  }
-  const deprecated = manifest.deprecated === true ? " [deprecated]" : "";
-  runtime.out(okLine(`${entry.ref} \u2014 ${manifest.displayName} v${manifest.version}${deprecated}`));
-  runtime.out(
-    dim(
-      `     ${manifest.kind} | modes: ${manifest.supportedModes.join(", ")} | tags: ${manifest.tags.join(", ")}`
-    )
+function describePermissions(permissions) {
+  const normalized = normalizePermissions(permissions);
+  const lines = [];
+  lines.push(`specRead: ${normalized.specRead ? "yes \u2014 receives bounded spec content" : "no"}`);
+  lines.push(
+    `repositoryRead: ${normalized.repositoryRead ? "yes \u2014 may receive selected repository content" : "no"}`
   );
-  runtime.out(dim(`     ${manifest.description}`));
+  lines.push(
+    `repositoryWrite: ${normalized.repositoryWrite ? "yes \u2014 may modify repository files from its own process" : "no"}`
+  );
+  lines.push(`network: ${normalized.network ? "yes \u2014 may access the network from its own process" : "no"}`);
+  lines.push(
+    `childProcess: ${normalized.childProcess ? "yes \u2014 may spawn child processes from its own process" : "no"}`
+  );
+  lines.push(
+    normalized.environmentVariables.length === 0 ? "environmentVariables: none" : `environmentVariables: ${normalized.environmentVariables.join(", ")}`
+  );
+  return lines;
 }
-function printIssues(runtime, issues) {
-  for (const issue4 of issues) {
-    const location = issue4.file !== void 0 ? ` [${issue4.file}]` : "";
-    const line = `${issue4.code} (${issue4.category})${location}: ${issue4.message}`;
-    runtime.out(issue4.severity === "error" ? failLine(line) : warnLine(line));
+var VERSION_PATTERN2 = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
+var COMPARATOR_PATTERN2 = /^(>=|<=|>|<|=)?(\d+\.\d+\.\d+)$/;
+function parseSemver2(version2) {
+  const match = VERSION_PATTERN2.exec(version2);
+  if (!match) {
+    return void 0;
   }
+  const [, major, minor, patch] = match;
+  if (major === void 0 || minor === void 0 || patch === void 0) {
+    return void 0;
+  }
+  return { major: Number(major), minor: Number(minor), patch: Number(patch) };
 }
-function printApplicationPlan(runtime, plan, heading, showContent) {
-  const workspace = runtime.workspace();
-  runtime.out(reportTitle(heading));
-  runtime.out();
-  runtime.out(`  Template:  ${plan.templateRef} v${plan.templateVersion}`);
-  runtime.out(`  Spec name: ${plan.specPlan.specName}`);
-  runtime.out(`  Kind:      ${plan.specPlan.specType}`);
-  runtime.out(`  Mode:      ${plan.mode}`);
-  runtime.out(`  Title:     ${plan.specPlan.title}`);
-  runtime.out(`  Dir:       ${relPath(workspace, plan.specPlan.dir)}`);
-  runtime.out(`  Candidate: ${plan.candidateHash}`);
-  runtime.out();
-  for (const diagnostic of plan.diagnostics) {
-    runtime.out(warnLine(diagnostic.message));
+function compareSemver2(a2, b) {
+  if (a2.major !== b.major) {
+    return a2.major - b.major;
   }
-  runtime.out(sectionTitle("Target files"));
-  for (const file of plan.specPlan.files) {
-    runtime.out(
-      okLine(
-        `${relPath(workspace, plan.specPlan.dir)}/${file.fileName}`,
-        `(${file.stage}, ${Buffer.byteLength(file.content, "utf8")} B, unapproved)`
-      )
-    );
+  if (a2.minor !== b.minor) {
+    return a2.minor - b.minor;
   }
-  runtime.out(okLine(relPath(workspace, plan.specPlan.statePath), "(sidecar workflow state)"));
-  if (showContent) {
-    runtime.out();
-    runtime.out(sectionTitle("Rendered content"));
-    for (const file of plan.specPlan.files) {
-      runtime.out(dim(`--- ${file.fileName} ---`));
-      runtime.outRaw(file.content);
-    }
-    runtime.out(dim("--- sidecar state proposal ---"));
-    runtime.outRaw(`${JSON.stringify(plan.specPlan.state, null, 2)}
-`);
-  }
+  return a2.patch - b.patch;
 }
-function applicationPlanJson(plan, extra) {
-  return {
-    template: {
-      ref: plan.templateRef,
-      id: plan.templateId,
-      version: plan.templateVersion,
-      source: plan.templateSource,
-      manifestHash: plan.manifestHash
-    },
-    specName: plan.specPlan.specName,
-    specKind: plan.specPlan.specType,
-    workflowMode: plan.mode,
-    title: plan.specPlan.title,
-    dir: plan.specPlan.dir,
-    candidateHash: plan.candidateHash,
-    variableNames: plan.variableNames,
-    diagnostics: plan.diagnostics,
-    files: plan.specPlan.files.map((file) => ({
-      fileName: file.fileName,
-      stage: file.stage,
-      bytes: Buffer.byteLength(file.content, "utf8"),
-      content: file.content
-    })),
-    state: plan.specPlan.state,
-    statePath: plan.specPlan.statePath,
-    ...extra
-  };
-}
-function registerTemplateCommands(program2, runtime) {
-  const template = program2.command("template").description("Discover, preview, and apply reusable spec templates (offline, deterministic)");
-  template.command("list").description("List available templates from the built-in catalog and project-local packs").option("--source <source>", "template source: builtin | project | all", "all").option("--kind <kind>", `filter by spec kind: ${SPEC_TYPES.join(" | ")}`).option("--mode <mode>", `filter by supported workflow mode: ${WORKFLOW_MODES.join(" | ")}`).option("--tag <tag>", "filter by tag").option("--json", "output a machine-readable JSON report").action((options) => {
-    const catalog = catalogFor(runtime, options.source);
-    const entries = applyFilters(catalog.entries, options);
-    if (options.json === true) {
-      runtime.outRaw(
-        serializeJsonReport(
-          createJsonReport("specbridge.template-list/1", `${CLI_BIN} ${VERSION}`, {
-            source: options.source ?? "all",
-            count: entries.length,
-            templates: entries.map(entryToJson),
-            diagnostics: catalog.diagnostics
-          })
-        )
-      );
-      return;
-    }
-    runtime.out(reportTitle(`Templates (${entries.length})`));
-    runtime.out();
-    if (entries.length === 0) {
-      runtime.out(dim("  No templates match the given filters."));
-      return;
-    }
-    for (const entry of entries) {
-      printEntryLine(runtime, entry);
-    }
-    runtime.out();
-    runtime.out(dim(`Apply one with: ${CLI_BIN} template apply <template> --name <spec-name>`));
-  });
-  template.command("search <query>").description("Search templates by ID, display name, description, and tags (deterministic, local)").option("--source <source>", "template source: builtin | project | all", "all").option("--kind <kind>", `filter by spec kind: ${SPEC_TYPES.join(" | ")}`).option("--mode <mode>", `filter by supported workflow mode: ${WORKFLOW_MODES.join(" | ")}`).option("--limit <number>", `maximum results (bounded at ${MAX_SEARCH_LIMIT})`).option("--json", "output a machine-readable JSON report (includes scores)").action((query, options) => {
-    const catalog = catalogFor(runtime, options.source);
-    const filtered = {
-      entries: applyFilters(catalog.entries, options),
-      diagnostics: catalog.diagnostics
+function validateSemverRange2(range) {
+  if (range.trim().length === 0) {
+    return { valid: false, problem: "range is empty" };
+  }
+  if (/[|^~*x]/i.test(range)) {
+    return {
+      valid: false,
+      problem: "only >=, <=, >, <, and = comparators joined by spaces are supported"
     };
-    const limit = options.limit !== void 0 ? Number(options.limit) : void 0;
-    if (limit !== void 0 && (!Number.isInteger(limit) || limit < 1)) {
-      throw new SpecBridgeError("INVALID_ARGUMENT", `--limit must be a positive integer (got "${options.limit}").`);
+  }
+  const comparators = range.trim().split(/\s+/);
+  for (const comparator of comparators) {
+    const match = COMPARATOR_PATTERN2.exec(comparator);
+    if (!match || parseSemver2(match[2] ?? "") === void 0) {
+      return { valid: false, problem: `invalid comparator "${comparator}"` };
     }
-    const results = searchTemplates(filtered, query, limit !== void 0 ? { limit } : {});
-    if (options.json === true) {
-      runtime.outRaw(
-        serializeJsonReport(
-          createJsonReport("specbridge.template-search/1", `${CLI_BIN} ${VERSION}`, {
-            query,
-            count: results.length,
-            results: results.map((result) => ({ score: result.score, ...entryToJson(result.entry) }))
-          })
+  }
+  return { valid: true };
+}
+function semverSatisfies2(version2, range) {
+  const parsed = parseSemver2(version2);
+  if (!parsed) {
+    return false;
+  }
+  if (!validateSemverRange2(range).valid) {
+    return false;
+  }
+  for (const comparator of range.trim().split(/\s+/)) {
+    const match = COMPARATOR_PATTERN2.exec(comparator);
+    if (!match) {
+      return false;
+    }
+    const operator = match[1] ?? "=";
+    const bound = parseSemver2(match[2] ?? "");
+    if (!bound) {
+      return false;
+    }
+    const cmp = compareSemver2(parsed, bound);
+    const ok = operator === "=" && cmp === 0 || operator === ">" && cmp > 0 || operator === ">=" && cmp >= 0 || operator === "<" && cmp < 0 || operator === "<=" && cmp <= 0;
+    if (!ok) {
+      return false;
+    }
+  }
+  return true;
+}
+function sameMajor(a2, b) {
+  const left = parseSemver2(a2);
+  const right = parseSemver2(b);
+  return left !== void 0 && right !== void 0 && left.major === right.major;
+}
+var EXTENSION_SDK_VERSION = "0.7.1";
+var EXTENSION_MANIFEST_SCHEMA_VERSION = "1.0.0";
+var EXTENSION_PROTOCOL_VERSION = "1.0.0";
+var EXTENSION_MANIFEST_FILE_NAME = "specbridge-extension.json";
+var MAX_EXTENSION_MANIFEST_BYTES = 256 * 1024;
+var SEMVER_STRING = external_exports.string().regex(/^\d+\.\d+\.\d+$/, "must be a strict X.Y.Z version");
+var ENTRYPOINT_PATTERN = /^(?:[a-z0-9][a-z0-9._-]*\/)*[a-z0-9][a-z0-9._-]*\.(?:cjs|mjs|js)$/;
+var extensionAuthorSchema = external_exports.object({
+  name: external_exports.string().min(1).max(200),
+  email: external_exports.string().min(3).max(320).optional(),
+  url: external_exports.string().min(1).max(500).optional()
+}).strict();
+var extensionCompatibilitySchema = external_exports.object({
+  specbridge: external_exports.string().min(1).max(100),
+  extensionSdk: external_exports.string().min(1).max(100).optional()
+}).strict();
+var extensionManifestSchema = external_exports.object({
+  schemaVersion: SEMVER_STRING,
+  protocolVersion: SEMVER_STRING,
+  id: external_exports.string().min(1).max(64),
+  version: SEMVER_STRING,
+  displayName: external_exports.string().min(1).max(100),
+  description: external_exports.string().min(1).max(500),
+  kind: external_exports.enum(EXTENSION_KINDS),
+  entrypoint: external_exports.string().min(1).max(300).optional(),
+  compatibility: extensionCompatibilitySchema,
+  capabilities: extensionCapabilitiesSchema,
+  permissions: extensionPermissionsSchema,
+  license: external_exports.string().min(1).max(100),
+  author: extensionAuthorSchema.optional(),
+  homepage: external_exports.string().min(1).max(500).optional(),
+  repository: external_exports.string().min(1).max(500).optional(),
+  keywords: external_exports.array(external_exports.string().min(1).max(30)).max(12).optional(),
+  deprecated: external_exports.boolean().optional(),
+  replacement: external_exports.string().min(1).max(64).optional(),
+  examples: external_exports.array(external_exports.string().min(1).max(300)).max(5).optional(),
+  configurationSchema: external_exports.record(external_exports.unknown()).optional(),
+  minimumNodeVersion: SEMVER_STRING.optional()
+}).strict();
+function checkUrl(field, value, issues) {
+  if (value === void 0) {
+    return;
+  }
+  if (!/^https:\/\/[^\s]+$/u.test(value)) {
+    issues.push(
+      extensionIssue("SBE004", "manifest", "error", `${field} must be an https:// URL`)
+    );
+  }
+}
+function checkManifestSemantics2(manifest) {
+  const issues = [];
+  const idCheck = validateExtensionId(manifest.id);
+  if (!idCheck.valid) {
+    for (const problem of idCheck.problems) {
+      issues.push(extensionIssue("SBE003", "manifest", "error", `id: ${problem}`));
+    }
+  }
+  if (!sameMajor(manifest.protocolVersion, EXTENSION_PROTOCOL_VERSION)) {
+    issues.push(
+      extensionIssue(
+        "SBE007",
+        "protocol",
+        "error",
+        `protocolVersion ${manifest.protocolVersion} is not compatible with supported protocol ${EXTENSION_PROTOCOL_VERSION} (major versions must match)`
+      )
+    );
+  }
+  const rangeCheck = validateSemverRange2(manifest.compatibility.specbridge);
+  if (!rangeCheck.valid) {
+    issues.push(
+      extensionIssue(
+        "SBE004",
+        "compatibility",
+        "error",
+        `compatibility.specbridge: ${rangeCheck.problem ?? "invalid range"}`
+      )
+    );
+  }
+  if (manifest.compatibility.extensionSdk !== void 0) {
+    const sdkRange = validateSemverRange2(manifest.compatibility.extensionSdk);
+    if (!sdkRange.valid) {
+      issues.push(
+        extensionIssue(
+          "SBE004",
+          "compatibility",
+          "error",
+          `compatibility.extensionSdk: ${sdkRange.problem ?? "invalid range"}`
         )
       );
-      return;
     }
-    runtime.out(reportTitle(`Search results for "${query}" (${results.length})`));
-    runtime.out();
-    if (results.length === 0) {
-      runtime.out(dim(`  No templates match. Try ${CLI_BIN} template list.`));
-      return;
+  }
+  if (isExecutableKind(manifest.kind)) {
+    if (manifest.entrypoint === void 0) {
+      issues.push(
+        extensionIssue(
+          "SBE012",
+          "manifest",
+          "error",
+          `kind "${manifest.kind}" is executable and requires an entrypoint`
+        )
+      );
+    } else if (manifest.entrypoint.includes("\0") || manifest.entrypoint.includes("\\") || manifest.entrypoint.includes("..") || manifest.entrypoint.startsWith("/") || /^[a-zA-Z]:/.test(manifest.entrypoint) || !ENTRYPOINT_PATTERN.test(manifest.entrypoint)) {
+      issues.push(
+        extensionIssue(
+          "SBE012",
+          "paths",
+          "error",
+          `entrypoint "${manifest.entrypoint}" must be a relative forward-slash path to a .cjs, .mjs, or .js file inside the package`
+        )
+      );
     }
-    for (const result of results) {
-      printEntryLine(runtime, result.entry);
+  } else if (manifest.entrypoint !== void 0) {
+    issues.push(
+      extensionIssue(
+        "SBE004",
+        "manifest",
+        "error",
+        "template-provider extensions are data-only and must not declare an entrypoint"
+      )
+    );
+  }
+  const declared = manifest.capabilities.operations;
+  const seen = /* @__PURE__ */ new Set();
+  for (const operation of declared) {
+    if (seen.has(operation)) {
+      issues.push(
+        extensionIssue("SBE004", "capabilities", "error", `duplicate operation "${operation}"`)
+      );
     }
-  });
-  template.command("show <template>").description("Show template metadata, variables, files, and usage").option("--manifest", "print the raw manifest JSON").option("--files", "print the template file contents").option("--readme", "print the template README").option("--json", "output a machine-readable JSON report").action(
-    (reference, options) => {
-      const catalog = catalogFor(runtime);
-      const entry = resolveTemplate(catalog, reference);
-      const manifest = entry.pack.manifest;
-      if (options.json === true) {
-        runtime.outRaw(
-          serializeJsonReport(
-            createJsonReport("specbridge.template-show/1", `${CLI_BIN} ${VERSION}`, {
-              ...entryToJson(entry),
-              variables: manifest?.variables ?? [],
-              files: manifest?.files ?? [],
-              readme: entry.pack.readme ?? null,
-              manifest: options.manifest === true ? manifest : void 0,
-              issues: entry.pack.issues
-            })
+    seen.add(operation);
+    if (!isOperationAllowedForKind(manifest.kind, operation)) {
+      issues.push(
+        extensionIssue(
+          "SBE021",
+          "capabilities",
+          "error",
+          `operation "${operation}" is not valid for kind "${manifest.kind}" (allowed: ${operationsForKind(manifest.kind).join(", ") || "none"})`
+        )
+      );
+    }
+  }
+  for (const required2 of REQUIRED_OPERATIONS_BY_KIND[manifest.kind]) {
+    if (!seen.has(required2)) {
+      issues.push(
+        extensionIssue(
+          "SBE004",
+          "capabilities",
+          "error",
+          `kind "${manifest.kind}" must declare the "${required2}" operation`
+        )
+      );
+    }
+  }
+  if (manifest.kind === "template-provider" && declared.length > 0) {
+    issues.push(
+      extensionIssue(
+        "SBE004",
+        "capabilities",
+        "error",
+        "template-provider extensions must not declare operations"
+      )
+    );
+  }
+  if (manifest.kind === "template-provider") {
+    const p = manifest.permissions;
+    if (p.repositoryRead || p.repositoryWrite || p.network || p.childProcess || p.environmentVariables.length > 0) {
+      issues.push(
+        extensionIssue(
+          "SBE004",
+          "permissions",
+          "error",
+          "template-provider extensions are data-only and may not request repositoryRead, repositoryWrite, network, childProcess, or environment variables"
+        )
+      );
+    }
+  }
+  const uniqueVariables = new Set(manifest.permissions.environmentVariables);
+  if (uniqueVariables.size !== manifest.permissions.environmentVariables.length) {
+    issues.push(
+      extensionIssue(
+        "SBE004",
+        "permissions",
+        "error",
+        "permissions.environmentVariables contains duplicate names"
+      )
+    );
+  }
+  if (manifest.replacement !== void 0) {
+    const replacementCheck = validateExtensionId(manifest.replacement);
+    if (!replacementCheck.valid) {
+      issues.push(
+        extensionIssue("SBE004", "manifest", "error", "replacement must be a valid extension ID")
+      );
+    }
+    if (manifest.deprecated !== true) {
+      issues.push(
+        extensionIssue(
+          "SBE004",
+          "manifest",
+          "warning",
+          "replacement is set but deprecated is not true"
+        )
+      );
+    }
+  }
+  checkUrl("homepage", manifest.homepage, issues);
+  checkUrl("repository", manifest.repository, issues);
+  return issues;
+}
+function parseExtensionManifest(text) {
+  const issues = [];
+  if (Buffer.byteLength(text, "utf8") > MAX_EXTENSION_MANIFEST_BYTES) {
+    issues.push(
+      extensionIssue(
+        "SBE008",
+        "limits",
+        "error",
+        `manifest exceeds ${MAX_EXTENSION_MANIFEST_BYTES} bytes`,
+        EXTENSION_MANIFEST_FILE_NAME
+      )
+    );
+    return { issues };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch (error2) {
+    issues.push(
+      extensionIssue(
+        "SBE004",
+        "manifest",
+        "error",
+        `manifest is not valid JSON: ${error2 instanceof Error ? error2.message : String(error2)}`,
+        EXTENSION_MANIFEST_FILE_NAME
+      )
+    );
+    return { issues };
+  }
+  if (typeof parsed === "object" && parsed !== null && "schemaVersion" in parsed) {
+    const rawVersion = parsed.schemaVersion;
+    if (typeof rawVersion === "string") {
+      const parsedVersion = parseSemver2(rawVersion);
+      const supported = parseSemver2(EXTENSION_MANIFEST_SCHEMA_VERSION);
+      if (parsedVersion && supported && parsedVersion.major !== supported.major) {
+        issues.push(
+          extensionIssue(
+            "SBE005",
+            "manifest",
+            "error",
+            `schemaVersion ${rawVersion} is not supported (supported major: ${supported.major})`,
+            EXTENSION_MANIFEST_FILE_NAME
           )
         );
-        return;
-      }
-      if (options.manifest === true) {
-        runtime.outRaw(entry.pack.manifestText ?? "");
-        return;
-      }
-      if (options.readme === true) {
-        runtime.outRaw(entry.pack.readme ?? `No README.md in ${entry.ref}.
-`);
-        return;
-      }
-      if (options.files === true) {
-        for (const file of manifest?.files ?? []) {
-          runtime.out(dim(`--- ${file.source} -> ${file.target} ---`));
-          runtime.outRaw(entry.pack.files.get(file.source) ?? "");
-        }
-        return;
-      }
-      runtime.out(reportTitle(`${entry.ref} \u2014 ${manifest?.displayName ?? "(invalid template)"}`));
-      runtime.out();
-      if (manifest === void 0) {
-        printIssues(runtime, entry.pack.issues);
-        runtime.exitCode = EXIT_CODES.gateFailure;
-        return;
-      }
-      runtime.out(`  ${manifest.description}`);
-      runtime.out();
-      runtime.out(`  Source:   ${entry.source}`);
-      runtime.out(`  Version:  ${manifest.version}`);
-      runtime.out(`  Kind:     ${manifest.kind}`);
-      runtime.out(`  Modes:    ${manifest.supportedModes.join(", ")} (default: ${manifest.defaultMode})`);
-      runtime.out(`  Tags:     ${manifest.tags.join(", ")}`);
-      runtime.out(`  License:  ${manifest.license}`);
-      runtime.out(`  Requires: SpecBridge ${manifest.compatibility.specbridge}`);
-      runtime.out(`  Valid:    ${entry.valid ? "yes" : 'NO \u2014 run "template validate"'}`);
-      runtime.out();
-      runtime.out(sectionTitle("Files"));
-      for (const file of manifest.files) {
-        runtime.out(okLine(`${file.target}`, `(${file.stage}, from ${file.source})`));
-      }
-      runtime.out();
-      runtime.out(sectionTitle("Variables"));
-      if (manifest.variables.length === 0) {
-        runtime.out(dim("  none \u2014 only the built-in variables are used"));
-      }
-      for (const variable of manifest.variables) {
-        const requirement = variable.required ? "required" : `default: ${JSON.stringify(variable.default ?? "")}`;
-        const enumValues = variable.type === "enum" ? ` [${(variable.values ?? []).join(", ")}]` : "";
-        runtime.out(`  --var ${variable.name}=<${variable.type}>${enumValues} (${requirement})`);
-        runtime.out(dim(`      ${variable.description}`));
-      }
-      runtime.out();
-      runtime.out(sectionTitle("Usage"));
-      const example = manifest.examples?.[0] ?? `${CLI_BIN} template apply ${entry.id} --name <spec-name>` + manifest.variables.filter((variable) => variable.required).map((variable) => ` --var ${variable.name}=<value>`).join("");
-      runtime.out(`  ${example}`);
-      if (!entry.valid) {
-        runtime.out();
-        printIssues(runtime, entry.pack.issues);
-        runtime.exitCode = EXIT_CODES.gateFailure;
+        return { issues };
       }
     }
-  );
-  template.command("validate <template-or-path>").description("Validate an installed template or a local template pack directory").option("--strict", "treat warnings as failures").option("--json", "output a machine-readable JSON report").action((target, options) => {
-    const clock = () => runtime.now();
-    let issues;
-    let subject;
-    const reference = parseTemplateReference(target);
-    const catalog = catalogFor(runtime);
-    const catalogMatch = reference !== void 0 && catalog.entries.some(
-      (entry) => entry.id === reference.id && (reference.source === void 0 || entry.source === reference.source)
-    );
-    if (catalogMatch) {
-      const entry = resolveTemplate(catalog, target);
-      subject = entry.ref;
-      issues = [...entry.pack.issues, ...entry.valid ? checkPackRendering(entry.pack, clock) : []];
-    } else {
-      const workspace = runtime.tryWorkspace();
-      const resolved = import_node_path4.default.resolve(runtime.cwd, target);
-      if (!(0, import_node_fs.existsSync)(resolved)) {
-        throw new SpecBridgeError(
-          "SPEC_NOT_FOUND",
-          `"${target}" is neither a known template nor an existing directory. Run "${CLI_BIN} template list" to see templates, or pass a path to a local template pack.`
-        );
-      }
-      if (workspace !== void 0) {
-        const relativeToRoot = import_node_path4.default.relative(workspace.rootDir, resolved);
-        const inside = !relativeToRoot.startsWith("..") && !import_node_path4.default.isAbsolute(relativeToRoot);
-        if (!inside) {
-          throw new SpecBridgeError(
-            "PATH_OUTSIDE_WORKSPACE",
-            `Template pack path ${resolved} is outside the repository. Copy the pack into the repository before validating it.`
-          );
-        }
-      }
-      subject = resolved;
-      const pack = loadTemplatePack(readTemplatePackDirectory(resolved));
-      issues = [...pack.issues, ...pack.valid ? checkPackRendering(pack, clock) : []];
-    }
-    const errors = issues.filter((issue4) => issue4.severity === "error");
-    const warnings = issues.filter((issue4) => issue4.severity === "warning");
-    const failed = errors.length > 0 || options.strict === true && warnings.length > 0;
-    if (options.json === true) {
-      runtime.outRaw(
-        serializeJsonReport(
-          createJsonReport("specbridge.template-validate/1", `${CLI_BIN} ${VERSION}`, {
-            subject,
-            strict: options.strict === true,
-            valid: !failed,
-            errorCount: errors.length,
-            warningCount: warnings.length,
-            issues
-          })
+  }
+  const result = extensionManifestSchema.safeParse(parsed);
+  if (!result.success) {
+    for (const zodIssue of result.error.issues.slice(0, 25)) {
+      issues.push(
+        extensionIssue(
+          "SBE004",
+          "manifest",
+          "error",
+          `${zodIssue.path.join(".") || "(root)"}: ${zodIssue.message}`,
+          EXTENSION_MANIFEST_FILE_NAME
         )
       );
-    } else {
-      runtime.out(reportTitle(`Validate ${subject}`));
-      runtime.out();
-      if (issues.length === 0) {
-        runtime.out(okLine("Template pack is valid."));
-      } else {
-        printIssues(runtime, issues);
-        runtime.out();
-        runtime.out(
-          failed ? failLine(`${errors.length} error(s), ${warnings.length} warning(s).`) : warnLine(`0 errors, ${warnings.length} warning(s).`)
-        );
-      }
     }
-    if (failed) {
-      runtime.exitCode = EXIT_CODES.gateFailure;
-    }
-  });
-  const previewLike = (dryRunHeading) => (reference, options) => {
-    const workspace = runtime.workspace();
-    const catalog = catalogFor(runtime);
-    const clock = () => runtime.now();
-    const mode = requireMode(options.mode);
-    const inputs = splitTemplateInputs(options);
-    const plan = planTemplateApplication(
-      workspace,
-      catalog,
-      {
-        reference,
-        specName: options.name,
-        ...mode !== void 0 ? { mode } : {},
-        ...inputs.title !== void 0 ? { title: inputs.title } : {},
-        ...inputs.description !== void 0 ? { description: inputs.description } : {},
-        variables: inputs.variables
-      },
-      clock
+    return { issues };
+  }
+  issues.push(...checkManifestSemantics2(result.data));
+  return { manifest: result.data, issues };
+}
+var RUNNER_EXECUTION_OUTCOMES = [
+  "completed",
+  "blocked",
+  "failed",
+  "cancelled",
+  "timed-out",
+  "permission-denied",
+  "malformed-output",
+  "no-change"
+];
+var RUNNER_CAPABILITY_SET_KEYS = [
+  "stageGeneration",
+  "stageRefinement",
+  "taskExecution",
+  "taskResume",
+  "structuredFinalOutput",
+  "streamingEvents",
+  "repositoryRead",
+  "repositoryWrite",
+  "sandbox",
+  "toolRestriction",
+  "usageReporting",
+  "costReporting",
+  "localOnly",
+  "requiresNetwork",
+  "supportsSystemPrompt",
+  "supportsJsonSchema",
+  "supportsCancellation"
+];
+var capabilityShape = Object.fromEntries(
+  RUNNER_CAPABILITY_SET_KEYS.map((key) => [key, external_exports.boolean()])
+);
+var runnerCapabilitySetMirrorSchema = external_exports.object(capabilityShape).strict();
+var runnerDiagnosticSchema = external_exports.object({
+  severity: external_exports.enum(["info", "warning", "error"]),
+  code: external_exports.string().min(1).max(100),
+  message: external_exports.string().min(1).max(2e3)
+}).strict();
+var runnerDetectInputSchema = external_exports.object({
+  probeCapabilities: external_exports.boolean().optional(),
+  timeoutMs: external_exports.number().int().min(1).optional(),
+  /** Present only when repositoryRead or repositoryWrite was granted. */
+  workspaceRoot: external_exports.string().min(1).max(1e3).optional()
+}).strict();
+var runnerDetectOutputSchema = external_exports.object({
+  available: external_exports.boolean(),
+  version: external_exports.string().min(1).max(100).optional(),
+  authentication: external_exports.enum(["authenticated", "unauthenticated", "unknown", "not-applicable"]),
+  capabilitySet: runnerCapabilitySetMirrorSchema,
+  networkBacked: external_exports.boolean(),
+  diagnostics: external_exports.array(runnerDiagnosticSchema).max(100)
+}).strict();
+var MAX_PROMPT_CHARS = 1024 * 1024;
+var MAX_RAW_OUTPUT_CHARS = 2 * 1024 * 1024;
+var runnerExecutionEnvelopeSchema = external_exports.object({
+  timeoutMs: external_exports.number().int().min(1),
+  model: external_exports.string().min(1).max(200).optional(),
+  maxTurns: external_exports.number().int().min(1).optional(),
+  maxBudgetUsd: external_exports.number().min(0).optional(),
+  /** Present only when repositoryRead or repositoryWrite was granted. */
+  workspaceRoot: external_exports.string().min(1).max(1e3).optional(),
+  /** Present only when repositoryWrite was granted. */
+  runDir: external_exports.string().min(1).max(1e3).optional()
+}).strict();
+var runnerStageInputSchema = external_exports.object({
+  specName: external_exports.string().min(1).max(200),
+  stage: external_exports.string().min(1).max(40),
+  intent: external_exports.enum(["generate", "refine"]),
+  prompt: external_exports.string().max(MAX_PROMPT_CHARS),
+  promptVersion: external_exports.string().min(1).max(40),
+  toolPolicy: external_exports.enum(["read-only", "inspect-only", "implementation"]),
+  correction: external_exports.object({
+    previousOutput: external_exports.string().max(MAX_RAW_OUTPUT_CHARS),
+    problems: external_exports.string().max(1e4)
+  }).strict().optional(),
+  execution: runnerExecutionEnvelopeSchema
+}).strict();
+var runnerTaskInputSchema = external_exports.object({
+  specName: external_exports.string().min(1).max(200),
+  taskId: external_exports.string().min(1).max(100),
+  prompt: external_exports.string().max(MAX_PROMPT_CHARS),
+  promptVersion: external_exports.string().min(1).max(40),
+  toolPolicy: external_exports.literal("implementation"),
+  sessionId: external_exports.string().min(1).max(200).optional(),
+  execution: runnerExecutionEnvelopeSchema
+}).strict();
+var runnerUsageMirrorSchema = external_exports.object({
+  model: external_exports.string().max(200).nullable().optional(),
+  inputTokens: external_exports.number().int().min(0).nullable().optional(),
+  cachedInputTokens: external_exports.number().int().min(0).nullable().optional(),
+  outputTokens: external_exports.number().int().min(0).nullable().optional(),
+  reasoningTokens: external_exports.number().int().min(0).nullable().optional(),
+  requestCount: external_exports.number().int().min(0).nullable().optional()
+}).strict();
+var runnerCostMirrorSchema = external_exports.object({
+  currency: external_exports.string().max(10).nullable().optional(),
+  amount: external_exports.number().min(0).nullable().optional()
+}).strict();
+var runnerResultBaseShape = {
+  outcome: external_exports.enum(RUNNER_EXECUTION_OUTCOMES),
+  failureReason: external_exports.string().min(1).max(2e3).optional(),
+  rawStdout: external_exports.string().max(MAX_RAW_OUTPUT_CHARS),
+  rawStderr: external_exports.string().max(MAX_RAW_OUTPUT_CHARS),
+  sessionId: external_exports.string().min(1).max(200).optional(),
+  durationMs: external_exports.number().int().min(0),
+  warnings: external_exports.array(external_exports.string().min(1).max(1e3)).max(100),
+  /** Structured report claim — JSON matching the frozen report schemas. */
+  report: external_exports.record(external_exports.unknown()).optional(),
+  usage: runnerUsageMirrorSchema.optional(),
+  cost: runnerCostMirrorSchema.optional(),
+  invalidStructuredOutput: external_exports.string().max(MAX_RAW_OUTPUT_CHARS).optional()
+};
+var runnerStageOutputSchema = external_exports.object(runnerResultBaseShape).strict();
+var runnerTaskOutputSchema = external_exports.object({
+  ...runnerResultBaseShape,
+  resumeSupported: external_exports.boolean()
+}).strict();
+var runnerModelListOutputSchema = external_exports.object({
+  supported: external_exports.boolean(),
+  models: external_exports.array(
+    external_exports.object({
+      name: external_exports.string().min(1).max(200),
+      sizeBytes: external_exports.number().int().min(0).optional(),
+      family: external_exports.string().min(1).max(100).optional(),
+      parameterSize: external_exports.string().min(1).max(40).optional(),
+      quantization: external_exports.string().min(1).max(40).optional(),
+      modifiedAt: external_exports.string().min(1).max(60).optional(),
+      location: external_exports.enum(["local", "remote", "unknown"]).optional()
+    }).strict()
+  ).max(500),
+  detail: external_exports.string().min(1).max(2e3).optional()
+}).strict();
+var VERIFIER_STATUS_VALUES = ["passed", "warning", "failed", "not-applicable"];
+var MAX_VERIFIER_CHANGED_FILES = 2e3;
+var MAX_VERIFIER_FILE_CONTENT_CHARS = 1024 * 1024;
+var verifierChangedFileSchema = external_exports.object({
+  path: external_exports.string().min(1).max(500),
+  changeType: external_exports.enum(["added", "modified", "deleted", "renamed", "unknown"]),
+  additions: external_exports.number().int().min(0).optional(),
+  deletions: external_exports.number().int().min(0).optional()
+}).strict();
+var verifierInputSchema = external_exports.object({
+  specName: external_exports.string().min(1).max(200),
+  taskId: external_exports.string().min(1).max(100).optional(),
+  requirementIds: external_exports.array(external_exports.string().min(1).max(100)).max(500).optional(),
+  changedFiles: external_exports.array(verifierChangedFileSchema).max(MAX_VERIFIER_CHANGED_FILES),
+  diffStats: external_exports.object({
+    files: external_exports.number().int().min(0),
+    additions: external_exports.number().int().min(0),
+    deletions: external_exports.number().int().min(0)
+  }).strict().optional(),
+  /** Safe summaries of existing evidence — never raw credentials or env. */
+  evidenceSummary: external_exports.object({
+    outcome: external_exports.string().min(1).max(60).optional(),
+    evidenceStatus: external_exports.string().min(1).max(60).optional(),
+    commandsRun: external_exports.number().int().min(0).optional(),
+    testsReported: external_exports.number().int().min(0).optional()
+  }).strict().optional(),
+  commandResults: external_exports.array(
+    external_exports.object({
+      name: external_exports.string().min(1).max(200),
+      exitCode: external_exports.number().int(),
+      durationMs: external_exports.number().int().min(0).optional()
+    }).strict()
+  ).max(100).optional(),
+  /**
+   * Selected repository file content. Present only when the extension holds
+   * the repositoryRead permission and the host explicitly included files.
+   */
+  files: external_exports.record(external_exports.string().max(MAX_VERIFIER_FILE_CONTENT_CHARS)).optional(),
+  configuration: external_exports.record(external_exports.unknown()).optional()
+}).strict();
+var verifierResultSchema = external_exports.object({
+  status: external_exports.enum(VERIFIER_STATUS_VALUES),
+  diagnostics: extensionDiagnosticsArraySchema,
+  summary: external_exports.string().min(1).max(2e3).optional()
+}).strict();
+var OPERATION_SCHEMAS = {
+  "analyzer.analyze": { input: analyzerInputSchema, output: analyzerResultSchema },
+  "verifier.verify": { input: verifierInputSchema, output: verifierResultSchema },
+  "exporter.export": { input: exporterInputSchema, output: exporterResultSchema },
+  "runner.detect": { input: runnerDetectInputSchema, output: runnerDetectOutputSchema },
+  "runner.generateStage": { input: runnerStageInputSchema, output: runnerStageOutputSchema },
+  "runner.refineStage": { input: runnerStageInputSchema, output: runnerStageOutputSchema },
+  "runner.executeTask": { input: runnerTaskInputSchema, output: runnerTaskOutputSchema },
+  "runner.resumeTask": { input: runnerTaskInputSchema, output: runnerTaskOutputSchema },
+  "runner.listModels": {
+    input: external_exports.object({}).strict(),
+    output: runnerModelListOutputSchema
+  }
+};
+function operationSchemas(operation) {
+  return Object.prototype.hasOwnProperty.call(OPERATION_SCHEMAS, operation) ? OPERATION_SCHEMAS[operation] : void 0;
+}
+var MAX_PROTOCOL_MESSAGE_BYTES = 2 * 1024 * 1024;
+var EXTENSION_PROTOCOL_METHODS = [
+  "initialize",
+  "extension.getMetadata",
+  "extension.invoke",
+  "extension.cancel",
+  "extension.shutdown"
+];
+var REQUEST_ID = external_exports.string().min(1).max(128);
+var extensionRequestSchema = external_exports.object({
+  jsonrpc: external_exports.literal("2.0"),
+  id: REQUEST_ID,
+  method: external_exports.enum(EXTENSION_PROTOCOL_METHODS),
+  params: external_exports.record(external_exports.unknown()).optional()
+}).strict();
+var extensionResponseErrorSchema = external_exports.object({
+  code: external_exports.number().int(),
+  message: external_exports.string().min(1).max(4e3),
+  data: external_exports.record(external_exports.unknown()).optional()
+}).strict();
+var extensionResponseSchema = external_exports.object({
+  jsonrpc: external_exports.literal("2.0"),
+  id: REQUEST_ID,
+  result: external_exports.unknown().optional(),
+  error: extensionResponseErrorSchema.optional()
+}).strict().refine(
+  (message) => message.result === void 0 !== (message.error === void 0),
+  "response must carry exactly one of result or error"
+);
+var initializeParamsSchema = external_exports.object({
+  protocolVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  specbridgeVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  extensionId: external_exports.string().min(1).max(64),
+  extensionVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  operation: external_exports.string().min(1).max(80).optional(),
+  grantedPermissions: extensionPermissionsSchema
+}).strict();
+var initializeResultSchema = external_exports.object({
+  protocolVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  extensionId: external_exports.string().min(1).max(64),
+  extensionVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  capabilities: extensionCapabilitiesSchema
+}).strict();
+var getMetadataResultSchema = external_exports.object({
+  id: external_exports.string().min(1).max(64),
+  version: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  kind: external_exports.string().min(1).max(40),
+  displayName: external_exports.string().min(1).max(100),
+  protocolVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/)
+}).strict();
+var invokeParamsSchema = external_exports.object({
+  operation: external_exports.string().min(1).max(80),
+  payload: external_exports.unknown(),
+  configuration: external_exports.record(external_exports.unknown()).optional()
+}).strict();
+var invokeResultSchema = external_exports.object({
+  operation: external_exports.string().min(1).max(80),
+  output: external_exports.unknown()
+}).strict();
+var cancelParamsSchema = external_exports.object({
+  targetId: REQUEST_ID
+}).strict();
+var cancelResultSchema = external_exports.object({
+  cancelled: external_exports.boolean()
+}).strict();
+var shutdownResultSchema = external_exports.object({
+  ok: external_exports.literal(true)
+}).strict();
+function serializeProtocolMessage(message) {
+  const line = JSON.stringify(message);
+  if (Buffer.byteLength(line, "utf8") > MAX_PROTOCOL_MESSAGE_BYTES) {
+    throw new Error(
+      `protocol message exceeds ${MAX_PROTOCOL_MESSAGE_BYTES} bytes and cannot be sent`
     );
-    void dryRunHeading;
-    return plan;
+  }
+  return `${line}
+`;
+}
+function createLineDecoder(options) {
+  const maxLineBytes = options.maxLineBytes ?? MAX_PROTOCOL_MESSAGE_BYTES;
+  let buffered = Buffer.alloc(0);
+  let overflowed = false;
+  const push = (chunk) => {
+    if (overflowed) {
+      return;
+    }
+    const incoming = typeof chunk === "string" ? Buffer.from(chunk, "utf8") : chunk;
+    buffered = buffered.length === 0 ? Buffer.from(incoming) : Buffer.concat([buffered, incoming]);
+    let newlineIndex = buffered.indexOf(10);
+    while (newlineIndex >= 0) {
+      const lineBuffer = buffered.subarray(0, newlineIndex);
+      buffered = buffered.subarray(newlineIndex + 1);
+      if (lineBuffer.length > maxLineBytes) {
+        overflowed = true;
+        options.onOverflow(lineBuffer.length);
+        return;
+      }
+      const line = lineBuffer.toString("utf8").replace(/\r$/, "");
+      if (line.trim().length > 0) {
+        options.onLine(line);
+      }
+      newlineIndex = buffered.indexOf(10);
+    }
+    if (buffered.length > maxLineBytes) {
+      overflowed = true;
+      options.onOverflow(buffered.length);
+    }
   };
-  template.command("preview <template>").description("Render a template without writing anything (no model, no network, no files)").requiredOption("--name <spec-name>", "name of the spec that would be created").option("--mode <mode>", `workflow mode: ${WORKFLOW_MODES.join(" | ")} (default: template's defaultMode)`).option("--title <text>", "human-readable title (default: derived from the spec name)").option("--description <text>", "description inserted into the first document").option("--var <key=value>", "template variable (repeatable)", collectVar).option("--json", "output a machine-readable JSON report").action((reference, options) => {
-    const plan = previewLike("preview")(reference, options);
-    if (options.json === true) {
-      runtime.outRaw(
-        serializeJsonReport(
-          createJsonReport(
-            "specbridge.template-preview/1",
-            `${CLI_BIN} ${VERSION}`,
-            applicationPlanJson(plan, { preview: true })
-          )
-        )
-      );
+  const end = () => {
+    if (overflowed || buffered.length === 0) {
       return;
     }
-    printApplicationPlan(runtime, plan, "Template preview \u2014 nothing was written", true);
-    runtime.out();
-    runtime.out(sectionTitle("Next steps"));
-    runtime.out(`  Apply with: ${CLI_BIN} template apply ${reference} --name ${options.name}`);
-  });
-  template.command("apply <template>").description("Create a new spec from a template (atomic; never overwrites an existing spec)").requiredOption("--name <spec-name>", "name of the spec to create").option("--mode <mode>", `workflow mode: ${WORKFLOW_MODES.join(" | ")} (default: template's defaultMode)`).option("--title <text>", "human-readable title (default: derived from the spec name)").option("--description <text>", "description inserted into the first document").option("--var <key=value>", "template variable (repeatable)", collectVar).option("--dry-run", "print everything that would be created without writing any file").option("--json", "output a machine-readable JSON report").action(
-    (reference, options) => {
-      const plan = previewLike("apply")(reference, options);
-      if (options.dryRun === true) {
-        if (options.json === true) {
-          runtime.outRaw(
-            serializeJsonReport(
-              createJsonReport(
-                "specbridge.template-apply/1",
-                `${CLI_BIN} ${VERSION}`,
-                applicationPlanJson(plan, { dryRun: true, created: false })
-              )
-            )
-          );
-          return;
-        }
-        printApplicationPlan(runtime, plan, "Dry run \u2014 nothing was written", true);
-        return;
-      }
-      const workspace = runtime.workspace();
-      const clock = () => runtime.now();
-      const result = executeTemplateApplication(workspace, plan, clock);
-      if (options.json === true) {
-        runtime.outRaw(
-          serializeJsonReport(
-            createJsonReport(
-              "specbridge.template-apply/1",
-              `${CLI_BIN} ${VERSION}`,
-              applicationPlanJson(plan, {
-                dryRun: false,
-                created: true,
-                recordId: result.recordId,
-                writtenFiles: result.creation.writtenFiles
-              })
-            )
-          )
-        );
-        return;
-      }
-      printApplicationPlan(runtime, plan, `Created spec: ${plan.specPlan.specName}`, false);
-      runtime.out();
-      runtime.out(sectionTitle("Next steps"));
-      const firstStage = plan.specPlan.specType === "bugfix" ? "bugfix" : plan.mode === "design-first" ? "design" : "requirements";
-      runtime.out(`  1. Replace the remaining placeholders in ${firstStage}.md with real content.`);
-      runtime.out(`  2. ${CLI_BIN} spec analyze ${plan.specPlan.specName} --stage ${firstStage}`);
-      runtime.out(`  3. ${CLI_BIN} spec approve ${plan.specPlan.specName} --stage ${firstStage}`);
-      runtime.out(dim("  Generated stages start unapproved; templates never bypass approval."));
+    const line = buffered.toString("utf8").replace(/\r$/, "");
+    buffered = Buffer.alloc(0);
+    if (line.trim().length > 0) {
+      options.onLine(line);
     }
-  );
-  template.command("install <local-path>").description("Install a local template pack into .specbridge/templates/ (offline, no scripts)").option("--dry-run", "validate and show what would be installed without writing").option("--json", "output a machine-readable JSON report").action((localPath, options) => {
-    const workspace = runtime.workspace();
-    const catalog = catalogFor(runtime);
-    const clock = () => runtime.now();
-    const plan = planTemplateInstall(workspace, catalog, { sourcePath: localPath, cwd: runtime.cwd });
-    const installed = options.dryRun === true ? void 0 : executeTemplateInstall(workspace, plan, clock);
-    if (options.json === true) {
-      runtime.outRaw(
-        serializeJsonReport(
-          createJsonReport("specbridge.template-install/1", `${CLI_BIN} ${VERSION}`, {
-            dryRun: options.dryRun === true,
-            installed: installed !== void 0,
-            ref: plan.ref,
-            templateId: plan.templateId,
-            version: plan.templateVersion,
-            manifestHash: plan.manifestHash,
-            sourceDir: plan.sourceDir,
-            targetDir: plan.targetDir,
-            warnings: plan.warnings,
-            recordId: installed?.recordId ?? null
-          })
-        )
-      );
-      return;
-    }
-    runtime.out(
-      reportTitle(
-        options.dryRun === true ? "Dry run \u2014 nothing was installed" : `Installed template: ${plan.ref}`
-      )
-    );
-    runtime.out();
-    runtime.out(`  Source: ${relPath(workspace, plan.sourceDir)}`);
-    runtime.out(`  Target: ${relPath(workspace, plan.targetDir)}`);
-    runtime.out(`  Version: ${plan.templateVersion}`);
-    for (const warningText of plan.warnings) {
-      runtime.out(warnLine(warningText));
-    }
-    if (installed !== void 0) {
-      runtime.out();
-      runtime.out(okLine(`Use it with: ${CLI_BIN} template apply ${plan.ref} --name <spec-name>`));
-    }
-  });
-  template.command("uninstall <template>").description("Uninstall a project template (built-in templates are immutable)").option("--dry-run", "show what would be removed without removing it").option("--json", "output a machine-readable JSON report").action((reference, options) => {
-    const workspace = runtime.workspace();
-    const clock = () => runtime.now();
-    const plan = planTemplateUninstall(workspace, reference);
-    const removed = options.dryRun === true ? void 0 : executeTemplateUninstall(workspace, plan, clock);
-    if (options.json === true) {
-      runtime.outRaw(
-        serializeJsonReport(
-          createJsonReport("specbridge.template-uninstall/1", `${CLI_BIN} ${VERSION}`, {
-            dryRun: options.dryRun === true,
-            uninstalled: removed !== void 0,
-            ref: plan.ref,
-            templateId: plan.templateId,
-            dir: plan.dir,
-            recordId: removed?.recordId ?? null
-          })
-        )
-      );
-      return;
-    }
-    runtime.out(
-      reportTitle(
-        options.dryRun === true ? "Dry run \u2014 nothing was removed" : `Uninstalled template: ${plan.ref}`
-      )
-    );
-    runtime.out();
-    runtime.out(`  Directory: ${relPath(workspace, plan.dir)}`);
-    runtime.out(
-      dim("  Specs generated from this template and template run records are not affected.")
-    );
-  });
-  template.command("scaffold <template-id>").description("Scaffold a new community-ready template pack (manifest, README, template files)").option("--kind <kind>", `spec kind: ${SPEC_TYPES.join(" | ")}`, "feature").option("--modes <modes>", "comma-separated supported workflow modes").option("--display-name <text>", "human-readable template name").option("--description <text>", "template description for the manifest and README").option("--license <identifier>", "license identifier for the manifest", "MIT").option("--output <path>", "output directory (default: ./<template-id>)").option("--dry-run", "list the files that would be generated without writing").option("--json", "output a machine-readable JSON report").action(
-    (templateId, options) => {
-      if (!SPEC_TYPES.includes(options.kind)) {
-        throw new SpecBridgeError(
-          "INVALID_ARGUMENT",
-          `Unknown --kind "${options.kind}". Valid kinds: ${SPEC_TYPES.join(", ")}.`
-        );
-      }
-      let modes;
-      if (options.modes !== void 0) {
-        modes = options.modes.split(",").map((raw) => {
-          const mode = requireMode(raw.trim());
-          return mode;
-        });
-      }
-      const clock = () => runtime.now();
-      const plan = planTemplateScaffold({
-        templateId,
-        kind: options.kind,
-        ...modes !== void 0 ? { modes } : {},
-        ...options.displayName !== void 0 ? { displayName: options.displayName } : {},
-        ...options.description !== void 0 ? { description: options.description } : {},
-        ...options.license !== void 0 ? { license: options.license } : {},
-        outputPath: options.output ?? `./${templateId}`,
-        cwd: runtime.cwd
-      });
-      const result = options.dryRun === true ? void 0 : executeTemplateScaffold(plan, runtime.tryWorkspace(), clock);
-      if (options.json === true) {
-        runtime.outRaw(
-          serializeJsonReport(
-            createJsonReport("specbridge.template-scaffold/1", `${CLI_BIN} ${VERSION}`, {
-              dryRun: options.dryRun === true,
-              created: result !== void 0,
-              templateId: plan.templateId,
-              kind: plan.kind,
-              outputDir: plan.outputDir,
-              files: [...plan.files.keys()],
-              recordId: result?.recordId ?? null
-            })
-          )
-        );
-        return;
-      }
-      runtime.out(
-        reportTitle(
-          options.dryRun === true ? "Dry run \u2014 nothing was written" : `Scaffolded template pack: ${plan.templateId}`
-        )
-      );
-      runtime.out();
-      runtime.out(`  Output: ${plan.outputDir}`);
-      runtime.out();
-      runtime.out(sectionTitle(options.dryRun === true ? "Files that would be generated" : "Files generated"));
-      for (const relative of plan.files.keys()) {
-        runtime.out(okLine(relative));
-      }
-      runtime.out();
-      runtime.out(sectionTitle("Next steps"));
-      runtime.out("  1. Edit the template files (plain Markdown with {{variable}} placeholders).");
-      runtime.out(`  2. ${CLI_BIN} template validate ${options.output ?? `./${templateId}`}`);
-      runtime.out(`  3. ${CLI_BIN} template install ${options.output ?? `./${templateId}`}`);
-      runtime.out(`  4. ${CLI_BIN} template preview project:${plan.templateId} --name example-spec`);
-    }
-  );
-}
-
-// ../../packages/cli/src/commands/spec-new.ts
-var SPEC_TYPES2 = ["feature", "bugfix"];
-var WORKFLOW_MODES2 = ["requirements-first", "design-first", "quick"];
-function planToJson(plan, dryRun, template) {
-  return createJsonReport("specbridge.spec-new/1", `${CLI_BIN} ${VERSION}`, {
-    dryRun,
-    created: !dryRun,
-    template: template ?? null,
-    specName: plan.specName,
-    specType: plan.specType,
-    workflowMode: plan.mode,
-    title: plan.title,
-    dir: plan.dir,
-    files: plan.files.map((file) => ({
-      fileName: file.fileName,
-      stage: file.stage,
-      bytes: Buffer.byteLength(file.content, "utf8"),
-      content: file.content
-    })),
-    state: plan.state,
-    statePath: plan.statePath
-  });
-}
-function printPlanSummary(runtime, plan, dryRun) {
-  const workspace = runtime.workspace();
-  runtime.out(reportTitle(dryRun ? `Dry run \u2014 nothing was written` : `Created spec: ${plan.specName}`));
-  runtime.out();
-  runtime.out(`  Name:  ${plan.specName}`);
-  runtime.out(`  Type:  ${plan.specType}`);
-  runtime.out(`  Mode:  ${plan.mode}`);
-  runtime.out(`  Title: ${plan.title}`);
-  runtime.out(`  Dir:   ${relPath(workspace, plan.dir)}`);
-  runtime.out();
-  runtime.out(sectionTitle(dryRun ? "Files that would be created" : "Files created"));
-  for (const file of plan.files) {
-    runtime.out(okLine(`${relPath(workspace, plan.dir)}/${file.fileName}`, `(${Buffer.byteLength(file.content, "utf8")} B)`));
-  }
-  runtime.out(okLine(relPath(workspace, plan.statePath), "(sidecar workflow state)"));
-  runtime.out();
-  if (dryRun) {
-    runtime.out(sectionTitle("Rendered content"));
-    for (const file of plan.files) {
-      runtime.out(dim(`--- ${file.fileName} ---`));
-      runtime.outRaw(file.content);
-    }
-    runtime.out(dim(`--- sidecar state (${relPath(workspace, plan.statePath)}) ---`));
-    runtime.outRaw(`${JSON.stringify(plan.state, null, 2)}
-`);
-    return;
-  }
-  runtime.out(sectionTitle("Next steps"));
-  const firstStage = plan.state.specType === "bugfix" ? "bugfix" : plan.mode === "design-first" ? "design" : "requirements";
-  runtime.out(`  1. Replace the template placeholders in ${firstStage}.md with real content.`);
-  runtime.out(`  2. ${CLI_BIN} spec analyze ${plan.specName} --stage ${firstStage}`);
-  runtime.out(`  3. ${CLI_BIN} spec approve ${plan.specName} --stage ${firstStage}`);
-  runtime.out(`  4. ${CLI_BIN} spec status ${plan.specName}`);
-}
-function registerSpecNewCommand(spec, runtime) {
-  spec.command("new <name>").description("Create a new Kiro-compatible spec from offline templates (no model required)").option("--type <type>", `spec type: ${SPEC_TYPES2.join(" | ")}`, "feature").option(
-    "--mode <mode>",
-    `workflow mode: ${WORKFLOW_MODES2.join(" | ")}`,
-    "requirements-first"
-  ).option("--title <text>", "human-readable title (default: derived from the spec name)").option("--description <text>", "initial description inserted into the first document").option("--from-file <path>", "read the description from a UTF-8 file inside the workspace").option("--template <reference>", "create the spec from a template (e.g. rest-api, builtin:rest-api)").option("--var <key=value>", "template variable, requires --template (repeatable)", collectVar).option("--dry-run", "print everything that would be created without writing any file").option("--json", "output a machine-readable JSON report").addHelpText(
-    "after",
-    `
-The spec is created under .kiro/specs/<name>/ and stays fully Kiro-compatible:
-no front matter, no tool metadata. Workflow state (approvals) lives in
-.specbridge/state/specs/<name>.json.
-
-Spec names use lowercase words separated by single hyphens: notification-preferences,
-auth-v2, payment-retry.
-
-Examples:
-  ${CLI_BIN} spec new notification-preferences
-  ${CLI_BIN} spec new notification-preferences --mode requirements-first --title "Notification Preferences"
-  ${CLI_BIN} spec new cache-fallback --type bugfix --description "Fix stale cache fallback after upstream timeout"
-  ${CLI_BIN} spec new payment-retry --mode quick --from-file feature-description.md
-  ${CLI_BIN} spec new payment-retry --dry-run
-  ${CLI_BIN} spec new orders-endpoint --template rest-api --var resourceName=order`
-  ).action((name, options, command) => {
-    if (!SPEC_TYPES2.includes(options.type)) {
-      throw new SpecBridgeError(
-        "INVALID_ARGUMENT",
-        `Unknown --type "${options.type}". Valid types: ${SPEC_TYPES2.join(", ")}.`
-      );
-    }
-    if (!WORKFLOW_MODES2.includes(options.mode)) {
-      throw new SpecBridgeError(
-        "INVALID_ARGUMENT",
-        `Unknown --mode "${options.mode}". Valid modes: ${WORKFLOW_MODES2.join(", ")}.`
-      );
-    }
-    if (options.template !== void 0) {
-      createFromTemplate(runtime, name, options, command);
-      return;
-    }
-    if (options.var !== void 0 && options.var.length > 0) {
-      throw new SpecBridgeError(
-        "INVALID_ARGUMENT",
-        `--var requires --template: variables only exist in template-based creation. Either add --template <reference> or drop the --var options.`
-      );
-    }
-    const workspace = runtime.workspace();
-    const request = {
-      name,
-      specType: options.type,
-      mode: options.mode,
-      ...options.title !== void 0 ? { title: options.title } : {},
-      ...options.description !== void 0 ? { description: options.description } : {},
-      ...options.fromFile !== void 0 ? { fromFile: options.fromFile } : {},
-      cwd: runtime.cwd
-    };
-    const clock = () => runtime.now();
-    if (options.dryRun === true) {
-      const plan = planSpecCreation(workspace, request, clock);
-      if (options.json === true) {
-        runtime.outRaw(serializeJsonReport(planToJson(plan, true)));
-      } else {
-        printPlanSummary(runtime, plan, true);
-      }
-      return;
-    }
-    const result = createSpec(workspace, request, clock);
-    if (options.json === true) {
-      runtime.outRaw(serializeJsonReport(planToJson(result.plan, false)));
-      return;
-    }
-    printPlanSummary(runtime, result.plan, false);
-  });
-}
-function createFromTemplate(runtime, name, options, command) {
-  if (options.fromFile !== void 0) {
-    throw new SpecBridgeError(
-      "INVALID_ARGUMENT",
-      "--from-file cannot be combined with --template. Pass the description with --description, or use the template variables instead."
-    );
-  }
-  const workspace = runtime.workspace();
-  const catalog = loadTemplateCatalog(workspace);
-  const clock = () => runtime.now();
-  const explicitMode = command.getOptionValueSource("mode") === "cli";
-  const explicitType = command.getOptionValueSource("type") === "cli";
-  const inputs = splitTemplateInputs(options);
-  const plan = planTemplateApplication(
-    workspace,
-    catalog,
-    {
-      reference: options.template,
-      specName: name,
-      ...explicitMode ? { mode: options.mode } : {},
-      ...inputs.title !== void 0 ? { title: inputs.title } : {},
-      ...inputs.description !== void 0 ? { description: inputs.description } : {},
-      variables: inputs.variables
-    },
-    clock
-  );
-  if (explicitType && options.type !== plan.specPlan.specType) {
-    throw new SpecBridgeError(
-      "INVALID_ARGUMENT",
-      `--type ${options.type} conflicts with template ${plan.templateRef}, which is a ${plan.specPlan.specType} template. Drop --type or pick a ${options.type} template (see "${CLI_BIN} template list --kind ${options.type}").`
-    );
-  }
-  const templateInfo = {
-    ref: plan.templateRef,
-    version: plan.templateVersion,
-    source: plan.templateSource,
-    candidateHash: plan.candidateHash
   };
-  if (options.dryRun === true) {
-    if (options.json === true) {
-      runtime.outRaw(serializeJsonReport(planToJson(plan.specPlan, true, templateInfo)));
-    } else {
-      runtime.out(dim(`Template: ${plan.templateRef} v${plan.templateVersion}`));
-      printPlanSummary(runtime, plan.specPlan, true);
-    }
-    return;
-  }
-  const result = executeTemplateApplication(workspace, plan, clock);
-  if (options.json === true) {
-    runtime.outRaw(serializeJsonReport(planToJson(result.plan.specPlan, false, templateInfo)));
-    return;
-  }
-  runtime.out(dim(`Template: ${plan.templateRef} v${plan.templateVersion}`));
-  printPlanSummary(runtime, plan.specPlan, false);
+  return { push, end };
 }
+var TEMPLATE_PROVIDER_TEMPLATES_DIR = "templates";
+var MAX_TEMPLATE_PROVIDER_PACKS = 20;
 
-// ../../packages/cli/src/commands/spec-analyze.ts
-var STAGE_CHOICES = [...STAGE_NAMES, "all"];
-function registerSpecAnalyzeCommand(spec, runtime) {
-  spec.command("analyze <name>").description("Analyze a spec for structural and consistency problems (deterministic, offline)").option("--stage <stage>", `stage to analyze: ${STAGE_CHOICES.join(" | ")}`, "all").option("--strict", "treat warnings as failures (exit 1)").option("--json", "output a machine-readable JSON report").addHelpText(
-    "after",
-    `
-Findings come in three levels: error (blocks approval), warning (reported,
-never blocks unless --strict), and info. Placeholders left over from
-generated templates are errors for active stages and warnings for stages
-still blocked behind an unapproved prerequisite.
-
-Exit codes: 0 no errors \xB7 1 errors found (or warnings with --strict) \xB7 2 usage/runtime error.
-
-Examples:
-  ${CLI_BIN} spec analyze notification-preferences
-  ${CLI_BIN} spec analyze notification-preferences --stage requirements
-  ${CLI_BIN} spec analyze login-timeout-fix --stage bugfix --json
-  ${CLI_BIN} spec analyze notification-preferences --strict`
-  ).action((name, options) => {
-    if (!STAGE_CHOICES.includes(options.stage)) {
-      throw new SpecBridgeError(
-        "INVALID_ARGUMENT",
-        `Unknown --stage "${options.stage}". Valid stages: ${STAGE_CHOICES.join(", ")}.`
-      );
-    }
-    const workspace = runtime.workspace();
-    const folder = requireSpec(workspace, name);
-    const spec2 = analyzeSpec(workspace, folder);
-    const stateRead = readSpecState(workspace, folder.name);
-    let evaluation;
-    if (stateRead.state !== void 0) {
-      evaluation = evaluateWorkflow(workspace, stateRead.state);
-    }
-    let stages;
-    if (options.stage !== "all") {
-      const stage = options.stage;
-      const specType = stateRead.state?.specType ?? (spec2.classification.type === "bugfix" ? "bugfix" : "feature");
-      if (!isStageApplicable(specType, stage)) {
-        throw new SpecBridgeError(
-          "INVALID_ARGUMENT",
-          `Stage "${stage}" does not apply to a ${specType} spec. Applicable stages: ${applicableStages(specType).join(", ")}.`
-        );
-      }
-      stages = [stage];
-    }
-    const result = analyzeSpecWorkflow(spec2, evaluation, stages);
-    const failed = result.hasErrors || options.strict === true && result.warningCount > 0;
-    if (options.json === true) {
-      runtime.outRaw(
-        serializeJsonReport(
-          createJsonReport("specbridge.spec-analyze/1", `${CLI_BIN} ${VERSION}`, {
-            specName: result.specName,
-            strict: options.strict === true,
-            managed: evaluation !== void 0,
-            stages: result.stages.map((stage) => ({
-              stage: stage.stage,
-              fileName: stage.fileName,
-              fileExists: stage.fileExists,
-              diagnostics: stage.diagnostics
-            })),
-            errorCount: result.errorCount,
-            warningCount: result.warningCount,
-            failed
-          })
-        )
-      );
-      runtime.exitCode = failed ? 1 : 0;
-      return;
-    }
-    runtime.out(reportTitle(`Analysis: ${folder.name}`));
-    if (stateRead.diagnostics.length > 0) {
-      for (const diagnostic of stateRead.diagnostics) {
-        runtime.out(severityLine(diagnostic.severity, diagnostic.message));
-      }
-    }
-    if (evaluation === void 0) {
-      runtime.out(dim("  Approval state: unmanaged (no sidecar state) \u2014 analyzing all present stages at full strictness."));
-    }
-    runtime.out();
-    for (const stage of result.stages) {
-      runtime.out(sectionTitle(`${stage.stage} (${stage.fileName})`));
-      if (!stage.fileExists && stage.diagnostics.length === 0) {
-        runtime.out(dim("  not present"));
-      } else if (stage.diagnostics.length === 0) {
-        runtime.out(okLine("no findings"));
-      } else {
-        for (const diagnostic of stage.diagnostics) {
-          const location = diagnostic.file !== void 0 ? ` [${relPath(workspace, diagnostic.file)}${diagnostic.line !== void 0 ? `:${diagnostic.line}` : ""}]` : "";
-          runtime.out(severityLine(diagnostic.severity, `${diagnostic.message}${location}`));
-        }
-      }
-      runtime.out();
-    }
-    const summary = `${result.errorCount} error${result.errorCount === 1 ? "" : "s"}, ${result.warningCount} warning${result.warningCount === 1 ? "" : "s"}`;
-    if (failed) {
-      runtime.out(`Result: ${reportTitle("FAIL")} \u2014 ${summary}${options.strict === true && !result.hasErrors ? " (strict mode)" : ""}`);
-    } else {
-      runtime.out(`Result: ${reportTitle("OK")} \u2014 ${summary}`);
-    }
-    runtime.exitCode = failed ? 1 : 0;
-  });
-}
-
-// ../../packages/cli/src/commands/spec-approve.ts
-function resultToJson(specName, result) {
-  const base = { specName };
-  if (result.ok && result.action === "approved") {
-    return createJsonReport("specbridge.spec-approve/1", `${CLI_BIN} ${VERSION}`, {
-      ...base,
-      action: "approved",
-      stage: result.stage,
-      hash: result.hash,
-      reapproved: result.reapproved,
-      invalidated: result.invalidated,
-      initialized: result.initialized,
-      status: result.state.status,
-      statePath: result.statePath,
-      warnings: result.analysis.diagnostics.filter((d) => d.severity === "warning"),
-      diagnostics: result.diagnostics
-    });
-  }
-  if (result.ok) {
-    return createJsonReport("specbridge.spec-approve/1", `${CLI_BIN} ${VERSION}`, {
-      ...base,
-      action: "revoked",
-      stage: result.stage,
-      invalidated: result.invalidated,
-      status: result.state.status,
-      statePath: result.statePath,
-      diagnostics: result.diagnostics
-    });
-  }
-  return createJsonReport("specbridge.spec-approve/1", `${CLI_BIN} ${VERSION}`, {
-    ...base,
-    action: "blocked",
-    reason: result.reason,
-    message: result.message,
-    missingPrerequisites: result.missingPrerequisites ?? [],
-    stalePrerequisites: result.stalePrerequisites ?? [],
-    analysis: result.analysis !== void 0 ? {
-      errorCount: result.analysis.errorCount,
-      warningCount: result.analysis.warningCount,
-      diagnostics: result.analysis.diagnostics
-    } : null,
-    diagnostics: result.diagnostics
-  });
-}
-function registerSpecApproveCommand(spec, runtime) {
-  spec.command("approve <name>").description("Approve (or revoke) a workflow stage; approvals live in .specbridge, never in .kiro").requiredOption("--stage <stage>", `stage to approve: ${STAGE_NAMES.join(" | ")}`).option("--revoke", "revoke the stage approval (dependent approvals are invalidated too)").option("--json", "output a machine-readable JSON report").addHelpText(
-    "after",
-    `
-Approval records the SHA-256 of the exact file bytes plus a timestamp in
-.specbridge/state/specs/<name>.json. The Markdown file itself is never
-rewritten. If an approved file changes later, the approval is reported as
-stale; re-approving updates the hash (and invalidates dependent approvals,
-because they were made against different content).
-
-Prerequisites by workflow:
-  requirements-first  requirements -> design -> tasks
-  design-first        design -> requirements -> tasks
-  quick               requirements + design in any order, then tasks
-  bugfix              bugfix -> design -> tasks
-
-For an existing Kiro spec without SpecBridge state, the first successful
-approval initializes the sidecar state (origin: existing-kiro-workspace).
-
-Exit codes: 0 approved/revoked \xB7 1 blocked (prerequisites or analysis errors) \xB7 2 usage error.
-
-Examples:
-  ${CLI_BIN} spec approve notification-preferences --stage requirements
-  ${CLI_BIN} spec approve notification-preferences --stage design
-  ${CLI_BIN} spec approve login-timeout-fix --stage bugfix
-  ${CLI_BIN} spec approve notification-preferences --stage requirements --revoke`
-  ).action((name, options) => {
-    const stage = options.stage;
-    if (stage === void 0 || !STAGE_NAMES.includes(stage)) {
-      throw new SpecBridgeError(
-        "INVALID_ARGUMENT",
-        `Unknown --stage "${options.stage ?? ""}". Valid stages: ${STAGE_NAMES.join(", ")}.`
-      );
-    }
-    const workspace = runtime.workspace();
-    const folder = requireSpec(workspace, name);
-    const spec2 = analyzeSpec(workspace, folder);
-    const result = approveStage(
-      workspace,
-      spec2,
-      { stage, ...options.revoke === true ? { revoke: true } : {} },
-      { clock: () => runtime.now() }
-    );
-    if (options.json === true) {
-      runtime.outRaw(serializeJsonReport(resultToJson(folder.name, result)));
-      runtime.exitCode = result.ok ? 0 : result.failure === "usage" ? 2 : 1;
-      return;
-    }
-    if (!result.ok) {
-      runtime.err(result.message);
-      if (result.reason === "prerequisites-unmet") {
-        const nextStage = result.missingPrerequisites?.[0] ?? result.stalePrerequisites?.[0];
-        if (nextStage !== void 0) {
-          runtime.err("");
-          runtime.err("Run:");
-          runtime.err(`  ${CLI_BIN} spec analyze ${folder.name} --stage ${nextStage}`);
-          runtime.err(`  ${CLI_BIN} spec approve ${folder.name} --stage ${nextStage}`);
-        }
-      }
-      if (result.reason === "analysis-errors" && result.analysis !== void 0) {
-        runtime.err("");
-        for (const diagnostic of result.analysis.diagnostics.filter((d) => d.severity === "error")) {
-          const location = diagnostic.file !== void 0 ? ` [${relPath(workspace, diagnostic.file)}${diagnostic.line !== void 0 ? `:${diagnostic.line}` : ""}]` : "";
-          runtime.err(`  ${diagnostic.severity === "error" ? "\u2717" : "!"} ${diagnostic.message}${location}`);
-        }
-        runtime.err("");
-        runtime.err(dim(`Full report: ${CLI_BIN} spec analyze ${folder.name} --stage ${stage}`));
-      }
-      runtime.exitCode = result.failure === "usage" ? 2 : 1;
-      return;
-    }
-    if (result.action === "revoked") {
-      runtime.out(reportTitle(`Revoked: ${folder.name} \u2014 ${result.stage}`));
-      runtime.out();
-      runtime.out(okLine(`${result.stage} approval revoked (files were not touched)`));
-      for (const invalidated of result.invalidated) {
-        runtime.out(warnLine(`${invalidated} approval invalidated (it depended on ${result.stage})`));
-      }
-      runtime.out();
-      runtime.out(`  Status: ${result.state.status}`);
-      runtime.out(dim(`  State: ${relPath(workspace, result.statePath)}`));
-      return;
-    }
-    runtime.out(reportTitle(`Approved: ${folder.name} \u2014 ${result.stage}`));
-    runtime.out();
-    if (result.initialized) {
-      runtime.out(okLine("Sidecar state initialized for this existing Kiro spec", "(origin: existing-kiro-workspace)"));
-    }
-    runtime.out(
-      okLine(
-        `${result.stage} ${result.reapproved ? "re-approved" : "approved"}`,
-        `(sha256 ${result.hash.slice(0, 12)}\u2026)`
-      )
-    );
-    for (const invalidated of result.invalidated) {
-      runtime.out(
-        warnLine(
-          `${invalidated} approval invalidated \u2014 ${result.stage} changed since it was approved; re-approve it`
-        )
-      );
-    }
-    const warnings = result.analysis.diagnostics.filter((d) => d.severity === "warning");
-    for (const warning2 of warnings) {
-      runtime.out(severityLine("warning", warning2.message));
-    }
-    if (warnings.length > 0) {
-      runtime.out(dim("  (warnings never block approval; fix them when convenient)"));
-    }
-    runtime.out();
-    runtime.out(`  Status: ${result.state.status}`);
-    runtime.out(dim(`  State: ${relPath(workspace, result.statePath)}`));
-    if (result.state.status !== "READY_FOR_IMPLEMENTATION") {
-      runtime.out();
-      runtime.out(dim(`  Next: ${CLI_BIN} spec status ${folder.name}`));
-    }
-  });
-}
-
-// ../../packages/cli/src/commands/spec-status.ts
-function describeStage(runtime, evaluation, stage, verbose) {
-  const title = stage.stage.charAt(0).toUpperCase() + stage.stage.slice(1);
-  runtime.out(`${title}`);
-  switch (stage.effective) {
-    case "approved":
-      runtime.out(okLine("Approved"));
-      if (stage.stored.approvedAt !== null) {
-        runtime.out(dim(`    Approved at: ${stage.stored.approvedAt}`));
-      }
-      runtime.out(dim("    Content unchanged since approval"));
-      if (verbose && stage.stored.approvedHash !== null) {
-        runtime.out(dim(`    Approved hash: ${stage.stored.approvedHash}`));
-      }
-      break;
-    case "modified-after-approval":
-      runtime.out(warnLine("Modified after approval"));
-      runtime.out(dim(`    Approved hash: ${stage.stored.approvedHash ?? "(none)"}`));
-      runtime.out(dim(`    Current hash:  ${stage.currentHash ?? "(file missing or unreadable)"}`));
-      runtime.out(dim(`    Re-approve with: ${CLI_BIN} spec approve <name> --stage ${stage.stage}`));
-      break;
-    case "stale-prerequisite":
-      runtime.out(warnLine("Approval is stale (an earlier stage changed after this was approved)"));
-      if (stage.stored.approvedAt !== null) {
-        runtime.out(dim(`    Originally approved at: ${stage.stored.approvedAt}`));
-      }
-      break;
-    case "draft": {
-      runtime.out(activeLine("Draft"));
-      const prerequisites = stage.prerequisites;
-      if (prerequisites.length > 0) {
-        runtime.out(dim("    Prerequisites satisfied"));
-      }
-      break;
-    }
-    case "blocked": {
-      runtime.out(blockedLine("Blocked"));
-      const unapproved = stage.prerequisites.filter(
-        (p) => evaluation.stages.find((s) => s.stage === p)?.effective !== "approved"
-      );
-      if (unapproved.length > 0) {
-        runtime.out(dim(`    Requires ${unapproved.join(" and ")} approval`));
-      }
-      break;
-    }
-  }
-  runtime.out();
-}
-function registerSpecStatusCommand(spec, runtime) {
-  spec.command("status <name>").description("Show workflow status, stage approvals, and approval health for a spec").option("--verbose", "include full hashes and info-level diagnostics").option("--json", "output a machine-readable JSON report").addHelpText(
-    "after",
-    `
-Approval state comes only from .specbridge/state \u2014 a stage is never treated
-as approved just because its file exists. Specs without sidecar state are
-reported as unmanaged (normal for existing Kiro projects).
-
-Examples:
-  ${CLI_BIN} spec status notification-preferences
-  ${CLI_BIN} spec status notification-preferences --json
-  ${CLI_BIN} spec status notification-preferences --verbose`
-  ).action((name, options) => {
-    const workspace = runtime.workspace();
-    const folder = requireSpec(workspace, name);
-    const spec2 = analyzeSpec(workspace, folder);
-    const view = loadWorkflowView(workspace, folder.name);
-    const analysis = analyzeSpecWorkflow(spec2, view.evaluation);
-    if (options.json === true) {
-      runtime.outRaw(
-        serializeJsonReport(
-          createJsonReport("specbridge.spec-status/1", `${CLI_BIN} ${VERSION}`, {
-            specName: folder.name,
-            specType: view.stateRead.state?.specType ?? spec2.classification.type,
-            workflowMode: view.stateRead.state?.workflowMode ?? spec2.classification.workflowMode,
-            origin: view.stateRead.state?.origin ?? null,
-            managed: view.evaluation !== void 0,
-            approvalHealth: view.health,
-            status: view.evaluation?.storedStatus ?? null,
-            effectiveStatus: view.displayStatus,
-            stages: view.evaluation?.stages.map((stage) => ({
-              stage: stage.stage,
-              status: stage.stored.status,
-              effective: stage.effective,
-              file: stage.stored.file,
-              fileExists: stage.fileExists,
-              approvedAt: stage.stored.approvedAt,
-              approvedHash: stage.stored.approvedHash,
-              currentHash: stage.currentHash ?? null,
-              prerequisites: stage.prerequisites
-            })) ?? null,
-            files: folder.files.map((f) => ({ fileName: f.fileName, kind: f.kind })),
-            analysis: {
-              errorCount: analysis.errorCount,
-              warningCount: analysis.warningCount,
-              diagnostics: analysis.diagnostics
-            },
-            stateDiagnostics: view.stateRead.diagnostics
-          })
-        )
-      );
-      return;
-    }
-    runtime.out(reportTitle(`Spec: ${folder.name}`));
-    runtime.out(`Type: ${view.stateRead.state?.specType ?? spec2.classification.type}`);
-    runtime.out(`Mode: ${view.stateRead.state?.workflowMode ?? spec2.classification.workflowMode}`);
-    runtime.out(`Status: ${view.displayStatus}`);
-    if (view.stateRead.state?.origin === "existing-kiro-workspace") {
-      runtime.out(dim("Origin: initialized from an existing Kiro workspace"));
-    }
-    runtime.out();
-    for (const diagnostic of view.stateRead.diagnostics) {
-      runtime.out(severityLine(diagnostic.severity, diagnostic.message));
-    }
-    if (view.evaluation === void 0) {
-      runtime.out("Approval state: unmanaged");
-      runtime.out(
-        dim(
-          "  This spec has no SpecBridge sidecar state \u2014 normal for a spec created by Kiro.\n  Files stay untouched either way. To start managing approvals, run:"
-        )
-      );
-      const firstStage = documentStageFor(spec2.classification.type === "bugfix" ? "bugfix" : "feature");
-      runtime.out(dim(`    ${CLI_BIN} spec approve ${folder.name} --stage ${firstStage}`));
-      runtime.out();
-    } else {
-      runtime.out(sectionTitle("Stages"));
-      runtime.out();
-      for (const stage of view.evaluation.stages) {
-        describeStage(runtime, view.evaluation, stage, options.verbose === true);
-      }
-    }
-    runtime.out(sectionTitle("Files"));
-    const expected = spec2.classification.type === "bugfix" ? ["bugfix", "design", "tasks"] : ["requirements", "design", "tasks"];
-    for (const kind of expected) {
-      const file = specFile(folder, kind);
-      if (file !== void 0) {
-        runtime.out(okLine(file.fileName));
-      } else {
-        runtime.out(infoLine(`${kind}.md not present`));
-      }
-    }
-    runtime.out();
-    runtime.out(sectionTitle("Diagnostics"));
-    const visible = analysis.diagnostics.filter(
-      (d) => options.verbose === true || d.severity !== "info"
-    );
-    if (visible.length === 0) {
-      runtime.out(okLine("none"));
-    } else {
-      for (const diagnostic of visible) {
-        const location = diagnostic.file !== void 0 ? ` [${relPath(workspace, diagnostic.file)}${diagnostic.line !== void 0 ? `:${diagnostic.line}` : ""}]` : "";
-        runtime.out(severityLine(diagnostic.severity, `${diagnostic.message}${location}`));
-      }
-    }
-  });
-}
-
-// ../../packages/cli/src/commands/spec-sync.ts
-function registerSpecSyncCommand(spec, runtime) {
-  registerPlannedCommand(spec, runtime, {
-    name: "sync",
-    args: "<name>",
-    summary: "Detect whether tasks appear implemented based on repository evidence (report-only by default)",
-    phase: "the sync-and-drift phase (Phase H)"
-  });
-}
-
-// ../../packages/execution/dist/index.js
+// ../../packages/extensions/dist/index.js
+var import_fs22 = require("fs");
+var import_path22 = __toESM(require("path"), 1);
+var import_crypto5 = require("crypto");
+var import_fs23 = require("fs");
+var import_path23 = __toESM(require("path"), 1);
+var import_child_process = require("child_process");
 var import_fs24 = require("fs");
-var import_path25 = __toESM(require("path"), 1);
-var import_path26 = __toESM(require("path"), 1);
+var import_path24 = __toESM(require("path"), 1);
 var import_fs25 = require("fs");
+var import_path25 = __toESM(require("path"), 1);
+var import_fs26 = require("fs");
+var import_path26 = __toESM(require("path"), 1);
+var import_fs27 = require("fs");
 var import_path27 = __toESM(require("path"), 1);
+var import_fs28 = require("fs");
 var import_path28 = __toESM(require("path"), 1);
-var import_promises12 = require("timers/promises");
 
 // ../../packages/runners/dist/index.js
 var import_buffer = require("buffer");
@@ -34399,13 +34164,13 @@ var handleCommand = (filePath, rawArguments, rawOptions) => {
 };
 
 // ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/options.js
-var import_node_path9 = __toESM(require("path"), 1);
+var import_node_path8 = __toESM(require("path"), 1);
 var import_node_process8 = __toESM(require("process"), 1);
 var import_cross_spawn = __toESM(require_cross_spawn(), 1);
 
 // ../../node_modules/.pnpm/npm-run-path@6.0.0/node_modules/npm-run-path/index.js
 var import_node_process5 = __toESM(require("process"), 1);
-var import_node_path6 = __toESM(require("path"), 1);
+var import_node_path5 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/path-key@4.0.0/node_modules/path-key/index.js
 function pathKey(options = {}) {
@@ -34422,7 +34187,7 @@ function pathKey(options = {}) {
 // ../../node_modules/.pnpm/unicorn-magic@0.3.0/node_modules/unicorn-magic/node.js
 var import_node_util4 = require("util");
 var import_node_child_process2 = require("child_process");
-var import_node_path5 = __toESM(require("path"), 1);
+var import_node_path4 = __toESM(require("path"), 1);
 var import_node_url2 = require("url");
 var execFileOriginal = (0, import_node_util4.promisify)(import_node_child_process2.execFile);
 function toPath(urlOrPath) {
@@ -34431,12 +34196,12 @@ function toPath(urlOrPath) {
 function traversePathUp(startPath) {
   return {
     *[Symbol.iterator]() {
-      let currentPath = import_node_path5.default.resolve(toPath(startPath));
+      let currentPath = import_node_path4.default.resolve(toPath(startPath));
       let previousPath;
       while (previousPath !== currentPath) {
         yield currentPath;
         previousPath = currentPath;
-        currentPath = import_node_path5.default.resolve(currentPath, "..");
+        currentPath = import_node_path4.default.resolve(currentPath, "..");
       }
     }
   };
@@ -34451,27 +34216,27 @@ var npmRunPath = ({
   execPath: execPath2 = import_node_process5.default.execPath,
   addExecPath = true
 } = {}) => {
-  const cwdPath = import_node_path6.default.resolve(toPath(cwd));
+  const cwdPath = import_node_path5.default.resolve(toPath(cwd));
   const result = [];
-  const pathParts = pathOption.split(import_node_path6.default.delimiter);
+  const pathParts = pathOption.split(import_node_path5.default.delimiter);
   if (preferLocal) {
     applyPreferLocal(result, pathParts, cwdPath);
   }
   if (addExecPath) {
     applyExecPath(result, pathParts, execPath2, cwdPath);
   }
-  return pathOption === "" || pathOption === import_node_path6.default.delimiter ? `${result.join(import_node_path6.default.delimiter)}${pathOption}` : [...result, pathOption].join(import_node_path6.default.delimiter);
+  return pathOption === "" || pathOption === import_node_path5.default.delimiter ? `${result.join(import_node_path5.default.delimiter)}${pathOption}` : [...result, pathOption].join(import_node_path5.default.delimiter);
 };
 var applyPreferLocal = (result, pathParts, cwdPath) => {
   for (const directory of traversePathUp(cwdPath)) {
-    const pathPart = import_node_path6.default.join(directory, "node_modules/.bin");
+    const pathPart = import_node_path5.default.join(directory, "node_modules/.bin");
     if (!pathParts.includes(pathPart)) {
       result.push(pathPart);
     }
   }
 };
 var applyExecPath = (result, pathParts, execPath2, cwdPath) => {
-  const pathPart = import_node_path6.default.resolve(cwdPath, toPath(execPath2), "..");
+  const pathPart = import_node_path5.default.resolve(cwdPath, toPath(execPath2), "..");
   if (!pathParts.includes(pathPart)) {
     result.push(pathPart);
   }
@@ -35626,7 +35391,7 @@ var killAfterTimeout = async (subprocess, timeout, context, { signal }) => {
 
 // ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/node.js
 var import_node_process6 = require("process");
-var import_node_path7 = __toESM(require("path"), 1);
+var import_node_path6 = __toESM(require("path"), 1);
 var mapNode = ({ options }) => {
   if (options.node === false) {
     throw new TypeError('The "node" option cannot be false with `execaNode()`.');
@@ -35645,7 +35410,7 @@ var handleNodeOption = (file, commandArguments, {
     throw new TypeError('The "execPath" option has been removed. Please use the "nodePath" option instead.');
   }
   const normalizedNodePath = safeNormalizeFileUrl(nodePath, 'The "nodePath" option');
-  const resolvedNodePath = import_node_path7.default.resolve(cwd, normalizedNodePath);
+  const resolvedNodePath = import_node_path6.default.resolve(cwd, normalizedNodePath);
   const newOptions = {
     ...options,
     nodePath: resolvedNodePath,
@@ -35655,7 +35420,7 @@ var handleNodeOption = (file, commandArguments, {
   if (!shouldHandleNode) {
     return [file, commandArguments, newOptions];
   }
-  if (import_node_path7.default.basename(file, ".exe") === "node") {
+  if (import_node_path6.default.basename(file, ".exe") === "node") {
     throw new TypeError('When the "node" option is true, the first argument does not need to be "node".');
   }
   return [
@@ -35744,12 +35509,12 @@ var ENCODING_ALIASES = {
 var serializeEncoding = (encoding) => typeof encoding === "string" ? `"${encoding}"` : String(encoding);
 
 // ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/cwd.js
-var import_node_fs2 = require("fs");
-var import_node_path8 = __toESM(require("path"), 1);
+var import_node_fs = require("fs");
+var import_node_path7 = __toESM(require("path"), 1);
 var import_node_process7 = __toESM(require("process"), 1);
 var normalizeCwd = (cwd = getDefaultCwd()) => {
   const cwdString = safeNormalizeFileUrl(cwd, 'The "cwd" option');
-  return import_node_path8.default.resolve(cwdString);
+  return import_node_path7.default.resolve(cwdString);
 };
 var getDefaultCwd = () => {
   try {
@@ -35766,7 +35531,7 @@ var fixCwdError = (originalMessage, cwd) => {
   }
   let cwdStat;
   try {
-    cwdStat = (0, import_node_fs2.statSync)(cwd);
+    cwdStat = (0, import_node_fs.statSync)(cwd);
   } catch (error2) {
     return `The "cwd" option is invalid: ${cwd}.
 ${error2.message}
@@ -35796,7 +35561,7 @@ var normalizeOptions = (filePath, rawArguments, rawOptions) => {
   options.killSignal = normalizeKillSignal(options.killSignal);
   options.forceKillAfterDelay = normalizeForceKillAfterDelay(options.forceKillAfterDelay);
   options.lines = options.lines.map((lines, fdNumber) => lines && !BINARY_ENCODINGS.has(options.encoding) && options.buffer[fdNumber]);
-  if (import_node_process8.default.platform === "win32" && import_node_path9.default.basename(file, ".exe") === "cmd") {
+  if (import_node_process8.default.platform === "win32" && import_node_path8.default.basename(file, ".exe") === "cmd") {
     commandArguments.unshift("/q");
   }
   return { file, commandArguments, options };
@@ -36771,7 +36536,7 @@ var handleResult2 = (result, verboseInfo, { reject }) => {
 };
 
 // ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/handle-sync.js
-var import_node_fs4 = require("fs");
+var import_node_fs3 = require("fs");
 
 // ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/type.js
 var getStdioItemType = (value, optionName) => {
@@ -37101,7 +36866,7 @@ var normalizeStdioSync = (stdioArray, buffer, verboseInfo) => stdioArray.map((st
 var isOutputPipeOnly = (stdioOption) => stdioOption === "pipe" || Array.isArray(stdioOption) && stdioOption.every((item) => item === "pipe");
 
 // ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/native.js
-var import_node_fs3 = require("fs");
+var import_node_fs2 = require("fs");
 var import_node_tty2 = __toESM(require("tty"), 1);
 var handleNativeStream = ({ stdioItem, stdioItem: { type }, isStdioArray, fdNumber, direction, isSync }) => {
   if (!isStdioArray || type !== "native") {
@@ -37135,7 +36900,7 @@ var getTargetFd = ({ value, optionName, fdNumber, direction }) => {
   if (import_node_tty2.default.isatty(targetFdNumber)) {
     throw new TypeError(`The \`${optionName}: ${serializeOptionValue(value)}\` option is invalid: it cannot be a TTY with synchronous methods.`);
   }
-  return { type: "uint8Array", value: bufferToUint8Array((0, import_node_fs3.readFileSync)(targetFdNumber)), optionName };
+  return { type: "uint8Array", value: bufferToUint8Array((0, import_node_fs2.readFileSync)(targetFdNumber)), optionName };
 };
 var getTargetFdNumber = (value, fdNumber) => {
   if (value === "inherit") {
@@ -37468,8 +37233,8 @@ var addProperties = {
 var addPropertiesSync = {
   input: {
     ...addProperties,
-    fileUrl: ({ value }) => ({ contents: [bufferToUint8Array((0, import_node_fs4.readFileSync)(value))] }),
-    filePath: ({ value: { file } }) => ({ contents: [bufferToUint8Array((0, import_node_fs4.readFileSync)(file))] }),
+    fileUrl: ({ value }) => ({ contents: [bufferToUint8Array((0, import_node_fs3.readFileSync)(value))] }),
+    filePath: ({ value: { file } }) => ({ contents: [bufferToUint8Array((0, import_node_fs3.readFileSync)(file))] }),
     fileNumber: forbiddenIfSync,
     iterable: ({ value }) => ({ contents: [...value] }),
     string: ({ value }) => ({ contents: [value] }),
@@ -37815,7 +37580,7 @@ var validateSerializable = (newContents) => {
 };
 
 // ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/output-sync.js
-var import_node_fs5 = require("fs");
+var import_node_fs4 = require("fs");
 
 // ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/output.js
 var shouldLogOutput = ({ stdioItems, encoding, verboseInfo, fdNumber }) => fdNumber !== "all" && isFullVerbose(verboseInfo, fdNumber) && !BINARY_ENCODINGS.has(encoding) && fdUsesVerbose(fdNumber) && (stdioItems.some(({ type, value }) => type === "native" && PIPED_STDIO_VALUES.has(value)) || stdioItems.every(({ type }) => TRANSFORM_TYPES.has(type)));
@@ -37936,13 +37701,13 @@ var logOutputSync = ({ serializedResult, fdNumber, state, verboseInfo, encoding,
   }
 };
 var writeToFiles = (serializedResult, stdioItems, outputFiles) => {
-  for (const { path: path41, append } of stdioItems.filter(({ type }) => FILE_TYPES.has(type))) {
-    const pathString = typeof path41 === "string" ? path41 : path41.toString();
+  for (const { path: path59, append } of stdioItems.filter(({ type }) => FILE_TYPES.has(type))) {
+    const pathString = typeof path59 === "string" ? path59 : path59.toString();
     if (append || outputFiles.has(pathString)) {
-      (0, import_node_fs5.appendFileSync)(path41, serializedResult);
+      (0, import_node_fs4.appendFileSync)(path59, serializedResult);
     } else {
       outputFiles.add(pathString);
-      (0, import_node_fs5.writeFileSync)(path41, serializedResult);
+      (0, import_node_fs4.writeFileSync)(path59, serializedResult);
     }
   }
 };
@@ -38386,7 +38151,7 @@ var duplex = () => new import_node_stream2.Duplex({ read() {
 var handleDummyPromise = async (error2, verboseInfo, options) => handleResult2(error2, verboseInfo, options);
 
 // ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/handle-async.js
-var import_node_fs6 = require("fs");
+var import_node_fs5 = require("fs");
 var import_node_buffer3 = require("buffer");
 var import_node_stream3 = require("stream");
 var handleStdioAsync = (options, verboseInfo) => handleStdio(addPropertiesAsync, options, verboseInfo, false);
@@ -38410,8 +38175,8 @@ var addProperties2 = {
 var addPropertiesAsync = {
   input: {
     ...addProperties2,
-    fileUrl: ({ value }) => ({ stream: (0, import_node_fs6.createReadStream)(value) }),
-    filePath: ({ value: { file } }) => ({ stream: (0, import_node_fs6.createReadStream)(file) }),
+    fileUrl: ({ value }) => ({ stream: (0, import_node_fs5.createReadStream)(value) }),
+    filePath: ({ value: { file } }) => ({ stream: (0, import_node_fs5.createReadStream)(file) }),
     webStream: ({ value }) => ({ stream: import_node_stream3.Readable.fromWeb(value) }),
     iterable: ({ value }) => ({ stream: import_node_stream3.Readable.from(value) }),
     asyncIterable: ({ value }) => ({ stream: import_node_stream3.Readable.from(value) }),
@@ -38420,8 +38185,8 @@ var addPropertiesAsync = {
   },
   output: {
     ...addProperties2,
-    fileUrl: ({ value }) => ({ stream: (0, import_node_fs6.createWriteStream)(value) }),
-    filePath: ({ value: { file, append } }) => ({ stream: (0, import_node_fs6.createWriteStream)(file, append ? { flags: "a" } : {}) }),
+    fileUrl: ({ value }) => ({ stream: (0, import_node_fs5.createWriteStream)(value) }),
+    filePath: ({ value: { file, append } }) => ({ stream: (0, import_node_fs5.createWriteStream)(file, append ? { flags: "a" } : {}) }),
     webStream: ({ value }) => ({ stream: import_node_stream3.Writable.fromWeb(value) }),
     iterable: forbiddenIfAsync,
     asyncIterable: forbiddenIfAsync,
@@ -40331,7 +40096,7 @@ var {
 } = getIpcExport();
 
 // ../../packages/runners/dist/index.js
-var import_crypto2 = require("crypto");
+var import_crypto3 = require("crypto");
 var import_fs18 = require("fs");
 var import_path18 = __toESM(require("path"), 1);
 var import_fs19 = require("fs");
@@ -40340,7 +40105,7 @@ var import_fs20 = require("fs");
 var import_path20 = __toESM(require("path"), 1);
 var import_buffer2 = require("buffer");
 var import_buffer3 = require("buffer");
-var import_crypto3 = require("crypto");
+var import_crypto4 = require("crypto");
 var import_fs21 = require("fs");
 var import_path21 = __toESM(require("path"), 1);
 var DEFAULT_MAX_STDOUT_BYTES = 10 * 1024 * 1024;
@@ -40540,7 +40305,7 @@ function effectiveSupportLevel(declared, status) {
   }
 }
 function digest(...parts) {
-  const hash = (0, import_crypto2.createHash)("sha256");
+  const hash = (0, import_crypto3.createHash)("sha256");
   for (const part of parts) hash.update(part).update("\0");
   return hash.digest("hex").slice(0, 12);
 }
@@ -43975,8 +43740,8 @@ function composeSignals(timeoutMs, external) {
 async function readBounded(response, maxBytes) {
   const reader = response.body?.getReader();
   if (reader === void 0) {
-    const text = await response.text();
-    return import_buffer3.Buffer.byteLength(text, "utf8") > maxBytes ? "too-large" : { text, bytes: import_buffer3.Buffer.byteLength(text, "utf8") };
+    const buffer2 = import_buffer3.Buffer.from(await response.arrayBuffer());
+    return buffer2.length > maxBytes ? "too-large" : { text: buffer2.toString("utf8"), bytes: buffer2.length, buffer: buffer2 };
   }
   const chunks = [];
   let total = 0;
@@ -43990,7 +43755,8 @@ async function readBounded(response, maxBytes) {
     }
     chunks.push(value);
   }
-  return { text: import_buffer3.Buffer.concat(chunks).toString("utf8"), bytes: total };
+  const buffer = import_buffer3.Buffer.concat(chunks);
+  return { text: buffer.toString("utf8"), bytes: total, buffer };
 }
 function checkRedirectTarget(current, location) {
   let next;
@@ -44160,6 +43926,10 @@ async function safeHttpRequest(request) {
     status: response.status,
     bodyText: body.text,
     bodyBytes: body.bytes,
+    // v0.7.1 (additive): byte-exact body for binary downloads (extension
+    // archives). UTF-8 decoding is lossy for binary content, so callers that
+    // need exact bytes opt in here.
+    ...request.binaryBody === true ? { bodyBase64: body.buffer.toString("base64") } : {},
     durationMs: duration3(),
     ...redirects !== void 0 ? { redirects } : {}
   };
@@ -44867,7 +44637,7 @@ var OPENAI_COMPATIBLE_DECLARED_CAPABILITIES = capabilitySet([
   "supportsJsonSchema",
   "supportsCancellation"
 ]);
-function classifyHttpFailure2(result, redact) {
+function classifyHttpFailure2(result, redact2) {
   switch (result.kind) {
     case "timeout":
       return {
@@ -44914,7 +44684,7 @@ function classifyHttpFailure2(result, redact) {
       };
     case "http-error": {
       const status = result.status ?? 0;
-      const excerpt = redact(result.bodyExcerpt ?? "").toLowerCase();
+      const excerpt = redact2(result.bodyExcerpt ?? "").toLowerCase();
       if (status === 401 || status === 403) {
         return {
           outcome: "failed",
@@ -45296,10 +45066,10 @@ var OpenAiCompatibleRunner = class {
     return this.mapCompleted(attempt.body, attempt.mode, model, started);
   }
   async requestOnce(model, messages, mode, execution) {
-    const path65 = this.config.apiStyle === "chat-completions" ? "/chat/completions" : "/responses";
+    const path66 = this.config.apiStyle === "chat-completions" ? "/chat/completions" : "/responses";
     const result = await safeHttpRequest({
       method: "POST",
-      url: this.endpointUrl(path65),
+      url: this.endpointUrl(path66),
       body: buildOpenAiRequestBody(this.config.apiStyle, {
         model,
         messages,
@@ -45672,7 +45442,7 @@ var RunnerRegistry = class {
     return this.listProfiles().map((profile) => profile.runner);
   }
 };
-function instantiateRunner(config2) {
+function instantiateRunner(config2, options = {}) {
   switch (config2.runner) {
     case "claude-code":
       return new ClaudeCodeRunner(config2);
@@ -45688,16 +45458,30 @@ function instantiateRunner(config2) {
       return new AntigravityCliRunner(config2);
     case "mock":
       return new MockRunner(config2);
+    case "extension": {
+      if (options.extensionRunner === void 0) {
+        throw new SpecBridgeError(
+          "INVALID_STATE",
+          `Runner profile uses extension "${config2.extensionId}", but no extension runner factory is available in this context.`
+        );
+      }
+      return options.extensionRunner(config2);
+    }
   }
 }
-function createDefaultRunnerRegistry(config2) {
+function createDefaultRunnerRegistry(config2, options = {}) {
   const resolved = config2 ?? defaultResolvedAgentConfig();
   const registry2 = new RunnerRegistry();
   for (const [name, profileConfig] of Object.entries(resolved.runnerProfiles)) {
+    if (profileConfig.runner === "extension") {
+      if (profileConfig.enabled !== true || options.extensionRunner === void 0) {
+        continue;
+      }
+    }
     registry2.registerProfile({
       name,
       config: profileConfig,
-      runner: instantiateRunner(profileConfig)
+      runner: instantiateRunner(profileConfig, options)
     });
   }
   return registry2;
@@ -46185,7 +45969,7 @@ function conformanceStagePrompt(stage) {
   ].join("\n");
 }
 function hashDirectory(root) {
-  const hash = (0, import_crypto3.createHash)("sha256");
+  const hash = (0, import_crypto4.createHash)("sha256");
   const walk = (dir) => {
     let entries;
     try {
@@ -46533,14 +46317,4885 @@ async function runRunnerConformance(context, executionGroups = []) {
   };
 }
 
+// ../../packages/extensions/dist/index.js
+var import_fs29 = require("fs");
+var import_path29 = __toESM(require("path"), 1);
+var import_fs30 = require("fs");
+var import_path30 = __toESM(require("path"), 1);
+var ExtensionError = class extends SpecBridgeError {
+  extensionCode;
+  /** Actionable next step, always present. */
+  remediation;
+  constructor(extensionCode, detail, remediation, details) {
+    super(
+      "EXTENSION_ERROR",
+      `${extensionCode} (${EXTENSION_ERROR_CODES[extensionCode]}): ${detail} ${remediation}`,
+      { ...details, extensionCode }
+    );
+    this.name = "ExtensionError";
+    this.extensionCode = extensionCode;
+    this.remediation = remediation;
+  }
+};
+function isExtensionError(value) {
+  return value instanceof ExtensionError;
+}
+var EXTENSION_LIMITS = {
+  /** specbridge-extension.json document size. */
+  maxManifestBytes: 256 * 1024,
+  /** checksums.json document size. */
+  maxChecksumsBytes: 256 * 1024,
+  /** Packaged archive size on disk. */
+  maxArchiveBytes: 50 * 1024 * 1024,
+  /** Total size of all extracted/loaded package files. */
+  maxExtractedTotalBytes: 100 * 1024 * 1024,
+  /** Number of files in a package or archive. */
+  maxArchiveFileCount: 1e3,
+  /** Directory nesting depth inside a package. */
+  maxPackageDepth: 8,
+  /** Bytes the host retains from an extension's stdout protocol stream. */
+  maxProcessStdoutBytes: 10 * 1024 * 1024,
+  /** Bytes the host retains from an extension's stderr log stream. */
+  maxProcessStderrBytes: 5 * 1024 * 1024,
+  /** Time for the process to answer `initialize`. */
+  startupTimeoutMs: 1e4,
+  /** Default per-operation timeout. */
+  defaultOperationTimeoutMs: 5 * 6e4,
+  /** Grace period between SIGTERM and SIGKILL on shutdown. */
+  forceKillAfterMs: 2e3
+};
+var PACKAGE_PATH_SEGMENT_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+var MAX_PACKAGE_PATH_LENGTH = 400;
+function checkPackageRelativePath(relativePath) {
+  if (relativePath.length === 0) {
+    return "path is empty";
+  }
+  if (relativePath.length > MAX_PACKAGE_PATH_LENGTH) {
+    return `path exceeds ${MAX_PACKAGE_PATH_LENGTH} characters`;
+  }
+  if (relativePath.includes("\0")) {
+    return "path contains a null byte";
+  }
+  if (relativePath.includes("\\")) {
+    return "path contains a backslash (use forward slashes)";
+  }
+  if (relativePath.startsWith("/") || /^[A-Za-z]:/.test(relativePath)) {
+    return "path is absolute";
+  }
+  for (const segment of relativePath.split("/")) {
+    if (segment === "") {
+      return "path contains an empty segment";
+    }
+    if (segment === "." || segment === "..") {
+      return "path contains a traversal segment";
+    }
+    if (!PACKAGE_PATH_SEGMENT_PATTERN.test(segment)) {
+      return `path segment "${segment}" contains unsupported characters`;
+    }
+  }
+  return void 0;
+}
+var FORBIDDEN_PACKAGE_DIRECTORIES = [
+  "node_modules",
+  ".git",
+  ".kiro",
+  ".specbridge",
+  ".pnpm-store",
+  ".npm"
+];
+var FORBIDDEN_PACKAGE_FILE_SUFFIXES = [
+  ".map",
+  ".exe",
+  ".dll",
+  ".so",
+  ".dylib",
+  ".bat",
+  ".cmd",
+  ".ps1",
+  ".sh",
+  ".pem",
+  ".key"
+];
+var FORBIDDEN_PACKAGE_FILE_NAMES = [".env", ".npmrc", ".netrc", "id_rsa"];
+function checkForbiddenPackagePath(relativePath) {
+  const segments = relativePath.split("/");
+  for (const segment of segments) {
+    for (const forbidden of FORBIDDEN_PACKAGE_DIRECTORIES) {
+      if (segment === forbidden) {
+        return `"${forbidden}" directories are not allowed in extension packages`;
+      }
+    }
+  }
+  const fileName = segments[segments.length - 1] ?? "";
+  for (const forbidden of FORBIDDEN_PACKAGE_FILE_NAMES) {
+    if (fileName === forbidden) {
+      return `"${forbidden}" files are not allowed in extension packages`;
+    }
+  }
+  const lower = fileName.toLowerCase();
+  for (const suffix of FORBIDDEN_PACKAGE_FILE_SUFFIXES) {
+    if (lower.endsWith(suffix)) {
+      return `"${suffix}" files are not allowed in extension packages`;
+    }
+  }
+  return void 0;
+}
+var EXTENSION_ARCHIVE_SUFFIX = ".specbridge-extension.zip";
+var LOCAL_HEADER_SIGNATURE = 67324752;
+var CENTRAL_HEADER_SIGNATURE = 33639248;
+var EOCD_SIGNATURE = 101010256;
+var DOS_DATE = 2026 - 1980 << 9 | 1 << 5 | 1;
+var DOS_TIME = 0;
+var UTF8_FLAG = 2048;
+var crcTable;
+function getCrcTable() {
+  if (crcTable === void 0) {
+    crcTable = new Uint32Array(256);
+    for (let index = 0; index < 256; index += 1) {
+      let value = index;
+      for (let bit = 0; bit < 8; bit += 1) {
+        value = value & 1 ? 3988292384 ^ value >>> 1 : value >>> 1;
+      }
+      crcTable[index] = value >>> 0;
+    }
+  }
+  return crcTable;
+}
+function crc32(buffer) {
+  const table = getCrcTable();
+  let crc = 4294967295;
+  for (const byte of buffer) {
+    crc = crc >>> 8 ^ (table[(crc ^ byte) & 255] ?? 0);
+  }
+  return (crc ^ 4294967295) >>> 0;
+}
+function invalidArchive(detail) {
+  return new ExtensionError(
+    "SBE008",
+    `archive is not a valid extension package: ${detail}.`,
+    "Rebuild the archive with `specbridge extension package <dir>` and try again."
+  );
+}
+function createDeterministicZip(files) {
+  const names = [...files.keys()].sort();
+  if (names.length === 0) {
+    throw invalidArchive("archive would contain no files");
+  }
+  if (names.length > EXTENSION_LIMITS.maxArchiveFileCount) {
+    throw invalidArchive(`archive would contain ${names.length} files (limit ${EXTENSION_LIMITS.maxArchiveFileCount})`);
+  }
+  const localParts = [];
+  const centralParts = [];
+  let offset = 0;
+  for (const name of names) {
+    const problem = checkPackageRelativePath(name);
+    if (problem !== void 0) {
+      throw invalidArchive(`entry "${name}": ${problem}`);
+    }
+    const content = files.get(name) ?? Buffer.alloc(0);
+    const nameBytes = Buffer.from(name, "utf8");
+    const checksum = crc32(content);
+    const localHeader = Buffer.alloc(30);
+    localHeader.writeUInt32LE(LOCAL_HEADER_SIGNATURE, 0);
+    localHeader.writeUInt16LE(20, 4);
+    localHeader.writeUInt16LE(UTF8_FLAG, 6);
+    localHeader.writeUInt16LE(0, 8);
+    localHeader.writeUInt16LE(DOS_TIME, 10);
+    localHeader.writeUInt16LE(DOS_DATE, 12);
+    localHeader.writeUInt32LE(checksum, 14);
+    localHeader.writeUInt32LE(content.length, 18);
+    localHeader.writeUInt32LE(content.length, 22);
+    localHeader.writeUInt16LE(nameBytes.length, 26);
+    localHeader.writeUInt16LE(0, 28);
+    localParts.push(localHeader, nameBytes, content);
+    const centralHeader = Buffer.alloc(46);
+    centralHeader.writeUInt32LE(CENTRAL_HEADER_SIGNATURE, 0);
+    centralHeader.writeUInt16LE(20, 4);
+    centralHeader.writeUInt16LE(20, 6);
+    centralHeader.writeUInt16LE(UTF8_FLAG, 8);
+    centralHeader.writeUInt16LE(0, 10);
+    centralHeader.writeUInt16LE(DOS_TIME, 12);
+    centralHeader.writeUInt16LE(DOS_DATE, 14);
+    centralHeader.writeUInt32LE(checksum, 16);
+    centralHeader.writeUInt32LE(content.length, 20);
+    centralHeader.writeUInt32LE(content.length, 24);
+    centralHeader.writeUInt16LE(nameBytes.length, 28);
+    centralHeader.writeUInt16LE(0, 30);
+    centralHeader.writeUInt16LE(0, 32);
+    centralHeader.writeUInt16LE(0, 34);
+    centralHeader.writeUInt16LE(0, 36);
+    centralHeader.writeUInt32LE(0, 38);
+    centralHeader.writeUInt32LE(offset, 42);
+    centralParts.push(centralHeader, nameBytes);
+    offset += 30 + nameBytes.length + content.length;
+  }
+  const centralDirectory = Buffer.concat(centralParts);
+  const eocd = Buffer.alloc(22);
+  eocd.writeUInt32LE(EOCD_SIGNATURE, 0);
+  eocd.writeUInt16LE(0, 4);
+  eocd.writeUInt16LE(0, 6);
+  eocd.writeUInt16LE(names.length, 8);
+  eocd.writeUInt16LE(names.length, 10);
+  eocd.writeUInt32LE(centralDirectory.length, 12);
+  eocd.writeUInt32LE(offset, 16);
+  eocd.writeUInt16LE(0, 20);
+  const archive = Buffer.concat([...localParts, centralDirectory, eocd]);
+  if (archive.length > EXTENSION_LIMITS.maxArchiveBytes) {
+    throw invalidArchive(
+      `archive of ${archive.length} bytes exceeds the ${EXTENSION_LIMITS.maxArchiveBytes} byte limit`
+    );
+  }
+  return archive;
+}
+function extractZipArchive(archive) {
+  if (archive.length > EXTENSION_LIMITS.maxArchiveBytes) {
+    throw invalidArchive(
+      `archive of ${archive.length} bytes exceeds the ${EXTENSION_LIMITS.maxArchiveBytes} byte limit`
+    );
+  }
+  if (archive.length < 22) {
+    throw invalidArchive("archive is too small to be a ZIP file");
+  }
+  const searchStart = Math.max(0, archive.length - 22 - 65535);
+  let eocdOffset = -1;
+  for (let index = archive.length - 22; index >= searchStart; index -= 1) {
+    if (archive.readUInt32LE(index) === EOCD_SIGNATURE) {
+      eocdOffset = index;
+      break;
+    }
+  }
+  if (eocdOffset < 0) {
+    throw invalidArchive("missing end-of-central-directory record");
+  }
+  const entryCount = archive.readUInt16LE(eocdOffset + 10);
+  const centralSize = archive.readUInt32LE(eocdOffset + 12);
+  const centralOffset = archive.readUInt32LE(eocdOffset + 16);
+  if (entryCount === 65535 || centralSize === 4294967295 || centralOffset === 4294967295) {
+    throw invalidArchive("ZIP64 archives are not supported");
+  }
+  if (entryCount > EXTENSION_LIMITS.maxArchiveFileCount) {
+    throw invalidArchive(
+      `archive declares ${entryCount} entries (limit ${EXTENSION_LIMITS.maxArchiveFileCount})`
+    );
+  }
+  if (centralOffset + centralSize > archive.length) {
+    throw invalidArchive("central directory extends past the end of the archive");
+  }
+  const entries = [];
+  let cursor = centralOffset;
+  for (let index = 0; index < entryCount; index += 1) {
+    if (cursor + 46 > archive.length || archive.readUInt32LE(cursor) !== CENTRAL_HEADER_SIGNATURE) {
+      throw invalidArchive("corrupt central directory");
+    }
+    const method = archive.readUInt16LE(cursor + 10);
+    const crc = archive.readUInt32LE(cursor + 16);
+    const compressedSize = archive.readUInt32LE(cursor + 20);
+    const uncompressedSize = archive.readUInt32LE(cursor + 24);
+    const nameLength = archive.readUInt16LE(cursor + 28);
+    const extraLength = archive.readUInt16LE(cursor + 30);
+    const commentLength = archive.readUInt16LE(cursor + 32);
+    const externalAttributes = archive.readUInt32LE(cursor + 38);
+    const localOffset = archive.readUInt32LE(cursor + 42);
+    if (compressedSize === 4294967295 || uncompressedSize === 4294967295 || localOffset === 4294967295) {
+      throw invalidArchive("ZIP64 entries are not supported");
+    }
+    const name = archive.subarray(cursor + 46, cursor + 46 + nameLength).toString("utf8");
+    entries.push({ name, method, crc, compressedSize, uncompressedSize, localOffset, externalAttributes });
+    cursor += 46 + nameLength + extraLength + commentLength;
+  }
+  const files = /* @__PURE__ */ new Map();
+  let totalBytes = 0;
+  for (const entry of entries) {
+    const unixMode = entry.externalAttributes >>> 16 & 65535;
+    if ((unixMode & 61440) === 40960) {
+      throw new ExtensionError(
+        "SBE011",
+        `archive entry "${entry.name}" is a symbolic link.`,
+        "Extension packages must not contain symlinks; repackage without links."
+      );
+    }
+    if (entry.name.endsWith("/")) {
+      const dirProblem = checkPackageRelativePath(entry.name.replace(/\/+$/, ""));
+      if (dirProblem !== void 0) {
+        throw invalidArchive(`directory entry "${entry.name}": ${dirProblem}`);
+      }
+      continue;
+    }
+    const problem = checkPackageRelativePath(entry.name);
+    if (problem !== void 0) {
+      throw invalidArchive(`entry "${entry.name}": ${problem}`);
+    }
+    if (files.has(entry.name)) {
+      throw invalidArchive(`duplicate entry "${entry.name}"`);
+    }
+    totalBytes += entry.uncompressedSize;
+    if (totalBytes > EXTENSION_LIMITS.maxExtractedTotalBytes) {
+      throw invalidArchive(
+        `declared extracted size exceeds the ${EXTENSION_LIMITS.maxExtractedTotalBytes} byte limit`
+      );
+    }
+    if (entry.localOffset + 30 > archive.length || archive.readUInt32LE(entry.localOffset) !== LOCAL_HEADER_SIGNATURE) {
+      throw invalidArchive(`corrupt local header for "${entry.name}"`);
+    }
+    const flags = archive.readUInt16LE(entry.localOffset + 6);
+    if ((flags & 1) !== 0) {
+      throw invalidArchive(`entry "${entry.name}" is encrypted`);
+    }
+    const localNameLength = archive.readUInt16LE(entry.localOffset + 26);
+    const localExtraLength = archive.readUInt16LE(entry.localOffset + 28);
+    const dataStart = entry.localOffset + 30 + localNameLength + localExtraLength;
+    const dataEnd = dataStart + entry.compressedSize;
+    if (dataEnd > archive.length) {
+      throw invalidArchive(`entry "${entry.name}" extends past the end of the archive`);
+    }
+    const compressed = archive.subarray(dataStart, dataEnd);
+    let content;
+    if (entry.method === 0) {
+      if (entry.compressedSize !== entry.uncompressedSize) {
+        throw invalidArchive(`stored entry "${entry.name}" has inconsistent sizes`);
+      }
+      content = Buffer.from(compressed);
+    } else if (entry.method === 8) {
+      try {
+        content = (0, import_zlib.inflateRawSync)(compressed, {
+          maxOutputLength: Math.min(
+            entry.uncompressedSize,
+            EXTENSION_LIMITS.maxExtractedTotalBytes
+          )
+        });
+      } catch {
+        throw invalidArchive(`entry "${entry.name}" failed to decompress within the declared size`);
+      }
+      if (content.length !== entry.uncompressedSize) {
+        throw invalidArchive(`entry "${entry.name}" decompressed to an undeclared size`);
+      }
+    } else {
+      throw invalidArchive(`entry "${entry.name}" uses unsupported compression method ${entry.method}`);
+    }
+    if (crc32(content) !== entry.crc) {
+      throw new ExtensionError(
+        "SBE009",
+        `archive entry "${entry.name}" failed CRC verification.`,
+        "The archive is corrupt or was modified; re-download or rebuild it."
+      );
+    }
+    files.set(entry.name, content);
+  }
+  if (files.size === 0) {
+    throw invalidArchive("archive contains no files");
+  }
+  return files;
+}
+var EXTENSION_CHECKSUMS_FILE_NAME = "checksums.json";
+var extensionChecksumsSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  algorithm: external_exports.literal("sha256"),
+  files: external_exports.record(external_exports.string().regex(/^[0-9a-f]{64}$/))
+}).strict();
+function sha256HexOf(data) {
+  return (0, import_crypto5.createHash)("sha256").update(data).digest("hex");
+}
+function computeExtensionChecksums(files) {
+  const entries = {};
+  for (const name of [...files.keys()].sort()) {
+    if (name === EXTENSION_CHECKSUMS_FILE_NAME) {
+      continue;
+    }
+    const content = files.get(name);
+    if (content !== void 0) {
+      entries[name] = sha256HexOf(content);
+    }
+  }
+  return { schemaVersion: "1.0.0", algorithm: "sha256", files: entries };
+}
+function parseExtensionChecksums(text) {
+  const issues = [];
+  if (Buffer.byteLength(text, "utf8") > EXTENSION_LIMITS.maxChecksumsBytes) {
+    issues.push(
+      extensionIssue(
+        "SBE008",
+        "limits",
+        "error",
+        `checksums.json exceeds ${EXTENSION_LIMITS.maxChecksumsBytes} bytes`,
+        EXTENSION_CHECKSUMS_FILE_NAME
+      )
+    );
+    return { issues };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch (error2) {
+    issues.push(
+      extensionIssue(
+        "SBE008",
+        "checksums",
+        "error",
+        `checksums.json is not valid JSON: ${error2 instanceof Error ? error2.message : String(error2)}`,
+        EXTENSION_CHECKSUMS_FILE_NAME
+      )
+    );
+    return { issues };
+  }
+  const result = extensionChecksumsSchema.safeParse(parsed);
+  if (!result.success) {
+    for (const zodIssue of result.error.issues.slice(0, 10)) {
+      issues.push(
+        extensionIssue(
+          "SBE008",
+          "checksums",
+          "error",
+          `checksums.json ${zodIssue.path.join(".") || "(root)"}: ${zodIssue.message}`,
+          EXTENSION_CHECKSUMS_FILE_NAME
+        )
+      );
+    }
+    return { issues };
+  }
+  for (const declaredPath of Object.keys(result.data.files)) {
+    const problem = checkPackageRelativePath(declaredPath);
+    if (problem !== void 0) {
+      issues.push(
+        extensionIssue("SBE008", "checksums", "error", `checksums.json entry "${declaredPath}": ${problem}`)
+      );
+    }
+  }
+  if (issues.length > 0) {
+    return { issues };
+  }
+  return { checksums: result.data, issues };
+}
+function verifyExtensionChecksums(checksums, files) {
+  const issues = [];
+  const declared = new Set(Object.keys(checksums.files));
+  for (const [name, content] of files) {
+    if (name === EXTENSION_CHECKSUMS_FILE_NAME) {
+      continue;
+    }
+    const expected = checksums.files[name];
+    if (expected === void 0) {
+      issues.push(
+        extensionIssue(
+          "SBE008",
+          "checksums",
+          "error",
+          `file "${name}" is present but not declared in checksums.json`,
+          name
+        )
+      );
+      continue;
+    }
+    declared.delete(name);
+    const actual = sha256HexOf(content);
+    if (actual !== expected) {
+      issues.push(
+        extensionIssue(
+          "SBE009",
+          "checksums",
+          "error",
+          `file "${name}" does not match its declared sha256 (expected ${expected}, got ${actual})`,
+          name
+        )
+      );
+    }
+  }
+  for (const missing of declared) {
+    issues.push(
+      extensionIssue(
+        "SBE009",
+        "checksums",
+        "error",
+        `checksums.json declares "${missing}" but the file is missing from the package`,
+        missing
+      )
+    );
+  }
+  return issues;
+}
+var FORBIDDEN_LIFECYCLE_SCRIPTS = [
+  "preinstall",
+  "install",
+  "postinstall",
+  "prepare",
+  "prepublish",
+  "prepublishOnly",
+  "preuninstall",
+  "postuninstall"
+];
+function readExtensionPackageDirectory(dir) {
+  const rootStat = (0, import_fs22.lstatSync)(dir, { throwIfNoEntry: false });
+  if (rootStat === void 0 || !rootStat.isDirectory()) {
+    throw new ExtensionError(
+      "SBE008",
+      `"${dir}" is not a readable directory.`,
+      "Point the command at an extension package directory or archive."
+    );
+  }
+  if (rootStat.isSymbolicLink()) {
+    throw new ExtensionError(
+      "SBE011",
+      `"${dir}" is a symbolic link.`,
+      "Extension packages must be plain directories; copy the real files instead."
+    );
+  }
+  const files = /* @__PURE__ */ new Map();
+  let totalBytes = 0;
+  const walk = (currentDir, relativePrefix, depth) => {
+    if (depth > EXTENSION_LIMITS.maxPackageDepth) {
+      throw new ExtensionError(
+        "SBE008",
+        `directory nesting exceeds ${EXTENSION_LIMITS.maxPackageDepth} levels at "${relativePrefix}".`,
+        "Flatten the package layout."
+      );
+    }
+    for (const entry of (0, import_fs22.readdirSync)(currentDir, { withFileTypes: true })) {
+      const relativePath = relativePrefix === "" ? entry.name : `${relativePrefix}/${entry.name}`;
+      if (entry.isSymbolicLink()) {
+        throw new ExtensionError(
+          "SBE011",
+          `package entry "${relativePath}" is a symbolic link.`,
+          "Extension packages must not contain symlinks; copy the real files instead."
+        );
+      }
+      const pathProblem = checkPackageRelativePath(relativePath);
+      if (pathProblem !== void 0) {
+        throw new ExtensionError(
+          "SBE008",
+          `package entry "${relativePath}": ${pathProblem}.`,
+          "Rename the file to a safe relative path."
+        );
+      }
+      if (entry.isDirectory()) {
+        const forbidden = checkForbiddenPackagePath(`${relativePath}/x`);
+        if (forbidden !== void 0) {
+          throw new ExtensionError(
+            "SBE010",
+            `package directory "${relativePath}" is forbidden: ${forbidden}.`,
+            "Remove the directory before validating or packaging."
+          );
+        }
+        walk(import_path22.default.join(currentDir, entry.name), relativePath, depth + 1);
+        continue;
+      }
+      if (!entry.isFile()) {
+        throw new ExtensionError(
+          "SBE008",
+          `package entry "${relativePath}" is not a regular file.`,
+          "Extension packages may only contain plain files and directories."
+        );
+      }
+      if (files.size >= EXTENSION_LIMITS.maxArchiveFileCount) {
+        throw new ExtensionError(
+          "SBE008",
+          `package contains more than ${EXTENSION_LIMITS.maxArchiveFileCount} files.`,
+          "Reduce the package contents."
+        );
+      }
+      const content = (0, import_fs22.readFileSync)(import_path22.default.join(currentDir, entry.name));
+      totalBytes += content.length;
+      if (totalBytes > EXTENSION_LIMITS.maxExtractedTotalBytes) {
+        throw new ExtensionError(
+          "SBE008",
+          `package exceeds the ${EXTENSION_LIMITS.maxExtractedTotalBytes} byte total size limit.`,
+          "Reduce the package contents."
+        );
+      }
+      files.set(relativePath, content);
+    }
+  };
+  walk(dir, "", 1);
+  return files;
+}
+function decodeUtf8Strict(name, content) {
+  const text = content.toString("utf8");
+  if (!Buffer.from(text, "utf8").equals(content) || text.includes("\0")) {
+    return void 0;
+  }
+  return text;
+}
+function loadExtensionPackage(files, options = {}) {
+  const issues = [];
+  const specbridgeVersion = options.specbridgeVersion ?? SPECBRIDGE_VERSION;
+  const checksumsPolicy = options.checksums ?? "require";
+  for (const name of files.keys()) {
+    const pathProblem = checkPackageRelativePath(name);
+    if (pathProblem !== void 0) {
+      issues.push(extensionIssue("SBE008", "paths", "error", `file "${name}": ${pathProblem}`, name));
+      continue;
+    }
+    const forbidden = checkForbiddenPackagePath(name);
+    if (forbidden !== void 0) {
+      issues.push(extensionIssue("SBE010", "files", "error", `file "${name}": ${forbidden}`, name));
+    }
+  }
+  const manifestBytes = files.get(EXTENSION_MANIFEST_FILE_NAME);
+  if (manifestBytes === void 0) {
+    issues.push(
+      extensionIssue(
+        "SBE004",
+        "manifest",
+        "error",
+        `package has no ${EXTENSION_MANIFEST_FILE_NAME} at its root`
+      )
+    );
+    return { files, issues, valid: false };
+  }
+  const manifestText = decodeUtf8Strict(EXTENSION_MANIFEST_FILE_NAME, manifestBytes);
+  if (manifestText === void 0) {
+    issues.push(
+      extensionIssue(
+        "SBE004",
+        "manifest",
+        "error",
+        `${EXTENSION_MANIFEST_FILE_NAME} is not valid UTF-8`,
+        EXTENSION_MANIFEST_FILE_NAME
+      )
+    );
+    return { files, issues, valid: false };
+  }
+  const parsed = parseExtensionManifest(manifestText);
+  issues.push(...parsed.issues);
+  const manifest = parsed.manifest;
+  if (manifest === void 0) {
+    return { files, issues, valid: false };
+  }
+  const manifestSha256 = sha256HexOf(manifestBytes);
+  const permissionHash = computePermissionHash({
+    extensionId: manifest.id,
+    extensionVersion: manifest.version,
+    manifestSha256,
+    permissions: manifest.permissions
+  });
+  if (!semverSatisfies2(specbridgeVersion, manifest.compatibility.specbridge)) {
+    issues.push(
+      extensionIssue(
+        "SBE006",
+        "compatibility",
+        "error",
+        `extension requires SpecBridge ${manifest.compatibility.specbridge}, but this is SpecBridge ${specbridgeVersion}`
+      )
+    );
+  }
+  if (files.get("README.md") === void 0) {
+    issues.push(extensionIssue("SBE008", "documentation", "error", "package has no README.md"));
+  }
+  if (files.get("LICENSE") === void 0) {
+    issues.push(extensionIssue("SBE008", "documentation", "error", "package has no LICENSE file"));
+  }
+  const checksumsBytes = files.get(EXTENSION_CHECKSUMS_FILE_NAME);
+  if (checksumsBytes === void 0) {
+    issues.push(
+      extensionIssue(
+        "SBE009",
+        "checksums",
+        checksumsPolicy === "require" ? "error" : "warning",
+        checksumsPolicy === "require" ? `package has no ${EXTENSION_CHECKSUMS_FILE_NAME}; every runtime file must be declared` : `source has no ${EXTENSION_CHECKSUMS_FILE_NAME} yet; \`specbridge extension package\` will generate it`
+      )
+    );
+  } else {
+    const checksumsText = decodeUtf8Strict(EXTENSION_CHECKSUMS_FILE_NAME, checksumsBytes);
+    if (checksumsText === void 0) {
+      issues.push(
+        extensionIssue(
+          "SBE008",
+          "checksums",
+          "error",
+          `${EXTENSION_CHECKSUMS_FILE_NAME} is not valid UTF-8`,
+          EXTENSION_CHECKSUMS_FILE_NAME
+        )
+      );
+    } else {
+      const checksumsResult = parseExtensionChecksums(checksumsText);
+      issues.push(...checksumsResult.issues);
+      if (checksumsResult.checksums !== void 0) {
+        issues.push(...verifyExtensionChecksums(checksumsResult.checksums, files));
+      }
+    }
+  }
+  if (isExecutableKind(manifest.kind) && manifest.entrypoint !== void 0) {
+    if (files.get(manifest.entrypoint) === void 0) {
+      issues.push(
+        extensionIssue(
+          "SBE012",
+          "paths",
+          "error",
+          `declared entrypoint "${manifest.entrypoint}" does not exist in the package`,
+          manifest.entrypoint
+        )
+      );
+    }
+  }
+  const packageJsonBytes = files.get("package.json");
+  if (packageJsonBytes !== void 0) {
+    const packageJsonText = decodeUtf8Strict("package.json", packageJsonBytes);
+    if (packageJsonText !== void 0) {
+      try {
+        const packageJson = JSON.parse(packageJsonText);
+        const scripts = packageJson.scripts ?? {};
+        for (const script of FORBIDDEN_LIFECYCLE_SCRIPTS) {
+          if (typeof scripts === "object" && scripts !== null && script in scripts) {
+            issues.push(
+              extensionIssue(
+                "SBE010",
+                "files",
+                "error",
+                `package.json declares the "${script}" lifecycle script; SpecBridge never runs lifecycle scripts and packages must not rely on them`,
+                "package.json"
+              )
+            );
+          }
+        }
+      } catch {
+        issues.push(
+          extensionIssue("SBE008", "files", "error", "package.json is not valid JSON", "package.json")
+        );
+      }
+    }
+  }
+  if (manifest.kind === "template-provider") {
+    issues.push(...validateTemplateProviderPacks(manifest, files, specbridgeVersion));
+  }
+  const valid = !issues.some((issue4) => issue4.severity === "error");
+  return valid ? { manifest, manifestSha256, permissionHash, files, issues, valid } : { manifest, manifestSha256, permissionHash, files, issues, valid };
+}
+function validateTemplateProviderPacks(manifest, files, specbridgeVersion) {
+  const issues = [];
+  const prefix = `${TEMPLATE_PROVIDER_TEMPLATES_DIR}/`;
+  const packs = /* @__PURE__ */ new Map();
+  for (const [name, content] of files) {
+    if (!name.startsWith(prefix)) {
+      continue;
+    }
+    const rest = name.slice(prefix.length);
+    const slash = rest.indexOf("/");
+    if (slash <= 0) {
+      issues.push(
+        extensionIssue(
+          "SBE008",
+          "files",
+          "error",
+          `"${name}" must live inside templates/<template-id>/`,
+          name
+        )
+      );
+      continue;
+    }
+    const packId = rest.slice(0, slash);
+    const packRelative = rest.slice(slash + 1);
+    const idCheck = validateExtensionId(packId);
+    if (!idCheck.valid) {
+      issues.push(
+        extensionIssue(
+          "SBE008",
+          "files",
+          "error",
+          `template pack directory "${packId}" is not a valid template ID`,
+          name
+        )
+      );
+      continue;
+    }
+    const text = decodeUtf8Strict(name, content);
+    if (text === void 0) {
+      issues.push(
+        extensionIssue("SBE008", "files", "error", `template file "${name}" is not valid UTF-8`, name)
+      );
+      continue;
+    }
+    const pack = packs.get(packId) ?? /* @__PURE__ */ new Map();
+    pack.set(packRelative, text);
+    packs.set(packId, pack);
+  }
+  if (packs.size === 0) {
+    issues.push(
+      extensionIssue(
+        "SBE008",
+        "files",
+        "error",
+        `template-provider packages must contain at least one template pack under ${prefix}<template-id>/`
+      )
+    );
+    return issues;
+  }
+  if (packs.size > MAX_TEMPLATE_PROVIDER_PACKS) {
+    issues.push(
+      extensionIssue(
+        "SBE008",
+        "limits",
+        "error",
+        `template-provider packages may contribute at most ${MAX_TEMPLATE_PROVIDER_PACKS} template packs`
+      )
+    );
+    return issues;
+  }
+  for (const [packId, packFiles] of packs) {
+    const loaded = loadTemplatePack(
+      { origin: `extension:${manifest.id}/${packId}`, files: packFiles },
+      { requireReadme: true, specbridgeVersion }
+    );
+    if (loaded.manifest !== void 0 && loaded.manifest.id !== packId) {
+      issues.push(
+        extensionIssue(
+          "SBE008",
+          "files",
+          "error",
+          `template pack directory "${packId}" contains a manifest with id "${loaded.manifest.id}"`
+        )
+      );
+    }
+    for (const templateIssue of loaded.issues) {
+      if (templateIssue.severity !== "error") {
+        continue;
+      }
+      issues.push(
+        extensionIssue(
+          "SBE008",
+          "files",
+          "error",
+          `template pack "${packId}": ${templateIssue.code} ${templateIssue.message}`
+        )
+      );
+    }
+  }
+  return issues;
+}
+var EXTENSIONS_DIR_NAME = "extensions";
+var EXTENSION_STATE_FILE_NAME = "state.json";
+var EXTENSION_GRANTS_FILE_NAME = "grants.json";
+var EXTENSION_RECORDS_FILE_NAME = "records.jsonl";
+var EXTENSION_STATE_SCHEMA_VERSION = "1.0.0";
+var systemClock2 = () => /* @__PURE__ */ new Date();
+function extensionsDir(workspace) {
+  return import_path23.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
+}
+function installedRootDir(workspace) {
+  return import_path23.default.join(extensionsDir(workspace), "installed");
+}
+function installedVersionDir(workspace, id, version2) {
+  if (!validateExtensionId(id).valid || parseSemver2(version2) === void 0) {
+    throw new ExtensionError(
+      "SBE003",
+      `"${id}@${version2}" is not a valid extension reference.`,
+      "Use a valid extension ID and X.Y.Z version."
+    );
+  }
+  const dir = import_path23.default.join(installedRootDir(workspace), id, version2);
+  assertInsideWorkspace(workspace.rootDir, dir);
+  return dir;
+}
+var installedExtensionRecordSchema = external_exports.object({
+  id: external_exports.string().min(1),
+  version: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  kind: external_exports.string().min(1),
+  displayName: external_exports.string().min(1),
+  description: external_exports.string().min(1),
+  source: external_exports.string().min(1),
+  installedAt: external_exports.string().min(1),
+  archiveSha256: external_exports.string().regex(/^[0-9a-f]{64}$/).optional(),
+  manifestSha256: external_exports.string().regex(/^[0-9a-f]{64}$/),
+  permissionHash: external_exports.string().regex(/^[0-9a-f]{64}$/),
+  entrypoint: external_exports.string().min(1).optional(),
+  installRecordId: external_exports.string().min(1),
+  conformanceStatus: external_exports.enum(["passed", "failed"]).optional(),
+  conformanceAt: external_exports.string().min(1).optional(),
+  lastDoctorResult: external_exports.enum(["ok", "failed"]).optional(),
+  lastDoctorAt: external_exports.string().min(1).optional()
+}).passthrough();
+var extensionStateSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  installed: external_exports.array(installedExtensionRecordSchema),
+  enabled: external_exports.record(external_exports.object({ version: external_exports.string().regex(/^\d+\.\d+\.\d+$/) }).passthrough())
+}).passthrough();
+var permissionGrantSchema = external_exports.object({
+  version: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  manifestSha256: external_exports.string().regex(/^[0-9a-f]{64}$/),
+  permissionHash: external_exports.string().regex(/^[0-9a-f]{64}$/),
+  acceptedAt: external_exports.string().min(1)
+}).passthrough();
+var permissionGrantsSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  grants: external_exports.record(permissionGrantSchema)
+}).passthrough();
+function emptyExtensionState() {
+  return { schemaVersion: EXTENSION_STATE_SCHEMA_VERSION, installed: [], enabled: {} };
+}
+function emptyPermissionGrants() {
+  return { schemaVersion: EXTENSION_STATE_SCHEMA_VERSION, grants: {} };
+}
+function readValidatedJson(filePath, schema, empty, label) {
+  if (!(0, import_fs23.existsSync)(filePath)) {
+    return { value: empty, diagnostics: [], exists: false };
+  }
+  let text;
+  try {
+    text = (0, import_fs23.readFileSync)(filePath, "utf8");
+  } catch (cause) {
+    return {
+      value: empty,
+      exists: true,
+      diagnostics: [
+        {
+          severity: "error",
+          code: "EXTENSION_STATE_UNREADABLE",
+          message: `${label} could not be read: ${cause instanceof Error ? cause.message : String(cause)}`,
+          file: filePath
+        }
+      ]
+    };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return {
+      value: empty,
+      exists: true,
+      diagnostics: [
+        {
+          severity: "error",
+          code: "EXTENSION_STATE_INVALID_JSON",
+          message: `${label} is not valid JSON; fix or remove the file (SpecBridge never repairs it silently)`,
+          file: filePath
+        }
+      ]
+    };
+  }
+  const result = schema.safeParse(parsed);
+  if (!result.success) {
+    return {
+      value: empty,
+      exists: true,
+      diagnostics: [
+        {
+          severity: "error",
+          code: "EXTENSION_STATE_INVALID_SHAPE",
+          message: `${label} does not match the expected schema: ${result.error.issues[0]?.message ?? "unknown"}`,
+          file: filePath
+        }
+      ]
+    };
+  }
+  return { value: result.data, diagnostics: [], exists: true };
+}
+function extensionStatePath(workspace) {
+  return import_path23.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
+}
+function permissionGrantsPath(workspace) {
+  return import_path23.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
+}
+function extensionRecordsPath(workspace) {
+  return import_path23.default.join(extensionsDir(workspace), EXTENSION_RECORDS_FILE_NAME);
+}
+function readExtensionState(workspace) {
+  const { value, diagnostics, exists } = readValidatedJson(
+    extensionStatePath(workspace),
+    extensionStateSchema,
+    emptyExtensionState(),
+    "extension state"
+  );
+  return { state: value, diagnostics, exists };
+}
+function writeExtensionState(workspace, state) {
+  const filePath = extensionStatePath(workspace);
+  assertInsideWorkspace(workspace.rootDir, filePath);
+  writeFileAtomic(filePath, `${JSON.stringify(extensionStateSchema.parse(state), null, 2)}
+`);
+}
+function readPermissionGrants(workspace) {
+  const { value, diagnostics } = readValidatedJson(
+    permissionGrantsPath(workspace),
+    permissionGrantsSchema,
+    emptyPermissionGrants(),
+    "permission grants"
+  );
+  return { grants: value, diagnostics };
+}
+function writePermissionGrants(workspace, grants) {
+  const filePath = permissionGrantsPath(workspace);
+  assertInsideWorkspace(workspace.rootDir, filePath);
+  writeFileAtomic(filePath, `${JSON.stringify(permissionGrantsSchema.parse(grants), null, 2)}
+`);
+}
+var extensionOperationRecordSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  recordId: external_exports.string().min(1),
+  type: external_exports.enum(["install", "uninstall", "enable", "disable", "export"]),
+  at: external_exports.string().min(1),
+  extensionId: external_exports.string().min(1),
+  version: external_exports.string().min(1),
+  details: external_exports.record(external_exports.unknown()).optional()
+}).passthrough();
+var recordCounter2 = 0;
+function newExtensionRecordId(clock = systemClock2) {
+  recordCounter2 += 1;
+  return `extension-${clock().getTime().toString(36)}-${process.pid.toString(36)}-${recordCounter2}`;
+}
+function appendExtensionRecord(workspace, record2) {
+  const validated = extensionOperationRecordSchema.parse(record2);
+  const filePath = extensionRecordsPath(workspace);
+  assertInsideWorkspace(workspace.rootDir, filePath);
+  try {
+    (0, import_fs23.mkdirSync)(extensionsDir(workspace), { recursive: true });
+    (0, import_fs23.appendFileSync)(filePath, `${JSON.stringify(validated)}
+`, "utf8");
+  } catch (cause) {
+    throw ioError("append extension record to", filePath, cause);
+  }
+}
+function installedVersions(state, id) {
+  return state.installed.filter((record2) => record2.id === id).sort((a2, b) => {
+    const left = parseSemver2(a2.version);
+    const right = parseSemver2(b.version);
+    if (left === void 0 || right === void 0) {
+      return a2.version.localeCompare(b.version, "en");
+    }
+    return compareSemver2(right, left);
+  });
+}
+function resolveInstalled(state, id, version2) {
+  const versions = installedVersions(state, id);
+  if (versions.length === 0) {
+    throw new ExtensionError(
+      "SBE014",
+      `extension "${id}" is not installed.`,
+      `Install it first with \`specbridge extension install <source>\`.`,
+      { extensionId: id }
+    );
+  }
+  if (version2 !== void 0) {
+    const match = versions.find((record2) => record2.version === version2);
+    if (match === void 0) {
+      throw new ExtensionError(
+        "SBE014",
+        `extension "${id}" version ${version2} is not installed (installed: ${versions.map((record2) => record2.version).join(", ")}).`,
+        "Pass one of the installed versions or install the requested version.",
+        { extensionId: id, version: version2 }
+      );
+    }
+    return match;
+  }
+  const enabledVersion = state.enabled[id]?.version;
+  if (enabledVersion !== void 0) {
+    const enabledRecord = versions.find((record2) => record2.version === enabledVersion);
+    if (enabledRecord !== void 0) {
+      return enabledRecord;
+    }
+  }
+  const newest = versions[0];
+  if (newest === void 0) {
+    throw new ExtensionError(
+      "SBE014",
+      `extension "${id}" is not installed.`,
+      "Install it first with `specbridge extension install <source>`."
+    );
+  }
+  return newest;
+}
+function isEnabled(state, id, version2) {
+  const enabled = state.enabled[id];
+  if (enabled === void 0) {
+    return false;
+  }
+  return version2 === void 0 ? true : enabled.version === version2;
+}
+function describeEnablement(workspace, id, version2) {
+  const { state } = readExtensionState(workspace);
+  const record2 = resolveInstalled(state, id, version2);
+  const dir = installedVersionDir(workspace, record2.id, record2.version);
+  const files = readExtensionPackageDirectory(dir);
+  const validation = loadExtensionPackage(files);
+  const errors = validation.issues.filter((issue4) => issue4.severity === "error");
+  if (errors.length > 0 || validation.manifest === void 0 || validation.permissionHash === void 0 || validation.manifestSha256 === void 0) {
+    const first = errors[0];
+    throw new ExtensionError(
+      "SBE008",
+      `installed extension "${record2.id}@${record2.version}" failed integrity validation${first === void 0 ? "" : `: [${first.code}] ${first.message}`}.`,
+      "Uninstall and reinstall the extension from a trusted source.",
+      { extensionId: record2.id, version: record2.version }
+    );
+  }
+  const { grants } = readPermissionGrants(workspace);
+  const grant = grants.grants[record2.id];
+  const grantStatus = grant === void 0 ? "none" : grant.permissionHash === validation.permissionHash ? "current" : "stale";
+  return {
+    record: record2,
+    manifest: validation.manifest,
+    permissions: validation.manifest.permissions,
+    permissionLines: describePermissions(validation.manifest.permissions),
+    permissionHash: validation.permissionHash,
+    manifestSha256: validation.manifestSha256,
+    enabled: isEnabled(state, record2.id, record2.version),
+    grantStatus
+  };
+}
+async function enableExtension(options) {
+  const clock = options.clock ?? systemClock2;
+  const workspace = options.workspace;
+  const preview = describeEnablement(workspace, options.id, options.version);
+  if (options.acceptPermissions !== preview.permissionHash) {
+    throw new ExtensionError(
+      "SBE017",
+      `the acceptance hash does not match the current permission hash for "${preview.record.id}@${preview.record.version}".`,
+      `Review the permissions with \`specbridge extension show ${preview.record.id}\` and re-run with --accept-permissions ${preview.permissionHash}.`,
+      { expected: preview.permissionHash }
+    );
+  }
+  if (options.probe !== void 0) {
+    const dir = installedVersionDir(workspace, preview.record.id, preview.record.version);
+    await options.probe(preview, dir);
+  }
+  const { grants } = readPermissionGrants(workspace);
+  writePermissionGrants(workspace, {
+    ...grants,
+    grants: {
+      ...grants.grants,
+      [preview.record.id]: {
+        version: preview.record.version,
+        manifestSha256: preview.manifestSha256,
+        permissionHash: preview.permissionHash,
+        acceptedAt: clock().toISOString()
+      }
+    }
+  });
+  const { state } = readExtensionState(workspace);
+  writeExtensionState(workspace, {
+    ...state,
+    enabled: { ...state.enabled, [preview.record.id]: { version: preview.record.version } }
+  });
+  appendExtensionRecord(workspace, {
+    schemaVersion: "1.0.0",
+    recordId: newExtensionRecordId(clock),
+    type: "enable",
+    at: clock().toISOString(),
+    extensionId: preview.record.id,
+    version: preview.record.version,
+    details: { permissionHash: preview.permissionHash }
+  });
+  return {
+    id: preview.record.id,
+    version: preview.record.version,
+    permissionHash: preview.permissionHash,
+    preview
+  };
+}
+function disableExtension(options) {
+  const clock = options.clock ?? systemClock2;
+  const { state } = readExtensionState(options.workspace);
+  const enabled = state.enabled[options.id];
+  if (enabled === void 0) {
+    throw new ExtensionError(
+      "SBE015",
+      `extension "${options.id}" is not enabled.`,
+      "Nothing to disable; run `specbridge extension list` to see enablement state.",
+      { extensionId: options.id }
+    );
+  }
+  const nextEnabled = { ...state.enabled };
+  delete nextEnabled[options.id];
+  writeExtensionState(options.workspace, { ...state, enabled: nextEnabled });
+  appendExtensionRecord(options.workspace, {
+    schemaVersion: "1.0.0",
+    recordId: newExtensionRecordId(clock),
+    type: "disable",
+    at: clock().toISOString(),
+    extensionId: options.id,
+    version: enabled.version
+  });
+  return { id: options.id, version: enabled.version };
+}
+function requireEnabledExtension(workspace, id) {
+  const { state } = readExtensionState(workspace);
+  const enabled = state.enabled[id];
+  if (enabled === void 0) {
+    const installed = state.installed.some((record2) => record2.id === id);
+    if (!installed) {
+      throw new ExtensionError(
+        "SBE001",
+        `extension "${id}" is not installed.`,
+        "Install it with `specbridge extension install <source>` and enable it explicitly.",
+        { extensionId: id }
+      );
+    }
+    throw new ExtensionError(
+      "SBE015",
+      `extension "${id}" is installed but disabled.`,
+      `Enable it with \`specbridge extension enable ${id} --accept-permissions <hash>\`.`,
+      { extensionId: id }
+    );
+  }
+  const preview = describeEnablement(workspace, id, enabled.version);
+  const { grants } = readPermissionGrants(workspace);
+  const grant = grants.grants[id];
+  if (grant === void 0) {
+    throw new ExtensionError(
+      "SBE016",
+      `extension "${id}" has no stored permission grant.`,
+      `Re-enable it with \`specbridge extension enable ${id} --accept-permissions ${preview.permissionHash}\`.`,
+      { extensionId: id }
+    );
+  }
+  if (grant.permissionHash !== preview.permissionHash || grant.version !== enabled.version) {
+    throw new ExtensionError(
+      "SBE018",
+      `the stored permission grant for "${id}" no longer matches the installed extension (the manifest, version, or permissions changed after acceptance).`,
+      `Review the permissions and re-enable with \`specbridge extension enable ${id} --accept-permissions ${preview.permissionHash}\`.`,
+      { extensionId: id }
+    );
+  }
+  return {
+    record: preview.record,
+    manifest: preview.manifest,
+    installedDir: installedVersionDir(workspace, preview.record.id, preview.record.version),
+    permissionHash: preview.permissionHash,
+    manifestSha256: preview.manifestSha256
+  };
+}
+var BASE_ENVIRONMENT_ALLOWLIST = [
+  "PATH",
+  "SYSTEMROOT",
+  "SYSTEMDRIVE",
+  "WINDIR",
+  "COMSPEC",
+  "TEMP",
+  "TMP",
+  "HOME",
+  "USERPROFILE",
+  "LANG",
+  "LC_ALL",
+  "TZ"
+];
+function resolveEntrypoint(installedDir, entrypoint) {
+  const problem = checkPackageRelativePath(entrypoint);
+  if (problem !== void 0) {
+    throw new ExtensionError("SBE012", `entrypoint "${entrypoint}": ${problem}.`, "Fix the extension manifest.");
+  }
+  const resolved = import_path24.default.join(installedDir, ...entrypoint.split("/"));
+  const relative = import_path24.default.relative(installedDir, resolved);
+  if (relative.startsWith("..") || import_path24.default.isAbsolute(relative)) {
+    throw new ExtensionError(
+      "SBE012",
+      `entrypoint "${entrypoint}" escapes the installed extension directory.`,
+      "Fix the extension manifest."
+    );
+  }
+  let current = installedDir;
+  for (const segment of relative.split(import_path24.default.sep)) {
+    current = import_path24.default.join(current, segment);
+    const stat = (0, import_fs24.lstatSync)(current, { throwIfNoEntry: false });
+    if (stat === void 0) {
+      throw new ExtensionError(
+        "SBE012",
+        `entrypoint "${entrypoint}" does not exist in the installed extension.`,
+        "Reinstall the extension."
+      );
+    }
+    if (stat.isSymbolicLink()) {
+      throw new ExtensionError(
+        "SBE011",
+        `entrypoint path component "${segment}" is a symbolic link.`,
+        "Reinstall the extension from a trusted source."
+      );
+    }
+  }
+  const finalStat = (0, import_fs24.lstatSync)(resolved, { throwIfNoEntry: false });
+  if (finalStat === void 0 || !finalStat.isFile()) {
+    throw new ExtensionError(
+      "SBE012",
+      `entrypoint "${entrypoint}" is not a regular file.`,
+      "Reinstall the extension."
+    );
+  }
+  return resolved;
+}
+function buildSanitizedEnvironment(granted, source = process.env) {
+  const environment = {};
+  for (const name of BASE_ENVIRONMENT_ALLOWLIST) {
+    const value = source[name];
+    if (value !== void 0) {
+      environment[name] = value;
+    }
+  }
+  for (const name of granted) {
+    const value = source[name];
+    if (value !== void 0) {
+      environment[name] = value;
+    }
+  }
+  return environment;
+}
+function spawnExtensionProcess(options) {
+  const entrypointPath = resolveEntrypoint(options.installedDir, options.entrypoint);
+  const environment = buildSanitizedEnvironment(
+    options.grantedEnvironmentVariables,
+    options.environment ?? process.env
+  );
+  const maxStdoutBytes = options.maxStdoutBytes ?? EXTENSION_LIMITS.maxProcessStdoutBytes;
+  const maxStderrBytes = options.maxStderrBytes ?? EXTENSION_LIMITS.maxProcessStderrBytes;
+  let child;
+  try {
+    child = (0, import_child_process.spawn)(process.execPath, [entrypointPath], {
+      cwd: options.installedDir,
+      env: environment,
+      stdio: ["pipe", "pipe", "pipe"],
+      windowsHide: true,
+      shell: false
+    });
+  } catch (cause) {
+    throw new ExtensionError(
+      "SBE026",
+      `failed to start the extension process: ${cause instanceof Error ? cause.message : String(cause)}.`,
+      "Check that Node.js can execute the installed entrypoint."
+    );
+  }
+  const lineListeners = [];
+  const corruptionListeners = [];
+  const exitListeners = [];
+  let stderrBuffer = "";
+  let stderrBytes = 0;
+  let stdoutByteCount = 0;
+  let killedFlag = false;
+  let forceKillTimer;
+  const decoder = createLineDecoder({
+    onLine: (line) => {
+      for (const listener of lineListeners) {
+        listener(line);
+      }
+    },
+    onOverflow: (bytes) => {
+      for (const listener of corruptionListeners) {
+        listener(`stdout line of ${bytes} bytes exceeds the protocol message limit`);
+      }
+    }
+  });
+  child.stdout?.on("data", (chunk) => {
+    stdoutByteCount += chunk.length;
+    if (stdoutByteCount > maxStdoutBytes) {
+      for (const listener of corruptionListeners) {
+        listener(`stdout exceeded the ${maxStdoutBytes} byte limit`);
+      }
+      return;
+    }
+    decoder.push(chunk);
+  });
+  child.stderr?.on("data", (chunk) => {
+    if (stderrBytes >= maxStderrBytes) {
+      return;
+    }
+    stderrBytes += chunk.length;
+    stderrBuffer += chunk.toString("utf8");
+    if (stderrBuffer.length > maxStderrBytes) {
+      stderrBuffer = stderrBuffer.slice(0, maxStderrBytes);
+    }
+  });
+  const exited = new Promise((resolve) => {
+    let settled = false;
+    const settle = (exit) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      if (forceKillTimer !== void 0) {
+        clearTimeout(forceKillTimer);
+        forceKillTimer = void 0;
+      }
+      for (const listener of exitListeners) {
+        listener(exit);
+      }
+      resolve(exit);
+    };
+    child.once("exit", (code2, signal) => {
+      settle({ code: code2 ?? void 0, signal: signal ?? void 0 });
+    });
+    child.once("error", () => {
+      settle({ code: void 0, signal: void 0 });
+    });
+  });
+  const terminate = () => {
+    if (killedFlag) {
+      return;
+    }
+    killedFlag = true;
+    try {
+      child.stdin?.end();
+    } catch {
+    }
+    try {
+      child.kill("SIGTERM");
+    } catch {
+    }
+    forceKillTimer = setTimeout(() => {
+      try {
+        child.kill("SIGKILL");
+      } catch {
+      }
+    }, EXTENSION_LIMITS.forceKillAfterMs);
+    forceKillTimer.unref?.();
+  };
+  return {
+    send: (line) => {
+      try {
+        child.stdin?.write(line);
+      } catch {
+      }
+    },
+    onLine: (listener) => {
+      lineListeners.push(listener);
+    },
+    onProtocolCorruption: (listener) => {
+      corruptionListeners.push(listener);
+    },
+    onExit: (listener) => {
+      exitListeners.push(listener);
+    },
+    stderrText: () => stderrBuffer,
+    stdoutBytes: () => stdoutByteCount,
+    terminate,
+    killed: () => killedFlag,
+    exited
+  };
+}
+var MAX_PROTOCOL_LOG_LINES = 200;
+var SHUTDOWN_GRACE_MS = 1e3;
+function redact(text, secrets) {
+  let redacted = text;
+  for (const secret of secrets) {
+    if (secret.length >= 4) {
+      redacted = redacted.split(secret).join("[redacted]");
+    }
+  }
+  return redacted;
+}
+var InvocationSession = class {
+  constructor(handle, secrets) {
+    this.handle = handle;
+    this.secrets = secrets;
+    handle.onLine((line) => this.onLine(line));
+    handle.onProtocolCorruption((detail) => {
+      this.corrupted = detail;
+      this.failAll();
+      handle.terminate();
+    });
+    handle.onExit(() => this.failAll());
+  }
+  handle;
+  secrets;
+  pending = /* @__PURE__ */ new Map();
+  protocolLog = [];
+  corrupted;
+  nextId = 0;
+  get corruptionDetail() {
+    return this.corrupted;
+  }
+  get log() {
+    return this.protocolLog;
+  }
+  record(direction, line) {
+    if (this.protocolLog.length < MAX_PROTOCOL_LOG_LINES) {
+      this.protocolLog.push(`${direction} ${redact(line, this.secrets)}`);
+    }
+  }
+  onLine(line) {
+    this.record("recv", line);
+    let parsed;
+    try {
+      parsed = JSON.parse(line);
+    } catch {
+      this.corrupted = "stdout produced a non-JSON line";
+      this.failAll();
+      this.handle.terminate();
+      return;
+    }
+    const response = extensionResponseSchema.safeParse(parsed);
+    if (!response.success) {
+      this.corrupted = "stdout produced a line that is not a valid protocol response";
+      this.failAll();
+      this.handle.terminate();
+      return;
+    }
+    const resolver = this.pending.get(response.data.id);
+    if (resolver === void 0) {
+      this.corrupted = `received a response for unknown request id "${response.data.id}"`;
+      this.failAll();
+      this.handle.terminate();
+      return;
+    }
+    this.pending.delete(response.data.id);
+    resolver(response.data);
+  }
+  failAll() {
+    for (const [, resolver] of this.pending) {
+      resolver({
+        jsonrpc: "2.0",
+        id: "terminated",
+        error: { code: -32603, message: "extension process terminated" }
+      });
+    }
+    this.pending.clear();
+  }
+  /** The id the next request() call will use. */
+  peekNextId() {
+    return `host-${this.nextId + 1}`;
+  }
+  request(method, params, timeoutMs) {
+    this.nextId += 1;
+    const id = `host-${this.nextId}`;
+    const line = serializeProtocolMessage({ jsonrpc: "2.0", id, method, params });
+    this.record("send", line.trimEnd());
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        resolve("timeout");
+      }, timeoutMs);
+      timer.unref?.();
+      this.pending.set(id, (response) => {
+        clearTimeout(timer);
+        resolve(response);
+      });
+      this.handle.send(line);
+    });
+  }
+};
+function protocolError(session, detail) {
+  const effective = session.corruptionDetail ?? detail;
+  const isOversize = effective.includes("exceeds the protocol message limit") || effective.includes("byte limit");
+  return new ExtensionError(
+    isOversize ? "SBE025" : "SBE022",
+    `${effective}.`,
+    isOversize ? "The extension produced more output than the protocol allows; reduce its result size." : "The extension violated the stdio protocol. Report this to the extension author; stdout must carry protocol messages only and logs must go to stderr."
+  );
+}
+function validateHandshake(enabled, result, operation) {
+  const parsed = initializeResultSchema.safeParse(result);
+  if (!parsed.success) {
+    throw new ExtensionError(
+      "SBE019",
+      "the extension returned an invalid initialize result.",
+      "Rebuild the extension with a compatible extension SDK."
+    );
+  }
+  const manifest = enabled.manifest;
+  if (parsed.data.extensionId !== manifest.id || parsed.data.extensionVersion !== manifest.version) {
+    throw new ExtensionError(
+      "SBE020",
+      `the running extension identifies as ${parsed.data.extensionId}@${parsed.data.extensionVersion}, but the installed manifest declares ${manifest.id}@${manifest.version}.`,
+      "Reinstall the extension from a trusted source."
+    );
+  }
+  const major = (version2) => version2.split(".")[0] ?? "";
+  if (major(parsed.data.protocolVersion) !== major(EXTENSION_PROTOCOL_VERSION)) {
+    throw new ExtensionError(
+      "SBE007",
+      `the extension speaks protocol ${parsed.data.protocolVersion}, this SpecBridge speaks ${EXTENSION_PROTOCOL_VERSION}.`,
+      "Install an extension version compatible with this SpecBridge release."
+    );
+  }
+  const declared = new Set(manifest.capabilities.operations);
+  for (const reported of parsed.data.capabilities.operations) {
+    if (!declared.has(reported)) {
+      throw new ExtensionError(
+        "SBE021",
+        `the extension reported operation "${reported}" that its manifest does not declare.`,
+        "Runtime capability escalation is not allowed; reinstall a consistent extension version."
+      );
+    }
+  }
+  if (!parsed.data.capabilities.operations.includes(operation)) {
+    throw new ExtensionError(
+      "SBE021",
+      `the extension does not support the requested operation "${operation}".`,
+      `Declared operations: ${parsed.data.capabilities.operations.join(", ") || "none"}.`
+    );
+  }
+}
+async function invokeExtensionOperation(enabled, options) {
+  const manifest = enabled.manifest;
+  if (manifest.entrypoint === void 0) {
+    throw new ExtensionError(
+      "SBE012",
+      `extension "${manifest.id}" is data-only and cannot be invoked.`,
+      "Only executable extension kinds support invocation."
+    );
+  }
+  if (!manifest.capabilities.operations.includes(options.operation)) {
+    throw new ExtensionError(
+      "SBE021",
+      `extension "${manifest.id}" does not declare operation "${options.operation}".`,
+      `Declared operations: ${manifest.capabilities.operations.join(", ") || "none"}.`
+    );
+  }
+  const environment = options.environment ?? process.env;
+  const secrets = [];
+  for (const name of manifest.permissions.environmentVariables) {
+    const value = environment[name];
+    if (value !== void 0 && value.length > 0) {
+      secrets.push(value);
+    }
+  }
+  const startedAt = Date.now();
+  const handle = spawnExtensionProcess({
+    installedDir: enabled.installedDir,
+    entrypoint: manifest.entrypoint,
+    grantedEnvironmentVariables: manifest.permissions.environmentVariables,
+    environment
+  });
+  const session = new InvocationSession(handle, secrets);
+  const finishOutcome = (output) => ({
+    output,
+    durationMs: Date.now() - startedAt,
+    stderr: redact(handle.stderrText(), secrets),
+    protocolLog: session.log
+  });
+  const fail = (error2) => {
+    handle.terminate();
+    throw error2;
+  };
+  try {
+    const startupTimeoutMs = options.startupTimeoutMs ?? EXTENSION_LIMITS.startupTimeoutMs;
+    const initResponse = await session.request(
+      "initialize",
+      {
+        protocolVersion: EXTENSION_PROTOCOL_VERSION,
+        specbridgeVersion: options.specbridgeVersion ?? SPECBRIDGE_VERSION,
+        extensionId: manifest.id,
+        extensionVersion: manifest.version,
+        operation: options.operation,
+        grantedPermissions: manifest.permissions
+      },
+      startupTimeoutMs
+    );
+    if (initResponse === "timeout") {
+      fail(
+        new ExtensionError(
+          "SBE019",
+          `the extension did not answer initialize within ${startupTimeoutMs} ms.`,
+          "Check `specbridge extension doctor` and the extension logs (stderr)."
+        )
+      );
+      throw new Error("unreachable");
+    }
+    if (session.corruptionDetail !== void 0) {
+      fail(protocolError(session, "protocol corrupted during initialize"));
+    }
+    if (initResponse.error !== void 0) {
+      fail(
+        new ExtensionError(
+          "SBE019",
+          `initialize failed: ${initResponse.error.message}.`,
+          "Check the extension logs (stderr) and its compatibility declaration."
+        )
+      );
+    }
+    validateHandshake(enabled, initResponse.result, options.operation);
+    const timeoutMs = options.timeoutMs ?? EXTENSION_LIMITS.defaultOperationTimeoutMs;
+    const invokeId = session.peekNextId();
+    let cancelRequested = false;
+    const onAbort = () => {
+      cancelRequested = true;
+      void session.request("extension.cancel", { targetId: invokeId }, 1e3);
+    };
+    if (options.signal !== void 0) {
+      if (options.signal.aborted) {
+        fail(
+          new ExtensionError(
+            "SBE024",
+            `operation "${options.operation}" was cancelled before it started.`,
+            "No result was used; re-run the operation when ready."
+          )
+        );
+      }
+      options.signal.addEventListener("abort", onAbort, { once: true });
+    }
+    const invokeResponse = await session.request(
+      "extension.invoke",
+      {
+        operation: options.operation,
+        payload: options.payload,
+        ...options.configuration === void 0 ? {} : { configuration: options.configuration }
+      },
+      timeoutMs
+    );
+    if (options.signal !== void 0) {
+      options.signal.removeEventListener("abort", onAbort);
+    }
+    if (invokeResponse === "timeout") {
+      fail(
+        new ExtensionError(
+          "SBE023",
+          `operation "${options.operation}" timed out after ${timeoutMs} ms.`,
+          "Increase the timeout or investigate the extension; the process was terminated."
+        )
+      );
+      throw new Error("unreachable");
+    }
+    if (session.corruptionDetail !== void 0) {
+      fail(protocolError(session, "protocol corrupted during invocation"));
+    }
+    if (cancelRequested) {
+      fail(
+        new ExtensionError(
+          "SBE024",
+          `operation "${options.operation}" was cancelled.`,
+          "No result was used; re-run the operation when ready."
+        )
+      );
+    }
+    if (invokeResponse.error !== void 0) {
+      const extensionCode = invokeResponse.error.data?.["extensionCode"];
+      fail(
+        new ExtensionError(
+          extensionCode === "SBE024" ? "SBE024" : extensionCode === "SBE025" ? "SBE025" : "SBE030",
+          `operation "${options.operation}" failed: ${invokeResponse.error.message}.`,
+          "Check the extension logs (stderr tail) for details."
+        )
+      );
+    }
+    const invokeResult = invokeResultSchema.safeParse(invokeResponse.result);
+    if (!invokeResult.success || invokeResult.data.operation !== options.operation) {
+      fail(protocolError(session, "the invoke result envelope is invalid"));
+      throw new Error("unreachable");
+    }
+    const schemas = operationSchemas(options.operation);
+    let output = invokeResult.data.output;
+    if (schemas !== void 0) {
+      const validated = schemas.output.safeParse(output);
+      if (!validated.success) {
+        fail(
+          new ExtensionError(
+            "SBE030",
+            `the extension returned an invalid ${options.operation} result: ${validated.error.issues[0]?.path.join(".") ?? ""} ` + `${validated.error.issues[0]?.message ?? "unknown"}`.trim() + ".",
+            "Report this to the extension author; the result was discarded."
+          )
+        );
+      } else {
+        output = validated.data;
+      }
+    }
+    await session.request("extension.shutdown", {}, SHUTDOWN_GRACE_MS);
+    handle.terminate();
+    await handle.exited;
+    return finishOutcome(output);
+  } finally {
+    handle.terminate();
+  }
+}
+async function probeExtensionHandshake(enabled, options = {}) {
+  const manifest = enabled.manifest;
+  if (manifest.entrypoint === void 0) {
+    return { ok: true, detail: "data-only extension; no process to probe", stderr: "" };
+  }
+  const handle = spawnExtensionProcess({
+    installedDir: enabled.installedDir,
+    entrypoint: manifest.entrypoint,
+    grantedEnvironmentVariables: manifest.permissions.environmentVariables,
+    environment: options.environment ?? process.env
+  });
+  const session = new InvocationSession(handle, []);
+  try {
+    const response = await session.request(
+      "initialize",
+      {
+        protocolVersion: EXTENSION_PROTOCOL_VERSION,
+        specbridgeVersion: SPECBRIDGE_VERSION,
+        extensionId: manifest.id,
+        extensionVersion: manifest.version,
+        grantedPermissions: manifest.permissions
+      },
+      options.startupTimeoutMs ?? EXTENSION_LIMITS.startupTimeoutMs
+    );
+    if (response === "timeout") {
+      return { ok: false, detail: "initialize timed out", stderr: handle.stderrText() };
+    }
+    if (session.corruptionDetail !== void 0) {
+      return { ok: false, detail: session.corruptionDetail, stderr: handle.stderrText() };
+    }
+    if (response.error !== void 0) {
+      return { ok: false, detail: `initialize failed: ${response.error.message}`, stderr: handle.stderrText() };
+    }
+    try {
+      validateHandshake(enabled, response.result, manifest.capabilities.operations[0] ?? "");
+    } catch (error2) {
+      return {
+        ok: false,
+        detail: error2 instanceof Error ? error2.message : String(error2),
+        stderr: handle.stderrText()
+      };
+    }
+    await session.request("extension.shutdown", {}, SHUTDOWN_GRACE_MS);
+    return { ok: true, detail: "handshake succeeded", stderr: handle.stderrText() };
+  } finally {
+    handle.terminate();
+  }
+}
+async function runAnalyzerExtension(workspace, extensionId, input, options = {}) {
+  const enabled = requireEnabledExtension(workspace, extensionId);
+  if (enabled.manifest.kind !== "analyzer") {
+    throw new ExtensionError(
+      "SBE021",
+      `extension "${extensionId}" is a ${enabled.manifest.kind} extension, not an analyzer.`,
+      "Pass an analyzer extension to --extension.",
+      { extensionId, kind: enabled.manifest.kind }
+    );
+  }
+  if (!enabled.manifest.permissions.specRead) {
+    throw new ExtensionError(
+      "SBE030",
+      `analyzer extension "${extensionId}" does not declare the specRead permission, so SpecBridge cannot send it spec content.`,
+      'The extension manifest must declare "specRead": true to analyze specs.',
+      { extensionId }
+    );
+  }
+  const boundedInput = analyzerInputSchema.parse(input);
+  const outcome = await invokeExtensionOperation(enabled, {
+    operation: "analyzer.analyze",
+    payload: boundedInput,
+    ...options.configuration === void 0 ? {} : { configuration: options.configuration },
+    ...options.timeoutMs === void 0 ? {} : { timeoutMs: options.timeoutMs },
+    ...options.signal === void 0 ? {} : { signal: options.signal },
+    ...options.environment === void 0 ? {} : { environment: options.environment }
+  });
+  const result = analyzerResultSchema.parse(outcome.output);
+  const diagnostics = result.diagnostics.map((diagnostic) => {
+    return {
+      ruleId: namespaceRuleId(enabled.manifest.id, diagnostic.ruleId),
+      severity: diagnostic.severity,
+      message: diagnostic.message,
+      ...diagnostic.file === void 0 ? {} : { file: diagnostic.file },
+      ...diagnostic.line === void 0 ? {} : { line: diagnostic.line },
+      ...diagnostic.column === void 0 ? {} : { column: diagnostic.column },
+      ...diagnostic.remediation === void 0 ? {} : { remediation: diagnostic.remediation },
+      confidence: diagnostic.confidence,
+      extensionId: enabled.manifest.id,
+      extensionVersion: enabled.manifest.version
+    };
+  });
+  return {
+    extensionId: enabled.manifest.id,
+    extensionVersion: enabled.manifest.version,
+    diagnostics,
+    ...result.summary === void 0 ? {} : { summary: result.summary },
+    durationMs: outcome.durationMs
+  };
+}
+function compatibilityOf(workspace, record2, specbridgeVersion) {
+  try {
+    const manifestPath = import_path25.default.join(
+      installedVersionDir(workspace, record2.id, record2.version),
+      EXTENSION_MANIFEST_FILE_NAME
+    );
+    if (!(0, import_fs25.existsSync)(manifestPath)) {
+      return { compatibility: "unknown", deprecated: false };
+    }
+    const parsed = parseExtensionManifest((0, import_fs25.readFileSync)(manifestPath, "utf8"));
+    if (parsed.manifest === void 0) {
+      return { compatibility: "unknown", deprecated: false };
+    }
+    return {
+      compatibility: semverSatisfies2(specbridgeVersion, parsed.manifest.compatibility.specbridge) ? "compatible" : "incompatible",
+      deprecated: parsed.manifest.deprecated === true
+    };
+  } catch {
+    return { compatibility: "unknown", deprecated: false };
+  }
+}
+function listInstalledExtensions(workspace, options = {}) {
+  const specbridgeVersion = options.specbridgeVersion ?? SPECBRIDGE_VERSION;
+  const stateResult = readExtensionState(workspace);
+  const grantsResult = readPermissionGrants(workspace);
+  const diagnostics = [...stateResult.diagnostics, ...grantsResult.diagnostics];
+  const entries = stateResult.state.installed.map((record2) => {
+    const grant = grantsResult.grants.grants[record2.id];
+    const { compatibility, deprecated } = compatibilityOf(workspace, record2, specbridgeVersion);
+    return {
+      id: record2.id,
+      version: record2.version,
+      kind: record2.kind,
+      displayName: record2.displayName,
+      description: record2.description,
+      source: record2.source,
+      installedAt: record2.installedAt,
+      enabled: isEnabled(stateResult.state, record2.id, record2.version),
+      permissionsAccepted: grant !== void 0 && grant.version === record2.version && grant.permissionHash === record2.permissionHash,
+      permissionHash: record2.permissionHash,
+      compatibility,
+      conformance: record2.conformanceStatus ?? "not-run",
+      deprecated
+    };
+  }).sort((a2, b) => a2.id.localeCompare(b.id, "en") || a2.version.localeCompare(b.version, "en"));
+  return { entries, diagnostics };
+}
+function searchInstalledExtensions(catalog, query, options = {}) {
+  const needle = query.trim().toLowerCase();
+  const limit = options.limit ?? 20;
+  const scored = [];
+  for (const entry of catalog.entries) {
+    if (options.kind !== void 0 && entry.kind !== options.kind) {
+      continue;
+    }
+    let score = 0;
+    if (entry.id === needle) {
+      score = 100;
+    } else if (entry.id.startsWith(needle)) {
+      score = 80;
+    } else if (entry.displayName.toLowerCase().split(/\s+/).includes(needle)) {
+      score = 40;
+    } else if (entry.description.toLowerCase().includes(needle)) {
+      score = 20;
+    }
+    if (score > 0) {
+      scored.push({ entry, score });
+    }
+  }
+  return scored.sort((a2, b) => b.score - a2.score || a2.entry.id.localeCompare(b.entry.id, "en")).slice(0, limit).map((item) => item.entry);
+}
+function check2(id, title, status, detail) {
+  return detail === void 0 ? { id, title, status } : { id, title, status, detail };
+}
+function directoryFingerprint(dir) {
+  const files = readExtensionPackageDirectory(dir);
+  const parts = [];
+  for (const name of [...files.keys()].sort()) {
+    parts.push(Buffer.from(name, "utf8"), files.get(name) ?? Buffer.alloc(0));
+  }
+  return sha256HexOf(Buffer.concat(parts));
+}
+function conformanceFixturePayload(kind) {
+  switch (kind) {
+    case "analyzer":
+      return {
+        specName: "conformance-fixture",
+        specType: "feature",
+        workflowMode: "requirements-first",
+        stage: "requirements",
+        stageContent: "# Requirements\n\nThe system SHALL respond within 200 ms. TBD: retries.\n"
+      };
+    case "verifier":
+      return {
+        specName: "conformance-fixture",
+        taskId: "1.1",
+        changedFiles: [
+          { path: "src/example.ts", changeType: "modified" },
+          { path: "tests/example.test.ts", changeType: "modified" }
+        ]
+      };
+    case "exporter":
+      return {
+        specName: "conformance-fixture",
+        specType: "feature",
+        workflowMode: "requirements-first",
+        stages: { requirements: "# Requirements\n\nOne requirement.\n" }
+      };
+    case "runner":
+      return {};
+    case "template-provider":
+      return void 0;
+  }
+}
+var PRIMARY_OPERATION = {
+  analyzer: "analyzer.analyze",
+  verifier: "verifier.verify",
+  exporter: "exporter.export",
+  runner: "runner.detect"
+};
+async function runExtensionConformance(enabled, options = {}) {
+  const manifest = enabled.manifest;
+  const checks = [];
+  const timeoutMs = options.operationTimeoutMs ?? 3e4;
+  const validation = loadExtensionPackage(readExtensionPackageDirectory(enabled.installedDir), {
+    checksums: options.checksums ?? "require"
+  });
+  const validationErrors = validation.issues.filter((issue4) => issue4.severity === "error");
+  checks.push(
+    check2(
+      "package-valid",
+      "package validates (manifest, checksums, layout)",
+      validationErrors.length === 0 ? "passed" : "failed",
+      validationErrors[0]?.message
+    )
+  );
+  if (manifest.kind === "template-provider") {
+    checks.push(
+      check2("data-only", "no entrypoint and no process is ever started", "passed"),
+      check2(
+        "templates-validate",
+        "every contributed template pack validates and renders",
+        validationErrors.length === 0 ? "passed" : "failed"
+      )
+    );
+    return finish(enabled, checks);
+  }
+  const before = directoryFingerprint(enabled.installedDir);
+  const probe = await probeExtensionHandshake(enabled);
+  checks.push(
+    check2(
+      "protocol-initialize",
+      "initialize handshake succeeds with matching identity and declared capabilities",
+      probe.ok ? "passed" : "failed",
+      probe.ok ? void 0 : probe.detail
+    )
+  );
+  if (probe.ok) {
+    const operation = PRIMARY_OPERATION[manifest.kind];
+    if (operation !== void 0 && manifest.capabilities.operations.includes(operation)) {
+      try {
+        await invokeExtensionOperation(enabled, {
+          operation,
+          payload: conformanceFixturePayload(manifest.kind),
+          timeoutMs
+        });
+        checks.push(
+          check2("primary-operation", `${operation} succeeds on a fixture payload and validates`, "passed")
+        );
+      } catch (error2) {
+        checks.push(
+          check2(
+            "primary-operation",
+            `${operation} succeeds on a fixture payload and validates`,
+            "failed",
+            error2 instanceof Error ? error2.message : String(error2)
+          )
+        );
+      }
+      try {
+        await invokeExtensionOperation(enabled, {
+          operation,
+          payload: { garbage: true },
+          timeoutMs
+        });
+        checks.push(check2("malformed-input", "malformed input fails safely", "passed"));
+      } catch (error2) {
+        const message = error2 instanceof Error ? error2.message : String(error2);
+        const unsafeCodes = ["SBE022", "SBE023", "SBE025", "SBE026"];
+        const code2 = isExtensionError(error2) ? error2.extensionCode : void 0;
+        const safe = code2 === void 0 || !unsafeCodes.includes(code2);
+        checks.push(
+          check2(
+            "malformed-input",
+            "malformed input fails safely",
+            safe ? "passed" : "failed",
+            safe ? void 0 : message
+          )
+        );
+      }
+      if (manifest.kind === "analyzer") {
+        try {
+          const payload = conformanceFixturePayload("analyzer");
+          const first = await invokeExtensionOperation(enabled, { operation, payload, timeoutMs });
+          const second = await invokeExtensionOperation(enabled, { operation, payload, timeoutMs });
+          const same = JSON.stringify(first.output) === JSON.stringify(second.output);
+          checks.push(
+            check2(
+              "analyzer-deterministic",
+              "identical input produces identical diagnostics",
+              same ? "passed" : "failed"
+            )
+          );
+        } catch (error2) {
+          checks.push(
+            check2(
+              "analyzer-deterministic",
+              "identical input produces identical diagnostics",
+              "failed",
+              error2 instanceof Error ? error2.message : String(error2)
+            )
+          );
+        }
+      }
+    } else {
+      checks.push(
+        check2("primary-operation", "primary operation declared", "failed", "primary operation missing")
+      );
+    }
+  }
+  const after = directoryFingerprint(enabled.installedDir);
+  checks.push(
+    check2(
+      "no-package-mutation",
+      "conformance run did not modify the installed package",
+      before === after ? "passed" : "failed"
+    )
+  );
+  return finish(enabled, checks);
+}
+function finish(enabled, checks) {
+  return {
+    extensionId: enabled.manifest.id,
+    version: enabled.manifest.version,
+    kind: enabled.manifest.kind,
+    checks,
+    passed: checks.every((item) => item.status !== "failed")
+  };
+}
+async function runExporterExtension(workspace, extensionId, input, options = {}) {
+  const enabled = requireEnabledExtension(workspace, extensionId);
+  if (enabled.manifest.kind !== "exporter") {
+    throw new ExtensionError(
+      "SBE021",
+      `extension "${extensionId}" is a ${enabled.manifest.kind} extension, not an exporter.`,
+      "Pass an exporter extension to --extension.",
+      { extensionId, kind: enabled.manifest.kind }
+    );
+  }
+  const bounded = exporterInputSchema.parse(input);
+  const outcome = await invokeExtensionOperation(enabled, {
+    operation: "exporter.export",
+    payload: bounded,
+    ...options.configuration === void 0 ? {} : { configuration: options.configuration },
+    ...options.timeoutMs === void 0 ? {} : { timeoutMs: options.timeoutMs },
+    ...options.signal === void 0 ? {} : { signal: options.signal },
+    ...options.environment === void 0 ? {} : { environment: options.environment }
+  });
+  const result = exporterResultSchema.parse(outcome.output);
+  return {
+    extensionId: enabled.manifest.id,
+    extensionVersion: enabled.manifest.version,
+    files: result.files.map((file) => ({
+      path: file.path,
+      mediaType: file.mediaType,
+      content: file.content,
+      bytes: Buffer.byteLength(file.content, "utf8")
+    })),
+    diagnostics: (result.diagnostics ?? []).map((diagnostic) => ({
+      ruleId: namespaceRuleId(enabled.manifest.id, diagnostic.ruleId),
+      severity: diagnostic.severity,
+      message: diagnostic.message
+    })),
+    ...result.summary === void 0 ? {} : { summary: result.summary },
+    durationMs: outcome.durationMs
+  };
+}
+function validateExportTargets(outputDir, files) {
+  const resolvedRoot = import_path26.default.resolve(outputDir);
+  const rootStat = (0, import_fs26.lstatSync)(resolvedRoot, { throwIfNoEntry: false });
+  if (rootStat !== void 0 && rootStat.isSymbolicLink()) {
+    throw new ExtensionError(
+      "SBE011",
+      `output directory "${outputDir}" is a symbolic link.`,
+      "Pass a plain directory as --output."
+    );
+  }
+  const seen = /* @__PURE__ */ new Set();
+  const targets = [];
+  for (const file of files) {
+    const problem = checkPackageRelativePath(file.path);
+    if (problem !== void 0) {
+      throw new ExtensionError(
+        "SBE030",
+        `exporter returned an unsafe output path "${file.path}": ${problem}.`,
+        "Report this to the extension author; nothing was written."
+      );
+    }
+    const target = import_path26.default.resolve(resolvedRoot, ...file.path.split("/"));
+    const relative = import_path26.default.relative(resolvedRoot, target);
+    if (relative.startsWith("..") || import_path26.default.isAbsolute(relative)) {
+      throw new ExtensionError(
+        "SBE030",
+        `exporter output path "${file.path}" escapes the output directory.`,
+        "Report this to the extension author; nothing was written."
+      );
+    }
+    if (seen.has(target.toLowerCase())) {
+      throw new ExtensionError(
+        "SBE030",
+        `exporter returned duplicate output path "${file.path}".`,
+        "Report this to the extension author; nothing was written."
+      );
+    }
+    seen.add(target.toLowerCase());
+    let current = resolvedRoot;
+    for (const segment of relative.split(import_path26.default.sep)) {
+      current = import_path26.default.join(current, segment);
+      const stat = (0, import_fs26.lstatSync)(current, { throwIfNoEntry: false });
+      if (stat?.isSymbolicLink() === true) {
+        throw new ExtensionError(
+          "SBE011",
+          `export target path component "${segment}" is a symbolic link.`,
+          "Remove the symlink from the output directory and retry."
+        );
+      }
+    }
+    if ((0, import_fs26.existsSync)(target)) {
+      throw new ExtensionError(
+        "SBE030",
+        `export target "${file.path}" already exists in the output directory.`,
+        "SpecBridge never overwrites existing files on export; choose an empty directory."
+      );
+    }
+    targets.push({ target, relative: file.path });
+  }
+  return targets;
+}
+function writeExportFiles(workspace, extensionId, extensionVersion, specName, outputDir, files, clock = systemClock2) {
+  const targets = validateExportTargets(outputDir, files);
+  const written = [];
+  for (let index = 0; index < targets.length; index += 1) {
+    const target = targets[index];
+    const file = files[index];
+    if (target === void 0 || file === void 0) {
+      continue;
+    }
+    (0, import_fs26.mkdirSync)(import_path26.default.dirname(target.target), { recursive: true });
+    writeFileAtomic(target.target, file.content);
+    written.push(target.relative);
+  }
+  appendExtensionRecord(workspace, {
+    schemaVersion: "1.0.0",
+    recordId: newExtensionRecordId(clock),
+    type: "export",
+    at: clock().toISOString(),
+    extensionId,
+    version: extensionVersion,
+    details: { specName, outputDir, files: written }
+  });
+  return { written };
+}
+function requireValid(validation) {
+  const errors = validation.issues.filter((issue4) => issue4.severity === "error");
+  if (errors.length > 0 || validation.manifest === void 0) {
+    const first = errors[0];
+    throw new ExtensionError(
+      "SBE008",
+      `extension package failed validation with ${errors.length} error(s); first: [${first?.code ?? "SBE008"}] ${first?.message ?? "invalid package"}.`,
+      "Run `specbridge extension validate <source>` for the full report.",
+      { issueCount: errors.length }
+    );
+  }
+}
+function installExtensionFromDirectory(sourceDir, options) {
+  const files = readExtensionPackageDirectory(sourceDir);
+  return installExtensionPackage(files, options);
+}
+function installExtensionFromArchiveBytes(archive, options) {
+  if (archive.length > EXTENSION_LIMITS.maxArchiveBytes) {
+    throw new ExtensionError(
+      "SBE008",
+      `archive of ${archive.length} bytes exceeds the ${EXTENSION_LIMITS.maxArchiveBytes} byte limit.`,
+      "Reduce the package contents."
+    );
+  }
+  const archiveSha256 = sha256HexOf(archive);
+  if (options.expectedArchiveSha256 !== void 0 && options.expectedArchiveSha256.toLowerCase() !== archiveSha256) {
+    throw new ExtensionError(
+      "SBE009",
+      `archive sha256 ${archiveSha256} does not match the expected ${options.expectedArchiveSha256.toLowerCase()}.`,
+      "The archive was corrupted or substituted; re-download it from a trusted source."
+    );
+  }
+  const files = extractZipArchive(archive);
+  return installExtensionPackage(files, options, archiveSha256);
+}
+function installExtensionPackage(files, options, archiveSha256) {
+  const clock = options.clock ?? systemClock2;
+  const validation = loadExtensionPackage(
+    files,
+    options.specbridgeVersion === void 0 ? {} : { specbridgeVersion: options.specbridgeVersion }
+  );
+  requireValid(validation);
+  const manifest = validation.manifest;
+  const warnings = validation.issues.filter((issue4) => issue4.severity === "warning");
+  const workspace = options.workspace;
+  const { state } = readExtensionState(workspace);
+  const alreadyInstalled = state.installed.some(
+    (record2) => record2.id === manifest.id && record2.version === manifest.version
+  );
+  if (alreadyInstalled) {
+    throw new ExtensionError(
+      "SBE013",
+      `extension "${manifest.id}" version ${manifest.version} is already installed.`,
+      "Bump the extension version or uninstall the existing version first.",
+      { extensionId: manifest.id, version: manifest.version }
+    );
+  }
+  const targetDir = installedVersionDir(workspace, manifest.id, manifest.version);
+  const base = {
+    id: manifest.id,
+    version: manifest.version,
+    kind: manifest.kind,
+    displayName: manifest.displayName,
+    manifestSha256: validation.manifestSha256,
+    permissionHash: validation.permissionHash,
+    ...archiveSha256 === void 0 ? {} : { archiveSha256 },
+    warnings
+  };
+  if (options.dryRun === true) {
+    return { ...base, dryRun: true };
+  }
+  const recordId = newExtensionRecordId(clock);
+  const stagingDir = import_path27.default.join(extensionsDir(workspace), `tmp-install-${recordId}`);
+  assertInsideWorkspace(workspace.rootDir, stagingDir);
+  try {
+    for (const [name, content] of files) {
+      const target = import_path27.default.join(stagingDir, ...name.split("/"));
+      assertInsideWorkspace(workspace.rootDir, target);
+      (0, import_fs27.mkdirSync)(import_path27.default.dirname(target), { recursive: true });
+      writeFileAtomic(target, content);
+    }
+    (0, import_fs27.mkdirSync)(import_path27.default.dirname(targetDir), { recursive: true });
+    (0, import_fs27.renameSync)(stagingDir, targetDir);
+  } catch (cause) {
+    (0, import_fs27.rmSync)(stagingDir, { recursive: true, force: true });
+    if (cause instanceof ExtensionError) {
+      throw cause;
+    }
+    throw new ExtensionError(
+      "SBE030",
+      `installation failed while writing files: ${cause instanceof Error ? cause.message : String(cause)}.`,
+      "Nothing was installed; fix the underlying problem and retry."
+    );
+  }
+  try {
+    const installedFiles = readExtensionPackageDirectory(targetDir);
+    const revalidated = loadExtensionPackage(
+      installedFiles,
+      options.specbridgeVersion === void 0 ? {} : { specbridgeVersion: options.specbridgeVersion }
+    );
+    requireValid(revalidated);
+    const nextState = {
+      ...state,
+      installed: [
+        ...state.installed,
+        {
+          id: manifest.id,
+          version: manifest.version,
+          kind: manifest.kind,
+          displayName: manifest.displayName,
+          description: manifest.description,
+          source: options.sourceLabel,
+          installedAt: clock().toISOString(),
+          ...archiveSha256 === void 0 ? {} : { archiveSha256 },
+          manifestSha256: validation.manifestSha256,
+          permissionHash: validation.permissionHash,
+          ...manifest.entrypoint === void 0 ? {} : { entrypoint: manifest.entrypoint },
+          installRecordId: recordId
+        }
+      ]
+    };
+    writeExtensionState(workspace, nextState);
+    appendExtensionRecord(workspace, {
+      schemaVersion: "1.0.0",
+      recordId,
+      type: "install",
+      at: clock().toISOString(),
+      extensionId: manifest.id,
+      version: manifest.version,
+      details: {
+        source: options.sourceLabel,
+        manifestSha256: validation.manifestSha256,
+        permissionHash: validation.permissionHash,
+        ...archiveSha256 === void 0 ? {} : { archiveSha256 }
+      }
+    });
+  } catch (cause) {
+    (0, import_fs27.rmSync)(targetDir, { recursive: true, force: true });
+    if (cause instanceof ExtensionError) {
+      throw cause;
+    }
+    throw new ExtensionError(
+      "SBE030",
+      `installation failed while recording state: ${cause instanceof Error ? cause.message : String(cause)}.`,
+      "The partially installed version was removed; retry the installation."
+    );
+  }
+  return { ...base, installedPath: targetDir, dryRun: false };
+}
+var RUNTIME_ROOT_FILES = /* @__PURE__ */ new Set([
+  "specbridge-extension.json",
+  "README.md",
+  "LICENSE",
+  "NOTICE.md"
+]);
+var RUNTIME_DIRECTORIES = ["dist/", "templates/", "schemas/", "examples/"];
+function isRuntimeFile(name) {
+  if (name.endsWith(".zip")) {
+    return false;
+  }
+  if (RUNTIME_ROOT_FILES.has(name)) {
+    return true;
+  }
+  return RUNTIME_DIRECTORIES.some((directory) => name.startsWith(directory));
+}
+function buildExtensionArchive(sourceDir, options = {}) {
+  const allFiles = readExtensionPackageDirectory(sourceDir);
+  const runtimeFiles = /* @__PURE__ */ new Map();
+  for (const [name, content] of allFiles) {
+    if (isRuntimeFile(name) && name !== EXTENSION_CHECKSUMS_FILE_NAME) {
+      runtimeFiles.set(name, content);
+    }
+  }
+  const checksums = computeExtensionChecksums(runtimeFiles);
+  runtimeFiles.set(
+    EXTENSION_CHECKSUMS_FILE_NAME,
+    Buffer.from(`${JSON.stringify(checksums, null, 2)}
+`, "utf8")
+  );
+  const validation = loadExtensionPackage(runtimeFiles);
+  const errors = validation.issues.filter((issue4) => issue4.severity === "error");
+  if (errors.length > 0 || validation.manifest === void 0) {
+    const first = errors[0];
+    throw new ExtensionError(
+      "SBE008",
+      `the package failed validation with ${errors.length} error(s); first: [${first?.code ?? "SBE008"}] ${first?.message ?? "invalid package"}.`,
+      "Run `specbridge extension validate <dir>` for the full report; executable extensions must already contain their built entrypoint."
+    );
+  }
+  const manifest = validation.manifest;
+  const archive = createDeterministicZip(runtimeFiles);
+  const archiveSha256 = sha256HexOf(archive);
+  const outputDir = options.outputDir ?? import_path28.default.join(sourceDir, "dist");
+  const archivePath = import_path28.default.join(
+    outputDir,
+    `${manifest.id}-${manifest.version}${EXTENSION_ARCHIVE_SUFFIX}`
+  );
+  const reextracted = extractZipArchive(archive);
+  const revalidated = loadExtensionPackage(reextracted);
+  if (!revalidated.valid) {
+    throw new ExtensionError(
+      "SBE008",
+      "the built archive failed revalidation after extraction.",
+      "This indicates a packaging bug; please report it."
+    );
+  }
+  if (options.dryRun !== true) {
+    (0, import_fs28.mkdirSync)(outputDir, { recursive: true });
+    writeFileAtomic(archivePath, archive);
+  }
+  return {
+    id: manifest.id,
+    version: manifest.version,
+    kind: manifest.kind,
+    archivePath,
+    archiveSha256,
+    fileCount: runtimeFiles.size,
+    archiveBytes: archive.length,
+    warnings: validation.issues.filter((issue4) => issue4.severity === "warning"),
+    dryRun: options.dryRun === true
+  };
+}
+function deriveDeclaredCapabilities(manifest) {
+  if (manifest === void 0) {
+    return capabilitySet([]);
+  }
+  const operations = new Set(manifest.capabilities.operations);
+  const permissions = manifest.permissions;
+  const enabled = [];
+  if (operations.has("runner.generateStage")) enabled.push("stageGeneration");
+  if (operations.has("runner.refineStage")) enabled.push("stageRefinement");
+  if (operations.has("runner.executeTask")) enabled.push("taskExecution");
+  if (operations.has("runner.resumeTask")) enabled.push("taskResume");
+  if (operations.has("runner.generateStage") || operations.has("runner.executeTask")) {
+    enabled.push("structuredFinalOutput");
+  }
+  if (operations.has("runner.executeTask")) {
+    enabled.push("toolRestriction");
+  }
+  if (permissions.repositoryRead) enabled.push("repositoryRead");
+  if (permissions.repositoryWrite) enabled.push("repositoryWrite");
+  if (permissions.network) enabled.push("requiresNetwork");
+  else enabled.push("localOnly");
+  enabled.push("supportsCancellation");
+  return capabilitySet(enabled);
+}
+function usageFrom(output, durationMs) {
+  const usage = output.usage;
+  if (usage === void 0) {
+    return void 0;
+  }
+  return {
+    model: usage.model ?? null,
+    inputTokens: usage.inputTokens ?? null,
+    cachedInputTokens: usage.cachedInputTokens ?? null,
+    outputTokens: usage.outputTokens ?? null,
+    reasoningTokens: usage.reasoningTokens ?? null,
+    requestCount: usage.requestCount ?? null,
+    durationMs: Math.max(0, Math.round(durationMs))
+  };
+}
+function costFrom(output) {
+  const cost = output.cost;
+  if (cost === void 0) {
+    return void 0;
+  }
+  const amount = cost.amount ?? null;
+  return {
+    currency: cost.currency ?? null,
+    amount,
+    source: amount !== null ? "provider-reported" : "unavailable"
+  };
+}
+function failureError(cause) {
+  const message = cause instanceof Error ? cause.message : String(cause);
+  const code2 = isExtensionError(cause) ? cause.extensionCode === "SBE023" ? "timed_out" : cause.extensionCode === "SBE024" ? "cancelled" : "process_failed" : "process_failed";
+  return runnerError({
+    code: code2,
+    message,
+    remediation: ["Run `specbridge extension doctor` for the extension and check its stderr logs."]
+  });
+}
+function failureOutcome(cause) {
+  if (isExtensionError(cause)) {
+    if (cause.extensionCode === "SBE023") return "timed-out";
+    if (cause.extensionCode === "SBE024") return "cancelled";
+  }
+  return "failed";
+}
+var ExtensionRunnerProxy = class {
+  constructor(workspace, config2) {
+    this.workspace = workspace;
+    this.config = config2;
+    this.declaredCapabilities = deriveDeclaredCapabilities(this.tryResolve()?.manifest);
+  }
+  workspace;
+  config;
+  name = "extension";
+  kind = "extension";
+  category = "experimental";
+  declaredCapabilities;
+  declaredSupportLevel = "preview";
+  tryResolve() {
+    try {
+      return this.resolve();
+    } catch {
+      return void 0;
+    }
+  }
+  resolve() {
+    const enabled = requireEnabledExtension(this.workspace, this.config.extensionId);
+    if (enabled.manifest.kind !== "runner") {
+      throw new Error(
+        `extension "${this.config.extensionId}" is a ${enabled.manifest.kind} extension, not a runner`
+      );
+    }
+    return enabled;
+  }
+  executionEnvelope(enabled, execution) {
+    const permissions = enabled.manifest.permissions;
+    return {
+      timeoutMs: execution.timeoutMs,
+      ...execution.model !== void 0 || this.config.model !== void 0 ? { model: execution.model ?? this.config.model } : {},
+      ...execution.maxTurns !== void 0 ? { maxTurns: execution.maxTurns } : {},
+      ...execution.maxBudgetUsd !== void 0 ? { maxBudgetUsd: execution.maxBudgetUsd } : {},
+      // Repository locations cross the boundary only with repository access.
+      ...permissions.repositoryRead || permissions.repositoryWrite ? { workspaceRoot: execution.workspaceRoot } : {},
+      ...permissions.repositoryWrite ? { runDir: execution.runDir } : {}
+    };
+  }
+  async detect(context) {
+    let enabled;
+    try {
+      enabled = this.resolve();
+    } catch (cause) {
+      return {
+        runner: this.name,
+        kind: this.kind,
+        status: "misconfigured",
+        authentication: "unknown",
+        capabilities: [],
+        diagnostics: [
+          {
+            severity: "error",
+            code: "EXTENSION_RUNNER_UNAVAILABLE",
+            message: cause instanceof Error ? cause.message : String(cause)
+          }
+        ],
+        category: this.category,
+        capabilitySet: capabilitySet([]),
+        supportLevel: "unavailable",
+        networkBacked: false
+      };
+    }
+    try {
+      const permissions = enabled.manifest.permissions;
+      const outcome = await invokeExtensionOperation(enabled, {
+        operation: "runner.detect",
+        payload: {
+          ...context.probeCapabilities !== void 0 ? { probeCapabilities: context.probeCapabilities } : {},
+          ...context.timeoutMs !== void 0 ? { timeoutMs: context.timeoutMs } : {},
+          ...permissions.repositoryRead || permissions.repositoryWrite ? { workspaceRoot: context.workspaceRoot } : {}
+        },
+        ...Object.keys(this.config.configuration).length > 0 ? { configuration: this.config.configuration } : {},
+        timeoutMs: context.timeoutMs ?? 3e4
+      });
+      const detected = runnerDetectOutputSchema.parse(outcome.output);
+      const effective = Object.fromEntries(
+        Object.entries(this.declaredCapabilities).map(([key, declared]) => [
+          key,
+          declared && detected.capabilitySet[key]
+        ])
+      );
+      const status = detected.available ? "available" : detected.authentication === "unauthenticated" ? "unauthenticated" : "unavailable";
+      return {
+        runner: this.name,
+        kind: this.kind,
+        status,
+        ...enabled.manifest.entrypoint !== void 0 ? { executable: enabled.manifest.entrypoint } : {},
+        version: enabled.manifest.version,
+        authentication: detected.authentication,
+        capabilities: [],
+        diagnostics: detected.diagnostics.map((diagnostic) => ({
+          severity: diagnostic.severity,
+          code: diagnostic.code,
+          message: diagnostic.message
+        })),
+        category: this.category,
+        capabilitySet: effective,
+        supportLevel: status === "available" ? this.declaredSupportLevel : "unavailable",
+        networkBacked: detected.networkBacked
+      };
+    } catch (cause) {
+      return {
+        runner: this.name,
+        kind: this.kind,
+        status: "error",
+        version: enabled.manifest.version,
+        authentication: "unknown",
+        capabilities: [],
+        diagnostics: [
+          {
+            severity: "error",
+            code: "EXTENSION_RUNNER_DETECT_FAILED",
+            message: cause instanceof Error ? cause.message : String(cause)
+          }
+        ],
+        category: this.category,
+        capabilitySet: capabilitySet([]),
+        supportLevel: "unavailable",
+        networkBacked: false
+      };
+    }
+  }
+  async generateStage(input, execution) {
+    const startedAt = Date.now();
+    try {
+      const enabled = this.resolve();
+      const operation = input.intent === "refine" && enabled.manifest.capabilities.operations.includes("runner.refineStage") ? "runner.refineStage" : "runner.generateStage";
+      const outcome = await invokeExtensionOperation(enabled, {
+        operation,
+        payload: {
+          specName: input.specName,
+          stage: input.stage,
+          intent: input.intent,
+          prompt: input.prompt,
+          promptVersion: input.promptVersion,
+          toolPolicy: input.toolPolicy,
+          ...input.correction !== void 0 ? { correction: input.correction } : {},
+          execution: this.executionEnvelope(enabled, execution)
+        },
+        ...Object.keys(this.config.configuration).length > 0 ? { configuration: this.config.configuration } : {},
+        timeoutMs: execution.timeoutMs,
+        ...execution.signal !== void 0 ? { signal: execution.signal } : {}
+      });
+      const output = runnerStageOutputSchema.parse(outcome.output);
+      return this.stageResult(output, Date.now() - startedAt);
+    } catch (cause) {
+      return {
+        runner: this.name,
+        outcome: failureOutcome(cause),
+        failureReason: cause instanceof Error ? cause.message : String(cause),
+        rawStdout: "",
+        rawStderr: "",
+        durationMs: Date.now() - startedAt,
+        warnings: [],
+        error: failureError(cause)
+      };
+    }
+  }
+  stageResult(output, durationMs) {
+    const usage = usageFrom(output, durationMs);
+    const cost = costFrom(output);
+    let report;
+    const warnings = [...output.warnings];
+    let invalidStructuredOutput = output.invalidStructuredOutput;
+    if (output.report !== void 0) {
+      const parsed = parseStageRunnerReport(JSON.stringify(output.report));
+      if (parsed.ok) {
+        report = parsed.report;
+      } else {
+        warnings.push(`extension stage report failed validation: ${parsed.reason}`);
+        invalidStructuredOutput = invalidStructuredOutput ?? JSON.stringify(output.report);
+      }
+    }
+    return {
+      runner: this.name,
+      outcome: output.outcome,
+      ...output.failureReason !== void 0 ? { failureReason: output.failureReason } : {},
+      rawStdout: output.rawStdout,
+      rawStderr: output.rawStderr,
+      ...output.sessionId !== void 0 ? { sessionId: output.sessionId } : {},
+      durationMs,
+      warnings,
+      ...report !== void 0 ? { report } : {},
+      ...usage !== void 0 ? { usage } : {},
+      ...cost !== void 0 ? { cost } : {},
+      ...invalidStructuredOutput !== void 0 ? { invalidStructuredOutput } : {}
+    };
+  }
+  async executeTask(input, execution) {
+    return this.runTaskOperation("runner.executeTask", input, execution);
+  }
+  async resumeTask(input, execution) {
+    return this.runTaskOperation("runner.resumeTask", input, execution);
+  }
+  async runTaskOperation(operation, input, execution) {
+    const startedAt = Date.now();
+    try {
+      const enabled = this.resolve();
+      const outcome = await invokeExtensionOperation(enabled, {
+        operation,
+        payload: {
+          specName: input.specName,
+          taskId: input.taskId,
+          prompt: input.prompt,
+          promptVersion: input.promptVersion,
+          toolPolicy: input.toolPolicy,
+          ..."sessionId" in input && input.sessionId !== void 0 ? { sessionId: input.sessionId } : {},
+          execution: this.executionEnvelope(enabled, execution)
+        },
+        ...Object.keys(this.config.configuration).length > 0 ? { configuration: this.config.configuration } : {},
+        timeoutMs: execution.timeoutMs,
+        ...execution.signal !== void 0 ? { signal: execution.signal } : {}
+      });
+      const output = runnerTaskOutputSchema.parse(outcome.output);
+      const durationMs = Date.now() - startedAt;
+      const usage = usageFrom(output, durationMs);
+      const cost = costFrom(output);
+      let report;
+      const warnings = [...output.warnings];
+      let invalidStructuredOutput = output.invalidStructuredOutput;
+      if (output.report !== void 0) {
+        const parsed = parseTaskRunnerReport(JSON.stringify(output.report));
+        if (parsed.ok) {
+          report = parsed.report;
+        } else {
+          warnings.push(`extension task report failed validation: ${parsed.reason}`);
+          invalidStructuredOutput = invalidStructuredOutput ?? JSON.stringify(output.report);
+        }
+      }
+      return {
+        runner: this.name,
+        outcome: output.outcome,
+        ...output.failureReason !== void 0 ? { failureReason: output.failureReason } : {},
+        rawStdout: output.rawStdout,
+        rawStderr: output.rawStderr,
+        ...output.sessionId !== void 0 ? { sessionId: output.sessionId } : {},
+        durationMs,
+        warnings,
+        ...report !== void 0 ? { report } : {},
+        ...usage !== void 0 ? { usage } : {},
+        ...cost !== void 0 ? { cost } : {},
+        ...invalidStructuredOutput !== void 0 ? { invalidStructuredOutput } : {},
+        resumeSupported: output.resumeSupported
+      };
+    } catch (cause) {
+      return {
+        runner: this.name,
+        outcome: failureOutcome(cause),
+        failureReason: cause instanceof Error ? cause.message : String(cause),
+        rawStdout: "",
+        rawStderr: "",
+        durationMs: Date.now() - startedAt,
+        warnings: [],
+        error: failureError(cause),
+        resumeSupported: false
+      };
+    }
+  }
+  async listModels(context) {
+    try {
+      const enabled = this.resolve();
+      if (!enabled.manifest.capabilities.operations.includes("runner.listModels")) {
+        return {
+          supported: false,
+          models: [],
+          detail: "this runner extension does not declare model listing"
+        };
+      }
+      const outcome = await invokeExtensionOperation(enabled, {
+        operation: "runner.listModels",
+        payload: {},
+        timeoutMs: context.timeoutMs ?? 3e4
+      });
+      const output = runnerModelListOutputSchema.parse(outcome.output);
+      return {
+        supported: output.supported,
+        models: output.models.map((model) => ({
+          name: model.name,
+          ...model.sizeBytes !== void 0 ? { sizeBytes: model.sizeBytes } : {},
+          ...model.family !== void 0 ? { family: model.family } : {},
+          ...model.parameterSize !== void 0 ? { parameterSize: model.parameterSize } : {},
+          ...model.quantization !== void 0 ? { quantization: model.quantization } : {},
+          ...model.modifiedAt !== void 0 ? { modifiedAt: model.modifiedAt } : {},
+          ...model.location !== void 0 ? { location: model.location } : {}
+        })),
+        ...output.detail !== void 0 ? { detail: output.detail } : {}
+      };
+    } catch (cause) {
+      return {
+        supported: false,
+        models: [],
+        detail: cause instanceof Error ? cause.message : String(cause)
+      };
+    }
+  }
+  executionBoundaryNote() {
+    return "Runner extension: executes out of process behind the versioned extension protocol; its report is a claim \u2014 git evidence, verification, and protected-path checks remain authoritative.";
+  }
+};
+function createExtensionRunnerFactory(workspace) {
+  return (config2) => new ExtensionRunnerProxy(workspace, config2);
+}
+function defaultDescription(kind, id) {
+  switch (kind) {
+    case "analyzer":
+      return `Deterministic spec diagnostics contributed by the ${id} analyzer extension.`;
+    case "verifier":
+      return `Verification diagnostics contributed by the ${id} verifier extension.`;
+    case "exporter":
+      return `Candidate export files produced by the ${id} exporter extension.`;
+    case "runner":
+      return `An out-of-process runner adapter provided by the ${id} extension.`;
+    case "template-provider":
+      return `Spec template packs contributed by the ${id} template-provider extension.`;
+  }
+}
+function scaffoldManifest2(options) {
+  const executable = options.kind !== "template-provider";
+  const operations = options.kind === "runner" ? ["runner.detect", "runner.generateStage", "runner.executeTask"] : [...operationsForKind(options.kind)];
+  return {
+    schemaVersion: "1.0.0",
+    protocolVersion: EXTENSION_PROTOCOL_VERSION,
+    id: options.id,
+    version: "1.0.0",
+    displayName: options.displayName ?? options.id,
+    description: options.description ?? defaultDescription(options.kind, options.id),
+    kind: options.kind,
+    ...executable ? { entrypoint: "dist/extension.cjs" } : {},
+    compatibility: { specbridge: ">=0.7.1 <1.0.0", extensionSdk: `>=${EXTENSION_SDK_VERSION} <1.0.0` },
+    capabilities: { operations },
+    permissions: {
+      specRead: options.kind !== "template-provider",
+      repositoryRead: options.kind === "runner",
+      repositoryWrite: options.kind === "runner",
+      network: false,
+      childProcess: false,
+      environmentVariables: []
+    },
+    license: "MIT",
+    keywords: [options.kind, "specbridge-extension"]
+  };
+}
+var PROTOCOL_SHELL_HEAD = `'use strict';
+// Self-contained SpecBridge extension implementing the versioned stdio
+// protocol directly. stdout carries protocol messages ONLY; log to stderr.
+// For SDK-based development, see src/extension.mjs and the README.
+const readline = require('node:readline');
+const path = require('node:path');
+const manifest = require(path.join(process.cwd(), 'specbridge-extension.json'));
+const rl = readline.createInterface({ input: process.stdin, terminal: false });
+function send(message) { process.stdout.write(JSON.stringify(message) + '\\n'); }
+function ok(id, result) { send({ jsonrpc: '2.0', id, result }); }
+function fail(id, code, message) { send({ jsonrpc: '2.0', id, error: { code, message } }); }
+rl.on('line', (line) => {
+  let request;
+  try { request = JSON.parse(line); } catch { return; }
+  if (request.method === 'initialize') {
+    ok(request.id, {
+      protocolVersion: '1.0.0',
+      extensionId: manifest.id,
+      extensionVersion: manifest.version,
+      capabilities: manifest.capabilities,
+    });
+    return;
+  }
+  if (request.method === 'extension.getMetadata') {
+    ok(request.id, {
+      id: manifest.id, version: manifest.version, kind: manifest.kind,
+      displayName: manifest.displayName, protocolVersion: '1.0.0',
+    });
+    return;
+  }
+  if (request.method === 'extension.cancel') {
+    ok(request.id, { cancelled: false });
+    return;
+  }
+  if (request.method === 'extension.shutdown') {
+    ok(request.id, { ok: true });
+    process.exit(0);
+  }
+  if (request.method !== 'extension.invoke') {
+    fail(request.id, -32601, 'method not found');
+    return;
+  }
+  const operation = request.params.operation;
+  const payload = request.params.payload || {};
+`;
+var PROTOCOL_SHELL_TAIL = `  fail(request.id, -32004, 'operation "' + operation + '" is not supported');
+});
+`;
+var SDK_PACKAGE = ["@specbridge", "extension-sdk"].join("/");
+var KIND_HANDLERS = {
+  analyzer: `  if (operation === 'analyzer.analyze') {
+    const diagnostics = [];
+    const lines = String(payload.stageContent || '').split('\\n');
+    for (let index = 0; index < lines.length; index += 1) {
+      if (lines[index].includes('TBD')) {
+        diagnostics.push({
+          ruleId: 'RULE001',
+          severity: 'warning',
+          message: 'Unresolved TBD found; replace it with a concrete decision.',
+          line: index + 1,
+          confidence: 'deterministic',
+        });
+      }
+    }
+    ok(request.id, { operation, output: { diagnostics } });
+    return;
+  }
+`,
+  verifier: `  if (operation === 'verifier.verify') {
+    const changed = payload.changedFiles || [];
+    const source = changed.filter((f) => /\\.(ts|js|py|go|rs|java)$/.test(f.path) && !/test/i.test(f.path));
+    const tests = changed.filter((f) => /test/i.test(f.path));
+    const missing = source.length > 0 && tests.length === 0;
+    ok(request.id, { operation, output: {
+      status: missing ? 'warning' : source.length === 0 ? 'not-applicable' : 'passed',
+      diagnostics: missing ? [{
+        ruleId: 'TESTS_MISSING',
+        severity: 'warning',
+        message: 'Changed source files have no matching test changes (heuristic).',
+        confidence: 'heuristic',
+      }] : [],
+      summary: 'heuristic changed-source-vs-changed-tests check',
+    } });
+    return;
+  }
+`,
+  exporter: `  if (operation === 'exporter.export') {
+    const stages = payload.stages || {};
+    const summaryLines = ['# ' + payload.specName, ''];
+    for (const stage of Object.keys(stages).sort()) {
+      summaryLines.push('## ' + stage, '', String(stages[stage]).split('\\n')[0] || '(empty)', '');
+    }
+    ok(request.id, { operation, output: {
+      files: [{
+        path: payload.specName + '-summary.md',
+        mediaType: 'text/markdown',
+        content: summaryLines.join('\\n') + '\\n',
+      }],
+      diagnostics: [],
+    } });
+    return;
+  }
+`,
+  runner: `  const CAPS = {
+    stageGeneration: true, stageRefinement: false, taskExecution: true, taskResume: false,
+    structuredFinalOutput: true, streamingEvents: false, repositoryRead: true,
+    repositoryWrite: true, sandbox: false, toolRestriction: true, usageReporting: false,
+    costReporting: false, localOnly: true, requiresNetwork: false, supportsSystemPrompt: false,
+    supportsJsonSchema: false, supportsCancellation: true,
+  };
+  if (operation === 'runner.detect') {
+    ok(request.id, { operation, output: {
+      available: true, authentication: 'not-applicable', capabilitySet: CAPS,
+      networkBacked: false, diagnostics: [],
+    } });
+    return;
+  }
+  if (operation === 'runner.generateStage') {
+    ok(request.id, { operation, output: {
+      outcome: 'completed', rawStdout: 'deterministic scaffold runner', rawStderr: '',
+      durationMs: 1, warnings: [],
+      report: {
+        schemaVersion: '1.0.0', stage: payload.stage,
+        markdown: '# Deterministic output for ' + payload.specName + '\\n',
+        summary: 'deterministic scaffold output (no model, no network)',
+        assumptions: [], openQuestions: [], referencedFiles: [],
+      },
+    } });
+    return;
+  }
+  if (operation === 'runner.executeTask') {
+    ok(request.id, { operation, output: {
+      outcome: 'completed', rawStdout: 'deterministic scaffold runner', rawStderr: '',
+      durationMs: 1, warnings: [], resumeSupported: false,
+      report: {
+        schemaVersion: '1.0.0', outcome: 'completed',
+        summary: 'claimed complete \u2014 a claim, never evidence',
+        changedFiles: [], commandsReported: [], testsReported: [],
+        remainingRisks: [], blockingQuestions: [], recommendedNextActions: [],
+      },
+    } });
+    return;
+  }
+`
+};
+var SDK_SOURCE = {
+  analyzer: `import { createAnalyzerExtension } from '${SDK_PACKAGE}';
+import manifest from '../specbridge-extension.json' with { type: 'json' };
+
+createAnalyzerExtension({
+  manifest,
+  analyze(input) {
+    const diagnostics = [];
+    input.stageContent.split('\\n').forEach((line, index) => {
+      if (line.includes('TBD')) {
+        diagnostics.push({
+          ruleId: 'RULE001',
+          severity: 'warning',
+          message: 'Unresolved TBD found; replace it with a concrete decision.',
+          line: index + 1,
+          confidence: 'deterministic',
+        });
+      }
+    });
+    return { diagnostics };
+  },
+}).run();
+`,
+  verifier: `import { createVerifierExtension } from '${SDK_PACKAGE}';
+import manifest from '../specbridge-extension.json' with { type: 'json' };
+
+createVerifierExtension({
+  manifest,
+  verify(input) {
+    const source = input.changedFiles.filter((f) => !/test/i.test(f.path));
+    const tests = input.changedFiles.filter((f) => /test/i.test(f.path));
+    const missing = source.length > 0 && tests.length === 0;
+    return {
+      status: missing ? 'warning' : source.length === 0 ? 'not-applicable' : 'passed',
+      diagnostics: missing
+        ? [{ ruleId: 'TESTS_MISSING', severity: 'warning', message: 'Changed source files have no matching test changes (heuristic).', confidence: 'heuristic' }]
+        : [],
+    };
+  },
+}).run();
+`,
+  exporter: `import { createExporterExtension } from '${SDK_PACKAGE}';
+import manifest from '../specbridge-extension.json' with { type: 'json' };
+
+createExporterExtension({
+  manifest,
+  export(input) {
+    return {
+      files: [{
+        path: input.specName + '-summary.md',
+        mediaType: 'text/markdown',
+        content: '# ' + input.specName + '\\n',
+      }],
+    };
+  },
+}).run();
+`,
+  runner: `import { createRunnerExtension } from '${SDK_PACKAGE}';
+import manifest from '../specbridge-extension.json' with { type: 'json' };
+
+// See dist/extension.cjs for the full deterministic reference behavior.
+createRunnerExtension({
+  manifest,
+  handlers: {
+    detect() {
+      return {
+        available: true,
+        authentication: 'not-applicable',
+        capabilitySet: {
+          stageGeneration: true, stageRefinement: false, taskExecution: true, taskResume: false,
+          structuredFinalOutput: true, streamingEvents: false, repositoryRead: true,
+          repositoryWrite: true, sandbox: false, toolRestriction: true, usageReporting: false,
+          costReporting: false, localOnly: true, requiresNetwork: false, supportsSystemPrompt: false,
+          supportsJsonSchema: false, supportsCancellation: true,
+        },
+        networkBacked: false,
+        diagnostics: [],
+      };
+    },
+  },
+}).run();
+`
+};
+var EXAMPLE_TEMPLATE_PACK = (id) => ({
+  [`templates/${id}-starter/specbridge-template.json`]: `${JSON.stringify(
+    {
+      schemaVersion: "1.0.0",
+      id: `${id}-starter`,
+      version: "1.0.0",
+      displayName: "Starter Template",
+      description: "A starter feature template contributed by this template-provider extension.",
+      kind: "feature",
+      supportedModes: ["requirements-first", "quick"],
+      defaultMode: "requirements-first",
+      tags: ["starter"],
+      files: [
+        { source: "files/requirements.md.template", target: "requirements.md", stage: "requirements", required: true },
+        { source: "files/design.md.template", target: "design.md", stage: "design", required: true },
+        { source: "files/tasks.md.template", target: "tasks.md", stage: "tasks", required: true }
+      ],
+      variables: [],
+      compatibility: { specbridge: ">=0.7.0 <1.0.0", kiroLayout: "1" },
+      license: "MIT"
+    },
+    null,
+    2
+  )}
+`,
+  [`templates/${id}-starter/README.md`]: "# Starter Template\n\nEdit the files under files/ to shape your template.\n",
+  [`templates/${id}-starter/files/requirements.md.template`]: "# Requirements: {{title}}\n\n## 1. First requirement\n\nWHEN ... THEN the system SHALL ...\n",
+  [`templates/${id}-starter/files/design.md.template`]: "# Design: {{title}}\n\n## Architecture\n\nDescribe the approach.\n",
+  [`templates/${id}-starter/files/tasks.md.template`]: "# Tasks\n\n- [ ] 1. Implement {{title}}\n"
+});
+function scaffoldReadme2(manifest) {
+  const executable = manifest.kind !== "template-provider";
+  return `# ${manifest.displayName}
+
+${manifest.description}
+
+A SpecBridge **${manifest.kind}** extension.
+
+## Develop
+
+${executable ? "- `dist/extension.cjs` is the self-contained artifact SpecBridge runs (works as scaffolded).\n- `src/extension.mjs` shows the same handler built on `@specbridge/extension-sdk`; bundle it\n  to `dist/extension.cjs` (see package.json) once you add dependencies.\n- stdout is protocol-only; log with `context.log(...)` / stderr." : "- Template packs live under `templates/<template-id>/` in the standard\n  v0.7.0 `specbridge-template.json` format. This extension is data-only:\n  it has no entrypoint and never runs code."}
+
+## Validate, test, package
+
+\`\`\`bash
+specbridge extension validate .
+${executable ? "node --test test/\nspecbridge extension conformance . --yes\n" : ""}specbridge extension package .
+\`\`\`
+
+The package command prints the archive SHA-256 \u2014 publish that hash with your
+archive. Checksums prove integrity, not publisher identity.
+
+## Install locally
+
+\`\`\`bash
+specbridge extension install ./dist/${manifest.id}-${manifest.version}.specbridge-extension.zip
+specbridge extension show ${manifest.id}
+specbridge extension enable ${manifest.id} --accept-permissions <hash-from-show>
+\`\`\`
+
+Installed extensions start disabled; enabling requires accepting the exact
+permission hash shown by \`extension show\`.
+`;
+}
+var PUBLISHING_CHECKLIST = `# Publishing checklist
+
+1. Implement and test your handler (\`node --test test/\` for executable kinds).
+2. Keep \`dist/extension.cjs\` self-contained \u2014 no node_modules at runtime.
+3. \`specbridge extension validate .\`
+4. \`specbridge extension conformance . --yes\` (executable kinds)
+5. \`specbridge extension package .\` \u2014 note the printed archive SHA-256.
+6. Host the archive at a stable HTTPS URL.
+7. Add a registry entry (id, kind, version, archiveUrl, sha256, permissions,
+   compatibility, license) \u2014 see the SpecBridge repository's
+   registry/CONTRIBUTING.md.
+8. Open a pull request. Registry listing is not endorsement; users review
+   permissions before enabling.
+`;
+function scaffoldTest(manifest) {
+  return `import test from 'node:test';
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import path from 'node:path';
+
+// Protocol-level smoke test: initialize handshake over real stdio.
+test('extension answers the initialize handshake', async () => {
+  const child = spawn(process.execPath, [path.resolve('dist/extension.cjs')], {
+    cwd: path.resolve('.'),
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
+  const response = await new Promise((resolve, reject) => {
+    let buffered = '';
+    child.stdout.on('data', (chunk) => {
+      buffered += chunk.toString('utf8');
+      const line = buffered.split('\\n')[0];
+      if (line) resolve(JSON.parse(line));
+    });
+    child.on('error', reject);
+    setTimeout(() => reject(new Error('no response')), 5000).unref();
+    child.stdin.write(JSON.stringify({
+      jsonrpc: '2.0', id: 'test-1', method: 'initialize',
+      params: {
+        protocolVersion: '1.0.0', specbridgeVersion: '0.7.1',
+        extensionId: '${manifest.id}', extensionVersion: '${manifest.version}',
+        grantedPermissions: ${JSON.stringify(manifest.permissions)},
+      },
+    }) + '\\n');
+  });
+  child.kill();
+  assert.equal(response.result.extensionId, '${manifest.id}');
+});
+`;
+}
+var MIT_LICENSE = `MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+`;
+function scaffoldExtension(options) {
+  const idCheck = validateExtensionId(options.id);
+  if (!idCheck.valid) {
+    throw new ExtensionError(
+      "SBE003",
+      `"${options.id}" is not a valid extension ID: ${idCheck.problems.join("; ")}.`,
+      "Use lowercase letters, digits, and single hyphens, e.g. security-analyzer."
+    );
+  }
+  const outputDir = options.outputDir;
+  if ((0, import_fs29.existsSync)(outputDir) && (0, import_fs29.readdirSync)(outputDir).length > 0) {
+    throw new ExtensionError(
+      "SBE030",
+      `output directory "${outputDir}" already exists and is not empty.`,
+      "Pick a new directory; scaffolding never overwrites existing files."
+    );
+  }
+  const manifest = scaffoldManifest2(options);
+  const files = /* @__PURE__ */ new Map();
+  files.set("specbridge-extension.json", `${JSON.stringify(manifest, null, 2)}
+`);
+  files.set("README.md", scaffoldReadme2(manifest));
+  files.set("LICENSE", MIT_LICENSE);
+  files.set("PUBLISHING.md", PUBLISHING_CHECKLIST);
+  if (manifest.kind === "template-provider") {
+    for (const [name, content] of Object.entries(EXAMPLE_TEMPLATE_PACK(options.id))) {
+      files.set(name, content);
+    }
+  } else {
+    files.set(
+      "dist/extension.cjs",
+      PROTOCOL_SHELL_HEAD + KIND_HANDLERS[manifest.kind] + PROTOCOL_SHELL_TAIL
+    );
+    files.set("src/extension.mjs", SDK_SOURCE[manifest.kind]);
+    files.set("test/extension.test.mjs", scaffoldTest(manifest));
+    files.set(
+      "package.json",
+      `${JSON.stringify(
+        {
+          name: `specbridge-extension-${options.id}`,
+          version: manifest.version,
+          private: true,
+          description: manifest.description,
+          license: "MIT",
+          type: "module",
+          scripts: {
+            test: "node --test test/"
+            // Optional SDK-based build: bundle src/extension.mjs into a
+            // self-contained dist/extension.cjs (e.g. with esbuild):
+            //   esbuild src/extension.mjs --bundle --platform=node
+            //     --format=cjs --outfile=dist/extension.cjs
+          },
+          devDependencies: { "@specbridge/extension-sdk": `^${EXTENSION_SDK_VERSION}` }
+        },
+        null,
+        2
+      )}
+`
+    );
+  }
+  if (options.dryRun === true) {
+    return {
+      id: options.id,
+      kind: manifest.kind,
+      outputDir,
+      files: [...files.keys()].sort(),
+      dryRun: true
+    };
+  }
+  for (const [name, content] of files) {
+    const target = import_path29.default.join(outputDir, ...name.split("/"));
+    (0, import_fs29.mkdirSync)(import_path29.default.dirname(target), { recursive: true });
+    writeFileAtomic(target, content);
+  }
+  return {
+    id: options.id,
+    kind: manifest.kind,
+    outputDir,
+    files: [...files.keys()].sort(),
+    dryRun: false
+  };
+}
+function collectExtensionTemplatePacks(workspace) {
+  if (workspace === void 0) {
+    return { packs: [], diagnostics: [] };
+  }
+  const { state, diagnostics: stateDiagnostics } = readExtensionState(workspace);
+  const diagnostics = [...stateDiagnostics];
+  const packs = [];
+  for (const id of Object.keys(state.enabled).sort((a2, b) => a2.localeCompare(b, "en"))) {
+    const record2 = state.installed.find(
+      (candidate) => candidate.id === id && candidate.version === state.enabled[id]?.version
+    );
+    if (record2 === void 0 || record2.kind !== "template-provider") {
+      continue;
+    }
+    try {
+      const enabled = requireEnabledExtension(workspace, id);
+      const files = readExtensionPackageDirectory(enabled.installedDir);
+      const prefix = `${TEMPLATE_PROVIDER_TEMPLATES_DIR}/`;
+      const grouped = /* @__PURE__ */ new Map();
+      for (const [name, content] of files) {
+        if (!name.startsWith(prefix)) {
+          continue;
+        }
+        const rest = name.slice(prefix.length);
+        const slash = rest.indexOf("/");
+        if (slash <= 0) {
+          continue;
+        }
+        const templateId = rest.slice(0, slash);
+        const packRelative = rest.slice(slash + 1);
+        const pack = grouped.get(templateId) ?? /* @__PURE__ */ new Map();
+        pack.set(packRelative, content.toString("utf8"));
+        grouped.set(templateId, pack);
+      }
+      for (const [templateId, packFiles] of grouped) {
+        packs.push({
+          extensionId: id,
+          templateId,
+          data: { origin: `extension:${id}/${templateId}`, files: packFiles }
+        });
+      }
+    } catch (cause) {
+      diagnostics.push({
+        severity: "warning",
+        code: "EXTENSION_TEMPLATES_UNAVAILABLE",
+        message: `template-provider extension "${id}" is enabled but its templates are unavailable: ${cause instanceof Error ? cause.message : String(cause)}`
+      });
+    }
+  }
+  return { packs, diagnostics };
+}
+function uninstallExtension(options) {
+  const clock = options.clock ?? systemClock2;
+  const workspace = options.workspace;
+  const { state } = readExtensionState(workspace);
+  const versions = installedVersions(state, options.id);
+  if (versions.length === 0) {
+    throw new ExtensionError(
+      "SBE014",
+      `extension "${options.id}" is not installed.`,
+      "Nothing to uninstall.",
+      { extensionId: options.id }
+    );
+  }
+  let version2 = options.version;
+  if (version2 === void 0) {
+    if (versions.length > 1) {
+      throw new ExtensionError(
+        "SBE002",
+        `extension "${options.id}" has ${versions.length} installed versions (${versions.map((record22) => record22.version).join(", ")}).`,
+        "Pass --version <version> to select the version to uninstall.",
+        { extensionId: options.id }
+      );
+    }
+    version2 = versions[0]?.version ?? "";
+  }
+  const record2 = versions.find((candidate) => candidate.version === version2);
+  if (record2 === void 0) {
+    throw new ExtensionError(
+      "SBE014",
+      `extension "${options.id}" version ${version2} is not installed.`,
+      `Installed versions: ${versions.map((candidate) => candidate.version).join(", ")}.`,
+      { extensionId: options.id, version: version2 }
+    );
+  }
+  if (isEnabled(state, options.id, version2)) {
+    throw new ExtensionError(
+      "SBE028",
+      `extension "${options.id}@${version2}" is currently enabled.`,
+      `Disable it first with \`specbridge extension disable ${options.id}\`.`,
+      { extensionId: options.id, version: version2 }
+    );
+  }
+  if (options.referencingProfiles !== void 0 && options.referencingProfiles.length > 0) {
+    throw new ExtensionError(
+      "SBE029",
+      `runner profile(s) ${options.referencingProfiles.map((name) => `"${name}"`).join(", ")} reference extension "${options.id}".`,
+      "Remove or repoint those profiles in .specbridge/config.json first.",
+      { extensionId: options.id, profiles: [...options.referencingProfiles] }
+    );
+  }
+  const installedDir = installedVersionDir(workspace, options.id, version2);
+  const stat = (0, import_fs30.lstatSync)(installedDir, { throwIfNoEntry: false });
+  if (stat !== void 0 && stat.isSymbolicLink()) {
+    throw new ExtensionError(
+      "SBE011",
+      `installed path "${installedDir}" is a symbolic link.`,
+      "Refusing to remove through a symlink; inspect the extension store manually."
+    );
+  }
+  if (options.dryRun === true) {
+    return { id: options.id, version: version2, removedPath: installedDir, dryRun: true };
+  }
+  const recordId = newExtensionRecordId(clock);
+  let trashPath;
+  if (stat !== void 0) {
+    const trashDir = import_path30.default.join(extensionsDir(workspace), "trash");
+    trashPath = import_path30.default.join(trashDir, `${options.id}-${version2}-${recordId}`);
+    assertInsideWorkspace(workspace.rootDir, trashPath);
+    (0, import_fs30.mkdirSync)(trashDir, { recursive: true });
+    (0, import_fs30.renameSync)(installedDir, trashPath);
+  }
+  writeExtensionState(workspace, {
+    ...state,
+    installed: state.installed.filter(
+      (candidate) => !(candidate.id === options.id && candidate.version === version2)
+    )
+  });
+  const { grants } = readPermissionGrants(workspace);
+  const grant = grants.grants[options.id];
+  if (grant !== void 0 && grant.version === version2) {
+    const nextGrants = { ...grants.grants };
+    delete nextGrants[options.id];
+    writePermissionGrants(workspace, { ...grants, grants: nextGrants });
+  }
+  appendExtensionRecord(workspace, {
+    schemaVersion: "1.0.0",
+    recordId,
+    type: "uninstall",
+    at: clock().toISOString(),
+    extensionId: options.id,
+    version: version2,
+    details: trashPath === void 0 ? {} : { trashPath }
+  });
+  return trashPath === void 0 ? { id: options.id, version: version2, removedPath: installedDir, dryRun: false } : { id: options.id, version: version2, removedPath: installedDir, trashPath, dryRun: false };
+}
+async function runVerifierExtension(workspace, extensionId, input, options = {}) {
+  const enabled = requireEnabledExtension(workspace, extensionId);
+  if (enabled.manifest.kind !== "verifier") {
+    throw new ExtensionError(
+      "SBE021",
+      `extension "${extensionId}" is a ${enabled.manifest.kind} extension, not a verifier.`,
+      "Configure a verifier extension in the policy extensionVerifiers list.",
+      { extensionId, kind: enabled.manifest.kind }
+    );
+  }
+  const bounded = verifierInputSchema.parse(input);
+  const payload = enabled.manifest.permissions.repositoryRead ? bounded : (() => {
+    const { files: _files, ...rest } = bounded;
+    return rest;
+  })();
+  const outcome = await invokeExtensionOperation(enabled, {
+    operation: "verifier.verify",
+    payload,
+    ...options.configuration === void 0 ? {} : { configuration: options.configuration },
+    ...options.timeoutMs === void 0 ? {} : { timeoutMs: options.timeoutMs },
+    ...options.signal === void 0 ? {} : { signal: options.signal },
+    ...options.environment === void 0 ? {} : { environment: options.environment }
+  });
+  const result = verifierResultSchema.parse(outcome.output);
+  return {
+    extensionId: enabled.manifest.id,
+    extensionVersion: enabled.manifest.version,
+    status: result.status,
+    diagnostics: result.diagnostics.map((diagnostic) => ({
+      ruleId: namespaceRuleId(enabled.manifest.id, diagnostic.ruleId),
+      severity: diagnostic.severity,
+      message: diagnostic.message,
+      file: diagnostic.file ?? null,
+      line: diagnostic.line ?? null,
+      remediation: diagnostic.remediation ?? null,
+      confidence: diagnostic.confidence
+    })),
+    ...result.summary === void 0 ? {} : { summary: result.summary },
+    durationMs: outcome.durationMs
+  };
+}
+var SDK_CHANGE_TYPES = /* @__PURE__ */ new Set(["added", "modified", "deleted", "renamed"]);
+function createExtensionVerifierHook(workspace, options = {}) {
+  return async ({ specName, entries, changedFiles }) => {
+    const results = [];
+    for (const entry of entries) {
+      const input = {
+        specName,
+        changedFiles: changedFiles.slice(0, 2e3).map((file) => ({
+          path: file.path,
+          changeType: SDK_CHANGE_TYPES.has(file.changeType) ? file.changeType : "unknown"
+        })),
+        ...Object.keys(entry.configuration).length > 0 ? { configuration: entry.configuration } : {}
+      };
+      try {
+        const run = await runVerifierExtension(workspace, entry.extension, input, {
+          ...options.timeoutMs === void 0 ? {} : { timeoutMs: options.timeoutMs },
+          ...options.environment === void 0 ? {} : { environment: options.environment },
+          ...Object.keys(entry.configuration).length > 0 ? { configuration: entry.configuration } : {}
+        });
+        results.push({
+          extensionId: run.extensionId,
+          extensionVersion: run.extensionVersion,
+          specName,
+          required: entry.required,
+          status: run.status,
+          summary: run.summary ?? null,
+          durationMs: run.durationMs,
+          diagnostics: run.diagnostics
+        });
+      } catch (cause) {
+        results.push({
+          extensionId: entry.extension,
+          extensionVersion: "unknown",
+          specName,
+          required: entry.required,
+          status: "error",
+          summary: cause instanceof Error ? cause.message : String(cause),
+          durationMs: 0,
+          diagnostics: []
+        });
+      }
+    }
+    return results;
+  };
+}
+
+// ../../packages/cli/src/commands/template.ts
+var WORKFLOW_MODES = ["requirements-first", "design-first", "quick"];
+var SPEC_TYPES = ["feature", "bugfix"];
+function collectVar(value, previous = []) {
+  return [...previous, value];
+}
+function parseVars(options) {
+  const variables = {};
+  for (const raw of options.var ?? []) {
+    const eq = raw.indexOf("=");
+    if (eq <= 0) {
+      throw new SpecBridgeError(
+        "INVALID_ARGUMENT",
+        `Invalid --var "${raw}". Use --var key=value (e.g. --var tableName=payments).`
+      );
+    }
+    const key = raw.slice(0, eq);
+    if (key in variables) {
+      throw new SpecBridgeError("INVALID_ARGUMENT", `--var "${key}" was supplied more than once.`);
+    }
+    variables[key] = raw.slice(eq + 1);
+  }
+  return variables;
+}
+function splitTemplateInputs(options) {
+  const { title: varTitle, description: varDescription, ...variables } = parseVars(options);
+  for (const [name, optionValue, varValue] of [
+    ["title", options.title, varTitle],
+    ["description", options.description, varDescription]
+  ]) {
+    if (optionValue !== void 0 && varValue !== void 0) {
+      throw new SpecBridgeError(
+        "INVALID_ARGUMENT",
+        `Both --${name} and --var ${name}=\u2026 were supplied. Use one of them.`
+      );
+    }
+  }
+  return {
+    title: options.title ?? varTitle,
+    description: options.description ?? varDescription,
+    variables
+  };
+}
+function requireMode(value) {
+  if (value === void 0) return void 0;
+  if (!WORKFLOW_MODES.includes(value)) {
+    throw new SpecBridgeError(
+      "INVALID_ARGUMENT",
+      `Unknown --mode "${value}". Valid modes: ${WORKFLOW_MODES.join(", ")}.`
+    );
+  }
+  return value;
+}
+function catalogFor(runtime, source) {
+  if (source !== void 0 && !["builtin", "project", "extension", "all"].includes(source)) {
+    throw new SpecBridgeError(
+      "INVALID_ARGUMENT",
+      `Unknown --source "${source}". Valid sources: builtin, project, extension, all.`
+    );
+  }
+  const workspace = runtime.tryWorkspace();
+  const extensionTemplates = collectExtensionTemplatePacks(workspace);
+  return loadTemplateCatalog(workspace, {
+    source: source ?? "all",
+    extensionPacks: [...extensionTemplates.packs]
+  });
+}
+function entryToJson(entry) {
+  const manifest = entry.pack.manifest;
+  return {
+    ref: entry.ref,
+    id: entry.id,
+    source: entry.source,
+    valid: entry.valid,
+    displayName: manifest?.displayName ?? null,
+    version: manifest?.version ?? null,
+    description: manifest?.description ?? null,
+    kind: manifest?.kind ?? null,
+    supportedModes: manifest?.supportedModes ?? [],
+    defaultMode: manifest?.defaultMode ?? null,
+    tags: manifest?.tags ?? [],
+    compatibility: manifest?.compatibility ?? null,
+    deprecated: manifest?.deprecated ?? false,
+    errors: entry.pack.issues.filter((issue4) => issue4.severity === "error").map((issue4) => `${issue4.code}: ${issue4.message}`)
+  };
+}
+function applyFilters(entries, filters) {
+  let result = entries;
+  if (filters.kind !== void 0) {
+    if (!SPEC_TYPES.includes(filters.kind)) {
+      throw new SpecBridgeError(
+        "INVALID_ARGUMENT",
+        `Unknown --kind "${filters.kind}". Valid kinds: ${SPEC_TYPES.join(", ")}.`
+      );
+    }
+    result = result.filter((entry) => entry.pack.manifest?.kind === filters.kind);
+  }
+  if (filters.mode !== void 0) {
+    const mode = requireMode(filters.mode);
+    result = result.filter((entry) => entry.pack.manifest?.supportedModes.includes(mode) === true);
+  }
+  if (filters.tag !== void 0) {
+    result = result.filter((entry) => entry.pack.manifest?.tags.includes(filters.tag) === true);
+  }
+  return result;
+}
+function printEntryLine(runtime, entry) {
+  const manifest = entry.pack.manifest;
+  if (!entry.valid || manifest === void 0) {
+    runtime.out(failLine(`${entry.ref}`, '(invalid \u2014 run "template validate" for details)'));
+    return;
+  }
+  const deprecated = manifest.deprecated === true ? " [deprecated]" : "";
+  runtime.out(okLine(`${entry.ref} \u2014 ${manifest.displayName} v${manifest.version}${deprecated}`));
+  runtime.out(
+    dim(
+      `     ${manifest.kind} | modes: ${manifest.supportedModes.join(", ")} | tags: ${manifest.tags.join(", ")}`
+    )
+  );
+  runtime.out(dim(`     ${manifest.description}`));
+}
+function printIssues(runtime, issues) {
+  for (const issue4 of issues) {
+    const location = issue4.file !== void 0 ? ` [${issue4.file}]` : "";
+    const line = `${issue4.code} (${issue4.category})${location}: ${issue4.message}`;
+    runtime.out(issue4.severity === "error" ? failLine(line) : warnLine(line));
+  }
+}
+function printApplicationPlan(runtime, plan, heading, showContent) {
+  const workspace = runtime.workspace();
+  runtime.out(reportTitle(heading));
+  runtime.out();
+  runtime.out(`  Template:  ${plan.templateRef} v${plan.templateVersion}`);
+  runtime.out(`  Spec name: ${plan.specPlan.specName}`);
+  runtime.out(`  Kind:      ${plan.specPlan.specType}`);
+  runtime.out(`  Mode:      ${plan.mode}`);
+  runtime.out(`  Title:     ${plan.specPlan.title}`);
+  runtime.out(`  Dir:       ${relPath(workspace, plan.specPlan.dir)}`);
+  runtime.out(`  Candidate: ${plan.candidateHash}`);
+  runtime.out();
+  for (const diagnostic of plan.diagnostics) {
+    runtime.out(warnLine(diagnostic.message));
+  }
+  runtime.out(sectionTitle("Target files"));
+  for (const file of plan.specPlan.files) {
+    runtime.out(
+      okLine(
+        `${relPath(workspace, plan.specPlan.dir)}/${file.fileName}`,
+        `(${file.stage}, ${Buffer.byteLength(file.content, "utf8")} B, unapproved)`
+      )
+    );
+  }
+  runtime.out(okLine(relPath(workspace, plan.specPlan.statePath), "(sidecar workflow state)"));
+  if (showContent) {
+    runtime.out();
+    runtime.out(sectionTitle("Rendered content"));
+    for (const file of plan.specPlan.files) {
+      runtime.out(dim(`--- ${file.fileName} ---`));
+      runtime.outRaw(file.content);
+    }
+    runtime.out(dim("--- sidecar state proposal ---"));
+    runtime.outRaw(`${JSON.stringify(plan.specPlan.state, null, 2)}
+`);
+  }
+}
+function applicationPlanJson(plan, extra) {
+  return {
+    template: {
+      ref: plan.templateRef,
+      id: plan.templateId,
+      version: plan.templateVersion,
+      source: plan.templateSource,
+      manifestHash: plan.manifestHash
+    },
+    specName: plan.specPlan.specName,
+    specKind: plan.specPlan.specType,
+    workflowMode: plan.mode,
+    title: plan.specPlan.title,
+    dir: plan.specPlan.dir,
+    candidateHash: plan.candidateHash,
+    variableNames: plan.variableNames,
+    diagnostics: plan.diagnostics,
+    files: plan.specPlan.files.map((file) => ({
+      fileName: file.fileName,
+      stage: file.stage,
+      bytes: Buffer.byteLength(file.content, "utf8"),
+      content: file.content
+    })),
+    state: plan.specPlan.state,
+    statePath: plan.specPlan.statePath,
+    ...extra
+  };
+}
+function registerTemplateCommands(program2, runtime) {
+  const template = program2.command("template").description("Discover, preview, and apply reusable spec templates (offline, deterministic)");
+  template.command("list").description("List available templates from the built-in catalog and project-local packs").option("--source <source>", "template source: builtin | project | all", "all").option("--kind <kind>", `filter by spec kind: ${SPEC_TYPES.join(" | ")}`).option("--mode <mode>", `filter by supported workflow mode: ${WORKFLOW_MODES.join(" | ")}`).option("--tag <tag>", "filter by tag").option("--json", "output a machine-readable JSON report").action((options) => {
+    const catalog = catalogFor(runtime, options.source);
+    const entries = applyFilters(catalog.entries, options);
+    if (options.json === true) {
+      runtime.outRaw(
+        serializeJsonReport(
+          createJsonReport("specbridge.template-list/1", `${CLI_BIN} ${VERSION}`, {
+            source: options.source ?? "all",
+            count: entries.length,
+            templates: entries.map(entryToJson),
+            diagnostics: catalog.diagnostics
+          })
+        )
+      );
+      return;
+    }
+    runtime.out(reportTitle(`Templates (${entries.length})`));
+    runtime.out();
+    if (entries.length === 0) {
+      runtime.out(dim("  No templates match the given filters."));
+      return;
+    }
+    for (const entry of entries) {
+      printEntryLine(runtime, entry);
+    }
+    runtime.out();
+    runtime.out(dim(`Apply one with: ${CLI_BIN} template apply <template> --name <spec-name>`));
+  });
+  template.command("search <query>").description("Search templates by ID, display name, description, and tags (deterministic, local)").option("--source <source>", "template source: builtin | project | all", "all").option("--kind <kind>", `filter by spec kind: ${SPEC_TYPES.join(" | ")}`).option("--mode <mode>", `filter by supported workflow mode: ${WORKFLOW_MODES.join(" | ")}`).option("--limit <number>", `maximum results (bounded at ${MAX_SEARCH_LIMIT})`).option("--json", "output a machine-readable JSON report (includes scores)").action((query, options) => {
+    const catalog = catalogFor(runtime, options.source);
+    const filtered = {
+      entries: applyFilters(catalog.entries, options),
+      diagnostics: catalog.diagnostics
+    };
+    const limit = options.limit !== void 0 ? Number(options.limit) : void 0;
+    if (limit !== void 0 && (!Number.isInteger(limit) || limit < 1)) {
+      throw new SpecBridgeError("INVALID_ARGUMENT", `--limit must be a positive integer (got "${options.limit}").`);
+    }
+    const results = searchTemplates(filtered, query, limit !== void 0 ? { limit } : {});
+    if (options.json === true) {
+      runtime.outRaw(
+        serializeJsonReport(
+          createJsonReport("specbridge.template-search/1", `${CLI_BIN} ${VERSION}`, {
+            query,
+            count: results.length,
+            results: results.map((result) => ({ score: result.score, ...entryToJson(result.entry) }))
+          })
+        )
+      );
+      return;
+    }
+    runtime.out(reportTitle(`Search results for "${query}" (${results.length})`));
+    runtime.out();
+    if (results.length === 0) {
+      runtime.out(dim(`  No templates match. Try ${CLI_BIN} template list.`));
+      return;
+    }
+    for (const result of results) {
+      printEntryLine(runtime, result.entry);
+    }
+  });
+  template.command("show <template>").description("Show template metadata, variables, files, and usage").option("--manifest", "print the raw manifest JSON").option("--files", "print the template file contents").option("--readme", "print the template README").option("--json", "output a machine-readable JSON report").action(
+    (reference, options) => {
+      const catalog = catalogFor(runtime);
+      const entry = resolveTemplate(catalog, reference);
+      const manifest = entry.pack.manifest;
+      if (options.json === true) {
+        runtime.outRaw(
+          serializeJsonReport(
+            createJsonReport("specbridge.template-show/1", `${CLI_BIN} ${VERSION}`, {
+              ...entryToJson(entry),
+              variables: manifest?.variables ?? [],
+              files: manifest?.files ?? [],
+              readme: entry.pack.readme ?? null,
+              manifest: options.manifest === true ? manifest : void 0,
+              issues: entry.pack.issues
+            })
+          )
+        );
+        return;
+      }
+      if (options.manifest === true) {
+        runtime.outRaw(entry.pack.manifestText ?? "");
+        return;
+      }
+      if (options.readme === true) {
+        runtime.outRaw(entry.pack.readme ?? `No README.md in ${entry.ref}.
+`);
+        return;
+      }
+      if (options.files === true) {
+        for (const file of manifest?.files ?? []) {
+          runtime.out(dim(`--- ${file.source} -> ${file.target} ---`));
+          runtime.outRaw(entry.pack.files.get(file.source) ?? "");
+        }
+        return;
+      }
+      runtime.out(reportTitle(`${entry.ref} \u2014 ${manifest?.displayName ?? "(invalid template)"}`));
+      runtime.out();
+      if (manifest === void 0) {
+        printIssues(runtime, entry.pack.issues);
+        runtime.exitCode = EXIT_CODES.gateFailure;
+        return;
+      }
+      runtime.out(`  ${manifest.description}`);
+      runtime.out();
+      runtime.out(`  Source:   ${entry.source}`);
+      runtime.out(`  Version:  ${manifest.version}`);
+      runtime.out(`  Kind:     ${manifest.kind}`);
+      runtime.out(`  Modes:    ${manifest.supportedModes.join(", ")} (default: ${manifest.defaultMode})`);
+      runtime.out(`  Tags:     ${manifest.tags.join(", ")}`);
+      runtime.out(`  License:  ${manifest.license}`);
+      runtime.out(`  Requires: SpecBridge ${manifest.compatibility.specbridge}`);
+      runtime.out(`  Valid:    ${entry.valid ? "yes" : 'NO \u2014 run "template validate"'}`);
+      runtime.out();
+      runtime.out(sectionTitle("Files"));
+      for (const file of manifest.files) {
+        runtime.out(okLine(`${file.target}`, `(${file.stage}, from ${file.source})`));
+      }
+      runtime.out();
+      runtime.out(sectionTitle("Variables"));
+      if (manifest.variables.length === 0) {
+        runtime.out(dim("  none \u2014 only the built-in variables are used"));
+      }
+      for (const variable of manifest.variables) {
+        const requirement = variable.required ? "required" : `default: ${JSON.stringify(variable.default ?? "")}`;
+        const enumValues = variable.type === "enum" ? ` [${(variable.values ?? []).join(", ")}]` : "";
+        runtime.out(`  --var ${variable.name}=<${variable.type}>${enumValues} (${requirement})`);
+        runtime.out(dim(`      ${variable.description}`));
+      }
+      runtime.out();
+      runtime.out(sectionTitle("Usage"));
+      const example = manifest.examples?.[0] ?? `${CLI_BIN} template apply ${entry.id} --name <spec-name>` + manifest.variables.filter((variable) => variable.required).map((variable) => ` --var ${variable.name}=<value>`).join("");
+      runtime.out(`  ${example}`);
+      if (!entry.valid) {
+        runtime.out();
+        printIssues(runtime, entry.pack.issues);
+        runtime.exitCode = EXIT_CODES.gateFailure;
+      }
+    }
+  );
+  template.command("validate <template-or-path>").description("Validate an installed template or a local template pack directory").option("--strict", "treat warnings as failures").option("--json", "output a machine-readable JSON report").action((target, options) => {
+    const clock = () => runtime.now();
+    let issues;
+    let subject;
+    const reference = parseTemplateReference(target);
+    const catalog = catalogFor(runtime);
+    const catalogMatch = reference !== void 0 && catalog.entries.some(
+      (entry) => entry.id === reference.id && (reference.source === void 0 || entry.source === reference.source)
+    );
+    if (catalogMatch) {
+      const entry = resolveTemplate(catalog, target);
+      subject = entry.ref;
+      issues = [...entry.pack.issues, ...entry.valid ? checkPackRendering(entry.pack, clock) : []];
+    } else {
+      const workspace = runtime.tryWorkspace();
+      const resolved = import_node_path9.default.resolve(runtime.cwd, target);
+      if (!(0, import_node_fs6.existsSync)(resolved)) {
+        throw new SpecBridgeError(
+          "SPEC_NOT_FOUND",
+          `"${target}" is neither a known template nor an existing directory. Run "${CLI_BIN} template list" to see templates, or pass a path to a local template pack.`
+        );
+      }
+      if (workspace !== void 0) {
+        const relativeToRoot = import_node_path9.default.relative(workspace.rootDir, resolved);
+        const inside = !relativeToRoot.startsWith("..") && !import_node_path9.default.isAbsolute(relativeToRoot);
+        if (!inside) {
+          throw new SpecBridgeError(
+            "PATH_OUTSIDE_WORKSPACE",
+            `Template pack path ${resolved} is outside the repository. Copy the pack into the repository before validating it.`
+          );
+        }
+      }
+      subject = resolved;
+      const pack = loadTemplatePack(readTemplatePackDirectory(resolved));
+      issues = [...pack.issues, ...pack.valid ? checkPackRendering(pack, clock) : []];
+    }
+    const errors = issues.filter((issue4) => issue4.severity === "error");
+    const warnings = issues.filter((issue4) => issue4.severity === "warning");
+    const failed = errors.length > 0 || options.strict === true && warnings.length > 0;
+    if (options.json === true) {
+      runtime.outRaw(
+        serializeJsonReport(
+          createJsonReport("specbridge.template-validate/1", `${CLI_BIN} ${VERSION}`, {
+            subject,
+            strict: options.strict === true,
+            valid: !failed,
+            errorCount: errors.length,
+            warningCount: warnings.length,
+            issues
+          })
+        )
+      );
+    } else {
+      runtime.out(reportTitle(`Validate ${subject}`));
+      runtime.out();
+      if (issues.length === 0) {
+        runtime.out(okLine("Template pack is valid."));
+      } else {
+        printIssues(runtime, issues);
+        runtime.out();
+        runtime.out(
+          failed ? failLine(`${errors.length} error(s), ${warnings.length} warning(s).`) : warnLine(`0 errors, ${warnings.length} warning(s).`)
+        );
+      }
+    }
+    if (failed) {
+      runtime.exitCode = EXIT_CODES.gateFailure;
+    }
+  });
+  const previewLike = (dryRunHeading) => (reference, options) => {
+    const workspace = runtime.workspace();
+    const catalog = catalogFor(runtime);
+    const clock = () => runtime.now();
+    const mode = requireMode(options.mode);
+    const inputs = splitTemplateInputs(options);
+    const plan = planTemplateApplication(
+      workspace,
+      catalog,
+      {
+        reference,
+        specName: options.name,
+        ...mode !== void 0 ? { mode } : {},
+        ...inputs.title !== void 0 ? { title: inputs.title } : {},
+        ...inputs.description !== void 0 ? { description: inputs.description } : {},
+        variables: inputs.variables
+      },
+      clock
+    );
+    void dryRunHeading;
+    return plan;
+  };
+  template.command("preview <template>").description("Render a template without writing anything (no model, no network, no files)").requiredOption("--name <spec-name>", "name of the spec that would be created").option("--mode <mode>", `workflow mode: ${WORKFLOW_MODES.join(" | ")} (default: template's defaultMode)`).option("--title <text>", "human-readable title (default: derived from the spec name)").option("--description <text>", "description inserted into the first document").option("--var <key=value>", "template variable (repeatable)", collectVar).option("--json", "output a machine-readable JSON report").action((reference, options) => {
+    const plan = previewLike("preview")(reference, options);
+    if (options.json === true) {
+      runtime.outRaw(
+        serializeJsonReport(
+          createJsonReport(
+            "specbridge.template-preview/1",
+            `${CLI_BIN} ${VERSION}`,
+            applicationPlanJson(plan, { preview: true })
+          )
+        )
+      );
+      return;
+    }
+    printApplicationPlan(runtime, plan, "Template preview \u2014 nothing was written", true);
+    runtime.out();
+    runtime.out(sectionTitle("Next steps"));
+    runtime.out(`  Apply with: ${CLI_BIN} template apply ${reference} --name ${options.name}`);
+  });
+  template.command("apply <template>").description("Create a new spec from a template (atomic; never overwrites an existing spec)").requiredOption("--name <spec-name>", "name of the spec to create").option("--mode <mode>", `workflow mode: ${WORKFLOW_MODES.join(" | ")} (default: template's defaultMode)`).option("--title <text>", "human-readable title (default: derived from the spec name)").option("--description <text>", "description inserted into the first document").option("--var <key=value>", "template variable (repeatable)", collectVar).option("--dry-run", "print everything that would be created without writing any file").option("--json", "output a machine-readable JSON report").action(
+    (reference, options) => {
+      const plan = previewLike("apply")(reference, options);
+      if (options.dryRun === true) {
+        if (options.json === true) {
+          runtime.outRaw(
+            serializeJsonReport(
+              createJsonReport(
+                "specbridge.template-apply/1",
+                `${CLI_BIN} ${VERSION}`,
+                applicationPlanJson(plan, { dryRun: true, created: false })
+              )
+            )
+          );
+          return;
+        }
+        printApplicationPlan(runtime, plan, "Dry run \u2014 nothing was written", true);
+        return;
+      }
+      const workspace = runtime.workspace();
+      const clock = () => runtime.now();
+      const result = executeTemplateApplication(workspace, plan, clock);
+      if (options.json === true) {
+        runtime.outRaw(
+          serializeJsonReport(
+            createJsonReport(
+              "specbridge.template-apply/1",
+              `${CLI_BIN} ${VERSION}`,
+              applicationPlanJson(plan, {
+                dryRun: false,
+                created: true,
+                recordId: result.recordId,
+                writtenFiles: result.creation.writtenFiles
+              })
+            )
+          )
+        );
+        return;
+      }
+      printApplicationPlan(runtime, plan, `Created spec: ${plan.specPlan.specName}`, false);
+      runtime.out();
+      runtime.out(sectionTitle("Next steps"));
+      const firstStage = plan.specPlan.specType === "bugfix" ? "bugfix" : plan.mode === "design-first" ? "design" : "requirements";
+      runtime.out(`  1. Replace the remaining placeholders in ${firstStage}.md with real content.`);
+      runtime.out(`  2. ${CLI_BIN} spec analyze ${plan.specPlan.specName} --stage ${firstStage}`);
+      runtime.out(`  3. ${CLI_BIN} spec approve ${plan.specPlan.specName} --stage ${firstStage}`);
+      runtime.out(dim("  Generated stages start unapproved; templates never bypass approval."));
+    }
+  );
+  template.command("install <local-path>").description("Install a local template pack into .specbridge/templates/ (offline, no scripts)").option("--dry-run", "validate and show what would be installed without writing").option("--json", "output a machine-readable JSON report").action((localPath, options) => {
+    const workspace = runtime.workspace();
+    const catalog = catalogFor(runtime);
+    const clock = () => runtime.now();
+    const plan = planTemplateInstall(workspace, catalog, { sourcePath: localPath, cwd: runtime.cwd });
+    const installed = options.dryRun === true ? void 0 : executeTemplateInstall(workspace, plan, clock);
+    if (options.json === true) {
+      runtime.outRaw(
+        serializeJsonReport(
+          createJsonReport("specbridge.template-install/1", `${CLI_BIN} ${VERSION}`, {
+            dryRun: options.dryRun === true,
+            installed: installed !== void 0,
+            ref: plan.ref,
+            templateId: plan.templateId,
+            version: plan.templateVersion,
+            manifestHash: plan.manifestHash,
+            sourceDir: plan.sourceDir,
+            targetDir: plan.targetDir,
+            warnings: plan.warnings,
+            recordId: installed?.recordId ?? null
+          })
+        )
+      );
+      return;
+    }
+    runtime.out(
+      reportTitle(
+        options.dryRun === true ? "Dry run \u2014 nothing was installed" : `Installed template: ${plan.ref}`
+      )
+    );
+    runtime.out();
+    runtime.out(`  Source: ${relPath(workspace, plan.sourceDir)}`);
+    runtime.out(`  Target: ${relPath(workspace, plan.targetDir)}`);
+    runtime.out(`  Version: ${plan.templateVersion}`);
+    for (const warningText of plan.warnings) {
+      runtime.out(warnLine(warningText));
+    }
+    if (installed !== void 0) {
+      runtime.out();
+      runtime.out(okLine(`Use it with: ${CLI_BIN} template apply ${plan.ref} --name <spec-name>`));
+    }
+  });
+  template.command("uninstall <template>").description("Uninstall a project template (built-in templates are immutable)").option("--dry-run", "show what would be removed without removing it").option("--json", "output a machine-readable JSON report").action((reference, options) => {
+    const workspace = runtime.workspace();
+    const clock = () => runtime.now();
+    const plan = planTemplateUninstall(workspace, reference);
+    const removed = options.dryRun === true ? void 0 : executeTemplateUninstall(workspace, plan, clock);
+    if (options.json === true) {
+      runtime.outRaw(
+        serializeJsonReport(
+          createJsonReport("specbridge.template-uninstall/1", `${CLI_BIN} ${VERSION}`, {
+            dryRun: options.dryRun === true,
+            uninstalled: removed !== void 0,
+            ref: plan.ref,
+            templateId: plan.templateId,
+            dir: plan.dir,
+            recordId: removed?.recordId ?? null
+          })
+        )
+      );
+      return;
+    }
+    runtime.out(
+      reportTitle(
+        options.dryRun === true ? "Dry run \u2014 nothing was removed" : `Uninstalled template: ${plan.ref}`
+      )
+    );
+    runtime.out();
+    runtime.out(`  Directory: ${relPath(workspace, plan.dir)}`);
+    runtime.out(
+      dim("  Specs generated from this template and template run records are not affected.")
+    );
+  });
+  template.command("scaffold <template-id>").description("Scaffold a new community-ready template pack (manifest, README, template files)").option("--kind <kind>", `spec kind: ${SPEC_TYPES.join(" | ")}`, "feature").option("--modes <modes>", "comma-separated supported workflow modes").option("--display-name <text>", "human-readable template name").option("--description <text>", "template description for the manifest and README").option("--license <identifier>", "license identifier for the manifest", "MIT").option("--output <path>", "output directory (default: ./<template-id>)").option("--dry-run", "list the files that would be generated without writing").option("--json", "output a machine-readable JSON report").action(
+    (templateId, options) => {
+      if (!SPEC_TYPES.includes(options.kind)) {
+        throw new SpecBridgeError(
+          "INVALID_ARGUMENT",
+          `Unknown --kind "${options.kind}". Valid kinds: ${SPEC_TYPES.join(", ")}.`
+        );
+      }
+      let modes;
+      if (options.modes !== void 0) {
+        modes = options.modes.split(",").map((raw) => {
+          const mode = requireMode(raw.trim());
+          return mode;
+        });
+      }
+      const clock = () => runtime.now();
+      const plan = planTemplateScaffold({
+        templateId,
+        kind: options.kind,
+        ...modes !== void 0 ? { modes } : {},
+        ...options.displayName !== void 0 ? { displayName: options.displayName } : {},
+        ...options.description !== void 0 ? { description: options.description } : {},
+        ...options.license !== void 0 ? { license: options.license } : {},
+        outputPath: options.output ?? `./${templateId}`,
+        cwd: runtime.cwd
+      });
+      const result = options.dryRun === true ? void 0 : executeTemplateScaffold(plan, runtime.tryWorkspace(), clock);
+      if (options.json === true) {
+        runtime.outRaw(
+          serializeJsonReport(
+            createJsonReport("specbridge.template-scaffold/1", `${CLI_BIN} ${VERSION}`, {
+              dryRun: options.dryRun === true,
+              created: result !== void 0,
+              templateId: plan.templateId,
+              kind: plan.kind,
+              outputDir: plan.outputDir,
+              files: [...plan.files.keys()],
+              recordId: result?.recordId ?? null
+            })
+          )
+        );
+        return;
+      }
+      runtime.out(
+        reportTitle(
+          options.dryRun === true ? "Dry run \u2014 nothing was written" : `Scaffolded template pack: ${plan.templateId}`
+        )
+      );
+      runtime.out();
+      runtime.out(`  Output: ${plan.outputDir}`);
+      runtime.out();
+      runtime.out(sectionTitle(options.dryRun === true ? "Files that would be generated" : "Files generated"));
+      for (const relative of plan.files.keys()) {
+        runtime.out(okLine(relative));
+      }
+      runtime.out();
+      runtime.out(sectionTitle("Next steps"));
+      runtime.out("  1. Edit the template files (plain Markdown with {{variable}} placeholders).");
+      runtime.out(`  2. ${CLI_BIN} template validate ${options.output ?? `./${templateId}`}`);
+      runtime.out(`  3. ${CLI_BIN} template install ${options.output ?? `./${templateId}`}`);
+      runtime.out(`  4. ${CLI_BIN} template preview project:${plan.templateId} --name example-spec`);
+    }
+  );
+}
+
+// ../../packages/cli/src/commands/spec-new.ts
+var SPEC_TYPES2 = ["feature", "bugfix"];
+var WORKFLOW_MODES2 = ["requirements-first", "design-first", "quick"];
+function planToJson(plan, dryRun, template) {
+  return createJsonReport("specbridge.spec-new/1", `${CLI_BIN} ${VERSION}`, {
+    dryRun,
+    created: !dryRun,
+    template: template ?? null,
+    specName: plan.specName,
+    specType: plan.specType,
+    workflowMode: plan.mode,
+    title: plan.title,
+    dir: plan.dir,
+    files: plan.files.map((file) => ({
+      fileName: file.fileName,
+      stage: file.stage,
+      bytes: Buffer.byteLength(file.content, "utf8"),
+      content: file.content
+    })),
+    state: plan.state,
+    statePath: plan.statePath
+  });
+}
+function printPlanSummary(runtime, plan, dryRun) {
+  const workspace = runtime.workspace();
+  runtime.out(reportTitle(dryRun ? `Dry run \u2014 nothing was written` : `Created spec: ${plan.specName}`));
+  runtime.out();
+  runtime.out(`  Name:  ${plan.specName}`);
+  runtime.out(`  Type:  ${plan.specType}`);
+  runtime.out(`  Mode:  ${plan.mode}`);
+  runtime.out(`  Title: ${plan.title}`);
+  runtime.out(`  Dir:   ${relPath(workspace, plan.dir)}`);
+  runtime.out();
+  runtime.out(sectionTitle(dryRun ? "Files that would be created" : "Files created"));
+  for (const file of plan.files) {
+    runtime.out(okLine(`${relPath(workspace, plan.dir)}/${file.fileName}`, `(${Buffer.byteLength(file.content, "utf8")} B)`));
+  }
+  runtime.out(okLine(relPath(workspace, plan.statePath), "(sidecar workflow state)"));
+  runtime.out();
+  if (dryRun) {
+    runtime.out(sectionTitle("Rendered content"));
+    for (const file of plan.files) {
+      runtime.out(dim(`--- ${file.fileName} ---`));
+      runtime.outRaw(file.content);
+    }
+    runtime.out(dim(`--- sidecar state (${relPath(workspace, plan.statePath)}) ---`));
+    runtime.outRaw(`${JSON.stringify(plan.state, null, 2)}
+`);
+    return;
+  }
+  runtime.out(sectionTitle("Next steps"));
+  const firstStage = plan.state.specType === "bugfix" ? "bugfix" : plan.mode === "design-first" ? "design" : "requirements";
+  runtime.out(`  1. Replace the template placeholders in ${firstStage}.md with real content.`);
+  runtime.out(`  2. ${CLI_BIN} spec analyze ${plan.specName} --stage ${firstStage}`);
+  runtime.out(`  3. ${CLI_BIN} spec approve ${plan.specName} --stage ${firstStage}`);
+  runtime.out(`  4. ${CLI_BIN} spec status ${plan.specName}`);
+}
+function registerSpecNewCommand(spec, runtime) {
+  spec.command("new <name>").description("Create a new Kiro-compatible spec from offline templates (no model required)").option("--type <type>", `spec type: ${SPEC_TYPES2.join(" | ")}`, "feature").option(
+    "--mode <mode>",
+    `workflow mode: ${WORKFLOW_MODES2.join(" | ")}`,
+    "requirements-first"
+  ).option("--title <text>", "human-readable title (default: derived from the spec name)").option("--description <text>", "initial description inserted into the first document").option("--from-file <path>", "read the description from a UTF-8 file inside the workspace").option("--template <reference>", "create the spec from a template (e.g. rest-api, builtin:rest-api)").option("--var <key=value>", "template variable, requires --template (repeatable)", collectVar).option("--dry-run", "print everything that would be created without writing any file").option("--json", "output a machine-readable JSON report").addHelpText(
+    "after",
+    `
+The spec is created under .kiro/specs/<name>/ and stays fully Kiro-compatible:
+no front matter, no tool metadata. Workflow state (approvals) lives in
+.specbridge/state/specs/<name>.json.
+
+Spec names use lowercase words separated by single hyphens: notification-preferences,
+auth-v2, payment-retry.
+
+Examples:
+  ${CLI_BIN} spec new notification-preferences
+  ${CLI_BIN} spec new notification-preferences --mode requirements-first --title "Notification Preferences"
+  ${CLI_BIN} spec new cache-fallback --type bugfix --description "Fix stale cache fallback after upstream timeout"
+  ${CLI_BIN} spec new payment-retry --mode quick --from-file feature-description.md
+  ${CLI_BIN} spec new payment-retry --dry-run
+  ${CLI_BIN} spec new orders-endpoint --template rest-api --var resourceName=order`
+  ).action((name, options, command) => {
+    if (!SPEC_TYPES2.includes(options.type)) {
+      throw new SpecBridgeError(
+        "INVALID_ARGUMENT",
+        `Unknown --type "${options.type}". Valid types: ${SPEC_TYPES2.join(", ")}.`
+      );
+    }
+    if (!WORKFLOW_MODES2.includes(options.mode)) {
+      throw new SpecBridgeError(
+        "INVALID_ARGUMENT",
+        `Unknown --mode "${options.mode}". Valid modes: ${WORKFLOW_MODES2.join(", ")}.`
+      );
+    }
+    if (options.template !== void 0) {
+      createFromTemplate(runtime, name, options, command);
+      return;
+    }
+    if (options.var !== void 0 && options.var.length > 0) {
+      throw new SpecBridgeError(
+        "INVALID_ARGUMENT",
+        `--var requires --template: variables only exist in template-based creation. Either add --template <reference> or drop the --var options.`
+      );
+    }
+    const workspace = runtime.workspace();
+    const request = {
+      name,
+      specType: options.type,
+      mode: options.mode,
+      ...options.title !== void 0 ? { title: options.title } : {},
+      ...options.description !== void 0 ? { description: options.description } : {},
+      ...options.fromFile !== void 0 ? { fromFile: options.fromFile } : {},
+      cwd: runtime.cwd
+    };
+    const clock = () => runtime.now();
+    if (options.dryRun === true) {
+      const plan = planSpecCreation(workspace, request, clock);
+      if (options.json === true) {
+        runtime.outRaw(serializeJsonReport(planToJson(plan, true)));
+      } else {
+        printPlanSummary(runtime, plan, true);
+      }
+      return;
+    }
+    const result = createSpec(workspace, request, clock);
+    if (options.json === true) {
+      runtime.outRaw(serializeJsonReport(planToJson(result.plan, false)));
+      return;
+    }
+    printPlanSummary(runtime, result.plan, false);
+  });
+}
+function createFromTemplate(runtime, name, options, command) {
+  if (options.fromFile !== void 0) {
+    throw new SpecBridgeError(
+      "INVALID_ARGUMENT",
+      "--from-file cannot be combined with --template. Pass the description with --description, or use the template variables instead."
+    );
+  }
+  const workspace = runtime.workspace();
+  const catalog = loadTemplateCatalog(workspace);
+  const clock = () => runtime.now();
+  const explicitMode = command.getOptionValueSource("mode") === "cli";
+  const explicitType = command.getOptionValueSource("type") === "cli";
+  const inputs = splitTemplateInputs(options);
+  const plan = planTemplateApplication(
+    workspace,
+    catalog,
+    {
+      reference: options.template,
+      specName: name,
+      ...explicitMode ? { mode: options.mode } : {},
+      ...inputs.title !== void 0 ? { title: inputs.title } : {},
+      ...inputs.description !== void 0 ? { description: inputs.description } : {},
+      variables: inputs.variables
+    },
+    clock
+  );
+  if (explicitType && options.type !== plan.specPlan.specType) {
+    throw new SpecBridgeError(
+      "INVALID_ARGUMENT",
+      `--type ${options.type} conflicts with template ${plan.templateRef}, which is a ${plan.specPlan.specType} template. Drop --type or pick a ${options.type} template (see "${CLI_BIN} template list --kind ${options.type}").`
+    );
+  }
+  const templateInfo = {
+    ref: plan.templateRef,
+    version: plan.templateVersion,
+    source: plan.templateSource,
+    candidateHash: plan.candidateHash
+  };
+  if (options.dryRun === true) {
+    if (options.json === true) {
+      runtime.outRaw(serializeJsonReport(planToJson(plan.specPlan, true, templateInfo)));
+    } else {
+      runtime.out(dim(`Template: ${plan.templateRef} v${plan.templateVersion}`));
+      printPlanSummary(runtime, plan.specPlan, true);
+    }
+    return;
+  }
+  const result = executeTemplateApplication(workspace, plan, clock);
+  if (options.json === true) {
+    runtime.outRaw(serializeJsonReport(planToJson(result.plan.specPlan, false, templateInfo)));
+    return;
+  }
+  runtime.out(dim(`Template: ${plan.templateRef} v${plan.templateVersion}`));
+  printPlanSummary(runtime, plan.specPlan, false);
+}
+
+// ../../packages/cli/src/commands/spec-analyze.ts
+var import_node_fs7 = require("fs");
+var import_node_path10 = __toESM(require("path"), 1);
+var STAGE_CHOICES = [...STAGE_NAMES, "all"];
+function collectExtension(value, previous) {
+  return [...previous, value];
+}
+function registerSpecAnalyzeCommand(spec, runtime) {
+  spec.command("analyze <name>").description("Analyze a spec for structural and consistency problems (deterministic, offline)").option("--stage <stage>", `stage to analyze: ${STAGE_CHOICES.join(" | ")}`, "all").option("--strict", "treat warnings as failures (exit 1)").option(
+    "--extension <extension-id>",
+    "also run an installed, enabled analyzer extension (repeatable)",
+    collectExtension,
+    []
+  ).option("--json", "output a machine-readable JSON report").addHelpText(
+    "after",
+    `
+Findings come in three levels: error (blocks approval), warning (reported,
+never blocks unless --strict), and info. Placeholders left over from
+generated templates are errors for active stages and warnings for stages
+still blocked behind an unapproved prerequisite.
+
+Exit codes: 0 no errors \xB7 1 errors found (or warnings with --strict) \xB7 2 usage/runtime error.
+
+Examples:
+  ${CLI_BIN} spec analyze notification-preferences
+  ${CLI_BIN} spec analyze notification-preferences --stage requirements
+  ${CLI_BIN} spec analyze login-timeout-fix --stage bugfix --json
+  ${CLI_BIN} spec analyze notification-preferences --strict`
+  ).action(async (name, options) => {
+    if (!STAGE_CHOICES.includes(options.stage)) {
+      throw new SpecBridgeError(
+        "INVALID_ARGUMENT",
+        `Unknown --stage "${options.stage}". Valid stages: ${STAGE_CHOICES.join(", ")}.`
+      );
+    }
+    const workspace = runtime.workspace();
+    const folder = requireSpec(workspace, name);
+    const spec2 = analyzeSpec(workspace, folder);
+    const stateRead = readSpecState(workspace, folder.name);
+    let evaluation;
+    if (stateRead.state !== void 0) {
+      evaluation = evaluateWorkflow(workspace, stateRead.state);
+    }
+    let stages;
+    if (options.stage !== "all") {
+      const stage = options.stage;
+      const specType2 = stateRead.state?.specType ?? (spec2.classification.type === "bugfix" ? "bugfix" : "feature");
+      if (!isStageApplicable(specType2, stage)) {
+        throw new SpecBridgeError(
+          "INVALID_ARGUMENT",
+          `Stage "${stage}" does not apply to a ${specType2} spec. Applicable stages: ${applicableStages(specType2).join(", ")}.`
+        );
+      }
+      stages = [stage];
+    }
+    const result = analyzeSpecWorkflow(spec2, evaluation, stages);
+    const specType = stateRead.state?.specType ?? (spec2.classification.type === "bugfix" ? "bugfix" : "feature");
+    const workflowMode = stateRead.state?.workflowMode ?? "requirements-first";
+    const extensionRuns = [];
+    const extensionFailures = [];
+    for (const extensionId of options.extension) {
+      for (const stage of result.stages) {
+        if (!stage.fileExists) {
+          continue;
+        }
+        try {
+          const stageContent = (0, import_node_fs7.readFileSync)(import_node_path10.default.join(folder.dir, stage.fileName), "utf8");
+          extensionRuns.push(
+            await runAnalyzerExtension(workspace, extensionId, {
+              specName: folder.name,
+              specType,
+              workflowMode,
+              stage: stage.stage,
+              stageFile: stage.fileName,
+              stageContent
+            })
+          );
+        } catch (error2) {
+          extensionFailures.push({
+            extensionId,
+            message: error2 instanceof Error ? error2.message : String(error2)
+          });
+          break;
+        }
+      }
+    }
+    const extensionErrorCount = extensionRuns.flatMap((run) => run.diagnostics).filter((diagnostic) => diagnostic.severity === "error").length;
+    const extensionWarningCount = extensionRuns.flatMap((run) => run.diagnostics).filter((diagnostic) => diagnostic.severity === "warning").length;
+    const failed = result.hasErrors || extensionErrorCount > 0 || extensionFailures.length > 0 || options.strict === true && result.warningCount + extensionWarningCount > 0;
+    if (options.json === true) {
+      runtime.outRaw(
+        serializeJsonReport(
+          createJsonReport("specbridge.spec-analyze/1", `${CLI_BIN} ${VERSION}`, {
+            specName: result.specName,
+            strict: options.strict === true,
+            managed: evaluation !== void 0,
+            stages: result.stages.map((stage) => ({
+              stage: stage.stage,
+              fileName: stage.fileName,
+              fileExists: stage.fileExists,
+              diagnostics: stage.diagnostics
+            })),
+            errorCount: result.errorCount,
+            warningCount: result.warningCount,
+            extensions: extensionRuns.map((run) => ({
+              extensionId: run.extensionId,
+              extensionVersion: run.extensionVersion,
+              diagnostics: run.diagnostics,
+              summary: run.summary ?? null
+            })),
+            extensionFailures,
+            failed
+          })
+        )
+      );
+      runtime.exitCode = failed ? 1 : 0;
+      return;
+    }
+    runtime.out(reportTitle(`Analysis: ${folder.name}`));
+    if (stateRead.diagnostics.length > 0) {
+      for (const diagnostic of stateRead.diagnostics) {
+        runtime.out(severityLine(diagnostic.severity, diagnostic.message));
+      }
+    }
+    if (evaluation === void 0) {
+      runtime.out(dim("  Approval state: unmanaged (no sidecar state) \u2014 analyzing all present stages at full strictness."));
+    }
+    runtime.out();
+    for (const stage of result.stages) {
+      runtime.out(sectionTitle(`${stage.stage} (${stage.fileName})`));
+      if (!stage.fileExists && stage.diagnostics.length === 0) {
+        runtime.out(dim("  not present"));
+      } else if (stage.diagnostics.length === 0) {
+        runtime.out(okLine("no findings"));
+      } else {
+        for (const diagnostic of stage.diagnostics) {
+          const location = diagnostic.file !== void 0 ? ` [${relPath(workspace, diagnostic.file)}${diagnostic.line !== void 0 ? `:${diagnostic.line}` : ""}]` : "";
+          runtime.out(severityLine(diagnostic.severity, `${diagnostic.message}${location}`));
+        }
+      }
+      runtime.out();
+    }
+    if (options.extension.length > 0) {
+      runtime.out(sectionTitle("extension analyzers"));
+      for (const run of extensionRuns) {
+        if (run.diagnostics.length === 0) {
+          runtime.out(okLine(`${run.extensionId}@${run.extensionVersion}: no findings`));
+          continue;
+        }
+        for (const diagnostic of run.diagnostics) {
+          const location = diagnostic.file !== void 0 ? ` [${diagnostic.file}${diagnostic.line !== void 0 ? `:${diagnostic.line}` : ""}]` : "";
+          runtime.out(
+            severityLine(
+              diagnostic.severity,
+              `${diagnostic.ruleId} (${diagnostic.confidence}): ${diagnostic.message}${location}`
+            )
+          );
+        }
+      }
+      for (const failure of extensionFailures) {
+        runtime.out(severityLine("error", `extension "${failure.extensionId}" failed: ${failure.message}`));
+      }
+      runtime.out();
+    }
+    const extensionSummary = extensionRuns.length > 0 || extensionFailures.length > 0 ? ` (+${extensionErrorCount} extension error${extensionErrorCount === 1 ? "" : "s"}, ${extensionWarningCount} extension warning${extensionWarningCount === 1 ? "" : "s"})` : "";
+    const summary = `${result.errorCount} error${result.errorCount === 1 ? "" : "s"}, ${result.warningCount} warning${result.warningCount === 1 ? "" : "s"}${extensionSummary}`;
+    if (failed) {
+      runtime.out(`Result: ${reportTitle("FAIL")} \u2014 ${summary}${options.strict === true && !result.hasErrors ? " (strict mode)" : ""}`);
+    } else {
+      runtime.out(`Result: ${reportTitle("OK")} \u2014 ${summary}`);
+    }
+    runtime.exitCode = failed ? 1 : 0;
+  });
+}
+
+// ../../packages/cli/src/commands/spec-approve.ts
+function resultToJson(specName, result) {
+  const base = { specName };
+  if (result.ok && result.action === "approved") {
+    return createJsonReport("specbridge.spec-approve/1", `${CLI_BIN} ${VERSION}`, {
+      ...base,
+      action: "approved",
+      stage: result.stage,
+      hash: result.hash,
+      reapproved: result.reapproved,
+      invalidated: result.invalidated,
+      initialized: result.initialized,
+      status: result.state.status,
+      statePath: result.statePath,
+      warnings: result.analysis.diagnostics.filter((d) => d.severity === "warning"),
+      diagnostics: result.diagnostics
+    });
+  }
+  if (result.ok) {
+    return createJsonReport("specbridge.spec-approve/1", `${CLI_BIN} ${VERSION}`, {
+      ...base,
+      action: "revoked",
+      stage: result.stage,
+      invalidated: result.invalidated,
+      status: result.state.status,
+      statePath: result.statePath,
+      diagnostics: result.diagnostics
+    });
+  }
+  return createJsonReport("specbridge.spec-approve/1", `${CLI_BIN} ${VERSION}`, {
+    ...base,
+    action: "blocked",
+    reason: result.reason,
+    message: result.message,
+    missingPrerequisites: result.missingPrerequisites ?? [],
+    stalePrerequisites: result.stalePrerequisites ?? [],
+    analysis: result.analysis !== void 0 ? {
+      errorCount: result.analysis.errorCount,
+      warningCount: result.analysis.warningCount,
+      diagnostics: result.analysis.diagnostics
+    } : null,
+    diagnostics: result.diagnostics
+  });
+}
+function registerSpecApproveCommand(spec, runtime) {
+  spec.command("approve <name>").description("Approve (or revoke) a workflow stage; approvals live in .specbridge, never in .kiro").requiredOption("--stage <stage>", `stage to approve: ${STAGE_NAMES.join(" | ")}`).option("--revoke", "revoke the stage approval (dependent approvals are invalidated too)").option("--json", "output a machine-readable JSON report").addHelpText(
+    "after",
+    `
+Approval records the SHA-256 of the exact file bytes plus a timestamp in
+.specbridge/state/specs/<name>.json. The Markdown file itself is never
+rewritten. If an approved file changes later, the approval is reported as
+stale; re-approving updates the hash (and invalidates dependent approvals,
+because they were made against different content).
+
+Prerequisites by workflow:
+  requirements-first  requirements -> design -> tasks
+  design-first        design -> requirements -> tasks
+  quick               requirements + design in any order, then tasks
+  bugfix              bugfix -> design -> tasks
+
+For an existing Kiro spec without SpecBridge state, the first successful
+approval initializes the sidecar state (origin: existing-kiro-workspace).
+
+Exit codes: 0 approved/revoked \xB7 1 blocked (prerequisites or analysis errors) \xB7 2 usage error.
+
+Examples:
+  ${CLI_BIN} spec approve notification-preferences --stage requirements
+  ${CLI_BIN} spec approve notification-preferences --stage design
+  ${CLI_BIN} spec approve login-timeout-fix --stage bugfix
+  ${CLI_BIN} spec approve notification-preferences --stage requirements --revoke`
+  ).action((name, options) => {
+    const stage = options.stage;
+    if (stage === void 0 || !STAGE_NAMES.includes(stage)) {
+      throw new SpecBridgeError(
+        "INVALID_ARGUMENT",
+        `Unknown --stage "${options.stage ?? ""}". Valid stages: ${STAGE_NAMES.join(", ")}.`
+      );
+    }
+    const workspace = runtime.workspace();
+    const folder = requireSpec(workspace, name);
+    const spec2 = analyzeSpec(workspace, folder);
+    const result = approveStage(
+      workspace,
+      spec2,
+      { stage, ...options.revoke === true ? { revoke: true } : {} },
+      { clock: () => runtime.now() }
+    );
+    if (options.json === true) {
+      runtime.outRaw(serializeJsonReport(resultToJson(folder.name, result)));
+      runtime.exitCode = result.ok ? 0 : result.failure === "usage" ? 2 : 1;
+      return;
+    }
+    if (!result.ok) {
+      runtime.err(result.message);
+      if (result.reason === "prerequisites-unmet") {
+        const nextStage = result.missingPrerequisites?.[0] ?? result.stalePrerequisites?.[0];
+        if (nextStage !== void 0) {
+          runtime.err("");
+          runtime.err("Run:");
+          runtime.err(`  ${CLI_BIN} spec analyze ${folder.name} --stage ${nextStage}`);
+          runtime.err(`  ${CLI_BIN} spec approve ${folder.name} --stage ${nextStage}`);
+        }
+      }
+      if (result.reason === "analysis-errors" && result.analysis !== void 0) {
+        runtime.err("");
+        for (const diagnostic of result.analysis.diagnostics.filter((d) => d.severity === "error")) {
+          const location = diagnostic.file !== void 0 ? ` [${relPath(workspace, diagnostic.file)}${diagnostic.line !== void 0 ? `:${diagnostic.line}` : ""}]` : "";
+          runtime.err(`  ${diagnostic.severity === "error" ? "\u2717" : "!"} ${diagnostic.message}${location}`);
+        }
+        runtime.err("");
+        runtime.err(dim(`Full report: ${CLI_BIN} spec analyze ${folder.name} --stage ${stage}`));
+      }
+      runtime.exitCode = result.failure === "usage" ? 2 : 1;
+      return;
+    }
+    if (result.action === "revoked") {
+      runtime.out(reportTitle(`Revoked: ${folder.name} \u2014 ${result.stage}`));
+      runtime.out();
+      runtime.out(okLine(`${result.stage} approval revoked (files were not touched)`));
+      for (const invalidated of result.invalidated) {
+        runtime.out(warnLine(`${invalidated} approval invalidated (it depended on ${result.stage})`));
+      }
+      runtime.out();
+      runtime.out(`  Status: ${result.state.status}`);
+      runtime.out(dim(`  State: ${relPath(workspace, result.statePath)}`));
+      return;
+    }
+    runtime.out(reportTitle(`Approved: ${folder.name} \u2014 ${result.stage}`));
+    runtime.out();
+    if (result.initialized) {
+      runtime.out(okLine("Sidecar state initialized for this existing Kiro spec", "(origin: existing-kiro-workspace)"));
+    }
+    runtime.out(
+      okLine(
+        `${result.stage} ${result.reapproved ? "re-approved" : "approved"}`,
+        `(sha256 ${result.hash.slice(0, 12)}\u2026)`
+      )
+    );
+    for (const invalidated of result.invalidated) {
+      runtime.out(
+        warnLine(
+          `${invalidated} approval invalidated \u2014 ${result.stage} changed since it was approved; re-approve it`
+        )
+      );
+    }
+    const warnings = result.analysis.diagnostics.filter((d) => d.severity === "warning");
+    for (const warning2 of warnings) {
+      runtime.out(severityLine("warning", warning2.message));
+    }
+    if (warnings.length > 0) {
+      runtime.out(dim("  (warnings never block approval; fix them when convenient)"));
+    }
+    runtime.out();
+    runtime.out(`  Status: ${result.state.status}`);
+    runtime.out(dim(`  State: ${relPath(workspace, result.statePath)}`));
+    if (result.state.status !== "READY_FOR_IMPLEMENTATION") {
+      runtime.out();
+      runtime.out(dim(`  Next: ${CLI_BIN} spec status ${folder.name}`));
+    }
+  });
+}
+
+// ../../packages/cli/src/commands/spec-status.ts
+function describeStage(runtime, evaluation, stage, verbose) {
+  const title = stage.stage.charAt(0).toUpperCase() + stage.stage.slice(1);
+  runtime.out(`${title}`);
+  switch (stage.effective) {
+    case "approved":
+      runtime.out(okLine("Approved"));
+      if (stage.stored.approvedAt !== null) {
+        runtime.out(dim(`    Approved at: ${stage.stored.approvedAt}`));
+      }
+      runtime.out(dim("    Content unchanged since approval"));
+      if (verbose && stage.stored.approvedHash !== null) {
+        runtime.out(dim(`    Approved hash: ${stage.stored.approvedHash}`));
+      }
+      break;
+    case "modified-after-approval":
+      runtime.out(warnLine("Modified after approval"));
+      runtime.out(dim(`    Approved hash: ${stage.stored.approvedHash ?? "(none)"}`));
+      runtime.out(dim(`    Current hash:  ${stage.currentHash ?? "(file missing or unreadable)"}`));
+      runtime.out(dim(`    Re-approve with: ${CLI_BIN} spec approve <name> --stage ${stage.stage}`));
+      break;
+    case "stale-prerequisite":
+      runtime.out(warnLine("Approval is stale (an earlier stage changed after this was approved)"));
+      if (stage.stored.approvedAt !== null) {
+        runtime.out(dim(`    Originally approved at: ${stage.stored.approvedAt}`));
+      }
+      break;
+    case "draft": {
+      runtime.out(activeLine("Draft"));
+      const prerequisites = stage.prerequisites;
+      if (prerequisites.length > 0) {
+        runtime.out(dim("    Prerequisites satisfied"));
+      }
+      break;
+    }
+    case "blocked": {
+      runtime.out(blockedLine("Blocked"));
+      const unapproved = stage.prerequisites.filter(
+        (p) => evaluation.stages.find((s) => s.stage === p)?.effective !== "approved"
+      );
+      if (unapproved.length > 0) {
+        runtime.out(dim(`    Requires ${unapproved.join(" and ")} approval`));
+      }
+      break;
+    }
+  }
+  runtime.out();
+}
+function registerSpecStatusCommand(spec, runtime) {
+  spec.command("status <name>").description("Show workflow status, stage approvals, and approval health for a spec").option("--verbose", "include full hashes and info-level diagnostics").option("--json", "output a machine-readable JSON report").addHelpText(
+    "after",
+    `
+Approval state comes only from .specbridge/state \u2014 a stage is never treated
+as approved just because its file exists. Specs without sidecar state are
+reported as unmanaged (normal for existing Kiro projects).
+
+Examples:
+  ${CLI_BIN} spec status notification-preferences
+  ${CLI_BIN} spec status notification-preferences --json
+  ${CLI_BIN} spec status notification-preferences --verbose`
+  ).action((name, options) => {
+    const workspace = runtime.workspace();
+    const folder = requireSpec(workspace, name);
+    const spec2 = analyzeSpec(workspace, folder);
+    const view = loadWorkflowView(workspace, folder.name);
+    const analysis = analyzeSpecWorkflow(spec2, view.evaluation);
+    if (options.json === true) {
+      runtime.outRaw(
+        serializeJsonReport(
+          createJsonReport("specbridge.spec-status/1", `${CLI_BIN} ${VERSION}`, {
+            specName: folder.name,
+            specType: view.stateRead.state?.specType ?? spec2.classification.type,
+            workflowMode: view.stateRead.state?.workflowMode ?? spec2.classification.workflowMode,
+            origin: view.stateRead.state?.origin ?? null,
+            managed: view.evaluation !== void 0,
+            approvalHealth: view.health,
+            status: view.evaluation?.storedStatus ?? null,
+            effectiveStatus: view.displayStatus,
+            stages: view.evaluation?.stages.map((stage) => ({
+              stage: stage.stage,
+              status: stage.stored.status,
+              effective: stage.effective,
+              file: stage.stored.file,
+              fileExists: stage.fileExists,
+              approvedAt: stage.stored.approvedAt,
+              approvedHash: stage.stored.approvedHash,
+              currentHash: stage.currentHash ?? null,
+              prerequisites: stage.prerequisites
+            })) ?? null,
+            files: folder.files.map((f) => ({ fileName: f.fileName, kind: f.kind })),
+            analysis: {
+              errorCount: analysis.errorCount,
+              warningCount: analysis.warningCount,
+              diagnostics: analysis.diagnostics
+            },
+            stateDiagnostics: view.stateRead.diagnostics
+          })
+        )
+      );
+      return;
+    }
+    runtime.out(reportTitle(`Spec: ${folder.name}`));
+    runtime.out(`Type: ${view.stateRead.state?.specType ?? spec2.classification.type}`);
+    runtime.out(`Mode: ${view.stateRead.state?.workflowMode ?? spec2.classification.workflowMode}`);
+    runtime.out(`Status: ${view.displayStatus}`);
+    if (view.stateRead.state?.origin === "existing-kiro-workspace") {
+      runtime.out(dim("Origin: initialized from an existing Kiro workspace"));
+    }
+    runtime.out();
+    for (const diagnostic of view.stateRead.diagnostics) {
+      runtime.out(severityLine(diagnostic.severity, diagnostic.message));
+    }
+    if (view.evaluation === void 0) {
+      runtime.out("Approval state: unmanaged");
+      runtime.out(
+        dim(
+          "  This spec has no SpecBridge sidecar state \u2014 normal for a spec created by Kiro.\n  Files stay untouched either way. To start managing approvals, run:"
+        )
+      );
+      const firstStage = documentStageFor(spec2.classification.type === "bugfix" ? "bugfix" : "feature");
+      runtime.out(dim(`    ${CLI_BIN} spec approve ${folder.name} --stage ${firstStage}`));
+      runtime.out();
+    } else {
+      runtime.out(sectionTitle("Stages"));
+      runtime.out();
+      for (const stage of view.evaluation.stages) {
+        describeStage(runtime, view.evaluation, stage, options.verbose === true);
+      }
+    }
+    runtime.out(sectionTitle("Files"));
+    const expected = spec2.classification.type === "bugfix" ? ["bugfix", "design", "tasks"] : ["requirements", "design", "tasks"];
+    for (const kind of expected) {
+      const file = specFile(folder, kind);
+      if (file !== void 0) {
+        runtime.out(okLine(file.fileName));
+      } else {
+        runtime.out(infoLine(`${kind}.md not present`));
+      }
+    }
+    runtime.out();
+    runtime.out(sectionTitle("Diagnostics"));
+    const visible = analysis.diagnostics.filter(
+      (d) => options.verbose === true || d.severity !== "info"
+    );
+    if (visible.length === 0) {
+      runtime.out(okLine("none"));
+    } else {
+      for (const diagnostic of visible) {
+        const location = diagnostic.file !== void 0 ? ` [${relPath(workspace, diagnostic.file)}${diagnostic.line !== void 0 ? `:${diagnostic.line}` : ""}]` : "";
+        runtime.out(severityLine(diagnostic.severity, `${diagnostic.message}${location}`));
+      }
+    }
+  });
+}
+
+// ../../packages/cli/src/commands/spec-sync.ts
+function registerSpecSyncCommand(spec, runtime) {
+  registerPlannedCommand(spec, runtime, {
+    name: "sync",
+    args: "<name>",
+    summary: "Detect whether tasks appear implemented based on repository evidence (report-only by default)",
+    phase: "the sync-and-drift phase (Phase H)"
+  });
+}
+
+// ../../packages/execution/dist/index.js
+var import_fs33 = require("fs");
+var import_path34 = __toESM(require("path"), 1);
+var import_path35 = __toESM(require("path"), 1);
+var import_fs34 = require("fs");
+var import_path36 = __toESM(require("path"), 1);
+var import_path37 = __toESM(require("path"), 1);
+var import_promises12 = require("timers/promises");
+
 // ../../packages/evidence/dist/index.js
-var import_crypto4 = require("crypto");
-var import_fs22 = require("fs");
-var import_path22 = __toESM(require("path"), 1);
+var import_crypto6 = require("crypto");
+var import_fs31 = require("fs");
+var import_path31 = __toESM(require("path"), 1);
 var import_buffer4 = require("buffer");
-var import_fs23 = require("fs");
-var import_path23 = __toESM(require("path"), 1);
-var import_path24 = __toESM(require("path"), 1);
+var import_fs32 = require("fs");
+var import_path32 = __toESM(require("path"), 1);
+var import_path33 = __toESM(require("path"), 1);
 var GIT_SNAPSHOT_SCHEMA_VERSION = "1.0.0";
 var SNAPSHOT_EXCLUDED_PREFIXES = [".specbridge/"];
 var GIT_TIMEOUT_MS = 3e4;
@@ -46559,13 +51214,13 @@ async function git(workspaceRoot, argv2) {
   return { ok: true, stdout: result.stdout };
 }
 function toPosix2(relative) {
-  return relative.split(import_path22.default.sep).join("/");
+  return relative.split(import_path31.default.sep).join("/");
 }
 function hashFileIfRegular(absolutePath) {
   try {
-    const stats = (0, import_fs22.lstatSync)(absolutePath);
+    const stats = (0, import_fs31.lstatSync)(absolutePath);
     if (!stats.isFile()) return void 0;
-    return (0, import_crypto4.createHash)("sha256").update((0, import_fs22.readFileSync)(absolutePath)).digest("hex");
+    return (0, import_crypto6.createHash)("sha256").update((0, import_fs31.readFileSync)(absolutePath)).digest("hex");
   } catch {
     return void 0;
   }
@@ -46588,20 +51243,20 @@ function isExcluded(relativePath, excludedPrefixes) {
   return excludedPrefixes.some((prefix) => relativePath.startsWith(prefix));
 }
 function hashProtectedTree(workspaceRoot, relativeDir, into) {
-  const absoluteDir = import_path22.default.join(workspaceRoot, relativeDir);
+  const absoluteDir = import_path31.default.join(workspaceRoot, relativeDir);
   let entries;
   try {
-    entries = (0, import_fs22.readdirSync)(absoluteDir, { withFileTypes: true });
+    entries = (0, import_fs31.readdirSync)(absoluteDir, { withFileTypes: true });
   } catch {
     return;
   }
   for (const entry of entries) {
-    const relative = import_path22.default.join(relativeDir, entry.name);
+    const relative = import_path31.default.join(relativeDir, entry.name);
     if (entry.isSymbolicLink()) continue;
     if (entry.isDirectory()) {
       hashProtectedTree(workspaceRoot, relative, into);
     } else if (entry.isFile()) {
-      const hash = hashFileIfRegular(import_path22.default.join(workspaceRoot, relative));
+      const hash = hashFileIfRegular(import_path31.default.join(workspaceRoot, relative));
       if (hash !== void 0) into[toPosix2(relative)] = hash;
     }
   }
@@ -46665,7 +51320,7 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
     if (isExcluded(rawEntry.path, excludedPrefixes)) continue;
     if (rawEntry.status === "??" && rawEntry.path.endsWith("/")) {
       const expanded = {};
-      hashProtectedTree(workspaceRoot, rawEntry.path.slice(0, -1).split("/").join(import_path22.default.sep), expanded);
+      hashProtectedTree(workspaceRoot, rawEntry.path.slice(0, -1).split("/").join(import_path31.default.sep), expanded);
       const files = Object.keys(expanded).sort();
       if (files.length === 0) {
         entries.push({ path: rawEntry.path, status: rawEntry.status });
@@ -46681,7 +51336,7 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
       }
       continue;
     }
-    const hash = hashFileIfRegular(import_path22.default.join(workspaceRoot, rawEntry.path.split("/").join(import_path22.default.sep)));
+    const hash = hashFileIfRegular(import_path31.default.join(workspaceRoot, rawEntry.path.split("/").join(import_path31.default.sep)));
     entries.push({
       path: rawEntry.path,
       status: rawEntry.status,
@@ -46691,9 +51346,9 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
   entries.sort((a2, b) => a2.path.localeCompare(b.path, "en"));
   const protectedHashes = {};
   hashProtectedTree(workspaceRoot, ".kiro", protectedHashes);
-  const configHash = hashFileIfRegular(import_path22.default.join(workspaceRoot, ".specbridge", "config.json"));
+  const configHash = hashFileIfRegular(import_path31.default.join(workspaceRoot, ".specbridge", "config.json"));
   if (configHash !== void 0) protectedHashes[".specbridge/config.json"] = configHash;
-  hashProtectedTree(workspaceRoot, import_path22.default.join(".specbridge", "state"), protectedHashes);
+  hashProtectedTree(workspaceRoot, import_path31.default.join(".specbridge", "state"), protectedHashes);
   return {
     schemaVersion: GIT_SNAPSHOT_SCHEMA_VERSION,
     capturedAt: now.toISOString(),
@@ -46973,14 +51628,14 @@ function taskIdDirName(taskId) {
 function evidenceTaskDir(workspace, specName, taskId) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path23.default.join(workspace.sidecarDir, "evidence", specName, taskIdDirName(taskId))
+    import_path32.default.join(workspace.sidecarDir, "evidence", specName, taskIdDirName(taskId))
   );
 }
 function writeTaskEvidence(workspace, record2) {
   const validated = taskEvidenceRecordSchema.parse(record2);
   const dir = evidenceTaskDir(workspace, validated.specName, validated.taskId);
-  const filePath = import_path23.default.join(dir, `${validated.runId}.json`);
-  if ((0, import_fs23.existsSync)(filePath)) {
+  const filePath = import_path32.default.join(dir, `${validated.runId}.json`);
+  if ((0, import_fs32.existsSync)(filePath)) {
     throw new SpecBridgeError(
       "INVALID_STATE",
       `Evidence for run ${validated.runId} already exists at ${filePath}. Evidence records are append-only; a new attempt needs a new run id.`
@@ -46992,14 +51647,14 @@ function writeTaskEvidence(workspace, record2) {
 }
 function listTaskEvidence(workspace, specName, taskId) {
   const dir = evidenceTaskDir(workspace, specName, taskId);
-  if (!(0, import_fs23.existsSync)(dir)) return { records: [], diagnostics: [] };
+  if (!(0, import_fs32.existsSync)(dir)) return { records: [], diagnostics: [] };
   const records = [];
   const diagnostics = [];
-  for (const entry of (0, import_fs23.readdirSync)(dir, { withFileTypes: true })) {
+  for (const entry of (0, import_fs32.readdirSync)(dir, { withFileTypes: true })) {
     if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
-    const filePath = import_path23.default.join(dir, entry.name);
+    const filePath = import_path32.default.join(dir, entry.name);
     try {
-      const parsed = JSON.parse((0, import_fs23.readFileSync)(filePath, "utf8"));
+      const parsed = JSON.parse((0, import_fs32.readFileSync)(filePath, "utf8"));
       const result = taskEvidenceRecordSchema.safeParse(parsed);
       if (result.success) {
         records.push(result.data);
@@ -47125,7 +51780,7 @@ var ACCEPTED_STATUSES = /* @__PURE__ */ new Set(["verified", "manually-accepted"
 var FUTURE_SKEW_TOLERANCE_MS = 5 * 60 * 1e3;
 function evidencePathEscapesRepository(recordedPath) {
   if (recordedPath.includes("\0")) return true;
-  if (import_path24.default.isAbsolute(recordedPath) || /^[A-Za-z]:/.test(recordedPath)) return true;
+  if (import_path33.default.isAbsolute(recordedPath) || /^[A-Za-z]:/.test(recordedPath)) return true;
   return recordedPath.split(/[\\/]/).includes("..");
 }
 var CHECKBOX_STATE_PREFIX2 = /^([ \t]*[-*+][ \t]+\[)([ xX~-])(\])/;
@@ -47332,19 +51987,19 @@ function reusableCommandPass(assessments, commandName, currentHeadSha) {
 }
 
 // ../../packages/execution/dist/index.js
-var import_crypto5 = require("crypto");
-var import_fs26 = require("fs");
-var import_path29 = __toESM(require("path"), 1);
-var import_crypto6 = require("crypto");
-var import_path30 = __toESM(require("path"), 1);
 var import_crypto7 = require("crypto");
-var import_fs27 = require("fs");
-var import_path31 = __toESM(require("path"), 1);
+var import_fs35 = require("fs");
+var import_path38 = __toESM(require("path"), 1);
 var import_crypto8 = require("crypto");
-var import_path32 = __toESM(require("path"), 1);
-var import_child_process = require("child_process");
-var import_fs28 = require("fs");
-var import_path33 = __toESM(require("path"), 1);
+var import_path39 = __toESM(require("path"), 1);
+var import_crypto9 = require("crypto");
+var import_fs36 = require("fs");
+var import_path40 = __toESM(require("path"), 1);
+var import_crypto10 = require("crypto");
+var import_path41 = __toESM(require("path"), 1);
+var import_child_process2 = require("child_process");
+var import_fs37 = require("fs");
+var import_path42 = __toESM(require("path"), 1);
 var RUN_RECORD_SCHEMA_VERSION = "1.0.0";
 var runRecordSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
@@ -47374,36 +52029,36 @@ var runRecordSchema = external_exports.object({
   abortReason: external_exports.string().optional()
 }).passthrough();
 function runsRootDir(workspace) {
-  return import_path25.default.join(workspace.sidecarDir, "runs");
+  return import_path34.default.join(workspace.sidecarDir, "runs");
 }
 function runDir(workspace, runId) {
   if (!/^[A-Za-z0-9._-]+$/.test(runId)) {
     throw new SpecBridgeError("INVALID_ARGUMENT", `Invalid run id "${runId}".`);
   }
-  return assertInsideWorkspace(workspace.rootDir, import_path25.default.join(runsRootDir(workspace), runId));
+  return assertInsideWorkspace(workspace.rootDir, import_path34.default.join(runsRootDir(workspace), runId));
 }
 function runArtifactPath(workspace, runId, fileName) {
-  return assertInsideWorkspace(workspace.rootDir, import_path25.default.join(runDir(workspace, runId), fileName));
+  return assertInsideWorkspace(workspace.rootDir, import_path34.default.join(runDir(workspace, runId), fileName));
 }
 function createRun(workspace, record2) {
   const validated = runRecordSchema.parse(record2);
   const dir = runDir(workspace, validated.runId);
-  if ((0, import_fs24.existsSync)(dir)) {
+  if ((0, import_fs33.existsSync)(dir)) {
     throw new SpecBridgeError(
       "INVALID_STATE",
       `Run directory already exists: ${dir}. Run ids must be unique.`
     );
   }
-  (0, import_fs24.mkdirSync)(dir, { recursive: true });
-  writeFileAtomic(import_path25.default.join(dir, "run.json"), `${JSON.stringify(validated, null, 2)}
+  (0, import_fs33.mkdirSync)(dir, { recursive: true });
+  writeFileAtomic(import_path34.default.join(dir, "run.json"), `${JSON.stringify(validated, null, 2)}
 `);
   return dir;
 }
 function readRunRecord(workspace, runId) {
-  const filePath = import_path25.default.join(runDir(workspace, runId), "run.json");
-  if (!(0, import_fs24.existsSync)(filePath)) return void 0;
+  const filePath = import_path34.default.join(runDir(workspace, runId), "run.json");
+  if (!(0, import_fs33.existsSync)(filePath)) return void 0;
   try {
-    const parsed = JSON.parse((0, import_fs24.readFileSync)(filePath, "utf8"));
+    const parsed = JSON.parse((0, import_fs33.readFileSync)(filePath, "utf8"));
     const result = runRecordSchema.safeParse(parsed);
     return result.success ? result.data : void 0;
   } catch {
@@ -47417,7 +52072,7 @@ function updateRunRecord(workspace, runId, patch) {
   }
   const next = runRecordSchema.parse({ ...current, ...patch });
   writeFileAtomic(
-    import_path25.default.join(runDir(workspace, runId), "run.json"),
+    import_path34.default.join(runDir(workspace, runId), "run.json"),
     `${JSON.stringify(next, null, 2)}
 `
   );
@@ -47425,10 +52080,10 @@ function updateRunRecord(workspace, runId, patch) {
 }
 function listRuns(workspace) {
   const root = runsRootDir(workspace);
-  if (!(0, import_fs24.existsSync)(root)) return { runs: [], diagnostics: [] };
+  if (!(0, import_fs33.existsSync)(root)) return { runs: [], diagnostics: [] };
   const runs = [];
   const diagnostics = [];
-  for (const entry of (0, import_fs24.readdirSync)(root, { withFileTypes: true })) {
+  for (const entry of (0, import_fs33.readdirSync)(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
     const record2 = readRunRecord(workspace, entry.name);
     if (record2 !== void 0) {
@@ -47438,7 +52093,7 @@ function listRuns(workspace) {
         severity: "warning",
         code: "RUN_RECORD_UNREADABLE",
         message: `Run directory ${entry.name} has no readable run.json; ignoring it.`,
-        file: import_path25.default.join(root, entry.name)
+        file: import_path34.default.join(root, entry.name)
       });
     }
   }
@@ -47457,23 +52112,23 @@ function writeRunArtifact(workspace, runId, fileName, content) {
 }
 function appendRunEvent(workspace, runId, event) {
   const filePath = runArtifactPath(workspace, runId, "events.jsonl");
-  (0, import_fs24.appendFileSync)(filePath, `${JSON.stringify(event)}
+  (0, import_fs33.appendFileSync)(filePath, `${JSON.stringify(event)}
 `, "utf8");
 }
 function readRunArtifactJson(workspace, runId, fileName) {
-  const filePath = import_path25.default.join(runDir(workspace, runId), fileName);
-  if (!(0, import_fs24.existsSync)(filePath)) return void 0;
+  const filePath = import_path34.default.join(runDir(workspace, runId), fileName);
+  if (!(0, import_fs33.existsSync)(filePath)) return void 0;
   try {
-    return JSON.parse((0, import_fs24.readFileSync)(filePath, "utf8"));
+    return JSON.parse((0, import_fs33.readFileSync)(filePath, "utf8"));
   } catch {
     return void 0;
   }
 }
 function readRunArtifactText(workspace, runId, fileName) {
-  const filePath = import_path25.default.join(runDir(workspace, runId), fileName);
-  if (!(0, import_fs24.existsSync)(filePath)) return void 0;
+  const filePath = import_path34.default.join(runDir(workspace, runId), fileName);
+  if (!(0, import_fs33.existsSync)(filePath)) return void 0;
   try {
-    return (0, import_fs24.readFileSync)(filePath, "utf8");
+    return (0, import_fs33.readFileSync)(filePath, "utf8");
   } catch {
     return void 0;
   }
@@ -47838,7 +52493,7 @@ function repositoryObservations(workspaceRoot, snapshot) {
   return observations;
 }
 function workspaceRootNote(workspace) {
-  return `Repository root (your working directory): ${import_path26.default.resolve(workspace.rootDir)}`;
+  return `Repository root (your working directory): ${import_path35.default.resolve(workspace.rootDir)}`;
 }
 function stageAuthoringGate(state, evaluation, stage) {
   if (!isStageApplicable(state.specType, stage)) {
@@ -48052,7 +52707,7 @@ function unifiedDiff(oldText, newText, options = {}) {
 function stageDocumentPath(workspace, specName, stage) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path27.default.join(workspace.kiroDir, "specs", specName, `${stage}.md`)
+    import_path36.default.join(workspace.kiroDir, "specs", specName, `${stage}.md`)
   );
 }
 function normalizeCandidateMarkdown(markdown) {
@@ -48062,7 +52717,7 @@ function normalizeCandidateMarkdown(markdown) {
 }
 function writeStageDocument(workspace, specName, stage, markdown) {
   const filePath = stageDocumentPath(workspace, specName, stage);
-  const exists = (0, import_fs25.existsSync)(filePath);
+  const exists = (0, import_fs34.existsSync)(filePath);
   let eol = "lf";
   let bom = false;
   if (exists) {
@@ -48109,7 +52764,7 @@ var attemptRecordSchema = external_exports.object({
   durationMs: external_exports.number().int().nonnegative().optional()
 }).passthrough();
 function attemptsDir(workspace, runId) {
-  return import_path29.default.join(runDir(workspace, runId), "attempts");
+  return import_path38.default.join(runDir(workspace, runId), "attempts");
 }
 function attemptDir(workspace, runId, attemptId) {
   if (!/^[A-Za-z0-9._-]+$/.test(attemptId)) {
@@ -48117,22 +52772,22 @@ function attemptDir(workspace, runId, attemptId) {
   }
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path29.default.join(attemptsDir(workspace, runId), attemptId)
+    import_path38.default.join(attemptsDir(workspace, runId), attemptId)
   );
 }
 function nextAttemptNumber(workspace, runId) {
   const root = attemptsDir(workspace, runId);
-  if (!(0, import_fs26.existsSync)(root)) return 1;
-  return (0, import_fs26.readdirSync)(root, { withFileTypes: true }).filter((entry) => entry.isDirectory()).length + 1;
+  if (!(0, import_fs35.existsSync)(root)) return 1;
+  return (0, import_fs35.readdirSync)(root, { withFileTypes: true }).filter((entry) => entry.isDirectory()).length + 1;
 }
 function createAttempt(workspace, metadata) {
   const attemptNumber = nextAttemptNumber(workspace, metadata.runId);
   const attemptId = `attempt-${String(attemptNumber).padStart(3, "0")}`;
   const dir = attemptDir(workspace, metadata.runId, attemptId);
-  if ((0, import_fs26.existsSync)(dir)) {
+  if ((0, import_fs35.existsSync)(dir)) {
     throw new SpecBridgeError("INVALID_STATE", `Attempt directory already exists: ${dir}.`);
   }
-  (0, import_fs26.mkdirSync)(dir, { recursive: true });
+  (0, import_fs35.mkdirSync)(dir, { recursive: true });
   const record2 = attemptRecordSchema.parse({
     schemaVersion: ATTEMPT_RECORD_SCHEMA_VERSION,
     runId: metadata.runId,
@@ -48150,14 +52805,14 @@ function createAttempt(workspace, metadata) {
     capabilitySnapshot: metadata.capabilitySnapshot,
     createdAt: metadata.createdAt
   });
-  writeFileAtomic(import_path29.default.join(dir, "attempt.json"), `${JSON.stringify(record2, null, 2)}
+  writeFileAtomic(import_path38.default.join(dir, "attempt.json"), `${JSON.stringify(record2, null, 2)}
 `);
   return record2;
 }
 function writeAttemptArtifact(workspace, runId, attemptId, fileName, content) {
   const filePath = assertInsideWorkspace(
     workspace.rootDir,
-    import_path29.default.join(attemptDir(workspace, runId, attemptId), fileName)
+    import_path38.default.join(attemptDir(workspace, runId, attemptId), fileName)
   );
   writeFileAtomic(filePath, content);
   return filePath;
@@ -48172,7 +52827,7 @@ function finalizeAttempt(workspace, record2, input) {
     durationMs: Math.max(0, Math.round(input.durationMs)),
     ...errorCode !== void 0 ? { errorCode } : {}
   });
-  writeFileAtomic(import_path29.default.join(dir, "attempt.json"), `${JSON.stringify(next, null, 2)}
+  writeFileAtomic(import_path38.default.join(dir, "attempt.json"), `${JSON.stringify(next, null, 2)}
 `);
   writeAttemptArtifact(workspace, record2.runId, record2.attemptId, "raw-stdout.log", input.result.rawStdout);
   writeAttemptArtifact(workspace, record2.runId, record2.attemptId, "raw-stderr.log", input.result.rawStderr);
@@ -48240,13 +52895,13 @@ function validateReferencedFiles(workspace, referenced) {
   const accepted = [];
   const rejected = [];
   for (const file of referenced) {
-    if (file.includes("\0") || import_path28.default.isAbsolute(file)) {
+    if (file.includes("\0") || import_path37.default.isAbsolute(file)) {
       rejected.push(file);
       continue;
     }
-    const resolved = import_path28.default.resolve(workspace.rootDir, file);
-    const relative = import_path28.default.relative(import_path28.default.resolve(workspace.rootDir), resolved);
-    if (relative.startsWith("..") || import_path28.default.isAbsolute(relative)) rejected.push(file);
+    const resolved = import_path37.default.resolve(workspace.rootDir, file);
+    const relative = import_path37.default.relative(import_path37.default.resolve(workspace.rootDir), resolved);
+    if (relative.startsWith("..") || import_path37.default.isAbsolute(relative)) rejected.push(file);
     else accepted.push(file);
   }
   return { accepted, rejected };
@@ -48255,7 +52910,7 @@ async function authoringArgvPreview(deps, plan, prompt, toolPolicy, timeoutMs) {
   const profileConfig = deps.registry.getProfile(plan.profile).config;
   const execution = {
     workspaceRoot: deps.workspace.rootDir,
-    runDir: import_path28.default.join(deps.workspace.sidecarDir, "runs", "<run-id>"),
+    runDir: import_path37.default.join(deps.workspace.sidecarDir, "runs", "<run-id>"),
     timeoutMs
   };
   if (profileConfig.runner === "claude-code") {
@@ -48592,7 +53247,7 @@ async function authorStage(deps, request) {
       };
     }
   }
-  const runId = (deps.idFactory ?? import_crypto5.randomUUID)();
+  const runId = (deps.idFactory ?? import_crypto7.randomUUID)();
   const createdAt = clock().toISOString();
   createRun(workspace, {
     schemaVersion: RUN_RECORD_SCHEMA_VERSION,
@@ -49050,7 +53705,7 @@ async function taskArgvPreview(deps, preflight, prompt, runIdPreview) {
   if (profileConfig === void 0) return void 0;
   const execution = {
     workspaceRoot: deps.workspace.rootDir,
-    runDir: import_path30.default.join(deps.workspace.sidecarDir, "runs", runIdPreview),
+    runDir: import_path39.default.join(deps.workspace.sidecarDir, "runs", runIdPreview),
     timeoutMs: preflight.timeoutMs
   };
   if (profileConfig.runner === "claude-code") {
@@ -49164,7 +53819,7 @@ async function runApprovedTask(deps, request) {
   const prompt = buildPrompt(deps, preflight);
   const profileConfig = preflight.profileConfig;
   if (request.dryRun === true) {
-    const runIdPreview = (deps.idFactory ?? import_crypto6.randomUUID)();
+    const runIdPreview = (deps.idFactory ?? import_crypto8.randomUUID)();
     const argvPreview = await taskArgvPreview(deps, preflight, prompt, runIdPreview);
     const artifactBase = `.specbridge/runs/${runIdPreview}`;
     return {
@@ -49210,8 +53865,8 @@ async function runApprovedTask(deps, request) {
       }
     };
   }
-  const runId = (deps.idFactory ?? import_crypto6.randomUUID)();
-  const sessionId = (deps.idFactory ?? import_crypto6.randomUUID)();
+  const runId = (deps.idFactory ?? import_crypto8.randomUUID)();
+  const sessionId = (deps.idFactory ?? import_crypto8.randomUUID)();
   const parent = latestRunForTask(deps.workspace, preflight.spec.folder.name, task.id);
   const createdAt = clock().toISOString();
   createRun(deps.workspace, {
@@ -49570,7 +54225,7 @@ function buildEvidenceSpecContext(workspace, specName, state, task) {
   }
   const tasksStage = stateStage(state, "tasks");
   if (tasksStage?.status === "approved") {
-    const planHash = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(import_path30.default.join(workspace.kiroDir, "specs", specName, "tasks.md"));
+    const planHash = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(import_path39.default.join(workspace.kiroDir, "specs", specName, "tasks.md"));
     if (planHash !== void 0) specContext.tasksPlanHash = planHash;
   }
   return specContext;
@@ -49596,7 +54251,7 @@ function applyConfiguredProtectedPaths(config2, comparison) {
 function taskLineIntact(workspace, specName, task) {
   try {
     const document = MarkdownDocument.load(
-      import_path30.default.join(workspace.kiroDir, "specs", specName, "tasks.md")
+      import_path39.default.join(workspace.kiroDir, "specs", specName, "tasks.md")
     );
     if (task.line >= document.lineCount) return false;
     return document.lineAt(task.line).text === task.rawLineText;
@@ -49825,7 +54480,7 @@ async function resumeRun(deps, request) {
       }
     };
   }
-  const runId = (deps.idFactory ?? import_crypto7.randomUUID)();
+  const runId = (deps.idFactory ?? import_crypto9.randomUUID)();
   const createdAt = clock().toISOString();
   createRun(workspace, {
     schemaVersion: RUN_RECORD_SCHEMA_VERSION,
@@ -49894,15 +54549,15 @@ var interactiveLockSchema = external_exports.object({
 function interactiveLockPath(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path31.default.join(workspace.sidecarDir, "locks", "interactive-task.lock")
+    import_path40.default.join(workspace.sidecarDir, "locks", "interactive-task.lock")
   );
 }
 function readInteractiveLock(workspace) {
   const lockPath = interactiveLockPath(workspace);
-  if (!(0, import_fs27.existsSync)(lockPath)) return { state: "absent", path: lockPath };
+  if (!(0, import_fs36.existsSync)(lockPath)) return { state: "absent", path: lockPath };
   let raw;
   try {
-    raw = (0, import_fs27.readFileSync)(lockPath, "utf8");
+    raw = (0, import_fs36.readFileSync)(lockPath, "utf8");
   } catch (cause) {
     return {
       state: "unreadable",
@@ -49932,9 +54587,9 @@ function acquireInteractiveLock(workspace, details) {
     createdAt: now,
     heartbeatAt: now
   };
-  (0, import_fs27.mkdirSync)(import_path31.default.dirname(lockPath), { recursive: true });
+  (0, import_fs36.mkdirSync)(import_path40.default.dirname(lockPath), { recursive: true });
   try {
-    (0, import_fs27.writeFileSync)(lockPath, `${JSON.stringify(lock, null, 2)}
+    (0, import_fs36.writeFileSync)(lockPath, `${JSON.stringify(lock, null, 2)}
 `, { flag: "wx" });
     return { acquired: true, path: lockPath, lock };
   } catch {
@@ -49959,7 +54614,7 @@ function releaseInteractiveLock(workspace, runId) {
       problem: `the lock is held by a different run (${read.lock.runId}); refusing to release it`
     };
   }
-  (0, import_fs27.rmSync)(read.path, { force: true });
+  (0, import_fs36.rmSync)(read.path, { force: true });
   return { released: true };
 }
 var LOCK_STALE_HEARTBEAT_MS = 6 * 60 * 60 * 1e3;
@@ -50029,7 +54684,7 @@ function diagnoseInteractiveLock(workspace, clock = () => /* @__PURE__ */ new Da
 function removeDiagnosedLock(workspace, clock = () => /* @__PURE__ */ new Date()) {
   const diagnosis = diagnoseInteractiveLock(workspace, clock);
   if (!diagnosis.safeToRemove) return { removed: false, diagnosis };
-  (0, import_fs27.rmSync)(diagnosis.path, { force: true });
+  (0, import_fs36.rmSync)(diagnosis.path, { force: true });
   return { removed: true, diagnosis };
 }
 var INTERACTIVE_RUNNER_NAME = "interactive";
@@ -50138,7 +54793,7 @@ async function beginInteractiveTask(deps, request) {
       `${predecessors.length} earlier task(s) are still open (next would be ${predecessors[0]?.id}); running ${task.id} out of order.`
     );
   }
-  const runId = (deps.idFactory ?? import_crypto8.randomUUID)();
+  const runId = (deps.idFactory ?? import_crypto10.randomUUID)();
   const acquisition = acquireInteractiveLock(workspace, {
     runId,
     specName,
@@ -50384,7 +55039,7 @@ async function completeInteractiveTask(deps, request) {
     );
   }
   const task = state.task;
-  const tasksPath = import_path32.default.join(workspace.kiroDir, "specs", record2.specName, "tasks.md");
+  const tasksPath = import_path41.default.join(workspace.kiroDir, "specs", record2.specName, "tasks.md");
   let taskIntact = false;
   try {
     const document = MarkdownDocument.load(tasksPath);
@@ -50515,42 +55170,42 @@ async function abortInteractiveTask(deps, request) {
 }
 var CONFORMANCE_SPEC_NAME = "conformance-fixture";
 function git2(root, ...args) {
-  (0, import_child_process.execFileSync)("git", args, { cwd: root, stdio: "ignore" });
+  (0, import_child_process2.execFileSync)("git", args, { cwd: root, stdio: "ignore" });
 }
 function gitAvailable(root) {
   try {
-    (0, import_child_process.execFileSync)("git", ["--version"], { cwd: root, stdio: "ignore" });
+    (0, import_child_process2.execFileSync)("git", ["--version"], { cwd: root, stdio: "ignore" });
     return true;
   } catch {
     return false;
   }
 }
 function createConformanceWorkspace(root, profile, options) {
-  const specDir = import_path33.default.join(root, ".kiro", "specs", CONFORMANCE_SPEC_NAME);
-  (0, import_fs28.mkdirSync)(import_path33.default.join(root, ".kiro", "steering"), { recursive: true });
-  (0, import_fs28.mkdirSync)(specDir, { recursive: true });
-  (0, import_fs28.mkdirSync)(import_path33.default.join(root, "src"), { recursive: true });
-  (0, import_fs28.writeFileSync)(
-    import_path33.default.join(root, ".kiro", "steering", "product.md"),
+  const specDir = import_path42.default.join(root, ".kiro", "specs", CONFORMANCE_SPEC_NAME);
+  (0, import_fs37.mkdirSync)(import_path42.default.join(root, ".kiro", "steering"), { recursive: true });
+  (0, import_fs37.mkdirSync)(specDir, { recursive: true });
+  (0, import_fs37.mkdirSync)(import_path42.default.join(root, "src"), { recursive: true });
+  (0, import_fs37.writeFileSync)(
+    import_path42.default.join(root, ".kiro", "steering", "product.md"),
     "# Product\n\nConformance fixture workspace (throwaway).\n",
     "utf8"
   );
-  (0, import_fs28.writeFileSync)(
-    import_path33.default.join(specDir, "requirements.md"),
+  (0, import_fs37.writeFileSync)(
+    import_path42.default.join(specDir, "requirements.md"),
     validStageMarkdown("requirements", CONFORMANCE_SPEC_NAME, "conformance"),
     "utf8"
   );
-  (0, import_fs28.writeFileSync)(
-    import_path33.default.join(specDir, "design.md"),
+  (0, import_fs37.writeFileSync)(
+    import_path42.default.join(specDir, "design.md"),
     validStageMarkdown("design", CONFORMANCE_SPEC_NAME, "conformance"),
     "utf8"
   );
-  (0, import_fs28.writeFileSync)(
-    import_path33.default.join(specDir, "tasks.md"),
+  (0, import_fs37.writeFileSync)(
+    import_path42.default.join(specDir, "tasks.md"),
     validStageMarkdown("tasks", CONFORMANCE_SPEC_NAME, "conformance"),
     "utf8"
   );
-  (0, import_fs28.writeFileSync)(import_path33.default.join(root, "src", "placeholder.txt"), "conformance fixture\n", "utf8");
+  (0, import_fs37.writeFileSync)(import_path42.default.join(root, "src", "placeholder.txt"), "conformance fixture\n", "utf8");
   const verificationExit = options?.verificationExit ?? 0;
   const configFile = {
     schemaVersion: "2.0.0",
@@ -50567,9 +55222,9 @@ function createConformanceWorkspace(root, profile, options) {
       ]
     }
   };
-  (0, import_fs28.mkdirSync)(import_path33.default.join(root, ".specbridge"), { recursive: true });
-  (0, import_fs28.writeFileSync)(
-    import_path33.default.join(root, ".specbridge", "config.json"),
+  (0, import_fs37.mkdirSync)(import_path42.default.join(root, ".specbridge"), { recursive: true });
+  (0, import_fs37.writeFileSync)(
+    import_path42.default.join(root, ".specbridge", "config.json"),
     `${JSON.stringify(configFile, null, 2)}
 `,
     "utf8"
@@ -50612,7 +55267,7 @@ function createConformanceWorkspace(root, profile, options) {
   });
   return { workspace, config: read.config, registry: registry2 };
 }
-var check2 = (group, id, title, status, detail) => ({ id, group, title, status, ...detail !== void 0 ? { detail } : {} });
+var check3 = (group, id, title, status, detail) => ({ id, group, title, status, ...detail !== void 0 ? { detail } : {} });
 var taskExecutionConformanceGroup = {
   group: "task-execution",
   applicable: (context) => {
@@ -50628,14 +55283,14 @@ var taskExecutionConformanceGroup = {
   async run(context) {
     if (!context.invocationsAllowed) {
       return [
-        check2(
+        check3(
           "task-execution",
           "task-execution.verified-flow",
           "verified evidence updates exactly one checkbox",
           "skipped",
           "requires provider invocation \u2014 rerun with --network (or a fake provider in CI)"
         ),
-        check2(
+        check3(
           "task-execution",
           "task-execution.failed-verifier",
           "a failed verifier leaves the checkbox unchanged",
@@ -50646,11 +55301,11 @@ var taskExecutionConformanceGroup = {
     }
     const results = [];
     {
-      const root = import_path33.default.join(context.workspaceRoot, "task-verified");
-      (0, import_fs28.mkdirSync)(root, { recursive: true });
+      const root = import_path42.default.join(context.workspaceRoot, "task-verified");
+      (0, import_fs37.mkdirSync)(root, { recursive: true });
       const fixture = createConformanceWorkspace(root, context.profile);
       if ("error" in fixture) {
-        results.push(check2("task-execution", "task-execution.verified-flow", "verified evidence updates exactly one checkbox", "skipped", fixture.error));
+        results.push(check3("task-execution", "task-execution.verified-flow", "verified evidence updates exactly one checkbox", "skipped", fixture.error));
       } else {
         const outcome = await runApprovedTask(
           { workspace: fixture.workspace, config: fixture.config, registry: fixture.registry },
@@ -50658,7 +55313,7 @@ var taskExecutionConformanceGroup = {
         );
         const report = outcome.kind === "executed" ? outcome.report : void 0;
         results.push(
-          check2(
+          check3(
             "task-execution",
             "task-execution.verified-flow",
             "verified evidence updates exactly one checkbox",
@@ -50667,7 +55322,7 @@ var taskExecutionConformanceGroup = {
           )
         );
         results.push(
-          check2(
+          check3(
             "task-execution",
             "task-execution.claims-not-authority",
             "evidence comes from Git state and trusted verification, not provider claims",
@@ -50678,11 +55333,11 @@ var taskExecutionConformanceGroup = {
       }
     }
     {
-      const root = import_path33.default.join(context.workspaceRoot, "task-failing");
-      (0, import_fs28.mkdirSync)(root, { recursive: true });
+      const root = import_path42.default.join(context.workspaceRoot, "task-failing");
+      (0, import_fs37.mkdirSync)(root, { recursive: true });
       const fixture = createConformanceWorkspace(root, context.profile, { verificationExit: 1 });
       if ("error" in fixture) {
-        results.push(check2("task-execution", "task-execution.failed-verifier", "a failed verifier leaves the checkbox unchanged", "skipped", fixture.error));
+        results.push(check3("task-execution", "task-execution.failed-verifier", "a failed verifier leaves the checkbox unchanged", "skipped", fixture.error));
       } else {
         const outcome = await runApprovedTask(
           { workspace: fixture.workspace, config: fixture.config, registry: fixture.registry },
@@ -50690,7 +55345,7 @@ var taskExecutionConformanceGroup = {
         );
         const report = outcome.kind === "executed" ? outcome.report : void 0;
         results.push(
-          check2(
+          check3(
             "task-execution",
             "task-execution.failed-verifier",
             "a failed verifier leaves the checkbox unchanged",
@@ -50711,12 +55366,12 @@ var resumeConformanceGroup = {
   },
   async run(context) {
     const results = [];
-    const root = import_path33.default.join(context.workspaceRoot, "resume-fixture");
-    (0, import_fs28.mkdirSync)(root, { recursive: true });
+    const root = import_path42.default.join(context.workspaceRoot, "resume-fixture");
+    (0, import_fs37.mkdirSync)(root, { recursive: true });
     const fixture = createConformanceWorkspace(root, context.profile);
     if ("error" in fixture) {
       return [
-        check2("resume", "resume.refusals", "unsafe resumes are refused", "skipped", fixture.error)
+        check3("resume", "resume.refusals", "unsafe resumes are refused", "skipped", fixture.error)
       ];
     }
     const deps = { workspace: fixture.workspace, config: fixture.config, registry: fixture.registry };
@@ -50736,7 +55391,7 @@ var resumeConformanceGroup = {
     });
     const verifiedResume = await resumeRun(deps, { runId: "conf-resume-verified" });
     results.push(
-      check2(
+      check3(
         "resume",
         "resume.refuses-verified",
         "a verified run is never resumed",
@@ -50759,7 +55414,7 @@ var resumeConformanceGroup = {
     });
     const sessionlessResume = await resumeRun(deps, { runId: "conf-resume-no-session" });
     results.push(
-      check2(
+      check3(
         "resume",
         "resume.requires-explicit-session",
         'resume requires an explicit provider session id (no "latest" guessing)',
@@ -50803,7 +55458,7 @@ var resumeConformanceGroup = {
     );
     const divergedResume = await resumeRun(deps, { runId: "conf-resume-diverged" });
     results.push(
-      check2(
+      check3(
         "resume",
         "resume.blocks-divergence",
         "repository divergence blocks an unsafe resume",
@@ -50835,7 +55490,9 @@ function loadExecutionContext(runtime) {
     config: configResult.config,
     configPath: configResult.path,
     configExists: configResult.exists,
-    registry: createDefaultRunnerRegistry(configResult.config)
+    registry: createDefaultRunnerRegistry(configResult.config, {
+      extensionRunner: createExtensionRunnerFactory(workspace)
+    })
   };
 }
 function parseTimeout(value) {
@@ -51161,23 +55818,23 @@ Examples:
 }
 
 // ../../packages/cli/src/commands/spec-verify.ts
-var import_node_path10 = __toESM(require("path"), 1);
+var import_node_path11 = __toESM(require("path"), 1);
 
 // ../../packages/drift/dist/index.js
-var import_fs29 = require("fs");
-var import_path34 = __toESM(require("path"), 1);
+var import_fs38 = require("fs");
+var import_path43 = __toESM(require("path"), 1);
 var import_picomatch = __toESM(require_picomatch2(), 1);
-var import_fs30 = require("fs");
-var import_path35 = __toESM(require("path"), 1);
-var import_fs31 = require("fs");
-var import_path36 = __toESM(require("path"), 1);
-var import_fs32 = require("fs");
-var import_path37 = __toESM(require("path"), 1);
-var import_fs33 = require("fs");
-var import_path38 = __toESM(require("path"), 1);
-var import_fs34 = require("fs");
-var import_crypto9 = require("crypto");
-var import_path39 = __toESM(require("path"), 1);
+var import_fs39 = require("fs");
+var import_path44 = __toESM(require("path"), 1);
+var import_fs40 = require("fs");
+var import_path45 = __toESM(require("path"), 1);
+var import_fs41 = require("fs");
+var import_path46 = __toESM(require("path"), 1);
+var import_fs42 = require("fs");
+var import_path47 = __toESM(require("path"), 1);
+var import_fs43 = require("fs");
+var import_crypto11 = require("crypto");
+var import_path48 = __toESM(require("path"), 1);
 var taskEvidenceSchema = external_exports.object({
   taskId: external_exports.string().min(1),
   status: external_exports.enum(["recorded", "verified", "rejected"]),
@@ -51253,7 +55910,21 @@ var verificationPolicySchema = external_exports.object({
   rules: external_exports.record(
     external_exports.string().regex(VERIFICATION_RULE_ID_PATTERN, "rule keys must look like SBV005"),
     policyRuleOverrideSchema
-  ).default({})
+  ).default({}),
+  /**
+   * v0.7.1: explicit extension verifier opt-ins. Each named extension must
+   * be installed AND enabled; a required extension that fails (or cannot
+   * run) fails the gate via SBV026, an optional one warns. Built-in rules —
+   * including protected-path checks — always run and cannot be disabled by
+   * extensions.
+   */
+  extensionVerifiers: external_exports.array(
+    external_exports.object({
+      extension: external_exports.string().min(1).max(64),
+      required: external_exports.boolean().default(false),
+      configuration: external_exports.record(external_exports.unknown()).default({})
+    }).passthrough()
+  ).default([])
 }).passthrough().superRefine((policy, ctx) => {
   if (!policy.schemaVersion.startsWith("1.")) {
     ctx.addIssue({
@@ -51264,24 +55935,24 @@ var verificationPolicySchema = external_exports.object({
   }
 });
 function policyDir(workspace) {
-  return import_path34.default.join(workspace.sidecarDir, "policies");
+  return import_path43.default.join(workspace.sidecarDir, "policies");
 }
 function policyPath(workspace, specName) {
-  const resolved = import_path34.default.resolve(policyDir(workspace), `${specName}.json`);
-  const relative = import_path34.default.relative(workspace.rootDir, resolved);
-  if (relative.startsWith("..") || import_path34.default.isAbsolute(relative)) {
-    return import_path34.default.join(policyDir(workspace), "invalid-spec-name.json");
+  const resolved = import_path43.default.resolve(policyDir(workspace), `${specName}.json`);
+  const relative = import_path43.default.relative(workspace.rootDir, resolved);
+  if (relative.startsWith("..") || import_path43.default.isAbsolute(relative)) {
+    return import_path43.default.join(policyDir(workspace), "invalid-spec-name.json");
   }
   return resolved;
 }
 function readVerificationPolicy(workspace, specName, explicitPath) {
-  const filePath = explicitPath !== void 0 ? import_path34.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
-  if (!(0, import_fs29.existsSync)(filePath)) {
+  const filePath = explicitPath !== void 0 ? import_path43.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
+  if (!(0, import_fs38.existsSync)(filePath)) {
     return { path: filePath, exists: false, diagnostics: [] };
   }
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs29.readFileSync)(filePath, "utf8"));
+    parsed = JSON.parse((0, import_fs38.readFileSync)(filePath, "utf8"));
   } catch (cause) {
     return {
       path: filePath,
@@ -51344,7 +56015,7 @@ function resolveEffectivePolicy(workspace, specName, options = {}) {
   const storedMode = policy?.mode ?? "advisory";
   const strictFromCli = options.strict === true && storedMode !== "strict";
   const mode = options.strict === true ? "strict" : storedMode;
-  const workspaceRelativePolicyPath = import_path34.default.relative(workspace.rootDir, read.path).split(import_path34.default.sep).join("/");
+  const workspaceRelativePolicyPath = import_path43.default.relative(workspace.rootDir, read.path).split(import_path43.default.sep).join("/");
   return {
     specName,
     mode,
@@ -51356,6 +56027,11 @@ function resolveEffectivePolicy(workspace, specName, options = {}) {
     requireRequirementTaskLinks: policy?.requireRequirementTaskLinks ?? false,
     requireTestEvidence: policy?.requireTestEvidence ?? false,
     ruleOverrides: { ...policy?.rules ?? {} },
+    extensionVerifiers: (policy?.extensionVerifiers ?? []).map((entry) => ({
+      extension: entry.extension,
+      required: entry.required,
+      configuration: entry.configuration
+    })),
     ...read.exists ? { policyPath: workspaceRelativePolicyPath } : {},
     policyExists: read.exists,
     policyDiagnostics: read.diagnostics
@@ -51500,33 +56176,33 @@ function mergeNumstat(files, stats) {
 function sniffBinary(absolutePath) {
   let fd;
   try {
-    fd = (0, import_fs30.openSync)(absolutePath, "r");
+    fd = (0, import_fs39.openSync)(absolutePath, "r");
     const buffer = Buffer.alloc(8e3);
-    const bytesRead = (0, import_fs30.readSync)(fd, buffer, 0, buffer.length, 0);
+    const bytesRead = (0, import_fs39.readSync)(fd, buffer, 0, buffer.length, 0);
     return buffer.subarray(0, bytesRead).includes(0);
   } catch {
     return false;
   } finally {
-    if (fd !== void 0) (0, import_fs30.closeSync)(fd);
+    if (fd !== void 0) (0, import_fs39.closeSync)(fd);
   }
 }
 function flagSymlinkEscapes(repoRoot, files) {
   const resolvedRoot = (() => {
     try {
-      return (0, import_fs30.realpathSync)(repoRoot);
+      return (0, import_fs39.realpathSync)(repoRoot);
     } catch {
-      return import_path35.default.resolve(repoRoot);
+      return import_path44.default.resolve(repoRoot);
     }
   })();
   for (const file of files) {
     if (file.changeType === "deleted") continue;
-    const absolute = import_path35.default.join(repoRoot, file.path.split("/").join(import_path35.default.sep));
+    const absolute = import_path44.default.join(repoRoot, file.path.split("/").join(import_path44.default.sep));
     try {
-      const stats = (0, import_fs30.lstatSync)(absolute);
+      const stats = (0, import_fs39.lstatSync)(absolute);
       if (!stats.isSymbolicLink()) continue;
-      const target = (0, import_fs30.realpathSync)(absolute);
-      const relative = import_path35.default.relative(resolvedRoot, target);
-      if (relative.startsWith("..") || import_path35.default.isAbsolute(relative)) {
+      const target = (0, import_fs39.realpathSync)(absolute);
+      const relative = import_path44.default.relative(resolvedRoot, target);
+      if (relative.startsWith("..") || import_path44.default.isAbsolute(relative)) {
         file.symlinkOutsideRepository = true;
       }
     } catch {
@@ -51654,7 +56330,7 @@ async function resolveComparison(repoRoot, request, options = {}) {
     const known = new Set(files.map((file) => file.path));
     for (const token of untracked.stdout.split("\0")) {
       if (token.length === 0 || known.has(token)) continue;
-      const absolute = import_path35.default.join(repoRoot, token.split("/").join(import_path35.default.sep));
+      const absolute = import_path44.default.join(repoRoot, token.split("/").join(import_path44.default.sep));
       files.push({
         path: token,
         changeType: "untracked",
@@ -51734,9 +56410,9 @@ function specMatchReasons(specName, policy, validEvidencePaths, designPathRefere
 function readSpecEvidenceRecords(workspace, specName) {
   const byTask = /* @__PURE__ */ new Map();
   let invalidRecordCount = 0;
-  const specDir = import_path36.default.join(workspace.sidecarDir, "evidence", specName);
-  if ((0, import_fs31.existsSync)(specDir)) {
-    const taskDirs = (0, import_fs31.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
+  const specDir = import_path45.default.join(workspace.sidecarDir, "evidence", specName);
+  if ((0, import_fs40.existsSync)(specDir)) {
+    const taskDirs = (0, import_fs40.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
     for (const taskDir of taskDirs) {
       const { records, diagnostics } = listTaskEvidence(workspace, specName, taskDir);
       invalidRecordCount += diagnostics.length;
@@ -51783,7 +56459,7 @@ async function buildSpecVerificationContext(options) {
     }
     if (effective("tasks") && tasksStage !== void 0) {
       const planHash = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(
-        import_path36.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path36.default.sep))
+        import_path45.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path45.default.sep))
       );
       if (planHash !== void 0) approved.tasksPlanHash = planHash;
     }
@@ -52011,7 +56687,7 @@ async function evaluateGlobalRules(rules, context) {
   return { diagnostics, disabledRules };
 }
 function repoRelative(workspace, absolutePath) {
-  return import_path37.default.relative(workspace.rootDir, absolutePath).split(import_path37.default.sep).join("/");
+  return import_path46.default.relative(workspace.rootDir, absolutePath).split(import_path46.default.sep).join("/");
 }
 function isSpecInfraPath(candidate) {
   return candidate === ".git" || candidate.startsWith(".git/") || candidate.startsWith(".kiro/") || candidate.startsWith(".specbridge/");
@@ -52692,14 +57368,14 @@ var sbv018 = {
     if (designDocument === void 0) return [];
     const designFile = designDocument.filePath;
     const designRepoPath = designFile !== void 0 ? repoRelative(context.workspace, designFile) : void 0;
-    const specDir = import_path37.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
+    const specDir = import_path46.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
     return context.traceability.designPathReferences.filter((reference) => !reference.isGlob).filter((reference) => {
-      const fromRoot = import_path37.default.join(
+      const fromRoot = import_path46.default.join(
         context.workspace.rootDir,
-        reference.path.split("/").join(import_path37.default.sep)
+        reference.path.split("/").join(import_path46.default.sep)
       );
-      const fromSpecDir = import_path37.default.join(specDir, reference.path.split("/").join(import_path37.default.sep));
-      return !(0, import_fs32.existsSync)(fromRoot) && !(0, import_fs32.existsSync)(fromSpecDir);
+      const fromSpecDir = import_path46.default.join(specDir, reference.path.split("/").join(import_path46.default.sep));
+      return !(0, import_fs41.existsSync)(fromRoot) && !(0, import_fs41.existsSync)(fromSpecDir);
     }).map(
       (reference) => makeDiagnostic({
         rule: this,
@@ -52884,6 +57560,19 @@ var sbv024 = {
     return diagnostics;
   }
 };
+var sbv026 = {
+  id: "SBV026",
+  title: "Extension verifier reported failure",
+  category: "verification-command",
+  defaultSeverity: { advisory: "error", strict: "error" },
+  confidence: "deterministic",
+  scope: "spec",
+  triggeredWhen: "A policy-configured extension verifier reported failure, or a required extension verifier could not run (not installed, disabled, stale grant, crash, or timeout). Required verifiers error; optional verifiers warn.",
+  resolution: "Inspect the extensionVerifiers section of the report, fix what the extension found, or repair the extension with `specbridge extension doctor <id>`. Remove the entry from the spec policy to stop running it.",
+  evaluate() {
+    return [];
+  }
+};
 function builtInVerificationRules() {
   return [
     sbv001,
@@ -52910,7 +57599,8 @@ function builtInVerificationRules() {
     sbv022,
     sbv023,
     sbv024,
-    sbv025
+    sbv025,
+    sbv026
   ];
 }
 function findRule(ruleId) {
@@ -52932,9 +57622,9 @@ function loadSpecMatchingInfo(workspace, folder, options) {
     }
   }
   const evidencePaths = /* @__PURE__ */ new Set();
-  const evidenceDir2 = import_path38.default.join(workspace.sidecarDir, "evidence", folder.name);
-  if ((0, import_fs33.existsSync)(evidenceDir2)) {
-    for (const entry of (0, import_fs34.readdirSync)(evidenceDir2, { withFileTypes: true })) {
+  const evidenceDir2 = import_path47.default.join(workspace.sidecarDir, "evidence", folder.name);
+  if ((0, import_fs42.existsSync)(evidenceDir2)) {
+    for (const entry of (0, import_fs43.readdirSync)(evidenceDir2, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
       const { records } = listTaskEvidence(workspace, folder.name, entry.name);
       for (const record2 of records) {
@@ -52992,7 +57682,7 @@ var VERIFY_EXIT_CODES = {
 };
 async function verifySpecs(request) {
   const now = (request.clock ?? (() => /* @__PURE__ */ new Date()))();
-  const verificationId = (request.idFactory ?? import_crypto9.randomUUID)();
+  const verificationId = (request.idFactory ?? import_crypto11.randomUUID)();
   const workspace = request.workspace;
   const configRead = readAgentConfig(workspace);
   if (configRead.config === void 0) {
@@ -53043,8 +57733,8 @@ async function verifySpecs(request) {
   let artifactsDir;
   const ensureArtifactsDir = () => {
     if (artifactsDir === void 0) {
-      const base = request.reportsDir ?? import_path39.default.join(workspace.sidecarDir, "reports");
-      artifactsDir = import_path39.default.join(base, verificationId);
+      const base = request.reportsDir ?? import_path48.default.join(workspace.sidecarDir, "reports");
+      artifactsDir = import_path48.default.join(base, verificationId);
     }
     return artifactsDir;
   };
@@ -53067,8 +57757,8 @@ async function verifySpecs(request) {
       onCommandFinished: (result, stdout, stderr) => {
         const dir = ensureArtifactsDir();
         const safeName = result.name.replace(/[^A-Za-z0-9._-]+/g, "-");
-        writeFileAtomic(import_path39.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
-        writeFileAtomic(import_path39.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
+        writeFileAtomic(import_path48.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
+        writeFileAtomic(import_path48.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
       }
     } : {}
   }) : { mode: "none", commands: [], missingRequired: [] };
@@ -53096,6 +57786,79 @@ async function verifySpecs(request) {
       diagnosticsBySpec.get(diagnostic.specName)?.push(diagnostic);
     } else {
       globalDiagnostics.push(diagnostic);
+    }
+  }
+  const extensionVerifierResults = [];
+  let extensionVerifiersConfigured = false;
+  for (const context of specContexts) {
+    const entries = context.policy.extensionVerifiers;
+    if (entries.length === 0) {
+      continue;
+    }
+    extensionVerifiersConfigured = true;
+    const changedFiles = (selectionMode === "single" ? context.changedFiles : context.specChangedFiles).map((file) => ({ path: file.path, changeType: file.changeType }));
+    let entryResults;
+    if (request.extensionVerifiers === void 0) {
+      entryResults = entries.map((entry) => ({
+        extensionId: entry.extension,
+        extensionVersion: "unknown",
+        specName: context.specName,
+        required: entry.required,
+        status: "error",
+        summary: "no extension verifier runner is available in this verification context",
+        durationMs: 0,
+        diagnostics: []
+      }));
+    } else {
+      try {
+        entryResults = await request.extensionVerifiers({
+          specName: context.specName,
+          entries,
+          changedFiles
+        });
+      } catch (cause) {
+        entryResults = entries.map((entry) => ({
+          extensionId: entry.extension,
+          extensionVersion: "unknown",
+          specName: context.specName,
+          required: entry.required,
+          status: "error",
+          summary: cause instanceof Error ? cause.message : String(cause),
+          durationMs: 0,
+          diagnostics: []
+        }));
+      }
+    }
+    const sbv026Override = context.policy.ruleOverrides["SBV026"];
+    for (const entryResult of entryResults) {
+      extensionVerifierResults.push(entryResult);
+      const problem = entryResult.status === "failed" || entryResult.status === "error";
+      const warningStatus = entryResult.status === "warning";
+      if (!problem && !warningStatus || sbv026Override?.enabled === false) {
+        continue;
+      }
+      const severity = entryResult.required && problem ? sbv026Override?.severity === "warning" ? "warning" : "error" : "warning";
+      diagnosticsBySpec.get(context.specName)?.push({
+        schemaVersion: VERIFICATION_DIAGNOSTIC_SCHEMA_VERSION,
+        ruleId: "SBV026",
+        title: "Extension verifier reported failure",
+        severity,
+        category: "verification-command",
+        message: `Extension verifier "${entryResult.extensionId}" (${entryResult.required ? "required" : "optional"}) reported ${entryResult.status}` + (entryResult.summary !== null ? `: ${entryResult.summary}` : "."),
+        remediation: `See the extensionVerifiers section of the report for the extension diagnostics, or run \`specbridge extension doctor ${entryResult.extensionId}\` if the extension could not run.`,
+        specName: context.specName,
+        taskId: null,
+        requirementId: null,
+        file: null,
+        evidence: {
+          extensionId: entryResult.extensionId,
+          extensionVersion: entryResult.extensionVersion,
+          status: entryResult.status,
+          required: entryResult.required,
+          diagnosticCount: entryResult.diagnostics.length
+        },
+        confidence: "deterministic"
+      });
     }
   }
   const specResults = specContexts.map((context) => {
@@ -53140,12 +57903,13 @@ async function verifySpecs(request) {
     },
     specResults,
     globalDiagnostics: sortedGlobal,
-    verificationCommands: commands.commands.map(toCommandReport)
+    verificationCommands: commands.commands.map(toCommandReport),
+    ...extensionVerifiersConfigured ? { extensionVerifiers: extensionVerifierResults } : {}
   };
   verificationReportSchema.parse(report);
   if (persistArtifacts && artifactsDir !== void 0) {
     writeFileAtomic(
-      import_path39.default.join(artifactsDir, "report.json"),
+      import_path48.default.join(artifactsDir, "report.json"),
       `${JSON.stringify(report, null, 2)}
 `
     );
@@ -53400,9 +58164,12 @@ Examples:
       failOn,
       ...options.policy !== void 0 ? { explicitPolicyPath: options.policy } : {},
       toolVersion: VERSION,
-      reportsDir: import_node_path10.default.join(workspace.sidecarDir, "reports"),
+      reportsDir: import_node_path11.default.join(workspace.sidecarDir, "reports"),
       clock: () => runtime.now(),
-      ...interactive ? { onProgress: (message) => runtime.err(dim(message)) } : {}
+      ...interactive ? { onProgress: (message) => runtime.err(dim(message)) } : {},
+      // v0.7.1: policy-configured extension verifiers run out of process;
+      // their results reach the gate only through the SBV026 rollup rule.
+      extensionVerifiers: createExtensionVerifierHook(workspace)
     });
     if (options.strict === true && format2 === "terminal") {
       const raised = result.report.specResults.filter((specResult) => specResult.policyMode === "strict").map((specResult) => specResult.specName);
@@ -53416,7 +58183,7 @@ Examples:
     }
     const rendered = renderReport(result.report, format2, options.verbose === true);
     if (options.output !== void 0) {
-      const outputPath = import_node_path10.default.resolve(runtime.cwd, options.output);
+      const outputPath = import_node_path11.default.resolve(runtime.cwd, options.output);
       writeFileAtomic(outputPath, rendered);
       runtime.out(`Report written: ${relPath(workspace, outputPath)}`);
     } else {
@@ -53522,9 +58289,9 @@ Examples:
 }
 
 // ../../packages/cli/src/commands/spec-policy.ts
-var import_node_fs7 = require("fs");
-var import_node_path11 = __toESM(require("path"), 1);
 var import_node_fs8 = require("fs");
+var import_node_path12 = __toESM(require("path"), 1);
+var import_node_fs9 = require("fs");
 function isInfrastructurePath2(candidate) {
   return candidate.startsWith(".git") || candidate.startsWith(".kiro/") || candidate.startsWith(".specbridge/");
 }
@@ -53560,10 +58327,10 @@ function collectProposalSources(runtime, specName) {
     } catch {
     }
   }
-  const evidenceDir = import_node_path11.default.join(workspace.sidecarDir, "evidence", specName);
-  if ((0, import_node_fs7.existsSync)(evidenceDir)) {
+  const evidenceDir = import_node_path12.default.join(workspace.sidecarDir, "evidence", specName);
+  if ((0, import_node_fs8.existsSync)(evidenceDir)) {
     let evidencePathCount = 0;
-    for (const entry of (0, import_node_fs8.readdirSync)(evidenceDir, { withFileTypes: true })) {
+    for (const entry of (0, import_node_fs9.readdirSync)(evidenceDir, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
       const { records } = listTaskEvidence(workspace, specName, entry.name);
       for (const record2 of records) {
@@ -53602,7 +58369,7 @@ Example:
       );
     }
     const filePath = policyPath(workspace, name);
-    if ((0, import_node_fs7.existsSync)(filePath) && options.dryRun !== true) {
+    if ((0, import_node_fs8.existsSync)(filePath) && options.dryRun !== true) {
       throw new SpecBridgeError(
         "INVALID_STATE",
         `A verification policy already exists at ${relPath(workspace, filePath)}. Edit it directly, or delete it first \u2014 policy init never overwrites.`
@@ -53622,7 +58389,8 @@ Example:
       requireVerifiedTaskEvidence: false,
       requireRequirementTaskLinks: false,
       requireTestEvidence: false,
-      rules: {}
+      rules: {},
+      extensionVerifiers: []
     };
     const serialized = `${JSON.stringify(proposal, null, 2)}
 `;
@@ -53766,7 +58534,7 @@ Example:
     runtime.out(reportTitle(`Validate policy: ${relPath(workspace, read.path)}`));
     if (problems.length === 0) {
       runtime.out(okLine("The policy is valid."));
-      const raw = JSON.parse((0, import_node_fs7.readFileSync)(read.path, "utf8"));
+      const raw = JSON.parse((0, import_node_fs8.readFileSync)(read.path, "utf8"));
       runtime.out(dim(`  Mode: ${raw.mode ?? "advisory"}`));
     } else {
       for (const problem of problems) runtime.out(failLine(problem));
@@ -53855,13 +58623,102 @@ function registerVerifyRuleCommands(program2, runtime) {
 }
 
 // ../../packages/cli/src/commands/spec-export.ts
+var import_node_fs10 = require("fs");
+var import_node_path13 = __toESM(require("path"), 1);
 function registerSpecExportCommand(spec, runtime) {
-  registerPlannedCommand(spec, runtime, {
-    name: "export",
-    args: "<name>",
-    summary: "Export an agent-specific bundle (--target claude-code)",
-    phase: "a post-v0.1 phase",
-    workaround: 'use "spec context <name> --target claude-code" \u2014 it produces an agent-ready document now.'
+  spec.command("export <name>").description("Export a spec through an enabled exporter extension (candidate files, explicit confirmation)").option("--extension <extension-id>", "exporter extension to run (required)").option("--output <directory>", "output directory for exported files (required)").option("--dry-run", "preview candidate files without writing anything").option("--yes", "confirm writing the previewed files").option("--json", "output a machine-readable JSON report").addHelpText(
+    "after",
+    `
+Exporter extensions never write files themselves: SpecBridge validates every
+candidate path (no absolute paths, no traversal, no symlinked targets, no
+overwrites) and writes atomically inside --output only after --yes.
+
+Examples:
+  ${CLI_BIN} spec export notification-preferences --extension example-exporter --output ./tmp/export --dry-run
+  ${CLI_BIN} spec export notification-preferences --extension example-exporter --output ./tmp/export --yes`
+  ).action(async (name, options) => {
+    if (options.extension === void 0) {
+      throw new SpecBridgeError("INVALID_ARGUMENT", "Pass --extension <extension-id> to select an exporter.");
+    }
+    if (options.output === void 0) {
+      throw new SpecBridgeError("INVALID_ARGUMENT", "Pass --output <directory> to select where files go.");
+    }
+    if (options.dryRun === true && options.yes === true) {
+      throw new SpecBridgeError("INVALID_ARGUMENT", "--dry-run conflicts with --yes; use one.");
+    }
+    const workspace = runtime.workspace();
+    const folder = requireSpec(workspace, name);
+    const spec2 = analyzeSpec(workspace, folder);
+    const stateRead = readSpecState(workspace, folder.name);
+    const outputDir = import_node_path13.default.resolve(runtime.cwd, options.output);
+    const stages = {};
+    for (const file of folder.files) {
+      if (file.kind === "requirements" || file.kind === "design" || file.kind === "tasks" || file.kind === "bugfix") {
+        stages[file.kind] = (0, import_node_fs10.readFileSync)(import_node_path13.default.join(folder.dir, file.fileName), "utf8");
+      }
+    }
+    const input = {
+      specName: folder.name,
+      specType: stateRead.state?.specType ?? (spec2.classification.type === "bugfix" ? "bugfix" : "feature"),
+      workflowMode: stateRead.state?.workflowMode ?? "requirements-first",
+      stages,
+      metadata: { specbridgeVersion: VERSION }
+    };
+    const run = await runExporterExtension(workspace, options.extension, input);
+    validateExportTargets(outputDir, run.files);
+    const write = options.yes === true;
+    const written = write ? writeExportFiles(
+      workspace,
+      run.extensionId,
+      run.extensionVersion,
+      folder.name,
+      outputDir,
+      run.files,
+      () => runtime.now()
+    ).written : [];
+    if (options.json === true) {
+      runtime.outRaw(
+        serializeJsonReport(
+          createJsonReport("specbridge.spec-export/1", `${CLI_BIN} ${VERSION}`, {
+            specName: folder.name,
+            extensionId: run.extensionId,
+            extensionVersion: run.extensionVersion,
+            outputDir: options.output,
+            dryRun: !write,
+            files: run.files.map((file) => ({
+              path: file.path,
+              mediaType: file.mediaType,
+              bytes: file.bytes
+            })),
+            diagnostics: run.diagnostics,
+            summary: run.summary ?? null,
+            written
+          })
+        )
+      );
+      return;
+    }
+    runtime.out(reportTitle(`Export: ${folder.name} via ${run.extensionId}@${run.extensionVersion}`));
+    runtime.out();
+    runtime.out(sectionTitle(`candidate files (${run.files.length})`));
+    for (const file of run.files) {
+      runtime.out(okLine(`${file.path}`, `(${file.mediaType}, ${file.bytes} bytes)`));
+    }
+    if (run.diagnostics.length > 0) {
+      runtime.out();
+      for (const diagnostic of run.diagnostics) {
+        runtime.out(warnLine(`${diagnostic.ruleId}: ${diagnostic.message}`));
+      }
+    }
+    runtime.out();
+    if (write) {
+      runtime.out(okLine(`wrote ${written.length} file${written.length === 1 ? "" : "s"} into ${options.output}`));
+    } else {
+      runtime.out(dim(`Nothing was written${options.dryRun === true ? " (--dry-run)" : ""}.`));
+      if (options.dryRun !== true) {
+        runtime.out(dim(`Re-run with --yes to write these files into ${options.output}.`));
+      }
+    }
   });
 }
 
@@ -54187,8 +59044,8 @@ Examples:
 }
 
 // ../../packages/cli/src/commands/spec-refine.ts
-var import_node_fs9 = require("fs");
-var import_node_path12 = __toESM(require("path"), 1);
+var import_node_fs11 = require("fs");
+var import_node_path14 = __toESM(require("path"), 1);
 var MAX_INSTRUCTION_BYTES = 256 * 1024;
 function resolveInstruction(runtime, options) {
   if (options.instruction !== void 0 && options.instructionFile !== void 0) {
@@ -54204,10 +59061,10 @@ function resolveInstruction(runtime, options) {
     return options.instruction;
   }
   if (options.instructionFile !== void 0) {
-    const filePath = import_node_path12.default.resolve(runtime.cwd, options.instructionFile);
+    const filePath = import_node_path14.default.resolve(runtime.cwd, options.instructionFile);
     let content;
     try {
-      content = (0, import_node_fs9.readFileSync)(filePath, "utf8");
+      content = (0, import_node_fs11.readFileSync)(filePath, "utf8");
     } catch (cause) {
       throw new SpecBridgeError(
         "INVALID_ARGUMENT",
@@ -54408,9 +59265,9 @@ Example:
 }
 
 // ../../packages/cli/src/commands/runner.ts
-var import_node_fs10 = require("fs");
+var import_node_fs12 = require("fs");
 var import_node_os4 = __toESM(require("os"), 1);
-var import_node_path13 = __toESM(require("path"), 1);
+var import_node_path15 = __toESM(require("path"), 1);
 function parseOperation(value) {
   if (value === void 0) return void 0;
   if (!RUNNER_OPERATIONS.includes(value)) {
@@ -54780,11 +59637,11 @@ Examples:
       runtime.exitCode = EXIT_CODES.usageError;
       return;
     }
-    const scratch = (0, import_node_fs10.mkdtempSync)(import_node_path13.default.join(import_node_os4.default.tmpdir(), "specbridge-runner-test-"));
+    const scratch = (0, import_node_fs12.mkdtempSync)(import_node_path15.default.join(import_node_os4.default.tmpdir(), "specbridge-runner-test-"));
     try {
       const result = await profile.runner.selfTest({
         workspaceRoot: scratch,
-        runDir: import_node_path13.default.join(scratch, "run"),
+        runDir: import_node_path15.default.join(scratch, "run"),
         timeoutMs: 12e4
       });
       if (options.json === true) {
@@ -54814,7 +59671,7 @@ Examples:
       }
       runtime.exitCode = result.ok ? EXIT_CODES.ok : EXIT_CODES.runnerFailure;
     } finally {
-      (0, import_node_fs10.rmSync)(scratch, { recursive: true, force: true });
+      (0, import_node_fs12.rmSync)(scratch, { recursive: true, force: true });
     }
   });
   runner.command("models <profile>").description("List locally available models (provider-supported enumeration only)").option("--json", "output a machine-readable JSON report").action(async (name, options) => {
@@ -54888,13 +59745,13 @@ Examples:
   ).action(async (name, options) => {
     const context = loadExecutionContext(runtime);
     const profile = context.registry.getProfile(name);
-    const scratch = (0, import_node_fs10.mkdtempSync)(import_node_path13.default.join(import_node_os4.default.tmpdir(), "specbridge-conformance-"));
+    const scratch = (0, import_node_fs12.mkdtempSync)(import_node_path15.default.join(import_node_os4.default.tmpdir(), "specbridge-conformance-"));
     try {
       const result = await runRunnerConformance(
         {
           profile,
           workspaceRoot: scratch,
-          runDir: import_node_path13.default.join(scratch, ".specbridge-conformance-runs"),
+          runDir: import_node_path15.default.join(scratch, ".specbridge-conformance-runs"),
           invocationsAllowed: options.network === true,
           timeoutMs: 12e4
         },
@@ -54914,15 +59771,15 @@ Examples:
             runtime.out(infoLine(`${group.group}`, `not applicable \u2014 ${group.reason ?? ""}`));
             continue;
           }
-          const failed = group.checks.filter((check4) => check4.status === "failed");
+          const failed = group.checks.filter((check5) => check5.status === "failed");
           const header = failed.length > 0 ? failLine(group.group, `${failed.length} failed`) : group.skipped > 0 ? warnLine(group.group, `${group.skipped} skipped (needs --network)`) : okLine(group.group, `${group.checks.length} passed`);
           runtime.out(header);
-          for (const check4 of group.checks) {
-            if (check4.status === "failed") {
-              runtime.out(failLine(`  ${check4.title}`, check4.detail));
+          for (const check5 of group.checks) {
+            if (check5.status === "failed") {
+              runtime.out(failLine(`  ${check5.title}`, check5.detail));
             } else if (options.verbose === true) {
-              const line = check4.status === "skipped" ? warnLine : okLine;
-              runtime.out(line(`  ${check4.title}`, check4.detail));
+              const line = check5.status === "skipped" ? warnLine : okLine;
+              runtime.out(line(`  ${check5.title}`, check5.detail));
             }
           }
         }
@@ -54949,7 +59806,7 @@ Examples:
       }
       runtime.exitCode = result.passed ? EXIT_CODES.ok : EXIT_CODES.gateFailure;
     } finally {
-      (0, import_node_fs10.rmSync)(scratch, { recursive: true, force: true });
+      (0, import_node_fs12.rmSync)(scratch, { recursive: true, force: true });
     }
   });
   runner.command("requirements", { hidden: true }).option("--operation <operation>", "one operation").action((options) => {
@@ -54980,8 +59837,8 @@ Examples:
 }
 
 // ../../packages/cli/src/commands/config.ts
-var import_node_fs11 = require("fs");
-var import_node_path14 = __toESM(require("path"), 1);
+var import_node_fs13 = require("fs");
+var import_node_path16 = __toESM(require("path"), 1);
 function registerConfigCommands(program2, runtime) {
   const config2 = program2.command("config").description("Validate and migrate .specbridge/config.json");
   config2.command("doctor").description("Validate the configuration (read-only; never modifies the file)").option("--json", "output a machine-readable JSON report").addHelpText(
@@ -55101,8 +59958,8 @@ Examples:
     }
     const apply = options.apply === true;
     const workspace = runtime.workspace();
-    const configPath = import_node_path14.default.join(workspace.sidecarDir, "config.json");
-    if (!(0, import_node_fs11.existsSync)(configPath)) {
+    const configPath = import_node_path16.default.join(workspace.sidecarDir, "config.json");
+    if (!(0, import_node_fs13.existsSync)(configPath)) {
       const message = `No configuration file exists at ${configPath}; nothing to migrate (safe v2 defaults already apply).`;
       if (options.json === true) {
         runtime.outRaw(
@@ -55120,7 +59977,7 @@ Examples:
     }
     let raw;
     try {
-      raw = JSON.parse((0, import_node_fs11.readFileSync)(configPath, "utf8"));
+      raw = JSON.parse((0, import_node_fs13.readFileSync)(configPath, "utf8"));
     } catch (cause) {
       runtime.err(
         failLine(`The configuration file could not be parsed: ${cause instanceof Error ? cause.message : String(cause)}`)
@@ -55574,9 +60431,9 @@ function resolveRun(workspace, runId) {
 }
 
 // ../../packages/cli/src/commands/compat-check.ts
-function eolLabel(check4) {
-  const bom = check4.hasBom ? ", BOM" : "";
-  return `${check4.eol.toUpperCase()}${bom}, ${check4.lineCount} lines, ${check4.byteLength} bytes`;
+function eolLabel(check5) {
+  const bom = check5.hasBom ? ", BOM" : "";
+  return `${check5.eol.toUpperCase()}${bom}, ${check5.lineCount} lines, ${check5.byteLength} bytes`;
 }
 function registerCompatCheckCommand(program2, runtime) {
   const compat = program2.command("compat").description("Kiro compatibility verification");
@@ -55614,7 +60471,7 @@ Examples:
       }
     }
     const allChecks = groups.flatMap((g) => g.checks);
-    const failed = allChecks.filter((check4) => !check4.identical);
+    const failed = allChecks.filter((check5) => !check5.identical);
     if (options.json === true) {
       runtime.outRaw(
         serializeJsonReport(
@@ -55639,12 +60496,12 @@ Examples:
       if (group.checks.length === 0) {
         runtime.out(dim("  (no Markdown files)"));
       }
-      for (const check4 of group.checks) {
-        const label = relPath(workspace, check4.file);
-        if (check4.identical) {
-          runtime.out(okLine(`${label}`, `byte-identical (${eolLabel(check4)})`));
+      for (const check5 of group.checks) {
+        const label = relPath(workspace, check5.file);
+        if (check5.identical) {
+          runtime.out(okLine(`${label}`, `byte-identical (${eolLabel(check5)})`));
         } else {
-          runtime.out(failLine(`${label}`, check4.reason ?? "differs"));
+          runtime.out(failLine(`${label}`, check5.reason ?? "differs"));
         }
       }
       runtime.out();
@@ -55661,12 +60518,12 @@ Examples:
   });
 }
 
-// ../../packages/mcp-server/dist/chunk-WXA73TYV.js
+// ../../packages/mcp-server/dist/chunk-3E2ZYI7Q.js
 var import_buffer5 = require("buffer");
-var import_fs35 = require("fs");
-var import_path40 = __toESM(require("path"), 1);
-var import_crypto10 = require("crypto");
-var import_path41 = __toESM(require("path"), 1);
+var import_fs46 = require("fs");
+var import_path51 = __toESM(require("path"), 1);
+var import_crypto13 = require("crypto");
+var import_path52 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/core.js
 var NEVER2 = Object.freeze({
@@ -55863,10 +60720,10 @@ function assignProp(target, prop, value) {
     configurable: true
   });
 }
-function getElementAtPath(obj, path41) {
-  if (!path41)
+function getElementAtPath(obj, path59) {
+  if (!path59)
     return obj;
-  return path41.reduce((acc, key) => acc?.[key], obj);
+  return path59.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -56186,11 +61043,11 @@ function aborted2(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path41, issues) {
+function prefixIssues(path59, issues) {
   return issues.map((iss) => {
     var _a;
     (_a = iss).path ?? (_a.path = []);
-    iss.path.unshift(path41);
+    iss.path.unshift(path59);
     return iss;
   });
 }
@@ -59770,7 +64627,7 @@ var ZodType2 = /* @__PURE__ */ $constructor("ZodType", (inst, def) => {
   inst.parseAsync = async (data, params) => parseAsync2(inst, data, params, { callee: inst.parseAsync });
   inst.safeParseAsync = async (data, params) => safeParseAsync3(inst, data, params);
   inst.spa = inst.safeParseAsync;
-  inst.refine = (check4, params) => inst.check(refine(check4, params));
+  inst.refine = (check5, params) => inst.check(refine(check5, params));
   inst.superRefine = (refinement) => inst.check(superRefine(refinement));
   inst.overwrite = (fn) => inst.check(_overwrite(fn));
   inst.optional = () => optional(inst);
@@ -60315,7 +65172,7 @@ var ZodCustom = /* @__PURE__ */ $constructor("ZodCustom", (inst, def) => {
   $ZodCustom.init(inst, def);
   ZodType2.init(inst, def);
 });
-function check3(fn) {
+function check4(fn) {
   const ch = new $ZodCheck({
     check: "custom"
     // ...util.normalizeParams(params),
@@ -60330,7 +65187,7 @@ function refine(fn, _params = {}) {
   return _refine(ZodCustom, fn, _params);
 }
 function superRefine(fn) {
-  const ch = check3((payload) => {
+  const ch = check4((payload) => {
     payload.addIssue = (issue4) => {
       if (typeof issue4 === "string") {
         payload.issues.push(util_exports.issue(issue4, payload.value, ch._zod.def));
@@ -62021,38 +66878,38 @@ function parseBigintDef(def, refs) {
   };
   if (!def.checks)
     return res;
-  for (const check4 of def.checks) {
-    switch (check4.kind) {
+  for (const check5 of def.checks) {
+    switch (check5.kind) {
       case "min":
         if (refs.target === "jsonSchema7") {
-          if (check4.inclusive) {
-            setResponseValueAndErrors(res, "minimum", check4.value, check4.message, refs);
+          if (check5.inclusive) {
+            setResponseValueAndErrors(res, "minimum", check5.value, check5.message, refs);
           } else {
-            setResponseValueAndErrors(res, "exclusiveMinimum", check4.value, check4.message, refs);
+            setResponseValueAndErrors(res, "exclusiveMinimum", check5.value, check5.message, refs);
           }
         } else {
-          if (!check4.inclusive) {
+          if (!check5.inclusive) {
             res.exclusiveMinimum = true;
           }
-          setResponseValueAndErrors(res, "minimum", check4.value, check4.message, refs);
+          setResponseValueAndErrors(res, "minimum", check5.value, check5.message, refs);
         }
         break;
       case "max":
         if (refs.target === "jsonSchema7") {
-          if (check4.inclusive) {
-            setResponseValueAndErrors(res, "maximum", check4.value, check4.message, refs);
+          if (check5.inclusive) {
+            setResponseValueAndErrors(res, "maximum", check5.value, check5.message, refs);
           } else {
-            setResponseValueAndErrors(res, "exclusiveMaximum", check4.value, check4.message, refs);
+            setResponseValueAndErrors(res, "exclusiveMaximum", check5.value, check5.message, refs);
           }
         } else {
-          if (!check4.inclusive) {
+          if (!check5.inclusive) {
             res.exclusiveMaximum = true;
           }
-          setResponseValueAndErrors(res, "maximum", check4.value, check4.message, refs);
+          setResponseValueAndErrors(res, "maximum", check5.value, check5.message, refs);
         }
         break;
       case "multipleOf":
-        setResponseValueAndErrors(res, "multipleOf", check4.value, check4.message, refs);
+        setResponseValueAndErrors(res, "multipleOf", check5.value, check5.message, refs);
         break;
     }
   }
@@ -62108,15 +66965,15 @@ var integerDateParser = (def, refs) => {
   if (refs.target === "openApi3") {
     return res;
   }
-  for (const check4 of def.checks) {
-    switch (check4.kind) {
+  for (const check5 of def.checks) {
+    switch (check5.kind) {
       case "min":
         setResponseValueAndErrors(
           res,
           "minimum",
-          check4.value,
+          check5.value,
           // This is in milliseconds
-          check4.message,
+          check5.message,
           refs
         );
         break;
@@ -62124,9 +66981,9 @@ var integerDateParser = (def, refs) => {
         setResponseValueAndErrors(
           res,
           "maximum",
-          check4.value,
+          check5.value,
           // This is in milliseconds
-          check4.message,
+          check5.message,
           refs
         );
         break;
@@ -62272,118 +67129,118 @@ function parseStringDef(def, refs) {
     type: "string"
   };
   if (def.checks) {
-    for (const check4 of def.checks) {
-      switch (check4.kind) {
+    for (const check5 of def.checks) {
+      switch (check5.kind) {
         case "min":
-          setResponseValueAndErrors(res, "minLength", typeof res.minLength === "number" ? Math.max(res.minLength, check4.value) : check4.value, check4.message, refs);
+          setResponseValueAndErrors(res, "minLength", typeof res.minLength === "number" ? Math.max(res.minLength, check5.value) : check5.value, check5.message, refs);
           break;
         case "max":
-          setResponseValueAndErrors(res, "maxLength", typeof res.maxLength === "number" ? Math.min(res.maxLength, check4.value) : check4.value, check4.message, refs);
+          setResponseValueAndErrors(res, "maxLength", typeof res.maxLength === "number" ? Math.min(res.maxLength, check5.value) : check5.value, check5.message, refs);
           break;
         case "email":
           switch (refs.emailStrategy) {
             case "format:email":
-              addFormat(res, "email", check4.message, refs);
+              addFormat(res, "email", check5.message, refs);
               break;
             case "format:idn-email":
-              addFormat(res, "idn-email", check4.message, refs);
+              addFormat(res, "idn-email", check5.message, refs);
               break;
             case "pattern:zod":
-              addPattern(res, zodPatterns.email, check4.message, refs);
+              addPattern(res, zodPatterns.email, check5.message, refs);
               break;
           }
           break;
         case "url":
-          addFormat(res, "uri", check4.message, refs);
+          addFormat(res, "uri", check5.message, refs);
           break;
         case "uuid":
-          addFormat(res, "uuid", check4.message, refs);
+          addFormat(res, "uuid", check5.message, refs);
           break;
         case "regex":
-          addPattern(res, check4.regex, check4.message, refs);
+          addPattern(res, check5.regex, check5.message, refs);
           break;
         case "cuid":
-          addPattern(res, zodPatterns.cuid, check4.message, refs);
+          addPattern(res, zodPatterns.cuid, check5.message, refs);
           break;
         case "cuid2":
-          addPattern(res, zodPatterns.cuid2, check4.message, refs);
+          addPattern(res, zodPatterns.cuid2, check5.message, refs);
           break;
         case "startsWith":
-          addPattern(res, RegExp(`^${escapeLiteralCheckValue(check4.value, refs)}`), check4.message, refs);
+          addPattern(res, RegExp(`^${escapeLiteralCheckValue(check5.value, refs)}`), check5.message, refs);
           break;
         case "endsWith":
-          addPattern(res, RegExp(`${escapeLiteralCheckValue(check4.value, refs)}$`), check4.message, refs);
+          addPattern(res, RegExp(`${escapeLiteralCheckValue(check5.value, refs)}$`), check5.message, refs);
           break;
         case "datetime":
-          addFormat(res, "date-time", check4.message, refs);
+          addFormat(res, "date-time", check5.message, refs);
           break;
         case "date":
-          addFormat(res, "date", check4.message, refs);
+          addFormat(res, "date", check5.message, refs);
           break;
         case "time":
-          addFormat(res, "time", check4.message, refs);
+          addFormat(res, "time", check5.message, refs);
           break;
         case "duration":
-          addFormat(res, "duration", check4.message, refs);
+          addFormat(res, "duration", check5.message, refs);
           break;
         case "length":
-          setResponseValueAndErrors(res, "minLength", typeof res.minLength === "number" ? Math.max(res.minLength, check4.value) : check4.value, check4.message, refs);
-          setResponseValueAndErrors(res, "maxLength", typeof res.maxLength === "number" ? Math.min(res.maxLength, check4.value) : check4.value, check4.message, refs);
+          setResponseValueAndErrors(res, "minLength", typeof res.minLength === "number" ? Math.max(res.minLength, check5.value) : check5.value, check5.message, refs);
+          setResponseValueAndErrors(res, "maxLength", typeof res.maxLength === "number" ? Math.min(res.maxLength, check5.value) : check5.value, check5.message, refs);
           break;
         case "includes": {
-          addPattern(res, RegExp(escapeLiteralCheckValue(check4.value, refs)), check4.message, refs);
+          addPattern(res, RegExp(escapeLiteralCheckValue(check5.value, refs)), check5.message, refs);
           break;
         }
         case "ip": {
-          if (check4.version !== "v6") {
-            addFormat(res, "ipv4", check4.message, refs);
+          if (check5.version !== "v6") {
+            addFormat(res, "ipv4", check5.message, refs);
           }
-          if (check4.version !== "v4") {
-            addFormat(res, "ipv6", check4.message, refs);
+          if (check5.version !== "v4") {
+            addFormat(res, "ipv6", check5.message, refs);
           }
           break;
         }
         case "base64url":
-          addPattern(res, zodPatterns.base64url, check4.message, refs);
+          addPattern(res, zodPatterns.base64url, check5.message, refs);
           break;
         case "jwt":
-          addPattern(res, zodPatterns.jwt, check4.message, refs);
+          addPattern(res, zodPatterns.jwt, check5.message, refs);
           break;
         case "cidr": {
-          if (check4.version !== "v6") {
-            addPattern(res, zodPatterns.ipv4Cidr, check4.message, refs);
+          if (check5.version !== "v6") {
+            addPattern(res, zodPatterns.ipv4Cidr, check5.message, refs);
           }
-          if (check4.version !== "v4") {
-            addPattern(res, zodPatterns.ipv6Cidr, check4.message, refs);
+          if (check5.version !== "v4") {
+            addPattern(res, zodPatterns.ipv6Cidr, check5.message, refs);
           }
           break;
         }
         case "emoji":
-          addPattern(res, zodPatterns.emoji(), check4.message, refs);
+          addPattern(res, zodPatterns.emoji(), check5.message, refs);
           break;
         case "ulid": {
-          addPattern(res, zodPatterns.ulid, check4.message, refs);
+          addPattern(res, zodPatterns.ulid, check5.message, refs);
           break;
         }
         case "base64": {
           switch (refs.base64Strategy) {
             case "format:binary": {
-              addFormat(res, "binary", check4.message, refs);
+              addFormat(res, "binary", check5.message, refs);
               break;
             }
             case "contentEncoding:base64": {
-              setResponseValueAndErrors(res, "contentEncoding", "base64", check4.message, refs);
+              setResponseValueAndErrors(res, "contentEncoding", "base64", check5.message, refs);
               break;
             }
             case "pattern:zod": {
-              addPattern(res, zodPatterns.base64, check4.message, refs);
+              addPattern(res, zodPatterns.base64, check5.message, refs);
               break;
             }
           }
           break;
         }
         case "nanoid": {
-          addPattern(res, zodPatterns.nanoid, check4.message, refs);
+          addPattern(res, zodPatterns.nanoid, check5.message, refs);
         }
         case "toLowerCase":
         case "toUpperCase":
@@ -62391,7 +67248,7 @@ function parseStringDef(def, refs) {
           break;
         default:
           /* @__PURE__ */ ((_) => {
-          })(check4);
+          })(check5);
       }
     }
   }
@@ -62761,42 +67618,42 @@ function parseNumberDef(def, refs) {
   };
   if (!def.checks)
     return res;
-  for (const check4 of def.checks) {
-    switch (check4.kind) {
+  for (const check5 of def.checks) {
+    switch (check5.kind) {
       case "int":
         res.type = "integer";
-        addErrorMessage(res, "type", check4.message, refs);
+        addErrorMessage(res, "type", check5.message, refs);
         break;
       case "min":
         if (refs.target === "jsonSchema7") {
-          if (check4.inclusive) {
-            setResponseValueAndErrors(res, "minimum", check4.value, check4.message, refs);
+          if (check5.inclusive) {
+            setResponseValueAndErrors(res, "minimum", check5.value, check5.message, refs);
           } else {
-            setResponseValueAndErrors(res, "exclusiveMinimum", check4.value, check4.message, refs);
+            setResponseValueAndErrors(res, "exclusiveMinimum", check5.value, check5.message, refs);
           }
         } else {
-          if (!check4.inclusive) {
+          if (!check5.inclusive) {
             res.exclusiveMinimum = true;
           }
-          setResponseValueAndErrors(res, "minimum", check4.value, check4.message, refs);
+          setResponseValueAndErrors(res, "minimum", check5.value, check5.message, refs);
         }
         break;
       case "max":
         if (refs.target === "jsonSchema7") {
-          if (check4.inclusive) {
-            setResponseValueAndErrors(res, "maximum", check4.value, check4.message, refs);
+          if (check5.inclusive) {
+            setResponseValueAndErrors(res, "maximum", check5.value, check5.message, refs);
           } else {
-            setResponseValueAndErrors(res, "exclusiveMaximum", check4.value, check4.message, refs);
+            setResponseValueAndErrors(res, "exclusiveMaximum", check5.value, check5.message, refs);
           }
         } else {
-          if (!check4.inclusive) {
+          if (!check5.inclusive) {
             res.exclusiveMaximum = true;
           }
-          setResponseValueAndErrors(res, "maximum", check4.value, check4.message, refs);
+          setResponseValueAndErrors(res, "maximum", check5.value, check5.message, refs);
         }
         break;
       case "multipleOf":
-        setResponseValueAndErrors(res, "multipleOf", check4.value, check4.message, refs);
+        setResponseValueAndErrors(res, "multipleOf", check5.value, check5.message, refs);
         break;
     }
   }
@@ -65993,13 +70850,631 @@ var EMPTY_COMPLETION_RESULT = {
   }
 };
 
-// ../../packages/mcp-server/dist/chunk-WXA73TYV.js
-var import_fs36 = require("fs");
-var import_fs37 = require("fs");
-var import_path42 = __toESM(require("path"), 1);
-var import_fs38 = require("fs");
+// ../../packages/mcp-server/dist/chunk-3E2ZYI7Q.js
+var import_fs47 = require("fs");
+var import_fs48 = require("fs");
+var import_path53 = __toESM(require("path"), 1);
+var import_fs49 = require("fs");
 var import_os2 = __toESM(require("os"), 1);
-var import_path43 = __toESM(require("path"), 1);
+var import_path54 = __toESM(require("path"), 1);
+
+// ../../packages/registry/dist/index.js
+var import_fs44 = require("fs");
+var import_path49 = __toESM(require("path"), 1);
+var import_crypto12 = require("crypto");
+var import_fs45 = require("fs");
+var import_path50 = __toESM(require("path"), 1);
+var BUILTIN_REGISTRY_INDEX_JSON = '{\n  "schemaVersion": "1.0.0",\n  "name": "specbridge-examples",\n  "updatedAt": "2026-01-01T00:00:00.000Z",\n  "extensions": [\n    {\n      "id": "example-analyzer",\n      "displayName": "example-analyzer",\n      "description": "Deterministic spec diagnostics contributed by the example-analyzer analyzer extension.",\n      "kind": "analyzer",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-analyzer-1.0.0.specbridge-extension.zip",\n          "sha256": "4d2ed293339ac609b5a0db4e6810c4a621541e3c2c0fa850693831ea196f71d9",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <1.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "analyzer",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-exporter",\n      "displayName": "example-exporter",\n      "description": "Candidate export files produced by the example-exporter exporter extension.",\n      "kind": "exporter",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-exporter-1.0.0.specbridge-extension.zip",\n          "sha256": "0bc6c8097275c27df59695bf88f279d5c6ff0a29511673ad00f7df33c4f85228",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <1.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "exporter",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-runner",\n      "displayName": "example-runner",\n      "description": "An out-of-process runner adapter provided by the example-runner extension.",\n      "kind": "runner",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-runner-1.0.0.specbridge-extension.zip",\n          "sha256": "9b5d29c5281cfd062cc506db8dbd2baaf6192221a7da782036f0eb5ceda8ef50",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <1.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": true,\n              "repositoryWrite": true,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "runner",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-template-provider",\n      "displayName": "example-template-provider",\n      "description": "Spec template packs contributed by the example-template-provider template-provider extension.",\n      "kind": "template-provider",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-template-provider-1.0.0.specbridge-extension.zip",\n          "sha256": "83572ecc9cc5a40451a4ecd7ea8c1ab3171e022ca5442566f110ef1de71d8533",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <1.0.0"\n            },\n            "permissions": {\n              "specRead": false,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "template-provider",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-verifier",\n      "displayName": "example-verifier",\n      "description": "Verification diagnostics contributed by the example-verifier verifier extension.",\n      "kind": "verifier",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-verifier-1.0.0.specbridge-extension.zip",\n          "sha256": "17e78d12a74b2944983a38527e8568117d56ed53e219a5a976787bb1bed832af",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <1.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "verifier",\n        "specbridge-extension"\n      ]\n    }\n  ]\n}\n';
+var REGISTRY_ERROR_CODES = {
+  SBR001: "registry not found",
+  SBR002: "invalid registry name",
+  SBR003: "invalid registry configuration",
+  SBR004: "registry network flag required",
+  SBR005: "registry fetch failed",
+  SBR006: "registry response too large",
+  SBR007: "invalid registry index",
+  SBR008: "unsupported registry schema",
+  SBR009: "registry redirect rejected",
+  SBR010: "registry cache unavailable",
+  SBR011: "extension version not found",
+  SBR012: "archive integrity metadata missing",
+  SBR013: "archive download failed",
+  SBR014: "archive checksum mismatch",
+  SBR015: "registry operation failed"
+};
+var RegistryError = class extends SpecBridgeError {
+  registryCode;
+  /** Actionable next step, always present. */
+  remediation;
+  constructor(registryCode, detail, remediation, details) {
+    super(
+      "REGISTRY_ERROR",
+      `${registryCode} (${REGISTRY_ERROR_CODES[registryCode]}): ${detail} ${remediation}`,
+      { ...details, registryCode }
+    );
+    this.name = "RegistryError";
+    this.registryCode = registryCode;
+    this.remediation = remediation;
+  }
+};
+var REGISTRY_INDEX_SCHEMA_VERSION = "1.0.0";
+var MAX_REGISTRY_INDEX_BYTES = 5 * 1024 * 1024;
+var REGISTRY_NAME_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
+var MAX_REGISTRY_NAME_LENGTH = 40;
+var HTTPS_URL = external_exports.string().min(9).max(1e3).superRefine((value, ctx) => {
+  let parsed;
+  try {
+    parsed = new URL(value);
+  } catch {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message: "not a valid URL" });
+    return;
+  }
+  if (parsed.protocol !== "https:") {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message: "only https:// URLs are allowed" });
+  }
+  if (parsed.username !== "" || parsed.password !== "") {
+    ctx.addIssue({
+      code: external_exports.ZodIssueCode.custom,
+      message: "URLs must not embed credentials"
+    });
+  }
+});
+var registryVersionEntrySchema = external_exports.object({
+  version: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  archiveUrl: HTTPS_URL,
+  sha256: external_exports.string().regex(/^[0-9a-f]{64}$/),
+  manifest: external_exports.object({
+    protocolVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+    compatibility: external_exports.object({
+      specbridge: external_exports.string().min(1).max(100)
+    }).passthrough(),
+    permissions: extensionPermissionsSchema
+  }).passthrough()
+}).strict();
+var registryExtensionEntrySchema = external_exports.object({
+  id: external_exports.string().min(1).max(64),
+  displayName: external_exports.string().min(1).max(100),
+  description: external_exports.string().min(1).max(500),
+  kind: external_exports.enum(EXTENSION_KINDS),
+  latestVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  versions: external_exports.array(registryVersionEntrySchema).min(1).max(50),
+  repository: HTTPS_URL.optional(),
+  homepage: HTTPS_URL.optional(),
+  license: external_exports.string().min(1).max(100),
+  keywords: external_exports.array(external_exports.string().min(1).max(30)).max(12).optional(),
+  deprecated: external_exports.boolean().optional()
+}).strict();
+var registryIndexSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  name: external_exports.string().min(1).max(100),
+  updatedAt: external_exports.string().min(1).max(60),
+  extensions: external_exports.array(registryExtensionEntrySchema).max(2e3)
+}).strict();
+function parseRegistryIndex(text) {
+  const problems = [];
+  if (Buffer.byteLength(text, "utf8") > MAX_REGISTRY_INDEX_BYTES) {
+    return { problems: [`index exceeds ${MAX_REGISTRY_INDEX_BYTES} bytes`] };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch (error2) {
+    return { problems: [`index is not valid JSON: ${error2 instanceof Error ? error2.message : String(error2)}`] };
+  }
+  if (typeof parsed === "object" && parsed !== null && "schemaVersion" in parsed && typeof parsed.schemaVersion === "string") {
+    const major = parsed.schemaVersion.split(".")[0];
+    if (major !== REGISTRY_INDEX_SCHEMA_VERSION.split(".")[0]) {
+      return {
+        problems: [
+          `schemaVersion ${parsed.schemaVersion} is not supported (supported major: ${REGISTRY_INDEX_SCHEMA_VERSION.split(".")[0]})`
+        ]
+      };
+    }
+  }
+  const result = registryIndexSchema.safeParse(parsed);
+  if (!result.success) {
+    for (const issue4 of result.error.issues.slice(0, 15)) {
+      problems.push(`${issue4.path.join(".") || "(root)"}: ${issue4.message}`);
+    }
+    return { problems };
+  }
+  const seen = /* @__PURE__ */ new Set();
+  for (const entry of result.data.extensions) {
+    if (!validateExtensionId(entry.id).valid) {
+      problems.push(`extension "${entry.id}": invalid extension ID`);
+    }
+    if (seen.has(entry.id)) {
+      problems.push(`extension "${entry.id}": duplicate entry`);
+    }
+    seen.add(entry.id);
+    if (!entry.versions.some((version2) => version2.version === entry.latestVersion)) {
+      problems.push(`extension "${entry.id}": latestVersion ${entry.latestVersion} is not in versions`);
+    }
+    const versionsSeen = /* @__PURE__ */ new Set();
+    for (const version2 of entry.versions) {
+      if (versionsSeen.has(version2.version)) {
+        problems.push(`extension "${entry.id}": duplicate version ${version2.version}`);
+      }
+      versionsSeen.add(version2.version);
+      const range = validateSemverRange2(version2.manifest.compatibility.specbridge);
+      if (!range.valid) {
+        problems.push(
+          `extension "${entry.id}" ${version2.version}: invalid compatibility range (${range.problem ?? "unknown"})`
+        );
+      }
+    }
+  }
+  if (problems.length > 0) {
+    return { problems };
+  }
+  return { index: result.data, problems: [] };
+}
+var REGISTRY_CACHE_DIR_NAME = "registry-cache";
+var REGISTRY_CACHE_SCHEMA_VERSION = "1.0.0";
+var cachedRegistrySchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  sourceName: external_exports.string().min(1),
+  sourceUrl: external_exports.string().min(1).optional(),
+  retrievedAt: external_exports.string().min(1),
+  contentSha256: external_exports.string().regex(/^[0-9a-f]{64}$/),
+  index: registryIndexSchema
+}).passthrough();
+function registryCacheDir(workspace) {
+  return import_path49.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
+}
+function registryCachePath(workspace, name) {
+  const target = import_path49.default.join(registryCacheDir(workspace), `${name}.json`);
+  assertInsideWorkspace(workspace.rootDir, target);
+  return target;
+}
+function readRegistryCache(workspace, name) {
+  const filePath = registryCachePath(workspace, name);
+  if (!(0, import_fs44.existsSync)(filePath)) {
+    return { diagnostics: [] };
+  }
+  try {
+    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs44.readFileSync)(filePath, "utf8")));
+    if (!parsed.success) {
+      return {
+        diagnostics: [
+          {
+            severity: "warning",
+            code: "REGISTRY_CACHE_INVALID",
+            message: `cached index for "${name}" does not match the cache schema and was ignored`,
+            file: filePath
+          }
+        ]
+      };
+    }
+    return { cache: parsed.data, diagnostics: [] };
+  } catch (cause) {
+    return {
+      diagnostics: [
+        {
+          severity: "warning",
+          code: "REGISTRY_CACHE_UNREADABLE",
+          message: `cached index for "${name}" could not be read: ${cause instanceof Error ? cause.message : String(cause)}`,
+          file: filePath
+        }
+      ]
+    };
+  }
+}
+function writeRegistryCache(workspace, name, indexText, index, options = {}) {
+  const cache = cachedRegistrySchema.parse({
+    schemaVersion: REGISTRY_CACHE_SCHEMA_VERSION,
+    sourceName: name,
+    ...options.sourceUrl === void 0 ? {} : { sourceUrl: options.sourceUrl },
+    retrievedAt: (options.clock?.() ?? /* @__PURE__ */ new Date()).toISOString(),
+    contentSha256: (0, import_crypto12.createHash)("sha256").update(indexText, "utf8").digest("hex"),
+    index
+  });
+  writeFileAtomic(registryCachePath(workspace, name), `${JSON.stringify(cache, null, 2)}
+`);
+  return cache;
+}
+function resolveRegistryIndex(workspace, source) {
+  if (source.type === "builtin") {
+    const parsed = parseRegistryIndex(BUILTIN_REGISTRY_INDEX_JSON);
+    if (parsed.index === void 0) {
+      throw new RegistryError(
+        "SBR007",
+        "the built-in example registry index failed validation.",
+        "This is a SpecBridge build problem; run `pnpm check:builtin-registry`."
+      );
+    }
+    return { sourceName: source.name, index: parsed.index, origin: "builtin", diagnostics: [] };
+  }
+  if (source.type === "local-file") {
+    const filePath = import_path49.default.resolve(workspace.rootDir, source.file);
+    assertInsideWorkspace(workspace.rootDir, filePath);
+    if (!(0, import_fs44.existsSync)(filePath)) {
+      return {
+        sourceName: source.name,
+        index: { schemaVersion: "1.0.0", name: source.name, updatedAt: "unknown", extensions: [] },
+        origin: "local-file",
+        diagnostics: [
+          {
+            severity: "warning",
+            code: "REGISTRY_FILE_MISSING",
+            message: `registry file ${source.file} does not exist`,
+            file: filePath
+          }
+        ]
+      };
+    }
+    const text = (0, import_fs44.readFileSync)(filePath, "utf8");
+    const parsed = parseRegistryIndex(text);
+    if (parsed.index === void 0) {
+      throw new RegistryError(
+        "SBR007",
+        `registry file ${source.file} is invalid: ${parsed.problems.slice(0, 3).join("; ")}.`,
+        "Fix the index file; see registry/schema.json for the expected shape.",
+        { problems: [...parsed.problems] }
+      );
+    }
+    return { sourceName: source.name, index: parsed.index, origin: "local-file", diagnostics: [] };
+  }
+  const cached2 = readRegistryCache(workspace, source.name);
+  if (cached2.cache === void 0) {
+    return void 0;
+  }
+  return {
+    sourceName: source.name,
+    index: cached2.cache.index,
+    origin: "cache",
+    retrievedAt: cached2.cache.retrievedAt,
+    diagnostics: cached2.diagnostics
+  };
+}
+var REGISTRY_FETCH_TIMEOUT_MS = 3e4;
+var REGISTRY_MAX_REDIRECTS = 3;
+async function updateRegistryIndex(workspace, source, options) {
+  if (source.type !== "https") {
+    throw new RegistryError(
+      "SBR015",
+      `registry "${source.name}" is a ${source.type} source and has nothing to update.`,
+      "Only https registries are updated; local-file and builtin sources are always current.",
+      { name: source.name }
+    );
+  }
+  if (!options.network) {
+    throw new RegistryError(
+      "SBR004",
+      `updating registry "${source.name}" requires network access.`,
+      "Re-run with --network to allow this one explicit fetch.",
+      { name: source.name }
+    );
+  }
+  const response = await options.http({
+    method: "GET",
+    url: source.url,
+    timeoutMs: REGISTRY_FETCH_TIMEOUT_MS,
+    maxResponseBytes: MAX_REGISTRY_INDEX_BYTES,
+    maxRedirects: REGISTRY_MAX_REDIRECTS,
+    expectJson: true,
+    ...options.signal === void 0 ? {} : { signal: options.signal }
+  });
+  if (!response.ok) {
+    if (response.kind === "response-too-large") {
+      throw new RegistryError(
+        "SBR006",
+        `the index from ${source.url} exceeds ${MAX_REGISTRY_INDEX_BYTES} bytes.`,
+        "The previous valid cache (if any) was preserved."
+      );
+    }
+    if (response.kind === "redirect-rejected") {
+      throw new RegistryError(
+        "SBR009",
+        `the request to ${source.url} was redirected in a way SpecBridge refuses (${response.detail ?? "unsafe redirect"}).`,
+        "HTTPS\u2192HTTP downgrades and excessive redirects are never followed; the cache was preserved."
+      );
+    }
+    throw new RegistryError(
+      "SBR005",
+      `fetching ${source.url} failed (${response.kind ?? "error"}${response.status !== void 0 ? ` ${response.status}` : ""}: ${response.detail ?? "no detail"}).`,
+      "Check the URL and connectivity; the previous valid cache (if any) was preserved."
+    );
+  }
+  const bodyText = response.bodyText ?? "";
+  const parsed = parseRegistryIndex(bodyText);
+  if (parsed.index === void 0) {
+    throw new RegistryError(
+      "SBR007",
+      `the index from ${source.url} failed validation: ${parsed.problems.slice(0, 3).join("; ")}.`,
+      "The previous valid cache (if any) was preserved; contact the registry maintainer.",
+      { problems: [...parsed.problems] }
+    );
+  }
+  const cache = writeRegistryCache(workspace, source.name, bodyText, parsed.index, {
+    sourceUrl: source.url,
+    ...options.clock === void 0 ? {} : { clock: options.clock }
+  });
+  return { sourceName: source.name, cache, extensionCount: parsed.index.extensions.length };
+}
+async function downloadRegistryArchive(archiveUrl, options) {
+  if (!options.network) {
+    throw new RegistryError(
+      "SBR004",
+      "downloading an extension archive requires network access.",
+      "Re-run with --network to allow this one explicit download."
+    );
+  }
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(archiveUrl);
+  } catch {
+    throw new RegistryError("SBR013", `archive URL "${archiveUrl}" is invalid.`, "Fix the registry entry.");
+  }
+  if (parsedUrl.protocol !== "https:" || parsedUrl.username !== "" || parsedUrl.password !== "") {
+    throw new RegistryError(
+      "SBR013",
+      `archive URL "${archiveUrl}" is not a credential-free https:// URL.`,
+      "Registry archives are only ever downloaded over HTTPS."
+    );
+  }
+  const response = await options.http({
+    method: "GET",
+    url: archiveUrl,
+    timeoutMs: REGISTRY_FETCH_TIMEOUT_MS,
+    maxResponseBytes: options.maxArchiveBytes,
+    maxRedirects: REGISTRY_MAX_REDIRECTS,
+    binaryBody: true,
+    ...options.signal === void 0 ? {} : { signal: options.signal }
+  });
+  if (!response.ok) {
+    throw new RegistryError(
+      "SBR013",
+      `downloading ${archiveUrl} failed (${response.kind ?? "error"}: ${response.detail ?? "no detail"}).`,
+      "Nothing was installed; check connectivity and the registry entry."
+    );
+  }
+  if (response.bodyBase64 === void 0) {
+    throw new RegistryError(
+      "SBR013",
+      `downloading ${archiveUrl} returned no byte-exact body.`,
+      "Nothing was installed; this indicates a transport problem."
+    );
+  }
+  return Buffer.from(response.bodyBase64, "base64");
+}
+var DEFAULT_REGISTRY_SEARCH_LIMIT = 20;
+var MAX_REGISTRY_SEARCH_LIMIT = 50;
+function searchRegistryIndexes(indexes, query, options = {}) {
+  const needle = query.trim().toLowerCase();
+  const limit = Math.min(options.limit ?? DEFAULT_REGISTRY_SEARCH_LIMIT, MAX_REGISTRY_SEARCH_LIMIT);
+  const hits = [];
+  for (const { registryName, index } of indexes) {
+    for (const entry of index.extensions) {
+      if (options.kind !== void 0 && entry.kind !== options.kind) {
+        continue;
+      }
+      let score = 0;
+      if (entry.id === needle) {
+        score = 100;
+      } else if (entry.id.startsWith(needle)) {
+        score = 80;
+      } else if ((entry.keywords ?? []).some((keyword) => keyword.toLowerCase() === needle)) {
+        score = 60;
+      } else if (entry.displayName.toLowerCase().split(/\s+/).includes(needle)) {
+        score = 40;
+      } else if (entry.description.toLowerCase().includes(needle)) {
+        score = 20;
+      }
+      if (score > 0) {
+        hits.push({ registryName, entry, score });
+      }
+    }
+  }
+  return hits.sort(
+    (a2, b) => b.score - a2.score || a2.entry.id.localeCompare(b.entry.id, "en") || a2.registryName.localeCompare(b.registryName, "en")
+  ).slice(0, limit);
+}
+function resolveRegistryExtension(indexes, extensionId, version2) {
+  const matches = [];
+  for (const { registryName, index } of indexes) {
+    const entry = index.extensions.find((candidate) => candidate.id === extensionId);
+    if (entry === void 0) {
+      continue;
+    }
+    const wanted = version2 ?? entry.latestVersion;
+    const versionEntry = entry.versions.find((candidate) => candidate.version === wanted);
+    if (versionEntry === void 0) {
+      throw new RegistryError(
+        "SBR011",
+        `extension "${extensionId}" has no version ${wanted} in registry "${registryName}" (available: ${entry.versions.map((candidate) => candidate.version).join(", ")}).`,
+        "Pass one of the available versions with --version.",
+        { extensionId, version: wanted }
+      );
+    }
+    matches.push({ registryName, entry, version: versionEntry });
+  }
+  if (matches.length === 0) {
+    throw new RegistryError(
+      "SBR011",
+      `extension "${extensionId}" was not found in any readable registry index.`,
+      "Run `specbridge registry search <query>` to discover extensions, or update the registry cache with `specbridge registry update <name> --network`.",
+      { extensionId }
+    );
+  }
+  const first = matches[0];
+  if (matches.length > 1 && first !== void 0) {
+    return first;
+  }
+  if (first === void 0) {
+    throw new RegistryError("SBR011", `extension "${extensionId}" was not found.`, "Check the ID.");
+  }
+  return first;
+}
+var REGISTRIES_FILE_NAME = "registries.json";
+var REGISTRIES_SCHEMA_VERSION = "1.0.0";
+var BUILTIN_REGISTRY_NAME = "examples";
+var HTTPS_SOURCE_URL = external_exports.string().min(9).max(1e3).superRefine((value, ctx) => {
+  let parsed;
+  try {
+    parsed = new URL(value);
+  } catch {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message: "not a valid URL" });
+    return;
+  }
+  if (parsed.protocol !== "https:") {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message: "only https:// registry URLs are allowed" });
+  }
+  if (parsed.username !== "" || parsed.password !== "") {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message: "registry URLs must not embed credentials" });
+  }
+});
+var NAME = external_exports.string().min(1).max(MAX_REGISTRY_NAME_LENGTH).regex(REGISTRY_NAME_PATTERN, "registry names use lowercase letters, digits, and single hyphens");
+var registrySourceSchema = external_exports.discriminatedUnion("type", [
+  external_exports.object({ name: NAME, type: external_exports.literal("builtin"), enabled: external_exports.boolean().default(true) }).strict(),
+  external_exports.object({
+    name: NAME,
+    type: external_exports.literal("local-file"),
+    /** Workspace-relative path to a registry index JSON file. */
+    file: external_exports.string().min(1).max(500),
+    enabled: external_exports.boolean().default(true)
+  }).strict(),
+  external_exports.object({
+    name: NAME,
+    type: external_exports.literal("https"),
+    url: HTTPS_SOURCE_URL,
+    enabled: external_exports.boolean().default(true)
+  }).strict()
+]);
+var registriesConfigSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  registries: external_exports.array(registrySourceSchema).max(20)
+}).passthrough();
+function registriesConfigPath(workspace) {
+  return import_path50.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
+}
+function defaultRegistriesConfig() {
+  return {
+    schemaVersion: REGISTRIES_SCHEMA_VERSION,
+    registries: [{ name: BUILTIN_REGISTRY_NAME, type: "builtin", enabled: true }]
+  };
+}
+function readRegistriesConfig(workspace) {
+  const filePath = registriesConfigPath(workspace);
+  if (!(0, import_fs45.existsSync)(filePath)) {
+    return { config: defaultRegistriesConfig(), diagnostics: [], exists: false };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse((0, import_fs45.readFileSync)(filePath, "utf8"));
+  } catch (cause) {
+    return {
+      config: defaultRegistriesConfig(),
+      exists: true,
+      diagnostics: [
+        {
+          severity: "error",
+          code: "REGISTRIES_INVALID_JSON",
+          message: `registries.json is not valid JSON: ${cause instanceof Error ? cause.message : String(cause)}`,
+          file: filePath
+        }
+      ]
+    };
+  }
+  const result = registriesConfigSchema.safeParse(parsed);
+  if (!result.success) {
+    return {
+      config: defaultRegistriesConfig(),
+      exists: true,
+      diagnostics: [
+        {
+          severity: "error",
+          code: "REGISTRIES_INVALID_SHAPE",
+          message: `registries.json does not match the schema: ${result.error.issues[0]?.message ?? "unknown"}`,
+          file: filePath
+        }
+      ]
+    };
+  }
+  const names = /* @__PURE__ */ new Set();
+  for (const source of result.data.registries) {
+    if (names.has(source.name)) {
+      return {
+        config: defaultRegistriesConfig(),
+        exists: true,
+        diagnostics: [
+          {
+            severity: "error",
+            code: "REGISTRIES_DUPLICATE_NAME",
+            message: `registries.json declares "${source.name}" more than once`,
+            file: filePath
+          }
+        ]
+      };
+    }
+    names.add(source.name);
+  }
+  const config2 = result.data.registries.some((source) => source.type === "builtin") ? result.data : {
+    ...result.data,
+    registries: [
+      { name: BUILTIN_REGISTRY_NAME, type: "builtin", enabled: true },
+      ...result.data.registries
+    ]
+  };
+  return { config: config2, diagnostics: [], exists: true };
+}
+function writeRegistriesConfig(workspace, config2) {
+  const filePath = registriesConfigPath(workspace);
+  assertInsideWorkspace(workspace.rootDir, filePath);
+  writeFileAtomic(filePath, `${JSON.stringify(registriesConfigSchema.parse(config2), null, 2)}
+`);
+}
+function requireRegistrySource(config2, name) {
+  const source = config2.registries.find((candidate) => candidate.name === name);
+  if (source === void 0) {
+    throw new RegistryError(
+      "SBR001",
+      `registry "${name}" is not configured.`,
+      `Configured registries: ${config2.registries.map((candidate) => candidate.name).join(", ")}. Add one with \`specbridge registry add <name> --file <path>\` or \`--url <https-url>\`.`,
+      { name }
+    );
+  }
+  return source;
+}
+function addRegistrySource(workspace, source) {
+  const parsed = registrySourceSchema.safeParse(source);
+  if (!parsed.success) {
+    throw new RegistryError(
+      "SBR003",
+      `registry configuration is invalid: ${parsed.error.issues[0]?.message ?? "unknown"}.`,
+      "Check the name, file path, or https URL."
+    );
+  }
+  const { config: config2 } = readRegistriesConfig(workspace);
+  if (config2.registries.some((candidate) => candidate.name === source.name)) {
+    throw new RegistryError(
+      "SBR003",
+      `registry "${source.name}" already exists.`,
+      "Remove it first with `specbridge registry remove <name>` or pick another name.",
+      { name: source.name }
+    );
+  }
+  const next = { ...config2, registries: [...config2.registries, parsed.data] };
+  writeRegistriesConfig(workspace, next);
+  return next;
+}
+function removeRegistrySource(workspace, name) {
+  if (name === BUILTIN_REGISTRY_NAME) {
+    throw new RegistryError(
+      "SBR003",
+      "the built-in example registry cannot be removed.",
+      "Disable it by ignoring it; it never touches the network."
+    );
+  }
+  const { config: config2 } = readRegistriesConfig(workspace);
+  requireRegistrySource(config2, name);
+  const next = {
+    ...config2,
+    registries: config2.registries.filter((candidate) => candidate.name !== name)
+  };
+  writeRegistriesConfig(workspace, next);
+  return next;
+}
 
 // ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 var import_node_process11 = __toESM(require("process"), 1);
@@ -66093,9 +71568,9 @@ var StdioServerTransport = class {
   }
 };
 
-// ../../packages/mcp-server/dist/chunk-WXA73TYV.js
+// ../../packages/mcp-server/dist/chunk-3E2ZYI7Q.js
 var MCP_SERVER_NAME = "specbridge";
-var MCP_SERVER_VERSION = "0.7.0";
+var MCP_SERVER_VERSION = "0.7.1";
 var MCP_SERVER_TITLE = "SpecBridge";
 var MCP_SDK_VERSION = "1.29.0";
 var MCP_PROTOCOL_BASELINE = "2025-11-25";
@@ -66351,10 +71826,10 @@ function validateProjectRoot(value, source, cwd) {
       remediation: ["Pass a plain filesystem path as --project-root."]
     };
   }
-  const resolved = import_path40.default.resolve(cwd, value);
+  const resolved = import_path51.default.resolve(cwd, value);
   let canonical;
   try {
-    canonical = (0, import_fs35.realpathSync)(resolved);
+    canonical = (0, import_fs46.realpathSync)(resolved);
   } catch {
     return {
       ok: false,
@@ -66367,7 +71842,7 @@ function validateProjectRoot(value, source, cwd) {
   }
   let stats;
   try {
-    stats = (0, import_fs35.statSync)(canonical);
+    stats = (0, import_fs46.statSync)(canonical);
   } catch {
     return {
       ok: false,
@@ -66395,7 +71870,7 @@ var ServerContext = class {
     this.projectRoot = options.projectRoot;
     this.logger = options.logger;
     this.clock = options.clock ?? (() => /* @__PURE__ */ new Date());
-    this.idFactory = options.idFactory ?? import_crypto10.randomUUID;
+    this.idFactory = options.idFactory ?? import_crypto13.randomUUID;
   }
   /**
    * Resolve the `.kiro` workspace from the pinned project root, or
@@ -66624,8 +72099,8 @@ var paginationShape = external_exports.object({
   nextCursor: external_exports.string().optional()
 });
 function repoRelative2(workspace, target) {
-  const relative = import_path41.default.isAbsolute(target) ? import_path41.default.relative(workspace.rootDir, target) : target;
-  const posix = relative.split(import_path41.default.sep).join("/");
+  const relative = import_path52.default.isAbsolute(target) ? import_path52.default.relative(workspace.rootDir, target) : target;
+  const posix = relative.split(import_path52.default.sep).join("/");
   return posix === "" ? "." : posix;
 }
 function toDiagnosticView(workspace, diagnostic) {
@@ -67125,7 +72600,7 @@ function registerRunResources(server, context) {
         throw resourceNotFound(`Run "${runId}"`, "List runs with the run_list tool.");
       }
       const directory = runDir(workspace, record2.runId);
-      const artifactNames = (0, import_fs36.existsSync)(directory) ? (0, import_fs36.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
+      const artifactNames = (0, import_fs47.existsSync)(directory) ? (0, import_fs47.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
       return jsonContents(context, uri.href, buildRunDetail(workspace, record2, artifactNames));
     }
   );
@@ -68941,7 +74416,7 @@ function registerRunReadTool(server, context) {
         });
       }
       const directory = runDir(workspace, record2.runId);
-      const artifactNames = (0, import_fs37.existsSync)(directory) ? (0, import_fs37.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS2.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
+      const artifactNames = (0, import_fs48.existsSync)(directory) ? (0, import_fs48.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS2.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
       const detail = buildRunDetail(workspace, record2, artifactNames);
       const lines = [
         `Run ${detail.summary.runId} \u2014 ${detail.summary.runType} for spec "${detail.summary.specName}"${detail.summary.taskId !== void 0 ? `, task ${detail.summary.taskId}` : ""}.`,
@@ -69301,7 +74776,7 @@ function registerSpecRunVerificationTool(server, context) {
         durationMs: command.durationMs,
         timedOut: command.timedOut
       }));
-      const reportPath = result.artifactsDir !== void 0 ? import_path42.default.relative(workspace.rootDir, result.artifactsDir).split(import_path42.default.sep).join("/") : void 0;
+      const reportPath = result.artifactsDir !== void 0 ? import_path53.default.relative(workspace.rootDir, result.artifactsDir).split(import_path53.default.sep).join("/") : void 0;
       const commandLines = commands.map(
         (command) => `- ${command.name}: ${command.disposition}${command.disposition === "executed" ? command.passed ? " (passed)" : ` (FAILED, exit ${command.exitCode ?? "none"})` : ""}`
       );
@@ -69326,7 +74801,13 @@ ${commandLines.join("\n")}` : "No verification commands are configured.",
 function loadRunnerToolContext(context) {
   const workspace = context.requireWorkspace();
   const config2 = requireAgentConfig(workspace);
-  return { workspace, config: config2, registry: createDefaultRunnerRegistry(config2) };
+  return {
+    workspace,
+    config: config2,
+    registry: createDefaultRunnerRegistry(config2, {
+      extensionRunner: createExtensionRunnerFactory(workspace)
+    })
+  };
 }
 function requireProfile(registry2, name) {
   if (!registry2.has(name)) {
@@ -69414,18 +74895,18 @@ var conformanceSummaryShape = external_exports.object({
   note: external_exports.string()
 });
 async function invocationFreeConformanceSummary(profile) {
-  const scratch = (0, import_fs38.mkdtempSync)(import_path43.default.join(import_os2.default.tmpdir(), "specbridge-mcp-conformance-"));
+  const scratch = (0, import_fs49.mkdtempSync)(import_path54.default.join(import_os2.default.tmpdir(), "specbridge-mcp-conformance-"));
   let result;
   try {
     result = await runRunnerConformance({
       profile,
       workspaceRoot: scratch,
-      runDir: import_path43.default.join(scratch, ".specbridge-conformance-runs"),
+      runDir: import_path54.default.join(scratch, ".specbridge-conformance-runs"),
       invocationsAllowed: false,
       timeoutMs: RUNNER_PROBE_TIMEOUT_MS
     });
   } finally {
-    (0, import_fs38.rmSync)(scratch, { recursive: true, force: true });
+    (0, import_fs49.rmSync)(scratch, { recursive: true, force: true });
   }
   return {
     passed: result.passed,
@@ -69693,15 +75174,19 @@ function registerRunnerMatrixTool(server, context) {
     }
   });
 }
-var templateSourceInput = external_exports.enum(["builtin", "project", "all"]);
+var templateSourceInput = external_exports.enum(["builtin", "project", "extension", "all"]);
 function catalogFor2(context, source) {
   const workspace = context.requireWorkspace();
-  return loadTemplateCatalog(workspace, { source: source ?? "all" });
+  const extensionTemplates = collectExtensionTemplatePacks(workspace);
+  return loadTemplateCatalog(workspace, {
+    source: source ?? "all",
+    extensionPacks: [...extensionTemplates.packs]
+  });
 }
 var templateSummaryShape = external_exports.object({
   ref: external_exports.string().describe("Qualified reference, e.g. builtin:rest-api"),
   id: external_exports.string(),
-  source: external_exports.enum(["builtin", "project"]),
+  source: external_exports.string().min(1).max(100),
   valid: external_exports.boolean(),
   displayName: external_exports.string().nullable(),
   version: external_exports.string().nullable(),
@@ -70098,6 +75583,375 @@ function registerTemplateApplyTool(server, context) {
     })
   });
 }
+var extensionSummaryShape = external_exports.object({
+  id: external_exports.string(),
+  version: external_exports.string(),
+  kind: external_exports.string(),
+  displayName: external_exports.string(),
+  description: external_exports.string(),
+  source: external_exports.string(),
+  installedAt: external_exports.string(),
+  enabled: external_exports.boolean(),
+  permissionsAccepted: external_exports.boolean(),
+  permissionHash: external_exports.string(),
+  compatibility: external_exports.string(),
+  conformance: external_exports.string(),
+  deprecated: external_exports.boolean()
+});
+var registryHitShape = external_exports.object({
+  registryName: external_exports.string(),
+  id: external_exports.string(),
+  kind: external_exports.string(),
+  displayName: external_exports.string(),
+  description: external_exports.string(),
+  latestVersion: external_exports.string(),
+  license: external_exports.string(),
+  score: external_exports.number().int()
+});
+function readableRegistryIndexes(workspace, registryFilter) {
+  const { config: config2 } = readRegistriesConfig(workspace);
+  const indexes = [];
+  for (const source of config2.registries) {
+    if (source.enabled !== true) {
+      continue;
+    }
+    if (registryFilter !== void 0 && source.name !== registryFilter) {
+      continue;
+    }
+    try {
+      const resolved = resolveRegistryIndex(workspace, source);
+      if (resolved !== void 0) {
+        indexes.push({ registryName: resolved.sourceName, index: resolved.index });
+      }
+    } catch {
+    }
+  }
+  return indexes;
+}
+var kindInput = external_exports.enum(EXTENSION_KINDS).optional();
+function registerExtensionListTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "extension_list",
+    title: "List installed extensions",
+    description: "List installed SpecBridge extensions with enablement, permission, compatibility, and conformance status. Read-only and offline; never starts an extension process.",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    inputSchema: {
+      kind: kindInput.describe("Filter by extension kind"),
+      enabled: external_exports.boolean().optional().describe("Only enabled (true) or only disabled (false)"),
+      limit: external_exports.number().int().min(1).optional(),
+      cursor: external_exports.string().optional()
+    },
+    outputSchema: {
+      extensions: external_exports.array(extensionSummaryShape),
+      totalCount: external_exports.number().int(),
+      nextCursor: external_exports.string().nullable()
+    },
+    handler: async (args) => {
+      const workspace = context.requireWorkspace();
+      const catalog = listInstalledExtensions(workspace);
+      let entries = [...catalog.entries];
+      if (args.kind !== void 0) {
+        entries = entries.filter((entry) => entry.kind === args.kind);
+      }
+      if (args.enabled !== void 0) {
+        entries = entries.filter((entry) => entry.enabled === args.enabled);
+      }
+      const page = paginate(entries, {
+        limit: clampListLimit(args.limit),
+        ...args.cursor !== void 0 ? { cursor: args.cursor } : {},
+        token: "extension-list"
+      });
+      const text = page.items.length === 0 ? "No installed extensions match the given filters." : page.items.map((entry) => `- ${entry.id}@${entry.version} (${entry.kind}, ${entry.enabled ? "enabled" : "disabled"})`).join("\n");
+      return {
+        text,
+        structured: { extensions: page.items, totalCount: entries.length, nextCursor: page.nextCursor ?? null }
+      };
+    }
+  });
+}
+function registerExtensionSearchTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "extension_search",
+    title: "Search extensions",
+    description: "Search installed extensions and validated cached registry indexes with deterministic lexical ranking. Offline: never fetches a registry and never downloads anything.",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    inputSchema: {
+      query: external_exports.string().min(1).max(200),
+      registry: external_exports.string().max(40).optional().describe("Search one registry only"),
+      kind: kindInput,
+      limit: external_exports.number().int().min(1).max(50).optional()
+    },
+    outputSchema: {
+      installed: external_exports.array(extensionSummaryShape),
+      registry: external_exports.array(registryHitShape),
+      totalCount: external_exports.number().int()
+    },
+    handler: async (args) => {
+      const workspace = context.requireWorkspace();
+      const installed = args.registry === void 0 ? searchInstalledExtensions(listInstalledExtensions(workspace), args.query, {
+        ...args.kind === void 0 ? {} : { kind: args.kind },
+        limit: args.limit ?? 20
+      }) : [];
+      const registryHits = searchRegistryIndexes(
+        readableRegistryIndexes(workspace, args.registry),
+        args.query,
+        { ...args.kind === void 0 ? {} : { kind: args.kind }, ...args.limit === void 0 ? {} : { limit: args.limit } }
+      ).map((hit) => ({
+        registryName: hit.registryName,
+        id: hit.entry.id,
+        kind: hit.entry.kind,
+        displayName: hit.entry.displayName,
+        description: hit.entry.description,
+        latestVersion: hit.entry.latestVersion,
+        license: hit.entry.license,
+        score: hit.score
+      }));
+      return {
+        text: installed.length + registryHits.length === 0 ? "No matches." : [
+          ...installed.map((hit) => `- installed: ${hit.id}@${hit.version} (${hit.kind})`),
+          ...registryHits.map((hit) => `- ${hit.registryName}: ${hit.id}@${hit.latestVersion} (${hit.kind})`)
+        ].join("\n"),
+        structured: { installed, registry: registryHits, totalCount: installed.length + registryHits.length }
+      };
+    }
+  });
+}
+function registerExtensionShowTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "extension_show",
+    title: "Show extension details",
+    description: "Show an installed extension: manifest summary, permissions, permission hash, enablement, grant status, and the exact CLI command needed to enable it. Never exposes secret values.",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    inputSchema: { extensionId: external_exports.string().min(1).max(64) },
+    outputSchema: {
+      id: external_exports.string(),
+      installedVersions: external_exports.array(external_exports.string()),
+      enabledVersion: external_exports.string().nullable(),
+      kind: external_exports.string(),
+      displayName: external_exports.string(),
+      description: external_exports.string(),
+      permissions: external_exports.record(external_exports.unknown()),
+      permissionLines: external_exports.array(external_exports.string()),
+      permissionHash: external_exports.string(),
+      grantStatus: external_exports.string(),
+      compatibility: external_exports.string(),
+      enableCommand: external_exports.string()
+    },
+    handler: async (args) => {
+      const workspace = context.requireWorkspace();
+      const { state } = readExtensionState(workspace);
+      const versions = installedVersions(state, args.extensionId);
+      const preview = describeEnablement(workspace, args.extensionId);
+      const enableCommand = `specbridge extension enable ${args.extensionId} --accept-permissions ${preview.permissionHash}`;
+      return {
+        text: `${preview.manifest.displayName} v${preview.record.version} (${preview.manifest.kind}) \u2014 ${preview.enabled ? "enabled" : "disabled"}, grant ${preview.grantStatus}.
+Permission hash: ${preview.permissionHash}
+Enable with: ${enableCommand}`,
+        structured: {
+          id: args.extensionId,
+          installedVersions: versions.map((record2) => record2.version),
+          enabledVersion: state.enabled[args.extensionId]?.version ?? null,
+          kind: preview.manifest.kind,
+          displayName: preview.manifest.displayName,
+          description: preview.manifest.description,
+          permissions: preview.manifest.permissions,
+          permissionLines: [...preview.permissionLines],
+          permissionHash: preview.permissionHash,
+          grantStatus: preview.grantStatus,
+          compatibility: preview.manifest.compatibility.specbridge,
+          enableCommand
+        }
+      };
+    }
+  });
+}
+function registerExtensionDoctorTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "extension_doctor",
+    title: "Extension health check",
+    description: "Read-only health check for an installed extension: package integrity, grant status, compatibility, and \u2014 only for enabled executable extensions \u2014 a bounded no-operation initialize handshake. Never invokes a business operation and never touches the network.",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    inputSchema: { extensionId: external_exports.string().min(1).max(64) },
+    outputSchema: {
+      id: external_exports.string(),
+      version: external_exports.string(),
+      integrity: external_exports.string(),
+      enabled: external_exports.boolean(),
+      grantStatus: external_exports.string(),
+      handshake: external_exports.object({ ok: external_exports.boolean(), detail: external_exports.string() }),
+      ok: external_exports.boolean()
+    },
+    handler: async (args) => {
+      const workspace = context.requireWorkspace();
+      const preview = describeEnablement(workspace, args.extensionId);
+      let handshake = {
+        ok: true,
+        detail: preview.manifest.entrypoint === void 0 ? "data-only extension; no process to probe" : "not enabled; handshake skipped"
+      };
+      if (preview.enabled && preview.manifest.entrypoint !== void 0) {
+        const enabled = requireEnabledExtension(workspace, args.extensionId);
+        const probe = await probeExtensionHandshake(enabled);
+        handshake = { ok: probe.ok, detail: probe.detail };
+      }
+      const ok = handshake.ok && preview.grantStatus !== "stale";
+      return {
+        text: `${args.extensionId}@${preview.record.version}: ${ok ? "healthy" : "unhealthy"} (${handshake.detail})`,
+        structured: {
+          id: args.extensionId,
+          version: preview.record.version,
+          integrity: "valid",
+          enabled: preview.enabled,
+          grantStatus: preview.grantStatus,
+          handshake,
+          ok
+        }
+      };
+    }
+  });
+}
+function registerRegistryListTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "registry_list",
+    title: "List extension registries",
+    description: "List configured extension registries with cache status. Read-only and offline; registry updates require the explicit CLI command with --network.",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    inputSchema: {},
+    outputSchema: {
+      registries: external_exports.array(
+        external_exports.object({
+          name: external_exports.string(),
+          type: external_exports.string(),
+          enabled: external_exports.boolean(),
+          source: external_exports.string(),
+          cacheStatus: external_exports.string(),
+          lastUpdate: external_exports.string().nullable(),
+          extensionCount: external_exports.number().int().nullable()
+        })
+      ),
+      totalCount: external_exports.number().int()
+    },
+    handler: async () => {
+      const workspace = context.requireWorkspace();
+      const { config: config2 } = readRegistriesConfig(workspace);
+      const readable2 = new Map(
+        readableRegistryIndexes(workspace).map((entry) => [entry.registryName, entry.index])
+      );
+      const registries = config2.registries.map((source) => {
+        const cache = source.type === "https" ? readRegistryCache(workspace, source.name) : void 0;
+        return {
+          name: source.name,
+          type: source.type,
+          enabled: source.enabled,
+          source: source.type === "https" ? source.url : source.type === "local-file" ? source.file : "embedded",
+          cacheStatus: source.type === "https" ? cache?.cache !== void 0 ? "cached" : "no-cache" : readable2.has(source.name) ? "readable" : "invalid",
+          lastUpdate: cache?.cache?.retrievedAt ?? null,
+          extensionCount: readable2.get(source.name)?.extensions.length ?? null
+        };
+      });
+      return {
+        text: registries.map((row) => `- ${row.name} (${row.type}, ${row.cacheStatus})`).join("\n") || "No registries.",
+        structured: { registries, totalCount: registries.length }
+      };
+    }
+  });
+}
+function registerRegistrySearchTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "registry_search",
+    title: "Search extension registries",
+    description: "Search validated cached registry indexes with deterministic lexical ranking (exact ID, ID prefix, keyword, name token, description token). Offline: never fetches.",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    inputSchema: {
+      query: external_exports.string().min(1).max(200),
+      registry: external_exports.string().max(40).optional(),
+      kind: external_exports.enum(EXTENSION_KINDS).optional(),
+      limit: external_exports.number().int().min(1).max(50).optional()
+    },
+    outputSchema: {
+      results: external_exports.array(registryHitShape),
+      totalCount: external_exports.number().int()
+    },
+    handler: async (args) => {
+      const workspace = context.requireWorkspace();
+      const hits = searchRegistryIndexes(readableRegistryIndexes(workspace, args.registry), args.query, {
+        ...args.kind === void 0 ? {} : { kind: args.kind },
+        ...args.limit === void 0 ? {} : { limit: args.limit }
+      }).map((hit) => ({
+        registryName: hit.registryName,
+        id: hit.entry.id,
+        kind: hit.entry.kind,
+        displayName: hit.entry.displayName,
+        description: hit.entry.description,
+        latestVersion: hit.entry.latestVersion,
+        license: hit.entry.license,
+        score: hit.score
+      }));
+      return {
+        text: hits.length === 0 ? "No matches in readable registry indexes." : hits.map((hit) => `- ${hit.id}@${hit.latestVersion} (${hit.kind}, from ${hit.registryName})`).join("\n"),
+        structured: { results: hits, totalCount: hits.length }
+      };
+    }
+  });
+}
+function registerRegistryShowTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "registry_show",
+    title: "Show registry extension metadata",
+    description: "Show registry metadata for one extension: versions, archive integrity metadata, permissions summary, and compatibility. Never downloads an archive. Registry listing is not endorsement.",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    inputSchema: { extensionId: external_exports.string().min(1).max(64) },
+    outputSchema: {
+      matches: external_exports.array(
+        external_exports.object({
+          registryName: external_exports.string(),
+          id: external_exports.string(),
+          kind: external_exports.string(),
+          displayName: external_exports.string(),
+          description: external_exports.string(),
+          latestVersion: external_exports.string(),
+          license: external_exports.string(),
+          deprecated: external_exports.boolean(),
+          versions: external_exports.array(
+            external_exports.object({
+              version: external_exports.string(),
+              archiveUrl: external_exports.string(),
+              sha256: external_exports.string(),
+              specbridge: external_exports.string(),
+              permissions: external_exports.record(external_exports.unknown())
+            })
+          )
+        })
+      ),
+      totalCount: external_exports.number().int()
+    },
+    handler: async (args) => {
+      const workspace = context.requireWorkspace();
+      const matches = readableRegistryIndexes(workspace).flatMap(
+        ({ registryName, index }) => index.extensions.filter((entry) => entry.id === args.extensionId).map((entry) => ({
+          registryName,
+          id: entry.id,
+          kind: entry.kind,
+          displayName: entry.displayName,
+          description: entry.description,
+          latestVersion: entry.latestVersion,
+          license: entry.license,
+          deprecated: entry.deprecated === true,
+          versions: entry.versions.map((version2) => ({
+            version: version2.version,
+            archiveUrl: version2.archiveUrl,
+            sha256: version2.sha256,
+            specbridge: version2.manifest.compatibility.specbridge,
+            permissions: version2.manifest.permissions
+          }))
+        }))
+      );
+      return {
+        text: matches.length === 0 ? `Extension "${args.extensionId}" was not found in any readable registry index.` : matches.map((match) => `${match.registryName}: ${match.id}@${match.latestVersion} (${match.kind}, ${match.license})`).join("\n"),
+        structured: { matches, totalCount: matches.length }
+      };
+    }
+  });
+}
 var TOOL_CATALOG = [
   { name: "workspace_detect", readOnly: true, summary: "Detect the Kiro-compatible workspace" },
   { name: "steering_list", readOnly: true, summary: "List steering documents" },
@@ -70128,7 +75982,14 @@ var TOOL_CATALOG = [
   { name: "spec_run_verification", readOnly: false, summary: "Drift rules + trusted configured commands" },
   { name: "task_begin", readOnly: false, summary: "Begin an interactive task run (lock + snapshot)" },
   { name: "task_complete", readOnly: false, summary: "Finalize an interactive run with evidence" },
-  { name: "task_abort", readOnly: false, summary: "Abort an interactive run, preserving changes" }
+  { name: "task_abort", readOnly: false, summary: "Abort an interactive run, preserving changes" },
+  { name: "extension_list", readOnly: true, summary: "List installed extensions with status" },
+  { name: "extension_search", readOnly: true, summary: "Offline extension search (installed + cached registries)" },
+  { name: "extension_show", readOnly: true, summary: "One extension in depth (permissions, hash, grant)" },
+  { name: "extension_doctor", readOnly: true, summary: "Extension health check (bounded no-op handshake)" },
+  { name: "registry_list", readOnly: true, summary: "List configured extension registries" },
+  { name: "registry_search", readOnly: true, summary: "Offline registry index search" },
+  { name: "registry_show", readOnly: true, summary: "Registry metadata for one extension (no download)" }
 ];
 function registerAllTools(server, context) {
   registerWorkspaceDetectTool(server, context);
@@ -70161,6 +76022,13 @@ function registerAllTools(server, context) {
   registerTaskBeginTool(server, context);
   registerTaskCompleteTool(server, context);
   registerTaskAbortTool(server, context);
+  registerExtensionListTool(server, context);
+  registerExtensionSearchTool(server, context);
+  registerExtensionShowTool(server, context);
+  registerExtensionDoctorTool(server, context);
+  registerRegistryListTool(server, context);
+  registerRegistrySearchTool(server, context);
+  registerRegistryShowTool(server, context);
 }
 function buildMcpServer(context) {
   const server = new McpServer(
@@ -70324,8 +76192,8 @@ async function runMcpServe(argv2, io = {
 }
 
 // ../../packages/mcp-server/dist/index.js
-var import_fs39 = require("fs");
-var import_path44 = __toESM(require("path"), 1);
+var import_fs50 = require("fs");
+var import_path55 = __toESM(require("path"), 1);
 async function runMcpDoctor(options = {}) {
   const checks = [];
   const env = options.env ?? process.env;
@@ -70418,7 +76286,7 @@ async function runMcpDoctor(options = {}) {
   const pluginRoot = env["CLAUDE_PLUGIN_ROOT"];
   if (pluginRoot !== void 0 && pluginRoot.length > 0) {
     const missing = ["dist/mcp-server.cjs", "dist/cli.cjs"].filter(
-      (relative) => !(0, import_fs39.existsSync)(import_path44.default.join(pluginRoot, relative))
+      (relative) => !(0, import_fs50.existsSync)(import_path55.default.join(pluginRoot, relative))
     );
     checks.push(
       missing.length === 0 ? { name: "plugin-bundle", status: "ok", detail: `Bundled executables present under ${pluginRoot}` } : {
@@ -70433,7 +76301,7 @@ async function runMcpDoctor(options = {}) {
     sdkVersion: MCP_SDK_VERSION,
     protocolBaseline: MCP_PROTOCOL_BASELINE,
     checks,
-    healthy: checks.every((check4) => check4.status !== "fail")
+    healthy: checks.every((check5) => check5.status !== "fail")
   };
 }
 
@@ -70474,17 +76342,17 @@ Examples:
     }
     runtime.out(reportTitle("MCP doctor"));
     runtime.out();
-    for (const check4 of report.checks) {
-      if (check4.status === "ok") {
-        if (options.verbose === true) runtime.out(okLine(check4.name, check4.detail));
-      } else if (check4.status === "warn") {
-        runtime.out(warnLine(`${check4.name}: ${check4.detail}`));
+    for (const check5 of report.checks) {
+      if (check5.status === "ok") {
+        if (options.verbose === true) runtime.out(okLine(check5.name, check5.detail));
+      } else if (check5.status === "warn") {
+        runtime.out(warnLine(`${check5.name}: ${check5.detail}`));
       } else {
-        runtime.out(failLine(check4.name, check4.detail));
+        runtime.out(failLine(check5.name, check5.detail));
       }
     }
-    const failed = report.checks.filter((check4) => check4.status === "fail").length;
-    const warned = report.checks.filter((check4) => check4.status === "warn").length;
+    const failed = report.checks.filter((check5) => check5.status === "fail").length;
+    const warned = report.checks.filter((check5) => check5.status === "warn").length;
     runtime.out();
     runtime.out(
       failed === 0 ? okLine(`MCP setup is healthy (${report.checks.length} checks, ${warned} warning(s)).`) : failLine(`${failed} check(s) failed.`)
@@ -70552,6 +76420,888 @@ Examples:
   });
 }
 
+// ../../packages/cli/src/commands/extension.ts
+var import_node_fs14 = require("fs");
+var import_node_path17 = __toESM(require("path"), 1);
+function requireKind(value) {
+  if (value === void 0) {
+    return void 0;
+  }
+  if (!EXTENSION_KINDS.includes(value)) {
+    throw new SpecBridgeError(
+      "INVALID_ARGUMENT",
+      `Unknown --kind "${value}". Valid kinds: ${EXTENSION_KINDS.join(", ")}.`
+    );
+  }
+  return value;
+}
+function printIssues2(runtime, issues) {
+  for (const issue4 of issues) {
+    const location = issue4.file !== void 0 ? ` [${issue4.file}]` : "";
+    const line = `${issue4.code} (${issue4.category})${location}: ${issue4.message}`;
+    runtime.out(issue4.severity === "error" ? failLine(line) : warnLine(line));
+  }
+}
+function jsonOut(runtime, schema, data) {
+  runtime.outRaw(serializeJsonReport(createJsonReport(schema, `${CLI_BIN} ${VERSION}`, data)));
+}
+function readableIndexes(runtime, registryFilter) {
+  const workspace = runtime.tryWorkspace();
+  if (workspace === void 0) {
+    return [];
+  }
+  const { config: config2 } = readRegistriesConfig(workspace);
+  const indexes = [];
+  for (const source of config2.registries) {
+    if (source.enabled !== true) {
+      continue;
+    }
+    if (registryFilter !== void 0 && source.name !== registryFilter) {
+      continue;
+    }
+    try {
+      const resolved = resolveRegistryIndex(workspace, source);
+      if (resolved !== void 0) {
+        indexes.push({ registryName: resolved.sourceName, index: resolved.index });
+      }
+    } catch {
+    }
+  }
+  return indexes;
+}
+function resolveConformanceTarget(runtime, target) {
+  const resolved = import_node_path17.default.resolve(runtime.cwd, target);
+  if ((0, import_node_fs14.existsSync)(resolved) && (0, import_node_fs14.lstatSync)(resolved).isDirectory()) {
+    const files = readExtensionPackageDirectory(resolved);
+    const validation = loadExtensionPackage(files, { checksums: "verify-if-present" });
+    const errors = validation.issues.filter((issue4) => issue4.severity === "error");
+    if (validation.manifest === void 0 || validation.manifestSha256 === void 0 || validation.permissionHash === void 0 || errors.length > 0) {
+      throw new SpecBridgeError(
+        "INVALID_ARGUMENT",
+        `"${target}" failed validation; run \`${CLI_BIN} extension validate ${target}\` first.`
+      );
+    }
+    return {
+      record: {
+        id: validation.manifest.id,
+        version: validation.manifest.version,
+        kind: validation.manifest.kind,
+        displayName: validation.manifest.displayName,
+        description: validation.manifest.description,
+        source: `local-directory:${target}`,
+        installedAt: "not-installed",
+        manifestSha256: validation.manifestSha256,
+        permissionHash: validation.permissionHash,
+        ...validation.manifest.entrypoint === void 0 ? {} : { entrypoint: validation.manifest.entrypoint },
+        installRecordId: "not-installed"
+      },
+      manifest: validation.manifest,
+      installedDir: resolved,
+      permissionHash: validation.permissionHash,
+      manifestSha256: validation.manifestSha256
+    };
+  }
+  const workspace = runtime.workspace();
+  return requireEnabledExtension(workspace, target);
+}
+function registerExtensionCommands(program2, runtime) {
+  const extension = program2.command("extension").description("Install, inspect, and develop SpecBridge extensions (analyzers, verifiers, exporters, runners, template providers)");
+  extension.command("list").description("List installed extensions with enablement, permissions, and conformance status").option("--kind <kind>", `filter by kind: ${EXTENSION_KINDS.join(" | ")}`).option("--enabled", "only enabled extensions").option("--installed", "accepted for symmetry; listing always shows installed extensions").option("--json", "output a machine-readable JSON report").action((options) => {
+    const kind = requireKind(options.kind);
+    const workspace = runtime.workspace();
+    const catalog = listInstalledExtensions(workspace);
+    let entries = [...catalog.entries];
+    if (kind !== void 0) {
+      entries = entries.filter((entry) => entry.kind === kind);
+    }
+    if (options.enabled === true) {
+      entries = entries.filter((entry) => entry.enabled);
+    }
+    if (options.json === true) {
+      jsonOut(runtime, "specbridge.extension-list/1", {
+        extensions: entries,
+        diagnostics: catalog.diagnostics
+      });
+      return;
+    }
+    runtime.out(reportTitle(`Installed extensions (${entries.length})`));
+    for (const diagnostic of catalog.diagnostics) {
+      runtime.out(warnLine(diagnostic.message));
+    }
+    runtime.out();
+    if (entries.length === 0) {
+      runtime.out(dim("  none \u2014 install one with `specbridge extension install <source>`"));
+    }
+    for (const entry of entries) {
+      const state = entry.enabled ? "enabled" : "disabled";
+      runtime.out(
+        okLine(
+          `${entry.id}@${entry.version}`,
+          `(${entry.kind}, ${state}, ${entry.compatibility}, conformance: ${entry.conformance})`
+        )
+      );
+      runtime.out(dim(`     ${entry.description}`));
+      runtime.out(dim(`     source: ${entry.source} | permissions accepted: ${entry.permissionsAccepted ? "yes" : "no"}`));
+    }
+  });
+  extension.command("search <query>").description("Search installed extensions and cached registry indexes (offline, lexical ranking)").option("--registry <name>", "search one registry only").option("--kind <kind>", `filter by kind: ${EXTENSION_KINDS.join(" | ")}`).option("--limit <n>", "maximum results", "20").option("--json", "output a machine-readable JSON report").action((query, options) => {
+    const kind = requireKind(options.kind);
+    const limit = Number.parseInt(options.limit, 10);
+    if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
+      throw new SpecBridgeError("INVALID_ARGUMENT", "--limit must be an integer between 1 and 50.");
+    }
+    const workspace = runtime.workspace();
+    const installedHits = options.registry === void 0 ? searchInstalledExtensions(listInstalledExtensions(workspace), query, {
+      ...kind === void 0 ? {} : { kind },
+      limit
+    }) : [];
+    const registryHits = searchRegistryIndexes(readableIndexes(runtime, options.registry), query, {
+      ...kind === void 0 ? {} : { kind },
+      limit
+    });
+    if (options.json === true) {
+      jsonOut(runtime, "specbridge.extension-search/1", {
+        query,
+        installed: installedHits,
+        registry: registryHits.map((hit) => ({
+          registryName: hit.registryName,
+          id: hit.entry.id,
+          kind: hit.entry.kind,
+          displayName: hit.entry.displayName,
+          description: hit.entry.description,
+          latestVersion: hit.entry.latestVersion,
+          score: hit.score
+        }))
+      });
+      return;
+    }
+    runtime.out(reportTitle(`Search: ${query}`));
+    runtime.out();
+    runtime.out(sectionTitle(`installed (${installedHits.length})`));
+    for (const hit of installedHits) {
+      runtime.out(okLine(`${hit.id}@${hit.version}`, `(${hit.kind}, ${hit.enabled ? "enabled" : "disabled"})`));
+    }
+    runtime.out();
+    runtime.out(sectionTitle(`registries (${registryHits.length})`));
+    for (const hit of registryHits) {
+      runtime.out(okLine(`${hit.entry.id}@${hit.entry.latestVersion}`, `(${hit.entry.kind}, from ${hit.registryName})`));
+      runtime.out(dim(`     ${hit.entry.description}`));
+    }
+    if (registryHits.length === 0) {
+      runtime.out(dim("  no cached registry matches \u2014 update caches with `specbridge registry update <name> --network`"));
+    }
+  });
+  extension.command("show <extension>").description("Show manifest, permissions, permission hash, enablement, and registry metadata").option("--json", "output a machine-readable JSON report").action((id, options) => {
+    const workspace = runtime.workspace();
+    const { state } = readExtensionState(workspace);
+    const versions = installedVersions(state, id);
+    const { grants } = readPermissionGrants(workspace);
+    const grant = grants.grants[id];
+    const registryMatches = readableIndexes(runtime).flatMap(
+      ({ registryName, index }) => index.extensions.filter((entry) => entry.id === id).map((entry) => ({ registryName, latestVersion: entry.latestVersion, kind: entry.kind, license: entry.license }))
+    );
+    if (versions.length === 0 && registryMatches.length === 0) {
+      throw new SpecBridgeError(
+        "INVALID_ARGUMENT",
+        `SBE001: extension "${id}" is neither installed nor present in any readable registry index. Run \`specbridge extension search <query>\` to discover extensions.`
+      );
+    }
+    const preview = versions.length > 0 ? describeEnablement(workspace, id) : void 0;
+    if (options.json === true) {
+      jsonOut(runtime, "specbridge.extension-show/1", {
+        id,
+        installedVersions: versions,
+        enabled: state.enabled[id] ?? null,
+        grant: grant ?? null,
+        manifest: preview?.manifest ?? null,
+        permissionHash: preview?.permissionHash ?? null,
+        permissionLines: preview?.permissionLines ?? [],
+        grantStatus: preview?.grantStatus ?? "none",
+        registry: registryMatches
+      });
+      return;
+    }
+    runtime.out(reportTitle(`Extension: ${id}`));
+    runtime.out();
+    if (preview !== void 0) {
+      const manifest = preview.manifest;
+      runtime.out(`  ${manifest.displayName} v${preview.record.version} \u2014 ${manifest.kind}`);
+      runtime.out(dim(`  ${manifest.description}`));
+      runtime.out(`  installed versions: ${versions.map((record2) => record2.version).join(", ")}`);
+      runtime.out(`  enabled: ${preview.enabled ? `yes (${preview.record.version})` : "no"}`);
+      runtime.out(`  grant: ${preview.grantStatus}`);
+      runtime.out();
+      runtime.out(sectionTitle("permissions"));
+      for (const line of preview.permissionLines) {
+        runtime.out(`  ${line}`);
+      }
+      runtime.out();
+      runtime.out(`  permission hash: ${preview.permissionHash}`);
+      runtime.out(
+        dim(`  enable with: ${CLI_BIN} extension enable ${id} --accept-permissions ${preview.permissionHash}`)
+      );
+    } else {
+      runtime.out(dim("  not installed locally"));
+    }
+    if (registryMatches.length > 0) {
+      runtime.out();
+      runtime.out(sectionTitle("registry metadata"));
+      for (const match of registryMatches) {
+        runtime.out(
+          okLine(`${match.registryName}: latest ${match.latestVersion} (${match.kind}, ${match.license})`)
+        );
+      }
+      runtime.out(dim("  registry listing is not endorsement; review permissions before enabling."));
+    }
+  });
+  extension.command("validate <path-or-extension>").description("Validate a package directory, archive, or installed extension (never executes code)").option("--json", "output a machine-readable JSON report").action((target, options) => {
+    const resolved = import_node_path17.default.resolve(runtime.cwd, target);
+    let issues;
+    let manifestId = null;
+    let where;
+    if ((0, import_node_fs14.existsSync)(resolved) && (0, import_node_fs14.lstatSync)(resolved).isDirectory()) {
+      const validation = loadExtensionPackage(readExtensionPackageDirectory(resolved), {
+        checksums: "verify-if-present"
+      });
+      issues = validation.issues;
+      manifestId = validation.manifest?.id ?? null;
+      where = `directory ${target}`;
+    } else if ((0, import_node_fs14.existsSync)(resolved) && resolved.endsWith(".zip")) {
+      const bytes = (0, import_node_fs14.readFileSync)(resolved);
+      const validation = loadExtensionPackage(extractZipArchive(bytes));
+      issues = validation.issues;
+      manifestId = validation.manifest?.id ?? null;
+      where = `archive ${target}`;
+    } else {
+      const workspace = runtime.workspace();
+      const { state } = readExtensionState(workspace);
+      const record2 = installedVersions(state, target)[0];
+      if (record2 === void 0) {
+        throw new SpecBridgeError(
+          "INVALID_ARGUMENT",
+          `"${target}" is neither a directory, a .zip archive, nor an installed extension ID.`
+        );
+      }
+      const dir = installedVersionDir(workspace, record2.id, record2.version);
+      const validation = loadExtensionPackage(readExtensionPackageDirectory(dir));
+      issues = validation.issues;
+      manifestId = record2.id;
+      where = `installed extension ${record2.id}@${record2.version}`;
+    }
+    const errors = issues.filter((issue4) => issue4.severity === "error");
+    if (options.json === true) {
+      jsonOut(runtime, "specbridge.extension-validate/1", {
+        target,
+        extensionId: manifestId,
+        valid: errors.length === 0,
+        issues
+      });
+      runtime.exitCode = errors.length === 0 ? 0 : EXIT_CODES.gateFailure;
+      return;
+    }
+    runtime.out(reportTitle(`Validate: ${where}`));
+    runtime.out();
+    if (issues.length === 0) {
+      runtime.out(okLine("no findings"));
+    } else {
+      printIssues2(runtime, issues);
+    }
+    runtime.out();
+    runtime.out(errors.length === 0 ? okLine("valid") : failLine(`${errors.length} error(s)`));
+    runtime.exitCode = errors.length === 0 ? 0 : EXIT_CODES.gateFailure;
+  });
+  extension.command("install <source>").description("Install an extension from a directory, archive, or registry (installs disabled; runs no code)").option("--registry <name>", "install from this configured registry").option("--network", "allow the explicit network download a registry install needs").option("--dry-run", "validate and report without installing").option("--json", "output a machine-readable JSON report").action(async (source, options) => {
+    const workspace = runtime.workspace();
+    let result;
+    if (options.registry !== void 0) {
+      const { config: config2 } = readRegistriesConfig(workspace);
+      const registrySource = requireRegistrySource(config2, options.registry);
+      const resolvedIndex = resolveRegistryIndex(workspace, registrySource);
+      if (resolvedIndex === void 0) {
+        throw new SpecBridgeError(
+          "INVALID_ARGUMENT",
+          `SBR010: registry "${options.registry}" has no validated cache yet. Run \`${CLI_BIN} registry update ${options.registry} --network\` first.`
+        );
+      }
+      const resolved = resolveRegistryExtension(
+        [{ registryName: resolvedIndex.sourceName, index: resolvedIndex.index }],
+        source
+      );
+      const archive = await downloadRegistryArchive(resolved.version.archiveUrl, {
+        network: options.network === true,
+        http: safeHttpRequest,
+        maxArchiveBytes: EXTENSION_LIMITS.maxArchiveBytes
+      });
+      result = installExtensionFromArchiveBytes(archive, {
+        workspace,
+        sourceLabel: `registry:${options.registry}`,
+        expectedArchiveSha256: resolved.version.sha256,
+        ...options.dryRun === true ? { dryRun: true } : {},
+        clock: () => runtime.now()
+      });
+    } else {
+      const resolved = import_node_path17.default.resolve(runtime.cwd, source);
+      if (!(0, import_node_fs14.existsSync)(resolved)) {
+        throw new SpecBridgeError(
+          "INVALID_ARGUMENT",
+          `"${source}" does not exist. Pass a package directory, a .zip archive, or use --registry.`
+        );
+      }
+      const installOptions = {
+        workspace,
+        sourceLabel: (0, import_node_fs14.lstatSync)(resolved).isDirectory() ? `local-directory:${source}` : `local-archive:${source}`,
+        ...options.dryRun === true ? { dryRun: true } : {},
+        clock: () => runtime.now()
+      };
+      result = (0, import_node_fs14.lstatSync)(resolved).isDirectory() ? installExtensionFromDirectory(resolved, installOptions) : installExtensionFromArchiveBytes((0, import_node_fs14.readFileSync)(resolved), installOptions);
+    }
+    if (options.json === true) {
+      jsonOut(runtime, "specbridge.extension-install/1", { ...result });
+      return;
+    }
+    runtime.out(reportTitle(`Install: ${result.id}@${result.version} (${result.kind})`));
+    runtime.out();
+    for (const warning2 of result.warnings) {
+      runtime.out(warnLine(`${warning2.code}: ${warning2.message}`));
+    }
+    if (result.dryRun) {
+      runtime.out(dim("Dry run: nothing was installed."));
+      return;
+    }
+    runtime.out(okLine("installed (disabled; no code was executed)"));
+    runtime.out(`  permission hash: ${result.permissionHash}`);
+    runtime.out(
+      dim(`  enable with: ${CLI_BIN} extension enable ${result.id} --accept-permissions ${result.permissionHash}`)
+    );
+  });
+  extension.command("enable <extension>").description("Enable an installed extension after explicit permission acceptance").option("--accept-permissions <hash>", "the exact permission hash shown by `extension show`").option("--version <version>", "enable a specific installed version").option("--json", "output a machine-readable JSON report").action(async (id, options) => {
+    const workspace = runtime.workspace();
+    if (options.acceptPermissions === void 0) {
+      const preview = describeEnablement(workspace, id, options.version);
+      runtime.out(reportTitle(`Enable ${id}@${preview.record.version} requires permission acceptance`));
+      runtime.out();
+      for (const line of preview.permissionLines) {
+        runtime.out(`  ${line}`);
+      }
+      runtime.out();
+      runtime.out(
+        failLine(
+          `SBE016: re-run with --accept-permissions ${preview.permissionHash} to accept exactly these permissions.`
+        )
+      );
+      runtime.exitCode = EXIT_CODES.gateFailure;
+      return;
+    }
+    const result = await enableExtension({
+      workspace,
+      id,
+      acceptPermissions: options.acceptPermissions,
+      ...options.version === void 0 ? {} : { version: options.version },
+      clock: () => runtime.now(),
+      probe: async (preview, dir) => {
+        if (preview.manifest.entrypoint === void 0) {
+          return;
+        }
+        const probe = await probeExtensionHandshake({
+          record: preview.record,
+          manifest: preview.manifest,
+          installedDir: dir,
+          permissionHash: preview.permissionHash,
+          manifestSha256: preview.manifestSha256
+        });
+        if (!probe.ok) {
+          throw new SpecBridgeError(
+            "INVALID_STATE",
+            `SBE019: the extension failed its initialization probe: ${probe.detail}. It was not enabled.`
+          );
+        }
+      }
+    });
+    if (options.json === true) {
+      jsonOut(runtime, "specbridge.extension-enable/1", {
+        id: result.id,
+        version: result.version,
+        permissionHash: result.permissionHash
+      });
+      return;
+    }
+    runtime.out(okLine(`${result.id}@${result.version} enabled`));
+    runtime.out(dim(`  grant stored for permission hash ${result.permissionHash}`));
+  });
+  extension.command("disable <extension>").description("Disable an enabled extension (keeps it installed; preserves all records)").option("--json", "output a machine-readable JSON report").action((id, options) => {
+    const workspace = runtime.workspace();
+    const result = disableExtension({ workspace, id, clock: () => runtime.now() });
+    if (options.json === true) {
+      jsonOut(runtime, "specbridge.extension-disable/1", { ...result });
+      return;
+    }
+    runtime.out(okLine(`${result.id}@${result.version} disabled`));
+  });
+  extension.command("uninstall <extension>").description("Uninstall a disabled extension version (recoverable; records remain)").option("--version <version>", "the installed version to remove").option("--dry-run", "report what would be removed").option("--json", "output a machine-readable JSON report").action((id, options) => {
+    const workspace = runtime.workspace();
+    const result = uninstallExtension({
+      workspace,
+      id,
+      ...options.version === void 0 ? {} : { version: options.version },
+      ...options.dryRun === true ? { dryRun: true } : {},
+      clock: () => runtime.now()
+    });
+    if (options.json === true) {
+      jsonOut(runtime, "specbridge.extension-uninstall/1", { ...result });
+      return;
+    }
+    if (result.dryRun) {
+      runtime.out(dim(`Dry run: would remove ${result.id}@${result.version}.`));
+      return;
+    }
+    runtime.out(okLine(`${result.id}@${result.version} uninstalled`));
+    if (result.trashPath !== void 0) {
+      runtime.out(dim(`  recoverable copy: ${result.trashPath}`));
+    }
+  });
+  extension.command("doctor [extension]").description("Read-only health checks: integrity, grants, compatibility, and a no-op handshake").option("--json", "output a machine-readable JSON report").action(async (id, options) => {
+    const workspace = runtime.workspace();
+    const catalog = listInstalledExtensions(workspace);
+    const targets = id === void 0 ? catalog.entries.map((entry) => entry.id) : [id];
+    const results = [];
+    let failed = false;
+    for (const target of [...new Set(targets)]) {
+      try {
+        const preview = describeEnablement(workspace, target);
+        let handshake = {
+          ok: true,
+          detail: preview.manifest.entrypoint === void 0 ? "data-only extension" : "not enabled; handshake skipped"
+        };
+        if (preview.enabled && preview.manifest.entrypoint !== void 0) {
+          const enabled = requireEnabledExtension(workspace, target);
+          handshake = await probeExtensionHandshake(enabled);
+        }
+        const ok = handshake.ok && preview.grantStatus !== "stale";
+        failed = failed || !ok;
+        results.push({
+          id: target,
+          version: preview.record.version,
+          integrity: "valid",
+          enabled: preview.enabled,
+          grantStatus: preview.grantStatus,
+          handshake,
+          ok
+        });
+      } catch (error2) {
+        failed = true;
+        results.push({
+          id: target,
+          ok: false,
+          error: error2 instanceof Error ? error2.message : String(error2)
+        });
+      }
+    }
+    if (options.json === true) {
+      jsonOut(runtime, "specbridge.extension-doctor/1", { results, ok: !failed });
+      runtime.exitCode = failed ? EXIT_CODES.gateFailure : 0;
+      return;
+    }
+    runtime.out(reportTitle("Extension doctor"));
+    runtime.out();
+    for (const result of results) {
+      if (result["ok"] === true) {
+        runtime.out(okLine(`${String(result["id"])}@${String(result["version"])}`, `(grant: ${String(result["grantStatus"])})`));
+        const handshake = result["handshake"];
+        if (handshake !== void 0) {
+          runtime.out(dim(`     handshake: ${handshake.detail}`));
+        }
+      } else {
+        runtime.out(failLine(`${String(result["id"])}: ${String(result["error"] ?? "unhealthy")}`));
+      }
+    }
+    if (results.length === 0) {
+      runtime.out(dim("  no installed extensions"));
+    }
+    runtime.exitCode = failed ? EXIT_CODES.gateFailure : 0;
+  });
+  extension.command("conformance <path-or-extension>").description("Run kind-specific conformance checks (executes the extension; requires --yes)").option("--yes", "confirm executing the extension under test").option("--network", "allow extensions that declare the network permission to run").option("--verbose", "show every check").option("--json", "output a machine-readable JSON report").action(async (target, options) => {
+    const resolvedPath = import_node_path17.default.resolve(runtime.cwd, target);
+    const isPathTarget = (0, import_node_fs14.existsSync)(resolvedPath) && (0, import_node_fs14.lstatSync)(resolvedPath).isDirectory();
+    const enabled = resolveConformanceTarget(runtime, target);
+    const executable = enabled.manifest.entrypoint !== void 0;
+    if (executable && options.yes !== true) {
+      throw new SpecBridgeError(
+        "INVALID_ARGUMENT",
+        "Conformance executes the extension in a child process; re-run with --yes to confirm."
+      );
+    }
+    if (enabled.manifest.permissions.network && options.network !== true) {
+      throw new SpecBridgeError(
+        "INVALID_ARGUMENT",
+        "This extension declares the network permission; re-run with --network to allow that during conformance."
+      );
+    }
+    const result = await runExtensionConformance(enabled, {
+      // Source directories under development get their checksums at
+      // packaging time; installed packages must already carry them.
+      checksums: isPathTarget ? "verify-if-present" : "require"
+    });
+    const workspace = runtime.tryWorkspace();
+    if (workspace !== void 0) {
+      const { state } = readExtensionState(workspace);
+      const record2 = state.installed.find(
+        (candidate) => candidate.id === result.extensionId && candidate.version === result.version
+      );
+      if (record2 !== void 0) {
+        record2.conformanceStatus = result.passed ? "passed" : "failed";
+        record2.conformanceAt = runtime.now().toISOString();
+        writeExtensionState(workspace, state);
+      }
+    }
+    if (options.json === true) {
+      jsonOut(runtime, "specbridge.extension-conformance/1", { ...result });
+      runtime.exitCode = result.passed ? 0 : EXIT_CODES.gateFailure;
+      return;
+    }
+    runtime.out(reportTitle(`Conformance: ${result.extensionId}@${result.version} (${result.kind})`));
+    runtime.out();
+    for (const check5 of result.checks) {
+      if (check5.status === "passed" && options.verbose !== true) {
+        continue;
+      }
+      const line = `${check5.id}: ${check5.title}${check5.detail !== void 0 ? ` \u2014 ${check5.detail}` : ""}`;
+      runtime.out(check5.status === "failed" ? failLine(line) : check5.status === "skipped" ? warnLine(line) : okLine(line));
+    }
+    runtime.out();
+    runtime.out(result.passed ? okLine(`conformant (${result.checks.length} checks)`) : failLine("NOT conformant"));
+    runtime.exitCode = result.passed ? 0 : EXIT_CODES.gateFailure;
+  });
+  extension.command("scaffold <id>").description("Generate a complete, working extension project (never installs or publishes)").option("--kind <kind>", `extension kind: ${EXTENSION_KINDS.join(" | ")}`).option("--output <directory>", "directory to create (must be empty)").option("--display-name <name>", "human-readable name").option("--description <text>", "one-line description").option("--dry-run", "list the files without writing them").option("--json", "output a machine-readable JSON report").action((id, options) => {
+    const kind = requireKind(options.kind);
+    if (kind === void 0) {
+      throw new SpecBridgeError("INVALID_ARGUMENT", `Pass --kind (${EXTENSION_KINDS.join(" | ")}).`);
+    }
+    const outputDir = import_node_path17.default.resolve(runtime.cwd, options.output ?? `./${id}`);
+    const result = scaffoldExtension({
+      id,
+      kind,
+      outputDir,
+      ...options.displayName === void 0 ? {} : { displayName: options.displayName },
+      ...options.description === void 0 ? {} : { description: options.description },
+      ...options.dryRun === true ? { dryRun: true } : {}
+    });
+    if (options.json === true) {
+      jsonOut(runtime, "specbridge.extension-scaffold/1", { ...result });
+      return;
+    }
+    runtime.out(reportTitle(`Scaffolded ${result.kind} extension: ${result.id}`));
+    runtime.out();
+    for (const file of result.files) {
+      runtime.out(okLine(file));
+    }
+    runtime.out();
+    if (result.dryRun) {
+      runtime.out(dim("Dry run: nothing was written."));
+      return;
+    }
+    runtime.out(dim(`Next: ${CLI_BIN} extension validate ${options.output ?? `./${id}`}`));
+  });
+  extension.command("package <path>").description("Build a deterministic .specbridge-extension.zip with checksums (no lifecycle scripts)").option("--output <directory>", "directory for the archive (default: <path>/dist)").option("--dry-run", "validate and compute the hash without writing the archive").option("--json", "output a machine-readable JSON report").action((source, options) => {
+    const result = buildExtensionArchive(import_node_path17.default.resolve(runtime.cwd, source), {
+      ...options.output === void 0 ? {} : { outputDir: import_node_path17.default.resolve(runtime.cwd, options.output) },
+      ...options.dryRun === true ? { dryRun: true } : {}
+    });
+    if (options.json === true) {
+      jsonOut(runtime, "specbridge.extension-package/1", { ...result });
+      return;
+    }
+    runtime.out(reportTitle(`Packaged ${result.id}@${result.version} (${result.kind})`));
+    runtime.out();
+    for (const warning2 of result.warnings) {
+      runtime.out(warnLine(`${warning2.code}: ${warning2.message}`));
+    }
+    runtime.out(okLine(`${result.fileCount} files, ${result.archiveBytes} bytes`));
+    if (!result.dryRun) {
+      runtime.out(okLine(`archive: ${result.archivePath}`));
+    }
+    runtime.out(`  sha256: ${result.archiveSha256}`);
+    runtime.out(dim("  Checksums prove integrity, not publisher identity."));
+  });
+}
+
+// ../../packages/cli/src/commands/registry.ts
+var import_node_fs15 = require("fs");
+var import_node_path18 = __toESM(require("path"), 1);
+function jsonOut2(runtime, schema, data) {
+  runtime.outRaw(serializeJsonReport(createJsonReport(schema, `${CLI_BIN} ${VERSION}`, data)));
+}
+function readableIndexes2(runtime, registryFilter) {
+  const workspace = runtime.workspace();
+  const { config: config2 } = readRegistriesConfig(workspace);
+  const indexes = [];
+  for (const source of config2.registries) {
+    if (source.enabled !== true) {
+      continue;
+    }
+    if (registryFilter !== void 0 && source.name !== registryFilter) {
+      continue;
+    }
+    try {
+      const resolved = resolveRegistryIndex(workspace, source);
+      if (resolved !== void 0) {
+        indexes.push({ registryName: resolved.sourceName, index: resolved.index });
+      }
+    } catch {
+    }
+  }
+  return indexes;
+}
+function registerRegistryCommands(program2, runtime) {
+  const registry2 = program2.command("registry").description("Manage extension registry indexes (metadata only; explicit --network for updates)");
+  registry2.command("list").description("List configured registries with cache status").option("--json", "output a machine-readable JSON report").action((options) => {
+    const workspace = runtime.workspace();
+    const { config: config2, diagnostics } = readRegistriesConfig(workspace);
+    const rows = config2.registries.map((source) => {
+      let cacheStatus = "not-applicable";
+      let lastUpdate = null;
+      let extensionCount = null;
+      if (source.type === "https") {
+        const cache = readRegistryCache(workspace, source.name);
+        cacheStatus = cache.cache !== void 0 ? "cached" : "no-cache";
+        lastUpdate = cache.cache?.retrievedAt ?? null;
+        extensionCount = cache.cache?.index.extensions.length ?? null;
+      } else {
+        try {
+          const resolved = resolveRegistryIndex(workspace, source);
+          cacheStatus = "readable";
+          extensionCount = resolved?.index.extensions.length ?? null;
+        } catch {
+          cacheStatus = "invalid";
+        }
+      }
+      return {
+        name: source.name,
+        type: source.type,
+        enabled: source.enabled,
+        source: source.type === "https" ? source.url : source.type === "local-file" ? source.file : "embedded",
+        cacheStatus,
+        lastUpdate,
+        extensionCount
+      };
+    });
+    if (options.json === true) {
+      jsonOut2(runtime, "specbridge.registry-list/1", { registries: rows, diagnostics });
+      return;
+    }
+    runtime.out(reportTitle(`Registries (${rows.length})`));
+    for (const diagnostic of diagnostics) {
+      runtime.out(warnLine(diagnostic.message));
+    }
+    runtime.out();
+    for (const row of rows) {
+      runtime.out(
+        okLine(
+          `${row.name}`,
+          `(${row.type}, ${row.enabled ? "enabled" : "disabled"}, ${row.cacheStatus}${row.extensionCount !== null ? `, ${row.extensionCount} extensions` : ""})`
+        )
+      );
+      runtime.out(dim(`     ${row.source}${row.lastUpdate !== null ? ` | updated ${row.lastUpdate}` : ""}`));
+    }
+  });
+  registry2.command("add <name>").description("Add a local-file or https registry (no fetch happens here)").option("--file <path>", "workspace-relative path to a registry index JSON file").option("--url <https-url>", "HTTPS URL of a registry index").option("--dry-run", "validate the configuration without saving").option("--json", "output a machine-readable JSON report").action((name, options) => {
+    if (options.file === void 0 === (options.url === void 0)) {
+      throw new SpecBridgeError("INVALID_ARGUMENT", "Pass exactly one of --file <path> or --url <https-url>.");
+    }
+    const workspace = runtime.workspace();
+    const source = options.file !== void 0 ? { name, type: "local-file", file: options.file, enabled: true } : { name, type: "https", url: options.url ?? "", enabled: true };
+    if (options.dryRun === true) {
+      if (options.json === true) {
+        jsonOut2(runtime, "specbridge.registry-add/1", { dryRun: true, source });
+        return;
+      }
+      runtime.out(dim(`Dry run: would add registry "${name}".`));
+      return;
+    }
+    addRegistrySource(workspace, source);
+    if (options.json === true) {
+      jsonOut2(runtime, "specbridge.registry-add/1", { dryRun: false, source });
+      return;
+    }
+    runtime.out(okLine(`registry "${name}" added`));
+    if (source.type === "https") {
+      runtime.out(dim(`  fetch its index explicitly with: ${CLI_BIN} registry update ${name} --network`));
+    }
+  });
+  registry2.command("remove <name>").description("Remove a registry configuration (and its cache) after explicit confirmation").option("--yes", "confirm the removal").option("--json", "output a machine-readable JSON report").action((name, options) => {
+    if (options.yes !== true) {
+      throw new SpecBridgeError("INVALID_ARGUMENT", `Re-run with --yes to remove registry "${name}".`);
+    }
+    const workspace = runtime.workspace();
+    removeRegistrySource(workspace, name);
+    const cachePath = registryCachePath(workspace, name);
+    if ((0, import_node_fs15.existsSync)(cachePath)) {
+      (0, import_node_fs15.rmSync)(cachePath, { force: true });
+    }
+    if (options.json === true) {
+      jsonOut2(runtime, "specbridge.registry-remove/1", { name, removed: true });
+      return;
+    }
+    runtime.out(okLine(`registry "${name}" removed (installed extensions are untouched)`));
+  });
+  registry2.command("update [name]").description("Fetch, validate, and cache an https registry index (requires --network; installs nothing)").option("--network", "allow this one explicit fetch").option("--json", "output a machine-readable JSON report").action(async (name, options) => {
+    const workspace = runtime.workspace();
+    const { config: config2 } = readRegistriesConfig(workspace);
+    const targets = name !== void 0 ? [requireRegistrySource(config2, name)] : config2.registries.filter((source) => source.type === "https" && source.enabled);
+    if (targets.length === 0) {
+      runtime.out(dim("No https registries to update."));
+      return;
+    }
+    const results = [];
+    let failed = false;
+    for (const source of targets) {
+      try {
+        const result = await updateRegistryIndex(workspace, source, {
+          network: options.network === true,
+          http: safeHttpRequest,
+          clock: () => runtime.now()
+        });
+        results.push({
+          name: source.name,
+          ok: true,
+          extensionCount: result.extensionCount,
+          retrievedAt: result.cache.retrievedAt
+        });
+      } catch (error2) {
+        failed = true;
+        results.push({
+          name: source.name,
+          ok: false,
+          error: error2 instanceof Error ? error2.message : String(error2)
+        });
+      }
+    }
+    if (options.json === true) {
+      jsonOut2(runtime, "specbridge.registry-update/1", { results, ok: !failed });
+      runtime.exitCode = failed ? EXIT_CODES.gateFailure : 0;
+      return;
+    }
+    for (const result of results) {
+      if (result["ok"] === true) {
+        runtime.out(okLine(`${String(result["name"])}: cached ${String(result["extensionCount"])} extensions`));
+      } else {
+        runtime.out(failLine(`${String(result["name"])}: ${String(result["error"])}`));
+      }
+    }
+    runtime.out(dim("Registry updates never install or execute anything."));
+    runtime.exitCode = failed ? EXIT_CODES.gateFailure : 0;
+  });
+  registry2.command("search <query>").description("Search validated registry indexes offline (deterministic lexical ranking)").option("--registry <name>", "search one registry only").option("--kind <kind>", `filter by kind: ${EXTENSION_KINDS.join(" | ")}`).option("--limit <n>", "maximum results", "20").option("--json", "output a machine-readable JSON report").action((query, options) => {
+    if (options.kind !== void 0 && !EXTENSION_KINDS.includes(options.kind)) {
+      throw new SpecBridgeError("INVALID_ARGUMENT", `Unknown --kind "${options.kind}".`);
+    }
+    const limit = Number.parseInt(options.limit, 10);
+    if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
+      throw new SpecBridgeError("INVALID_ARGUMENT", "--limit must be an integer between 1 and 50.");
+    }
+    const hits = searchRegistryIndexes(readableIndexes2(runtime, options.registry), query, {
+      ...options.kind === void 0 ? {} : { kind: options.kind },
+      limit
+    });
+    if (options.json === true) {
+      jsonOut2(runtime, "specbridge.registry-search/1", {
+        query,
+        results: hits.map((hit) => ({
+          registryName: hit.registryName,
+          id: hit.entry.id,
+          kind: hit.entry.kind,
+          displayName: hit.entry.displayName,
+          description: hit.entry.description,
+          latestVersion: hit.entry.latestVersion,
+          license: hit.entry.license,
+          score: hit.score
+        }))
+      });
+      return;
+    }
+    runtime.out(reportTitle(`Registry search: ${query} (${hits.length})`));
+    runtime.out();
+    for (const hit of hits) {
+      runtime.out(okLine(`${hit.entry.id}@${hit.entry.latestVersion}`, `(${hit.entry.kind}, from ${hit.registryName})`));
+      runtime.out(dim(`     ${hit.entry.description}`));
+    }
+    if (hits.length === 0) {
+      runtime.out(dim("  no matches in readable indexes (search never touches the network)"));
+    }
+  });
+  registry2.command("show <extension>").description("Show registry metadata for an extension (no download happens)").option("--json", "output a machine-readable JSON report").action((id, options) => {
+    const indexes = readableIndexes2(runtime);
+    const matches = indexes.flatMap(
+      ({ registryName, index }) => index.extensions.filter((entry) => entry.id === id).map((entry) => ({ registryName, entry }))
+    );
+    if (matches.length === 0) {
+      throw new SpecBridgeError(
+        "INVALID_ARGUMENT",
+        `SBR011: extension "${id}" was not found in any readable registry index.`
+      );
+    }
+    if (options.json === true) {
+      jsonOut2(runtime, "specbridge.registry-show/1", { id, matches });
+      return;
+    }
+    for (const match of matches) {
+      const entry = match.entry;
+      runtime.out(reportTitle(`${entry.displayName} (${entry.id}) \u2014 from ${match.registryName}`));
+      runtime.out(dim(`  ${entry.description}`));
+      runtime.out(`  kind: ${entry.kind} | latest: ${entry.latestVersion} | license: ${entry.license}`);
+      runtime.out();
+      runtime.out(sectionTitle("versions"));
+      for (const version2 of entry.versions) {
+        runtime.out(okLine(`${version2.version}`, `(sha256 ${version2.sha256.slice(0, 16)}\u2026)`));
+        runtime.out(dim(`     ${version2.archiveUrl}`));
+        runtime.out(dim(`     specbridge ${version2.manifest.compatibility.specbridge}`));
+      }
+      runtime.out();
+      runtime.out(dim("  Registry listing is not endorsement; review permissions before enabling."));
+    }
+  });
+  registry2.command("validate <path-or-name>").description("Validate a registry index file or a configured registry").option("--json", "output a machine-readable JSON report").action((target, options) => {
+    const workspace = runtime.workspace();
+    let problems = [];
+    let extensionCount = 0;
+    let label = target;
+    const resolved = import_node_path18.default.resolve(runtime.cwd, target);
+    if ((0, import_node_fs15.existsSync)(resolved) && (0, import_node_fs15.lstatSync)(resolved).isFile()) {
+      const parsed = parseRegistryIndex((0, import_node_fs15.readFileSync)(resolved, "utf8"));
+      problems = parsed.problems;
+      extensionCount = parsed.index?.extensions.length ?? 0;
+      label = `file ${target}`;
+    } else {
+      const { config: config2 } = readRegistriesConfig(workspace);
+      const source = requireRegistrySource(config2, target);
+      try {
+        const index = resolveRegistryIndex(workspace, source);
+        if (index === void 0) {
+          problems = ["registry has no validated cache yet; run `registry update --network`"];
+        } else {
+          extensionCount = index.index.extensions.length;
+          problems = index.diagnostics.map((diagnostic) => diagnostic.message);
+        }
+      } catch (error2) {
+        problems = [error2 instanceof Error ? error2.message : String(error2)];
+      }
+      label = `registry ${target}`;
+    }
+    const valid = problems.length === 0;
+    if (options.json === true) {
+      jsonOut2(runtime, "specbridge.registry-validate/1", { target, valid, extensionCount, problems });
+      runtime.exitCode = valid ? 0 : EXIT_CODES.gateFailure;
+      return;
+    }
+    runtime.out(reportTitle(`Validate ${label}`));
+    runtime.out();
+    for (const problem of problems) {
+      runtime.out(failLine(problem));
+    }
+    runtime.out(valid ? okLine(`valid (${extensionCount} extensions)`) : failLine("invalid"));
+    runtime.exitCode = valid ? 0 : EXIT_CODES.gateFailure;
+  });
+}
+
 // ../../packages/cli/src/cli.ts
 function buildProgram(runtime) {
   const program2 = new Command();
@@ -70602,6 +77352,8 @@ honest error; nothing pretends to work before it does.`
   registerCompatCheckCommand(program2, runtime);
   registerMcpCommands(program2, runtime);
   registerTemplateCommands(program2, runtime);
+  registerExtensionCommands(program2, runtime);
+  registerRegistryCommands(program2, runtime);
   return program2;
 }
 async function runCli(argv2, ioOverrides) {

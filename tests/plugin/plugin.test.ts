@@ -42,7 +42,7 @@ describe('plugin structure', () => {
   it('plugin.json validates with real repository metadata', () => {
     const manifest = readJson('integrations/claude-code-plugin/specbridge/.claude-plugin/plugin.json');
     expect(manifest['name']).toBe('specbridge');
-    expect(manifest['version']).toBe('0.7.0');
+    expect(manifest['version']).toBe('0.7.1');
     expect(manifest['license']).toBe('MIT');
     expect((manifest['author'] as { name: string }).name).toBe('HelloThisWorld');
     expect(manifest['repository']).toBe('https://github.com/HelloThisWorld/specbridge');
@@ -55,7 +55,7 @@ describe('plugin structure', () => {
     const plugins = marketplace['plugins'] as { name: string; source: string; version: string }[];
     const entry = plugins.find((plugin) => plugin.name === 'specbridge');
     expect(entry).toBeDefined();
-    expect(entry?.version).toBe('0.7.0');
+    expect(entry?.version).toBe('0.7.1');
     // The relative source resolves to the plugin root.
     expect(path.resolve(repoRoot, entry?.source as string)).toBe(pluginRoot);
   });
@@ -78,13 +78,14 @@ describe('plugin structure', () => {
     expect(existsSync(path.join(pluginRoot, 'skills'))).toBe(true);
   });
 
-  it('all ten namespaced skills exist with unique names and valid frontmatter', () => {
+  it('all eleven namespaced skills exist with unique names and valid frontmatter', () => {
     const dirs = readdirSync(skillsDir).sort();
     expect(dirs).toEqual([
       'approve',
       'author',
       'continue',
       'doctor',
+      'extensions',
       'implement',
       'new',
       'runners',
@@ -108,7 +109,7 @@ describe('plugin structure', () => {
   it('the approve skill disables model invocation; no other skill grants tools', () => {
     const approve = frontmatterOf(skillMarkdown('approve'));
     expect(approve).toContain('disable-model-invocation: true');
-    for (const dir of ['author', 'continue', 'doctor', 'implement', 'new', 'runners', 'status', 'templates', 'verify']) {
+    for (const dir of ['author', 'continue', 'doctor', 'extensions', 'implement', 'new', 'runners', 'status', 'templates', 'verify']) {
       expect(frontmatterOf(skillMarkdown(dir))).not.toContain('allowed-tools');
     }
   });

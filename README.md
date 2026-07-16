@@ -565,6 +565,34 @@ stay readable, migration is explicit — see
 [docs/runners.md](docs/runners.md)). Never commit API keys; SpecBridge
 stores no credentials of any kind.
 
+## Extension ecosystem (v0.7.1)
+
+Extend SpecBridge without modifying the core. Five stable extension kinds —
+template-provider, analyzer, verifier, exporter, and runner — run out of
+process behind a versioned stdio protocol, install disabled, and run only
+after you accept their declared permissions (bound to the manifest hash):
+
+```bash
+specbridge extension scaffold security-analyzer \
+  --kind analyzer \
+  --output ./security-analyzer
+
+specbridge extension conformance ./security-analyzer --yes
+
+specbridge extension package ./security-analyzer
+```
+
+Discover cached registry extensions (offline; updates are explicit):
+
+```bash
+specbridge registry search security
+```
+
+Extensions can never approve stages, mark tasks complete, alter evidence, or
+disable protected-path rules; process isolation is a safety boundary, not an
+OS sandbox, and checksums prove integrity, not publisher identity. See
+[docs/extensions.md](docs/extensions.md).
+
 ## Security and privacy
 
 - Default commands are read-only and fully offline; no telemetry, no network.
@@ -579,7 +607,7 @@ stores no credentials of any kind.
   secrets or environment variables.
 - Full model: [docs/security.md](docs/security.md).
 
-## Limitations (v0.7.0)
+## Limitations (v0.7.1)
 
 - The MCP server is stdio-only and local-only: no HTTP/SSE/WebSocket
   transport, no OAuth, no cloud hosting. One server process serves one

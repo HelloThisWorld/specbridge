@@ -1,4 +1,4 @@
-import type { AgentConfig, RunnerProfileConfig } from '@specbridge/core';
+import type { AgentConfig, ExtensionRunnerProfileConfig, RunnerProfileConfig } from '@specbridge/core';
 import { SpecBridgeError, defaultResolvedAgentConfig } from '@specbridge/core';
 import type { AgentRunner } from './contract.js';
 import { MockRunner } from './mock-runner.js';
@@ -82,8 +82,23 @@ export class RunnerRegistry {
   }
 }
 
+/**
+ * v0.7.1: factory for extension-backed runners. Implemented by
+ * @specbridge/extensions and injected by the CLI/MCP layer so this package
+ * never depends on the extension host. The frozen AgentRunner contract is
+ * unchanged — an extension runner is just another adapter behind it.
+ */
+export type ExtensionRunnerFactory = (config: ExtensionRunnerProfileConfig) => AgentRunner;
+
+export interface InstantiateRunnerOptions {
+  extensionRunner?: ExtensionRunnerFactory;
+}
+
 /** Instantiate the registered adapter for a profile configuration. */
-export function instantiateRunner(config: RunnerProfileConfig): AgentRunner {
+export function instantiateRunner(
+  config: RunnerProfileConfig,
+  options: InstantiateRunnerOptions = {},
+): AgentRunner {
   switch (config.runner) {
     case 'claude-code':
       return new ClaudeCodeRunner(config);
@@ -99,6 +114,16 @@ export function instantiateRunner(config: RunnerProfileConfig): AgentRunner {
       return new AntigravityCliRunner(config);
     case 'mock':
       return new MockRunner(config);
+    case 'extension': {
+      if (options.extensionRunner === undefined) {
+        throw new SpecBridgeError(
+          'INVALID_STATE',
+          `Runner profile uses extension "${config.extensionId}", but no extension runner ` +
+            'factory is available in this context.',
+        );
+      }
+      return options.extensionRunner(config);
+    }
   }
 }
 
@@ -107,14 +132,26 @@ export function instantiateRunner(config: RunnerProfileConfig): AgentRunner {
  * entry per configured profile (built-ins are always present; new-provider
  * built-ins default to disabled and are never selected implicitly).
  */
-export function createDefaultRunnerRegistry(config?: AgentConfig): RunnerRegistry {
+export function createDefaultRunnerRegistry(
+  config?: AgentConfig,
+  options: InstantiateRunnerOptions = {},
+): RunnerRegistry {
   const resolved = config ?? defaultResolvedAgentConfig();
   const registry = new RunnerRegistry();
   for (const [name, profileConfig] of Object.entries(resolved.runnerProfiles)) {
+    if (profileConfig.runner === 'extension') {
+      // Extension profiles register only when explicitly enabled AND an
+      // extension runner factory exists in this context. A disabled or
+      // unresolvable extension profile is simply absent from the registry —
+      // never a crash, never an automatic fallback.
+      if (profileConfig.enabled !== true || options.extensionRunner === undefined) {
+        continue;
+      }
+    }
     registry.registerProfile({
       name,
       config: profileConfig,
-      runner: instantiateRunner(profileConfig),
+      runner: instantiateRunner(profileConfig, options),
     });
   }
   return registry;

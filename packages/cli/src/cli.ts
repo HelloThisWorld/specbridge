@@ -30,6 +30,8 @@ import { registerRunCommands } from './commands/run.js';
 import { registerCompatCheckCommand } from './commands/compat-check.js';
 import { registerMcpCommands } from './commands/mcp.js';
 import { registerTemplateCommands } from './commands/template.js';
+import { registerExtensionCommands } from './commands/extension.js';
+import { registerRegistryCommands } from './commands/registry.js';
 
 function buildProgram(runtime: CliRuntime): Command {
   const program = new Command();
@@ -90,6 +92,8 @@ honest error; nothing pretends to work before it does.`,
   registerCompatCheckCommand(program, runtime);
   registerMcpCommands(program, runtime);
   registerTemplateCommands(program, runtime);
+  registerExtensionCommands(program, runtime);
+  registerRegistryCommands(program, runtime);
 
   return program;
 }

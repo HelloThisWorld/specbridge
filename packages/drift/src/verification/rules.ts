@@ -16,7 +16,7 @@ import { makeDiagnostic } from './rule-engine.js';
 import { IMMUTABLE_PROTECTED_PATHS, compilePathMatchers } from './policy.js';
 
 /**
- * Built-in verification rules SBV001–SBV025.
+ * Built-in verification rules SBV001–SBV026.
  *
  * The registry at the bottom of this file is the single source of truth for
  * rule IDs. IDs are stable: rules are never silently renumbered, and removed
@@ -1189,6 +1189,37 @@ const sbv024: SpecVerificationRule = {
  * Every built-in rule in ID order. This list is the registry: tests assert
  * the IDs are unique, contiguous where documented, and stable.
  */
+/**
+ * SBV026 — Extension verifier reported failure (v0.7.1)
+ *
+ * This rule's diagnostics are injected by the verification engine from the
+ * results of policy-configured extension verifiers; the descriptor exists so
+ * `verify rules` and `verify explain` document it and policies can tune its
+ * severity. Extension verifiers cannot mark tasks complete, cannot change
+ * evidence, and cannot disable built-in rules — SBV026 is the only channel
+ * through which their results reach the quality gate.
+ */
+const sbv026: SpecVerificationRule = {
+  id: 'SBV026',
+  title: 'Extension verifier reported failure',
+  category: 'verification-command',
+  defaultSeverity: { advisory: 'error', strict: 'error' },
+  confidence: 'deterministic',
+  scope: 'spec',
+  triggeredWhen:
+    'A policy-configured extension verifier reported failure, or a required extension verifier ' +
+    'could not run (not installed, disabled, stale grant, crash, or timeout). Required ' +
+    'verifiers error; optional verifiers warn.',
+  resolution:
+    'Inspect the extensionVerifiers section of the report, fix what the extension found, or ' +
+    'repair the extension with `specbridge extension doctor <id>`. Remove the entry from the ' +
+    'spec policy to stop running it.',
+  evaluate() {
+    // Injected by the engine (see verify.ts); never evaluated directly.
+    return [];
+  },
+};
+
 export function builtInVerificationRules(): readonly VerificationRule[] {
   return [
     sbv001,
@@ -1216,6 +1247,7 @@ export function builtInVerificationRules(): readonly VerificationRule[] {
     sbv023,
     sbv024,
     sbv025,
+    sbv026,
   ];
 }
 

@@ -175,6 +175,7 @@ Example:
         requireRequirementTaskLinks: false,
         requireTestEvidence: false,
         rules: {},
+        extensionVerifiers: [],
       };
       const serialized = `${JSON.stringify(proposal, null, 2)}\n`;
 

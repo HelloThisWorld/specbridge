@@ -1,5 +1,111 @@
 # Changelog
 
+## 0.7.1
+
+Added:
+
+- Versioned extension manifest (`specbridge-extension.json`, schema 1.0.0)
+  covering five stable extension kinds: template-provider, analyzer,
+  verifier, exporter, and runner.
+- Publishable extension SDK (`@specbridge/extension-sdk`): manifest,
+  protocol, permission, and diagnostic schemas; a stdio extension server
+  with input/output validation, cancellation, and clean shutdown; typed
+  helpers per kind; in-process testing utilities.
+- Out-of-process extension protocol (JSON-RPC 2.0 over JSON Lines, protocol
+  1.0.0): initialize handshake with identity and capability validation,
+  invocation, cancellation, shutdown, structured errors, bounded messages.
+- Explicit extension permission model (specRead, repositoryRead,
+  repositoryWrite, network, childProcess, explicit environment-variable
+  names) with permission-aware input boundaries per kind.
+- Permission-hash acceptance: enabling requires
+  `--accept-permissions <hash>`, deterministically bound to the extension
+  ID, version, manifest hash, and normalized permissions; any manifest
+  change invalidates prior grants (SBE018).
+- Analyzer extensions (`spec analyze --extension <id>`, repeatable) with
+  namespaced rule IDs (`<extension-id>/<RULE>`) that never overwrite
+  built-in diagnostics.
+- Verifier extensions via explicit per-spec policy (`extensionVerifiers`);
+  results land in the verification report and reach the gate only through
+  the new built-in rollup rule SBV026 (required failure fails, optional
+  warns).
+- Exporter extensions (`spec export --extension <id> --output <dir>`):
+  candidate files only, previewed by default, written atomically after
+  explicit `--yes`, never overwriting, recorded append-only.
+- Runner extensions behind an extension-runner proxy implementing the
+  frozen v0.6.0 `AgentRunner` contract, wired through a new
+  backward-compatible `"runner": "extension"` profile variant (disabled by
+  default, preview support level, never auto-selected).
+- Template-provider extensions: data-only v0.7.0-format template packs
+  contributed to the catalog as `extension:<extension-id>/<template-id>`,
+  with ambiguity errors instead of shadowing.
+- Local extension installation from directories and archives (atomic,
+  versioned side-by-side, disabled after install, zero code execution),
+  plus explicit enablement/disablement and recoverable uninstall.
+- Extension conformance framework (`extension conformance --yes`) with
+  common protocol checks and kind-specific checks, recorded per install.
+- Deterministic extension packaging
+  (`<id>-<version>.specbridge-extension.zip`, store-method, fixed
+  timestamps, sorted entries, regenerated checksums, printed SHA-256).
+- Local (built-in + `--file`) and HTTPS registry indexes with a validated
+  atomic cache under `.specbridge/registry-cache/` and explicit
+  `registry update <name> --network`.
+- Extension and registry CLI command groups (`specbridge extension …`,
+  `specbridge registry …`) including scaffold for every kind.
+- Seven read-only MCP discovery tools: extension_list, extension_search,
+  extension_show, extension_doctor, registry_list, registry_search,
+  registry_show (37 MCP tools total).
+- Claude Code `/specbridge:extensions` Skill (discovery only).
+- Generated extension gallery (`docs/extensions.md`) with CI drift check,
+  repository registry index (`registry/`), and five maintained reference
+  extensions under `examples/extensions/`.
+- Stable error code registries: SBE001–SBE030 (extensions) and
+  SBR001–SBR015 (registry), every error with remediation.
+
+Security:
+
+- No in-process third-party code execution: no dynamic import of installed
+  extensions, no `eval`, no `Function`; the only executable surface is the
+  declared entrypoint launched as `node <entrypoint>` (argv array, no
+  shell) in a child process.
+- No package-manager lifecycle scripts: install/postinstall/prepare
+  declarations in a bundled package.json are validation errors and are
+  never executed.
+- No automatic enablement, no automatic updates, no automatic registry
+  network access; remote installs and updates require an explicit
+  `--network`.
+- Manifest-bound permission grants with stale-grant detection.
+- SHA-256 archive and per-file integrity checks; installed files are
+  revalidated after extraction.
+- Symlink and path-traversal rejection everywhere packages are read,
+  extracted, installed, or exported.
+- Bounded archive extraction (50 MB archive, 100 MB extracted, 1,000
+  files) with CRC verification and declared-size enforcement.
+- Protocol stdout isolation: stdout is protocol-only, logs go to stderr,
+  corruption terminates the process without crashing SpecBridge.
+- Startup (10 s) and operation (default 5 min) timeouts, cooperative
+  cancellation, SIGTERM→SIGKILL cleanup, bounded stdout/stderr capture.
+- Sanitized child environment with an explicit variable allowlist; granted
+  secret values are redacted from retained logs.
+- Extensions cannot approve stages, complete tasks, change evidence, or
+  disable built-in protected-path rules.
+
+Limitations:
+
+- Process isolation and permission declarations are safety boundaries and
+  audit mechanisms, not an OS sandbox; enabled executable extensions run
+  as local code with the user's operating-system permissions.
+- Checksums prove integrity, not publisher identity.
+- Registry listing is not endorsement.
+- Registry archive URLs in the repository index use a documented
+  placeholder host until a real hosted registry exists.
+
+Deferred to v1.0:
+
+- Stable publishing workflow and release automation.
+- Cross-platform installation verification.
+- Final security audit and performance hardening.
+- Schema migration guarantees and public launch assets.
+
 ## 0.7.0
 
 Added:

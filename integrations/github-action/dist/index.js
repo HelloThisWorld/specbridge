@@ -33984,6 +33984,33 @@ var verificationSummarySchema = external_exports.object({
   warnings: external_exports.number().int().min(0),
   info: external_exports.number().int().min(0)
 });
+var EXTENSION_VERIFIER_STATUS_VALUES = [
+  "passed",
+  "warning",
+  "failed",
+  "not-applicable",
+  "error"
+];
+var NAMESPACED_EXTENSION_RULE_ID_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\/[A-Z][A-Z0-9_-]{0,63}$/;
+var extensionVerifierDiagnosticSchema = external_exports.object({
+  ruleId: external_exports.string().regex(NAMESPACED_EXTENSION_RULE_ID_PATTERN),
+  severity: external_exports.enum(["info", "warning", "error"]),
+  message: external_exports.string().min(1),
+  file: external_exports.string().nullable(),
+  line: external_exports.number().int().min(1).nullable(),
+  remediation: external_exports.string().nullable(),
+  confidence: external_exports.enum(["deterministic", "heuristic"])
+});
+var extensionVerifierReportEntrySchema = external_exports.object({
+  extensionId: external_exports.string().min(1),
+  extensionVersion: external_exports.string().min(1),
+  specName: external_exports.string().min(1),
+  required: external_exports.boolean(),
+  status: external_exports.enum(EXTENSION_VERIFIER_STATUS_VALUES),
+  summary: external_exports.string().nullable(),
+  durationMs: external_exports.number().int().min(0),
+  diagnostics: external_exports.array(extensionVerifierDiagnosticSchema).max(1e3)
+});
 var verificationReportSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
   tool: external_exports.object({
@@ -34001,7 +34028,9 @@ var verificationReportSchema = external_exports.object({
   specResults: external_exports.array(specVerificationResultSchema),
   /** Diagnostics not attributable to a single selected spec. */
   globalDiagnostics: external_exports.array(verificationDiagnosticSchema),
-  verificationCommands: external_exports.array(verificationCommandReportSchema)
+  verificationCommands: external_exports.array(verificationCommandReportSchema),
+  /** v0.7.1: results from policy-configured extension verifiers (optional). */
+  extensionVerifiers: external_exports.array(extensionVerifierReportEntrySchema).optional()
 });
 var SEVERITY_RANK = {
   error: 0,
@@ -34391,6 +34420,18 @@ var antigravityProfileSchema = external_exports.object({
   experimental: external_exports.literal(true).default(true),
   timeoutMs: external_exports.number().int().min(1e3).max(6e5).default(3e4)
 }).passthrough();
+var extensionRunnerProfileSchema = external_exports.object({
+  runner: external_exports.literal("extension"),
+  /** ID of the installed, enabled runner extension this profile uses. */
+  extensionId: external_exports.string().min(1).max(64),
+  /** Extension profiles must be explicitly enabled to register at all. */
+  enabled: external_exports.boolean().default(false),
+  model: external_exports.string().min(1).max(200).optional(),
+  /** Per-operation timeout in milliseconds. */
+  timeoutMs: external_exports.number().int().min(1).max(36e5).default(3e5),
+  /** Extension-owned configuration passed through the protocol verbatim. */
+  configuration: external_exports.record(external_exports.unknown()).default({})
+}).strict();
 var runnerProfileSchema = external_exports.discriminatedUnion("runner", [
   claudeProfileSchema,
   codexProfileSchema,
@@ -34398,7 +34439,8 @@ var runnerProfileSchema = external_exports.discriminatedUnion("runner", [
   ollamaProfileSchema,
   openAiCompatibleProfileSchema,
   antigravityProfileSchema,
-  mockProfileSchema
+  mockProfileSchema,
+  extensionRunnerProfileSchema
 ]);
 var runnerPolicySchema = external_exports.object({
   allowAutomaticFallback: external_exports.boolean().default(false),
@@ -43943,7 +43985,21 @@ var verificationPolicySchema = external_exports.object({
   rules: external_exports.record(
     external_exports.string().regex(VERIFICATION_RULE_ID_PATTERN, "rule keys must look like SBV005"),
     policyRuleOverrideSchema
-  ).default({})
+  ).default({}),
+  /**
+   * v0.7.1: explicit extension verifier opt-ins. Each named extension must
+   * be installed AND enabled; a required extension that fails (or cannot
+   * run) fails the gate via SBV026, an optional one warns. Built-in rules —
+   * including protected-path checks — always run and cannot be disabled by
+   * extensions.
+   */
+  extensionVerifiers: external_exports.array(
+    external_exports.object({
+      extension: external_exports.string().min(1).max(64),
+      required: external_exports.boolean().default(false),
+      configuration: external_exports.record(external_exports.unknown()).default({})
+    }).passthrough()
+  ).default([])
 }).passthrough().superRefine((policy, ctx) => {
   if (!policy.schemaVersion.startsWith("1.")) {
     ctx.addIssue({
@@ -44046,6 +44102,11 @@ function resolveEffectivePolicy(workspace, specName, options = {}) {
     requireRequirementTaskLinks: policy?.requireRequirementTaskLinks ?? false,
     requireTestEvidence: policy?.requireTestEvidence ?? false,
     ruleOverrides: { ...policy?.rules ?? {} },
+    extensionVerifiers: (policy?.extensionVerifiers ?? []).map((entry) => ({
+      extension: entry.extension,
+      required: entry.required,
+      configuration: entry.configuration
+    })),
     ...read.exists ? { policyPath: workspaceRelativePolicyPath } : {},
     policyExists: read.exists,
     policyDiagnostics: read.diagnostics
@@ -45551,6 +45612,19 @@ var sbv024 = {
     return diagnostics;
   }
 };
+var sbv026 = {
+  id: "SBV026",
+  title: "Extension verifier reported failure",
+  category: "verification-command",
+  defaultSeverity: { advisory: "error", strict: "error" },
+  confidence: "deterministic",
+  scope: "spec",
+  triggeredWhen: "A policy-configured extension verifier reported failure, or a required extension verifier could not run (not installed, disabled, stale grant, crash, or timeout). Required verifiers error; optional verifiers warn.",
+  resolution: "Inspect the extensionVerifiers section of the report, fix what the extension found, or repair the extension with `specbridge extension doctor <id>`. Remove the entry from the spec policy to stop running it.",
+  evaluate() {
+    return [];
+  }
+};
 function builtInVerificationRules() {
   return [
     sbv001,
@@ -45577,7 +45651,8 @@ function builtInVerificationRules() {
     sbv022,
     sbv023,
     sbv024,
-    sbv025
+    sbv025,
+    sbv026
   ];
 }
 function isInfrastructurePath(candidate) {
@@ -45762,6 +45837,79 @@ async function verifySpecs(request) {
       globalDiagnostics.push(diagnostic);
     }
   }
+  const extensionVerifierResults = [];
+  let extensionVerifiersConfigured = false;
+  for (const context of specContexts) {
+    const entries = context.policy.extensionVerifiers;
+    if (entries.length === 0) {
+      continue;
+    }
+    extensionVerifiersConfigured = true;
+    const changedFiles = (selectionMode === "single" ? context.changedFiles : context.specChangedFiles).map((file) => ({ path: file.path, changeType: file.changeType }));
+    let entryResults;
+    if (request.extensionVerifiers === void 0) {
+      entryResults = entries.map((entry) => ({
+        extensionId: entry.extension,
+        extensionVersion: "unknown",
+        specName: context.specName,
+        required: entry.required,
+        status: "error",
+        summary: "no extension verifier runner is available in this verification context",
+        durationMs: 0,
+        diagnostics: []
+      }));
+    } else {
+      try {
+        entryResults = await request.extensionVerifiers({
+          specName: context.specName,
+          entries,
+          changedFiles
+        });
+      } catch (cause) {
+        entryResults = entries.map((entry) => ({
+          extensionId: entry.extension,
+          extensionVersion: "unknown",
+          specName: context.specName,
+          required: entry.required,
+          status: "error",
+          summary: cause instanceof Error ? cause.message : String(cause),
+          durationMs: 0,
+          diagnostics: []
+        }));
+      }
+    }
+    const sbv026Override = context.policy.ruleOverrides["SBV026"];
+    for (const entryResult of entryResults) {
+      extensionVerifierResults.push(entryResult);
+      const problem = entryResult.status === "failed" || entryResult.status === "error";
+      const warningStatus = entryResult.status === "warning";
+      if (!problem && !warningStatus || sbv026Override?.enabled === false) {
+        continue;
+      }
+      const severity = entryResult.required && problem ? sbv026Override?.severity === "warning" ? "warning" : "error" : "warning";
+      diagnosticsBySpec.get(context.specName)?.push({
+        schemaVersion: VERIFICATION_DIAGNOSTIC_SCHEMA_VERSION,
+        ruleId: "SBV026",
+        title: "Extension verifier reported failure",
+        severity,
+        category: "verification-command",
+        message: `Extension verifier "${entryResult.extensionId}" (${entryResult.required ? "required" : "optional"}) reported ${entryResult.status}` + (entryResult.summary !== null ? `: ${entryResult.summary}` : "."),
+        remediation: `See the extensionVerifiers section of the report for the extension diagnostics, or run \`specbridge extension doctor ${entryResult.extensionId}\` if the extension could not run.`,
+        specName: context.specName,
+        taskId: null,
+        requirementId: null,
+        file: null,
+        evidence: {
+          extensionId: entryResult.extensionId,
+          extensionVersion: entryResult.extensionVersion,
+          status: entryResult.status,
+          required: entryResult.required,
+          diagnosticCount: entryResult.diagnostics.length
+        },
+        confidence: "deterministic"
+      });
+    }
+  }
   const specResults = specContexts.map((context) => {
     const diagnostics = sortVerificationDiagnostics(diagnosticsBySpec.get(context.specName) ?? []);
     const counts = countDiagnostics(diagnostics);
@@ -45804,7 +45952,8 @@ async function verifySpecs(request) {
     },
     specResults,
     globalDiagnostics: sortedGlobal,
-    verificationCommands: commands.commands.map(toCommandReport)
+    verificationCommands: commands.commands.map(toCommandReport),
+    ...extensionVerifiersConfigured ? { extensionVerifiers: extensionVerifierResults } : {}
   };
   verificationReportSchema.parse(report);
   if (persistArtifacts && artifactsDir !== void 0) {

@@ -2,6 +2,7 @@ import type { AgentConfig, WorkspaceInfo } from '@specbridge/core';
 import { SpecBridgeError, readAgentConfig } from '@specbridge/core';
 import type { RunnerRegistry } from '@specbridge/runners';
 import { createDefaultRunnerRegistry } from '@specbridge/runners';
+import { createExtensionRunnerFactory } from '@specbridge/extensions';
 import type { CliRuntime } from './context.js';
 
 /**
@@ -34,7 +35,9 @@ export function loadExecutionContext(runtime: CliRuntime): ExecutionContext {
     config: configResult.config,
     configPath: configResult.path,
     configExists: configResult.exists,
-    registry: createDefaultRunnerRegistry(configResult.config),
+    registry: createDefaultRunnerRegistry(configResult.config, {
+      extensionRunner: createExtensionRunnerFactory(workspace),
+    }),
   };
 }
 

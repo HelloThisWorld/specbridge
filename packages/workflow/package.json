@@ -1,6 +1,6 @@
 {
   "name": "@specbridge/workflow",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Offline spec authoring and approval workflow for SpecBridge: templates, deterministic analysis, stage approvals, and stale-approval detection.",
   "license": "MIT",
   "type": "module",
