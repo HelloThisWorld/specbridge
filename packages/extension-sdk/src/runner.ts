@@ -139,19 +139,23 @@ export const runnerTaskInputSchema = z
 
 export type RunnerTaskInput = z.infer<typeof runnerTaskInputSchema>;
 
+/** Mirrors the frozen RunnerUsage fields (durationMs is host-measured). */
 export const runnerUsageMirrorSchema = z
   .object({
-    inputTokens: z.number().int().min(0).nullable(),
-    outputTokens: z.number().int().min(0).nullable(),
-    totalTokens: z.number().int().min(0).nullable(),
-    reported: z.boolean(),
+    model: z.string().max(200).nullable().optional(),
+    inputTokens: z.number().int().min(0).nullable().optional(),
+    cachedInputTokens: z.number().int().min(0).nullable().optional(),
+    outputTokens: z.number().int().min(0).nullable().optional(),
+    reasoningTokens: z.number().int().min(0).nullable().optional(),
+    requestCount: z.number().int().min(0).nullable().optional(),
   })
   .strict();
 
+/** Provider-reported cost only; SpecBridge never computes cost from pricing. */
 export const runnerCostMirrorSchema = z
   .object({
-    totalUsd: z.number().min(0).nullable(),
-    reported: z.boolean(),
+    currency: z.string().max(10).nullable().optional(),
+    amount: z.number().min(0).nullable().optional(),
   })
   .strict();
 

@@ -59,9 +59,22 @@ export function validateTemplateId(id: string): TemplateIdCheck {
 export const TEMPLATE_SOURCES = ['builtin', 'project'] as const;
 export type TemplateSource = (typeof TEMPLATE_SOURCES)[number];
 
+/**
+ * v0.7.1: enabled template-provider extensions contribute packs under a
+ * qualified per-extension source, `extension:<extension-id>`. The catalog
+ * treats each contributing extension as its own source so extension packs
+ * can never silently shadow built-in, project, or other extensions' packs.
+ */
+export type ExtensionTemplateSource = `extension:${string}`;
+export type TemplateEntrySource = TemplateSource | ExtensionTemplateSource;
+
+export function isExtensionTemplateSource(source: string): source is ExtensionTemplateSource {
+  return source.startsWith('extension:');
+}
+
 export interface TemplateReference {
   /** Explicit source, or undefined for an unqualified reference. */
-  source: TemplateSource | undefined;
+  source: TemplateEntrySource | undefined;
   id: string;
 }
 
@@ -69,8 +82,14 @@ export function formatTemplateReference(source: TemplateSource, id: string): str
   return `${source}:${id}`;
 }
 
+/** Qualified reference for an extension-contributed template. */
+export function formatExtensionTemplateReference(extensionId: string, id: string): string {
+  return `extension:${extensionId}/${id}`;
+}
+
 /**
- * Parse `builtin:rest-api`, `project:rest-api`, or a bare `rest-api`.
+ * Parse `builtin:rest-api`, `project:rest-api`,
+ * `extension:<extension-id>/<template-id>`, or a bare `rest-api`.
  * Returns undefined when the shape is not a template reference at all
  * (empty, unknown source prefix, or invalid ID) — callers raise the
  * appropriate SBT error with context.
@@ -83,6 +102,18 @@ export function parseTemplateReference(raw: string): TemplateReference | undefin
   }
   const source = trimmed.slice(0, colon);
   const id = trimmed.slice(colon + 1);
+  if (source === 'extension') {
+    const slash = id.indexOf('/');
+    if (slash <= 0 || slash === id.length - 1) {
+      return undefined;
+    }
+    const extensionId = id.slice(0, slash);
+    const templateId = id.slice(slash + 1);
+    if (!validateTemplateId(extensionId).valid || !validateTemplateId(templateId).valid) {
+      return undefined;
+    }
+    return { source: `extension:${extensionId}`, id: templateId };
+  }
   if (source !== 'builtin' && source !== 'project') {
     return undefined;
   }

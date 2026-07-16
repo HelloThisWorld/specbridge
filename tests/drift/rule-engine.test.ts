@@ -17,9 +17,10 @@ import {
 describe('built-in rule registry', () => {
   const rules = builtInVerificationRules();
 
-  it('contains exactly SBV001–SBV025 in order, with unique stable IDs', () => {
+  it('contains exactly SBV001–SBV026 in order, with unique stable IDs', () => {
     const ids = rules.map((rule) => rule.id);
-    const expected = Array.from({ length: 25 }, (_, index) => `SBV${String(index + 1).padStart(3, '0')}`);
+    // SBV026 (extension verifier rollup) was added in v0.7.1.
+    const expected = Array.from({ length: 26 }, (_, index) => `SBV${String(index + 1).padStart(3, '0')}`);
     expect(ids).toEqual(expected);
     expect(new Set(ids).size).toBe(ids.length);
   });

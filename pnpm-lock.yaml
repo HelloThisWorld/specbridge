@@ -299,6 +299,12 @@ importers:
       '@specbridge/execution':
         specifier: workspace:*
         version: link:../execution
+      '@specbridge/extension-sdk':
+        specifier: workspace:*
+        version: link:../extension-sdk
+      '@specbridge/extensions':
+        specifier: workspace:*
+        version: link:../extensions
       '@specbridge/runners':
         specifier: workspace:*
         version: link:../runners

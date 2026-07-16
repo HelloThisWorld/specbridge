@@ -22,6 +22,8 @@ export const AGENT_RUNNER_KINDS = [
   'ollama',
   'openai-compatible',
   'antigravity-cli',
+  /** v0.7.1: out-of-process runner extension behind the frozen contract. */
+  'extension',
   'unsupported',
 ] as const;
 export type AgentRunnerKind = (typeof AGENT_RUNNER_KINDS)[number];

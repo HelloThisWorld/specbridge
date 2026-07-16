@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import picomatch from 'picomatch';
 import { z } from 'zod';
-import type { Diagnostic, PolicyMode, WorkspaceInfo } from '@specbridge/core';
+import type { Diagnostic, ExtensionVerifierPolicyEntry, PolicyMode, WorkspaceInfo } from '@specbridge/core';
 import { VERIFICATION_RULE_ID_PATTERN } from '@specbridge/core';
 
 /**
@@ -113,6 +113,24 @@ export const verificationPolicySchema = z
         policyRuleOverrideSchema,
       )
       .default({}),
+    /**
+     * v0.7.1: explicit extension verifier opt-ins. Each named extension must
+     * be installed AND enabled; a required extension that fails (or cannot
+     * run) fails the gate via SBV026, an optional one warns. Built-in rules —
+     * including protected-path checks — always run and cannot be disabled by
+     * extensions.
+     */
+    extensionVerifiers: z
+      .array(
+        z
+          .object({
+            extension: z.string().min(1).max(64),
+            required: z.boolean().default(false),
+            configuration: z.record(z.unknown()).default({}),
+          })
+          .passthrough(),
+      )
+      .default([]),
   })
   .passthrough()
   .superRefine((policy, ctx) => {
@@ -236,6 +254,8 @@ export interface EffectivePolicy {
   requireRequirementTaskLinks: boolean;
   requireTestEvidence: boolean;
   ruleOverrides: Record<string, PolicyRuleOverride>;
+  /** v0.7.1: policy-configured extension verifiers (empty by default). */
+  extensionVerifiers: ExtensionVerifierPolicyEntry[];
   /** Workspace-relative policy file path when a file was used. */
   policyPath?: string;
   policyExists: boolean;
@@ -295,6 +315,11 @@ export function resolveEffectivePolicy(
     requireRequirementTaskLinks: policy?.requireRequirementTaskLinks ?? false,
     requireTestEvidence: policy?.requireTestEvidence ?? false,
     ruleOverrides: { ...(policy?.rules ?? {}) },
+    extensionVerifiers: (policy?.extensionVerifiers ?? []).map((entry) => ({
+      extension: entry.extension,
+      required: entry.required,
+      configuration: entry.configuration,
+    })),
     ...(read.exists ? { policyPath: workspaceRelativePolicyPath } : {}),
     policyExists: read.exists,
     policyDiagnostics: read.diagnostics,

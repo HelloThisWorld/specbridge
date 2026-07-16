@@ -42,7 +42,7 @@ export const templateApplyRecordSchema = z
     templateRef: z.string(),
     templateId: z.string(),
     templateVersion: z.string(),
-    templateSource: z.enum(['builtin', 'project']),
+    templateSource: z.string().min(1).max(200),
     manifestHash: z.string(),
     specName: z.string(),
     specKind: z.enum(['feature', 'bugfix']),

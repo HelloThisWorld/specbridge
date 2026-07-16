@@ -2,6 +2,8 @@ import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { discoverSpecs, requireSpec } from '@specbridge/compat-kiro';
 import type {
+  ExtensionVerifierHook,
+  ExtensionVerifierReportEntry,
   FailOnThreshold,
   ReportChangedFile,
   SelectionMode,
@@ -15,6 +17,7 @@ import type {
 } from '@specbridge/core';
 import {
   SpecBridgeError,
+  VERIFICATION_DIAGNOSTIC_SCHEMA_VERSION,
   VERIFICATION_REPORT_SCHEMA_VERSION,
   countDiagnostics,
   reachesFailureThreshold,
@@ -78,6 +81,14 @@ export interface VerifySpecsRequest {
   idFactory?: () => string;
   signal?: AbortSignal;
   onProgress?: (message: string) => void;
+  /**
+   * v0.7.1: injected runner for policy-configured extension verifiers.
+   * Supplied by the CLI (backed by @specbridge/extensions); the verification
+   * engine itself stays extension-free. When absent, extension verifier
+   * policy entries are reported as unavailable through SBV026 so a required
+   * verifier can never be silently skipped.
+   */
+  extensionVerifiers?: ExtensionVerifierHook;
 }
 
 export interface VerifySpecsResult {
@@ -242,6 +253,99 @@ export async function verifySpecs(request: VerifySpecsRequest): Promise<VerifySp
     }
   }
 
+  // ---- Extension verifiers (v0.7.1) ----------------------------------------
+  // Explicit policy opt-ins, executed out of process via the injected hook.
+  // Extension results feed the gate only through the SBV026 rollup below —
+  // built-in rules (including protected-path checks) already ran and cannot
+  // be altered from here.
+  const extensionVerifierResults: ExtensionVerifierReportEntry[] = [];
+  let extensionVerifiersConfigured = false;
+  for (const context of specContexts) {
+    const entries = context.policy.extensionVerifiers;
+    if (entries.length === 0) {
+      continue;
+    }
+    extensionVerifiersConfigured = true;
+    const changedFiles = (
+      selectionMode === 'single' ? context.changedFiles : context.specChangedFiles
+    ).map((file) => ({ path: file.path, changeType: file.changeType }));
+
+    let entryResults: ExtensionVerifierReportEntry[];
+    if (request.extensionVerifiers === undefined) {
+      entryResults = entries.map((entry) => ({
+        extensionId: entry.extension,
+        extensionVersion: 'unknown',
+        specName: context.specName,
+        required: entry.required,
+        status: 'error',
+        summary: 'no extension verifier runner is available in this verification context',
+        durationMs: 0,
+        diagnostics: [],
+      }));
+    } else {
+      try {
+        entryResults = await request.extensionVerifiers({
+          specName: context.specName,
+          entries,
+          changedFiles,
+        });
+      } catch (cause) {
+        // The hook contract says it never throws; treat a throw as a crash of
+        // every configured verifier rather than of SpecBridge.
+        entryResults = entries.map((entry) => ({
+          extensionId: entry.extension,
+          extensionVersion: 'unknown',
+          specName: context.specName,
+          required: entry.required,
+          status: 'error',
+          summary: cause instanceof Error ? cause.message : String(cause),
+          durationMs: 0,
+          diagnostics: [],
+        }));
+      }
+    }
+
+    const sbv026Override = context.policy.ruleOverrides['SBV026'];
+    for (const entryResult of entryResults) {
+      extensionVerifierResults.push(entryResult);
+      const problem = entryResult.status === 'failed' || entryResult.status === 'error';
+      const warningStatus = entryResult.status === 'warning';
+      if ((!problem && !warningStatus) || sbv026Override?.enabled === false) {
+        continue;
+      }
+      const severity: 'error' | 'warning' =
+        entryResult.required && problem
+          ? (sbv026Override?.severity === 'warning' ? 'warning' : 'error')
+          : 'warning';
+      diagnosticsBySpec.get(context.specName)?.push({
+        schemaVersion: VERIFICATION_DIAGNOSTIC_SCHEMA_VERSION,
+        ruleId: 'SBV026',
+        title: 'Extension verifier reported failure',
+        severity,
+        category: 'verification-command',
+        message:
+          `Extension verifier "${entryResult.extensionId}" (${entryResult.required ? 'required' : 'optional'}) ` +
+          `reported ${entryResult.status}` +
+          (entryResult.summary !== null ? `: ${entryResult.summary}` : '.'),
+        remediation:
+          'See the extensionVerifiers section of the report for the extension diagnostics, or run ' +
+          `\`specbridge extension doctor ${entryResult.extensionId}\` if the extension could not run.`,
+        specName: context.specName,
+        taskId: null,
+        requirementId: null,
+        file: null,
+        evidence: {
+          extensionId: entryResult.extensionId,
+          extensionVersion: entryResult.extensionVersion,
+          status: entryResult.status,
+          required: entryResult.required,
+          diagnosticCount: entryResult.diagnostics.length,
+        },
+        confidence: 'deterministic',
+      });
+    }
+  }
+
   // ---- Report assembly ------------------------------------------------------
   const specResults: SpecVerificationResult[] = specContexts.map((context) => {
     const diagnostics = sortVerificationDiagnostics(diagnosticsBySpec.get(context.specName) ?? []);
@@ -288,6 +392,7 @@ export async function verifySpecs(request: VerifySpecsRequest): Promise<VerifySp
     specResults,
     globalDiagnostics: sortedGlobal,
     verificationCommands: commands.commands.map(toCommandReport),
+    ...(extensionVerifiersConfigured ? { extensionVerifiers: extensionVerifierResults } : {}),
   };
 
   // Never emit an invalid report — validate before anything leaves this module.

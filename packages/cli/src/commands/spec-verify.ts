@@ -4,6 +4,7 @@ import type { FailOnThreshold, VerificationReport } from '@specbridge/core';
 import { CLI_BIN, SpecBridgeError, writeFileAtomic } from '@specbridge/core';
 import type { VerifySelection } from '@specbridge/drift';
 import { verifySpecs } from '@specbridge/drift';
+import { createExtensionVerifierHook } from '@specbridge/extensions';
 import {
   dim,
   renderVerificationHtml,
@@ -177,6 +178,9 @@ Examples:
         reportsDir: path.join(workspace.sidecarDir, 'reports'),
         clock: () => runtime.now(),
         ...(interactive ? { onProgress: (message: string) => runtime.err(dim(message)) } : {}),
+        // v0.7.1: policy-configured extension verifiers run out of process;
+        // their results reach the gate only through the SBV026 rollup rule.
+        extensionVerifiers: createExtensionVerifierHook(workspace),
       });
 
       if (options.strict === true && format === 'terminal') {

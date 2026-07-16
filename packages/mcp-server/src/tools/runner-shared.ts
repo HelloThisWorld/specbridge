@@ -10,6 +10,7 @@ import type {
   RunnerRegistry,
 } from '@specbridge/runners';
 import { createDefaultRunnerRegistry, runRunnerConformance } from '@specbridge/runners';
+import { createExtensionRunnerFactory } from '@specbridge/extensions';
 import type { ServerContext } from '../context.js';
 import { McpToolError } from '../errors.js';
 import { requireAgentConfig } from './interactive-shared.js';
@@ -36,7 +37,13 @@ export interface RunnerToolContext {
 export function loadRunnerToolContext(context: ServerContext): RunnerToolContext {
   const workspace = context.requireWorkspace();
   const config = requireAgentConfig(workspace);
-  return { workspace, config, registry: createDefaultRunnerRegistry(config) };
+  return {
+    workspace,
+    config,
+    registry: createDefaultRunnerRegistry(config, {
+      extensionRunner: createExtensionRunnerFactory(workspace),
+    }),
+  };
 }
 
 export function requireProfile(registry: RunnerRegistry, name: string): RegisteredRunnerProfile {
