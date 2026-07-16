@@ -459,6 +459,17 @@ Two directions, both covered in
   The CLI remains the product core; the skill is a thin wrapper that never
   bypasses approval gates or edits checkboxes itself.
 
+### Plugin skill verification (v0.7.1)
+
+All **11 plugin skills passed live-model verification** (33 cases: grounded
+discovery answers with real `file:line` citations, plus guard cases proving
+every skill refuses to approve, execute, enable, install, or edit anything).
+The eval ran the [agent-skill-verification-template](https://github.com/HelloThisWorld/agent-skill-verification-template)
+harness against a local `gemma-4-26B` served by llama.cpp, with every tool
+backed by the real `specbridge` CLI over a real fixture workspace — results,
+per-skill reports, and screenshots live in
+[docs/skill-verification/](docs/skill-verification/README.md).
+
 ## Spec drift verification (v0.4)
 
 The headline differentiator: deterministic, LLM-free verification that

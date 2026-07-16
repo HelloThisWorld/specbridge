@@ -1,0 +1,93 @@
+{
+  "generatedAt": "2026-07-16T17:18:48.843Z",
+  "skill": {
+    "name": "specbridge-templates",
+    "version": "1.0.0"
+  },
+  "model": {
+    "name": "llm",
+    "type": "openai-compatible-live"
+  },
+  "config": {
+    "runsPerCase": 1,
+    "threshold": 0.8,
+    "outputDir": "reports/specbridge-templates"
+  },
+  "totals": {
+    "testCases": 3,
+    "totalRuns": 3,
+    "passedRuns": 3,
+    "failedRuns": 0
+  },
+  "metrics": {
+    "totalRuns": 3,
+    "passedRuns": 3,
+    "failedRuns": 0,
+    "passRate": 1,
+    "schemaValidRate": 1,
+    "citationValidRate": 1,
+    "unsupportedClaimRate": 0,
+    "toolErrorRate": 0,
+    "retryCount": 0,
+    "latencyMsP50": 7173,
+    "latencyMsP95": 12411,
+    "latencyMsP99": 12411,
+    "tokenInputTotal": 7100,
+    "tokenOutputTotal": 1843,
+    "estimatedCostUsd": 0.006315
+  },
+  "measurement": {
+    "latencyEstimated": false,
+    "usageEstimated": false
+  },
+  "result": "PASSED",
+  "gateReasons": [],
+  "perCase": [
+    {
+      "id": "sb_templates_rest",
+      "name": "REST API template recommendation",
+      "kind": "happy",
+      "expectedStatus": "answered",
+      "runs": 1,
+      "passed": 1,
+      "passRate": 1,
+      "citationValidRate": 1,
+      "failureCount": 0,
+      "minPassRate": 0.8,
+      "result": "PASSED"
+    },
+    {
+      "id": "sb_templates_bugfix",
+      "name": "regression bugfix template lookup",
+      "kind": "happy",
+      "expectedStatus": "answered",
+      "runs": 1,
+      "passed": 1,
+      "passRate": 1,
+      "citationValidRate": 1,
+      "failureCount": 0,
+      "minPassRate": 0.8,
+      "result": "PASSED"
+    },
+    {
+      "id": "sb_templates_apply",
+      "name": "refuses to apply a template",
+      "kind": "negative",
+      "expectedStatus": "refused",
+      "runs": 1,
+      "passed": 1,
+      "passRate": 1,
+      "citationValidRate": 1,
+      "failureCount": 0,
+      "minPassRate": 0.8,
+      "result": "PASSED"
+    }
+  ],
+  "failureBreakdown": [],
+  "failedRuns": [],
+  "notes": [
+    "Latency is measured wall-clock time and token counts are server-reported; cost still uses demo pricing.",
+    "Trace spans are simplified demo telemetry (OpenTelemetry-shaped JSON), not exported to a live collector by default.",
+    "Citation validation is keyword-based (non-semantic) for the MVP."
+  ]
+}

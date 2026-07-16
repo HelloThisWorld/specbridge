@@ -46,6 +46,13 @@ export interface FakeOpenAiOptions {
   requireBearer?: string;
   /** Base URL of ANOTHER server for cross-origin redirect scenarios. */
   redirectTargetUrl?: string;
+  /**
+   * Floor delay (ms) before answering an inference request. Conformance
+   * probes a 1 ms timeout against this server; without a floor, a fast
+   * localhost response can win that race and flake the process-control
+   * check on loaded CI runners. Default 15.
+   */
+  minInferenceDelayMs?: number;
 }
 
 export interface FakeOpenAiServer {
@@ -148,6 +155,9 @@ export async function startFakeOpenAi(options: FakeOpenAiOptions = {}): Promise<
 
       const behavior = behaviors[Math.min(inferenceIndex, behaviors.length - 1)] as FakeOpenAiBehavior;
       inferenceIndex += 1;
+      // Deterministic floor delay: a 1 ms client timeout must always beat
+      // the localhost round trip, on any runner speed.
+      setTimeout(() => {
       switch (behavior) {
         case 'valid':
           json(200, payloadFor(JSON.stringify(VALID_STAGE_REPORT)));
@@ -216,6 +226,7 @@ export async function startFakeOpenAi(options: FakeOpenAiOptions = {}): Promise<
           response.end();
           return;
       }
+      }, options.minInferenceDelayMs ?? 15);
     });
   });
 
