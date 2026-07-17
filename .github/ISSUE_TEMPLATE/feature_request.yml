@@ -1,0 +1,44 @@
+name: Feature request
+description: Propose an improvement or new capability for SpecBridge
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Feature discussions work best when grounded in a concrete problem. Note that some
+        requests are bounded by the project's invariants — SpecBridge will not add features
+        that execute untrusted content, bypass permission systems, treat model claims as
+        evidence, or mutate `.kiro`/Git state automatically.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do that SpecBridge currently makes hard or impossible? Describe the workflow, not just the missing flag.
+    validations:
+      required: true
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed solution
+      description: How you imagine it working — CLI commands, configuration, MCP tools, output. Sketches welcome.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you tried or considered (including workarounds, templates, or extensions) and why they fall short.
+    validations:
+      required: false
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Willingness to contribute
+      description: Would you implement this yourself if the design is agreed?
+      options:
+        - I would open a PR for this
+        - I could help test or review
+        - I am only proposing the idea
+    validations:
+      required: true

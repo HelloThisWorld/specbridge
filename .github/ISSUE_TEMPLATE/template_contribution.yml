@@ -1,0 +1,56 @@
+name: Template contribution
+description: Propose a built-in spec template pack
+title: "[template] "
+labels: ["template"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Built-in templates are data, not code: a JSON manifest plus Markdown files with
+        one-pass `{{variable}}` substitution — no scripts, no network, no model. Read
+        [docs/template-contribution-guide.md](https://github.com/HelloThisWorld/specbridge/blob/main/docs/template-contribution-guide.md)
+        for the pack layout, the generated artifacts, and the automatic test gate.
+  - type: input
+    id: template-id
+    attributes:
+      label: Template ID
+      description: The manifest `id`, which must equal the pack directory name under `packages/templates/builtins/`.
+      placeholder: "graphql-api"
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      description: Which spec kind the template generates.
+      options:
+        - feature
+        - bugfix
+    validations:
+      required: true
+  - type: textarea
+    id: modes
+    attributes:
+      label: Modes and variables
+      description: Which stages the pack provides (requirements/bugfix, design, tasks) and the variables it declares, with their constraints.
+      placeholder: |
+        Stages: requirements, design, tasks
+        Variables: serviceName (required), storageBackend (optional, default "postgres")
+    validations:
+      required: true
+  - type: textarea
+    id: scaffolds
+    attributes:
+      label: What it scaffolds
+      description: What the rendered spec covers and why it is broadly reusable rather than project-specific. Which existing built-in is it closest to, and why is it not a variant of that one?
+    validations:
+      required: true
+  - type: checkboxes
+    id: guarantees
+    attributes:
+      label: Template guarantees
+      options:
+        - label: Rendering is fully offline and deterministic — the pack is plain UTF-8 Markdown plus a JSON manifest, uses only `{{variable}}` substitution, and contains no scripts, no symlinks, no network references, and no environment-dependent content.
+          required: true
+        - label: I removed all credentials and proprietary company content; examples are synthetic.
+          required: true
