@@ -130,14 +130,22 @@ jobs:
           SPECBRIDGE_REPO: ${{ github.workspace }}
         run: |
           node verification-template/scripts/build-specbridge-fixture.mjs
+          # runner-list contains machine-dependent capability probes, so it is
+          # compared on its environment-independent fields by the dedicated
+          # script instead of byte equality.
+          git -C verification-template show HEAD:fixtures/specbridge-workspace/snapshots/runner-list.json > /tmp/runner-list-committed.json
+          node scripts/check-skill-runner-snapshot.mjs \
+            /tmp/runner-list-committed.json \
+            verification-template/fixtures/specbridge-workspace/snapshots/runner-list.json
           # Timestamps, install-record ids, and local archive paths differ per
-          # rebuild by design; every grounded fact (snapshots, WORKSPACE.md,
-          # specs, manifests, hashes) must be byte-identical.
+          # rebuild by design; every other grounded fact (snapshots,
+          # WORKSPACE.md, specs, manifests, hashes) must be byte-identical.
           if ! git -C verification-template diff --exit-code -- \
               fixtures/specbridge-workspace \
               ':(exclude)fixtures/specbridge-workspace/.specbridge/extensions/grants.json' \
               ':(exclude)fixtures/specbridge-workspace/.specbridge/extensions/records.jsonl' \
-              ':(exclude)fixtures/specbridge-workspace/.specbridge/extensions/state.json'; then
+              ':(exclude)fixtures/specbridge-workspace/.specbridge/extensions/state.json' \
+              ':(exclude)fixtures/specbridge-workspace/snapshots/runner-list.json'; then
             echo "::error::SpecBridge CLI output drifted from the committed skill-verification fixture. If the change is intentional, regenerate the fixture in agent-skill-verification-template (scripts/build-specbridge-fixture.mjs) and pin a new TEMPLATE_REF."
             exit 1
           fi
