@@ -5,6 +5,9 @@ on:
     branches: [main, master]
   pull_request:
 
+permissions:
+  contents: read
+
 # Everything below runs fully offline after dependency install:
 # no LLM, no API key, no external service.
 jobs:
@@ -64,3 +67,4 @@ jobs:
       - name: Claude Code plugin bundle is reproducible
         if: matrix.os == 'ubuntu-latest'
         run: git diff --exit-code integrations/claude-code-plugin/specbridge/dist
+
