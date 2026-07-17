@@ -1,6 +1,7 @@
 # SpecBridge
 
 [![CI](https://github.com/HelloThisWorld/specbridge/actions/workflows/ci.yml/badge.svg)](https://github.com/HelloThisWorld/specbridge/actions/workflows/ci.yml)
+[![skill test](https://github.com/HelloThisWorld/specbridge/actions/workflows/skill-verification.yml/badge.svg)](https://github.com/HelloThisWorld/agent-skill-verification-template)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 An open, model-agnostic spec runtime for existing Kiro projects.

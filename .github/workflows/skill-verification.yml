@@ -1,0 +1,113 @@
+# Verifies the 11 specbridge-* agent skills against each build of the CLI
+# using the Agent Skill Verifier
+# (https://github.com/HelloThisWorld/agent-skill-verification-template):
+#
+#   1. the skill fixture workspace is rebuilt from this build's CLI output
+#      and diffed against the committed grounding facts (snapshots,
+#      WORKSPACE.md, spec files) — a CLI output change that would break the
+#      skills' citations fails here;
+#   2. every skill contract + evaluation case file is statically validated
+#      with a pinned, checksum-verified agent-skill-verifier release.
+#
+# Full model-driven eval runs (verify --adapter llm) stay a local/manual
+# step because they need a live model endpoint; everything here is
+# deterministic and offline apart from the two pinned GitHub downloads.
+#
+# This is a standalone workflow (not a job in ci.yml) so the README badge
+# reflects exactly the skill-test outcome.
+name: skill test
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  skill-verification:
+    name: agent skill verification
+    runs-on: ubuntu-latest
+    env:
+      # Pinned verifier release. Update the version and the asset SHA-256
+      # (from the release's SHA256SUMS.txt) together.
+      ASV_VERSION: 0.1.0
+      ASV_SHA256: 2307aa1ee6a8698fe5d7dfc12ef9413ce086e5f3fe3748501abd0d10cfe68084
+      # Ref of the verification template holding the specbridge skill
+      # contracts, evaluation cases, and fixture builder.
+      TEMPLATE_REF: v0.1.0
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        # Version comes from the "packageManager" field in package.json.
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the SpecBridge CLI
+        run: pnpm build
+
+      - name: Checkout the verification template (pinned ref)
+        uses: actions/checkout@v4
+        with:
+          repository: HelloThisWorld/agent-skill-verification-template
+          ref: ${{ env.TEMPLATE_REF }}
+          path: verification-template
+
+      - name: Download the pinned agent-skill-verifier release and verify its checksum
+        run: |
+          curl -fsSLO "https://github.com/HelloThisWorld/agent-skill-verification-template/releases/download/v${ASV_VERSION}/agent-skill-verifier-v${ASV_VERSION}-linux-x64.tar.gz"
+          echo "${ASV_SHA256}  agent-skill-verifier-v${ASV_VERSION}-linux-x64.tar.gz" | sha256sum -c -
+          mkdir -p .asv
+          tar -xzf "agent-skill-verifier-v${ASV_VERSION}-linux-x64.tar.gz" -C .asv
+          .asv/agent-skill-verifier --version
+
+      - name: Rebuild the skill fixture from this build's CLI (grounding drift check)
+        env:
+          SPECBRIDGE_REPO: ${{ github.workspace }}
+        run: |
+          node verification-template/scripts/build-specbridge-fixture.mjs
+          # runner-list contains machine-dependent capability probes, so it is
+          # compared on its environment-independent fields by the dedicated
+          # script instead of byte equality.
+          git -C verification-template show HEAD:fixtures/specbridge-workspace/snapshots/runner-list.json > /tmp/runner-list-committed.json
+          node scripts/check-skill-runner-snapshot.mjs \
+            /tmp/runner-list-committed.json \
+            verification-template/fixtures/specbridge-workspace/snapshots/runner-list.json
+          # Timestamps, install-record ids, and local archive paths differ per
+          # rebuild by design; every other grounded fact (snapshots,
+          # WORKSPACE.md, specs, manifests, hashes) must be byte-identical.
+          if ! git -C verification-template diff --exit-code -- \
+              fixtures/specbridge-workspace \
+              ':(exclude)fixtures/specbridge-workspace/.specbridge/extensions/grants.json' \
+              ':(exclude)fixtures/specbridge-workspace/.specbridge/extensions/records.jsonl' \
+              ':(exclude)fixtures/specbridge-workspace/.specbridge/extensions/state.json' \
+              ':(exclude)fixtures/specbridge-workspace/snapshots/runner-list.json'; then
+            echo "::error::SpecBridge CLI output drifted from the committed skill-verification fixture. If the change is intentional, regenerate the fixture in agent-skill-verification-template (scripts/build-specbridge-fixture.mjs) and pin a new TEMPLATE_REF."
+            exit 1
+          fi
+
+      - name: Validate every specbridge skill with agent-skill-verifier
+        working-directory: verification-template
+        run: |
+          fail=0
+          for dir in skills/specbridge-*/; do
+            name="$(basename "$dir")"
+            for cases in "testcases/${name}.json" "testcases/${name}-negative.json"; do
+              [ -f "$cases" ] || continue
+              if "$GITHUB_WORKSPACE/.asv/agent-skill-verifier" validate --skill "$dir" --cases "$cases" --quiet; then
+                echo "ok:   ${name} / $(basename "$cases")"
+              else
+                echo "::error::skill validation failed: ${name} / $(basename "$cases")"
+                fail=1
+              fi
+            done
+          done
+          exit "$fail"
