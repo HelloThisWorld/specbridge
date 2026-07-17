@@ -157,7 +157,7 @@ export function initializeParamsFor(
 ): Record<string, unknown> {
   return {
     protocolVersion: overrides?.protocolVersion ?? EXTENSION_PROTOCOL_VERSION,
-    specbridgeVersion: overrides?.specbridgeVersion ?? '0.7.1',
+    specbridgeVersion: overrides?.specbridgeVersion ?? '1.0.0',
     extensionId: overrides?.extensionId ?? manifest.id,
     extensionVersion: overrides?.extensionVersion ?? manifest.version,
     ...(overrides?.operation === undefined ? {} : { operation: overrides.operation }),

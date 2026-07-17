@@ -5,4 +5,4 @@
  * for the same convention). Template manifests declare a `compatibility.specbridge`
  * range that is checked against this value.
  */
-export const SPECBRIDGE_VERSION = '0.7.1';
+export const SPECBRIDGE_VERSION = '1.0.0';

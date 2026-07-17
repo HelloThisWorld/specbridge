@@ -31,11 +31,11 @@ Registry: **specbridge-examples** (5 extensions). Listing is not endorsement; re
 
 | Extension | Kind | Version | Description | Permissions | SpecBridge | Source |
 | --- | --- | --- | --- | --- | --- | --- |
-| `example-analyzer` | analyzer | 1.0.0 | Deterministic spec diagnostics contributed by the example-analyzer analyzer extension. | specRead | `>=0.7.1 <1.0.0` | [source](https://github.com/HelloThisWorld/specbridge) |
-| `example-exporter` | exporter | 1.0.0 | Candidate export files produced by the example-exporter exporter extension. | specRead | `>=0.7.1 <1.0.0` | [source](https://github.com/HelloThisWorld/specbridge) |
-| `example-runner` | runner | 1.0.0 | An out-of-process runner adapter provided by the example-runner extension. | specRead, repositoryRead, repositoryWrite | `>=0.7.1 <1.0.0` | [source](https://github.com/HelloThisWorld/specbridge) |
-| `example-template-provider` | template-provider | 1.0.0 | Spec template packs contributed by the example-template-provider template-provider extension. | none | `>=0.7.1 <1.0.0` | [source](https://github.com/HelloThisWorld/specbridge) |
-| `example-verifier` | verifier | 1.0.0 | Verification diagnostics contributed by the example-verifier verifier extension. | specRead | `>=0.7.1 <1.0.0` | [source](https://github.com/HelloThisWorld/specbridge) |
+| `example-analyzer` | analyzer | 1.0.0 | Deterministic spec diagnostics contributed by the example-analyzer analyzer extension. | specRead | `>=0.7.1 <2.0.0` | [source](https://github.com/HelloThisWorld/specbridge) |
+| `example-exporter` | exporter | 1.0.0 | Candidate export files produced by the example-exporter exporter extension. | specRead | `>=0.7.1 <2.0.0` | [source](https://github.com/HelloThisWorld/specbridge) |
+| `example-runner` | runner | 1.0.0 | An out-of-process runner adapter provided by the example-runner extension. | specRead, repositoryRead, repositoryWrite | `>=0.7.1 <2.0.0` | [source](https://github.com/HelloThisWorld/specbridge) |
+| `example-template-provider` | template-provider | 1.0.0 | Spec template packs contributed by the example-template-provider template-provider extension. | none | `>=0.7.1 <2.0.0` | [source](https://github.com/HelloThisWorld/specbridge) |
+| `example-verifier` | verifier | 1.0.0 | Verification diagnostics contributed by the example-verifier verifier extension. | specRead | `>=0.7.1 <2.0.0` | [source](https://github.com/HelloThisWorld/specbridge) |
 
 <!-- END GENERATED EXTENSION GALLERY -->
 

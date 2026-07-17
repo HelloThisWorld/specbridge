@@ -1,6 +1,6 @@
 {
   "name": "@specbridge/extension-sdk",
-  "version": "0.7.1",
+  "version": "1.0.0",
   "description": "Official SDK for building SpecBridge extensions: versioned manifest and protocol schemas, an explicit permission model, a stdio extension server helper, kind-specific handler contracts, and in-process testing utilities. Extensions run out of process and never load into the SpecBridge runtime.",
   "license": "MIT",
   "type": "module",

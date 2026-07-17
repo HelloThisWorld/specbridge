@@ -137,7 +137,7 @@ describe('registry CLI (offline)', () => {
               sha256: 'a'.repeat(64),
               manifest: {
                 protocolVersion: '1.0.0',
-                compatibility: { specbridge: '>=0.7.1 <1.0.0' },
+                compatibility: { specbridge: '>=0.7.1 <2.0.0' },
                 permissions: {
                   specRead: true,
                   repositoryRead: false,

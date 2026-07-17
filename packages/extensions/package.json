@@ -1,6 +1,6 @@
 {
   "name": "@specbridge/extensions",
-  "version": "0.7.1",
+  "version": "1.0.0",
   "description": "SpecBridge extension host: manifest and package validation, checksum-verified local installation, explicit permission grants, the out-of-process stdio protocol client and process host, kind-specific invocation boundaries, conformance testing, scaffolding, and deterministic packaging.",
   "license": "MIT",
   "type": "module",

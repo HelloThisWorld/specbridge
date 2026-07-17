@@ -30,7 +30,7 @@ describe('server initialization', () => {
       const serverInfo = session.client.getServerVersion();
       expect(serverInfo?.name).toBe(MCP_SERVER_NAME);
       expect(serverInfo?.version).toBe(MCP_SERVER_VERSION);
-      expect(MCP_SERVER_VERSION).toBe('0.7.1');
+      expect(MCP_SERVER_VERSION).toBe('1.0.0');
     } finally {
       await session.close();
     }

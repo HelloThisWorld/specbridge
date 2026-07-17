@@ -23,7 +23,7 @@ export function analyzerManifest(overrides?: Partial<ExtensionManifest>): Extens
     description: 'A deterministic demo analyzer used by the SpecBridge test suite.',
     kind: 'analyzer',
     entrypoint: 'dist/extension.cjs',
-    compatibility: { specbridge: '>=0.7.1 <1.0.0' },
+    compatibility: { specbridge: '>=0.7.1 <2.0.0' },
     capabilities: { operations: ['analyzer.analyze'] },
     permissions: {
       specRead: true,

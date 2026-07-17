@@ -91,7 +91,7 @@ function scaffoldManifest(request: TemplateScaffoldRequest, modes: ConcreteWorkf
       },
     ],
     compatibility: {
-      specbridge: '>=0.7.0 <1.0.0',
+      specbridge: '>=1.0.0 <2.0.0',
       kiroLayout: '1',
     },
     license: request.license ?? 'MIT',

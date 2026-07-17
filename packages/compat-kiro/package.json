@@ -1,6 +1,6 @@
 {
   "name": "@specbridge/compat-kiro",
-  "version": "0.7.1",
+  "version": "1.0.0",
   "description": "Read and round-trip-safely edit existing .kiro steering and spec files without migration.",
   "license": "MIT",
   "type": "module",

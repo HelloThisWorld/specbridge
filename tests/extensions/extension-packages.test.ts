@@ -138,7 +138,7 @@ describe('extension package validation', () => {
           { source: 'files/tasks.md.template', target: 'tasks.md', stage: 'tasks', required: true },
         ],
         variables: [],
-        compatibility: { specbridge: '>=0.7.0 <1.0.0', kiroLayout: '1' },
+        compatibility: { specbridge: '>=0.7.0 <2.0.0', kiroLayout: '1' },
         license: 'MIT',
       }),
       'templates/mini-pack/README.md': '# Mini Pack\n',

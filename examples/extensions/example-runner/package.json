@@ -9,6 +9,6 @@
     "test": "node --test test/"
   },
   "devDependencies": {
-    "@specbridge/extension-sdk": "^0.7.1"
+    "@specbridge/extension-sdk": "^1.0.0"
   }
 }

@@ -8,11 +8,11 @@
     {
       "version": "1.0.0",
       "archiveUrl": "https://example.invalid/specbridge-extensions/example-template-provider-1.0.0.specbridge-extension.zip",
-      "sha256": "83572ecc9cc5a40451a4ecd7ea8c1ab3171e022ca5442566f110ef1de71d8533",
+      "sha256": "f7caa11a13473f0891cc8d237ec4f9f2962a2dd1bd2baba4e9d01570de29044b",
       "manifest": {
         "protocolVersion": "1.0.0",
         "compatibility": {
-          "specbridge": ">=0.7.1 <1.0.0"
+          "specbridge": ">=0.7.1 <2.0.0"
         },
         "permissions": {
           "specRead": false,

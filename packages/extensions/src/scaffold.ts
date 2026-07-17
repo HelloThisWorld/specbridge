@@ -66,7 +66,7 @@ function scaffoldManifest(options: ScaffoldExtensionOptions): ExtensionManifest 
     description: options.description ?? defaultDescription(options.kind, options.id),
     kind: options.kind,
     ...(executable ? { entrypoint: 'dist/extension.cjs' } : {}),
-    compatibility: { specbridge: '>=0.7.1 <1.0.0', extensionSdk: `>=${EXTENSION_SDK_VERSION} <1.0.0` },
+    compatibility: { specbridge: '>=1.0.0 <2.0.0', extensionSdk: `>=${EXTENSION_SDK_VERSION} <2.0.0` },
     capabilities: { operations },
     permissions: {
       specRead: options.kind !== 'template-provider',
@@ -334,7 +334,7 @@ const EXAMPLE_TEMPLATE_PACK = (id: string): Record<string, string> => ({
         { source: 'files/tasks.md.template', target: 'tasks.md', stage: 'tasks', required: true },
       ],
       variables: [],
-      compatibility: { specbridge: '>=0.7.0 <1.0.0', kiroLayout: '1' },
+      compatibility: { specbridge: '>=1.0.0 <2.0.0', kiroLayout: '1' },
       license: 'MIT',
     },
     null,
@@ -430,7 +430,7 @@ test('extension answers the initialize handshake', async () => {
     child.stdin.write(JSON.stringify({
       jsonrpc: '2.0', id: 'test-1', method: 'initialize',
       params: {
-        protocolVersion: '1.0.0', specbridgeVersion: '0.7.1',
+        protocolVersion: '1.0.0', specbridgeVersion: '1.0.0',
         extensionId: '${manifest.id}', extensionVersion: '${manifest.version}',
         grantedPermissions: ${JSON.stringify(manifest.permissions)},
       },

@@ -32,7 +32,7 @@ export function featureManifest(overrides: Record<string, unknown> = {}): Record
     variables: [
       { name: 'actor', description: 'Primary actor.', type: 'string', required: false, default: 'user' },
     ],
-    compatibility: { specbridge: '>=0.7.0 <1.0.0', kiroLayout: '1' },
+    compatibility: { specbridge: '>=0.7.0 <2.0.0', kiroLayout: '1' },
     license: 'MIT',
     ...overrides,
   };

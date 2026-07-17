@@ -1,6 +1,6 @@
 {
   "name": "@specbridge/registry",
-  "version": "0.7.1",
+  "version": "1.0.0",
   "description": "SpecBridge extension registry support: versioned registry index schema, built-in and local-file and HTTPS registry sources, validated atomic caching, deterministic offline search, and archive integrity metadata. A registry is a metadata index — it never executes code.",
   "license": "MIT",
   "type": "module",

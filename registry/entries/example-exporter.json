@@ -8,11 +8,11 @@
     {
       "version": "1.0.0",
       "archiveUrl": "https://example.invalid/specbridge-extensions/example-exporter-1.0.0.specbridge-extension.zip",
-      "sha256": "0bc6c8097275c27df59695bf88f279d5c6ff0a29511673ad00f7df33c4f85228",
+      "sha256": "68f42755a4e56d0e318012ec8c0e3b093e44429182ca93b02d9fb4ce2ec308a3",
       "manifest": {
         "protocolVersion": "1.0.0",
         "compatibility": {
-          "specbridge": ">=0.7.1 <1.0.0"
+          "specbridge": ">=0.7.1 <2.0.0"
         },
         "permissions": {
           "specRead": true,
