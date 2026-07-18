@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 const pkg = (name: string): string => path.resolve(rootDir, 'packages', name, 'src', 'index.ts');
@@ -25,6 +25,11 @@ export default defineConfig({
   },
   test: {
     include: ['tests/**/*.test.ts'],
+    // The large-repository performance suite builds ~9,000-file fixtures and
+    // real git history. Running it inside the main worker pool starves the
+    // vitest worker RPC on loaded CI runners, so it runs separately via
+    // `pnpm test:perf` (vitest.perf.config.ts).
+    exclude: [...configDefaults.exclude, 'tests/performance/**'],
     environment: 'node',
     // CLI output assertions must see the exact text users see with NO_COLOR;
     // picocolors would otherwise force ANSI codes on Windows terminals.

@@ -25,6 +25,7 @@
     "integrations/github-action/tsup.config.ts",
     "integrations/claude-code-plugin/tsup.config.ts",
     "tests/**/*.ts",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    "vitest.perf.config.ts"
   ]
 }

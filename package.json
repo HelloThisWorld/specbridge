@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:perf": "vitest run --config vitest.perf.config.ts",
     "smoke": "node scripts/smoke.mjs",
     "generate:builtin-templates": "node scripts/generate-builtin-templates.mjs",
     "check:builtin-templates": "node scripts/generate-builtin-templates.mjs --check",
