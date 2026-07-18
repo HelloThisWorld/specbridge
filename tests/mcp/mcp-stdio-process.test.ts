@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { MCP_SERVER_VERSION } from '@specbridge/mcp-server';
 import { copyFixtureToTemp } from '../helpers.js';
 import { EXECUTION_SPEC, setupExecutionFixture } from '../helpers-execution.js';
 
@@ -75,7 +76,7 @@ describe('process-level stdio server', () => {
 
     // Identity through initialization.
     expect(client.getServerVersion()?.name).toBe('specbridge');
-    expect(client.getServerVersion()?.version).toBe('0.7.1');
+    expect(client.getServerVersion()?.version).toBe(MCP_SERVER_VERSION);
 
     // Capability listings.
     const tools = await client.listTools();
@@ -240,6 +241,6 @@ describe('process-level stdio server', () => {
     });
     const code = await waitForExit(child);
     expect(code).toBe(0);
-    expect(stdout.trim()).toBe('0.7.1');
+    expect(stdout.trim()).toBe(MCP_SERVER_VERSION);
   }, 30_000);
 });
