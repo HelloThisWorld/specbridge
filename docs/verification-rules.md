@@ -37,8 +37,23 @@ file) — except that `.git/**` protection under SBV006 always stays an error.
 | SBV023 | Tasks document unexpectedly changed | tasks | error | deterministic |
 | SBV024 | Evidence points outside repository | evidence | error | deterministic |
 | SBV025 | Verification command timed out | verification-command | error (warning for optional commands) | deterministic |
+| SBV026 | Extension verifier reported failure | verification-command | error (warning for optional verifiers) | deterministic |
 
 ## Rule notes
+
+### SBV026 — Extension verifier reported failure
+
+Diagnostics for this rule are injected by the verification engine from the
+results of policy-configured extension verifiers; the descriptor exists so
+`specbridge verify rules` and `verify explain` document it and so a spec
+policy can tune its severity. It is the only channel through which an
+extension verifier's results reach the quality gate: extension verifiers
+cannot mark tasks complete, cannot change evidence, and cannot disable
+built-in rules. A required verifier that cannot run (not installed, disabled,
+stale grant, crash, or timeout) errors; an optional verifier warns. Inspect
+the `extensionVerifiers` section of the report, then either fix what the
+extension found, repair the extension with `specbridge extension doctor
+<id>`, or remove the entry from the spec policy to stop running it.
 
 - **SBV001** — feature specs need `requirements.md`, `design.md`, `tasks.md`;
   bugfix specs need `bugfix.md`, `design.md`, `tasks.md`. Specs whose type
