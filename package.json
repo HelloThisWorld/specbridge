@@ -31,6 +31,11 @@
     "check:builtin-registry": "node scripts/generate-builtin-registry.mjs --check",
     "generate:extension-gallery": "node scripts/generate-extension-gallery.mjs",
     "check:extension-gallery": "node scripts/generate-extension-gallery.mjs --check",
+    "generate:public-contracts": "node scripts/check-public-contracts.mjs",
+    "check:public-contracts": "node scripts/check-public-contracts.mjs --check",
+    "generate:mcp-docs": "node scripts/generate-mcp-docs.mjs",
+    "check:mcp-docs": "node scripts/generate-mcp-docs.mjs --check",
+    "check:security": "node scripts/security-scan.mjs",
     "mcp:inspect": "npx @modelcontextprotocol/inspector node packages/mcp-server/dist/standalone.js --stdio"
   },
   "devDependencies": {

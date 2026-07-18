@@ -1,0 +1,21 @@
+{
+  "builtinTemplateIds": [
+    "authentication",
+    "background-job",
+    "bugfix-regression",
+    "cli-tool",
+    "database-migration",
+    "event-driven-service",
+    "performance-optimization",
+    "refactoring",
+    "rest-api",
+    "security-hardening"
+  ],
+  "manifestFileName": "specbridge-template.json",
+  "recordTypes": [
+    "template-apply",
+    "template-install",
+    "template-scaffold",
+    "template-uninstall"
+  ]
+}

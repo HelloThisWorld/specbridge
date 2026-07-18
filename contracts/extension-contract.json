@@ -1,0 +1,25 @@
+{
+  "archiveSuffix": ".specbridge-extension.zip",
+  "kinds": [
+    "analyzer",
+    "exporter",
+    "runner",
+    "template-provider",
+    "verifier"
+  ],
+  "manifestFileName": "specbridge-extension.json",
+  "permissionFlags": [
+    "childProcess",
+    "network",
+    "repositoryRead",
+    "repositoryWrite",
+    "specRead"
+  ],
+  "protocolMethods": [
+    "extension.cancel",
+    "extension.getMetadata",
+    "extension.invoke",
+    "extension.shutdown",
+    "initialize"
+  ]
+}

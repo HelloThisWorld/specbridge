@@ -1,0 +1,27 @@
+{
+  "inputs": [
+    "annotation-limit",
+    "annotations",
+    "base-ref",
+    "fail-on",
+    "head-ref",
+    "mode",
+    "report-directory",
+    "run-verification",
+    "spec",
+    "strict",
+    "write-step-summary"
+  ],
+  "outputs": [
+    "affected-specs",
+    "error-count",
+    "html-report",
+    "info-count",
+    "json-report",
+    "markdown-report",
+    "result",
+    "spec-count",
+    "verification-id",
+    "warning-count"
+  ]
+}
