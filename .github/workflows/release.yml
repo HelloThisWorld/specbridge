@@ -89,7 +89,7 @@ jobs:
       - name: Claude Code plugin ZIP and migration guide
         run: |
           VERSION="$(node -p "require('./package.json').version")"
-          cp "integrations/claude-code-plugin/dist/specbridge-claude-plugin-${VERSION}.zip" dist-release/
+          cp "dist/specbridge-claude-plugin-${VERSION}.zip" dist-release/
           cp docs/migrations/migration-guide-v1.0.0.md "dist-release/migration-guide-v${VERSION}.md"
       - uses: actions/upload-artifact@v4
         with:
