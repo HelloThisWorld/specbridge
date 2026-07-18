@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0.0",
+  "specName": "audit-log-export",
+  "mode": "strict",
+  "impactAreas": [
+    "src/audit/**",
+    "tests/audit/**"
+  ],
+  "protectedPaths": [
+    "db/migrations/**"
+  ],
+  "requiredVerificationCommands": [
+    "audit-tests"
+  ],
+  "requireVerifiedTaskEvidence": true,
+  "requireRequirementTaskLinks": true,
+  "requireTestEvidence": false,
+  "rules": {
+    "SBV018": { "enabled": true, "severity": "error" }
+  }
+}

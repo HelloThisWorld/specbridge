@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "1.0.0",
+  "specName": "notification-digest",
+  "specType": "feature",
+  "workflowMode": "requirements-first",
+  "origin": "existing-kiro-workspace",
+  "status": "TASKS_DRAFT",
+  "createdAt": "2026-07-10T09:00:00.000Z",
+  "updatedAt": "2026-07-10T15:30:00.000Z",
+  "stages": {
+    "requirements": {
+      "status": "approved",
+      "file": ".kiro/specs/notification-digest/requirements.md",
+      "approvedAt": "2026-07-10T11:00:00.000Z",
+      "approvedHash": "2d487c2db2168e1378a7003eeba05194ee342f87267402030352c68f30ba594a"
+    },
+    "design": {
+      "status": "approved",
+      "file": ".kiro/specs/notification-digest/design.md",
+      "approvedAt": "2026-07-10T15:30:00.000Z",
+      "approvedHash": "2ca79c6bdaf02a59fd3a76105d6c7763adaa2f0fb11b6580269e7bb479540b74"
+    },
+    "tasks": {
+      "status": "draft",
+      "file": ".kiro/specs/notification-digest/tasks.md",
+      "approvedAt": null,
+      "approvedHash": null
+    }
+  }
+}

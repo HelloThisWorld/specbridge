@@ -9,3 +9,6 @@ cd examples/bugfix-spec-project
 node ../../packages/cli/dist/index.js spec show cart-total-rounding
 node ../../packages/cli/dist/index.js spec context cart-total-rounding
 ```
+
+Like every example, this workspace is exercised offline against a temporary
+copy by `node scripts/validate-examples.mjs`.

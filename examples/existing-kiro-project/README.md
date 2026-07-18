@@ -22,3 +22,6 @@ Contents:
 - `login-timeout-fix` — complete bugfix spec (bugfix, design, tasks)
 - steering: `product.md`, `tech.md`, `structure.md`, plus two additional files,
   one using `inclusion: fileMatch` front matter
+
+Like every example, this workspace is exercised offline against a temporary
+copy by `node scripts/validate-examples.mjs` (and by `scripts/smoke.mjs`).
