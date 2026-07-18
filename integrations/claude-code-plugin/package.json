@@ -17,7 +17,7 @@
   "devDependencies": {
     "@specbridge/mcp-server": "workspace:*",
     "@specbridge/runners": "workspace:*",
-    "specbridge": "workspace:*",
+    "specbridge-cli": "workspace:*",
     "tsup": "^8.3.0",
     "typescript": "^5.6.0"
   }

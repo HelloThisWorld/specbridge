@@ -46517,7 +46517,7 @@ function emptyToUndefined(value) {
 }
 
 // src/version.ts
-var ACTION_VERSION = "0.6.0";
+var ACTION_VERSION = "1.0.0";
 
 // src/main.ts
 function readEventPayload(eventPath) {
