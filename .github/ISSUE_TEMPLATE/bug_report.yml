@@ -1,0 +1,84 @@
+name: Bug report
+description: Report a reproducible problem in SpecBridge
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Reproducible bugs in documented behavior — especially anything
+        touching the security model or `.kiro` file integrity — get priority.
+
+        **Security issues do not belong here.** Report them privately per
+        [SECURITY.md](https://github.com/HelloThisWorld/specbridge/blob/main/SECURITY.md).
+  - type: input
+    id: version
+    attributes:
+      label: SpecBridge version
+      description: Output of `specbridge --version`, plus how you installed it (npm, plugin, source).
+      placeholder: "1.0.0 (npm)"
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      description: Operating system and version.
+      placeholder: "Windows 11 Pro 26100 / macOS 15.3 / Ubuntu 24.04"
+    validations:
+      required: true
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js version
+      description: Output of `node --version` (Node >= 20 is required).
+      placeholder: "v20.17.0"
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: The exact command you ran and what SpecBridge did, including error output.
+      placeholder: |
+        Command:
+        Output:
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: What documented behavior you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: doctor-output
+    attributes:
+      label: "`specbridge doctor` output"
+      description: >
+        Paste the output of `specbridge doctor --json` with sensitive paths redacted.
+        It prints no secret values by design, but paths can reveal machine or project names.
+      render: json
+    validations:
+      required: false
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: >
+        The smallest sequence that reproduces the issue — ideally against a tiny synthetic
+        `.kiro` workspace. Numbered steps beat prose.
+      placeholder: |
+        1. Create a workspace with ...
+        2. Run `specbridge ...`
+        3. Observe ...
+    validations:
+      required: true
+  - type: checkboxes
+    id: hygiene
+    attributes:
+      label: Report hygiene
+      options:
+        - label: I removed all credentials, API keys, and proprietary company content from this report.
+          required: true

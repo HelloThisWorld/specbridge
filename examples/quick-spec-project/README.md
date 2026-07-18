@@ -9,3 +9,6 @@ the documents were not individually reviewed stage-by-stage.
 cd examples/quick-spec-project
 node ../../packages/cli/dist/index.js spec list     # MODE column reads quick
 ```
+
+Like every example, this workspace is exercised offline against a temporary
+copy by `node scripts/validate-examples.mjs`.

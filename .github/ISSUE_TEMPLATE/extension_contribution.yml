@@ -1,0 +1,83 @@
+name: Extension contribution
+description: Propose an extension for the community registry index
+title: "[extension] "
+labels: ["extension", "registry"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The registry lists **metadata only** — your code stays in your repository and your
+        archive stays on your HTTPS host. Read
+        [registry/CONTRIBUTING.md](https://github.com/HelloThisWorld/specbridge/blob/main/registry/CONTRIBUTING.md)
+        first: the actual contribution is a pull request adding
+        `registry/entries/<your-extension-id>.json`; this issue is for proposing and
+        discussing it.
+
+        Before filing, your extension should pass:
+        ```
+        specbridge extension validate ./my-extension
+        specbridge extension conformance ./my-extension --yes
+        specbridge extension package ./my-extension
+        ```
+  - type: input
+    id: extension-id
+    attributes:
+      label: Extension ID
+      description: "Must match the extension ID grammar: lowercase letters and digits in hyphen-separated segments, starting with a letter, max 64 characters."
+      placeholder: "security-analyzer"
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - template-provider
+        - analyzer
+        - verifier
+        - exporter
+        - runner
+    validations:
+      required: true
+  - type: input
+    id: repo-url
+    attributes:
+      label: Source repository URL
+      description: Public HTTPS URL of the extension's source repository.
+      placeholder: "https://github.com/you/security-analyzer"
+    validations:
+      required: true
+  - type: textarea
+    id: checksum
+    attributes:
+      label: Archive hosting and checksum
+      description: >
+        The stable, credential-free HTTPS URL of your packaged
+        `.specbridge-extension.zip` and the exact archive SHA-256 printed by
+        `specbridge extension package`. The registry entry must carry both for every version.
+      placeholder: |
+        archiveUrl: https://github.com/you/security-analyzer/releases/download/v1.0.0/security-analyzer-1.0.0.specbridge-extension.zip
+        sha256: <64 hex characters>
+    validations:
+      required: true
+  - type: textarea
+    id: permissions
+    attributes:
+      label: Permissions requested
+      description: >
+        The exact `permissions` block from your manifest (specRead, repositoryRead,
+        repositoryWrite, network, childProcess, environmentVariables). It must match the
+        manifest inside the archive byte-for-byte — understating permissions is grounds
+        for removal.
+      render: json
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Registry terms
+      options:
+        - label: I understand that registry listing is not endorsement, review, or a security guarantee, and that checksums prove integrity, not publisher identity.
+          required: true
+        - label: My entry declares every permission the manifest declares, my archive is hosted at a stable credential-free HTTPS URL, and I will publish new versions as new entries rather than changing published archives in place.
+          required: true

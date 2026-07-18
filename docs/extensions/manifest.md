@@ -22,8 +22,8 @@ The maintained reference analyzer
   "kind": "analyzer",
   "entrypoint": "dist/extension.cjs",
   "compatibility": {
-    "specbridge": ">=0.7.1 <1.0.0",
-    "extensionSdk": ">=0.7.1 <1.0.0"
+    "specbridge": ">=1.0.0 <2.0.0",
+    "extensionSdk": ">=1.0.0 <2.0.0"
   },
   "capabilities": {
     "operations": ["analyzer.analyze"]

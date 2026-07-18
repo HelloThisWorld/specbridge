@@ -45,6 +45,12 @@ jobs:
       - name: Test (compatibility fixtures, round-trip byte identity, CLI, drift, action)
         run: pnpm test
 
+      - name: Large-repository performance suite (informational budgets)
+        # Heavy ~9,000-file fixtures: one representative combination is enough,
+        # and isolating it keeps the main test run's workers responsive.
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 20
+        run: pnpm test:perf
+
       - name: CLI smoke test against the example Kiro workspace
         run: node scripts/smoke.mjs
 
@@ -53,6 +59,25 @@ jobs:
 
       - name: Template gallery matches the built-in manifests
         run: pnpm check:template-gallery
+
+      - name: Public contract snapshots match the built surface
+        run: pnpm check:public-contracts
+
+      - name: Deterministic security scan (credentials, bypass strings, bundle paths)
+        run: pnpm check:security
+
+      - name: Extension registry validates and matches the reference extensions
+        run: |
+          pnpm validate:extension-registry
+          pnpm check:extension-registry
+          pnpm check:builtin-registry
+          pnpm check:extension-gallery
+
+      - name: Generated MCP tool reference matches the registry
+        run: pnpm check:mcp-docs
+
+      - name: Example projects run offline with expected output
+        run: node scripts/validate-examples.mjs
 
       - name: GitHub Action bundle is reproducible
         if: matrix.os == 'ubuntu-latest'

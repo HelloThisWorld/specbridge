@@ -7,8 +7,8 @@
   "description": "Spec template packs contributed by the example-template-provider template-provider extension.",
   "kind": "template-provider",
   "compatibility": {
-    "specbridge": ">=0.7.1 <1.0.0",
-    "extensionSdk": ">=0.7.1 <1.0.0"
+    "specbridge": ">=0.7.1 <2.0.0",
+    "extensionSdk": ">=0.7.1 <2.0.0"
   },
   "capabilities": {
     "operations": []

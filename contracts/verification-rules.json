@@ -1,0 +1,31 @@
+{
+  "idPattern": "SBV\\d{3}",
+  "ruleIds": [
+    "SBV001",
+    "SBV002",
+    "SBV003",
+    "SBV004",
+    "SBV005",
+    "SBV006",
+    "SBV007",
+    "SBV008",
+    "SBV009",
+    "SBV010",
+    "SBV011",
+    "SBV012",
+    "SBV013",
+    "SBV014",
+    "SBV015",
+    "SBV016",
+    "SBV017",
+    "SBV018",
+    "SBV019",
+    "SBV020",
+    "SBV021",
+    "SBV022",
+    "SBV023",
+    "SBV024",
+    "SBV025",
+    "SBV026"
+  ]
+}

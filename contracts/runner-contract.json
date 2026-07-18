@@ -1,0 +1,99 @@
+{
+  "capabilityKeys": [
+    "costReporting",
+    "localOnly",
+    "repositoryRead",
+    "repositoryWrite",
+    "requiresNetwork",
+    "sandbox",
+    "stageGeneration",
+    "stageRefinement",
+    "streamingEvents",
+    "structuredFinalOutput",
+    "supportsCancellation",
+    "supportsJsonSchema",
+    "supportsSystemPrompt",
+    "taskExecution",
+    "taskResume",
+    "toolRestriction",
+    "usageReporting"
+  ],
+  "categories": [
+    "agent-cli",
+    "experimental",
+    "mock",
+    "model-api"
+  ],
+  "errorCodes": [
+    "api_error",
+    "authentication_required",
+    "cancelled",
+    "endpoint_unreachable",
+    "executable_not_found",
+    "invalid_configuration",
+    "model_not_found",
+    "network_error",
+    "output_limit_exceeded",
+    "permission_denied",
+    "process_failed",
+    "protected_path_modified",
+    "quota_exceeded",
+    "rate_limited",
+    "repository_diverged",
+    "runner_disabled",
+    "runner_incompatible",
+    "runner_not_found",
+    "sandbox_unavailable",
+    "structured_output_invalid",
+    "structured_output_unsupported",
+    "timed_out",
+    "unsupported_operation",
+    "verification_failed"
+  ],
+  "evidenceStatuses": [
+    "blocked",
+    "cancelled",
+    "failed",
+    "implemented-unverified",
+    "manually-accepted",
+    "no-change",
+    "timed-out",
+    "verified"
+  ],
+  "executionOutcomes": [
+    "blocked",
+    "cancelled",
+    "completed",
+    "failed",
+    "malformed-output",
+    "no-change",
+    "permission-denied",
+    "timed-out"
+  ],
+  "operations": [
+    "model-list",
+    "runner-test",
+    "stage-generation",
+    "stage-refinement",
+    "task-execution",
+    "task-resume"
+  ],
+  "runnerKinds": [
+    "antigravity-cli",
+    "claude-code",
+    "codex-cli",
+    "extension",
+    "gemini-cli",
+    "mock",
+    "ollama",
+    "openai-compatible",
+    "unsupported"
+  ],
+  "supportLevels": [
+    "experimental",
+    "incompatible",
+    "preview",
+    "production",
+    "unavailable"
+  ]
+}

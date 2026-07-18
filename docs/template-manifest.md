@@ -79,7 +79,7 @@ This is the manifest of the built-in `rest-api` template
     }
   ],
   "compatibility": {
-    "specbridge": ">=0.7.0 <1.0.0",
+    "specbridge": ">=1.0.0 <2.0.0",
     "kiroLayout": "1"
   },
   "license": "MIT",
@@ -199,7 +199,7 @@ invalid value). Any string value is capped at 100,000 characters.
 ### `compatibility`
 
 ```json
-{ "specbridge": ">=0.7.0 <1.0.0", "kiroLayout": "1" }
+{ "specbridge": ">=1.0.0 <2.0.0", "kiroLayout": "1" }
 ```
 
 - `specbridge` — a minimal range grammar: one or more space-separated

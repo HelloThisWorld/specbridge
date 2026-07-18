@@ -5,7 +5,7 @@
  * manifest schema versions evolve independently so an SDK release does not
  * force a protocol break.
  */
-export const EXTENSION_SDK_VERSION = '0.7.1';
+export const EXTENSION_SDK_VERSION = '1.0.0';
 
 /** Version of the `specbridge-extension.json` manifest schema. */
 export const EXTENSION_MANIFEST_SCHEMA_VERSION = '1.0.0';

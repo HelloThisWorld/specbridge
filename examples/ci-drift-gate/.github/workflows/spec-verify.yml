@@ -1,0 +1,51 @@
+# Example workflow — copy into your repository's .github/workflows/ to gate
+# pull requests on spec drift. Inputs mirror
+# integrations/github-action/action.yml; docs/github-action.md explains each.
+#
+# This file lives inside the example directory on purpose: it is
+# documentation, not an active workflow of the SpecBridge repository.
+
+name: Verify specs
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  specbridge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Required: the action never fetches by itself. A shallow clone
+          # without the comparison base fails with SBV021.
+          fetch-depth: 0
+
+      - name: Verify spec alignment
+        id: specbridge
+        # The @v1 tag exists once SpecBridge v1.0.0 is released.
+        uses: HelloThisWorld/specbridge/integrations/github-action@v1
+        with:
+          # "changed" verifies only the specs affected by the PR/push diff;
+          # "all" verifies every spec; "single" needs the `spec` input.
+          mode: changed
+          fail-on: error
+          strict: false
+          # Runs the trusted commands from .specbridge/config.json
+          # (argv arrays only — for this example: audit-tests).
+          run-verification: true
+          report-directory: .specbridge/action-reports
+          annotations: true
+          write-step-summary: true
+          annotation-limit: 50
+
+      - name: Upload SpecBridge reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: specbridge-reports
+          path: .specbridge/action-reports

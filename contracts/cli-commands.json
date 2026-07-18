@@ -1,0 +1,747 @@
+{
+  "bin": "specbridge",
+  "tree": {
+    "options": [
+      "--cwd",
+      "--help",
+      "--version"
+    ],
+    "subcommands": {
+      "compat": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "check": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          }
+        }
+      },
+      "config": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "doctor": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "migrate": {
+            "options": [
+              "--apply",
+              "--dry-run",
+              "--help",
+              "--json"
+            ]
+          }
+        }
+      },
+      "doctor": {
+        "options": [
+          "--help",
+          "--json",
+          "--repair-plan"
+        ]
+      },
+      "extension": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "conformance": {
+            "options": [
+              "--help",
+              "--json",
+              "--network",
+              "--verbose",
+              "--yes"
+            ]
+          },
+          "disable": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "doctor": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "enable": {
+            "options": [
+              "--accept-permissions",
+              "--help",
+              "--json",
+              "--version"
+            ]
+          },
+          "install": {
+            "options": [
+              "--dry-run",
+              "--help",
+              "--json",
+              "--network",
+              "--registry"
+            ]
+          },
+          "list": {
+            "options": [
+              "--enabled",
+              "--help",
+              "--installed",
+              "--json",
+              "--kind"
+            ]
+          },
+          "package": {
+            "options": [
+              "--dry-run",
+              "--help",
+              "--json",
+              "--output"
+            ]
+          },
+          "scaffold": {
+            "options": [
+              "--description",
+              "--display-name",
+              "--dry-run",
+              "--help",
+              "--json",
+              "--kind",
+              "--output"
+            ]
+          },
+          "search": {
+            "options": [
+              "--help",
+              "--json",
+              "--kind",
+              "--limit",
+              "--registry"
+            ]
+          },
+          "show": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "uninstall": {
+            "options": [
+              "--dry-run",
+              "--help",
+              "--json",
+              "--version"
+            ]
+          },
+          "validate": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          }
+        }
+      },
+      "mcp": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "doctor": {
+            "options": [
+              "--help",
+              "--json",
+              "--verbose"
+            ]
+          },
+          "manifest": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "serve": {
+            "options": [
+              "--help",
+              "--json-logs",
+              "--log-level",
+              "--project-root",
+              "--stdio"
+            ]
+          },
+          "tools": {
+            "options": [
+              "--help",
+              "--json",
+              "--verbose"
+            ]
+          }
+        }
+      },
+      "migrate": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "apply": {
+            "options": [
+              "--backup-directory",
+              "--dry-run",
+              "--help",
+              "--json",
+              "--target"
+            ]
+          },
+          "plan": {
+            "options": [
+              "--help",
+              "--json",
+              "--target"
+            ]
+          },
+          "status": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "verify": {
+            "options": [
+              "--help",
+              "--id",
+              "--json"
+            ]
+          }
+        }
+      },
+      "registry": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "add": {
+            "options": [
+              "--dry-run",
+              "--file",
+              "--help",
+              "--json",
+              "--url"
+            ]
+          },
+          "list": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "remove": {
+            "options": [
+              "--help",
+              "--json",
+              "--yes"
+            ]
+          },
+          "search": {
+            "options": [
+              "--help",
+              "--json",
+              "--kind",
+              "--limit",
+              "--registry"
+            ]
+          },
+          "show": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "update": {
+            "options": [
+              "--help",
+              "--json",
+              "--network"
+            ]
+          },
+          "validate": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          }
+        }
+      },
+      "run": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "list": {
+            "options": [
+              "--help",
+              "--json",
+              "--verbose"
+            ]
+          },
+          "recover-lock": {
+            "options": [
+              "--dry-run",
+              "--help",
+              "--json",
+              "--remove"
+            ]
+          },
+          "resume": {
+            "options": [
+              "--dry-run",
+              "--help",
+              "--json",
+              "--no-verify",
+              "--timeout"
+            ]
+          },
+          "show": {
+            "options": [
+              "--help",
+              "--json",
+              "--verbose"
+            ]
+          }
+        }
+      },
+      "runner": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "conformance": {
+            "options": [
+              "--help",
+              "--json",
+              "--network",
+              "--verbose"
+            ]
+          },
+          "doctor": {
+            "options": [
+              "--help",
+              "--json",
+              "--verbose"
+            ]
+          },
+          "list": {
+            "options": [
+              "--help",
+              "--json",
+              "--verbose"
+            ]
+          },
+          "matrix": {
+            "options": [
+              "--help",
+              "--json",
+              "--markdown"
+            ]
+          },
+          "models": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "show": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "test": {
+            "options": [
+              "--help",
+              "--json",
+              "--network"
+            ]
+          }
+        }
+      },
+      "setup": {
+        "options": [
+          "--apply",
+          "--dry-run",
+          "--help",
+          "--json"
+        ]
+      },
+      "spec": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "accept-task": {
+            "options": [
+              "--help",
+              "--json",
+              "--reason",
+              "--run",
+              "--task"
+            ]
+          },
+          "affected": {
+            "options": [
+              "--base",
+              "--diff",
+              "--head",
+              "--help",
+              "--json",
+              "--staged",
+              "--working-tree"
+            ]
+          },
+          "analyze": {
+            "options": [
+              "--extension",
+              "--help",
+              "--json",
+              "--stage",
+              "--strict"
+            ]
+          },
+          "approve": {
+            "options": [
+              "--help",
+              "--json",
+              "--revoke",
+              "--stage"
+            ]
+          },
+          "context": {
+            "options": [
+              "--all-steering",
+              "--format",
+              "--help",
+              "--out",
+              "--target"
+            ]
+          },
+          "export": {
+            "options": [
+              "--dry-run",
+              "--extension",
+              "--help",
+              "--json",
+              "--output",
+              "--yes"
+            ]
+          },
+          "generate": {
+            "options": [
+              "--dry-run",
+              "--help",
+              "--json",
+              "--max-budget-usd",
+              "--max-turns",
+              "--model",
+              "--runner",
+              "--show-runner-plan",
+              "--stage",
+              "--timeout",
+              "--verbose"
+            ]
+          },
+          "list": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "new": {
+            "options": [
+              "--description",
+              "--dry-run",
+              "--from-file",
+              "--help",
+              "--json",
+              "--mode",
+              "--template",
+              "--title",
+              "--type",
+              "--var"
+            ]
+          },
+          "policy": {
+            "options": [
+              "--help"
+            ],
+            "subcommands": {
+              "init": {
+                "options": [
+                  "--dry-run",
+                  "--help",
+                  "--json",
+                  "--mode"
+                ]
+              },
+              "show": {
+                "options": [
+                  "--help",
+                  "--json"
+                ]
+              },
+              "validate": {
+                "options": [
+                  "--help",
+                  "--json"
+                ]
+              }
+            }
+          },
+          "refine": {
+            "options": [
+              "--dry-run",
+              "--help",
+              "--instruction",
+              "--instruction-file",
+              "--json",
+              "--runner",
+              "--show-runner-plan",
+              "--stage",
+              "--timeout",
+              "--verbose"
+            ]
+          },
+          "run": {
+            "options": [
+              "--all",
+              "--allow-dirty",
+              "--dry-run",
+              "--help",
+              "--json",
+              "--max-budget-usd",
+              "--max-turns",
+              "--model",
+              "--next",
+              "--no-verify",
+              "--runner",
+              "--task",
+              "--timeout",
+              "--verbose"
+            ]
+          },
+          "show": {
+            "options": [
+              "--analysis",
+              "--file",
+              "--help",
+              "--json",
+              "--raw",
+              "--state",
+              "--status"
+            ]
+          },
+          "status": {
+            "options": [
+              "--help",
+              "--json",
+              "--verbose"
+            ]
+          },
+          "sync": {
+            "options": [
+              "--help"
+            ]
+          },
+          "verify": {
+            "options": [
+              "--all",
+              "--base",
+              "--changed",
+              "--diff",
+              "--fail-on",
+              "--format",
+              "--head",
+              "--help",
+              "--json",
+              "--no-run-verification",
+              "--output",
+              "--policy",
+              "--run-verification",
+              "--staged",
+              "--strict",
+              "--verbose",
+              "--working-tree"
+            ]
+          }
+        }
+      },
+      "state": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "recover": {
+            "options": [
+              "--ack",
+              "--apply",
+              "--help",
+              "--json",
+              "--plan"
+            ]
+          },
+          "validate": {
+            "options": [
+              "--all",
+              "--config",
+              "--evidence",
+              "--extensions",
+              "--help",
+              "--json",
+              "--registries",
+              "--runs",
+              "--spec",
+              "--templates"
+            ]
+          }
+        }
+      },
+      "steering": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "list": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "show": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          }
+        }
+      },
+      "template": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "apply": {
+            "options": [
+              "--description",
+              "--dry-run",
+              "--help",
+              "--json",
+              "--mode",
+              "--name",
+              "--title",
+              "--var"
+            ]
+          },
+          "install": {
+            "options": [
+              "--dry-run",
+              "--help",
+              "--json"
+            ]
+          },
+          "list": {
+            "options": [
+              "--help",
+              "--json",
+              "--kind",
+              "--mode",
+              "--source",
+              "--tag"
+            ]
+          },
+          "preview": {
+            "options": [
+              "--description",
+              "--help",
+              "--json",
+              "--mode",
+              "--name",
+              "--title",
+              "--var"
+            ]
+          },
+          "scaffold": {
+            "options": [
+              "--description",
+              "--display-name",
+              "--dry-run",
+              "--help",
+              "--json",
+              "--kind",
+              "--license",
+              "--modes",
+              "--output"
+            ]
+          },
+          "search": {
+            "options": [
+              "--help",
+              "--json",
+              "--kind",
+              "--limit",
+              "--mode",
+              "--source"
+            ]
+          },
+          "show": {
+            "options": [
+              "--files",
+              "--help",
+              "--json",
+              "--manifest",
+              "--readme"
+            ]
+          },
+          "uninstall": {
+            "options": [
+              "--dry-run",
+              "--help",
+              "--json"
+            ]
+          },
+          "validate": {
+            "options": [
+              "--help",
+              "--json",
+              "--strict"
+            ]
+          }
+        }
+      },
+      "verify": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "explain": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "rules": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

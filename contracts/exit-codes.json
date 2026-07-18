@@ -1,0 +1,9 @@
+{
+  "gateFailure": 1,
+  "ok": 0,
+  "runnerFailure": 4,
+  "runnerUnavailable": 3,
+  "safetyFailure": 6,
+  "timeout": 5,
+  "usageError": 2
+}

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0.0",
+  "specName": "audit-log-export",
+  "specType": "feature",
+  "workflowMode": "requirements-first",
+  "origin": "existing-kiro-workspace",
+  "status": "READY_FOR_IMPLEMENTATION",
+  "createdAt": "2026-07-12T10:00:00.000Z",
+  "updatedAt": "2026-07-12T16:00:00.000Z",
+  "stages": {
+    "requirements": {
+      "status": "approved",
+      "file": ".kiro/specs/audit-log-export/requirements.md",
+      "approvedAt": "2026-07-12T11:00:00.000Z",
+      "approvedHash": "7a52b69b2ec2e9e90443dd20a4f57f52545c1ede93a27c581a2431ac71508ad2"
+    },
+    "design": {
+      "status": "approved",
+      "file": ".kiro/specs/audit-log-export/design.md",
+      "approvedAt": "2026-07-12T14:00:00.000Z",
+      "approvedHash": "fffd656fc30d79e7b7d7c753732b1d70cf168bec909b64bb7143b8240563a06a"
+    },
+    "tasks": {
+      "status": "approved",
+      "file": ".kiro/specs/audit-log-export/tasks.md",
+      "approvedAt": "2026-07-12T16:00:00.000Z",
+      "approvedHash": "af472f614a214282da1acf7f20ac4262e0c18ed174d269b040ed9f035baba698",
+      "approvedPlanHash": "af472f614a214282da1acf7f20ac4262e0c18ed174d269b040ed9f035baba698",
+      "hashAlgorithm": "sha256",
+      "hashSemanticsVersion": "2"
+    }
+  }
+}

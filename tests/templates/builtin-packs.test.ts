@@ -67,7 +67,7 @@ describe('built-in template packs (from disk)', () => {
         expect(pack.manifest?.id).toBe(id);
         expect(pack.readme).toBeDefined();
         expect(pack.manifest?.license).toBe('MIT');
-        expect(pack.manifest?.compatibility.specbridge).toBe('>=0.7.0 <1.0.0');
+        expect(pack.manifest?.compatibility.specbridge).toBe('>=0.7.0 <2.0.0');
       });
 
       it('render-checks cleanly with sample values', () => {

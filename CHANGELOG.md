@@ -1,5 +1,79 @@
 # Changelog
 
+## 1.0.0
+
+The first stable release. The primary promise is unchanged — start in Kiro,
+continue anywhere, return whenever you want — and it is now backed by
+documented, machine-checked contracts.
+
+### Stable (frozen for v1.x under [the versioning policy](docs/stability/versioning-policy.md))
+
+- CLI command and exit-code contract
+- Kiro-compatible filesystem contract (`.kiro/steering`, `.kiro/specs`,
+  byte-identical no-op round trips, surgical checkbox updates)
+- SpecBridge sidecar schemas (config, spec state, approvals, runs, evidence,
+  policies, templates, extensions, registries)
+- Verification rule IDs `SBV001`–`SBV026` and the report/diagnostic schemas
+- Runner adapter contract (operations, capability keys, support levels,
+  normalized events/results/errors)
+- Template manifest and extension protocol (`1.0.0`)
+- MCP server name, tool names, resource URIs, and prompt names
+- Claude Code plugin and marketplace namespace
+
+Every stable contract has a machine-readable snapshot under
+[`contracts/`](contracts/), enforced in CI by `pnpm check:public-contracts`.
+
+### Added
+
+- Unified state-migration framework and `specbridge migrate status | plan |
+  apply | verify` (hash-bound plans, dry-run, atomic writes, backups,
+  rollback, and a migration report under `.specbridge/migrations/<id>/`)
+- `specbridge state validate` — read-only diagnosis across every persisted
+  state family
+- Recovery planning and hash-bound `specbridge state recover --plan` /
+  `--apply <id>` (acknowledgement-token gated; corrupted originals are
+  preserved in quarantine, never destroyed), plus `specbridge doctor
+  --repair-plan`
+- `specbridge setup` — preview-first, safe workspace initialization
+- Public contract inventory ([docs/stability/public-contracts.md](docs/stability/public-contracts.md))
+  and versioning/deprecation policy
+- Large-repository performance suite and documented budgets
+  ([docs/performance.md](docs/performance.md))
+- Consolidated threat model ([docs/security/threat-model.md](docs/security/threat-model.md))
+  and a deterministic repository security scan (`pnpm check:security`)
+- Cross-platform release packaging and a tag-driven release workflow
+- npm package `specbridge-cli` (the command remains `specbridge`)
+- Maintained example projects and reproducible offline demo scripts
+- Public release documentation, community files, and issue/PR templates
+
+### Changed
+
+- Documentation reorganized around a hub ([docs/README.md](docs/README.md))
+  without breaking existing links
+- Release assets carry stable manifests and `SHA256SUMS`; the npm package
+  uses an explicit `files` allowlist
+- `specbridge config migrate` is deprecated in favor of `specbridge migrate`;
+  it keeps working and prints a deprecation notice to stderr (removal no
+  earlier than v2.0.0)
+- GitHub Action metadata aligned to `1.0.0`
+- Template and extension compatibility ranges widened to `<2.0.0`
+
+### Security
+
+- Migration and recovery actions are hash-bound and refuse stale plans
+- Release assets are checksum-verified
+- Archive, symlink, and path-traversal protections are consolidated and
+  documented; credentials and provider environments remain isolated
+- Extension and MCP protocol limits are enforced
+
+### Limitations
+
+- Extension process isolation is **not** an operating-system sandbox
+- Checksums verify integrity, **not** publisher identity
+- Released binaries may be unsigned
+- Model-assisted authoring and execution remain nondeterministic
+- Antigravity integration remains experimental
+
 ## 0.7.1
 
 Added:

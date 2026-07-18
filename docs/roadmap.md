@@ -24,6 +24,8 @@ implemented unless marked ✅ and covered by tests.
 | O — Production multi-runner | Codex CLI agent runner (read-only authoring sandbox, workspace-write execution, explicit-session resume, no unrestricted modes) and Ollama authoring runner (loopback-default model API, schema-validated structured output, bounded correction retry, authoring-only by capability); Claude Code runner migrated onto the shared contract unchanged | ✅ v0.6.0 |
 | P — Adapter expansion | Gemini CLI runner (plan-mode/allowlist authoring, capability-gated bounded-edit task execution, explicit-UUID resume, never YOLO), OpenAI-compatible authoring runner (chat-completions + responses, explicit structured-output modes, env-var-name credentials, safe redirects), experimental Antigravity capability adapter (detection only, no PTY/TUI automation), read-only MCP runner diagnostics (`runner_list/show/doctor/matrix`), `/specbridge:runners` plugin skill | ✅ v0.6.1 |
 | Q — Templates | versioned template manifest (schema 1.0.0), restricted one-pass renderer, 10 built-in templates (embedded at build time), project-local packs, deterministic search, `template list/search/show/validate/preview/apply/install/uninstall/scaffold`, `spec new --template`, append-only template records, MCP `template_list/search/show/preview/apply` (hash-bound apply), `/specbridge:templates` skill, generated gallery with CI drift checks | ✅ v0.7.0 (local-only; no remote registry) |
+| R — Extension ecosystem | extension SDK, versioned manifest + out-of-process protocol (1.0.0), permission model with hash-bound grants, five extension kinds, offline extension registry + cache, reference extensions, conformance framework, `extension`/`registry` commands, MCP extension/registry tools, `/specbridge:extensions` skill | ✅ v0.7.1 (process isolation is not an OS sandbox) |
+| S — Stabilization & release | public contract inventory + machine-readable snapshots (`check:public-contracts`), versioning/deprecation policy, unified migration framework (`migrate`), state validation and hash-bound recovery (`state validate/recover`, `doctor --repair-plan`), `setup`, consolidated threat model + security scan, large-repository performance suite, cross-platform packaging, tag-driven release workflow, documentation hub | ✅ v1.0.0 |
 
 ## Command availability
 
@@ -80,12 +82,38 @@ Templates and template scaffolding — secure, deterministic, offline-first:
   `/specbridge:templates` plugin skill, and a generated gallery
   (`docs/templates.md`) with CI drift checks.
 
-## v0.7.1 (planned — not implemented)
+## v0.7.1 (✅ implemented)
 
-- A plugin SDK and runner extension SDK distribution.
-- Analyzer and verifier SDKs.
-- An extension registry and community ecosystem documentation and
+- Extension SDK distribution (analyzer, verifier, exporter, runner, and
+  template-provider kinds).
+- Out-of-process extension protocol with a permission model and hash-bound
+  grants.
+- An offline extension registry, reference extensions, and community
   contribution paths.
+
+## v1.0.0 (✅ implemented)
+
+The stabilization and public-release phase — no new product categories.
+
+- Public contract inventory and machine-readable snapshots enforced in CI
+  (`pnpm check:public-contracts`), plus a semantic-versioning and deprecation
+  policy.
+- Unified state-migration framework (`specbridge migrate status/plan/apply/
+  verify`) with hash-bound plans, dry-run, backups, and rollback.
+- Read-only `specbridge state validate` and hash-bound recovery
+  (`specbridge state recover --plan/--apply`, `doctor --repair-plan`); corrupt
+  state is always preserved.
+- `specbridge setup`, consolidated threat model, a deterministic security
+  scan, and a large-repository performance suite with documented budgets.
+- Cross-platform packaging (npm `specbridge-cli`, portable Node, standalone
+  archives, plugin ZIP) with stable manifests and checksums, and a
+  tag-driven, draft-first release workflow.
+
+## Post-1.0 outlook
+
+No new features are promised. The focus after 1.0.0 is maintenance:
+compatibility within v1.x under the versioning policy, security fixes, and
+documentation. Anything below remains explicitly out of scope.
 
 ## Explicitly not planned for now
 

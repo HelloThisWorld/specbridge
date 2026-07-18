@@ -1,0 +1,153 @@
+name: Release
+
+# Tag-driven release build. Everything runs offline after dependency install;
+# no LLM, no API key. A workflow_dispatch run is a DRY RUN: it builds and
+# validates every asset and uploads them as workflow artifacts, but creates
+# no tag and no GitHub Release and needs no write permission.
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  gates:
+    name: Release gates (full regression)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: Tag matches the package version
+        if: github.event_name == 'push'
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          if [ "${GITHUB_REF_NAME}" != "v${VERSION}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match package version ${VERSION}" >&2
+            exit 1
+          fi
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm build
+      - run: pnpm test
+      - run: pnpm check:public-contracts
+      - run: pnpm check:builtin-templates && pnpm check:template-gallery
+      - run: pnpm validate:extension-registry && pnpm check:extension-registry && pnpm check:builtin-registry && pnpm check:extension-gallery
+      - run: pnpm check:mcp-docs
+      - run: pnpm validate:plugin && pnpm verify:plugin-bundle
+      - run: node scripts/smoke.mjs
+      - run: node scripts/validate-examples.mjs
+
+  package-standalone:
+    name: Standalone ${{ matrix.label }}
+    needs: gates
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, label: windows-x64 }
+          - { os: ubuntu-latest, label: linux-x64 }
+          - { os: macos-13, label: macos-x64 }
+          - { os: macos-14, label: macos-arm64 }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm build:plugin
+      - name: Package and smoke-test the standalone archive
+        run: node scripts/package-standalone.mjs --target ${{ matrix.label }} --out dist-release --smoke
+      - uses: actions/upload-artifact@v4
+        with:
+          name: standalone-${{ matrix.label }}
+          path: dist-release/*
+          if-no-files-found: error
+
+  package-portable:
+    name: Portable, npm, and plugin packages
+    needs: gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm build:plugin
+      - name: Portable Node distribution
+        run: node scripts/package-standalone.mjs --target node --out dist-release --smoke
+      - name: npm package (packed, validated, smoke-tested in isolation)
+        run: node scripts/validate-npm-package.mjs --pack-to dist-release
+      - name: Claude Code plugin ZIP and migration guide
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          cp "dist/specbridge-claude-plugin-${VERSION}.zip" dist-release/
+          cp docs/migrations/migration-guide-v1.0.0.md "dist-release/migration-guide-v${VERSION}.md"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: portable-packages
+          path: dist-release/*
+          if-no-files-found: error
+
+  assemble:
+    name: Checksums and release manifest
+    needs: [package-standalone, package-portable]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: actions/download-artifact@v4
+        with: { path: staged, merge-multiple: true }
+      - name: Generate SHA256SUMS and release manifest, verify asset completeness
+        run: node scripts/assemble-release.mjs --staged staged --out dist-release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-assets
+          path: dist-release/*
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub Release (draft first)
+    # Never runs on workflow_dispatch — that is the dry run.
+    if: github.event_name == 'push'
+    needs: assemble
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: release-assets, path: dist-release }
+      - name: Create draft release with all assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "Release ${TAG} already exists; refusing to overwrite." >&2
+            exit 1
+          fi
+          gh release create "${TAG}" \
+            --draft \
+            --title "SpecBridge ${TAG}" \
+            --notes-file docs/releases/${TAG}.md \
+            dist-release/*
+      - name: Verify every expected asset uploaded, then publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          node scripts/assemble-release.mjs --verify-remote "${TAG}"
+          gh release edit "${TAG}" --draft=false --latest
+          gh release view "${TAG}"

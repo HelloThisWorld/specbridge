@@ -1,6 +1,6 @@
 {
   "name": "@specbridge/templates",
-  "version": "0.7.1",
+  "version": "1.0.0",
   "description": "Secure, deterministic, offline-first spec templates for SpecBridge: versioned manifests, a restricted one-pass renderer, built-in and project-local template packs, deterministic search, and atomic Kiro-compatible spec creation.",
   "license": "MIT",
   "type": "module",

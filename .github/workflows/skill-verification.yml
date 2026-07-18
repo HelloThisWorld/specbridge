@@ -36,7 +36,7 @@ jobs:
       ASV_SHA256: 2307aa1ee6a8698fe5d7dfc12ef9413ce086e5f3fe3748501abd0d10cfe68084
       # Ref of the verification template holding the specbridge skill
       # contracts, evaluation cases, and fixture builder.
-      TEMPLATE_REF: v0.1.0
+      TEMPLATE_REF: v0.2.0
     steps:
       - uses: actions/checkout@v4
 

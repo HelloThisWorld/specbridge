@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://github.com/HelloThisWorld/specbridge/tree/main/docs
+    about: Guides for every area — start here for usage questions before opening an issue.
+  - name: Security reports (private)
+    url: https://github.com/HelloThisWorld/specbridge/blob/main/SECURITY.md
+    about: Never report vulnerabilities in a public issue — see the reporting instructions.
