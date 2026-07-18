@@ -151,13 +151,19 @@ Examples:
 
   config
     .command('migrate')
-    .description('Explicitly migrate a v1 configuration to the v2 multi-runner schema')
+    .description(
+      'Deprecated alias of "migrate plan"/"migrate apply": migrate a v1 configuration to v2',
+    )
     .option('--dry-run', 'show the migration plan; write nothing (default)')
     .option('--apply', 'write the migrated file atomically with a recoverable backup')
     .option('--json', 'output a machine-readable JSON report')
     .addHelpText(
       'after',
       `
+Deprecated: use "${CLI_BIN} migrate plan" / "${CLI_BIN} migrate apply"
+instead. This alias keeps its exact behavior and will be removed no earlier
+than v2.0.0.
+
 The migration preserves the effective Claude Code behavior, preserves the
 trusted verification commands and execution policy, adds the new Codex and
 Ollama profiles DISABLED, never creates credentials, and never enables
@@ -172,6 +178,10 @@ Examples:
   ${CLI_BIN} config migrate --apply`,
     )
     .action((options: ConfigOptions) => {
+      runtime.err(
+        `Deprecated: "${CLI_BIN} config migrate" will be removed no earlier than v2.0.0; ` +
+          `use "${CLI_BIN} migrate plan" / "${CLI_BIN} migrate apply" instead.`,
+      );
       if (options.dryRun === true && options.apply === true) {
         throw new SpecBridgeError('INVALID_ARGUMENT', 'Use either --dry-run or --apply, not both.');
       }

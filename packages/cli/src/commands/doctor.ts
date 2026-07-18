@@ -1,5 +1,6 @@
 import path from 'node:path';
 import type { Command } from 'commander';
+import type { RecoveryAction } from '@specbridge/core';
 import { CLI_BIN, PRODUCT_NAME, hasErrors } from '@specbridge/core';
 import type { WorkspaceAnalysis } from '@specbridge/compat-kiro';
 import { analyzeWorkspace } from '@specbridge/compat-kiro';
@@ -22,6 +23,7 @@ import {
 import type { CliRuntime } from '../context.js';
 import { relPath } from '../context.js';
 import { VERSION } from '../version.js';
+import { buildRecoveryActions } from '../state/state-families.js';
 
 /**
  * `specbridge doctor` — read-only workspace health report. Never modifies
@@ -212,8 +214,48 @@ function printReport(runtime: CliRuntime, analysis: WorkspaceAnalysis, audit: Si
   }
 }
 
-function toJson(analysis: WorkspaceAnalysis, audit: SidecarAudit): unknown {
+/** Read-only preview of the recovery actions `state recover --plan` would persist. */
+function printRepairPreview(runtime: CliRuntime, actions: RecoveryAction[]): void {
+  runtime.out();
+  runtime.out(sectionTitle('Recovery preview (--repair-plan)'));
+  if (actions.length === 0) {
+    runtime.out(okLine('No recovery actions are proposed; state needs no recovery.'));
+  } else {
+    for (const action of actions) {
+      runtime.out(
+        warnLine(
+          `${action.actionId} ${action.kind}`,
+          `risk ${action.risk} · ${action.confidence}`,
+        ),
+      );
+      if (action.file !== undefined) runtime.out(`      file: ${action.file}`);
+      runtime.out(`      ${action.reason}`);
+    }
+  }
+  runtime.out();
+  runtime.out(
+    infoLine(
+      'Nothing was written; doctor stays read-only.',
+      `("${CLI_BIN} state recover --plan" persists an applicable plan)`,
+    ),
+  );
+}
+
+function toJson(
+  analysis: WorkspaceAnalysis,
+  audit: SidecarAudit,
+  repairActions?: RecoveryAction[],
+): unknown {
   return createJsonReport('specbridge.doctor/1', `${CLI_BIN} ${VERSION}`, {
+    ...(repairActions !== undefined
+      ? {
+          repairPlan: {
+            written: false,
+            note: `Preview only; persist an applicable plan with "${CLI_BIN} state recover --plan".`,
+            actions: repairActions,
+          },
+        }
+      : {}),
     workspace: {
       rootDir: analysis.workspace.rootDir,
       kiroDir: analysis.workspace.kiroDir,
@@ -268,15 +310,20 @@ export function registerDoctorCommand(program: Command, runtime: CliRuntime): vo
     .command('doctor')
     .description('Check .kiro workspace health and SpecBridge compatibility (read-only)')
     .option('--json', 'output a machine-readable JSON report')
+    .option(
+      '--repair-plan',
+      'additionally preview the recovery actions "state recover --plan" would persist (still read-only)',
+    )
     .addHelpText(
       'after',
       `
 Examples:
   ${CLI_BIN} doctor
   ${CLI_BIN} doctor --json
+  ${CLI_BIN} doctor --repair-plan
   ${CLI_BIN} --cwd path/to/project doctor`,
     )
-    .action((options: { json?: boolean }) => {
+    .action((options: { json?: boolean; repairPlan?: boolean }) => {
       const workspace = runtime.tryWorkspace();
       if (workspace === undefined) {
         if (options.json === true) {
@@ -309,10 +356,12 @@ Examples:
         workspace,
         analysis.specs.map((spec) => spec.folder),
       );
+      const repairActions = options.repairPlan === true ? buildRecoveryActions(workspace) : undefined;
       if (options.json === true) {
-        runtime.outRaw(serializeJsonReport(toJson(analysis, audit)));
+        runtime.outRaw(serializeJsonReport(toJson(analysis, audit, repairActions)));
       } else {
         printReport(runtime, analysis, audit);
+        if (repairActions !== undefined) printRepairPreview(runtime, repairActions);
       }
       const auditHealthy = !hasErrors(audit.diagnostics);
       runtime.exitCode = analysis.healthy && analysis.roundTripSafe && auditHealthy ? 0 : 1;
