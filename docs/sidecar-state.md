@@ -18,6 +18,12 @@ delete `.specbridge/`, and your Kiro project is exactly as it was.
 ├── runs/                        # per-run records (Phase G)
 ├── evidence/
 │   └── <spec-name>/<task>.json  # task evidence records (Phase G/H)
+├── orchestration/               # governed orchestration runs (v1.1)
+│   └── <orchestration-id>/
+│       ├── state.json           # versioned state record (atomic)
+│       ├── events.jsonl         # append-only orchestration history
+│       ├── plans/0001.json      # every execution-plan revision, kept
+│       └── checkpoint.json      # latest compact structured checkpoint
 ├── reports/                     # generated reports (drift, context --out)
 └── cache/                       # disposable
 ```

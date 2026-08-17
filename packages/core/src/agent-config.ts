@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { z } from 'zod';
+import { orchestrationPolicySchema } from './orchestration-config.js';
 
 /**
  * The v1 (v0.3–v0.5) `.specbridge/config.json` file schema for agent
@@ -243,6 +244,12 @@ export const agentConfigSchema = z
       .default({}),
     verification: verificationConfigSchema.default({}),
     execution: executionPolicySchema.default({}),
+    /**
+     * v1.1 governed orchestration policy. Optional and defaulted, so a v1
+     * configuration file stays valid and a v1 workspace can configure
+     * orchestration without migrating to the v2 schema first.
+     */
+    orchestration: orchestrationPolicySchema.default({}),
   })
   .passthrough()
   .superRefine((config, ctx) => {

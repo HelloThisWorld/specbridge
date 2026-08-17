@@ -4,10 +4,10 @@
 <!-- Regenerate with: pnpm generate:mcp-docs (CI checks drift via pnpm check:mcp-docs). -->
 
 Generated from the authoritative registries of the `specbridge` MCP server
-(version 1.0.0). Tool names, resource URI templates, and prompt
+(version 1.1.0). Tool names, resource URI templates, and prompt
 names are stable contracts — see docs/stability/public-contracts.md.
 
-## Tools (37)
+## Tools (47)
 
 | Tool | Access | Summary |
 | --- | --- | --- |
@@ -15,6 +15,16 @@ names are stable contracts — see docs/stability/public-contracts.md.
 | `extension_list` | read-only | List installed extensions with status |
 | `extension_search` | read-only | Offline extension search (installed + cached registries) |
 | `extension_show` | read-only | One extension in depth (permissions, hash, grant) |
+| `orchestration_assess_intent` | write | Validate a structured intent assessment |
+| `orchestration_begin` | write | Begin a governed orchestration run |
+| `orchestration_checkpoint` | write | Write a compact structured checkpoint |
+| `orchestration_clarify` | write | Record a bounded round of targeted questions |
+| `orchestration_finalize` | write | Close a run (completion needs verified evidence) |
+| `orchestration_record_action` | write | Record one bounded iteration; get the next directive |
+| `orchestration_resolve_clarification` | write | Record structured clarification decisions |
+| `orchestration_review_plan` | write | Record the user plan-review decision (hash-bound) |
+| `orchestration_status` | read-only | Governed orchestration state, freshness, and next safe action |
+| `orchestration_submit_plan` | write | Validate and store a context-bound execution plan |
 | `registry_list` | read-only | List configured extension registries |
 | `registry_search` | read-only | Offline registry index search |
 | `registry_show` | read-only | Registry metadata for one extension (no download) |

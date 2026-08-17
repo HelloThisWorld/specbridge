@@ -66,6 +66,15 @@ export interface ExecutionFixtureOptions {
   execution?: Record<string, unknown>;
   /** Approve all stages through the real flow (default true). */
   approve?: boolean;
+  /**
+   * Initialize a git repository in the fixture (default true).
+   *
+   * Set false for tests that never touch Git evidence: `git init` plus its
+   * config and initial commit costs seven subprocess spawns per fixture, and
+   * a suite that builds dozens of them starves the vitest worker RPC long
+   * before it runs out of anything else.
+   */
+  git?: boolean;
   /** Use the fake Claude CLI as the claude-code runner executable. */
   useFakeClaude?: boolean;
   defaultRunner?: string;
@@ -133,7 +142,7 @@ export function writeFixtureConfig(root: string, options: ExecutionFixtureOption
 
 export function setupExecutionFixture(options: ExecutionFixtureOptions = {}): ExecutionFixture {
   const root = copyFixtureToTemp('v03-ready-feature');
-  initGitRepo(root);
+  if (options.git !== false) initGitRepo(root);
   const workspace = resolveWorkspace(root);
   if (workspace === undefined) throw new Error('fixture has no .kiro workspace');
   const clock = tickingClock();

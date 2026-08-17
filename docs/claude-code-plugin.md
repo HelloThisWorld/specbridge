@@ -21,6 +21,7 @@ integrations/claude-code-plugin/specbridge/
 │   ├── author/SKILL.md        /specbridge:author <spec> <stage> [note]
 │   ├── approve/SKILL.md       /specbridge:approve <spec> <stage>   (human-only)
 │   ├── implement/SKILL.md     /specbridge:implement <spec> [task]
+│   ├── develop/SKILL.md       /specbridge:develop <spec> [task]    (governed)
 │   ├── continue/SKILL.md      /specbridge:continue <run-id>
 │   ├── runners/SKILL.md       /specbridge:runners [profile]
 │   ├── templates/SKILL.md     /specbridge:templates [query | show … | apply …]
@@ -75,11 +76,24 @@ and controlled lifecycle operations and never duplicate core logic:
   explicit confirmation before the CLI runs.
 - `implement` uses the interactive lifecycle
   (`task_begin` → this session edits → `task_complete`) and reports the
-  ACTUAL evidence outcome. It never invokes `specbridge spec run`, `claude
+  ACTUAL evidence outcome. **Its behaviour is unchanged in v1.1**: the
+  governed workflow was added as a separate skill (`develop`) rather than
+  silently turning an existing command into a different product. It never invokes `specbridge spec run`, `claude
   -p`, or any nested agent — that invariant is enforced by automated scans
   in `pnpm validate:plugin` and the test suite.
-- `continue` finishes an interrupted interactive run honestly (never
-  presenting a fresh run as a resumption).
+- `develop` (v1.1) drives the **governed** lifecycle through the shared
+  orchestration tools: intent assessment, clarification, execution planning,
+  the plan review gate, a bounded implementation loop whose directive comes
+  from `orchestration_record_action`, and completion that still routes
+  through `task_complete`. It contains no parallel implementation of state
+  transitions, retry policy, plan freshness, evidence evaluation, or
+  approval — those live in `@specbridge/orchestration` and the MCP layer.
+  Two of its rules are documented as *skill-guided* rather than enforced;
+  see [enforcement boundaries](orchestration/enforcement-boundaries.md).
+- `continue` finishes an interrupted run honestly — an interactive run or a
+  governed orchestration run — and never presents a fresh run as a
+  resumption. For orchestration runs it reads `orchestration_status`, which
+  reconciles plan freshness, policy drift, and lock state without writing.
 - `verify` runs `spec_check_drift` and asks before `spec_run_verification`.
 - `runners` (v0.6.1) is read-only runner inspection: it calls
   `runner_list` and `runner_matrix` (and `runner_show`/`runner_doctor`

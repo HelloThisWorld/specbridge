@@ -178,6 +178,7 @@ async function buildSnapshots() {
   const registry = await importDist('registry');
   const evidence = await importDist('evidence');
   const execution = await importDist('execution');
+  const orchestration = await importDist('orchestration');
   const mcp = await importDist('mcp-server');
 
   const snapshots = {
@@ -202,6 +203,9 @@ async function buildSnapshots() {
       runRecord: execution.RUN_RECORD_SCHEMA_VERSION,
       attemptRecord: execution.ATTEMPT_RECORD_SCHEMA_VERSION,
       interactiveLock: execution.INTERACTIVE_LOCK_SCHEMA_VERSION,
+      orchestrationState: orchestration.ORCHESTRATION_STATE_SCHEMA_VERSION,
+      executionPlan: orchestration.EXECUTION_PLAN_SCHEMA_VERSION,
+      orchestrationCheckpoint: orchestration.ORCHESTRATION_CHECKPOINT_SCHEMA_VERSION,
       templateManifest: templates.TEMPLATE_MANIFEST_SCHEMA_VERSION,
       templateRecord: templates.TEMPLATE_RECORD_SCHEMA_VERSION,
       extensionState: extensions.EXTENSION_STATE_SCHEMA_VERSION,
@@ -240,6 +244,24 @@ async function buildSnapshots() {
       protocolMethods: [...extensionSdk.EXTENSION_PROTOCOL_METHODS].sort(),
       permissionFlags: [...extensionSdk.EXTENSION_PERMISSION_FLAGS].sort(),
       archiveSuffix: extensions.EXTENSION_ARCHIVE_SUFFIX,
+    },
+    // v1.1 governed orchestration vocabulary. Every value is stable within
+    // 1.x: members may be appended, never renamed or removed.
+    'orchestration-contract.json': {
+      phases: [...orchestration.ORCHESTRATION_PHASES].sort(),
+      finalPhases: [...orchestration.FINAL_ORCHESTRATION_PHASES].sort(),
+      intentOutcomes: [...orchestration.INTENT_OUTCOMES].sort(),
+      provenanceKinds: [...orchestration.PROVENANCE_KINDS].sort(),
+      actionCategories: [...orchestration.ACTION_CATEGORIES].sort(),
+      observationResults: [...orchestration.OBSERVATION_RESULTS].sort(),
+      failureCategories: [...orchestration.FAILURE_CATEGORIES].sort(),
+      nextStepDirectives: [...orchestration.NEXT_STEP_DIRECTIVES].sort(),
+      planStalenessReasons: [...orchestration.PLAN_STALENESS_REASONS].sort(),
+      planChangeMateriality: [...orchestration.PLAN_CHANGE_MATERIALITY].sort(),
+      eventTypes: [...orchestration.ORCHESTRATION_EVENT_TYPES].sort(),
+      enforcementLevels: [...orchestration.ENFORCEMENT_LEVELS].sort(),
+      planReviewModes: [...core.PLAN_REVIEW_MODES].sort(),
+      errorCodes: Object.keys(orchestration.SBO_CODES).sort(),
     },
     'mcp-contract.json': {
       serverName: mcp.MCP_SERVER_NAME,

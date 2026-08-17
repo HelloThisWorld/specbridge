@@ -222,6 +222,67 @@
           }
         }
       },
+      "orchestrate": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "events": {
+            "options": [
+              "--help",
+              "--json",
+              "--limit",
+              "--offset"
+            ]
+          },
+          "explain": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "phases": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "policy": {
+            "options": [
+              "--help"
+            ],
+            "subcommands": {
+              "show": {
+                "options": [
+                  "--help",
+                  "--json"
+                ]
+              },
+              "validate": {
+                "options": [
+                  "--help",
+                  "--json"
+                ]
+              }
+            }
+          },
+          "show": {
+            "options": [
+              "--events",
+              "--help",
+              "--json"
+            ]
+          },
+          "status": {
+            "options": [
+              "--active",
+              "--help",
+              "--json",
+              "--spec"
+            ]
+          }
+        }
+      },
       "registry": {
         "options": [
           "--help"

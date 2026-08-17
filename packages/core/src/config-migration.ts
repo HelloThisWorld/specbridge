@@ -35,6 +35,7 @@ const KNOWN_V1_TOP_LEVEL = new Set([
   'runners',
   'verification',
   'execution',
+  'orchestration',
 ]);
 const KNOWN_V1_RUNNERS = new Set(['claude-code', 'mock', 'codex', 'ollama']);
 
@@ -171,6 +172,9 @@ export function planConfigMigration(raw: unknown): ConfigMigrationPlanResult {
   const runnerProfiles = migrateRunnersSection(v1, changes, warnings);
   changes.push('verification (trusted commands) preserved unchanged');
   changes.push('execution policy preserved unchanged');
+  const hasOrchestrationBlock =
+    typeof raw === 'object' && raw !== null && 'orchestration' in (raw as object);
+  if (hasOrchestrationBlock) changes.push('orchestration policy preserved unchanged');
   changes.push('operationDefaults added (all null — every operation keeps using defaultRunner)');
   changes.push('runnerPolicy added with safe defaults (automatic fallback stays disabled)');
   changes.push('fallbacks added empty (no automatic provider switching)');
@@ -199,6 +203,9 @@ export function planConfigMigration(raw: unknown): ConfigMigrationPlanResult {
     fallbacks: { stageGeneration: [], stageRefinement: [] },
     verification: v1.verification,
     execution: v1.execution,
+    // Only carried when the file actually declared it: migration must not
+    // materialize a policy block the user never wrote.
+    ...(hasOrchestrationBlock ? { orchestration: v1.orchestration } : {}),
     ...preservedUnknown,
   };
 

@@ -3,6 +3,8 @@ import path from 'node:path';
 import { z } from 'zod';
 import type { Diagnostic } from './types.js';
 import type { WorkspaceInfo } from './workspace.js';
+import type { OrchestrationPolicy } from './orchestration-config.js';
+import { orchestrationPolicySchema } from './orchestration-config.js';
 import type {
   AgentConfigFileV1,
   ClaudeRunnerConfig,
@@ -493,6 +495,8 @@ export const agentConfigV2Schema = z
     fallbacks: fallbacksSchema.default({}),
     verification: verificationConfigSchema.default({}),
     execution: executionPolicySchema.default({}),
+    /** v1.1 governed orchestration policy (additive; safe defaults). */
+    orchestration: orchestrationPolicySchema.default({}),
   })
   .passthrough()
   .superRefine((config, ctx) => {
@@ -555,6 +559,8 @@ export interface AgentConfig {
   fallbacks: FallbackConfig;
   verification: VerificationConfig;
   execution: ExecutionPolicy;
+  /** v1.1 governed orchestration policy (always resolved, never undefined). */
+  orchestration: OrchestrationPolicy;
 }
 
 function builtInClaudeProfile(base?: Partial<ClaudeRunnerConfig>): ClaudeProfileConfig {
@@ -663,6 +669,7 @@ export function resolveAgentConfigFromV1(v1: AgentConfigFileV1): AgentConfig {
     fallbacks: fallbacksSchema.parse({}),
     verification: v1.verification,
     execution: v1.execution,
+    orchestration: v1.orchestration,
   };
 }
 
@@ -678,6 +685,7 @@ export function resolveAgentConfigFromV2(v2: AgentConfigFileV2): AgentConfig {
     fallbacks: v2.fallbacks,
     verification: v2.verification,
     execution: v2.execution,
+    orchestration: v2.orchestration,
   };
 }
 
@@ -693,6 +701,7 @@ export function defaultResolvedAgentConfig(): AgentConfig {
     fallbacks: fallbacksSchema.parse({}),
     verification: verificationConfigSchema.parse({}),
     execution: executionPolicySchema.parse({}),
+    orchestration: orchestrationPolicySchema.parse({}),
   };
 }
 

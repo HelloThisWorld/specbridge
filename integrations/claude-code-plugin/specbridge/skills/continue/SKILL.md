@@ -1,14 +1,49 @@
 ---
 name: continue
-description: Continue an interrupted SpecBridge interactive run — inspect it, reconcile the repository state, and finish it with task_complete or close it with task_abort. Use when a run was left AWAITING_AGENT_CHANGES (interruption, crash, or handoff).
+description: Continue an interrupted SpecBridge run — an interactive task run or a governed orchestration run. Inspects it, reconciles repository state, detects a stale execution plan, and finishes it honestly. Use when work was left unfinished (interruption, crash, or handoff).
 ---
 
 # SpecBridge continue run
 
-Arguments: `<run-id>`.
+Arguments: `<run-id>` or `<orchestration-id>`.
 
 Honesty first: this continues the EXISTING run. Never silently start a new
 run and present it as a resumption.
+
+## Governed orchestration runs
+
+If the id is an orchestration run (or the user is unsure), call
+`orchestration_status` with it — or with no id to list recent runs.
+
+That single call performs the whole reconciliation, without changing
+anything: current phase, the active plan revision and whether it is still
+fresh, open clarifications, budget usage, the state of any interactive
+execution run it owns, and the exact next safe action.
+
+Then act on what it reports:
+
+- **finalized** (`COMPLETED`, `ABORTED`, `CANCELLED`, `REJECTED`) → report the
+  recorded outcome. There is nothing to continue; say so rather than starting
+  fresh work under the old id.
+- **plan stale** → do not implement against it. Explain which binding changed
+  (task, approved stage, Git baseline, or policy) and submit a replacement
+  plan with `orchestration_submit_plan`; review re-opens if the change is
+  material.
+- **open questions** → ask the user and record the answers with
+  `orchestration_resolve_clarification`.
+- **awaiting plan review** → present the plan and record the user's decision.
+- **blocked / budget exhausted** → report the blocker and its remediation. Do
+  not retry past a budget; the user decides whether to raise it.
+- **executing or repairing** → continue the loop as
+  `/specbridge:develop` describes, following the directive from
+  `orchestration_record_action`.
+
+You remember nothing from the earlier session. Trust the recorded state and
+the checkpoint; never narrate what a previous session was "thinking".
+
+## Interactive task runs
+
+For a plain interactive run id:
 
 1. Call the SpecBridge MCP tool `run_read` with the run id (find candidates
    with `run_list` filtered to `AWAITING_AGENT_CHANGES` if the user did not

@@ -13,7 +13,7 @@ reference, grouped by area.
 - [Using an existing Kiro project](getting-started/existing-kiro-project.md)
   — the zero-migration story and `specbridge setup`.
 - [Claude Code plugin](getting-started/claude-code-plugin.md) — install
-  pointer and the eleven skills.
+  pointer and the twelve skills.
 
 ## Specs & approvals
 
@@ -40,6 +40,24 @@ reference, grouped by area.
 - [Interactive task execution](interactive-task-execution.md) —
   `task_begin`/`task_complete` from a live agent session.
 - [Session resume](session-resume.md) — resuming interrupted runs.
+
+## Governed agent orchestration (v1.1)
+
+- [Agent orchestration](orchestration/agent-orchestration.md) — the
+  lifecycle, the state machine, and the SpecBridge/agent/evidence split.
+- [Intent and clarification](orchestration/intent-clarification.md) —
+  READY / NEEDS_CLARIFICATION / REJECTED / BLOCKED, and provenance instead
+  of confidence scores.
+- [Execution planning](orchestration/execution-planning.md) — plans bound to
+  task, approvals, and Git baseline; the review gate; materiality.
+- [Retry and repair](orchestration/retry-and-repair.md) — the failure
+  taxonomy, the decision order, and every budget.
+- [ReAct/TAO execution discipline](orchestration/react-tao-execution.md) —
+  the bounded loop, and why no chain-of-thought is stored.
+- [Orchestration recovery](orchestration/orchestration-recovery.md) —
+  resuming honestly, checkpoints, stale plans.
+- [Enforcement boundaries](orchestration/enforcement-boundaries.md) — what is
+  hard-enforced, contract-enforced, and merely skill-guided.
 
 ## Verification & CI
 
@@ -102,7 +120,7 @@ reference, grouped by area.
 ## MCP & Claude Code plugin
 
 - [MCP server](mcp-server.md) — the local stdio server.
-- [MCP tool reference](mcp/tool-reference.md) — all 37 tools (generated).
+- [MCP tool reference](mcp/tool-reference.md) — all 47 tools (generated).
 - [MCP tools](mcp-tools.md) · [resources](mcp-resources.md) ·
   [prompts](mcp-prompts.md) · [CLI/MCP parity](cli-mcp-parity.md).
 - [Claude Code integration](claude-code-integration.md) — both directions.
@@ -112,7 +130,8 @@ reference, grouped by area.
   [marketplace](plugin-marketplace.md) · [security](plugin-security.md) ·
   [release](plugin-release.md).
 - [Skill verification](skill-verification/README.md) — live-model results
-  for all eleven plugin skills.
+  for the eleven v1.0 plugin skills (the v1.1 `develop` skill is BLOCKED,
+  not yet live-verified).
 
 ## Migrations & recovery
 
@@ -125,7 +144,7 @@ reference, grouped by area.
 ## Security
 
 - [Security model](security.md) — the overall guarantees.
-- [Threat model](security/threat-model.md) — T01–T29 with mitigations and
+- [Threat model](security/threat-model.md) — T01–T32 with mitigations and
   explicit non-claims.
 - [Runner security](runner-security.md) ·
   [template security](template-security.md) ·

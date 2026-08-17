@@ -2,7 +2,7 @@
   "name": "specbridge",
   "displayName": "SpecBridge",
   "description": "Continue existing Kiro specs with Claude Code: validated stage authoring, verified interactive task execution, and deterministic spec drift checks.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": {
     "name": "HelloThisWorld"
   },

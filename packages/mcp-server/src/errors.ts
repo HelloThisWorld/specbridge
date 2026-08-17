@@ -1,4 +1,5 @@
 import { isSpecBridgeError } from '@specbridge/core';
+import { isOrchestrationError } from '@specbridge/orchestration';
 
 /**
  * Stable application error codes for MCP tool results.
@@ -34,6 +35,17 @@ export const SBMCP_CODES = {
   SBMCP018: 'input too large',
   SBMCP019: 'output too large',
   SBMCP020: 'internal runtime failure',
+  // v1.1 governed orchestration. Additive: no existing code changes meaning.
+  SBMCP021: 'orchestration disabled',
+  SBMCP022: 'orchestration run not found',
+  SBMCP023: 'orchestration state invalid',
+  SBMCP024: 'orchestration phase invalid',
+  SBMCP025: 'clarification required',
+  SBMCP026: 'execution plan required',
+  SBMCP027: 'execution plan stale',
+  SBMCP028: 'plan review required',
+  SBMCP029: 'orchestration budget exhausted',
+  SBMCP030: 'orchestration request rejected',
 } as const;
 
 export type SbmcpCode = keyof typeof SBMCP_CODES;
@@ -80,6 +92,24 @@ export function toErrorEnvelope(cause: unknown): ToolErrorEnvelope {
       details: cause.details,
     };
   }
+  // Orchestration domain errors carry their own stable SBO code, remediation,
+  // and retry semantics. Mapping happens here, once, so no handler invents an
+  // ad-hoc message for a governed refusal.
+  if (isOrchestrationError(cause)) {
+    const code = sbmcpCodeForOrchestrationError(cause.code);
+    return {
+      code,
+      category: SBMCP_CODES[code],
+      message: cause.message,
+      remediation: cause.remediation,
+      details: {
+        ...cause.details,
+        orchestrationCode: cause.code,
+        ...(cause.failureCategory !== undefined ? { failureCategory: cause.failureCategory } : {}),
+        retryable: cause.retryable,
+      },
+    };
+  }
   if (isSpecBridgeError(cause)) {
     const code = sbmcpCodeForSpecBridgeError(cause.code);
     return {
@@ -97,6 +127,50 @@ export function toErrorEnvelope(cause: unknown): ToolErrorEnvelope {
     remediation: [],
     details: {},
   };
+}
+
+/** SBO (orchestration domain) → SBMCP (MCP contract). One place, no drift. */
+function sbmcpCodeForOrchestrationError(code: string): SbmcpCode {
+  switch (code) {
+    case 'SBO001':
+      return 'SBMCP021';
+    case 'SBO002':
+      return 'SBMCP022';
+    case 'SBO003':
+      return 'SBMCP023';
+    case 'SBO004':
+    case 'SBO005':
+    case 'SBO019':
+      return 'SBMCP024';
+    case 'SBO006':
+    case 'SBO007':
+    case 'SBO008':
+      return 'SBMCP025';
+    case 'SBO009':
+    case 'SBO010':
+      return 'SBMCP026';
+    case 'SBO011':
+      return 'SBMCP027';
+    case 'SBO012':
+      return 'SBMCP028';
+    case 'SBO013':
+    case 'SBO014':
+    case 'SBO015':
+    case 'SBO016':
+    case 'SBO017':
+    case 'SBO018':
+    case 'SBO020':
+      return 'SBMCP029';
+    case 'SBO021':
+      return 'SBMCP018';
+    case 'SBO022':
+    case 'SBO024':
+      return 'SBMCP030';
+    case 'SBO023':
+      return 'SBMCP006';
+    default:
+      return 'SBMCP020';
+  }
 }
 
 function sbmcpCodeForSpecBridgeError(code: string): SbmcpCode {

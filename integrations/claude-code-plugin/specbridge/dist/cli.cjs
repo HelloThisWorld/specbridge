@@ -968,7 +968,7 @@ var require_command = __commonJS({
     "use strict";
     var EventEmitter2 = require("events").EventEmitter;
     var childProcess = require("child_process");
-    var path69 = require("path");
+    var path70 = require("path");
     var fs = require("fs");
     var process11 = require("process");
     var { Argument: Argument2, humanReadableArgName } = require_argument();
@@ -1901,9 +1901,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
         let launchWithNode = false;
         const sourceExt = [".js", ".ts", ".tsx", ".mjs", ".cjs"];
         function findFile(baseDir, baseName) {
-          const localBin = path69.resolve(baseDir, baseName);
+          const localBin = path70.resolve(baseDir, baseName);
           if (fs.existsSync(localBin)) return localBin;
-          if (sourceExt.includes(path69.extname(baseName))) return void 0;
+          if (sourceExt.includes(path70.extname(baseName))) return void 0;
           const foundExt = sourceExt.find(
             (ext) => fs.existsSync(`${localBin}${ext}`)
           );
@@ -1921,17 +1921,17 @@ Expecting one of '${allowedValues.join("', '")}'`);
           } catch (err) {
             resolvedScriptPath = this._scriptPath;
           }
-          executableDir = path69.resolve(
-            path69.dirname(resolvedScriptPath),
+          executableDir = path70.resolve(
+            path70.dirname(resolvedScriptPath),
             executableDir
           );
         }
         if (executableDir) {
           let localFile = findFile(executableDir, executableFile);
           if (!localFile && !subcommand._executableFile && this._scriptPath) {
-            const legacyName = path69.basename(
+            const legacyName = path70.basename(
               this._scriptPath,
-              path69.extname(this._scriptPath)
+              path70.extname(this._scriptPath)
             );
             if (legacyName !== this._name) {
               localFile = findFile(
@@ -1942,7 +1942,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
           }
           executableFile = localFile || executableFile;
         }
-        launchWithNode = sourceExt.includes(path69.extname(executableFile));
+        launchWithNode = sourceExt.includes(path70.extname(executableFile));
         let proc;
         if (process11.platform !== "win32") {
           if (launchWithNode) {
@@ -2782,7 +2782,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @return {Command}
        */
       nameFromFilename(filename) {
-        this._name = path69.basename(filename, path69.extname(filename));
+        this._name = path70.basename(filename, path70.extname(filename));
         return this;
       }
       /**
@@ -2796,9 +2796,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @param {string} [path]
        * @return {(string|null|Command)}
        */
-      executableDir(path70) {
-        if (path70 === void 0) return this._executableDir;
-        this._executableDir = path70;
+      executableDir(path71) {
+        if (path71 === void 0) return this._executableDir;
+        this._executableDir = path71;
         return this;
       }
       /**
@@ -2937,7 +2937,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @param {(string | Function)} text - string to add, or a function returning a string
        * @return {Command} `this` command for chaining
        */
-      addHelpText(position, text) {
+      addHelpText(position, text2) {
         const allowedValues = ["beforeAll", "before", "after", "afterAll"];
         if (!allowedValues.includes(position)) {
           throw new Error(`Unexpected value for position to addHelpText.
@@ -2946,10 +2946,10 @@ Expecting one of '${allowedValues.join("', '")}'`);
         const helpEvent = `${position}Help`;
         this.on(helpEvent, (context) => {
           let helpStr;
-          if (typeof text === "function") {
-            helpStr = text({ error: context.error, command: context.command });
+          if (typeof text2 === "function") {
+            helpStr = text2({ error: context.error, command: context.command });
           } else {
-            helpStr = text;
+            helpStr = text2;
           }
           if (helpStr) {
             context.write(`${helpStr}
@@ -3026,79 +3026,6 @@ var require_commander = __commonJS({
     exports2.CommanderError = CommanderError2;
     exports2.InvalidArgumentError = InvalidArgumentError2;
     exports2.InvalidOptionArgumentError = InvalidArgumentError2;
-  }
-});
-
-// ../../node_modules/.pnpm/picocolors@1.1.1/node_modules/picocolors/picocolors.js
-var require_picocolors = __commonJS({
-  "../../node_modules/.pnpm/picocolors@1.1.1/node_modules/picocolors/picocolors.js"(exports2, module2) {
-    "use strict";
-    var p = process || {};
-    var argv2 = p.argv || [];
-    var env = p.env || {};
-    var isColorSupported = !(!!env.NO_COLOR || argv2.includes("--no-color")) && (!!env.FORCE_COLOR || argv2.includes("--color") || p.platform === "win32" || (p.stdout || {}).isTTY && env.TERM !== "dumb" || !!env.CI);
-    var formatter = (open, close, replace = open) => (input) => {
-      let string3 = "" + input, index = string3.indexOf(close, open.length);
-      return ~index ? open + replaceClose(string3, close, replace, index) + close : open + string3 + close;
-    };
-    var replaceClose = (string3, close, replace, index) => {
-      let result = "", cursor = 0;
-      do {
-        result += string3.substring(cursor, index) + replace;
-        cursor = index + close.length;
-        index = string3.indexOf(close, cursor);
-      } while (~index);
-      return result + string3.substring(cursor);
-    };
-    var createColors = (enabled = isColorSupported) => {
-      let f = enabled ? formatter : () => String;
-      return {
-        isColorSupported: enabled,
-        reset: f("\x1B[0m", "\x1B[0m"),
-        bold: f("\x1B[1m", "\x1B[22m", "\x1B[22m\x1B[1m"),
-        dim: f("\x1B[2m", "\x1B[22m", "\x1B[22m\x1B[2m"),
-        italic: f("\x1B[3m", "\x1B[23m"),
-        underline: f("\x1B[4m", "\x1B[24m"),
-        inverse: f("\x1B[7m", "\x1B[27m"),
-        hidden: f("\x1B[8m", "\x1B[28m"),
-        strikethrough: f("\x1B[9m", "\x1B[29m"),
-        black: f("\x1B[30m", "\x1B[39m"),
-        red: f("\x1B[31m", "\x1B[39m"),
-        green: f("\x1B[32m", "\x1B[39m"),
-        yellow: f("\x1B[33m", "\x1B[39m"),
-        blue: f("\x1B[34m", "\x1B[39m"),
-        magenta: f("\x1B[35m", "\x1B[39m"),
-        cyan: f("\x1B[36m", "\x1B[39m"),
-        white: f("\x1B[37m", "\x1B[39m"),
-        gray: f("\x1B[90m", "\x1B[39m"),
-        bgBlack: f("\x1B[40m", "\x1B[49m"),
-        bgRed: f("\x1B[41m", "\x1B[49m"),
-        bgGreen: f("\x1B[42m", "\x1B[49m"),
-        bgYellow: f("\x1B[43m", "\x1B[49m"),
-        bgBlue: f("\x1B[44m", "\x1B[49m"),
-        bgMagenta: f("\x1B[45m", "\x1B[49m"),
-        bgCyan: f("\x1B[46m", "\x1B[49m"),
-        bgWhite: f("\x1B[47m", "\x1B[49m"),
-        blackBright: f("\x1B[90m", "\x1B[39m"),
-        redBright: f("\x1B[91m", "\x1B[39m"),
-        greenBright: f("\x1B[92m", "\x1B[39m"),
-        yellowBright: f("\x1B[93m", "\x1B[39m"),
-        blueBright: f("\x1B[94m", "\x1B[39m"),
-        magentaBright: f("\x1B[95m", "\x1B[39m"),
-        cyanBright: f("\x1B[96m", "\x1B[39m"),
-        whiteBright: f("\x1B[97m", "\x1B[39m"),
-        bgBlackBright: f("\x1B[100m", "\x1B[49m"),
-        bgRedBright: f("\x1B[101m", "\x1B[49m"),
-        bgGreenBright: f("\x1B[102m", "\x1B[49m"),
-        bgYellowBright: f("\x1B[103m", "\x1B[49m"),
-        bgBlueBright: f("\x1B[104m", "\x1B[49m"),
-        bgMagentaBright: f("\x1B[105m", "\x1B[49m"),
-        bgCyanBright: f("\x1B[106m", "\x1B[49m"),
-        bgWhiteBright: f("\x1B[107m", "\x1B[49m")
-      };
-    };
-    module2.exports = createColors();
-    module2.exports.createColors = createColors;
   }
 });
 
@@ -3179,17 +3106,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path69) {
-      const ctrl = callVisitor(key, node, visitor, path69);
+    function visit_(key, node, visitor, path70) {
+      const ctrl = callVisitor(key, node, visitor, path70);
       if (identity3.isNode(ctrl) || identity3.isPair(ctrl)) {
-        replaceNode(key, path69, ctrl);
-        return visit_(key, ctrl, visitor, path69);
+        replaceNode(key, path70, ctrl);
+        return visit_(key, ctrl, visitor, path70);
       }
       if (typeof ctrl !== "symbol") {
         if (identity3.isCollection(node)) {
-          path69 = Object.freeze(path69.concat(node));
+          path70 = Object.freeze(path70.concat(node));
           for (let i2 = 0; i2 < node.items.length; ++i2) {
-            const ci = visit_(i2, node.items[i2], visitor, path69);
+            const ci = visit_(i2, node.items[i2], visitor, path70);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -3200,13 +3127,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity3.isPair(node)) {
-          path69 = Object.freeze(path69.concat(node));
-          const ck = visit_("key", node.key, visitor, path69);
+          path70 = Object.freeze(path70.concat(node));
+          const ck = visit_("key", node.key, visitor, path70);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path69);
+          const cv = visit_("value", node.value, visitor, path70);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -3227,17 +3154,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path69) {
-      const ctrl = await callVisitor(key, node, visitor, path69);
+    async function visitAsync_(key, node, visitor, path70) {
+      const ctrl = await callVisitor(key, node, visitor, path70);
       if (identity3.isNode(ctrl) || identity3.isPair(ctrl)) {
-        replaceNode(key, path69, ctrl);
-        return visitAsync_(key, ctrl, visitor, path69);
+        replaceNode(key, path70, ctrl);
+        return visitAsync_(key, ctrl, visitor, path70);
       }
       if (typeof ctrl !== "symbol") {
         if (identity3.isCollection(node)) {
-          path69 = Object.freeze(path69.concat(node));
+          path70 = Object.freeze(path70.concat(node));
           for (let i2 = 0; i2 < node.items.length; ++i2) {
-            const ci = await visitAsync_(i2, node.items[i2], visitor, path69);
+            const ci = await visitAsync_(i2, node.items[i2], visitor, path70);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -3248,13 +3175,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity3.isPair(node)) {
-          path69 = Object.freeze(path69.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path69);
+          path70 = Object.freeze(path70.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path70);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path69);
+          const cv = await visitAsync_("value", node.value, visitor, path70);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -3281,23 +3208,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path69) {
+    function callVisitor(key, node, visitor, path70) {
       if (typeof visitor === "function")
-        return visitor(key, node, path69);
+        return visitor(key, node, path70);
       if (identity3.isMap(node))
-        return visitor.Map?.(key, node, path69);
+        return visitor.Map?.(key, node, path70);
       if (identity3.isSeq(node))
-        return visitor.Seq?.(key, node, path69);
+        return visitor.Seq?.(key, node, path70);
       if (identity3.isPair(node))
-        return visitor.Pair?.(key, node, path69);
+        return visitor.Pair?.(key, node, path70);
       if (identity3.isScalar(node))
-        return visitor.Scalar?.(key, node, path69);
+        return visitor.Scalar?.(key, node, path70);
       if (identity3.isAlias(node))
-        return visitor.Alias?.(key, node, path69);
+        return visitor.Alias?.(key, node, path70);
       return void 0;
     }
-    function replaceNode(key, path69, node) {
-      const parent = path69[path69.length - 1];
+    function replaceNode(key, path70, node) {
+      const parent = path70[path70.length - 1];
       if (identity3.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity3.isPair(parent)) {
@@ -3907,10 +3834,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity3 = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path69, value) {
+    function collectionFromPath(schema, path70, value) {
       let v = value;
-      for (let i2 = path69.length - 1; i2 >= 0; --i2) {
-        const k = path69[i2];
+      for (let i2 = path70.length - 1; i2 >= 0; --i2) {
+        const k = path70[i2];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a2 = [];
           a2[k] = v;
@@ -3929,7 +3856,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path69) => path69 == null || typeof path69 === "object" && !!path69[Symbol.iterator]().next().done;
+    var isEmptyPath = (path70) => path70 == null || typeof path70 === "object" && !!path70[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -3959,11 +3886,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path69, value) {
-        if (isEmptyPath(path69))
+      addIn(path70, value) {
+        if (isEmptyPath(path70))
           this.add(value);
         else {
-          const [key, ...rest] = path69;
+          const [key, ...rest] = path70;
           const node = this.get(key, true);
           if (identity3.isCollection(node))
             node.addIn(rest, value);
@@ -3977,8 +3904,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path69) {
-        const [key, ...rest] = path69;
+      deleteIn(path70) {
+        const [key, ...rest] = path70;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -3992,8 +3919,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path69, keepScalar) {
-        const [key, ...rest] = path69;
+      getIn(path70, keepScalar) {
+        const [key, ...rest] = path70;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity3.isScalar(node) ? node.value : node;
@@ -4011,8 +3938,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path69) {
-        const [key, ...rest] = path69;
+      hasIn(path70) {
+        const [key, ...rest] = path70;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -4022,8 +3949,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path69, value) {
-        const [key, ...rest] = path69;
+      setIn(path70, value) {
+        const [key, ...rest] = path70;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -4067,14 +3994,14 @@ var require_foldFlowLines = __commonJS({
     var FOLD_FLOW = "flow";
     var FOLD_BLOCK = "block";
     var FOLD_QUOTED = "quoted";
-    function foldFlowLines(text, indent, mode = "flow", { indentAtStart, lineWidth = 80, minContentWidth = 20, onFold, onOverflow } = {}) {
+    function foldFlowLines(text2, indent, mode = "flow", { indentAtStart, lineWidth = 80, minContentWidth = 20, onFold, onOverflow } = {}) {
       if (!lineWidth || lineWidth < 0)
-        return text;
+        return text2;
       if (lineWidth < minContentWidth)
         minContentWidth = 0;
       const endStep = Math.max(1 + minContentWidth, 1 + lineWidth - indent.length);
-      if (text.length <= endStep)
-        return text;
+      if (text2.length <= endStep)
+        return text2;
       const folds = [];
       const escapedFolds = {};
       let end = lineWidth - indent.length;
@@ -4091,14 +4018,14 @@ var require_foldFlowLines = __commonJS({
       let escStart = -1;
       let escEnd = -1;
       if (mode === FOLD_BLOCK) {
-        i2 = consumeMoreIndentedLines(text, i2, indent.length);
+        i2 = consumeMoreIndentedLines(text2, i2, indent.length);
         if (i2 !== -1)
           end = i2 + endStep;
       }
-      for (let ch; ch = text[i2 += 1]; ) {
+      for (let ch; ch = text2[i2 += 1]; ) {
         if (mode === FOLD_QUOTED && ch === "\\") {
           escStart = i2;
-          switch (text[i2 + 1]) {
+          switch (text2[i2 + 1]) {
             case "x":
               i2 += 3;
               break;
@@ -4115,12 +4042,12 @@ var require_foldFlowLines = __commonJS({
         }
         if (ch === "\n") {
           if (mode === FOLD_BLOCK)
-            i2 = consumeMoreIndentedLines(text, i2, indent.length);
+            i2 = consumeMoreIndentedLines(text2, i2, indent.length);
           end = i2 + indent.length + endStep;
           split = void 0;
         } else {
           if (ch === " " && prev && prev !== " " && prev !== "\n" && prev !== "	") {
-            const next = text[i2 + 1];
+            const next = text2[i2 + 1];
             if (next && next !== " " && next !== "\n" && next !== "	")
               split = i2;
           }
@@ -4132,12 +4059,12 @@ var require_foldFlowLines = __commonJS({
             } else if (mode === FOLD_QUOTED) {
               while (prev === " " || prev === "	") {
                 prev = ch;
-                ch = text[i2 += 1];
+                ch = text2[i2 += 1];
                 overflow = true;
               }
               const j = i2 > escEnd + 1 ? i2 - 2 : escStart - 1;
               if (escapedFolds[j])
-                return text;
+                return text2;
               folds.push(j);
               escapedFolds[j] = true;
               end = j + endStep;
@@ -4152,39 +4079,39 @@ var require_foldFlowLines = __commonJS({
       if (overflow && onOverflow)
         onOverflow();
       if (folds.length === 0)
-        return text;
+        return text2;
       if (onFold)
         onFold();
-      let res = text.slice(0, folds[0]);
+      let res = text2.slice(0, folds[0]);
       for (let i3 = 0; i3 < folds.length; ++i3) {
         const fold = folds[i3];
-        const end2 = folds[i3 + 1] || text.length;
+        const end2 = folds[i3 + 1] || text2.length;
         if (fold === 0)
           res = `
-${indent}${text.slice(0, end2)}`;
+${indent}${text2.slice(0, end2)}`;
         else {
           if (mode === FOLD_QUOTED && escapedFolds[fold])
-            res += `${text[fold]}\\`;
+            res += `${text2[fold]}\\`;
           res += `
-${indent}${text.slice(fold + 1, end2)}`;
+${indent}${text2.slice(fold + 1, end2)}`;
         }
       }
       return res;
     }
-    function consumeMoreIndentedLines(text, i2, indent) {
+    function consumeMoreIndentedLines(text2, i2, indent) {
       let end = i2;
       let start = i2 + 1;
-      let ch = text[start];
+      let ch = text2[start];
       while (ch === " " || ch === "	") {
         if (i2 < start + indent) {
-          ch = text[++i2];
+          ch = text2[++i2];
         } else {
           do {
-            ch = text[++i2];
+            ch = text2[++i2];
           } while (ch && ch !== "\n");
           end = i2;
           start = i2 + 1;
-          ch = text[start];
+          ch = text2[start];
         }
       }
       return end;
@@ -6538,9 +6465,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path69, value) {
+      addIn(path70, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path69, value);
+          this.contents.addIn(path70, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -6615,14 +6542,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path69) {
-        if (Collection.isEmptyPath(path69)) {
+      deleteIn(path70) {
+        if (Collection.isEmptyPath(path70)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path69) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path70) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -6637,10 +6564,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path69, keepScalar) {
-        if (Collection.isEmptyPath(path69))
+      getIn(path70, keepScalar) {
+        if (Collection.isEmptyPath(path70))
           return !keepScalar && identity3.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity3.isCollection(this.contents) ? this.contents.getIn(path69, keepScalar) : void 0;
+        return identity3.isCollection(this.contents) ? this.contents.getIn(path70, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -6651,10 +6578,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path69) {
-        if (Collection.isEmptyPath(path69))
+      hasIn(path70) {
+        if (Collection.isEmptyPath(path70))
           return this.contents !== void 0;
-        return identity3.isCollection(this.contents) ? this.contents.hasIn(path69) : false;
+        return identity3.isCollection(this.contents) ? this.contents.hasIn(path70) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -6671,13 +6598,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path69, value) {
-        if (Collection.isEmptyPath(path69)) {
+      setIn(path70, value) {
+        if (Collection.isEmptyPath(path70)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path69), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path70), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path69, value);
+          this.contents.setIn(path70, value);
         }
       }
       /**
@@ -8637,9 +8564,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path69) => {
+    visit.itemAtPath = (cst, path70) => {
       let item = cst;
-      for (const [field, index] of path69) {
+      for (const [field, index] of path70) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -8648,23 +8575,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path69) => {
-      const parent = visit.itemAtPath(cst, path69.slice(0, -1));
-      const field = path69[path69.length - 1][0];
+    visit.parentCollection = (cst, path70) => {
+      const parent = visit.itemAtPath(cst, path70.slice(0, -1));
+      const field = path70[path70.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path69, item, visitor) {
-      let ctrl = visitor(item, path69);
+    function _visit(path70, item, visitor) {
+      let ctrl = visitor(item, path70);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i2 = 0; i2 < token.items.length; ++i2) {
-            const ci = _visit(Object.freeze(path69.concat([[field, i2]])), token.items[i2], visitor);
+            const ci = _visit(Object.freeze(path70.concat([[field, i2]])), token.items[i2], visitor);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -8675,10 +8602,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path69);
+            ctrl = ctrl(item, path70);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path69) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path70) : ctrl;
     }
     exports2.visit = visit;
   }
@@ -10436,7 +10363,7 @@ var require_windows = __commonJS({
     module2.exports = isexe;
     isexe.sync = sync;
     var fs = require("fs");
-    function checkPathExt(path69, options) {
+    function checkPathExt(path70, options) {
       var pathext = options.pathExt !== void 0 ? options.pathExt : process.env.PATHEXT;
       if (!pathext) {
         return true;
@@ -10447,25 +10374,25 @@ var require_windows = __commonJS({
       }
       for (var i2 = 0; i2 < pathext.length; i2++) {
         var p = pathext[i2].toLowerCase();
-        if (p && path69.substr(-p.length).toLowerCase() === p) {
+        if (p && path70.substr(-p.length).toLowerCase() === p) {
           return true;
         }
       }
       return false;
     }
-    function checkStat(stat, path69, options) {
+    function checkStat(stat, path70, options) {
       if (!stat.isSymbolicLink() && !stat.isFile()) {
         return false;
       }
-      return checkPathExt(path69, options);
+      return checkPathExt(path70, options);
     }
-    function isexe(path69, options, cb) {
-      fs.stat(path69, function(er, stat) {
-        cb(er, er ? false : checkStat(stat, path69, options));
+    function isexe(path70, options, cb) {
+      fs.stat(path70, function(er, stat) {
+        cb(er, er ? false : checkStat(stat, path70, options));
       });
     }
-    function sync(path69, options) {
-      return checkStat(fs.statSync(path69), path69, options);
+    function sync(path70, options) {
+      return checkStat(fs.statSync(path70), path70, options);
     }
   }
 });
@@ -10477,13 +10404,13 @@ var require_mode = __commonJS({
     module2.exports = isexe;
     isexe.sync = sync;
     var fs = require("fs");
-    function isexe(path69, options, cb) {
-      fs.stat(path69, function(er, stat) {
+    function isexe(path70, options, cb) {
+      fs.stat(path70, function(er, stat) {
         cb(er, er ? false : checkStat(stat, options));
       });
     }
-    function sync(path69, options) {
-      return checkStat(fs.statSync(path69), options);
+    function sync(path70, options) {
+      return checkStat(fs.statSync(path70), options);
     }
     function checkStat(stat, options) {
       return stat.isFile() && checkMode(stat, options);
@@ -10517,7 +10444,7 @@ var require_isexe = __commonJS({
     }
     module2.exports = isexe;
     isexe.sync = sync;
-    function isexe(path69, options, cb) {
+    function isexe(path70, options, cb) {
       if (typeof options === "function") {
         cb = options;
         options = {};
@@ -10527,7 +10454,7 @@ var require_isexe = __commonJS({
           throw new TypeError("callback not provided");
         }
         return new Promise(function(resolve, reject) {
-          isexe(path69, options || {}, function(er, is) {
+          isexe(path70, options || {}, function(er, is) {
             if (er) {
               reject(er);
             } else {
@@ -10536,7 +10463,7 @@ var require_isexe = __commonJS({
           });
         });
       }
-      core(path69, options || {}, function(er, is) {
+      core(path70, options || {}, function(er, is) {
         if (er) {
           if (er.code === "EACCES" || options && options.ignoreErrors) {
             er = null;
@@ -10546,9 +10473,9 @@ var require_isexe = __commonJS({
         cb(er, is);
       });
     }
-    function sync(path69, options) {
+    function sync(path70, options) {
       try {
-        return core.sync(path69, options || {});
+        return core.sync(path70, options || {});
       } catch (er) {
         if (options && options.ignoreErrors || er.code === "EACCES") {
           return false;
@@ -10565,7 +10492,7 @@ var require_which = __commonJS({
   "../../node_modules/.pnpm/which@2.0.2/node_modules/which/which.js"(exports2, module2) {
     "use strict";
     var isWindows = process.platform === "win32" || process.env.OSTYPE === "cygwin" || process.env.OSTYPE === "msys";
-    var path69 = require("path");
+    var path70 = require("path");
     var COLON = isWindows ? ";" : ":";
     var isexe = require_isexe();
     var getNotFoundError = (cmd) => Object.assign(new Error(`not found: ${cmd}`), { code: "ENOENT" });
@@ -10603,7 +10530,7 @@ var require_which = __commonJS({
           return opt.all && found.length ? resolve(found) : reject(getNotFoundError(cmd));
         const ppRaw = pathEnv[i2];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path69.join(pathPart, cmd);
+        const pCmd = path70.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         resolve(subStep(p, i2, 0));
       });
@@ -10630,7 +10557,7 @@ var require_which = __commonJS({
       for (let i2 = 0; i2 < pathEnv.length; i2++) {
         const ppRaw = pathEnv[i2];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path69.join(pathPart, cmd);
+        const pCmd = path70.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         for (let j = 0; j < pathExt.length; j++) {
           const cur = p + pathExt[j];
@@ -10678,7 +10605,7 @@ var require_path_key = __commonJS({
 var require_resolveCommand = __commonJS({
   "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js"(exports2, module2) {
     "use strict";
-    var path69 = require("path");
+    var path70 = require("path");
     var which = require_which();
     var getPathKey = require_path_key();
     function resolveCommandAttempt(parsed, withoutPathExt) {
@@ -10696,7 +10623,7 @@ var require_resolveCommand = __commonJS({
       try {
         resolved = which.sync(parsed.command, {
           path: env[getPathKey({ env })],
-          pathExt: withoutPathExt ? path69.delimiter : void 0
+          pathExt: withoutPathExt ? path70.delimiter : void 0
         });
       } catch (e) {
       } finally {
@@ -10705,7 +10632,7 @@ var require_resolveCommand = __commonJS({
         }
       }
       if (resolved) {
-        resolved = path69.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
+        resolved = path70.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
       }
       return resolved;
     }
@@ -10759,8 +10686,8 @@ var require_shebang_command = __commonJS({
       if (!match) {
         return null;
       }
-      const [path69, argument] = match[0].replace(/#! ?/, "").split(" ");
-      const binary = path69.split("/").pop();
+      const [path70, argument] = match[0].replace(/#! ?/, "").split(" ");
+      const binary = path70.split("/").pop();
       if (binary === "env") {
         return argument;
       }
@@ -10795,7 +10722,7 @@ var require_readShebang = __commonJS({
 var require_parse = __commonJS({
   "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js"(exports2, module2) {
     "use strict";
-    var path69 = require("path");
+    var path70 = require("path");
     var resolveCommand = require_resolveCommand();
     var escape2 = require_escape();
     var readShebang = require_readShebang();
@@ -10820,7 +10747,7 @@ var require_parse = __commonJS({
       const needsShell = !isExecutableRegExp.test(commandFile);
       if (parsed.options.forceShell || needsShell) {
         const needsDoubleEscapeMetaChars = isCmdShimRegExp.test(commandFile);
-        parsed.command = path69.normalize(parsed.command);
+        parsed.command = path70.normalize(parsed.command);
         parsed.command = escape2.command(parsed.command);
         parsed.args = parsed.args.map((arg) => escape2.argument(arg, needsDoubleEscapeMetaChars));
         const shellCommand = [parsed.command].concat(parsed.args).join(" ");
@@ -10927,6 +10854,79 @@ var require_cross_spawn = __commonJS({
     module2.exports.sync = spawnSync2;
     module2.exports._parse = parse3;
     module2.exports._enoent = enoent;
+  }
+});
+
+// ../../node_modules/.pnpm/picocolors@1.1.1/node_modules/picocolors/picocolors.js
+var require_picocolors = __commonJS({
+  "../../node_modules/.pnpm/picocolors@1.1.1/node_modules/picocolors/picocolors.js"(exports2, module2) {
+    "use strict";
+    var p = process || {};
+    var argv2 = p.argv || [];
+    var env = p.env || {};
+    var isColorSupported = !(!!env.NO_COLOR || argv2.includes("--no-color")) && (!!env.FORCE_COLOR || argv2.includes("--color") || p.platform === "win32" || (p.stdout || {}).isTTY && env.TERM !== "dumb" || !!env.CI);
+    var formatter = (open, close, replace = open) => (input) => {
+      let string3 = "" + input, index = string3.indexOf(close, open.length);
+      return ~index ? open + replaceClose(string3, close, replace, index) + close : open + string3 + close;
+    };
+    var replaceClose = (string3, close, replace, index) => {
+      let result = "", cursor = 0;
+      do {
+        result += string3.substring(cursor, index) + replace;
+        cursor = index + close.length;
+        index = string3.indexOf(close, cursor);
+      } while (~index);
+      return result + string3.substring(cursor);
+    };
+    var createColors = (enabled = isColorSupported) => {
+      let f = enabled ? formatter : () => String;
+      return {
+        isColorSupported: enabled,
+        reset: f("\x1B[0m", "\x1B[0m"),
+        bold: f("\x1B[1m", "\x1B[22m", "\x1B[22m\x1B[1m"),
+        dim: f("\x1B[2m", "\x1B[22m", "\x1B[22m\x1B[2m"),
+        italic: f("\x1B[3m", "\x1B[23m"),
+        underline: f("\x1B[4m", "\x1B[24m"),
+        inverse: f("\x1B[7m", "\x1B[27m"),
+        hidden: f("\x1B[8m", "\x1B[28m"),
+        strikethrough: f("\x1B[9m", "\x1B[29m"),
+        black: f("\x1B[30m", "\x1B[39m"),
+        red: f("\x1B[31m", "\x1B[39m"),
+        green: f("\x1B[32m", "\x1B[39m"),
+        yellow: f("\x1B[33m", "\x1B[39m"),
+        blue: f("\x1B[34m", "\x1B[39m"),
+        magenta: f("\x1B[35m", "\x1B[39m"),
+        cyan: f("\x1B[36m", "\x1B[39m"),
+        white: f("\x1B[37m", "\x1B[39m"),
+        gray: f("\x1B[90m", "\x1B[39m"),
+        bgBlack: f("\x1B[40m", "\x1B[49m"),
+        bgRed: f("\x1B[41m", "\x1B[49m"),
+        bgGreen: f("\x1B[42m", "\x1B[49m"),
+        bgYellow: f("\x1B[43m", "\x1B[49m"),
+        bgBlue: f("\x1B[44m", "\x1B[49m"),
+        bgMagenta: f("\x1B[45m", "\x1B[49m"),
+        bgCyan: f("\x1B[46m", "\x1B[49m"),
+        bgWhite: f("\x1B[47m", "\x1B[49m"),
+        blackBright: f("\x1B[90m", "\x1B[39m"),
+        redBright: f("\x1B[91m", "\x1B[39m"),
+        greenBright: f("\x1B[92m", "\x1B[39m"),
+        yellowBright: f("\x1B[93m", "\x1B[39m"),
+        blueBright: f("\x1B[94m", "\x1B[39m"),
+        magentaBright: f("\x1B[95m", "\x1B[39m"),
+        cyanBright: f("\x1B[96m", "\x1B[39m"),
+        whiteBright: f("\x1B[97m", "\x1B[39m"),
+        bgBlackBright: f("\x1B[100m", "\x1B[49m"),
+        bgRedBright: f("\x1B[101m", "\x1B[49m"),
+        bgGreenBright: f("\x1B[102m", "\x1B[49m"),
+        bgYellowBright: f("\x1B[103m", "\x1B[49m"),
+        bgBlueBright: f("\x1B[104m", "\x1B[49m"),
+        bgMagentaBright: f("\x1B[105m", "\x1B[49m"),
+        bgCyanBright: f("\x1B[106m", "\x1B[49m"),
+        bgWhiteBright: f("\x1B[107m", "\x1B[49m")
+      };
+    };
+    module2.exports = createColors();
+    module2.exports.createColors = createColors;
   }
 });
 
@@ -11185,8 +11185,8 @@ var require_utils = __commonJS({
       }
       return output;
     };
-    exports2.basename = (path69, { windows } = {}) => {
-      const segs = path69.split(windows ? /[\\/]/ : "/");
+    exports2.basename = (path70, { windows } = {}) => {
+      const segs = path70.split(windows ? /[\\/]/ : "/");
       const last = segs[segs.length - 1];
       if (last === "") {
         return segs[segs.length - 2];
@@ -15893,8 +15893,8 @@ var require_utils2 = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path69) {
-      let input = path69;
+    function removeDotSegments(path70) {
+      let input = path70;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -16146,8 +16146,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path69, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path69 && path69 !== "/" ? path69 : void 0;
+        const [path70, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path70 && path70 !== "/" ? path70 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -16979,7 +16979,7 @@ var require_core = __commonJS({
       errorsText(errors = this.errors, { separator = ", ", dataVar = "data" } = {}) {
         if (!errors || errors.length === 0)
           return "No errors";
-        return errors.map((e) => `${dataVar}${e.instancePath} ${e.message}`).reduce((text, msg) => text + separator + msg);
+        return errors.map((e) => `${dataVar}${e.instancePath} ${e.message}`).reduce((text2, msg) => text2 + separator + msg);
       }
       $dataMetaSchema(metaSchema, keywordsJsonPointers) {
         const rules = this.RULES.all;
@@ -20056,8 +20056,8 @@ function getErrorMap() {
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path69, errorMaps, issueData } = params;
-  const fullPath = [...path69, ...issueData.path || []];
+  const { data, path: path70, errorMaps, issueData } = params;
+  const fullPath = [...path70, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -20173,11 +20173,11 @@ var errorUtil;
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path69, key) {
+  constructor(parent, value, path70, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path69;
+    this._path = path70;
     this._key = key;
   }
   get path() {
@@ -23886,8 +23886,8 @@ function specStateDir(workspace) {
   return import_path2.default.join(workspace.sidecarDir, "state", "specs");
 }
 function invalidStateDiagnostic(statePath, parsed, issues) {
-  const record2 = typeof parsed === "object" && parsed !== null ? parsed : {};
-  if (record2["schemaVersion"] === void 0 && record2["specName"] !== void 0) {
+  const record3 = typeof parsed === "object" && parsed !== null ? parsed : {};
+  if (record3["schemaVersion"] === void 0 && record3["specName"] !== void 0) {
     return {
       severity: "warning",
       code: "SIDECAR_STATE_LEGACY",
@@ -23895,7 +23895,7 @@ function invalidStateDiagnostic(statePath, parsed, issues) {
       file: statePath
     };
   }
-  const version2 = record2["schemaVersion"];
+  const version2 = record3["schemaVersion"];
   if (typeof version2 === "string" && !version2.startsWith("1.")) {
     return {
       severity: "warning",
@@ -24388,6 +24388,83 @@ function reachesFailureThreshold(counts, threshold) {
   if (threshold === "warning") return counts.errors > 0 || counts.warnings > 0;
   return counts.errors > 0;
 }
+var PLAN_REVIEW_MODES = ["review", "auto", "disabled"];
+var orchestrationPlanningPolicySchema = external_exports.object({
+  mode: external_exports.enum(PLAN_REVIEW_MODES).default("review"),
+  /** Maximum number of replans in one orchestration run. */
+  maxReplans: external_exports.number().int().min(0).max(20).default(2),
+  /** Maximum stored size of one execution plan document. */
+  maxPlanBytes: external_exports.number().int().min(1024).max(1048576).default(65536),
+  /** Maximum ordered implementation steps in one plan. */
+  maxPlanSteps: external_exports.number().int().min(1).max(200).default(40)
+}).passthrough();
+var orchestrationExecutionPolicySchema = external_exports.object({
+  /** Hard ceiling on recorded observe/decide/act iterations. */
+  maxIterations: external_exports.number().int().min(1).max(500).default(12),
+  /** Hard ceiling on repair cycles triggered by verification failures. */
+  maxRepairCycles: external_exports.number().int().min(0).max(50).default(3),
+  /** Consecutive no-progress cycles tolerated before replan or block. */
+  maxNoProgressCycles: external_exports.number().int().min(1).max(20).default(2),
+  /**
+   * Wall-clock budget for one orchestration run. Enforced whenever a
+   * decision is requested — SpecBridge never interrupts a host agent
+   * mid-thought, it refuses the next step.
+   */
+  maxElapsedMs: external_exports.number().int().min(6e4).max(7 * 24 * 36e5).default(4 * 36e5)
+}).passthrough();
+var orchestrationRetryPolicySchema = external_exports.object({
+  /** Bounded retries for operations classified as safely transient. */
+  maxTransientRetries: external_exports.number().int().min(0).max(10).default(2),
+  /** First backoff delay; doubles per attempt up to maxBackoffMs. */
+  baseBackoffMs: external_exports.number().int().min(0).max(6e5).default(1e3),
+  maxBackoffMs: external_exports.number().int().min(0).max(36e5).default(3e4)
+}).passthrough();
+var orchestrationClarificationPolicySchema = external_exports.object({
+  /** Bounded clarification rounds before the run blocks. */
+  maxRounds: external_exports.number().int().min(1).max(10).default(3),
+  maxQuestionsPerRound: external_exports.number().int().min(1).max(20).default(5),
+  maxQuestionBytes: external_exports.number().int().min(64).max(8192).default(1024),
+  maxAnswerBytes: external_exports.number().int().min(64).max(16384).default(4096)
+}).passthrough();
+var orchestrationHistoryPolicySchema = external_exports.object({
+  /** Append-only event ceiling. Reaching it blocks; it never truncates. */
+  maxEvents: external_exports.number().int().min(50).max(1e5).default(2e3),
+  /** Per-event serialized ceiling; oversized payloads are rejected. */
+  maxEventBytes: external_exports.number().int().min(256).max(65536).default(8192),
+  /** Default number of events returned by bounded views. */
+  defaultEventPageSize: external_exports.number().int().min(1).max(500).default(50)
+}).passthrough();
+var orchestrationPolicySchema = external_exports.object({
+  /**
+   * When false, orchestration tools refuse to start a run and report why.
+   * Existing task execution (task_begin/task_complete) is unaffected: this
+   * flag governs the v1.1 governed workflow only.
+   */
+  enabled: external_exports.boolean().default(true),
+  planning: orchestrationPlanningPolicySchema.default({}),
+  execution: orchestrationExecutionPolicySchema.default({}),
+  retry: orchestrationRetryPolicySchema.default({}),
+  clarification: orchestrationClarificationPolicySchema.default({}),
+  history: orchestrationHistoryPolicySchema.default({})
+}).passthrough();
+function orchestrationPolicyFingerprint(policy) {
+  const canonical = {
+    enabled: policy.enabled,
+    planning: {
+      mode: policy.planning.mode,
+      maxReplans: policy.planning.maxReplans
+    },
+    execution: {
+      maxIterations: policy.execution.maxIterations,
+      maxRepairCycles: policy.execution.maxRepairCycles,
+      maxNoProgressCycles: policy.execution.maxNoProgressCycles,
+      maxElapsedMs: policy.execution.maxElapsedMs
+    },
+    retry: { maxTransientRetries: policy.retry.maxTransientRetries },
+    clarification: { maxRounds: policy.clarification.maxRounds }
+  };
+  return JSON.stringify(canonical);
+}
 var AGENT_CONFIG_SCHEMA_VERSION = "1.0.0";
 var FORBIDDEN_PERMISSION_MODE = "bypassPermissions";
 var FORBIDDEN_FLAG_FRAGMENTS = [
@@ -24530,7 +24607,13 @@ var agentConfigSchema = external_exports.object({
     mock: mockRunnerConfigSchema.default({})
   }).catchall(genericRunnerConfigSchema).default({}),
   verification: verificationConfigSchema.default({}),
-  execution: executionPolicySchema.default({})
+  execution: executionPolicySchema.default({}),
+  /**
+   * v1.1 governed orchestration policy. Optional and defaulted, so a v1
+   * configuration file stays valid and a v1 workspace can configure
+   * orchestration without migrating to the v2 schema first.
+   */
+  orchestration: orchestrationPolicySchema.default({})
 }).passthrough().superRefine((config2, ctx) => {
   if (config2.schemaVersion !== void 0 && !config2.schemaVersion.startsWith("1.")) {
     ctx.addIssue({
@@ -24798,7 +24881,9 @@ var agentConfigV2Schema = external_exports.object({
   runnerPolicy: runnerPolicySchema.default({}),
   fallbacks: fallbacksSchema.default({}),
   verification: verificationConfigSchema.default({}),
-  execution: executionPolicySchema.default({})
+  execution: executionPolicySchema.default({}),
+  /** v1.1 governed orchestration policy (additive; safe defaults). */
+  orchestration: orchestrationPolicySchema.default({})
 }).passthrough().superRefine((config2, ctx) => {
   if (!config2.schemaVersion.startsWith("2.")) {
     ctx.addIssue({
@@ -24923,7 +25008,8 @@ function resolveAgentConfigFromV1(v1) {
     runnerPolicy: runnerPolicySchema.parse({}),
     fallbacks: fallbacksSchema.parse({}),
     verification: v1.verification,
-    execution: v1.execution
+    execution: v1.execution,
+    orchestration: v1.orchestration
   };
 }
 function resolveAgentConfigFromV2(v2) {
@@ -24936,7 +25022,8 @@ function resolveAgentConfigFromV2(v2) {
     runnerPolicy: v2.runnerPolicy,
     fallbacks: v2.fallbacks,
     verification: v2.verification,
-    execution: v2.execution
+    execution: v2.execution,
+    orchestration: v2.orchestration
   };
 }
 function defaultResolvedAgentConfig() {
@@ -24949,7 +25036,8 @@ function defaultResolvedAgentConfig() {
     runnerPolicy: runnerPolicySchema.parse({}),
     fallbacks: fallbacksSchema.parse({}),
     verification: verificationConfigSchema.parse({}),
-    execution: executionPolicySchema.parse({})
+    execution: executionPolicySchema.parse({}),
+    orchestration: orchestrationPolicySchema.parse({})
   };
 }
 function resolvedConfigDiagnostics(config2) {
@@ -25066,7 +25154,8 @@ var KNOWN_V1_TOP_LEVEL = /* @__PURE__ */ new Set([
   "defaultRunner",
   "runners",
   "verification",
-  "execution"
+  "execution",
+  "orchestration"
 ]);
 var KNOWN_V1_RUNNERS = /* @__PURE__ */ new Set(["claude-code", "mock", "codex", "ollama"]);
 function migrateRunnersSection(v1, changes, warnings) {
@@ -25159,6 +25248,8 @@ function planConfigMigration(raw) {
   const runnerProfiles = migrateRunnersSection(v1, changes, warnings);
   changes.push("verification (trusted commands) preserved unchanged");
   changes.push("execution policy preserved unchanged");
+  const hasOrchestrationBlock = typeof raw === "object" && raw !== null && "orchestration" in raw;
+  if (hasOrchestrationBlock) changes.push("orchestration policy preserved unchanged");
   changes.push("operationDefaults added (all null \u2014 every operation keeps using defaultRunner)");
   changes.push("runnerPolicy added with safe defaults (automatic fallback stays disabled)");
   changes.push("fallbacks added empty (no automatic provider switching)");
@@ -25183,6 +25274,9 @@ function planConfigMigration(raw) {
     fallbacks: { stageGeneration: [], stageRefinement: [] },
     verification: v1.verification,
     execution: v1.execution,
+    // Only carried when the file actually declared it: migration must not
+    // materialize a policy block the user never wrote.
+    ...hasOrchestrationBlock ? { orchestration: v1.orchestration } : {},
     ...preservedUnknown
   };
   const validated = agentConfigV2Schema.safeParse(migrated);
@@ -25265,15 +25359,15 @@ function timestampSlug(date3) {
 }
 function buildMigrationPlan(options) {
   const createdAt = options.now().toISOString();
-  const planHash = migrationPlanHash(options.target, options.steps);
+  const planHash2 = migrationPlanHash(options.target, options.steps);
   return {
     planSchemaVersion: MIGRATION_PLAN_SCHEMA_VERSION,
-    planId: `m-${timestampSlug(new Date(createdAt))}-${planHash.slice(0, 8)}`,
+    planId: `m-${timestampSlug(new Date(createdAt))}-${planHash2.slice(0, 8)}`,
     tool: options.tool,
     target: options.target,
     createdAt,
     steps: options.steps,
-    planHash
+    planHash: planHash2
   };
 }
 function backupRelPath(file) {
@@ -25559,14 +25653,14 @@ function timestampSlug2(date3) {
 }
 function buildRecoveryPlan(options) {
   const createdAt = options.now().toISOString();
-  const planHash = recoveryPlanHash(options.actions);
+  const planHash2 = recoveryPlanHash(options.actions);
   return {
     planSchemaVersion: RECOVERY_PLAN_SCHEMA_VERSION,
-    planId: `r-${timestampSlug2(new Date(createdAt))}-${planHash.slice(0, 8)}`,
+    planId: `r-${timestampSlug2(new Date(createdAt))}-${planHash2.slice(0, 8)}`,
     tool: options.tool,
     createdAt,
     actions: options.actions,
-    planHash
+    planHash: planHash2
   };
 }
 function assertInsideSidecar(workspace, relative) {
@@ -25783,558 +25877,9 @@ function readRecoveryPlan(workspace, planId) {
   }
 }
 
-// ../../packages/reporting/dist/index.js
-var import_picocolors = __toESM(require_picocolors(), 1);
-var import_picocolors2 = __toESM(require_picocolors(), 1);
-var sym = {
-  ok: "\u2713",
-  warn: "!",
-  fail: "\u2717",
-  info: "\xB7",
-  add: "+",
-  active: "\u25CF",
-  blocked: "\u25CB"
-};
-function activeLine(message, detail) {
-  return `  ${import_picocolors.default.cyan(sym.active)} ${message}${detail !== void 0 ? ` ${import_picocolors.default.dim(detail)}` : ""}`;
-}
-function blockedLine(message, detail) {
-  return `  ${import_picocolors.default.dim(sym.blocked)} ${message}${detail !== void 0 ? ` ${import_picocolors.default.dim(detail)}` : ""}`;
-}
-function okLine(message, detail) {
-  return `  ${import_picocolors.default.green(sym.ok)} ${message}${detail !== void 0 ? ` ${import_picocolors.default.dim(detail)}` : ""}`;
-}
-function warnLine(message, detail) {
-  return `  ${import_picocolors.default.yellow(sym.warn)} ${message}${detail !== void 0 ? ` ${import_picocolors.default.dim(detail)}` : ""}`;
-}
-function failLine(message, detail) {
-  return `  ${import_picocolors.default.red(sym.fail)} ${message}${detail !== void 0 ? ` ${import_picocolors.default.dim(detail)}` : ""}`;
-}
-function infoLine(message, detail) {
-  return `  ${import_picocolors.default.dim(sym.info)} ${message}${detail !== void 0 ? ` ${import_picocolors.default.dim(detail)}` : ""}`;
-}
-function addLine(message) {
-  return `  ${import_picocolors.default.cyan(sym.add)} ${message}`;
-}
-function severityLine(severity, message) {
-  if (severity === "error") return failLine(message);
-  if (severity === "warning") return warnLine(message);
-  return infoLine(message);
-}
-function sectionTitle(title) {
-  return import_picocolors.default.bold(`${title}:`);
-}
-function reportTitle(title) {
-  return import_picocolors.default.bold(title);
-}
-function dim(text) {
-  return import_picocolors.default.dim(text);
-}
-function renderColumns(rows, indent = "  ") {
-  if (rows.length === 0) return [];
-  const widths = [];
-  for (const row of rows) {
-    row.forEach((cell2, i2) => {
-      widths[i2] = Math.max(widths[i2] ?? 0, cell2.length);
-    });
-  }
-  return rows.map((row) => {
-    const cells = row.map(
-      (cell2, i2) => i2 === row.length - 1 ? cell2 : cell2.padEnd(widths[i2] ?? cell2.length)
-    );
-    return `${indent}${cells.join("  ")}`.replace(/\s+$/, "");
-  });
-}
-function createJsonReport(schema, generator, data) {
-  return { schema, generator, data };
-}
-function serializeJsonReport(report) {
-  return `${JSON.stringify(report, null, 2)}
-`;
-}
-function escapeHtml(text) {
-  return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
-}
-function severityGlyphLine(diagnostic, text) {
-  if (diagnostic.severity === "error") return failLine(text);
-  if (diagnostic.severity === "warning") return warnLine(text);
-  return infoLine(text);
-}
-function diagnosticLocation(diagnostic) {
-  if (diagnostic.file === null) return "";
-  const line = diagnostic.file.line !== null ? `:${diagnostic.file.line}` : "";
-  return ` ${diagnostic.file.path}${line}`;
-}
-function renderDiagnostic(lines, diagnostic) {
-  const heuristic = diagnostic.confidence === "heuristic" ? " (heuristic)" : "";
-  lines.push(
-    severityGlyphLine(diagnostic, `${import_picocolors2.default.bold(diagnostic.ruleId)}${diagnosticLocation(diagnostic)}${heuristic}`)
-  );
-  lines.push(`      ${diagnostic.message}`);
-  lines.push(dim(`      Fix: ${diagnostic.remediation}`));
-}
-function renderSpecResult(lines, spec, options) {
-  lines.push(reportTitle(`Spec: ${spec.specName}`));
-  const mode = spec.workflowMode !== "unknown" ? `, ${spec.workflowMode}` : "";
-  lines.push(dim(`  ${spec.specType}${mode}${spec.managed ? "" : ", unmanaged"}`));
-  lines.push(
-    `  Policy: ${spec.policyMode}${spec.policyPath !== null ? ` (${spec.policyPath})` : " (defaults \u2014 no policy file)"}`
-  );
-  if (spec.matchedBy.length > 0) {
-    lines.push(dim(`  Selected via: ${spec.matchedBy.join("; ")}`));
-  }
-  const t = spec.traceability;
-  if (t.requirements > 0 || t.tasks > 0) {
-    lines.push(sectionTitle("  Traceability"));
-    lines.push(
-      okLine(
-        `${t.requirements} requirement${t.requirements === 1 ? "" : "s"} detected, ${t.requirementsWithTasks} with tasks`
-      )
-    );
-    lines.push(okLine(`${t.tasks} task${t.tasks === 1 ? "" : "s"}, ${t.tasksWithRequirements} with requirement references`));
-  }
-  const e = spec.evidence;
-  const completedTracked = e.valid + e.stale + e.missing;
-  if (completedTracked > 0 || e.invalid > 0) {
-    lines.push(sectionTitle("  Evidence (completed tasks)"));
-    if (e.valid > 0) {
-      const manual = e.manuallyAccepted > 0 ? ` (${e.manuallyAccepted} manually accepted)` : "";
-      lines.push(okLine(`${e.valid} with valid evidence${manual}`));
-    }
-    if (e.stale > 0) lines.push(failLine(`${e.stale} with stale evidence`));
-    if (e.missing > 0) lines.push(warnLine(`${e.missing} without evidence`));
-    if (e.invalid > 0) lines.push(failLine(`${e.invalid} invalid evidence record${e.invalid === 1 ? "" : "s"}`));
-  }
-  if (spec.changedFiles.length > 0) {
-    lines.push(sectionTitle("  Changed files"));
-    const shown = options.verbose === true ? spec.changedFiles : spec.changedFiles.slice(0, 10);
-    for (const file of shown) {
-      const rename = file.oldPath !== null ? ` (from ${file.oldPath})` : "";
-      lines.push(dim(`    ${file.changeType.padEnd(9)} ${file.path}${rename}`));
-    }
-    if (shown.length < spec.changedFiles.length) {
-      lines.push(dim(`    \u2026 and ${spec.changedFiles.length - shown.length} more (--verbose shows all)`));
-    }
-  }
-  const visible = spec.diagnostics.filter(
-    (diagnostic) => options.verbose === true || diagnostic.severity !== "info"
-  );
-  lines.push(sectionTitle("  Diagnostics"));
-  if (visible.length === 0) {
-    lines.push(okLine("none"));
-  } else {
-    for (const diagnostic of visible) renderDiagnostic(lines, diagnostic);
-  }
-  lines.push(
-    spec.result === "passed" ? okLine(import_picocolors2.default.bold("Spec result: PASSED")) : failLine(import_picocolors2.default.bold("Spec result: FAILED"))
-  );
-  lines.push("");
-}
-function renderVerificationTerminal(report, options = {}) {
-  const lines = [];
-  lines.push(reportTitle("Spec Drift Verification"));
-  lines.push("");
-  lines.push(sectionTitle("Comparison"));
-  lines.push(`  ${report.comparison.label}`);
-  if (report.comparison.baseSha !== null && report.comparison.mode === "diff") {
-    lines.push(
-      dim(`  ${report.comparison.baseSha.slice(0, 12)} \u2192 ${report.comparison.headSha?.slice(0, 12) ?? "?"}`)
-    );
-  }
-  lines.push("");
-  if (report.selection.mode !== "single") {
-    lines.push(sectionTitle(report.selection.mode === "changed" ? "Affected specs" : "Specs"));
-    if (report.selection.specs.length === 0) {
-      lines.push(infoLine("none"));
-    } else {
-      for (const spec of report.selection.specs) lines.push(`  ${spec}`);
-    }
-    lines.push("");
-  }
-  for (const spec of report.specResults) renderSpecResult(lines, spec, options);
-  if (report.globalDiagnostics.length > 0) {
-    lines.push(sectionTitle("Workspace diagnostics"));
-    for (const diagnostic of report.globalDiagnostics) {
-      if (options.verbose !== true && diagnostic.severity === "info") continue;
-      renderDiagnostic(lines, diagnostic);
-    }
-    lines.push("");
-  }
-  if (report.verificationCommands.length > 0) {
-    lines.push(sectionTitle("Verification commands"));
-    for (const command of report.verificationCommands) {
-      const detail = command.disposition === "executed" ? `exit ${command.exitCode ?? "?"}${command.timedOut ? ", timed out" : ""}` : command.disposition === "reused-evidence" ? "reused from evidence" : "not run";
-      const label = `${command.name}${command.required ? "" : " (optional)"} \u2014 ${detail}`;
-      lines.push(command.passed ? okLine(label) : failLine(label));
-    }
-    lines.push("");
-  }
-  const s = report.summary;
-  const counts = `${s.errors} error${s.errors === 1 ? "" : "s"}, ${s.warnings} warning${s.warnings === 1 ? "" : "s"}, ${s.info} info`;
-  lines.push(sectionTitle("Result"));
-  lines.push(
-    s.result === "passed" ? okLine(import_picocolors2.default.bold(`PASSED \u2014 ${counts}`)) : failLine(import_picocolors2.default.bold(`FAILED \u2014 ${counts}`))
-  );
-  return lines;
-}
-var DEFAULT_MAX_DIAGNOSTICS = 50;
-var DEFAULT_MAX_BLOCKING = 10;
-function cell(text) {
-  return text.replaceAll("|", "\\|").replaceAll("\n", " ");
-}
-function code(text) {
-  return text.includes("`") ? `\`\`${text}\`\`` : `\`${text}\``;
-}
-function diagnosticLine(diagnostic) {
-  const location = diagnostic.file !== null ? ` \u2014 ${code(diagnostic.file.path)}${diagnostic.file.line !== null ? `:${diagnostic.file.line}` : ""}` : "";
-  const heuristic = diagnostic.confidence === "heuristic" ? " _(heuristic)_" : "";
-  return `- ${code(diagnostic.ruleId)}${location}${heuristic} \u2014 ${diagnostic.message}`;
-}
-function severityBadge(diagnostic) {
-  if (diagnostic.severity === "error") return "\u{1F534} error";
-  if (diagnostic.severity === "warning") return "\u{1F7E1} warning";
-  return "\u{1F535} info";
-}
-function specSection(spec, maxDiagnostics) {
-  const lines = [];
-  lines.push(`### ${spec.specName}`);
-  lines.push("");
-  const policy = spec.policyPath !== null ? `${spec.policyMode} (${code(spec.policyPath)})` : `${spec.policyMode} (defaults)`;
-  lines.push(
-    `**Result:** ${spec.result === "passed" ? "Passed" : "Failed"} \xB7 **Policy:** ${policy} \xB7 **Type:** ${spec.specType}${spec.managed ? "" : " (unmanaged)"}`
-  );
-  lines.push("");
-  const t = spec.traceability;
-  const e = spec.evidence;
-  lines.push(
-    `Traceability: ${t.requirements} requirements (${t.requirementsWithTasks} with tasks), ${t.tasks} tasks (${t.tasksWithRequirements} linked). Evidence: ${e.valid} valid${e.manuallyAccepted > 0 ? ` (${e.manuallyAccepted} manual)` : ""}, ${e.stale} stale, ${e.missing} missing.`
-  );
-  lines.push("");
-  if (spec.diagnostics.length === 0) {
-    lines.push("No findings.");
-    lines.push("");
-    return lines;
-  }
-  lines.push("| Severity | Rule | Where | Finding |");
-  lines.push("|---|---|---|---|");
-  const shown = spec.diagnostics.slice(0, maxDiagnostics);
-  for (const diagnostic of shown) {
-    const where = diagnostic.file !== null ? `${code(diagnostic.file.path)}${diagnostic.file.line !== null ? `:${diagnostic.file.line}` : ""}` : diagnostic.taskId !== null ? `task ${code(diagnostic.taskId)}` : "\u2014";
-    lines.push(
-      `| ${severityBadge(diagnostic)} | ${code(diagnostic.ruleId)} | ${cell(where)} | ${cell(diagnostic.message)} |`
-    );
-  }
-  if (spec.diagnostics.length > shown.length) {
-    lines.push("");
-    lines.push(`\u2026 and ${spec.diagnostics.length - shown.length} more findings (see the JSON report).`);
-  }
-  lines.push("");
-  const remediations = shown.filter((diagnostic) => diagnostic.severity !== "info");
-  if (remediations.length > 0) {
-    lines.push("<details>");
-    lines.push("<summary>How to fix</summary>");
-    lines.push("");
-    for (const diagnostic of remediations) {
-      lines.push(`- ${code(diagnostic.ruleId)} \u2014 ${diagnostic.remediation}`);
-    }
-    lines.push("");
-    lines.push("</details>");
-    lines.push("");
-  }
-  return lines;
-}
-function renderVerificationMarkdown(report, options = {}) {
-  const maxDiagnostics = options.maxDiagnosticsPerSpec ?? DEFAULT_MAX_DIAGNOSTICS;
-  const maxBlocking = options.maxBlockingIssues ?? DEFAULT_MAX_BLOCKING;
-  const lines = [];
-  lines.push("# SpecBridge Verification");
-  lines.push("");
-  lines.push(`**Result:** ${report.summary.result === "passed" ? "Passed \u2705" : "Failed \u274C"}`);
-  lines.push("");
-  lines.push(
-    `Comparison: ${code(report.comparison.label)} \xB7 Selection: ${report.selection.mode} \xB7 ${report.summary.specsVerified} spec${report.summary.specsVerified === 1 ? "" : "s"} verified \xB7 ${report.summary.errors} errors, ${report.summary.warnings} warnings, ${report.summary.info} info`
-  );
-  lines.push("");
-  if (report.specResults.length > 0) {
-    lines.push("| Spec | Result | Errors | Warnings |");
-    lines.push("|---|---|---:|---:|");
-    for (const spec of report.specResults) {
-      const errors = spec.diagnostics.filter((diagnostic) => diagnostic.severity === "error").length;
-      const warnings = spec.diagnostics.filter(
-        (diagnostic) => diagnostic.severity === "warning"
-      ).length;
-      lines.push(
-        `| ${cell(spec.specName)} | ${spec.result === "passed" ? "Passed" : "Failed"} | ${errors} | ${warnings} |`
-      );
-    }
-    lines.push("");
-  }
-  const allDiagnostics = [
-    ...report.globalDiagnostics,
-    ...report.specResults.flatMap((spec) => spec.diagnostics)
-  ];
-  const blocking = allDiagnostics.filter((diagnostic) => diagnostic.severity === "error");
-  if (blocking.length > 0) {
-    lines.push("## Blocking issues");
-    lines.push("");
-    for (const diagnostic of blocking.slice(0, maxBlocking)) {
-      lines.push(diagnosticLine(diagnostic));
-    }
-    if (blocking.length > maxBlocking) {
-      lines.push(`- \u2026 and ${blocking.length - maxBlocking} more errors.`);
-    }
-    lines.push("");
-  }
-  if (report.verificationCommands.length > 0) {
-    lines.push("## Verification commands");
-    lines.push("");
-    lines.push("| Command | Required | Outcome |");
-    lines.push("|---|---|---|");
-    for (const command of report.verificationCommands) {
-      const outcome = command.disposition === "executed" ? command.passed ? `passed (exit ${command.exitCode ?? 0})` : command.timedOut ? "timed out" : `failed (exit ${command.exitCode ?? "?"})` : command.disposition === "reused-evidence" ? "passed (reused from evidence)" : "not run";
-      lines.push(`| ${code(command.name)} | ${command.required ? "yes" : "no"} | ${cell(outcome)} |`);
-    }
-    lines.push("");
-  }
-  if (report.globalDiagnostics.length > 0) {
-    lines.push("## Workspace findings");
-    lines.push("");
-    for (const diagnostic of report.globalDiagnostics.slice(0, maxDiagnostics)) {
-      lines.push(diagnosticLine(diagnostic));
-    }
-    lines.push("");
-  }
-  for (const spec of report.specResults) {
-    lines.push(...specSection(spec, maxDiagnostics));
-  }
-  const artifacts = options.artifactPaths;
-  if (artifacts !== void 0 && (artifacts.json ?? artifacts.markdown ?? artifacts.html) !== void 0) {
-    lines.push("## Reports");
-    lines.push("");
-    if (artifacts.json !== void 0) lines.push(`- JSON: ${code(artifacts.json)}`);
-    if (artifacts.markdown !== void 0) lines.push(`- Markdown: ${code(artifacts.markdown)}`);
-    if (artifacts.html !== void 0) lines.push(`- HTML: ${code(artifacts.html)}`);
-    lines.push("");
-  }
-  lines.push(
-    `<sub>specbridge ${report.tool.version} \xB7 verification ${report.verificationId} \xB7 ${report.createdAt}</sub>`
-  );
-  lines.push("");
-  return lines.join("\n");
-}
-function severityGlyph(severity) {
-  if (severity === "error") return "\u2717";
-  if (severity === "warning") return "!";
-  return "\xB7";
-}
-function specSlug(index) {
-  return `spec-${index}`;
-}
-function renderDiagnostic2(diagnostic, specClass) {
-  const location = diagnostic.file !== null ? `<code>${escapeHtml(diagnostic.file.path)}${diagnostic.file.line !== null ? `:${diagnostic.file.line}` : ""}</code>` : diagnostic.taskId !== null ? `task <code>${escapeHtml(diagnostic.taskId)}</code>` : "";
-  return [
-    `<li class="diag ${diagnostic.severity} ${specClass}">`,
-    `<span class="glyph" aria-hidden="true">${severityGlyph(diagnostic.severity)}</span>`,
-    `<div><p class="head"><strong>${escapeHtml(diagnostic.ruleId)}</strong>`,
-    ` <span class="sev">${diagnostic.severity}</span>`,
-    diagnostic.confidence === "heuristic" ? ' <span class="heuristic">heuristic</span>' : "",
-    location !== "" ? ` \u2014 ${location}` : "",
-    `</p><p>${escapeHtml(diagnostic.message)}</p>`,
-    `<p class="fix">Fix: ${escapeHtml(diagnostic.remediation)}</p></div></li>`
-  ].join("");
-}
-function renderSpec(spec, index) {
-  const cls = specSlug(index);
-  const t = spec.traceability;
-  const e = spec.evidence;
-  const rows = spec.changedFiles.map(
-    (file) => `<tr><td>${escapeHtml(file.changeType)}</td><td><code>${escapeHtml(file.path)}</code>${file.oldPath !== null ? ` <span class="from">from <code>${escapeHtml(file.oldPath)}</code></span>` : ""}</td><td class="num">${file.binary ? "binary" : `+${file.insertions ?? 0} \u2212${file.deletions ?? 0}`}</td></tr>`
-  ).join("\n");
-  return `
-<section class="spec ${cls}">
-<h2>${escapeHtml(spec.specName)} <span class="badge ${spec.result}">${spec.result}</span></h2>
-<p class="meta">${escapeHtml(spec.specType)}${spec.managed ? "" : " \xB7 unmanaged"} \xB7 policy: ${escapeHtml(spec.policyMode)}${spec.policyPath !== null ? ` (<code>${escapeHtml(spec.policyPath)}</code>)` : " (defaults)"}</p>
-<p class="meta">Traceability: ${t.requirements} requirements (${t.requirementsWithTasks} with tasks), ${t.tasks} tasks (${t.tasksWithRequirements} linked) \xB7
-Evidence: ${e.valid} valid${e.manuallyAccepted > 0 ? ` (${e.manuallyAccepted} manually accepted)` : ""}, ${e.stale} stale, ${e.missing} missing${e.invalid > 0 ? `, ${e.invalid} invalid` : ""}</p>
-${spec.changedFiles.length > 0 ? `<details><summary>${spec.changedFiles.length} changed file${spec.changedFiles.length === 1 ? "" : "s"}</summary>
-<table><thead><tr><th>Change</th><th>Path</th><th>Lines</th></tr></thead><tbody>
-${rows}
-</tbody></table></details>` : ""}
-${spec.diagnostics.length > 0 ? `<ul class="diags">
-${spec.diagnostics.map((diagnostic) => renderDiagnostic2(diagnostic, cls)).join("\n")}
-</ul>` : '<p class="ok">No findings.</p>'}
-</section>`;
-}
-function renderVerificationHtml(report) {
-  const specFilters = report.specResults.map(
-    (spec, index) => `<label><input type="checkbox" id="f-${specSlug(index)}" checked> ${escapeHtml(spec.specName)}</label>`
-  ).join("\n");
-  const specFilterCss = report.specResults.map(
-    (_, index) => `body:has(#f-${specSlug(index)}:not(:checked)) .${specSlug(index)} { display: none; }`
-  ).join("\n");
-  const commandRows = report.verificationCommands.map((command) => {
-    const outcome = command.disposition === "executed" ? command.passed ? `passed (exit ${command.exitCode ?? 0})` : command.timedOut ? "timed out" : `failed (exit ${command.exitCode ?? "?"})` : command.disposition === "reused-evidence" ? "passed (reused from evidence)" : "not run";
-    return `<tr class="${command.passed ? "pass" : "fail"}"><td><code>${escapeHtml(command.name)}</code></td><td>${command.required ? "required" : "optional"}</td><td><code>${escapeHtml(command.argv.join(" "))}</code></td><td>${escapeHtml(outcome)}</td></tr>`;
-  }).join("\n");
-  const summary = report.summary;
-  return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SpecBridge verification \u2014 ${escapeHtml(summary.result)}</title>
-<style>
-  :root { color-scheme: light dark; }
-  body { font-family: ui-sans-serif, system-ui, sans-serif; max-width: 60rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
-  h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
-  h2 { font-size: 1.15rem; border-bottom: 1px solid #8884; padding-bottom: 0.25rem; margin-top: 2rem; }
-  code { background: #8881; padding: 0 0.25em; border-radius: 3px; word-break: break-all; }
-  .meta { color: #777; margin: 0.15rem 0; }
-  .badge { font-size: 0.8rem; padding: 0.1rem 0.5rem; border-radius: 999px; vertical-align: middle; }
-  .badge.passed { background: #1a7f3722; color: #1a7f37; }
-  .badge.failed { background: #cf222e22; color: #cf222e; }
-  .result { font-size: 1.1rem; font-weight: 700; }
-  .result.passed { color: #1a7f37; }
-  .result.failed { color: #cf222e; }
-  fieldset { border: 1px solid #8884; border-radius: 6px; margin: 1rem 0; padding: 0.5rem 0.75rem; }
-  fieldset label { margin-right: 1rem; white-space: nowrap; }
-  ul.diags { list-style: none; padding-left: 0; }
-  .diag { display: flex; gap: 0.6rem; padding: 0.4rem 0; border-bottom: 1px dashed #8883; }
-  .diag p { margin: 0.1rem 0; }
-  .diag .head { font-size: 0.95rem; }
-  .glyph { width: 1.2em; text-align: center; font-weight: 700; }
-  .diag.error .glyph { color: #cf222e; }
-  .diag.warning .glyph { color: #b08800; }
-  .diag.info .glyph { color: #777; }
-  .sev { font-size: 0.75rem; border: 1px solid #8886; border-radius: 999px; padding: 0 0.4em; color: #777; }
-  .heuristic { font-size: 0.75rem; background: #8882; border-radius: 999px; padding: 0 0.4em; color: #777; }
-  .fix { color: #777; font-size: 0.9rem; }
-  .ok { color: #1a7f37; }
-  table { border-collapse: collapse; width: 100%; margin: 0.5rem 0; }
-  th, td { text-align: left; padding: 0.25rem 0.5rem; border-bottom: 1px solid #8883; font-size: 0.9rem; vertical-align: top; }
-  td.num { text-align: right; white-space: nowrap; }
-  tr.fail td:last-child { color: #cf222e; }
-  .from { color: #777; }
-  footer { margin-top: 2rem; color: #777; font-size: 0.85rem; }
-  /* CSS-only filters (no JavaScript anywhere in this document). */
-  body:has(#f-error:not(:checked)) .diag.error { display: none; }
-  body:has(#f-warning:not(:checked)) .diag.warning { display: none; }
-  body:has(#f-info:not(:checked)) .diag.info { display: none; }
-${specFilterCss}
-</style>
-</head>
-<body>
-<h1>SpecBridge Verification</h1>
-<p class="result ${summary.result}">${summary.result === "passed" ? "PASSED" : "FAILED"} \u2014 ${summary.errors} errors, ${summary.warnings} warnings, ${summary.info} info</p>
-<p class="meta">Comparison: <code>${escapeHtml(report.comparison.label)}</code> \xB7 selection: ${escapeHtml(report.selection.mode)} \xB7 ${summary.specsVerified} spec(s) verified</p>
-<p class="meta">specbridge ${escapeHtml(report.tool.version)} \xB7 verification <code>${escapeHtml(report.verificationId)}</code> \xB7 ${escapeHtml(report.createdAt)}</p>
-
-<fieldset>
-<legend>Filters (CSS only \u2014 content remains in the document)</legend>
-<label><input type="checkbox" id="f-error" checked> errors</label>
-<label><input type="checkbox" id="f-warning" checked> warnings</label>
-<label><input type="checkbox" id="f-info" checked> info</label>
-${specFilters}
-</fieldset>
-
-${report.globalDiagnostics.length > 0 ? `<section><h2>Workspace findings</h2><ul class="diags">
-${report.globalDiagnostics.map((diagnostic) => renderDiagnostic2(diagnostic, "global")).join("\n")}
-</ul></section>` : ""}
-
-${report.verificationCommands.length > 0 ? `<section><h2>Verification commands</h2>
-<table><thead><tr><th>Command</th><th>Kind</th><th>argv</th><th>Outcome</th></tr></thead><tbody>
-${commandRows}
-</tbody></table></section>` : ""}
-
-${report.specResults.map((spec, index) => renderSpec(spec, index)).join("\n")}
-
-<footer>Generated by specbridge spec verify \u2014 deterministic, offline, no model involved.</footer>
-</body>
-</html>
-`;
-}
-
-// ../../packages/cli/src/context.ts
-var import_node_path = __toESM(require("path"), 1);
-function defaultIo() {
-  return {
-    cwd: process.cwd(),
-    out: (line) => process.stdout.write(`${line}
-`),
-    outRaw: (text) => process.stdout.write(text),
-    err: (line) => process.stderr.write(`${line}
-`),
-    now: () => /* @__PURE__ */ new Date()
-  };
-}
-var CliRuntime = class {
-  io;
-  exitCode = 0;
-  cwdOverride;
-  constructor(io) {
-    this.io = io;
-  }
-  get cwd() {
-    return this.cwdOverride ?? this.io.cwd;
-  }
-  setCwdOverride(dir) {
-    this.cwdOverride = import_node_path.default.resolve(this.io.cwd, dir);
-  }
-  workspace() {
-    return requireWorkspace(this.cwd);
-  }
-  tryWorkspace() {
-    return resolveWorkspace(this.cwd);
-  }
-  now() {
-    return this.io.now();
-  }
-  out(line = "") {
-    this.io.out(line);
-  }
-  outRaw(text) {
-    this.io.outRaw(text);
-  }
-  err(line) {
-    this.io.err(line);
-  }
-};
-function relPath(workspace, target) {
-  const relative = import_node_path.default.relative(workspace.rootDir, target);
-  return (relative === "" ? "." : relative).split(import_node_path.default.sep).join("/");
-}
-function formatBytes(size) {
-  if (size < 1024) return `${size} B`;
-  return `${(size / 1024).toFixed(1)} KB`;
-}
-function registerPlannedCommand(parent, runtime, options) {
-  const command = parent.command(`${options.name}${options.args !== void 0 ? ` ${options.args}` : ""}`).description(`(planned) ${options.summary}`).allowUnknownOption(true).allowExcessArguments(true).helpOption(true);
-  command.action(() => {
-    runtime.err(
-      `"${CLI_BIN} ${fullCommandPath(command)}" is not implemented yet. It is planned for ${options.phase}.`
-    );
-    if (options.workaround !== void 0) {
-      runtime.err(dim(`In the meantime: ${options.workaround}`));
-    }
-    runtime.err(dim("Roadmap: docs/roadmap.md \u2014 nothing in SpecBridge pretends to work before it does."));
-    runtime.exitCode = 2;
-  });
-}
-function fullCommandPath(command) {
-  const names = [];
-  let current = command;
-  while (current !== null && current.name() !== CLI_BIN) {
-    names.unshift(current.name());
-    current = current.parent;
-  }
-  return names.join(" ");
-}
-
-// ../../packages/cli/src/version.ts
-var VERSION = "1.0.0";
-
-// ../../packages/cli/src/commands/doctor.ts
-var import_node_path8 = __toESM(require("path"), 1);
+// ../../packages/orchestration/dist/index.js
+var import_crypto9 = require("crypto");
+var import_crypto10 = require("crypto");
 
 // ../../packages/compat-kiro/dist/index.js
 var import_fs8 = require("fs");
@@ -26346,27 +25891,27 @@ var import_path9 = __toESM(require("path"), 1);
 var import_fs11 = require("fs");
 var import_path10 = __toESM(require("path"), 1);
 var BOM = "\uFEFF";
-function splitLines(text) {
+function splitLines(text2) {
   const lines = [];
   let start = 0;
   let i2 = 0;
-  while (i2 < text.length) {
-    const code2 = text.charCodeAt(i2);
+  while (i2 < text2.length) {
+    const code2 = text2.charCodeAt(i2);
     if (code2 === 10) {
-      lines.push({ text: text.slice(start, i2), eol: "\n" });
+      lines.push({ text: text2.slice(start, i2), eol: "\n" });
       i2 += 1;
       start = i2;
     } else if (code2 === 13) {
-      const eol = text.charCodeAt(i2 + 1) === 10 ? "\r\n" : "\r";
-      lines.push({ text: text.slice(start, i2), eol });
+      const eol = text2.charCodeAt(i2 + 1) === 10 ? "\r\n" : "\r";
+      lines.push({ text: text2.slice(start, i2), eol });
       i2 += eol.length;
       start = i2;
     } else {
       i2 += 1;
     }
   }
-  if (start < text.length) {
-    lines.push({ text: text.slice(start), eol: "" });
+  if (start < text2.length) {
+    lines.push({ text: text2.slice(start), eol: "" });
   }
   return lines;
 }
@@ -26388,13 +25933,13 @@ var MarkdownDocument = class _MarkdownDocument {
     this.encodingSafe = encodingSafe;
     this.filePath = filePath;
   }
-  static fromText(text, filePath) {
-    return _MarkdownDocument.create(text, true, filePath);
+  static fromText(text2, filePath) {
+    return _MarkdownDocument.create(text2, true, filePath);
   }
   static fromBuffer(buffer, filePath) {
-    const text = buffer.toString("utf8");
-    const encodingSafe = Buffer.from(text, "utf8").equals(buffer);
-    return _MarkdownDocument.create(text, encodingSafe, filePath);
+    const text2 = buffer.toString("utf8");
+    const encodingSafe = Buffer.from(text2, "utf8").equals(buffer);
+    return _MarkdownDocument.create(text2, encodingSafe, filePath);
   }
   static load(filePath) {
     let buffer;
@@ -26405,9 +25950,9 @@ var MarkdownDocument = class _MarkdownDocument {
     }
     return _MarkdownDocument.fromBuffer(buffer, filePath);
   }
-  static create(text, encodingSafe, filePath) {
-    const hasBom = text.startsWith(BOM);
-    const body = hasBom ? text.slice(1) : text;
+  static create(text2, encodingSafe, filePath) {
+    const hasBom = text2.startsWith(BOM);
+    const body = hasBom ? text2.slice(1) : text2;
     return new _MarkdownDocument(splitLines(body), hasBom, encodingSafe, filePath);
   }
   get lineCount() {
@@ -26427,15 +25972,15 @@ var MarkdownDocument = class _MarkdownDocument {
     return line;
   }
   /** Replace the text of one line. The line ending is preserved untouched. */
-  setLineText(index, text) {
-    if (text.includes("\n") || text.includes("\r")) {
+  setLineText(index, text2) {
+    if (text2.includes("\n") || text2.includes("\r")) {
       throw new SpecBridgeError(
         "INVALID_ARGUMENT",
         "setLineText received text containing a line break; surgical edits must stay on one line."
       );
     }
     const line = this.lineAt(index);
-    line.text = text;
+    line.text = text2;
   }
   /** Reconstruct the exact document text (including BOM when present). */
   serialize() {
@@ -26457,8 +26002,8 @@ var MarkdownDocument = class _MarkdownDocument {
     const mask = new Array(this.documentLines.length).fill(false);
     let open = null;
     for (let i2 = 0; i2 < this.documentLines.length; i2 += 1) {
-      const text = this.documentLines[i2]?.text ?? "";
-      const match = FENCE_OPEN.exec(text);
+      const text2 = this.documentLines[i2]?.text ?? "";
+      const match = FENCE_OPEN.exec(text2);
       if (open !== null) {
         mask[i2] = true;
         if (match !== null && match[1] !== void 0 && match[1].startsWith(open.char) && match[1].length >= open.length && (match[2] ?? "").trim() === "") {
@@ -26502,9 +26047,9 @@ var MarkdownDocument = class _MarkdownDocument {
       if (mask[i2] === true) continue;
       const match = HEADING.exec(this.documentLines[i2]?.text ?? "");
       if (match === null || match[1] === void 0) continue;
-      let text = (match[2] ?? "").trim();
-      text = text.replace(/[ \t]+#+[ \t]*$/, "").trim();
-      headings.push({ line: i2, level: match[1].length, text });
+      let text2 = (match[2] ?? "").trim();
+      text2 = text2.replace(/[ \t]+#+[ \t]*$/, "").trim();
+      headings.push({ line: i2, level: match[1].length, text: text2 });
     }
     return headings;
   }
@@ -26531,8 +26076,8 @@ var MarkdownDocument = class _MarkdownDocument {
     const maxLevel = options?.maxLevel ?? 6;
     for (const section of this.sections()) {
       if (section.heading.level > maxLevel) continue;
-      const text = section.heading.text.trim();
-      const matched = typeof matcher === "string" ? text.toLowerCase() === matcher.trim().toLowerCase() : matcher.test(text);
+      const text2 = section.heading.text.trim();
+      const matched = typeof matcher === "string" ? text2.toLowerCase() === matcher.trim().toLowerCase() : matcher.test(text2);
       if (matched) return section;
     }
     return void 0;
@@ -26581,8 +26126,8 @@ function extractFrontMatter(document) {
     return { present: false, endLine: 0 };
   }
   for (let i2 = 1; i2 < document.lineCount; i2 += 1) {
-    const text = document.lineAt(i2).text.trim();
-    if (text === "---" || text === "...") {
+    const text2 = document.lineAt(i2).text.trim();
+    if (text2 === "---" || text2 === "...") {
       const raw = document.getText(1, i2);
       try {
         const data = (0, import_yaml.parse)(raw);
@@ -26822,8 +26367,8 @@ var ORDERED_ITEM = /^[ \t]*(\d+)[.)][ \t]+(.+)$/;
 var BULLET_ITEM = /^[ \t]*[-*+][ \t]+(.+)$/;
 var EARS = /\b(when|if|while|where)\b[\s\S]*\bshall\b/i;
 var KNOWN_TOP_SECTIONS = /* @__PURE__ */ new Set(["introduction", "overview", "summary", "requirements"]);
-function matchRequirementHeading(text) {
-  const trimmed = text.trim();
+function matchRequirementHeading(text2) {
+  const trimmed = text2.trim();
   const named = REQUIREMENT_HEADING.exec(trimmed);
   if (named !== null && named[1] !== void 0) {
     const title = (named[2] ?? "").trim();
@@ -26847,8 +26392,8 @@ function parseCriteria(document, requirementId, section, mask, diagnostics) {
   let unnumberedCount = 0;
   for (let i2 = acHeading.line + 1; i2 < endLine; i2 += 1) {
     if (mask[i2] === true) continue;
-    const text = document.lineAt(i2).text;
-    const ordered = ORDERED_ITEM.exec(text);
+    const text2 = document.lineAt(i2).text;
+    const ordered = ORDERED_ITEM.exec(text2);
     if (ordered !== null && ordered[1] !== void 0 && ordered[2] !== void 0) {
       criteria.push({
         id: `${requirementId}.${ordered[1]}`,
@@ -26859,7 +26404,7 @@ function parseCriteria(document, requirementId, section, mask, diagnostics) {
       });
       continue;
     }
-    const bullet = BULLET_ITEM.exec(text);
+    const bullet = BULLET_ITEM.exec(text2);
     if (bullet !== null && bullet[1] !== void 0 && criteria.length === 0) {
       unnumberedCount += 1;
       criteria.push({
@@ -26956,8 +26501,8 @@ function parseRequirements(document) {
   const unknownSections = [];
   for (const section of sections) {
     if (section.heading.level !== 2) continue;
-    const text = section.heading.text.trim().toLowerCase();
-    if (KNOWN_TOP_SECTIONS.has(text)) continue;
+    const text2 = section.heading.text.trim().toLowerCase();
+    if (KNOWN_TOP_SECTIONS.has(text2)) continue;
     if (matchRequirementHeading(section.heading.text) !== void 0) continue;
     const insideRequirement = requirementSections.some(
       (r) => section.heading.line > r.startLine && section.heading.line < r.endLine
@@ -27011,9 +26556,9 @@ var KIND_MATCHERS = [
   [/overview|introduction|summary/i, "overview"],
   [/context|background/i, "context"]
 ];
-function classifyDesignHeading(text) {
+function classifyDesignHeading(text2) {
   for (const [pattern, kind] of KIND_MATCHERS) {
-    if (pattern.test(text)) return kind;
+    if (pattern.test(text2)) return kind;
   }
   return "unknown";
 }
@@ -27072,10 +26617,10 @@ function parseTasks(document) {
   const numbersSeen = /* @__PURE__ */ new Map();
   for (let i2 = 0; i2 < document.lineCount; i2 += 1) {
     if (mask[i2] === true) continue;
-    const text = document.lineAt(i2).text;
-    const match = CHECKBOX.exec(text);
+    const text2 = document.lineAt(i2).text;
+    const match = CHECKBOX.exec(text2);
     if (match === null) {
-      const probe = CHECKBOX_PROBE.exec(text);
+      const probe = CHECKBOX_PROBE.exec(text2);
       if (probe !== null) {
         const inner = probe[1] ?? "";
         const looksLikeCheckbox = inner.trim() === "" || /^[ \txX~-]+$/.test(inner);
@@ -27090,7 +26635,7 @@ function parseTasks(document) {
         }
       }
       if (allTasks.length > 0) {
-        const refMatch = REQUIREMENT_REF.exec(text);
+        const refMatch = REQUIREMENT_REF.exec(text2);
         if (refMatch !== null) {
           const owner = allTasks[allTasks.length - 1];
           if (owner !== void 0) {
@@ -27200,8 +26745,8 @@ function nextOpenTasks(model, limit) {
   const optional2 = open.filter((task) => task.optional);
   return [...required2, ...optional2].slice(0, limit);
 }
-function normalizeHeading(text) {
-  return text.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+function normalizeHeading(text2) {
+  return text2.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
 }
 var CONCEPT_MATCHERS = [
   [/^current behaviou?r$|^actual behaviou?r$/, "current-behavior"],
@@ -27215,8 +26760,8 @@ var CONCEPT_MATCHERS = [
   [/^proposed fix$|^fix$|^fix approach$/, "proposed-fix"],
   [/^validation( strategy)?$|^verification( strategy)?$/, "validation-strategy"]
 ];
-function classifyBugfixHeading(text) {
-  const normalized = normalizeHeading(text);
+function classifyBugfixHeading(text2) {
+  const normalized = normalizeHeading(text2);
   for (const [pattern, concept] of CONCEPT_MATCHERS) {
     if (pattern.test(normalized)) return concept;
   }
@@ -27662,14 +27207,14 @@ function normalizedTaskPlanText(document) {
   let out = document.hasBom ? String.fromCharCode(65279) : "";
   for (let i2 = 0; i2 < document.lineCount; i2 += 1) {
     const line = document.lineAt(i2);
-    let text = line.text;
+    let text2 = line.text;
     if (mask[i2] !== true) {
-      const match = CHECKBOX_STATE_PREFIX.exec(text);
+      const match = CHECKBOX_STATE_PREFIX.exec(text2);
       if (match !== null && match[1] !== void 0 && match[3] !== void 0) {
-        text = `${match[1]}${NORMALIZED_STATE}${match[3]}${text.slice(match[0].length)}`;
+        text2 = `${match[1]}${NORMALIZED_STATE}${match[3]}${text2.slice(match[0].length)}`;
       }
     }
-    out += text + line.eol;
+    out += text2 + line.eol;
   }
   return out;
 }
@@ -27702,8 +27247,8 @@ function canonicalRequirementRef(raw) {
   return withoutPrefix.split(/[.-]/).map((segment) => segment.replace(/^0+(?=\d)/, "")).join(".");
 }
 var TEST_LANGUAGE = /\btest(?:s|ed|ing)?\b|\bunit[- ]tested\b|\bcovered by tests\b/i;
-function mentionsTests(text) {
-  return TEST_LANGUAGE.test(text);
+function mentionsTests(text2) {
+  return TEST_LANGUAGE.test(text2);
 }
 var ID_HEADING = /^((?:req)[-_. ]?\d+(?:[.-]\d+)*)[ \t]*[:.–—-]?[ \t]*(.*)$/i;
 var EXPLICIT_AC_MARKER = /^(ac[-_. ]?\d+(?:[.-]\d+)*)[ \t]*[:.–—-][ \t]*/i;
@@ -27849,16 +27394,16 @@ function extractTaskRequirementReferences(document, tasks) {
     if (mask[i2] === true) continue;
     const owner = ownerTaskAt(orderedTasks, i2);
     if (owner === void 0) continue;
-    const text = document.lineAt(i2).text;
+    const text2 = document.lineAt(i2).text;
     const isTaskLine = orderedTasks.some((task) => task.line === i2);
     if (!isTaskLine) {
-      const underscore = UNDERSCORE_REFS.exec(text);
+      const underscore = UNDERSCORE_REFS.exec(text2);
       if (underscore !== null) {
         for (const item of splitReferenceList(underscore[1] ?? "")) {
           push(owner, item, i2, "underscore-refs", "deterministic");
         }
       } else {
-        const refsLine = REFS_LINE.exec(text);
+        const refsLine = REFS_LINE.exec(text2);
         if (refsLine !== null) {
           for (const item of splitReferenceList(refsLine[1] ?? "")) {
             if (canonicalRequirementRef(item) !== void 0) {
@@ -27868,10 +27413,10 @@ function extractTaskRequirementReferences(document, tasks) {
         }
       }
     }
-    for (const match of text.matchAll(BRACKET_REF)) {
+    for (const match of text2.matchAll(BRACKET_REF)) {
       if (match[1] !== void 0) push(owner, match[1], i2, "bracket-ref", "deterministic");
     }
-    for (const match of text.matchAll(KEYWORD_REF)) {
+    for (const match of text2.matchAll(KEYWORD_REF)) {
       if (match[1] !== void 0) push(owner, match[1], i2, "keyword-ref", "heuristic");
     }
   }
@@ -27922,8 +27467,8 @@ function extractPathReferences(document) {
   const seen = /* @__PURE__ */ new Set();
   for (let i2 = 0; i2 < document.lineCount; i2 += 1) {
     if (mask[i2] === true) continue;
-    const text = document.lineAt(i2).text;
-    for (const match of text.matchAll(BACKTICK_SPAN)) {
+    const text2 = document.lineAt(i2).text;
+    for (const match of text2.matchAll(BACKTICK_SPAN)) {
       const raw = match[1];
       if (raw === void 0) continue;
       const path510 = normalizePathCandidate(raw);
@@ -27940,7 +27485,7 @@ function extractPathReferences(document) {
         isGlob: GLOB_CHARS.test(path510)
       });
     }
-    for (const match of text.matchAll(MARKDOWN_LINK)) {
+    for (const match of text2.matchAll(MARKDOWN_LINK)) {
       const raw = match[1];
       if (raw === void 0) continue;
       const path510 = normalizePathCandidate(raw);
@@ -28355,21 +27900,21 @@ function bodyOf(line) {
   const match = STRUCTURAL_PREFIX.exec(line);
   return (match !== null ? line.slice(match[0].length) : line).trim();
 }
-function findPlaceholdersInLine(text) {
+function findPlaceholdersInLine(text2) {
   const found = [];
   ANGLE_TOKEN.lastIndex = 0;
-  for (let match = ANGLE_TOKEN.exec(text); match !== null; match = ANGLE_TOKEN.exec(text)) {
+  for (let match = ANGLE_TOKEN.exec(text2); match !== null; match = ANGLE_TOKEN.exec(text2)) {
     const token = match[1] ?? "";
     if (!HTML_TAGS.has(token)) found.push(`<${token}>`);
   }
-  const tbd = TBD_TODO.exec(text);
+  const tbd = TBD_TODO.exec(text2);
   if (tbd !== null) found.push(tbd[0]);
-  const body = bodyOf(text);
-  const instruction = stripListPrefix(text.trim());
+  const body = bodyOf(text2);
+  const instruction = stripListPrefix(text2.trim());
   if (INSTRUCTION_LINE.test(instruction) || INSTRUCTION_LINE.test(body)) {
-    found.push(text.trim());
+    found.push(text2.trim());
   } else if (TEMPLATE_LINES.has(body.toLowerCase())) {
-    found.push(text.trim());
+    found.push(text2.trim());
   }
   return found;
 }
@@ -28383,12 +27928,12 @@ function scanPlaceholders(document) {
   let placeholderLineCount = 0;
   for (let i2 = 0; i2 < document.lineCount; i2 += 1) {
     if (mask[i2] === true) continue;
-    const text = document.lineAt(i2).text;
-    const trimmed = text.trim();
+    const text2 = document.lineAt(i2).text;
+    const trimmed = text2.trim();
     if (trimmed.length === 0) continue;
-    const lineHits = findPlaceholdersInLine(text);
+    const lineHits = findPlaceholdersInLine(text2);
     for (const hit of lineHits) hits.push({ line: i2, text: hit });
-    if (HEADING_LINE.test(text) || TABLE_RULE.test(trimmed) || STATUS_NOTE.test(trimmed)) {
+    if (HEADING_LINE.test(text2) || TABLE_RULE.test(trimmed) || STATUS_NOTE.test(trimmed)) {
       continue;
     }
     bodyLineCount += 1;
@@ -28403,16 +27948,16 @@ function scanPlaceholders(document) {
 var EARS_TRIGGER = /^(when|if|while|where)\b/i;
 var SHALL = /\bshall\b/i;
 var TESTABLE_MODAL = /\b(shall|must|should|will)\b/i;
-function classifyEars(text) {
-  const trimmed = text.trim();
+function classifyEars(text2) {
+  const trimmed = text2.trim();
   if (EARS_TRIGGER.test(trimmed)) {
     return SHALL.test(trimmed) ? "ears" : "ears-malformed";
   }
   if (SHALL.test(trimmed)) return "ears";
   return "plain";
 }
-function looksTestable(text) {
-  return TESTABLE_MODAL.test(text);
+function looksTestable(text2) {
+  return TESTABLE_MODAL.test(text2);
 }
 var VAGUE_PHRASES = [
   "work correctly",
@@ -28446,10 +27991,10 @@ var VAGUE_PATTERN = new RegExp(
   `\\b(?:${VAGUE_PHRASES.map((phrase) => phrase.replace(/[-\s]+/g, "[-\\s]+")).join("|")})\\b`,
   "gi"
 );
-function findVaguePhrases(text) {
+function findVaguePhrases(text2) {
   const found = [];
   VAGUE_PATTERN.lastIndex = 0;
-  for (let match = VAGUE_PATTERN.exec(text); match !== null; match = VAGUE_PATTERN.exec(text)) {
+  for (let match = VAGUE_PATTERN.exec(text2); match !== null; match = VAGUE_PATTERN.exec(text2)) {
     const phrase = match[0].toLowerCase().replace(/\s+/g, " ");
     if (!found.includes(phrase)) found.push(phrase);
   }
@@ -29318,7 +28863,7 @@ function inferWorkflowForFirstApproval(specType, firstStage) {
 function buildInitialState(specName, specType, mode, origin, clock) {
   const shape = workflowShape(specType, mode);
   const stages = initialStages(shape, specName);
-  const now = isoNow(clock);
+  const now2 = isoNow(clock);
   return {
     schemaVersion: SPEC_STATE_SCHEMA_VERSION,
     specName,
@@ -29326,8 +28871,8 @@ function buildInitialState(specName, specType, mode, origin, clock) {
     workflowMode: mode,
     origin,
     status: deriveWorkflowStatus(shape, stages),
-    createdAt: now,
-    updatedAt: now,
+    createdAt: now2,
+    updatedAt: now2,
     stages
   };
 }
@@ -29502,14 +29047,14 @@ function approveStage(workspace, spec, request, options = {}) {
       }
     }
   }
-  const planHash = request.stage === "tasks" ? tryTaskPlanHashOfFile(filePath) : void 0;
+  const planHash2 = request.stage === "tasks" ? tryTaskPlanHashOfFile(filePath) : void 0;
   stages[request.stage] = {
     ...target,
     status: "approved",
     approvedAt: isoNow(clock),
     approvedHash: hash,
-    ...planHash !== void 0 ? {
-      approvedPlanHash: planHash,
+    ...planHash2 !== void 0 ? {
+      approvedPlanHash: planHash2,
       hashAlgorithm: "sha256",
       hashSemanticsVersion: TASK_PLAN_HASH_SEMANTICS_VERSION
     } : {}
@@ -29599,14 +29144,14 @@ function readDescriptionFile(workspace, fromFile, cwd, maxBytes) {
   } catch (cause) {
     throw ioError("read description file", resolved, cause);
   }
-  const text = buffer.toString("utf8");
-  if (!Buffer.from(text, "utf8").equals(buffer)) {
+  const text2 = buffer.toString("utf8");
+  if (!Buffer.from(text2, "utf8").equals(buffer)) {
     throw new SpecBridgeError(
       "INVALID_ARGUMENT",
       `--from-file is not valid UTF-8: ${resolved}. Re-save the file as UTF-8 and retry.`
     );
   }
-  const description = text.replace(new RegExp("^\\uFEFF"), "").trim();
+  const description = text2.replace(new RegExp("^\\uFEFF"), "").trim();
   if (description.length === 0) {
     throw new SpecBridgeError("INVALID_ARGUMENT", `--from-file is empty: ${resolved}.`);
   }
@@ -29812,10 +29357,6 @@ function auditSidecarState(workspace, folders) {
     diagnostics
   };
 }
-
-// ../../packages/cli/src/state/state-families.ts
-var import_node_fs6 = require("fs");
-var import_node_path7 = __toESM(require("path"), 1);
 
 // ../../packages/execution/dist/index.js
 var import_fs21 = require("fs");
@@ -30484,7 +30025,7 @@ var format = (open, close) => {
 };
 var reset = format(0, 0);
 var bold = format(1, 22);
-var dim2 = format(2, 22);
+var dim = format(2, 22);
 var italic = format(3, 23);
 var underline = format(4, 24);
 var overline = format(53, 55);
@@ -30675,13 +30216,13 @@ var handleCommand = (filePath, rawArguments, rawOptions) => {
 };
 
 // ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/options.js
-var import_node_path6 = __toESM(require("path"), 1);
+var import_node_path5 = __toESM(require("path"), 1);
 var import_node_process8 = __toESM(require("process"), 1);
 var import_cross_spawn = __toESM(require_cross_spawn(), 1);
 
 // ../../node_modules/.pnpm/npm-run-path@6.0.0/node_modules/npm-run-path/index.js
 var import_node_process5 = __toESM(require("process"), 1);
-var import_node_path3 = __toESM(require("path"), 1);
+var import_node_path2 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/path-key@4.0.0/node_modules/path-key/index.js
 function pathKey(options = {}) {
@@ -30698,7 +30239,7 @@ function pathKey(options = {}) {
 // ../../node_modules/.pnpm/unicorn-magic@0.3.0/node_modules/unicorn-magic/node.js
 var import_node_util4 = require("util");
 var import_node_child_process2 = require("child_process");
-var import_node_path2 = __toESM(require("path"), 1);
+var import_node_path = __toESM(require("path"), 1);
 var import_node_url2 = require("url");
 var execFileOriginal = (0, import_node_util4.promisify)(import_node_child_process2.execFile);
 function toPath(urlOrPath) {
@@ -30707,12 +30248,12 @@ function toPath(urlOrPath) {
 function traversePathUp(startPath) {
   return {
     *[Symbol.iterator]() {
-      let currentPath = import_node_path2.default.resolve(toPath(startPath));
+      let currentPath = import_node_path.default.resolve(toPath(startPath));
       let previousPath;
       while (previousPath !== currentPath) {
         yield currentPath;
         previousPath = currentPath;
-        currentPath = import_node_path2.default.resolve(currentPath, "..");
+        currentPath = import_node_path.default.resolve(currentPath, "..");
       }
     }
   };
@@ -30727,27 +30268,27 @@ var npmRunPath = ({
   execPath: execPath2 = import_node_process5.default.execPath,
   addExecPath = true
 } = {}) => {
-  const cwdPath = import_node_path3.default.resolve(toPath(cwd));
+  const cwdPath = import_node_path2.default.resolve(toPath(cwd));
   const result = [];
-  const pathParts = pathOption.split(import_node_path3.default.delimiter);
+  const pathParts = pathOption.split(import_node_path2.default.delimiter);
   if (preferLocal) {
     applyPreferLocal(result, pathParts, cwdPath);
   }
   if (addExecPath) {
     applyExecPath(result, pathParts, execPath2, cwdPath);
   }
-  return pathOption === "" || pathOption === import_node_path3.default.delimiter ? `${result.join(import_node_path3.default.delimiter)}${pathOption}` : [...result, pathOption].join(import_node_path3.default.delimiter);
+  return pathOption === "" || pathOption === import_node_path2.default.delimiter ? `${result.join(import_node_path2.default.delimiter)}${pathOption}` : [...result, pathOption].join(import_node_path2.default.delimiter);
 };
 var applyPreferLocal = (result, pathParts, cwdPath) => {
   for (const directory of traversePathUp(cwdPath)) {
-    const pathPart = import_node_path3.default.join(directory, "node_modules/.bin");
+    const pathPart = import_node_path2.default.join(directory, "node_modules/.bin");
     if (!pathParts.includes(pathPart)) {
       result.push(pathPart);
     }
   }
 };
 var applyExecPath = (result, pathParts, execPath2, cwdPath) => {
-  const pathPart = import_node_path3.default.resolve(cwdPath, toPath(execPath2), "..");
+  const pathPart = import_node_path2.default.resolve(cwdPath, toPath(execPath2), "..");
   if (!pathParts.includes(pathPart)) {
     result.push(pathPart);
   }
@@ -31902,7 +31443,7 @@ var killAfterTimeout = async (subprocess, timeout, context, { signal }) => {
 
 // ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/node.js
 var import_node_process6 = require("process");
-var import_node_path4 = __toESM(require("path"), 1);
+var import_node_path3 = __toESM(require("path"), 1);
 var mapNode = ({ options }) => {
   if (options.node === false) {
     throw new TypeError('The "node" option cannot be false with `execaNode()`.');
@@ -31921,7 +31462,7 @@ var handleNodeOption = (file, commandArguments, {
     throw new TypeError('The "execPath" option has been removed. Please use the "nodePath" option instead.');
   }
   const normalizedNodePath = safeNormalizeFileUrl(nodePath, 'The "nodePath" option');
-  const resolvedNodePath = import_node_path4.default.resolve(cwd, normalizedNodePath);
+  const resolvedNodePath = import_node_path3.default.resolve(cwd, normalizedNodePath);
   const newOptions = {
     ...options,
     nodePath: resolvedNodePath,
@@ -31931,7 +31472,7 @@ var handleNodeOption = (file, commandArguments, {
   if (!shouldHandleNode) {
     return [file, commandArguments, newOptions];
   }
-  if (import_node_path4.default.basename(file, ".exe") === "node") {
+  if (import_node_path3.default.basename(file, ".exe") === "node") {
     throw new TypeError('When the "node" option is true, the first argument does not need to be "node".');
   }
   return [
@@ -32021,11 +31562,11 @@ var serializeEncoding = (encoding) => typeof encoding === "string" ? `"${encodin
 
 // ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/cwd.js
 var import_node_fs = require("fs");
-var import_node_path5 = __toESM(require("path"), 1);
+var import_node_path4 = __toESM(require("path"), 1);
 var import_node_process7 = __toESM(require("process"), 1);
 var normalizeCwd = (cwd = getDefaultCwd()) => {
   const cwdString = safeNormalizeFileUrl(cwd, 'The "cwd" option');
-  return import_node_path5.default.resolve(cwdString);
+  return import_node_path4.default.resolve(cwdString);
 };
 var getDefaultCwd = () => {
   try {
@@ -32072,7 +31613,7 @@ var normalizeOptions = (filePath, rawArguments, rawOptions) => {
   options.killSignal = normalizeKillSignal(options.killSignal);
   options.forceKillAfterDelay = normalizeForceKillAfterDelay(options.forceKillAfterDelay);
   options.lines = options.lines.map((lines, fdNumber) => lines && !BINARY_ENCODINGS.has(options.encoding) && options.buffer[fdNumber]);
-  if (import_node_process8.default.platform === "win32" && import_node_path6.default.basename(file, ".exe") === "cmd") {
+  if (import_node_process8.default.platform === "win32" && import_node_path5.default.basename(file, ".exe") === "cmd") {
     commandArguments.unshift("/q");
   }
   return { file, commandArguments, options };
@@ -34212,13 +33753,13 @@ var logOutputSync = ({ serializedResult, fdNumber, state, verboseInfo, encoding,
   }
 };
 var writeToFiles = (serializedResult, stdioItems, outputFiles) => {
-  for (const { path: path69, append } of stdioItems.filter(({ type }) => FILE_TYPES.has(type))) {
-    const pathString = typeof path69 === "string" ? path69 : path69.toString();
+  for (const { path: path70, append } of stdioItems.filter(({ type }) => FILE_TYPES.has(type))) {
+    const pathString = typeof path70 === "string" ? path70 : path70.toString();
     if (append || outputFiles.has(pathString)) {
-      (0, import_node_fs4.appendFileSync)(path69, serializedResult);
+      (0, import_node_fs4.appendFileSync)(path70, serializedResult);
     } else {
       outputFiles.add(pathString);
-      (0, import_node_fs4.writeFileSync)(path69, serializedResult);
+      (0, import_node_fs4.writeFileSync)(path70, serializedResult);
     }
   }
 };
@@ -38042,12 +37583,12 @@ function usageFromEnvelope(envelope, durationMs) {
     if (numTurns === null) return void 0;
     return { ...emptyUsage(durationMs), requestCount: numTurns };
   }
-  const record2 = usage;
+  const record3 = usage;
   return {
     model: null,
-    inputTokens: tolerantCount(record2["input_tokens"]),
-    cachedInputTokens: tolerantCount(record2["cache_read_input_tokens"]),
-    outputTokens: tolerantCount(record2["output_tokens"]),
+    inputTokens: tolerantCount(record3["input_tokens"]),
+    cachedInputTokens: tolerantCount(record3["cache_read_input_tokens"]),
+    outputTokens: tolerantCount(record3["output_tokens"]),
     reasoningTokens: null,
     requestCount: numTurns,
     durationMs: Math.max(0, Math.round(durationMs))
@@ -38290,9 +37831,9 @@ ${execHelp.stderr}` : "";
   }
   const supportedTokens = /* @__PURE__ */ new Set();
   const capabilities = CODEX_CAPABILITY_PROBES.map((probe) => {
-    const text = probe.source === "root" ? rootText : execText;
+    const text2 = probe.source === "root" ? rootText : execText;
     const usable = probe.source === "root" ? rootUsable : execUsable;
-    const available = usable && probe.tokens.some((token) => tokenPresent(text, token));
+    const available = usable && probe.tokens.some((token) => tokenPresent(text2, token));
     if (available) for (const token of probe.tokens) supportedTokens.add(token);
     return {
       id: probe.id,
@@ -40515,16 +40056,16 @@ function redactOllamaResponseForRetention(bodyText) {
   try {
     const parsed = JSON.parse(bodyText);
     if (parsed !== null && typeof parsed === "object") {
-      const record2 = parsed;
-      const message = record2["message"];
+      const record3 = parsed;
+      const message = record3["message"];
       if (message !== null && typeof message === "object") {
         const messageRecord = { ...message };
         if (typeof messageRecord["thinking"] === "string") {
           messageRecord["thinking"] = `[redacted thinking: ${messageRecord["thinking"].length} chars]`;
         }
-        record2["message"] = messageRecord;
+        record3["message"] = messageRecord;
       }
-      return `${JSON.stringify(record2, null, 2)}
+      return `${JSON.stringify(record3, null, 2)}
 `;
     }
   } catch {
@@ -41090,8 +40631,8 @@ function parseOpenAiResponse(style, bodyText) {
   if (!result.success) {
     return { problem: "the endpoint response does not match the responses shape" };
   }
-  let text = result.data.output_text;
-  if (text === void 0 && result.data.output !== void 0) {
+  let text2 = result.data.output_text;
+  if (text2 === void 0 && result.data.output !== void 0) {
     const parts = [];
     for (const item of result.data.output) {
       if (item.type !== void 0 && item.type !== "message") continue;
@@ -41101,10 +40642,10 @@ function parseOpenAiResponse(style, bodyText) {
         }
       }
     }
-    if (parts.length > 0) text = parts.join("");
+    if (parts.length > 0) text2 = parts.join("");
   }
   return {
-    ...text !== void 0 ? { text } : { problem: "the response carries no output text" },
+    ...text2 !== void 0 ? { text: text2 } : { problem: "the response carries no output text" },
     ...result.data.model !== void 0 ? { model: result.data.model } : {},
     ...result.data.usage !== void 0 ? {
       usage: {
@@ -41126,12 +40667,12 @@ var openAiModelsResponseSchema = external_exports.object({
 }).passthrough();
 function indicatesStructuredOutputUnsupported(status, bodyExcerpt) {
   if (status !== 400 && status !== 422) return false;
-  const text = (bodyExcerpt ?? "").toLowerCase();
-  return /response_format|json_schema|json schema|structured output|text\.format/.test(text);
+  const text2 = (bodyExcerpt ?? "").toLowerCase();
+  return /response_format|json_schema|json schema|structured output|text\.format/.test(text2);
 }
-function redactSecretValue(text, secret) {
-  if (secret === void 0 || secret.length === 0) return text;
-  return text.split(secret).join("<redacted>");
+function redactSecretValue(text2, secret) {
+  if (secret === void 0 || secret.length === 0) return text2;
+  return text2.split(secret).join("<redacted>");
 }
 function weakerStructuredOutputMode(mode) {
   if (mode === "json-schema") return "json-object";
@@ -41303,8 +40844,8 @@ var OpenAiCompatibleRunner = class {
     const value = process.env[variable];
     return value !== void 0 && value.length > 0 ? value : void 0;
   }
-  redact(text) {
-    return redactSecretValue(text, this.apiKeyValue());
+  redact(text2) {
+    return redactSecretValue(text2, this.apiKeyValue());
   }
   requestHeaders() {
     const headers = { ...this.config.headers };
@@ -41577,10 +41118,10 @@ var OpenAiCompatibleRunner = class {
     return this.mapCompleted(attempt.body, attempt.mode, model, started);
   }
   async requestOnce(model, messages, mode, execution) {
-    const path69 = this.config.apiStyle === "chat-completions" ? "/chat/completions" : "/responses";
+    const path610 = this.config.apiStyle === "chat-completions" ? "/chat/completions" : "/responses";
     const result = await safeHttpRequest({
       method: "POST",
-      url: this.endpointUrl(path69),
+      url: this.endpointUrl(path610),
       body: buildOpenAiRequestBody(this.config.apiStyle, {
         model,
         messages,
@@ -41600,7 +41141,7 @@ var OpenAiCompatibleRunner = class {
       const unsupportedMode = mode !== "strict-json-prompt" && result.kind === "http-error" && indicatesStructuredOutputUnsupported(result.status, result.bodyExcerpt);
       return {
         ok: false,
-        failure: classifyHttpFailure2(result, (text) => this.redact(text)),
+        failure: classifyHttpFailure2(result, (text2) => this.redact(text2)),
         unsupportedMode,
         ...result.kind === "http-error" && result.bodyExcerpt !== void 0 ? { retained: this.redact(result.bodyExcerpt) } : {}
       };
@@ -42902,7 +42443,7 @@ function hashProtectedTree(workspaceRoot, relativeDir, into) {
   }
 }
 async function captureGitSnapshot(workspaceRoot, options = {}) {
-  const now = options.clock?.() ?? /* @__PURE__ */ new Date();
+  const now2 = options.clock?.() ?? /* @__PURE__ */ new Date();
   const diagnostics = [];
   const excludedPrefixes = [
     ...SNAPSHOT_EXCLUDED_PREFIXES,
@@ -42917,7 +42458,7 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
     });
     return {
       schemaVersion: GIT_SNAPSHOT_SCHEMA_VERSION,
-      capturedAt: now.toISOString(),
+      capturedAt: now2.toISOString(),
       gitAvailable: false,
       detached: false,
       clean: false,
@@ -42991,7 +42532,7 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
   hashProtectedTree(workspaceRoot, import_path18.default.join(".specbridge", "state"), protectedHashes);
   return {
     schemaVersion: GIT_SNAPSHOT_SCHEMA_VERSION,
-    capturedAt: now.toISOString(),
+    capturedAt: now2.toISOString(),
     gitAvailable: statusResult.ok,
     ...head !== void 0 ? { head } : {},
     ...branch !== void 0 ? { branch } : {},
@@ -43003,10 +42544,10 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
     diagnostics
   };
 }
-function sortRecord(record2) {
+function sortRecord(record3) {
   const sorted = {};
-  for (const key of Object.keys(record2).sort()) {
-    const value = record2[key];
+  for (const key of Object.keys(record3).sort()) {
+    const value = record3[key];
     if (value !== void 0) sorted[key] = value;
   }
   return sorted;
@@ -43135,8 +42676,8 @@ async function capturePatch(workspaceRoot, maximumPatchBytes) {
   };
 }
 var TAIL_BYTES = 8 * 1024;
-function tail(text) {
-  return text.length > TAIL_BYTES ? text.slice(text.length - TAIL_BYTES) : text;
+function tail(text2) {
+  return text2.length > TAIL_BYTES ? text2.slice(text2.length - TAIL_BYTES) : text2;
 }
 function skippedVerification(commands) {
   return {
@@ -43271,8 +42812,8 @@ function evidenceTaskDir(workspace, specName, taskId) {
     import_path19.default.join(workspace.sidecarDir, "evidence", specName, taskIdDirName(taskId))
   );
 }
-function writeTaskEvidence(workspace, record2) {
-  const validated = taskEvidenceRecordSchema.parse(record2);
+function writeTaskEvidence(workspace, record3) {
+  const validated = taskEvidenceRecordSchema.parse(record3);
   const dir = evidenceTaskDir(workspace, validated.specName, validated.taskId);
   const filePath = import_path19.default.join(dir, `${validated.runId}.json`);
   if ((0, import_fs20.existsSync)(filePath)) {
@@ -43425,10 +42966,10 @@ function evidencePathEscapesRepository(recordedPath) {
 }
 var CHECKBOX_STATE_PREFIX2 = /^([ \t]*[-*+][ \t]+\[)([ xX~-])(\])/;
 function sameTaskLineIgnoringState(a2, b) {
-  const normalize = (text) => {
-    const match = CHECKBOX_STATE_PREFIX2.exec(text);
-    if (match === null || match[1] === void 0 || match[3] === void 0) return text;
-    return `${match[1]} ${match[3]}${text.slice(match[0].length)}`;
+  const normalize = (text2) => {
+    const match = CHECKBOX_STATE_PREFIX2.exec(text2);
+    if (match === null || match[1] === void 0 || match[3] === void 0) return text2;
+    return `${match[1]} ${match[3]}${text2.slice(match[0].length)}`;
   };
   return normalize(a2) === normalize(b);
 }
@@ -43436,19 +42977,19 @@ function parseTimestamp(value) {
   const parsed = Date.parse(value);
   return Number.isNaN(parsed) ? void 0 : parsed;
 }
-function assessEvidenceRecord(record2, context) {
+function assessEvidenceRecord(record3, context) {
   const reasons = [];
   const notes = [];
   const pathViolations = [];
-  const accepted = ACCEPTED_STATUSES.has(record2.status);
-  const manual = record2.status === "manually-accepted";
-  if (record2.specName !== context.specName) {
+  const accepted = ACCEPTED_STATUSES.has(record3.status);
+  const manual = record3.status === "manually-accepted";
+  if (record3.specName !== context.specName) {
     reasons.push({
       code: "spec-name-mismatch",
-      message: `the record names spec "${record2.specName}" but was read for "${context.specName}"`
+      message: `the record names spec "${record3.specName}" but was read for "${context.specName}"`
     });
   }
-  for (const file of record2.changedFiles) {
+  for (const file of record3.changedFiles) {
     if (evidencePathEscapesRepository(file.path)) pathViolations.push(file.path);
   }
   if (pathViolations.length > 0) {
@@ -43457,50 +42998,50 @@ function assessEvidenceRecord(record2, context) {
       message: `recorded changed-file paths escape the repository: ${pathViolations.join(", ")}`
     });
   }
-  const evaluatedAtMs = parseTimestamp(record2.evaluatedAt);
+  const evaluatedAtMs = parseTimestamp(record3.evaluatedAt);
   if (evaluatedAtMs === void 0) {
     reasons.push({
       code: "timestamp-unparseable",
-      message: `evaluatedAt "${record2.evaluatedAt}" is not a parseable timestamp`
+      message: `evaluatedAt "${record3.evaluatedAt}" is not a parseable timestamp`
     });
   } else if (evaluatedAtMs > context.now.getTime() + FUTURE_SKEW_TOLERANCE_MS) {
     notes.push("the record timestamp lies in the future relative to this machine (clock skew?)");
   }
-  if (manual && record2.manualAcceptance === void 0) {
+  if (manual && record3.manualAcceptance === void 0) {
     reasons.push({
       code: "manual-record-malformed",
       message: "status is manually-accepted but no manualAcceptance block is recorded"
     });
   }
   if (reasons.length > 0) {
-    return { record: record2, accepted, manual, validity: "invalid", reasons, notes, pathViolations };
+    return { record: record3, accepted, manual, validity: "invalid", reasons, notes, pathViolations };
   }
   if (!accepted) {
-    return { record: record2, accepted, manual, validity: "not-accepted", reasons, notes, pathViolations };
+    return { record: record3, accepted, manual, validity: "not-accepted", reasons, notes, pathViolations };
   }
   const stale = [];
-  const currentTask = context.tasks.get(record2.taskId);
+  const currentTask = context.tasks.get(record3.taskId);
   if (currentTask === void 0) {
     stale.push({
       code: "task-missing",
-      message: `task ${record2.taskId} no longer exists in tasks.md`
+      message: `task ${record3.taskId} no longer exists in tasks.md`
     });
-  } else if (record2.specContext?.taskFingerprint !== void 0) {
-    if (record2.specContext.taskFingerprint !== currentTask.fingerprint) {
+  } else if (record3.specContext?.taskFingerprint !== void 0) {
+    if (record3.specContext.taskFingerprint !== currentTask.fingerprint) {
       stale.push({
         code: "task-identity-changed",
         message: "the task's text, numbering, or requirement references changed since the evidence was recorded"
       });
     }
-  } else if (record2.specContext?.taskText !== void 0) {
-    if (!sameTaskLineIgnoringState(record2.specContext.taskText, currentTask.rawLineText)) {
+  } else if (record3.specContext?.taskText !== void 0) {
+    if (!sameTaskLineIgnoringState(record3.specContext.taskText, currentTask.rawLineText)) {
       stale.push({
         code: "task-identity-changed",
         message: "the task line text changed since the evidence was recorded"
       });
     }
   }
-  const specContext = record2.specContext;
+  const specContext = record3.specContext;
   if (specContext !== void 0) {
     const hashChecks = [
       {
@@ -43534,7 +43075,7 @@ function assessEvidenceRecord(record2, context) {
       }
     }
   } else {
-    const referenceMs = record2.manualAcceptance !== void 0 ? parseTimestamp(record2.manualAcceptance.acceptedAt) ?? evaluatedAtMs : evaluatedAtMs;
+    const referenceMs = record3.manualAcceptance !== void 0 ? parseTimestamp(record3.manualAcceptance.acceptedAt) ?? evaluatedAtMs : evaluatedAtMs;
     const timestampChecks = [
       [context.approvedAt.document, "requirements/bugfix"],
       [context.approvedAt.design, "design"],
@@ -43551,7 +43092,7 @@ function assessEvidenceRecord(record2, context) {
       }
     }
   }
-  const headAfter = record2.repository.headAfter;
+  const headAfter = record3.repository.headAfter;
   if (headAfter !== void 0 && context.ancestry !== void 0) {
     const ancestry = context.ancestry.get(headAfter);
     if (ancestry === "not-ancestor") {
@@ -43566,7 +43107,7 @@ function assessEvidenceRecord(record2, context) {
     }
   }
   return {
-    record: record2,
+    record: record3,
     accepted,
     manual,
     validity: stale.length > 0 ? "stale" : "valid",
@@ -43576,7 +43117,7 @@ function assessEvidenceRecord(record2, context) {
   };
 }
 function assessTaskEvidence(taskId, records, context) {
-  const all = records.map((record2) => assessEvidenceRecord(record2, context));
+  const all = records.map((record3) => assessEvidenceRecord(record3, context));
   const acceptedAssessments = all.filter((assessment) => assessment.accepted);
   const best = acceptedAssessments[acceptedAssessments.length - 1];
   if (best === void 0) {
@@ -43616,12 +43157,12 @@ function reusableCommandPass(assessments, commandName, currentHeadSha) {
   for (let i2 = assessments.length - 1; i2 >= 0; i2 -= 1) {
     const assessment = assessments[i2];
     if (assessment === void 0 || assessment.validity !== "valid") continue;
-    const { record: record2 } = assessment;
-    if (record2.repository.headAfter !== currentHeadSha) continue;
-    const command = record2.verificationCommands.find(
+    const { record: record3 } = assessment;
+    if (record3.repository.headAfter !== currentHeadSha) continue;
+    const command = record3.verificationCommands.find(
       (candidate) => candidate.name === commandName && candidate.passed
     );
-    if (command !== void 0) return record2;
+    if (command !== void 0) return record3;
   }
   return void 0;
 }
@@ -43680,8 +43221,8 @@ function runDir(workspace, runId) {
 function runArtifactPath(workspace, runId, fileName) {
   return assertInsideWorkspace(workspace.rootDir, import_path21.default.join(runDir(workspace, runId), fileName));
 }
-function createRun(workspace, record2) {
-  const validated = runRecordSchema.parse(record2);
+function createRun(workspace, record3) {
+  const validated = runRecordSchema.parse(record3);
   const dir = runDir(workspace, validated.runId);
   if ((0, import_fs21.existsSync)(dir)) {
     throw new SpecBridgeError(
@@ -43725,9 +43266,9 @@ function listRuns(workspace) {
   const diagnostics = [];
   for (const entry of (0, import_fs21.readdirSync)(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    const record2 = readRunRecord(workspace, entry.name);
-    if (record2 !== void 0) {
-      runs.push(record2);
+    const record3 = readRunRecord(workspace, entry.name);
+    if (record3 !== void 0) {
+      runs.push(record3);
     } else {
       diagnostics.push({
         severity: "warning",
@@ -44233,8 +43774,8 @@ function invalidateDependentApprovals(workspace, state, stage, clock) {
   const statePath = writeSpecState(workspace, nextState);
   return { state: nextState, statePath, invalidated };
 }
-function splitLines2(text) {
-  const lines = text.split("\n");
+function splitLines2(text2) {
+  const lines = text2.split("\n");
   if (lines[lines.length - 1] === "") lines.pop();
   return lines;
 }
@@ -44428,7 +43969,7 @@ function createAttempt(workspace, metadata) {
     throw new SpecBridgeError("INVALID_STATE", `Attempt directory already exists: ${dir}.`);
   }
   (0, import_fs23.mkdirSync)(dir, { recursive: true });
-  const record2 = attemptRecordSchema.parse({
+  const record3 = attemptRecordSchema.parse({
     schemaVersion: ATTEMPT_RECORD_SCHEMA_VERSION,
     runId: metadata.runId,
     attemptId,
@@ -44445,9 +43986,9 @@ function createAttempt(workspace, metadata) {
     capabilitySnapshot: metadata.capabilitySnapshot,
     createdAt: metadata.createdAt
   });
-  writeFileAtomic(import_path25.default.join(dir, "attempt.json"), `${JSON.stringify(record2, null, 2)}
+  writeFileAtomic(import_path25.default.join(dir, "attempt.json"), `${JSON.stringify(record3, null, 2)}
 `);
-  return record2;
+  return record3;
 }
 function writeAttemptArtifact(workspace, runId, attemptId, fileName, content) {
   const filePath = assertInsideWorkspace(
@@ -44457,11 +43998,11 @@ function writeAttemptArtifact(workspace, runId, attemptId, fileName, content) {
   writeFileAtomic(filePath, content);
   return filePath;
 }
-function finalizeAttempt(workspace, record2, input) {
-  const dir = attemptDir(workspace, record2.runId, record2.attemptId);
+function finalizeAttempt(workspace, record3, input) {
+  const dir = attemptDir(workspace, record3.runId, record3.attemptId);
   const errorCode = input.result.error?.code;
   const next = attemptRecordSchema.parse({
-    ...record2,
+    ...record3,
     finishedAt: input.finishedAt,
     outcome: input.outcome,
     durationMs: Math.max(0, Math.round(input.durationMs)),
@@ -44469,14 +44010,14 @@ function finalizeAttempt(workspace, record2, input) {
   });
   writeFileAtomic(import_path25.default.join(dir, "attempt.json"), `${JSON.stringify(next, null, 2)}
 `);
-  writeAttemptArtifact(workspace, record2.runId, record2.attemptId, "raw-stdout.log", input.result.rawStdout);
-  writeAttemptArtifact(workspace, record2.runId, record2.attemptId, "raw-stderr.log", input.result.rawStderr);
+  writeAttemptArtifact(workspace, record3.runId, record3.attemptId, "raw-stdout.log", input.result.rawStdout);
+  writeAttemptArtifact(workspace, record3.runId, record3.attemptId, "raw-stderr.log", input.result.rawStderr);
   const events = input.result.normalizedEvents;
   if (events !== void 0 && events.length > 0) {
     writeAttemptArtifact(
       workspace,
-      record2.runId,
-      record2.attemptId,
+      record3.runId,
+      record3.attemptId,
       "normalized-events.jsonl",
       `${events.map((event) => JSON.stringify(event)).join("\n")}
 `
@@ -44484,8 +44025,8 @@ function finalizeAttempt(workspace, record2, input) {
   }
   writeAttemptArtifact(
     workspace,
-    record2.runId,
-    record2.attemptId,
+    record3.runId,
+    record3.attemptId,
     "normalized-result.json",
     `${JSON.stringify(normalizedExecutionResultSchema.parse(input.normalized), null, 2)}
 `
@@ -44493,8 +44034,8 @@ function finalizeAttempt(workspace, record2, input) {
   if (input.result.process !== void 0) {
     writeAttemptArtifact(
       workspace,
-      record2.runId,
-      record2.attemptId,
+      record3.runId,
+      record3.attemptId,
       "process.json",
       `${JSON.stringify(input.result.process, null, 2)}
 `
@@ -45311,7 +44852,7 @@ function completeTaskCheckbox(workspace, specName, expected, clock) {
     const tasksStage = stateStage(stateRead.state, "tasks");
     if (tasksStage !== void 0 && tasksStage.status === "approved") {
       newHash = sha256File(filePath);
-      const planHash = taskPlanHash(MarkdownDocument.load(filePath));
+      const planHash2 = taskPlanHash(MarkdownDocument.load(filePath));
       const nextState = {
         ...stateRead.state,
         stages: {
@@ -45320,7 +44861,7 @@ function completeTaskCheckbox(workspace, specName, expected, clock) {
             ...tasksStage,
             approvedHash: newHash,
             approvedAt: isoNow(clock),
-            approvedPlanHash: planHash,
+            approvedPlanHash: planHash2,
             hashAlgorithm: "sha256",
             hashSemanticsVersion: TASK_PLAN_HASH_SEMANTICS_VERSION
           }
@@ -45865,8 +45406,8 @@ function buildEvidenceSpecContext(workspace, specName, state, task) {
   }
   const tasksStage = stateStage(state, "tasks");
   if (tasksStage?.status === "approved") {
-    const planHash = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(import_path26.default.join(workspace.kiroDir, "specs", specName, "tasks.md"));
-    if (planHash !== void 0) specContext.tasksPlanHash = planHash;
+    const planHash2 = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(import_path26.default.join(workspace.kiroDir, "specs", specName, "tasks.md"));
+    if (planHash2 !== void 0) specContext.tasksPlanHash = planHash2;
   }
   return specContext;
 }
@@ -45955,9 +45496,9 @@ function diverges(current, recordedAfter) {
   const currentByPath = new Map(current.entries.map((entry) => [entry.path, entry]));
   const recordedByPath = new Map(recordedAfter.entries.map((entry) => [entry.path, entry]));
   for (const [file, entry] of recordedByPath) {
-    const now = currentByPath.get(file);
-    if (now === void 0) differences.push(`"${file}" was modified after the run ended (now clean or removed)`);
-    else if (now.contentHash !== entry.contentHash) differences.push(`"${file}" changed after the run ended`);
+    const now2 = currentByPath.get(file);
+    if (now2 === void 0) differences.push(`"${file}" was modified after the run ended (now clean or removed)`);
+    else if (now2.contentHash !== entry.contentHash) differences.push(`"${file}" changed after the run ended`);
   }
   for (const file of currentByPath.keys()) {
     if (!recordedByPath.has(file)) differences.push(`"${file}" was modified after the run ended`);
@@ -46217,15 +45758,15 @@ function readInteractiveLock(workspace) {
 }
 function acquireInteractiveLock(workspace, details) {
   const lockPath = interactiveLockPath(workspace);
-  const now = (details.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
+  const now2 = (details.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
   const lock = {
     schemaVersion: INTERACTIVE_LOCK_SCHEMA_VERSION,
     runId: details.runId,
     specName: details.specName,
     taskId: details.taskId,
     pid: details.pid ?? process.pid,
-    createdAt: now,
-    heartbeatAt: now
+    createdAt: now2,
+    heartbeatAt: now2
   };
   (0, import_fs24.mkdirSync)(import_path27.default.dirname(lockPath), { recursive: true });
   try {
@@ -46290,12 +45831,12 @@ function diagnoseInteractiveLock(workspace, clock = () => /* @__PURE__ */ new Da
   }
   const lock = read.lock;
   const findings = [];
-  const record2 = readRunRecord(workspace, lock.runId);
-  if (record2 === void 0) {
+  const record3 = readRunRecord(workspace, lock.runId);
+  if (record3 === void 0) {
     findings.push(`The lock references run ${lock.runId}, which has no readable run record.`);
-  } else if (record2.lifecycleStatus === "COMPLETED" || record2.lifecycleStatus === "ABORTED") {
+  } else if (record3.lifecycleStatus === "COMPLETED" || record3.lifecycleStatus === "ABORTED") {
     findings.push(
-      `The lock references run ${lock.runId}, which is already finalized (${record2.lifecycleStatus}); the lock should have been released.`
+      `The lock references run ${lock.runId}, which is already finalized (${record3.lifecycleStatus}); the lock should have been released.`
     );
     return { state: "stale", path: read.path, lock, findings, safeToRemove: true };
   } else {
@@ -46591,8 +46132,8 @@ function classifyInteractiveOutcome(report) {
   }
 }
 function loadInteractiveRun(workspace, runId) {
-  const record2 = readRunRecord(workspace, runId);
-  if (record2 === void 0) {
+  const record3 = readRunRecord(workspace, runId);
+  if (record3 === void 0) {
     return {
       ok: false,
       failure: blocked("run-not-found", `Run "${runId}" was not found under .specbridge/runs/.`, [
@@ -46600,12 +46141,12 @@ function loadInteractiveRun(workspace, runId) {
       ])
     };
   }
-  if (record2.kind !== "interactive-execution") {
+  if (record3.kind !== "interactive-execution") {
     return {
       ok: false,
       failure: blocked(
         "run-state-invalid",
-        `Run ${runId} is a ${record2.kind} run, not an interactive execution run.`
+        `Run ${runId} is a ${record3.kind} run, not an interactive execution run.`
       )
     };
   }
@@ -46619,7 +46160,7 @@ function loadInteractiveRun(workspace, runId) {
       )
     };
   }
-  return { ok: true, record: record2, state };
+  return { ok: true, record: record3, state };
 }
 function readFinalReport(workspace, runId) {
   const artifact = readRunArtifactJson(workspace, runId, "report.json");
@@ -46630,8 +46171,8 @@ async function completeInteractiveTask(deps, request) {
   const { workspace } = deps;
   const loaded = loadInteractiveRun(workspace, request.runId);
   if (!loaded.ok) return loaded.failure;
-  const { record: record2, state } = loaded;
-  const lifecycle = record2.lifecycleStatus;
+  const { record: record3, state } = loaded;
+  const lifecycle = record3.lifecycleStatus;
   if (lifecycle === "COMPLETED") {
     const report2 = readFinalReport(workspace, request.runId);
     if (report2 !== void 0) {
@@ -46652,7 +46193,7 @@ async function completeInteractiveTask(deps, request) {
   if (lifecycle === "ABORTED") {
     return blocked(
       "run-state-invalid",
-      `Run ${request.runId} was aborted${record2.abortReason !== void 0 ? ` (${record2.abortReason})` : ""}; it cannot be completed. Begin a new run.`,
+      `Run ${request.runId} was aborted${record3.abortReason !== void 0 ? ` (${record3.abortReason})` : ""}; it cannot be completed. Begin a new run.`,
       ["Start a fresh attempt with task_begin."]
     );
   }
@@ -46667,11 +46208,11 @@ async function completeInteractiveTask(deps, request) {
       ]
     );
   }
-  const stateNow = readSpecState(workspace, record2.specName).state;
+  const stateNow = readSpecState(workspace, record3.specName).state;
   if (stateNow === void 0 || evaluateWorkflow(workspace, stateNow).health !== "ok") {
     return blocked(
       "stale-approval",
-      `Approved stages of "${record2.specName}" changed during the run; completion is blocked and the checkbox stays unchanged.`,
+      `Approved stages of "${record3.specName}" changed during the run; completion is blocked and the checkbox stays unchanged.`,
       [
         "Review the spec changes, re-approve the stages (human action),",
         "then abort this run and begin a fresh one."
@@ -46679,7 +46220,7 @@ async function completeInteractiveTask(deps, request) {
     );
   }
   const task = state.task;
-  const tasksPath = import_path28.default.join(workspace.kiroDir, "specs", record2.specName, "tasks.md");
+  const tasksPath = import_path28.default.join(workspace.kiroDir, "specs", record3.specName, "tasks.md");
   let taskIntact = false;
   try {
     const document = MarkdownDocument.load(tasksPath);
@@ -46697,7 +46238,7 @@ async function completeInteractiveTask(deps, request) {
   if (!taskIntact) {
     return blocked(
       "task-changed",
-      `Task ${task.id} in "${record2.specName}" changed since the run began (fingerprint or line text differs); completion is blocked.`,
+      `Task ${task.id} in "${record3.specName}" changed since the run began (fingerprint or line text differs); completion is blocked.`,
       ["Abort this run with task_abort and begin a fresh one against the current task plan."]
     );
   }
@@ -46709,7 +46250,7 @@ async function completeInteractiveTask(deps, request) {
     testsReported: request.reportedTests ?? [],
     remainingRisks: request.reportedRisks ?? []
   });
-  const startedMs = Date.parse(record2.createdAt);
+  const startedMs = Date.parse(record3.createdAt);
   const durationMs = Math.max(0, clock().getTime() - (Number.isFinite(startedMs) ? startedMs : clock().getTime()));
   const result = {
     runner: INTERACTIVE_RUNNER_NAME,
@@ -46731,14 +46272,14 @@ async function completeInteractiveTask(deps, request) {
     },
     {
       runId: request.runId,
-      ...record2.parentRunId !== void 0 ? { parentRunId: record2.parentRunId } : {},
-      specName: record2.specName,
+      ...record3.parentRunId !== void 0 ? { parentRunId: record3.parentRunId } : {},
+      specName: record3.specName,
       task,
       runnerName: INTERACTIVE_RUNNER_NAME,
       before: state.before,
       allowDirty: state.allowDirty,
       noVerify,
-      preflightWarnings: [...record2.warnings],
+      preflightWarnings: [...record3.warnings],
       result
     }
   );
@@ -46766,8 +46307,8 @@ async function abortInteractiveTask(deps, request) {
   }
   const loaded = loadInteractiveRun(workspace, request.runId);
   if (!loaded.ok) return loaded.failure;
-  const { record: record2, state } = loaded;
-  const lifecycle = record2.lifecycleStatus;
+  const { record: record3, state } = loaded;
+  const lifecycle = record3.lifecycleStatus;
   if (lifecycle === "COMPLETED" || lifecycle === "ABORTED") {
     const report = lifecycle === "COMPLETED" ? readFinalReport(workspace, request.runId) : void 0;
     return {
@@ -46777,8 +46318,8 @@ async function abortInteractiveTask(deps, request) {
       ...report !== void 0 ? { outcome: classifyInteractiveOutcome(report) } : {}
     };
   }
-  const now = await captureGitSnapshot(workspace.rootDir, { clock: () => clock() });
-  const remaining = now.gitAvailable ? agentChangedFiles(compareSnapshots(state.before, now)).map((file) => file.path) : [];
+  const now2 = await captureGitSnapshot(workspace.rootDir, { clock: () => clock() });
+  const remaining = now2.gitAvailable ? agentChangedFiles(compareSnapshots(state.before, now2)).map((file) => file.path) : [];
   const abortedAt = clock().toISOString();
   writeRunArtifact(
     workspace,
@@ -47114,12 +46655,3257 @@ var EXECUTION_CONFORMANCE_GROUPS = [
   resumeConformanceGroup
 ];
 
-// ../../packages/drift/dist/index.js
+// ../../packages/orchestration/dist/index.js
 var import_fs26 = require("fs");
 var import_path30 = __toESM(require("path"), 1);
-var import_picomatch = __toESM(require_picomatch2(), 1);
+var import_crypto11 = require("crypto");
+var ORCHESTRATION_PHASES = [
+  /** The run exists; no intent has been assessed yet. */
+  "CREATED",
+  /** Targeted questions are open; implementation must not start. */
+  "NEEDS_CLARIFICATION",
+  /** Intent is READY; no valid execution plan exists yet. */
+  "READY_TO_PLAN",
+  /** A plan exists and policy requires explicit review before mutation. */
+  "AWAITING_PLAN_REVIEW",
+  /** A valid, reviewed (or review-exempt) plan exists; execution may begin. */
+  "READY_TO_EXECUTE",
+  /** The bounded observe/decide/act loop is running. */
+  "EXECUTING",
+  /** A verification failure is being repaired against fresh evidence. */
+  "REPAIRING",
+  /** The active plan was invalidated; a replacement plan is required. */
+  "REPLANNING",
+  /** Understandable but cannot proceed; needs an explicit user action. */
+  "BLOCKED",
+  /** Final: the task was completed through verified evidence. */
+  "COMPLETED",
+  /** Final: the run ended without completion. */
+  "ABORTED",
+  /** Final: the user cancelled; never auto-restarted. */
+  "CANCELLED",
+  /** Final: the request violated a hard product boundary. */
+  "REJECTED"
+];
+var FINAL_ORCHESTRATION_PHASES = [
+  "COMPLETED",
+  "ABORTED",
+  "CANCELLED",
+  "REJECTED"
+];
+function isFinalPhase(phase) {
+  return FINAL_ORCHESTRATION_PHASES.includes(phase);
+}
+var INTENT_OUTCOMES = [
+  /** Sufficiently specified and compatible with every current gate. */
+  "READY",
+  /** A user decision is required that cannot safely be inferred. */
+  "NEEDS_CLARIFICATION",
+  /** Not an allowed operation, or violates a hard product boundary. */
+  "REJECTED",
+  /** Understandable, but an external prerequisite is unsatisfied. */
+  "BLOCKED"
+];
+var PROVENANCE_KINDS = [
+  "known-from-user",
+  "known-from-approved-spec",
+  "known-from-repository-evidence",
+  "known-from-configuration",
+  "inferred",
+  "unknown",
+  "conflicting"
+];
+var UNSAFE_PROVENANCE_KINDS = [
+  "inferred",
+  "unknown",
+  "conflicting"
+];
+var ACTION_CATEGORIES = [
+  /** Read repository state: files, tests, structure, dependencies. */
+  "INSPECT",
+  /** Mutate source files inside the approved task scope. */
+  "EDIT",
+  /** Run tests through the host's own tooling (evidence is still claims). */
+  "TEST",
+  /** Request trusted verification through the existing task_complete path. */
+  "VERIFY",
+  /** Declare the active plan invalid and request a replacement. */
+  "REPLAN",
+  /** Stop and ask the user a targeted question. */
+  "REQUEST_CLARIFICATION",
+  /** End the run without completion. */
+  "ABORT",
+  /** Assert the implementation is ready for the completion gate. */
+  "COMPLETE"
+];
+var OBSERVATION_RESULTS = [
+  /** The action produced the expected evidence. */
+  "progressed",
+  /** The action completed but produced no new information. */
+  "no-change",
+  /** The action failed; a failure classification accompanies it. */
+  "failed"
+];
+var FAILURE_CATEGORIES = [
+  /** Transport/process hiccup before any mutation; safely retryable. */
+  "TRANSIENT_TRANSPORT",
+  /** Tooling hiccup that is safe to repeat (idempotent read/probe). */
+  "TRANSIENT_TOOL",
+  /** A trusted verification command failed. Repair, never blind retry. */
+  "VERIFICATION_FAILURE",
+  /** The implementation is wrong. Repair, never retry. */
+  "IMPLEMENTATION_DEFECT",
+  /** The request is underspecified. Clarify, never retry. */
+  "AMBIGUITY",
+  /** A required dependency or prerequisite is unavailable. */
+  "BLOCKED_DEPENDENCY",
+  /** A required runner/tool capability is not available. */
+  "CAPABILITY_UNAVAILABLE",
+  /** Credentials are missing or rejected. Never auto-retried. */
+  "AUTHENTICATION",
+  /** An operation was denied by permission policy. Never auto-retried. */
+  "PERMISSION",
+  /** A SpecBridge safety boundary was hit. Never auto-retried. */
+  "SAFETY_POLICY",
+  /** The bound spec/task/plan context is no longer current. */
+  "STALE_CONTEXT",
+  /** The repository moved underneath the run (HEAD, protected state). */
+  "REPOSITORY_DIVERGED",
+  /** A protected path was modified. */
+  "PROTECTED_PATH",
+  /** Repeated actions produced materially identical state. */
+  "NO_PROGRESS",
+  /** A configured budget was exhausted. */
+  "BUDGET_EXHAUSTED",
+  /** The user cancelled. Never auto-restarted. */
+  "CANCELLED",
+  /** The configuration itself is invalid. */
+  "INVALID_CONFIGURATION",
+  /** An unexpected internal fault; reported without leaking internals. */
+  "INTERNAL"
+];
+var PLAN_STALENESS_REASONS = [
+  "task-fingerprint-changed",
+  "approved-stage-changed",
+  "repository-baseline-changed",
+  "policy-changed",
+  "superseded"
+];
+var SBO_CODES = {
+  SBO001: "orchestration disabled by policy",
+  SBO002: "orchestration run not found",
+  SBO003: "orchestration state invalid",
+  SBO004: "invalid phase transition",
+  SBO005: "orchestration run already final",
+  SBO006: "intent assessment required",
+  SBO007: "clarification required",
+  SBO008: "clarification rounds exhausted",
+  SBO009: "execution plan required",
+  SBO010: "execution plan invalid",
+  SBO011: "execution plan stale",
+  SBO012: "plan review required",
+  SBO013: "replan budget exhausted",
+  SBO014: "iteration budget exhausted",
+  SBO015: "repair budget exhausted",
+  SBO016: "no progress detected",
+  SBO017: "transient retry budget exhausted",
+  SBO018: "elapsed time budget exhausted",
+  SBO019: "action not allowed in current phase",
+  SBO020: "orchestration event history full",
+  SBO021: "input too large",
+  SBO022: "completion requires verified evidence",
+  SBO023: "orchestration prerequisite unsatisfied",
+  SBO024: "orchestration request rejected"
+};
+var OrchestrationError = class extends Error {
+  code;
+  category;
+  remediation;
+  details;
+  failureCategory;
+  retryable;
+  constructor(code2, message, options = {}) {
+    super(message);
+    this.name = "OrchestrationError";
+    this.code = code2;
+    this.category = SBO_CODES[code2];
+    this.remediation = options.remediation ?? [];
+    this.details = options.details ?? {};
+    this.failureCategory = options.failureCategory;
+    this.retryable = options.retryable ?? false;
+  }
+};
+function isOrchestrationError(value) {
+  return value instanceof OrchestrationError;
+}
+var ORCHESTRATION_STATE_SCHEMA_VERSION = "1.0.0";
+var STATE_LIMITS = {
+  maxGoalChars: 4e3,
+  maxTextChars: 2e3,
+  maxShortTextChars: 512,
+  maxListItems: 50,
+  maxDecisions: 100,
+  maxQuestions: 40,
+  maxInteractiveRuns: 200
+};
+var shortText = external_exports.string().max(STATE_LIMITS.maxShortTextChars);
+var text = external_exports.string().max(STATE_LIMITS.maxTextChars);
+var textList = external_exports.array(text).max(STATE_LIMITS.maxListItems);
+var clarificationQuestionSchema = external_exports.object({
+  id: shortText,
+  question: text,
+  /** Why this cannot be inferred safely — the justification for asking. */
+  whyItMatters: text,
+  /** Candidate answers, when the choice is genuinely closed. */
+  options: external_exports.array(text).max(10).default([]),
+  /** Spec stage / task this question concerns, when applicable. */
+  relatedTaskId: shortText.optional(),
+  askedAt: shortText,
+  round: external_exports.number().int().min(1)
+}).passthrough();
+var clarificationDecisionSchema = external_exports.object({
+  id: shortText,
+  questionId: shortText,
+  question: text,
+  answer: text,
+  /** Structural provenance, not a confidence number. */
+  source: external_exports.enum(PROVENANCE_KINDS),
+  relatedSpecName: shortText.optional(),
+  relatedTaskId: shortText.optional(),
+  decidedAt: shortText,
+  /** The decision this one replaces, when a user changed their mind. */
+  supersedes: shortText.optional(),
+  /** What this decision changes about the implementation. */
+  impact: text.optional()
+}).passthrough();
+var intentAssessmentSchema = external_exports.object({
+  outcome: external_exports.enum(INTENT_OUTCOMES),
+  /** What the user asked for, restated in one bounded line. */
+  summary: text,
+  /** Machine-checkable reasons, never free-form reasoning. */
+  reasons: textList.default([]),
+  /** Facts relied on, with provenance. */
+  provenance: external_exports.array(
+    external_exports.object({
+      fact: text,
+      source: external_exports.enum(PROVENANCE_KINDS),
+      reference: shortText.optional()
+    }).passthrough()
+  ).max(STATE_LIMITS.maxListItems).default([]),
+  assessedAt: shortText,
+  /** Present when the deterministic core overrode the submitted outcome. */
+  overriddenFrom: external_exports.enum(INTENT_OUTCOMES).optional(),
+  overrideReason: text.optional()
+}).passthrough();
+var planBindingSchema = external_exports.object({
+  taskId: shortText,
+  taskFingerprint: shortText,
+  /** Approved stage hashes at plan time, keyed by stage name. */
+  approvedStageHashes: external_exports.record(shortText).default({}),
+  /** Git HEAD at plan time; absent in a repository with no commits. */
+  gitHead: shortText.optional(),
+  /** Fingerprint of the orchestration policy the plan was made under. */
+  policyFingerprint: external_exports.string().max(4e3)
+}).passthrough();
+var planStepSchema = external_exports.object({
+  id: shortText,
+  description: text,
+  /** Expected implementation area. Planning information, not a fact. */
+  expectedAreas: external_exports.array(shortText).max(20).default([]),
+  /** What observable evidence would show this step succeeded. */
+  expectedEvidence: text.optional(),
+  status: external_exports.enum(["pending", "in-progress", "done", "skipped"]).default("pending")
+}).passthrough();
+var EXECUTION_PLAN_SCHEMA_VERSION = "1.0.0";
+var executionPlanSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  planId: shortText,
+  revision: external_exports.number().int().min(1),
+  specName: shortText,
+  createdAt: shortText,
+  binding: planBindingSchema,
+  goal: text,
+  nonGoals: textList.default([]),
+  constraints: textList.default([]),
+  /** Repository facts the plan relies on, with provenance. */
+  relevantEvidence: textList.default([]),
+  /** Explicitly labelled assumptions — never presented as facts. */
+  assumptions: textList.default([]),
+  openQuestions: textList.default([]),
+  expectedAreas: external_exports.array(shortText).max(STATE_LIMITS.maxListItems).default([]),
+  steps: external_exports.array(planStepSchema).min(1).max(200),
+  testStrategy: text,
+  verificationStrategy: text,
+  rollbackConsiderations: text.optional(),
+  /** Conditions that should trigger an explicit replan. */
+  replanTriggers: textList.default([]),
+  /** The plan this revision supersedes. */
+  supersedes: shortText.optional(),
+  /** Why the previous plan was replaced. */
+  replanReason: text.optional()
+}).passthrough();
+var planReviewSchema = external_exports.object({
+  decision: external_exports.enum(["approved", "rejected"]),
+  /** Hash of the exact plan reviewed — a later plan cannot inherit it. */
+  planHash: shortText,
+  planRevision: external_exports.number().int().min(1),
+  reviewedAt: shortText,
+  /**
+   * How the review reached SpecBridge. `user-relayed` means a host agent
+   * reported the user's decision: contract-enforced, not hard-enforced.
+   * See docs/orchestration/enforcement-boundaries.md.
+   */
+  channel: external_exports.enum(["user-relayed", "cli"]).default("user-relayed"),
+  note: text.optional()
+}).passthrough();
+var observationFingerprintSchema = external_exports.object({
+  /** Identity of the last classified failure, when there was one. */
+  failureFingerprint: shortText.optional(),
+  /** Identity of the working-tree change set. */
+  diffFingerprint: shortText.optional(),
+  changedFileCount: external_exports.number().int().min(0).default(0),
+  actionCategory: external_exports.enum(ACTION_CATEGORIES),
+  planRevision: external_exports.number().int().min(0),
+  result: external_exports.enum(OBSERVATION_RESULTS)
+}).passthrough();
+var orchestrationBlockerSchema = external_exports.object({
+  category: external_exports.enum(FAILURE_CATEGORIES),
+  code: shortText,
+  message: text,
+  remediation: textList.default([]),
+  at: shortText
+}).passthrough();
+var orchestrationCountersSchema = external_exports.object({
+  iterations: external_exports.number().int().min(0).default(0),
+  repairCycles: external_exports.number().int().min(0).default(0),
+  replans: external_exports.number().int().min(0).default(0),
+  transientRetries: external_exports.number().int().min(0).default(0),
+  consecutiveNoProgress: external_exports.number().int().min(0).default(0),
+  clarificationRounds: external_exports.number().int().min(0).default(0),
+  events: external_exports.number().int().min(0).default(0)
+}).passthrough();
+var orchestrationBudgetsSchema = external_exports.object({
+  maxIterations: external_exports.number().int().min(1),
+  maxRepairCycles: external_exports.number().int().min(0),
+  maxReplans: external_exports.number().int().min(0),
+  maxNoProgressCycles: external_exports.number().int().min(1),
+  maxTransientRetries: external_exports.number().int().min(0),
+  maxClarificationRounds: external_exports.number().int().min(1),
+  maxElapsedMs: external_exports.number().int().min(1),
+  maxEvents: external_exports.number().int().min(1)
+}).passthrough();
+var orchestrationStateSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  orchestrationId: shortText,
+  specName: shortText,
+  taskId: shortText.optional(),
+  phase: external_exports.enum(ORCHESTRATION_PHASES),
+  /** The user's stated goal, verbatim and bounded. Data, not instructions. */
+  goal: external_exports.string().max(STATE_LIMITS.maxGoalChars),
+  createdAt: shortText,
+  updatedAt: shortText,
+  /** Label of the host driving the run (e.g. "mcp", "cli"). */
+  host: shortText,
+  planningMode: external_exports.enum(["review", "auto", "disabled"]),
+  policyFingerprint: external_exports.string().max(4e3),
+  budgets: orchestrationBudgetsSchema,
+  counters: orchestrationCountersSchema.default({}),
+  intent: intentAssessmentSchema.optional(),
+  openQuestions: external_exports.array(clarificationQuestionSchema).max(STATE_LIMITS.maxQuestions).default([]),
+  decisions: external_exports.array(clarificationDecisionSchema).max(STATE_LIMITS.maxDecisions).default([]),
+  /** Revision number of the active plan; 0 when none exists. */
+  planRevision: external_exports.number().int().min(0).default(0),
+  activePlanId: shortText.optional(),
+  activePlanHash: shortText.optional(),
+  planReview: planReviewSchema.optional(),
+  planStaleReasons: external_exports.array(external_exports.enum(PLAN_STALENESS_REASONS)).max(10).default([]),
+  /** Interactive execution runs this orchestration has driven, in order. */
+  interactiveRunIds: external_exports.array(shortText).max(STATE_LIMITS.maxInteractiveRuns).default([]),
+  activeInteractiveRunId: shortText.optional(),
+  lastObservation: observationFingerprintSchema.optional(),
+  /** Fingerprint of the failure the current repair cycle is addressing. */
+  repairTargetFingerprint: shortText.optional(),
+  blocker: orchestrationBlockerSchema.optional(),
+  /** Set exactly once, when the run reaches a final phase. */
+  finalizedAt: shortText.optional(),
+  finalOutcome: shortText.optional()
+}).passthrough();
+var ORCHESTRATION_CHECKPOINT_SCHEMA_VERSION = "1.0.0";
+var orchestrationCheckpointSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  orchestrationId: shortText,
+  createdAt: shortText,
+  specName: shortText,
+  taskId: shortText.optional(),
+  phase: external_exports.enum(ORCHESTRATION_PHASES),
+  planRevision: external_exports.number().int().min(0),
+  completedSteps: external_exports.array(shortText).max(200).default([]),
+  unresolvedSteps: external_exports.array(shortText).max(200).default([]),
+  observations: textList.default([]),
+  latestVerifier: text.optional(),
+  counters: orchestrationCountersSchema,
+  budgets: orchestrationBudgetsSchema,
+  blocker: orchestrationBlockerSchema.optional(),
+  /** The exact next safe action, in one line. */
+  nextAction: text
+}).passthrough();
+var TRANSITIONS = Object.freeze({
+  CREATED: ["NEEDS_CLARIFICATION", "READY_TO_PLAN", "BLOCKED", "REJECTED", "CANCELLED", "ABORTED"],
+  NEEDS_CLARIFICATION: [
+    // Another bounded round of questions.
+    "NEEDS_CLARIFICATION",
+    "READY_TO_PLAN",
+    "BLOCKED",
+    "REJECTED",
+    "CANCELLED",
+    "ABORTED"
+  ],
+  READY_TO_PLAN: [
+    "AWAITING_PLAN_REVIEW",
+    // Planning mode `auto`/`disabled`, or a re-submitted plan under review.
+    "READY_TO_EXECUTE",
+    "NEEDS_CLARIFICATION",
+    "BLOCKED",
+    "CANCELLED",
+    "ABORTED"
+  ],
+  AWAITING_PLAN_REVIEW: [
+    "READY_TO_EXECUTE",
+    // A revised plan submitted before review simply re-enters review.
+    "AWAITING_PLAN_REVIEW",
+    // A rejected plan goes back to planning, never straight to execution.
+    "READY_TO_PLAN",
+    "NEEDS_CLARIFICATION",
+    "BLOCKED",
+    "CANCELLED",
+    "ABORTED"
+  ],
+  // A plan may be revised from any phase where one is already in force.
+  // Materiality — not the phase — decides whether a prior review still
+  // applies, so both the "re-enter review" and the "stay executable"
+  // outcomes are reachable from each of the three phases below.
+  READY_TO_EXECUTE: [
+    "EXECUTING",
+    "REPLANNING",
+    "AWAITING_PLAN_REVIEW",
+    "READY_TO_EXECUTE",
+    "NEEDS_CLARIFICATION",
+    "BLOCKED",
+    "CANCELLED",
+    "ABORTED"
+  ],
+  EXECUTING: [
+    // Self-transition: one bounded observe/decide/act iteration.
+    "EXECUTING",
+    "REPAIRING",
+    "REPLANNING",
+    "AWAITING_PLAN_REVIEW",
+    "READY_TO_EXECUTE",
+    "NEEDS_CLARIFICATION",
+    "COMPLETED",
+    "BLOCKED",
+    "CANCELLED",
+    "ABORTED"
+  ],
+  REPAIRING: [
+    // Self-transition: another bounded repair cycle.
+    "REPAIRING",
+    // A repair that produced fresh work returns to ordinary execution.
+    "EXECUTING",
+    "REPLANNING",
+    "AWAITING_PLAN_REVIEW",
+    "READY_TO_EXECUTE",
+    "NEEDS_CLARIFICATION",
+    "COMPLETED",
+    "BLOCKED",
+    "CANCELLED",
+    "ABORTED"
+  ],
+  REPLANNING: [
+    "AWAITING_PLAN_REVIEW",
+    "READY_TO_EXECUTE",
+    "NEEDS_CLARIFICATION",
+    "BLOCKED",
+    "CANCELLED",
+    "ABORTED"
+  ],
+  BLOCKED: ["NEEDS_CLARIFICATION", "READY_TO_PLAN", "REPLANNING", "CANCELLED", "ABORTED"],
+  COMPLETED: [],
+  ABORTED: [],
+  CANCELLED: [],
+  REJECTED: []
+});
+function allowedTransitions(from) {
+  return TRANSITIONS[from];
+}
+function canTransition(from, to) {
+  return TRANSITIONS[from].includes(to);
+}
+function assertTransition(from, to) {
+  if (canTransition(from, to)) return;
+  if (isFinalPhase(from)) {
+    throw new OrchestrationError(
+      "SBO005",
+      `Orchestration run is already ${from}; it cannot transition to ${to}. Finalized runs are read-only: start a new orchestration run instead of continuing this one.`,
+      {
+        remediation: [
+          "Inspect the finished run with `specbridge orchestrate show <id>`.",
+          "Begin a new run for further work \u2014 a new run is never presented as a continuation."
+        ],
+        details: { from, to }
+      }
+    );
+  }
+  throw new OrchestrationError(
+    "SBO004",
+    `Invalid orchestration transition ${from} \u2192 ${to}.`,
+    {
+      remediation: [
+        `Valid next phases from ${from}: ${TRANSITIONS[from].join(", ") || "(none)"}.`
+      ],
+      details: { from, to, allowed: [...TRANSITIONS[from]] }
+    }
+  );
+}
+var PHASE_ACTIONS = Object.freeze(
+  {
+    CREATED: ["INSPECT", "REQUEST_CLARIFICATION", "ABORT"],
+    NEEDS_CLARIFICATION: ["INSPECT", "REQUEST_CLARIFICATION", "ABORT"],
+    READY_TO_PLAN: ["INSPECT", "REQUEST_CLARIFICATION", "ABORT"],
+    AWAITING_PLAN_REVIEW: ["INSPECT", "REQUEST_CLARIFICATION", "REPLAN", "ABORT"],
+    READY_TO_EXECUTE: ["INSPECT", "EDIT", "TEST", "REPLAN", "REQUEST_CLARIFICATION", "ABORT"],
+    EXECUTING: [
+      "INSPECT",
+      "EDIT",
+      "TEST",
+      "VERIFY",
+      "REPLAN",
+      "REQUEST_CLARIFICATION",
+      "COMPLETE",
+      "ABORT"
+    ],
+    REPAIRING: [
+      "INSPECT",
+      "EDIT",
+      "TEST",
+      "VERIFY",
+      "REPLAN",
+      "REQUEST_CLARIFICATION",
+      "COMPLETE",
+      "ABORT"
+    ],
+    REPLANNING: ["INSPECT", "REPLAN", "REQUEST_CLARIFICATION", "ABORT"],
+    BLOCKED: ["INSPECT", "REQUEST_CLARIFICATION", "ABORT"],
+    COMPLETED: [],
+    ABORTED: [],
+    CANCELLED: [],
+    REJECTED: []
+  }
+);
+function allowedActions(phase) {
+  return PHASE_ACTIONS[phase];
+}
+function isActionAllowed(phase, action) {
+  return PHASE_ACTIONS[phase].includes(action);
+}
+function assertActionAllowed(phase, action) {
+  if (isActionAllowed(phase, action)) return;
+  const remediation = [
+    `Actions allowed in ${phase}: ${PHASE_ACTIONS[phase].join(", ") || "(none \u2014 the run is final)"}.`
+  ];
+  if (action === "EDIT" && !isFinalPhase(phase)) {
+    remediation.push(
+      'Source edits require a valid execution plan. Submit one with orchestration_submit_plan, and have it reviewed when the planning policy is "review".'
+    );
+  }
+  if (action === "COMPLETE") {
+    remediation.push("Completion is only possible once execution has actually started.");
+  }
+  throw new OrchestrationError(
+    "SBO019",
+    `Action ${action} is not allowed while the orchestration run is ${phase}.`,
+    { remediation, details: { phase, action, allowed: [...PHASE_ACTIONS[phase]] } }
+  );
+}
+var POLICIES = Object.freeze({
+  TRANSIENT_TRANSPORT: {
+    retryable: true,
+    repairable: false,
+    replannable: false,
+    clarifiable: false,
+    terminal: false,
+    remediation: ["Retry the same read-only operation within the configured transient budget."]
+  },
+  TRANSIENT_TOOL: {
+    retryable: true,
+    repairable: false,
+    replannable: false,
+    clarifiable: false,
+    terminal: false,
+    remediation: ["Retry the same idempotent operation within the configured transient budget."]
+  },
+  VERIFICATION_FAILURE: {
+    // A failing verifier is information, not noise. Rerunning it unchanged
+    // cannot make it pass; only a repair can.
+    retryable: false,
+    repairable: true,
+    replannable: true,
+    clarifiable: false,
+    terminal: false,
+    remediation: [
+      "Read the failing verifier output, fix the implementation, then request verification again."
+    ]
+  },
+  IMPLEMENTATION_DEFECT: {
+    retryable: false,
+    repairable: true,
+    replannable: true,
+    clarifiable: false,
+    terminal: false,
+    remediation: ["Repair the implementation against the observed failure evidence."]
+  },
+  AMBIGUITY: {
+    retryable: false,
+    repairable: false,
+    replannable: false,
+    clarifiable: true,
+    terminal: false,
+    remediation: [
+      "Ask the user the specific question whose answer changes the implementation.",
+      "If the answer changes the specification, re-author and re-approve the affected stage."
+    ]
+  },
+  BLOCKED_DEPENDENCY: {
+    retryable: false,
+    repairable: false,
+    replannable: true,
+    clarifiable: true,
+    terminal: false,
+    remediation: ["Satisfy the missing dependency, then continue the run."]
+  },
+  CAPABILITY_UNAVAILABLE: {
+    retryable: false,
+    repairable: false,
+    replannable: true,
+    clarifiable: false,
+    terminal: false,
+    remediation: [
+      "Check runner capabilities with `specbridge runner doctor`.",
+      "SpecBridge never switches provider automatically during implementation."
+    ]
+  },
+  AUTHENTICATION: {
+    retryable: false,
+    repairable: false,
+    replannable: false,
+    clarifiable: false,
+    terminal: true,
+    remediation: [
+      "Authenticate with the provider directly. SpecBridge never stores or replays credentials."
+    ]
+  },
+  PERMISSION: {
+    retryable: false,
+    repairable: false,
+    replannable: false,
+    clarifiable: false,
+    terminal: true,
+    remediation: ["Grant the required permission explicitly, then start a new run."]
+  },
+  SAFETY_POLICY: {
+    retryable: false,
+    repairable: false,
+    replannable: false,
+    clarifiable: false,
+    terminal: true,
+    remediation: [
+      "This boundary is not configurable away. Change the request so it stays inside it."
+    ]
+  },
+  STALE_CONTEXT: {
+    retryable: false,
+    repairable: false,
+    replannable: true,
+    clarifiable: false,
+    terminal: false,
+    remediation: [
+      "Reconcile the changed spec/task state, then replan against the current context."
+    ]
+  },
+  REPOSITORY_DIVERGED: {
+    retryable: false,
+    repairable: false,
+    replannable: true,
+    clarifiable: false,
+    terminal: false,
+    remediation: [
+      "Inspect the repository state that changed under the run, then replan or start a fresh run."
+    ]
+  },
+  PROTECTED_PATH: {
+    retryable: false,
+    repairable: false,
+    replannable: false,
+    clarifiable: false,
+    terminal: true,
+    remediation: [
+      "Revert the modification to the protected path. Protected paths are never negotiable."
+    ]
+  },
+  NO_PROGRESS: {
+    retryable: false,
+    repairable: false,
+    replannable: true,
+    clarifiable: true,
+    terminal: false,
+    remediation: [
+      "The same approach is producing the same result. Replan, or ask the user for the missing decision."
+    ]
+  },
+  BUDGET_EXHAUSTED: {
+    retryable: false,
+    repairable: false,
+    replannable: false,
+    clarifiable: false,
+    terminal: true,
+    remediation: [
+      "Review the preserved evidence and decide explicitly whether to raise the budget or change approach."
+    ]
+  },
+  CANCELLED: {
+    retryable: false,
+    repairable: false,
+    replannable: false,
+    clarifiable: false,
+    terminal: true,
+    remediation: ["Cancellation is never restarted automatically. Start a new run when ready."]
+  },
+  INVALID_CONFIGURATION: {
+    retryable: false,
+    repairable: false,
+    replannable: false,
+    clarifiable: false,
+    terminal: true,
+    remediation: ["Fix `.specbridge/config.json`, then run `specbridge doctor`."]
+  },
+  INTERNAL: {
+    retryable: false,
+    repairable: false,
+    replannable: false,
+    clarifiable: false,
+    terminal: true,
+    remediation: ["Report the failure with the run id; the evidence directory is preserved."]
+  }
+});
+function failurePolicy(category) {
+  return { category, ...POLICIES[category] };
+}
+function normalizeFailureOutput(raw) {
+  return raw.replace(/\[[0-9;]*[A-Za-z]/g, "").replace(/\r\n/g, "\n").replace(/[A-Za-z]:\\[^\s:"']*/g, "<PATH>").replace(/(?<![\w-])\/(?:[\w.-]+\/)+[\w.-]+/g, "<PATH>").replace(/\d+(\.\d+)?\s?(ms|s|sec|seconds|m|min)\b/gi, "<DURATION>").replace(/\d{4}-\d{2}-\d{2}T[\d:.]+Z?/g, "<TIMESTAMP>").replace(/\b(pid|PID)[=: ]+\d+/g, "pid=<PID>").replace(/\b[0-9a-f]{7,64}\b/gi, "<HEX>").replace(/:\d+:\d+/g, ":<LINE>:<COL>").replace(/[ \t]+/g, " ").split("\n").map((line) => line.trim()).filter((line) => line.length > 0).join("\n").trim();
+}
+function failureFingerprint(input) {
+  const normalized = input.output !== void 0 ? normalizeFailureOutput(input.output) : "";
+  const bounded = normalized.slice(0, 16384);
+  const canonical = [
+    input.category,
+    input.source,
+    input.exitCode === void 0 ? "no-exit-code" : String(input.exitCode),
+    bounded
+  ].join("\0");
+  return (0, import_crypto9.createHash)("sha256").update(canonical).digest("hex").slice(0, 32);
+}
+function classifyFailure(input) {
+  return {
+    category: input.category,
+    message: input.message,
+    fingerprint: failureFingerprint({
+      category: input.category,
+      source: input.source,
+      exitCode: input.exitCode,
+      output: input.output
+    }),
+    policy: failurePolicy(input.category),
+    ...input.details !== void 0 ? { details: input.details } : {}
+  };
+}
+function diffFingerprint(changed) {
+  const canonical = [...changed].map((entry) => `${entry.path}:${entry.contentHash ?? "no-hash"}`).sort((a2, b) => a2.localeCompare(b, "en")).join("\n");
+  return (0, import_crypto10.createHash)("sha256").update(canonical).digest("hex").slice(0, 32);
+}
+function isMateriallyIdentical(previous, next) {
+  if (previous === void 0) return false;
+  if (previous.planRevision !== next.planRevision) return false;
+  if (previous.actionCategory !== next.actionCategory) return false;
+  if (previous.result !== next.result) return false;
+  if (previous.failureFingerprint !== next.failureFingerprint) return false;
+  if (previous.diffFingerprint !== next.diffFingerprint) return false;
+  return true;
+}
+function assessProgress(input) {
+  const identical = isMateriallyIdentical(input.previous, input.next);
+  const progressed = !identical && input.next.result !== "no-change";
+  const consecutive = progressed ? 0 : input.consecutiveNoProgress + 1;
+  const stagnated = consecutive >= input.maxNoProgressCycles;
+  let reason;
+  if (progressed) {
+    reason = "The observation differs from the previous one; the run advanced.";
+  } else if (identical) {
+    reason = "The action category, plan revision, failure identity, and working tree are all unchanged since the previous observation \u2014 the same approach produced the same result.";
+  } else {
+    reason = "The action produced no observable change.";
+  }
+  return { progressed, consecutiveNoProgress: consecutive, stagnated, reason };
+}
+function budgetStop(budget, reason, remediation) {
+  return {
+    directive: "STOP_BUDGET_EXHAUSTED",
+    reason,
+    backoffMs: 0,
+    failureCategory: "BUDGET_EXHAUSTED",
+    remediation,
+    exhaustedBudget: budget
+  };
+}
+function backoffForAttempt(attempt, options) {
+  if (attempt <= 0) return 0;
+  const raw = options.baseBackoffMs * 2 ** (attempt - 1);
+  return Math.min(raw, options.maxBackoffMs);
+}
+function decideNextStep(input, backoff) {
+  const { counters, budgets, failure } = input;
+  if (failure?.category === "CANCELLED") {
+    return {
+      directive: "STOP_FINAL",
+      reason: "The run was cancelled. Cancellation is never restarted automatically.",
+      backoffMs: 0,
+      failureCategory: "CANCELLED",
+      remediation: failure.policy.remediation
+    };
+  }
+  if (failure !== void 0 && failure.policy.terminal) {
+    return {
+      directive: "BLOCK",
+      reason: `${failure.category} cannot be retried, repaired, or replanned automatically.`,
+      backoffMs: 0,
+      failureCategory: failure.category,
+      remediation: failure.policy.remediation
+    };
+  }
+  if (input.elapsedMs >= budgets.maxElapsedMs) {
+    return budgetStop(
+      "maxElapsedMs",
+      `The run reached its ${budgets.maxElapsedMs}ms wall-clock budget.`,
+      [
+        "All evidence and source changes are preserved.",
+        "Review the checkpoint, then start a new run if the work should continue."
+      ]
+    );
+  }
+  if (counters.iterations >= budgets.maxIterations) {
+    return budgetStop(
+      "maxIterations",
+      `The run reached its ${budgets.maxIterations}-iteration budget.`,
+      [
+        "All evidence and source changes are preserved; the task stays incomplete.",
+        "Raise orchestration.execution.maxIterations explicitly, or change approach."
+      ]
+    );
+  }
+  if (failure?.category === "AMBIGUITY") {
+    if (counters.clarificationRounds >= budgets.maxClarificationRounds) {
+      return budgetStop(
+        "maxClarificationRounds",
+        `The run used all ${budgets.maxClarificationRounds} clarification rounds and the request is still ambiguous.`,
+        [
+          "Resolve the ambiguity in the specification and re-approve the affected stage."
+        ]
+      );
+    }
+    return {
+      directive: "CLARIFY",
+      reason: "The request is underspecified; a user decision is required before implementing.",
+      backoffMs: 0,
+      failureCategory: "AMBIGUITY",
+      remediation: failure.policy.remediation
+    };
+  }
+  if (failure !== void 0 && failure.policy.retryable) {
+    if (counters.transientRetries >= budgets.maxTransientRetries) {
+      return budgetStop(
+        "maxTransientRetries",
+        `The transient failure recurred after ${budgets.maxTransientRetries} bounded retries; it is not transient.`,
+        ["Investigate the underlying tool or transport failure before continuing."]
+      );
+    }
+    return {
+      directive: "RETRY",
+      reason: `${failure.category} is safely retryable; retrying the same idempotent operation.`,
+      backoffMs: backoffForAttempt(counters.transientRetries + 1, backoff),
+      failureCategory: failure.category,
+      remediation: failure.policy.remediation
+    };
+  }
+  if (input.stagnated) {
+    if (counters.replans < budgets.maxReplans) {
+      return {
+        directive: "REPLAN",
+        reason: "Repeated actions produced materially identical results; the current approach is not working.",
+        backoffMs: 0,
+        failureCategory: "NO_PROGRESS",
+        remediation: [
+          "Replan with a different strategy against the observed evidence.",
+          "If the blocker is a missing user decision, ask instead of replanning."
+        ]
+      };
+    }
+    return budgetStop(
+      "maxNoProgressCycles",
+      `No progress after ${counters.consecutiveNoProgress} materially identical cycles, and the replan budget (${budgets.maxReplans}) is exhausted.`,
+      [
+        "All evidence and source changes are preserved; the task stays incomplete.",
+        "Inspect the preserved failure evidence and decide the approach explicitly."
+      ]
+    );
+  }
+  if (failure !== void 0 && failure.policy.repairable) {
+    if (counters.repairCycles >= budgets.maxRepairCycles) {
+      return budgetStop(
+        "maxRepairCycles",
+        `The repair budget of ${budgets.maxRepairCycles} cycle(s) is exhausted and verification still fails.`,
+        [
+          "The implementation changes and all failure evidence are preserved.",
+          "The task stays incomplete: inspect the failing verifier and decide explicitly."
+        ]
+      );
+    }
+    return {
+      directive: "REPAIR",
+      reason: failure.category === "VERIFICATION_FAILURE" ? "A trusted verification command failed; repair the implementation against its output rather than rerunning it." : "The implementation is defective; repair it against the observed failure.",
+      backoffMs: 0,
+      failureCategory: failure.category,
+      remediation: failure.policy.remediation
+    };
+  }
+  if (failure !== void 0 && failure.policy.replannable) {
+    if (counters.replans >= budgets.maxReplans) {
+      return budgetStop(
+        "maxReplans",
+        `${failure.category} requires replanning, but the replan budget of ${budgets.maxReplans} is exhausted.`,
+        failure.policy.remediation
+      );
+    }
+    return {
+      directive: "REPLAN",
+      reason: `${failure.category} invalidates the current plan.`,
+      backoffMs: 0,
+      failureCategory: failure.category,
+      remediation: failure.policy.remediation
+    };
+  }
+  if (failure !== void 0 && failure.policy.clarifiable) {
+    return {
+      directive: "CLARIFY",
+      reason: `${failure.category} needs a user decision.`,
+      backoffMs: 0,
+      failureCategory: failure.category,
+      remediation: failure.policy.remediation
+    };
+  }
+  if (failure !== void 0) {
+    return {
+      directive: "BLOCK",
+      reason: `${failure.category} has no automatic recovery path.`,
+      backoffMs: 0,
+      failureCategory: failure.category,
+      remediation: failure.policy.remediation
+    };
+  }
+  if (input.readyToVerify === true) {
+    return {
+      directive: "VERIFY",
+      reason: "The implementation is asserted ready; trusted verification decides completion, not the assertion.",
+      backoffMs: 0,
+      remediation: [
+        "Call task_complete: Git evidence and the configured verifiers decide the outcome."
+      ]
+    };
+  }
+  return {
+    directive: "CONTINUE",
+    reason: input.progressed ? "The last action advanced the run; continue with the next plan step." : "Continue with the next plan step.",
+    backoffMs: 0,
+    remediation: []
+  };
+}
+function capturePlanBinding(workspace, options) {
+  const folder = requireSpec(workspace, options.specName);
+  const spec = analyzeSpec(workspace, folder);
+  const tasks = spec.tasks;
+  const task = tasks !== void 0 ? findTask(tasks, options.taskId) : void 0;
+  if (task === void 0) {
+    throw new OrchestrationError(
+      "SBO010",
+      `Task ${options.taskId} does not exist in "${options.specName}"; a plan cannot bind to it.`,
+      { remediation: ["List tasks with the task_list tool and select an existing one."] }
+    );
+  }
+  const approvedStageHashes = {};
+  const state = readSpecState(workspace, options.specName).state;
+  if (state !== void 0) {
+    for (const stage of ["requirements", "bugfix", "design", "tasks"]) {
+      const approval = stateStage(state, stage);
+      if (approval?.status === "approved" && typeof approval.approvedHash === "string") {
+        approvedStageHashes[stage] = approval.approvedHash;
+      }
+    }
+  }
+  return {
+    taskId: task.id,
+    taskFingerprint: taskFingerprint({
+      id: task.id,
+      title: task.title,
+      requirementRefs: task.requirementRefs
+    }),
+    approvedStageHashes,
+    ...options.gitHead !== void 0 ? { gitHead: options.gitHead } : {},
+    policyFingerprint: orchestrationPolicyFingerprint(options.policy)
+  };
+}
+function evaluatePlanFreshness(plan, current, options = {}) {
+  const reasons = [];
+  const explanations = [];
+  if (options.supersededBy !== void 0) {
+    reasons.push("superseded");
+    explanations.push(
+      `Plan revision ${plan.revision} was superseded by revision ${options.supersededBy}.`
+    );
+  }
+  if (plan.binding.taskFingerprint !== current.taskFingerprint) {
+    reasons.push("task-fingerprint-changed");
+    explanations.push(
+      `Task ${plan.binding.taskId} changed in tasks.md since the plan was created (title or requirement references differ).`
+    );
+  }
+  for (const [stage, hash] of Object.entries(plan.binding.approvedStageHashes)) {
+    if (current.approvedStageHashes[stage] !== hash) {
+      reasons.push("approved-stage-changed");
+      explanations.push(
+        `The approved "${stage}" stage changed after the plan was created; the plan may rest on a document that no longer exists in that form.`
+      );
+      break;
+    }
+  }
+  for (const stage of Object.keys(current.approvedStageHashes)) {
+    if (plan.binding.approvedStageHashes[stage] === void 0) {
+      if (!reasons.includes("approved-stage-changed")) {
+        reasons.push("approved-stage-changed");
+        explanations.push(
+          `The "${stage}" stage was approved after the plan was created; the plan was made without it.`
+        );
+      }
+      break;
+    }
+  }
+  if (plan.binding.gitHead !== current.gitHead) {
+    reasons.push("repository-baseline-changed");
+    explanations.push(
+      `The repository moved from ${plan.binding.gitHead ?? "(no commit)"} to ${current.gitHead ?? "(no commit)"} since the plan was created.`
+    );
+  }
+  if (plan.binding.policyFingerprint !== current.policyFingerprint) {
+    reasons.push("policy-changed");
+    explanations.push(
+      "The orchestration policy changed after the plan was created; the plan was reviewed under different bounds."
+    );
+  }
+  return { fresh: reasons.length === 0, reasons, explanations };
+}
+function normalizeSet(values) {
+  return new Set(values.map((value) => value.trim().toLowerCase()).filter((v) => v.length > 0));
+}
+function setsDiffer(a2, b) {
+  if (a2.size !== b.size) return true;
+  for (const value of a2) if (!b.has(value)) return true;
+  return false;
+}
+function stepDescriptions(steps) {
+  return steps.map((step) => step.description.trim().toLowerCase());
+}
+function assessPlanChange(previous, next) {
+  const material = [];
+  const immaterial = [];
+  if (previous.binding.taskId !== next.binding.taskId) material.push("task-changed");
+  if (previous.goal.trim() !== next.goal.trim()) material.push("goal-changed");
+  if (setsDiffer(normalizeSet(previous.nonGoals), normalizeSet(next.nonGoals))) {
+    material.push("non-goals-changed");
+  }
+  if (setsDiffer(normalizeSet(previous.constraints), normalizeSet(next.constraints))) {
+    material.push("constraints-changed");
+  }
+  if (setsDiffer(normalizeSet(previous.expectedAreas), normalizeSet(next.expectedAreas))) {
+    material.push("expected-areas-changed");
+  }
+  if (previous.testStrategy.trim() !== next.testStrategy.trim()) {
+    material.push("test-strategy-changed");
+  }
+  if (previous.verificationStrategy.trim() !== next.verificationStrategy.trim()) {
+    material.push("verification-strategy-changed");
+  }
+  const previousSteps = normalizeSet(stepDescriptions(previous.steps));
+  const nextSteps = normalizeSet(stepDescriptions(next.steps));
+  if (setsDiffer(previousSteps, nextSteps)) {
+    material.push("steps-changed");
+  } else if (stepDescriptions(previous.steps).join("|") !== stepDescriptions(next.steps).join("|")) {
+    immaterial.push("steps-reordered");
+  }
+  if (setsDiffer(normalizeSet(previous.assumptions), normalizeSet(next.assumptions))) {
+    immaterial.push("assumptions-changed");
+  }
+  if (setsDiffer(normalizeSet(previous.relevantEvidence), normalizeSet(next.relevantEvidence))) {
+    immaterial.push("evidence-changed");
+  }
+  if (setsDiffer(normalizeSet(previous.openQuestions), normalizeSet(next.openQuestions))) {
+    immaterial.push("open-questions-changed");
+  }
+  return {
+    materiality: material.length > 0 ? "material" : "immaterial",
+    materialChanges: material,
+    immaterialChanges: immaterial
+  };
+}
+function buildExecutionPlan(input) {
+  const { candidate, policy } = input;
+  if (candidate.steps.length === 0) {
+    throw new OrchestrationError("SBO010", "An execution plan needs at least one step.", {
+      remediation: ["Describe the ordered implementation steps for the selected task."]
+    });
+  }
+  if (candidate.steps.length > policy.planning.maxPlanSteps) {
+    throw new OrchestrationError(
+      "SBO010",
+      `An execution plan may contain at most ${policy.planning.maxPlanSteps} steps (received ${candidate.steps.length}). A plan this large usually means the task should be split.`,
+      { remediation: ["Split the work across tasks, or plan a smaller slice."] }
+    );
+  }
+  const plan = executionPlanSchema.parse({
+    schemaVersion: EXECUTION_PLAN_SCHEMA_VERSION,
+    planId: input.planId,
+    revision: input.revision,
+    specName: input.specName,
+    createdAt: input.createdAt,
+    binding: input.binding,
+    goal: candidate.goal,
+    nonGoals: candidate.nonGoals ?? [],
+    constraints: candidate.constraints ?? [],
+    relevantEvidence: candidate.relevantEvidence ?? [],
+    assumptions: candidate.assumptions ?? [],
+    openQuestions: candidate.openQuestions ?? [],
+    expectedAreas: candidate.expectedAreas ?? [],
+    steps: candidate.steps.map((step, index) => ({
+      id: step.id ?? `s${index + 1}`,
+      description: step.description,
+      expectedAreas: step.expectedAreas ?? [],
+      ...step.expectedEvidence !== void 0 ? { expectedEvidence: step.expectedEvidence } : {},
+      status: "pending"
+    })),
+    testStrategy: candidate.testStrategy,
+    verificationStrategy: candidate.verificationStrategy,
+    ...candidate.rollbackConsiderations !== void 0 ? { rollbackConsiderations: candidate.rollbackConsiderations } : {},
+    replanTriggers: candidate.replanTriggers ?? [],
+    ...input.supersedes !== void 0 ? { supersedes: input.supersedes } : {},
+    ...candidate.replanReason !== void 0 ? { replanReason: candidate.replanReason } : {}
+  });
+  const serialized = Buffer.byteLength(JSON.stringify(plan), "utf8");
+  if (serialized > policy.planning.maxPlanBytes) {
+    throw new OrchestrationError(
+      "SBO021",
+      `The execution plan serializes to ${serialized} bytes, over the ${policy.planning.maxPlanBytes}-byte limit.`,
+      { remediation: ["Shorten the plan; detailed evidence belongs in the run record."] }
+    );
+  }
+  return plan;
+}
+function detectStructuralBlockers(context) {
+  const blockers = [];
+  const { workspace, specName } = context;
+  const folder = requireSpec(workspace, specName);
+  const spec = analyzeSpec(workspace, folder);
+  const state = readSpecState(workspace, specName).state;
+  if (state === void 0) {
+    blockers.push({
+      code: "unmanaged-spec",
+      outcome: "BLOCKED",
+      message: `Spec "${specName}" has no SpecBridge workflow state; nothing can be implemented from it yet.`,
+      remediation: [
+        `Author the stages, then approve them (human action): specbridge spec approve ${specName} --stage <stage>`
+      ]
+    });
+    return blockers;
+  }
+  const evaluation = evaluateWorkflow(workspace, state);
+  if (evaluation.health === "stale") {
+    const stale = [...evaluation.staleStages, ...evaluation.invalidatedStages];
+    blockers.push({
+      code: "stale-approval",
+      outcome: "BLOCKED",
+      message: `Approved stage(s) of "${specName}" changed after approval (${stale.join(", ")}); implementation is blocked until they are re-approved.`,
+      remediation: [
+        `Review the changes and re-approve (human action): specbridge spec approve ${specName} --stage ${stale[0] ?? "<stage>"}`
+      ]
+    });
+  } else if (evaluation.effectiveStatus !== "READY_FOR_IMPLEMENTATION") {
+    const unapproved = evaluation.stages.filter((stage) => stage.effective !== "approved").map((stage) => stage.stage);
+    blockers.push({
+      code: "stages-not-approved",
+      outcome: "BLOCKED",
+      message: `Not every stage of "${specName}" is approved yet (missing: ${unapproved.join(", ")}).`,
+      remediation: [
+        "Author and approve the missing stage(s) first. Approval is a human action; no agent can perform it."
+      ]
+    });
+  }
+  if (context.taskId !== void 0) {
+    const task = spec.tasks !== void 0 ? findTask(spec.tasks, context.taskId) : void 0;
+    if (task === void 0) {
+      blockers.push({
+        code: "task-not-found",
+        outcome: "BLOCKED",
+        message: `Task ${context.taskId} does not exist in "${specName}".`,
+        remediation: ["List the current tasks with the task_list tool and select an existing one."]
+      });
+    } else if (task.state === "done") {
+      blockers.push({
+        code: "task-already-complete",
+        outcome: "BLOCKED",
+        message: `Task ${context.taskId} in "${specName}" is already marked complete.`,
+        remediation: ["Select the next open task, or re-open the task in tasks.md and re-approve."]
+      });
+    }
+  }
+  const lock = readInteractiveLock(workspace);
+  if (lock.state === "held") {
+    blockers.push({
+      code: "interactive-run-active",
+      outcome: "BLOCKED",
+      message: `Another interactive execution (run ${lock.lock.runId}) currently owns the repository lock.`,
+      remediation: [
+        "Finish or abort that run first (task_complete / task_abort),",
+        "or diagnose a crashed run with: specbridge run recover-lock"
+      ]
+    });
+  }
+  return blockers;
+}
+var REJECTION_RULES = Object.freeze([
+  {
+    code: "agent-approval-requested",
+    pattern: /\b(approve|approving|approval of|sign off on|signoff)\b[^.]{0,60}\b(spec|design|requirements|bugfix|tasks|stage)\b|\bauto[- ]?approve\b|\bapprove (it|the \w+) (yourself|for me|on my behalf)\b/i,
+    message: "Stage approval is a human-only action. SpecBridge exposes no agent-accessible approval path, and orchestration cannot create one.",
+    remediation: [
+      "The user approves explicitly: specbridge spec approve <spec> --stage <stage>",
+      "Or in Claude Code: /specbridge:approve (which prints the command; it never approves for you)."
+    ]
+  },
+  {
+    code: "protected-path-bypass-requested",
+    pattern: /\b(disable|bypass|turn off|remove|skip|ignore)\b[^.]{0,40}\bprotected[- ]path/i,
+    message: "Protected-path checks are not configurable away.",
+    remediation: ["Keep changes outside `.kiro/`, `.specbridge/`, `.git/`, and configured protected paths."]
+  },
+  {
+    code: "verification-bypass-requested",
+    pattern: /\b(skip|bypass|disable|turn off|ignore|without)\b[^.]{0,40}\b(verification|verifying|verifier|tests?|checks?)\b|\bmark (it|the task) (as )?(complete|done)\b[^.]{0,40}\bwithout\b/i,
+    message: "Completion is decided by Git evidence and the trusted verification commands. Orchestration cannot mark a task complete without them.",
+    remediation: [
+      "Fix the implementation so verification passes, or accept the task manually with the documented human command."
+    ]
+  },
+  {
+    code: "nested-agent-requested",
+    pattern: /\b(launch|spawn|start|run)\b[^.]{0,40}\b(nested|another|sub-?)\s?(agent|claude|session)\b|\bclaude\s+-p\b/i,
+    message: "The Claude Code plugin is single-agent by contract: the current session is the implementer. SpecBridge never launches a nested coding agent from the plugin path.",
+    remediation: [
+      "Implement in this session through the task_begin / task_complete lifecycle.",
+      "Detached runner execution remains available through the standalone CLI runner architecture."
+    ]
+  },
+  {
+    code: "kiro-direct-edit-requested",
+    pattern: /\b(edit|modify|write to|change|update)\b[^.]{0,30}\.kiro\b/i,
+    message: "`.kiro` is the human-owned specification source of truth. Agents never edit it directly; stage candidates go through spec_stage_apply and then human approval.",
+    remediation: ["Propose a stage candidate with spec_stage_validate / spec_stage_apply."]
+  }
+]);
+function detectRejection(summary) {
+  const normalized = summary.replace(/\s+/g, " ").trim();
+  return REJECTION_RULES.find((rule) => rule.pattern.test(normalized));
+}
+function validateIntent(context, submission, options) {
+  const submitted = submission.outcome;
+  const reasons = [...submission.reasons ?? []];
+  const provenance = submission.provenance ?? [];
+  let outcome = submitted;
+  let overrideReason;
+  const rejection = detectRejection(submission.summary);
+  if (rejection !== void 0) {
+    outcome = "REJECTED";
+    overrideReason = rejection.message;
+    reasons.push(`${rejection.code}: ${rejection.message}`);
+  }
+  const blockers = outcome === "REJECTED" ? [] : detectStructuralBlockers(context);
+  if (outcome !== "REJECTED" && blockers.length > 0) {
+    if (outcome === "READY" || outcome === "NEEDS_CLARIFICATION") {
+      overrideReason = `${blockers.length} structural prerequisite(s) are unsatisfied: ` + blockers.map((blocker) => blocker.code).join(", ");
+    }
+    outcome = "BLOCKED";
+    for (const blocker of blockers) reasons.push(`${blocker.code}: ${blocker.message}`);
+  }
+  if (outcome === "READY") {
+    const unsafe = provenance.filter((entry) => UNSAFE_PROVENANCE_KINDS.includes(entry.source));
+    if (unsafe.length > 0) {
+      outcome = "NEEDS_CLARIFICATION";
+      const kinds = [...new Set(unsafe.map((entry) => entry.source))].join(", ");
+      overrideReason = `The assessment claimed READY while relying on ${unsafe.length} fact(s) with ${kinds} provenance. Facts that are inferred, unknown, or conflicting need a user decision before implementation.`;
+      for (const entry of unsafe) {
+        reasons.push(`${entry.source}: ${entry.fact}`);
+      }
+    }
+  }
+  const assessment = intentAssessmentSchema.parse({
+    outcome,
+    summary: submission.summary,
+    reasons: reasons.slice(0, 50),
+    provenance: provenance.slice(0, 50),
+    assessedAt: options.assessedAt,
+    ...outcome !== submitted ? { overriddenFrom: submitted } : {},
+    ...overrideReason !== void 0 ? { overrideReason } : {}
+  });
+  return { assessment, blockers, overridden: outcome !== submitted };
+}
+function normalizeQuestion(value) {
+  return value.replace(/\s+/g, " ").trim().toLowerCase();
+}
+function buildClarificationRound(state, candidates, policy, options) {
+  if (candidates.length === 0) {
+    throw new OrchestrationError("SBO007", "A clarification round needs at least one question.", {
+      remediation: ["If nothing is genuinely unclear, assess intent as READY instead."]
+    });
+  }
+  if (candidates.length > policy.clarification.maxQuestionsPerRound) {
+    throw new OrchestrationError(
+      "SBO021",
+      `A clarification round may ask at most ${policy.clarification.maxQuestionsPerRound} questions (received ${candidates.length}). Ask only the questions whose answers change the implementation.`,
+      { remediation: ["Drop questions whose answers would not change what you build."] }
+    );
+  }
+  const nextRound = state.counters.clarificationRounds + 1;
+  if (nextRound > policy.clarification.maxRounds) {
+    throw new OrchestrationError(
+      "SBO008",
+      `All ${policy.clarification.maxRounds} clarification rounds are used; the request is still ambiguous.`,
+      {
+        remediation: [
+          "Resolve the ambiguity in the specification itself and re-approve the affected stage.",
+          "Raise orchestration.clarification.maxRounds explicitly if more rounds are genuinely useful."
+        ],
+        failureCategory: "BUDGET_EXHAUSTED"
+      }
+    );
+  }
+  const answered = new Set(state.decisions.map((decision) => normalizeQuestion(decision.question)));
+  const seen = /* @__PURE__ */ new Set();
+  const questions = [];
+  for (const candidate of candidates) {
+    const text2 = candidate.question.trim();
+    const why = candidate.whyItMatters.trim();
+    if (text2.length === 0) {
+      throw new OrchestrationError("SBO007", "A clarification question must not be empty.");
+    }
+    if (Buffer.byteLength(text2, "utf8") > policy.clarification.maxQuestionBytes) {
+      throw new OrchestrationError(
+        "SBO021",
+        `A clarification question may be at most ${policy.clarification.maxQuestionBytes} bytes.`,
+        { remediation: ["Ask one specific thing per question."] }
+      );
+    }
+    if (why.length === 0) {
+      throw new OrchestrationError(
+        "SBO007",
+        `Question "${text2.slice(0, 60)}" has no justification. Every question must state why the answer changes the implementation.`,
+        { remediation: ["Drop the question, or explain what it would change."] }
+      );
+    }
+    const normalized = normalizeQuestion(text2);
+    if (seen.has(normalized)) {
+      throw new OrchestrationError(
+        "SBO007",
+        `Question "${text2.slice(0, 60)}" is asked twice in the same round.`
+      );
+    }
+    if (answered.has(normalized)) {
+      throw new OrchestrationError(
+        "SBO007",
+        `Question "${text2.slice(0, 60)}" was already answered in this run; re-asking it makes no progress.`,
+        { remediation: ["Read the recorded decision, or supersede it with an explicit new decision."] }
+      );
+    }
+    seen.add(normalized);
+    questions.push(
+      clarificationQuestionSchema.parse({
+        id: options.idFactory(),
+        question: text2,
+        whyItMatters: why,
+        options: (candidate.options ?? []).slice(0, 10),
+        ...candidate.relatedTaskId !== void 0 ? { relatedTaskId: candidate.relatedTaskId } : {},
+        askedAt: options.askedAt,
+        round: nextRound
+      })
+    );
+  }
+  return { questions, round: nextRound };
+}
+function buildClarificationDecisions(state, candidates, policy, options) {
+  if (candidates.length === 0) {
+    throw new OrchestrationError("SBO007", "At least one decision is required.");
+  }
+  const open = new Map(state.openQuestions.map((question) => [question.id, question]));
+  const known = new Set(state.decisions.map((decision) => decision.id));
+  const decisions = [];
+  for (const candidate of candidates) {
+    const question = open.get(candidate.questionId);
+    if (question === void 0) {
+      throw new OrchestrationError(
+        "SBO007",
+        `No open clarification question with id "${candidate.questionId}".`,
+        {
+          remediation: [
+            `Open question ids: ${[...open.keys()].join(", ") || "(none)"}.`,
+            "Ask the question first with an explicit clarification round."
+          ]
+        }
+      );
+    }
+    const answer = candidate.answer.trim();
+    if (answer.length === 0) {
+      throw new OrchestrationError("SBO007", "A clarification answer must not be empty.");
+    }
+    if (Buffer.byteLength(answer, "utf8") > policy.clarification.maxAnswerBytes) {
+      throw new OrchestrationError(
+        "SBO021",
+        `A clarification answer may be at most ${policy.clarification.maxAnswerBytes} bytes.`
+      );
+    }
+    if (candidate.source === "inferred" || candidate.source === "unknown" || candidate.source === "conflicting") {
+      throw new OrchestrationError(
+        "SBO007",
+        `A clarification cannot be resolved with "${candidate.source}" provenance \u2014 that is the ambiguity it was meant to remove.`,
+        {
+          remediation: [
+            "Record the user's actual decision (known-from-user), or the approved spec text that settles it."
+          ],
+          failureCategory: "AMBIGUITY"
+        }
+      );
+    }
+    if (candidate.supersedes !== void 0 && !known.has(candidate.supersedes)) {
+      throw new OrchestrationError(
+        "SBO007",
+        `Decision "${candidate.supersedes}" does not exist and cannot be superseded.`
+      );
+    }
+    decisions.push(
+      clarificationDecisionSchema.parse({
+        id: options.idFactory(),
+        questionId: question.id,
+        question: question.question,
+        answer,
+        source: candidate.source,
+        relatedSpecName: state.specName,
+        ...question.relatedTaskId !== void 0 ? { relatedTaskId: question.relatedTaskId } : {},
+        decidedAt: options.decidedAt,
+        ...candidate.supersedes !== void 0 ? { supersedes: candidate.supersedes } : {},
+        ...candidate.impact !== void 0 ? { impact: candidate.impact } : {}
+      })
+    );
+  }
+  return decisions;
+}
+function effectiveDecisions(decisions) {
+  const superseded = new Set(
+    decisions.map((decision) => decision.supersedes).filter((id) => id !== void 0)
+  );
+  return decisions.filter((decision) => !superseded.has(decision.id));
+}
+var ORCHESTRATION_DIR_NAME = "orchestration";
+var ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+function orchestrationRootDir(workspace) {
+  return import_path30.default.join(workspace.sidecarDir, ORCHESTRATION_DIR_NAME);
+}
+function assertOrchestrationId(orchestrationId) {
+  if (!ID_PATTERN.test(orchestrationId)) {
+    throw new OrchestrationError("SBO003", `Invalid orchestration id "${orchestrationId}".`, {
+      remediation: ["Ids are generated by SpecBridge; pass one returned by an orchestration tool."]
+    });
+  }
+  return orchestrationId;
+}
+function orchestrationDir(workspace, orchestrationId) {
+  assertOrchestrationId(orchestrationId);
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path30.default.join(orchestrationRootDir(workspace), orchestrationId)
+  );
+}
+function artifactPath(workspace, orchestrationId, ...segments) {
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path30.default.join(orchestrationDir(workspace, orchestrationId), ...segments)
+  );
+}
+function planHash(plan) {
+  return sha256Hex(JSON.stringify(plan)).slice(0, 32);
+}
+function majorOf(version2) {
+  return version2.split(".")[0] ?? "";
+}
+function readOrchestrationState(workspace, orchestrationId) {
+  const file = artifactPath(workspace, orchestrationId, "state.json");
+  if (!(0, import_fs26.existsSync)(file)) return { kind: "missing" };
+  let parsed;
+  try {
+    parsed = JSON.parse((0, import_fs26.readFileSync)(file, "utf8"));
+  } catch (cause) {
+    return {
+      kind: "corrupt",
+      problem: cause instanceof Error ? cause.message : String(cause),
+      file
+    };
+  }
+  const declared = parsed !== null && typeof parsed === "object" ? parsed.schemaVersion : void 0;
+  if (typeof declared !== "string") {
+    return { kind: "corrupt", problem: "schemaVersion is missing", file };
+  }
+  if (majorOf(declared) !== majorOf(ORCHESTRATION_STATE_SCHEMA_VERSION)) {
+    return { kind: "unsupported-version", version: declared, file };
+  }
+  const result = orchestrationStateSchema.safeParse(parsed);
+  if (!result.success) {
+    return {
+      kind: "corrupt",
+      problem: result.error.issues.map((issue4) => `${issue4.path.join(".") || "(root)"}: ${issue4.message}`).join("; "),
+      file
+    };
+  }
+  return { kind: "ok", state: result.data };
+}
+function requireOrchestrationState(workspace, orchestrationId) {
+  const read = readOrchestrationState(workspace, orchestrationId);
+  switch (read.kind) {
+    case "ok":
+      return read.state;
+    case "missing":
+      throw new OrchestrationError(
+        "SBO002",
+        `Orchestration run "${orchestrationId}" was not found under .specbridge/${ORCHESTRATION_DIR_NAME}/.`,
+        { remediation: ["List runs with `specbridge orchestrate status --json`."] }
+      );
+    case "corrupt":
+      throw new OrchestrationError(
+        "SBO003",
+        `Orchestration run "${orchestrationId}" has unreadable state: ${read.problem}. The file was left untouched for diagnosis.`,
+        {
+          remediation: [
+            `Inspect ${read.file}.`,
+            "Start a new orchestration run; the corrupt record is never rewritten automatically."
+          ],
+          details: { file: read.file }
+        }
+      );
+    case "unsupported-version":
+      throw new OrchestrationError(
+        "SBO003",
+        `Orchestration run "${orchestrationId}" was written by a newer SpecBridge (state schema ${read.version}); this build reads ${ORCHESTRATION_STATE_SCHEMA_VERSION}.`,
+        {
+          remediation: ["Upgrade SpecBridge, or start a new run with this version."],
+          details: { file: read.file, version: read.version }
+        }
+      );
+  }
+}
+function writeOrchestrationState(workspace, state) {
+  const validated = orchestrationStateSchema.parse(state);
+  const dir = orchestrationDir(workspace, validated.orchestrationId);
+  (0, import_fs26.mkdirSync)(dir, { recursive: true });
+  writeFileAtomic(import_path30.default.join(dir, "state.json"), `${JSON.stringify(validated, null, 2)}
+`);
+  return validated;
+}
+function createOrchestrationRun(workspace, state) {
+  const dir = orchestrationDir(workspace, state.orchestrationId);
+  if ((0, import_fs26.existsSync)(dir)) {
+    throw new OrchestrationError(
+      "SBO003",
+      `Orchestration directory already exists: ${dir}. Ids must be unique.`
+    );
+  }
+  (0, import_fs26.mkdirSync)(import_path30.default.join(dir, "plans"), { recursive: true });
+  return writeOrchestrationState(workspace, state);
+}
+function listOrchestrationRuns(workspace) {
+  const root = orchestrationRootDir(workspace);
+  if (!(0, import_fs26.existsSync)(root)) return { runs: [], diagnostics: [] };
+  const runs = [];
+  const diagnostics = [];
+  for (const entry of (0, import_fs26.readdirSync)(root, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    if (!ID_PATTERN.test(entry.name)) continue;
+    const read = readOrchestrationState(workspace, entry.name);
+    if (read.kind === "ok") {
+      runs.push(read.state);
+      continue;
+    }
+    if (read.kind === "missing") continue;
+    diagnostics.push({
+      severity: "warning",
+      code: read.kind === "unsupported-version" ? "ORCHESTRATION_STATE_UNSUPPORTED_VERSION" : "ORCHESTRATION_STATE_UNREADABLE",
+      message: read.kind === "unsupported-version" ? `Orchestration run ${entry.name} uses state schema ${read.version}; ignoring it.` : `Orchestration run ${entry.name} has unreadable state; ignoring it.`,
+      file: read.file
+    });
+  }
+  runs.sort(
+    (a2, b) => b.createdAt.localeCompare(a2.createdAt, "en") || b.orchestrationId.localeCompare(a2.orchestrationId, "en")
+  );
+  return { runs, diagnostics };
+}
+function storePlanRevision(workspace, orchestrationId, plan) {
+  const validated = executionPlanSchema.parse(plan);
+  const file = artifactPath(
+    workspace,
+    orchestrationId,
+    "plans",
+    `${String(validated.revision).padStart(4, "0")}.json`
+  );
+  (0, import_fs26.mkdirSync)(import_path30.default.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
+`);
+  return { plan: validated, hash: planHash(validated), file };
+}
+function readPlanRevision(workspace, orchestrationId, revision) {
+  if (!Number.isInteger(revision) || revision < 1) return void 0;
+  const file = artifactPath(
+    workspace,
+    orchestrationId,
+    "plans",
+    `${String(revision).padStart(4, "0")}.json`
+  );
+  if (!(0, import_fs26.existsSync)(file)) return void 0;
+  try {
+    const result = executionPlanSchema.safeParse(JSON.parse((0, import_fs26.readFileSync)(file, "utf8")));
+    return result.success ? result.data : void 0;
+  } catch {
+    return void 0;
+  }
+}
+function appendOrchestrationEvent(workspace, orchestrationId, event, limits) {
+  const line = `${JSON.stringify(event)}
+`;
+  if (Buffer.byteLength(line, "utf8") > limits.maxEventBytes) {
+    throw new OrchestrationError(
+      "SBO021",
+      `Orchestration event of type "${event.type}" is larger than the configured ${limits.maxEventBytes}-byte limit and was not recorded.`,
+      { remediation: ["Record a shorter summary; full evidence lives in the run directory."] }
+    );
+  }
+  const file = artifactPath(workspace, orchestrationId, "events.jsonl");
+  (0, import_fs26.mkdirSync)(import_path30.default.dirname(file), { recursive: true });
+  (0, import_fs26.appendFileSync)(file, line, "utf8");
+}
+function readOrchestrationEvents(workspace, orchestrationId, options = {}) {
+  const file = artifactPath(workspace, orchestrationId, "events.jsonl");
+  if (!(0, import_fs26.existsSync)(file)) return { events: [], total: 0, truncated: false };
+  let raw;
+  try {
+    raw = (0, import_fs26.readFileSync)(file, "utf8");
+  } catch {
+    return { events: [], total: 0, truncated: false };
+  }
+  const lines = raw.split("\n").filter((line) => line.trim().length > 0);
+  const parsed = [];
+  for (const line of lines) {
+    try {
+      const value = JSON.parse(line);
+      if (value !== null && typeof value === "object") parsed.push(value);
+    } catch {
+    }
+  }
+  const limit = Math.max(1, Math.min(options.limit ?? 50, 500));
+  const offset = Math.max(0, options.offset ?? 0);
+  const window = parsed.slice(Math.max(0, parsed.length - offset - limit), parsed.length - offset);
+  return { events: window, total: parsed.length, truncated: parsed.length > window.length };
+}
+function countOrchestrationEvents(workspace, orchestrationId) {
+  const file = artifactPath(workspace, orchestrationId, "events.jsonl");
+  if (!(0, import_fs26.existsSync)(file)) return 0;
+  try {
+    return (0, import_fs26.readFileSync)(file, "utf8").split("\n").filter((line) => line.trim().length > 0).length;
+  } catch {
+    return 0;
+  }
+}
+function writeOrchestrationCheckpoint(workspace, orchestrationId, checkpoint) {
+  const validated = orchestrationCheckpointSchema.parse(checkpoint);
+  const file = artifactPath(workspace, orchestrationId, "checkpoint.json");
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
+`);
+  return file;
+}
+function readOrchestrationCheckpoint(workspace, orchestrationId) {
+  const file = artifactPath(workspace, orchestrationId, "checkpoint.json");
+  if (!(0, import_fs26.existsSync)(file)) return void 0;
+  try {
+    const result = orchestrationCheckpointSchema.safeParse(JSON.parse((0, import_fs26.readFileSync)(file, "utf8")));
+    return result.success ? result.data : void 0;
+  } catch {
+    return void 0;
+  }
+}
+function orchestrationStorageBytes(workspace, orchestrationId) {
+  const dir = orchestrationDir(workspace, orchestrationId);
+  if (!(0, import_fs26.existsSync)(dir)) return 0;
+  let total = 0;
+  const walk = (current) => {
+    for (const entry of (0, import_fs26.readdirSync)(current, { withFileTypes: true })) {
+      const child = import_path30.default.join(current, entry.name);
+      if (entry.isDirectory()) {
+        walk(child);
+      } else if (entry.isFile()) {
+        try {
+          total += (0, import_fs26.statSync)(child).size;
+        } catch {
+        }
+      }
+    }
+  };
+  walk(dir);
+  return total;
+}
+function policyOf(deps) {
+  return deps.config.orchestration;
+}
+function now(deps) {
+  return (deps.clock ?? systemClock)();
+}
+function newId(deps) {
+  return (deps.idFactory ?? import_crypto11.randomUUID)();
+}
+function assertEnabled(policy) {
+  if (policy.enabled) return;
+  throw new OrchestrationError(
+    "SBO001",
+    "Governed orchestration is disabled by `orchestration.enabled` in .specbridge/config.json.",
+    {
+      remediation: [
+        "Set orchestration.enabled to true, or use the direct task lifecycle (task_begin/task_complete)."
+      ]
+    }
+  );
+}
+function record(deps, state, type, payload = {}) {
+  const policy = policyOf(deps);
+  const stored = countOrchestrationEvents(deps.workspace, state.orchestrationId);
+  if (stored >= state.budgets.maxEvents) {
+    throw new OrchestrationError(
+      "SBO020",
+      `The orchestration event history reached its ${state.budgets.maxEvents}-event limit. History is never truncated, so the run stops here instead.`,
+      {
+        remediation: [
+          "All evidence is preserved. Start a new run, or raise orchestration.history.maxEvents explicitly."
+        ],
+        failureCategory: "BUDGET_EXHAUSTED"
+      }
+    );
+  }
+  appendOrchestrationEvent(
+    deps.workspace,
+    state.orchestrationId,
+    { at: now(deps).toISOString(), type, ...payload },
+    { maxEventBytes: policy.history.maxEventBytes }
+  );
+  return { ...state, counters: { ...state.counters, events: stored + 1 } };
+}
+function transition(deps, state, to) {
+  assertTransition(state.phase, to);
+  return { ...state, phase: to, updatedAt: now(deps).toISOString() };
+}
+function persist(deps, state) {
+  return writeOrchestrationState(deps.workspace, {
+    ...state,
+    updatedAt: now(deps).toISOString()
+  });
+}
+function beginOrchestration(deps, request) {
+  const policy = policyOf(deps);
+  assertEnabled(policy);
+  const goal = request.goal.trim();
+  if (goal.length === 0) {
+    throw new OrchestrationError("SBO006", "An orchestration run needs a stated goal.", {
+      remediation: ["Describe what the user asked for, in one or two sentences."]
+    });
+  }
+  const createdAt = now(deps).toISOString();
+  const state = {
+    schemaVersion: ORCHESTRATION_STATE_SCHEMA_VERSION,
+    orchestrationId: newId(deps),
+    specName: request.specName,
+    ...request.taskId !== void 0 ? { taskId: request.taskId } : {},
+    phase: "CREATED",
+    goal: goal.slice(0, 4e3),
+    createdAt,
+    updatedAt: createdAt,
+    host: deps.host ?? "mcp",
+    planningMode: policy.planning.mode,
+    policyFingerprint: orchestrationPolicyFingerprint(policy),
+    budgets: {
+      maxIterations: policy.execution.maxIterations,
+      maxRepairCycles: policy.execution.maxRepairCycles,
+      maxReplans: policy.planning.maxReplans,
+      maxNoProgressCycles: policy.execution.maxNoProgressCycles,
+      maxTransientRetries: policy.retry.maxTransientRetries,
+      maxClarificationRounds: policy.clarification.maxRounds,
+      maxElapsedMs: policy.execution.maxElapsedMs,
+      maxEvents: policy.history.maxEvents
+    },
+    counters: {
+      iterations: 0,
+      repairCycles: 0,
+      replans: 0,
+      transientRetries: 0,
+      consecutiveNoProgress: 0,
+      clarificationRounds: 0,
+      events: 0
+    },
+    openQuestions: [],
+    decisions: [],
+    planRevision: 0,
+    planStaleReasons: [],
+    interactiveRunIds: []
+  };
+  createOrchestrationRun(deps.workspace, state);
+  const recorded = record(deps, state, "orchestration_started", {
+    specName: state.specName,
+    ...state.taskId !== void 0 ? { taskId: state.taskId } : {},
+    planningMode: state.planningMode
+  });
+  return persist(deps, recorded);
+}
+function assessIntent(deps, orchestrationId, submission) {
+  const policy = policyOf(deps);
+  assertEnabled(policy);
+  let state = requireOrchestrationState(deps.workspace, orchestrationId);
+  if (isFinalPhase(state.phase)) {
+    throw new OrchestrationError(
+      "SBO005",
+      `Orchestration run ${orchestrationId} is ${state.phase}; intent cannot be reassessed.`,
+      { remediation: ["Start a new orchestration run."] }
+    );
+  }
+  const validation = validateIntent(
+    {
+      workspace: deps.workspace,
+      specName: state.specName,
+      taskId: state.taskId,
+      policy,
+      orchestrationId
+    },
+    submission,
+    { assessedAt: now(deps).toISOString() }
+  );
+  const target = validation.assessment.outcome === "READY" ? "READY_TO_PLAN" : validation.assessment.outcome === "NEEDS_CLARIFICATION" ? "NEEDS_CLARIFICATION" : validation.assessment.outcome === "REJECTED" ? "REJECTED" : "BLOCKED";
+  state = { ...state, intent: validation.assessment };
+  state = transition(deps, state, target);
+  if (target === "BLOCKED" && validation.blockers[0] !== void 0) {
+    const first = validation.blockers[0];
+    state = {
+      ...state,
+      blocker: {
+        category: "BLOCKED_DEPENDENCY",
+        code: first.code,
+        message: first.message,
+        remediation: first.remediation,
+        at: now(deps).toISOString()
+      }
+    };
+  }
+  if (target === "REJECTED") {
+    state = {
+      ...state,
+      finalizedAt: now(deps).toISOString(),
+      finalOutcome: "REJECTED"
+    };
+  }
+  state = record(deps, state, "intent_assessed", {
+    outcome: validation.assessment.outcome,
+    overridden: validation.overridden,
+    ...validation.assessment.overriddenFrom !== void 0 ? { submittedOutcome: validation.assessment.overriddenFrom } : {},
+    blockers: validation.blockers.map((blocker) => blocker.code)
+  });
+  return {
+    state: persist(deps, state),
+    overridden: validation.overridden,
+    blockers: validation.blockers.map((blocker) => ({
+      code: blocker.code,
+      message: blocker.message,
+      remediation: blocker.remediation
+    }))
+  };
+}
+function requestClarification(deps, orchestrationId, candidates) {
+  const policy = policyOf(deps);
+  assertEnabled(policy);
+  let state = requireOrchestrationState(deps.workspace, orchestrationId);
+  assertActionAllowed(state.phase, "REQUEST_CLARIFICATION");
+  const round = buildClarificationRound(state, candidates, policy, {
+    askedAt: now(deps).toISOString(),
+    idFactory: () => newId(deps)
+  });
+  state = {
+    ...state,
+    openQuestions: [...state.openQuestions, ...round.questions],
+    counters: { ...state.counters, clarificationRounds: round.round }
+  };
+  if (state.phase !== "NEEDS_CLARIFICATION") {
+    state = transition(deps, state, "NEEDS_CLARIFICATION");
+  }
+  state = record(deps, state, "clarification_requested", {
+    round: round.round,
+    questionIds: round.questions.map((question) => question.id)
+  });
+  return persist(deps, state);
+}
+function resolveClarification(deps, orchestrationId, candidates) {
+  const policy = policyOf(deps);
+  assertEnabled(policy);
+  let state = requireOrchestrationState(deps.workspace, orchestrationId);
+  if (isFinalPhase(state.phase)) {
+    throw new OrchestrationError(
+      "SBO005",
+      `Orchestration run ${orchestrationId} is ${state.phase}; clarifications cannot be recorded.`
+    );
+  }
+  const decisions = buildClarificationDecisions(state, candidates, policy, {
+    decidedAt: now(deps).toISOString(),
+    idFactory: () => newId(deps)
+  });
+  const answeredIds = new Set(decisions.map((decision) => decision.questionId));
+  state = {
+    ...state,
+    decisions: [...state.decisions, ...decisions],
+    openQuestions: state.openQuestions.filter((question) => !answeredIds.has(question.id))
+  };
+  if (state.openQuestions.length === 0 && state.phase === "NEEDS_CLARIFICATION") {
+    state = transition(deps, state, "READY_TO_PLAN");
+  }
+  state = record(deps, state, "clarification_resolved", {
+    decisionIds: decisions.map((decision) => decision.id),
+    remainingQuestions: state.openQuestions.length
+  });
+  const requiresSpecChange = decisions.filter((decision) => /\b(spec|requirement|design|acceptance criteri)\b/i.test(decision.impact ?? "")).map((decision) => decision.id);
+  return { state: persist(deps, state), requiresSpecChange };
+}
+async function submitPlan(deps, orchestrationId, candidate) {
+  const policy = policyOf(deps);
+  assertEnabled(policy);
+  let state = requireOrchestrationState(deps.workspace, orchestrationId);
+  if (isFinalPhase(state.phase)) {
+    throw new OrchestrationError(
+      "SBO005",
+      `Orchestration run ${orchestrationId} is ${state.phase}; a plan cannot be submitted.`
+    );
+  }
+  if (state.phase === "CREATED") {
+    throw new OrchestrationError(
+      "SBO006",
+      "Intent must be assessed before an execution plan is submitted.",
+      { remediation: ["Call orchestration_assess_intent first."] }
+    );
+  }
+  if (state.phase === "NEEDS_CLARIFICATION") {
+    throw new OrchestrationError(
+      "SBO007",
+      `${state.openQuestions.length} clarification question(s) are still open; planning cannot start.`,
+      {
+        remediation: [
+          "Answer the open questions with orchestration_resolve_clarification.",
+          ...state.openQuestions.slice(0, 5).map((question) => `- ${question.question}`)
+        ],
+        failureCategory: "AMBIGUITY"
+      }
+    );
+  }
+  const replacing = state.planRevision > 0;
+  if (replacing && state.counters.replans >= state.budgets.maxReplans) {
+    throw new OrchestrationError(
+      "SBO013",
+      `The replan budget of ${state.budgets.maxReplans} is exhausted; a further plan revision is refused.`,
+      {
+        remediation: [
+          "All evidence and source changes are preserved; the task stays incomplete.",
+          "Decide the approach explicitly, or raise orchestration.planning.maxReplans."
+        ],
+        failureCategory: "BUDGET_EXHAUSTED"
+      }
+    );
+  }
+  const snapshot = await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now(deps) });
+  const binding = capturePlanBinding(deps.workspace, {
+    specName: state.specName,
+    taskId: candidate.taskId,
+    policy,
+    gitHead: snapshot.head
+  });
+  const revision = state.planRevision + 1;
+  const previous = replacing ? readPlanRevision(deps.workspace, orchestrationId, state.planRevision) : void 0;
+  const plan = buildExecutionPlan({
+    candidate,
+    specName: state.specName,
+    binding,
+    revision,
+    planId: newId(deps),
+    createdAt: now(deps).toISOString(),
+    policy,
+    ...previous !== void 0 ? { supersedes: previous.planId } : {}
+  });
+  const stored = storePlanRevision(deps.workspace, orchestrationId, plan);
+  const materiality = previous !== void 0 ? assessPlanChange(previous, plan) : void 0;
+  const reviewRequired = policy.planning.mode === "review" && (state.planReview?.decision !== "approved" || materiality?.materiality === "material");
+  state = {
+    ...state,
+    taskId: candidate.taskId,
+    planRevision: revision,
+    activePlanId: plan.planId,
+    activePlanHash: stored.hash,
+    planStaleReasons: [],
+    ...reviewRequired ? { planReview: void 0 } : {},
+    counters: {
+      ...state.counters,
+      ...replacing ? { replans: state.counters.replans + 1 } : {},
+      // A new plan is a new approach: stagnation does not carry over.
+      consecutiveNoProgress: 0
+    }
+  };
+  if (reviewRequired) delete state.planReview;
+  state = record(deps, state, "plan_created", {
+    revision,
+    planId: plan.planId,
+    planHash: stored.hash,
+    reviewRequired,
+    ...materiality !== void 0 ? { materiality: materiality.materiality } : {},
+    ...materiality !== void 0 ? { materialChanges: materiality.materialChanges } : {}
+  });
+  if (replacing) {
+    state = record(deps, state, "replan_started", {
+      revision,
+      ...candidate.replanReason !== void 0 ? { reason: candidate.replanReason } : {}
+    });
+  }
+  state = transition(deps, state, reviewRequired ? "AWAITING_PLAN_REVIEW" : "READY_TO_EXECUTE");
+  return {
+    state: persist(deps, state),
+    plan,
+    planHash: stored.hash,
+    reviewRequired,
+    ...materiality !== void 0 ? { materiality } : {}
+  };
+}
+function reviewPlan(deps, orchestrationId, request) {
+  const policy = policyOf(deps);
+  assertEnabled(policy);
+  let state = requireOrchestrationState(deps.workspace, orchestrationId);
+  if (state.phase !== "AWAITING_PLAN_REVIEW") {
+    throw new OrchestrationError(
+      "SBO004",
+      `Plan review is only meaningful while awaiting review; the run is ${state.phase}.`,
+      { details: { phase: state.phase } }
+    );
+  }
+  if (state.activePlanHash !== request.planHash) {
+    throw new OrchestrationError(
+      "SBO012",
+      "The reviewed plan hash does not match the active plan; the review was not recorded.",
+      {
+        remediation: [
+          "Re-read the active plan with `specbridge orchestrate show`, present it, then record the review."
+        ],
+        details: { activePlanHash: state.activePlanHash, submitted: request.planHash }
+      }
+    );
+  }
+  const reviewedAt = now(deps).toISOString();
+  state = {
+    ...state,
+    planReview: {
+      decision: request.decision,
+      planHash: request.planHash,
+      planRevision: state.planRevision,
+      reviewedAt,
+      channel: request.channel ?? "user-relayed",
+      ...request.note !== void 0 ? { note: request.note } : {}
+    }
+  };
+  state = record(deps, state, "plan_reviewed", {
+    decision: request.decision,
+    revision: state.planRevision,
+    planHash: request.planHash
+  });
+  state = transition(deps, state, request.decision === "approved" ? "READY_TO_EXECUTE" : "READY_TO_PLAN");
+  return persist(deps, state);
+}
+async function checkPlanFreshness(deps, orchestrationId) {
+  const policy = policyOf(deps);
+  const state = requireOrchestrationState(deps.workspace, orchestrationId);
+  if (state.planRevision === 0) {
+    return { fresh: false, reasons: ["no-plan"], explanations: ["No plan exists yet."], planRevision: 0 };
+  }
+  const plan = readPlanRevision(deps.workspace, orchestrationId, state.planRevision);
+  if (plan === void 0) {
+    return {
+      fresh: false,
+      reasons: ["plan-unreadable"],
+      explanations: [`Plan revision ${state.planRevision} is missing or unreadable.`],
+      planRevision: state.planRevision
+    };
+  }
+  const snapshot = await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now(deps) });
+  const current = capturePlanBinding(deps.workspace, {
+    specName: state.specName,
+    taskId: plan.binding.taskId,
+    policy,
+    gitHead: snapshot.head
+  });
+  const freshness = evaluatePlanFreshness(plan, current);
+  return { ...freshness, planRevision: state.planRevision };
+}
+async function refreshPlanBinding(deps, orchestrationId) {
+  const policy = policyOf(deps);
+  let state = requireOrchestrationState(deps.workspace, orchestrationId);
+  if (state.planRevision === 0) {
+    return {
+      state,
+      freshness: { fresh: false, reasons: ["no-plan"], explanations: ["No plan exists yet."], planRevision: 0 }
+    };
+  }
+  const plan = readPlanRevision(deps.workspace, orchestrationId, state.planRevision);
+  if (plan === void 0) {
+    throw new OrchestrationError(
+      "SBO010",
+      `Plan revision ${state.planRevision} of run ${orchestrationId} is missing or unreadable.`,
+      { remediation: ["Submit a fresh plan; the previous revisions are preserved on disk."] }
+    );
+  }
+  const snapshot = await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now(deps) });
+  const current = capturePlanBinding(deps.workspace, {
+    specName: state.specName,
+    taskId: plan.binding.taskId,
+    policy,
+    gitHead: snapshot.head
+  });
+  const freshness = evaluatePlanFreshness(plan, current);
+  if (!freshness.fresh) {
+    state = { ...state, planStaleReasons: freshness.reasons };
+    state = record(deps, state, "plan_invalidated", {
+      revision: state.planRevision,
+      reasons: freshness.reasons
+    });
+    if (state.phase !== "REPLANNING" && !isFinalPhase(state.phase)) {
+      state = transition(deps, state, "REPLANNING");
+    }
+    state = persist(deps, state);
+  } else if (state.planStaleReasons.length > 0) {
+    state = persist(deps, { ...state, planStaleReasons: [] });
+  }
+  return {
+    state,
+    freshness: {
+      fresh: freshness.fresh,
+      reasons: freshness.reasons,
+      explanations: freshness.explanations,
+      planRevision: state.planRevision
+    }
+  };
+}
+function recordAction(deps, orchestrationId, request) {
+  const policy = policyOf(deps);
+  assertEnabled(policy);
+  let state = requireOrchestrationState(deps.workspace, orchestrationId);
+  if (isFinalPhase(state.phase)) {
+    throw new OrchestrationError(
+      "SBO005",
+      `Orchestration run ${orchestrationId} is ${state.phase}; no further actions are recorded.`,
+      { remediation: ["Read the final report; start a new run for further work."] }
+    );
+  }
+  assertActionAllowed(state.phase, request.action);
+  if (request.action === "EDIT") {
+    if (state.planRevision === 0 && policy.planning.mode !== "disabled") {
+      throw new OrchestrationError("SBO009", "Source edits require an execution plan.", {
+        remediation: ["Submit a plan with orchestration_submit_plan first."]
+      });
+    }
+    if (policy.planning.mode === "review" && state.planReview?.decision !== "approved") {
+      throw new OrchestrationError(
+        "SBO012",
+        "The execution plan has not been reviewed; source edits are refused.",
+        {
+          remediation: [
+            "Present the plan to the user and record their explicit decision with orchestration_review_plan."
+          ]
+        }
+      );
+    }
+    if (state.planStaleReasons.length > 0) {
+      throw new OrchestrationError(
+        "SBO011",
+        `The active execution plan is stale (${state.planStaleReasons.join(", ")}); source edits are refused.`,
+        { remediation: ["Replan against the current context."], failureCategory: "STALE_CONTEXT" }
+      );
+    }
+  }
+  const classified = request.failure !== void 0 ? classifyFailure({
+    category: request.failure.category,
+    message: request.failure.message,
+    source: request.failure.source,
+    exitCode: request.failure.exitCode,
+    output: request.failure.output
+  }) : void 0;
+  const observation = observationFingerprintSchema.parse({
+    ...classified !== void 0 ? { failureFingerprint: classified.fingerprint } : {},
+    ...request.changedFiles !== void 0 ? { diffFingerprint: diffFingerprint(request.changedFiles) } : {},
+    changedFileCount: request.changedFiles?.length ?? 0,
+    actionCategory: request.action,
+    planRevision: state.planRevision,
+    result: request.result
+  });
+  const progress = assessProgress({
+    previous: state.lastObservation,
+    next: observation,
+    consecutiveNoProgress: state.counters.consecutiveNoProgress,
+    maxNoProgressCycles: state.budgets.maxNoProgressCycles
+  });
+  const elapsedMs = Math.max(0, now(deps).getTime() - Date.parse(state.createdAt));
+  const decision = decideNextStep(
+    {
+      failure: classified,
+      counters: state.counters,
+      budgets: state.budgets,
+      elapsedMs,
+      stagnated: progress.stagnated,
+      progressed: progress.progressed,
+      ...request.readyToVerify !== void 0 ? { readyToVerify: request.readyToVerify } : {}
+    },
+    { baseBackoffMs: policy.retry.baseBackoffMs, maxBackoffMs: policy.retry.maxBackoffMs }
+  );
+  state = {
+    ...state,
+    lastObservation: observation,
+    counters: {
+      ...state.counters,
+      iterations: state.counters.iterations + 1,
+      consecutiveNoProgress: progress.consecutiveNoProgress,
+      ...decision.directive === "RETRY" ? { transientRetries: state.counters.transientRetries + 1 } : {},
+      ...decision.directive === "REPAIR" ? { repairCycles: state.counters.repairCycles + 1 } : {}
+    }
+  };
+  state = record(deps, state, "action_recorded", {
+    action: request.action,
+    target: request.target.slice(0, 200),
+    ...request.planStepId !== void 0 ? { planStepId: request.planStepId } : {},
+    result: request.result
+  });
+  state = record(deps, state, "observation_recorded", {
+    result: request.result,
+    progressed: progress.progressed,
+    consecutiveNoProgress: progress.consecutiveNoProgress,
+    changedFileCount: observation.changedFileCount,
+    ...classified !== void 0 ? { failureCategory: classified.category } : {},
+    ...classified !== void 0 ? { failureFingerprint: classified.fingerprint } : {},
+    directive: decision.directive
+  });
+  if (classified?.category === "VERIFICATION_FAILURE") {
+    state = record(deps, state, "verification_failed", {
+      source: request.failure?.source ?? "unknown",
+      fingerprint: classified.fingerprint
+    });
+  }
+  state = applyDirective(deps, state, decision, classified);
+  return {
+    state: persist(deps, state),
+    decision,
+    progress,
+    ...classified !== void 0 ? { classifiedFailure: classified } : {}
+  };
+}
+async function recordActionChecked(deps, orchestrationId, request) {
+  const needsFreshPlan = request.action === "EDIT" || request.action === "VERIFY" || request.action === "COMPLETE";
+  if (needsFreshPlan) {
+    const state = requireOrchestrationState(deps.workspace, orchestrationId);
+    if (state.planRevision > 0 && !isFinalPhase(state.phase)) {
+      await refreshPlanBinding(deps, orchestrationId);
+    }
+  }
+  return recordAction(deps, orchestrationId, request);
+}
+function applyDirective(deps, input, decision, failure) {
+  let state = input;
+  const at = now(deps).toISOString();
+  switch (decision.directive) {
+    case "CONTINUE":
+    case "RETRY":
+    case "VERIFY":
+      if (state.phase === "READY_TO_EXECUTE") state = transition(deps, state, "EXECUTING");
+      return state;
+    case "REPAIR": {
+      if (state.phase !== "REPAIRING") {
+        state = transition(deps, state, "REPAIRING");
+        state = record(deps, state, "repair_started", {
+          cycle: state.counters.repairCycles,
+          ...failure !== void 0 ? { fingerprint: failure.fingerprint } : {}
+        });
+      }
+      return {
+        ...state,
+        ...failure !== void 0 ? { repairTargetFingerprint: failure.fingerprint } : {}
+      };
+    }
+    case "REPLAN":
+      if (state.planRevision > 0 && state.phase !== "REPLANNING") {
+        state = transition(deps, state, "REPLANNING");
+      }
+      return state;
+    case "CLARIFY":
+      if (state.phase !== "NEEDS_CLARIFICATION") {
+        state = transition(deps, state, "NEEDS_CLARIFICATION");
+      }
+      return state;
+    case "BLOCK": {
+      state = transition(deps, state, "BLOCKED");
+      state = record(deps, state, "execution_blocked", {
+        ...failure !== void 0 ? { category: failure.category } : {},
+        reason: decision.reason
+      });
+      return {
+        ...state,
+        blocker: {
+          category: failure?.category ?? "INTERNAL",
+          code: decision.exhaustedBudget ?? failure?.category ?? "BLOCKED",
+          message: decision.reason,
+          remediation: decision.remediation,
+          at
+        }
+      };
+    }
+    case "STOP_BUDGET_EXHAUSTED": {
+      state = transition(deps, state, "BLOCKED");
+      state = record(deps, state, "budget_exhausted", {
+        budget: decision.exhaustedBudget ?? "unknown",
+        reason: decision.reason
+      });
+      return {
+        ...state,
+        blocker: {
+          category: "BUDGET_EXHAUSTED",
+          code: decision.exhaustedBudget ?? "BUDGET_EXHAUSTED",
+          message: decision.reason,
+          remediation: decision.remediation,
+          at
+        }
+      };
+    }
+    case "STOP_FINAL": {
+      state = transition(deps, state, "CANCELLED");
+      state = record(deps, state, "execution_cancelled", { reason: decision.reason });
+      return { ...state, finalizedAt: at, finalOutcome: "CANCELLED" };
+    }
+  }
+}
+function finalizeOrchestration(deps, orchestrationId, request) {
+  let state = requireOrchestrationState(deps.workspace, orchestrationId);
+  if (isFinalPhase(state.phase)) {
+    return state;
+  }
+  const at = now(deps).toISOString();
+  if (request.outcome === "completed") {
+    const accepted = request.evidenceStatus === "verified" || request.evidenceStatus === "manually-accepted";
+    if (!accepted) {
+      throw new OrchestrationError(
+        "SBO022",
+        `Orchestration cannot mark a task complete: completion requires a verified evidence status from task_complete (received ${request.evidenceStatus ?? "none"}).`,
+        {
+          remediation: [
+            "Run the trusted verification through task_complete and report its actual evidenceStatus.",
+            "If verification failed, repair the implementation \u2014 a claim of success is not evidence."
+          ],
+          failureCategory: "SAFETY_POLICY"
+        }
+      );
+    }
+    state = transition(deps, state, "COMPLETED");
+    state = record(deps, state, "execution_completed", {
+      evidenceStatus: request.evidenceStatus,
+      ...request.interactiveRunId !== void 0 ? { runId: request.interactiveRunId } : {}
+    });
+    return persist(deps, { ...state, finalizedAt: at, finalOutcome: "COMPLETED" });
+  }
+  if (request.outcome === "cancelled") {
+    state = transition(deps, state, "CANCELLED");
+    state = record(deps, state, "execution_cancelled", { reason: request.reason });
+    return persist(deps, { ...state, finalizedAt: at, finalOutcome: "CANCELLED" });
+  }
+  state = transition(deps, state, "ABORTED");
+  state = record(deps, state, "execution_aborted", { reason: request.reason });
+  return persist(deps, { ...state, finalizedAt: at, finalOutcome: "ABORTED" });
+}
+function createCheckpoint(deps, orchestrationId, input) {
+  let state = requireOrchestrationState(deps.workspace, orchestrationId);
+  const plan = state.planRevision > 0 ? readPlanRevision(deps.workspace, orchestrationId, state.planRevision) : void 0;
+  const checkpoint = orchestrationCheckpointSchema.parse({
+    schemaVersion: ORCHESTRATION_CHECKPOINT_SCHEMA_VERSION,
+    orchestrationId,
+    createdAt: now(deps).toISOString(),
+    specName: state.specName,
+    ...state.taskId !== void 0 ? { taskId: state.taskId } : {},
+    phase: state.phase,
+    planRevision: state.planRevision,
+    completedSteps: (plan?.steps ?? []).filter((s) => s.status === "done").map((s) => s.id),
+    unresolvedSteps: (plan?.steps ?? []).filter((s) => s.status !== "done").map((s) => s.id),
+    observations: (input.observations ?? []).slice(0, 50),
+    ...input.latestVerifier !== void 0 ? { latestVerifier: input.latestVerifier } : {},
+    counters: state.counters,
+    budgets: state.budgets,
+    ...state.blocker !== void 0 ? { blocker: state.blocker } : {},
+    nextAction: input.nextAction
+  });
+  writeOrchestrationCheckpoint(deps.workspace, orchestrationId, checkpoint);
+  state = record(deps, state, "checkpoint_created", { phase: state.phase });
+  persist(deps, state);
+  return checkpoint;
+}
+function budgetUsage(state) {
+  const rows = [
+    { name: "iterations", used: state.counters.iterations, limit: state.budgets.maxIterations },
+    { name: "repairCycles", used: state.counters.repairCycles, limit: state.budgets.maxRepairCycles },
+    { name: "replans", used: state.counters.replans, limit: state.budgets.maxReplans },
+    {
+      name: "transientRetries",
+      used: state.counters.transientRetries,
+      limit: state.budgets.maxTransientRetries
+    },
+    {
+      name: "noProgressCycles",
+      used: state.counters.consecutiveNoProgress,
+      limit: state.budgets.maxNoProgressCycles
+    },
+    {
+      name: "clarificationRounds",
+      used: state.counters.clarificationRounds,
+      limit: state.budgets.maxClarificationRounds
+    },
+    { name: "events", used: state.counters.events, limit: state.budgets.maxEvents }
+  ].map((row) => ({ ...row, exhausted: row.used >= row.limit }));
+  return rows;
+}
+function summarize(state) {
+  switch (state.phase) {
+    case "CREATED":
+      return {
+        summary: "The run exists but intent has not been assessed yet.",
+        nextAction: "Assess intent with orchestration_assess_intent."
+      };
+    case "NEEDS_CLARIFICATION":
+      return {
+        summary: `${state.openQuestions.length} question(s) must be answered before implementation can start.`,
+        nextAction: state.openQuestions[0] !== void 0 ? `Answer: ${state.openQuestions[0].question}` : "Record the answers with orchestration_resolve_clarification."
+      };
+    case "READY_TO_PLAN":
+      return {
+        summary: "Intent is READY; no execution plan exists yet.",
+        nextAction: "Submit an execution plan with orchestration_submit_plan."
+      };
+    case "AWAITING_PLAN_REVIEW":
+      return {
+        summary: `Plan revision ${state.planRevision} is waiting for explicit review.`,
+        nextAction: "Present the plan to the user, then record their decision with orchestration_review_plan."
+      };
+    case "READY_TO_EXECUTE":
+      return {
+        summary: `Plan revision ${state.planRevision} is valid; implementation may begin.`,
+        nextAction: "Begin the task with task_begin, then record actions as you go."
+      };
+    case "EXECUTING":
+      return {
+        summary: `Executing plan revision ${state.planRevision} (iteration ${state.counters.iterations}).`,
+        nextAction: "Continue the plan steps, then call task_complete when the changes are ready."
+      };
+    case "REPAIRING":
+      return {
+        summary: `Repairing a verification failure (cycle ${state.counters.repairCycles} of ${state.budgets.maxRepairCycles}).`,
+        nextAction: "Fix the implementation against the failing verifier output, then verify again."
+      };
+    case "REPLANNING":
+      return {
+        summary: state.planStaleReasons.length > 0 ? `The active plan is stale (${state.planStaleReasons.join(", ")}).` : "The active plan was invalidated and must be replaced.",
+        nextAction: "Submit a replacement plan with orchestration_submit_plan."
+      };
+    case "BLOCKED":
+      return {
+        summary: state.blocker?.message ?? "The run is blocked on an unsatisfied prerequisite.",
+        nextAction: state.blocker?.remediation[0] ?? "Resolve the blocker, then continue explicitly."
+      };
+    case "COMPLETED":
+      return {
+        summary: "The task was completed through verified evidence.",
+        nextAction: "Nothing. Start a new run for further work."
+      };
+    case "ABORTED":
+      return {
+        summary: "The run was aborted; source changes and evidence are preserved.",
+        nextAction: "Inspect the preserved changes, then start a new run when ready."
+      };
+    case "CANCELLED":
+      return {
+        summary: "The run was cancelled and is never restarted automatically.",
+        nextAction: "Start a new run explicitly when ready."
+      };
+    case "REJECTED":
+      return {
+        summary: state.intent?.overrideReason ?? "The request violated a hard SpecBridge product boundary.",
+        nextAction: "Change the request so it stays inside the boundary, then start a new run."
+      };
+  }
+}
+function executionBlockedReason(state) {
+  if (state.phase === "EXECUTING" || state.phase === "REPAIRING") return void 0;
+  if (isFinalPhase(state.phase)) {
+    return `The run is ${state.phase}; finalized runs never resume.`;
+  }
+  switch (state.phase) {
+    case "CREATED":
+      return "Intent has not been assessed.";
+    case "NEEDS_CLARIFICATION":
+      return `${state.openQuestions.length} clarification question(s) are unanswered.`;
+    case "READY_TO_PLAN":
+      return "No execution plan has been submitted.";
+    case "AWAITING_PLAN_REVIEW":
+      return `Plan revision ${state.planRevision} has not been reviewed.`;
+    case "REPLANNING":
+      return state.planStaleReasons.length > 0 ? `The active plan is stale: ${state.planStaleReasons.join(", ")}.` : "The active plan was invalidated.";
+    case "BLOCKED":
+      return state.blocker?.message ?? "A prerequisite is unsatisfied.";
+    default:
+      return void 0;
+  }
+}
+function explainOrchestration(state) {
+  const { summary, nextAction } = summarize(state);
+  const budgets = budgetUsage(state);
+  const blockedBecause = executionBlockedReason(state);
+  return {
+    orchestrationId: state.orchestrationId,
+    specName: state.specName,
+    ...state.taskId !== void 0 ? { taskId: state.taskId } : {},
+    phase: state.phase,
+    final: isFinalPhase(state.phase),
+    summary,
+    nextAction,
+    ...blockedBecause !== void 0 ? { executionBlockedBecause: blockedBecause } : {},
+    openQuestions: state.openQuestions.map((question) => ({
+      id: question.id,
+      question: question.question,
+      whyItMatters: question.whyItMatters
+    })),
+    decisions: effectiveDecisions(state.decisions).map((decision) => ({
+      id: decision.id,
+      question: decision.question,
+      answer: decision.answer,
+      source: decision.source
+    })),
+    planRevision: state.planRevision,
+    planStale: state.planStaleReasons.length > 0,
+    planStaleReasons: [...state.planStaleReasons],
+    planReviewed: state.planReview?.decision === "approved",
+    budgets,
+    exhaustedBudgets: budgets.filter((row) => row.exhausted).map((row) => row.name),
+    ...state.blocker !== void 0 ? {
+      blocker: {
+        category: state.blocker.category,
+        code: state.blocker.code,
+        message: state.blocker.message,
+        remediation: [...state.blocker.remediation]
+      }
+    } : {},
+    allowedNextPhases: [...allowedTransitions(state.phase)],
+    allowedActions: [...allowedActions(state.phase)],
+    interactiveRunIds: [...state.interactiveRunIds]
+  };
+}
+function describeOrchestration(workspace, state, options = {}) {
+  const plan = state.planRevision > 0 ? readPlanRevision(workspace, state.orchestrationId, state.planRevision) : void 0;
+  const page = readOrchestrationEvents(workspace, state.orchestrationId, {
+    limit: options.eventLimit ?? 20
+  });
+  return {
+    ...explainOrchestration(state),
+    ...plan !== void 0 ? { activePlan: plan } : {},
+    recentEvents: page.events.map((event) => ({
+      at: String(event["at"] ?? ""),
+      type: String(event["type"] ?? "")
+    })),
+    totalEvents: page.total
+  };
+}
+async function resumeOrchestration(deps, orchestrationId) {
+  const state = requireOrchestrationState(deps.workspace, orchestrationId);
+  const warnings = [];
+  const checkpoint = readOrchestrationCheckpoint(deps.workspace, orchestrationId);
+  if (isFinalPhase(state.phase)) {
+    const explanation2 = explainOrchestration(state);
+    return {
+      state,
+      explanation: explanation2,
+      finalized: true,
+      planStale: false,
+      planStaleReasons: [],
+      planStaleExplanations: [],
+      policyChanged: false,
+      ...checkpoint !== void 0 ? { checkpoint } : {},
+      nextAction: explanation2.nextAction,
+      warnings: [
+        `Run ${orchestrationId} is ${state.phase} and cannot be continued. Start a new run for further work.`
+      ]
+    };
+  }
+  const currentFingerprint = orchestrationPolicyFingerprint(deps.config.orchestration);
+  const policyChanged = currentFingerprint !== state.policyFingerprint;
+  if (policyChanged) {
+    warnings.push(
+      "The orchestration policy changed since this run began. The run continues under the budgets recorded at its start; start a new run to adopt the new policy."
+    );
+  }
+  const snapshot = await captureGitSnapshot(deps.workspace.rootDir, {
+    clock: () => (deps.clock ?? (() => /* @__PURE__ */ new Date()))()
+  });
+  let planStale = false;
+  let planStaleReasons = [];
+  let planStaleExplanations = [];
+  if (state.planRevision > 0) {
+    const freshness = await checkPlanFreshness(deps, orchestrationId);
+    planStale = !freshness.fresh;
+    planStaleReasons = freshness.reasons;
+    planStaleExplanations = freshness.explanations;
+    if (planStale) {
+      warnings.push(
+        "The recorded execution plan no longer matches the repository; it will not be executed as-is."
+      );
+    }
+  }
+  let activeInteractiveRun;
+  if (state.activeInteractiveRunId !== void 0) {
+    const record22 = readRunRecord(deps.workspace, state.activeInteractiveRunId);
+    const lock = readInteractiveLock(deps.workspace);
+    const lockHeld = lock.state === "held" && lock.lock.runId === state.activeInteractiveRunId;
+    activeInteractiveRun = {
+      runId: state.activeInteractiveRunId,
+      lifecycleStatus: record22?.lifecycleStatus,
+      lockHeld
+    };
+    if (record22 === void 0) {
+      warnings.push(
+        `The recorded interactive run ${state.activeInteractiveRunId} no longer exists; a fresh task_begin is required.`
+      );
+    } else if (record22.lifecycleStatus === "AWAITING_AGENT_CHANGES" && !lockHeld) {
+      warnings.push(
+        `Interactive run ${state.activeInteractiveRunId} is still open but no longer owns the repository lock. Abort it with task_abort (source changes are preserved), then begin a fresh run.`
+      );
+    }
+  }
+  const explanation = explainOrchestration(state);
+  const nextAction = planStale ? "Submit a replacement execution plan: the recorded plan is stale." : explanation.nextAction;
+  return {
+    state,
+    explanation,
+    finalized: false,
+    planStale,
+    planStaleReasons,
+    planStaleExplanations,
+    policyChanged,
+    ...activeInteractiveRun !== void 0 ? { activeInteractiveRun } : {},
+    ...snapshot.head !== void 0 ? { gitHead: snapshot.head } : {},
+    ...checkpoint !== void 0 ? { checkpoint } : {},
+    nextAction,
+    warnings
+  };
+}
+
+// ../../packages/reporting/dist/index.js
+var import_picocolors = __toESM(require_picocolors(), 1);
+var import_picocolors2 = __toESM(require_picocolors(), 1);
+var sym = {
+  ok: "\u2713",
+  warn: "!",
+  fail: "\u2717",
+  info: "\xB7",
+  add: "+",
+  active: "\u25CF",
+  blocked: "\u25CB"
+};
+function activeLine(message, detail) {
+  return `  ${import_picocolors.default.cyan(sym.active)} ${message}${detail !== void 0 ? ` ${import_picocolors.default.dim(detail)}` : ""}`;
+}
+function blockedLine(message, detail) {
+  return `  ${import_picocolors.default.dim(sym.blocked)} ${message}${detail !== void 0 ? ` ${import_picocolors.default.dim(detail)}` : ""}`;
+}
+function okLine(message, detail) {
+  return `  ${import_picocolors.default.green(sym.ok)} ${message}${detail !== void 0 ? ` ${import_picocolors.default.dim(detail)}` : ""}`;
+}
+function warnLine(message, detail) {
+  return `  ${import_picocolors.default.yellow(sym.warn)} ${message}${detail !== void 0 ? ` ${import_picocolors.default.dim(detail)}` : ""}`;
+}
+function failLine(message, detail) {
+  return `  ${import_picocolors.default.red(sym.fail)} ${message}${detail !== void 0 ? ` ${import_picocolors.default.dim(detail)}` : ""}`;
+}
+function infoLine(message, detail) {
+  return `  ${import_picocolors.default.dim(sym.info)} ${message}${detail !== void 0 ? ` ${import_picocolors.default.dim(detail)}` : ""}`;
+}
+function addLine(message) {
+  return `  ${import_picocolors.default.cyan(sym.add)} ${message}`;
+}
+function severityLine(severity, message) {
+  if (severity === "error") return failLine(message);
+  if (severity === "warning") return warnLine(message);
+  return infoLine(message);
+}
+function sectionTitle(title) {
+  return import_picocolors.default.bold(`${title}:`);
+}
+function reportTitle(title) {
+  return import_picocolors.default.bold(title);
+}
+function dim2(text2) {
+  return import_picocolors.default.dim(text2);
+}
+function renderColumns(rows, indent = "  ") {
+  if (rows.length === 0) return [];
+  const widths = [];
+  for (const row of rows) {
+    row.forEach((cell2, i2) => {
+      widths[i2] = Math.max(widths[i2] ?? 0, cell2.length);
+    });
+  }
+  return rows.map((row) => {
+    const cells = row.map(
+      (cell2, i2) => i2 === row.length - 1 ? cell2 : cell2.padEnd(widths[i2] ?? cell2.length)
+    );
+    return `${indent}${cells.join("  ")}`.replace(/\s+$/, "");
+  });
+}
+function createJsonReport(schema, generator, data) {
+  return { schema, generator, data };
+}
+function serializeJsonReport(report) {
+  return `${JSON.stringify(report, null, 2)}
+`;
+}
+function escapeHtml(text2) {
+  return text2.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+}
+function severityGlyphLine(diagnostic, text2) {
+  if (diagnostic.severity === "error") return failLine(text2);
+  if (diagnostic.severity === "warning") return warnLine(text2);
+  return infoLine(text2);
+}
+function diagnosticLocation(diagnostic) {
+  if (diagnostic.file === null) return "";
+  const line = diagnostic.file.line !== null ? `:${diagnostic.file.line}` : "";
+  return ` ${diagnostic.file.path}${line}`;
+}
+function renderDiagnostic(lines, diagnostic) {
+  const heuristic = diagnostic.confidence === "heuristic" ? " (heuristic)" : "";
+  lines.push(
+    severityGlyphLine(diagnostic, `${import_picocolors2.default.bold(diagnostic.ruleId)}${diagnosticLocation(diagnostic)}${heuristic}`)
+  );
+  lines.push(`      ${diagnostic.message}`);
+  lines.push(dim2(`      Fix: ${diagnostic.remediation}`));
+}
+function renderSpecResult(lines, spec, options) {
+  lines.push(reportTitle(`Spec: ${spec.specName}`));
+  const mode = spec.workflowMode !== "unknown" ? `, ${spec.workflowMode}` : "";
+  lines.push(dim2(`  ${spec.specType}${mode}${spec.managed ? "" : ", unmanaged"}`));
+  lines.push(
+    `  Policy: ${spec.policyMode}${spec.policyPath !== null ? ` (${spec.policyPath})` : " (defaults \u2014 no policy file)"}`
+  );
+  if (spec.matchedBy.length > 0) {
+    lines.push(dim2(`  Selected via: ${spec.matchedBy.join("; ")}`));
+  }
+  const t = spec.traceability;
+  if (t.requirements > 0 || t.tasks > 0) {
+    lines.push(sectionTitle("  Traceability"));
+    lines.push(
+      okLine(
+        `${t.requirements} requirement${t.requirements === 1 ? "" : "s"} detected, ${t.requirementsWithTasks} with tasks`
+      )
+    );
+    lines.push(okLine(`${t.tasks} task${t.tasks === 1 ? "" : "s"}, ${t.tasksWithRequirements} with requirement references`));
+  }
+  const e = spec.evidence;
+  const completedTracked = e.valid + e.stale + e.missing;
+  if (completedTracked > 0 || e.invalid > 0) {
+    lines.push(sectionTitle("  Evidence (completed tasks)"));
+    if (e.valid > 0) {
+      const manual = e.manuallyAccepted > 0 ? ` (${e.manuallyAccepted} manually accepted)` : "";
+      lines.push(okLine(`${e.valid} with valid evidence${manual}`));
+    }
+    if (e.stale > 0) lines.push(failLine(`${e.stale} with stale evidence`));
+    if (e.missing > 0) lines.push(warnLine(`${e.missing} without evidence`));
+    if (e.invalid > 0) lines.push(failLine(`${e.invalid} invalid evidence record${e.invalid === 1 ? "" : "s"}`));
+  }
+  if (spec.changedFiles.length > 0) {
+    lines.push(sectionTitle("  Changed files"));
+    const shown = options.verbose === true ? spec.changedFiles : spec.changedFiles.slice(0, 10);
+    for (const file of shown) {
+      const rename = file.oldPath !== null ? ` (from ${file.oldPath})` : "";
+      lines.push(dim2(`    ${file.changeType.padEnd(9)} ${file.path}${rename}`));
+    }
+    if (shown.length < spec.changedFiles.length) {
+      lines.push(dim2(`    \u2026 and ${spec.changedFiles.length - shown.length} more (--verbose shows all)`));
+    }
+  }
+  const visible = spec.diagnostics.filter(
+    (diagnostic) => options.verbose === true || diagnostic.severity !== "info"
+  );
+  lines.push(sectionTitle("  Diagnostics"));
+  if (visible.length === 0) {
+    lines.push(okLine("none"));
+  } else {
+    for (const diagnostic of visible) renderDiagnostic(lines, diagnostic);
+  }
+  lines.push(
+    spec.result === "passed" ? okLine(import_picocolors2.default.bold("Spec result: PASSED")) : failLine(import_picocolors2.default.bold("Spec result: FAILED"))
+  );
+  lines.push("");
+}
+function renderVerificationTerminal(report, options = {}) {
+  const lines = [];
+  lines.push(reportTitle("Spec Drift Verification"));
+  lines.push("");
+  lines.push(sectionTitle("Comparison"));
+  lines.push(`  ${report.comparison.label}`);
+  if (report.comparison.baseSha !== null && report.comparison.mode === "diff") {
+    lines.push(
+      dim2(`  ${report.comparison.baseSha.slice(0, 12)} \u2192 ${report.comparison.headSha?.slice(0, 12) ?? "?"}`)
+    );
+  }
+  lines.push("");
+  if (report.selection.mode !== "single") {
+    lines.push(sectionTitle(report.selection.mode === "changed" ? "Affected specs" : "Specs"));
+    if (report.selection.specs.length === 0) {
+      lines.push(infoLine("none"));
+    } else {
+      for (const spec of report.selection.specs) lines.push(`  ${spec}`);
+    }
+    lines.push("");
+  }
+  for (const spec of report.specResults) renderSpecResult(lines, spec, options);
+  if (report.globalDiagnostics.length > 0) {
+    lines.push(sectionTitle("Workspace diagnostics"));
+    for (const diagnostic of report.globalDiagnostics) {
+      if (options.verbose !== true && diagnostic.severity === "info") continue;
+      renderDiagnostic(lines, diagnostic);
+    }
+    lines.push("");
+  }
+  if (report.verificationCommands.length > 0) {
+    lines.push(sectionTitle("Verification commands"));
+    for (const command of report.verificationCommands) {
+      const detail = command.disposition === "executed" ? `exit ${command.exitCode ?? "?"}${command.timedOut ? ", timed out" : ""}` : command.disposition === "reused-evidence" ? "reused from evidence" : "not run";
+      const label = `${command.name}${command.required ? "" : " (optional)"} \u2014 ${detail}`;
+      lines.push(command.passed ? okLine(label) : failLine(label));
+    }
+    lines.push("");
+  }
+  const s = report.summary;
+  const counts = `${s.errors} error${s.errors === 1 ? "" : "s"}, ${s.warnings} warning${s.warnings === 1 ? "" : "s"}, ${s.info} info`;
+  lines.push(sectionTitle("Result"));
+  lines.push(
+    s.result === "passed" ? okLine(import_picocolors2.default.bold(`PASSED \u2014 ${counts}`)) : failLine(import_picocolors2.default.bold(`FAILED \u2014 ${counts}`))
+  );
+  return lines;
+}
+var DEFAULT_MAX_DIAGNOSTICS = 50;
+var DEFAULT_MAX_BLOCKING = 10;
+function cell(text2) {
+  return text2.replaceAll("|", "\\|").replaceAll("\n", " ");
+}
+function code(text2) {
+  return text2.includes("`") ? `\`\`${text2}\`\`` : `\`${text2}\``;
+}
+function diagnosticLine(diagnostic) {
+  const location = diagnostic.file !== null ? ` \u2014 ${code(diagnostic.file.path)}${diagnostic.file.line !== null ? `:${diagnostic.file.line}` : ""}` : "";
+  const heuristic = diagnostic.confidence === "heuristic" ? " _(heuristic)_" : "";
+  return `- ${code(diagnostic.ruleId)}${location}${heuristic} \u2014 ${diagnostic.message}`;
+}
+function severityBadge(diagnostic) {
+  if (diagnostic.severity === "error") return "\u{1F534} error";
+  if (diagnostic.severity === "warning") return "\u{1F7E1} warning";
+  return "\u{1F535} info";
+}
+function specSection(spec, maxDiagnostics) {
+  const lines = [];
+  lines.push(`### ${spec.specName}`);
+  lines.push("");
+  const policy = spec.policyPath !== null ? `${spec.policyMode} (${code(spec.policyPath)})` : `${spec.policyMode} (defaults)`;
+  lines.push(
+    `**Result:** ${spec.result === "passed" ? "Passed" : "Failed"} \xB7 **Policy:** ${policy} \xB7 **Type:** ${spec.specType}${spec.managed ? "" : " (unmanaged)"}`
+  );
+  lines.push("");
+  const t = spec.traceability;
+  const e = spec.evidence;
+  lines.push(
+    `Traceability: ${t.requirements} requirements (${t.requirementsWithTasks} with tasks), ${t.tasks} tasks (${t.tasksWithRequirements} linked). Evidence: ${e.valid} valid${e.manuallyAccepted > 0 ? ` (${e.manuallyAccepted} manual)` : ""}, ${e.stale} stale, ${e.missing} missing.`
+  );
+  lines.push("");
+  if (spec.diagnostics.length === 0) {
+    lines.push("No findings.");
+    lines.push("");
+    return lines;
+  }
+  lines.push("| Severity | Rule | Where | Finding |");
+  lines.push("|---|---|---|---|");
+  const shown = spec.diagnostics.slice(0, maxDiagnostics);
+  for (const diagnostic of shown) {
+    const where = diagnostic.file !== null ? `${code(diagnostic.file.path)}${diagnostic.file.line !== null ? `:${diagnostic.file.line}` : ""}` : diagnostic.taskId !== null ? `task ${code(diagnostic.taskId)}` : "\u2014";
+    lines.push(
+      `| ${severityBadge(diagnostic)} | ${code(diagnostic.ruleId)} | ${cell(where)} | ${cell(diagnostic.message)} |`
+    );
+  }
+  if (spec.diagnostics.length > shown.length) {
+    lines.push("");
+    lines.push(`\u2026 and ${spec.diagnostics.length - shown.length} more findings (see the JSON report).`);
+  }
+  lines.push("");
+  const remediations = shown.filter((diagnostic) => diagnostic.severity !== "info");
+  if (remediations.length > 0) {
+    lines.push("<details>");
+    lines.push("<summary>How to fix</summary>");
+    lines.push("");
+    for (const diagnostic of remediations) {
+      lines.push(`- ${code(diagnostic.ruleId)} \u2014 ${diagnostic.remediation}`);
+    }
+    lines.push("");
+    lines.push("</details>");
+    lines.push("");
+  }
+  return lines;
+}
+function renderVerificationMarkdown(report, options = {}) {
+  const maxDiagnostics = options.maxDiagnosticsPerSpec ?? DEFAULT_MAX_DIAGNOSTICS;
+  const maxBlocking = options.maxBlockingIssues ?? DEFAULT_MAX_BLOCKING;
+  const lines = [];
+  lines.push("# SpecBridge Verification");
+  lines.push("");
+  lines.push(`**Result:** ${report.summary.result === "passed" ? "Passed \u2705" : "Failed \u274C"}`);
+  lines.push("");
+  lines.push(
+    `Comparison: ${code(report.comparison.label)} \xB7 Selection: ${report.selection.mode} \xB7 ${report.summary.specsVerified} spec${report.summary.specsVerified === 1 ? "" : "s"} verified \xB7 ${report.summary.errors} errors, ${report.summary.warnings} warnings, ${report.summary.info} info`
+  );
+  lines.push("");
+  if (report.specResults.length > 0) {
+    lines.push("| Spec | Result | Errors | Warnings |");
+    lines.push("|---|---|---:|---:|");
+    for (const spec of report.specResults) {
+      const errors = spec.diagnostics.filter((diagnostic) => diagnostic.severity === "error").length;
+      const warnings = spec.diagnostics.filter(
+        (diagnostic) => diagnostic.severity === "warning"
+      ).length;
+      lines.push(
+        `| ${cell(spec.specName)} | ${spec.result === "passed" ? "Passed" : "Failed"} | ${errors} | ${warnings} |`
+      );
+    }
+    lines.push("");
+  }
+  const allDiagnostics = [
+    ...report.globalDiagnostics,
+    ...report.specResults.flatMap((spec) => spec.diagnostics)
+  ];
+  const blocking = allDiagnostics.filter((diagnostic) => diagnostic.severity === "error");
+  if (blocking.length > 0) {
+    lines.push("## Blocking issues");
+    lines.push("");
+    for (const diagnostic of blocking.slice(0, maxBlocking)) {
+      lines.push(diagnosticLine(diagnostic));
+    }
+    if (blocking.length > maxBlocking) {
+      lines.push(`- \u2026 and ${blocking.length - maxBlocking} more errors.`);
+    }
+    lines.push("");
+  }
+  if (report.verificationCommands.length > 0) {
+    lines.push("## Verification commands");
+    lines.push("");
+    lines.push("| Command | Required | Outcome |");
+    lines.push("|---|---|---|");
+    for (const command of report.verificationCommands) {
+      const outcome = command.disposition === "executed" ? command.passed ? `passed (exit ${command.exitCode ?? 0})` : command.timedOut ? "timed out" : `failed (exit ${command.exitCode ?? "?"})` : command.disposition === "reused-evidence" ? "passed (reused from evidence)" : "not run";
+      lines.push(`| ${code(command.name)} | ${command.required ? "yes" : "no"} | ${cell(outcome)} |`);
+    }
+    lines.push("");
+  }
+  if (report.globalDiagnostics.length > 0) {
+    lines.push("## Workspace findings");
+    lines.push("");
+    for (const diagnostic of report.globalDiagnostics.slice(0, maxDiagnostics)) {
+      lines.push(diagnosticLine(diagnostic));
+    }
+    lines.push("");
+  }
+  for (const spec of report.specResults) {
+    lines.push(...specSection(spec, maxDiagnostics));
+  }
+  const artifacts = options.artifactPaths;
+  if (artifacts !== void 0 && (artifacts.json ?? artifacts.markdown ?? artifacts.html) !== void 0) {
+    lines.push("## Reports");
+    lines.push("");
+    if (artifacts.json !== void 0) lines.push(`- JSON: ${code(artifacts.json)}`);
+    if (artifacts.markdown !== void 0) lines.push(`- Markdown: ${code(artifacts.markdown)}`);
+    if (artifacts.html !== void 0) lines.push(`- HTML: ${code(artifacts.html)}`);
+    lines.push("");
+  }
+  lines.push(
+    `<sub>specbridge ${report.tool.version} \xB7 verification ${report.verificationId} \xB7 ${report.createdAt}</sub>`
+  );
+  lines.push("");
+  return lines.join("\n");
+}
+function severityGlyph(severity) {
+  if (severity === "error") return "\u2717";
+  if (severity === "warning") return "!";
+  return "\xB7";
+}
+function specSlug(index) {
+  return `spec-${index}`;
+}
+function renderDiagnostic2(diagnostic, specClass) {
+  const location = diagnostic.file !== null ? `<code>${escapeHtml(diagnostic.file.path)}${diagnostic.file.line !== null ? `:${diagnostic.file.line}` : ""}</code>` : diagnostic.taskId !== null ? `task <code>${escapeHtml(diagnostic.taskId)}</code>` : "";
+  return [
+    `<li class="diag ${diagnostic.severity} ${specClass}">`,
+    `<span class="glyph" aria-hidden="true">${severityGlyph(diagnostic.severity)}</span>`,
+    `<div><p class="head"><strong>${escapeHtml(diagnostic.ruleId)}</strong>`,
+    ` <span class="sev">${diagnostic.severity}</span>`,
+    diagnostic.confidence === "heuristic" ? ' <span class="heuristic">heuristic</span>' : "",
+    location !== "" ? ` \u2014 ${location}` : "",
+    `</p><p>${escapeHtml(diagnostic.message)}</p>`,
+    `<p class="fix">Fix: ${escapeHtml(diagnostic.remediation)}</p></div></li>`
+  ].join("");
+}
+function renderSpec(spec, index) {
+  const cls = specSlug(index);
+  const t = spec.traceability;
+  const e = spec.evidence;
+  const rows = spec.changedFiles.map(
+    (file) => `<tr><td>${escapeHtml(file.changeType)}</td><td><code>${escapeHtml(file.path)}</code>${file.oldPath !== null ? ` <span class="from">from <code>${escapeHtml(file.oldPath)}</code></span>` : ""}</td><td class="num">${file.binary ? "binary" : `+${file.insertions ?? 0} \u2212${file.deletions ?? 0}`}</td></tr>`
+  ).join("\n");
+  return `
+<section class="spec ${cls}">
+<h2>${escapeHtml(spec.specName)} <span class="badge ${spec.result}">${spec.result}</span></h2>
+<p class="meta">${escapeHtml(spec.specType)}${spec.managed ? "" : " \xB7 unmanaged"} \xB7 policy: ${escapeHtml(spec.policyMode)}${spec.policyPath !== null ? ` (<code>${escapeHtml(spec.policyPath)}</code>)` : " (defaults)"}</p>
+<p class="meta">Traceability: ${t.requirements} requirements (${t.requirementsWithTasks} with tasks), ${t.tasks} tasks (${t.tasksWithRequirements} linked) \xB7
+Evidence: ${e.valid} valid${e.manuallyAccepted > 0 ? ` (${e.manuallyAccepted} manually accepted)` : ""}, ${e.stale} stale, ${e.missing} missing${e.invalid > 0 ? `, ${e.invalid} invalid` : ""}</p>
+${spec.changedFiles.length > 0 ? `<details><summary>${spec.changedFiles.length} changed file${spec.changedFiles.length === 1 ? "" : "s"}</summary>
+<table><thead><tr><th>Change</th><th>Path</th><th>Lines</th></tr></thead><tbody>
+${rows}
+</tbody></table></details>` : ""}
+${spec.diagnostics.length > 0 ? `<ul class="diags">
+${spec.diagnostics.map((diagnostic) => renderDiagnostic2(diagnostic, cls)).join("\n")}
+</ul>` : '<p class="ok">No findings.</p>'}
+</section>`;
+}
+function renderVerificationHtml(report) {
+  const specFilters = report.specResults.map(
+    (spec, index) => `<label><input type="checkbox" id="f-${specSlug(index)}" checked> ${escapeHtml(spec.specName)}</label>`
+  ).join("\n");
+  const specFilterCss = report.specResults.map(
+    (_, index) => `body:has(#f-${specSlug(index)}:not(:checked)) .${specSlug(index)} { display: none; }`
+  ).join("\n");
+  const commandRows = report.verificationCommands.map((command) => {
+    const outcome = command.disposition === "executed" ? command.passed ? `passed (exit ${command.exitCode ?? 0})` : command.timedOut ? "timed out" : `failed (exit ${command.exitCode ?? "?"})` : command.disposition === "reused-evidence" ? "passed (reused from evidence)" : "not run";
+    return `<tr class="${command.passed ? "pass" : "fail"}"><td><code>${escapeHtml(command.name)}</code></td><td>${command.required ? "required" : "optional"}</td><td><code>${escapeHtml(command.argv.join(" "))}</code></td><td>${escapeHtml(outcome)}</td></tr>`;
+  }).join("\n");
+  const summary = report.summary;
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SpecBridge verification \u2014 ${escapeHtml(summary.result)}</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: ui-sans-serif, system-ui, sans-serif; max-width: 60rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+  h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.15rem; border-bottom: 1px solid #8884; padding-bottom: 0.25rem; margin-top: 2rem; }
+  code { background: #8881; padding: 0 0.25em; border-radius: 3px; word-break: break-all; }
+  .meta { color: #777; margin: 0.15rem 0; }
+  .badge { font-size: 0.8rem; padding: 0.1rem 0.5rem; border-radius: 999px; vertical-align: middle; }
+  .badge.passed { background: #1a7f3722; color: #1a7f37; }
+  .badge.failed { background: #cf222e22; color: #cf222e; }
+  .result { font-size: 1.1rem; font-weight: 700; }
+  .result.passed { color: #1a7f37; }
+  .result.failed { color: #cf222e; }
+  fieldset { border: 1px solid #8884; border-radius: 6px; margin: 1rem 0; padding: 0.5rem 0.75rem; }
+  fieldset label { margin-right: 1rem; white-space: nowrap; }
+  ul.diags { list-style: none; padding-left: 0; }
+  .diag { display: flex; gap: 0.6rem; padding: 0.4rem 0; border-bottom: 1px dashed #8883; }
+  .diag p { margin: 0.1rem 0; }
+  .diag .head { font-size: 0.95rem; }
+  .glyph { width: 1.2em; text-align: center; font-weight: 700; }
+  .diag.error .glyph { color: #cf222e; }
+  .diag.warning .glyph { color: #b08800; }
+  .diag.info .glyph { color: #777; }
+  .sev { font-size: 0.75rem; border: 1px solid #8886; border-radius: 999px; padding: 0 0.4em; color: #777; }
+  .heuristic { font-size: 0.75rem; background: #8882; border-radius: 999px; padding: 0 0.4em; color: #777; }
+  .fix { color: #777; font-size: 0.9rem; }
+  .ok { color: #1a7f37; }
+  table { border-collapse: collapse; width: 100%; margin: 0.5rem 0; }
+  th, td { text-align: left; padding: 0.25rem 0.5rem; border-bottom: 1px solid #8883; font-size: 0.9rem; vertical-align: top; }
+  td.num { text-align: right; white-space: nowrap; }
+  tr.fail td:last-child { color: #cf222e; }
+  .from { color: #777; }
+  footer { margin-top: 2rem; color: #777; font-size: 0.85rem; }
+  /* CSS-only filters (no JavaScript anywhere in this document). */
+  body:has(#f-error:not(:checked)) .diag.error { display: none; }
+  body:has(#f-warning:not(:checked)) .diag.warning { display: none; }
+  body:has(#f-info:not(:checked)) .diag.info { display: none; }
+${specFilterCss}
+</style>
+</head>
+<body>
+<h1>SpecBridge Verification</h1>
+<p class="result ${summary.result}">${summary.result === "passed" ? "PASSED" : "FAILED"} \u2014 ${summary.errors} errors, ${summary.warnings} warnings, ${summary.info} info</p>
+<p class="meta">Comparison: <code>${escapeHtml(report.comparison.label)}</code> \xB7 selection: ${escapeHtml(report.selection.mode)} \xB7 ${summary.specsVerified} spec(s) verified</p>
+<p class="meta">specbridge ${escapeHtml(report.tool.version)} \xB7 verification <code>${escapeHtml(report.verificationId)}</code> \xB7 ${escapeHtml(report.createdAt)}</p>
+
+<fieldset>
+<legend>Filters (CSS only \u2014 content remains in the document)</legend>
+<label><input type="checkbox" id="f-error" checked> errors</label>
+<label><input type="checkbox" id="f-warning" checked> warnings</label>
+<label><input type="checkbox" id="f-info" checked> info</label>
+${specFilters}
+</fieldset>
+
+${report.globalDiagnostics.length > 0 ? `<section><h2>Workspace findings</h2><ul class="diags">
+${report.globalDiagnostics.map((diagnostic) => renderDiagnostic2(diagnostic, "global")).join("\n")}
+</ul></section>` : ""}
+
+${report.verificationCommands.length > 0 ? `<section><h2>Verification commands</h2>
+<table><thead><tr><th>Command</th><th>Kind</th><th>argv</th><th>Outcome</th></tr></thead><tbody>
+${commandRows}
+</tbody></table></section>` : ""}
+
+${report.specResults.map((spec, index) => renderSpec(spec, index)).join("\n")}
+
+<footer>Generated by specbridge spec verify \u2014 deterministic, offline, no model involved.</footer>
+</body>
+</html>
+`;
+}
+
+// ../../packages/cli/src/context.ts
+var import_node_path6 = __toESM(require("path"), 1);
+function defaultIo() {
+  return {
+    cwd: process.cwd(),
+    out: (line) => process.stdout.write(`${line}
+`),
+    outRaw: (text2) => process.stdout.write(text2),
+    err: (line) => process.stderr.write(`${line}
+`),
+    now: () => /* @__PURE__ */ new Date()
+  };
+}
+var CliRuntime = class {
+  io;
+  exitCode = 0;
+  cwdOverride;
+  constructor(io) {
+    this.io = io;
+  }
+  get cwd() {
+    return this.cwdOverride ?? this.io.cwd;
+  }
+  setCwdOverride(dir) {
+    this.cwdOverride = import_node_path6.default.resolve(this.io.cwd, dir);
+  }
+  workspace() {
+    return requireWorkspace(this.cwd);
+  }
+  tryWorkspace() {
+    return resolveWorkspace(this.cwd);
+  }
+  now() {
+    return this.io.now();
+  }
+  out(line = "") {
+    this.io.out(line);
+  }
+  outRaw(text2) {
+    this.io.outRaw(text2);
+  }
+  err(line) {
+    this.io.err(line);
+  }
+};
+function relPath(workspace, target) {
+  const relative = import_node_path6.default.relative(workspace.rootDir, target);
+  return (relative === "" ? "." : relative).split(import_node_path6.default.sep).join("/");
+}
+function formatBytes(size) {
+  if (size < 1024) return `${size} B`;
+  return `${(size / 1024).toFixed(1)} KB`;
+}
+function registerPlannedCommand(parent, runtime, options) {
+  const command = parent.command(`${options.name}${options.args !== void 0 ? ` ${options.args}` : ""}`).description(`(planned) ${options.summary}`).allowUnknownOption(true).allowExcessArguments(true).helpOption(true);
+  command.action(() => {
+    runtime.err(
+      `"${CLI_BIN} ${fullCommandPath(command)}" is not implemented yet. It is planned for ${options.phase}.`
+    );
+    if (options.workaround !== void 0) {
+      runtime.err(dim2(`In the meantime: ${options.workaround}`));
+    }
+    runtime.err(dim2("Roadmap: docs/roadmap.md \u2014 nothing in SpecBridge pretends to work before it does."));
+    runtime.exitCode = 2;
+  });
+}
+function fullCommandPath(command) {
+  const names = [];
+  let current = command;
+  while (current !== null && current.name() !== CLI_BIN) {
+    names.unshift(current.name());
+    current = current.parent;
+  }
+  return names.join(" ");
+}
+
+// ../../packages/cli/src/version.ts
+var VERSION = "1.1.0";
+
+// ../../packages/cli/src/commands/doctor.ts
+var import_node_path8 = __toESM(require("path"), 1);
+
+// ../../packages/cli/src/state/state-families.ts
+var import_node_fs6 = require("fs");
+var import_node_path7 = __toESM(require("path"), 1);
+
+// ../../packages/drift/dist/index.js
 var import_fs27 = require("fs");
 var import_path31 = __toESM(require("path"), 1);
+var import_picomatch = __toESM(require_picomatch2(), 1);
 var import_fs28 = require("fs");
 var import_path32 = __toESM(require("path"), 1);
 var import_fs29 = require("fs");
@@ -47127,8 +49913,10 @@ var import_path33 = __toESM(require("path"), 1);
 var import_fs30 = require("fs");
 var import_path34 = __toESM(require("path"), 1);
 var import_fs31 = require("fs");
-var import_crypto9 = require("crypto");
 var import_path35 = __toESM(require("path"), 1);
+var import_fs32 = require("fs");
+var import_crypto12 = require("crypto");
+var import_path36 = __toESM(require("path"), 1);
 var taskEvidenceSchema = external_exports.object({
   taskId: external_exports.string().min(1),
   status: external_exports.enum(["recorded", "verified", "rejected"]),
@@ -47229,24 +50017,24 @@ var verificationPolicySchema = external_exports.object({
   }
 });
 function policyDir(workspace) {
-  return import_path30.default.join(workspace.sidecarDir, "policies");
+  return import_path31.default.join(workspace.sidecarDir, "policies");
 }
 function policyPath(workspace, specName) {
-  const resolved = import_path30.default.resolve(policyDir(workspace), `${specName}.json`);
-  const relative = import_path30.default.relative(workspace.rootDir, resolved);
-  if (relative.startsWith("..") || import_path30.default.isAbsolute(relative)) {
-    return import_path30.default.join(policyDir(workspace), "invalid-spec-name.json");
+  const resolved = import_path31.default.resolve(policyDir(workspace), `${specName}.json`);
+  const relative = import_path31.default.relative(workspace.rootDir, resolved);
+  if (relative.startsWith("..") || import_path31.default.isAbsolute(relative)) {
+    return import_path31.default.join(policyDir(workspace), "invalid-spec-name.json");
   }
   return resolved;
 }
 function readVerificationPolicy(workspace, specName, explicitPath) {
-  const filePath = explicitPath !== void 0 ? import_path30.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
-  if (!(0, import_fs26.existsSync)(filePath)) {
+  const filePath = explicitPath !== void 0 ? import_path31.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
+  if (!(0, import_fs27.existsSync)(filePath)) {
     return { path: filePath, exists: false, diagnostics: [] };
   }
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs26.readFileSync)(filePath, "utf8"));
+    parsed = JSON.parse((0, import_fs27.readFileSync)(filePath, "utf8"));
   } catch (cause) {
     return {
       path: filePath,
@@ -47309,7 +50097,7 @@ function resolveEffectivePolicy(workspace, specName, options = {}) {
   const storedMode = policy?.mode ?? "advisory";
   const strictFromCli = options.strict === true && storedMode !== "strict";
   const mode = options.strict === true ? "strict" : storedMode;
-  const workspaceRelativePolicyPath = import_path30.default.relative(workspace.rootDir, read.path).split(import_path30.default.sep).join("/");
+  const workspaceRelativePolicyPath = import_path31.default.relative(workspace.rootDir, read.path).split(import_path31.default.sep).join("/");
   return {
     specName,
     mode,
@@ -47470,33 +50258,33 @@ function mergeNumstat(files, stats) {
 function sniffBinary(absolutePath) {
   let fd;
   try {
-    fd = (0, import_fs27.openSync)(absolutePath, "r");
+    fd = (0, import_fs28.openSync)(absolutePath, "r");
     const buffer = Buffer.alloc(8e3);
-    const bytesRead = (0, import_fs27.readSync)(fd, buffer, 0, buffer.length, 0);
+    const bytesRead = (0, import_fs28.readSync)(fd, buffer, 0, buffer.length, 0);
     return buffer.subarray(0, bytesRead).includes(0);
   } catch {
     return false;
   } finally {
-    if (fd !== void 0) (0, import_fs27.closeSync)(fd);
+    if (fd !== void 0) (0, import_fs28.closeSync)(fd);
   }
 }
 function flagSymlinkEscapes(repoRoot, files) {
   const resolvedRoot = (() => {
     try {
-      return (0, import_fs27.realpathSync)(repoRoot);
+      return (0, import_fs28.realpathSync)(repoRoot);
     } catch {
-      return import_path31.default.resolve(repoRoot);
+      return import_path32.default.resolve(repoRoot);
     }
   })();
   for (const file of files) {
     if (file.changeType === "deleted") continue;
-    const absolute = import_path31.default.join(repoRoot, file.path.split("/").join(import_path31.default.sep));
+    const absolute = import_path32.default.join(repoRoot, file.path.split("/").join(import_path32.default.sep));
     try {
-      const stats = (0, import_fs27.lstatSync)(absolute);
+      const stats = (0, import_fs28.lstatSync)(absolute);
       if (!stats.isSymbolicLink()) continue;
-      const target = (0, import_fs27.realpathSync)(absolute);
-      const relative = import_path31.default.relative(resolvedRoot, target);
-      if (relative.startsWith("..") || import_path31.default.isAbsolute(relative)) {
+      const target = (0, import_fs28.realpathSync)(absolute);
+      const relative = import_path32.default.relative(resolvedRoot, target);
+      if (relative.startsWith("..") || import_path32.default.isAbsolute(relative)) {
         file.symlinkOutsideRepository = true;
       }
     } catch {
@@ -47624,7 +50412,7 @@ async function resolveComparison(repoRoot, request, options = {}) {
     const known = new Set(files.map((file) => file.path));
     for (const token of untracked.stdout.split("\0")) {
       if (token.length === 0 || known.has(token)) continue;
-      const absolute = import_path31.default.join(repoRoot, token.split("/").join(import_path31.default.sep));
+      const absolute = import_path32.default.join(repoRoot, token.split("/").join(import_path32.default.sep));
       files.push({
         path: token,
         changeType: "untracked",
@@ -47704,9 +50492,9 @@ function specMatchReasons(specName, policy, validEvidencePaths, designPathRefere
 function readSpecEvidenceRecords(workspace, specName) {
   const byTask = /* @__PURE__ */ new Map();
   let invalidRecordCount = 0;
-  const specDir = import_path32.default.join(workspace.sidecarDir, "evidence", specName);
-  if ((0, import_fs28.existsSync)(specDir)) {
-    const taskDirs = (0, import_fs28.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
+  const specDir = import_path33.default.join(workspace.sidecarDir, "evidence", specName);
+  if ((0, import_fs29.existsSync)(specDir)) {
+    const taskDirs = (0, import_fs29.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
     for (const taskDir of taskDirs) {
       const { records, diagnostics } = listTaskEvidence(workspace, specName, taskDir);
       invalidRecordCount += diagnostics.length;
@@ -47720,7 +50508,7 @@ function readSpecEvidenceRecords(workspace, specName) {
   return { byTask, invalidRecordCount };
 }
 async function buildSpecVerificationContext(options) {
-  const { workspace, folder, comparison, caches, now } = options;
+  const { workspace, folder, comparison, caches, now: now2 } = options;
   const spec = analyzeSpec(workspace, folder);
   const evaluation = spec.state !== void 0 ? evaluateWorkflow(workspace, spec.state) : void 0;
   const policy = resolveEffectivePolicy(workspace, folder.name, {
@@ -47752,10 +50540,10 @@ async function buildSpecVerificationContext(options) {
       approved.designHash = designStage.approvedHash;
     }
     if (effective("tasks") && tasksStage !== void 0) {
-      const planHash = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(
-        import_path32.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path32.default.sep))
+      const planHash2 = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(
+        import_path33.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path33.default.sep))
       );
-      if (planHash !== void 0) approved.tasksPlanHash = planHash;
+      if (planHash2 !== void 0) approved.tasksPlanHash = planHash2;
     }
   }
   const currentTasks = /* @__PURE__ */ new Map();
@@ -47775,12 +50563,12 @@ async function buildSpecVerificationContext(options) {
     approved,
     approvedAt,
     tasks: currentTasks,
-    now
+    now: now2
   };
   const recordedShas = /* @__PURE__ */ new Set();
   for (const records of rawEvidence.byTask.values()) {
-    for (const record2 of records) {
-      if (record2.repository.headAfter !== void 0) recordedShas.add(record2.repository.headAfter);
+    for (const record3 of records) {
+      if (record3.repository.headAfter !== void 0) recordedShas.add(record3.repository.headAfter);
     }
   }
   if (recordedShas.size > 0 && comparison.descriptor.headSha !== null) {
@@ -47827,7 +50615,7 @@ async function buildSpecVerificationContext(options) {
     freshness,
     matchedBy: options.matchedBy ?? [],
     readBaseContent: makeBaseContentReader(workspace, comparison, caches, options.signal),
-    now
+    now: now2
   };
 }
 async function orchestrateVerificationCommands(options) {
@@ -47879,9 +50667,9 @@ async function orchestrateVerificationCommands(options) {
     let reusedFrom;
     for (const specName of specs) {
       const assessments = options.evidenceBySpec.get(specName) ?? [];
-      const record2 = reusableCommandPass(assessments, name, options.headSha);
-      if (record2 !== void 0) {
-        reusedFrom = record2.runId;
+      const record3 = reusableCommandPass(assessments, name, options.headSha);
+      if (record3 !== void 0) {
+        reusedFrom = record3.runId;
         break;
       }
     }
@@ -47981,7 +50769,7 @@ async function evaluateGlobalRules(rules, context) {
   return { diagnostics, disabledRules };
 }
 function repoRelative(workspace, absolutePath) {
-  return import_path33.default.relative(workspace.rootDir, absolutePath).split(import_path33.default.sep).join("/");
+  return import_path34.default.relative(workspace.rootDir, absolutePath).split(import_path34.default.sep).join("/");
 }
 function isSpecInfraPath(candidate) {
   return candidate === ".git" || candidate.startsWith(".git/") || candidate.startsWith(".kiro/") || candidate.startsWith(".specbridge/");
@@ -48618,12 +51406,12 @@ var sbv017 = {
         return requirement?.testRequired === true;
       });
       if (!taskWantsTests && !requirementWantsTests) continue;
-      const record2 = assessment.best?.record;
-      if (record2 === void 0) continue;
-      const passingTestCommand = record2.verificationCommands.some(
+      const record3 = assessment.best?.record;
+      if (record3 === void 0) continue;
+      const passingTestCommand = record3.verificationCommands.some(
         (command) => command.passed && (TEST_COMMAND_PATTERN.test(command.name) || command.argv.some((argument) => TEST_COMMAND_PATTERN.test(argument)))
       );
-      const testFilesChanged = record2.changedFiles.some(
+      const testFilesChanged = record3.changedFiles.some(
         (file) => TEST_PATH_PATTERN.test(file.path)
       );
       if (passingTestCommand || testFilesChanged) continue;
@@ -48638,8 +51426,8 @@ var sbv017 = {
           evidence: {
             taskMentionsTests: taskWantsTests,
             requirementMentionsTests: requirementWantsTests,
-            evidenceRunId: record2.runId,
-            recordedCommands: record2.verificationCommands.map((command) => command.name),
+            evidenceRunId: record3.runId,
+            recordedCommands: record3.verificationCommands.map((command) => command.name),
             testEvidenceRequired: context.policy.requireTestEvidence
           }
         })
@@ -48662,14 +51450,14 @@ var sbv018 = {
     if (designDocument === void 0) return [];
     const designFile = designDocument.filePath;
     const designRepoPath = designFile !== void 0 ? repoRelative(context.workspace, designFile) : void 0;
-    const specDir = import_path33.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
+    const specDir = import_path34.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
     return context.traceability.designPathReferences.filter((reference) => !reference.isGlob).filter((reference) => {
-      const fromRoot = import_path33.default.join(
+      const fromRoot = import_path34.default.join(
         context.workspace.rootDir,
-        reference.path.split("/").join(import_path33.default.sep)
+        reference.path.split("/").join(import_path34.default.sep)
       );
-      const fromSpecDir = import_path33.default.join(specDir, reference.path.split("/").join(import_path33.default.sep));
-      return !(0, import_fs29.existsSync)(fromRoot) && !(0, import_fs29.existsSync)(fromSpecDir);
+      const fromSpecDir = import_path34.default.join(specDir, reference.path.split("/").join(import_path34.default.sep));
+      return !(0, import_fs30.existsSync)(fromRoot) && !(0, import_fs30.existsSync)(fromSpecDir);
     }).map(
       (reference) => makeDiagnostic({
         rule: this,
@@ -48916,14 +51704,14 @@ function loadSpecMatchingInfo(workspace, folder, options) {
     }
   }
   const evidencePaths = /* @__PURE__ */ new Set();
-  const evidenceDir2 = import_path34.default.join(workspace.sidecarDir, "evidence", folder.name);
-  if ((0, import_fs30.existsSync)(evidenceDir2)) {
-    for (const entry of (0, import_fs31.readdirSync)(evidenceDir2, { withFileTypes: true })) {
+  const evidenceDir2 = import_path35.default.join(workspace.sidecarDir, "evidence", folder.name);
+  if ((0, import_fs31.existsSync)(evidenceDir2)) {
+    for (const entry of (0, import_fs32.readdirSync)(evidenceDir2, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
       const { records } = listTaskEvidence(workspace, folder.name, entry.name);
-      for (const record2 of records) {
-        if (record2.status !== "verified" && record2.status !== "manually-accepted") continue;
-        for (const file of record2.changedFiles) evidencePaths.add(file.path);
+      for (const record3 of records) {
+        if (record3.status !== "verified" && record3.status !== "manually-accepted") continue;
+        for (const file of record3.changedFiles) evidencePaths.add(file.path);
       }
     }
   }
@@ -48975,8 +51763,8 @@ var VERIFY_EXIT_CODES = {
   commandTimeout: 5
 };
 async function verifySpecs(request) {
-  const now = (request.clock ?? (() => /* @__PURE__ */ new Date()))();
-  const verificationId = (request.idFactory ?? import_crypto9.randomUUID)();
+  const now2 = (request.clock ?? (() => /* @__PURE__ */ new Date()))();
+  const verificationId = (request.idFactory ?? import_crypto12.randomUUID)();
   const workspace = request.workspace;
   const configRead = readAgentConfig(workspace);
   if (configRead.config === void 0) {
@@ -49017,7 +51805,7 @@ async function verifySpecs(request) {
           ...request.strict !== void 0 ? { strict: request.strict } : {},
           ...request.explicitPolicyPath !== void 0 ? { explicitPolicyPath: request.explicitPolicyPath } : {},
           ...matchedBy !== void 0 ? { matchedBy: dedupe(matchedBy) } : {},
-          now,
+          now: now2,
           ...request.signal !== void 0 ? { signal: request.signal } : {}
         })
       );
@@ -49027,8 +51815,8 @@ async function verifySpecs(request) {
   let artifactsDir;
   const ensureArtifactsDir = () => {
     if (artifactsDir === void 0) {
-      const base = request.reportsDir ?? import_path35.default.join(workspace.sidecarDir, "reports");
-      artifactsDir = import_path35.default.join(base, verificationId);
+      const base = request.reportsDir ?? import_path36.default.join(workspace.sidecarDir, "reports");
+      artifactsDir = import_path36.default.join(base, verificationId);
     }
     return artifactsDir;
   };
@@ -49051,8 +51839,8 @@ async function verifySpecs(request) {
       onCommandFinished: (result, stdout, stderr) => {
         const dir = ensureArtifactsDir();
         const safeName = result.name.replace(/[^A-Za-z0-9._-]+/g, "-");
-        writeFileAtomic(import_path35.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
-        writeFileAtomic(import_path35.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
+        writeFileAtomic(import_path36.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
+        writeFileAtomic(import_path36.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
       }
     } : {}
   }) : { mode: "none", commands: [], missingRequired: [] };
@@ -49070,7 +51858,7 @@ async function verifySpecs(request) {
     unmappedFiles: affectedResult.unmapped,
     ambiguousFiles: affectedResult.ambiguous,
     commands,
-    now
+    now: now2
   };
   const globalResult = await evaluateGlobalRules(rules, globalContext);
   const selectedNames = new Set(specContexts.map((context) => context.specName));
@@ -49182,7 +51970,7 @@ async function verifySpecs(request) {
     schemaVersion: VERIFICATION_REPORT_SCHEMA_VERSION,
     tool: { name: "specbridge", version: request.toolVersion },
     verificationId,
-    createdAt: now.toISOString(),
+    createdAt: now2.toISOString(),
     comparison: comparison.descriptor,
     selection: {
       mode: selectionMode,
@@ -49203,7 +51991,7 @@ async function verifySpecs(request) {
   verificationReportSchema.parse(report);
   if (persistArtifacts && artifactsDir !== void 0) {
     writeFileAtomic(
-      import_path35.default.join(artifactsDir, "report.json"),
+      import_path36.default.join(artifactsDir, "report.json"),
       `${JSON.stringify(report, null, 2)}
 `
     );
@@ -49312,18 +52100,18 @@ function resolveExitCode(report, comparison, commands, failOn) {
 }
 
 // ../../packages/templates/dist/index.js
-var import_fs32 = require("fs");
-var import_path36 = __toESM(require("path"), 1);
 var import_fs33 = require("fs");
 var import_path37 = __toESM(require("path"), 1);
 var import_fs34 = require("fs");
 var import_path38 = __toESM(require("path"), 1);
-var import_path39 = __toESM(require("path"), 1);
 var import_fs35 = require("fs");
+var import_path39 = __toESM(require("path"), 1);
 var import_path40 = __toESM(require("path"), 1);
 var import_fs36 = require("fs");
-var import_os = require("os");
 var import_path41 = __toESM(require("path"), 1);
+var import_fs37 = require("fs");
+var import_os = require("os");
+var import_path42 = __toESM(require("path"), 1);
 var SPECBRIDGE_VERSION = "1.0.0";
 var TEMPLATE_ERROR_CODES = {
   SBT001: "template not found",
@@ -49845,8 +52633,8 @@ function checkManifestSemantics(manifest) {
   }
   return issues;
 }
-function parseTemplateManifest(text) {
-  if (Buffer.byteLength(text, "utf8") > TEMPLATE_PACK_LIMITS.maxManifestBytes) {
+function parseTemplateManifest(text2) {
+  if (Buffer.byteLength(text2, "utf8") > TEMPLATE_PACK_LIMITS.maxManifestBytes) {
     return {
       issues: [
         issue(
@@ -49859,7 +52647,7 @@ function parseTemplateManifest(text) {
   }
   let parsed;
   try {
-    parsed = JSON.parse(text);
+    parsed = JSON.parse(text2);
   } catch (cause) {
     return {
       issues: [
@@ -49905,13 +52693,13 @@ function parseTemplateManifest(text) {
 }
 var PLACEHOLDER_PATTERN = /\{\{([^{}\r\n]*)\}\}/g;
 var VALID_PLACEHOLDER_NAME = /^[a-z][a-zA-Z0-9]*$/;
-function renderTemplateText(sourceLabel, text, values) {
+function renderTemplateText(sourceLabel, text2, values) {
   const parts = [];
   let lastIndex = 0;
   PLACEHOLDER_PATTERN.lastIndex = 0;
   let match;
-  while ((match = PLACEHOLDER_PATTERN.exec(text)) !== null) {
-    parts.push(text.slice(lastIndex, match.index));
+  while ((match = PLACEHOLDER_PATTERN.exec(text2)) !== null) {
+    parts.push(text2.slice(lastIndex, match.index));
     lastIndex = match.index + match[0].length;
     const inner = match[1] ?? "";
     if (!VALID_PLACEHOLDER_NAME.test(inner)) {
@@ -49933,7 +52721,7 @@ function renderTemplateText(sourceLabel, text, values) {
     }
     parts.push(value);
   }
-  parts.push(text.slice(lastIndex));
+  parts.push(text2.slice(lastIndex));
   const rendered = parts.join("");
   const renderedBytes = Buffer.byteLength(rendered, "utf8");
   if (renderedBytes > TEMPLATE_PACK_LIMITS.maxRenderedFileBytes) {
@@ -49949,13 +52737,13 @@ function renderTemplateText(sourceLabel, text, values) {
 function truncatePlaceholder(raw) {
   return raw.length > 40 ? `${raw.slice(0, 40)}\u2026` : raw;
 }
-function collectPlaceholders(text) {
+function collectPlaceholders(text2) {
   const names = [];
   const malformed = [];
   const seen = /* @__PURE__ */ new Set();
   PLACEHOLDER_PATTERN.lastIndex = 0;
   let match;
-  while ((match = PLACEHOLDER_PATTERN.exec(text)) !== null) {
+  while ((match = PLACEHOLDER_PATTERN.exec(text2)) !== null) {
     const inner = match[1] ?? "";
     if (!VALID_PLACEHOLDER_NAME.test(inner)) {
       malformed.push(truncatePlaceholder(match[0]));
@@ -50152,11 +52940,11 @@ function readTemplatePackDirectory(dir) {
         { path: currentDir }
       );
     }
-    const entries = (0, import_fs32.readdirSync)(currentDir, { withFileTypes: true }).sort(
+    const entries = (0, import_fs33.readdirSync)(currentDir, { withFileTypes: true }).sort(
       (a2, b) => a2.name.localeCompare(b.name, "en")
     );
     for (const entry of entries) {
-      const entryPath = import_path36.default.join(currentDir, entry.name);
+      const entryPath = import_path37.default.join(currentDir, entry.name);
       const entryRelative = relative === "" ? entry.name : `${relative}/${entry.name}`;
       const stat = statNoFollow(entryPath);
       if (stat.isSymbolicLink()) {
@@ -50208,9 +52996,9 @@ function readTemplatePackDirectory(dir) {
           { path: dir }
         );
       }
-      const buffer = (0, import_fs32.readFileSync)(entryPath);
-      const text = buffer.toString("utf8");
-      if (!Buffer.from(text, "utf8").equals(buffer)) {
+      const buffer = (0, import_fs33.readFileSync)(entryPath);
+      const text2 = buffer.toString("utf8");
+      if (!Buffer.from(text2, "utf8").equals(buffer)) {
         throw new TemplateError(
           "SBT025",
           `${entryRelative} is not valid UTF-8 text.`,
@@ -50218,7 +53006,7 @@ function readTemplatePackDirectory(dir) {
           { path: entryPath }
         );
       }
-      if (text.includes("\0")) {
+      if (text2.includes("\0")) {
         throw new TemplateError(
           "SBT025",
           `${entryRelative} contains binary (null-byte) content.`,
@@ -50226,7 +53014,7 @@ function readTemplatePackDirectory(dir) {
           { path: entryPath }
         );
       }
-      files.set(entryRelative, text);
+      files.set(entryRelative, text2);
     }
   };
   walk(dir, "", 0);
@@ -50234,7 +53022,7 @@ function readTemplatePackDirectory(dir) {
 }
 function statNoFollow(target) {
   try {
-    return (0, import_fs32.lstatSync)(target);
+    return (0, import_fs33.lstatSync)(target);
   } catch (cause) {
     throw new TemplateError(
       "SBT007",
@@ -50598,7 +53386,7 @@ var BUILTIN_TEMPLATE_PACKS = [
   }
 ];
 function projectTemplatesDir(workspace) {
-  return import_path37.default.join(workspace.sidecarDir, "templates");
+  return import_path38.default.join(workspace.sidecarDir, "templates");
 }
 function builtinEntries(options) {
   const entries = [];
@@ -50623,11 +53411,11 @@ function builtinEntries(options) {
 function projectEntries(workspace, options, diagnostics) {
   if (workspace === void 0) return [];
   const dir = projectTemplatesDir(workspace);
-  if (!(0, import_fs33.existsSync)(dir)) return [];
+  if (!(0, import_fs34.existsSync)(dir)) return [];
   const entries = [];
   let names;
   try {
-    names = (0, import_fs33.readdirSync)(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory() && !entry.isSymbolicLink()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
+    names = (0, import_fs34.readdirSync)(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory() && !entry.isSymbolicLink()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
   } catch (cause) {
     diagnostics.push({
       severity: "warning",
@@ -50637,7 +53425,7 @@ function projectEntries(workspace, options, diagnostics) {
     return [];
   }
   for (const name of names) {
-    const packDir = import_path37.default.join(dir, name);
+    const packDir = import_path38.default.join(dir, name);
     let pack;
     try {
       const data = readTemplatePackDirectory(packDir);
@@ -50786,8 +53574,8 @@ var SCORE_ID_PREFIX = 800;
 var SCORE_EXACT_TAG = 600;
 var SCORE_DISPLAY_NAME_TOKEN = 400;
 var SCORE_DESCRIPTION_TOKEN = 200;
-function tokenize(text) {
-  return text.toLowerCase().split(/[^a-z0-9]+/u).filter((token) => token.length > 0);
+function tokenize(text2) {
+  return text2.toLowerCase().split(/[^a-z0-9]+/u).filter((token) => token.length > 0);
 }
 function clampSearchLimit(requested) {
   if (requested === void 0 || !Number.isFinite(requested)) return DEFAULT_SEARCH_LIMIT;
@@ -50881,19 +53669,19 @@ var templateRecordSchema = external_exports.discriminatedUnion("type", [
   templateScaffoldRecordSchema
 ]);
 function templateRecordsPath(workspace) {
-  return import_path38.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
+  return import_path39.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
 }
 var recordCounter = 0;
 function newTemplateRecordId(clock = systemClock) {
   recordCounter += 1;
   return `template-${clock().getTime().toString(36)}-${process.pid.toString(36)}-${recordCounter}`;
 }
-function appendTemplateRecord(workspace, record2) {
-  const validated = templateRecordSchema.parse(record2);
+function appendTemplateRecord(workspace, record3) {
+  const validated = templateRecordSchema.parse(record3);
   const filePath = templateRecordsPath(workspace);
   try {
-    (0, import_fs34.mkdirSync)(workspace.sidecarDir, { recursive: true });
-    (0, import_fs34.appendFileSync)(filePath, `${JSON.stringify(validated)}
+    (0, import_fs35.mkdirSync)(workspace.sidecarDir, { recursive: true });
+    (0, import_fs35.appendFileSync)(filePath, `${JSON.stringify(validated)}
 `, "utf8");
   } catch (cause) {
     throw ioError("append template record to", filePath, cause);
@@ -50902,10 +53690,10 @@ function appendTemplateRecord(workspace, record2) {
 function readTemplateRecords(workspace) {
   const filePath = templateRecordsPath(workspace);
   const diagnostics = [];
-  if (!(0, import_fs34.existsSync)(filePath)) return { records: [], diagnostics };
-  let text;
+  if (!(0, import_fs35.existsSync)(filePath)) return { records: [], diagnostics };
+  let text2;
   try {
-    text = (0, import_fs34.readFileSync)(filePath, "utf8");
+    text2 = (0, import_fs35.readFileSync)(filePath, "utf8");
   } catch (cause) {
     diagnostics.push({
       severity: "warning",
@@ -50915,7 +53703,7 @@ function readTemplateRecords(workspace) {
     return { records: [], diagnostics };
   }
   const records = [];
-  const lines = text.split("\n");
+  const lines = text2.split("\n");
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index]?.trim() ?? "";
     if (line.length === 0) continue;
@@ -51104,7 +53892,7 @@ function planTemplateApplication(workspace, catalog, request, clock = systemCloc
   };
 }
 function toPosix2(relative) {
-  return relative.split(import_path39.default.sep).join("/");
+  return relative.split(import_path40.default.sep).join("/");
 }
 function executeTemplateApplication(workspace, plan, clock = systemClock, recordId) {
   let creation;
@@ -51114,7 +53902,7 @@ function executeTemplateApplication(workspace, plan, clock = systemClock, record
     rethrowSpecExists(cause, plan.specPlan.specName);
   }
   const id = recordId ?? newTemplateRecordId(clock);
-  const record2 = {
+  const record3 = {
     schemaVersion: "1.0.0",
     recordId: id,
     type: "template-apply",
@@ -51134,15 +53922,15 @@ function executeTemplateApplication(workspace, plan, clock = systemClock, record
     })),
     variableNames: plan.variableNames,
     createdPaths: [
-      ...creation.writtenFiles.map((file) => toPosix2(import_path39.default.relative(workspace.rootDir, file))),
-      toPosix2(import_path39.default.relative(workspace.rootDir, creation.statePath))
+      ...creation.writtenFiles.map((file) => toPosix2(import_path40.default.relative(workspace.rootDir, file))),
+      toPosix2(import_path40.default.relative(workspace.rootDir, creation.statePath))
     ]
   };
-  appendTemplateRecord(workspace, record2);
+  appendTemplateRecord(workspace, record3);
   return { plan, creation, recordId: id };
 }
 function planTemplateInstall(workspace, catalog, request) {
-  const sourceDir = import_path40.default.resolve(request.cwd ?? workspace.rootDir, request.sourcePath);
+  const sourceDir = import_path41.default.resolve(request.cwd ?? workspace.rootDir, request.sourcePath);
   try {
     assertInsideWorkspace(workspace.rootDir, sourceDir);
   } catch (cause) {
@@ -51168,8 +53956,8 @@ function planTemplateInstall(workspace, catalog, request) {
     );
   }
   const templateId = pack.manifest.id;
-  const targetDir = import_path40.default.join(projectTemplatesDir(workspace), templateId);
-  if ((0, import_fs35.existsSync)(targetDir)) {
+  const targetDir = import_path41.default.join(projectTemplatesDir(workspace), templateId);
+  if ((0, import_fs36.existsSync)(targetDir)) {
     throw new TemplateError(
       "SBT021",
       `Template "project:${templateId}" is already installed at ${targetDir}.`,
@@ -51195,16 +53983,16 @@ function planTemplateInstall(workspace, catalog, request) {
   };
 }
 function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) {
-  const tmpParent = import_path40.default.join(workspace.sidecarDir, "tmp");
-  const tempDir = import_path40.default.join(
+  const tmpParent = import_path41.default.join(workspace.sidecarDir, "tmp");
+  const tempDir = import_path41.default.join(
     tmpParent,
     `template-install-${plan.templateId}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`
   );
   try {
-    (0, import_fs35.mkdirSync)(tempDir, { recursive: true });
+    (0, import_fs36.mkdirSync)(tempDir, { recursive: true });
     for (const [relative, content] of plan.pack.files) {
-      const target = import_path40.default.join(tempDir, relative);
-      (0, import_fs35.mkdirSync)(import_path40.default.dirname(target), { recursive: true });
+      const target = import_path41.default.join(tempDir, relative);
+      (0, import_fs36.mkdirSync)(import_path41.default.dirname(target), { recursive: true });
       writeFileAtomic(target, content);
     }
     const copied = loadTemplatePack(readTemplatePackDirectory(tempDir));
@@ -51216,8 +54004,8 @@ function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) 
         { path: plan.sourceDir }
       );
     }
-    (0, import_fs35.mkdirSync)(import_path40.default.dirname(plan.targetDir), { recursive: true });
-    if ((0, import_fs35.existsSync)(plan.targetDir)) {
+    (0, import_fs36.mkdirSync)(import_path41.default.dirname(plan.targetDir), { recursive: true });
+    if ((0, import_fs36.existsSync)(plan.targetDir)) {
       throw new TemplateError(
         "SBT021",
         `Template "project:${plan.templateId}" was installed by another process.`,
@@ -51225,11 +54013,11 @@ function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) 
         { path: plan.targetDir }
       );
     }
-    (0, import_fs35.renameSync)(tempDir, plan.targetDir);
+    (0, import_fs36.renameSync)(tempDir, plan.targetDir);
   } finally {
-    (0, import_fs35.rmSync)(tempDir, { recursive: true, force: true });
+    (0, import_fs36.rmSync)(tempDir, { recursive: true, force: true });
     try {
-      (0, import_fs35.rmdirSync)(tmpParent);
+      (0, import_fs36.rmdirSync)(tmpParent);
     } catch {
     }
   }
@@ -51244,8 +54032,8 @@ function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) 
     templateId: plan.templateId,
     templateVersion: plan.templateVersion,
     manifestHash: plan.manifestHash,
-    sourcePath: import_path40.default.relative(workspace.rootDir, plan.sourceDir).split(import_path40.default.sep).join("/"),
-    installedPath: import_path40.default.relative(workspace.rootDir, plan.targetDir).split(import_path40.default.sep).join("/")
+    sourcePath: import_path41.default.relative(workspace.rootDir, plan.sourceDir).split(import_path41.default.sep).join("/"),
+    installedPath: import_path41.default.relative(workspace.rootDir, plan.targetDir).split(import_path41.default.sep).join("/")
   });
   return { plan, installedPath: plan.targetDir, recordId: id };
 }
@@ -51275,10 +54063,10 @@ function planTemplateUninstall(workspace, rawReference) {
       { reference: rawReference }
     );
   }
-  const dir = import_path40.default.join(projectTemplatesDir(workspace), reference.id);
+  const dir = import_path41.default.join(projectTemplatesDir(workspace), reference.id);
   let stat;
   try {
-    stat = (0, import_fs35.lstatSync)(dir);
+    stat = (0, import_fs36.lstatSync)(dir);
   } catch {
     throw new TemplateError(
       "SBT001",
@@ -51298,18 +54086,18 @@ function planTemplateUninstall(workspace, rawReference) {
   return { templateId: reference.id, ref: `project:${reference.id}`, dir };
 }
 function executeTemplateUninstall(workspace, plan, clock = systemClock, recordId) {
-  const tmpParent = import_path40.default.join(workspace.sidecarDir, "tmp");
-  const tempDir = import_path40.default.join(
+  const tmpParent = import_path41.default.join(workspace.sidecarDir, "tmp");
+  const tempDir = import_path41.default.join(
     tmpParent,
     `template-uninstall-${plan.templateId}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`
   );
-  (0, import_fs35.mkdirSync)(tmpParent, { recursive: true });
-  (0, import_fs35.renameSync)(plan.dir, tempDir);
+  (0, import_fs36.mkdirSync)(tmpParent, { recursive: true });
+  (0, import_fs36.renameSync)(plan.dir, tempDir);
   try {
-    (0, import_fs35.rmSync)(tempDir, { recursive: true, force: true });
+    (0, import_fs36.rmSync)(tempDir, { recursive: true, force: true });
   } finally {
     try {
-      (0, import_fs35.rmdirSync)(tmpParent);
+      (0, import_fs36.rmdirSync)(tmpParent);
     } catch {
     }
   }
@@ -51322,7 +54110,7 @@ function executeTemplateUninstall(workspace, plan, clock = systemClock, recordId
     result: "ok",
     templateRef: plan.ref,
     templateId: plan.templateId,
-    uninstalledPath: import_path40.default.relative(workspace.rootDir, plan.dir).split(import_path40.default.sep).join("/")
+    uninstalledPath: import_path41.default.relative(workspace.rootDir, plan.dir).split(import_path41.default.sep).join("/")
   });
   return { plan, recordId: id };
 }
@@ -51408,10 +54196,10 @@ The built-in variables \`specName\`, \`title\`, \`description\`, \`kind\`, and
 
 \`\`\`bash
 # From the directory containing this template pack:
-specbridge template validate ./${import_path41.default.basename(request.outputPath)}
+specbridge template validate ./${import_path42.default.basename(request.outputPath)}
 
 # Then install it into a project for a real preview:
-specbridge template install ./${import_path41.default.basename(request.outputPath)}
+specbridge template install ./${import_path42.default.basename(request.outputPath)}
 specbridge template preview project:${request.templateId} --name example-spec
 \`\`\`
 
@@ -51631,9 +54419,9 @@ ${idCheck.problems.map((p) => `  - ${p}`).join("\n")}`,
   if (new Set(modes).size !== modes.length) {
     throw new TemplateError("SBT015", "--modes contains duplicates.", "List each mode once.", {});
   }
-  const outputDir = import_path41.default.resolve(request.cwd, request.outputPath);
-  const relative = import_path41.default.relative(import_path41.default.resolve(request.cwd), outputDir);
-  if (relative.startsWith("..") || import_path41.default.isAbsolute(relative)) {
+  const outputDir = import_path42.default.resolve(request.cwd, request.outputPath);
+  const relative = import_path42.default.relative(import_path42.default.resolve(request.cwd), outputDir);
+  if (relative.startsWith("..") || import_path42.default.isAbsolute(relative)) {
     throw new TemplateError(
       "SBT007",
       `Scaffold output ${outputDir} is outside the current directory.`,
@@ -51641,7 +54429,7 @@ ${idCheck.problems.map((p) => `  - ${p}`).join("\n")}`,
       { path: outputDir }
     );
   }
-  if ((0, import_fs36.existsSync)(outputDir)) {
+  if ((0, import_fs37.existsSync)(outputDir)) {
     throw new TemplateError(
       "SBT025",
       `Scaffold output directory already exists: ${outputDir}.`,
@@ -51673,21 +54461,21 @@ ${idCheck.problems.map((p) => `  - ${p}`).join("\n")}`,
   return { templateId: request.templateId, kind: request.kind, outputDir, files };
 }
 function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId) {
-  const tmpParent = workspace !== void 0 ? import_path41.default.join(workspace.sidecarDir, "tmp") : import_path41.default.join((0, import_os.tmpdir)(), "specbridge-scaffold");
-  const tempDir = import_path41.default.join(
+  const tmpParent = workspace !== void 0 ? import_path42.default.join(workspace.sidecarDir, "tmp") : import_path42.default.join((0, import_os.tmpdir)(), "specbridge-scaffold");
+  const tempDir = import_path42.default.join(
     tmpParent,
     `template-scaffold-${plan.templateId}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`
   );
   const writtenFiles = [];
   try {
-    (0, import_fs36.mkdirSync)(tempDir, { recursive: true });
+    (0, import_fs37.mkdirSync)(tempDir, { recursive: true });
     for (const [relative, content] of plan.files) {
-      const target = import_path41.default.join(tempDir, relative);
-      (0, import_fs36.mkdirSync)(import_path41.default.dirname(target), { recursive: true });
+      const target = import_path42.default.join(tempDir, relative);
+      (0, import_fs37.mkdirSync)(import_path42.default.dirname(target), { recursive: true });
       writeFileAtomic(target, content);
     }
-    (0, import_fs36.mkdirSync)(import_path41.default.dirname(plan.outputDir), { recursive: true });
-    if ((0, import_fs36.existsSync)(plan.outputDir)) {
+    (0, import_fs37.mkdirSync)(import_path42.default.dirname(plan.outputDir), { recursive: true });
+    if ((0, import_fs37.existsSync)(plan.outputDir)) {
       throw new TemplateError(
         "SBT025",
         `Scaffold output directory was created by another process: ${plan.outputDir}.`,
@@ -51695,14 +54483,14 @@ function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId)
         { path: plan.outputDir }
       );
     }
-    (0, import_fs36.renameSync)(tempDir, plan.outputDir);
+    (0, import_fs37.renameSync)(tempDir, plan.outputDir);
     for (const relative of plan.files.keys()) {
-      writtenFiles.push(import_path41.default.join(plan.outputDir, relative));
+      writtenFiles.push(import_path42.default.join(plan.outputDir, relative));
     }
   } finally {
-    (0, import_fs36.rmSync)(tempDir, { recursive: true, force: true });
+    (0, import_fs37.rmSync)(tempDir, { recursive: true, force: true });
     try {
-      (0, import_fs36.rmdirSync)(tmpParent);
+      (0, import_fs37.rmdirSync)(tmpParent);
     } catch {
     }
   }
@@ -51717,7 +54505,7 @@ function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId)
       result: "ok",
       templateId: plan.templateId,
       kind: plan.kind,
-      outputPath: import_path41.default.relative(workspace.rootDir, plan.outputDir).split(import_path41.default.sep).join("/")
+      outputPath: import_path42.default.relative(workspace.rootDir, plan.outputDir).split(import_path42.default.sep).join("/")
     });
   }
   return { plan, writtenFiles, recordId: id };
@@ -51727,7 +54515,7 @@ function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId)
 var import_zlib = require("zlib");
 
 // ../../packages/extension-sdk/dist/index.js
-var import_crypto10 = require("crypto");
+var import_crypto13 = require("crypto");
 var EXTENSION_RULE_ID_PATTERN = /^[A-Z][A-Z0-9_-]{0,63}$/;
 var MAX_EXTENSION_DIAGNOSTICS = 1e3;
 var EXTENSION_DIAGNOSTIC_SEVERITIES = ["info", "warning", "error"];
@@ -51948,7 +54736,7 @@ function computePermissionHash(input) {
       specRead: normalized.specRead
     }
   });
-  return (0, import_crypto10.createHash)("sha256").update(canonical, "utf8").digest("hex");
+  return (0, import_crypto13.createHash)("sha256").update(canonical, "utf8").digest("hex");
 }
 function describePermissions(permissions) {
   const normalized = normalizePermissions(permissions);
@@ -52250,9 +55038,9 @@ function checkManifestSemantics2(manifest) {
   checkUrl("repository", manifest.repository, issues);
   return issues;
 }
-function parseExtensionManifest(text) {
+function parseExtensionManifest(text2) {
   const issues = [];
-  if (Buffer.byteLength(text, "utf8") > MAX_EXTENSION_MANIFEST_BYTES) {
+  if (Buffer.byteLength(text2, "utf8") > MAX_EXTENSION_MANIFEST_BYTES) {
     issues.push(
       extensionIssue(
         "SBE008",
@@ -52266,7 +55054,7 @@ function parseExtensionManifest(text) {
   }
   let parsed;
   try {
-    parsed = JSON.parse(text);
+    parsed = JSON.parse(text2);
   } catch (error2) {
     issues.push(
       extensionIssue(
@@ -52634,14 +55422,12 @@ var TEMPLATE_PROVIDER_TEMPLATES_DIR = "templates";
 var MAX_TEMPLATE_PROVIDER_PACKS = 20;
 
 // ../../packages/extensions/dist/index.js
-var import_fs37 = require("fs");
-var import_path42 = __toESM(require("path"), 1);
-var import_crypto11 = require("crypto");
 var import_fs38 = require("fs");
 var import_path43 = __toESM(require("path"), 1);
-var import_child_process2 = require("child_process");
+var import_crypto14 = require("crypto");
 var import_fs39 = require("fs");
 var import_path44 = __toESM(require("path"), 1);
+var import_child_process2 = require("child_process");
 var import_fs40 = require("fs");
 var import_path45 = __toESM(require("path"), 1);
 var import_fs41 = require("fs");
@@ -52654,6 +55440,8 @@ var import_fs44 = require("fs");
 var import_path49 = __toESM(require("path"), 1);
 var import_fs45 = require("fs");
 var import_path50 = __toESM(require("path"), 1);
+var import_fs46 = require("fs");
+var import_path51 = __toESM(require("path"), 1);
 var ExtensionError = class extends SpecBridgeError {
   extensionCode;
   /** Actionable next step, always present. */
@@ -53025,7 +55813,7 @@ var extensionChecksumsSchema = external_exports.object({
   files: external_exports.record(external_exports.string().regex(/^[0-9a-f]{64}$/))
 }).strict();
 function sha256HexOf(data) {
-  return (0, import_crypto11.createHash)("sha256").update(data).digest("hex");
+  return (0, import_crypto14.createHash)("sha256").update(data).digest("hex");
 }
 function computeExtensionChecksums(files) {
   const entries = {};
@@ -53040,9 +55828,9 @@ function computeExtensionChecksums(files) {
   }
   return { schemaVersion: "1.0.0", algorithm: "sha256", files: entries };
 }
-function parseExtensionChecksums(text) {
+function parseExtensionChecksums(text2) {
   const issues = [];
-  if (Buffer.byteLength(text, "utf8") > EXTENSION_LIMITS.maxChecksumsBytes) {
+  if (Buffer.byteLength(text2, "utf8") > EXTENSION_LIMITS.maxChecksumsBytes) {
     issues.push(
       extensionIssue(
         "SBE008",
@@ -53056,7 +55844,7 @@ function parseExtensionChecksums(text) {
   }
   let parsed;
   try {
-    parsed = JSON.parse(text);
+    parsed = JSON.parse(text2);
   } catch (error2) {
     issues.push(
       extensionIssue(
@@ -53155,7 +55943,7 @@ var FORBIDDEN_LIFECYCLE_SCRIPTS = [
   "postuninstall"
 ];
 function readExtensionPackageDirectory(dir) {
-  const rootStat = (0, import_fs37.lstatSync)(dir, { throwIfNoEntry: false });
+  const rootStat = (0, import_fs38.lstatSync)(dir, { throwIfNoEntry: false });
   if (rootStat === void 0 || !rootStat.isDirectory()) {
     throw new ExtensionError(
       "SBE008",
@@ -53180,7 +55968,7 @@ function readExtensionPackageDirectory(dir) {
         "Flatten the package layout."
       );
     }
-    for (const entry of (0, import_fs37.readdirSync)(currentDir, { withFileTypes: true })) {
+    for (const entry of (0, import_fs38.readdirSync)(currentDir, { withFileTypes: true })) {
       const relativePath = relativePrefix === "" ? entry.name : `${relativePrefix}/${entry.name}`;
       if (entry.isSymbolicLink()) {
         throw new ExtensionError(
@@ -53206,7 +55994,7 @@ function readExtensionPackageDirectory(dir) {
             "Remove the directory before validating or packaging."
           );
         }
-        walk(import_path42.default.join(currentDir, entry.name), relativePath, depth + 1);
+        walk(import_path43.default.join(currentDir, entry.name), relativePath, depth + 1);
         continue;
       }
       if (!entry.isFile()) {
@@ -53223,7 +56011,7 @@ function readExtensionPackageDirectory(dir) {
           "Reduce the package contents."
         );
       }
-      const content = (0, import_fs37.readFileSync)(import_path42.default.join(currentDir, entry.name));
+      const content = (0, import_fs38.readFileSync)(import_path43.default.join(currentDir, entry.name));
       totalBytes += content.length;
       if (totalBytes > EXTENSION_LIMITS.maxExtractedTotalBytes) {
         throw new ExtensionError(
@@ -53239,11 +56027,11 @@ function readExtensionPackageDirectory(dir) {
   return files;
 }
 function decodeUtf8Strict(name, content) {
-  const text = content.toString("utf8");
-  if (!Buffer.from(text, "utf8").equals(content) || text.includes("\0")) {
+  const text2 = content.toString("utf8");
+  if (!Buffer.from(text2, "utf8").equals(content) || text2.includes("\0")) {
     return void 0;
   }
-  return text;
+  return text2;
 }
 function loadExtensionPackage(files, options = {}) {
   const issues = [];
@@ -53427,15 +56215,15 @@ function validateTemplateProviderPacks(manifest, files, specbridgeVersion) {
       );
       continue;
     }
-    const text = decodeUtf8Strict(name, content);
-    if (text === void 0) {
+    const text2 = decodeUtf8Strict(name, content);
+    if (text2 === void 0) {
       issues.push(
         extensionIssue("SBE008", "files", "error", `template file "${name}" is not valid UTF-8`, name)
       );
       continue;
     }
     const pack = packs.get(packId) ?? /* @__PURE__ */ new Map();
-    pack.set(packRelative, text);
+    pack.set(packRelative, text2);
     packs.set(packId, pack);
   }
   if (packs.size === 0) {
@@ -53498,10 +56286,10 @@ var EXTENSION_RECORDS_FILE_NAME = "records.jsonl";
 var EXTENSION_STATE_SCHEMA_VERSION = "1.0.0";
 var systemClock2 = () => /* @__PURE__ */ new Date();
 function extensionsDir(workspace) {
-  return import_path43.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
+  return import_path44.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
 }
 function installedRootDir(workspace) {
-  return import_path43.default.join(extensionsDir(workspace), "installed");
+  return import_path44.default.join(extensionsDir(workspace), "installed");
 }
 function installedVersionDir(workspace, id, version2) {
   if (!validateExtensionId(id).valid || parseSemver2(version2) === void 0) {
@@ -53511,7 +56299,7 @@ function installedVersionDir(workspace, id, version2) {
       "Use a valid extension ID and X.Y.Z version."
     );
   }
-  const dir = import_path43.default.join(installedRootDir(workspace), id, version2);
+  const dir = import_path44.default.join(installedRootDir(workspace), id, version2);
   assertInsideWorkspace(workspace.rootDir, dir);
   return dir;
 }
@@ -53555,12 +56343,12 @@ function emptyPermissionGrants() {
   return { schemaVersion: EXTENSION_STATE_SCHEMA_VERSION, grants: {} };
 }
 function readValidatedJson(filePath, schema, empty, label) {
-  if (!(0, import_fs38.existsSync)(filePath)) {
+  if (!(0, import_fs39.existsSync)(filePath)) {
     return { value: empty, diagnostics: [], exists: false };
   }
-  let text;
+  let text2;
   try {
-    text = (0, import_fs38.readFileSync)(filePath, "utf8");
+    text2 = (0, import_fs39.readFileSync)(filePath, "utf8");
   } catch (cause) {
     return {
       value: empty,
@@ -53577,7 +56365,7 @@ function readValidatedJson(filePath, schema, empty, label) {
   }
   let parsed;
   try {
-    parsed = JSON.parse(text);
+    parsed = JSON.parse(text2);
   } catch {
     return {
       value: empty,
@@ -53610,13 +56398,13 @@ function readValidatedJson(filePath, schema, empty, label) {
   return { value: result.data, diagnostics: [], exists: true };
 }
 function extensionStatePath(workspace) {
-  return import_path43.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
+  return import_path44.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
 }
 function permissionGrantsPath(workspace) {
-  return import_path43.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
+  return import_path44.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
 }
 function extensionRecordsPath(workspace) {
-  return import_path43.default.join(extensionsDir(workspace), EXTENSION_RECORDS_FILE_NAME);
+  return import_path44.default.join(extensionsDir(workspace), EXTENSION_RECORDS_FILE_NAME);
 }
 function readExtensionState(workspace) {
   const { value, diagnostics, exists } = readValidatedJson(
@@ -53662,20 +56450,20 @@ function newExtensionRecordId(clock = systemClock2) {
   recordCounter2 += 1;
   return `extension-${clock().getTime().toString(36)}-${process.pid.toString(36)}-${recordCounter2}`;
 }
-function appendExtensionRecord(workspace, record2) {
-  const validated = extensionOperationRecordSchema.parse(record2);
+function appendExtensionRecord(workspace, record3) {
+  const validated = extensionOperationRecordSchema.parse(record3);
   const filePath = extensionRecordsPath(workspace);
   assertInsideWorkspace(workspace.rootDir, filePath);
   try {
-    (0, import_fs38.mkdirSync)(extensionsDir(workspace), { recursive: true });
-    (0, import_fs38.appendFileSync)(filePath, `${JSON.stringify(validated)}
+    (0, import_fs39.mkdirSync)(extensionsDir(workspace), { recursive: true });
+    (0, import_fs39.appendFileSync)(filePath, `${JSON.stringify(validated)}
 `, "utf8");
   } catch (cause) {
     throw ioError("append extension record to", filePath, cause);
   }
 }
 function installedVersions(state, id) {
-  return state.installed.filter((record2) => record2.id === id).sort((a2, b) => {
+  return state.installed.filter((record3) => record3.id === id).sort((a2, b) => {
     const left = parseSemver2(a2.version);
     const right = parseSemver2(b.version);
     if (left === void 0 || right === void 0) {
@@ -53695,11 +56483,11 @@ function resolveInstalled(state, id, version2) {
     );
   }
   if (version2 !== void 0) {
-    const match = versions.find((record2) => record2.version === version2);
+    const match = versions.find((record3) => record3.version === version2);
     if (match === void 0) {
       throw new ExtensionError(
         "SBE014",
-        `extension "${id}" version ${version2} is not installed (installed: ${versions.map((record2) => record2.version).join(", ")}).`,
+        `extension "${id}" version ${version2} is not installed (installed: ${versions.map((record3) => record3.version).join(", ")}).`,
         "Pass one of the installed versions or install the requested version.",
         { extensionId: id, version: version2 }
       );
@@ -53708,7 +56496,7 @@ function resolveInstalled(state, id, version2) {
   }
   const enabledVersion = state.enabled[id]?.version;
   if (enabledVersion !== void 0) {
-    const enabledRecord = versions.find((record2) => record2.version === enabledVersion);
+    const enabledRecord = versions.find((record3) => record3.version === enabledVersion);
     if (enabledRecord !== void 0) {
       return enabledRecord;
     }
@@ -53732,8 +56520,8 @@ function isEnabled(state, id, version2) {
 }
 function describeEnablement(workspace, id, version2) {
   const { state } = readExtensionState(workspace);
-  const record2 = resolveInstalled(state, id, version2);
-  const dir = installedVersionDir(workspace, record2.id, record2.version);
+  const record3 = resolveInstalled(state, id, version2);
+  const dir = installedVersionDir(workspace, record3.id, record3.version);
   const files = readExtensionPackageDirectory(dir);
   const validation = loadExtensionPackage(files);
   const errors = validation.issues.filter((issue4) => issue4.severity === "error");
@@ -53741,22 +56529,22 @@ function describeEnablement(workspace, id, version2) {
     const first = errors[0];
     throw new ExtensionError(
       "SBE008",
-      `installed extension "${record2.id}@${record2.version}" failed integrity validation${first === void 0 ? "" : `: [${first.code}] ${first.message}`}.`,
+      `installed extension "${record3.id}@${record3.version}" failed integrity validation${first === void 0 ? "" : `: [${first.code}] ${first.message}`}.`,
       "Uninstall and reinstall the extension from a trusted source.",
-      { extensionId: record2.id, version: record2.version }
+      { extensionId: record3.id, version: record3.version }
     );
   }
   const { grants } = readPermissionGrants(workspace);
-  const grant = grants.grants[record2.id];
+  const grant = grants.grants[record3.id];
   const grantStatus = grant === void 0 ? "none" : grant.permissionHash === validation.permissionHash ? "current" : "stale";
   return {
-    record: record2,
+    record: record3,
     manifest: validation.manifest,
     permissions: validation.manifest.permissions,
     permissionLines: describePermissions(validation.manifest.permissions),
     permissionHash: validation.permissionHash,
     manifestSha256: validation.manifestSha256,
-    enabled: isEnabled(state, record2.id, record2.version),
+    enabled: isEnabled(state, record3.id, record3.version),
     grantStatus
   };
 }
@@ -53839,7 +56627,7 @@ function requireEnabledExtension(workspace, id) {
   const { state } = readExtensionState(workspace);
   const enabled = state.enabled[id];
   if (enabled === void 0) {
-    const installed = state.installed.some((record2) => record2.id === id);
+    const installed = state.installed.some((record3) => record3.id === id);
     if (!installed) {
       throw new ExtensionError(
         "SBE001",
@@ -53901,9 +56689,9 @@ function resolveEntrypoint(installedDir, entrypoint) {
   if (problem !== void 0) {
     throw new ExtensionError("SBE012", `entrypoint "${entrypoint}": ${problem}.`, "Fix the extension manifest.");
   }
-  const resolved = import_path44.default.join(installedDir, ...entrypoint.split("/"));
-  const relative = import_path44.default.relative(installedDir, resolved);
-  if (relative.startsWith("..") || import_path44.default.isAbsolute(relative)) {
+  const resolved = import_path45.default.join(installedDir, ...entrypoint.split("/"));
+  const relative = import_path45.default.relative(installedDir, resolved);
+  if (relative.startsWith("..") || import_path45.default.isAbsolute(relative)) {
     throw new ExtensionError(
       "SBE012",
       `entrypoint "${entrypoint}" escapes the installed extension directory.`,
@@ -53911,9 +56699,9 @@ function resolveEntrypoint(installedDir, entrypoint) {
     );
   }
   let current = installedDir;
-  for (const segment of relative.split(import_path44.default.sep)) {
-    current = import_path44.default.join(current, segment);
-    const stat = (0, import_fs39.lstatSync)(current, { throwIfNoEntry: false });
+  for (const segment of relative.split(import_path45.default.sep)) {
+    current = import_path45.default.join(current, segment);
+    const stat = (0, import_fs40.lstatSync)(current, { throwIfNoEntry: false });
     if (stat === void 0) {
       throw new ExtensionError(
         "SBE012",
@@ -53929,7 +56717,7 @@ function resolveEntrypoint(installedDir, entrypoint) {
       );
     }
   }
-  const finalStat = (0, import_fs39.lstatSync)(resolved, { throwIfNoEntry: false });
+  const finalStat = (0, import_fs40.lstatSync)(resolved, { throwIfNoEntry: false });
   if (finalStat === void 0 || !finalStat.isFile()) {
     throw new ExtensionError(
       "SBE012",
@@ -54088,8 +56876,8 @@ function spawnExtensionProcess(options) {
 }
 var MAX_PROTOCOL_LOG_LINES = 200;
 var SHUTDOWN_GRACE_MS = 1e3;
-function redact(text, secrets) {
-  let redacted = text;
+function redact(text2, secrets) {
+  let redacted = text2;
   for (const secret of secrets) {
     if (secret.length >= 4) {
       redacted = redacted.split(secret).join("[redacted]");
@@ -54508,16 +57296,16 @@ async function runAnalyzerExtension(workspace, extensionId, input, options = {})
     durationMs: outcome.durationMs
   };
 }
-function compatibilityOf(workspace, record2, specbridgeVersion) {
+function compatibilityOf(workspace, record3, specbridgeVersion) {
   try {
-    const manifestPath = import_path45.default.join(
-      installedVersionDir(workspace, record2.id, record2.version),
+    const manifestPath = import_path46.default.join(
+      installedVersionDir(workspace, record3.id, record3.version),
       EXTENSION_MANIFEST_FILE_NAME
     );
-    if (!(0, import_fs40.existsSync)(manifestPath)) {
+    if (!(0, import_fs41.existsSync)(manifestPath)) {
       return { compatibility: "unknown", deprecated: false };
     }
-    const parsed = parseExtensionManifest((0, import_fs40.readFileSync)(manifestPath, "utf8"));
+    const parsed = parseExtensionManifest((0, import_fs41.readFileSync)(manifestPath, "utf8"));
     if (parsed.manifest === void 0) {
       return { compatibility: "unknown", deprecated: false };
     }
@@ -54534,22 +57322,22 @@ function listInstalledExtensions(workspace, options = {}) {
   const stateResult = readExtensionState(workspace);
   const grantsResult = readPermissionGrants(workspace);
   const diagnostics = [...stateResult.diagnostics, ...grantsResult.diagnostics];
-  const entries = stateResult.state.installed.map((record2) => {
-    const grant = grantsResult.grants.grants[record2.id];
-    const { compatibility, deprecated } = compatibilityOf(workspace, record2, specbridgeVersion);
+  const entries = stateResult.state.installed.map((record3) => {
+    const grant = grantsResult.grants.grants[record3.id];
+    const { compatibility, deprecated } = compatibilityOf(workspace, record3, specbridgeVersion);
     return {
-      id: record2.id,
-      version: record2.version,
-      kind: record2.kind,
-      displayName: record2.displayName,
-      description: record2.description,
-      source: record2.source,
-      installedAt: record2.installedAt,
-      enabled: isEnabled(stateResult.state, record2.id, record2.version),
-      permissionsAccepted: grant !== void 0 && grant.version === record2.version && grant.permissionHash === record2.permissionHash,
-      permissionHash: record2.permissionHash,
+      id: record3.id,
+      version: record3.version,
+      kind: record3.kind,
+      displayName: record3.displayName,
+      description: record3.description,
+      source: record3.source,
+      installedAt: record3.installedAt,
+      enabled: isEnabled(stateResult.state, record3.id, record3.version),
+      permissionsAccepted: grant !== void 0 && grant.version === record3.version && grant.permissionHash === record3.permissionHash,
+      permissionHash: record3.permissionHash,
       compatibility,
-      conformance: record2.conformanceStatus ?? "not-run",
+      conformance: record3.conformanceStatus ?? "not-run",
       deprecated
     };
   }).sort((a2, b) => a2.id.localeCompare(b.id, "en") || a2.version.localeCompare(b.version, "en"));
@@ -54796,8 +57584,8 @@ async function runExporterExtension(workspace, extensionId, input, options = {})
   };
 }
 function validateExportTargets(outputDir, files) {
-  const resolvedRoot = import_path46.default.resolve(outputDir);
-  const rootStat = (0, import_fs41.lstatSync)(resolvedRoot, { throwIfNoEntry: false });
+  const resolvedRoot = import_path47.default.resolve(outputDir);
+  const rootStat = (0, import_fs42.lstatSync)(resolvedRoot, { throwIfNoEntry: false });
   if (rootStat !== void 0 && rootStat.isSymbolicLink()) {
     throw new ExtensionError(
       "SBE011",
@@ -54816,9 +57604,9 @@ function validateExportTargets(outputDir, files) {
         "Report this to the extension author; nothing was written."
       );
     }
-    const target = import_path46.default.resolve(resolvedRoot, ...file.path.split("/"));
-    const relative = import_path46.default.relative(resolvedRoot, target);
-    if (relative.startsWith("..") || import_path46.default.isAbsolute(relative)) {
+    const target = import_path47.default.resolve(resolvedRoot, ...file.path.split("/"));
+    const relative = import_path47.default.relative(resolvedRoot, target);
+    if (relative.startsWith("..") || import_path47.default.isAbsolute(relative)) {
       throw new ExtensionError(
         "SBE030",
         `exporter output path "${file.path}" escapes the output directory.`,
@@ -54834,9 +57622,9 @@ function validateExportTargets(outputDir, files) {
     }
     seen.add(target.toLowerCase());
     let current = resolvedRoot;
-    for (const segment of relative.split(import_path46.default.sep)) {
-      current = import_path46.default.join(current, segment);
-      const stat = (0, import_fs41.lstatSync)(current, { throwIfNoEntry: false });
+    for (const segment of relative.split(import_path47.default.sep)) {
+      current = import_path47.default.join(current, segment);
+      const stat = (0, import_fs42.lstatSync)(current, { throwIfNoEntry: false });
       if (stat?.isSymbolicLink() === true) {
         throw new ExtensionError(
           "SBE011",
@@ -54845,7 +57633,7 @@ function validateExportTargets(outputDir, files) {
         );
       }
     }
-    if ((0, import_fs41.existsSync)(target)) {
+    if ((0, import_fs42.existsSync)(target)) {
       throw new ExtensionError(
         "SBE030",
         `export target "${file.path}" already exists in the output directory.`,
@@ -54865,7 +57653,7 @@ function writeExportFiles(workspace, extensionId, extensionVersion, specName, ou
     if (target === void 0 || file === void 0) {
       continue;
     }
-    (0, import_fs41.mkdirSync)(import_path46.default.dirname(target.target), { recursive: true });
+    (0, import_fs42.mkdirSync)(import_path47.default.dirname(target.target), { recursive: true });
     writeFileAtomic(target.target, file.content);
     written.push(target.relative);
   }
@@ -54927,7 +57715,7 @@ function installExtensionPackage(files, options, archiveSha256) {
   const workspace = options.workspace;
   const { state } = readExtensionState(workspace);
   const alreadyInstalled = state.installed.some(
-    (record2) => record2.id === manifest.id && record2.version === manifest.version
+    (record3) => record3.id === manifest.id && record3.version === manifest.version
   );
   if (alreadyInstalled) {
     throw new ExtensionError(
@@ -54952,19 +57740,19 @@ function installExtensionPackage(files, options, archiveSha256) {
     return { ...base, dryRun: true };
   }
   const recordId = newExtensionRecordId(clock);
-  const stagingDir = import_path47.default.join(extensionsDir(workspace), `tmp-install-${recordId}`);
+  const stagingDir = import_path48.default.join(extensionsDir(workspace), `tmp-install-${recordId}`);
   assertInsideWorkspace(workspace.rootDir, stagingDir);
   try {
     for (const [name, content] of files) {
-      const target = import_path47.default.join(stagingDir, ...name.split("/"));
+      const target = import_path48.default.join(stagingDir, ...name.split("/"));
       assertInsideWorkspace(workspace.rootDir, target);
-      (0, import_fs42.mkdirSync)(import_path47.default.dirname(target), { recursive: true });
+      (0, import_fs43.mkdirSync)(import_path48.default.dirname(target), { recursive: true });
       writeFileAtomic(target, content);
     }
-    (0, import_fs42.mkdirSync)(import_path47.default.dirname(targetDir), { recursive: true });
-    (0, import_fs42.renameSync)(stagingDir, targetDir);
+    (0, import_fs43.mkdirSync)(import_path48.default.dirname(targetDir), { recursive: true });
+    (0, import_fs43.renameSync)(stagingDir, targetDir);
   } catch (cause) {
-    (0, import_fs42.rmSync)(stagingDir, { recursive: true, force: true });
+    (0, import_fs43.rmSync)(stagingDir, { recursive: true, force: true });
     if (cause instanceof ExtensionError) {
       throw cause;
     }
@@ -55017,7 +57805,7 @@ function installExtensionPackage(files, options, archiveSha256) {
       }
     });
   } catch (cause) {
-    (0, import_fs42.rmSync)(targetDir, { recursive: true, force: true });
+    (0, import_fs43.rmSync)(targetDir, { recursive: true, force: true });
     if (cause instanceof ExtensionError) {
       throw cause;
     }
@@ -55072,8 +57860,8 @@ function buildExtensionArchive(sourceDir, options = {}) {
   const manifest = validation.manifest;
   const archive = createDeterministicZip(runtimeFiles);
   const archiveSha256 = sha256HexOf(archive);
-  const outputDir = options.outputDir ?? import_path48.default.join(sourceDir, "dist");
-  const archivePath = import_path48.default.join(
+  const outputDir = options.outputDir ?? import_path49.default.join(sourceDir, "dist");
+  const archivePath = import_path49.default.join(
     outputDir,
     `${manifest.id}-${manifest.version}${EXTENSION_ARCHIVE_SUFFIX}`
   );
@@ -55087,7 +57875,7 @@ function buildExtensionArchive(sourceDir, options = {}) {
     );
   }
   if (options.dryRun !== true) {
-    (0, import_fs43.mkdirSync)(outputDir, { recursive: true });
+    (0, import_fs44.mkdirSync)(outputDir, { recursive: true });
     writeFileAtomic(archivePath, archive);
   }
   return {
@@ -55885,7 +58673,7 @@ function scaffoldExtension(options) {
     );
   }
   const outputDir = options.outputDir;
-  if ((0, import_fs44.existsSync)(outputDir) && (0, import_fs44.readdirSync)(outputDir).length > 0) {
+  if ((0, import_fs45.existsSync)(outputDir) && (0, import_fs45.readdirSync)(outputDir).length > 0) {
     throw new ExtensionError(
       "SBE030",
       `output directory "${outputDir}" already exists and is not empty.`,
@@ -55945,8 +58733,8 @@ function scaffoldExtension(options) {
     };
   }
   for (const [name, content] of files) {
-    const target = import_path49.default.join(outputDir, ...name.split("/"));
-    (0, import_fs44.mkdirSync)(import_path49.default.dirname(target), { recursive: true });
+    const target = import_path50.default.join(outputDir, ...name.split("/"));
+    (0, import_fs45.mkdirSync)(import_path50.default.dirname(target), { recursive: true });
     writeFileAtomic(target, content);
   }
   return {
@@ -55965,10 +58753,10 @@ function collectExtensionTemplatePacks(workspace) {
   const diagnostics = [...stateDiagnostics];
   const packs = [];
   for (const id of Object.keys(state.enabled).sort((a2, b) => a2.localeCompare(b, "en"))) {
-    const record2 = state.installed.find(
+    const record3 = state.installed.find(
       (candidate) => candidate.id === id && candidate.version === state.enabled[id]?.version
     );
-    if (record2 === void 0 || record2.kind !== "template-provider") {
+    if (record3 === void 0 || record3.kind !== "template-provider") {
       continue;
     }
     try {
@@ -56033,8 +58821,8 @@ function uninstallExtension(options) {
     }
     version2 = versions[0]?.version ?? "";
   }
-  const record2 = versions.find((candidate) => candidate.version === version2);
-  if (record2 === void 0) {
+  const record3 = versions.find((candidate) => candidate.version === version2);
+  if (record3 === void 0) {
     throw new ExtensionError(
       "SBE014",
       `extension "${options.id}" version ${version2} is not installed.`,
@@ -56059,7 +58847,7 @@ function uninstallExtension(options) {
     );
   }
   const installedDir = installedVersionDir(workspace, options.id, version2);
-  const stat = (0, import_fs45.lstatSync)(installedDir, { throwIfNoEntry: false });
+  const stat = (0, import_fs46.lstatSync)(installedDir, { throwIfNoEntry: false });
   if (stat !== void 0 && stat.isSymbolicLink()) {
     throw new ExtensionError(
       "SBE011",
@@ -56073,11 +58861,11 @@ function uninstallExtension(options) {
   const recordId = newExtensionRecordId(clock);
   let trashPath;
   if (stat !== void 0) {
-    const trashDir = import_path50.default.join(extensionsDir(workspace), "trash");
-    trashPath = import_path50.default.join(trashDir, `${options.id}-${version2}-${recordId}`);
+    const trashDir = import_path51.default.join(extensionsDir(workspace), "trash");
+    trashPath = import_path51.default.join(trashDir, `${options.id}-${version2}-${recordId}`);
     assertInsideWorkspace(workspace.rootDir, trashPath);
-    (0, import_fs45.mkdirSync)(trashDir, { recursive: true });
-    (0, import_fs45.renameSync)(installedDir, trashPath);
+    (0, import_fs46.mkdirSync)(trashDir, { recursive: true });
+    (0, import_fs46.renameSync)(installedDir, trashPath);
   }
   writeExtensionState(workspace, {
     ...state,
@@ -56191,11 +58979,11 @@ function createExtensionVerifierHook(workspace, options = {}) {
 }
 
 // ../../packages/registry/dist/index.js
-var import_fs46 = require("fs");
-var import_path51 = __toESM(require("path"), 1);
-var import_crypto12 = require("crypto");
 var import_fs47 = require("fs");
 var import_path52 = __toESM(require("path"), 1);
+var import_crypto15 = require("crypto");
+var import_fs48 = require("fs");
+var import_path53 = __toESM(require("path"), 1);
 var BUILTIN_REGISTRY_INDEX_JSON = '{\n  "schemaVersion": "1.0.0",\n  "name": "specbridge-examples",\n  "updatedAt": "2026-01-01T00:00:00.000Z",\n  "extensions": [\n    {\n      "id": "example-analyzer",\n      "displayName": "example-analyzer",\n      "description": "Deterministic spec diagnostics contributed by the example-analyzer analyzer extension.",\n      "kind": "analyzer",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-analyzer-1.0.0.specbridge-extension.zip",\n          "sha256": "e6e0948a315b09e53bd18997dce21888af9adbb3997fbf82955399dcf3252a19",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "analyzer",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-exporter",\n      "displayName": "example-exporter",\n      "description": "Candidate export files produced by the example-exporter exporter extension.",\n      "kind": "exporter",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-exporter-1.0.0.specbridge-extension.zip",\n          "sha256": "68f42755a4e56d0e318012ec8c0e3b093e44429182ca93b02d9fb4ce2ec308a3",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "exporter",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-runner",\n      "displayName": "example-runner",\n      "description": "An out-of-process runner adapter provided by the example-runner extension.",\n      "kind": "runner",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-runner-1.0.0.specbridge-extension.zip",\n          "sha256": "5ef3db937d872bfe09495695e9ecb0a3cf3beaf9e006fabdc2972ef55ace80ef",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": true,\n              "repositoryWrite": true,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "runner",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-template-provider",\n      "displayName": "example-template-provider",\n      "description": "Spec template packs contributed by the example-template-provider template-provider extension.",\n      "kind": "template-provider",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-template-provider-1.0.0.specbridge-extension.zip",\n          "sha256": "f7caa11a13473f0891cc8d237ec4f9f2962a2dd1bd2baba4e9d01570de29044b",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": false,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "template-provider",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-verifier",\n      "displayName": "example-verifier",\n      "description": "Verification diagnostics contributed by the example-verifier verifier extension.",\n      "kind": "verifier",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-verifier-1.0.0.specbridge-extension.zip",\n          "sha256": "d531c9078fcbeef6573a95773eefafd409d798bac1223c83748e0229ae0225bf",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "verifier",\n        "specbridge-extension"\n      ]\n    }\n  ]\n}\n';
 var REGISTRY_ERROR_CODES = {
   SBR001: "registry not found",
@@ -56282,14 +59070,14 @@ var registryIndexSchema = external_exports.object({
   updatedAt: external_exports.string().min(1).max(60),
   extensions: external_exports.array(registryExtensionEntrySchema).max(2e3)
 }).strict();
-function parseRegistryIndex(text) {
+function parseRegistryIndex(text2) {
   const problems = [];
-  if (Buffer.byteLength(text, "utf8") > MAX_REGISTRY_INDEX_BYTES) {
+  if (Buffer.byteLength(text2, "utf8") > MAX_REGISTRY_INDEX_BYTES) {
     return { problems: [`index exceeds ${MAX_REGISTRY_INDEX_BYTES} bytes`] };
   }
   let parsed;
   try {
-    parsed = JSON.parse(text);
+    parsed = JSON.parse(text2);
   } catch (error2) {
     return { problems: [`index is not valid JSON: ${error2 instanceof Error ? error2.message : String(error2)}`] };
   }
@@ -56352,20 +59140,20 @@ var cachedRegistrySchema = external_exports.object({
   index: registryIndexSchema
 }).passthrough();
 function registryCacheDir(workspace) {
-  return import_path51.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
+  return import_path52.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
 }
 function registryCachePath(workspace, name) {
-  const target = import_path51.default.join(registryCacheDir(workspace), `${name}.json`);
+  const target = import_path52.default.join(registryCacheDir(workspace), `${name}.json`);
   assertInsideWorkspace(workspace.rootDir, target);
   return target;
 }
 function readRegistryCache(workspace, name) {
   const filePath = registryCachePath(workspace, name);
-  if (!(0, import_fs46.existsSync)(filePath)) {
+  if (!(0, import_fs47.existsSync)(filePath)) {
     return { diagnostics: [] };
   }
   try {
-    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs46.readFileSync)(filePath, "utf8")));
+    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs47.readFileSync)(filePath, "utf8")));
     if (!parsed.success) {
       return {
         diagnostics: [
@@ -56398,7 +59186,7 @@ function writeRegistryCache(workspace, name, indexText, index, options = {}) {
     sourceName: name,
     ...options.sourceUrl === void 0 ? {} : { sourceUrl: options.sourceUrl },
     retrievedAt: (options.clock?.() ?? /* @__PURE__ */ new Date()).toISOString(),
-    contentSha256: (0, import_crypto12.createHash)("sha256").update(indexText, "utf8").digest("hex"),
+    contentSha256: (0, import_crypto15.createHash)("sha256").update(indexText, "utf8").digest("hex"),
     index
   });
   writeFileAtomic(registryCachePath(workspace, name), `${JSON.stringify(cache, null, 2)}
@@ -56418,9 +59206,9 @@ function resolveRegistryIndex(workspace, source) {
     return { sourceName: source.name, index: parsed.index, origin: "builtin", diagnostics: [] };
   }
   if (source.type === "local-file") {
-    const filePath = import_path51.default.resolve(workspace.rootDir, source.file);
+    const filePath = import_path52.default.resolve(workspace.rootDir, source.file);
     assertInsideWorkspace(workspace.rootDir, filePath);
-    if (!(0, import_fs46.existsSync)(filePath)) {
+    if (!(0, import_fs47.existsSync)(filePath)) {
       return {
         sourceName: source.name,
         index: { schemaVersion: "1.0.0", name: source.name, updatedAt: "unknown", extensions: [] },
@@ -56435,8 +59223,8 @@ function resolveRegistryIndex(workspace, source) {
         ]
       };
     }
-    const text = (0, import_fs46.readFileSync)(filePath, "utf8");
-    const parsed = parseRegistryIndex(text);
+    const text2 = (0, import_fs47.readFileSync)(filePath, "utf8");
+    const parsed = parseRegistryIndex(text2);
     if (parsed.index === void 0) {
       throw new RegistryError(
         "SBR007",
@@ -56678,7 +59466,7 @@ var registriesConfigSchema = external_exports.object({
   registries: external_exports.array(registrySourceSchema).max(20)
 }).passthrough();
 function registriesConfigPath(workspace) {
-  return import_path52.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
+  return import_path53.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
 }
 function defaultRegistriesConfig() {
   return {
@@ -56688,12 +59476,12 @@ function defaultRegistriesConfig() {
 }
 function readRegistriesConfig(workspace) {
   const filePath = registriesConfigPath(workspace);
-  if (!(0, import_fs47.existsSync)(filePath)) {
+  if (!(0, import_fs48.existsSync)(filePath)) {
     return { config: defaultRegistriesConfig(), diagnostics: [], exists: false };
   }
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs47.readFileSync)(filePath, "utf8"));
+    parsed = JSON.parse((0, import_fs48.readFileSync)(filePath, "utf8"));
   } catch (cause) {
     return {
       config: defaultRegistriesConfig(),
@@ -57184,8 +59972,8 @@ function collectExtensionFindings(workspace) {
       );
     }
   }
-  for (const record2 of stateRead.state.installed) {
-    const dir = import_node_path7.default.join(installedRootDir(workspace), record2.id, record2.version);
+  for (const record3 of stateRead.state.installed) {
+    const dir = import_node_path7.default.join(installedRootDir(workspace), record3.id, record3.version);
     let isDir = false;
     try {
       isDir = (0, import_node_fs6.statSync)(dir).isDirectory();
@@ -57201,7 +59989,7 @@ function collectExtensionFindings(workspace) {
           null,
           EXTENSION_STATE_SCHEMA_VERSION,
           [
-            `state.json records ${record2.id}@${record2.version} as installed, but its package directory is missing. Reinstall it or remove the entry with "${CLI_BIN} extension uninstall ${record2.id}".`
+            `state.json records ${record3.id}@${record3.version} as installed, but its package directory is missing. Reinstall it or remove the entry with "${CLI_BIN} extension uninstall ${record3.id}".`
           ]
         )
       );
@@ -57221,7 +60009,7 @@ function collectExtensionFindings(workspace) {
       const mismatches = [];
       for (const [id, grant] of Object.entries(grantsRead.grants.grants)) {
         const installed = stateRead.state.installed.find(
-          (record2) => record2.id === id && record2.version === grant.version
+          (record3) => record3.id === id && record3.version === grant.version
         );
         if (installed === void 0) continue;
         const dir = import_node_path7.default.join(installedRootDir(workspace), id, grant.version);
@@ -57766,7 +60554,7 @@ Examples:
         runtime.out(failLine(`No .kiro directory found from ${import_node_path8.default.resolve(runtime.cwd)} upward`));
         runtime.out();
         runtime.out(
-          dim(
+          dim2(
             `${PRODUCT_NAME} works with existing Kiro projects. Open a project that contains .kiro/, or create .kiro/specs/<name>/ manually.`
           )
         );
@@ -57824,7 +60612,7 @@ Examples:
     }
     if (files.length === 0) {
       runtime.out(infoLine("No steering files found (.kiro/steering is missing or empty)."));
-      runtime.out(dim("  Steering is optional; Kiro projects typically have product.md, tech.md, and structure.md."));
+      runtime.out(dim2("  Steering is optional; Kiro projects typically have product.md, tech.md, and structure.md."));
       return;
     }
     runtime.out(reportTitle(`Steering files (${files.length})`));
@@ -57939,7 +60727,7 @@ Examples:
     }
     if (entries.length === 0) {
       runtime.out(infoLine("No specs found under .kiro/specs."));
-      runtime.out(dim(`  Create one with "${CLI_BIN} spec new <name>", in Kiro, or by hand.`));
+      runtime.out(dim2(`  Create one with "${CLI_BIN} spec new <name>", in Kiro, or by hand.`));
       return;
     }
     runtime.out(reportTitle(`Specs (${entries.length})`));
@@ -57965,7 +60753,7 @@ Examples:
     for (const line of renderColumns(rows)) runtime.out(line);
     runtime.out();
     runtime.out(
-      dim(
+      dim2(
         `  \u2713 complete   ! partial or stale approval   \u2717 has errors \u2014 details: ${CLI_BIN} spec status <name>`
       )
     );
@@ -58036,7 +60824,7 @@ function printSummary(runtime, analysis, view) {
         `${view.displayStatus} (${state.workflowMode})${approvals.length > 0 ? ` \u2014 ${approvals.join(", ")}` : ""}${stale}`
       )
     );
-    runtime.out(dim(`    Details: ${CLI_BIN} spec status ${folder.name}`));
+    runtime.out(dim2(`    Details: ${CLI_BIN} spec status ${folder.name}`));
   } else if (view.health === "invalid") {
     runtime.out(warnLine("invalid sidecar state (ignored) \u2014 see diagnostics below"));
   } else {
@@ -58141,7 +60929,7 @@ Examples:
         runtime.out(
           `${folder.name}  ${analysis.classification.type}  ${mode}  ${view.displayStatus}`
         );
-        runtime.out(dim(`  Details: ${CLI_BIN} spec status ${folder.name}`));
+        runtime.out(dim2(`  Details: ${CLI_BIN} spec status ${folder.name}`));
         return;
       }
       if (options.analysis === true) {
@@ -58156,7 +60944,7 @@ Examples:
         }
         runtime.out();
         runtime.out(
-          dim(`  ${result.errorCount} errors, ${result.warningCount} warnings \u2014 full report: ${CLI_BIN} spec analyze ${folder.name}`)
+          dim2(`  ${result.errorCount} errors, ${result.warningCount} warnings \u2014 full report: ${CLI_BIN} spec analyze ${folder.name}`)
         );
         return;
       }
@@ -58183,7 +60971,7 @@ Examples:
         for (const kind of order) {
           const document = analysis.documents[kind];
           if (document === void 0) continue;
-          runtime.out(dim(`--- file: ${kind}.md ---`));
+          runtime.out(dim2(`--- file: ${kind}.md ---`));
           runtime.outRaw(document.bodyText());
           if (!document.bodyText().endsWith("\n")) runtime.out();
         }
@@ -58388,11 +61176,11 @@ function printEntryLine(runtime, entry) {
   const deprecated = manifest.deprecated === true ? " [deprecated]" : "";
   runtime.out(okLine(`${entry.ref} \u2014 ${manifest.displayName} v${manifest.version}${deprecated}`));
   runtime.out(
-    dim(
+    dim2(
       `     ${manifest.kind} | modes: ${manifest.supportedModes.join(", ")} | tags: ${manifest.tags.join(", ")}`
     )
   );
-  runtime.out(dim(`     ${manifest.description}`));
+  runtime.out(dim2(`     ${manifest.description}`));
 }
 function printIssues(runtime, issues) {
   for (const issue4 of issues) {
@@ -58430,10 +61218,10 @@ function printApplicationPlan(runtime, plan, heading, showContent) {
     runtime.out();
     runtime.out(sectionTitle("Rendered content"));
     for (const file of plan.specPlan.files) {
-      runtime.out(dim(`--- ${file.fileName} ---`));
+      runtime.out(dim2(`--- ${file.fileName} ---`));
       runtime.outRaw(file.content);
     }
-    runtime.out(dim("--- sidecar state proposal ---"));
+    runtime.out(dim2("--- sidecar state proposal ---"));
     runtime.outRaw(`${JSON.stringify(plan.specPlan.state, null, 2)}
 `);
   }
@@ -58487,14 +61275,14 @@ function registerTemplateCommands(program2, runtime) {
     runtime.out(reportTitle(`Templates (${entries.length})`));
     runtime.out();
     if (entries.length === 0) {
-      runtime.out(dim("  No templates match the given filters."));
+      runtime.out(dim2("  No templates match the given filters."));
       return;
     }
     for (const entry of entries) {
       printEntryLine(runtime, entry);
     }
     runtime.out();
-    runtime.out(dim(`Apply one with: ${CLI_BIN} template apply <template> --name <spec-name>`));
+    runtime.out(dim2(`Apply one with: ${CLI_BIN} template apply <template> --name <spec-name>`));
   });
   template.command("search <query>").description("Search templates by ID, display name, description, and tags (deterministic, local)").option("--source <source>", "template source: builtin | project | all", "all").option("--kind <kind>", `filter by spec kind: ${SPEC_TYPES.join(" | ")}`).option("--mode <mode>", `filter by supported workflow mode: ${WORKFLOW_MODES.join(" | ")}`).option("--limit <number>", `maximum results (bounded at ${MAX_SEARCH_LIMIT})`).option("--json", "output a machine-readable JSON report (includes scores)").action((query, options) => {
     const catalog = catalogFor(runtime, options.source);
@@ -58522,7 +61310,7 @@ function registerTemplateCommands(program2, runtime) {
     runtime.out(reportTitle(`Search results for "${query}" (${results.length})`));
     runtime.out();
     if (results.length === 0) {
-      runtime.out(dim(`  No templates match. Try ${CLI_BIN} template list.`));
+      runtime.out(dim2(`  No templates match. Try ${CLI_BIN} template list.`));
       return;
     }
     for (const result of results) {
@@ -58560,7 +61348,7 @@ function registerTemplateCommands(program2, runtime) {
       }
       if (options.files === true) {
         for (const file of manifest?.files ?? []) {
-          runtime.out(dim(`--- ${file.source} -> ${file.target} ---`));
+          runtime.out(dim2(`--- ${file.source} -> ${file.target} ---`));
           runtime.outRaw(entry.pack.files.get(file.source) ?? "");
         }
         return;
@@ -58590,13 +61378,13 @@ function registerTemplateCommands(program2, runtime) {
       runtime.out();
       runtime.out(sectionTitle("Variables"));
       if (manifest.variables.length === 0) {
-        runtime.out(dim("  none \u2014 only the built-in variables are used"));
+        runtime.out(dim2("  none \u2014 only the built-in variables are used"));
       }
       for (const variable of manifest.variables) {
         const requirement = variable.required ? "required" : `default: ${JSON.stringify(variable.default ?? "")}`;
         const enumValues = variable.type === "enum" ? ` [${(variable.values ?? []).join(", ")}]` : "";
         runtime.out(`  --var ${variable.name}=<${variable.type}>${enumValues} (${requirement})`);
-        runtime.out(dim(`      ${variable.description}`));
+        runtime.out(dim2(`      ${variable.description}`));
       }
       runtime.out();
       runtime.out(sectionTitle("Usage"));
@@ -58765,7 +61553,7 @@ function registerTemplateCommands(program2, runtime) {
       runtime.out(`  1. Replace the remaining placeholders in ${firstStage}.md with real content.`);
       runtime.out(`  2. ${CLI_BIN} spec analyze ${plan.specPlan.specName} --stage ${firstStage}`);
       runtime.out(`  3. ${CLI_BIN} spec approve ${plan.specPlan.specName} --stage ${firstStage}`);
-      runtime.out(dim("  Generated stages start unapproved; templates never bypass approval."));
+      runtime.out(dim2("  Generated stages start unapproved; templates never bypass approval."));
     }
   );
   template.command("install <local-path>").description("Install a local template pack into .specbridge/templates/ (offline, no scripts)").option("--dry-run", "validate and show what would be installed without writing").option("--json", "output a machine-readable JSON report").action((localPath, options) => {
@@ -58838,7 +61626,7 @@ function registerTemplateCommands(program2, runtime) {
     runtime.out();
     runtime.out(`  Directory: ${relPath(workspace, plan.dir)}`);
     runtime.out(
-      dim("  Specs generated from this template and template run records are not affected.")
+      dim2("  Specs generated from this template and template run records are not affected.")
     );
   });
   template.command("scaffold <template-id>").description("Scaffold a new community-ready template pack (manifest, README, template files)").option("--kind <kind>", `spec kind: ${SPEC_TYPES.join(" | ")}`, "feature").option("--modes <modes>", "comma-separated supported workflow modes").option("--display-name <text>", "human-readable template name").option("--description <text>", "template description for the manifest and README").option("--license <identifier>", "license identifier for the manifest", "MIT").option("--output <path>", "output directory (default: ./<template-id>)").option("--dry-run", "list the files that would be generated without writing").option("--json", "output a machine-readable JSON report").action(
@@ -58948,10 +61736,10 @@ function printPlanSummary(runtime, plan, dryRun) {
   if (dryRun) {
     runtime.out(sectionTitle("Rendered content"));
     for (const file of plan.files) {
-      runtime.out(dim(`--- ${file.fileName} ---`));
+      runtime.out(dim2(`--- ${file.fileName} ---`));
       runtime.outRaw(file.content);
     }
-    runtime.out(dim(`--- sidecar state (${relPath(workspace, plan.statePath)}) ---`));
+    runtime.out(dim2(`--- sidecar state (${relPath(workspace, plan.statePath)}) ---`));
     runtime.outRaw(`${JSON.stringify(plan.state, null, 2)}
 `);
     return;
@@ -59078,7 +61866,7 @@ function createFromTemplate(runtime, name, options, command) {
     if (options.json === true) {
       runtime.outRaw(serializeJsonReport(planToJson(plan.specPlan, true, templateInfo)));
     } else {
-      runtime.out(dim(`Template: ${plan.templateRef} v${plan.templateVersion}`));
+      runtime.out(dim2(`Template: ${plan.templateRef} v${plan.templateVersion}`));
       printPlanSummary(runtime, plan.specPlan, true);
     }
     return;
@@ -59088,7 +61876,7 @@ function createFromTemplate(runtime, name, options, command) {
     runtime.outRaw(serializeJsonReport(planToJson(result.plan.specPlan, false, templateInfo)));
     return;
   }
-  runtime.out(dim(`Template: ${plan.templateRef} v${plan.templateVersion}`));
+  runtime.out(dim2(`Template: ${plan.templateRef} v${plan.templateVersion}`));
   printPlanSummary(runtime, plan.specPlan, false);
 }
 
@@ -59217,13 +62005,13 @@ Examples:
       }
     }
     if (evaluation === void 0) {
-      runtime.out(dim("  Approval state: unmanaged (no sidecar state) \u2014 analyzing all present stages at full strictness."));
+      runtime.out(dim2("  Approval state: unmanaged (no sidecar state) \u2014 analyzing all present stages at full strictness."));
     }
     runtime.out();
     for (const stage of result.stages) {
       runtime.out(sectionTitle(`${stage.stage} (${stage.fileName})`));
       if (!stage.fileExists && stage.diagnostics.length === 0) {
-        runtime.out(dim("  not present"));
+        runtime.out(dim2("  not present"));
       } else if (stage.diagnostics.length === 0) {
         runtime.out(okLine("no findings"));
       } else {
@@ -59377,7 +62165,7 @@ Examples:
           runtime.err(`  ${diagnostic.severity === "error" ? "\u2717" : "!"} ${diagnostic.message}${location}`);
         }
         runtime.err("");
-        runtime.err(dim(`Full report: ${CLI_BIN} spec analyze ${folder.name} --stage ${stage}`));
+        runtime.err(dim2(`Full report: ${CLI_BIN} spec analyze ${folder.name} --stage ${stage}`));
       }
       runtime.exitCode = result.failure === "usage" ? 2 : 1;
       return;
@@ -59391,7 +62179,7 @@ Examples:
       }
       runtime.out();
       runtime.out(`  Status: ${result.state.status}`);
-      runtime.out(dim(`  State: ${relPath(workspace, result.statePath)}`));
+      runtime.out(dim2(`  State: ${relPath(workspace, result.statePath)}`));
       return;
     }
     runtime.out(reportTitle(`Approved: ${folder.name} \u2014 ${result.stage}`));
@@ -59417,14 +62205,14 @@ Examples:
       runtime.out(severityLine("warning", warning2.message));
     }
     if (warnings.length > 0) {
-      runtime.out(dim("  (warnings never block approval; fix them when convenient)"));
+      runtime.out(dim2("  (warnings never block approval; fix them when convenient)"));
     }
     runtime.out();
     runtime.out(`  Status: ${result.state.status}`);
-    runtime.out(dim(`  State: ${relPath(workspace, result.statePath)}`));
+    runtime.out(dim2(`  State: ${relPath(workspace, result.statePath)}`));
     if (result.state.status !== "READY_FOR_IMPLEMENTATION") {
       runtime.out();
-      runtime.out(dim(`  Next: ${CLI_BIN} spec status ${folder.name}`));
+      runtime.out(dim2(`  Next: ${CLI_BIN} spec status ${folder.name}`));
     }
   });
 }
@@ -59437,30 +62225,30 @@ function describeStage(runtime, evaluation, stage, verbose) {
     case "approved":
       runtime.out(okLine("Approved"));
       if (stage.stored.approvedAt !== null) {
-        runtime.out(dim(`    Approved at: ${stage.stored.approvedAt}`));
+        runtime.out(dim2(`    Approved at: ${stage.stored.approvedAt}`));
       }
-      runtime.out(dim("    Content unchanged since approval"));
+      runtime.out(dim2("    Content unchanged since approval"));
       if (verbose && stage.stored.approvedHash !== null) {
-        runtime.out(dim(`    Approved hash: ${stage.stored.approvedHash}`));
+        runtime.out(dim2(`    Approved hash: ${stage.stored.approvedHash}`));
       }
       break;
     case "modified-after-approval":
       runtime.out(warnLine("Modified after approval"));
-      runtime.out(dim(`    Approved hash: ${stage.stored.approvedHash ?? "(none)"}`));
-      runtime.out(dim(`    Current hash:  ${stage.currentHash ?? "(file missing or unreadable)"}`));
-      runtime.out(dim(`    Re-approve with: ${CLI_BIN} spec approve <name> --stage ${stage.stage}`));
+      runtime.out(dim2(`    Approved hash: ${stage.stored.approvedHash ?? "(none)"}`));
+      runtime.out(dim2(`    Current hash:  ${stage.currentHash ?? "(file missing or unreadable)"}`));
+      runtime.out(dim2(`    Re-approve with: ${CLI_BIN} spec approve <name> --stage ${stage.stage}`));
       break;
     case "stale-prerequisite":
       runtime.out(warnLine("Approval is stale (an earlier stage changed after this was approved)"));
       if (stage.stored.approvedAt !== null) {
-        runtime.out(dim(`    Originally approved at: ${stage.stored.approvedAt}`));
+        runtime.out(dim2(`    Originally approved at: ${stage.stored.approvedAt}`));
       }
       break;
     case "draft": {
       runtime.out(activeLine("Draft"));
       const prerequisites = stage.prerequisites;
       if (prerequisites.length > 0) {
-        runtime.out(dim("    Prerequisites satisfied"));
+        runtime.out(dim2("    Prerequisites satisfied"));
       }
       break;
     }
@@ -59470,7 +62258,7 @@ function describeStage(runtime, evaluation, stage, verbose) {
         (p) => evaluation.stages.find((s) => s.stage === p)?.effective !== "approved"
       );
       if (unapproved.length > 0) {
-        runtime.out(dim(`    Requires ${unapproved.join(" and ")} approval`));
+        runtime.out(dim2(`    Requires ${unapproved.join(" and ")} approval`));
       }
       break;
     }
@@ -59535,7 +62323,7 @@ Examples:
     runtime.out(`Mode: ${view.stateRead.state?.workflowMode ?? spec2.classification.workflowMode}`);
     runtime.out(`Status: ${view.displayStatus}`);
     if (view.stateRead.state?.origin === "existing-kiro-workspace") {
-      runtime.out(dim("Origin: initialized from an existing Kiro workspace"));
+      runtime.out(dim2("Origin: initialized from an existing Kiro workspace"));
     }
     runtime.out();
     for (const diagnostic of view.stateRead.diagnostics) {
@@ -59544,12 +62332,12 @@ Examples:
     if (view.evaluation === void 0) {
       runtime.out("Approval state: unmanaged");
       runtime.out(
-        dim(
+        dim2(
           "  This spec has no SpecBridge sidecar state \u2014 normal for a spec created by Kiro.\n  Files stay untouched either way. To start managing approvals, run:"
         )
       );
       const firstStage = documentStageFor(spec2.classification.type === "bugfix" ? "bugfix" : "feature");
-      runtime.out(dim(`    ${CLI_BIN} spec approve ${folder.name} --stage ${firstStage}`));
+      runtime.out(dim2(`    ${CLI_BIN} spec approve ${folder.name} --stage ${firstStage}`));
       runtime.out();
     } else {
       runtime.out(sectionTitle("Stages"));
@@ -59735,7 +62523,7 @@ function renderDryRunPlan(runtime, workspace, plan) {
   runtime.out(sectionTitle("Task prompt"));
   runtime.outRaw(`${plan.prompt}
 `);
-  runtime.out(dim("Dry run: the runner was NOT invoked; no files, runs, or state were written."));
+  runtime.out(dim2("Dry run: the runner was NOT invoked; no files, runs, or state were written."));
 }
 function renderTaskRunReport(runtime, workspace, report) {
   runtime.out(reportTitle("Task Execution"));
@@ -59745,7 +62533,7 @@ function renderTaskRunReport(runtime, workspace, report) {
   runtime.out(`  Runner: ${report.runner}`);
   runtime.out(`  Run: ${report.runId}`);
   if (report.parentRunId !== void 0) {
-    runtime.out(dim(`  Parent run: ${report.parentRunId}`));
+    runtime.out(dim2(`  Parent run: ${report.parentRunId}`));
   }
   runtime.out();
   runtime.out(sectionTitle("Repository"));
@@ -59772,7 +62560,7 @@ function renderTaskRunReport(runtime, workspace, report) {
   }
   if (report.runnerSummary !== void 0) {
     runtime.out(infoLine(`Reported: ${report.runnerSummary}`));
-    runtime.out(dim("    (runner reports are claims; only the evidence below counts)"));
+    runtime.out(dim2("    (runner reports are claims; only the evidence below counts)"));
   }
   runtime.out();
   runtime.out(sectionTitle("Verification"));
@@ -59797,14 +62585,14 @@ function renderTaskRunReport(runtime, workspace, report) {
   runtime.out(
     report.checkboxUpdated ? okLine("Task checkbox updated ([ ] \u2192 [x], surgical edit)") : blockedLine("Task checkbox unchanged")
   );
-  runtime.out(dim(`  Evidence: ${relPath(workspace, report.evidencePath)}`));
-  runtime.out(dim(`  Artifacts: ${relPath(workspace, report.artifactsDir)}`));
+  runtime.out(dim2(`  Evidence: ${relPath(workspace, report.evidencePath)}`));
+  runtime.out(dim2(`  Artifacts: ${relPath(workspace, report.artifactsDir)}`));
   runtime.out();
   runtime.out(reportTitle(`Result: ${RESULT_LABEL[report.evidenceStatus]}`));
   if (report.evidenceStatus !== "verified" && report.evidenceStatus !== "manually-accepted") {
-    runtime.out(dim(`  Inspect: ${CLI_BIN} run show ${report.runId}`));
+    runtime.out(dim2(`  Inspect: ${CLI_BIN} run show ${report.runId}`));
     if (report.resumeSupported) {
-      runtime.out(dim(`  Resume:  ${CLI_BIN} run resume ${report.runId}`));
+      runtime.out(dim2(`  Resume:  ${CLI_BIN} run resume ${report.runId}`));
     }
   }
 }
@@ -59849,7 +62637,7 @@ Examples:
       registry: context.registry,
       clock: () => runtime.now(),
       onProgress: (message) => {
-        if (options.json !== true) runtime.err(dim(message));
+        if (options.json !== true) runtime.err(dim2(message));
       }
     };
     const shared = {
@@ -60089,7 +62877,7 @@ Examples:
       toolVersion: VERSION,
       reportsDir: import_node_path12.default.join(workspace.sidecarDir, "reports"),
       clock: () => runtime.now(),
-      ...interactive ? { onProgress: (message) => runtime.err(dim(message)) } : {},
+      ...interactive ? { onProgress: (message) => runtime.err(dim2(message)) } : {},
       // v0.7.1: policy-configured extension verifiers run out of process;
       // their results reach the gate only through the SBV026 rollup rule.
       extensionVerifiers: createExtensionVerifierHook(workspace)
@@ -60098,7 +62886,7 @@ Examples:
       const raised = result.report.specResults.filter((specResult) => specResult.policyMode === "strict").map((specResult) => specResult.specName);
       if (raised.length > 0) {
         runtime.err(
-          dim(
+          dim2(
             `--strict: strict-mode severities apply to ${raised.join(", ")} (the policy files themselves are unchanged).`
           )
         );
@@ -60113,7 +62901,7 @@ Examples:
       runtime.outRaw(rendered);
     }
     if (result.artifactsDir !== void 0 && format2 === "terminal") {
-      runtime.out(dim(`Artifacts: ${relPath(workspace, result.artifactsDir)}`));
+      runtime.out(dim2(`Artifacts: ${relPath(workspace, result.artifactsDir)}`));
     }
     runtime.exitCode = result.exitCode;
   });
@@ -60177,17 +62965,17 @@ Examples:
       return;
     }
     runtime.out(reportTitle("Affected specs"));
-    runtime.out(dim(`Comparison: ${comparison.descriptor.label}`));
+    runtime.out(dim2(`Comparison: ${comparison.descriptor.label}`));
     runtime.out();
     if (result.affected.length === 0) {
       runtime.out(okLine("No spec is affected by this change set."));
     }
     for (const affected of result.affected) {
       runtime.out(`${affected.specName}`);
-      runtime.out(dim("  matched:"));
+      runtime.out(dim2("  matched:"));
       for (const match of affected.matches) {
         runtime.out(`    ${match.file}`);
-        runtime.out(dim(`      via ${match.via.join(", ")}`));
+        runtime.out(dim2(`      via ${match.via.join(", ")}`));
       }
       runtime.out();
     }
@@ -60256,9 +63044,9 @@ function collectProposalSources(runtime, specName) {
     for (const entry of (0, import_node_fs10.readdirSync)(evidenceDir, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
       const { records } = listTaskEvidence(workspace, specName, entry.name);
-      for (const record2 of records) {
-        if (record2.status !== "verified" && record2.status !== "manually-accepted") continue;
-        for (const file of record2.changedFiles) {
+      for (const record3 of records) {
+        if (record3.status !== "verified" && record3.status !== "manually-accepted") continue;
+        for (const file of record3.changedFiles) {
           paths.push(file.path);
           evidencePathCount += 1;
         }
@@ -60345,24 +63133,24 @@ Example:
     runtime.out();
     runtime.out(sectionTitle("Impact areas"));
     if (impactAreas.length === 0) {
-      runtime.out(dim("  (none proposed \u2014 no explicit design paths or evidence found)"));
+      runtime.out(dim2("  (none proposed \u2014 no explicit design paths or evidence found)"));
     } else {
       for (const area of impactAreas) runtime.out(`  ${area}`);
     }
     if (sources.length > 0) {
-      runtime.out(dim(`  Proposed from: ${sources.join("; ")} \u2014 review before trusting.`));
+      runtime.out(dim2(`  Proposed from: ${sources.join("; ")} \u2014 review before trusting.`));
     }
     runtime.out();
     runtime.out(sectionTitle("Required commands"));
     if (requiredCommands.length === 0) {
-      runtime.out(dim("  (none \u2014 configure verification.commands in .specbridge/config.json)"));
+      runtime.out(dim2("  (none \u2014 configure verification.commands in .specbridge/config.json)"));
     } else {
       for (const command of requiredCommands) runtime.out(`  ${command}`);
     }
     runtime.out();
     runtime.out("Review this file before enforcing strict verification.");
     if (options.dryRun === true) {
-      runtime.out(dim("Dry run: no file was written."));
+      runtime.out(dim2("Dry run: no file was written."));
     }
   });
   policy.command("show <name>").description("Show the stored and effective verification policy for a spec (read-only)").option("--json", "output a machine-readable JSON report").action((name, options) => {
@@ -60389,7 +63177,7 @@ Example:
       return;
     }
     runtime.out(reportTitle(`Verification policy: ${name}`));
-    runtime.out(dim(`  ${relPath(workspace, read.path)}${read.exists ? "" : " (not present \u2014 defaults apply)"}`));
+    runtime.out(dim2(`  ${relPath(workspace, read.path)}${read.exists ? "" : " (not present \u2014 defaults apply)"}`));
     for (const diagnostic of read.diagnostics) {
       runtime.out(failLine(diagnostic.message));
     }
@@ -60458,7 +63246,7 @@ Example:
     if (problems.length === 0) {
       runtime.out(okLine("The policy is valid."));
       const raw = JSON.parse((0, import_node_fs9.readFileSync)(read.path, "utf8"));
-      runtime.out(dim(`  Mode: ${raw.mode ?? "advisory"}`));
+      runtime.out(dim2(`  Mode: ${raw.mode ?? "advisory"}`));
     } else {
       for (const problem of problems) runtime.out(failLine(problem));
       runtime.out();
@@ -60500,8 +63288,8 @@ function registerVerifyRuleCommands(program2, runtime) {
     ]);
     for (const line of renderColumns(rows)) runtime.out(line);
     runtime.out();
-    runtime.out(dim(`Severity column shows advisory/strict defaults; policies may override per rule.`));
-    runtime.out(dim(`Details: ${CLI_BIN} verify explain <rule-id>`));
+    runtime.out(dim2(`Severity column shows advisory/strict defaults; policies may override per rule.`));
+    runtime.out(dim2(`Details: ${CLI_BIN} verify explain <rule-id>`));
   });
   verify.command("explain <rule-id>").description("Explain one verification rule: trigger, defaults, and resolution").option("--json", "output a machine-readable JSON report").action((ruleId, options) => {
     const rule = findRule(ruleId);
@@ -60637,9 +63425,9 @@ Examples:
     if (write) {
       runtime.out(okLine(`wrote ${written.length} file${written.length === 1 ? "" : "s"} into ${options.output}`));
     } else {
-      runtime.out(dim(`Nothing was written${options.dryRun === true ? " (--dry-run)" : ""}.`));
+      runtime.out(dim2(`Nothing was written${options.dryRun === true ? " (--dry-run)" : ""}.`));
       if (options.dryRun !== true) {
-        runtime.out(dim(`Re-run with --yes to write these files into ${options.output}.`));
+        runtime.out(dim2(`Re-run with --yes to write these files into ${options.output}.`));
       }
     }
   });
@@ -60745,7 +63533,7 @@ function renderRunnerPlan(runtime, plan, dataBoundary) {
     runtime.out(`  Fallback chain (explicitly configured): ${plan.fallbackChain.join(" \u2192 ")}`);
   }
   for (const constraint of plan.constraints) {
-    runtime.out(dim(`  ${constraint}`));
+    runtime.out(dim2(`  ${constraint}`));
   }
   if (dataBoundary !== void 0) {
     runtime.out();
@@ -60840,7 +63628,7 @@ function renderAuthoringOutcome(runtime, workspace, specName, stage, outcome, op
       runtime.out(sectionTitle("Prompt"));
       runtime.outRaw(`${outcome.plan.prompt}
 `);
-      runtime.out(dim("Dry run: the runner was NOT invoked; no file or state was written."));
+      runtime.out(dim2("Dry run: the runner was NOT invoked; no file or state was written."));
       return;
     }
     case "runner-failed": {
@@ -60850,8 +63638,8 @@ function renderAuthoringOutcome(runtime, workspace, specName, stage, outcome, op
       );
       if (outcome.result.failureReason !== void 0) runtime.err(`  ${outcome.result.failureReason}`);
       runtime.err("");
-      runtime.err(dim(`Raw output retained: ${relPath(workspace, outcome.artifactsDir)}`));
-      runtime.err(dim(`Inspect the run: ${CLI_BIN} run show ${outcome.runId}`));
+      runtime.err(dim2(`Raw output retained: ${relPath(workspace, outcome.artifactsDir)}`));
+      runtime.err(dim2(`Inspect the run: ${CLI_BIN} run show ${outcome.runId}`));
       return;
     }
     case "invalid-candidate": {
@@ -60864,7 +63652,7 @@ function renderAuthoringOutcome(runtime, workspace, specName, stage, outcome, op
       }
       runtime.out();
       runtime.out(`  Candidate retained: ${relPath(workspace, outcome.candidatePath)}`);
-      runtime.out(dim("  Inspect it, then regenerate or write the document manually."));
+      runtime.out(dim2("  Inspect it, then regenerate or write the document manually."));
       return;
     }
     case "applied": {
@@ -60892,9 +63680,9 @@ function renderAuthoringOutcome(runtime, workspace, specName, stage, outcome, op
       }
       runtime.out();
       runtime.out(okLine("The stage is DRAFT \u2014 nothing was auto-approved."));
-      runtime.out(dim(`  Review it, then: ${CLI_BIN} spec analyze ${specName} --stage ${stage}`));
-      runtime.out(dim(`                   ${CLI_BIN} spec approve ${specName} --stage ${stage}`));
-      runtime.out(dim(`  Run artifacts: ${relPath(workspace, outcome.artifactsDir)}`));
+      runtime.out(dim2(`  Review it, then: ${CLI_BIN} spec analyze ${specName} --stage ${stage}`));
+      runtime.out(dim2(`                   ${CLI_BIN} spec approve ${specName} --stage ${stage}`));
+      runtime.out(dim2(`  Run artifacts: ${relPath(workspace, outcome.artifactsDir)}`));
       return;
     }
   }
@@ -61123,7 +63911,7 @@ Example:
       { line: task.line, rawLineText: task.rawLineText },
       clock
     );
-    const record2 = {
+    const record3 = {
       schemaVersion: EVIDENCE_SCHEMA_VERSION,
       runId: evidenceRunId,
       specName: folder.name,
@@ -61151,7 +63939,7 @@ Example:
       },
       specContext: buildEvidenceSpecContext(workspace, folder.name, spec2.state, task)
     };
-    const evidencePath = writeTaskEvidence(workspace, record2);
+    const evidencePath = writeTaskEvidence(workspace, record3);
     if (options.json === true) {
       runtime.outRaw(
         serializeJsonReport(
@@ -61179,11 +63967,11 @@ Example:
     if (referencedRunId !== void 0) runtime.out(`  Referenced run: ${referencedRunId}`);
     const tasksApproved = spec2.state !== void 0 && stateStage(spec2.state, "tasks")?.status === "approved";
     if (update.approvalRehashed) {
-      runtime.out(dim("  The tasks approval hash was re-recorded for this sanctioned edit."));
+      runtime.out(dim2("  The tasks approval hash was re-recorded for this sanctioned edit."));
     } else if (tasksApproved) {
       runtime.out(warnLine("The tasks stage approval could not be re-recorded; run spec status."));
     }
-    runtime.out(dim(`  Evidence: ${relPath(workspace, evidencePath)}`));
+    runtime.out(dim2(`  Evidence: ${relPath(workspace, evidencePath)}`));
   });
 }
 
@@ -61385,14 +64173,14 @@ Examples:
       const line = !enabled ? infoLine : detection.status === "available" ? okLine : failLine;
       runtime.out(line(profile.name, summary));
       runtime.out(
-        dim(
+        dim2(
           `    operations: ${operations || "(none)"} \xB7 ${transport.localExecution ? "local" : transport.networkBacked ? "network-backed" : "local process"}${model !== null ? ` \xB7 model: ${model}` : ""}`
         )
       );
     }
     runtime.out();
-    runtime.out(dim(`  Default runner: ${config2.defaultRunner} (.specbridge/config.json)`));
-    runtime.out(dim(`  Details: ${CLI_BIN} runner show <profile> \xB7 ${CLI_BIN} runner doctor <profile>`));
+    runtime.out(dim2(`  Default runner: ${config2.defaultRunner} (.specbridge/config.json)`));
+    runtime.out(dim2(`  Details: ${CLI_BIN} runner show <profile> \xB7 ${CLI_BIN} runner doctor <profile>`));
   });
   runner.command("matrix").description("Capability matrix generated from registered runner metadata").option("--json", "output a machine-readable JSON report").option("--markdown", "output a Markdown table (used to generate docs)").action((options) => {
     const { registry: registry2 } = loadExecutionContext(runtime);
@@ -61425,7 +64213,7 @@ Examples:
     ];
     for (const line of renderColumns(columns)) runtime.out(`  ${line}`);
     runtime.out();
-    runtime.out(dim("  Generated from registered runner metadata (declared capabilities)."));
+    runtime.out(dim2("  Generated from registered runner metadata (declared capabilities)."));
   });
   runner.command("show <profile>").description("Show a profile: redacted configuration, capabilities, operations, boundaries").option("--json", "output a machine-readable JSON report").action(async (name, options) => {
     const context = loadExecutionContext(runtime);
@@ -61486,8 +64274,8 @@ Examples:
       runtime.out(`  ${profile.runner.executionBoundaryNote("implementation")}`);
     }
     runtime.out();
-    runtime.out(dim(`  Conformance: ${CLI_BIN} runner conformance ${name}`));
-    runtime.out(dim(`  Config file: ${context.configPath}${context.configExists ? "" : " (not present; defaults)"}`));
+    runtime.out(dim2(`  Conformance: ${CLI_BIN} runner conformance ${name}`));
+    runtime.out(dim2(`  Config file: ${context.configPath}${context.configExists ? "" : " (not present; defaults)"}`));
   });
   runner.command("doctor [profile]").description("Diagnose a profile: executable/endpoint, authentication, capabilities (read-only)").option("--json", "output a machine-readable JSON report").option("--verbose", "include informational diagnostics").addHelpText(
     "after",
@@ -61552,7 +64340,7 @@ Examples:
       runtime.out(infoLine("No request was sent."));
       runtime.out(`  Proposed test: ${proposal.request}`);
       runtime.out();
-      runtime.out(dim(`  Send it with: ${CLI_BIN} runner test ${name} --network`));
+      runtime.out(dim2(`  Send it with: ${CLI_BIN} runner test ${name} --network`));
       return;
     }
     if (profile.runner.selfTest === void 0) {
@@ -61650,7 +64438,7 @@ Examples:
     ];
     for (const line of renderColumns(rows)) runtime.out(`  ${line}`);
     runtime.out();
-    runtime.out(dim('  Configure one explicitly on the profile ("model"); nothing is selected automatically.'));
+    runtime.out(dim2('  Configure one explicitly on the profile ("model"); nothing is selected automatically.'));
   });
   runner.command("conformance <profile>").description("Run the applicable conformance groups for a profile (provider runs need --network)").option("--json", "output a machine-readable JSON report").option("--verbose", "include every check, not just failures").option("--network", "allow checks that invoke the provider (process/HTTP, possibly a model request)").addHelpText(
     "after",
@@ -61983,7 +64771,7 @@ Examples:
       runtime.out();
     }
     if (!apply) {
-      runtime.out(dim(`Dry run: nothing was written. Apply with: ${CLI_BIN} config migrate --apply`));
+      runtime.out(dim2(`Dry run: nothing was written. Apply with: ${CLI_BIN} config migrate --apply`));
       return;
     }
     const applied = applyConfigMigration(workspace, plan);
@@ -62007,7 +64795,7 @@ Examples:
     runtime.out(`  New file: ${applied.configPath}`);
     runtime.out(`  Backup:   ${applied.backupPath} (restore it to roll back)`);
     runtime.out();
-    runtime.out(dim(`Validate the result: ${CLI_BIN} config doctor`));
+    runtime.out(dim2(`Validate the result: ${CLI_BIN} config doctor`));
   });
 }
 
@@ -62232,7 +65020,7 @@ Examples:
     }
     printPlan(runtime, plan);
     runtime.out();
-    runtime.out(dim(`Planning wrote nothing. Apply with: ${CLI_BIN} migrate apply`));
+    runtime.out(dim2(`Planning wrote nothing. Apply with: ${CLI_BIN} migrate apply`));
   });
   migrate.command("apply").description("Apply the migration plan atomically with backups and a full report").option("--target <version>", `product version to migrate towards (only ${VERSION} is accepted)`).option("--dry-run", "print the plan and write nothing").option("--backup-directory <path>", "workspace-relative directory for original-file backups").option("--json", "output a machine-readable JSON report").addHelpText(
     "after",
@@ -62291,7 +65079,7 @@ Examples:
       runtime.out();
       printPlan(runtime, plan);
       runtime.out();
-      runtime.out(dim(`Dry run: nothing was written. Apply with: ${CLI_BIN} migrate apply`));
+      runtime.out(dim2(`Dry run: nothing was written. Apply with: ${CLI_BIN} migrate apply`));
       return;
     }
     const result = applyMigrationPlan(workspace, plan, {
@@ -62330,7 +65118,7 @@ Examples:
     runtime.out(
       succeeded ? okLine(`Migration ${result.status === "applied" ? "applied atomically" : "needed nothing"}.`) : failLine("The migration did not apply; every original file is unchanged.")
     );
-    if (succeeded) runtime.out(dim(`Verify any time with: ${CLI_BIN} migrate verify`));
+    if (succeeded) runtime.out(dim2(`Verify any time with: ${CLI_BIN} migrate verify`));
     runtime.exitCode = succeeded ? EXIT_CODES.ok : EXIT_CODES.gateFailure;
   });
   migrate.command("verify").description("Verify a previously applied migration from its persisted report (read-only)").option("--id <planId>", "migration to verify (default: the newest report)").option("--json", "output a machine-readable JSON report").addHelpText(
@@ -62525,7 +65313,7 @@ Examples:
       runtime.out(okLine("Every finding is valid."));
     } else {
       runtime.out(failLine("Findings need attention."));
-      runtime.out(dim(`Preview safe recovery actions with: ${CLI_BIN} state recover --plan`));
+      runtime.out(dim2(`Preview safe recovery actions with: ${CLI_BIN} state recover --plan`));
     }
     runtime.exitCode = healthy ? EXIT_CODES.ok : EXIT_CODES.gateFailure;
   });
@@ -62683,7 +65471,7 @@ Examples:
     runtime.out(`  Acknowledgement token: ${token}`);
     runtime.out();
     runtime.out(okLine("Only the plan file was written; no state was touched."));
-    runtime.out(dim(`Apply with: ${CLI_BIN} state recover --apply ${plan.planId} --ack ${token}`));
+    runtime.out(dim2(`Apply with: ${CLI_BIN} state recover --apply ${plan.planId} --ack ${token}`));
   });
 }
 
@@ -62796,10 +65584,10 @@ Examples:
     }
     runtime.out();
     if (!apply) {
-      runtime.out(dim(`Dry run: nothing was written. Apply with: ${CLI_BIN} setup --apply`));
+      runtime.out(dim2(`Dry run: nothing was written. Apply with: ${CLI_BIN} setup --apply`));
     } else {
       runtime.out(okLine("Setup complete."));
-      runtime.out(dim(`Next: ${CLI_BIN} doctor \xB7 ${CLI_BIN} spec list \xB7 docs/plugin-installation.md`));
+      runtime.out(dim2(`Next: ${CLI_BIN} doctor \xB7 ${CLI_BIN} spec list \xB7 docs/plugin-installation.md`));
     }
   });
 }
@@ -62833,18 +65621,18 @@ Examples:
     runtime.out();
     if (runs.length === 0) {
       runtime.out(infoLine("No runs recorded yet."));
-      runtime.out(dim(`  Runs are created by: ${CLI_BIN} spec generate/refine/run`));
+      runtime.out(dim2(`  Runs are created by: ${CLI_BIN} spec generate/refine/run`));
       return;
     }
-    const rows = runs.map((record2) => [
-      record2.runId.slice(0, 12),
-      record2.kind,
-      record2.specName,
-      record2.taskId ?? record2.stage ?? "\u2014",
-      record2.runner,
-      record2.createdAt,
-      shortDuration(record2.durationMs),
-      record2.evidenceStatus ?? record2.outcome ?? "(in progress)"
+    const rows = runs.map((record3) => [
+      record3.runId.slice(0, 12),
+      record3.kind,
+      record3.specName,
+      record3.taskId ?? record3.stage ?? "\u2014",
+      record3.runner,
+      record3.createdAt,
+      shortDuration(record3.durationMs),
+      record3.evidenceStatus ?? record3.outcome ?? "(in progress)"
     ]);
     for (const line of renderColumns([
       ["RUN", "KIND", "SPEC", "TARGET", "RUNNER", "STARTED", "TIME", "RESULT"],
@@ -62856,7 +65644,7 @@ Examples:
       for (const diagnostic of diagnostics) runtime.out(warnLine(diagnostic.message));
     }
     runtime.out();
-    runtime.out(dim(`  Details: ${CLI_BIN} run show <run-id>  (prefixes are not accepted; use the full id from --json when ambiguous)`));
+    runtime.out(dim2(`  Details: ${CLI_BIN} run show <run-id>  (prefixes are not accepted; use the full id from --json when ambiguous)`));
   });
   run.command("show <run-id>").description("Show one run: request, outcome, changed files, verification, evidence").option("--json", "output a machine-readable JSON report").option("--verbose", "include the prompt and raw runner output").addHelpText(
     "after",
@@ -62869,39 +65657,39 @@ Examples:
   ${CLI_BIN} run show <run-id> --verbose`
   ).action((runId, options) => {
     const workspace = runtime.workspace();
-    const record2 = resolveRun(workspace, runId);
-    const evidence = readRunArtifactJson(workspace, record2.runId, "evidence.json");
-    const verification = readRunArtifactJson(workspace, record2.runId, "verification.json");
-    const runnerResult = readRunArtifactJson(workspace, record2.runId, "runner-result.json");
+    const record3 = resolveRun(workspace, runId);
+    const evidence = readRunArtifactJson(workspace, record3.runId, "evidence.json");
+    const verification = readRunArtifactJson(workspace, record3.runId, "verification.json");
+    const runnerResult = readRunArtifactJson(workspace, record3.runId, "runner-result.json");
     if (options.json === true) {
       runtime.outRaw(
         serializeJsonReport(
           createJsonReport("specbridge.run-show/1", `${CLI_BIN} ${VERSION}`, {
-            run: record2,
+            run: record3,
             evidence: evidence ?? null,
             verification: verification ?? null,
             runnerResult: runnerResult ?? null,
-            artifactsDir: runDir(workspace, record2.runId)
+            artifactsDir: runDir(workspace, record3.runId)
           })
         )
       );
       return;
     }
-    runtime.out(reportTitle(`Run ${record2.runId}`));
+    runtime.out(reportTitle(`Run ${record3.runId}`));
     runtime.out();
     const rows = [
-      ["Kind", record2.kind],
-      ["Spec", record2.specName],
-      ["Target", record2.taskId ?? record2.stage ?? "\u2014"],
-      ["Runner", record2.runner],
-      ["Started", record2.createdAt],
-      ["Finished", record2.finishedAt ?? "(in progress or aborted)"],
-      ["Duration", shortDuration(record2.durationMs)],
-      ["Outcome", String(record2.outcome ?? "\u2014")],
-      ["Evidence", String(record2.evidenceStatus ?? "\u2014")],
-      ["Session", record2.sessionId ?? "\u2014"],
-      ["Resumable", record2.resumeSupported ? "yes" : "no"],
-      ["Parent run", record2.parentRunId ?? "\u2014"]
+      ["Kind", record3.kind],
+      ["Spec", record3.specName],
+      ["Target", record3.taskId ?? record3.stage ?? "\u2014"],
+      ["Runner", record3.runner],
+      ["Started", record3.createdAt],
+      ["Finished", record3.finishedAt ?? "(in progress or aborted)"],
+      ["Duration", shortDuration(record3.durationMs)],
+      ["Outcome", String(record3.outcome ?? "\u2014")],
+      ["Evidence", String(record3.evidenceStatus ?? "\u2014")],
+      ["Session", record3.sessionId ?? "\u2014"],
+      ["Resumable", record3.resumeSupported ? "yes" : "no"],
+      ["Parent run", record3.parentRunId ?? "\u2014"]
     ];
     for (const line of renderColumns(rows)) runtime.out(line);
     runtime.out();
@@ -62933,26 +65721,26 @@ Examples:
       }
       runtime.out();
     }
-    if (record2.warnings.length > 0) {
+    if (record3.warnings.length > 0) {
       runtime.out(sectionTitle("Warnings"));
-      for (const warning2 of record2.warnings) runtime.out(warnLine(warning2));
+      for (const warning2 of record3.warnings) runtime.out(warnLine(warning2));
       runtime.out();
     }
     if (options.verbose === true) {
-      const prompt = readRunArtifactText(workspace, record2.runId, "prompt.md");
+      const prompt = readRunArtifactText(workspace, record3.runId, "prompt.md");
       if (prompt !== void 0) {
         runtime.out(sectionTitle("Prompt"));
         runtime.outRaw(`${prompt}
 `);
       }
-      const stdout = readRunArtifactText(workspace, record2.runId, "raw-stdout.log");
+      const stdout = readRunArtifactText(workspace, record3.runId, "raw-stdout.log");
       if (stdout !== void 0) {
         runtime.out(sectionTitle("Raw stdout"));
         runtime.outRaw(`${stdout}
 `);
       }
     }
-    runtime.out(dim(`  Artifacts: ${relPath(workspace, runDir(workspace, record2.runId))}`));
+    runtime.out(dim2(`  Artifacts: ${relPath(workspace, runDir(workspace, record3.runId))}`));
   });
   run.command("resume <run-id>").description("Resume an interrupted or unverified task run in its original agent session").option("--timeout <duration>", "runner timeout (e.g. 90s, 30m)").option("--dry-run", "print the resume plan and prompt; invoke nothing").option("--no-verify", "skip verification commands after the resumed run").option("--json", "output a machine-readable JSON report").addHelpText(
     "after",
@@ -62971,7 +65759,7 @@ Examples:
   ${CLI_BIN} run resume <run-id> --dry-run`
   ).action(async (runId, options) => {
     const context = loadExecutionContext(runtime);
-    const record2 = resolveRun(context.workspace, runId);
+    const record3 = resolveRun(context.workspace, runId);
     const outcome = await resumeRun(
       {
         workspace: context.workspace,
@@ -62979,11 +65767,11 @@ Examples:
         registry: context.registry,
         clock: () => runtime.now(),
         onProgress: (message) => {
-          if (options.json !== true) runtime.err(dim(message));
+          if (options.json !== true) runtime.err(dim2(message));
         }
       },
       {
-        runId: record2.runId,
+        runId: record3.runId,
         ...options.timeout !== void 0 ? { timeoutMs: parseTimeout(options.timeout) } : {},
         ...options.verify === false ? { noVerify: true } : {},
         ...options.dryRun === true ? { dryRun: true } : {}
@@ -63006,7 +65794,7 @@ Examples:
       runtime.outRaw(
         serializeJsonReport(
           createJsonReport("specbridge.run-resume/1", `${CLI_BIN} ${VERSION}`, {
-            runId: record2.runId,
+            runId: record3.runId,
             ...data
           })
         )
@@ -63034,7 +65822,7 @@ Examples:
         renderDryRunPlan(runtime, context.workspace, outcome.plan);
         return;
       case "executed":
-        runtime.out(dim(`Resumed from run ${outcome.originalRunId}`));
+        runtime.out(dim2(`Resumed from run ${outcome.originalRunId}`));
         runtime.out();
         renderTaskRunReport(runtime, context.workspace, outcome.report);
         return;
@@ -63070,8 +65858,8 @@ Examples:
       removed = result.removed;
       const runId = result.diagnosis.lock?.runId;
       if (removed && runId !== void 0) {
-        const record2 = readRunRecord(workspace, runId);
-        if (record2 !== void 0 && record2.lifecycleStatus === "AWAITING_AGENT_CHANGES") {
+        const record3 = readRunRecord(workspace, runId);
+        if (record3 !== void 0 && record3.lifecycleStatus === "AWAITING_AGENT_CHANGES") {
           updateRunRecord(workspace, runId, {
             lifecycleStatus: "ABORTED",
             abortReason: 'stale lock removed via "specbridge run recover-lock --remove"',
@@ -63109,12 +65897,12 @@ Examples:
         return;
       case "active":
         runtime.out(okLine("The lock is actively held; leave it alone."));
-        runtime.out(dim("  Finish the run with task_complete / task_abort from its owning session."));
+        runtime.out(dim2("  Finish the run with task_complete / task_abort from its owning session."));
         runtime.exitCode = 0;
         return;
       case "ambiguous":
         runtime.out(warnLine("The lock state is ambiguous; SpecBridge will not remove it."));
-        runtime.out(dim("  Re-check later, or finish/abort the run from its owning session."));
+        runtime.out(dim2("  Re-check later, or finish/abort the run from its owning session."));
         runtime.exitCode = 1;
         return;
       case "stale":
@@ -63130,7 +65918,7 @@ Examples:
           runtime.exitCode = 1;
         } else {
           runtime.out(warnLine("The lock appears stale."));
-          runtime.out(dim(`  Confirm removal explicitly with: ${CLI_BIN} run recover-lock --remove`));
+          runtime.out(dim2(`  Confirm removal explicitly with: ${CLI_BIN} run recover-lock --remove`));
           runtime.exitCode = 1;
         }
         return;
@@ -63141,7 +65929,7 @@ function resolveRun(workspace, runId) {
   const exact = readRunRecord(workspace, runId);
   if (exact !== void 0) return exact;
   const { runs } = listRuns(workspace);
-  const matches = runs.filter((record2) => record2.runId.startsWith(runId));
+  const matches = runs.filter((record3) => record3.runId.startsWith(runId));
   if (matches.length === 1) return matches[0];
   if (matches.length > 1) {
     throw new SpecBridgeError(
@@ -63219,7 +66007,7 @@ Examples:
     for (const group of groups) {
       runtime.out(sectionTitle(group.group));
       if (group.checks.length === 0) {
-        runtime.out(dim("  (no Markdown files)"));
+        runtime.out(dim2("  (no Markdown files)"));
       }
       for (const check5 of group.checks) {
         const label = relPath(workspace, check5.file);
@@ -63243,12 +66031,12 @@ Examples:
   });
 }
 
-// ../../packages/mcp-server/dist/chunk-VCYOFMG3.js
+// ../../packages/mcp-server/dist/chunk-BAHFLNOO.js
 var import_buffer5 = require("buffer");
-var import_fs48 = require("fs");
-var import_path53 = __toESM(require("path"), 1);
-var import_crypto13 = require("crypto");
+var import_fs49 = require("fs");
 var import_path54 = __toESM(require("path"), 1);
+var import_crypto16 = require("crypto");
+var import_path55 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/core.js
 var NEVER2 = Object.freeze({
@@ -63445,10 +66233,10 @@ function assignProp(target, prop, value) {
     configurable: true
   });
 }
-function getElementAtPath(obj, path69) {
-  if (!path69)
+function getElementAtPath(obj, path70) {
+  if (!path70)
     return obj;
-  return path69.reduce((acc, key) => acc?.[key], obj);
+  return path70.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -63768,11 +66556,11 @@ function aborted2(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path69, issues) {
+function prefixIssues(path70, issues) {
   return issues.map((iss) => {
     var _a;
     (_a = iss).path ?? (_a.path = []);
-    iss.path.unshift(path69);
+    iss.path.unshift(path70);
     return iss;
   });
 }
@@ -67685,7 +70473,7 @@ var ZodRecord2 = /* @__PURE__ */ $constructor("ZodRecord", (inst, def) => {
   inst.keyType = def.keyType;
   inst.valueType = def.valueType;
 });
-function record(keyType, valueType, params) {
+function record2(keyType, valueType, params) {
   return new ZodRecord2({
     type: "record",
     keyType,
@@ -68155,7 +70943,7 @@ var ImplementationSchema = BaseMetadataSchema.extend({
 });
 var FormElicitationCapabilitySchema = intersection(object2({
   applyDefaults: boolean2().optional()
-}), record(string2(), unknown()));
+}), record2(string2(), unknown()));
 var ElicitationCapabilitySchema = preprocess((value) => {
   if (value && typeof value === "object" && !Array.isArray(value)) {
     if (Object.keys(value).length === 0) {
@@ -68166,7 +70954,7 @@ var ElicitationCapabilitySchema = preprocess((value) => {
 }, intersection(object2({
   form: FormElicitationCapabilitySchema.optional(),
   url: AssertObjectSchema.optional()
-}), record(string2(), unknown()).optional()));
+}), record2(string2(), unknown()).optional()));
 var ClientTasksCapabilitySchema = looseObject({
   /**
    * Present if the client supports listing tasks.
@@ -68219,7 +71007,7 @@ var ClientCapabilitiesSchema = object2({
   /**
    * Experimental, non-standard capabilities that the client supports.
    */
-  experimental: record(string2(), AssertObjectSchema).optional(),
+  experimental: record2(string2(), AssertObjectSchema).optional(),
   /**
    * Present if the client supports sampling from an LLM.
    */
@@ -68254,7 +71042,7 @@ var ClientCapabilitiesSchema = object2({
   /**
    * Extensions that the client supports. Keys are extension identifiers (vendor-prefix/extension-name).
    */
-  extensions: record(string2(), AssertObjectSchema).optional()
+  extensions: record2(string2(), AssertObjectSchema).optional()
 });
 var InitializeRequestParamsSchema = BaseRequestParamsSchema.extend({
   /**
@@ -68272,7 +71060,7 @@ var ServerCapabilitiesSchema = object2({
   /**
    * Experimental, non-standard capabilities that the server supports.
    */
-  experimental: record(string2(), AssertObjectSchema).optional(),
+  experimental: record2(string2(), AssertObjectSchema).optional(),
   /**
    * Present if the server supports sending log messages to the client.
    */
@@ -68319,7 +71107,7 @@ var ServerCapabilitiesSchema = object2({
   /**
    * Extensions that the server supports. Keys are extension identifiers (vendor-prefix/extension-name).
    */
-  extensions: record(string2(), AssertObjectSchema).optional()
+  extensions: record2(string2(), AssertObjectSchema).optional()
 });
 var InitializeResultSchema = ResultSchema.extend({
   /**
@@ -68457,7 +71245,7 @@ var ResourceContentsSchema = object2({
    * See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
    * for notes on _meta usage.
    */
-  _meta: record(string2(), unknown()).optional()
+  _meta: record2(string2(), unknown()).optional()
 });
 var TextResourceContentsSchema = ResourceContentsSchema.extend({
   /**
@@ -68651,7 +71439,7 @@ var GetPromptRequestParamsSchema = BaseRequestParamsSchema.extend({
   /**
    * Arguments to use for templating the prompt.
    */
-  arguments: record(string2(), string2()).optional()
+  arguments: record2(string2(), string2()).optional()
 });
 var GetPromptRequestSchema = RequestSchema.extend({
   method: literal("prompts/get"),
@@ -68671,7 +71459,7 @@ var TextContentSchema = object2({
    * See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
    * for notes on _meta usage.
    */
-  _meta: record(string2(), unknown()).optional()
+  _meta: record2(string2(), unknown()).optional()
 });
 var ImageContentSchema = object2({
   type: literal("image"),
@@ -68691,7 +71479,7 @@ var ImageContentSchema = object2({
    * See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
    * for notes on _meta usage.
    */
-  _meta: record(string2(), unknown()).optional()
+  _meta: record2(string2(), unknown()).optional()
 });
 var AudioContentSchema = object2({
   type: literal("audio"),
@@ -68711,7 +71499,7 @@ var AudioContentSchema = object2({
    * See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
    * for notes on _meta usage.
    */
-  _meta: record(string2(), unknown()).optional()
+  _meta: record2(string2(), unknown()).optional()
 });
 var ToolUseContentSchema = object2({
   type: literal("tool_use"),
@@ -68729,12 +71517,12 @@ var ToolUseContentSchema = object2({
    * Arguments to pass to the tool.
    * Must conform to the tool's inputSchema.
    */
-  input: record(string2(), unknown()),
+  input: record2(string2(), unknown()),
   /**
    * See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
    * for notes on _meta usage.
    */
-  _meta: record(string2(), unknown()).optional()
+  _meta: record2(string2(), unknown()).optional()
 });
 var EmbeddedResourceSchema = object2({
   type: literal("resource"),
@@ -68747,7 +71535,7 @@ var EmbeddedResourceSchema = object2({
    * See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
    * for notes on _meta usage.
    */
-  _meta: record(string2(), unknown()).optional()
+  _meta: record2(string2(), unknown()).optional()
 });
 var ResourceLinkSchema = ResourceSchema.extend({
   type: literal("resource_link")
@@ -68837,7 +71625,7 @@ var ToolSchema = object2({
    */
   inputSchema: object2({
     type: literal("object"),
-    properties: record(string2(), AssertObjectSchema).optional(),
+    properties: record2(string2(), AssertObjectSchema).optional(),
     required: array(string2()).optional()
   }).catchall(unknown()),
   /**
@@ -68847,7 +71635,7 @@ var ToolSchema = object2({
    */
   outputSchema: object2({
     type: literal("object"),
-    properties: record(string2(), AssertObjectSchema).optional(),
+    properties: record2(string2(), AssertObjectSchema).optional(),
     required: array(string2()).optional()
   }).catchall(unknown()).optional(),
   /**
@@ -68862,7 +71650,7 @@ var ToolSchema = object2({
    * See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
    * for notes on _meta usage.
    */
-  _meta: record(string2(), unknown()).optional()
+  _meta: record2(string2(), unknown()).optional()
 });
 var ListToolsRequestSchema = PaginatedRequestSchema.extend({
   method: literal("tools/list")
@@ -68883,7 +71671,7 @@ var CallToolResultSchema = ResultSchema.extend({
    *
    * If the Tool defines an outputSchema, this field MUST be present in the result, and contain a JSON object that matches the schema.
    */
-  structuredContent: record(string2(), unknown()).optional(),
+  structuredContent: record2(string2(), unknown()).optional(),
   /**
    * Whether the tool call ended in an error.
    *
@@ -68911,7 +71699,7 @@ var CallToolRequestParamsSchema = TaskAugmentedRequestParamsSchema.extend({
   /**
    * Arguments to pass to the tool.
    */
-  arguments: record(string2(), unknown()).optional()
+  arguments: record2(string2(), unknown()).optional()
 });
 var CallToolRequestSchema = RequestSchema.extend({
   method: literal("tools/call"),
@@ -69013,7 +71801,7 @@ var ToolResultContentSchema = object2({
    * See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
    * for notes on _meta usage.
    */
-  _meta: record(string2(), unknown()).optional()
+  _meta: record2(string2(), unknown()).optional()
 });
 var SamplingContentSchema = discriminatedUnion("type", [TextContentSchema, ImageContentSchema, AudioContentSchema]);
 var SamplingMessageContentBlockSchema = discriminatedUnion("type", [
@@ -69030,7 +71818,7 @@ var SamplingMessageSchema = object2({
    * See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
    * for notes on _meta usage.
    */
-  _meta: record(string2(), unknown()).optional()
+  _meta: record2(string2(), unknown()).optional()
 });
 var CreateMessageRequestParamsSchema = TaskAugmentedRequestParamsSchema.extend({
   messages: array(SamplingMessageSchema),
@@ -69218,7 +72006,7 @@ var ElicitRequestFormParamsSchema = TaskAugmentedRequestParamsSchema.extend({
    */
   requestedSchema: object2({
     type: literal("object"),
-    properties: record(string2(), PrimitiveSchemaDefinitionSchema),
+    properties: record2(string2(), PrimitiveSchemaDefinitionSchema),
     required: array(string2()).optional()
   })
 });
@@ -69270,7 +72058,7 @@ var ElicitResultSchema = ResultSchema.extend({
    * Per MCP spec, content is "typically omitted" for decline/cancel actions.
    * We normalize null to undefined for leniency while maintaining type compatibility.
    */
-  content: preprocess((val) => val === null ? void 0 : val, record(string2(), union([string2(), number2(), boolean2(), array(string2())])).optional())
+  content: preprocess((val) => val === null ? void 0 : val, record2(string2(), union([string2(), number2(), boolean2(), array(string2())])).optional())
 });
 var ResourceTemplateReferenceSchema = object2({
   type: literal("ref/resource"),
@@ -69305,7 +72093,7 @@ var CompleteRequestParamsSchema = BaseRequestParamsSchema.extend({
     /**
      * Previously-resolved variables in a URI template or prompt.
      */
-    arguments: record(string2(), string2()).optional()
+    arguments: record2(string2(), string2()).optional()
   }).optional()
 });
 var CompleteRequestSchema = RequestSchema.extend({
@@ -69353,7 +72141,7 @@ var RootSchema = object2({
    * See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
    * for notes on _meta usage.
    */
-  _meta: record(string2(), unknown()).optional()
+  _meta: record2(string2(), unknown()).optional()
 });
 var ListRootsRequestSchema = RequestSchema.extend({
   method: literal("roots/list"),
@@ -73575,13 +76363,13 @@ var EMPTY_COMPLETION_RESULT = {
   }
 };
 
-// ../../packages/mcp-server/dist/chunk-VCYOFMG3.js
-var import_fs49 = require("fs");
+// ../../packages/mcp-server/dist/chunk-BAHFLNOO.js
 var import_fs50 = require("fs");
-var import_path55 = __toESM(require("path"), 1);
 var import_fs51 = require("fs");
-var import_os2 = __toESM(require("os"), 1);
 var import_path56 = __toESM(require("path"), 1);
+var import_fs52 = require("fs");
+var import_os2 = __toESM(require("os"), 1);
+var import_path57 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 var import_node_process11 = __toESM(require("process"), 1);
@@ -73675,9 +76463,9 @@ var StdioServerTransport = class {
   }
 };
 
-// ../../packages/mcp-server/dist/chunk-VCYOFMG3.js
+// ../../packages/mcp-server/dist/chunk-BAHFLNOO.js
 var MCP_SERVER_NAME = "specbridge";
-var MCP_SERVER_VERSION = "1.0.0";
+var MCP_SERVER_VERSION = "1.1.0";
 var MCP_SERVER_TITLE = "SpecBridge";
 var MCP_SDK_VERSION = "1.29.0";
 var MCP_PROTOCOL_BASELINE = "2025-11-25";
@@ -73702,7 +76490,18 @@ var SBMCP_CODES = {
   SBMCP017: "current document hash mismatch",
   SBMCP018: "input too large",
   SBMCP019: "output too large",
-  SBMCP020: "internal runtime failure"
+  SBMCP020: "internal runtime failure",
+  // v1.1 governed orchestration. Additive: no existing code changes meaning.
+  SBMCP021: "orchestration disabled",
+  SBMCP022: "orchestration run not found",
+  SBMCP023: "orchestration state invalid",
+  SBMCP024: "orchestration phase invalid",
+  SBMCP025: "clarification required",
+  SBMCP026: "execution plan required",
+  SBMCP027: "execution plan stale",
+  SBMCP028: "plan review required",
+  SBMCP029: "orchestration budget exhausted",
+  SBMCP030: "orchestration request rejected"
 };
 var McpToolError = class extends Error {
   code;
@@ -73729,6 +76528,21 @@ function toErrorEnvelope(cause) {
       details: cause.details
     };
   }
+  if (isOrchestrationError(cause)) {
+    const code2 = sbmcpCodeForOrchestrationError(cause.code);
+    return {
+      code: code2,
+      category: SBMCP_CODES[code2],
+      message: cause.message,
+      remediation: cause.remediation,
+      details: {
+        ...cause.details,
+        orchestrationCode: cause.code,
+        ...cause.failureCategory !== void 0 ? { failureCategory: cause.failureCategory } : {},
+        retryable: cause.retryable
+      }
+    };
+  }
   if (isSpecBridgeError(cause)) {
     const code2 = sbmcpCodeForSpecBridgeError(cause.code);
     return {
@@ -73746,6 +76560,48 @@ function toErrorEnvelope(cause) {
     remediation: [],
     details: {}
   };
+}
+function sbmcpCodeForOrchestrationError(code2) {
+  switch (code2) {
+    case "SBO001":
+      return "SBMCP021";
+    case "SBO002":
+      return "SBMCP022";
+    case "SBO003":
+      return "SBMCP023";
+    case "SBO004":
+    case "SBO005":
+    case "SBO019":
+      return "SBMCP024";
+    case "SBO006":
+    case "SBO007":
+    case "SBO008":
+      return "SBMCP025";
+    case "SBO009":
+    case "SBO010":
+      return "SBMCP026";
+    case "SBO011":
+      return "SBMCP027";
+    case "SBO012":
+      return "SBMCP028";
+    case "SBO013":
+    case "SBO014":
+    case "SBO015":
+    case "SBO016":
+    case "SBO017":
+    case "SBO018":
+    case "SBO020":
+      return "SBMCP029";
+    case "SBO021":
+      return "SBMCP018";
+    case "SBO022":
+    case "SBO024":
+      return "SBMCP030";
+    case "SBO023":
+      return "SBMCP006";
+    default:
+      return "SBMCP020";
+  }
 }
 function sbmcpCodeForSpecBridgeError(code2) {
   switch (code2) {
@@ -73865,12 +76721,12 @@ function paginate(all, options) {
     totalCount: all.length
   };
 }
-function truncateText(text, maximumBytes) {
-  const originalBytes = import_buffer5.Buffer.byteLength(text, "utf8");
+function truncateText(text2, maximumBytes) {
+  const originalBytes = import_buffer5.Buffer.byteLength(text2, "utf8");
   if (originalBytes <= maximumBytes) {
-    return { text, truncated: false, originalBytes };
+    return { text: text2, truncated: false, originalBytes };
   }
-  const buffer = import_buffer5.Buffer.from(text, "utf8").subarray(0, maximumBytes);
+  const buffer = import_buffer5.Buffer.from(text2, "utf8").subarray(0, maximumBytes);
   const decoded = buffer.toString("utf8").replace(/�+$/u, "");
   return { text: decoded, truncated: true, originalBytes };
 }
@@ -73933,10 +76789,10 @@ function validateProjectRoot(value, source, cwd) {
       remediation: ["Pass a plain filesystem path as --project-root."]
     };
   }
-  const resolved = import_path53.default.resolve(cwd, value);
+  const resolved = import_path54.default.resolve(cwd, value);
   let canonical;
   try {
-    canonical = (0, import_fs48.realpathSync)(resolved);
+    canonical = (0, import_fs49.realpathSync)(resolved);
   } catch {
     return {
       ok: false,
@@ -73949,7 +76805,7 @@ function validateProjectRoot(value, source, cwd) {
   }
   let stats;
   try {
-    stats = (0, import_fs48.statSync)(canonical);
+    stats = (0, import_fs49.statSync)(canonical);
   } catch {
     return {
       ok: false,
@@ -73977,7 +76833,7 @@ var ServerContext = class {
     this.projectRoot = options.projectRoot;
     this.logger = options.logger;
     this.clock = options.clock ?? (() => /* @__PURE__ */ new Date());
-    this.idFactory = options.idFactory ?? import_crypto13.randomUUID;
+    this.idFactory = options.idFactory ?? import_crypto16.randomUUID;
   }
   /**
    * Resolve the `.kiro` workspace from the pinned project root, or
@@ -74039,11 +76895,11 @@ var ServerContext = class {
     return next;
   }
 };
-function promptResult(context, name, description, text) {
+function promptResult(context, name, description, text2) {
   context.logger.info("prompt_requested", { prompt: name });
   return {
     description,
-    messages: [{ role: "user", content: { type: "text", text } }]
+    messages: [{ role: "user", content: { type: "text", text: text2 } }]
   };
 }
 function registerStatusPrompt(server, context) {
@@ -74206,8 +77062,8 @@ var paginationShape = external_exports.object({
   nextCursor: external_exports.string().optional()
 });
 function repoRelative2(workspace, target) {
-  const relative = import_path54.default.isAbsolute(target) ? import_path54.default.relative(workspace.rootDir, target) : target;
-  const posix = relative.split(import_path54.default.sep).join("/");
+  const relative = import_path55.default.isAbsolute(target) ? import_path55.default.relative(workspace.rootDir, target) : target;
+  const posix = relative.split(import_path55.default.sep).join("/");
   return posix === "" ? "." : posix;
 }
 function toDiagnosticView(workspace, diagnostic) {
@@ -74296,9 +77152,9 @@ function workspaceDetectionText(detection) {
 function resourceNotFound(what, remediation) {
   return new Error(`${what} was not found. ${remediation}`);
 }
-function markdownContents(context, uri, text) {
+function markdownContents(context, uri, text2) {
   context.logger.info("resource_read", { resource: uri });
-  const bounded = truncateText(text, LIMITS.maximumDocumentBytes);
+  const bounded = truncateText(text2, LIMITS.maximumDocumentBytes);
   return {
     contents: [
       {
@@ -74316,7 +77172,7 @@ function jsonContents(context, uri, value) {
   context.logger.info("resource_read", { resource: uri });
   const serialized = JSON.stringify(value, null, 2);
   const bounded = truncateText(serialized, LIMITS.maximumStructuredResponseBytes);
-  const text = bounded.truncated ? JSON.stringify(
+  const text2 = bounded.truncated ? JSON.stringify(
     {
       truncated: true,
       message: `The resource exceeded ${LIMITS.maximumStructuredResponseBytes} bytes; use the paginated tools instead.`
@@ -74324,7 +77180,7 @@ function jsonContents(context, uri, value) {
     null,
     2
   ) : serialized;
-  return { contents: [{ uri, mimeType: "application/json", text }] };
+  return { contents: [{ uri, mimeType: "application/json", text: text2 }] };
 }
 function assertPlainName(kind, value) {
   const decoded = decodeURIComponent(value);
@@ -74569,24 +77425,24 @@ var runSummaryShape = external_exports.object({
   abortReason: external_exports.string().optional(),
   parentRunId: external_exports.string().optional()
 });
-function toRunSummary(record2) {
+function toRunSummary(record3) {
   return {
-    runId: record2.runId,
-    kind: record2.kind,
-    runType: runTypeForKind(record2.kind),
-    specName: record2.specName,
-    ...record2.taskId !== void 0 ? { taskId: record2.taskId } : {},
-    ...record2.stage !== void 0 ? { stage: record2.stage } : {},
-    runner: record2.runner,
-    createdAt: record2.createdAt,
-    ...record2.finishedAt !== void 0 ? { finishedAt: record2.finishedAt } : {},
-    ...record2.durationMs !== void 0 ? { durationMs: record2.durationMs } : {},
-    ...record2.outcome !== void 0 ? { outcome: record2.outcome } : {},
-    ...record2.evidenceStatus !== void 0 ? { evidenceStatus: record2.evidenceStatus } : {},
-    ...record2.lifecycleStatus !== void 0 ? { lifecycleStatus: record2.lifecycleStatus } : {},
-    ...record2.host !== void 0 ? { host: record2.host } : {},
-    ...record2.abortReason !== void 0 ? { abortReason: record2.abortReason } : {},
-    ...record2.parentRunId !== void 0 ? { parentRunId: record2.parentRunId } : {}
+    runId: record3.runId,
+    kind: record3.kind,
+    runType: runTypeForKind(record3.kind),
+    specName: record3.specName,
+    ...record3.taskId !== void 0 ? { taskId: record3.taskId } : {},
+    ...record3.stage !== void 0 ? { stage: record3.stage } : {},
+    runner: record3.runner,
+    createdAt: record3.createdAt,
+    ...record3.finishedAt !== void 0 ? { finishedAt: record3.finishedAt } : {},
+    ...record3.durationMs !== void 0 ? { durationMs: record3.durationMs } : {},
+    ...record3.outcome !== void 0 ? { outcome: record3.outcome } : {},
+    ...record3.evidenceStatus !== void 0 ? { evidenceStatus: record3.evidenceStatus } : {},
+    ...record3.lifecycleStatus !== void 0 ? { lifecycleStatus: record3.lifecycleStatus } : {},
+    ...record3.host !== void 0 ? { host: record3.host } : {},
+    ...record3.abortReason !== void 0 ? { abortReason: record3.abortReason } : {},
+    ...record3.parentRunId !== void 0 ? { parentRunId: record3.parentRunId } : {}
   };
 }
 var gitSummaryShape = external_exports.object({
@@ -74636,15 +77492,15 @@ function toGitSummary(snapshot) {
     dirtyPaths: snapshot.entries.length
   };
 }
-function buildRunDetail(workspace, record2, artifactNames) {
-  const before = readRunArtifactJson(workspace, record2.runId, "git-before.json");
-  const after = readRunArtifactJson(workspace, record2.runId, "git-after.json");
-  const evidence = readRunArtifactJson(workspace, record2.runId, "evidence.json");
-  const verification = readRunArtifactJson(workspace, record2.runId, "verification.json");
+function buildRunDetail(workspace, record3, artifactNames) {
+  const before = readRunArtifactJson(workspace, record3.runId, "git-before.json");
+  const after = readRunArtifactJson(workspace, record3.runId, "git-after.json");
+  const evidence = readRunArtifactJson(workspace, record3.runId, "evidence.json");
+  const verification = readRunArtifactJson(workspace, record3.runId, "verification.json");
   const gitBefore = toGitSummary(before);
   const gitAfter = toGitSummary(after);
   return {
-    summary: toRunSummary(record2),
+    summary: toRunSummary(record3),
     ...gitBefore !== void 0 ? { gitBefore } : {},
     ...gitAfter !== void 0 ? { gitAfter } : {},
     ...evidence !== void 0 ? {
@@ -74671,9 +77527,9 @@ function buildRunDetail(workspace, record2, artifactNames) {
         }))
       }
     } : {},
-    warnings: record2.warnings,
+    warnings: record3.warnings,
     artifacts: artifactNames,
-    artifactsDir: `.specbridge/runs/${record2.runId}`
+    artifactsDir: `.specbridge/runs/${record3.runId}`
   };
 }
 var REDACTED_ARTIFACTS = /* @__PURE__ */ new Set(["prompt.md", "raw-stdout.log", "raw-stderr.log"]);
@@ -74685,10 +77541,10 @@ function registerRunResources(server, context) {
         const workspace = context.tryWorkspace();
         if (workspace === void 0) return { resources: [] };
         return {
-          resources: listRuns(workspace).runs.slice(0, 50).map((record2) => ({
-            uri: `specbridge://runs/${encodeURIComponent(record2.runId)}`,
-            name: record2.runId,
-            description: `${record2.kind} run for spec "${record2.specName}"`,
+          resources: listRuns(workspace).runs.slice(0, 50).map((record3) => ({
+            uri: `specbridge://runs/${encodeURIComponent(record3.runId)}`,
+            name: record3.runId,
+            description: `${record3.kind} run for spec "${record3.specName}"`,
             mimeType: "application/json"
           }))
         };
@@ -74702,13 +77558,13 @@ function registerRunResources(server, context) {
     async (uri, variables) => {
       const runId = assertPlainName("run id", String(variables["runId"] ?? ""));
       const workspace = context.requireWorkspace();
-      const record2 = readRunRecord(workspace, runId);
-      if (record2 === void 0) {
+      const record3 = readRunRecord(workspace, runId);
+      if (record3 === void 0) {
         throw resourceNotFound(`Run "${runId}"`, "List runs with the run_list tool.");
       }
-      const directory = runDir(workspace, record2.runId);
-      const artifactNames = (0, import_fs49.existsSync)(directory) ? (0, import_fs49.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
-      return jsonContents(context, uri.href, buildRunDetail(workspace, record2, artifactNames));
+      const directory = runDir(workspace, record3.runId);
+      const artifactNames = (0, import_fs50.existsSync)(directory) ? (0, import_fs50.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
+      return jsonContents(context, uri.href, buildRunDetail(workspace, record3, artifactNames));
     }
   );
 }
@@ -74943,8 +77799,8 @@ function registerSteeringListTool(server, context) {
           diagnostics: toDiagnosticViews(workspace, info.diagnostics)
         };
       });
-      const text = steering.length === 0 ? "No steering documents exist (.kiro/steering is absent or empty). Steering is optional." : `${steering.length} steering document(s): ${steering.map((s) => s.name).join(", ")}.`;
-      return { text, structured: { steering, count: steering.length } };
+      const text2 = steering.length === 0 ? "No steering documents exist (.kiro/steering is absent or empty). Steering is optional." : `${steering.length} steering document(s): ${steering.map((s) => s.name).join(", ")}.`;
+      return { text: text2, structured: { steering, count: steering.length } };
     }
   });
 }
@@ -75068,10 +77924,10 @@ function registerSpecListTool(server, context) {
       const lines = page.items.map(
         (spec) => `- ${spec.name} [${spec.type}/${spec.workflowMode}] ${spec.workflowStatus}, approvals ${spec.approvalHealth}, tasks ${spec.taskProgress.completed}/${spec.taskProgress.total}`
       );
-      const text = page.totalCount === 0 ? "No specs match. This workspace may have no specs yet; create one with spec_create." : `${page.totalCount} spec(s)${page.truncated ? ` (showing ${page.items.length})` : ""}:
+      const text2 = page.totalCount === 0 ? "No specs match. This workspace may have no specs yet; create one with spec_create." : `${page.totalCount} spec(s)${page.truncated ? ` (showing ${page.items.length})` : ""}:
 ${lines.join("\n")}`;
       return {
-        text,
+        text: text2,
         structured: {
           specs: page.items,
           pagination: {
@@ -75143,10 +77999,10 @@ function registerSpecReadTool(server, context) {
         };
       });
       const present = documents.filter((doc) => doc.exists);
-      const text = present.length === 0 ? `Spec "${analysis.folder.name}" has none of the requested document(s) yet.` : present.map((doc) => `## ${doc.path}
+      const text2 = present.length === 0 ? `Spec "${analysis.folder.name}" has none of the requested document(s) yet.` : present.map((doc) => `## ${doc.path}
 
 ${doc.content ?? ""}${doc.truncated === true ? "\n\n[truncated]" : ""}`).join("\n\n");
-      return { text, structured: { specName: analysis.folder.name, documents } };
+      return { text: text2, structured: { specName: analysis.folder.name, documents } };
     }
   });
 }
@@ -75248,7 +78104,7 @@ function registerSpecStatusTool(server, context) {
       const capped = capDiagnostics(toDiagnosticViews(workspace, allDiagnostics));
       const suggestedNextActions = suggestNextActions(bundle);
       const stageLines = stages.map((stage) => `  ${stage.stage}: ${stage.effective}`);
-      const text = [
+      const text2 = [
         `Spec "${summary.name}" (${summary.type}, ${summary.workflowMode}) \u2014 status ${summary.workflowStatus}, approvals ${summary.approvalHealth}.`,
         stages.length > 0 ? `Stages:
 ${stageLines.join("\n")}` : "No SpecBridge workflow state (unmanaged spec).",
@@ -75256,7 +78112,7 @@ ${stageLines.join("\n")}` : "No SpecBridge workflow state (unmanaged spec).",
         `Next: ${suggestedNextActions[0] ?? "(no suggestion)"}`
       ].join("\n");
       return {
-        text,
+        text: text2,
         structured: {
           summary,
           stages,
@@ -75471,13 +78327,13 @@ function registerSpecAnalyzeTool(server, context) {
       } else if (strict && result.warningCount > 0) {
         remediation.push("Fix the warnings or re-run without strict.");
       }
-      const text = [
+      const text2 = [
         `Analysis of "${analysis.folder.name}" (${stagesAnalyzed.join(", ") || "no stages"}): ${result.errorCount} error(s), ${result.warningCount} warning(s), ${infoCount} info \u2014 ${passed ? "PASSED" : "FAILED"}${strict ? " (strict)" : ""}.`,
         ...capped.items.slice(0, 20).map((d) => `- ${d.severity.toUpperCase()} ${d.code}: ${d.message}${d.line !== void 0 ? ` (line ${d.line})` : ""}`),
         capped.items.length > 20 ? `\u2026 ${capped.items.length - 20} more finding(s) in structured content.` : ""
       ].filter((line) => line.length > 0).join("\n");
       return {
-        text,
+        text: text2,
         structured: {
           specName: analysis.folder.name,
           stagesAnalyzed,
@@ -75565,10 +78421,10 @@ function registerSpecCreateTool(server, context) {
             "Call spec_create again with apply: true to create the spec."
           ];
         }
-        const text = apply ? `Created spec "${plan.specName}" (${plan.specType}, ${plan.mode}) with ${plan.files.length} file(s). Initial status: ${plan.state.status}.` : `Preview of spec "${plan.specName}" (${plan.specType}, ${plan.mode}) \u2014 nothing was written.
+        const text2 = apply ? `Created spec "${plan.specName}" (${plan.specType}, ${plan.mode}) with ${plan.files.length} file(s). Initial status: ${plan.state.status}.` : `Preview of spec "${plan.specName}" (${plan.specType}, ${plan.mode}) \u2014 nothing was written.
 ` + previewFiles.map((file) => `- ${file.path} (${file.bytes} bytes)`).join("\n");
         return {
-          text,
+          text: text2,
           structured: {
             applied: apply,
             specName: plan.specName,
@@ -75717,7 +78573,7 @@ function registerSpecStageValidateTool(server, context) {
       );
       const boundedDiff = truncateText(evaluation.diff, LIMITS.maximumDocumentBytes);
       const nextStep = valid ? "Present the diff for review; after explicit user confirmation call spec_stage_apply with this candidateHash." : "Fix the error-level findings and validate again; spec_stage_apply refuses candidates with errors.";
-      const text = [
+      const text2 = [
         `Candidate ${args.stage}.md for "${evaluation.analysis.folder.name}": ${valid ? "VALID" : "INVALID"} (${evaluation.analysisResult.errorCount} error(s), ${evaluation.analysisResult.warningCount} warning(s)).`,
         `Candidate hash: ${evaluation.candidateHash}`,
         `Current document: ${evaluation.currentExists ? `hash ${evaluation.currentHash}` : "(absent)"}`,
@@ -75725,7 +78581,7 @@ function registerSpecStageValidateTool(server, context) {
         `Next: ${nextStep}`
       ].join("\n");
       return {
-        text,
+        text: text2,
         structured: {
           specName: evaluation.analysis.folder.name,
           stage: args.stage,
@@ -75882,14 +78738,14 @@ function registerSpecStageApplyTool(server, context) {
         toDiagnosticViews(workspace, evaluation.analysisResult.diagnostics)
       );
       const nextStep = `The ${args.stage} stage is written but NOT approved. A human approves it with: specbridge spec approve ${specName} --stage ${args.stage}`;
-      const text = [
+      const text2 = [
         `Applied ${args.stage}.md for "${specName}" (${written.created ? "created" : "updated"}, ${written.eol.toUpperCase()} preserved).`,
         invalidation.invalidated.length > 0 ? `Invalidated dependent approval(s): ${invalidation.invalidated.join(", ")}.` : "No dependent approvals were invalidated.",
         `Authoring run: ${runId}.`,
         nextStep
       ].join("\n");
       return {
-        text,
+        text: text2,
         structured: {
           applied: true,
           specName,
@@ -75992,10 +78848,10 @@ function registerTaskListTool(server, context) {
         (task) => `- ${box(task.state)} ${task.id} ${task.title}${task.optional ? " (optional)" : ""}`
       );
       const progress = model.progress;
-      const text = `Tasks for "${analysis.folder.name}": ${progress.completed}/${progress.total} required complete.` + (lines.length > 0 ? `
+      const text2 = `Tasks for "${analysis.folder.name}": ${progress.completed}/${progress.total} required complete.` + (lines.length > 0 ? `
 ${lines.join("\n")}` : "\n(no tasks parsed)");
       return {
-        text,
+        text: text2,
         structured: {
           specName: analysis.folder.name,
           progress,
@@ -76230,7 +79086,7 @@ function registerTaskBeginTool(server, context) {
       });
       const boundedContext = truncateText(outcome.contextMarkdown, LIMITS.maximumDocumentBytes);
       const task = outcome.task;
-      const text = [
+      const text2 = [
         `Interactive run ${outcome.runId} started for "${outcome.specName}", task ${task.id}: ${task.title}.`,
         "",
         "Instructions:",
@@ -76240,7 +79096,7 @@ function registerTaskBeginTool(server, context) {
         `When the source changes are ready, call task_complete with runId "${outcome.runId}".`
       ].join("\n");
       return {
-        text,
+        text: text2,
         structured: {
           runId: outcome.runId,
           specName: outcome.specName,
@@ -76335,7 +79191,7 @@ function registerTaskCompleteTool(server, context) {
       });
       const actualChangedFiles = report.changedFiles.filter((file) => file.modifiedDuringRun);
       const nextRecommendedAction = nextActionFor(outcome.outcome, report);
-      const text = [
+      const text2 = [
         `Run ${report.runId}: ${outcome.outcome.toUpperCase()} (evidence: ${report.evidenceStatus}).${outcome.finalizedNow ? "" : " [already finalized; returning the recorded result]"}`,
         `Actual changed files (${actualChangedFiles.length}): ${actualChangedFiles.map((f) => f.path).join(", ") || "(none)"}`,
         report.verification.ran ? `Verification: ${report.verification.passed ? "passed" : `FAILED (${report.verification.requiredFailed.join(", ")})`}` : "Verification: not run.",
@@ -76345,7 +79201,7 @@ ${report.violations.map((v) => `- ${v}`).join("\n")}` : "",
         `Next: ${nextRecommendedAction}`
       ].filter((line) => line.length > 0).join("\n");
       return {
-        text,
+        text: text2,
         structured: {
           runId: report.runId,
           outcome: outcome.outcome,
@@ -76476,10 +79332,10 @@ function registerRunListTool(server, context) {
       const lines = page.items.map(
         (run) => `- ${run.runId.slice(0, 12)} ${run.runType} ${run.specName}${run.taskId !== void 0 ? `#${run.taskId}` : ""} \u2192 ${run.evidenceStatus ?? run.lifecycleStatus ?? run.outcome ?? "(in progress)"}`
       );
-      const text = page.totalCount === 0 ? "No recorded runs match." : `${page.totalCount} run(s)${page.truncated ? ` (showing ${page.items.length})` : ""}:
+      const text2 = page.totalCount === 0 ? "No recorded runs match." : `${page.totalCount} run(s)${page.truncated ? ` (showing ${page.items.length})` : ""}:
 ${lines.join("\n")}`;
       return {
-        text,
+        text: text2,
         structured: {
           runs: page.items,
           pagination: {
@@ -76516,15 +79372,15 @@ function registerRunReadTool(server, context) {
     outputSchema: outputSchema18,
     handler: async (args) => {
       const workspace = context.requireWorkspace();
-      const record2 = readRunRecord(workspace, args.runId);
-      if (record2 === void 0) {
+      const record3 = readRunRecord(workspace, args.runId);
+      if (record3 === void 0) {
         throw new McpToolError("SBMCP011", `Run "${args.runId}" was not found under .specbridge/runs/.`, {
           remediation: ["List runs with the run_list tool."]
         });
       }
-      const directory = runDir(workspace, record2.runId);
-      const artifactNames = (0, import_fs50.existsSync)(directory) ? (0, import_fs50.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS2.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
-      const detail = buildRunDetail(workspace, record2, artifactNames);
+      const directory = runDir(workspace, record3.runId);
+      const artifactNames = (0, import_fs51.existsSync)(directory) ? (0, import_fs51.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS2.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
+      const detail = buildRunDetail(workspace, record3, artifactNames);
       const lines = [
         `Run ${detail.summary.runId} \u2014 ${detail.summary.runType} for spec "${detail.summary.specName}"${detail.summary.taskId !== void 0 ? `, task ${detail.summary.taskId}` : ""}.`,
         `Status: ${detail.summary.evidenceStatus ?? detail.summary.lifecycleStatus ?? detail.summary.outcome ?? "(in progress)"}.`
@@ -76641,14 +79497,14 @@ function registerSpecAffectedTool(server, context) {
         return { specName: spec.specName, matches: spec.matches.slice(0, MAX_PATHS) };
       });
       if (result.unmapped.length > MAX_PATHS || result.ambiguous.length > MAX_PATHS) truncated = true;
-      const text = [
+      const text2 = [
         `Comparison ${request.mode}: ${comparison.changedFiles.length} changed file(s).`,
         result.affected.length > 0 ? `Affected specs: ${result.affected.map((spec) => spec.specName).join(", ")}.` : "No spec is affected by this change set.",
         result.unmapped.length > 0 ? `${result.unmapped.length} unmapped changed file(s).` : "",
         result.ambiguous.length > 0 ? `${result.ambiguous.length} file(s) claimed by more than one spec.` : ""
       ].filter((line) => line.length > 0).join("\n");
       return {
-        text,
+        text: text2,
         structured: {
           comparison: { mode: request.mode, changedFiles: comparison.changedFiles.length },
           affected: boundedAffected,
@@ -76883,18 +79739,18 @@ function registerSpecRunVerificationTool(server, context) {
         durationMs: command.durationMs,
         timedOut: command.timedOut
       }));
-      const reportPath = result.artifactsDir !== void 0 ? import_path55.default.relative(workspace.rootDir, result.artifactsDir).split(import_path55.default.sep).join("/") : void 0;
+      const reportPath = result.artifactsDir !== void 0 ? import_path56.default.relative(workspace.rootDir, result.artifactsDir).split(import_path56.default.sep).join("/") : void 0;
       const commandLines = commands.map(
         (command) => `- ${command.name}: ${command.disposition}${command.disposition === "executed" ? command.passed ? " (passed)" : ` (FAILED, exit ${command.exitCode ?? "none"})` : ""}`
       );
-      const text = [
+      const text2 = [
         verificationText(view, "Verification (rules + trusted commands)"),
         commands.length > 0 ? `Commands:
 ${commandLines.join("\n")}` : "No verification commands are configured.",
         persistReport && reportPath !== void 0 ? `Report persisted: ${reportPath}` : "Report not persisted (persistReport was false)."
       ].join("\n");
       return {
-        text,
+        text: text2,
         structured: {
           ...view,
           commands,
@@ -77002,18 +79858,18 @@ var conformanceSummaryShape = external_exports.object({
   note: external_exports.string()
 });
 async function invocationFreeConformanceSummary(profile) {
-  const scratch = (0, import_fs51.mkdtempSync)(import_path56.default.join(import_os2.default.tmpdir(), "specbridge-mcp-conformance-"));
+  const scratch = (0, import_fs52.mkdtempSync)(import_path57.default.join(import_os2.default.tmpdir(), "specbridge-mcp-conformance-"));
   let result;
   try {
     result = await runRunnerConformance({
       profile,
       workspaceRoot: scratch,
-      runDir: import_path56.default.join(scratch, ".specbridge-conformance-runs"),
+      runDir: import_path57.default.join(scratch, ".specbridge-conformance-runs"),
       invocationsAllowed: false,
       timeoutMs: RUNNER_PROBE_TIMEOUT_MS
     });
   } finally {
-    (0, import_fs51.rmSync)(scratch, { recursive: true, force: true });
+    (0, import_fs52.rmSync)(scratch, { recursive: true, force: true });
   }
   return {
     passed: result.passed,
@@ -77371,9 +80227,9 @@ function registerTemplateListTool(server, context) {
         ...args.cursor !== void 0 ? { cursor: args.cursor } : {},
         token: "template-list"
       });
-      const text = page.items.length === 0 ? "No templates match the given filters." : page.items.map((template) => `- ${template.ref} v${template.version ?? "?"} \u2014 ${template.displayName ?? "(invalid)"}`).join("\n");
+      const text2 = page.items.length === 0 ? "No templates match the given filters." : page.items.map((template) => `- ${template.ref} v${template.version ?? "?"} \u2014 ${template.displayName ?? "(invalid)"}`).join("\n");
       return {
-        text,
+        text: text2,
         structured: {
           templates: page.items,
           totalCount: filtered.length,
@@ -77412,8 +80268,8 @@ function registerTemplateSearchTool(server, context) {
       const filtered = { entries: filterEntries(catalog.entries, args), diagnostics: catalog.diagnostics };
       const results = searchTemplates(filtered, args.query, args.limit !== void 0 ? { limit: args.limit } : {});
       const summaries = results.map((result) => ({ ...entrySummary(result.entry), score: result.score }));
-      const text = summaries.length === 0 ? `No templates match "${args.query}".` : summaries.map((result) => `- ${result.ref} (score ${result.score}) \u2014 ${result.displayName ?? ""}`).join("\n");
-      return { text, structured: { results: summaries, totalCount: summaries.length } };
+      const text2 = summaries.length === 0 ? `No templates match "${args.query}".` : summaries.map((result) => `- ${result.ref} (score ${result.score}) \u2014 ${result.displayName ?? ""}`).join("\n");
+      return { text: text2, structured: { results: summaries, totalCount: summaries.length } };
     }
   });
 }
@@ -77458,13 +80314,13 @@ function registerTemplateShowTool(server, context) {
       const manifest = entry.pack.manifest;
       const summary = entrySummary(entry);
       const readme = entry.pack.readme !== void 0 ? truncateText(entry.pack.readme, LIMITS.maximumShortTextChars) : void 0;
-      const text = [
+      const text2 = [
         `${entry.ref} \u2014 ${manifest?.displayName ?? "(invalid template)"} v${manifest?.version ?? "?"}`,
         manifest?.description ?? "",
         manifest !== void 0 ? `Variables: ${manifest.variables.map((variable) => variable.name).join(", ") || "(none)"}` : `Invalid: ${summary.errors.join(" | ")}`
       ].filter((line) => line.length > 0).join("\n");
       return {
-        text,
+        text: text2,
         structured: {
           template: summary,
           license: manifest?.license ?? null,
@@ -77768,9 +80624,9 @@ function registerExtensionListTool(server, context) {
         ...args.cursor !== void 0 ? { cursor: args.cursor } : {},
         token: "extension-list"
       });
-      const text = page.items.length === 0 ? "No installed extensions match the given filters." : page.items.map((entry) => `- ${entry.id}@${entry.version} (${entry.kind}, ${entry.enabled ? "enabled" : "disabled"})`).join("\n");
+      const text2 = page.items.length === 0 ? "No installed extensions match the given filters." : page.items.map((entry) => `- ${entry.id}@${entry.version} (${entry.kind}, ${entry.enabled ? "enabled" : "disabled"})`).join("\n");
       return {
-        text,
+        text: text2,
         structured: { extensions: page.items, totalCount: entries.length, nextCursor: page.nextCursor ?? null }
       };
     }
@@ -77856,7 +80712,7 @@ Permission hash: ${preview.permissionHash}
 Enable with: ${enableCommand}`,
         structured: {
           id: args.extensionId,
-          installedVersions: versions.map((record2) => record2.version),
+          installedVersions: versions.map((record3) => record3.version),
           enabledVersion: state.enabled[args.extensionId]?.version ?? null,
           kind: preview.manifest.kind,
           displayName: preview.manifest.displayName,
@@ -78059,6 +80915,740 @@ function registerRegistryShowTool(server, context) {
     }
   });
 }
+function orchestrationDeps(context, workspace) {
+  return {
+    workspace,
+    config: requireAgentConfig(workspace),
+    clock: context.clock,
+    idFactory: context.idFactory,
+    host: "mcp"
+  };
+}
+var orchestrationIdArg = external_exports.string().min(1).max(64).describe("Orchestration run id returned by orchestration_begin");
+var boundedText = (max) => external_exports.string().min(1).max(max);
+var stateSummaryShape = {
+  orchestrationId: external_exports.string(),
+  specName: external_exports.string(),
+  taskId: external_exports.string().optional(),
+  phase: external_exports.string(),
+  final: external_exports.boolean(),
+  summary: external_exports.string(),
+  nextAction: external_exports.string(),
+  executionBlockedBecause: external_exports.string().optional(),
+  planRevision: external_exports.number().int(),
+  planStale: external_exports.boolean(),
+  planStaleReasons: external_exports.array(external_exports.string()),
+  planReviewed: external_exports.boolean(),
+  openQuestions: external_exports.array(external_exports.object({ id: external_exports.string(), question: external_exports.string(), whyItMatters: external_exports.string() })),
+  budgets: external_exports.array(
+    external_exports.object({ name: external_exports.string(), used: external_exports.number(), limit: external_exports.number(), exhausted: external_exports.boolean() })
+  ),
+  exhaustedBudgets: external_exports.array(external_exports.string()),
+  blocker: external_exports.object({
+    category: external_exports.string(),
+    code: external_exports.string(),
+    message: external_exports.string(),
+    remediation: external_exports.array(external_exports.string())
+  }).optional(),
+  allowedActions: external_exports.array(external_exports.string())
+};
+function stateSummary(workspace, state) {
+  const detail = describeOrchestration(workspace, state, { eventLimit: 1 });
+  return {
+    orchestrationId: detail.orchestrationId,
+    specName: detail.specName,
+    ...detail.taskId !== void 0 ? { taskId: detail.taskId } : {},
+    phase: detail.phase,
+    final: detail.final,
+    summary: detail.summary,
+    nextAction: detail.nextAction,
+    ...detail.executionBlockedBecause !== void 0 ? { executionBlockedBecause: detail.executionBlockedBecause } : {},
+    planRevision: detail.planRevision,
+    planStale: detail.planStale,
+    planStaleReasons: detail.planStaleReasons,
+    planReviewed: detail.planReviewed,
+    openQuestions: detail.openQuestions,
+    budgets: detail.budgets,
+    exhaustedBudgets: detail.exhaustedBudgets,
+    ...detail.blocker !== void 0 ? { blocker: detail.blocker } : {},
+    allowedActions: detail.allowedActions
+  };
+}
+function registerOrchestrationStatusTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "orchestration_status",
+    title: "Orchestration status",
+    description: "Inspect governed orchestration state: current phase, why execution has or has not started, the active plan revision and whether it is still fresh, open clarifications, budget usage, and the exact next safe action. Read-only: looking at a run never changes it. Omit orchestrationId to list recent runs.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    inputSchema: {
+      orchestrationId: orchestrationIdArg.optional(),
+      eventLimit: external_exports.number().int().min(1).max(200).optional().describe("Recent events to include (default 20; history is persisted in full)")
+    },
+    outputSchema: {
+      ...stateSummaryShape,
+      runs: external_exports.array(
+        external_exports.object({
+          orchestrationId: external_exports.string(),
+          specName: external_exports.string(),
+          phase: external_exports.string(),
+          createdAt: external_exports.string()
+        })
+      ).optional(),
+      warnings: external_exports.array(external_exports.string()),
+      recentEvents: external_exports.array(external_exports.object({ at: external_exports.string(), type: external_exports.string() })).optional(),
+      totalEvents: external_exports.number().int().optional(),
+      activeInteractiveRun: external_exports.object({
+        runId: external_exports.string(),
+        lifecycleStatus: external_exports.string().optional(),
+        lockHeld: external_exports.boolean()
+      }).optional(),
+      diagnostics: external_exports.array(external_exports.string()).optional()
+    },
+    handler: async (args) => {
+      const workspace = context.requireWorkspace();
+      const deps = orchestrationDeps(context, workspace);
+      if (args.orchestrationId === void 0) {
+        const listed = listOrchestrationRuns(workspace);
+        const latest = listed.runs[0];
+        const base = latest !== void 0 ? stateSummary(workspace, latest) : {
+          orchestrationId: "",
+          specName: "",
+          phase: "none",
+          final: false,
+          summary: "No orchestration runs exist in this workspace.",
+          nextAction: "Start one with orchestration_begin.",
+          planRevision: 0,
+          planStale: false,
+          planStaleReasons: [],
+          planReviewed: false,
+          openQuestions: [],
+          budgets: [],
+          exhaustedBudgets: [],
+          allowedActions: []
+        };
+        return {
+          text: latest === void 0 ? "No orchestration runs yet. Start one with orchestration_begin." : `${listed.runs.length} orchestration run(s). Most recent: ${latest.orchestrationId} (${latest.phase}).`,
+          structured: {
+            ...base,
+            runs: listed.runs.slice(0, 20).map((run) => ({
+              orchestrationId: run.orchestrationId,
+              specName: run.specName,
+              phase: run.phase,
+              createdAt: run.createdAt
+            })),
+            warnings: [],
+            ...listed.diagnostics.length > 0 ? { diagnostics: listed.diagnostics.map((d) => d.message) } : {}
+          }
+        };
+      }
+      const report = await resumeOrchestration(deps, args.orchestrationId);
+      const detail = describeOrchestration(workspace, report.state, {
+        eventLimit: args.eventLimit ?? 20
+      });
+      const lines = [
+        `Orchestration ${report.state.orchestrationId} \u2014 ${report.state.phase}`,
+        report.explanation.summary,
+        "",
+        `Next action: ${report.nextAction}`
+      ];
+      if (report.planStale) {
+        lines.push("", "The recorded execution plan is STALE:");
+        for (const explanation of report.planStaleExplanations) lines.push(`  - ${explanation}`);
+      }
+      for (const warning2 of report.warnings) lines.push(`  ! ${warning2}`);
+      return {
+        text: lines.join("\n"),
+        structured: {
+          ...stateSummary(workspace, report.state),
+          planStale: report.planStale,
+          planStaleReasons: report.planStaleReasons,
+          nextAction: report.nextAction,
+          warnings: report.warnings,
+          recentEvents: detail.recentEvents,
+          totalEvents: detail.totalEvents,
+          ...report.activeInteractiveRun !== void 0 ? {
+            activeInteractiveRun: {
+              runId: report.activeInteractiveRun.runId,
+              ...report.activeInteractiveRun.lifecycleStatus !== void 0 ? { lifecycleStatus: report.activeInteractiveRun.lifecycleStatus } : {},
+              lockHeld: report.activeInteractiveRun.lockHeld
+            }
+          } : {}
+        }
+      };
+    }
+  });
+}
+function registerOrchestrationBeginTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "orchestration_begin",
+    title: "Begin governed orchestration",
+    description: "Start a governed orchestration run for one spec. Records the stated goal and the policy budgets the run will execute under. Modifies no source, invokes no model, and starts no implementation: intent must be assessed next.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false
+    },
+    inputSchema: {
+      specName: specNameArg,
+      goal: boundedText(4e3).describe(
+        "The user's stated goal, verbatim. Recorded as data, never executed as instructions."
+      ),
+      taskId: external_exports.string().max(64).optional().describe("Target task, when the user named one")
+    },
+    outputSchema: {
+      ...stateSummaryShape,
+      planningMode: external_exports.string(),
+      budgetSummary: external_exports.record(external_exports.number()),
+      instructions: external_exports.array(external_exports.string())
+    },
+    handler: async (args) => context.withWriteLock(async () => {
+      const workspace = context.requireWorkspace();
+      const deps = orchestrationDeps(context, workspace);
+      const state = beginOrchestration(deps, {
+        specName: args.specName,
+        goal: args.goal,
+        ...args.taskId !== void 0 ? { taskId: args.taskId } : {}
+      });
+      context.logger.info("orchestration_started", { orchestrationId: state.orchestrationId });
+      const instructions = [
+        "Assess intent next with orchestration_assess_intent.",
+        'Do not edit source before a plan exists and, under the "review" policy, has been reviewed.',
+        "Never approve a spec stage: approval is a human-only CLI action.",
+        "Completion is decided by task_complete evidence, never by your assessment."
+      ];
+      return {
+        text: [
+          `Orchestration ${state.orchestrationId} started for "${state.specName}" (planning mode: ${state.planningMode}).`,
+          "",
+          ...instructions.map((line) => `- ${line}`)
+        ].join("\n"),
+        structured: {
+          ...stateSummary(workspace, state),
+          planningMode: state.planningMode,
+          budgetSummary: {
+            maxIterations: state.budgets.maxIterations,
+            maxRepairCycles: state.budgets.maxRepairCycles,
+            maxReplans: state.budgets.maxReplans,
+            maxNoProgressCycles: state.budgets.maxNoProgressCycles,
+            maxTransientRetries: state.budgets.maxTransientRetries,
+            maxClarificationRounds: state.budgets.maxClarificationRounds
+          },
+          instructions
+        }
+      };
+    })
+  });
+}
+function registerOrchestrationAssessIntentTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "orchestration_assess_intent",
+    title: "Assess intent",
+    description: "Submit a structured intent assessment (READY / NEEDS_CLARIFICATION / REJECTED / BLOCKED) with the provenance of each fact relied on. SpecBridge validates it against facts it checks itself \u2014 approvals, staleness, task existence, lock ownership, hard product boundaries \u2014 and may override the submitted outcome towards caution. A READY claim resting on inferred, unknown, or conflicting provenance is downgraded to NEEDS_CLARIFICATION.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false
+    },
+    inputSchema: {
+      orchestrationId: orchestrationIdArg,
+      outcome: external_exports.enum(INTENT_OUTCOMES).describe("Your assessment; SpecBridge may override it"),
+      summary: boundedText(2e3).describe("One-line restatement of the user's request"),
+      reasons: external_exports.array(boundedText(2e3)).max(20).optional(),
+      provenance: external_exports.array(
+        external_exports.object({
+          fact: boundedText(2e3),
+          source: external_exports.enum(PROVENANCE_KINDS),
+          reference: external_exports.string().max(512).optional()
+        })
+      ).max(50).optional().describe("Where each fact came from. Structural provenance, not a confidence score.")
+    },
+    outputSchema: {
+      ...stateSummaryShape,
+      outcome: external_exports.string(),
+      overridden: external_exports.boolean(),
+      submittedOutcome: external_exports.string().optional(),
+      overrideReason: external_exports.string().optional(),
+      blockers: external_exports.array(
+        external_exports.object({ code: external_exports.string(), message: external_exports.string(), remediation: external_exports.array(external_exports.string()) })
+      )
+    },
+    handler: async (args) => context.withWriteLock(async () => {
+      const workspace = context.requireWorkspace();
+      const deps = orchestrationDeps(context, workspace);
+      const result = assessIntent(deps, args.orchestrationId, {
+        outcome: args.outcome,
+        summary: args.summary,
+        ...args.reasons !== void 0 ? { reasons: args.reasons } : {},
+        ...args.provenance !== void 0 ? { provenance: args.provenance } : {}
+      });
+      const intent = result.state.intent;
+      const lines = [`Intent: ${intent?.outcome ?? "unknown"}.`];
+      if (result.overridden) {
+        lines.push(
+          `SpecBridge overrode the submitted outcome (${intent?.overriddenFrom}): ${intent?.overrideReason ?? ""}`
+        );
+      }
+      for (const blocker of result.blockers) lines.push(`  - ${blocker.code}: ${blocker.message}`);
+      lines.push("", `Next action: ${stateSummary(workspace, result.state).nextAction}`);
+      return {
+        text: lines.join("\n"),
+        structured: {
+          ...stateSummary(workspace, result.state),
+          outcome: intent?.outcome ?? "unknown",
+          overridden: result.overridden,
+          ...intent?.overriddenFrom !== void 0 ? { submittedOutcome: intent.overriddenFrom } : {},
+          ...intent?.overrideReason !== void 0 ? { overrideReason: intent.overrideReason } : {},
+          blockers: result.blockers
+        }
+      };
+    })
+  });
+}
+function registerOrchestrationClarifyTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "orchestration_clarify",
+    title: "Request clarification",
+    description: "Record a bounded round of targeted clarification questions. Every question must state why its answer changes the implementation; generic questionnaires, duplicates, and re-asked questions are refused. The run stays in NEEDS_CLARIFICATION until the answers are recorded.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false
+    },
+    inputSchema: {
+      orchestrationId: orchestrationIdArg,
+      questions: external_exports.array(
+        external_exports.object({
+          question: boundedText(1024),
+          whyItMatters: boundedText(1024).describe(
+            "What the answer changes about the implementation. Required."
+          ),
+          options: external_exports.array(boundedText(512)).max(10).optional(),
+          relatedTaskId: external_exports.string().max(64).optional()
+        })
+      ).min(1).max(20)
+    },
+    outputSchema: {
+      ...stateSummaryShape,
+      round: external_exports.number().int(),
+      questionIds: external_exports.array(external_exports.string())
+    },
+    handler: async (args) => context.withWriteLock(async () => {
+      const workspace = context.requireWorkspace();
+      const deps = orchestrationDeps(context, workspace);
+      const state = requestClarification(
+        deps,
+        args.orchestrationId,
+        args.questions.map((question) => ({
+          question: question.question,
+          whyItMatters: question.whyItMatters,
+          ...question.options !== void 0 ? { options: question.options } : {},
+          ...question.relatedTaskId !== void 0 ? { relatedTaskId: question.relatedTaskId } : {}
+        }))
+      );
+      const round = state.counters.clarificationRounds;
+      const asked = state.openQuestions.filter((question) => question.round === round);
+      return {
+        text: [
+          `Clarification round ${round}: ${asked.length} question(s). Implementation cannot start until they are answered.`,
+          "",
+          ...asked.map((question) => `- ${question.question}
+  (why: ${question.whyItMatters})`)
+        ].join("\n"),
+        structured: {
+          ...stateSummary(workspace, state),
+          round,
+          questionIds: asked.map((question) => question.id)
+        }
+      };
+    })
+  });
+}
+function registerOrchestrationResolveClarificationTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "orchestration_resolve_clarification",
+    title: "Record clarification decisions",
+    description: "Record the user's answers to open clarification questions as durable decisions with provenance. An answer whose provenance is inferred, unknown, or conflicting is refused \u2014 that is the ambiguity the question existed to remove. A decision never amends an approved .kiro document: when the answer changes the specification, re-author the stage and re-enter the human approval lifecycle.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false
+    },
+    inputSchema: {
+      orchestrationId: orchestrationIdArg,
+      decisions: external_exports.array(
+        external_exports.object({
+          questionId: external_exports.string().min(1).max(64),
+          answer: boundedText(4096),
+          source: external_exports.enum(PROVENANCE_KINDS).describe("Use known-from-user for a direct answer from the user"),
+          impact: boundedText(2e3).optional().describe("What this changes about the build"),
+          supersedes: external_exports.string().max(64).optional()
+        })
+      ).min(1).max(20)
+    },
+    outputSchema: {
+      ...stateSummaryShape,
+      decisionIds: external_exports.array(external_exports.string()),
+      requiresSpecChange: external_exports.array(external_exports.string()),
+      specChangeGuidance: external_exports.array(external_exports.string())
+    },
+    handler: async (args) => context.withWriteLock(async () => {
+      const workspace = context.requireWorkspace();
+      const deps = orchestrationDeps(context, workspace);
+      const result = resolveClarification(
+        deps,
+        args.orchestrationId,
+        args.decisions.map((decision) => ({
+          questionId: decision.questionId,
+          answer: decision.answer,
+          source: decision.source,
+          ...decision.impact !== void 0 ? { impact: decision.impact } : {},
+          ...decision.supersedes !== void 0 ? { supersedes: decision.supersedes } : {}
+        }))
+      );
+      const guidance = result.requiresSpecChange.length > 0 ? [
+        "One or more decisions change what the specification says.",
+        "A clarification decision does not amend an approved .kiro document.",
+        "Re-author the affected stage (spec_stage_validate / spec_stage_apply), then the USER re-approves it."
+      ] : [];
+      return {
+        text: [
+          `Recorded ${result.state.decisions.length} decision(s); ${result.state.openQuestions.length} question(s) still open.`,
+          ...guidance.map((line) => `  ! ${line}`),
+          "",
+          `Next action: ${stateSummary(workspace, result.state).nextAction}`
+        ].join("\n"),
+        structured: {
+          ...stateSummary(workspace, result.state),
+          decisionIds: result.state.decisions.map((decision) => decision.id),
+          requiresSpecChange: result.requiresSpecChange,
+          specChangeGuidance: guidance
+        }
+      };
+    })
+  });
+}
+function registerOrchestrationSubmitPlanTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "orchestration_submit_plan",
+    title: "Submit execution plan",
+    description: "Submit an execution plan for the selected approved task: how it will be approached against the CURRENT repository state. Distinct from tasks.md, which is a human-approved .kiro artefact. The plan is bound to the task fingerprint, the approved stage hashes, the Git baseline, and the policy \u2014 so it can go stale and be refused later. Submitting again is a replan: material changes re-open review, immaterial ones (reordering, wording) do not.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false
+    },
+    inputSchema: {
+      orchestrationId: orchestrationIdArg,
+      taskId: external_exports.string().min(1).max(64).describe("The approved task this plan implements"),
+      goal: boundedText(2e3),
+      steps: external_exports.array(
+        external_exports.object({
+          id: external_exports.string().max(64).optional(),
+          description: boundedText(2e3),
+          expectedAreas: external_exports.array(external_exports.string().max(512)).max(20).optional(),
+          expectedEvidence: boundedText(2e3).optional()
+        })
+      ).min(1).max(200),
+      testStrategy: boundedText(2e3),
+      verificationStrategy: boundedText(2e3),
+      nonGoals: external_exports.array(boundedText(2e3)).max(50).optional(),
+      constraints: external_exports.array(boundedText(2e3)).max(50).optional(),
+      relevantEvidence: external_exports.array(boundedText(2e3)).max(50).optional(),
+      assumptions: external_exports.array(boundedText(2e3)).max(50).optional().describe("Labelled assumptions. Planning information, never presented as facts."),
+      openQuestions: external_exports.array(boundedText(2e3)).max(50).optional(),
+      expectedAreas: external_exports.array(external_exports.string().max(512)).max(50).optional().describe("Expected implementation areas. Planning information, not a prediction of fact."),
+      rollbackConsiderations: boundedText(2e3).optional(),
+      replanTriggers: external_exports.array(boundedText(2e3)).max(50).optional(),
+      replanReason: boundedText(2e3).optional().describe("Required in spirit when replacing a plan")
+    },
+    outputSchema: {
+      ...stateSummaryShape,
+      planId: external_exports.string(),
+      planHash: external_exports.string().describe("Pass this exact hash to orchestration_review_plan"),
+      revision: external_exports.number().int(),
+      reviewRequired: external_exports.boolean(),
+      materiality: external_exports.string().optional(),
+      materialChanges: external_exports.array(external_exports.string()).optional(),
+      planText: external_exports.string().describe("Human-readable plan to present to the user for review")
+    },
+    handler: async (args) => context.withWriteLock(async () => {
+      const workspace = context.requireWorkspace();
+      const deps = orchestrationDeps(context, workspace);
+      const result = await submitPlan(deps, args.orchestrationId, {
+        taskId: args.taskId,
+        goal: args.goal,
+        steps: args.steps.map((step) => ({
+          ...step.id !== void 0 ? { id: step.id } : {},
+          description: step.description,
+          ...step.expectedAreas !== void 0 ? { expectedAreas: step.expectedAreas } : {},
+          ...step.expectedEvidence !== void 0 ? { expectedEvidence: step.expectedEvidence } : {}
+        })),
+        testStrategy: args.testStrategy,
+        verificationStrategy: args.verificationStrategy,
+        ...args.nonGoals !== void 0 ? { nonGoals: args.nonGoals } : {},
+        ...args.constraints !== void 0 ? { constraints: args.constraints } : {},
+        ...args.relevantEvidence !== void 0 ? { relevantEvidence: args.relevantEvidence } : {},
+        ...args.assumptions !== void 0 ? { assumptions: args.assumptions } : {},
+        ...args.openQuestions !== void 0 ? { openQuestions: args.openQuestions } : {},
+        ...args.expectedAreas !== void 0 ? { expectedAreas: args.expectedAreas } : {},
+        ...args.rollbackConsiderations !== void 0 ? { rollbackConsiderations: args.rollbackConsiderations } : {},
+        ...args.replanTriggers !== void 0 ? { replanTriggers: args.replanTriggers } : {},
+        ...args.replanReason !== void 0 ? { replanReason: args.replanReason } : {}
+      });
+      const plan = result.plan;
+      const planText = [
+        `Execution plan revision ${plan.revision} \u2014 ${plan.specName}, task ${plan.binding.taskId}`,
+        "",
+        `Goal: ${plan.goal}`,
+        ...plan.nonGoals.length > 0 ? ["", "Non-goals:", ...plan.nonGoals.map((v) => `  - ${v}`)] : [],
+        ...plan.constraints.length > 0 ? ["", "Constraints:", ...plan.constraints.map((v) => `  - ${v}`)] : [],
+        ...plan.assumptions.length > 0 ? ["", "Assumptions (not facts):", ...plan.assumptions.map((v) => `  - ${v}`)] : [],
+        ...plan.openQuestions.length > 0 ? ["", "Open questions:", ...plan.openQuestions.map((v) => `  - ${v}`)] : [],
+        "",
+        "Steps:",
+        ...plan.steps.map((step, index) => `  ${index + 1}. ${step.description}`),
+        "",
+        `Test strategy: ${plan.testStrategy}`,
+        `Verification strategy: ${plan.verificationStrategy}`,
+        ...plan.expectedAreas.length > 0 ? ["", `Expected areas: ${plan.expectedAreas.join(", ")}`] : []
+      ].join("\n");
+      return {
+        text: [
+          planText,
+          "",
+          result.reviewRequired ? `Review REQUIRED before any source edit. Present this plan to the user, then call orchestration_review_plan with planHash "${result.planHash}".` : "Planning policy does not require review; execution may begin."
+        ].join("\n"),
+        structured: {
+          ...stateSummary(workspace, result.state),
+          planId: plan.planId,
+          planHash: result.planHash,
+          revision: plan.revision,
+          reviewRequired: result.reviewRequired,
+          ...result.materiality !== void 0 ? {
+            materiality: result.materiality.materiality,
+            materialChanges: result.materiality.materialChanges
+          } : {},
+          planText
+        }
+      };
+    })
+  });
+}
+function registerOrchestrationReviewPlanTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "orchestration_review_plan",
+    title: "Record plan review",
+    description: "Record the USER's explicit decision on the active execution plan, bound to its exact hash. This is a PLAN review, not a spec approval: it never approves a requirements, bugfix, design, or tasks stage, and there is no tool that can. Present the plan and ask before calling this; the hash binding is contract-enforced, the asking is skill-guided.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false
+    },
+    inputSchema: {
+      orchestrationId: orchestrationIdArg,
+      planHash: external_exports.string().min(1).max(64).describe("Exact planHash from orchestration_submit_plan"),
+      decision: external_exports.enum(["approved", "rejected"]).describe("The user's decision, not yours"),
+      note: boundedText(2e3).optional()
+    },
+    outputSchema: { ...stateSummaryShape, decision: external_exports.string(), planRevision: external_exports.number().int() },
+    handler: async (args) => context.withWriteLock(async () => {
+      const workspace = context.requireWorkspace();
+      const deps = orchestrationDeps(context, workspace);
+      const state = reviewPlan(deps, args.orchestrationId, {
+        planHash: args.planHash,
+        decision: args.decision,
+        ...args.note !== void 0 ? { note: args.note } : {},
+        channel: "user-relayed"
+      });
+      return {
+        text: args.decision === "approved" ? `Plan revision ${state.planRevision} approved by the user. Begin the task with task_begin, then record actions as you go.` : `Plan revision ${state.planRevision} rejected. Submit a revised plan.`,
+        structured: {
+          ...stateSummary(workspace, state),
+          decision: args.decision,
+          planRevision: state.planRevision
+        }
+      };
+    })
+  });
+}
+function registerOrchestrationRecordActionTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "orchestration_record_action",
+    title: "Record action and get the next directive",
+    description: "Record one bounded observe/decide/act iteration and receive the DETERMINISTIC next directive (CONTINUE, RETRY, VERIFY, REPAIR, REPLAN, CLARIFY, BLOCK, or a budget stop). Record what you did operationally \u2014 category, target, expected evidence, plan step, result \u2014 never your reasoning; no field stores it. Source edits are refused before the plan gate and against a stale plan. You do not choose the directive; you read it.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false
+    },
+    inputSchema: {
+      orchestrationId: orchestrationIdArg,
+      action: external_exports.enum(ACTION_CATEGORIES),
+      target: boundedText(512).describe("What the action targeted: a path, a verifier, a step"),
+      result: external_exports.enum(OBSERVATION_RESULTS),
+      planStepId: external_exports.string().max(64).optional(),
+      expectedEvidence: boundedText(2e3).optional(),
+      changedFiles: external_exports.array(external_exports.object({ path: external_exports.string().max(1024), contentHash: external_exports.string().max(128).optional() })).max(500).optional().describe("Observed changes. Claims: the completion gate re-derives them from Git."),
+      failure: external_exports.object({
+        category: external_exports.enum(FAILURE_CATEGORIES),
+        message: boundedText(2e3),
+        source: boundedText(512).describe("Verifier name, tool, or step that failed"),
+        exitCode: external_exports.number().int().optional(),
+        output: external_exports.string().max(16384).optional().describe("Normalized before fingerprinting")
+      }).optional(),
+      readyToVerify: external_exports.boolean().optional().describe("Assert the implementation is ready for trusted verification")
+    },
+    outputSchema: {
+      ...stateSummaryShape,
+      directive: external_exports.string(),
+      reason: external_exports.string(),
+      backoffMs: external_exports.number(),
+      remediation: external_exports.array(external_exports.string()),
+      failureCategory: external_exports.string().optional(),
+      exhaustedBudget: external_exports.string().optional(),
+      progressed: external_exports.boolean(),
+      consecutiveNoProgress: external_exports.number().int(),
+      stagnated: external_exports.boolean(),
+      progressReason: external_exports.string()
+    },
+    handler: async (args) => context.withWriteLock(async () => {
+      const workspace = context.requireWorkspace();
+      const deps = orchestrationDeps(context, workspace);
+      const result = await recordActionChecked(deps, args.orchestrationId, {
+        action: args.action,
+        target: args.target,
+        result: args.result,
+        ...args.planStepId !== void 0 ? { planStepId: args.planStepId } : {},
+        ...args.expectedEvidence !== void 0 ? { expectedEvidence: args.expectedEvidence } : {},
+        ...args.changedFiles !== void 0 ? { changedFiles: args.changedFiles } : {},
+        ...args.failure !== void 0 ? { failure: args.failure } : {},
+        ...args.readyToVerify !== void 0 ? { readyToVerify: args.readyToVerify } : {}
+      });
+      const decision = result.decision;
+      return {
+        text: [
+          `Directive: ${decision.directive}`,
+          decision.reason,
+          ...decision.backoffMs > 0 ? [`Wait ${decision.backoffMs}ms before retrying.`] : [],
+          ...decision.remediation.length > 0 ? ["", ...decision.remediation.map((step) => `  - ${step}`)] : []
+        ].join("\n"),
+        structured: {
+          ...stateSummary(workspace, result.state),
+          directive: decision.directive,
+          reason: decision.reason,
+          backoffMs: decision.backoffMs,
+          remediation: decision.remediation,
+          ...decision.failureCategory !== void 0 ? { failureCategory: decision.failureCategory } : {},
+          ...decision.exhaustedBudget !== void 0 ? { exhaustedBudget: decision.exhaustedBudget } : {},
+          progressed: result.progress.progressed,
+          consecutiveNoProgress: result.progress.consecutiveNoProgress,
+          stagnated: result.progress.stagnated,
+          progressReason: result.progress.reason
+        }
+      };
+    })
+  });
+}
+function registerOrchestrationCheckpointTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "orchestration_checkpoint",
+    title: "Create orchestration checkpoint",
+    description: "Write a compact structured checkpoint: phase, plan revision, completed and unresolved steps, key observations, counters, blocker, and the exact next safe action. Deliberately small \u2014 never a transcript. A later session recovers this, not your reasoning.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    inputSchema: {
+      orchestrationId: orchestrationIdArg,
+      nextAction: boundedText(2e3).describe("The exact next safe action, in one line"),
+      observations: external_exports.array(boundedText(2e3)).max(50).optional(),
+      latestVerifier: boundedText(2e3).optional()
+    },
+    outputSchema: {
+      orchestrationId: external_exports.string(),
+      phase: external_exports.string(),
+      planRevision: external_exports.number().int(),
+      completedSteps: external_exports.array(external_exports.string()),
+      unresolvedSteps: external_exports.array(external_exports.string()),
+      nextAction: external_exports.string(),
+      checkpointBytes: external_exports.number().int()
+    },
+    handler: async (args) => context.withWriteLock(async () => {
+      const workspace = context.requireWorkspace();
+      const deps = orchestrationDeps(context, workspace);
+      const checkpoint = createCheckpoint(deps, args.orchestrationId, {
+        nextAction: args.nextAction,
+        ...args.observations !== void 0 ? { observations: args.observations } : {},
+        ...args.latestVerifier !== void 0 ? { latestVerifier: args.latestVerifier } : {}
+      });
+      return {
+        text: `Checkpoint written for ${checkpoint.orchestrationId} (${checkpoint.phase}). Next action: ${checkpoint.nextAction}`,
+        structured: {
+          orchestrationId: checkpoint.orchestrationId,
+          phase: checkpoint.phase,
+          planRevision: checkpoint.planRevision,
+          completedSteps: checkpoint.completedSteps,
+          unresolvedSteps: checkpoint.unresolvedSteps,
+          nextAction: checkpoint.nextAction,
+          checkpointBytes: Buffer.byteLength(JSON.stringify(checkpoint), "utf8")
+        }
+      };
+    })
+  });
+}
+function registerOrchestrationFinalizeTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "orchestration_finalize",
+    title: "Finalize orchestration",
+    description: 'Close a governed orchestration run as completed, aborted, or cancelled. Completion is accepted ONLY with a verified evidence status actually returned by task_complete (verified or manually-accepted); orchestration has no independent notion of "done" and cannot create one. Repeat calls are idempotent and never re-run anything.',
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    inputSchema: {
+      orchestrationId: orchestrationIdArg,
+      outcome: external_exports.enum(["completed", "aborted", "cancelled"]),
+      reason: boundedText(2e3),
+      evidenceStatus: external_exports.string().max(64).optional().describe("The evidenceStatus task_complete actually returned. Required for completion."),
+      interactiveRunId: external_exports.string().max(64).optional()
+    },
+    outputSchema: { ...stateSummaryShape, finalOutcome: external_exports.string(), finalizedAt: external_exports.string().optional() },
+    handler: async (args) => context.withWriteLock(async () => {
+      const workspace = context.requireWorkspace();
+      const deps = orchestrationDeps(context, workspace);
+      const state = finalizeOrchestration(deps, args.orchestrationId, {
+        outcome: args.outcome,
+        reason: args.reason,
+        ...args.evidenceStatus !== void 0 ? { evidenceStatus: args.evidenceStatus } : {},
+        ...args.interactiveRunId !== void 0 ? { interactiveRunId: args.interactiveRunId } : {}
+      });
+      return {
+        text: `Orchestration ${state.orchestrationId} is ${state.phase}.`,
+        structured: {
+          ...stateSummary(workspace, state),
+          finalOutcome: state.finalOutcome ?? state.phase,
+          ...state.finalizedAt !== void 0 ? { finalizedAt: state.finalizedAt } : {}
+        }
+      };
+    })
+  });
+}
 var TOOL_CATALOG = [
   { name: "workspace_detect", readOnly: true, summary: "Detect the Kiro-compatible workspace" },
   { name: "steering_list", readOnly: true, summary: "List steering documents" },
@@ -78096,7 +81686,17 @@ var TOOL_CATALOG = [
   { name: "extension_doctor", readOnly: true, summary: "Extension health check (bounded no-op handshake)" },
   { name: "registry_list", readOnly: true, summary: "List configured extension registries" },
   { name: "registry_search", readOnly: true, summary: "Offline registry index search" },
-  { name: "registry_show", readOnly: true, summary: "Registry metadata for one extension (no download)" }
+  { name: "registry_show", readOnly: true, summary: "Registry metadata for one extension (no download)" },
+  { name: "orchestration_status", readOnly: true, summary: "Governed orchestration state, freshness, and next safe action" },
+  { name: "orchestration_begin", readOnly: false, summary: "Begin a governed orchestration run" },
+  { name: "orchestration_assess_intent", readOnly: false, summary: "Validate a structured intent assessment" },
+  { name: "orchestration_clarify", readOnly: false, summary: "Record a bounded round of targeted questions" },
+  { name: "orchestration_resolve_clarification", readOnly: false, summary: "Record structured clarification decisions" },
+  { name: "orchestration_submit_plan", readOnly: false, summary: "Validate and store a context-bound execution plan" },
+  { name: "orchestration_review_plan", readOnly: false, summary: "Record the user plan-review decision (hash-bound)" },
+  { name: "orchestration_record_action", readOnly: false, summary: "Record one bounded iteration; get the next directive" },
+  { name: "orchestration_checkpoint", readOnly: false, summary: "Write a compact structured checkpoint" },
+  { name: "orchestration_finalize", readOnly: false, summary: "Close a run (completion needs verified evidence)" }
 ];
 function registerAllTools(server, context) {
   registerWorkspaceDetectTool(server, context);
@@ -78136,6 +81736,16 @@ function registerAllTools(server, context) {
   registerRegistryListTool(server, context);
   registerRegistrySearchTool(server, context);
   registerRegistryShowTool(server, context);
+  registerOrchestrationStatusTool(server, context);
+  registerOrchestrationBeginTool(server, context);
+  registerOrchestrationAssessIntentTool(server, context);
+  registerOrchestrationClarifyTool(server, context);
+  registerOrchestrationResolveClarificationTool(server, context);
+  registerOrchestrationSubmitPlanTool(server, context);
+  registerOrchestrationReviewPlanTool(server, context);
+  registerOrchestrationRecordActionTool(server, context);
+  registerOrchestrationCheckpointTool(server, context);
+  registerOrchestrationFinalizeTool(server, context);
 }
 function buildMcpServer(context) {
   const server = new McpServer(
@@ -78299,8 +81909,8 @@ async function runMcpServe(argv2, io = {
 }
 
 // ../../packages/mcp-server/dist/index.js
-var import_fs52 = require("fs");
-var import_path57 = __toESM(require("path"), 1);
+var import_fs53 = require("fs");
+var import_path58 = __toESM(require("path"), 1);
 async function runMcpDoctor(options = {}) {
   const checks = [];
   const env = options.env ?? process.env;
@@ -78393,7 +82003,7 @@ async function runMcpDoctor(options = {}) {
   const pluginRoot = env["CLAUDE_PLUGIN_ROOT"];
   if (pluginRoot !== void 0 && pluginRoot.length > 0) {
     const missing = ["dist/mcp-server.cjs", "dist/cli.cjs"].filter(
-      (relative) => !(0, import_fs52.existsSync)(import_path57.default.join(pluginRoot, relative))
+      (relative) => !(0, import_fs53.existsSync)(import_path58.default.join(pluginRoot, relative))
     );
     checks.push(
       missing.length === 0 ? { name: "plugin-bundle", status: "ok", detail: `Bundled executables present under ${pluginRoot}` } : {
@@ -78464,7 +82074,7 @@ Examples:
     runtime.out(
       failed === 0 ? okLine(`MCP setup is healthy (${report.checks.length} checks, ${warned} warning(s)).`) : failLine(`${failed} check(s) failed.`)
     );
-    runtime.out(dim(`  Server ${report.serverVersion} \xB7 SDK ${report.sdkVersion} \xB7 protocol baseline ${report.protocolBaseline}`));
+    runtime.out(dim2(`  Server ${report.serverVersion} \xB7 SDK ${report.sdkVersion} \xB7 protocol baseline ${report.protocolBaseline}`));
     runtime.exitCode = report.healthy ? 0 : 1;
   });
   mcp.command("manifest").description("Print the MCP server identity, protocol baseline, and capability counts").option("--json", "output a machine-readable JSON report").action((options) => {
@@ -78523,7 +82133,7 @@ Examples:
       }
     }
     runtime.out();
-    runtime.out(dim(`  Stage approval is deliberately NOT an MCP tool; humans approve via "${CLI_BIN} spec approve".`));
+    runtime.out(dim2(`  Stage approval is deliberately NOT an MCP tool; humans approve via "${CLI_BIN} spec approve".`));
   });
 }
 
@@ -78637,7 +82247,7 @@ function registerExtensionCommands(program2, runtime) {
     }
     runtime.out();
     if (entries.length === 0) {
-      runtime.out(dim("  none \u2014 install one with `specbridge extension install <source>`"));
+      runtime.out(dim2("  none \u2014 install one with `specbridge extension install <source>`"));
     }
     for (const entry of entries) {
       const state = entry.enabled ? "enabled" : "disabled";
@@ -78647,8 +82257,8 @@ function registerExtensionCommands(program2, runtime) {
           `(${entry.kind}, ${state}, ${entry.compatibility}, conformance: ${entry.conformance})`
         )
       );
-      runtime.out(dim(`     ${entry.description}`));
-      runtime.out(dim(`     source: ${entry.source} | permissions accepted: ${entry.permissionsAccepted ? "yes" : "no"}`));
+      runtime.out(dim2(`     ${entry.description}`));
+      runtime.out(dim2(`     source: ${entry.source} | permissions accepted: ${entry.permissionsAccepted ? "yes" : "no"}`));
     }
   });
   extension.command("search <query>").description("Search installed extensions and cached registry indexes (offline, lexical ranking)").option("--registry <name>", "search one registry only").option("--kind <kind>", `filter by kind: ${EXTENSION_KINDS.join(" | ")}`).option("--limit <n>", "maximum results", "20").option("--json", "output a machine-readable JSON report").action((query, options) => {
@@ -78692,10 +82302,10 @@ function registerExtensionCommands(program2, runtime) {
     runtime.out(sectionTitle(`registries (${registryHits.length})`));
     for (const hit of registryHits) {
       runtime.out(okLine(`${hit.entry.id}@${hit.entry.latestVersion}`, `(${hit.entry.kind}, from ${hit.registryName})`));
-      runtime.out(dim(`     ${hit.entry.description}`));
+      runtime.out(dim2(`     ${hit.entry.description}`));
     }
     if (registryHits.length === 0) {
-      runtime.out(dim("  no cached registry matches \u2014 update caches with `specbridge registry update <name> --network`"));
+      runtime.out(dim2("  no cached registry matches \u2014 update caches with `specbridge registry update <name> --network`"));
     }
   });
   extension.command("show <extension>").description("Show manifest, permissions, permission hash, enablement, and registry metadata").option("--json", "output a machine-readable JSON report").action((id, options) => {
@@ -78733,8 +82343,8 @@ function registerExtensionCommands(program2, runtime) {
     if (preview !== void 0) {
       const manifest = preview.manifest;
       runtime.out(`  ${manifest.displayName} v${preview.record.version} \u2014 ${manifest.kind}`);
-      runtime.out(dim(`  ${manifest.description}`));
-      runtime.out(`  installed versions: ${versions.map((record2) => record2.version).join(", ")}`);
+      runtime.out(dim2(`  ${manifest.description}`));
+      runtime.out(`  installed versions: ${versions.map((record3) => record3.version).join(", ")}`);
       runtime.out(`  enabled: ${preview.enabled ? `yes (${preview.record.version})` : "no"}`);
       runtime.out(`  grant: ${preview.grantStatus}`);
       runtime.out();
@@ -78745,10 +82355,10 @@ function registerExtensionCommands(program2, runtime) {
       runtime.out();
       runtime.out(`  permission hash: ${preview.permissionHash}`);
       runtime.out(
-        dim(`  enable with: ${CLI_BIN} extension enable ${id} --accept-permissions ${preview.permissionHash}`)
+        dim2(`  enable with: ${CLI_BIN} extension enable ${id} --accept-permissions ${preview.permissionHash}`)
       );
     } else {
-      runtime.out(dim("  not installed locally"));
+      runtime.out(dim2("  not installed locally"));
     }
     if (registryMatches.length > 0) {
       runtime.out();
@@ -78758,7 +82368,7 @@ function registerExtensionCommands(program2, runtime) {
           okLine(`${match.registryName}: latest ${match.latestVersion} (${match.kind}, ${match.license})`)
         );
       }
-      runtime.out(dim("  registry listing is not endorsement; review permissions before enabling."));
+      runtime.out(dim2("  registry listing is not endorsement; review permissions before enabling."));
     }
   });
   extension.command("validate <path-or-extension>").description("Validate a package directory, archive, or installed extension (never executes code)").option("--json", "output a machine-readable JSON report").action((target, options) => {
@@ -78782,18 +82392,18 @@ function registerExtensionCommands(program2, runtime) {
     } else {
       const workspace = runtime.workspace();
       const { state } = readExtensionState(workspace);
-      const record2 = installedVersions(state, target)[0];
-      if (record2 === void 0) {
+      const record3 = installedVersions(state, target)[0];
+      if (record3 === void 0) {
         throw new SpecBridgeError(
           "INVALID_ARGUMENT",
           `"${target}" is neither a directory, a .zip archive, nor an installed extension ID.`
         );
       }
-      const dir = installedVersionDir(workspace, record2.id, record2.version);
+      const dir = installedVersionDir(workspace, record3.id, record3.version);
       const validation = loadExtensionPackage(readExtensionPackageDirectory(dir));
       issues = validation.issues;
-      manifestId = record2.id;
-      where = `installed extension ${record2.id}@${record2.version}`;
+      manifestId = record3.id;
+      where = `installed extension ${record3.id}@${record3.version}`;
     }
     const errors = issues.filter((issue4) => issue4.severity === "error");
     if (options.json === true) {
@@ -78872,13 +82482,13 @@ function registerExtensionCommands(program2, runtime) {
       runtime.out(warnLine(`${warning2.code}: ${warning2.message}`));
     }
     if (result.dryRun) {
-      runtime.out(dim("Dry run: nothing was installed."));
+      runtime.out(dim2("Dry run: nothing was installed."));
       return;
     }
     runtime.out(okLine("installed (disabled; no code was executed)"));
     runtime.out(`  permission hash: ${result.permissionHash}`);
     runtime.out(
-      dim(`  enable with: ${CLI_BIN} extension enable ${result.id} --accept-permissions ${result.permissionHash}`)
+      dim2(`  enable with: ${CLI_BIN} extension enable ${result.id} --accept-permissions ${result.permissionHash}`)
     );
   });
   extension.command("enable <extension>").description("Enable an installed extension after explicit permission acceptance").option("--accept-permissions <hash>", "the exact permission hash shown by `extension show`").option("--version <version>", "enable a specific installed version").option("--json", "output a machine-readable JSON report").action(async (id, options) => {
@@ -78933,7 +82543,7 @@ function registerExtensionCommands(program2, runtime) {
       return;
     }
     runtime.out(okLine(`${result.id}@${result.version} enabled`));
-    runtime.out(dim(`  grant stored for permission hash ${result.permissionHash}`));
+    runtime.out(dim2(`  grant stored for permission hash ${result.permissionHash}`));
   });
   extension.command("disable <extension>").description("Disable an enabled extension (keeps it installed; preserves all records)").option("--json", "output a machine-readable JSON report").action((id, options) => {
     const workspace = runtime.workspace();
@@ -78958,12 +82568,12 @@ function registerExtensionCommands(program2, runtime) {
       return;
     }
     if (result.dryRun) {
-      runtime.out(dim(`Dry run: would remove ${result.id}@${result.version}.`));
+      runtime.out(dim2(`Dry run: would remove ${result.id}@${result.version}.`));
       return;
     }
     runtime.out(okLine(`${result.id}@${result.version} uninstalled`));
     if (result.trashPath !== void 0) {
-      runtime.out(dim(`  recoverable copy: ${result.trashPath}`));
+      runtime.out(dim2(`  recoverable copy: ${result.trashPath}`));
     }
   });
   extension.command("doctor [extension]").description("Read-only health checks: integrity, grants, compatibility, and a no-op handshake").option("--json", "output a machine-readable JSON report").action(async (id, options) => {
@@ -79015,14 +82625,14 @@ function registerExtensionCommands(program2, runtime) {
         runtime.out(okLine(`${String(result["id"])}@${String(result["version"])}`, `(grant: ${String(result["grantStatus"])})`));
         const handshake = result["handshake"];
         if (handshake !== void 0) {
-          runtime.out(dim(`     handshake: ${handshake.detail}`));
+          runtime.out(dim2(`     handshake: ${handshake.detail}`));
         }
       } else {
         runtime.out(failLine(`${String(result["id"])}: ${String(result["error"] ?? "unhealthy")}`));
       }
     }
     if (results.length === 0) {
-      runtime.out(dim("  no installed extensions"));
+      runtime.out(dim2("  no installed extensions"));
     }
     runtime.exitCode = failed ? EXIT_CODES.gateFailure : 0;
   });
@@ -79051,12 +82661,12 @@ function registerExtensionCommands(program2, runtime) {
     const workspace = runtime.tryWorkspace();
     if (workspace !== void 0) {
       const { state } = readExtensionState(workspace);
-      const record2 = state.installed.find(
+      const record3 = state.installed.find(
         (candidate) => candidate.id === result.extensionId && candidate.version === result.version
       );
-      if (record2 !== void 0) {
-        record2.conformanceStatus = result.passed ? "passed" : "failed";
-        record2.conformanceAt = runtime.now().toISOString();
+      if (record3 !== void 0) {
+        record3.conformanceStatus = result.passed ? "passed" : "failed";
+        record3.conformanceAt = runtime.now().toISOString();
         writeExtensionState(workspace, state);
       }
     }
@@ -79103,10 +82713,10 @@ function registerExtensionCommands(program2, runtime) {
     }
     runtime.out();
     if (result.dryRun) {
-      runtime.out(dim("Dry run: nothing was written."));
+      runtime.out(dim2("Dry run: nothing was written."));
       return;
     }
-    runtime.out(dim(`Next: ${CLI_BIN} extension validate ${options.output ?? `./${id}`}`));
+    runtime.out(dim2(`Next: ${CLI_BIN} extension validate ${options.output ?? `./${id}`}`));
   });
   extension.command("package <path>").description("Build a deterministic .specbridge-extension.zip with checksums (no lifecycle scripts)").option("--output <directory>", "directory for the archive (default: <path>/dist)").option("--dry-run", "validate and compute the hash without writing the archive").option("--json", "output a machine-readable JSON report").action((source, options) => {
     const result = buildExtensionArchive(import_node_path21.default.resolve(runtime.cwd, source), {
@@ -79127,7 +82737,7 @@ function registerExtensionCommands(program2, runtime) {
       runtime.out(okLine(`archive: ${result.archivePath}`));
     }
     runtime.out(`  sha256: ${result.archiveSha256}`);
-    runtime.out(dim("  Checksums prove integrity, not publisher identity."));
+    runtime.out(dim2("  Checksums prove integrity, not publisher identity."));
   });
 }
 
@@ -79207,7 +82817,7 @@ function registerRegistryCommands(program2, runtime) {
           `(${row.type}, ${row.enabled ? "enabled" : "disabled"}, ${row.cacheStatus}${row.extensionCount !== null ? `, ${row.extensionCount} extensions` : ""})`
         )
       );
-      runtime.out(dim(`     ${row.source}${row.lastUpdate !== null ? ` | updated ${row.lastUpdate}` : ""}`));
+      runtime.out(dim2(`     ${row.source}${row.lastUpdate !== null ? ` | updated ${row.lastUpdate}` : ""}`));
     }
   });
   registry2.command("add <name>").description("Add a local-file or https registry (no fetch happens here)").option("--file <path>", "workspace-relative path to a registry index JSON file").option("--url <https-url>", "HTTPS URL of a registry index").option("--dry-run", "validate the configuration without saving").option("--json", "output a machine-readable JSON report").action((name, options) => {
@@ -79221,7 +82831,7 @@ function registerRegistryCommands(program2, runtime) {
         jsonOut2(runtime, "specbridge.registry-add/1", { dryRun: true, source });
         return;
       }
-      runtime.out(dim(`Dry run: would add registry "${name}".`));
+      runtime.out(dim2(`Dry run: would add registry "${name}".`));
       return;
     }
     addRegistrySource(workspace, source);
@@ -79231,7 +82841,7 @@ function registerRegistryCommands(program2, runtime) {
     }
     runtime.out(okLine(`registry "${name}" added`));
     if (source.type === "https") {
-      runtime.out(dim(`  fetch its index explicitly with: ${CLI_BIN} registry update ${name} --network`));
+      runtime.out(dim2(`  fetch its index explicitly with: ${CLI_BIN} registry update ${name} --network`));
     }
   });
   registry2.command("remove <name>").description("Remove a registry configuration (and its cache) after explicit confirmation").option("--yes", "confirm the removal").option("--json", "output a machine-readable JSON report").action((name, options) => {
@@ -79255,7 +82865,7 @@ function registerRegistryCommands(program2, runtime) {
     const { config: config2 } = readRegistriesConfig(workspace);
     const targets = name !== void 0 ? [requireRegistrySource(config2, name)] : config2.registries.filter((source) => source.type === "https" && source.enabled);
     if (targets.length === 0) {
-      runtime.out(dim("No https registries to update."));
+      runtime.out(dim2("No https registries to update."));
       return;
     }
     const results = [];
@@ -79294,7 +82904,7 @@ function registerRegistryCommands(program2, runtime) {
         runtime.out(failLine(`${String(result["name"])}: ${String(result["error"])}`));
       }
     }
-    runtime.out(dim("Registry updates never install or execute anything."));
+    runtime.out(dim2("Registry updates never install or execute anything."));
     runtime.exitCode = failed ? EXIT_CODES.gateFailure : 0;
   });
   registry2.command("search <query>").description("Search validated registry indexes offline (deterministic lexical ranking)").option("--registry <name>", "search one registry only").option("--kind <kind>", `filter by kind: ${EXTENSION_KINDS.join(" | ")}`).option("--limit <n>", "maximum results", "20").option("--json", "output a machine-readable JSON report").action((query, options) => {
@@ -79329,10 +82939,10 @@ function registerRegistryCommands(program2, runtime) {
     runtime.out();
     for (const hit of hits) {
       runtime.out(okLine(`${hit.entry.id}@${hit.entry.latestVersion}`, `(${hit.entry.kind}, from ${hit.registryName})`));
-      runtime.out(dim(`     ${hit.entry.description}`));
+      runtime.out(dim2(`     ${hit.entry.description}`));
     }
     if (hits.length === 0) {
-      runtime.out(dim("  no matches in readable indexes (search never touches the network)"));
+      runtime.out(dim2("  no matches in readable indexes (search never touches the network)"));
     }
   });
   registry2.command("show <extension>").description("Show registry metadata for an extension (no download happens)").option("--json", "output a machine-readable JSON report").action((id, options) => {
@@ -79353,17 +82963,17 @@ function registerRegistryCommands(program2, runtime) {
     for (const match of matches) {
       const entry = match.entry;
       runtime.out(reportTitle(`${entry.displayName} (${entry.id}) \u2014 from ${match.registryName}`));
-      runtime.out(dim(`  ${entry.description}`));
+      runtime.out(dim2(`  ${entry.description}`));
       runtime.out(`  kind: ${entry.kind} | latest: ${entry.latestVersion} | license: ${entry.license}`);
       runtime.out();
       runtime.out(sectionTitle("versions"));
       for (const version2 of entry.versions) {
         runtime.out(okLine(`${version2.version}`, `(sha256 ${version2.sha256.slice(0, 16)}\u2026)`));
-        runtime.out(dim(`     ${version2.archiveUrl}`));
-        runtime.out(dim(`     specbridge ${version2.manifest.compatibility.specbridge}`));
+        runtime.out(dim2(`     ${version2.archiveUrl}`));
+        runtime.out(dim2(`     specbridge ${version2.manifest.compatibility.specbridge}`));
       }
       runtime.out();
-      runtime.out(dim("  Registry listing is not endorsement; review permissions before enabling."));
+      runtime.out(dim2("  Registry listing is not endorsement; review permissions before enabling."));
     }
   });
   registry2.command("validate <path-or-name>").description("Validate a registry index file or a configured registry").option("--json", "output a machine-readable JSON report").action((target, options) => {
@@ -79406,6 +83016,294 @@ function registerRegistryCommands(program2, runtime) {
     }
     runtime.out(valid ? okLine(`valid (${extensionCount} extensions)`) : failLine("invalid"));
     runtime.exitCode = valid ? 0 : EXIT_CODES.gateFailure;
+  });
+}
+
+// ../../packages/cli/src/commands/orchestrate.ts
+function jsonOut3(runtime, schema, data) {
+  runtime.outRaw(serializeJsonReport(createJsonReport(schema, `${CLI_BIN} ${VERSION}`, data)));
+}
+var WAITING_PHASES = /* @__PURE__ */ new Set(["NEEDS_CLARIFICATION", "AWAITING_PLAN_REVIEW", "BLOCKED"]);
+function phaseLine(state) {
+  if (state.phase === "COMPLETED") return okLine(`${state.orchestrationId}  ${state.phase}`);
+  if (state.phase === "REJECTED") return failLine(`${state.orchestrationId}  ${state.phase}`);
+  if (WAITING_PHASES.has(state.phase)) return blockedLine(`${state.orchestrationId}  ${state.phase}`);
+  return infoLine(`${state.orchestrationId}  ${state.phase}`);
+}
+function registerOrchestrateCommands(program2, runtime) {
+  const orchestrate = program2.command("orchestrate").description("Inspect governed agent orchestration runs (read-only, deterministic)");
+  orchestrate.command("status").description("List orchestration runs with phase, plan revision, and blockers").option("--spec <name>", "only runs for one spec").option("--active", "only runs that are not finished").option("--json", "output a machine-readable JSON report").action((options) => {
+    const workspace = runtime.workspace();
+    const listed = listOrchestrationRuns(workspace);
+    const runs = listed.runs.filter((run) => {
+      if (options.spec !== void 0 && run.specName !== options.spec) return false;
+      if (options.active === true && run.finalizedAt !== void 0) return false;
+      return true;
+    });
+    if (options.json === true) {
+      jsonOut3(runtime, "orchestrate-status", {
+        runs: runs.map((run) => {
+          const explanation = explainOrchestration(run);
+          return {
+            orchestrationId: run.orchestrationId,
+            specName: run.specName,
+            taskId: run.taskId ?? null,
+            phase: run.phase,
+            final: explanation.final,
+            planRevision: run.planRevision,
+            planReviewed: explanation.planReviewed,
+            openQuestions: run.openQuestions.length,
+            exhaustedBudgets: explanation.exhaustedBudgets,
+            summary: explanation.summary,
+            nextAction: explanation.nextAction,
+            createdAt: run.createdAt,
+            updatedAt: run.updatedAt
+          };
+        }),
+        diagnostics: listed.diagnostics.map((diagnostic) => ({
+          severity: diagnostic.severity,
+          code: diagnostic.code,
+          message: diagnostic.message
+        }))
+      });
+      runtime.exitCode = listed.diagnostics.length > 0 ? EXIT_CODES.gateFailure : EXIT_CODES.ok;
+      return;
+    }
+    runtime.out(reportTitle("Orchestration runs"));
+    if (runs.length === 0) {
+      runtime.out(dim2("  No orchestration runs recorded in this workspace."));
+      runtime.out(dim2("  Governed runs are started from an agent host (e.g. /specbridge:develop)."));
+    }
+    for (const run of runs) {
+      const explanation = explainOrchestration(run);
+      runtime.out(phaseLine(run));
+      runtime.out(
+        dim2(
+          `    spec ${run.specName}${run.taskId !== void 0 ? `, task ${run.taskId}` : ""}, plan revision ${run.planRevision}`
+        )
+      );
+      runtime.out(dim2(`    ${explanation.summary}`));
+      if (explanation.exhaustedBudgets.length > 0) {
+        runtime.out(warnLine(`    budget exhausted: ${explanation.exhaustedBudgets.join(", ")}`));
+      }
+    }
+    for (const diagnostic of listed.diagnostics) {
+      runtime.out(warnLine(`  ${diagnostic.code}: ${diagnostic.message}`));
+    }
+    runtime.exitCode = listed.diagnostics.length > 0 ? EXIT_CODES.gateFailure : EXIT_CODES.ok;
+  });
+  orchestrate.command("show <orchestration-id>").description("One orchestration run in depth: plan, decisions, counters, recent events").option("--events <count>", "recent events to show (default 20, max 200)", "20").option("--json", "output a machine-readable JSON report").action((orchestrationId, options) => {
+    const workspace = runtime.workspace();
+    const state = requireOrchestrationState(workspace, orchestrationId);
+    const requested = Number.parseInt(options.events ?? "20", 10);
+    const eventLimit = Number.isFinite(requested) ? Math.min(Math.max(requested, 1), 200) : 20;
+    const detail = describeOrchestration(workspace, state, { eventLimit });
+    const plan = state.planRevision > 0 ? readPlanRevision(workspace, orchestrationId, state.planRevision) : void 0;
+    if (options.json === true) {
+      jsonOut3(runtime, "orchestrate-show", {
+        ...detail,
+        storageBytes: orchestrationStorageBytes(workspace, orchestrationId),
+        decisions: detail.decisions,
+        plan: plan === void 0 ? null : {
+          planId: plan.planId,
+          revision: plan.revision,
+          goal: plan.goal,
+          nonGoals: plan.nonGoals,
+          constraints: plan.constraints,
+          assumptions: plan.assumptions,
+          steps: plan.steps.map((step) => ({
+            id: step.id,
+            description: step.description,
+            status: step.status
+          })),
+          testStrategy: plan.testStrategy,
+          verificationStrategy: plan.verificationStrategy,
+          binding: plan.binding
+        }
+      });
+      return;
+    }
+    runtime.out(reportTitle(`Orchestration ${state.orchestrationId}`));
+    runtime.out(phaseLine(state));
+    runtime.out(dim2(`  ${detail.summary}`));
+    runtime.out(dim2(`  Next action: ${detail.nextAction}`));
+    if (detail.openQuestions.length > 0) {
+      runtime.out(sectionTitle("Open questions"));
+      for (const question of detail.openQuestions) {
+        runtime.out(`  - ${question.question}`);
+        runtime.out(dim2(`    why: ${question.whyItMatters}`));
+      }
+    }
+    if (detail.decisions.length > 0) {
+      runtime.out(sectionTitle("Decisions in force"));
+      for (const decision of detail.decisions) {
+        runtime.out(`  - ${decision.question}`);
+        runtime.out(dim2(`    ${decision.answer}  [${decision.source}]`));
+      }
+    }
+    if (plan !== void 0) {
+      runtime.out(sectionTitle(`Execution plan (revision ${plan.revision})`));
+      runtime.out(`  Goal: ${plan.goal}`);
+      for (const [index, step] of plan.steps.entries()) {
+        runtime.out(`  ${index + 1}. ${step.description} ${dim2(`[${step.status}]`)}`);
+      }
+      runtime.out(dim2(`  Test strategy: ${plan.testStrategy}`));
+      runtime.out(dim2(`  Verification: ${plan.verificationStrategy}`));
+      if (detail.planStale) {
+        runtime.out(warnLine(`  Plan is STALE: ${detail.planStaleReasons.join(", ")}`));
+      }
+      runtime.out(
+        detail.planReviewed ? okLine("  Plan review: approved") : warnLine("  Plan review: not approved")
+      );
+    }
+    runtime.out(sectionTitle("Budgets"));
+    for (const budget of budgetUsage(state)) {
+      const line = `  ${budget.name}: ${budget.used}/${budget.limit}`;
+      runtime.out(budget.exhausted ? warnLine(`${line}  exhausted`) : dim2(line));
+    }
+    if (detail.blocker !== void 0) {
+      runtime.out(sectionTitle("Blocker"));
+      runtime.out(blockedLine(`  ${detail.blocker.category}: ${detail.blocker.message}`));
+      for (const step of detail.blocker.remediation) runtime.out(dim2(`    - ${step}`));
+    }
+    runtime.out(sectionTitle(`Recent events (${detail.recentEvents.length} of ${detail.totalEvents})`));
+    for (const event of detail.recentEvents) runtime.out(dim2(`  ${event.at}  ${event.type}`));
+    if (detail.interactiveRunIds.length > 0) {
+      runtime.out(sectionTitle("Interactive execution runs"));
+      for (const runId of detail.interactiveRunIds) runtime.out(dim2(`  ${runId}`));
+    }
+  });
+  orchestrate.command("explain <orchestration-id>").description("Why the run is where it is: blockers, staleness, budgets, next safe action").option("--json", "output a machine-readable JSON report").action((orchestrationId, options) => {
+    const workspace = runtime.workspace();
+    const explanation = explainOrchestration(requireOrchestrationState(workspace, orchestrationId));
+    if (options.json === true) {
+      jsonOut3(runtime, "orchestrate-explain", { ...explanation });
+      return;
+    }
+    runtime.out(reportTitle(`Why orchestration ${explanation.orchestrationId} is ${explanation.phase}`));
+    runtime.out(`  ${explanation.summary}`);
+    if (explanation.executionBlockedBecause !== void 0) {
+      runtime.out(blockedLine(`  Execution has not started: ${explanation.executionBlockedBecause}`));
+    }
+    if (explanation.planStale) {
+      runtime.out(warnLine(`  The active plan is stale: ${explanation.planStaleReasons.join(", ")}`));
+    }
+    if (explanation.exhaustedBudgets.length > 0) {
+      runtime.out(warnLine(`  Exhausted budgets: ${explanation.exhaustedBudgets.join(", ")}`));
+    }
+    runtime.out(sectionTitle("Counters"));
+    for (const budget of explanation.budgets) {
+      runtime.out(dim2(`  ${budget.name}: ${budget.used}/${budget.limit}`));
+    }
+    runtime.out(sectionTitle("Next action"));
+    runtime.out(`  ${explanation.nextAction}`);
+    runtime.out(dim2(`  Allowed actions here: ${explanation.allowedActions.join(", ") || "(none)"}`));
+  });
+  const policy = orchestrate.command("policy").description("Inspect and validate the orchestration policy in .specbridge/config.json");
+  policy.command("show").description("Show the resolved orchestration policy and its source").option("--json", "output a machine-readable JSON report").action((options) => {
+    const workspace = runtime.workspace();
+    const read = readAgentConfig(workspace);
+    if (read.config === void 0) {
+      runtime.out(failLine(".specbridge/config.json is invalid; no policy could be resolved."));
+      for (const diagnostic of read.diagnostics) runtime.out(dim2(`  ${diagnostic.message}`));
+      runtime.exitCode = EXIT_CODES.usageError;
+      return;
+    }
+    const orchestration = read.config.orchestration;
+    if (options.json === true) {
+      jsonOut3(runtime, "orchestrate-policy", {
+        source: read.exists ? read.path : "defaults (no configuration file)",
+        sourceSchemaVersion: read.sourceSchemaVersion ?? null,
+        orchestration
+      });
+      return;
+    }
+    runtime.out(reportTitle("Orchestration policy"));
+    runtime.out(dim2(`  Source: ${read.exists ? read.path : "built-in defaults (no config file)"}`));
+    runtime.out(orchestration.enabled ? okLine("  enabled") : warnLine("  disabled"));
+    runtime.out(sectionTitle("Planning"));
+    runtime.out(dim2(`  mode: ${orchestration.planning.mode}`));
+    runtime.out(dim2(`  maxReplans: ${orchestration.planning.maxReplans}`));
+    runtime.out(sectionTitle("Execution budgets"));
+    runtime.out(dim2(`  maxIterations: ${orchestration.execution.maxIterations}`));
+    runtime.out(dim2(`  maxRepairCycles: ${orchestration.execution.maxRepairCycles}`));
+    runtime.out(dim2(`  maxNoProgressCycles: ${orchestration.execution.maxNoProgressCycles}`));
+    runtime.out(dim2(`  maxElapsedMs: ${orchestration.execution.maxElapsedMs}`));
+    runtime.out(sectionTitle("Retry and clarification"));
+    runtime.out(dim2(`  maxTransientRetries: ${orchestration.retry.maxTransientRetries}`));
+    runtime.out(dim2(`  maxRounds: ${orchestration.clarification.maxRounds}`));
+  });
+  policy.command("validate").description("Validate the orchestration policy without changing anything").option("--json", "output a machine-readable JSON report").action((options) => {
+    const workspace = runtime.workspace();
+    const read = readAgentConfig(workspace);
+    const problems = read.config === void 0 ? read.diagnostics.map((d) => d.message) : [];
+    const warnings = [];
+    if (read.config !== void 0) {
+      const orchestration = read.config.orchestration;
+      if (!orchestration.enabled) {
+        warnings.push("Orchestration is disabled; the governed workflow will refuse to start runs.");
+      }
+      if (orchestration.planning.mode === "disabled") {
+        warnings.push(
+          'Planning mode is "disabled": no execution plan is required. Every other gate (approvals, evidence, verification, protected paths, budgets) still applies.'
+        );
+      }
+      if (orchestration.planning.mode === "auto") {
+        warnings.push(
+          'Planning mode is "auto": plans are recorded but not reviewed before the first edit.'
+        );
+      }
+    }
+    if (options.json === true) {
+      jsonOut3(runtime, "orchestrate-policy-validate", {
+        valid: problems.length === 0,
+        problems,
+        warnings
+      });
+      runtime.exitCode = problems.length > 0 ? EXIT_CODES.usageError : EXIT_CODES.ok;
+      return;
+    }
+    runtime.out(reportTitle("Orchestration policy validation"));
+    if (problems.length === 0) {
+      runtime.out(okLine("  Policy is valid."));
+    }
+    for (const problem of problems) runtime.out(failLine(`  ${problem}`));
+    for (const warning2 of warnings) runtime.out(warnLine(`  ${warning2}`));
+    runtime.exitCode = problems.length > 0 ? EXIT_CODES.usageError : EXIT_CODES.ok;
+  });
+  orchestrate.command("events <orchestration-id>").description("Bounded page of the append-only orchestration event history").option("--limit <count>", "events to return (default 50, max 500)", "50").option("--offset <count>", "events to skip from the newest (default 0)", "0").option("--json", "output a machine-readable JSON report").action((orchestrationId, options) => {
+    const workspace = runtime.workspace();
+    requireOrchestrationState(workspace, orchestrationId);
+    const limit = Number.parseInt(options.limit ?? "50", 10);
+    const offset = Number.parseInt(options.offset ?? "0", 10);
+    const page = readOrchestrationEvents(workspace, orchestrationId, {
+      limit: Number.isFinite(limit) ? limit : 50,
+      offset: Number.isFinite(offset) ? offset : 0
+    });
+    if (options.json === true) {
+      jsonOut3(runtime, "orchestrate-events", {
+        orchestrationId,
+        events: page.events,
+        total: page.total,
+        truncated: page.truncated
+      });
+      return;
+    }
+    runtime.out(reportTitle(`Orchestration events (${page.events.length} of ${page.total})`));
+    for (const event of page.events) {
+      runtime.out(`  ${String(event["at"])}  ${String(event["type"])}`);
+    }
+    if (page.truncated) {
+      runtime.out(dim2("  History is persisted in full; use --limit/--offset to page through it."));
+    }
+  });
+  orchestrate.command("phases").description("List the orchestration phase vocabulary").option("--json", "output a machine-readable JSON report").action((options) => {
+    if (options.json === true) {
+      jsonOut3(runtime, "orchestrate-phases", { phases: [...ORCHESTRATION_PHASES] });
+      return;
+    }
+    runtime.out(reportTitle("Orchestration phases"));
+    for (const phase of ORCHESTRATION_PHASES) runtime.out(`  ${phase}`);
   });
 }
 
@@ -79464,6 +83362,7 @@ honest error; nothing pretends to work before it does.`
   registerTemplateCommands(program2, runtime);
   registerExtensionCommands(program2, runtime);
   registerRegistryCommands(program2, runtime);
+  registerOrchestrateCommands(program2, runtime);
   return program2;
 }
 async function runCli(argv2, ioOverrides) {
@@ -79472,14 +83371,14 @@ async function runCli(argv2, ioOverrides) {
   const program2 = buildProgram(runtime);
   program2.exitOverride();
   program2.configureOutput({
-    writeOut: (text) => io.outRaw(text),
-    writeErr: (text) => io.outRaw(text)
+    writeOut: (text2) => io.outRaw(text2),
+    writeErr: (text2) => io.outRaw(text2)
   });
   for (const command of walkCommands(program2)) {
     command.exitOverride();
     command.configureOutput({
-      writeOut: (text) => io.outRaw(text),
-      writeErr: (text) => io.outRaw(text)
+      writeOut: (text2) => io.outRaw(text2),
+      writeErr: (text2) => io.outRaw(text2)
     });
   }
   try {
@@ -79498,9 +83397,14 @@ async function runCli(argv2, ioOverrides) {
     if (isSpecBridgeError(error2)) {
       io.err(`Error: ${error2.message}`);
       if (error2.code === "WORKSPACE_NOT_FOUND") {
-        io.err(dim(`Hint: run "${CLI_BIN} doctor" for a full workspace report.`));
+        io.err(dim2(`Hint: run "${CLI_BIN} doctor" for a full workspace report.`));
       }
       return 2;
+    }
+    if (isOrchestrationError(error2)) {
+      io.out(`${error2.code} (${error2.category}): ${error2.message}`);
+      for (const step of error2.remediation) io.out(dim2(`  - ${step}`));
+      return EXIT_CODES.usageError;
     }
     const message = error2 instanceof Error ? error2.stack ?? error2.message : String(error2);
     io.err(`Unexpected error: ${message}`);
