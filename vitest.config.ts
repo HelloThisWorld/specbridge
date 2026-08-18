@@ -81,7 +81,15 @@ export default defineConfig({
     // The v0.3 execution tests are process-level integration tests (git
     // snapshots, runner subprocesses, verification commands); slow CI
     // runners regularly exceed the 5s default.
-    testTimeout: 30_000,
+    //
+    // Windows CI gets double the budget: process spawn costs several times
+    // more there, and with a second worker running the subprocess-heavy
+    // v1.2 driver suites, the git-heaviest single test (resume.test.ts
+    // "recovers each intermediate phase" — five git-initialized fixtures,
+    // ~50 blocking git spawns) ran out of its 30s on the 4-vCPU runner
+    // while 1,647 of 1,648 tests passed. A timeout is a slowness budget,
+    // not a correctness assertion; local runs and Linux/macOS stay tight.
+    testTimeout: process.env['CI'] !== undefined && process.platform === 'win32' ? 60_000 : 30_000,
     maxWorkers: workerCeiling(),
     pool: poolForPlatform(),
     // On CI the default reporter writes a line per test to a non-TTY stream
