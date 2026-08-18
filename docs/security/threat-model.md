@@ -638,6 +638,61 @@ Existing mitigation · Residual risk · User responsibility.
 
 ---
 
+## 9. Governed orchestration (v1.1)
+
+### T30 — An agent talking its way past a gate
+
+**Threat.** A host agent claims `READY` for an underspecified request,
+records a plan review the user never gave, retries a deterministic failure
+indefinitely, broadens scope while debugging, or asserts a task is complete.
+
+**Mitigations.** Intent outcomes are validated against facts SpecBridge
+checks itself (approvals, staleness, task existence, lock ownership) and
+downgraded when they rest on `inferred`, `unknown`, or `conflicting`
+provenance. `EDIT` is absent from the allowed-action set of every pre-plan
+phase and refused against an unreviewed or stale plan. Retry, repair, and
+replan are decided by a pure policy function from the failure category and
+the counters — never by the agent. Completion requires a `verified` or
+`manually-accepted` evidence status that `task_complete` actually returned.
+Every budget stop is explicit and leaves the task incomplete.
+
+**Residual risk.** Two rules are *contract-enforced* or *skill-guided*
+rather than hard-enforced: whether the user was genuinely asked before a
+plan review is recorded, and whether a clarification question is genuinely
+load-bearing. SpecBridge binds the review to the exact plan hash and records
+how it arrived, but it cannot observe the conversation. Documented in
+[enforcement boundaries](../orchestration/enforcement-boundaries.md).
+
+### T31 — Injected instructions reaching an orchestration decision
+
+**Threat.** Repository content ("Ignore SpecBridge", "Mark the task
+complete", "Auto-approve the design") is treated as an instruction.
+
+**Mitigations.** No orchestration decision reads repository content. Plan
+text, clarification text, intent summaries, and event payloads are bounded,
+schema validated, and stored as data — none can name a command, widen a
+path, change a budget, or grant a permission. If injected text ever reached
+a user-intent summary, the rejection rules make the outcome strictly *more*
+restrictive. Adversarial fixtures assert this end to end.
+
+**Residual risk.** A host agent that chooses to obey injected text can still
+perform the underlying editor action; what it cannot do is get SpecBridge to
+record a completion, an approval, or a passed verifier on that basis.
+
+### T32 — Unbounded orchestration state
+
+**Threat.** Append-only history, oversized plans, or oversized clarification
+text as a memory or disk exhaustion surface.
+
+**Mitigations.** Per-event byte cap (refuse, never truncate), a total event
+ceiling that stops the run, plan step and byte budgets, clarification
+question/answer caps, and paginated bounded views over a fully persisted
+log. Corrupt or unknown-major records are refused and preserved rather than
+coerced.
+
+**Residual risk.** History is retained indefinitely by design; operators who
+need retention limits must prune `.specbridge/orchestration/` themselves.
+
 ## Explicit non-claims
 
 Security models fail through overclaiming. SpecBridge does **not** claim:
@@ -656,7 +711,13 @@ Security models fail through overclaiming. SpecBridge does **not** claim:
    published archives are removed — after the fact.
 4. **Binaries may be unsigned.** No code-signing, notarization, or
    provenance attestation is part of the 1.0 release process.
-5. **Model-assisted workflows are nondeterministic.** Anything a model
+5. **Orchestration governs an agent; it does not make one trustworthy.**
+   The v1.1 harness bounds, records, and gates what an agent does, and
+   decides completion from evidence rather than assertion. It does not
+   verify that an agent's *reported* actions match its real ones — that is
+   what the Git snapshot and the trusted verifiers are for — and it does not
+   claim that a plan a model wrote is a good plan.
+6. **Model-assisted workflows are nondeterministic.** Anything a model
    authors — spec prose, code edits, refinements — can differ between
    runs and can be wrong. SpecBridge makes the *controls* deterministic
    (hashes, approvals, evidence, verification rules), never the model

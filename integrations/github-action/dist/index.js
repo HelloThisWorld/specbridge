@@ -34069,6 +34069,65 @@ function reachesFailureThreshold(counts, threshold) {
   if (threshold === "warning") return counts.errors > 0 || counts.warnings > 0;
   return counts.errors > 0;
 }
+var PLAN_REVIEW_MODES = ["review", "auto", "disabled"];
+var orchestrationPlanningPolicySchema = external_exports.object({
+  mode: external_exports.enum(PLAN_REVIEW_MODES).default("review"),
+  /** Maximum number of replans in one orchestration run. */
+  maxReplans: external_exports.number().int().min(0).max(20).default(2),
+  /** Maximum stored size of one execution plan document. */
+  maxPlanBytes: external_exports.number().int().min(1024).max(1048576).default(65536),
+  /** Maximum ordered implementation steps in one plan. */
+  maxPlanSteps: external_exports.number().int().min(1).max(200).default(40)
+}).passthrough();
+var orchestrationExecutionPolicySchema = external_exports.object({
+  /** Hard ceiling on recorded observe/decide/act iterations. */
+  maxIterations: external_exports.number().int().min(1).max(500).default(12),
+  /** Hard ceiling on repair cycles triggered by verification failures. */
+  maxRepairCycles: external_exports.number().int().min(0).max(50).default(3),
+  /** Consecutive no-progress cycles tolerated before replan or block. */
+  maxNoProgressCycles: external_exports.number().int().min(1).max(20).default(2),
+  /**
+   * Wall-clock budget for one orchestration run. Enforced whenever a
+   * decision is requested — SpecBridge never interrupts a host agent
+   * mid-thought, it refuses the next step.
+   */
+  maxElapsedMs: external_exports.number().int().min(6e4).max(7 * 24 * 36e5).default(4 * 36e5)
+}).passthrough();
+var orchestrationRetryPolicySchema = external_exports.object({
+  /** Bounded retries for operations classified as safely transient. */
+  maxTransientRetries: external_exports.number().int().min(0).max(10).default(2),
+  /** First backoff delay; doubles per attempt up to maxBackoffMs. */
+  baseBackoffMs: external_exports.number().int().min(0).max(6e5).default(1e3),
+  maxBackoffMs: external_exports.number().int().min(0).max(36e5).default(3e4)
+}).passthrough();
+var orchestrationClarificationPolicySchema = external_exports.object({
+  /** Bounded clarification rounds before the run blocks. */
+  maxRounds: external_exports.number().int().min(1).max(10).default(3),
+  maxQuestionsPerRound: external_exports.number().int().min(1).max(20).default(5),
+  maxQuestionBytes: external_exports.number().int().min(64).max(8192).default(1024),
+  maxAnswerBytes: external_exports.number().int().min(64).max(16384).default(4096)
+}).passthrough();
+var orchestrationHistoryPolicySchema = external_exports.object({
+  /** Append-only event ceiling. Reaching it blocks; it never truncates. */
+  maxEvents: external_exports.number().int().min(50).max(1e5).default(2e3),
+  /** Per-event serialized ceiling; oversized payloads are rejected. */
+  maxEventBytes: external_exports.number().int().min(256).max(65536).default(8192),
+  /** Default number of events returned by bounded views. */
+  defaultEventPageSize: external_exports.number().int().min(1).max(500).default(50)
+}).passthrough();
+var orchestrationPolicySchema = external_exports.object({
+  /**
+   * When false, orchestration tools refuse to start a run and report why.
+   * Existing task execution (task_begin/task_complete) is unaffected: this
+   * flag governs the v1.1 governed workflow only.
+   */
+  enabled: external_exports.boolean().default(true),
+  planning: orchestrationPlanningPolicySchema.default({}),
+  execution: orchestrationExecutionPolicySchema.default({}),
+  retry: orchestrationRetryPolicySchema.default({}),
+  clarification: orchestrationClarificationPolicySchema.default({}),
+  history: orchestrationHistoryPolicySchema.default({})
+}).passthrough();
 var AGENT_CONFIG_SCHEMA_VERSION = "1.0.0";
 var FORBIDDEN_PERMISSION_MODE = "bypassPermissions";
 var FORBIDDEN_FLAG_FRAGMENTS = [
@@ -34211,7 +34270,13 @@ var agentConfigSchema = external_exports.object({
     mock: mockRunnerConfigSchema.default({})
   }).catchall(genericRunnerConfigSchema).default({}),
   verification: verificationConfigSchema.default({}),
-  execution: executionPolicySchema.default({})
+  execution: executionPolicySchema.default({}),
+  /**
+   * v1.1 governed orchestration policy. Optional and defaulted, so a v1
+   * configuration file stays valid and a v1 workspace can configure
+   * orchestration without migrating to the v2 schema first.
+   */
+  orchestration: orchestrationPolicySchema.default({})
 }).passthrough().superRefine((config, ctx) => {
   if (config.schemaVersion !== void 0 && !config.schemaVersion.startsWith("1.")) {
     ctx.addIssue({
@@ -34479,7 +34544,9 @@ var agentConfigV2Schema = external_exports.object({
   runnerPolicy: runnerPolicySchema.default({}),
   fallbacks: fallbacksSchema.default({}),
   verification: verificationConfigSchema.default({}),
-  execution: executionPolicySchema.default({})
+  execution: executionPolicySchema.default({}),
+  /** v1.1 governed orchestration policy (additive; safe defaults). */
+  orchestration: orchestrationPolicySchema.default({})
 }).passthrough().superRefine((config, ctx) => {
   if (!config.schemaVersion.startsWith("2.")) {
     ctx.addIssue({
@@ -34604,7 +34671,8 @@ function resolveAgentConfigFromV1(v1) {
     runnerPolicy: runnerPolicySchema.parse({}),
     fallbacks: fallbacksSchema.parse({}),
     verification: v1.verification,
-    execution: v1.execution
+    execution: v1.execution,
+    orchestration: v1.orchestration
   };
 }
 function resolveAgentConfigFromV2(v2) {
@@ -34617,7 +34685,8 @@ function resolveAgentConfigFromV2(v2) {
     runnerPolicy: v2.runnerPolicy,
     fallbacks: v2.fallbacks,
     verification: v2.verification,
-    execution: v2.execution
+    execution: v2.execution,
+    orchestration: v2.orchestration
   };
 }
 function defaultResolvedAgentConfig() {
@@ -34630,7 +34699,8 @@ function defaultResolvedAgentConfig() {
     runnerPolicy: runnerPolicySchema.parse({}),
     fallbacks: fallbacksSchema.parse({}),
     verification: verificationConfigSchema.parse({}),
-    execution: executionPolicySchema.parse({})
+    execution: executionPolicySchema.parse({}),
+    orchestration: orchestrationPolicySchema.parse({})
   };
 }
 function resolvedConfigDiagnostics(config) {
@@ -46517,7 +46587,7 @@ function emptyToUndefined(value) {
 }
 
 // src/version.ts
-var ACTION_VERSION = "1.0.0";
+var ACTION_VERSION = "1.1.0";
 
 // src/main.ts
 function readEventPayload(eventPath) {

@@ -9,6 +9,7 @@
       "@specbridge/runners": ["./packages/runners/src/index.ts"],
       "@specbridge/evidence": ["./packages/evidence/src/index.ts"],
       "@specbridge/execution": ["./packages/execution/src/index.ts"],
+      "@specbridge/orchestration": ["./packages/orchestration/src/index.ts"],
       "@specbridge/reporting": ["./packages/reporting/src/index.ts"],
       "@specbridge/workflow": ["./packages/workflow/src/index.ts"],
       "@specbridge/templates": ["./packages/templates/src/index.ts"],

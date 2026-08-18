@@ -32,6 +32,7 @@ Contract areas:
 | `template` | `list` · `search <query>` · `show` · `validate` · `preview` · `apply` · `install <local-path>` · `uninstall` · `scaffold <template-id>` |
 | `extension` | `list` · `search <query>` · `show` · `validate` · `install <source>` · `enable` · `disable` · `uninstall` · `doctor` · `conformance` · `scaffold <id>` · `package <path>` |
 | `registry` | `list` · `add <name>` · `remove <name>` · `update [name]` · `search <query>` · `show <extension>` · `validate` |
+| `orchestrate` (new in 1.1.0) | `status` · `show <id>` · `explain <id>` · `policy show\|validate` · `events <id>` · `phases` — all read-only and deterministic; none invokes a model or advances a run |
 
 New in 1.0.0 alongside the commands above: `doctor --repair-plan`, which
 reports what `state recover` / `migrate apply` would do without touching
@@ -84,6 +85,7 @@ marked):
 | template | `template-list`, `template-search`, `template-show`, `template-validate`, `template-preview`, `template-apply`, `template-install`, `template-uninstall`, `template-scaffold` |
 | extension | `extension-list`, `extension-search`, `extension-show`, `extension-validate`, `extension-install`, `extension-enable`, `extension-disable`, `extension-uninstall`, `extension-doctor`, `extension-conformance`, `extension-scaffold`, `extension-package` |
 | registry | `registry-list`, `registry-add`, `registry-remove`, `registry-update`, `registry-search`, `registry-show`, `registry-validate` |
+| orchestrate (1.1.0) | `orchestrate-status`, `orchestrate-show`, `orchestrate-explain`, `orchestrate-policy`, `orchestrate-policy-validate`, `orchestrate-events`, `orchestrate-phases` |
 
 Commands whose primary output is a domain document use that document's own
 schema instead of the envelope — `spec verify` writes the verification
@@ -167,6 +169,10 @@ no global or per-user state anywhere.
 | `extensions/state.json`, `grants.json`, `records.jsonl`, `installed/`, `trash/` | extension state | 1.0.0 | tolerant, never silently repaired |
 | `reports/…` | verification report / diagnostics | 1.0.0 | opt-in artifacts |
 | `locks/interactive-task.lock` | interactive lock | 1.0.0 | runtime lock only |
+| `orchestration/<id>/state.json` | orchestration state | 1.0.0 (v1.1) | **fail-closed**: corrupt or unknown-major is refused and preserved for diagnosis, never rewritten |
+| `orchestration/<id>/plans/<n>.json` | execution plan | 1.0.0 (v1.1) | append-only; every revision kept |
+| `orchestration/<id>/events.jsonl` | orchestration events | — | append-only; bounded per-event and in total; paginated reads |
+| `orchestration/<id>/checkpoint.json` | orchestration checkpoint | 1.0.0 (v1.1) | latest checkpoint only; compact by schema |
 | `tmp/<unique>/` | — | — | ephemeral staging, removed after use |
 
 **Unknown-field policy.** Machine state (spec state, config, evidence, run
@@ -186,7 +192,7 @@ keeps a checkbox-normalized plan hash so `[ ]` → `[x]` is not staleness).
 
 | | |
 | --- | --- |
-| Version | spec-state 1.0.0 · config 2.0.0 (v1 readable) · all other families 1.0.0 — none changed by v1.0.0 |
+| Version | spec-state 1.0.0 · config 2.0.0 (v1 readable) · all other families 1.0.0 — unchanged by v1.0.0 and by v1.1.0. v1.1 adds three NEW families (orchestration state, execution plan, orchestration checkpoint), all 1.0.0; no existing version moved, so no migration is required |
 | Status | stable |
 | Compatibility | state written by any v1.x release stays readable by every later v1.x release; optional fields may be added in minors |
 | Breaking changes | removing or repurposing a required field requires a schema major + product major |
@@ -403,11 +409,12 @@ changes since have been additive only.
 
 ## 8. MCP server
 
-- **Identity**: server name `specbridge` (title "SpecBridge"), version
-  1.0.0. Local stdio transport only; official SDK pinned at 1.29.0;
-  protocol baseline 2025-11-25; Node ≥ 20.
+- **Identity**: server name `specbridge` (title "SpecBridge"). Local stdio
+  transport only; official SDK pinned at 1.29.0; protocol baseline
+  2025-11-25; Node ≥ 20.
 
-**Tools** (37 — 30 read-only, 7 write-capable):
+**Tools** (47 — 31 read-only, 16 write-capable). The v1.0 set of 37 is
+frozen and unchanged; v1.1 adds ten `orchestration_*` tools additively:
 
 | Group | Tools |
 | --- | --- |
@@ -417,7 +424,13 @@ changes since have been additive only.
 | runner (read) | `runner_list`, `runner_show`, `runner_doctor`, `runner_matrix` |
 | template (read) | `template_list`, `template_search`, `template_show`, `template_preview` |
 | extension / registry (read) | `extension_list`, `extension_search`, `extension_show`, `extension_doctor`, `registry_list`, `registry_search`, `registry_show` |
+| orchestration (read) | `orchestration_status` |
 | **write-capable** | `spec_create`, `template_apply`, `spec_stage_apply`, `spec_run_verification`, `task_begin`, `task_complete`, `task_abort` |
+| **write-capable** (v1.1 orchestration) | `orchestration_begin`, `orchestration_assess_intent`, `orchestration_clarify`, `orchestration_resolve_clarification`, `orchestration_submit_plan`, `orchestration_review_plan`, `orchestration_record_action`, `orchestration_checkpoint`, `orchestration_finalize` |
+
+There is deliberately no approval tool, no shell tool, no filesystem tool,
+and no Git tool at any version. A contract test asserts no registered tool
+name matches `*_approve`, `*_shell`, `*_exec`, `*_git`, or `*_write_file`.
 
 **Resources** (7 URI templates): `specbridge://workspace` ·
 `specbridge://steering/{name}` ·
@@ -429,7 +442,8 @@ changes since have been additive only.
 **Prompts** (4): `specbridge-status`, `specbridge-author-stage`,
 `specbridge-implement-task`, `specbridge-verify`
 
-**Error codes** (SBMCP001–SBMCP020):
+**Error codes** (SBMCP001–SBMCP030; SBMCP021–SBMCP030 added additively in
+v1.1 for orchestration, mapped from the `SBO###` domain registry):
 
 | Code | Meaning | Code | Meaning |
 | --- | --- | --- | --- |
@@ -461,9 +475,11 @@ changes since have been additive only.
   `.claude-plugin/plugin.json`).
 - **Marketplace ID**: `specbridge-plugins` (repo-root
   `.claude-plugin/marketplace.json`), listing the `specbridge` plugin.
-- **Skills** (11), invoked as `/specbridge:<name>`: `approve` (human-only
-  by design), `author`, `continue`, `doctor`, `extensions`, `implement`,
-  `new`, `runners`, `status`, `templates`, `verify`.
+- **Skills** (12), invoked as `/specbridge:<name>`: `approve` (human-only
+  by design), `author`, `continue`, `develop` (v1.1, governed), `doctor`,
+  `extensions`, `implement`, `new`, `runners`, `status`, `templates`,
+  `verify`. The eleven v1.0 skills keep their names and their behaviour;
+  `develop` was added as a new skill rather than repurposing `implement`.
 - **Bundled CLI paths**: `bin/specbridge` (POSIX) and `bin/specbridge.cmd`
   (Windows) wrapping `dist/cli.cjs`; the MCP server at
   `dist/mcp-server.cjs`; `dist/checksums.json` for artifact integrity;
@@ -480,7 +496,7 @@ changes since have been additive only.
 
 | | |
 | --- | --- |
-| Version | plugin 1.0.0 · marketplace entry 1.0.0 |
+| Version | plugin and marketplace entry track the repository version (1.1.0) |
 | Status | stable |
 | Compatibility | plugin ID, marketplace ID, skill names, bundled paths, and the MCP server key hold within v1.x; new skills arrive in minors |
 | Breaking changes | renaming or removing a skill or bundled entry point requires a major |

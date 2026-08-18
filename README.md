@@ -142,13 +142,22 @@ and authenticate Claude Code, the Codex CLI, the Gemini CLI, Ollama, or
 your API endpoint yourself; API keys are referenced by environment-variable
 name only and never stored. [Runners](docs/runners.md)
 
-**MCP server and Claude Code plugin** — a local stdio MCP server (37
+**MCP server and Claude Code plugin** — a local stdio MCP server (47
 typed tools, 7 resources, 4 prompts) exposes the same core, and a
-self-contained Claude Code plugin bundles CLI + server + eleven skills
-(all eleven verified against a live model).
+self-contained Claude Code plugin bundles CLI + server + twelve skills
+(the eleven v1.0 skills verified against a live model; the v1.1 `develop`
+skill is not yet live-verified).
 [MCP server](docs/mcp-server.md) ·
 [plugin](docs/claude-code-plugin.md) ·
 [skill verification](docs/skill-verification/README.md)
+
+**Governed agent orchestration (v1.1)** — intent assessment before anything
+is built, bounded clarification, execution plans bound to task/approval/Git
+state with a review gate, a deterministic retry/repair/replan engine, and
+explicit budgets. `.kiro` stays untouched, approval stays human-only, and
+completion still requires verified evidence.
+[agent orchestration](docs/orchestration/agent-orchestration.md) ·
+[enforcement boundaries](docs/orchestration/enforcement-boundaries.md)
 
 **Templates and extensions** — reusable spec templates (deterministic
 offline `{{variable}}` rendering, no executable generators) and five

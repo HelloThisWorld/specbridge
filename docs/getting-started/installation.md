@@ -48,7 +48,7 @@ checksums prove integrity, not publisher identity (see the
 
 ## Claude Code plugin
 
-The plugin bundles the CLI, the local MCP server, and eleven skills — no
+The plugin bundles the CLI, the local MCP server, and twelve skills — no
 npm install needed. Inside Claude Code:
 
 ```text

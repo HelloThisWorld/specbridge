@@ -1,0 +1,152 @@
+{
+  "actionCategories": [
+    "ABORT",
+    "COMPLETE",
+    "EDIT",
+    "INSPECT",
+    "REPLAN",
+    "REQUEST_CLARIFICATION",
+    "TEST",
+    "VERIFY"
+  ],
+  "enforcementLevels": [
+    "contract-enforced",
+    "hard-enforced",
+    "skill-guided"
+  ],
+  "errorCodes": [
+    "SBO001",
+    "SBO002",
+    "SBO003",
+    "SBO004",
+    "SBO005",
+    "SBO006",
+    "SBO007",
+    "SBO008",
+    "SBO009",
+    "SBO010",
+    "SBO011",
+    "SBO012",
+    "SBO013",
+    "SBO014",
+    "SBO015",
+    "SBO016",
+    "SBO017",
+    "SBO018",
+    "SBO019",
+    "SBO020",
+    "SBO021",
+    "SBO022",
+    "SBO023",
+    "SBO024"
+  ],
+  "eventTypes": [
+    "action_recorded",
+    "budget_exhausted",
+    "checkpoint_created",
+    "clarification_requested",
+    "clarification_resolved",
+    "execution_aborted",
+    "execution_blocked",
+    "execution_cancelled",
+    "execution_completed",
+    "execution_started",
+    "intent_assessed",
+    "observation_recorded",
+    "orchestration_started",
+    "plan_created",
+    "plan_invalidated",
+    "plan_reviewed",
+    "repair_started",
+    "replan_started",
+    "verification_failed"
+  ],
+  "failureCategories": [
+    "AMBIGUITY",
+    "AUTHENTICATION",
+    "BLOCKED_DEPENDENCY",
+    "BUDGET_EXHAUSTED",
+    "CANCELLED",
+    "CAPABILITY_UNAVAILABLE",
+    "IMPLEMENTATION_DEFECT",
+    "INTERNAL",
+    "INVALID_CONFIGURATION",
+    "NO_PROGRESS",
+    "PERMISSION",
+    "PROTECTED_PATH",
+    "REPOSITORY_DIVERGED",
+    "SAFETY_POLICY",
+    "STALE_CONTEXT",
+    "TRANSIENT_TOOL",
+    "TRANSIENT_TRANSPORT",
+    "VERIFICATION_FAILURE"
+  ],
+  "finalPhases": [
+    "ABORTED",
+    "CANCELLED",
+    "COMPLETED",
+    "REJECTED"
+  ],
+  "intentOutcomes": [
+    "BLOCKED",
+    "NEEDS_CLARIFICATION",
+    "READY",
+    "REJECTED"
+  ],
+  "nextStepDirectives": [
+    "BLOCK",
+    "CLARIFY",
+    "CONTINUE",
+    "REPAIR",
+    "REPLAN",
+    "RETRY",
+    "STOP_BUDGET_EXHAUSTED",
+    "STOP_FINAL",
+    "VERIFY"
+  ],
+  "observationResults": [
+    "failed",
+    "no-change",
+    "progressed"
+  ],
+  "phases": [
+    "ABORTED",
+    "AWAITING_PLAN_REVIEW",
+    "BLOCKED",
+    "CANCELLED",
+    "COMPLETED",
+    "CREATED",
+    "EXECUTING",
+    "NEEDS_CLARIFICATION",
+    "READY_TO_EXECUTE",
+    "READY_TO_PLAN",
+    "REJECTED",
+    "REPAIRING",
+    "REPLANNING"
+  ],
+  "planChangeMateriality": [
+    "immaterial",
+    "material"
+  ],
+  "planReviewModes": [
+    "auto",
+    "disabled",
+    "review"
+  ],
+  "planStalenessReasons": [
+    "approved-stage-changed",
+    "policy-changed",
+    "repository-baseline-changed",
+    "superseded",
+    "task-fingerprint-changed"
+  ],
+  "provenanceKinds": [
+    "conflicting",
+    "inferred",
+    "known-from-approved-spec",
+    "known-from-configuration",
+    "known-from-repository-evidence",
+    "known-from-user",
+    "unknown"
+  ]
+}

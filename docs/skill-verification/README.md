@@ -42,6 +42,64 @@ results: [`results/specbridge-verification.json`](results/specbridge-verificatio
 plus one `results/specbridge-<skill>.summary.json` per skill (the harness's
 untouched `summary.json`).
 
+## v1.1 — `/specbridge:develop`: BLOCKED (not run)
+
+The governed-workflow skill added in v1.1 has **not** been verified against a
+live model. It is marked `BLOCKED`, not `PASS`.
+
+### What was run
+
+| Check | Result |
+| --- | --- |
+| `pnpm validate:plugin` (static plugin validation, 12 skills) | **PASS** — including new v1.1 rules: `develop` must reference `orchestration_begin`, `_assess_intent`, `_submit_plan`, `_review_plan`, `_record_action`, `_finalize`; no skill may reference a non-existent approval tool; every `orchestration_*`/`task_*` tool a skill names must exist in `contracts/mcp-contract.json` |
+| `agent-skill-verifier validate` on `cases/specbridge-develop.json` | **PASS** — 9 checks, no errors |
+| `agent-skill-verifier validate` on `cases/specbridge-develop-negative.json` | **PASS** — 9 checks, no errors |
+| Live-model evaluation of the 19 cases | **BLOCKED** |
+
+### The exact missing prerequisites
+
+1. **No model server is running.** The pinned method needs
+   `gemma-4-26B-A4B-it-UD-Q4_K_M.gguf` served by llama.cpp `llama-server` on
+   an OpenAI-compatible endpoint. Nothing was listening on 8080, 8081, 11434,
+   or 8000, and no `.gguf` file was found alongside the llama.cpp binaries.
+2. **The harness fixture does not cover the governed workflow.** The
+   evaluation fixture (`fixtures/specbridge-workspace`) and the skill mirror
+   (`skills/specbridge-develop/`) live in
+   [agent-skill-verification-template](https://github.com/HelloThisWorld/agent-skill-verification-template),
+   a **separate repository**. Wiring `develop` in requires regenerating that
+   fixture there (`scripts/build-specbridge-fixture.mjs`) and pinning a new
+   `TEMPLATE_REF` — a change outside this repository.
+
+### What is committed here, ready to wire in
+
+- [`cases/specbridge-develop.json`](cases/specbridge-develop.json) — 10
+  answered cases: vague StepRelay request, clarification, spec conflict, plan
+  generation, plan review gate, repeated failure, bounded repair, replan,
+  resume, completion authority.
+- [`cases/specbridge-develop-negative.json`](cases/specbridge-develop-negative.json)
+  — 9 guard cases: auto-approval, verification bypass, prompt injection, edit
+  before plan, nested agent, false completion, fabricated evidence, silent
+  scope broadening, unsupported operation.
+- [`cases/specbridge-develop.skill-contract.json`](cases/specbridge-develop.skill-contract.json)
+  — the skill contract the harness requires.
+
+### Reproducing once the prerequisites exist
+
+```bash
+# 1. serve the pinned model
+llama-server -m gemma-4-26B-A4B-it-UD-Q4_K_M.gguf --port 8080 --temp 0
+
+# 2. in the agent-skill-verification-template checkout, after copying the
+#    SKILL.md, the contract, and both case files into place:
+node dist/cli/main.js run   --skill skills/specbridge-develop   --cases testcases/specbridge-develop.json   --model llm --runs 1 --threshold 0.8   --output reports/specbridge-develop
+```
+
+The eleven v1.0 skills' recorded results below are unchanged: none of their
+SKILL.md files was modified in v1.1 except `continue`, which gained an
+orchestration-aware section and therefore also carries **no v1.1 live-model
+result**.
+
+
 ## What each skill was tested for
 
 - **Answered cases** — the skill's discovery behavior against real data, e.g.:

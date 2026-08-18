@@ -166,6 +166,57 @@ same operations the CLI already gates, minus the human-only ones. Controls:
 | Oversized content (DoS) | 1 MB document/candidate caps, 2 MB structured-response cap, 500-diagnostic cap, list pagination, and SBMCP018/SBMCP019 failures before memory blowups. |
 | Plugin supply-chain integrity | Pinned SDK, reproducible bundles, SHA-256 checksum manifest verified in CI, license report, and a validator that rejects workspace imports or absolute paths in the shipped artifact. |
 
+## v1.1 governed orchestration safety
+
+Orchestration adds no authority. It adds refusals — every new code path can
+only make execution stop sooner.
+
+- **No new tool classes.** No shell, no filesystem, no Git, no process
+  execution, no network, no telemetry, and above all no approval tool. The
+  MCP catalog stays closed and a contract test asserts no tool name matches
+  `*_approve`, `*_shell`, `*_exec`, `*_git`, or `*_write_file`.
+- **Untrusted text stays text.** Plan text, clarification text, intent
+  summaries, event payloads, and repository content are bounded, schema
+  validated, and stored as data. None of them can name a command, widen a
+  path, change a budget, or grant a permission. Trusted verification commands
+  still come only from `.specbridge/config.json`.
+- **Completion cannot be talked into.** `orchestration_finalize` refuses
+  `completed` unless `task_complete` actually returned `verified` or
+  `manually-accepted`. Orchestration has no independent notion of "done".
+- **The plan gate is code, not prose.** `EDIT` is absent from the allowed
+  action set of every pre-plan phase, and is refused against an unreviewed or
+  stale plan. A recorded review is bound to the exact plan hash.
+- **Budgets fail closed.** Iterations, repair cycles, replans, transient
+  retries, no-progress cycles, clarification rounds, elapsed time, and event
+  history are all bounded; each exhaustion names the budget and stops the run
+  with evidence preserved and the task incomplete.
+- **Workspace confinement and atomicity.** Every orchestration path resolves
+  through the traversal guard; state, plans, and checkpoints are written with
+  the atomic temp-fsync-rename primitive; oversized events and inputs are
+  refused rather than truncated.
+- **Corruption fails safe.** A malformed or future-major-version state record
+  is refused and left exactly as found for diagnosis; it is never silently
+  rewritten, coerced, or deleted.
+- **No persisted reasoning.** No schema has a field for model reasoning,
+  prompts, transcripts, or source contents, so none of it can be retained or
+  leaked through a status view.
+
+### v1.1 threat model additions
+
+| Threat | Mitigation |
+| --- | --- |
+| Prompt injection asking to auto-approve, skip verification, or bypass the plan gate | Repository content is never an input to an orchestration decision. If injected text ever reached a user-intent summary, the rejection rules make the outcome strictly *more* restrictive, never permissive. |
+| An agent claiming a task is complete | Completion requires a verified evidence status from `task_complete`; a claim is recorded as a claim (SBO022 otherwise). |
+| An agent self-approving its own execution plan | The review is bound to the exact plan hash and records how it arrived. This is contract-enforced, not hard-enforced — stated plainly in [enforcement boundaries](orchestration/enforcement-boundaries.md). |
+| An agent looping forever on a deterministic failure | Deterministic no-progress fingerprints (normalized failure output, diff fingerprint, plan revision, action category) plus bounded repair, replan, and iteration budgets. |
+| An agent hiding a failed attempt by switching provider | No automatic provider fallback for task execution or resume; unchanged from v0.6. |
+| An agent presenting a new run as a continuation | Final phases have no outgoing transitions; resume reports the recorded outcome and refuses to continue. |
+| Executing a plan made for a different world | Plans bind to task fingerprint, approved hashes, Git baseline, and policy fingerprint; staleness is re-checked before every mutating action. |
+| A malicious or corrupt orchestration record | Versioned schema, unknown-major refusal, fail-closed parsing, preserved-for-diagnosis corruption handling. |
+| Unbounded orchestration history as a DoS surface | Per-event size cap, total event ceiling that stops the run, and paginated bounded views over a fully persisted log. |
+| Concurrent orchestration mutation | The same per-project write mutex the existing MCP tools use; no second lock system. |
+
+
 ## v0.7.0 template safety
 
 Templates are data, not code: no scripts, no shell, no environment access,

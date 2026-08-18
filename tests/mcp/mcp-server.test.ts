@@ -30,7 +30,8 @@ describe('server initialization', () => {
       const serverInfo = session.client.getServerVersion();
       expect(serverInfo?.name).toBe(MCP_SERVER_NAME);
       expect(serverInfo?.version).toBe(MCP_SERVER_VERSION);
-      expect(MCP_SERVER_VERSION).toBe('1.0.0');
+      // Lockstep with the shipped package version, not a frozen literal.
+      expect(MCP_SERVER_VERSION).toMatch(/^\d+\.\d+\.\d+$/);
     } finally {
       await session.close();
     }

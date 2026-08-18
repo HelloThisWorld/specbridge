@@ -1,5 +1,107 @@
 # Changelog
 
+## 1.1.0
+
+Governed agent orchestration. v1.0 controlled **what** may be executed and
+whether a result counts as complete; v1.1 governs **how** an agent gets
+there — with a bounded, observable, resumable control loop.
+
+This is an additive minor release. Every v1.0 contract is unchanged, no
+persisted schema version moved, and a v1.0 workspace keeps working with no
+migration.
+
+### Added
+
+- **`@specbridge/orchestration`** — a reusable domain package holding the
+  whole capability: a 12-phase fail-closed state machine with a per-phase
+  allowed-action table, intent and clarification contracts, the
+  execution-plan lifecycle, an 18-category failure taxonomy, the
+  deterministic retry/repair/replan decision engine, budgets, progress
+  fingerprinting, and versioned persistence. CLI, MCP, and plugin skills are
+  thin adapters over it.
+- **Intent assessment** with four strictly distinct outcomes (`READY`,
+  `NEEDS_CLARIFICATION`, `REJECTED`, `BLOCKED`). The host agent submits a
+  structured assessment; SpecBridge validates it against approvals,
+  staleness, task existence, lock ownership, and hard product boundaries,
+  and may override it — always towards caution, never towards `READY`.
+- **Structural provenance instead of confidence scores.** A `READY` claim
+  resting on `inferred`, `unknown`, or `conflicting` facts is downgraded
+  automatically. No numeric model-confidence value is used as a safety
+  mechanism anywhere.
+- **Bounded clarification** with durable structured decisions: required
+  justification per question, refused duplicates and re-asks, bounded rounds,
+  supersession, and an explicit refusal to resolve an ambiguity by inference.
+  A decision never amends an approved `.kiro` document — the tooling routes
+  spec-changing answers back to re-authoring and human approval.
+- **Execution plans** bound to the task fingerprint, approved stage hashes,
+  the Git baseline, and the policy fingerprint, with staleness detection and
+  a **plan review gate** (`review` by default, `auto` and `disabled` as
+  explicit opt-ins). A review is bound to the exact plan hash.
+- **Material-change replanning:** a changed goal, non-goal, constraint,
+  subsystem, strategy, or step set re-opens review; a reorder or a wording
+  fix does not.
+- **Deterministic no-progress detection** from normalized failure
+  fingerprints, diff fingerprints, plan revision, and action category —
+  never natural-language similarity.
+- **Explicit budgets** for iterations, repair cycles, replans, transient
+  retries, no-progress cycles, clarification rounds, elapsed time, and event
+  history. Each exhaustion names the budget, preserves evidence, and leaves
+  the task incomplete.
+- **`specbridge orchestrate status | show | explain | policy show |
+  policy validate | events | phases`** — deterministic, read-only, JSON-capable
+  inspection. No orchestrate command invokes a model or advances a run.
+- **Ten MCP tools** (`orchestration_status`, `_begin`, `_assess_intent`,
+  `_clarify`, `_resolve_clarification`, `_submit_plan`, `_review_plan`,
+  `_record_action`, `_checkpoint`, `_finalize`) with versioned schemas,
+  annotations, bounds, and stable `SBMCP021`–`SBMCP030` error mapping over
+  the `SBO###` domain registry.
+- **`/specbridge:develop`** — the governed Claude Code workflow.
+  `/specbridge:implement` keeps its historical direct lifecycle unchanged;
+  `/specbridge:continue` is now orchestration-aware.
+- **Honest resume and compact checkpoints:** a resumed run keeps its real
+  identity, counters, and history; a finalized run reports its outcome and
+  refuses to continue; a stale plan is never executed silently.
+- **`orchestration` configuration block** (additive; accepted by both the v1
+  and v2 config schemas, no migration required), plus
+  `contracts/orchestration-contract.json` and three new versioned sidecar
+  schemas (`orchestrationState`, `executionPlan`, `orchestrationCheckpoint`).
+- **StepRelay readiness fixture and scenarios A–L** covering ambiguity,
+  approved-spec conflict, planned implementation, implementation defect,
+  transient failure, no-progress, stale plan, repository divergence,
+  interruption, auto-approval refusal, prompt injection, and budget
+  exhaustion.
+- Documentation: [agent orchestration](docs/orchestration/agent-orchestration.md),
+  [intent and clarification](docs/orchestration/intent-clarification.md),
+  [execution planning](docs/orchestration/execution-planning.md),
+  [retry and repair](docs/orchestration/retry-and-repair.md),
+  [ReAct/TAO execution discipline](docs/orchestration/react-tao-execution.md),
+  [orchestration recovery](docs/orchestration/orchestration-recovery.md),
+  [configuration](docs/orchestration/configuration.md), and
+  [enforcement boundaries](docs/orchestration/enforcement-boundaries.md).
+
+### Unchanged (and asserted by tests)
+
+- `.kiro` remains the source of truth. No orchestration metadata is written
+  into any Kiro document; byte-identical round trips still hold.
+- Stage approval remains human-only. There is no agent-accessible approval
+  path, and the MCP catalog is tested against a forbidden-name list.
+- `task_complete` remains the sole completion authority. Orchestration
+  refuses to mark a task complete without a `verified` or
+  `manually-accepted` evidence status it actually returned.
+- No arbitrary shell, filesystem, or Git tool; no automatic Git mutations; no
+  automatic provider fallback during implementation; no nested coding agent
+  from the plugin; no hidden network access; no telemetry.
+- No private chain-of-thought is persisted. No schema has a field for it —
+  see [why](docs/orchestration/react-tao-execution.md#why-no-chain-of-thought-is-stored).
+
+### Notes
+
+- The two rules that are only *skill-guided* rather than enforced — that the
+  user was genuinely asked before a plan review is recorded, and that a
+  clarification question is genuinely load-bearing — are documented as such
+  in [enforcement boundaries](docs/orchestration/enforcement-boundaries.md).
+  No Claude Code hooks are used; the rationale is documented there too.
+
 ## 1.0.0
 
 The first stable release. The primary promise is unchanged — start in Kiro,

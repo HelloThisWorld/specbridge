@@ -19,6 +19,9 @@ function readJson(relative: string): Record<string, unknown> {
   return JSON.parse(readFileSync(path.join(repoRoot, relative), 'utf8')) as Record<string, unknown>;
 }
 
+/** The single source of truth every shipped version must match. */
+const ROOT_VERSION = readJson('package.json')['version'] as string;
+
 function skillMarkdown(name: string): string {
   return readFileSync(path.join(skillsDir, name, 'SKILL.md'), 'utf8');
 }
@@ -42,7 +45,9 @@ describe('plugin structure', () => {
   it('plugin.json validates with real repository metadata', () => {
     const manifest = readJson('integrations/claude-code-plugin/specbridge/.claude-plugin/plugin.json');
     expect(manifest['name']).toBe('specbridge');
-    expect(manifest['version']).toBe('1.0.0');
+    // Pinned to the repository version rather than a literal: the invariant
+    // is that plugin, CLI, and root stay in lockstep every release.
+    expect(manifest['version']).toBe(ROOT_VERSION);
     expect(manifest['license']).toBe('MIT');
     expect((manifest['author'] as { name: string }).name).toBe('HelloThisWorld');
     expect(manifest['repository']).toBe('https://github.com/HelloThisWorld/specbridge');
@@ -55,7 +60,7 @@ describe('plugin structure', () => {
     const plugins = marketplace['plugins'] as { name: string; source: string; version: string }[];
     const entry = plugins.find((plugin) => plugin.name === 'specbridge');
     expect(entry).toBeDefined();
-    expect(entry?.version).toBe('1.0.0');
+    expect(entry?.version).toBe(ROOT_VERSION);
     // The relative source resolves to the plugin root.
     expect(path.resolve(repoRoot, entry?.source as string)).toBe(pluginRoot);
   });
@@ -78,9 +83,11 @@ describe('plugin structure', () => {
     expect(existsSync(path.join(pluginRoot, 'skills'))).toBe(true);
   });
 
-  it('all eleven namespaced skills exist with unique names and valid frontmatter', () => {
+  it('every namespaced skill exists with unique names and valid frontmatter', () => {
     const dirs = readdirSync(skillsDir).sort();
-    expect(dirs).toEqual([
+    // The eleven v1.0 skills are preserved exactly; v1.1 adds `develop` as
+    // the governed workflow without changing any existing skill's identity.
+    const V1_0_SKILLS = [
       'approve',
       'author',
       'continue',
@@ -92,7 +99,9 @@ describe('plugin structure', () => {
       'status',
       'templates',
       'verify',
-    ]);
+    ];
+    for (const skill of V1_0_SKILLS) expect(dirs, `v1.0 skill ${skill}`).toContain(skill);
+    expect(dirs).toEqual([...V1_0_SKILLS, 'develop'].sort());
     const names = new Set<string>();
     for (const dir of dirs) {
       const markdown = skillMarkdown(dir);

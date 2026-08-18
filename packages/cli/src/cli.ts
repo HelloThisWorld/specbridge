@@ -1,5 +1,6 @@
 import { Command, CommanderError } from 'commander';
-import { CLI_BIN, PRODUCT_NAME, isSpecBridgeError } from '@specbridge/core';
+import { CLI_BIN, EXIT_CODES, PRODUCT_NAME, isSpecBridgeError } from '@specbridge/core';
+import { isOrchestrationError } from '@specbridge/orchestration';
 import { dim } from '@specbridge/reporting';
 import type { CliIo } from './context.js';
 import { CliRuntime, defaultIo } from './context.js';
@@ -35,6 +36,7 @@ import { registerMcpCommands } from './commands/mcp.js';
 import { registerTemplateCommands } from './commands/template.js';
 import { registerExtensionCommands } from './commands/extension.js';
 import { registerRegistryCommands } from './commands/registry.js';
+import { registerOrchestrateCommands } from './commands/orchestrate.js';
 
 function buildProgram(runtime: CliRuntime): Command {
   const program = new Command();
@@ -100,6 +102,7 @@ honest error; nothing pretends to work before it does.`,
   registerTemplateCommands(program, runtime);
   registerExtensionCommands(program, runtime);
   registerRegistryCommands(program, runtime);
+  registerOrchestrateCommands(program, runtime);
 
   return program;
 }
@@ -149,6 +152,14 @@ export async function runCli(argv: string[], ioOverrides?: Partial<CliIo>): Prom
         io.err(dim(`Hint: run "${CLI_BIN} doctor" for a full workspace report.`));
       }
       return 2;
+    }
+    // Orchestration failures carry a stable SBO code and remediation. They
+    // are ordinary, expected refusals — surfaced as such, never as a raw
+    // exception with a stack trace.
+    if (isOrchestrationError(error)) {
+      io.out(`${error.code} (${error.category}): ${error.message}`);
+      for (const step of error.remediation) io.out(dim(`  - ${step}`));
+      return EXIT_CODES.usageError;
     }
     const message = error instanceof Error ? (error.stack ?? error.message) : String(error);
     io.err(`Unexpected error: ${message}`);

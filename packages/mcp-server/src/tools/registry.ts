@@ -41,6 +41,18 @@ import {
   registerRegistrySearchTool,
   registerRegistryShowTool,
 } from './registry-tools.js';
+import {
+  registerOrchestrationAssessIntentTool,
+  registerOrchestrationBeginTool,
+  registerOrchestrationCheckpointTool,
+  registerOrchestrationClarifyTool,
+  registerOrchestrationFinalizeTool,
+  registerOrchestrationRecordActionTool,
+  registerOrchestrationResolveClarificationTool,
+  registerOrchestrationReviewPlanTool,
+  registerOrchestrationStatusTool,
+  registerOrchestrationSubmitPlanTool,
+} from './orchestration-tools.js';
 
 /**
  * The complete, closed tool registry.
@@ -97,6 +109,16 @@ export const TOOL_CATALOG: readonly ToolRegistryEntry[] = [
   { name: 'registry_list', readOnly: true, summary: 'List configured extension registries' },
   { name: 'registry_search', readOnly: true, summary: 'Offline registry index search' },
   { name: 'registry_show', readOnly: true, summary: 'Registry metadata for one extension (no download)' },
+  { name: 'orchestration_status', readOnly: true, summary: 'Governed orchestration state, freshness, and next safe action' },
+  { name: 'orchestration_begin', readOnly: false, summary: 'Begin a governed orchestration run' },
+  { name: 'orchestration_assess_intent', readOnly: false, summary: 'Validate a structured intent assessment' },
+  { name: 'orchestration_clarify', readOnly: false, summary: 'Record a bounded round of targeted questions' },
+  { name: 'orchestration_resolve_clarification', readOnly: false, summary: 'Record structured clarification decisions' },
+  { name: 'orchestration_submit_plan', readOnly: false, summary: 'Validate and store a context-bound execution plan' },
+  { name: 'orchestration_review_plan', readOnly: false, summary: 'Record the user plan-review decision (hash-bound)' },
+  { name: 'orchestration_record_action', readOnly: false, summary: 'Record one bounded iteration; get the next directive' },
+  { name: 'orchestration_checkpoint', readOnly: false, summary: 'Write a compact structured checkpoint' },
+  { name: 'orchestration_finalize', readOnly: false, summary: 'Close a run (completion needs verified evidence)' },
 ] as const;
 
 export function registerAllTools(server: McpServer, context: ServerContext): void {
@@ -137,4 +159,14 @@ export function registerAllTools(server: McpServer, context: ServerContext): voi
   registerRegistryListTool(server, context);
   registerRegistrySearchTool(server, context);
   registerRegistryShowTool(server, context);
+  registerOrchestrationStatusTool(server, context);
+  registerOrchestrationBeginTool(server, context);
+  registerOrchestrationAssessIntentTool(server, context);
+  registerOrchestrationClarifyTool(server, context);
+  registerOrchestrationResolveClarificationTool(server, context);
+  registerOrchestrationSubmitPlanTool(server, context);
+  registerOrchestrationReviewPlanTool(server, context);
+  registerOrchestrationRecordActionTool(server, context);
+  registerOrchestrationCheckpointTool(server, context);
+  registerOrchestrationFinalizeTool(server, context);
 }

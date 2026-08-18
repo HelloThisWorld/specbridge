@@ -333,7 +333,7 @@ run('mcp manifest reports identity and protocol baseline', {
   cwd: kiroProject,
   args: ['mcp', 'manifest'],
   expectCode: 0,
-  expectStdout: ['specbridge', '2025-11-25', 'stdio', '37 tools'],
+  expectStdout: ['specbridge', '2025-11-25', 'stdio', '47 tools'],
 });
 
 run('mcp tools lists the registry and the approval boundary', {
@@ -348,6 +348,42 @@ run('run recover-lock reports no lock cleanly', {
   args: ['run', 'recover-lock'],
   expectCode: 0,
   expectStdout: ['No interactive lock is held', 'nothing to recover'],
+});
+
+// --- v1.1 governed orchestration (read-only surface) -----------------------
+run('orchestrate status reports an empty workspace cleanly', {
+  cwd: kiroProject,
+  args: ['orchestrate', 'status'],
+  expectCode: 0,
+  expectStdout: ['Orchestration runs', 'No orchestration runs recorded'],
+});
+
+run('orchestrate policy show reports the safe defaults', {
+  cwd: kiroProject,
+  args: ['orchestrate', 'policy', 'show'],
+  expectCode: 0,
+  expectStdout: ['mode: review', 'maxIterations: 12', 'maxRepairCycles: 3'],
+});
+
+run('orchestrate policy validate passes on the defaults', {
+  cwd: kiroProject,
+  args: ['orchestrate', 'policy', 'validate'],
+  expectCode: 0,
+  expectStdout: ['Policy is valid'],
+});
+
+run('orchestrate phases lists the lifecycle vocabulary', {
+  cwd: kiroProject,
+  args: ['orchestrate', 'phases'],
+  expectCode: 0,
+  expectStdout: ['AWAITING_PLAN_REVIEW', 'REPAIRING', 'COMPLETED', 'REJECTED'],
+});
+
+run('orchestrate show fails honestly for an unknown run', {
+  cwd: kiroProject,
+  args: ['orchestrate', 'show', 'no-such-run'],
+  expectCode: 2,
+  expectStdout: ['was not found'],
 });
 
 // --- v0.7.1 extension ecosystem -------------------------------------------

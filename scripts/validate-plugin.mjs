@@ -84,7 +84,7 @@ for (const required of [
 }
 
 // --- skills -------------------------------------------------------------------
-const EXPECTED_SKILLS = ['approve', 'author', 'continue', 'doctor', 'extensions', 'implement', 'new', 'runners', 'status', 'templates', 'verify'];
+const EXPECTED_SKILLS = ['approve', 'author', 'continue', 'develop', 'doctor', 'extensions', 'implement', 'new', 'runners', 'status', 'templates', 'verify'];
 const skillsDir = path.join(pluginRoot, 'skills');
 const skillDirs = existsSync(skillsDir)
   ? readdirSync(skillsDir, { withFileTypes: true })
@@ -161,9 +161,48 @@ for (const skill of skillDirs) {
       fail(`skill ${skill}: line ${index + 1} references a nested-agent command without negating it`);
     }
   }
-  if (skill === 'implement' || skill === 'continue') {
+  if (skill === 'implement' || skill === 'continue' || skill === 'develop') {
     if (!markdown.includes('task_begin') || !markdown.includes('task_complete')) {
       fail(`skill ${skill}: must use the task_begin/task_complete lifecycle`);
+    }
+  }
+  // v1.1: the governed workflow must drive the shared orchestration tools
+  // rather than re-implementing transitions, retry, or completion in prose.
+  if (skill === 'develop') {
+    for (const tool of [
+      'orchestration_begin',
+      'orchestration_assess_intent',
+      'orchestration_submit_plan',
+      'orchestration_review_plan',
+      'orchestration_record_action',
+      'orchestration_finalize',
+    ]) {
+      if (!markdown.includes(tool)) fail(`skill develop: must reference the MCP tool ${tool}`);
+    }
+  }
+  // No skill may invoke or imply an agent-accessible approval path.
+  if (/\bspec_approve\b|\borchestration_approve\b|\bapprove_stage\b/.test(markdown)) {
+    fail(`skill ${skill}: references a non-existent agent-accessible approval tool`);
+  }
+}
+
+// --- MCP tool references must exist in the shipped catalog ---------------------
+{
+  const mcpContractPath = path.join(repoRoot, 'contracts', 'mcp-contract.json');
+  if (existsSync(mcpContractPath)) {
+    const known = new Set(readJson(mcpContractPath).tools ?? []);
+    for (const skill of skillDirs) {
+      const skillPath = path.join(skillsDir, skill, 'SKILL.md');
+      if (!existsSync(skillPath)) continue;
+      const markdown = readFileSync(skillPath, 'utf8');
+      for (const match of markdown.matchAll(/`(orchestration_[a-z_]+|task_[a-z_]+|spec_[a-z_]+)`/g)) {
+        const tool = match[1];
+        // `spec_*` also names documents and CLI concepts; only check the
+        // unambiguous tool families plus known spec tools.
+        if (tool.startsWith('orchestration_') || tool.startsWith('task_')) {
+          if (!known.has(tool)) fail(`skill ${skill}: references unknown MCP tool "${tool}"`);
+        }
+      }
     }
   }
 }
