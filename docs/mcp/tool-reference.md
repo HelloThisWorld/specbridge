@@ -7,7 +7,7 @@ Generated from the authoritative registries of the `specbridge` MCP server
 (version 1.1.0). Tool names, resource URI templates, and prompt
 names are stable contracts — see docs/stability/public-contracts.md.
 
-## Tools (47)
+## Tools (50)
 
 | Tool | Access | Summary |
 | --- | --- | --- |
@@ -15,6 +15,9 @@ names are stable contracts — see docs/stability/public-contracts.md.
 | `extension_list` | read-only | List installed extensions with status |
 | `extension_search` | read-only | Offline extension search (installed + cached registries) |
 | `extension_show` | read-only | One extension in depth (permissions, hash, grant) |
+| `job_cancel` | write | Cancel a job (final, idempotent, evidence preserved) |
+| `job_list` | read-only | List long-running orchestration jobs |
+| `job_read` | read-only | One job in depth: graph, attempts, questions, checkpoint |
 | `orchestration_assess_intent` | write | Validate a structured intent assessment |
 | `orchestration_begin` | write | Begin a governed orchestration run |
 | `orchestration_checkpoint` | write | Write a compact structured checkpoint |

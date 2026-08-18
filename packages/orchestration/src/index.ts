@@ -12,3 +12,6 @@ export * from './store.js';
 export * from './orchestrator.js';
 export * from './resume.js';
 export * from './explain.js';
+export * from './jobs/index.js';
+export * from './agents/index.js';
+export * from './driver/index.js';

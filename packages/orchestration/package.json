@@ -28,6 +28,7 @@
     "@specbridge/core": "workspace:*",
     "@specbridge/evidence": "workspace:*",
     "@specbridge/execution": "workspace:*",
+    "@specbridge/runners": "workspace:*",
     "@specbridge/workflow": "workspace:*",
     "zod": "^3.23.8"
   },

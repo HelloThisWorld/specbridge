@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { z } from 'zod';
+import { localInferenceConfigSchema } from './local-inference-config.js';
 import { orchestrationPolicySchema } from './orchestration-config.js';
 
 /**
@@ -250,6 +251,8 @@ export const agentConfigSchema = z
      * orchestration without migrating to the v2 schema first.
      */
     orchestration: orchestrationPolicySchema.default({}),
+    /** v1.2 managed local inference (additive; disabled by default). */
+    localInference: localInferenceConfigSchema.default({}),
   })
   .passthrough()
   .superRefine((config, ctx) => {

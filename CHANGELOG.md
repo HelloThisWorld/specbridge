@@ -1,5 +1,90 @@
 # Changelog
 
+## 1.2.0 (unreleased)
+
+The persistent, local-first, multi-agent orchestrator. v1.1 governed how a
+single interactive session works through one task; v1.2 adds the layer
+above it: a **long-running job** that takes an approved spec, plans the
+work, schedules bounded agent executions, verifies results, diagnoses
+failures, repairs defects, replans invalid assumptions, escalates hard
+reasoning to Claude Code, checkpoints continuously, survives process
+interruption, and continues until the approved work is verified complete or
+honestly blocked. SpecBridge owns state, policy, scheduling, budgets, and
+completion; agents are replaceable ephemeral workers.
+
+Additive throughout: no persisted schema version moved, no public contract
+changed meaning, and v1.0/v1.1 workspaces load with no migration. New
+schema families (job state 1.0.0, job graph 1.0.0, job checkpoint 1.0.0)
+and new SBO codes (SBO025–SBO038) are appended, never renumbered.
+
+### Added
+
+- **Persistent jobs** under `.specbridge/jobs/<jobId>/` — versioned,
+  atomic, workspace-confined state; append-only graph/plan/agent-result/
+  event history; compact checkpoints; a 13-status fail-closed state machine
+  in which `RUNNING → REPAIRING` deliberately does not exist (a failure
+  must pass through `DIAGNOSING` first).
+- **Runtime execution graphs** independent of the approved `tasks.md`: one
+  node per open required leaf task, explicit dependencies, per-node plan
+  revisions with supersession lineage, and graph-revision node supersession
+  that carries attempt history and replan budgets forward. Runtime ids
+  never touch `.kiro`, and no replan can change approved intent — the
+  replanner must declare impact AND a deterministic keyword screen checks
+  the replacement regardless of the declaration.
+- **A deterministic scheduler** (`scheduleNext`): one pure function from
+  (job, graph, policy, workers, clock) to the single next action —
+  reproducible in tests and quoted verbatim in the audit trail. Sequential
+  source mutation (`maxConcurrentTasks` fixed at 1) matches the evidence
+  model; the field exists so future parallelism is a config change.
+- **Agent roles and tiers**: CLASSIFIER / PLANNER / CRITIC / DIAGNOSER /
+  REPLANNER (read-only) and EXECUTOR (the only writing role) across
+  LOCAL_SMALL and LARGE_AGENT reasoning tiers with LOCAL/PAID cost tiers.
+  Routing is **local-first, escalate-on-evidence** with sticky, recorded
+  escalation reasons — a paid worker is never selected silently, and
+  `escalation: "manual"` stops for the user instead.
+- **Deterministic complexity assessment**: documented signal classes
+  (public API, architecture, security, distributed semantics, concurrency,
+  persistence, new dependencies, failure/replan history) scored into
+  LOW/MEDIUM/HIGH routing classes; hard signals force HIGH; a local
+  classifier may only RAISE the class.
+- **Structured local-agent contracts** for all five reasoning roles:
+  versioned zod schemas plus strict JSON Schemas for constrained decoding,
+  complete-response validation (no substring extraction, no silent
+  repair), one bounded correction round, and conversion into the existing
+  v1.1 execution-plan lifecycle. No schema has a field for
+  chain-of-thought.
+- **LocalModelManager** — a managed llama.cpp server lifecycle: validated
+  executable/model paths, loopback-only binding (not configurable;
+  reserved flags rejected in `extraArgs`/`executableArgs`), observed
+  /health readiness, bounded log capture, idle shutdown, graceful stop,
+  and bounded LAZY restarts. One server serves all roles; a local model
+  crash is a worker failure, never a task failure.
+- **`specbridge orchestrate run <spec>`** — the foreground persistent
+  driver (Ctrl+C checkpoints; `--resume` continues the SAME job), plus
+  `jobs`, `job`, `node-plan`, `review-plan`, `answer`, `cancel-job`, and
+  `--dry-run`/`--json`. Executor dispatches run through the UNCHANGED
+  evidence pipeline: git snapshots, trusted verification, verified-only
+  checkbox completion — job orchestration adds no second completion path.
+- **`specbridge local-model doctor|status`** — read-only diagnostics; no
+  spawn, no inference.
+- **MCP**: `job_list`, `job_read`, `job_cancel` — thin and deliberately
+  narrow; jobs are driven by the standalone process, never from MCP.
+- **Plugin**: `/specbridge:orchestrate` — inspect jobs, surface gates,
+  relay human decisions; the interactive session never launches the
+  orchestrator or nested agents (the standalone orchestrator invoking the
+  Claude Code runner is the designed worker path).
+- **Configuration** (additive, defaulted): `localInference` block and
+  `orchestration.jobs` policy (routing, plan review `high-risk|always|
+  auto`, escalation mode, complexity thresholds, budgets incl. optional
+  reported-usage cost/token ceilings). Config migration carries both
+  blocks; the v1/v2 schema versions are unchanged.
+
+### Fixed
+
+- `TaskRunRequest` gained additive `extraObservations` so a repair dispatch
+  can hand the executor the latest diagnosis as bounded, data-only
+  repository observations; absent, the prompt is byte-identical.
+
 ## 1.1.0
 
 Governed agent orchestration. v1.0 controlled **what** may be executed and

@@ -26,6 +26,7 @@ import {
 } from '@specbridge/reporting';
 import type { CliRuntime } from '../context.js';
 import { VERSION } from '../version.js';
+import { registerOrchestrateJobCommands } from './orchestrate-jobs.js';
 
 /**
  * `specbridge orchestrate …` — deterministic, read-only inspection of
@@ -55,7 +56,12 @@ function phaseLine(state: OrchestrationState): string {
 export function registerOrchestrateCommands(program: Command, runtime: CliRuntime): void {
   const orchestrate = program
     .command('orchestrate')
-    .description('Inspect governed agent orchestration runs (read-only, deterministic)');
+    .description(
+      'Governed agent orchestration: inspect runs (read-only) and drive long-running jobs (`run`)',
+    );
+
+  // v1.2 job surface (run/jobs/job/node-plan/review-plan/answer/cancel-job).
+  registerOrchestrateJobCommands(orchestrate, runtime);
 
   // -------------------------------------------------------------------------
   // status

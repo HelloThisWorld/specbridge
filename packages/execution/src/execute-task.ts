@@ -113,6 +113,14 @@ export interface TaskRunRequest {
   allowDirty?: boolean;
   noVerify?: boolean;
   dryRun?: boolean;
+  /**
+   * v1.2 (additive): bounded extra lines appended to the prompt's
+   * "Repository observations" section. The job orchestrator uses this to
+   * hand a repair dispatch the latest diagnosis summary and attempt facts.
+   * Data-only, exactly like the existing observations — never instructions
+   * that could widen a boundary, and absent means the prompt is unchanged.
+   */
+  extraObservations?: string[];
 }
 
 export interface TaskDryRunPlan {
@@ -253,7 +261,11 @@ export function boundaryNoteFor(preflight: TaskPreflight): string {
   );
 }
 
-function buildPrompt(deps: TaskRunDeps, preflight: TaskPreflight): string {
+function buildPrompt(
+  deps: TaskRunDeps,
+  preflight: TaskPreflight,
+  extraObservations: string[] = [],
+): string {
   const { workspace } = deps;
   const spec = preflight.spec;
   const state = preflight.state;
@@ -271,10 +283,13 @@ function buildPrompt(deps: TaskRunDeps, preflight: TaskPreflight): string {
     taskId: task.id,
     taskTitle: task.title,
     requirementRefs: task.requirementRefs,
-    repositoryObservations:
-      preflight.before !== undefined
+    repositoryObservations: [
+      ...(preflight.before !== undefined
         ? repositoryObservations(workspace.rootDir, preflight.before)
-        : [],
+        : []),
+      // Bounded, data-only orchestration context (repair diagnosis facts).
+      ...extraObservations.slice(0, 10).map((line) => line.slice(0, 500)),
+    ],
     workspaceRootNote: workspaceRootNote(workspace),
     allowedToolsNote: boundaryNoteFor(preflight),
   };
@@ -315,7 +330,7 @@ export async function runApprovedTask(
   }
 
   const task = preflight.task as SelectedTask;
-  const prompt = buildPrompt(deps, preflight);
+  const prompt = buildPrompt(deps, preflight, request.extraObservations ?? []);
   const profileConfig = preflight.profileConfig;
 
   if (request.dryRun === true) {

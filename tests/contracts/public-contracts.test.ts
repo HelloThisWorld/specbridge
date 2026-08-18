@@ -95,8 +95,12 @@ describe('public contract snapshots', () => {
       'orchestration_submit_plan',
     ];
     for (const name of V1_1_ADDITIONS) expect(tools).toContain(name);
-    expect(tools.filter((name) => !V1_1_ADDITIONS.includes(name))).toHaveLength(37);
-    expect(tools).toHaveLength(47);
+    const V1_2_ADDITIONS = ['job_list', 'job_read', 'job_cancel'];
+    for (const name of V1_2_ADDITIONS) expect(tools).toContain(name);
+    expect(
+      tools.filter((name) => !V1_1_ADDITIONS.includes(name) && !V1_2_ADDITIONS.includes(name)),
+    ).toHaveLength(37);
+    expect(tools).toHaveLength(50);
     // No approval tool, no shell, no filesystem, no git — at any version.
     for (const forbidden of tools) {
       expect(forbidden).not.toMatch(/^(.*_approve|.*_shell|.*_exec|.*_git|.*_write_file)$/);
@@ -143,7 +147,8 @@ describe('public contract snapshots', () => {
 
   it('Claude Code Skill names stay pinned', () => {
     const { skills } = readContract('plugin-skills.json') as { skills: string[] };
-    // The v1.0 eleven are frozen; v1.1 adds `develop` and removes nothing.
+    // The v1.0 eleven are frozen; v1.1 added `develop`, v1.2 adds
+    // `orchestrate`, and nothing is ever removed.
     for (const name of [
       'approve', 'author', 'continue', 'doctor', 'extensions', 'implement',
       'new', 'runners', 'status', 'templates', 'verify',
@@ -152,7 +157,7 @@ describe('public contract snapshots', () => {
     }
     expect(skills).toEqual([
       'approve', 'author', 'continue', 'develop', 'doctor', 'extensions',
-      'implement', 'new', 'runners', 'status', 'templates', 'verify',
+      'implement', 'new', 'orchestrate', 'runners', 'status', 'templates', 'verify',
     ]);
   });
 

@@ -34069,6 +34069,76 @@ function reachesFailureThreshold(counts, threshold) {
   if (threshold === "warning") return counts.errors > 0 || counts.warnings > 0;
   return counts.errors > 0;
 }
+var safeNonEmptyString = external_exports.string().refine((value) => !value.includes("\0"), { message: "must not contain null bytes" }).refine((value) => value.length > 0, { message: "must not be empty" });
+var LOCAL_INFERENCE_PROVIDERS = ["llama.cpp"];
+var RESERVED_LLAMA_SERVER_FLAGS = [
+  "--host",
+  "--port",
+  "-m",
+  "--model",
+  "--path",
+  "--api-key",
+  "--api-key-file",
+  "--ssl-key-file",
+  "--ssl-cert-file"
+];
+var boundedArgsSchema = (fieldName) => external_exports.array(safeNonEmptyString.refine((value) => value.length <= 256, { message: "argument too long" })).max(32).default([]).superRefine((args, ctx) => {
+  for (const argument of args) {
+    const flag = argument.split("=")[0] ?? argument;
+    if (RESERVED_LLAMA_SERVER_FLAGS.includes(flag)) {
+      ctx.addIssue({
+        code: external_exports.ZodIssueCode.custom,
+        message: `${fieldName} must not contain "${flag}": the local model manager owns binding, model selection, and credentials-related flags.`
+      });
+    }
+  }
+});
+var extraArgsSchema = boundedArgsSchema("extraArgs");
+var localInferenceConfigSchema = external_exports.object({
+  provider: external_exports.enum(LOCAL_INFERENCE_PROVIDERS).default("llama.cpp"),
+  /** Nothing starts until this is explicitly true. */
+  enabled: external_exports.boolean().default(false),
+  /** Path to the llama.cpp server executable (e.g. llama-server[.exe]). */
+  executable: safeNonEmptyString.nullable().default(null),
+  /**
+   * Arguments placed BEFORE the managed flags (wrapper launchers, e.g. a
+   * script interpreter). Reserved flags are rejected here exactly as in
+   * extraArgs; the managed `--host 127.0.0.1` always follows these.
+   */
+  executableArgs: boundedArgsSchema("executableArgs"),
+  /** Path to the GGUF model file. */
+  model: safeNonEmptyString.nullable().default(null),
+  /** TCP port; 0 (default) allocates a free loopback port per start. */
+  port: external_exports.number().int().min(0).max(65535).default(0),
+  /** Context window passed to the server (`-c`). */
+  contextSize: external_exports.number().int().min(512).max(1048576).default(8192),
+  /**
+   * Parallel request slots (`-np`): one managed server serves several
+   * logical roles, so a couple of slots avoid head-of-line blocking while
+   * bounding memory.
+   */
+  parallel: external_exports.number().int().min(1).max(8).default(2),
+  /** GPU layers (`-ngl`); null omits the flag (llama.cpp default). */
+  gpuLayers: external_exports.number().int().min(0).max(1e3).nullable().default(null),
+  /** Sampling temperature for role requests (0 = deterministic-ish). */
+  temperature: external_exports.number().min(0).max(2).default(0),
+  /** How long a model load may take before startup counts as failed. */
+  startupTimeoutMs: external_exports.number().int().min(5e3).max(18e5).default(18e4),
+  /** Per-request inference timeout. */
+  requestTimeoutMs: external_exports.number().int().min(1e3).max(36e5).default(18e4),
+  /** Stop the managed server after this long without a request. */
+  idleShutdownMs: external_exports.number().int().min(1e4).max(864e5).default(3e5),
+  /** Bounded automatic restarts after an unexpected exit. */
+  maxRestarts: external_exports.number().int().min(0).max(5).default(1),
+  /** Response ceiling per inference request. */
+  maxOutputBytes: external_exports.number().int().min(1024).max(16777216).default(1048576),
+  /** Bounded stdout/stderr retention from the server process. */
+  maxLogBytes: external_exports.number().int().min(4096).max(4194304).default(262144),
+  /** Prompt ceiling per role request, in characters. */
+  maximumInputCharacters: external_exports.number().int().min(1e3).max(2e6).default(48e3),
+  /** Extra llama-server arguments (reserved flags rejected above). */
+  extraArgs: extraArgsSchema
+}).passthrough();
 var PLAN_REVIEW_MODES = ["review", "auto", "disabled"];
 var orchestrationPlanningPolicySchema = external_exports.object({
   mode: external_exports.enum(PLAN_REVIEW_MODES).default("review"),
@@ -34115,6 +34185,76 @@ var orchestrationHistoryPolicySchema = external_exports.object({
   /** Default number of events returned by bounded views. */
   defaultEventPageSize: external_exports.number().int().min(1).max(500).default(50)
 }).passthrough();
+var ROLE_ROUTES = ["local-first", "large-agent", "disabled"];
+var EXECUTOR_ROUTES = ["large-agent"];
+var jobRoutingPolicySchema = external_exports.object({
+  classifier: external_exports.enum(ROLE_ROUTES).default("local-first"),
+  planner: external_exports.enum(["local-first", "large-agent"]).default("local-first"),
+  critic: external_exports.enum(ROLE_ROUTES).default("local-first"),
+  diagnoser: external_exports.enum(["local-first", "large-agent"]).default("local-first"),
+  replanner: external_exports.enum(["local-first", "large-agent"]).default("local-first"),
+  executor: external_exports.enum(EXECUTOR_ROUTES).default("large-agent")
+}).passthrough();
+var JOB_PLAN_REVIEW_MODES = ["high-risk", "always", "auto"];
+var ESCALATION_MODES = ["automatic", "manual"];
+var jobComplexityPolicySchema = external_exports.object({
+  /** Signal score at or above which a task classifies MEDIUM. */
+  mediumScore: external_exports.number().int().min(1).max(50).default(3),
+  /** Signal score at or above which a task classifies HIGH. */
+  highScore: external_exports.number().int().min(2).max(100).default(6)
+}).passthrough();
+var jobBudgetPolicySchema = external_exports.object({
+  /** Hard ceiling on worker dispatches (all roles) in one job. */
+  maxAgentRuns: external_exports.number().int().min(1).max(2e3).default(60),
+  /** Executor dispatches (implement + repair) per task. */
+  maxTaskAttempts: external_exports.number().int().min(1).max(50).default(4),
+  maxRepairCyclesPerTask: external_exports.number().int().min(0).max(50).default(3),
+  maxReplansPerTask: external_exports.number().int().min(0).max(20).default(2),
+  /** Replans across the whole job, whatever task they belong to. */
+  maxJobReplans: external_exports.number().int().min(0).max(100).default(6),
+  maxNoProgressCycles: external_exports.number().int().min(1).max(20).default(2),
+  maxTransientRetries: external_exports.number().int().min(0).max(10).default(2),
+  /** Wall-clock budget for the whole job. */
+  maxWallClockMs: external_exports.number().int().min(6e4).max(14 * 24 * 36e5).default(8 * 36e5),
+  /** Local inference calls (classification, planning, critique, …). */
+  maxLocalInferenceCalls: external_exports.number().int().min(1).max(1e4).default(200),
+  maxEvents: external_exports.number().int().min(100).max(2e5).default(5e3),
+  /**
+   * Optional spend ceiling, enforced against provider-REPORTED cost only.
+   * Null disables the check; SpecBridge never fabricates a price.
+   */
+  maxCostUsd: external_exports.number().min(0).nullable().default(null),
+  /** Optional token ceiling, enforced against reported usage only. */
+  maxTokens: external_exports.number().int().min(1).nullable().default(null)
+}).passthrough();
+var jobPolicySchema = external_exports.object({
+  /** When false, job operations refuse to start and report why. */
+  enabled: external_exports.boolean().default(true),
+  /**
+   * Concurrent source-mutating dispatches. Fixed at 1 in this version:
+   * sequential mutation matches the evidence model. The field exists (and
+   * is validated) so a future parallel scheduler is a config change, not a
+   * schema break — raising the max is additive.
+   */
+  maxConcurrentTasks: external_exports.number().int().min(1).max(1).default(1),
+  routing: jobRoutingPolicySchema.default({}),
+  planReview: external_exports.enum(JOB_PLAN_REVIEW_MODES).default("high-risk"),
+  escalation: external_exports.enum(ESCALATION_MODES).default("automatic"),
+  complexity: jobComplexityPolicySchema.default({}),
+  budgets: jobBudgetPolicySchema.default({}),
+  /**
+   * Optional competing-plan evaluation for MEDIUM-complexity tasks: two
+   * local plans are produced and compared; material divergence escalates.
+   * Off by default — it doubles local planning cost.
+   */
+  competingPlans: external_exports.boolean().default(false),
+  /** Bounded correction retries for invalid local structured output. */
+  maxLocalOutputCorrections: external_exports.number().int().min(0).max(3).default(1),
+  /** Serialized size ceiling for one stored structured agent result. */
+  maxAgentResultBytes: external_exports.number().int().min(1024).max(262144).default(65536),
+  /** Base delay before a WAITING_RETRY job may resume. */
+  retryDelayMs: external_exports.number().int().min(100).max(36e5).default(5e3)
+}).passthrough();
 var orchestrationPolicySchema = external_exports.object({
   /**
    * When false, orchestration tools refuse to start a run and report why.
@@ -34126,7 +34266,9 @@ var orchestrationPolicySchema = external_exports.object({
   execution: orchestrationExecutionPolicySchema.default({}),
   retry: orchestrationRetryPolicySchema.default({}),
   clarification: orchestrationClarificationPolicySchema.default({}),
-  history: orchestrationHistoryPolicySchema.default({})
+  history: orchestrationHistoryPolicySchema.default({}),
+  /** v1.2 long-running job policy (additive; safe defaults). */
+  jobs: jobPolicySchema.default({})
 }).passthrough();
 var AGENT_CONFIG_SCHEMA_VERSION = "1.0.0";
 var FORBIDDEN_PERMISSION_MODE = "bypassPermissions";
@@ -34142,7 +34284,7 @@ function containsNullByte(value) {
   return value.includes("\0");
 }
 var safeString = external_exports.string().refine((value) => !containsNullByte(value), { message: "must not contain null bytes" });
-var safeNonEmptyString = safeString.refine((value) => value.length > 0, {
+var safeNonEmptyString2 = safeString.refine((value) => value.length > 0, {
   message: "must not be empty"
 });
 function forbiddenFragmentIssues(serialized) {
@@ -34163,8 +34305,8 @@ function forbiddenFragmentIssues(serialized) {
   return issues;
 }
 var verificationCommandSchema = external_exports.object({
-  name: safeNonEmptyString,
-  argv: external_exports.array(safeNonEmptyString).min(1, "argv must contain at least the executable").superRefine((argv, ctx) => {
+  name: safeNonEmptyString2,
+  argv: external_exports.array(safeNonEmptyString2).min(1, "argv must contain at least the executable").superRefine((argv, ctx) => {
     if (argv.length === 1 && /\s/.test(argv[0] ?? "")) {
       ctx.addIssue({
         code: external_exports.ZodIssueCode.custom,
@@ -34192,23 +34334,23 @@ var DEFAULT_ALLOWED_BASH_RULES = [
 var claudeRunnerConfigSchema = external_exports.object({
   enabled: external_exports.boolean().default(true),
   /** Executable name or path, resolved without any shell interpolation. */
-  command: safeNonEmptyString.default("claude"),
+  command: safeNonEmptyString2.default("claude"),
   /**
    * Arguments always placed before SpecBridge's own arguments. Lets the
    * executable be an interpreter (e.g. command "node", commandArgs
    * ["path/to/cli.js"]). Used by the offline test harness.
    */
-  commandArgs: external_exports.array(safeNonEmptyString).default([]),
-  model: safeNonEmptyString.nullable().default(null),
-  effort: safeNonEmptyString.nullable().default(null),
+  commandArgs: external_exports.array(safeNonEmptyString2).default([]),
+  model: safeNonEmptyString2.nullable().default(null),
+  effort: safeNonEmptyString2.nullable().default(null),
   maxTurns: external_exports.number().int().min(1).max(1e3).default(30),
   maxBudgetUsd: external_exports.number().positive().nullable().default(null),
   timeoutMs: external_exports.number().int().min(1e3).max(864e5).default(18e5),
   permissionMode: external_exports.enum(CLAUDE_PERMISSION_MODES).default("acceptEdits"),
   loadProjectConfiguration: external_exports.boolean().default(true),
   /** Tools available during task execution. Stage generation restricts further. */
-  tools: external_exports.array(safeNonEmptyString).default([...DEFAULT_CLAUDE_TOOLS]),
-  allowedBashRules: external_exports.array(safeNonEmptyString).default([...DEFAULT_ALLOWED_BASH_RULES]),
+  tools: external_exports.array(safeNonEmptyString2).default([...DEFAULT_CLAUDE_TOOLS]),
+  allowedBashRules: external_exports.array(safeNonEmptyString2).default([...DEFAULT_ALLOWED_BASH_RULES]),
   maxStdoutBytes: external_exports.number().int().min(1024).default(10 * 1024 * 1024),
   maxStderrBytes: external_exports.number().int().min(1024).default(1024 * 1024)
 }).passthrough();
@@ -34235,13 +34377,13 @@ var mockRunnerConfigSchema = external_exports.object({
    * Workspace-relative file the mock runner creates/appends for successful
    * task scenarios. Must stay inside the workspace.
    */
-  changeFile: safeNonEmptyString.refine((value) => !import_path3.default.isAbsolute(value) && !value.split(/[\\/]/).includes(".."), {
+  changeFile: safeNonEmptyString2.refine((value) => !import_path3.default.isAbsolute(value) && !value.split(/[\\/]/).includes(".."), {
     message: 'must be a workspace-relative path without ".." segments'
   }).default("specbridge-mock-change.txt")
 }).passthrough();
 var genericRunnerConfigSchema = external_exports.object({
   enabled: external_exports.boolean().optional(),
-  command: safeNonEmptyString.optional()
+  command: safeNonEmptyString2.optional()
 }).passthrough();
 var executionPolicySchema = external_exports.object({
   requireCleanWorkingTree: external_exports.boolean().default(true),
@@ -34253,7 +34395,7 @@ var executionPolicySchema = external_exports.object({
    * slashes). `.kiro`, `.specbridge`, and `.git` are always protected.
    */
   protectedPaths: external_exports.array(
-    safeNonEmptyString.refine(
+    safeNonEmptyString2.refine(
       (value) => !import_path3.default.isAbsolute(value) && !value.split(/[\\/]/).includes(".."),
       { message: 'must be a workspace-relative path without ".." segments' }
     )
@@ -34264,7 +34406,7 @@ var verificationConfigSchema = external_exports.object({
 }).passthrough();
 var agentConfigSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/).default(AGENT_CONFIG_SCHEMA_VERSION),
-  defaultRunner: safeNonEmptyString.default("claude-code"),
+  defaultRunner: safeNonEmptyString2.default("claude-code"),
   runners: external_exports.object({
     "claude-code": claudeRunnerConfigSchema.default({}),
     mock: mockRunnerConfigSchema.default({})
@@ -34276,7 +34418,9 @@ var agentConfigSchema = external_exports.object({
    * configuration file stays valid and a v1 workspace can configure
    * orchestration without migrating to the v2 schema first.
    */
-  orchestration: orchestrationPolicySchema.default({})
+  orchestration: orchestrationPolicySchema.default({}),
+  /** v1.2 managed local inference (additive; disabled by default). */
+  localInference: localInferenceConfigSchema.default({})
 }).passthrough().superRefine((config, ctx) => {
   if (config.schemaVersion !== void 0 && !config.schemaVersion.startsWith("1.")) {
     ctx.addIssue({
@@ -34354,8 +34498,8 @@ var commandSpecSchema = external_exports.preprocess(
     return value;
   },
   external_exports.object({
-    executable: safeNonEmptyString,
-    args: external_exports.array(safeNonEmptyString).default([])
+    executable: safeNonEmptyString2,
+    args: external_exports.array(safeNonEmptyString2).default([])
   }).strict()
 );
 var claudeProfileSchema = claudeRunnerConfigSchema.extend({
@@ -34366,7 +34510,7 @@ var codexProfileSchema = external_exports.object({
   runner: external_exports.literal("codex-cli"),
   enabled: external_exports.boolean().default(false),
   command: commandSpecSchema.default({ executable: "codex", args: [] }),
-  model: safeNonEmptyString.nullable().default(null),
+  model: safeNonEmptyString2.nullable().default(null),
   /** Sandbox for TASK EXECUTION. Authoring always runs read-only. */
   sandbox: external_exports.enum(CODEX_SANDBOX_MODES).default("workspace-write"),
   persistSessions: external_exports.boolean().default(true),
@@ -34377,8 +34521,8 @@ var codexProfileSchema = external_exports.object({
 var ollamaProfileSchema = external_exports.object({
   runner: external_exports.literal("ollama"),
   enabled: external_exports.boolean().default(false),
-  baseUrl: safeNonEmptyString.default("http://127.0.0.1:11434"),
-  model: safeNonEmptyString.nullable().default(null),
+  baseUrl: safeNonEmptyString2.default("http://127.0.0.1:11434"),
+  model: safeNonEmptyString2.nullable().default(null),
   temperature: external_exports.number().min(0).max(2).default(0),
   timeoutMs: external_exports.number().int().min(1e3).max(864e5).default(3e5),
   maximumInputCharacters: external_exports.number().int().min(1e3).default(5e5),
@@ -34395,7 +34539,7 @@ var geminiProfileSchema = external_exports.object({
   runner: external_exports.literal("gemini-cli"),
   enabled: external_exports.boolean().default(false),
   command: commandSpecSchema.default({ executable: "gemini", args: [] }),
-  model: safeNonEmptyString.nullable().default(null),
+  model: safeNonEmptyString2.nullable().default(null),
   /** Authoring is always read-only; only plan mode is accepted. */
   approvalModeForAuthoring: external_exports.enum(GEMINI_AUTHORING_APPROVAL_MODES).default("plan"),
   /** Task execution may auto-approve EDITS only — never shell commands. */
@@ -34406,7 +34550,7 @@ var geminiProfileSchema = external_exports.object({
    * Extra tools to allow during task execution, on top of the adapter's
    * bounded read/edit set. Shell-execution tools are rejected.
    */
-  allowedTools: external_exports.array(safeNonEmptyString).default([]).refine(
+  allowedTools: external_exports.array(safeNonEmptyString2).default([]).refine(
     (tools) => tools.every((tool) => !/^(run_shell_command|shell|bash|execute_command|terminal)$/i.test(tool)),
     {
       message: "shell-execution tools cannot be allowed: SpecBridge never grants the Gemini CLI arbitrary shell access"
@@ -34454,9 +34598,9 @@ var safeHeadersSchema = external_exports.record(external_exports.string().max(10
 var openAiCompatibleProfileSchema = external_exports.object({
   runner: external_exports.literal("openai-compatible"),
   enabled: external_exports.boolean().default(false),
-  baseUrl: safeNonEmptyString.default("http://127.0.0.1:8000/v1"),
+  baseUrl: safeNonEmptyString2.default("http://127.0.0.1:8000/v1"),
   apiStyle: external_exports.enum(OPENAI_COMPATIBLE_API_STYLES).default("chat-completions"),
-  model: safeNonEmptyString.nullable().default(null),
+  model: safeNonEmptyString2.nullable().default(null),
   structuredOutput: external_exports.enum(OPENAI_COMPATIBLE_STRUCTURED_OUTPUT_MODES).default("json-schema"),
   /**
    * Explicit permission to fall back from the configured structured-output
@@ -34514,13 +34658,13 @@ var runnerPolicySchema = external_exports.object({
   requireExplicitRunnerForPaidApi: external_exports.boolean().default(true)
 }).passthrough();
 var operationDefaultsSchema = external_exports.object({
-  stageGeneration: safeNonEmptyString.nullable().default(null),
-  stageRefinement: safeNonEmptyString.nullable().default(null),
-  taskExecution: safeNonEmptyString.nullable().default(null)
+  stageGeneration: safeNonEmptyString2.nullable().default(null),
+  stageRefinement: safeNonEmptyString2.nullable().default(null),
+  taskExecution: safeNonEmptyString2.nullable().default(null)
 }).passthrough();
 var fallbacksSchema = external_exports.object({
-  stageGeneration: external_exports.array(safeNonEmptyString).default([]),
-  stageRefinement: external_exports.array(safeNonEmptyString).default([])
+  stageGeneration: external_exports.array(safeNonEmptyString2).default([]),
+  stageRefinement: external_exports.array(safeNonEmptyString2).default([])
 }).passthrough();
 var CREDENTIAL_KEY_PATTERN = /^(api[-_]?keys?|auth[-_]?tokens?|access[-_]?tokens?|secrets?|passwords?|credentials?)$/i;
 function credentialKeyIssues(value, breadcrumb) {
@@ -34538,7 +34682,7 @@ function credentialKeyIssues(value, breadcrumb) {
 }
 var agentConfigV2Schema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  defaultRunner: safeNonEmptyString.default(BUILT_IN_PROFILE_NAMES["claude-code"]),
+  defaultRunner: safeNonEmptyString2.default(BUILT_IN_PROFILE_NAMES["claude-code"]),
   operationDefaults: operationDefaultsSchema.default({}),
   runnerProfiles: external_exports.record(runnerProfileSchema).default({}),
   runnerPolicy: runnerPolicySchema.default({}),
@@ -34546,7 +34690,9 @@ var agentConfigV2Schema = external_exports.object({
   verification: verificationConfigSchema.default({}),
   execution: executionPolicySchema.default({}),
   /** v1.1 governed orchestration policy (additive; safe defaults). */
-  orchestration: orchestrationPolicySchema.default({})
+  orchestration: orchestrationPolicySchema.default({}),
+  /** v1.2 managed local inference (additive; disabled by default). */
+  localInference: localInferenceConfigSchema.default({})
 }).passthrough().superRefine((config, ctx) => {
   if (!config.schemaVersion.startsWith("2.")) {
     ctx.addIssue({
@@ -34672,7 +34818,8 @@ function resolveAgentConfigFromV1(v1) {
     fallbacks: fallbacksSchema.parse({}),
     verification: v1.verification,
     execution: v1.execution,
-    orchestration: v1.orchestration
+    orchestration: v1.orchestration,
+    localInference: v1.localInference
   };
 }
 function resolveAgentConfigFromV2(v2) {
@@ -34686,7 +34833,8 @@ function resolveAgentConfigFromV2(v2) {
     fallbacks: v2.fallbacks,
     verification: v2.verification,
     execution: v2.execution,
-    orchestration: v2.orchestration
+    orchestration: v2.orchestration,
+    localInference: v2.localInference
   };
 }
 function defaultResolvedAgentConfig() {
@@ -34700,7 +34848,8 @@ function defaultResolvedAgentConfig() {
     fallbacks: fallbacksSchema.parse({}),
     verification: verificationConfigSchema.parse({}),
     execution: executionPolicySchema.parse({}),
-    orchestration: orchestrationPolicySchema.parse({})
+    orchestration: orchestrationPolicySchema.parse({}),
+    localInference: localInferenceConfigSchema.parse({})
   };
 }
 function resolvedConfigDiagnostics(config) {

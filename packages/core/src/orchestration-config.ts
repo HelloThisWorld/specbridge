@@ -113,6 +113,150 @@ export const orchestrationHistoryPolicySchema = z
   .passthrough();
 export type OrchestrationHistoryPolicy = z.infer<typeof orchestrationHistoryPolicySchema>;
 
+// ---------------------------------------------------------------------------
+// v1.2 job orchestration policy
+// ---------------------------------------------------------------------------
+
+/**
+ * How a reasoning role is routed between the local tier and the large agent.
+ *
+ * - `local-first`  attempt the local model when it is configured, healthy,
+ *                  and the deterministic complexity class permits; escalate
+ *                  on evidence (never on a whim, never silently)
+ * - `large-agent`  route directly to the large agent
+ * - `disabled`     skip the role entirely (only roles whose absence is safe
+ *                  accept this: classification falls back to deterministic
+ *                  signals, critique falls back to plan review policy)
+ */
+export const ROLE_ROUTES = ['local-first', 'large-agent', 'disabled'] as const;
+export type RoleRoute = (typeof ROLE_ROUTES)[number];
+
+/**
+ * The executor is the only repository-writing role, and in this version it
+ * routes exclusively to the large agent. `local` is deliberately NOT a value
+ * of this enum: local source execution is a future explicit opt-in, and
+ * adding a new enum member later is additive — while shipping it now "just in
+ * case" would make an unreviewed capability reachable by configuration.
+ */
+export const EXECUTOR_ROUTES = ['large-agent'] as const;
+export type ExecutorRoute = (typeof EXECUTOR_ROUTES)[number];
+
+export const jobRoutingPolicySchema = z
+  .object({
+    classifier: z.enum(ROLE_ROUTES).default('local-first'),
+    planner: z.enum(['local-first', 'large-agent'] as const).default('local-first'),
+    critic: z.enum(ROLE_ROUTES).default('local-first'),
+    diagnoser: z.enum(['local-first', 'large-agent'] as const).default('local-first'),
+    replanner: z.enum(['local-first', 'large-agent'] as const).default('local-first'),
+    executor: z.enum(EXECUTOR_ROUTES).default('large-agent'),
+  })
+  .passthrough();
+export type JobRoutingPolicy = z.infer<typeof jobRoutingPolicySchema>;
+
+/**
+ * When a runtime plan needs an explicit human review before execution.
+ *
+ * - `high-risk` (default) HIGH-complexity or architecture-flagged plans need
+ *               a human; LOW/MEDIUM plans proceed on critic acceptance
+ * - `always`    every plan needs a human review
+ * - `auto`      no human plan gate (spec approval gates still apply in full)
+ */
+export const JOB_PLAN_REVIEW_MODES = ['high-risk', 'always', 'auto'] as const;
+export type JobPlanReviewMode = (typeof JOB_PLAN_REVIEW_MODES)[number];
+
+/**
+ * How escalation to the large agent behaves when a deterministic trigger
+ * fires. `automatic` escalates and records why; `manual` stops the job with
+ * NEEDS_CLARIFICATION so the user decides whether to spend paid reasoning.
+ */
+export const ESCALATION_MODES = ['automatic', 'manual'] as const;
+export type EscalationMode = (typeof ESCALATION_MODES)[number];
+
+export const jobComplexityPolicySchema = z
+  .object({
+    /** Signal score at or above which a task classifies MEDIUM. */
+    mediumScore: z.number().int().min(1).max(50).default(3),
+    /** Signal score at or above which a task classifies HIGH. */
+    highScore: z.number().int().min(2).max(100).default(6),
+  })
+  .passthrough();
+export type JobComplexityPolicy = z.infer<typeof jobComplexityPolicySchema>;
+
+export const jobBudgetPolicySchema = z
+  .object({
+    /** Hard ceiling on worker dispatches (all roles) in one job. */
+    maxAgentRuns: z.number().int().min(1).max(2_000).default(60),
+    /** Executor dispatches (implement + repair) per task. */
+    maxTaskAttempts: z.number().int().min(1).max(50).default(4),
+    maxRepairCyclesPerTask: z.number().int().min(0).max(50).default(3),
+    maxReplansPerTask: z.number().int().min(0).max(20).default(2),
+    /** Replans across the whole job, whatever task they belong to. */
+    maxJobReplans: z.number().int().min(0).max(100).default(6),
+    maxNoProgressCycles: z.number().int().min(1).max(20).default(2),
+    maxTransientRetries: z.number().int().min(0).max(10).default(2),
+    /** Wall-clock budget for the whole job. */
+    maxWallClockMs: z
+      .number()
+      .int()
+      .min(60_000)
+      .max(14 * 24 * 3_600_000)
+      .default(8 * 3_600_000),
+    /** Local inference calls (classification, planning, critique, …). */
+    maxLocalInferenceCalls: z.number().int().min(1).max(10_000).default(200),
+    maxEvents: z.number().int().min(100).max(200_000).default(5_000),
+    /**
+     * Optional spend ceiling, enforced against provider-REPORTED cost only.
+     * Null disables the check; SpecBridge never fabricates a price.
+     */
+    maxCostUsd: z.number().min(0).nullable().default(null),
+    /** Optional token ceiling, enforced against reported usage only. */
+    maxTokens: z.number().int().min(1).nullable().default(null),
+  })
+  .passthrough();
+export type JobBudgetPolicy = z.infer<typeof jobBudgetPolicySchema>;
+
+/**
+ * v1.2 long-running job policy, additive inside the orchestration block.
+ * Absent in every existing configuration file, in which case the defaults
+ * below apply and no migration is required.
+ *
+ * Deliberately absent, exactly like the v1.1 block: nothing here can weaken
+ * a safety boundary. There is no way to configure an approval bypass, a
+ * verification bypass, an arbitrary command, or a repository-writing local
+ * model from this block.
+ */
+export const jobPolicySchema = z
+  .object({
+    /** When false, job operations refuse to start and report why. */
+    enabled: z.boolean().default(true),
+    /**
+     * Concurrent source-mutating dispatches. Fixed at 1 in this version:
+     * sequential mutation matches the evidence model. The field exists (and
+     * is validated) so a future parallel scheduler is a config change, not a
+     * schema break — raising the max is additive.
+     */
+    maxConcurrentTasks: z.number().int().min(1).max(1).default(1),
+    routing: jobRoutingPolicySchema.default({}),
+    planReview: z.enum(JOB_PLAN_REVIEW_MODES).default('high-risk'),
+    escalation: z.enum(ESCALATION_MODES).default('automatic'),
+    complexity: jobComplexityPolicySchema.default({}),
+    budgets: jobBudgetPolicySchema.default({}),
+    /**
+     * Optional competing-plan evaluation for MEDIUM-complexity tasks: two
+     * local plans are produced and compared; material divergence escalates.
+     * Off by default — it doubles local planning cost.
+     */
+    competingPlans: z.boolean().default(false),
+    /** Bounded correction retries for invalid local structured output. */
+    maxLocalOutputCorrections: z.number().int().min(0).max(3).default(1),
+    /** Serialized size ceiling for one stored structured agent result. */
+    maxAgentResultBytes: z.number().int().min(1_024).max(262_144).default(65_536),
+    /** Base delay before a WAITING_RETRY job may resume. */
+    retryDelayMs: z.number().int().min(100).max(3_600_000).default(5_000),
+  })
+  .passthrough();
+export type JobPolicy = z.infer<typeof jobPolicySchema>;
+
 export const orchestrationPolicySchema = z
   .object({
     /**
@@ -126,6 +270,8 @@ export const orchestrationPolicySchema = z
     retry: orchestrationRetryPolicySchema.default({}),
     clarification: orchestrationClarificationPolicySchema.default({}),
     history: orchestrationHistoryPolicySchema.default({}),
+    /** v1.2 long-running job policy (additive; safe defaults). */
+    jobs: jobPolicySchema.default({}),
   })
   .passthrough();
 export type OrchestrationPolicy = z.infer<typeof orchestrationPolicySchema>;
@@ -156,6 +302,46 @@ export function orchestrationPolicyFingerprint(policy: OrchestrationPolicy): str
     },
     retry: { maxTransientRetries: policy.retry.maxTransientRetries },
     clarification: { maxRounds: policy.clarification.maxRounds },
+  };
+  return JSON.stringify(canonical);
+}
+
+/**
+ * Stable fingerprint of the values a JOB is bound to. Separate from
+ * `orchestrationPolicyFingerprint` deliberately: v1.1 run records already
+ * persist that fingerprint, and folding job values into it would make every
+ * existing resumed run falsely report "the policy changed".
+ */
+export function jobPolicyFingerprint(policy: OrchestrationPolicy): string {
+  const jobs = policy.jobs;
+  const canonical = {
+    enabled: jobs.enabled,
+    maxConcurrentTasks: jobs.maxConcurrentTasks,
+    routing: {
+      classifier: jobs.routing.classifier,
+      planner: jobs.routing.planner,
+      critic: jobs.routing.critic,
+      diagnoser: jobs.routing.diagnoser,
+      replanner: jobs.routing.replanner,
+      executor: jobs.routing.executor,
+    },
+    planReview: jobs.planReview,
+    escalation: jobs.escalation,
+    complexity: { mediumScore: jobs.complexity.mediumScore, highScore: jobs.complexity.highScore },
+    budgets: {
+      maxAgentRuns: jobs.budgets.maxAgentRuns,
+      maxTaskAttempts: jobs.budgets.maxTaskAttempts,
+      maxRepairCyclesPerTask: jobs.budgets.maxRepairCyclesPerTask,
+      maxReplansPerTask: jobs.budgets.maxReplansPerTask,
+      maxJobReplans: jobs.budgets.maxJobReplans,
+      maxNoProgressCycles: jobs.budgets.maxNoProgressCycles,
+      maxTransientRetries: jobs.budgets.maxTransientRetries,
+      maxWallClockMs: jobs.budgets.maxWallClockMs,
+      maxLocalInferenceCalls: jobs.budgets.maxLocalInferenceCalls,
+      maxCostUsd: jobs.budgets.maxCostUsd,
+      maxTokens: jobs.budgets.maxTokens,
+    },
+    competingPlans: jobs.competingPlans,
   };
   return JSON.stringify(canonical);
 }

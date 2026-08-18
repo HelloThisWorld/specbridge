@@ -38,7 +38,21 @@
     "SBO021",
     "SBO022",
     "SBO023",
-    "SBO024"
+    "SBO024",
+    "SBO025",
+    "SBO026",
+    "SBO027",
+    "SBO028",
+    "SBO029",
+    "SBO030",
+    "SBO031",
+    "SBO032",
+    "SBO033",
+    "SBO034",
+    "SBO035",
+    "SBO036",
+    "SBO037",
+    "SBO038"
   ],
   "eventTypes": [
     "action_recorded",
