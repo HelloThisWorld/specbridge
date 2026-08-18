@@ -160,7 +160,15 @@ async function verifyMcpServer() {
     new Promise((resolve, reject) => {
       const startedAt = Date.now();
       const poll = () => {
-        for (const line of stdout.split('\n')) {
+        // Only COMPLETE lines are protocol: a large response (tools/list is
+        // hundreds of KB at 50 tools) streams across several pipe chunks,
+        // and a poll that lands between two of them sees a trailing partial
+        // JSON fragment. That fragment is work in progress, not a purity
+        // violation — parsing it raced this check into flaking on slow
+        // runners. A complete non-JSON line still fails hard.
+        const segments = stdout.split('\n');
+        const completeLines = stdout.endsWith('\n') ? segments : segments.slice(0, -1);
+        for (const line of completeLines) {
           if (line.trim().length === 0) continue;
           try {
             const parsed = JSON.parse(line);
