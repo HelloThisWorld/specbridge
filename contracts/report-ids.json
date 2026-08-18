@@ -1,5 +1,6 @@
 {
   "jsonReportIds": [
+    "local-model-doctor",
     "specbridge.accept-task/1",
     "specbridge.compat-check/1",
     "specbridge.config-doctor/1",

@@ -38,6 +38,21 @@ export const SBO_CODES = {
   SBO022: 'completion requires verified evidence',
   SBO023: 'orchestration prerequisite unsatisfied',
   SBO024: 'orchestration request rejected',
+  // v1.2 job orchestration codes. Additive: nothing above may be renumbered.
+  SBO025: 'jobs disabled by policy',
+  SBO026: 'job already final',
+  SBO027: 'invalid job transition',
+  SBO028: 'invalid node transition',
+  SBO029: 'job not found',
+  SBO030: 'job state invalid',
+  SBO031: 'job graph invalid',
+  SBO032: 'job budget exhausted',
+  SBO033: 'human decision required',
+  SBO034: 'no worker available for role',
+  SBO035: 'local inference not configured',
+  SBO036: 'local model process failure',
+  SBO037: 'invalid agent output',
+  SBO038: 'job prerequisite unsatisfied',
 } as const;
 
 export type SboCode = keyof typeof SBO_CODES;

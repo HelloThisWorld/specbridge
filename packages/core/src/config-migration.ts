@@ -36,6 +36,7 @@ const KNOWN_V1_TOP_LEVEL = new Set([
   'verification',
   'execution',
   'orchestration',
+  'localInference',
 ]);
 const KNOWN_V1_RUNNERS = new Set(['claude-code', 'mock', 'codex', 'ollama']);
 
@@ -175,6 +176,9 @@ export function planConfigMigration(raw: unknown): ConfigMigrationPlanResult {
   const hasOrchestrationBlock =
     typeof raw === 'object' && raw !== null && 'orchestration' in (raw as object);
   if (hasOrchestrationBlock) changes.push('orchestration policy preserved unchanged');
+  const hasLocalInferenceBlock =
+    typeof raw === 'object' && raw !== null && 'localInference' in (raw as object);
+  if (hasLocalInferenceBlock) changes.push('localInference configuration preserved unchanged');
   changes.push('operationDefaults added (all null — every operation keeps using defaultRunner)');
   changes.push('runnerPolicy added with safe defaults (automatic fallback stays disabled)');
   changes.push('fallbacks added empty (no automatic provider switching)');
@@ -206,6 +210,7 @@ export function planConfigMigration(raw: unknown): ConfigMigrationPlanResult {
     // Only carried when the file actually declared it: migration must not
     // materialize a policy block the user never wrote.
     ...(hasOrchestrationBlock ? { orchestration: v1.orchestration } : {}),
+    ...(hasLocalInferenceBlock ? { localInference: v1.localInference } : {}),
     ...preservedUnknown,
   };
 

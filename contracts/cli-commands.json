@@ -150,6 +150,25 @@
           }
         }
       },
+      "local-model": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "doctor": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "status": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          }
+        }
+      },
       "mcp": {
         "options": [
           "--help"
@@ -227,6 +246,17 @@
           "--help"
         ],
         "subcommands": {
+          "answer": {
+            "options": [
+              "--help"
+            ]
+          },
+          "cancel-job": {
+            "options": [
+              "--help",
+              "--reason"
+            ]
+          },
           "events": {
             "options": [
               "--help",
@@ -239,6 +269,28 @@
             "options": [
               "--help",
               "--json"
+            ]
+          },
+          "job": {
+            "options": [
+              "--events",
+              "--help",
+              "--json"
+            ]
+          },
+          "jobs": {
+            "options": [
+              "--active",
+              "--help",
+              "--json",
+              "--spec"
+            ]
+          },
+          "node-plan": {
+            "options": [
+              "--help",
+              "--json",
+              "--revision"
             ]
           },
           "phases": {
@@ -265,6 +317,23 @@
                 ]
               }
             }
+          },
+          "review-plan": {
+            "options": [
+              "--approve",
+              "--help",
+              "--note",
+              "--reject"
+            ]
+          },
+          "run": {
+            "options": [
+              "--dry-run",
+              "--goal",
+              "--help",
+              "--json",
+              "--resume"
+            ]
           },
           "show": {
             "options": [

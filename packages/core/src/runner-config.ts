@@ -3,6 +3,8 @@ import path from 'node:path';
 import { z } from 'zod';
 import type { Diagnostic } from './types.js';
 import type { WorkspaceInfo } from './workspace.js';
+import type { LocalInferenceConfig } from './local-inference-config.js';
+import { localInferenceConfigSchema } from './local-inference-config.js';
 import type { OrchestrationPolicy } from './orchestration-config.js';
 import { orchestrationPolicySchema } from './orchestration-config.js';
 import type {
@@ -497,6 +499,8 @@ export const agentConfigV2Schema = z
     execution: executionPolicySchema.default({}),
     /** v1.1 governed orchestration policy (additive; safe defaults). */
     orchestration: orchestrationPolicySchema.default({}),
+    /** v1.2 managed local inference (additive; disabled by default). */
+    localInference: localInferenceConfigSchema.default({}),
   })
   .passthrough()
   .superRefine((config, ctx) => {
@@ -561,6 +565,8 @@ export interface AgentConfig {
   execution: ExecutionPolicy;
   /** v1.1 governed orchestration policy (always resolved, never undefined). */
   orchestration: OrchestrationPolicy;
+  /** v1.2 managed local inference (always resolved, never undefined). */
+  localInference: LocalInferenceConfig;
 }
 
 function builtInClaudeProfile(base?: Partial<ClaudeRunnerConfig>): ClaudeProfileConfig {
@@ -670,6 +676,7 @@ export function resolveAgentConfigFromV1(v1: AgentConfigFileV1): AgentConfig {
     verification: v1.verification,
     execution: v1.execution,
     orchestration: v1.orchestration,
+    localInference: v1.localInference,
   };
 }
 
@@ -686,6 +693,7 @@ export function resolveAgentConfigFromV2(v2: AgentConfigFileV2): AgentConfig {
     verification: v2.verification,
     execution: v2.execution,
     orchestration: v2.orchestration,
+    localInference: v2.localInference,
   };
 }
 
@@ -702,6 +710,7 @@ export function defaultResolvedAgentConfig(): AgentConfig {
     verification: verificationConfigSchema.parse({}),
     execution: executionPolicySchema.parse({}),
     orchestration: orchestrationPolicySchema.parse({}),
+    localInference: localInferenceConfigSchema.parse({}),
   };
 }
 

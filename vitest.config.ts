@@ -1,9 +1,36 @@
+import { availableParallelism } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { configDefaults, defineConfig } from 'vitest/config';
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 const pkg = (name: string): string => path.resolve(rootDir, 'packages', name, 'src', 'index.ts');
+
+/**
+ * Worker ceiling that always leaves the vitest coordinator room to run.
+ *
+ * This suite is process-heavy: most integration tests spawn real `git`,
+ * runner, and verification subprocesses, so each worker is really a worker
+ * plus its children. Vitest's default pool sizes itself to the core count,
+ * which on a 4-core GitHub-hosted runner leaves the coordinator competing
+ * with every worker for scheduling.
+ *
+ * When that happens the worker->main `onTaskUpdate` RPC can exceed birpc's
+ * 60s default (not configurable through vitest), and the run fails with
+ * `[vitest-worker]: Timeout calling "onTaskUpdate"` — every test passing and
+ * the process still exiting 1. Reserving headroom keeps the RPC responsive.
+ *
+ * A developer machine with many cores is capped too: past a handful of
+ * workers this suite is bound by subprocess spawn cost, not by CPU. The cap
+ * of 6 is empirical: at 8, the v1.2 driver tests (which add fake llama.cpp
+ * servers and multi-role worker subprocesses on top of the usual git/runner
+ * children) still starved the coordinator RPC on a 24-core machine.
+ */
+const workerCeiling = (): number => {
+  const cores = availableParallelism();
+  if (cores <= 4) return 2;
+  return Math.min(cores - 2, 6);
+};
 
 export default defineConfig({
   resolve: {
@@ -39,5 +66,13 @@ export default defineConfig({
     // snapshots, runner subprocesses, verification commands); slow CI
     // runners regularly exceed the 5s default.
     testTimeout: 30_000,
+    maxWorkers: workerCeiling(),
+    // On CI the default reporter writes a line per test to a non-TTY stream
+    // from the coordinator — 1,479 synchronous writes competing with the RPC
+    // it also has to service. `dot` keeps failure output in full while
+    // removing that load, and `github-actions` annotates failures inline on
+    // the pull request, which is more useful than the passing-test lines it
+    // replaces.
+    ...(process.env['CI'] !== undefined ? { reporters: ['dot', 'github-actions'] } : {}),
   },
 });

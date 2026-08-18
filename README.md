@@ -142,11 +142,11 @@ and authenticate Claude Code, the Codex CLI, the Gemini CLI, Ollama, or
 your API endpoint yourself; API keys are referenced by environment-variable
 name only and never stored. [Runners](docs/runners.md)
 
-**MCP server and Claude Code plugin** — a local stdio MCP server (47
+**MCP server and Claude Code plugin** — a local stdio MCP server (50
 typed tools, 7 resources, 4 prompts) exposes the same core, and a
-self-contained Claude Code plugin bundles CLI + server + twelve skills
+self-contained Claude Code plugin bundles CLI + server + thirteen skills
 (the eleven v1.0 skills verified against a live model; the v1.1 `develop`
-skill is not yet live-verified).
+and v1.2 `orchestrate` skills are not yet live-verified).
 [MCP server](docs/mcp-server.md) ·
 [plugin](docs/claude-code-plugin.md) ·
 [skill verification](docs/skill-verification/README.md)
@@ -158,6 +158,17 @@ explicit budgets. `.kiro` stays untouched, approval stays human-only, and
 completion still requires verified evidence.
 [agent orchestration](docs/orchestration/agent-orchestration.md) ·
 [enforcement boundaries](docs/orchestration/enforcement-boundaries.md)
+
+**Long-running local-first orchestrator (v1.2)** — `specbridge orchestrate
+run <spec>` drives an approved spec end to end as a persistent, resumable
+job: a deterministic scheduler dispatches ephemeral workers — a managed
+local llama.cpp model for cheap reasoning (classify / plan / critique /
+diagnose / replan) and Claude Code for implementation and hard reasoning —
+with evidence-driven escalation, automatic diagnosis/repair/replan,
+explicit budgets, checkpoints, and honest resume after interruption.
+Every completion still flows through the unchanged evidence pipeline.
+[long-running jobs](docs/orchestration/long-running-jobs.md) ·
+[local model](docs/local-model.md)
 
 **Templates and extensions** — reusable spec templates (deterministic
 offline `{{variable}}` rendering, no executable generators) and five

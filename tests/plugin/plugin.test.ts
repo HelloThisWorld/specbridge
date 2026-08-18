@@ -85,8 +85,9 @@ describe('plugin structure', () => {
 
   it('every namespaced skill exists with unique names and valid frontmatter', () => {
     const dirs = readdirSync(skillsDir).sort();
-    // The eleven v1.0 skills are preserved exactly; v1.1 adds `develop` as
-    // the governed workflow without changing any existing skill's identity.
+    // The eleven v1.0 skills are preserved exactly; v1.1 added `develop`
+    // (the governed workflow) and v1.2 adds `orchestrate` (long-running
+    // jobs) — neither changes any existing skill's identity.
     const V1_0_SKILLS = [
       'approve',
       'author',
@@ -101,7 +102,7 @@ describe('plugin structure', () => {
       'verify',
     ];
     for (const skill of V1_0_SKILLS) expect(dirs, `v1.0 skill ${skill}`).toContain(skill);
-    expect(dirs).toEqual([...V1_0_SKILLS, 'develop'].sort());
+    expect(dirs).toEqual([...V1_0_SKILLS, 'develop', 'orchestrate'].sort());
     const names = new Set<string>();
     for (const dir of dirs) {
       const markdown = skillMarkdown(dir);

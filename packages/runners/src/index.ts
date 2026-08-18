@@ -124,3 +124,18 @@ export {
   type OllamaModel,
   type OllamaChatMessage,
 } from './ollama/client.js';
+export {
+  LocalModelManager,
+  type LocalModelStatus,
+  type LocalModelStartResult,
+  type LocalModelStartFailureKind,
+  type LocalModelEvent,
+  type LocalModelManagerOptions,
+} from './local-model/manager.js';
+export {
+  localStructuredInference,
+  type LocalStructuredRequest,
+  type LocalStructuredResult,
+  type LocalStructuredFailureKind,
+} from './local-model/role-client.js';
+export { localModelDoctor, type LocalModelDoctorReport } from './local-model/doctor.js';

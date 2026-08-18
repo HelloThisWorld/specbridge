@@ -53,6 +53,7 @@ import {
   registerOrchestrationStatusTool,
   registerOrchestrationSubmitPlanTool,
 } from './orchestration-tools.js';
+import { registerJobCancelTool, registerJobListTool, registerJobReadTool } from './job-tools.js';
 
 /**
  * The complete, closed tool registry.
@@ -119,6 +120,9 @@ export const TOOL_CATALOG: readonly ToolRegistryEntry[] = [
   { name: 'orchestration_record_action', readOnly: false, summary: 'Record one bounded iteration; get the next directive' },
   { name: 'orchestration_checkpoint', readOnly: false, summary: 'Write a compact structured checkpoint' },
   { name: 'orchestration_finalize', readOnly: false, summary: 'Close a run (completion needs verified evidence)' },
+  { name: 'job_list', readOnly: true, summary: 'List long-running orchestration jobs' },
+  { name: 'job_read', readOnly: true, summary: 'One job in depth: graph, attempts, questions, checkpoint' },
+  { name: 'job_cancel', readOnly: false, summary: 'Cancel a job (final, idempotent, evidence preserved)' },
 ] as const;
 
 export function registerAllTools(server: McpServer, context: ServerContext): void {
@@ -169,4 +173,7 @@ export function registerAllTools(server: McpServer, context: ServerContext): voi
   registerOrchestrationRecordActionTool(server, context);
   registerOrchestrationCheckpointTool(server, context);
   registerOrchestrationFinalizeTool(server, context);
+  registerJobListTool(server, context);
+  registerJobReadTool(server, context);
+  registerJobCancelTool(server, context);
 }

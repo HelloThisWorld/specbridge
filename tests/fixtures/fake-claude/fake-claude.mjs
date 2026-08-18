@@ -166,6 +166,7 @@ function stageMarkdownFor(stage) {
 }
 
 const stageMatch = /Stage to produce: (\w+)/.exec(stdin);
+const roleMatch = /SpecBridge orchestration role: (\w+)/.exec(stdin);
 
 if (scenario === 'exec-timeout') await sleepForever();
 
@@ -219,6 +220,50 @@ if (scenario === 'huge-stderr') {
 
 if (scenario === 'error-envelope') {
   emitEnvelope({ subtype: 'error_max_turns', is_error: true });
+  process.exit(0);
+}
+
+if (roleMatch !== null) {
+  // v1.2 orchestration reasoning role (read-only tools, structured output).
+  const role = roleMatch[1];
+  if (scenario === 'role-invalid') {
+    emitEnvelope({ result: 'I would suggest planning carefully!' });
+    process.exit(0);
+  }
+  const ROLE_RESPONSES = {
+    CLASSIFIER: { complexity: 'HIGH', reasons: ['architecture-sensitive work'] },
+    PLANNER: {
+      decision: 'PLAN',
+      goal: 'Implement the approved task with architectural care.',
+      steps: [
+        { id: '1', action: 'Study the existing architecture and constraints.' },
+        { id: '2', action: 'Implement the change behind the existing interfaces.' },
+        { id: '3', action: 'Add tests covering the acceptance criteria.' },
+      ],
+      testStrategy: 'Unit plus integration tests.',
+      verificationStrategy: 'Run the configured trusted verification commands.',
+      assumptions: [],
+      risks: [],
+      requiresEscalation: false,
+    },
+    CRITIC: { verdict: 'ACCEPT', reasons: ['plan is sound'] },
+    DIAGNOSER: {
+      category: 'IMPLEMENTATION_DEFECT',
+      rootCause: 'Deep-dive: the failure originates in the save path.',
+      planValidity: 'VALID',
+      recommendedAction: 'REPAIR',
+      evidence: ['failing verifier output'],
+    },
+    REPLANNER: {
+      decision: 'REVISED_PLAN',
+      reason: 'The prior strategy conflicted with the observed architecture.',
+      goal: 'Implement via the existing extension point instead.',
+      steps: [{ id: '1', action: 'Use the existing extension point.' }],
+      assumptions: [],
+      impactsApprovedIntent: false,
+    },
+  };
+  emitEnvelope({ result: JSON.stringify(ROLE_RESPONSES[role] ?? ROLE_RESPONSES.PLANNER) });
   process.exit(0);
 }
 

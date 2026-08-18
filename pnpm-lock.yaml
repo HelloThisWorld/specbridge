@@ -363,6 +363,9 @@ importers:
       '@specbridge/execution':
         specifier: workspace:*
         version: link:../execution
+      '@specbridge/runners':
+        specifier: workspace:*
+        version: link:../runners
       '@specbridge/workflow':
         specifier: workspace:*
         version: link:../workflow
