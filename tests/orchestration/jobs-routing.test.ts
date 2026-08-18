@@ -64,8 +64,11 @@ describe('resolveWorkers', () => {
       extraConfig: {
         localInference: {
           enabled: true,
-          executable: 'C:/tools/llama.cpp/llama-server.exe',
-          model: 'D:/models/planner.gguf',
+          // Any ABSOLUTE path passes the coherence check (existence is a
+          // start-time concern); process.execPath is absolute on every OS,
+          // where a hard-coded drive-letter path would fail on POSIX.
+          executable: process.execPath,
+          model: process.execPath,
         },
       },
     });
