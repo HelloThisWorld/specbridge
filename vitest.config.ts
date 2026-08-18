@@ -25,10 +25,16 @@ const pkg = (name: string): string => path.resolve(rootDir, 'packages', name, 's
  * of 6 is empirical: at 8, the v1.2 driver tests (which add fake llama.cpp
  * servers and multi-role worker subprocesses on top of the usual git/runner
  * children) still starved the coordinator RPC on a 24-core machine.
+ *
+ * Small-core WINDOWS runners get a single worker: process spawn is several
+ * times more expensive there, and the 4-vCPU GitHub runner still starved
+ * the coordinator with two workers' worth of children (all 1,648 tests
+ * passing, exit 1). One worker trades wall time for a coordinator that is
+ * never outnumbered.
  */
 const workerCeiling = (): number => {
   const cores = availableParallelism();
-  if (cores <= 4) return 2;
+  if (cores <= 4) return process.platform === 'win32' ? 1 : 2;
   return Math.min(cores - 2, 6);
 };
 

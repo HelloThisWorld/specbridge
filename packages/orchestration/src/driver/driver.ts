@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { analyzeSpec, requireSpec } from '@specbridge/compat-kiro';
 import type { WorkspaceInfo } from '@specbridge/core';
-import type { RunnerRegistry } from '@specbridge/runners';
+import type { ClaudeProbe, RunnerRegistry } from '@specbridge/runners';
 import type { LocalModelManager } from '@specbridge/runners';
 import type {
   AgentContractRole,
@@ -203,6 +203,10 @@ export async function driveJob(
     }
   }
 
+  // One Claude probe per driver run: the CLI's flag surface cannot change
+  // mid-run, and re-probing spawns three processes per reasoning role.
+  const probeCache: { probe: ClaudeProbe | undefined } = { probe: undefined };
+
   const localManager: LocalModelManager | undefined = createLocalManager(deps.config, (event) => {
     emit('local-model', `${event.type}: ${event.detail}`);
     if (event.type === 'ready') {
@@ -257,6 +261,7 @@ export async function driveJob(
         case 'RUN_ROLE': {
           const outcome = await handleRoleDecision(deps, jobId, decision, {
             localManager,
+            probeCache,
             signal,
             emit,
           });
@@ -400,6 +405,7 @@ async function handleRoleDecision(
   decision: Extract<SchedulerDecision, { kind: 'RUN_ROLE' }>,
   runtime: {
     localManager: LocalModelManager | undefined;
+    probeCache: { probe: ClaudeProbe | undefined };
     signal: AbortSignal | undefined;
     emit: (kind: DriverEvent['kind'], message: string) => void;
   },
@@ -612,7 +618,11 @@ async function runRole(
   role: AgentContractRole,
   decision: Extract<SchedulerDecision, { kind: 'RUN_ROLE' }>,
   packet: string,
-  runtime: { localManager: LocalModelManager | undefined; signal: AbortSignal | undefined },
+  runtime: {
+    localManager: LocalModelManager | undefined;
+    probeCache: { probe: ClaudeProbe | undefined };
+    signal: AbortSignal | undefined;
+  },
 ): Promise<RoleWorkerResult<AgentContractRole>> {
   if (decision.worker.reasoningTier === 'LOCAL_SMALL') {
     if (runtime.localManager === undefined) {
@@ -628,7 +638,7 @@ async function runRole(
       signal: runtime.signal,
     });
   }
-  return runLargeRole({
+  const result = await runLargeRole({
     workspace: deps.workspace,
     config: deps.config,
     runnerProfile: decision.worker.runnerProfile ?? deps.config.defaultRunner,
@@ -637,7 +647,10 @@ async function runRole(
     scratchDir: path.join(jobDir(deps.workspace, jobId), 'scratch'),
     timeoutMs: 600_000,
     signal: runtime.signal,
+    cachedProbe: runtime.probeCache.probe,
   });
+  if (result.probe !== undefined) runtime.probeCache.probe = result.probe;
+  return result;
 }
 
 async function applyRoleOutput(

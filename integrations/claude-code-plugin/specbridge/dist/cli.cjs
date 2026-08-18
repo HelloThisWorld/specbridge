@@ -52059,7 +52059,7 @@ function completeExecutorDispatch(deps, jobId, outcome) {
         ["The implementation changes and all failure evidence are preserved."]
       );
     }
-    let diagnosing = transition2(deps, job, "DIAGNOSING");
+    const diagnosing = transition2(deps, job, "DIAGNOSING");
     persistGraph(deps, diagnosing, graph);
     return { job: persist2(deps, diagnosing), nextAction: "diagnose", classified };
   }
@@ -52922,7 +52922,7 @@ async function runLargeRole(invocation) {
     };
   }
   const claudeProfile = profile;
-  const probe = await probeClaude(claudeProfile, {
+  const probe = invocation.cachedProbe ?? await probeClaude(claudeProfile, {
     ...invocation.signal !== void 0 ? { signal: invocation.signal } : {}
   });
   if (!probe.found || probe.status === "unavailable" || probe.status === "error") {
@@ -52977,7 +52977,7 @@ async function runLargeRole(invocation) {
     const text4 = parsed.structuredResult !== void 0 ? JSON.stringify(parsed.structuredResult) : parsed.reportText ?? "";
     const validated = validateAgentOutput(invocation.role, text4);
     if (!validated.ok) {
-      return { ok: false, kind: "invalid-output", problem: validated.problem };
+      return { ok: false, kind: "invalid-output", problem: validated.problem, probe };
     }
     const usage = usageFromEnvelope(parsed.envelope, 0);
     const cost = costFromEnvelope(parsed.envelope);
@@ -52991,7 +52991,8 @@ async function runLargeRole(invocation) {
         // Only provider-reported USD amounts count; nothing is fabricated.
         costUsd: cost !== null && cost !== void 0 && cost.currency === "USD" ? cost.amount : null
       },
-      corrected: false
+      corrected: false,
+      probe
     };
   } finally {
     try {
@@ -53206,6 +53207,7 @@ async function driveJob(deps, jobId, options = {}) {
       return { stop: { kind: "final", status: job.status }, job };
     }
   }
+  const probeCache = { probe: void 0 };
   const localManager = createLocalManager(deps.config, (event) => {
     emit("local-model", `${event.type}: ${event.detail}`);
     if (event.type === "ready") {
@@ -53253,6 +53255,7 @@ async function driveJob(deps, jobId, options = {}) {
         case "RUN_ROLE": {
           const outcome = await handleRoleDecision(deps, jobId, decision, {
             localManager,
+            probeCache,
             signal,
             emit
           });
@@ -53547,7 +53550,7 @@ async function runRole(deps, jobId, role, decision, packet, runtime) {
       signal: runtime.signal
     });
   }
-  return runLargeRole({
+  const result = await runLargeRole({
     workspace: deps.workspace,
     config: deps.config,
     runnerProfile: decision.worker.runnerProfile ?? deps.config.defaultRunner,
@@ -53555,8 +53558,11 @@ async function runRole(deps, jobId, role, decision, packet, runtime) {
     packet,
     scratchDir: import_path35.default.join(jobDir(deps.workspace, jobId), "scratch"),
     timeoutMs: 6e5,
-    signal: runtime.signal
+    signal: runtime.signal,
+    cachedProbe: runtime.probeCache.probe
   });
+  if (result.probe !== void 0) runtime.probeCache.probe = result.probe;
+  return result;
 }
 async function applyRoleOutput(deps, jobId, role, result, context, node, activePlan) {
   const producedByTier = context.workerId === "local-llamacpp" ? "LOCAL_SMALL" : "LARGE_AGENT";

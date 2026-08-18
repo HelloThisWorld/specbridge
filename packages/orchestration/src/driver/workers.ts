@@ -11,7 +11,7 @@ import {
   usageFromEnvelope,
   costFromEnvelope,
 } from '@specbridge/runners';
-import type { LocalModelEvent } from '@specbridge/runners';
+import type { ClaudeProbe, LocalModelEvent } from '@specbridge/runners';
 import {
   AGENT_OUTPUT_JSON_SCHEMAS,
   correctionMessage,
@@ -191,6 +191,13 @@ export interface LargeRoleInvocation {
   scratchDir: string;
   timeoutMs: number;
   signal?: AbortSignal | undefined;
+  /**
+   * Reuse a probe from earlier in the SAME driver run. Probing spawns three
+   * short-lived processes; a long-running job invoking many reasoning roles
+   * would otherwise re-detect an executable that cannot change flag surface
+   * mid-run. A vanished CLI still fails safely at the real invocation.
+   */
+  cachedProbe?: ClaudeProbe | undefined;
 }
 
 /**
@@ -204,7 +211,7 @@ export interface LargeRoleInvocation {
  */
 export async function runLargeRole<Role extends AgentContractRole>(
   invocation: LargeRoleInvocation & { role: Role },
-): Promise<RoleWorkerResult<Role>> {
+): Promise<RoleWorkerResult<Role> & { probe?: ClaudeProbe }> {
   const profile = invocation.config.runnerProfiles[invocation.runnerProfile];
   if (profile === undefined || profile.runner !== 'claude-code') {
     return {
@@ -215,9 +222,11 @@ export async function runLargeRole<Role extends AgentContractRole>(
   }
   const claudeProfile = profile as ClaudeProfileConfig;
 
-  const probe = await probeClaude(claudeProfile, {
-    ...(invocation.signal !== undefined ? { signal: invocation.signal } : {}),
-  });
+  const probe =
+    invocation.cachedProbe ??
+    (await probeClaude(claudeProfile, {
+      ...(invocation.signal !== undefined ? { signal: invocation.signal } : {}),
+    }));
   if (!probe.found || probe.status === 'unavailable' || probe.status === 'error') {
     return {
       ok: false,
@@ -276,7 +285,7 @@ export async function runLargeRole<Role extends AgentContractRole>(
         : (parsed.reportText ?? '');
     const validated = validateAgentOutput(invocation.role, text);
     if (!validated.ok) {
-      return { ok: false, kind: 'invalid-output', problem: validated.problem };
+      return { ok: false, kind: 'invalid-output', problem: validated.problem, probe };
     }
     const usage = usageFromEnvelope(parsed.envelope, 0);
     const cost = costFromEnvelope(parsed.envelope);
@@ -291,6 +300,7 @@ export async function runLargeRole<Role extends AgentContractRole>(
         costUsd: cost !== null && cost !== undefined && cost.currency === 'USD' ? cost.amount : null,
       },
       corrected: false,
+      probe,
     };
   } finally {
     // The scratch directory holds only this invocation's temp schema file.
