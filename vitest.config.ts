@@ -25,18 +25,28 @@ const pkg = (name: string): string => path.resolve(rootDir, 'packages', name, 's
  * of 6 is empirical: at 8, the v1.2 driver tests (which add fake llama.cpp
  * servers and multi-role worker subprocesses on top of the usual git/runner
  * children) still starved the coordinator RPC on a 24-core machine.
- *
- * Small-core WINDOWS runners get a single worker: process spawn is several
- * times more expensive there, and the 4-vCPU GitHub runner still starved
- * the coordinator with two workers' worth of children (all 1,648 tests
- * passing, exit 1). One worker trades wall time for a coordinator that is
- * never outnumbered.
  */
 const workerCeiling = (): number => {
   const cores = availableParallelism();
-  if (cores <= 4) return process.platform === 'win32' ? 1 : 2;
+  if (cores <= 4) return 2;
   return Math.min(cores - 2, 6);
 };
+
+/**
+ * WINDOWS runs on the threads pool instead of the default forks pool.
+ *
+ * The `onTaskUpdate` timeout persisted on the 4-vCPU Windows runner even
+ * with a SINGLE worker — every test passing and the run still exiting 1 —
+ * which rules out coordinator CPU starvation and points at the fork IPC
+ * channel itself (a known failure class of process-IPC RPC on Windows).
+ * Threads exchange RPC over MessagePorts and sidestep that channel; the
+ * full suite passes under threads on Windows with identical wall time.
+ * The suite is thread-safe by construction: no test worker calls
+ * process.chdir or process.exit (those only appear inside spawned fixture
+ * processes), and Linux/macOS stay on forks, which is green there.
+ */
+const poolForPlatform = (): 'threads' | 'forks' =>
+  process.platform === 'win32' ? 'threads' : 'forks';
 
 export default defineConfig({
   resolve: {
@@ -73,6 +83,7 @@ export default defineConfig({
     // runners regularly exceed the 5s default.
     testTimeout: 30_000,
     maxWorkers: workerCeiling(),
+    pool: poolForPlatform(),
     // On CI the default reporter writes a line per test to a non-TTY stream
     // from the coordinator — 1,479 synchronous writes competing with the RPC
     // it also has to service. `dot` keeps failure output in full while
