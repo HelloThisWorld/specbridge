@@ -1,6 +1,6 @@
 import { createServer } from 'node:http';
 import type { Server } from 'node:http';
-import type { AddressInfo } from 'node:net';
+import type { AddressInfo, Socket } from 'node:net';
 
 /**
  * Fake Ollama HTTP server for integration tests: a REAL loopback HTTP
@@ -8,6 +8,66 @@ import type { AddressInfo } from 'node:net';
  * behaviors and full request recording. No network beyond 127.0.0.1, no
  * model, fully offline.
  */
+
+/**
+ * Deterministic, bounded teardown for a fake HTTP server.
+ *
+ * The `timeout` behaviors intentionally leave a request hanging so the
+ * CLIENT's abort path is what ends it. That must never become the
+ * fixture's problem: teardown cannot depend on the aborted socket having
+ * fully unwound, on `closeAllConnections()` observing every connection, or
+ * on OS-level socket cleanup. Every accepted TCP socket is tracked from the
+ * `connection` event, `close()` destroys whatever is still alive, and the
+ * wait for the server's close callback is BOUNDED — when it cannot finish,
+ * the failure names the fixture and the number of sockets still open
+ * instead of surfacing as an anonymous 30-second Vitest timeout.
+ */
+export function trackedServerLifecycle(
+  server: Server,
+  serverName: string,
+): { close: (teardownTimeoutMs?: number) => Promise<void> } {
+  const sockets = new Set<Socket>();
+  server.on('connection', (socket) => {
+    sockets.add(socket);
+    socket.on('close', () => {
+      sockets.delete(socket);
+    });
+  });
+
+  const close = (teardownTimeoutMs = 2_000): Promise<void> =>
+    new Promise<void>((resolve, reject) => {
+      let settled = false;
+      const settle = (error?: Error): void => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(bound);
+        if (error !== undefined) reject(error);
+        else resolve();
+      };
+      // Stop accepting new connections and wait for full shutdown…
+      server.close((error) =>
+        settle(error !== undefined && error !== null ? (error as Error) : undefined),
+      );
+      // …while actively destroying every live socket (idle keep-alive AND
+      // intentionally hanging requests). `close()` alone would wait for them.
+      server.closeAllConnections?.();
+      for (const socket of sockets) socket.destroy();
+      // Bounded: a teardown that cannot finish is a fixture bug and must
+      // say so, not hide behind the outer test timeout.
+      const bound = setTimeout(() => {
+        for (const socket of sockets) socket.destroy();
+        settle(
+          new Error(
+            `${serverName} teardown timed out after ${teardownTimeoutMs} ms with ` +
+              `${sockets.size} tracked socket(s) still open`,
+          ),
+        );
+      }, teardownTimeoutMs);
+      bound.unref?.();
+    });
+
+  return { close };
+}
 
 export type FakeChatBehavior =
   | 'valid'
@@ -43,7 +103,8 @@ export interface FakeOllamaServer {
   port: number;
   requests: RecordedRequest[];
   chatCalls: () => RecordedRequest[];
-  close: () => Promise<void>;
+  /** Bounded teardown; rejects with socket diagnostics instead of hanging. */
+  close: (teardownTimeoutMs?: number) => Promise<void>;
 }
 
 export const VALID_STAGE_REPORT = {
@@ -235,6 +296,7 @@ export async function startFakeOllama(options: FakeOllamaOptions = {}): Promise<
     });
   });
 
+  const lifecycle = trackedServerLifecycle(server, 'FakeOllamaServer');
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   const port = (server.address() as AddressInfo).port;
   return {
@@ -242,10 +304,6 @@ export async function startFakeOllama(options: FakeOllamaOptions = {}): Promise<
     port,
     requests,
     chatCalls: () => requests.filter((entry) => entry.url === '/api/chat'),
-    close: () =>
-      new Promise<void>((resolve, reject) => {
-        server.closeAllConnections?.();
-        server.close((error) => (error !== undefined && error !== null ? reject(error) : resolve()));
-      }),
+    close: lifecycle.close,
   };
 }

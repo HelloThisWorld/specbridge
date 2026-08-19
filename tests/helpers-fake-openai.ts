@@ -1,7 +1,11 @@
 import { createServer } from 'node:http';
 import type { IncomingHttpHeaders, Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { VALID_DESIGN_REPORT, VALID_STAGE_REPORT } from './helpers-fake-ollama.js';
+import {
+  VALID_DESIGN_REPORT,
+  VALID_STAGE_REPORT,
+  trackedServerLifecycle,
+} from './helpers-fake-ollama.js';
 
 /**
  * Fake OpenAI-compatible HTTP server for integration tests: a REAL loopback
@@ -60,7 +64,8 @@ export interface FakeOpenAiServer {
   port: number;
   requests: RecordedOpenAiRequest[];
   inferenceCalls: () => RecordedOpenAiRequest[];
-  close: () => Promise<void>;
+  /** Bounded teardown; rejects with socket diagnostics instead of hanging. */
+  close: (teardownTimeoutMs?: number) => Promise<void>;
 }
 
 function chatCompletionsPayload(content: string): unknown {
@@ -230,6 +235,7 @@ export async function startFakeOpenAi(options: FakeOpenAiOptions = {}): Promise<
     });
   });
 
+  const lifecycle = trackedServerLifecycle(server, 'FakeOpenAiServer');
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   const port = (server.address() as AddressInfo).port;
   return {
@@ -237,10 +243,6 @@ export async function startFakeOpenAi(options: FakeOpenAiOptions = {}): Promise<
     port,
     requests,
     inferenceCalls: () => requests.filter((entry) => isInferencePath(entry.url)),
-    close: () =>
-      new Promise<void>((resolve, reject) => {
-        server.closeAllConnections?.();
-        server.close((error) => (error !== undefined && error !== null ? reject(error) : resolve()));
-      }),
+    close: lifecycle.close,
   };
 }
