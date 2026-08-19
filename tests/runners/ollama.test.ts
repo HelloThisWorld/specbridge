@@ -300,6 +300,70 @@ describe('ollama HTTP failure classification', () => {
   });
 });
 
+describe('fake server lifecycle (the hanging-request fixture must tear down deterministically)', () => {
+  // These tests exist because a CI run once spent the full 30-second Vitest
+  // budget inside the timeout test above, hiding WHERE the hang was. The
+  // hardened helper makes that impossible: teardown is bounded and names
+  // its live sockets, so a future hang fails fast with the actual location.
+
+  it('teardown after a client-aborted hanging request is fast, with the timeout still classified', async () => {
+    const server = await startFakeOllama({ chatBehaviors: ['timeout'] });
+    // 1,000 ms is the schema minimum for the profile timeout.
+    const runner = new OllamaRunner(ollamaConfig(server.baseUrl, { timeoutMs: 1_000 }));
+    const result = await runner.generateStage(generationInput, execution(1_000));
+    // The client abort path stays a REAL hanging HTTP request: the server
+    // accepted it and never answered; only AbortSignal.timeout ended it.
+    expect(result.outcome).toBe('timed-out');
+    expect(result.error?.code).toBe('timed_out');
+
+    const closeStarted = Date.now();
+    await server.close(2_000);
+    // Comfortably inside the bound: nothing waits for OS socket cleanup.
+    expect(Date.now() - closeStarted).toBeLessThan(2_000);
+  });
+
+  it('teardown while a hanging request is STILL in flight destroys it and settles', async () => {
+    const server = await startFakeOllama({ chatBehaviors: ['timeout'] });
+    const runner = new OllamaRunner(ollamaConfig(server.baseUrl, { timeoutMs: 10_000 }));
+    // Do not await: the request is mid-flight when close() runs, which is
+    // the worst-case ordering for the old teardown.
+    const pending = runner.generateStage(generationInput, execution(10_000));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const closeStarted = Date.now();
+    await server.close(2_000);
+    expect(Date.now() - closeStarted).toBeLessThan(2_000);
+
+    // The destroyed socket surfaces as a transport failure, never a hang.
+    const result = await pending;
+    expect(['failed', 'timed-out']).toContain(result.outcome);
+  });
+
+  it('repeated abort→teardown cycles never accumulate sockets or slow down', async () => {
+    // A bounded race-catcher for abort ↔ hanging socket ↔ teardown. External
+    // cancellation drives the abort (the schema floors the profile timeout
+    // at 1s, which would make ten timeout cycles slow); both paths abort the
+    // same in-flight fetch, so the socket/teardown race is identical. Ten
+    // full cycles stay trivial (~1 s total); the wider 50-cycle sweep is a
+    // development command.
+    for (let cycle = 0; cycle < 10; cycle += 1) {
+      const server = await startFakeOllama({ chatBehaviors: ['timeout'] });
+      const runner = new OllamaRunner(ollamaConfig(server.baseUrl));
+      const controller = new AbortController();
+      const pending = runner.generateStage(generationInput, {
+        ...execution(60_000),
+        signal: controller.signal,
+      });
+      setTimeout(() => controller.abort(), 50);
+      const result = await pending;
+      expect(result.outcome, `cycle ${cycle}`).toBe('cancelled');
+      const closeStarted = Date.now();
+      await server.close(2_000);
+      expect(Date.now() - closeStarted, `cycle ${cycle} teardown`).toBeLessThan(2_000);
+    }
+  });
+});
+
 describe('ollama boundaries', () => {
   it('task execution is refused without any HTTP request or repository access', async () => {
     const server = await startFakeOllama({});
