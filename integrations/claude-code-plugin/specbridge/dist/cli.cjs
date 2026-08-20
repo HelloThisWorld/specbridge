@@ -61686,6 +61686,7 @@ async function driveJob(deps, jobId, options = {}) {
   });
   const maxLoop = policy.budgets.maxAgentRuns * 6 + 50;
   let loops = 0;
+  let unboundedQuotaDefers = 0;
   try {
     for (; ; ) {
       loops += 1;
@@ -61727,6 +61728,7 @@ async function driveJob(deps, jobId, options = {}) {
         scheduling: lane?.context
       });
       emit("decision", `${decision.kind}${"reason" in decision ? `: ${decision.reason}` : ""}`);
+      if (decision.kind !== "WAIT_QUOTA") unboundedQuotaDefers = 0;
       switch (decision.kind) {
         case "BUILD_GRAPH": {
           const built = await buildJobGraph(deps, jobId);
@@ -61970,7 +61972,8 @@ async function driveJob(deps, jobId, options = {}) {
           const nowMs = (deps.clock ?? (() => /* @__PURE__ */ new Date()))().getTime();
           const waitMs = Math.max(0, Date.parse(job.retryAt ?? new Date(nowMs).toISOString()) - nowMs);
           const holdMs = schedulingRuntime?.policy.maxQuotaHoldMs ?? 6e5;
-          if (decision.until === null || waitMs <= holdMs) {
+          unboundedQuotaDefers = decision.until === null ? unboundedQuotaDefers + 1 : 0;
+          if (decision.until === null && unboundedQuotaDefers <= 3 || decision.until !== null && waitMs <= holdMs) {
             await sleep2(waitMs, signal);
             break;
           }
