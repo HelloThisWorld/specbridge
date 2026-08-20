@@ -219,6 +219,9 @@ export const ESCALATION_REASONS = [
   'NO_PROGRESS',
   /** Replan budget pressure: the next replan must count. */
   'REPLAN_BUDGET_PRESSURE',
+  // vNext.2 (additive, never reordered).
+  /** The local EXECUTOR declined or exhausted its bounded attempts. */
+  'LOCAL_EXECUTION_ESCALATED',
 ] as const;
 export type EscalationReason = (typeof ESCALATION_REASONS)[number];
 
@@ -280,6 +283,8 @@ export const SCHEDULER_DIRECTIVES = [
   'DISPATCH_EXECUTOR',
   /** Wait until `retryAt`, then reschedule. */
   'WAIT_RETRY',
+  /** Wait for subscription quota capacity to return (vNext.2). */
+  'WAIT_QUOTA',
   /** A human decision is required before anything else may run. */
   'AWAIT_HUMAN',
   /** The job is complete; nothing remains. */
@@ -357,5 +362,23 @@ export const JOB_EVENT_TYPES = [
   'task_resumed',
   'context_threshold_reached',
   'context_compacted',
+  // Quota-scheduler events (vNext.2; additive, never reordered).
+  'quota_snapshot_updated',
+  'scheduler_mode_changed',
+  'workload_estimated',
+  'local_suitability_classified',
+  'scheduling_decision_created',
+  'task_routed_local',
+  'task_routed_subscription',
+  'task_deferred',
+  'harvest_entered',
+  'harvest_exited',
+  'dynamic_reserve_changed',
+  'cross_reset_admitted',
+  'local_attempt_failed',
+  'local_escalation_triggered',
+  'quota_telemetry_stale',
+  'quota_exhausted',
+  'context_compaction_before_dispatch',
 ] as const;
 export type JobEventType = (typeof JOB_EVENT_TYPES)[number];

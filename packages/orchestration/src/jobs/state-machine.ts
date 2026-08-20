@@ -30,7 +30,11 @@ import { isFinalJobStatus, isFinalNodeStatus } from './vocabulary.js';
  */
 const JOB_TRANSITIONS: Readonly<Record<JobStatus, readonly JobStatus[]>> = Object.freeze({
   CREATED: ['PLANNING', 'BLOCKED', 'NEEDS_CLARIFICATION', 'CANCELLED', 'FAILED'],
-  PLANNING: ['READY', 'NEEDS_CLARIFICATION', 'BLOCKED', 'CANCELLED', 'FAILED'],
+  // PLANNING/REPLANNING → WAITING_RETRY (vNext.2, additive): a paid-tier
+  // reasoning step may have to wait for subscription quota to return. The
+  // wait resumes through READY; the pipeline re-derives the pending stage
+  // from durable state, so nothing about the plan lifecycle is lost.
+  PLANNING: ['READY', 'NEEDS_CLARIFICATION', 'WAITING_RETRY', 'BLOCKED', 'CANCELLED', 'FAILED'],
   READY: [
     'RUNNING',
     // A repair dispatch starts from READY after a diagnosis recommended it.
@@ -79,7 +83,7 @@ const JOB_TRANSITIONS: Readonly<Record<JobStatus, readonly JobStatus[]>> = Objec
     'CANCELLED',
     'FAILED',
   ],
-  REPLANNING: ['READY', 'PLANNING', 'NEEDS_CLARIFICATION', 'BLOCKED', 'CANCELLED', 'FAILED'],
+  REPLANNING: ['READY', 'PLANNING', 'NEEDS_CLARIFICATION', 'WAITING_RETRY', 'BLOCKED', 'CANCELLED', 'FAILED'],
   WAITING_RETRY: ['READY', 'BLOCKED', 'CANCELLED', 'FAILED'],
   NEEDS_CLARIFICATION: [
     // Another bounded round of questions.

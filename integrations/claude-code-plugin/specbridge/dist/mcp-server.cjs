@@ -27635,6 +27635,44 @@ var jobContextPolicySchema = external_exports.object({
   /** Bound on retained recent-delta items per task context. */
   maxRecentDeltaItems: external_exports.number().int().min(1).max(200).default(20)
 }).passthrough();
+var dynamicReservePolicySchema = external_exports.object({
+  baseRatio: external_exports.number().min(0).max(0.9).default(0.2),
+  minRatio: external_exports.number().min(0).max(0.5).default(0.02),
+  nearResetMs: external_exports.number().int().min(6e4).max(18e6).default(15 * 6e4),
+  farResetMs: external_exports.number().int().min(6e5).max(18e6).default(3 * 36e5),
+  weeklyPressureExtraRatio: external_exports.number().min(0).max(0.5).default(0.15),
+  staleTelemetryExtraRatio: external_exports.number().min(0).max(0.5).default(0.1)
+}).passthrough();
+var workloadEstimatorPolicySchema = external_exports.object({
+  lowWallTimeMs: external_exports.number().int().min(1e3).default(10 * 6e4),
+  mediumWallTimeMs: external_exports.number().int().min(1e3).default(25 * 6e4),
+  highWallTimeMs: external_exports.number().int().min(1e3).default(50 * 6e4),
+  lowQuotaBurnRatio: external_exports.number().min(0).max(1).default(0.05),
+  mediumQuotaBurnRatio: external_exports.number().min(0).max(1).default(0.15),
+  highQuotaBurnRatio: external_exports.number().min(0).max(1).default(0.35),
+  weeklyCapacityFactor: external_exports.number().min(1).max(100).default(5),
+  minHistoricalObservations: external_exports.number().int().min(1).max(100).default(3)
+}).passthrough();
+var jobSchedulerPolicySchema = external_exports.object({
+  enabled: external_exports.boolean().default(true),
+  maxLocalAttempts: external_exports.number().int().min(1).max(5).default(2),
+  allowLocalExecution: external_exports.boolean().default(true),
+  harvestWindowMs: external_exports.number().int().min(6e4).max(18e6).default(30 * 6e4),
+  harvestMinRemainingRatio: external_exports.number().min(0).max(1).default(0.25),
+  conserveRemainingRatio: external_exports.number().min(0).max(1).default(0.2),
+  weeklyPressureRatio: external_exports.number().min(0).max(1).default(0.1),
+  fiveHourExhaustedRatio: external_exports.number().min(0).max(0.2).default(0.01),
+  weeklyExhaustedRatio: external_exports.number().min(0).max(0.2).default(0.01),
+  telemetryStaleMs: external_exports.number().int().min(1e4).max(864e5).default(15 * 6e4),
+  burnSafetyMultiplier: external_exports.number().min(1).max(5).default(1.25),
+  contextCompactBeforeDispatchRatio: external_exports.number().min(0.05).max(1).default(0.7),
+  deferPollMs: external_exports.number().int().min(1e3).max(36e5).default(6e4),
+  maxQuotaHoldMs: external_exports.number().int().min(0).max(864e5).default(10 * 6e4),
+  maxDecisionRecords: external_exports.number().int().min(10).max(5e3).default(500),
+  telemetrySource: external_exports.enum(["manual", "none"]).default("manual"),
+  reserve: dynamicReservePolicySchema.default({}),
+  estimator: workloadEstimatorPolicySchema.default({})
+}).passthrough();
 var jobPolicySchema = external_exports.object({
   /** When false, job operations refuse to start and report why. */
   enabled: external_exports.boolean().default(true),
@@ -27665,7 +27703,14 @@ var jobPolicySchema = external_exports.object({
   /** Objective decomposition policy (additive; safe defaults). */
   objectives: objectivesPolicySchema.default({}),
   /** Survival-runtime context policy (additive; safe defaults). */
-  context: jobContextPolicySchema.default({})
+  context: jobContextPolicySchema.default({}),
+  /**
+   * vNext.2 quota-aware scheduler policy (additive; safe defaults).
+   * Deliberately NOT part of jobPolicyFingerprint, exactly like `context`:
+   * quota thresholds are operational tuning — adjusting them mid-job must
+   * not make a resumed job falsely report "the policy changed".
+   */
+  scheduler: jobSchedulerPolicySchema.default({})
 }).passthrough();
 var orchestrationPolicySchema = external_exports.object({
   /**
@@ -51574,7 +51619,10 @@ var ESCALATION_REASONS = [
   /** No-progress detection fired; a stronger reasoner is warranted. */
   "NO_PROGRESS",
   /** Replan budget pressure: the next replan must count. */
-  "REPLAN_BUDGET_PRESSURE"
+  "REPLAN_BUDGET_PRESSURE",
+  // vNext.2 (additive, never reordered).
+  /** The local EXECUTOR declined or exhausted its bounded attempts. */
+  "LOCAL_EXECUTION_ESCALATED"
 ];
 var JOB_STATE_SCHEMA_VERSION = "1.0.0";
 var JOB_STATE_LIMITS = {
@@ -51791,7 +51839,11 @@ var jobCheckpointSchema = external_exports.object({
 }).passthrough();
 var JOB_TRANSITIONS = Object.freeze({
   CREATED: ["PLANNING", "BLOCKED", "NEEDS_CLARIFICATION", "CANCELLED", "FAILED"],
-  PLANNING: ["READY", "NEEDS_CLARIFICATION", "BLOCKED", "CANCELLED", "FAILED"],
+  // PLANNING/REPLANNING → WAITING_RETRY (vNext.2, additive): a paid-tier
+  // reasoning step may have to wait for subscription quota to return. The
+  // wait resumes through READY; the pipeline re-derives the pending stage
+  // from durable state, so nothing about the plan lifecycle is lost.
+  PLANNING: ["READY", "NEEDS_CLARIFICATION", "WAITING_RETRY", "BLOCKED", "CANCELLED", "FAILED"],
   READY: [
     "RUNNING",
     // A repair dispatch starts from READY after a diagnosis recommended it.
@@ -51840,7 +51892,7 @@ var JOB_TRANSITIONS = Object.freeze({
     "CANCELLED",
     "FAILED"
   ],
-  REPLANNING: ["READY", "PLANNING", "NEEDS_CLARIFICATION", "BLOCKED", "CANCELLED", "FAILED"],
+  REPLANNING: ["READY", "PLANNING", "NEEDS_CLARIFICATION", "WAITING_RETRY", "BLOCKED", "CANCELLED", "FAILED"],
   WAITING_RETRY: ["READY", "BLOCKED", "CANCELLED", "FAILED"],
   NEEDS_CLARIFICATION: [
     // Another bounded round of questions.
@@ -52102,6 +52154,46 @@ var DECISION_AUTHORITY_TABLE = Object.freeze({
   "spec-conflict": "human",
   approval: "human-only"
 });
+var LANE_DECISIONS = ["LOCAL", "SUBSCRIPTION", "DEFER"];
+var SCHEDULER_MODES = [
+  "NORMAL",
+  "CONSERVE",
+  "HARVEST",
+  "EXHAUSTED_5H",
+  "EXHAUSTED_WEEKLY"
+];
+var QUOTA_WINDOWS = ["five-hour", "weekly"];
+var QUOTA_TELEMETRY_FRESHNESS = ["FRESH", "STALE", "UNKNOWN"];
+var SCHEDULING_REASON_CODES = [
+  /** The work is LOCAL_SAFE; the local lane performs it without quota. */
+  "LOCAL_SAFE",
+  /** LOCAL_TRY work attempts the local lane first under cheap verification. */
+  "LOCAL_TRY_FIRST",
+  /** The work requires strong intelligence; the subscription lane runs it. */
+  "STRONG_REQUIRED",
+  /** HARVEST admitted strong work to consume capacity that would expire. */
+  "HARVEST_EXPIRING_CAPACITY",
+  /** CONSERVE deferred non-essential strong work to protect low capacity. */
+  "CONSERVE_QUOTA",
+  /** Weekly scarcity constrained the decision (including suppressing HARVEST). */
+  "WEEKLY_QUOTA_PRESSURE",
+  /** The five-hour window is exhausted; strong work waits for its reset. */
+  "FIVE_HOUR_EXHAUSTED",
+  /** The weekly window is exhausted; strong work waits for its reset. */
+  "WEEKLY_EXHAUSTED",
+  /** Context occupancy required compaction before the dispatch could start. */
+  "COMPACT_BEFORE_EXECUTION",
+  /** Bounded local attempts were used up; the work escalates to strong. */
+  "LOCAL_ESCALATION_REQUIRED",
+  /** Expected pre-reset burn fits: the task starts now and crosses the reset. */
+  "CROSS_RESET_ADMITTED",
+  /** Expected pre-reset burn does not fit inside remaining minus reserve. */
+  "PRE_RESET_BURN_UNSAFE",
+  /** Telemetry was stale/unknown; the conservative path was taken. */
+  "STALE_TELEMETRY_CONSERVATIVE",
+  /** No healthy local worker exists; local-eligible work routed strong. */
+  "LOCAL_UNAVAILABLE"
+];
 var TASK_ATTEMPT_STATUSES = [
   /** The dispatch is (or was, before a crash) in flight. */
   "RUNNING",
@@ -52150,7 +52242,20 @@ var attemptMetricsSchema = external_exports.object({
   filesRead: external_exports.number().int().min(0).nullable().default(null),
   filesChanged: external_exports.number().int().min(0).nullable().default(null),
   /** Provider-REPORTED cost only; never computed from a price table. */
-  costUsd: external_exports.number().min(0).nullable().default(null)
+  costUsd: external_exports.number().min(0).nullable().default(null),
+  // vNext.2 quota/context telemetry (additive; every field tolerates
+  // absence — telemetry that was not observed is null, never fabricated).
+  /** Five-hour window remaining ratio observed at dispatch start. */
+  fiveHourQuotaBefore: external_exports.number().min(0).max(1).nullable().default(null),
+  /** Five-hour window remaining ratio observed after completion. */
+  fiveHourQuotaAfter: external_exports.number().min(0).max(1).nullable().default(null),
+  weeklyQuotaBefore: external_exports.number().min(0).max(1).nullable().default(null),
+  weeklyQuotaAfter: external_exports.number().min(0).max(1).nullable().default(null),
+  /** Estimated context occupancy ratio before/after, when measured. */
+  contextUsageBefore: external_exports.number().min(0).nullable().default(null),
+  contextUsageAfter: external_exports.number().min(0).nullable().default(null),
+  /** Verification/test loops the attempt ran, when reported. */
+  testLoops: external_exports.number().int().min(0).nullable().default(null)
 }).passthrough();
 var taskAttemptSchema = external_exports.object({
   schemaVersion: semver2,
@@ -52192,8 +52297,18 @@ var taskAttemptSchema = external_exports.object({
   resumedFromAttemptId: shortText32.optional(),
   /** Provider session reference — WORKING MEMORY only, never canonical. */
   providerSessionId: shortText32.optional(),
-  /** Scheduling lane, when a later phase assigns one. */
+  /** Scheduling lane (vNext.2: LOCAL / SUBSCRIPTION), when assigned. */
   lane: shortText32.optional(),
+  // vNext.2 scheduling attribution (additive; audit and ledger inputs,
+  // never runtime policy — policy reads live configuration and telemetry).
+  /** Deterministic local-suitability class the scheduler assigned. */
+  localSuitability: shortText32.optional(),
+  /** Complexity class the task carried when the attempt was scheduled. */
+  taskComplexity: shortText32.optional(),
+  /** Coarse task category from the suitability classifier. */
+  taskCategory: shortText32.optional(),
+  /** The SchedulingDecision that routed this attempt, when one exists. */
+  schedulingDecisionId: shortText32.optional(),
   metrics: attemptMetricsSchema.default({})
 }).passthrough();
 var checkpointDecisionSchema = external_exports.object({
@@ -52283,6 +52398,11 @@ var executionLedgerEntrySchema = external_exports.object({
   completedAt: shortText32.nullable(),
   success: external_exports.boolean(),
   failureReason: shortText32.nullable(),
+  // vNext.2 scheduling attribution (additive; null when never assigned).
+  localSuitability: shortText32.nullable().default(null),
+  taskComplexity: shortText32.nullable().default(null),
+  taskCategory: shortText32.nullable().default(null),
+  schedulingDecisionId: shortText32.nullable().default(null),
   metrics: attemptMetricsSchema
 }).passthrough();
 function now3(deps) {
@@ -53214,6 +53334,157 @@ function readWorkerRecords(workspace, jobId, nodeId) {
   }
   return records;
 }
+var QUOTA_SNAPSHOT_SCHEMA_VERSION = "1.0.0";
+var isoText = external_exports.string().min(1).max(64);
+var ratio = external_exports.number().min(0).max(1);
+var quotaWindowSnapshotSchema = external_exports.object({
+  window: external_exports.enum(QUOTA_WINDOWS),
+  remainingRatio: ratio.nullable().default(null),
+  usedRatio: ratio.nullable().default(null),
+  /** When this window's capacity fully refreshes. Null when unknown. */
+  resetAt: isoText.nullable().default(null),
+  /** When this observation was made — freshness derives from this. */
+  observedAt: isoText,
+  /** Where the observation came from (adapter identity, for audit). */
+  source: external_exports.string().min(1).max(200)
+}).passthrough();
+var quotaTelemetryFileSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/).default(QUOTA_SNAPSHOT_SCHEMA_VERSION),
+  fiveHour: quotaWindowSnapshotSchema.nullable().default(null),
+  weekly: quotaWindowSnapshotSchema.nullable().default(null)
+}).passthrough();
+var quotaForecastSchema = external_exports.object({
+  /** Five-hour window remaining, 0..1; null when unobserved. */
+  fiveHourRemainingRatio: ratio.nullable(),
+  fiveHourResetAt: isoText.nullable(),
+  /** Milliseconds until the five-hour reset; null when unknown. */
+  timeToFiveHourResetMs: external_exports.number().int().min(0).nullable(),
+  weeklyRemainingRatio: ratio.nullable(),
+  weeklyResetAt: isoText.nullable(),
+  timeToWeeklyResetMs: external_exports.number().int().min(0).nullable(),
+  /** Ledger-derived five-hour burn per minute; null without observations. */
+  observedFiveHourBurnRatePerMinute: external_exports.number().min(0).nullable(),
+  /** Projected additional burn until the five-hour reset at that rate. */
+  projectedBurnUntilFiveHourReset: ratio.nullable(),
+  schedulerMode: external_exports.enum(SCHEDULER_MODES),
+  telemetryFreshness: external_exports.enum(QUOTA_TELEMETRY_FRESHNESS),
+  /** Oldest relevant observation timestamp; null when nothing observed. */
+  observedAt: isoText.nullable(),
+  /** The forecast's own clock reading. */
+  forecastAt: isoText
+}).passthrough();
+var shortText7 = external_exports.string().min(1).max(200);
+var schedulingDecisionSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  decisionId: shortText7,
+  jobId: shortText7,
+  nodeId: shortText7,
+  taskId: shortText7,
+  selectedLane: external_exports.enum(LANE_DECISIONS),
+  /** Worker/provider identity for run lanes; null for DEFER. */
+  selectedProvider: shortText7.nullable(),
+  schedulerMode: external_exports.enum(SCHEDULER_MODES),
+  reasonCode: external_exports.enum(SCHEDULING_REASON_CODES),
+  /** The forecast the decision was made against. */
+  quotaSnapshot: quotaForecastSchema,
+  /** Bounded copy of the workload estimate. */
+  workloadEstimate: external_exports.object({
+    complexity: shortText7,
+    localSuitability: shortText7,
+    taskCategory: shortText7.nullable().default(null),
+    expectedWallTimeMs: external_exports.number().int().min(0),
+    expectedFiveHourBurnRatio: external_exports.number().min(0).max(1),
+    expectedWeeklyBurnRatio: external_exports.number().min(0).max(1),
+    confidence: shortText7,
+    basis: shortText7
+  }).passthrough().nullable(),
+  /** The dynamic reserve ratio in force. */
+  reserveRatio: external_exports.number().min(0).max(1).nullable(),
+  /** Expected five-hour burn before the coming reset, when computed. */
+  preResetBurnRatio: external_exports.number().min(0).max(1).nullable().default(null),
+  /** True when the admitted task is expected to cross the reset. */
+  crossesReset: external_exports.boolean().default(false),
+  contextStatus: external_exports.object({
+    usageRatio: external_exports.number().min(0).nullable(),
+    compactFirst: external_exports.boolean()
+  }).passthrough().nullable(),
+  /** For DEFER: when capacity is expected to return, when known. */
+  deferUntil: shortText7.nullable().default(null),
+  detail: external_exports.string().max(2e3),
+  createdAt: shortText7
+}).passthrough();
+var LOCAL_EXECUTION_LIMITS = {
+  maxEdits: 20,
+  maxFileBytes: 262144,
+  maxTotalBytes: 1048576,
+  maxSummaryChars: 2e3,
+  maxNotes: 20
+};
+var localExecutorEditSchema = external_exports.object({
+  /** Workspace-relative path, forward slashes. */
+  path: external_exports.string().min(1).max(512),
+  /** COMPLETE new file content. Full-content writes only: small local
+   * models corrupt diffs far more often than they corrupt whole files, and
+   * a whole file is verifiable structurally before anything is applied. */
+  content: external_exports.string().max(LOCAL_EXECUTION_LIMITS.maxFileBytes)
+});
+var localExecutorOutputSchema = external_exports.object({
+  decision: external_exports.enum(["IMPLEMENTED", "ESCALATE"]),
+  summary: external_exports.string().min(1).max(LOCAL_EXECUTION_LIMITS.maxSummaryChars),
+  edits: external_exports.array(localExecutorEditSchema).max(LOCAL_EXECUTION_LIMITS.maxEdits).default([]),
+  notes: external_exports.array(external_exports.string().max(500)).max(LOCAL_EXECUTION_LIMITS.maxNotes).default([]),
+  escalationReason: external_exports.string().max(1e3).optional()
+});
+var LOCAL_EXECUTOR_JSON_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["decision", "summary", "edits"],
+  properties: {
+    decision: { type: "string", enum: ["IMPLEMENTED", "ESCALATE"] },
+    summary: { type: "string", maxLength: LOCAL_EXECUTION_LIMITS.maxSummaryChars },
+    edits: {
+      type: "array",
+      maxItems: LOCAL_EXECUTION_LIMITS.maxEdits,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["path", "content"],
+        properties: {
+          path: { type: "string", maxLength: 512 },
+          content: { type: "string" }
+        }
+      }
+    },
+    notes: { type: "array", maxItems: LOCAL_EXECUTION_LIMITS.maxNotes, items: { type: "string", maxLength: 500 } },
+    escalationReason: { type: "string", maxLength: 1e3 }
+  }
+};
+var LOCAL_EXECUTOR_SYSTEM_PROMPT = [
+  "You are the LOCAL EXECUTOR of an engineering runtime. You implement ONE",
+  "small, well-specified task by returning complete replacement file",
+  "contents. You have no tools, no shell, and no further conversation: this",
+  "single JSON response is your entire contribution, and deterministic",
+  "compilation and tests will judge it.",
+  "",
+  "Rules:",
+  '- Return decision "IMPLEMENTED" with the complete new content of every',
+  "  file you change or create. Whole files only \u2014 never fragments, never",
+  '  diffs, never placeholders like "rest unchanged".',
+  "- Touch as few files as possible. Never edit .git, .kiro, or .specbridge",
+  "  paths, task checkboxes, or unrelated code.",
+  '- Return decision "ESCALATE" with escalationReason when the task needs',
+  "  repository knowledge you do not have, is ambiguous, or exceeds a small",
+  "  isolated change. Escalating is correct and cheap; a wrong guess wastes",
+  "  a verification cycle.",
+  "- The response must be valid JSON for the provided schema."
+].join("\n");
+var PREPROCESS_SYSTEM_PROMPT = [
+  "You compress one bulky engineering artifact (a log, test output, tool",
+  "result, or diff) into a small structured summary another engineer will",
+  "rely on INSTEAD of the original. Preserve: concrete error messages,",
+  "failing test names, file paths, line numbers, and counts. Drop:",
+  "repetition, timestamps, progress noise. Never invent content."
+].join("\n");
 
 // ../../packages/mcp-server/src/errors.ts
 var SBMCP_CODES = {

@@ -67,6 +67,19 @@ export const attemptMetricsSchema = z
     filesChanged: z.number().int().min(0).nullable().default(null),
     /** Provider-REPORTED cost only; never computed from a price table. */
     costUsd: z.number().min(0).nullable().default(null),
+    // vNext.2 quota/context telemetry (additive; every field tolerates
+    // absence — telemetry that was not observed is null, never fabricated).
+    /** Five-hour window remaining ratio observed at dispatch start. */
+    fiveHourQuotaBefore: z.number().min(0).max(1).nullable().default(null),
+    /** Five-hour window remaining ratio observed after completion. */
+    fiveHourQuotaAfter: z.number().min(0).max(1).nullable().default(null),
+    weeklyQuotaBefore: z.number().min(0).max(1).nullable().default(null),
+    weeklyQuotaAfter: z.number().min(0).max(1).nullable().default(null),
+    /** Estimated context occupancy ratio before/after, when measured. */
+    contextUsageBefore: z.number().min(0).nullable().default(null),
+    contextUsageAfter: z.number().min(0).nullable().default(null),
+    /** Verification/test loops the attempt ran, when reported. */
+    testLoops: z.number().int().min(0).nullable().default(null),
   })
   .passthrough();
 export type AttemptMetrics = z.infer<typeof attemptMetricsSchema>;
@@ -123,8 +136,18 @@ export const taskAttemptSchema = z
     resumedFromAttemptId: shortText.optional(),
     /** Provider session reference — WORKING MEMORY only, never canonical. */
     providerSessionId: shortText.optional(),
-    /** Scheduling lane, when a later phase assigns one. */
+    /** Scheduling lane (vNext.2: LOCAL / SUBSCRIPTION), when assigned. */
     lane: shortText.optional(),
+    // vNext.2 scheduling attribution (additive; audit and ledger inputs,
+    // never runtime policy — policy reads live configuration and telemetry).
+    /** Deterministic local-suitability class the scheduler assigned. */
+    localSuitability: shortText.optional(),
+    /** Complexity class the task carried when the attempt was scheduled. */
+    taskComplexity: shortText.optional(),
+    /** Coarse task category from the suitability classifier. */
+    taskCategory: shortText.optional(),
+    /** The SchedulingDecision that routed this attempt, when one exists. */
+    schedulingDecisionId: shortText.optional(),
     metrics: attemptMetricsSchema.default({}),
   })
   .passthrough();
@@ -286,6 +309,11 @@ export const executionLedgerEntrySchema = z
     completedAt: shortText.nullable(),
     success: z.boolean(),
     failureReason: shortText.nullable(),
+    // vNext.2 scheduling attribution (additive; null when never assigned).
+    localSuitability: shortText.nullable().default(null),
+    taskComplexity: shortText.nullable().default(null),
+    taskCategory: shortText.nullable().default(null),
+    schedulingDecisionId: shortText.nullable().default(null),
     metrics: attemptMetricsSchema,
   })
   .passthrough();

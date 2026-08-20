@@ -1,5 +1,114 @@
 # Changelog
 
+## 1.5.0 (unreleased) — vNext.2 Free & Prepaid Optimizer
+
+SpecBridge's job runtime becomes an intelligent scheduler over two compute
+resources: **local model compute** (zero marginal cost, no subscription
+quota) and the **prepaid Claude Max subscription** (the primary
+strong-intelligence engine, limited by rolling five-hour and weekly quota
+windows whose unused capacity expires at reset). The governing policy: use
+local compute for work it can reliably perform, use Max productively while
+it is available, harvest capacity that is about to expire, and never let a
+subscription cooldown stall local-capable work. The PAYG API lane is
+explicitly **not** part of this release — when Max is unavailable and local
+execution cannot handle a task, the task stays durably pending with a
+recorded scheduling reason.
+
+Additive throughout: the scheduler block is optional and defaulted
+(`orchestration.jobs.scheduler.enabled: false` restores vNext.1 scheduling
+byte-identically), every vocabulary and event addition is append-only, new
+schema families are versioned from day one (`quotaSnapshot`,
+`schedulingDecision`), and attempt-metric extensions are nullable
+observations — nothing fabricated, no migration required.
+
+### Added
+
+- **Execution lanes** — the scheduler reasons about the economic lane
+  (`LOCAL` / `SUBSCRIPTION`) first, then the concrete provider
+  (`scheduling/vocabulary.ts`).
+- **Local task execution** (`scheduling/local-execution.ts`) — the local
+  model becomes a first-class execution provider with SpecBridge driving
+  the loop: one bounded structured request returns complete replacement
+  file contents (or an explicit escalation), SpecBridge validates and
+  applies them, and the EXISTING interactive evidence pipeline verifies
+  (lock, Git snapshots, trusted verification, verified-only completion).
+  Local attempts are ordinary durable ExecutionAttempts on the `LOCAL`
+  lane; the model itself never writes, has no tools, and no shell.
+- **Deterministic local suitability** (`scheduling/suitability.ts`) —
+  `LOCAL_SAFE` / `LOCAL_TRY` / `STRONG_REQUIRED` from documented keyword
+  tables plus the deterministic complexity class. `LOCAL_TRY` requires
+  trusted verification commands: verifiability, not perceived difficulty,
+  is the criterion.
+- **Bounded local retries** — `scheduler.maxLocalAttempts` (default 2)
+  local execution attempts per task, then a sticky
+  `LOCAL_EXECUTION_ESCALATED` escalation routes the task to the strong
+  lane. Failed local attempts stay visible in attempt history and ledger.
+- **Subscription quota model** (`quota/`) — independent five-hour and
+  weekly window snapshots (never combined into one percentage), a
+  `QuotaTelemetryProvider` abstraction (manual file-backed adapter kept
+  current via the CLI, deterministic fake for tests, a documented seam for
+  future machine-readable adapters — no UI scraping, no invented APIs),
+  freshness handling (`FRESH`/`STALE`/`UNKNOWN`), and a pure
+  `QuotaForecast` the scheduler consumes as a value.
+- **Workload profiler** (`scheduling/profiler.ts`) — wall time, five-hour
+  burn, weekly burn, and context growth estimated independently, with
+  explicit confidence and basis; heuristic complexity defaults replaced
+  conservatively by subscription-lane ledger history (medians, observation
+  floor). Burn-over-time is a profile (`linear` today) — the extension
+  point for measured curves.
+- **Cooldown-aware scheduler** (`scheduling/scheduler.ts`) — modes
+  `NORMAL` / `CONSERVE` / `HARVEST` / `EXHAUSTED_5H` / `EXHAUSTED_WEEKLY`
+  as explicit domain state; weekly scarcity suppresses five-hour
+  harvesting; pure lane decisions (`LOCAL`/`SUBSCRIPTION`/`DEFER`) with a
+  closed reason-code vocabulary.
+- **Cross-reset admission** (`scheduling/admission.ts`) — admission
+  compares expected **burn before the reset** (plus a configurable safety
+  multiplier) against remaining capacity minus the dynamic reserve;
+  `taskDuration <= timeToReset` is deliberately not a rule anywhere. The
+  mandatory scenario (50% remaining, reset in 20 minutes, 50-minute task
+  burning 35%) starts immediately and continues across the reset.
+- **Dynamic reserve** (`scheduling/reserve.ts`) — interpolates from
+  `baseRatio` far from the reset to `minRatio` near it; weekly pressure and
+  stale telemetry add reserve.
+- **Ready-task selection and cooldown overtake** — the scheduler inspects
+  every READY node; runnable work beats deferring work, HARVEST prefers
+  admissible strong work, and a LOCAL-lane node whose only unfinished
+  predecessors are quota-deferred is promoted (recorded) so local work
+  continues through a subscription cooldown. Deferred strong work parks the
+  job in `WAITING_RETRY` with `retryAt` at the reset — resumable, never
+  blocked.
+- **Context-aware admission** — quota capacity and context capacity are
+  both required; heavy durable context triggers the vNext.1
+  checkpoint → compact → reconstruct path before the dispatch
+  (`context_compaction_before_dispatch`).
+- **Local preprocessing** (`scheduling/preprocess.ts`) — bulky regenerable
+  context items (test logs, tool output) compressed into structured
+  summaries via the local lane before strong work sees them; pinned and
+  durable layers untouched.
+- **SchedulingDecision records** — every routing/admission decision
+  persisted (`jobs/<id>/scheduling/decisions.jsonl`, bounded) with the
+  forecast, estimate, reserve, context status, and reason code it saw.
+- **ExecutionLedger extensions** — optional nullable attempt metrics
+  (five-hour/weekly remaining before and after, context usage before and
+  after, test loops) plus lane, suitability, category, and decision id;
+  `quota/observations.ts` derives burn, burn-per-minute, wall time, and
+  success aggregates without fabricating gaps (a reset crossed mid-attempt
+  makes burn honestly unknown).
+- **Observability** — seventeen additive job events
+  (`quota_snapshot_updated`, `scheduler_mode_changed`, `harvest_entered`,
+  `cross_reset_admitted`, `task_routed_local`, `task_deferred`,
+  `local_escalation_triggered`, …) and three CLI commands:
+  `orchestrate quota`, `orchestrate quota-set`, `orchestrate scheduler`.
+- **Configuration** — `orchestration.jobs.scheduler` (additive, defaulted,
+  documented; outside the job policy fingerprint like the context block).
+- **Documentation** — `docs/orchestration/quota-scheduling.md`.
+
+### Explicit non-goals (deferred to vNext.3)
+
+PAYG API gap bridge and automatic API fallback, predictive/ML scheduling,
+semantic repository indexing, multi-agent collaboration, distributed
+scheduling, billing.
+
 ## 1.4.0 (unreleased) — vNext.1 Survival Runtime
 
 The first stage of SpecBridge's evolution into a provider-neutral

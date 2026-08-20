@@ -86,3 +86,15 @@ first local role, shares it across roles, stops it after
 
 In every case the source task is untouched: escalation reroutes the
 *reasoning*, and the job continues.
+
+## Local task execution (vNext.2)
+
+With the quota-aware scheduler enabled (the default), the same managed
+endpoint also serves as the **LOCAL execution lane** for suitable tasks:
+SpecBridge requests one structured implementation (complete replacement
+file contents), validates and applies it itself, and completes through the
+normal trusted-verification evidence pipeline. Local execution attempts
+are bounded (`orchestration.jobs.scheduler.maxLocalAttempts`, default 2)
+before the task escalates to the strong lane. See
+[orchestration/quota-scheduling.md](orchestration/quota-scheduling.md) for
+the lane model and suitability rules.

@@ -23887,8 +23887,8 @@ function specStateDir(workspace) {
   return import_path2.default.join(workspace.sidecarDir, "state", "specs");
 }
 function invalidStateDiagnostic(statePath, parsed, issues) {
-  const record4 = typeof parsed === "object" && parsed !== null ? parsed : {};
-  if (record4["schemaVersion"] === void 0 && record4["specName"] !== void 0) {
+  const record5 = typeof parsed === "object" && parsed !== null ? parsed : {};
+  if (record5["schemaVersion"] === void 0 && record5["specName"] !== void 0) {
     return {
       severity: "warning",
       code: "SIDECAR_STATE_LEGACY",
@@ -23896,7 +23896,7 @@ function invalidStateDiagnostic(statePath, parsed, issues) {
       file: statePath
     };
   }
-  const version2 = record4["schemaVersion"];
+  const version2 = record5["schemaVersion"];
   if (typeof version2 === "string" && !version2.startsWith("1.")) {
     return {
       severity: "warning",
@@ -24609,6 +24609,44 @@ var jobContextPolicySchema = external_exports.object({
   /** Bound on retained recent-delta items per task context. */
   maxRecentDeltaItems: external_exports.number().int().min(1).max(200).default(20)
 }).passthrough();
+var dynamicReservePolicySchema = external_exports.object({
+  baseRatio: external_exports.number().min(0).max(0.9).default(0.2),
+  minRatio: external_exports.number().min(0).max(0.5).default(0.02),
+  nearResetMs: external_exports.number().int().min(6e4).max(18e6).default(15 * 6e4),
+  farResetMs: external_exports.number().int().min(6e5).max(18e6).default(3 * 36e5),
+  weeklyPressureExtraRatio: external_exports.number().min(0).max(0.5).default(0.15),
+  staleTelemetryExtraRatio: external_exports.number().min(0).max(0.5).default(0.1)
+}).passthrough();
+var workloadEstimatorPolicySchema = external_exports.object({
+  lowWallTimeMs: external_exports.number().int().min(1e3).default(10 * 6e4),
+  mediumWallTimeMs: external_exports.number().int().min(1e3).default(25 * 6e4),
+  highWallTimeMs: external_exports.number().int().min(1e3).default(50 * 6e4),
+  lowQuotaBurnRatio: external_exports.number().min(0).max(1).default(0.05),
+  mediumQuotaBurnRatio: external_exports.number().min(0).max(1).default(0.15),
+  highQuotaBurnRatio: external_exports.number().min(0).max(1).default(0.35),
+  weeklyCapacityFactor: external_exports.number().min(1).max(100).default(5),
+  minHistoricalObservations: external_exports.number().int().min(1).max(100).default(3)
+}).passthrough();
+var jobSchedulerPolicySchema = external_exports.object({
+  enabled: external_exports.boolean().default(true),
+  maxLocalAttempts: external_exports.number().int().min(1).max(5).default(2),
+  allowLocalExecution: external_exports.boolean().default(true),
+  harvestWindowMs: external_exports.number().int().min(6e4).max(18e6).default(30 * 6e4),
+  harvestMinRemainingRatio: external_exports.number().min(0).max(1).default(0.25),
+  conserveRemainingRatio: external_exports.number().min(0).max(1).default(0.2),
+  weeklyPressureRatio: external_exports.number().min(0).max(1).default(0.1),
+  fiveHourExhaustedRatio: external_exports.number().min(0).max(0.2).default(0.01),
+  weeklyExhaustedRatio: external_exports.number().min(0).max(0.2).default(0.01),
+  telemetryStaleMs: external_exports.number().int().min(1e4).max(864e5).default(15 * 6e4),
+  burnSafetyMultiplier: external_exports.number().min(1).max(5).default(1.25),
+  contextCompactBeforeDispatchRatio: external_exports.number().min(0.05).max(1).default(0.7),
+  deferPollMs: external_exports.number().int().min(1e3).max(36e5).default(6e4),
+  maxQuotaHoldMs: external_exports.number().int().min(0).max(864e5).default(10 * 6e4),
+  maxDecisionRecords: external_exports.number().int().min(10).max(5e3).default(500),
+  telemetrySource: external_exports.enum(["manual", "none"]).default("manual"),
+  reserve: dynamicReservePolicySchema.default({}),
+  estimator: workloadEstimatorPolicySchema.default({})
+}).passthrough();
 var jobPolicySchema = external_exports.object({
   /** When false, job operations refuse to start and report why. */
   enabled: external_exports.boolean().default(true),
@@ -24639,7 +24677,14 @@ var jobPolicySchema = external_exports.object({
   /** Objective decomposition policy (additive; safe defaults). */
   objectives: objectivesPolicySchema.default({}),
   /** Survival-runtime context policy (additive; safe defaults). */
-  context: jobContextPolicySchema.default({})
+  context: jobContextPolicySchema.default({}),
+  /**
+   * vNext.2 quota-aware scheduler policy (additive; safe defaults).
+   * Deliberately NOT part of jobPolicyFingerprint, exactly like `context`:
+   * quota thresholds are operational tuning — adjusting them mid-job must
+   * not make a resumed job falsely report "the policy changed".
+   */
+  scheduler: jobSchedulerPolicySchema.default({})
 }).passthrough();
 var orchestrationPolicySchema = external_exports.object({
   /**
@@ -37894,12 +37939,12 @@ function usageFromEnvelope(envelope, durationMs) {
     if (numTurns === null) return void 0;
     return { ...emptyUsage(durationMs), requestCount: numTurns };
   }
-  const record4 = usage;
+  const record5 = usage;
   return {
     model: null,
-    inputTokens: tolerantCount(record4["input_tokens"]),
-    cachedInputTokens: tolerantCount(record4["cache_read_input_tokens"]),
-    outputTokens: tolerantCount(record4["output_tokens"]),
+    inputTokens: tolerantCount(record5["input_tokens"]),
+    cachedInputTokens: tolerantCount(record5["cache_read_input_tokens"]),
+    outputTokens: tolerantCount(record5["output_tokens"]),
     reasoningTokens: null,
     requestCount: numTurns,
     durationMs: Math.max(0, Math.round(durationMs))
@@ -40386,16 +40431,16 @@ function redactOllamaResponseForRetention(bodyText) {
   try {
     const parsed = JSON.parse(bodyText);
     if (parsed !== null && typeof parsed === "object") {
-      const record4 = parsed;
-      const message = record4["message"];
+      const record5 = parsed;
+      const message = record5["message"];
       if (message !== null && typeof message === "object") {
         const messageRecord = { ...message };
         if (typeof messageRecord["thinking"] === "string") {
           messageRecord["thinking"] = `[redacted thinking: ${messageRecord["thinking"].length} chars]`;
         }
-        record4["message"] = messageRecord;
+        record5["message"] = messageRecord;
       }
-      return `${JSON.stringify(record4, null, 2)}
+      return `${JSON.stringify(record5, null, 2)}
 `;
     }
   } catch {
@@ -43245,10 +43290,10 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
     diagnostics
   };
 }
-function sortRecord(record4) {
+function sortRecord(record5) {
   const sorted = {};
-  for (const key of Object.keys(record4).sort()) {
-    const value = record4[key];
+  for (const key of Object.keys(record5).sort()) {
+    const value = record5[key];
     if (value !== void 0) sorted[key] = value;
   }
   return sorted;
@@ -43513,8 +43558,8 @@ function evidenceTaskDir(workspace, specName, taskId) {
     import_path20.default.join(workspace.sidecarDir, "evidence", specName, taskIdDirName(taskId))
   );
 }
-function writeTaskEvidence(workspace, record4) {
-  const validated = taskEvidenceRecordSchema.parse(record4);
+function writeTaskEvidence(workspace, record5) {
+  const validated = taskEvidenceRecordSchema.parse(record5);
   const dir = evidenceTaskDir(workspace, validated.specName, validated.taskId);
   const filePath = import_path20.default.join(dir, `${validated.runId}.json`);
   if ((0, import_fs22.existsSync)(filePath)) {
@@ -43678,19 +43723,19 @@ function parseTimestamp(value) {
   const parsed = Date.parse(value);
   return Number.isNaN(parsed) ? void 0 : parsed;
 }
-function assessEvidenceRecord(record4, context) {
+function assessEvidenceRecord(record5, context) {
   const reasons = [];
   const notes = [];
   const pathViolations = [];
-  const accepted = ACCEPTED_STATUSES.has(record4.status);
-  const manual = record4.status === "manually-accepted";
-  if (record4.specName !== context.specName) {
+  const accepted = ACCEPTED_STATUSES.has(record5.status);
+  const manual = record5.status === "manually-accepted";
+  if (record5.specName !== context.specName) {
     reasons.push({
       code: "spec-name-mismatch",
-      message: `the record names spec "${record4.specName}" but was read for "${context.specName}"`
+      message: `the record names spec "${record5.specName}" but was read for "${context.specName}"`
     });
   }
-  for (const file of record4.changedFiles) {
+  for (const file of record5.changedFiles) {
     if (evidencePathEscapesRepository(file.path)) pathViolations.push(file.path);
   }
   if (pathViolations.length > 0) {
@@ -43699,50 +43744,50 @@ function assessEvidenceRecord(record4, context) {
       message: `recorded changed-file paths escape the repository: ${pathViolations.join(", ")}`
     });
   }
-  const evaluatedAtMs = parseTimestamp(record4.evaluatedAt);
+  const evaluatedAtMs = parseTimestamp(record5.evaluatedAt);
   if (evaluatedAtMs === void 0) {
     reasons.push({
       code: "timestamp-unparseable",
-      message: `evaluatedAt "${record4.evaluatedAt}" is not a parseable timestamp`
+      message: `evaluatedAt "${record5.evaluatedAt}" is not a parseable timestamp`
     });
   } else if (evaluatedAtMs > context.now.getTime() + FUTURE_SKEW_TOLERANCE_MS) {
     notes.push("the record timestamp lies in the future relative to this machine (clock skew?)");
   }
-  if (manual && record4.manualAcceptance === void 0) {
+  if (manual && record5.manualAcceptance === void 0) {
     reasons.push({
       code: "manual-record-malformed",
       message: "status is manually-accepted but no manualAcceptance block is recorded"
     });
   }
   if (reasons.length > 0) {
-    return { record: record4, accepted, manual, validity: "invalid", reasons, notes, pathViolations };
+    return { record: record5, accepted, manual, validity: "invalid", reasons, notes, pathViolations };
   }
   if (!accepted) {
-    return { record: record4, accepted, manual, validity: "not-accepted", reasons, notes, pathViolations };
+    return { record: record5, accepted, manual, validity: "not-accepted", reasons, notes, pathViolations };
   }
   const stale = [];
-  const currentTask = context.tasks.get(record4.taskId);
+  const currentTask = context.tasks.get(record5.taskId);
   if (currentTask === void 0) {
     stale.push({
       code: "task-missing",
-      message: `task ${record4.taskId} no longer exists in tasks.md`
+      message: `task ${record5.taskId} no longer exists in tasks.md`
     });
-  } else if (record4.specContext?.taskFingerprint !== void 0) {
-    if (record4.specContext.taskFingerprint !== currentTask.fingerprint) {
+  } else if (record5.specContext?.taskFingerprint !== void 0) {
+    if (record5.specContext.taskFingerprint !== currentTask.fingerprint) {
       stale.push({
         code: "task-identity-changed",
         message: "the task's text, numbering, or requirement references changed since the evidence was recorded"
       });
     }
-  } else if (record4.specContext?.taskText !== void 0) {
-    if (!sameTaskLineIgnoringState(record4.specContext.taskText, currentTask.rawLineText)) {
+  } else if (record5.specContext?.taskText !== void 0) {
+    if (!sameTaskLineIgnoringState(record5.specContext.taskText, currentTask.rawLineText)) {
       stale.push({
         code: "task-identity-changed",
         message: "the task line text changed since the evidence was recorded"
       });
     }
   }
-  const specContext = record4.specContext;
+  const specContext = record5.specContext;
   if (specContext !== void 0) {
     const hashChecks = [
       {
@@ -43776,7 +43821,7 @@ function assessEvidenceRecord(record4, context) {
       }
     }
   } else {
-    const referenceMs = record4.manualAcceptance !== void 0 ? parseTimestamp(record4.manualAcceptance.acceptedAt) ?? evaluatedAtMs : evaluatedAtMs;
+    const referenceMs = record5.manualAcceptance !== void 0 ? parseTimestamp(record5.manualAcceptance.acceptedAt) ?? evaluatedAtMs : evaluatedAtMs;
     const timestampChecks = [
       [context.approvedAt.document, "requirements/bugfix"],
       [context.approvedAt.design, "design"],
@@ -43793,7 +43838,7 @@ function assessEvidenceRecord(record4, context) {
       }
     }
   }
-  const headAfter = record4.repository.headAfter;
+  const headAfter = record5.repository.headAfter;
   if (headAfter !== void 0 && context.ancestry !== void 0) {
     const ancestry = context.ancestry.get(headAfter);
     if (ancestry === "not-ancestor") {
@@ -43808,7 +43853,7 @@ function assessEvidenceRecord(record4, context) {
     }
   }
   return {
-    record: record4,
+    record: record5,
     accepted,
     manual,
     validity: stale.length > 0 ? "stale" : "valid",
@@ -43818,7 +43863,7 @@ function assessEvidenceRecord(record4, context) {
   };
 }
 function assessTaskEvidence(taskId, records, context) {
-  const all = records.map((record4) => assessEvidenceRecord(record4, context));
+  const all = records.map((record5) => assessEvidenceRecord(record5, context));
   const acceptedAssessments = all.filter((assessment) => assessment.accepted);
   const best = acceptedAssessments[acceptedAssessments.length - 1];
   if (best === void 0) {
@@ -43858,12 +43903,12 @@ function reusableCommandPass(assessments, commandName, currentHeadSha) {
   for (let i2 = assessments.length - 1; i2 >= 0; i2 -= 1) {
     const assessment = assessments[i2];
     if (assessment === void 0 || assessment.validity !== "valid") continue;
-    const { record: record4 } = assessment;
-    if (record4.repository.headAfter !== currentHeadSha) continue;
-    const command = record4.verificationCommands.find(
+    const { record: record5 } = assessment;
+    if (record5.repository.headAfter !== currentHeadSha) continue;
+    const command = record5.verificationCommands.find(
       (candidate) => candidate.name === commandName && candidate.passed
     );
-    if (command !== void 0) return record4;
+    if (command !== void 0) return record5;
   }
   return void 0;
 }
@@ -43922,8 +43967,8 @@ function runDir(workspace, runId) {
 function runArtifactPath(workspace, runId, fileName) {
   return assertInsideWorkspace(workspace.rootDir, import_path22.default.join(runDir(workspace, runId), fileName));
 }
-function createRun(workspace, record4) {
-  const validated = runRecordSchema.parse(record4);
+function createRun(workspace, record5) {
+  const validated = runRecordSchema.parse(record5);
   const dir = runDir(workspace, validated.runId);
   if ((0, import_fs23.existsSync)(dir)) {
     throw new SpecBridgeError(
@@ -43967,9 +44012,9 @@ function listRuns(workspace) {
   const diagnostics = [];
   for (const entry of (0, import_fs23.readdirSync)(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    const record4 = readRunRecord(workspace, entry.name);
-    if (record4 !== void 0) {
-      runs.push(record4);
+    const record5 = readRunRecord(workspace, entry.name);
+    if (record5 !== void 0) {
+      runs.push(record5);
     } else {
       diagnostics.push({
         severity: "warning",
@@ -44670,7 +44715,7 @@ function createAttempt(workspace, metadata) {
     throw new SpecBridgeError("INVALID_STATE", `Attempt directory already exists: ${dir}.`);
   }
   (0, import_fs25.mkdirSync)(dir, { recursive: true });
-  const record4 = attemptRecordSchema.parse({
+  const record5 = attemptRecordSchema.parse({
     schemaVersion: ATTEMPT_RECORD_SCHEMA_VERSION,
     runId: metadata.runId,
     attemptId,
@@ -44687,9 +44732,9 @@ function createAttempt(workspace, metadata) {
     capabilitySnapshot: metadata.capabilitySnapshot,
     createdAt: metadata.createdAt
   });
-  writeFileAtomic(import_path26.default.join(dir, "attempt.json"), `${JSON.stringify(record4, null, 2)}
+  writeFileAtomic(import_path26.default.join(dir, "attempt.json"), `${JSON.stringify(record5, null, 2)}
 `);
-  return record4;
+  return record5;
 }
 function writeAttemptArtifact(workspace, runId, attemptId, fileName, content) {
   const filePath = assertInsideWorkspace(
@@ -44699,11 +44744,11 @@ function writeAttemptArtifact(workspace, runId, attemptId, fileName, content) {
   writeFileAtomic(filePath, content);
   return filePath;
 }
-function finalizeAttempt(workspace, record4, input) {
-  const dir = attemptDir(workspace, record4.runId, record4.attemptId);
+function finalizeAttempt(workspace, record5, input) {
+  const dir = attemptDir(workspace, record5.runId, record5.attemptId);
   const errorCode = input.result.error?.code;
   const next = attemptRecordSchema.parse({
-    ...record4,
+    ...record5,
     finishedAt: input.finishedAt,
     outcome: input.outcome,
     durationMs: Math.max(0, Math.round(input.durationMs)),
@@ -44711,14 +44756,14 @@ function finalizeAttempt(workspace, record4, input) {
   });
   writeFileAtomic(import_path26.default.join(dir, "attempt.json"), `${JSON.stringify(next, null, 2)}
 `);
-  writeAttemptArtifact(workspace, record4.runId, record4.attemptId, "raw-stdout.log", input.result.rawStdout);
-  writeAttemptArtifact(workspace, record4.runId, record4.attemptId, "raw-stderr.log", input.result.rawStderr);
+  writeAttemptArtifact(workspace, record5.runId, record5.attemptId, "raw-stdout.log", input.result.rawStdout);
+  writeAttemptArtifact(workspace, record5.runId, record5.attemptId, "raw-stderr.log", input.result.rawStderr);
   const events = input.result.normalizedEvents;
   if (events !== void 0 && events.length > 0) {
     writeAttemptArtifact(
       workspace,
-      record4.runId,
-      record4.attemptId,
+      record5.runId,
+      record5.attemptId,
       "normalized-events.jsonl",
       `${events.map((event) => JSON.stringify(event)).join("\n")}
 `
@@ -44726,8 +44771,8 @@ function finalizeAttempt(workspace, record4, input) {
   }
   writeAttemptArtifact(
     workspace,
-    record4.runId,
-    record4.attemptId,
+    record5.runId,
+    record5.attemptId,
     "normalized-result.json",
     `${JSON.stringify(normalizedExecutionResultSchema.parse(input.normalized), null, 2)}
 `
@@ -44735,8 +44780,8 @@ function finalizeAttempt(workspace, record4, input) {
   if (input.result.process !== void 0) {
     writeAttemptArtifact(
       workspace,
-      record4.runId,
-      record4.attemptId,
+      record5.runId,
+      record5.attemptId,
       "process.json",
       `${JSON.stringify(input.result.process, null, 2)}
 `
@@ -46536,12 +46581,12 @@ function diagnoseInteractiveLock(workspace, clock = () => /* @__PURE__ */ new Da
   }
   const lock = read.lock;
   const findings = [];
-  const record4 = readRunRecord(workspace, lock.runId);
-  if (record4 === void 0) {
+  const record5 = readRunRecord(workspace, lock.runId);
+  if (record5 === void 0) {
     findings.push(`The lock references run ${lock.runId}, which has no readable run record.`);
-  } else if (record4.lifecycleStatus === "COMPLETED" || record4.lifecycleStatus === "ABORTED") {
+  } else if (record5.lifecycleStatus === "COMPLETED" || record5.lifecycleStatus === "ABORTED") {
     findings.push(
-      `The lock references run ${lock.runId}, which is already finalized (${record4.lifecycleStatus}); the lock should have been released.`
+      `The lock references run ${lock.runId}, which is already finalized (${record5.lifecycleStatus}); the lock should have been released.`
     );
     return { state: "stale", path: read.path, lock, findings, safeToRemove: true };
   } else {
@@ -46837,8 +46882,8 @@ function classifyInteractiveOutcome(report) {
   }
 }
 function loadInteractiveRun(workspace, runId) {
-  const record4 = readRunRecord(workspace, runId);
-  if (record4 === void 0) {
+  const record5 = readRunRecord(workspace, runId);
+  if (record5 === void 0) {
     return {
       ok: false,
       failure: blocked("run-not-found", `Run "${runId}" was not found under .specbridge/runs/.`, [
@@ -46846,12 +46891,12 @@ function loadInteractiveRun(workspace, runId) {
       ])
     };
   }
-  if (record4.kind !== "interactive-execution") {
+  if (record5.kind !== "interactive-execution") {
     return {
       ok: false,
       failure: blocked(
         "run-state-invalid",
-        `Run ${runId} is a ${record4.kind} run, not an interactive execution run.`
+        `Run ${runId} is a ${record5.kind} run, not an interactive execution run.`
       )
     };
   }
@@ -46865,7 +46910,7 @@ function loadInteractiveRun(workspace, runId) {
       )
     };
   }
-  return { ok: true, record: record4, state };
+  return { ok: true, record: record5, state };
 }
 function readFinalReport(workspace, runId) {
   const artifact = readRunArtifactJson(workspace, runId, "report.json");
@@ -46876,8 +46921,8 @@ async function completeInteractiveTask(deps, request) {
   const { workspace } = deps;
   const loaded = loadInteractiveRun(workspace, request.runId);
   if (!loaded.ok) return loaded.failure;
-  const { record: record4, state } = loaded;
-  const lifecycle = record4.lifecycleStatus;
+  const { record: record5, state } = loaded;
+  const lifecycle = record5.lifecycleStatus;
   if (lifecycle === "COMPLETED") {
     const report2 = readFinalReport(workspace, request.runId);
     if (report2 !== void 0) {
@@ -46898,7 +46943,7 @@ async function completeInteractiveTask(deps, request) {
   if (lifecycle === "ABORTED") {
     return blocked(
       "run-state-invalid",
-      `Run ${request.runId} was aborted${record4.abortReason !== void 0 ? ` (${record4.abortReason})` : ""}; it cannot be completed. Begin a new run.`,
+      `Run ${request.runId} was aborted${record5.abortReason !== void 0 ? ` (${record5.abortReason})` : ""}; it cannot be completed. Begin a new run.`,
       ["Start a fresh attempt with task_begin."]
     );
   }
@@ -46913,11 +46958,11 @@ async function completeInteractiveTask(deps, request) {
       ]
     );
   }
-  const stateNow = readSpecState(workspace, record4.specName).state;
+  const stateNow = readSpecState(workspace, record5.specName).state;
   if (stateNow === void 0 || evaluateWorkflow(workspace, stateNow).health !== "ok") {
     return blocked(
       "stale-approval",
-      `Approved stages of "${record4.specName}" changed during the run; completion is blocked and the checkbox stays unchanged.`,
+      `Approved stages of "${record5.specName}" changed during the run; completion is blocked and the checkbox stays unchanged.`,
       [
         "Review the spec changes, re-approve the stages (human action),",
         "then abort this run and begin a fresh one."
@@ -46925,7 +46970,7 @@ async function completeInteractiveTask(deps, request) {
     );
   }
   const task = state.task;
-  const tasksPath = import_path29.default.join(workspace.kiroDir, "specs", record4.specName, "tasks.md");
+  const tasksPath = import_path29.default.join(workspace.kiroDir, "specs", record5.specName, "tasks.md");
   let taskIntact = false;
   try {
     const document = MarkdownDocument.load(tasksPath);
@@ -46943,7 +46988,7 @@ async function completeInteractiveTask(deps, request) {
   if (!taskIntact) {
     return blocked(
       "task-changed",
-      `Task ${task.id} in "${record4.specName}" changed since the run began (fingerprint or line text differs); completion is blocked.`,
+      `Task ${task.id} in "${record5.specName}" changed since the run began (fingerprint or line text differs); completion is blocked.`,
       ["Abort this run with task_abort and begin a fresh one against the current task plan."]
     );
   }
@@ -46955,7 +47000,7 @@ async function completeInteractiveTask(deps, request) {
     testsReported: request.reportedTests ?? [],
     remainingRisks: request.reportedRisks ?? []
   });
-  const startedMs = Date.parse(record4.createdAt);
+  const startedMs = Date.parse(record5.createdAt);
   const durationMs = Math.max(0, clock().getTime() - (Number.isFinite(startedMs) ? startedMs : clock().getTime()));
   const result = {
     runner: INTERACTIVE_RUNNER_NAME,
@@ -46977,14 +47022,14 @@ async function completeInteractiveTask(deps, request) {
     },
     {
       runId: request.runId,
-      ...record4.parentRunId !== void 0 ? { parentRunId: record4.parentRunId } : {},
-      specName: record4.specName,
+      ...record5.parentRunId !== void 0 ? { parentRunId: record5.parentRunId } : {},
+      specName: record5.specName,
       task,
       runnerName: INTERACTIVE_RUNNER_NAME,
       before: state.before,
       allowDirty: state.allowDirty,
       noVerify,
-      preflightWarnings: [...record4.warnings],
+      preflightWarnings: [...record5.warnings],
       result
     }
   );
@@ -47012,8 +47057,8 @@ async function abortInteractiveTask(deps, request) {
   }
   const loaded = loadInteractiveRun(workspace, request.runId);
   if (!loaded.ok) return loaded.failure;
-  const { record: record4, state } = loaded;
-  const lifecycle = record4.lifecycleStatus;
+  const { record: record5, state } = loaded;
+  const lifecycle = record5.lifecycleStatus;
   if (lifecycle === "COMPLETED" || lifecycle === "ABORTED") {
     const report = lifecycle === "COMPLETED" ? readFinalReport(workspace, request.runId) : void 0;
     return {
@@ -49658,6 +49703,10 @@ var import_fs35 = require("fs");
 var import_path41 = __toESM(require("path"), 1);
 var import_fs36 = require("fs");
 var import_path42 = __toESM(require("path"), 1);
+var import_fs37 = require("fs");
+var import_path43 = __toESM(require("path"), 1);
+var import_fs38 = require("fs");
+var import_path44 = __toESM(require("path"), 1);
 
 // ../../packages/context/dist/index.js
 var CONTEXT_LAYERS = [
@@ -49668,6 +49717,14 @@ var CONTEXT_LAYERS = [
   "RECENT_DELTA",
   "CURRENT_ACTION"
 ];
+var PROTECTED_CONTEXT_LAYERS = [
+  "PINNED",
+  "DURABLE_TASK_STATE",
+  "CURRENT_ACTION"
+];
+function isProtectedLayer(layer) {
+  return PROTECTED_CONTEXT_LAYERS.includes(layer);
+}
 var CONTEXT_HEALTH_LEVELS = [
   "HEALTHY",
   "PREPARE",
@@ -49676,6 +49733,7 @@ var CONTEXT_HEALTH_LEVELS = [
   "OVERFLOW"
 ];
 var COMPACTION_LEVELS = ["micro", "milestone", "emergency"];
+var CONTEXT_PACKAGE_SCHEMA_VERSION = "1.0.0";
 var CONTEXT_LIMITS = {
   /** Hard ceiling on one item's content. Larger payloads live in artifacts. */
   maxItemContentChars: 2e5,
@@ -49759,8 +49817,247 @@ var contextBudgetConfigSchema = external_exports.object({
   (config2) => config2.prepareThreshold <= config2.proactiveCompactionThreshold && config2.proactiveCompactionThreshold <= config2.emergencyCompactionThreshold && config2.emergencyCompactionThreshold <= config2.hardStopThreshold,
   { message: "Context thresholds must be ordered: prepare <= proactive <= emergency <= hard stop." }
 );
+function estimateTokens(text7) {
+  return Math.ceil(text7.length / 4);
+}
+var ITEM_ENVELOPE_TOKENS = 8;
+function estimateItemTokens(item) {
+  return estimateTokens(item.title) + estimateTokens(item.content) + ITEM_ENVELOPE_TOKENS;
+}
+function estimateItemsTokens(items) {
+  return items.reduce((sum, item) => sum + estimateItemTokens(item), 0);
+}
+function usableInputTokens(config2) {
+  const usable = config2.modelContextTokens - config2.reservedOutputTokens - config2.reservedReasoningTokens - config2.reservedGrowthTokens;
+  if (usable < 1) {
+    throw new ContextBudgetError(
+      `The context budget leaves no usable input: ${config2.modelContextTokens} total minus ${config2.reservedOutputTokens + config2.reservedReasoningTokens + config2.reservedGrowthTokens} reserved.`
+    );
+  }
+  return usable;
+}
+function computeContextUsage(config2, estimatedTokens) {
+  const usable = usableInputTokens(config2);
+  return {
+    estimatedTokens,
+    usableInputTokens: usable,
+    modelContextTokens: config2.modelContextTokens,
+    ratio: Math.round(estimatedTokens / usable * 1e4) / 1e4
+  };
+}
+function assessContextHealth(config2, estimatedTokens) {
+  const ratio2 = estimatedTokens / usableInputTokens(config2);
+  if (ratio2 >= config2.hardStopThreshold) return "OVERFLOW";
+  if (ratio2 >= config2.emergencyCompactionThreshold) return "FORCE_COMPACT";
+  if (ratio2 >= config2.proactiveCompactionThreshold) return "PROACTIVE_COMPACT";
+  if (ratio2 >= config2.prepareThreshold) return "PREPARE";
+  return "HEALTHY";
+}
+var ContextBudgetError = class extends Error {
+  code = "CONTEXT_BUDGET_UNSATISFIABLE";
+  constructor(message) {
+    super(message);
+    this.name = "ContextBudgetError";
+  }
+};
+var MICRO_COMPACT_CONTENT_THRESHOLD_CHARS = 4e3;
+var COMPACT_HEAD_CHARS = 1200;
+var COMPACT_TAIL_CHARS = 800;
+var COMPRESSIBLE_KINDS = [
+  "log",
+  "tool-result",
+  "test-output",
+  "shell-output",
+  "file-excerpt",
+  "diff",
+  "turn"
+];
+var structuralSummarizer = {
+  summarizerId: "structural-v1",
+  summarize(items, targetChars) {
+    const lines = [];
+    for (const item of items) {
+      const lead = item.content.replace(/\s+/g, " ").slice(0, 160);
+      lines.push(`- [${item.kind}] ${item.title}: ${lead}${item.content.length > 160 ? " \u2026" : ""}`);
+    }
+    const body = lines.join("\n");
+    return body.length <= targetChars ? body : `${body.slice(0, Math.max(0, targetChars - 2))} \u2026`;
+  }
+};
+function record2(level, at, before, after, extras = {}) {
+  return {
+    level,
+    at,
+    itemsBefore: before.length,
+    itemsAfter: after.length,
+    estimatedTokensBefore: estimateItemsTokens(before),
+    estimatedTokensAfter: estimateItemsTokens(after),
+    ...extras.checkpointId !== void 0 ? { checkpointId: extras.checkpointId } : {},
+    ...extras.detail !== void 0 ? { detail: extras.detail } : {}
+  };
+}
+function compressContent(content) {
+  const head = content.slice(0, COMPACT_HEAD_CHARS);
+  const tail2 = content.slice(-COMPACT_TAIL_CHARS);
+  const omitted = content.length - head.length - tail2.length;
+  const lineCount = content.split("\n").length;
+  return [
+    head,
+    `\u2026 [compacted: ${omitted} characters of ${lineCount} total lines omitted; full payload in its source artifact] \u2026`,
+    tail2
+  ].join("\n");
+}
+function microCompact(items, at) {
+  const keptByDedupeKey = /* @__PURE__ */ new Map();
+  items.forEach((item, index) => {
+    if (item.dedupeKey !== void 0 && !isProtectedLayer(item.layer)) {
+      keptByDedupeKey.set(item.dedupeKey, index);
+    }
+  });
+  const next = [];
+  items.forEach((item, index) => {
+    if (item.dedupeKey !== void 0 && !isProtectedLayer(item.layer) && keptByDedupeKey.get(item.dedupeKey) !== index) {
+      return;
+    }
+    const compressible = !isProtectedLayer(item.layer) && !(item.layer === "RECENT_DELTA" && item.foldedIntoCheckpointId === void 0) && !item.compacted && COMPRESSIBLE_KINDS.includes(item.kind) && item.content.length > MICRO_COMPACT_CONTENT_THRESHOLD_CHARS;
+    if (compressible) {
+      next.push({ ...item, content: compressContent(item.content), compacted: true });
+      return;
+    }
+    next.push(item);
+  });
+  return { items: next, record: record2("micro", at, items, next) };
+}
+function emergencyCompact(input) {
+  const keepDeltas = Math.max(0, input.keepNewestDeltas ?? 3);
+  const summarizer = input.summarizer ?? structuralSummarizer;
+  const deltas = input.items.filter((item) => item.layer === "RECENT_DELTA");
+  const newestDeltas = new Set(deltas.slice(-keepDeltas).map((item) => item.itemId));
+  const kept = [];
+  const dropped = [];
+  for (const item of input.items) {
+    if (isProtectedLayer(item.layer)) {
+      kept.push(item);
+      continue;
+    }
+    if (item.layer === "RECENT_DELTA" && newestDeltas.has(item.itemId)) {
+      kept.push(item);
+      continue;
+    }
+    dropped.push(item);
+  }
+  if (input.checkpointSummaryItem !== void 0) {
+    kept.push(input.checkpointSummaryItem);
+  }
+  if (dropped.length > 0) {
+    const summaryBody = summarizer.summarize(dropped, input.summaryTargetChars ?? 4e3);
+    kept.push({
+      itemId: `emergency-summary-${input.checkpointId}-${estimateTokens(summaryBody)}`,
+      layer: "COMPACTED_HISTORY",
+      kind: "summary",
+      title: `Compacted history (${dropped.length} items; durable state in checkpoint ${input.checkpointId})`,
+      content: summaryBody,
+      createdAt: input.at,
+      source: input.checkpointId,
+      compacted: true
+    });
+  }
+  return {
+    items: kept,
+    record: record2("emergency", input.at, input.items, kept, {
+      checkpointId: input.checkpointId,
+      detail: `dropped ${dropped.length} disposable item(s); kept ${keepDeltas} newest delta(s); summarizer ${summarizer.summarizerId}`
+    })
+  };
+}
+function inLayerOrder(items) {
+  const ordered = [];
+  for (const layer of CONTEXT_LAYERS) {
+    for (const item of items) if (item.layer === layer) ordered.push(item);
+  }
+  return ordered;
+}
+function dropRegenerable(items, budgetTokens) {
+  const phaseOf = (item) => {
+    if (item.layer === "WORKING_SET") return 0;
+    if (item.layer === "RECENT_DELTA" && item.foldedIntoCheckpointId !== void 0) return 1;
+    return -1;
+  };
+  let current = [...items];
+  let dropped = 0;
+  for (const phase of [0, 1]) {
+    while (estimateItemsTokens(current) > budgetTokens) {
+      const index = current.findIndex((item) => phaseOf(item) === phase);
+      if (index === -1) break;
+      current = [...current.slice(0, index), ...current.slice(index + 1)];
+      dropped += 1;
+    }
+    if (estimateItemsTokens(current) <= budgetTokens) break;
+  }
+  return { items: current, dropped };
+}
+function assembleContextPackage(input) {
+  const budgetTokens = usableInputTokens(input.budget);
+  const compactions = [];
+  let items = inLayerOrder(input.items);
+  if (estimateItemsTokens(items) > budgetTokens) {
+    const micro = microCompact(items, input.createdAt);
+    items = inLayerOrder(micro.items);
+    compactions.push(micro.record);
+  }
+  if (estimateItemsTokens(items) > budgetTokens) {
+    if (input.checkpointId !== void 0) {
+      const emergency = emergencyCompact({
+        items,
+        at: input.createdAt,
+        checkpointId: input.checkpointId,
+        checkpointSummaryItem: input.checkpointSummaryItem,
+        summarizer: input.summarizer
+      });
+      items = inLayerOrder(emergency.items);
+      compactions.push(emergency.record);
+    } else {
+      const tokensBefore = estimateItemsTokens(items);
+      const dropped = dropRegenerable(items, budgetTokens);
+      if (dropped.dropped > 0) {
+        compactions.push({
+          level: "micro",
+          at: input.createdAt,
+          itemsBefore: items.length,
+          itemsAfter: dropped.items.length,
+          estimatedTokensBefore: tokensBefore,
+          estimatedTokensAfter: estimateItemsTokens(dropped.items),
+          detail: `dropped ${dropped.dropped} regenerable item(s) (working set / checkpoint-folded deltas)`
+        });
+        items = dropped.items;
+      }
+    }
+  }
+  const estimated = estimateItemsTokens(items);
+  if (estimated > budgetTokens) {
+    const protectedTokens = estimateItemsTokens(items.filter((item) => isProtectedLayer(item.layer)));
+    throw new ContextBudgetError(
+      `The context cannot be assembled within the ${budgetTokens}-token usable budget: ${estimated} tokens remain after compaction (${protectedTokens} of them in protected layers). ` + (input.checkpointId === void 0 ? "No durable checkpoint was provided, so emergency compaction could not discard anything. Persist a checkpoint and retry, or raise the model context budget." : "Reduce pinned/durable state at its source, or raise the model context budget.")
+    );
+  }
+  const usage = computeContextUsage(input.budget, estimated);
+  const pkg = contextPackageSchema.parse({
+    schemaVersion: CONTEXT_PACKAGE_SCHEMA_VERSION,
+    ...input.jobId !== void 0 ? { jobId: input.jobId } : {},
+    ...input.taskId !== void 0 ? { taskId: input.taskId } : {},
+    ...input.attemptId !== void 0 ? { attemptId: input.attemptId } : {},
+    createdAt: input.createdAt,
+    items,
+    usage,
+    health: assessContextHealth(input.budget, estimated),
+    compactions: [...input.priorCompactions ?? [], ...compactions]
+  });
+  return { package: pkg, compactions };
+}
 
 // ../../packages/orchestration/dist/index.js
+var import_fs39 = require("fs");
+var import_path45 = __toESM(require("path"), 1);
 var ORCHESTRATION_PHASES = [
   /** The run exists; no intent has been assessed yet. */
   "CREATED",
@@ -51542,7 +51839,7 @@ function assertEnabled(policy) {
     }
   );
 }
-function record2(deps, state, type, payload = {}) {
+function record3(deps, state, type, payload = {}) {
   const policy = policyOf(deps);
   const stored = countOrchestrationEvents(deps.workspace, state.orchestrationId);
   if (stored >= state.budgets.maxEvents) {
@@ -51623,7 +51920,7 @@ function beginOrchestration(deps, request) {
     interactiveRunIds: []
   };
   createOrchestrationRun(deps.workspace, state);
-  const recorded = record2(deps, state, "orchestration_started", {
+  const recorded = record3(deps, state, "orchestration_started", {
     specName: state.specName,
     ...state.taskId !== void 0 ? { taskId: state.taskId } : {},
     planningMode: state.planningMode
@@ -51675,7 +51972,7 @@ function assessIntent(deps, orchestrationId, submission) {
       finalOutcome: "REJECTED"
     };
   }
-  state = record2(deps, state, "intent_assessed", {
+  state = record3(deps, state, "intent_assessed", {
     outcome: validation.assessment.outcome,
     overridden: validation.overridden,
     ...validation.assessment.overriddenFrom !== void 0 ? { submittedOutcome: validation.assessment.overriddenFrom } : {},
@@ -51708,7 +52005,7 @@ function requestClarification(deps, orchestrationId, candidates) {
   if (state.phase !== "NEEDS_CLARIFICATION") {
     state = transition2(deps, state, "NEEDS_CLARIFICATION");
   }
-  state = record2(deps, state, "clarification_requested", {
+  state = record3(deps, state, "clarification_requested", {
     round: round.round,
     questionIds: round.questions.map((question) => question.id)
   });
@@ -51737,7 +52034,7 @@ function resolveClarification(deps, orchestrationId, candidates) {
   if (state.openQuestions.length === 0 && state.phase === "NEEDS_CLARIFICATION") {
     state = transition2(deps, state, "READY_TO_PLAN");
   }
-  state = record2(deps, state, "clarification_resolved", {
+  state = record3(deps, state, "clarification_resolved", {
     decisionIds: decisions.map((decision) => decision.id),
     remainingQuestions: state.openQuestions.length
   });
@@ -51826,7 +52123,7 @@ async function submitPlan(deps, orchestrationId, candidate) {
     }
   };
   if (reviewRequired) delete state.planReview;
-  state = record2(deps, state, "plan_created", {
+  state = record3(deps, state, "plan_created", {
     revision,
     planId: plan.planId,
     planHash: stored.hash,
@@ -51835,7 +52132,7 @@ async function submitPlan(deps, orchestrationId, candidate) {
     ...materiality !== void 0 ? { materialChanges: materiality.materialChanges } : {}
   });
   if (replacing) {
-    state = record2(deps, state, "replan_started", {
+    state = record3(deps, state, "replan_started", {
       revision,
       ...candidate.replanReason !== void 0 ? { reason: candidate.replanReason } : {}
     });
@@ -51884,7 +52181,7 @@ function reviewPlan(deps, orchestrationId, request) {
       ...request.note !== void 0 ? { note: request.note } : {}
     }
   };
-  state = record2(deps, state, "plan_reviewed", {
+  state = record3(deps, state, "plan_reviewed", {
     decision: request.decision,
     revision: state.planRevision,
     planHash: request.planHash
@@ -51944,7 +52241,7 @@ async function refreshPlanBinding(deps, orchestrationId) {
   const freshness = evaluatePlanFreshness(plan, current);
   if (!freshness.fresh) {
     state = { ...state, planStaleReasons: freshness.reasons };
-    state = record2(deps, state, "plan_invalidated", {
+    state = record3(deps, state, "plan_invalidated", {
       revision: state.planRevision,
       reasons: freshness.reasons
     });
@@ -52047,13 +52344,13 @@ function recordAction(deps, orchestrationId, request) {
       ...decision.directive === "REPAIR" ? { repairCycles: state.counters.repairCycles + 1 } : {}
     }
   };
-  state = record2(deps, state, "action_recorded", {
+  state = record3(deps, state, "action_recorded", {
     action: request.action,
     target: request.target.slice(0, 200),
     ...request.planStepId !== void 0 ? { planStepId: request.planStepId } : {},
     result: request.result
   });
-  state = record2(deps, state, "observation_recorded", {
+  state = record3(deps, state, "observation_recorded", {
     result: request.result,
     progressed: progress.progressed,
     consecutiveNoProgress: progress.consecutiveNoProgress,
@@ -52063,7 +52360,7 @@ function recordAction(deps, orchestrationId, request) {
     directive: decision.directive
   });
   if (classified?.category === "VERIFICATION_FAILURE") {
-    state = record2(deps, state, "verification_failed", {
+    state = record3(deps, state, "verification_failed", {
       source: request.failure?.source ?? "unknown",
       fingerprint: classified.fingerprint
     });
@@ -52098,7 +52395,7 @@ function applyDirective(deps, input, decision, failure) {
     case "REPAIR": {
       if (state.phase !== "REPAIRING") {
         state = transition2(deps, state, "REPAIRING");
-        state = record2(deps, state, "repair_started", {
+        state = record3(deps, state, "repair_started", {
           cycle: state.counters.repairCycles,
           ...failure !== void 0 ? { fingerprint: failure.fingerprint } : {}
         });
@@ -52120,7 +52417,7 @@ function applyDirective(deps, input, decision, failure) {
       return state;
     case "BLOCK": {
       state = transition2(deps, state, "BLOCKED");
-      state = record2(deps, state, "execution_blocked", {
+      state = record3(deps, state, "execution_blocked", {
         ...failure !== void 0 ? { category: failure.category } : {},
         reason: decision.reason
       });
@@ -52137,7 +52434,7 @@ function applyDirective(deps, input, decision, failure) {
     }
     case "STOP_BUDGET_EXHAUSTED": {
       state = transition2(deps, state, "BLOCKED");
-      state = record2(deps, state, "budget_exhausted", {
+      state = record3(deps, state, "budget_exhausted", {
         budget: decision.exhaustedBudget ?? "unknown",
         reason: decision.reason
       });
@@ -52154,7 +52451,7 @@ function applyDirective(deps, input, decision, failure) {
     }
     case "STOP_FINAL": {
       state = transition2(deps, state, "CANCELLED");
-      state = record2(deps, state, "execution_cancelled", { reason: decision.reason });
+      state = record3(deps, state, "execution_cancelled", { reason: decision.reason });
       return { ...state, finalizedAt: at, finalOutcome: "CANCELLED" };
     }
   }
@@ -52181,7 +52478,7 @@ function finalizeOrchestration(deps, orchestrationId, request) {
       );
     }
     state = transition2(deps, state, "COMPLETED");
-    state = record2(deps, state, "execution_completed", {
+    state = record3(deps, state, "execution_completed", {
       evidenceStatus: request.evidenceStatus,
       ...request.interactiveRunId !== void 0 ? { runId: request.interactiveRunId } : {}
     });
@@ -52189,11 +52486,11 @@ function finalizeOrchestration(deps, orchestrationId, request) {
   }
   if (request.outcome === "cancelled") {
     state = transition2(deps, state, "CANCELLED");
-    state = record2(deps, state, "execution_cancelled", { reason: request.reason });
+    state = record3(deps, state, "execution_cancelled", { reason: request.reason });
     return persist2(deps, { ...state, finalizedAt: at, finalOutcome: "CANCELLED" });
   }
   state = transition2(deps, state, "ABORTED");
-  state = record2(deps, state, "execution_aborted", { reason: request.reason });
+  state = record3(deps, state, "execution_aborted", { reason: request.reason });
   return persist2(deps, { ...state, finalizedAt: at, finalOutcome: "ABORTED" });
 }
 function createCheckpoint(deps, orchestrationId, input) {
@@ -52217,7 +52514,7 @@ function createCheckpoint(deps, orchestrationId, input) {
     nextAction: input.nextAction
   });
   writeOrchestrationCheckpoint(deps.workspace, orchestrationId, checkpoint);
-  state = record2(deps, state, "checkpoint_created", { phase: state.phase });
+  state = record3(deps, state, "checkpoint_created", { phase: state.phase });
   persist2(deps, state);
   return checkpoint;
 }
@@ -52586,7 +52883,10 @@ var ESCALATION_REASONS = [
   /** No-progress detection fired; a stronger reasoner is warranted. */
   "NO_PROGRESS",
   /** Replan budget pressure: the next replan must count. */
-  "REPLAN_BUDGET_PRESSURE"
+  "REPLAN_BUDGET_PRESSURE",
+  // vNext.2 (additive, never reordered).
+  /** The local EXECUTOR declined or exhausted its bounded attempts. */
+  "LOCAL_EXECUTION_ESCALATED"
 ];
 var JOB_DECISION_KINDS = [
   "compile-repair",
@@ -52819,7 +53119,11 @@ var jobCheckpointSchema = external_exports.object({
 }).passthrough();
 var JOB_TRANSITIONS = Object.freeze({
   CREATED: ["PLANNING", "BLOCKED", "NEEDS_CLARIFICATION", "CANCELLED", "FAILED"],
-  PLANNING: ["READY", "NEEDS_CLARIFICATION", "BLOCKED", "CANCELLED", "FAILED"],
+  // PLANNING/REPLANNING → WAITING_RETRY (vNext.2, additive): a paid-tier
+  // reasoning step may have to wait for subscription quota to return. The
+  // wait resumes through READY; the pipeline re-derives the pending stage
+  // from durable state, so nothing about the plan lifecycle is lost.
+  PLANNING: ["READY", "NEEDS_CLARIFICATION", "WAITING_RETRY", "BLOCKED", "CANCELLED", "FAILED"],
   READY: [
     "RUNNING",
     // A repair dispatch starts from READY after a diagnosis recommended it.
@@ -52868,7 +53172,7 @@ var JOB_TRANSITIONS = Object.freeze({
     "CANCELLED",
     "FAILED"
   ],
-  REPLANNING: ["READY", "PLANNING", "NEEDS_CLARIFICATION", "BLOCKED", "CANCELLED", "FAILED"],
+  REPLANNING: ["READY", "PLANNING", "NEEDS_CLARIFICATION", "WAITING_RETRY", "BLOCKED", "CANCELLED", "FAILED"],
   WAITING_RETRY: ["READY", "BLOCKED", "CANCELLED", "FAILED"],
   NEEDS_CLARIFICATION: [
     // Another bounded round of questions.
@@ -53736,8 +54040,447 @@ function selectWorker(input) {
 function escalationAllowed(policy) {
   return policy.escalation === "automatic";
 }
+function ratioDelta(before, after) {
+  if (typeof before !== "number" || typeof after !== "number") return null;
+  if (!Number.isFinite(before) || !Number.isFinite(after)) return null;
+  const delta = before - after;
+  return delta >= 0 ? delta : null;
+}
+function deriveBurnObservations(entries) {
+  const observations = [];
+  for (const entry of entries) {
+    const metrics = entry.metrics;
+    const fiveHourBurn = ratioDelta(metrics["fiveHourQuotaBefore"], metrics["fiveHourQuotaAfter"]);
+    const weeklyBurn = ratioDelta(metrics["weeklyQuotaBefore"], metrics["weeklyQuotaAfter"]);
+    const wallTimeMs = entry.metrics.durationMs;
+    if (fiveHourBurn === null && weeklyBurn === null && wallTimeMs === null) continue;
+    const burnPerMinute = fiveHourBurn !== null && wallTimeMs !== null && wallTimeMs > 0 ? fiveHourBurn / (wallTimeMs / 6e4) : null;
+    observations.push({
+      attemptId: entry.attemptId,
+      taskId: entry.taskId,
+      provider: entry.provider,
+      lane: entry.lane,
+      taskCategory: typeof entry.taskCategory === "string" ? entry.taskCategory : null,
+      taskComplexity: typeof entry.taskComplexity === "string" ? entry.taskComplexity : null,
+      fiveHourBurnRatio: fiveHourBurn,
+      weeklyBurnRatio: weeklyBurn,
+      wallTimeMs,
+      fiveHourBurnRatioPerMinute: burnPerMinute,
+      success: entry.success,
+      startedAt: entry.startedAt
+    });
+  }
+  return observations;
+}
+function median(values) {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a2, b) => a2 - b);
+  const mid = Math.floor(sorted.length / 2);
+  const low = sorted[mid - 1];
+  const high = sorted[mid];
+  if (sorted.length % 2 === 1) return high ?? null;
+  return low !== void 0 && high !== void 0 ? (low + high) / 2 : null;
+}
+function aggregateBurnObservations(observations, filter) {
+  const relevant = observations.filter(
+    (observation) => (filter?.taskComplexity === void 0 || observation.taskComplexity === filter.taskComplexity) && (filter?.taskCategory === void 0 || observation.taskCategory === filter.taskCategory) && (filter?.lane === void 0 || observation.lane === filter.lane)
+  );
+  const burns = relevant.map((observation) => observation.fiveHourBurnRatio).filter((value) => value !== null);
+  const walls = relevant.map((observation) => observation.wallTimeMs).filter((value) => value !== null);
+  const rates = relevant.map((observation) => observation.fiveHourBurnRatioPerMinute).filter((value) => value !== null);
+  return {
+    observations: relevant.length,
+    medianFiveHourBurnRatio: median(burns),
+    medianWallTimeMs: median(walls),
+    medianFiveHourBurnRatioPerMinute: median(rates),
+    successRate: relevant.length > 0 ? relevant.filter((observation) => observation.success).length / relevant.length : null
+  };
+}
+function observedFiveHourBurnRate(observations) {
+  const rates = observations.filter((observation) => observation.lane === "SUBSCRIPTION" || observation.lane === null).map((observation) => observation.fiveHourBurnRatioPerMinute).filter((value) => value !== null).slice(-10);
+  return median(rates);
+}
+function heuristicWallTimeMs(complexity, policy) {
+  switch (complexity) {
+    case "LOW":
+      return policy.lowWallTimeMs;
+    case "MEDIUM":
+      return policy.mediumWallTimeMs;
+    case "HIGH":
+      return policy.highWallTimeMs;
+  }
+}
+function heuristicBurnRatio(complexity, policy) {
+  switch (complexity) {
+    case "LOW":
+      return policy.lowQuotaBurnRatio;
+    case "MEDIUM":
+      return policy.mediumQuotaBurnRatio;
+    case "HIGH":
+      return policy.highQuotaBurnRatio;
+  }
+}
+function heuristicContextGrowthTokens(complexity) {
+  switch (complexity) {
+    case "LOW":
+      return 2e4;
+    case "MEDIUM":
+      return 6e4;
+    case "HIGH":
+      return 12e4;
+  }
+}
+function heuristicRetryProbability(complexity, suitability) {
+  if (suitability === "LOCAL_TRY") return 0.4;
+  switch (complexity) {
+    case "LOW":
+      return 0.1;
+    case "MEDIUM":
+      return 0.25;
+    case "HIGH":
+      return 0.4;
+  }
+}
+function estimateWorkload(input) {
+  const { policy } = input;
+  let wallTimeMs = heuristicWallTimeMs(input.complexity, policy);
+  let fiveHourBurn = heuristicBurnRatio(input.complexity, policy);
+  let basis = "heuristic";
+  let confidence = input.complexity === "LOW" ? "medium" : "low";
+  const observations = (input.observations ?? []).filter(
+    (observation) => observation.lane === "SUBSCRIPTION" || observation.lane === null
+  );
+  if (observations.length > 0) {
+    const byCategory = input.taskCategory !== void 0 ? aggregateBurnObservations(observations, {
+      taskComplexity: input.complexity,
+      taskCategory: input.taskCategory
+    }) : { observations: 0, medianFiveHourBurnRatio: null, medianWallTimeMs: null, medianFiveHourBurnRatioPerMinute: null, successRate: null };
+    const byComplexity = aggregateBurnObservations(observations, {
+      taskComplexity: input.complexity
+    });
+    const aggregate = byCategory.observations >= policy.minHistoricalObservations ? byCategory : byComplexity;
+    if (aggregate.observations >= policy.minHistoricalObservations) {
+      if (aggregate.medianWallTimeMs !== null) {
+        wallTimeMs = Math.round(Math.max(aggregate.medianWallTimeMs, wallTimeMs * 0.25));
+        basis = "historical";
+      }
+      if (aggregate.medianFiveHourBurnRatio !== null) {
+        fiveHourBurn = Math.min(1, Math.max(aggregate.medianFiveHourBurnRatio, fiveHourBurn * 0.5));
+        basis = "historical";
+      }
+      if (basis === "historical") confidence = "medium";
+    }
+  }
+  if (input.overrides?.expectedWallTimeMs !== void 0) {
+    wallTimeMs = input.overrides.expectedWallTimeMs;
+    confidence = "high";
+  }
+  if (input.overrides?.expectedFiveHourBurnRatio !== void 0) {
+    fiveHourBurn = input.overrides.expectedFiveHourBurnRatio;
+    confidence = "high";
+  }
+  if (input.localSuitability === "LOCAL_SAFE") fiveHourBurn = Math.min(fiveHourBurn, 0.02);
+  return {
+    taskId: input.taskId,
+    complexity: input.complexity,
+    intelligenceRequirement: input.complexity,
+    localSuitability: input.localSuitability,
+    expectedWallTimeMs: Math.max(1, Math.round(wallTimeMs)),
+    expectedFiveHourBurnRatio: Math.min(1, Math.max(0, fiveHourBurn)),
+    expectedWeeklyBurnRatio: Math.min(1, Math.max(0, fiveHourBurn / policy.weeklyCapacityFactor)),
+    burnProfile: "linear",
+    expectedContextGrowthTokens: heuristicContextGrowthTokens(input.complexity),
+    expectedAgentTurns: null,
+    expectedToolCalls: null,
+    expectedTestLoops: null,
+    retryProbability: heuristicRetryProbability(input.complexity, input.localSuitability),
+    confidence,
+    basis
+  };
+}
+function expectedBurnBeforeReset(estimate, timeToResetMs2) {
+  if (timeToResetMs2 <= 0) return 0;
+  const fraction = Math.min(1, timeToResetMs2 / Math.max(1, estimate.expectedWallTimeMs));
+  return estimate.expectedFiveHourBurnRatio * fraction;
+}
+function assessSubscriptionAdmission(input) {
+  const { estimate, forecast, policy } = input;
+  const safety = policy.burnSafetyMultiplier;
+  const timeToReset = forecast.timeToFiveHourResetMs;
+  const crossesReset = timeToReset !== null && estimate.expectedWallTimeMs > timeToReset;
+  const preResetBurn = timeToReset === null ? estimate.expectedFiveHourBurnRatio : expectedBurnBeforeReset(estimate, timeToReset);
+  const postResetBurn = Math.max(0, estimate.expectedFiveHourBurnRatio - preResetBurn);
+  if (forecast.fiveHourRemainingRatio !== null) {
+    const available = Math.max(0, forecast.fiveHourRemainingRatio - input.reserveRatio);
+    const required2 = preResetBurn * safety;
+    if (required2 > available) {
+      return {
+        admissible: false,
+        preResetBurnRatio: preResetBurn,
+        postResetBurnRatio: postResetBurn,
+        crossesReset,
+        refusal: "five-hour",
+        detail: `Pre-reset burn ${(preResetBurn * 100).toFixed(1)}% x${safety} safety exceeds ${(forecast.fiveHourRemainingRatio * 100).toFixed(1)}% remaining minus ${(input.reserveRatio * 100).toFixed(1)}% reserve.`
+      };
+    }
+  }
+  if (postResetBurn * safety > 1) {
+    return {
+      admissible: false,
+      preResetBurnRatio: preResetBurn,
+      postResetBurnRatio: postResetBurn,
+      crossesReset,
+      refusal: "five-hour",
+      detail: `The post-reset continuation alone (${(postResetBurn * 100).toFixed(1)}% x${safety}) exceeds a full five-hour window.`
+    };
+  }
+  if (forecast.weeklyRemainingRatio !== null) {
+    const weeklyRequired = estimate.expectedWeeklyBurnRatio * safety;
+    if (weeklyRequired > forecast.weeklyRemainingRatio) {
+      return {
+        admissible: false,
+        preResetBurnRatio: preResetBurn,
+        postResetBurnRatio: postResetBurn,
+        crossesReset,
+        refusal: "weekly",
+        detail: `Expected weekly burn ${(estimate.expectedWeeklyBurnRatio * 100).toFixed(1)}% x${safety} exceeds ${(forecast.weeklyRemainingRatio * 100).toFixed(1)}% weekly remaining.`
+      };
+    }
+  }
+  return {
+    admissible: true,
+    preResetBurnRatio: preResetBurn,
+    postResetBurnRatio: postResetBurn,
+    crossesReset,
+    detail: crossesReset ? `Admitted across the reset: ~${(preResetBurn * 100).toFixed(1)}% burns before it, the task continues after.` : `Admitted: expected burn ${(estimate.expectedFiveHourBurnRatio * 100).toFixed(1)}% fits current capacity.`
+  };
+}
+function assessContextAdmission(input) {
+  if (input.contextUsageRatio === null) {
+    return { ok: true, compactFirst: false, detail: "Context occupancy unknown; reconstruction will budget the package." };
+  }
+  if (input.contextUsageRatio >= input.policy.contextCompactBeforeDispatchRatio) {
+    return {
+      ok: true,
+      compactFirst: true,
+      detail: `Context occupancy ${(input.contextUsageRatio * 100).toFixed(0)}% is at or above the ${(input.policy.contextCompactBeforeDispatchRatio * 100).toFixed(0)}% pre-dispatch threshold; checkpoint + compact + reconstruct runs before the dispatch.`
+    };
+  }
+  return { ok: true, compactFirst: false, detail: "Context occupancy is healthy." };
+}
+function subscriptionRouting(input, baseReason) {
+  const { forecast, policy } = input;
+  const mode = forecast.schedulerMode;
+  if (mode === "EXHAUSTED_5H") {
+    return {
+      lane: "DEFER",
+      reasonCode: "FIVE_HOUR_EXHAUSTED",
+      compactFirst: false,
+      deferUntil: forecast.fiveHourResetAt,
+      admission: null,
+      detail: "The five-hour subscription window is exhausted; strong work waits for its reset."
+    };
+  }
+  if (mode === "EXHAUSTED_WEEKLY") {
+    return {
+      lane: "DEFER",
+      reasonCode: "WEEKLY_EXHAUSTED",
+      compactFirst: false,
+      deferUntil: forecast.weeklyResetAt,
+      admission: null,
+      detail: "The weekly subscription window is exhausted; strong work waits for its reset."
+    };
+  }
+  const admission = assessSubscriptionAdmission({
+    estimate: input.estimate,
+    forecast,
+    reserveRatio: input.reserveRatio,
+    policy
+  });
+  const context = assessContextAdmission({
+    contextUsageRatio: input.contextUsageRatio ?? null,
+    policy
+  });
+  if (admission.admissible) {
+    const reasonCode = context.compactFirst ? "COMPACT_BEFORE_EXECUTION" : admission.crossesReset ? "CROSS_RESET_ADMITTED" : mode === "HARVEST" ? "HARVEST_EXPIRING_CAPACITY" : baseReason;
+    return {
+      lane: "SUBSCRIPTION",
+      reasonCode,
+      compactFirst: context.compactFirst,
+      deferUntil: null,
+      admission,
+      detail: context.compactFirst ? `${context.detail} ${admission.detail}` : admission.detail
+    };
+  }
+  if (admission.refusal === "weekly") {
+    return {
+      lane: "DEFER",
+      reasonCode: "WEEKLY_QUOTA_PRESSURE",
+      compactFirst: false,
+      deferUntil: forecast.weeklyResetAt,
+      admission,
+      detail: admission.detail
+    };
+  }
+  const staleExtra = input.staleReserveExtraRatio ?? 0;
+  if (forecast.telemetryFreshness !== "FRESH" && staleExtra > 0) {
+    const withoutStale = assessSubscriptionAdmission({
+      estimate: input.estimate,
+      forecast,
+      reserveRatio: Math.max(0, input.reserveRatio - staleExtra),
+      policy
+    });
+    if (withoutStale.admissible) {
+      return {
+        lane: "DEFER",
+        reasonCode: "STALE_TELEMETRY_CONSERVATIVE",
+        compactFirst: false,
+        deferUntil: null,
+        admission,
+        detail: `Quota telemetry is ${forecast.telemetryFreshness}; the stale-telemetry margin defers this work until a fresh observation. ${admission.detail}`
+      };
+    }
+  }
+  return {
+    lane: "DEFER",
+    reasonCode: mode === "CONSERVE" ? "CONSERVE_QUOTA" : "PRE_RESET_BURN_UNSAFE",
+    compactFirst: false,
+    deferUntil: forecast.fiveHourResetAt,
+    admission,
+    detail: admission.detail
+  };
+}
+function decideLane(input) {
+  const suitability = input.estimate.localSuitability;
+  const localEligible = suitability === "LOCAL_SAFE" || suitability === "LOCAL_TRY";
+  if (localEligible && input.localExecutionAvailable) {
+    return suitability === "LOCAL_SAFE" ? {
+      lane: "LOCAL",
+      reasonCode: "LOCAL_SAFE",
+      compactFirst: false,
+      deferUntil: null,
+      admission: null,
+      detail: "LOCAL_SAFE work runs on the local lane without consuming subscription quota."
+    } : {
+      lane: "LOCAL",
+      reasonCode: "LOCAL_TRY_FIRST",
+      compactFirst: false,
+      deferUntil: null,
+      admission: null,
+      detail: "LOCAL_TRY work attempts the local lane first; deterministic verification decides the outcome."
+    };
+  }
+  const baseReason = input.localEscalationRequired === true ? "LOCAL_ESCALATION_REQUIRED" : localEligible ? "LOCAL_UNAVAILABLE" : "STRONG_REQUIRED";
+  return subscriptionRouting(input, baseReason);
+}
+function selectReadyCandidate(candidates) {
+  if (candidates.length === 0) return void 0;
+  const inGraphOrder = [...candidates].sort((a2, b) => a2.graphIndex - b.graphIndex);
+  const first = inGraphOrder[0];
+  if (first === void 0) return void 0;
+  const runnable = inGraphOrder.filter((candidate) => candidate.routing.lane !== "DEFER");
+  if (runnable.length === 0) {
+    return { nodeId: first.nodeId, reason: "Every ready task defers; the first in graph order carries the wait." };
+  }
+  const harvestStrong = runnable.find(
+    (candidate) => candidate.routing.lane === "SUBSCRIPTION" && (candidate.routing.reasonCode === "HARVEST_EXPIRING_CAPACITY" || candidate.routing.reasonCode === "CROSS_RESET_ADMITTED")
+  );
+  if (harvestStrong !== void 0) {
+    return {
+      nodeId: harvestStrong.nodeId,
+      reason: "HARVEST: admissible strong work consumes five-hour capacity that would otherwise expire."
+    };
+  }
+  const chosen = runnable[0];
+  if (chosen === void 0) return void 0;
+  return {
+    nodeId: chosen.nodeId,
+    reason: chosen.nodeId === first.nodeId ? "First ready task in graph order." : `Task ${first.nodeId} defers (${first.routing.reasonCode}); the first runnable ready task proceeds instead.`
+  };
+}
+var LANE_DECISIONS = ["LOCAL", "SUBSCRIPTION", "DEFER"];
+var SCHEDULER_MODES = [
+  "NORMAL",
+  "CONSERVE",
+  "HARVEST",
+  "EXHAUSTED_5H",
+  "EXHAUSTED_WEEKLY"
+];
+var SUBSCRIPTION_EXHAUSTED_MODES = [
+  "EXHAUSTED_5H",
+  "EXHAUSTED_WEEKLY"
+];
+function isSubscriptionExhausted(mode) {
+  return SUBSCRIPTION_EXHAUSTED_MODES.includes(mode);
+}
+var QUOTA_WINDOWS = ["five-hour", "weekly"];
+var QUOTA_TELEMETRY_FRESHNESS = ["FRESH", "STALE", "UNKNOWN"];
+var SCHEDULING_REASON_CODES = [
+  /** The work is LOCAL_SAFE; the local lane performs it without quota. */
+  "LOCAL_SAFE",
+  /** LOCAL_TRY work attempts the local lane first under cheap verification. */
+  "LOCAL_TRY_FIRST",
+  /** The work requires strong intelligence; the subscription lane runs it. */
+  "STRONG_REQUIRED",
+  /** HARVEST admitted strong work to consume capacity that would expire. */
+  "HARVEST_EXPIRING_CAPACITY",
+  /** CONSERVE deferred non-essential strong work to protect low capacity. */
+  "CONSERVE_QUOTA",
+  /** Weekly scarcity constrained the decision (including suppressing HARVEST). */
+  "WEEKLY_QUOTA_PRESSURE",
+  /** The five-hour window is exhausted; strong work waits for its reset. */
+  "FIVE_HOUR_EXHAUSTED",
+  /** The weekly window is exhausted; strong work waits for its reset. */
+  "WEEKLY_EXHAUSTED",
+  /** Context occupancy required compaction before the dispatch could start. */
+  "COMPACT_BEFORE_EXECUTION",
+  /** Bounded local attempts were used up; the work escalates to strong. */
+  "LOCAL_ESCALATION_REQUIRED",
+  /** Expected pre-reset burn fits: the task starts now and crosses the reset. */
+  "CROSS_RESET_ADMITTED",
+  /** Expected pre-reset burn does not fit inside remaining minus reserve. */
+  "PRE_RESET_BURN_UNSAFE",
+  /** Telemetry was stale/unknown; the conservative path was taken. */
+  "STALE_TELEMETRY_CONSERVATIVE",
+  /** No healthy local worker exists; local-eligible work routed strong. */
+  "LOCAL_UNAVAILABLE"
+];
 function nodeEscalations(job, nodeId) {
   return job.escalations.filter((entry) => entry.nodeId === nodeId).map((entry) => entry.reason);
+}
+function gateRoleQuota(scheduling, decision, node) {
+  if (scheduling === void 0 || !scheduling.policy.enabled) return decision;
+  if (decision.worker.costTier !== "PAID") return decision;
+  const mode = scheduling.forecast.schedulerMode;
+  if (!isSubscriptionExhausted(mode)) return decision;
+  const fiveHour = mode === "EXHAUSTED_5H";
+  return {
+    kind: "WAIT_QUOTA",
+    nodeId: node.nodeId,
+    taskId: node.parentTaskId,
+    until: fiveHour ? scheduling.forecast.fiveHourResetAt : scheduling.forecast.weeklyResetAt,
+    reasonCode: fiveHour ? "FIVE_HOUR_EXHAUSTED" : "WEEKLY_EXHAUSTED",
+    reason: `The ${decision.role} step needs the paid worker, but the ${fiveHour ? "five-hour" : "weekly"} subscription window is exhausted; the step waits for the reset.`
+  };
+}
+function selectSchedulableNode(input) {
+  const graph = input.graph;
+  if (graph === void 0) return void 0;
+  const first = nextSchedulableNode(graph);
+  const scheduling = input.scheduling;
+  if (scheduling === void 0 || !scheduling.policy.enabled) return first;
+  if (input.job.status !== "READY") return first;
+  if (first === void 0 || first.status !== "READY") return first;
+  const ready = graph.nodes.filter((candidate) => candidate.status === "READY");
+  if (ready.length <= 1) return first;
+  const candidates = ready.flatMap((candidate, index) => {
+    const routing = scheduling.routings.get(candidate.nodeId);
+    return routing === void 0 ? [] : [{ nodeId: candidate.nodeId, graphIndex: index, routing: routing.routing }];
+  });
+  if (candidates.length !== ready.length) return first;
+  const selection = selectReadyCandidate(candidates);
+  if (selection === void 0) return first;
+  return findNode(graph, selection.nodeId) ?? first;
 }
 function executorAttempts(node) {
   return node.attempts.filter((attempt) => attempt.role === "EXECUTOR").length;
@@ -53828,7 +54571,7 @@ function scheduleNext(input) {
   if (job.status === "CREATED" || graph === void 0 || job.graphRevision === 0) {
     return { kind: "BUILD_GRAPH", reason: "No runtime execution graph exists yet." };
   }
-  const node = nextSchedulableNode(graph);
+  const node = selectSchedulableNode(input);
   if (node === void 0) {
     if (unfinishedNodes(graph).length === 0) {
       return { kind: "JOB_COMPLETE", reason: "Every runtime node completed through verified evidence." };
@@ -53860,14 +54603,18 @@ function scheduleNext(input) {
       workers,
       nodeEscalations: escalations
     });
-    return {
-      kind: "RUN_ROLE",
-      role: "DIAGNOSER",
-      nodeId: node.nodeId,
-      worker: selection.worker,
-      reason: `The last dispatch for task ${node.parentTaskId} failed (${node.latestFailure?.category ?? "unknown"}); a diagnosis is required before any repair.`,
-      ...selection.escalation !== void 0 ? { escalation: selection.escalation } : {}
-    };
+    return gateRoleQuota(
+      input.scheduling,
+      {
+        kind: "RUN_ROLE",
+        role: "DIAGNOSER",
+        nodeId: node.nodeId,
+        worker: selection.worker,
+        reason: `The last dispatch for task ${node.parentTaskId} failed (${node.latestFailure?.category ?? "unknown"}); a diagnosis is required before any repair.`,
+        ...selection.escalation !== void 0 ? { escalation: selection.escalation } : {}
+      },
+      node
+    );
   }
   if (job.status === "REPLANNING") {
     const role = node.planRevision > 0 ? "REPLANNER" : "PLANNER";
@@ -53878,14 +54625,18 @@ function scheduleNext(input) {
       workers,
       nodeEscalations: escalations
     });
-    return {
-      kind: "RUN_ROLE",
-      role,
-      nodeId: node.nodeId,
-      worker: selection.worker,
-      reason: role === "REPLANNER" ? "The active plan was invalidated; a replacement plan is required." : "A fresh plan is required after the previous approach was superseded.",
-      ...selection.escalation !== void 0 ? { escalation: selection.escalation } : {}
-    };
+    return gateRoleQuota(
+      input.scheduling,
+      {
+        kind: "RUN_ROLE",
+        role,
+        nodeId: node.nodeId,
+        worker: selection.worker,
+        reason: role === "REPLANNER" ? "The active plan was invalidated; a replacement plan is required." : "A fresh plan is required after the previous approach was superseded.",
+        ...selection.escalation !== void 0 ? { escalation: selection.escalation } : {}
+      },
+      node
+    );
   }
   if (node.complexity === void 0 || policy.routing.classifier !== "disabled" && successfulAttemptIndex(node, "CLASSIFIER") < 0) {
     if (policy.routing.classifier === "disabled") {
@@ -53901,14 +54652,18 @@ function scheduleNext(input) {
       workers,
       nodeEscalations: escalations
     });
-    return {
-      kind: "RUN_ROLE",
-      role: "CLASSIFIER",
-      nodeId: node.nodeId,
-      worker: selection.worker,
-      reason: "The node has not been classified yet; a classification can only raise the deterministic class.",
-      ...selection.escalation !== void 0 ? { escalation: selection.escalation } : {}
-    };
+    return gateRoleQuota(
+      input.scheduling,
+      {
+        kind: "RUN_ROLE",
+        role: "CLASSIFIER",
+        nodeId: node.nodeId,
+        worker: selection.worker,
+        reason: "The node has not been classified yet; a classification can only raise the deterministic class.",
+        ...selection.escalation !== void 0 ? { escalation: selection.escalation } : {}
+      },
+      node
+    );
   }
   if (node.planRevision === 0) {
     const selection = selectWorker({
@@ -53918,14 +54673,18 @@ function scheduleNext(input) {
       workers,
       nodeEscalations: escalations
     });
-    return {
-      kind: "RUN_ROLE",
-      role: "PLANNER",
-      nodeId: node.nodeId,
-      worker: selection.worker,
-      reason: `Node ${node.nodeId} (task ${node.parentTaskId}) has no execution plan.`,
-      ...selection.escalation !== void 0 ? { escalation: selection.escalation } : {}
-    };
+    return gateRoleQuota(
+      input.scheduling,
+      {
+        kind: "RUN_ROLE",
+        role: "PLANNER",
+        nodeId: node.nodeId,
+        worker: selection.worker,
+        reason: `Node ${node.nodeId} (task ${node.parentTaskId}) has no execution plan.`,
+        ...selection.escalation !== void 0 ? { escalation: selection.escalation } : {}
+      },
+      node
+    );
   }
   if (!node.planApproved && node.planRevision > 0 && node.criticPlanRevision === node.planRevision && (node.criticVerdict === "REVISE" || node.criticVerdict === "ESCALATE")) {
     const selection = selectWorker({
@@ -53935,14 +54694,18 @@ function scheduleNext(input) {
       workers,
       nodeEscalations: escalations
     });
-    return {
-      kind: "RUN_ROLE",
-      role: "PLANNER",
-      nodeId: node.nodeId,
-      worker: selection.worker,
-      reason: node.criticVerdict === "REVISE" ? `The critic requested revisions to plan revision ${node.planRevision}.` : `The critic escalated plan revision ${node.planRevision}; planning reroutes to the large agent.`,
-      ...selection.escalation !== void 0 ? { escalation: selection.escalation } : {}
-    };
+    return gateRoleQuota(
+      input.scheduling,
+      {
+        kind: "RUN_ROLE",
+        role: "PLANNER",
+        nodeId: node.nodeId,
+        worker: selection.worker,
+        reason: node.criticVerdict === "REVISE" ? `The critic requested revisions to plan revision ${node.planRevision}.` : `The critic escalated plan revision ${node.planRevision}; planning reroutes to the large agent.`,
+        ...selection.escalation !== void 0 ? { escalation: selection.escalation } : {}
+      },
+      node
+    );
   }
   if (!node.planApproved) {
     const criticEnabled = policy.routing.critic !== "disabled";
@@ -53956,14 +54719,18 @@ function scheduleNext(input) {
         workers,
         nodeEscalations: escalations
       });
-      return {
-        kind: "RUN_ROLE",
-        role: "CRITIC",
-        nodeId: node.nodeId,
-        worker: selection.worker,
-        reason: `Plan revision ${node.planRevision} was produced by the local planner and has not been critiqued.`,
-        ...selection.escalation !== void 0 ? { escalation: selection.escalation } : {}
-      };
+      return gateRoleQuota(
+        input.scheduling,
+        {
+          kind: "RUN_ROLE",
+          role: "CRITIC",
+          nodeId: node.nodeId,
+          worker: selection.worker,
+          reason: `Plan revision ${node.planRevision} was produced by the local planner and has not been critiqued.`,
+          ...selection.escalation !== void 0 ? { escalation: selection.escalation } : {}
+        },
+        node
+      );
     }
     if (node.humanReviewRequired) {
       return {
@@ -53979,6 +54746,57 @@ function scheduleNext(input) {
     );
   }
   const mode = node.latestDiagnosis?.recommendedAction === "REPAIR" ? "repair" : "implement";
+  const baseReason = mode === "repair" ? `A diagnosed defect on task ${node.parentTaskId} is being repaired (cycle ${node.repairCycles + 1}).` : `Task ${node.parentTaskId} has an approved plan (revision ${node.planRevision}) and is ready to implement.`;
+  const scheduling = input.scheduling;
+  const laneRouting = scheduling?.routings.get(node.nodeId);
+  if (scheduling !== void 0 && scheduling.policy.enabled && laneRouting !== void 0) {
+    const routing = laneRouting.routing;
+    if (routing.lane === "DEFER") {
+      return {
+        kind: "WAIT_QUOTA",
+        nodeId: node.nodeId,
+        taskId: node.parentTaskId,
+        until: routing.deferUntil,
+        reasonCode: routing.reasonCode,
+        reason: routing.detail,
+        laneRouting
+      };
+    }
+    if (routing.lane === "LOCAL") {
+      const localWorker = workers.find((worker) => worker.reasoningTier === "LOCAL_SMALL");
+      if (localWorker !== void 0) {
+        return {
+          kind: "DISPATCH_EXECUTOR",
+          nodeId: node.nodeId,
+          taskId: node.parentTaskId,
+          worker: localWorker,
+          mode,
+          lane: "LOCAL",
+          laneRouting,
+          compactFirst: false,
+          reason: `${baseReason} ${routing.detail}`
+        };
+      }
+    }
+    const subscriptionExecutor = selectWorker({
+      role: "EXECUTOR",
+      complexity: node.complexity,
+      policy,
+      workers,
+      nodeEscalations: escalations
+    });
+    return {
+      kind: "DISPATCH_EXECUTOR",
+      nodeId: node.nodeId,
+      taskId: node.parentTaskId,
+      worker: subscriptionExecutor.worker,
+      mode,
+      lane: "SUBSCRIPTION",
+      laneRouting,
+      compactFirst: routing.compactFirst,
+      reason: `${baseReason} ${routing.detail}`
+    };
+  }
   const executor = selectWorker({
     role: "EXECUTOR",
     complexity: node.complexity,
@@ -53992,7 +54810,7 @@ function scheduleNext(input) {
     taskId: node.parentTaskId,
     worker: executor.worker,
     mode,
-    reason: mode === "repair" ? `A diagnosed defect on task ${node.parentTaskId} is being repaired (cycle ${node.repairCycles + 1}).` : `Task ${node.parentTaskId} has an approved plan (revision ${node.planRevision}) and is ready to implement.`
+    reason: baseReason
   };
 }
 var TASK_ATTEMPT_STATUSES = [
@@ -54054,7 +54872,20 @@ var attemptMetricsSchema = external_exports.object({
   filesRead: external_exports.number().int().min(0).nullable().default(null),
   filesChanged: external_exports.number().int().min(0).nullable().default(null),
   /** Provider-REPORTED cost only; never computed from a price table. */
-  costUsd: external_exports.number().min(0).nullable().default(null)
+  costUsd: external_exports.number().min(0).nullable().default(null),
+  // vNext.2 quota/context telemetry (additive; every field tolerates
+  // absence — telemetry that was not observed is null, never fabricated).
+  /** Five-hour window remaining ratio observed at dispatch start. */
+  fiveHourQuotaBefore: external_exports.number().min(0).max(1).nullable().default(null),
+  /** Five-hour window remaining ratio observed after completion. */
+  fiveHourQuotaAfter: external_exports.number().min(0).max(1).nullable().default(null),
+  weeklyQuotaBefore: external_exports.number().min(0).max(1).nullable().default(null),
+  weeklyQuotaAfter: external_exports.number().min(0).max(1).nullable().default(null),
+  /** Estimated context occupancy ratio before/after, when measured. */
+  contextUsageBefore: external_exports.number().min(0).nullable().default(null),
+  contextUsageAfter: external_exports.number().min(0).nullable().default(null),
+  /** Verification/test loops the attempt ran, when reported. */
+  testLoops: external_exports.number().int().min(0).nullable().default(null)
 }).passthrough();
 var taskAttemptSchema = external_exports.object({
   schemaVersion: semver2,
@@ -54096,8 +54927,18 @@ var taskAttemptSchema = external_exports.object({
   resumedFromAttemptId: shortText32.optional(),
   /** Provider session reference — WORKING MEMORY only, never canonical. */
   providerSessionId: shortText32.optional(),
-  /** Scheduling lane, when a later phase assigns one. */
+  /** Scheduling lane (vNext.2: LOCAL / SUBSCRIPTION), when assigned. */
   lane: shortText32.optional(),
+  // vNext.2 scheduling attribution (additive; audit and ledger inputs,
+  // never runtime policy — policy reads live configuration and telemetry).
+  /** Deterministic local-suitability class the scheduler assigned. */
+  localSuitability: shortText32.optional(),
+  /** Complexity class the task carried when the attempt was scheduled. */
+  taskComplexity: shortText32.optional(),
+  /** Coarse task category from the suitability classifier. */
+  taskCategory: shortText32.optional(),
+  /** The SchedulingDecision that routed this attempt, when one exists. */
+  schedulingDecisionId: shortText32.optional(),
   metrics: attemptMetricsSchema.default({})
 }).passthrough();
 var checkpointDecisionSchema = external_exports.object({
@@ -54187,6 +55028,11 @@ var executionLedgerEntrySchema = external_exports.object({
   completedAt: shortText32.nullable(),
   success: external_exports.boolean(),
   failureReason: shortText32.nullable(),
+  // vNext.2 scheduling attribution (additive; null when never assigned).
+  localSuitability: shortText32.nullable().default(null),
+  taskComplexity: shortText32.nullable().default(null),
+  taskCategory: shortText32.nullable().default(null),
+  schedulingDecisionId: shortText32.nullable().default(null),
   metrics: attemptMetricsSchema
 }).passthrough();
 var ID_PATTERN3 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
@@ -54373,6 +55219,11 @@ function beginTaskAttempt(deps, input) {
     ...input.runId !== void 0 ? { runId: input.runId } : {},
     ...input.providerSessionId !== void 0 ? { providerSessionId: input.providerSessionId } : {},
     ...input.resumedFromAttemptId !== void 0 ? { resumedFromAttemptId: input.resumedFromAttemptId } : {},
+    ...input.lane !== void 0 ? { lane: input.lane } : {},
+    ...input.localSuitability !== void 0 ? { localSuitability: input.localSuitability } : {},
+    ...input.taskComplexity !== void 0 ? { taskComplexity: input.taskComplexity } : {},
+    ...input.taskCategory !== void 0 ? { taskCategory: input.taskCategory } : {},
+    ...input.schedulingDecisionId !== void 0 ? { schedulingDecisionId: input.schedulingDecisionId } : {},
     metrics: {
       durationMs: null,
       inputTokens: null,
@@ -54381,7 +55232,14 @@ function beginTaskAttempt(deps, input) {
       toolCalls: null,
       filesRead: null,
       filesChanged: null,
-      costUsd: null
+      costUsd: null,
+      fiveHourQuotaBefore: input.quotaBefore?.fiveHourRemainingRatio ?? null,
+      fiveHourQuotaAfter: null,
+      weeklyQuotaBefore: input.quotaBefore?.weeklyRemainingRatio ?? null,
+      weeklyQuotaAfter: null,
+      contextUsageBefore: input.contextUsageBefore ?? null,
+      contextUsageAfter: null,
+      testLoops: null
     }
   };
   return writeNewTaskAttempt(deps.workspace, attempt);
@@ -54501,6 +55359,32 @@ function createTaskCheckpoint(deps, input) {
   };
   updateTaskAttempt(deps.workspace, linked);
   return stored;
+}
+function readExecutionLedger(workspace, jobId, options = {}) {
+  const attempts = listTaskAttempts(workspace, jobId, { nodeId: options.nodeId });
+  return attempts.map(
+    (attempt) => executionLedgerEntrySchema.parse({
+      attemptId: attempt.attemptId,
+      jobId: attempt.jobId,
+      nodeId: attempt.nodeId,
+      taskId: attempt.taskId,
+      role: attempt.role,
+      provider: attempt.provider,
+      model: attempt.model,
+      lane: attempt.lane ?? null,
+      status: attempt.status,
+      attemptNumber: attempt.attemptNumber,
+      startedAt: attempt.startedAt,
+      completedAt: attempt.completedAt ?? null,
+      success: attempt.status === "COMPLETED",
+      failureReason: attempt.failure?.category ?? attempt.interruptedReason ?? null,
+      localSuitability: attempt.localSuitability ?? null,
+      taskComplexity: attempt.taskComplexity ?? null,
+      taskCategory: attempt.taskCategory ?? null,
+      schedulingDecisionId: attempt.schedulingDecisionId ?? null,
+      metrics: attempt.metrics
+    })
+  );
 }
 function policyOf2(deps) {
   return deps.config.orchestration.jobs;
@@ -54955,7 +55839,14 @@ function beginExecutorDispatch(deps, jobId, input) {
       provider: input.provider ?? input.workerId,
       model: input.model,
       providerSessionId: input.providerSessionId,
-      resumedFromAttemptId: lineageParent?.attemptId
+      resumedFromAttemptId: lineageParent?.attemptId,
+      lane: input.lane,
+      localSuitability: input.localSuitability,
+      taskComplexity: node.complexity,
+      taskCategory: input.taskCategory,
+      schedulingDecisionId: input.schedulingDecisionId,
+      quotaBefore: input.quotaBefore,
+      ...input.contextUsageBefore !== void 0 ? { contextUsageBefore: input.contextUsageBefore } : {}
     }
   );
   job = { ...job, currentNodeId: node.nodeId, currentAttemptId: attempt.attemptId };
@@ -55012,7 +55903,8 @@ function finalizeDispatchAttempt(deps, job, node, outcome, status) {
       ...usage?.inputTokens !== void 0 ? { inputTokens: usage.inputTokens } : {},
       ...usage?.outputTokens !== void 0 ? { outputTokens: usage.outputTokens } : {},
       ...usage?.costUsd !== void 0 ? { costUsd: usage.costUsd } : {},
-      ...outcome.changedFiles !== void 0 ? { filesChanged: outcome.changedFiles.length } : {}
+      ...outcome.changedFiles !== void 0 ? { filesChanged: outcome.changedFiles.length } : {},
+      ...outcome.extraMetrics ?? {}
     }
   });
   return attemptId;
@@ -55485,6 +56377,42 @@ function clearRetryWait(deps, jobId) {
   if (job.retryAt !== void 0 && Date.parse(job.retryAt) > now3(deps).getTime()) return job;
   job = transition22(deps, job, "READY");
   delete job.retryAt;
+  return persist22(deps, job);
+}
+function promoteNodeForQuotaOvertake(deps, jobId, input) {
+  assertJobsEnabled(deps);
+  let job = requireJobState(deps.workspace, jobId);
+  let graph = requireGraphRevision(deps.workspace, jobId, job.graphRevision);
+  const node = requireNode(graph, input.nodeId);
+  if (node.status !== "PENDING") {
+    return job;
+  }
+  graph = transitionNode(graph, node.nodeId, "READY");
+  job = record22(deps, job, "node_ready", {
+    nodeId: node.nodeId,
+    taskId: node.parentTaskId,
+    quotaOvertake: true,
+    detail: input.detail.slice(0, 300)
+  });
+  persistGraph(deps, job, graph);
+  return persist22(deps, job);
+}
+function deferJobForQuota(deps, jobId, input) {
+  assertJobsEnabled(deps);
+  let job = requireJobState(deps.workspace, jobId);
+  const at = now3(deps);
+  const retryAt = input.until !== null && Date.parse(input.until) > at.getTime() ? input.until : new Date(at.getTime() + Math.max(1e3, input.pollMs)).toISOString();
+  if (job.status !== "WAITING_RETRY") {
+    job = transition22(deps, job, "WAITING_RETRY");
+  }
+  job = { ...job, retryAt };
+  job = record22(deps, job, "task_deferred", {
+    nodeId: input.nodeId,
+    taskId: input.taskId,
+    reasonCode: input.reasonCode.slice(0, 100),
+    retryAt,
+    detail: input.detail.slice(0, 500)
+  });
   return persist22(deps, job);
 }
 function checkpointJob(deps, jobId, nextAction) {
@@ -59571,6 +60499,1103 @@ async function integrateVerifiedCandidates(input, graph) {
     changedFiles: result.changedFiles
   };
 }
+var QUOTA_SNAPSHOT_SCHEMA_VERSION = "1.0.0";
+var isoText = external_exports.string().min(1).max(64);
+var ratio = external_exports.number().min(0).max(1);
+var quotaWindowSnapshotSchema = external_exports.object({
+  window: external_exports.enum(QUOTA_WINDOWS),
+  remainingRatio: ratio.nullable().default(null),
+  usedRatio: ratio.nullable().default(null),
+  /** When this window's capacity fully refreshes. Null when unknown. */
+  resetAt: isoText.nullable().default(null),
+  /** When this observation was made — freshness derives from this. */
+  observedAt: isoText,
+  /** Where the observation came from (adapter identity, for audit). */
+  source: external_exports.string().min(1).max(200)
+}).passthrough();
+var quotaTelemetryFileSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/).default(QUOTA_SNAPSHOT_SCHEMA_VERSION),
+  fiveHour: quotaWindowSnapshotSchema.nullable().default(null),
+  weekly: quotaWindowSnapshotSchema.nullable().default(null)
+}).passthrough();
+var quotaForecastSchema = external_exports.object({
+  /** Five-hour window remaining, 0..1; null when unobserved. */
+  fiveHourRemainingRatio: ratio.nullable(),
+  fiveHourResetAt: isoText.nullable(),
+  /** Milliseconds until the five-hour reset; null when unknown. */
+  timeToFiveHourResetMs: external_exports.number().int().min(0).nullable(),
+  weeklyRemainingRatio: ratio.nullable(),
+  weeklyResetAt: isoText.nullable(),
+  timeToWeeklyResetMs: external_exports.number().int().min(0).nullable(),
+  /** Ledger-derived five-hour burn per minute; null without observations. */
+  observedFiveHourBurnRatePerMinute: external_exports.number().min(0).nullable(),
+  /** Projected additional burn until the five-hour reset at that rate. */
+  projectedBurnUntilFiveHourReset: ratio.nullable(),
+  schedulerMode: external_exports.enum(SCHEDULER_MODES),
+  telemetryFreshness: external_exports.enum(QUOTA_TELEMETRY_FRESHNESS),
+  /** Oldest relevant observation timestamp; null when nothing observed. */
+  observedAt: isoText.nullable(),
+  /** The forecast's own clock reading. */
+  forecastAt: isoText
+}).passthrough();
+function timeToResetMs(resetAt, now4) {
+  if (resetAt === null) return null;
+  const parsed = Date.parse(resetAt);
+  if (Number.isNaN(parsed)) return null;
+  return Math.max(0, parsed - now4.getTime());
+}
+var shortText7 = external_exports.string().min(1).max(200);
+var schedulingDecisionSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  decisionId: shortText7,
+  jobId: shortText7,
+  nodeId: shortText7,
+  taskId: shortText7,
+  selectedLane: external_exports.enum(LANE_DECISIONS),
+  /** Worker/provider identity for run lanes; null for DEFER. */
+  selectedProvider: shortText7.nullable(),
+  schedulerMode: external_exports.enum(SCHEDULER_MODES),
+  reasonCode: external_exports.enum(SCHEDULING_REASON_CODES),
+  /** The forecast the decision was made against. */
+  quotaSnapshot: quotaForecastSchema,
+  /** Bounded copy of the workload estimate. */
+  workloadEstimate: external_exports.object({
+    complexity: shortText7,
+    localSuitability: shortText7,
+    taskCategory: shortText7.nullable().default(null),
+    expectedWallTimeMs: external_exports.number().int().min(0),
+    expectedFiveHourBurnRatio: external_exports.number().min(0).max(1),
+    expectedWeeklyBurnRatio: external_exports.number().min(0).max(1),
+    confidence: shortText7,
+    basis: shortText7
+  }).passthrough().nullable(),
+  /** The dynamic reserve ratio in force. */
+  reserveRatio: external_exports.number().min(0).max(1).nullable(),
+  /** Expected five-hour burn before the coming reset, when computed. */
+  preResetBurnRatio: external_exports.number().min(0).max(1).nullable().default(null),
+  /** True when the admitted task is expected to cross the reset. */
+  crossesReset: external_exports.boolean().default(false),
+  contextStatus: external_exports.object({
+    usageRatio: external_exports.number().min(0).nullable(),
+    compactFirst: external_exports.boolean()
+  }).passthrough().nullable(),
+  /** For DEFER: when capacity is expected to return, when known. */
+  deferUntil: shortText7.nullable().default(null),
+  detail: external_exports.string().max(2e3),
+  createdAt: shortText7
+}).passthrough();
+function schedulingDir(workspace, jobId) {
+  return assertInsideWorkspace(workspace.rootDir, import_path43.default.join(jobDir(workspace, jobId), "scheduling"));
+}
+function decisionsFile(workspace, jobId) {
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path43.default.join(schedulingDir(workspace, jobId), "decisions.jsonl")
+  );
+}
+function appendSchedulingDecision(workspace, record32, options) {
+  const validated = schedulingDecisionSchema.parse(record32);
+  const dir = schedulingDir(workspace, record32.jobId);
+  (0, import_fs37.mkdirSync)(dir, { recursive: true });
+  const file = decisionsFile(workspace, record32.jobId);
+  const line = `${JSON.stringify(validated)}
+`;
+  const existing = (0, import_fs37.existsSync)(file) ? (0, import_fs37.readFileSync)(file, "utf8") : "";
+  const lines = existing.split("\n").filter((entry) => entry.length > 0);
+  if (lines.length + 1 > options.maxRecords) {
+    const retained = [...lines, line.trimEnd()].slice(-options.maxRecords);
+    writeFileAtomic(file, `${retained.join("\n")}
+`);
+  } else {
+    (0, import_fs37.appendFileSync)(file, line, "utf8");
+  }
+  return validated;
+}
+function readSchedulingDecisions(workspace, jobId, options = {}) {
+  const file = decisionsFile(workspace, jobId);
+  if (!(0, import_fs37.existsSync)(file)) return [];
+  const records = [];
+  for (const line of (0, import_fs37.readFileSync)(file, "utf8").split("\n")) {
+    if (line.length === 0) continue;
+    try {
+      const parsed = schedulingDecisionSchema.safeParse(JSON.parse(line));
+      if (parsed.success) records.push(parsed.data);
+    } catch {
+    }
+  }
+  return options.limit !== void 0 ? records.slice(-options.limit) : records;
+}
+var LOCAL_EXECUTION_LIMITS = {
+  maxEdits: 20,
+  maxFileBytes: 262144,
+  maxTotalBytes: 1048576,
+  maxSummaryChars: 2e3,
+  maxNotes: 20
+};
+var DENIED_PATH_PREFIXES = [".git", ".kiro", ".specbridge"];
+var localExecutorEditSchema = external_exports.object({
+  /** Workspace-relative path, forward slashes. */
+  path: external_exports.string().min(1).max(512),
+  /** COMPLETE new file content. Full-content writes only: small local
+   * models corrupt diffs far more often than they corrupt whole files, and
+   * a whole file is verifiable structurally before anything is applied. */
+  content: external_exports.string().max(LOCAL_EXECUTION_LIMITS.maxFileBytes)
+});
+var localExecutorOutputSchema = external_exports.object({
+  decision: external_exports.enum(["IMPLEMENTED", "ESCALATE"]),
+  summary: external_exports.string().min(1).max(LOCAL_EXECUTION_LIMITS.maxSummaryChars),
+  edits: external_exports.array(localExecutorEditSchema).max(LOCAL_EXECUTION_LIMITS.maxEdits).default([]),
+  notes: external_exports.array(external_exports.string().max(500)).max(LOCAL_EXECUTION_LIMITS.maxNotes).default([]),
+  escalationReason: external_exports.string().max(1e3).optional()
+});
+var LOCAL_EXECUTOR_JSON_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["decision", "summary", "edits"],
+  properties: {
+    decision: { type: "string", enum: ["IMPLEMENTED", "ESCALATE"] },
+    summary: { type: "string", maxLength: LOCAL_EXECUTION_LIMITS.maxSummaryChars },
+    edits: {
+      type: "array",
+      maxItems: LOCAL_EXECUTION_LIMITS.maxEdits,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["path", "content"],
+        properties: {
+          path: { type: "string", maxLength: 512 },
+          content: { type: "string" }
+        }
+      }
+    },
+    notes: { type: "array", maxItems: LOCAL_EXECUTION_LIMITS.maxNotes, items: { type: "string", maxLength: 500 } },
+    escalationReason: { type: "string", maxLength: 1e3 }
+  }
+};
+var LOCAL_EXECUTOR_SYSTEM_PROMPT = [
+  "You are the LOCAL EXECUTOR of an engineering runtime. You implement ONE",
+  "small, well-specified task by returning complete replacement file",
+  "contents. You have no tools, no shell, and no further conversation: this",
+  "single JSON response is your entire contribution, and deterministic",
+  "compilation and tests will judge it.",
+  "",
+  "Rules:",
+  '- Return decision "IMPLEMENTED" with the complete new content of every',
+  "  file you change or create. Whole files only \u2014 never fragments, never",
+  '  diffs, never placeholders like "rest unchanged".',
+  "- Touch as few files as possible. Never edit .git, .kiro, or .specbridge",
+  "  paths, task checkboxes, or unrelated code.",
+  '- Return decision "ESCALATE" with escalationReason when the task needs',
+  "  repository knowledge you do not have, is ambiguous, or exceeds a small",
+  "  isolated change. Escalating is correct and cheap; a wrong guess wastes",
+  "  a verification cycle.",
+  "- The response must be valid JSON for the provided schema."
+].join("\n");
+function managedLocalInference(manager, config2, signal) {
+  return async (request) => {
+    const started = await manager.ensureStarted(signal);
+    if (!started.ok) {
+      return {
+        ok: false,
+        kind: started.kind === "cancelled" ? "cancelled" : "unavailable",
+        problem: started.problem
+      };
+    }
+    manager.touch();
+    const local = config2.localInference;
+    const result = await localStructuredInference({
+      baseUrl: started.baseUrl,
+      systemPrompt: request.systemPrompt,
+      userPrompt: request.userPrompt,
+      jsonSchema: request.jsonSchema,
+      schemaName: request.schemaName,
+      temperature: local.temperature,
+      timeoutMs: local.requestTimeoutMs,
+      maxOutputBytes: local.maxOutputBytes,
+      ...signal !== void 0 ? { signal } : {}
+    });
+    if (!result.ok) {
+      return {
+        ok: false,
+        kind: result.kind === "cancelled" ? "cancelled" : "unavailable",
+        problem: result.problem
+      };
+    }
+    return { ok: true, text: result.text, ...result.usage !== void 0 ? { usage: result.usage } : {} };
+  };
+}
+function validateEditPaths(workspace, edits, protectedPaths) {
+  const failures = [];
+  let totalBytes = 0;
+  for (const edit of edits) {
+    const normalized = edit.path.replace(/\\/g, "/");
+    if (import_path44.default.isAbsolute(normalized) || normalized.includes("..")) {
+      failures.push({ path: edit.path, problem: 'paths must be workspace-relative without ".."' });
+      continue;
+    }
+    const denied = DENIED_PATH_PREFIXES.find(
+      (prefix) => normalized === prefix || normalized.startsWith(`${prefix}/`)
+    );
+    if (denied !== void 0) {
+      failures.push({ path: edit.path, problem: `"${denied}" paths may never be edited by the local executor` });
+      continue;
+    }
+    const protectedHit = protectedPaths.find(
+      (prefix) => normalized === prefix || normalized.startsWith(`${prefix.replace(/\/$/, "")}/`)
+    );
+    if (protectedHit !== void 0) {
+      failures.push({ path: edit.path, problem: `"${protectedHit}" is a protected path` });
+      continue;
+    }
+    try {
+      assertInsideWorkspace(workspace.rootDir, import_path44.default.join(workspace.rootDir, normalized));
+    } catch {
+      failures.push({ path: edit.path, problem: "path escapes the workspace" });
+      continue;
+    }
+    totalBytes += Buffer.byteLength(edit.content, "utf8");
+  }
+  if (totalBytes > LOCAL_EXECUTION_LIMITS.maxTotalBytes) {
+    failures.push({
+      path: "(total)",
+      problem: `total edit size ${totalBytes} exceeds the ${LOCAL_EXECUTION_LIMITS.maxTotalBytes}-byte bound`
+    });
+  }
+  return failures;
+}
+function applyEdits(workspace, edits) {
+  const written = [];
+  for (const edit of edits) {
+    const normalized = edit.path.replace(/\\/g, "/");
+    const target = assertInsideWorkspace(
+      workspace.rootDir,
+      import_path44.default.join(workspace.rootDir, normalized)
+    );
+    (0, import_fs38.mkdirSync)(import_path44.default.dirname(target), { recursive: true });
+    (0, import_fs38.writeFileSync)(target, edit.content, "utf8");
+    written.push(normalized);
+  }
+  return written;
+}
+function failureResult(category, message, source, escalated) {
+  return {
+    evidenceStatus: void 0,
+    runId: void 0,
+    failure: { category, message, source },
+    escalated
+  };
+}
+async function dispatchLocalExecution(input) {
+  const deps = {
+    workspace: input.workspace,
+    config: input.config,
+    ...input.clock !== void 0 ? { clock: input.clock } : {},
+    ...input.idFactory !== void 0 ? { idFactory: input.idFactory } : {},
+    ...input.signal !== void 0 ? { signal: input.signal } : {},
+    host: "local-executor"
+  };
+  const begin = await beginInteractiveTask(deps, {
+    specName: input.specName,
+    taskId: input.node.parentTaskId,
+    allowDirty: input.allowDirty,
+    runVerificationOnComplete: true
+  });
+  if (begin.kind === "blocked") {
+    return failureResult(
+      classifyPreflightFailure(begin.code),
+      begin.message,
+      `preflight:${begin.code}`,
+      false
+    );
+  }
+  input.onProgress?.(`local executor: run ${begin.runId} started for task ${begin.task.id}`);
+  const abort = async (reason) => {
+    try {
+      await abortInteractiveTask(deps, { runId: begin.runId, reason: reason.slice(0, 500) });
+    } catch {
+    }
+  };
+  const local = input.config.localInference;
+  const failureFeedback = input.mode === "repair" && input.node.latestFailure !== void 0 ? [
+    "",
+    "## Previous attempt failed",
+    `Category: ${input.node.latestFailure.category}`,
+    `Detail: ${input.node.latestFailure.message.slice(0, 2e3)}`,
+    input.node.latestDiagnosis !== void 0 ? `Diagnosis recommends: ${input.node.latestDiagnosis.recommendedAction}` : "",
+    "Fix the diagnosed defect; do not restart the approach."
+  ].join("\n") : "";
+  const budget = Math.max(4e3, local.maximumInputCharacters - LOCAL_EXECUTOR_SYSTEM_PROMPT.length - failureFeedback.length - 500);
+  const packet = `${begin.contextMarkdown.slice(0, budget)}${failureFeedback}`;
+  let userPrompt = packet;
+  const maxCorrections = input.maxCorrections ?? 1;
+  let output;
+  let usage;
+  let lastProblem = "no inference attempt ran";
+  for (let attempt = 0; attempt <= maxCorrections; attempt += 1) {
+    if (input.signal?.aborted === true) {
+      await abort("cancelled before inference");
+      return failureResult("CANCELLED", "The local execution was cancelled.", "local-executor", false);
+    }
+    input.onInferenceCall?.();
+    const result = await input.inference({
+      systemPrompt: LOCAL_EXECUTOR_SYSTEM_PROMPT,
+      userPrompt,
+      jsonSchema: LOCAL_EXECUTOR_JSON_SCHEMA,
+      schemaName: "LOCAL_EXECUTOR"
+    });
+    if (!result.ok) {
+      await abort(`local inference failed: ${result.problem.slice(0, 200)}`);
+      return failureResult(
+        result.kind === "cancelled" ? "CANCELLED" : "CAPABILITY_UNAVAILABLE",
+        `Local inference failed: ${result.problem}`,
+        "local-executor",
+        result.kind !== "cancelled"
+      );
+    }
+    usage = result.usage ?? usage;
+    try {
+      const parsed = localExecutorOutputSchema.safeParse(JSON.parse(result.text));
+      if (parsed.success) {
+        output = parsed.data;
+        break;
+      }
+      lastProblem = parsed.error.issues.slice(0, 3).map((issue4) => `${issue4.path.join(".") || "(root)"}: ${issue4.message}`).join("; ");
+    } catch (cause) {
+      lastProblem = `the response is not valid JSON: ${cause instanceof Error ? cause.message : String(cause)}`;
+    }
+    userPrompt = `${packet}
+
+Your previous response was invalid (${lastProblem.slice(0, 300)}). Return ONLY valid JSON for the schema.`;
+  }
+  if (output === void 0) {
+    await abort(`invalid local executor output: ${lastProblem.slice(0, 200)}`);
+    return failureResult(
+      "CAPABILITY_UNAVAILABLE",
+      `The local executor output stayed invalid after ${maxCorrections} bounded correction(s): ${lastProblem}`,
+      "local-executor",
+      true
+    );
+  }
+  if (output.decision === "ESCALATE") {
+    await abort(`local executor escalated: ${(output.escalationReason ?? output.summary).slice(0, 200)}`);
+    return {
+      evidenceStatus: void 0,
+      runId: void 0,
+      failure: {
+        category: "CAPABILITY_UNAVAILABLE",
+        message: `The local executor declined the task: ${output.escalationReason ?? output.summary}`,
+        source: "local-executor"
+      },
+      escalated: true,
+      escalationReason: output.escalationReason ?? output.summary
+    };
+  }
+  const pathFailures = validateEditPaths(input.workspace, output.edits, begin.protectedPaths);
+  if (pathFailures.length > 0) {
+    const detail = pathFailures.slice(0, 5).map((failure) => `${failure.path}: ${failure.problem}`).join("; ");
+    await abort(`unsafe local edit proposal: ${detail.slice(0, 200)}`);
+    return failureResult(
+      "CAPABILITY_UNAVAILABLE",
+      `The local executor proposed unsafe edits (refused before application): ${detail}`,
+      "local-executor",
+      true
+    );
+  }
+  let written;
+  try {
+    written = applyEdits(input.workspace, output.edits);
+  } catch (cause) {
+    await abort(`edit application failed: ${cause instanceof Error ? cause.message : String(cause)}`);
+    return failureResult(
+      "IMPLEMENTATION_DEFECT",
+      `Applying the local edits failed: ${cause instanceof Error ? cause.message : String(cause)}`,
+      "local-executor",
+      false
+    );
+  }
+  input.onProgress?.(`local executor: applied ${written.length} file(s); verifying`);
+  const completion = await completeInteractiveTask(deps, {
+    runId: begin.runId,
+    summary: `[local-executor] ${output.summary}`.slice(0, 2e3),
+    reportedChangedFiles: written
+  });
+  if (completion.kind === "blocked") {
+    await abort(`completion blocked: ${completion.message.slice(0, 200)}`);
+    return failureResult(
+      classifyPreflightFailure(completion.code),
+      completion.message,
+      `completion:${completion.code}`,
+      false
+    );
+  }
+  const report = completion.report;
+  const verified = report.evidenceStatus === "verified" || report.evidenceStatus === "manually-accepted";
+  const changedFiles = report.changedFiles.map((file) => ({
+    path: file.path,
+    contentHash: file.changeType
+  }));
+  const usageOut = usage !== void 0 ? { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens, costUsd: null } : void 0;
+  if (verified) {
+    return {
+      evidenceStatus: report.evidenceStatus,
+      runId: report.runId,
+      changedFiles,
+      ...usageOut !== void 0 ? { usage: usageOut } : {},
+      escalated: false
+    };
+  }
+  const category = classifyEvidenceFailure(report.evidenceStatus);
+  const verificationOutput = report.verification.commands.filter((command) => !command.passed).map((command) => `${command.name}: ${command.status}
+${command.stdoutTail}
+${command.stderrTail}`).join("\n");
+  return {
+    evidenceStatus: report.evidenceStatus,
+    runId: report.runId,
+    failure: {
+      category,
+      message: report.failureReason ?? `The local attempt ended with evidence status "${report.evidenceStatus}".`,
+      source: category === "VERIFICATION_FAILURE" ? report.verification.commands.find((command) => !command.passed)?.name ?? "verification" : "local-executor",
+      ...verificationOutput.length > 0 ? { output: verificationOutput.slice(0, 16384) } : {}
+    },
+    changedFiles,
+    ...usageOut !== void 0 ? { usage: usageOut } : {},
+    escalated: false
+  };
+}
+function contextBudgetFromPolicy(policy) {
+  return contextBudgetConfigSchema.parse({
+    modelContextTokens: policy.defaultModelContextTokens,
+    reservedOutputTokens: policy.reservedOutputTokens,
+    reservedReasoningTokens: policy.reservedReasoningTokens,
+    reservedGrowthTokens: policy.reservedGrowthTokens,
+    prepareThreshold: policy.prepareThreshold,
+    proactiveCompactionThreshold: policy.proactiveCompactionThreshold,
+    emergencyCompactionThreshold: policy.emergencyCompactionThreshold,
+    hardStopThreshold: policy.hardStopThreshold
+  });
+}
+function bullets(lines) {
+  return lines.map((line) => `- ${line}`).join("\n");
+}
+function pinnedItems(job, node, checkpoint, createdAt) {
+  const items = [];
+  const contract = checkpoint?.pinned.taskContract ?? `Task ${node.parentTaskId}: ${node.title}`;
+  items.push({
+    itemId: "pinned-task-contract",
+    layer: "PINNED",
+    kind: "task-contract",
+    title: "TaskContract",
+    content: contract,
+    createdAt,
+    source: checkpoint?.checkpointId ?? node.nodeId,
+    compacted: false
+  });
+  items.push({
+    itemId: "pinned-job-goal",
+    layer: "PINNED",
+    kind: "job-goal",
+    title: "Job goal",
+    content: `Job ${job.jobId} (spec "${job.specName}"): ${job.goal}`,
+    createdAt,
+    source: job.jobId,
+    compacted: false
+  });
+  const criteria = checkpoint?.pinned.acceptanceCriteria ?? [];
+  if (criteria.length > 0) {
+    items.push({
+      itemId: "pinned-acceptance-criteria",
+      layer: "PINNED",
+      kind: "acceptance-criteria",
+      title: "AcceptanceCriteria",
+      content: bullets(criteria),
+      createdAt,
+      source: checkpoint?.checkpointId ?? node.nodeId,
+      compacted: false
+    });
+  }
+  const constraints = [
+    ...checkpoint?.pinned.constraints ?? [],
+    ...checkpoint?.pinned.invariants ?? []
+  ];
+  if (constraints.length > 0) {
+    items.push({
+      itemId: "pinned-constraints",
+      layer: "PINNED",
+      kind: "constraints",
+      title: "Constraints and invariants",
+      content: bullets(constraints),
+      createdAt,
+      source: checkpoint?.checkpointId ?? node.nodeId,
+      compacted: false
+    });
+  }
+  return items;
+}
+function durableItems(checkpoint, createdAt) {
+  if (checkpoint === void 0) return [];
+  const items = [];
+  const push = (id, kind, title, content) => {
+    if (content.length === 0) return;
+    items.push({
+      itemId: id,
+      layer: "DURABLE_TASK_STATE",
+      kind,
+      title,
+      content,
+      createdAt,
+      source: checkpoint.checkpointId,
+      compacted: false
+    });
+  };
+  push("durable-objective", "objective", "Current objective", checkpoint.objective);
+  push("durable-completed-work", "completed-work", "Completed work", bullets(checkpoint.completedWork));
+  push("durable-pending-work", "pending-work", "Pending work", bullets(checkpoint.pendingWork));
+  push(
+    "durable-decisions",
+    "decision",
+    "Important decisions",
+    bullets(
+      checkpoint.importantDecisions.map(
+        (decision) => decision.rationale !== void 0 ? `${decision.decision} (why: ${decision.rationale})` : decision.decision
+      )
+    )
+  );
+  push(
+    "durable-failed-approaches",
+    "failed-approach",
+    "Failed approaches (do not repeat)",
+    bullets(
+      checkpoint.failedApproaches.map((failed) => `${failed.approach} \u2014 failed because: ${failed.reason}`)
+    )
+  );
+  push("durable-known-failures", "known-failure", "Known failures", bullets(checkpoint.knownFailures));
+  push(
+    "durable-unresolved-issues",
+    "unresolved-issue",
+    "Unresolved issues",
+    bullets(checkpoint.unresolvedIssues)
+  );
+  push(
+    "durable-test-results",
+    "test-result",
+    "Test results already obtained",
+    bullets(
+      checkpoint.testResults.map(
+        (test) => `${test.name}: ${test.status}${test.summary !== void 0 ? ` \u2014 ${test.summary}` : ""}`
+      )
+    )
+  );
+  push(
+    "durable-changed-files",
+    "changed-files",
+    "Files changed so far",
+    bullets(
+      checkpoint.changedFiles.map(
+        (file) => `${file.path}${file.note !== void 0 ? ` (${file.note})` : ""}`
+      )
+    )
+  );
+  push(
+    "durable-artifacts",
+    "artifact-references",
+    "Relevant artifacts",
+    bullets([...checkpoint.relevantArtifacts, ...checkpoint.relevantContextReferences])
+  );
+  return items;
+}
+function repositoryItem(snapshot, createdAt) {
+  if (snapshot === void 0) return [];
+  const lines = [
+    snapshot.head !== void 0 ? `HEAD: ${snapshot.head}` : "HEAD: (no commits)",
+    snapshot.branch !== void 0 ? `Branch: ${snapshot.branch}` : snapshot.detached ? "Branch: (detached HEAD)" : "Branch: (unknown)",
+    snapshot.clean ? "Working tree: clean" : `Working tree: ${snapshot.entries.length} modified path(s): ${snapshot.entries.slice(0, 30).map((entry) => entry.path).join(", ")}`
+  ];
+  return [
+    {
+      itemId: "working-repository-state",
+      layer: "WORKING_SET",
+      kind: "repository-state",
+      title: "Current repository state",
+      content: lines.join("\n"),
+      createdAt,
+      source: "git-snapshot",
+      compacted: false
+    }
+  ];
+}
+function checkpointSummaryItem(checkpoint, createdAt) {
+  return {
+    itemId: `checkpoint-summary-${checkpoint.checkpointId}`,
+    layer: "COMPACTED_HISTORY",
+    kind: "summary",
+    title: `Durable checkpoint ${checkpoint.checkpointId} (seq ${checkpoint.seq})`,
+    content: [
+      `Objective: ${checkpoint.objective}`,
+      `Completed: ${checkpoint.completedWork.length} item(s). Pending: ${checkpoint.pendingWork.length}.`,
+      `Next actions:
+${bullets(checkpoint.nextActions)}`
+    ].join("\n"),
+    createdAt,
+    source: checkpoint.checkpointId,
+    compacted: true
+  };
+}
+function reconstructTaskContext(deps, input) {
+  const job = requireJobState(deps.workspace, input.jobId);
+  if (job.graphRevision < 1) {
+    throw new OrchestrationError(
+      "SBO051",
+      `Job ${input.jobId} has no runtime graph yet; there is no task context to reconstruct.`
+    );
+  }
+  const graph = requireGraphRevision(deps.workspace, input.jobId, job.graphRevision);
+  const node = graph.nodes.find((candidate) => candidate.nodeId === input.nodeId);
+  if (node === void 0) {
+    throw new OrchestrationError(
+      "SBO051",
+      `Node ${input.nodeId} does not exist in graph revision ${job.graphRevision} of job ${input.jobId}.`
+    );
+  }
+  const checkpoint = readLatestTaskCheckpoint(deps.workspace, input.jobId, input.nodeId);
+  const attempts = listTaskAttempts(deps.workspace, input.jobId, { nodeId: input.nodeId });
+  const createdAt = (deps.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
+  const budget = input.budget ?? contextBudgetFromPolicy(deps.config.orchestration.jobs.context);
+  const items = [
+    ...pinnedItems(job, node, checkpoint, createdAt),
+    ...durableItems(checkpoint, createdAt),
+    ...repositoryItem(input.gitSnapshot, createdAt),
+    ...input.workingSet ?? [],
+    ...input.recentDelta ?? []
+  ];
+  const nextActions = checkpoint?.nextActions ?? [`Start task ${node.parentTaskId}: ${node.title}`];
+  items.push({
+    itemId: "current-action",
+    layer: "CURRENT_ACTION",
+    kind: "next-action",
+    title: "Continue from here",
+    content: input.currentAction ?? bullets(nextActions),
+    createdAt,
+    source: checkpoint?.checkpointId ?? node.nodeId,
+    compacted: false
+  });
+  try {
+    const assembled = assembleContextPackage({
+      items,
+      budget,
+      createdAt,
+      jobId: input.jobId,
+      taskId: node.parentTaskId,
+      checkpointId: checkpoint?.checkpointId,
+      checkpointSummaryItem: checkpoint !== void 0 ? checkpointSummaryItem(checkpoint, createdAt) : void 0
+    });
+    return { job, node, checkpoint, assembled, attempts };
+  } catch (cause) {
+    if (cause instanceof ContextBudgetError) {
+      throw new OrchestrationError("SBO051", cause.message, {
+        remediation: [
+          "Raise the context budget for the target worker, or reduce pinned/durable state at its source."
+        ]
+      });
+    }
+    throw cause;
+  }
+}
+var QUOTA_TELEMETRY_FILE_NAME = "quota-telemetry.json";
+var MANUAL_TELEMETRY_SOURCE = "manual-file";
+function quotaTelemetryFilePath(workspace) {
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path45.default.join(workspace.sidecarDir, QUOTA_TELEMETRY_FILE_NAME)
+  );
+}
+function readQuotaTelemetryFile(workspace) {
+  const file = quotaTelemetryFilePath(workspace);
+  if (!(0, import_fs39.existsSync)(file)) return quotaTelemetryFileSchema.parse({});
+  try {
+    const parsed = quotaTelemetryFileSchema.safeParse(JSON.parse((0, import_fs39.readFileSync)(file, "utf8")));
+    return parsed.success ? parsed.data : quotaTelemetryFileSchema.parse({});
+  } catch {
+    return quotaTelemetryFileSchema.parse({});
+  }
+}
+function recordQuotaObservation(workspace, input) {
+  const current = readQuotaTelemetryFile(workspace);
+  const snapshot = {
+    window: input.window,
+    remainingRatio: Math.min(1, Math.max(0, input.remainingRatio)),
+    usedRatio: input.usedRatio !== void 0 ? Math.min(1, Math.max(0, input.usedRatio)) : null,
+    resetAt: input.resetAt ?? null,
+    observedAt: input.observedAt,
+    source: input.source ?? MANUAL_TELEMETRY_SOURCE
+  };
+  const next = {
+    ...current,
+    schemaVersion: QUOTA_SNAPSHOT_SCHEMA_VERSION,
+    ...input.window === "five-hour" ? { fiveHour: snapshot } : { weekly: snapshot }
+  };
+  writeFileAtomic(quotaTelemetryFilePath(workspace), `${JSON.stringify(next, null, 2)}
+`);
+  return next;
+}
+var ManualQuotaTelemetryProvider = class {
+  constructor(workspace) {
+    this.workspace = workspace;
+  }
+  workspace;
+  source = MANUAL_TELEMETRY_SOURCE;
+  getFiveHourQuota() {
+    return Promise.resolve(readQuotaTelemetryFile(this.workspace).fiveHour);
+  }
+  getWeeklyQuota() {
+    return Promise.resolve(readQuotaTelemetryFile(this.workspace).weekly);
+  }
+};
+var NullQuotaTelemetryProvider = class {
+  source = "none";
+  getFiveHourQuota() {
+    return Promise.resolve(null);
+  }
+  getWeeklyQuota() {
+    return Promise.resolve(null);
+  }
+};
+function resolveQuotaTelemetryProvider(workspace, telemetrySource) {
+  if (telemetrySource === "manual") return new ManualQuotaTelemetryProvider(workspace);
+  return new NullQuotaTelemetryProvider();
+}
+function assessSnapshotFreshness(snapshot, now4, staleMs) {
+  if (snapshot === null || snapshot.remainingRatio === null) return "UNKNOWN";
+  const observed = Date.parse(snapshot.observedAt);
+  if (Number.isNaN(observed)) return "UNKNOWN";
+  return now4.getTime() - observed > staleMs ? "STALE" : "FRESH";
+}
+function combineFreshness(fiveHour, weekly) {
+  if (fiveHour === "UNKNOWN" && weekly === "UNKNOWN") return "UNKNOWN";
+  if (fiveHour === "UNKNOWN" || weekly === "UNKNOWN") {
+    return "STALE";
+  }
+  return fiveHour === "STALE" || weekly === "STALE" ? "STALE" : "FRESH";
+}
+function deriveSchedulerMode(input) {
+  const { policy } = input;
+  const fiveHour = input.fiveHourRemainingRatio;
+  const weekly = input.weeklyRemainingRatio;
+  if (weekly !== null && weekly <= policy.weeklyExhaustedRatio) return "EXHAUSTED_WEEKLY";
+  if (fiveHour !== null && fiveHour <= policy.fiveHourExhaustedRatio) return "EXHAUSTED_5H";
+  if (weekly !== null && weekly <= policy.weeklyPressureRatio) return "CONSERVE";
+  const resetNear = input.timeToFiveHourResetMs !== null && input.timeToFiveHourResetMs <= policy.harvestWindowMs;
+  if (resetNear && fiveHour !== null && fiveHour >= policy.harvestMinRemainingRatio && input.freshness === "FRESH") {
+    return "HARVEST";
+  }
+  if (fiveHour !== null && fiveHour <= policy.conserveRemainingRatio && !resetNear) {
+    return "CONSERVE";
+  }
+  return "NORMAL";
+}
+function buildQuotaForecast(input) {
+  const { now: now4, policy } = input;
+  const fiveHourFreshness = assessSnapshotFreshness(input.fiveHour, now4, policy.telemetryStaleMs);
+  const weeklyFreshness = assessSnapshotFreshness(input.weekly, now4, policy.telemetryStaleMs);
+  const freshness = combineFreshness(fiveHourFreshness, weeklyFreshness);
+  const fiveHourRemaining = input.fiveHour?.remainingRatio ?? null;
+  const weeklyRemaining = input.weekly?.remainingRatio ?? null;
+  const timeToFiveHour = timeToResetMs(input.fiveHour?.resetAt ?? null, now4);
+  const timeToWeekly = timeToResetMs(input.weekly?.resetAt ?? null, now4);
+  const burnRate = input.observedFiveHourBurnRatePerMinute ?? null;
+  const projected = burnRate !== null && timeToFiveHour !== null ? Math.min(1, burnRate * (timeToFiveHour / 6e4)) : null;
+  const schedulerMode = deriveSchedulerMode({
+    fiveHourRemainingRatio: fiveHourRemaining,
+    timeToFiveHourResetMs: timeToFiveHour,
+    weeklyRemainingRatio: weeklyRemaining,
+    freshness,
+    policy
+  });
+  const observedTimes = [input.fiveHour?.observedAt, input.weekly?.observedAt].filter((value) => typeof value === "string").sort();
+  return quotaForecastSchema.parse({
+    fiveHourRemainingRatio: fiveHourRemaining,
+    fiveHourResetAt: input.fiveHour?.resetAt ?? null,
+    timeToFiveHourResetMs: timeToFiveHour,
+    weeklyRemainingRatio: weeklyRemaining,
+    weeklyResetAt: input.weekly?.resetAt ?? null,
+    timeToWeeklyResetMs: timeToWeekly,
+    observedFiveHourBurnRatePerMinute: burnRate,
+    projectedBurnUntilFiveHourReset: projected,
+    schedulerMode,
+    telemetryFreshness: freshness,
+    observedAt: observedTimes[0] ?? null,
+    forecastAt: now4.toISOString()
+  });
+}
+var SubscriptionQuotaManager = class {
+  constructor(options) {
+    this.options = options;
+  }
+  options;
+  get source() {
+    return this.options.provider.source;
+  }
+  async snapshot() {
+    const [fiveHour, weekly] = await Promise.all([
+      this.options.provider.getFiveHourQuota(),
+      this.options.provider.getWeeklyQuota()
+    ]);
+    return { fiveHour, weekly };
+  }
+  async forecast() {
+    const { fiveHour, weekly } = await this.snapshot();
+    const now4 = (this.options.clock ?? (() => /* @__PURE__ */ new Date()))();
+    return buildQuotaForecast({
+      fiveHour,
+      weekly,
+      now: now4,
+      policy: this.options.policy,
+      observedFiveHourBurnRatePerMinute: this.options.burnRateSupplier?.() ?? null
+    });
+  }
+};
+function computeDynamicReserve(input) {
+  const { policy, forecast } = input;
+  let timeComponent;
+  const timeToReset = forecast.timeToFiveHourResetMs;
+  if (timeToReset === null) {
+    timeComponent = policy.baseRatio;
+  } else if (timeToReset >= policy.farResetMs) {
+    timeComponent = policy.baseRatio;
+  } else if (timeToReset <= policy.nearResetMs) {
+    timeComponent = policy.minRatio;
+  } else {
+    const span = policy.farResetMs - policy.nearResetMs;
+    const progress = (timeToReset - policy.nearResetMs) / span;
+    timeComponent = policy.minRatio + (policy.baseRatio - policy.minRatio) * progress;
+  }
+  const weeklyPressureExtra = forecast.weeklyRemainingRatio !== null && forecast.weeklyRemainingRatio <= input.weeklyPressureRatio ? policy.weeklyPressureExtraRatio : 0;
+  const staleTelemetryExtra = forecast.telemetryFreshness === "FRESH" ? 0 : policy.staleTelemetryExtraRatio;
+  return {
+    ratio: Math.min(0.95, timeComponent + weeklyPressureExtra + staleTelemetryExtra),
+    basis: { timeComponent, weeklyPressureExtra, staleTelemetryExtra }
+  };
+}
+var LOCAL_SAFE_PATTERNS = [
+  { category: "summarization", pattern: /\b(summari[sz]e|summary|digest)\b/i },
+  { category: "log-processing", pattern: /\b(parse|cluster|triage)\b.*\blogs?\b|\blogs?\b.*\b(parse|parsing|clustering|triage)\b/i },
+  { category: "classification", pattern: /\b(classif\w+|categori[sz]\w+|label(?:ing)?)\b/i },
+  { category: "ranking", pattern: /\b(rank(?:ing)?|relevance|prioriti[sz]e)\b/i },
+  { category: "extraction", pattern: /\b(extract\w*|symbol extraction|structured extraction)\b/i },
+  { category: "compression", pattern: /\b(compress\w*|compact\w*|condense)\b/i },
+  { category: "duplicate-detection", pattern: /\b(duplicate|de-?dup\w*)\b/i },
+  { category: "reporting", pattern: /\b(report|test result summar\w+|diff summar\w+)\b/i }
+];
+var LOCAL_TRY_PATTERNS = [
+  { category: "boilerplate", pattern: /\b(boilerplate|scaffold\w*|stub\w*)\b/i },
+  { category: "data-object", pattern: /\b(dto|data object|data class|record type|value object)\b/i },
+  { category: "mapper", pattern: /\b(mapper|mapping function|converter)\b/i },
+  { category: "rename", pattern: /\b(rename|renaming)\b/i },
+  { category: "mechanical-refactor", pattern: /\b(mechanical refactor\w*|repetitive|find-and-replace)\b/i },
+  { category: "config-change", pattern: /\b(configuration change|config value|configuration option|config flag)\b/i },
+  { category: "unit-test", pattern: /\b(unit tests?|test case|repetitive tests?)\b/i },
+  { category: "validation", pattern: /\b(validation|validator)\b/i },
+  { category: "documentation", pattern: /\b(documentation|docs?|readme|changelog|comment)\b/i },
+  { category: "simple-change", pattern: /\b(simple|small|trivial|minor|straightforward)\b/i }
+];
+function classifyLocalSuitability(input) {
+  const signals2 = [];
+  const text7 = `${input.title}
+${input.relatedSpecText ?? ""}`;
+  if (!input.localWorkerAvailable) {
+    signals2.push({ signal: "no-local-worker", evidence: "no healthy local worker is configured" });
+    return { class: "STRONG_REQUIRED", category: "general", signals: signals2 };
+  }
+  const attemptsUsed = input.localAttemptsUsed ?? 0;
+  const maxAttempts = input.maxLocalAttempts ?? 2;
+  if (attemptsUsed >= maxAttempts) {
+    signals2.push({
+      signal: "local-attempts-exhausted",
+      evidence: `${attemptsUsed}/${maxAttempts} local attempts used`
+    });
+    return { class: "STRONG_REQUIRED", category: "escalated", signals: signals2 };
+  }
+  if (input.complexity === "HIGH") {
+    signals2.push({ signal: "complexity-high", evidence: "deterministic complexity class is HIGH" });
+    return { class: "STRONG_REQUIRED", category: "strong", signals: signals2 };
+  }
+  for (const entry of LOCAL_SAFE_PATTERNS) {
+    const match = text7.match(entry.pattern);
+    if (match !== null) {
+      signals2.push({
+        signal: `local-safe:${entry.category}`,
+        evidence: `matched "${(match[0] ?? "").slice(0, 80)}"`
+      });
+      return { class: "LOCAL_SAFE", category: entry.category, signals: signals2 };
+    }
+  }
+  for (const entry of LOCAL_TRY_PATTERNS) {
+    const match = text7.match(entry.pattern);
+    if (match !== null) {
+      signals2.push({
+        signal: `local-try:${entry.category}`,
+        evidence: `matched "${(match[0] ?? "").slice(0, 80)}"`
+      });
+      if (!input.deterministicVerificationAvailable && entry.category !== "documentation") {
+        signals2.push({
+          signal: "no-deterministic-verification",
+          evidence: "no trusted verification commands are configured"
+        });
+        return { class: "STRONG_REQUIRED", category: entry.category, signals: signals2 };
+      }
+      if (input.complexity === "MEDIUM") {
+        signals2.push({
+          signal: "complexity-medium",
+          evidence: "MEDIUM complexity overrides a local-try keyword match"
+        });
+        return { class: "STRONG_REQUIRED", category: entry.category, signals: signals2 };
+      }
+      return { class: "LOCAL_TRY", category: entry.category, signals: signals2 };
+    }
+  }
+  signals2.push({ signal: "no-local-category", evidence: "no local-safe or local-try category matched" });
+  return { class: "STRONG_REQUIRED", category: "general", signals: signals2 };
+}
+function createSchedulingRuntime(config2, workspace, input) {
+  const policy = config2.orchestration.jobs.scheduler;
+  if (!policy.enabled) return void 0;
+  const localValid = config2.localInference.enabled && validateLocalInferenceConfig(config2.localInference).ok;
+  const injectedInference = input.options?.localExecutorInference;
+  const localInference = injectedInference ?? (localValid && input.localManager !== void 0 ? managedLocalInference(input.localManager, config2, input.options?.signal) : void 0);
+  const localWorkerAvailable = localValid || injectedInference !== void 0;
+  const localExecutionAvailable = localWorkerAvailable && localInference !== void 0 && policy.allowLocalExecution && !input.missionDriven;
+  const provider = input.options?.quotaTelemetryProvider ?? resolveQuotaTelemetryProvider(workspace, policy.telemetrySource);
+  return {
+    policy,
+    manager: new SubscriptionQuotaManager({ provider, policy }),
+    localInference,
+    localWorkerAvailable,
+    localExecutionAvailable,
+    verificationAvailable: config2.verification.commands.length > 0,
+    lastMode: void 0,
+    lastReserveRatio: void 0,
+    lastFreshness: void 0,
+    lastObservedAt: void 0
+  };
+}
+function estimateNodeContextRatio(deps, jobId, nodeId) {
+  const checkpoint = readLatestTaskCheckpoint(deps.workspace, jobId, nodeId);
+  if (checkpoint === void 0) return null;
+  const budget = contextBudgetFromPolicy(deps.config.orchestration.jobs.context);
+  const usable = usableInputTokens(budget);
+  const serialized = JSON.stringify({
+    objective: checkpoint.objective,
+    pinned: checkpoint.pinned,
+    completedWork: checkpoint.completedWork,
+    pendingWork: checkpoint.pendingWork,
+    importantDecisions: checkpoint.importantDecisions,
+    failedApproaches: checkpoint.failedApproaches,
+    changedFiles: checkpoint.changedFiles,
+    testResults: checkpoint.testResults,
+    knownFailures: checkpoint.knownFailures,
+    unresolvedIssues: checkpoint.unresolvedIssues,
+    nextActions: checkpoint.nextActions
+  });
+  return Math.round(estimateTokens(serialized) / usable * 1e4) / 1e4;
+}
+function localExecutorAttemptsUsed(deps, jobId, nodeId) {
+  return listTaskAttempts(deps.workspace, jobId, { nodeId }).filter(
+    (attempt) => attempt.lane === "LOCAL" && attempt.role === "EXECUTOR" && (attempt.status === "FAILED" || attempt.status === "INTERRUPTED")
+  ).length;
+}
+var LOCAL_ESCALATION_REASONS = [
+  "INVALID_LOCAL_OUTPUT",
+  "REPEATED_LOCAL_FAILURE",
+  "LOCAL_EXECUTION_ESCALATED"
+];
+async function buildLaneContext(runtime, deps, jobId, job, graph) {
+  const ledger = readExecutionLedger(deps.workspace, jobId);
+  const observations = deriveBurnObservations(ledger);
+  const { fiveHour, weekly } = await runtime.manager.snapshot();
+  const forecast = buildQuotaForecast({
+    fiveHour,
+    weekly,
+    now: (deps.clock ?? (() => /* @__PURE__ */ new Date()))(),
+    policy: runtime.policy,
+    observedFiveHourBurnRatePerMinute: observedFiveHourBurnRate(observations)
+  });
+  const reserve = computeDynamicReserve({
+    forecast,
+    policy: runtime.policy.reserve,
+    weeklyPressureRatio: runtime.policy.weeklyPressureRatio
+  });
+  const routings = /* @__PURE__ */ new Map();
+  const ready = (graph?.nodes ?? []).filter((node) => node.status === "READY");
+  for (const node of ready) {
+    routings.set(node.nodeId, assessNode(runtime, deps, jobId, job, node, forecast, reserve, observations));
+  }
+  let overtakeCandidate;
+  if (graph !== void 0 && ready.some((node) => routings.get(node.nodeId)?.routing.lane === "DEFER")) {
+    for (const node of graph.nodes) {
+      if (node.status === "COMPLETED" || node.status === "SUPERSEDED") continue;
+      if (node.status === "READY") {
+        if (routings.get(node.nodeId)?.routing.lane === "DEFER") continue;
+        break;
+      }
+      if (node.status !== "PENDING") break;
+      const assessment = assessNode(runtime, deps, jobId, job, node, forecast, reserve, observations);
+      if (assessment.routing.lane === "LOCAL") {
+        routings.set(node.nodeId, assessment);
+        overtakeCandidate = {
+          nodeId: node.nodeId,
+          detail: `Predecessors are quota-deferred; ${assessment.suitability.class} task ${node.parentTaskId} runs locally in the meantime.`
+        };
+        break;
+      }
+      if (assessment.routing.lane !== "DEFER") break;
+    }
+  }
+  return {
+    context: {
+      policy: runtime.policy,
+      forecast,
+      reserveRatio: reserve.ratio,
+      routings
+    },
+    forecast,
+    reserve,
+    overtakeCandidate
+  };
+}
+function assessNode(runtime, deps, jobId, job, node, forecast, reserve, observations) {
+  const attemptsUsed = localExecutorAttemptsUsed(deps, jobId, node.nodeId);
+  const stickyEscalation = job.escalations.some(
+    (entry) => entry.nodeId === node.nodeId && LOCAL_ESCALATION_REASONS.includes(entry.reason)
+  );
+  const suitability = classifyLocalSuitability({
+    taskId: node.parentTaskId,
+    title: node.title,
+    complexity: node.complexity,
+    deterministicVerificationAvailable: runtime.verificationAvailable,
+    localWorkerAvailable: runtime.localWorkerAvailable && !stickyEscalation,
+    localAttemptsUsed: attemptsUsed,
+    maxLocalAttempts: runtime.policy.maxLocalAttempts
+  });
+  const estimate = estimateWorkload({
+    taskId: node.parentTaskId,
+    complexity: node.complexity ?? "MEDIUM",
+    localSuitability: suitability.class,
+    taskCategory: suitability.category,
+    policy: runtime.policy.estimator,
+    observations
+  });
+  const routing = decideLane({
+    estimate,
+    forecast,
+    reserveRatio: reserve.ratio,
+    staleReserveExtraRatio: reserve.basis.staleTelemetryExtra,
+    localWorkerAvailable: runtime.localWorkerAvailable && !stickyEscalation,
+    localExecutionAvailable: runtime.localExecutionAvailable && !stickyEscalation,
+    localEscalationRequired: stickyEscalation || attemptsUsed >= runtime.policy.maxLocalAttempts,
+    contextUsageRatio: estimateNodeContextRatio(deps, jobId, node.nodeId),
+    policy: runtime.policy
+  });
+  return { suitability, estimate, routing };
+}
 function defaultSleep(ms, signal) {
   return new Promise((resolve) => {
     const timer = setTimeout(resolve, ms);
@@ -59649,6 +61674,16 @@ async function driveJob(deps, jobId, options = {}) {
       });
     }
   });
+  const missionDriven = policy.objectives.enabled === true && findMissionForSpec(deps.workspace, job.specName) !== void 0;
+  const schedulingRuntime = createSchedulingRuntime(deps.config, deps.workspace, {
+    localManager,
+    missionDriven,
+    options: {
+      quotaTelemetryProvider: options.quotaTelemetryProvider,
+      localExecutorInference: options.localExecutorInference,
+      signal
+    }
+  });
   const maxLoop = policy.budgets.maxAgentRuns * 6 + 50;
   let loops = 0;
   try {
@@ -59672,7 +61707,25 @@ async function driveJob(deps, jobId, options = {}) {
       job = clearRetryWait(deps, jobId);
       const graph = activeGraph(deps, job);
       const workers = resolveWorkers(deps.config);
-      const decision = scheduleNext({ job, graph, policy, workers, now: (deps.clock ?? (() => /* @__PURE__ */ new Date()))() });
+      let lane;
+      if (schedulingRuntime !== void 0 && graph !== void 0 && !isFinalJobStatus(job.status)) {
+        lane = await buildLaneContext(schedulingRuntime, deps, jobId, job, graph);
+        emitSchedulingTransitions(deps, jobId, schedulingRuntime, lane, emit);
+        if (lane.overtakeCandidate !== void 0 && job.status === "READY") {
+          promoteNodeForQuotaOvertake(deps, jobId, lane.overtakeCandidate);
+          emit("note", `quota overtake: ${lane.overtakeCandidate.detail}`);
+          job = requireJobState(deps.workspace, jobId);
+          continue;
+        }
+      }
+      const decision = scheduleNext({
+        job,
+        graph,
+        policy,
+        workers,
+        now: (deps.clock ?? (() => /* @__PURE__ */ new Date()))(),
+        scheduling: lane?.context
+      });
       emit("decision", `${decision.kind}${"reason" in decision ? `: ${decision.reason}` : ""}`);
       switch (decision.kind) {
         case "BUILD_GRAPH": {
@@ -59701,19 +61754,94 @@ async function driveJob(deps, jobId, options = {}) {
           if (node === void 0) {
             throw new OrchestrationError("SBO031", `Node ${decision.nodeId} vanished between scheduling and dispatch.`);
           }
-          emit("executor-started", `${decision.mode} task ${decision.taskId} via ${decision.worker.workerId}`);
+          const laneName = decision.lane;
+          const laneRouting = decision.laneRouting;
+          emit(
+            "executor-started",
+            `${decision.mode} task ${decision.taskId} via ${decision.worker.workerId}${laneName !== void 0 ? ` [${laneName} lane]` : ""}`
+          );
+          let schedulingDecisionId;
+          let quotaBefore;
+          let contextBefore = null;
+          if (schedulingRuntime !== void 0 && lane !== void 0 && laneName !== void 0 && laneRouting !== void 0) {
+            schedulingDecisionId = persistLaneDecision(deps, jobId, {
+              nodeId: node.nodeId,
+              taskId: node.parentTaskId,
+              selectedLane: laneName,
+              selectedProvider: laneName === "LOCAL" ? decision.worker.workerId : decision.worker.runnerProfile ?? decision.worker.workerId,
+              reasonCode: laneRouting.routing.reasonCode,
+              detail: laneRouting.routing.detail,
+              deferUntil: null,
+              laneRouting,
+              lane
+            });
+            recordJobEvent(deps, jobId, laneName === "LOCAL" ? "task_routed_local" : "task_routed_subscription", {
+              nodeId: node.nodeId,
+              taskId: node.parentTaskId,
+              reasonCode: laneRouting.routing.reasonCode,
+              suitability: laneRouting.suitability.class,
+              mode: lane.forecast.schedulerMode
+            });
+            if (laneName === "SUBSCRIPTION" && laneRouting.routing.admission?.crossesReset === true) {
+              recordJobEvent(deps, jobId, "cross_reset_admitted", {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                preResetBurnRatio: laneRouting.routing.admission.preResetBurnRatio,
+                expectedWallTimeMs: laneRouting.estimate.expectedWallTimeMs,
+                timeToResetMs: lane.forecast.timeToFiveHourResetMs
+              });
+            }
+            quotaBefore = {
+              fiveHourRemainingRatio: lane.forecast.fiveHourRemainingRatio,
+              weeklyRemainingRatio: lane.forecast.weeklyRemainingRatio
+            };
+            contextBefore = estimateNodeContextRatio(deps, jobId, node.nodeId);
+            if (decision.compactFirst === true) {
+              const reconstructed = reconstructTaskContext(deps, { jobId, nodeId: node.nodeId });
+              recordJobEvent(deps, jobId, "context_compaction_before_dispatch", {
+                nodeId: node.nodeId,
+                contextUsageRatio: contextBefore,
+                passes: reconstructed.assembled.compactions.map((record32) => record32.level),
+                estimatedTokens: reconstructed.assembled.package.usage.estimatedTokens
+              });
+              emit("note", `context compacted before dispatch (${reconstructed.assembled.compactions.length} pass(es))`);
+            }
+          }
           beginExecutorDispatch(deps, jobId, {
             nodeId: decision.nodeId,
             mode: decision.mode,
             workerId: decision.worker.workerId,
             // The durable attempt records the true provider identity (the
             // runner profile) so the execution ledger attributes correctly.
-            provider: decision.worker.runnerProfile ?? decision.worker.workerId
+            provider: decision.worker.runnerProfile ?? decision.worker.workerId,
+            ...laneName !== void 0 ? { lane: laneName } : {},
+            ...laneRouting !== void 0 ? {
+              localSuitability: laneRouting.suitability.class,
+              taskCategory: laneRouting.suitability.category
+            } : {},
+            ...schedulingDecisionId !== void 0 ? { schedulingDecisionId } : {},
+            ...quotaBefore !== void 0 ? { quotaBefore } : {},
+            ...contextBefore !== null ? { contextUsageBefore: contextBefore } : {}
           });
           const startedAt = (deps.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
           const allowDirty = decision.mode === "repair" || (graph?.nodes.some((candidate) => candidate.status === "COMPLETED") ?? false) || node.attempts.some((attempt) => attempt.role === "EXECUTOR") || node.attempts.some((attempt) => attempt.role === "BUILDER");
           const mission = policy.objectives.enabled === true ? findMissionForSpec(deps.workspace, job.specName) : void 0;
-          const dispatch = mission !== void 0 ? await driveObjective({
+          const localLane = laneName === "LOCAL" && schedulingRuntime !== void 0 && schedulingRuntime.localInference !== void 0;
+          const dispatch = localLane ? await dispatchLocalExecution({
+            workspace: deps.workspace,
+            config: deps.config,
+            node,
+            specName: job.specName,
+            mode: decision.mode,
+            allowDirty,
+            inference: schedulingRuntime.localInference,
+            maxCorrections: policy.maxLocalOutputCorrections,
+            ...deps.clock !== void 0 ? { clock: deps.clock } : {},
+            ...deps.idFactory !== void 0 ? { idFactory: deps.idFactory } : {},
+            ...signal !== void 0 ? { signal } : {},
+            onProgress: (message) => emit("note", message),
+            onInferenceCall: () => countLocalInferenceCall(deps, jobId)
+          }) : mission !== void 0 ? await driveObjective({
             workspace: deps.workspace,
             config: deps.config,
             jobId,
@@ -59747,6 +61875,39 @@ async function driveJob(deps, jobId, options = {}) {
             ...signal !== void 0 ? { signal } : {},
             onProgress: (message) => emit("note", message)
           });
+          if (localLane) {
+            const localResult = dispatch;
+            if (localResult.failure !== void 0) {
+              recordJobEvent(deps, jobId, "local_attempt_failed", {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                category: localResult.failure.category,
+                escalated: localResult.escalated
+              });
+            }
+            if (localResult.escalated) {
+              noteEscalation(deps, jobId, {
+                nodeId: node.nodeId,
+                role: "EXECUTOR",
+                reason: "LOCAL_EXECUTION_ESCALATED",
+                detail: (localResult.escalationReason ?? localResult.failure?.message ?? "local execution declined").slice(0, 500)
+              });
+              recordJobEvent(deps, jobId, "local_escalation_triggered", {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                detail: (localResult.escalationReason ?? "bounded local attempts exhausted").slice(0, 300)
+              });
+            }
+          }
+          let extraMetrics;
+          if (schedulingRuntime !== void 0 && lane !== void 0) {
+            const after = await schedulingRuntime.manager.snapshot();
+            extraMetrics = {
+              fiveHourQuotaAfter: after.fiveHour?.remainingRatio ?? null,
+              weeklyQuotaAfter: after.weekly?.remainingRatio ?? null,
+              contextUsageAfter: estimateNodeContextRatio(deps, jobId, node.nodeId)
+            };
+          }
           const result = completeExecutorDispatch(deps, jobId, {
             context: {
               nodeId: decision.nodeId,
@@ -59759,7 +61920,8 @@ async function driveJob(deps, jobId, options = {}) {
             mode: decision.mode,
             evidenceStatus: dispatch.evidenceStatus,
             ...dispatch.failure !== void 0 ? { failure: dispatch.failure } : {},
-            ...dispatch.changedFiles !== void 0 ? { changedFiles: dispatch.changedFiles } : {}
+            ...dispatch.changedFiles !== void 0 ? { changedFiles: dispatch.changedFiles } : {},
+            ...extraMetrics !== void 0 ? { extraMetrics } : {}
           });
           emit(
             "executor-finished",
@@ -59781,6 +61943,43 @@ async function driveJob(deps, jobId, options = {}) {
           emit("waiting", `transient failure; retrying in ${Math.ceil(waitMs / 1e3)}s`);
           await sleep2(Math.min(waitMs, 6e4), signal);
           break;
+        }
+        case "WAIT_QUOTA": {
+          if (schedulingRuntime !== void 0 && lane !== void 0) {
+            persistLaneDecision(deps, jobId, {
+              nodeId: decision.nodeId,
+              taskId: decision.taskId,
+              selectedLane: "DEFER",
+              selectedProvider: null,
+              reasonCode: decision.reasonCode,
+              detail: decision.reason,
+              deferUntil: decision.until,
+              laneRouting: decision.laneRouting,
+              lane
+            });
+          }
+          job = deferJobForQuota(deps, jobId, {
+            nodeId: decision.nodeId,
+            taskId: decision.taskId,
+            until: decision.until,
+            reasonCode: decision.reasonCode,
+            detail: decision.reason,
+            pollMs: schedulingRuntime?.policy.deferPollMs ?? 6e4
+          });
+          emit("waiting", `quota: ${decision.reasonCode} \u2014 ${decision.reason}`);
+          const nowMs = (deps.clock ?? (() => /* @__PURE__ */ new Date()))().getTime();
+          const waitMs = Math.max(0, Date.parse(job.retryAt ?? new Date(nowMs).toISOString()) - nowMs);
+          const holdMs = schedulingRuntime?.policy.maxQuotaHoldMs ?? 6e5;
+          if (decision.until === null || waitMs <= holdMs) {
+            await sleep2(waitMs, signal);
+            break;
+          }
+          checkpointJob(deps, jobId, `Deferred for subscription quota until ${job.retryAt ?? "unknown"}; resume to continue.`);
+          job = requireJobState(deps.workspace, jobId);
+          return {
+            stop: { kind: "deferred", until: job.retryAt ?? null, reason: decision.reason },
+            job
+          };
         }
         case "AWAIT_HUMAN": {
           checkpointJob(
@@ -59821,6 +62020,143 @@ async function driveJob(deps, jobId, options = {}) {
     }
   } finally {
     await localManager?.stop("driver exit");
+  }
+}
+function persistLaneDecision(deps, jobId, input) {
+  const createdAt = (deps.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
+  const decisionId = `sd-${(deps.idFactory ?? (() => `${Date.now()}`))()}`.slice(0, 64);
+  const routing = input.laneRouting;
+  try {
+    appendSchedulingDecision(
+      deps.workspace,
+      {
+        schemaVersion: "1.0.0",
+        decisionId,
+        jobId,
+        nodeId: input.nodeId,
+        taskId: input.taskId,
+        selectedLane: input.selectedLane,
+        selectedProvider: input.selectedProvider,
+        schedulerMode: input.lane.forecast.schedulerMode,
+        reasonCode: input.reasonCode,
+        quotaSnapshot: input.lane.forecast,
+        workloadEstimate: routing !== void 0 ? {
+          complexity: routing.estimate.complexity,
+          localSuitability: routing.estimate.localSuitability,
+          taskCategory: routing.suitability.category,
+          expectedWallTimeMs: routing.estimate.expectedWallTimeMs,
+          expectedFiveHourBurnRatio: routing.estimate.expectedFiveHourBurnRatio,
+          expectedWeeklyBurnRatio: routing.estimate.expectedWeeklyBurnRatio,
+          confidence: routing.estimate.confidence,
+          basis: routing.estimate.basis
+        } : null,
+        reserveRatio: input.lane.reserve.ratio,
+        preResetBurnRatio: routing?.routing.admission?.preResetBurnRatio ?? null,
+        crossesReset: routing?.routing.admission?.crossesReset ?? false,
+        contextStatus: routing !== void 0 ? {
+          usageRatio: estimateNodeContextRatio(deps, jobId, input.nodeId),
+          compactFirst: routing.routing.compactFirst
+        } : null,
+        deferUntil: input.deferUntil,
+        detail: input.detail.slice(0, 2e3),
+        createdAt
+      },
+      { maxRecords: deps.config.orchestration.jobs.scheduler.maxDecisionRecords }
+    );
+  } catch {
+  }
+  recordJobEvent(deps, jobId, "scheduling_decision_created", {
+    decisionId,
+    nodeId: input.nodeId,
+    taskId: input.taskId,
+    lane: input.selectedLane,
+    reasonCode: input.reasonCode,
+    mode: input.lane.forecast.schedulerMode,
+    ...input.deferUntil !== null ? { deferUntil: input.deferUntil } : {}
+  });
+  if (routing !== void 0) {
+    recordJobEvent(deps, jobId, "local_suitability_classified", {
+      nodeId: input.nodeId,
+      taskId: input.taskId,
+      suitability: routing.suitability.class,
+      category: routing.suitability.category,
+      signals: routing.suitability.signals.slice(0, 5).map((signal) => signal.signal)
+    });
+    recordJobEvent(deps, jobId, "workload_estimated", {
+      nodeId: input.nodeId,
+      taskId: input.taskId,
+      expectedWallTimeMs: routing.estimate.expectedWallTimeMs,
+      expectedFiveHourBurnRatio: routing.estimate.expectedFiveHourBurnRatio,
+      expectedWeeklyBurnRatio: routing.estimate.expectedWeeklyBurnRatio,
+      confidence: routing.estimate.confidence,
+      basis: routing.estimate.basis
+    });
+  }
+  return decisionId;
+}
+function emitSchedulingTransitions(deps, jobId, runtime, lane, emit) {
+  const forecast = lane.forecast;
+  if (runtime.lastObservedAt !== forecast.observedAt) {
+    recordJobEvent(deps, jobId, "quota_snapshot_updated", {
+      fiveHourRemainingRatio: forecast.fiveHourRemainingRatio,
+      weeklyRemainingRatio: forecast.weeklyRemainingRatio,
+      fiveHourResetAt: forecast.fiveHourResetAt,
+      weeklyResetAt: forecast.weeklyResetAt,
+      freshness: forecast.telemetryFreshness,
+      source: runtime.manager.source
+    });
+    runtime.lastObservedAt = forecast.observedAt;
+  }
+  if (runtime.lastFreshness !== forecast.telemetryFreshness) {
+    if (forecast.telemetryFreshness === "STALE") {
+      recordJobEvent(deps, jobId, "quota_telemetry_stale", {
+        observedAt: forecast.observedAt,
+        staleThresholdMs: runtime.policy.telemetryStaleMs
+      });
+      emit("note", "quota telemetry is stale; scheduling conservatively");
+    }
+    runtime.lastFreshness = forecast.telemetryFreshness;
+  }
+  if (runtime.lastMode !== forecast.schedulerMode) {
+    if (runtime.lastMode !== void 0) {
+      recordJobEvent(deps, jobId, "scheduler_mode_changed", {
+        from: runtime.lastMode,
+        to: forecast.schedulerMode,
+        fiveHourRemainingRatio: forecast.fiveHourRemainingRatio,
+        weeklyRemainingRatio: forecast.weeklyRemainingRatio,
+        timeToFiveHourResetMs: forecast.timeToFiveHourResetMs
+      });
+    }
+    if (forecast.schedulerMode === "HARVEST") {
+      recordJobEvent(deps, jobId, "harvest_entered", {
+        fiveHourRemainingRatio: forecast.fiveHourRemainingRatio,
+        timeToFiveHourResetMs: forecast.timeToFiveHourResetMs,
+        reserveRatio: lane.reserve.ratio
+      });
+    } else if (runtime.lastMode === "HARVEST") {
+      recordJobEvent(deps, jobId, "harvest_exited", { to: forecast.schedulerMode });
+    }
+    if (forecast.schedulerMode === "EXHAUSTED_5H" || forecast.schedulerMode === "EXHAUSTED_WEEKLY") {
+      recordJobEvent(deps, jobId, "quota_exhausted", {
+        window: forecast.schedulerMode === "EXHAUSTED_5H" ? "five-hour" : "weekly",
+        resetAt: forecast.schedulerMode === "EXHAUSTED_5H" ? forecast.fiveHourResetAt : forecast.weeklyResetAt
+      });
+    }
+    emit("note", `scheduler mode: ${forecast.schedulerMode}`);
+    runtime.lastMode = forecast.schedulerMode;
+  }
+  const reserveDelta = runtime.lastReserveRatio === void 0 ? Number.POSITIVE_INFINITY : Math.abs(lane.reserve.ratio - runtime.lastReserveRatio);
+  if (reserveDelta >= 0.05) {
+    if (runtime.lastReserveRatio !== void 0) {
+      recordJobEvent(deps, jobId, "dynamic_reserve_changed", {
+        from: runtime.lastReserveRatio,
+        to: lane.reserve.ratio,
+        timeComponent: lane.reserve.basis.timeComponent,
+        weeklyPressureExtra: lane.reserve.basis.weeklyPressureExtra,
+        staleTelemetryExtra: lane.reserve.basis.staleTelemetryExtra
+      });
+    }
+    runtime.lastReserveRatio = lane.reserve.ratio;
   }
 }
 async function handleRoleDecision(deps, jobId, decision, runtime) {
@@ -60118,6 +62454,13 @@ async function applyRoleOutput(deps, jobId, role, result, context, node, activeP
     }
   }
 }
+var PREPROCESS_SYSTEM_PROMPT = [
+  "You compress one bulky engineering artifact (a log, test output, tool",
+  "result, or diff) into a small structured summary another engineer will",
+  "rely on INSTEAD of the original. Preserve: concrete error messages,",
+  "failing test names, file paths, line numbers, and counts. Drop:",
+  "repetition, timestamps, progress noise. Never invent content."
+].join("\n");
 
 // ../../packages/reporting/dist/index.js
 var import_picocolors = __toESM(require_picocolors(), 1);
@@ -60677,20 +63020,20 @@ var import_node_fs6 = require("fs");
 var import_node_path7 = __toESM(require("path"), 1);
 
 // ../../packages/drift/dist/index.js
-var import_fs37 = require("fs");
-var import_path43 = __toESM(require("path"), 1);
-var import_picomatch = __toESM(require_picomatch2(), 1);
-var import_fs38 = require("fs");
-var import_path44 = __toESM(require("path"), 1);
-var import_fs39 = require("fs");
-var import_path45 = __toESM(require("path"), 1);
 var import_fs40 = require("fs");
 var import_path46 = __toESM(require("path"), 1);
+var import_picomatch = __toESM(require_picomatch2(), 1);
 var import_fs41 = require("fs");
 var import_path47 = __toESM(require("path"), 1);
 var import_fs42 = require("fs");
-var import_crypto15 = require("crypto");
 var import_path48 = __toESM(require("path"), 1);
+var import_fs43 = require("fs");
+var import_path49 = __toESM(require("path"), 1);
+var import_fs44 = require("fs");
+var import_path50 = __toESM(require("path"), 1);
+var import_fs45 = require("fs");
+var import_crypto15 = require("crypto");
+var import_path51 = __toESM(require("path"), 1);
 var taskEvidenceSchema = external_exports.object({
   taskId: external_exports.string().min(1),
   status: external_exports.enum(["recorded", "verified", "rejected"]),
@@ -60791,24 +63134,24 @@ var verificationPolicySchema = external_exports.object({
   }
 });
 function policyDir(workspace) {
-  return import_path43.default.join(workspace.sidecarDir, "policies");
+  return import_path46.default.join(workspace.sidecarDir, "policies");
 }
 function policyPath(workspace, specName) {
-  const resolved = import_path43.default.resolve(policyDir(workspace), `${specName}.json`);
-  const relative = import_path43.default.relative(workspace.rootDir, resolved);
-  if (relative.startsWith("..") || import_path43.default.isAbsolute(relative)) {
-    return import_path43.default.join(policyDir(workspace), "invalid-spec-name.json");
+  const resolved = import_path46.default.resolve(policyDir(workspace), `${specName}.json`);
+  const relative = import_path46.default.relative(workspace.rootDir, resolved);
+  if (relative.startsWith("..") || import_path46.default.isAbsolute(relative)) {
+    return import_path46.default.join(policyDir(workspace), "invalid-spec-name.json");
   }
   return resolved;
 }
 function readVerificationPolicy(workspace, specName, explicitPath) {
-  const filePath = explicitPath !== void 0 ? import_path43.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
-  if (!(0, import_fs37.existsSync)(filePath)) {
+  const filePath = explicitPath !== void 0 ? import_path46.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
+  if (!(0, import_fs40.existsSync)(filePath)) {
     return { path: filePath, exists: false, diagnostics: [] };
   }
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs37.readFileSync)(filePath, "utf8"));
+    parsed = JSON.parse((0, import_fs40.readFileSync)(filePath, "utf8"));
   } catch (cause) {
     return {
       path: filePath,
@@ -60871,7 +63214,7 @@ function resolveEffectivePolicy(workspace, specName, options = {}) {
   const storedMode = policy?.mode ?? "advisory";
   const strictFromCli = options.strict === true && storedMode !== "strict";
   const mode = options.strict === true ? "strict" : storedMode;
-  const workspaceRelativePolicyPath = import_path43.default.relative(workspace.rootDir, read.path).split(import_path43.default.sep).join("/");
+  const workspaceRelativePolicyPath = import_path46.default.relative(workspace.rootDir, read.path).split(import_path46.default.sep).join("/");
   return {
     specName,
     mode,
@@ -61032,33 +63375,33 @@ function mergeNumstat(files, stats) {
 function sniffBinary(absolutePath) {
   let fd;
   try {
-    fd = (0, import_fs38.openSync)(absolutePath, "r");
+    fd = (0, import_fs41.openSync)(absolutePath, "r");
     const buffer = Buffer.alloc(8e3);
-    const bytesRead = (0, import_fs38.readSync)(fd, buffer, 0, buffer.length, 0);
+    const bytesRead = (0, import_fs41.readSync)(fd, buffer, 0, buffer.length, 0);
     return buffer.subarray(0, bytesRead).includes(0);
   } catch {
     return false;
   } finally {
-    if (fd !== void 0) (0, import_fs38.closeSync)(fd);
+    if (fd !== void 0) (0, import_fs41.closeSync)(fd);
   }
 }
 function flagSymlinkEscapes(repoRoot, files) {
   const resolvedRoot = (() => {
     try {
-      return (0, import_fs38.realpathSync)(repoRoot);
+      return (0, import_fs41.realpathSync)(repoRoot);
     } catch {
-      return import_path44.default.resolve(repoRoot);
+      return import_path47.default.resolve(repoRoot);
     }
   })();
   for (const file of files) {
     if (file.changeType === "deleted") continue;
-    const absolute = import_path44.default.join(repoRoot, file.path.split("/").join(import_path44.default.sep));
+    const absolute = import_path47.default.join(repoRoot, file.path.split("/").join(import_path47.default.sep));
     try {
-      const stats = (0, import_fs38.lstatSync)(absolute);
+      const stats = (0, import_fs41.lstatSync)(absolute);
       if (!stats.isSymbolicLink()) continue;
-      const target = (0, import_fs38.realpathSync)(absolute);
-      const relative = import_path44.default.relative(resolvedRoot, target);
-      if (relative.startsWith("..") || import_path44.default.isAbsolute(relative)) {
+      const target = (0, import_fs41.realpathSync)(absolute);
+      const relative = import_path47.default.relative(resolvedRoot, target);
+      if (relative.startsWith("..") || import_path47.default.isAbsolute(relative)) {
         file.symlinkOutsideRepository = true;
       }
     } catch {
@@ -61186,7 +63529,7 @@ async function resolveComparison(repoRoot, request, options = {}) {
     const known = new Set(files.map((file) => file.path));
     for (const token of untracked.stdout.split("\0")) {
       if (token.length === 0 || known.has(token)) continue;
-      const absolute = import_path44.default.join(repoRoot, token.split("/").join(import_path44.default.sep));
+      const absolute = import_path47.default.join(repoRoot, token.split("/").join(import_path47.default.sep));
       files.push({
         path: token,
         changeType: "untracked",
@@ -61266,9 +63609,9 @@ function specMatchReasons(specName, policy, validEvidencePaths, designPathRefere
 function readSpecEvidenceRecords(workspace, specName) {
   const byTask = /* @__PURE__ */ new Map();
   let invalidRecordCount = 0;
-  const specDir = import_path45.default.join(workspace.sidecarDir, "evidence", specName);
-  if ((0, import_fs39.existsSync)(specDir)) {
-    const taskDirs = (0, import_fs39.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
+  const specDir = import_path48.default.join(workspace.sidecarDir, "evidence", specName);
+  if ((0, import_fs42.existsSync)(specDir)) {
+    const taskDirs = (0, import_fs42.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
     for (const taskDir of taskDirs) {
       const { records, diagnostics } = listTaskEvidence(workspace, specName, taskDir);
       invalidRecordCount += diagnostics.length;
@@ -61315,7 +63658,7 @@ async function buildSpecVerificationContext(options) {
     }
     if (effective("tasks") && tasksStage !== void 0) {
       const planHash2 = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(
-        import_path45.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path45.default.sep))
+        import_path48.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path48.default.sep))
       );
       if (planHash2 !== void 0) approved.tasksPlanHash = planHash2;
     }
@@ -61341,8 +63684,8 @@ async function buildSpecVerificationContext(options) {
   };
   const recordedShas = /* @__PURE__ */ new Set();
   for (const records of rawEvidence.byTask.values()) {
-    for (const record4 of records) {
-      if (record4.repository.headAfter !== void 0) recordedShas.add(record4.repository.headAfter);
+    for (const record5 of records) {
+      if (record5.repository.headAfter !== void 0) recordedShas.add(record5.repository.headAfter);
     }
   }
   if (recordedShas.size > 0 && comparison.descriptor.headSha !== null) {
@@ -61441,9 +63784,9 @@ async function orchestrateVerificationCommands(options) {
     let reusedFrom;
     for (const specName of specs) {
       const assessments = options.evidenceBySpec.get(specName) ?? [];
-      const record4 = reusableCommandPass(assessments, name, options.headSha);
-      if (record4 !== void 0) {
-        reusedFrom = record4.runId;
+      const record5 = reusableCommandPass(assessments, name, options.headSha);
+      if (record5 !== void 0) {
+        reusedFrom = record5.runId;
         break;
       }
     }
@@ -61543,7 +63886,7 @@ async function evaluateGlobalRules(rules, context) {
   return { diagnostics, disabledRules };
 }
 function repoRelative(workspace, absolutePath) {
-  return import_path46.default.relative(workspace.rootDir, absolutePath).split(import_path46.default.sep).join("/");
+  return import_path49.default.relative(workspace.rootDir, absolutePath).split(import_path49.default.sep).join("/");
 }
 function isSpecInfraPath(candidate) {
   return candidate === ".git" || candidate.startsWith(".git/") || candidate.startsWith(".kiro/") || candidate.startsWith(".specbridge/");
@@ -62180,12 +64523,12 @@ var sbv017 = {
         return requirement?.testRequired === true;
       });
       if (!taskWantsTests && !requirementWantsTests) continue;
-      const record4 = assessment.best?.record;
-      if (record4 === void 0) continue;
-      const passingTestCommand = record4.verificationCommands.some(
+      const record5 = assessment.best?.record;
+      if (record5 === void 0) continue;
+      const passingTestCommand = record5.verificationCommands.some(
         (command) => command.passed && (TEST_COMMAND_PATTERN.test(command.name) || command.argv.some((argument) => TEST_COMMAND_PATTERN.test(argument)))
       );
-      const testFilesChanged = record4.changedFiles.some(
+      const testFilesChanged = record5.changedFiles.some(
         (file) => TEST_PATH_PATTERN.test(file.path)
       );
       if (passingTestCommand || testFilesChanged) continue;
@@ -62200,8 +64543,8 @@ var sbv017 = {
           evidence: {
             taskMentionsTests: taskWantsTests,
             requirementMentionsTests: requirementWantsTests,
-            evidenceRunId: record4.runId,
-            recordedCommands: record4.verificationCommands.map((command) => command.name),
+            evidenceRunId: record5.runId,
+            recordedCommands: record5.verificationCommands.map((command) => command.name),
             testEvidenceRequired: context.policy.requireTestEvidence
           }
         })
@@ -62224,14 +64567,14 @@ var sbv018 = {
     if (designDocument === void 0) return [];
     const designFile = designDocument.filePath;
     const designRepoPath = designFile !== void 0 ? repoRelative(context.workspace, designFile) : void 0;
-    const specDir = import_path46.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
+    const specDir = import_path49.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
     return context.traceability.designPathReferences.filter((reference) => !reference.isGlob).filter((reference) => {
-      const fromRoot = import_path46.default.join(
+      const fromRoot = import_path49.default.join(
         context.workspace.rootDir,
-        reference.path.split("/").join(import_path46.default.sep)
+        reference.path.split("/").join(import_path49.default.sep)
       );
-      const fromSpecDir = import_path46.default.join(specDir, reference.path.split("/").join(import_path46.default.sep));
-      return !(0, import_fs40.existsSync)(fromRoot) && !(0, import_fs40.existsSync)(fromSpecDir);
+      const fromSpecDir = import_path49.default.join(specDir, reference.path.split("/").join(import_path49.default.sep));
+      return !(0, import_fs43.existsSync)(fromRoot) && !(0, import_fs43.existsSync)(fromSpecDir);
     }).map(
       (reference) => makeDiagnostic({
         rule: this,
@@ -62478,14 +64821,14 @@ function loadSpecMatchingInfo(workspace, folder, options) {
     }
   }
   const evidencePaths = /* @__PURE__ */ new Set();
-  const evidenceDir2 = import_path47.default.join(workspace.sidecarDir, "evidence", folder.name);
-  if ((0, import_fs41.existsSync)(evidenceDir2)) {
-    for (const entry of (0, import_fs42.readdirSync)(evidenceDir2, { withFileTypes: true })) {
+  const evidenceDir2 = import_path50.default.join(workspace.sidecarDir, "evidence", folder.name);
+  if ((0, import_fs44.existsSync)(evidenceDir2)) {
+    for (const entry of (0, import_fs45.readdirSync)(evidenceDir2, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
       const { records } = listTaskEvidence(workspace, folder.name, entry.name);
-      for (const record4 of records) {
-        if (record4.status !== "verified" && record4.status !== "manually-accepted") continue;
-        for (const file of record4.changedFiles) evidencePaths.add(file.path);
+      for (const record5 of records) {
+        if (record5.status !== "verified" && record5.status !== "manually-accepted") continue;
+        for (const file of record5.changedFiles) evidencePaths.add(file.path);
       }
     }
   }
@@ -62589,8 +64932,8 @@ async function verifySpecs(request) {
   let artifactsDir;
   const ensureArtifactsDir = () => {
     if (artifactsDir === void 0) {
-      const base = request.reportsDir ?? import_path48.default.join(workspace.sidecarDir, "reports");
-      artifactsDir = import_path48.default.join(base, verificationId);
+      const base = request.reportsDir ?? import_path51.default.join(workspace.sidecarDir, "reports");
+      artifactsDir = import_path51.default.join(base, verificationId);
     }
     return artifactsDir;
   };
@@ -62613,8 +64956,8 @@ async function verifySpecs(request) {
       onCommandFinished: (result, stdout, stderr) => {
         const dir = ensureArtifactsDir();
         const safeName = result.name.replace(/[^A-Za-z0-9._-]+/g, "-");
-        writeFileAtomic(import_path48.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
-        writeFileAtomic(import_path48.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
+        writeFileAtomic(import_path51.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
+        writeFileAtomic(import_path51.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
       }
     } : {}
   }) : { mode: "none", commands: [], missingRequired: [] };
@@ -62765,7 +65108,7 @@ async function verifySpecs(request) {
   verificationReportSchema.parse(report);
   if (persistArtifacts && artifactsDir !== void 0) {
     writeFileAtomic(
-      import_path48.default.join(artifactsDir, "report.json"),
+      import_path51.default.join(artifactsDir, "report.json"),
       `${JSON.stringify(report, null, 2)}
 `
     );
@@ -62874,18 +65217,18 @@ function resolveExitCode(report, comparison, commands, failOn) {
 }
 
 // ../../packages/templates/dist/index.js
-var import_fs43 = require("fs");
-var import_path49 = __toESM(require("path"), 1);
-var import_fs44 = require("fs");
-var import_path50 = __toESM(require("path"), 1);
-var import_fs45 = require("fs");
-var import_path51 = __toESM(require("path"), 1);
-var import_path52 = __toESM(require("path"), 1);
 var import_fs46 = require("fs");
-var import_path53 = __toESM(require("path"), 1);
+var import_path52 = __toESM(require("path"), 1);
 var import_fs47 = require("fs");
-var import_os = require("os");
+var import_path53 = __toESM(require("path"), 1);
+var import_fs48 = require("fs");
 var import_path54 = __toESM(require("path"), 1);
+var import_path55 = __toESM(require("path"), 1);
+var import_fs49 = require("fs");
+var import_path56 = __toESM(require("path"), 1);
+var import_fs50 = require("fs");
+var import_os = require("os");
+var import_path57 = __toESM(require("path"), 1);
 var SPECBRIDGE_VERSION = "1.0.0";
 var TEMPLATE_ERROR_CODES = {
   SBT001: "template not found",
@@ -63714,11 +66057,11 @@ function readTemplatePackDirectory(dir) {
         { path: currentDir }
       );
     }
-    const entries = (0, import_fs43.readdirSync)(currentDir, { withFileTypes: true }).sort(
+    const entries = (0, import_fs46.readdirSync)(currentDir, { withFileTypes: true }).sort(
       (a2, b) => a2.name.localeCompare(b.name, "en")
     );
     for (const entry of entries) {
-      const entryPath = import_path49.default.join(currentDir, entry.name);
+      const entryPath = import_path52.default.join(currentDir, entry.name);
       const entryRelative = relative === "" ? entry.name : `${relative}/${entry.name}`;
       const stat = statNoFollow(entryPath);
       if (stat.isSymbolicLink()) {
@@ -63770,7 +66113,7 @@ function readTemplatePackDirectory(dir) {
           { path: dir }
         );
       }
-      const buffer = (0, import_fs43.readFileSync)(entryPath);
+      const buffer = (0, import_fs46.readFileSync)(entryPath);
       const text7 = buffer.toString("utf8");
       if (!Buffer.from(text7, "utf8").equals(buffer)) {
         throw new TemplateError(
@@ -63796,7 +66139,7 @@ function readTemplatePackDirectory(dir) {
 }
 function statNoFollow(target) {
   try {
-    return (0, import_fs43.lstatSync)(target);
+    return (0, import_fs46.lstatSync)(target);
   } catch (cause) {
     throw new TemplateError(
       "SBT007",
@@ -64160,7 +66503,7 @@ var BUILTIN_TEMPLATE_PACKS = [
   }
 ];
 function projectTemplatesDir(workspace) {
-  return import_path50.default.join(workspace.sidecarDir, "templates");
+  return import_path53.default.join(workspace.sidecarDir, "templates");
 }
 function builtinEntries(options) {
   const entries = [];
@@ -64185,11 +66528,11 @@ function builtinEntries(options) {
 function projectEntries(workspace, options, diagnostics) {
   if (workspace === void 0) return [];
   const dir = projectTemplatesDir(workspace);
-  if (!(0, import_fs44.existsSync)(dir)) return [];
+  if (!(0, import_fs47.existsSync)(dir)) return [];
   const entries = [];
   let names;
   try {
-    names = (0, import_fs44.readdirSync)(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory() && !entry.isSymbolicLink()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
+    names = (0, import_fs47.readdirSync)(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory() && !entry.isSymbolicLink()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
   } catch (cause) {
     diagnostics.push({
       severity: "warning",
@@ -64199,7 +66542,7 @@ function projectEntries(workspace, options, diagnostics) {
     return [];
   }
   for (const name of names) {
-    const packDir = import_path50.default.join(dir, name);
+    const packDir = import_path53.default.join(dir, name);
     let pack;
     try {
       const data = readTemplatePackDirectory(packDir);
@@ -64443,19 +66786,19 @@ var templateRecordSchema = external_exports.discriminatedUnion("type", [
   templateScaffoldRecordSchema
 ]);
 function templateRecordsPath(workspace) {
-  return import_path51.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
+  return import_path54.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
 }
 var recordCounter = 0;
 function newTemplateRecordId(clock = systemClock) {
   recordCounter += 1;
   return `template-${clock().getTime().toString(36)}-${process.pid.toString(36)}-${recordCounter}`;
 }
-function appendTemplateRecord(workspace, record4) {
-  const validated = templateRecordSchema.parse(record4);
+function appendTemplateRecord(workspace, record5) {
+  const validated = templateRecordSchema.parse(record5);
   const filePath = templateRecordsPath(workspace);
   try {
-    (0, import_fs45.mkdirSync)(workspace.sidecarDir, { recursive: true });
-    (0, import_fs45.appendFileSync)(filePath, `${JSON.stringify(validated)}
+    (0, import_fs48.mkdirSync)(workspace.sidecarDir, { recursive: true });
+    (0, import_fs48.appendFileSync)(filePath, `${JSON.stringify(validated)}
 `, "utf8");
   } catch (cause) {
     throw ioError("append template record to", filePath, cause);
@@ -64464,10 +66807,10 @@ function appendTemplateRecord(workspace, record4) {
 function readTemplateRecords(workspace) {
   const filePath = templateRecordsPath(workspace);
   const diagnostics = [];
-  if (!(0, import_fs45.existsSync)(filePath)) return { records: [], diagnostics };
+  if (!(0, import_fs48.existsSync)(filePath)) return { records: [], diagnostics };
   let text7;
   try {
-    text7 = (0, import_fs45.readFileSync)(filePath, "utf8");
+    text7 = (0, import_fs48.readFileSync)(filePath, "utf8");
   } catch (cause) {
     diagnostics.push({
       severity: "warning",
@@ -64666,7 +67009,7 @@ function planTemplateApplication(workspace, catalog, request, clock = systemCloc
   };
 }
 function toPosix2(relative) {
-  return relative.split(import_path52.default.sep).join("/");
+  return relative.split(import_path55.default.sep).join("/");
 }
 function executeTemplateApplication(workspace, plan, clock = systemClock, recordId) {
   let creation;
@@ -64676,7 +67019,7 @@ function executeTemplateApplication(workspace, plan, clock = systemClock, record
     rethrowSpecExists(cause, plan.specPlan.specName);
   }
   const id = recordId ?? newTemplateRecordId(clock);
-  const record4 = {
+  const record5 = {
     schemaVersion: "1.0.0",
     recordId: id,
     type: "template-apply",
@@ -64696,15 +67039,15 @@ function executeTemplateApplication(workspace, plan, clock = systemClock, record
     })),
     variableNames: plan.variableNames,
     createdPaths: [
-      ...creation.writtenFiles.map((file) => toPosix2(import_path52.default.relative(workspace.rootDir, file))),
-      toPosix2(import_path52.default.relative(workspace.rootDir, creation.statePath))
+      ...creation.writtenFiles.map((file) => toPosix2(import_path55.default.relative(workspace.rootDir, file))),
+      toPosix2(import_path55.default.relative(workspace.rootDir, creation.statePath))
     ]
   };
-  appendTemplateRecord(workspace, record4);
+  appendTemplateRecord(workspace, record5);
   return { plan, creation, recordId: id };
 }
 function planTemplateInstall(workspace, catalog, request) {
-  const sourceDir = import_path53.default.resolve(request.cwd ?? workspace.rootDir, request.sourcePath);
+  const sourceDir = import_path56.default.resolve(request.cwd ?? workspace.rootDir, request.sourcePath);
   try {
     assertInsideWorkspace(workspace.rootDir, sourceDir);
   } catch (cause) {
@@ -64730,8 +67073,8 @@ function planTemplateInstall(workspace, catalog, request) {
     );
   }
   const templateId = pack.manifest.id;
-  const targetDir = import_path53.default.join(projectTemplatesDir(workspace), templateId);
-  if ((0, import_fs46.existsSync)(targetDir)) {
+  const targetDir = import_path56.default.join(projectTemplatesDir(workspace), templateId);
+  if ((0, import_fs49.existsSync)(targetDir)) {
     throw new TemplateError(
       "SBT021",
       `Template "project:${templateId}" is already installed at ${targetDir}.`,
@@ -64757,16 +67100,16 @@ function planTemplateInstall(workspace, catalog, request) {
   };
 }
 function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) {
-  const tmpParent = import_path53.default.join(workspace.sidecarDir, "tmp");
-  const tempDir = import_path53.default.join(
+  const tmpParent = import_path56.default.join(workspace.sidecarDir, "tmp");
+  const tempDir = import_path56.default.join(
     tmpParent,
     `template-install-${plan.templateId}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`
   );
   try {
-    (0, import_fs46.mkdirSync)(tempDir, { recursive: true });
+    (0, import_fs49.mkdirSync)(tempDir, { recursive: true });
     for (const [relative, content] of plan.pack.files) {
-      const target = import_path53.default.join(tempDir, relative);
-      (0, import_fs46.mkdirSync)(import_path53.default.dirname(target), { recursive: true });
+      const target = import_path56.default.join(tempDir, relative);
+      (0, import_fs49.mkdirSync)(import_path56.default.dirname(target), { recursive: true });
       writeFileAtomic(target, content);
     }
     const copied = loadTemplatePack(readTemplatePackDirectory(tempDir));
@@ -64778,8 +67121,8 @@ function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) 
         { path: plan.sourceDir }
       );
     }
-    (0, import_fs46.mkdirSync)(import_path53.default.dirname(plan.targetDir), { recursive: true });
-    if ((0, import_fs46.existsSync)(plan.targetDir)) {
+    (0, import_fs49.mkdirSync)(import_path56.default.dirname(plan.targetDir), { recursive: true });
+    if ((0, import_fs49.existsSync)(plan.targetDir)) {
       throw new TemplateError(
         "SBT021",
         `Template "project:${plan.templateId}" was installed by another process.`,
@@ -64787,11 +67130,11 @@ function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) 
         { path: plan.targetDir }
       );
     }
-    (0, import_fs46.renameSync)(tempDir, plan.targetDir);
+    (0, import_fs49.renameSync)(tempDir, plan.targetDir);
   } finally {
-    (0, import_fs46.rmSync)(tempDir, { recursive: true, force: true });
+    (0, import_fs49.rmSync)(tempDir, { recursive: true, force: true });
     try {
-      (0, import_fs46.rmdirSync)(tmpParent);
+      (0, import_fs49.rmdirSync)(tmpParent);
     } catch {
     }
   }
@@ -64806,8 +67149,8 @@ function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) 
     templateId: plan.templateId,
     templateVersion: plan.templateVersion,
     manifestHash: plan.manifestHash,
-    sourcePath: import_path53.default.relative(workspace.rootDir, plan.sourceDir).split(import_path53.default.sep).join("/"),
-    installedPath: import_path53.default.relative(workspace.rootDir, plan.targetDir).split(import_path53.default.sep).join("/")
+    sourcePath: import_path56.default.relative(workspace.rootDir, plan.sourceDir).split(import_path56.default.sep).join("/"),
+    installedPath: import_path56.default.relative(workspace.rootDir, plan.targetDir).split(import_path56.default.sep).join("/")
   });
   return { plan, installedPath: plan.targetDir, recordId: id };
 }
@@ -64837,10 +67180,10 @@ function planTemplateUninstall(workspace, rawReference) {
       { reference: rawReference }
     );
   }
-  const dir = import_path53.default.join(projectTemplatesDir(workspace), reference.id);
+  const dir = import_path56.default.join(projectTemplatesDir(workspace), reference.id);
   let stat;
   try {
-    stat = (0, import_fs46.lstatSync)(dir);
+    stat = (0, import_fs49.lstatSync)(dir);
   } catch {
     throw new TemplateError(
       "SBT001",
@@ -64860,18 +67203,18 @@ function planTemplateUninstall(workspace, rawReference) {
   return { templateId: reference.id, ref: `project:${reference.id}`, dir };
 }
 function executeTemplateUninstall(workspace, plan, clock = systemClock, recordId) {
-  const tmpParent = import_path53.default.join(workspace.sidecarDir, "tmp");
-  const tempDir = import_path53.default.join(
+  const tmpParent = import_path56.default.join(workspace.sidecarDir, "tmp");
+  const tempDir = import_path56.default.join(
     tmpParent,
     `template-uninstall-${plan.templateId}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`
   );
-  (0, import_fs46.mkdirSync)(tmpParent, { recursive: true });
-  (0, import_fs46.renameSync)(plan.dir, tempDir);
+  (0, import_fs49.mkdirSync)(tmpParent, { recursive: true });
+  (0, import_fs49.renameSync)(plan.dir, tempDir);
   try {
-    (0, import_fs46.rmSync)(tempDir, { recursive: true, force: true });
+    (0, import_fs49.rmSync)(tempDir, { recursive: true, force: true });
   } finally {
     try {
-      (0, import_fs46.rmdirSync)(tmpParent);
+      (0, import_fs49.rmdirSync)(tmpParent);
     } catch {
     }
   }
@@ -64884,7 +67227,7 @@ function executeTemplateUninstall(workspace, plan, clock = systemClock, recordId
     result: "ok",
     templateRef: plan.ref,
     templateId: plan.templateId,
-    uninstalledPath: import_path53.default.relative(workspace.rootDir, plan.dir).split(import_path53.default.sep).join("/")
+    uninstalledPath: import_path56.default.relative(workspace.rootDir, plan.dir).split(import_path56.default.sep).join("/")
   });
   return { plan, recordId: id };
 }
@@ -64970,10 +67313,10 @@ The built-in variables \`specName\`, \`title\`, \`description\`, \`kind\`, and
 
 \`\`\`bash
 # From the directory containing this template pack:
-specbridge template validate ./${import_path54.default.basename(request.outputPath)}
+specbridge template validate ./${import_path57.default.basename(request.outputPath)}
 
 # Then install it into a project for a real preview:
-specbridge template install ./${import_path54.default.basename(request.outputPath)}
+specbridge template install ./${import_path57.default.basename(request.outputPath)}
 specbridge template preview project:${request.templateId} --name example-spec
 \`\`\`
 
@@ -65193,9 +67536,9 @@ ${idCheck.problems.map((p) => `  - ${p}`).join("\n")}`,
   if (new Set(modes).size !== modes.length) {
     throw new TemplateError("SBT015", "--modes contains duplicates.", "List each mode once.", {});
   }
-  const outputDir = import_path54.default.resolve(request.cwd, request.outputPath);
-  const relative = import_path54.default.relative(import_path54.default.resolve(request.cwd), outputDir);
-  if (relative.startsWith("..") || import_path54.default.isAbsolute(relative)) {
+  const outputDir = import_path57.default.resolve(request.cwd, request.outputPath);
+  const relative = import_path57.default.relative(import_path57.default.resolve(request.cwd), outputDir);
+  if (relative.startsWith("..") || import_path57.default.isAbsolute(relative)) {
     throw new TemplateError(
       "SBT007",
       `Scaffold output ${outputDir} is outside the current directory.`,
@@ -65203,7 +67546,7 @@ ${idCheck.problems.map((p) => `  - ${p}`).join("\n")}`,
       { path: outputDir }
     );
   }
-  if ((0, import_fs47.existsSync)(outputDir)) {
+  if ((0, import_fs50.existsSync)(outputDir)) {
     throw new TemplateError(
       "SBT025",
       `Scaffold output directory already exists: ${outputDir}.`,
@@ -65235,21 +67578,21 @@ ${idCheck.problems.map((p) => `  - ${p}`).join("\n")}`,
   return { templateId: request.templateId, kind: request.kind, outputDir, files };
 }
 function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId) {
-  const tmpParent = workspace !== void 0 ? import_path54.default.join(workspace.sidecarDir, "tmp") : import_path54.default.join((0, import_os.tmpdir)(), "specbridge-scaffold");
-  const tempDir = import_path54.default.join(
+  const tmpParent = workspace !== void 0 ? import_path57.default.join(workspace.sidecarDir, "tmp") : import_path57.default.join((0, import_os.tmpdir)(), "specbridge-scaffold");
+  const tempDir = import_path57.default.join(
     tmpParent,
     `template-scaffold-${plan.templateId}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`
   );
   const writtenFiles = [];
   try {
-    (0, import_fs47.mkdirSync)(tempDir, { recursive: true });
+    (0, import_fs50.mkdirSync)(tempDir, { recursive: true });
     for (const [relative, content] of plan.files) {
-      const target = import_path54.default.join(tempDir, relative);
-      (0, import_fs47.mkdirSync)(import_path54.default.dirname(target), { recursive: true });
+      const target = import_path57.default.join(tempDir, relative);
+      (0, import_fs50.mkdirSync)(import_path57.default.dirname(target), { recursive: true });
       writeFileAtomic(target, content);
     }
-    (0, import_fs47.mkdirSync)(import_path54.default.dirname(plan.outputDir), { recursive: true });
-    if ((0, import_fs47.existsSync)(plan.outputDir)) {
+    (0, import_fs50.mkdirSync)(import_path57.default.dirname(plan.outputDir), { recursive: true });
+    if ((0, import_fs50.existsSync)(plan.outputDir)) {
       throw new TemplateError(
         "SBT025",
         `Scaffold output directory was created by another process: ${plan.outputDir}.`,
@@ -65257,14 +67600,14 @@ function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId)
         { path: plan.outputDir }
       );
     }
-    (0, import_fs47.renameSync)(tempDir, plan.outputDir);
+    (0, import_fs50.renameSync)(tempDir, plan.outputDir);
     for (const relative of plan.files.keys()) {
-      writtenFiles.push(import_path54.default.join(plan.outputDir, relative));
+      writtenFiles.push(import_path57.default.join(plan.outputDir, relative));
     }
   } finally {
-    (0, import_fs47.rmSync)(tempDir, { recursive: true, force: true });
+    (0, import_fs50.rmSync)(tempDir, { recursive: true, force: true });
     try {
-      (0, import_fs47.rmdirSync)(tmpParent);
+      (0, import_fs50.rmdirSync)(tmpParent);
     } catch {
     }
   }
@@ -65279,7 +67622,7 @@ function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId)
       result: "ok",
       templateId: plan.templateId,
       kind: plan.kind,
-      outputPath: import_path54.default.relative(workspace.rootDir, plan.outputDir).split(import_path54.default.sep).join("/")
+      outputPath: import_path57.default.relative(workspace.rootDir, plan.outputDir).split(import_path57.default.sep).join("/")
     });
   }
   return { plan, writtenFiles, recordId: id };
@@ -66196,18 +68539,12 @@ var TEMPLATE_PROVIDER_TEMPLATES_DIR = "templates";
 var MAX_TEMPLATE_PROVIDER_PACKS = 20;
 
 // ../../packages/extensions/dist/index.js
-var import_fs48 = require("fs");
-var import_path55 = __toESM(require("path"), 1);
-var import_crypto17 = require("crypto");
-var import_fs49 = require("fs");
-var import_path56 = __toESM(require("path"), 1);
-var import_child_process2 = require("child_process");
-var import_fs50 = require("fs");
-var import_path57 = __toESM(require("path"), 1);
 var import_fs51 = require("fs");
 var import_path58 = __toESM(require("path"), 1);
+var import_crypto17 = require("crypto");
 var import_fs52 = require("fs");
 var import_path59 = __toESM(require("path"), 1);
+var import_child_process2 = require("child_process");
 var import_fs53 = require("fs");
 var import_path60 = __toESM(require("path"), 1);
 var import_fs54 = require("fs");
@@ -66216,6 +68553,12 @@ var import_fs55 = require("fs");
 var import_path62 = __toESM(require("path"), 1);
 var import_fs56 = require("fs");
 var import_path63 = __toESM(require("path"), 1);
+var import_fs57 = require("fs");
+var import_path64 = __toESM(require("path"), 1);
+var import_fs58 = require("fs");
+var import_path65 = __toESM(require("path"), 1);
+var import_fs59 = require("fs");
+var import_path66 = __toESM(require("path"), 1);
 var ExtensionError = class extends SpecBridgeError {
   extensionCode;
   /** Actionable next step, always present. */
@@ -66717,7 +69060,7 @@ var FORBIDDEN_LIFECYCLE_SCRIPTS = [
   "postuninstall"
 ];
 function readExtensionPackageDirectory(dir) {
-  const rootStat = (0, import_fs48.lstatSync)(dir, { throwIfNoEntry: false });
+  const rootStat = (0, import_fs51.lstatSync)(dir, { throwIfNoEntry: false });
   if (rootStat === void 0 || !rootStat.isDirectory()) {
     throw new ExtensionError(
       "SBE008",
@@ -66742,7 +69085,7 @@ function readExtensionPackageDirectory(dir) {
         "Flatten the package layout."
       );
     }
-    for (const entry of (0, import_fs48.readdirSync)(currentDir, { withFileTypes: true })) {
+    for (const entry of (0, import_fs51.readdirSync)(currentDir, { withFileTypes: true })) {
       const relativePath = relativePrefix === "" ? entry.name : `${relativePrefix}/${entry.name}`;
       if (entry.isSymbolicLink()) {
         throw new ExtensionError(
@@ -66768,7 +69111,7 @@ function readExtensionPackageDirectory(dir) {
             "Remove the directory before validating or packaging."
           );
         }
-        walk(import_path55.default.join(currentDir, entry.name), relativePath, depth + 1);
+        walk(import_path58.default.join(currentDir, entry.name), relativePath, depth + 1);
         continue;
       }
       if (!entry.isFile()) {
@@ -66785,7 +69128,7 @@ function readExtensionPackageDirectory(dir) {
           "Reduce the package contents."
         );
       }
-      const content = (0, import_fs48.readFileSync)(import_path55.default.join(currentDir, entry.name));
+      const content = (0, import_fs51.readFileSync)(import_path58.default.join(currentDir, entry.name));
       totalBytes += content.length;
       if (totalBytes > EXTENSION_LIMITS.maxExtractedTotalBytes) {
         throw new ExtensionError(
@@ -67060,10 +69403,10 @@ var EXTENSION_RECORDS_FILE_NAME = "records.jsonl";
 var EXTENSION_STATE_SCHEMA_VERSION = "1.0.0";
 var systemClock2 = () => /* @__PURE__ */ new Date();
 function extensionsDir(workspace) {
-  return import_path56.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
+  return import_path59.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
 }
 function installedRootDir(workspace) {
-  return import_path56.default.join(extensionsDir(workspace), "installed");
+  return import_path59.default.join(extensionsDir(workspace), "installed");
 }
 function installedVersionDir(workspace, id, version2) {
   if (!validateExtensionId(id).valid || parseSemver2(version2) === void 0) {
@@ -67073,7 +69416,7 @@ function installedVersionDir(workspace, id, version2) {
       "Use a valid extension ID and X.Y.Z version."
     );
   }
-  const dir = import_path56.default.join(installedRootDir(workspace), id, version2);
+  const dir = import_path59.default.join(installedRootDir(workspace), id, version2);
   assertInsideWorkspace(workspace.rootDir, dir);
   return dir;
 }
@@ -67117,12 +69460,12 @@ function emptyPermissionGrants() {
   return { schemaVersion: EXTENSION_STATE_SCHEMA_VERSION, grants: {} };
 }
 function readValidatedJson(filePath, schema, empty, label) {
-  if (!(0, import_fs49.existsSync)(filePath)) {
+  if (!(0, import_fs52.existsSync)(filePath)) {
     return { value: empty, diagnostics: [], exists: false };
   }
   let text7;
   try {
-    text7 = (0, import_fs49.readFileSync)(filePath, "utf8");
+    text7 = (0, import_fs52.readFileSync)(filePath, "utf8");
   } catch (cause) {
     return {
       value: empty,
@@ -67172,13 +69515,13 @@ function readValidatedJson(filePath, schema, empty, label) {
   return { value: result.data, diagnostics: [], exists: true };
 }
 function extensionStatePath(workspace) {
-  return import_path56.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
+  return import_path59.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
 }
 function permissionGrantsPath(workspace) {
-  return import_path56.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
+  return import_path59.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
 }
 function extensionRecordsPath(workspace) {
-  return import_path56.default.join(extensionsDir(workspace), EXTENSION_RECORDS_FILE_NAME);
+  return import_path59.default.join(extensionsDir(workspace), EXTENSION_RECORDS_FILE_NAME);
 }
 function readExtensionState(workspace) {
   const { value, diagnostics, exists } = readValidatedJson(
@@ -67224,20 +69567,20 @@ function newExtensionRecordId(clock = systemClock2) {
   recordCounter2 += 1;
   return `extension-${clock().getTime().toString(36)}-${process.pid.toString(36)}-${recordCounter2}`;
 }
-function appendExtensionRecord(workspace, record4) {
-  const validated = extensionOperationRecordSchema.parse(record4);
+function appendExtensionRecord(workspace, record5) {
+  const validated = extensionOperationRecordSchema.parse(record5);
   const filePath = extensionRecordsPath(workspace);
   assertInsideWorkspace(workspace.rootDir, filePath);
   try {
-    (0, import_fs49.mkdirSync)(extensionsDir(workspace), { recursive: true });
-    (0, import_fs49.appendFileSync)(filePath, `${JSON.stringify(validated)}
+    (0, import_fs52.mkdirSync)(extensionsDir(workspace), { recursive: true });
+    (0, import_fs52.appendFileSync)(filePath, `${JSON.stringify(validated)}
 `, "utf8");
   } catch (cause) {
     throw ioError("append extension record to", filePath, cause);
   }
 }
 function installedVersions(state, id) {
-  return state.installed.filter((record4) => record4.id === id).sort((a2, b) => {
+  return state.installed.filter((record5) => record5.id === id).sort((a2, b) => {
     const left = parseSemver2(a2.version);
     const right = parseSemver2(b.version);
     if (left === void 0 || right === void 0) {
@@ -67257,11 +69600,11 @@ function resolveInstalled(state, id, version2) {
     );
   }
   if (version2 !== void 0) {
-    const match = versions.find((record4) => record4.version === version2);
+    const match = versions.find((record5) => record5.version === version2);
     if (match === void 0) {
       throw new ExtensionError(
         "SBE014",
-        `extension "${id}" version ${version2} is not installed (installed: ${versions.map((record4) => record4.version).join(", ")}).`,
+        `extension "${id}" version ${version2} is not installed (installed: ${versions.map((record5) => record5.version).join(", ")}).`,
         "Pass one of the installed versions or install the requested version.",
         { extensionId: id, version: version2 }
       );
@@ -67270,7 +69613,7 @@ function resolveInstalled(state, id, version2) {
   }
   const enabledVersion = state.enabled[id]?.version;
   if (enabledVersion !== void 0) {
-    const enabledRecord = versions.find((record4) => record4.version === enabledVersion);
+    const enabledRecord = versions.find((record5) => record5.version === enabledVersion);
     if (enabledRecord !== void 0) {
       return enabledRecord;
     }
@@ -67294,8 +69637,8 @@ function isEnabled(state, id, version2) {
 }
 function describeEnablement(workspace, id, version2) {
   const { state } = readExtensionState(workspace);
-  const record4 = resolveInstalled(state, id, version2);
-  const dir = installedVersionDir(workspace, record4.id, record4.version);
+  const record5 = resolveInstalled(state, id, version2);
+  const dir = installedVersionDir(workspace, record5.id, record5.version);
   const files = readExtensionPackageDirectory(dir);
   const validation = loadExtensionPackage(files);
   const errors = validation.issues.filter((issue4) => issue4.severity === "error");
@@ -67303,22 +69646,22 @@ function describeEnablement(workspace, id, version2) {
     const first = errors[0];
     throw new ExtensionError(
       "SBE008",
-      `installed extension "${record4.id}@${record4.version}" failed integrity validation${first === void 0 ? "" : `: [${first.code}] ${first.message}`}.`,
+      `installed extension "${record5.id}@${record5.version}" failed integrity validation${first === void 0 ? "" : `: [${first.code}] ${first.message}`}.`,
       "Uninstall and reinstall the extension from a trusted source.",
-      { extensionId: record4.id, version: record4.version }
+      { extensionId: record5.id, version: record5.version }
     );
   }
   const { grants } = readPermissionGrants(workspace);
-  const grant = grants.grants[record4.id];
+  const grant = grants.grants[record5.id];
   const grantStatus = grant === void 0 ? "none" : grant.permissionHash === validation.permissionHash ? "current" : "stale";
   return {
-    record: record4,
+    record: record5,
     manifest: validation.manifest,
     permissions: validation.manifest.permissions,
     permissionLines: describePermissions(validation.manifest.permissions),
     permissionHash: validation.permissionHash,
     manifestSha256: validation.manifestSha256,
-    enabled: isEnabled(state, record4.id, record4.version),
+    enabled: isEnabled(state, record5.id, record5.version),
     grantStatus
   };
 }
@@ -67401,7 +69744,7 @@ function requireEnabledExtension(workspace, id) {
   const { state } = readExtensionState(workspace);
   const enabled = state.enabled[id];
   if (enabled === void 0) {
-    const installed = state.installed.some((record4) => record4.id === id);
+    const installed = state.installed.some((record5) => record5.id === id);
     if (!installed) {
       throw new ExtensionError(
         "SBE001",
@@ -67463,9 +69806,9 @@ function resolveEntrypoint(installedDir, entrypoint) {
   if (problem !== void 0) {
     throw new ExtensionError("SBE012", `entrypoint "${entrypoint}": ${problem}.`, "Fix the extension manifest.");
   }
-  const resolved = import_path57.default.join(installedDir, ...entrypoint.split("/"));
-  const relative = import_path57.default.relative(installedDir, resolved);
-  if (relative.startsWith("..") || import_path57.default.isAbsolute(relative)) {
+  const resolved = import_path60.default.join(installedDir, ...entrypoint.split("/"));
+  const relative = import_path60.default.relative(installedDir, resolved);
+  if (relative.startsWith("..") || import_path60.default.isAbsolute(relative)) {
     throw new ExtensionError(
       "SBE012",
       `entrypoint "${entrypoint}" escapes the installed extension directory.`,
@@ -67473,9 +69816,9 @@ function resolveEntrypoint(installedDir, entrypoint) {
     );
   }
   let current = installedDir;
-  for (const segment of relative.split(import_path57.default.sep)) {
-    current = import_path57.default.join(current, segment);
-    const stat = (0, import_fs50.lstatSync)(current, { throwIfNoEntry: false });
+  for (const segment of relative.split(import_path60.default.sep)) {
+    current = import_path60.default.join(current, segment);
+    const stat = (0, import_fs53.lstatSync)(current, { throwIfNoEntry: false });
     if (stat === void 0) {
       throw new ExtensionError(
         "SBE012",
@@ -67491,7 +69834,7 @@ function resolveEntrypoint(installedDir, entrypoint) {
       );
     }
   }
-  const finalStat = (0, import_fs50.lstatSync)(resolved, { throwIfNoEntry: false });
+  const finalStat = (0, import_fs53.lstatSync)(resolved, { throwIfNoEntry: false });
   if (finalStat === void 0 || !finalStat.isFile()) {
     throw new ExtensionError(
       "SBE012",
@@ -68070,16 +70413,16 @@ async function runAnalyzerExtension(workspace, extensionId, input, options = {})
     durationMs: outcome.durationMs
   };
 }
-function compatibilityOf(workspace, record4, specbridgeVersion) {
+function compatibilityOf(workspace, record5, specbridgeVersion) {
   try {
-    const manifestPath = import_path58.default.join(
-      installedVersionDir(workspace, record4.id, record4.version),
+    const manifestPath = import_path61.default.join(
+      installedVersionDir(workspace, record5.id, record5.version),
       EXTENSION_MANIFEST_FILE_NAME
     );
-    if (!(0, import_fs51.existsSync)(manifestPath)) {
+    if (!(0, import_fs54.existsSync)(manifestPath)) {
       return { compatibility: "unknown", deprecated: false };
     }
-    const parsed = parseExtensionManifest((0, import_fs51.readFileSync)(manifestPath, "utf8"));
+    const parsed = parseExtensionManifest((0, import_fs54.readFileSync)(manifestPath, "utf8"));
     if (parsed.manifest === void 0) {
       return { compatibility: "unknown", deprecated: false };
     }
@@ -68096,22 +70439,22 @@ function listInstalledExtensions(workspace, options = {}) {
   const stateResult = readExtensionState(workspace);
   const grantsResult = readPermissionGrants(workspace);
   const diagnostics = [...stateResult.diagnostics, ...grantsResult.diagnostics];
-  const entries = stateResult.state.installed.map((record4) => {
-    const grant = grantsResult.grants.grants[record4.id];
-    const { compatibility, deprecated } = compatibilityOf(workspace, record4, specbridgeVersion);
+  const entries = stateResult.state.installed.map((record5) => {
+    const grant = grantsResult.grants.grants[record5.id];
+    const { compatibility, deprecated } = compatibilityOf(workspace, record5, specbridgeVersion);
     return {
-      id: record4.id,
-      version: record4.version,
-      kind: record4.kind,
-      displayName: record4.displayName,
-      description: record4.description,
-      source: record4.source,
-      installedAt: record4.installedAt,
-      enabled: isEnabled(stateResult.state, record4.id, record4.version),
-      permissionsAccepted: grant !== void 0 && grant.version === record4.version && grant.permissionHash === record4.permissionHash,
-      permissionHash: record4.permissionHash,
+      id: record5.id,
+      version: record5.version,
+      kind: record5.kind,
+      displayName: record5.displayName,
+      description: record5.description,
+      source: record5.source,
+      installedAt: record5.installedAt,
+      enabled: isEnabled(stateResult.state, record5.id, record5.version),
+      permissionsAccepted: grant !== void 0 && grant.version === record5.version && grant.permissionHash === record5.permissionHash,
+      permissionHash: record5.permissionHash,
       compatibility,
-      conformance: record4.conformanceStatus ?? "not-run",
+      conformance: record5.conformanceStatus ?? "not-run",
       deprecated
     };
   }).sort((a2, b) => a2.id.localeCompare(b.id, "en") || a2.version.localeCompare(b.version, "en"));
@@ -68358,8 +70701,8 @@ async function runExporterExtension(workspace, extensionId, input, options = {})
   };
 }
 function validateExportTargets(outputDir, files) {
-  const resolvedRoot = import_path59.default.resolve(outputDir);
-  const rootStat = (0, import_fs52.lstatSync)(resolvedRoot, { throwIfNoEntry: false });
+  const resolvedRoot = import_path62.default.resolve(outputDir);
+  const rootStat = (0, import_fs55.lstatSync)(resolvedRoot, { throwIfNoEntry: false });
   if (rootStat !== void 0 && rootStat.isSymbolicLink()) {
     throw new ExtensionError(
       "SBE011",
@@ -68378,9 +70721,9 @@ function validateExportTargets(outputDir, files) {
         "Report this to the extension author; nothing was written."
       );
     }
-    const target = import_path59.default.resolve(resolvedRoot, ...file.path.split("/"));
-    const relative = import_path59.default.relative(resolvedRoot, target);
-    if (relative.startsWith("..") || import_path59.default.isAbsolute(relative)) {
+    const target = import_path62.default.resolve(resolvedRoot, ...file.path.split("/"));
+    const relative = import_path62.default.relative(resolvedRoot, target);
+    if (relative.startsWith("..") || import_path62.default.isAbsolute(relative)) {
       throw new ExtensionError(
         "SBE030",
         `exporter output path "${file.path}" escapes the output directory.`,
@@ -68396,9 +70739,9 @@ function validateExportTargets(outputDir, files) {
     }
     seen.add(target.toLowerCase());
     let current = resolvedRoot;
-    for (const segment of relative.split(import_path59.default.sep)) {
-      current = import_path59.default.join(current, segment);
-      const stat = (0, import_fs52.lstatSync)(current, { throwIfNoEntry: false });
+    for (const segment of relative.split(import_path62.default.sep)) {
+      current = import_path62.default.join(current, segment);
+      const stat = (0, import_fs55.lstatSync)(current, { throwIfNoEntry: false });
       if (stat?.isSymbolicLink() === true) {
         throw new ExtensionError(
           "SBE011",
@@ -68407,7 +70750,7 @@ function validateExportTargets(outputDir, files) {
         );
       }
     }
-    if ((0, import_fs52.existsSync)(target)) {
+    if ((0, import_fs55.existsSync)(target)) {
       throw new ExtensionError(
         "SBE030",
         `export target "${file.path}" already exists in the output directory.`,
@@ -68427,7 +70770,7 @@ function writeExportFiles(workspace, extensionId, extensionVersion, specName, ou
     if (target === void 0 || file === void 0) {
       continue;
     }
-    (0, import_fs52.mkdirSync)(import_path59.default.dirname(target.target), { recursive: true });
+    (0, import_fs55.mkdirSync)(import_path62.default.dirname(target.target), { recursive: true });
     writeFileAtomic(target.target, file.content);
     written.push(target.relative);
   }
@@ -68489,7 +70832,7 @@ function installExtensionPackage(files, options, archiveSha256) {
   const workspace = options.workspace;
   const { state } = readExtensionState(workspace);
   const alreadyInstalled = state.installed.some(
-    (record4) => record4.id === manifest.id && record4.version === manifest.version
+    (record5) => record5.id === manifest.id && record5.version === manifest.version
   );
   if (alreadyInstalled) {
     throw new ExtensionError(
@@ -68514,19 +70857,19 @@ function installExtensionPackage(files, options, archiveSha256) {
     return { ...base, dryRun: true };
   }
   const recordId = newExtensionRecordId(clock);
-  const stagingDir = import_path60.default.join(extensionsDir(workspace), `tmp-install-${recordId}`);
+  const stagingDir = import_path63.default.join(extensionsDir(workspace), `tmp-install-${recordId}`);
   assertInsideWorkspace(workspace.rootDir, stagingDir);
   try {
     for (const [name, content] of files) {
-      const target = import_path60.default.join(stagingDir, ...name.split("/"));
+      const target = import_path63.default.join(stagingDir, ...name.split("/"));
       assertInsideWorkspace(workspace.rootDir, target);
-      (0, import_fs53.mkdirSync)(import_path60.default.dirname(target), { recursive: true });
+      (0, import_fs56.mkdirSync)(import_path63.default.dirname(target), { recursive: true });
       writeFileAtomic(target, content);
     }
-    (0, import_fs53.mkdirSync)(import_path60.default.dirname(targetDir), { recursive: true });
-    (0, import_fs53.renameSync)(stagingDir, targetDir);
+    (0, import_fs56.mkdirSync)(import_path63.default.dirname(targetDir), { recursive: true });
+    (0, import_fs56.renameSync)(stagingDir, targetDir);
   } catch (cause) {
-    (0, import_fs53.rmSync)(stagingDir, { recursive: true, force: true });
+    (0, import_fs56.rmSync)(stagingDir, { recursive: true, force: true });
     if (cause instanceof ExtensionError) {
       throw cause;
     }
@@ -68579,7 +70922,7 @@ function installExtensionPackage(files, options, archiveSha256) {
       }
     });
   } catch (cause) {
-    (0, import_fs53.rmSync)(targetDir, { recursive: true, force: true });
+    (0, import_fs56.rmSync)(targetDir, { recursive: true, force: true });
     if (cause instanceof ExtensionError) {
       throw cause;
     }
@@ -68634,8 +70977,8 @@ function buildExtensionArchive(sourceDir, options = {}) {
   const manifest = validation.manifest;
   const archive = createDeterministicZip(runtimeFiles);
   const archiveSha256 = sha256HexOf(archive);
-  const outputDir = options.outputDir ?? import_path61.default.join(sourceDir, "dist");
-  const archivePath = import_path61.default.join(
+  const outputDir = options.outputDir ?? import_path64.default.join(sourceDir, "dist");
+  const archivePath = import_path64.default.join(
     outputDir,
     `${manifest.id}-${manifest.version}${EXTENSION_ARCHIVE_SUFFIX}`
   );
@@ -68649,7 +70992,7 @@ function buildExtensionArchive(sourceDir, options = {}) {
     );
   }
   if (options.dryRun !== true) {
-    (0, import_fs54.mkdirSync)(outputDir, { recursive: true });
+    (0, import_fs57.mkdirSync)(outputDir, { recursive: true });
     writeFileAtomic(archivePath, archive);
   }
   return {
@@ -69447,7 +71790,7 @@ function scaffoldExtension(options) {
     );
   }
   const outputDir = options.outputDir;
-  if ((0, import_fs55.existsSync)(outputDir) && (0, import_fs55.readdirSync)(outputDir).length > 0) {
+  if ((0, import_fs58.existsSync)(outputDir) && (0, import_fs58.readdirSync)(outputDir).length > 0) {
     throw new ExtensionError(
       "SBE030",
       `output directory "${outputDir}" already exists and is not empty.`,
@@ -69507,8 +71850,8 @@ function scaffoldExtension(options) {
     };
   }
   for (const [name, content] of files) {
-    const target = import_path62.default.join(outputDir, ...name.split("/"));
-    (0, import_fs55.mkdirSync)(import_path62.default.dirname(target), { recursive: true });
+    const target = import_path65.default.join(outputDir, ...name.split("/"));
+    (0, import_fs58.mkdirSync)(import_path65.default.dirname(target), { recursive: true });
     writeFileAtomic(target, content);
   }
   return {
@@ -69527,10 +71870,10 @@ function collectExtensionTemplatePacks(workspace) {
   const diagnostics = [...stateDiagnostics];
   const packs = [];
   for (const id of Object.keys(state.enabled).sort((a2, b) => a2.localeCompare(b, "en"))) {
-    const record4 = state.installed.find(
+    const record5 = state.installed.find(
       (candidate) => candidate.id === id && candidate.version === state.enabled[id]?.version
     );
-    if (record4 === void 0 || record4.kind !== "template-provider") {
+    if (record5 === void 0 || record5.kind !== "template-provider") {
       continue;
     }
     try {
@@ -69595,8 +71938,8 @@ function uninstallExtension(options) {
     }
     version2 = versions[0]?.version ?? "";
   }
-  const record4 = versions.find((candidate) => candidate.version === version2);
-  if (record4 === void 0) {
+  const record5 = versions.find((candidate) => candidate.version === version2);
+  if (record5 === void 0) {
     throw new ExtensionError(
       "SBE014",
       `extension "${options.id}" version ${version2} is not installed.`,
@@ -69621,7 +71964,7 @@ function uninstallExtension(options) {
     );
   }
   const installedDir = installedVersionDir(workspace, options.id, version2);
-  const stat = (0, import_fs56.lstatSync)(installedDir, { throwIfNoEntry: false });
+  const stat = (0, import_fs59.lstatSync)(installedDir, { throwIfNoEntry: false });
   if (stat !== void 0 && stat.isSymbolicLink()) {
     throw new ExtensionError(
       "SBE011",
@@ -69635,11 +71978,11 @@ function uninstallExtension(options) {
   const recordId = newExtensionRecordId(clock);
   let trashPath;
   if (stat !== void 0) {
-    const trashDir = import_path63.default.join(extensionsDir(workspace), "trash");
-    trashPath = import_path63.default.join(trashDir, `${options.id}-${version2}-${recordId}`);
+    const trashDir = import_path66.default.join(extensionsDir(workspace), "trash");
+    trashPath = import_path66.default.join(trashDir, `${options.id}-${version2}-${recordId}`);
     assertInsideWorkspace(workspace.rootDir, trashPath);
-    (0, import_fs56.mkdirSync)(trashDir, { recursive: true });
-    (0, import_fs56.renameSync)(installedDir, trashPath);
+    (0, import_fs59.mkdirSync)(trashDir, { recursive: true });
+    (0, import_fs59.renameSync)(installedDir, trashPath);
   }
   writeExtensionState(workspace, {
     ...state,
@@ -69753,11 +72096,11 @@ function createExtensionVerifierHook(workspace, options = {}) {
 }
 
 // ../../packages/registry/dist/index.js
-var import_fs57 = require("fs");
-var import_path64 = __toESM(require("path"), 1);
+var import_fs60 = require("fs");
+var import_path67 = __toESM(require("path"), 1);
 var import_crypto18 = require("crypto");
-var import_fs58 = require("fs");
-var import_path65 = __toESM(require("path"), 1);
+var import_fs61 = require("fs");
+var import_path68 = __toESM(require("path"), 1);
 var BUILTIN_REGISTRY_INDEX_JSON = '{\n  "schemaVersion": "1.0.0",\n  "name": "specbridge-examples",\n  "updatedAt": "2026-01-01T00:00:00.000Z",\n  "extensions": [\n    {\n      "id": "example-analyzer",\n      "displayName": "example-analyzer",\n      "description": "Deterministic spec diagnostics contributed by the example-analyzer analyzer extension.",\n      "kind": "analyzer",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-analyzer-1.0.0.specbridge-extension.zip",\n          "sha256": "e6e0948a315b09e53bd18997dce21888af9adbb3997fbf82955399dcf3252a19",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "analyzer",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-exporter",\n      "displayName": "example-exporter",\n      "description": "Candidate export files produced by the example-exporter exporter extension.",\n      "kind": "exporter",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-exporter-1.0.0.specbridge-extension.zip",\n          "sha256": "68f42755a4e56d0e318012ec8c0e3b093e44429182ca93b02d9fb4ce2ec308a3",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "exporter",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-runner",\n      "displayName": "example-runner",\n      "description": "An out-of-process runner adapter provided by the example-runner extension.",\n      "kind": "runner",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-runner-1.0.0.specbridge-extension.zip",\n          "sha256": "5ef3db937d872bfe09495695e9ecb0a3cf3beaf9e006fabdc2972ef55ace80ef",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": true,\n              "repositoryWrite": true,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "runner",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-template-provider",\n      "displayName": "example-template-provider",\n      "description": "Spec template packs contributed by the example-template-provider template-provider extension.",\n      "kind": "template-provider",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-template-provider-1.0.0.specbridge-extension.zip",\n          "sha256": "f7caa11a13473f0891cc8d237ec4f9f2962a2dd1bd2baba4e9d01570de29044b",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": false,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "template-provider",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-verifier",\n      "displayName": "example-verifier",\n      "description": "Verification diagnostics contributed by the example-verifier verifier extension.",\n      "kind": "verifier",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-verifier-1.0.0.specbridge-extension.zip",\n          "sha256": "d531c9078fcbeef6573a95773eefafd409d798bac1223c83748e0229ae0225bf",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "verifier",\n        "specbridge-extension"\n      ]\n    }\n  ]\n}\n';
 var REGISTRY_ERROR_CODES = {
   SBR001: "registry not found",
@@ -69914,20 +72257,20 @@ var cachedRegistrySchema = external_exports.object({
   index: registryIndexSchema
 }).passthrough();
 function registryCacheDir(workspace) {
-  return import_path64.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
+  return import_path67.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
 }
 function registryCachePath(workspace, name) {
-  const target = import_path64.default.join(registryCacheDir(workspace), `${name}.json`);
+  const target = import_path67.default.join(registryCacheDir(workspace), `${name}.json`);
   assertInsideWorkspace(workspace.rootDir, target);
   return target;
 }
 function readRegistryCache(workspace, name) {
   const filePath = registryCachePath(workspace, name);
-  if (!(0, import_fs57.existsSync)(filePath)) {
+  if (!(0, import_fs60.existsSync)(filePath)) {
     return { diagnostics: [] };
   }
   try {
-    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs57.readFileSync)(filePath, "utf8")));
+    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs60.readFileSync)(filePath, "utf8")));
     if (!parsed.success) {
       return {
         diagnostics: [
@@ -69980,9 +72323,9 @@ function resolveRegistryIndex(workspace, source) {
     return { sourceName: source.name, index: parsed.index, origin: "builtin", diagnostics: [] };
   }
   if (source.type === "local-file") {
-    const filePath = import_path64.default.resolve(workspace.rootDir, source.file);
+    const filePath = import_path67.default.resolve(workspace.rootDir, source.file);
     assertInsideWorkspace(workspace.rootDir, filePath);
-    if (!(0, import_fs57.existsSync)(filePath)) {
+    if (!(0, import_fs60.existsSync)(filePath)) {
       return {
         sourceName: source.name,
         index: { schemaVersion: "1.0.0", name: source.name, updatedAt: "unknown", extensions: [] },
@@ -69997,7 +72340,7 @@ function resolveRegistryIndex(workspace, source) {
         ]
       };
     }
-    const text7 = (0, import_fs57.readFileSync)(filePath, "utf8");
+    const text7 = (0, import_fs60.readFileSync)(filePath, "utf8");
     const parsed = parseRegistryIndex(text7);
     if (parsed.index === void 0) {
       throw new RegistryError(
@@ -70240,7 +72583,7 @@ var registriesConfigSchema = external_exports.object({
   registries: external_exports.array(registrySourceSchema).max(20)
 }).passthrough();
 function registriesConfigPath(workspace) {
-  return import_path65.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
+  return import_path68.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
 }
 function defaultRegistriesConfig() {
   return {
@@ -70250,12 +72593,12 @@ function defaultRegistriesConfig() {
 }
 function readRegistriesConfig(workspace) {
   const filePath = registriesConfigPath(workspace);
-  if (!(0, import_fs58.existsSync)(filePath)) {
+  if (!(0, import_fs61.existsSync)(filePath)) {
     return { config: defaultRegistriesConfig(), diagnostics: [], exists: false };
   }
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs58.readFileSync)(filePath, "utf8"));
+    parsed = JSON.parse((0, import_fs61.readFileSync)(filePath, "utf8"));
   } catch (cause) {
     return {
       config: defaultRegistriesConfig(),
@@ -70746,8 +73089,8 @@ function collectExtensionFindings(workspace) {
       );
     }
   }
-  for (const record4 of stateRead.state.installed) {
-    const dir = import_node_path7.default.join(installedRootDir(workspace), record4.id, record4.version);
+  for (const record5 of stateRead.state.installed) {
+    const dir = import_node_path7.default.join(installedRootDir(workspace), record5.id, record5.version);
     let isDir = false;
     try {
       isDir = (0, import_node_fs6.statSync)(dir).isDirectory();
@@ -70763,7 +73106,7 @@ function collectExtensionFindings(workspace) {
           null,
           EXTENSION_STATE_SCHEMA_VERSION,
           [
-            `state.json records ${record4.id}@${record4.version} as installed, but its package directory is missing. Reinstall it or remove the entry with "${CLI_BIN} extension uninstall ${record4.id}".`
+            `state.json records ${record5.id}@${record5.version} as installed, but its package directory is missing. Reinstall it or remove the entry with "${CLI_BIN} extension uninstall ${record5.id}".`
           ]
         )
       );
@@ -70783,7 +73126,7 @@ function collectExtensionFindings(workspace) {
       const mismatches = [];
       for (const [id, grant] of Object.entries(grantsRead.grants.grants)) {
         const installed = stateRead.state.installed.find(
-          (record4) => record4.id === id && record4.version === grant.version
+          (record5) => record5.id === id && record5.version === grant.version
         );
         if (installed === void 0) continue;
         const dir = import_node_path7.default.join(installedRootDir(workspace), id, grant.version);
@@ -73818,9 +76161,9 @@ function collectProposalSources(runtime, specName) {
     for (const entry of (0, import_node_fs10.readdirSync)(evidenceDir, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
       const { records } = listTaskEvidence(workspace, specName, entry.name);
-      for (const record4 of records) {
-        if (record4.status !== "verified" && record4.status !== "manually-accepted") continue;
-        for (const file of record4.changedFiles) {
+      for (const record5 of records) {
+        if (record5.status !== "verified" && record5.status !== "manually-accepted") continue;
+        for (const file of record5.changedFiles) {
           paths.push(file.path);
           evidencePathCount += 1;
         }
@@ -74685,7 +77028,7 @@ Example:
       { line: task.line, rawLineText: task.rawLineText },
       clock
     );
-    const record4 = {
+    const record5 = {
       schemaVersion: EVIDENCE_SCHEMA_VERSION,
       runId: evidenceRunId,
       specName: folder.name,
@@ -74713,7 +77056,7 @@ Example:
       },
       specContext: buildEvidenceSpecContext(workspace, folder.name, spec2.state, task)
     };
-    const evidencePath = writeTaskEvidence(workspace, record4);
+    const evidencePath = writeTaskEvidence(workspace, record5);
     if (options.json === true) {
       runtime.outRaw(
         serializeJsonReport(
@@ -76398,15 +78741,15 @@ Examples:
       runtime.out(dim2(`  Runs are created by: ${CLI_BIN} spec generate/refine/run`));
       return;
     }
-    const rows = runs.map((record4) => [
-      record4.runId.slice(0, 12),
-      record4.kind,
-      record4.specName,
-      record4.taskId ?? record4.stage ?? "\u2014",
-      record4.runner,
-      record4.createdAt,
-      shortDuration(record4.durationMs),
-      record4.evidenceStatus ?? record4.outcome ?? "(in progress)"
+    const rows = runs.map((record5) => [
+      record5.runId.slice(0, 12),
+      record5.kind,
+      record5.specName,
+      record5.taskId ?? record5.stage ?? "\u2014",
+      record5.runner,
+      record5.createdAt,
+      shortDuration(record5.durationMs),
+      record5.evidenceStatus ?? record5.outcome ?? "(in progress)"
     ]);
     for (const line of renderColumns([
       ["RUN", "KIND", "SPEC", "TARGET", "RUNNER", "STARTED", "TIME", "RESULT"],
@@ -76431,39 +78774,39 @@ Examples:
   ${CLI_BIN} run show <run-id> --verbose`
   ).action((runId, options) => {
     const workspace = runtime.workspace();
-    const record4 = resolveRun(workspace, runId);
-    const evidence = readRunArtifactJson(workspace, record4.runId, "evidence.json");
-    const verification = readRunArtifactJson(workspace, record4.runId, "verification.json");
-    const runnerResult = readRunArtifactJson(workspace, record4.runId, "runner-result.json");
+    const record5 = resolveRun(workspace, runId);
+    const evidence = readRunArtifactJson(workspace, record5.runId, "evidence.json");
+    const verification = readRunArtifactJson(workspace, record5.runId, "verification.json");
+    const runnerResult = readRunArtifactJson(workspace, record5.runId, "runner-result.json");
     if (options.json === true) {
       runtime.outRaw(
         serializeJsonReport(
           createJsonReport("specbridge.run-show/1", `${CLI_BIN} ${VERSION}`, {
-            run: record4,
+            run: record5,
             evidence: evidence ?? null,
             verification: verification ?? null,
             runnerResult: runnerResult ?? null,
-            artifactsDir: runDir(workspace, record4.runId)
+            artifactsDir: runDir(workspace, record5.runId)
           })
         )
       );
       return;
     }
-    runtime.out(reportTitle(`Run ${record4.runId}`));
+    runtime.out(reportTitle(`Run ${record5.runId}`));
     runtime.out();
     const rows = [
-      ["Kind", record4.kind],
-      ["Spec", record4.specName],
-      ["Target", record4.taskId ?? record4.stage ?? "\u2014"],
-      ["Runner", record4.runner],
-      ["Started", record4.createdAt],
-      ["Finished", record4.finishedAt ?? "(in progress or aborted)"],
-      ["Duration", shortDuration(record4.durationMs)],
-      ["Outcome", String(record4.outcome ?? "\u2014")],
-      ["Evidence", String(record4.evidenceStatus ?? "\u2014")],
-      ["Session", record4.sessionId ?? "\u2014"],
-      ["Resumable", record4.resumeSupported ? "yes" : "no"],
-      ["Parent run", record4.parentRunId ?? "\u2014"]
+      ["Kind", record5.kind],
+      ["Spec", record5.specName],
+      ["Target", record5.taskId ?? record5.stage ?? "\u2014"],
+      ["Runner", record5.runner],
+      ["Started", record5.createdAt],
+      ["Finished", record5.finishedAt ?? "(in progress or aborted)"],
+      ["Duration", shortDuration(record5.durationMs)],
+      ["Outcome", String(record5.outcome ?? "\u2014")],
+      ["Evidence", String(record5.evidenceStatus ?? "\u2014")],
+      ["Session", record5.sessionId ?? "\u2014"],
+      ["Resumable", record5.resumeSupported ? "yes" : "no"],
+      ["Parent run", record5.parentRunId ?? "\u2014"]
     ];
     for (const line of renderColumns(rows)) runtime.out(line);
     runtime.out();
@@ -76495,26 +78838,26 @@ Examples:
       }
       runtime.out();
     }
-    if (record4.warnings.length > 0) {
+    if (record5.warnings.length > 0) {
       runtime.out(sectionTitle("Warnings"));
-      for (const warning2 of record4.warnings) runtime.out(warnLine(warning2));
+      for (const warning2 of record5.warnings) runtime.out(warnLine(warning2));
       runtime.out();
     }
     if (options.verbose === true) {
-      const prompt = readRunArtifactText(workspace, record4.runId, "prompt.md");
+      const prompt = readRunArtifactText(workspace, record5.runId, "prompt.md");
       if (prompt !== void 0) {
         runtime.out(sectionTitle("Prompt"));
         runtime.outRaw(`${prompt}
 `);
       }
-      const stdout = readRunArtifactText(workspace, record4.runId, "raw-stdout.log");
+      const stdout = readRunArtifactText(workspace, record5.runId, "raw-stdout.log");
       if (stdout !== void 0) {
         runtime.out(sectionTitle("Raw stdout"));
         runtime.outRaw(`${stdout}
 `);
       }
     }
-    runtime.out(dim2(`  Artifacts: ${relPath(workspace, runDir(workspace, record4.runId))}`));
+    runtime.out(dim2(`  Artifacts: ${relPath(workspace, runDir(workspace, record5.runId))}`));
   });
   run.command("resume <run-id>").description("Resume an interrupted or unverified task run in its original agent session").option("--timeout <duration>", "runner timeout (e.g. 90s, 30m)").option("--dry-run", "print the resume plan and prompt; invoke nothing").option("--no-verify", "skip verification commands after the resumed run").option("--json", "output a machine-readable JSON report").addHelpText(
     "after",
@@ -76533,7 +78876,7 @@ Examples:
   ${CLI_BIN} run resume <run-id> --dry-run`
   ).action(async (runId, options) => {
     const context = loadExecutionContext(runtime);
-    const record4 = resolveRun(context.workspace, runId);
+    const record5 = resolveRun(context.workspace, runId);
     const outcome = await resumeRun(
       {
         workspace: context.workspace,
@@ -76545,7 +78888,7 @@ Examples:
         }
       },
       {
-        runId: record4.runId,
+        runId: record5.runId,
         ...options.timeout !== void 0 ? { timeoutMs: parseTimeout(options.timeout) } : {},
         ...options.verify === false ? { noVerify: true } : {},
         ...options.dryRun === true ? { dryRun: true } : {}
@@ -76568,7 +78911,7 @@ Examples:
       runtime.outRaw(
         serializeJsonReport(
           createJsonReport("specbridge.run-resume/1", `${CLI_BIN} ${VERSION}`, {
-            runId: record4.runId,
+            runId: record5.runId,
             ...data
           })
         )
@@ -76632,8 +78975,8 @@ Examples:
       removed = result.removed;
       const runId = result.diagnosis.lock?.runId;
       if (removed && runId !== void 0) {
-        const record4 = readRunRecord(workspace, runId);
-        if (record4 !== void 0 && record4.lifecycleStatus === "AWAITING_AGENT_CHANGES") {
+        const record5 = readRunRecord(workspace, runId);
+        if (record5 !== void 0 && record5.lifecycleStatus === "AWAITING_AGENT_CHANGES") {
           updateRunRecord(workspace, runId, {
             lifecycleStatus: "ABORTED",
             abortReason: 'stale lock removed via "specbridge run recover-lock --remove"',
@@ -76703,7 +79046,7 @@ function resolveRun(workspace, runId) {
   const exact = readRunRecord(workspace, runId);
   if (exact !== void 0) return exact;
   const { runs } = listRuns(workspace);
-  const matches = runs.filter((record4) => record4.runId.startsWith(runId));
+  const matches = runs.filter((record5) => record5.runId.startsWith(runId));
   if (matches.length === 1) return matches[0];
   if (matches.length > 1) {
     throw new SpecBridgeError(
@@ -76807,10 +79150,10 @@ Examples:
 
 // ../../packages/mcp-server/dist/chunk-JYVBX4T7.js
 var import_buffer5 = require("buffer");
-var import_fs59 = require("fs");
-var import_path66 = __toESM(require("path"), 1);
+var import_fs62 = require("fs");
+var import_path69 = __toESM(require("path"), 1);
 var import_crypto19 = require("crypto");
-var import_path67 = __toESM(require("path"), 1);
+var import_path70 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/core.js
 var NEVER2 = Object.freeze({
@@ -81247,7 +83590,7 @@ var ZodRecord2 = /* @__PURE__ */ $constructor("ZodRecord", (inst, def) => {
   inst.keyType = def.keyType;
   inst.valueType = def.valueType;
 });
-function record3(keyType, valueType, params) {
+function record4(keyType, valueType, params) {
   return new ZodRecord2({
     type: "record",
     keyType,
@@ -81717,7 +84060,7 @@ var ImplementationSchema = BaseMetadataSchema.extend({
 });
 var FormElicitationCapabilitySchema = intersection(object2({
   applyDefaults: boolean2().optional()
-}), record3(string2(), unknown()));
+}), record4(string2(), unknown()));
 var ElicitationCapabilitySchema = preprocess((value) => {
   if (value && typeof value === "object" && !Array.isArray(value)) {
     if (Object.keys(value).length === 0) {
@@ -81728,7 +84071,7 @@ var ElicitationCapabilitySchema = preprocess((value) => {
 }, intersection(object2({
   form: FormElicitationCapabilitySchema.optional(),
   url: AssertObjectSchema.optional()
-}), record3(string2(), unknown()).optional()));
+}), record4(string2(), unknown()).optional()));
 var ClientTasksCapabilitySchema = looseObject({
   /**
    * Present if the client supports listing tasks.
@@ -81781,7 +84124,7 @@ var ClientCapabilitiesSchema = object2({
   /**
    * Experimental, non-standard capabilities that the client supports.
    */
-  experimental: record3(string2(), AssertObjectSchema).optional(),
+  experimental: record4(string2(), AssertObjectSchema).optional(),
   /**
    * Present if the client supports sampling from an LLM.
    */
@@ -81816,7 +84159,7 @@ var ClientCapabilitiesSchema = object2({
   /**
    * Extensions that the client supports. Keys are extension identifiers (vendor-prefix/extension-name).
    */
-  extensions: record3(string2(), AssertObjectSchema).optional()
+  extensions: record4(string2(), AssertObjectSchema).optional()
 });
 var InitializeRequestParamsSchema = BaseRequestParamsSchema.extend({
   /**
@@ -81834,7 +84177,7 @@ var ServerCapabilitiesSchema = object2({
   /**
    * Experimental, non-standard capabilities that the server supports.
    */
-  experimental: record3(string2(), AssertObjectSchema).optional(),
+  experimental: record4(string2(), AssertObjectSchema).optional(),
   /**
    * Present if the server supports sending log messages to the client.
    */
@@ -81881,7 +84224,7 @@ var ServerCapabilitiesSchema = object2({
   /**
    * Extensions that the server supports. Keys are extension identifiers (vendor-prefix/extension-name).
    */
-  extensions: record3(string2(), AssertObjectSchema).optional()
+  extensions: record4(string2(), AssertObjectSchema).optional()
 });
 var InitializeResultSchema = ResultSchema.extend({
   /**
@@ -82019,7 +84362,7 @@ var ResourceContentsSchema = object2({
    * See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
    * for notes on _meta usage.
    */
-  _meta: record3(string2(), unknown()).optional()
+  _meta: record4(string2(), unknown()).optional()
 });
 var TextResourceContentsSchema = ResourceContentsSchema.extend({
   /**
@@ -82213,7 +84556,7 @@ var GetPromptRequestParamsSchema = BaseRequestParamsSchema.extend({
   /**
    * Arguments to use for templating the prompt.
    */
-  arguments: record3(string2(), string2()).optional()
+  arguments: record4(string2(), string2()).optional()
 });
 var GetPromptRequestSchema = RequestSchema.extend({
   method: literal("prompts/get"),
@@ -82233,7 +84576,7 @@ var TextContentSchema = object2({
    * See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
    * for notes on _meta usage.
    */
-  _meta: record3(string2(), unknown()).optional()
+  _meta: record4(string2(), unknown()).optional()
 });
 var ImageContentSchema = object2({
   type: literal("image"),
@@ -82253,7 +84596,7 @@ var ImageContentSchema = object2({
    * See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
    * for notes on _meta usage.
    */
-  _meta: record3(string2(), unknown()).optional()
+  _meta: record4(string2(), unknown()).optional()
 });
 var AudioContentSchema = object2({
   type: literal("audio"),
@@ -82273,7 +84616,7 @@ var AudioContentSchema = object2({
    * See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
    * for notes on _meta usage.
    */
-  _meta: record3(string2(), unknown()).optional()
+  _meta: record4(string2(), unknown()).optional()
 });
 var ToolUseContentSchema = object2({
   type: literal("tool_use"),
@@ -82291,12 +84634,12 @@ var ToolUseContentSchema = object2({
    * Arguments to pass to the tool.
    * Must conform to the tool's inputSchema.
    */
-  input: record3(string2(), unknown()),
+  input: record4(string2(), unknown()),
   /**
    * See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
    * for notes on _meta usage.
    */
-  _meta: record3(string2(), unknown()).optional()
+  _meta: record4(string2(), unknown()).optional()
 });
 var EmbeddedResourceSchema = object2({
   type: literal("resource"),
@@ -82309,7 +84652,7 @@ var EmbeddedResourceSchema = object2({
    * See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
    * for notes on _meta usage.
    */
-  _meta: record3(string2(), unknown()).optional()
+  _meta: record4(string2(), unknown()).optional()
 });
 var ResourceLinkSchema = ResourceSchema.extend({
   type: literal("resource_link")
@@ -82399,7 +84742,7 @@ var ToolSchema = object2({
    */
   inputSchema: object2({
     type: literal("object"),
-    properties: record3(string2(), AssertObjectSchema).optional(),
+    properties: record4(string2(), AssertObjectSchema).optional(),
     required: array(string2()).optional()
   }).catchall(unknown()),
   /**
@@ -82409,7 +84752,7 @@ var ToolSchema = object2({
    */
   outputSchema: object2({
     type: literal("object"),
-    properties: record3(string2(), AssertObjectSchema).optional(),
+    properties: record4(string2(), AssertObjectSchema).optional(),
     required: array(string2()).optional()
   }).catchall(unknown()).optional(),
   /**
@@ -82424,7 +84767,7 @@ var ToolSchema = object2({
    * See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
    * for notes on _meta usage.
    */
-  _meta: record3(string2(), unknown()).optional()
+  _meta: record4(string2(), unknown()).optional()
 });
 var ListToolsRequestSchema = PaginatedRequestSchema.extend({
   method: literal("tools/list")
@@ -82445,7 +84788,7 @@ var CallToolResultSchema = ResultSchema.extend({
    *
    * If the Tool defines an outputSchema, this field MUST be present in the result, and contain a JSON object that matches the schema.
    */
-  structuredContent: record3(string2(), unknown()).optional(),
+  structuredContent: record4(string2(), unknown()).optional(),
   /**
    * Whether the tool call ended in an error.
    *
@@ -82473,7 +84816,7 @@ var CallToolRequestParamsSchema = TaskAugmentedRequestParamsSchema.extend({
   /**
    * Arguments to pass to the tool.
    */
-  arguments: record3(string2(), unknown()).optional()
+  arguments: record4(string2(), unknown()).optional()
 });
 var CallToolRequestSchema = RequestSchema.extend({
   method: literal("tools/call"),
@@ -82575,7 +84918,7 @@ var ToolResultContentSchema = object2({
    * See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
    * for notes on _meta usage.
    */
-  _meta: record3(string2(), unknown()).optional()
+  _meta: record4(string2(), unknown()).optional()
 });
 var SamplingContentSchema = discriminatedUnion("type", [TextContentSchema, ImageContentSchema, AudioContentSchema]);
 var SamplingMessageContentBlockSchema = discriminatedUnion("type", [
@@ -82592,7 +84935,7 @@ var SamplingMessageSchema = object2({
    * See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
    * for notes on _meta usage.
    */
-  _meta: record3(string2(), unknown()).optional()
+  _meta: record4(string2(), unknown()).optional()
 });
 var CreateMessageRequestParamsSchema = TaskAugmentedRequestParamsSchema.extend({
   messages: array(SamplingMessageSchema),
@@ -82780,7 +85123,7 @@ var ElicitRequestFormParamsSchema = TaskAugmentedRequestParamsSchema.extend({
    */
   requestedSchema: object2({
     type: literal("object"),
-    properties: record3(string2(), PrimitiveSchemaDefinitionSchema),
+    properties: record4(string2(), PrimitiveSchemaDefinitionSchema),
     required: array(string2()).optional()
   })
 });
@@ -82832,7 +85175,7 @@ var ElicitResultSchema = ResultSchema.extend({
    * Per MCP spec, content is "typically omitted" for decline/cancel actions.
    * We normalize null to undefined for leniency while maintaining type compatibility.
    */
-  content: preprocess((val) => val === null ? void 0 : val, record3(string2(), union([string2(), number2(), boolean2(), array(string2())])).optional())
+  content: preprocess((val) => val === null ? void 0 : val, record4(string2(), union([string2(), number2(), boolean2(), array(string2())])).optional())
 });
 var ResourceTemplateReferenceSchema = object2({
   type: literal("ref/resource"),
@@ -82867,7 +85210,7 @@ var CompleteRequestParamsSchema = BaseRequestParamsSchema.extend({
     /**
      * Previously-resolved variables in a URI template or prompt.
      */
-    arguments: record3(string2(), string2()).optional()
+    arguments: record4(string2(), string2()).optional()
   }).optional()
 });
 var CompleteRequestSchema = RequestSchema.extend({
@@ -82915,7 +85258,7 @@ var RootSchema = object2({
    * See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
    * for notes on _meta usage.
    */
-  _meta: record3(string2(), unknown()).optional()
+  _meta: record4(string2(), unknown()).optional()
 });
 var ListRootsRequestSchema = RequestSchema.extend({
   method: literal("roots/list"),
@@ -87138,12 +89481,12 @@ var EMPTY_COMPLETION_RESULT = {
 };
 
 // ../../packages/mcp-server/dist/chunk-JYVBX4T7.js
-var import_fs60 = require("fs");
-var import_fs61 = require("fs");
-var import_path68 = __toESM(require("path"), 1);
-var import_fs62 = require("fs");
+var import_fs63 = require("fs");
+var import_fs64 = require("fs");
+var import_path71 = __toESM(require("path"), 1);
+var import_fs65 = require("fs");
 var import_os2 = __toESM(require("os"), 1);
-var import_path69 = __toESM(require("path"), 1);
+var import_path72 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 var import_node_process11 = __toESM(require("process"), 1);
@@ -87602,10 +89945,10 @@ function validateProjectRoot(value, source, cwd) {
       remediation: ["Pass a plain filesystem path as --project-root."]
     };
   }
-  const resolved = import_path66.default.resolve(cwd, value);
+  const resolved = import_path69.default.resolve(cwd, value);
   let canonical;
   try {
-    canonical = (0, import_fs59.realpathSync)(resolved);
+    canonical = (0, import_fs62.realpathSync)(resolved);
   } catch {
     return {
       ok: false,
@@ -87618,7 +89961,7 @@ function validateProjectRoot(value, source, cwd) {
   }
   let stats;
   try {
-    stats = (0, import_fs59.statSync)(canonical);
+    stats = (0, import_fs62.statSync)(canonical);
   } catch {
     return {
       ok: false,
@@ -87875,8 +90218,8 @@ var paginationShape = external_exports.object({
   nextCursor: external_exports.string().optional()
 });
 function repoRelative2(workspace, target) {
-  const relative = import_path67.default.isAbsolute(target) ? import_path67.default.relative(workspace.rootDir, target) : target;
-  const posix = relative.split(import_path67.default.sep).join("/");
+  const relative = import_path70.default.isAbsolute(target) ? import_path70.default.relative(workspace.rootDir, target) : target;
+  const posix = relative.split(import_path70.default.sep).join("/");
   return posix === "" ? "." : posix;
 }
 function toDiagnosticView(workspace, diagnostic) {
@@ -88238,24 +90581,24 @@ var runSummaryShape = external_exports.object({
   abortReason: external_exports.string().optional(),
   parentRunId: external_exports.string().optional()
 });
-function toRunSummary(record4) {
+function toRunSummary(record5) {
   return {
-    runId: record4.runId,
-    kind: record4.kind,
-    runType: runTypeForKind(record4.kind),
-    specName: record4.specName,
-    ...record4.taskId !== void 0 ? { taskId: record4.taskId } : {},
-    ...record4.stage !== void 0 ? { stage: record4.stage } : {},
-    runner: record4.runner,
-    createdAt: record4.createdAt,
-    ...record4.finishedAt !== void 0 ? { finishedAt: record4.finishedAt } : {},
-    ...record4.durationMs !== void 0 ? { durationMs: record4.durationMs } : {},
-    ...record4.outcome !== void 0 ? { outcome: record4.outcome } : {},
-    ...record4.evidenceStatus !== void 0 ? { evidenceStatus: record4.evidenceStatus } : {},
-    ...record4.lifecycleStatus !== void 0 ? { lifecycleStatus: record4.lifecycleStatus } : {},
-    ...record4.host !== void 0 ? { host: record4.host } : {},
-    ...record4.abortReason !== void 0 ? { abortReason: record4.abortReason } : {},
-    ...record4.parentRunId !== void 0 ? { parentRunId: record4.parentRunId } : {}
+    runId: record5.runId,
+    kind: record5.kind,
+    runType: runTypeForKind(record5.kind),
+    specName: record5.specName,
+    ...record5.taskId !== void 0 ? { taskId: record5.taskId } : {},
+    ...record5.stage !== void 0 ? { stage: record5.stage } : {},
+    runner: record5.runner,
+    createdAt: record5.createdAt,
+    ...record5.finishedAt !== void 0 ? { finishedAt: record5.finishedAt } : {},
+    ...record5.durationMs !== void 0 ? { durationMs: record5.durationMs } : {},
+    ...record5.outcome !== void 0 ? { outcome: record5.outcome } : {},
+    ...record5.evidenceStatus !== void 0 ? { evidenceStatus: record5.evidenceStatus } : {},
+    ...record5.lifecycleStatus !== void 0 ? { lifecycleStatus: record5.lifecycleStatus } : {},
+    ...record5.host !== void 0 ? { host: record5.host } : {},
+    ...record5.abortReason !== void 0 ? { abortReason: record5.abortReason } : {},
+    ...record5.parentRunId !== void 0 ? { parentRunId: record5.parentRunId } : {}
   };
 }
 var gitSummaryShape = external_exports.object({
@@ -88305,15 +90648,15 @@ function toGitSummary(snapshot) {
     dirtyPaths: snapshot.entries.length
   };
 }
-function buildRunDetail(workspace, record4, artifactNames) {
-  const before = readRunArtifactJson(workspace, record4.runId, "git-before.json");
-  const after = readRunArtifactJson(workspace, record4.runId, "git-after.json");
-  const evidence = readRunArtifactJson(workspace, record4.runId, "evidence.json");
-  const verification = readRunArtifactJson(workspace, record4.runId, "verification.json");
+function buildRunDetail(workspace, record5, artifactNames) {
+  const before = readRunArtifactJson(workspace, record5.runId, "git-before.json");
+  const after = readRunArtifactJson(workspace, record5.runId, "git-after.json");
+  const evidence = readRunArtifactJson(workspace, record5.runId, "evidence.json");
+  const verification = readRunArtifactJson(workspace, record5.runId, "verification.json");
   const gitBefore = toGitSummary(before);
   const gitAfter = toGitSummary(after);
   return {
-    summary: toRunSummary(record4),
+    summary: toRunSummary(record5),
     ...gitBefore !== void 0 ? { gitBefore } : {},
     ...gitAfter !== void 0 ? { gitAfter } : {},
     ...evidence !== void 0 ? {
@@ -88340,9 +90683,9 @@ function buildRunDetail(workspace, record4, artifactNames) {
         }))
       }
     } : {},
-    warnings: record4.warnings,
+    warnings: record5.warnings,
     artifacts: artifactNames,
-    artifactsDir: `.specbridge/runs/${record4.runId}`
+    artifactsDir: `.specbridge/runs/${record5.runId}`
   };
 }
 var REDACTED_ARTIFACTS = /* @__PURE__ */ new Set(["prompt.md", "raw-stdout.log", "raw-stderr.log"]);
@@ -88354,10 +90697,10 @@ function registerRunResources(server, context) {
         const workspace = context.tryWorkspace();
         if (workspace === void 0) return { resources: [] };
         return {
-          resources: listRuns(workspace).runs.slice(0, 50).map((record4) => ({
-            uri: `specbridge://runs/${encodeURIComponent(record4.runId)}`,
-            name: record4.runId,
-            description: `${record4.kind} run for spec "${record4.specName}"`,
+          resources: listRuns(workspace).runs.slice(0, 50).map((record5) => ({
+            uri: `specbridge://runs/${encodeURIComponent(record5.runId)}`,
+            name: record5.runId,
+            description: `${record5.kind} run for spec "${record5.specName}"`,
             mimeType: "application/json"
           }))
         };
@@ -88371,13 +90714,13 @@ function registerRunResources(server, context) {
     async (uri, variables) => {
       const runId = assertPlainName("run id", String(variables["runId"] ?? ""));
       const workspace = context.requireWorkspace();
-      const record4 = readRunRecord(workspace, runId);
-      if (record4 === void 0) {
+      const record5 = readRunRecord(workspace, runId);
+      if (record5 === void 0) {
         throw resourceNotFound(`Run "${runId}"`, "List runs with the run_list tool.");
       }
-      const directory = runDir(workspace, record4.runId);
-      const artifactNames = (0, import_fs60.existsSync)(directory) ? (0, import_fs60.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
-      return jsonContents(context, uri.href, buildRunDetail(workspace, record4, artifactNames));
+      const directory = runDir(workspace, record5.runId);
+      const artifactNames = (0, import_fs63.existsSync)(directory) ? (0, import_fs63.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
+      return jsonContents(context, uri.href, buildRunDetail(workspace, record5, artifactNames));
     }
   );
 }
@@ -90185,15 +92528,15 @@ function registerRunReadTool(server, context) {
     outputSchema: outputSchema18,
     handler: async (args) => {
       const workspace = context.requireWorkspace();
-      const record4 = readRunRecord(workspace, args.runId);
-      if (record4 === void 0) {
+      const record5 = readRunRecord(workspace, args.runId);
+      if (record5 === void 0) {
         throw new McpToolError("SBMCP011", `Run "${args.runId}" was not found under .specbridge/runs/.`, {
           remediation: ["List runs with the run_list tool."]
         });
       }
-      const directory = runDir(workspace, record4.runId);
-      const artifactNames = (0, import_fs61.existsSync)(directory) ? (0, import_fs61.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS2.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
-      const detail = buildRunDetail(workspace, record4, artifactNames);
+      const directory = runDir(workspace, record5.runId);
+      const artifactNames = (0, import_fs64.existsSync)(directory) ? (0, import_fs64.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS2.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
+      const detail = buildRunDetail(workspace, record5, artifactNames);
       const lines = [
         `Run ${detail.summary.runId} \u2014 ${detail.summary.runType} for spec "${detail.summary.specName}"${detail.summary.taskId !== void 0 ? `, task ${detail.summary.taskId}` : ""}.`,
         `Status: ${detail.summary.evidenceStatus ?? detail.summary.lifecycleStatus ?? detail.summary.outcome ?? "(in progress)"}.`
@@ -90552,7 +92895,7 @@ function registerSpecRunVerificationTool(server, context) {
         durationMs: command.durationMs,
         timedOut: command.timedOut
       }));
-      const reportPath = result.artifactsDir !== void 0 ? import_path68.default.relative(workspace.rootDir, result.artifactsDir).split(import_path68.default.sep).join("/") : void 0;
+      const reportPath = result.artifactsDir !== void 0 ? import_path71.default.relative(workspace.rootDir, result.artifactsDir).split(import_path71.default.sep).join("/") : void 0;
       const commandLines = commands.map(
         (command) => `- ${command.name}: ${command.disposition}${command.disposition === "executed" ? command.passed ? " (passed)" : ` (FAILED, exit ${command.exitCode ?? "none"})` : ""}`
       );
@@ -90671,18 +93014,18 @@ var conformanceSummaryShape = external_exports.object({
   note: external_exports.string()
 });
 async function invocationFreeConformanceSummary(profile) {
-  const scratch = (0, import_fs62.mkdtempSync)(import_path69.default.join(import_os2.default.tmpdir(), "specbridge-mcp-conformance-"));
+  const scratch = (0, import_fs65.mkdtempSync)(import_path72.default.join(import_os2.default.tmpdir(), "specbridge-mcp-conformance-"));
   let result;
   try {
     result = await runRunnerConformance({
       profile,
       workspaceRoot: scratch,
-      runDir: import_path69.default.join(scratch, ".specbridge-conformance-runs"),
+      runDir: import_path72.default.join(scratch, ".specbridge-conformance-runs"),
       invocationsAllowed: false,
       timeoutMs: RUNNER_PROBE_TIMEOUT_MS
     });
   } finally {
-    (0, import_fs62.rmSync)(scratch, { recursive: true, force: true });
+    (0, import_fs65.rmSync)(scratch, { recursive: true, force: true });
   }
   return {
     passed: result.passed,
@@ -91525,7 +93868,7 @@ Permission hash: ${preview.permissionHash}
 Enable with: ${enableCommand}`,
         structured: {
           id: args.extensionId,
-          installedVersions: versions.map((record4) => record4.version),
+          installedVersions: versions.map((record5) => record5.version),
           enabledVersion: state.enabled[args.extensionId]?.version ?? null,
           kind: preview.manifest.kind,
           displayName: preview.manifest.displayName,
@@ -93224,13 +95567,13 @@ function registerObjectiveReadTool(server, context) {
       requireJobState(workspace, args.jobId);
       const graph = readLatestWorkGraph(workspace, args.jobId, args.nodeId);
       const conflicts = readConflicts(workspace, args.jobId, args.nodeId);
-      const workers = readWorkerRecords(workspace, args.jobId, args.nodeId).map((record4) => ({
-        workerId: record4.workerId,
-        agentRole: record4.agentRole,
-        workUnitId: record4.workUnitId,
-        attempt: record4.attempt,
-        status: record4.status,
-        workspaceIdentity: record4.workspaceIdentity
+      const workers = readWorkerRecords(workspace, args.jobId, args.nodeId).map((record5) => ({
+        workerId: record5.workerId,
+        agentRole: record5.agentRole,
+        workUnitId: record5.workUnitId,
+        attempt: record5.attempt,
+        status: record5.status,
+        workspaceIdentity: record5.workspaceIdentity
       }));
       const text7 = graph === void 0 ? "No work graph exists for this objective yet." : graph.units.map((unit) => `- ${unit.workUnitId} [${unit.status}] (${unit.kind}) ${unit.title}`).join("\n") + (conflicts.length > 0 ? `
 ${conflicts.length} contract conflict(s) recorded.` : "");
@@ -93601,8 +95944,8 @@ async function runMcpServe(argv2, io = {
 }
 
 // ../../packages/mcp-server/dist/index.js
-var import_fs63 = require("fs");
-var import_path70 = __toESM(require("path"), 1);
+var import_fs66 = require("fs");
+var import_path73 = __toESM(require("path"), 1);
 async function runMcpDoctor(options = {}) {
   const checks = [];
   const env = options.env ?? process.env;
@@ -93695,7 +96038,7 @@ async function runMcpDoctor(options = {}) {
   const pluginRoot = env["CLAUDE_PLUGIN_ROOT"];
   if (pluginRoot !== void 0 && pluginRoot.length > 0) {
     const missing = ["dist/mcp-server.cjs", "dist/cli.cjs"].filter(
-      (relative) => !(0, import_fs63.existsSync)(import_path70.default.join(pluginRoot, relative))
+      (relative) => !(0, import_fs66.existsSync)(import_path73.default.join(pluginRoot, relative))
     );
     checks.push(
       missing.length === 0 ? { name: "plugin-bundle", status: "ok", detail: `Bundled executables present under ${pluginRoot}` } : {
@@ -94036,7 +96379,7 @@ function registerExtensionCommands(program2, runtime) {
       const manifest = preview.manifest;
       runtime.out(`  ${manifest.displayName} v${preview.record.version} \u2014 ${manifest.kind}`);
       runtime.out(dim2(`  ${manifest.description}`));
-      runtime.out(`  installed versions: ${versions.map((record4) => record4.version).join(", ")}`);
+      runtime.out(`  installed versions: ${versions.map((record5) => record5.version).join(", ")}`);
       runtime.out(`  enabled: ${preview.enabled ? `yes (${preview.record.version})` : "no"}`);
       runtime.out(`  grant: ${preview.grantStatus}`);
       runtime.out();
@@ -94084,18 +96427,18 @@ function registerExtensionCommands(program2, runtime) {
     } else {
       const workspace = runtime.workspace();
       const { state } = readExtensionState(workspace);
-      const record4 = installedVersions(state, target)[0];
-      if (record4 === void 0) {
+      const record5 = installedVersions(state, target)[0];
+      if (record5 === void 0) {
         throw new SpecBridgeError(
           "INVALID_ARGUMENT",
           `"${target}" is neither a directory, a .zip archive, nor an installed extension ID.`
         );
       }
-      const dir = installedVersionDir(workspace, record4.id, record4.version);
+      const dir = installedVersionDir(workspace, record5.id, record5.version);
       const validation = loadExtensionPackage(readExtensionPackageDirectory(dir));
       issues = validation.issues;
-      manifestId = record4.id;
-      where = `installed extension ${record4.id}@${record4.version}`;
+      manifestId = record5.id;
+      where = `installed extension ${record5.id}@${record5.version}`;
     }
     const errors = issues.filter((issue4) => issue4.severity === "error");
     if (options.json === true) {
@@ -94353,12 +96696,12 @@ function registerExtensionCommands(program2, runtime) {
     const workspace = runtime.tryWorkspace();
     if (workspace !== void 0) {
       const { state } = readExtensionState(workspace);
-      const record4 = state.installed.find(
+      const record5 = state.installed.find(
         (candidate) => candidate.id === result.extensionId && candidate.version === result.version
       );
-      if (record4 !== void 0) {
-        record4.conformanceStatus = result.passed ? "passed" : "failed";
-        record4.conformanceAt = runtime.now().toISOString();
+      if (record5 !== void 0) {
+        record5.conformanceStatus = result.passed ? "passed" : "failed";
+        record5.conformanceAt = runtime.now().toISOString();
         writeExtensionState(workspace, state);
       }
     }
@@ -95135,6 +97478,159 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
       const line = `  evaluation ${evaluation.evaluationId} [${evaluation.layer}] ${evaluation.verdict}`;
       runtime.out(evaluation.verdict === "PASS" ? okLine(line) : blockedLine(line));
       for (const reason of evaluation.reasons.slice(0, 5)) runtime.out(dim2(`      ${reason}`));
+    }
+  });
+  orchestrate.command("quota").description("Show subscription quota telemetry and the derived scheduler forecast (read-only)").option("--json", "output a machine-readable JSON report").action((options) => {
+    const context = loadExecutionContext(runtime);
+    const policy = context.config.orchestration.jobs.scheduler;
+    const file = readQuotaTelemetryFile(context.workspace);
+    const forecast = buildQuotaForecast({
+      fiveHour: file.fiveHour,
+      weekly: file.weekly,
+      now: /* @__PURE__ */ new Date(),
+      policy
+    });
+    const reserve = computeDynamicReserve({
+      forecast,
+      policy: policy.reserve,
+      weeklyPressureRatio: policy.weeklyPressureRatio
+    });
+    if (options.json === true) {
+      jsonOut3(runtime, "orchestrate-quota", {
+        telemetry: { fiveHour: file.fiveHour, weekly: file.weekly },
+        forecast,
+        reserveRatio: reserve.ratio,
+        reserveBasis: reserve.basis
+      });
+      return;
+    }
+    runtime.out(reportTitle("Subscription quota"));
+    const percent = (ratio2) => ratio2 === null ? "unknown" : `${(ratio2 * 100).toFixed(1)}%`;
+    const untilText = (ms) => ms === null ? "unknown" : `${Math.round(ms / 6e4)}m`;
+    runtime.out(
+      infoLine(
+        `  five-hour: ${percent(forecast.fiveHourRemainingRatio)} remaining, reset in ${untilText(forecast.timeToFiveHourResetMs)}`
+      )
+    );
+    runtime.out(
+      infoLine(
+        `  weekly:    ${percent(forecast.weeklyRemainingRatio)} remaining, reset in ${untilText(forecast.timeToWeeklyResetMs)}`
+      )
+    );
+    runtime.out(infoLine(`  scheduler mode: ${forecast.schedulerMode} (telemetry ${forecast.telemetryFreshness})`));
+    runtime.out(infoLine(`  dynamic reserve: ${(reserve.ratio * 100).toFixed(1)}%`));
+    if (forecast.telemetryFreshness !== "FRESH") {
+      runtime.out(
+        warnLine(
+          "  telemetry is not fresh; record an observation with `specbridge orchestrate quota-set`."
+        )
+      );
+    }
+  });
+  orchestrate.command("quota-set").description("Record one subscription quota observation into the manual telemetry file").requiredOption("--window <window>", "quota window: five-hour or weekly").requiredOption("--remaining <percent>", "remaining capacity as a percentage (0-100)").option("--resets-in-minutes <minutes>", "minutes until this window resets").option("--reset-at <iso>", "exact reset time (ISO 8601)").action(
+    (options) => {
+      const workspace = runtime.workspace();
+      if (options.window !== "five-hour" && options.window !== "weekly") {
+        runtime.out(failLine('--window must be "five-hour" or "weekly".'));
+        runtime.exitCode = 2;
+        return;
+      }
+      const remainingPercent = Number(options.remaining);
+      if (!Number.isFinite(remainingPercent) || remainingPercent < 0 || remainingPercent > 100) {
+        runtime.out(failLine("--remaining must be a percentage between 0 and 100."));
+        runtime.exitCode = 2;
+        return;
+      }
+      const now4 = /* @__PURE__ */ new Date();
+      let resetAt = options.resetAt;
+      if (resetAt === void 0 && options.resetsInMinutes !== void 0) {
+        const minutes = Number(options.resetsInMinutes);
+        if (!Number.isFinite(minutes) || minutes < 0) {
+          runtime.out(failLine("--resets-in-minutes must be a non-negative number."));
+          runtime.exitCode = 2;
+          return;
+        }
+        resetAt = new Date(now4.getTime() + minutes * 6e4).toISOString();
+      }
+      recordQuotaObservation(workspace, {
+        window: options.window,
+        remainingRatio: remainingPercent / 100,
+        ...resetAt !== void 0 ? { resetAt } : {},
+        observedAt: now4.toISOString()
+      });
+      runtime.out(
+        okLine(
+          `Recorded: ${options.window} at ${remainingPercent.toFixed(1)}% remaining${resetAt !== void 0 ? `, reset ${resetAt}` : ""}.`
+        )
+      );
+    }
+  );
+  orchestrate.command("scheduler").description("Show quota-scheduler state for one job: mode, reserve, ready tasks, recent decisions (read-only)").argument("<jobId>").option("--decisions <n>", "number of recent scheduling decisions to show (default 10)").option("--json", "output a machine-readable JSON report").action((jobId, options) => {
+    const context = loadExecutionContext(runtime);
+    const policy = context.config.orchestration.jobs.scheduler;
+    const job = requireJobState(context.workspace, jobId);
+    const graph = job.graphRevision > 0 ? requireGraphRevision(context.workspace, jobId, job.graphRevision) : void 0;
+    const file = readQuotaTelemetryFile(context.workspace);
+    const forecast = buildQuotaForecast({
+      fiveHour: file.fiveHour,
+      weekly: file.weekly,
+      now: /* @__PURE__ */ new Date(),
+      policy
+    });
+    const reserve = computeDynamicReserve({
+      forecast,
+      policy: policy.reserve,
+      weeklyPressureRatio: policy.weeklyPressureRatio
+    });
+    const decisionLimit = Math.max(1, Number(options.decisions ?? "10") || 10);
+    const decisions = readSchedulingDecisions(context.workspace, jobId, { limit: decisionLimit });
+    const ledger = readExecutionLedger(context.workspace, jobId);
+    const readyNodes = (graph?.nodes ?? []).filter((node) => node.status === "READY");
+    const laneCounts = {};
+    for (const entry of ledger) {
+      if (entry.role !== "EXECUTOR") continue;
+      const key = entry.lane ?? "unassigned";
+      laneCounts[key] = (laneCounts[key] ?? 0) + 1;
+    }
+    if (options.json === true) {
+      jsonOut3(runtime, "orchestrate-scheduler", {
+        schedulerEnabled: policy.enabled,
+        forecast,
+        reserveRatio: reserve.ratio,
+        reserveBasis: reserve.basis,
+        readyTasks: readyNodes.map((node) => ({
+          nodeId: node.nodeId,
+          taskId: node.parentTaskId,
+          title: node.title,
+          complexity: node.complexity ?? null
+        })),
+        attemptLanes: laneCounts,
+        decisions
+      });
+      return;
+    }
+    runtime.out(reportTitle(`Scheduler \u2014 job ${jobId}`));
+    runtime.out(
+      infoLine(
+        `  mode ${forecast.schedulerMode} (telemetry ${forecast.telemetryFreshness}), reserve ${(reserve.ratio * 100).toFixed(1)}%`
+      )
+    );
+    if (!policy.enabled) runtime.out(warnLine("  lane scheduling is disabled by configuration."));
+    runtime.out(
+      infoLine(
+        `  attempt lanes: ${Object.entries(laneCounts).map(([laneName, count2]) => `${laneName}=${count2}`).join(", ") || "(none yet)"}`
+      )
+    );
+    runtime.out(reportTitle("Ready tasks"));
+    if (readyNodes.length === 0) runtime.out(dim2("  (none)"));
+    for (const node of readyNodes) {
+      runtime.out(infoLine(`  ${node.nodeId}  task ${node.parentTaskId}  ${node.title.slice(0, 80)}`));
+    }
+    runtime.out(reportTitle(`Recent scheduling decisions (${decisions.length})`));
+    for (const decision of decisions) {
+      const line = `  ${decision.createdAt}  task ${decision.taskId} \u2192 ${decision.selectedLane} [${decision.reasonCode}] mode ${decision.schedulerMode}`;
+      runtime.out(decision.selectedLane === "DEFER" ? warnLine(line) : okLine(line));
+      runtime.out(dim2(`    ${decision.detail.slice(0, 140)}`));
     }
   });
 }

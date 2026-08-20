@@ -2,7 +2,9 @@ import type { Command } from 'commander';
 import { CLI_BIN, EXIT_CODES, SpecBridgeError } from '@specbridge/core';
 import {
   answerClarification,
+  buildQuotaForecast,
   cancelJob,
+  computeDynamicReserve,
   createJob,
   driveJob,
   executionPlanSchema,
@@ -10,12 +12,16 @@ import {
   readCandidate,
   readConflicts,
   readEvaluations,
+  readExecutionLedger,
   readJobCheckpoint,
   readJobEvents,
   readLatestWorkGraph,
   readNodePlan,
   readProjection as readObjectiveProjection,
+  readQuotaTelemetryFile,
+  readSchedulingDecisions,
   readWorkerRecords,
+  recordQuotaObservation,
   requireGraphRevision,
   requireJobState,
   resolveWorkers,
@@ -592,6 +598,197 @@ export function registerOrchestrateJobCommands(orchestrate: Command, runtime: Cl
         const line = `  evaluation ${evaluation.evaluationId} [${evaluation.layer}] ${evaluation.verdict}`;
         runtime.out(evaluation.verdict === 'PASS' ? okLine(line) : blockedLine(line));
         for (const reason of evaluation.reasons.slice(0, 5)) runtime.out(dim(`      ${reason}`));
+      }
+    });
+
+  // -------------------------------------------------------------------------
+  // quota / quota-set / scheduler — vNext.2 quota-aware scheduling surface
+  // -------------------------------------------------------------------------
+  orchestrate
+    .command('quota')
+    .description('Show subscription quota telemetry and the derived scheduler forecast (read-only)')
+    .option('--json', 'output a machine-readable JSON report')
+    .action((options: { json?: boolean }) => {
+      const context = loadExecutionContext(runtime);
+      const policy = context.config.orchestration.jobs.scheduler;
+      const file = readQuotaTelemetryFile(context.workspace);
+      const forecast = buildQuotaForecast({
+        fiveHour: file.fiveHour,
+        weekly: file.weekly,
+        now: new Date(),
+        policy,
+      });
+      const reserve = computeDynamicReserve({
+        forecast,
+        policy: policy.reserve,
+        weeklyPressureRatio: policy.weeklyPressureRatio,
+      });
+      if (options.json === true) {
+        jsonOut(runtime, 'orchestrate-quota', {
+          telemetry: { fiveHour: file.fiveHour, weekly: file.weekly },
+          forecast,
+          reserveRatio: reserve.ratio,
+          reserveBasis: reserve.basis,
+        });
+        return;
+      }
+      runtime.out(reportTitle('Subscription quota'));
+      const percent = (ratio: number | null): string =>
+        ratio === null ? 'unknown' : `${(ratio * 100).toFixed(1)}%`;
+      const untilText = (ms: number | null): string =>
+        ms === null ? 'unknown' : `${Math.round(ms / 60_000)}m`;
+      runtime.out(
+        infoLine(
+          `  five-hour: ${percent(forecast.fiveHourRemainingRatio)} remaining, reset in ${untilText(forecast.timeToFiveHourResetMs)}`,
+        ),
+      );
+      runtime.out(
+        infoLine(
+          `  weekly:    ${percent(forecast.weeklyRemainingRatio)} remaining, reset in ${untilText(forecast.timeToWeeklyResetMs)}`,
+        ),
+      );
+      runtime.out(infoLine(`  scheduler mode: ${forecast.schedulerMode} (telemetry ${forecast.telemetryFreshness})`));
+      runtime.out(infoLine(`  dynamic reserve: ${(reserve.ratio * 100).toFixed(1)}%`));
+      if (forecast.telemetryFreshness !== 'FRESH') {
+        runtime.out(
+          warnLine(
+            '  telemetry is not fresh; record an observation with `specbridge orchestrate quota-set`.',
+          ),
+        );
+      }
+    });
+
+  orchestrate
+    .command('quota-set')
+    .description('Record one subscription quota observation into the manual telemetry file')
+    .requiredOption('--window <window>', 'quota window: five-hour or weekly')
+    .requiredOption('--remaining <percent>', 'remaining capacity as a percentage (0-100)')
+    .option('--resets-in-minutes <minutes>', 'minutes until this window resets')
+    .option('--reset-at <iso>', 'exact reset time (ISO 8601)')
+    .action(
+      (options: {
+        window: string;
+        remaining: string;
+        resetsInMinutes?: string;
+        resetAt?: string;
+      }) => {
+        const workspace = runtime.workspace();
+        if (options.window !== 'five-hour' && options.window !== 'weekly') {
+          runtime.out(failLine('--window must be "five-hour" or "weekly".'));
+          runtime.exitCode = 2;
+          return;
+        }
+        const remainingPercent = Number(options.remaining);
+        if (!Number.isFinite(remainingPercent) || remainingPercent < 0 || remainingPercent > 100) {
+          runtime.out(failLine('--remaining must be a percentage between 0 and 100.'));
+          runtime.exitCode = 2;
+          return;
+        }
+        const now = new Date();
+        let resetAt: string | undefined = options.resetAt;
+        if (resetAt === undefined && options.resetsInMinutes !== undefined) {
+          const minutes = Number(options.resetsInMinutes);
+          if (!Number.isFinite(minutes) || minutes < 0) {
+            runtime.out(failLine('--resets-in-minutes must be a non-negative number.'));
+            runtime.exitCode = 2;
+            return;
+          }
+          resetAt = new Date(now.getTime() + minutes * 60_000).toISOString();
+        }
+        recordQuotaObservation(workspace, {
+          window: options.window,
+          remainingRatio: remainingPercent / 100,
+          ...(resetAt !== undefined ? { resetAt } : {}),
+          observedAt: now.toISOString(),
+        });
+        runtime.out(
+          okLine(
+            `Recorded: ${options.window} at ${remainingPercent.toFixed(1)}% remaining` +
+              `${resetAt !== undefined ? `, reset ${resetAt}` : ''}.`,
+          ),
+        );
+      },
+    );
+
+  orchestrate
+    .command('scheduler')
+    .description('Show quota-scheduler state for one job: mode, reserve, ready tasks, recent decisions (read-only)')
+    .argument('<jobId>')
+    .option('--decisions <n>', 'number of recent scheduling decisions to show (default 10)')
+    .option('--json', 'output a machine-readable JSON report')
+    .action((jobId: string, options: { decisions?: string; json?: boolean }) => {
+      const context = loadExecutionContext(runtime);
+      const policy = context.config.orchestration.jobs.scheduler;
+      const job = requireJobState(context.workspace, jobId);
+      const graph =
+        job.graphRevision > 0
+          ? requireGraphRevision(context.workspace, jobId, job.graphRevision)
+          : undefined;
+      const file = readQuotaTelemetryFile(context.workspace);
+      const forecast = buildQuotaForecast({
+        fiveHour: file.fiveHour,
+        weekly: file.weekly,
+        now: new Date(),
+        policy,
+      });
+      const reserve = computeDynamicReserve({
+        forecast,
+        policy: policy.reserve,
+        weeklyPressureRatio: policy.weeklyPressureRatio,
+      });
+      const decisionLimit = Math.max(1, Number(options.decisions ?? '10') || 10);
+      const decisions = readSchedulingDecisions(context.workspace, jobId, { limit: decisionLimit });
+      const ledger = readExecutionLedger(context.workspace, jobId);
+      const readyNodes = (graph?.nodes ?? []).filter((node) => node.status === 'READY');
+      const laneCounts: Record<string, number> = {};
+      for (const entry of ledger) {
+        if (entry.role !== 'EXECUTOR') continue;
+        const key = entry.lane ?? 'unassigned';
+        laneCounts[key] = (laneCounts[key] ?? 0) + 1;
+      }
+
+      if (options.json === true) {
+        jsonOut(runtime, 'orchestrate-scheduler', {
+          schedulerEnabled: policy.enabled,
+          forecast,
+          reserveRatio: reserve.ratio,
+          reserveBasis: reserve.basis,
+          readyTasks: readyNodes.map((node) => ({
+            nodeId: node.nodeId,
+            taskId: node.parentTaskId,
+            title: node.title,
+            complexity: node.complexity ?? null,
+          })),
+          attemptLanes: laneCounts,
+          decisions,
+        });
+        return;
+      }
+
+      runtime.out(reportTitle(`Scheduler — job ${jobId}`));
+      runtime.out(
+        infoLine(
+          `  mode ${forecast.schedulerMode} (telemetry ${forecast.telemetryFreshness}), reserve ${(reserve.ratio * 100).toFixed(1)}%`,
+        ),
+      );
+      if (!policy.enabled) runtime.out(warnLine('  lane scheduling is disabled by configuration.'));
+      runtime.out(
+        infoLine(
+          `  attempt lanes: ${Object.entries(laneCounts)
+            .map(([laneName, count]) => `${laneName}=${count}`)
+            .join(', ') || '(none yet)'}`,
+        ),
+      );
+      runtime.out(reportTitle('Ready tasks'));
+      if (readyNodes.length === 0) runtime.out(dim('  (none)'));
+      for (const node of readyNodes) {
+        runtime.out(infoLine(`  ${node.nodeId}  task ${node.parentTaskId}  ${node.title.slice(0, 80)}`));
+      }
+      runtime.out(reportTitle(`Recent scheduling decisions (${decisions.length})`));
+      for (const decision of decisions) {
+        const line = `  ${decision.createdAt}  task ${decision.taskId} → ${decision.selectedLane} [${decision.reasonCode}] mode ${decision.schedulerMode}`;
+        runtime.out(decision.selectedLane === 'DEFER' ? warnLine(line) : okLine(line));
+        runtime.out(dim(`    ${decision.detail.slice(0, 140)}`));
       }
     });
 }

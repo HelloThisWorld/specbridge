@@ -60,6 +60,12 @@ reference, grouped by area.
   hard-enforced, contract-enforced, and merely skill-guided.
 - [Long-running jobs (v1.2)](orchestration/long-running-jobs.md) — the
   persistent local-first orchestrator: scheduler, workers, budgets, resume.
+- [Survival runtime (vNext.1)](orchestration/survival-runtime.md) — durable
+  attempts, structured checkpoints, and the provider-neutral context
+  lifecycle.
+- [Quota-aware scheduling (vNext.2)](orchestration/quota-scheduling.md) —
+  the free-local + prepaid-Max optimizer: lanes, quota windows, HARVEST,
+  cross-reset admission.
 - [Orchestration configuration](orchestration/configuration.md) — every
   policy knob, with defaults.
 
