@@ -44008,10 +44008,21 @@ function strictJsonParse2(raw) {
     return void 0;
   }
 }
-function composeSignals(timeoutMs, external) {
-  const signals2 = [AbortSignal.timeout(timeoutMs)];
-  if (external !== void 0) signals2.push(external);
-  return AbortSignal.any(signals2);
+function createBoundedAbort(timeoutMs, external) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const onExternalAbort = () => controller.abort();
+  if (external !== void 0) {
+    if (external.aborted) controller.abort();
+    else external.addEventListener("abort", onExternalAbort, { once: true });
+  }
+  return {
+    signal: controller.signal,
+    release: () => {
+      clearTimeout(timer);
+      external?.removeEventListener("abort", onExternalAbort);
+    }
+  };
 }
 async function readBounded(response, maxBytes) {
   const reader = response.body?.getReader();
@@ -44059,6 +44070,14 @@ function checkRedirectTarget(current, location) {
   return { ok: true, nextUrl: next };
 }
 async function safeHttpRequest(request) {
+  const bounded = createBoundedAbort(request.timeoutMs, request.signal);
+  try {
+    return await performSafeHttpRequest(request, bounded.signal);
+  } finally {
+    bounded.release();
+  }
+}
+async function performSafeHttpRequest(request, signal) {
   const started = Date.now();
   const duration3 = () => Math.max(0, Date.now() - started);
   const externalAborted = () => request.signal?.aborted === true;
@@ -44081,7 +44100,7 @@ async function safeHttpRequest(request) {
       response = await fetch(currentUrl.toString(), {
         method: currentMethod,
         redirect: "manual",
-        signal: composeSignals(request.timeoutMs, request.signal),
+        signal,
         headers,
         ...sendBody ? { body: JSON.stringify(request.body) } : {}
       });
