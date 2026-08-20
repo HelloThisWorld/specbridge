@@ -56,6 +56,12 @@ per-task checkpoints preserving decisions and failed approaches across
 workers and providers. See
 [survival-runtime.md](survival-runtime.md) for the full model.
 
+The `scheduling/` family holds vNext.2 quota-aware scheduling decisions:
+which economic lane (LOCAL or SUBSCRIPTION) each dispatch used and why,
+against which quota forecast and dynamic reserve. See
+[quota-scheduling.md](quota-scheduling.md) for the lane model, quota
+windows, HARVEST, and cross-reset admission.
+
 Job statuses: `CREATED → PLANNING → READY → RUNNING → DIAGNOSING →
 REPAIRING → REPLANNING → WAITING_RETRY → NEEDS_CLARIFICATION → BLOCKED →
 COMPLETED | FAILED | CANCELLED` — a fail-closed transition table with one

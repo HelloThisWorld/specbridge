@@ -755,6 +755,19 @@ export function beginExecutorDispatch(
     model?: string | undefined;
     /** Provider session reference — working memory, never canonical state. */
     providerSessionId?: string | undefined;
+    /** vNext.2 scheduling attribution (recorded on the durable attempt). */
+    lane?: string | undefined;
+    localSuitability?: string | undefined;
+    taskCategory?: string | undefined;
+    schedulingDecisionId?: string | undefined;
+    /** Quota/context observations captured at dispatch start. */
+    quotaBefore?:
+      | {
+          fiveHourRemainingRatio?: number | null | undefined;
+          weeklyRemainingRatio?: number | null | undefined;
+        }
+      | undefined;
+    contextUsageBefore?: number | undefined;
   },
 ): JobState {
   assertJobsEnabled(deps);
@@ -785,6 +798,15 @@ export function beginExecutorDispatch(
       model: input.model,
       providerSessionId: input.providerSessionId,
       resumedFromAttemptId: lineageParent?.attemptId,
+      lane: input.lane,
+      localSuitability: input.localSuitability,
+      taskComplexity: node.complexity,
+      taskCategory: input.taskCategory,
+      schedulingDecisionId: input.schedulingDecisionId,
+      quotaBefore: input.quotaBefore,
+      ...(input.contextUsageBefore !== undefined
+        ? { contextUsageBefore: input.contextUsageBefore }
+        : {}),
     },
   );
   job = { ...job, currentNodeId: node.nodeId, currentAttemptId: attempt.attemptId };
@@ -825,6 +847,12 @@ export interface ExecutorOutcome {
     | undefined;
   /** Files the pipeline observed as changed (diff fingerprinting). */
   changedFiles?: { path: string; contentHash?: string | undefined }[] | undefined;
+  /**
+   * vNext.2: additional attempt metrics observed by the dispatcher (quota
+   * after, context usage after, test loops). Merged into the durable
+   * attempt; unknown fields simply stay null.
+   */
+  extraMetrics?: Record<string, number | null> | undefined;
 }
 
 export interface ExecutorOutcomeResult {
@@ -898,6 +926,7 @@ function finalizeDispatchAttempt(
       ...(usage?.outputTokens !== undefined ? { outputTokens: usage.outputTokens } : {}),
       ...(usage?.costUsd !== undefined ? { costUsd: usage.costUsd } : {}),
       ...(outcome.changedFiles !== undefined ? { filesChanged: outcome.changedFiles.length } : {}),
+      ...(outcome.extraMetrics ?? {}),
     },
   });
   return attemptId;
@@ -1535,6 +1564,84 @@ export function clearRetryWait(deps: JobDeps, jobId: string): JobState {
   if (job.retryAt !== undefined && Date.parse(job.retryAt) > now(deps).getTime()) return job;
   job = transition(deps, job, 'READY');
   delete job.retryAt;
+  return persist(deps, job);
+}
+
+/**
+ * vNext.2: promote one PENDING node past quota-DEFERRED predecessors.
+ *
+ * The initial graph chains tasks in plan order as an ordering preference
+ * (later work runs over earlier verified changes). During a subscription
+ * cooldown that preference must not become a global stall: a LOCAL-lane
+ * node whose only unfinished predecessors are quota-deferred strong tasks
+ * may run early. Deterministic verification remains the arbiter — an
+ * out-of-order result only ever completes through the same trusted
+ * evidence pipeline, and the promotion is recorded, never silent.
+ */
+export function promoteNodeForQuotaOvertake(
+  deps: JobDeps,
+  jobId: string,
+  input: { nodeId: string; detail: string },
+): JobState {
+  assertJobsEnabled(deps);
+  let job = requireJobState(deps.workspace, jobId);
+  let graph = requireGraphRevision(deps.workspace, jobId, job.graphRevision);
+  const node = requireNode(graph, input.nodeId);
+  if (node.status !== 'PENDING') {
+    // Already promoted (or otherwise moved on) — nothing to do.
+    return job;
+  }
+  graph = transitionNode(graph, node.nodeId, 'READY');
+  job = record(deps, job, 'node_ready', {
+    nodeId: node.nodeId,
+    taskId: node.parentTaskId,
+    quotaOvertake: true,
+    detail: input.detail.slice(0, 300),
+  });
+  persistGraph(deps, job, graph);
+  return persist(deps, job);
+}
+
+/**
+ * vNext.2: defer schedulable work because no execution lane can take it now
+ * (subscription quota exhausted or admission-unsafe, and the work is not
+ * local-eligible). The job enters WAITING_RETRY with `retryAt` set to when
+ * capacity is expected to return — durable, resumable, and honest: the task
+ * remains pending with a recorded scheduling reason, never silently stuck
+ * and never failed.
+ */
+export function deferJobForQuota(
+  deps: JobDeps,
+  jobId: string,
+  input: {
+    nodeId: string;
+    taskId: string;
+    /** When capacity is expected back (ISO); null polls at `pollMs`. */
+    until: string | null;
+    reasonCode: string;
+    detail: string;
+    /** Poll interval when no reset time is known. */
+    pollMs: number;
+  },
+): JobState {
+  assertJobsEnabled(deps);
+  let job = requireJobState(deps.workspace, jobId);
+  const at = now(deps);
+  const retryAt =
+    input.until !== null && Date.parse(input.until) > at.getTime()
+      ? input.until
+      : new Date(at.getTime() + Math.max(1_000, input.pollMs)).toISOString();
+  if (job.status !== 'WAITING_RETRY') {
+    job = transition(deps, job, 'WAITING_RETRY');
+  }
+  job = { ...job, retryAt };
+  job = record(deps, job, 'task_deferred', {
+    nodeId: input.nodeId,
+    taskId: input.taskId,
+    reasonCode: input.reasonCode.slice(0, 100),
+    retryAt,
+    detail: input.detail.slice(0, 500),
+  });
   return persist(deps, job);
 }
 

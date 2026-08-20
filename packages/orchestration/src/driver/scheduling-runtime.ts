@@ -1,0 +1,301 @@
+import type { AgentConfig, JobSchedulerPolicy, WorkspaceInfo } from '@specbridge/core';
+import { validateLocalInferenceConfig } from '@specbridge/core';
+import { estimateTokens, usableInputTokens } from '@specbridge/context';
+import type { LocalModelManager } from '@specbridge/runners';
+import type { JobDeps } from '../jobs/job-service.js';
+import type { LaneSchedulingContext } from '../jobs/scheduler.js';
+import type { JobGraph, JobNode, JobState } from '../jobs/state.js';
+import type { QuotaForecast } from '../quota/state.js';
+import type { QuotaTelemetryProvider } from '../quota/telemetry.js';
+import { resolveQuotaTelemetryProvider } from '../quota/telemetry.js';
+import { SubscriptionQuotaManager, buildQuotaForecast } from '../quota/manager.js';
+import { deriveBurnObservations, observedFiveHourBurnRate } from '../quota/observations.js';
+import { readExecutionLedger } from '../survival/service.js';
+import { listTaskAttempts, readLatestTaskCheckpoint } from '../survival/store.js';
+import { contextBudgetFromPolicy } from '../survival/reconstruction.js';
+import type { DynamicReserveResult } from '../scheduling/reserve.js';
+import { computeDynamicReserve } from '../scheduling/reserve.js';
+import type { NodeLaneRouting } from '../scheduling/scheduler.js';
+import { decideLane } from '../scheduling/scheduler.js';
+import { classifyLocalSuitability } from '../scheduling/suitability.js';
+import { estimateWorkload } from '../scheduling/profiler.js';
+import type { LocalExecutorInference } from '../scheduling/local-execution.js';
+import { managedLocalInference } from '../scheduling/local-execution.js';
+
+/**
+ * The driver's scheduling runtime (vNext.2): gathers everything the pure
+ * lane scheduler needs — telemetry forecast, dynamic reserve, per-node
+ * suitability/estimate/routing — from durable state and configuration, once
+ * per scheduling pass.
+ *
+ * Everything here is DERIVED: after a restart the same durable inputs
+ * (telemetry file, attempts, checkpoints, config, clock) rebuild the same
+ * context, so scheduler state never needs its own persistence beyond the
+ * decision records and events already written.
+ */
+
+export interface SchedulingRuntimeOptions {
+  /** Test seam: overrides the configured telemetry provider. */
+  quotaTelemetryProvider?: QuotaTelemetryProvider | undefined;
+  /** Test seam: overrides the managed local inference for execution. */
+  localExecutorInference?: LocalExecutorInference | undefined;
+  signal?: AbortSignal | undefined;
+}
+
+export interface SchedulingRuntime {
+  policy: JobSchedulerPolicy;
+  manager: SubscriptionQuotaManager;
+  /** Local execution inference, when the local lane can mutate source. */
+  localInference: LocalExecutorInference | undefined;
+  localWorkerAvailable: boolean;
+  localExecutionAvailable: boolean;
+  verificationAvailable: boolean;
+  /** Mode/reserve/freshness seen by the previous pass (event dedup). */
+  lastMode: string | undefined;
+  lastReserveRatio: number | undefined;
+  lastFreshness: string | undefined;
+  lastObservedAt: string | null | undefined;
+}
+
+/**
+ * Build the per-driver-run scheduling runtime, or undefined when lane
+ * scheduling is disabled (vNext.1 behavior applies unchanged).
+ *
+ * `missionDriven` disables the local EXECUTION lane: objective work units
+ * run through the objectives runtime (isolated builder worktrees +
+ * evaluation), where local building is a later, separately reviewed step.
+ * Local read-only reasoning roles are unaffected either way.
+ */
+export function createSchedulingRuntime(
+  config: AgentConfig,
+  workspace: WorkspaceInfo,
+  input: {
+    localManager: LocalModelManager | undefined;
+    missionDriven: boolean;
+    options?: SchedulingRuntimeOptions | undefined;
+  },
+): SchedulingRuntime | undefined {
+  const policy = config.orchestration.jobs.scheduler;
+  if (!policy.enabled) return undefined;
+
+  const localValid = config.localInference.enabled && validateLocalInferenceConfig(config.localInference).ok;
+  const injectedInference = input.options?.localExecutorInference;
+  const localInference =
+    injectedInference ??
+    (localValid && input.localManager !== undefined
+      ? managedLocalInference(input.localManager, config, input.options?.signal)
+      : undefined);
+  const localWorkerAvailable = localValid || injectedInference !== undefined;
+  const localExecutionAvailable =
+    localWorkerAvailable &&
+    localInference !== undefined &&
+    policy.allowLocalExecution &&
+    !input.missionDriven;
+
+  const provider =
+    input.options?.quotaTelemetryProvider ??
+    resolveQuotaTelemetryProvider(workspace, policy.telemetrySource);
+
+  return {
+    policy,
+    manager: new SubscriptionQuotaManager({ provider, policy }),
+    localInference,
+    localWorkerAvailable,
+    localExecutionAvailable,
+    verificationAvailable: config.verification.commands.length > 0,
+    lastMode: undefined,
+    lastReserveRatio: undefined,
+    lastFreshness: undefined,
+    lastObservedAt: undefined,
+  };
+}
+
+/**
+ * Estimate a node's durable-context occupancy: the checkpoint-backed state
+ * a fresh dispatch would reconstruct, relative to the configured budget.
+ * Deterministic and cheap; null when the node has no checkpoint yet.
+ */
+export function estimateNodeContextRatio(
+  deps: JobDeps,
+  jobId: string,
+  nodeId: string,
+): number | null {
+  const checkpoint = readLatestTaskCheckpoint(deps.workspace, jobId, nodeId);
+  if (checkpoint === undefined) return null;
+  const budget = contextBudgetFromPolicy(deps.config.orchestration.jobs.context);
+  const usable = usableInputTokens(budget);
+  const serialized = JSON.stringify({
+    objective: checkpoint.objective,
+    pinned: checkpoint.pinned,
+    completedWork: checkpoint.completedWork,
+    pendingWork: checkpoint.pendingWork,
+    importantDecisions: checkpoint.importantDecisions,
+    failedApproaches: checkpoint.failedApproaches,
+    changedFiles: checkpoint.changedFiles,
+    testResults: checkpoint.testResults,
+    knownFailures: checkpoint.knownFailures,
+    unresolvedIssues: checkpoint.unresolvedIssues,
+    nextActions: checkpoint.nextActions,
+  });
+  return Math.round((estimateTokens(serialized) / usable) * 10_000) / 10_000;
+}
+
+/** LOCAL-lane executor attempts already spent on a node (durable count). */
+export function localExecutorAttemptsUsed(
+  deps: JobDeps,
+  jobId: string,
+  nodeId: string,
+): number {
+  return listTaskAttempts(deps.workspace, jobId, { nodeId }).filter(
+    (attempt) =>
+      attempt.lane === 'LOCAL' &&
+      attempt.role === 'EXECUTOR' &&
+      (attempt.status === 'FAILED' || attempt.status === 'INTERRUPTED'),
+  ).length;
+}
+
+/** Sticky local-escalation reasons recorded for a node. */
+const LOCAL_ESCALATION_REASONS: readonly string[] = [
+  'INVALID_LOCAL_OUTPUT',
+  'REPEATED_LOCAL_FAILURE',
+  'LOCAL_EXECUTION_ESCALATED',
+];
+
+export interface BuiltLaneContext {
+  context: LaneSchedulingContext;
+  forecast: QuotaForecast;
+  reserve: DynamicReserveResult;
+  /**
+   * A PENDING LOCAL-lane node whose only unfinished predecessors are
+   * quota-DEFERRED strong nodes. The driver promotes it (recorded) so local
+   * work continues while the subscription lane cools down — the ordering
+   * chain is a preference, and deterministic verification stays the arbiter.
+   */
+  overtakeCandidate: { nodeId: string; detail: string } | undefined;
+}
+
+/**
+ * Build the lane-scheduling context for one pass: read telemetry, derive
+ * the forecast (with the ledger-observed burn rate), compute the dynamic
+ * reserve, and assess every READY node (plus the deferred-prefix PENDING
+ * nodes, for the local-continues-during-cooldown promotion).
+ */
+export async function buildLaneContext(
+  runtime: SchedulingRuntime,
+  deps: JobDeps,
+  jobId: string,
+  job: JobState,
+  graph: JobGraph | undefined,
+): Promise<BuiltLaneContext> {
+  const ledger = readExecutionLedger(deps.workspace, jobId);
+  const observations = deriveBurnObservations(ledger);
+  const { fiveHour, weekly } = await runtime.manager.snapshot();
+  const forecast = buildQuotaForecast({
+    fiveHour,
+    weekly,
+    now: (deps.clock ?? (() => new Date()))(),
+    policy: runtime.policy,
+    observedFiveHourBurnRatePerMinute: observedFiveHourBurnRate(observations),
+  });
+
+  const reserve = computeDynamicReserve({
+    forecast,
+    policy: runtime.policy.reserve,
+    weeklyPressureRatio: runtime.policy.weeklyPressureRatio,
+  });
+
+  const routings = new Map<string, NodeLaneRouting>();
+  const ready = (graph?.nodes ?? []).filter((node) => node.status === 'READY');
+  for (const node of ready) {
+    routings.set(node.nodeId, assessNode(runtime, deps, jobId, job, node, forecast, reserve, observations));
+  }
+
+  // Overtake scan: walk the graph prefix in which every node is COMPLETED,
+  // SUPERSEDED, or assessed as quota-DEFERRED. The first PENDING node in
+  // that prefix that would route LOCAL becomes the promotion candidate.
+  let overtakeCandidate: BuiltLaneContext['overtakeCandidate'];
+  if (graph !== undefined && ready.some((node) => routings.get(node.nodeId)?.routing.lane === 'DEFER')) {
+    for (const node of graph.nodes) {
+      if (node.status === 'COMPLETED' || node.status === 'SUPERSEDED') continue;
+      if (node.status === 'READY') {
+        if (routings.get(node.nodeId)?.routing.lane === 'DEFER') continue;
+        break; // A runnable ready node ends the deferred-only prefix.
+      }
+      if (node.status !== 'PENDING') break;
+      const assessment = assessNode(runtime, deps, jobId, job, node, forecast, reserve, observations);
+      if (assessment.routing.lane === 'LOCAL') {
+        routings.set(node.nodeId, assessment);
+        overtakeCandidate = {
+          nodeId: node.nodeId,
+          detail: `Predecessors are quota-deferred; ${assessment.suitability.class} task ${node.parentTaskId} runs locally in the meantime.`,
+        };
+        break;
+      }
+      // A PENDING node that would itself defer extends the prefix; a
+      // strong-but-runnable one ends the scan.
+      if (assessment.routing.lane !== 'DEFER') break;
+    }
+  }
+
+  return {
+    context: {
+      policy: runtime.policy,
+      forecast,
+      reserveRatio: reserve.ratio,
+      routings,
+    },
+    forecast,
+    reserve,
+    overtakeCandidate,
+  };
+}
+
+function assessNode(
+  runtime: SchedulingRuntime,
+  deps: JobDeps,
+  jobId: string,
+  job: JobState,
+  node: JobNode,
+  forecast: QuotaForecast,
+  reserve: DynamicReserveResult,
+  observations: ReturnType<typeof deriveBurnObservations>,
+): NodeLaneRouting {
+  const attemptsUsed = localExecutorAttemptsUsed(deps, jobId, node.nodeId);
+  const stickyEscalation = job.escalations.some(
+    (entry) => entry.nodeId === node.nodeId && LOCAL_ESCALATION_REASONS.includes(entry.reason),
+  );
+  // Suitability matches the TASK TITLE only, deliberately: matching against
+  // the shared spec text would let one "summarize"-style word anywhere in
+  // the requirements classify EVERY task local — the opposite of
+  // conservative. (Complexity signals still read the spec text; they only
+  // ever RAISE the class, which is the safe direction.)
+  const suitability = classifyLocalSuitability({
+    taskId: node.parentTaskId,
+    title: node.title,
+    complexity: node.complexity,
+    deterministicVerificationAvailable: runtime.verificationAvailable,
+    localWorkerAvailable: runtime.localWorkerAvailable && !stickyEscalation,
+    localAttemptsUsed: attemptsUsed,
+    maxLocalAttempts: runtime.policy.maxLocalAttempts,
+  });
+  const estimate = estimateWorkload({
+    taskId: node.parentTaskId,
+    complexity: node.complexity ?? 'MEDIUM',
+    localSuitability: suitability.class,
+    taskCategory: suitability.category,
+    policy: runtime.policy.estimator,
+    observations,
+  });
+  const routing = decideLane({
+    estimate,
+    forecast,
+    reserveRatio: reserve.ratio,
+    staleReserveExtraRatio: reserve.basis.staleTelemetryExtra,
+    localWorkerAvailable: runtime.localWorkerAvailable && !stickyEscalation,
+    localExecutionAvailable: runtime.localExecutionAvailable && !stickyEscalation,
+    localEscalationRequired: stickyEscalation || attemptsUsed >= runtime.policy.maxLocalAttempts,
+    contextUsageRatio: estimateNodeContextRatio(deps, jobId, node.nodeId),
+    policy: runtime.policy,
+  });
+  return { suitability, estimate, routing };
+}

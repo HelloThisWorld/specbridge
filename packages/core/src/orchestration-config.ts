@@ -317,6 +317,189 @@ export const jobContextPolicySchema = z
 export type JobContextPolicy = z.infer<typeof jobContextPolicySchema>;
 
 /**
+ * Dynamic-reserve policy (vNext.2). The reserve is the slice of the current
+ * five-hour window the scheduler refuses to spend on newly admitted work —
+ * headroom for interactive use and estimate error. It is DYNAMIC, never one
+ * permanent percentage:
+ *
+ *   reset far away  -> larger reserve (an estimate error hurts for hours)
+ *   reset near      -> smaller reserve (capacity is about to expire anyway)
+ *   reset imminent  -> reserve approaches `minRatio` while weekly is healthy
+ *
+ * Weekly pressure and stale telemetry ADD reserve — uncertainty always makes
+ * admission more conservative, never less.
+ */
+export interface DynamicReservePolicy {
+  /** Reserve when the reset is `farResetMs` or further away. */
+  baseRatio: number;
+  /** Floor the reserve approaches as the reset becomes imminent. */
+  minRatio: number;
+  /** At or under this time-to-reset the reserve reaches `minRatio`. */
+  nearResetMs: number;
+  /** At or over this time-to-reset the reserve is `baseRatio`. */
+  farResetMs: number;
+  /** Added to the reserve while the weekly window is under pressure. */
+  weeklyPressureExtraRatio: number;
+  /** Added to the reserve while quota telemetry is stale or unknown. */
+  staleTelemetryExtraRatio: number;
+}
+
+/**
+ * Explicitly annotated (here and for the sibling scheduler schemas): the
+ * fully inferred zod type would push the enclosing agent-config declaration
+ * past the compiler's serializable-type limit (TS7056). The interface is
+ * the public contract; the schema still validates and defaults every field.
+ */
+export const dynamicReservePolicySchema: z.ZodType<DynamicReservePolicy, z.ZodTypeDef, unknown> = z
+  .object({
+    baseRatio: z.number().min(0).max(0.9).default(0.2),
+    minRatio: z.number().min(0).max(0.5).default(0.02),
+    nearResetMs: z.number().int().min(60_000).max(18_000_000).default(15 * 60_000),
+    farResetMs: z.number().int().min(600_000).max(18_000_000).default(3 * 3_600_000),
+    weeklyPressureExtraRatio: z.number().min(0).max(0.5).default(0.15),
+    staleTelemetryExtraRatio: z.number().min(0).max(0.5).default(0.1),
+  })
+  .passthrough();
+
+/**
+ * Heuristic workload-estimation defaults by complexity class, used when the
+ * execution ledger has too few comparable observations. Burn ratios are
+ * fractions of ONE five-hour window's full capacity. These are deliberately
+ * coarse: the architecture supports uncertainty, and historical ledger data
+ * replaces them as it accumulates.
+ */
+export interface WorkloadEstimatorPolicy {
+  /** Expected wall time by complexity class, in milliseconds. */
+  lowWallTimeMs: number;
+  mediumWallTimeMs: number;
+  highWallTimeMs: number;
+  /** Expected five-hour-window quota burn by complexity class (0..1). */
+  lowQuotaBurnRatio: number;
+  mediumQuotaBurnRatio: number;
+  highQuotaBurnRatio: number;
+  /**
+   * Approximate weekly-to-five-hour capacity factor: one unit of five-hour
+   * burn consumes 1/factor of the weekly window. A pure heuristic until
+   * telemetry provides real weekly usage; configurable, never learned
+   * silently.
+   */
+  weeklyCapacityFactor: number;
+  /** Minimum comparable ledger observations before history informs estimates. */
+  minHistoricalObservations: number;
+}
+
+export const workloadEstimatorPolicySchema: z.ZodType<WorkloadEstimatorPolicy, z.ZodTypeDef, unknown> = z
+  .object({
+    lowWallTimeMs: z.number().int().min(1_000).default(10 * 60_000),
+    mediumWallTimeMs: z.number().int().min(1_000).default(25 * 60_000),
+    highWallTimeMs: z.number().int().min(1_000).default(50 * 60_000),
+    lowQuotaBurnRatio: z.number().min(0).max(1).default(0.05),
+    mediumQuotaBurnRatio: z.number().min(0).max(1).default(0.15),
+    highQuotaBurnRatio: z.number().min(0).max(1).default(0.35),
+    weeklyCapacityFactor: z.number().min(1).max(100).default(5),
+    minHistoricalObservations: z.number().int().min(1).max(100).default(3),
+  })
+  .passthrough();
+
+/**
+ * vNext.2 quota-aware scheduler policy (additive, defaulted).
+ *
+ * Governs how work is routed between the LOCAL lane (zero marginal cost) and
+ * the SUBSCRIPTION lane (prepaid Claude Max, rolling five-hour + weekly
+ * quota windows). These are OPERATIONAL bounds and routing thresholds, not
+ * safety boundaries: nothing here can bypass approvals, verification,
+ * protected paths, or budgets. Disabling the block simply restores the
+ * vNext.1 scheduling behavior unchanged.
+ *
+ * Admission is cross-reset by design: a task longer than the time to the
+ * next quota reset is admitted when its EXPECTED BURN BEFORE THE RESET fits
+ * inside remaining capacity minus the dynamic reserve. `task duration <=
+ * time to reset` is deliberately not an admission rule anywhere.
+ */
+export interface JobSchedulerPolicy {
+  /** When false, lane scheduling is off and vNext.1 behavior applies. */
+  enabled: boolean;
+  /**
+   * Bounded local execution attempts per task before escalation to the
+   * strong lane is mandatory. Local compute is cheap; wall time is not.
+   */
+  maxLocalAttempts: number;
+  /**
+   * Whether LOCAL_TRY tasks may be EXECUTED locally (SpecBridge-applied
+   * structured edits + deterministic verification). LOCAL_SAFE read-only
+   * reasoning is unaffected. Requires localInference to be enabled and
+   * coherent; this flag only gates the source-mutating local path.
+   */
+  allowLocalExecution: boolean;
+  /** Enter HARVEST when time-to-reset is at or under this window. */
+  harvestWindowMs: number;
+  /** HARVEST also requires at least this five-hour remaining ratio. */
+  harvestMinRemainingRatio: number;
+  /** CONSERVE when five-hour remaining is at or under this ratio. */
+  conserveRemainingRatio: number;
+  /** Weekly remaining at or under this ratio applies weekly pressure. */
+  weeklyPressureRatio: number;
+  /** Five-hour remaining at or under this ratio counts as exhausted. */
+  fiveHourExhaustedRatio: number;
+  /** Weekly remaining at or under this ratio counts as exhausted. */
+  weeklyExhaustedRatio: number;
+  /** Quota observations older than this are STALE. */
+  telemetryStaleMs: number;
+  /** Multiplier applied to expected burn before admission comparison. */
+  burnSafetyMultiplier: number;
+  /**
+   * Context-occupancy ratio at or above which a large dispatch must run
+   * context compaction/reconstruction first (quota admission and context
+   * admission are BOTH required).
+   */
+  contextCompactBeforeDispatchRatio: number;
+  /** How work is deferred when no lane can take it: poll interval bound. */
+  deferPollMs: number;
+  /**
+   * A quota-deferred driver holds (sleeps through) waits up to this long —
+   * e.g. an imminent five-hour reset — and STOPS with a resumable
+   * WAITING_RETRY job for longer waits, so a days-long weekly cooldown
+   * never pins a foreground process.
+   */
+  maxQuotaHoldMs: number;
+  /** Retained scheduling-decision records per job (oldest pruned). */
+  maxDecisionRecords: number;
+  /**
+   * Quota telemetry source. `manual` reads the operator-maintained
+   * `.specbridge/quota-telemetry.json` (kept current via the CLI);
+   * `none` disables telemetry (mode NORMAL, unknown freshness,
+   * conservative reserve). A machine-readable provider adapter is a
+   * future additive member — never a scraped UI.
+   */
+  telemetrySource: 'manual' | 'none';
+  reserve: DynamicReservePolicy;
+  estimator: WorkloadEstimatorPolicy;
+}
+
+export const jobSchedulerPolicySchema: z.ZodType<JobSchedulerPolicy, z.ZodTypeDef, unknown> = z
+  .object({
+    enabled: z.boolean().default(true),
+    maxLocalAttempts: z.number().int().min(1).max(5).default(2),
+    allowLocalExecution: z.boolean().default(true),
+    harvestWindowMs: z.number().int().min(60_000).max(18_000_000).default(30 * 60_000),
+    harvestMinRemainingRatio: z.number().min(0).max(1).default(0.25),
+    conserveRemainingRatio: z.number().min(0).max(1).default(0.2),
+    weeklyPressureRatio: z.number().min(0).max(1).default(0.1),
+    fiveHourExhaustedRatio: z.number().min(0).max(0.2).default(0.01),
+    weeklyExhaustedRatio: z.number().min(0).max(0.2).default(0.01),
+    telemetryStaleMs: z.number().int().min(10_000).max(86_400_000).default(15 * 60_000),
+    burnSafetyMultiplier: z.number().min(1).max(5).default(1.25),
+    contextCompactBeforeDispatchRatio: z.number().min(0.05).max(1).default(0.7),
+    deferPollMs: z.number().int().min(1_000).max(3_600_000).default(60_000),
+    maxQuotaHoldMs: z.number().int().min(0).max(86_400_000).default(10 * 60_000),
+    maxDecisionRecords: z.number().int().min(10).max(5_000).default(500),
+    telemetrySource: z.enum(['manual', 'none'] as const).default('manual'),
+    reserve: dynamicReservePolicySchema.default({}),
+    estimator: workloadEstimatorPolicySchema.default({}),
+  })
+  .passthrough();
+
+/**
  * v1.2 long-running job policy, additive inside the orchestration block.
  * Absent in every existing configuration file, in which case the defaults
  * below apply and no migration is required.
@@ -358,6 +541,13 @@ export const jobPolicySchema = z
     objectives: objectivesPolicySchema.default({}),
     /** Survival-runtime context policy (additive; safe defaults). */
     context: jobContextPolicySchema.default({}),
+    /**
+     * vNext.2 quota-aware scheduler policy (additive; safe defaults).
+     * Deliberately NOT part of jobPolicyFingerprint, exactly like `context`:
+     * quota thresholds are operational tuning — adjusting them mid-job must
+     * not make a resumed job falsely report "the policy changed".
+     */
+    scheduler: jobSchedulerPolicySchema.default({}),
   })
   .passthrough();
 export type JobPolicy = z.infer<typeof jobPolicySchema>;

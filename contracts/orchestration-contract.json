@@ -111,6 +111,10 @@
     "replan_started",
     "verification_failed"
   ],
+  "executionLanes": [
+    "LOCAL",
+    "SUBSCRIPTION"
+  ],
   "failureCategories": [
     "AMBIGUITY",
     "AUTHENTICATION",
@@ -156,17 +160,22 @@
     "clarification_resolved",
     "classification_completed",
     "context_compacted",
+    "context_compaction_before_dispatch",
     "context_threshold_reached",
     "contract_change_requested",
     "contract_conflict_detected",
     "critic_completed",
+    "cross_reset_admitted",
     "diagnosis_completed",
+    "dynamic_reserve_changed",
     "evaluation_failed",
     "evaluation_passed",
     "execution_finished",
     "execution_started",
     "graph_created",
     "graph_revised",
+    "harvest_entered",
+    "harvest_exited",
     "integration_failed",
     "integration_ready",
     "integration_started",
@@ -176,8 +185,11 @@
     "job_created",
     "job_failed",
     "job_resumed",
+    "local_attempt_failed",
+    "local_escalation_triggered",
     "local_model_started",
     "local_model_stopped",
+    "local_suitability_classified",
     "needs_decision",
     "node_completed",
     "node_failed",
@@ -188,11 +200,19 @@
     "plan_reviewed",
     "planning_started",
     "projection_stale",
+    "quota_exhausted",
+    "quota_snapshot_updated",
+    "quota_telemetry_stale",
     "repair_started",
     "replan_started",
     "repository_reconciled",
+    "scheduler_mode_changed",
+    "scheduling_decision_created",
     "task_checkpoint_created",
+    "task_deferred",
     "task_resumed",
+    "task_routed_local",
+    "task_routed_subscription",
     "verification_failed",
     "waiting_retry",
     "worker_escalated",
@@ -201,7 +221,18 @@
     "workgraph_created",
     "workgraph_proposed",
     "workgraph_revised",
+    "workload_estimated",
     "workunit_superseded"
+  ],
+  "laneDecisions": [
+    "DEFER",
+    "LOCAL",
+    "SUBSCRIPTION"
+  ],
+  "localSuitabilityClasses": [
+    "LOCAL_SAFE",
+    "LOCAL_TRY",
+    "STRONG_REQUIRED"
   ],
   "nextStepDirectives": [
     "BLOCK",
@@ -258,6 +289,38 @@
     "known-from-repository-evidence",
     "known-from-user",
     "unknown"
+  ],
+  "quotaTelemetryFreshness": [
+    "FRESH",
+    "STALE",
+    "UNKNOWN"
+  ],
+  "quotaWindows": [
+    "five-hour",
+    "weekly"
+  ],
+  "schedulerModes": [
+    "CONSERVE",
+    "EXHAUSTED_5H",
+    "EXHAUSTED_WEEKLY",
+    "HARVEST",
+    "NORMAL"
+  ],
+  "schedulingReasonCodes": [
+    "COMPACT_BEFORE_EXECUTION",
+    "CONSERVE_QUOTA",
+    "CROSS_RESET_ADMITTED",
+    "FIVE_HOUR_EXHAUSTED",
+    "HARVEST_EXPIRING_CAPACITY",
+    "LOCAL_ESCALATION_REQUIRED",
+    "LOCAL_SAFE",
+    "LOCAL_TRY_FIRST",
+    "LOCAL_UNAVAILABLE",
+    "PRE_RESET_BURN_UNSAFE",
+    "STALE_TELEMETRY_CONSERVATIVE",
+    "STRONG_REQUIRED",
+    "WEEKLY_EXHAUSTED",
+    "WEEKLY_QUOTA_PRESSURE"
   ],
   "taskAttemptStatuses": [
     "CANCELLED",

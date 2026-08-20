@@ -419,6 +419,21 @@
               }
             }
           },
+          "quota": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "quota-set": {
+            "options": [
+              "--help",
+              "--remaining",
+              "--reset-at",
+              "--resets-in-minutes",
+              "--window"
+            ]
+          },
           "review-plan": {
             "options": [
               "--approve",
@@ -434,6 +449,13 @@
               "--help",
               "--json",
               "--resume"
+            ]
+          },
+          "scheduler": {
+            "options": [
+              "--decisions",
+              "--help",
+              "--json"
             ]
           },
           "show": {

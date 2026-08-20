@@ -1,6 +1,11 @@
-import type { JobPolicy } from '@specbridge/core';
+import type { JobPolicy, JobSchedulerPolicy } from '@specbridge/core';
 import { OrchestrationError } from '../errors.js';
-import { nextSchedulableNode, unfinishedNodes } from './graph.js';
+import type { QuotaForecast } from '../quota/state.js';
+import type { NodeLaneRouting } from '../scheduling/scheduler.js';
+import { selectReadyCandidate } from '../scheduling/scheduler.js';
+import type { ExecutionLane, SchedulingReasonCode } from '../scheduling/vocabulary.js';
+import { isSubscriptionExhausted } from '../scheduling/vocabulary.js';
+import { findNode, nextSchedulableNode, unfinishedNodes } from './graph.js';
 import { selectWorker } from './routing.js';
 import type { JobGraph, JobNode, JobState, JobWorkerProfile } from './state.js';
 import type { AgentRole, EscalationReason } from './vocabulary.js';
@@ -39,8 +44,25 @@ export type SchedulerDecision =
       worker: JobWorkerProfile;
       mode: 'implement' | 'repair';
       reason: string;
+      /** vNext.2: the economic lane this dispatch runs on, when scheduled. */
+      lane?: ExecutionLane;
+      /** vNext.2: the lane assessment behind the decision (audit/record). */
+      laneRouting?: NodeLaneRouting;
+      /** vNext.2: context must be compacted/reconstructed before dispatch. */
+      compactFirst?: boolean;
     }
   | { kind: 'WAIT_RETRY'; retryAt: string; reason: string }
+  | {
+      /** vNext.2: subscription capacity cannot take this work right now. */
+      kind: 'WAIT_QUOTA';
+      nodeId: string;
+      taskId: string;
+      /** When capacity is expected to return (ISO), when known. */
+      until: string | null;
+      reasonCode: SchedulingReasonCode;
+      reason: string;
+      laneRouting?: NodeLaneRouting;
+    }
   | {
       kind: 'AWAIT_HUMAN';
       what: 'clarification' | 'plan-review';
@@ -58,6 +80,27 @@ export interface ScheduleInput {
   policy: JobPolicy;
   workers: readonly JobWorkerProfile[];
   now: Date;
+  /**
+   * vNext.2 lane-scheduling context. Absent (the default for callers that
+   * predate it, and whenever `scheduler.enabled` is false) the function
+   * behaves byte-identically to vNext.1. Present, executor dispatches gain
+   * a lane, quota-deferred work becomes WAIT_QUOTA, and ready-node
+   * selection may prefer a runnable node over a deferring one.
+   */
+  scheduling?: LaneSchedulingContext | undefined;
+}
+
+/**
+ * Everything the lane decisions need, precomputed by the driver from
+ * durable state and telemetry so this function stays pure and replayable.
+ */
+export interface LaneSchedulingContext {
+  policy: JobSchedulerPolicy;
+  forecast: QuotaForecast;
+  /** The dynamic reserve ratio in force. */
+  reserveRatio: number;
+  /** Per-node lane assessments, keyed by nodeId. */
+  routings: ReadonlyMap<string, NodeLaneRouting>;
 }
 
 /** Escalation reasons recorded for a node, in order (sticky routing input). */
@@ -65,6 +108,62 @@ function nodeEscalations(job: JobState, nodeId: string): EscalationReason[] {
   return job.escalations
     .filter((entry) => entry.nodeId === nodeId)
     .map((entry) => entry.reason);
+}
+
+/**
+ * vNext.2 quota gate for reasoning-role dispatches: a PAID worker may not
+ * be invoked while the subscription lane is exhausted. The step waits for
+ * the relevant reset; local-tier role work is never gated.
+ */
+function gateRoleQuota(
+  scheduling: LaneSchedulingContext | undefined,
+  decision: Extract<SchedulerDecision, { kind: 'RUN_ROLE' }>,
+  node: JobNode,
+): SchedulerDecision {
+  if (scheduling === undefined || !scheduling.policy.enabled) return decision;
+  if (decision.worker.costTier !== 'PAID') return decision;
+  const mode = scheduling.forecast.schedulerMode;
+  if (!isSubscriptionExhausted(mode)) return decision;
+  const fiveHour = mode === 'EXHAUSTED_5H';
+  return {
+    kind: 'WAIT_QUOTA',
+    nodeId: node.nodeId,
+    taskId: node.parentTaskId,
+    until: fiveHour ? scheduling.forecast.fiveHourResetAt : scheduling.forecast.weeklyResetAt,
+    reasonCode: fiveHour ? 'FIVE_HOUR_EXHAUSTED' : 'WEEKLY_EXHAUSTED',
+    reason:
+      `The ${decision.role} step needs the paid worker, but the ` +
+      `${fiveHour ? 'five-hour' : 'weekly'} subscription window is exhausted; the step waits for the reset.`,
+  };
+}
+
+/**
+ * vNext.2 lane-aware node selection. Only reorders among READY nodes (every
+ * candidate's dependencies are satisfied), only when a complete lane
+ * assessment exists for each, and only while the job itself is READY — the
+ * DIAGNOSING/REPLANNING flows keep the vNext.1 first-in-graph-order rule so
+ * recovery always continues on the node that failed.
+ */
+function selectSchedulableNode(input: ScheduleInput): JobNode | undefined {
+  const graph = input.graph;
+  if (graph === undefined) return undefined;
+  const first = nextSchedulableNode(graph);
+  const scheduling = input.scheduling;
+  if (scheduling === undefined || !scheduling.policy.enabled) return first;
+  if (input.job.status !== 'READY') return first;
+  if (first === undefined || first.status !== 'READY') return first;
+  const ready = graph.nodes.filter((candidate) => candidate.status === 'READY');
+  if (ready.length <= 1) return first;
+  const candidates = ready.flatMap((candidate, index) => {
+    const routing = scheduling.routings.get(candidate.nodeId);
+    return routing === undefined
+      ? []
+      : [{ nodeId: candidate.nodeId, graphIndex: index, routing: routing.routing }];
+  });
+  if (candidates.length !== ready.length) return first;
+  const selection = selectReadyCandidate(candidates);
+  if (selection === undefined) return first;
+  return findNode(graph, selection.nodeId) ?? first;
 }
 
 /** The executor dispatches (implement + repair) already attempted on a node. */
@@ -191,7 +290,7 @@ export function scheduleNext(input: ScheduleInput): SchedulerDecision {
     return { kind: 'BUILD_GRAPH', reason: 'No runtime execution graph exists yet.' };
   }
 
-  const node = nextSchedulableNode(graph);
+  const node = selectSchedulableNode(input);
   if (node === undefined) {
     if (unfinishedNodes(graph).length === 0) {
       return { kind: 'JOB_COMPLETE', reason: 'Every runtime node completed through verified evidence.' };
@@ -233,14 +332,18 @@ export function scheduleNext(input: ScheduleInput): SchedulerDecision {
       workers,
       nodeEscalations: escalations,
     });
-    return {
-      kind: 'RUN_ROLE',
-      role: 'DIAGNOSER',
-      nodeId: node.nodeId,
-      worker: selection.worker,
-      reason: `The last dispatch for task ${node.parentTaskId} failed (${node.latestFailure?.category ?? 'unknown'}); a diagnosis is required before any repair.`,
-      ...(selection.escalation !== undefined ? { escalation: selection.escalation } : {}),
-    };
+    return gateRoleQuota(
+      input.scheduling,
+      {
+        kind: 'RUN_ROLE',
+        role: 'DIAGNOSER',
+        nodeId: node.nodeId,
+        worker: selection.worker,
+        reason: `The last dispatch for task ${node.parentTaskId} failed (${node.latestFailure?.category ?? 'unknown'}); a diagnosis is required before any repair.`,
+        ...(selection.escalation !== undefined ? { escalation: selection.escalation } : {}),
+      },
+      node,
+    );
   }
 
   // REPLANNING: the active plan was invalidated; a replacement is required.
@@ -253,17 +356,21 @@ export function scheduleNext(input: ScheduleInput): SchedulerDecision {
       workers,
       nodeEscalations: escalations,
     });
-    return {
-      kind: 'RUN_ROLE',
-      role,
-      nodeId: node.nodeId,
-      worker: selection.worker,
-      reason:
-        role === 'REPLANNER'
-          ? 'The active plan was invalidated; a replacement plan is required.'
-          : 'A fresh plan is required after the previous approach was superseded.',
-      ...(selection.escalation !== undefined ? { escalation: selection.escalation } : {}),
-    };
+    return gateRoleQuota(
+      input.scheduling,
+      {
+        kind: 'RUN_ROLE',
+        role,
+        nodeId: node.nodeId,
+        worker: selection.worker,
+        reason:
+          role === 'REPLANNER'
+            ? 'The active plan was invalidated; a replacement plan is required.'
+            : 'A fresh plan is required after the previous approach was superseded.',
+        ...(selection.escalation !== undefined ? { escalation: selection.escalation } : {}),
+      },
+      node,
+    );
   }
 
   // ---- Node pipeline -------------------------------------------------------
@@ -289,14 +396,18 @@ export function scheduleNext(input: ScheduleInput): SchedulerDecision {
       workers,
       nodeEscalations: escalations,
     });
-    return {
-      kind: 'RUN_ROLE',
-      role: 'CLASSIFIER',
-      nodeId: node.nodeId,
-      worker: selection.worker,
-      reason: 'The node has not been classified yet; a classification can only raise the deterministic class.',
-      ...(selection.escalation !== undefined ? { escalation: selection.escalation } : {}),
-    };
+    return gateRoleQuota(
+      input.scheduling,
+      {
+        kind: 'RUN_ROLE',
+        role: 'CLASSIFIER',
+        nodeId: node.nodeId,
+        worker: selection.worker,
+        reason: 'The node has not been classified yet; a classification can only raise the deterministic class.',
+        ...(selection.escalation !== undefined ? { escalation: selection.escalation } : {}),
+      },
+      node,
+    );
   }
 
   // 2. Planning: the node needs an execution plan.
@@ -308,14 +419,18 @@ export function scheduleNext(input: ScheduleInput): SchedulerDecision {
       workers,
       nodeEscalations: escalations,
     });
-    return {
-      kind: 'RUN_ROLE',
-      role: 'PLANNER',
-      nodeId: node.nodeId,
-      worker: selection.worker,
-      reason: `Node ${node.nodeId} (task ${node.parentTaskId}) has no execution plan.`,
-      ...(selection.escalation !== undefined ? { escalation: selection.escalation } : {}),
-    };
+    return gateRoleQuota(
+      input.scheduling,
+      {
+        kind: 'RUN_ROLE',
+        role: 'PLANNER',
+        nodeId: node.nodeId,
+        worker: selection.worker,
+        reason: `Node ${node.nodeId} (task ${node.parentTaskId}) has no execution plan.`,
+        ...(selection.escalation !== undefined ? { escalation: selection.escalation } : {}),
+      },
+      node,
+    );
   }
 
   // 3. A critiqued-but-rejected plan goes back to the planner: REVISE means
@@ -334,17 +449,21 @@ export function scheduleNext(input: ScheduleInput): SchedulerDecision {
       workers,
       nodeEscalations: escalations,
     });
-    return {
-      kind: 'RUN_ROLE',
-      role: 'PLANNER',
-      nodeId: node.nodeId,
-      worker: selection.worker,
-      reason:
-        node.criticVerdict === 'REVISE'
-          ? `The critic requested revisions to plan revision ${node.planRevision}.`
-          : `The critic escalated plan revision ${node.planRevision}; planning reroutes to the large agent.`,
-      ...(selection.escalation !== undefined ? { escalation: selection.escalation } : {}),
-    };
+    return gateRoleQuota(
+      input.scheduling,
+      {
+        kind: 'RUN_ROLE',
+        role: 'PLANNER',
+        nodeId: node.nodeId,
+        worker: selection.worker,
+        reason:
+          node.criticVerdict === 'REVISE'
+            ? `The critic requested revisions to plan revision ${node.planRevision}.`
+            : `The critic escalated plan revision ${node.planRevision}; planning reroutes to the large agent.`,
+        ...(selection.escalation !== undefined ? { escalation: selection.escalation } : {}),
+      },
+      node,
+    );
   }
 
   // 4. Critique: local plans are reviewed by the critic before execution.
@@ -360,14 +479,18 @@ export function scheduleNext(input: ScheduleInput): SchedulerDecision {
         workers,
         nodeEscalations: escalations,
       });
-      return {
-        kind: 'RUN_ROLE',
-        role: 'CRITIC',
-        nodeId: node.nodeId,
-        worker: selection.worker,
-        reason: `Plan revision ${node.planRevision} was produced by the local planner and has not been critiqued.`,
-        ...(selection.escalation !== undefined ? { escalation: selection.escalation } : {}),
-      };
+      return gateRoleQuota(
+        input.scheduling,
+        {
+          kind: 'RUN_ROLE',
+          role: 'CRITIC',
+          nodeId: node.nodeId,
+          worker: selection.worker,
+          reason: `Plan revision ${node.planRevision} was produced by the local planner and has not been critiqued.`,
+          ...(selection.escalation !== undefined ? { escalation: selection.escalation } : {}),
+        },
+        node,
+      );
     }
     if (node.humanReviewRequired) {
       return {
@@ -387,6 +510,70 @@ export function scheduleNext(input: ScheduleInput): SchedulerDecision {
 
   // 5. Execute (or repair): the plan is approved and current.
   const mode: 'implement' | 'repair' = node.latestDiagnosis?.recommendedAction === 'REPAIR' ? 'repair' : 'implement';
+  const baseReason =
+    mode === 'repair'
+      ? `A diagnosed defect on task ${node.parentTaskId} is being repaired (cycle ${node.repairCycles + 1}).`
+      : `Task ${node.parentTaskId} has an approved plan (revision ${node.planRevision}) and is ready to implement.`;
+
+  // vNext.2: the lane decision controls the dispatch. LOCAL runs through
+  // the SpecBridge-driven local execution path (structured edits +
+  // deterministic verification); SUBSCRIPTION runs the normal strong
+  // worker; DEFER waits for quota with a recorded reason. Without a
+  // scheduling context the vNext.1 path below is byte-identical.
+  const scheduling = input.scheduling;
+  const laneRouting = scheduling?.routings.get(node.nodeId);
+  if (scheduling !== undefined && scheduling.policy.enabled && laneRouting !== undefined) {
+    const routing = laneRouting.routing;
+    if (routing.lane === 'DEFER') {
+      return {
+        kind: 'WAIT_QUOTA',
+        nodeId: node.nodeId,
+        taskId: node.parentTaskId,
+        until: routing.deferUntil,
+        reasonCode: routing.reasonCode,
+        reason: routing.detail,
+        laneRouting,
+      };
+    }
+    if (routing.lane === 'LOCAL') {
+      const localWorker = workers.find((worker) => worker.reasoningTier === 'LOCAL_SMALL');
+      if (localWorker !== undefined) {
+        return {
+          kind: 'DISPATCH_EXECUTOR',
+          nodeId: node.nodeId,
+          taskId: node.parentTaskId,
+          worker: localWorker,
+          mode,
+          lane: 'LOCAL',
+          laneRouting,
+          compactFirst: false,
+          reason: `${baseReason} ${routing.detail}`,
+        };
+      }
+      // The routing believed a local worker existed but the roster has
+      // none: fall through to the subscription path with the discrepancy
+      // visible in the reason.
+    }
+    const subscriptionExecutor = selectWorker({
+      role: 'EXECUTOR',
+      complexity: node.complexity,
+      policy,
+      workers,
+      nodeEscalations: escalations,
+    });
+    return {
+      kind: 'DISPATCH_EXECUTOR',
+      nodeId: node.nodeId,
+      taskId: node.parentTaskId,
+      worker: subscriptionExecutor.worker,
+      mode,
+      lane: 'SUBSCRIPTION',
+      laneRouting,
+      compactFirst: routing.compactFirst,
+      reason: `${baseReason} ${routing.detail}`,
+    };
+  }
+
   const executor = selectWorker({
     role: 'EXECUTOR',
     complexity: node.complexity,
@@ -400,9 +587,6 @@ export function scheduleNext(input: ScheduleInput): SchedulerDecision {
     taskId: node.parentTaskId,
     worker: executor.worker,
     mode,
-    reason:
-      mode === 'repair'
-        ? `A diagnosed defect on task ${node.parentTaskId} is being repaired (cycle ${node.repairCycles + 1}).`
-        : `Task ${node.parentTaskId} has an approved plan (revision ${node.planRevision}) and is ready to implement.`,
+    reason: baseReason,
   };
 }

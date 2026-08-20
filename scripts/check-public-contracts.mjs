@@ -241,6 +241,9 @@ async function buildSnapshots() {
       taskCheckpoint: orchestration.TASK_CHECKPOINT_SCHEMA_VERSION,
       contextPackage: context.CONTEXT_PACKAGE_SCHEMA_VERSION,
       runnerContextCapabilities: runners.RUNNER_CONTEXT_CAPABILITIES_SCHEMA_VERSION,
+      // Quota-scheduler families (vNext.2).
+      quotaSnapshot: orchestration.QUOTA_SNAPSHOT_SCHEMA_VERSION,
+      schedulingDecision: orchestration.SCHEDULING_DECISION_SCHEMA_VERSION,
     },
     'verification-rules.json': {
       idPattern: 'SBV\\d{3}',
@@ -298,6 +301,14 @@ async function buildSnapshots() {
       // Survival-runtime vocabulary (vNext.1; additive within 1.x).
       taskAttemptStatuses: [...orchestration.TASK_ATTEMPT_STATUSES].sort(),
       taskCheckpointReasons: [...orchestration.TASK_CHECKPOINT_REASONS].sort(),
+      // Quota-scheduler vocabulary (vNext.2; additive within 1.x).
+      executionLanes: [...orchestration.EXECUTION_LANES].sort(),
+      laneDecisions: [...orchestration.LANE_DECISIONS].sort(),
+      localSuitabilityClasses: [...orchestration.LOCAL_SUITABILITY_CLASSES].sort(),
+      schedulerModes: [...orchestration.SCHEDULER_MODES].sort(),
+      quotaWindows: [...orchestration.QUOTA_WINDOWS].sort(),
+      quotaTelemetryFreshness: [...orchestration.QUOTA_TELEMETRY_FRESHNESS].sort(),
+      schedulingReasonCodes: [...orchestration.SCHEDULING_REASON_CODES].sort(),
     },
     // Context-lifecycle vocabulary (vNext.1). Every value is stable within
     // 1.x: members may be appended, never renamed or removed.

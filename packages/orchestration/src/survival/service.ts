@@ -85,6 +85,17 @@ export interface BeginTaskAttemptInput {
   providerSessionId?: string | undefined;
   /** The interrupted/failed attempt this one continues from. */
   resumedFromAttemptId?: string | undefined;
+  /** vNext.2 scheduling attribution (all optional; recorded, never policy). */
+  lane?: string | undefined;
+  localSuitability?: string | undefined;
+  taskComplexity?: string | undefined;
+  taskCategory?: string | undefined;
+  schedulingDecisionId?: string | undefined;
+  /** Quota/context observations captured at dispatch start. */
+  quotaBefore?:
+    | { fiveHourRemainingRatio?: number | null | undefined; weeklyRemainingRatio?: number | null | undefined }
+    | undefined;
+  contextUsageBefore?: number | undefined;
 }
 
 /** Persist a new RUNNING attempt. This happens BEFORE any work is dispatched. */
@@ -126,6 +137,13 @@ export function beginTaskAttempt(deps: SurvivalDeps, input: BeginTaskAttemptInpu
     ...(input.resumedFromAttemptId !== undefined
       ? { resumedFromAttemptId: input.resumedFromAttemptId }
       : {}),
+    ...(input.lane !== undefined ? { lane: input.lane } : {}),
+    ...(input.localSuitability !== undefined ? { localSuitability: input.localSuitability } : {}),
+    ...(input.taskComplexity !== undefined ? { taskComplexity: input.taskComplexity } : {}),
+    ...(input.taskCategory !== undefined ? { taskCategory: input.taskCategory } : {}),
+    ...(input.schedulingDecisionId !== undefined
+      ? { schedulingDecisionId: input.schedulingDecisionId }
+      : {}),
     metrics: {
       durationMs: null,
       inputTokens: null,
@@ -135,6 +153,13 @@ export function beginTaskAttempt(deps: SurvivalDeps, input: BeginTaskAttemptInpu
       filesRead: null,
       filesChanged: null,
       costUsd: null,
+      fiveHourQuotaBefore: input.quotaBefore?.fiveHourRemainingRatio ?? null,
+      fiveHourQuotaAfter: null,
+      weeklyQuotaBefore: input.quotaBefore?.weeklyRemainingRatio ?? null,
+      weeklyQuotaAfter: null,
+      contextUsageBefore: input.contextUsageBefore ?? null,
+      contextUsageAfter: null,
+      testLoops: null,
     },
   };
   return writeNewTaskAttempt(deps.workspace, attempt);
@@ -367,6 +392,10 @@ export function readExecutionLedger(
       completedAt: attempt.completedAt ?? null,
       success: attempt.status === 'COMPLETED',
       failureReason: attempt.failure?.category ?? attempt.interruptedReason ?? null,
+      localSuitability: attempt.localSuitability ?? null,
+      taskComplexity: attempt.taskComplexity ?? null,
+      taskCategory: attempt.taskCategory ?? null,
+      schedulingDecisionId: attempt.schedulingDecisionId ?? null,
       metrics: attempt.metrics,
     }),
   );

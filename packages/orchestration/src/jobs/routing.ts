@@ -13,9 +13,13 @@ import type { AgentRole, ComplexityClass, EscalationReason } from './vocabulary.
  * profiles with roles, tiers, and capabilities, derived from configuration.
  *
  * Two invariants enforced structurally:
- *   - the EXECUTOR always resolves to a repository-writing LARGE_AGENT
- *     worker; the local worker never declares repositoryWrite, so even a
- *     mis-edited routing table cannot select it for source mutation
+ *   - `selectWorker` for the EXECUTOR always resolves to a repository-
+ *     writing LARGE_AGENT worker; the local worker never declares
+ *     repositoryWrite, so even a mis-edited routing table cannot select it
+ *     for source mutation. (vNext.2's LOCAL execution lane deliberately
+ *     does NOT pass through here: it is a separate explicit path in which
+ *     the local model returns structured edits and SpecBridge itself
+ *     applies and verifies them — the model still never writes.)
  *   - every escalation carries an EscalationReason; a paid worker is never
  *     selected silently
  */

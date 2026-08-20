@@ -17,3 +17,5 @@ export * from './agents/index.js';
 export * from './driver/index.js';
 export * from './objectives/index.js';
 export * from './survival/index.js';
+export * from './quota/index.js';
+export * from './scheduling/index.js';

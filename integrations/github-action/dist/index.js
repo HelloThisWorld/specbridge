@@ -34272,6 +34272,44 @@ var jobContextPolicySchema = external_exports.object({
   /** Bound on retained recent-delta items per task context. */
   maxRecentDeltaItems: external_exports.number().int().min(1).max(200).default(20)
 }).passthrough();
+var dynamicReservePolicySchema = external_exports.object({
+  baseRatio: external_exports.number().min(0).max(0.9).default(0.2),
+  minRatio: external_exports.number().min(0).max(0.5).default(0.02),
+  nearResetMs: external_exports.number().int().min(6e4).max(18e6).default(15 * 6e4),
+  farResetMs: external_exports.number().int().min(6e5).max(18e6).default(3 * 36e5),
+  weeklyPressureExtraRatio: external_exports.number().min(0).max(0.5).default(0.15),
+  staleTelemetryExtraRatio: external_exports.number().min(0).max(0.5).default(0.1)
+}).passthrough();
+var workloadEstimatorPolicySchema = external_exports.object({
+  lowWallTimeMs: external_exports.number().int().min(1e3).default(10 * 6e4),
+  mediumWallTimeMs: external_exports.number().int().min(1e3).default(25 * 6e4),
+  highWallTimeMs: external_exports.number().int().min(1e3).default(50 * 6e4),
+  lowQuotaBurnRatio: external_exports.number().min(0).max(1).default(0.05),
+  mediumQuotaBurnRatio: external_exports.number().min(0).max(1).default(0.15),
+  highQuotaBurnRatio: external_exports.number().min(0).max(1).default(0.35),
+  weeklyCapacityFactor: external_exports.number().min(1).max(100).default(5),
+  minHistoricalObservations: external_exports.number().int().min(1).max(100).default(3)
+}).passthrough();
+var jobSchedulerPolicySchema = external_exports.object({
+  enabled: external_exports.boolean().default(true),
+  maxLocalAttempts: external_exports.number().int().min(1).max(5).default(2),
+  allowLocalExecution: external_exports.boolean().default(true),
+  harvestWindowMs: external_exports.number().int().min(6e4).max(18e6).default(30 * 6e4),
+  harvestMinRemainingRatio: external_exports.number().min(0).max(1).default(0.25),
+  conserveRemainingRatio: external_exports.number().min(0).max(1).default(0.2),
+  weeklyPressureRatio: external_exports.number().min(0).max(1).default(0.1),
+  fiveHourExhaustedRatio: external_exports.number().min(0).max(0.2).default(0.01),
+  weeklyExhaustedRatio: external_exports.number().min(0).max(0.2).default(0.01),
+  telemetryStaleMs: external_exports.number().int().min(1e4).max(864e5).default(15 * 6e4),
+  burnSafetyMultiplier: external_exports.number().min(1).max(5).default(1.25),
+  contextCompactBeforeDispatchRatio: external_exports.number().min(0.05).max(1).default(0.7),
+  deferPollMs: external_exports.number().int().min(1e3).max(36e5).default(6e4),
+  maxQuotaHoldMs: external_exports.number().int().min(0).max(864e5).default(10 * 6e4),
+  maxDecisionRecords: external_exports.number().int().min(10).max(5e3).default(500),
+  telemetrySource: external_exports.enum(["manual", "none"]).default("manual"),
+  reserve: dynamicReservePolicySchema.default({}),
+  estimator: workloadEstimatorPolicySchema.default({})
+}).passthrough();
 var jobPolicySchema = external_exports.object({
   /** When false, job operations refuse to start and report why. */
   enabled: external_exports.boolean().default(true),
@@ -34302,7 +34340,14 @@ var jobPolicySchema = external_exports.object({
   /** Objective decomposition policy (additive; safe defaults). */
   objectives: objectivesPolicySchema.default({}),
   /** Survival-runtime context policy (additive; safe defaults). */
-  context: jobContextPolicySchema.default({})
+  context: jobContextPolicySchema.default({}),
+  /**
+   * vNext.2 quota-aware scheduler policy (additive; safe defaults).
+   * Deliberately NOT part of jobPolicyFingerprint, exactly like `context`:
+   * quota thresholds are operational tuning — adjusting them mid-job must
+   * not make a resumed job falsely report "the policy changed".
+   */
+  scheduler: jobSchedulerPolicySchema.default({})
 }).passthrough();
 var orchestrationPolicySchema = external_exports.object({
   /**
