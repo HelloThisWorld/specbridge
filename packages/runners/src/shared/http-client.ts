@@ -86,10 +86,49 @@ export type SafeHttpResult =
       bodyExcerpt?: string;
     };
 
-function composeSignals(timeoutMs: number, external?: AbortSignal): AbortSignal {
-  const signals: AbortSignal[] = [AbortSignal.timeout(timeoutMs)];
-  if (external !== undefined) signals.push(external);
-  return AbortSignal.any(signals);
+export interface BoundedAbort {
+  signal: AbortSignal;
+  /** Detach the timer and the external listener. Always call in `finally`. */
+  release: () => void;
+}
+
+/**
+ * Compose the total-timeout signal with an optional external signal.
+ *
+ * Deliberately NOT `AbortSignal.any([AbortSignal.timeout(ms), external])`:
+ * on Node 20 the composite holds only weak references to its source
+ * signals, so an otherwise-unreferenced timeout signal can be garbage
+ * collected before its timer fires — and a request against an endpoint
+ * that never answers then hangs FOREVER instead of timing out. This is the
+ * root cause of the intermittent node-20 CI failures where the ollama
+ * "timeout aborts deterministically" test (contract: ~1.5 s) burned the
+ * whole 30 s Vitest budget: the abort simply never happened. `any()` also
+ * leaks one 'abort' listener on the external signal per request, because
+ * nothing ever unsubscribes the composite.
+ *
+ * An explicit controller with a real timer has no GC dependence on any
+ * Node version, and `release()` (called in the request's `finally`)
+ * guarantees the timer and the external listener never outlive the
+ * request. Exported for tests.
+ */
+export function createBoundedAbort(timeoutMs: number, external?: AbortSignal): BoundedAbort {
+  const controller = new AbortController();
+  // The timer stays ref'd: it is always cleared in release(), so it cannot
+  // keep the process alive beyond the request — and a ref'd timer cannot
+  // be skipped the way an unref'd one can when the loop drains.
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const onExternalAbort = (): void => controller.abort();
+  if (external !== undefined) {
+    if (external.aborted) controller.abort();
+    else external.addEventListener('abort', onExternalAbort, { once: true });
+  }
+  return {
+    signal: controller.signal,
+    release: (): void => {
+      clearTimeout(timer);
+      external?.removeEventListener('abort', onExternalAbort);
+    },
+  };
 }
 
 /** Read a body stream up to the limit; abort the connection beyond it. */
@@ -154,6 +193,21 @@ export function checkRedirectTarget(current: URL, location: string): RedirectDec
 
 /** One bounded HTTP request. Never throws for transport-level failures. */
 export async function safeHttpRequest(request: SafeHttpRequest): Promise<SafeHttpResult> {
+  // One abort scope for the WHOLE request — connect, headers, every
+  // redirect hop, and body streaming share the total timeout budget, and
+  // release() in the finally guarantees no timer or listener outlives it.
+  const bounded = createBoundedAbort(request.timeoutMs, request.signal);
+  try {
+    return await performSafeHttpRequest(request, bounded.signal);
+  } finally {
+    bounded.release();
+  }
+}
+
+async function performSafeHttpRequest(
+  request: SafeHttpRequest,
+  signal: AbortSignal,
+): Promise<SafeHttpResult> {
   const started = Date.now();
   const duration = (): number => Math.max(0, Date.now() - started);
   const externalAborted = (): boolean => request.signal?.aborted === true;
@@ -181,7 +235,7 @@ export async function safeHttpRequest(request: SafeHttpRequest): Promise<SafeHtt
       response = await fetch(currentUrl.toString(), {
         method: currentMethod,
         redirect: 'manual',
-        signal: composeSignals(request.timeoutMs, request.signal),
+        signal,
         headers,
         ...(sendBody ? { body: JSON.stringify(request.body) } : {}),
       });

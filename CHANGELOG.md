@@ -159,6 +159,23 @@ development is an additional mode, never forced.
   aggregation with contradiction stops, persistent-failure honesty, and
   mid-objective interruption resumed to completion.
 
+### Fixed
+
+- The shared model-API HTTP client no longer composes its total timeout
+  with `AbortSignal.any([AbortSignal.timeout(ms), external])`. On Node 20
+  the composite holds only weak references to its sources, so an
+  otherwise-unreferenced timeout signal could be garbage collected before
+  its timer fired — and a request against an endpoint that never answers
+  (Ollama, OpenAI-compatible, the managed local model, registry downloads)
+  then hung forever instead of timing out. This was the intermittent
+  node-20 CI failure where "a timeout aborts the request deterministically"
+  burned the full 30-second test budget. The client now uses one explicit
+  `AbortController` with a real timer per request — no GC dependence on any
+  Node version — released in a `finally`, which also fixes the 'abort'
+  listener `any()` leaked on long-lived external signals per request, and
+  makes the timeout genuinely TOTAL across redirect hops and body
+  streaming, as the contract always documented.
+
 ## 1.2.0 (unreleased)
 
 The persistent, local-first, multi-agent orchestrator. v1.1 governed how a
