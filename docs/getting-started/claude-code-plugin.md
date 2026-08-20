@@ -16,18 +16,23 @@ Full instructions — local checkout, development mode, the release ZIP, and
 installation verification — live in
 [plugin installation](../plugin-installation.md).
 
-## The twelve skills
+## The fourteen skills
 
 `/specbridge:doctor` · `/specbridge:status` · `/specbridge:new` ·
 `/specbridge:author` · `/specbridge:approve` · `/specbridge:implement` ·
-`/specbridge:develop` · `/specbridge:continue` · `/specbridge:verify` ·
-`/specbridge:runners` · `/specbridge:templates` · `/specbridge:extensions`
+`/specbridge:develop` · `/specbridge:discover` · `/specbridge:orchestrate` ·
+`/specbridge:continue` · `/specbridge:verify` · `/specbridge:runners` ·
+`/specbridge:templates` · `/specbridge:extensions`
 
 `/specbridge:implement` is the direct task lifecycle (`task_begin` → edit →
 `task_complete`) and is unchanged. `/specbridge:develop` (v1.1) drives the
 governed lifecycle: intent assessment, clarification, execution planning, a
 plan review gate, a bounded implementation loop, and evidence-backed
 completion. `/specbridge:continue` is now orchestration-aware.
+`/specbridge:orchestrate` (v1.2) inspects and gates long-running jobs.
+`/specbridge:discover` runs Mission Discovery — from a product direction to
+an approved spec of objectives — and approves nothing along the way
+([Mission Discovery](../mission/mission-discovery.md)).
 
 The eleven v1.0 skills passed live-model verification against a real
 workspace — results and per-skill reports:

@@ -134,11 +134,30 @@ export const AGENT_ROLES = [
   'REPLANNER',
   /** Implement source changes for one approved task. The only writing role. */
   'EXECUTOR',
+  // Objective-runtime roles (additive; appended, never reordered).
+  /** Propose a work graph decomposing one approved objective. Read-only. */
+  'DECOMPOSER',
+  /** Implement one work unit inside an ISOLATED worktree, never the canonical tree. */
+  'BUILDER',
+  /** Judge one candidate artifact against the approved contract projection. Read-only. */
+  'EVALUATOR',
+  /** Synthesize several valid artifacts/reports into one structured result. Read-only. */
+  'AGGREGATOR',
+  /** Reconcile candidate changes during canonical integration (single writer path). */
+  'INTEGRATOR',
 ] as const;
 export type AgentRole = (typeof AGENT_ROLES)[number];
 
-/** Roles that may mutate repository source. Everything else is read-only. */
-export const WRITING_ROLES: readonly AgentRole[] = ['EXECUTOR'];
+/**
+ * Roles that may mutate the CANONICAL repository source. BUILDER is
+ * deliberately not here: builders write only inside isolated per-attempt
+ * worktrees, and their output enters the canonical tree exclusively through
+ * the single-writer integration path.
+ */
+export const WRITING_ROLES: readonly AgentRole[] = ['EXECUTOR', 'INTEGRATOR'];
+
+/** Roles whose writes are confined to an isolated candidate workspace. */
+export const WORKTREE_WRITING_ROLES: readonly AgentRole[] = ['BUILDER'];
 
 /**
  * Reasoning tiers. `LOCAL_SMALL` is a locally-served model suitable for
@@ -311,5 +330,24 @@ export const JOB_EVENT_TYPES = [
   'job_completed',
   'job_failed',
   'job_cancelled',
+  // Objective-runtime events (additive; semantic, never per-tool-call).
+  'workgraph_proposed',
+  'workgraph_created',
+  'workgraph_revised',
+  'worker_started',
+  'candidate_ready',
+  'candidate_failed',
+  'evaluation_passed',
+  'evaluation_failed',
+  'contract_conflict_detected',
+  'contract_change_requested',
+  'needs_decision',
+  'projection_stale',
+  'workunit_superseded',
+  'aggregation_completed',
+  'integration_ready',
+  'integration_started',
+  'integration_failed',
+  'objective_verified',
 ] as const;
 export type JobEventType = (typeof JOB_EVENT_TYPES)[number];

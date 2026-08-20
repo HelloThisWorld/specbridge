@@ -9,6 +9,19 @@
     "TEST",
     "VERIFY"
   ],
+  "agentRoles": [
+    "AGGREGATOR",
+    "BUILDER",
+    "CLASSIFIER",
+    "CRITIC",
+    "DECOMPOSER",
+    "DIAGNOSER",
+    "EVALUATOR",
+    "EXECUTOR",
+    "INTEGRATOR",
+    "PLANNER",
+    "REPLANNER"
+  ],
   "enforcementLevels": [
     "contract-enforced",
     "hard-enforced",
@@ -52,7 +65,27 @@
     "SBO035",
     "SBO036",
     "SBO037",
-    "SBO038"
+    "SBO038",
+    "SBO039",
+    "SBO040",
+    "SBO041",
+    "SBO042",
+    "SBO043",
+    "SBO044",
+    "SBO045",
+    "SBO046",
+    "SBO047",
+    "SBO048"
+  ],
+  "evaluationLayers": [
+    "deterministic",
+    "semantic"
+  ],
+  "evaluationVerdicts": [
+    "CONFLICT",
+    "FAIL",
+    "NEEDS_DECISION",
+    "PASS"
   ],
   "eventTypes": [
     "action_recorded",
@@ -106,6 +139,59 @@
     "NEEDS_CLARIFICATION",
     "READY",
     "REJECTED"
+  ],
+  "jobEventTypes": [
+    "aggregation_completed",
+    "budget_exhausted",
+    "candidate_failed",
+    "candidate_ready",
+    "checkpoint_created",
+    "clarification_requested",
+    "clarification_resolved",
+    "classification_completed",
+    "contract_change_requested",
+    "contract_conflict_detected",
+    "critic_completed",
+    "diagnosis_completed",
+    "evaluation_failed",
+    "evaluation_passed",
+    "execution_finished",
+    "execution_started",
+    "graph_created",
+    "graph_revised",
+    "integration_failed",
+    "integration_ready",
+    "integration_started",
+    "job_blocked",
+    "job_cancelled",
+    "job_completed",
+    "job_created",
+    "job_failed",
+    "job_resumed",
+    "local_model_started",
+    "local_model_stopped",
+    "needs_decision",
+    "node_completed",
+    "node_failed",
+    "node_ready",
+    "node_superseded",
+    "objective_verified",
+    "plan_created",
+    "plan_reviewed",
+    "planning_started",
+    "projection_stale",
+    "repair_started",
+    "replan_started",
+    "repository_reconciled",
+    "verification_failed",
+    "waiting_retry",
+    "worker_escalated",
+    "worker_selected",
+    "worker_started",
+    "workgraph_created",
+    "workgraph_proposed",
+    "workgraph_revised",
+    "workunit_superseded"
   ],
   "nextStepDirectives": [
     "BLOCK",
@@ -162,5 +248,23 @@
     "known-from-repository-evidence",
     "known-from-user",
     "unknown"
+  ],
+  "workUnitKinds": [
+    "build",
+    "integration",
+    "investigation"
+  ],
+  "workUnitStatuses": [
+    "BLOCKED",
+    "BUILDING",
+    "CANDIDATE_READY",
+    "EVALUATING",
+    "FAILED",
+    "INTEGRATED",
+    "PLANNED",
+    "READY",
+    "REJECTED",
+    "SUPERSEDED",
+    "VERIFIED_CANDIDATE"
   ]
 }

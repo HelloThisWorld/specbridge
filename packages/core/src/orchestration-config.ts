@@ -149,6 +149,17 @@ export const jobRoutingPolicySchema = z
     diagnoser: z.enum(['local-first', 'large-agent'] as const).default('local-first'),
     replanner: z.enum(['local-first', 'large-agent'] as const).default('local-first'),
     executor: z.enum(EXECUTOR_ROUTES).default('large-agent'),
+    /**
+     * Objective-runtime reasoning roles (additive; defaults preserve the
+     * local-first, escalate-on-evidence philosophy while routing the
+     * architecture-sensitive roles — decomposition and semantic aggregation —
+     * to the large agent, exactly as the complexity model demands. BUILDER
+     * and INTEGRATOR have no route entries: like the executor, repository
+     * work structurally requires the large agent.
+     */
+    decomposer: z.enum(['local-first', 'large-agent'] as const).default('large-agent'),
+    evaluator: z.enum(ROLE_ROUTES).default('local-first'),
+    aggregator: z.enum(['local-first', 'large-agent'] as const).default('large-agent'),
   })
   .passthrough();
 export type JobRoutingPolicy = z.infer<typeof jobRoutingPolicySchema>;
@@ -216,6 +227,66 @@ export const jobBudgetPolicySchema = z
 export type JobBudgetPolicy = z.infer<typeof jobBudgetPolicySchema>;
 
 /**
+ * Parallel builder execution for objective work units. DISABLED by default:
+ * the safe sequential behavior is the baseline, and enabling parallelism is
+ * an explicit decision. Even when enabled, the deterministic dispatch-set
+ * selection serializes whenever independence cannot be conservatively
+ * established — uncertainty always serializes, never guesses parallel.
+ */
+export const objectiveParallelismSchema = z
+  .object({
+    enabled: z.boolean().default(false),
+    maxConcurrentBuilders: z.number().int().min(1).max(8).default(3),
+  })
+  .passthrough();
+export type ObjectiveParallelismPolicy = z.infer<typeof objectiveParallelismSchema>;
+
+/**
+ * When candidate artifacts get a SEMANTIC evaluation on top of the
+ * deterministic one:
+ *  - `auto`     investigation units always; build units when the
+ *               deterministic layer requests judgment (conflict suspicion,
+ *               declared assumptions or contract change requests)
+ *  - `always`   every candidate
+ *  - `disabled` never (deterministic evaluation still always runs)
+ */
+export const SEMANTIC_EVALUATION_MODES = ['auto', 'always', 'disabled'] as const;
+export type SemanticEvaluationMode = (typeof SEMANTIC_EVALUATION_MODES)[number];
+
+/**
+ * Objective decomposition policy (additive, defaulted). Governs the runtime
+ * level BETWEEN an approved objective (a leaf task in tasks.md) and worker
+ * dispatches: dynamic work graphs, isolated builder worktrees, candidate
+ * evaluation, aggregation, and single-writer integration. Activates only
+ * for mission-driven specs; legacy specs keep the direct executor path
+ * untouched.
+ */
+export const objectivesPolicySchema = z
+  .object({
+    enabled: z.boolean().default(true),
+    /** Hard ceiling on work units in one objective's graph. */
+    maxWorkUnits: z.number().int().min(1).max(30).default(12),
+    /** Hard ceiling on the dependency-chain depth of a proposed graph. */
+    maxGraphDepth: z.number().int().min(1).max(10).default(4),
+    /** Builder attempts per work unit before the unit fails. */
+    maxBuilderAttemptsPerUnit: z.number().int().min(1).max(10).default(2),
+    builderTimeoutMs: z
+      .number()
+      .int()
+      .min(60_000)
+      .max(24 * 3_600_000)
+      .default(1_200_000),
+    semanticEvaluation: z.enum(SEMANTIC_EVALUATION_MODES).default('auto'),
+    parallelism: objectiveParallelismSchema.default({}),
+    /** Serialized size ceiling for one candidate patch artifact. */
+    maxCandidateBytes: z.number().int().min(10_240).max(20_000_000).default(2_000_000),
+    /** Character ceiling for one context projection document. */
+    maxProjectionChars: z.number().int().min(4_000).max(400_000).default(60_000),
+  })
+  .passthrough();
+export type ObjectivesPolicy = z.infer<typeof objectivesPolicySchema>;
+
+/**
  * v1.2 long-running job policy, additive inside the orchestration block.
  * Absent in every existing configuration file, in which case the defaults
  * below apply and no migration is required.
@@ -253,6 +324,8 @@ export const jobPolicySchema = z
     maxAgentResultBytes: z.number().int().min(1_024).max(262_144).default(65_536),
     /** Base delay before a WAITING_RETRY job may resume. */
     retryDelayMs: z.number().int().min(100).max(3_600_000).default(5_000),
+    /** Objective decomposition policy (additive; safe defaults). */
+    objectives: objectivesPolicySchema.default({}),
   })
   .passthrough();
 export type JobPolicy = z.infer<typeof jobPolicySchema>;
@@ -324,6 +397,9 @@ export function jobPolicyFingerprint(policy: OrchestrationPolicy): string {
       diagnoser: jobs.routing.diagnoser,
       replanner: jobs.routing.replanner,
       executor: jobs.routing.executor,
+      decomposer: jobs.routing.decomposer,
+      evaluator: jobs.routing.evaluator,
+      aggregator: jobs.routing.aggregator,
     },
     planReview: jobs.planReview,
     escalation: jobs.escalation,
@@ -342,6 +418,17 @@ export function jobPolicyFingerprint(policy: OrchestrationPolicy): string {
       maxTokens: jobs.budgets.maxTokens,
     },
     competingPlans: jobs.competingPlans,
+    objectives: {
+      enabled: jobs.objectives.enabled,
+      maxWorkUnits: jobs.objectives.maxWorkUnits,
+      maxGraphDepth: jobs.objectives.maxGraphDepth,
+      maxBuilderAttemptsPerUnit: jobs.objectives.maxBuilderAttemptsPerUnit,
+      semanticEvaluation: jobs.objectives.semanticEvaluation,
+      parallelism: {
+        enabled: jobs.objectives.parallelism.enabled,
+        maxConcurrentBuilders: jobs.objectives.parallelism.maxConcurrentBuilders,
+      },
+    },
   };
   return JSON.stringify(canonical);
 }

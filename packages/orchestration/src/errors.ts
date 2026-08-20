@@ -53,6 +53,17 @@ export const SBO_CODES = {
   SBO036: 'local model process failure',
   SBO037: 'invalid agent output',
   SBO038: 'job prerequisite unsatisfied',
+  // Objective-runtime codes. Additive: nothing above may be renumbered.
+  SBO039: 'work graph invalid',
+  SBO040: 'work unit state invalid',
+  SBO041: 'context projection stale',
+  SBO042: 'worker identity rejected',
+  SBO043: 'candidate artifact invalid',
+  SBO044: 'evaluation failed closed',
+  SBO045: 'contract conflict requires decision',
+  SBO046: 'aggregation prerequisite unsatisfied',
+  SBO047: 'integration failed',
+  SBO048: 'worktree operation failed',
 } as const;
 
 export type SboCode = keyof typeof SBO_CODES;

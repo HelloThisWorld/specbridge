@@ -1,4 +1,5 @@
 import { isSpecBridgeError } from '@specbridge/core';
+import { isMissionError } from '@specbridge/mission';
 import { isOrchestrationError } from '@specbridge/orchestration';
 
 /**
@@ -46,6 +47,11 @@ export const SBMCP_CODES = {
   SBMCP028: 'plan review required',
   SBMCP029: 'orchestration budget exhausted',
   SBMCP030: 'orchestration request rejected',
+  // Mission Discovery. Additive: no existing code changes meaning.
+  SBMCP031: 'mission not found',
+  SBMCP032: 'mission state invalid',
+  SBMCP033: 'mission request rejected',
+  SBMCP034: 'mission decision requires a human',
 } as const;
 
 export type SbmcpCode = keyof typeof SBMCP_CODES;
@@ -110,6 +116,17 @@ export function toErrorEnvelope(cause: unknown): ToolErrorEnvelope {
       },
     };
   }
+  // Mission domain errors carry their own stable SBM code and remediation.
+  if (isMissionError(cause)) {
+    const code = sbmcpCodeForMissionError(cause.code);
+    return {
+      code,
+      category: SBMCP_CODES[code],
+      message: cause.message,
+      remediation: cause.remediation,
+      details: { ...cause.details, missionCode: cause.code },
+    };
+  }
   if (isSpecBridgeError(cause)) {
     const code = sbmcpCodeForSpecBridgeError(cause.code);
     return {
@@ -168,6 +185,31 @@ function sbmcpCodeForOrchestrationError(code: string): SbmcpCode {
       return 'SBMCP030';
     case 'SBO023':
       return 'SBMCP006';
+    default:
+      return 'SBMCP020';
+  }
+}
+
+function sbmcpCodeForMissionError(code: string): SbmcpCode {
+  switch (code) {
+    case 'SBM001':
+      return 'SBMCP031';
+    case 'SBM002':
+      return 'SBMCP032';
+    case 'SBM003':
+    case 'SBM004':
+    case 'SBM005':
+    case 'SBM006':
+    case 'SBM009':
+    case 'SBM010':
+    case 'SBM011':
+    case 'SBM013':
+    case 'SBM014':
+      return 'SBMCP033';
+    case 'SBM007':
+    case 'SBM008':
+    case 'SBM012':
+      return 'SBMCP034';
     default:
       return 'SBMCP020';
   }

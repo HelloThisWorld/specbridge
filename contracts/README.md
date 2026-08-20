@@ -14,6 +14,8 @@ the built packages by `scripts/check-public-contracts.mjs`:
 | `template-contract.json` | Template manifest name, record types, built-in template IDs |
 | `extension-contract.json` | Extension kinds, protocol methods, permission flags, archive suffix |
 | `mcp-contract.json` | MCP server name, tool/resource/prompt names |
+| `orchestration-contract.json` | Orchestration vocabulary: phases, roles, statuses, event types, `SBO###` codes |
+| `mission-contract.json` | Mission Discovery vocabulary: lifecycle, topics, materiality, provenance, `SBM###` codes |
 | `plugin-skills.json` | Claude Code plugin Skill names |
 | `github-action.json` | GitHub Action input/output names |
 

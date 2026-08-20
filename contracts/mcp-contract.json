@@ -16,6 +16,10 @@
   ],
   "serverName": "specbridge",
   "tools": [
+    "contract_change_request",
+    "contract_list",
+    "contract_read",
+    "evaluation_read",
     "extension_doctor",
     "extension_list",
     "extension_search",
@@ -23,6 +27,15 @@
     "job_cancel",
     "job_list",
     "job_read",
+    "mission_answer",
+    "mission_assess",
+    "mission_begin",
+    "mission_questions",
+    "mission_read",
+    "mission_record_turn",
+    "mission_status",
+    "mission_synthesize",
+    "objective_read",
     "orchestration_assess_intent",
     "orchestration_begin",
     "orchestration_checkpoint",
@@ -65,6 +78,7 @@
     "template_preview",
     "template_search",
     "template_show",
-    "workspace_detect"
+    "workspace_detect",
+    "workunit_read"
   ]
 }

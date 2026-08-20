@@ -1,5 +1,164 @@
 # Changelog
 
+## 1.3.0 (unreleased)
+
+Mission-driven development. v1.2 drives an approved spec as a persistent
+job; v1.3 adds everything **around** and **inside** that: how a high-level
+product direction becomes an approved spec worth driving (**Mission
+Discovery** → contracts → synthesis), and how one approved objective
+executes as governed multi-agent work (**dynamic work graphs → isolated
+builders → evaluation → aggregation → single-writer integration**) — while
+completion authority, human approval, Kiro byte-preservation, and the
+evidence pipeline stay exactly where they were.
+
+Two principles run through every addition. *Share truth, not context*:
+agents collaborate through approved, versioned artifacts — immutable
+context projections — never by sharing conversational context, and no
+schema anywhere can carry chain-of-thought. *Model proposes, SpecBridge
+governs, evidence decides*: every model output is a schema-validated
+proposal that deterministic code accepts, refuses, or routes to a human.
+
+Additive throughout: no persisted schema version moved, no public contract
+changed meaning, v1.0/v1.1/v1.2 workspaces load with no migration, and
+legacy workflows (`spec run`, `/specbridge:implement`, `/specbridge:develop`,
+non-mission orchestration jobs) are byte-identical. Mission-driven
+development is an additional mode, never forced.
+
+### Added
+
+- **`@specbridge/mission`** — Mission Discovery as a domain package. A
+  fail-closed lifecycle (`IDEA → DISCOVERING ⇄ NEEDS_DECISION →
+  CONTRACT_READY → SPEC_SYNTHESIS → SPEC_REVIEW → APPROVED`, plus final
+  `ABANDONED`) persisted under `.specbridge/missions/<id>/` — versioned,
+  atomic, workspace-confined, append-only where history matters. `.kiro` is
+  never touched.
+- **Conversation provenance** — every material user-visible discovery
+  exchange persists verbatim as a bounded turn; decisions carry structural
+  provenance, and a `known-from-user` decision must cite a confirming USER
+  turn (an agent turn is refused — the injection boundary is structural).
+  Unsafe provenance (`inferred`/`unknown`/`conflicting`) can never back a
+  decision. Full lineage: turn → decision → constitution rule → contract →
+  requirement → implementation evidence.
+- **Deterministic coverage and materiality** — coverage is computed over a
+  closed 24-topic taxonomy (never asserted); a deterministic
+  irreversibility screen classifies questions touching public API, wire
+  protocol, persisted state, configuration language, SDK contract,
+  extension SPI, compatibility, security boundaries, delivery semantics, or
+  cross-module architecture as **blocking** (it may only RAISE declared
+  materiality). Only open blocking questions and unaddressed required
+  topics gate `CONTRACT_READY`; implementation detail never stalls
+  discovery.
+- **Architecture Constitution** — few, strong, durable invariants
+  (`CON-###`) with versions, provenance, supersession history kept in-file,
+  and optional machine-checkable **guard patterns** the deterministic
+  evaluator greps candidate diffs for.
+- **ADRs** — immutable `ADR-####` files with context, alternatives,
+  rationale, consequences, revisit conditions, and DERIVED supersession
+  (old history is never rewritten).
+- **Product Contract Registry** — versioned engineering contracts
+  (`CTR-###`) with immutable per-revision files, public/internal
+  classification, compatibility policies, dependencies, requirements,
+  invariants, and provenance. Deliberately separate from the repository's
+  own `contracts/` snapshots.
+- **Contract change requests** — durable `CCR-###` artifacts
+  (`PROPOSED/NEEDS_HUMAN/APPROVED/REJECTED/SUPERSEDED`). Anyone may raise
+  one (workers, aggregators, MCP, CLI); **only the human decides one**, and
+  the decision path is CLI-only (`specbridge mission ccr … --approve|
+  --reject`). Approval writes the next immutable revision, records the
+  decision in the provenance chain, and makes every projection built
+  against the old revision stale — affected work replans, never continues
+  silently.
+- **Mission → spec synthesis** — a deterministic compiler (no model) from
+  the contract set to Kiro candidates through the existing creation
+  machinery, archived with a provenance map before creation. For
+  mission-driven projects `tasks.md` contains **Objectives with acceptance
+  criteria**, not coding steps. Approval remains the unchanged human
+  workflow.
+- **The objective runtime** (`@specbridge/orchestration` `objectives/`) —
+  between an approved objective and worker dispatches: a **dynamic work
+  graph** (append-only revisions, fail-closed unit state machine in which
+  `INTEGRATED` is reachable only from `VERIFIED_CANDIDATE`), proposed by a
+  new DECOMPOSER role and validated deterministically (bounds, acyclicity,
+  depth, terminal integration unit, contract-ownership surfacing) — with a
+  deterministic single-unit fallback, so a model outage cannot stall an
+  objective. Runtime replanning may split/supersede units within the
+  approved objective; it can never silently change approved behavior.
+- **Context projections** — immutable, hashed, bounded worker context:
+  constitution snapshot + objective + relevant contract revisions + ADRs +
+  decisions + spec excerpts + verified dependency evidence. Identity is two
+  hashes (content, contract snapshot) stamped into the worker record;
+  staleness is structural and fails closed.
+- **AgentSupervisor** — durable worker identity per attempt and fail-closed
+  result acceptance: wrong identity, duplicate, late/superseded, forged or
+  stale hashes are all rejected even when content looks valid; two workers
+  can never own one attempt.
+- **Isolated builder worktrees** — one detached git worktree per
+  (workUnit, attempt) under the sidecar, dependency patches applied on top;
+  SpecBridge observes the diff against the recorded baseline (a worker
+  committing locally hides nothing), runs trusted verification inside the
+  worktree, refuses protected-path changes, never pushes or merges, and
+  prunes on resume with interrupted workers superseded.
+- **Candidate artifacts** — durable results (observed changed files,
+  normalized patch, local verification, bounded claims incl. discovered
+  assumptions and contract change requests). No field can encode commands,
+  permissions, or authority.
+- **Evaluation engine** — deterministic layer always first (identity,
+  protected paths, projection freshness, local verification, non-empty
+  change, scope, contract guard patterns; a guard hit is a CONFLICT), then
+  a semantic EVALUATOR (local-first) only where judgment is genuine, with
+  schema-constrained verdicts routed through the existing decision-authority
+  table. A worker is never the sole evaluator of its own work.
+- **Aggregation engine** — structural aggregation is deterministic (a
+  failed required unit prevents integration, no model involved); semantic
+  aggregation runs one bounded AGGREGATOR dispatch only over ≥2 verified
+  investigation reports, may surface cross-report contract conflicts
+  (first-class `CONTRACT_CONFLICT` records — never a silently picked side)
+  and recommend contract changes (as CCRs, never approvals).
+- **Single-writer integration** — the INTEGRATOR applies verified
+  candidates in dependency order inside the existing interactive-run
+  bracket (lock, snapshots, protected paths, trusted verification,
+  verified-only completion); one bounded reconciliation dispatch may make
+  minimal integration edits on a genuine patch conflict. No second
+  completion path exists.
+- **Conservative opt-in parallelism** — `orchestration.jobs.objectives.
+  parallelism` (default disabled). Concurrency only for provably
+  independent units (disjoint declared contracts and areas; unresolved
+  decisions serialize everything; unprovable independence runs alone), and
+  only the isolated builder dispatches run concurrently — graph writes stay
+  sequential, and integration remains exactly one run.
+- **New agent roles** (additive enum): DECOMPOSER, BUILDER, EVALUATOR,
+  AGGREGATOR, INTEGRATOR — with deterministic routing (BUILDER/INTEGRATOR
+  structurally require the repository-writing large agent; DECOMPOSER/
+  AGGREGATOR default large-agent; EVALUATOR local-first), 18 new semantic
+  job event types, and SBO039–SBO048.
+- **Configuration** (additive, defaulted): `orchestration.jobs.objectives`
+  (bounds, builder attempts/timeout, semantic-evaluation mode, parallelism,
+  candidate/projection ceilings) and routing entries for the new reasoning
+  roles.
+- **CLI**: the `specbridge mission` group (begin, status, show, events,
+  coverage, answer, contract-ready, synthesize, contracts, adr, ccr,
+  decisions, reopen, abandon) plus `orchestrate objective` and
+  `orchestrate workunit` inspection.
+- **MCP**: 14 tools (50 → 64) — `mission_begin/status/read/record_turn/
+  assess/questions/answer/synthesize`, `contract_list/read/
+  change_request`, `objective_read`, `workunit_read`, `evaluation_read`.
+  Deliberately absent: stage approval, CCR decisions, filesystem, shell,
+  git, or any automatic human-decision API.
+- **Plugin**: `/specbridge:discover` (13 → 14 skills) — the discovery
+  interlocutor; it records and proposes, approves nothing, and never
+  becomes the long-running executor.
+- **Contracts**: new `contracts/mission-contract.json` snapshot; schema
+  versions snapshotted for all mission and objective families (and the
+  v1.2 job families); orchestration snapshot gains the objective vocabulary
+  additively.
+- **StepRelay dogfood** — offline end-to-end scenarios proving the full
+  §Definition-of-Done flow: discovery with blocking-question gating,
+  contract synthesis, human approval, dynamic decomposition, isolated
+  parallel builders, deterministic `nextState` conflict detection, the
+  missing-`nack` CCR loop with stale-projection replanning, investigation
+  aggregation with contradiction stops, persistent-failure honesty, and
+  mid-objective interruption resumed to completion.
+
 ## 1.2.0 (unreleased)
 
 The persistent, local-first, multi-agent orchestrator. v1.1 governed how a

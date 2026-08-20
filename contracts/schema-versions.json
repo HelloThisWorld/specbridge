@@ -1,6 +1,10 @@
 {
   "agentConfigV1": "1.0.0",
   "attemptRecord": "1.0.0",
+  "candidateArtifact": "1.0.0",
+  "contextProjection": "1.0.0",
+  "contractConflict": "1.0.0",
+  "evaluationRecord": "1.0.0",
   "evidence": "1.0.0",
   "executionPlan": "1.0.0",
   "extensionChecksums": "1.0.0",
@@ -9,7 +13,18 @@
   "extensionState": "1.0.0",
   "gitSnapshot": "1.0.0",
   "interactiveLock": "1.0.0",
+  "jobCheckpoint": "1.0.0",
+  "jobGraph": "1.0.0",
+  "jobState": "1.0.0",
   "migrationPlan": "1.0.0",
+  "missionAdr": "1.0.0",
+  "missionCcr": "1.0.0",
+  "missionCheckpoint": "1.0.0",
+  "missionConstitution": "1.0.0",
+  "missionContract": "1.0.0",
+  "missionCoverage": "1.0.0",
+  "missionState": "1.0.0",
+  "objectiveWorker": "1.0.0",
   "orchestrationCheckpoint": "1.0.0",
   "orchestrationState": "1.0.0",
   "recoveryPlan": "1.0.0",
@@ -24,5 +39,6 @@
   "templateRecord": "1.0.0",
   "verificationDiagnostic": "1.0.0",
   "verificationPolicy": "1.0.0",
-  "verificationReport": "1.0.0"
+  "verificationReport": "1.0.0",
+  "workGraph": "1.0.0"
 }

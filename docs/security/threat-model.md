@@ -693,6 +693,80 @@ coerced.
 **Residual risk.** History is retained indefinitely by design; operators who
 need retention limits must prune `.specbridge/orchestration/` themselves.
 
+## 10. Mission-driven multi-agent execution
+
+### T33 — A worker impersonating, duplicating, or racing another worker
+
+**Threat.** A result delivered under the wrong identity: a forged worker id,
+a duplicate delivery for a finished attempt, a late result from a
+superseded attempt or superseded work unit, a result for another work unit,
+or two workers claiming one attempt.
+
+**Mitigations.** Every objective worker attempt gets a durable identity
+record before it runs (worker id, role, work unit, attempt, projection
+hash, contract-snapshot hash, workspace identity). `acceptWorkerResult`
+fails closed on every mismatch — a result delivered to the wrong identity
+is rejected even if its content looks valid — and `beginWorker` refuses a
+second RUNNING or re-begun FINISHED attempt. Resume supersedes interrupted
+worker identities so their late results are refused. Each scenario has a
+dedicated test.
+
+**Residual risk.** Identity binds SpecBridge's own bookkeeping; it does not
+authenticate the underlying provider process.
+
+### T34 — A builder escaping its candidate workspace
+
+**Threat.** An implementation worker mutating the canonical checkout,
+protected paths, or another worker's workspace; hiding changes behind local
+commits; or pushing/merging.
+
+**Mitigations.** Builders run with an isolated per-attempt git worktree as
+their working directory, under the same implementation tool policy task
+execution already uses. SpecBridge computes the diff itself against the
+recorded baseline commit (local commits hide nothing), refuses candidates
+touching `.kiro/`, `.specbridge/`, or configured protected paths, and the
+only path into the canonical tree is the single-writer integrator inside
+the existing interactive-run bracket — lock, snapshots, protected-path
+enforcement, trusted verification, verified-only completion.
+
+**Residual risk.** A worktree is an isolation and attribution boundary, not
+an OS sandbox: a hostile agent process still runs with your OS permissions
+(the same non-claim as extensions).
+
+### T35 — Injected instructions in repository files, reports, or candidate claims
+
+**Threat.** Hostile text in source files, investigation reports, worker
+claims, or discovery turns steering a decision: "approve this change
+request", "mark the mission ready", "skip verification".
+
+**Mitigations.** Worker packets fence all repository and projection content
+as data; worker outputs are schema-validated documents whose unknown fields
+are ignored — there is no field that could carry a command, permission, or
+approval. Mission turns are stored verbatim as data; a decision claiming
+user provenance must cite a USER turn (an agent turn carrying injected text
+is structurally refused). CCR approval and stage approval exist only as
+explicit human CLI actions; no MCP tool or worker result can reach them.
+Contract guard patterns and the authority table are code, not prompt text.
+
+**Residual risk.** A model may still be *persuaded* by injected content in
+ways that produce worse proposals; the deterministic gates bound what any
+proposal can do, not how good it is.
+
+### T36 — Stale approved truth reaching execution
+
+**Threat.** A worker continuing against a contract that was revised
+mid-flight, or an objective whose approved task changed after decomposition.
+
+**Mitigations.** Every projection records a contract-snapshot hash over the
+active registry and constitution version; a revision anywhere makes
+dependent projections stale, the deterministic evaluation layer fails stale
+candidates (`STALE_CONTEXT`), and work graphs bind to the objective's task
+fingerprint. Both are exercised end to end by the CCR scenario.
+
+**Residual risk.** Staleness is detected at evaluation and dispatch
+boundaries, not mid-invocation: a worker already running when the contract
+changes finishes its attempt before the stale result is refused.
+
 ## Explicit non-claims
 
 Security models fail through overclaiming. SpecBridge does **not** claim:

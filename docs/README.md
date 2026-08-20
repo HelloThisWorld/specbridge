@@ -58,6 +58,40 @@ reference, grouped by area.
   resuming honestly, checkpoints, stale plans.
 - [Enforcement boundaries](orchestration/enforcement-boundaries.md) — what is
   hard-enforced, contract-enforced, and merely skill-guided.
+- [Long-running jobs (v1.2)](orchestration/long-running-jobs.md) — the
+  persistent local-first orchestrator: scheduler, workers, budgets, resume.
+- [Orchestration configuration](orchestration/configuration.md) — every
+  policy knob, with defaults.
+
+## Mission-driven development
+
+- [Mission Discovery](mission/mission-discovery.md) — the lifecycle from a
+  product direction to CONTRACT_READY: coverage, materiality, the human
+  gates.
+- [Conversation provenance](mission/conversation-provenance.md) — every
+  decision traces to a visible exchange; no hidden reasoning is ever
+  persisted.
+- [Architecture Constitution and ADRs](mission/architecture-constitution.md)
+  — durable invariants with machine-checkable guard patterns; immutable
+  decision records.
+- [Contract Registry and change requests](mission/contract-registry.md) —
+  the product's versioned contracts, and the human-only change path.
+- [Mission → spec synthesis](mission/spec-synthesis.md) — the deterministic
+  compiler that turns contracts into a Kiro spec of Objectives.
+- [Objective decomposition](orchestration/objective-decomposition.md) — the
+  dynamic work graph between an approved objective and worker dispatches.
+- [Context projection](orchestration/context-projection.md) — share truth,
+  not context: what each isolated worker sees, hashed and staleness-checked.
+- [Sub-agent isolation](orchestration/subagent-isolation.md) — worker
+  identity, fail-closed result acceptance, isolated git worktrees.
+- [Evaluation and aggregation](orchestration/evaluation-and-aggregation.md)
+  — deterministic checks first, semantic judgment where genuine, conflicts
+  as first-class records.
+- [Integration model and parallelism](orchestration/integration-model.md) —
+  the single writer, the unchanged evidence pipeline, opt-in conservative
+  parallelism.
+- [StepRelay walkthrough](mission/steprelay-walkthrough.md) — the complete
+  dogfood flow, failure paths included.
 
 ## Verification & CI
 

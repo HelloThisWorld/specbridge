@@ -24,6 +24,38 @@ delete `.specbridge/`, and your Kiro project is exactly as it was.
 │       ├── events.jsonl         # append-only orchestration history
 │       ├── plans/0001.json      # every execution-plan revision, kept
 │       └── checkpoint.json      # latest compact structured checkpoint
+├── jobs/                        # long-running orchestration jobs (v1.2)
+│   └── <job-id>/
+│       ├── job.json             # versioned job state (atomic)
+│       ├── events.jsonl         # append-only job history
+│       ├── graphs/0001.json     # every runtime-graph revision, kept
+│       ├── plans/               # per-node execution-plan revisions
+│       ├── agents/              # bounded structured agent results
+│       ├── objectives/<node-id>/  # objective runtime (mission-driven specs)
+│       │   ├── workgraphs/      #   work-graph revisions (append-only)
+│       │   ├── projections/     #   immutable context projections
+│       │   ├── candidates/      #   candidate artifacts + patches
+│       │   ├── evaluations/     #   evaluation records
+│       │   ├── conflicts/       #   contract-conflict records
+│       │   ├── workers/         #   worker identity records
+│       │   └── reports/         #   aggregation reports
+│       ├── worktrees/           # transient isolated builder checkouts
+│       └── checkpoint.json      # latest compact structured checkpoint
+├── missions/                    # Mission Discovery (mission-driven mode)
+│   └── <mission-id>/
+│       ├── mission.json         # versioned mission state (atomic)
+│       ├── events.jsonl         # append-only mission history
+│       ├── conversation.jsonl   # append-only visible discovery turns
+│       ├── facts.jsonl          # append-only; current view folds by id
+│       ├── questions.jsonl      # append-only; current view folds by id
+│       ├── decisions.jsonl      # append-only; current view folds by id
+│       ├── coverage.json        # computed coverage snapshot
+│       ├── constitution.json    # Architecture Constitution (history in-file)
+│       ├── adrs/                # immutable ADR files
+│       ├── contracts/           # immutable product-contract revisions
+│       ├── ccrs/                # contract change requests
+│       ├── spec-candidates/     # synthesized documents + provenance map
+│       └── checkpoint.json      # latest compact structured checkpoint
 ├── reports/                     # generated reports (drift, context --out)
 └── cache/                       # disposable
 ```

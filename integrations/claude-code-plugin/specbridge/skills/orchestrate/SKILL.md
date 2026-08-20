@@ -45,6 +45,19 @@ model or Claude was used (recorded escalations with reasons), why it
 repaired rather than replanned (recorded diagnosis + policy), which budget
 was consumed (counters vs budgets).
 
+For MISSION-DRIVEN specs, each job node is an approved Objective executed
+by the objective runtime. Go deeper with `objective_read` (the dynamic work
+graph: units, statuses, conflicts, worker identities), `workunit_read` (one
+unit's context-projection identity, candidate artifact, evaluations), and
+`evaluation_read` — or the read-only CLI equivalents
+`specbridge orchestrate objective <jobId> <nodeId>` and
+`… workunit <jobId> <nodeId> <workUnitId>`. When a job stops on a contract
+conflict or a contract change request, show the recorded claims verbatim
+and point the user at the human decision paths:
+`specbridge mission ccr <missionId> <ccrId> --approve|--reject` and
+`specbridge orchestrate answer <jobId> <questionId> <answer…>`. You decide
+neither.
+
 ## Human gates
 
 When a job stops with `NEEDS_CLARIFICATION` or a pending plan review, the

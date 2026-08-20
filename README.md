@@ -142,11 +142,11 @@ and authenticate Claude Code, the Codex CLI, the Gemini CLI, Ollama, or
 your API endpoint yourself; API keys are referenced by environment-variable
 name only and never stored. [Runners](docs/runners.md)
 
-**MCP server and Claude Code plugin** — a local stdio MCP server (50
+**MCP server and Claude Code plugin** — a local stdio MCP server (64
 typed tools, 7 resources, 4 prompts) exposes the same core, and a
-self-contained Claude Code plugin bundles CLI + server + thirteen skills
-(the eleven v1.0 skills verified against a live model; the v1.1 `develop`
-and v1.2 `orchestrate` skills are not yet live-verified).
+self-contained Claude Code plugin bundles CLI + server + fourteen skills
+(the eleven v1.0 skills verified against a live model; the `develop`,
+`orchestrate`, and `discover` skills are not yet live-verified).
 [MCP server](docs/mcp-server.md) ·
 [plugin](docs/claude-code-plugin.md) ·
 [skill verification](docs/skill-verification/README.md)
@@ -169,6 +169,22 @@ explicit budgets, checkpoints, and honest resume after interruption.
 Every completion still flows through the unchanged evidence pipeline.
 [long-running jobs](docs/orchestration/long-running-jobs.md) ·
 [local model](docs/local-model.md)
+
+**Mission-driven development** — start from a product direction instead of
+a spec: `/specbridge:discover` runs Mission Discovery with the human (every
+material exchange persisted with provenance, blocking decisions gated by a
+deterministic irreversibility screen), compiles the confirmed decisions
+into an Architecture Constitution, ADRs, and a versioned product Contract
+Registry, and synthesizes a Kiro spec of approved **Objectives**. The
+orchestrator then decomposes each objective into a dynamic work graph,
+runs isolated builders in per-attempt git worktrees against immutable
+context projections ("share truth, not context"), evaluates candidates
+deterministically first, aggregates, detects contract conflicts, routes
+material contract changes to the human, and integrates through a single
+writer into the unchanged evidence pipeline. Model proposes; SpecBridge
+governs; evidence decides.
+[Mission Discovery](docs/mission/mission-discovery.md) ·
+[StepRelay walkthrough](docs/mission/steprelay-walkthrough.md)
 
 **Templates and extensions** — reusable spec templates (deterministic
 offline `{{variable}}` rendering, no executable generators) and five

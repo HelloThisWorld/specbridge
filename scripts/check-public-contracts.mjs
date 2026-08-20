@@ -179,6 +179,7 @@ async function buildSnapshots() {
   const evidence = await importDist('evidence');
   const execution = await importDist('execution');
   const orchestration = await importDist('orchestration');
+  const mission = await importDist('mission');
   const mcp = await importDist('mcp-server');
 
   const snapshots = {
@@ -215,6 +216,25 @@ async function buildSnapshots() {
       registries: registry.REGISTRIES_SCHEMA_VERSION,
       registryIndex: registry.REGISTRY_INDEX_SCHEMA_VERSION,
       registryCache: registry.REGISTRY_CACHE_SCHEMA_VERSION,
+      // v1.2 job families (persisted under .specbridge/jobs/).
+      jobState: orchestration.JOB_STATE_SCHEMA_VERSION,
+      jobGraph: orchestration.JOB_GRAPH_SCHEMA_VERSION,
+      jobCheckpoint: orchestration.JOB_CHECKPOINT_SCHEMA_VERSION,
+      // Objective-runtime families (persisted under .specbridge/jobs/<id>/objectives/).
+      workGraph: orchestration.WORK_GRAPH_SCHEMA_VERSION,
+      contextProjection: orchestration.CONTEXT_PROJECTION_SCHEMA_VERSION,
+      candidateArtifact: orchestration.CANDIDATE_ARTIFACT_SCHEMA_VERSION,
+      evaluationRecord: orchestration.EVALUATION_RECORD_SCHEMA_VERSION,
+      contractConflict: orchestration.CONTRACT_CONFLICT_SCHEMA_VERSION,
+      objectiveWorker: orchestration.OBJECTIVE_WORKER_SCHEMA_VERSION,
+      // Mission families (persisted under .specbridge/missions/).
+      missionState: mission.MISSION_STATE_SCHEMA_VERSION,
+      missionCoverage: mission.MISSION_COVERAGE_SCHEMA_VERSION,
+      missionConstitution: mission.MISSION_CONSTITUTION_SCHEMA_VERSION,
+      missionAdr: mission.MISSION_ADR_SCHEMA_VERSION,
+      missionContract: mission.MISSION_CONTRACT_SCHEMA_VERSION,
+      missionCcr: mission.MISSION_CCR_SCHEMA_VERSION,
+      missionCheckpoint: mission.MISSION_CHECKPOINT_SCHEMA_VERSION,
     },
     'verification-rules.json': {
       idPattern: 'SBV\\d{3}',
@@ -262,6 +282,31 @@ async function buildSnapshots() {
       enforcementLevels: [...orchestration.ENFORCEMENT_LEVELS].sort(),
       planReviewModes: [...core.PLAN_REVIEW_MODES].sort(),
       errorCodes: Object.keys(orchestration.SBO_CODES).sort(),
+      // Objective-runtime vocabulary (additive within 1.x).
+      agentRoles: [...orchestration.AGENT_ROLES].sort(),
+      jobEventTypes: [...orchestration.JOB_EVENT_TYPES].sort(),
+      workUnitStatuses: [...orchestration.WORK_UNIT_STATUSES].sort(),
+      workUnitKinds: [...orchestration.WORK_UNIT_KINDS].sort(),
+      evaluationVerdicts: [...orchestration.EVALUATION_VERDICTS].sort(),
+      evaluationLayers: [...orchestration.EVALUATION_LAYERS].sort(),
+    },
+    // Mission Discovery vocabulary. Every value is stable within 1.x:
+    // members may be appended, never renamed or removed.
+    'mission-contract.json': {
+      missionStatuses: [...mission.MISSION_STATUSES].sort(),
+      turnSpeakers: [...mission.TURN_SPEAKERS].sort(),
+      turnKinds: [...mission.TURN_KINDS].sort(),
+      provenanceKinds: [...mission.MISSION_PROVENANCE_KINDS].sort(),
+      discoveryTopics: [...mission.DISCOVERY_TOPICS].sort(),
+      requiredTopics: [...mission.REQUIRED_TOPICS].sort(),
+      topicStatuses: [...mission.TOPIC_STATUSES].sort(),
+      materialityLevels: [...mission.MATERIALITY_LEVELS].sort(),
+      irreversibleSurfaces: [...mission.IRREVERSIBLE_SURFACES].sort(),
+      contractClassifications: [...mission.CONTRACT_CLASSIFICATIONS].sort(),
+      compatibilityPolicies: [...mission.COMPATIBILITY_POLICIES].sort(),
+      ccrStatuses: [...mission.CCR_STATUSES].sort(),
+      eventTypes: [...mission.MISSION_EVENT_TYPES].sort(),
+      errorCodes: Object.keys(mission.SBM_CODES).sort(),
     },
     'mcp-contract.json': {
       serverName: mcp.MCP_SERVER_NAME,

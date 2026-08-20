@@ -54,6 +54,24 @@ import {
   registerOrchestrationSubmitPlanTool,
 } from './orchestration-tools.js';
 import { registerJobCancelTool, registerJobListTool, registerJobReadTool } from './job-tools.js';
+import {
+  registerContractChangeRequestTool,
+  registerContractListTool,
+  registerContractReadTool,
+  registerMissionAnswerTool,
+  registerMissionAssessTool,
+  registerMissionBeginTool,
+  registerMissionQuestionsTool,
+  registerMissionReadTool,
+  registerMissionRecordTurnTool,
+  registerMissionStatusTool,
+  registerMissionSynthesizeTool,
+} from './mission-tools.js';
+import {
+  registerEvaluationReadTool,
+  registerObjectiveReadTool,
+  registerWorkunitReadTool,
+} from './objective-tools.js';
 
 /**
  * The complete, closed tool registry.
@@ -123,6 +141,20 @@ export const TOOL_CATALOG: readonly ToolRegistryEntry[] = [
   { name: 'job_list', readOnly: true, summary: 'List long-running orchestration jobs' },
   { name: 'job_read', readOnly: true, summary: 'One job in depth: graph, attempts, questions, checkpoint' },
   { name: 'job_cancel', readOnly: false, summary: 'Cancel a job (final, idempotent, evidence preserved)' },
+  { name: 'mission_begin', readOnly: false, summary: 'Begin Mission Discovery from a product direction' },
+  { name: 'mission_status', readOnly: true, summary: 'List missions with lifecycle status and readiness' },
+  { name: 'mission_read', readOnly: true, summary: 'One mission in depth (facts, decisions, coverage, artifacts)' },
+  { name: 'mission_record_turn', readOnly: false, summary: 'Persist one user-visible discovery turn (provenance root)' },
+  { name: 'mission_assess', readOnly: false, summary: 'Record a governed structured discovery assessment' },
+  { name: 'mission_questions', readOnly: true, summary: 'Open discovery questions with materiality' },
+  { name: 'mission_answer', readOnly: false, summary: 'Record the user’s answer to one discovery question' },
+  { name: 'mission_synthesize', readOnly: false, summary: 'Compile contracts into Kiro spec candidates (approval stays human)' },
+  { name: 'contract_list', readOnly: true, summary: 'Product contract registry and constitution' },
+  { name: 'contract_read', readOnly: true, summary: 'One product contract in depth (any revision)' },
+  { name: 'contract_change_request', readOnly: false, summary: 'Raise a contract change request (human decides it)' },
+  { name: 'objective_read', readOnly: true, summary: 'One objective’s work graph, conflicts, and workers' },
+  { name: 'workunit_read', readOnly: true, summary: 'One work unit: projection identity, candidate, evaluations' },
+  { name: 'evaluation_read', readOnly: true, summary: 'Evaluation records of one objective or work unit' },
 ] as const;
 
 export function registerAllTools(server: McpServer, context: ServerContext): void {
@@ -176,4 +208,18 @@ export function registerAllTools(server: McpServer, context: ServerContext): voi
   registerJobListTool(server, context);
   registerJobReadTool(server, context);
   registerJobCancelTool(server, context);
+  registerMissionBeginTool(server, context);
+  registerMissionStatusTool(server, context);
+  registerMissionReadTool(server, context);
+  registerMissionRecordTurnTool(server, context);
+  registerMissionAssessTool(server, context);
+  registerMissionQuestionsTool(server, context);
+  registerMissionAnswerTool(server, context);
+  registerMissionSynthesizeTool(server, context);
+  registerContractListTool(server, context);
+  registerContractReadTool(server, context);
+  registerContractChangeRequestTool(server, context);
+  registerObjectiveReadTool(server, context);
+  registerWorkunitReadTool(server, context);
+  registerEvaluationReadTool(server, context);
 }
