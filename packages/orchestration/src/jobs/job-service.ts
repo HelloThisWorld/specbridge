@@ -61,6 +61,14 @@ import type {
   JobStatus,
 } from './vocabulary.js';
 import { isFinalJobStatus } from './vocabulary.js';
+import {
+  beginTaskAttempt,
+  completeTaskAttempt,
+  createTaskCheckpoint,
+  reconcileInterruptedAttempts,
+} from '../survival/service.js';
+import { listTaskAttempts, readTaskAttempt } from '../survival/store.js';
+import { isFinalAttemptStatus } from '../survival/vocabulary.js';
 
 /**
  * The job application service.
@@ -737,7 +745,17 @@ export function reviewNodePlan(
 export function beginExecutorDispatch(
   deps: JobDeps,
   jobId: string,
-  input: { nodeId: string; mode: 'implement' | 'repair'; workerId: string },
+  input: {
+    nodeId: string;
+    mode: 'implement' | 'repair';
+    workerId: string;
+    /** Provider identity for the durable attempt (defaults to the worker id). */
+    provider?: string | undefined;
+    /** Model identity when known. Never guessed. */
+    model?: string | undefined;
+    /** Provider session reference — working memory, never canonical state. */
+    providerSessionId?: string | undefined;
+  },
 ): JobState {
   assertJobsEnabled(deps);
   let job = requireJobState(deps.workspace, jobId);
@@ -746,12 +764,45 @@ export function beginExecutorDispatch(
 
   graph = transitionNode(graph, node.nodeId, input.mode === 'repair' ? 'REPAIRING' : 'RUNNING');
   job = transition(deps, job, input.mode === 'repair' ? 'REPAIRING' : 'RUNNING');
-  job = { ...job, currentNodeId: node.nodeId };
+
+  // Survival runtime: persist the durable ExecutionAttempt BEFORE any work
+  // runs, with lineage to the newest final attempt on this node — so a crash
+  // right after this point already left evidence, and a retry never
+  // masquerades as a first try.
+  const priorAttempts = listTaskAttempts(deps.workspace, jobId, { nodeId: node.nodeId });
+  const lineageParent = [...priorAttempts]
+    .reverse()
+    .find((prior) => isFinalAttemptStatus(prior.status));
+  const attempt = beginTaskAttempt(
+    { workspace: deps.workspace, clock: deps.clock, idFactory: deps.idFactory },
+    {
+      jobId,
+      nodeId: node.nodeId,
+      taskId: node.parentTaskId,
+      role: 'EXECUTOR',
+      workerId: input.workerId,
+      provider: input.provider ?? input.workerId,
+      model: input.model,
+      providerSessionId: input.providerSessionId,
+      resumedFromAttemptId: lineageParent?.attemptId,
+    },
+  );
+  job = { ...job, currentNodeId: node.nodeId, currentAttemptId: attempt.attemptId };
   job = record(deps, job, input.mode === 'repair' ? 'repair_started' : 'execution_started', {
     nodeId: node.nodeId,
     taskId: node.parentTaskId,
     workerId: input.workerId,
     ...(input.mode === 'repair' ? { cycle: node.repairCycles + 1 } : {}),
+  });
+  job = record(deps, job, 'attempt_started', {
+    nodeId: node.nodeId,
+    taskId: node.parentTaskId,
+    attemptId: attempt.attemptId,
+    attemptNumber: attempt.attemptNumber,
+    provider: attempt.provider,
+    ...(attempt.resumedFromAttemptId !== undefined
+      ? { resumedFromAttemptId: attempt.resumedFromAttemptId }
+      : {}),
   });
   persistGraph(deps, job, graph);
   return persist(deps, job);
@@ -790,6 +841,69 @@ export interface ExecutorOutcomeResult {
 }
 
 /**
+ * Finalize the durable survival attempt for one finished dispatch.
+ *
+ * Every dispatch leaves ledger data: a dispatch begun before the survival
+ * runtime recorded attempts (or whose record was lost) is backfilled so the
+ * history stays complete. An attempt already reconciled to a final status by
+ * a concurrent resume keeps that status — finished attempts are immutable.
+ */
+function finalizeDispatchAttempt(
+  deps: JobDeps,
+  job: JobState,
+  node: JobNode,
+  outcome: ExecutorOutcome,
+  status: 'COMPLETED' | 'FAILED' | 'CANCELLED',
+): string {
+  const survivalDeps = { workspace: deps.workspace, clock: deps.clock, idFactory: deps.idFactory };
+  let attemptId = job.currentAttemptId;
+  if (attemptId === undefined || readTaskAttempt(deps.workspace, job.jobId, attemptId) === undefined) {
+    attemptId = beginTaskAttempt(survivalDeps, {
+      jobId: job.jobId,
+      nodeId: node.nodeId,
+      taskId: node.parentTaskId,
+      role: outcome.context.role,
+      workerId: outcome.context.workerId,
+      provider: outcome.context.workerId,
+      runId: outcome.context.runId,
+    }).attemptId;
+  }
+  const existing = readTaskAttempt(deps.workspace, job.jobId, attemptId);
+  if (existing !== undefined && isFinalAttemptStatus(existing.status)) {
+    return attemptId;
+  }
+  const usage = outcome.context.usage;
+  completeTaskAttempt(survivalDeps, {
+    jobId: job.jobId,
+    attemptId,
+    status,
+    runId: outcome.context.runId,
+    ...(status === 'COMPLETED'
+      ? {
+          resultSummary: `Evidence status "${outcome.evidenceStatus ?? 'verified'}"; ${
+            outcome.changedFiles?.length ?? 0
+          } file(s) changed.`,
+        }
+      : {
+          failure:
+            outcome.failure !== undefined
+              ? { category: outcome.failure.category, message: outcome.failure.message }
+              : {
+                  category: 'VERIFICATION_FAILURE',
+                  message: `The dispatch ended with evidence status "${outcome.evidenceStatus ?? 'none'}", which does not complete a task.`,
+                },
+        }),
+    metrics: {
+      ...(usage?.inputTokens !== undefined ? { inputTokens: usage.inputTokens } : {}),
+      ...(usage?.outputTokens !== undefined ? { outputTokens: usage.outputTokens } : {}),
+      ...(usage?.costUsd !== undefined ? { costUsd: usage.costUsd } : {}),
+      ...(outcome.changedFiles !== undefined ? { filesChanged: outcome.changedFiles.length } : {}),
+    },
+  });
+  return attemptId;
+}
+
+/**
  * Fold the executor dispatch outcome into the job.
  *
  * Success requires VERIFIED evidence — the reported status of the existing
@@ -814,6 +928,25 @@ export function completeExecutorDispatch(
   // --- Verified completion --------------------------------------------------
   const verified =
     outcome.evidenceStatus === 'verified' || outcome.evidenceStatus === 'manually-accepted';
+
+  // Survival runtime: the attempt's own outcome is already decided, whatever
+  // the policy below chooses next — finalize the durable record first so
+  // every branch (complete, retry, diagnose, block, cancel) leaves history.
+  const attemptStatus =
+    outcome.failure === undefined && verified
+      ? 'COMPLETED'
+      : outcome.failure?.category === 'CANCELLED'
+        ? 'CANCELLED'
+        : 'FAILED';
+  const attemptId = finalizeDispatchAttempt(deps, job, node, outcome, attemptStatus);
+  job = { ...job, currentAttemptId: undefined };
+  job = record(deps, job, 'attempt_completed', {
+    nodeId: node.nodeId,
+    taskId: node.parentTaskId,
+    attemptId,
+    status: attemptStatus,
+  });
+
   if (outcome.failure === undefined && verified) {
     ({ job, graph } = appendAttempt(deps, job, graph, outcome.context, 'succeeded'));
     graph = transitionNode(graph, node.nodeId, 'COMPLETED');
@@ -841,6 +974,44 @@ export function completeExecutorDispatch(
       taskId: node.parentTaskId,
       evidenceStatus: outcome.evidenceStatus,
       ...(outcome.context.runId !== undefined ? { runId: outcome.context.runId } : {}),
+    });
+
+    // Survival runtime: a completed task IS a milestone. The structured
+    // checkpoint makes the completion durable for any future worker without
+    // requiring anyone to have called checkpointTask explicitly.
+    const milestone = createTaskCheckpoint(
+      { workspace: deps.workspace, clock: deps.clock, idFactory: deps.idFactory },
+      {
+        jobId,
+        nodeId: node.nodeId,
+        taskId: node.parentTaskId,
+        attemptId,
+        reason: 'milestone',
+        objective: `Task ${node.parentTaskId}: ${node.title}`.slice(0, 2_000),
+        pinned: {
+          taskContract: `Task ${node.parentTaskId}: ${node.title}`.slice(0, 2_000),
+          acceptanceCriteria: [],
+          constraints: [],
+          invariants: [],
+        },
+        completedWork: [`Task ${node.parentTaskId} completed with evidence status "${outcome.evidenceStatus ?? 'verified'}".`],
+        changedFiles: (outcome.changedFiles ?? []).slice(0, 500).map((file) => ({ path: file.path.slice(0, 512) })),
+        testResults: [
+          {
+            name: 'trusted-verification',
+            status: 'passed',
+            summary: `Evidence status "${outcome.evidenceStatus ?? 'verified'}".`,
+          },
+        ],
+        nextActions: ['Task complete; nothing remains for this task.'],
+        relevantArtifacts: outcome.context.runId !== undefined ? [outcome.context.runId] : [],
+      },
+    );
+    job = record(deps, job, 'task_checkpoint_created', {
+      nodeId: node.nodeId,
+      taskId: node.parentTaskId,
+      checkpointId: milestone.checkpointId,
+      reason: 'milestone',
     });
 
     if (allNodesComplete(graph)) {
@@ -1405,6 +1576,8 @@ export interface JobResumeReport {
   finalized: boolean;
   /** Statuses reconciled because a previous process died mid-dispatch. */
   reconciled: string[];
+  /** Durable attempts reconciled RUNNING → INTERRUPTED by this resume. */
+  interruptedAttemptIds?: string[] | undefined;
   planStale: boolean;
   planStaleReasons: string[];
   policyChanged: boolean;
@@ -1475,6 +1648,27 @@ export async function resumeJob(deps: JobDeps, jobId: string): Promise<JobResume
     reconciled.push(`job: ${interrupted} → READY (interrupted process)`);
   }
 
+  // Survival runtime: attempts persisted as RUNNING have no live worker in a
+  // fresh process — reconcile them to INTERRUPTED, visibly. Each record
+  // remains as historical evidence; continuation is a NEW attempt with
+  // lineage, never a resurrected old one.
+  const interruptedAttempts = reconcileInterruptedAttempts(
+    { workspace: deps.workspace, clock: deps.clock },
+    jobId,
+  );
+  for (const attempt of interruptedAttempts) {
+    reconciled.push(`attempt ${attempt.attemptId}: RUNNING → INTERRUPTED (worker disappeared)`);
+    job = record(deps, job, 'attempt_interrupted', {
+      nodeId: attempt.nodeId,
+      taskId: attempt.taskId,
+      attemptId: attempt.attemptId,
+      provider: attempt.provider,
+    });
+  }
+  if (job.currentAttemptId !== undefined) {
+    job = { ...job, currentAttemptId: undefined };
+  }
+
   // Re-bind the current node's plan against the repository as it is now.
   const snapshot = await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now(deps) });
   let planStale = false;
@@ -1535,6 +1729,9 @@ export async function resumeJob(deps: JobDeps, jobId: string): Promise<JobResume
     graph,
     finalized: false,
     reconciled,
+    ...(interruptedAttempts.length > 0
+      ? { interruptedAttemptIds: interruptedAttempts.map((attempt) => attempt.attemptId) }
+      : {}),
     planStale,
     planStaleReasons,
     policyChanged,

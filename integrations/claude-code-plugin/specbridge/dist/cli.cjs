@@ -2937,7 +2937,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @param {(string | Function)} text - string to add, or a function returning a string
        * @return {Command} `this` command for chaining
        */
-      addHelpText(position, text6) {
+      addHelpText(position, text7) {
         const allowedValues = ["beforeAll", "before", "after", "afterAll"];
         if (!allowedValues.includes(position)) {
           throw new Error(`Unexpected value for position to addHelpText.
@@ -2946,10 +2946,10 @@ Expecting one of '${allowedValues.join("', '")}'`);
         const helpEvent = `${position}Help`;
         this.on(helpEvent, (context) => {
           let helpStr;
-          if (typeof text6 === "function") {
-            helpStr = text6({ error: context.error, command: context.command });
+          if (typeof text7 === "function") {
+            helpStr = text7({ error: context.error, command: context.command });
           } else {
-            helpStr = text6;
+            helpStr = text7;
           }
           if (helpStr) {
             context.write(`${helpStr}
@@ -3994,14 +3994,14 @@ var require_foldFlowLines = __commonJS({
     var FOLD_FLOW = "flow";
     var FOLD_BLOCK = "block";
     var FOLD_QUOTED = "quoted";
-    function foldFlowLines(text6, indent, mode = "flow", { indentAtStart, lineWidth = 80, minContentWidth = 20, onFold, onOverflow } = {}) {
+    function foldFlowLines(text7, indent, mode = "flow", { indentAtStart, lineWidth = 80, minContentWidth = 20, onFold, onOverflow } = {}) {
       if (!lineWidth || lineWidth < 0)
-        return text6;
+        return text7;
       if (lineWidth < minContentWidth)
         minContentWidth = 0;
       const endStep = Math.max(1 + minContentWidth, 1 + lineWidth - indent.length);
-      if (text6.length <= endStep)
-        return text6;
+      if (text7.length <= endStep)
+        return text7;
       const folds = [];
       const escapedFolds = {};
       let end = lineWidth - indent.length;
@@ -4018,14 +4018,14 @@ var require_foldFlowLines = __commonJS({
       let escStart = -1;
       let escEnd = -1;
       if (mode === FOLD_BLOCK) {
-        i2 = consumeMoreIndentedLines(text6, i2, indent.length);
+        i2 = consumeMoreIndentedLines(text7, i2, indent.length);
         if (i2 !== -1)
           end = i2 + endStep;
       }
-      for (let ch; ch = text6[i2 += 1]; ) {
+      for (let ch; ch = text7[i2 += 1]; ) {
         if (mode === FOLD_QUOTED && ch === "\\") {
           escStart = i2;
-          switch (text6[i2 + 1]) {
+          switch (text7[i2 + 1]) {
             case "x":
               i2 += 3;
               break;
@@ -4042,12 +4042,12 @@ var require_foldFlowLines = __commonJS({
         }
         if (ch === "\n") {
           if (mode === FOLD_BLOCK)
-            i2 = consumeMoreIndentedLines(text6, i2, indent.length);
+            i2 = consumeMoreIndentedLines(text7, i2, indent.length);
           end = i2 + indent.length + endStep;
           split = void 0;
         } else {
           if (ch === " " && prev && prev !== " " && prev !== "\n" && prev !== "	") {
-            const next = text6[i2 + 1];
+            const next = text7[i2 + 1];
             if (next && next !== " " && next !== "\n" && next !== "	")
               split = i2;
           }
@@ -4059,12 +4059,12 @@ var require_foldFlowLines = __commonJS({
             } else if (mode === FOLD_QUOTED) {
               while (prev === " " || prev === "	") {
                 prev = ch;
-                ch = text6[i2 += 1];
+                ch = text7[i2 += 1];
                 overflow = true;
               }
               const j = i2 > escEnd + 1 ? i2 - 2 : escStart - 1;
               if (escapedFolds[j])
-                return text6;
+                return text7;
               folds.push(j);
               escapedFolds[j] = true;
               end = j + endStep;
@@ -4079,39 +4079,39 @@ var require_foldFlowLines = __commonJS({
       if (overflow && onOverflow)
         onOverflow();
       if (folds.length === 0)
-        return text6;
+        return text7;
       if (onFold)
         onFold();
-      let res = text6.slice(0, folds[0]);
+      let res = text7.slice(0, folds[0]);
       for (let i3 = 0; i3 < folds.length; ++i3) {
         const fold = folds[i3];
-        const end2 = folds[i3 + 1] || text6.length;
+        const end2 = folds[i3 + 1] || text7.length;
         if (fold === 0)
           res = `
-${indent}${text6.slice(0, end2)}`;
+${indent}${text7.slice(0, end2)}`;
         else {
           if (mode === FOLD_QUOTED && escapedFolds[fold])
-            res += `${text6[fold]}\\`;
+            res += `${text7[fold]}\\`;
           res += `
-${indent}${text6.slice(fold + 1, end2)}`;
+${indent}${text7.slice(fold + 1, end2)}`;
         }
       }
       return res;
     }
-    function consumeMoreIndentedLines(text6, i2, indent) {
+    function consumeMoreIndentedLines(text7, i2, indent) {
       let end = i2;
       let start = i2 + 1;
-      let ch = text6[start];
+      let ch = text7[start];
       while (ch === " " || ch === "	") {
         if (i2 < start + indent) {
-          ch = text6[++i2];
+          ch = text7[++i2];
         } else {
           do {
-            ch = text6[++i2];
+            ch = text7[++i2];
           } while (ch && ch !== "\n");
           end = i2;
           start = i2 + 1;
-          ch = text6[start];
+          ch = text7[start];
         }
       }
       return end;
@@ -16979,7 +16979,7 @@ var require_core = __commonJS({
       errorsText(errors = this.errors, { separator = ", ", dataVar = "data" } = {}) {
         if (!errors || errors.length === 0)
           return "No errors";
-        return errors.map((e) => `${dataVar}${e.instancePath} ${e.message}`).reduce((text6, msg) => text6 + separator + msg);
+        return errors.map((e) => `${dataVar}${e.instancePath} ${e.message}`).reduce((text7, msg) => text7 + separator + msg);
       }
       $dataMetaSchema(metaSchema, keywordsJsonPointers) {
         const rules = this.RULES.all;
@@ -24596,6 +24596,19 @@ var objectivesPolicySchema = external_exports.object({
   /** Character ceiling for one context projection document. */
   maxProjectionChars: external_exports.number().int().min(4e3).max(4e5).default(6e4)
 }).passthrough();
+var jobContextPolicySchema = external_exports.object({
+  /** Default model context window when the provider does not declare one. */
+  defaultModelContextTokens: external_exports.number().int().min(1e3).max(1e7).default(2e5),
+  reservedOutputTokens: external_exports.number().int().min(0).max(1e6).default(16e3),
+  reservedReasoningTokens: external_exports.number().int().min(0).max(1e6).default(8e3),
+  reservedGrowthTokens: external_exports.number().int().min(0).max(1e6).default(8e3),
+  prepareThreshold: external_exports.number().min(0.05).max(1).default(0.55),
+  proactiveCompactionThreshold: external_exports.number().min(0.05).max(1).default(0.7),
+  emergencyCompactionThreshold: external_exports.number().min(0.05).max(1).default(0.85),
+  hardStopThreshold: external_exports.number().min(0.05).max(1).default(0.9),
+  /** Bound on retained recent-delta items per task context. */
+  maxRecentDeltaItems: external_exports.number().int().min(1).max(200).default(20)
+}).passthrough();
 var jobPolicySchema = external_exports.object({
   /** When false, job operations refuse to start and report why. */
   enabled: external_exports.boolean().default(true),
@@ -24624,7 +24637,9 @@ var jobPolicySchema = external_exports.object({
   /** Base delay before a WAITING_RETRY job may resume. */
   retryDelayMs: external_exports.number().int().min(100).max(36e5).default(5e3),
   /** Objective decomposition policy (additive; safe defaults). */
-  objectives: objectivesPolicySchema.default({})
+  objectives: objectivesPolicySchema.default({}),
+  /** Survival-runtime context policy (additive; safe defaults). */
+  context: jobContextPolicySchema.default({})
 }).passthrough();
 var orchestrationPolicySchema = external_exports.object({
   /**
@@ -26143,27 +26158,27 @@ var import_path10 = __toESM(require("path"), 1);
 var import_fs11 = require("fs");
 var import_path11 = __toESM(require("path"), 1);
 var BOM = "\uFEFF";
-function splitLines(text6) {
+function splitLines(text7) {
   const lines = [];
   let start = 0;
   let i2 = 0;
-  while (i2 < text6.length) {
-    const code2 = text6.charCodeAt(i2);
+  while (i2 < text7.length) {
+    const code2 = text7.charCodeAt(i2);
     if (code2 === 10) {
-      lines.push({ text: text6.slice(start, i2), eol: "\n" });
+      lines.push({ text: text7.slice(start, i2), eol: "\n" });
       i2 += 1;
       start = i2;
     } else if (code2 === 13) {
-      const eol = text6.charCodeAt(i2 + 1) === 10 ? "\r\n" : "\r";
-      lines.push({ text: text6.slice(start, i2), eol });
+      const eol = text7.charCodeAt(i2 + 1) === 10 ? "\r\n" : "\r";
+      lines.push({ text: text7.slice(start, i2), eol });
       i2 += eol.length;
       start = i2;
     } else {
       i2 += 1;
     }
   }
-  if (start < text6.length) {
-    lines.push({ text: text6.slice(start), eol: "" });
+  if (start < text7.length) {
+    lines.push({ text: text7.slice(start), eol: "" });
   }
   return lines;
 }
@@ -26185,13 +26200,13 @@ var MarkdownDocument = class _MarkdownDocument {
     this.encodingSafe = encodingSafe;
     this.filePath = filePath;
   }
-  static fromText(text6, filePath) {
-    return _MarkdownDocument.create(text6, true, filePath);
+  static fromText(text7, filePath) {
+    return _MarkdownDocument.create(text7, true, filePath);
   }
   static fromBuffer(buffer, filePath) {
-    const text6 = buffer.toString("utf8");
-    const encodingSafe = Buffer.from(text6, "utf8").equals(buffer);
-    return _MarkdownDocument.create(text6, encodingSafe, filePath);
+    const text7 = buffer.toString("utf8");
+    const encodingSafe = Buffer.from(text7, "utf8").equals(buffer);
+    return _MarkdownDocument.create(text7, encodingSafe, filePath);
   }
   static load(filePath) {
     let buffer;
@@ -26202,9 +26217,9 @@ var MarkdownDocument = class _MarkdownDocument {
     }
     return _MarkdownDocument.fromBuffer(buffer, filePath);
   }
-  static create(text6, encodingSafe, filePath) {
-    const hasBom = text6.startsWith(BOM);
-    const body = hasBom ? text6.slice(1) : text6;
+  static create(text7, encodingSafe, filePath) {
+    const hasBom = text7.startsWith(BOM);
+    const body = hasBom ? text7.slice(1) : text7;
     return new _MarkdownDocument(splitLines(body), hasBom, encodingSafe, filePath);
   }
   get lineCount() {
@@ -26224,15 +26239,15 @@ var MarkdownDocument = class _MarkdownDocument {
     return line;
   }
   /** Replace the text of one line. The line ending is preserved untouched. */
-  setLineText(index, text6) {
-    if (text6.includes("\n") || text6.includes("\r")) {
+  setLineText(index, text7) {
+    if (text7.includes("\n") || text7.includes("\r")) {
       throw new SpecBridgeError(
         "INVALID_ARGUMENT",
         "setLineText received text containing a line break; surgical edits must stay on one line."
       );
     }
     const line = this.lineAt(index);
-    line.text = text6;
+    line.text = text7;
   }
   /** Reconstruct the exact document text (including BOM when present). */
   serialize() {
@@ -26254,8 +26269,8 @@ var MarkdownDocument = class _MarkdownDocument {
     const mask = new Array(this.documentLines.length).fill(false);
     let open = null;
     for (let i2 = 0; i2 < this.documentLines.length; i2 += 1) {
-      const text6 = this.documentLines[i2]?.text ?? "";
-      const match = FENCE_OPEN.exec(text6);
+      const text7 = this.documentLines[i2]?.text ?? "";
+      const match = FENCE_OPEN.exec(text7);
       if (open !== null) {
         mask[i2] = true;
         if (match !== null && match[1] !== void 0 && match[1].startsWith(open.char) && match[1].length >= open.length && (match[2] ?? "").trim() === "") {
@@ -26299,9 +26314,9 @@ var MarkdownDocument = class _MarkdownDocument {
       if (mask[i2] === true) continue;
       const match = HEADING.exec(this.documentLines[i2]?.text ?? "");
       if (match === null || match[1] === void 0) continue;
-      let text6 = (match[2] ?? "").trim();
-      text6 = text6.replace(/[ \t]+#+[ \t]*$/, "").trim();
-      headings.push({ line: i2, level: match[1].length, text: text6 });
+      let text7 = (match[2] ?? "").trim();
+      text7 = text7.replace(/[ \t]+#+[ \t]*$/, "").trim();
+      headings.push({ line: i2, level: match[1].length, text: text7 });
     }
     return headings;
   }
@@ -26328,8 +26343,8 @@ var MarkdownDocument = class _MarkdownDocument {
     const maxLevel = options?.maxLevel ?? 6;
     for (const section of this.sections()) {
       if (section.heading.level > maxLevel) continue;
-      const text6 = section.heading.text.trim();
-      const matched = typeof matcher === "string" ? text6.toLowerCase() === matcher.trim().toLowerCase() : matcher.test(text6);
+      const text7 = section.heading.text.trim();
+      const matched = typeof matcher === "string" ? text7.toLowerCase() === matcher.trim().toLowerCase() : matcher.test(text7);
       if (matched) return section;
     }
     return void 0;
@@ -26378,8 +26393,8 @@ function extractFrontMatter(document) {
     return { present: false, endLine: 0 };
   }
   for (let i2 = 1; i2 < document.lineCount; i2 += 1) {
-    const text6 = document.lineAt(i2).text.trim();
-    if (text6 === "---" || text6 === "...") {
+    const text7 = document.lineAt(i2).text.trim();
+    if (text7 === "---" || text7 === "...") {
       const raw = document.getText(1, i2);
       try {
         const data = (0, import_yaml.parse)(raw);
@@ -26619,8 +26634,8 @@ var ORDERED_ITEM = /^[ \t]*(\d+)[.)][ \t]+(.+)$/;
 var BULLET_ITEM = /^[ \t]*[-*+][ \t]+(.+)$/;
 var EARS = /\b(when|if|while|where)\b[\s\S]*\bshall\b/i;
 var KNOWN_TOP_SECTIONS = /* @__PURE__ */ new Set(["introduction", "overview", "summary", "requirements"]);
-function matchRequirementHeading(text6) {
-  const trimmed = text6.trim();
+function matchRequirementHeading(text7) {
+  const trimmed = text7.trim();
   const named = REQUIREMENT_HEADING.exec(trimmed);
   if (named !== null && named[1] !== void 0) {
     const title = (named[2] ?? "").trim();
@@ -26644,8 +26659,8 @@ function parseCriteria(document, requirementId, section, mask, diagnostics) {
   let unnumberedCount = 0;
   for (let i2 = acHeading.line + 1; i2 < endLine; i2 += 1) {
     if (mask[i2] === true) continue;
-    const text6 = document.lineAt(i2).text;
-    const ordered = ORDERED_ITEM.exec(text6);
+    const text7 = document.lineAt(i2).text;
+    const ordered = ORDERED_ITEM.exec(text7);
     if (ordered !== null && ordered[1] !== void 0 && ordered[2] !== void 0) {
       criteria.push({
         id: `${requirementId}.${ordered[1]}`,
@@ -26656,7 +26671,7 @@ function parseCriteria(document, requirementId, section, mask, diagnostics) {
       });
       continue;
     }
-    const bullet = BULLET_ITEM.exec(text6);
+    const bullet = BULLET_ITEM.exec(text7);
     if (bullet !== null && bullet[1] !== void 0 && criteria.length === 0) {
       unnumberedCount += 1;
       criteria.push({
@@ -26753,8 +26768,8 @@ function parseRequirements(document) {
   const unknownSections = [];
   for (const section of sections) {
     if (section.heading.level !== 2) continue;
-    const text6 = section.heading.text.trim().toLowerCase();
-    if (KNOWN_TOP_SECTIONS.has(text6)) continue;
+    const text7 = section.heading.text.trim().toLowerCase();
+    if (KNOWN_TOP_SECTIONS.has(text7)) continue;
     if (matchRequirementHeading(section.heading.text) !== void 0) continue;
     const insideRequirement = requirementSections.some(
       (r) => section.heading.line > r.startLine && section.heading.line < r.endLine
@@ -26808,9 +26823,9 @@ var KIND_MATCHERS = [
   [/overview|introduction|summary/i, "overview"],
   [/context|background/i, "context"]
 ];
-function classifyDesignHeading(text6) {
+function classifyDesignHeading(text7) {
   for (const [pattern, kind] of KIND_MATCHERS) {
-    if (pattern.test(text6)) return kind;
+    if (pattern.test(text7)) return kind;
   }
   return "unknown";
 }
@@ -26869,10 +26884,10 @@ function parseTasks(document) {
   const numbersSeen = /* @__PURE__ */ new Map();
   for (let i2 = 0; i2 < document.lineCount; i2 += 1) {
     if (mask[i2] === true) continue;
-    const text6 = document.lineAt(i2).text;
-    const match = CHECKBOX.exec(text6);
+    const text7 = document.lineAt(i2).text;
+    const match = CHECKBOX.exec(text7);
     if (match === null) {
-      const probe = CHECKBOX_PROBE.exec(text6);
+      const probe = CHECKBOX_PROBE.exec(text7);
       if (probe !== null) {
         const inner = probe[1] ?? "";
         const looksLikeCheckbox = inner.trim() === "" || /^[ \txX~-]+$/.test(inner);
@@ -26887,7 +26902,7 @@ function parseTasks(document) {
         }
       }
       if (allTasks.length > 0) {
-        const refMatch = REQUIREMENT_REF.exec(text6);
+        const refMatch = REQUIREMENT_REF.exec(text7);
         if (refMatch !== null) {
           const owner = allTasks[allTasks.length - 1];
           if (owner !== void 0) {
@@ -26997,8 +27012,8 @@ function nextOpenTasks(model, limit) {
   const optional2 = open.filter((task) => task.optional);
   return [...required2, ...optional2].slice(0, limit);
 }
-function normalizeHeading(text6) {
-  return text6.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+function normalizeHeading(text7) {
+  return text7.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
 }
 var CONCEPT_MATCHERS = [
   [/^current behaviou?r$|^actual behaviou?r$/, "current-behavior"],
@@ -27012,8 +27027,8 @@ var CONCEPT_MATCHERS = [
   [/^proposed fix$|^fix$|^fix approach$/, "proposed-fix"],
   [/^validation( strategy)?$|^verification( strategy)?$/, "validation-strategy"]
 ];
-function classifyBugfixHeading(text6) {
-  const normalized = normalizeHeading(text6);
+function classifyBugfixHeading(text7) {
+  const normalized = normalizeHeading(text7);
   for (const [pattern, concept] of CONCEPT_MATCHERS) {
     if (pattern.test(normalized)) return concept;
   }
@@ -27459,14 +27474,14 @@ function normalizedTaskPlanText(document) {
   let out = document.hasBom ? String.fromCharCode(65279) : "";
   for (let i2 = 0; i2 < document.lineCount; i2 += 1) {
     const line = document.lineAt(i2);
-    let text6 = line.text;
+    let text7 = line.text;
     if (mask[i2] !== true) {
-      const match = CHECKBOX_STATE_PREFIX.exec(text6);
+      const match = CHECKBOX_STATE_PREFIX.exec(text7);
       if (match !== null && match[1] !== void 0 && match[3] !== void 0) {
-        text6 = `${match[1]}${NORMALIZED_STATE}${match[3]}${text6.slice(match[0].length)}`;
+        text7 = `${match[1]}${NORMALIZED_STATE}${match[3]}${text7.slice(match[0].length)}`;
       }
     }
-    out += text6 + line.eol;
+    out += text7 + line.eol;
   }
   return out;
 }
@@ -27499,8 +27514,8 @@ function canonicalRequirementRef(raw) {
   return withoutPrefix.split(/[.-]/).map((segment) => segment.replace(/^0+(?=\d)/, "")).join(".");
 }
 var TEST_LANGUAGE = /\btest(?:s|ed|ing)?\b|\bunit[- ]tested\b|\bcovered by tests\b/i;
-function mentionsTests(text6) {
-  return TEST_LANGUAGE.test(text6);
+function mentionsTests(text7) {
+  return TEST_LANGUAGE.test(text7);
 }
 var ID_HEADING = /^((?:req)[-_. ]?\d+(?:[.-]\d+)*)[ \t]*[:.–—-]?[ \t]*(.*)$/i;
 var EXPLICIT_AC_MARKER = /^(ac[-_. ]?\d+(?:[.-]\d+)*)[ \t]*[:.–—-][ \t]*/i;
@@ -27646,16 +27661,16 @@ function extractTaskRequirementReferences(document, tasks) {
     if (mask[i2] === true) continue;
     const owner = ownerTaskAt(orderedTasks, i2);
     if (owner === void 0) continue;
-    const text6 = document.lineAt(i2).text;
+    const text7 = document.lineAt(i2).text;
     const isTaskLine = orderedTasks.some((task) => task.line === i2);
     if (!isTaskLine) {
-      const underscore = UNDERSCORE_REFS.exec(text6);
+      const underscore = UNDERSCORE_REFS.exec(text7);
       if (underscore !== null) {
         for (const item of splitReferenceList(underscore[1] ?? "")) {
           push(owner, item, i2, "underscore-refs", "deterministic");
         }
       } else {
-        const refsLine = REFS_LINE.exec(text6);
+        const refsLine = REFS_LINE.exec(text7);
         if (refsLine !== null) {
           for (const item of splitReferenceList(refsLine[1] ?? "")) {
             if (canonicalRequirementRef(item) !== void 0) {
@@ -27665,10 +27680,10 @@ function extractTaskRequirementReferences(document, tasks) {
         }
       }
     }
-    for (const match of text6.matchAll(BRACKET_REF)) {
+    for (const match of text7.matchAll(BRACKET_REF)) {
       if (match[1] !== void 0) push(owner, match[1], i2, "bracket-ref", "deterministic");
     }
-    for (const match of text6.matchAll(KEYWORD_REF)) {
+    for (const match of text7.matchAll(KEYWORD_REF)) {
       if (match[1] !== void 0) push(owner, match[1], i2, "keyword-ref", "heuristic");
     }
   }
@@ -27719,8 +27734,8 @@ function extractPathReferences(document) {
   const seen = /* @__PURE__ */ new Set();
   for (let i2 = 0; i2 < document.lineCount; i2 += 1) {
     if (mask[i2] === true) continue;
-    const text6 = document.lineAt(i2).text;
-    for (const match of text6.matchAll(BACKTICK_SPAN)) {
+    const text7 = document.lineAt(i2).text;
+    for (const match of text7.matchAll(BACKTICK_SPAN)) {
       const raw = match[1];
       if (raw === void 0) continue;
       const path510 = normalizePathCandidate(raw);
@@ -27737,7 +27752,7 @@ function extractPathReferences(document) {
         isGlob: GLOB_CHARS.test(path510)
       });
     }
-    for (const match of text6.matchAll(MARKDOWN_LINK)) {
+    for (const match of text7.matchAll(MARKDOWN_LINK)) {
       const raw = match[1];
       if (raw === void 0) continue;
       const path510 = normalizePathCandidate(raw);
@@ -28152,21 +28167,21 @@ function bodyOf(line) {
   const match = STRUCTURAL_PREFIX.exec(line);
   return (match !== null ? line.slice(match[0].length) : line).trim();
 }
-function findPlaceholdersInLine(text6) {
+function findPlaceholdersInLine(text7) {
   const found = [];
   ANGLE_TOKEN.lastIndex = 0;
-  for (let match = ANGLE_TOKEN.exec(text6); match !== null; match = ANGLE_TOKEN.exec(text6)) {
+  for (let match = ANGLE_TOKEN.exec(text7); match !== null; match = ANGLE_TOKEN.exec(text7)) {
     const token = match[1] ?? "";
     if (!HTML_TAGS.has(token)) found.push(`<${token}>`);
   }
-  const tbd = TBD_TODO.exec(text6);
+  const tbd = TBD_TODO.exec(text7);
   if (tbd !== null) found.push(tbd[0]);
-  const body = bodyOf(text6);
-  const instruction = stripListPrefix(text6.trim());
+  const body = bodyOf(text7);
+  const instruction = stripListPrefix(text7.trim());
   if (INSTRUCTION_LINE.test(instruction) || INSTRUCTION_LINE.test(body)) {
-    found.push(text6.trim());
+    found.push(text7.trim());
   } else if (TEMPLATE_LINES.has(body.toLowerCase())) {
-    found.push(text6.trim());
+    found.push(text7.trim());
   }
   return found;
 }
@@ -28180,12 +28195,12 @@ function scanPlaceholders(document) {
   let placeholderLineCount = 0;
   for (let i2 = 0; i2 < document.lineCount; i2 += 1) {
     if (mask[i2] === true) continue;
-    const text6 = document.lineAt(i2).text;
-    const trimmed = text6.trim();
+    const text7 = document.lineAt(i2).text;
+    const trimmed = text7.trim();
     if (trimmed.length === 0) continue;
-    const lineHits = findPlaceholdersInLine(text6);
+    const lineHits = findPlaceholdersInLine(text7);
     for (const hit of lineHits) hits.push({ line: i2, text: hit });
-    if (HEADING_LINE.test(text6) || TABLE_RULE.test(trimmed) || STATUS_NOTE.test(trimmed)) {
+    if (HEADING_LINE.test(text7) || TABLE_RULE.test(trimmed) || STATUS_NOTE.test(trimmed)) {
       continue;
     }
     bodyLineCount += 1;
@@ -28200,16 +28215,16 @@ function scanPlaceholders(document) {
 var EARS_TRIGGER = /^(when|if|while|where)\b/i;
 var SHALL = /\bshall\b/i;
 var TESTABLE_MODAL = /\b(shall|must|should|will)\b/i;
-function classifyEars(text6) {
-  const trimmed = text6.trim();
+function classifyEars(text7) {
+  const trimmed = text7.trim();
   if (EARS_TRIGGER.test(trimmed)) {
     return SHALL.test(trimmed) ? "ears" : "ears-malformed";
   }
   if (SHALL.test(trimmed)) return "ears";
   return "plain";
 }
-function looksTestable(text6) {
-  return TESTABLE_MODAL.test(text6);
+function looksTestable(text7) {
+  return TESTABLE_MODAL.test(text7);
 }
 var VAGUE_PHRASES = [
   "work correctly",
@@ -28243,10 +28258,10 @@ var VAGUE_PATTERN = new RegExp(
   `\\b(?:${VAGUE_PHRASES.map((phrase) => phrase.replace(/[-\s]+/g, "[-\\s]+")).join("|")})\\b`,
   "gi"
 );
-function findVaguePhrases(text6) {
+function findVaguePhrases(text7) {
   const found = [];
   VAGUE_PATTERN.lastIndex = 0;
-  for (let match = VAGUE_PATTERN.exec(text6); match !== null; match = VAGUE_PATTERN.exec(text6)) {
+  for (let match = VAGUE_PATTERN.exec(text7); match !== null; match = VAGUE_PATTERN.exec(text7)) {
     const phrase = match[0].toLowerCase().replace(/\s+/g, " ");
     if (!found.includes(phrase)) found.push(phrase);
   }
@@ -29115,7 +29130,7 @@ function inferWorkflowForFirstApproval(specType, firstStage) {
 function buildInitialState(specName, specType, mode, origin, clock) {
   const shape = workflowShape(specType, mode);
   const stages = initialStages(shape, specName);
-  const now3 = isoNow(clock);
+  const now4 = isoNow(clock);
   return {
     schemaVersion: SPEC_STATE_SCHEMA_VERSION,
     specName,
@@ -29123,8 +29138,8 @@ function buildInitialState(specName, specType, mode, origin, clock) {
     workflowMode: mode,
     origin,
     status: deriveWorkflowStatus(shape, stages),
-    createdAt: now3,
-    updatedAt: now3,
+    createdAt: now4,
+    updatedAt: now4,
     stages
   };
 }
@@ -29396,14 +29411,14 @@ function readDescriptionFile(workspace, fromFile, cwd, maxBytes) {
   } catch (cause) {
     throw ioError("read description file", resolved, cause);
   }
-  const text6 = buffer.toString("utf8");
-  if (!Buffer.from(text6, "utf8").equals(buffer)) {
+  const text7 = buffer.toString("utf8");
+  if (!Buffer.from(text7, "utf8").equals(buffer)) {
     throw new SpecBridgeError(
       "INVALID_ARGUMENT",
       `--from-file is not valid UTF-8: ${resolved}. Re-save the file as UTF-8 and retry.`
     );
   }
-  const description = text6.replace(new RegExp("^\\uFEFF"), "").trim();
+  const description = text7.replace(new RegExp("^\\uFEFF"), "").trim();
   if (description.length === 0) {
     throw new SpecBridgeError("INVALID_ARGUMENT", `--from-file is empty: ${resolved}.`);
   }
@@ -36611,6 +36626,21 @@ function effectiveSupportLevel(declared, status) {
       return "incompatible";
   }
 }
+var RUNNER_CONTEXT_CAPABILITIES_SCHEMA_VERSION = "1.0.0";
+var RUNNER_NATIVE_COMPACTION_MODES = ["none", "automatic", "explicit"];
+var runnerContextCapabilitiesSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/).default(RUNNER_CONTEXT_CAPABILITIES_SCHEMA_VERSION),
+  /**
+   * Advertised context window in tokens; null when the adapter cannot know
+   * (e.g. the model is user-configured). Never guessed: null means "use
+   * the configured default budget".
+   */
+  contextWindowTokens: external_exports.number().int().min(1e3).nullable().default(null),
+  /** How the provider compacts its own session working memory. */
+  nativeCompaction: external_exports.enum(RUNNER_NATIVE_COMPACTION_MODES).default("none"),
+  /** True when provider sessions can be resumed across invocations. */
+  supportsSessionPersistence: external_exports.boolean().default(false)
+}).strict();
 function digest(...parts) {
   const hash = (0, import_crypto2.createHash)("sha256");
   for (const part of parts) hash.update(part).update("\0");
@@ -36646,6 +36676,17 @@ var MockRunner = class {
   kind = "mock";
   category = "mock";
   declaredCapabilities = MOCK_CAPABILITY_SET;
+  /**
+   * vNext.1: a small deterministic window with no native compaction — the
+   * test/fake declaration that exercises the SpecBridge generic-compaction
+   * path (the same path any future provider without native compaction gets).
+   */
+  declaredContextCapabilities = {
+    schemaVersion: RUNNER_CONTEXT_CAPABILITIES_SCHEMA_VERSION,
+    contextWindowTokens: 8e3,
+    nativeCompaction: "none",
+    supportsSessionPersistence: true
+  };
   config;
   constructor(config2) {
     this.config = mockRunnerConfigSchema.parse(config2 ?? {});
@@ -37546,6 +37587,21 @@ var ClaudeCodeRunner = class {
   kind = "claude-code";
   category = "agent-cli";
   declaredCapabilities = CLAUDE_DECLARED_CAPABILITIES;
+  /**
+   * vNext.1 context capabilities. Claude Code manages its own session
+   * working memory (automatic native compaction) and supports session
+   * resume; SpecBridge integrates with both strictly as WORKING-MEMORY
+   * optimizations — durable checkpoints stay the only canonical state, and
+   * SpecBridge never reimplements the CLI's internal compaction. The window
+   * is null (model-dependent, user-configurable): the survival runtime
+   * budgets from configuration rather than guessing a number.
+   */
+  declaredContextCapabilities = {
+    schemaVersion: RUNNER_CONTEXT_CAPABILITIES_SCHEMA_VERSION,
+    contextWindowTokens: null,
+    nativeCompaction: "automatic",
+    supportsSessionPersistence: true
+  };
   config;
   probePromise;
   constructor(config2) {
@@ -38086,9 +38142,9 @@ ${execHelp.stderr}` : "";
   }
   const supportedTokens = /* @__PURE__ */ new Set();
   const capabilities = CODEX_CAPABILITY_PROBES.map((probe) => {
-    const text6 = probe.source === "root" ? rootText : execText;
+    const text7 = probe.source === "root" ? rootText : execText;
     const usable = probe.source === "root" ? rootUsable : execUsable;
-    const available = usable && probe.tokens.some((token) => tokenPresent(text6, token));
+    const available = usable && probe.tokens.some((token) => tokenPresent(text7, token));
     if (available) for (const token of probe.tokens) supportedTokens.add(token);
     return {
       id: probe.id,
@@ -40905,8 +40961,8 @@ function parseOpenAiResponse(style, bodyText) {
   if (!result.success) {
     return { problem: "the endpoint response does not match the responses shape" };
   }
-  let text6 = result.data.output_text;
-  if (text6 === void 0 && result.data.output !== void 0) {
+  let text7 = result.data.output_text;
+  if (text7 === void 0 && result.data.output !== void 0) {
     const parts = [];
     for (const item of result.data.output) {
       if (item.type !== void 0 && item.type !== "message") continue;
@@ -40916,10 +40972,10 @@ function parseOpenAiResponse(style, bodyText) {
         }
       }
     }
-    if (parts.length > 0) text6 = parts.join("");
+    if (parts.length > 0) text7 = parts.join("");
   }
   return {
-    ...text6 !== void 0 ? { text: text6 } : { problem: "the response carries no output text" },
+    ...text7 !== void 0 ? { text: text7 } : { problem: "the response carries no output text" },
     ...result.data.model !== void 0 ? { model: result.data.model } : {},
     ...result.data.usage !== void 0 ? {
       usage: {
@@ -40941,12 +40997,12 @@ var openAiModelsResponseSchema = external_exports.object({
 }).passthrough();
 function indicatesStructuredOutputUnsupported(status, bodyExcerpt) {
   if (status !== 400 && status !== 422) return false;
-  const text6 = (bodyExcerpt ?? "").toLowerCase();
-  return /response_format|json_schema|json schema|structured output|text\.format/.test(text6);
+  const text7 = (bodyExcerpt ?? "").toLowerCase();
+  return /response_format|json_schema|json schema|structured output|text\.format/.test(text7);
 }
-function redactSecretValue(text6, secret) {
-  if (secret === void 0 || secret.length === 0) return text6;
-  return text6.split(secret).join("<redacted>");
+function redactSecretValue(text7, secret) {
+  if (secret === void 0 || secret.length === 0) return text7;
+  return text7.split(secret).join("<redacted>");
 }
 function weakerStructuredOutputMode(mode) {
   if (mode === "json-schema") return "json-object";
@@ -41118,8 +41174,8 @@ var OpenAiCompatibleRunner = class {
     const value = process.env[variable];
     return value !== void 0 && value.length > 0 ? value : void 0;
   }
-  redact(text6) {
-    return redactSecretValue(text6, this.apiKeyValue());
+  redact(text7) {
+    return redactSecretValue(text7, this.apiKeyValue());
   }
   requestHeaders() {
     const headers = { ...this.config.headers };
@@ -41415,7 +41471,7 @@ var OpenAiCompatibleRunner = class {
       const unsupportedMode = mode !== "strict-json-prompt" && result.kind === "http-error" && indicatesStructuredOutputUnsupported(result.status, result.bodyExcerpt);
       return {
         ok: false,
-        failure: classifyHttpFailure2(result, (text6) => this.redact(text6)),
+        failure: classifyHttpFailure2(result, (text7) => this.redact(text7)),
         unsupportedMode,
         ...result.kind === "http-error" && result.bodyExcerpt !== void 0 ? { retained: this.redact(result.bodyExcerpt) } : {}
       };
@@ -43088,7 +43144,7 @@ function hashProtectedTree(workspaceRoot, relativeDir, into) {
   }
 }
 async function captureGitSnapshot(workspaceRoot, options = {}) {
-  const now3 = options.clock?.() ?? /* @__PURE__ */ new Date();
+  const now4 = options.clock?.() ?? /* @__PURE__ */ new Date();
   const diagnostics = [];
   const excludedPrefixes = [
     ...SNAPSHOT_EXCLUDED_PREFIXES,
@@ -43103,7 +43159,7 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
     });
     return {
       schemaVersion: GIT_SNAPSHOT_SCHEMA_VERSION,
-      capturedAt: now3.toISOString(),
+      capturedAt: now4.toISOString(),
       gitAvailable: false,
       detached: false,
       clean: false,
@@ -43177,7 +43233,7 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
   hashProtectedTree(workspaceRoot, import_path19.default.join(".specbridge", "state"), protectedHashes);
   return {
     schemaVersion: GIT_SNAPSHOT_SCHEMA_VERSION,
-    capturedAt: now3.toISOString(),
+    capturedAt: now4.toISOString(),
     gitAvailable: statusResult.ok,
     ...head !== void 0 ? { head } : {},
     ...branch !== void 0 ? { branch } : {},
@@ -43321,8 +43377,8 @@ async function capturePatch(workspaceRoot, maximumPatchBytes) {
   };
 }
 var TAIL_BYTES = 8 * 1024;
-function tail(text6) {
-  return text6.length > TAIL_BYTES ? text6.slice(text6.length - TAIL_BYTES) : text6;
+function tail(text7) {
+  return text7.length > TAIL_BYTES ? text7.slice(text7.length - TAIL_BYTES) : text7;
 }
 function skippedVerification(commands) {
   return {
@@ -43611,10 +43667,10 @@ function evidencePathEscapesRepository(recordedPath) {
 }
 var CHECKBOX_STATE_PREFIX2 = /^([ \t]*[-*+][ \t]+\[)([ xX~-])(\])/;
 function sameTaskLineIgnoringState(a2, b) {
-  const normalize = (text6) => {
-    const match = CHECKBOX_STATE_PREFIX2.exec(text6);
-    if (match === null || match[1] === void 0 || match[3] === void 0) return text6;
-    return `${match[1]} ${match[3]}${text6.slice(match[0].length)}`;
+  const normalize = (text7) => {
+    const match = CHECKBOX_STATE_PREFIX2.exec(text7);
+    if (match === null || match[1] === void 0 || match[3] === void 0) return text7;
+    return `${match[1]} ${match[3]}${text7.slice(match[0].length)}`;
   };
   return normalize(a2) === normalize(b);
 }
@@ -44419,8 +44475,8 @@ function invalidateDependentApprovals(workspace, state, stage, clock) {
   const statePath = writeSpecState(workspace, nextState);
   return { state: nextState, statePath, invalidated };
 }
-function splitLines2(text6) {
-  const lines = text6.split("\n");
+function splitLines2(text7) {
+  const lines = text7.split("\n");
   if (lines[lines.length - 1] === "") lines.pop();
   return lines;
 }
@@ -46145,9 +46201,9 @@ function diverges(current, recordedAfter) {
   const currentByPath = new Map(current.entries.map((entry) => [entry.path, entry]));
   const recordedByPath = new Map(recordedAfter.entries.map((entry) => [entry.path, entry]));
   for (const [file, entry] of recordedByPath) {
-    const now3 = currentByPath.get(file);
-    if (now3 === void 0) differences.push(`"${file}" was modified after the run ended (now clean or removed)`);
-    else if (now3.contentHash !== entry.contentHash) differences.push(`"${file}" changed after the run ended`);
+    const now4 = currentByPath.get(file);
+    if (now4 === void 0) differences.push(`"${file}" was modified after the run ended (now clean or removed)`);
+    else if (now4.contentHash !== entry.contentHash) differences.push(`"${file}" changed after the run ended`);
   }
   for (const file of currentByPath.keys()) {
     if (!recordedByPath.has(file)) differences.push(`"${file}" was modified after the run ended`);
@@ -46407,15 +46463,15 @@ function readInteractiveLock(workspace) {
 }
 function acquireInteractiveLock(workspace, details) {
   const lockPath = interactiveLockPath(workspace);
-  const now3 = (details.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
+  const now4 = (details.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
   const lock = {
     schemaVersion: INTERACTIVE_LOCK_SCHEMA_VERSION,
     runId: details.runId,
     specName: details.specName,
     taskId: details.taskId,
     pid: details.pid ?? process.pid,
-    createdAt: now3,
-    heartbeatAt: now3
+    createdAt: now4,
+    heartbeatAt: now4
   };
   (0, import_fs26.mkdirSync)(import_path28.default.dirname(lockPath), { recursive: true });
   try {
@@ -46967,8 +47023,8 @@ async function abortInteractiveTask(deps, request) {
       ...report !== void 0 ? { outcome: classifyInteractiveOutcome(report) } : {}
     };
   }
-  const now3 = await captureGitSnapshot(workspace.rootDir, { clock: () => clock() });
-  const remaining = now3.gitAvailable ? agentChangedFiles(compareSnapshots(state.before, now3)).map((file) => file.path) : [];
+  const now4 = await captureGitSnapshot(workspace.rootDir, { clock: () => clock() });
+  const remaining = now4.gitAvailable ? agentChangedFiles(compareSnapshots(state.before, now4)).map((file) => file.path) : [];
   const abortedAt = clock().toISOString();
   writeRunArtifact(
     workspace,
@@ -47313,10 +47369,13 @@ var import_path33 = __toESM(require("path"), 1);
 var import_crypto13 = require("crypto");
 var import_fs31 = require("fs");
 var import_path34 = __toESM(require("path"), 1);
+var import_crypto14 = require("crypto");
 var import_fs32 = require("fs");
 var import_path35 = __toESM(require("path"), 1);
 var import_fs33 = require("fs");
 var import_path36 = __toESM(require("path"), 1);
+var import_fs34 = require("fs");
+var import_path37 = __toESM(require("path"), 1);
 
 // ../../packages/mission/dist/index.js
 var import_fs28 = require("fs");
@@ -49592,13 +49651,116 @@ function observeSpecApproval(deps, missionId) {
 }
 
 // ../../packages/orchestration/dist/index.js
-var import_path37 = __toESM(require("path"), 1);
 var import_path38 = __toESM(require("path"), 1);
 var import_path39 = __toESM(require("path"), 1);
-var import_fs34 = require("fs");
 var import_path40 = __toESM(require("path"), 1);
 var import_fs35 = require("fs");
 var import_path41 = __toESM(require("path"), 1);
+var import_fs36 = require("fs");
+var import_path42 = __toESM(require("path"), 1);
+
+// ../../packages/context/dist/index.js
+var CONTEXT_LAYERS = [
+  "PINNED",
+  "DURABLE_TASK_STATE",
+  "COMPACTED_HISTORY",
+  "WORKING_SET",
+  "RECENT_DELTA",
+  "CURRENT_ACTION"
+];
+var CONTEXT_HEALTH_LEVELS = [
+  "HEALTHY",
+  "PREPARE",
+  "PROACTIVE_COMPACT",
+  "FORCE_COMPACT",
+  "OVERFLOW"
+];
+var COMPACTION_LEVELS = ["micro", "milestone", "emergency"];
+var CONTEXT_LIMITS = {
+  /** Hard ceiling on one item's content. Larger payloads live in artifacts. */
+  maxItemContentChars: 2e5,
+  maxShortTextChars: 512,
+  maxItemsPerPackage: 500,
+  maxCompactionRecords: 200
+};
+var shortText2 = external_exports.string().min(1).max(CONTEXT_LIMITS.maxShortTextChars);
+var contextItemSchema = external_exports.object({
+  itemId: shortText2,
+  layer: external_exports.enum(CONTEXT_LAYERS),
+  kind: shortText2,
+  title: shortText2,
+  content: external_exports.string().max(CONTEXT_LIMITS.maxItemContentChars),
+  createdAt: shortText2,
+  /** Where the content came from (a checkpoint id, run id, file path, …). */
+  source: shortText2.optional(),
+  /**
+   * Items sharing a dedupe key are the same logical thing observed more
+   * than once (the same file read twice, the same test run repeated).
+   * Micro-compaction keeps only the newest item per key.
+   */
+  dedupeKey: shortText2.optional(),
+  /**
+   * Set when the information in this item has been incorporated into the
+   * given durable checkpoint. Folded items are droppable at milestone and
+   * emergency compaction — their truth now lives in durable state.
+   */
+  foldedIntoCheckpointId: shortText2.optional(),
+  /** True when micro-compaction already produced this structured form. */
+  compacted: external_exports.boolean().default(false)
+}).passthrough();
+var compactionRecordSchema = external_exports.object({
+  level: external_exports.enum(COMPACTION_LEVELS),
+  at: shortText2,
+  itemsBefore: external_exports.number().int().min(0),
+  itemsAfter: external_exports.number().int().min(0),
+  estimatedTokensBefore: external_exports.number().int().min(0),
+  estimatedTokensAfter: external_exports.number().int().min(0),
+  /** Checkpoint the pass folded state into, when one was involved. */
+  checkpointId: shortText2.optional(),
+  detail: external_exports.string().max(2e3).optional()
+}).passthrough();
+var contextUsageSchema = external_exports.object({
+  estimatedTokens: external_exports.number().int().min(0),
+  usableInputTokens: external_exports.number().int().min(1),
+  modelContextTokens: external_exports.number().int().min(1),
+  /** estimatedTokens / usableInputTokens, rounded to 4 decimal places. */
+  ratio: external_exports.number().min(0)
+}).passthrough();
+var contextPackageSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  jobId: shortText2.optional(),
+  taskId: shortText2.optional(),
+  attemptId: shortText2.optional(),
+  createdAt: shortText2,
+  items: external_exports.array(contextItemSchema).max(CONTEXT_LIMITS.maxItemsPerPackage),
+  usage: contextUsageSchema,
+  health: external_exports.enum(CONTEXT_HEALTH_LEVELS),
+  /** Compaction passes applied while producing this package. */
+  compactions: external_exports.array(compactionRecordSchema).max(CONTEXT_LIMITS.maxCompactionRecords).default([])
+}).passthrough();
+var contextBudgetConfigSchema = external_exports.object({
+  /** Advertised model context window, in tokens. */
+  modelContextTokens: external_exports.number().int().min(1e3).default(2e5),
+  /** Reserved for model output. */
+  reservedOutputTokens: external_exports.number().int().min(0).default(16e3),
+  /** Reserved for reasoning, where the model interleaves it. */
+  reservedReasoningTokens: external_exports.number().int().min(0).default(8e3),
+  /** Reserved for the next tool result and unexpected growth. */
+  reservedGrowthTokens: external_exports.number().int().min(0).default(8e3),
+  /** Below this ratio of usable input: HEALTHY. */
+  prepareThreshold: external_exports.number().min(0.05).max(1).default(0.55),
+  /** At or above this ratio: compaction should run at the next boundary. */
+  proactiveCompactionThreshold: external_exports.number().min(0.05).max(1).default(0.7),
+  /** At or above this ratio: compaction must run before further growth. */
+  emergencyCompactionThreshold: external_exports.number().min(0.05).max(1).default(0.85),
+  /** At or above this ratio: no large context operation may start. */
+  hardStopThreshold: external_exports.number().min(0.05).max(1).default(0.9)
+}).passthrough().refine(
+  (config2) => config2.prepareThreshold <= config2.proactiveCompactionThreshold && config2.proactiveCompactionThreshold <= config2.emergencyCompactionThreshold && config2.emergencyCompactionThreshold <= config2.hardStopThreshold,
+  { message: "Context thresholds must be ordered: prepare <= proactive <= emergency <= hard stop." }
+);
+
+// ../../packages/orchestration/dist/index.js
 var ORCHESTRATION_PHASES = [
   /** The run exists; no intent has been assessed yet. */
   "CREATED",
@@ -49781,7 +49943,11 @@ var SBO_CODES = {
   SBO045: "contract conflict requires decision",
   SBO046: "aggregation prerequisite unsatisfied",
   SBO047: "integration failed",
-  SBO048: "worktree operation failed"
+  SBO048: "worktree operation failed",
+  // Survival-runtime codes (vNext.1). Additive: nothing above may be renumbered.
+  SBO049: "execution attempt state invalid",
+  SBO050: "task checkpoint invalid",
+  SBO051: "context reconstruction failed"
 };
 var OrchestrationError = class extends Error {
   code;
@@ -49814,33 +49980,33 @@ var STATE_LIMITS = {
   maxQuestions: 40,
   maxInteractiveRuns: 200
 };
-var shortText2 = external_exports.string().max(STATE_LIMITS.maxShortTextChars);
+var shortText3 = external_exports.string().max(STATE_LIMITS.maxShortTextChars);
 var text2 = external_exports.string().max(STATE_LIMITS.maxTextChars);
 var textList2 = external_exports.array(text2).max(STATE_LIMITS.maxListItems);
 var clarificationQuestionSchema = external_exports.object({
-  id: shortText2,
+  id: shortText3,
   question: text2,
   /** Why this cannot be inferred safely — the justification for asking. */
   whyItMatters: text2,
   /** Candidate answers, when the choice is genuinely closed. */
   options: external_exports.array(text2).max(10).default([]),
   /** Spec stage / task this question concerns, when applicable. */
-  relatedTaskId: shortText2.optional(),
-  askedAt: shortText2,
+  relatedTaskId: shortText3.optional(),
+  askedAt: shortText3,
   round: external_exports.number().int().min(1)
 }).passthrough();
 var clarificationDecisionSchema = external_exports.object({
-  id: shortText2,
-  questionId: shortText2,
+  id: shortText3,
+  questionId: shortText3,
   question: text2,
   answer: text2,
   /** Structural provenance, not a confidence number. */
   source: external_exports.enum(PROVENANCE_KINDS),
-  relatedSpecName: shortText2.optional(),
-  relatedTaskId: shortText2.optional(),
-  decidedAt: shortText2,
+  relatedSpecName: shortText3.optional(),
+  relatedTaskId: shortText3.optional(),
+  decidedAt: shortText3,
   /** The decision this one replaces, when a user changed their mind. */
-  supersedes: shortText2.optional(),
+  supersedes: shortText3.optional(),
   /** What this decision changes about the implementation. */
   impact: text2.optional()
 }).passthrough();
@@ -49855,29 +50021,29 @@ var intentAssessmentSchema = external_exports.object({
     external_exports.object({
       fact: text2,
       source: external_exports.enum(PROVENANCE_KINDS),
-      reference: shortText2.optional()
+      reference: shortText3.optional()
     }).passthrough()
   ).max(STATE_LIMITS.maxListItems).default([]),
-  assessedAt: shortText2,
+  assessedAt: shortText3,
   /** Present when the deterministic core overrode the submitted outcome. */
   overriddenFrom: external_exports.enum(INTENT_OUTCOMES).optional(),
   overrideReason: text2.optional()
 }).passthrough();
 var planBindingSchema = external_exports.object({
-  taskId: shortText2,
-  taskFingerprint: shortText2,
+  taskId: shortText3,
+  taskFingerprint: shortText3,
   /** Approved stage hashes at plan time, keyed by stage name. */
-  approvedStageHashes: external_exports.record(shortText2).default({}),
+  approvedStageHashes: external_exports.record(shortText3).default({}),
   /** Git HEAD at plan time; absent in a repository with no commits. */
-  gitHead: shortText2.optional(),
+  gitHead: shortText3.optional(),
   /** Fingerprint of the orchestration policy the plan was made under. */
   policyFingerprint: external_exports.string().max(4e3)
 }).passthrough();
 var planStepSchema = external_exports.object({
-  id: shortText2,
+  id: shortText3,
   description: text2,
   /** Expected implementation area. Planning information, not a fact. */
-  expectedAreas: external_exports.array(shortText2).max(20).default([]),
+  expectedAreas: external_exports.array(shortText3).max(20).default([]),
   /** What observable evidence would show this step succeeded. */
   expectedEvidence: text2.optional(),
   status: external_exports.enum(["pending", "in-progress", "done", "skipped"]).default("pending")
@@ -49885,10 +50051,10 @@ var planStepSchema = external_exports.object({
 var EXECUTION_PLAN_SCHEMA_VERSION = "1.0.0";
 var executionPlanSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  planId: shortText2,
+  planId: shortText3,
   revision: external_exports.number().int().min(1),
-  specName: shortText2,
-  createdAt: shortText2,
+  specName: shortText3,
+  createdAt: shortText3,
   binding: planBindingSchema,
   goal: text2,
   nonGoals: textList2.default([]),
@@ -49898,7 +50064,7 @@ var executionPlanSchema = external_exports.object({
   /** Explicitly labelled assumptions — never presented as facts. */
   assumptions: textList2.default([]),
   openQuestions: textList2.default([]),
-  expectedAreas: external_exports.array(shortText2).max(STATE_LIMITS.maxListItems).default([]),
+  expectedAreas: external_exports.array(shortText3).max(STATE_LIMITS.maxListItems).default([]),
   steps: external_exports.array(planStepSchema).min(1).max(200),
   testStrategy: text2,
   verificationStrategy: text2,
@@ -49906,16 +50072,16 @@ var executionPlanSchema = external_exports.object({
   /** Conditions that should trigger an explicit replan. */
   replanTriggers: textList2.default([]),
   /** The plan this revision supersedes. */
-  supersedes: shortText2.optional(),
+  supersedes: shortText3.optional(),
   /** Why the previous plan was replaced. */
   replanReason: text2.optional()
 }).passthrough();
 var planReviewSchema = external_exports.object({
   decision: external_exports.enum(["approved", "rejected"]),
   /** Hash of the exact plan reviewed — a later plan cannot inherit it. */
-  planHash: shortText2,
+  planHash: shortText3,
   planRevision: external_exports.number().int().min(1),
-  reviewedAt: shortText2,
+  reviewedAt: shortText3,
   /**
    * How the review reached SpecBridge. `user-relayed` means a host agent
    * reported the user's decision: contract-enforced, not hard-enforced.
@@ -49926,9 +50092,9 @@ var planReviewSchema = external_exports.object({
 }).passthrough();
 var observationFingerprintSchema = external_exports.object({
   /** Identity of the last classified failure, when there was one. */
-  failureFingerprint: shortText2.optional(),
+  failureFingerprint: shortText3.optional(),
   /** Identity of the working-tree change set. */
-  diffFingerprint: shortText2.optional(),
+  diffFingerprint: shortText3.optional(),
   changedFileCount: external_exports.number().int().min(0).default(0),
   actionCategory: external_exports.enum(ACTION_CATEGORIES),
   planRevision: external_exports.number().int().min(0),
@@ -49936,10 +50102,10 @@ var observationFingerprintSchema = external_exports.object({
 }).passthrough();
 var orchestrationBlockerSchema = external_exports.object({
   category: external_exports.enum(FAILURE_CATEGORIES),
-  code: shortText2,
+  code: shortText3,
   message: text2,
   remediation: textList2.default([]),
-  at: shortText2
+  at: shortText3
 }).passthrough();
 var orchestrationCountersSchema = external_exports.object({
   iterations: external_exports.number().int().min(0).default(0),
@@ -49962,16 +50128,16 @@ var orchestrationBudgetsSchema = external_exports.object({
 }).passthrough();
 var orchestrationStateSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  orchestrationId: shortText2,
-  specName: shortText2,
-  taskId: shortText2.optional(),
+  orchestrationId: shortText3,
+  specName: shortText3,
+  taskId: shortText3.optional(),
   phase: external_exports.enum(ORCHESTRATION_PHASES),
   /** The user's stated goal, verbatim and bounded. Data, not instructions. */
   goal: external_exports.string().max(STATE_LIMITS.maxGoalChars),
-  createdAt: shortText2,
-  updatedAt: shortText2,
+  createdAt: shortText3,
+  updatedAt: shortText3,
   /** Label of the host driving the run (e.g. "mcp", "cli"). */
-  host: shortText2,
+  host: shortText3,
   planningMode: external_exports.enum(["review", "auto", "disabled"]),
   policyFingerprint: external_exports.string().max(4e3),
   budgets: orchestrationBudgetsSchema,
@@ -49981,32 +50147,32 @@ var orchestrationStateSchema = external_exports.object({
   decisions: external_exports.array(clarificationDecisionSchema).max(STATE_LIMITS.maxDecisions).default([]),
   /** Revision number of the active plan; 0 when none exists. */
   planRevision: external_exports.number().int().min(0).default(0),
-  activePlanId: shortText2.optional(),
-  activePlanHash: shortText2.optional(),
+  activePlanId: shortText3.optional(),
+  activePlanHash: shortText3.optional(),
   planReview: planReviewSchema.optional(),
   planStaleReasons: external_exports.array(external_exports.enum(PLAN_STALENESS_REASONS)).max(10).default([]),
   /** Interactive execution runs this orchestration has driven, in order. */
-  interactiveRunIds: external_exports.array(shortText2).max(STATE_LIMITS.maxInteractiveRuns).default([]),
-  activeInteractiveRunId: shortText2.optional(),
+  interactiveRunIds: external_exports.array(shortText3).max(STATE_LIMITS.maxInteractiveRuns).default([]),
+  activeInteractiveRunId: shortText3.optional(),
   lastObservation: observationFingerprintSchema.optional(),
   /** Fingerprint of the failure the current repair cycle is addressing. */
-  repairTargetFingerprint: shortText2.optional(),
+  repairTargetFingerprint: shortText3.optional(),
   blocker: orchestrationBlockerSchema.optional(),
   /** Set exactly once, when the run reaches a final phase. */
-  finalizedAt: shortText2.optional(),
-  finalOutcome: shortText2.optional()
+  finalizedAt: shortText3.optional(),
+  finalOutcome: shortText3.optional()
 }).passthrough();
 var ORCHESTRATION_CHECKPOINT_SCHEMA_VERSION = "1.0.0";
 var orchestrationCheckpointSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  orchestrationId: shortText2,
-  createdAt: shortText2,
-  specName: shortText2,
-  taskId: shortText2.optional(),
+  orchestrationId: shortText3,
+  createdAt: shortText3,
+  specName: shortText3,
+  taskId: shortText3.optional(),
   phase: external_exports.enum(ORCHESTRATION_PHASES),
   planRevision: external_exports.number().int().min(0),
-  completedSteps: external_exports.array(shortText2).max(200).default([]),
-  unresolvedSteps: external_exports.array(shortText2).max(200).default([]),
+  completedSteps: external_exports.array(shortText3).max(200).default([]),
+  unresolvedSteps: external_exports.array(shortText3).max(200).default([]),
   observations: textList2.default([]),
   latestVerifier: text2.optional(),
   counters: orchestrationCountersSchema,
@@ -50982,12 +51148,12 @@ function buildClarificationRound(state, candidates, policy, options) {
   const seen = /* @__PURE__ */ new Set();
   const questions = [];
   for (const candidate of candidates) {
-    const text6 = candidate.question.trim();
+    const text7 = candidate.question.trim();
     const why = candidate.whyItMatters.trim();
-    if (text6.length === 0) {
+    if (text7.length === 0) {
       throw new OrchestrationError("SBO007", "A clarification question must not be empty.");
     }
-    if (Buffer.byteLength(text6, "utf8") > policy.clarification.maxQuestionBytes) {
+    if (Buffer.byteLength(text7, "utf8") > policy.clarification.maxQuestionBytes) {
       throw new OrchestrationError(
         "SBO021",
         `A clarification question may be at most ${policy.clarification.maxQuestionBytes} bytes.`,
@@ -50997,21 +51163,21 @@ function buildClarificationRound(state, candidates, policy, options) {
     if (why.length === 0) {
       throw new OrchestrationError(
         "SBO007",
-        `Question "${text6.slice(0, 60)}" has no justification. Every question must state why the answer changes the implementation.`,
+        `Question "${text7.slice(0, 60)}" has no justification. Every question must state why the answer changes the implementation.`,
         { remediation: ["Drop the question, or explain what it would change."] }
       );
     }
-    const normalized = normalizeQuestion(text6);
+    const normalized = normalizeQuestion(text7);
     if (seen.has(normalized)) {
       throw new OrchestrationError(
         "SBO007",
-        `Question "${text6.slice(0, 60)}" is asked twice in the same round.`
+        `Question "${text7.slice(0, 60)}" is asked twice in the same round.`
       );
     }
     if (answered.has(normalized)) {
       throw new OrchestrationError(
         "SBO007",
-        `Question "${text6.slice(0, 60)}" was already answered in this run; re-asking it makes no progress.`,
+        `Question "${text7.slice(0, 60)}" was already answered in this run; re-asking it makes no progress.`,
         { remediation: ["Read the recorded decision, or supersede it with an explicit new decision."] }
       );
     }
@@ -51019,7 +51185,7 @@ function buildClarificationRound(state, candidates, policy, options) {
     questions.push(
       clarificationQuestionSchema.parse({
         id: options.idFactory(),
-        question: text6,
+        question: text7,
         whyItMatters: why,
         options: (candidate.options ?? []).slice(0, 10),
         ...candidate.relatedTaskId !== void 0 ? { relatedTaskId: candidate.relatedTaskId } : {},
@@ -52607,6 +52773,12 @@ var jobStateSchema = external_exports.object({
   graphRevision: external_exports.number().int().min(0).default(0),
   /** The node the scheduler is currently advancing. */
   currentNodeId: shortText22.optional(),
+  /**
+   * The durable ExecutionAttempt in flight for the current dispatch
+   * (survival runtime, vNext.1). Cleared when the dispatch finalizes;
+   * reconciled to INTERRUPTED by resume when the process disappeared.
+   */
+  currentAttemptId: shortText22.optional(),
   /** Present in WAITING_RETRY: when the next attempt may run. */
   retryAt: shortText22.optional(),
   openQuestions: external_exports.array(clarificationQuestionSchema).max(STATE_LIMITS.maxQuestions).default([]),
@@ -53311,10 +53483,10 @@ function assessComplexity(input, policy) {
       forcesHigh: false
     });
   }
-  const text6 = `${input.title}
+  const text7 = `${input.title}
 ${input.relatedSpecText ?? ""}`;
   for (const entry of KEYWORD_SIGNALS) {
-    const match = text6.match(entry.pattern);
+    const match = text7.match(entry.pattern);
     if (match !== null) {
       signals2.push({
         signal: entry.signal,
@@ -53580,8 +53752,8 @@ function successfulAttemptIndex(node, role) {
   return -1;
 }
 function checkJobBudgets(input) {
-  const { job, policy, now: now3 } = input;
-  const elapsed = Math.max(0, now3.getTime() - Date.parse(job.createdAt));
+  const { job, policy, now: now4 } = input;
+  const elapsed = Math.max(0, now4.getTime() - Date.parse(job.createdAt));
   if (elapsed >= job.budgets.maxWallClockMs) {
     return {
       kind: "JOB_BLOCKED",
@@ -53823,13 +53995,520 @@ function scheduleNext(input) {
     reason: mode === "repair" ? `A diagnosed defect on task ${node.parentTaskId} is being repaired (cycle ${node.repairCycles + 1}).` : `Task ${node.parentTaskId} has an approved plan (revision ${node.planRevision}) and is ready to implement.`
   };
 }
+var TASK_ATTEMPT_STATUSES = [
+  /** The dispatch is (or was, before a crash) in flight. */
+  "RUNNING",
+  /** The attempt finished and its task work was accepted by the evidence path. */
+  "COMPLETED",
+  /** The attempt finished without acceptance; failure details recorded. */
+  "FAILED",
+  /** The owning process/session disappeared; reconciled at resume. */
+  "INTERRUPTED",
+  /** The user (or a shutdown) cancelled the attempt deliberately. */
+  "CANCELLED"
+];
+var FINAL_TASK_ATTEMPT_STATUSES = [
+  "COMPLETED",
+  "FAILED",
+  "INTERRUPTED",
+  "CANCELLED"
+];
+function isFinalAttemptStatus(status) {
+  return FINAL_TASK_ATTEMPT_STATUSES.includes(status);
+}
+var TASK_CHECKPOINT_REASONS = [
+  /** A meaningful unit of work completed (subtask, implementation, tests). */
+  "milestone",
+  /** Execution is about to hand off to another worker/provider. */
+  "handoff",
+  /** Execution is shutting down deliberately. */
+  "shutdown",
+  /** Durable state refresh before a context is discarded or rebuilt. */
+  "pre-compaction",
+  /** Context approached its safe upper bound; state persisted before rebuild. */
+  "emergency-compaction",
+  /** Recovery persisted what was reconstructible after an interruption. */
+  "recovery",
+  /** An explicit caller-requested checkpoint. */
+  "manual"
+];
+var TASK_ATTEMPT_SCHEMA_VERSION = "1.0.0";
+var TASK_CHECKPOINT_SCHEMA_VERSION = "1.0.0";
+var SURVIVAL_LIMITS = {
+  maxListItems: 50,
+  maxChangedFiles: 500,
+  maxTextChars: 2e3,
+  maxShortTextChars: STATE_LIMITS.maxShortTextChars,
+  maxCheckpointsPerTask: 500
+};
+var shortText32 = external_exports.string().min(1).max(SURVIVAL_LIMITS.maxShortTextChars);
+var text3 = external_exports.string().min(1).max(SURVIVAL_LIMITS.maxTextChars);
+var textList22 = external_exports.array(text3).max(SURVIVAL_LIMITS.maxListItems);
+var semver2 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
+var attemptMetricsSchema = external_exports.object({
+  durationMs: external_exports.number().int().min(0).nullable().default(null),
+  inputTokens: external_exports.number().int().min(0).nullable().default(null),
+  outputTokens: external_exports.number().int().min(0).nullable().default(null),
+  cachedTokens: external_exports.number().int().min(0).nullable().default(null),
+  toolCalls: external_exports.number().int().min(0).nullable().default(null),
+  filesRead: external_exports.number().int().min(0).nullable().default(null),
+  filesChanged: external_exports.number().int().min(0).nullable().default(null),
+  /** Provider-REPORTED cost only; never computed from a price table. */
+  costUsd: external_exports.number().min(0).nullable().default(null)
+}).passthrough();
+var taskAttemptSchema = external_exports.object({
+  schemaVersion: semver2,
+  attemptId: shortText32,
+  jobId: shortText32,
+  /** Runtime graph node this attempt executes (the Task's runtime identity). */
+  nodeId: shortText32,
+  /** The approved task id (stable across graph revisions). */
+  taskId: shortText32,
+  role: external_exports.enum(AGENT_ROLES),
+  /** Worker identity as the scheduler assigned it. */
+  workerId: shortText32,
+  /**
+   * Provider identity (runner/profile name). Identity is recorded for the
+   * ledger and for audit — runtime logic branches on capabilities, never
+   * on this value.
+   */
+  provider: shortText32,
+  /** Model identity when known; null when the provider does not say. */
+  model: shortText32.nullable().default(null),
+  status: external_exports.enum(TASK_ATTEMPT_STATUSES),
+  /** 1-based position within this task's attempt history. */
+  attemptNumber: external_exports.number().int().min(1),
+  startedAt: shortText32,
+  completedAt: shortText32.optional(),
+  /** Bounded outcome summary — a claim, never evidence. */
+  resultSummary: text3.optional(),
+  failure: external_exports.object({
+    category: external_exports.enum(FAILURE_CATEGORIES),
+    message: text3
+  }).passthrough().optional(),
+  /** Why an INTERRUPTED attempt was reconciled (e.g. "process-restart"). */
+  interruptedReason: shortText32.optional(),
+  /** Task checkpoints persisted during this attempt, oldest first. */
+  checkpointIds: external_exports.array(shortText32).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  /** Execution run id (`.specbridge/runs/<id>`) when the evidence path ran. */
+  runId: shortText32.optional(),
+  /** The interrupted/failed attempt this one continues from (lineage). */
+  resumedFromAttemptId: shortText32.optional(),
+  /** Provider session reference — WORKING MEMORY only, never canonical. */
+  providerSessionId: shortText32.optional(),
+  /** Scheduling lane, when a later phase assigns one. */
+  lane: shortText32.optional(),
+  metrics: attemptMetricsSchema.default({})
+}).passthrough();
+var checkpointDecisionSchema = external_exports.object({
+  decision: text3,
+  rationale: text3.optional(),
+  at: shortText32.optional(),
+  decidedBy: shortText32.optional()
+}).passthrough();
+var failedApproachSchema = external_exports.object({
+  approach: text3,
+  reason: text3,
+  at: shortText32.optional(),
+  /** Evidence reference (run id, test name) backing the failure claim. */
+  evidenceRef: shortText32.optional()
+}).passthrough();
+var checkpointTestResultSchema = external_exports.object({
+  name: shortText32,
+  status: external_exports.enum(["passed", "failed", "skipped", "unknown"]),
+  summary: text3.optional()
+}).passthrough();
+var checkpointRepositoryStateSchema = external_exports.object({
+  branch: shortText32.optional(),
+  head: shortText32.optional(),
+  detached: external_exports.boolean().optional(),
+  clean: external_exports.boolean().optional(),
+  /** Paths dirty at checkpoint time (bounded; the diff itself lives in runs/). */
+  dirtyPaths: external_exports.array(shortText32).max(SURVIVAL_LIMITS.maxChangedFiles).default([]),
+  /** Reference to a stored diff artifact, when one exists. */
+  diffRef: shortText32.optional(),
+  /** The commit execution started from, when known. */
+  baselineHead: shortText32.optional()
+}).passthrough();
+var checkpointPinnedContextSchema = external_exports.object({
+  /** The task contract: what this task IS, verbatim and bounded. */
+  taskContract: text3,
+  acceptanceCriteria: textList22.default([]),
+  /** Architecture/repository rules constraining every attempt. */
+  constraints: textList22.default([]),
+  /** Critical invariants that override any convenient shortcut. */
+  invariants: textList22.default([])
+}).passthrough();
+var taskCheckpointSchema = external_exports.object({
+  schemaVersion: semver2,
+  checkpointId: shortText32,
+  jobId: shortText32,
+  nodeId: shortText32,
+  taskId: shortText32,
+  /** The attempt that persisted this checkpoint. */
+  attemptId: shortText32,
+  /** 1-based, strictly increasing per task. */
+  seq: external_exports.number().int().min(1),
+  reason: external_exports.enum(TASK_CHECKPOINT_REASONS),
+  /** What this task is trying to achieve right now. */
+  objective: text3,
+  pinned: checkpointPinnedContextSchema,
+  completedWork: textList22.default([]),
+  pendingWork: textList22.default([]),
+  importantDecisions: external_exports.array(checkpointDecisionSchema).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  failedApproaches: external_exports.array(failedApproachSchema).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  changedFiles: external_exports.array(
+    external_exports.object({ path: shortText32, note: shortText32.optional() }).passthrough()
+  ).max(SURVIVAL_LIMITS.maxChangedFiles).default([]),
+  repositoryState: checkpointRepositoryStateSchema.default({}),
+  testResults: external_exports.array(checkpointTestResultSchema).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  knownFailures: textList22.default([]),
+  unresolvedIssues: textList22.default([]),
+  /** The exact next actions, in order. Resume continues from here. */
+  nextActions: external_exports.array(text3).min(1).max(SURVIVAL_LIMITS.maxListItems),
+  /** Artifact references (run ids, agent results, candidate refs). */
+  relevantArtifacts: external_exports.array(shortText32).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  /** Context references worth re-retrieving (paths, docs), never content. */
+  relevantContextReferences: external_exports.array(shortText32).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  createdAt: shortText32
+}).passthrough();
+var executionLedgerEntrySchema = external_exports.object({
+  attemptId: shortText32,
+  jobId: shortText32,
+  nodeId: shortText32,
+  taskId: shortText32,
+  role: external_exports.enum(AGENT_ROLES),
+  provider: shortText32,
+  model: shortText32.nullable(),
+  lane: shortText32.nullable(),
+  status: external_exports.enum(TASK_ATTEMPT_STATUSES),
+  attemptNumber: external_exports.number().int().min(1),
+  startedAt: shortText32,
+  completedAt: shortText32.nullable(),
+  success: external_exports.boolean(),
+  failureReason: shortText32.nullable(),
+  metrics: attemptMetricsSchema
+}).passthrough();
+var ID_PATTERN3 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+function assertRecordId(kind, id) {
+  if (!ID_PATTERN3.test(id)) {
+    throw new OrchestrationError("SBO049", `Invalid ${kind} id "${id}".`, {
+      remediation: ["Ids are generated by SpecBridge; pass one returned by a survival operation."]
+    });
+  }
+  return id;
+}
+function taskAttemptsDir(workspace, jobId) {
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path35.default.join(jobDir(workspace, jobId), "task-attempts")
+  );
+}
+function taskAttemptFile(workspace, jobId, attemptId) {
+  assertRecordId("attempt", attemptId);
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path35.default.join(taskAttemptsDir(workspace, jobId), `${attemptId}.json`)
+  );
+}
+function taskCheckpointsDir(workspace, jobId, nodeId) {
+  assertRecordId("node", nodeId);
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path35.default.join(jobDir(workspace, jobId), "task-checkpoints", nodeId)
+  );
+}
+function writeNewTaskAttempt(workspace, attempt) {
+  const validated = taskAttemptSchema.parse(attempt);
+  const file = taskAttemptFile(workspace, validated.jobId, validated.attemptId);
+  if ((0, import_fs32.existsSync)(file)) {
+    throw new OrchestrationError(
+      "SBO049",
+      `Attempt ${validated.attemptId} already exists; attempts are append-only.`
+    );
+  }
+  (0, import_fs32.mkdirSync)(import_path35.default.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
+`);
+  return validated;
+}
+function updateTaskAttempt(workspace, attempt) {
+  const validated = taskAttemptSchema.parse(attempt);
+  const file = taskAttemptFile(workspace, validated.jobId, validated.attemptId);
+  if (!(0, import_fs32.existsSync)(file)) {
+    throw new OrchestrationError(
+      "SBO049",
+      `Attempt ${validated.attemptId} does not exist; create it with writeNewTaskAttempt first.`
+    );
+  }
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
+`);
+  return validated;
+}
+function readTaskAttempt(workspace, jobId, attemptId) {
+  const file = taskAttemptFile(workspace, jobId, attemptId);
+  if (!(0, import_fs32.existsSync)(file)) return void 0;
+  try {
+    const parsed = taskAttemptSchema.safeParse(JSON.parse((0, import_fs32.readFileSync)(file, "utf8")));
+    return parsed.success ? parsed.data : void 0;
+  } catch {
+    return void 0;
+  }
+}
+function listTaskAttempts(workspace, jobId, options = {}) {
+  const dir = taskAttemptsDir(workspace, jobId);
+  if (!(0, import_fs32.existsSync)(dir)) return [];
+  const attempts = [];
+  for (const entry of (0, import_fs32.readdirSync)(dir, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
+    try {
+      const parsed = taskAttemptSchema.safeParse(
+        JSON.parse((0, import_fs32.readFileSync)(import_path35.default.join(dir, entry.name), "utf8"))
+      );
+      if (!parsed.success) continue;
+      if (options.nodeId !== void 0 && parsed.data.nodeId !== options.nodeId) continue;
+      if (options.status !== void 0 && parsed.data.status !== options.status) continue;
+      attempts.push(parsed.data);
+    } catch {
+    }
+  }
+  attempts.sort(
+    (a2, b) => a2.startedAt.localeCompare(b.startedAt, "en") || a2.attemptId.localeCompare(b.attemptId, "en")
+  );
+  return attempts;
+}
+function nextAttemptNumber2(workspace, jobId, nodeId) {
+  const attempts = listTaskAttempts(workspace, jobId, { nodeId });
+  return attempts.reduce((max, attempt) => Math.max(max, attempt.attemptNumber), 0) + 1;
+}
+function writeTaskCheckpoint(workspace, checkpoint) {
+  const validated = taskCheckpointSchema.parse(checkpoint);
+  const dir = taskCheckpointsDir(workspace, validated.jobId, validated.nodeId);
+  const file = assertInsideWorkspace(
+    workspace.rootDir,
+    import_path35.default.join(dir, `${String(validated.seq).padStart(4, "0")}.json`)
+  );
+  if ((0, import_fs32.existsSync)(file)) {
+    throw new OrchestrationError(
+      "SBO050",
+      `Checkpoint seq ${validated.seq} for node ${validated.nodeId} already exists; checkpoints are append-only.`
+    );
+  }
+  (0, import_fs32.mkdirSync)(dir, { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
+`);
+  return { checkpoint: validated, file };
+}
+function listTaskCheckpointSeqs(workspace, jobId, nodeId) {
+  const dir = taskCheckpointsDir(workspace, jobId, nodeId);
+  if (!(0, import_fs32.existsSync)(dir)) return [];
+  const seqs = [];
+  for (const name of (0, import_fs32.readdirSync)(dir).sort()) {
+    if (!/^\d{4}\.json$/.test(name)) continue;
+    seqs.push(Number.parseInt(name.slice(0, 4), 10));
+  }
+  return seqs;
+}
+function readTaskCheckpoint(workspace, jobId, nodeId, seq) {
+  if (!Number.isInteger(seq) || seq < 1) return void 0;
+  const dir = taskCheckpointsDir(workspace, jobId, nodeId);
+  const file = import_path35.default.join(dir, `${String(seq).padStart(4, "0")}.json`);
+  if (!(0, import_fs32.existsSync)(file)) return void 0;
+  try {
+    const parsed = taskCheckpointSchema.safeParse(JSON.parse((0, import_fs32.readFileSync)(file, "utf8")));
+    return parsed.success ? parsed.data : void 0;
+  } catch {
+    return void 0;
+  }
+}
+function readLatestTaskCheckpoint(workspace, jobId, nodeId) {
+  const seqs = listTaskCheckpointSeqs(workspace, jobId, nodeId);
+  for (let index = seqs.length - 1; index >= 0; index -= 1) {
+    const seq = seqs[index];
+    if (seq === void 0) continue;
+    const checkpoint = readTaskCheckpoint(workspace, jobId, nodeId, seq);
+    if (checkpoint !== void 0) return checkpoint;
+  }
+  return void 0;
+}
+function now22(deps) {
+  return (deps.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
+}
+function newId2(deps) {
+  return (deps.idFactory ?? import_crypto14.randomUUID)();
+}
+function beginTaskAttempt(deps, input) {
+  const attemptNumber = nextAttemptNumber2(deps.workspace, input.jobId, input.nodeId);
+  if (input.resumedFromAttemptId !== void 0) {
+    const previous = readTaskAttempt(deps.workspace, input.jobId, input.resumedFromAttemptId);
+    if (previous === void 0) {
+      throw new OrchestrationError(
+        "SBO049",
+        `Attempt ${input.resumedFromAttemptId} does not exist; a resume must reference a recorded attempt.`
+      );
+    }
+    if (!isFinalAttemptStatus(previous.status)) {
+      throw new OrchestrationError(
+        "SBO049",
+        `Attempt ${input.resumedFromAttemptId} is still ${previous.status}; reconcile it before resuming.`
+      );
+    }
+  }
+  const attempt = {
+    schemaVersion: TASK_ATTEMPT_SCHEMA_VERSION,
+    // The generated id is used in full: truncating it could alias two ids
+    // from a deterministic factory, and append-only storage refuses aliases.
+    attemptId: `ta-${String(attemptNumber).padStart(4, "0")}-${newId2(deps)}`.slice(0, 64),
+    jobId: input.jobId,
+    nodeId: input.nodeId,
+    taskId: input.taskId,
+    role: input.role,
+    workerId: input.workerId,
+    provider: input.provider,
+    model: input.model ?? null,
+    status: "RUNNING",
+    attemptNumber,
+    startedAt: now22(deps),
+    checkpointIds: [],
+    ...input.runId !== void 0 ? { runId: input.runId } : {},
+    ...input.providerSessionId !== void 0 ? { providerSessionId: input.providerSessionId } : {},
+    ...input.resumedFromAttemptId !== void 0 ? { resumedFromAttemptId: input.resumedFromAttemptId } : {},
+    metrics: {
+      durationMs: null,
+      inputTokens: null,
+      outputTokens: null,
+      cachedTokens: null,
+      toolCalls: null,
+      filesRead: null,
+      filesChanged: null,
+      costUsd: null
+    }
+  };
+  return writeNewTaskAttempt(deps.workspace, attempt);
+}
+function requireOpenAttempt(deps, jobId, attemptId) {
+  const attempt = readTaskAttempt(deps.workspace, jobId, attemptId);
+  if (attempt === void 0) {
+    throw new OrchestrationError("SBO049", `Attempt ${attemptId} of job ${jobId} was not found.`);
+  }
+  if (isFinalAttemptStatus(attempt.status)) {
+    throw new OrchestrationError(
+      "SBO049",
+      `Attempt ${attemptId} is already ${attempt.status}; finished attempts are immutable history.`,
+      { remediation: ["Begin a new attempt (with resumedFromAttemptId lineage) to continue the task."] }
+    );
+  }
+  return attempt;
+}
+function completeTaskAttempt(deps, input) {
+  const attempt = requireOpenAttempt(deps, input.jobId, input.attemptId);
+  const completedAt = now22(deps);
+  const derivedDuration = Math.max(0, Date.parse(completedAt) - Date.parse(attempt.startedAt));
+  const finalized = {
+    ...attempt,
+    status: input.status,
+    completedAt,
+    ...input.resultSummary !== void 0 ? { resultSummary: input.resultSummary.slice(0, 2e3) } : {},
+    ...input.failure !== void 0 ? { failure: { category: input.failure.category, message: input.failure.message.slice(0, 2e3) } } : {},
+    ...input.runId !== void 0 ? { runId: input.runId } : {},
+    metrics: {
+      ...attempt.metrics,
+      ...Number.isFinite(derivedDuration) ? { durationMs: derivedDuration } : {},
+      ...input.metrics ?? {}
+    }
+  };
+  return updateTaskAttempt(deps.workspace, finalized);
+}
+function reconcileInterruptedAttempts(deps, jobId, reason = "process-restart") {
+  const running = listTaskAttempts(deps.workspace, jobId, { status: "RUNNING" });
+  const reconciled = [];
+  for (const attempt of running) {
+    const interrupted = {
+      ...attempt,
+      status: "INTERRUPTED",
+      completedAt: now22(deps),
+      interruptedReason: reason
+    };
+    reconciled.push(updateTaskAttempt(deps.workspace, interrupted));
+  }
+  return reconciled;
+}
+function createTaskCheckpoint(deps, input) {
+  const attempt = readTaskAttempt(deps.workspace, input.jobId, input.attemptId);
+  if (attempt === void 0) {
+    throw new OrchestrationError(
+      "SBO050",
+      `Attempt ${input.attemptId} was not found; a checkpoint must belong to a recorded attempt.`
+    );
+  }
+  if (attempt.nodeId !== input.nodeId) {
+    throw new OrchestrationError(
+      "SBO050",
+      `Attempt ${input.attemptId} belongs to node ${attempt.nodeId}, not ${input.nodeId}.`
+    );
+  }
+  const previous = readLatestTaskCheckpoint(deps.workspace, input.jobId, input.nodeId);
+  const seqs = listTaskCheckpointSeqs(deps.workspace, input.jobId, input.nodeId);
+  const seq = (seqs[seqs.length - 1] ?? 0) + 1;
+  const mergeTexts = (older, newer) => {
+    const merged = [...older];
+    for (const entry of newer) if (!merged.includes(entry)) merged.push(entry);
+    return merged.slice(-50);
+  };
+  const previousDecisions = previous?.importantDecisions ?? [];
+  const decisions = [...previousDecisions];
+  for (const decision of input.importantDecisions ?? []) {
+    if (!decisions.some((existing) => existing.decision === decision.decision)) {
+      decisions.push(decision);
+    }
+  }
+  const previousFailed = previous?.failedApproaches ?? [];
+  const failedApproaches = [...previousFailed];
+  for (const failed of input.failedApproaches ?? []) {
+    if (!failedApproaches.some((existing) => existing.approach === failed.approach)) {
+      failedApproaches.push(failed);
+    }
+  }
+  const checkpoint = taskCheckpointSchema.parse({
+    schemaVersion: TASK_CHECKPOINT_SCHEMA_VERSION,
+    checkpointId: `cp-${input.nodeId}-${String(seq).padStart(4, "0")}`,
+    jobId: input.jobId,
+    nodeId: input.nodeId,
+    taskId: input.taskId,
+    attemptId: input.attemptId,
+    seq,
+    reason: input.reason,
+    objective: input.objective,
+    pinned: input.pinned,
+    completedWork: mergeTexts(previous?.completedWork ?? [], input.completedWork ?? []),
+    pendingWork: input.pendingWork ?? [],
+    importantDecisions: decisions.slice(-50),
+    failedApproaches: failedApproaches.slice(-50),
+    changedFiles: input.changedFiles ?? [],
+    repositoryState: input.repositoryState ?? {},
+    testResults: input.testResults ?? [],
+    knownFailures: input.knownFailures ?? [],
+    unresolvedIssues: input.unresolvedIssues ?? [],
+    nextActions: input.nextActions,
+    relevantArtifacts: input.relevantArtifacts ?? [],
+    relevantContextReferences: input.relevantContextReferences ?? [],
+    createdAt: now22(deps)
+  });
+  const stored = writeTaskCheckpoint(deps.workspace, checkpoint).checkpoint;
+  const linked = {
+    ...attempt,
+    checkpointIds: [...attempt.checkpointIds, stored.checkpointId].slice(-50)
+  };
+  updateTaskAttempt(deps.workspace, linked);
+  return stored;
+}
 function policyOf2(deps) {
   return deps.config.orchestration.jobs;
 }
-function now22(deps) {
+function now3(deps) {
   return (deps.clock ?? systemClock)();
 }
-function newId2(deps) {
+function newId3(deps) {
   return (deps.idFactory ?? import_crypto13.randomUUID)();
 }
 function assertJobsEnabled(deps) {
@@ -53855,17 +54534,17 @@ function record22(deps, job, type, payload = {}) {
   appendJobEvent(
     deps.workspace,
     job.jobId,
-    { at: now22(deps).toISOString(), type, ...payload },
+    { at: now3(deps).toISOString(), type, ...payload },
     { maxEventBytes: deps.config.orchestration.history.maxEventBytes }
   );
   return { ...job, counters: { ...job.counters, events: stored + 1 } };
 }
 function transition22(deps, job, to) {
   assertJobTransition(job.status, to);
-  return { ...job, status: to, updatedAt: now22(deps).toISOString() };
+  return { ...job, status: to, updatedAt: now3(deps).toISOString() };
 }
 function persist22(deps, job) {
-  return writeJobState(deps.workspace, { ...job, updatedAt: now22(deps).toISOString() });
+  return writeJobState(deps.workspace, { ...job, updatedAt: now3(deps).toISOString() });
 }
 function persistGraph(deps, job, graph) {
   const existing = readGraphRevision(deps.workspace, job.jobId, graph.revision);
@@ -53895,10 +54574,10 @@ function createJob(deps, request) {
       remediation: ["Describe what should be accomplished, in one or two sentences."]
     });
   }
-  const createdAt = now22(deps).toISOString();
+  const createdAt = now3(deps).toISOString();
   const job = {
     schemaVersion: JOB_STATE_SCHEMA_VERSION,
-    jobId: `job-${newId2(deps)}`,
+    jobId: `job-${newId3(deps)}`,
     specName: request.specName,
     status: "CREATED",
     goal: goal.slice(0, 4e3),
@@ -53946,11 +54625,11 @@ async function buildJobGraph(deps, jobId) {
   if (job.status !== "CREATED") {
     throw new OrchestrationError("SBO027", `The graph is built exactly once, from CREATED (job is ${job.status}).`);
   }
-  const snapshot = await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now22(deps) });
+  const snapshot = await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now3(deps) });
   const built = buildInitialGraph(deps.workspace, {
     jobId,
     specName: job.specName,
-    createdAt: now22(deps).toISOString(),
+    createdAt: now3(deps).toISOString(),
     gitHead: snapshot.head
   });
   const policy = policyOf2(deps);
@@ -53999,7 +54678,7 @@ function appendAttempt(deps, job, graph, context, outcome, extras = {}) {
     role: context.role,
     workerId: context.workerId,
     startedAt: context.startedAt,
-    finishedAt: now22(deps).toISOString(),
+    finishedAt: now3(deps).toISOString(),
     outcome,
     ...context.agentResultRef !== void 0 ? { agentResultRef: context.agentResultRef } : {},
     ...context.runId !== void 0 ? { runId: context.runId } : {},
@@ -54022,7 +54701,7 @@ function appendAttempt(deps, job, graph, context, outcome, extras = {}) {
   return { job: nextJob, graph: nextGraph };
 }
 function recordEscalation(deps, job, input) {
-  const at = now22(deps).toISOString();
+  const at = now3(deps).toISOString();
   const entry = {
     at,
     ...input.nodeId !== void 0 ? { nodeId: input.nodeId } : {},
@@ -54117,7 +54796,7 @@ async function recordPlan(deps, jobId, result, options = {}) {
       );
     }
   }
-  const gitHead = options.gitHead ?? (await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now22(deps) })).head;
+  const gitHead = options.gitHead ?? (await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now3(deps) })).head;
   const binding = capturePlanBinding(deps.workspace, {
     specName: job.specName,
     taskId: node.parentTaskId,
@@ -54131,7 +54810,7 @@ async function recordPlan(deps, jobId, result, options = {}) {
     binding,
     revision,
     planId: `${node.nodeId}-p${revision}`,
-    createdAt: now22(deps).toISOString(),
+    createdAt: now3(deps).toISOString(),
     policy: deps.config.orchestration
   });
   storeNodePlan(deps.workspace, jobId, node.nodeId, revision, plan);
@@ -54220,7 +54899,7 @@ function completeJobIfDone(deps, jobId) {
   if (!allNodesComplete(graph)) {
     throw new OrchestrationError("SBO027", "The job cannot complete: unfinished nodes remain.");
   }
-  const at = now22(deps).toISOString();
+  const at = now3(deps).toISOString();
   job = transition22(deps, job, "COMPLETED");
   job = record22(deps, job, "job_completed", { reconciled: true });
   return persist22(deps, { ...job, finalizedAt: at, finalOutcome: "COMPLETED" });
@@ -54263,15 +54942,80 @@ function beginExecutorDispatch(deps, jobId, input) {
   const node = requireNode(graph, input.nodeId);
   graph = transitionNode(graph, node.nodeId, input.mode === "repair" ? "REPAIRING" : "RUNNING");
   job = transition22(deps, job, input.mode === "repair" ? "REPAIRING" : "RUNNING");
-  job = { ...job, currentNodeId: node.nodeId };
+  const priorAttempts = listTaskAttempts(deps.workspace, jobId, { nodeId: node.nodeId });
+  const lineageParent = [...priorAttempts].reverse().find((prior) => isFinalAttemptStatus(prior.status));
+  const attempt = beginTaskAttempt(
+    { workspace: deps.workspace, clock: deps.clock, idFactory: deps.idFactory },
+    {
+      jobId,
+      nodeId: node.nodeId,
+      taskId: node.parentTaskId,
+      role: "EXECUTOR",
+      workerId: input.workerId,
+      provider: input.provider ?? input.workerId,
+      model: input.model,
+      providerSessionId: input.providerSessionId,
+      resumedFromAttemptId: lineageParent?.attemptId
+    }
+  );
+  job = { ...job, currentNodeId: node.nodeId, currentAttemptId: attempt.attemptId };
   job = record22(deps, job, input.mode === "repair" ? "repair_started" : "execution_started", {
     nodeId: node.nodeId,
     taskId: node.parentTaskId,
     workerId: input.workerId,
     ...input.mode === "repair" ? { cycle: node.repairCycles + 1 } : {}
   });
+  job = record22(deps, job, "attempt_started", {
+    nodeId: node.nodeId,
+    taskId: node.parentTaskId,
+    attemptId: attempt.attemptId,
+    attemptNumber: attempt.attemptNumber,
+    provider: attempt.provider,
+    ...attempt.resumedFromAttemptId !== void 0 ? { resumedFromAttemptId: attempt.resumedFromAttemptId } : {}
+  });
   persistGraph(deps, job, graph);
   return persist22(deps, job);
+}
+function finalizeDispatchAttempt(deps, job, node, outcome, status) {
+  const survivalDeps = { workspace: deps.workspace, clock: deps.clock, idFactory: deps.idFactory };
+  let attemptId = job.currentAttemptId;
+  if (attemptId === void 0 || readTaskAttempt(deps.workspace, job.jobId, attemptId) === void 0) {
+    attemptId = beginTaskAttempt(survivalDeps, {
+      jobId: job.jobId,
+      nodeId: node.nodeId,
+      taskId: node.parentTaskId,
+      role: outcome.context.role,
+      workerId: outcome.context.workerId,
+      provider: outcome.context.workerId,
+      runId: outcome.context.runId
+    }).attemptId;
+  }
+  const existing = readTaskAttempt(deps.workspace, job.jobId, attemptId);
+  if (existing !== void 0 && isFinalAttemptStatus(existing.status)) {
+    return attemptId;
+  }
+  const usage = outcome.context.usage;
+  completeTaskAttempt(survivalDeps, {
+    jobId: job.jobId,
+    attemptId,
+    status,
+    runId: outcome.context.runId,
+    ...status === "COMPLETED" ? {
+      resultSummary: `Evidence status "${outcome.evidenceStatus ?? "verified"}"; ${outcome.changedFiles?.length ?? 0} file(s) changed.`
+    } : {
+      failure: outcome.failure !== void 0 ? { category: outcome.failure.category, message: outcome.failure.message } : {
+        category: "VERIFICATION_FAILURE",
+        message: `The dispatch ended with evidence status "${outcome.evidenceStatus ?? "none"}", which does not complete a task.`
+      }
+    },
+    metrics: {
+      ...usage?.inputTokens !== void 0 ? { inputTokens: usage.inputTokens } : {},
+      ...usage?.outputTokens !== void 0 ? { outputTokens: usage.outputTokens } : {},
+      ...usage?.costUsd !== void 0 ? { costUsd: usage.costUsd } : {},
+      ...outcome.changedFiles !== void 0 ? { filesChanged: outcome.changedFiles.length } : {}
+    }
+  });
+  return attemptId;
 }
 function completeExecutorDispatch(deps, jobId, outcome) {
   assertJobsEnabled(deps);
@@ -54279,8 +55023,17 @@ function completeExecutorDispatch(deps, jobId, outcome) {
   let job = requireJobState(deps.workspace, jobId);
   let graph = requireGraphRevision(deps.workspace, jobId, job.graphRevision);
   const node = requireNode(graph, outcome.context.nodeId);
-  const at = now22(deps).toISOString();
+  const at = now3(deps).toISOString();
   const verified = outcome.evidenceStatus === "verified" || outcome.evidenceStatus === "manually-accepted";
+  const attemptStatus = outcome.failure === void 0 && verified ? "COMPLETED" : outcome.failure?.category === "CANCELLED" ? "CANCELLED" : "FAILED";
+  const attemptId = finalizeDispatchAttempt(deps, job, node, outcome, attemptStatus);
+  job = { ...job, currentAttemptId: void 0 };
+  job = record22(deps, job, "attempt_completed", {
+    nodeId: node.nodeId,
+    taskId: node.parentTaskId,
+    attemptId,
+    status: attemptStatus
+  });
   if (outcome.failure === void 0 && verified) {
     ({ job, graph } = appendAttempt(deps, job, graph, outcome.context, "succeeded"));
     graph = transitionNode(graph, node.nodeId, "COMPLETED");
@@ -54308,6 +55061,40 @@ function completeExecutorDispatch(deps, jobId, outcome) {
       taskId: node.parentTaskId,
       evidenceStatus: outcome.evidenceStatus,
       ...outcome.context.runId !== void 0 ? { runId: outcome.context.runId } : {}
+    });
+    const milestone = createTaskCheckpoint(
+      { workspace: deps.workspace, clock: deps.clock, idFactory: deps.idFactory },
+      {
+        jobId,
+        nodeId: node.nodeId,
+        taskId: node.parentTaskId,
+        attemptId,
+        reason: "milestone",
+        objective: `Task ${node.parentTaskId}: ${node.title}`.slice(0, 2e3),
+        pinned: {
+          taskContract: `Task ${node.parentTaskId}: ${node.title}`.slice(0, 2e3),
+          acceptanceCriteria: [],
+          constraints: [],
+          invariants: []
+        },
+        completedWork: [`Task ${node.parentTaskId} completed with evidence status "${outcome.evidenceStatus ?? "verified"}".`],
+        changedFiles: (outcome.changedFiles ?? []).slice(0, 500).map((file) => ({ path: file.path.slice(0, 512) })),
+        testResults: [
+          {
+            name: "trusted-verification",
+            status: "passed",
+            summary: `Evidence status "${outcome.evidenceStatus ?? "verified"}".`
+          }
+        ],
+        nextActions: ["Task complete; nothing remains for this task."],
+        relevantArtifacts: outcome.context.runId !== void 0 ? [outcome.context.runId] : []
+      }
+    );
+    job = record22(deps, job, "task_checkpoint_created", {
+      nodeId: node.nodeId,
+      taskId: node.parentTaskId,
+      checkpointId: milestone.checkpointId,
+      reason: "milestone"
     });
     if (allNodesComplete(graph)) {
       job = transition22(deps, job, "COMPLETED");
@@ -54418,7 +55205,7 @@ function completeExecutorDispatch(deps, jobId, outcome) {
     let waiting = transition22(deps, job, "WAITING_RETRY");
     waiting = {
       ...waiting,
-      retryAt: new Date(now22(deps).getTime() + backoffMs).toISOString(),
+      retryAt: new Date(now3(deps).getTime() + backoffMs).toISOString(),
       counters: { ...waiting.counters, transientRetries: waiting.counters.transientRetries + 1 }
     };
     waiting = record22(deps, waiting, "waiting_retry", {
@@ -54432,7 +55219,7 @@ function completeExecutorDispatch(deps, jobId, outcome) {
   if (classified.policy.clarifiable && !classified.policy.repairable) {
     let clarify = transition22(deps, job, "NEEDS_CLARIFICATION");
     const question = {
-      id: `q-${newId2(deps)}`.slice(0, 64),
+      id: `q-${newId3(deps)}`.slice(0, 64),
       question: `Task ${node.parentTaskId} cannot proceed: ${classified.message.slice(0, 600)} Resolve the prerequisite (or decide otherwise), then resume the job.`,
       whyItMatters: `${classified.category} has no safe automatic response.`,
       options: [],
@@ -54490,7 +55277,7 @@ function applyDiagnosis(deps, jobId, result) {
   let job = requireJobState(deps.workspace, jobId);
   let graph = requireGraphRevision(deps.workspace, jobId, job.graphRevision);
   const node = requireNode(graph, result.context.nodeId);
-  const at = now22(deps).toISOString();
+  const at = now3(deps).toISOString();
   if (job.status !== "DIAGNOSING") {
     throw new OrchestrationError("SBO027", `A diagnosis applies only while DIAGNOSING (job is ${job.status}).`);
   }
@@ -54535,7 +55322,7 @@ function applyDiagnosis(deps, jobId, result) {
       job = transition22(deps, job, "WAITING_RETRY");
       job = {
         ...job,
-        retryAt: new Date(now22(deps).getTime() + delay).toISOString(),
+        retryAt: new Date(now3(deps).getTime() + delay).toISOString(),
         counters: { ...job.counters, transientRetries: job.counters.transientRetries + 1 }
       };
       job = record22(deps, job, "waiting_retry", { nodeId: node.nodeId, retryAt: job.retryAt });
@@ -54577,7 +55364,7 @@ function supersedeNode(deps, jobId, input) {
   const revised = reviseGraphSuperseding(graph, {
     supersedeNodeId: input.nodeId,
     replanReason: input.reason,
-    createdAt: now22(deps).toISOString()
+    createdAt: now3(deps).toISOString()
   });
   storeGraphRevision(deps.workspace, jobId, revised);
   job = {
@@ -54608,11 +55395,11 @@ function askClarification(deps, jobId, questions) {
       failureCategory: "BUDGET_EXHAUSTED"
     });
   }
-  const at = now22(deps).toISOString();
+  const at = now3(deps).toISOString();
   const round = job.counters.clarificationRounds + 1;
   const added = questions.slice(0, deps.config.orchestration.clarification.maxQuestionsPerRound).map(
     (candidate) => ({
-      id: `q-${newId2(deps)}`.slice(0, 64),
+      id: `q-${newId3(deps)}`.slice(0, 64),
       question: candidate.question.slice(0, 1e3),
       whyItMatters: candidate.whyItMatters.slice(0, 1e3),
       options: [],
@@ -54639,13 +55426,13 @@ function answerClarification(deps, jobId, answers) {
   if (job.status !== "NEEDS_CLARIFICATION") {
     throw new OrchestrationError("SBO027", `Answers apply only while NEEDS_CLARIFICATION (job is ${job.status}).`);
   }
-  const at = now22(deps).toISOString();
+  const at = now3(deps).toISOString();
   const answered = /* @__PURE__ */ new Set();
   const decisions = answers.filter((answer) => job.openQuestions.some((question) => question.id === answer.questionId)).map((answer) => {
     answered.add(answer.questionId);
     const question = job.openQuestions.find((candidate) => candidate.id === answer.questionId);
     return {
-      id: `d-${newId2(deps)}`.slice(0, 64),
+      id: `d-${newId3(deps)}`.slice(0, 64),
       questionId: answer.questionId,
       question: question?.question ?? "",
       answer: answer.answer.slice(0, 2e3),
@@ -54673,7 +55460,7 @@ function answerClarification(deps, jobId, answers) {
 function cancelJob(deps, jobId, reason) {
   let job = requireJobState(deps.workspace, jobId);
   if (isFinalJobStatus(job.status)) return job;
-  const at = now22(deps).toISOString();
+  const at = now3(deps).toISOString();
   job = transition22(deps, job, "CANCELLED");
   job = record22(deps, job, "job_cancelled", { reason: reason.slice(0, 500) });
   return persist22(deps, { ...job, finalizedAt: at, finalOutcome: "CANCELLED" });
@@ -54681,7 +55468,7 @@ function cancelJob(deps, jobId, reason) {
 function blockJob(deps, jobId, input) {
   let job = requireJobState(deps.workspace, jobId);
   if (job.status === "BLOCKED") return job;
-  const at = now22(deps).toISOString();
+  const at = now3(deps).toISOString();
   job = transition22(deps, job, "BLOCKED");
   job = record22(deps, job, input.category === "BUDGET_EXHAUSTED" ? "budget_exhausted" : "job_blocked", {
     code: input.code,
@@ -54695,7 +55482,7 @@ function blockJob(deps, jobId, input) {
 function clearRetryWait(deps, jobId) {
   let job = requireJobState(deps.workspace, jobId);
   if (job.status !== "WAITING_RETRY") return job;
-  if (job.retryAt !== void 0 && Date.parse(job.retryAt) > now22(deps).getTime()) return job;
+  if (job.retryAt !== void 0 && Date.parse(job.retryAt) > now3(deps).getTime()) return job;
   job = transition22(deps, job, "READY");
   delete job.retryAt;
   return persist22(deps, job);
@@ -54707,7 +55494,7 @@ function checkpointJob(deps, jobId, nextAction) {
   const checkpoint = jobCheckpointSchema.parse({
     schemaVersion: JOB_CHECKPOINT_SCHEMA_VERSION,
     jobId,
-    createdAt: now22(deps).toISOString(),
+    createdAt: now3(deps).toISOString(),
     specName: job.specName,
     status: job.status,
     graphRevision: job.graphRevision,
@@ -54763,10 +55550,26 @@ async function resumeJob(deps, jobId) {
   }
   if (job.status === "RUNNING" || job.status === "REPAIRING" || job.status === "PLANNING") {
     const interrupted = job.status;
-    job = { ...job, status: "READY", updatedAt: now22(deps).toISOString() };
+    job = { ...job, status: "READY", updatedAt: now3(deps).toISOString() };
     reconciled.push(`job: ${interrupted} \u2192 READY (interrupted process)`);
   }
-  const snapshot = await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now22(deps) });
+  const interruptedAttempts = reconcileInterruptedAttempts(
+    { workspace: deps.workspace, clock: deps.clock },
+    jobId
+  );
+  for (const attempt of interruptedAttempts) {
+    reconciled.push(`attempt ${attempt.attemptId}: RUNNING \u2192 INTERRUPTED (worker disappeared)`);
+    job = record22(deps, job, "attempt_interrupted", {
+      nodeId: attempt.nodeId,
+      taskId: attempt.taskId,
+      attemptId: attempt.attemptId,
+      provider: attempt.provider
+    });
+  }
+  if (job.currentAttemptId !== void 0) {
+    job = { ...job, currentAttemptId: void 0 };
+  }
+  const snapshot = await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now3(deps) });
   let planStale = false;
   let planStaleReasons = [];
   if (graph !== void 0 && job.currentNodeId !== void 0) {
@@ -54821,6 +55624,7 @@ async function resumeJob(deps, jobId) {
     graph,
     finalized: false,
     reconciled,
+    ...interruptedAttempts.length > 0 ? { interruptedAttemptIds: interruptedAttempts.map((attempt) => attempt.attemptId) } : {},
     planStale,
     planStaleReasons,
     policyChanged,
@@ -54849,7 +55653,7 @@ function recordObjectiveWorkerAttempt(deps, jobId, input) {
       nodeId: input.nodeId,
       role: input.role,
       workerId: input.workerId,
-      startedAt: now22(deps).toISOString(),
+      startedAt: now3(deps).toISOString(),
       ...input.usage !== void 0 ? { usage: input.usage } : {}
     },
     input.outcome === "succeeded" ? "succeeded" : input.outcome
@@ -54879,60 +55683,60 @@ var AGENT_OUTPUT_LIMITS = {
   maxSteps: 40,
   maxResponseBytes: 262144
 };
-var shortText3 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxShortChars);
-var text3 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxTextChars);
-var textList22 = external_exports.array(text3).max(AGENT_OUTPUT_LIMITS.maxListItems);
+var shortText4 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxShortChars);
+var text4 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxTextChars);
+var textList3 = external_exports.array(text4).max(AGENT_OUTPUT_LIMITS.maxListItems);
 var classifierOutputSchema = external_exports.object({
   /** Proposed complexity class. May only RAISE the deterministic class. */
   complexity: external_exports.enum(COMPLEXITY_CLASSES),
   /** Short factual reasons tied to the task text. */
-  reasons: textList22.default([])
+  reasons: textList3.default([])
 });
 var plannerStepSchema = external_exports.object({
-  id: shortText3,
-  action: text3,
+  id: shortText4,
+  action: text4,
   /** What observable evidence would show this step succeeded. */
-  expectedEvidence: text3.optional()
+  expectedEvidence: text4.optional()
 });
 var plannerOutputSchema = external_exports.object({
   decision: external_exports.enum(["PLAN", "ESCALATE"]),
   /** The planner's own complexity impression (informational only). */
   complexity: external_exports.enum(COMPLEXITY_CLASSES).optional(),
-  goal: text3.optional(),
+  goal: text4.optional(),
   steps: external_exports.array(plannerStepSchema).max(AGENT_OUTPUT_LIMITS.maxSteps).default([]),
-  testStrategy: text3.optional(),
-  verificationStrategy: text3.optional(),
-  assumptions: textList22.default([]),
-  risks: textList22.default([]),
+  testStrategy: text4.optional(),
+  verificationStrategy: text4.optional(),
+  assumptions: textList3.default([]),
+  risks: textList3.default([]),
   requiresEscalation: external_exports.boolean().default(false),
-  escalationReason: text3.optional()
+  escalationReason: text4.optional()
 });
 var criticOutputSchema = external_exports.object({
   verdict: external_exports.enum(["ACCEPT", "REVISE", "ESCALATE"]),
   /** Specific, factual objections or confirmations. */
-  reasons: textList22.default([]),
+  reasons: textList3.default([]),
   /** For REVISE: concrete changes the planner should make. */
-  requestedChanges: textList22.default([]),
+  requestedChanges: textList3.default([]),
   /** Signals the critic believes exceed local capability. */
-  escalationReason: text3.optional()
+  escalationReason: text4.optional()
 });
 var diagnoserOutputSchema = external_exports.object({
   category: external_exports.enum(FAILURE_CATEGORIES),
-  rootCause: text3,
+  rootCause: text4,
   planValidity: external_exports.enum(["VALID", "INVALID", "UNKNOWN"]),
   recommendedAction: external_exports.enum(["REPAIR", "REPLAN", "RETRY", "CLARIFY", "BLOCK"]),
   /** Observable evidence references (test names, error lines), not prose. */
-  evidence: textList22.default([])
+  evidence: textList3.default([])
 });
 var replannerOutputSchema = external_exports.object({
   decision: external_exports.enum(["REVISED_PLAN", "SUPERSEDE_NODE", "ESCALATE", "BLOCKED"]),
   /** Why the previous plan failed, in one bounded statement. */
-  reason: text3,
-  goal: text3.optional(),
+  reason: text4,
+  goal: text4.optional(),
   steps: external_exports.array(plannerStepSchema).max(AGENT_OUTPUT_LIMITS.maxSteps).default([]),
-  testStrategy: text3.optional(),
-  verificationStrategy: text3.optional(),
-  assumptions: textList22.default([]),
+  testStrategy: text4.optional(),
+  verificationStrategy: text4.optional(),
+  assumptions: textList3.default([]),
   /**
    * True when the replacement approach would change APPROVED behavior,
    * public API, architecture constraints, or product intent. A true value
@@ -54941,7 +55745,7 @@ var replannerOutputSchema = external_exports.object({
    * is not the only line of defense.
    */
   impactsApprovedIntent: external_exports.boolean(),
-  escalationReason: text3.optional()
+  escalationReason: text4.optional()
 });
 var SCHEMAS = {
   CLASSIFIER: classifierOutputSchema,
@@ -55416,8 +56220,8 @@ async function runLargeRole(invocation) {
     if (parsed.problem !== void 0) {
       return { ok: false, kind: "invalid-output", problem: parsed.problem };
     }
-    const text6 = parsed.structuredResult !== void 0 ? JSON.stringify(parsed.structuredResult) : parsed.reportText ?? "";
-    const validated = validateAgentOutput(invocation.role, text6);
+    const text7 = parsed.structuredResult !== void 0 ? JSON.stringify(parsed.structuredResult) : parsed.reportText ?? "";
+    const validated = validateAgentOutput(invocation.role, text7);
     if (!validated.ok) {
       return { ok: false, kind: "invalid-output", problem: validated.problem, probe };
     }
@@ -55426,7 +56230,7 @@ async function runLargeRole(invocation) {
     return {
       ok: true,
       output: validated.output,
-      raw: text6,
+      raw: text7,
       usage: {
         inputTokens: usage?.inputTokens ?? null,
         outputTokens: usage?.outputTokens ?? null,
@@ -55438,7 +56242,7 @@ async function runLargeRole(invocation) {
     };
   } finally {
     try {
-      (0, import_fs32.rmSync)(import_path35.default.join(invocation.scratchDir, "tmp"), { recursive: true, force: true });
+      (0, import_fs33.rmSync)(import_path36.default.join(invocation.scratchDir, "tmp"), { recursive: true, force: true });
     } catch {
     }
   }
@@ -55805,165 +56609,165 @@ var OBJECTIVE_LIMITS = {
   maxProjectionContracts: 30,
   maxProjectionExcerptChars: 2e4
 };
-var shortText4 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxShortTextChars);
-var text4 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxTextChars);
+var shortText5 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxShortTextChars);
+var text5 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxTextChars);
 var optionalText2 = external_exports.string().max(OBJECTIVE_LIMITS.maxTextChars);
-var textList3 = external_exports.array(text4).max(OBJECTIVE_LIMITS.maxListItems);
-var idList2 = external_exports.array(shortText4).max(OBJECTIVE_LIMITS.maxListItems);
-var semver2 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
+var textList4 = external_exports.array(text5).max(OBJECTIVE_LIMITS.maxListItems);
+var idList2 = external_exports.array(shortText5).max(OBJECTIVE_LIMITS.maxListItems);
+var semver22 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
 var workUnitSchema = external_exports.object({
-  workUnitId: shortText4,
+  workUnitId: shortText5,
   /** The objective (job graph node) this unit belongs to. */
-  objectiveNodeId: shortText4,
+  objectiveNodeId: shortText5,
   /** The approved task id of the objective (audit convenience). */
-  parentTaskId: shortText4,
+  parentTaskId: shortText5,
   kind: external_exports.enum(WORK_UNIT_KINDS),
-  title: text4,
-  goal: text4,
+  title: text5,
+  goal: text5,
   /** Work-unit ids that must be VERIFIED_CANDIDATE before this one runs. */
-  dependsOn: external_exports.array(shortText4).max(OBJECTIVE_LIMITS.maxDependenciesPerUnit).default([]),
+  dependsOn: external_exports.array(shortText5).max(OBJECTIVE_LIMITS.maxDependenciesPerUnit).default([]),
   /** Artifacts the unit is expected to produce (paths, report names). */
-  expectedArtifacts: textList3.default([]),
+  expectedArtifacts: textList4.default([]),
   /** Product contract ids relevant to this unit (projection input). */
   relevantContractIds: idList2.default([]),
   relevantAdrIds: idList2.default([]),
   relevantConstitutionRuleIds: idList2.default([]),
   /** Source areas the unit is expected to touch (scope screen input). */
-  expectedAreas: external_exports.array(shortText4).max(OBJECTIVE_LIMITS.maxListItems).default([]),
+  expectedAreas: external_exports.array(shortText5).max(OBJECTIVE_LIMITS.maxListItems).default([]),
   status: external_exports.enum(WORK_UNIT_STATUSES),
   /** Builder attempts consumed so far. */
   attempt: external_exports.number().int().min(0).default(0),
   /** Worker currently (or last) bound to this unit. */
-  workerId: shortText4.optional(),
-  contextProjectionHash: shortText4.optional(),
-  contractSnapshotHash: shortText4.optional(),
+  workerId: shortText5.optional(),
+  contextProjectionHash: shortText5.optional(),
+  contractSnapshotHash: shortText5.optional(),
   /** Latest candidate artifact reference (candidates/<file>). */
-  candidateRef: shortText4.optional(),
+  candidateRef: shortText5.optional(),
   /** Evaluation record references, oldest first. */
   evaluationRefs: idList2.default([]),
   latestFailure: external_exports.object({
     category: external_exports.enum(FAILURE_CATEGORIES),
-    message: text4,
-    at: shortText4
+    message: text5,
+    at: shortText5
   }).passthrough().optional(),
-  supersedes: shortText4.optional(),
-  supersededBy: shortText4.optional(),
-  integratedAt: shortText4.optional()
+  supersedes: shortText5.optional(),
+  supersededBy: shortText5.optional(),
+  integratedAt: shortText5.optional()
 }).passthrough();
 var workGraphSchema = external_exports.object({
-  schemaVersion: semver2,
-  jobId: shortText4,
+  schemaVersion: semver22,
+  jobId: shortText5,
   /** The objective node this graph decomposes. */
-  objectiveNodeId: shortText4,
-  parentTaskId: shortText4,
+  objectiveNodeId: shortText5,
+  parentTaskId: shortText5,
   /** Fingerprint of the approved objective at decomposition time. */
-  objectiveFingerprint: shortText4,
+  objectiveFingerprint: shortText5,
   revision: external_exports.number().int().min(1),
-  createdAt: shortText4,
+  createdAt: shortText5,
   /** Who proposed the decomposition ("deterministic" or a worker id). */
-  proposedBy: shortText4,
+  proposedBy: shortText5,
   /** Deterministic validation findings recorded at acceptance time. */
-  validationNotes: textList3.default([]),
+  validationNotes: textList4.default([]),
   units: external_exports.array(workUnitSchema).min(1).max(OBJECTIVE_LIMITS.maxWorkUnits),
   supersedes: external_exports.number().int().min(1).optional(),
   revisionReason: optionalText2.optional()
 }).passthrough();
 var contextProjectionSchema = external_exports.object({
-  schemaVersion: semver2,
-  projectionId: shortText4,
-  jobId: shortText4,
-  objectiveNodeId: shortText4,
-  workUnitId: shortText4,
+  schemaVersion: semver22,
+  projectionId: shortText5,
+  jobId: shortText5,
+  objectiveNodeId: shortText5,
+  workUnitId: shortText5,
   attempt: external_exports.number().int().min(1),
-  createdAt: shortText4,
-  missionId: shortText4.optional(),
+  createdAt: shortText5,
+  missionId: shortText5.optional(),
   constitution: external_exports.object({
     version: external_exports.number().int().min(0),
     rules: external_exports.array(
-      external_exports.object({ ruleId: shortText4, version: external_exports.number().int().min(1), statement: text4 }).passthrough()
+      external_exports.object({ ruleId: shortText5, version: external_exports.number().int().min(1), statement: text5 }).passthrough()
     ).max(40).default([])
   }).passthrough(),
   objective: external_exports.object({
-    taskId: shortText4,
-    title: text4,
-    acceptance: textList3.default([])
+    taskId: shortText5,
+    title: text5,
+    acceptance: textList4.default([])
   }).passthrough(),
   workUnit: external_exports.object({
-    title: text4,
-    goal: text4,
+    title: text5,
+    goal: text5,
     kind: external_exports.enum(WORK_UNIT_KINDS),
-    expectedArtifacts: textList3.default([]),
-    expectedAreas: external_exports.array(shortText4).max(OBJECTIVE_LIMITS.maxListItems).default([])
+    expectedArtifacts: textList4.default([]),
+    expectedAreas: external_exports.array(shortText5).max(OBJECTIVE_LIMITS.maxListItems).default([])
   }).passthrough(),
   contracts: external_exports.array(
     external_exports.object({
-      contractId: shortText4,
+      contractId: shortText5,
       revision: external_exports.number().int().min(1),
-      title: shortText4,
-      summary: text4,
-      requirements: textList3.default([]),
-      invariants: textList3.default([])
+      title: shortText5,
+      summary: text5,
+      requirements: textList4.default([]),
+      invariants: textList4.default([])
     }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxProjectionContracts).default([]),
   adrs: external_exports.array(
-    external_exports.object({ adrId: shortText4, title: shortText4, decision: text4 }).passthrough()
+    external_exports.object({ adrId: shortText5, title: shortText5, decision: text5 }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxListItems).default([]),
-  decisions: external_exports.array(external_exports.object({ decisionId: shortText4, decision: text4 }).passthrough()).max(OBJECTIVE_LIMITS.maxListItems).default([]),
+  decisions: external_exports.array(external_exports.object({ decisionId: shortText5, decision: text5 }).passthrough()).max(OBJECTIVE_LIMITS.maxListItems).default([]),
   /** Bounded approved-spec excerpts (requirements/design fragments). */
   specExcerpts: external_exports.array(external_exports.string().max(OBJECTIVE_LIMITS.maxProjectionExcerptChars)).max(5).default([]),
   /** Bounded summaries of verified dependency candidates (work evidence). */
-  workEvidence: textList3.default([]),
+  workEvidence: textList4.default([]),
   /** Hash over the ACTIVE contract registry this projection saw. */
-  contractSnapshotHash: shortText4,
+  contractSnapshotHash: shortText5,
   /** Hash of this projection's canonical serialization (identity). */
-  contentHash: shortText4
+  contentHash: shortText5
 }).passthrough();
 var candidateArtifactSchema = external_exports.object({
-  schemaVersion: semver2,
-  candidateId: shortText4,
-  jobId: shortText4,
-  objectiveNodeId: shortText4,
-  workUnitId: shortText4,
+  schemaVersion: semver22,
+  candidateId: shortText5,
+  jobId: shortText5,
+  objectiveNodeId: shortText5,
+  workUnitId: shortText5,
   attempt: external_exports.number().int().min(1),
-  workerId: shortText4,
-  createdAt: shortText4,
+  workerId: shortText5,
+  createdAt: shortText5,
   /** Git commit the worktree was created from. */
-  baselineCommit: shortText4,
-  contextProjectionHash: shortText4,
-  contractSnapshotHash: shortText4,
+  baselineCommit: shortText5,
+  contextProjectionHash: shortText5,
+  contractSnapshotHash: shortText5,
   /** Files changed in the worktree, as observed by git. */
   changedFiles: external_exports.array(
     external_exports.object({
-      path: shortText4,
+      path: shortText5,
       changeType: external_exports.enum(["added", "modified", "deleted", "renamed"])
     }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxChangedFiles).default([]),
   /** Reference to the stored normalized patch (candidates/<file>.patch). */
-  patchRef: shortText4.optional(),
+  patchRef: shortText5.optional(),
   /** Local verification observed by SpecBridge inside the worktree. */
   localVerification: external_exports.object({
     ran: external_exports.boolean(),
     passed: external_exports.boolean(),
     commands: external_exports.array(
       external_exports.object({
-        name: shortText4,
-        status: shortText4,
+        name: shortText5,
+        status: shortText5,
         exitCode: external_exports.number().int().nullable().default(null)
       }).passthrough()
     ).max(OBJECTIVE_LIMITS.maxListItems).default([])
   }).passthrough(),
   /** The worker's structured claims (data, never authority). */
   claims: external_exports.object({
-    summary: text4,
-    assumptionsDiscovered: textList3.default([]),
+    summary: text5,
+    assumptionsDiscovered: textList4.default([]),
     contractChangeRequests: external_exports.array(
       external_exports.object({
-        contractId: shortText4,
-        problem: text4,
-        proposal: text4
+        contractId: shortText5,
+        problem: text5,
+        proposal: text5
       }).passthrough()
     ).max(10).default([]),
-    knownLimitations: textList3.default([]),
+    knownLimitations: textList4.default([]),
     /** Investigation units: the structured report body. */
     report: external_exports.string().max(16e3).optional()
   }).passthrough(),
@@ -55971,68 +56775,68 @@ var candidateArtifactSchema = external_exports.object({
   rejectedReason: optionalText2.optional()
 }).passthrough();
 var evaluationRecordSchema = external_exports.object({
-  schemaVersion: semver2,
-  evaluationId: shortText4,
-  jobId: shortText4,
-  objectiveNodeId: shortText4,
-  workUnitId: shortText4,
+  schemaVersion: semver22,
+  evaluationId: shortText5,
+  jobId: shortText5,
+  objectiveNodeId: shortText5,
+  workUnitId: shortText5,
   attempt: external_exports.number().int().min(1),
   layer: external_exports.enum(EVALUATION_LAYERS),
   verdict: external_exports.enum(EVALUATION_VERDICTS),
   /** Named deterministic checks with their outcomes (deterministic layer). */
   checks: external_exports.array(
-    external_exports.object({ name: shortText4, passed: external_exports.boolean(), detail: optionalText2.optional() }).passthrough()
+    external_exports.object({ name: shortText5, passed: external_exports.boolean(), detail: optionalText2.optional() }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxEvaluationChecks).default([]),
-  reasons: textList3.default([]),
+  reasons: textList4.default([]),
   evidenceRefs: idList2.default([]),
   affectedContractIds: idList2.default([]),
   /** Decision kind for CONFLICT / NEEDS_DECISION verdicts (authority routing). */
-  decisionKind: shortText4.optional(),
+  decisionKind: shortText5.optional(),
   /** The evaluator worker, when the layer is semantic. */
-  evaluatorWorkerId: shortText4.optional(),
-  createdAt: shortText4
+  evaluatorWorkerId: shortText5.optional(),
+  createdAt: shortText5
 }).passthrough();
 var contractConflictSchema = external_exports.object({
-  schemaVersion: semver2,
-  conflictId: shortText4,
-  jobId: shortText4,
-  objectiveNodeId: shortText4,
-  contractId: shortText4,
+  schemaVersion: semver22,
+  conflictId: shortText5,
+  jobId: shortText5,
+  objectiveNodeId: shortText5,
+  contractId: shortText5,
   contractRevision: external_exports.number().int().min(1),
   claims: external_exports.array(
     external_exports.object({
-      workUnitId: shortText4,
-      candidateRef: shortText4.optional(),
-      claim: text4
+      workUnitId: shortText5,
+      candidateRef: shortText5.optional(),
+      claim: text5
     }).passthrough()
   ).min(1).max(OBJECTIVE_LIMITS.maxListItems),
   evidenceRefs: idList2.default([]),
   affectedWorkUnitIds: idList2.default([]),
-  decisionKind: shortText4,
+  decisionKind: shortText5,
   status: external_exports.enum(CONTRACT_CONFLICT_STATUSES),
   resolution: optionalText2.optional(),
-  createdAt: shortText4,
-  resolvedAt: shortText4.optional()
+  createdAt: shortText5,
+  resolvedAt: shortText5.optional()
 }).passthrough();
 var objectiveWorkerRecordSchema = external_exports.object({
-  schemaVersion: semver2,
-  workerId: shortText4,
+  schemaVersion: semver22,
+  workerId: shortText5,
   agentRole: external_exports.enum(AGENT_ROLES),
-  jobId: shortText4,
-  objectiveNodeId: shortText4,
-  workUnitId: shortText4,
+  jobId: shortText5,
+  objectiveNodeId: shortText5,
+  workUnitId: shortText5,
   attempt: external_exports.number().int().min(1),
-  contextProjectionHash: shortText4,
-  contractSnapshotHash: shortText4,
+  contextProjectionHash: shortText5,
+  contractSnapshotHash: shortText5,
   /** "worktree:<name>", "canonical", or "ephemeral" (read-only reasoning). */
-  workspaceIdentity: shortText4,
+  workspaceIdentity: shortText5,
   status: external_exports.enum(OBJECTIVE_WORKER_STATUSES),
   budget: external_exports.object({
     timeoutMs: external_exports.number().int().min(1),
     maxOutputBytes: external_exports.number().int().min(1).optional()
   }).passthrough(),
-  startedAt: shortText4,
-  finishedAt: shortText4.optional()
+  startedAt: shortText5,
+  finishedAt: shortText5.optional()
 }).passthrough();
 var WORK_UNIT_TRANSITIONS = Object.freeze({
   PLANNED: ["READY", "BLOCKED", "SUPERSEDED", "FAILED"],
@@ -56353,32 +57157,32 @@ var OBJECTIVE_OUTPUT_LIMITS = {
   maxUnits: 30,
   maxResponseBytes: 262144
 };
-var shortText5 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxShortChars);
-var text5 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxTextChars);
-var textList4 = external_exports.array(text5).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
-var shortList = external_exports.array(shortText5).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
+var shortText6 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxShortChars);
+var text6 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxTextChars);
+var textList5 = external_exports.array(text6).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
+var shortList = external_exports.array(shortText6).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
 var decomposerUnitSchema = external_exports.object({
   /** Proposal-local id ("a", "b", …); SpecBridge assigns the real ids. */
-  id: shortText5,
+  id: shortText6,
   kind: external_exports.enum(WORK_UNIT_KINDS),
-  title: text5,
-  goal: text5,
+  title: text6,
+  goal: text6,
   dependsOn: shortList.default([]),
-  expectedArtifacts: textList4.default([]),
+  expectedArtifacts: textList5.default([]),
   relevantContractIds: shortList.default([]),
   expectedAreas: shortList.default([])
 });
 var decomposerOutputSchema = external_exports.object({
   decision: external_exports.enum(["WORK_GRAPH", "SINGLE_UNIT", "ESCALATE"]),
   /** Why this decomposition (bounded, factual). */
-  reason: text5,
+  reason: text6,
   units: external_exports.array(decomposerUnitSchema).max(OBJECTIVE_OUTPUT_LIMITS.maxUnits).default([]),
-  escalationReason: text5.optional()
+  escalationReason: text6.optional()
 });
 var evaluatorOutputSchema = external_exports.object({
   verdict: external_exports.enum(EVALUATION_VERDICTS),
   /** Specific, factual reasons tied to the candidate and the contracts. */
-  reasons: textList4.default([]),
+  reasons: textList5.default([]),
   /** Evidence references: file paths, test names, contract requirement ids. */
   evidenceRefs: shortList.default([]),
   affectedContractIds: shortList.default([]),
@@ -56388,52 +57192,52 @@ var evaluatorOutputSchema = external_exports.object({
    * "architecture-contract-change", "product-behavior-change", …). The
    * deterministic authority table routes it; the evaluator only names it.
    */
-  decisionKind: shortText5.optional()
+  decisionKind: shortText6.optional()
 });
 var aggregatorOutputSchema = external_exports.object({
   /** One bounded synthesis of the input artifacts. */
-  synthesis: text5,
+  synthesis: text6,
   /** Structured findings, each tied to its source artifact. */
   findings: external_exports.array(
     external_exports.object({
-      sourceWorkUnitId: shortText5,
-      finding: text5
+      sourceWorkUnitId: shortText6,
+      finding: text6
     })
   ).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems).default([]),
   /** A recommendation (data). Approving it stays a human decision. */
-  recommendation: text5.optional(),
+  recommendation: text6.optional(),
   /** Contract changes the synthesis suggests — requests, never approvals. */
   contractChangeSuggestions: external_exports.array(
     external_exports.object({
-      contractId: shortText5,
-      problem: text5,
-      proposal: text5
+      contractId: shortText6,
+      problem: text6,
+      proposal: text6
     })
   ).max(10).default([]),
   conflictsDetected: external_exports.array(
     external_exports.object({
-      contractId: shortText5,
-      claims: external_exports.array(external_exports.object({ sourceWorkUnitId: shortText5, claim: text5 })).min(1).max(10)
+      contractId: shortText6,
+      claims: external_exports.array(external_exports.object({ sourceWorkUnitId: shortText6, claim: text6 })).min(1).max(10)
     })
   ).max(10).default([])
 });
 var builderOutputSchema = external_exports.object({
   outcome: external_exports.enum(["CANDIDATE_COMPLETE", "BLOCKED", "FAILED"]),
-  summary: text5,
+  summary: text6,
   /** Files the builder believes it changed (a claim; git is the evidence). */
   changedFiles: shortList.default([]),
-  assumptionsDiscovered: textList4.default([]),
+  assumptionsDiscovered: textList5.default([]),
   contractChangeRequests: external_exports.array(
     external_exports.object({
-      contractId: shortText5,
-      problem: text5,
-      proposal: text5
+      contractId: shortText6,
+      problem: text6,
+      proposal: text6
     })
   ).max(10).default([]),
-  knownLimitations: textList4.default([]),
+  knownLimitations: textList5.default([]),
   /** Investigation units: the structured report body. */
   report: external_exports.string().min(1).max(16e3).optional(),
-  blockingQuestions: textList4.default([])
+  blockingQuestions: textList5.default([])
 });
 var SCHEMAS2 = {
   DECOMPOSER: decomposerOutputSchema,
@@ -56737,8 +57541,8 @@ async function runLargeObjectiveRole(invocation) {
     if (parsed.problem !== void 0) {
       return { ok: false, kind: "invalid-output", problem: parsed.problem, probe };
     }
-    const text6 = parsed.structuredResult !== void 0 ? JSON.stringify(parsed.structuredResult) : parsed.reportText ?? "";
-    const validated = validateObjectiveOutput(invocation.role, text6);
+    const text7 = parsed.structuredResult !== void 0 ? JSON.stringify(parsed.structuredResult) : parsed.reportText ?? "";
+    const validated = validateObjectiveOutput(invocation.role, text7);
     if (!validated.ok) {
       return { ok: false, kind: "invalid-output", problem: validated.problem, probe };
     }
@@ -56747,7 +57551,7 @@ async function runLargeObjectiveRole(invocation) {
     return {
       ok: true,
       output: validated.output,
-      raw: text6,
+      raw: text7,
       usage: {
         inputTokens: usage?.inputTokens ?? null,
         outputTokens: usage?.outputTokens ?? null,
@@ -56759,7 +57563,7 @@ async function runLargeObjectiveRole(invocation) {
     cleanupTempFiles(plan);
     try {
       const { rmSync: rmSync32 } = await import("fs");
-      rmSync32(import_path39.default.join(invocation.scratchDir, "tmp"), { recursive: true, force: true });
+      rmSync32(import_path40.default.join(invocation.scratchDir, "tmp"), { recursive: true, force: true });
     } catch {
     }
   }
@@ -56846,7 +57650,7 @@ async function integrateObjective(input) {
       role: "BUILDER",
       packet,
       cwd: input.workspace.rootDir,
-      scratchDir: import_path38.default.join(jobDir(input.workspace, input.jobId), "scratch"),
+      scratchDir: import_path39.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: input.reconcileTimeoutMs ?? 6e5,
       ...input.signal !== void 0 ? { signal: input.signal } : {},
       ...input.cachedProbe !== void 0 ? { cachedProbe: input.cachedProbe } : {}
@@ -57003,11 +57807,11 @@ function evaluateProjectionFreshness(projection, current) {
   const reasons = [];
   const currentById = new Map(current.contracts.map((contract) => [contract.contractId, contract.revision]));
   for (const seen of projection.contracts) {
-    const now3 = currentById.get(seen.contractId);
-    if (now3 === void 0) {
+    const now4 = currentById.get(seen.contractId);
+    if (now4 === void 0) {
       reasons.push(`contract ${seen.contractId} no longer exists in the active registry`);
-    } else if (now3 !== seen.revision) {
-      reasons.push(`contract ${seen.contractId} moved from revision ${seen.revision} to ${now3}`);
+    } else if (now4 !== seen.revision) {
+      reasons.push(`contract ${seen.contractId} moved from revision ${seen.revision} to ${now4}`);
     }
   }
   if (reasons.length === 0) {
@@ -57015,9 +57819,9 @@ function evaluateProjectionFreshness(projection, current) {
   }
   return { fresh: false, reasons };
 }
-var ID_PATTERN3 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+var ID_PATTERN4 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 function assertSegment(value, what) {
-  if (!ID_PATTERN3.test(value)) {
+  if (!ID_PATTERN4.test(value)) {
     throw new OrchestrationError("SBO040", `Invalid ${what} "${value}".`);
   }
   return value;
@@ -57026,19 +57830,19 @@ function objectiveDir(workspace, jobId, nodeId) {
   assertSegment(nodeId, "objective node id");
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path40.default.join(jobDir(workspace, jobId), "objectives", nodeId)
+    import_path41.default.join(jobDir(workspace, jobId), "objectives", nodeId)
   );
 }
 function artifactPath3(workspace, jobId, nodeId, ...segments) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path40.default.join(objectiveDir(workspace, jobId, nodeId), ...segments)
+    import_path41.default.join(objectiveDir(workspace, jobId, nodeId), ...segments)
   );
 }
 function readJson(file, parse3) {
-  if (!(0, import_fs34.existsSync)(file)) return void 0;
+  if (!(0, import_fs35.existsSync)(file)) return void 0;
   try {
-    return parse3(JSON.parse((0, import_fs34.readFileSync)(file, "utf8")));
+    return parse3(JSON.parse((0, import_fs35.readFileSync)(file, "utf8")));
   } catch {
     return void 0;
   }
@@ -57049,7 +57853,7 @@ function workGraphFile(workspace, jobId, nodeId, revision) {
 function storeWorkGraph(workspace, jobId, graph) {
   const validated = workGraphSchema.parse(graph);
   const file = workGraphFile(workspace, jobId, validated.objectiveNodeId, validated.revision);
-  (0, import_fs34.mkdirSync)(import_path40.default.dirname(file), { recursive: true });
+  (0, import_fs35.mkdirSync)(import_path41.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return validated;
@@ -57063,9 +57867,9 @@ function readWorkGraph(workspace, jobId, nodeId, revision) {
 }
 function listWorkGraphRevisions(workspace, jobId, nodeId) {
   const dir = artifactPath3(workspace, jobId, nodeId, "workgraphs");
-  if (!(0, import_fs34.existsSync)(dir)) return [];
+  if (!(0, import_fs35.existsSync)(dir)) return [];
   const revisions = [];
-  for (const name of (0, import_fs34.readdirSync)(dir).sort()) {
+  for (const name of (0, import_fs35.readdirSync)(dir).sort()) {
     if (!/^\d{4}\.json$/.test(name)) continue;
     revisions.push(Number.parseInt(name.slice(0, 4), 10));
   }
@@ -57084,19 +57888,19 @@ function storeProjection(workspace, jobId, nodeId, projection) {
   assertSegment(validated.workUnitId, "work unit id");
   const name = projectionName(validated.workUnitId, validated.attempt);
   const file = artifactPath3(workspace, jobId, nodeId, "projections", name);
-  if ((0, import_fs34.existsSync)(file)) {
+  if ((0, import_fs35.existsSync)(file)) {
     throw new OrchestrationError(
       "SBO041",
       `Projection ${name} already exists; projections are immutable per (workUnit, attempt).`
     );
   }
-  (0, import_fs34.mkdirSync)(import_path40.default.dirname(file), { recursive: true });
+  (0, import_fs35.mkdirSync)(import_path41.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return { projection: validated, ref: `projections/${name}` };
 }
 function readProjection(workspace, jobId, nodeId, workUnitId, attempt) {
-  if (!ID_PATTERN3.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
+  if (!ID_PATTERN4.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
   return readJson(
     artifactPath3(workspace, jobId, nodeId, "projections", projectionName(workUnitId, attempt)),
     (raw) => {
@@ -57113,13 +57917,13 @@ function storeCandidate(workspace, jobId, nodeId, candidate, patch, limits) {
   assertSegment(validated.workUnitId, "work unit id");
   const base = candidateName(validated.workUnitId, validated.attempt);
   const file = artifactPath3(workspace, jobId, nodeId, "candidates", `${base}.json`);
-  if ((0, import_fs34.existsSync)(file)) {
+  if ((0, import_fs35.existsSync)(file)) {
     throw new OrchestrationError(
       "SBO043",
       `Candidate ${base} already exists; candidates are immutable per (workUnit, attempt).`
     );
   }
-  (0, import_fs34.mkdirSync)(import_path40.default.dirname(file), { recursive: true });
+  (0, import_fs35.mkdirSync)(import_path41.default.dirname(file), { recursive: true });
   if (patch !== void 0) {
     if (Buffer.byteLength(patch, "utf8") > limits.maxCandidateBytes) {
       throw new OrchestrationError(
@@ -57135,7 +57939,7 @@ function storeCandidate(workspace, jobId, nodeId, candidate, patch, limits) {
   return { candidate: validated, ref: `candidates/${base}.json` };
 }
 function readCandidate(workspace, jobId, nodeId, workUnitId, attempt) {
-  if (!ID_PATTERN3.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
+  if (!ID_PATTERN4.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
   return readJson(
     artifactPath3(workspace, jobId, nodeId, "candidates", `${candidateName(workUnitId, attempt)}.json`),
     (raw) => {
@@ -57145,7 +57949,7 @@ function readCandidate(workspace, jobId, nodeId, workUnitId, attempt) {
   );
 }
 function readCandidatePatch(workspace, jobId, nodeId, workUnitId, attempt) {
-  if (!ID_PATTERN3.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
+  if (!ID_PATTERN4.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
   const file = artifactPath3(
     workspace,
     jobId,
@@ -57153,9 +57957,9 @@ function readCandidatePatch(workspace, jobId, nodeId, workUnitId, attempt) {
     "candidates",
     `${candidateName(workUnitId, attempt)}.patch`
   );
-  if (!(0, import_fs34.existsSync)(file)) return void 0;
+  if (!(0, import_fs35.existsSync)(file)) return void 0;
   try {
-    return (0, import_fs34.readFileSync)(file, "utf8");
+    return (0, import_fs35.readFileSync)(file, "utf8");
   } catch {
     return void 0;
   }
@@ -57165,21 +57969,21 @@ function storeEvaluation(workspace, jobId, nodeId, evaluation) {
   assertSegment(validated.evaluationId, "evaluation id");
   const name = `${validated.evaluationId}.json`;
   const file = artifactPath3(workspace, jobId, nodeId, "evaluations", name);
-  if ((0, import_fs34.existsSync)(file)) {
+  if ((0, import_fs35.existsSync)(file)) {
     throw new OrchestrationError("SBO044", `Evaluation ${validated.evaluationId} already exists.`);
   }
-  (0, import_fs34.mkdirSync)(import_path40.default.dirname(file), { recursive: true });
+  (0, import_fs35.mkdirSync)(import_path41.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return { evaluation: validated, ref: `evaluations/${name}` };
 }
 function readEvaluations(workspace, jobId, nodeId, workUnitId) {
   const dir = artifactPath3(workspace, jobId, nodeId, "evaluations");
-  if (!(0, import_fs34.existsSync)(dir)) return [];
+  if (!(0, import_fs35.existsSync)(dir)) return [];
   const records = [];
-  for (const name of (0, import_fs34.readdirSync)(dir).sort()) {
+  for (const name of (0, import_fs35.readdirSync)(dir).sort()) {
     if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path40.default.join(dir, name), (raw) => {
+    const record32 = readJson(import_path41.default.join(dir, name), (raw) => {
       const result = evaluationRecordSchema.safeParse(raw);
       return result.success ? result.data : void 0;
     });
@@ -57193,18 +57997,18 @@ function storeConflict(workspace, jobId, nodeId, conflict) {
   const validated = contractConflictSchema.parse(conflict);
   assertSegment(validated.conflictId, "conflict id");
   const file = artifactPath3(workspace, jobId, nodeId, "conflicts", `${validated.conflictId}.json`);
-  (0, import_fs34.mkdirSync)(import_path40.default.dirname(file), { recursive: true });
+  (0, import_fs35.mkdirSync)(import_path41.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return validated;
 }
 function readConflicts(workspace, jobId, nodeId) {
   const dir = artifactPath3(workspace, jobId, nodeId, "conflicts");
-  if (!(0, import_fs34.existsSync)(dir)) return [];
+  if (!(0, import_fs35.existsSync)(dir)) return [];
   const records = [];
-  for (const name of (0, import_fs34.readdirSync)(dir).sort()) {
+  for (const name of (0, import_fs35.readdirSync)(dir).sort()) {
     if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path40.default.join(dir, name), (raw) => {
+    const record32 = readJson(import_path41.default.join(dir, name), (raw) => {
       const result = contractConflictSchema.safeParse(raw);
       return result.success ? result.data : void 0;
     });
@@ -57225,13 +58029,13 @@ function storeWorkerRecord(workspace, jobId, nodeId, record32) {
     "workers",
     workerName(validated.workUnitId, validated.attempt, validated.agentRole)
   );
-  (0, import_fs34.mkdirSync)(import_path40.default.dirname(file), { recursive: true });
+  (0, import_fs35.mkdirSync)(import_path41.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return validated;
 }
 function readWorkerRecord(workspace, jobId, nodeId, workUnitId, attempt, role) {
-  if (!ID_PATTERN3.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
+  if (!ID_PATTERN4.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
   return readJson(
     artifactPath3(workspace, jobId, nodeId, "workers", workerName(workUnitId, attempt, role)),
     (raw) => {
@@ -57242,11 +58046,11 @@ function readWorkerRecord(workspace, jobId, nodeId, workUnitId, attempt, role) {
 }
 function readWorkerRecords(workspace, jobId, nodeId) {
   const dir = artifactPath3(workspace, jobId, nodeId, "workers");
-  if (!(0, import_fs34.existsSync)(dir)) return [];
+  if (!(0, import_fs35.existsSync)(dir)) return [];
   const records = [];
-  for (const name of (0, import_fs34.readdirSync)(dir).sort()) {
+  for (const name of (0, import_fs35.readdirSync)(dir).sort()) {
     if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path40.default.join(dir, name), (raw) => {
+    const record32 = readJson(import_path41.default.join(dir, name), (raw) => {
       const result = objectiveWorkerRecordSchema.safeParse(raw);
       return result.success ? result.data : void 0;
     });
@@ -57257,16 +58061,16 @@ function readWorkerRecords(workspace, jobId, nodeId) {
 function storeAggregationReport(workspace, jobId, nodeId, name, report) {
   assertSegment(name, "report name");
   const file = artifactPath3(workspace, jobId, nodeId, "reports", `${name}.json`);
-  if ((0, import_fs34.existsSync)(file)) {
+  if ((0, import_fs35.existsSync)(file)) {
     throw new OrchestrationError("SBO046", `Aggregation report "${name}" already exists.`);
   }
-  (0, import_fs34.mkdirSync)(import_path40.default.dirname(file), { recursive: true });
+  (0, import_fs35.mkdirSync)(import_path41.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(report, null, 2)}
 `);
   return { ref: `reports/${name}.json` };
 }
 function readAggregationReport(workspace, jobId, nodeId, name) {
-  if (!ID_PATTERN3.test(name)) return void 0;
+  if (!ID_PATTERN4.test(name)) return void 0;
   return readJson(
     artifactPath3(workspace, jobId, nodeId, "reports", `${name}.json`),
     (raw) => raw !== null && typeof raw === "object" ? raw : void 0
@@ -57522,7 +58326,7 @@ async function git3(cwd, argv2, timeoutMs = GIT_TIMEOUT_MS3) {
   return { ok: result.status === "ok", stdout: result.stdout, stderr: result.stderr };
 }
 function worktreesRootDir(workspace, jobId) {
-  return import_path41.default.join(jobDir(workspace, jobId), "worktrees");
+  return import_path42.default.join(jobDir(workspace, jobId), "worktrees");
 }
 async function createWorkerWorktree(input) {
   const name = `${input.workUnitId}-a${String(input.attempt).padStart(2, "0")}`;
@@ -57531,7 +58335,7 @@ async function createWorkerWorktree(input) {
   }
   const dir = assertInsideWorkspace(
     input.workspace.rootDir,
-    import_path41.default.join(worktreesRootDir(input.workspace, input.jobId), name)
+    import_path42.default.join(worktreesRootDir(input.workspace, input.jobId), name)
   );
   const head = await git3(input.workspace.rootDir, ["rev-parse", "HEAD"]);
   if (!head.ok) {
@@ -57541,10 +58345,10 @@ async function createWorkerWorktree(input) {
     });
   }
   const baselineCommit = head.stdout.trim();
-  if ((0, import_fs35.existsSync)(dir)) {
+  if ((0, import_fs36.existsSync)(dir)) {
     await removeWorkerWorktree(input.workspace, input.jobId, { dir });
   }
-  (0, import_fs35.mkdirSync)(import_path41.default.dirname(dir), { recursive: true });
+  (0, import_fs36.mkdirSync)(import_path42.default.dirname(dir), { recursive: true });
   const added = await git3(input.workspace.rootDir, ["worktree", "add", "--detach", dir, baselineCommit], 18e4);
   if (!added.ok) {
     throw new OrchestrationError("SBO048", `git worktree add failed: ${added.stderr.slice(0, 500)}`, {
@@ -57617,7 +58421,7 @@ async function runWorktreeVerification(handle, commands, signal) {
 async function removeWorkerWorktree(workspace, jobId, handle) {
   await git3(workspace.rootDir, ["worktree", "remove", "--force", handle.dir], 12e4);
   try {
-    (0, import_fs35.rmSync)(handle.dir, { recursive: true, force: true });
+    (0, import_fs36.rmSync)(handle.dir, { recursive: true, force: true });
   } catch {
   }
   await git3(workspace.rootDir, ["worktree", "prune"]);
@@ -57626,14 +58430,14 @@ async function removeWorkerWorktree(workspace, jobId, handle) {
 async function pruneWorktrees(workspace, jobId) {
   const removed = [];
   const root = worktreesRootDir(workspace, jobId);
-  if ((0, import_fs35.existsSync)(root)) {
-    const { readdirSync: readdirSync42 } = await import("fs");
-    for (const entry of readdirSync42(root, { withFileTypes: true })) {
+  if ((0, import_fs36.existsSync)(root)) {
+    const { readdirSync: readdirSync52 } = await import("fs");
+    for (const entry of readdirSync52(root, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
-      const dir = import_path41.default.join(root, entry.name);
+      const dir = import_path42.default.join(root, entry.name);
       await git3(workspace.rootDir, ["worktree", "remove", "--force", dir], 12e4);
       try {
-        (0, import_fs35.rmSync)(dir, { recursive: true, force: true });
+        (0, import_fs36.rmSync)(dir, { recursive: true, force: true });
       } catch {
       }
       removed.push(entry.name);
@@ -57759,7 +58563,7 @@ async function decomposeObjective(input, truth, relevantContractIds, acceptance)
       role: "DECOMPOSER",
       packet,
       cwd: input.workspace.rootDir,
-      scratchDir: import_path37.default.join(jobDir(input.workspace, input.jobId), "scratch"),
+      scratchDir: import_path38.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: 6e5,
       signal: input.signal,
       cachedProbe: input.probeCache.probe
@@ -57924,7 +58728,7 @@ async function executeBuilder(context, prepared) {
     role: "BUILDER",
     packet,
     cwd: prepared.worktree.dir,
-    scratchDir: import_path37.default.join(
+    scratchDir: import_path38.default.join(
       jobDir(input.workspace, input.jobId),
       "scratch",
       `${prepared.unitId}-a${prepared.attempt}`
@@ -58299,7 +59103,7 @@ async function runSemanticEvaluation(context, graph, unitId) {
       role: "EVALUATOR",
       packet,
       cwd: input.workspace.rootDir,
-      scratchDir: import_path37.default.join(jobDir(input.workspace, input.jobId), "scratch"),
+      scratchDir: import_path38.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: 6e5,
       signal: input.signal,
       cachedProbe: input.probeCache.probe
@@ -58590,7 +59394,7 @@ async function maybeAggregateSemantically(context, graph) {
       role: "AGGREGATOR",
       packet,
       cwd: input.workspace.rootDir,
-      scratchDir: import_path37.default.join(jobDir(input.workspace, input.jobId), "scratch"),
+      scratchDir: import_path38.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: 6e5,
       signal: input.signal,
       cachedProbe: input.probeCache.probe
@@ -58791,7 +59595,7 @@ function specExcerptFor(workspace, specName, maxChars) {
       if (file === void 0) continue;
       try {
         parts.push(`--- ${kind} ---
-${(0, import_fs33.readFileSync)(file.path, "utf8")}`);
+${(0, import_fs34.readFileSync)(file.path, "utf8")}`);
       } catch {
       }
     }
@@ -58901,7 +59705,10 @@ async function driveJob(deps, jobId, options = {}) {
           beginExecutorDispatch(deps, jobId, {
             nodeId: decision.nodeId,
             mode: decision.mode,
-            workerId: decision.worker.workerId
+            workerId: decision.worker.workerId,
+            // The durable attempt records the true provider identity (the
+            // runner profile) so the execution ledger attributes correctly.
+            provider: decision.worker.runnerProfile ?? decision.worker.workerId
           });
           const startedAt = (deps.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
           const allowDirty = decision.mode === "repair" || (graph?.nodes.some((candidate) => candidate.status === "COMPLETED") ?? false) || node.attempts.some((attempt) => attempt.role === "EXECUTOR") || node.attempts.some((attempt) => attempt.role === "BUILDER");
@@ -59201,7 +60008,7 @@ async function runRole(deps, jobId, role, decision, packet, runtime) {
     runnerProfile: decision.worker.runnerProfile ?? deps.config.defaultRunner,
     role,
     packet,
-    scratchDir: import_path36.default.join(jobDir(deps.workspace, jobId), "scratch"),
+    scratchDir: import_path37.default.join(jobDir(deps.workspace, jobId), "scratch"),
     timeoutMs: 6e5,
     signal: runtime.signal,
     cachedProbe: runtime.probeCache.probe
@@ -59356,8 +60163,8 @@ function sectionTitle(title) {
 function reportTitle(title) {
   return import_picocolors.default.bold(title);
 }
-function dim2(text6) {
-  return import_picocolors.default.dim(text6);
+function dim2(text7) {
+  return import_picocolors.default.dim(text7);
 }
 function renderColumns(rows, indent = "  ") {
   if (rows.length === 0) return [];
@@ -59381,13 +60188,13 @@ function serializeJsonReport(report) {
   return `${JSON.stringify(report, null, 2)}
 `;
 }
-function escapeHtml(text6) {
-  return text6.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+function escapeHtml(text7) {
+  return text7.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
 }
-function severityGlyphLine(diagnostic, text6) {
-  if (diagnostic.severity === "error") return failLine(text6);
-  if (diagnostic.severity === "warning") return warnLine(text6);
-  return infoLine(text6);
+function severityGlyphLine(diagnostic, text7) {
+  if (diagnostic.severity === "error") return failLine(text7);
+  if (diagnostic.severity === "warning") return warnLine(text7);
+  return infoLine(text7);
 }
 function diagnosticLocation(diagnostic) {
   if (diagnostic.file === null) return "";
@@ -59508,11 +60315,11 @@ function renderVerificationTerminal(report, options = {}) {
 }
 var DEFAULT_MAX_DIAGNOSTICS = 50;
 var DEFAULT_MAX_BLOCKING = 10;
-function cell(text6) {
-  return text6.replaceAll("|", "\\|").replaceAll("\n", " ");
+function cell(text7) {
+  return text7.replaceAll("|", "\\|").replaceAll("\n", " ");
 }
-function code(text6) {
-  return text6.includes("`") ? `\`\`${text6}\`\`` : `\`${text6}\``;
+function code(text7) {
+  return text7.includes("`") ? `\`\`${text7}\`\`` : `\`${text7}\``;
 }
 function diagnosticLine(diagnostic) {
   const location = diagnostic.file !== null ? ` \u2014 ${code(diagnostic.file.path)}${diagnostic.file.line !== null ? `:${diagnostic.file.line}` : ""}` : "";
@@ -59790,7 +60597,7 @@ function defaultIo() {
     cwd: process.cwd(),
     out: (line) => process.stdout.write(`${line}
 `),
-    outRaw: (text6) => process.stdout.write(text6),
+    outRaw: (text7) => process.stdout.write(text7),
     err: (line) => process.stderr.write(`${line}
 `),
     now: () => /* @__PURE__ */ new Date()
@@ -59821,8 +60628,8 @@ var CliRuntime = class {
   out(line = "") {
     this.io.out(line);
   }
-  outRaw(text6) {
-    this.io.outRaw(text6);
+  outRaw(text7) {
+    this.io.outRaw(text7);
   }
   err(line) {
     this.io.err(line);
@@ -59870,11 +60677,9 @@ var import_node_fs6 = require("fs");
 var import_node_path7 = __toESM(require("path"), 1);
 
 // ../../packages/drift/dist/index.js
-var import_fs36 = require("fs");
-var import_path42 = __toESM(require("path"), 1);
-var import_picomatch = __toESM(require_picomatch2(), 1);
 var import_fs37 = require("fs");
 var import_path43 = __toESM(require("path"), 1);
+var import_picomatch = __toESM(require_picomatch2(), 1);
 var import_fs38 = require("fs");
 var import_path44 = __toESM(require("path"), 1);
 var import_fs39 = require("fs");
@@ -59882,8 +60687,10 @@ var import_path45 = __toESM(require("path"), 1);
 var import_fs40 = require("fs");
 var import_path46 = __toESM(require("path"), 1);
 var import_fs41 = require("fs");
-var import_crypto14 = require("crypto");
 var import_path47 = __toESM(require("path"), 1);
+var import_fs42 = require("fs");
+var import_crypto15 = require("crypto");
+var import_path48 = __toESM(require("path"), 1);
 var taskEvidenceSchema = external_exports.object({
   taskId: external_exports.string().min(1),
   status: external_exports.enum(["recorded", "verified", "rejected"]),
@@ -59984,24 +60791,24 @@ var verificationPolicySchema = external_exports.object({
   }
 });
 function policyDir(workspace) {
-  return import_path42.default.join(workspace.sidecarDir, "policies");
+  return import_path43.default.join(workspace.sidecarDir, "policies");
 }
 function policyPath(workspace, specName) {
-  const resolved = import_path42.default.resolve(policyDir(workspace), `${specName}.json`);
-  const relative = import_path42.default.relative(workspace.rootDir, resolved);
-  if (relative.startsWith("..") || import_path42.default.isAbsolute(relative)) {
-    return import_path42.default.join(policyDir(workspace), "invalid-spec-name.json");
+  const resolved = import_path43.default.resolve(policyDir(workspace), `${specName}.json`);
+  const relative = import_path43.default.relative(workspace.rootDir, resolved);
+  if (relative.startsWith("..") || import_path43.default.isAbsolute(relative)) {
+    return import_path43.default.join(policyDir(workspace), "invalid-spec-name.json");
   }
   return resolved;
 }
 function readVerificationPolicy(workspace, specName, explicitPath) {
-  const filePath = explicitPath !== void 0 ? import_path42.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
-  if (!(0, import_fs36.existsSync)(filePath)) {
+  const filePath = explicitPath !== void 0 ? import_path43.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
+  if (!(0, import_fs37.existsSync)(filePath)) {
     return { path: filePath, exists: false, diagnostics: [] };
   }
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs36.readFileSync)(filePath, "utf8"));
+    parsed = JSON.parse((0, import_fs37.readFileSync)(filePath, "utf8"));
   } catch (cause) {
     return {
       path: filePath,
@@ -60064,7 +60871,7 @@ function resolveEffectivePolicy(workspace, specName, options = {}) {
   const storedMode = policy?.mode ?? "advisory";
   const strictFromCli = options.strict === true && storedMode !== "strict";
   const mode = options.strict === true ? "strict" : storedMode;
-  const workspaceRelativePolicyPath = import_path42.default.relative(workspace.rootDir, read.path).split(import_path42.default.sep).join("/");
+  const workspaceRelativePolicyPath = import_path43.default.relative(workspace.rootDir, read.path).split(import_path43.default.sep).join("/");
   return {
     specName,
     mode,
@@ -60225,33 +61032,33 @@ function mergeNumstat(files, stats) {
 function sniffBinary(absolutePath) {
   let fd;
   try {
-    fd = (0, import_fs37.openSync)(absolutePath, "r");
+    fd = (0, import_fs38.openSync)(absolutePath, "r");
     const buffer = Buffer.alloc(8e3);
-    const bytesRead = (0, import_fs37.readSync)(fd, buffer, 0, buffer.length, 0);
+    const bytesRead = (0, import_fs38.readSync)(fd, buffer, 0, buffer.length, 0);
     return buffer.subarray(0, bytesRead).includes(0);
   } catch {
     return false;
   } finally {
-    if (fd !== void 0) (0, import_fs37.closeSync)(fd);
+    if (fd !== void 0) (0, import_fs38.closeSync)(fd);
   }
 }
 function flagSymlinkEscapes(repoRoot, files) {
   const resolvedRoot = (() => {
     try {
-      return (0, import_fs37.realpathSync)(repoRoot);
+      return (0, import_fs38.realpathSync)(repoRoot);
     } catch {
-      return import_path43.default.resolve(repoRoot);
+      return import_path44.default.resolve(repoRoot);
     }
   })();
   for (const file of files) {
     if (file.changeType === "deleted") continue;
-    const absolute = import_path43.default.join(repoRoot, file.path.split("/").join(import_path43.default.sep));
+    const absolute = import_path44.default.join(repoRoot, file.path.split("/").join(import_path44.default.sep));
     try {
-      const stats = (0, import_fs37.lstatSync)(absolute);
+      const stats = (0, import_fs38.lstatSync)(absolute);
       if (!stats.isSymbolicLink()) continue;
-      const target = (0, import_fs37.realpathSync)(absolute);
-      const relative = import_path43.default.relative(resolvedRoot, target);
-      if (relative.startsWith("..") || import_path43.default.isAbsolute(relative)) {
+      const target = (0, import_fs38.realpathSync)(absolute);
+      const relative = import_path44.default.relative(resolvedRoot, target);
+      if (relative.startsWith("..") || import_path44.default.isAbsolute(relative)) {
         file.symlinkOutsideRepository = true;
       }
     } catch {
@@ -60379,7 +61186,7 @@ async function resolveComparison(repoRoot, request, options = {}) {
     const known = new Set(files.map((file) => file.path));
     for (const token of untracked.stdout.split("\0")) {
       if (token.length === 0 || known.has(token)) continue;
-      const absolute = import_path43.default.join(repoRoot, token.split("/").join(import_path43.default.sep));
+      const absolute = import_path44.default.join(repoRoot, token.split("/").join(import_path44.default.sep));
       files.push({
         path: token,
         changeType: "untracked",
@@ -60459,9 +61266,9 @@ function specMatchReasons(specName, policy, validEvidencePaths, designPathRefere
 function readSpecEvidenceRecords(workspace, specName) {
   const byTask = /* @__PURE__ */ new Map();
   let invalidRecordCount = 0;
-  const specDir = import_path44.default.join(workspace.sidecarDir, "evidence", specName);
-  if ((0, import_fs38.existsSync)(specDir)) {
-    const taskDirs = (0, import_fs38.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
+  const specDir = import_path45.default.join(workspace.sidecarDir, "evidence", specName);
+  if ((0, import_fs39.existsSync)(specDir)) {
+    const taskDirs = (0, import_fs39.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
     for (const taskDir of taskDirs) {
       const { records, diagnostics } = listTaskEvidence(workspace, specName, taskDir);
       invalidRecordCount += diagnostics.length;
@@ -60475,7 +61282,7 @@ function readSpecEvidenceRecords(workspace, specName) {
   return { byTask, invalidRecordCount };
 }
 async function buildSpecVerificationContext(options) {
-  const { workspace, folder, comparison, caches, now: now3 } = options;
+  const { workspace, folder, comparison, caches, now: now4 } = options;
   const spec = analyzeSpec(workspace, folder);
   const evaluation = spec.state !== void 0 ? evaluateWorkflow(workspace, spec.state) : void 0;
   const policy = resolveEffectivePolicy(workspace, folder.name, {
@@ -60508,7 +61315,7 @@ async function buildSpecVerificationContext(options) {
     }
     if (effective("tasks") && tasksStage !== void 0) {
       const planHash2 = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(
-        import_path44.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path44.default.sep))
+        import_path45.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path45.default.sep))
       );
       if (planHash2 !== void 0) approved.tasksPlanHash = planHash2;
     }
@@ -60530,7 +61337,7 @@ async function buildSpecVerificationContext(options) {
     approved,
     approvedAt,
     tasks: currentTasks,
-    now: now3
+    now: now4
   };
   const recordedShas = /* @__PURE__ */ new Set();
   for (const records of rawEvidence.byTask.values()) {
@@ -60582,7 +61389,7 @@ async function buildSpecVerificationContext(options) {
     freshness,
     matchedBy: options.matchedBy ?? [],
     readBaseContent: makeBaseContentReader(workspace, comparison, caches, options.signal),
-    now: now3
+    now: now4
   };
 }
 async function orchestrateVerificationCommands(options) {
@@ -60736,7 +61543,7 @@ async function evaluateGlobalRules(rules, context) {
   return { diagnostics, disabledRules };
 }
 function repoRelative(workspace, absolutePath) {
-  return import_path45.default.relative(workspace.rootDir, absolutePath).split(import_path45.default.sep).join("/");
+  return import_path46.default.relative(workspace.rootDir, absolutePath).split(import_path46.default.sep).join("/");
 }
 function isSpecInfraPath(candidate) {
   return candidate === ".git" || candidate.startsWith(".git/") || candidate.startsWith(".kiro/") || candidate.startsWith(".specbridge/");
@@ -61417,14 +62224,14 @@ var sbv018 = {
     if (designDocument === void 0) return [];
     const designFile = designDocument.filePath;
     const designRepoPath = designFile !== void 0 ? repoRelative(context.workspace, designFile) : void 0;
-    const specDir = import_path45.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
+    const specDir = import_path46.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
     return context.traceability.designPathReferences.filter((reference) => !reference.isGlob).filter((reference) => {
-      const fromRoot = import_path45.default.join(
+      const fromRoot = import_path46.default.join(
         context.workspace.rootDir,
-        reference.path.split("/").join(import_path45.default.sep)
+        reference.path.split("/").join(import_path46.default.sep)
       );
-      const fromSpecDir = import_path45.default.join(specDir, reference.path.split("/").join(import_path45.default.sep));
-      return !(0, import_fs39.existsSync)(fromRoot) && !(0, import_fs39.existsSync)(fromSpecDir);
+      const fromSpecDir = import_path46.default.join(specDir, reference.path.split("/").join(import_path46.default.sep));
+      return !(0, import_fs40.existsSync)(fromRoot) && !(0, import_fs40.existsSync)(fromSpecDir);
     }).map(
       (reference) => makeDiagnostic({
         rule: this,
@@ -61671,9 +62478,9 @@ function loadSpecMatchingInfo(workspace, folder, options) {
     }
   }
   const evidencePaths = /* @__PURE__ */ new Set();
-  const evidenceDir2 = import_path46.default.join(workspace.sidecarDir, "evidence", folder.name);
-  if ((0, import_fs40.existsSync)(evidenceDir2)) {
-    for (const entry of (0, import_fs41.readdirSync)(evidenceDir2, { withFileTypes: true })) {
+  const evidenceDir2 = import_path47.default.join(workspace.sidecarDir, "evidence", folder.name);
+  if ((0, import_fs41.existsSync)(evidenceDir2)) {
+    for (const entry of (0, import_fs42.readdirSync)(evidenceDir2, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
       const { records } = listTaskEvidence(workspace, folder.name, entry.name);
       for (const record4 of records) {
@@ -61730,8 +62537,8 @@ var VERIFY_EXIT_CODES = {
   commandTimeout: 5
 };
 async function verifySpecs(request) {
-  const now3 = (request.clock ?? (() => /* @__PURE__ */ new Date()))();
-  const verificationId = (request.idFactory ?? import_crypto14.randomUUID)();
+  const now4 = (request.clock ?? (() => /* @__PURE__ */ new Date()))();
+  const verificationId = (request.idFactory ?? import_crypto15.randomUUID)();
   const workspace = request.workspace;
   const configRead = readAgentConfig(workspace);
   if (configRead.config === void 0) {
@@ -61772,7 +62579,7 @@ async function verifySpecs(request) {
           ...request.strict !== void 0 ? { strict: request.strict } : {},
           ...request.explicitPolicyPath !== void 0 ? { explicitPolicyPath: request.explicitPolicyPath } : {},
           ...matchedBy !== void 0 ? { matchedBy: dedupe(matchedBy) } : {},
-          now: now3,
+          now: now4,
           ...request.signal !== void 0 ? { signal: request.signal } : {}
         })
       );
@@ -61782,8 +62589,8 @@ async function verifySpecs(request) {
   let artifactsDir;
   const ensureArtifactsDir = () => {
     if (artifactsDir === void 0) {
-      const base = request.reportsDir ?? import_path47.default.join(workspace.sidecarDir, "reports");
-      artifactsDir = import_path47.default.join(base, verificationId);
+      const base = request.reportsDir ?? import_path48.default.join(workspace.sidecarDir, "reports");
+      artifactsDir = import_path48.default.join(base, verificationId);
     }
     return artifactsDir;
   };
@@ -61806,8 +62613,8 @@ async function verifySpecs(request) {
       onCommandFinished: (result, stdout, stderr) => {
         const dir = ensureArtifactsDir();
         const safeName = result.name.replace(/[^A-Za-z0-9._-]+/g, "-");
-        writeFileAtomic(import_path47.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
-        writeFileAtomic(import_path47.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
+        writeFileAtomic(import_path48.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
+        writeFileAtomic(import_path48.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
       }
     } : {}
   }) : { mode: "none", commands: [], missingRequired: [] };
@@ -61825,7 +62632,7 @@ async function verifySpecs(request) {
     unmappedFiles: affectedResult.unmapped,
     ambiguousFiles: affectedResult.ambiguous,
     commands,
-    now: now3
+    now: now4
   };
   const globalResult = await evaluateGlobalRules(rules, globalContext);
   const selectedNames = new Set(specContexts.map((context) => context.specName));
@@ -61937,7 +62744,7 @@ async function verifySpecs(request) {
     schemaVersion: VERIFICATION_REPORT_SCHEMA_VERSION,
     tool: { name: "specbridge", version: request.toolVersion },
     verificationId,
-    createdAt: now3.toISOString(),
+    createdAt: now4.toISOString(),
     comparison: comparison.descriptor,
     selection: {
       mode: selectionMode,
@@ -61958,7 +62765,7 @@ async function verifySpecs(request) {
   verificationReportSchema.parse(report);
   if (persistArtifacts && artifactsDir !== void 0) {
     writeFileAtomic(
-      import_path47.default.join(artifactsDir, "report.json"),
+      import_path48.default.join(artifactsDir, "report.json"),
       `${JSON.stringify(report, null, 2)}
 `
     );
@@ -62067,18 +62874,18 @@ function resolveExitCode(report, comparison, commands, failOn) {
 }
 
 // ../../packages/templates/dist/index.js
-var import_fs42 = require("fs");
-var import_path48 = __toESM(require("path"), 1);
 var import_fs43 = require("fs");
 var import_path49 = __toESM(require("path"), 1);
 var import_fs44 = require("fs");
 var import_path50 = __toESM(require("path"), 1);
-var import_path51 = __toESM(require("path"), 1);
 var import_fs45 = require("fs");
+var import_path51 = __toESM(require("path"), 1);
 var import_path52 = __toESM(require("path"), 1);
 var import_fs46 = require("fs");
-var import_os = require("os");
 var import_path53 = __toESM(require("path"), 1);
+var import_fs47 = require("fs");
+var import_os = require("os");
+var import_path54 = __toESM(require("path"), 1);
 var SPECBRIDGE_VERSION = "1.0.0";
 var TEMPLATE_ERROR_CODES = {
   SBT001: "template not found",
@@ -62600,8 +63407,8 @@ function checkManifestSemantics(manifest) {
   }
   return issues;
 }
-function parseTemplateManifest(text6) {
-  if (Buffer.byteLength(text6, "utf8") > TEMPLATE_PACK_LIMITS.maxManifestBytes) {
+function parseTemplateManifest(text7) {
+  if (Buffer.byteLength(text7, "utf8") > TEMPLATE_PACK_LIMITS.maxManifestBytes) {
     return {
       issues: [
         issue(
@@ -62614,7 +63421,7 @@ function parseTemplateManifest(text6) {
   }
   let parsed;
   try {
-    parsed = JSON.parse(text6);
+    parsed = JSON.parse(text7);
   } catch (cause) {
     return {
       issues: [
@@ -62660,13 +63467,13 @@ function parseTemplateManifest(text6) {
 }
 var PLACEHOLDER_PATTERN = /\{\{([^{}\r\n]*)\}\}/g;
 var VALID_PLACEHOLDER_NAME = /^[a-z][a-zA-Z0-9]*$/;
-function renderTemplateText(sourceLabel, text6, values) {
+function renderTemplateText(sourceLabel, text7, values) {
   const parts = [];
   let lastIndex = 0;
   PLACEHOLDER_PATTERN.lastIndex = 0;
   let match;
-  while ((match = PLACEHOLDER_PATTERN.exec(text6)) !== null) {
-    parts.push(text6.slice(lastIndex, match.index));
+  while ((match = PLACEHOLDER_PATTERN.exec(text7)) !== null) {
+    parts.push(text7.slice(lastIndex, match.index));
     lastIndex = match.index + match[0].length;
     const inner = match[1] ?? "";
     if (!VALID_PLACEHOLDER_NAME.test(inner)) {
@@ -62688,7 +63495,7 @@ function renderTemplateText(sourceLabel, text6, values) {
     }
     parts.push(value);
   }
-  parts.push(text6.slice(lastIndex));
+  parts.push(text7.slice(lastIndex));
   const rendered = parts.join("");
   const renderedBytes = Buffer.byteLength(rendered, "utf8");
   if (renderedBytes > TEMPLATE_PACK_LIMITS.maxRenderedFileBytes) {
@@ -62704,13 +63511,13 @@ function renderTemplateText(sourceLabel, text6, values) {
 function truncatePlaceholder(raw) {
   return raw.length > 40 ? `${raw.slice(0, 40)}\u2026` : raw;
 }
-function collectPlaceholders(text6) {
+function collectPlaceholders(text7) {
   const names = [];
   const malformed = [];
   const seen = /* @__PURE__ */ new Set();
   PLACEHOLDER_PATTERN.lastIndex = 0;
   let match;
-  while ((match = PLACEHOLDER_PATTERN.exec(text6)) !== null) {
+  while ((match = PLACEHOLDER_PATTERN.exec(text7)) !== null) {
     const inner = match[1] ?? "";
     if (!VALID_PLACEHOLDER_NAME.test(inner)) {
       malformed.push(truncatePlaceholder(match[0]));
@@ -62907,11 +63714,11 @@ function readTemplatePackDirectory(dir) {
         { path: currentDir }
       );
     }
-    const entries = (0, import_fs42.readdirSync)(currentDir, { withFileTypes: true }).sort(
+    const entries = (0, import_fs43.readdirSync)(currentDir, { withFileTypes: true }).sort(
       (a2, b) => a2.name.localeCompare(b.name, "en")
     );
     for (const entry of entries) {
-      const entryPath = import_path48.default.join(currentDir, entry.name);
+      const entryPath = import_path49.default.join(currentDir, entry.name);
       const entryRelative = relative === "" ? entry.name : `${relative}/${entry.name}`;
       const stat = statNoFollow(entryPath);
       if (stat.isSymbolicLink()) {
@@ -62963,9 +63770,9 @@ function readTemplatePackDirectory(dir) {
           { path: dir }
         );
       }
-      const buffer = (0, import_fs42.readFileSync)(entryPath);
-      const text6 = buffer.toString("utf8");
-      if (!Buffer.from(text6, "utf8").equals(buffer)) {
+      const buffer = (0, import_fs43.readFileSync)(entryPath);
+      const text7 = buffer.toString("utf8");
+      if (!Buffer.from(text7, "utf8").equals(buffer)) {
         throw new TemplateError(
           "SBT025",
           `${entryRelative} is not valid UTF-8 text.`,
@@ -62973,7 +63780,7 @@ function readTemplatePackDirectory(dir) {
           { path: entryPath }
         );
       }
-      if (text6.includes("\0")) {
+      if (text7.includes("\0")) {
         throw new TemplateError(
           "SBT025",
           `${entryRelative} contains binary (null-byte) content.`,
@@ -62981,7 +63788,7 @@ function readTemplatePackDirectory(dir) {
           { path: entryPath }
         );
       }
-      files.set(entryRelative, text6);
+      files.set(entryRelative, text7);
     }
   };
   walk(dir, "", 0);
@@ -62989,7 +63796,7 @@ function readTemplatePackDirectory(dir) {
 }
 function statNoFollow(target) {
   try {
-    return (0, import_fs42.lstatSync)(target);
+    return (0, import_fs43.lstatSync)(target);
   } catch (cause) {
     throw new TemplateError(
       "SBT007",
@@ -63353,7 +64160,7 @@ var BUILTIN_TEMPLATE_PACKS = [
   }
 ];
 function projectTemplatesDir(workspace) {
-  return import_path49.default.join(workspace.sidecarDir, "templates");
+  return import_path50.default.join(workspace.sidecarDir, "templates");
 }
 function builtinEntries(options) {
   const entries = [];
@@ -63378,11 +64185,11 @@ function builtinEntries(options) {
 function projectEntries(workspace, options, diagnostics) {
   if (workspace === void 0) return [];
   const dir = projectTemplatesDir(workspace);
-  if (!(0, import_fs43.existsSync)(dir)) return [];
+  if (!(0, import_fs44.existsSync)(dir)) return [];
   const entries = [];
   let names;
   try {
-    names = (0, import_fs43.readdirSync)(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory() && !entry.isSymbolicLink()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
+    names = (0, import_fs44.readdirSync)(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory() && !entry.isSymbolicLink()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
   } catch (cause) {
     diagnostics.push({
       severity: "warning",
@@ -63392,7 +64199,7 @@ function projectEntries(workspace, options, diagnostics) {
     return [];
   }
   for (const name of names) {
-    const packDir = import_path49.default.join(dir, name);
+    const packDir = import_path50.default.join(dir, name);
     let pack;
     try {
       const data = readTemplatePackDirectory(packDir);
@@ -63541,8 +64348,8 @@ var SCORE_ID_PREFIX = 800;
 var SCORE_EXACT_TAG = 600;
 var SCORE_DISPLAY_NAME_TOKEN = 400;
 var SCORE_DESCRIPTION_TOKEN = 200;
-function tokenize(text6) {
-  return text6.toLowerCase().split(/[^a-z0-9]+/u).filter((token) => token.length > 0);
+function tokenize(text7) {
+  return text7.toLowerCase().split(/[^a-z0-9]+/u).filter((token) => token.length > 0);
 }
 function clampSearchLimit(requested) {
   if (requested === void 0 || !Number.isFinite(requested)) return DEFAULT_SEARCH_LIMIT;
@@ -63636,7 +64443,7 @@ var templateRecordSchema = external_exports.discriminatedUnion("type", [
   templateScaffoldRecordSchema
 ]);
 function templateRecordsPath(workspace) {
-  return import_path50.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
+  return import_path51.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
 }
 var recordCounter = 0;
 function newTemplateRecordId(clock = systemClock) {
@@ -63647,8 +64454,8 @@ function appendTemplateRecord(workspace, record4) {
   const validated = templateRecordSchema.parse(record4);
   const filePath = templateRecordsPath(workspace);
   try {
-    (0, import_fs44.mkdirSync)(workspace.sidecarDir, { recursive: true });
-    (0, import_fs44.appendFileSync)(filePath, `${JSON.stringify(validated)}
+    (0, import_fs45.mkdirSync)(workspace.sidecarDir, { recursive: true });
+    (0, import_fs45.appendFileSync)(filePath, `${JSON.stringify(validated)}
 `, "utf8");
   } catch (cause) {
     throw ioError("append template record to", filePath, cause);
@@ -63657,10 +64464,10 @@ function appendTemplateRecord(workspace, record4) {
 function readTemplateRecords(workspace) {
   const filePath = templateRecordsPath(workspace);
   const diagnostics = [];
-  if (!(0, import_fs44.existsSync)(filePath)) return { records: [], diagnostics };
-  let text6;
+  if (!(0, import_fs45.existsSync)(filePath)) return { records: [], diagnostics };
+  let text7;
   try {
-    text6 = (0, import_fs44.readFileSync)(filePath, "utf8");
+    text7 = (0, import_fs45.readFileSync)(filePath, "utf8");
   } catch (cause) {
     diagnostics.push({
       severity: "warning",
@@ -63670,7 +64477,7 @@ function readTemplateRecords(workspace) {
     return { records: [], diagnostics };
   }
   const records = [];
-  const lines = text6.split("\n");
+  const lines = text7.split("\n");
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index]?.trim() ?? "";
     if (line.length === 0) continue;
@@ -63859,7 +64666,7 @@ function planTemplateApplication(workspace, catalog, request, clock = systemCloc
   };
 }
 function toPosix2(relative) {
-  return relative.split(import_path51.default.sep).join("/");
+  return relative.split(import_path52.default.sep).join("/");
 }
 function executeTemplateApplication(workspace, plan, clock = systemClock, recordId) {
   let creation;
@@ -63889,15 +64696,15 @@ function executeTemplateApplication(workspace, plan, clock = systemClock, record
     })),
     variableNames: plan.variableNames,
     createdPaths: [
-      ...creation.writtenFiles.map((file) => toPosix2(import_path51.default.relative(workspace.rootDir, file))),
-      toPosix2(import_path51.default.relative(workspace.rootDir, creation.statePath))
+      ...creation.writtenFiles.map((file) => toPosix2(import_path52.default.relative(workspace.rootDir, file))),
+      toPosix2(import_path52.default.relative(workspace.rootDir, creation.statePath))
     ]
   };
   appendTemplateRecord(workspace, record4);
   return { plan, creation, recordId: id };
 }
 function planTemplateInstall(workspace, catalog, request) {
-  const sourceDir = import_path52.default.resolve(request.cwd ?? workspace.rootDir, request.sourcePath);
+  const sourceDir = import_path53.default.resolve(request.cwd ?? workspace.rootDir, request.sourcePath);
   try {
     assertInsideWorkspace(workspace.rootDir, sourceDir);
   } catch (cause) {
@@ -63923,8 +64730,8 @@ function planTemplateInstall(workspace, catalog, request) {
     );
   }
   const templateId = pack.manifest.id;
-  const targetDir = import_path52.default.join(projectTemplatesDir(workspace), templateId);
-  if ((0, import_fs45.existsSync)(targetDir)) {
+  const targetDir = import_path53.default.join(projectTemplatesDir(workspace), templateId);
+  if ((0, import_fs46.existsSync)(targetDir)) {
     throw new TemplateError(
       "SBT021",
       `Template "project:${templateId}" is already installed at ${targetDir}.`,
@@ -63950,16 +64757,16 @@ function planTemplateInstall(workspace, catalog, request) {
   };
 }
 function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) {
-  const tmpParent = import_path52.default.join(workspace.sidecarDir, "tmp");
-  const tempDir = import_path52.default.join(
+  const tmpParent = import_path53.default.join(workspace.sidecarDir, "tmp");
+  const tempDir = import_path53.default.join(
     tmpParent,
     `template-install-${plan.templateId}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`
   );
   try {
-    (0, import_fs45.mkdirSync)(tempDir, { recursive: true });
+    (0, import_fs46.mkdirSync)(tempDir, { recursive: true });
     for (const [relative, content] of plan.pack.files) {
-      const target = import_path52.default.join(tempDir, relative);
-      (0, import_fs45.mkdirSync)(import_path52.default.dirname(target), { recursive: true });
+      const target = import_path53.default.join(tempDir, relative);
+      (0, import_fs46.mkdirSync)(import_path53.default.dirname(target), { recursive: true });
       writeFileAtomic(target, content);
     }
     const copied = loadTemplatePack(readTemplatePackDirectory(tempDir));
@@ -63971,8 +64778,8 @@ function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) 
         { path: plan.sourceDir }
       );
     }
-    (0, import_fs45.mkdirSync)(import_path52.default.dirname(plan.targetDir), { recursive: true });
-    if ((0, import_fs45.existsSync)(plan.targetDir)) {
+    (0, import_fs46.mkdirSync)(import_path53.default.dirname(plan.targetDir), { recursive: true });
+    if ((0, import_fs46.existsSync)(plan.targetDir)) {
       throw new TemplateError(
         "SBT021",
         `Template "project:${plan.templateId}" was installed by another process.`,
@@ -63980,11 +64787,11 @@ function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) 
         { path: plan.targetDir }
       );
     }
-    (0, import_fs45.renameSync)(tempDir, plan.targetDir);
+    (0, import_fs46.renameSync)(tempDir, plan.targetDir);
   } finally {
-    (0, import_fs45.rmSync)(tempDir, { recursive: true, force: true });
+    (0, import_fs46.rmSync)(tempDir, { recursive: true, force: true });
     try {
-      (0, import_fs45.rmdirSync)(tmpParent);
+      (0, import_fs46.rmdirSync)(tmpParent);
     } catch {
     }
   }
@@ -63999,8 +64806,8 @@ function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) 
     templateId: plan.templateId,
     templateVersion: plan.templateVersion,
     manifestHash: plan.manifestHash,
-    sourcePath: import_path52.default.relative(workspace.rootDir, plan.sourceDir).split(import_path52.default.sep).join("/"),
-    installedPath: import_path52.default.relative(workspace.rootDir, plan.targetDir).split(import_path52.default.sep).join("/")
+    sourcePath: import_path53.default.relative(workspace.rootDir, plan.sourceDir).split(import_path53.default.sep).join("/"),
+    installedPath: import_path53.default.relative(workspace.rootDir, plan.targetDir).split(import_path53.default.sep).join("/")
   });
   return { plan, installedPath: plan.targetDir, recordId: id };
 }
@@ -64030,10 +64837,10 @@ function planTemplateUninstall(workspace, rawReference) {
       { reference: rawReference }
     );
   }
-  const dir = import_path52.default.join(projectTemplatesDir(workspace), reference.id);
+  const dir = import_path53.default.join(projectTemplatesDir(workspace), reference.id);
   let stat;
   try {
-    stat = (0, import_fs45.lstatSync)(dir);
+    stat = (0, import_fs46.lstatSync)(dir);
   } catch {
     throw new TemplateError(
       "SBT001",
@@ -64053,18 +64860,18 @@ function planTemplateUninstall(workspace, rawReference) {
   return { templateId: reference.id, ref: `project:${reference.id}`, dir };
 }
 function executeTemplateUninstall(workspace, plan, clock = systemClock, recordId) {
-  const tmpParent = import_path52.default.join(workspace.sidecarDir, "tmp");
-  const tempDir = import_path52.default.join(
+  const tmpParent = import_path53.default.join(workspace.sidecarDir, "tmp");
+  const tempDir = import_path53.default.join(
     tmpParent,
     `template-uninstall-${plan.templateId}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`
   );
-  (0, import_fs45.mkdirSync)(tmpParent, { recursive: true });
-  (0, import_fs45.renameSync)(plan.dir, tempDir);
+  (0, import_fs46.mkdirSync)(tmpParent, { recursive: true });
+  (0, import_fs46.renameSync)(plan.dir, tempDir);
   try {
-    (0, import_fs45.rmSync)(tempDir, { recursive: true, force: true });
+    (0, import_fs46.rmSync)(tempDir, { recursive: true, force: true });
   } finally {
     try {
-      (0, import_fs45.rmdirSync)(tmpParent);
+      (0, import_fs46.rmdirSync)(tmpParent);
     } catch {
     }
   }
@@ -64077,7 +64884,7 @@ function executeTemplateUninstall(workspace, plan, clock = systemClock, recordId
     result: "ok",
     templateRef: plan.ref,
     templateId: plan.templateId,
-    uninstalledPath: import_path52.default.relative(workspace.rootDir, plan.dir).split(import_path52.default.sep).join("/")
+    uninstalledPath: import_path53.default.relative(workspace.rootDir, plan.dir).split(import_path53.default.sep).join("/")
   });
   return { plan, recordId: id };
 }
@@ -64163,10 +64970,10 @@ The built-in variables \`specName\`, \`title\`, \`description\`, \`kind\`, and
 
 \`\`\`bash
 # From the directory containing this template pack:
-specbridge template validate ./${import_path53.default.basename(request.outputPath)}
+specbridge template validate ./${import_path54.default.basename(request.outputPath)}
 
 # Then install it into a project for a real preview:
-specbridge template install ./${import_path53.default.basename(request.outputPath)}
+specbridge template install ./${import_path54.default.basename(request.outputPath)}
 specbridge template preview project:${request.templateId} --name example-spec
 \`\`\`
 
@@ -64386,9 +65193,9 @@ ${idCheck.problems.map((p) => `  - ${p}`).join("\n")}`,
   if (new Set(modes).size !== modes.length) {
     throw new TemplateError("SBT015", "--modes contains duplicates.", "List each mode once.", {});
   }
-  const outputDir = import_path53.default.resolve(request.cwd, request.outputPath);
-  const relative = import_path53.default.relative(import_path53.default.resolve(request.cwd), outputDir);
-  if (relative.startsWith("..") || import_path53.default.isAbsolute(relative)) {
+  const outputDir = import_path54.default.resolve(request.cwd, request.outputPath);
+  const relative = import_path54.default.relative(import_path54.default.resolve(request.cwd), outputDir);
+  if (relative.startsWith("..") || import_path54.default.isAbsolute(relative)) {
     throw new TemplateError(
       "SBT007",
       `Scaffold output ${outputDir} is outside the current directory.`,
@@ -64396,7 +65203,7 @@ ${idCheck.problems.map((p) => `  - ${p}`).join("\n")}`,
       { path: outputDir }
     );
   }
-  if ((0, import_fs46.existsSync)(outputDir)) {
+  if ((0, import_fs47.existsSync)(outputDir)) {
     throw new TemplateError(
       "SBT025",
       `Scaffold output directory already exists: ${outputDir}.`,
@@ -64428,21 +65235,21 @@ ${idCheck.problems.map((p) => `  - ${p}`).join("\n")}`,
   return { templateId: request.templateId, kind: request.kind, outputDir, files };
 }
 function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId) {
-  const tmpParent = workspace !== void 0 ? import_path53.default.join(workspace.sidecarDir, "tmp") : import_path53.default.join((0, import_os.tmpdir)(), "specbridge-scaffold");
-  const tempDir = import_path53.default.join(
+  const tmpParent = workspace !== void 0 ? import_path54.default.join(workspace.sidecarDir, "tmp") : import_path54.default.join((0, import_os.tmpdir)(), "specbridge-scaffold");
+  const tempDir = import_path54.default.join(
     tmpParent,
     `template-scaffold-${plan.templateId}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`
   );
   const writtenFiles = [];
   try {
-    (0, import_fs46.mkdirSync)(tempDir, { recursive: true });
+    (0, import_fs47.mkdirSync)(tempDir, { recursive: true });
     for (const [relative, content] of plan.files) {
-      const target = import_path53.default.join(tempDir, relative);
-      (0, import_fs46.mkdirSync)(import_path53.default.dirname(target), { recursive: true });
+      const target = import_path54.default.join(tempDir, relative);
+      (0, import_fs47.mkdirSync)(import_path54.default.dirname(target), { recursive: true });
       writeFileAtomic(target, content);
     }
-    (0, import_fs46.mkdirSync)(import_path53.default.dirname(plan.outputDir), { recursive: true });
-    if ((0, import_fs46.existsSync)(plan.outputDir)) {
+    (0, import_fs47.mkdirSync)(import_path54.default.dirname(plan.outputDir), { recursive: true });
+    if ((0, import_fs47.existsSync)(plan.outputDir)) {
       throw new TemplateError(
         "SBT025",
         `Scaffold output directory was created by another process: ${plan.outputDir}.`,
@@ -64450,14 +65257,14 @@ function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId)
         { path: plan.outputDir }
       );
     }
-    (0, import_fs46.renameSync)(tempDir, plan.outputDir);
+    (0, import_fs47.renameSync)(tempDir, plan.outputDir);
     for (const relative of plan.files.keys()) {
-      writtenFiles.push(import_path53.default.join(plan.outputDir, relative));
+      writtenFiles.push(import_path54.default.join(plan.outputDir, relative));
     }
   } finally {
-    (0, import_fs46.rmSync)(tempDir, { recursive: true, force: true });
+    (0, import_fs47.rmSync)(tempDir, { recursive: true, force: true });
     try {
-      (0, import_fs46.rmdirSync)(tmpParent);
+      (0, import_fs47.rmdirSync)(tmpParent);
     } catch {
     }
   }
@@ -64472,7 +65279,7 @@ function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId)
       result: "ok",
       templateId: plan.templateId,
       kind: plan.kind,
-      outputPath: import_path53.default.relative(workspace.rootDir, plan.outputDir).split(import_path53.default.sep).join("/")
+      outputPath: import_path54.default.relative(workspace.rootDir, plan.outputDir).split(import_path54.default.sep).join("/")
     });
   }
   return { plan, writtenFiles, recordId: id };
@@ -64482,7 +65289,7 @@ function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId)
 var import_zlib = require("zlib");
 
 // ../../packages/extension-sdk/dist/index.js
-var import_crypto15 = require("crypto");
+var import_crypto16 = require("crypto");
 var EXTENSION_RULE_ID_PATTERN = /^[A-Z][A-Z0-9_-]{0,63}$/;
 var MAX_EXTENSION_DIAGNOSTICS = 1e3;
 var EXTENSION_DIAGNOSTIC_SEVERITIES = ["info", "warning", "error"];
@@ -64703,7 +65510,7 @@ function computePermissionHash(input) {
       specRead: normalized.specRead
     }
   });
-  return (0, import_crypto15.createHash)("sha256").update(canonical, "utf8").digest("hex");
+  return (0, import_crypto16.createHash)("sha256").update(canonical, "utf8").digest("hex");
 }
 function describePermissions(permissions) {
   const normalized = normalizePermissions(permissions);
@@ -65005,9 +65812,9 @@ function checkManifestSemantics2(manifest) {
   checkUrl("repository", manifest.repository, issues);
   return issues;
 }
-function parseExtensionManifest(text6) {
+function parseExtensionManifest(text7) {
   const issues = [];
-  if (Buffer.byteLength(text6, "utf8") > MAX_EXTENSION_MANIFEST_BYTES) {
+  if (Buffer.byteLength(text7, "utf8") > MAX_EXTENSION_MANIFEST_BYTES) {
     issues.push(
       extensionIssue(
         "SBE008",
@@ -65021,7 +65828,7 @@ function parseExtensionManifest(text6) {
   }
   let parsed;
   try {
-    parsed = JSON.parse(text6);
+    parsed = JSON.parse(text7);
   } catch (error2) {
     issues.push(
       extensionIssue(
@@ -65389,14 +66196,12 @@ var TEMPLATE_PROVIDER_TEMPLATES_DIR = "templates";
 var MAX_TEMPLATE_PROVIDER_PACKS = 20;
 
 // ../../packages/extensions/dist/index.js
-var import_fs47 = require("fs");
-var import_path54 = __toESM(require("path"), 1);
-var import_crypto16 = require("crypto");
 var import_fs48 = require("fs");
 var import_path55 = __toESM(require("path"), 1);
-var import_child_process2 = require("child_process");
+var import_crypto17 = require("crypto");
 var import_fs49 = require("fs");
 var import_path56 = __toESM(require("path"), 1);
+var import_child_process2 = require("child_process");
 var import_fs50 = require("fs");
 var import_path57 = __toESM(require("path"), 1);
 var import_fs51 = require("fs");
@@ -65409,6 +66214,8 @@ var import_fs54 = require("fs");
 var import_path61 = __toESM(require("path"), 1);
 var import_fs55 = require("fs");
 var import_path62 = __toESM(require("path"), 1);
+var import_fs56 = require("fs");
+var import_path63 = __toESM(require("path"), 1);
 var ExtensionError = class extends SpecBridgeError {
   extensionCode;
   /** Actionable next step, always present. */
@@ -65780,7 +66587,7 @@ var extensionChecksumsSchema = external_exports.object({
   files: external_exports.record(external_exports.string().regex(/^[0-9a-f]{64}$/))
 }).strict();
 function sha256HexOf(data) {
-  return (0, import_crypto16.createHash)("sha256").update(data).digest("hex");
+  return (0, import_crypto17.createHash)("sha256").update(data).digest("hex");
 }
 function computeExtensionChecksums(files) {
   const entries = {};
@@ -65795,9 +66602,9 @@ function computeExtensionChecksums(files) {
   }
   return { schemaVersion: "1.0.0", algorithm: "sha256", files: entries };
 }
-function parseExtensionChecksums(text6) {
+function parseExtensionChecksums(text7) {
   const issues = [];
-  if (Buffer.byteLength(text6, "utf8") > EXTENSION_LIMITS.maxChecksumsBytes) {
+  if (Buffer.byteLength(text7, "utf8") > EXTENSION_LIMITS.maxChecksumsBytes) {
     issues.push(
       extensionIssue(
         "SBE008",
@@ -65811,7 +66618,7 @@ function parseExtensionChecksums(text6) {
   }
   let parsed;
   try {
-    parsed = JSON.parse(text6);
+    parsed = JSON.parse(text7);
   } catch (error2) {
     issues.push(
       extensionIssue(
@@ -65910,7 +66717,7 @@ var FORBIDDEN_LIFECYCLE_SCRIPTS = [
   "postuninstall"
 ];
 function readExtensionPackageDirectory(dir) {
-  const rootStat = (0, import_fs47.lstatSync)(dir, { throwIfNoEntry: false });
+  const rootStat = (0, import_fs48.lstatSync)(dir, { throwIfNoEntry: false });
   if (rootStat === void 0 || !rootStat.isDirectory()) {
     throw new ExtensionError(
       "SBE008",
@@ -65935,7 +66742,7 @@ function readExtensionPackageDirectory(dir) {
         "Flatten the package layout."
       );
     }
-    for (const entry of (0, import_fs47.readdirSync)(currentDir, { withFileTypes: true })) {
+    for (const entry of (0, import_fs48.readdirSync)(currentDir, { withFileTypes: true })) {
       const relativePath = relativePrefix === "" ? entry.name : `${relativePrefix}/${entry.name}`;
       if (entry.isSymbolicLink()) {
         throw new ExtensionError(
@@ -65961,7 +66768,7 @@ function readExtensionPackageDirectory(dir) {
             "Remove the directory before validating or packaging."
           );
         }
-        walk(import_path54.default.join(currentDir, entry.name), relativePath, depth + 1);
+        walk(import_path55.default.join(currentDir, entry.name), relativePath, depth + 1);
         continue;
       }
       if (!entry.isFile()) {
@@ -65978,7 +66785,7 @@ function readExtensionPackageDirectory(dir) {
           "Reduce the package contents."
         );
       }
-      const content = (0, import_fs47.readFileSync)(import_path54.default.join(currentDir, entry.name));
+      const content = (0, import_fs48.readFileSync)(import_path55.default.join(currentDir, entry.name));
       totalBytes += content.length;
       if (totalBytes > EXTENSION_LIMITS.maxExtractedTotalBytes) {
         throw new ExtensionError(
@@ -65994,11 +66801,11 @@ function readExtensionPackageDirectory(dir) {
   return files;
 }
 function decodeUtf8Strict(name, content) {
-  const text6 = content.toString("utf8");
-  if (!Buffer.from(text6, "utf8").equals(content) || text6.includes("\0")) {
+  const text7 = content.toString("utf8");
+  if (!Buffer.from(text7, "utf8").equals(content) || text7.includes("\0")) {
     return void 0;
   }
-  return text6;
+  return text7;
 }
 function loadExtensionPackage(files, options = {}) {
   const issues = [];
@@ -66182,15 +66989,15 @@ function validateTemplateProviderPacks(manifest, files, specbridgeVersion) {
       );
       continue;
     }
-    const text6 = decodeUtf8Strict(name, content);
-    if (text6 === void 0) {
+    const text7 = decodeUtf8Strict(name, content);
+    if (text7 === void 0) {
       issues.push(
         extensionIssue("SBE008", "files", "error", `template file "${name}" is not valid UTF-8`, name)
       );
       continue;
     }
     const pack = packs.get(packId) ?? /* @__PURE__ */ new Map();
-    pack.set(packRelative, text6);
+    pack.set(packRelative, text7);
     packs.set(packId, pack);
   }
   if (packs.size === 0) {
@@ -66253,10 +67060,10 @@ var EXTENSION_RECORDS_FILE_NAME = "records.jsonl";
 var EXTENSION_STATE_SCHEMA_VERSION = "1.0.0";
 var systemClock2 = () => /* @__PURE__ */ new Date();
 function extensionsDir(workspace) {
-  return import_path55.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
+  return import_path56.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
 }
 function installedRootDir(workspace) {
-  return import_path55.default.join(extensionsDir(workspace), "installed");
+  return import_path56.default.join(extensionsDir(workspace), "installed");
 }
 function installedVersionDir(workspace, id, version2) {
   if (!validateExtensionId(id).valid || parseSemver2(version2) === void 0) {
@@ -66266,7 +67073,7 @@ function installedVersionDir(workspace, id, version2) {
       "Use a valid extension ID and X.Y.Z version."
     );
   }
-  const dir = import_path55.default.join(installedRootDir(workspace), id, version2);
+  const dir = import_path56.default.join(installedRootDir(workspace), id, version2);
   assertInsideWorkspace(workspace.rootDir, dir);
   return dir;
 }
@@ -66310,12 +67117,12 @@ function emptyPermissionGrants() {
   return { schemaVersion: EXTENSION_STATE_SCHEMA_VERSION, grants: {} };
 }
 function readValidatedJson(filePath, schema, empty, label) {
-  if (!(0, import_fs48.existsSync)(filePath)) {
+  if (!(0, import_fs49.existsSync)(filePath)) {
     return { value: empty, diagnostics: [], exists: false };
   }
-  let text6;
+  let text7;
   try {
-    text6 = (0, import_fs48.readFileSync)(filePath, "utf8");
+    text7 = (0, import_fs49.readFileSync)(filePath, "utf8");
   } catch (cause) {
     return {
       value: empty,
@@ -66332,7 +67139,7 @@ function readValidatedJson(filePath, schema, empty, label) {
   }
   let parsed;
   try {
-    parsed = JSON.parse(text6);
+    parsed = JSON.parse(text7);
   } catch {
     return {
       value: empty,
@@ -66365,13 +67172,13 @@ function readValidatedJson(filePath, schema, empty, label) {
   return { value: result.data, diagnostics: [], exists: true };
 }
 function extensionStatePath(workspace) {
-  return import_path55.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
+  return import_path56.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
 }
 function permissionGrantsPath(workspace) {
-  return import_path55.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
+  return import_path56.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
 }
 function extensionRecordsPath(workspace) {
-  return import_path55.default.join(extensionsDir(workspace), EXTENSION_RECORDS_FILE_NAME);
+  return import_path56.default.join(extensionsDir(workspace), EXTENSION_RECORDS_FILE_NAME);
 }
 function readExtensionState(workspace) {
   const { value, diagnostics, exists } = readValidatedJson(
@@ -66422,8 +67229,8 @@ function appendExtensionRecord(workspace, record4) {
   const filePath = extensionRecordsPath(workspace);
   assertInsideWorkspace(workspace.rootDir, filePath);
   try {
-    (0, import_fs48.mkdirSync)(extensionsDir(workspace), { recursive: true });
-    (0, import_fs48.appendFileSync)(filePath, `${JSON.stringify(validated)}
+    (0, import_fs49.mkdirSync)(extensionsDir(workspace), { recursive: true });
+    (0, import_fs49.appendFileSync)(filePath, `${JSON.stringify(validated)}
 `, "utf8");
   } catch (cause) {
     throw ioError("append extension record to", filePath, cause);
@@ -66656,9 +67463,9 @@ function resolveEntrypoint(installedDir, entrypoint) {
   if (problem !== void 0) {
     throw new ExtensionError("SBE012", `entrypoint "${entrypoint}": ${problem}.`, "Fix the extension manifest.");
   }
-  const resolved = import_path56.default.join(installedDir, ...entrypoint.split("/"));
-  const relative = import_path56.default.relative(installedDir, resolved);
-  if (relative.startsWith("..") || import_path56.default.isAbsolute(relative)) {
+  const resolved = import_path57.default.join(installedDir, ...entrypoint.split("/"));
+  const relative = import_path57.default.relative(installedDir, resolved);
+  if (relative.startsWith("..") || import_path57.default.isAbsolute(relative)) {
     throw new ExtensionError(
       "SBE012",
       `entrypoint "${entrypoint}" escapes the installed extension directory.`,
@@ -66666,9 +67473,9 @@ function resolveEntrypoint(installedDir, entrypoint) {
     );
   }
   let current = installedDir;
-  for (const segment of relative.split(import_path56.default.sep)) {
-    current = import_path56.default.join(current, segment);
-    const stat = (0, import_fs49.lstatSync)(current, { throwIfNoEntry: false });
+  for (const segment of relative.split(import_path57.default.sep)) {
+    current = import_path57.default.join(current, segment);
+    const stat = (0, import_fs50.lstatSync)(current, { throwIfNoEntry: false });
     if (stat === void 0) {
       throw new ExtensionError(
         "SBE012",
@@ -66684,7 +67491,7 @@ function resolveEntrypoint(installedDir, entrypoint) {
       );
     }
   }
-  const finalStat = (0, import_fs49.lstatSync)(resolved, { throwIfNoEntry: false });
+  const finalStat = (0, import_fs50.lstatSync)(resolved, { throwIfNoEntry: false });
   if (finalStat === void 0 || !finalStat.isFile()) {
     throw new ExtensionError(
       "SBE012",
@@ -66843,8 +67650,8 @@ function spawnExtensionProcess(options) {
 }
 var MAX_PROTOCOL_LOG_LINES = 200;
 var SHUTDOWN_GRACE_MS = 1e3;
-function redact(text6, secrets) {
-  let redacted = text6;
+function redact(text7, secrets) {
+  let redacted = text7;
   for (const secret of secrets) {
     if (secret.length >= 4) {
       redacted = redacted.split(secret).join("[redacted]");
@@ -67265,14 +68072,14 @@ async function runAnalyzerExtension(workspace, extensionId, input, options = {})
 }
 function compatibilityOf(workspace, record4, specbridgeVersion) {
   try {
-    const manifestPath = import_path57.default.join(
+    const manifestPath = import_path58.default.join(
       installedVersionDir(workspace, record4.id, record4.version),
       EXTENSION_MANIFEST_FILE_NAME
     );
-    if (!(0, import_fs50.existsSync)(manifestPath)) {
+    if (!(0, import_fs51.existsSync)(manifestPath)) {
       return { compatibility: "unknown", deprecated: false };
     }
-    const parsed = parseExtensionManifest((0, import_fs50.readFileSync)(manifestPath, "utf8"));
+    const parsed = parseExtensionManifest((0, import_fs51.readFileSync)(manifestPath, "utf8"));
     if (parsed.manifest === void 0) {
       return { compatibility: "unknown", deprecated: false };
     }
@@ -67551,8 +68358,8 @@ async function runExporterExtension(workspace, extensionId, input, options = {})
   };
 }
 function validateExportTargets(outputDir, files) {
-  const resolvedRoot = import_path58.default.resolve(outputDir);
-  const rootStat = (0, import_fs51.lstatSync)(resolvedRoot, { throwIfNoEntry: false });
+  const resolvedRoot = import_path59.default.resolve(outputDir);
+  const rootStat = (0, import_fs52.lstatSync)(resolvedRoot, { throwIfNoEntry: false });
   if (rootStat !== void 0 && rootStat.isSymbolicLink()) {
     throw new ExtensionError(
       "SBE011",
@@ -67571,9 +68378,9 @@ function validateExportTargets(outputDir, files) {
         "Report this to the extension author; nothing was written."
       );
     }
-    const target = import_path58.default.resolve(resolvedRoot, ...file.path.split("/"));
-    const relative = import_path58.default.relative(resolvedRoot, target);
-    if (relative.startsWith("..") || import_path58.default.isAbsolute(relative)) {
+    const target = import_path59.default.resolve(resolvedRoot, ...file.path.split("/"));
+    const relative = import_path59.default.relative(resolvedRoot, target);
+    if (relative.startsWith("..") || import_path59.default.isAbsolute(relative)) {
       throw new ExtensionError(
         "SBE030",
         `exporter output path "${file.path}" escapes the output directory.`,
@@ -67589,9 +68396,9 @@ function validateExportTargets(outputDir, files) {
     }
     seen.add(target.toLowerCase());
     let current = resolvedRoot;
-    for (const segment of relative.split(import_path58.default.sep)) {
-      current = import_path58.default.join(current, segment);
-      const stat = (0, import_fs51.lstatSync)(current, { throwIfNoEntry: false });
+    for (const segment of relative.split(import_path59.default.sep)) {
+      current = import_path59.default.join(current, segment);
+      const stat = (0, import_fs52.lstatSync)(current, { throwIfNoEntry: false });
       if (stat?.isSymbolicLink() === true) {
         throw new ExtensionError(
           "SBE011",
@@ -67600,7 +68407,7 @@ function validateExportTargets(outputDir, files) {
         );
       }
     }
-    if ((0, import_fs51.existsSync)(target)) {
+    if ((0, import_fs52.existsSync)(target)) {
       throw new ExtensionError(
         "SBE030",
         `export target "${file.path}" already exists in the output directory.`,
@@ -67620,7 +68427,7 @@ function writeExportFiles(workspace, extensionId, extensionVersion, specName, ou
     if (target === void 0 || file === void 0) {
       continue;
     }
-    (0, import_fs51.mkdirSync)(import_path58.default.dirname(target.target), { recursive: true });
+    (0, import_fs52.mkdirSync)(import_path59.default.dirname(target.target), { recursive: true });
     writeFileAtomic(target.target, file.content);
     written.push(target.relative);
   }
@@ -67707,19 +68514,19 @@ function installExtensionPackage(files, options, archiveSha256) {
     return { ...base, dryRun: true };
   }
   const recordId = newExtensionRecordId(clock);
-  const stagingDir = import_path59.default.join(extensionsDir(workspace), `tmp-install-${recordId}`);
+  const stagingDir = import_path60.default.join(extensionsDir(workspace), `tmp-install-${recordId}`);
   assertInsideWorkspace(workspace.rootDir, stagingDir);
   try {
     for (const [name, content] of files) {
-      const target = import_path59.default.join(stagingDir, ...name.split("/"));
+      const target = import_path60.default.join(stagingDir, ...name.split("/"));
       assertInsideWorkspace(workspace.rootDir, target);
-      (0, import_fs52.mkdirSync)(import_path59.default.dirname(target), { recursive: true });
+      (0, import_fs53.mkdirSync)(import_path60.default.dirname(target), { recursive: true });
       writeFileAtomic(target, content);
     }
-    (0, import_fs52.mkdirSync)(import_path59.default.dirname(targetDir), { recursive: true });
-    (0, import_fs52.renameSync)(stagingDir, targetDir);
+    (0, import_fs53.mkdirSync)(import_path60.default.dirname(targetDir), { recursive: true });
+    (0, import_fs53.renameSync)(stagingDir, targetDir);
   } catch (cause) {
-    (0, import_fs52.rmSync)(stagingDir, { recursive: true, force: true });
+    (0, import_fs53.rmSync)(stagingDir, { recursive: true, force: true });
     if (cause instanceof ExtensionError) {
       throw cause;
     }
@@ -67772,7 +68579,7 @@ function installExtensionPackage(files, options, archiveSha256) {
       }
     });
   } catch (cause) {
-    (0, import_fs52.rmSync)(targetDir, { recursive: true, force: true });
+    (0, import_fs53.rmSync)(targetDir, { recursive: true, force: true });
     if (cause instanceof ExtensionError) {
       throw cause;
     }
@@ -67827,8 +68634,8 @@ function buildExtensionArchive(sourceDir, options = {}) {
   const manifest = validation.manifest;
   const archive = createDeterministicZip(runtimeFiles);
   const archiveSha256 = sha256HexOf(archive);
-  const outputDir = options.outputDir ?? import_path60.default.join(sourceDir, "dist");
-  const archivePath = import_path60.default.join(
+  const outputDir = options.outputDir ?? import_path61.default.join(sourceDir, "dist");
+  const archivePath = import_path61.default.join(
     outputDir,
     `${manifest.id}-${manifest.version}${EXTENSION_ARCHIVE_SUFFIX}`
   );
@@ -67842,7 +68649,7 @@ function buildExtensionArchive(sourceDir, options = {}) {
     );
   }
   if (options.dryRun !== true) {
-    (0, import_fs53.mkdirSync)(outputDir, { recursive: true });
+    (0, import_fs54.mkdirSync)(outputDir, { recursive: true });
     writeFileAtomic(archivePath, archive);
   }
   return {
@@ -68640,7 +69447,7 @@ function scaffoldExtension(options) {
     );
   }
   const outputDir = options.outputDir;
-  if ((0, import_fs54.existsSync)(outputDir) && (0, import_fs54.readdirSync)(outputDir).length > 0) {
+  if ((0, import_fs55.existsSync)(outputDir) && (0, import_fs55.readdirSync)(outputDir).length > 0) {
     throw new ExtensionError(
       "SBE030",
       `output directory "${outputDir}" already exists and is not empty.`,
@@ -68700,8 +69507,8 @@ function scaffoldExtension(options) {
     };
   }
   for (const [name, content] of files) {
-    const target = import_path61.default.join(outputDir, ...name.split("/"));
-    (0, import_fs54.mkdirSync)(import_path61.default.dirname(target), { recursive: true });
+    const target = import_path62.default.join(outputDir, ...name.split("/"));
+    (0, import_fs55.mkdirSync)(import_path62.default.dirname(target), { recursive: true });
     writeFileAtomic(target, content);
   }
   return {
@@ -68814,7 +69621,7 @@ function uninstallExtension(options) {
     );
   }
   const installedDir = installedVersionDir(workspace, options.id, version2);
-  const stat = (0, import_fs55.lstatSync)(installedDir, { throwIfNoEntry: false });
+  const stat = (0, import_fs56.lstatSync)(installedDir, { throwIfNoEntry: false });
   if (stat !== void 0 && stat.isSymbolicLink()) {
     throw new ExtensionError(
       "SBE011",
@@ -68828,11 +69635,11 @@ function uninstallExtension(options) {
   const recordId = newExtensionRecordId(clock);
   let trashPath;
   if (stat !== void 0) {
-    const trashDir = import_path62.default.join(extensionsDir(workspace), "trash");
-    trashPath = import_path62.default.join(trashDir, `${options.id}-${version2}-${recordId}`);
+    const trashDir = import_path63.default.join(extensionsDir(workspace), "trash");
+    trashPath = import_path63.default.join(trashDir, `${options.id}-${version2}-${recordId}`);
     assertInsideWorkspace(workspace.rootDir, trashPath);
-    (0, import_fs55.mkdirSync)(trashDir, { recursive: true });
-    (0, import_fs55.renameSync)(installedDir, trashPath);
+    (0, import_fs56.mkdirSync)(trashDir, { recursive: true });
+    (0, import_fs56.renameSync)(installedDir, trashPath);
   }
   writeExtensionState(workspace, {
     ...state,
@@ -68946,11 +69753,11 @@ function createExtensionVerifierHook(workspace, options = {}) {
 }
 
 // ../../packages/registry/dist/index.js
-var import_fs56 = require("fs");
-var import_path63 = __toESM(require("path"), 1);
-var import_crypto17 = require("crypto");
 var import_fs57 = require("fs");
 var import_path64 = __toESM(require("path"), 1);
+var import_crypto18 = require("crypto");
+var import_fs58 = require("fs");
+var import_path65 = __toESM(require("path"), 1);
 var BUILTIN_REGISTRY_INDEX_JSON = '{\n  "schemaVersion": "1.0.0",\n  "name": "specbridge-examples",\n  "updatedAt": "2026-01-01T00:00:00.000Z",\n  "extensions": [\n    {\n      "id": "example-analyzer",\n      "displayName": "example-analyzer",\n      "description": "Deterministic spec diagnostics contributed by the example-analyzer analyzer extension.",\n      "kind": "analyzer",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-analyzer-1.0.0.specbridge-extension.zip",\n          "sha256": "e6e0948a315b09e53bd18997dce21888af9adbb3997fbf82955399dcf3252a19",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "analyzer",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-exporter",\n      "displayName": "example-exporter",\n      "description": "Candidate export files produced by the example-exporter exporter extension.",\n      "kind": "exporter",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-exporter-1.0.0.specbridge-extension.zip",\n          "sha256": "68f42755a4e56d0e318012ec8c0e3b093e44429182ca93b02d9fb4ce2ec308a3",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "exporter",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-runner",\n      "displayName": "example-runner",\n      "description": "An out-of-process runner adapter provided by the example-runner extension.",\n      "kind": "runner",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-runner-1.0.0.specbridge-extension.zip",\n          "sha256": "5ef3db937d872bfe09495695e9ecb0a3cf3beaf9e006fabdc2972ef55ace80ef",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": true,\n              "repositoryWrite": true,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "runner",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-template-provider",\n      "displayName": "example-template-provider",\n      "description": "Spec template packs contributed by the example-template-provider template-provider extension.",\n      "kind": "template-provider",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-template-provider-1.0.0.specbridge-extension.zip",\n          "sha256": "f7caa11a13473f0891cc8d237ec4f9f2962a2dd1bd2baba4e9d01570de29044b",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": false,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "template-provider",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-verifier",\n      "displayName": "example-verifier",\n      "description": "Verification diagnostics contributed by the example-verifier verifier extension.",\n      "kind": "verifier",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-verifier-1.0.0.specbridge-extension.zip",\n          "sha256": "d531c9078fcbeef6573a95773eefafd409d798bac1223c83748e0229ae0225bf",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "verifier",\n        "specbridge-extension"\n      ]\n    }\n  ]\n}\n';
 var REGISTRY_ERROR_CODES = {
   SBR001: "registry not found",
@@ -69037,14 +69844,14 @@ var registryIndexSchema = external_exports.object({
   updatedAt: external_exports.string().min(1).max(60),
   extensions: external_exports.array(registryExtensionEntrySchema).max(2e3)
 }).strict();
-function parseRegistryIndex(text6) {
+function parseRegistryIndex(text7) {
   const problems = [];
-  if (Buffer.byteLength(text6, "utf8") > MAX_REGISTRY_INDEX_BYTES) {
+  if (Buffer.byteLength(text7, "utf8") > MAX_REGISTRY_INDEX_BYTES) {
     return { problems: [`index exceeds ${MAX_REGISTRY_INDEX_BYTES} bytes`] };
   }
   let parsed;
   try {
-    parsed = JSON.parse(text6);
+    parsed = JSON.parse(text7);
   } catch (error2) {
     return { problems: [`index is not valid JSON: ${error2 instanceof Error ? error2.message : String(error2)}`] };
   }
@@ -69107,20 +69914,20 @@ var cachedRegistrySchema = external_exports.object({
   index: registryIndexSchema
 }).passthrough();
 function registryCacheDir(workspace) {
-  return import_path63.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
+  return import_path64.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
 }
 function registryCachePath(workspace, name) {
-  const target = import_path63.default.join(registryCacheDir(workspace), `${name}.json`);
+  const target = import_path64.default.join(registryCacheDir(workspace), `${name}.json`);
   assertInsideWorkspace(workspace.rootDir, target);
   return target;
 }
 function readRegistryCache(workspace, name) {
   const filePath = registryCachePath(workspace, name);
-  if (!(0, import_fs56.existsSync)(filePath)) {
+  if (!(0, import_fs57.existsSync)(filePath)) {
     return { diagnostics: [] };
   }
   try {
-    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs56.readFileSync)(filePath, "utf8")));
+    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs57.readFileSync)(filePath, "utf8")));
     if (!parsed.success) {
       return {
         diagnostics: [
@@ -69153,7 +69960,7 @@ function writeRegistryCache(workspace, name, indexText, index, options = {}) {
     sourceName: name,
     ...options.sourceUrl === void 0 ? {} : { sourceUrl: options.sourceUrl },
     retrievedAt: (options.clock?.() ?? /* @__PURE__ */ new Date()).toISOString(),
-    contentSha256: (0, import_crypto17.createHash)("sha256").update(indexText, "utf8").digest("hex"),
+    contentSha256: (0, import_crypto18.createHash)("sha256").update(indexText, "utf8").digest("hex"),
     index
   });
   writeFileAtomic(registryCachePath(workspace, name), `${JSON.stringify(cache, null, 2)}
@@ -69173,9 +69980,9 @@ function resolveRegistryIndex(workspace, source) {
     return { sourceName: source.name, index: parsed.index, origin: "builtin", diagnostics: [] };
   }
   if (source.type === "local-file") {
-    const filePath = import_path63.default.resolve(workspace.rootDir, source.file);
+    const filePath = import_path64.default.resolve(workspace.rootDir, source.file);
     assertInsideWorkspace(workspace.rootDir, filePath);
-    if (!(0, import_fs56.existsSync)(filePath)) {
+    if (!(0, import_fs57.existsSync)(filePath)) {
       return {
         sourceName: source.name,
         index: { schemaVersion: "1.0.0", name: source.name, updatedAt: "unknown", extensions: [] },
@@ -69190,8 +69997,8 @@ function resolveRegistryIndex(workspace, source) {
         ]
       };
     }
-    const text6 = (0, import_fs56.readFileSync)(filePath, "utf8");
-    const parsed = parseRegistryIndex(text6);
+    const text7 = (0, import_fs57.readFileSync)(filePath, "utf8");
+    const parsed = parseRegistryIndex(text7);
     if (parsed.index === void 0) {
       throw new RegistryError(
         "SBR007",
@@ -69433,7 +70240,7 @@ var registriesConfigSchema = external_exports.object({
   registries: external_exports.array(registrySourceSchema).max(20)
 }).passthrough();
 function registriesConfigPath(workspace) {
-  return import_path64.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
+  return import_path65.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
 }
 function defaultRegistriesConfig() {
   return {
@@ -69443,12 +70250,12 @@ function defaultRegistriesConfig() {
 }
 function readRegistriesConfig(workspace) {
   const filePath = registriesConfigPath(workspace);
-  if (!(0, import_fs57.existsSync)(filePath)) {
+  if (!(0, import_fs58.existsSync)(filePath)) {
     return { config: defaultRegistriesConfig(), diagnostics: [], exists: false };
   }
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs57.readFileSync)(filePath, "utf8"));
+    parsed = JSON.parse((0, import_fs58.readFileSync)(filePath, "utf8"));
   } catch (cause) {
     return {
       config: defaultRegistriesConfig(),
@@ -76000,10 +76807,10 @@ Examples:
 
 // ../../packages/mcp-server/dist/chunk-JYVBX4T7.js
 var import_buffer5 = require("buffer");
-var import_fs58 = require("fs");
-var import_path65 = __toESM(require("path"), 1);
-var import_crypto18 = require("crypto");
+var import_fs59 = require("fs");
 var import_path66 = __toESM(require("path"), 1);
+var import_crypto19 = require("crypto");
+var import_path67 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/core.js
 var NEVER2 = Object.freeze({
@@ -86331,12 +87138,12 @@ var EMPTY_COMPLETION_RESULT = {
 };
 
 // ../../packages/mcp-server/dist/chunk-JYVBX4T7.js
-var import_fs59 = require("fs");
 var import_fs60 = require("fs");
-var import_path67 = __toESM(require("path"), 1);
 var import_fs61 = require("fs");
-var import_os2 = __toESM(require("os"), 1);
 var import_path68 = __toESM(require("path"), 1);
+var import_fs62 = require("fs");
+var import_os2 = __toESM(require("os"), 1);
+var import_path69 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 var import_node_process11 = __toESM(require("process"), 1);
@@ -86727,12 +87534,12 @@ function paginate(all, options) {
     totalCount: all.length
   };
 }
-function truncateText(text6, maximumBytes) {
-  const originalBytes = import_buffer5.Buffer.byteLength(text6, "utf8");
+function truncateText(text7, maximumBytes) {
+  const originalBytes = import_buffer5.Buffer.byteLength(text7, "utf8");
   if (originalBytes <= maximumBytes) {
-    return { text: text6, truncated: false, originalBytes };
+    return { text: text7, truncated: false, originalBytes };
   }
-  const buffer = import_buffer5.Buffer.from(text6, "utf8").subarray(0, maximumBytes);
+  const buffer = import_buffer5.Buffer.from(text7, "utf8").subarray(0, maximumBytes);
   const decoded = buffer.toString("utf8").replace(/�+$/u, "");
   return { text: decoded, truncated: true, originalBytes };
 }
@@ -86795,10 +87602,10 @@ function validateProjectRoot(value, source, cwd) {
       remediation: ["Pass a plain filesystem path as --project-root."]
     };
   }
-  const resolved = import_path65.default.resolve(cwd, value);
+  const resolved = import_path66.default.resolve(cwd, value);
   let canonical;
   try {
-    canonical = (0, import_fs58.realpathSync)(resolved);
+    canonical = (0, import_fs59.realpathSync)(resolved);
   } catch {
     return {
       ok: false,
@@ -86811,7 +87618,7 @@ function validateProjectRoot(value, source, cwd) {
   }
   let stats;
   try {
-    stats = (0, import_fs58.statSync)(canonical);
+    stats = (0, import_fs59.statSync)(canonical);
   } catch {
     return {
       ok: false,
@@ -86839,7 +87646,7 @@ var ServerContext = class {
     this.projectRoot = options.projectRoot;
     this.logger = options.logger;
     this.clock = options.clock ?? (() => /* @__PURE__ */ new Date());
-    this.idFactory = options.idFactory ?? import_crypto18.randomUUID;
+    this.idFactory = options.idFactory ?? import_crypto19.randomUUID;
   }
   /**
    * Resolve the `.kiro` workspace from the pinned project root, or
@@ -86901,11 +87708,11 @@ var ServerContext = class {
     return next;
   }
 };
-function promptResult(context, name, description, text6) {
+function promptResult(context, name, description, text7) {
   context.logger.info("prompt_requested", { prompt: name });
   return {
     description,
-    messages: [{ role: "user", content: { type: "text", text: text6 } }]
+    messages: [{ role: "user", content: { type: "text", text: text7 } }]
   };
 }
 function registerStatusPrompt(server, context) {
@@ -87068,8 +87875,8 @@ var paginationShape = external_exports.object({
   nextCursor: external_exports.string().optional()
 });
 function repoRelative2(workspace, target) {
-  const relative = import_path66.default.isAbsolute(target) ? import_path66.default.relative(workspace.rootDir, target) : target;
-  const posix = relative.split(import_path66.default.sep).join("/");
+  const relative = import_path67.default.isAbsolute(target) ? import_path67.default.relative(workspace.rootDir, target) : target;
+  const posix = relative.split(import_path67.default.sep).join("/");
   return posix === "" ? "." : posix;
 }
 function toDiagnosticView(workspace, diagnostic) {
@@ -87158,9 +87965,9 @@ function workspaceDetectionText(detection) {
 function resourceNotFound(what, remediation) {
   return new Error(`${what} was not found. ${remediation}`);
 }
-function markdownContents(context, uri, text6) {
+function markdownContents(context, uri, text7) {
   context.logger.info("resource_read", { resource: uri });
-  const bounded2 = truncateText(text6, LIMITS.maximumDocumentBytes);
+  const bounded2 = truncateText(text7, LIMITS.maximumDocumentBytes);
   return {
     contents: [
       {
@@ -87178,7 +87985,7 @@ function jsonContents(context, uri, value) {
   context.logger.info("resource_read", { resource: uri });
   const serialized = JSON.stringify(value, null, 2);
   const bounded2 = truncateText(serialized, LIMITS.maximumStructuredResponseBytes);
-  const text6 = bounded2.truncated ? JSON.stringify(
+  const text7 = bounded2.truncated ? JSON.stringify(
     {
       truncated: true,
       message: `The resource exceeded ${LIMITS.maximumStructuredResponseBytes} bytes; use the paginated tools instead.`
@@ -87186,7 +87993,7 @@ function jsonContents(context, uri, value) {
     null,
     2
   ) : serialized;
-  return { contents: [{ uri, mimeType: "application/json", text: text6 }] };
+  return { contents: [{ uri, mimeType: "application/json", text: text7 }] };
 }
 function assertPlainName(kind, value) {
   const decoded = decodeURIComponent(value);
@@ -87569,7 +88376,7 @@ function registerRunResources(server, context) {
         throw resourceNotFound(`Run "${runId}"`, "List runs with the run_list tool.");
       }
       const directory = runDir(workspace, record4.runId);
-      const artifactNames = (0, import_fs59.existsSync)(directory) ? (0, import_fs59.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
+      const artifactNames = (0, import_fs60.existsSync)(directory) ? (0, import_fs60.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
       return jsonContents(context, uri.href, buildRunDetail(workspace, record4, artifactNames));
     }
   );
@@ -87805,8 +88612,8 @@ function registerSteeringListTool(server, context) {
           diagnostics: toDiagnosticViews(workspace, info.diagnostics)
         };
       });
-      const text6 = steering.length === 0 ? "No steering documents exist (.kiro/steering is absent or empty). Steering is optional." : `${steering.length} steering document(s): ${steering.map((s) => s.name).join(", ")}.`;
-      return { text: text6, structured: { steering, count: steering.length } };
+      const text7 = steering.length === 0 ? "No steering documents exist (.kiro/steering is absent or empty). Steering is optional." : `${steering.length} steering document(s): ${steering.map((s) => s.name).join(", ")}.`;
+      return { text: text7, structured: { steering, count: steering.length } };
     }
   });
 }
@@ -87930,10 +88737,10 @@ function registerSpecListTool(server, context) {
       const lines = page.items.map(
         (spec) => `- ${spec.name} [${spec.type}/${spec.workflowMode}] ${spec.workflowStatus}, approvals ${spec.approvalHealth}, tasks ${spec.taskProgress.completed}/${spec.taskProgress.total}`
       );
-      const text6 = page.totalCount === 0 ? "No specs match. This workspace may have no specs yet; create one with spec_create." : `${page.totalCount} spec(s)${page.truncated ? ` (showing ${page.items.length})` : ""}:
+      const text7 = page.totalCount === 0 ? "No specs match. This workspace may have no specs yet; create one with spec_create." : `${page.totalCount} spec(s)${page.truncated ? ` (showing ${page.items.length})` : ""}:
 ${lines.join("\n")}`;
       return {
-        text: text6,
+        text: text7,
         structured: {
           specs: page.items,
           pagination: {
@@ -88005,10 +88812,10 @@ function registerSpecReadTool(server, context) {
         };
       });
       const present = documents.filter((doc) => doc.exists);
-      const text6 = present.length === 0 ? `Spec "${analysis.folder.name}" has none of the requested document(s) yet.` : present.map((doc) => `## ${doc.path}
+      const text7 = present.length === 0 ? `Spec "${analysis.folder.name}" has none of the requested document(s) yet.` : present.map((doc) => `## ${doc.path}
 
 ${doc.content ?? ""}${doc.truncated === true ? "\n\n[truncated]" : ""}`).join("\n\n");
-      return { text: text6, structured: { specName: analysis.folder.name, documents } };
+      return { text: text7, structured: { specName: analysis.folder.name, documents } };
     }
   });
 }
@@ -88110,7 +88917,7 @@ function registerSpecStatusTool(server, context) {
       const capped = capDiagnostics(toDiagnosticViews(workspace, allDiagnostics));
       const suggestedNextActions = suggestNextActions(bundle);
       const stageLines = stages.map((stage) => `  ${stage.stage}: ${stage.effective}`);
-      const text6 = [
+      const text7 = [
         `Spec "${summary.name}" (${summary.type}, ${summary.workflowMode}) \u2014 status ${summary.workflowStatus}, approvals ${summary.approvalHealth}.`,
         stages.length > 0 ? `Stages:
 ${stageLines.join("\n")}` : "No SpecBridge workflow state (unmanaged spec).",
@@ -88118,7 +88925,7 @@ ${stageLines.join("\n")}` : "No SpecBridge workflow state (unmanaged spec).",
         `Next: ${suggestedNextActions[0] ?? "(no suggestion)"}`
       ].join("\n");
       return {
-        text: text6,
+        text: text7,
         structured: {
           summary,
           stages,
@@ -88333,13 +89140,13 @@ function registerSpecAnalyzeTool(server, context) {
       } else if (strict && result.warningCount > 0) {
         remediation.push("Fix the warnings or re-run without strict.");
       }
-      const text6 = [
+      const text7 = [
         `Analysis of "${analysis.folder.name}" (${stagesAnalyzed.join(", ") || "no stages"}): ${result.errorCount} error(s), ${result.warningCount} warning(s), ${infoCount} info \u2014 ${passed ? "PASSED" : "FAILED"}${strict ? " (strict)" : ""}.`,
         ...capped.items.slice(0, 20).map((d) => `- ${d.severity.toUpperCase()} ${d.code}: ${d.message}${d.line !== void 0 ? ` (line ${d.line})` : ""}`),
         capped.items.length > 20 ? `\u2026 ${capped.items.length - 20} more finding(s) in structured content.` : ""
       ].filter((line) => line.length > 0).join("\n");
       return {
-        text: text6,
+        text: text7,
         structured: {
           specName: analysis.folder.name,
           stagesAnalyzed,
@@ -88427,10 +89234,10 @@ function registerSpecCreateTool(server, context) {
             "Call spec_create again with apply: true to create the spec."
           ];
         }
-        const text6 = apply ? `Created spec "${plan.specName}" (${plan.specType}, ${plan.mode}) with ${plan.files.length} file(s). Initial status: ${plan.state.status}.` : `Preview of spec "${plan.specName}" (${plan.specType}, ${plan.mode}) \u2014 nothing was written.
+        const text7 = apply ? `Created spec "${plan.specName}" (${plan.specType}, ${plan.mode}) with ${plan.files.length} file(s). Initial status: ${plan.state.status}.` : `Preview of spec "${plan.specName}" (${plan.specType}, ${plan.mode}) \u2014 nothing was written.
 ` + previewFiles.map((file) => `- ${file.path} (${file.bytes} bytes)`).join("\n");
         return {
-          text: text6,
+          text: text7,
           structured: {
             applied: apply,
             specName: plan.specName,
@@ -88579,7 +89386,7 @@ function registerSpecStageValidateTool(server, context) {
       );
       const boundedDiff = truncateText(evaluation.diff, LIMITS.maximumDocumentBytes);
       const nextStep = valid ? "Present the diff for review; after explicit user confirmation call spec_stage_apply with this candidateHash." : "Fix the error-level findings and validate again; spec_stage_apply refuses candidates with errors.";
-      const text6 = [
+      const text7 = [
         `Candidate ${args.stage}.md for "${evaluation.analysis.folder.name}": ${valid ? "VALID" : "INVALID"} (${evaluation.analysisResult.errorCount} error(s), ${evaluation.analysisResult.warningCount} warning(s)).`,
         `Candidate hash: ${evaluation.candidateHash}`,
         `Current document: ${evaluation.currentExists ? `hash ${evaluation.currentHash}` : "(absent)"}`,
@@ -88587,7 +89394,7 @@ function registerSpecStageValidateTool(server, context) {
         `Next: ${nextStep}`
       ].join("\n");
       return {
-        text: text6,
+        text: text7,
         structured: {
           specName: evaluation.analysis.folder.name,
           stage: args.stage,
@@ -88744,14 +89551,14 @@ function registerSpecStageApplyTool(server, context) {
         toDiagnosticViews(workspace, evaluation.analysisResult.diagnostics)
       );
       const nextStep = `The ${args.stage} stage is written but NOT approved. A human approves it with: specbridge spec approve ${specName} --stage ${args.stage}`;
-      const text6 = [
+      const text7 = [
         `Applied ${args.stage}.md for "${specName}" (${written.created ? "created" : "updated"}, ${written.eol.toUpperCase()} preserved).`,
         invalidation.invalidated.length > 0 ? `Invalidated dependent approval(s): ${invalidation.invalidated.join(", ")}.` : "No dependent approvals were invalidated.",
         `Authoring run: ${runId}.`,
         nextStep
       ].join("\n");
       return {
-        text: text6,
+        text: text7,
         structured: {
           applied: true,
           specName,
@@ -88854,10 +89661,10 @@ function registerTaskListTool(server, context) {
         (task) => `- ${box(task.state)} ${task.id} ${task.title}${task.optional ? " (optional)" : ""}`
       );
       const progress = model.progress;
-      const text6 = `Tasks for "${analysis.folder.name}": ${progress.completed}/${progress.total} required complete.` + (lines.length > 0 ? `
+      const text7 = `Tasks for "${analysis.folder.name}": ${progress.completed}/${progress.total} required complete.` + (lines.length > 0 ? `
 ${lines.join("\n")}` : "\n(no tasks parsed)");
       return {
-        text: text6,
+        text: text7,
         structured: {
           specName: analysis.folder.name,
           progress,
@@ -89092,7 +89899,7 @@ function registerTaskBeginTool(server, context) {
       });
       const boundedContext = truncateText(outcome.contextMarkdown, LIMITS.maximumDocumentBytes);
       const task = outcome.task;
-      const text6 = [
+      const text7 = [
         `Interactive run ${outcome.runId} started for "${outcome.specName}", task ${task.id}: ${task.title}.`,
         "",
         "Instructions:",
@@ -89102,7 +89909,7 @@ function registerTaskBeginTool(server, context) {
         `When the source changes are ready, call task_complete with runId "${outcome.runId}".`
       ].join("\n");
       return {
-        text: text6,
+        text: text7,
         structured: {
           runId: outcome.runId,
           specName: outcome.specName,
@@ -89197,7 +90004,7 @@ function registerTaskCompleteTool(server, context) {
       });
       const actualChangedFiles = report.changedFiles.filter((file) => file.modifiedDuringRun);
       const nextRecommendedAction = nextActionFor(outcome.outcome, report);
-      const text6 = [
+      const text7 = [
         `Run ${report.runId}: ${outcome.outcome.toUpperCase()} (evidence: ${report.evidenceStatus}).${outcome.finalizedNow ? "" : " [already finalized; returning the recorded result]"}`,
         `Actual changed files (${actualChangedFiles.length}): ${actualChangedFiles.map((f) => f.path).join(", ") || "(none)"}`,
         report.verification.ran ? `Verification: ${report.verification.passed ? "passed" : `FAILED (${report.verification.requiredFailed.join(", ")})`}` : "Verification: not run.",
@@ -89207,7 +90014,7 @@ ${report.violations.map((v) => `- ${v}`).join("\n")}` : "",
         `Next: ${nextRecommendedAction}`
       ].filter((line) => line.length > 0).join("\n");
       return {
-        text: text6,
+        text: text7,
         structured: {
           runId: report.runId,
           outcome: outcome.outcome,
@@ -89338,10 +90145,10 @@ function registerRunListTool(server, context) {
       const lines = page.items.map(
         (run) => `- ${run.runId.slice(0, 12)} ${run.runType} ${run.specName}${run.taskId !== void 0 ? `#${run.taskId}` : ""} \u2192 ${run.evidenceStatus ?? run.lifecycleStatus ?? run.outcome ?? "(in progress)"}`
       );
-      const text6 = page.totalCount === 0 ? "No recorded runs match." : `${page.totalCount} run(s)${page.truncated ? ` (showing ${page.items.length})` : ""}:
+      const text7 = page.totalCount === 0 ? "No recorded runs match." : `${page.totalCount} run(s)${page.truncated ? ` (showing ${page.items.length})` : ""}:
 ${lines.join("\n")}`;
       return {
-        text: text6,
+        text: text7,
         structured: {
           runs: page.items,
           pagination: {
@@ -89385,7 +90192,7 @@ function registerRunReadTool(server, context) {
         });
       }
       const directory = runDir(workspace, record4.runId);
-      const artifactNames = (0, import_fs60.existsSync)(directory) ? (0, import_fs60.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS2.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
+      const artifactNames = (0, import_fs61.existsSync)(directory) ? (0, import_fs61.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS2.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
       const detail = buildRunDetail(workspace, record4, artifactNames);
       const lines = [
         `Run ${detail.summary.runId} \u2014 ${detail.summary.runType} for spec "${detail.summary.specName}"${detail.summary.taskId !== void 0 ? `, task ${detail.summary.taskId}` : ""}.`,
@@ -89503,14 +90310,14 @@ function registerSpecAffectedTool(server, context) {
         return { specName: spec.specName, matches: spec.matches.slice(0, MAX_PATHS) };
       });
       if (result.unmapped.length > MAX_PATHS || result.ambiguous.length > MAX_PATHS) truncated = true;
-      const text6 = [
+      const text7 = [
         `Comparison ${request.mode}: ${comparison.changedFiles.length} changed file(s).`,
         result.affected.length > 0 ? `Affected specs: ${result.affected.map((spec) => spec.specName).join(", ")}.` : "No spec is affected by this change set.",
         result.unmapped.length > 0 ? `${result.unmapped.length} unmapped changed file(s).` : "",
         result.ambiguous.length > 0 ? `${result.ambiguous.length} file(s) claimed by more than one spec.` : ""
       ].filter((line) => line.length > 0).join("\n");
       return {
-        text: text6,
+        text: text7,
         structured: {
           comparison: { mode: request.mode, changedFiles: comparison.changedFiles.length },
           affected: boundedAffected,
@@ -89745,18 +90552,18 @@ function registerSpecRunVerificationTool(server, context) {
         durationMs: command.durationMs,
         timedOut: command.timedOut
       }));
-      const reportPath = result.artifactsDir !== void 0 ? import_path67.default.relative(workspace.rootDir, result.artifactsDir).split(import_path67.default.sep).join("/") : void 0;
+      const reportPath = result.artifactsDir !== void 0 ? import_path68.default.relative(workspace.rootDir, result.artifactsDir).split(import_path68.default.sep).join("/") : void 0;
       const commandLines = commands.map(
         (command) => `- ${command.name}: ${command.disposition}${command.disposition === "executed" ? command.passed ? " (passed)" : ` (FAILED, exit ${command.exitCode ?? "none"})` : ""}`
       );
-      const text6 = [
+      const text7 = [
         verificationText(view, "Verification (rules + trusted commands)"),
         commands.length > 0 ? `Commands:
 ${commandLines.join("\n")}` : "No verification commands are configured.",
         persistReport && reportPath !== void 0 ? `Report persisted: ${reportPath}` : "Report not persisted (persistReport was false)."
       ].join("\n");
       return {
-        text: text6,
+        text: text7,
         structured: {
           ...view,
           commands,
@@ -89864,18 +90671,18 @@ var conformanceSummaryShape = external_exports.object({
   note: external_exports.string()
 });
 async function invocationFreeConformanceSummary(profile) {
-  const scratch = (0, import_fs61.mkdtempSync)(import_path68.default.join(import_os2.default.tmpdir(), "specbridge-mcp-conformance-"));
+  const scratch = (0, import_fs62.mkdtempSync)(import_path69.default.join(import_os2.default.tmpdir(), "specbridge-mcp-conformance-"));
   let result;
   try {
     result = await runRunnerConformance({
       profile,
       workspaceRoot: scratch,
-      runDir: import_path68.default.join(scratch, ".specbridge-conformance-runs"),
+      runDir: import_path69.default.join(scratch, ".specbridge-conformance-runs"),
       invocationsAllowed: false,
       timeoutMs: RUNNER_PROBE_TIMEOUT_MS
     });
   } finally {
-    (0, import_fs61.rmSync)(scratch, { recursive: true, force: true });
+    (0, import_fs62.rmSync)(scratch, { recursive: true, force: true });
   }
   return {
     passed: result.passed,
@@ -90233,9 +91040,9 @@ function registerTemplateListTool(server, context) {
         ...args.cursor !== void 0 ? { cursor: args.cursor } : {},
         token: "template-list"
       });
-      const text6 = page.items.length === 0 ? "No templates match the given filters." : page.items.map((template) => `- ${template.ref} v${template.version ?? "?"} \u2014 ${template.displayName ?? "(invalid)"}`).join("\n");
+      const text7 = page.items.length === 0 ? "No templates match the given filters." : page.items.map((template) => `- ${template.ref} v${template.version ?? "?"} \u2014 ${template.displayName ?? "(invalid)"}`).join("\n");
       return {
-        text: text6,
+        text: text7,
         structured: {
           templates: page.items,
           totalCount: filtered.length,
@@ -90274,8 +91081,8 @@ function registerTemplateSearchTool(server, context) {
       const filtered = { entries: filterEntries(catalog.entries, args), diagnostics: catalog.diagnostics };
       const results = searchTemplates(filtered, args.query, args.limit !== void 0 ? { limit: args.limit } : {});
       const summaries = results.map((result) => ({ ...entrySummary(result.entry), score: result.score }));
-      const text6 = summaries.length === 0 ? `No templates match "${args.query}".` : summaries.map((result) => `- ${result.ref} (score ${result.score}) \u2014 ${result.displayName ?? ""}`).join("\n");
-      return { text: text6, structured: { results: summaries, totalCount: summaries.length } };
+      const text7 = summaries.length === 0 ? `No templates match "${args.query}".` : summaries.map((result) => `- ${result.ref} (score ${result.score}) \u2014 ${result.displayName ?? ""}`).join("\n");
+      return { text: text7, structured: { results: summaries, totalCount: summaries.length } };
     }
   });
 }
@@ -90320,13 +91127,13 @@ function registerTemplateShowTool(server, context) {
       const manifest = entry.pack.manifest;
       const summary = entrySummary(entry);
       const readme = entry.pack.readme !== void 0 ? truncateText(entry.pack.readme, LIMITS.maximumShortTextChars) : void 0;
-      const text6 = [
+      const text7 = [
         `${entry.ref} \u2014 ${manifest?.displayName ?? "(invalid template)"} v${manifest?.version ?? "?"}`,
         manifest?.description ?? "",
         manifest !== void 0 ? `Variables: ${manifest.variables.map((variable) => variable.name).join(", ") || "(none)"}` : `Invalid: ${summary.errors.join(" | ")}`
       ].filter((line) => line.length > 0).join("\n");
       return {
-        text: text6,
+        text: text7,
         structured: {
           template: summary,
           license: manifest?.license ?? null,
@@ -90630,9 +91437,9 @@ function registerExtensionListTool(server, context) {
         ...args.cursor !== void 0 ? { cursor: args.cursor } : {},
         token: "extension-list"
       });
-      const text6 = page.items.length === 0 ? "No installed extensions match the given filters." : page.items.map((entry) => `- ${entry.id}@${entry.version} (${entry.kind}, ${entry.enabled ? "enabled" : "disabled"})`).join("\n");
+      const text7 = page.items.length === 0 ? "No installed extensions match the given filters." : page.items.map((entry) => `- ${entry.id}@${entry.version} (${entry.kind}, ${entry.enabled ? "enabled" : "disabled"})`).join("\n");
       return {
-        text: text6,
+        text: text7,
         structured: { extensions: page.items, totalCount: entries.length, nextCursor: page.nextCursor ?? null }
       };
     }
@@ -91719,11 +92526,11 @@ function registerJobListTool(server, context) {
         if (args.activeOnly === true && job.finalizedAt !== void 0) return false;
         return true;
       }).slice(0, 100).map(toJobSummary);
-      const text6 = jobs.length === 0 ? "No orchestration jobs match. Start one with `specbridge orchestrate run <spec>`." : jobs.map(
+      const text7 = jobs.length === 0 ? "No orchestration jobs match. Start one with `specbridge orchestrate run <spec>`." : jobs.map(
         (job) => `- ${job.jobId} ${job.status} (${job.specName}, ${job.agentRuns} agent runs, ${job.openQuestions} open question(s))`
       ).join("\n");
       return {
-        text: text6,
+        text: text7,
         structured: {
           jobs,
           diagnostics: listed.diagnostics.map((diagnostic) => ({
@@ -91791,7 +92598,7 @@ function registerJobReadTool(server, context) {
         ...node.latestFailure !== void 0 ? { latestFailureCategory: node.latestFailure.category } : {},
         ...node.latestDiagnosis !== void 0 ? { latestDiagnosisAction: node.latestDiagnosis.recommendedAction } : {}
       }));
-      const text6 = [
+      const text7 = [
         `Job ${job.jobId}: ${job.status} (${job.specName})`,
         ...job.blocker !== void 0 ? [`Blocker [${job.blocker.code}]: ${job.blocker.message}`] : [],
         ...job.openQuestions.map((question) => `Question ${question.id}: ${question.question}`),
@@ -91801,7 +92608,7 @@ function registerJobReadTool(server, context) {
         ...checkpoint !== void 0 ? [`Next action: ${checkpoint.nextAction}`] : []
       ].join("\n");
       return {
-        text: text6,
+        text: text7,
         structured: {
           job: toJobSummary(job),
           goal: job.goal,
@@ -92425,10 +93232,10 @@ function registerObjectiveReadTool(server, context) {
         status: record4.status,
         workspaceIdentity: record4.workspaceIdentity
       }));
-      const text6 = graph === void 0 ? "No work graph exists for this objective yet." : graph.units.map((unit) => `- ${unit.workUnitId} [${unit.status}] (${unit.kind}) ${unit.title}`).join("\n") + (conflicts.length > 0 ? `
+      const text7 = graph === void 0 ? "No work graph exists for this objective yet." : graph.units.map((unit) => `- ${unit.workUnitId} [${unit.status}] (${unit.kind}) ${unit.title}`).join("\n") + (conflicts.length > 0 ? `
 ${conflicts.length} contract conflict(s) recorded.` : "");
       return {
-        text: text6,
+        text: text7,
         structured: {
           workGraph: graph ?? null,
           conflicts,
@@ -92794,8 +93601,8 @@ async function runMcpServe(argv2, io = {
 }
 
 // ../../packages/mcp-server/dist/index.js
-var import_fs62 = require("fs");
-var import_path69 = __toESM(require("path"), 1);
+var import_fs63 = require("fs");
+var import_path70 = __toESM(require("path"), 1);
 async function runMcpDoctor(options = {}) {
   const checks = [];
   const env = options.env ?? process.env;
@@ -92888,7 +93695,7 @@ async function runMcpDoctor(options = {}) {
   const pluginRoot = env["CLAUDE_PLUGIN_ROOT"];
   if (pluginRoot !== void 0 && pluginRoot.length > 0) {
     const missing = ["dist/mcp-server.cjs", "dist/cli.cjs"].filter(
-      (relative) => !(0, import_fs62.existsSync)(import_path69.default.join(pluginRoot, relative))
+      (relative) => !(0, import_fs63.existsSync)(import_path70.default.join(pluginRoot, relative))
     );
     checks.push(
       missing.length === 0 ? { name: "plugin-bundle", status: "ok", detail: `Bundled executables present under ${pluginRoot}` } : {
@@ -95031,14 +95838,14 @@ async function runCli(argv2, ioOverrides) {
   const program2 = buildProgram(runtime);
   program2.exitOverride();
   program2.configureOutput({
-    writeOut: (text6) => io.outRaw(text6),
-    writeErr: (text6) => io.outRaw(text6)
+    writeOut: (text7) => io.outRaw(text7),
+    writeErr: (text7) => io.outRaw(text7)
   });
   for (const command of walkCommands(program2)) {
     command.exitOverride();
     command.configureOutput({
-      writeOut: (text6) => io.outRaw(text6),
-      writeErr: (text6) => io.outRaw(text6)
+      writeOut: (text7) => io.outRaw(text7),
+      writeErr: (text7) => io.outRaw(text7)
     });
   }
   try {

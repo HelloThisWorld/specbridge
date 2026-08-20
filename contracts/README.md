@@ -15,6 +15,7 @@ the built packages by `scripts/check-public-contracts.mjs`:
 | `extension-contract.json` | Extension kinds, protocol methods, permission flags, archive suffix |
 | `mcp-contract.json` | MCP server name, tool/resource/prompt names |
 | `orchestration-contract.json` | Orchestration vocabulary: phases, roles, statuses, event types, `SBO###` codes |
+| `context-contract.json` | Context-lifecycle vocabulary: layers, protected layers, health levels, compaction levels, native-compaction modes |
 | `mission-contract.json` | Mission Discovery vocabulary: lifecycle, topics, materiality, provenance, `SBM###` codes |
 | `plugin-skills.json` | Claude Code plugin Skill names |
 | `github-action.json` | GitHub Action input/output names |

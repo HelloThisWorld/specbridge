@@ -1,0 +1,32 @@
+{
+  "compactionLevels": [
+    "emergency",
+    "micro",
+    "milestone"
+  ],
+  "healthLevels": [
+    "FORCE_COMPACT",
+    "HEALTHY",
+    "OVERFLOW",
+    "PREPARE",
+    "PROACTIVE_COMPACT"
+  ],
+  "layers": [
+    "COMPACTED_HISTORY",
+    "CURRENT_ACTION",
+    "DURABLE_TASK_STATE",
+    "PINNED",
+    "RECENT_DELTA",
+    "WORKING_SET"
+  ],
+  "nativeCompactionModes": [
+    "automatic",
+    "explicit",
+    "none"
+  ],
+  "protectedLayers": [
+    "CURRENT_ACTION",
+    "DURABLE_TASK_STATE",
+    "PINNED"
+  ]
+}

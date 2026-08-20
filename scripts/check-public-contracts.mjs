@@ -181,6 +181,7 @@ async function buildSnapshots() {
   const orchestration = await importDist('orchestration');
   const mission = await importDist('mission');
   const mcp = await importDist('mcp-server');
+  const context = await importDist('context');
 
   const snapshots = {
     'cli-commands.json': {
@@ -235,6 +236,11 @@ async function buildSnapshots() {
       missionContract: mission.MISSION_CONTRACT_SCHEMA_VERSION,
       missionCcr: mission.MISSION_CCR_SCHEMA_VERSION,
       missionCheckpoint: mission.MISSION_CHECKPOINT_SCHEMA_VERSION,
+      // Survival-runtime families (vNext.1; persisted under .specbridge/jobs/<id>/).
+      taskAttempt: orchestration.TASK_ATTEMPT_SCHEMA_VERSION,
+      taskCheckpoint: orchestration.TASK_CHECKPOINT_SCHEMA_VERSION,
+      contextPackage: context.CONTEXT_PACKAGE_SCHEMA_VERSION,
+      runnerContextCapabilities: runners.RUNNER_CONTEXT_CAPABILITIES_SCHEMA_VERSION,
     },
     'verification-rules.json': {
       idPattern: 'SBV\\d{3}',
@@ -289,6 +295,18 @@ async function buildSnapshots() {
       workUnitKinds: [...orchestration.WORK_UNIT_KINDS].sort(),
       evaluationVerdicts: [...orchestration.EVALUATION_VERDICTS].sort(),
       evaluationLayers: [...orchestration.EVALUATION_LAYERS].sort(),
+      // Survival-runtime vocabulary (vNext.1; additive within 1.x).
+      taskAttemptStatuses: [...orchestration.TASK_ATTEMPT_STATUSES].sort(),
+      taskCheckpointReasons: [...orchestration.TASK_CHECKPOINT_REASONS].sort(),
+    },
+    // Context-lifecycle vocabulary (vNext.1). Every value is stable within
+    // 1.x: members may be appended, never renamed or removed.
+    'context-contract.json': {
+      layers: [...context.CONTEXT_LAYERS].sort(),
+      protectedLayers: [...context.PROTECTED_CONTEXT_LAYERS].sort(),
+      healthLevels: [...context.CONTEXT_HEALTH_LEVELS].sort(),
+      compactionLevels: [...context.COMPACTION_LEVELS].sort(),
+      nativeCompactionModes: [...context.NATIVE_COMPACTION_MODES].sort(),
     },
     // Mission Discovery vocabulary. Every value is stable within 1.x:
     // members may be appended, never renamed or removed.

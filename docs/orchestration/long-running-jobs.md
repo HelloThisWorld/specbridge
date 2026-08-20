@@ -45,7 +45,16 @@ written state.
   agents/…          bounded structured agent results (append-only)
   events.jsonl      append-only audit history
   checkpoint.json   the latest compact continuation point
+  task-attempts/<attemptId>.json          durable ExecutionAttempts (vNext.1)
+  task-checkpoints/<node>/0001.json       structured task checkpoints (vNext.1)
 ```
+
+The `task-attempts/` and `task-checkpoints/` families are the Survival
+Runtime (vNext.1): durable per-dispatch attempt records (written before
+work runs, reconciled `RUNNING → INTERRUPTED` after a crash) and structured
+per-task checkpoints preserving decisions and failed approaches across
+workers and providers. See
+[survival-runtime.md](survival-runtime.md) for the full model.
 
 Job statuses: `CREATED → PLANNING → READY → RUNNING → DIAGNOSING →
 REPAIRING → REPLANNING → WAITING_RETRY → NEEDS_CLARIFICATION → BLOCKED →

@@ -1,7 +1,7 @@
 {
-  "name": "@specbridge/orchestration",
+  "name": "@specbridge/context",
   "version": "1.1.0",
-  "description": "Governed agent orchestration for SpecBridge: intent assessment, clarification, execution planning, bounded execution control, failure classification, retry and repair policy.",
+  "description": "Provider-neutral context lifecycle for SpecBridge: layered context packages, budgets, health, and compaction.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -24,14 +24,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@specbridge/compat-kiro": "workspace:*",
-    "@specbridge/context": "workspace:*",
-    "@specbridge/core": "workspace:*",
-    "@specbridge/evidence": "workspace:*",
-    "@specbridge/execution": "workspace:*",
-    "@specbridge/mission": "workspace:*",
-    "@specbridge/runners": "workspace:*",
-    "@specbridge/workflow": "workspace:*",
     "zod": "^3.23.8"
   },
   "devDependencies": {

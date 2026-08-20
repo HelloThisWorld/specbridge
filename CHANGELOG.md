@@ -1,5 +1,107 @@
 # Changelog
 
+## 1.4.0 (unreleased) — vNext.1 Survival Runtime
+
+The first stage of SpecBridge's evolution into a provider-neutral
+long-horizon engineering runtime. A job now survives agent death, session
+loss, provider handoff, process restart, and repeated model-context
+compaction without losing the durable information required to continue
+correctly. Two invariants govern the design: **agents and model sessions
+are disposable workers — SpecBridge owns the durable job state**, and
+**context windows are disposable working memory — SpecBridge state is
+durable memory**.
+
+Additive throughout: no persisted schema version moved, every new schema
+family is versioned from day one (`taskAttempt`, `taskCheckpoint`,
+`contextPackage`, `runnerContextCapabilities`), existing CLI/MCP/plugin
+surfaces are unchanged, and v1.0–v1.3 workspaces load with no migration.
+
+### Added
+
+- **Durable ExecutionAttempts** (`@specbridge/orchestration` `survival/`) —
+  Job, Task, and ExecutionAttempt are now three distinct durable concepts. A
+  Task (job graph node) is durable intended work; an attempt is ONE
+  disposable worker run against it, persisted at `.specbridge/jobs/<jobId>/
+  task-attempts/` **when the dispatch starts** (status `RUNNING`), finalized
+  when it ends, and reconciled `RUNNING → INTERRUPTED` by `resumeJob` when
+  the owning process disappeared. Attempts are append-only history with
+  `resumedFromAttemptId` lineage; retrying or switching providers never
+  overwrites a previous attempt.
+- **Structured task checkpoints** — `taskCheckpointSchema`: objective,
+  pinned context (task contract, acceptance criteria, constraints,
+  invariants), completed/pending work, important decisions, **failed
+  approaches**, changed files, repository state (Git-snapshot grounded, no
+  commit required), test results, known failures, unresolved issues,
+  next actions, artifact references. Append-only revisions per task;
+  decisions and failed approaches carry forward automatically; a completed
+  task auto-checkpoints as a milestone. Corrupt newest revisions fall back
+  to the newest readable one.
+- **`@specbridge/context`** — the provider-neutral context lifecycle as a
+  pure, deterministic domain package: six context layers (`PINNED`,
+  `DURABLE_TASK_STATE`, `COMPACTED_HISTORY`, `WORKING_SET`, `RECENT_DELTA`,
+  `CURRENT_ACTION`; the protected layers can never be compacted away),
+  configurable context budgets with reserved output/reasoning/growth
+  headroom, a closed health vocabulary (`HEALTHY` → `PREPARE` →
+  `PROACTIVE_COMPACT` → `FORCE_COMPACT` → `OVERFLOW` at configurable
+  ~55/70/85/90% thresholds), three compaction levels (micro / milestone /
+  emergency — emergency is a normal operation that only discards state a
+  persisted checkpoint already made durable), a bounded recent-delta log,
+  a pluggable summarizer boundary, and a `ContextLifecycleManager`
+  composing them. Over-budget assembly with no checkpoint **fails
+  explicitly** rather than silently dropping context.
+- **Deterministic context reconstruction and resume** —
+  `reconstructTaskContext` / `prepareTaskResume`: load Job → Task → latest
+  checkpoint → pinned → durable → repository snapshot/working set → delta →
+  apply budget → compact if required → `ContextPackage`. A fresh worker (or
+  a different provider) starts from SpecBridge durable state plus current
+  repository state; the previous agent conversation is structurally
+  unreachable. Cumulative task context can exceed one model window by many
+  multiples (exercised at >5× in tests).
+- **Execution ledger** — every attempt yields a normalized
+  `ExecutionLedgerEntry` (`readExecutionLedger`,
+  `summarizeExecutionLedger`): provider, model, timings, tokens, tool
+  calls, files changed, cost — all null-tolerant. Missing provider metrics
+  never block execution and are never fabricated.
+- **Provider context capabilities** (`@specbridge/runners`) — additive
+  optional `declaredContextCapabilities` on the runner contract (window
+  size when known, native-compaction mode `none`/`automatic`/`explicit`,
+  session persistence), declared by the Claude Code adapter (automatic
+  native compaction, sessions) and the mock adapter (deterministic small
+  window, no native compaction). Provider-native compaction integrates
+  through the `NativeCompactionAdapter` boundary and remains session
+  working memory — it can never become canonical SpecBridge state, and
+  cross-provider continuity never depends on it.
+- **Context policy** — additive `orchestration.jobs.context` configuration
+  block (default window, reservations, compaction thresholds, delta
+  bounds). Operational tuning only; nothing here can weaken a safety
+  boundary or configure pinned state away.
+- **Observability** — additive job events (`attempt_started`,
+  `attempt_completed`, `attempt_interrupted`, `task_checkpoint_created`,
+  `task_resumed`, `context_threshold_reached`, `context_compacted`) with
+  stable ids; new SBO049–SBO051 error codes; new `context-contract.json`
+  snapshot and schema-version registrations.
+- **Tests** — `tests/context/context-lifecycle.test.ts` (budgets, health,
+  compaction levels, >5× repeated-compaction survival, emergency pressure
+  as normal operation), `tests/orchestration/survival-runtime.test.ts`
+  (attempt lifecycle, checkpoint carry-forward and corruption fallback,
+  process restart, provider handoff, canonical-state independence,
+  failed-approach preservation, crash recovery, ledger tolerance), and
+  `tests/orchestration/survival-validation.test.ts` (the full end-to-end
+  survival scenario against a real Git workspace).
+- **Documentation** — `docs/orchestration/survival-runtime.md`: runtime
+  ownership, Job/Task/Attempt, the context model, the three compaction
+  mechanisms and why they are different things, recovery semantics.
+
+### Changed
+
+- `beginExecutorDispatch` also persists the durable attempt (and accepts
+  optional `provider`/`model`/`providerSessionId`); `completeExecutorDispatch`
+  finalizes it and auto-checkpoints verified completions;`resumeJob`
+  additionally reconciles interrupted attempts and reports their ids. All
+  signatures remain backward compatible.
+- `JobState` gains optional `currentAttemptId` (additive; schema version
+  unchanged).
+
 ## 1.3.0 (unreleased)
 
 Mission-driven development. v1.2 drives an approved spec as a persistent

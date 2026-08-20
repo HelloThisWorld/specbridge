@@ -5,6 +5,7 @@
     "paths": {
       "@specbridge/core": ["./packages/core/src/index.ts"],
       "@specbridge/compat-kiro": ["./packages/compat-kiro/src/index.ts"],
+      "@specbridge/context": ["./packages/context/src/index.ts"],
       "@specbridge/drift": ["./packages/drift/src/index.ts"],
       "@specbridge/runners": ["./packages/runners/src/index.ts"],
       "@specbridge/evidence": ["./packages/evidence/src/index.ts"],
