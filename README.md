@@ -186,6 +186,17 @@ governs; evidence decides.
 [Mission Discovery](docs/mission/mission-discovery.md) ·
 [StepRelay walkthrough](docs/mission/steprelay-walkthrough.md)
 
+**Survival Runtime (vNext.1)** — agents and model sessions are disposable
+workers; SpecBridge owns the durable job state. Durable ExecutionAttempts
+(written before work runs, reconciled `RUNNING → INTERRUPTED` after a
+crash), structured task checkpoints that preserve decisions and failed
+approaches across workers, a provider-neutral context lifecycle with
+budgets and micro/milestone/emergency compaction, deterministic context
+reconstruction for fresh workers or different providers, and a
+null-tolerant execution ledger. A task survives process restart, session
+loss, context exhaustion, and provider handoff.
+[Survival runtime](docs/orchestration/survival-runtime.md)
+
 **Templates and extensions** — reusable spec templates (deterministic
 offline `{{variable}}` rendering, no executable generators) and five
 extension kinds running out of process behind a versioned stdio protocol

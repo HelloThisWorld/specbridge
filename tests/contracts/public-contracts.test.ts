@@ -46,6 +46,7 @@ describe('public contract snapshots', () => {
       'mcp-contract.json',
       'plugin-skills.json',
       'github-action.json',
+      'context-contract.json',
     ];
     const present = readdirSync(contractsDir).filter((name) => name.endsWith('.json'));
     for (const name of expected) expect(present, name).toContain(name);

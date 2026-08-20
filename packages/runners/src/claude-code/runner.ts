@@ -28,6 +28,8 @@ import type {
   TaskResumeInput,
 } from '../contract.js';
 import { effectiveSupportLevel } from '../contracts/capabilities.js';
+import type { RunnerContextCapabilities } from '../contracts/context.js';
+import { RUNNER_CONTEXT_CAPABILITIES_SCHEMA_VERSION } from '../contracts/context.js';
 import type { RunnerCost, RunnerUsage } from '../contracts/usage.js';
 import { emptyUsage } from '../contracts/usage.js';
 import type { SafeProcessResult } from '../safe-process.js';
@@ -72,6 +74,21 @@ export class ClaudeCodeRunner implements AgentRunner {
   readonly kind = 'claude-code';
   readonly category = 'agent-cli';
   readonly declaredCapabilities = CLAUDE_DECLARED_CAPABILITIES;
+  /**
+   * vNext.1 context capabilities. Claude Code manages its own session
+   * working memory (automatic native compaction) and supports session
+   * resume; SpecBridge integrates with both strictly as WORKING-MEMORY
+   * optimizations — durable checkpoints stay the only canonical state, and
+   * SpecBridge never reimplements the CLI's internal compaction. The window
+   * is null (model-dependent, user-configurable): the survival runtime
+   * budgets from configuration rather than guessing a number.
+   */
+  readonly declaredContextCapabilities: RunnerContextCapabilities = {
+    schemaVersion: RUNNER_CONTEXT_CAPABILITIES_SCHEMA_VERSION,
+    contextWindowTokens: null,
+    nativeCompaction: 'automatic',
+    supportsSessionPersistence: true,
+  };
   private readonly config: ClaudeRunnerConfig;
   private probePromise: Promise<ClaudeProbe> | undefined;
 

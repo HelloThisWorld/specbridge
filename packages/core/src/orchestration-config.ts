@@ -287,6 +287,36 @@ export const objectivesPolicySchema = z
 export type ObjectivesPolicy = z.infer<typeof objectivesPolicySchema>;
 
 /**
+ * Survival-runtime context policy (vNext.1, additive, defaulted).
+ *
+ * Governs how worker context is budgeted, monitored, and compacted. These
+ * are OPERATIONAL bounds, not safety boundaries: they can only make
+ * compaction happen sooner or refuse to start an oversized context
+ * operation. Pinned/durable context can never be configured away.
+ *
+ * The advertised model window is never fully filled: headroom is reserved
+ * for output, reasoning, and the next tool result. Thresholds follow the
+ * initial policy (~55% prepare, ~70% proactive, ~85% emergency, ~90% hard
+ * stop) and are configurable per workspace.
+ */
+export const jobContextPolicySchema = z
+  .object({
+    /** Default model context window when the provider does not declare one. */
+    defaultModelContextTokens: z.number().int().min(1_000).max(10_000_000).default(200_000),
+    reservedOutputTokens: z.number().int().min(0).max(1_000_000).default(16_000),
+    reservedReasoningTokens: z.number().int().min(0).max(1_000_000).default(8_000),
+    reservedGrowthTokens: z.number().int().min(0).max(1_000_000).default(8_000),
+    prepareThreshold: z.number().min(0.05).max(1).default(0.55),
+    proactiveCompactionThreshold: z.number().min(0.05).max(1).default(0.7),
+    emergencyCompactionThreshold: z.number().min(0.05).max(1).default(0.85),
+    hardStopThreshold: z.number().min(0.05).max(1).default(0.9),
+    /** Bound on retained recent-delta items per task context. */
+    maxRecentDeltaItems: z.number().int().min(1).max(200).default(20),
+  })
+  .passthrough();
+export type JobContextPolicy = z.infer<typeof jobContextPolicySchema>;
+
+/**
  * v1.2 long-running job policy, additive inside the orchestration block.
  * Absent in every existing configuration file, in which case the defaults
  * below apply and no migration is required.
@@ -326,6 +356,8 @@ export const jobPolicySchema = z
     retryDelayMs: z.number().int().min(100).max(3_600_000).default(5_000),
     /** Objective decomposition policy (additive; safe defaults). */
     objectives: objectivesPolicySchema.default({}),
+    /** Survival-runtime context policy (additive; safe defaults). */
+    context: jobContextPolicySchema.default({}),
   })
   .passthrough();
 export type JobPolicy = z.infer<typeof jobPolicySchema>;

@@ -8,6 +8,7 @@ import type {
   TaskRunnerReport,
 } from '@specbridge/core';
 import type { RunnerCapabilitySet, RunnerCategory, RunnerSupportLevel } from './contracts/capabilities.js';
+import type { RunnerContextCapabilities } from './contracts/context.js';
 import type { NormalizedRunnerError } from './contracts/errors.js';
 import type { NormalizedRunnerEvent } from './contracts/events.js';
 import type { RunnerCost, RunnerUsage } from './contracts/usage.js';
@@ -268,6 +269,16 @@ export interface AgentRunner {
    * conformance.
    */
   readonly declaredSupportLevel?: RunnerSupportLevel;
+  /**
+   * vNext.1 (additive, optional — existing adapters are unaffected):
+   * provider context capabilities. Absent means the conservative default:
+   * unknown window, no native compaction, no session persistence — the
+   * survival runtime then budgets from configuration and applies its own
+   * generic compaction. Whatever is declared here, provider sessions and
+   * native compaction remain WORKING MEMORY; SpecBridge checkpoints are the
+   * only canonical state.
+   */
+  readonly declaredContextCapabilities?: RunnerContextCapabilities;
 
   detect(context: RunnerDetectionContext): Promise<RunnerDetectionResult>;
 

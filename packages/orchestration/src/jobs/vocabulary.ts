@@ -349,5 +349,13 @@ export const JOB_EVENT_TYPES = [
   'integration_started',
   'integration_failed',
   'objective_verified',
+  // Survival-runtime events (vNext.1; additive, never reordered).
+  'attempt_started',
+  'attempt_completed',
+  'attempt_interrupted',
+  'task_checkpoint_created',
+  'task_resumed',
+  'context_threshold_reached',
+  'context_compacted',
 ] as const;
 export type JobEventType = (typeof JOB_EVENT_TYPES)[number];

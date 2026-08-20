@@ -34259,6 +34259,19 @@ var objectivesPolicySchema = external_exports.object({
   /** Character ceiling for one context projection document. */
   maxProjectionChars: external_exports.number().int().min(4e3).max(4e5).default(6e4)
 }).passthrough();
+var jobContextPolicySchema = external_exports.object({
+  /** Default model context window when the provider does not declare one. */
+  defaultModelContextTokens: external_exports.number().int().min(1e3).max(1e7).default(2e5),
+  reservedOutputTokens: external_exports.number().int().min(0).max(1e6).default(16e3),
+  reservedReasoningTokens: external_exports.number().int().min(0).max(1e6).default(8e3),
+  reservedGrowthTokens: external_exports.number().int().min(0).max(1e6).default(8e3),
+  prepareThreshold: external_exports.number().min(0.05).max(1).default(0.55),
+  proactiveCompactionThreshold: external_exports.number().min(0.05).max(1).default(0.7),
+  emergencyCompactionThreshold: external_exports.number().min(0.05).max(1).default(0.85),
+  hardStopThreshold: external_exports.number().min(0.05).max(1).default(0.9),
+  /** Bound on retained recent-delta items per task context. */
+  maxRecentDeltaItems: external_exports.number().int().min(1).max(200).default(20)
+}).passthrough();
 var jobPolicySchema = external_exports.object({
   /** When false, job operations refuse to start and report why. */
   enabled: external_exports.boolean().default(true),
@@ -34287,7 +34300,9 @@ var jobPolicySchema = external_exports.object({
   /** Base delay before a WAITING_RETRY job may resume. */
   retryDelayMs: external_exports.number().int().min(100).max(36e5).default(5e3),
   /** Objective decomposition policy (additive; safe defaults). */
-  objectives: objectivesPolicySchema.default({})
+  objectives: objectivesPolicySchema.default({}),
+  /** Survival-runtime context policy (additive; safe defaults). */
+  context: jobContextPolicySchema.default({})
 }).passthrough();
 var orchestrationPolicySchema = external_exports.object({
   /**
@@ -41963,6 +41978,21 @@ function capabilitySet(enabled) {
   for (const key of enabled) set[key] = true;
   return set;
 }
+var RUNNER_CONTEXT_CAPABILITIES_SCHEMA_VERSION = "1.0.0";
+var RUNNER_NATIVE_COMPACTION_MODES = ["none", "automatic", "explicit"];
+var runnerContextCapabilitiesSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/).default(RUNNER_CONTEXT_CAPABILITIES_SCHEMA_VERSION),
+  /**
+   * Advertised context window in tokens; null when the adapter cannot know
+   * (e.g. the model is user-configured). Never guessed: null means "use
+   * the configured default budget".
+   */
+  contextWindowTokens: external_exports.number().int().min(1e3).nullable().default(null),
+  /** How the provider compacts its own session working memory. */
+  nativeCompaction: external_exports.enum(RUNNER_NATIVE_COMPACTION_MODES).default("none"),
+  /** True when provider sessions can be resumed across invocations. */
+  supportsSessionPersistence: external_exports.boolean().default(false)
+}).strict();
 var MOCK_CAPABILITY_SET = capabilitySet([
   "stageGeneration",
   "stageRefinement",

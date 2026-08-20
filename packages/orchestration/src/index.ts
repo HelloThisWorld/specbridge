@@ -16,3 +16,4 @@ export * from './jobs/index.js';
 export * from './agents/index.js';
 export * from './driver/index.js';
 export * from './objectives/index.js';
+export * from './survival/index.js';

@@ -302,6 +302,12 @@ export const jobStateSchema = z
     graphRevision: z.number().int().min(0).default(0),
     /** The node the scheduler is currently advancing. */
     currentNodeId: shortText.optional(),
+    /**
+     * The durable ExecutionAttempt in flight for the current dispatch
+     * (survival runtime, vNext.1). Cleared when the dispatch finalizes;
+     * reconciled to INTERRUPTED by resume when the process disappeared.
+     */
+    currentAttemptId: shortText.optional(),
     /** Present in WAITING_RETRY: when the next attempt may run. */
     retryAt: shortText.optional(),
     openQuestions: z.array(clarificationQuestionSchema).max(STATE_LIMITS.maxQuestions).default([]),

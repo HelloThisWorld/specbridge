@@ -64,6 +64,10 @@ export const SBO_CODES = {
   SBO046: 'aggregation prerequisite unsatisfied',
   SBO047: 'integration failed',
   SBO048: 'worktree operation failed',
+  // Survival-runtime codes (vNext.1). Additive: nothing above may be renumbered.
+  SBO049: 'execution attempt state invalid',
+  SBO050: 'task checkpoint invalid',
+  SBO051: 'context reconstruction failed',
 } as const;
 
 export type SboCode = keyof typeof SBO_CODES;

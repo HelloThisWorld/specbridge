@@ -287,6 +287,9 @@ export async function driveJob(
             nodeId: decision.nodeId,
             mode: decision.mode,
             workerId: decision.worker.workerId,
+            // The durable attempt records the true provider identity (the
+            // runner profile) so the execution ledger attributes correctly.
+            provider: decision.worker.runnerProfile ?? decision.worker.workerId,
           });
           const startedAt = (deps.clock ?? (() => new Date()))().toISOString();
           // Later tasks run over earlier verified (uncommitted) changes, and

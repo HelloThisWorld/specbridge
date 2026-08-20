@@ -7,6 +7,7 @@ export * from './contracts/events.js';
 export * from './contracts/result.js';
 export * from './contracts/errors.js';
 export * from './contracts/usage.js';
+export * from './contracts/context.js';
 export * from './contracts/normalize.js';
 export * from './registry/runner-selection.js';
 export * from './registry/fallback-policy.js';
