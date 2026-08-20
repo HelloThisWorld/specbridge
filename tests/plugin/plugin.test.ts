@@ -102,7 +102,7 @@ describe('plugin structure', () => {
       'verify',
     ];
     for (const skill of V1_0_SKILLS) expect(dirs, `v1.0 skill ${skill}`).toContain(skill);
-    expect(dirs).toEqual([...V1_0_SKILLS, 'develop', 'orchestrate'].sort());
+    expect(dirs).toEqual([...V1_0_SKILLS, 'develop', 'discover', 'orchestrate'].sort());
     const names = new Set<string>();
     for (const dir of dirs) {
       const markdown = skillMarkdown(dir);

@@ -54,6 +54,9 @@ import { escalationAllowed, resolveWorkers } from '../jobs/routing.js';
 import { scheduleNext } from '../jobs/scheduler.js';
 import type { SchedulerDecision } from '../jobs/scheduler.js';
 import { jobDir } from '../jobs/store.js';
+import { findMissionForSpec } from '@specbridge/mission';
+import { driveObjective } from '../objectives/objective-driver.js';
+import { recordObjectiveWorkerAttempt } from '../jobs/job-service.js';
 import { createLocalManager, runLargeRole, runLocalRole } from './workers.js';
 import type { RoleWorkerResult } from './workers.js';
 import { dispatchExecutor } from './executor-dispatch.js';
@@ -291,22 +294,55 @@ export async function driveJob(
           const allowDirty =
             decision.mode === 'repair' ||
             (graph?.nodes.some((candidate) => candidate.status === 'COMPLETED') ?? false) ||
-            node.attempts.some((attempt) => attempt.role === 'EXECUTOR');
-          const dispatch = await dispatchExecutor({
-            workspace: deps.workspace,
-            config: deps.config,
-            registry: deps.registry,
-            node,
-            specName: job.specName,
-            mode: decision.mode,
-            allowDirty,
-            runnerProfile: decision.worker.runnerProfile,
-            ...(options.executorTimeoutMs !== undefined ? { timeoutMs: options.executorTimeoutMs } : {}),
-            ...(deps.clock !== undefined ? { clock: deps.clock } : {}),
-            ...(deps.idFactory !== undefined ? { idFactory: deps.idFactory } : {}),
-            ...(signal !== undefined ? { signal } : {}),
-            onProgress: (message) => emit('note', message),
-          });
+            node.attempts.some((attempt) => attempt.role === 'EXECUTOR') ||
+            node.attempts.some((attempt) => attempt.role === 'BUILDER');
+          // Mission-driven specs route the objective through the objective
+          // runtime (decompose → build in isolation → evaluate → aggregate →
+          // single-writer integration); legacy specs keep the direct
+          // executor path byte-identical.
+          const mission =
+            policy.objectives.enabled === true
+              ? findMissionForSpec(deps.workspace, job.specName)
+              : undefined;
+          const dispatch =
+            mission !== undefined
+              ? await driveObjective({
+                  workspace: deps.workspace,
+                  config: deps.config,
+                  jobId,
+                  specName: job.specName,
+                  node,
+                  mission,
+                  policy,
+                  workers: resolveWorkers(deps.config),
+                  allowDirty,
+                  runnerProfile: decision.worker.runnerProfile,
+                  localManager,
+                  probeCache,
+                  ...(deps.clock !== undefined ? { clock: deps.clock } : {}),
+                  ...(deps.idFactory !== undefined ? { idFactory: deps.idFactory } : {}),
+                  ...(signal !== undefined ? { signal } : {}),
+                  onProgress: (message) => emit('note', message),
+                  countWorkerRun: (run) =>
+                    recordObjectiveWorkerAttempt(deps, jobId, { nodeId: node.nodeId, ...run }),
+                  recordEvent: (type, payload) =>
+                    recordJobEvent(deps, jobId, type as never, payload),
+                })
+              : await dispatchExecutor({
+                  workspace: deps.workspace,
+                  config: deps.config,
+                  registry: deps.registry,
+                  node,
+                  specName: job.specName,
+                  mode: decision.mode,
+                  allowDirty,
+                  runnerProfile: decision.worker.runnerProfile,
+                  ...(options.executorTimeoutMs !== undefined ? { timeoutMs: options.executorTimeoutMs } : {}),
+                  ...(deps.clock !== undefined ? { clock: deps.clock } : {}),
+                  ...(deps.idFactory !== undefined ? { idFactory: deps.idFactory } : {}),
+                  ...(signal !== undefined ? { signal } : {}),
+                  onProgress: (message) => emit('note', message),
+                });
           const result = completeExecutorDispatch(deps, jobId, {
             context: {
               nodeId: decision.nodeId,

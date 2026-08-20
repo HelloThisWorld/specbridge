@@ -97,10 +97,32 @@ describe('public contract snapshots', () => {
     for (const name of V1_1_ADDITIONS) expect(tools).toContain(name);
     const V1_2_ADDITIONS = ['job_list', 'job_read', 'job_cancel'];
     for (const name of V1_2_ADDITIONS) expect(tools).toContain(name);
+    const MISSION_ADDITIONS = [
+      'mission_begin',
+      'mission_status',
+      'mission_read',
+      'mission_record_turn',
+      'mission_assess',
+      'mission_questions',
+      'mission_answer',
+      'mission_synthesize',
+      'contract_list',
+      'contract_read',
+      'contract_change_request',
+      'objective_read',
+      'workunit_read',
+      'evaluation_read',
+    ];
+    for (const name of MISSION_ADDITIONS) expect(tools).toContain(name);
     expect(
-      tools.filter((name) => !V1_1_ADDITIONS.includes(name) && !V1_2_ADDITIONS.includes(name)),
+      tools.filter(
+        (name) =>
+          !V1_1_ADDITIONS.includes(name) &&
+          !V1_2_ADDITIONS.includes(name) &&
+          !MISSION_ADDITIONS.includes(name),
+      ),
     ).toHaveLength(37);
-    expect(tools).toHaveLength(50);
+    expect(tools).toHaveLength(64);
     // No approval tool, no shell, no filesystem, no git — at any version.
     for (const forbidden of tools) {
       expect(forbidden).not.toMatch(/^(.*_approve|.*_shell|.*_exec|.*_git|.*_write_file)$/);
@@ -148,7 +170,8 @@ describe('public contract snapshots', () => {
   it('Claude Code Skill names stay pinned', () => {
     const { skills } = readContract('plugin-skills.json') as { skills: string[] };
     // The v1.0 eleven are frozen; v1.1 added `develop`, v1.2 adds
-    // `orchestrate`, and nothing is ever removed.
+    // `orchestrate`, mission-driven development adds `discover`, and
+    // nothing is ever removed.
     for (const name of [
       'approve', 'author', 'continue', 'doctor', 'extensions', 'implement',
       'new', 'runners', 'status', 'templates', 'verify',
@@ -156,7 +179,7 @@ describe('public contract snapshots', () => {
       expect(skills, name).toContain(name);
     }
     expect(skills).toEqual([
-      'approve', 'author', 'continue', 'develop', 'doctor', 'extensions',
+      'approve', 'author', 'continue', 'develop', 'discover', 'doctor', 'extensions',
       'implement', 'new', 'orchestrate', 'runners', 'status', 'templates', 'verify',
     ]);
   });

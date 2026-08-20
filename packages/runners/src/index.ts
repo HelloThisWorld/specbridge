@@ -34,6 +34,7 @@ export {
 } from './claude-code/detection.js';
 export {
   buildClaudeInvocation,
+  cleanupTempFiles,
   parseClaudeEnvelope,
   assertNoForbiddenArguments,
   READ_ONLY_TOOLS,

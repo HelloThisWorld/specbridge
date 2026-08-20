@@ -58,6 +58,7 @@ export default defineConfig({
       { find: '@specbridge/evidence', replacement: pkg('evidence') },
       { find: '@specbridge/execution', replacement: pkg('execution') },
       { find: '@specbridge/orchestration', replacement: pkg('orchestration') },
+      { find: '@specbridge/mission', replacement: pkg('mission') },
       { find: '@specbridge/reporting', replacement: pkg('reporting') },
       { find: '@specbridge/workflow', replacement: pkg('workflow') },
       { find: '@specbridge/templates', replacement: pkg('templates') },

@@ -223,6 +223,63 @@ if (scenario === 'error-envelope') {
   process.exit(0);
 }
 
+if (roleMatch !== null && roleMatch[1] === 'BUILDER') {
+  // Objective builder: writes into the CURRENT WORKING DIRECTORY (the
+  // isolated worktree) and returns a structured BUILDER claim. Scenarios:
+  //   builder-conflict  adds a nextState field (trips the contract guard)
+  //   builder-ccr       reports a missing-nack contract change request
+  //   builder-blocked   returns BLOCKED with a question, writes nothing
+  //   builder-noop      claims completion but changes nothing
+  //   (default)         writes into the first declared expected area
+  const areaMatch = /Expected source areas: ([^\n]+)/.exec(stdin);
+  const area = areaMatch?.[1]?.split(',')[0]?.trim() ?? 'src';
+  const unitMatch = /Work unit: ([^\n]+)/.exec(stdin);
+  const unitTitle = unitMatch?.[1]?.trim() ?? 'work unit';
+  const isInvestigation = /\nKind: investigation\n/.test(stdin);
+  const builderReport = {
+    outcome: 'CANDIDATE_COMPLETE',
+    summary: `Implemented ${unitTitle}.`,
+    changedFiles: [],
+    assumptionsDiscovered: [],
+    contractChangeRequests: [],
+    knownLimitations: [],
+    blockingQuestions: [],
+  };
+  if (isInvestigation) {
+    builderReport.summary = `Investigated ${unitTitle}.`;
+    builderReport.report = `Findings for ${unitTitle}: the broker supports the required at-least-once semantics; nack requires a requeue policy.`;
+    emitEnvelope({ result: JSON.stringify(builderReport) });
+    process.exit(0);
+  }
+  if (scenario === 'builder-blocked') {
+    builderReport.outcome = 'BLOCKED';
+    builderReport.summary = 'The contracts do not say how duplicates are keyed.';
+    builderReport.blockingQuestions = ['Which field is the idempotency key of an action result?'];
+  } else if (scenario !== 'builder-noop') {
+    const target = path.join(process.cwd(), area, 'implementation.js');
+    mkdirSync(path.dirname(target), { recursive: true });
+    const conflictLine = scenario === 'builder-conflict' ? '  nextState: "shipped", // action decides the transition\n' : '';
+    writeFileSync(
+      target,
+      `// fake builder implementation of ${unitTitle}\nmodule.exports = {\n  actionId: "a-1",\n${conflictLine}};\n`,
+      'utf8',
+    );
+    builderReport.changedFiles = [`${area}/implementation.js`];
+    if (scenario === 'builder-ccr') {
+      const contractMatch = /Contract (CTR-\d+)/.exec(stdin);
+      builderReport.contractChangeRequests = [
+        {
+          contractId: contractMatch?.[1] ?? 'CTR-001',
+          problem: 'The current contract cannot represent negative acknowledgement.',
+          proposal: 'Add nack(message, requeuePolicy) to the transport SPI.',
+        },
+      ];
+    }
+  }
+  emitEnvelope({ result: JSON.stringify(builderReport) });
+  process.exit(0);
+}
+
 if (roleMatch !== null) {
   // v1.2 orchestration reasoning role (read-only tools, structured output).
   const role = roleMatch[1];
@@ -262,6 +319,128 @@ if (roleMatch !== null) {
       assumptions: [],
       impactsApprovedIntent: false,
     },
+    DECOMPOSER:
+      scenario === 'objective-investigations' || scenario === 'aggregator-conflict'
+        ? {
+            decision: 'WORK_GRAPH',
+            reason: 'Two broker investigations feed one transport implementation.',
+            units: [
+              {
+                id: 'kafka',
+                kind: 'investigation',
+                title: 'Kafka semantics investigation',
+                goal: 'Investigate whether Kafka supports the required delivery semantics.',
+                dependsOn: [],
+                expectedArtifacts: ['report'],
+                relevantContractIds: [],
+                expectedAreas: [],
+              },
+              {
+                id: 'rabbit',
+                kind: 'investigation',
+                title: 'RabbitMQ semantics investigation',
+                goal: 'Investigate whether RabbitMQ supports the required delivery semantics.',
+                dependsOn: [],
+                expectedArtifacts: ['report'],
+                relevantContractIds: [],
+                expectedAreas: [],
+              },
+              {
+                id: 'transport',
+                kind: 'build',
+                title: 'Transport implementation',
+                goal: 'Implement the transport seam informed by the investigations.',
+                dependsOn: ['kafka', 'rabbit'],
+                expectedArtifacts: ['src/transport/implementation.js'],
+                relevantContractIds: [],
+                expectedAreas: ['src/transport'],
+              },
+            ],
+          }
+        : scenario === 'objective-multi'
+        ? {
+            decision: 'WORK_GRAPH',
+            reason: 'The protocol and the transport are independently buildable.',
+            units: [
+              {
+                id: 'envelope',
+                kind: 'build',
+                title: 'Canonical message envelope',
+                goal: 'Implement the canonical message envelope.',
+                dependsOn: [],
+                expectedArtifacts: ['src/envelope/implementation.js'],
+                relevantContractIds: [],
+                expectedAreas: ['src/envelope'],
+              },
+              {
+                id: 'transport',
+                kind: 'build',
+                title: 'Transport adapter seam',
+                goal: 'Implement the transport adapter seam.',
+                dependsOn: [],
+                expectedArtifacts: ['src/transport/implementation.js'],
+                relevantContractIds: [],
+                expectedAreas: ['src/transport'],
+              },
+              {
+                id: 'integrate',
+                kind: 'integration',
+                title: 'Integration',
+                goal: 'Integrate the verified candidates.',
+                dependsOn: ['envelope', 'transport'],
+                expectedArtifacts: [],
+                relevantContractIds: [],
+                expectedAreas: [],
+              },
+            ],
+          }
+        : {
+            decision: 'SINGLE_UNIT',
+            reason: 'The objective is cohesive enough to implement as one unit.',
+            units: [],
+          },
+    EVALUATOR:
+      scenario === 'evaluator-fail'
+        ? {
+            verdict: 'FAIL',
+            reasons: ['the candidate does not satisfy requirement R1'],
+            evidenceRefs: ['R1'],
+            affectedContractIds: [],
+          }
+        : scenario === 'evaluator-needs-decision'
+          ? {
+              verdict: 'NEEDS_DECISION',
+              reasons: ['the approved truth leaves the retention window open'],
+              evidenceRefs: [],
+              affectedContractIds: [],
+              decisionKind: 'product-behavior-change',
+            }
+          : { verdict: 'PASS', reasons: ['the candidate satisfies the projected contracts'], evidenceRefs: [], affectedContractIds: [] },
+    AGGREGATOR:
+      scenario === 'aggregator-conflict'
+        ? {
+            synthesis: 'The investigations disagree about redelivery ownership.',
+            findings: [
+              { sourceWorkUnitId: 'wu-1', finding: 'Kafka: the engine must own redelivery.' },
+              { sourceWorkUnitId: 'wu-2', finding: 'RabbitMQ: the broker owns redelivery.' },
+            ],
+            contractChangeSuggestions: [],
+            conflictsDetected: [
+              {
+                contractId: 'CTR-001',
+                claims: [
+                  { sourceWorkUnitId: 'wu-1', claim: 'The engine must own redelivery.' },
+                  { sourceWorkUnitId: 'wu-2', claim: 'The broker owns redelivery.' },
+                ],
+              },
+            ],
+          }
+        : {
+            synthesis: 'Both investigations agree on an at-least-once transport with idempotent completion.',
+            findings: [{ sourceWorkUnitId: 'wu-1', finding: 'Kafka supports the required semantics natively.' }],
+            contractChangeSuggestions: [],
+            conflictsDetected: [],
+          },
   };
   emitEnvelope({ result: JSON.stringify(ROLE_RESPONSES[role] ?? ROLE_RESPONSES.PLANNER) });
   process.exit(0);

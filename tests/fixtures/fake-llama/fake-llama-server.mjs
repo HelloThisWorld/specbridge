@@ -88,6 +88,25 @@ const ROLE_RESPONSES = {
     assumptions: [],
     impactsApprovedIntent: false,
   },
+  // Objective-runtime reasoning roles (v-next): the local tier may evaluate
+  // and, when routed, decompose or aggregate.
+  DECOMPOSER: {
+    decision: 'SINGLE_UNIT',
+    reason: 'The objective is cohesive enough to implement as one unit.',
+    units: [],
+  },
+  EVALUATOR: {
+    verdict: 'PASS',
+    reasons: ['the candidate satisfies the projected contracts'],
+    evidenceRefs: [],
+    affectedContractIds: [],
+  },
+  AGGREGATOR: {
+    synthesis: 'The reports agree; no conflicts detected.',
+    findings: [],
+    contractChangeSuggestions: [],
+    conflictsDetected: [],
+  },
 };
 
 const server = createServer((request, response) => {

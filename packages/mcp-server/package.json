@@ -44,7 +44,8 @@
     "@specbridge/runners": "workspace:*",
     "@specbridge/templates": "workspace:*",
     "@specbridge/workflow": "workspace:*",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "@specbridge/mission": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.3.0",

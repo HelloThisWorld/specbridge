@@ -241,6 +241,101 @@
           }
         }
       },
+      "mission": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "abandon": {
+            "options": [
+              "--help",
+              "--reason"
+            ]
+          },
+          "adr": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "answer": {
+            "options": [
+              "--help"
+            ]
+          },
+          "begin": {
+            "options": [
+              "--goal",
+              "--help",
+              "--json"
+            ]
+          },
+          "ccr": {
+            "options": [
+              "--approve",
+              "--help",
+              "--json",
+              "--note",
+              "--reject"
+            ]
+          },
+          "contract-ready": {
+            "options": [
+              "--help"
+            ]
+          },
+          "contracts": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "coverage": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "decisions": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "events": {
+            "options": [
+              "--help",
+              "--json",
+              "--limit"
+            ]
+          },
+          "reopen": {
+            "options": [
+              "--help",
+              "--reason"
+            ]
+          },
+          "show": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "status": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "synthesize": {
+            "options": [
+              "--help",
+              "--json",
+              "--spec-name"
+            ]
+          }
+        }
+      },
       "orchestrate": {
         "options": [
           "--help"
@@ -291,6 +386,12 @@
               "--help",
               "--json",
               "--revision"
+            ]
+          },
+          "objective": {
+            "options": [
+              "--help",
+              "--json"
             ]
           },
           "phases": {
@@ -348,6 +449,12 @@
               "--help",
               "--json",
               "--spec"
+            ]
+          },
+          "workunit": {
+            "options": [
+              "--help",
+              "--json"
             ]
           }
         }

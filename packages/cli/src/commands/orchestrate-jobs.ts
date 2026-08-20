@@ -7,9 +7,15 @@ import {
   driveJob,
   executionPlanSchema,
   listJobs,
+  readCandidate,
+  readConflicts,
+  readEvaluations,
   readJobCheckpoint,
   readJobEvents,
+  readLatestWorkGraph,
   readNodePlan,
+  readProjection as readObjectiveProjection,
+  readWorkerRecords,
   requireGraphRevision,
   requireJobState,
   resolveWorkers,
@@ -478,5 +484,114 @@ export function registerOrchestrateJobCommands(orchestrate: Command, runtime: Cl
       const deps = { workspace: context.workspace, config: context.config, host: 'cli' };
       const job = cancelJob(deps, jobId, options.reason);
       runtime.out(okLine(`Job ${jobId} is ${job.status}.`));
+    });
+
+  // ---------------------------------------------------------------------------
+  // Objective-runtime inspection (read-only)
+  // ---------------------------------------------------------------------------
+  orchestrate
+    .command('objective')
+    .description('One objective in depth: work graph, unit statuses, workers, conflicts, evaluations')
+    .argument('<jobId>')
+    .argument('<nodeId>')
+    .option('--json', 'output a machine-readable JSON report')
+    .action((jobId: string, nodeId: string, options: { json?: boolean }) => {
+      const workspace = runtime.workspace();
+      requireJobState(workspace, jobId);
+      const graph = readLatestWorkGraph(workspace, jobId, nodeId);
+      const conflicts = readConflicts(workspace, jobId, nodeId);
+      const workers = readWorkerRecords(workspace, jobId, nodeId);
+      if (options.json === true) {
+        jsonOut(runtime, 'orchestrate-objective', {
+          workGraph: graph ?? null,
+          conflicts,
+          workers,
+          evaluations: readEvaluations(workspace, jobId, nodeId),
+        });
+        return;
+      }
+      if (graph === undefined) {
+        runtime.out(dim('  no work graph exists for this objective yet'));
+        return;
+      }
+      runtime.out(reportTitle(`Objective ${nodeId} (task ${graph.parentTaskId}) — work graph r${graph.revision}`));
+      runtime.out(dim(`  proposed by ${graph.proposedBy}`));
+      for (const unit of graph.units) {
+        const label = `${unit.workUnitId} [${unit.status}] (${unit.kind}) ${unit.title}`;
+        const line =
+          unit.status === 'INTEGRATED' || unit.status === 'VERIFIED_CANDIDATE'
+            ? okLine(label)
+            : unit.status === 'FAILED' || unit.status === 'BLOCKED'
+              ? blockedLine(label)
+              : infoLine(label);
+        runtime.out(`  ${line}`);
+        if (unit.dependsOn.length > 0) runtime.out(dim(`      depends on ${unit.dependsOn.join(', ')}`));
+        if (unit.latestFailure !== undefined) {
+          runtime.out(warnLine(`      ${unit.latestFailure.category}: ${unit.latestFailure.message}`));
+        }
+      }
+      if (conflicts.length > 0) {
+        runtime.out(dim('  Contract conflicts:'));
+        for (const conflict of conflicts) {
+          runtime.out(blockedLine(`    ${conflict.conflictId} [${conflict.status}] ${conflict.contractId}: ${conflict.claims[0]?.claim ?? ''}`));
+        }
+      }
+      if (workers.length > 0) {
+        runtime.out(dim('  Workers:'));
+        for (const worker of workers) {
+          runtime.out(dim(`    ${worker.workerId} [${worker.status}] ${worker.agentRole} on ${worker.workspaceIdentity} (projection ${worker.contextProjectionHash.slice(0, 12)}…)`));
+        }
+      }
+    });
+
+  orchestrate
+    .command('workunit')
+    .description('One work unit in depth: projection identity, candidate, evaluations')
+    .argument('<jobId>')
+    .argument('<nodeId>')
+    .argument('<workUnitId>')
+    .option('--json', 'output a machine-readable JSON report')
+    .action((jobId: string, nodeId: string, workUnitId: string, options: { json?: boolean }) => {
+      const workspace = runtime.workspace();
+      requireJobState(workspace, jobId);
+      const graph = readLatestWorkGraph(workspace, jobId, nodeId);
+      const unit = graph?.units.find((candidate) => candidate.workUnitId === workUnitId);
+      if (unit === undefined) {
+        runtime.out(failLine(`Work unit ${workUnitId} does not exist for objective ${nodeId}.`));
+        runtime.exitCode = 2;
+        return;
+      }
+      const attempt = Math.max(1, unit.attempt);
+      const candidate = readCandidate(workspace, jobId, nodeId, workUnitId, attempt);
+      const projection = readObjectiveProjection(workspace, jobId, nodeId, workUnitId, attempt);
+      const evaluations = readEvaluations(workspace, jobId, nodeId, workUnitId);
+      if (options.json === true) {
+        jsonOut(runtime, 'orchestrate-workunit', {
+          unit,
+          candidate: candidate ?? null,
+          projection: projection ?? null,
+          evaluations,
+        });
+        return;
+      }
+      runtime.out(reportTitle(`Work unit ${workUnitId} [${unit.status}] — ${unit.title}`));
+      runtime.out(`  Goal: ${unit.goal}`);
+      runtime.out(dim(`  attempt ${unit.attempt}, kind ${unit.kind}`));
+      if (projection !== undefined) {
+        runtime.out(dim(`  projection ${projection.contentHash.slice(0, 16)}… over ${projection.contracts.length} contract(s), constitution v${projection.constitution.version}`));
+      }
+      if (candidate !== undefined) {
+        runtime.out(
+          candidate.localVerification.passed
+            ? okLine(`  candidate: ${candidate.changedFiles.length} file(s), local verification ${candidate.localVerification.ran ? 'passed' : 'not run'}`)
+            : warnLine(`  candidate: ${candidate.changedFiles.length} file(s), local verification FAILED`),
+        );
+        runtime.out(dim(`    claims: ${candidate.claims.summary}`));
+      }
+      for (const evaluation of evaluations) {
+        const line = `  evaluation ${evaluation.evaluationId} [${evaluation.layer}] ${evaluation.verdict}`;
+        runtime.out(evaluation.verdict === 'PASS' ? okLine(line) : blockedLine(line));
+        for (const reason of evaluation.reasons.slice(0, 5)) runtime.out(dim(`      ${reason}`));
+      }
     });
 }

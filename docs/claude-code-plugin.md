@@ -22,9 +22,12 @@ integrations/claude-code-plugin/specbridge/
 │   ├── approve/SKILL.md       /specbridge:approve <spec> <stage>   (human-only)
 │   ├── implement/SKILL.md     /specbridge:implement <spec> [task]
 │   ├── develop/SKILL.md       /specbridge:develop <spec> [task]    (governed)
+│   ├── discover/SKILL.md      /specbridge:discover [mission]       (Mission Discovery)
+│   ├── orchestrate/SKILL.md   /specbridge:orchestrate [job | spec] (long-running jobs)
 │   ├── continue/SKILL.md      /specbridge:continue <run-id>
 │   ├── runners/SKILL.md       /specbridge:runners [profile]
 │   ├── templates/SKILL.md     /specbridge:templates [query | show … | apply …]
+│   ├── extensions/SKILL.md    /specbridge:extensions [query | show …]
 │   └── verify/SKILL.md        /specbridge:verify [spec]
 ├── bin/
 │   ├── specbridge             POSIX wrapper → dist/cli.cjs

@@ -38,6 +38,7 @@ import { registerExtensionCommands } from './commands/extension.js';
 import { registerRegistryCommands } from './commands/registry.js';
 import { registerOrchestrateCommands } from './commands/orchestrate.js';
 import { registerLocalModelCommands } from './commands/local-model.js';
+import { registerMissionCommands } from './commands/mission.js';
 
 function buildProgram(runtime: CliRuntime): Command {
   const program = new Command();
@@ -105,6 +106,7 @@ honest error; nothing pretends to work before it does.`,
   registerRegistryCommands(program, runtime);
   registerOrchestrateCommands(program, runtime);
   registerLocalModelCommands(program, runtime);
+  registerMissionCommands(program, runtime);
 
   return program;
 }

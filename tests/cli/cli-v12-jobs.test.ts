@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { runCli } from '../../packages/cli/src/cli';
-import { askClarification, buildJobGraph, createJob } from '@specbridge/orchestration';
+import {
+  askClarification,
+  buildJobGraph,
+  createJob,
+  requireGraphRevision,
+  singleUnitGraph,
+  storeWorkGraph,
+  transitionUnit,
+} from '@specbridge/orchestration';
 import type { OrchestrationFixture } from '../helpers-orchestration.js';
 import { setupOrchestrationFixture } from '../helpers-orchestration.js';
 
@@ -183,5 +191,57 @@ describe('local-model doctor', () => {
     expect(data['startable']).toBe(true);
     expect(data['binding']).toBe('loopback-only');
     expect(data['localOnly']).toBe(true);
+  });
+});
+
+describe('orchestrate objective / workunit inspection', () => {
+  async function fixtureWithWorkGraph() {
+    const fixture = setupOrchestrationFixture({ git: true });
+    const deps = { workspace: fixture.workspace, config: fixture.config, host: 'test' };
+    const job = createJob(deps, { specName: fixture.specName, goal: 'Implement the plan.' });
+    await buildJobGraph(deps, job.jobId);
+    const graph = requireGraphRevision(
+      fixture.workspace,
+      job.jobId,
+      1,
+    );
+    const nodeId = graph.nodes[0]!.nodeId;
+    let workGraph = singleUnitGraph({
+      jobId: job.jobId,
+      node: {
+        nodeId,
+        parentTaskId: graph.nodes[0]!.parentTaskId,
+        taskFingerprint: graph.nodes[0]!.taskFingerprint,
+        title: graph.nodes[0]!.title,
+      },
+      relevantContractIds: ['CTR-001'],
+      createdAt: '2026-08-10T10:00:00.000Z',
+      reason: 'test fixture',
+    });
+    workGraph = transitionUnit(workGraph, 'wu-1', 'BUILDING');
+    storeWorkGraph(fixture.workspace, job.jobId, workGraph);
+    return { fixture, jobId: job.jobId, nodeId };
+  }
+
+  it('objective prints the work graph with unit statuses and kinds', async () => {
+    const { fixture, jobId, nodeId } = await fixtureWithWorkGraph();
+    const result = await cli(fixture.root, 'orchestrate', 'objective', jobId, nodeId);
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain('work graph r1');
+    expect(result.stdout).toContain('wu-1 [BUILDING] (build)');
+    expect(result.stdout).toContain('proposed by deterministic');
+  });
+
+  it('workunit prints one unit and exits 2 for an unknown one', async () => {
+    const { fixture, jobId, nodeId } = await fixtureWithWorkGraph();
+    const known = await cli(fixture.root, 'orchestrate', 'workunit', jobId, nodeId, 'wu-1', '--json');
+    expect(known.code).toBe(0);
+    const data = parseJson(known.stdout)['data'] as { unit: { workUnitId: string; status: string } };
+    expect(data.unit.workUnitId).toBe('wu-1');
+    expect(data.unit.status).toBe('BUILDING');
+
+    const unknown = await cli(fixture.root, 'orchestrate', 'workunit', jobId, nodeId, 'wu-999');
+    expect(unknown.code).toBe(2);
+    expect(unknown.stdout).toMatch(/does not exist/);
   });
 });

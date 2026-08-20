@@ -34193,7 +34193,18 @@ var jobRoutingPolicySchema = external_exports.object({
   critic: external_exports.enum(ROLE_ROUTES).default("local-first"),
   diagnoser: external_exports.enum(["local-first", "large-agent"]).default("local-first"),
   replanner: external_exports.enum(["local-first", "large-agent"]).default("local-first"),
-  executor: external_exports.enum(EXECUTOR_ROUTES).default("large-agent")
+  executor: external_exports.enum(EXECUTOR_ROUTES).default("large-agent"),
+  /**
+   * Objective-runtime reasoning roles (additive; defaults preserve the
+   * local-first, escalate-on-evidence philosophy while routing the
+   * architecture-sensitive roles — decomposition and semantic aggregation —
+   * to the large agent, exactly as the complexity model demands. BUILDER
+   * and INTEGRATOR have no route entries: like the executor, repository
+   * work structurally requires the large agent.
+   */
+  decomposer: external_exports.enum(["local-first", "large-agent"]).default("large-agent"),
+  evaluator: external_exports.enum(ROLE_ROUTES).default("local-first"),
+  aggregator: external_exports.enum(["local-first", "large-agent"]).default("large-agent")
 }).passthrough();
 var JOB_PLAN_REVIEW_MODES = ["high-risk", "always", "auto"];
 var ESCALATION_MODES = ["automatic", "manual"];
@@ -34227,6 +34238,27 @@ var jobBudgetPolicySchema = external_exports.object({
   /** Optional token ceiling, enforced against reported usage only. */
   maxTokens: external_exports.number().int().min(1).nullable().default(null)
 }).passthrough();
+var objectiveParallelismSchema = external_exports.object({
+  enabled: external_exports.boolean().default(false),
+  maxConcurrentBuilders: external_exports.number().int().min(1).max(8).default(3)
+}).passthrough();
+var SEMANTIC_EVALUATION_MODES = ["auto", "always", "disabled"];
+var objectivesPolicySchema = external_exports.object({
+  enabled: external_exports.boolean().default(true),
+  /** Hard ceiling on work units in one objective's graph. */
+  maxWorkUnits: external_exports.number().int().min(1).max(30).default(12),
+  /** Hard ceiling on the dependency-chain depth of a proposed graph. */
+  maxGraphDepth: external_exports.number().int().min(1).max(10).default(4),
+  /** Builder attempts per work unit before the unit fails. */
+  maxBuilderAttemptsPerUnit: external_exports.number().int().min(1).max(10).default(2),
+  builderTimeoutMs: external_exports.number().int().min(6e4).max(24 * 36e5).default(12e5),
+  semanticEvaluation: external_exports.enum(SEMANTIC_EVALUATION_MODES).default("auto"),
+  parallelism: objectiveParallelismSchema.default({}),
+  /** Serialized size ceiling for one candidate patch artifact. */
+  maxCandidateBytes: external_exports.number().int().min(10240).max(2e7).default(2e6),
+  /** Character ceiling for one context projection document. */
+  maxProjectionChars: external_exports.number().int().min(4e3).max(4e5).default(6e4)
+}).passthrough();
 var jobPolicySchema = external_exports.object({
   /** When false, job operations refuse to start and report why. */
   enabled: external_exports.boolean().default(true),
@@ -34253,7 +34285,9 @@ var jobPolicySchema = external_exports.object({
   /** Serialized size ceiling for one stored structured agent result. */
   maxAgentResultBytes: external_exports.number().int().min(1024).max(262144).default(65536),
   /** Base delay before a WAITING_RETRY job may resume. */
-  retryDelayMs: external_exports.number().int().min(100).max(36e5).default(5e3)
+  retryDelayMs: external_exports.number().int().min(100).max(36e5).default(5e3),
+  /** Objective decomposition policy (additive; safe defaults). */
+  objectives: objectivesPolicySchema.default({})
 }).passthrough();
 var orchestrationPolicySchema = external_exports.object({
   /**

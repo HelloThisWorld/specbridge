@@ -77,11 +77,18 @@ Runtime node ids never appear inside `.kiro`.
 
 ## Roles, tiers, and routing
 
-Six logical roles: `CLASSIFIER`, `PLANNER`, `CRITIC`, `DIAGNOSER`,
+Six core roles: `CLASSIFIER`, `PLANNER`, `CRITIC`, `DIAGNOSER`,
 `REPLANNER` (read-only reasoning) and `EXECUTOR` (the only role that may
 mutate source). Two reasoning tiers — `LOCAL_SMALL` (a managed llama.cpp
 server) and `LARGE_AGENT` (Claude Code) — and two cost tiers, `LOCAL` and
 `PAID`.
+
+Mission-driven specs add five objective-runtime roles: `DECOMPOSER`,
+`BUILDER` (writes only inside isolated worktrees), `EVALUATOR`
+(local-first), `AGGREGATOR`, and `INTEGRATOR` (the single canonical
+writer). For those specs the executor dispatch routes through the
+[objective runtime](objective-decomposition.md); everything below — the
+scheduler, budgets, diagnosis, replans, resume — governs it unchanged.
 
 Routing is **local-first, escalate-on-evidence**:
 

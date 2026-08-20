@@ -36,7 +36,10 @@ export function resolveWorkers(config: AgentConfig): JobWorkerProfile[] {
   if (local.enabled && validateLocalInferenceConfig(local).ok) {
     workers.push({
       workerId: LOCAL_WORKER_ID,
-      roles: ['CLASSIFIER', 'PLANNER', 'CRITIC', 'DIAGNOSER', 'REPLANNER'],
+      // EVALUATOR joins the local roles: judging one bounded candidate
+      // against a bounded contract projection is exactly the
+      // schema-constrained, read-only reasoning the local tier exists for.
+      roles: ['CLASSIFIER', 'PLANNER', 'CRITIC', 'DIAGNOSER', 'REPLANNER', 'EVALUATOR'],
       reasoningTier: 'LOCAL_SMALL',
       costTier: 'LOCAL',
       repositoryRead: false,
@@ -54,7 +57,19 @@ export function resolveWorkers(config: AgentConfig): JobWorkerProfile[] {
   workers.push({
     workerId: CLAUDE_WORKER_ID,
     runnerProfile: config.defaultRunner,
-    roles: ['CLASSIFIER', 'PLANNER', 'CRITIC', 'DIAGNOSER', 'REPLANNER', 'EXECUTOR'],
+    roles: [
+      'CLASSIFIER',
+      'PLANNER',
+      'CRITIC',
+      'DIAGNOSER',
+      'REPLANNER',
+      'EXECUTOR',
+      'DECOMPOSER',
+      'BUILDER',
+      'EVALUATOR',
+      'AGGREGATOR',
+      'INTEGRATOR',
+    ],
     reasoningTier: 'LARGE_AGENT',
     costTier: 'PAID',
     repositoryRead: true,
@@ -96,6 +111,17 @@ function routeFor(policy: JobPolicy, role: AgentRole): RoleRoute | 'large-agent'
       return policy.routing.replanner;
     case 'EXECUTOR':
       return policy.routing.executor;
+    case 'DECOMPOSER':
+      return policy.routing.decomposer;
+    case 'EVALUATOR':
+      return policy.routing.evaluator;
+    case 'AGGREGATOR':
+      return policy.routing.aggregator;
+    // Repository-writing roles have no configurable route: like the
+    // executor, they structurally require the large agent.
+    case 'BUILDER':
+    case 'INTEGRATOR':
+      return 'large-agent';
   }
 }
 
@@ -129,19 +155,22 @@ export function selectWorker(input: SelectWorkerInput): WorkerSelection {
     (worker) => worker.reasoningTier === 'LOCAL_SMALL' && worker.roles.includes(role),
   );
 
-  // The executor requires repository write capability, structurally.
-  if (role === 'EXECUTOR') {
-    const executor = findWorker(
+  // Repository-writing roles require write capability, structurally: the
+  // local worker never declares repositoryWrite, so even a mis-edited
+  // routing table cannot select it for source mutation — canonical (EXECUTOR,
+  // INTEGRATOR) or worktree-isolated (BUILDER) alike.
+  if (role === 'EXECUTOR' || role === 'BUILDER' || role === 'INTEGRATOR') {
+    const writer = findWorker(
       workers,
-      (worker) => worker.roles.includes('EXECUTOR') && worker.repositoryWrite,
+      (worker) => worker.roles.includes(role) && worker.repositoryWrite,
     );
-    if (executor === undefined) {
-      throw new OrchestrationError('SBO034', 'No repository-writing worker is available for EXECUTOR.', {
+    if (writer === undefined) {
+      throw new OrchestrationError('SBO034', `No repository-writing worker is available for ${role}.`, {
         remediation: ['Check the Claude Code runner with `specbridge runner doctor claude-code`.'],
         failureCategory: 'CAPABILITY_UNAVAILABLE',
       });
     }
-    return { worker: executor };
+    return { worker: writer };
   }
 
   const route = routeFor(policy, role);

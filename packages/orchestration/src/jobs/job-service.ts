@@ -1547,6 +1547,54 @@ export async function resumeJob(deps: JobDeps, jobId: string): Promise<JobResume
   };
 }
 
+/**
+ * Fold one objective-runtime worker dispatch (DECOMPOSER / BUILDER /
+ * EVALUATOR / AGGREGATOR / INTEGRATOR) into the job: the attempt lands on
+ * the OBJECTIVE NODE's history, the dispatch counts against maxAgentRuns,
+ * and reported usage accumulates — the same accounting every other worker
+ * gets. Throws SBO032 when the dispatch budget is exhausted, which stops
+ * the objective mid-flight and blocks the job honestly.
+ */
+export function recordObjectiveWorkerAttempt(
+  deps: JobDeps,
+  jobId: string,
+  input: {
+    nodeId: string;
+    role: AgentRole;
+    workerId: string;
+    outcome: 'succeeded' | 'failed' | 'invalid-output';
+    usage?:
+      | { inputTokens: number | null; outputTokens: number | null; costUsd: number | null }
+      | undefined;
+  },
+): JobState {
+  assertJobsEnabled(deps);
+  let job = requireJobState(deps.workspace, jobId);
+  if (job.counters.agentRuns >= job.budgets.maxAgentRuns) {
+    throw new OrchestrationError(
+      'SBO032',
+      `The job reached its ${job.budgets.maxAgentRuns}-dispatch budget during objective execution.`,
+      { failureCategory: 'BUDGET_EXHAUSTED' },
+    );
+  }
+  let graph = requireGraphRevision(deps.workspace, jobId, job.graphRevision);
+  ({ job, graph } = appendAttempt(
+    deps,
+    job,
+    graph,
+    {
+      nodeId: input.nodeId,
+      role: input.role,
+      workerId: input.workerId,
+      startedAt: now(deps).toISOString(),
+      ...(input.usage !== undefined ? { usage: input.usage } : {}),
+    },
+    input.outcome === 'succeeded' ? 'succeeded' : input.outcome,
+  ));
+  persistGraph(deps, job, graph);
+  return persist(deps, job);
+}
+
 /** Count a local inference call against the job budget (driver hook). */
 export function countLocalInferenceCall(deps: JobDeps, jobId: string): JobState {
   let job = requireJobState(deps.workspace, jobId);

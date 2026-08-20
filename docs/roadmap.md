@@ -28,6 +28,7 @@ implemented unless marked ✅ and covered by tests.
 | T — Governed agent orchestration | `@specbridge/orchestration`: 12-phase fail-closed state machine with a phase/action gate, intent assessment (READY/NEEDS_CLARIFICATION/REJECTED/BLOCKED) with structural provenance instead of confidence scores, bounded clarification with durable decisions, execution plans bound to task/approval/Git/policy with staleness detection and a review gate, material-change replanning, an 18-category failure taxonomy driving a deterministic retry/repair/replan engine, deterministic no-progress fingerprinting, explicit budgets, versioned orchestration sidecar state, honest resume + compact checkpoints, `specbridge orchestrate status/show/explain/policy/events/phases`, 10 MCP `orchestration_*` tools, `/specbridge:develop`, and the StepRelay readiness scenarios | ✅ v1.1.0 |
 | U — Long-running local-first orchestrator | Persistent jobs (`.specbridge/jobs/`, 13-status fail-closed machine, append-only graph/plan/event history, compact checkpoints, honest resume with repository reconciliation), runtime execution graphs independent of `tasks.md` (per-node plan revisions, node supersession with lineage, deterministic intent-impact screen), a pure deterministic scheduler (sequential source mutation), six agent roles across LOCAL_SMALL/LARGE_AGENT tiers with local-first evidence-based sticky escalation, deterministic complexity assessment, structured local-agent contracts (schema-constrained, complete-response validation, bounded correction), LocalModelManager (managed loopback-only llama.cpp lifecycle, bounded lazy restarts, idle shutdown), the `orchestrate run` foreground persistent driver + `jobs/job/node-plan/review-plan/answer/cancel-job`, `local-model doctor/status`, MCP `job_list/job_read/job_cancel`, `/specbridge:orchestrate`, and driver-level StepRelay readiness scenarios (local plan→executor, HIGH escalation + human gate, verify-fail→diagnose→repair, interruption→resume, local-model crash isolation, manual escalation, budget stops) | ✅ v1.2.0 (unreleased; no daemon — the foreground persistent process is the honest v1 shape) |
 | S — Stabilization & release | public contract inventory + machine-readable snapshots (`check:public-contracts`), versioning/deprecation policy, unified migration framework (`migrate`), state validation and hash-bound recovery (`state validate/recover`, `doctor --repair-plan`), `setup`, consolidated threat model + security scan, large-repository performance suite, cross-platform packaging, tag-driven release workflow, documentation hub | ✅ v1.0.0 |
+| V — Mission-driven development | `@specbridge/mission` (fail-closed discovery lifecycle, verbatim conversation provenance with structural decision-provenance rules, deterministic 24-topic coverage + irreversibility/materiality screen, Architecture Constitution with machine-checkable guard patterns, immutable ADRs with derived supersession, versioned product Contract Registry, human-only contract change requests, deterministic mission→Kiro synthesis producing objective-oriented `tasks.md`), the objective runtime in `@specbridge/orchestration` (DECOMPOSER-proposed deterministically-validated dynamic work graphs with single-unit fallback, immutable hashed context projections with structural staleness, AgentSupervisor identity + fail-closed result acceptance, isolated per-attempt git worktrees, durable candidate artifacts, deterministic-first evaluation with contract-guard conflict detection, structural + bounded semantic aggregation, single-writer integration inside the unchanged evidence pipeline, conservative opt-in parallelism), five additive agent roles, `specbridge mission …` + `orchestrate objective/workunit`, 14 MCP tools (64 total), `/specbridge:discover`, and offline StepRelay mission E2E scenarios (conflict, CCR + stale-projection replan, investigation aggregation, interruption resume, parallel builders) | ✅ v1.3.0 (unreleased) |
 
 ## Command availability
 
@@ -43,6 +44,7 @@ implemented unless marked ✅ and covered by tests.
 | `runner list/matrix/show/doctor/test/conformance/models`, `config doctor/migrate`, `spec generate/refine/run --runner <profile>`, `--show-runner-plan` | ✅ v0.6.0 — codex/ollama via your local installation; fake providers in CI |
 | `--runner gemini-default / openai-compatible-local`, `runner doctor antigravity`, MCP `runner_list/show/doctor/matrix`, `/specbridge:runners` | ✅ v0.6.1 — gemini/API endpoints via your own installation and accounts; fake providers in CI |
 | `template list/search/show/validate/preview/apply/install/uninstall/scaffold`, `spec new --template`, MCP `template_list/search/show/preview/apply`, `/specbridge:templates` | ✅ v0.7.0 — fully offline and deterministic; local sources only |
+| `mission begin/status/show/events/coverage/answer/contract-ready/synthesize/contracts/adr/ccr/decisions/reopen/abandon`, `orchestrate objective/workunit`, MCP `mission_*`/`contract_*`/`objective_read`/`workunit_read`/`evaluation_read`, `/specbridge:discover` | ✅ v1.3.0 (unreleased) — discovery over MCP; execution via the standalone orchestrator; approvals and CCR decisions human-only |
 | `spec sync/export` | ❌ registered as "(planned)", exit 2 with an honest message |
 
 ## v0.6.1 (✅ implemented)
@@ -123,10 +125,14 @@ documentation. Anything below remains explicitly out of scope.
 - Remote MCP transports (HTTP/SSE/WebSocket), MCP OAuth, or a cloud-hosted
   SpecBridge service.
 - Automatic Git commits, pushes, pull requests, or rollback.
-- Parallel task execution / agent teams — not before the sequential
-  evidence model has real-world mileage.
 - SARIF output and PR-comment publishing from the GitHub Action (still
   candidates, still deferred).
+
+(Parallel execution shipped in a deliberately narrow form with v1.3:
+opt-in, builder-dispatch-only, isolated worktrees, deterministic
+independence proof, single-writer integration. Parallel **objectives** —
+`maxConcurrentTasks > 1` — remain not planned until the sequential evidence
+model has real-world mileage.)
 
 ## Sequencing rule
 

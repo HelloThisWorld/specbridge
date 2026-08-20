@@ -15,7 +15,8 @@ instead of duplicating logic.
 | `@specbridge/drift` | Deterministic drift verification (v0.4): git comparison resolution, spec policies, the SBV001–SBV025 rule engine, affected-spec resolution, trusted-command orchestration, schema-validated report assembly — plus the v0.1 primitives |
 | `@specbridge/runners` | Model/agent adapters behind one `AgentRunner` interface (mock implemented; CLI runners detection-only) |
 | `@specbridge/reporting` | Terminal formatting, JSON report envelope, self-contained HTML rendering |
-| `@specbridge/orchestration` | v1.1 governed agent orchestration: the phase/action state machine, intent and clarification contracts, the execution-plan lifecycle with freshness binding, the failure taxonomy, the deterministic retry/repair/replan decision engine, budgets, and versioned orchestration persistence |
+| `@specbridge/orchestration` | v1.1 governed agent orchestration (phase/action state machine, intent and clarification contracts, execution-plan lifecycle with freshness binding, failure taxonomy, deterministic retry/repair/replan engine, budgets, versioned persistence), the v1.2 long-running job runtime (scheduler, workers, routing), and the objective runtime (dynamic work graphs, context projections, worker supervision, isolated worktrees, evaluation, aggregation, single-writer integration) |
+| `@specbridge/mission` | Mission Discovery: the fail-closed mission lifecycle, conversation provenance, deterministic coverage and materiality analysis, the Architecture Constitution, ADRs, the product Contract Registry with change requests, and the deterministic mission→Kiro spec compiler |
 | `@specbridge/mcp-server` | v0.5 local stdio MCP server: typed tool/resource/prompt adapters over the packages above, SBMCP error model, bounded outputs, per-project write mutex — no duplicated logic |
 | `specbridge` (packages/cli) | Commander-based CLI wiring the above together (including `mcp serve/doctor/manifest/tools`) |
 

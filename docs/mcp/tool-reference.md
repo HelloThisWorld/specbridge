@@ -7,10 +7,14 @@ Generated from the authoritative registries of the `specbridge` MCP server
 (version 1.1.0). Tool names, resource URI templates, and prompt
 names are stable contracts — see docs/stability/public-contracts.md.
 
-## Tools (50)
+## Tools (64)
 
 | Tool | Access | Summary |
 | --- | --- | --- |
+| `contract_change_request` | write | Raise a contract change request (human decides it) |
+| `contract_list` | read-only | Product contract registry and constitution |
+| `contract_read` | read-only | One product contract in depth (any revision) |
+| `evaluation_read` | read-only | Evaluation records of one objective or work unit |
 | `extension_doctor` | read-only | Extension health check (bounded no-op handshake) |
 | `extension_list` | read-only | List installed extensions with status |
 | `extension_search` | read-only | Offline extension search (installed + cached registries) |
@@ -18,6 +22,15 @@ names are stable contracts — see docs/stability/public-contracts.md.
 | `job_cancel` | write | Cancel a job (final, idempotent, evidence preserved) |
 | `job_list` | read-only | List long-running orchestration jobs |
 | `job_read` | read-only | One job in depth: graph, attempts, questions, checkpoint |
+| `mission_answer` | write | Record the user’s answer to one discovery question |
+| `mission_assess` | write | Record a governed structured discovery assessment |
+| `mission_begin` | write | Begin Mission Discovery from a product direction |
+| `mission_questions` | read-only | Open discovery questions with materiality |
+| `mission_read` | read-only | One mission in depth (facts, decisions, coverage, artifacts) |
+| `mission_record_turn` | write | Persist one user-visible discovery turn (provenance root) |
+| `mission_status` | read-only | List missions with lifecycle status and readiness |
+| `mission_synthesize` | write | Compile contracts into Kiro spec candidates (approval stays human) |
+| `objective_read` | read-only | One objective’s work graph, conflicts, and workers |
 | `orchestration_assess_intent` | write | Validate a structured intent assessment |
 | `orchestration_begin` | write | Begin a governed orchestration run |
 | `orchestration_checkpoint` | write | Write a compact structured checkpoint |
@@ -61,6 +74,7 @@ names are stable contracts — see docs/stability/public-contracts.md.
 | `template_search` | read-only | Deterministic local template search |
 | `template_show` | read-only | One template in depth (variables, files, README) |
 | `workspace_detect` | read-only | Detect the Kiro-compatible workspace |
+| `workunit_read` | read-only | One work unit: projection identity, candidate, evaluations |
 
 Write tools mutate only spec documents and SpecBridge sidecar state through
 the same guarded code paths as the CLI; there is deliberately no arbitrary
