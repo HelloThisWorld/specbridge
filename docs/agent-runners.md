@@ -32,8 +32,10 @@ orchestration lives in `@specbridge/execution` and evidence evaluation in
 Kinds: `mock` (offline, deterministic), `claude-code` (local Claude Code
 CLI), `codex-cli` (local Codex CLI, v0.6), `gemini-cli` (local Gemini CLI,
 v0.6.1), `ollama` (local model API, authoring-only, v0.6),
-`openai-compatible` (model API, authoring-only, v0.6.1), and
-`antigravity-cli` (experimental detection only, v0.6.1). The v0.3-era
+`openai-compatible` (model API, authoring-only, v0.6.1),
+`antigravity-cli` (experimental detection only, v0.6.1), and
+`deepseek-harness` (DeepSeek Harness runtime over the official stdio
+JSON-RPC SDK; preview, execution-only, vNext.3). The v0.3-era
 `unsupported` stubs are gone; the value remains in the vocabulary so
 stored data stays readable.
 

@@ -23,6 +23,12 @@ candidate and writes the document itself.
 **Experimental adapters** (`antigravity-cli`, v0.6.1) provide capability
 detection and diagnostics only; automation is disabled.
 
+**Agent-harness runners** (`deepseek-harness`, vNext.3, PREVIEW) drive a
+DeepSeek Harness runtime as a disposable out-of-process execution engine
+over the official stdio JSON-RPC SDK. Task execution and resume only —
+no authoring — and always explicit, never selected automatically. See
+[deepseek-harness-runner.md](deepseek-harness-runner.md).
+
 **Mock runners** exist for deterministic tests and conformance runs.
 
 ## Operation matrix (v0.6.1)
@@ -38,7 +44,12 @@ Generated from registered runner metadata — run `specbridge runner matrix`
 | ollama-local | production | yes | yes | no | no | yes |
 | openai-compatible-local | production | yes | yes | no | no | yes |
 | antigravity | experimental | no | no | no | no | no |
+| deepseek-harness | preview | no | no | yes* | yes* | no |
 | mock | production | yes | yes | yes | yes | yes |
+
+\* DeepSeek Harness Execute/Resume additionally require the profile's
+workspace-boundary and session-persistence attestations; without them the
+capabilities downgrade and execution fails closed.
 
 Gemini's Execute/Resume columns reflect DECLARED capabilities; detection
 downgrades them per installed version (`specbridge runner doctor
@@ -92,5 +103,6 @@ See also: [runner-capabilities.md](runner-capabilities.md),
 [ollama-runner.md](ollama-runner.md),
 [openai-compatible-runner.md](openai-compatible-runner.md),
 [antigravity-cli-runner.md](antigravity-cli-runner.md),
+[deepseek-harness-runner.md](deepseek-harness-runner.md),
 [runner-security.md](runner-security.md),
 [configuration-migration.md](configuration-migration.md).

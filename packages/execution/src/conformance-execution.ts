@@ -201,9 +201,12 @@ export const taskExecutionConformanceGroup: ConformanceGroupRunner = {
       if ('error' in fixture) {
         results.push(check('task-execution', 'task-execution.verified-flow', 'verified evidence updates exactly one checkbox', 'skipped', fixture.error));
       } else {
+        // Conformance is an explicit per-profile run: name the profile under
+        // test so preview adapters (explicit-selection-only by design) are
+        // exercised exactly like the CLI `runner conformance <profile>` call.
         const outcome = await runApprovedTask(
           { workspace: fixture.workspace, config: fixture.config, registry: fixture.registry },
-          { specName: CONFORMANCE_SPEC_NAME, next: true },
+          { specName: CONFORMANCE_SPEC_NAME, next: true, runnerName: context.profile.name },
         );
         const report = outcome.kind === 'executed' ? outcome.report : undefined;
         results.push(
@@ -245,7 +248,7 @@ export const taskExecutionConformanceGroup: ConformanceGroupRunner = {
       } else {
         const outcome = await runApprovedTask(
           { workspace: fixture.workspace, config: fixture.config, registry: fixture.registry },
-          { specName: CONFORMANCE_SPEC_NAME, next: true },
+          { specName: CONFORMANCE_SPEC_NAME, next: true, runnerName: context.profile.name },
         );
         const report = outcome.kind === 'executed' ? outcome.report : undefined;
         results.push(

@@ -11,7 +11,9 @@
  * honest `unsupported` stubs); v0.6 adds the production codex-cli and ollama
  * implementations; v0.6.1 adds gemini-cli, openai-compatible (authoring
  * only), and the experimental antigravity-cli — an ADDITIVE extension: no
- * existing value changes meaning. `unsupported` remains in the vocabulary so
+ * existing value changes meaning. vNext.3 adds the preview deepseek-harness
+ * runner (DeepSeek Harness runtime driven out-of-process over the official
+ * SDK), likewise additive. `unsupported` remains in the vocabulary so
  * stored data referencing removed stubs stays readable.
  */
 export const AGENT_RUNNER_KINDS = [
@@ -22,6 +24,8 @@ export const AGENT_RUNNER_KINDS = [
   'ollama',
   'openai-compatible',
   'antigravity-cli',
+  /** vNext.3: DeepSeek Harness runtime behind the official stdio JSON-RPC SDK. */
+  'deepseek-harness',
   /** v0.7.1: out-of-process runner extension behind the frozen contract. */
   'extension',
   'unsupported',

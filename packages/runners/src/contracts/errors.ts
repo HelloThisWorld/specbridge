@@ -39,6 +39,13 @@ export const RUNNER_ERROR_CODES = [
   'verification_failed',
   'invalid_configuration',
   'unsupported_operation',
+  /**
+   * vNext.3 (additive): a provider session referenced for resume no longer
+   * exists, restored empty, or is otherwise unusable. Continuation must go
+   * through the SpecBridge checkpoint fallback (a fresh attempt), never an
+   * identical retry.
+   */
+  'session_unavailable',
 ] as const;
 export type RunnerErrorCode = (typeof RUNNER_ERROR_CODES)[number];
 
@@ -80,6 +87,7 @@ export const NON_RETRYABLE_ERROR_CODES: readonly RunnerErrorCode[] = [
   'protected_path_modified',
   'invalid_configuration',
   'unsupported_operation',
+  'session_unavailable',
 ];
 
 export interface RunnerErrorInput {

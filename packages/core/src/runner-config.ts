@@ -61,6 +61,7 @@ export const RUNNER_IMPLEMENTATIONS = [
   'ollama',
   'openai-compatible',
   'antigravity-cli',
+  'deepseek-harness',
   'mock',
 ] as const;
 export type RunnerImplementation = (typeof RUNNER_IMPLEMENTATIONS)[number];
@@ -73,6 +74,7 @@ export const BUILT_IN_PROFILE_NAMES = {
   ollama: 'ollama-local',
   'openai-compatible': 'openai-compatible-local',
   'antigravity-cli': 'antigravity',
+  'deepseek-harness': 'deepseek-harness',
   mock: 'mock',
 } as const;
 
@@ -394,6 +396,69 @@ export const antigravityProfileSchema = z
   .passthrough();
 export type AntigravityProfileConfig = z.infer<typeof antigravityProfileSchema>;
 
+/** DSH session persistence attestation. SpecBridge cannot verify persistence
+ * through the public SDK, so resume support is an OPERATOR statement about
+ * the configured runtime profile — and the adapter still verifies session
+ * continuity (event seq) before trusting a resumed session. */
+export const DEEPSEEK_HARNESS_SESSION_PERSISTENCE = ['none', 'runtime-managed'] as const;
+export type DeepSeekHarnessSessionPersistence =
+  (typeof DEEPSEEK_HARNESS_SESSION_PERSISTENCE)[number];
+
+/** DSH workspace write-boundary attestation. The public DSH SDK exposes no
+ * sandbox/tool-restriction configuration — the launched runtime's own
+ * profile (`cordis.yml`) decides its tools and filesystem scope. Task
+ * execution therefore FAILS CLOSED until the operator attests that the
+ * configured runtime profile confines writes to the workspace. */
+export const DEEPSEEK_HARNESS_WORKSPACE_BOUNDARIES = ['unconfirmed', 'runtime-profile'] as const;
+export type DeepSeekHarnessWorkspaceBoundary =
+  (typeof DEEPSEEK_HARNESS_WORKSPACE_BOUNDARIES)[number];
+
+/**
+ * DeepSeek Harness profile (vNext.3) — PREVIEW, disabled by default, never
+ * selected automatically.
+ *
+ * The runner drives a DeepSeek Harness runtime subprocess through the
+ * official `@deepseek-ai/dsh-sdk-client` (stdio JSON-RPC). The launch spec
+ * is fully explicit: SpecBridge never assumes a global `dsh` command, an npx
+ * fallback, or a particular runtime home. The child environment is REPLACED
+ * with a minimal safe base plus `environmentPassthrough` names — arbitrary
+ * parent credentials are never inherited into the runtime.
+ */
+export const deepseekHarnessProfileSchema = z
+  .object({
+    runner: z.literal('deepseek-harness'),
+    enabled: z.boolean().default(false),
+    /** Runtime launch spec (the `dsh-jsonrpc-agent` bin, a packaged exe, or
+     * `node <bin.js> <cordis.yml>`). Argv-based; shell strings are rejected. */
+    command: commandSpecSchema.default({ executable: 'dsh-jsonrpc-agent', args: [] }),
+    /** Provider route for the `initialize` handshake. Required to execute;
+     * SpecBridge never silently falls back to an SDK default route. */
+    provider: safeNonEmptyString.nullable().default(null),
+    /** Model for the `initialize` handshake. Required to execute; never
+     * guessed and never defaulted to a particular vendor model. */
+    model: safeNonEmptyString.nullable().default(null),
+    /** Optional output-token cap passed through to the handshake. */
+    maxTokens: z.number().int().min(1).max(10_000_000).nullable().default(null),
+    /** Bound for individual protocol requests (initialize/prompt/shutdown).
+     * The agentic run itself is bounded by timeoutMs. */
+    handshakeTimeoutMs: z.number().int().min(1000).max(600_000).default(30_000),
+    timeoutMs: z.number().int().min(1000).max(86_400_000).default(1_800_000),
+    /** Whether the configured runtime profile persists sessions across
+     * runtime processes. 'none' (default) disables the resume fast path;
+     * the checkpoint-based fallback is always available. */
+    sessionPersistence: z.enum(DEEPSEEK_HARNESS_SESSION_PERSISTENCE).default('none'),
+    /** Operator attestation of the runtime profile's write boundary. Task
+     * execution is unavailable while 'unconfirmed' (fail closed). */
+    workspaceBoundary: z.enum(DEEPSEEK_HARNESS_WORKSPACE_BOUNDARIES).default('unconfirmed'),
+    /** Environment-variable NAMES forwarded from the parent to the runtime
+     * child on top of the minimal safe base. Never values. */
+    environmentPassthrough: z.array(environmentVariableNameSchema).default([]),
+    /** Retention cap for the normalized/raw notification log. */
+    maxNotificationBytes: z.number().int().min(1024).default(10 * 1024 * 1024),
+  })
+  .passthrough();
+export type DeepSeekHarnessProfileConfig = z.infer<typeof deepseekHarnessProfileSchema>;
+
 /**
  * v0.7.1: a profile backed by an installed runner *extension* (out-of-process
  * stdio adapter behind the frozen v0.6.0 runner contract). Backward
@@ -423,6 +488,7 @@ export const runnerProfileSchema = z.discriminatedUnion('runner', [
   ollamaProfileSchema,
   openAiCompatibleProfileSchema,
   antigravityProfileSchema,
+  deepseekHarnessProfileSchema,
   mockProfileSchema,
   extensionRunnerProfileSchema,
 ]);
@@ -601,6 +667,10 @@ function builtInAntigravityProfile(): AntigravityProfileConfig {
   return antigravityProfileSchema.parse({ runner: 'antigravity-cli', enabled: false });
 }
 
+function builtInDeepSeekHarnessProfile(): DeepSeekHarnessProfileConfig {
+  return deepseekHarnessProfileSchema.parse({ runner: 'deepseek-harness', enabled: false });
+}
+
 /** Add any missing built-in profiles (never overwrites configured ones). */
 function withBuiltInProfiles(
   profiles: Record<string, RunnerProfileConfig>,
@@ -634,6 +704,10 @@ function withBuiltInProfiles(
   add(
     BUILT_IN_PROFILE_NAMES['antigravity-cli'],
     profiles[BUILT_IN_PROFILE_NAMES['antigravity-cli']] ?? builtInAntigravityProfile(),
+  );
+  add(
+    BUILT_IN_PROFILE_NAMES['deepseek-harness'],
+    profiles[BUILT_IN_PROFILE_NAMES['deepseek-harness']] ?? builtInDeepSeekHarnessProfile(),
   );
   add(BUILT_IN_PROFILE_NAMES.mock, profiles[BUILT_IN_PROFILE_NAMES.mock] ?? builtInMockProfile());
   for (const [name, profile] of Object.entries(profiles)) add(name, profile);
@@ -890,6 +964,11 @@ export function isAntigravityProfile(
   profile: RunnerProfileConfig,
 ): profile is AntigravityProfileConfig {
   return profile.runner === 'antigravity-cli';
+}
+export function isDeepSeekHarnessProfile(
+  profile: RunnerProfileConfig,
+): profile is DeepSeekHarnessProfileConfig {
+  return profile.runner === 'deepseek-harness';
 }
 export function isMockProfile(profile: RunnerProfileConfig): profile is MockProfileConfig {
   return profile.runner === 'mock';

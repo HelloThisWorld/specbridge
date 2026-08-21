@@ -33,6 +33,9 @@ describe('runner registry', () => {
       'ollama-local',
       'openai-compatible-local',
       'antigravity',
+      // vNext.3: registered (so list/doctor can explain it) but DISABLED
+      // by default and never selected automatically.
+      'deepseek-harness',
       'mock',
     ]);
   });

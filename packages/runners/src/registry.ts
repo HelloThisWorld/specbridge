@@ -8,6 +8,7 @@ import { GeminiCliRunner } from './gemini-cli/runner.js';
 import { OllamaRunner } from './ollama/runner.js';
 import { OpenAiCompatibleRunner } from './openai-compatible/runner.js';
 import { AntigravityCliRunner } from './antigravity-cli/runner.js';
+import { DeepSeekHarnessRunner } from './deepseek-harness/runner.js';
 
 /**
  * Profile-based runner registry (v0.6).
@@ -112,6 +113,8 @@ export function instantiateRunner(
       return new OpenAiCompatibleRunner(config);
     case 'antigravity-cli':
       return new AntigravityCliRunner(config);
+    case 'deepseek-harness':
+      return new DeepSeekHarnessRunner(config);
     case 'mock':
       return new MockRunner(config);
     case 'extension': {

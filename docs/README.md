@@ -131,7 +131,8 @@ reference, grouped by area.
   [Codex CLI](codex-cli-runner.md) · [Gemini CLI](gemini-cli-runner.md) ·
   [Ollama](ollama-runner.md) ·
   [OpenAI-compatible](openai-compatible-runner.md) ·
-  [Antigravity (experimental)](antigravity-cli-runner.md).
+  [Antigravity (experimental)](antigravity-cli-runner.md) ·
+  [DeepSeek Harness (preview)](deepseek-harness-runner.md).
 - [Model-assisted authoring](model-assisted-authoring.md) —
   `spec generate` / `spec refine`.
 - [Runner security](runner-security.md) ·

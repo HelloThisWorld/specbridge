@@ -126,6 +126,35 @@ export {
   type OllamaModel,
   type OllamaChatMessage,
 } from './ollama/client.js';
+export { DeepSeekHarnessRunner } from './deepseek-harness/runner.js';
+export {
+  DSH_DECLARED_CAPABILITIES,
+  DSH_BASE_ENVIRONMENT_NAMES,
+  buildDshEnvironment,
+  dshCapabilitySet,
+  dshConfigurationGaps,
+  probeDeepSeekHarness,
+  type DshProbe,
+} from './deepseek-harness/detection.js';
+export {
+  DSH_SDK_TESTED_VERSION,
+  DSH_RUNTIME_SERVER_NAME,
+  MAX_RETAINED_DSH_NOTIFICATIONS,
+  type DshNotification,
+  type DshFailure,
+  type DshCloseCause,
+  type DshHandshake,
+  type DshRunObservation,
+} from './deepseek-harness/sdk-adapter.js';
+export { classifyDshFailure } from './deepseek-harness/errors.js';
+export {
+  collectDshRun,
+  normalizeDshEvents,
+  parseDshNotification,
+  redactDshNotificationsForRetention,
+  type DshRunCollection,
+  type DshSessionEvent,
+} from './deepseek-harness/events.js';
 export {
   LocalModelManager,
   type LocalModelStatus,

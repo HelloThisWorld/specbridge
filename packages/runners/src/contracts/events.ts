@@ -35,6 +35,12 @@ export const NORMALIZED_RUNNER_EVENT_TYPES = [
   'usage.updated',
   'warning',
   'error',
+  /**
+   * vNext.3 (additive): the provider compacted its own session working
+   * memory. Observation only — provider-native compaction never replaces
+   * the SpecBridge checkpoint.
+   */
+  'compaction.occurred',
 ] as const;
 export type NormalizedRunnerEventType = (typeof NORMALIZED_RUNNER_EVENT_TYPES)[number];
 

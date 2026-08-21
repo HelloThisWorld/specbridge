@@ -58,6 +58,7 @@ export const FAKE_CLAUDE_PATH = fixturePath('fake-claude', 'fake-claude.mjs');
 export const FAKE_CODEX_PATH = fixturePath('fake-codex', 'fake-codex.mjs');
 export const FAKE_GEMINI_PATH = fixturePath('fake-gemini', 'fake-gemini.mjs');
 export const FAKE_ANTIGRAVITY_PATH = fixturePath('fake-antigravity', 'fake-antigravity.mjs');
+export const FAKE_DSH_PATH = fixturePath('fake-dsh', 'fake-dsh.mjs');
 
 export interface ExecutionFixtureOptions {
   scenario?: MockScenario;

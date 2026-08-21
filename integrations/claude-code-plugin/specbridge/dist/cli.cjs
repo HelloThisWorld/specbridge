@@ -10453,12 +10453,12 @@ var require_isexe = __commonJS({
         if (typeof Promise !== "function") {
           throw new TypeError("callback not provided");
         }
-        return new Promise(function(resolve, reject) {
+        return new Promise(function(resolve2, reject) {
           isexe(path80, options || {}, function(er, is) {
             if (er) {
               reject(er);
             } else {
-              resolve(is);
+              resolve2(is);
             }
           });
         });
@@ -10525,27 +10525,27 @@ var require_which = __commonJS({
         opt = {};
       const { pathEnv, pathExt, pathExtExe } = getPathInfo(cmd, opt);
       const found = [];
-      const step = (i2) => new Promise((resolve, reject) => {
+      const step = (i2) => new Promise((resolve2, reject) => {
         if (i2 === pathEnv.length)
-          return opt.all && found.length ? resolve(found) : reject(getNotFoundError(cmd));
+          return opt.all && found.length ? resolve2(found) : reject(getNotFoundError(cmd));
         const ppRaw = pathEnv[i2];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
         const pCmd = path80.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
-        resolve(subStep(p, i2, 0));
+        resolve2(subStep(p, i2, 0));
       });
-      const subStep = (p, i2, ii) => new Promise((resolve, reject) => {
+      const subStep = (p, i2, ii) => new Promise((resolve2, reject) => {
         if (ii === pathExt.length)
-          return resolve(step(i2 + 1));
+          return resolve2(step(i2 + 1));
         const ext = pathExt[ii];
         isexe(p + ext, { pathExt: pathExtExe }, (er, is) => {
           if (!er && is) {
             if (opt.all)
               found.push(p + ext);
             else
-              return resolve(p + ext);
+              return resolve2(p + ext);
           }
-          return resolve(subStep(p, i2, ii + 1));
+          return resolve2(subStep(p, i2, ii + 1));
         });
       });
       return cb ? step(0).then((res) => cb(null, res), cb) : step(0);
@@ -10837,7 +10837,7 @@ var require_cross_spawn = __commonJS({
     var cp = require("child_process");
     var parse3 = require_parse();
     var enoent = require_enoent();
-    function spawn3(command, args, options) {
+    function spawn4(command, args, options) {
       const parsed = parse3(command, args, options);
       const spawned = cp.spawn(parsed.command, parsed.args, parsed.options);
       enoent.hookChildProcess(spawned, parsed);
@@ -10849,8 +10849,8 @@ var require_cross_spawn = __commonJS({
       result.error = result.error || enoent.verifyENOENTSync(result.status, parsed);
       return result;
     }
-    module2.exports = spawn3;
-    module2.exports.spawn = spawn3;
+    module2.exports = spawn4;
+    module2.exports.spawn = spawn4;
     module2.exports.sync = spawnSync2;
     module2.exports._parse = parse3;
     module2.exports._enoent = enoent;
@@ -15648,7 +15648,7 @@ var require_compile = __commonJS({
       const schOrFunc = root.refs[ref];
       if (schOrFunc)
         return schOrFunc;
-      let _sch = resolve.call(this, root, ref);
+      let _sch = resolve2.call(this, root, ref);
       if (_sch === void 0) {
         const schema = (_a = root.localRefs) === null || _a === void 0 ? void 0 : _a[ref];
         const { schemaId } = this.opts;
@@ -15675,7 +15675,7 @@ var require_compile = __commonJS({
     function sameSchemaEnv(s1, s2) {
       return s1.schema === s2.schema && s1.root === s2.root && s1.baseId === s2.baseId;
     }
-    function resolve(root, ref) {
+    function resolve2(root, ref) {
       let sch;
       while (typeof (sch = this.refs[ref]) == "string")
         ref = sch;
@@ -16306,7 +16306,7 @@ var require_fast_uri = __commonJS({
       }
       return uri;
     }
-    function resolve(baseURI, relativeURI, options) {
+    function resolve2(baseURI, relativeURI, options) {
       const schemelessOptions = options ? Object.assign({ scheme: "null" }, options) : { scheme: "null" };
       const resolved = resolveComponent(parse3(baseURI, schemelessOptions), parse3(relativeURI, schemelessOptions), schemelessOptions, true);
       schemelessOptions.skipEscape = true;
@@ -16564,7 +16564,7 @@ var require_fast_uri = __commonJS({
     var fastUri = {
       SCHEMES,
       normalize,
-      resolve,
+      resolve: resolve2,
       resolveComponent,
       equal,
       serialize: serialize2,
@@ -20069,15 +20069,15 @@ var makeIssue = (params) => {
       message: issueData.message
     };
   }
-  let errorMessage = "";
+  let errorMessage2 = "";
   const maps = errorMaps.filter((m) => !!m).slice().reverse();
   for (const map of maps) {
-    errorMessage = map(fullIssue, { data, defaultError: errorMessage }).message;
+    errorMessage2 = map(fullIssue, { data, defaultError: errorMessage2 }).message;
   }
   return {
     ...issueData,
     path: fullPath,
-    message: errorMessage
+    message: errorMessage2
   };
 };
 var EMPTY_PATH = [];
@@ -24937,6 +24937,7 @@ var BUILT_IN_PROFILE_NAMES = {
   ollama: "ollama-local",
   "openai-compatible": "openai-compatible-local",
   "antigravity-cli": "antigravity",
+  "deepseek-harness": "deepseek-harness",
   mock: "mock"
 };
 var PROFILE_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
@@ -25125,6 +25126,39 @@ var antigravityProfileSchema = external_exports.object({
   experimental: external_exports.literal(true).default(true),
   timeoutMs: external_exports.number().int().min(1e3).max(6e5).default(3e4)
 }).passthrough();
+var DEEPSEEK_HARNESS_SESSION_PERSISTENCE = ["none", "runtime-managed"];
+var DEEPSEEK_HARNESS_WORKSPACE_BOUNDARIES = ["unconfirmed", "runtime-profile"];
+var deepseekHarnessProfileSchema = external_exports.object({
+  runner: external_exports.literal("deepseek-harness"),
+  enabled: external_exports.boolean().default(false),
+  /** Runtime launch spec (the `dsh-jsonrpc-agent` bin, a packaged exe, or
+   * `node <bin.js> <cordis.yml>`). Argv-based; shell strings are rejected. */
+  command: commandSpecSchema.default({ executable: "dsh-jsonrpc-agent", args: [] }),
+  /** Provider route for the `initialize` handshake. Required to execute;
+   * SpecBridge never silently falls back to an SDK default route. */
+  provider: safeNonEmptyString2.nullable().default(null),
+  /** Model for the `initialize` handshake. Required to execute; never
+   * guessed and never defaulted to a particular vendor model. */
+  model: safeNonEmptyString2.nullable().default(null),
+  /** Optional output-token cap passed through to the handshake. */
+  maxTokens: external_exports.number().int().min(1).max(1e7).nullable().default(null),
+  /** Bound for individual protocol requests (initialize/prompt/shutdown).
+   * The agentic run itself is bounded by timeoutMs. */
+  handshakeTimeoutMs: external_exports.number().int().min(1e3).max(6e5).default(3e4),
+  timeoutMs: external_exports.number().int().min(1e3).max(864e5).default(18e5),
+  /** Whether the configured runtime profile persists sessions across
+   * runtime processes. 'none' (default) disables the resume fast path;
+   * the checkpoint-based fallback is always available. */
+  sessionPersistence: external_exports.enum(DEEPSEEK_HARNESS_SESSION_PERSISTENCE).default("none"),
+  /** Operator attestation of the runtime profile's write boundary. Task
+   * execution is unavailable while 'unconfirmed' (fail closed). */
+  workspaceBoundary: external_exports.enum(DEEPSEEK_HARNESS_WORKSPACE_BOUNDARIES).default("unconfirmed"),
+  /** Environment-variable NAMES forwarded from the parent to the runtime
+   * child on top of the minimal safe base. Never values. */
+  environmentPassthrough: external_exports.array(environmentVariableNameSchema).default([]),
+  /** Retention cap for the normalized/raw notification log. */
+  maxNotificationBytes: external_exports.number().int().min(1024).default(10 * 1024 * 1024)
+}).passthrough();
 var extensionRunnerProfileSchema = external_exports.object({
   runner: external_exports.literal("extension"),
   /** ID of the installed, enabled runner extension this profile uses. */
@@ -25144,6 +25178,7 @@ var runnerProfileSchema = external_exports.discriminatedUnion("runner", [
   ollamaProfileSchema,
   openAiCompatibleProfileSchema,
   antigravityProfileSchema,
+  deepseekHarnessProfileSchema,
   mockProfileSchema,
   extensionRunnerProfileSchema
 ]);
@@ -25252,6 +25287,9 @@ function builtInOpenAiCompatibleProfile() {
 function builtInAntigravityProfile() {
   return antigravityProfileSchema.parse({ runner: "antigravity-cli", enabled: false });
 }
+function builtInDeepSeekHarnessProfile() {
+  return deepseekHarnessProfileSchema.parse({ runner: "deepseek-harness", enabled: false });
+}
 function withBuiltInProfiles(profiles, options) {
   const result = {};
   const add = (name, profile) => {
@@ -25280,6 +25318,10 @@ function withBuiltInProfiles(profiles, options) {
   add(
     BUILT_IN_PROFILE_NAMES["antigravity-cli"],
     profiles[BUILT_IN_PROFILE_NAMES["antigravity-cli"]] ?? builtInAntigravityProfile()
+  );
+  add(
+    BUILT_IN_PROFILE_NAMES["deepseek-harness"],
+    profiles[BUILT_IN_PROFILE_NAMES["deepseek-harness"]] ?? builtInDeepSeekHarnessProfile()
   );
   add(BUILT_IN_PROFILE_NAMES.mock, profiles[BUILT_IN_PROFILE_NAMES.mock] ?? builtInMockProfile());
   for (const [name, profile] of Object.entries(profiles)) add(name, profile);
@@ -26190,8 +26232,8 @@ function readRecoveryPlan(workspace, planId) {
 }
 
 // ../../packages/orchestration/dist/index.js
-var import_crypto10 = require("crypto");
 var import_crypto11 = require("crypto");
+var import_crypto12 = require("crypto");
 
 // ../../packages/compat-kiro/dist/index.js
 var import_fs8 = require("fs");
@@ -31232,8 +31274,8 @@ var disconnect = (anyProcess) => {
 // ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/deferred.js
 var createDeferred = () => {
   const methods = {};
-  const promise = new Promise((resolve, reject) => {
-    Object.assign(methods, { resolve, reject });
+  const promise = new Promise((resolve2, reject) => {
+    Object.assign(methods, { resolve: resolve2, reject });
   });
   return Object.assign(promise, methods);
 };
@@ -35870,11 +35912,11 @@ var addConcurrentStream = (concurrentStreams, stream, waitName) => {
   const promises = weakMap.get(stream);
   const promise = createDeferred();
   promises.push(promise);
-  const resolve = promise.resolve.bind(promise);
-  return { resolve, promises };
+  const resolve2 = promise.resolve.bind(promise);
+  return { resolve: resolve2, promises };
 };
-var waitForConcurrentStreams = async ({ resolve, promises }, subprocess) => {
-  resolve();
+var waitForConcurrentStreams = async ({ resolve: resolve2, promises }, subprocess) => {
+  resolve2();
   const [isSubprocessExit] = await Promise.race([
     Promise.allSettled([true, subprocess]),
     Promise.all([false, ...promises])
@@ -36470,6 +36512,686 @@ var import_path17 = __toESM(require("path"), 1);
 var import_buffer2 = require("buffer");
 var import_buffer3 = require("buffer");
 var import_crypto3 = require("crypto");
+var import_buffer4 = require("buffer");
+
+// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-client@0.1.1-rc.1_teq4kq266b3dkw7rcc6wolnm4y/node_modules/@deepseek-ai/dsh-sdk-client/lib/index.js
+var import_node_crypto2 = require("crypto");
+var import_node_path6 = require("path");
+var import_node_child_process6 = require("child_process");
+
+// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-protocol@0.1.1-rc.1_@deepseek-ai+cordis@4.0.1_@deepseek-ai+dsh-invariant_xsjcgguoedzlkqgw4wib2jrjgm/node_modules/@deepseek-ai/dsh-sdk-protocol/lib/index.js
+var import_node_crypto = require("crypto");
+var import_node_string_decoder3 = require("string_decoder");
+var JsonRpcResponseError = class extends Error {
+  code;
+  data;
+  /**
+  * @param code - the wire error code, or `undefined` when the peer sent none.
+  * @param message - the wire error message.
+  * @param data - the optional structured error payload, verbatim.
+  */
+  constructor(code2, message, data) {
+    super(message);
+    this.code = code2;
+    this.data = data;
+    this.name = "JsonRpcResponseError";
+  }
+};
+var JsonRpcLineTransport = class {
+  input;
+  output;
+  buffer = "";
+  decoder = new import_node_string_decoder3.StringDecoder("utf8");
+  started = false;
+  requestHandler;
+  notificationHandler;
+  pending = /* @__PURE__ */ new Map();
+  constructor(input, output) {
+    this.input = input;
+    this.output = output;
+  }
+  /** Attach the input listeners and begin reading frames. Idempotent. */
+  start() {
+    if (this.started) return;
+    this.started = true;
+    this.input.on("data", this.onData);
+    this.input.on("error", this.onInputError);
+    this.input.on("end", this.onInputEnd);
+  }
+  /**
+  * Detach listeners and reject pending requests. Safe before {@link start}.
+  */
+  close() {
+    this.input.off("data", this.onData);
+    this.input.off("error", this.onInputError);
+    this.input.off("end", this.onInputEnd);
+    this.failPending(/* @__PURE__ */ new Error("JSON-RPC transport closed"));
+  }
+  /**
+  * Install the request handler, replacing any prior handler.
+  * @param handler - resolves to the response `result`; a rejection becomes a
+  * `-32603` error response carrying the message.
+  */
+  onRequest(handler) {
+    this.requestHandler = handler;
+  }
+  /**
+  * Install the notification handler, replacing any prior handler.
+  * @param handler - invoked per notification with the method and normalized
+  * params object.
+  */
+  onNotification(handler) {
+    this.notificationHandler = handler;
+  }
+  /**
+  * Send a request and await its response.
+  * @param method - the JSON-RPC method name.
+  * @param params - the request parameters object.
+  * @param signal - optional abandonment signal: aborting removes the pending
+  * entry (no state is retained for a response that may never come) and
+  * rejects with the signal's reason.
+  * @returns the result; rejects per {@link JsonRpcTransportPeer.request}.
+  */
+  request(method, params, signal) {
+    const id = `req_${(0, import_node_crypto.randomUUID)().replaceAll("-", "")}`;
+    const message = {
+      jsonrpc: "2.0",
+      id,
+      method,
+      params
+    };
+    return new Promise((resolve2, reject) => {
+      let detach = () => {
+      };
+      if (signal !== void 0) {
+        if (signal.aborted) {
+          reject(abortError(signal.reason));
+          return;
+        }
+        const onAbort = () => {
+          this.pending.delete(id);
+          reject(abortError(signal.reason));
+        };
+        signal.addEventListener("abort", onAbort, { once: true });
+        detach = () => {
+          signal.removeEventListener("abort", onAbort);
+        };
+      }
+      this.pending.set(id, {
+        resolve: (value) => {
+          detach();
+          resolve2(value);
+        },
+        reject: (error2) => {
+          detach();
+          reject(error2);
+        }
+      });
+      try {
+        this.write(message);
+      } catch (error2) {
+        this.pending.delete(id);
+        detach();
+        reject(error2 instanceof Error ? error2 : new Error(String(error2)));
+      }
+    });
+  }
+  notify(method, params) {
+    this.write(params === void 0 ? {
+      jsonrpc: "2.0",
+      method
+    } : {
+      jsonrpc: "2.0",
+      method,
+      params
+    });
+  }
+  /**
+  * Wait for prior frame write callbacks. The empty barrier emits no bytes.
+  * @returns a promise that settles with the output write callback.
+  */
+  flush() {
+    return new Promise((resolve2, reject) => {
+      this.output.write("", (error2) => {
+        if (error2) reject(error2);
+        else resolve2();
+      });
+    });
+  }
+  onData = (chunk) => {
+    this.buffer += typeof chunk === "string" ? chunk : this.decoder.write(chunk);
+    this.drainLines();
+  };
+  drainLines() {
+    for (; ; ) {
+      const newline = this.buffer.indexOf("\n");
+      if (newline < 0) break;
+      const line = this.buffer.slice(0, newline).trim();
+      this.buffer = this.buffer.slice(newline + 1);
+      if (!line) continue;
+      this.handleLine(line);
+    }
+  }
+  onInputError = (error2) => {
+    this.failPending(error2);
+  };
+  onInputEnd = () => {
+    this.buffer += this.decoder.end();
+    this.drainLines();
+    this.failPending(/* @__PURE__ */ new Error("JSON-RPC input closed"));
+  };
+  async handleLine(line) {
+    let message;
+    try {
+      message = JSON.parse(line);
+    } catch {
+      return;
+    }
+    if (!message || typeof message !== "object") return;
+    const frame = message;
+    const id = frame.id;
+    const method = frame.method;
+    if ((typeof id === "string" || typeof id === "number") && typeof method === "string") {
+      await this.handleIncomingRequest(id, method, objectParams(frame.params));
+      return;
+    }
+    if (typeof id === "string" || typeof id === "number") {
+      this.handleIncomingResponse(id, frame);
+      return;
+    }
+    if (typeof method === "string") this.notificationHandler?.(method, objectParams(frame.params));
+  }
+  async handleIncomingRequest(id, method, params) {
+    const handler = this.requestHandler;
+    if (!handler) {
+      this.writeError(id, -32601, `method not found: ${method}`);
+      return;
+    }
+    try {
+      const result = await handler(method, params);
+      this.write({
+        jsonrpc: "2.0",
+        id,
+        result
+      });
+    } catch (error2) {
+      this.writeError(id, -32603, error2 instanceof Error ? error2.message : String(error2));
+    }
+  }
+  handleIncomingResponse(id, frame) {
+    const pending = this.pending.get(id);
+    if (!pending) return;
+    this.pending.delete(id);
+    if (frame.error && typeof frame.error === "object") {
+      const error2 = frame.error;
+      pending.reject(new JsonRpcResponseError(typeof error2.code === "number" ? error2.code : void 0, typeof error2.message === "string" ? error2.message : "JSON-RPC error", error2.data));
+      return;
+    }
+    pending.resolve(frame.result);
+  }
+  writeError(id, code2, message) {
+    this.write({
+      jsonrpc: "2.0",
+      id,
+      error: {
+        code: code2,
+        message
+      }
+    });
+  }
+  write(message) {
+    this.output.write(`${JSON.stringify(message)}
+`);
+  }
+  failPending(error2) {
+    const pending = [...this.pending.values()];
+    this.pending.clear();
+    for (const waiter of pending) waiter.reject(error2);
+  }
+};
+function objectParams(params) {
+  return params && typeof params === "object" && !Array.isArray(params) ? params : {};
+}
+function abortError(reason) {
+  return reason instanceof Error ? reason : /* @__PURE__ */ new Error(`JSON-RPC request aborted: ${String(reason)}`);
+}
+
+// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-client@0.1.1-rc.1_teq4kq266b3dkw7rcc6wolnm4y/node_modules/@deepseek-ai/dsh-sdk-client/lib/index.js
+function exitsWithin(child, ms) {
+  if (child.exitCode !== null || child.signalCode !== null) return Promise.resolve(true);
+  return new Promise((resolve2) => {
+    const onExit2 = () => {
+      clearTimeout(timer);
+      resolve2(true);
+    };
+    const timer = setTimeout(() => {
+      child.removeListener("exit", onExit2);
+      resolve2(false);
+    }, ms).unref();
+    child.once("exit", onExit2);
+  });
+}
+function forceTerminateWithin(child, ms) {
+  if (child.exitCode !== null || child.signalCode !== null) return Promise.resolve();
+  return new Promise((resolve2, reject) => {
+    let accepted = false;
+    let settled = false;
+    const cleanup = () => {
+      clearTimeout(timer);
+      child.off("exit", onExit2);
+      child.off("error", onError);
+    };
+    const settle = (complete) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      complete();
+    };
+    const onExit2 = () => {
+      settle(resolve2);
+    };
+    const onError = (error2) => {
+      settle(() => {
+        reject(error2);
+      });
+    };
+    child.once("exit", onExit2);
+    child.once("error", onError);
+    const timer = setTimeout(() => {
+      const disposition = accepted ? "accepted" : "refused";
+      settle(() => {
+        reject(/* @__PURE__ */ new Error(`runtime process did not exit within ${ms}ms after SIGKILL was ${disposition}`));
+      });
+    }, ms).unref();
+    try {
+      accepted = child.kill("SIGKILL");
+      if (child.exitCode !== null || child.signalCode !== null) settle(resolve2);
+    } catch (error2) {
+      settle(() => {
+        reject(new Error("SIGKILL failed", { cause: error2 }));
+      });
+    }
+  });
+}
+async function disposeRuntimeProcess(child, graces, platform2 = process.platform) {
+  if (child.exitCode !== null || child.signalCode !== null) return;
+  child.stdin?.end();
+  if (await exitsWithin(child, graces.disposeEofGraceMs)) return;
+  if (platform2 !== "win32") {
+    child.kill("SIGTERM");
+    if (await exitsWithin(child, graces.disposeGraceMs)) return;
+  }
+  await forceTerminateWithin(child, graces.disposeGraceMs);
+}
+var STDERR_TAIL_LIMIT = 400;
+var STREAM_SETTLE_MS = 100;
+var TransportClosedError = class extends Error {
+  /** @param message - the failure description, including any stderr tail. */
+  constructor(message) {
+    super(message);
+    this.name = "TransportClosedError";
+  }
+};
+var RequestTimeoutError = class extends Error {
+  /** @param message - which method timed out. */
+  constructor(message) {
+    super(message);
+    this.name = "RequestTimeoutError";
+  }
+};
+var SdkProtocolError = class extends Error {
+  /** @param message - the protocol violation description. */
+  constructor(message) {
+    super(message);
+    this.name = "SdkProtocolError";
+  }
+};
+var NotificationSubscriptionImpl = class {
+  state;
+  unsubscribe;
+  constructor(state, unsubscribe) {
+    this.state = state;
+    this.unsubscribe = unsubscribe;
+  }
+  /**
+  * Await the next matching notification.
+  * @returns the notification; after the runtime died, drains what was
+  * already delivered and then rejects; after {@link close}, rejects
+  * immediately (the queue is dropped).
+  */
+  next() {
+    const queued = this.state.queue.shift();
+    if (queued !== void 0) return Promise.resolve(queued);
+    if (this.state.failure !== void 0) return Promise.reject(this.state.failure);
+    return new Promise((resolve2, reject) => {
+      this.state.waiters.push({
+        resolve: resolve2,
+        reject
+      });
+    });
+  }
+  /**
+  * Drain one already-delivered notification without waiting.
+  * @returns the next queued notification, or `undefined` when none is queued.
+  */
+  tryNext() {
+    return this.state.queue.shift();
+  }
+  /** Detach from the client; queued items drop and pending waiters reject. */
+  close() {
+    this.unsubscribe();
+    this.state.queue.length = 0;
+    this.fail(new TransportClosedError("notification subscription closed"));
+  }
+  /**
+  * Reject pending and future waits (delivery stops; the first failure wins).
+  * Already-queued notifications remain drainable via {@link next}/{@link tryNext}.
+  * @param error - the terminal failure delivered to waiters.
+  */
+  fail(error2) {
+    this.state.failure ??= error2;
+    for (const waiter of this.state.waiters.splice(0)) waiter.reject(this.state.failure);
+  }
+  /**
+  * Deliver one notification to a waiter or the queue when the filter
+  * matches. A throwing filter fails only THIS subscription (detached, the
+  * throw becomes its terminal error) — it never disturbs sibling
+  * subscriptions or the transport's read loop, mirroring the Python client.
+  * @param notification - the wire notification to deliver.
+  */
+  push(notification) {
+    let matches;
+    try {
+      matches = this.state.filter === void 0 || this.state.filter(notification);
+    } catch (error2) {
+      this.unsubscribe();
+      this.fail(error2 instanceof Error ? error2 : new Error(String(error2)));
+      return;
+    }
+    if (!matches) return;
+    const waiter = this.state.waiters.shift();
+    if (waiter !== void 0) waiter.resolve(notification);
+    else this.state.queue.push(notification);
+  }
+  /**
+  * Iterate notifications until the subscription or runtime closes (the
+  * terminating rejection propagates).
+  * @returns an async iterator over {@link next} results.
+  */
+  async *[Symbol.asyncIterator]() {
+    for (; ; ) yield await this.next();
+  }
+};
+var HarnessClient = class {
+  options;
+  child;
+  transport;
+  stderrTail = [];
+  subscriptions = /* @__PURE__ */ new Map();
+  sessionParents = /* @__PURE__ */ new Map();
+  subscriptionSerial = 0;
+  exitCode;
+  spawnError;
+  streamsSettled = Promise.resolve();
+  closeTask;
+  /** @param options - launch spec, complete child environment, and timeouts. */
+  constructor(options) {
+    this.options = options;
+  }
+  /**
+  * Spawn the runtime subprocess and start reading frames. Idempotent while
+  * the process is live; rejects reuse after {@link close}.
+  */
+  start() {
+    if (this.closeTask !== void 0) throw new TransportClosedError("DeepSeek Harness runtime client is closed");
+    if (this.child !== void 0) return;
+    const child = (0, import_node_child_process6.spawn)(this.options.command, this.options.args ?? [], {
+      cwd: this.options.cwd,
+      env: this.options.env ?? process.env,
+      stdio: [
+        "pipe",
+        "pipe",
+        "pipe"
+      ]
+    });
+    this.child = child;
+    child.once("error", (error2) => {
+      this.spawnError = error2;
+      this.transport?.close();
+      this.failSubscriptions(this.closedError("DeepSeek Harness runtime failed to start"));
+    });
+    child.stdin.on("error", () => {
+    });
+    let stderrBuffer = "";
+    child.stderr.setEncoding("utf8");
+    child.stderr.on("data", (chunk) => {
+      stderrBuffer += chunk;
+      const newline = stderrBuffer.lastIndexOf("\n");
+      if (newline >= 0) {
+        this.appendStderr(stderrBuffer.slice(0, newline).split("\n"));
+        stderrBuffer = stderrBuffer.slice(newline + 1);
+      }
+    });
+    let signalStreamsSettled;
+    this.streamsSettled = new Promise((resolve2) => {
+      signalStreamsSettled = resolve2;
+    });
+    const settled = {
+      stderr: false,
+      exited: false
+    };
+    const maybeSettle = () => {
+      if (settled.stderr && settled.exited) signalStreamsSettled();
+    };
+    child.stderr.once("close", () => {
+      if (stderrBuffer.length > 0) this.appendStderr([stderrBuffer]);
+      settled.stderr = true;
+      maybeSettle();
+    });
+    child.once("exit", (code2) => {
+      this.exitCode = code2;
+      settled.exited = true;
+      maybeSettle();
+      this.failSubscriptions(this.closedError("DeepSeek Harness runtime exited"));
+    });
+    child.once("close", () => {
+      this.transport?.close();
+    });
+    const transport = new JsonRpcLineTransport(child.stdout, child.stdin);
+    transport.onNotification((method, params) => {
+      this.dispatchNotification({
+        method,
+        params
+      });
+    });
+    transport.start();
+    this.transport = transport;
+  }
+  /**
+  * Perform the process-wide handshake.
+  * @param params - workspace cwd plus the provider/model route.
+  * @returns the runtime's wire identity.
+  */
+  async initialize(params) {
+    const result = await this.request("initialize", { ...params });
+    if (!isRecord(result) || !isRecord(result.serverInfo) || typeof result.serverInfo.name !== "string" || typeof result.serverInfo.version !== "string") throw new SdkProtocolError(`initialize returned no server identity: ${JSON.stringify(result)}`);
+    return { serverInfo: {
+      name: result.serverInfo.name,
+      version: result.serverInfo.version
+    } };
+  }
+  /**
+  * Queue one prompt and return its durable inbox identity.
+  * @param sessionId - target session; an unknown id creates it.
+  * @param contentBlocks - the user message, sent verbatim.
+  * @returns the queued message id.
+  */
+  async prompt(sessionId, contentBlocks) {
+    const params = {
+      sessionId,
+      contentBlocks
+    };
+    const result = await this.request("session/prompt", { ...params });
+    if (!isRecord(result) || typeof result.messageId !== "string") throw new SdkProtocolError(`session/prompt returned no message id: ${JSON.stringify(result)}`);
+    return result.messageId;
+  }
+  /**
+  * Send one JSON-RPC request and await its result.
+  * @param method - the wire method name.
+  * @param params - the params object; omitted params send `{}`.
+  * @param timeoutMs - per-call override of {@link HarnessClientOptions.requestTimeoutMs}.
+  * @returns the raw result; rejects with {@link JsonRpcResponseError} on a
+  * protocol error response, {@link RequestTimeoutError} on timeout, and
+  * {@link TransportClosedError} when the runtime is gone.
+  */
+  async request(method, params, timeoutMs) {
+    this.start();
+    if (this.exitCode !== void 0 || this.spawnError !== void 0) {
+      await this.settleStreams();
+      throw this.closedError("DeepSeek Harness runtime is not running");
+    }
+    const transport = this.transport;
+    if (transport === void 0) throw new TransportClosedError("DeepSeek Harness runtime is not running");
+    const timeout = timeoutMs ?? this.options.requestTimeoutMs;
+    try {
+      if (timeout === void 0) return await transport.request(method, params ?? {});
+      const abandon = new AbortController();
+      const timer = setTimeout(() => {
+        abandon.abort(new RequestTimeoutError(`${method} timed out after ${timeout}ms waiting for the DeepSeek Harness runtime`));
+      }, timeout);
+      try {
+        return await transport.request(method, params ?? {}, abandon.signal);
+      } finally {
+        clearTimeout(timer);
+      }
+    } catch (error2) {
+      if (error2 instanceof JsonRpcResponseError || error2 instanceof RequestTimeoutError) throw error2;
+      await this.settleStreams();
+      throw this.closedError(errorMessage(error2));
+    }
+  }
+  /**
+  * Subscribe to server notifications.
+  * @param filter - optional predicate; omitted means every notification.
+  * @returns the subscription handle; close it to stop delivery. After
+  * {@link close} or runtime death the handle is born failed — there is no
+  * producer left, so `next()` rejects instead of waiting forever.
+  */
+  subscribe(filter) {
+    const id = String(this.subscriptionSerial++);
+    const subscription = new NotificationSubscriptionImpl({
+      queue: [],
+      waiters: [],
+      filter,
+      failure: void 0
+    }, () => {
+      this.subscriptions.delete(id);
+    });
+    if (this.closeTask !== void 0 || this.exitCode !== void 0 || this.spawnError !== void 0) {
+      subscription.fail(this.closedError("DeepSeek Harness runtime closed"));
+      return subscription;
+    }
+    this.subscriptions.set(id, subscription);
+    return subscription;
+  }
+  /**
+  * Subscribe to one session and the descendants discovered from
+  * `subagent.started` lineage edges (the runtime notifies for every session
+  * in its context; scoping is client-side, mirroring the Python SDK).
+  * @param sessionId - the root session id.
+  * @returns the filtered subscription handle.
+  */
+  subscribeSessionTree(sessionId) {
+    return this.subscribe((notification) => {
+      const params = notification.params;
+      if (notification.method === "subagent.started" || notification.method === "subagent.finished") {
+        const parentId = params.parentSessionId;
+        if (typeof parentId === "string" && this.isDescendantOf(parentId, sessionId)) return true;
+        return params.childSessionId === sessionId;
+      }
+      const relatedId = params.sessionId;
+      return typeof relatedId === "string" && this.isDescendantOf(relatedId, sessionId);
+    });
+  }
+  /**
+  * Shut the runtime down and reap it: a best-effort protocol `shutdown`
+  * bounded by `shutdownTimeoutMs`, then the shared stdin-EOF → SIGTERM →
+  * SIGKILL ladder until the process actually exited. Idempotent.
+  * @returns settlement of the complete teardown.
+  */
+  close() {
+    this.closeTask ??= this.performClose();
+    return this.closeTask;
+  }
+  async performClose() {
+    const child = this.child;
+    if (child === void 0) return;
+    try {
+      await this.request("shutdown", void 0, this.options.shutdownTimeoutMs ?? 1e3);
+    } catch (error2) {
+      this.appendStderr([`shutdown request failed: ${errorMessage(error2)}`]);
+    }
+    await disposeRuntimeProcess(child, {
+      disposeEofGraceMs: this.options.disposeEofGraceMs ?? 6e3,
+      disposeGraceMs: this.options.disposeGraceMs ?? 3e3
+    });
+    this.transport?.close();
+    this.failSubscriptions(this.closedError("DeepSeek Harness runtime closed"));
+  }
+  dispatchNotification(notification) {
+    this.recordSessionRelationship(notification);
+    for (const subscription of this.subscriptions.values()) subscription.push(notification);
+  }
+  recordSessionRelationship(notification) {
+    if (notification.method !== "subagent.started") return;
+    const parentId = notification.params.parentSessionId;
+    const childId = notification.params.childSessionId;
+    if (typeof parentId === "string" && parentId !== "" && typeof childId === "string" && childId !== "" && parentId !== childId) this.sessionParents.set(childId, parentId);
+  }
+  isDescendantOf(sessionId, rootSessionId) {
+    const visited = /* @__PURE__ */ new Set();
+    let current = sessionId;
+    while (!visited.has(current)) {
+      if (current === rootSessionId) return true;
+      visited.add(current);
+      const parent = this.sessionParents.get(current);
+      if (parent === void 0) return false;
+      current = parent;
+    }
+    return false;
+  }
+  failSubscriptions(error2) {
+    for (const subscription of this.subscriptions.values()) subscription.fail(error2);
+  }
+  appendStderr(lines) {
+    const kept = lines.filter((line) => line.length > 0);
+    this.stderrTail.push(...kept);
+    if (this.stderrTail.length > STDERR_TAIL_LIMIT) this.stderrTail.splice(0, this.stderrTail.length - STDERR_TAIL_LIMIT);
+  }
+  settleStreams() {
+    return Promise.race([this.streamsSettled, new Promise((resolve2) => {
+      setTimeout(resolve2, STREAM_SETTLE_MS);
+    })]);
+  }
+  closedError(reason) {
+    const parts = [reason];
+    if (this.spawnError !== void 0) parts.push(`spawn error: ${this.spawnError.message}`);
+    if (this.exitCode !== void 0) parts.push(`exit code: ${String(this.exitCode)}`);
+    if (this.stderrTail.length > 0) parts.push(`stderr tail:
+${this.stderrTail.join("\n")}`);
+    return new TransportClosedError(parts.join("\n"));
+  }
+};
+function isRecord(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function errorMessage(error2) {
+  return error2 instanceof Error ? error2.message : String(error2);
+}
+
+// ../../packages/runners/dist/index.js
+var import_buffer5 = require("buffer");
+var import_crypto4 = require("crypto");
 var import_fs18 = require("fs");
 var import_path18 = __toESM(require("path"), 1);
 var import_fs19 = require("fs");
@@ -37981,7 +38703,14 @@ var RUNNER_ERROR_CODES = [
   "protected_path_modified",
   "verification_failed",
   "invalid_configuration",
-  "unsupported_operation"
+  "unsupported_operation",
+  /**
+   * vNext.3 (additive): a provider session referenced for resume no longer
+   * exists, restored empty, or is otherwise unusable. Continuation must go
+   * through the SpecBridge checkpoint fallback (a fresh attempt), never an
+   * identical retry.
+   */
+  "session_unavailable"
 ];
 var normalizedRunnerErrorSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/).default(RUNNER_ERROR_SCHEMA_VERSION),
@@ -38012,7 +38741,8 @@ var NON_RETRYABLE_ERROR_CODES = [
   "repository_diverged",
   "protected_path_modified",
   "invalid_configuration",
-  "unsupported_operation"
+  "unsupported_operation",
+  "session_unavailable"
 ];
 function runnerError(input) {
   return normalizedRunnerErrorSchema.parse({
@@ -38398,7 +39128,13 @@ var NORMALIZED_RUNNER_EVENT_TYPES = [
   "plan.updated",
   "usage.updated",
   "warning",
-  "error"
+  "error",
+  /**
+   * vNext.3 (additive): the provider compacted its own session working
+   * memory. Observation only — provider-native compaction never replaces
+   * the SpecBridge checkpoint.
+   */
+  "compaction.occurred"
 ];
 var MAX_EVENT_PAYLOAD_BYTES = 32 * 1024;
 var safePayloadValue = external_exports.union([external_exports.string(), external_exports.number(), external_exports.boolean(), external_exports.null()]);
@@ -41826,6 +42562,1334 @@ ${help.stderr}`;
     return Promise.resolve({ ...this.refusal(), resumeSupported: false });
   }
 };
+var DSH_SDK_TESTED_VERSION = "0.1.1-rc.1";
+var DSH_RUNTIME_SERVER_NAME = "deepseek-harness-sdk-runtime";
+var MAX_RETAINED_DSH_NOTIFICATIONS = 5e3;
+var DshAdapterError = class extends Error {
+  failure;
+  constructor(failure) {
+    super(failure.message);
+    this.name = "DshAdapterError";
+    this.failure = failure;
+  }
+};
+function isRecord2(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function isInboxReceipt(event, messageId) {
+  if (!isRecord2(event) || event["type"] !== "agent/inbox/spliced" || !isRecord2(event["data"])) {
+    return false;
+  }
+  const inserted = event["data"]["inserted"];
+  return Array.isArray(inserted) && inserted.some((message) => isRecord2(message) && message["id"] === messageId);
+}
+function lastAssistantText(notifications, sessionId) {
+  for (let index = notifications.length - 1; index >= 0; index--) {
+    const notification = notifications[index];
+    if (notification === void 0 || notification.method !== "session.event") continue;
+    if (notification.params["sessionId"] !== sessionId) continue;
+    const event = notification.params["event"];
+    if (!isRecord2(event) || event["type"] !== "assistant/message" || !isRecord2(event["data"])) continue;
+    const message = event["data"]["message"];
+    if (!isRecord2(message) || !Array.isArray(message["content"])) continue;
+    return message["content"].filter((block) => isRecord2(block) && block["type"] === "text" && typeof block["text"] === "string").map((block) => block.text).join("");
+  }
+  return "";
+}
+function classify(error2, closeCause) {
+  if (closeCause !== void 0) {
+    return {
+      kind: "closed-by-adapter",
+      message: `the runtime was closed by SpecBridge (${closeCause})`,
+      closeCause
+    };
+  }
+  if (error2 instanceof JsonRpcResponseError) {
+    return {
+      kind: "rpc-error",
+      message: error2.message,
+      rpcCode: typeof error2.code === "number" ? error2.code : void 0
+    };
+  }
+  if (error2 instanceof RequestTimeoutError) {
+    return { kind: "request-timeout", message: error2.message };
+  }
+  if (error2 instanceof SdkProtocolError) {
+    return { kind: "protocol-violation", message: error2.message };
+  }
+  if (error2 instanceof TransportClosedError) {
+    const message = error2.message;
+    if (/ENOENT|EACCES|not launchable|never launchable|spawn/i.test(message)) {
+      return { kind: "launch", message };
+    }
+    return { kind: "transport-closed", message };
+  }
+  return { kind: "unknown", message: error2 instanceof Error ? error2.message : String(error2) };
+}
+var DshSdkAdapter = class {
+  spec;
+  client;
+  closeCause;
+  closed = false;
+  lastPartial = {
+    notifications: [],
+    droppedNotifications: 0
+  };
+  constructor(spec) {
+    this.spec = spec;
+  }
+  /** The deliberate close cause, if SpecBridge ended the runtime itself. */
+  get deliberateCloseCause() {
+    return this.closeCause;
+  }
+  /** Notifications observed before the most recent run settled (bounded). */
+  get partialObservation() {
+    return this.lastPartial;
+  }
+  instance() {
+    if (this.closed) {
+      throw new DshAdapterError({
+        kind: "closed-by-adapter",
+        message: "the adapter is closed; a closed adapter refuses reuse",
+        closeCause: this.closeCause
+      });
+    }
+    this.client ??= new HarnessClient({
+      command: this.spec.command,
+      args: this.spec.args,
+      cwd: this.spec.workspaceRoot,
+      env: this.spec.env,
+      requestTimeoutMs: this.spec.requestTimeoutMs
+    });
+    return this.client;
+  }
+  /**
+   * Spawn the runtime and perform the `initialize` handshake once. Verifies
+   * the wire-stable server identity: a runtime answering with a different
+   * name is incompatible, and SpecBridge refuses to run agentic work on it.
+   */
+  async open() {
+    const client = this.instance();
+    try {
+      client.start();
+      const result = await client.initialize({
+        cwd: this.spec.workspaceRoot,
+        provider: this.spec.provider,
+        model: this.spec.model,
+        ...this.spec.maxTokens !== void 0 ? { maxTokens: this.spec.maxTokens } : {}
+      });
+      const identity3 = {
+        serverName: result.serverInfo.name,
+        serverVersion: result.serverInfo.version
+      };
+      if (identity3.serverName !== DSH_RUNTIME_SERVER_NAME) {
+        throw new DshAdapterError({
+          kind: "identity-mismatch",
+          message: `the launched runtime identifies as "${identity3.serverName || "(none)"}" \u2014 expected "${DSH_RUNTIME_SERVER_NAME}". SpecBridge refuses to run agentic work on an unrecognized runtime.`
+        });
+      }
+      return identity3;
+    } catch (error2) {
+      if (error2 instanceof DshAdapterError) throw error2;
+      throw new DshAdapterError(classify(error2, this.closeCause));
+    }
+  }
+  /**
+   * Queue one prompt on the named session and collect the activity interval
+   * from the durable enqueue receipt through the next whole-agent idle —
+   * the SDK's documented owned-run semantics. UNBOUNDED by itself: callers
+   * enforce deadlines by calling {@link close} (there is no wire cancel).
+   */
+  async runPrompt(options) {
+    const client = this.instance();
+    const retained = [];
+    let dropped = 0;
+    const collect = (notification) => {
+      options.onNotification?.(notification);
+      if (retained.length < MAX_RETAINED_DSH_NOTIFICATIONS) retained.push(notification);
+      else dropped += 1;
+    };
+    const subscription = client.subscribeSessionTree(options.sessionId);
+    try {
+      const messageId = await client.prompt(options.sessionId, [
+        { type: "text", text: options.prompt }
+      ]);
+      let received = false;
+      for (; ; ) {
+        const raw = await subscription.next();
+        const notification = { method: raw.method, params: raw.params };
+        if (!received) {
+          if (notification.method !== "session.event" || notification.params["sessionId"] !== options.sessionId || !isInboxReceipt(notification.params["event"], messageId)) {
+            continue;
+          }
+          received = true;
+        }
+        collect(notification);
+        if (notification.method === "session.status" && notification.params["sessionId"] === options.sessionId && notification.params["status"] === "idle") {
+          break;
+        }
+      }
+      return {
+        sessionId: options.sessionId,
+        finalResponse: lastAssistantText(retained, options.sessionId),
+        notifications: retained,
+        droppedNotifications: dropped
+      };
+    } catch (error2) {
+      if (error2 instanceof DshAdapterError) throw error2;
+      throw new DshAdapterError(classify(error2, this.closeCause));
+    } finally {
+      subscription.close();
+      this.lastPartial = { notifications: retained, droppedNotifications: dropped };
+    }
+  }
+  /**
+   * Tear the runtime down to quiescence: best-effort protocol `shutdown`,
+   * then the SDK's stdin-EOF → SIGTERM → SIGKILL ladder, resolving only
+   * after the child has actually exited. Idempotent. `cause` marks a
+   * DELIBERATE SpecBridge close (cancellation, deadline, or a failed
+   * session-continuity check) so the run rejection that follows is
+   * classified by intent instead of as a provider failure.
+   */
+  async close(cause) {
+    if (cause !== void 0 && this.closeCause === void 0) this.closeCause = cause;
+    this.closed = true;
+    const client = this.client;
+    if (client === void 0) return;
+    try {
+      await client.close();
+    } catch {
+    }
+  }
+};
+function dshFailureOf(error2) {
+  if (error2 instanceof DshAdapterError) return error2.failure;
+  return classify(error2, void 0);
+}
+var DSH_DECLARED_CAPABILITIES = capabilitySet([
+  "taskExecution",
+  "taskResume",
+  "structuredFinalOutput",
+  "streamingEvents",
+  "repositoryRead",
+  "repositoryWrite",
+  "sandbox",
+  "usageReporting",
+  "supportsCancellation"
+]);
+var DSH_BASE_ENVIRONMENT_NAMES = [
+  "PATH",
+  "PATHEXT",
+  "SYSTEMROOT",
+  "SYSTEMDRIVE",
+  "COMSPEC",
+  "WINDIR",
+  "TEMP",
+  "TMP",
+  "TMPDIR",
+  "HOME",
+  "USERPROFILE",
+  "APPDATA",
+  "LOCALAPPDATA",
+  "XDG_CONFIG_HOME",
+  "XDG_DATA_HOME",
+  "XDG_CACHE_HOME",
+  "XDG_STATE_HOME",
+  "LANG",
+  "LC_ALL",
+  "SHELL",
+  "TERM"
+];
+function buildDshEnvironment(config2) {
+  const env = {};
+  const names = /* @__PURE__ */ new Set([...DSH_BASE_ENVIRONMENT_NAMES, ...config2.environmentPassthrough]);
+  for (const name of names) {
+    const value = process.env[name];
+    if (value !== void 0) env[name] = value;
+  }
+  return env;
+}
+function dshConfigurationGaps(config2) {
+  const gaps = [];
+  if (config2.provider === null) {
+    gaps.push("provider is not set \u2014 the initialize handshake requires an explicit provider route");
+  }
+  if (config2.model === null) {
+    gaps.push("model is not set \u2014 the initialize handshake requires an explicit model (never guessed)");
+  }
+  return gaps;
+}
+async function probeDeepSeekHarness(config2, options = {}) {
+  const diagnostics = [];
+  const capabilities = [];
+  const executable = config2.command.executable;
+  const cwd = options.workspaceRoot ?? process.cwd();
+  capabilities.push({
+    id: "sdk-pin",
+    label: "Official DSH SDK (exact pin)",
+    available: true,
+    required: true,
+    detail: `@deepseek-ai/dsh-sdk-client ${DSH_SDK_TESTED_VERSION} (developer preview)`
+  });
+  const resolved = resolveExecutable(executable, cwd);
+  capabilities.push({
+    id: "runtime-command",
+    label: "Configured runtime command resolves",
+    available: resolved !== void 0,
+    required: true,
+    detail: resolved ?? `"${executable}" was not found (the launch spec is explicit; no global command is assumed)`
+  });
+  if (resolved === void 0) {
+    diagnostics.push({
+      severity: "error",
+      code: "RUNNER_EXECUTABLE_NOT_FOUND",
+      message: `The DeepSeek Harness runtime command "${executable}" was not found. Configure runnerProfiles.<profile>.command with the actual runtime launch spec (e.g. node + the dsh-jsonrpc-agent entry point and its cordis.yml).`
+    });
+  }
+  const gaps = dshConfigurationGaps(config2);
+  for (const gap of gaps) {
+    diagnostics.push({ severity: "error", code: "RUNNER_PROFILE_INCOMPLETE", message: gap });
+  }
+  const boundaryAttested = config2.workspaceBoundary === "runtime-profile";
+  capabilities.push({
+    id: "workspace-boundary",
+    label: "Workspace write boundary (runtime-profile attestation)",
+    available: boundaryAttested,
+    required: false,
+    detail: boundaryAttested ? "the operator attests the launched runtime profile confines writes to the workspace; SpecBridge additionally verifies protected paths and evidence after every run" : 'unconfirmed \u2014 task execution FAILS CLOSED until workspaceBoundary is set to "runtime-profile" for a runtime profile that confines writes'
+  });
+  if (!boundaryAttested) {
+    diagnostics.push({
+      severity: "warning",
+      code: "RUNNER_BOUNDARY_UNCONFIRMED",
+      message: `workspaceBoundary is "unconfirmed": the public DSH SDK cannot impose a sandbox, so task execution is unavailable until the operator attests the runtime profile's write boundary.`
+    });
+  }
+  const resumeAttested = config2.sessionPersistence === "runtime-managed";
+  capabilities.push({
+    id: "resume",
+    label: "Session resume (runtime-managed persistence attestation)",
+    available: resumeAttested,
+    required: false,
+    detail: resumeAttested ? "sessions are attested to persist across runtime processes; every resume is additionally verified by session-log seq continuity before any agentic work" : 'sessionPersistence is "none": interrupted tasks continue from the SpecBridge checkpoint with a fresh session (always available)'
+  });
+  capabilities.push({
+    id: "structured-output",
+    label: "Strict validated final message (JSON only, no prose)",
+    available: true,
+    required: true,
+    detail: "the final assistant message must be a bare JSON document matching the report schema"
+  });
+  let version2;
+  let handshakeVerified = false;
+  let status;
+  if (resolved === void 0) {
+    status = "unavailable";
+  } else if (gaps.length > 0) {
+    status = "misconfigured";
+  } else if (options.probeCapabilities === true) {
+    const adapter = new DshSdkAdapter({
+      command: config2.command.executable,
+      args: config2.command.args,
+      workspaceRoot: cwd,
+      env: buildDshEnvironment(config2),
+      provider: config2.provider,
+      model: config2.model,
+      ...config2.maxTokens !== null ? { maxTokens: config2.maxTokens } : {},
+      requestTimeoutMs: options.timeoutMs ?? config2.handshakeTimeoutMs
+    });
+    try {
+      const handshake = await adapter.open();
+      version2 = handshake.serverVersion;
+      handshakeVerified = true;
+      status = "available";
+      capabilities.push({
+        id: "protocol-handshake",
+        label: "Initialize handshake / server identity",
+        available: true,
+        required: true,
+        detail: `${DSH_RUNTIME_SERVER_NAME} ${handshake.serverVersion}`
+      });
+    } catch (error2) {
+      const failure = dshFailureOf(error2);
+      const incompatible = failure.kind === "identity-mismatch" || failure.kind === "protocol-violation";
+      status = incompatible ? "incompatible" : failure.kind === "launch" ? "unavailable" : "error";
+      capabilities.push({
+        id: "protocol-handshake",
+        label: "Initialize handshake / server identity",
+        available: false,
+        required: true,
+        detail: failure.message
+      });
+      diagnostics.push({
+        severity: "error",
+        code: incompatible ? "RUNNER_INCOMPATIBLE_RUNTIME" : "RUNNER_HANDSHAKE_FAILED",
+        message: `The initialize handshake failed: ${failure.message}`
+      });
+    } finally {
+      await adapter.close();
+    }
+  } else {
+    status = "available";
+    capabilities.push({
+      id: "protocol-handshake",
+      label: "Initialize handshake / server identity",
+      available: false,
+      required: false,
+      detail: 'not probed \u2014 run "runner doctor" to spawn the runtime once (read-only; no model turn)'
+    });
+  }
+  return {
+    status,
+    executable,
+    resolvedExecutable: resolved,
+    version: version2,
+    capabilities,
+    diagnostics,
+    handshakeVerified
+  };
+}
+function dshCapabilitySet(config2) {
+  const boundaryAttested = config2.workspaceBoundary === "runtime-profile";
+  return {
+    ...DSH_DECLARED_CAPABILITIES,
+    sandbox: boundaryAttested,
+    taskResume: boundaryAttested && config2.sessionPersistence === "runtime-managed"
+  };
+}
+var AUTH_PATTERN = /unauthorized|unauthenticated|authentication|api key|401/i;
+var QUOTA_PATTERN = /insufficient_quota|quota|usage limit|out of credits|balance/i;
+var RATE_PATTERN = /rate limit|too many requests|429/i;
+var MODEL_PATTERN = /unknown (model|provider)|model .* not (found|available)|no adapter/i;
+function classifyDshFailure(failure, turnErrors = []) {
+  switch (failure.kind) {
+    case "closed-by-adapter": {
+      if (failure.closeCause === "cancelled") {
+        return {
+          outcome: "cancelled",
+          error: runnerError({
+            code: "cancelled",
+            message: "The DeepSeek Harness run was cancelled; the runtime was shut down and reaped."
+          })
+        };
+      }
+      if (failure.closeCause === "timed-out") {
+        return {
+          outcome: "timed-out",
+          error: runnerError({
+            code: "timed_out",
+            message: "The DeepSeek Harness run exceeded the configured timeout. The wire protocol has no mid-turn cancel, so the runtime was shut down and reaped.",
+            remediation: ["Increase the profile timeoutMs or narrow the task."]
+          })
+        };
+      }
+      return {
+        outcome: "failed",
+        error: runnerError({
+          code: "session_unavailable",
+          message: "The DSH session referenced for resume did not restore its history (the runtime started it empty). The run was stopped before any agentic work.",
+          remediation: [
+            "Continue from the SpecBridge checkpoint with a fresh attempt \u2014 canonical task state never depends on provider sessions."
+          ]
+        })
+      };
+    }
+    case "launch":
+      return {
+        outcome: "failed",
+        error: runnerError({
+          code: "executable_not_found",
+          message: "The configured DeepSeek Harness runtime command could not be started.",
+          remediation: [
+            'Check runnerProfiles.<profile>.command \u2014 the launch spec is explicit; SpecBridge never assumes a global "dsh" command.'
+          ]
+        })
+      };
+    case "identity-mismatch":
+      return {
+        outcome: "failed",
+        error: runnerError({
+          code: "runner_incompatible",
+          message: failure.message,
+          remediation: [
+            "Point the profile command at a DeepSeek Harness SDK runtime (`dsh-jsonrpc-agent`)."
+          ]
+        })
+      };
+    case "request-timeout":
+      return {
+        outcome: "timed-out",
+        error: runnerError({
+          code: "timed_out",
+          message: "A DeepSeek Harness protocol request exceeded its bound; the runtime was reaped.",
+          remediation: ["Raise handshakeTimeoutMs if the runtime is legitimately slow to start."]
+        })
+      };
+    case "protocol-violation":
+      return {
+        outcome: "failed",
+        error: runnerError({
+          code: "runner_incompatible",
+          message: "The DeepSeek Harness runtime answered outside its documented protocol. The tested SDK pin may not match the launched runtime version.",
+          remediation: ["Align the runtime with the pinned SDK (see runner doctor for versions)."]
+        })
+      };
+    case "rpc-error": {
+      const text7 = failure.message;
+      if (AUTH_PATTERN.test(text7)) {
+        return {
+          outcome: "failed",
+          error: runnerError({
+            code: "authentication_required",
+            message: "The DeepSeek Harness runtime reported an authentication failure.",
+            remediation: [
+              "Authenticate the runtime profile yourself (SpecBridge never handles credentials)."
+            ],
+            ...failure.rpcCode !== void 0 ? { providerCode: String(failure.rpcCode) } : {}
+          })
+        };
+      }
+      if (QUOTA_PATTERN.test(text7)) {
+        return {
+          outcome: "failed",
+          error: runnerError({
+            code: "quota_exceeded",
+            message: "The provider behind the DeepSeek Harness runtime reported an exhausted quota.",
+            ...failure.rpcCode !== void 0 ? { providerCode: String(failure.rpcCode) } : {}
+          })
+        };
+      }
+      if (RATE_PATTERN.test(text7)) {
+        return {
+          outcome: "failed",
+          error: runnerError({
+            code: "rate_limited",
+            message: "The provider behind the DeepSeek Harness runtime reported a rate limit.",
+            remediation: ["Wait and retry explicitly."],
+            ...failure.rpcCode !== void 0 ? { providerCode: String(failure.rpcCode) } : {}
+          })
+        };
+      }
+      if (MODEL_PATTERN.test(text7)) {
+        return {
+          outcome: "failed",
+          error: runnerError({
+            code: "model_not_found",
+            message: "The DeepSeek Harness runtime rejected the configured provider/model route.",
+            remediation: ["Fix the profile provider/model to a route the runtime actually mounts."],
+            ...failure.rpcCode !== void 0 ? { providerCode: String(failure.rpcCode) } : {}
+          })
+        };
+      }
+      return {
+        outcome: "failed",
+        error: runnerError({
+          code: "api_error",
+          message: `The DeepSeek Harness runtime returned a protocol error: ${boundedMessage(text7)}`,
+          ...failure.rpcCode !== void 0 ? { providerCode: String(failure.rpcCode) } : {}
+        })
+      };
+    }
+    case "transport-closed":
+      return {
+        outcome: "failed",
+        error: runnerError({
+          code: "process_failed",
+          message: `The DeepSeek Harness runtime process died mid-run: ${boundedMessage(failure.message)}`,
+          remediation: [
+            "Inspect the retained notification log in the run directory; a fresh attempt resumes from the SpecBridge checkpoint."
+          ]
+        })
+      };
+    case "unknown":
+      return {
+        outcome: "failed",
+        error: runnerError({
+          code: "process_failed",
+          message: `The DeepSeek Harness run failed: ${boundedMessage(failure.message)}${turnErrors.length > 0 ? ` (turn errors: ${boundedMessage(turnErrors.join("; "))})` : ""}`
+        })
+      };
+  }
+}
+function boundedMessage(text7) {
+  return text7.length <= 500 ? text7 : `${text7.slice(0, 500)}\u2026 [truncated]`;
+}
+var dshSessionEventSchema = external_exports.object({
+  type: external_exports.string(),
+  seq: external_exports.number().int().nonnegative(),
+  time: external_exports.number(),
+  data: external_exports.record(external_exports.unknown()).default({})
+}).passthrough();
+function parseDshNotification(notification) {
+  const sessionId = typeof notification.params["sessionId"] === "string" ? notification.params["sessionId"] : void 0;
+  if (notification.method !== "session.event") {
+    return { method: notification.method, sessionId, params: notification.params };
+  }
+  const parsed = dshSessionEventSchema.safeParse(notification.params["event"]);
+  return {
+    method: notification.method,
+    sessionId,
+    event: parsed.success ? parsed.data : void 0,
+    params: notification.params
+  };
+}
+function tolerantCount2(value) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? Math.round(value) : void 0;
+}
+function isRecord22(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function collectDshRun(notifications, rootSessionId) {
+  const collection = {
+    nativeCompactionObserved: false,
+    errors: [],
+    sawMaxTokens: false,
+    unparseableEvents: 0
+  };
+  let inputTokens = null;
+  let cachedInputTokens = null;
+  let outputTokens = null;
+  let reasoningTokens = null;
+  let requests = 0;
+  for (const notification of notifications) {
+    const parsed = parseDshNotification(notification);
+    if (parsed.method !== "session.event") continue;
+    if (parsed.event === void 0) {
+      collection.unparseableEvents += 1;
+      continue;
+    }
+    const event = parsed.event;
+    if (parsed.sessionId === rootSessionId && collection.firstRootEventSeq === void 0) {
+      collection.firstRootEventSeq = event.seq;
+    }
+    switch (event.type) {
+      case "compaction/end":
+      case "compaction/prune":
+        collection.nativeCompactionObserved = true;
+        break;
+      case "turn/end": {
+        const reason = event.data["reason"];
+        const kind = isRecord22(reason) ? reason["kind"] : void 0;
+        if (kind === "max-tokens") collection.sawMaxTokens = true;
+        if (kind === "error" && collection.errors.length < 20) {
+          const failure = isRecord22(reason) ? reason["error"] : void 0;
+          const message = isRecord22(failure) && typeof failure["message"] === "string" ? failure["message"] : "turn failed";
+          const code2 = isRecord22(failure) && typeof failure["code"] === "string" ? ` [${failure["code"]}]` : "";
+          collection.errors.push(boundedPayloadText(`${message}${code2}`, 500));
+        }
+        break;
+      }
+      case "request/context": {
+        const provider = event.data["provider"];
+        const model = event.data["model"];
+        if (typeof provider === "string" && provider.length > 0) {
+          collection.effectiveProvider = provider;
+        }
+        if (typeof model === "string" && model.length > 0) {
+          collection.effectiveModel = model;
+        }
+        break;
+      }
+      case "assistant/message": {
+        const usage = event.data["usage"];
+        if (isRecord22(usage)) {
+          requests += 1;
+          const input = tolerantCount2(usage["inputTokens"]);
+          const cached2 = tolerantCount2(usage["cacheReadTokens"]);
+          const output = tolerantCount2(usage["outputTokens"]);
+          const reasoning = tolerantCount2(usage["reasoningTokens"]);
+          if (input !== void 0) inputTokens = (inputTokens ?? 0) + input;
+          if (cached2 !== void 0) cachedInputTokens = (cachedInputTokens ?? 0) + cached2;
+          if (output !== void 0) outputTokens = (outputTokens ?? 0) + output;
+          if (reasoning !== void 0) reasoningTokens = (reasoningTokens ?? 0) + reasoning;
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+  if (requests > 0 || inputTokens !== null || outputTokens !== null) {
+    collection.usage = {
+      inputTokens,
+      cachedInputTokens,
+      outputTokens,
+      reasoningTokens,
+      requestCount: requests
+    };
+  }
+  return collection;
+}
+function assistantMessagePayload(event) {
+  const payload = {};
+  const message = event.data["message"];
+  let textChars = 0;
+  let reasoningParts = 0;
+  let reasoningChars = 0;
+  if (isRecord22(message) && Array.isArray(message["content"])) {
+    for (const block of message["content"]) {
+      if (!isRecord22(block)) continue;
+      if (block["type"] === "text" && typeof block["text"] === "string") {
+        textChars += block["text"].length;
+      }
+      if (block["type"] === "reasoning") {
+        reasoningParts += 1;
+        if (typeof block["text"] === "string") reasoningChars += block["text"].length;
+      }
+    }
+  }
+  payload["textChars"] = textChars;
+  if (reasoningParts > 0) {
+    payload["reasoningRedacted"] = true;
+    payload["reasoningParts"] = reasoningParts;
+    payload["reasoningChars"] = reasoningChars;
+  }
+  if (event.data["interrupted"] === true) payload["interrupted"] = true;
+  return payload;
+}
+function normalizeDshEvents(notifications, rootSessionId, context, fallbackTimestamp) {
+  const normalized = [];
+  const push = (type, providerEventType, payload, at) => {
+    if (normalized.length >= 5e3) return;
+    normalized.push(
+      normalizedRunnerEventSchema.parse({
+        type,
+        timestamp: at !== void 0 && Number.isFinite(at) ? new Date(at).toISOString() : fallbackTimestamp(),
+        runner: context.runner,
+        profile: context.profile,
+        runId: context.runId,
+        attemptId: context.attemptId,
+        providerSessionId: context.providerSessionId ?? rootSessionId,
+        providerEventType,
+        payload
+      })
+    );
+  };
+  let sessionStarted = false;
+  for (const notification of notifications) {
+    const parsed = parseDshNotification(notification);
+    if (parsed.method === "subagent.started") {
+      push("tool.started", "subagent.started", {
+        subagent: boundedPayloadText(String(parsed.params["childSessionId"] ?? "unknown"), 200)
+      });
+      continue;
+    }
+    if (parsed.method === "subagent.finished") {
+      const status = parsed.params["status"];
+      push(status === "error" ? "tool.failed" : "tool.completed", "subagent.finished", {
+        subagent: boundedPayloadText(String(parsed.params["childSessionId"] ?? "unknown"), 200),
+        status: typeof status === "string" ? status : null
+      });
+      continue;
+    }
+    if (parsed.method !== "session.event" || parsed.event === void 0) continue;
+    const event = parsed.event;
+    const rootEvent = parsed.sessionId === rootSessionId;
+    const provider = `session.event:${event.type}`;
+    if (!sessionStarted && rootEvent) {
+      sessionStarted = true;
+      push("session.started", provider, { firstEventSeq: event.seq }, event.time);
+    }
+    if (!rootEvent && event.type !== "assistant/message") continue;
+    switch (event.type) {
+      case "turn/start":
+        push("turn.started", provider, { turn: tolerantCount2(event.data["turn"]) ?? null }, event.time);
+        break;
+      case "turn/end": {
+        const reason = event.data["reason"];
+        const kind = isRecord22(reason) && typeof reason["kind"] === "string" ? reason["kind"] : "unknown";
+        push("turn.completed", provider, { turn: tolerantCount2(event.data["turn"]) ?? null, reason: kind }, event.time);
+        if (kind === "error") {
+          const failure = isRecord22(reason) ? reason["error"] : void 0;
+          push(
+            "error",
+            provider,
+            {
+              message: boundedPayloadText(
+                isRecord22(failure) && typeof failure["message"] === "string" ? failure["message"] : "turn failed",
+                500
+              ),
+              ...isRecord22(failure) && typeof failure["code"] === "string" ? { code: boundedPayloadText(failure["code"], 120) } : {}
+            },
+            event.time
+          );
+        }
+        break;
+      }
+      case "assistant/message": {
+        push("message.completed", provider, {
+          ...rootEvent ? {} : { subagentSession: boundedPayloadText(parsed.sessionId ?? "?", 200) },
+          ...assistantMessagePayload(event)
+        }, event.time);
+        const usage = event.data["usage"];
+        if (isRecord22(usage)) {
+          push("usage.updated", provider, {
+            inputTokens: tolerantCount2(usage["inputTokens"]) ?? null,
+            cachedInputTokens: tolerantCount2(usage["cacheReadTokens"]) ?? null,
+            outputTokens: tolerantCount2(usage["outputTokens"]) ?? null,
+            reasoningTokens: tolerantCount2(usage["reasoningTokens"]) ?? null
+          }, event.time);
+        }
+        break;
+      }
+      case "tool/call":
+        push("tool.started", provider, {
+          tool: boundedPayloadText(String(event.data["name"] ?? "unknown"), 200),
+          argumentChars: typeof event.data["arguments"] === "string" ? event.data["arguments"].length : null
+        }, event.time);
+        break;
+      case "tool/result": {
+        const error2 = event.data["error"];
+        if (isRecord22(error2)) {
+          push("tool.failed", provider, {
+            errorName: boundedPayloadText(String(error2["name"] ?? "error"), 200),
+            errorCode: boundedPayloadText(String(error2["code"] ?? "unknown"), 120)
+          }, event.time);
+        } else {
+          push("tool.completed", provider, {}, event.time);
+        }
+        break;
+      }
+      case "command/run":
+        push("command.started", provider, {
+          ...typeof event.data["command"] === "string" ? { command: boundedPayloadText(event.data["command"], 500) } : {}
+        }, event.time);
+        break;
+      case "command/done":
+        push("command.completed", provider, {
+          ...tolerantCount2(event.data["exitCode"]) !== void 0 ? { exitCode: tolerantCount2(event.data["exitCode"]) ?? null } : {}
+        }, event.time);
+        break;
+      case "todo/write":
+        push("plan.updated", provider, {
+          todoCount: Array.isArray(event.data["todos"]) ? event.data["todos"].length : null
+        }, event.time);
+        break;
+      case "compaction/end":
+      case "compaction/prune":
+        push("compaction.occurred", provider, { kind: event.type }, event.time);
+        break;
+      default:
+        break;
+    }
+  }
+  return normalized;
+}
+function redactValue(value) {
+  if (Array.isArray(value)) return value.map(redactValue);
+  if (!isRecord22(value)) return value;
+  const type = value["type"];
+  if ((type === "reasoning" || type === "reasoning-delta") && typeof value["text"] === "string") {
+    return { ...value, text: `[redacted reasoning: ${value["text"].length} chars]` };
+  }
+  const out = {};
+  for (const [key, child] of Object.entries(value)) {
+    out[key] = redactValue(child);
+  }
+  return out;
+}
+function redactDshNotificationsForRetention(notifications, maxBytes) {
+  const lines = [];
+  let bytes = 0;
+  let truncatedAt = -1;
+  for (let index = 0; index < notifications.length; index++) {
+    const notification = notifications[index];
+    if (notification === void 0) continue;
+    let value = notification;
+    const parsed = parseDshNotification(notification);
+    if (parsed.event?.type === "request/header") {
+      value = {
+        method: notification.method,
+        params: {
+          sessionId: parsed.sessionId ?? null,
+          event: {
+            type: parsed.event.type,
+            seq: parsed.event.seq,
+            time: parsed.event.time,
+            data: "[request header elided: system prompt and tool schemas are not retained]"
+          }
+        }
+      };
+    } else {
+      value = redactValue(notification);
+    }
+    const line = JSON.stringify(value);
+    const lineBytes = import_buffer5.Buffer.byteLength(line, "utf8") + 1;
+    if (bytes + lineBytes > maxBytes) {
+      truncatedAt = index;
+      break;
+    }
+    lines.push(line);
+    bytes += lineBytes;
+  }
+  if (truncatedAt >= 0) {
+    lines.push(
+      JSON.stringify({
+        method: "specbridge/retention-truncated",
+        params: { retained: truncatedAt, dropped: notifications.length - truncatedAt }
+      })
+    );
+  }
+  return lines.join("\n");
+}
+var DeepSeekHarnessRunner = class {
+  name = "deepseek-harness";
+  kind = "deepseek-harness";
+  category = "agent-cli";
+  /** Profile-aware declaration: attestation gates downgrade it at construction. */
+  declaredCapabilities;
+  /** Developer-preview integration: explicit selection only, never automatic. */
+  declaredSupportLevel = "preview";
+  /**
+   * vNext.1 context capabilities. The window is never guessed. Native
+   * compaction is declared 'none' — the public SDK cannot verify whether
+   * the launched runtime profile composes compaction plugins, so SpecBridge
+   * relies on nothing: observed `compaction/*` events are normalized as
+   * working-memory observations, and the ContextLifecycleManager stays the
+   * canonical context authority either way.
+   */
+  declaredContextCapabilities;
+  config;
+  probePromise;
+  constructor(config2) {
+    this.config = deepseekHarnessProfileSchema.parse({
+      runner: "deepseek-harness",
+      ...config2 ?? {}
+    });
+    this.declaredCapabilities = dshCapabilitySet(this.config);
+    this.declaredContextCapabilities = {
+      schemaVersion: RUNNER_CONTEXT_CAPABILITIES_SCHEMA_VERSION,
+      contextWindowTokens: null,
+      nativeCompaction: "none",
+      supportsSessionPersistence: this.config.sessionPersistence === "runtime-managed"
+    };
+  }
+  /** Probe once per runner instance; detection is read-only. */
+  probe(options) {
+    this.probePromise ??= probeDeepSeekHarness(this.config, {
+      probeCapabilities: options?.probeCapabilities,
+      timeoutMs: options?.timeoutMs,
+      workspaceRoot: options?.workspaceRoot
+    });
+    return this.probePromise;
+  }
+  async detect(context) {
+    if (!this.config.enabled) {
+      return {
+        runner: this.name,
+        kind: this.kind,
+        status: "misconfigured",
+        executable: this.config.command.executable,
+        authentication: "unknown",
+        capabilities: [],
+        diagnostics: [
+          {
+            severity: "error",
+            code: "RUNNER_DISABLED",
+            message: "This DeepSeek Harness profile is disabled in .specbridge/config.json (enabled = false). DSH is preview, disabled by default, and never selected automatically; enable and select it explicitly to use it."
+          }
+        ],
+        category: this.category,
+        capabilitySet: this.declaredCapabilities,
+        supportLevel: effectiveSupportLevel(this.declaredSupportLevel, "misconfigured"),
+        networkBacked: false
+      };
+    }
+    const probe = await this.probe({
+      probeCapabilities: context.probeCapabilities === true,
+      timeoutMs: context.timeoutMs,
+      workspaceRoot: context.workspaceRoot
+    });
+    return {
+      runner: this.name,
+      kind: this.kind,
+      status: probe.status,
+      executable: probe.executable,
+      ...probe.version !== void 0 ? { version: probe.version } : {},
+      // No official read-only credential check exists; never guessed.
+      authentication: "unknown",
+      capabilities: probe.capabilities,
+      diagnostics: probe.diagnostics,
+      category: this.category,
+      capabilitySet: dshCapabilitySet(this.config),
+      supportLevel: effectiveSupportLevel(this.declaredSupportLevel, probe.status),
+      // The runtime process is local; its provider connectivity is its own.
+      networkBacked: false
+    };
+  }
+  executionBoundaryNote(policy) {
+    if (policy !== "implementation") {
+      return "Authoring through DeepSeek Harness is unsupported: the public SDK cannot enforce a read-only boundary.";
+    }
+    return this.config.workspaceBoundary === "runtime-profile" ? "Execution boundary: the launched DSH runtime profile confines writes to the workspace (operator-attested); SpecBridge protected paths and evidence are verified independently after the run. Permission bypasses are never used." : "Execution boundary: UNCONFIRMED \u2014 task execution fails closed until the runtime profile boundary is attested.";
+  }
+  listModels(_context) {
+    return Promise.resolve({
+      supported: false,
+      models: [],
+      detail: "The DSH SDK protocol has no model-listing request; the runtime mounts whatever routes its profile composes. Configure provider/model on the profile explicitly."
+    });
+  }
+  /**
+   * Stage generation is deliberately unsupported in vNext.3 (§capability
+   * scope): the tested public DSH surface cannot guarantee a read-only
+   * execution boundary, so SpecBridge refuses before any model invocation
+   * instead of pretending support.
+   */
+  generateStage(_input, _execution) {
+    return Promise.resolve({
+      runner: this.name,
+      outcome: "failed",
+      failureReason: "the deepseek-harness runner does not support stage generation: the public DSH SDK cannot enforce a read-only boundary, so authoring is refused before any model call",
+      rawStdout: "",
+      rawStderr: "",
+      durationMs: 0,
+      warnings: [],
+      error: runnerError({
+        code: "unsupported_operation",
+        message: "DeepSeek Harness profiles execute implementation tasks only.",
+        remediation: ["Use claude-code, codex, gemini, or a model-API profile for authoring."]
+      })
+    });
+  }
+  async executeTask(input, execution) {
+    return this.runTask(input.prompt, execution, {
+      sessionId: input.sessionId ?? (0, import_crypto3.randomUUID)(),
+      resume: false
+    });
+  }
+  async resumeTask(input, execution) {
+    if (this.config.sessionPersistence !== "runtime-managed") {
+      return {
+        runner: this.name,
+        outcome: "failed",
+        failureReason: 'this profile attests no session persistence (sessionPersistence = "none"); resume is unavailable \u2014 continue from the SpecBridge checkpoint with a fresh attempt',
+        rawStdout: "",
+        rawStderr: "",
+        durationMs: 0,
+        warnings: [],
+        resumeSupported: false,
+        error: runnerError({
+          code: "unsupported_operation",
+          message: 'Session resume requires sessionPersistence = "runtime-managed" on the profile.',
+          remediation: [
+            "Start a fresh attempt from the latest SpecBridge checkpoint (always available)."
+          ]
+        })
+      };
+    }
+    return this.runTask(input.prompt, execution, { sessionId: input.sessionId, resume: true });
+  }
+  preflightFailure(started) {
+    const fail = (error2, failureReason) => ({
+      runner: this.name,
+      outcome: "failed",
+      failureReason,
+      rawStdout: "",
+      rawStderr: "",
+      durationMs: Math.max(0, Date.now() - started),
+      warnings: [],
+      resumeSupported: false,
+      error: error2
+    });
+    if (!this.config.enabled) {
+      return fail(
+        runnerError({
+          code: "runner_disabled",
+          message: "This DeepSeek Harness profile is disabled.",
+          remediation: ["Enable it explicitly in .specbridge/config.json (never implicit)."]
+        }),
+        "the deepseek-harness profile is disabled"
+      );
+    }
+    const gaps = dshConfigurationGaps(this.config);
+    if (gaps.length > 0) {
+      return fail(
+        runnerError({
+          code: "invalid_configuration",
+          message: `The DeepSeek Harness profile is incomplete: ${gaps.join("; ")}.`,
+          remediation: ["Set provider and model on the profile; SpecBridge never guesses routes."]
+        }),
+        "the deepseek-harness profile is incomplete (provider/model)"
+      );
+    }
+    if (this.config.workspaceBoundary !== "runtime-profile") {
+      return fail(
+        runnerError({
+          code: "sandbox_unavailable",
+          message: "Task execution is unavailable: the DSH runtime profile's workspace write boundary is unconfirmed, and the public SDK exposes no sandbox configuration to impose one.",
+          remediation: [
+            'Configure a runtime profile that confines writes to the workspace, then set workspaceBoundary = "runtime-profile" to attest it.'
+          ]
+        }),
+        "the DSH workspace boundary is unconfirmed; execution fails closed"
+      );
+    }
+    return void 0;
+  }
+  async runTask(prompt, execution, session) {
+    const started = Date.now();
+    const preflight = this.preflightFailure(started);
+    if (preflight !== void 0) return preflight;
+    const warnings = [];
+    if (execution.maxTurns !== void 0) {
+      warnings.push("maxTurns is not supported by the DSH runtime and was ignored");
+    }
+    if (execution.maxBudgetUsd !== void 0) {
+      warnings.push("maxBudgetUsd is not supported by the DSH runtime and was ignored");
+    }
+    const model = execution.model ?? this.config.model;
+    const adapter = new DshSdkAdapter({
+      command: this.config.command.executable,
+      args: this.config.command.args,
+      workspaceRoot: execution.workspaceRoot,
+      env: buildDshEnvironment(this.config),
+      provider: this.config.provider,
+      model,
+      ...this.config.maxTokens !== null ? { maxTokens: this.config.maxTokens } : {},
+      requestTimeoutMs: this.config.handshakeTimeoutMs
+    });
+    if (execution.signal?.aborted === true) {
+      return this.failureResult(started, session, warnings, void 0, [], {
+        kind: "closed-by-adapter",
+        message: "cancelled before launch",
+        closeCause: "cancelled"
+      });
+    }
+    const timeoutMs = Math.min(execution.timeoutMs, this.config.timeoutMs);
+    const watchdog = setTimeout(() => {
+      void adapter.close("timed-out");
+    }, timeoutMs);
+    const onAbort = () => {
+      void adapter.close("cancelled");
+    };
+    execution.signal?.addEventListener("abort", onAbort, { once: true });
+    let handshake;
+    let observation;
+    let failure;
+    let continuityChecked = false;
+    const onNotification = (notification) => {
+      if (!session.resume || continuityChecked) return;
+      const parsed = parseDshNotification(notification);
+      if (parsed.method !== "session.event" || parsed.sessionId !== session.sessionId) return;
+      if (parsed.event === void 0) return;
+      continuityChecked = true;
+      if (parsed.event.seq === 0) {
+        void adapter.close("session-unavailable");
+      }
+    };
+    try {
+      handshake = await adapter.open();
+      observation = await adapter.runPrompt({
+        sessionId: session.sessionId,
+        prompt,
+        onNotification
+      });
+    } catch (error2) {
+      failure = dshFailureOf(error2);
+    } finally {
+      clearTimeout(watchdog);
+      execution.signal?.removeEventListener("abort", onAbort);
+      await adapter.close();
+    }
+    const notifications = observation?.notifications ?? adapter.partialObservation.notifications;
+    const dropped = observation?.droppedNotifications ?? adapter.partialObservation.droppedNotifications;
+    if (dropped > 0) {
+      warnings.push(`the notification stream exceeded the retention cap; ${dropped} notifications were dropped`);
+    }
+    if (failure !== void 0) {
+      return this.failureResult(started, session, warnings, handshake, notifications, failure);
+    }
+    return this.successResult(
+      started,
+      session,
+      warnings,
+      handshake,
+      observation
+    );
+  }
+  observationRecord(started, notifications, flags) {
+    const retained = redactDshNotificationsForRetention(notifications, this.config.maxNotificationBytes);
+    return {
+      executable: this.config.command.executable,
+      redactedArgv: [this.config.command.executable, ...this.config.command.args],
+      startedAt: new Date(started).toISOString(),
+      endedAt: (/* @__PURE__ */ new Date()).toISOString(),
+      durationMs: Math.max(0, Date.now() - started),
+      // The SDK owns the child's stdio; exit codes surface only through
+      // transport errors, so none is recorded rather than guessed.
+      exitCode: void 0,
+      signal: void 0,
+      timedOut: flags.timedOut,
+      cancelled: flags.cancelled,
+      stdoutBytes: import_buffer4.Buffer.byteLength(retained, "utf8"),
+      stderrBytes: 0,
+      stdoutTruncated: flags.truncated,
+      stderrTruncated: false
+    };
+  }
+  baseResult(started, session, warnings, handshake, notifications, collection, flags) {
+    const normalizedEvents = [
+      normalizedRunnerEventSchema.parse({
+        type: "runner.started",
+        timestamp: new Date(started).toISOString(),
+        runner: this.name,
+        profile: this.name,
+        runId: "pending",
+        attemptId: "pending",
+        providerSessionId: session.sessionId,
+        providerEventType: "specbridge:launch",
+        payload: {
+          sdkVersion: DSH_SDK_TESTED_VERSION,
+          runtime: DSH_RUNTIME_SERVER_NAME,
+          runtimeVersion: handshake?.serverVersion ?? null,
+          resume: session.resume
+        }
+      }),
+      ...normalizeDshEvents(
+        notifications,
+        session.sessionId,
+        { runner: this.name, profile: this.name, runId: "pending", attemptId: "pending", providerSessionId: session.sessionId },
+        () => (/* @__PURE__ */ new Date()).toISOString()
+      )
+    ];
+    if (collection.unparseableEvents > 0) {
+      warnings.push(`${collection.unparseableEvents} session events did not match the known envelope and were skipped`);
+    }
+    if (collection.sawMaxTokens) {
+      warnings.push("at least one runtime step reached its output-token ceiling (max-tokens)");
+    }
+    const usage = collection.usage !== void 0 ? {
+      model: collection.effectiveModel ?? this.config.model,
+      inputTokens: collection.usage.inputTokens,
+      cachedInputTokens: collection.usage.cachedInputTokens,
+      outputTokens: collection.usage.outputTokens,
+      reasoningTokens: collection.usage.reasoningTokens,
+      requestCount: collection.usage.requestCount,
+      durationMs: Math.max(0, Date.now() - started)
+    } : void 0;
+    return {
+      runner: this.name,
+      // The retained "stdout" is the redacted notification log — the only
+      // form in which raw DSH output is kept (reasoning already stripped).
+      rawStdout: redactDshNotificationsForRetention(notifications, this.config.maxNotificationBytes),
+      rawStderr: "",
+      process: this.observationRecord(started, notifications, {
+        ...flags,
+        truncated: warnings.some((warning2) => warning2.includes("retention cap"))
+      }),
+      sessionId: session.sessionId,
+      durationMs: Math.max(0, Date.now() - started),
+      warnings,
+      normalizedEvents,
+      ...usage !== void 0 ? { usage } : {},
+      cost: unavailableCost()
+    };
+  }
+  failureResult(started, session, warnings, handshake, notifications, failure) {
+    const collection = collectDshRun(notifications, session.sessionId);
+    const classified = classifyDshFailure(failure, collection.errors);
+    const flags = {
+      timedOut: failure.closeCause === "timed-out",
+      cancelled: failure.closeCause === "cancelled"
+    };
+    const base = this.baseResult(started, session, warnings, handshake, notifications, collection, flags);
+    return {
+      ...base,
+      outcome: classified.outcome,
+      failureReason: classified.error.message,
+      error: classified.error,
+      // A dead/lost/cancelled run is not resumable as-is; continuation goes
+      // through the SpecBridge checkpoint (fresh attempt), or a genuine
+      // session resume decided by orchestration on the NEXT attempt.
+      resumeSupported: false
+    };
+  }
+  successResult(started, session, warnings, handshake, observation) {
+    const collection = collectDshRun(observation.notifications, session.sessionId);
+    const base = this.baseResult(started, session, warnings, handshake, observation.notifications, collection, {
+      timedOut: false,
+      cancelled: false
+    });
+    const resumeSupported = this.config.sessionPersistence === "runtime-managed";
+    const finalText = observation.finalResponse.trim();
+    if (finalText.length === 0) {
+      return {
+        ...base,
+        outcome: "malformed-output",
+        failureReason: collection.errors.length > 0 ? `the runtime reported: ${collection.errors[0]}` : "the run produced no final assistant message",
+        error: runnerError({
+          code: "structured_output_invalid",
+          message: "The DSH run produced no final structured result.",
+          remediation: ["Inspect the retained notification log in the run directory."]
+        }),
+        resumeSupported
+      };
+    }
+    const parsed = strictJsonParse5(finalText);
+    if (parsed === void 0) {
+      return {
+        ...base,
+        outcome: "malformed-output",
+        failureReason: "the final assistant message is not a bare JSON document (extra prose is not accepted)",
+        error: runnerError({
+          code: "structured_output_invalid",
+          message: "The final DSH message did not parse as a JSON document."
+        }),
+        resumeSupported
+      };
+    }
+    const validated = taskRunnerReportSchema.safeParse(parsed);
+    if (!validated.success) {
+      return {
+        ...base,
+        outcome: "malformed-output",
+        failureReason: `structured result does not match the report schema: ${validated.error.issues.map((issue4) => `${issue4.path.join(".") || "(root)"}: ${issue4.message}`).join("; ")}`,
+        error: runnerError({
+          code: "structured_output_invalid",
+          message: "The final DSH message did not match the required report schema."
+        }),
+        resumeSupported
+      };
+    }
+    const report = validated.data;
+    const outcome = report.outcome;
+    return {
+      ...base,
+      outcome,
+      report,
+      ...outcome === "completed" || outcome === "no-change" ? {} : { failureReason: `the agent reported "${outcome}"` },
+      resumeSupported
+    };
+  }
+  /** Minimal bounded self test (`runner test deepseek-harness --network`). */
+  async selfTest(execution) {
+    const preflight = this.preflightFailure(Date.now());
+    if (preflight !== void 0) {
+      return { ok: false, detail: preflight.failureReason ?? "the profile cannot execute" };
+    }
+    const result = await this.runTask(
+      'This is a connectivity self test. Do not read or modify any file and do not run any command. Reply with exactly one JSON document: {"schemaVersion":"1.0.0","outcome":"no-change","summary":"self test"} and nothing else.',
+      { ...execution, timeoutMs: Math.min(execution.timeoutMs, 12e4) },
+      { sessionId: (0, import_crypto3.randomUUID)(), resume: false }
+    );
+    return {
+      ok: result.outcome === "no-change" || result.outcome === "completed",
+      detail: result.outcome === "no-change" || result.outcome === "completed" ? "structured output validated" : result.failureReason ?? `self test failed (${result.outcome})`,
+      ...result.usage !== void 0 ? { usage: result.usage } : {},
+      ...result.process !== void 0 ? { process: result.process } : {}
+    };
+  }
+};
+function strictJsonParse5(raw) {
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return void 0;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return void 0;
+  }
+}
 var RunnerRegistry = class {
   profiles = /* @__PURE__ */ new Map();
   registerProfile(profile) {
@@ -41883,6 +43947,8 @@ function instantiateRunner(config2, options = {}) {
       return new OpenAiCompatibleRunner(config2);
     case "antigravity-cli":
       return new AntigravityCliRunner(config2);
+    case "deepseek-harness":
+      return new DeepSeekHarnessRunner(config2);
     case "mock":
       return new MockRunner(config2);
     case "extension": {
@@ -42396,7 +44462,7 @@ function conformanceStagePrompt(stage) {
   ].join("\n");
 }
 function hashDirectory(root) {
-  const hash = (0, import_crypto3.createHash)("sha256");
+  const hash = (0, import_crypto4.createHash)("sha256");
   const walk = (dir) => {
     let entries;
     try {
@@ -42764,12 +44830,12 @@ var BoundedLog = class {
   }
 };
 async function allocateLoopbackPort() {
-  return await new Promise((resolve, reject) => {
+  return await new Promise((resolve2, reject) => {
     const server = (0, import_net.createServer)();
     server.once("error", reject);
     server.listen(0, "127.0.0.1", () => {
       const port = server.address().port;
-      server.close(() => resolve(port));
+      server.close(() => resolve2(port));
     });
   });
 }
@@ -42949,7 +45015,7 @@ var LocalModelManager = class {
         ...signal !== void 0 ? { signal } : {}
       });
       if (health.ok && health.status === 200) break;
-      await new Promise((resolve) => setTimeout(resolve, this.healthPollMs));
+      await new Promise((resolve2) => setTimeout(resolve2, this.healthPollMs));
     }
     this.currentStatus = "ready";
     this.emit("ready", `llama-server healthy on 127.0.0.1:${port}`);
@@ -43116,10 +45182,10 @@ function fileSize(candidate) {
 }
 
 // ../../packages/evidence/dist/index.js
-var import_crypto4 = require("crypto");
+var import_crypto5 = require("crypto");
 var import_fs21 = require("fs");
 var import_path19 = __toESM(require("path"), 1);
-var import_buffer4 = require("buffer");
+var import_buffer6 = require("buffer");
 var import_fs22 = require("fs");
 var import_path20 = __toESM(require("path"), 1);
 var import_path21 = __toESM(require("path"), 1);
@@ -43147,7 +45213,7 @@ function hashFileIfRegular(absolutePath) {
   try {
     const stats = (0, import_fs21.lstatSync)(absolutePath);
     if (!stats.isFile()) return void 0;
-    return (0, import_crypto4.createHash)("sha256").update((0, import_fs21.readFileSync)(absolutePath)).digest("hex");
+    return (0, import_crypto5.createHash)("sha256").update((0, import_fs21.readFileSync)(absolutePath)).digest("hex");
   } catch {
     return void 0;
   }
@@ -43402,7 +45468,7 @@ async function capturePatch(workspaceRoot, maximumPatchBytes) {
     return {
       captured: false,
       truncated: true,
-      byteLength: import_buffer4.Buffer.byteLength(result.stdout, "utf8"),
+      byteLength: import_buffer6.Buffer.byteLength(result.stdout, "utf8"),
       note: `patch exceeded the configured limit of ${maximumPatchBytes} bytes and was not retained; the changed-file list is complete`
     };
   }
@@ -43418,7 +45484,7 @@ async function capturePatch(workspaceRoot, maximumPatchBytes) {
     captured: true,
     truncated: false,
     patch: result.stdout,
-    byteLength: import_buffer4.Buffer.byteLength(result.stdout, "utf8")
+    byteLength: import_buffer6.Buffer.byteLength(result.stdout, "utf8")
   };
 }
 var TAIL_BYTES = 8 * 1024;
@@ -43914,15 +45980,15 @@ function reusableCommandPass(assessments, commandName, currentHeadSha) {
 }
 
 // ../../packages/execution/dist/index.js
-var import_crypto5 = require("crypto");
+var import_crypto6 = require("crypto");
 var import_fs25 = require("fs");
 var import_path26 = __toESM(require("path"), 1);
-var import_crypto6 = require("crypto");
-var import_path27 = __toESM(require("path"), 1);
 var import_crypto7 = require("crypto");
+var import_path27 = __toESM(require("path"), 1);
+var import_crypto8 = require("crypto");
 var import_fs26 = require("fs");
 var import_path28 = __toESM(require("path"), 1);
-var import_crypto8 = require("crypto");
+var import_crypto9 = require("crypto");
 var import_path29 = __toESM(require("path"), 1);
 var import_child_process = require("child_process");
 var import_fs27 = require("fs");
@@ -45174,7 +47240,7 @@ async function authorStage(deps, request) {
       };
     }
   }
-  const runId = (deps.idFactory ?? import_crypto5.randomUUID)();
+  const runId = (deps.idFactory ?? import_crypto6.randomUUID)();
   const createdAt = clock().toISOString();
   createRun(workspace, {
     schemaVersion: RUN_RECORD_SCHEMA_VERSION,
@@ -45750,7 +47816,7 @@ async function runApprovedTask(deps, request) {
   const prompt = buildPrompt(deps, preflight, request.extraObservations ?? []);
   const profileConfig = preflight.profileConfig;
   if (request.dryRun === true) {
-    const runIdPreview = (deps.idFactory ?? import_crypto6.randomUUID)();
+    const runIdPreview = (deps.idFactory ?? import_crypto7.randomUUID)();
     const argvPreview = await taskArgvPreview(deps, preflight, prompt, runIdPreview);
     const artifactBase = `.specbridge/runs/${runIdPreview}`;
     return {
@@ -45796,8 +47862,8 @@ async function runApprovedTask(deps, request) {
       }
     };
   }
-  const runId = (deps.idFactory ?? import_crypto6.randomUUID)();
-  const sessionId = (deps.idFactory ?? import_crypto6.randomUUID)();
+  const runId = (deps.idFactory ?? import_crypto7.randomUUID)();
+  const sessionId = (deps.idFactory ?? import_crypto7.randomUUID)();
   const parent = latestRunForTask(deps.workspace, preflight.spec.folder.name, task.id);
   const createdAt = clock().toISOString();
   createRun(deps.workspace, {
@@ -46411,7 +48477,7 @@ async function resumeRun(deps, request) {
       }
     };
   }
-  const runId = (deps.idFactory ?? import_crypto7.randomUUID)();
+  const runId = (deps.idFactory ?? import_crypto8.randomUUID)();
   const createdAt = clock().toISOString();
   createRun(workspace, {
     schemaVersion: RUN_RECORD_SCHEMA_VERSION,
@@ -46724,7 +48790,7 @@ async function beginInteractiveTask(deps, request) {
       `${predecessors.length} earlier task(s) are still open (next would be ${predecessors[0]?.id}); running ${task.id} out of order.`
     );
   }
-  const runId = (deps.idFactory ?? import_crypto8.randomUUID)();
+  const runId = (deps.idFactory ?? import_crypto9.randomUUID)();
   const acquisition = acquireInteractiveLock(workspace, {
     runId,
     specName,
@@ -47240,7 +49306,7 @@ var taskExecutionConformanceGroup = {
       } else {
         const outcome = await runApprovedTask(
           { workspace: fixture.workspace, config: fixture.config, registry: fixture.registry },
-          { specName: CONFORMANCE_SPEC_NAME, next: true }
+          { specName: CONFORMANCE_SPEC_NAME, next: true, runnerName: context.profile.name }
         );
         const report = outcome.kind === "executed" ? outcome.report : void 0;
         results.push(
@@ -47272,7 +49338,7 @@ var taskExecutionConformanceGroup = {
       } else {
         const outcome = await runApprovedTask(
           { workspace: fixture.workspace, config: fixture.config, registry: fixture.registry },
-          { specName: CONFORMANCE_SPEC_NAME, next: true }
+          { specName: CONFORMANCE_SPEC_NAME, next: true, runnerName: context.profile.name }
         );
         const report = outcome.kind === "executed" ? outcome.report : void 0;
         results.push(
@@ -47408,13 +49474,13 @@ var EXECUTION_CONFORMANCE_GROUPS = [
 // ../../packages/orchestration/dist/index.js
 var import_fs29 = require("fs");
 var import_path32 = __toESM(require("path"), 1);
-var import_crypto12 = require("crypto");
+var import_crypto13 = require("crypto");
 var import_fs30 = require("fs");
 var import_path33 = __toESM(require("path"), 1);
-var import_crypto13 = require("crypto");
+var import_crypto14 = require("crypto");
 var import_fs31 = require("fs");
 var import_path34 = __toESM(require("path"), 1);
-var import_crypto14 = require("crypto");
+var import_crypto15 = require("crypto");
 var import_fs32 = require("fs");
 var import_path35 = __toESM(require("path"), 1);
 var import_fs33 = require("fs");
@@ -47425,7 +49491,7 @@ var import_path37 = __toESM(require("path"), 1);
 // ../../packages/mission/dist/index.js
 var import_fs28 = require("fs");
 var import_path31 = __toESM(require("path"), 1);
-var import_crypto9 = require("crypto");
+var import_crypto10 = require("crypto");
 var MISSION_STATUSES = [
   /** The mission exists; discovery has not started. */
   "IDEA",
@@ -48513,7 +50579,7 @@ function beginMission(deps, request) {
   const createdAt = now(deps).toISOString();
   const mission = missionStateSchema.parse({
     schemaVersion: MISSION_STATE_SCHEMA_VERSION,
-    missionId: `m-${(deps.idFactory ?? import_crypto9.randomUUID)()}`,
+    missionId: `m-${(deps.idFactory ?? import_crypto10.randomUUID)()}`,
     name: name.slice(0, MISSION_LIMITS.maxNameChars),
     status: "IDEA",
     goal: goal.slice(0, MISSION_LIMITS.maxTextChars),
@@ -50841,7 +52907,7 @@ function failureFingerprint(input) {
     input.exitCode === void 0 ? "no-exit-code" : String(input.exitCode),
     bounded2
   ].join("\0");
-  return (0, import_crypto10.createHash)("sha256").update(canonical).digest("hex").slice(0, 32);
+  return (0, import_crypto11.createHash)("sha256").update(canonical).digest("hex").slice(0, 32);
 }
 function classifyFailure(input) {
   return {
@@ -50859,7 +52925,7 @@ function classifyFailure(input) {
 }
 function diffFingerprint(changed) {
   const canonical = [...changed].map((entry) => `${entry.path}:${entry.contentHash ?? "no-hash"}`).sort((a2, b) => a2.localeCompare(b, "en")).join("\n");
-  return (0, import_crypto11.createHash)("sha256").update(canonical).digest("hex").slice(0, 32);
+  return (0, import_crypto12.createHash)("sha256").update(canonical).digest("hex").slice(0, 32);
 }
 function isMateriallyIdentical(previous, next) {
   if (previous === void 0) return false;
@@ -51825,7 +53891,7 @@ function now2(deps) {
   return (deps.clock ?? systemClock)();
 }
 function newId(deps) {
-  return (deps.idFactory ?? import_crypto12.randomUUID)();
+  return (deps.idFactory ?? import_crypto13.randomUUID)();
 }
 function assertEnabled(policy) {
   if (policy.enabled) return;
@@ -55181,7 +57247,7 @@ function now22(deps) {
   return (deps.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
 }
 function newId2(deps) {
-  return (deps.idFactory ?? import_crypto14.randomUUID)();
+  return (deps.idFactory ?? import_crypto15.randomUUID)();
 }
 function beginTaskAttempt(deps, input) {
   const attemptNumber = nextAttemptNumber2(deps.workspace, input.jobId, input.nodeId);
@@ -55393,7 +57459,7 @@ function now3(deps) {
   return (deps.clock ?? systemClock)();
 }
 function newId3(deps) {
-  return (deps.idFactory ?? import_crypto13.randomUUID)();
+  return (deps.idFactory ?? import_crypto14.randomUUID)();
 }
 function assertJobsEnabled(deps) {
   if (policyOf2(deps).enabled) return;
@@ -61597,14 +63663,14 @@ function assessNode(runtime, deps, jobId, job, node, forecast, reserve, observat
   return { suitability, estimate, routing };
 }
 function defaultSleep(ms, signal) {
-  return new Promise((resolve) => {
-    const timer = setTimeout(resolve, ms);
+  return new Promise((resolve2) => {
+    const timer = setTimeout(resolve2, ms);
     timer.unref?.();
     signal?.addEventListener(
       "abort",
       () => {
         clearTimeout(timer);
-        resolve();
+        resolve2();
       },
       { once: true }
     );
@@ -62937,7 +65003,7 @@ ${report.specResults.map((spec, index) => renderSpec(spec, index)).join("\n")}
 }
 
 // ../../packages/cli/src/context.ts
-var import_node_path6 = __toESM(require("path"), 1);
+var import_node_path7 = __toESM(require("path"), 1);
 function defaultIo() {
   return {
     cwd: process.cwd(),
@@ -62960,7 +65026,7 @@ var CliRuntime = class {
     return this.cwdOverride ?? this.io.cwd;
   }
   setCwdOverride(dir) {
-    this.cwdOverride = import_node_path6.default.resolve(this.io.cwd, dir);
+    this.cwdOverride = import_node_path7.default.resolve(this.io.cwd, dir);
   }
   workspace() {
     return requireWorkspace(this.cwd);
@@ -62982,8 +65048,8 @@ var CliRuntime = class {
   }
 };
 function relPath(workspace, target) {
-  const relative = import_node_path6.default.relative(workspace.rootDir, target);
-  return (relative === "" ? "." : relative).split(import_node_path6.default.sep).join("/");
+  const relative = import_node_path7.default.relative(workspace.rootDir, target);
+  return (relative === "" ? "." : relative).split(import_node_path7.default.sep).join("/");
 }
 function formatBytes(size) {
   if (size < 1024) return `${size} B`;
@@ -63016,11 +65082,11 @@ function fullCommandPath(command) {
 var VERSION = "1.1.0";
 
 // ../../packages/cli/src/commands/doctor.ts
-var import_node_path8 = __toESM(require("path"), 1);
+var import_node_path9 = __toESM(require("path"), 1);
 
 // ../../packages/cli/src/state/state-families.ts
 var import_node_fs6 = require("fs");
-var import_node_path7 = __toESM(require("path"), 1);
+var import_node_path8 = __toESM(require("path"), 1);
 
 // ../../packages/drift/dist/index.js
 var import_fs40 = require("fs");
@@ -63035,7 +65101,7 @@ var import_path49 = __toESM(require("path"), 1);
 var import_fs44 = require("fs");
 var import_path50 = __toESM(require("path"), 1);
 var import_fs45 = require("fs");
-var import_crypto15 = require("crypto");
+var import_crypto16 = require("crypto");
 var import_path51 = __toESM(require("path"), 1);
 var taskEvidenceSchema = external_exports.object({
   taskId: external_exports.string().min(1),
@@ -64884,7 +66950,7 @@ var VERIFY_EXIT_CODES = {
 };
 async function verifySpecs(request) {
   const now4 = (request.clock ?? (() => /* @__PURE__ */ new Date()))();
-  const verificationId = (request.idFactory ?? import_crypto15.randomUUID)();
+  const verificationId = (request.idFactory ?? import_crypto16.randomUUID)();
   const workspace = request.workspace;
   const configRead = readAgentConfig(workspace);
   if (configRead.config === void 0) {
@@ -67635,7 +69701,7 @@ function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId)
 var import_zlib = require("zlib");
 
 // ../../packages/extension-sdk/dist/index.js
-var import_crypto16 = require("crypto");
+var import_crypto17 = require("crypto");
 var EXTENSION_RULE_ID_PATTERN = /^[A-Z][A-Z0-9_-]{0,63}$/;
 var MAX_EXTENSION_DIAGNOSTICS = 1e3;
 var EXTENSION_DIAGNOSTIC_SEVERITIES = ["info", "warning", "error"];
@@ -67856,7 +69922,7 @@ function computePermissionHash(input) {
       specRead: normalized.specRead
     }
   });
-  return (0, import_crypto16.createHash)("sha256").update(canonical, "utf8").digest("hex");
+  return (0, import_crypto17.createHash)("sha256").update(canonical, "utf8").digest("hex");
 }
 function describePermissions(permissions) {
   const normalized = normalizePermissions(permissions);
@@ -68544,7 +70610,7 @@ var MAX_TEMPLATE_PROVIDER_PACKS = 20;
 // ../../packages/extensions/dist/index.js
 var import_fs51 = require("fs");
 var import_path58 = __toESM(require("path"), 1);
-var import_crypto17 = require("crypto");
+var import_crypto18 = require("crypto");
 var import_fs52 = require("fs");
 var import_path59 = __toESM(require("path"), 1);
 var import_child_process2 = require("child_process");
@@ -68933,7 +70999,7 @@ var extensionChecksumsSchema = external_exports.object({
   files: external_exports.record(external_exports.string().regex(/^[0-9a-f]{64}$/))
 }).strict();
 function sha256HexOf(data) {
-  return (0, import_crypto17.createHash)("sha256").update(data).digest("hex");
+  return (0, import_crypto18.createHash)("sha256").update(data).digest("hex");
 }
 function computeExtensionChecksums(files) {
   const entries = {};
@@ -69927,7 +71993,7 @@ function spawnExtensionProcess(options) {
       stderrBuffer = stderrBuffer.slice(0, maxStderrBytes);
     }
   });
-  const exited = new Promise((resolve) => {
+  const exited = new Promise((resolve2) => {
     let settled = false;
     const settle = (exit) => {
       if (settled) {
@@ -69941,7 +72007,7 @@ function spawnExtensionProcess(options) {
       for (const listener of exitListeners) {
         listener(exit);
       }
-      resolve(exit);
+      resolve2(exit);
     };
     child.once("exit", (code2, signal) => {
       settle({ code: code2 ?? void 0, signal: signal ?? void 0 });
@@ -70081,15 +72147,15 @@ var InvocationSession = class {
     const id = `host-${this.nextId}`;
     const line = serializeProtocolMessage({ jsonrpc: "2.0", id, method, params });
     this.record("send", line.trimEnd());
-    return new Promise((resolve) => {
+    return new Promise((resolve2) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);
-        resolve("timeout");
+        resolve2("timeout");
       }, timeoutMs);
       timer.unref?.();
       this.pending.set(id, (response) => {
         clearTimeout(timer);
-        resolve(response);
+        resolve2(response);
       });
       this.handle.send(line);
     });
@@ -72101,7 +74167,7 @@ function createExtensionVerifierHook(workspace, options = {}) {
 // ../../packages/registry/dist/index.js
 var import_fs60 = require("fs");
 var import_path67 = __toESM(require("path"), 1);
-var import_crypto18 = require("crypto");
+var import_crypto19 = require("crypto");
 var import_fs61 = require("fs");
 var import_path68 = __toESM(require("path"), 1);
 var BUILTIN_REGISTRY_INDEX_JSON = '{\n  "schemaVersion": "1.0.0",\n  "name": "specbridge-examples",\n  "updatedAt": "2026-01-01T00:00:00.000Z",\n  "extensions": [\n    {\n      "id": "example-analyzer",\n      "displayName": "example-analyzer",\n      "description": "Deterministic spec diagnostics contributed by the example-analyzer analyzer extension.",\n      "kind": "analyzer",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-analyzer-1.0.0.specbridge-extension.zip",\n          "sha256": "e6e0948a315b09e53bd18997dce21888af9adbb3997fbf82955399dcf3252a19",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "analyzer",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-exporter",\n      "displayName": "example-exporter",\n      "description": "Candidate export files produced by the example-exporter exporter extension.",\n      "kind": "exporter",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-exporter-1.0.0.specbridge-extension.zip",\n          "sha256": "68f42755a4e56d0e318012ec8c0e3b093e44429182ca93b02d9fb4ce2ec308a3",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "exporter",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-runner",\n      "displayName": "example-runner",\n      "description": "An out-of-process runner adapter provided by the example-runner extension.",\n      "kind": "runner",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-runner-1.0.0.specbridge-extension.zip",\n          "sha256": "5ef3db937d872bfe09495695e9ecb0a3cf3beaf9e006fabdc2972ef55ace80ef",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": true,\n              "repositoryWrite": true,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "runner",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-template-provider",\n      "displayName": "example-template-provider",\n      "description": "Spec template packs contributed by the example-template-provider template-provider extension.",\n      "kind": "template-provider",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-template-provider-1.0.0.specbridge-extension.zip",\n          "sha256": "f7caa11a13473f0891cc8d237ec4f9f2962a2dd1bd2baba4e9d01570de29044b",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": false,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "template-provider",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-verifier",\n      "displayName": "example-verifier",\n      "description": "Verification diagnostics contributed by the example-verifier verifier extension.",\n      "kind": "verifier",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-verifier-1.0.0.specbridge-extension.zip",\n          "sha256": "d531c9078fcbeef6573a95773eefafd409d798bac1223c83748e0229ae0225bf",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "verifier",\n        "specbridge-extension"\n      ]\n    }\n  ]\n}\n';
@@ -72306,7 +74372,7 @@ function writeRegistryCache(workspace, name, indexText, index, options = {}) {
     sourceName: name,
     ...options.sourceUrl === void 0 ? {} : { sourceUrl: options.sourceUrl },
     retrievedAt: (options.clock?.() ?? /* @__PURE__ */ new Date()).toISOString(),
-    contentSha256: (0, import_crypto18.createHash)("sha256").update(indexText, "utf8").digest("hex"),
+    contentSha256: (0, import_crypto19.createHash)("sha256").update(indexText, "utf8").digest("hex"),
     index
   });
   writeFileAtomic(registryCachePath(workspace, name), `${JSON.stringify(cache, null, 2)}
@@ -72729,10 +74795,10 @@ var STATE_FAMILY_IDS = [
 ];
 var MIGRATIONS_FAMILY = "migrations";
 function toRel(workspace, absolute) {
-  return import_node_path7.default.relative(workspace.rootDir, absolute).split(import_node_path7.default.sep).join("/");
+  return import_node_path8.default.relative(workspace.rootDir, absolute).split(import_node_path8.default.sep).join("/");
 }
 function toAbs(workspace, relative) {
-  return import_node_path7.default.join(workspace.rootDir, ...relative.split("/"));
+  return import_node_path8.default.join(workspace.rootDir, ...relative.split("/"));
 }
 function rawSchemaVersion(absolutePath) {
   try {
@@ -72805,15 +74871,15 @@ function collectConfigFindings(workspace) {
 }
 var SPEC_STATE_QUARANTINE_REASON = "The spec state file cannot be read as valid workflow state. Quarantining preserves the exact bytes for manual review; approvals are never invented \u2014 re-approve the stages you trust after review.";
 function collectSpecStateFindings(workspace, specName) {
-  const stateDir = import_node_path7.default.join(workspace.sidecarDir, "state", "specs");
+  const stateDir = import_node_path8.default.join(workspace.sidecarDir, "state", "specs");
   const findings = [];
   let names = listJsonFiles(stateDir).map((name) => name.slice(0, -".json".length));
   if (specName !== void 0) names = names.filter((name) => name === specName);
   for (const name of names) {
-    const absolute = import_node_path7.default.join(stateDir, `${name}.json`);
+    const absolute = import_node_path8.default.join(stateDir, `${name}.json`);
     const relPath2 = toRel(workspace, absolute);
     const declared = rawSchemaVersion(absolute);
-    const specDir = import_node_path7.default.join(workspace.kiroDir, "specs", name);
+    const specDir = import_node_path8.default.join(workspace.kiroDir, "specs", name);
     if (!(0, import_node_fs6.existsSync)(specDir)) {
       findings.push(
         finding(
@@ -72895,7 +74961,7 @@ function collectRunFindings(workspace) {
       findings.push(
         finding(
           "runs",
-          toRel(workspace, import_node_path7.default.join(root, run.runId, "run.json")),
+          toRel(workspace, import_node_path8.default.join(root, run.runId, "run.json")),
           "valid",
           run.schemaVersion,
           RUN_RECORD_SCHEMA_VERSION,
@@ -72905,7 +74971,7 @@ function collectRunFindings(workspace) {
     }
     for (const diagnostic of diagnostics) {
       const runDirAbs = diagnostic.file ?? root;
-      const runJson = import_node_path7.default.join(runDirAbs, "run.json");
+      const runJson = import_node_path8.default.join(runDirAbs, "run.json");
       const relPath2 = toRel(workspace, runJson);
       if ((0, import_node_fs6.existsSync)(runJson)) {
         findings.push(
@@ -72946,18 +75012,18 @@ function collectRunFindings(workspace) {
   return findings;
 }
 function pathEscapesRepository(candidate) {
-  return import_node_path7.default.isAbsolute(candidate) || candidate.split(/[\\/]/).includes("..");
+  return import_node_path8.default.isAbsolute(candidate) || candidate.split(/[\\/]/).includes("..");
 }
 var EVIDENCE_NOTE = "Evidence records are append-only history and are preserved as-is; SpecBridge never proposes automatic recovery for evidence \u2014 manual review only.";
 function collectEvidenceFindings(workspace, specName) {
   const findings = [];
-  const evidenceRoot = import_node_path7.default.join(workspace.sidecarDir, "evidence");
+  const evidenceRoot = import_node_path8.default.join(workspace.sidecarDir, "evidence");
   let specDirs = listDirectories(evidenceRoot);
   if (specName !== void 0) specDirs = specDirs.filter((name) => name === specName);
   for (const spec of specDirs) {
-    for (const taskDir of listDirectories(import_node_path7.default.join(evidenceRoot, spec))) {
-      for (const fileName of listJsonFiles(import_node_path7.default.join(evidenceRoot, spec, taskDir))) {
-        const absolute = import_node_path7.default.join(evidenceRoot, spec, taskDir, fileName);
+    for (const taskDir of listDirectories(import_node_path8.default.join(evidenceRoot, spec))) {
+      for (const fileName of listJsonFiles(import_node_path8.default.join(evidenceRoot, spec, taskDir))) {
+        const absolute = import_node_path8.default.join(evidenceRoot, spec, taskDir, fileName);
         const relPath2 = toRel(workspace, absolute);
         let parsed;
         try {
@@ -73035,7 +75101,7 @@ function collectTemplateFindings(workspace) {
     }
   }
   for (const packName of listDirectories(projectTemplatesDir(workspace))) {
-    const manifestPath = import_node_path7.default.join(projectTemplatesDir(workspace), packName, TEMPLATE_MANIFEST_FILE_NAME);
+    const manifestPath = import_node_path8.default.join(projectTemplatesDir(workspace), packName, TEMPLATE_MANIFEST_FILE_NAME);
     const relPath2 = toRel(workspace, manifestPath);
     if (!(0, import_node_fs6.existsSync)(manifestPath)) {
       findings.push(
@@ -73093,7 +75159,7 @@ function collectExtensionFindings(workspace) {
     }
   }
   for (const record5 of stateRead.state.installed) {
-    const dir = import_node_path7.default.join(installedRootDir(workspace), record5.id, record5.version);
+    const dir = import_node_path8.default.join(installedRootDir(workspace), record5.id, record5.version);
     let isDir = false;
     try {
       isDir = (0, import_node_fs6.statSync)(dir).isDirectory();
@@ -73132,7 +75198,7 @@ function collectExtensionFindings(workspace) {
           (record5) => record5.id === id && record5.version === grant.version
         );
         if (installed === void 0) continue;
-        const dir = import_node_path7.default.join(installedRootDir(workspace), id, grant.version);
+        const dir = import_node_path8.default.join(installedRootDir(workspace), id, grant.version);
         if (!(0, import_node_fs6.existsSync)(dir)) continue;
         let recomputed;
         try {
@@ -73181,7 +75247,7 @@ function collectRegistryFindings(workspace) {
   }
   for (const fileName of listJsonFiles(registryCacheDir(workspace))) {
     const name = fileName.slice(0, -".json".length);
-    const absolute = import_node_path7.default.join(registryCacheDir(workspace), fileName);
+    const absolute = import_node_path8.default.join(registryCacheDir(workspace), fileName);
     const relPath2 = toRel(workspace, absolute);
     let read;
     try {
@@ -73227,12 +75293,12 @@ var FAILING_STATUSES = [
 ];
 function collectInterruptedMigrationFindings(workspace, earlier) {
   const findings = [];
-  const migrationsDir = import_node_path7.default.join(workspace.sidecarDir, "migrations");
+  const migrationsDir = import_node_path8.default.join(workspace.sidecarDir, "migrations");
   for (const planId of listDirectories(migrationsDir).filter((name) => name.startsWith("m-"))) {
-    const reportDir = import_node_path7.default.join(migrationsDir, planId);
-    const planPath = import_node_path7.default.join(reportDir, "plan.json");
+    const reportDir = import_node_path8.default.join(migrationsDir, planId);
+    const planPath = import_node_path8.default.join(reportDir, "plan.json");
     if (!(0, import_node_fs6.existsSync)(planPath)) continue;
-    if ((0, import_node_fs6.existsSync)(import_node_path7.default.join(reportDir, "result.json"))) continue;
+    if ((0, import_node_fs6.existsSync)(import_node_path8.default.join(reportDir, "result.json"))) continue;
     let steps = [];
     try {
       const parsed = JSON.parse((0, import_node_fs6.readFileSync)(planPath, "utf8"));
@@ -73249,7 +75315,7 @@ function collectInterruptedMigrationFindings(workspace, earlier) {
       `Migration ${planId} has a plan but no result; it was interrupted before completing.`
     ];
     for (const step of steps) {
-      const backupAbs = import_node_path7.default.join(reportDir, "backups", ...step.file.split("/"));
+      const backupAbs = import_node_path8.default.join(reportDir, "backups", ...step.file.split("/"));
       const backupExists = (0, import_node_fs6.existsSync)(backupAbs);
       const targetFinding = earlier.find((candidate) => candidate.path === step.file);
       const targetFailing = targetFinding !== void 0 && FAILING_STATUSES.includes(targetFinding.status);
@@ -73312,7 +75378,7 @@ function collectStateFindings(workspace, families, specName) {
   return findings;
 }
 function inspectConfigMigration(workspace) {
-  const configPath = import_node_path7.default.join(workspace.sidecarDir, "config.json");
+  const configPath = import_node_path8.default.join(workspace.sidecarDir, "config.json");
   if (!(0, import_node_fs6.existsSync)(configPath)) return { status: "missing", problems: [] };
   const bytes = (0, import_node_fs6.readFileSync)(configPath);
   let raw;
@@ -73663,7 +75729,7 @@ Examples:
           serializeJsonReport(
             createJsonReport("specbridge.doctor/1", `${CLI_BIN} ${VERSION}`, {
               workspace: null,
-              searchedFrom: import_node_path8.default.resolve(runtime.cwd),
+              searchedFrom: import_node_path9.default.resolve(runtime.cwd),
               healthy: false
             })
           )
@@ -73671,7 +75737,7 @@ Examples:
       } else {
         runtime.out(reportTitle(`${PRODUCT_NAME} Doctor`));
         runtime.out();
-        runtime.out(failLine(`No .kiro directory found from ${import_node_path8.default.resolve(runtime.cwd)} upward`));
+        runtime.out(failLine(`No .kiro directory found from ${import_node_path9.default.resolve(runtime.cwd)} upward`));
         runtime.out();
         runtime.out(
           dim2(
@@ -74103,7 +76169,7 @@ Examples:
 }
 
 // ../../packages/cli/src/commands/spec-context.ts
-var import_node_path9 = __toESM(require("path"), 1);
+var import_node_path10 = __toESM(require("path"), 1);
 var FORMATS = ["markdown", "json"];
 var TARGETS = ["generic", "claude-code"];
 function registerSpecContextCommand(spec, runtime) {
@@ -74162,10 +76228,10 @@ Examples:
       if (options.out !== void 0) {
         const target = assertInsideWorkspace(
           workspace.rootDir,
-          import_node_path9.default.resolve(runtime.cwd, options.out)
+          import_node_path10.default.resolve(runtime.cwd, options.out)
         );
-        const relative = import_node_path9.default.relative(workspace.kiroDir, target);
-        if (!relative.startsWith("..") && !import_node_path9.default.isAbsolute(relative)) {
+        const relative = import_node_path10.default.relative(workspace.kiroDir, target);
+        if (!relative.startsWith("..") && !import_node_path10.default.isAbsolute(relative)) {
           throw new SpecBridgeError(
             "INVALID_ARGUMENT",
             `Refusing to write generated context into .kiro (${target}). Generated artifacts belong outside the Kiro source of truth, e.g. under .specbridge/reports/.`
@@ -74181,7 +76247,7 @@ Examples:
 
 // ../../packages/cli/src/commands/template.ts
 var import_node_fs7 = require("fs");
-var import_node_path10 = __toESM(require("path"), 1);
+var import_node_path11 = __toESM(require("path"), 1);
 var WORKFLOW_MODES = ["requirements-first", "design-first", "quick"];
 var SPEC_TYPES = ["feature", "bugfix"];
 function collectVar(value, previous = []) {
@@ -74532,7 +76598,7 @@ function registerTemplateCommands(program2, runtime) {
       issues = [...entry.pack.issues, ...entry.valid ? checkPackRendering(entry.pack, clock) : []];
     } else {
       const workspace = runtime.tryWorkspace();
-      const resolved = import_node_path10.default.resolve(runtime.cwd, target);
+      const resolved = import_node_path11.default.resolve(runtime.cwd, target);
       if (!(0, import_node_fs7.existsSync)(resolved)) {
         throw new SpecBridgeError(
           "SPEC_NOT_FOUND",
@@ -74540,8 +76606,8 @@ function registerTemplateCommands(program2, runtime) {
         );
       }
       if (workspace !== void 0) {
-        const relativeToRoot = import_node_path10.default.relative(workspace.rootDir, resolved);
-        const inside = !relativeToRoot.startsWith("..") && !import_node_path10.default.isAbsolute(relativeToRoot);
+        const relativeToRoot = import_node_path11.default.relative(workspace.rootDir, resolved);
+        const inside = !relativeToRoot.startsWith("..") && !import_node_path11.default.isAbsolute(relativeToRoot);
         if (!inside) {
           throw new SpecBridgeError(
             "PATH_OUTSIDE_WORKSPACE",
@@ -75002,7 +77068,7 @@ function createFromTemplate(runtime, name, options, command) {
 
 // ../../packages/cli/src/commands/spec-analyze.ts
 var import_node_fs8 = require("fs");
-var import_node_path11 = __toESM(require("path"), 1);
+var import_node_path12 = __toESM(require("path"), 1);
 var STAGE_CHOICES = [...STAGE_NAMES, "all"];
 function collectExtension(value, previous) {
   return [...previous, value];
@@ -75066,7 +77132,7 @@ Examples:
           continue;
         }
         try {
-          const stageContent = (0, import_node_fs8.readFileSync)(import_node_path11.default.join(folder.dir, stage.fileName), "utf8");
+          const stageContent = (0, import_node_fs8.readFileSync)(import_node_path12.default.join(folder.dir, stage.fileName), "utf8");
           extensionRuns.push(
             await runAnalyzerExtension(workspace, extensionId, {
               specName: folder.name,
@@ -75846,7 +77912,7 @@ Examples:
 }
 
 // ../../packages/cli/src/commands/spec-verify.ts
-var import_node_path12 = __toESM(require("path"), 1);
+var import_node_path13 = __toESM(require("path"), 1);
 
 // ../../packages/cli/src/verify-options.ts
 function resolveComparisonRequest(options) {
@@ -75995,7 +78061,7 @@ Examples:
       failOn,
       ...options.policy !== void 0 ? { explicitPolicyPath: options.policy } : {},
       toolVersion: VERSION,
-      reportsDir: import_node_path12.default.join(workspace.sidecarDir, "reports"),
+      reportsDir: import_node_path13.default.join(workspace.sidecarDir, "reports"),
       clock: () => runtime.now(),
       ...interactive ? { onProgress: (message) => runtime.err(dim2(message)) } : {},
       // v0.7.1: policy-configured extension verifiers run out of process;
@@ -76014,7 +78080,7 @@ Examples:
     }
     const rendered = renderReport(result.report, format2, options.verbose === true);
     if (options.output !== void 0) {
-      const outputPath = import_node_path12.default.resolve(runtime.cwd, options.output);
+      const outputPath = import_node_path13.default.resolve(runtime.cwd, options.output);
       writeFileAtomic(outputPath, rendered);
       runtime.out(`Report written: ${relPath(workspace, outputPath)}`);
     } else {
@@ -76121,7 +78187,7 @@ Examples:
 
 // ../../packages/cli/src/commands/spec-policy.ts
 var import_node_fs9 = require("fs");
-var import_node_path13 = __toESM(require("path"), 1);
+var import_node_path14 = __toESM(require("path"), 1);
 var import_node_fs10 = require("fs");
 function isInfrastructurePath2(candidate) {
   return candidate.startsWith(".git") || candidate.startsWith(".kiro/") || candidate.startsWith(".specbridge/");
@@ -76158,7 +78224,7 @@ function collectProposalSources(runtime, specName) {
     } catch {
     }
   }
-  const evidenceDir = import_node_path13.default.join(workspace.sidecarDir, "evidence", specName);
+  const evidenceDir = import_node_path14.default.join(workspace.sidecarDir, "evidence", specName);
   if ((0, import_node_fs9.existsSync)(evidenceDir)) {
     let evidencePathCount = 0;
     for (const entry of (0, import_node_fs10.readdirSync)(evidenceDir, { withFileTypes: true })) {
@@ -76455,7 +78521,7 @@ function registerVerifyRuleCommands(program2, runtime) {
 
 // ../../packages/cli/src/commands/spec-export.ts
 var import_node_fs11 = require("fs");
-var import_node_path14 = __toESM(require("path"), 1);
+var import_node_path15 = __toESM(require("path"), 1);
 function registerSpecExportCommand(spec, runtime) {
   spec.command("export <name>").description("Export a spec through an enabled exporter extension (candidate files, explicit confirmation)").option("--extension <extension-id>", "exporter extension to run (required)").option("--output <directory>", "output directory for exported files (required)").option("--dry-run", "preview candidate files without writing anything").option("--yes", "confirm writing the previewed files").option("--json", "output a machine-readable JSON report").addHelpText(
     "after",
@@ -76481,11 +78547,11 @@ Examples:
     const folder = requireSpec(workspace, name);
     const spec2 = analyzeSpec(workspace, folder);
     const stateRead = readSpecState(workspace, folder.name);
-    const outputDir = import_node_path14.default.resolve(runtime.cwd, options.output);
+    const outputDir = import_node_path15.default.resolve(runtime.cwd, options.output);
     const stages = {};
     for (const file of folder.files) {
       if (file.kind === "requirements" || file.kind === "design" || file.kind === "tasks" || file.kind === "bugfix") {
-        stages[file.kind] = (0, import_node_fs11.readFileSync)(import_node_path14.default.join(folder.dir, file.fileName), "utf8");
+        stages[file.kind] = (0, import_node_fs11.readFileSync)(import_node_path15.default.join(folder.dir, file.fileName), "utf8");
       }
     }
     const input = {
@@ -76876,7 +78942,7 @@ Examples:
 
 // ../../packages/cli/src/commands/spec-refine.ts
 var import_node_fs12 = require("fs");
-var import_node_path15 = __toESM(require("path"), 1);
+var import_node_path16 = __toESM(require("path"), 1);
 var MAX_INSTRUCTION_BYTES = 256 * 1024;
 function resolveInstruction(runtime, options) {
   if (options.instruction !== void 0 && options.instructionFile !== void 0) {
@@ -76892,7 +78958,7 @@ function resolveInstruction(runtime, options) {
     return options.instruction;
   }
   if (options.instructionFile !== void 0) {
-    const filePath = import_node_path15.default.resolve(runtime.cwd, options.instructionFile);
+    const filePath = import_node_path16.default.resolve(runtime.cwd, options.instructionFile);
     let content;
     try {
       content = (0, import_node_fs12.readFileSync)(filePath, "utf8");
@@ -76967,7 +79033,7 @@ Examples:
 }
 
 // ../../packages/cli/src/commands/spec-accept-task.ts
-var import_node_crypto = require("crypto");
+var import_node_crypto3 = require("crypto");
 function registerSpecAcceptTaskCommand(spec, runtime) {
   spec.command("accept-task <name>").description("Manually accept a task (recorded as manually-accepted, never as verified)").requiredOption("--task <task-id>", "task to accept (e.g. 2.3)").requiredOption("--reason <text>", "why you accept it (required, recorded verbatim)").option("--run <run-id>", "run this acceptance refers to").option("--json", "output a machine-readable JSON report").addHelpText(
     "after",
@@ -77024,7 +79090,7 @@ Example:
     const clock = () => runtime.now();
     const snapshot = await captureGitSnapshot(workspace.rootDir, { clock });
     const acceptedAt = runtime.now().toISOString();
-    const evidenceRunId = referencedRunId ?? `manual-${(0, import_node_crypto.randomUUID)()}`;
+    const evidenceRunId = referencedRunId ?? `manual-${(0, import_node_crypto3.randomUUID)()}`;
     const update = completeTaskCheckbox(
       workspace,
       folder.name,
@@ -77098,7 +79164,7 @@ Example:
 // ../../packages/cli/src/commands/runner.ts
 var import_node_fs13 = require("fs");
 var import_node_os4 = __toESM(require("os"), 1);
-var import_node_path16 = __toESM(require("path"), 1);
+var import_node_path17 = __toESM(require("path"), 1);
 function parseOperation(value) {
   if (value === void 0) return void 0;
   if (!RUNNER_OPERATIONS.includes(value)) {
@@ -77468,11 +79534,11 @@ Examples:
       runtime.exitCode = EXIT_CODES.usageError;
       return;
     }
-    const scratch = (0, import_node_fs13.mkdtempSync)(import_node_path16.default.join(import_node_os4.default.tmpdir(), "specbridge-runner-test-"));
+    const scratch = (0, import_node_fs13.mkdtempSync)(import_node_path17.default.join(import_node_os4.default.tmpdir(), "specbridge-runner-test-"));
     try {
       const result = await profile.runner.selfTest({
         workspaceRoot: scratch,
-        runDir: import_node_path16.default.join(scratch, "run"),
+        runDir: import_node_path17.default.join(scratch, "run"),
         timeoutMs: 12e4
       });
       if (options.json === true) {
@@ -77576,13 +79642,13 @@ Examples:
   ).action(async (name, options) => {
     const context = loadExecutionContext(runtime);
     const profile = context.registry.getProfile(name);
-    const scratch = (0, import_node_fs13.mkdtempSync)(import_node_path16.default.join(import_node_os4.default.tmpdir(), "specbridge-conformance-"));
+    const scratch = (0, import_node_fs13.mkdtempSync)(import_node_path17.default.join(import_node_os4.default.tmpdir(), "specbridge-conformance-"));
     try {
       const result = await runRunnerConformance(
         {
           profile,
           workspaceRoot: scratch,
-          runDir: import_node_path16.default.join(scratch, ".specbridge-conformance-runs"),
+          runDir: import_node_path17.default.join(scratch, ".specbridge-conformance-runs"),
           invocationsAllowed: options.network === true,
           timeoutMs: 12e4
         },
@@ -77669,7 +79735,7 @@ Examples:
 
 // ../../packages/cli/src/commands/config.ts
 var import_node_fs14 = require("fs");
-var import_node_path17 = __toESM(require("path"), 1);
+var import_node_path18 = __toESM(require("path"), 1);
 function registerConfigCommands(program2, runtime) {
   const config2 = program2.command("config").description("Validate and migrate .specbridge/config.json");
   config2.command("doctor").description("Validate the configuration (read-only; never modifies the file)").option("--json", "output a machine-readable JSON report").addHelpText(
@@ -77798,7 +79864,7 @@ Examples:
     }
     const apply = options.apply === true;
     const workspace = runtime.workspace();
-    const configPath = import_node_path17.default.join(workspace.sidecarDir, "config.json");
+    const configPath = import_node_path18.default.join(workspace.sidecarDir, "config.json");
     if (!(0, import_node_fs14.existsSync)(configPath)) {
       const message = `No configuration file exists at ${configPath}; nothing to migrate (safe v2 defaults already apply).`;
       if (options.json === true) {
@@ -77921,7 +79987,7 @@ Examples:
 
 // ../../packages/cli/src/commands/migrate.ts
 var import_node_fs15 = require("fs");
-var import_node_path18 = __toESM(require("path"), 1);
+var import_node_path19 = __toESM(require("path"), 1);
 var CURRENT_FAMILY_VERSIONS = {
   config: RUNNER_CONFIG_SCHEMA_VERSION,
   "spec-state": SPEC_STATE_SCHEMA_VERSION,
@@ -77956,7 +80022,7 @@ function familySummaries(workspace, findings) {
     return {
       family,
       filesScanned: familyFindings.filter(
-        (candidate) => (0, import_node_fs15.existsSync)(import_node_path18.default.join(workspace.rootDir, ...candidate.path.split("/")))
+        (candidate) => (0, import_node_fs15.existsSync)(import_node_path19.default.join(workspace.rootDir, ...candidate.path.split("/")))
       ).length,
       schemaVersionsFound: versions,
       currentVersion: CURRENT_FAMILY_VERSIONS[family] ?? "1.0.0",
@@ -78306,7 +80372,7 @@ Examples:
 }
 
 // ../../packages/cli/src/commands/state.ts
-var import_node_path19 = __toESM(require("path"), 1);
+var import_node_path20 = __toESM(require("path"), 1);
 var STATUS_ORDER = [
   "valid",
   "stale",
@@ -78447,7 +80513,7 @@ Two explicit steps, no shortcuts and no force flag:
      Every file hash is revalidated first (stale plans are refused), every
      action moves bytes into .specbridge/quarantine/<planId>/ (nothing is
      destroyed), failures roll every move back, and the outcome is appended
-     to ${import_node_path19.default.posix.join(".specbridge", "recovery", "log.jsonl")}.
+     to ${import_node_path20.default.posix.join(".specbridge", "recovery", "log.jsonl")}.
 
 Recovery can only touch files inside .specbridge/. It never writes to .kiro,
 and it never creates approvals, evidence, or completed tasks.
@@ -78597,7 +80663,7 @@ Examples:
 
 // ../../packages/cli/src/commands/setup.ts
 var import_node_fs16 = require("fs");
-var import_node_path20 = __toESM(require("path"), 1);
+var import_node_path21 = __toESM(require("path"), 1);
 var SAFE_DIRECTORIES = [".specbridge", ".specbridge/state/specs"];
 function registerSetupCommand(program2, runtime) {
   program2.command("setup").description("Preview (default) or apply safe SpecBridge initialization for this workspace").option("--dry-run", "report what setup would do; write nothing (default)").option("--apply", "create only the missing sidecar directories, atomically").option("--json", "output a machine-readable JSON report").addHelpText(
@@ -78635,7 +80701,7 @@ Examples:
     const specs = workspace.specsDir !== void 0 ? discoverSpecs(workspace) : [];
     const config2 = readAgentConfig(workspace);
     const missingDirectories = SAFE_DIRECTORIES.filter(
-      (dir) => !(0, import_node_fs16.existsSync)(import_node_path20.default.join(workspace.rootDir, dir))
+      (dir) => !(0, import_node_fs16.existsSync)(import_node_path21.default.join(workspace.rootDir, dir))
     );
     const report = {
       workspaceRoot: workspace.rootDir,
@@ -78660,7 +80726,7 @@ Examples:
     };
     if (apply) {
       for (const dir of missingDirectories) {
-        (0, import_node_fs16.mkdirSync)(import_node_path20.default.join(workspace.rootDir, dir), { recursive: true });
+        (0, import_node_fs16.mkdirSync)(import_node_path21.default.join(workspace.rootDir, dir), { recursive: true });
         report.created.push(dir);
       }
     }
@@ -78684,7 +80750,7 @@ Examples:
     } else {
       for (const dir of missingDirectories) {
         runtime.out(
-          apply && report.created.includes(dir) ? okLine(`created ${relPath(workspace, import_node_path20.default.join(workspace.rootDir, dir))}/`) : infoLine(`would create ${relPath(workspace, import_node_path20.default.join(workspace.rootDir, dir))}/`)
+          apply && report.created.includes(dir) ? okLine(`created ${relPath(workspace, import_node_path21.default.join(workspace.rootDir, dir))}/`) : infoLine(`would create ${relPath(workspace, import_node_path21.default.join(workspace.rootDir, dir))}/`)
         );
       }
     }
@@ -79152,10 +81218,10 @@ Examples:
 }
 
 // ../../packages/mcp-server/dist/chunk-JYVBX4T7.js
-var import_buffer5 = require("buffer");
+var import_buffer7 = require("buffer");
 var import_fs62 = require("fs");
 var import_path69 = __toESM(require("path"), 1);
-var import_crypto19 = require("crypto");
+var import_crypto20 = require("crypto");
 var import_path70 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/core.js
@@ -85438,19 +87504,19 @@ var getRefs = (options) => {
 };
 
 // ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/errorMessages.js
-function addErrorMessage(res, key, errorMessage, refs) {
+function addErrorMessage(res, key, errorMessage2, refs) {
   if (!refs?.errorMessages)
     return;
-  if (errorMessage) {
+  if (errorMessage2) {
     res.errorMessage = {
       ...res.errorMessage,
-      [key]: errorMessage
+      [key]: errorMessage2
     };
   }
 }
-function setResponseValueAndErrors(res, key, value, errorMessage, refs) {
+function setResponseValueAndErrors(res, key, value, errorMessage2, refs) {
   res[key] = value;
-  addErrorMessage(res, key, errorMessage, refs);
+  addErrorMessage(res, key, errorMessage2, refs);
 }
 
 // ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/getRelativePath.js
@@ -86761,8 +88827,8 @@ var Protocol = class {
                   if (queuedMessage.type === "response") {
                     resolver(message);
                   } else {
-                    const errorMessage = message;
-                    const error2 = new McpError(errorMessage.error.code, errorMessage.error.message, errorMessage.error.data);
+                    const errorMessage2 = message;
+                    const error2 = new McpError(errorMessage2.error.code, errorMessage2.error.message, errorMessage2.error.data);
                     resolver(error2);
                   }
                 } else {
@@ -87208,7 +89274,7 @@ var Protocol = class {
           return;
         }
         const pollInterval = task2.pollInterval ?? this._options?.defaultTaskPollInterval ?? 1e3;
-        await new Promise((resolve) => setTimeout(resolve, pollInterval));
+        await new Promise((resolve2) => setTimeout(resolve2, pollInterval));
         options?.signal?.throwIfAborted();
       }
     } catch (error2) {
@@ -87225,7 +89291,7 @@ var Protocol = class {
    */
   request(request, resultSchema, options) {
     const { relatedRequestId, resumptionToken, onresumptiontoken, task, relatedTask } = options ?? {};
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve2, reject) => {
       const earlyReject = (error2) => {
         reject(error2);
       };
@@ -87303,7 +89369,7 @@ var Protocol = class {
           if (!parseResult.success) {
             reject(parseResult.error);
           } else {
-            resolve(parseResult.data);
+            resolve2(parseResult.data);
           }
         } catch (error2) {
           reject(error2);
@@ -87564,12 +89630,12 @@ var Protocol = class {
       }
     } catch {
     }
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve2, reject) => {
       if (signal.aborted) {
         reject(new McpError(ErrorCode.InvalidRequest, "Request cancelled"));
         return;
       }
-      const timeoutId = setTimeout(resolve, interval);
+      const timeoutId = setTimeout(resolve2, interval);
       signal.addEventListener("abort", () => {
         clearTimeout(timeoutId);
         reject(new McpError(ErrorCode.InvalidRequest, "Request cancelled"));
@@ -88062,23 +90128,23 @@ var Server = class extends Protocol {
       const wrappedHandler = async (request, extra) => {
         const validatedRequest = safeParse2(CallToolRequestSchema, request);
         if (!validatedRequest.success) {
-          const errorMessage = validatedRequest.error instanceof Error ? validatedRequest.error.message : String(validatedRequest.error);
-          throw new McpError(ErrorCode.InvalidParams, `Invalid tools/call request: ${errorMessage}`);
+          const errorMessage2 = validatedRequest.error instanceof Error ? validatedRequest.error.message : String(validatedRequest.error);
+          throw new McpError(ErrorCode.InvalidParams, `Invalid tools/call request: ${errorMessage2}`);
         }
         const { params } = validatedRequest.data;
         const result = await Promise.resolve(handler(request, extra));
         if (params.task) {
           const taskValidationResult = safeParse2(CreateTaskResultSchema, result);
           if (!taskValidationResult.success) {
-            const errorMessage = taskValidationResult.error instanceof Error ? taskValidationResult.error.message : String(taskValidationResult.error);
-            throw new McpError(ErrorCode.InvalidParams, `Invalid task creation result: ${errorMessage}`);
+            const errorMessage2 = taskValidationResult.error instanceof Error ? taskValidationResult.error.message : String(taskValidationResult.error);
+            throw new McpError(ErrorCode.InvalidParams, `Invalid task creation result: ${errorMessage2}`);
           }
           return taskValidationResult.data;
         }
         const validationResult = safeParse2(CallToolResultSchema, result);
         if (!validationResult.success) {
-          const errorMessage = validationResult.error instanceof Error ? validationResult.error.message : String(validationResult.error);
-          throw new McpError(ErrorCode.InvalidParams, `Invalid tools/call result: ${errorMessage}`);
+          const errorMessage2 = validationResult.error instanceof Error ? validationResult.error.message : String(validationResult.error);
+          throw new McpError(ErrorCode.InvalidParams, `Invalid tools/call result: ${errorMessage2}`);
         }
         return validationResult.data;
       };
@@ -88794,12 +90860,12 @@ var McpServer = class {
    * @param errorMessage - The error message.
    * @returns The tool error result.
    */
-  createToolError(errorMessage) {
+  createToolError(errorMessage2) {
     return {
       content: [
         {
           type: "text",
-          text: errorMessage
+          text: errorMessage2
         }
       ],
       isError: true
@@ -88817,8 +90883,8 @@ var McpServer = class {
     const parseResult = await safeParseAsync2(schemaToParse, args);
     if (!parseResult.success) {
       const error2 = "error" in parseResult ? parseResult.error : "Unknown error";
-      const errorMessage = getParseErrorMessage(error2);
-      throw new McpError(ErrorCode.InvalidParams, `Input validation error: Invalid arguments for tool ${toolName}: ${errorMessage}`);
+      const errorMessage2 = getParseErrorMessage(error2);
+      throw new McpError(ErrorCode.InvalidParams, `Input validation error: Invalid arguments for tool ${toolName}: ${errorMessage2}`);
     }
     return parseResult.data;
   }
@@ -88842,8 +90908,8 @@ var McpServer = class {
     const parseResult = await safeParseAsync2(outputObj, result.structuredContent);
     if (!parseResult.success) {
       const error2 = "error" in parseResult ? parseResult.error : "Unknown error";
-      const errorMessage = getParseErrorMessage(error2);
-      throw new McpError(ErrorCode.InvalidParams, `Output validation error: Invalid structured content for tool ${toolName}: ${errorMessage}`);
+      const errorMessage2 = getParseErrorMessage(error2);
+      throw new McpError(ErrorCode.InvalidParams, `Output validation error: Invalid structured content for tool ${toolName}: ${errorMessage2}`);
     }
   }
   /**
@@ -88891,7 +90957,7 @@ var McpServer = class {
     let task = createTaskResult.task;
     const pollInterval = task.pollInterval ?? 5e3;
     while (task.status !== "completed" && task.status !== "failed" && task.status !== "cancelled") {
-      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+      await new Promise((resolve2) => setTimeout(resolve2, pollInterval));
       const updatedTask = await extra.taskStore.getTask(taskId);
       if (!updatedTask) {
         throw new McpError(ErrorCode.InternalError, `Task ${taskId} not found during polling`);
@@ -89055,8 +91121,8 @@ var McpServer = class {
         const parseResult = await safeParseAsync2(argsObj, request.params.arguments);
         if (!parseResult.success) {
           const error2 = "error" in parseResult ? parseResult.error : "Unknown error";
-          const errorMessage = getParseErrorMessage(error2);
-          throw new McpError(ErrorCode.InvalidParams, `Invalid arguments for prompt ${request.params.name}: ${errorMessage}`);
+          const errorMessage2 = getParseErrorMessage(error2);
+          throw new McpError(ErrorCode.InvalidParams, `Invalid arguments for prompt ${request.params.name}: ${errorMessage2}`);
         }
         const args = parseResult.data;
         const cb = prompt.callback;
@@ -89572,12 +91638,12 @@ var StdioServerTransport = class {
     this.onclose?.();
   }
   send(message) {
-    return new Promise((resolve) => {
+    return new Promise((resolve2) => {
       const json = serializeMessage(message);
       if (this._stdout.write(json)) {
-        resolve();
+        resolve2();
       } else {
-        this._stdout.once("drain", resolve);
+        this._stdout.once("drain", resolve2);
       }
     });
   }
@@ -89843,12 +91909,12 @@ function clampListLimit(requested) {
   return Math.min(requested, LIMITS.maximumListLimit);
 }
 function encodeCursor(offset, token) {
-  return import_buffer5.Buffer.from(JSON.stringify({ o: offset, t: token }), "utf8").toString("base64url");
+  return import_buffer7.Buffer.from(JSON.stringify({ o: offset, t: token }), "utf8").toString("base64url");
 }
 function decodeCursor(cursor, expectedToken) {
   let parsed;
   try {
-    parsed = JSON.parse(import_buffer5.Buffer.from(cursor, "base64url").toString("utf8"));
+    parsed = JSON.parse(import_buffer7.Buffer.from(cursor, "base64url").toString("utf8"));
   } catch {
     throw new McpToolError("SBMCP002", "The cursor is not valid; restart the listing without a cursor.");
   }
@@ -89881,11 +91947,11 @@ function paginate(all, options) {
   };
 }
 function truncateText(text7, maximumBytes) {
-  const originalBytes = import_buffer5.Buffer.byteLength(text7, "utf8");
+  const originalBytes = import_buffer7.Buffer.byteLength(text7, "utf8");
   if (originalBytes <= maximumBytes) {
     return { text: text7, truncated: false, originalBytes };
   }
-  const buffer = import_buffer5.Buffer.from(text7, "utf8").subarray(0, maximumBytes);
+  const buffer = import_buffer7.Buffer.from(text7, "utf8").subarray(0, maximumBytes);
   const decoded = buffer.toString("utf8").replace(/�+$/u, "");
   return { text: decoded, truncated: true, originalBytes };
 }
@@ -89899,7 +91965,7 @@ function capDiagnostics(diagnostics) {
   };
 }
 function assertInputSize(field, value, maximumBytes) {
-  const bytes = import_buffer5.Buffer.byteLength(value, "utf8");
+  const bytes = import_buffer7.Buffer.byteLength(value, "utf8");
   if (bytes > maximumBytes) {
     throw new McpToolError(
       "SBMCP018",
@@ -89909,7 +91975,7 @@ function assertInputSize(field, value, maximumBytes) {
   }
 }
 function assertStructuredSize(toolName, structured) {
-  const bytes = import_buffer5.Buffer.byteLength(JSON.stringify(structured), "utf8");
+  const bytes = import_buffer7.Buffer.byteLength(JSON.stringify(structured), "utf8");
   if (bytes > LIMITS.maximumStructuredResponseBytes) {
     throw new McpToolError(
       "SBMCP019",
@@ -89992,7 +92058,7 @@ var ServerContext = class {
     this.projectRoot = options.projectRoot;
     this.logger = options.logger;
     this.clock = options.clock ?? (() => /* @__PURE__ */ new Date());
-    this.idFactory = options.idFactory ?? import_crypto19.randomUUID;
+    this.idFactory = options.idFactory ?? import_crypto20.randomUUID;
   }
   /**
    * Resolve the `.kiro` workspace from the pinned project root, or
@@ -95826,8 +97892,8 @@ async function serveStdio(options) {
   const transport = new StdioServerTransport();
   const processLike = options.processLike ?? process;
   let resolveClosed;
-  const closed = new Promise((resolve) => {
-    resolveClosed = resolve;
+  const closed = new Promise((resolve2) => {
+    resolveClosed = resolve2;
   });
   const shutdown = async (signal) => {
     logger.info("server_stopped", { reason: signal });
@@ -96177,7 +98243,7 @@ Examples:
 
 // ../../packages/cli/src/commands/extension.ts
 var import_node_fs17 = require("fs");
-var import_node_path21 = __toESM(require("path"), 1);
+var import_node_path22 = __toESM(require("path"), 1);
 function requireKind(value) {
   if (value === void 0) {
     return void 0;
@@ -96225,7 +98291,7 @@ function readableIndexes(runtime, registryFilter) {
   return indexes;
 }
 function resolveConformanceTarget(runtime, target) {
-  const resolved = import_node_path21.default.resolve(runtime.cwd, target);
+  const resolved = import_node_path22.default.resolve(runtime.cwd, target);
   if ((0, import_node_fs17.existsSync)(resolved) && (0, import_node_fs17.lstatSync)(resolved).isDirectory()) {
     const files = readExtensionPackageDirectory(resolved);
     const validation = loadExtensionPackage(files, { checksums: "verify-if-present" });
@@ -96410,7 +98476,7 @@ function registerExtensionCommands(program2, runtime) {
     }
   });
   extension.command("validate <path-or-extension>").description("Validate a package directory, archive, or installed extension (never executes code)").option("--json", "output a machine-readable JSON report").action((target, options) => {
-    const resolved = import_node_path21.default.resolve(runtime.cwd, target);
+    const resolved = import_node_path22.default.resolve(runtime.cwd, target);
     let issues;
     let manifestId = null;
     let where;
@@ -96495,7 +98561,7 @@ function registerExtensionCommands(program2, runtime) {
         clock: () => runtime.now()
       });
     } else {
-      const resolved = import_node_path21.default.resolve(runtime.cwd, source);
+      const resolved = import_node_path22.default.resolve(runtime.cwd, source);
       if (!(0, import_node_fs17.existsSync)(resolved)) {
         throw new SpecBridgeError(
           "INVALID_ARGUMENT",
@@ -96675,7 +98741,7 @@ function registerExtensionCommands(program2, runtime) {
     runtime.exitCode = failed ? EXIT_CODES.gateFailure : 0;
   });
   extension.command("conformance <path-or-extension>").description("Run kind-specific conformance checks (executes the extension; requires --yes)").option("--yes", "confirm executing the extension under test").option("--network", "allow extensions that declare the network permission to run").option("--verbose", "show every check").option("--json", "output a machine-readable JSON report").action(async (target, options) => {
-    const resolvedPath = import_node_path21.default.resolve(runtime.cwd, target);
+    const resolvedPath = import_node_path22.default.resolve(runtime.cwd, target);
     const isPathTarget = (0, import_node_fs17.existsSync)(resolvedPath) && (0, import_node_fs17.lstatSync)(resolvedPath).isDirectory();
     const enabled = resolveConformanceTarget(runtime, target);
     const executable = enabled.manifest.entrypoint !== void 0;
@@ -96731,7 +98797,7 @@ function registerExtensionCommands(program2, runtime) {
     if (kind === void 0) {
       throw new SpecBridgeError("INVALID_ARGUMENT", `Pass --kind (${EXTENSION_KINDS.join(" | ")}).`);
     }
-    const outputDir = import_node_path21.default.resolve(runtime.cwd, options.output ?? `./${id}`);
+    const outputDir = import_node_path22.default.resolve(runtime.cwd, options.output ?? `./${id}`);
     const result = scaffoldExtension({
       id,
       kind,
@@ -96757,8 +98823,8 @@ function registerExtensionCommands(program2, runtime) {
     runtime.out(dim2(`Next: ${CLI_BIN} extension validate ${options.output ?? `./${id}`}`));
   });
   extension.command("package <path>").description("Build a deterministic .specbridge-extension.zip with checksums (no lifecycle scripts)").option("--output <directory>", "directory for the archive (default: <path>/dist)").option("--dry-run", "validate and compute the hash without writing the archive").option("--json", "output a machine-readable JSON report").action((source, options) => {
-    const result = buildExtensionArchive(import_node_path21.default.resolve(runtime.cwd, source), {
-      ...options.output === void 0 ? {} : { outputDir: import_node_path21.default.resolve(runtime.cwd, options.output) },
+    const result = buildExtensionArchive(import_node_path22.default.resolve(runtime.cwd, source), {
+      ...options.output === void 0 ? {} : { outputDir: import_node_path22.default.resolve(runtime.cwd, options.output) },
       ...options.dryRun === true ? { dryRun: true } : {}
     });
     if (options.json === true) {
@@ -96781,7 +98847,7 @@ function registerExtensionCommands(program2, runtime) {
 
 // ../../packages/cli/src/commands/registry.ts
 var import_node_fs18 = require("fs");
-var import_node_path22 = __toESM(require("path"), 1);
+var import_node_path23 = __toESM(require("path"), 1);
 function jsonOut2(runtime, schema, data) {
   runtime.outRaw(serializeJsonReport(createJsonReport(schema, `${CLI_BIN} ${VERSION}`, data)));
 }
@@ -97019,7 +99085,7 @@ function registerRegistryCommands(program2, runtime) {
     let problems = [];
     let extensionCount = 0;
     let label = target;
-    const resolved = import_node_path22.default.resolve(runtime.cwd, target);
+    const resolved = import_node_path23.default.resolve(runtime.cwd, target);
     if ((0, import_node_fs18.existsSync)(resolved) && (0, import_node_fs18.lstatSync)(resolved).isFile()) {
       const parsed = parseRegistryIndex((0, import_node_fs18.readFileSync)(resolved, "utf8"));
       problems = parsed.problems;

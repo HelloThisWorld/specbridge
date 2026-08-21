@@ -134,6 +134,9 @@ describe('frozen contract discriminators', () => {
       'verification_failed',
       'invalid_configuration',
       'unsupported_operation',
+      // vNext.3 (deliberate additive extension): a provider session
+      // referenced for resume no longer exists or restored empty.
+      'session_unavailable',
     ]);
   });
 
@@ -156,6 +159,9 @@ describe('frozen contract discriminators', () => {
       'usage.updated',
       'warning',
       'error',
+      // vNext.3 (deliberate additive extension): provider-native compaction
+      // observed as working memory — never canonical state.
+      'compaction.occurred',
     ]);
   });
 
