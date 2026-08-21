@@ -69,6 +69,9 @@ reference, grouped by area.
 - [Local agentic runtime (vNext.4)](orchestration/local-agentic-runtime.md) —
   the LOCAL lane's two execution modes (direct model vs harness), verified
   compute locality, the shared local attempt budget, and A/B evaluation.
+- [API gap bridge (vNext.5)](orchestration/api-gap-bridge.md) — the paid
+  continuity lane: spend authorization, subscription-gap forecasting, cost
+  estimation, bounded budgets, and why the default is never to spend.
 - [Orchestration configuration](orchestration/configuration.md) — every
   policy knob, with defaults.
 

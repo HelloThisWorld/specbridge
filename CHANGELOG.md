@@ -1,5 +1,130 @@
 # Changelog
 
+## 1.8.0 (unreleased) — vNext.5 API Gap Bridge
+
+A long-horizon job runs for days; Claude Max quota does not. vNext.2 handled
+an exhausted window by **waiting**, which is correct, cheap, and occasionally
+useless — a critical task that blocks the whole job does not become less
+blocking because waiting is free.
+
+vNext.5 adds a third economic lane whose *only* automatic purpose is carrying
+a job across that gap:
+
+```text
+LOCAL           zero-marginal-cost compute
+      ↓
+SUBSCRIPTION    prepaid strong intelligence
+      ↓
+API             PAYG continuity bridge
+```
+
+The API lane is **not** a third equal-priority lane, and that is enforced by
+the call graph rather than by convention: `decideLane` is unchanged by this
+phase and has no way to name the API lane, so the paid path is unreachable
+except through a gap-bridge planner that runs only over a routing the
+subscription lane already refused for a capacity reason. There is no
+provider comparison anywhere in the scheduler.
+
+Three invariants govern everything: never pay for work Local can reliably
+complete or Max can reasonably execute; keep doing useful Local work while
+Max is unavailable; and never execute paid work automatically without
+explicit spend authorization and bounded budget admission.
+
+**Backward compatible by default.** `api.spendMode` defaults to `DISABLED`
+and `api.harnessProfile` to `null`, so an upgraded vNext.4 workspace is
+structurally incapable of spending: no planner runs, no `api_*` event is
+emitted, and routing is byte-identical. A configured API profile, a binding,
+and spend authorization are three INDEPENDENT controls, and all three must be
+right before money moves.
+
+### Added
+
+- **`API` execution lane** (`EXECUTION_LANES` += `API`, `LANE_DECISIONS` +=
+  `API` / `REQUIRE_APPROVAL`) plus 15 additive `SCHEDULING_REASON_CODES` —
+  most of which describe declining to spend, because those are the codes that
+  run in production.
+- **`ApiGapBridgePlanner`** (`scheduling/api-gap-bridge.ts`) — the one place
+  that may conclude "pay". Pure and deterministic; every non-spending path is
+  written first and explicitly.
+- **`ApiHarnessBinding`** (`scheduling/api-binding.ts`) — the mirror of the
+  vNext.4 LOCAL binding, with 10 named refusal statuses. The two are mutually
+  honest: a verified-LOCAL profile is refused for the paid lane
+  (`LOCAL_COMPUTE`), a verified-REMOTE profile is refused for the free lane
+  (`REMOTE_COMPUTE`), `UNKNOWN` qualifies for neither by default, and one
+  profile may not serve both economies (`BOUND_TO_LOCAL_LANE`).
+- **`ApiSpendMode`** `DISABLED` (default) | `MANUAL` | `AUTO_BOUNDED`, and
+  **bounded spend approvals** (`scheduling/api-approval.ts`) scoped to one
+  task FINGERPRINT, one profile, one maximum cost, and an expiry — re-checked
+  at the moment of spend, single-use, and decided only by a human through the
+  CLI. SpecBridge never asks "Allow API?".
+- **`SubscriptionGapForecast`** (`scheduling/api-gap.ts`) — reason, expected
+  return time, duration, and confidence, over 5 `SUBSCRIPTION_GAP_REASONS`.
+  Nothing is fabricated: an unobserved reset stays `null`/`UNKNOWN`, and
+  unknown availability makes `AUTO_BOUNDED` *more* cautious.
+- **`DelaySensitivity`** `LOW` | `MEDIUM` | `HIGH`
+  (`scheduling/delay-sensitivity.ts`) — derived from blocked dependents,
+  critical-path membership, ready alternatives, and the ready local backlog.
+  Never from a model's opinion about urgency.
+- **`ApiCostEstimate`** (`scheduling/api-cost.ts`) over an **operator-supplied**
+  price table. SpecBridge ships no prices and fetches none at runtime.
+  Unknown cost is `null`, never `0`, and refuses automatic spend outright.
+  Budget admission compares a safe figure (mean × `costSafetyMultiplier`).
+- **`ApiBudgetController`** (`scheduling/api-budget.ts`) — per-job / per-task /
+  per-attempt USD ceilings and bounded attempt counts, with **atomic
+  reservation** (read-modify-write behind an exclusive lock, re-checked
+  against fresh durable state) so two tasks cannot spend the same dollar.
+- **API dispatch through the existing `DeepSeekHarnessRunner`** — no
+  `ApiAgentLoop`, no `ApiShellRuntime`, no second harness dependency. Lane is
+  a label on the same begin → execute → verify pipeline; the wall-clock bound,
+  protected paths, failure taxonomy, and completion authority are identical.
+- **Checkpoint before the paid handoff** — a `handoff` checkpoint carrying
+  decisions, failed approaches, and known test state, so a fresh remote
+  session never needs the Claude conversation that preceded it.
+- 14 additive `JOB_EVENT_TYPES` (`api_gap_detected`, `api_budget_reserved`,
+  `api_task_dispatched`, `api_budget_reconciled`, `api_max_returned`,
+  `api_next_task_returned_to_subscription`, …).
+- CLI: `orchestrate scheduler` gains an API section (binding, verified
+  locality, pricing status, reserved/committed/unknown/remaining budget,
+  pending approvals, and **why each waiting task is not bridging**); new
+  `orchestrate api-approve` / `api-deny` — human-only, CLI-only, with no MCP
+  tool and no agent-reachable path.
+- Docs: [API gap bridge](docs/orchestration/api-gap-bridge.md); threat-model
+  section 12 (T42–T53) and a new explicit non-claim about mid-run cost
+  enforcement.
+
+### Changed
+
+- `WorkloadProfiler` now also estimates `expectedInputTokens` /
+  `expectedOutputTokens` with an honest `tokenBasis`; ledger burn
+  observations carry reported token usage. Token estimates take the LARGER of
+  history and heuristic — sparse cheap samples must not talk a spending
+  decision into risk.
+- `SchedulingDecision` gains an `apiBridge` block, present on every decision
+  the planner touched *including the ones that declined to spend*, so one
+  record answers why API was or was not selected, why Local was not enough,
+  why Subscription was not used, how long the gap was, whether the task was
+  critical, what it would have cost, and what budget remained.
+- `TaskAttempt` / `ExecutionLedgerEntry` gain `apiSpendMode`, `gapReason`,
+  `subscriptionAvailableAt`, `estimatedGapDurationMs`, `costSource`,
+  `pricingProfile`, `apiBudgetReservationId`, `apiApprovalId`,
+  `delaySensitivity`, and separate `estimatedCostUsd` / `reservedCostUsd` /
+  `reconciledCostUsd` metrics. Estimated and observed cost are never merged.
+- Ready-task selection prefers free or prepaid runnable work over an
+  API-bridged task in the same pass.
+- `resumeJob` reconciles interrupted API budget reservations to `UNKNOWN` and
+  **keeps them charged** — SpecBridge cannot know whether the provider was
+  billed before a crash, and releasing such a hold would let a job exceed its
+  budget by crashing.
+
+### Deliberately not implemented
+
+API as a normal equal-priority strong lane; best-model or tournament routing;
+automatic provider price discovery; runtime price fetching; a billing system;
+ML cost prediction; self-learning provider selection; a second generic harness
+framework. **Mid-run cost enforcement is not claimed** — the harness/provider
+stack exposes no incremental usage, so control is preflight estimation,
+reservation, bounded wall time, bounded attempts, and post-run reconciliation.
+
 ## 1.7.0 (unreleased) — vNext.4 Local Agentic Runtime
 
 The `LOCAL` economic lane gains a second execution mode. Alongside the

@@ -95,6 +95,19 @@ export interface BeginTaskAttemptInput {
   executionMode?: string | undefined;
   executionShape?: string | undefined;
   computeLocality?: string | undefined;
+  /** vNext.5 API-lane attribution (recorded, never policy). */
+  apiSpendMode?: string | undefined;
+  gapReason?: string | undefined;
+  subscriptionAvailableAt?: string | undefined;
+  estimatedGapDurationMs?: number | null | undefined;
+  costSource?: string | undefined;
+  pricingProfile?: string | undefined;
+  apiBudgetReservationId?: string | undefined;
+  apiApprovalId?: string | undefined;
+  delaySensitivity?: string | undefined;
+  /** Pre-dispatch cost figures for the API lane, in USD. */
+  estimatedCostUsd?: number | null | undefined;
+  reservedCostUsd?: number | null | undefined;
   /** Quota/context observations captured at dispatch start. */
   quotaBefore?:
     | { fiveHourRemainingRatio?: number | null | undefined; weeklyRemainingRatio?: number | null | undefined }
@@ -151,6 +164,21 @@ export function beginTaskAttempt(deps: SurvivalDeps, input: BeginTaskAttemptInpu
     ...(input.executionMode !== undefined ? { executionMode: input.executionMode } : {}),
     ...(input.executionShape !== undefined ? { executionShape: input.executionShape } : {}),
     ...(input.computeLocality !== undefined ? { computeLocality: input.computeLocality } : {}),
+    ...(input.apiSpendMode !== undefined ? { apiSpendMode: input.apiSpendMode } : {}),
+    ...(input.gapReason !== undefined ? { gapReason: input.gapReason } : {}),
+    ...(input.subscriptionAvailableAt !== undefined
+      ? { subscriptionAvailableAt: input.subscriptionAvailableAt }
+      : {}),
+    ...(input.estimatedGapDurationMs !== undefined
+      ? { estimatedGapDurationMs: input.estimatedGapDurationMs }
+      : {}),
+    ...(input.costSource !== undefined ? { costSource: input.costSource } : {}),
+    ...(input.pricingProfile !== undefined ? { pricingProfile: input.pricingProfile } : {}),
+    ...(input.apiBudgetReservationId !== undefined
+      ? { apiBudgetReservationId: input.apiBudgetReservationId }
+      : {}),
+    ...(input.apiApprovalId !== undefined ? { apiApprovalId: input.apiApprovalId } : {}),
+    ...(input.delaySensitivity !== undefined ? { delaySensitivity: input.delaySensitivity } : {}),
     metrics: {
       durationMs: null,
       inputTokens: null,
@@ -169,6 +197,9 @@ export function beginTaskAttempt(deps: SurvivalDeps, input: BeginTaskAttemptInpu
       contextUsageBefore: input.contextUsageBefore ?? null,
       contextUsageAfter: null,
       testLoops: null,
+      estimatedCostUsd: input.estimatedCostUsd ?? null,
+      reservedCostUsd: input.reservedCostUsd ?? null,
+      reconciledCostUsd: null,
     },
   };
   return writeNewTaskAttempt(deps.workspace, attempt);
@@ -408,6 +439,15 @@ export function readExecutionLedger(
       executionMode: attempt.executionMode ?? null,
       executionShape: attempt.executionShape ?? null,
       computeLocality: attempt.computeLocality ?? null,
+      apiSpendMode: attempt.apiSpendMode ?? null,
+      gapReason: attempt.gapReason ?? null,
+      subscriptionAvailableAt: attempt.subscriptionAvailableAt ?? null,
+      estimatedGapDurationMs: attempt.estimatedGapDurationMs ?? null,
+      costSource: attempt.costSource ?? null,
+      pricingProfile: attempt.pricingProfile ?? null,
+      apiBudgetReservationId: attempt.apiBudgetReservationId ?? null,
+      apiApprovalId: attempt.apiApprovalId ?? null,
+      delaySensitivity: attempt.delaySensitivity ?? null,
       metrics: attempt.metrics,
     }),
   );

@@ -28,21 +28,37 @@
  *   SUBSCRIPTION  the prepaid Claude Max subscription worker: the primary
  *                 strong-intelligence engine, limited by rolling five-hour
  *                 and weekly quota windows
+ *   API           metered pay-as-you-go execution (vNext.5): the CONTINUITY
+ *                 BRIDGE that keeps a long-horizon job moving through a
+ *                 subscription outage
  *
- * A future phase appends `API` (pay-as-you-go continuity). It is
- * deliberately NOT a member now: adding an enum member later is additive,
- * while shipping an unused lane would make an unreviewed spending path
- * reachable by configuration.
+ * The ordering is economic, not alphabetical, and API is deliberately not a
+ * third equal-priority lane:
+ *
+ *   LOCAL          zero marginal cost
+ *   SUBSCRIPTION   prepaid strong intelligence
+ *   API            PAYG continuity bridge
+ *
+ * The invariant every consumer of this enum must preserve: never pay API
+ * cost for work LOCAL can reliably complete or SUBSCRIPTION can reasonably
+ * execute. Automatic API selection happens only through the gap-bridge
+ * planner, after both other lanes have refused.
  */
-export const EXECUTION_LANES = ['LOCAL', 'SUBSCRIPTION'] as const;
+export const EXECUTION_LANES = ['LOCAL', 'SUBSCRIPTION', 'API'] as const;
 export type ExecutionLane = (typeof EXECUTION_LANES)[number];
 
 /**
  * What the lane scheduler can decide for one candidate dispatch: run it on a
- * lane now, or defer it with a recorded reason and (where known) the time
- * capacity is expected to return.
+ * lane now, defer it with a recorded reason and (where known) the time
+ * capacity is expected to return, or record that paid execution would help
+ * but requires a human authorization first.
+ *
+ * `REQUIRE_APPROVAL` is not a lane — it is the MANUAL spend mode's outcome,
+ * and it never dispatches anything. The task stays durably pending exactly
+ * as it does under DEFER; the difference is that a bounded, fingerprinted
+ * approval request now exists for a human to decide on.
  */
-export const LANE_DECISIONS = ['LOCAL', 'SUBSCRIPTION', 'DEFER'] as const;
+export const LANE_DECISIONS = ['LOCAL', 'SUBSCRIPTION', 'API', 'DEFER', 'REQUIRE_APPROVAL'] as const;
 export type LaneDecision = (typeof LANE_DECISIONS)[number];
 
 // ---------------------------------------------------------------------------
@@ -252,5 +268,146 @@ export const SCHEDULING_REASON_CODES = [
   'STALE_TELEMETRY_CONSERVATIVE',
   /** No healthy local worker exists; local-eligible work routed strong. */
   'LOCAL_UNAVAILABLE',
+  // vNext.5 API gap bridge (additive, never reordered). Every code below
+  // describes a decision ABOUT paid execution — including the many that
+  // decline it, which are the ones that run most of the time.
+  /** Paid execution is not authorized (spendMode DISABLED): the task waits. */
+  'API_DISABLED',
+  /** Paid execution would help; MANUAL mode requires a human authorization. */
+  'API_APPROVAL_REQUIRED',
+  /** The subscription gap is short enough that waiting beats paying. */
+  'API_GAP_SHORT_DEFER',
+  /** A material subscription gap is bridged by one bounded paid attempt. */
+  'API_GAP_BRIDGE_SELECTED',
+  /** A weekly-exhaustion gap (days, not minutes) is bridged by paid work. */
+  'API_WEEKLY_GAP_BRIDGE',
+  /** The safe cost estimate exceeds the authorized job/task/attempt budget. */
+  'API_BUDGET_EXCEEDED',
+  /** Cost cannot be estimated (no pricing or no workload data): never spend. */
+  'API_COST_UNKNOWN',
+  /** No usable API binding exists (unbound, disabled, or not verified remote). */
+  'API_BINDING_UNAVAILABLE',
+  /** The bound API provider/runtime is not currently usable. */
+  'API_PROVIDER_UNAVAILABLE',
+  /** The paid lane takes strong work only; this work stays local. */
+  'API_STRONG_TASK_ONLY',
+  /** Prepaid capacity returned; the next strong task goes back to it. */
+  'API_MAX_RETURNED_NEXT_TASK_SUBSCRIPTION',
+  /** Bounded API attempts for this task/job are spent. */
+  'API_ATTEMPTS_EXHAUSTED',
+  /** Waiting is harmless: the work is not delay-sensitive enough to pay for. */
+  'API_DELAY_TOLERABLE',
+  /** Prepaid capacity returns before a paid attempt would pay for itself. */
+  'API_WASTEFUL_NEAR_RESET',
+  /** Ready local work exists; run it before paying to bridge one strong task. */
+  'API_LOCAL_BACKLOG_FIRST',
 ] as const;
 export type SchedulingReasonCode = (typeof SCHEDULING_REASON_CODES)[number];
+
+// ---------------------------------------------------------------------------
+// API gap bridge (vNext.5)
+// ---------------------------------------------------------------------------
+
+/**
+ * API spend authorization modes live in @specbridge/core (they are
+ * configuration) and are re-exported here so scheduling code keeps ONE
+ * vocabulary import site, exactly as with the LOCAL execution modes.
+ */
+export { API_SPEND_MODES } from '@specbridge/core';
+export type { ApiSpendMode } from '@specbridge/core';
+
+/**
+ * WHY subscription capacity is unavailable — the gap's cause, which is not
+ * the same question as how long it lasts.
+ *
+ *   FIVE_HOUR_EXHAUSTED                  the rolling five-hour window is spent
+ *   WEEKLY_EXHAUSTED                     the weekly window is spent (days)
+ *   PRE_RESET_BURN_UNSAFE                capacity exists but admitting this
+ *                                        task's pre-reset burn is not safe
+ *   SUBSCRIPTION_TEMPORARILY_UNAVAILABLE quota pressure/policy refused it now
+ *   SUBSCRIPTION_WORKER_UNAVAILABLE      no subscription worker is configured
+ *                                        or healthy at all
+ *
+ * Not every subscription defer is API-worthy, which is exactly why the
+ * cause is modeled separately from the decision: PRE_RESET_BURN_UNSAFE
+ * twelve minutes before a reset is a WAIT, while WEEKLY_EXHAUSTED with a
+ * 36-hour reset is the scenario this phase exists for.
+ */
+export const SUBSCRIPTION_GAP_REASONS = [
+  'FIVE_HOUR_EXHAUSTED',
+  'WEEKLY_EXHAUSTED',
+  'PRE_RESET_BURN_UNSAFE',
+  'SUBSCRIPTION_TEMPORARILY_UNAVAILABLE',
+  'SUBSCRIPTION_WORKER_UNAVAILABLE',
+] as const;
+export type SubscriptionGapReason = (typeof SUBSCRIPTION_GAP_REASONS)[number];
+
+/**
+ * Confidence in the forecast return time.
+ *
+ *   HIGH     a provider-observed reset timestamp
+ *   MEDIUM   derived from a known window boundary, not directly observed
+ *   UNKNOWN  no return time exists — never fabricated into a number
+ *
+ * UNKNOWN is load-bearing: it makes AUTO_BOUNDED MORE cautious, never less.
+ */
+export const GAP_FORECAST_CONFIDENCE = ['HIGH', 'MEDIUM', 'UNKNOWN'] as const;
+export type GapForecastConfidence = (typeof GAP_FORECAST_CONFIDENCE)[number];
+
+/**
+ * How much waiting actually costs the JOB — derived from deterministic work
+ * graph signals (blocked dependents, critical-path membership, whether any
+ * other useful work is ready), never from a model's opinion about urgency.
+ *
+ *   LOW     waiting is close to free: other work is ready, nothing is blocked
+ *   MEDIUM  waiting costs progress but the job is not stalled
+ *   HIGH    the job is effectively blocked on this task
+ */
+export const DELAY_SENSITIVITIES = ['LOW', 'MEDIUM', 'HIGH'] as const;
+export type DelaySensitivity = (typeof DELAY_SENSITIVITIES)[number];
+
+/**
+ * Where a recorded cost figure came from. Estimated and observed cost are
+ * never merged into one field, and an estimate is never overwritten by an
+ * invented "actual".
+ *
+ *   PROVIDER_REPORTED       the provider stated a monetary cost
+ *   COMPUTED_FROM_USAGE     actual token usage x the configured price table
+ *   ESTIMATED_PRE_DISPATCH  a forecast made before the attempt ran
+ *   UNKNOWN                 the attempt's real usage is not knowable
+ *                           (e.g. it crashed before reporting) — this is
+ *                           NEVER silently recorded as zero
+ */
+export const API_COST_SOURCES = [
+  'PROVIDER_REPORTED',
+  'COMPUTED_FROM_USAGE',
+  'ESTIMATED_PRE_DISPATCH',
+  'UNKNOWN',
+] as const;
+export type ApiCostSource = (typeof API_COST_SOURCES)[number];
+
+/**
+ * Lifecycle of one API budget reservation. Reservation exists so two
+ * concurrent tasks cannot each see the same remaining budget and both
+ * spend it.
+ *
+ *   RESERVED   funds are held for an attempt that has not finished
+ *   COMMITTED  the attempt finished and its cost was reconciled
+ *   RELEASED   the attempt provably never spent (refused before dispatch)
+ *   UNKNOWN    the attempt was interrupted and remote usage cannot be ruled
+ *              out — the hold STAYS against the budget, because releasing
+ *              money that may already have been spent corrupts accounting
+ */
+export const API_BUDGET_RESERVATION_STATES = ['RESERVED', 'COMMITTED', 'RELEASED', 'UNKNOWN'] as const;
+export type ApiBudgetReservationState = (typeof API_BUDGET_RESERVATION_STATES)[number];
+
+/** Status of one bounded, fingerprinted human spend authorization. */
+export const API_APPROVAL_STATUSES = [
+  'REQUESTED',
+  'APPROVED',
+  'DENIED',
+  'CONSUMED',
+  'EXPIRED',
+  'SUPERSEDED',
+] as const;
+export type ApiApprovalStatus = (typeof API_APPROVAL_STATUSES)[number];

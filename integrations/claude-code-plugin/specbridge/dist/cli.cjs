@@ -24635,6 +24635,42 @@ var localExecutionPolicySchema = external_exports.object({
   maxHarnessWallTimeMs: external_exports.number().int().min(3e4).max(864e5).default(18e5),
   allowUnverifiedLocality: external_exports.boolean().default(false)
 }).passthrough();
+var API_SPEND_MODES = ["DISABLED", "MANUAL", "AUTO_BOUNDED"];
+var apiPricingProfileSchema = external_exports.object({
+  inputCostPerMillion: external_exports.number().min(0).max(1e6),
+  outputCostPerMillion: external_exports.number().min(0).max(1e6),
+  cachedInputCostPerMillion: external_exports.number().min(0).max(1e6).nullable().default(null),
+  currency: external_exports.literal("USD").default("USD"),
+  source: external_exports.string().min(1).max(200).default("operator-configured")
+}).passthrough();
+var apiBudgetPolicySchema = external_exports.object({
+  maxCostPerJobUsd: external_exports.number().min(0).max(1e6).nullable().default(null),
+  maxCostPerTaskUsd: external_exports.number().min(0).max(1e6).nullable().default(null),
+  maxCostPerAttemptUsd: external_exports.number().min(0).max(1e6).nullable().default(null),
+  maxApiAttemptsPerTask: external_exports.number().int().min(1).max(10).default(2),
+  maxApiAttemptsPerJob: external_exports.number().int().min(1).max(1e3).default(20)
+}).passthrough();
+var apiGapPolicySchema = external_exports.object({
+  shortGapDeferMs: external_exports.number().int().min(0).max(864e5).default(20 * 6e4),
+  minGapForAutoBoundedMs: external_exports.number().int().min(0).max(6048e5).default(30 * 6e4),
+  minDelaySensitivity: external_exports.enum(["LOW", "MEDIUM", "HIGH"]).default("HIGH"),
+  materialGapMs: external_exports.number().int().min(6e4).max(6048e5).default(60 * 6e4),
+  costSafetyMultiplier: external_exports.number().min(1).max(10).default(1.5),
+  wastefulStartRatio: external_exports.number().min(0).max(1).default(0.25),
+  unknownResetBehavior: external_exports.enum(["MANUAL", "DEFER"]).default("MANUAL"),
+  strongTasksOnly: external_exports.boolean().default(true),
+  preferReadyLocalBacklog: external_exports.boolean().default(true),
+  approvalTtlMs: external_exports.number().int().min(6e4).max(6048e5).default(24 * 36e5)
+}).passthrough();
+var apiExecutionPolicySchema = external_exports.object({
+  spendMode: external_exports.enum(API_SPEND_MODES).default("DISABLED"),
+  harnessProfile: external_exports.string().min(1).max(64).nullable().default(null),
+  maxApiWallTimeMs: external_exports.number().int().min(3e4).max(864e5).default(18e5),
+  pricing: apiPricingProfileSchema.nullable().default(null),
+  budget: apiBudgetPolicySchema.default({}),
+  gap: apiGapPolicySchema.default({}),
+  allowUnverifiedLocality: external_exports.boolean().default(false)
+}).passthrough();
 var jobSchedulerPolicySchema = external_exports.object({
   enabled: external_exports.boolean().default(true),
   maxLocalAttempts: external_exports.number().int().min(1).max(5).default(2),
@@ -24654,7 +24690,8 @@ var jobSchedulerPolicySchema = external_exports.object({
   telemetrySource: external_exports.enum(["manual", "none"]).default("manual"),
   reserve: dynamicReservePolicySchema.default({}),
   estimator: workloadEstimatorPolicySchema.default({}),
-  localExecution: localExecutionPolicySchema.default({})
+  localExecution: localExecutionPolicySchema.default({}),
+  api: apiExecutionPolicySchema.default({})
 }).passthrough();
 var jobPolicySchema = external_exports.object({
   /** When false, job operations refuse to start and report why. */
@@ -49654,6 +49691,8 @@ var import_fs33 = require("fs");
 var import_path36 = __toESM(require("path"), 1);
 var import_fs34 = require("fs");
 var import_path37 = __toESM(require("path"), 1);
+var import_fs35 = require("fs");
+var import_path38 = __toESM(require("path"), 1);
 
 // ../../packages/mission/dist/index.js
 var import_fs28 = require("fs");
@@ -51929,10 +51968,8 @@ function observeSpecApproval(deps, missionId) {
 }
 
 // ../../packages/orchestration/dist/index.js
-var import_path38 = __toESM(require("path"), 1);
 var import_path39 = __toESM(require("path"), 1);
 var import_path40 = __toESM(require("path"), 1);
-var import_fs35 = require("fs");
 var import_path41 = __toESM(require("path"), 1);
 var import_fs36 = require("fs");
 var import_path42 = __toESM(require("path"), 1);
@@ -51940,6 +51977,10 @@ var import_fs37 = require("fs");
 var import_path43 = __toESM(require("path"), 1);
 var import_fs38 = require("fs");
 var import_path44 = __toESM(require("path"), 1);
+var import_fs39 = require("fs");
+var import_path45 = __toESM(require("path"), 1);
+var import_fs40 = require("fs");
+var import_path46 = __toESM(require("path"), 1);
 
 // ../../packages/context/dist/index.js
 var CONTEXT_LAYERS = [
@@ -52289,10 +52330,10 @@ function assembleContextPackage(input) {
 }
 
 // ../../packages/orchestration/dist/index.js
-var import_fs39 = require("fs");
-var import_path45 = __toESM(require("path"), 1);
-var import_fs40 = require("fs");
-var import_path46 = __toESM(require("path"), 1);
+var import_fs41 = require("fs");
+var import_path47 = __toESM(require("path"), 1);
+var import_fs42 = require("fs");
+var import_path48 = __toESM(require("path"), 1);
 var ORCHESTRATION_PHASES = [
   /** The run exists; no intent has been assessed yet. */
   "CREATED",
@@ -54228,21 +54269,21 @@ function requestClarification(deps, orchestrationId, candidates) {
   assertEnabled(policy);
   let state = requireOrchestrationState(deps.workspace, orchestrationId);
   assertActionAllowed(state.phase, "REQUEST_CLARIFICATION");
-  const round = buildClarificationRound(state, candidates, policy, {
+  const round2 = buildClarificationRound(state, candidates, policy, {
     askedAt: now2(deps).toISOString(),
     idFactory: () => newId(deps)
   });
   state = {
     ...state,
-    openQuestions: [...state.openQuestions, ...round.questions],
-    counters: { ...state.counters, clarificationRounds: round.round }
+    openQuestions: [...state.openQuestions, ...round2.questions],
+    counters: { ...state.counters, clarificationRounds: round2.round }
   };
   if (state.phase !== "NEEDS_CLARIFICATION") {
     state = transition2(deps, state, "NEEDS_CLARIFICATION");
   }
   state = record3(deps, state, "clarification_requested", {
-    round: round.round,
-    questionIds: round.questions.map((question) => question.id)
+    round: round2.round,
+    questionIds: round2.questions.map((question) => question.id)
   });
   return persist2(deps, state);
 }
@@ -56297,7 +56338,11 @@ function deriveBurnObservations(entries) {
     const fiveHourBurn = ratioDelta(metrics["fiveHourQuotaBefore"], metrics["fiveHourQuotaAfter"]);
     const weeklyBurn = ratioDelta(metrics["weeklyQuotaBefore"], metrics["weeklyQuotaAfter"]);
     const wallTimeMs = entry.metrics.durationMs;
-    if (fiveHourBurn === null && weeklyBurn === null && wallTimeMs === null) continue;
+    const inputTokens = entry.metrics.inputTokens;
+    const outputTokens = entry.metrics.outputTokens;
+    if (fiveHourBurn === null && weeklyBurn === null && wallTimeMs === null && inputTokens === null && outputTokens === null) {
+      continue;
+    }
     const burnPerMinute = fiveHourBurn !== null && wallTimeMs !== null && wallTimeMs > 0 ? fiveHourBurn / (wallTimeMs / 6e4) : null;
     observations.push({
       attemptId: entry.attemptId,
@@ -56310,6 +56355,9 @@ function deriveBurnObservations(entries) {
       weeklyBurnRatio: weeklyBurn,
       wallTimeMs,
       fiveHourBurnRatioPerMinute: burnPerMinute,
+      inputTokens,
+      outputTokens,
+      cachedTokens: entry.metrics.cachedTokens,
       success: entry.success,
       startedAt: entry.startedAt
     });
@@ -56332,11 +56380,16 @@ function aggregateBurnObservations(observations, filter) {
   const burns = relevant.map((observation) => observation.fiveHourBurnRatio).filter((value) => value !== null);
   const walls = relevant.map((observation) => observation.wallTimeMs).filter((value) => value !== null);
   const rates = relevant.map((observation) => observation.fiveHourBurnRatioPerMinute).filter((value) => value !== null);
+  const inputs = relevant.map((observation) => observation.inputTokens).filter((value) => value !== null);
+  const outputs = relevant.map((observation) => observation.outputTokens).filter((value) => value !== null);
   return {
     observations: relevant.length,
     medianFiveHourBurnRatio: median(burns),
     medianWallTimeMs: median(walls),
     medianFiveHourBurnRatioPerMinute: median(rates),
+    medianInputTokens: median(inputs),
+    medianOutputTokens: median(outputs),
+    tokenObservations: Math.max(inputs.length, outputs.length),
     successRate: relevant.length > 0 ? relevant.filter((observation) => observation.success).length / relevant.length : null
   };
 }
@@ -56362,6 +56415,16 @@ function heuristicBurnRatio(complexity, policy) {
       return policy.mediumQuotaBurnRatio;
     case "HIGH":
       return policy.highQuotaBurnRatio;
+  }
+}
+function heuristicTokenUsage(complexity) {
+  switch (complexity) {
+    case "LOW":
+      return { inputTokens: 12e4, outputTokens: 12e3 };
+    case "MEDIUM":
+      return { inputTokens: 4e5, outputTokens: 3e4 };
+    case "HIGH":
+      return { inputTokens: 9e5, outputTokens: 6e4 };
   }
 }
 function heuristicContextGrowthTokens(complexity) {
@@ -56398,7 +56461,16 @@ function estimateWorkload(input) {
     const byCategory = input.taskCategory !== void 0 ? aggregateBurnObservations(observations, {
       taskComplexity: input.complexity,
       taskCategory: input.taskCategory
-    }) : { observations: 0, medianFiveHourBurnRatio: null, medianWallTimeMs: null, medianFiveHourBurnRatioPerMinute: null, successRate: null };
+    }) : {
+      observations: 0,
+      medianFiveHourBurnRatio: null,
+      medianWallTimeMs: null,
+      medianFiveHourBurnRatioPerMinute: null,
+      medianInputTokens: null,
+      medianOutputTokens: null,
+      tokenObservations: 0,
+      successRate: null
+    };
     const byComplexity = aggregateBurnObservations(observations, {
       taskComplexity: input.complexity
     });
@@ -56424,6 +56496,38 @@ function estimateWorkload(input) {
     confidence = "high";
   }
   if (input.localSuitability === "LOCAL_SAFE") fiveHourBurn = Math.min(fiveHourBurn, 0.02);
+  const heuristicTokens = heuristicTokenUsage(input.complexity);
+  let expectedInputTokens = heuristicTokens.inputTokens;
+  let expectedOutputTokens = heuristicTokens.outputTokens;
+  let tokenBasis = "heuristic";
+  const meteredObservations = (input.observations ?? []).filter(
+    (observation) => observation.lane === "API" || observation.lane === "LOCAL"
+  );
+  if (meteredObservations.length > 0) {
+    const tokenAggregate = aggregateBurnObservations(meteredObservations, {
+      taskComplexity: input.complexity
+    });
+    if (tokenAggregate.tokenObservations >= policy.minHistoricalObservations) {
+      if (tokenAggregate.medianInputTokens !== null) {
+        expectedInputTokens = Math.round(
+          Math.max(tokenAggregate.medianInputTokens, heuristicTokens.inputTokens * 0.5)
+        );
+        tokenBasis = "historical";
+      }
+      if (tokenAggregate.medianOutputTokens !== null) {
+        expectedOutputTokens = Math.round(
+          Math.max(tokenAggregate.medianOutputTokens, heuristicTokens.outputTokens * 0.5)
+        );
+        tokenBasis = "historical";
+      }
+    }
+  }
+  if (input.overrides?.expectedInputTokens !== void 0) {
+    expectedInputTokens = input.overrides.expectedInputTokens;
+  }
+  if (input.overrides?.expectedOutputTokens !== void 0) {
+    expectedOutputTokens = input.overrides.expectedOutputTokens;
+  }
   return {
     taskId: input.taskId,
     complexity: input.complexity,
@@ -56437,6 +56541,9 @@ function estimateWorkload(input) {
     expectedAgentTurns: null,
     expectedToolCalls: null,
     expectedTestLoops: null,
+    expectedInputTokens,
+    expectedOutputTokens,
+    tokenBasis,
     retryProbability: heuristicRetryProbability(input.complexity, input.localSuitability),
     confidence,
     basis
@@ -56617,14 +56724,55 @@ function decideLane(input) {
   const baseReason = input.localEscalationRequired === true ? "LOCAL_ESCALATION_REQUIRED" : localEligible ? "LOCAL_UNAVAILABLE" : "STRONG_REQUIRED";
   return subscriptionRouting(input, baseReason);
 }
+function applyApiGapBridge(routing, plan) {
+  if (routing.lane !== "DEFER") return routing;
+  switch (plan.decision) {
+    case "API":
+      return {
+        ...routing,
+        lane: "API",
+        reasonCode: plan.reasonCode,
+        compactFirst: routing.compactFirst,
+        deferUntil: null,
+        detail: plan.detail
+      };
+    case "REQUIRE_APPROVAL":
+      return {
+        ...routing,
+        lane: "REQUIRE_APPROVAL",
+        reasonCode: plan.reasonCode,
+        deferUntil: null,
+        detail: plan.detail
+      };
+    case "DEFER":
+      return {
+        ...routing,
+        reasonCode: plan.reasonCode,
+        deferUntil: plan.deferUntil ?? routing.deferUntil,
+        detail: plan.detail
+      };
+  }
+}
 function selectReadyCandidate(candidates) {
   if (candidates.length === 0) return void 0;
   const inGraphOrder = [...candidates].sort((a2, b) => a2.graphIndex - b.graphIndex);
   const first = inGraphOrder[0];
   if (first === void 0) return void 0;
-  const runnable = inGraphOrder.filter((candidate) => candidate.routing.lane !== "DEFER");
+  const runnable = inGraphOrder.filter(
+    (candidate) => candidate.routing.lane !== "DEFER" && candidate.routing.lane !== "REQUIRE_APPROVAL"
+  );
   if (runnable.length === 0) {
     return { nodeId: first.nodeId, reason: "Every ready task defers; the first in graph order carries the wait." };
+  }
+  const unpaid = runnable.filter((candidate) => candidate.routing.lane !== "API");
+  if (unpaid.length > 0 && unpaid.length !== runnable.length) {
+    const chosen2 = unpaid[0];
+    if (chosen2 !== void 0) {
+      return {
+        nodeId: chosen2.nodeId,
+        reason: "Free or prepaid work runs before paid bridging: the API-bridged task keeps its place and this pass spends no money."
+      };
+    }
   }
   const harvestStrong = runnable.find(
     (candidate) => candidate.routing.lane === "SUBSCRIPTION" && (candidate.routing.reasonCode === "HARVEST_EXPIRING_CAPACITY" || candidate.routing.reasonCode === "CROSS_RESET_ADMITTED")
@@ -56642,7 +56790,7 @@ function selectReadyCandidate(candidates) {
     reason: chosen.nodeId === first.nodeId ? "First ready task in graph order." : `Task ${first.nodeId} defers (${first.routing.reasonCode}); the first runnable ready task proceeds instead.`
   };
 }
-var LANE_DECISIONS = ["LOCAL", "SUBSCRIPTION", "DEFER"];
+var LANE_DECISIONS = ["LOCAL", "SUBSCRIPTION", "API", "DEFER", "REQUIRE_APPROVAL"];
 var LOCAL_EXECUTION_SHAPES = ["ONE_SHOT", "AGENTIC"];
 var LOCAL_EXECUTION_MODE_REASONS = [
   /** The work is one-shot shaped; a bounded structured request runs it. */
@@ -56704,7 +56852,64 @@ var SCHEDULING_REASON_CODES = [
   /** Telemetry was stale/unknown; the conservative path was taken. */
   "STALE_TELEMETRY_CONSERVATIVE",
   /** No healthy local worker exists; local-eligible work routed strong. */
-  "LOCAL_UNAVAILABLE"
+  "LOCAL_UNAVAILABLE",
+  // vNext.5 API gap bridge (additive, never reordered). Every code below
+  // describes a decision ABOUT paid execution — including the many that
+  // decline it, which are the ones that run most of the time.
+  /** Paid execution is not authorized (spendMode DISABLED): the task waits. */
+  "API_DISABLED",
+  /** Paid execution would help; MANUAL mode requires a human authorization. */
+  "API_APPROVAL_REQUIRED",
+  /** The subscription gap is short enough that waiting beats paying. */
+  "API_GAP_SHORT_DEFER",
+  /** A material subscription gap is bridged by one bounded paid attempt. */
+  "API_GAP_BRIDGE_SELECTED",
+  /** A weekly-exhaustion gap (days, not minutes) is bridged by paid work. */
+  "API_WEEKLY_GAP_BRIDGE",
+  /** The safe cost estimate exceeds the authorized job/task/attempt budget. */
+  "API_BUDGET_EXCEEDED",
+  /** Cost cannot be estimated (no pricing or no workload data): never spend. */
+  "API_COST_UNKNOWN",
+  /** No usable API binding exists (unbound, disabled, or not verified remote). */
+  "API_BINDING_UNAVAILABLE",
+  /** The bound API provider/runtime is not currently usable. */
+  "API_PROVIDER_UNAVAILABLE",
+  /** The paid lane takes strong work only; this work stays local. */
+  "API_STRONG_TASK_ONLY",
+  /** Prepaid capacity returned; the next strong task goes back to it. */
+  "API_MAX_RETURNED_NEXT_TASK_SUBSCRIPTION",
+  /** Bounded API attempts for this task/job are spent. */
+  "API_ATTEMPTS_EXHAUSTED",
+  /** Waiting is harmless: the work is not delay-sensitive enough to pay for. */
+  "API_DELAY_TOLERABLE",
+  /** Prepaid capacity returns before a paid attempt would pay for itself. */
+  "API_WASTEFUL_NEAR_RESET",
+  /** Ready local work exists; run it before paying to bridge one strong task. */
+  "API_LOCAL_BACKLOG_FIRST"
+];
+var SUBSCRIPTION_GAP_REASONS = [
+  "FIVE_HOUR_EXHAUSTED",
+  "WEEKLY_EXHAUSTED",
+  "PRE_RESET_BURN_UNSAFE",
+  "SUBSCRIPTION_TEMPORARILY_UNAVAILABLE",
+  "SUBSCRIPTION_WORKER_UNAVAILABLE"
+];
+var GAP_FORECAST_CONFIDENCE = ["HIGH", "MEDIUM", "UNKNOWN"];
+var DELAY_SENSITIVITIES = ["LOW", "MEDIUM", "HIGH"];
+var API_COST_SOURCES = [
+  "PROVIDER_REPORTED",
+  "COMPUTED_FROM_USAGE",
+  "ESTIMATED_PRE_DISPATCH",
+  "UNKNOWN"
+];
+var API_BUDGET_RESERVATION_STATES = ["RESERVED", "COMMITTED", "RELEASED", "UNKNOWN"];
+var API_APPROVAL_STATUSES = [
+  "REQUESTED",
+  "APPROVED",
+  "DENIED",
+  "CONSUMED",
+  "EXPIRED",
+  "SUPERSEDED"
 ];
 function nodeEscalations(job, nodeId) {
   return job.escalations.filter((entry) => entry.nodeId === nodeId).map((entry) => entry.reason);
@@ -57012,7 +57217,7 @@ function scheduleNext(input) {
   const laneRouting = scheduling?.routings.get(node.nodeId);
   if (scheduling !== void 0 && scheduling.policy.enabled && laneRouting !== void 0) {
     const routing = laneRouting.routing;
-    if (routing.lane === "DEFER") {
+    if (routing.lane === "DEFER" || routing.lane === "REQUIRE_APPROVAL") {
       return {
         kind: "WAIT_QUOTA",
         nodeId: node.nodeId,
@@ -57020,7 +57225,30 @@ function scheduleNext(input) {
         until: routing.deferUntil,
         reasonCode: routing.reasonCode,
         reason: routing.detail,
-        laneRouting
+        laneRouting,
+        ...routing.lane === "REQUIRE_APPROVAL" ? { awaitingApiApproval: true } : {}
+      };
+    }
+    if (routing.lane === "API") {
+      return {
+        kind: "DISPATCH_EXECUTOR",
+        nodeId: node.nodeId,
+        taskId: node.parentTaskId,
+        // The API lane runs its own bound harness runtime, not a
+        // subscription worker. The worker profile is carried for roster
+        // bookkeeping; the runner identity comes from the API binding.
+        worker: selectWorker({
+          role: "EXECUTOR",
+          complexity: node.complexity,
+          policy,
+          workers,
+          nodeEscalations: escalations
+        }).worker,
+        mode,
+        lane: "API",
+        laneRouting,
+        compactFirst: routing.compactFirst,
+        reason: `${baseReason} ${routing.detail}`
       };
     }
     if (routing.lane === "LOCAL") {
@@ -57153,7 +57381,17 @@ var attemptMetricsSchema = external_exports.object({
   /** Shell/command runs the attempt performed, when observable. */
   commandRuns: external_exports.number().int().min(0).nullable().default(null),
   /** Provider-native context compactions observed during the attempt. */
-  compactions: external_exports.number().int().min(0).nullable().default(null)
+  compactions: external_exports.number().int().min(0).nullable().default(null),
+  // vNext.5 API economics (additive). Estimated and observed cost are
+  // separate fields on purpose: an estimate is never overwritten by an
+  // invented "actual", and an attempt whose real usage is unknowable
+  // keeps a null reconciled cost rather than a fabricated zero.
+  /** Safe pre-dispatch cost estimate, in USD. Null outside the API lane. */
+  estimatedCostUsd: external_exports.number().min(0).nullable().default(null),
+  /** Budget held for this attempt at dispatch time, in USD. */
+  reservedCostUsd: external_exports.number().min(0).nullable().default(null),
+  /** Observed/computed cost after the attempt. Null means UNKNOWN, not free. */
+  reconciledCostUsd: external_exports.number().min(0).nullable().default(null)
 }).passthrough();
 var taskAttemptSchema = external_exports.object({
   schemaVersion: semver2,
@@ -57215,6 +57453,29 @@ var taskAttemptSchema = external_exports.object({
   executionShape: shortText32.optional(),
   /** Verified compute locality of the runner that executed this attempt. */
   computeLocality: shortText32.optional(),
+  // vNext.5 API-lane attribution (additive; absent on every LOCAL and
+  // SUBSCRIPTION attempt and on every pre-vNext.5 record). Each field is
+  // ORTHOGONAL: `lane` says whether this was paid, `provider`/`model` say
+  // which intelligence ran it, `executionMode`/`computeLocality` say how
+  // and where. Nothing is ever collapsed into a compound value.
+  /** The spend authorization mode in force when the attempt was dispatched. */
+  apiSpendMode: shortText32.optional(),
+  /** Why subscription capacity was unavailable (the gap's cause). */
+  gapReason: shortText32.optional(),
+  /** When subscription capacity was expected back, when known. */
+  subscriptionAvailableAt: shortText32.optional(),
+  /** Expected gap duration in milliseconds, when known. */
+  estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null).optional(),
+  /** How the recorded cost was determined (see API_COST_SOURCES). */
+  costSource: shortText32.optional(),
+  /** Operator pricing profile the estimate used, for attribution. */
+  pricingProfile: shortText32.optional(),
+  /** The budget reservation funding this attempt. */
+  apiBudgetReservationId: shortText32.optional(),
+  /** The bounded human authorization this attempt consumed, when one applied. */
+  apiApprovalId: shortText32.optional(),
+  /** Deterministic delay-sensitivity level that justified paid bridging. */
+  delaySensitivity: shortText32.optional(),
   metrics: attemptMetricsSchema.default({})
 }).passthrough();
 var checkpointDecisionSchema = external_exports.object({
@@ -57313,6 +57574,19 @@ var executionLedgerEntrySchema = external_exports.object({
   executionMode: shortText32.nullable().default(null),
   executionShape: shortText32.nullable().default(null),
   computeLocality: shortText32.nullable().default(null),
+  // vNext.5 API economics (additive; null on every unpaid attempt). These
+  // are what makes later analysis possible without a second database:
+  // cost per successful task, cost by task type, bridge success rate, and
+  // money spent versus subscription wait avoided all derive from here.
+  apiSpendMode: shortText32.nullable().default(null),
+  gapReason: shortText32.nullable().default(null),
+  subscriptionAvailableAt: shortText32.nullable().default(null),
+  estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null),
+  costSource: shortText32.nullable().default(null),
+  pricingProfile: shortText32.nullable().default(null),
+  apiBudgetReservationId: shortText32.nullable().default(null),
+  apiApprovalId: shortText32.nullable().default(null),
+  delaySensitivity: shortText32.nullable().default(null),
   metrics: attemptMetricsSchema
 }).passthrough();
 var ID_PATTERN3 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
@@ -57507,6 +57781,15 @@ function beginTaskAttempt(deps, input) {
     ...input.executionMode !== void 0 ? { executionMode: input.executionMode } : {},
     ...input.executionShape !== void 0 ? { executionShape: input.executionShape } : {},
     ...input.computeLocality !== void 0 ? { computeLocality: input.computeLocality } : {},
+    ...input.apiSpendMode !== void 0 ? { apiSpendMode: input.apiSpendMode } : {},
+    ...input.gapReason !== void 0 ? { gapReason: input.gapReason } : {},
+    ...input.subscriptionAvailableAt !== void 0 ? { subscriptionAvailableAt: input.subscriptionAvailableAt } : {},
+    ...input.estimatedGapDurationMs !== void 0 ? { estimatedGapDurationMs: input.estimatedGapDurationMs } : {},
+    ...input.costSource !== void 0 ? { costSource: input.costSource } : {},
+    ...input.pricingProfile !== void 0 ? { pricingProfile: input.pricingProfile } : {},
+    ...input.apiBudgetReservationId !== void 0 ? { apiBudgetReservationId: input.apiBudgetReservationId } : {},
+    ...input.apiApprovalId !== void 0 ? { apiApprovalId: input.apiApprovalId } : {},
+    ...input.delaySensitivity !== void 0 ? { delaySensitivity: input.delaySensitivity } : {},
     metrics: {
       durationMs: null,
       inputTokens: null,
@@ -57524,7 +57807,10 @@ function beginTaskAttempt(deps, input) {
       weeklyQuotaAfter: null,
       contextUsageBefore: input.contextUsageBefore ?? null,
       contextUsageAfter: null,
-      testLoops: null
+      testLoops: null,
+      estimatedCostUsd: input.estimatedCostUsd ?? null,
+      reservedCostUsd: input.reservedCostUsd ?? null,
+      reconciledCostUsd: null
     }
   };
   return writeNewTaskAttempt(deps.workspace, attempt);
@@ -57670,9 +57956,318 @@ function readExecutionLedger(workspace, jobId, options = {}) {
       executionMode: attempt.executionMode ?? null,
       executionShape: attempt.executionShape ?? null,
       computeLocality: attempt.computeLocality ?? null,
+      apiSpendMode: attempt.apiSpendMode ?? null,
+      gapReason: attempt.gapReason ?? null,
+      subscriptionAvailableAt: attempt.subscriptionAvailableAt ?? null,
+      estimatedGapDurationMs: attempt.estimatedGapDurationMs ?? null,
+      costSource: attempt.costSource ?? null,
+      pricingProfile: attempt.pricingProfile ?? null,
+      apiBudgetReservationId: attempt.apiBudgetReservationId ?? null,
+      apiApprovalId: attempt.apiApprovalId ?? null,
+      delaySensitivity: attempt.delaySensitivity ?? null,
       metrics: attempt.metrics
     })
   );
+}
+var API_BUDGET_SCHEMA_VERSION = "1.0.0";
+var shortText4 = external_exports.string().min(1).max(200);
+var apiBudgetReservationSchema = external_exports.object({
+  reservationId: shortText4,
+  jobId: shortText4,
+  nodeId: shortText4,
+  taskId: shortText4,
+  /** The durable attempt this reservation funds; null until dispatch. */
+  attemptId: shortText4.nullable().default(null),
+  state: external_exports.enum(API_BUDGET_RESERVATION_STATES),
+  /** The safe estimated cost held at reservation time, in USD. */
+  reservedUsd: external_exports.number().min(0),
+  /** Observed/computed cost after the attempt, when determinable. */
+  reconciledUsd: external_exports.number().min(0).nullable().default(null),
+  /** How `reconciledUsd` was determined. */
+  costSource: external_exports.enum(API_COST_SOURCES).default("ESTIMATED_PRE_DISPATCH"),
+  /** The API profile the reservation was made for (audit). */
+  profileName: shortText4.nullable().default(null),
+  createdAt: shortText4,
+  updatedAt: shortText4,
+  detail: external_exports.string().max(1e3).default("")
+}).passthrough();
+var apiBudgetStateSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  jobId: shortText4,
+  reservations: external_exports.array(apiBudgetReservationSchema).max(5e3).default([]),
+  updatedAt: shortText4
+}).passthrough();
+function budgetDir(workspace, jobId) {
+  return assertInsideWorkspace(workspace.rootDir, import_path36.default.join(jobDir(workspace, jobId), "api-budget"));
+}
+function budgetFile(workspace, jobId) {
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path36.default.join(budgetDir(workspace, jobId), "reservations.json")
+  );
+}
+function budgetLockFile(workspace, jobId) {
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path36.default.join(budgetDir(workspace, jobId), "reservations.lock")
+  );
+}
+function readApiBudgetState(workspace, jobId) {
+  const file = budgetFile(workspace, jobId);
+  if (!(0, import_fs33.existsSync)(file)) {
+    return {
+      schemaVersion: API_BUDGET_SCHEMA_VERSION,
+      jobId,
+      reservations: [],
+      updatedAt: (/* @__PURE__ */ new Date(0)).toISOString()
+    };
+  }
+  const parsed = (() => {
+    try {
+      return apiBudgetStateSchema.safeParse(JSON.parse((0, import_fs33.readFileSync)(file, "utf8")));
+    } catch {
+      return { success: false };
+    }
+  })();
+  if (!parsed.success) {
+    throw new OrchestrationError(
+      "SBO049",
+      `The API budget state for job ${jobId} is unreadable; refusing to treat it as an empty budget.`,
+      {
+        remediation: [
+          `Inspect ${file} and repair or remove it deliberately before allowing further API spend.`
+        ]
+      }
+    );
+  }
+  return parsed.data;
+}
+function withBudgetLock(workspace, jobId, now4, mutate) {
+  const dir = budgetDir(workspace, jobId);
+  (0, import_fs33.mkdirSync)(dir, { recursive: true });
+  const lockPath = budgetLockFile(workspace, jobId);
+  try {
+    (0, import_fs33.writeFileSync)(lockPath, `${JSON.stringify({ jobId, at: now4 })}
+`, { flag: "wx" });
+  } catch {
+    throw new OrchestrationError(
+      "SBO049",
+      `The API budget for job ${jobId} is locked by another operation; the reservation was not made.`,
+      {
+        remediation: [
+          "Retry once the other operation finishes.",
+          `If no other process is running, remove the stale lock at ${lockPath}.`
+        ]
+      }
+    );
+  }
+  try {
+    const current = readApiBudgetState(workspace, jobId);
+    const { state, result } = mutate(current);
+    const validated = apiBudgetStateSchema.parse({ ...state, updatedAt: now4 });
+    writeFileAtomic(budgetFile(workspace, jobId), `${JSON.stringify(validated, null, 2)}
+`);
+    return result;
+  } finally {
+    try {
+      (0, import_fs33.rmSync)(lockPath, { force: true });
+    } catch {
+    }
+  }
+}
+function encumbered(reservation) {
+  switch (reservation.state) {
+    case "RESERVED":
+      return reservation.reservedUsd;
+    case "COMMITTED":
+      return reservation.reconciledUsd ?? reservation.reservedUsd;
+    case "UNKNOWN":
+      return reservation.reconciledUsd ?? reservation.reservedUsd;
+    case "RELEASED":
+      return 0;
+  }
+}
+function summarizeApiBudget(state, policy, options = {}) {
+  const relevant = options.taskId === void 0 ? state.reservations : state.reservations.filter((entry) => entry.taskId === options.taskId);
+  let reservedUsd = 0;
+  let committedUsd = 0;
+  let unknownUsd = 0;
+  let hasUnknownCost = false;
+  let attempts = 0;
+  for (const entry of relevant) {
+    if (entry.state !== "RELEASED") attempts += 1;
+    if (entry.state === "RESERVED") reservedUsd += entry.reservedUsd;
+    else if (entry.state === "COMMITTED") committedUsd += encumbered(entry);
+    else if (entry.state === "UNKNOWN") {
+      unknownUsd += encumbered(entry);
+      hasUnknownCost = true;
+    }
+    if (entry.state === "COMMITTED" && entry.costSource === "UNKNOWN") hasUnknownCost = true;
+  }
+  const encumberedUsd = round(reservedUsd + committedUsd + unknownUsd);
+  const ceiling = options.taskId === void 0 ? policy.maxCostPerJobUsd : policy.maxCostPerTaskUsd;
+  return {
+    reservedUsd: round(reservedUsd),
+    committedUsd: round(committedUsd),
+    unknownUsd: round(unknownUsd),
+    encumberedUsd,
+    remainingUsd: ceiling === null ? null : round(Math.max(0, ceiling - encumberedUsd)),
+    attempts,
+    hasUnknownCost
+  };
+}
+function round(value) {
+  return Math.round(value * 1e4) / 1e4;
+}
+function assessApiBudget(input) {
+  const { policy } = input;
+  const job = summarizeApiBudget(input.state, policy);
+  const task = summarizeApiBudget(input.state, policy, { taskId: input.taskId });
+  const refuse2 = (refusal, detail) => ({
+    admissible: false,
+    refusal,
+    job,
+    task,
+    detail
+  });
+  if (task.attempts >= policy.maxApiAttemptsPerTask) {
+    return refuse2(
+      "TASK_ATTEMPTS",
+      `Task ${input.taskId} already used its ${policy.maxApiAttemptsPerTask} bounded API attempt(s); paid work does not retry indefinitely.`
+    );
+  }
+  if (job.attempts >= policy.maxApiAttemptsPerJob) {
+    return refuse2(
+      "JOB_ATTEMPTS",
+      `The job already used its ${policy.maxApiAttemptsPerJob} bounded API attempt(s).`
+    );
+  }
+  if (input.safeCostUsd === null) {
+    return refuse2(
+      "COST_UNKNOWN",
+      "The cost of this attempt cannot be estimated, so no budget reservation can be made. Unknown cost is never treated as zero."
+    );
+  }
+  const cost = input.safeCostUsd;
+  if (policy.maxCostPerAttemptUsd !== null && cost > policy.maxCostPerAttemptUsd) {
+    return refuse2(
+      "ATTEMPT_CEILING",
+      `The safe estimate $${cost.toFixed(4)} exceeds the $${policy.maxCostPerAttemptUsd} per-attempt ceiling.`
+    );
+  }
+  if (task.remainingUsd !== null && cost > task.remainingUsd) {
+    return refuse2(
+      "TASK_CEILING",
+      `The safe estimate $${cost.toFixed(4)} exceeds the $${task.remainingUsd.toFixed(4)} remaining of task ${input.taskId}'s budget.`
+    );
+  }
+  if (job.remainingUsd !== null && cost > job.remainingUsd) {
+    return refuse2(
+      "JOB_CEILING",
+      `The safe estimate $${cost.toFixed(4)} exceeds the $${job.remainingUsd.toFixed(4)} remaining of the job's API budget.`
+    );
+  }
+  return {
+    admissible: true,
+    job,
+    task,
+    detail: `The safe estimate $${cost.toFixed(4)} fits every configured ceiling (job remaining ${job.remainingUsd === null ? "unbounded" : `$${job.remainingUsd.toFixed(4)}`}).`
+  };
+}
+function reserveApiBudget(input) {
+  const now4 = input.now.toISOString();
+  return withBudgetLock(input.workspace, input.jobId, now4, (state) => {
+    const admission = assessApiBudget({
+      state,
+      policy: input.policy,
+      taskId: input.taskId,
+      safeCostUsd: input.safeCostUsd
+    });
+    if (!admission.admissible || input.safeCostUsd === null) {
+      return { state, result: { ok: false, admission } };
+    }
+    const reservation = {
+      reservationId: input.reservationId,
+      jobId: input.jobId,
+      nodeId: input.nodeId,
+      taskId: input.taskId,
+      attemptId: null,
+      state: "RESERVED",
+      reservedUsd: input.safeCostUsd,
+      reconciledUsd: null,
+      costSource: "ESTIMATED_PRE_DISPATCH",
+      profileName: input.profileName,
+      createdAt: now4,
+      updatedAt: now4,
+      detail: (input.detail ?? admission.detail).slice(0, 1e3)
+    };
+    return {
+      state: { ...state, reservations: [...state.reservations, reservation] },
+      result: { ok: true, reservation, admission }
+    };
+  });
+}
+function updateReservation(workspace, jobId, reservationId, now4, update) {
+  const iso = now4.toISOString();
+  return withBudgetLock(workspace, jobId, iso, (state) => {
+    const index = state.reservations.findIndex((entry) => entry.reservationId === reservationId);
+    const existing = state.reservations[index];
+    if (index < 0 || existing === void 0) {
+      throw new OrchestrationError(
+        "SBO049",
+        `API budget reservation ${reservationId} of job ${jobId} was not found.`
+      );
+    }
+    const updated = apiBudgetReservationSchema.parse({ ...update(existing), updatedAt: iso });
+    const reservations = [...state.reservations];
+    reservations[index] = updated;
+    return { state: { ...state, reservations }, result: updated };
+  });
+}
+function bindApiBudgetReservation(workspace, jobId, reservationId, attemptId, now4) {
+  return updateReservation(workspace, jobId, reservationId, now4, (entry) => ({
+    ...entry,
+    attemptId
+  }));
+}
+function reconcileApiBudget(input) {
+  return updateReservation(
+    input.workspace,
+    input.jobId,
+    input.reservationId,
+    input.now,
+    (entry) => {
+      const determinable = input.observedCostUsd !== null && input.costSource !== "UNKNOWN";
+      const state = determinable ? "COMMITTED" : "UNKNOWN";
+      return {
+        ...entry,
+        state,
+        reconciledUsd: input.observedCostUsd,
+        costSource: input.costSource,
+        detail: (input.detail ?? (determinable ? `Reconciled at $${(input.observedCostUsd ?? 0).toFixed(4)} (${input.costSource}).` : "The attempt\u2019s real cost could not be determined; the reservation stays charged.")).slice(0, 1e3)
+      };
+    }
+  );
+}
+function reconcileInterruptedApiReservations(workspace, jobId, now4, reason = "process-restart") {
+  const iso = now4.toISOString();
+  if (!(0, import_fs33.existsSync)(budgetFile(workspace, jobId))) return [];
+  return withBudgetLock(workspace, jobId, iso, (state) => {
+    const reconciled = [];
+    const reservations = state.reservations.map((entry) => {
+      if (entry.state !== "RESERVED") return entry;
+      const updated = {
+        ...entry,
+        state: "UNKNOWN",
+        costSource: "UNKNOWN",
+        updatedAt: iso,
+        detail: `The owning attempt was interrupted (${reason}); remote usage cannot be ruled out, so this reservation stays charged against the budget.`
+      };
+      reconciled.push(updated);
+      return updated;
+    });
+    return { state: { ...state, reservations }, result: reconciled };
+  });
 }
 function policyOf2(deps) {
   return deps.config.orchestration.jobs;
@@ -58136,6 +58731,17 @@ function beginExecutorDispatch(deps, jobId, input) {
       executionMode: input.executionMode,
       executionShape: input.executionShape,
       computeLocality: input.computeLocality,
+      apiSpendMode: input.apiSpendMode,
+      gapReason: input.gapReason,
+      subscriptionAvailableAt: input.subscriptionAvailableAt,
+      estimatedGapDurationMs: input.estimatedGapDurationMs,
+      costSource: input.costSource,
+      pricingProfile: input.pricingProfile,
+      apiBudgetReservationId: input.apiBudgetReservationId,
+      apiApprovalId: input.apiApprovalId,
+      delaySensitivity: input.delaySensitivity,
+      estimatedCostUsd: input.estimatedCostUsd,
+      reservedCostUsd: input.reservedCostUsd,
       quotaBefore: input.quotaBefore,
       ...input.contextUsageBefore !== void 0 ? { contextUsageBefore: input.contextUsageBefore } : {}
     }
@@ -58579,7 +59185,7 @@ function askClarification(deps, jobId, questions) {
     });
   }
   const at = now3(deps).toISOString();
-  const round = job.counters.clarificationRounds + 1;
+  const round2 = job.counters.clarificationRounds + 1;
   const added = questions.slice(0, deps.config.orchestration.clarification.maxQuestionsPerRound).map(
     (candidate) => ({
       id: `q-${newId3(deps)}`.slice(0, 64),
@@ -58588,17 +59194,17 @@ function askClarification(deps, jobId, questions) {
       options: [],
       ...candidate.nodeId !== void 0 ? { relatedTaskId: candidate.nodeId } : {},
       askedAt: at,
-      round
+      round: round2
     })
   );
   job = {
     ...job,
     openQuestions: [...job.openQuestions, ...added],
-    counters: { ...job.counters, clarificationRounds: round }
+    counters: { ...job.counters, clarificationRounds: round2 }
   };
   if (job.status !== "NEEDS_CLARIFICATION") job = transition22(deps, job, "NEEDS_CLARIFICATION");
   job = record22(deps, job, "clarification_requested", {
-    round,
+    round: round2,
     questionIds: added.map((question) => question.id)
   });
   return persist22(deps, job);
@@ -58788,6 +59394,25 @@ async function resumeJob(deps, jobId) {
   if (job.currentAttemptId !== void 0) {
     job = { ...job, currentAttemptId: void 0 };
   }
+  const interruptedReservations = reconcileInterruptedApiReservations(
+    deps.workspace,
+    jobId,
+    now3(deps)
+  );
+  for (const reservation of interruptedReservations) {
+    reconciled.push(
+      `api budget ${reservation.reservationId}: RESERVED \u2192 UNKNOWN ($${reservation.reservedUsd.toFixed(4)} stays charged; remote usage cannot be ruled out)`
+    );
+    job = record22(deps, job, "api_budget_reconciled", {
+      nodeId: reservation.nodeId,
+      taskId: reservation.taskId,
+      reservationId: reservation.reservationId,
+      state: reservation.state,
+      reservedUsd: reservation.reservedUsd,
+      reconciledUsd: reservation.reconciledUsd,
+      costSource: reservation.costSource
+    });
+  }
   const snapshot = await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now3(deps) });
   let planStale = false;
   let planStaleReasons = [];
@@ -58902,7 +59527,7 @@ var AGENT_OUTPUT_LIMITS = {
   maxSteps: 40,
   maxResponseBytes: 262144
 };
-var shortText4 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxShortChars);
+var shortText5 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxShortChars);
 var text4 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxTextChars);
 var textList3 = external_exports.array(text4).max(AGENT_OUTPUT_LIMITS.maxListItems);
 var classifierOutputSchema = external_exports.object({
@@ -58912,7 +59537,7 @@ var classifierOutputSchema = external_exports.object({
   reasons: textList3.default([])
 });
 var plannerStepSchema = external_exports.object({
-  id: shortText4,
+  id: shortText5,
   action: text4,
   /** What observable evidence would show this step succeeded. */
   expectedEvidence: text4.optional()
@@ -59461,7 +60086,7 @@ async function runLargeRole(invocation) {
     };
   } finally {
     try {
-      (0, import_fs33.rmSync)(import_path36.default.join(invocation.scratchDir, "tmp"), { recursive: true, force: true });
+      (0, import_fs34.rmSync)(import_path37.default.join(invocation.scratchDir, "tmp"), { recursive: true, force: true });
     } catch {
     }
   }
@@ -59828,23 +60453,23 @@ var OBJECTIVE_LIMITS = {
   maxProjectionContracts: 30,
   maxProjectionExcerptChars: 2e4
 };
-var shortText5 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxShortTextChars);
+var shortText6 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxShortTextChars);
 var text5 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxTextChars);
 var optionalText2 = external_exports.string().max(OBJECTIVE_LIMITS.maxTextChars);
 var textList4 = external_exports.array(text5).max(OBJECTIVE_LIMITS.maxListItems);
-var idList2 = external_exports.array(shortText5).max(OBJECTIVE_LIMITS.maxListItems);
+var idList2 = external_exports.array(shortText6).max(OBJECTIVE_LIMITS.maxListItems);
 var semver22 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
 var workUnitSchema = external_exports.object({
-  workUnitId: shortText5,
+  workUnitId: shortText6,
   /** The objective (job graph node) this unit belongs to. */
-  objectiveNodeId: shortText5,
+  objectiveNodeId: shortText6,
   /** The approved task id of the objective (audit convenience). */
-  parentTaskId: shortText5,
+  parentTaskId: shortText6,
   kind: external_exports.enum(WORK_UNIT_KINDS),
   title: text5,
   goal: text5,
   /** Work-unit ids that must be VERIFIED_CANDIDATE before this one runs. */
-  dependsOn: external_exports.array(shortText5).max(OBJECTIVE_LIMITS.maxDependenciesPerUnit).default([]),
+  dependsOn: external_exports.array(shortText6).max(OBJECTIVE_LIMITS.maxDependenciesPerUnit).default([]),
   /** Artifacts the unit is expected to produce (paths, report names). */
   expectedArtifacts: textList4.default([]),
   /** Product contract ids relevant to this unit (projection input). */
@@ -59852,39 +60477,39 @@ var workUnitSchema = external_exports.object({
   relevantAdrIds: idList2.default([]),
   relevantConstitutionRuleIds: idList2.default([]),
   /** Source areas the unit is expected to touch (scope screen input). */
-  expectedAreas: external_exports.array(shortText5).max(OBJECTIVE_LIMITS.maxListItems).default([]),
+  expectedAreas: external_exports.array(shortText6).max(OBJECTIVE_LIMITS.maxListItems).default([]),
   status: external_exports.enum(WORK_UNIT_STATUSES),
   /** Builder attempts consumed so far. */
   attempt: external_exports.number().int().min(0).default(0),
   /** Worker currently (or last) bound to this unit. */
-  workerId: shortText5.optional(),
-  contextProjectionHash: shortText5.optional(),
-  contractSnapshotHash: shortText5.optional(),
+  workerId: shortText6.optional(),
+  contextProjectionHash: shortText6.optional(),
+  contractSnapshotHash: shortText6.optional(),
   /** Latest candidate artifact reference (candidates/<file>). */
-  candidateRef: shortText5.optional(),
+  candidateRef: shortText6.optional(),
   /** Evaluation record references, oldest first. */
   evaluationRefs: idList2.default([]),
   latestFailure: external_exports.object({
     category: external_exports.enum(FAILURE_CATEGORIES),
     message: text5,
-    at: shortText5
+    at: shortText6
   }).passthrough().optional(),
-  supersedes: shortText5.optional(),
-  supersededBy: shortText5.optional(),
-  integratedAt: shortText5.optional()
+  supersedes: shortText6.optional(),
+  supersededBy: shortText6.optional(),
+  integratedAt: shortText6.optional()
 }).passthrough();
 var workGraphSchema = external_exports.object({
   schemaVersion: semver22,
-  jobId: shortText5,
+  jobId: shortText6,
   /** The objective node this graph decomposes. */
-  objectiveNodeId: shortText5,
-  parentTaskId: shortText5,
+  objectiveNodeId: shortText6,
+  parentTaskId: shortText6,
   /** Fingerprint of the approved objective at decomposition time. */
-  objectiveFingerprint: shortText5,
+  objectiveFingerprint: shortText6,
   revision: external_exports.number().int().min(1),
-  createdAt: shortText5,
+  createdAt: shortText6,
   /** Who proposed the decomposition ("deterministic" or a worker id). */
-  proposedBy: shortText5,
+  proposedBy: shortText6,
   /** Deterministic validation findings recorded at acceptance time. */
   validationNotes: textList4.default([]),
   units: external_exports.array(workUnitSchema).min(1).max(OBJECTIVE_LIMITS.maxWorkUnits),
@@ -59893,21 +60518,21 @@ var workGraphSchema = external_exports.object({
 }).passthrough();
 var contextProjectionSchema = external_exports.object({
   schemaVersion: semver22,
-  projectionId: shortText5,
-  jobId: shortText5,
-  objectiveNodeId: shortText5,
-  workUnitId: shortText5,
+  projectionId: shortText6,
+  jobId: shortText6,
+  objectiveNodeId: shortText6,
+  workUnitId: shortText6,
   attempt: external_exports.number().int().min(1),
-  createdAt: shortText5,
-  missionId: shortText5.optional(),
+  createdAt: shortText6,
+  missionId: shortText6.optional(),
   constitution: external_exports.object({
     version: external_exports.number().int().min(0),
     rules: external_exports.array(
-      external_exports.object({ ruleId: shortText5, version: external_exports.number().int().min(1), statement: text5 }).passthrough()
+      external_exports.object({ ruleId: shortText6, version: external_exports.number().int().min(1), statement: text5 }).passthrough()
     ).max(40).default([])
   }).passthrough(),
   objective: external_exports.object({
-    taskId: shortText5,
+    taskId: shortText6,
     title: text5,
     acceptance: textList4.default([])
   }).passthrough(),
@@ -59916,61 +60541,61 @@ var contextProjectionSchema = external_exports.object({
     goal: text5,
     kind: external_exports.enum(WORK_UNIT_KINDS),
     expectedArtifacts: textList4.default([]),
-    expectedAreas: external_exports.array(shortText5).max(OBJECTIVE_LIMITS.maxListItems).default([])
+    expectedAreas: external_exports.array(shortText6).max(OBJECTIVE_LIMITS.maxListItems).default([])
   }).passthrough(),
   contracts: external_exports.array(
     external_exports.object({
-      contractId: shortText5,
+      contractId: shortText6,
       revision: external_exports.number().int().min(1),
-      title: shortText5,
+      title: shortText6,
       summary: text5,
       requirements: textList4.default([]),
       invariants: textList4.default([])
     }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxProjectionContracts).default([]),
   adrs: external_exports.array(
-    external_exports.object({ adrId: shortText5, title: shortText5, decision: text5 }).passthrough()
+    external_exports.object({ adrId: shortText6, title: shortText6, decision: text5 }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxListItems).default([]),
-  decisions: external_exports.array(external_exports.object({ decisionId: shortText5, decision: text5 }).passthrough()).max(OBJECTIVE_LIMITS.maxListItems).default([]),
+  decisions: external_exports.array(external_exports.object({ decisionId: shortText6, decision: text5 }).passthrough()).max(OBJECTIVE_LIMITS.maxListItems).default([]),
   /** Bounded approved-spec excerpts (requirements/design fragments). */
   specExcerpts: external_exports.array(external_exports.string().max(OBJECTIVE_LIMITS.maxProjectionExcerptChars)).max(5).default([]),
   /** Bounded summaries of verified dependency candidates (work evidence). */
   workEvidence: textList4.default([]),
   /** Hash over the ACTIVE contract registry this projection saw. */
-  contractSnapshotHash: shortText5,
+  contractSnapshotHash: shortText6,
   /** Hash of this projection's canonical serialization (identity). */
-  contentHash: shortText5
+  contentHash: shortText6
 }).passthrough();
 var candidateArtifactSchema = external_exports.object({
   schemaVersion: semver22,
-  candidateId: shortText5,
-  jobId: shortText5,
-  objectiveNodeId: shortText5,
-  workUnitId: shortText5,
+  candidateId: shortText6,
+  jobId: shortText6,
+  objectiveNodeId: shortText6,
+  workUnitId: shortText6,
   attempt: external_exports.number().int().min(1),
-  workerId: shortText5,
-  createdAt: shortText5,
+  workerId: shortText6,
+  createdAt: shortText6,
   /** Git commit the worktree was created from. */
-  baselineCommit: shortText5,
-  contextProjectionHash: shortText5,
-  contractSnapshotHash: shortText5,
+  baselineCommit: shortText6,
+  contextProjectionHash: shortText6,
+  contractSnapshotHash: shortText6,
   /** Files changed in the worktree, as observed by git. */
   changedFiles: external_exports.array(
     external_exports.object({
-      path: shortText5,
+      path: shortText6,
       changeType: external_exports.enum(["added", "modified", "deleted", "renamed"])
     }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxChangedFiles).default([]),
   /** Reference to the stored normalized patch (candidates/<file>.patch). */
-  patchRef: shortText5.optional(),
+  patchRef: shortText6.optional(),
   /** Local verification observed by SpecBridge inside the worktree. */
   localVerification: external_exports.object({
     ran: external_exports.boolean(),
     passed: external_exports.boolean(),
     commands: external_exports.array(
       external_exports.object({
-        name: shortText5,
-        status: shortText5,
+        name: shortText6,
+        status: shortText6,
         exitCode: external_exports.number().int().nullable().default(null)
       }).passthrough()
     ).max(OBJECTIVE_LIMITS.maxListItems).default([])
@@ -59981,7 +60606,7 @@ var candidateArtifactSchema = external_exports.object({
     assumptionsDiscovered: textList4.default([]),
     contractChangeRequests: external_exports.array(
       external_exports.object({
-        contractId: shortText5,
+        contractId: shortText6,
         problem: text5,
         proposal: text5
       }).passthrough()
@@ -59995,67 +60620,67 @@ var candidateArtifactSchema = external_exports.object({
 }).passthrough();
 var evaluationRecordSchema = external_exports.object({
   schemaVersion: semver22,
-  evaluationId: shortText5,
-  jobId: shortText5,
-  objectiveNodeId: shortText5,
-  workUnitId: shortText5,
+  evaluationId: shortText6,
+  jobId: shortText6,
+  objectiveNodeId: shortText6,
+  workUnitId: shortText6,
   attempt: external_exports.number().int().min(1),
   layer: external_exports.enum(EVALUATION_LAYERS),
   verdict: external_exports.enum(EVALUATION_VERDICTS),
   /** Named deterministic checks with their outcomes (deterministic layer). */
   checks: external_exports.array(
-    external_exports.object({ name: shortText5, passed: external_exports.boolean(), detail: optionalText2.optional() }).passthrough()
+    external_exports.object({ name: shortText6, passed: external_exports.boolean(), detail: optionalText2.optional() }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxEvaluationChecks).default([]),
   reasons: textList4.default([]),
   evidenceRefs: idList2.default([]),
   affectedContractIds: idList2.default([]),
   /** Decision kind for CONFLICT / NEEDS_DECISION verdicts (authority routing). */
-  decisionKind: shortText5.optional(),
+  decisionKind: shortText6.optional(),
   /** The evaluator worker, when the layer is semantic. */
-  evaluatorWorkerId: shortText5.optional(),
-  createdAt: shortText5
+  evaluatorWorkerId: shortText6.optional(),
+  createdAt: shortText6
 }).passthrough();
 var contractConflictSchema = external_exports.object({
   schemaVersion: semver22,
-  conflictId: shortText5,
-  jobId: shortText5,
-  objectiveNodeId: shortText5,
-  contractId: shortText5,
+  conflictId: shortText6,
+  jobId: shortText6,
+  objectiveNodeId: shortText6,
+  contractId: shortText6,
   contractRevision: external_exports.number().int().min(1),
   claims: external_exports.array(
     external_exports.object({
-      workUnitId: shortText5,
-      candidateRef: shortText5.optional(),
+      workUnitId: shortText6,
+      candidateRef: shortText6.optional(),
       claim: text5
     }).passthrough()
   ).min(1).max(OBJECTIVE_LIMITS.maxListItems),
   evidenceRefs: idList2.default([]),
   affectedWorkUnitIds: idList2.default([]),
-  decisionKind: shortText5,
+  decisionKind: shortText6,
   status: external_exports.enum(CONTRACT_CONFLICT_STATUSES),
   resolution: optionalText2.optional(),
-  createdAt: shortText5,
-  resolvedAt: shortText5.optional()
+  createdAt: shortText6,
+  resolvedAt: shortText6.optional()
 }).passthrough();
 var objectiveWorkerRecordSchema = external_exports.object({
   schemaVersion: semver22,
-  workerId: shortText5,
+  workerId: shortText6,
   agentRole: external_exports.enum(AGENT_ROLES),
-  jobId: shortText5,
-  objectiveNodeId: shortText5,
-  workUnitId: shortText5,
+  jobId: shortText6,
+  objectiveNodeId: shortText6,
+  workUnitId: shortText6,
   attempt: external_exports.number().int().min(1),
-  contextProjectionHash: shortText5,
-  contractSnapshotHash: shortText5,
+  contextProjectionHash: shortText6,
+  contractSnapshotHash: shortText6,
   /** "worktree:<name>", "canonical", or "ephemeral" (read-only reasoning). */
-  workspaceIdentity: shortText5,
+  workspaceIdentity: shortText6,
   status: external_exports.enum(OBJECTIVE_WORKER_STATUSES),
   budget: external_exports.object({
     timeoutMs: external_exports.number().int().min(1),
     maxOutputBytes: external_exports.number().int().min(1).optional()
   }).passthrough(),
-  startedAt: shortText5,
-  finishedAt: shortText5.optional()
+  startedAt: shortText6,
+  finishedAt: shortText6.optional()
 }).passthrough();
 var WORK_UNIT_TRANSITIONS = Object.freeze({
   PLANNED: ["READY", "BLOCKED", "SUPERSEDED", "FAILED"],
@@ -60376,13 +61001,13 @@ var OBJECTIVE_OUTPUT_LIMITS = {
   maxUnits: 30,
   maxResponseBytes: 262144
 };
-var shortText6 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxShortChars);
+var shortText7 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxShortChars);
 var text6 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxTextChars);
 var textList5 = external_exports.array(text6).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
-var shortList = external_exports.array(shortText6).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
+var shortList = external_exports.array(shortText7).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
 var decomposerUnitSchema = external_exports.object({
   /** Proposal-local id ("a", "b", …); SpecBridge assigns the real ids. */
-  id: shortText6,
+  id: shortText7,
   kind: external_exports.enum(WORK_UNIT_KINDS),
   title: text6,
   goal: text6,
@@ -60411,7 +61036,7 @@ var evaluatorOutputSchema = external_exports.object({
    * "architecture-contract-change", "product-behavior-change", …). The
    * deterministic authority table routes it; the evaluator only names it.
    */
-  decisionKind: shortText6.optional()
+  decisionKind: shortText7.optional()
 });
 var aggregatorOutputSchema = external_exports.object({
   /** One bounded synthesis of the input artifacts. */
@@ -60419,7 +61044,7 @@ var aggregatorOutputSchema = external_exports.object({
   /** Structured findings, each tied to its source artifact. */
   findings: external_exports.array(
     external_exports.object({
-      sourceWorkUnitId: shortText6,
+      sourceWorkUnitId: shortText7,
       finding: text6
     })
   ).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems).default([]),
@@ -60428,15 +61053,15 @@ var aggregatorOutputSchema = external_exports.object({
   /** Contract changes the synthesis suggests — requests, never approvals. */
   contractChangeSuggestions: external_exports.array(
     external_exports.object({
-      contractId: shortText6,
+      contractId: shortText7,
       problem: text6,
       proposal: text6
     })
   ).max(10).default([]),
   conflictsDetected: external_exports.array(
     external_exports.object({
-      contractId: shortText6,
-      claims: external_exports.array(external_exports.object({ sourceWorkUnitId: shortText6, claim: text6 })).min(1).max(10)
+      contractId: shortText7,
+      claims: external_exports.array(external_exports.object({ sourceWorkUnitId: shortText7, claim: text6 })).min(1).max(10)
     })
   ).max(10).default([])
 });
@@ -60448,7 +61073,7 @@ var builderOutputSchema = external_exports.object({
   assumptionsDiscovered: textList5.default([]),
   contractChangeRequests: external_exports.array(
     external_exports.object({
-      contractId: shortText6,
+      contractId: shortText7,
       problem: text6,
       proposal: text6
     })
@@ -60781,8 +61406,8 @@ async function runLargeObjectiveRole(invocation) {
   } finally {
     cleanupTempFiles(plan);
     try {
-      const { rmSync: rmSync42 } = await import("fs");
-      rmSync42(import_path40.default.join(invocation.scratchDir, "tmp"), { recursive: true, force: true });
+      const { rmSync: rmSync52 } = await import("fs");
+      rmSync52(import_path41.default.join(invocation.scratchDir, "tmp"), { recursive: true, force: true });
     } catch {
     }
   }
@@ -60869,7 +61494,7 @@ async function integrateObjective(input) {
       role: "BUILDER",
       packet,
       cwd: input.workspace.rootDir,
-      scratchDir: import_path39.default.join(jobDir(input.workspace, input.jobId), "scratch"),
+      scratchDir: import_path40.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: input.reconcileTimeoutMs ?? 6e5,
       ...input.signal !== void 0 ? { signal: input.signal } : {},
       ...input.cachedProbe !== void 0 ? { cachedProbe: input.cachedProbe } : {}
@@ -61049,19 +61674,19 @@ function objectiveDir(workspace, jobId, nodeId) {
   assertSegment(nodeId, "objective node id");
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path41.default.join(jobDir(workspace, jobId), "objectives", nodeId)
+    import_path42.default.join(jobDir(workspace, jobId), "objectives", nodeId)
   );
 }
 function artifactPath3(workspace, jobId, nodeId, ...segments) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path41.default.join(objectiveDir(workspace, jobId, nodeId), ...segments)
+    import_path42.default.join(objectiveDir(workspace, jobId, nodeId), ...segments)
   );
 }
 function readJson(file, parse3) {
-  if (!(0, import_fs35.existsSync)(file)) return void 0;
+  if (!(0, import_fs36.existsSync)(file)) return void 0;
   try {
-    return parse3(JSON.parse((0, import_fs35.readFileSync)(file, "utf8")));
+    return parse3(JSON.parse((0, import_fs36.readFileSync)(file, "utf8")));
   } catch {
     return void 0;
   }
@@ -61072,7 +61697,7 @@ function workGraphFile(workspace, jobId, nodeId, revision) {
 function storeWorkGraph(workspace, jobId, graph) {
   const validated = workGraphSchema.parse(graph);
   const file = workGraphFile(workspace, jobId, validated.objectiveNodeId, validated.revision);
-  (0, import_fs35.mkdirSync)(import_path41.default.dirname(file), { recursive: true });
+  (0, import_fs36.mkdirSync)(import_path42.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return validated;
@@ -61086,9 +61711,9 @@ function readWorkGraph(workspace, jobId, nodeId, revision) {
 }
 function listWorkGraphRevisions(workspace, jobId, nodeId) {
   const dir = artifactPath3(workspace, jobId, nodeId, "workgraphs");
-  if (!(0, import_fs35.existsSync)(dir)) return [];
+  if (!(0, import_fs36.existsSync)(dir)) return [];
   const revisions = [];
-  for (const name of (0, import_fs35.readdirSync)(dir).sort()) {
+  for (const name of (0, import_fs36.readdirSync)(dir).sort()) {
     if (!/^\d{4}\.json$/.test(name)) continue;
     revisions.push(Number.parseInt(name.slice(0, 4), 10));
   }
@@ -61107,13 +61732,13 @@ function storeProjection(workspace, jobId, nodeId, projection) {
   assertSegment(validated.workUnitId, "work unit id");
   const name = projectionName(validated.workUnitId, validated.attempt);
   const file = artifactPath3(workspace, jobId, nodeId, "projections", name);
-  if ((0, import_fs35.existsSync)(file)) {
+  if ((0, import_fs36.existsSync)(file)) {
     throw new OrchestrationError(
       "SBO041",
       `Projection ${name} already exists; projections are immutable per (workUnit, attempt).`
     );
   }
-  (0, import_fs35.mkdirSync)(import_path41.default.dirname(file), { recursive: true });
+  (0, import_fs36.mkdirSync)(import_path42.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return { projection: validated, ref: `projections/${name}` };
@@ -61136,13 +61761,13 @@ function storeCandidate(workspace, jobId, nodeId, candidate, patch, limits) {
   assertSegment(validated.workUnitId, "work unit id");
   const base = candidateName(validated.workUnitId, validated.attempt);
   const file = artifactPath3(workspace, jobId, nodeId, "candidates", `${base}.json`);
-  if ((0, import_fs35.existsSync)(file)) {
+  if ((0, import_fs36.existsSync)(file)) {
     throw new OrchestrationError(
       "SBO043",
       `Candidate ${base} already exists; candidates are immutable per (workUnit, attempt).`
     );
   }
-  (0, import_fs35.mkdirSync)(import_path41.default.dirname(file), { recursive: true });
+  (0, import_fs36.mkdirSync)(import_path42.default.dirname(file), { recursive: true });
   if (patch !== void 0) {
     if (Buffer.byteLength(patch, "utf8") > limits.maxCandidateBytes) {
       throw new OrchestrationError(
@@ -61176,9 +61801,9 @@ function readCandidatePatch(workspace, jobId, nodeId, workUnitId, attempt) {
     "candidates",
     `${candidateName(workUnitId, attempt)}.patch`
   );
-  if (!(0, import_fs35.existsSync)(file)) return void 0;
+  if (!(0, import_fs36.existsSync)(file)) return void 0;
   try {
-    return (0, import_fs35.readFileSync)(file, "utf8");
+    return (0, import_fs36.readFileSync)(file, "utf8");
   } catch {
     return void 0;
   }
@@ -61188,21 +61813,21 @@ function storeEvaluation(workspace, jobId, nodeId, evaluation) {
   assertSegment(validated.evaluationId, "evaluation id");
   const name = `${validated.evaluationId}.json`;
   const file = artifactPath3(workspace, jobId, nodeId, "evaluations", name);
-  if ((0, import_fs35.existsSync)(file)) {
+  if ((0, import_fs36.existsSync)(file)) {
     throw new OrchestrationError("SBO044", `Evaluation ${validated.evaluationId} already exists.`);
   }
-  (0, import_fs35.mkdirSync)(import_path41.default.dirname(file), { recursive: true });
+  (0, import_fs36.mkdirSync)(import_path42.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return { evaluation: validated, ref: `evaluations/${name}` };
 }
 function readEvaluations(workspace, jobId, nodeId, workUnitId) {
   const dir = artifactPath3(workspace, jobId, nodeId, "evaluations");
-  if (!(0, import_fs35.existsSync)(dir)) return [];
+  if (!(0, import_fs36.existsSync)(dir)) return [];
   const records = [];
-  for (const name of (0, import_fs35.readdirSync)(dir).sort()) {
+  for (const name of (0, import_fs36.readdirSync)(dir).sort()) {
     if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path41.default.join(dir, name), (raw) => {
+    const record32 = readJson(import_path42.default.join(dir, name), (raw) => {
       const result = evaluationRecordSchema.safeParse(raw);
       return result.success ? result.data : void 0;
     });
@@ -61216,18 +61841,18 @@ function storeConflict(workspace, jobId, nodeId, conflict) {
   const validated = contractConflictSchema.parse(conflict);
   assertSegment(validated.conflictId, "conflict id");
   const file = artifactPath3(workspace, jobId, nodeId, "conflicts", `${validated.conflictId}.json`);
-  (0, import_fs35.mkdirSync)(import_path41.default.dirname(file), { recursive: true });
+  (0, import_fs36.mkdirSync)(import_path42.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return validated;
 }
 function readConflicts(workspace, jobId, nodeId) {
   const dir = artifactPath3(workspace, jobId, nodeId, "conflicts");
-  if (!(0, import_fs35.existsSync)(dir)) return [];
+  if (!(0, import_fs36.existsSync)(dir)) return [];
   const records = [];
-  for (const name of (0, import_fs35.readdirSync)(dir).sort()) {
+  for (const name of (0, import_fs36.readdirSync)(dir).sort()) {
     if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path41.default.join(dir, name), (raw) => {
+    const record32 = readJson(import_path42.default.join(dir, name), (raw) => {
       const result = contractConflictSchema.safeParse(raw);
       return result.success ? result.data : void 0;
     });
@@ -61248,7 +61873,7 @@ function storeWorkerRecord(workspace, jobId, nodeId, record32) {
     "workers",
     workerName(validated.workUnitId, validated.attempt, validated.agentRole)
   );
-  (0, import_fs35.mkdirSync)(import_path41.default.dirname(file), { recursive: true });
+  (0, import_fs36.mkdirSync)(import_path42.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return validated;
@@ -61265,11 +61890,11 @@ function readWorkerRecord(workspace, jobId, nodeId, workUnitId, attempt, role) {
 }
 function readWorkerRecords(workspace, jobId, nodeId) {
   const dir = artifactPath3(workspace, jobId, nodeId, "workers");
-  if (!(0, import_fs35.existsSync)(dir)) return [];
+  if (!(0, import_fs36.existsSync)(dir)) return [];
   const records = [];
-  for (const name of (0, import_fs35.readdirSync)(dir).sort()) {
+  for (const name of (0, import_fs36.readdirSync)(dir).sort()) {
     if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path41.default.join(dir, name), (raw) => {
+    const record32 = readJson(import_path42.default.join(dir, name), (raw) => {
       const result = objectiveWorkerRecordSchema.safeParse(raw);
       return result.success ? result.data : void 0;
     });
@@ -61280,10 +61905,10 @@ function readWorkerRecords(workspace, jobId, nodeId) {
 function storeAggregationReport(workspace, jobId, nodeId, name, report) {
   assertSegment(name, "report name");
   const file = artifactPath3(workspace, jobId, nodeId, "reports", `${name}.json`);
-  if ((0, import_fs35.existsSync)(file)) {
+  if ((0, import_fs36.existsSync)(file)) {
     throw new OrchestrationError("SBO046", `Aggregation report "${name}" already exists.`);
   }
-  (0, import_fs35.mkdirSync)(import_path41.default.dirname(file), { recursive: true });
+  (0, import_fs36.mkdirSync)(import_path42.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(report, null, 2)}
 `);
   return { ref: `reports/${name}.json` };
@@ -61545,7 +62170,7 @@ async function git3(cwd, argv2, timeoutMs = GIT_TIMEOUT_MS3) {
   return { ok: result.status === "ok", stdout: result.stdout, stderr: result.stderr };
 }
 function worktreesRootDir(workspace, jobId) {
-  return import_path42.default.join(jobDir(workspace, jobId), "worktrees");
+  return import_path43.default.join(jobDir(workspace, jobId), "worktrees");
 }
 async function createWorkerWorktree(input) {
   const name = `${input.workUnitId}-a${String(input.attempt).padStart(2, "0")}`;
@@ -61554,7 +62179,7 @@ async function createWorkerWorktree(input) {
   }
   const dir = assertInsideWorkspace(
     input.workspace.rootDir,
-    import_path42.default.join(worktreesRootDir(input.workspace, input.jobId), name)
+    import_path43.default.join(worktreesRootDir(input.workspace, input.jobId), name)
   );
   const head = await git3(input.workspace.rootDir, ["rev-parse", "HEAD"]);
   if (!head.ok) {
@@ -61564,10 +62189,10 @@ async function createWorkerWorktree(input) {
     });
   }
   const baselineCommit = head.stdout.trim();
-  if ((0, import_fs36.existsSync)(dir)) {
+  if ((0, import_fs37.existsSync)(dir)) {
     await removeWorkerWorktree(input.workspace, input.jobId, { dir });
   }
-  (0, import_fs36.mkdirSync)(import_path42.default.dirname(dir), { recursive: true });
+  (0, import_fs37.mkdirSync)(import_path43.default.dirname(dir), { recursive: true });
   const added = await git3(input.workspace.rootDir, ["worktree", "add", "--detach", dir, baselineCommit], 18e4);
   if (!added.ok) {
     throw new OrchestrationError("SBO048", `git worktree add failed: ${added.stderr.slice(0, 500)}`, {
@@ -61640,7 +62265,7 @@ async function runWorktreeVerification(handle, commands, signal) {
 async function removeWorkerWorktree(workspace, jobId, handle) {
   await git3(workspace.rootDir, ["worktree", "remove", "--force", handle.dir], 12e4);
   try {
-    (0, import_fs36.rmSync)(handle.dir, { recursive: true, force: true });
+    (0, import_fs37.rmSync)(handle.dir, { recursive: true, force: true });
   } catch {
   }
   await git3(workspace.rootDir, ["worktree", "prune"]);
@@ -61649,14 +62274,14 @@ async function removeWorkerWorktree(workspace, jobId, handle) {
 async function pruneWorktrees(workspace, jobId) {
   const removed = [];
   const root = worktreesRootDir(workspace, jobId);
-  if ((0, import_fs36.existsSync)(root)) {
-    const { readdirSync: readdirSync62 } = await import("fs");
-    for (const entry of readdirSync62(root, { withFileTypes: true })) {
+  if ((0, import_fs37.existsSync)(root)) {
+    const { readdirSync: readdirSync72 } = await import("fs");
+    for (const entry of readdirSync72(root, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
-      const dir = import_path42.default.join(root, entry.name);
+      const dir = import_path43.default.join(root, entry.name);
       await git3(workspace.rootDir, ["worktree", "remove", "--force", dir], 12e4);
       try {
-        (0, import_fs36.rmSync)(dir, { recursive: true, force: true });
+        (0, import_fs37.rmSync)(dir, { recursive: true, force: true });
       } catch {
       }
       removed.push(entry.name);
@@ -61782,7 +62407,7 @@ async function decomposeObjective(input, truth, relevantContractIds, acceptance)
       role: "DECOMPOSER",
       packet,
       cwd: input.workspace.rootDir,
-      scratchDir: import_path38.default.join(jobDir(input.workspace, input.jobId), "scratch"),
+      scratchDir: import_path39.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: 6e5,
       signal: input.signal,
       cachedProbe: input.probeCache.probe
@@ -61947,7 +62572,7 @@ async function executeBuilder(context, prepared) {
     role: "BUILDER",
     packet,
     cwd: prepared.worktree.dir,
-    scratchDir: import_path38.default.join(
+    scratchDir: import_path39.default.join(
       jobDir(input.workspace, input.jobId),
       "scratch",
       `${prepared.unitId}-a${prepared.attempt}`
@@ -62322,7 +62947,7 @@ async function runSemanticEvaluation(context, graph, unitId) {
       role: "EVALUATOR",
       packet,
       cwd: input.workspace.rootDir,
-      scratchDir: import_path38.default.join(jobDir(input.workspace, input.jobId), "scratch"),
+      scratchDir: import_path39.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: 6e5,
       signal: input.signal,
       cachedProbe: input.probeCache.probe
@@ -62613,7 +63238,7 @@ async function maybeAggregateSemantically(context, graph) {
       role: "AGGREGATOR",
       packet,
       cwd: input.workspace.rootDir,
-      scratchDir: import_path38.default.join(jobDir(input.workspace, input.jobId), "scratch"),
+      scratchDir: import_path39.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: 6e5,
       signal: input.signal,
       cachedProbe: input.probeCache.probe
@@ -62835,30 +63460,30 @@ function timeToResetMs(resetAt, now4) {
   if (Number.isNaN(parsed)) return null;
   return Math.max(0, parsed - now4.getTime());
 }
-var shortText7 = external_exports.string().min(1).max(200);
+var shortText8 = external_exports.string().min(1).max(200);
 var schedulingDecisionSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  decisionId: shortText7,
-  jobId: shortText7,
-  nodeId: shortText7,
-  taskId: shortText7,
+  decisionId: shortText8,
+  jobId: shortText8,
+  nodeId: shortText8,
+  taskId: shortText8,
   selectedLane: external_exports.enum(LANE_DECISIONS),
   /** Worker/provider identity for run lanes; null for DEFER. */
-  selectedProvider: shortText7.nullable(),
+  selectedProvider: shortText8.nullable(),
   schedulerMode: external_exports.enum(SCHEDULER_MODES),
   reasonCode: external_exports.enum(SCHEDULING_REASON_CODES),
   /** The forecast the decision was made against. */
   quotaSnapshot: quotaForecastSchema,
   /** Bounded copy of the workload estimate. */
   workloadEstimate: external_exports.object({
-    complexity: shortText7,
-    localSuitability: shortText7,
-    taskCategory: shortText7.nullable().default(null),
+    complexity: shortText8,
+    localSuitability: shortText8,
+    taskCategory: shortText8.nullable().default(null),
     expectedWallTimeMs: external_exports.number().int().min(0),
     expectedFiveHourBurnRatio: external_exports.number().min(0).max(1),
     expectedWeeklyBurnRatio: external_exports.number().min(0).max(1),
-    confidence: shortText7,
-    basis: shortText7
+    confidence: shortText8,
+    basis: shortText8
   }).passthrough().nullable(),
   /** The dynamic reserve ratio in force. */
   reserveRatio: external_exports.number().min(0).max(1).nullable(),
@@ -62887,54 +63512,102 @@ var schedulingDecisionSchema = external_exports.object({
     reasonCode: external_exports.enum(LOCAL_EXECUTION_MODE_REASONS),
     shape: external_exports.enum(LOCAL_EXECUTION_SHAPES),
     /** Runner identity for the mode (e.g. "local-llamacpp", "deepseek-harness"). */
-    runner: shortText7.nullable().default(null),
+    runner: shortText8.nullable().default(null),
     /** Model identity when known; null when the provider does not say. */
-    model: shortText7.nullable().default(null),
+    model: shortText8.nullable().default(null),
     /** Verified compute locality of the selected runner. */
     computeLocality: external_exports.enum(COMPUTE_LOCALITIES).default("UNKNOWN"),
     /** Grounds for the locality verdict (bounded, recorded verbatim). */
     localityEvidence: external_exports.string().max(500).nullable().default(null),
     /** Status of the LOCAL harness binding when the decision was made. */
-    harnessBindingStatus: shortText7.nullable().default(null),
+    harnessBindingStatus: shortText8.nullable().default(null),
     detail: external_exports.string().max(1e3).default("")
   }).passthrough().nullable().default(null),
+  /**
+   * vNext.5 API gap-bridge attribution. Present ONLY on decisions where
+   * the subscription lane refused for a capacity reason and the gap-bridge
+   * planner was therefore consulted — which includes every decision that
+   * considered paid execution and declined it. Null otherwise, and absent
+   * in records written before vNext.5 (additive by construction).
+   *
+   * Together with the fields above this answers, from ONE record:
+   * why API was (or was not) selected, why Local was not enough, why
+   * Subscription was not used, how long the gap was expected to last,
+   * whether the task was critical, which spend mode applied, what it was
+   * estimated to cost, what budget remained, and which profile would run.
+   */
+  apiBridge: external_exports.object({
+    /** What the planner concluded: API, DEFER, or REQUIRE_APPROVAL. */
+    decision: external_exports.enum(["API", "DEFER", "REQUIRE_APPROVAL"]),
+    spendMode: external_exports.enum(API_SPEND_MODES),
+    /** Why subscription capacity was unavailable. */
+    gapReason: external_exports.enum(SUBSCRIPTION_GAP_REASONS),
+    /** When capacity is expected back (ISO); null when unknown. */
+    subscriptionAvailableAt: shortText8.nullable().default(null),
+    estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null),
+    gapConfidence: external_exports.enum(GAP_FORECAST_CONFIDENCE).default("UNKNOWN"),
+    delaySensitivity: external_exports.enum(DELAY_SENSITIVITIES),
+    blockedDependents: external_exports.number().int().min(0).default(0),
+    criticalPath: external_exports.boolean().default(false),
+    readyLocalBacklog: external_exports.number().int().min(0).default(0),
+    /** Mean estimated cost; null means UNKNOWN, never zero. */
+    estimatedCostUsd: external_exports.number().min(0).nullable().default(null),
+    /** The multiplied figure budget admission compared. */
+    safeCostUsd: external_exports.number().min(0).nullable().default(null),
+    currency: external_exports.string().max(8).default("USD"),
+    costSource: external_exports.enum(API_COST_SOURCES).default("UNKNOWN"),
+    pricingSource: shortText8.nullable().default(null),
+    /** Remaining job API budget at decision time; null when unbounded. */
+    budgetRemainingUsd: external_exports.number().min(0).nullable().default(null),
+    budgetEncumberedUsd: external_exports.number().min(0).nullable().default(null),
+    /** The API profile that would have run it, and its verified locality. */
+    apiProfile: shortText8.nullable().default(null),
+    apiRunner: shortText8.nullable().default(null),
+    apiModel: shortText8.nullable().default(null),
+    computeLocality: external_exports.enum(COMPUTE_LOCALITIES).default("UNKNOWN"),
+    bindingStatus: shortText8.nullable().default(null),
+    /** The bounded authorization consulted, when one existed. */
+    approvalId: shortText8.nullable().default(null),
+    approvalStatus: shortText8.nullable().default(null),
+    detail: external_exports.string().max(2e3).default("")
+  }).passthrough().nullable().default(null),
   /** For DEFER: when capacity is expected to return, when known. */
-  deferUntil: shortText7.nullable().default(null),
+  deferUntil: shortText8.nullable().default(null),
   detail: external_exports.string().max(2e3),
-  createdAt: shortText7
+  createdAt: shortText8
 }).passthrough();
 function schedulingDir(workspace, jobId) {
-  return assertInsideWorkspace(workspace.rootDir, import_path43.default.join(jobDir(workspace, jobId), "scheduling"));
+  return assertInsideWorkspace(workspace.rootDir, import_path44.default.join(jobDir(workspace, jobId), "scheduling"));
 }
 function decisionsFile(workspace, jobId) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path43.default.join(schedulingDir(workspace, jobId), "decisions.jsonl")
+    import_path44.default.join(schedulingDir(workspace, jobId), "decisions.jsonl")
   );
 }
 function appendSchedulingDecision(workspace, record32, options) {
   const validated = schedulingDecisionSchema.parse(record32);
   const dir = schedulingDir(workspace, record32.jobId);
-  (0, import_fs37.mkdirSync)(dir, { recursive: true });
+  (0, import_fs38.mkdirSync)(dir, { recursive: true });
   const file = decisionsFile(workspace, record32.jobId);
   const line = `${JSON.stringify(validated)}
 `;
-  const existing = (0, import_fs37.existsSync)(file) ? (0, import_fs37.readFileSync)(file, "utf8") : "";
+  const existing = (0, import_fs38.existsSync)(file) ? (0, import_fs38.readFileSync)(file, "utf8") : "";
   const lines = existing.split("\n").filter((entry) => entry.length > 0);
   if (lines.length + 1 > options.maxRecords) {
     const retained = [...lines, line.trimEnd()].slice(-options.maxRecords);
     writeFileAtomic(file, `${retained.join("\n")}
 `);
   } else {
-    (0, import_fs37.appendFileSync)(file, line, "utf8");
+    (0, import_fs38.appendFileSync)(file, line, "utf8");
   }
   return validated;
 }
 function readSchedulingDecisions(workspace, jobId, options = {}) {
   const file = decisionsFile(workspace, jobId);
-  if (!(0, import_fs37.existsSync)(file)) return [];
+  if (!(0, import_fs38.existsSync)(file)) return [];
   const records = [];
-  for (const line of (0, import_fs37.readFileSync)(file, "utf8").split("\n")) {
+  for (const line of (0, import_fs38.readFileSync)(file, "utf8").split("\n")) {
     if (line.length === 0) continue;
     try {
       const parsed = schedulingDecisionSchema.safeParse(JSON.parse(line));
@@ -63048,7 +63721,7 @@ function validateEditPaths(workspace, edits, protectedPaths) {
   let totalBytes = 0;
   for (const edit of edits) {
     const normalized = edit.path.replace(/\\/g, "/");
-    if (import_path44.default.isAbsolute(normalized) || normalized.includes("..")) {
+    if (import_path45.default.isAbsolute(normalized) || normalized.includes("..")) {
       failures.push({ path: edit.path, problem: 'paths must be workspace-relative without ".."' });
       continue;
     }
@@ -63067,7 +63740,7 @@ function validateEditPaths(workspace, edits, protectedPaths) {
       continue;
     }
     try {
-      assertInsideWorkspace(workspace.rootDir, import_path44.default.join(workspace.rootDir, normalized));
+      assertInsideWorkspace(workspace.rootDir, import_path45.default.join(workspace.rootDir, normalized));
     } catch {
       failures.push({ path: edit.path, problem: "path escapes the workspace" });
       continue;
@@ -63088,10 +63761,10 @@ function applyEdits(workspace, edits) {
     const normalized = edit.path.replace(/\\/g, "/");
     const target = assertInsideWorkspace(
       workspace.rootDir,
-      import_path44.default.join(workspace.rootDir, normalized)
+      import_path45.default.join(workspace.rootDir, normalized)
     );
-    (0, import_fs38.mkdirSync)(import_path44.default.dirname(target), { recursive: true });
-    (0, import_fs38.writeFileSync)(target, edit.content, "utf8");
+    (0, import_fs39.mkdirSync)(import_path45.default.dirname(target), { recursive: true });
+    (0, import_fs39.writeFileSync)(target, edit.content, "utf8");
     written.push(normalized);
   }
   return written;
@@ -63437,13 +64110,16 @@ function buildHarnessBootstrapPrompt(input) {
   return lines.join("\n");
 }
 async function dispatchLocalHarnessExecution(input) {
+  const lane = input.lane ?? "LOCAL";
+  const label = lane === "API" ? "api harness" : "local harness";
+  const source = lane === "API" ? "api-harness" : "local-harness";
   const deps = {
     workspace: input.workspace,
     config: input.config,
     ...input.clock !== void 0 ? { clock: input.clock } : {},
     ...input.idFactory !== void 0 ? { idFactory: input.idFactory } : {},
     ...input.signal !== void 0 ? { signal: input.signal } : {},
-    host: "local-harness"
+    host: source
   };
   let runner;
   try {
@@ -63451,8 +64127,8 @@ async function dispatchLocalHarnessExecution(input) {
   } catch (cause) {
     return failureResult2(
       "CAPABILITY_UNAVAILABLE",
-      `The bound local harness profile "${input.profileName}" is not registered: ${cause instanceof Error ? cause.message : String(cause)}`,
-      "local-harness",
+      `The bound ${label} profile "${input.profileName}" is not registered: ${cause instanceof Error ? cause.message : String(cause)}`,
+      source,
       "INFRASTRUCTURE",
       false
     );
@@ -63472,7 +64148,7 @@ async function dispatchLocalHarnessExecution(input) {
       false
     );
   }
-  input.onProgress?.(`local harness: run ${begin.runId} started for task ${begin.task.id}`);
+  input.onProgress?.(`${label}: run ${begin.runId} started for task ${begin.task.id}`);
   const abort = async (reason) => {
     try {
       await abortInteractiveTask(deps, { runId: begin.runId, reason: reason.slice(0, 500) });
@@ -63509,8 +64185,8 @@ async function dispatchLocalHarnessExecution(input) {
     await abort("cancelled before the harness started");
     return failureResult2(
       "CANCELLED",
-      "The local harness attempt was cancelled.",
-      "local-harness",
+      `The ${label} attempt was cancelled.`,
+      source,
       "CANCELLED",
       false
     );
@@ -63538,8 +64214,8 @@ async function dispatchLocalHarnessExecution(input) {
     await abort(`harness runtime error: ${cause instanceof Error ? cause.message : String(cause)}`);
     return failureResult2(
       "TRANSIENT_TOOL",
-      `The local harness runtime failed: ${cause instanceof Error ? cause.message : String(cause)}`,
-      "local-harness",
+      `The ${label} runtime failed: ${cause instanceof Error ? cause.message : String(cause)}`,
+      source,
       "INFRASTRUCTURE",
       false
     );
@@ -63561,8 +64237,8 @@ async function dispatchLocalHarnessExecution(input) {
     return {
       ...failureResult2(
         category2,
-        `The local harness attempt ended "${result.outcome}": ${result.failureReason ?? "no detail reported"}`,
-        `local-harness:${result.error?.code ?? result.outcome}`,
+        `The ${label} attempt ended "${result.outcome}": ${result.failureReason ?? "no detail reported"}`,
+        `${source}:${result.error?.code ?? result.outcome}`,
         kind,
         // Only insufficient intelligence argues for the strong lane. A dead
         // runtime argues for a working runtime.
@@ -63574,11 +64250,11 @@ async function dispatchLocalHarnessExecution(input) {
       ...kind === "INTELLIGENCE" ? { escalationReason: (result.failureReason ?? `harness outcome ${result.outcome}`).slice(0, 500) } : {}
     };
   }
-  input.onProgress?.("local harness: agent reported completion; running trusted verification");
+  input.onProgress?.(`${label}: agent reported completion; running trusted verification`);
   const report = result.report;
   const completion = await completeInteractiveTask(deps, {
     runId: begin.runId,
-    summary: `[local-harness] ${report?.summary ?? "harness attempt"}`.slice(0, 2e3),
+    summary: `[${source}] ${report?.summary ?? "harness attempt"}`.slice(0, 2e3),
     ...report?.changedFiles !== void 0 ? { reportedChangedFiles: [...report.changedFiles] } : {},
     ...report?.testsReported !== void 0 ? { reportedTests: report.testsReported.map((entry) => ({ name: entry.name, status: entry.status })) } : {},
     ...report?.remainingRisks !== void 0 ? { reportedRisks: [...report.remainingRisks] } : {}
@@ -63624,8 +64300,8 @@ ${command.stderrTail}`).join("\n");
     runId: final.runId,
     failure: {
       category,
-      message: final.failureReason ?? `The local harness attempt ended with evidence status "${final.evidenceStatus}".`,
-      source: category === "VERIFICATION_FAILURE" ? final.verification.commands.find((command) => !command.passed)?.name ?? "verification" : "local-harness",
+      message: final.failureReason ?? `The ${label} attempt ended with evidence status "${final.evidenceStatus}".`,
+      source: category === "VERIFICATION_FAILURE" ? final.verification.commands.find((command) => !command.passed)?.name ?? "verification" : source,
       ...verificationOutput.length > 0 ? { output: verificationOutput.slice(0, 16384) } : {}
     },
     changedFiles,
@@ -63680,6 +64356,330 @@ function observeHarnessActivity(result) {
     filesRead: null,
     compactions,
     cachedInputTokens: result.usage?.cachedInputTokens ?? null
+  };
+}
+function dispatchApiHarnessExecution(input) {
+  return dispatchLocalHarnessExecution({ ...input, lane: "API" });
+}
+function costOf(tokens, costPerMillion) {
+  return tokens / 1e6 * costPerMillion;
+}
+function roundUsd(value) {
+  return Math.round(value * 1e4) / 1e4;
+}
+function estimateApiCost(input) {
+  const { estimate, pricing } = input;
+  const safetyMultiplier = input.safetyMultiplier;
+  const unknown2 = (detail) => ({
+    estimatedInputTokens: estimate.expectedInputTokens,
+    estimatedOutputTokens: estimate.expectedOutputTokens,
+    estimatedCostUsd: null,
+    safeCostUsd: null,
+    currency: "USD",
+    confidence: "low",
+    pricingSource: pricing?.source ?? null,
+    estimateBasis: estimate.tokenBasis,
+    safetyMultiplier,
+    costSource: "UNKNOWN",
+    detail
+  });
+  if (pricing === null) {
+    return unknown2(
+      "No API pricing is configured (orchestration.jobs.scheduler.api.pricing is null), so the monetary cost of this attempt cannot be estimated. Unknown cost is never treated as zero."
+    );
+  }
+  if (estimate.expectedInputTokens === null || estimate.expectedOutputTokens === null) {
+    return unknown2(
+      "The workload profiler could not estimate token usage for this task, so its monetary cost is unknown. Unknown cost is never treated as zero."
+    );
+  }
+  const inputCost = costOf(estimate.expectedInputTokens, pricing.inputCostPerMillion);
+  const outputCost = costOf(estimate.expectedOutputTokens, pricing.outputCostPerMillion);
+  const estimatedCostUsd = roundUsd(inputCost + outputCost);
+  const safeCostUsd = roundUsd(estimatedCostUsd * safetyMultiplier);
+  const confidence = estimate.tokenBasis === "historical" ? "medium" : "low";
+  return {
+    estimatedInputTokens: estimate.expectedInputTokens,
+    estimatedOutputTokens: estimate.expectedOutputTokens,
+    estimatedCostUsd,
+    safeCostUsd,
+    currency: "USD",
+    confidence,
+    pricingSource: pricing.source,
+    estimateBasis: estimate.tokenBasis,
+    safetyMultiplier,
+    costSource: "ESTIMATED_PRE_DISPATCH",
+    detail: `~${estimate.expectedInputTokens.toLocaleString("en-US")} input + ${estimate.expectedOutputTokens.toLocaleString("en-US")} output tokens at the configured price table (${pricing.source}) is ~$${estimatedCostUsd.toFixed(4)}; budget admission uses the x${safetyMultiplier} safe figure $${safeCostUsd.toFixed(4)}.`
+  };
+}
+function computeObservedApiCost(input) {
+  const usage = input.usage;
+  const inputTokens = usage?.inputTokens ?? null;
+  const outputTokens = usage?.outputTokens ?? null;
+  const cachedTokens = usage?.cachedInputTokens ?? null;
+  if (typeof usage?.costUsd === "number" && Number.isFinite(usage.costUsd)) {
+    return {
+      costUsd: roundUsd(usage.costUsd),
+      source: "PROVIDER_REPORTED",
+      inputTokens,
+      outputTokens,
+      cachedTokens,
+      detail: "The provider reported the monetary cost of this attempt directly."
+    };
+  }
+  if (input.pricing !== null && (inputTokens !== null || outputTokens !== null)) {
+    const pricing = input.pricing;
+    const billableInput = cachedTokens !== null && pricing.cachedInputCostPerMillion !== null && inputTokens !== null ? Math.max(0, inputTokens - cachedTokens) : inputTokens;
+    const cachedCost = cachedTokens !== null && pricing.cachedInputCostPerMillion !== null ? costOf(cachedTokens, pricing.cachedInputCostPerMillion) : 0;
+    const computed = costOf(billableInput ?? 0, pricing.inputCostPerMillion) + costOf(outputTokens ?? 0, pricing.outputCostPerMillion) + cachedCost;
+    return {
+      costUsd: roundUsd(computed),
+      source: "COMPUTED_FROM_USAGE",
+      inputTokens,
+      outputTokens,
+      cachedTokens,
+      detail: `Computed from the attempt\u2019s reported token usage and the configured price table (${pricing.source}); the provider did not state a monetary cost.`
+    };
+  }
+  return {
+    costUsd: null,
+    source: "UNKNOWN",
+    inputTokens,
+    outputTokens,
+    cachedTokens,
+    detail: input.interrupted === true ? "The attempt was interrupted before usage was reported; remote usage cannot be ruled out, so its cost stays UNKNOWN and its budget reservation is not released." : "Neither a provider-reported cost nor priceable token usage is available; the cost of this attempt is UNKNOWN, which is not the same as zero."
+  };
+}
+var API_SPEND_APPROVAL_SCHEMA_VERSION = "1.0.0";
+var shortText9 = external_exports.string().min(1).max(200);
+var apiSpendApprovalSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  approvalId: shortText9,
+  jobId: shortText9,
+  nodeId: shortText9,
+  taskId: shortText9,
+  /**
+   * Deterministic fingerprint of the WORK this approval covers. A
+   * materially changed task produces a different fingerprint and the old
+   * approval no longer authorizes anything.
+   */
+  taskFingerprint: shortText9,
+  /** The API profile the approval is scoped to. */
+  profileName: shortText9,
+  /** Maximum authorized spend for this task, in USD. */
+  maxAuthorizedCostUsd: external_exports.number().min(0),
+  currency: external_exports.literal("USD").default("USD"),
+  /** The safe estimate that justified the request, when one existed. */
+  estimatedCostUsd: external_exports.number().min(0).nullable().default(null),
+  status: external_exports.enum(API_APPROVAL_STATUSES),
+  /** Why the bridge was proposed — recorded verbatim for the decider. */
+  rationale: external_exports.string().max(2e3).default(""),
+  requestedAt: shortText9,
+  /** After this the approval is stale even if never used. */
+  expiresAt: shortText9,
+  decidedAt: shortText9.nullable().default(null),
+  /** Who decided. Human identity only; never a model or a runner. */
+  decidedBy: shortText9.nullable().default(null),
+  decisionNote: external_exports.string().max(1e3).nullable().default(null),
+  /** The attempt that consumed this approval, when one did. */
+  consumedByAttemptId: shortText9.nullable().default(null)
+}).passthrough();
+function taskSpendFingerprint(node) {
+  const canonical = JSON.stringify({
+    nodeId: node.nodeId,
+    taskId: node.parentTaskId,
+    title: node.title,
+    taskFingerprint: node.taskFingerprint,
+    planRevision: node.planRevision,
+    dependsOn: [...node.dependsOn].sort()
+  });
+  return sha256Hex(canonical).slice(0, 32);
+}
+var ID_PATTERN5 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+function approvalsDir(workspace, jobId) {
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path46.default.join(jobDir(workspace, jobId), "api-approvals")
+  );
+}
+function approvalFile(workspace, jobId, approvalId) {
+  if (!ID_PATTERN5.test(approvalId)) {
+    throw new OrchestrationError("SBO049", `Invalid approval id "${approvalId}".`);
+  }
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path46.default.join(approvalsDir(workspace, jobId), `${approvalId}.json`)
+  );
+}
+function writeApiSpendApproval(workspace, approval) {
+  const validated = apiSpendApprovalSchema.parse(approval);
+  const file = approvalFile(workspace, validated.jobId, validated.approvalId);
+  (0, import_fs40.mkdirSync)(import_path46.default.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
+`);
+  return validated;
+}
+function listApiSpendApprovals(workspace, jobId, options = {}) {
+  const dir = approvalsDir(workspace, jobId);
+  if (!(0, import_fs40.existsSync)(dir)) return [];
+  const approvals = [];
+  for (const name of (0, import_fs40.readdirSync)(dir).sort()) {
+    if (!name.endsWith(".json")) continue;
+    try {
+      const parsed = apiSpendApprovalSchema.safeParse(
+        JSON.parse((0, import_fs40.readFileSync)(import_path46.default.join(dir, name), "utf8"))
+      );
+      if (parsed.success) approvals.push(parsed.data);
+    } catch {
+    }
+  }
+  approvals.sort((a2, b) => a2.requestedAt.localeCompare(b.requestedAt));
+  return options.nodeId === void 0 ? approvals : approvals.filter((entry) => entry.nodeId === options.nodeId);
+}
+function readApiSpendApproval(workspace, jobId, approvalId) {
+  const file = approvalFile(workspace, jobId, approvalId);
+  if (!(0, import_fs40.existsSync)(file)) return void 0;
+  const parsed = apiSpendApprovalSchema.safeParse(JSON.parse((0, import_fs40.readFileSync)(file, "utf8")));
+  return parsed.success ? parsed.data : void 0;
+}
+function requestApiSpendApproval(input) {
+  const existing = listApiSpendApprovals(input.workspace, input.jobId, { nodeId: input.nodeId }).filter(
+    (entry) => entry.taskFingerprint === input.taskFingerprint && (entry.status === "REQUESTED" || entry.status === "APPROVED")
+  ).filter((entry) => Date.parse(entry.expiresAt) > input.now.getTime());
+  const live = existing[existing.length - 1];
+  if (live !== void 0) return { approval: live, created: false };
+  const approval = {
+    schemaVersion: API_SPEND_APPROVAL_SCHEMA_VERSION,
+    approvalId: input.approvalId,
+    jobId: input.jobId,
+    nodeId: input.nodeId,
+    taskId: input.taskId,
+    taskFingerprint: input.taskFingerprint,
+    profileName: input.profileName,
+    maxAuthorizedCostUsd: input.maxAuthorizedCostUsd,
+    currency: "USD",
+    estimatedCostUsd: input.estimatedCostUsd,
+    status: "REQUESTED",
+    rationale: input.rationale.slice(0, 2e3),
+    requestedAt: input.now.toISOString(),
+    expiresAt: new Date(input.now.getTime() + input.ttlMs).toISOString(),
+    decidedAt: null,
+    decidedBy: null,
+    decisionNote: null,
+    consumedByAttemptId: null
+  };
+  return { approval: writeApiSpendApproval(input.workspace, approval), created: true };
+}
+function decideApiSpendApproval(input) {
+  const approval = readApiSpendApproval(input.workspace, input.jobId, input.approvalId);
+  if (approval === void 0) {
+    throw new OrchestrationError(
+      "SBO049",
+      `API spend approval ${input.approvalId} of job ${input.jobId} was not found.`
+    );
+  }
+  if (approval.status !== "REQUESTED") {
+    throw new OrchestrationError(
+      "SBO049",
+      `Approval ${input.approvalId} is already ${approval.status}; decided approvals are immutable.`
+    );
+  }
+  return writeApiSpendApproval(input.workspace, {
+    ...approval,
+    status: input.decision,
+    decidedAt: input.now.toISOString(),
+    decidedBy: input.decidedBy.slice(0, 200),
+    decisionNote: input.note?.slice(0, 1e3) ?? null,
+    maxAuthorizedCostUsd: input.maxAuthorizedCostUsd ?? approval.maxAuthorizedCostUsd
+  });
+}
+function consumeApiSpendApproval(workspace, jobId, approvalId, attemptId) {
+  const approval = readApiSpendApproval(workspace, jobId, approvalId);
+  if (approval === void 0) {
+    throw new OrchestrationError("SBO049", `API spend approval ${approvalId} was not found.`);
+  }
+  return writeApiSpendApproval(workspace, {
+    ...approval,
+    status: "CONSUMED",
+    consumedByAttemptId: attemptId
+  });
+}
+function checkApiSpendApproval(input) {
+  const forNode = input.approvals.filter((entry) => entry.nodeId === input.nodeId);
+  const pending = [...forNode].reverse().find(
+    (entry) => entry.status === "REQUESTED" && entry.taskFingerprint === input.taskFingerprint && Date.parse(entry.expiresAt) > input.now.getTime()
+  );
+  const approved = [...forNode].reverse().find((entry) => entry.status === "APPROVED");
+  if (approved === void 0) {
+    const denied = [...forNode].reverse().find((entry) => entry.status === "DENIED");
+    if (denied !== void 0 && denied.taskFingerprint === input.taskFingerprint) {
+      return {
+        valid: false,
+        approval: denied,
+        pending,
+        reason: "DENIED",
+        detail: `Paid execution for task ${denied.taskId} was explicitly denied${denied.decisionNote !== null ? `: ${denied.decisionNote}` : "."}`
+      };
+    }
+    return {
+      valid: false,
+      approval: void 0,
+      pending,
+      reason: pending !== void 0 ? "NOT_DECIDED" : "NONE_FOUND",
+      detail: pending !== void 0 ? `An API spend approval request is open (${pending.approvalId}) and has not been decided.` : "No API spend approval exists for this task."
+    };
+  }
+  if (approved.taskFingerprint !== input.taskFingerprint) {
+    return {
+      valid: false,
+      approval: approved,
+      pending,
+      reason: "FINGERPRINT_CHANGED",
+      detail: `Approval ${approved.approvalId} covers a different version of this task (fingerprint ${approved.taskFingerprint} vs ${input.taskFingerprint}); materially changed work needs a fresh authorization.`
+    };
+  }
+  if (Date.parse(approved.expiresAt) <= input.now.getTime()) {
+    return {
+      valid: false,
+      approval: approved,
+      pending,
+      reason: "EXPIRED",
+      detail: `Approval ${approved.approvalId} expired at ${approved.expiresAt}.`
+    };
+  }
+  if (approved.profileName !== input.profileName) {
+    return {
+      valid: false,
+      approval: approved,
+      pending,
+      reason: "PROFILE_CHANGED",
+      detail: `Approval ${approved.approvalId} authorizes profile "${approved.profileName}", but the bound API profile is now "${input.profileName}".`
+    };
+  }
+  if (input.safeCostUsd === null) {
+    return {
+      valid: false,
+      approval: approved,
+      pending,
+      reason: "COST_EXCEEDS_AUTHORIZATION",
+      detail: `The cost of this attempt is unknown, so it cannot be shown to fall inside the authorized maximum of $${approved.maxAuthorizedCostUsd.toFixed(4)}.`
+    };
+  }
+  if (input.safeCostUsd > approved.maxAuthorizedCostUsd) {
+    return {
+      valid: false,
+      approval: approved,
+      pending,
+      reason: "COST_EXCEEDS_AUTHORIZATION",
+      detail: `The safe estimate $${input.safeCostUsd.toFixed(4)} exceeds the authorized maximum $${approved.maxAuthorizedCostUsd.toFixed(4)} on approval ${approved.approvalId}.`
+    };
+  }
+  return {
+    valid: true,
+    approval: approved,
+    pending,
+    reason: void 0,
+    detail: `Approval ${approved.approvalId} authorizes up to $${approved.maxAuthorizedCostUsd.toFixed(4)} for this exact task version on profile "${approved.profileName}".`
   };
 }
 function contextBudgetFromPolicy(policy) {
@@ -63925,14 +64925,14 @@ var MANUAL_TELEMETRY_SOURCE = "manual-file";
 function quotaTelemetryFilePath(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path45.default.join(workspace.sidecarDir, QUOTA_TELEMETRY_FILE_NAME)
+    import_path47.default.join(workspace.sidecarDir, QUOTA_TELEMETRY_FILE_NAME)
   );
 }
 function readQuotaTelemetryFile(workspace) {
   const file = quotaTelemetryFilePath(workspace);
-  if (!(0, import_fs39.existsSync)(file)) return quotaTelemetryFileSchema.parse({});
+  if (!(0, import_fs41.existsSync)(file)) return quotaTelemetryFileSchema.parse({});
   try {
-    const parsed = quotaTelemetryFileSchema.safeParse(JSON.parse((0, import_fs39.readFileSync)(file, "utf8")));
+    const parsed = quotaTelemetryFileSchema.safeParse(JSON.parse((0, import_fs41.readFileSync)(file, "utf8")));
     return parsed.success ? parsed.data : quotaTelemetryFileSchema.parse({});
   } catch {
     return quotaTelemetryFileSchema.parse({});
@@ -64095,6 +65095,498 @@ function computeDynamicReserve(input) {
     basis: { timeComponent, weeklyPressureExtra, staleTelemetryExtra }
   };
 }
+function unbound(status, profileName, problems, base, extra = {}) {
+  return {
+    status,
+    available: false,
+    profileName,
+    runner: null,
+    provider: null,
+    model: null,
+    locality: "UNKNOWN",
+    localityEvidence: "not assessed",
+    credentialSources: [],
+    localityOverridden: false,
+    problems,
+    ...base,
+    ...extra
+  };
+}
+function resolveApiHarnessBinding(config2) {
+  const scheduler3 = config2.orchestration.jobs.scheduler;
+  const policy = scheduler3.api;
+  const base = {
+    maxWallTimeMs: policy.maxApiWallTimeMs,
+    spendMode: policy.spendMode,
+    pricingConfigured: policy.pricing !== null
+  };
+  const name = policy.harnessProfile;
+  if (name === null) {
+    return unbound(
+      "NOT_CONFIGURED",
+      null,
+      [
+        "no harness profile is bound to the API lane (orchestration.jobs.scheduler.api.harnessProfile is null)"
+      ],
+      base
+    );
+  }
+  if (scheduler3.localExecution.harnessProfile === name) {
+    return unbound(
+      "BOUND_TO_LOCAL_LANE",
+      name,
+      [
+        `profile "${name}" is already bound to the LOCAL lane; a single profile cannot serve both the zero-marginal-cost lane and the metered lane`
+      ],
+      base
+    );
+  }
+  const profile = config2.runnerProfiles[name];
+  if (profile === void 0) {
+    return unbound(
+      "PROFILE_MISSING",
+      name,
+      [`the bound API harness profile "${name}" does not exist in runnerProfiles`],
+      base
+    );
+  }
+  if (!isDeepSeekHarnessProfile(profile)) {
+    return unbound(
+      "PROFILE_NOT_HARNESS",
+      name,
+      [
+        `profile "${name}" is a "${profile.runner}" profile; the API harness binding requires a harness runner (vNext.5 uses the already-adopted deepseek-harness)`
+      ],
+      base,
+      { runner: profile.runner }
+    );
+  }
+  const harness = profile;
+  const locality = verifyDshComputeLocality({ config: harness });
+  const identity3 = {
+    profileName: name,
+    runner: harness.runner,
+    provider: harness.provider,
+    model: harness.model,
+    locality: locality.locality,
+    localityEvidence: locality.evidence,
+    // For the API lane these are credential SOURCES, not risks.
+    credentialSources: locality.credentialRisks
+  };
+  if (!harness.enabled) {
+    return unbound("PROFILE_DISABLED", name, [`harness profile "${name}" is disabled`], base, identity3);
+  }
+  const gaps = dshConfigurationGaps(harness);
+  if (gaps.length > 0) {
+    return unbound("PROFILE_INCOMPLETE", name, gaps, base, identity3);
+  }
+  if (harness.workspaceBoundary !== "runtime-profile") {
+    return unbound(
+      "BOUNDARY_UNCONFIRMED",
+      name,
+      [
+        `harness profile "${name}" has an unconfirmed workspace write boundary; task execution fails closed until the runtime profile is attested`
+      ],
+      base,
+      identity3
+    );
+  }
+  if (locality.locality === "LOCAL") {
+    return unbound(
+      "LOCAL_COMPUTE",
+      name,
+      [
+        `harness profile "${name}" runs verified LOCAL compute and can never serve the metered API lane: ${locality.evidence}`
+      ],
+      base,
+      identity3
+    );
+  }
+  if (locality.locality === "UNKNOWN") {
+    if (policy.allowUnverifiedLocality) {
+      return {
+        ...base,
+        ...identity3,
+        status: "BOUND",
+        available: true,
+        localityOverridden: true,
+        problems: [
+          `compute locality is UNKNOWN and admitted only by the experimental allowUnverifiedLocality override: ${locality.evidence}`
+        ]
+      };
+    }
+    return unbound(
+      "NOT_VERIFIED_REMOTE",
+      name,
+      [
+        `harness profile "${name}" is not verified remote, so its economics are unknown: ` + locality.evidence
+      ],
+      base,
+      identity3
+    );
+  }
+  return {
+    ...base,
+    ...identity3,
+    status: "BOUND",
+    available: true,
+    localityOverridden: false,
+    problems: []
+  };
+}
+function subscriptionGapReasonFor(reasonCode) {
+  switch (reasonCode) {
+    case "FIVE_HOUR_EXHAUSTED":
+      return "FIVE_HOUR_EXHAUSTED";
+    case "WEEKLY_EXHAUSTED":
+      return "WEEKLY_EXHAUSTED";
+    case "PRE_RESET_BURN_UNSAFE":
+      return "PRE_RESET_BURN_UNSAFE";
+    case "CONSERVE_QUOTA":
+    case "WEEKLY_QUOTA_PRESSURE":
+    case "STALE_TELEMETRY_CONSERVATIVE":
+      return "SUBSCRIPTION_TEMPORARILY_UNAVAILABLE";
+    default:
+      return void 0;
+  }
+}
+function buildSubscriptionGapForecast(input) {
+  const { reason, forecast, now: now4 } = input;
+  if (reason === "SUBSCRIPTION_WORKER_UNAVAILABLE") {
+    return {
+      reason,
+      expectedAvailableAt: null,
+      timeUntilAvailableMs: null,
+      confidence: "UNKNOWN",
+      detail: "No subscription worker is available; this is a configuration gap, not a quota window, so no return time exists."
+    };
+  }
+  const preferred = input.deferUntil ?? (reason === "WEEKLY_EXHAUSTED" ? forecast.weeklyResetAt : forecast.fiveHourResetAt);
+  if (preferred === null) {
+    return {
+      reason,
+      expectedAvailableAt: null,
+      timeUntilAvailableMs: null,
+      confidence: "UNKNOWN",
+      detail: "Subscription capacity is unavailable and no reset time has been observed; the gap duration is unknown and is not guessed."
+    };
+  }
+  const parsed = Date.parse(preferred);
+  if (Number.isNaN(parsed)) {
+    return {
+      reason,
+      expectedAvailableAt: null,
+      timeUntilAvailableMs: null,
+      confidence: "UNKNOWN",
+      detail: `The recorded reset time "${preferred}" is not a parseable timestamp; the gap duration is unknown.`
+    };
+  }
+  const timeUntilAvailableMs = Math.max(0, parsed - now4.getTime());
+  const confidence = forecast.telemetryFreshness === "FRESH" ? "HIGH" : "MEDIUM";
+  return {
+    reason,
+    expectedAvailableAt: new Date(parsed).toISOString(),
+    timeUntilAvailableMs,
+    confidence,
+    detail: `Subscription capacity (${reason}) is expected back in ${formatDuration(timeUntilAvailableMs)} at ${new Date(parsed).toISOString()} (telemetry ${forecast.telemetryFreshness}).`
+  };
+}
+function formatDuration(ms) {
+  if (ms < 6e4) return `${Math.round(ms / 1e3)}s`;
+  const minutes = Math.round(ms / 6e4);
+  if (minutes < 90) return `${minutes}m`;
+  const hours = ms / 36e5;
+  if (hours < 48) return `${hours.toFixed(1)}h`;
+  return `${(ms / 864e5).toFixed(1)}d`;
+}
+var UNFINISHED_STATUSES = [
+  "PENDING",
+  "READY",
+  "RUNNING",
+  "REPAIRING",
+  "BLOCKED",
+  "FAILED"
+];
+function isUnfinished(node) {
+  return UNFINISHED_STATUSES.includes(node.status);
+}
+function transitiveDependents(graph, nodeId) {
+  const dependents = /* @__PURE__ */ new Set();
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const node of graph.nodes) {
+      if (node.nodeId === nodeId || dependents.has(node.nodeId)) continue;
+      const depends = node.dependsOn.some(
+        (dependency) => dependency === nodeId || dependents.has(dependency)
+      );
+      if (depends) {
+        dependents.add(node.nodeId);
+        changed = true;
+      }
+    }
+  }
+  return dependents;
+}
+function assessDelaySensitivity(input) {
+  const graph = input.graph;
+  const signals2 = [];
+  const readyLocal = (input.readyLocalNodeIds ?? []).filter((id) => id !== input.nodeId);
+  const readyAlternatives = (input.readyRunnableNodeIds ?? []).filter((id) => id !== input.nodeId);
+  if (graph === void 0) {
+    return {
+      level: "LOW",
+      blockedDependents: 0,
+      criticalPath: false,
+      readyLocalBacklog: readyLocal.length,
+      readyAlternatives: readyAlternatives.length,
+      signals: [
+        { signal: "no-graph", evidence: "no runtime graph is available to assess blocking" }
+      ]
+    };
+  }
+  const dependents = transitiveDependents(graph, input.nodeId);
+  const blockedDependents = graph.nodes.filter(
+    (node) => dependents.has(node.nodeId) && isUnfinished(node)
+  ).length;
+  const otherUnfinished = graph.nodes.filter(
+    (node) => node.nodeId !== input.nodeId && isUnfinished(node)
+  );
+  const criticalPath = otherUnfinished.length === 0 || otherUnfinished.every(
+    (node) => dependents.has(node.nodeId) || !readyAlternatives.includes(node.nodeId)
+  );
+  if (blockedDependents > 0) {
+    signals2.push({
+      signal: "blocked-dependents",
+      evidence: `${blockedDependents} unfinished task(s) depend on this one`
+    });
+  }
+  if (criticalPath) {
+    signals2.push({
+      signal: "critical-path",
+      evidence: "no other ready task can make progress while this one waits"
+    });
+  }
+  if (readyLocal.length > 0) {
+    signals2.push({
+      signal: "ready-local-backlog",
+      evidence: `${readyLocal.length} task(s) can run on the LOCAL lane meanwhile`
+    });
+  }
+  if (readyAlternatives.length > 0) {
+    signals2.push({
+      signal: "ready-alternatives",
+      evidence: `${readyAlternatives.length} other ready task(s) could run instead`
+    });
+  }
+  let level;
+  if (criticalPath && readyAlternatives.length === 0) {
+    level = "HIGH";
+  } else if (blockedDependents >= 2 && readyLocal.length === 0) {
+    level = "HIGH";
+  } else if (blockedDependents > 0 || criticalPath) {
+    level = "MEDIUM";
+  } else {
+    level = "LOW";
+  }
+  if (level === "HIGH" && readyLocal.length > 0) {
+    signals2.push({
+      signal: "critical-path-exception",
+      evidence: "the task blocks the job even though local work remains ready; blocking wins, and the available local work is recorded on the decision"
+    });
+  }
+  if (signals2.length === 0) {
+    signals2.push({ signal: "no-blocking", evidence: "nothing waits on this task" });
+  }
+  return {
+    level,
+    blockedDependents,
+    criticalPath,
+    readyLocalBacklog: readyLocal.length,
+    readyAlternatives: readyAlternatives.length,
+    signals: signals2
+  };
+}
+function delaySensitivityRank(level) {
+  return level === "HIGH" ? 3 : level === "MEDIUM" ? 2 : 1;
+}
+function planApiGapBridge(input) {
+  const { policy, binding, gap, delaySensitivity, estimate } = input;
+  const gapPolicy = policy.gap;
+  const defer = (reasonCode, detail, bridgeProposed = false) => ({
+    decision: "DEFER",
+    reasonCode,
+    deferUntil: gap.expectedAvailableAt,
+    gap,
+    delaySensitivity,
+    cost: input.cost,
+    budget: input.budget,
+    approval: input.approval,
+    bridgeProposed,
+    detail
+  });
+  if (input.subscriptionAvailable) {
+    return defer(
+      "API_MAX_RETURNED_NEXT_TASK_SUBSCRIPTION",
+      "Subscription capacity can take this work; the paid lane is not considered while prepaid strong compute is available."
+    );
+  }
+  if (policy.spendMode === "DISABLED") {
+    return defer(
+      "API_DISABLED",
+      "Paid API execution is not authorized (spend mode DISABLED); the task stays durably pending until subscription capacity returns."
+    );
+  }
+  if (!binding.available) {
+    return defer(
+      "API_BINDING_UNAVAILABLE",
+      `No usable API binding: ${binding.status}${binding.problems[0] !== void 0 ? ` \u2014 ${binding.problems[0]}` : "."}`
+    );
+  }
+  if (gapPolicy.strongTasksOnly && estimate.localSuitability !== "STRONG_REQUIRED") {
+    return defer(
+      "API_STRONG_TASK_ONLY",
+      `The paid lane takes strong work only; this task is ${estimate.localSuitability} and belongs on the local lane.`
+    );
+  }
+  const timeUntil = gap.timeUntilAvailableMs;
+  const materialByReason = gap.reason === "WEEKLY_EXHAUSTED";
+  if (timeUntil === null) {
+    if (gapPolicy.unknownResetBehavior === "DEFER") {
+      return defer(
+        "API_GAP_SHORT_DEFER",
+        "Subscription capacity is unavailable with no known return time; policy defers rather than spending against an unknown gap."
+      );
+    }
+    return approvalPath(
+      input,
+      "Subscription capacity is unavailable with no known return time. Policy escalates unknown availability to a human rather than spending automatically."
+    );
+  }
+  if (!materialByReason && timeUntil <= gapPolicy.shortGapDeferMs) {
+    return defer(
+      "API_GAP_SHORT_DEFER",
+      `Prepaid capacity returns in ${formatDuration(timeUntil)}, at or under the ${formatDuration(gapPolicy.shortGapDeferMs)} short-gap threshold; waiting is cheaper than a paid handoff.`
+    );
+  }
+  if (delaySensitivityRank(delaySensitivity.level) < delaySensitivityRank(gapPolicy.minDelaySensitivity)) {
+    return defer(
+      "API_DELAY_TOLERABLE",
+      `Delay sensitivity is ${delaySensitivity.level} (policy requires at least ${gapPolicy.minDelaySensitivity}): ${delaySensitivity.signals[0]?.evidence ?? "nothing waits on this task"}.`
+    );
+  }
+  if (gapPolicy.preferReadyLocalBacklog && delaySensitivity.readyLocalBacklog > 0 && !delaySensitivity.criticalPath && !materialByReason) {
+    return defer(
+      "API_LOCAL_BACKLOG_FIRST",
+      `${delaySensitivity.readyLocalBacklog} local task(s) are ready to run at zero marginal cost; the job stays productive without paying to bridge this task.`
+    );
+  }
+  const wastefulThreshold = estimate.expectedWallTimeMs * gapPolicy.wastefulStartRatio;
+  if (timeUntil <= wastefulThreshold && delaySensitivity.level !== "HIGH") {
+    return defer(
+      "API_WASTEFUL_NEAR_RESET",
+      `Prepaid capacity returns in ${formatDuration(timeUntil)}, inside the first ${Math.round(gapPolicy.wastefulStartRatio * 100)}% of this task's expected ${formatDuration(estimate.expectedWallTimeMs)} runtime; most of the work would run on prepaid capacity anyway.`
+    );
+  }
+  const material = materialByReason || timeUntil >= gapPolicy.materialGapMs;
+  if (!material) {
+    return defer(
+      "API_GAP_SHORT_DEFER",
+      `The ${formatDuration(timeUntil)} gap is under the ${formatDuration(gapPolicy.materialGapMs)} materiality threshold; the task waits for prepaid capacity.`
+    );
+  }
+  const cost = input.cost;
+  if (cost === null || cost.safeCostUsd === null) {
+    return defer(
+      "API_COST_UNKNOWN",
+      `A ${formatDuration(timeUntil)} gap would justify bridging, but the cost of doing so cannot be estimated: ${cost?.detail ?? "no cost estimate was produced"} Unknown cost never authorizes automatic spend.`,
+      true
+    );
+  }
+  const budget = input.budget;
+  if (budget !== null && !budget.admissible) {
+    return {
+      ...defer(
+        budget.refusal === "TASK_ATTEMPTS" || budget.refusal === "JOB_ATTEMPTS" ? "API_ATTEMPTS_EXHAUSTED" : budget.refusal === "COST_UNKNOWN" ? "API_COST_UNKNOWN" : "API_BUDGET_EXCEEDED",
+        budget.detail,
+        true
+      )
+    };
+  }
+  const bridgeReason = gap.reason === "WEEKLY_EXHAUSTED" ? "API_WEEKLY_GAP_BRIDGE" : "API_GAP_BRIDGE_SELECTED";
+  const justification = `Subscription capacity (${gap.reason}) is out for ${formatDuration(timeUntil)}; delay sensitivity is ${delaySensitivity.level} (${delaySensitivity.blockedDependents} blocked dependent(s)${delaySensitivity.criticalPath ? ", critical path" : ""}); one bounded paid attempt on "${binding.profileName ?? "the bound profile"}" is estimated at $${(cost.estimatedCostUsd ?? 0).toFixed(4)} (safe $${cost.safeCostUsd.toFixed(4)}).`;
+  if (policy.spendMode === "MANUAL") {
+    return approvalPath(input, justification);
+  }
+  if (input.approval?.reason === "DENIED") {
+    return defer(
+      "API_APPROVAL_REQUIRED",
+      `Paid execution for this task was explicitly denied: ${input.approval.detail}`,
+      true
+    );
+  }
+  if (gapPolicy.minGapForAutoBoundedMs > timeUntil && !materialByReason) {
+    return defer(
+      "API_GAP_SHORT_DEFER",
+      `AUTO_BOUNDED requires a gap of at least ${formatDuration(gapPolicy.minGapForAutoBoundedMs)}; this gap is ${formatDuration(timeUntil)}.`
+    );
+  }
+  return {
+    decision: "API",
+    reasonCode: bridgeReason,
+    deferUntil: null,
+    gap,
+    delaySensitivity,
+    cost,
+    budget,
+    approval: input.approval,
+    bridgeProposed: true,
+    detail: `API gap bridge selected. ${justification}`
+  };
+}
+function approvalPath(input, justification) {
+  const check5 = input.approval;
+  if (check5?.valid === true) {
+    return {
+      decision: "API",
+      reasonCode: input.gap.reason === "WEEKLY_EXHAUSTED" ? "API_WEEKLY_GAP_BRIDGE" : "API_GAP_BRIDGE_SELECTED",
+      deferUntil: null,
+      gap: input.gap,
+      delaySensitivity: input.delaySensitivity,
+      cost: input.cost,
+      budget: input.budget,
+      approval: check5,
+      bridgeProposed: true,
+      detail: `Authorized paid execution. ${check5.detail} ${justification}`
+    };
+  }
+  if (check5?.reason === "DENIED") {
+    return {
+      decision: "DEFER",
+      reasonCode: "API_APPROVAL_REQUIRED",
+      deferUntil: input.gap.expectedAvailableAt,
+      gap: input.gap,
+      delaySensitivity: input.delaySensitivity,
+      cost: input.cost,
+      budget: input.budget,
+      approval: check5,
+      bridgeProposed: true,
+      detail: `Paid execution for this task was explicitly denied: ${check5.detail}`
+    };
+  }
+  return {
+    decision: "REQUIRE_APPROVAL",
+    reasonCode: "API_APPROVAL_REQUIRED",
+    deferUntil: null,
+    gap: input.gap,
+    delaySensitivity: input.delaySensitivity,
+    cost: input.cost,
+    budget: input.budget,
+    approval: check5,
+    bridgeProposed: true,
+    detail: `API execution would preserve continuity, but spending requires explicit authorization. ${justification}${check5?.detail !== void 0 ? ` ${check5.detail}` : ""}`
+  };
+}
 var LOCAL_SAFE_PATTERNS = [
   { category: "summarization", pattern: /\b(summari[sz]e|summary|digest)\b/i },
   { category: "log-processing", pattern: /\b(parse|cluster|triage)\b.*\blogs?\b|\blogs?\b.*\b(parse|parsing|clustering|triage)\b/i },
@@ -64175,7 +65667,7 @@ ${input.relatedSpecText ?? ""}`;
   signals2.push({ signal: "no-local-category", evidence: "no local-safe or local-try category matched" });
   return { class: "STRONG_REQUIRED", category: "general", signals: signals2 };
 }
-function unbound(status, profileName, problems, maxWallTimeMs, extra = {}) {
+function unbound2(status, profileName, problems, maxWallTimeMs, extra = {}) {
   return {
     status,
     available: false,
@@ -64196,7 +65688,7 @@ function resolveLocalHarnessBinding(config2) {
   const maxWallTimeMs = policy.maxHarnessWallTimeMs;
   const name = policy.harnessProfile;
   if (name === null) {
-    return unbound(
+    return unbound2(
       "NOT_CONFIGURED",
       null,
       [
@@ -64207,7 +65699,7 @@ function resolveLocalHarnessBinding(config2) {
   }
   const profile = config2.runnerProfiles[name];
   if (profile === void 0) {
-    return unbound(
+    return unbound2(
       "PROFILE_MISSING",
       name,
       [`the bound harness profile "${name}" does not exist in runnerProfiles`],
@@ -64215,7 +65707,7 @@ function resolveLocalHarnessBinding(config2) {
     );
   }
   if (!isDeepSeekHarnessProfile(profile)) {
-    return unbound(
+    return unbound2(
       "PROFILE_NOT_HARNESS",
       name,
       [
@@ -64238,14 +65730,14 @@ function resolveLocalHarnessBinding(config2) {
     maxWallTimeMs
   };
   if (!harness.enabled) {
-    return unbound("PROFILE_DISABLED", name, [`harness profile "${name}" is disabled`], maxWallTimeMs, base);
+    return unbound2("PROFILE_DISABLED", name, [`harness profile "${name}" is disabled`], maxWallTimeMs, base);
   }
   const gaps = dshConfigurationGaps(harness);
   if (gaps.length > 0) {
-    return unbound("PROFILE_INCOMPLETE", name, gaps, maxWallTimeMs, base);
+    return unbound2("PROFILE_INCOMPLETE", name, gaps, maxWallTimeMs, base);
   }
   if (harness.workspaceBoundary !== "runtime-profile") {
-    return unbound(
+    return unbound2(
       "BOUNDARY_UNCONFIRMED",
       name,
       [
@@ -64256,7 +65748,7 @@ function resolveLocalHarnessBinding(config2) {
     );
   }
   if (locality.locality === "REMOTE") {
-    return unbound(
+    return unbound2(
       "REMOTE_COMPUTE",
       name,
       [
@@ -64278,7 +65770,7 @@ function resolveLocalHarnessBinding(config2) {
         ]
       };
     }
-    return unbound(
+    return unbound2(
       "NOT_VERIFIED_LOCAL",
       name,
       [`harness profile "${name}" is not verified local: ${locality.evidence}`],
@@ -64498,6 +65990,8 @@ function createSchedulingRuntime(config2, workspace, input) {
   const harnessBinding = resolveLocalHarnessBinding(config2);
   const harnessUsable = harnessBinding.available && policy.localExecution.strategy !== "DIRECT_ONLY" && policy.allowLocalExecution && !input.missionDriven;
   const localExecutionAvailable = localWorkerAvailable && (localDirectAvailable || harnessUsable);
+  const apiBinding = resolveApiHarnessBinding(config2);
+  const apiBridgeEnabled = policy.api.harnessProfile !== null;
   const provider = input.options?.quotaTelemetryProvider ?? resolveQuotaTelemetryProvider(workspace, policy.telemetrySource);
   return {
     policy,
@@ -64508,6 +66002,9 @@ function createSchedulingRuntime(config2, workspace, input) {
     localDirectAvailable,
     harnessBinding,
     localExecutionOverride: input.options?.localExecutionMode,
+    apiBinding,
+    apiBridgeEnabled,
+    subscriptionWorkerAvailable: input.subscriptionWorkerAvailable ?? true,
     verificationAvailable: config2.verification.commands.length > 0,
     lastMode: void 0,
     lastReserveRatio: void 0,
@@ -64567,6 +66064,25 @@ async function buildLaneContext(runtime, deps, jobId, job, graph) {
   for (const node of ready) {
     routings.set(node.nodeId, assessNode(runtime, deps, jobId, job, node, forecast, reserve, observations));
   }
+  if (runtime.apiBridgeEnabled && ready.length > 0) {
+    const readyLocalNodeIds = ready.filter((node) => routings.get(node.nodeId)?.routing.lane === "LOCAL").map((node) => node.nodeId);
+    const readyRunnableNodeIds = ready.filter((node) => {
+      const lane = routings.get(node.nodeId)?.routing.lane;
+      return lane !== void 0 && lane !== "DEFER" && lane !== "REQUIRE_APPROVAL";
+    }).map((node) => node.nodeId);
+    for (const node of ready) {
+      const assessment = routings.get(node.nodeId);
+      if (assessment === void 0 || assessment.routing.lane !== "DEFER") continue;
+      const bridged = assessApiGapBridge(runtime, deps, jobId, job, node, assessment, {
+        forecast,
+        readyLocalNodeIds,
+        readyRunnableNodeIds,
+        graph,
+        now: (deps.clock ?? (() => /* @__PURE__ */ new Date()))()
+      });
+      if (bridged !== void 0) routings.set(node.nodeId, bridged);
+    }
+  }
   let overtakeCandidate;
   if (graph !== void 0 && ready.some((node) => routings.get(node.nodeId)?.routing.lane === "DEFER")) {
     for (const node of graph.nodes) {
@@ -64599,6 +66115,58 @@ async function buildLaneContext(runtime, deps, jobId, job, graph) {
     reserve,
     overtakeCandidate
   };
+}
+function assessApiGapBridge(runtime, deps, jobId, job, node, assessment, context) {
+  const apiPolicy = runtime.policy.api;
+  const gapReason = runtime.subscriptionWorkerAvailable ? subscriptionGapReasonFor(assessment.routing.reasonCode) : "SUBSCRIPTION_WORKER_UNAVAILABLE";
+  if (gapReason === void 0) return void 0;
+  const gap = buildSubscriptionGapForecast({
+    reason: gapReason,
+    forecast: context.forecast,
+    deferUntil: assessment.routing.deferUntil,
+    now: context.now
+  });
+  const delaySensitivity = assessDelaySensitivity({
+    graph: context.graph,
+    nodeId: node.nodeId,
+    readyLocalNodeIds: context.readyLocalNodeIds,
+    readyRunnableNodeIds: context.readyRunnableNodeIds
+  });
+  const cost = estimateApiCost({
+    estimate: assessment.estimate,
+    pricing: apiPolicy.pricing,
+    safetyMultiplier: apiPolicy.gap.costSafetyMultiplier
+  });
+  const budget = assessApiBudget({
+    state: readApiBudgetState(deps.workspace, jobId),
+    policy: apiPolicy.budget,
+    taskId: node.parentTaskId,
+    safeCostUsd: cost.safeCostUsd
+  });
+  const approval = runtime.apiBinding.profileName === null ? null : checkApiSpendApproval({
+    approvals: listApiSpendApprovals(deps.workspace, jobId, { nodeId: node.nodeId }),
+    nodeId: node.nodeId,
+    taskFingerprint: taskSpendFingerprint(node),
+    profileName: runtime.apiBinding.profileName,
+    safeCostUsd: cost.safeCostUsd,
+    now: context.now
+  });
+  const plan = planApiGapBridge({
+    policy: apiPolicy,
+    binding: runtime.apiBinding,
+    gap,
+    delaySensitivity,
+    estimate: assessment.estimate,
+    cost,
+    budget,
+    approval,
+    // The planner is only ever reached through a subscription refusal, and
+    // it re-asserts that fact rather than trusting the call site.
+    subscriptionAvailable: false,
+    now: context.now
+  });
+  void job;
+  return { ...assessment, routing: applyApiGapBridge(assessment.routing, plan), apiBridge: plan };
 }
 function assessNode(runtime, deps, jobId, job, node, forecast, reserve, observations) {
   const attemptsUsed = localExecutorAttemptsUsed(deps, jobId, node.nodeId);
@@ -64683,7 +66251,7 @@ function specExcerptFor(workspace, specName, maxChars) {
       if (file === void 0) continue;
       try {
         parts.push(`--- ${kind} ---
-${(0, import_fs34.readFileSync)(file.path, "utf8")}`);
+${(0, import_fs35.readFileSync)(file.path, "utf8")}`);
       } catch {
       }
     }
@@ -64741,6 +66309,12 @@ async function driveJob(deps, jobId, options = {}) {
   const schedulingRuntime = createSchedulingRuntime(deps.config, deps.workspace, {
     localManager,
     missionDriven,
+    // vNext.5: whether prepaid strong compute exists at all. A roster with
+    // no subscription worker is a different gap from an exhausted quota
+    // window — it never "resets" — and the planner must be able to tell.
+    subscriptionWorkerAvailable: resolveWorkers(deps.config).some(
+      (worker) => worker.reasoningTier !== "LOCAL_SMALL"
+    ),
     options: {
       quotaTelemetryProvider: options.quotaTelemetryProvider,
       localExecutorInference: options.localExecutorInference,
@@ -64751,6 +66325,7 @@ async function driveJob(deps, jobId, options = {}) {
   const maxLoop = policy.budgets.maxAgentRuns * 6 + 50;
   let loops = 0;
   let unboundedQuotaDefers = 0;
+  let apiBridgedWhileMaxReturned = false;
   try {
     for (; ; ) {
       loops += 1;
@@ -64823,8 +66398,10 @@ async function driveJob(deps, jobId, options = {}) {
           const laneName = decision.lane;
           const laneRouting = decision.laneRouting;
           const localExecution = laneName === "LOCAL" ? laneRouting?.localExecution : void 0;
-          const executionMode = localExecution?.mode ?? void 0;
-          const harnessProfileName = executionMode === "HARNESS" ? localExecution?.harness?.profileName ?? void 0 : void 0;
+          const apiLane = laneName === "API" && schedulingRuntime !== void 0;
+          const apiBridge = apiLane ? laneRouting?.apiBridge : void 0;
+          const executionMode = apiLane ? "HARNESS" : localExecution?.mode ?? void 0;
+          const harnessProfileName = apiLane ? schedulingRuntime?.apiBinding.profileName ?? void 0 : executionMode === "HARNESS" ? localExecution?.harness?.profileName ?? void 0 : void 0;
           emit(
             "executor-started",
             `${decision.mode} task ${decision.taskId} via ${decision.worker.workerId}${laneName !== void 0 ? ` [${laneName} lane${executionMode !== void 0 ? `/${executionMode}` : ""}]` : ""}`
@@ -64837,22 +66414,36 @@ async function driveJob(deps, jobId, options = {}) {
               nodeId: node.nodeId,
               taskId: node.parentTaskId,
               selectedLane: laneName,
-              selectedProvider: laneName === "LOCAL" ? harnessProfileName ?? decision.worker.workerId : decision.worker.runnerProfile ?? decision.worker.workerId,
+              selectedProvider: laneName === "LOCAL" || laneName === "API" ? harnessProfileName ?? decision.worker.workerId : decision.worker.runnerProfile ?? decision.worker.workerId,
               reasonCode: laneRouting.routing.reasonCode,
               detail: laneRouting.routing.detail,
               deferUntil: null,
               laneRouting,
               lane,
-              ...schedulingRuntime !== void 0 ? { harnessBinding: schedulingRuntime.harnessBinding } : {}
+              ...schedulingRuntime !== void 0 ? {
+                harnessBinding: schedulingRuntime.harnessBinding,
+                apiBinding: schedulingRuntime.apiBinding
+              } : {}
             });
-            recordJobEvent(deps, jobId, laneName === "LOCAL" ? "task_routed_local" : "task_routed_subscription", {
-              nodeId: node.nodeId,
-              taskId: node.parentTaskId,
-              reasonCode: laneRouting.routing.reasonCode,
-              suitability: laneRouting.suitability.class,
-              mode: lane.forecast.schedulerMode,
-              ...executionMode !== void 0 ? { executionMode } : {}
-            });
+            if (laneName !== "API") {
+              recordJobEvent(deps, jobId, laneName === "LOCAL" ? "task_routed_local" : "task_routed_subscription", {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                reasonCode: laneRouting.routing.reasonCode,
+                suitability: laneRouting.suitability.class,
+                mode: lane.forecast.schedulerMode,
+                ...executionMode !== void 0 ? { executionMode } : {}
+              });
+            }
+            if (apiBridgedWhileMaxReturned && laneName === "SUBSCRIPTION") {
+              recordJobEvent(deps, jobId, "api_next_task_returned_to_subscription", {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                reasonCode: laneRouting.routing.reasonCode,
+                detail: "Prepaid subscription capacity is healthy again; strong work routes back to it rather than continuing on the paid lane."
+              });
+              apiBridgedWhileMaxReturned = false;
+            }
             if (localExecution !== void 0 && executionMode !== void 0) {
               recordJobEvent(deps, jobId, "local_execution_mode_selected", {
                 nodeId: node.nodeId,
@@ -64913,6 +66504,98 @@ async function driveJob(deps, jobId, options = {}) {
               emit("note", `context compacted before dispatch (${reconstructed.assembled.compactions.length} pass(es))`);
             }
           }
+          let apiReservationId;
+          let apiApprovalId;
+          if (apiLane && (harnessProfileName === void 0 || apiBridge === void 0)) {
+            throw new OrchestrationError(
+              "SBO031",
+              `Task ${decision.taskId} routed to the API lane, but no bound API harness profile resolved at dispatch. Refusing to run it on another lane under an API record.`,
+              {
+                remediation: [
+                  "Inspect `specbridge orchestrate scheduler <jobId>`; this indicates a scheduling defect, not a task failure."
+                ]
+              }
+            );
+          }
+          if (apiLane && schedulingRuntime !== void 0 && apiBridge !== void 0) {
+            const apiPolicy = schedulingRuntime.policy.api;
+            recordJobEvent(deps, jobId, "api_gap_detected", {
+              nodeId: node.nodeId,
+              taskId: node.parentTaskId,
+              gapReason: apiBridge.gap.reason,
+              expectedAvailableAt: apiBridge.gap.expectedAvailableAt,
+              estimatedGapDurationMs: apiBridge.gap.timeUntilAvailableMs,
+              confidence: apiBridge.gap.confidence,
+              delaySensitivity: apiBridge.delaySensitivity.level,
+              decision: apiBridge.decision,
+              reasonCode: apiBridge.reasonCode
+            });
+            const reservation = reserveApiBudget({
+              workspace: deps.workspace,
+              jobId,
+              nodeId: node.nodeId,
+              taskId: node.parentTaskId,
+              policy: apiPolicy.budget,
+              safeCostUsd: apiBridge.cost?.safeCostUsd ?? null,
+              profileName: schedulingRuntime.apiBinding.profileName,
+              now: (deps.clock ?? (() => /* @__PURE__ */ new Date()))(),
+              reservationId: `ar-${(deps.idFactory ?? (() => `${Date.now()}`))()}`.slice(0, 64),
+              detail: apiBridge.detail
+            });
+            if (!reservation.ok) {
+              recordJobEvent(deps, jobId, "api_budget_exceeded", {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                refusal: reservation.admission.refusal ?? "UNKNOWN",
+                remainingUsd: reservation.admission.job.remainingUsd,
+                detail: reservation.admission.detail.slice(0, 300)
+              });
+              if (reservation.admission.refusal === "JOB_CEILING" || reservation.admission.refusal === "JOB_ATTEMPTS") {
+                recordJobEvent(deps, jobId, "api_budget_exhausted", {
+                  jobId,
+                  refusal: reservation.admission.refusal,
+                  encumberedUsd: reservation.admission.job.encumberedUsd
+                });
+              }
+              emit("waiting", `api budget refused: ${reservation.admission.detail}`);
+              job = deferJobForQuota(deps, jobId, {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                until: apiBridge.gap.expectedAvailableAt,
+                reasonCode: "API_BUDGET_EXCEEDED",
+                detail: reservation.admission.detail,
+                pollMs: schedulingRuntime.policy.deferPollMs
+              });
+              checkpointJob(
+                deps,
+                jobId,
+                "API budget refused the bridge; the task waits for subscription capacity."
+              );
+              job = requireJobState(deps.workspace, jobId);
+              return {
+                stop: {
+                  kind: "deferred",
+                  until: job.retryAt ?? null,
+                  reason: reservation.admission.detail
+                },
+                job
+              };
+            }
+            apiReservationId = reservation.reservation.reservationId;
+            apiApprovalId = apiBridge.approval?.approval?.approvalId;
+            recordJobEvent(deps, jobId, "api_budget_reserved", {
+              nodeId: node.nodeId,
+              taskId: node.parentTaskId,
+              reservationId: apiReservationId,
+              reservedUsd: reservation.reservation.reservedUsd,
+              remainingUsd: reservation.admission.job.remainingUsd,
+              profile: schedulingRuntime.apiBinding.profileName ?? "unknown"
+            });
+            emit(
+              "note",
+              `api budget reserved $${reservation.reservation.reservedUsd.toFixed(4)} for task ${node.parentTaskId}`
+            );
+          }
           beginExecutorDispatch(deps, jobId, {
             nodeId: decision.nodeId,
             mode: decision.mode,
@@ -64923,12 +66606,31 @@ async function driveJob(deps, jobId, options = {}) {
             // provider — the lane stays LOCAL, and the two remain separate
             // fields rather than one compound value.
             provider: harnessProfileName ?? decision.worker.runnerProfile ?? decision.worker.workerId,
-            ...localExecution?.harness?.model != null ? { model: localExecution.harness.model } : {},
+            ...apiLane && schedulingRuntime?.apiBinding.model != null ? { model: schedulingRuntime.apiBinding.model } : localExecution?.harness?.model != null ? { model: localExecution.harness.model } : {},
             ...laneName !== void 0 ? { lane: laneName } : {},
             ...executionMode !== void 0 ? { executionMode } : {},
             ...localExecution !== void 0 ? {
               executionShape: localExecution.shape,
               computeLocality: executionMode === "HARNESS" ? localExecution.harness?.locality ?? "UNKNOWN" : "LOCAL"
+            } : {},
+            // vNext.5 paid-attempt attribution. Every field is recorded, and
+            // every one is separate: the lane says it was paid, the gap says
+            // why prepaid capacity could not run it, the cost fields say what
+            // was authorized, and none of them is derived from another.
+            ...apiLane && apiBridge !== void 0 && schedulingRuntime !== void 0 ? {
+              executionShape: "AGENTIC",
+              computeLocality: schedulingRuntime.apiBinding.locality,
+              apiSpendMode: schedulingRuntime.policy.api.spendMode,
+              gapReason: apiBridge.gap.reason,
+              ...apiBridge.gap.expectedAvailableAt !== null ? { subscriptionAvailableAt: apiBridge.gap.expectedAvailableAt } : {},
+              estimatedGapDurationMs: apiBridge.gap.timeUntilAvailableMs,
+              costSource: apiBridge.cost?.costSource ?? "UNKNOWN",
+              ...apiBridge.cost?.pricingSource != null ? { pricingProfile: apiBridge.cost.pricingSource } : {},
+              delaySensitivity: apiBridge.delaySensitivity.level,
+              estimatedCostUsd: apiBridge.cost?.estimatedCostUsd ?? null,
+              reservedCostUsd: apiBridge.cost?.safeCostUsd ?? null,
+              ...apiReservationId !== void 0 ? { apiBudgetReservationId: apiReservationId } : {},
+              ...apiApprovalId !== void 0 ? { apiApprovalId } : {}
             } : {},
             ...laneRouting !== void 0 ? {
               localSuitability: laneRouting.suitability.class,
@@ -64939,12 +66641,73 @@ async function driveJob(deps, jobId, options = {}) {
             ...contextBefore !== null ? { contextUsageBefore: contextBefore } : {}
           });
           const startedAt = (deps.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
+          if (apiLane && schedulingRuntime !== void 0 && apiBridge !== void 0) {
+            const attemptId = requireJobState(deps.workspace, jobId).currentAttemptId;
+            if (attemptId !== void 0) {
+              if (apiReservationId !== void 0) {
+                bindApiBudgetReservation(
+                  deps.workspace,
+                  jobId,
+                  apiReservationId,
+                  attemptId,
+                  (deps.clock ?? (() => /* @__PURE__ */ new Date()))()
+                );
+              }
+              if (apiApprovalId !== void 0) {
+                try {
+                  consumeApiSpendApproval(deps.workspace, jobId, apiApprovalId, attemptId);
+                } catch {
+                }
+              }
+              writeApiHandoffCheckpoint(deps, jobId, node, attemptId, apiBridge);
+              recordJobEvent(deps, jobId, "api_task_dispatched", {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                attemptId,
+                profile: schedulingRuntime.apiBinding.profileName ?? "unknown",
+                runner: schedulingRuntime.apiBinding.runner ?? "unknown",
+                model: schedulingRuntime.apiBinding.model ?? "unknown",
+                computeLocality: schedulingRuntime.apiBinding.locality,
+                spendMode: schedulingRuntime.policy.api.spendMode,
+                gapReason: apiBridge.gap.reason,
+                estimatedGapDurationMs: apiBridge.gap.timeUntilAvailableMs,
+                delaySensitivity: apiBridge.delaySensitivity.level,
+                estimatedCostUsd: apiBridge.cost?.estimatedCostUsd ?? null,
+                reasonCode: laneRouting?.routing.reasonCode ?? "API_GAP_BRIDGE_SELECTED"
+              });
+            }
+          }
           const allowDirty = decision.mode === "repair" || (graph?.nodes.some((candidate) => candidate.status === "COMPLETED") ?? false) || node.attempts.some((attempt) => attempt.role === "EXECUTOR") || node.attempts.some((attempt) => attempt.role === "BUILDER");
           const mission = policy.objectives.enabled === true ? findMissionForSpec(deps.workspace, job.specName) : void 0;
           const localHarnessLane = laneName === "LOCAL" && harnessProfileName !== void 0 && schedulingRuntime !== void 0;
           const localLane = laneName === "LOCAL" && !localHarnessLane && schedulingRuntime !== void 0 && schedulingRuntime.localInference !== void 0;
-          const harnessCheckpoint = localHarnessLane ? readLatestTaskCheckpoint(deps.workspace, jobId, node.nodeId) : void 0;
-          const dispatch = localHarnessLane ? await dispatchLocalHarnessExecution({
+          const apiHarnessLane = apiLane && harnessProfileName !== void 0 && schedulingRuntime !== void 0;
+          const harnessCheckpoint = localHarnessLane || apiHarnessLane ? readLatestTaskCheckpoint(deps.workspace, jobId, node.nodeId) : void 0;
+          const dispatch = apiHarnessLane ? (
+            // vNext.5: the paid continuity bridge. Same runner, same
+            // evidence pipeline, same completion authority — the only
+            // differences are who is billed and what bounds the attempt.
+            await dispatchApiHarnessExecution({
+              workspace: deps.workspace,
+              config: deps.config,
+              registry: deps.registry,
+              node,
+              specName: job.specName,
+              jobId,
+              mode: decision.mode,
+              allowDirty,
+              profileName: harnessProfileName,
+              // The lean canonical bootstrap: a fresh remote session has
+              // never seen this job, and nothing on disk records what was
+              // already decided, tried, and ruled out.
+              ...harnessCheckpoint !== void 0 ? { checkpoint: harnessCheckpoint } : {},
+              maxWallTimeMs: schedulingRuntime.apiBinding.maxWallTimeMs,
+              ...deps.clock !== void 0 ? { clock: deps.clock } : {},
+              ...deps.idFactory !== void 0 ? { idFactory: deps.idFactory } : {},
+              ...signal !== void 0 ? { signal } : {},
+              onProgress: (message) => emit("note", message)
+            })
+          ) : localHarnessLane ? await dispatchLocalHarnessExecution({
             workspace: deps.workspace,
             config: deps.config,
             registry: deps.registry,
@@ -65095,7 +66858,7 @@ async function driveJob(deps, jobId, options = {}) {
               contextUsageAfter: estimateNodeContextRatio(deps, jobId, node.nodeId)
             };
           }
-          if (localHarnessLane) {
+          if (localHarnessLane || apiHarnessLane) {
             const observed = dispatch.observed;
             extraMetrics = {
               ...extraMetrics ?? {},
@@ -65105,6 +66868,85 @@ async function driveJob(deps, jobId, options = {}) {
               cachedTokens: observed.cachedInputTokens,
               filesRead: observed.filesRead
             };
+          }
+          if (apiHarnessLane && schedulingRuntime !== void 0) {
+            const apiResult = dispatch;
+            const observedCost = computeObservedApiCost({
+              ...apiResult.usage !== void 0 ? {
+                usage: {
+                  inputTokens: apiResult.usage.inputTokens,
+                  outputTokens: apiResult.usage.outputTokens,
+                  cachedInputTokens: apiResult.observed.cachedInputTokens,
+                  costUsd: apiResult.usage.costUsd
+                }
+              } : {},
+              pricing: schedulingRuntime.policy.api.pricing,
+              interrupted: apiResult.failureKind === "INFRASTRUCTURE"
+            });
+            extraMetrics = {
+              ...extraMetrics ?? {},
+              reconciledCostUsd: observedCost.costUsd
+            };
+            if (apiReservationId !== void 0) {
+              const reconciled = reconcileApiBudget({
+                workspace: deps.workspace,
+                jobId,
+                reservationId: apiReservationId,
+                observedCostUsd: observedCost.costUsd,
+                costSource: observedCost.source,
+                now: (deps.clock ?? (() => /* @__PURE__ */ new Date()))(),
+                detail: observedCost.detail
+              });
+              const summary = summarizeApiBudget(
+                readApiBudgetState(deps.workspace, jobId),
+                schedulingRuntime.policy.api.budget
+              );
+              recordJobEvent(deps, jobId, "api_budget_reconciled", {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                reservationId: apiReservationId,
+                state: reconciled.state,
+                reservedUsd: reconciled.reservedUsd,
+                reconciledUsd: reconciled.reconciledUsd,
+                costSource: observedCost.source,
+                encumberedUsd: summary.encumberedUsd,
+                remainingUsd: summary.remainingUsd
+              });
+              if (observedCost.costUsd === null) {
+                recordJobEvent(deps, jobId, "api_cost_unknown", {
+                  nodeId: node.nodeId,
+                  taskId: node.parentTaskId,
+                  reservationId: apiReservationId,
+                  detail: observedCost.detail.slice(0, 300)
+                });
+              }
+              emit(
+                "note",
+                `api budget reconciled: ${reconciled.state}${observedCost.costUsd !== null ? ` at $${observedCost.costUsd.toFixed(4)} (${observedCost.source})` : " with UNKNOWN cost (hold retained)"}`
+              );
+            }
+            if (apiResult.failure !== void 0) {
+              recordJobEvent(deps, jobId, "api_attempt_failed", {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                category: apiResult.failure.category,
+                failureKind: apiResult.failureKind ?? "UNKNOWN",
+                detail: apiResult.failure.message.slice(0, 300)
+              });
+            }
+            const after = await schedulingRuntime.manager.snapshot();
+            const fiveHourBack = (after.fiveHour?.remainingRatio ?? 0) > schedulingRuntime.policy.fiveHourExhaustedRatio;
+            const weeklyBack = (after.weekly?.remainingRatio ?? 0) > schedulingRuntime.policy.weeklyExhaustedRatio;
+            if (fiveHourBack && weeklyBack) {
+              recordJobEvent(deps, jobId, "api_max_returned", {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                fiveHourRemainingRatio: after.fiveHour?.remainingRatio ?? null,
+                weeklyRemainingRatio: after.weekly?.remainingRatio ?? null,
+                detail: "Subscription capacity returned during the paid attempt; the atomic attempt was allowed to finish and subsequent strong work routes back to the subscription lane."
+              });
+              apiBridgedWhileMaxReturned = true;
+            }
           }
           const result = completeExecutorDispatch(deps, jobId, {
             context: {
@@ -65147,14 +66989,16 @@ async function driveJob(deps, jobId, options = {}) {
             persistLaneDecision(deps, jobId, {
               nodeId: decision.nodeId,
               taskId: decision.taskId,
-              selectedLane: "DEFER",
+              selectedLane: decision.awaitingApiApproval === true ? "REQUIRE_APPROVAL" : "DEFER",
               selectedProvider: null,
               reasonCode: decision.reasonCode,
               detail: decision.reason,
               deferUntil: decision.until,
               laneRouting: decision.laneRouting,
-              lane
+              lane,
+              apiBinding: schedulingRuntime.apiBinding
             });
+            recordApiGapObservations(deps, jobId, schedulingRuntime, decision, graph, emit);
           }
           job = deferJobForQuota(deps, jobId, {
             nodeId: decision.nodeId,
@@ -65230,6 +67074,116 @@ function directFailureNeedsRepositoryTools(result) {
   }
   return failure.category === "CAPABILITY_UNAVAILABLE" && result.escalationReason !== void 0;
 }
+function writeApiHandoffCheckpoint(deps, jobId, node, attemptId, bridge) {
+  try {
+    const previous = readLatestTaskCheckpoint(deps.workspace, jobId, node.nodeId);
+    createTaskCheckpoint(
+      { workspace: deps.workspace, clock: deps.clock, idFactory: deps.idFactory },
+      {
+        jobId,
+        nodeId: node.nodeId,
+        taskId: node.parentTaskId,
+        attemptId,
+        reason: "handoff",
+        objective: previous?.objective ?? `Implement task ${node.parentTaskId}: ${node.title}`.slice(0, 2e3),
+        pinned: previous?.pinned ?? {
+          taskContract: `Task ${node.parentTaskId}: ${node.title}`.slice(0, 2e3),
+          acceptanceCriteria: [],
+          constraints: [],
+          invariants: []
+        },
+        nextActions: previous?.nextActions ?? [
+          `Implement task ${node.parentTaskId} (${node.title}) and make the verification commands pass.`
+        ],
+        importantDecisions: [
+          {
+            decision: "Execution handed off to the metered API lane because prepaid subscription capacity is unavailable.",
+            rationale: bridge.detail.slice(0, 2e3)
+          }
+        ]
+      }
+    );
+  } catch {
+  }
+}
+function recordApiGapObservations(deps, jobId, runtime, decision, graph, emit) {
+  const bridge = decision.laneRouting?.apiBridge;
+  if (bridge === void 0) return;
+  const now4 = (deps.clock ?? (() => /* @__PURE__ */ new Date()))();
+  recordJobEvent(deps, jobId, "api_gap_detected", {
+    nodeId: decision.nodeId,
+    taskId: decision.taskId,
+    gapReason: bridge.gap.reason,
+    expectedAvailableAt: bridge.gap.expectedAvailableAt,
+    estimatedGapDurationMs: bridge.gap.timeUntilAvailableMs,
+    confidence: bridge.gap.confidence,
+    delaySensitivity: bridge.delaySensitivity.level,
+    decision: bridge.decision,
+    reasonCode: bridge.reasonCode
+  });
+  if (bridge.reasonCode === "API_GAP_SHORT_DEFER" || bridge.reasonCode === "API_WASTEFUL_NEAR_RESET") {
+    recordJobEvent(deps, jobId, "api_gap_short_deferred", {
+      nodeId: decision.nodeId,
+      taskId: decision.taskId,
+      estimatedGapDurationMs: bridge.gap.timeUntilAvailableMs,
+      detail: bridge.detail.slice(0, 300)
+    });
+  }
+  if (bridge.reasonCode === "API_COST_UNKNOWN") {
+    recordJobEvent(deps, jobId, "api_cost_unknown", {
+      nodeId: decision.nodeId,
+      taskId: decision.taskId,
+      detail: (bridge.cost?.detail ?? bridge.detail).slice(0, 300)
+    });
+  }
+  if (bridge.reasonCode === "API_BUDGET_EXCEEDED") {
+    recordJobEvent(deps, jobId, "api_budget_exceeded", {
+      nodeId: decision.nodeId,
+      taskId: decision.taskId,
+      refusal: bridge.budget?.refusal ?? "UNKNOWN",
+      remainingUsd: bridge.budget?.job.remainingUsd ?? null,
+      detail: bridge.detail.slice(0, 300)
+    });
+  }
+  if (decision.awaitingApiApproval !== true) return;
+  const profileName = runtime.apiBinding.profileName;
+  if (profileName === null) return;
+  const node = graph?.nodes.find((candidate) => candidate.nodeId === decision.nodeId);
+  if (node === void 0) return;
+  const safeCost = bridge.cost?.safeCostUsd;
+  if (safeCost === null || safeCost === void 0) return;
+  const requested = requestApiSpendApproval({
+    workspace: deps.workspace,
+    jobId,
+    nodeId: node.nodeId,
+    taskId: node.parentTaskId,
+    taskFingerprint: taskSpendFingerprint(node),
+    profileName,
+    maxAuthorizedCostUsd: safeCost,
+    estimatedCostUsd: bridge.cost?.estimatedCostUsd ?? null,
+    rationale: bridge.detail,
+    approvalId: `aa-${(deps.idFactory ?? (() => `${Date.now()}`))()}`.slice(0, 64),
+    now: now4,
+    ttlMs: runtime.policy.api.gap.approvalTtlMs
+  });
+  if (!requested.created) return;
+  recordJobEvent(deps, jobId, "api_approval_required", {
+    nodeId: node.nodeId,
+    taskId: node.parentTaskId,
+    approvalId: requested.approval.approvalId,
+    profile: profileName,
+    maxAuthorizedCostUsd: requested.approval.maxAuthorizedCostUsd,
+    estimatedCostUsd: requested.approval.estimatedCostUsd,
+    gapReason: bridge.gap.reason,
+    estimatedGapDurationMs: bridge.gap.timeUntilAvailableMs,
+    delaySensitivity: bridge.delaySensitivity.level,
+    expiresAt: requested.approval.expiresAt
+  });
+  emit(
+    "waiting",
+    `api spend approval required (${requested.approval.approvalId}): up to $${safeCost.toFixed(4)} on "${profileName}" for task ${node.parentTaskId}`
+  );
+}
 function persistLaneDecision(deps, jobId, input) {
   const createdAt = (deps.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
   const decisionId = `sd-${(deps.idFactory ?? (() => `${Date.now()}`))()}`.slice(0, 64);
@@ -65275,6 +67229,39 @@ function persistLaneDecision(deps, jobId, input) {
           localityEvidence: (input.harnessBinding?.localityEvidence ?? null)?.slice(0, 500) ?? null,
           harnessBindingStatus: input.harnessBinding?.status ?? null,
           detail: routing.localExecution.detail.slice(0, 1e3)
+        } : null,
+        // vNext.5: everything a reader needs to answer "why did (or didn't)
+        // this cost money?" from ONE record — the gap and its expected
+        // duration, how much the delay actually mattered, the estimate, the
+        // budget that remained, and which paid profile was in play. Present
+        // on every decision the gap-bridge planner touched, including the
+        // ones where it declined to spend.
+        apiBridge: routing?.apiBridge !== void 0 ? {
+          decision: routing.apiBridge.decision,
+          spendMode: deps.config.orchestration.jobs.scheduler.api.spendMode,
+          gapReason: routing.apiBridge.gap.reason,
+          subscriptionAvailableAt: routing.apiBridge.gap.expectedAvailableAt,
+          estimatedGapDurationMs: routing.apiBridge.gap.timeUntilAvailableMs,
+          gapConfidence: routing.apiBridge.gap.confidence,
+          delaySensitivity: routing.apiBridge.delaySensitivity.level,
+          blockedDependents: routing.apiBridge.delaySensitivity.blockedDependents,
+          criticalPath: routing.apiBridge.delaySensitivity.criticalPath,
+          readyLocalBacklog: routing.apiBridge.delaySensitivity.readyLocalBacklog,
+          estimatedCostUsd: routing.apiBridge.cost?.estimatedCostUsd ?? null,
+          safeCostUsd: routing.apiBridge.cost?.safeCostUsd ?? null,
+          currency: routing.apiBridge.cost?.currency ?? "USD",
+          costSource: routing.apiBridge.cost?.costSource ?? "UNKNOWN",
+          pricingSource: routing.apiBridge.cost?.pricingSource ?? null,
+          budgetRemainingUsd: routing.apiBridge.budget?.job.remainingUsd ?? null,
+          budgetEncumberedUsd: routing.apiBridge.budget?.job.encumberedUsd ?? null,
+          apiProfile: input.apiBinding?.profileName ?? null,
+          apiRunner: input.apiBinding?.runner ?? null,
+          apiModel: input.apiBinding?.model ?? null,
+          computeLocality: input.apiBinding?.locality ?? "UNKNOWN",
+          bindingStatus: input.apiBinding?.status ?? null,
+          approvalId: routing.apiBridge.approval?.approval?.approvalId ?? null,
+          approvalStatus: routing.apiBridge.approval?.approval?.status ?? null,
+          detail: routing.apiBridge.detail.slice(0, 2e3)
         } : null,
         deferUntil: input.deferUntil,
         detail: input.detail.slice(0, 2e3),
@@ -65563,7 +67550,7 @@ async function runRole(deps, jobId, role, decision, packet, runtime) {
     runnerProfile: decision.worker.runnerProfile ?? deps.config.defaultRunner,
     role,
     packet,
-    scratchDir: import_path37.default.join(jobDir(deps.workspace, jobId), "scratch"),
+    scratchDir: import_path38.default.join(jobDir(deps.workspace, jobId), "scratch"),
     timeoutMs: 6e5,
     signal: runtime.signal,
     cachedProbe: runtime.probeCache.probe
@@ -65801,17 +67788,17 @@ async function git22(cwd, argv2, timeoutMs = GIT_TIMEOUT_MS22) {
   return { ok: result.status === "ok", stdout: result.stdout, stderr: result.stderr };
 }
 function seedSidecar(source, targetRoot, specNames) {
-  const sidecar = import_path46.default.join(targetRoot, ".specbridge");
-  (0, import_fs40.mkdirSync)(sidecar, { recursive: true });
-  const config2 = import_path46.default.join(source.sidecarDir, "config.json");
-  if ((0, import_fs40.existsSync)(config2)) (0, import_fs40.copyFileSync)(config2, import_path46.default.join(sidecar, "config.json"));
-  const stateDir = import_path46.default.join(source.sidecarDir, "state", "specs");
-  if (!(0, import_fs40.existsSync)(stateDir)) return;
-  const targetState = import_path46.default.join(sidecar, "state", "specs");
-  (0, import_fs40.mkdirSync)(targetState, { recursive: true });
+  const sidecar = import_path48.default.join(targetRoot, ".specbridge");
+  (0, import_fs42.mkdirSync)(sidecar, { recursive: true });
+  const config2 = import_path48.default.join(source.sidecarDir, "config.json");
+  if ((0, import_fs42.existsSync)(config2)) (0, import_fs42.copyFileSync)(config2, import_path48.default.join(sidecar, "config.json"));
+  const stateDir = import_path48.default.join(source.sidecarDir, "state", "specs");
+  if (!(0, import_fs42.existsSync)(stateDir)) return;
+  const targetState = import_path48.default.join(sidecar, "state", "specs");
+  (0, import_fs42.mkdirSync)(targetState, { recursive: true });
   for (const name of new Set(specNames)) {
-    const file = import_path46.default.join(stateDir, `${name}.json`);
-    if ((0, import_fs40.existsSync)(file)) (0, import_fs40.copyFileSync)(file, import_path46.default.join(targetState, `${name}.json`));
+    const file = import_path48.default.join(stateDir, `${name}.json`);
+    if ((0, import_fs42.existsSync)(file)) (0, import_fs42.copyFileSync)(file, import_path48.default.join(targetState, `${name}.json`));
   }
 }
 function syntheticNode(evaluationCase) {
@@ -65839,8 +67826,8 @@ async function evaluateLocalRuntime(input) {
   const modes = input.modes ?? ["DIRECT_MODEL", "HARNESS"];
   const binding = resolveLocalHarnessBinding(input.config);
   const harnessProfile = input.harnessProfile ?? binding.profileName ?? void 0;
-  const workRoot = input.workRoot ?? import_path46.default.join(input.workspace.sidecarDir, "local-runtime-eval");
-  (0, import_fs40.mkdirSync)(workRoot, { recursive: true });
+  const workRoot = input.workRoot ?? import_path48.default.join(input.workspace.sidecarDir, "local-runtime-eval");
+  (0, import_fs42.mkdirSync)(workRoot, { recursive: true });
   const head = await git22(input.workspace.rootDir, ["rev-parse", "HEAD"]);
   if (!head.ok) {
     throw new OrchestrationError(
@@ -65899,7 +67886,7 @@ async function evaluateLocalRuntime(input) {
 }
 async function runArm(options) {
   const { input, evaluationCase, mode, workRoot } = options;
-  const armDir = import_path46.default.join(
+  const armDir = import_path48.default.join(
     workRoot,
     `${evaluationCase.caseId}-${mode === "HARNESS" ? "harness" : "direct"}`.replace(
       /[^A-Za-z0-9._-]/g,
@@ -65930,9 +67917,9 @@ async function runArm(options) {
   if (mode === "HARNESS" && options.harnessProfile === void 0) {
     return unavailable("no harness profile is bound or configured for the harness arm");
   }
-  if ((0, import_fs40.existsSync)(armDir)) {
+  if ((0, import_fs42.existsSync)(armDir)) {
     await git22(input.workspace.rootDir, ["worktree", "remove", "--force", armDir]);
-    (0, import_fs40.rmSync)(armDir, { recursive: true, force: true });
+    (0, import_fs42.rmSync)(armDir, { recursive: true, force: true });
   }
   const added = await git22(
     input.workspace.rootDir,
@@ -66008,7 +67995,7 @@ async function runArm(options) {
     if (input.keepWorktrees !== true) {
       await git22(input.workspace.rootDir, ["worktree", "remove", "--force", armDir]);
       try {
-        (0, import_fs40.rmSync)(armDir, { recursive: true, force: true });
+        (0, import_fs42.rmSync)(armDir, { recursive: true, force: true });
       } catch {
       }
       await git22(input.workspace.rootDir, ["worktree", "prune"]);
@@ -66581,20 +68568,20 @@ var import_node_fs6 = require("fs");
 var import_node_path8 = __toESM(require("path"), 1);
 
 // ../../packages/drift/dist/index.js
-var import_fs41 = require("fs");
-var import_path47 = __toESM(require("path"), 1);
-var import_picomatch = __toESM(require_picomatch2(), 1);
-var import_fs42 = require("fs");
-var import_path48 = __toESM(require("path"), 1);
 var import_fs43 = require("fs");
 var import_path49 = __toESM(require("path"), 1);
+var import_picomatch = __toESM(require_picomatch2(), 1);
 var import_fs44 = require("fs");
 var import_path50 = __toESM(require("path"), 1);
 var import_fs45 = require("fs");
 var import_path51 = __toESM(require("path"), 1);
 var import_fs46 = require("fs");
-var import_crypto16 = require("crypto");
 var import_path52 = __toESM(require("path"), 1);
+var import_fs47 = require("fs");
+var import_path53 = __toESM(require("path"), 1);
+var import_fs48 = require("fs");
+var import_crypto16 = require("crypto");
+var import_path54 = __toESM(require("path"), 1);
 var taskEvidenceSchema = external_exports.object({
   taskId: external_exports.string().min(1),
   status: external_exports.enum(["recorded", "verified", "rejected"]),
@@ -66695,24 +68682,24 @@ var verificationPolicySchema = external_exports.object({
   }
 });
 function policyDir(workspace) {
-  return import_path47.default.join(workspace.sidecarDir, "policies");
+  return import_path49.default.join(workspace.sidecarDir, "policies");
 }
 function policyPath(workspace, specName) {
-  const resolved = import_path47.default.resolve(policyDir(workspace), `${specName}.json`);
-  const relative = import_path47.default.relative(workspace.rootDir, resolved);
-  if (relative.startsWith("..") || import_path47.default.isAbsolute(relative)) {
-    return import_path47.default.join(policyDir(workspace), "invalid-spec-name.json");
+  const resolved = import_path49.default.resolve(policyDir(workspace), `${specName}.json`);
+  const relative = import_path49.default.relative(workspace.rootDir, resolved);
+  if (relative.startsWith("..") || import_path49.default.isAbsolute(relative)) {
+    return import_path49.default.join(policyDir(workspace), "invalid-spec-name.json");
   }
   return resolved;
 }
 function readVerificationPolicy(workspace, specName, explicitPath) {
-  const filePath = explicitPath !== void 0 ? import_path47.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
-  if (!(0, import_fs41.existsSync)(filePath)) {
+  const filePath = explicitPath !== void 0 ? import_path49.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
+  if (!(0, import_fs43.existsSync)(filePath)) {
     return { path: filePath, exists: false, diagnostics: [] };
   }
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs41.readFileSync)(filePath, "utf8"));
+    parsed = JSON.parse((0, import_fs43.readFileSync)(filePath, "utf8"));
   } catch (cause) {
     return {
       path: filePath,
@@ -66775,7 +68762,7 @@ function resolveEffectivePolicy(workspace, specName, options = {}) {
   const storedMode = policy?.mode ?? "advisory";
   const strictFromCli = options.strict === true && storedMode !== "strict";
   const mode = options.strict === true ? "strict" : storedMode;
-  const workspaceRelativePolicyPath = import_path47.default.relative(workspace.rootDir, read.path).split(import_path47.default.sep).join("/");
+  const workspaceRelativePolicyPath = import_path49.default.relative(workspace.rootDir, read.path).split(import_path49.default.sep).join("/");
   return {
     specName,
     mode,
@@ -66936,33 +68923,33 @@ function mergeNumstat(files, stats) {
 function sniffBinary(absolutePath) {
   let fd;
   try {
-    fd = (0, import_fs42.openSync)(absolutePath, "r");
+    fd = (0, import_fs44.openSync)(absolutePath, "r");
     const buffer = Buffer.alloc(8e3);
-    const bytesRead = (0, import_fs42.readSync)(fd, buffer, 0, buffer.length, 0);
+    const bytesRead = (0, import_fs44.readSync)(fd, buffer, 0, buffer.length, 0);
     return buffer.subarray(0, bytesRead).includes(0);
   } catch {
     return false;
   } finally {
-    if (fd !== void 0) (0, import_fs42.closeSync)(fd);
+    if (fd !== void 0) (0, import_fs44.closeSync)(fd);
   }
 }
 function flagSymlinkEscapes(repoRoot, files) {
   const resolvedRoot = (() => {
     try {
-      return (0, import_fs42.realpathSync)(repoRoot);
+      return (0, import_fs44.realpathSync)(repoRoot);
     } catch {
-      return import_path48.default.resolve(repoRoot);
+      return import_path50.default.resolve(repoRoot);
     }
   })();
   for (const file of files) {
     if (file.changeType === "deleted") continue;
-    const absolute = import_path48.default.join(repoRoot, file.path.split("/").join(import_path48.default.sep));
+    const absolute = import_path50.default.join(repoRoot, file.path.split("/").join(import_path50.default.sep));
     try {
-      const stats = (0, import_fs42.lstatSync)(absolute);
+      const stats = (0, import_fs44.lstatSync)(absolute);
       if (!stats.isSymbolicLink()) continue;
-      const target = (0, import_fs42.realpathSync)(absolute);
-      const relative = import_path48.default.relative(resolvedRoot, target);
-      if (relative.startsWith("..") || import_path48.default.isAbsolute(relative)) {
+      const target = (0, import_fs44.realpathSync)(absolute);
+      const relative = import_path50.default.relative(resolvedRoot, target);
+      if (relative.startsWith("..") || import_path50.default.isAbsolute(relative)) {
         file.symlinkOutsideRepository = true;
       }
     } catch {
@@ -67090,7 +69077,7 @@ async function resolveComparison(repoRoot, request, options = {}) {
     const known = new Set(files.map((file) => file.path));
     for (const token of untracked.stdout.split("\0")) {
       if (token.length === 0 || known.has(token)) continue;
-      const absolute = import_path48.default.join(repoRoot, token.split("/").join(import_path48.default.sep));
+      const absolute = import_path50.default.join(repoRoot, token.split("/").join(import_path50.default.sep));
       files.push({
         path: token,
         changeType: "untracked",
@@ -67170,9 +69157,9 @@ function specMatchReasons(specName, policy, validEvidencePaths, designPathRefere
 function readSpecEvidenceRecords(workspace, specName) {
   const byTask = /* @__PURE__ */ new Map();
   let invalidRecordCount = 0;
-  const specDir = import_path49.default.join(workspace.sidecarDir, "evidence", specName);
-  if ((0, import_fs43.existsSync)(specDir)) {
-    const taskDirs = (0, import_fs43.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
+  const specDir = import_path51.default.join(workspace.sidecarDir, "evidence", specName);
+  if ((0, import_fs45.existsSync)(specDir)) {
+    const taskDirs = (0, import_fs45.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
     for (const taskDir of taskDirs) {
       const { records, diagnostics } = listTaskEvidence(workspace, specName, taskDir);
       invalidRecordCount += diagnostics.length;
@@ -67219,7 +69206,7 @@ async function buildSpecVerificationContext(options) {
     }
     if (effective("tasks") && tasksStage !== void 0) {
       const planHash2 = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(
-        import_path49.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path49.default.sep))
+        import_path51.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path51.default.sep))
       );
       if (planHash2 !== void 0) approved.tasksPlanHash = planHash2;
     }
@@ -67447,7 +69434,7 @@ async function evaluateGlobalRules(rules, context) {
   return { diagnostics, disabledRules };
 }
 function repoRelative(workspace, absolutePath) {
-  return import_path50.default.relative(workspace.rootDir, absolutePath).split(import_path50.default.sep).join("/");
+  return import_path52.default.relative(workspace.rootDir, absolutePath).split(import_path52.default.sep).join("/");
 }
 function isSpecInfraPath(candidate) {
   return candidate === ".git" || candidate.startsWith(".git/") || candidate.startsWith(".kiro/") || candidate.startsWith(".specbridge/");
@@ -68128,14 +70115,14 @@ var sbv018 = {
     if (designDocument === void 0) return [];
     const designFile = designDocument.filePath;
     const designRepoPath = designFile !== void 0 ? repoRelative(context.workspace, designFile) : void 0;
-    const specDir = import_path50.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
+    const specDir = import_path52.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
     return context.traceability.designPathReferences.filter((reference) => !reference.isGlob).filter((reference) => {
-      const fromRoot = import_path50.default.join(
+      const fromRoot = import_path52.default.join(
         context.workspace.rootDir,
-        reference.path.split("/").join(import_path50.default.sep)
+        reference.path.split("/").join(import_path52.default.sep)
       );
-      const fromSpecDir = import_path50.default.join(specDir, reference.path.split("/").join(import_path50.default.sep));
-      return !(0, import_fs44.existsSync)(fromRoot) && !(0, import_fs44.existsSync)(fromSpecDir);
+      const fromSpecDir = import_path52.default.join(specDir, reference.path.split("/").join(import_path52.default.sep));
+      return !(0, import_fs46.existsSync)(fromRoot) && !(0, import_fs46.existsSync)(fromSpecDir);
     }).map(
       (reference) => makeDiagnostic({
         rule: this,
@@ -68382,9 +70369,9 @@ function loadSpecMatchingInfo(workspace, folder, options) {
     }
   }
   const evidencePaths = /* @__PURE__ */ new Set();
-  const evidenceDir2 = import_path51.default.join(workspace.sidecarDir, "evidence", folder.name);
-  if ((0, import_fs45.existsSync)(evidenceDir2)) {
-    for (const entry of (0, import_fs46.readdirSync)(evidenceDir2, { withFileTypes: true })) {
+  const evidenceDir2 = import_path53.default.join(workspace.sidecarDir, "evidence", folder.name);
+  if ((0, import_fs47.existsSync)(evidenceDir2)) {
+    for (const entry of (0, import_fs48.readdirSync)(evidenceDir2, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
       const { records } = listTaskEvidence(workspace, folder.name, entry.name);
       for (const record5 of records) {
@@ -68493,8 +70480,8 @@ async function verifySpecs(request) {
   let artifactsDir;
   const ensureArtifactsDir = () => {
     if (artifactsDir === void 0) {
-      const base = request.reportsDir ?? import_path52.default.join(workspace.sidecarDir, "reports");
-      artifactsDir = import_path52.default.join(base, verificationId);
+      const base = request.reportsDir ?? import_path54.default.join(workspace.sidecarDir, "reports");
+      artifactsDir = import_path54.default.join(base, verificationId);
     }
     return artifactsDir;
   };
@@ -68517,8 +70504,8 @@ async function verifySpecs(request) {
       onCommandFinished: (result, stdout, stderr) => {
         const dir = ensureArtifactsDir();
         const safeName = result.name.replace(/[^A-Za-z0-9._-]+/g, "-");
-        writeFileAtomic(import_path52.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
-        writeFileAtomic(import_path52.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
+        writeFileAtomic(import_path54.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
+        writeFileAtomic(import_path54.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
       }
     } : {}
   }) : { mode: "none", commands: [], missingRequired: [] };
@@ -68669,7 +70656,7 @@ async function verifySpecs(request) {
   verificationReportSchema.parse(report);
   if (persistArtifacts && artifactsDir !== void 0) {
     writeFileAtomic(
-      import_path52.default.join(artifactsDir, "report.json"),
+      import_path54.default.join(artifactsDir, "report.json"),
       `${JSON.stringify(report, null, 2)}
 `
     );
@@ -68778,18 +70765,18 @@ function resolveExitCode(report, comparison, commands, failOn) {
 }
 
 // ../../packages/templates/dist/index.js
-var import_fs47 = require("fs");
-var import_path53 = __toESM(require("path"), 1);
-var import_fs48 = require("fs");
-var import_path54 = __toESM(require("path"), 1);
 var import_fs49 = require("fs");
 var import_path55 = __toESM(require("path"), 1);
-var import_path56 = __toESM(require("path"), 1);
 var import_fs50 = require("fs");
-var import_path57 = __toESM(require("path"), 1);
+var import_path56 = __toESM(require("path"), 1);
 var import_fs51 = require("fs");
-var import_os = require("os");
+var import_path57 = __toESM(require("path"), 1);
 var import_path58 = __toESM(require("path"), 1);
+var import_fs52 = require("fs");
+var import_path59 = __toESM(require("path"), 1);
+var import_fs53 = require("fs");
+var import_os = require("os");
+var import_path60 = __toESM(require("path"), 1);
 var SPECBRIDGE_VERSION = "1.0.0";
 var TEMPLATE_ERROR_CODES = {
   SBT001: "template not found",
@@ -69618,11 +71605,11 @@ function readTemplatePackDirectory(dir) {
         { path: currentDir }
       );
     }
-    const entries = (0, import_fs47.readdirSync)(currentDir, { withFileTypes: true }).sort(
+    const entries = (0, import_fs49.readdirSync)(currentDir, { withFileTypes: true }).sort(
       (a2, b) => a2.name.localeCompare(b.name, "en")
     );
     for (const entry of entries) {
-      const entryPath = import_path53.default.join(currentDir, entry.name);
+      const entryPath = import_path55.default.join(currentDir, entry.name);
       const entryRelative = relative === "" ? entry.name : `${relative}/${entry.name}`;
       const stat = statNoFollow(entryPath);
       if (stat.isSymbolicLink()) {
@@ -69674,7 +71661,7 @@ function readTemplatePackDirectory(dir) {
           { path: dir }
         );
       }
-      const buffer = (0, import_fs47.readFileSync)(entryPath);
+      const buffer = (0, import_fs49.readFileSync)(entryPath);
       const text7 = buffer.toString("utf8");
       if (!Buffer.from(text7, "utf8").equals(buffer)) {
         throw new TemplateError(
@@ -69700,7 +71687,7 @@ function readTemplatePackDirectory(dir) {
 }
 function statNoFollow(target) {
   try {
-    return (0, import_fs47.lstatSync)(target);
+    return (0, import_fs49.lstatSync)(target);
   } catch (cause) {
     throw new TemplateError(
       "SBT007",
@@ -70064,7 +72051,7 @@ var BUILTIN_TEMPLATE_PACKS = [
   }
 ];
 function projectTemplatesDir(workspace) {
-  return import_path54.default.join(workspace.sidecarDir, "templates");
+  return import_path56.default.join(workspace.sidecarDir, "templates");
 }
 function builtinEntries(options) {
   const entries = [];
@@ -70089,11 +72076,11 @@ function builtinEntries(options) {
 function projectEntries(workspace, options, diagnostics) {
   if (workspace === void 0) return [];
   const dir = projectTemplatesDir(workspace);
-  if (!(0, import_fs48.existsSync)(dir)) return [];
+  if (!(0, import_fs50.existsSync)(dir)) return [];
   const entries = [];
   let names;
   try {
-    names = (0, import_fs48.readdirSync)(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory() && !entry.isSymbolicLink()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
+    names = (0, import_fs50.readdirSync)(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory() && !entry.isSymbolicLink()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
   } catch (cause) {
     diagnostics.push({
       severity: "warning",
@@ -70103,7 +72090,7 @@ function projectEntries(workspace, options, diagnostics) {
     return [];
   }
   for (const name of names) {
-    const packDir = import_path54.default.join(dir, name);
+    const packDir = import_path56.default.join(dir, name);
     let pack;
     try {
       const data = readTemplatePackDirectory(packDir);
@@ -70347,7 +72334,7 @@ var templateRecordSchema = external_exports.discriminatedUnion("type", [
   templateScaffoldRecordSchema
 ]);
 function templateRecordsPath(workspace) {
-  return import_path55.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
+  return import_path57.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
 }
 var recordCounter = 0;
 function newTemplateRecordId(clock = systemClock) {
@@ -70358,8 +72345,8 @@ function appendTemplateRecord(workspace, record5) {
   const validated = templateRecordSchema.parse(record5);
   const filePath = templateRecordsPath(workspace);
   try {
-    (0, import_fs49.mkdirSync)(workspace.sidecarDir, { recursive: true });
-    (0, import_fs49.appendFileSync)(filePath, `${JSON.stringify(validated)}
+    (0, import_fs51.mkdirSync)(workspace.sidecarDir, { recursive: true });
+    (0, import_fs51.appendFileSync)(filePath, `${JSON.stringify(validated)}
 `, "utf8");
   } catch (cause) {
     throw ioError("append template record to", filePath, cause);
@@ -70368,10 +72355,10 @@ function appendTemplateRecord(workspace, record5) {
 function readTemplateRecords(workspace) {
   const filePath = templateRecordsPath(workspace);
   const diagnostics = [];
-  if (!(0, import_fs49.existsSync)(filePath)) return { records: [], diagnostics };
+  if (!(0, import_fs51.existsSync)(filePath)) return { records: [], diagnostics };
   let text7;
   try {
-    text7 = (0, import_fs49.readFileSync)(filePath, "utf8");
+    text7 = (0, import_fs51.readFileSync)(filePath, "utf8");
   } catch (cause) {
     diagnostics.push({
       severity: "warning",
@@ -70570,7 +72557,7 @@ function planTemplateApplication(workspace, catalog, request, clock = systemCloc
   };
 }
 function toPosix2(relative) {
-  return relative.split(import_path56.default.sep).join("/");
+  return relative.split(import_path58.default.sep).join("/");
 }
 function executeTemplateApplication(workspace, plan, clock = systemClock, recordId) {
   let creation;
@@ -70600,15 +72587,15 @@ function executeTemplateApplication(workspace, plan, clock = systemClock, record
     })),
     variableNames: plan.variableNames,
     createdPaths: [
-      ...creation.writtenFiles.map((file) => toPosix2(import_path56.default.relative(workspace.rootDir, file))),
-      toPosix2(import_path56.default.relative(workspace.rootDir, creation.statePath))
+      ...creation.writtenFiles.map((file) => toPosix2(import_path58.default.relative(workspace.rootDir, file))),
+      toPosix2(import_path58.default.relative(workspace.rootDir, creation.statePath))
     ]
   };
   appendTemplateRecord(workspace, record5);
   return { plan, creation, recordId: id };
 }
 function planTemplateInstall(workspace, catalog, request) {
-  const sourceDir = import_path57.default.resolve(request.cwd ?? workspace.rootDir, request.sourcePath);
+  const sourceDir = import_path59.default.resolve(request.cwd ?? workspace.rootDir, request.sourcePath);
   try {
     assertInsideWorkspace(workspace.rootDir, sourceDir);
   } catch (cause) {
@@ -70634,8 +72621,8 @@ function planTemplateInstall(workspace, catalog, request) {
     );
   }
   const templateId = pack.manifest.id;
-  const targetDir = import_path57.default.join(projectTemplatesDir(workspace), templateId);
-  if ((0, import_fs50.existsSync)(targetDir)) {
+  const targetDir = import_path59.default.join(projectTemplatesDir(workspace), templateId);
+  if ((0, import_fs52.existsSync)(targetDir)) {
     throw new TemplateError(
       "SBT021",
       `Template "project:${templateId}" is already installed at ${targetDir}.`,
@@ -70661,16 +72648,16 @@ function planTemplateInstall(workspace, catalog, request) {
   };
 }
 function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) {
-  const tmpParent = import_path57.default.join(workspace.sidecarDir, "tmp");
-  const tempDir = import_path57.default.join(
+  const tmpParent = import_path59.default.join(workspace.sidecarDir, "tmp");
+  const tempDir = import_path59.default.join(
     tmpParent,
     `template-install-${plan.templateId}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`
   );
   try {
-    (0, import_fs50.mkdirSync)(tempDir, { recursive: true });
+    (0, import_fs52.mkdirSync)(tempDir, { recursive: true });
     for (const [relative, content] of plan.pack.files) {
-      const target = import_path57.default.join(tempDir, relative);
-      (0, import_fs50.mkdirSync)(import_path57.default.dirname(target), { recursive: true });
+      const target = import_path59.default.join(tempDir, relative);
+      (0, import_fs52.mkdirSync)(import_path59.default.dirname(target), { recursive: true });
       writeFileAtomic(target, content);
     }
     const copied = loadTemplatePack(readTemplatePackDirectory(tempDir));
@@ -70682,8 +72669,8 @@ function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) 
         { path: plan.sourceDir }
       );
     }
-    (0, import_fs50.mkdirSync)(import_path57.default.dirname(plan.targetDir), { recursive: true });
-    if ((0, import_fs50.existsSync)(plan.targetDir)) {
+    (0, import_fs52.mkdirSync)(import_path59.default.dirname(plan.targetDir), { recursive: true });
+    if ((0, import_fs52.existsSync)(plan.targetDir)) {
       throw new TemplateError(
         "SBT021",
         `Template "project:${plan.templateId}" was installed by another process.`,
@@ -70691,11 +72678,11 @@ function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) 
         { path: plan.targetDir }
       );
     }
-    (0, import_fs50.renameSync)(tempDir, plan.targetDir);
+    (0, import_fs52.renameSync)(tempDir, plan.targetDir);
   } finally {
-    (0, import_fs50.rmSync)(tempDir, { recursive: true, force: true });
+    (0, import_fs52.rmSync)(tempDir, { recursive: true, force: true });
     try {
-      (0, import_fs50.rmdirSync)(tmpParent);
+      (0, import_fs52.rmdirSync)(tmpParent);
     } catch {
     }
   }
@@ -70710,8 +72697,8 @@ function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) 
     templateId: plan.templateId,
     templateVersion: plan.templateVersion,
     manifestHash: plan.manifestHash,
-    sourcePath: import_path57.default.relative(workspace.rootDir, plan.sourceDir).split(import_path57.default.sep).join("/"),
-    installedPath: import_path57.default.relative(workspace.rootDir, plan.targetDir).split(import_path57.default.sep).join("/")
+    sourcePath: import_path59.default.relative(workspace.rootDir, plan.sourceDir).split(import_path59.default.sep).join("/"),
+    installedPath: import_path59.default.relative(workspace.rootDir, plan.targetDir).split(import_path59.default.sep).join("/")
   });
   return { plan, installedPath: plan.targetDir, recordId: id };
 }
@@ -70741,10 +72728,10 @@ function planTemplateUninstall(workspace, rawReference) {
       { reference: rawReference }
     );
   }
-  const dir = import_path57.default.join(projectTemplatesDir(workspace), reference.id);
+  const dir = import_path59.default.join(projectTemplatesDir(workspace), reference.id);
   let stat;
   try {
-    stat = (0, import_fs50.lstatSync)(dir);
+    stat = (0, import_fs52.lstatSync)(dir);
   } catch {
     throw new TemplateError(
       "SBT001",
@@ -70764,18 +72751,18 @@ function planTemplateUninstall(workspace, rawReference) {
   return { templateId: reference.id, ref: `project:${reference.id}`, dir };
 }
 function executeTemplateUninstall(workspace, plan, clock = systemClock, recordId) {
-  const tmpParent = import_path57.default.join(workspace.sidecarDir, "tmp");
-  const tempDir = import_path57.default.join(
+  const tmpParent = import_path59.default.join(workspace.sidecarDir, "tmp");
+  const tempDir = import_path59.default.join(
     tmpParent,
     `template-uninstall-${plan.templateId}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`
   );
-  (0, import_fs50.mkdirSync)(tmpParent, { recursive: true });
-  (0, import_fs50.renameSync)(plan.dir, tempDir);
+  (0, import_fs52.mkdirSync)(tmpParent, { recursive: true });
+  (0, import_fs52.renameSync)(plan.dir, tempDir);
   try {
-    (0, import_fs50.rmSync)(tempDir, { recursive: true, force: true });
+    (0, import_fs52.rmSync)(tempDir, { recursive: true, force: true });
   } finally {
     try {
-      (0, import_fs50.rmdirSync)(tmpParent);
+      (0, import_fs52.rmdirSync)(tmpParent);
     } catch {
     }
   }
@@ -70788,7 +72775,7 @@ function executeTemplateUninstall(workspace, plan, clock = systemClock, recordId
     result: "ok",
     templateRef: plan.ref,
     templateId: plan.templateId,
-    uninstalledPath: import_path57.default.relative(workspace.rootDir, plan.dir).split(import_path57.default.sep).join("/")
+    uninstalledPath: import_path59.default.relative(workspace.rootDir, plan.dir).split(import_path59.default.sep).join("/")
   });
   return { plan, recordId: id };
 }
@@ -70874,10 +72861,10 @@ The built-in variables \`specName\`, \`title\`, \`description\`, \`kind\`, and
 
 \`\`\`bash
 # From the directory containing this template pack:
-specbridge template validate ./${import_path58.default.basename(request.outputPath)}
+specbridge template validate ./${import_path60.default.basename(request.outputPath)}
 
 # Then install it into a project for a real preview:
-specbridge template install ./${import_path58.default.basename(request.outputPath)}
+specbridge template install ./${import_path60.default.basename(request.outputPath)}
 specbridge template preview project:${request.templateId} --name example-spec
 \`\`\`
 
@@ -71097,9 +73084,9 @@ ${idCheck.problems.map((p) => `  - ${p}`).join("\n")}`,
   if (new Set(modes).size !== modes.length) {
     throw new TemplateError("SBT015", "--modes contains duplicates.", "List each mode once.", {});
   }
-  const outputDir = import_path58.default.resolve(request.cwd, request.outputPath);
-  const relative = import_path58.default.relative(import_path58.default.resolve(request.cwd), outputDir);
-  if (relative.startsWith("..") || import_path58.default.isAbsolute(relative)) {
+  const outputDir = import_path60.default.resolve(request.cwd, request.outputPath);
+  const relative = import_path60.default.relative(import_path60.default.resolve(request.cwd), outputDir);
+  if (relative.startsWith("..") || import_path60.default.isAbsolute(relative)) {
     throw new TemplateError(
       "SBT007",
       `Scaffold output ${outputDir} is outside the current directory.`,
@@ -71107,7 +73094,7 @@ ${idCheck.problems.map((p) => `  - ${p}`).join("\n")}`,
       { path: outputDir }
     );
   }
-  if ((0, import_fs51.existsSync)(outputDir)) {
+  if ((0, import_fs53.existsSync)(outputDir)) {
     throw new TemplateError(
       "SBT025",
       `Scaffold output directory already exists: ${outputDir}.`,
@@ -71139,21 +73126,21 @@ ${idCheck.problems.map((p) => `  - ${p}`).join("\n")}`,
   return { templateId: request.templateId, kind: request.kind, outputDir, files };
 }
 function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId) {
-  const tmpParent = workspace !== void 0 ? import_path58.default.join(workspace.sidecarDir, "tmp") : import_path58.default.join((0, import_os.tmpdir)(), "specbridge-scaffold");
-  const tempDir = import_path58.default.join(
+  const tmpParent = workspace !== void 0 ? import_path60.default.join(workspace.sidecarDir, "tmp") : import_path60.default.join((0, import_os.tmpdir)(), "specbridge-scaffold");
+  const tempDir = import_path60.default.join(
     tmpParent,
     `template-scaffold-${plan.templateId}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`
   );
   const writtenFiles = [];
   try {
-    (0, import_fs51.mkdirSync)(tempDir, { recursive: true });
+    (0, import_fs53.mkdirSync)(tempDir, { recursive: true });
     for (const [relative, content] of plan.files) {
-      const target = import_path58.default.join(tempDir, relative);
-      (0, import_fs51.mkdirSync)(import_path58.default.dirname(target), { recursive: true });
+      const target = import_path60.default.join(tempDir, relative);
+      (0, import_fs53.mkdirSync)(import_path60.default.dirname(target), { recursive: true });
       writeFileAtomic(target, content);
     }
-    (0, import_fs51.mkdirSync)(import_path58.default.dirname(plan.outputDir), { recursive: true });
-    if ((0, import_fs51.existsSync)(plan.outputDir)) {
+    (0, import_fs53.mkdirSync)(import_path60.default.dirname(plan.outputDir), { recursive: true });
+    if ((0, import_fs53.existsSync)(plan.outputDir)) {
       throw new TemplateError(
         "SBT025",
         `Scaffold output directory was created by another process: ${plan.outputDir}.`,
@@ -71161,14 +73148,14 @@ function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId)
         { path: plan.outputDir }
       );
     }
-    (0, import_fs51.renameSync)(tempDir, plan.outputDir);
+    (0, import_fs53.renameSync)(tempDir, plan.outputDir);
     for (const relative of plan.files.keys()) {
-      writtenFiles.push(import_path58.default.join(plan.outputDir, relative));
+      writtenFiles.push(import_path60.default.join(plan.outputDir, relative));
     }
   } finally {
-    (0, import_fs51.rmSync)(tempDir, { recursive: true, force: true });
+    (0, import_fs53.rmSync)(tempDir, { recursive: true, force: true });
     try {
-      (0, import_fs51.rmdirSync)(tmpParent);
+      (0, import_fs53.rmdirSync)(tmpParent);
     } catch {
     }
   }
@@ -71183,7 +73170,7 @@ function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId)
       result: "ok",
       templateId: plan.templateId,
       kind: plan.kind,
-      outputPath: import_path58.default.relative(workspace.rootDir, plan.outputDir).split(import_path58.default.sep).join("/")
+      outputPath: import_path60.default.relative(workspace.rootDir, plan.outputDir).split(import_path60.default.sep).join("/")
     });
   }
   return { plan, writtenFiles, recordId: id };
@@ -72100,16 +74087,12 @@ var TEMPLATE_PROVIDER_TEMPLATES_DIR = "templates";
 var MAX_TEMPLATE_PROVIDER_PACKS = 20;
 
 // ../../packages/extensions/dist/index.js
-var import_fs52 = require("fs");
-var import_path59 = __toESM(require("path"), 1);
-var import_crypto18 = require("crypto");
-var import_fs53 = require("fs");
-var import_path60 = __toESM(require("path"), 1);
-var import_child_process2 = require("child_process");
 var import_fs54 = require("fs");
 var import_path61 = __toESM(require("path"), 1);
+var import_crypto18 = require("crypto");
 var import_fs55 = require("fs");
 var import_path62 = __toESM(require("path"), 1);
+var import_child_process2 = require("child_process");
 var import_fs56 = require("fs");
 var import_path63 = __toESM(require("path"), 1);
 var import_fs57 = require("fs");
@@ -72120,6 +74103,10 @@ var import_fs59 = require("fs");
 var import_path66 = __toESM(require("path"), 1);
 var import_fs60 = require("fs");
 var import_path67 = __toESM(require("path"), 1);
+var import_fs61 = require("fs");
+var import_path68 = __toESM(require("path"), 1);
+var import_fs62 = require("fs");
+var import_path69 = __toESM(require("path"), 1);
 var ExtensionError = class extends SpecBridgeError {
   extensionCode;
   /** Actionable next step, always present. */
@@ -72621,7 +74608,7 @@ var FORBIDDEN_LIFECYCLE_SCRIPTS = [
   "postuninstall"
 ];
 function readExtensionPackageDirectory(dir) {
-  const rootStat = (0, import_fs52.lstatSync)(dir, { throwIfNoEntry: false });
+  const rootStat = (0, import_fs54.lstatSync)(dir, { throwIfNoEntry: false });
   if (rootStat === void 0 || !rootStat.isDirectory()) {
     throw new ExtensionError(
       "SBE008",
@@ -72646,7 +74633,7 @@ function readExtensionPackageDirectory(dir) {
         "Flatten the package layout."
       );
     }
-    for (const entry of (0, import_fs52.readdirSync)(currentDir, { withFileTypes: true })) {
+    for (const entry of (0, import_fs54.readdirSync)(currentDir, { withFileTypes: true })) {
       const relativePath = relativePrefix === "" ? entry.name : `${relativePrefix}/${entry.name}`;
       if (entry.isSymbolicLink()) {
         throw new ExtensionError(
@@ -72672,7 +74659,7 @@ function readExtensionPackageDirectory(dir) {
             "Remove the directory before validating or packaging."
           );
         }
-        walk(import_path59.default.join(currentDir, entry.name), relativePath, depth + 1);
+        walk(import_path61.default.join(currentDir, entry.name), relativePath, depth + 1);
         continue;
       }
       if (!entry.isFile()) {
@@ -72689,7 +74676,7 @@ function readExtensionPackageDirectory(dir) {
           "Reduce the package contents."
         );
       }
-      const content = (0, import_fs52.readFileSync)(import_path59.default.join(currentDir, entry.name));
+      const content = (0, import_fs54.readFileSync)(import_path61.default.join(currentDir, entry.name));
       totalBytes += content.length;
       if (totalBytes > EXTENSION_LIMITS.maxExtractedTotalBytes) {
         throw new ExtensionError(
@@ -72964,10 +74951,10 @@ var EXTENSION_RECORDS_FILE_NAME = "records.jsonl";
 var EXTENSION_STATE_SCHEMA_VERSION = "1.0.0";
 var systemClock2 = () => /* @__PURE__ */ new Date();
 function extensionsDir(workspace) {
-  return import_path60.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
+  return import_path62.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
 }
 function installedRootDir(workspace) {
-  return import_path60.default.join(extensionsDir(workspace), "installed");
+  return import_path62.default.join(extensionsDir(workspace), "installed");
 }
 function installedVersionDir(workspace, id, version2) {
   if (!validateExtensionId(id).valid || parseSemver2(version2) === void 0) {
@@ -72977,7 +74964,7 @@ function installedVersionDir(workspace, id, version2) {
       "Use a valid extension ID and X.Y.Z version."
     );
   }
-  const dir = import_path60.default.join(installedRootDir(workspace), id, version2);
+  const dir = import_path62.default.join(installedRootDir(workspace), id, version2);
   assertInsideWorkspace(workspace.rootDir, dir);
   return dir;
 }
@@ -73021,12 +75008,12 @@ function emptyPermissionGrants() {
   return { schemaVersion: EXTENSION_STATE_SCHEMA_VERSION, grants: {} };
 }
 function readValidatedJson(filePath, schema, empty, label) {
-  if (!(0, import_fs53.existsSync)(filePath)) {
+  if (!(0, import_fs55.existsSync)(filePath)) {
     return { value: empty, diagnostics: [], exists: false };
   }
   let text7;
   try {
-    text7 = (0, import_fs53.readFileSync)(filePath, "utf8");
+    text7 = (0, import_fs55.readFileSync)(filePath, "utf8");
   } catch (cause) {
     return {
       value: empty,
@@ -73076,13 +75063,13 @@ function readValidatedJson(filePath, schema, empty, label) {
   return { value: result.data, diagnostics: [], exists: true };
 }
 function extensionStatePath(workspace) {
-  return import_path60.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
+  return import_path62.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
 }
 function permissionGrantsPath(workspace) {
-  return import_path60.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
+  return import_path62.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
 }
 function extensionRecordsPath(workspace) {
-  return import_path60.default.join(extensionsDir(workspace), EXTENSION_RECORDS_FILE_NAME);
+  return import_path62.default.join(extensionsDir(workspace), EXTENSION_RECORDS_FILE_NAME);
 }
 function readExtensionState(workspace) {
   const { value, diagnostics, exists } = readValidatedJson(
@@ -73133,8 +75120,8 @@ function appendExtensionRecord(workspace, record5) {
   const filePath = extensionRecordsPath(workspace);
   assertInsideWorkspace(workspace.rootDir, filePath);
   try {
-    (0, import_fs53.mkdirSync)(extensionsDir(workspace), { recursive: true });
-    (0, import_fs53.appendFileSync)(filePath, `${JSON.stringify(validated)}
+    (0, import_fs55.mkdirSync)(extensionsDir(workspace), { recursive: true });
+    (0, import_fs55.appendFileSync)(filePath, `${JSON.stringify(validated)}
 `, "utf8");
   } catch (cause) {
     throw ioError("append extension record to", filePath, cause);
@@ -73367,9 +75354,9 @@ function resolveEntrypoint(installedDir, entrypoint) {
   if (problem !== void 0) {
     throw new ExtensionError("SBE012", `entrypoint "${entrypoint}": ${problem}.`, "Fix the extension manifest.");
   }
-  const resolved = import_path61.default.join(installedDir, ...entrypoint.split("/"));
-  const relative = import_path61.default.relative(installedDir, resolved);
-  if (relative.startsWith("..") || import_path61.default.isAbsolute(relative)) {
+  const resolved = import_path63.default.join(installedDir, ...entrypoint.split("/"));
+  const relative = import_path63.default.relative(installedDir, resolved);
+  if (relative.startsWith("..") || import_path63.default.isAbsolute(relative)) {
     throw new ExtensionError(
       "SBE012",
       `entrypoint "${entrypoint}" escapes the installed extension directory.`,
@@ -73377,9 +75364,9 @@ function resolveEntrypoint(installedDir, entrypoint) {
     );
   }
   let current = installedDir;
-  for (const segment of relative.split(import_path61.default.sep)) {
-    current = import_path61.default.join(current, segment);
-    const stat = (0, import_fs54.lstatSync)(current, { throwIfNoEntry: false });
+  for (const segment of relative.split(import_path63.default.sep)) {
+    current = import_path63.default.join(current, segment);
+    const stat = (0, import_fs56.lstatSync)(current, { throwIfNoEntry: false });
     if (stat === void 0) {
       throw new ExtensionError(
         "SBE012",
@@ -73395,7 +75382,7 @@ function resolveEntrypoint(installedDir, entrypoint) {
       );
     }
   }
-  const finalStat = (0, import_fs54.lstatSync)(resolved, { throwIfNoEntry: false });
+  const finalStat = (0, import_fs56.lstatSync)(resolved, { throwIfNoEntry: false });
   if (finalStat === void 0 || !finalStat.isFile()) {
     throw new ExtensionError(
       "SBE012",
@@ -73976,14 +75963,14 @@ async function runAnalyzerExtension(workspace, extensionId, input, options = {})
 }
 function compatibilityOf(workspace, record5, specbridgeVersion) {
   try {
-    const manifestPath = import_path62.default.join(
+    const manifestPath = import_path64.default.join(
       installedVersionDir(workspace, record5.id, record5.version),
       EXTENSION_MANIFEST_FILE_NAME
     );
-    if (!(0, import_fs55.existsSync)(manifestPath)) {
+    if (!(0, import_fs57.existsSync)(manifestPath)) {
       return { compatibility: "unknown", deprecated: false };
     }
-    const parsed = parseExtensionManifest((0, import_fs55.readFileSync)(manifestPath, "utf8"));
+    const parsed = parseExtensionManifest((0, import_fs57.readFileSync)(manifestPath, "utf8"));
     if (parsed.manifest === void 0) {
       return { compatibility: "unknown", deprecated: false };
     }
@@ -74262,8 +76249,8 @@ async function runExporterExtension(workspace, extensionId, input, options = {})
   };
 }
 function validateExportTargets(outputDir, files) {
-  const resolvedRoot = import_path63.default.resolve(outputDir);
-  const rootStat = (0, import_fs56.lstatSync)(resolvedRoot, { throwIfNoEntry: false });
+  const resolvedRoot = import_path65.default.resolve(outputDir);
+  const rootStat = (0, import_fs58.lstatSync)(resolvedRoot, { throwIfNoEntry: false });
   if (rootStat !== void 0 && rootStat.isSymbolicLink()) {
     throw new ExtensionError(
       "SBE011",
@@ -74282,9 +76269,9 @@ function validateExportTargets(outputDir, files) {
         "Report this to the extension author; nothing was written."
       );
     }
-    const target = import_path63.default.resolve(resolvedRoot, ...file.path.split("/"));
-    const relative = import_path63.default.relative(resolvedRoot, target);
-    if (relative.startsWith("..") || import_path63.default.isAbsolute(relative)) {
+    const target = import_path65.default.resolve(resolvedRoot, ...file.path.split("/"));
+    const relative = import_path65.default.relative(resolvedRoot, target);
+    if (relative.startsWith("..") || import_path65.default.isAbsolute(relative)) {
       throw new ExtensionError(
         "SBE030",
         `exporter output path "${file.path}" escapes the output directory.`,
@@ -74300,9 +76287,9 @@ function validateExportTargets(outputDir, files) {
     }
     seen.add(target.toLowerCase());
     let current = resolvedRoot;
-    for (const segment of relative.split(import_path63.default.sep)) {
-      current = import_path63.default.join(current, segment);
-      const stat = (0, import_fs56.lstatSync)(current, { throwIfNoEntry: false });
+    for (const segment of relative.split(import_path65.default.sep)) {
+      current = import_path65.default.join(current, segment);
+      const stat = (0, import_fs58.lstatSync)(current, { throwIfNoEntry: false });
       if (stat?.isSymbolicLink() === true) {
         throw new ExtensionError(
           "SBE011",
@@ -74311,7 +76298,7 @@ function validateExportTargets(outputDir, files) {
         );
       }
     }
-    if ((0, import_fs56.existsSync)(target)) {
+    if ((0, import_fs58.existsSync)(target)) {
       throw new ExtensionError(
         "SBE030",
         `export target "${file.path}" already exists in the output directory.`,
@@ -74331,7 +76318,7 @@ function writeExportFiles(workspace, extensionId, extensionVersion, specName, ou
     if (target === void 0 || file === void 0) {
       continue;
     }
-    (0, import_fs56.mkdirSync)(import_path63.default.dirname(target.target), { recursive: true });
+    (0, import_fs58.mkdirSync)(import_path65.default.dirname(target.target), { recursive: true });
     writeFileAtomic(target.target, file.content);
     written.push(target.relative);
   }
@@ -74418,19 +76405,19 @@ function installExtensionPackage(files, options, archiveSha256) {
     return { ...base, dryRun: true };
   }
   const recordId = newExtensionRecordId(clock);
-  const stagingDir = import_path64.default.join(extensionsDir(workspace), `tmp-install-${recordId}`);
+  const stagingDir = import_path66.default.join(extensionsDir(workspace), `tmp-install-${recordId}`);
   assertInsideWorkspace(workspace.rootDir, stagingDir);
   try {
     for (const [name, content] of files) {
-      const target = import_path64.default.join(stagingDir, ...name.split("/"));
+      const target = import_path66.default.join(stagingDir, ...name.split("/"));
       assertInsideWorkspace(workspace.rootDir, target);
-      (0, import_fs57.mkdirSync)(import_path64.default.dirname(target), { recursive: true });
+      (0, import_fs59.mkdirSync)(import_path66.default.dirname(target), { recursive: true });
       writeFileAtomic(target, content);
     }
-    (0, import_fs57.mkdirSync)(import_path64.default.dirname(targetDir), { recursive: true });
-    (0, import_fs57.renameSync)(stagingDir, targetDir);
+    (0, import_fs59.mkdirSync)(import_path66.default.dirname(targetDir), { recursive: true });
+    (0, import_fs59.renameSync)(stagingDir, targetDir);
   } catch (cause) {
-    (0, import_fs57.rmSync)(stagingDir, { recursive: true, force: true });
+    (0, import_fs59.rmSync)(stagingDir, { recursive: true, force: true });
     if (cause instanceof ExtensionError) {
       throw cause;
     }
@@ -74483,7 +76470,7 @@ function installExtensionPackage(files, options, archiveSha256) {
       }
     });
   } catch (cause) {
-    (0, import_fs57.rmSync)(targetDir, { recursive: true, force: true });
+    (0, import_fs59.rmSync)(targetDir, { recursive: true, force: true });
     if (cause instanceof ExtensionError) {
       throw cause;
     }
@@ -74538,8 +76525,8 @@ function buildExtensionArchive(sourceDir, options = {}) {
   const manifest = validation.manifest;
   const archive = createDeterministicZip(runtimeFiles);
   const archiveSha256 = sha256HexOf(archive);
-  const outputDir = options.outputDir ?? import_path65.default.join(sourceDir, "dist");
-  const archivePath = import_path65.default.join(
+  const outputDir = options.outputDir ?? import_path67.default.join(sourceDir, "dist");
+  const archivePath = import_path67.default.join(
     outputDir,
     `${manifest.id}-${manifest.version}${EXTENSION_ARCHIVE_SUFFIX}`
   );
@@ -74553,7 +76540,7 @@ function buildExtensionArchive(sourceDir, options = {}) {
     );
   }
   if (options.dryRun !== true) {
-    (0, import_fs58.mkdirSync)(outputDir, { recursive: true });
+    (0, import_fs60.mkdirSync)(outputDir, { recursive: true });
     writeFileAtomic(archivePath, archive);
   }
   return {
@@ -75351,7 +77338,7 @@ function scaffoldExtension(options) {
     );
   }
   const outputDir = options.outputDir;
-  if ((0, import_fs59.existsSync)(outputDir) && (0, import_fs59.readdirSync)(outputDir).length > 0) {
+  if ((0, import_fs61.existsSync)(outputDir) && (0, import_fs61.readdirSync)(outputDir).length > 0) {
     throw new ExtensionError(
       "SBE030",
       `output directory "${outputDir}" already exists and is not empty.`,
@@ -75411,8 +77398,8 @@ function scaffoldExtension(options) {
     };
   }
   for (const [name, content] of files) {
-    const target = import_path66.default.join(outputDir, ...name.split("/"));
-    (0, import_fs59.mkdirSync)(import_path66.default.dirname(target), { recursive: true });
+    const target = import_path68.default.join(outputDir, ...name.split("/"));
+    (0, import_fs61.mkdirSync)(import_path68.default.dirname(target), { recursive: true });
     writeFileAtomic(target, content);
   }
   return {
@@ -75525,7 +77512,7 @@ function uninstallExtension(options) {
     );
   }
   const installedDir = installedVersionDir(workspace, options.id, version2);
-  const stat = (0, import_fs60.lstatSync)(installedDir, { throwIfNoEntry: false });
+  const stat = (0, import_fs62.lstatSync)(installedDir, { throwIfNoEntry: false });
   if (stat !== void 0 && stat.isSymbolicLink()) {
     throw new ExtensionError(
       "SBE011",
@@ -75539,11 +77526,11 @@ function uninstallExtension(options) {
   const recordId = newExtensionRecordId(clock);
   let trashPath;
   if (stat !== void 0) {
-    const trashDir = import_path67.default.join(extensionsDir(workspace), "trash");
-    trashPath = import_path67.default.join(trashDir, `${options.id}-${version2}-${recordId}`);
+    const trashDir = import_path69.default.join(extensionsDir(workspace), "trash");
+    trashPath = import_path69.default.join(trashDir, `${options.id}-${version2}-${recordId}`);
     assertInsideWorkspace(workspace.rootDir, trashPath);
-    (0, import_fs60.mkdirSync)(trashDir, { recursive: true });
-    (0, import_fs60.renameSync)(installedDir, trashPath);
+    (0, import_fs62.mkdirSync)(trashDir, { recursive: true });
+    (0, import_fs62.renameSync)(installedDir, trashPath);
   }
   writeExtensionState(workspace, {
     ...state,
@@ -75657,11 +77644,11 @@ function createExtensionVerifierHook(workspace, options = {}) {
 }
 
 // ../../packages/registry/dist/index.js
-var import_fs61 = require("fs");
-var import_path68 = __toESM(require("path"), 1);
+var import_fs63 = require("fs");
+var import_path70 = __toESM(require("path"), 1);
 var import_crypto19 = require("crypto");
-var import_fs62 = require("fs");
-var import_path69 = __toESM(require("path"), 1);
+var import_fs64 = require("fs");
+var import_path71 = __toESM(require("path"), 1);
 var BUILTIN_REGISTRY_INDEX_JSON = '{\n  "schemaVersion": "1.0.0",\n  "name": "specbridge-examples",\n  "updatedAt": "2026-01-01T00:00:00.000Z",\n  "extensions": [\n    {\n      "id": "example-analyzer",\n      "displayName": "example-analyzer",\n      "description": "Deterministic spec diagnostics contributed by the example-analyzer analyzer extension.",\n      "kind": "analyzer",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-analyzer-1.0.0.specbridge-extension.zip",\n          "sha256": "e6e0948a315b09e53bd18997dce21888af9adbb3997fbf82955399dcf3252a19",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "analyzer",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-exporter",\n      "displayName": "example-exporter",\n      "description": "Candidate export files produced by the example-exporter exporter extension.",\n      "kind": "exporter",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-exporter-1.0.0.specbridge-extension.zip",\n          "sha256": "68f42755a4e56d0e318012ec8c0e3b093e44429182ca93b02d9fb4ce2ec308a3",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "exporter",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-runner",\n      "displayName": "example-runner",\n      "description": "An out-of-process runner adapter provided by the example-runner extension.",\n      "kind": "runner",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-runner-1.0.0.specbridge-extension.zip",\n          "sha256": "5ef3db937d872bfe09495695e9ecb0a3cf3beaf9e006fabdc2972ef55ace80ef",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": true,\n              "repositoryWrite": true,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "runner",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-template-provider",\n      "displayName": "example-template-provider",\n      "description": "Spec template packs contributed by the example-template-provider template-provider extension.",\n      "kind": "template-provider",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-template-provider-1.0.0.specbridge-extension.zip",\n          "sha256": "f7caa11a13473f0891cc8d237ec4f9f2962a2dd1bd2baba4e9d01570de29044b",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": false,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "template-provider",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-verifier",\n      "displayName": "example-verifier",\n      "description": "Verification diagnostics contributed by the example-verifier verifier extension.",\n      "kind": "verifier",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-verifier-1.0.0.specbridge-extension.zip",\n          "sha256": "d531c9078fcbeef6573a95773eefafd409d798bac1223c83748e0229ae0225bf",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "verifier",\n        "specbridge-extension"\n      ]\n    }\n  ]\n}\n';
 var REGISTRY_ERROR_CODES = {
   SBR001: "registry not found",
@@ -75818,20 +77805,20 @@ var cachedRegistrySchema = external_exports.object({
   index: registryIndexSchema
 }).passthrough();
 function registryCacheDir(workspace) {
-  return import_path68.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
+  return import_path70.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
 }
 function registryCachePath(workspace, name) {
-  const target = import_path68.default.join(registryCacheDir(workspace), `${name}.json`);
+  const target = import_path70.default.join(registryCacheDir(workspace), `${name}.json`);
   assertInsideWorkspace(workspace.rootDir, target);
   return target;
 }
 function readRegistryCache(workspace, name) {
   const filePath = registryCachePath(workspace, name);
-  if (!(0, import_fs61.existsSync)(filePath)) {
+  if (!(0, import_fs63.existsSync)(filePath)) {
     return { diagnostics: [] };
   }
   try {
-    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs61.readFileSync)(filePath, "utf8")));
+    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs63.readFileSync)(filePath, "utf8")));
     if (!parsed.success) {
       return {
         diagnostics: [
@@ -75884,9 +77871,9 @@ function resolveRegistryIndex(workspace, source) {
     return { sourceName: source.name, index: parsed.index, origin: "builtin", diagnostics: [] };
   }
   if (source.type === "local-file") {
-    const filePath = import_path68.default.resolve(workspace.rootDir, source.file);
+    const filePath = import_path70.default.resolve(workspace.rootDir, source.file);
     assertInsideWorkspace(workspace.rootDir, filePath);
-    if (!(0, import_fs61.existsSync)(filePath)) {
+    if (!(0, import_fs63.existsSync)(filePath)) {
       return {
         sourceName: source.name,
         index: { schemaVersion: "1.0.0", name: source.name, updatedAt: "unknown", extensions: [] },
@@ -75901,7 +77888,7 @@ function resolveRegistryIndex(workspace, source) {
         ]
       };
     }
-    const text7 = (0, import_fs61.readFileSync)(filePath, "utf8");
+    const text7 = (0, import_fs63.readFileSync)(filePath, "utf8");
     const parsed = parseRegistryIndex(text7);
     if (parsed.index === void 0) {
       throw new RegistryError(
@@ -76144,7 +78131,7 @@ var registriesConfigSchema = external_exports.object({
   registries: external_exports.array(registrySourceSchema).max(20)
 }).passthrough();
 function registriesConfigPath(workspace) {
-  return import_path69.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
+  return import_path71.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
 }
 function defaultRegistriesConfig() {
   return {
@@ -76154,12 +78141,12 @@ function defaultRegistriesConfig() {
 }
 function readRegistriesConfig(workspace) {
   const filePath = registriesConfigPath(workspace);
-  if (!(0, import_fs62.existsSync)(filePath)) {
+  if (!(0, import_fs64.existsSync)(filePath)) {
     return { config: defaultRegistriesConfig(), diagnostics: [], exists: false };
   }
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs62.readFileSync)(filePath, "utf8"));
+    parsed = JSON.parse((0, import_fs64.readFileSync)(filePath, "utf8"));
   } catch (cause) {
     return {
       config: defaultRegistriesConfig(),
@@ -82711,10 +84698,10 @@ Examples:
 
 // ../../packages/mcp-server/dist/chunk-JYVBX4T7.js
 var import_buffer7 = require("buffer");
-var import_fs63 = require("fs");
-var import_path70 = __toESM(require("path"), 1);
+var import_fs65 = require("fs");
+var import_path72 = __toESM(require("path"), 1);
 var import_crypto20 = require("crypto");
-var import_path71 = __toESM(require("path"), 1);
+var import_path73 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/core.js
 var NEVER2 = Object.freeze({
@@ -93042,12 +95029,12 @@ var EMPTY_COMPLETION_RESULT = {
 };
 
 // ../../packages/mcp-server/dist/chunk-JYVBX4T7.js
-var import_fs64 = require("fs");
-var import_fs65 = require("fs");
-var import_path72 = __toESM(require("path"), 1);
 var import_fs66 = require("fs");
+var import_fs67 = require("fs");
+var import_path74 = __toESM(require("path"), 1);
+var import_fs68 = require("fs");
 var import_os2 = __toESM(require("os"), 1);
-var import_path73 = __toESM(require("path"), 1);
+var import_path75 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 var import_node_process11 = __toESM(require("process"), 1);
@@ -93506,10 +95493,10 @@ function validateProjectRoot(value, source, cwd) {
       remediation: ["Pass a plain filesystem path as --project-root."]
     };
   }
-  const resolved = import_path70.default.resolve(cwd, value);
+  const resolved = import_path72.default.resolve(cwd, value);
   let canonical;
   try {
-    canonical = (0, import_fs63.realpathSync)(resolved);
+    canonical = (0, import_fs65.realpathSync)(resolved);
   } catch {
     return {
       ok: false,
@@ -93522,7 +95509,7 @@ function validateProjectRoot(value, source, cwd) {
   }
   let stats;
   try {
-    stats = (0, import_fs63.statSync)(canonical);
+    stats = (0, import_fs65.statSync)(canonical);
   } catch {
     return {
       ok: false,
@@ -93779,8 +95766,8 @@ var paginationShape = external_exports.object({
   nextCursor: external_exports.string().optional()
 });
 function repoRelative2(workspace, target) {
-  const relative = import_path71.default.isAbsolute(target) ? import_path71.default.relative(workspace.rootDir, target) : target;
-  const posix = relative.split(import_path71.default.sep).join("/");
+  const relative = import_path73.default.isAbsolute(target) ? import_path73.default.relative(workspace.rootDir, target) : target;
+  const posix = relative.split(import_path73.default.sep).join("/");
   return posix === "" ? "." : posix;
 }
 function toDiagnosticView(workspace, diagnostic) {
@@ -94280,7 +96267,7 @@ function registerRunResources(server, context) {
         throw resourceNotFound(`Run "${runId}"`, "List runs with the run_list tool.");
       }
       const directory = runDir(workspace, record5.runId);
-      const artifactNames = (0, import_fs64.existsSync)(directory) ? (0, import_fs64.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
+      const artifactNames = (0, import_fs66.existsSync)(directory) ? (0, import_fs66.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
       return jsonContents(context, uri.href, buildRunDetail(workspace, record5, artifactNames));
     }
   );
@@ -96096,7 +98083,7 @@ function registerRunReadTool(server, context) {
         });
       }
       const directory = runDir(workspace, record5.runId);
-      const artifactNames = (0, import_fs65.existsSync)(directory) ? (0, import_fs65.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS2.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
+      const artifactNames = (0, import_fs67.existsSync)(directory) ? (0, import_fs67.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS2.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
       const detail = buildRunDetail(workspace, record5, artifactNames);
       const lines = [
         `Run ${detail.summary.runId} \u2014 ${detail.summary.runType} for spec "${detail.summary.specName}"${detail.summary.taskId !== void 0 ? `, task ${detail.summary.taskId}` : ""}.`,
@@ -96456,7 +98443,7 @@ function registerSpecRunVerificationTool(server, context) {
         durationMs: command.durationMs,
         timedOut: command.timedOut
       }));
-      const reportPath = result.artifactsDir !== void 0 ? import_path72.default.relative(workspace.rootDir, result.artifactsDir).split(import_path72.default.sep).join("/") : void 0;
+      const reportPath = result.artifactsDir !== void 0 ? import_path74.default.relative(workspace.rootDir, result.artifactsDir).split(import_path74.default.sep).join("/") : void 0;
       const commandLines = commands.map(
         (command) => `- ${command.name}: ${command.disposition}${command.disposition === "executed" ? command.passed ? " (passed)" : ` (FAILED, exit ${command.exitCode ?? "none"})` : ""}`
       );
@@ -96575,18 +98562,18 @@ var conformanceSummaryShape = external_exports.object({
   note: external_exports.string()
 });
 async function invocationFreeConformanceSummary(profile) {
-  const scratch = (0, import_fs66.mkdtempSync)(import_path73.default.join(import_os2.default.tmpdir(), "specbridge-mcp-conformance-"));
+  const scratch = (0, import_fs68.mkdtempSync)(import_path75.default.join(import_os2.default.tmpdir(), "specbridge-mcp-conformance-"));
   let result;
   try {
     result = await runRunnerConformance({
       profile,
       workspaceRoot: scratch,
-      runDir: import_path73.default.join(scratch, ".specbridge-conformance-runs"),
+      runDir: import_path75.default.join(scratch, ".specbridge-conformance-runs"),
       invocationsAllowed: false,
       timeoutMs: RUNNER_PROBE_TIMEOUT_MS
     });
   } finally {
-    (0, import_fs66.rmSync)(scratch, { recursive: true, force: true });
+    (0, import_fs68.rmSync)(scratch, { recursive: true, force: true });
   }
   return {
     passed: result.passed,
@@ -97970,18 +99957,18 @@ function registerOrchestrationClarifyTool(server, context) {
           ...question.relatedTaskId !== void 0 ? { relatedTaskId: question.relatedTaskId } : {}
         }))
       );
-      const round = state.counters.clarificationRounds;
-      const asked = state.openQuestions.filter((question) => question.round === round);
+      const round2 = state.counters.clarificationRounds;
+      const asked = state.openQuestions.filter((question) => question.round === round2);
       return {
         text: [
-          `Clarification round ${round}: ${asked.length} question(s). Implementation cannot start until they are answered.`,
+          `Clarification round ${round2}: ${asked.length} question(s). Implementation cannot start until they are answered.`,
           "",
           ...asked.map((question) => `- ${question.question}
   (why: ${question.whyItMatters})`)
         ].join("\n"),
         structured: {
           ...stateSummary(workspace, state),
-          round,
+          round: round2,
           questionIds: asked.map((question) => question.id)
         }
       };
@@ -99505,8 +101492,8 @@ async function runMcpServe(argv2, io = {
 }
 
 // ../../packages/mcp-server/dist/index.js
-var import_fs67 = require("fs");
-var import_path74 = __toESM(require("path"), 1);
+var import_fs69 = require("fs");
+var import_path76 = __toESM(require("path"), 1);
 async function runMcpDoctor(options = {}) {
   const checks = [];
   const env = options.env ?? process.env;
@@ -99599,7 +101586,7 @@ async function runMcpDoctor(options = {}) {
   const pluginRoot = env["CLAUDE_PLUGIN_ROOT"];
   if (pluginRoot !== void 0 && pluginRoot.length > 0) {
     const missing = ["dist/mcp-server.cjs", "dist/cli.cjs"].filter(
-      (relative) => !(0, import_fs67.existsSync)(import_path74.default.join(pluginRoot, relative))
+      (relative) => !(0, import_fs69.existsSync)(import_path76.default.join(pluginRoot, relative))
     );
     checks.push(
       missing.length === 0 ? { name: "plugin-bundle", status: "ok", detail: `Bundled executables present under ${pluginRoot}` } : {
@@ -101206,6 +103193,29 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
       };
     });
     const localRuntime = summarizeLocalRuntime(ledger);
+    const apiBinding = resolveApiHarnessBinding(context.config);
+    const apiPolicy = policy.api;
+    const budgetState = readApiBudgetState(context.workspace, jobId);
+    const apiBudget = summarizeApiBudget(budgetState, apiPolicy.budget);
+    const approvals = listApiSpendApprovals(context.workspace, jobId);
+    const pendingApprovals = approvals.filter((entry) => entry.status === "REQUESTED");
+    const apiAttempts = ledger.filter((entry) => entry.lane === "API");
+    const apiWaitReasons = readyNodes.flatMap((node) => {
+      const latest = [...decisions].reverse().find((entry) => entry.nodeId === node.nodeId && entry.apiBridge !== null);
+      return latest?.apiBridge == null ? [] : [
+        {
+          nodeId: node.nodeId,
+          taskId: node.parentTaskId,
+          decision: latest.apiBridge.decision,
+          reasonCode: latest.reasonCode,
+          gapReason: latest.apiBridge.gapReason,
+          estimatedGapDurationMs: latest.apiBridge.estimatedGapDurationMs,
+          delaySensitivity: latest.apiBridge.delaySensitivity,
+          estimatedCostUsd: latest.apiBridge.estimatedCostUsd,
+          detail: latest.apiBridge.detail
+        }
+      ];
+    });
     if (options.json === true) {
       jsonOut3(runtime, "orchestrate-scheduler", {
         schedulerEnabled: policy.enabled,
@@ -101236,6 +103246,51 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
           },
           readyTaskModes: modePreview,
           observations: localRuntime
+        },
+        api: {
+          enabled: apiBinding.available && apiPolicy.spendMode !== "DISABLED",
+          spendMode: apiPolicy.spendMode,
+          pricingConfigured: apiPolicy.pricing !== null,
+          pricingSource: apiPolicy.pricing?.source ?? null,
+          binding: {
+            status: apiBinding.status,
+            available: apiBinding.available,
+            profile: apiBinding.profileName,
+            runner: apiBinding.runner,
+            provider: apiBinding.provider,
+            model: apiBinding.model,
+            computeLocality: apiBinding.locality,
+            localityEvidence: apiBinding.localityEvidence,
+            localityOverridden: apiBinding.localityOverridden,
+            credentialSources: apiBinding.credentialSources,
+            problems: apiBinding.problems
+          },
+          budget: {
+            ...apiBudget,
+            maxCostPerJobUsd: apiPolicy.budget.maxCostPerJobUsd,
+            maxCostPerTaskUsd: apiPolicy.budget.maxCostPerTaskUsd,
+            maxCostPerAttemptUsd: apiPolicy.budget.maxCostPerAttemptUsd,
+            reservations: budgetState.reservations
+          },
+          attempts: apiAttempts.map((entry) => ({
+            attemptId: entry.attemptId,
+            taskId: entry.taskId,
+            status: entry.status,
+            provider: entry.provider,
+            model: entry.model,
+            gapReason: entry.gapReason,
+            estimatedCostUsd: entry.metrics.estimatedCostUsd ?? null,
+            reconciledCostUsd: entry.metrics.reconciledCostUsd ?? null,
+            costSource: entry.costSource
+          })),
+          approvals: approvals.map((entry) => ({
+            approvalId: entry.approvalId,
+            taskId: entry.taskId,
+            status: entry.status,
+            maxAuthorizedCostUsd: entry.maxAuthorizedCostUsd,
+            expiresAt: entry.expiresAt
+          })),
+          waitReasons: apiWaitReasons
         },
         decisions
       });
@@ -101286,6 +103341,60 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
         dim2(`  ${localRuntime.localToStrongEscalations} local task(s) later escalated to the subscription lane.`)
       );
     }
+    runtime.out(reportTitle("API gap bridge (vNext.5)"));
+    const apiEnabled = apiBinding.available && apiPolicy.spendMode !== "DISABLED";
+    runtime.out(
+      (apiEnabled ? okLine : dim2)(
+        `  spend mode ${apiPolicy.spendMode}; binding ${apiBinding.status}; ${apiEnabled ? "paid bridging is available" : "no paid execution is possible"}`
+      )
+    );
+    runtime.out(
+      infoLine(
+        `  profile: ${apiBinding.profileName ?? "(none)"} [${apiBinding.runner ?? "n/a"}] provider ${apiBinding.provider ?? "unknown"} model ${apiBinding.model ?? "unknown"} \u2014 compute ${apiBinding.locality}`
+      )
+    );
+    runtime.out(dim2(`    ${apiBinding.localityEvidence}`));
+    for (const problem of apiBinding.problems) runtime.out(warnLine(`    ${problem}`));
+    if (apiBinding.credentialSources.length > 0) {
+      runtime.out(
+        dim2(`    credential source names (values never read): ${apiBinding.credentialSources.join(", ")}`)
+      );
+    }
+    runtime.out(
+      infoLine(
+        `  pricing: ${apiPolicy.pricing === null ? "NOT CONFIGURED \u2014 automatic spend is refused" : apiPolicy.pricing.source}`
+      )
+    );
+    runtime.out(
+      infoLine(
+        `  budget: reserved $${apiBudget.reservedUsd.toFixed(4)}, committed $${apiBudget.committedUsd.toFixed(4)}${apiBudget.unknownUsd > 0 ? `, UNKNOWN $${apiBudget.unknownUsd.toFixed(4)}` : ""}, remaining ${apiBudget.remainingUsd === null ? "unbounded" : `$${apiBudget.remainingUsd.toFixed(4)}`} over ${apiBudget.attempts} attempt(s)`
+      )
+    );
+    if (apiBudget.hasUnknownCost) {
+      runtime.out(
+        warnLine(
+          "    at least one paid attempt could not report its cost; committed spend is a floor, not an exact figure."
+        )
+      );
+    }
+    for (const approval of pendingApprovals) {
+      runtime.out(
+        warnLine(
+          `  approval pending: ${approval.approvalId} \u2014 task ${approval.taskId}, up to $${approval.maxAuthorizedCostUsd.toFixed(4)}, expires ${approval.expiresAt}`
+        )
+      );
+      runtime.out(dim2(`    approve: specbridge orchestrate api-approve ${jobId} ${approval.approvalId}`));
+    }
+    if (apiWaitReasons.length > 0) {
+      runtime.out(infoLine("  why ready tasks are not bridging:"));
+      for (const entry of apiWaitReasons) {
+        runtime.out(
+          dim2(
+            `    task ${entry.taskId}: ${entry.decision} [${entry.reasonCode}] \u2014 gap ${entry.gapReason}${entry.estimatedGapDurationMs !== null ? ` (~${Math.round(entry.estimatedGapDurationMs / 6e4)}m)` : " (unknown)"}, delay ${entry.delaySensitivity}${entry.estimatedCostUsd !== null ? `, est $${entry.estimatedCostUsd.toFixed(4)}` : ", cost unknown"}`
+          )
+        );
+      }
+    }
     runtime.out(reportTitle("Ready tasks"));
     if (readyNodes.length === 0) runtime.out(dim2("  (none)"));
     for (const node of readyNodes) {
@@ -101306,6 +103415,99 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
       runtime.out(dim2(`    ${decision.detail.slice(0, 140)}`));
     }
   });
+  orchestrate.command("api-approve").description("Approve one bounded API spend request for a task (human decision; CLI only)").argument("<jobId>").argument("<approvalId>").option("--max-cost <usd>", "authorize LESS than requested (never more)").option("--note <text>", "note recorded with the decision").option("--by <name>", "who is approving (recorded for audit)").option("--json", "output a machine-readable JSON report").action(
+    (jobId, approvalId, options) => {
+      const context = loadExecutionContext(runtime);
+      const existing = readApiSpendApproval(context.workspace, jobId, approvalId);
+      if (existing === void 0) {
+        throw new SpecBridgeError(
+          "INVALID_ARGUMENT",
+          `No API spend approval "${approvalId}" exists for job ${jobId}.`
+        );
+      }
+      let maxAuthorizedCostUsd;
+      if (options.maxCost !== void 0) {
+        const parsed = Number(options.maxCost);
+        if (!Number.isFinite(parsed) || parsed < 0) {
+          throw new SpecBridgeError("INVALID_ARGUMENT", "--max-cost must be a non-negative number.");
+        }
+        if (parsed > existing.maxAuthorizedCostUsd) {
+          throw new SpecBridgeError(
+            "INVALID_ARGUMENT",
+            `--max-cost ${parsed} exceeds the requested maximum ${existing.maxAuthorizedCostUsd}. An approval may authorize less than was requested, never more.`
+          );
+        }
+        maxAuthorizedCostUsd = parsed;
+      }
+      const decided = decideApiSpendApproval({
+        workspace: context.workspace,
+        jobId,
+        approvalId,
+        decision: "APPROVED",
+        decidedBy: options.by ?? "cli-user",
+        ...maxAuthorizedCostUsd !== void 0 ? { maxAuthorizedCostUsd } : {},
+        ...options.note !== void 0 ? { note: options.note } : {},
+        now: /* @__PURE__ */ new Date()
+      });
+      recordJobEvent(
+        { workspace: context.workspace, config: context.config },
+        jobId,
+        "api_approval_granted",
+        {
+          approvalId: decided.approvalId,
+          nodeId: decided.nodeId,
+          taskId: decided.taskId,
+          maxAuthorizedCostUsd: decided.maxAuthorizedCostUsd,
+          decidedBy: decided.decidedBy ?? "cli-user",
+          expiresAt: decided.expiresAt
+        }
+      );
+      if (options.json === true) {
+        jsonOut3(runtime, "orchestrate-api-approve", { approval: decided });
+        return;
+      }
+      runtime.out(
+        okLine(
+          `Approved up to $${decided.maxAuthorizedCostUsd.toFixed(4)} of API spend for task ${decided.taskId} on profile "${decided.profileName}" (expires ${decided.expiresAt}).`
+        )
+      );
+      runtime.out(
+        dim2(
+          "  The authorization covers this exact task version only; materially changed work needs a fresh one."
+        )
+      );
+    }
+  );
+  orchestrate.command("api-deny").description("Deny one API spend request (human decision; CLI only)").argument("<jobId>").argument("<approvalId>").option("--note <text>", "note recorded with the decision").option("--by <name>", "who is denying (recorded for audit)").option("--json", "output a machine-readable JSON report").action(
+    (jobId, approvalId, options) => {
+      const context = loadExecutionContext(runtime);
+      const decided = decideApiSpendApproval({
+        workspace: context.workspace,
+        jobId,
+        approvalId,
+        decision: "DENIED",
+        decidedBy: options.by ?? "cli-user",
+        ...options.note !== void 0 ? { note: options.note } : {},
+        now: /* @__PURE__ */ new Date()
+      });
+      recordJobEvent(
+        { workspace: context.workspace, config: context.config },
+        jobId,
+        "api_approval_denied",
+        {
+          approvalId: decided.approvalId,
+          nodeId: decided.nodeId,
+          taskId: decided.taskId,
+          decidedBy: decided.decidedBy ?? "cli-user"
+        }
+      );
+      if (options.json === true) {
+        jsonOut3(runtime, "orchestrate-api-deny", { approval: decided });
+        return;
+      }
+      runtime.out(okLine(`Denied API spend for task ${decided.taskId}. No paid execution will run.`));
+    }
+  );
   orchestrate.command("local-benchmark").description(
     "Compare LOCAL execution modes (direct model vs harness) on approved tasks in isolated worktrees (opt-in; never touches your working tree)"
   ).requiredOption("--spec <name>", "spec whose approved tasks are benchmarked").requiredOption("--task <id...>", "approved task id(s) to run through both modes").option("--job <id>", "record the evaluation on this job's timeline").option("--mode <mode...>", "modes to run (DIRECT_MODEL, HARNESS); default both").option("--harness-profile <name>", "harness profile override (default: the bound LOCAL harness)").option("--keep-worktrees", "keep the isolated checkouts for inspection").option("--json", "output a machine-readable JSON report").action(

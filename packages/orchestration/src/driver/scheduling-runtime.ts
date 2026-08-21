@@ -21,7 +21,15 @@ import { contextBudgetFromPolicy } from '../survival/reconstruction.js';
 import type { DynamicReserveResult } from '../scheduling/reserve.js';
 import { computeDynamicReserve } from '../scheduling/reserve.js';
 import type { NodeLaneRouting } from '../scheduling/scheduler.js';
-import { decideLane } from '../scheduling/scheduler.js';
+import { applyApiGapBridge, decideLane } from '../scheduling/scheduler.js';
+import type { ApiHarnessBinding } from '../scheduling/api-binding.js';
+import { resolveApiHarnessBinding } from '../scheduling/api-binding.js';
+import { estimateApiCost } from '../scheduling/api-cost.js';
+import { buildSubscriptionGapForecast, subscriptionGapReasonFor } from '../scheduling/api-gap.js';
+import { assessDelaySensitivity } from '../scheduling/delay-sensitivity.js';
+import { assessApiBudget, readApiBudgetState } from '../scheduling/api-budget.js';
+import { checkApiSpendApproval, listApiSpendApprovals, taskSpendFingerprint } from '../scheduling/api-approval.js';
+import { planApiGapBridge } from '../scheduling/api-gap-bridge.js';
 import { classifyLocalSuitability } from '../scheduling/suitability.js';
 import { estimateWorkload } from '../scheduling/profiler.js';
 import type { LocalExecutorInference } from '../scheduling/local-execution.js';
@@ -71,6 +79,24 @@ export interface SchedulingRuntime {
   harnessBinding: LocalHarnessBinding;
   /** vNext.4: explicit per-run mode override, when one was requested. */
   localExecutionOverride: LocalExecutionMode | undefined;
+  /** vNext.5: the API lane's harness binding (verified REMOTE locality). */
+  apiBinding: ApiHarnessBinding;
+  /**
+   * vNext.5: whether the gap-bridge planner is consulted at all this run.
+   *
+   * True whenever an API profile is CONFIGURED — including when spending is
+   * DISABLED or the binding fails verification. That is deliberate: an
+   * operator who configured an API lane needs to know why a task is waiting
+   * instead of using it, and "API_DISABLED" is a far better answer than a
+   * bare quota defer. The planner cannot spend in those states; it can only
+   * explain.
+   *
+   * False when nothing is bound at all, in which case no planner runs, no
+   * `api_*` event is emitted, and behavior is byte-identical to vNext.4.
+   */
+  apiBridgeEnabled: boolean;
+  /** True while a subscription worker exists in the roster at all. */
+  subscriptionWorkerAvailable: boolean;
   verificationAvailable: boolean;
   /** Mode/reserve/freshness seen by the previous pass (event dedup). */
   lastMode: string | undefined;
@@ -94,6 +120,8 @@ export function createSchedulingRuntime(
   input: {
     localManager: LocalModelManager | undefined;
     missionDriven: boolean;
+    /** vNext.5: whether the roster has a subscription-tier worker at all. */
+    subscriptionWorkerAvailable?: boolean | undefined;
     options?: SchedulingRuntimeOptions | undefined;
   },
 ): SchedulingRuntime | undefined {
@@ -126,6 +154,15 @@ export function createSchedulingRuntime(
   const localExecutionAvailable =
     localWorkerAvailable && (localDirectAvailable || harnessUsable);
 
+  // vNext.5: the paid continuity bridge. Three INDEPENDENT controls must
+  // all be right before it can spend: an API profile must exist and verify
+  // REMOTE, it must be explicitly BOUND to the lane, and spending must be
+  // AUTHORIZED. Missing any one leaves vNext.4 behavior exactly in place —
+  // which is what makes an upgraded workspace incapable of surprising its
+  // owner with a bill.
+  const apiBinding = resolveApiHarnessBinding(config);
+  const apiBridgeEnabled = policy.api.harnessProfile !== null;
+
   const provider =
     input.options?.quotaTelemetryProvider ??
     resolveQuotaTelemetryProvider(workspace, policy.telemetrySource);
@@ -139,6 +176,9 @@ export function createSchedulingRuntime(
     localDirectAvailable,
     harnessBinding,
     localExecutionOverride: input.options?.localExecutionMode,
+    apiBinding,
+    apiBridgeEnabled,
+    subscriptionWorkerAvailable: input.subscriptionWorkerAvailable ?? true,
     verificationAvailable: config.verification.commands.length > 0,
     lastMode: undefined,
     lastReserveRatio: undefined,
@@ -255,6 +295,36 @@ export async function buildLaneContext(
     routings.set(node.nodeId, assessNode(runtime, deps, jobId, job, node, forecast, reserve, observations));
   }
 
+  // vNext.5: the API gap bridge runs as a SECOND pass, after every ready
+  // node already has a lane. That ordering is what lets the planner see the
+  // whole picture it needs — which other tasks could run locally right now,
+  // and whether anything at all can proceed — and it structurally
+  // guarantees the paid lane is only ever considered for work LOCAL and
+  // SUBSCRIPTION have both already refused.
+  if (runtime.apiBridgeEnabled && ready.length > 0) {
+    const readyLocalNodeIds = ready
+      .filter((node) => routings.get(node.nodeId)?.routing.lane === 'LOCAL')
+      .map((node) => node.nodeId);
+    const readyRunnableNodeIds = ready
+      .filter((node) => {
+        const lane = routings.get(node.nodeId)?.routing.lane;
+        return lane !== undefined && lane !== 'DEFER' && lane !== 'REQUIRE_APPROVAL';
+      })
+      .map((node) => node.nodeId);
+    for (const node of ready) {
+      const assessment = routings.get(node.nodeId);
+      if (assessment === undefined || assessment.routing.lane !== 'DEFER') continue;
+      const bridged = assessApiGapBridge(runtime, deps, jobId, job, node, assessment, {
+        forecast,
+        readyLocalNodeIds,
+        readyRunnableNodeIds,
+        graph,
+        now: (deps.clock ?? (() => new Date()))(),
+      });
+      if (bridged !== undefined) routings.set(node.nodeId, bridged);
+    }
+  }
+
   // Overtake scan: walk the graph prefix in which every node is COMPLETED,
   // SUPERSEDED, or assessed as quota-DEFERRED. The first PENDING node in
   // that prefix that would route LOCAL becomes the promotion candidate.
@@ -293,6 +363,92 @@ export async function buildLaneContext(
     reserve,
     overtakeCandidate,
   };
+}
+
+/**
+ * Run the vNext.5 gap-bridge planner for ONE deferred node, gathering every
+ * input from durable state so the resulting decision replays exactly.
+ *
+ * Returns undefined when the defer is not a subscription-CAPACITY problem —
+ * a context refusal, an escalation, or a local-worker gap is not a gap the
+ * paid lane may bridge, and treating every defer as a spending opportunity
+ * is precisely how a continuity bridge turns into a default lane.
+ */
+function assessApiGapBridge(
+  runtime: SchedulingRuntime,
+  deps: JobDeps,
+  jobId: string,
+  job: JobState,
+  node: JobNode,
+  assessment: NodeLaneRouting,
+  context: {
+    forecast: QuotaForecast;
+    readyLocalNodeIds: readonly string[];
+    readyRunnableNodeIds: readonly string[];
+    graph: JobGraph | undefined;
+    now: Date;
+  },
+): NodeLaneRouting | undefined {
+  const apiPolicy = runtime.policy.api;
+  const gapReason = runtime.subscriptionWorkerAvailable
+    ? subscriptionGapReasonFor(assessment.routing.reasonCode)
+    : 'SUBSCRIPTION_WORKER_UNAVAILABLE';
+  if (gapReason === undefined) return undefined;
+
+  const gap = buildSubscriptionGapForecast({
+    reason: gapReason,
+    forecast: context.forecast,
+    deferUntil: assessment.routing.deferUntil,
+    now: context.now,
+  });
+  const delaySensitivity = assessDelaySensitivity({
+    graph: context.graph,
+    nodeId: node.nodeId,
+    readyLocalNodeIds: context.readyLocalNodeIds,
+    readyRunnableNodeIds: context.readyRunnableNodeIds,
+  });
+  const cost = estimateApiCost({
+    estimate: assessment.estimate,
+    pricing: apiPolicy.pricing,
+    safetyMultiplier: apiPolicy.gap.costSafetyMultiplier,
+  });
+  // Budget admission reads the DURABLE reservation state, not a cached
+  // total: a reservation another task made moments ago must already be
+  // visible here, or two tasks could each be told the same dollar is free.
+  const budget = assessApiBudget({
+    state: readApiBudgetState(deps.workspace, jobId),
+    policy: apiPolicy.budget,
+    taskId: node.parentTaskId,
+    safeCostUsd: cost.safeCostUsd,
+  });
+  const approval =
+    runtime.apiBinding.profileName === null
+      ? null
+      : checkApiSpendApproval({
+          approvals: listApiSpendApprovals(deps.workspace, jobId, { nodeId: node.nodeId }),
+          nodeId: node.nodeId,
+          taskFingerprint: taskSpendFingerprint(node),
+          profileName: runtime.apiBinding.profileName,
+          safeCostUsd: cost.safeCostUsd,
+          now: context.now,
+        });
+
+  const plan = planApiGapBridge({
+    policy: apiPolicy,
+    binding: runtime.apiBinding,
+    gap,
+    delaySensitivity,
+    estimate: assessment.estimate,
+    cost,
+    budget,
+    approval,
+    // The planner is only ever reached through a subscription refusal, and
+    // it re-asserts that fact rather than trusting the call site.
+    subscriptionAvailable: false,
+    now: context.now,
+  });
+  void job;
+  return { ...assessment, routing: applyApiGapBridge(assessment.routing, plan), apiBridge: plan };
 }
 
 function assessNode(

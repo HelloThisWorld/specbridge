@@ -49,7 +49,7 @@ import {
   supersedeNode,
 } from '../jobs/index.js';
 import { readNodePlan, storeAgentResult } from '../jobs/store.js';
-import type { JobNode, JobState } from '../jobs/state.js';
+import type { JobGraph, JobNode, JobState } from '../jobs/state.js';
 import { escalationAllowed, resolveWorkers } from '../jobs/routing.js';
 import { isFinalJobStatus } from '../jobs/vocabulary.js';
 import { scheduleNext } from '../jobs/scheduler.js';
@@ -70,8 +70,24 @@ import { dispatchLocalExecution } from '../scheduling/local-execution.js';
 import type { LocalHarnessExecutionResult } from '../scheduling/local-harness.js';
 import { dispatchLocalHarnessExecution } from '../scheduling/local-harness.js';
 import type { LocalHarnessBinding } from '../scheduling/local-binding.js';
+import type { ApiHarnessBinding } from '../scheduling/api-binding.js';
+import { dispatchApiHarnessExecution } from '../scheduling/api-harness.js';
+import {
+  bindApiBudgetReservation,
+  reconcileApiBudget,
+  reserveApiBudget,
+  summarizeApiBudget,
+  readApiBudgetState,
+} from '../scheduling/api-budget.js';
+import { computeObservedApiCost } from '../scheduling/api-cost.js';
+import {
+  consumeApiSpendApproval,
+  requestApiSpendApproval,
+  taskSpendFingerprint,
+} from '../scheduling/api-approval.js';
 import type { NodeLaneRouting } from '../scheduling/scheduler.js';
 import { reconstructTaskContext } from '../survival/reconstruction.js';
+import { createTaskCheckpoint } from '../survival/service.js';
 import { readLatestTaskCheckpoint } from '../survival/store.js';
 import type { BuiltLaneContext, SchedulingRuntime } from './scheduling-runtime.js';
 import {
@@ -270,6 +286,12 @@ export async function driveJob(
   const schedulingRuntime = createSchedulingRuntime(deps.config, deps.workspace, {
     localManager,
     missionDriven,
+    // vNext.5: whether prepaid strong compute exists at all. A roster with
+    // no subscription worker is a different gap from an exhausted quota
+    // window — it never "resets" — and the planner must be able to tell.
+    subscriptionWorkerAvailable: resolveWorkers(deps.config).some(
+      (worker) => worker.reasoningTier !== 'LOCAL_SMALL',
+    ),
     options: {
       quotaTelemetryProvider: options.quotaTelemetryProvider,
       localExecutorInference: options.localExecutorInference,
@@ -286,6 +308,13 @@ export async function driveJob(
   // the driver stops (resumable) instead of polling until the loop bound —
   // telemetry without a reset timestamp cannot promise capacity will return.
   let unboundedQuotaDefers = 0;
+  /**
+   * vNext.5: a paid attempt ran to completion while prepaid capacity came
+   * back. The flag exists only so the RETURN to the subscription lane is
+   * recorded once — it never influences routing, which the ordinary
+   * scheduler decides fresh from live telemetry every pass.
+   */
+  let apiBridgedWhileMaxReturned = false;
 
   try {
     for (;;) {
@@ -369,9 +398,18 @@ export async function driveJob(
           // lane spends its compute. `localExecution` is present exactly when
           // the lane decision was LOCAL.
           const localExecution = laneName === 'LOCAL' ? laneRouting?.localExecution : undefined;
-          const executionMode = localExecution?.mode ?? undefined;
-          const harnessProfileName =
-            executionMode === 'HARNESS' ? (localExecution?.harness?.profileName ?? undefined) : undefined;
+          // vNext.5: the API lane runs the SAME harness execution mode as
+          // the local lane's agentic path. Mode, lane, runner, and compute
+          // locality stay four separate values — "HARNESS" never implies
+          // paid, and "API" never implies a particular runtime.
+          const apiLane = laneName === 'API' && schedulingRuntime !== undefined;
+          const apiBridge = apiLane ? laneRouting?.apiBridge : undefined;
+          const executionMode = apiLane ? 'HARNESS' : (localExecution?.mode ?? undefined);
+          const harnessProfileName = apiLane
+            ? (schedulingRuntime?.apiBinding.profileName ?? undefined)
+            : executionMode === 'HARNESS'
+              ? (localExecution?.harness?.profileName ?? undefined)
+              : undefined;
           emit(
             'executor-started',
             `${decision.mode} task ${decision.taskId} via ${decision.worker.workerId}${laneName !== undefined ? ` [${laneName} lane${executionMode !== undefined ? `/${executionMode}` : ''}]` : ''}`,
@@ -390,7 +428,7 @@ export async function driveJob(
               taskId: node.parentTaskId,
               selectedLane: laneName,
               selectedProvider:
-                laneName === 'LOCAL'
+                laneName === 'LOCAL' || laneName === 'API'
                   ? (harnessProfileName ?? decision.worker.workerId)
                   : (decision.worker.runnerProfile ?? decision.worker.workerId),
               reasonCode: laneRouting.routing.reasonCode,
@@ -399,17 +437,38 @@ export async function driveJob(
               laneRouting,
               lane,
               ...(schedulingRuntime !== undefined
-                ? { harnessBinding: schedulingRuntime.harnessBinding }
+                ? {
+                    harnessBinding: schedulingRuntime.harnessBinding,
+                    apiBinding: schedulingRuntime.apiBinding,
+                  }
                 : {}),
             });
-            recordJobEvent(deps, jobId, laneName === 'LOCAL' ? 'task_routed_local' : 'task_routed_subscription', {
-              nodeId: node.nodeId,
-              taskId: node.parentTaskId,
-              reasonCode: laneRouting.routing.reasonCode,
-              suitability: laneRouting.suitability.class,
-              mode: lane.forecast.schedulerMode,
-              ...(executionMode !== undefined ? { executionMode } : {}),
-            });
+            if (laneName !== 'API') {
+              recordJobEvent(deps, jobId, laneName === 'LOCAL' ? 'task_routed_local' : 'task_routed_subscription', {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                reasonCode: laneRouting.routing.reasonCode,
+                suitability: laneRouting.suitability.class,
+                mode: lane.forecast.schedulerMode,
+                ...(executionMode !== undefined ? { executionMode } : {}),
+              });
+            }
+            // vNext.5: the first strong dispatch after a paid bridge, once
+            // prepaid capacity is healthy again, is recorded explicitly.
+            // "API is a bridge, not the preferred strong lane" must be
+            // visible in the timeline, not merely true in the code — a
+            // provider that succeeded once must never become sticky.
+            if (apiBridgedWhileMaxReturned && laneName === 'SUBSCRIPTION') {
+              recordJobEvent(deps, jobId, 'api_next_task_returned_to_subscription', {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                reasonCode: laneRouting.routing.reasonCode,
+                detail:
+                  'Prepaid subscription capacity is healthy again; strong work routes back to it ' +
+                  'rather than continuing on the paid lane.',
+              });
+              apiBridgedWhileMaxReturned = false;
+            }
             if (localExecution !== undefined && executionMode !== undefined) {
               // One structured record of the mode decision, with the reason
               // and the shape that produced it: "why did this task use the
@@ -477,6 +536,124 @@ export async function driveJob(
             }
           }
 
+          // vNext.5: reserve API budget BEFORE any attempt record exists.
+          //
+          // The ordering matters. A refusal here has cost nothing and left
+          // nothing to reconcile; a refusal after the attempt started would
+          // leave a paid attempt whose funding is in doubt. The reservation
+          // is also re-checked against freshly read durable state inside its
+          // own lock, so a second task cannot have spent the same dollar in
+          // between the planner's look and this one.
+          let apiReservationId: string | undefined;
+          let apiApprovalId: string | undefined;
+          // Fail closed before any money moves. Reaching DISPATCH_EXECUTOR
+          // with lane API and no resolvable harness profile should be
+          // impossible — the routing requires an available binding — but the
+          // fallthrough it would cause (a SUBSCRIPTION worker running under a
+          // record that says API) is exactly the kind of silent lane
+          // reclassification this phase forbids. So it is checked, not
+          // assumed.
+          if (apiLane && (harnessProfileName === undefined || apiBridge === undefined)) {
+            throw new OrchestrationError(
+              'SBO031',
+              `Task ${decision.taskId} routed to the API lane, but no bound API harness profile ` +
+                'resolved at dispatch. Refusing to run it on another lane under an API record.',
+              {
+                remediation: [
+                  'Inspect `specbridge orchestrate scheduler <jobId>`; this indicates a scheduling defect, not a task failure.',
+                ],
+              },
+            );
+          }
+          if (apiLane && schedulingRuntime !== undefined && apiBridge !== undefined) {
+            const apiPolicy = schedulingRuntime.policy.api;
+            // The gap is recorded whether it leads to a wait or a spend, so
+            // the timeline reads the same either way: a gap was detected,
+            // and here is what was decided about it.
+            recordJobEvent(deps, jobId, 'api_gap_detected', {
+              nodeId: node.nodeId,
+              taskId: node.parentTaskId,
+              gapReason: apiBridge.gap.reason,
+              expectedAvailableAt: apiBridge.gap.expectedAvailableAt,
+              estimatedGapDurationMs: apiBridge.gap.timeUntilAvailableMs,
+              confidence: apiBridge.gap.confidence,
+              delaySensitivity: apiBridge.delaySensitivity.level,
+              decision: apiBridge.decision,
+              reasonCode: apiBridge.reasonCode,
+            });
+            const reservation = reserveApiBudget({
+              workspace: deps.workspace,
+              jobId,
+              nodeId: node.nodeId,
+              taskId: node.parentTaskId,
+              policy: apiPolicy.budget,
+              safeCostUsd: apiBridge.cost?.safeCostUsd ?? null,
+              profileName: schedulingRuntime.apiBinding.profileName,
+              now: (deps.clock ?? (() => new Date()))(),
+              reservationId: `ar-${((deps.idFactory ?? (() => `${Date.now()}`))())}`.slice(0, 64),
+              detail: apiBridge.detail,
+            });
+            if (!reservation.ok) {
+              // The budget refused between planning and dispatch. Nothing is
+              // spent, nothing is dispatched, and the task stays durably
+              // pending with the refusal on record.
+              recordJobEvent(deps, jobId, 'api_budget_exceeded', {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                refusal: reservation.admission.refusal ?? 'UNKNOWN',
+                remainingUsd: reservation.admission.job.remainingUsd,
+                detail: reservation.admission.detail.slice(0, 300),
+              });
+              if (
+                reservation.admission.refusal === 'JOB_CEILING' ||
+                reservation.admission.refusal === 'JOB_ATTEMPTS'
+              ) {
+                recordJobEvent(deps, jobId, 'api_budget_exhausted', {
+                  jobId,
+                  refusal: reservation.admission.refusal,
+                  encumberedUsd: reservation.admission.job.encumberedUsd,
+                });
+              }
+              emit('waiting', `api budget refused: ${reservation.admission.detail}`);
+              job = deferJobForQuota(deps, jobId, {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                until: apiBridge.gap.expectedAvailableAt,
+                reasonCode: 'API_BUDGET_EXCEEDED',
+                detail: reservation.admission.detail,
+                pollMs: schedulingRuntime.policy.deferPollMs,
+              });
+              checkpointJob(
+                deps,
+                jobId,
+                'API budget refused the bridge; the task waits for subscription capacity.',
+              );
+              job = requireJobState(deps.workspace, jobId);
+              return {
+                stop: {
+                  kind: 'deferred',
+                  until: job.retryAt ?? null,
+                  reason: reservation.admission.detail,
+                },
+                job,
+              };
+            }
+            apiReservationId = reservation.reservation.reservationId;
+            apiApprovalId = apiBridge.approval?.approval?.approvalId;
+            recordJobEvent(deps, jobId, 'api_budget_reserved', {
+              nodeId: node.nodeId,
+              taskId: node.parentTaskId,
+              reservationId: apiReservationId,
+              reservedUsd: reservation.reservation.reservedUsd,
+              remainingUsd: reservation.admission.job.remainingUsd,
+              profile: schedulingRuntime.apiBinding.profileName ?? 'unknown',
+            });
+            emit(
+              'note',
+              `api budget reserved $${reservation.reservation.reservedUsd.toFixed(4)} for task ${node.parentTaskId}`,
+            );
+          }
+
           beginExecutorDispatch(deps, jobId, {
             nodeId: decision.nodeId,
             mode: decision.mode,
@@ -488,9 +665,11 @@ export async function driveJob(
             // fields rather than one compound value.
             provider:
               harnessProfileName ?? decision.worker.runnerProfile ?? decision.worker.workerId,
-            ...(localExecution?.harness?.model != null
-              ? { model: localExecution.harness.model }
-              : {}),
+            ...(apiLane && schedulingRuntime?.apiBinding.model != null
+              ? { model: schedulingRuntime.apiBinding.model }
+              : localExecution?.harness?.model != null
+                ? { model: localExecution.harness.model }
+                : {}),
             ...(laneName !== undefined ? { lane: laneName } : {}),
             ...(executionMode !== undefined ? { executionMode } : {}),
             ...(localExecution !== undefined
@@ -500,6 +679,33 @@ export async function driveJob(
                     executionMode === 'HARNESS'
                       ? (localExecution.harness?.locality ?? 'UNKNOWN')
                       : 'LOCAL',
+                }
+              : {}),
+            // vNext.5 paid-attempt attribution. Every field is recorded, and
+            // every one is separate: the lane says it was paid, the gap says
+            // why prepaid capacity could not run it, the cost fields say what
+            // was authorized, and none of them is derived from another.
+            ...(apiLane && apiBridge !== undefined && schedulingRuntime !== undefined
+              ? {
+                  executionShape: 'AGENTIC',
+                  computeLocality: schedulingRuntime.apiBinding.locality,
+                  apiSpendMode: schedulingRuntime.policy.api.spendMode,
+                  gapReason: apiBridge.gap.reason,
+                  ...(apiBridge.gap.expectedAvailableAt !== null
+                    ? { subscriptionAvailableAt: apiBridge.gap.expectedAvailableAt }
+                    : {}),
+                  estimatedGapDurationMs: apiBridge.gap.timeUntilAvailableMs,
+                  costSource: apiBridge.cost?.costSource ?? 'UNKNOWN',
+                  ...(apiBridge.cost?.pricingSource != null
+                    ? { pricingProfile: apiBridge.cost.pricingSource }
+                    : {}),
+                  delaySensitivity: apiBridge.delaySensitivity.level,
+                  estimatedCostUsd: apiBridge.cost?.estimatedCostUsd ?? null,
+                  reservedCostUsd: apiBridge.cost?.safeCostUsd ?? null,
+                  ...(apiReservationId !== undefined
+                    ? { apiBudgetReservationId: apiReservationId }
+                    : {}),
+                  ...(apiApprovalId !== undefined ? { apiApprovalId } : {}),
                 }
               : {}),
             ...(laneRouting !== undefined
@@ -513,6 +719,55 @@ export async function driveJob(
             ...(contextBefore !== null ? { contextUsageBefore: contextBefore } : {}),
           });
           const startedAt = (deps.clock ?? (() => new Date()))().toISOString();
+
+          // vNext.5: checkpoint BEFORE the paid handoff.
+          //
+          // The paid attempt must be able to start from canonical durable
+          // state rather than from a Claude conversation that no longer
+          // exists — so the transition subscription-unavailable → API is
+          // recorded as an explicit handoff checkpoint that carries forward
+          // decisions, failed approaches, and known test state. If the paid
+          // process then dies, this is what the next attempt resumes from.
+          if (apiLane && schedulingRuntime !== undefined && apiBridge !== undefined) {
+            const attemptId = requireJobState(deps.workspace, jobId).currentAttemptId;
+            if (attemptId !== undefined) {
+              if (apiReservationId !== undefined) {
+                bindApiBudgetReservation(
+                  deps.workspace,
+                  jobId,
+                  apiReservationId,
+                  attemptId,
+                  (deps.clock ?? (() => new Date()))(),
+                );
+              }
+              if (apiApprovalId !== undefined) {
+                // Approvals are single-use and bound to one attempt: an
+                // authorization spent is an authorization gone.
+                try {
+                  consumeApiSpendApproval(deps.workspace, jobId, apiApprovalId, attemptId);
+                } catch {
+                  // The approval record is observability at this point; the
+                  // dispatch was already authorized against it.
+                }
+              }
+              writeApiHandoffCheckpoint(deps, jobId, node, attemptId, apiBridge);
+              recordJobEvent(deps, jobId, 'api_task_dispatched', {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                attemptId,
+                profile: schedulingRuntime.apiBinding.profileName ?? 'unknown',
+                runner: schedulingRuntime.apiBinding.runner ?? 'unknown',
+                model: schedulingRuntime.apiBinding.model ?? 'unknown',
+                computeLocality: schedulingRuntime.apiBinding.locality,
+                spendMode: schedulingRuntime.policy.api.spendMode,
+                gapReason: apiBridge.gap.reason,
+                estimatedGapDurationMs: apiBridge.gap.timeUntilAvailableMs,
+                delaySensitivity: apiBridge.delaySensitivity.level,
+                estimatedCostUsd: apiBridge.cost?.estimatedCostUsd ?? null,
+                reasonCode: laneRouting?.routing.reasonCode ?? 'API_GAP_BRIDGE_SELECTED',
+              });
+            }
+          }
           // Later tasks run over earlier verified (uncommitted) changes, and
           // a repair runs over its own failed attempt: same rule as `--all`.
           const allowDirty =
@@ -538,10 +793,37 @@ export async function driveJob(
             !localHarnessLane &&
             schedulingRuntime !== undefined &&
             schedulingRuntime.localInference !== undefined;
-          const harnessCheckpoint = localHarnessLane
-            ? readLatestTaskCheckpoint(deps.workspace, jobId, node.nodeId)
-            : undefined;
-          const dispatch = localHarnessLane
+          const apiHarnessLane =
+            apiLane && harnessProfileName !== undefined && schedulingRuntime !== undefined;
+          const harnessCheckpoint =
+            localHarnessLane || apiHarnessLane
+              ? readLatestTaskCheckpoint(deps.workspace, jobId, node.nodeId)
+              : undefined;
+          const dispatch = apiHarnessLane
+            ? // vNext.5: the paid continuity bridge. Same runner, same
+              // evidence pipeline, same completion authority — the only
+              // differences are who is billed and what bounds the attempt.
+              await dispatchApiHarnessExecution({
+                workspace: deps.workspace,
+                config: deps.config,
+                registry: deps.registry,
+                node,
+                specName: job.specName,
+                jobId,
+                mode: decision.mode,
+                allowDirty,
+                profileName: harnessProfileName as string,
+                // The lean canonical bootstrap: a fresh remote session has
+                // never seen this job, and nothing on disk records what was
+                // already decided, tried, and ruled out.
+                ...(harnessCheckpoint !== undefined ? { checkpoint: harnessCheckpoint } : {}),
+                maxWallTimeMs: (schedulingRuntime as SchedulingRuntime).apiBinding.maxWallTimeMs,
+                ...(deps.clock !== undefined ? { clock: deps.clock } : {}),
+                ...(deps.idFactory !== undefined ? { idFactory: deps.idFactory } : {}),
+                ...(signal !== undefined ? { signal } : {}),
+                onProgress: (message) => emit('note', message),
+              })
+            : localHarnessLane
             ? await dispatchLocalHarnessExecution({
                 workspace: deps.workspace,
                 config: deps.config,
@@ -729,7 +1011,7 @@ export async function driveJob(
               contextUsageAfter: estimateNodeContextRatio(deps, jobId, node.nodeId),
             };
           }
-          if (localHarnessLane) {
+          if (localHarnessLane || apiHarnessLane) {
             // Observed harness activity. Anything the runtime did not report
             // stays null: an invented zero would quietly corrupt every later
             // direct-vs-harness comparison.
@@ -742,6 +1024,108 @@ export async function driveJob(
               cachedTokens: observed.cachedInputTokens,
               filesRead: observed.filesRead,
             };
+          }
+
+          // vNext.5: reconcile the paid attempt's budget reservation.
+          //
+          // Two honest outcomes only. If the provider reported a cost, or
+          // reported usage a configured price table can price, the
+          // reservation COMMITS at that figure. Otherwise it moves to
+          // UNKNOWN and KEEPS its hold — a paid attempt that cannot say what
+          // it used is not evidence that it used nothing.
+          if (apiHarnessLane && schedulingRuntime !== undefined) {
+            const apiResult = dispatch as LocalHarnessExecutionResult;
+            const observedCost = computeObservedApiCost({
+              ...(apiResult.usage !== undefined
+                ? {
+                    usage: {
+                      inputTokens: apiResult.usage.inputTokens,
+                      outputTokens: apiResult.usage.outputTokens,
+                      cachedInputTokens: apiResult.observed.cachedInputTokens,
+                      costUsd: apiResult.usage.costUsd,
+                    },
+                  }
+                : {}),
+              pricing: schedulingRuntime.policy.api.pricing,
+              interrupted: apiResult.failureKind === 'INFRASTRUCTURE',
+            });
+            extraMetrics = {
+              ...(extraMetrics ?? {}),
+              reconciledCostUsd: observedCost.costUsd,
+            };
+            if (apiReservationId !== undefined) {
+              const reconciled = reconcileApiBudget({
+                workspace: deps.workspace,
+                jobId,
+                reservationId: apiReservationId,
+                observedCostUsd: observedCost.costUsd,
+                costSource: observedCost.source,
+                now: (deps.clock ?? (() => new Date()))(),
+                detail: observedCost.detail,
+              });
+              const summary = summarizeApiBudget(
+                readApiBudgetState(deps.workspace, jobId),
+                schedulingRuntime.policy.api.budget,
+              );
+              recordJobEvent(deps, jobId, 'api_budget_reconciled', {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                reservationId: apiReservationId,
+                state: reconciled.state,
+                reservedUsd: reconciled.reservedUsd,
+                reconciledUsd: reconciled.reconciledUsd,
+                costSource: observedCost.source,
+                encumberedUsd: summary.encumberedUsd,
+                remainingUsd: summary.remainingUsd,
+              });
+              if (observedCost.costUsd === null) {
+                recordJobEvent(deps, jobId, 'api_cost_unknown', {
+                  nodeId: node.nodeId,
+                  taskId: node.parentTaskId,
+                  reservationId: apiReservationId,
+                  detail: observedCost.detail.slice(0, 300),
+                });
+              }
+              emit(
+                'note',
+                `api budget reconciled: ${reconciled.state}` +
+                  `${observedCost.costUsd !== null ? ` at $${observedCost.costUsd.toFixed(4)} (${observedCost.source})` : ' with UNKNOWN cost (hold retained)'}`,
+              );
+            }
+            if (apiResult.failure !== undefined) {
+              // Classify why paid work failed. Infrastructure failures say
+              // nothing about the task and must not become a paid retry
+              // loop; intelligence failures follow the ordinary recovery
+              // policy that governs every other lane.
+              recordJobEvent(deps, jobId, 'api_attempt_failed', {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                category: apiResult.failure.category,
+                failureKind: apiResult.failureKind ?? 'UNKNOWN',
+                detail: apiResult.failure.message.slice(0, 300),
+              });
+            }
+            // Did prepaid capacity return while we were paying? Recording it
+            // is the point — the attempt was NOT killed for it, and the next
+            // strong task will route back to the subscription lane on its
+            // own through the ordinary scheduler.
+            const after = await schedulingRuntime.manager.snapshot();
+            const fiveHourBack =
+              (after.fiveHour?.remainingRatio ?? 0) > schedulingRuntime.policy.fiveHourExhaustedRatio;
+            const weeklyBack =
+              (after.weekly?.remainingRatio ?? 0) > schedulingRuntime.policy.weeklyExhaustedRatio;
+            if (fiveHourBack && weeklyBack) {
+              recordJobEvent(deps, jobId, 'api_max_returned', {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                fiveHourRemainingRatio: after.fiveHour?.remainingRatio ?? null,
+                weeklyRemainingRatio: after.weekly?.remainingRatio ?? null,
+                detail:
+                  'Subscription capacity returned during the paid attempt; the atomic attempt was ' +
+                  'allowed to finish and subsequent strong work routes back to the subscription lane.',
+              });
+              apiBridgedWhileMaxReturned = true;
+            }
           }
 
           const result = completeExecutorDispatch(deps, jobId, {
@@ -792,14 +1176,16 @@ export async function driveJob(
             persistLaneDecision(deps, jobId, {
               nodeId: decision.nodeId,
               taskId: decision.taskId,
-              selectedLane: 'DEFER',
+              selectedLane: decision.awaitingApiApproval === true ? 'REQUIRE_APPROVAL' : 'DEFER',
               selectedProvider: null,
               reasonCode: decision.reasonCode,
               detail: decision.reason,
               deferUntil: decision.until,
               laneRouting: decision.laneRouting,
               lane,
+              apiBinding: schedulingRuntime.apiBinding,
             });
+            recordApiGapObservations(deps, jobId, schedulingRuntime, decision, graph, emit);
           }
           job = deferJobForQuota(deps, jobId, {
             nodeId: decision.nodeId,
@@ -913,13 +1299,172 @@ function directFailureNeedsRepositoryTools(result: LocalExecutionResult): boolea
  * Records are bounded observability; a storage hiccup here must never fail
  * the dispatch it describes.
  */
+/**
+ * Persist the canonical handoff state a paid attempt will start from
+ * (vNext.5 §40).
+ *
+ * The paid runtime is a stranger to this job: it has never seen the
+ * subscription conversation that preceded it, and it must not need to. So
+ * the transition is recorded as an explicit `handoff` checkpoint whose
+ * carry-forward rules (decisions and failed approaches accumulate) give the
+ * new session everything SpecBridge knows and the repository does not.
+ *
+ * Best-effort by design: a checkpoint that cannot be written must not block
+ * a dispatch that is already authorized and funded. The attempt record and
+ * the ledger remain the durable evidence either way.
+ */
+function writeApiHandoffCheckpoint(
+  deps: DriverDeps,
+  jobId: string,
+  node: JobNode,
+  attemptId: string,
+  bridge: NonNullable<NodeLaneRouting['apiBridge']>,
+): void {
+  try {
+    const previous = readLatestTaskCheckpoint(deps.workspace, jobId, node.nodeId);
+    createTaskCheckpoint(
+      { workspace: deps.workspace, clock: deps.clock, idFactory: deps.idFactory },
+      {
+        jobId,
+        nodeId: node.nodeId,
+        taskId: node.parentTaskId,
+        attemptId,
+        reason: 'handoff',
+        objective:
+          previous?.objective ??
+          `Implement task ${node.parentTaskId}: ${node.title}`.slice(0, 2_000),
+        pinned: previous?.pinned ?? {
+          taskContract: `Task ${node.parentTaskId}: ${node.title}`.slice(0, 2_000),
+          acceptanceCriteria: [],
+          constraints: [],
+          invariants: [],
+        },
+        nextActions: previous?.nextActions ?? [
+          `Implement task ${node.parentTaskId} (${node.title}) and make the verification commands pass.`,
+        ],
+        importantDecisions: [
+          {
+            decision:
+              'Execution handed off to the metered API lane because prepaid subscription ' +
+              'capacity is unavailable.',
+            rationale: bridge.detail.slice(0, 2_000),
+          },
+        ],
+      },
+    );
+  } catch {
+    // Observability, not authority: the dispatch proceeds regardless.
+  }
+}
+
+/**
+ * Record what the gap-bridge planner concluded for a task that is waiting
+ * (vNext.5 §55), and open a bounded approval request when MANUAL mode
+ * concluded that paid execution would preserve continuity.
+ *
+ * Deliberately on the WAIT path: the decisions that do NOT spend money are
+ * the ones a user most needs explained, because their symptom is a job that
+ * appears to be doing nothing.
+ */
+function recordApiGapObservations(
+  deps: DriverDeps,
+  jobId: string,
+  runtime: SchedulingRuntime,
+  decision: Extract<SchedulerDecision, { kind: 'WAIT_QUOTA' }>,
+  graph: JobGraph | undefined,
+  emit: (kind: DriverEvent['kind'], message: string) => void,
+): void {
+  const bridge = decision.laneRouting?.apiBridge;
+  if (bridge === undefined) return;
+  const now = (deps.clock ?? (() => new Date()))();
+
+  recordJobEvent(deps, jobId, 'api_gap_detected', {
+    nodeId: decision.nodeId,
+    taskId: decision.taskId,
+    gapReason: bridge.gap.reason,
+    expectedAvailableAt: bridge.gap.expectedAvailableAt,
+    estimatedGapDurationMs: bridge.gap.timeUntilAvailableMs,
+    confidence: bridge.gap.confidence,
+    delaySensitivity: bridge.delaySensitivity.level,
+    decision: bridge.decision,
+    reasonCode: bridge.reasonCode,
+  });
+  if (bridge.reasonCode === 'API_GAP_SHORT_DEFER' || bridge.reasonCode === 'API_WASTEFUL_NEAR_RESET') {
+    recordJobEvent(deps, jobId, 'api_gap_short_deferred', {
+      nodeId: decision.nodeId,
+      taskId: decision.taskId,
+      estimatedGapDurationMs: bridge.gap.timeUntilAvailableMs,
+      detail: bridge.detail.slice(0, 300),
+    });
+  }
+  if (bridge.reasonCode === 'API_COST_UNKNOWN') {
+    recordJobEvent(deps, jobId, 'api_cost_unknown', {
+      nodeId: decision.nodeId,
+      taskId: decision.taskId,
+      detail: (bridge.cost?.detail ?? bridge.detail).slice(0, 300),
+    });
+  }
+  if (bridge.reasonCode === 'API_BUDGET_EXCEEDED') {
+    recordJobEvent(deps, jobId, 'api_budget_exceeded', {
+      nodeId: decision.nodeId,
+      taskId: decision.taskId,
+      refusal: bridge.budget?.refusal ?? 'UNKNOWN',
+      remainingUsd: bridge.budget?.job.remainingUsd ?? null,
+      detail: bridge.detail.slice(0, 300),
+    });
+  }
+
+  if (decision.awaitingApiApproval !== true) return;
+  const profileName = runtime.apiBinding.profileName;
+  if (profileName === null) return;
+  const node = graph?.nodes.find((candidate) => candidate.nodeId === decision.nodeId);
+  if (node === undefined) return;
+  const safeCost = bridge.cost?.safeCostUsd;
+  if (safeCost === null || safeCost === undefined) return;
+
+  // The authorization is bounded to THIS task version, THIS profile, and a
+  // maximum cost — never to "API", which would be an unbounded yes.
+  const requested = requestApiSpendApproval({
+    workspace: deps.workspace,
+    jobId,
+    nodeId: node.nodeId,
+    taskId: node.parentTaskId,
+    taskFingerprint: taskSpendFingerprint(node),
+    profileName,
+    maxAuthorizedCostUsd: safeCost,
+    estimatedCostUsd: bridge.cost?.estimatedCostUsd ?? null,
+    rationale: bridge.detail,
+    approvalId: `aa-${((deps.idFactory ?? (() => `${Date.now()}`))())}`.slice(0, 64),
+    now,
+    ttlMs: runtime.policy.api.gap.approvalTtlMs,
+  });
+  if (!requested.created) return;
+  recordJobEvent(deps, jobId, 'api_approval_required', {
+    nodeId: node.nodeId,
+    taskId: node.parentTaskId,
+    approvalId: requested.approval.approvalId,
+    profile: profileName,
+    maxAuthorizedCostUsd: requested.approval.maxAuthorizedCostUsd,
+    estimatedCostUsd: requested.approval.estimatedCostUsd,
+    gapReason: bridge.gap.reason,
+    estimatedGapDurationMs: bridge.gap.timeUntilAvailableMs,
+    delaySensitivity: bridge.delaySensitivity.level,
+    expiresAt: requested.approval.expiresAt,
+  });
+  emit(
+    'waiting',
+    `api spend approval required (${requested.approval.approvalId}): up to ` +
+      `$${safeCost.toFixed(4)} on "${profileName}" for task ${node.parentTaskId}`,
+  );
+}
+
 function persistLaneDecision(
   deps: DriverDeps,
   jobId: string,
   input: {
     nodeId: string;
     taskId: string;
-    selectedLane: 'LOCAL' | 'SUBSCRIPTION' | 'DEFER';
+    selectedLane: 'LOCAL' | 'SUBSCRIPTION' | 'API' | 'DEFER' | 'REQUIRE_APPROVAL';
     selectedProvider: string | null;
     reasonCode: SchedulingDecisionRecord['reasonCode'];
     detail: string;
@@ -928,6 +1473,8 @@ function persistLaneDecision(
     lane: BuiltLaneContext;
     /** vNext.4: the LOCAL harness binding in force, for mode attribution. */
     harnessBinding?: LocalHarnessBinding | undefined;
+    /** vNext.5: the API binding in force, for paid-lane attribution. */
+    apiBinding?: ApiHarnessBinding | undefined;
   },
 ): string {
   const createdAt = ((deps.clock ?? (() => new Date()))()).toISOString();
@@ -991,6 +1538,42 @@ function persistLaneDecision(
                 localityEvidence: (input.harnessBinding?.localityEvidence ?? null)?.slice(0, 500) ?? null,
                 harnessBindingStatus: input.harnessBinding?.status ?? null,
                 detail: routing.localExecution.detail.slice(0, 1_000),
+              }
+            : null,
+        // vNext.5: everything a reader needs to answer "why did (or didn't)
+        // this cost money?" from ONE record — the gap and its expected
+        // duration, how much the delay actually mattered, the estimate, the
+        // budget that remained, and which paid profile was in play. Present
+        // on every decision the gap-bridge planner touched, including the
+        // ones where it declined to spend.
+        apiBridge:
+          routing?.apiBridge !== undefined
+            ? {
+                decision: routing.apiBridge.decision,
+                spendMode: deps.config.orchestration.jobs.scheduler.api.spendMode,
+                gapReason: routing.apiBridge.gap.reason,
+                subscriptionAvailableAt: routing.apiBridge.gap.expectedAvailableAt,
+                estimatedGapDurationMs: routing.apiBridge.gap.timeUntilAvailableMs,
+                gapConfidence: routing.apiBridge.gap.confidence,
+                delaySensitivity: routing.apiBridge.delaySensitivity.level,
+                blockedDependents: routing.apiBridge.delaySensitivity.blockedDependents,
+                criticalPath: routing.apiBridge.delaySensitivity.criticalPath,
+                readyLocalBacklog: routing.apiBridge.delaySensitivity.readyLocalBacklog,
+                estimatedCostUsd: routing.apiBridge.cost?.estimatedCostUsd ?? null,
+                safeCostUsd: routing.apiBridge.cost?.safeCostUsd ?? null,
+                currency: routing.apiBridge.cost?.currency ?? 'USD',
+                costSource: routing.apiBridge.cost?.costSource ?? 'UNKNOWN',
+                pricingSource: routing.apiBridge.cost?.pricingSource ?? null,
+                budgetRemainingUsd: routing.apiBridge.budget?.job.remainingUsd ?? null,
+                budgetEncumberedUsd: routing.apiBridge.budget?.job.encumberedUsd ?? null,
+                apiProfile: input.apiBinding?.profileName ?? null,
+                apiRunner: input.apiBinding?.runner ?? null,
+                apiModel: input.apiBinding?.model ?? null,
+                computeLocality: input.apiBinding?.locality ?? 'UNKNOWN',
+                bindingStatus: input.apiBinding?.status ?? null,
+                approvalId: routing.apiBridge.approval?.approval?.approvalId ?? null,
+                approvalStatus: routing.apiBridge.approval?.approval?.status ?? null,
+                detail: routing.apiBridge.detail.slice(0, 2_000),
               }
             : null,
         deferUntil: input.deferUntil,

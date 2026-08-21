@@ -62,6 +62,13 @@ export type SchedulerDecision =
       reasonCode: SchedulingReasonCode;
       reason: string;
       laneRouting?: NodeLaneRouting;
+      /**
+       * vNext.5: the wait is for a human spend authorization, not for
+       * capacity. The task stays durably pending either way — the driver
+       * uses this to record the bounded approval request rather than to
+       * change what waiting means.
+       */
+      awaitingApiApproval?: boolean;
     }
   | {
       kind: 'AWAIT_HUMAN';
@@ -524,7 +531,7 @@ export function scheduleNext(input: ScheduleInput): SchedulerDecision {
   const laneRouting = scheduling?.routings.get(node.nodeId);
   if (scheduling !== undefined && scheduling.policy.enabled && laneRouting !== undefined) {
     const routing = laneRouting.routing;
-    if (routing.lane === 'DEFER') {
+    if (routing.lane === 'DEFER' || routing.lane === 'REQUIRE_APPROVAL') {
       return {
         kind: 'WAIT_QUOTA',
         nodeId: node.nodeId,
@@ -533,6 +540,33 @@ export function scheduleNext(input: ScheduleInput): SchedulerDecision {
         reasonCode: routing.reasonCode,
         reason: routing.detail,
         laneRouting,
+        ...(routing.lane === 'REQUIRE_APPROVAL' ? { awaitingApiApproval: true } : {}),
+      };
+    }
+    // vNext.5: the paid continuity bridge. It reaches this point only
+    // because the gap-bridge planner already refused every cheaper option,
+    // and it dispatches through the SAME executor path as every other lane
+    // — one durable attempt, one evidence pipeline, one verdict.
+    if (routing.lane === 'API') {
+      return {
+        kind: 'DISPATCH_EXECUTOR',
+        nodeId: node.nodeId,
+        taskId: node.parentTaskId,
+        // The API lane runs its own bound harness runtime, not a
+        // subscription worker. The worker profile is carried for roster
+        // bookkeeping; the runner identity comes from the API binding.
+        worker: selectWorker({
+          role: 'EXECUTOR',
+          complexity: node.complexity,
+          policy,
+          workers,
+          nodeEscalations: escalations,
+        }).worker,
+        mode,
+        lane: 'API',
+        laneRouting,
+        compactFirst: routing.compactFirst,
+        reason: `${baseReason} ${routing.detail}`,
       };
     }
     if (routing.lane === 'LOCAL') {

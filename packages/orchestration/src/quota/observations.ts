@@ -27,6 +27,15 @@ export interface BurnObservation {
   wallTimeMs: number | null;
   /** Five-hour burn per minute, when both burn and duration are known. */
   fiveHourBurnRatioPerMinute: number | null;
+  /**
+   * vNext.5: provider-reported token usage, when the runner reported it.
+   * Carried here so API cost estimation reads the SAME observation stream
+   * the quota profiler already builds, instead of growing a second
+   * estimator with its own idea of history.
+   */
+  inputTokens: number | null;
+  outputTokens: number | null;
+  cachedTokens: number | null;
   success: boolean;
   startedAt: string;
 }
@@ -49,7 +58,17 @@ export function deriveBurnObservations(entries: readonly ExecutionLedgerEntry[])
     const fiveHourBurn = ratioDelta(metrics['fiveHourQuotaBefore'], metrics['fiveHourQuotaAfter']);
     const weeklyBurn = ratioDelta(metrics['weeklyQuotaBefore'], metrics['weeklyQuotaAfter']);
     const wallTimeMs = entry.metrics.durationMs;
-    if (fiveHourBurn === null && weeklyBurn === null && wallTimeMs === null) continue;
+    const inputTokens = entry.metrics.inputTokens;
+    const outputTokens = entry.metrics.outputTokens;
+    if (
+      fiveHourBurn === null &&
+      weeklyBurn === null &&
+      wallTimeMs === null &&
+      inputTokens === null &&
+      outputTokens === null
+    ) {
+      continue;
+    }
     const burnPerMinute =
       fiveHourBurn !== null && wallTimeMs !== null && wallTimeMs > 0
         ? fiveHourBurn / (wallTimeMs / 60_000)
@@ -65,6 +84,9 @@ export function deriveBurnObservations(entries: readonly ExecutionLedgerEntry[])
       weeklyBurnRatio: weeklyBurn,
       wallTimeMs,
       fiveHourBurnRatioPerMinute: burnPerMinute,
+      inputTokens,
+      outputTokens,
+      cachedTokens: entry.metrics.cachedTokens,
       success: entry.success,
       startedAt: entry.startedAt,
     });
@@ -77,6 +99,11 @@ export interface BurnAggregate {
   medianFiveHourBurnRatio: number | null;
   medianWallTimeMs: number | null;
   medianFiveHourBurnRatioPerMinute: number | null;
+  /** vNext.5: median reported token usage, when any observation reported it. */
+  medianInputTokens: number | null;
+  medianOutputTokens: number | null;
+  /** How many observations actually reported token usage (sparsity is visible). */
+  tokenObservations: number;
   successRate: number | null;
 }
 
@@ -110,11 +137,20 @@ export function aggregateBurnObservations(
   const rates = relevant
     .map((observation) => observation.fiveHourBurnRatioPerMinute)
     .filter((value): value is number => value !== null);
+  const inputs = relevant
+    .map((observation) => observation.inputTokens)
+    .filter((value): value is number => value !== null);
+  const outputs = relevant
+    .map((observation) => observation.outputTokens)
+    .filter((value): value is number => value !== null);
   return {
     observations: relevant.length,
     medianFiveHourBurnRatio: median(burns),
     medianWallTimeMs: median(walls),
     medianFiveHourBurnRatioPerMinute: median(rates),
+    medianInputTokens: median(inputs),
+    medianOutputTokens: median(outputs),
+    tokenObservations: Math.max(inputs.length, outputs.length),
     successRate:
       relevant.length > 0
         ? relevant.filter((observation) => observation.success).length / relevant.length

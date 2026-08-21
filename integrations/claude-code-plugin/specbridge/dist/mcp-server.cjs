@@ -27661,6 +27661,42 @@ var localExecutionPolicySchema = external_exports.object({
   maxHarnessWallTimeMs: external_exports.number().int().min(3e4).max(864e5).default(18e5),
   allowUnverifiedLocality: external_exports.boolean().default(false)
 }).passthrough();
+var API_SPEND_MODES = ["DISABLED", "MANUAL", "AUTO_BOUNDED"];
+var apiPricingProfileSchema = external_exports.object({
+  inputCostPerMillion: external_exports.number().min(0).max(1e6),
+  outputCostPerMillion: external_exports.number().min(0).max(1e6),
+  cachedInputCostPerMillion: external_exports.number().min(0).max(1e6).nullable().default(null),
+  currency: external_exports.literal("USD").default("USD"),
+  source: external_exports.string().min(1).max(200).default("operator-configured")
+}).passthrough();
+var apiBudgetPolicySchema = external_exports.object({
+  maxCostPerJobUsd: external_exports.number().min(0).max(1e6).nullable().default(null),
+  maxCostPerTaskUsd: external_exports.number().min(0).max(1e6).nullable().default(null),
+  maxCostPerAttemptUsd: external_exports.number().min(0).max(1e6).nullable().default(null),
+  maxApiAttemptsPerTask: external_exports.number().int().min(1).max(10).default(2),
+  maxApiAttemptsPerJob: external_exports.number().int().min(1).max(1e3).default(20)
+}).passthrough();
+var apiGapPolicySchema = external_exports.object({
+  shortGapDeferMs: external_exports.number().int().min(0).max(864e5).default(20 * 6e4),
+  minGapForAutoBoundedMs: external_exports.number().int().min(0).max(6048e5).default(30 * 6e4),
+  minDelaySensitivity: external_exports.enum(["LOW", "MEDIUM", "HIGH"]).default("HIGH"),
+  materialGapMs: external_exports.number().int().min(6e4).max(6048e5).default(60 * 6e4),
+  costSafetyMultiplier: external_exports.number().min(1).max(10).default(1.5),
+  wastefulStartRatio: external_exports.number().min(0).max(1).default(0.25),
+  unknownResetBehavior: external_exports.enum(["MANUAL", "DEFER"]).default("MANUAL"),
+  strongTasksOnly: external_exports.boolean().default(true),
+  preferReadyLocalBacklog: external_exports.boolean().default(true),
+  approvalTtlMs: external_exports.number().int().min(6e4).max(6048e5).default(24 * 36e5)
+}).passthrough();
+var apiExecutionPolicySchema = external_exports.object({
+  spendMode: external_exports.enum(API_SPEND_MODES).default("DISABLED"),
+  harnessProfile: external_exports.string().min(1).max(64).nullable().default(null),
+  maxApiWallTimeMs: external_exports.number().int().min(3e4).max(864e5).default(18e5),
+  pricing: apiPricingProfileSchema.nullable().default(null),
+  budget: apiBudgetPolicySchema.default({}),
+  gap: apiGapPolicySchema.default({}),
+  allowUnverifiedLocality: external_exports.boolean().default(false)
+}).passthrough();
 var jobSchedulerPolicySchema = external_exports.object({
   enabled: external_exports.boolean().default(true),
   maxLocalAttempts: external_exports.number().int().min(1).max(5).default(2),
@@ -27680,7 +27716,8 @@ var jobSchedulerPolicySchema = external_exports.object({
   telemetrySource: external_exports.enum(["manual", "none"]).default("manual"),
   reserve: dynamicReservePolicySchema.default({}),
   estimator: workloadEstimatorPolicySchema.default({}),
-  localExecution: localExecutionPolicySchema.default({})
+  localExecution: localExecutionPolicySchema.default({}),
+  api: apiExecutionPolicySchema.default({})
 }).passthrough();
 var jobPolicySchema = external_exports.object({
   /** When false, job operations refuse to start and report why. */
@@ -52967,21 +53004,21 @@ function requestClarification(deps, orchestrationId, candidates) {
   assertEnabled(policy);
   let state = requireOrchestrationState(deps.workspace, orchestrationId);
   assertActionAllowed(state.phase, "REQUEST_CLARIFICATION");
-  const round = buildClarificationRound(state, candidates, policy, {
+  const round2 = buildClarificationRound(state, candidates, policy, {
     askedAt: now2(deps).toISOString(),
     idFactory: () => newId(deps)
   });
   state = {
     ...state,
-    openQuestions: [...state.openQuestions, ...round.questions],
-    counters: { ...state.counters, clarificationRounds: round.round }
+    openQuestions: [...state.openQuestions, ...round2.questions],
+    counters: { ...state.counters, clarificationRounds: round2.round }
   };
   if (state.phase !== "NEEDS_CLARIFICATION") {
     state = transition2(deps, state, "NEEDS_CLARIFICATION");
   }
   state = record3(deps, state, "clarification_requested", {
-    round: round.round,
-    questionIds: round.questions.map((question) => question.id)
+    round: round2.round,
+    questionIds: round2.questions.map((question) => question.id)
   });
   return persist2(deps, state);
 }
@@ -54393,7 +54430,7 @@ var DECISION_AUTHORITY_TABLE = Object.freeze({
   "spec-conflict": "human",
   approval: "human-only"
 });
-var LANE_DECISIONS = ["LOCAL", "SUBSCRIPTION", "DEFER"];
+var LANE_DECISIONS = ["LOCAL", "SUBSCRIPTION", "API", "DEFER", "REQUIRE_APPROVAL"];
 var LOCAL_EXECUTION_SHAPES = ["ONE_SHOT", "AGENTIC"];
 var LOCAL_EXECUTION_MODE_REASONS = [
   /** The work is one-shot shaped; a bounded structured request runs it. */
@@ -54448,7 +54485,64 @@ var SCHEDULING_REASON_CODES = [
   /** Telemetry was stale/unknown; the conservative path was taken. */
   "STALE_TELEMETRY_CONSERVATIVE",
   /** No healthy local worker exists; local-eligible work routed strong. */
-  "LOCAL_UNAVAILABLE"
+  "LOCAL_UNAVAILABLE",
+  // vNext.5 API gap bridge (additive, never reordered). Every code below
+  // describes a decision ABOUT paid execution — including the many that
+  // decline it, which are the ones that run most of the time.
+  /** Paid execution is not authorized (spendMode DISABLED): the task waits. */
+  "API_DISABLED",
+  /** Paid execution would help; MANUAL mode requires a human authorization. */
+  "API_APPROVAL_REQUIRED",
+  /** The subscription gap is short enough that waiting beats paying. */
+  "API_GAP_SHORT_DEFER",
+  /** A material subscription gap is bridged by one bounded paid attempt. */
+  "API_GAP_BRIDGE_SELECTED",
+  /** A weekly-exhaustion gap (days, not minutes) is bridged by paid work. */
+  "API_WEEKLY_GAP_BRIDGE",
+  /** The safe cost estimate exceeds the authorized job/task/attempt budget. */
+  "API_BUDGET_EXCEEDED",
+  /** Cost cannot be estimated (no pricing or no workload data): never spend. */
+  "API_COST_UNKNOWN",
+  /** No usable API binding exists (unbound, disabled, or not verified remote). */
+  "API_BINDING_UNAVAILABLE",
+  /** The bound API provider/runtime is not currently usable. */
+  "API_PROVIDER_UNAVAILABLE",
+  /** The paid lane takes strong work only; this work stays local. */
+  "API_STRONG_TASK_ONLY",
+  /** Prepaid capacity returned; the next strong task goes back to it. */
+  "API_MAX_RETURNED_NEXT_TASK_SUBSCRIPTION",
+  /** Bounded API attempts for this task/job are spent. */
+  "API_ATTEMPTS_EXHAUSTED",
+  /** Waiting is harmless: the work is not delay-sensitive enough to pay for. */
+  "API_DELAY_TOLERABLE",
+  /** Prepaid capacity returns before a paid attempt would pay for itself. */
+  "API_WASTEFUL_NEAR_RESET",
+  /** Ready local work exists; run it before paying to bridge one strong task. */
+  "API_LOCAL_BACKLOG_FIRST"
+];
+var SUBSCRIPTION_GAP_REASONS = [
+  "FIVE_HOUR_EXHAUSTED",
+  "WEEKLY_EXHAUSTED",
+  "PRE_RESET_BURN_UNSAFE",
+  "SUBSCRIPTION_TEMPORARILY_UNAVAILABLE",
+  "SUBSCRIPTION_WORKER_UNAVAILABLE"
+];
+var GAP_FORECAST_CONFIDENCE = ["HIGH", "MEDIUM", "UNKNOWN"];
+var DELAY_SENSITIVITIES = ["LOW", "MEDIUM", "HIGH"];
+var API_COST_SOURCES = [
+  "PROVIDER_REPORTED",
+  "COMPUTED_FROM_USAGE",
+  "ESTIMATED_PRE_DISPATCH",
+  "UNKNOWN"
+];
+var API_BUDGET_RESERVATION_STATES = ["RESERVED", "COMMITTED", "RELEASED", "UNKNOWN"];
+var API_APPROVAL_STATUSES = [
+  "REQUESTED",
+  "APPROVED",
+  "DENIED",
+  "CONSUMED",
+  "EXPIRED",
+  "SUPERSEDED"
 ];
 var TASK_ATTEMPT_STATUSES = [
   /** The dispatch is (or was, before a crash) in flight. */
@@ -54518,7 +54612,17 @@ var attemptMetricsSchema = external_exports.object({
   /** Shell/command runs the attempt performed, when observable. */
   commandRuns: external_exports.number().int().min(0).nullable().default(null),
   /** Provider-native context compactions observed during the attempt. */
-  compactions: external_exports.number().int().min(0).nullable().default(null)
+  compactions: external_exports.number().int().min(0).nullable().default(null),
+  // vNext.5 API economics (additive). Estimated and observed cost are
+  // separate fields on purpose: an estimate is never overwritten by an
+  // invented "actual", and an attempt whose real usage is unknowable
+  // keeps a null reconciled cost rather than a fabricated zero.
+  /** Safe pre-dispatch cost estimate, in USD. Null outside the API lane. */
+  estimatedCostUsd: external_exports.number().min(0).nullable().default(null),
+  /** Budget held for this attempt at dispatch time, in USD. */
+  reservedCostUsd: external_exports.number().min(0).nullable().default(null),
+  /** Observed/computed cost after the attempt. Null means UNKNOWN, not free. */
+  reconciledCostUsd: external_exports.number().min(0).nullable().default(null)
 }).passthrough();
 var taskAttemptSchema = external_exports.object({
   schemaVersion: semver2,
@@ -54580,6 +54684,29 @@ var taskAttemptSchema = external_exports.object({
   executionShape: shortText32.optional(),
   /** Verified compute locality of the runner that executed this attempt. */
   computeLocality: shortText32.optional(),
+  // vNext.5 API-lane attribution (additive; absent on every LOCAL and
+  // SUBSCRIPTION attempt and on every pre-vNext.5 record). Each field is
+  // ORTHOGONAL: `lane` says whether this was paid, `provider`/`model` say
+  // which intelligence ran it, `executionMode`/`computeLocality` say how
+  // and where. Nothing is ever collapsed into a compound value.
+  /** The spend authorization mode in force when the attempt was dispatched. */
+  apiSpendMode: shortText32.optional(),
+  /** Why subscription capacity was unavailable (the gap's cause). */
+  gapReason: shortText32.optional(),
+  /** When subscription capacity was expected back, when known. */
+  subscriptionAvailableAt: shortText32.optional(),
+  /** Expected gap duration in milliseconds, when known. */
+  estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null).optional(),
+  /** How the recorded cost was determined (see API_COST_SOURCES). */
+  costSource: shortText32.optional(),
+  /** Operator pricing profile the estimate used, for attribution. */
+  pricingProfile: shortText32.optional(),
+  /** The budget reservation funding this attempt. */
+  apiBudgetReservationId: shortText32.optional(),
+  /** The bounded human authorization this attempt consumed, when one applied. */
+  apiApprovalId: shortText32.optional(),
+  /** Deterministic delay-sensitivity level that justified paid bridging. */
+  delaySensitivity: shortText32.optional(),
   metrics: attemptMetricsSchema.default({})
 }).passthrough();
 var checkpointDecisionSchema = external_exports.object({
@@ -54678,7 +54805,47 @@ var executionLedgerEntrySchema = external_exports.object({
   executionMode: shortText32.nullable().default(null),
   executionShape: shortText32.nullable().default(null),
   computeLocality: shortText32.nullable().default(null),
+  // vNext.5 API economics (additive; null on every unpaid attempt). These
+  // are what makes later analysis possible without a second database:
+  // cost per successful task, cost by task type, bridge success rate, and
+  // money spent versus subscription wait avoided all derive from here.
+  apiSpendMode: shortText32.nullable().default(null),
+  gapReason: shortText32.nullable().default(null),
+  subscriptionAvailableAt: shortText32.nullable().default(null),
+  estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null),
+  costSource: shortText32.nullable().default(null),
+  pricingProfile: shortText32.nullable().default(null),
+  apiBudgetReservationId: shortText32.nullable().default(null),
+  apiApprovalId: shortText32.nullable().default(null),
+  delaySensitivity: shortText32.nullable().default(null),
   metrics: attemptMetricsSchema
+}).passthrough();
+var shortText4 = external_exports.string().min(1).max(200);
+var apiBudgetReservationSchema = external_exports.object({
+  reservationId: shortText4,
+  jobId: shortText4,
+  nodeId: shortText4,
+  taskId: shortText4,
+  /** The durable attempt this reservation funds; null until dispatch. */
+  attemptId: shortText4.nullable().default(null),
+  state: external_exports.enum(API_BUDGET_RESERVATION_STATES),
+  /** The safe estimated cost held at reservation time, in USD. */
+  reservedUsd: external_exports.number().min(0),
+  /** Observed/computed cost after the attempt, when determinable. */
+  reconciledUsd: external_exports.number().min(0).nullable().default(null),
+  /** How `reconciledUsd` was determined. */
+  costSource: external_exports.enum(API_COST_SOURCES).default("ESTIMATED_PRE_DISPATCH"),
+  /** The API profile the reservation was made for (audit). */
+  profileName: shortText4.nullable().default(null),
+  createdAt: shortText4,
+  updatedAt: shortText4,
+  detail: external_exports.string().max(1e3).default("")
+}).passthrough();
+var apiBudgetStateSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  jobId: shortText4,
+  reservations: external_exports.array(apiBudgetReservationSchema).max(5e3).default([]),
+  updatedAt: shortText4
 }).passthrough();
 function now3(deps) {
   return (deps.clock ?? systemClock)();
@@ -54725,7 +54892,7 @@ var AGENT_OUTPUT_LIMITS = {
   maxSteps: 40,
   maxResponseBytes: 262144
 };
-var shortText4 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxShortChars);
+var shortText5 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxShortChars);
 var text4 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxTextChars);
 var textList3 = external_exports.array(text4).max(AGENT_OUTPUT_LIMITS.maxListItems);
 var classifierOutputSchema = external_exports.object({
@@ -54735,7 +54902,7 @@ var classifierOutputSchema = external_exports.object({
   reasons: textList3.default([])
 });
 var plannerStepSchema = external_exports.object({
-  id: shortText4,
+  id: shortText5,
   action: text4,
   /** What observable evidence would show this step succeeded. */
   expectedEvidence: text4.optional()
@@ -55007,23 +55174,23 @@ var OBJECTIVE_LIMITS = {
   maxProjectionContracts: 30,
   maxProjectionExcerptChars: 2e4
 };
-var shortText5 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxShortTextChars);
+var shortText6 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxShortTextChars);
 var text5 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxTextChars);
 var optionalText2 = external_exports.string().max(OBJECTIVE_LIMITS.maxTextChars);
 var textList4 = external_exports.array(text5).max(OBJECTIVE_LIMITS.maxListItems);
-var idList2 = external_exports.array(shortText5).max(OBJECTIVE_LIMITS.maxListItems);
+var idList2 = external_exports.array(shortText6).max(OBJECTIVE_LIMITS.maxListItems);
 var semver22 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
 var workUnitSchema = external_exports.object({
-  workUnitId: shortText5,
+  workUnitId: shortText6,
   /** The objective (job graph node) this unit belongs to. */
-  objectiveNodeId: shortText5,
+  objectiveNodeId: shortText6,
   /** The approved task id of the objective (audit convenience). */
-  parentTaskId: shortText5,
+  parentTaskId: shortText6,
   kind: external_exports.enum(WORK_UNIT_KINDS),
   title: text5,
   goal: text5,
   /** Work-unit ids that must be VERIFIED_CANDIDATE before this one runs. */
-  dependsOn: external_exports.array(shortText5).max(OBJECTIVE_LIMITS.maxDependenciesPerUnit).default([]),
+  dependsOn: external_exports.array(shortText6).max(OBJECTIVE_LIMITS.maxDependenciesPerUnit).default([]),
   /** Artifacts the unit is expected to produce (paths, report names). */
   expectedArtifacts: textList4.default([]),
   /** Product contract ids relevant to this unit (projection input). */
@@ -55031,39 +55198,39 @@ var workUnitSchema = external_exports.object({
   relevantAdrIds: idList2.default([]),
   relevantConstitutionRuleIds: idList2.default([]),
   /** Source areas the unit is expected to touch (scope screen input). */
-  expectedAreas: external_exports.array(shortText5).max(OBJECTIVE_LIMITS.maxListItems).default([]),
+  expectedAreas: external_exports.array(shortText6).max(OBJECTIVE_LIMITS.maxListItems).default([]),
   status: external_exports.enum(WORK_UNIT_STATUSES),
   /** Builder attempts consumed so far. */
   attempt: external_exports.number().int().min(0).default(0),
   /** Worker currently (or last) bound to this unit. */
-  workerId: shortText5.optional(),
-  contextProjectionHash: shortText5.optional(),
-  contractSnapshotHash: shortText5.optional(),
+  workerId: shortText6.optional(),
+  contextProjectionHash: shortText6.optional(),
+  contractSnapshotHash: shortText6.optional(),
   /** Latest candidate artifact reference (candidates/<file>). */
-  candidateRef: shortText5.optional(),
+  candidateRef: shortText6.optional(),
   /** Evaluation record references, oldest first. */
   evaluationRefs: idList2.default([]),
   latestFailure: external_exports.object({
     category: external_exports.enum(FAILURE_CATEGORIES),
     message: text5,
-    at: shortText5
+    at: shortText6
   }).passthrough().optional(),
-  supersedes: shortText5.optional(),
-  supersededBy: shortText5.optional(),
-  integratedAt: shortText5.optional()
+  supersedes: shortText6.optional(),
+  supersededBy: shortText6.optional(),
+  integratedAt: shortText6.optional()
 }).passthrough();
 var workGraphSchema = external_exports.object({
   schemaVersion: semver22,
-  jobId: shortText5,
+  jobId: shortText6,
   /** The objective node this graph decomposes. */
-  objectiveNodeId: shortText5,
-  parentTaskId: shortText5,
+  objectiveNodeId: shortText6,
+  parentTaskId: shortText6,
   /** Fingerprint of the approved objective at decomposition time. */
-  objectiveFingerprint: shortText5,
+  objectiveFingerprint: shortText6,
   revision: external_exports.number().int().min(1),
-  createdAt: shortText5,
+  createdAt: shortText6,
   /** Who proposed the decomposition ("deterministic" or a worker id). */
-  proposedBy: shortText5,
+  proposedBy: shortText6,
   /** Deterministic validation findings recorded at acceptance time. */
   validationNotes: textList4.default([]),
   units: external_exports.array(workUnitSchema).min(1).max(OBJECTIVE_LIMITS.maxWorkUnits),
@@ -55072,21 +55239,21 @@ var workGraphSchema = external_exports.object({
 }).passthrough();
 var contextProjectionSchema = external_exports.object({
   schemaVersion: semver22,
-  projectionId: shortText5,
-  jobId: shortText5,
-  objectiveNodeId: shortText5,
-  workUnitId: shortText5,
+  projectionId: shortText6,
+  jobId: shortText6,
+  objectiveNodeId: shortText6,
+  workUnitId: shortText6,
   attempt: external_exports.number().int().min(1),
-  createdAt: shortText5,
-  missionId: shortText5.optional(),
+  createdAt: shortText6,
+  missionId: shortText6.optional(),
   constitution: external_exports.object({
     version: external_exports.number().int().min(0),
     rules: external_exports.array(
-      external_exports.object({ ruleId: shortText5, version: external_exports.number().int().min(1), statement: text5 }).passthrough()
+      external_exports.object({ ruleId: shortText6, version: external_exports.number().int().min(1), statement: text5 }).passthrough()
     ).max(40).default([])
   }).passthrough(),
   objective: external_exports.object({
-    taskId: shortText5,
+    taskId: shortText6,
     title: text5,
     acceptance: textList4.default([])
   }).passthrough(),
@@ -55095,61 +55262,61 @@ var contextProjectionSchema = external_exports.object({
     goal: text5,
     kind: external_exports.enum(WORK_UNIT_KINDS),
     expectedArtifacts: textList4.default([]),
-    expectedAreas: external_exports.array(shortText5).max(OBJECTIVE_LIMITS.maxListItems).default([])
+    expectedAreas: external_exports.array(shortText6).max(OBJECTIVE_LIMITS.maxListItems).default([])
   }).passthrough(),
   contracts: external_exports.array(
     external_exports.object({
-      contractId: shortText5,
+      contractId: shortText6,
       revision: external_exports.number().int().min(1),
-      title: shortText5,
+      title: shortText6,
       summary: text5,
       requirements: textList4.default([]),
       invariants: textList4.default([])
     }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxProjectionContracts).default([]),
   adrs: external_exports.array(
-    external_exports.object({ adrId: shortText5, title: shortText5, decision: text5 }).passthrough()
+    external_exports.object({ adrId: shortText6, title: shortText6, decision: text5 }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxListItems).default([]),
-  decisions: external_exports.array(external_exports.object({ decisionId: shortText5, decision: text5 }).passthrough()).max(OBJECTIVE_LIMITS.maxListItems).default([]),
+  decisions: external_exports.array(external_exports.object({ decisionId: shortText6, decision: text5 }).passthrough()).max(OBJECTIVE_LIMITS.maxListItems).default([]),
   /** Bounded approved-spec excerpts (requirements/design fragments). */
   specExcerpts: external_exports.array(external_exports.string().max(OBJECTIVE_LIMITS.maxProjectionExcerptChars)).max(5).default([]),
   /** Bounded summaries of verified dependency candidates (work evidence). */
   workEvidence: textList4.default([]),
   /** Hash over the ACTIVE contract registry this projection saw. */
-  contractSnapshotHash: shortText5,
+  contractSnapshotHash: shortText6,
   /** Hash of this projection's canonical serialization (identity). */
-  contentHash: shortText5
+  contentHash: shortText6
 }).passthrough();
 var candidateArtifactSchema = external_exports.object({
   schemaVersion: semver22,
-  candidateId: shortText5,
-  jobId: shortText5,
-  objectiveNodeId: shortText5,
-  workUnitId: shortText5,
+  candidateId: shortText6,
+  jobId: shortText6,
+  objectiveNodeId: shortText6,
+  workUnitId: shortText6,
   attempt: external_exports.number().int().min(1),
-  workerId: shortText5,
-  createdAt: shortText5,
+  workerId: shortText6,
+  createdAt: shortText6,
   /** Git commit the worktree was created from. */
-  baselineCommit: shortText5,
-  contextProjectionHash: shortText5,
-  contractSnapshotHash: shortText5,
+  baselineCommit: shortText6,
+  contextProjectionHash: shortText6,
+  contractSnapshotHash: shortText6,
   /** Files changed in the worktree, as observed by git. */
   changedFiles: external_exports.array(
     external_exports.object({
-      path: shortText5,
+      path: shortText6,
       changeType: external_exports.enum(["added", "modified", "deleted", "renamed"])
     }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxChangedFiles).default([]),
   /** Reference to the stored normalized patch (candidates/<file>.patch). */
-  patchRef: shortText5.optional(),
+  patchRef: shortText6.optional(),
   /** Local verification observed by SpecBridge inside the worktree. */
   localVerification: external_exports.object({
     ran: external_exports.boolean(),
     passed: external_exports.boolean(),
     commands: external_exports.array(
       external_exports.object({
-        name: shortText5,
-        status: shortText5,
+        name: shortText6,
+        status: shortText6,
         exitCode: external_exports.number().int().nullable().default(null)
       }).passthrough()
     ).max(OBJECTIVE_LIMITS.maxListItems).default([])
@@ -55160,7 +55327,7 @@ var candidateArtifactSchema = external_exports.object({
     assumptionsDiscovered: textList4.default([]),
     contractChangeRequests: external_exports.array(
       external_exports.object({
-        contractId: shortText5,
+        contractId: shortText6,
         problem: text5,
         proposal: text5
       }).passthrough()
@@ -55174,67 +55341,67 @@ var candidateArtifactSchema = external_exports.object({
 }).passthrough();
 var evaluationRecordSchema = external_exports.object({
   schemaVersion: semver22,
-  evaluationId: shortText5,
-  jobId: shortText5,
-  objectiveNodeId: shortText5,
-  workUnitId: shortText5,
+  evaluationId: shortText6,
+  jobId: shortText6,
+  objectiveNodeId: shortText6,
+  workUnitId: shortText6,
   attempt: external_exports.number().int().min(1),
   layer: external_exports.enum(EVALUATION_LAYERS),
   verdict: external_exports.enum(EVALUATION_VERDICTS),
   /** Named deterministic checks with their outcomes (deterministic layer). */
   checks: external_exports.array(
-    external_exports.object({ name: shortText5, passed: external_exports.boolean(), detail: optionalText2.optional() }).passthrough()
+    external_exports.object({ name: shortText6, passed: external_exports.boolean(), detail: optionalText2.optional() }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxEvaluationChecks).default([]),
   reasons: textList4.default([]),
   evidenceRefs: idList2.default([]),
   affectedContractIds: idList2.default([]),
   /** Decision kind for CONFLICT / NEEDS_DECISION verdicts (authority routing). */
-  decisionKind: shortText5.optional(),
+  decisionKind: shortText6.optional(),
   /** The evaluator worker, when the layer is semantic. */
-  evaluatorWorkerId: shortText5.optional(),
-  createdAt: shortText5
+  evaluatorWorkerId: shortText6.optional(),
+  createdAt: shortText6
 }).passthrough();
 var contractConflictSchema = external_exports.object({
   schemaVersion: semver22,
-  conflictId: shortText5,
-  jobId: shortText5,
-  objectiveNodeId: shortText5,
-  contractId: shortText5,
+  conflictId: shortText6,
+  jobId: shortText6,
+  objectiveNodeId: shortText6,
+  contractId: shortText6,
   contractRevision: external_exports.number().int().min(1),
   claims: external_exports.array(
     external_exports.object({
-      workUnitId: shortText5,
-      candidateRef: shortText5.optional(),
+      workUnitId: shortText6,
+      candidateRef: shortText6.optional(),
       claim: text5
     }).passthrough()
   ).min(1).max(OBJECTIVE_LIMITS.maxListItems),
   evidenceRefs: idList2.default([]),
   affectedWorkUnitIds: idList2.default([]),
-  decisionKind: shortText5,
+  decisionKind: shortText6,
   status: external_exports.enum(CONTRACT_CONFLICT_STATUSES),
   resolution: optionalText2.optional(),
-  createdAt: shortText5,
-  resolvedAt: shortText5.optional()
+  createdAt: shortText6,
+  resolvedAt: shortText6.optional()
 }).passthrough();
 var objectiveWorkerRecordSchema = external_exports.object({
   schemaVersion: semver22,
-  workerId: shortText5,
+  workerId: shortText6,
   agentRole: external_exports.enum(AGENT_ROLES),
-  jobId: shortText5,
-  objectiveNodeId: shortText5,
-  workUnitId: shortText5,
+  jobId: shortText6,
+  objectiveNodeId: shortText6,
+  workUnitId: shortText6,
   attempt: external_exports.number().int().min(1),
-  contextProjectionHash: shortText5,
-  contractSnapshotHash: shortText5,
+  contextProjectionHash: shortText6,
+  contractSnapshotHash: shortText6,
   /** "worktree:<name>", "canonical", or "ephemeral" (read-only reasoning). */
-  workspaceIdentity: shortText5,
+  workspaceIdentity: shortText6,
   status: external_exports.enum(OBJECTIVE_WORKER_STATUSES),
   budget: external_exports.object({
     timeoutMs: external_exports.number().int().min(1),
     maxOutputBytes: external_exports.number().int().min(1).optional()
   }).passthrough(),
-  startedAt: shortText5,
-  finishedAt: shortText5.optional()
+  startedAt: shortText6,
+  finishedAt: shortText6.optional()
 }).passthrough();
 var WORK_UNIT_TRANSITIONS = Object.freeze({
   PLANNED: ["READY", "BLOCKED", "SUPERSEDED", "FAILED"],
@@ -55256,13 +55423,13 @@ var OBJECTIVE_OUTPUT_LIMITS = {
   maxUnits: 30,
   maxResponseBytes: 262144
 };
-var shortText6 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxShortChars);
+var shortText7 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxShortChars);
 var text6 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxTextChars);
 var textList5 = external_exports.array(text6).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
-var shortList = external_exports.array(shortText6).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
+var shortList = external_exports.array(shortText7).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
 var decomposerUnitSchema = external_exports.object({
   /** Proposal-local id ("a", "b", …); SpecBridge assigns the real ids. */
-  id: shortText6,
+  id: shortText7,
   kind: external_exports.enum(WORK_UNIT_KINDS),
   title: text6,
   goal: text6,
@@ -55291,7 +55458,7 @@ var evaluatorOutputSchema = external_exports.object({
    * "architecture-contract-change", "product-behavior-change", …). The
    * deterministic authority table routes it; the evaluator only names it.
    */
-  decisionKind: shortText6.optional()
+  decisionKind: shortText7.optional()
 });
 var aggregatorOutputSchema = external_exports.object({
   /** One bounded synthesis of the input artifacts. */
@@ -55299,7 +55466,7 @@ var aggregatorOutputSchema = external_exports.object({
   /** Structured findings, each tied to its source artifact. */
   findings: external_exports.array(
     external_exports.object({
-      sourceWorkUnitId: shortText6,
+      sourceWorkUnitId: shortText7,
       finding: text6
     })
   ).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems).default([]),
@@ -55308,15 +55475,15 @@ var aggregatorOutputSchema = external_exports.object({
   /** Contract changes the synthesis suggests — requests, never approvals. */
   contractChangeSuggestions: external_exports.array(
     external_exports.object({
-      contractId: shortText6,
+      contractId: shortText7,
       problem: text6,
       proposal: text6
     })
   ).max(10).default([]),
   conflictsDetected: external_exports.array(
     external_exports.object({
-      contractId: shortText6,
-      claims: external_exports.array(external_exports.object({ sourceWorkUnitId: shortText6, claim: text6 })).min(1).max(10)
+      contractId: shortText7,
+      claims: external_exports.array(external_exports.object({ sourceWorkUnitId: shortText7, claim: text6 })).min(1).max(10)
     })
   ).max(10).default([])
 });
@@ -55328,7 +55495,7 @@ var builderOutputSchema = external_exports.object({
   assumptionsDiscovered: textList5.default([]),
   contractChangeRequests: external_exports.array(
     external_exports.object({
-      contractId: shortText6,
+      contractId: shortText7,
       problem: text6,
       proposal: text6
     })
@@ -55648,30 +55815,30 @@ var quotaForecastSchema = external_exports.object({
   /** The forecast's own clock reading. */
   forecastAt: isoText
 }).passthrough();
-var shortText7 = external_exports.string().min(1).max(200);
+var shortText8 = external_exports.string().min(1).max(200);
 var schedulingDecisionSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  decisionId: shortText7,
-  jobId: shortText7,
-  nodeId: shortText7,
-  taskId: shortText7,
+  decisionId: shortText8,
+  jobId: shortText8,
+  nodeId: shortText8,
+  taskId: shortText8,
   selectedLane: external_exports.enum(LANE_DECISIONS),
   /** Worker/provider identity for run lanes; null for DEFER. */
-  selectedProvider: shortText7.nullable(),
+  selectedProvider: shortText8.nullable(),
   schedulerMode: external_exports.enum(SCHEDULER_MODES),
   reasonCode: external_exports.enum(SCHEDULING_REASON_CODES),
   /** The forecast the decision was made against. */
   quotaSnapshot: quotaForecastSchema,
   /** Bounded copy of the workload estimate. */
   workloadEstimate: external_exports.object({
-    complexity: shortText7,
-    localSuitability: shortText7,
-    taskCategory: shortText7.nullable().default(null),
+    complexity: shortText8,
+    localSuitability: shortText8,
+    taskCategory: shortText8.nullable().default(null),
     expectedWallTimeMs: external_exports.number().int().min(0),
     expectedFiveHourBurnRatio: external_exports.number().min(0).max(1),
     expectedWeeklyBurnRatio: external_exports.number().min(0).max(1),
-    confidence: shortText7,
-    basis: shortText7
+    confidence: shortText8,
+    basis: shortText8
   }).passthrough().nullable(),
   /** The dynamic reserve ratio in force. */
   reserveRatio: external_exports.number().min(0).max(1).nullable(),
@@ -55700,21 +55867,69 @@ var schedulingDecisionSchema = external_exports.object({
     reasonCode: external_exports.enum(LOCAL_EXECUTION_MODE_REASONS),
     shape: external_exports.enum(LOCAL_EXECUTION_SHAPES),
     /** Runner identity for the mode (e.g. "local-llamacpp", "deepseek-harness"). */
-    runner: shortText7.nullable().default(null),
+    runner: shortText8.nullable().default(null),
     /** Model identity when known; null when the provider does not say. */
-    model: shortText7.nullable().default(null),
+    model: shortText8.nullable().default(null),
     /** Verified compute locality of the selected runner. */
     computeLocality: external_exports.enum(COMPUTE_LOCALITIES).default("UNKNOWN"),
     /** Grounds for the locality verdict (bounded, recorded verbatim). */
     localityEvidence: external_exports.string().max(500).nullable().default(null),
     /** Status of the LOCAL harness binding when the decision was made. */
-    harnessBindingStatus: shortText7.nullable().default(null),
+    harnessBindingStatus: shortText8.nullable().default(null),
     detail: external_exports.string().max(1e3).default("")
   }).passthrough().nullable().default(null),
+  /**
+   * vNext.5 API gap-bridge attribution. Present ONLY on decisions where
+   * the subscription lane refused for a capacity reason and the gap-bridge
+   * planner was therefore consulted — which includes every decision that
+   * considered paid execution and declined it. Null otherwise, and absent
+   * in records written before vNext.5 (additive by construction).
+   *
+   * Together with the fields above this answers, from ONE record:
+   * why API was (or was not) selected, why Local was not enough, why
+   * Subscription was not used, how long the gap was expected to last,
+   * whether the task was critical, which spend mode applied, what it was
+   * estimated to cost, what budget remained, and which profile would run.
+   */
+  apiBridge: external_exports.object({
+    /** What the planner concluded: API, DEFER, or REQUIRE_APPROVAL. */
+    decision: external_exports.enum(["API", "DEFER", "REQUIRE_APPROVAL"]),
+    spendMode: external_exports.enum(API_SPEND_MODES),
+    /** Why subscription capacity was unavailable. */
+    gapReason: external_exports.enum(SUBSCRIPTION_GAP_REASONS),
+    /** When capacity is expected back (ISO); null when unknown. */
+    subscriptionAvailableAt: shortText8.nullable().default(null),
+    estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null),
+    gapConfidence: external_exports.enum(GAP_FORECAST_CONFIDENCE).default("UNKNOWN"),
+    delaySensitivity: external_exports.enum(DELAY_SENSITIVITIES),
+    blockedDependents: external_exports.number().int().min(0).default(0),
+    criticalPath: external_exports.boolean().default(false),
+    readyLocalBacklog: external_exports.number().int().min(0).default(0),
+    /** Mean estimated cost; null means UNKNOWN, never zero. */
+    estimatedCostUsd: external_exports.number().min(0).nullable().default(null),
+    /** The multiplied figure budget admission compared. */
+    safeCostUsd: external_exports.number().min(0).nullable().default(null),
+    currency: external_exports.string().max(8).default("USD"),
+    costSource: external_exports.enum(API_COST_SOURCES).default("UNKNOWN"),
+    pricingSource: shortText8.nullable().default(null),
+    /** Remaining job API budget at decision time; null when unbounded. */
+    budgetRemainingUsd: external_exports.number().min(0).nullable().default(null),
+    budgetEncumberedUsd: external_exports.number().min(0).nullable().default(null),
+    /** The API profile that would have run it, and its verified locality. */
+    apiProfile: shortText8.nullable().default(null),
+    apiRunner: shortText8.nullable().default(null),
+    apiModel: shortText8.nullable().default(null),
+    computeLocality: external_exports.enum(COMPUTE_LOCALITIES).default("UNKNOWN"),
+    bindingStatus: shortText8.nullable().default(null),
+    /** The bounded authorization consulted, when one existed. */
+    approvalId: shortText8.nullable().default(null),
+    approvalStatus: shortText8.nullable().default(null),
+    detail: external_exports.string().max(2e3).default("")
+  }).passthrough().nullable().default(null),
   /** For DEFER: when capacity is expected to return, when known. */
-  deferUntil: shortText7.nullable().default(null),
+  deferUntil: shortText8.nullable().default(null),
   detail: external_exports.string().max(2e3),
-  createdAt: shortText7
+  createdAt: shortText8
 }).passthrough();
 var LOCAL_EXECUTION_LIMITS = {
   maxEdits: 20,
@@ -55781,6 +55996,39 @@ var LOCAL_EXECUTOR_SYSTEM_PROMPT = [
   "  a verification cycle.",
   "- The response must be valid JSON for the provided schema."
 ].join("\n");
+var shortText9 = external_exports.string().min(1).max(200);
+var apiSpendApprovalSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  approvalId: shortText9,
+  jobId: shortText9,
+  nodeId: shortText9,
+  taskId: shortText9,
+  /**
+   * Deterministic fingerprint of the WORK this approval covers. A
+   * materially changed task produces a different fingerprint and the old
+   * approval no longer authorizes anything.
+   */
+  taskFingerprint: shortText9,
+  /** The API profile the approval is scoped to. */
+  profileName: shortText9,
+  /** Maximum authorized spend for this task, in USD. */
+  maxAuthorizedCostUsd: external_exports.number().min(0),
+  currency: external_exports.literal("USD").default("USD"),
+  /** The safe estimate that justified the request, when one existed. */
+  estimatedCostUsd: external_exports.number().min(0).nullable().default(null),
+  status: external_exports.enum(API_APPROVAL_STATUSES),
+  /** Why the bridge was proposed — recorded verbatim for the decider. */
+  rationale: external_exports.string().max(2e3).default(""),
+  requestedAt: shortText9,
+  /** After this the approval is stale even if never used. */
+  expiresAt: shortText9,
+  decidedAt: shortText9.nullable().default(null),
+  /** Who decided. Human identity only; never a model or a runner. */
+  decidedBy: shortText9.nullable().default(null),
+  decisionNote: external_exports.string().max(1e3).nullable().default(null),
+  /** The attempt that consumed this approval, when one did. */
+  consumedByAttemptId: shortText9.nullable().default(null)
+}).passthrough();
 var PREPROCESS_SYSTEM_PROMPT = [
   "You compress one bulky engineering artifact (a log, test output, tool",
   "result, or diff) into a small structured summary another engineer will",

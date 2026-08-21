@@ -41,7 +41,22 @@ import type { FailureCategory } from '../vocabulary.js';
  * LOCAL lane — never a parallel runtime with its own rules.
  */
 
-/** How a harness attempt failed, for escalation policy (§40 / §41). */
+/**
+ * vNext.5: the same machinery serves the API lane.
+ *
+ * A paid agentic attempt is not a different KIND of execution — it is the
+ * same harness runtime driven by the same SpecBridge attempt lifecycle,
+ * against a profile whose compute happens to be remote and metered. So the
+ * lane is a LABEL here, not a branch: the begin/execute/verify pipeline,
+ * the wall-clock bound, the failure classification, and the completion
+ * authority are byte-identical whoever is paying.
+ *
+ * That identity is the point. If paid execution had its own dispatch path,
+ * it would eventually grow its own idea of what "done" means.
+ */
+export type HarnessExecutionLane = 'LOCAL' | 'API';
+
+/** How a harness attempt failed, for escalation policy. */
 export type LocalHarnessFailureKind =
   /** The runtime/transport/configuration failed — says nothing about the task. */
   | 'INFRASTRUCTURE'
@@ -52,7 +67,7 @@ export type LocalHarnessFailureKind =
   /** Cancelled by the operator/driver. */
   | 'CANCELLED';
 
-export interface LocalHarnessExecutionResult extends ExecutorDispatchResult {
+export interface HarnessExecutionResult extends ExecutorDispatchResult {
   /** Local intelligence is insufficient; the strong lane should take over. */
   escalated: boolean;
   escalationReason?: string | undefined;
@@ -70,6 +85,9 @@ export interface LocalHarnessExecutionResult extends ExecutorDispatchResult {
     cachedInputTokens: number | null;
   };
 }
+
+/** The vNext.4 name, preserved: a LOCAL harness result is a harness result. */
+export type LocalHarnessExecutionResult = HarnessExecutionResult;
 
 /**
  * Runner error codes that describe the RUNTIME, not the work. A crashed
@@ -108,7 +126,13 @@ export interface LocalHarnessExecutionInput {
   jobId: string;
   mode: 'implement' | 'repair';
   allowDirty: boolean;
-  /** The bound harness runner profile name (already verified local). */
+  /**
+   * Which economic lane is paying for this attempt. Affects labels and
+   * event/source attribution only — never the pipeline, the bounds, or the
+   * completion authority. Defaults to LOCAL (the vNext.4 behavior).
+   */
+  lane?: HarnessExecutionLane | undefined;
+  /** The bound harness runner profile name (locality already verified). */
   profileName: string;
   /** Latest durable checkpoint for this task, when one exists. */
   checkpoint?: TaskCheckpoint | undefined;
@@ -308,14 +332,17 @@ export function buildHarnessBootstrapPrompt(input: {
  */
 export async function dispatchLocalHarnessExecution(
   input: LocalHarnessExecutionInput,
-): Promise<LocalHarnessExecutionResult> {
+): Promise<HarnessExecutionResult> {
+  const lane: HarnessExecutionLane = input.lane ?? 'LOCAL';
+  const label = lane === 'API' ? 'api harness' : 'local harness';
+  const source = lane === 'API' ? 'api-harness' : 'local-harness';
   const deps = {
     workspace: input.workspace,
     config: input.config,
     ...(input.clock !== undefined ? { clock: input.clock } : {}),
     ...(input.idFactory !== undefined ? { idFactory: input.idFactory } : {}),
     ...(input.signal !== undefined ? { signal: input.signal } : {}),
-    host: 'local-harness',
+    host: source,
   };
 
   let runner;
@@ -324,8 +351,8 @@ export async function dispatchLocalHarnessExecution(
   } catch (cause) {
     return failureResult(
       'CAPABILITY_UNAVAILABLE',
-      `The bound local harness profile "${input.profileName}" is not registered: ${cause instanceof Error ? cause.message : String(cause)}`,
-      'local-harness',
+      `The bound ${label} profile "${input.profileName}" is not registered: ${cause instanceof Error ? cause.message : String(cause)}`,
+      source,
       'INFRASTRUCTURE',
       false,
     );
@@ -346,7 +373,7 @@ export async function dispatchLocalHarnessExecution(
       false,
     );
   }
-  input.onProgress?.(`local harness: run ${begin.runId} started for task ${begin.task.id}`);
+  input.onProgress?.(`${label}: run ${begin.runId} started for task ${begin.task.id}`);
 
   const abort = async (reason: string): Promise<void> => {
     try {
@@ -391,8 +418,8 @@ export async function dispatchLocalHarnessExecution(
     await abort('cancelled before the harness started');
     return failureResult(
       'CANCELLED',
-      'The local harness attempt was cancelled.',
-      'local-harness',
+      `The ${label} attempt was cancelled.`,
+      source,
       'CANCELLED',
       false,
     );
@@ -421,8 +448,8 @@ export async function dispatchLocalHarnessExecution(
     await abort(`harness runtime error: ${cause instanceof Error ? cause.message : String(cause)}`);
     return failureResult(
       'TRANSIENT_TOOL',
-      `The local harness runtime failed: ${cause instanceof Error ? cause.message : String(cause)}`,
-      'local-harness',
+      `The ${label} runtime failed: ${cause instanceof Error ? cause.message : String(cause)}`,
+      source,
       'INFRASTRUCTURE',
       false,
     );
@@ -449,8 +476,8 @@ export async function dispatchLocalHarnessExecution(
     return {
       ...failureResult(
         category,
-        `The local harness attempt ended "${result.outcome}": ${result.failureReason ?? 'no detail reported'}`,
-        `local-harness:${result.error?.code ?? result.outcome}`,
+        `The ${label} attempt ended "${result.outcome}": ${result.failureReason ?? 'no detail reported'}`,
+        `${source}:${result.error?.code ?? result.outcome}`,
         kind,
         // Only insufficient intelligence argues for the strong lane. A dead
         // runtime argues for a working runtime.
@@ -465,11 +492,11 @@ export async function dispatchLocalHarnessExecution(
     };
   }
 
-  input.onProgress?.('local harness: agent reported completion; running trusted verification');
+  input.onProgress?.(`${label}: agent reported completion; running trusted verification`);
   const report = result.report;
   const completion = await completeInteractiveTask(deps, {
     runId: begin.runId,
-    summary: `[local-harness] ${report?.summary ?? 'harness attempt'}`.slice(0, 2_000),
+    summary: `[${source}] ${report?.summary ?? 'harness attempt'}`.slice(0, 2_000),
     ...(report?.changedFiles !== undefined ? { reportedChangedFiles: [...report.changedFiles] } : {}),
     ...(report?.testsReported !== undefined
       ? { reportedTests: report.testsReported.map((entry) => ({ name: entry.name, status: entry.status })) }
@@ -522,11 +549,11 @@ export async function dispatchLocalHarnessExecution(
       category,
       message:
         final.failureReason ??
-        `The local harness attempt ended with evidence status "${final.evidenceStatus}".`,
+        `The ${label} attempt ended with evidence status "${final.evidenceStatus}".`,
       source:
         category === 'VERIFICATION_FAILURE'
           ? (final.verification.commands.find((command) => !command.passed)?.name ?? 'verification')
-          : 'local-harness',
+          : source,
       ...(verificationOutput.length > 0 ? { output: verificationOutput.slice(0, 16_384) } : {}),
     },
     changedFiles,

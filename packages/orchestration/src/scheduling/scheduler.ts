@@ -6,6 +6,7 @@ import type { WorkloadEstimate } from './profiler.js';
 import type { SuitabilityAssessment } from './suitability.js';
 import type { ExecutionShapeAssessment } from './execution-shape.js';
 import type { LocalExecutionResolution } from './local-resolver.js';
+import type { ApiGapBridgePlan } from './api-gap-bridge.js';
 import type { LaneDecision, SchedulingReasonCode } from './vocabulary.js';
 
 /**
@@ -225,6 +226,53 @@ export interface NodeLaneRouting {
    */
   shape?: ExecutionShapeAssessment | undefined;
   localExecution?: LocalExecutionResolution | undefined;
+  /**
+   * vNext.5: the gap-bridge plan, present ONLY when the subscription lane
+   * refused this work for a capacity reason and the planner was therefore
+   * consulted. Absent on every LOCAL and SUBSCRIPTION routing by
+   * construction — the paid lane is never an alternative to a lane that
+   * could run the work.
+   */
+  apiBridge?: ApiGapBridgePlan | undefined;
+}
+
+/**
+ * Fold a gap-bridge plan into the lane routing that produced it (vNext.5).
+ *
+ * `decideLane` is deliberately left untouched by this phase: it still
+ * knows only LOCAL, SUBSCRIPTION, and DEFER, and it still cannot be talked
+ * into a paid lane. The bridge is applied strictly AFTER it, and only to a
+ * routing it already refused — so the economic ordering is enforced by the
+ * call graph, not by a comment.
+ */
+export function applyApiGapBridge(routing: LaneRouting, plan: ApiGapBridgePlan): LaneRouting {
+  if (routing.lane !== 'DEFER') return routing;
+  switch (plan.decision) {
+    case 'API':
+      return {
+        ...routing,
+        lane: 'API',
+        reasonCode: plan.reasonCode,
+        compactFirst: routing.compactFirst,
+        deferUntil: null,
+        detail: plan.detail,
+      };
+    case 'REQUIRE_APPROVAL':
+      return {
+        ...routing,
+        lane: 'REQUIRE_APPROVAL',
+        reasonCode: plan.reasonCode,
+        deferUntil: null,
+        detail: plan.detail,
+      };
+    case 'DEFER':
+      return {
+        ...routing,
+        reasonCode: plan.reasonCode,
+        deferUntil: plan.deferUntil ?? routing.deferUntil,
+        detail: plan.detail,
+      };
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -253,6 +301,9 @@ export interface ReadySelection {
  *   - in HARVEST, admissible strong work beats local work: it consumes
  *     capacity that is about to expire, while local work costs the same
  *     whenever it runs
+ *   - vNext.5: FREE work beats PAID work. A ready LOCAL or SUBSCRIPTION
+ *     task runs before an API-bridged one, so the paid attempt happens only
+ *     once the zero-cost and prepaid work in this pass is under way
  *   - otherwise graph order stands (the vNext.1 behavior)
  */
 export function selectReadyCandidate(candidates: readonly ReadyCandidate[]): ReadySelection | undefined {
@@ -260,9 +311,25 @@ export function selectReadyCandidate(candidates: readonly ReadyCandidate[]): Rea
   const inGraphOrder = [...candidates].sort((a, b) => a.graphIndex - b.graphIndex);
   const first = inGraphOrder[0];
   if (first === undefined) return undefined;
-  const runnable = inGraphOrder.filter((candidate) => candidate.routing.lane !== 'DEFER');
+  // REQUIRE_APPROVAL waits exactly like DEFER: nothing dispatches until a
+  // human decides, so it must never be treated as runnable work.
+  const runnable = inGraphOrder.filter(
+    (candidate) => candidate.routing.lane !== 'DEFER' && candidate.routing.lane !== 'REQUIRE_APPROVAL',
+  );
   if (runnable.length === 0) {
     return { nodeId: first.nodeId, reason: 'Every ready task defers; the first in graph order carries the wait.' };
+  }
+  const unpaid = runnable.filter((candidate) => candidate.routing.lane !== 'API');
+  if (unpaid.length > 0 && unpaid.length !== runnable.length) {
+    const chosen = unpaid[0];
+    if (chosen !== undefined) {
+      return {
+        nodeId: chosen.nodeId,
+        reason:
+          'Free or prepaid work runs before paid bridging: the API-bridged task keeps its place ' +
+          'and this pass spends no money.',
+      };
+    }
   }
   const harvestStrong = runnable.find(
     (candidate) =>

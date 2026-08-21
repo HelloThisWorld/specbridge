@@ -69,6 +69,7 @@ import {
 } from '../survival/service.js';
 import { listTaskAttempts, readTaskAttempt } from '../survival/store.js';
 import { isFinalAttemptStatus } from '../survival/vocabulary.js';
+import { reconcileInterruptedApiReservations } from '../scheduling/api-budget.js';
 
 /**
  * The job application service.
@@ -764,6 +765,18 @@ export function beginExecutorDispatch(
     executionMode?: string | undefined;
     executionShape?: string | undefined;
     computeLocality?: string | undefined;
+    /** vNext.5 API-lane attribution (recorded, never policy). */
+    apiSpendMode?: string | undefined;
+    gapReason?: string | undefined;
+    subscriptionAvailableAt?: string | undefined;
+    estimatedGapDurationMs?: number | null | undefined;
+    costSource?: string | undefined;
+    pricingProfile?: string | undefined;
+    apiBudgetReservationId?: string | undefined;
+    apiApprovalId?: string | undefined;
+    delaySensitivity?: string | undefined;
+    estimatedCostUsd?: number | null | undefined;
+    reservedCostUsd?: number | null | undefined;
     /** Quota/context observations captured at dispatch start. */
     quotaBefore?:
       | {
@@ -810,6 +823,17 @@ export function beginExecutorDispatch(
       executionMode: input.executionMode,
       executionShape: input.executionShape,
       computeLocality: input.computeLocality,
+      apiSpendMode: input.apiSpendMode,
+      gapReason: input.gapReason,
+      subscriptionAvailableAt: input.subscriptionAvailableAt,
+      estimatedGapDurationMs: input.estimatedGapDurationMs,
+      costSource: input.costSource,
+      pricingProfile: input.pricingProfile,
+      apiBudgetReservationId: input.apiBudgetReservationId,
+      apiApprovalId: input.apiApprovalId,
+      delaySensitivity: input.delaySensitivity,
+      estimatedCostUsd: input.estimatedCostUsd,
+      reservedCostUsd: input.reservedCostUsd,
       quotaBefore: input.quotaBefore,
       ...(input.contextUsageBefore !== undefined
         ? { contextUsageBefore: input.contextUsageBefore }
@@ -1781,6 +1805,34 @@ export async function resumeJob(deps: JobDeps, jobId: string): Promise<JobResume
   }
   if (job.currentAttemptId !== undefined) {
     job = { ...job, currentAttemptId: undefined };
+  }
+
+  // vNext.5: an API budget reservation held by a process that disappeared is
+  // reconciled to UNKNOWN and STAYS CHARGED. This is deliberately the
+  // pessimistic direction: SpecBridge cannot know whether the remote
+  // provider was billed before the crash, and releasing a hold that may
+  // already have been spent would let a job quietly exceed its budget by
+  // crashing. An operator who knows better can inspect and adjust; the
+  // runtime never guesses in the direction that spends more.
+  const interruptedReservations = reconcileInterruptedApiReservations(
+    deps.workspace,
+    jobId,
+    now(deps),
+  );
+  for (const reservation of interruptedReservations) {
+    reconciled.push(
+      `api budget ${reservation.reservationId}: RESERVED → UNKNOWN ` +
+        `($${reservation.reservedUsd.toFixed(4)} stays charged; remote usage cannot be ruled out)`,
+    );
+    job = record(deps, job, 'api_budget_reconciled', {
+      nodeId: reservation.nodeId,
+      taskId: reservation.taskId,
+      reservationId: reservation.reservationId,
+      state: reservation.state,
+      reservedUsd: reservation.reservedUsd,
+      reconciledUsd: reservation.reconciledUsd,
+      costSource: reservation.costSource,
+    });
   }
 
   // Re-bind the current node's plan against the repository as it is now.
