@@ -148,6 +148,14 @@ export {
 } from './deepseek-harness/sdk-adapter.js';
 export { classifyDshFailure } from './deepseek-harness/errors.js';
 export {
+  dshPaidCredentialPassthrough,
+  isLoopbackHostname,
+  verifyDshComputeLocality,
+  type DshLocalityAssessment,
+  type DshLocalityRejection,
+  type VerifyDshLocalityInput,
+} from './deepseek-harness/locality.js';
+export {
   collectDshRun,
   normalizeDshEvents,
   parseDshNotification,

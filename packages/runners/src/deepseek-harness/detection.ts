@@ -4,6 +4,7 @@ import type { RunnerCapabilitySet } from '../contracts/capabilities.js';
 import { capabilitySet } from '../contracts/capabilities.js';
 import { resolveExecutable } from '../safe-process.js';
 import { DSH_RUNTIME_SERVER_NAME, DSH_SDK_TESTED_VERSION, DshSdkAdapter, dshFailureOf } from './sdk-adapter.js';
+import { verifyDshComputeLocality } from './locality.js';
 
 /**
  * DeepSeek Harness detection: read-only, never a model turn.
@@ -100,6 +101,13 @@ export interface ProbeDshOptions {
   probeCapabilities?: boolean | undefined;
   timeoutMs?: number | undefined;
   workspaceRoot?: string | undefined;
+  /**
+   * vNext.4: whether the SpecBridge-managed local model server is enabled
+   * and coherent, which is the evidence behind a `managed-local-model`
+   * locality attestation. Absent means the caller did not resolve it; the
+   * locality row then reports what the profile alone proves.
+   */
+  managedLocalModelAvailable?: boolean | undefined;
 }
 
 /** Configuration gaps that block execution (empty when complete). */
@@ -185,6 +193,42 @@ export async function probeDeepSeekHarness(
       ? 'sessions are attested to persist across runtime processes; every resume is additionally verified by session-log seq continuity before any agentic work'
       : 'sessionPersistence is "none": interrupted tasks continue from the SpecBridge checkpoint with a fresh session (always available)',
   });
+
+  // vNext.4: economic locality of the COMPUTE behind this profile. Reported
+  // in detection because "which lane may use this runner" is an operator
+  // question, and because a profile that attests loopback while pointing at
+  // a public host is a misconfiguration worth seeing before a job runs.
+  const locality = verifyDshComputeLocality({
+    config,
+    ...(options.managedLocalModelAvailable !== undefined
+      ? { managedLocalModelAvailable: options.managedLocalModelAvailable }
+      : {}),
+  });
+  capabilities.push({
+    id: 'compute-locality',
+    label: 'Verified compute locality (LOCAL economic lane eligibility)',
+    available: locality.locality === 'LOCAL',
+    required: false,
+    detail: `${locality.locality} — ${locality.evidence}`,
+  });
+  if (locality.rejections.includes('endpoint-remote')) {
+    diagnostics.push({
+      severity: 'warning',
+      code: 'RUNNER_COMPUTE_REMOTE',
+      message:
+        'This DeepSeek Harness profile runs REMOTE compute: it is usable by explicit selection, ' +
+        'but the LOCAL economic lane refuses it (a LOCAL attempt must never bill a provider).',
+    });
+  }
+  if (locality.credentialRisks.length > 0) {
+    diagnostics.push({
+      severity: 'warning',
+      code: 'RUNNER_CREDENTIAL_PASSTHROUGH',
+      message:
+        `environmentPassthrough forwards credential-shaped variable NAMES (${locality.credentialRisks.join(', ')}) ` +
+        'to the runtime; a LOCAL-bound harness should not inherit paid-provider credentials.',
+    });
+  }
 
   capabilities.push({
     id: 'structured-output',

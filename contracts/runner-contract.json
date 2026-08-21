@@ -24,6 +24,11 @@
     "mock",
     "model-api"
   ],
+  "computeLocalityAttestations": [
+    "loopback-endpoint",
+    "managed-local-model",
+    "unconfirmed"
+  ],
   "errorCodes": [
     "api_error",
     "authentication_required",

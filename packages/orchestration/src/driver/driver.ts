@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { analyzeSpec, requireSpec } from '@specbridge/compat-kiro';
-import type { WorkspaceInfo } from '@specbridge/core';
+import type { LocalExecutionMode, WorkspaceInfo } from '@specbridge/core';
 import type { ClaudeProbe, RunnerRegistry } from '@specbridge/runners';
 import type { LocalModelManager } from '@specbridge/runners';
 import type {
@@ -67,10 +67,19 @@ import type { SchedulingDecisionRecord } from '../scheduling/decisions.js';
 import { appendSchedulingDecision } from '../scheduling/decisions.js';
 import type { LocalExecutionResult, LocalExecutorInference } from '../scheduling/local-execution.js';
 import { dispatchLocalExecution } from '../scheduling/local-execution.js';
+import type { LocalHarnessExecutionResult } from '../scheduling/local-harness.js';
+import { dispatchLocalHarnessExecution } from '../scheduling/local-harness.js';
+import type { LocalHarnessBinding } from '../scheduling/local-binding.js';
 import type { NodeLaneRouting } from '../scheduling/scheduler.js';
 import { reconstructTaskContext } from '../survival/reconstruction.js';
+import { readLatestTaskCheckpoint } from '../survival/store.js';
 import type { BuiltLaneContext, SchedulingRuntime } from './scheduling-runtime.js';
-import { buildLaneContext, createSchedulingRuntime, estimateNodeContextRatio } from './scheduling-runtime.js';
+import {
+  buildLaneContext,
+  createSchedulingRuntime,
+  estimateNodeContextRatio,
+  localExecutorAttemptsUsed,
+} from './scheduling-runtime.js';
 import { createLocalManager, runLargeRole, runLocalRole } from './workers.js';
 import type { RoleWorkerResult } from './workers.js';
 import { dispatchExecutor } from './executor-dispatch.js';
@@ -120,6 +129,13 @@ export interface DriveOptions {
   quotaTelemetryProvider?: QuotaTelemetryProvider | undefined;
   /** vNext.2 test seam: overrides the local execution inference. */
   localExecutorInference?: LocalExecutorInference | undefined;
+  /**
+   * vNext.4: force one LOCAL execution mode for this run (controlled A/B
+   * evaluation and diagnostics). It selects between modes for work that is
+   * ALREADY routed local — it can never pull STRONG_REQUIRED work onto the
+   * local lane, and never bypasses harness locality verification.
+   */
+  localExecutionMode?: LocalExecutionMode | undefined;
 }
 
 export type DriverStop =
@@ -257,6 +273,7 @@ export async function driveJob(
     options: {
       quotaTelemetryProvider: options.quotaTelemetryProvider,
       localExecutorInference: options.localExecutorInference,
+      localExecutionMode: options.localExecutionMode,
       signal,
     },
   });
@@ -348,9 +365,16 @@ export async function driveJob(
           }
           const laneName = decision.lane;
           const laneRouting = decision.laneRouting;
+          // vNext.4: the lane is already decided; this is only HOW the local
+          // lane spends its compute. `localExecution` is present exactly when
+          // the lane decision was LOCAL.
+          const localExecution = laneName === 'LOCAL' ? laneRouting?.localExecution : undefined;
+          const executionMode = localExecution?.mode ?? undefined;
+          const harnessProfileName =
+            executionMode === 'HARNESS' ? (localExecution?.harness?.profileName ?? undefined) : undefined;
           emit(
             'executor-started',
-            `${decision.mode} task ${decision.taskId} via ${decision.worker.workerId}${laneName !== undefined ? ` [${laneName} lane]` : ''}`,
+            `${decision.mode} task ${decision.taskId} via ${decision.worker.workerId}${laneName !== undefined ? ` [${laneName} lane${executionMode !== undefined ? `/${executionMode}` : ''}]` : ''}`,
           );
 
           // vNext.2: persist the routing decision + observability BEFORE the
@@ -367,13 +391,16 @@ export async function driveJob(
               selectedLane: laneName,
               selectedProvider:
                 laneName === 'LOCAL'
-                  ? decision.worker.workerId
+                  ? (harnessProfileName ?? decision.worker.workerId)
                   : (decision.worker.runnerProfile ?? decision.worker.workerId),
               reasonCode: laneRouting.routing.reasonCode,
               detail: laneRouting.routing.detail,
               deferUntil: null,
               laneRouting,
               lane,
+              ...(schedulingRuntime !== undefined
+                ? { harnessBinding: schedulingRuntime.harnessBinding }
+                : {}),
             });
             recordJobEvent(deps, jobId, laneName === 'LOCAL' ? 'task_routed_local' : 'task_routed_subscription', {
               nodeId: node.nodeId,
@@ -381,7 +408,46 @@ export async function driveJob(
               reasonCode: laneRouting.routing.reasonCode,
               suitability: laneRouting.suitability.class,
               mode: lane.forecast.schedulerMode,
+              ...(executionMode !== undefined ? { executionMode } : {}),
             });
+            if (localExecution !== undefined && executionMode !== undefined) {
+              // One structured record of the mode decision, with the reason
+              // and the shape that produced it: "why did this task use the
+              // harness (or not)?" must be answerable from the timeline.
+              recordJobEvent(deps, jobId, 'local_execution_mode_selected', {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                executionMode,
+                shape: localExecution.shape,
+                reasonCode: localExecution.reasonCode ?? 'UNKNOWN',
+                suitability: laneRouting.suitability.class,
+              });
+              if (executionMode === 'HARNESS') {
+                recordJobEvent(deps, jobId, 'local_harness_selected', {
+                  nodeId: node.nodeId,
+                  taskId: node.parentTaskId,
+                  profile: localExecution.harness?.profileName ?? 'unknown',
+                  runner: localExecution.harness?.runner ?? 'unknown',
+                  computeLocality: localExecution.harness?.locality ?? 'UNKNOWN',
+                  reasonCode: localExecution.reasonCode ?? 'UNKNOWN',
+                });
+              } else if (localExecution.reasonCode === 'LOCAL_HARNESS_NOT_VERIFIED_LOCAL') {
+                recordJobEvent(deps, jobId, 'local_harness_locality_rejected', {
+                  nodeId: node.nodeId,
+                  taskId: node.parentTaskId,
+                  bindingStatus: schedulingRuntime?.harnessBinding.status ?? 'UNKNOWN',
+                  computeLocality: schedulingRuntime?.harnessBinding.locality ?? 'UNKNOWN',
+                  detail: (schedulingRuntime?.harnessBinding.problems[0] ?? 'not verified local').slice(0, 300),
+                });
+              } else if (localExecution.reasonCode === 'LOCAL_HARNESS_UNAVAILABLE') {
+                recordJobEvent(deps, jobId, 'local_harness_unavailable', {
+                  nodeId: node.nodeId,
+                  taskId: node.parentTaskId,
+                  bindingStatus: schedulingRuntime?.harnessBinding.status ?? 'UNKNOWN',
+                  detail: (schedulingRuntime?.harnessBinding.problems[0] ?? 'no bound harness').slice(0, 300),
+                });
+              }
+            }
             if (laneName === 'SUBSCRIPTION' && laneRouting.routing.admission?.crossesReset === true) {
               recordJobEvent(deps, jobId, 'cross_reset_admitted', {
                 nodeId: node.nodeId,
@@ -417,8 +483,25 @@ export async function driveJob(
             workerId: decision.worker.workerId,
             // The durable attempt records the true provider identity (the
             // runner profile) so the execution ledger attributes correctly.
-            provider: decision.worker.runnerProfile ?? decision.worker.workerId,
+            // A LOCAL harness attempt records the HARNESS profile as its
+            // provider — the lane stays LOCAL, and the two remain separate
+            // fields rather than one compound value.
+            provider:
+              harnessProfileName ?? decision.worker.runnerProfile ?? decision.worker.workerId,
+            ...(localExecution?.harness?.model != null
+              ? { model: localExecution.harness.model }
+              : {}),
             ...(laneName !== undefined ? { lane: laneName } : {}),
+            ...(executionMode !== undefined ? { executionMode } : {}),
+            ...(localExecution !== undefined
+              ? {
+                  executionShape: localExecution.shape,
+                  computeLocality:
+                    executionMode === 'HARNESS'
+                      ? (localExecution.harness?.locality ?? 'UNKNOWN')
+                      : 'LOCAL',
+                }
+              : {}),
             ...(laneRouting !== undefined
               ? {
                   localSuitability: laneRouting.suitability.class,
@@ -445,9 +528,41 @@ export async function driveJob(
             policy.objectives.enabled === true
               ? findMissionForSpec(deps.workspace, job.specName)
               : undefined;
+          // vNext.4: one LOCAL lane, two execution modes. The harness branch
+          // runs an agentic attempt inside the same evidence pipeline; the
+          // direct branch is the vNext.2 path, byte-identical.
+          const localHarnessLane =
+            laneName === 'LOCAL' && harnessProfileName !== undefined && schedulingRuntime !== undefined;
           const localLane =
-            laneName === 'LOCAL' && schedulingRuntime !== undefined && schedulingRuntime.localInference !== undefined;
-          const dispatch = localLane
+            laneName === 'LOCAL' &&
+            !localHarnessLane &&
+            schedulingRuntime !== undefined &&
+            schedulingRuntime.localInference !== undefined;
+          const harnessCheckpoint = localHarnessLane
+            ? readLatestTaskCheckpoint(deps.workspace, jobId, node.nodeId)
+            : undefined;
+          const dispatch = localHarnessLane
+            ? await dispatchLocalHarnessExecution({
+                workspace: deps.workspace,
+                config: deps.config,
+                registry: deps.registry,
+                node,
+                specName: job.specName,
+                jobId,
+                mode: decision.mode,
+                allowDirty,
+                profileName: harnessProfileName as string,
+                // Canonical memory for the bootstrap package: the harness
+                // reads the repository itself, but nothing on disk records
+                // what was already decided, tried, and ruled out.
+                ...(harnessCheckpoint !== undefined ? { checkpoint: harnessCheckpoint } : {}),
+                maxWallTimeMs: schedulingRuntime.harnessBinding.maxWallTimeMs,
+                ...(deps.clock !== undefined ? { clock: deps.clock } : {}),
+                ...(deps.idFactory !== undefined ? { idFactory: deps.idFactory } : {}),
+                ...(signal !== undefined ? { signal } : {}),
+                onProgress: (message) => emit('note', message),
+              })
+            : localLane
             ? await dispatchLocalExecution({
                 workspace: deps.workspace,
                 config: deps.config,
@@ -507,6 +622,13 @@ export async function driveJob(
           // vNext.2: local failures stay visible, and a declined/exhausted
           // local attempt escalates STICKILY before the outcome is folded, so
           // the very next routing pass already prefers the strong lane.
+          //
+          // vNext.4 adds one intermediate transition. A direct attempt that
+          // failed for lack of REPOSITORY KNOWLEDGE has not shown that local
+          // intelligence is insufficient — it has shown that a model with no
+          // tools cannot see the repository. When a verified-local harness is
+          // bound and the shared local budget still has room, that becomes a
+          // LOCAL → LOCAL mode change instead of spending Max quota.
           if (localLane) {
             const localResult = dispatch as LocalExecutionResult;
             if (localResult.failure !== undefined) {
@@ -515,9 +637,31 @@ export async function driveJob(
                 taskId: node.parentTaskId,
                 category: localResult.failure.category,
                 escalated: localResult.escalated,
+                executionMode: 'DIRECT_MODEL',
               });
             }
-            if (localResult.escalated) {
+            const harnessCanTakeOver =
+              schedulingRuntime !== undefined &&
+              schedulingRuntime.harnessBinding.available &&
+              schedulingRuntime.policy.localExecution.strategy !== 'DIRECT_ONLY' &&
+              localExecutorAttemptsUsed(deps, jobId, node.nodeId) < schedulingRuntime.policy.maxLocalAttempts;
+            const needsRepositoryTools =
+              localResult.failure !== undefined &&
+              directFailureNeedsRepositoryTools(localResult);
+            if (harnessCanTakeOver && needsRepositoryTools) {
+              noteEscalation(deps, jobId, {
+                nodeId: node.nodeId,
+                role: 'EXECUTOR',
+                reason: 'LOCAL_DIRECT_TO_HARNESS',
+                detail: (localResult.escalationReason ?? localResult.failure?.message ?? 'the direct attempt lacked repository knowledge').slice(0, 500),
+              });
+              recordJobEvent(deps, jobId, 'local_direct_to_harness_escalated', {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                category: localResult.failure?.category ?? 'unknown',
+                detail: (localResult.escalationReason ?? 'the direct attempt lacked repository knowledge').slice(0, 300),
+              });
+            } else if (localResult.escalated) {
               noteEscalation(deps, jobId, {
                 nodeId: node.nodeId,
                 role: 'EXECUTOR',
@@ -532,6 +676,49 @@ export async function driveJob(
             }
           }
 
+          // vNext.4: harness attempt outcomes. The distinction that matters
+          // here is infrastructure vs intelligence: a runtime that crashed
+          // proves nothing about the task, and spending subscription quota to
+          // "answer" a crashed process is exactly the waste §40 forbids.
+          if (localHarnessLane) {
+            const harnessResult = dispatch as LocalHarnessExecutionResult;
+            if (harnessResult.failure !== undefined) {
+              recordJobEvent(deps, jobId, 'local_attempt_failed', {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                category: harnessResult.failure.category,
+                escalated: harnessResult.escalated,
+                executionMode: 'HARNESS',
+                failureKind: harnessResult.failureKind ?? 'UNKNOWN',
+              });
+            }
+            const localAttemptsAfter = localExecutorAttemptsUsed(deps, jobId, node.nodeId) + 1;
+            const budgetSpent =
+              schedulingRuntime !== undefined &&
+              localAttemptsAfter >= schedulingRuntime.policy.maxLocalAttempts;
+            const intelligenceFailure =
+              harnessResult.failure !== undefined && harnessResult.failureKind === 'INTELLIGENCE';
+            if (intelligenceFailure && (harnessResult.escalated || budgetSpent)) {
+              noteEscalation(deps, jobId, {
+                nodeId: node.nodeId,
+                role: 'EXECUTOR',
+                reason: 'LOCAL_EXECUTION_ESCALATED',
+                detail: (harnessResult.escalationReason ?? harnessResult.failure?.message ?? 'the local harness could not implement the task').slice(0, 500),
+              });
+              recordJobEvent(deps, jobId, 'local_harness_to_subscription_escalated', {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                localAttempts: localAttemptsAfter,
+                detail: (harnessResult.escalationReason ?? 'local harness attempts exhausted').slice(0, 300),
+              });
+              recordJobEvent(deps, jobId, 'local_escalation_triggered', {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                detail: 'the local harness did not produce a verifiable implementation',
+              });
+            }
+          }
+
           // Capture post-dispatch quota/context observations for the ledger.
           let extraMetrics: Record<string, number | null> | undefined;
           if (schedulingRuntime !== undefined && lane !== undefined) {
@@ -540,6 +727,20 @@ export async function driveJob(
               fiveHourQuotaAfter: after.fiveHour?.remainingRatio ?? null,
               weeklyQuotaAfter: after.weekly?.remainingRatio ?? null,
               contextUsageAfter: estimateNodeContextRatio(deps, jobId, node.nodeId),
+            };
+          }
+          if (localHarnessLane) {
+            // Observed harness activity. Anything the runtime did not report
+            // stays null: an invented zero would quietly corrupt every later
+            // direct-vs-harness comparison.
+            const observed = (dispatch as LocalHarnessExecutionResult).observed;
+            extraMetrics = {
+              ...(extraMetrics ?? {}),
+              toolCalls: observed.toolCalls,
+              commandRuns: observed.commandRuns,
+              compactions: observed.compactions,
+              cachedTokens: observed.cachedInputTokens,
+              filesRead: observed.filesRead,
             };
           }
 
@@ -672,6 +873,37 @@ export async function driveJob(
   }
 }
 
+/**
+ * Whether a failed DIRECT local attempt is evidence that the work needed
+ * REPOSITORY TOOLS rather than a stronger model (vNext.4 §19).
+ *
+ * Deliberately a short closed list, not "retry everything on the harness":
+ *
+ *   - the local executor DECLINED, which it is instructed to do exactly when
+ *     the task needs repository knowledge it was not given;
+ *   - it produced no repository change at all (evidence status no-change →
+ *     IMPLEMENTATION_DEFECT), the signature of a model that did not know
+ *     where to write;
+ *   - the applied edits failed trusted verification, which is the case an
+ *     edit → test → repair loop exists for.
+ *
+ * Everything else — invalid structured output, cancellation, transient tool
+ * failures, stale context, a diverged repository — is NOT repository-
+ * knowledge evidence, and follows the existing policy unchanged.
+ */
+function directFailureNeedsRepositoryTools(result: LocalExecutionResult): boolean {
+  const failure = result.failure;
+  if (failure === undefined) return false;
+  if (failure.category === 'VERIFICATION_FAILURE') return true;
+  if (failure.category === 'IMPLEMENTATION_DEFECT') {
+    return result.evidenceStatus === 'no-change' || result.evidenceStatus === undefined;
+  }
+  // A decline is only meaningful when the model itself declined; the same
+  // category also covers invalid output and refused edits, which a harness
+  // would not fix.
+  return failure.category === 'CAPABILITY_UNAVAILABLE' && result.escalationReason !== undefined;
+}
+
 // ---------------------------------------------------------------------------
 // vNext.2 scheduling observability
 // ---------------------------------------------------------------------------
@@ -694,6 +926,8 @@ function persistLaneDecision(
     deferUntil: string | null;
     laneRouting: NodeLaneRouting | undefined;
     lane: BuiltLaneContext;
+    /** vNext.4: the LOCAL harness binding in force, for mode attribution. */
+    harnessBinding?: LocalHarnessBinding | undefined;
   },
 ): string {
   const createdAt = ((deps.clock ?? (() => new Date()))()).toISOString();
@@ -734,6 +968,29 @@ function persistLaneDecision(
             ? {
                 usageRatio: estimateNodeContextRatio(deps, jobId, input.nodeId),
                 compactFirst: routing.routing.compactFirst,
+              }
+            : null,
+        localExecution:
+          routing?.localExecution?.mode != null && routing.localExecution.reasonCode !== null
+            ? {
+                mode: routing.localExecution.mode,
+                reasonCode: routing.localExecution.reasonCode,
+                shape: routing.localExecution.shape,
+                runner:
+                  routing.localExecution.mode === 'HARNESS'
+                    ? (routing.localExecution.harness?.runner ?? null)
+                    : 'local-model',
+                model:
+                  routing.localExecution.mode === 'HARNESS'
+                    ? (routing.localExecution.harness?.model ?? null)
+                    : null,
+                computeLocality:
+                  routing.localExecution.mode === 'HARNESS'
+                    ? (routing.localExecution.harness?.locality ?? 'UNKNOWN')
+                    : 'LOCAL',
+                localityEvidence: (input.harnessBinding?.localityEvidence ?? null)?.slice(0, 500) ?? null,
+                harnessBindingStatus: input.harnessBinding?.status ?? null,
+                detail: routing.localExecution.detail.slice(0, 1_000),
               }
             : null,
         deferUntil: input.deferUntil,

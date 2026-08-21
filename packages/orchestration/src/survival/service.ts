@@ -91,6 +91,10 @@ export interface BeginTaskAttemptInput {
   taskComplexity?: string | undefined;
   taskCategory?: string | undefined;
   schedulingDecisionId?: string | undefined;
+  /** vNext.4 LOCAL execution attribution (recorded, never policy). */
+  executionMode?: string | undefined;
+  executionShape?: string | undefined;
+  computeLocality?: string | undefined;
   /** Quota/context observations captured at dispatch start. */
   quotaBefore?:
     | { fiveHourRemainingRatio?: number | null | undefined; weeklyRemainingRatio?: number | null | undefined }
@@ -144,6 +148,9 @@ export function beginTaskAttempt(deps: SurvivalDeps, input: BeginTaskAttemptInpu
     ...(input.schedulingDecisionId !== undefined
       ? { schedulingDecisionId: input.schedulingDecisionId }
       : {}),
+    ...(input.executionMode !== undefined ? { executionMode: input.executionMode } : {}),
+    ...(input.executionShape !== undefined ? { executionShape: input.executionShape } : {}),
+    ...(input.computeLocality !== undefined ? { computeLocality: input.computeLocality } : {}),
     metrics: {
       durationMs: null,
       inputTokens: null,
@@ -153,6 +160,8 @@ export function beginTaskAttempt(deps: SurvivalDeps, input: BeginTaskAttemptInpu
       filesRead: null,
       filesChanged: null,
       costUsd: null,
+      commandRuns: null,
+      compactions: null,
       fiveHourQuotaBefore: input.quotaBefore?.fiveHourRemainingRatio ?? null,
       fiveHourQuotaAfter: null,
       weeklyQuotaBefore: input.quotaBefore?.weeklyRemainingRatio ?? null,
@@ -396,6 +405,9 @@ export function readExecutionLedger(
       taskComplexity: attempt.taskComplexity ?? null,
       taskCategory: attempt.taskCategory ?? null,
       schedulingDecisionId: attempt.schedulingDecisionId ?? null,
+      executionMode: attempt.executionMode ?? null,
+      executionShape: attempt.executionShape ?? null,
+      computeLocality: attempt.computeLocality ?? null,
       metrics: attempt.metrics,
     }),
   );

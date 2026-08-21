@@ -760,6 +760,10 @@ export function beginExecutorDispatch(
     localSuitability?: string | undefined;
     taskCategory?: string | undefined;
     schedulingDecisionId?: string | undefined;
+    /** vNext.4 LOCAL execution attribution (recorded, never policy). */
+    executionMode?: string | undefined;
+    executionShape?: string | undefined;
+    computeLocality?: string | undefined;
     /** Quota/context observations captured at dispatch start. */
     quotaBefore?:
       | {
@@ -803,6 +807,9 @@ export function beginExecutorDispatch(
       taskComplexity: node.complexity,
       taskCategory: input.taskCategory,
       schedulingDecisionId: input.schedulingDecisionId,
+      executionMode: input.executionMode,
+      executionShape: input.executionShape,
+      computeLocality: input.computeLocality,
       quotaBefore: input.quotaBefore,
       ...(input.contextUsageBefore !== undefined
         ? { contextUsageBefore: input.contextUsageBefore }

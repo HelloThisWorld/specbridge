@@ -1,5 +1,131 @@
 # Changelog
 
+## 1.7.0 (unreleased) — vNext.4 Local Agentic Runtime
+
+The `LOCAL` economic lane gains a second execution mode. Alongside the
+vNext.2 direct path — one bounded structured request whose edits SpecBridge
+applies — a task may now run as a **bounded agentic attempt** inside a
+verified-local harness runtime that inspects the repository, edits several
+files, runs the project's commands, reads the failure, and repairs, all
+inside ONE SpecBridge ExecutionAttempt at zero marginal monetary cost.
+
+Nothing about authority moves. Four concepts stay strictly orthogonal in the
+vocabulary, the records, and the code paths:
+
+```text
+Economic lane  !=  Execution mode  !=  Harness  !=  Model  !=  Compute locality
+```
+
+A harness is a tool loop, not a location; a model named `qwen` behind a
+public endpoint is remote paid compute. There is deliberately no compound
+`LOCAL_DSH`-style value anywhere — "was this free?" and "did this use a
+harness?" must stay separately answerable.
+
+Backward compatible by default: `localExecution.strategy` defaults to
+`DIRECT_ONLY` and no harness is bound to the lane, so an existing workspace
+routes work exactly as it did in vNext.2 whether or not a harness is
+installed. **Installation is not authorization.**
+
+### Added
+
+- **LOCAL execution modes** (`DIRECT_MODEL` / `HARNESS`) with a deterministic
+  **execution-shape** classifier (`ONE_SHOT` / `AGENTIC`,
+  `orchestration/scheduling/execution-shape.ts`) that is independent of the
+  vNext.2 suitability class: suitability answers *can local intelligence do
+  this?*, shape answers *does doing it need tools?*. Table-driven, pure, and
+  never produced by a model.
+- **`LocalExecutionResolver`** (`scheduling/local-resolver.ts`) — resolves
+  strategy + suitability + shape + binding + prior attempts into
+  `DIRECT_MODEL`, `HARNESS`, or `LOCAL_UNAVAILABLE`. Kept out of the quota
+  scheduler on purpose: the lane is decided first, and mode resolution can
+  never change it.
+- **Verified compute locality** (`runners/deepseek-harness/locality.ts`,
+  `COMPUTE_LOCALITIES = LOCAL | REMOTE | UNKNOWN`) — pure, offline, fail
+  closed. New DSH profile fields `computeLocality`
+  (`unconfirmed` | `loopback-endpoint` | `managed-local-model`) and
+  `providerEndpoint`, which SpecBridge parses itself and requires to be
+  loopback. `REMOTE` is refused for the LOCAL lane outright; `UNKNOWN` is
+  admitted only by an explicit experimental override, recorded on the
+  decision. Credential-shaped `environmentPassthrough` NAMES disqualify a
+  local binding (names only — values are never read or logged).
+- **LOCAL harness binding** (`scheduling/local-binding.ts`) with named
+  refusal statuses (`NOT_CONFIGURED`, `PROFILE_MISSING`,
+  `PROFILE_NOT_HARNESS`, `PROFILE_DISABLED`, `PROFILE_INCOMPLETE`,
+  `BOUNDARY_UNCONFIRMED`, `NOT_VERIFIED_LOCAL`, `REMOTE_COMPUTE`), so "why
+  did my harness not run?" always has one structured answer.
+- **Harness dispatch** (`scheduling/local-harness.ts`) — one bounded agentic
+  attempt through the EXISTING interactive evidence pipeline: repository
+  lock, trusted baseline snapshot, agentic run, then post snapshot,
+  protected-path comparison, trusted verification, verified-only completion.
+  A harness claim is a claim. Failures are split into `INFRASTRUCTURE` and
+  `INTELLIGENCE`, because a crashed runtime says nothing about the task.
+- **Mode-aware context**: the harness bootstrap package carries canonical
+  SpecBridge memory (task contract, acceptance criteria, invariants,
+  decisions, failed approaches, known test state, next actions, protected
+  paths) plus POINTERS to the approved documents — an agent with tools
+  fetches those itself. The checkpoint stays canonical; the harness session
+  and its native compaction remain disposable working memory, and every
+  attempt starts a fresh session bootstrapped from the checkpoint.
+- **Within-LOCAL escalation**: a direct attempt that failed for lack of
+  repository knowledge (declined, produced no change, or failed verification)
+  continues on the harness path via the new `LOCAL_DIRECT_TO_HARNESS`
+  escalation — `LOCAL → LOCAL`, no subscription quota, same shared budget.
+- **Rollout strategy** `orchestration.jobs.scheduler.localExecution`:
+  `strategy` (`DIRECT_ONLY` default / `HARNESS_ONLY` / `ADAPTIVE`),
+  `harnessProfile`, `maxHarnessWallTimeMs`, `allowUnverifiedLocality`. Plus a
+  per-run diagnostic override (`driveJob({ localExecutionMode })`) that can
+  never pull `STRONG_REQUIRED` work local or bypass locality verification.
+- **Records**: `SchedulingDecision.localExecution` (mode, mode reason, shape,
+  runner, model, computeLocality, locality evidence, binding status),
+  `ExecutionAttempt`/`ExecutionLedger` `executionMode` / `executionShape` /
+  `computeLocality`, and `commandRuns` / `compactions` metrics. Unknown
+  stays unknown — a fabricated zero would corrupt every later comparison.
+- **Observations and A/B evaluation**:
+  `summarizeLocalRuntime` compares modes by attempts, verification pass rate,
+  median wall time, and reported tokens/tool calls per task category;
+  `evaluateLocalRuntime` runs the same task through both modes in separate
+  detached git worktrees at HEAD (never the working tree, never concurrently
+  in one workspace). New `specbridge orchestrate local-benchmark` exposes it,
+  and `specbridge orchestrate scheduler <jobId>` now shows the strategy, the
+  binding with its locality evidence, the predicted mode per ready task, and
+  DIRECT-vs-HARNESS outcomes.
+- New scheduling vocabulary: `LOCAL_EXECUTION_MODES`,
+  `LOCAL_EXECUTION_STRATEGIES`, `LOCAL_EXECUTION_SHAPES`,
+  `LOCAL_EXECUTION_MODE_REASONS`, `COMPUTE_LOCALITIES`; job events
+  `local_execution_mode_selected`, `local_harness_selected`,
+  `local_harness_unavailable`, `local_harness_locality_rejected`,
+  `local_direct_to_harness_escalated`,
+  `local_harness_to_subscription_escalated`,
+  `local_runtime_evaluation_recorded`.
+- Documentation: [Local agentic runtime](docs/orchestration/local-agentic-runtime.md),
+  threat-model entries T37–T41 (silent paid billing on a "free" lane,
+  credential inheritance, control-plane mutation, unbounded tool loops,
+  prompt injection reaching an agent that can act), and a new non-claim:
+  verified locality is an attestation check, not a network monitor.
+
+### Changed
+
+- `maxLocalAttempts` is now explicitly the **whole lane's** budget: two
+  execution modes never mean two budgets, and attempt numbers remain one
+  continuous history (`DIRECT` then `HARNESS` then strong escalation).
+- The DeepSeek Harness profile is still PREVIEW, still disabled by default,
+  and still never selected automatically — it additionally requires an
+  explicit LOCAL binding and verified-local compute before the scheduler will
+  use it. `runner doctor` reports the verified locality as its own capability
+  row and warns about credential-shaped passthrough names.
+
+### Explicit non-goals (deferred to vNext.5 and later)
+
+- No `API` lane, no API Gap Bridge, no automatic PAYG fallback. A harness
+  profile with remote/PAYG compute cannot participate in automatic LOCAL
+  routing at all.
+- No general harness subagent/workflow orchestration: one SpecBridge attempt
+  remains one harness root agent with a bounded tactical loop.
+- No learned routing, bandit selection, or predictive success model. vNext.4
+  collects the evidence a later adaptive scheduler would need.
+- A harness-only LOCAL lane (no local model configured) is not supported: the
+  lane's worker slot is the configured local model worker.
+
 ## 1.6.0 (unreleased) — vNext.3 DeepSeek Harness Integration
 
 DeepSeek Harness (DSH) becomes an isolated, replaceable agent-harness

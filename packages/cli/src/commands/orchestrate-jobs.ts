@@ -5,8 +5,13 @@ import {
   buildQuotaForecast,
   cancelJob,
   computeDynamicReserve,
+  classifyLocalExecutionShape,
+  classifyLocalSuitability,
+  createLocalManager,
   createJob,
   driveJob,
+  evaluateLocalRuntime,
+  managedLocalInference,
   executionPlanSchema,
   listJobs,
   readCandidate,
@@ -22,12 +27,17 @@ import {
   readSchedulingDecisions,
   readWorkerRecords,
   recordQuotaObservation,
+  recordJobEvent,
   requireGraphRevision,
   requireJobState,
+  resolveLocalExecutionMode,
+  resolveLocalHarnessBinding,
   resolveWorkers,
   reviewNodePlan,
+  summarizeLocalRuntime,
 } from '@specbridge/orchestration';
 import { localModelDoctor } from '@specbridge/runners';
+import { validateLocalInferenceConfig } from '@specbridge/core';
 import type { DriverEvent, JobState } from '@specbridge/orchestration';
 import {
   blockedLine,
@@ -747,6 +757,66 @@ export function registerOrchestrateJobCommands(orchestrate: Command, runtime: Cl
         laneCounts[key] = (laneCounts[key] ?? 0) + 1;
       }
 
+      // vNext.4: how the LOCAL lane would spend its compute, and why. The
+      // preview recomputes the same deterministic classifiers the driver
+      // uses, so "which mode will this task use?" is answerable BEFORE a run.
+      const binding = resolveLocalHarnessBinding(context.config);
+      const localExecutionPolicy = policy.localExecution;
+      const directAvailable =
+        context.config.localInference.enabled &&
+        validateLocalInferenceConfig(context.config.localInference).ok &&
+        policy.allowLocalExecution;
+      const verificationAvailable = context.config.verification.commands.length > 0;
+      const modePreview = readyNodes.map((node) => {
+        const suitability = classifyLocalSuitability({
+          taskId: node.parentTaskId,
+          title: node.title,
+          complexity: node.complexity,
+          deterministicVerificationAvailable: verificationAvailable,
+          localWorkerAvailable: directAvailable,
+          maxLocalAttempts: policy.maxLocalAttempts,
+        });
+        if (suitability.class === 'STRONG_REQUIRED') {
+          return {
+            nodeId: node.nodeId,
+            taskId: node.parentTaskId,
+            suitability: suitability.class,
+            shape: null,
+            executionMode: null,
+            reasonCode: null,
+            detail: 'Routed to the subscription lane; local execution modes do not apply.',
+          };
+        }
+        const shape = classifyLocalExecutionShape({
+          taskId: node.parentTaskId,
+          title: node.title,
+          taskCategory: suitability.category,
+          complexity: node.complexity,
+          priorDirectFailureNeedsRepository: job.escalations.some(
+            (entry) => entry.nodeId === node.nodeId && entry.reason === 'LOCAL_DIRECT_TO_HARNESS',
+          ),
+        });
+        const resolution = resolveLocalExecutionMode({
+          strategy: localExecutionPolicy.strategy,
+          suitability: suitability.class,
+          shape,
+          directAvailable,
+          binding,
+          localAttemptsUsed: 0,
+          maxLocalAttempts: policy.maxLocalAttempts,
+        });
+        return {
+          nodeId: node.nodeId,
+          taskId: node.parentTaskId,
+          suitability: suitability.class,
+          shape: shape.shape,
+          executionMode: resolution.mode,
+          reasonCode: resolution.reasonCode,
+          detail: resolution.detail,
+        };
+      });
+      const localRuntime = summarizeLocalRuntime(ledger);
+
       if (options.json === true) {
         jsonOut(runtime, 'orchestrate-scheduler', {
           schedulerEnabled: policy.enabled,
@@ -760,6 +830,24 @@ export function registerOrchestrateJobCommands(orchestrate: Command, runtime: Cl
             complexity: node.complexity ?? null,
           })),
           attemptLanes: laneCounts,
+          localExecution: {
+            strategy: localExecutionPolicy.strategy,
+            directAvailable,
+            binding: {
+              status: binding.status,
+              available: binding.available,
+              profile: binding.profileName,
+              runner: binding.runner,
+              model: binding.model,
+              computeLocality: binding.locality,
+              localityEvidence: binding.localityEvidence,
+              localityOverridden: binding.localityOverridden,
+              credentialRisks: binding.credentialRisks,
+              problems: binding.problems,
+            },
+            readyTaskModes: modePreview,
+            observations: localRuntime,
+          },
           decisions,
         });
         return;
@@ -779,10 +867,55 @@ export function registerOrchestrateJobCommands(orchestrate: Command, runtime: Cl
             .join(', ') || '(none yet)'}`,
         ),
       );
+      runtime.out(reportTitle('Local execution (vNext.4)'));
+      runtime.out(
+        infoLine(
+          `  strategy ${localExecutionPolicy.strategy}; direct ${directAvailable ? 'available' : 'unavailable'}; harness binding ${binding.status}`,
+        ),
+      );
+      runtime.out(
+        (binding.available ? okLine : warnLine)(
+          `  harness: ${binding.profileName ?? '(none)'} [${binding.runner ?? 'n/a'}] model ${binding.model ?? 'unknown'} — compute ${binding.locality}`,
+        ),
+      );
+      runtime.out(dim(`    ${binding.localityEvidence}`));
+      for (const problem of binding.problems) runtime.out(warnLine(`    ${problem}`));
+      if (binding.credentialRisks.length > 0) {
+        runtime.out(
+          warnLine(
+            `    credential-shaped passthrough names: ${binding.credentialRisks.join(', ')} (names only)`,
+          ),
+        );
+      }
+      for (const [mode, stats] of Object.entries(localRuntime.byMode)) {
+        const pass = stats.verificationPassRate;
+        runtime.out(
+          infoLine(
+            `  ${mode}: ${stats.attempts} attempt(s), ${stats.completed} verified` +
+              `${pass !== null ? `, pass rate ${(pass * 100).toFixed(0)}%` : ''}` +
+              `${stats.medianWallTimeMs !== null ? `, median ${(stats.medianWallTimeMs / 1000).toFixed(1)}s` : ''}`,
+          ),
+        );
+      }
+      if (localRuntime.localToStrongEscalations > 0) {
+        runtime.out(
+          dim(`  ${localRuntime.localToStrongEscalations} local task(s) later escalated to the subscription lane.`),
+        );
+      }
+
       runtime.out(reportTitle('Ready tasks'));
       if (readyNodes.length === 0) runtime.out(dim('  (none)'));
       for (const node of readyNodes) {
         runtime.out(infoLine(`  ${node.nodeId}  task ${node.parentTaskId}  ${node.title.slice(0, 80)}`));
+        const preview = modePreview.find((entry) => entry.nodeId === node.nodeId);
+        if (preview !== undefined) {
+          runtime.out(
+            dim(
+              `    ${preview.suitability}${preview.shape !== null ? ` + ${preview.shape}` : ''} → ` +
+                `${preview.executionMode ?? 'SUBSCRIPTION'}${preview.reasonCode !== null ? ` [${preview.reasonCode}]` : ''}`,
+            ),
+          );
+        }
       }
       runtime.out(reportTitle(`Recent scheduling decisions (${decisions.length})`));
       for (const decision of decisions) {
@@ -791,4 +924,142 @@ export function registerOrchestrateJobCommands(orchestrate: Command, runtime: Cl
         runtime.out(dim(`    ${decision.detail.slice(0, 140)}`));
       }
     });
+
+  orchestrate
+    .command('local-benchmark')
+    .description(
+      'Compare LOCAL execution modes (direct model vs harness) on approved tasks in isolated worktrees (opt-in; never touches your working tree)',
+    )
+    .requiredOption('--spec <name>', 'spec whose approved tasks are benchmarked')
+    .requiredOption('--task <id...>', 'approved task id(s) to run through both modes')
+    .option('--job <id>', 'record the evaluation on this job\'s timeline')
+    .option('--mode <mode...>', 'modes to run (DIRECT_MODEL, HARNESS); default both')
+    .option('--harness-profile <name>', 'harness profile override (default: the bound LOCAL harness)')
+    .option('--keep-worktrees', 'keep the isolated checkouts for inspection')
+    .option('--json', 'output a machine-readable JSON report')
+    .action(
+      async (options: {
+        spec: string;
+        task: string[];
+        job?: string;
+        mode?: string[];
+        harnessProfile?: string;
+        keepWorktrees?: boolean;
+        json?: boolean;
+      }) => {
+        const context = loadExecutionContext(runtime);
+        const modes = (options.mode ?? ['DIRECT_MODEL', 'HARNESS']).map((mode) => mode.toUpperCase());
+        for (const mode of modes) {
+          if (mode !== 'DIRECT_MODEL' && mode !== 'HARNESS') {
+            throw new SpecBridgeError(
+              'INVALID_ARGUMENT',
+              `Unknown local execution mode "${mode}". Valid modes: DIRECT_MODEL, HARNESS.`,
+            );
+          }
+        }
+        // The direct arm needs a real local model. It is started here and
+        // stopped in the finally below — the benchmark owns it for exactly
+        // as long as it runs.
+        const localManager = createLocalManager(context.config, () => {});
+        const inference =
+          localManager !== undefined && validateLocalInferenceConfig(context.config.localInference).ok
+            ? managedLocalInference(localManager, context.config)
+            : undefined;
+        if (modes.includes('DIRECT_MODEL') && inference === undefined) {
+          runtime.out(
+            warnLine(
+              '  local inference is not enabled/configured; the DIRECT_MODEL arm will report UNAVAILABLE.',
+            ),
+          );
+        }
+        const tasks = context.workspace;
+        try {
+          const report = await evaluateLocalRuntime({
+            workspace: tasks,
+            config: context.config,
+            cases: options.task.map((taskId) => ({
+              caseId: `${options.spec}-${taskId}`,
+              specName: options.spec,
+              taskId,
+              title: `task ${taskId}`,
+            })),
+            modes: modes as ('DIRECT_MODEL' | 'HARNESS')[],
+            ...(inference !== undefined ? { inference } : {}),
+            ...(options.harnessProfile !== undefined ? { harnessProfile: options.harnessProfile } : {}),
+            maxHarnessWallTimeMs:
+              context.config.orchestration.jobs.scheduler.localExecution.maxHarnessWallTimeMs,
+            ...(options.keepWorktrees === true ? { keepWorktrees: true } : {}),
+            onProgress: (message) => {
+              if (options.json !== true) runtime.out(dim(`  ${message}`));
+            },
+          });
+          if (options.job !== undefined) {
+            // Evidence collection is only useful if it lands somewhere a
+            // human will look later: the job's own timeline.
+            requireJobState(context.workspace, options.job);
+            recordJobEvent(
+              { workspace: context.workspace, config: context.config },
+              options.job,
+              'local_runtime_evaluation_recorded',
+              {
+                spec: options.spec,
+                cases: report.cases.length,
+                harnessProfile: report.harnessProfile ?? 'none',
+                harnessLocality: report.harnessLocality ?? 'UNKNOWN',
+                summary: report.summary
+                  .map((entry) => `${entry.mode}:${entry.verified}/${entry.arms}`)
+                  .join(' '),
+              },
+            );
+          }
+          if (options.json === true) {
+            jsonOut(runtime, 'orchestrate-local-benchmark', { report });
+            return;
+          }
+          runtime.out(reportTitle(`Local runtime benchmark — ${options.spec}`));
+          runtime.out(
+            infoLine(
+              `  harness ${report.harnessProfile ?? '(none)'} (compute ${report.harnessLocality ?? 'UNKNOWN'})`,
+            ),
+          );
+          for (const entry of report.cases) {
+            runtime.out(reportTitle(`Task ${entry.taskId}`));
+            for (const arm of entry.arms) {
+              const line =
+                `  ${arm.mode}: ${arm.outcome} (${arm.evidenceStatus ?? 'no evidence'}) ` +
+                `in ${(arm.wallTimeMs / 1000).toFixed(1)}s, ${arm.changedFiles.length} file(s) changed`;
+              runtime.out(arm.outcome === 'VERIFIED' ? okLine(line) : warnLine(line));
+              if (arm.unexpectedFiles.length > 0) {
+                runtime.out(failLine(`    unexpected control-plane changes: ${arm.unexpectedFiles.join(', ')}`));
+              }
+              runtime.out(
+                dim(
+                  `    tokens in/out ${arm.inputTokens ?? 'unknown'}/${arm.outputTokens ?? 'unknown'}; ` +
+                    `tool calls ${arm.toolCalls ?? 'unknown'}; commands ${arm.commandRuns ?? 'unknown'}; ` +
+                    `compactions ${arm.compactions ?? 'unknown'}`,
+                ),
+              );
+              runtime.out(dim(`    ${arm.detail.slice(0, 160)}`));
+            }
+          }
+          runtime.out(reportTitle('Summary'));
+          for (const entry of report.summary) {
+            runtime.out(
+              infoLine(
+                `  ${entry.mode}: ${entry.verified}/${entry.arms} verified` +
+                  `${entry.medianWallTimeMs !== null ? `, median ${(entry.medianWallTimeMs / 1000).toFixed(1)}s` : ''}` +
+                  `${entry.unavailable > 0 ? `, ${entry.unavailable} unavailable` : ''}`,
+              ),
+            );
+          }
+          runtime.out(
+            dim(
+              '  Trusted evidence is the metric: an arm counts only when SpecBridge verification accepts its result.',
+            ),
+          );
+        } finally {
+          await localManager?.stop('benchmark finished');
+        }
+      },
+    );
 }

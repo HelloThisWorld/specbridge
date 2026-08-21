@@ -15,7 +15,12 @@
  *                           malformed-result | prose-wrapped | reasoning |
  *                           compaction | subagent | crash-mid-run | hang |
  *                           no-exit | wrong-identity | init-error | init-hang |
- *                           rpc-auth-error | rpc-rate-limit
+ *                           rpc-auth-error | rpc-rate-limit |
+ *                           agentic-repair | agentic-explore | no-progress
+ *   FAKE_DSH_EXTRA_EDIT_PATH  second file the agentic scenarios touch
+ *                           (default src/fake-dsh-helper.txt)
+ *   FAKE_DSH_PROMPT_LOG     when set, the received prompt is appended here
+ *                           (prompt-shape assertions; never a credential)
  *   FAKE_DSH_SESSIONS_DIR   when set, session logs persist across processes
  *                           (<dir>/<sessionId>.json holds the next seq) —
  *                           the "runtime-managed persistence" emulation
@@ -30,6 +35,7 @@ import process from 'node:process';
 const scenario = process.env.FAKE_DSH_SCENARIO ?? 'success';
 const sessionsDir = process.env.FAKE_DSH_SESSIONS_DIR;
 const editPath = process.env.FAKE_DSH_EDIT_PATH ?? path.join('src', 'fake-dsh-change.txt');
+const extraEditPath = process.env.FAKE_DSH_EXTRA_EDIT_PATH ?? path.join('src', 'fake-dsh-helper.txt');
 
 function log(record) {
   const file = process.env.FAKE_DSH_LOG;
@@ -129,6 +135,12 @@ function performEdit(resumed) {
   writeFileSync(target, `${previous}fake dsh implementation${resumed ? ' (resumed)' : ''}\n`, 'utf8');
 }
 
+function performExtraEdit(text) {
+  const target = path.join(process.cwd(), extraEditPath);
+  mkdirSync(path.dirname(target), { recursive: true });
+  writeFileSync(target, `${text}\n`, 'utf8');
+}
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function runScenario(sessionId, messageId) {
@@ -223,6 +235,66 @@ async function runScenario(sessionId, messageId) {
         turn,
         reasoning: scenario === 'reasoning' ? 'SECRET-REASONING-DO-NOT-PERSIST: plan the edit' : 'brief private plan',
       });
+      finish();
+      return;
+    }
+    case 'agentic-explore':
+    case 'agentic-repair': {
+      // A real bounded agentic loop: read the repository, edit two files,
+      // run the project's tests, SEE a failure, repair, re-run, report.
+      // This is the shape vNext.4 exists to support — and every claim it
+      // makes is still only a claim until SpecBridge verifies.
+      emit.event('tool/call', { turn, step: 1, callId: 'c-1', name: 'fs.glob', arguments: JSON.stringify({ pattern: 'src/**' }) });
+      emit.event('tool/result', {
+        turn,
+        step: 1,
+        message: {
+          id: `m-${++messageCounter}`,
+          role: 'user',
+          content: [{ type: 'tool-result', toolCallId: 'c-1', content: [{ type: 'text', text: 'src/' }] }],
+          source: { kind: 'tool', callId: 'c-1' },
+        },
+      }, { surfaceOp: 'append' });
+      emit.event('tool/call', { turn, step: 2, callId: 'c-2', name: 'fs.read', arguments: JSON.stringify({ path: editPath }) });
+      emit.event('tool/call', { turn, step: 3, callId: 'c-3', name: 'fs.apply_patch', arguments: JSON.stringify({ path: editPath }) });
+      performEdit(resumed);
+      emit.event('tool/call', { turn, step: 4, callId: 'c-4', name: 'fs.apply_patch', arguments: JSON.stringify({ path: extraEditPath }) });
+      performExtraEdit('first attempt (incomplete)');
+      emit.event('command/run', { turn, command: 'npm test' });
+      emit.event('command/done', { turn, command: 'npm test', exitCode: 1 });
+      // The agent reads its own failure and repairs — inside ONE SpecBridge
+      // attempt. The attempt-level retry policy is not its to decide.
+      emit.event('tool/call', { turn, step: 5, callId: 'c-5', name: 'fs.apply_patch', arguments: JSON.stringify({ path: extraEditPath }) });
+      performExtraEdit('repaired helper implementation');
+      emit.event('command/run', { turn, command: 'npm test' });
+      emit.event('command/done', { turn, command: 'npm test', exitCode: 0 });
+      assistantReport(
+        emit,
+        {
+          ...report,
+          summary: 'Explored the repository, implemented across two files, repaired a failing test.',
+          changedFiles: [editPath.replaceAll('\\', '/'), extraEditPath.replaceAll('\\', '/')],
+          commandsReported: ['npm test'],
+          testsReported: [{ name: 'npm test', status: 'passed' }],
+        },
+        { turn },
+      );
+      finish();
+      return;
+    }
+    case 'no-progress': {
+      // The runtime works perfectly and the MODEL does not: it looks, it
+      // thinks, it changes nothing, and it claims success. Local
+      // intelligence insufficiency — the case that must eventually escalate
+      // to the strong lane rather than loop for free forever.
+      emit.event('tool/call', { turn, step: 1, callId: 'c-1', name: 'fs.read', arguments: JSON.stringify({ path: editPath }) });
+      emit.event('command/run', { turn, command: 'npm test' });
+      emit.event('command/done', { turn, command: 'npm test', exitCode: 1 });
+      assistantReport(
+        emit,
+        { ...report, summary: 'I believe the task is already satisfied.', changedFiles: [], testsReported: [] },
+        { turn },
+      );
       finish();
       return;
     }
@@ -340,6 +412,14 @@ function handleFrame(frame) {
         return;
       }
       const sessionId = params?.sessionId ?? 'session-unknown';
+      const promptLog = process.env.FAKE_DSH_PROMPT_LOG;
+      if (promptLog !== undefined) {
+        const blocks = params?.contentBlocks;
+        const text = Array.isArray(blocks)
+          ? blocks.map((part) => (typeof part?.text === 'string' ? part.text : '')).join('')
+          : JSON.stringify(params ?? {});
+        appendFileSync(promptLog, `${JSON.stringify({ sessionId, prompt: text })}\n`, 'utf8');
+      }
       const messageId = `msg-${++messageCounter}`;
       respond(id, { messageId });
       setImmediate(() => {

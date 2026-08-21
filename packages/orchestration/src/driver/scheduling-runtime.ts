@@ -1,4 +1,9 @@
-import type { AgentConfig, JobSchedulerPolicy, WorkspaceInfo } from '@specbridge/core';
+import type {
+  AgentConfig,
+  JobSchedulerPolicy,
+  LocalExecutionMode,
+  WorkspaceInfo,
+} from '@specbridge/core';
 import { validateLocalInferenceConfig } from '@specbridge/core';
 import { estimateTokens, usableInputTokens } from '@specbridge/context';
 import type { LocalModelManager } from '@specbridge/runners';
@@ -21,6 +26,10 @@ import { classifyLocalSuitability } from '../scheduling/suitability.js';
 import { estimateWorkload } from '../scheduling/profiler.js';
 import type { LocalExecutorInference } from '../scheduling/local-execution.js';
 import { managedLocalInference } from '../scheduling/local-execution.js';
+import type { LocalHarnessBinding } from '../scheduling/local-binding.js';
+import { resolveLocalHarnessBinding } from '../scheduling/local-binding.js';
+import { classifyLocalExecutionShape } from '../scheduling/execution-shape.js';
+import { resolveLocalExecutionMode } from '../scheduling/local-resolver.js';
 
 /**
  * The driver's scheduling runtime (vNext.2): gathers everything the pure
@@ -39,6 +48,13 @@ export interface SchedulingRuntimeOptions {
   quotaTelemetryProvider?: QuotaTelemetryProvider | undefined;
   /** Test seam: overrides the managed local inference for execution. */
   localExecutorInference?: LocalExecutorInference | undefined;
+  /**
+   * vNext.4 diagnostic override: force one LOCAL execution mode for every
+   * eligible local dispatch in this run (controlled A/B evaluation).
+   * It cannot pull STRONG_REQUIRED work local and cannot bypass locality
+   * verification — an unusable harness still refuses.
+   */
+  localExecutionMode?: LocalExecutionMode | undefined;
   signal?: AbortSignal | undefined;
 }
 
@@ -49,6 +65,12 @@ export interface SchedulingRuntime {
   localInference: LocalExecutorInference | undefined;
   localWorkerAvailable: boolean;
   localExecutionAvailable: boolean;
+  /** vNext.4: the direct structured-inference path is usable. */
+  localDirectAvailable: boolean;
+  /** vNext.4: the LOCAL lane's harness binding (verified locality included). */
+  harnessBinding: LocalHarnessBinding;
+  /** vNext.4: explicit per-run mode override, when one was requested. */
+  localExecutionOverride: LocalExecutionMode | undefined;
   verificationAvailable: boolean;
   /** Mode/reserve/freshness seen by the previous pass (event dedup). */
   lastMode: string | undefined;
@@ -86,11 +108,23 @@ export function createSchedulingRuntime(
       ? managedLocalInference(input.localManager, config, input.options?.signal)
       : undefined);
   const localWorkerAvailable = localValid || injectedInference !== undefined;
-  const localExecutionAvailable =
+  const localDirectAvailable =
     localWorkerAvailable &&
     localInference !== undefined &&
     policy.allowLocalExecution &&
     !input.missionDriven;
+  // vNext.4: the harness is an execution MODE inside the LOCAL lane, never a
+  // lane of its own. It widens what the local lane can do; it can never
+  // decide that work belongs to the local lane, and it is inert under the
+  // DIRECT_ONLY default and in mission-driven runs.
+  const harnessBinding = resolveLocalHarnessBinding(config);
+  const harnessUsable =
+    harnessBinding.available &&
+    policy.localExecution.strategy !== 'DIRECT_ONLY' &&
+    policy.allowLocalExecution &&
+    !input.missionDriven;
+  const localExecutionAvailable =
+    localWorkerAvailable && (localDirectAvailable || harnessUsable);
 
   const provider =
     input.options?.quotaTelemetryProvider ??
@@ -102,6 +136,9 @@ export function createSchedulingRuntime(
     localInference,
     localWorkerAvailable,
     localExecutionAvailable,
+    localDirectAvailable,
+    harnessBinding,
+    localExecutionOverride: input.options?.localExecutionMode,
     verificationAvailable: config.verification.commands.length > 0,
     lastMode: undefined,
     lastReserveRatio: undefined,
@@ -154,12 +191,20 @@ export function localExecutorAttemptsUsed(
   ).length;
 }
 
-/** Sticky local-escalation reasons recorded for a node. */
+/**
+ * Sticky local-escalation reasons recorded for a node: once one of these is
+ * on record, the node never routes back to the LOCAL lane in ANY execution
+ * mode. `LOCAL_DIRECT_TO_HARNESS` is deliberately NOT here — it is a
+ * LOCAL → LOCAL mode transition, not an escalation off the lane.
+ */
 const LOCAL_ESCALATION_REASONS: readonly string[] = [
   'INVALID_LOCAL_OUTPUT',
   'REPEATED_LOCAL_FAILURE',
   'LOCAL_EXECUTION_ESCALATED',
 ];
+
+/** The durable marker that a direct attempt asked for repository tools. */
+const DIRECT_TO_HARNESS_REASON = 'LOCAL_DIRECT_TO_HARNESS';
 
 export interface BuiltLaneContext {
   context: LaneSchedulingContext;
@@ -297,5 +342,36 @@ function assessNode(
     contextUsageRatio: estimateNodeContextRatio(deps, jobId, node.nodeId),
     policy: runtime.policy,
   });
-  return { suitability, estimate, routing };
+
+  // vNext.4: the LANE is now decided. Only then — and only for the LOCAL
+  // lane — is the execution MODE resolved. This ordering is load-bearing:
+  // a harness must never be able to pull work into the local lane, so mode
+  // resolution reads the lane decision and can never write it.
+  if (routing.lane !== 'LOCAL') {
+    return { suitability, estimate, routing };
+  }
+  const directToHarness = job.escalations.some(
+    (entry) => entry.nodeId === node.nodeId && entry.reason === DIRECT_TO_HARNESS_REASON,
+  );
+  const shape = classifyLocalExecutionShape({
+    taskId: node.parentTaskId,
+    title: node.title,
+    taskCategory: suitability.category,
+    complexity: node.complexity,
+    priorDirectFailureNeedsRepository: directToHarness,
+  });
+  const localExecution = resolveLocalExecutionMode({
+    strategy: runtime.policy.localExecution.strategy,
+    suitability: suitability.class,
+    shape,
+    directAvailable: runtime.localDirectAvailable,
+    binding: runtime.harnessBinding,
+    directToHarnessEscalated: directToHarness,
+    localAttemptsUsed: attemptsUsed,
+    maxLocalAttempts: runtime.policy.maxLocalAttempts,
+    ...(runtime.localExecutionOverride !== undefined
+      ? { override: runtime.localExecutionOverride }
+      : {}),
+  });
+  return { suitability, estimate, routing, shape, localExecution };
 }

@@ -8,6 +8,13 @@ resources with entirely different economics:
 | `LOCAL` | A locally served model (the managed llama.cpp integration) | Effectively zero marginal monetary cost; consumes no subscription quota; limited intelligence |
 | `SUBSCRIPTION` | The Claude Max subscription worker | **Prepaid**; the primary strong-intelligence engine; limited by rolling five-hour and weekly quota windows; unused window capacity **expires at reset** |
 
+Since vNext.4 the `LOCAL` lane has two **execution modes** — a bounded
+one-shot request to the local model, or a bounded agentic run inside a
+verified-local harness. That is a mode, not a lane: the economics, the shared
+attempt budget, and the evidence pipeline are identical, and the lane decision
+below is made *before* (and independently of) the mode. See
+[Local agentic runtime](local-agentic-runtime.md).
+
 A future phase adds an `API` lane (pay-as-you-go continuity when the
 subscription is unavailable). It is deliberately **not** part of vNext.2:
 when the subscription lane is exhausted and local execution cannot handle a
@@ -79,6 +86,12 @@ lane, with a sticky escalation so the node never returns to local execution
 A local model may also decline (`ESCALATE` in its own output) — that
 escalates immediately with the reason preserved. Failed local attempts
 remain visible in the attempt history and the ledger forever.
+
+Since vNext.4 one intermediate step can come first: when the direct attempt
+failed for lack of *repository knowledge* and a verified-local harness is
+bound, the remaining budget continues on the harness path
+(`LOCAL → LOCAL`, no subscription quota) before any strong escalation. The
+budget above is unchanged — it counts local attempts, not local modes.
 
 ### Local preprocessing around strong work
 
@@ -288,7 +301,12 @@ later phases can learn P50/P90 without a schema change.
 specbridge orchestrate quota                 telemetry + forecast + mode + reserve
 specbridge orchestrate quota-set …           record a manual quota observation
 specbridge orchestrate scheduler <jobId>     mode, reserve, ready tasks, attempt lanes,
-                                             recent scheduling decisions
+                                             recent scheduling decisions, and (vNext.4)
+                                             the local execution strategy, harness
+                                             binding + verified locality, per-task
+                                             predicted mode, DIRECT vs HARNESS outcomes
+specbridge orchestrate local-benchmark …     compare local execution modes on the same
+                                             task in isolated worktrees (opt-in)
 ```
 
 Lifecycle events (all additive): `quota_snapshot_updated`,
@@ -310,8 +328,9 @@ quota thresholds are operational tuning):
 | Key | Default | Meaning |
 | --- | --- | --- |
 | `enabled` | `true` | Off restores vNext.1 scheduling byte-identically |
-| `maxLocalAttempts` | `2` | Bounded local execution attempts per task |
+| `maxLocalAttempts` | `2` | Bounded local execution attempts per task — **shared across both vNext.4 execution modes**, never per mode |
 | `allowLocalExecution` | `true` | Gate for the source-mutating local path |
+| `localExecution.*` | see [local agentic runtime](local-agentic-runtime.md) | vNext.4 execution-mode strategy, LOCAL harness binding, harness wall-time bound |
 | `harvestWindowMs` / `harvestMinRemainingRatio` | `30m` / `0.25` | HARVEST entry |
 | `conserveRemainingRatio` | `0.2` | CONSERVE entry |
 | `weeklyPressureRatio` | `0.1` | Weekly pressure (suppresses HARVEST) |

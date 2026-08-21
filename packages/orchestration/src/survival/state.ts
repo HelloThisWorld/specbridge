@@ -80,6 +80,13 @@ export const attemptMetricsSchema = z
     contextUsageAfter: z.number().min(0).nullable().default(null),
     /** Verification/test loops the attempt ran, when reported. */
     testLoops: z.number().int().min(0).nullable().default(null),
+    // vNext.4 local agentic runtime telemetry (additive; unobservable stays
+    // null — a fabricated zero would corrupt the direct-vs-harness
+    // comparison this phase exists to make possible).
+    /** Shell/command runs the attempt performed, when observable. */
+    commandRuns: z.number().int().min(0).nullable().default(null),
+    /** Provider-native context compactions observed during the attempt. */
+    compactions: z.number().int().min(0).nullable().default(null),
   })
   .passthrough();
 export type AttemptMetrics = z.infer<typeof attemptMetricsSchema>;
@@ -148,6 +155,14 @@ export const taskAttemptSchema = z
     taskCategory: shortText.optional(),
     /** The SchedulingDecision that routed this attempt, when one exists. */
     schedulingDecisionId: shortText.optional(),
+    // vNext.4 local execution attribution (additive; absent on pre-vNext.4
+    // attempts and on every SUBSCRIPTION attempt).
+    /** LOCAL execution mode: DIRECT_MODEL or HARNESS. Orthogonal to lane. */
+    executionMode: shortText.optional(),
+    /** Deterministic execution shape the resolver classified. */
+    executionShape: shortText.optional(),
+    /** Verified compute locality of the runner that executed this attempt. */
+    computeLocality: shortText.optional(),
     metrics: attemptMetricsSchema.default({}),
   })
   .passthrough();
@@ -314,6 +329,10 @@ export const executionLedgerEntrySchema = z
     taskComplexity: shortText.nullable().default(null),
     taskCategory: shortText.nullable().default(null),
     schedulingDecisionId: shortText.nullable().default(null),
+    // vNext.4 local execution attribution (additive; null when unassigned).
+    executionMode: shortText.nullable().default(null),
+    executionShape: shortText.nullable().default(null),
+    computeLocality: shortText.nullable().default(null),
     metrics: attemptMetricsSchema,
   })
   .passthrough();

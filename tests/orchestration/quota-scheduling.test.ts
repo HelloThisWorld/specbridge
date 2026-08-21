@@ -803,6 +803,9 @@ describe('quota telemetry and burn observations', () => {
       taskComplexity: 'HIGH',
       taskCategory: 'general',
       schedulingDecisionId: null,
+      executionMode: null,
+      executionShape: null,
+      computeLocality: null,
       metrics: {
         durationMs,
         inputTokens: null,
@@ -818,6 +821,8 @@ describe('quota telemetry and burn observations', () => {
         weeklyQuotaAfter: null,
         contextUsageBefore: null,
         contextUsageAfter: null,
+        commandRuns: null,
+        compactions: null,
         testLoops: null,
       },
       ...overrides,

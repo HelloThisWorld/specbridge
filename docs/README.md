@@ -66,6 +66,9 @@ reference, grouped by area.
 - [Quota-aware scheduling (vNext.2)](orchestration/quota-scheduling.md) —
   the free-local + prepaid-Max optimizer: lanes, quota windows, HARVEST,
   cross-reset admission.
+- [Local agentic runtime (vNext.4)](orchestration/local-agentic-runtime.md) —
+  the LOCAL lane's two execution modes (direct model vs harness), verified
+  compute locality, the shared local attempt budget, and A/B evaluation.
 - [Orchestration configuration](orchestration/configuration.md) — every
   policy knob, with defaults.
 

@@ -414,6 +414,47 @@ export type DeepSeekHarnessWorkspaceBoundary =
   (typeof DEEPSEEK_HARNESS_WORKSPACE_BOUNDARIES)[number];
 
 /**
+ * Compute locality of the model that actually answers a runner's requests
+ * (vNext.4). Orthogonal to harness identity, runner name, and model name:
+ * a "qwen" model behind a public endpoint is REMOTE compute, and a
+ * DeepSeek Harness run may execute against either.
+ *
+ *   LOCAL    grounded evidence exists that inference runs on this machine
+ *   REMOTE   grounded evidence exists that it does NOT
+ *   UNKNOWN  no evidence either way — never treated as LOCAL
+ *
+ * The LOCAL economic lane admits only LOCAL compute. UNKNOWN fails closed:
+ * a lane that silently spends money is a defect, not a degraded mode.
+ */
+export const COMPUTE_LOCALITIES = ['LOCAL', 'REMOTE', 'UNKNOWN'] as const;
+export type ComputeLocality = (typeof COMPUTE_LOCALITIES)[number];
+
+/**
+ * How an operator attests where a DSH runtime's model inference runs
+ * (vNext.4). The public DSH SDK exposes no provider-endpoint introspection —
+ * the launched runtime profile (`cordis.yml`) owns its routes — so SpecBridge
+ * cannot discover this. It therefore asks for an attested MECHANISM plus the
+ * structural evidence that mechanism implies, and verifies what it can:
+ *
+ *   unconfirmed          no claim (default) — locality UNKNOWN, never LOCAL
+ *   loopback-endpoint    the runtime routes to `providerEndpoint`, which
+ *                        SpecBridge parses and requires to be loopback
+ *   managed-local-model  the runtime routes to the SpecBridge-managed local
+ *                        model server, whose loopback address SpecBridge
+ *                        itself owns and validates
+ *
+ * The attestation is a claim about the runtime profile; the endpoint check
+ * is the part SpecBridge can verify itself. Both must hold.
+ */
+export const DEEPSEEK_HARNESS_COMPUTE_LOCALITY_ATTESTATIONS = [
+  'unconfirmed',
+  'loopback-endpoint',
+  'managed-local-model',
+] as const;
+export type DeepSeekHarnessComputeLocalityAttestation =
+  (typeof DEEPSEEK_HARNESS_COMPUTE_LOCALITY_ATTESTATIONS)[number];
+
+/**
  * DeepSeek Harness profile (vNext.3) — PREVIEW, disabled by default, never
  * selected automatically.
  *
@@ -453,6 +494,17 @@ export const deepseekHarnessProfileSchema = z
     /** Environment-variable NAMES forwarded from the parent to the runtime
      * child on top of the minimal safe base. Never values. */
     environmentPassthrough: z.array(environmentVariableNameSchema).default([]),
+    /** vNext.4: operator attestation of WHERE this profile's model inference
+     * runs. Default 'unconfirmed' — the profile is never eligible for the
+     * LOCAL economic lane until locality is attested AND verifiable. */
+    computeLocality: z
+      .enum(DEEPSEEK_HARNESS_COMPUTE_LOCALITY_ATTESTATIONS)
+      .default('unconfirmed'),
+    /** vNext.4: the provider endpoint the runtime profile routes to. Used
+     * ONLY for structural locality verification (loopback vs remote); no
+     * request is ever sent to it by SpecBridge, and it never carries
+     * credentials. Required by the 'loopback-endpoint' attestation. */
+    providerEndpoint: safeNonEmptyString.nullable().default(null),
     /** Retention cap for the normalized/raw notification log. */
     maxNotificationBytes: z.number().int().min(1024).default(10 * 1024 * 1024),
   })
