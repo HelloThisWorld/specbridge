@@ -25,10 +25,26 @@ const pkg = (name: string): string => path.resolve(rootDir, 'packages', name, 's
  * of 6 is empirical: at 8, the v1.2 driver tests (which add fake llama.cpp
  * servers and multi-role worker subprocesses on top of the usual git/runner
  * children) still starved the coordinator RPC on a 24-core machine.
+ *
+ * On a SMALL CI RUNNER USING THE FORKS POOL the pool drops to a single
+ * worker. Every driver-level test is a fixture plus a fake llama.cpp server
+ * (the PLANNER role starts it even when the executor lane is not local), a
+ * harness runtime, git, and a runner child — so two concurrent workers on
+ * 4 vCPUs put eight or more processes in front of the coordinator. vNext.5
+ * added enough driver scenarios to cross that line on ubuntu: every test
+ * passed and the run still exited 1 with `Timeout calling "onTaskUpdate"`.
+ *
+ * Serializing costs wall time and buys a green signal that means something.
+ * Two exclusions, both deliberate: local runs keep the 2-worker floor, and
+ * Windows keeps it too — it runs on threads (see below), where the fork IPC
+ * channel this guards is not in play and two workers are already green.
  */
 const workerCeiling = (): number => {
   const cores = availableParallelism();
-  if (cores <= 4) return 2;
+  if (cores <= 4) {
+    const constrainedCi = process.env['CI'] !== undefined && process.platform !== 'win32';
+    return constrainedCi ? 1 : 2;
+  }
   return Math.min(cores - 2, 6);
 };
 
