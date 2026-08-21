@@ -42950,10 +42950,11 @@ async function probeDeepSeekHarness(config2, options = {}) {
   };
 }
 function dshCapabilitySet(config2) {
+  const boundaryAttested = config2.workspaceBoundary === "runtime-profile";
   return {
     ...DSH_DECLARED_CAPABILITIES,
-    sandbox: config2.workspaceBoundary === "runtime-profile",
-    taskResume: config2.sessionPersistence === "runtime-managed"
+    sandbox: boundaryAttested,
+    taskResume: boundaryAttested && config2.sessionPersistence === "runtime-managed"
   };
 }
 var AUTH_PATTERN = /unauthorized|unauthenticated|authentication|api key|401/i;
@@ -43582,7 +43583,7 @@ var DeepSeekHarnessRunner = class {
   preflightFailure(started) {
     const fail = (error2, failureReason) => ({
       runner: this.name,
-      outcome: error2.code === "sandbox_unavailable" ? "failed" : "failed",
+      outcome: "failed",
       failureReason,
       rawStdout: "",
       rawStderr: "",
@@ -43775,7 +43776,7 @@ var DeepSeekHarnessRunner = class {
       rawStderr: "",
       process: this.observationRecord(started, notifications, {
         ...flags,
-        truncated: false
+        truncated: warnings.some((warning2) => warning2.includes("retention cap"))
       }),
       sessionId: session.sessionId,
       durationMs: Math.max(0, Date.now() - started),
@@ -49305,7 +49306,7 @@ var taskExecutionConformanceGroup = {
       } else {
         const outcome = await runApprovedTask(
           { workspace: fixture.workspace, config: fixture.config, registry: fixture.registry },
-          { specName: CONFORMANCE_SPEC_NAME, next: true }
+          { specName: CONFORMANCE_SPEC_NAME, next: true, runnerName: context.profile.name }
         );
         const report = outcome.kind === "executed" ? outcome.report : void 0;
         results.push(
@@ -49337,7 +49338,7 @@ var taskExecutionConformanceGroup = {
       } else {
         const outcome = await runApprovedTask(
           { workspace: fixture.workspace, config: fixture.config, registry: fixture.registry },
-          { specName: CONFORMANCE_SPEC_NAME, next: true }
+          { specName: CONFORMANCE_SPEC_NAME, next: true, runnerName: context.profile.name }
         );
         const report = outcome.kind === "executed" ? outcome.report : void 0;
         results.push(
