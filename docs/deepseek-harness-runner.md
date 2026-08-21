@@ -69,9 +69,14 @@ Task
 The built-in `deepseek-harness` profile ships DISABLED, is `preview`
 support level (explicit `--runner` selection only — never a default, never
 an operation default, never a fallback), and does not change any scheduler
-behavior: vNext.2 LOCAL/SUBSCRIPTION routing is byte-identical with the
-profile enabled or not. Automatic `LOCAL → HARNESS` routing is explicitly
-deferred to vNext.4.
+behavior on its own: LOCAL/SUBSCRIPTION routing is byte-identical with the
+profile enabled or not.
+
+Since vNext.4 a harness profile MAY additionally serve the `LOCAL` lane's
+`HARNESS` execution mode — but only when it is explicitly **bound** to the
+lane and its compute is **verified local**. Enabling the profile is not that
+binding; see [Local agentic runtime](orchestration/local-agentic-runtime.md)
+and the `computeLocality` / `providerEndpoint` fields below.
 
 ```jsonc
 {
@@ -90,6 +95,13 @@ deferred to vNext.4.
       "maxTokens": 49152,                       // optional output cap
       "workspaceBoundary": "runtime-profile",   // ← attestation, see Safety
       "sessionPersistence": "none",             // or "runtime-managed"
+      // vNext.4: WHERE this profile's inference runs. Default "unconfirmed"
+      // → locality UNKNOWN → never eligible for the LOCAL economic lane.
+      // "loopback-endpoint" additionally requires providerEndpoint, which
+      // SpecBridge parses itself and requires to be loopback; the alternative
+      // "managed-local-model" attests the SpecBridge-managed llama.cpp server.
+      "computeLocality": "unconfirmed",
+      "providerEndpoint": null,                 // e.g. "http://127.0.0.1:8080/v1"
       "environmentPassthrough": [],             // extra env NAMES, never values
       "timeoutMs": 1800000,
       "handshakeTimeoutMs": 30000
@@ -102,8 +114,15 @@ The runner is NOT tied to one model or lane: `provider`/`model` are
 explicit configuration passed to the runtime handshake, and the effective
 route is recorded from the runtime's own `request/context` events when it
 logs one (otherwise the configured value is recorded and nothing is
-guessed). How local Qwen or API-backed models route through this harness
-is vNext.4/vNext.5 work.
+guessed).
+
+That independence is why locality is a separate, verified field. A harness
+is a tool loop, not a location: the same adapter can drive a loopback
+llama.cpp server or a metered cloud API, and a model called `qwen` behind a
+public endpoint is remote paid compute. `runner doctor` reports the verified
+locality as its own capability row, and a profile that resolves `REMOTE` is
+refused by the LOCAL lane while remaining perfectly usable by explicit
+selection. API-lane routing for such profiles is vNext.5 work.
 
 ## Safety (what is actually enforced)
 
@@ -218,10 +237,13 @@ ran, and the task completed only on `verified` evidence.
 
 ## Current limitations (developer preview)
 
-- vNext.3 does NOT route LOCAL jobs through DSH automatically — the
-  current LocalExecutor and all scheduler defaults are unchanged. The
-  `LOCAL → DIRECT_MODEL | HARNESS` split is vNext.4; API-lane gap routing
-  is vNext.5.
+- Automatic LOCAL routing through DSH exists since vNext.4 but is OFF by
+  default (`localExecution.strategy` defaults to `DIRECT_ONLY`, and no
+  profile is bound to the lane). Installation is not authorization.
+  API-lane gap routing remains vNext.5.
+- The public SDK exposes no provider-endpoint introspection, so compute
+  locality cannot be discovered — only attested and structurally verified.
+  `UNKNOWN` never qualifies as LOCAL.
 - No wire-level cancel (close-only), no per-prompt result attribution
   (the final response is the last committed assistant text before idle),
   and no server→client approval flows in the tested SDK.

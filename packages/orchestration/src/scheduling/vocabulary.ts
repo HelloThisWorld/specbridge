@@ -69,6 +69,82 @@ export const LOCAL_SUITABILITY_CLASSES = ['LOCAL_SAFE', 'LOCAL_TRY', 'STRONG_REQ
 export type LocalSuitabilityClass = (typeof LOCAL_SUITABILITY_CLASSES)[number];
 
 // ---------------------------------------------------------------------------
+// Local execution modes and shapes (vNext.4)
+// ---------------------------------------------------------------------------
+
+/**
+ * The LOCAL lane's execution modes and rollout strategies live in
+ * @specbridge/core (they are configuration), and are re-exported here so
+ * scheduling code has ONE vocabulary import site.
+ *
+ * The layering this phase depends on, stated once:
+ *
+ *   Economic lane  !=  Execution mode  !=  Harness  !=  Model
+ *
+ * LOCAL is an economic resource class. DIRECT_MODEL/HARNESS are how that
+ * resource is spent. A harness is a tool loop that could drive any model,
+ * anywhere. Compute locality is a separate verified property. No code may
+ * collapse these: "DeepSeek Harness" never implies LOCAL, and "qwen" never
+ * implies local compute.
+ */
+export {
+  LOCAL_EXECUTION_MODES,
+  LOCAL_EXECUTION_STRATEGIES,
+  COMPUTE_LOCALITIES,
+} from '@specbridge/core';
+export type {
+  LocalExecutionMode,
+  LocalExecutionStrategy,
+  ComputeLocality,
+} from '@specbridge/core';
+
+/**
+ * The SHAPE of one unit of local work — independent of whether local
+ * intelligence can handle it at all.
+ *
+ *   ONE_SHOT  a bounded transformation a single structured request can
+ *             complete: known target, small complete context, no repository
+ *             search, no expected test/fix loop
+ *   AGENTIC   work that needs an autonomous tool loop: repository
+ *             exploration, an unknown implementation site, several related
+ *             files, or an expected edit → test → repair cycle
+ *
+ * Deliberately ORTHOGONAL to LocalSuitabilityClass. Suitability answers
+ * "can local intelligence reasonably do this?"; shape answers "does doing
+ * it require tools?". A task can be LOCAL_SAFE and AGENTIC (easy, but needs
+ * to find the file) or STRONG_REQUIRED and ONE_SHOT (a single subtle edit).
+ */
+export const LOCAL_EXECUTION_SHAPES = ['ONE_SHOT', 'AGENTIC'] as const;
+export type LocalExecutionShape = (typeof LOCAL_EXECUTION_SHAPES)[number];
+
+/**
+ * Why the local execution resolver chose the mode it chose.
+ *
+ * Kept separate from SCHEDULING_REASON_CODES on purpose: the lane reason
+ * ("why LOCAL rather than SUBSCRIPTION") and the mode reason ("why HARNESS
+ * rather than DIRECT_MODEL") are different questions, and encoding both in
+ * one string would produce exactly the `LOCAL_DSH`-style compound values
+ * this phase forbids. Both are recorded, orthogonally, on every decision.
+ */
+export const LOCAL_EXECUTION_MODE_REASONS = [
+  /** The work is one-shot shaped; a bounded structured request runs it. */
+  'LOCAL_DIRECT_SELECTED',
+  /** Rollout strategy is DIRECT_ONLY: the harness path is not in play. */
+  'LOCAL_DIRECT_ONLY_STRATEGY',
+  /** The work is agentic-shaped and a verified-local harness is bound. */
+  'LOCAL_HARNESS_SELECTED',
+  /** Rollout strategy is HARNESS_ONLY (benchmark/A-B): harness forced. */
+  'LOCAL_HARNESS_FORCED',
+  /** The harness was preferred but no bound/enabled harness is available. */
+  'LOCAL_HARNESS_UNAVAILABLE',
+  /** A harness is bound, but its compute is not VERIFIED local: refused. */
+  'LOCAL_HARNESS_NOT_VERIFIED_LOCAL',
+  /** A direct attempt failed for reasons that call for repository tools. */
+  'LOCAL_DIRECT_TO_HARNESS_ESCALATION',
+] as const;
+export type LocalExecutionModeReason = (typeof LOCAL_EXECUTION_MODE_REASONS)[number];
+
+// ---------------------------------------------------------------------------
 // Scheduler modes
 // ---------------------------------------------------------------------------
 

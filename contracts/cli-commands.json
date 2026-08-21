@@ -381,6 +381,18 @@
               "--spec"
             ]
           },
+          "local-benchmark": {
+            "options": [
+              "--harness-profile",
+              "--help",
+              "--job",
+              "--json",
+              "--keep-worktrees",
+              "--mode",
+              "--spec",
+              "--task"
+            ]
+          },
           "node-plan": {
             "options": [
               "--help",

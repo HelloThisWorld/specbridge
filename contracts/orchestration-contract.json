@@ -22,6 +22,11 @@
     "PLANNER",
     "REPLANNER"
   ],
+  "computeLocalities": [
+    "LOCAL",
+    "REMOTE",
+    "UNKNOWN"
+  ],
   "enforcementLevels": [
     "contract-enforced",
     "hard-enforced",
@@ -186,9 +191,16 @@
     "job_failed",
     "job_resumed",
     "local_attempt_failed",
+    "local_direct_to_harness_escalated",
     "local_escalation_triggered",
+    "local_execution_mode_selected",
+    "local_harness_locality_rejected",
+    "local_harness_selected",
+    "local_harness_to_subscription_escalated",
+    "local_harness_unavailable",
     "local_model_started",
     "local_model_stopped",
+    "local_runtime_evaluation_recorded",
     "local_suitability_classified",
     "needs_decision",
     "node_completed",
@@ -228,6 +240,28 @@
     "DEFER",
     "LOCAL",
     "SUBSCRIPTION"
+  ],
+  "localExecutionModeReasons": [
+    "LOCAL_DIRECT_ONLY_STRATEGY",
+    "LOCAL_DIRECT_SELECTED",
+    "LOCAL_DIRECT_TO_HARNESS_ESCALATION",
+    "LOCAL_HARNESS_FORCED",
+    "LOCAL_HARNESS_NOT_VERIFIED_LOCAL",
+    "LOCAL_HARNESS_SELECTED",
+    "LOCAL_HARNESS_UNAVAILABLE"
+  ],
+  "localExecutionModes": [
+    "DIRECT_MODEL",
+    "HARNESS"
+  ],
+  "localExecutionShapes": [
+    "AGENTIC",
+    "ONE_SHOT"
+  ],
+  "localExecutionStrategies": [
+    "ADAPTIVE",
+    "DIRECT_ONLY",
+    "HARNESS_ONLY"
   ],
   "localSuitabilityClasses": [
     "LOCAL_SAFE",

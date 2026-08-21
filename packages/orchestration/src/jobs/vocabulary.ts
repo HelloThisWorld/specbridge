@@ -222,6 +222,15 @@ export const ESCALATION_REASONS = [
   // vNext.2 (additive, never reordered).
   /** The local EXECUTOR declined or exhausted its bounded attempts. */
   'LOCAL_EXECUTION_ESCALATED',
+  // vNext.4 (additive, never reordered).
+  /**
+   * A LOCAL direct attempt failed for reasons repository tools address
+   * (missing repository knowledge, no edit produced, a test/fix loop is
+   * needed). This is a LOCAL → LOCAL transition to the harness mode, NOT a
+   * strong-lane escalation: it consumes no subscription quota and shares the
+   * same bounded local attempt budget.
+   */
+  'LOCAL_DIRECT_TO_HARNESS',
 ] as const;
 export type EscalationReason = (typeof ESCALATION_REASONS)[number];
 
@@ -380,5 +389,13 @@ export const JOB_EVENT_TYPES = [
   'quota_telemetry_stale',
   'quota_exhausted',
   'context_compaction_before_dispatch',
+  // Local agentic runtime events (vNext.4; additive, never reordered).
+  'local_execution_mode_selected',
+  'local_harness_selected',
+  'local_harness_unavailable',
+  'local_harness_locality_rejected',
+  'local_direct_to_harness_escalated',
+  'local_harness_to_subscription_escalated',
+  'local_runtime_evaluation_recorded',
 ] as const;
 export type JobEventType = (typeof JOB_EVENT_TYPES)[number];

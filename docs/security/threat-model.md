@@ -767,6 +767,124 @@ fingerprint. Both are exercised end to end by the CCR scenario.
 boundaries, not mid-invocation: a worker already running when the contract
 changes finishes its attempt before the stale result is refused.
 
+## 11. Local agentic execution (vNext.4)
+
+vNext.4 materially widens what the `LOCAL` lane may do: from *a model
+proposes complete files that SpecBridge applies* to *a harness runtime
+inspects, edits, and runs commands in the workspace itself*. The authority
+that grants is real, so it gets its own threats.
+
+### T37 — A "free" local attempt silently billing a paid provider
+
+**Threat.** A harness profile bound to the LOCAL lane routes its inference to
+a metered API. SpecBridge records the attempt as `lane = LOCAL` — zero
+marginal cost by definition — while the user is charged real money, possibly
+for every task in a long job.
+
+**Mitigations.** Automatic LOCAL harness execution requires an explicit
+binding *and* verified compute locality. Locality is never inferred from a
+runner name, a harness name, a provider string, a profile name, or a model
+name (`qwen` behind a public endpoint is remote paid compute). It is verified
+structurally: an attested loopback `providerEndpoint` that SpecBridge parses
+itself (127.0.0.0/8, `::1`, `localhost`, local socket, `file:`/`unix:`), or
+the SpecBridge-managed llama.cpp server whose 127.0.0.1 bind no configuration
+can widen. `REMOTE` is refused outright; `UNKNOWN` fails closed and is
+admitted only by an explicit experimental override that is recorded on the
+decision. A wildcard bind address (`0.0.0.0`, `::`) is treated as no evidence,
+and hostnames are never DNS-resolved — resolution is not a safety boundary.
+The refusal is tested with a remote profile: no runtime process starts and no
+inference request is sent.
+
+**Residual risk.** The attestation is a statement about a runtime profile
+SpecBridge cannot read (the public DSH SDK exposes no endpoint
+introspection). An operator who attests a loopback endpoint while the runtime
+actually routes elsewhere defeats the check — SpecBridge verifies the claim's
+*shape*, not the runtime's actual socket.
+
+**User responsibility:** attest `computeLocality` from the runtime profile you
+actually launched, and leave `allowUnverifiedLocality` off.
+
+---
+
+### T38 — Paid credentials reaching a local-bound runtime
+
+**Threat.** A LOCAL-bound harness inherits `OPENAI_API_KEY` (or similar) and
+becomes one configuration edit away from spending money on a lane whose
+premise is that it cannot.
+
+**Mitigations.** The runtime child environment is REPLACED with a minimal
+safe base plus the profile's explicit `environmentPassthrough` names
+(vNext.3), and vNext.4 additionally refuses a LOCAL binding whose passthrough
+list contains credential-shaped variable NAMES. Detection is on names only —
+values are never read, compared, or logged — and the same finding is reported
+by `runner doctor` as a warning.
+
+**Residual risk.** Name-pattern detection cannot recognize a credential
+forwarded under an unrecognizable name.
+
+---
+
+### T39 — A local harness mutating control-plane state
+
+**Threat.** The harness now has filesystem and shell tools inside the
+workspace. It could write task checkboxes, approvals, sidecar state, or Git
+history to fake progress.
+
+**Mitigations.** Prevention plus detection, in that order: the runtime
+profile's workspace write boundary must be attested before any execution
+(fail closed, vNext.3), the bootstrap prompt states the protected paths and
+the completion boundary explicitly, and the evidence pipeline then verifies
+independently — protected paths are compared byte-exactly (`.kiro/**`,
+`.specbridge/config.json`, `.specbridge/state/**`), HEAD motion is detected,
+and any violation prevents verification with evidence preserved and nothing
+rolled back. SpecBridge alone writes the task checkbox, and only for verified
+evidence. The harness's own test runs are tactical observations that never
+substitute for the trusted verification commands.
+
+**Residual risk.** Identical to T09: this is verification-time detection, not
+OS-level enforcement. A harness runtime runs with your permissions.
+
+---
+
+### T40 — An unbounded tool loop
+
+**Threat.** An agentic runtime that never settles: burning wall time, filling
+context, or looping edit → test → edit forever at "no cost".
+
+**Mitigations.** Every local harness attempt carries an external wall-clock
+bound enforced by SpecBridge (cancellation plus bounded runtime teardown),
+because the wire has no mid-turn cancel. The LOCAL lane's attempt budget is
+shared across both execution modes — two modes never mean two budgets — and
+intelligence failures escalate stickily to the subscription lane rather than
+retrying locally forever. Infrastructure failures (crash, transport, launch)
+are classified separately so a dead runtime never masquerades as evidence
+that the task needs a stronger model.
+
+**Residual risk.** Limits SpecBridge cannot enforce inside the runtime (turn
+count, tool-call count) are not claimed: unsupported controls are reported as
+ignored rather than pretended.
+
+---
+
+### T41 — Prompt injection reaching an agent that can now act
+
+**Threat.** Repository files, test output, or command output containing text
+that reads like instructions — now consumed by a runtime that can edit files
+and run commands, not merely propose text.
+
+**Mitigations.** The bootstrap prompt carries the untrusted-content boundary
+verbatim (observed content is DATA and never overrides the control section),
+protected paths are stated up front, and — the part that actually holds —
+nothing the agent says changes the outcome: completion still requires a real
+repository diff that passes the trusted verification commands, and the
+control-plane paths are compared byte-exactly afterwards.
+
+**Residual risk.** An injected instruction can still waste an attempt, and a
+sufficiently clever one can produce a *verifiable but undesirable* change.
+Evidence proves the tests passed, never that the change was wise.
+
+---
+
 ## Explicit non-claims
 
 Security models fail through overclaiming. SpecBridge does **not** claim:
@@ -791,7 +909,12 @@ Security models fail through overclaiming. SpecBridge does **not** claim:
    verify that an agent's *reported* actions match its real ones — that is
    what the Git snapshot and the trusted verifiers are for — and it does not
    claim that a plan a model wrote is a good plan.
-6. **Model-assisted workflows are nondeterministic.** Anything a model
+6. **Verified compute locality is an attestation check, not a network
+   monitor.** SpecBridge verifies that a locality claim is structurally
+   sound (a loopback endpoint it parses, or its own managed server). It does
+   not observe the runtime's sockets and cannot detect a runtime that
+   contradicts its own profile.
+7. **Model-assisted workflows are nondeterministic.** Anything a model
    authors — spec prose, code edits, refinements — can differ between
    runs and can be wrong. SpecBridge makes the *controls* deterministic
    (hashes, approvals, evidence, verification rules), never the model

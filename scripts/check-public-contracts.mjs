@@ -259,6 +259,10 @@ async function buildSnapshots() {
       supportLevels: [...runners.RUNNER_SUPPORT_LEVELS].sort(),
       errorCodes: [...runners.RUNNER_ERROR_CODES].sort(),
       runnerKinds: [...core.AGENT_RUNNER_KINDS].sort(),
+      // vNext.4: how a harness profile may attest where its compute runs.
+      computeLocalityAttestations: [
+        ...core.DEEPSEEK_HARNESS_COMPUTE_LOCALITY_ATTESTATIONS,
+      ].sort(),
       executionOutcomes: [...core.EXECUTION_OUTCOMES].sort(),
       evidenceStatuses: [...core.EVIDENCE_STATUS_VALUES].sort(),
     },
@@ -309,6 +313,12 @@ async function buildSnapshots() {
       quotaWindows: [...orchestration.QUOTA_WINDOWS].sort(),
       quotaTelemetryFreshness: [...orchestration.QUOTA_TELEMETRY_FRESHNESS].sort(),
       schedulingReasonCodes: [...orchestration.SCHEDULING_REASON_CODES].sort(),
+      // Local agentic runtime vocabulary (vNext.4; additive within 1.x).
+      localExecutionModes: [...core.LOCAL_EXECUTION_MODES].sort(),
+      localExecutionStrategies: [...core.LOCAL_EXECUTION_STRATEGIES].sort(),
+      localExecutionShapes: [...orchestration.LOCAL_EXECUTION_SHAPES].sort(),
+      localExecutionModeReasons: [...orchestration.LOCAL_EXECUTION_MODE_REASONS].sort(),
+      computeLocalities: [...core.COMPUTE_LOCALITIES].sort(),
     },
     // Context-lifecycle vocabulary (vNext.1). Every value is stable within
     // 1.x: members may be appended, never renamed or removed.

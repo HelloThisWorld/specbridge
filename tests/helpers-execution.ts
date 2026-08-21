@@ -60,6 +60,20 @@ export const FAKE_GEMINI_PATH = fixturePath('fake-gemini', 'fake-gemini.mjs');
 export const FAKE_ANTIGRAVITY_PATH = fixturePath('fake-antigravity', 'fake-antigravity.mjs');
 export const FAKE_DSH_PATH = fixturePath('fake-dsh', 'fake-dsh.mjs');
 
+/**
+ * Environment NAMES the fake DSH runtime needs forwarded to it. Names only —
+ * the allowlist boundary is exactly what the credential tests assert, and no
+ * test ever forwards or prints a value.
+ */
+export const FAKE_DSH_PASSTHROUGH = [
+  'FAKE_DSH_SCENARIO',
+  'FAKE_DSH_SESSIONS_DIR',
+  'FAKE_DSH_EDIT_PATH',
+  'FAKE_DSH_EXTRA_EDIT_PATH',
+  'FAKE_DSH_PROMPT_LOG',
+  'FAKE_DSH_LOG',
+];
+
 export interface ExecutionFixtureOptions {
   scenario?: MockScenario;
   /** Verification command objects for config.json (default: one passing). */
@@ -184,6 +198,10 @@ export interface ExecutionFixtureV2Options {
   ollamaTimeoutMs?: number;
   ollamaMaximumOutputBytes?: number;
   ollamaMaximumInputCharacters?: number;
+  /** Enable the fake DeepSeek Harness profile "dsh-local" (vNext.4). */
+  useFakeDsh?: boolean;
+  /** Extra fields merged into the fake DSH profile (locality attestation…). */
+  dshProfileOverrides?: Record<string, unknown>;
   /** Enable an openai-compatible profile "openai-compatible-local" (v0.6.1). */
   openAiBaseUrl?: string;
   openAiProfileOverrides?: Record<string, unknown>;
@@ -226,6 +244,25 @@ export function writeFixtureConfigV2(root: string, options: ExecutionFixtureV2Op
       command: { executable: process.execPath, args: [FAKE_GEMINI_PATH] },
       timeoutMs: 60_000,
       ...(options.geminiProfileOverrides ?? {}),
+    };
+  }
+  if (options.useFakeDsh === true) {
+    profiles['dsh-local'] = {
+      runner: 'deepseek-harness',
+      enabled: true,
+      command: { executable: process.execPath, args: [FAKE_DSH_PATH] },
+      provider: 'fake-local-provider',
+      model: 'fake-local-qwen',
+      workspaceBoundary: 'runtime-profile',
+      // Locality is attested AND structurally verifiable: a loopback
+      // endpoint SpecBridge parses itself. Tests that need REMOTE or
+      // UNKNOWN override these two fields explicitly.
+      computeLocality: 'loopback-endpoint',
+      providerEndpoint: 'http://127.0.0.1:8080/v1',
+      environmentPassthrough: FAKE_DSH_PASSTHROUGH,
+      timeoutMs: 120_000,
+      handshakeTimeoutMs: 30_000,
+      ...(options.dshProfileOverrides ?? {}),
     };
   }
   if (options.openAiBaseUrl !== undefined) {

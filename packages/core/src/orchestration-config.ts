@@ -402,6 +402,81 @@ export const workloadEstimatorPolicySchema: z.ZodType<WorkloadEstimatorPolicy, z
   .passthrough();
 
 /**
+ * vNext.4 LOCAL-lane execution modes.
+ *
+ *   DIRECT_MODEL  one bounded structured request to a local model;
+ *                 SpecBridge validates and applies the returned edits
+ *   HARNESS       a bounded agentic run inside a harness runtime (vNext.4:
+ *                 DeepSeek Harness) that inspects, edits, and runs commands
+ *                 itself, against a model of its own configuration
+ *
+ * A MODE, not a lane and not a provider: both consume the same LOCAL
+ * economic resource, the same bounded local attempt budget, and the same
+ * evidence pipeline. Harness identity, model identity, and compute locality
+ * stay separate fields — nothing here implies "DSH means local".
+ */
+export const LOCAL_EXECUTION_MODES = ['DIRECT_MODEL', 'HARNESS'] as const;
+export type LocalExecutionMode = (typeof LOCAL_EXECUTION_MODES)[number];
+
+/**
+ * vNext.4 rollout strategy for the LOCAL lane's execution mode.
+ *
+ *   DIRECT_ONLY   vNext.2 behavior exactly: the local lane always uses one
+ *                 bounded structured request (the backward-compatible
+ *                 default; installing a harness never changes routing)
+ *   HARNESS_ONLY  every local TASK dispatch that can use the verified-local
+ *                 harness does (benchmarking / A-B testing). Local
+ *                 preprocessing is never a task dispatch and stays direct.
+ *   ADAPTIVE      the deterministic execution-shape policy chooses per task
+ */
+export const LOCAL_EXECUTION_STRATEGIES = ['DIRECT_ONLY', 'HARNESS_ONLY', 'ADAPTIVE'] as const;
+export type LocalExecutionStrategy = (typeof LOCAL_EXECUTION_STRATEGIES)[number];
+
+/**
+ * vNext.4 local execution policy: which mode the LOCAL lane uses, and which
+ * harness profile (if any) is BOUND to the lane.
+ *
+ * Binding is explicit and narrow on purpose. Installing or enabling a
+ * DeepSeek Harness profile grants it nothing: automatic LOCAL harness
+ * execution additionally requires this binding AND verified-local compute.
+ * Nothing here can widen a safety boundary — the harness still runs behind
+ * the same evidence pipeline, protected paths, and attempt budget.
+ */
+export interface LocalExecutionPolicy {
+  /** Rollout strategy. DIRECT_ONLY keeps vNext.2 behavior byte-identical. */
+  strategy: LocalExecutionStrategy;
+  /**
+   * Runner profile bound to the LOCAL lane's HARNESS mode. Null (default)
+   * means no harness is bound and the lane is direct-only, whatever
+   * profiles exist. The profile must be an enabled harness profile with
+   * verified LOCAL compute; anything else is refused at resolution time.
+   */
+  harnessProfile: string | null;
+  /**
+   * Wall-clock ceiling for ONE local harness attempt. The harness runtime
+   * owns its internal turn/tool loop; this is the external bound SpecBridge
+   * can always enforce (cancellation + runtime teardown).
+   */
+  maxHarnessWallTimeMs: number;
+  /**
+   * EXPERIMENTAL: allow a harness profile whose compute locality cannot be
+   * verified to run on the LOCAL lane anyway. Off by default and never set
+   * by migration: a LOCAL attempt that silently bills a remote provider is
+   * exactly the failure this phase exists to prevent.
+   */
+  allowUnverifiedLocality: boolean;
+}
+
+export const localExecutionPolicySchema: z.ZodType<LocalExecutionPolicy, z.ZodTypeDef, unknown> = z
+  .object({
+    strategy: z.enum(LOCAL_EXECUTION_STRATEGIES).default('DIRECT_ONLY'),
+    harnessProfile: z.string().min(1).max(64).nullable().default(null),
+    maxHarnessWallTimeMs: z.number().int().min(30_000).max(86_400_000).default(1_800_000),
+    allowUnverifiedLocality: z.boolean().default(false),
+  })
+  .passthrough();
+
+/**
  * vNext.2 quota-aware scheduler policy (additive, defaulted).
  *
  * Governs how work is routed between the LOCAL lane (zero marginal cost) and
@@ -474,6 +549,8 @@ export interface JobSchedulerPolicy {
   telemetrySource: 'manual' | 'none';
   reserve: DynamicReservePolicy;
   estimator: WorkloadEstimatorPolicy;
+  /** vNext.4 LOCAL-lane execution mode policy (direct vs harness). */
+  localExecution: LocalExecutionPolicy;
 }
 
 export const jobSchedulerPolicySchema: z.ZodType<JobSchedulerPolicy, z.ZodTypeDef, unknown> = z
@@ -496,6 +573,7 @@ export const jobSchedulerPolicySchema: z.ZodType<JobSchedulerPolicy, z.ZodTypeDe
     telemetrySource: z.enum(['manual', 'none'] as const).default('manual'),
     reserve: dynamicReservePolicySchema.default({}),
     estimator: workloadEstimatorPolicySchema.default({}),
+    localExecution: localExecutionPolicySchema.default({}),
   })
   .passthrough();
 

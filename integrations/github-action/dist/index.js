@@ -34290,6 +34290,13 @@ var workloadEstimatorPolicySchema = external_exports.object({
   weeklyCapacityFactor: external_exports.number().min(1).max(100).default(5),
   minHistoricalObservations: external_exports.number().int().min(1).max(100).default(3)
 }).passthrough();
+var LOCAL_EXECUTION_STRATEGIES = ["DIRECT_ONLY", "HARNESS_ONLY", "ADAPTIVE"];
+var localExecutionPolicySchema = external_exports.object({
+  strategy: external_exports.enum(LOCAL_EXECUTION_STRATEGIES).default("DIRECT_ONLY"),
+  harnessProfile: external_exports.string().min(1).max(64).nullable().default(null),
+  maxHarnessWallTimeMs: external_exports.number().int().min(3e4).max(864e5).default(18e5),
+  allowUnverifiedLocality: external_exports.boolean().default(false)
+}).passthrough();
 var jobSchedulerPolicySchema = external_exports.object({
   enabled: external_exports.boolean().default(true),
   maxLocalAttempts: external_exports.number().int().min(1).max(5).default(2),
@@ -34308,7 +34315,8 @@ var jobSchedulerPolicySchema = external_exports.object({
   maxDecisionRecords: external_exports.number().int().min(10).max(5e3).default(500),
   telemetrySource: external_exports.enum(["manual", "none"]).default("manual"),
   reserve: dynamicReservePolicySchema.default({}),
-  estimator: workloadEstimatorPolicySchema.default({})
+  estimator: workloadEstimatorPolicySchema.default({}),
+  localExecution: localExecutionPolicySchema.default({})
 }).passthrough();
 var jobPolicySchema = external_exports.object({
   /** When false, job operations refuse to start and report why. */
@@ -34726,6 +34734,11 @@ var antigravityProfileSchema = external_exports.object({
 }).passthrough();
 var DEEPSEEK_HARNESS_SESSION_PERSISTENCE = ["none", "runtime-managed"];
 var DEEPSEEK_HARNESS_WORKSPACE_BOUNDARIES = ["unconfirmed", "runtime-profile"];
+var DEEPSEEK_HARNESS_COMPUTE_LOCALITY_ATTESTATIONS = [
+  "unconfirmed",
+  "loopback-endpoint",
+  "managed-local-model"
+];
 var deepseekHarnessProfileSchema = external_exports.object({
   runner: external_exports.literal("deepseek-harness"),
   enabled: external_exports.boolean().default(false),
@@ -34754,6 +34767,15 @@ var deepseekHarnessProfileSchema = external_exports.object({
   /** Environment-variable NAMES forwarded from the parent to the runtime
    * child on top of the minimal safe base. Never values. */
   environmentPassthrough: external_exports.array(environmentVariableNameSchema).default([]),
+  /** vNext.4: operator attestation of WHERE this profile's model inference
+   * runs. Default 'unconfirmed' — the profile is never eligible for the
+   * LOCAL economic lane until locality is attested AND verifiable. */
+  computeLocality: external_exports.enum(DEEPSEEK_HARNESS_COMPUTE_LOCALITY_ATTESTATIONS).default("unconfirmed"),
+  /** vNext.4: the provider endpoint the runtime profile routes to. Used
+   * ONLY for structural locality verification (loopback vs remote); no
+   * request is ever sent to it by SpecBridge, and it never carries
+   * credentials. Required by the 'loopback-endpoint' attestation. */
+  providerEndpoint: safeNonEmptyString2.nullable().default(null),
   /** Retention cap for the normalized/raw notification log. */
   maxNotificationBytes: external_exports.number().int().min(1024).default(10 * 1024 * 1024)
 }).passthrough();

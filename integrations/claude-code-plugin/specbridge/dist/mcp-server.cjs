@@ -27653,6 +27653,14 @@ var workloadEstimatorPolicySchema = external_exports.object({
   weeklyCapacityFactor: external_exports.number().min(1).max(100).default(5),
   minHistoricalObservations: external_exports.number().int().min(1).max(100).default(3)
 }).passthrough();
+var LOCAL_EXECUTION_MODES = ["DIRECT_MODEL", "HARNESS"];
+var LOCAL_EXECUTION_STRATEGIES = ["DIRECT_ONLY", "HARNESS_ONLY", "ADAPTIVE"];
+var localExecutionPolicySchema = external_exports.object({
+  strategy: external_exports.enum(LOCAL_EXECUTION_STRATEGIES).default("DIRECT_ONLY"),
+  harnessProfile: external_exports.string().min(1).max(64).nullable().default(null),
+  maxHarnessWallTimeMs: external_exports.number().int().min(3e4).max(864e5).default(18e5),
+  allowUnverifiedLocality: external_exports.boolean().default(false)
+}).passthrough();
 var jobSchedulerPolicySchema = external_exports.object({
   enabled: external_exports.boolean().default(true),
   maxLocalAttempts: external_exports.number().int().min(1).max(5).default(2),
@@ -27671,7 +27679,8 @@ var jobSchedulerPolicySchema = external_exports.object({
   maxDecisionRecords: external_exports.number().int().min(10).max(5e3).default(500),
   telemetrySource: external_exports.enum(["manual", "none"]).default("manual"),
   reserve: dynamicReservePolicySchema.default({}),
-  estimator: workloadEstimatorPolicySchema.default({})
+  estimator: workloadEstimatorPolicySchema.default({}),
+  localExecution: localExecutionPolicySchema.default({})
 }).passthrough();
 var jobPolicySchema = external_exports.object({
   /** When false, job operations refuse to start and report why. */
@@ -28107,6 +28116,12 @@ var antigravityProfileSchema = external_exports.object({
 }).passthrough();
 var DEEPSEEK_HARNESS_SESSION_PERSISTENCE = ["none", "runtime-managed"];
 var DEEPSEEK_HARNESS_WORKSPACE_BOUNDARIES = ["unconfirmed", "runtime-profile"];
+var COMPUTE_LOCALITIES = ["LOCAL", "REMOTE", "UNKNOWN"];
+var DEEPSEEK_HARNESS_COMPUTE_LOCALITY_ATTESTATIONS = [
+  "unconfirmed",
+  "loopback-endpoint",
+  "managed-local-model"
+];
 var deepseekHarnessProfileSchema = external_exports.object({
   runner: external_exports.literal("deepseek-harness"),
   enabled: external_exports.boolean().default(false),
@@ -28135,6 +28150,15 @@ var deepseekHarnessProfileSchema = external_exports.object({
   /** Environment-variable NAMES forwarded from the parent to the runtime
    * child on top of the minimal safe base. Never values. */
   environmentPassthrough: external_exports.array(environmentVariableNameSchema).default([]),
+  /** vNext.4: operator attestation of WHERE this profile's model inference
+   * runs. Default 'unconfirmed' — the profile is never eligible for the
+   * LOCAL economic lane until locality is attested AND verifiable. */
+  computeLocality: external_exports.enum(DEEPSEEK_HARNESS_COMPUTE_LOCALITY_ATTESTATIONS).default("unconfirmed"),
+  /** vNext.4: the provider endpoint the runtime profile routes to. Used
+   * ONLY for structural locality verification (loopback vs remote); no
+   * request is ever sent to it by SpecBridge, and it never carries
+   * credentials. Required by the 'loopback-endpoint' attestation. */
+  providerEndpoint: safeNonEmptyString2.nullable().default(null),
   /** Retention cap for the normalized/raw notification log. */
   maxNotificationBytes: external_exports.number().int().min(1024).default(10 * 1024 * 1024)
 }).passthrough();
@@ -46738,6 +46762,118 @@ function dshFailureOf(error2) {
   if (error2 instanceof DshAdapterError) return error2.failure;
   return classify(error2, void 0);
 }
+var PAID_CREDENTIAL_NAME_PATTERNS = [
+  /^(OPENAI|ANTHROPIC|DEEPSEEK|GOOGLE|GEMINI|MISTRAL|COHERE|GROQ|TOGETHER|FIREWORKS|PERPLEXITY|XAI|AZURE|AWS|BEDROCK|VERTEX)_/i,
+  /(^|_)(API_?KEY|SECRET_?KEY|ACCESS_?TOKEN|AUTH_?TOKEN|BEARER_?TOKEN|CREDENTIALS?)($|_)/i
+];
+var LOOPBACK_HOSTNAMES2 = /* @__PURE__ */ new Set(["localhost", "127.0.0.1", "::1", "[::1]", "0:0:0:0:0:0:0:1"]);
+function isLoopbackHostname2(hostname2) {
+  const normalized = hostname2.trim().toLowerCase().replace(/^\[|\]$/g, "");
+  if (LOOPBACK_HOSTNAMES2.has(normalized) || LOOPBACK_HOSTNAMES2.has(hostname2.trim().toLowerCase())) {
+    return true;
+  }
+  const ipv42 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(normalized);
+  if (ipv42 !== null) {
+    const octets = ipv42.slice(1).map((part) => Number(part));
+    if (octets.every((part) => part >= 0 && part <= 255) && octets[0] === 127) return true;
+  }
+  return false;
+}
+function dshPaidCredentialPassthrough(config2) {
+  return config2.environmentPassthrough.filter(
+    (name) => PAID_CREDENTIAL_NAME_PATTERNS.some((pattern) => pattern.test(name))
+  );
+}
+function verifyDshComputeLocality(input) {
+  const { config: config2 } = input;
+  const attestation = config2.computeLocality;
+  const credentialRisks = dshPaidCredentialPassthrough(config2);
+  const rejections = [];
+  if (attestation === "unconfirmed") {
+    return {
+      locality: "UNKNOWN",
+      attestation,
+      evidence: 'the profile makes no locality claim (computeLocality = "unconfirmed"), and the public DSH SDK exposes no provider-endpoint introspection to derive one',
+      rejections: ["not-attested"],
+      credentialRisks
+    };
+  }
+  let locality;
+  let evidence;
+  if (attestation === "managed-local-model") {
+    if (input.managedLocalModelAvailable === true) {
+      locality = "LOCAL";
+      evidence = "the profile attests it routes to the SpecBridge-managed local model server, which the local model manager binds to 127.0.0.1 (no configuration can widen the bind address)";
+    } else {
+      locality = "UNKNOWN";
+      evidence = input.managedLocalModelAvailable === false ? "the profile attests the SpecBridge-managed local model server, but that server is not enabled and coherently configured, so no local endpoint exists to have been routed to" : "the profile attests the SpecBridge-managed local model server; this context did not resolve whether that server is configured (the LOCAL lane binding verifies it)";
+      rejections.push("managed-model-unavailable");
+    }
+  } else {
+    const endpoint2 = config2.providerEndpoint;
+    if (endpoint2 === null) {
+      locality = "UNKNOWN";
+      evidence = "the profile attests a loopback endpoint but does not state which one (providerEndpoint is null), so nothing can be verified";
+      rejections.push("endpoint-missing");
+    } else {
+      const parsed = parseEndpoint(endpoint2);
+      if (parsed.kind === "unparseable") {
+        locality = "UNKNOWN";
+        evidence = `the attested providerEndpoint could not be parsed as a URL or local socket path (${parsed.detail})`;
+        rejections.push("endpoint-unparseable");
+      } else if (parsed.kind === "local-socket") {
+        locality = "LOCAL";
+        evidence = `the attested provider endpoint is a local socket path (${parsed.detail}), which cannot reach a remote host`;
+      } else if (parsed.kind === "wildcard") {
+        locality = "UNKNOWN";
+        evidence = `the attested provider endpoint uses the wildcard address ${parsed.detail}, which is a bind address and not evidence of local compute`;
+        rejections.push("endpoint-wildcard");
+      } else if (parsed.kind === "loopback") {
+        locality = "LOCAL";
+        evidence = `the attested provider endpoint ${parsed.detail} is a literal loopback address`;
+      } else {
+        locality = "REMOTE";
+        evidence = `the attested provider endpoint host "${parsed.detail}" is not a loopback address; this profile runs REMOTE compute`;
+        rejections.push("endpoint-remote");
+      }
+    }
+  }
+  if (credentialRisks.length > 0 && locality === "LOCAL") {
+    rejections.push("credential-risk");
+    return {
+      locality: "UNKNOWN",
+      attestation,
+      evidence: `${evidence}; however the profile forwards credential-shaped environment names (${credentialRisks.join(", ")}), so local-only execution cannot be relied on`,
+      rejections,
+      credentialRisks
+    };
+  }
+  return { locality, attestation, evidence, rejections, credentialRisks };
+}
+function parseEndpoint(endpoint2) {
+  const trimmed = endpoint2.trim();
+  if (trimmed.length === 0) return { kind: "unparseable", detail: "empty" };
+  if (/^unix:/i.test(trimmed) || /^\\\\[.?]\\pipe\\/i.test(trimmed)) {
+    return { kind: "local-socket", detail: trimmed.slice(0, 120) };
+  }
+  if (/^\//.test(trimmed) && !trimmed.startsWith("//")) {
+    return { kind: "local-socket", detail: trimmed.slice(0, 120) };
+  }
+  let url;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    return { kind: "unparseable", detail: "not an absolute URL (a scheme is required)" };
+  }
+  if (url.protocol === "file:") return { kind: "local-socket", detail: trimmed.slice(0, 120) };
+  const hostname2 = url.hostname;
+  if (hostname2.length === 0) return { kind: "unparseable", detail: "the URL has no host" };
+  if (hostname2 === "0.0.0.0" || hostname2 === "::" || hostname2 === "[::]") {
+    return { kind: "wildcard", detail: hostname2 };
+  }
+  if (isLoopbackHostname2(hostname2)) return { kind: "loopback", detail: `${url.protocol}//${url.host}` };
+  return { kind: "remote", detail: hostname2 };
+}
 var DSH_DECLARED_CAPABILITIES = capabilitySet([
   "taskExecution",
   "taskResume",
@@ -46845,6 +46981,31 @@ async function probeDeepSeekHarness(config2, options = {}) {
     required: false,
     detail: resumeAttested ? "sessions are attested to persist across runtime processes; every resume is additionally verified by session-log seq continuity before any agentic work" : 'sessionPersistence is "none": interrupted tasks continue from the SpecBridge checkpoint with a fresh session (always available)'
   });
+  const locality = verifyDshComputeLocality({
+    config: config2,
+    ...options.managedLocalModelAvailable !== void 0 ? { managedLocalModelAvailable: options.managedLocalModelAvailable } : {}
+  });
+  capabilities.push({
+    id: "compute-locality",
+    label: "Verified compute locality (LOCAL economic lane eligibility)",
+    available: locality.locality === "LOCAL",
+    required: false,
+    detail: `${locality.locality} \u2014 ${locality.evidence}`
+  });
+  if (locality.rejections.includes("endpoint-remote")) {
+    diagnostics.push({
+      severity: "warning",
+      code: "RUNNER_COMPUTE_REMOTE",
+      message: "This DeepSeek Harness profile runs REMOTE compute: it is usable by explicit selection, but the LOCAL economic lane refuses it (a LOCAL attempt must never bill a provider)."
+    });
+  }
+  if (locality.credentialRisks.length > 0) {
+    diagnostics.push({
+      severity: "warning",
+      code: "RUNNER_CREDENTIAL_PASSTHROUGH",
+      message: `environmentPassthrough forwards credential-shaped variable NAMES (${locality.credentialRisks.join(", ")}) to the runtime; a LOCAL-bound harness should not inherit paid-provider credentials.`
+    });
+  }
   capabilities.push({
     id: "structured-output",
     label: "Strict validated final message (JSON only, no prose)",
@@ -53691,7 +53852,16 @@ var ESCALATION_REASONS = [
   "REPLAN_BUDGET_PRESSURE",
   // vNext.2 (additive, never reordered).
   /** The local EXECUTOR declined or exhausted its bounded attempts. */
-  "LOCAL_EXECUTION_ESCALATED"
+  "LOCAL_EXECUTION_ESCALATED",
+  // vNext.4 (additive, never reordered).
+  /**
+   * A LOCAL direct attempt failed for reasons repository tools address
+   * (missing repository knowledge, no edit produced, a test/fix loop is
+   * needed). This is a LOCAL → LOCAL transition to the harness mode, NOT a
+   * strong-lane escalation: it consumes no subscription quota and shares the
+   * same bounded local attempt budget.
+   */
+  "LOCAL_DIRECT_TO_HARNESS"
 ];
 var JOB_STATE_SCHEMA_VERSION = "1.0.0";
 var JOB_STATE_LIMITS = {
@@ -54224,6 +54394,23 @@ var DECISION_AUTHORITY_TABLE = Object.freeze({
   approval: "human-only"
 });
 var LANE_DECISIONS = ["LOCAL", "SUBSCRIPTION", "DEFER"];
+var LOCAL_EXECUTION_SHAPES = ["ONE_SHOT", "AGENTIC"];
+var LOCAL_EXECUTION_MODE_REASONS = [
+  /** The work is one-shot shaped; a bounded structured request runs it. */
+  "LOCAL_DIRECT_SELECTED",
+  /** Rollout strategy is DIRECT_ONLY: the harness path is not in play. */
+  "LOCAL_DIRECT_ONLY_STRATEGY",
+  /** The work is agentic-shaped and a verified-local harness is bound. */
+  "LOCAL_HARNESS_SELECTED",
+  /** Rollout strategy is HARNESS_ONLY (benchmark/A-B): harness forced. */
+  "LOCAL_HARNESS_FORCED",
+  /** The harness was preferred but no bound/enabled harness is available. */
+  "LOCAL_HARNESS_UNAVAILABLE",
+  /** A harness is bound, but its compute is not VERIFIED local: refused. */
+  "LOCAL_HARNESS_NOT_VERIFIED_LOCAL",
+  /** A direct attempt failed for reasons that call for repository tools. */
+  "LOCAL_DIRECT_TO_HARNESS_ESCALATION"
+];
 var SCHEDULER_MODES = [
   "NORMAL",
   "CONSERVE",
@@ -54324,7 +54511,14 @@ var attemptMetricsSchema = external_exports.object({
   contextUsageBefore: external_exports.number().min(0).nullable().default(null),
   contextUsageAfter: external_exports.number().min(0).nullable().default(null),
   /** Verification/test loops the attempt ran, when reported. */
-  testLoops: external_exports.number().int().min(0).nullable().default(null)
+  testLoops: external_exports.number().int().min(0).nullable().default(null),
+  // vNext.4 local agentic runtime telemetry (additive; unobservable stays
+  // null — a fabricated zero would corrupt the direct-vs-harness
+  // comparison this phase exists to make possible).
+  /** Shell/command runs the attempt performed, when observable. */
+  commandRuns: external_exports.number().int().min(0).nullable().default(null),
+  /** Provider-native context compactions observed during the attempt. */
+  compactions: external_exports.number().int().min(0).nullable().default(null)
 }).passthrough();
 var taskAttemptSchema = external_exports.object({
   schemaVersion: semver2,
@@ -54378,6 +54572,14 @@ var taskAttemptSchema = external_exports.object({
   taskCategory: shortText32.optional(),
   /** The SchedulingDecision that routed this attempt, when one exists. */
   schedulingDecisionId: shortText32.optional(),
+  // vNext.4 local execution attribution (additive; absent on pre-vNext.4
+  // attempts and on every SUBSCRIPTION attempt).
+  /** LOCAL execution mode: DIRECT_MODEL or HARNESS. Orthogonal to lane. */
+  executionMode: shortText32.optional(),
+  /** Deterministic execution shape the resolver classified. */
+  executionShape: shortText32.optional(),
+  /** Verified compute locality of the runner that executed this attempt. */
+  computeLocality: shortText32.optional(),
   metrics: attemptMetricsSchema.default({})
 }).passthrough();
 var checkpointDecisionSchema = external_exports.object({
@@ -54472,6 +54674,10 @@ var executionLedgerEntrySchema = external_exports.object({
   taskComplexity: shortText32.nullable().default(null),
   taskCategory: shortText32.nullable().default(null),
   schedulingDecisionId: shortText32.nullable().default(null),
+  // vNext.4 local execution attribution (additive; null when unassigned).
+  executionMode: shortText32.nullable().default(null),
+  executionShape: shortText32.nullable().default(null),
+  computeLocality: shortText32.nullable().default(null),
   metrics: attemptMetricsSchema
 }).passthrough();
 function now3(deps) {
@@ -55477,6 +55683,34 @@ var schedulingDecisionSchema = external_exports.object({
     usageRatio: external_exports.number().min(0).nullable(),
     compactFirst: external_exports.boolean()
   }).passthrough().nullable(),
+  /**
+   * vNext.4 LOCAL execution-mode attribution. Null for every decision that
+   * did not select the LOCAL lane, and absent in records written before
+   * vNext.4 (additive by construction).
+   *
+   * Every field is ORTHOGONAL on purpose: the lane above says LOCAL, this
+   * says how the lane was spent, which runner ran it, which model it used,
+   * and how that runner's compute locality was verified. Nothing here is
+   * ever encoded as a compound value like "LOCAL_DSH" — that would make
+   * "was this local?" and "did this use a harness?" unanswerable
+   * separately, which is exactly the confusion this phase removes.
+   */
+  localExecution: external_exports.object({
+    mode: external_exports.enum(LOCAL_EXECUTION_MODES),
+    reasonCode: external_exports.enum(LOCAL_EXECUTION_MODE_REASONS),
+    shape: external_exports.enum(LOCAL_EXECUTION_SHAPES),
+    /** Runner identity for the mode (e.g. "local-llamacpp", "deepseek-harness"). */
+    runner: shortText7.nullable().default(null),
+    /** Model identity when known; null when the provider does not say. */
+    model: shortText7.nullable().default(null),
+    /** Verified compute locality of the selected runner. */
+    computeLocality: external_exports.enum(COMPUTE_LOCALITIES).default("UNKNOWN"),
+    /** Grounds for the locality verdict (bounded, recorded verbatim). */
+    localityEvidence: external_exports.string().max(500).nullable().default(null),
+    /** Status of the LOCAL harness binding when the decision was made. */
+    harnessBindingStatus: shortText7.nullable().default(null),
+    detail: external_exports.string().max(1e3).default("")
+  }).passthrough().nullable().default(null),
   /** For DEFER: when capacity is expected to return, when known. */
   deferUntil: shortText7.nullable().default(null),
   detail: external_exports.string().max(2e3),

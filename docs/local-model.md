@@ -98,3 +98,10 @@ are bounded (`orchestration.jobs.scheduler.maxLocalAttempts`, default 2)
 before the task escalates to the strong lane. See
 [orchestration/quota-scheduling.md](orchestration/quota-scheduling.md) for
 the lane model and suitability rules.
+
+Since vNext.4 the LOCAL lane has a second execution **mode**: the same class
+of local model can instead be driven by a harness runtime that inspects,
+edits, and runs commands in the repository itself, inside one bounded
+attempt. It is a mode, not a lane — same economics, same shared attempt
+budget, same evidence pipeline — and it is off by default. See
+[orchestration/local-agentic-runtime.md](orchestration/local-agentic-runtime.md).

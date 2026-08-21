@@ -4,6 +4,8 @@ import type { SubscriptionAdmission } from './admission.js';
 import { assessContextAdmission, assessSubscriptionAdmission } from './admission.js';
 import type { WorkloadEstimate } from './profiler.js';
 import type { SuitabilityAssessment } from './suitability.js';
+import type { ExecutionShapeAssessment } from './execution-shape.js';
+import type { LocalExecutionResolution } from './local-resolver.js';
 import type { LaneDecision, SchedulingReasonCode } from './vocabulary.js';
 
 /**
@@ -216,6 +218,13 @@ export interface NodeLaneRouting {
   suitability: SuitabilityAssessment;
   estimate: WorkloadEstimate;
   routing: LaneRouting;
+  /**
+   * vNext.4: execution shape and the resolved LOCAL execution mode. Present
+   * only when the lane decision was LOCAL — the mode is a property of the
+   * lane's execution, never an input to choosing the lane.
+   */
+  shape?: ExecutionShapeAssessment | undefined;
+  localExecution?: LocalExecutionResolution | undefined;
 }
 
 // ---------------------------------------------------------------------------

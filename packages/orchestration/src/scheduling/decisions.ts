@@ -6,7 +6,11 @@ import { assertInsideWorkspace, writeFileAtomic } from '@specbridge/core';
 import { jobDir } from '../jobs/store.js';
 import { quotaForecastSchema } from '../quota/state.js';
 import {
+  COMPUTE_LOCALITIES,
   LANE_DECISIONS,
+  LOCAL_EXECUTION_MODES,
+  LOCAL_EXECUTION_MODE_REASONS,
+  LOCAL_EXECUTION_SHAPES,
   SCHEDULER_MODES,
   SCHEDULING_REASON_CODES,
 } from './vocabulary.js';
@@ -69,6 +73,38 @@ export const schedulingDecisionSchema = z
       })
       .passthrough()
       .nullable(),
+    /**
+     * vNext.4 LOCAL execution-mode attribution. Null for every decision that
+     * did not select the LOCAL lane, and absent in records written before
+     * vNext.4 (additive by construction).
+     *
+     * Every field is ORTHOGONAL on purpose: the lane above says LOCAL, this
+     * says how the lane was spent, which runner ran it, which model it used,
+     * and how that runner's compute locality was verified. Nothing here is
+     * ever encoded as a compound value like "LOCAL_DSH" — that would make
+     * "was this local?" and "did this use a harness?" unanswerable
+     * separately, which is exactly the confusion this phase removes.
+     */
+    localExecution: z
+      .object({
+        mode: z.enum(LOCAL_EXECUTION_MODES),
+        reasonCode: z.enum(LOCAL_EXECUTION_MODE_REASONS),
+        shape: z.enum(LOCAL_EXECUTION_SHAPES),
+        /** Runner identity for the mode (e.g. "local-llamacpp", "deepseek-harness"). */
+        runner: shortText.nullable().default(null),
+        /** Model identity when known; null when the provider does not say. */
+        model: shortText.nullable().default(null),
+        /** Verified compute locality of the selected runner. */
+        computeLocality: z.enum(COMPUTE_LOCALITIES).default('UNKNOWN'),
+        /** Grounds for the locality verdict (bounded, recorded verbatim). */
+        localityEvidence: z.string().max(500).nullable().default(null),
+        /** Status of the LOCAL harness binding when the decision was made. */
+        harnessBindingStatus: shortText.nullable().default(null),
+        detail: z.string().max(1_000).default(''),
+      })
+      .passthrough()
+      .nullable()
+      .default(null),
     /** For DEFER: when capacity is expected to return, when known. */
     deferUntil: shortText.nullable().default(null),
     detail: z.string().max(2_000),
