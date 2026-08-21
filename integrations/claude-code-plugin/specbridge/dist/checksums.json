@@ -3,16 +3,16 @@
   "version": "1.1.0",
   "files": {
     "THIRD_PARTY_LICENSES.txt": {
-      "sha256": "c76d5d842432eac81300734011486b23740b4588d571cb813ec3113a09873289",
-      "bytes": 153474
+      "sha256": "ae2cfe54610f98efd08aa4c916229d20dccb5a6c22b7aea5b8c3ed0e3272324b",
+      "bytes": 155994
     },
     "cli.cjs": {
-      "sha256": "72baeee7a711388de0b37337597ecb0b7002cebd935e5c429d4897e855ff94c0",
-      "bytes": 3906142
+      "sha256": "e7cea68b609820cab237995cfa058198c787ce270c78af98836c305e251128b3",
+      "bytes": 3984481
     },
     "mcp-server.cjs": {
-      "sha256": "b3779e564f35403d44b0a83b4b20736d19dc22f9cc14300bb947cec378263118",
-      "bytes": 2793558
+      "sha256": "2f682ee7b473b2501c15f78be93e43dc98bfb80ae8c70260a2c0e773c49f6533",
+      "bytes": 2871972
     }
   }
 }

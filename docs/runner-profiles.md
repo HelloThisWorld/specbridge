@@ -40,13 +40,15 @@ implementation. Several profiles can share an implementation:
 
 `claude-code` (enabled), `codex-default` (disabled), `gemini-default`
 (disabled, v0.6.1), `ollama-local` (disabled), `openai-compatible-local`
-(disabled, v0.6.1), `antigravity` (disabled, experimental, v0.6.1), and
+(disabled, v0.6.1), `antigravity` (disabled, experimental, v0.6.1),
+`deepseek-harness` (disabled, preview, vNext.3), and
 `mock` (enabled) always exist — configuration entries override them.
 New-provider profiles are DISABLED until you enable them explicitly;
 nothing is ever silently enabled or selected, and migration never enables
 a provider profile. See [gemini-cli-runner.md](gemini-cli-runner.md),
-[openai-compatible-runner.md](openai-compatible-runner.md), and
-[antigravity-cli-runner.md](antigravity-cli-runner.md) for the v0.6.1
+[openai-compatible-runner.md](openai-compatible-runner.md),
+[antigravity-cli-runner.md](antigravity-cli-runner.md), and
+[deepseek-harness-runner.md](deepseek-harness-runner.md) for the newer
 profile fields.
 
 ## Rules

@@ -136,6 +136,7 @@ and no provider claim is ever treated as proof:
 | ollama-local | production | yes | no (by capability) |
 | openai-compatible-local | production | yes | no (by capability) |
 | antigravity | experimental | no | no |
+| deepseek-harness | preview | no | attestation-gated |
 
 SpecBridge includes no provider subscriptions or credentials — you install
 and authenticate Claude Code, the Codex CLI, the Gemini CLI, Ollama, or

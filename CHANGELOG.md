@@ -1,5 +1,94 @@
 # Changelog
 
+## 1.6.0 (unreleased) — vNext.3 DeepSeek Harness Integration
+
+DeepSeek Harness (DSH) becomes an isolated, replaceable agent-harness
+backend behind the existing frozen `AgentRunner` contract: SpecBridge stays
+the engineering control plane (Job/Task, contracts, ExecutionAttempts,
+Checkpoints, canonical context, quota, scheduling, evidence, completion
+authority); DSH owns only attempt-local mechanics (agent loop, tools,
+sandbox, agent-local session/context, native compaction). The governing
+invariant, proven end to end by the new validation scenario: **DSH state is
+disposable working state** — killing the runtime, deleting its sessions, or
+replacing its version never destroys a Job, Task, Checkpoint, Decision, or
+Evidence.
+
+Integration, not migration: the profile is PREVIEW, disabled by default,
+never selected automatically, and changes no scheduler behavior — vNext.2
+LOCAL/SUBSCRIPTION routing and the direct LocalExecutor path are
+byte-identical with DSH enabled or not. Automatic `LOCAL → HARNESS` routing
+is explicitly deferred to vNext.4; API-lane gap routing to vNext.5.
+
+### Added
+
+- **`deepseek-harness` runner** (`packages/runners/src/deepseek-harness/`)
+  — task execution and (attested, verified) session resume through the
+  official `@deepseek-ai/dsh-sdk-client`, exact-pinned at `0.1.1-rc.1`
+  (developer preview) and isolated inside `@specbridge/runners`. One narrow
+  `DshSdkAdapter` owns every SDK call — launch, `initialize` handshake
+  (wire-stable `deepseek-harness-sdk-runtime` identity verified, runtime
+  version recorded), receipt-to-idle run collection, bounded teardown —
+  so a breaking SDK change lands in one file and no DSH/Cordis type leaks
+  into core domain packages. The runtime runs out-of-process, launched
+  from an explicit argv command spec with an allowlist-REPLACED child
+  environment (never inherited credentials).
+- **Fail-closed safety attestations** — the public DSH SDK exposes no
+  sandbox/tool-restriction configuration (the runtime's own `cordis.yml`
+  owns its tools), so task execution is unavailable
+  (`sandbox_unavailable`, pre-spawn) until the operator attests
+  `workspaceBoundary: "runtime-profile"`; authoring is refused outright
+  (no enforceable read-only boundary); the adapter is `preview` and can
+  never be confirmed production by conformance. SpecBridge protected-path
+  checks and evidence evaluation still verify every run independently.
+- **Resume with a continuity guard** — `sessionPersistence:
+  "runtime-managed"` enables the fast path, and every resume is verified
+  by session-log `seq` continuity: a runtime that silently recreated the
+  session empty (seq 0) is stopped before any agentic work and normalized
+  as `session_unavailable`, falling back to the canonical path (SpecBridge
+  Checkpoint + repository state + ContextLifecycle reconstruction → fresh
+  session). A lost DSH session never loses a Task.
+- **Bounded cancellation/timeout/crash semantics** — the DSH wire has no
+  mid-turn cancel, so aborts and deadlines close the runtime through the
+  SDK's shutdown → EOF → SIGTERM → SIGKILL ladder (idempotent, no orphan
+  processes); crashes classify as worker failures that preserve the
+  attempt, checkpoint, and Job.
+- **Event normalization + strict reasoning redaction** — safe lifecycle
+  notifications map into `NormalizedRunnerEvent` (plus the additive
+  `compaction.occurred` type for observed native compaction — working
+  memory only, never canonical); reasoning blocks/deltas are never
+  persisted anywhere (occurrence metadata only; retained raw notification
+  logs are deep-redacted and `request/header` prompts elided). Usage is
+  provider-reported per `assistant/message` accounting; cost is never
+  computed.
+- **Deterministic fake DSH runtime**
+  (`tests/fixtures/fake-dsh/fake-dsh.mjs`) — speaks the real stdio
+  JSON-RPC protocol to the REAL pinned SDK client in CI: success,
+  false-claim, malformed/prose output, reasoning, compaction, subagents,
+  RPC errors, hang, crash, EOF-refusing teardown, and cross-process
+  session persistence for resume/lost-session scenarios.
+- **vNext.3 validation scenario**
+  (`tests/orchestration/dsh-validation.test.ts`) — workspace → explicit
+  DSH profile → Attempt/Checkpoint/ContextPackage → real subprocess run →
+  independent evidence → native compaction with durable context
+  byte-identical → mid-attempt crash → restart/reconcile → lost session →
+  checkpoint reconstruction → fresh session → verified completion →
+  delete ALL DSH state → everything canonical survives → disabled profile
+  changes nothing. Plus runner-level (`tests/runners/deepseek-harness.
+  test.ts`) and evidence-boundary/conformance suites
+  (`tests/execution/deepseek-harness-execution.test.ts`).
+
+### Changed
+
+- **Additive public contracts** (deliberate, snapshot-regenerated): runner
+  kind `deepseek-harness`; normalized error code `session_unavailable`
+  (non-retryable); normalized event type `compaction.occurred`;
+  `deepseekHarnessProfileSchema` in the profile union with a disabled
+  built-in profile (existing workspaces load unchanged, no migration).
+- **Execution-layer conformance** now selects the profile under test
+  explicitly (`runnerName`), so preview adapters — explicit-selection-only
+  by design — are exercised exactly like `runner conformance <profile>`;
+  production adapters are unaffected.
+
 ## 1.5.0 (unreleased) — vNext.2 Free & Prepaid Optimizer
 
 SpecBridge's job runtime becomes an intelligent scheduler over two compute
