@@ -4,6 +4,12 @@ import {
   answerClarification,
   buildQuotaForecast,
   cancelJob,
+  decideApiSpendApproval,
+  listApiSpendApprovals,
+  readApiBudgetState,
+  readApiSpendApproval,
+  resolveApiHarnessBinding,
+  summarizeApiBudget,
   computeDynamicReserve,
   classifyLocalExecutionShape,
   classifyLocalSuitability,
@@ -817,6 +823,39 @@ export function registerOrchestrateJobCommands(orchestrate: Command, runtime: Cl
       });
       const localRuntime = summarizeLocalRuntime(ledger);
 
+      // vNext.5: the paid continuity bridge, from the perspective a user
+      // actually needs — "is this able to spend my money, has it, and if a
+      // task is waiting instead of bridging, why?".
+      const apiBinding = resolveApiHarnessBinding(context.config);
+      const apiPolicy = policy.api;
+      const budgetState = readApiBudgetState(context.workspace, jobId);
+      const apiBudget = summarizeApiBudget(budgetState, apiPolicy.budget);
+      const approvals = listApiSpendApprovals(context.workspace, jobId);
+      const pendingApprovals = approvals.filter((entry) => entry.status === 'REQUESTED');
+      const apiAttempts = ledger.filter((entry) => entry.lane === 'API');
+      // The most recent gap-bridge conclusion per ready task: this is the
+      // answer to "why is this task waiting instead of using the API?".
+      const apiWaitReasons = readyNodes.flatMap((node) => {
+        const latest = [...decisions]
+          .reverse()
+          .find((entry) => entry.nodeId === node.nodeId && entry.apiBridge !== null);
+        return latest?.apiBridge == null
+          ? []
+          : [
+              {
+                nodeId: node.nodeId,
+                taskId: node.parentTaskId,
+                decision: latest.apiBridge.decision,
+                reasonCode: latest.reasonCode,
+                gapReason: latest.apiBridge.gapReason,
+                estimatedGapDurationMs: latest.apiBridge.estimatedGapDurationMs,
+                delaySensitivity: latest.apiBridge.delaySensitivity,
+                estimatedCostUsd: latest.apiBridge.estimatedCostUsd,
+                detail: latest.apiBridge.detail,
+              },
+            ];
+      });
+
       if (options.json === true) {
         jsonOut(runtime, 'orchestrate-scheduler', {
           schedulerEnabled: policy.enabled,
@@ -847,6 +886,51 @@ export function registerOrchestrateJobCommands(orchestrate: Command, runtime: Cl
             },
             readyTaskModes: modePreview,
             observations: localRuntime,
+          },
+          api: {
+            enabled: apiBinding.available && apiPolicy.spendMode !== 'DISABLED',
+            spendMode: apiPolicy.spendMode,
+            pricingConfigured: apiPolicy.pricing !== null,
+            pricingSource: apiPolicy.pricing?.source ?? null,
+            binding: {
+              status: apiBinding.status,
+              available: apiBinding.available,
+              profile: apiBinding.profileName,
+              runner: apiBinding.runner,
+              provider: apiBinding.provider,
+              model: apiBinding.model,
+              computeLocality: apiBinding.locality,
+              localityEvidence: apiBinding.localityEvidence,
+              localityOverridden: apiBinding.localityOverridden,
+              credentialSources: apiBinding.credentialSources,
+              problems: apiBinding.problems,
+            },
+            budget: {
+              ...apiBudget,
+              maxCostPerJobUsd: apiPolicy.budget.maxCostPerJobUsd,
+              maxCostPerTaskUsd: apiPolicy.budget.maxCostPerTaskUsd,
+              maxCostPerAttemptUsd: apiPolicy.budget.maxCostPerAttemptUsd,
+              reservations: budgetState.reservations,
+            },
+            attempts: apiAttempts.map((entry) => ({
+              attemptId: entry.attemptId,
+              taskId: entry.taskId,
+              status: entry.status,
+              provider: entry.provider,
+              model: entry.model,
+              gapReason: entry.gapReason,
+              estimatedCostUsd: entry.metrics.estimatedCostUsd ?? null,
+              reconciledCostUsd: entry.metrics.reconciledCostUsd ?? null,
+              costSource: entry.costSource,
+            })),
+            approvals: approvals.map((entry) => ({
+              approvalId: entry.approvalId,
+              taskId: entry.taskId,
+              status: entry.status,
+              maxAuthorizedCostUsd: entry.maxAuthorizedCostUsd,
+              expiresAt: entry.expiresAt,
+            })),
+            waitReasons: apiWaitReasons,
           },
           decisions,
         });
@@ -903,6 +987,71 @@ export function registerOrchestrateJobCommands(orchestrate: Command, runtime: Cl
         );
       }
 
+      runtime.out(reportTitle('API gap bridge (vNext.5)'));
+      const apiEnabled = apiBinding.available && apiPolicy.spendMode !== 'DISABLED';
+      runtime.out(
+        (apiEnabled ? okLine : dim)(
+          `  spend mode ${apiPolicy.spendMode}; binding ${apiBinding.status}; ` +
+            `${apiEnabled ? 'paid bridging is available' : 'no paid execution is possible'}`,
+        ),
+      );
+      runtime.out(
+        infoLine(
+          `  profile: ${apiBinding.profileName ?? '(none)'} [${apiBinding.runner ?? 'n/a'}] ` +
+            `provider ${apiBinding.provider ?? 'unknown'} model ${apiBinding.model ?? 'unknown'} — ` +
+            `compute ${apiBinding.locality}`,
+        ),
+      );
+      runtime.out(dim(`    ${apiBinding.localityEvidence}`));
+      for (const problem of apiBinding.problems) runtime.out(warnLine(`    ${problem}`));
+      if (apiBinding.credentialSources.length > 0) {
+        runtime.out(
+          dim(`    credential source names (values never read): ${apiBinding.credentialSources.join(', ')}`),
+        );
+      }
+      runtime.out(
+        infoLine(
+          `  pricing: ${apiPolicy.pricing === null ? 'NOT CONFIGURED — automatic spend is refused' : apiPolicy.pricing.source}`,
+        ),
+      );
+      runtime.out(
+        infoLine(
+          `  budget: reserved $${apiBudget.reservedUsd.toFixed(4)}, committed $${apiBudget.committedUsd.toFixed(4)}` +
+            `${apiBudget.unknownUsd > 0 ? `, UNKNOWN $${apiBudget.unknownUsd.toFixed(4)}` : ''}` +
+            `, remaining ${apiBudget.remainingUsd === null ? 'unbounded' : `$${apiBudget.remainingUsd.toFixed(4)}`}` +
+            ` over ${apiBudget.attempts} attempt(s)`,
+        ),
+      );
+      if (apiBudget.hasUnknownCost) {
+        runtime.out(
+          warnLine(
+            '    at least one paid attempt could not report its cost; committed spend is a floor, not an exact figure.',
+          ),
+        );
+      }
+      for (const approval of pendingApprovals) {
+        runtime.out(
+          warnLine(
+            `  approval pending: ${approval.approvalId} — task ${approval.taskId}, up to ` +
+              `$${approval.maxAuthorizedCostUsd.toFixed(4)}, expires ${approval.expiresAt}`,
+          ),
+        );
+        runtime.out(dim(`    approve: specbridge orchestrate api-approve ${jobId} ${approval.approvalId}`));
+      }
+      if (apiWaitReasons.length > 0) {
+        runtime.out(infoLine('  why ready tasks are not bridging:'));
+        for (const entry of apiWaitReasons) {
+          runtime.out(
+            dim(
+              `    task ${entry.taskId}: ${entry.decision} [${entry.reasonCode}] — gap ${entry.gapReason}` +
+                `${entry.estimatedGapDurationMs !== null ? ` (~${Math.round(entry.estimatedGapDurationMs / 60_000)}m)` : ' (unknown)'}` +
+                `, delay ${entry.delaySensitivity}` +
+                `${entry.estimatedCostUsd !== null ? `, est $${entry.estimatedCostUsd.toFixed(4)}` : ', cost unknown'}`,
+            ),
+          );
+        }
+      }
+
       runtime.out(reportTitle('Ready tasks'));
       if (readyNodes.length === 0) runtime.out(dim('  (none)'));
       for (const node of readyNodes) {
@@ -924,6 +1073,130 @@ export function registerOrchestrateJobCommands(orchestrate: Command, runtime: Cl
         runtime.out(dim(`    ${decision.detail.slice(0, 140)}`));
       }
     });
+
+  // vNext.5 spend authorization. Deciding is a HUMAN action and lives only
+  // here: no MCP tool, no agent-reachable API, and no model output can
+  // approve spending. An agent can cause a request to exist by doing work
+  // that stalls; it can never cause an authorization to exist.
+  orchestrate
+    .command('api-approve')
+    .description('Approve one bounded API spend request for a task (human decision; CLI only)')
+    .argument('<jobId>')
+    .argument('<approvalId>')
+    .option('--max-cost <usd>', 'authorize LESS than requested (never more)')
+    .option('--note <text>', 'note recorded with the decision')
+    .option('--by <name>', 'who is approving (recorded for audit)')
+    .option('--json', 'output a machine-readable JSON report')
+    .action(
+      (
+        jobId: string,
+        approvalId: string,
+        options: { maxCost?: string; note?: string; by?: string; json?: boolean },
+      ) => {
+        const context = loadExecutionContext(runtime);
+        const existing = readApiSpendApproval(context.workspace, jobId, approvalId);
+        if (existing === undefined) {
+          throw new SpecBridgeError(
+            'INVALID_ARGUMENT',
+            `No API spend approval "${approvalId}" exists for job ${jobId}.`,
+          );
+        }
+        let maxAuthorizedCostUsd: number | undefined;
+        if (options.maxCost !== undefined) {
+          const parsed = Number(options.maxCost);
+          if (!Number.isFinite(parsed) || parsed < 0) {
+            throw new SpecBridgeError('INVALID_ARGUMENT', '--max-cost must be a non-negative number.');
+          }
+          if (parsed > existing.maxAuthorizedCostUsd) {
+            // Raising the ceiling silently would turn "approve this" into
+            // "approve more than was explained to me".
+            throw new SpecBridgeError(
+              'INVALID_ARGUMENT',
+              `--max-cost ${parsed} exceeds the requested maximum ${existing.maxAuthorizedCostUsd}. ` +
+                'An approval may authorize less than was requested, never more.',
+            );
+          }
+          maxAuthorizedCostUsd = parsed;
+        }
+        const decided = decideApiSpendApproval({
+          workspace: context.workspace,
+          jobId,
+          approvalId,
+          decision: 'APPROVED',
+          decidedBy: options.by ?? 'cli-user',
+          ...(maxAuthorizedCostUsd !== undefined ? { maxAuthorizedCostUsd } : {}),
+          ...(options.note !== undefined ? { note: options.note } : {}),
+          now: new Date(),
+        });
+        recordJobEvent(
+          { workspace: context.workspace, config: context.config },
+          jobId,
+          'api_approval_granted',
+          {
+            approvalId: decided.approvalId,
+            nodeId: decided.nodeId,
+            taskId: decided.taskId,
+            maxAuthorizedCostUsd: decided.maxAuthorizedCostUsd,
+            decidedBy: decided.decidedBy ?? 'cli-user',
+            expiresAt: decided.expiresAt,
+          },
+        );
+        if (options.json === true) {
+          jsonOut(runtime, 'orchestrate-api-approve', { approval: decided });
+          return;
+        }
+        runtime.out(
+          okLine(
+            `Approved up to $${decided.maxAuthorizedCostUsd.toFixed(4)} of API spend for task ` +
+              `${decided.taskId} on profile "${decided.profileName}" (expires ${decided.expiresAt}).`,
+          ),
+        );
+        runtime.out(
+          dim(
+            '  The authorization covers this exact task version only; materially changed work needs a fresh one.',
+          ),
+        );
+      },
+    );
+
+  orchestrate
+    .command('api-deny')
+    .description('Deny one API spend request (human decision; CLI only)')
+    .argument('<jobId>')
+    .argument('<approvalId>')
+    .option('--note <text>', 'note recorded with the decision')
+    .option('--by <name>', 'who is denying (recorded for audit)')
+    .option('--json', 'output a machine-readable JSON report')
+    .action(
+      (jobId: string, approvalId: string, options: { note?: string; by?: string; json?: boolean }) => {
+        const context = loadExecutionContext(runtime);
+        const decided = decideApiSpendApproval({
+          workspace: context.workspace,
+          jobId,
+          approvalId,
+          decision: 'DENIED',
+          decidedBy: options.by ?? 'cli-user',
+          ...(options.note !== undefined ? { note: options.note } : {}),
+          now: new Date(),
+        });
+        recordJobEvent(
+          { workspace: context.workspace, config: context.config },
+          jobId,
+          'api_approval_denied',
+          {
+            approvalId: decided.approvalId,
+            nodeId: decided.nodeId,
+            taskId: decided.taskId,
+            decidedBy: decided.decidedBy ?? 'cli-user',
+          },
+        );
+        if (options.json === true) {
+          jsonOut(runtime, 'orchestrate-api-deny', { approval: decided });
+          return;
+        }
+        runtime.out(okLine(`Denied API spend for task ${decided.taskId}. No paid execution will run.`));
+      },
+    );
 
   orchestrate
     .command('local-benchmark')

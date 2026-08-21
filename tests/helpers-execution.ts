@@ -213,6 +213,13 @@ export interface ExecutionFixtureV2Options {
   execution?: Record<string, unknown>;
   approve?: boolean;
   extraTopLevel?: Record<string, unknown>;
+  /**
+   * Additional runner profiles MERGED into the fixture's profiles (unlike
+   * `extraTopLevel`, which would replace the whole map). vNext.5 needs this
+   * to configure a second DSH profile attested REMOTE alongside the
+   * verified-local one.
+   */
+  extraRunnerProfiles?: Record<string, unknown>;
 }
 
 export function writeFixtureConfigV2(root: string, options: ExecutionFixtureV2Options): void {
@@ -290,6 +297,7 @@ export function writeFixtureConfigV2(root: string, options: ExecutionFixtureV2Op
         : {}),
     };
   }
+  Object.assign(profiles, options.extraRunnerProfiles ?? {});
   const config = {
     schemaVersion: '2.0.0',
     defaultRunner: options.defaultRunner ?? 'mock',

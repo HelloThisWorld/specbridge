@@ -413,6 +413,8 @@ never something the scheduler does behind you.
   this phase sits underneath
 - [Survival runtime (vNext.1)](survival-runtime.md) — attempts, checkpoints,
   and why sessions are disposable
+- [API gap bridge (vNext.5)](api-gap-bridge.md) — the mirror-image binding on
+  the paid lane, and why a verified-LOCAL profile can never serve it
 - [DeepSeek Harness runner](../deepseek-harness-runner.md) — the vNext.3
   adapter, its attestations, and its upstream limitations
 - [Threat model](../security/threat-model.md) — the local agent authority

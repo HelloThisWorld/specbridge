@@ -15,11 +15,15 @@ attempt budget, and the evidence pipeline are identical, and the lane decision
 below is made *before* (and independently of) the mode. See
 [Local agentic runtime](local-agentic-runtime.md).
 
-A future phase adds an `API` lane (pay-as-you-go continuity when the
-subscription is unavailable). It is deliberately **not** part of vNext.2:
-when the subscription lane is exhausted and local execution cannot handle a
-task, the task remains durably pending with a recorded scheduling reason —
-never silently lost, never routed to an unreviewed spending path.
+vNext.5 adds an `API` lane (pay-as-you-go continuity when the subscription is
+unavailable) — see [API gap bridge](api-gap-bridge.md). It is deliberately
+**not** a third equal-priority lane, and the vNext.2 behavior described here
+is unchanged by it: `decideLane` still knows only `LOCAL`, `SUBSCRIPTION`, and
+`DEFER`. When the subscription lane is exhausted and local execution cannot
+handle a task, the task still remains durably pending with a recorded
+scheduling reason, and paid execution is considered only afterwards, only for
+a material gap, and only when spending has been explicitly authorized and
+budgeted. With no API configuration nothing about this document changes.
 
 The governing policy:
 
@@ -331,6 +335,7 @@ quota thresholds are operational tuning):
 | `maxLocalAttempts` | `2` | Bounded local execution attempts per task — **shared across both vNext.4 execution modes**, never per mode |
 | `allowLocalExecution` | `true` | Gate for the source-mutating local path |
 | `localExecution.*` | see [local agentic runtime](local-agentic-runtime.md) | vNext.4 execution-mode strategy, LOCAL harness binding, harness wall-time bound |
+| `api.*` | see [API gap bridge](api-gap-bridge.md) | vNext.5 paid continuity lane: spend mode (`DISABLED` by default), API harness binding, operator pricing, budgets, gap thresholds |
 | `harvestWindowMs` / `harvestMinRemainingRatio` | `30m` / `0.25` | HARVEST entry |
 | `conserveRemainingRatio` | `0.2` | CONSERVE entry |
 | `weeklyPressureRatio` | `0.1` | Weekly pressure (suppresses HARVEST) |
@@ -343,6 +348,13 @@ quota thresholds are operational tuning):
 | `telemetrySource` | `manual` | Telemetry adapter |
 | `reserve.*` | see above | Dynamic reserve shape |
 | `estimator.*` | see above | Heuristic wall/burn defaults, weekly factor, history floor |
+
+## See also
+
+- [API gap bridge (vNext.5)](api-gap-bridge.md) — what happens when the
+  subscription lane is unavailable for a materially long time
+- [Local agentic runtime (vNext.4)](local-agentic-runtime.md) — how the LOCAL
+  lane spends its compute once this document has chosen it
 
 ## Survival guarantees, unchanged
 

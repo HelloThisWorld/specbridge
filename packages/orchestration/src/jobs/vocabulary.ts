@@ -397,5 +397,23 @@ export const JOB_EVENT_TYPES = [
   'local_direct_to_harness_escalated',
   'local_harness_to_subscription_escalated',
   'local_runtime_evaluation_recorded',
+  // API gap bridge events (vNext.5; additive, never reordered). These are
+  // deliberately SEMANTIC — the money-shaped moments of a job's timeline —
+  // and never duplicate the low-level runner events the harness already
+  // emits for its own turns and tool calls.
+  'api_gap_detected',
+  'api_gap_short_deferred',
+  'api_approval_required',
+  'api_approval_granted',
+  'api_approval_denied',
+  'api_budget_reserved',
+  'api_budget_exceeded',
+  'api_budget_reconciled',
+  'api_budget_exhausted',
+  'api_task_dispatched',
+  'api_attempt_failed',
+  'api_cost_unknown',
+  'api_max_returned',
+  'api_next_task_returned_to_subscription',
 ] as const;
 export type JobEventType = (typeof JOB_EVENT_TYPES)[number];

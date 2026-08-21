@@ -87,6 +87,16 @@ export const attemptMetricsSchema = z
     commandRuns: z.number().int().min(0).nullable().default(null),
     /** Provider-native context compactions observed during the attempt. */
     compactions: z.number().int().min(0).nullable().default(null),
+    // vNext.5 API economics (additive). Estimated and observed cost are
+    // separate fields on purpose: an estimate is never overwritten by an
+    // invented "actual", and an attempt whose real usage is unknowable
+    // keeps a null reconciled cost rather than a fabricated zero.
+    /** Safe pre-dispatch cost estimate, in USD. Null outside the API lane. */
+    estimatedCostUsd: z.number().min(0).nullable().default(null),
+    /** Budget held for this attempt at dispatch time, in USD. */
+    reservedCostUsd: z.number().min(0).nullable().default(null),
+    /** Observed/computed cost after the attempt. Null means UNKNOWN, not free. */
+    reconciledCostUsd: z.number().min(0).nullable().default(null),
   })
   .passthrough();
 export type AttemptMetrics = z.infer<typeof attemptMetricsSchema>;
@@ -163,6 +173,29 @@ export const taskAttemptSchema = z
     executionShape: shortText.optional(),
     /** Verified compute locality of the runner that executed this attempt. */
     computeLocality: shortText.optional(),
+    // vNext.5 API-lane attribution (additive; absent on every LOCAL and
+    // SUBSCRIPTION attempt and on every pre-vNext.5 record). Each field is
+    // ORTHOGONAL: `lane` says whether this was paid, `provider`/`model` say
+    // which intelligence ran it, `executionMode`/`computeLocality` say how
+    // and where. Nothing is ever collapsed into a compound value.
+    /** The spend authorization mode in force when the attempt was dispatched. */
+    apiSpendMode: shortText.optional(),
+    /** Why subscription capacity was unavailable (the gap's cause). */
+    gapReason: shortText.optional(),
+    /** When subscription capacity was expected back, when known. */
+    subscriptionAvailableAt: shortText.optional(),
+    /** Expected gap duration in milliseconds, when known. */
+    estimatedGapDurationMs: z.number().int().min(0).nullable().default(null).optional(),
+    /** How the recorded cost was determined (see API_COST_SOURCES). */
+    costSource: shortText.optional(),
+    /** Operator pricing profile the estimate used, for attribution. */
+    pricingProfile: shortText.optional(),
+    /** The budget reservation funding this attempt. */
+    apiBudgetReservationId: shortText.optional(),
+    /** The bounded human authorization this attempt consumed, when one applied. */
+    apiApprovalId: shortText.optional(),
+    /** Deterministic delay-sensitivity level that justified paid bridging. */
+    delaySensitivity: shortText.optional(),
     metrics: attemptMetricsSchema.default({}),
   })
   .passthrough();
@@ -333,6 +366,19 @@ export const executionLedgerEntrySchema = z
     executionMode: shortText.nullable().default(null),
     executionShape: shortText.nullable().default(null),
     computeLocality: shortText.nullable().default(null),
+    // vNext.5 API economics (additive; null on every unpaid attempt). These
+    // are what makes later analysis possible without a second database:
+    // cost per successful task, cost by task type, bridge success rate, and
+    // money spent versus subscription wait avoided all derive from here.
+    apiSpendMode: shortText.nullable().default(null),
+    gapReason: shortText.nullable().default(null),
+    subscriptionAvailableAt: shortText.nullable().default(null),
+    estimatedGapDurationMs: z.number().int().min(0).nullable().default(null),
+    costSource: shortText.nullable().default(null),
+    pricingProfile: shortText.nullable().default(null),
+    apiBudgetReservationId: shortText.nullable().default(null),
+    apiApprovalId: shortText.nullable().default(null),
+    delaySensitivity: shortText.nullable().default(null),
     metrics: attemptMetricsSchema,
   })
   .passthrough();

@@ -34297,6 +34297,42 @@ var localExecutionPolicySchema = external_exports.object({
   maxHarnessWallTimeMs: external_exports.number().int().min(3e4).max(864e5).default(18e5),
   allowUnverifiedLocality: external_exports.boolean().default(false)
 }).passthrough();
+var API_SPEND_MODES = ["DISABLED", "MANUAL", "AUTO_BOUNDED"];
+var apiPricingProfileSchema = external_exports.object({
+  inputCostPerMillion: external_exports.number().min(0).max(1e6),
+  outputCostPerMillion: external_exports.number().min(0).max(1e6),
+  cachedInputCostPerMillion: external_exports.number().min(0).max(1e6).nullable().default(null),
+  currency: external_exports.literal("USD").default("USD"),
+  source: external_exports.string().min(1).max(200).default("operator-configured")
+}).passthrough();
+var apiBudgetPolicySchema = external_exports.object({
+  maxCostPerJobUsd: external_exports.number().min(0).max(1e6).nullable().default(null),
+  maxCostPerTaskUsd: external_exports.number().min(0).max(1e6).nullable().default(null),
+  maxCostPerAttemptUsd: external_exports.number().min(0).max(1e6).nullable().default(null),
+  maxApiAttemptsPerTask: external_exports.number().int().min(1).max(10).default(2),
+  maxApiAttemptsPerJob: external_exports.number().int().min(1).max(1e3).default(20)
+}).passthrough();
+var apiGapPolicySchema = external_exports.object({
+  shortGapDeferMs: external_exports.number().int().min(0).max(864e5).default(20 * 6e4),
+  minGapForAutoBoundedMs: external_exports.number().int().min(0).max(6048e5).default(30 * 6e4),
+  minDelaySensitivity: external_exports.enum(["LOW", "MEDIUM", "HIGH"]).default("HIGH"),
+  materialGapMs: external_exports.number().int().min(6e4).max(6048e5).default(60 * 6e4),
+  costSafetyMultiplier: external_exports.number().min(1).max(10).default(1.5),
+  wastefulStartRatio: external_exports.number().min(0).max(1).default(0.25),
+  unknownResetBehavior: external_exports.enum(["MANUAL", "DEFER"]).default("MANUAL"),
+  strongTasksOnly: external_exports.boolean().default(true),
+  preferReadyLocalBacklog: external_exports.boolean().default(true),
+  approvalTtlMs: external_exports.number().int().min(6e4).max(6048e5).default(24 * 36e5)
+}).passthrough();
+var apiExecutionPolicySchema = external_exports.object({
+  spendMode: external_exports.enum(API_SPEND_MODES).default("DISABLED"),
+  harnessProfile: external_exports.string().min(1).max(64).nullable().default(null),
+  maxApiWallTimeMs: external_exports.number().int().min(3e4).max(864e5).default(18e5),
+  pricing: apiPricingProfileSchema.nullable().default(null),
+  budget: apiBudgetPolicySchema.default({}),
+  gap: apiGapPolicySchema.default({}),
+  allowUnverifiedLocality: external_exports.boolean().default(false)
+}).passthrough();
 var jobSchedulerPolicySchema = external_exports.object({
   enabled: external_exports.boolean().default(true),
   maxLocalAttempts: external_exports.number().int().min(1).max(5).default(2),
@@ -34316,7 +34352,8 @@ var jobSchedulerPolicySchema = external_exports.object({
   telemetrySource: external_exports.enum(["manual", "none"]).default("manual"),
   reserve: dynamicReservePolicySchema.default({}),
   estimator: workloadEstimatorPolicySchema.default({}),
-  localExecution: localExecutionPolicySchema.default({})
+  localExecution: localExecutionPolicySchema.default({}),
+  api: apiExecutionPolicySchema.default({})
 }).passthrough();
 var jobPolicySchema = external_exports.object({
   /** When false, job operations refuse to start and report why. */

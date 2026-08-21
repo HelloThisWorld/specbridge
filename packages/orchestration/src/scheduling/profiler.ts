@@ -50,6 +50,19 @@ export interface WorkloadEstimate {
   expectedAgentTurns: number | null;
   expectedToolCalls: number | null;
   expectedTestLoops: number | null;
+  /**
+   * vNext.5: expected provider token usage for ONE attempt. The API lane's
+   * cost estimate is built from these — which is why they live here rather
+   * than in a separate API estimator: token usage is a property of the
+   * WORKLOAD, and the same task costs roughly the same tokens whichever
+   * metered provider runs it.
+   *
+   * `null` means "not estimable", and null cost is never treated as zero.
+   */
+  expectedInputTokens: number | null;
+  expectedOutputTokens: number | null;
+  /** Where the token figures came from, for honest cost attribution. */
+  tokenBasis: EstimateBasis | 'unknown';
   /** Probability (0..1) the first attempt fails and a retry is needed. */
   retryProbability: number;
   confidence: EstimateConfidence;
@@ -70,6 +83,9 @@ export interface EstimateWorkloadInput {
     | {
         expectedWallTimeMs?: number | undefined;
         expectedFiveHourBurnRatio?: number | undefined;
+        /** vNext.5: explicit token expectations (tests, better information). */
+        expectedInputTokens?: number | null | undefined;
+        expectedOutputTokens?: number | null | undefined;
       }
     | undefined;
 }
@@ -93,6 +109,32 @@ function heuristicBurnRatio(complexity: ComplexityClass, policy: WorkloadEstimat
       return policy.mediumQuotaBurnRatio;
     case 'HIGH':
       return policy.highQuotaBurnRatio;
+  }
+}
+
+/**
+ * Coarse per-attempt token heuristics by complexity (vNext.5).
+ *
+ * Deliberately generous rather than optimistic: these numbers feed a
+ * SPENDING decision, and an underestimate is the failure mode that costs
+ * real money. An agentic attempt re-reads files across many turns, so
+ * input dominates output by roughly an order of magnitude.
+ *
+ * They are heuristics and are labeled as such on every estimate; measured
+ * ledger history replaces them as soon as enough comparable observations
+ * exist.
+ */
+function heuristicTokenUsage(complexity: ComplexityClass): {
+  inputTokens: number;
+  outputTokens: number;
+} {
+  switch (complexity) {
+    case 'LOW':
+      return { inputTokens: 120_000, outputTokens: 12_000 };
+    case 'MEDIUM':
+      return { inputTokens: 400_000, outputTokens: 30_000 };
+    case 'HIGH':
+      return { inputTokens: 900_000, outputTokens: 60_000 };
   }
 }
 
@@ -151,7 +193,16 @@ export function estimateWorkload(input: EstimateWorkloadInput): WorkloadEstimate
             taskComplexity: input.complexity,
             taskCategory: input.taskCategory,
           })
-        : { observations: 0, medianFiveHourBurnRatio: null, medianWallTimeMs: null, medianFiveHourBurnRatioPerMinute: null, successRate: null };
+        : {
+            observations: 0,
+            medianFiveHourBurnRatio: null,
+            medianWallTimeMs: null,
+            medianFiveHourBurnRatioPerMinute: null,
+            medianInputTokens: null,
+            medianOutputTokens: null,
+            tokenObservations: 0,
+            successRate: null,
+          };
     const byComplexity = aggregateBurnObservations(observations, {
       taskComplexity: input.complexity,
     });
@@ -182,6 +233,44 @@ export function estimateWorkload(input: EstimateWorkloadInput): WorkloadEstimate
   // The LOCAL lane consumes no subscription quota at all.
   if (input.localSuitability === 'LOCAL_SAFE') fiveHourBurn = Math.min(fiveHourBurn, 0.02);
 
+  // vNext.5 token usage. History comes from metered/agentic attempts — the
+  // API and LOCAL HARNESS lanes are the ones whose runners actually report
+  // token counts — and only when enough observations exist. The estimate
+  // takes the LARGER of history and heuristic, for the same reason burn
+  // does: a few cheap samples must not talk a spending decision into risk.
+  const heuristicTokens = heuristicTokenUsage(input.complexity);
+  let expectedInputTokens: number | null = heuristicTokens.inputTokens;
+  let expectedOutputTokens: number | null = heuristicTokens.outputTokens;
+  let tokenBasis: EstimateBasis | 'unknown' = 'heuristic';
+  const meteredObservations = (input.observations ?? []).filter(
+    (observation) => observation.lane === 'API' || observation.lane === 'LOCAL',
+  );
+  if (meteredObservations.length > 0) {
+    const tokenAggregate = aggregateBurnObservations(meteredObservations, {
+      taskComplexity: input.complexity,
+    });
+    if (tokenAggregate.tokenObservations >= policy.minHistoricalObservations) {
+      if (tokenAggregate.medianInputTokens !== null) {
+        expectedInputTokens = Math.round(
+          Math.max(tokenAggregate.medianInputTokens, heuristicTokens.inputTokens * 0.5),
+        );
+        tokenBasis = 'historical';
+      }
+      if (tokenAggregate.medianOutputTokens !== null) {
+        expectedOutputTokens = Math.round(
+          Math.max(tokenAggregate.medianOutputTokens, heuristicTokens.outputTokens * 0.5),
+        );
+        tokenBasis = 'historical';
+      }
+    }
+  }
+  if (input.overrides?.expectedInputTokens !== undefined) {
+    expectedInputTokens = input.overrides.expectedInputTokens;
+  }
+  if (input.overrides?.expectedOutputTokens !== undefined) {
+    expectedOutputTokens = input.overrides.expectedOutputTokens;
+  }
+
   return {
     taskId: input.taskId,
     complexity: input.complexity,
@@ -195,6 +284,9 @@ export function estimateWorkload(input: EstimateWorkloadInput): WorkloadEstimate
     expectedAgentTurns: null,
     expectedToolCalls: null,
     expectedTestLoops: null,
+    expectedInputTokens,
+    expectedOutputTokens,
+    tokenBasis,
     retryProbability: heuristicRetryProbability(input.complexity, input.localSuitability),
     confidence,
     basis,

@@ -244,6 +244,9 @@ async function buildSnapshots() {
       // Quota-scheduler families (vNext.2).
       quotaSnapshot: orchestration.QUOTA_SNAPSHOT_SCHEMA_VERSION,
       schedulingDecision: orchestration.SCHEDULING_DECISION_SCHEMA_VERSION,
+      // API gap-bridge families (vNext.5).
+      apiBudget: orchestration.API_BUDGET_SCHEMA_VERSION,
+      apiSpendApproval: orchestration.API_SPEND_APPROVAL_SCHEMA_VERSION,
     },
     'verification-rules.json': {
       idPattern: 'SBV\\d{3}',
@@ -319,6 +322,14 @@ async function buildSnapshots() {
       localExecutionShapes: [...orchestration.LOCAL_EXECUTION_SHAPES].sort(),
       localExecutionModeReasons: [...orchestration.LOCAL_EXECUTION_MODE_REASONS].sort(),
       computeLocalities: [...core.COMPUTE_LOCALITIES].sort(),
+      // API gap-bridge vocabulary (vNext.5; additive within 1.x).
+      apiSpendModes: [...core.API_SPEND_MODES].sort(),
+      subscriptionGapReasons: [...orchestration.SUBSCRIPTION_GAP_REASONS].sort(),
+      gapForecastConfidence: [...orchestration.GAP_FORECAST_CONFIDENCE].sort(),
+      delaySensitivities: [...orchestration.DELAY_SENSITIVITIES].sort(),
+      apiCostSources: [...orchestration.API_COST_SOURCES].sort(),
+      apiBudgetReservationStates: [...orchestration.API_BUDGET_RESERVATION_STATES].sort(),
+      apiApprovalStatuses: [...orchestration.API_APPROVAL_STATUSES].sort(),
     },
     // Context-lifecycle vocabulary (vNext.1). Every value is stable within
     // 1.x: members may be appended, never renamed or removed.

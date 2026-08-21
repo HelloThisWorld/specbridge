@@ -6,13 +6,18 @@ import { assertInsideWorkspace, writeFileAtomic } from '@specbridge/core';
 import { jobDir } from '../jobs/store.js';
 import { quotaForecastSchema } from '../quota/state.js';
 import {
+  API_COST_SOURCES,
+  API_SPEND_MODES,
   COMPUTE_LOCALITIES,
+  DELAY_SENSITIVITIES,
+  GAP_FORECAST_CONFIDENCE,
   LANE_DECISIONS,
   LOCAL_EXECUTION_MODES,
   LOCAL_EXECUTION_MODE_REASONS,
   LOCAL_EXECUTION_SHAPES,
   SCHEDULER_MODES,
   SCHEDULING_REASON_CODES,
+  SUBSCRIPTION_GAP_REASONS,
 } from './vocabulary.js';
 
 /**
@@ -101,6 +106,58 @@ export const schedulingDecisionSchema = z
         /** Status of the LOCAL harness binding when the decision was made. */
         harnessBindingStatus: shortText.nullable().default(null),
         detail: z.string().max(1_000).default(''),
+      })
+      .passthrough()
+      .nullable()
+      .default(null),
+    /**
+     * vNext.5 API gap-bridge attribution. Present ONLY on decisions where
+     * the subscription lane refused for a capacity reason and the gap-bridge
+     * planner was therefore consulted — which includes every decision that
+     * considered paid execution and declined it. Null otherwise, and absent
+     * in records written before vNext.5 (additive by construction).
+     *
+     * Together with the fields above this answers, from ONE record:
+     * why API was (or was not) selected, why Local was not enough, why
+     * Subscription was not used, how long the gap was expected to last,
+     * whether the task was critical, which spend mode applied, what it was
+     * estimated to cost, what budget remained, and which profile would run.
+     */
+    apiBridge: z
+      .object({
+        /** What the planner concluded: API, DEFER, or REQUIRE_APPROVAL. */
+        decision: z.enum(['API', 'DEFER', 'REQUIRE_APPROVAL'] as const),
+        spendMode: z.enum(API_SPEND_MODES),
+        /** Why subscription capacity was unavailable. */
+        gapReason: z.enum(SUBSCRIPTION_GAP_REASONS),
+        /** When capacity is expected back (ISO); null when unknown. */
+        subscriptionAvailableAt: shortText.nullable().default(null),
+        estimatedGapDurationMs: z.number().int().min(0).nullable().default(null),
+        gapConfidence: z.enum(GAP_FORECAST_CONFIDENCE).default('UNKNOWN'),
+        delaySensitivity: z.enum(DELAY_SENSITIVITIES),
+        blockedDependents: z.number().int().min(0).default(0),
+        criticalPath: z.boolean().default(false),
+        readyLocalBacklog: z.number().int().min(0).default(0),
+        /** Mean estimated cost; null means UNKNOWN, never zero. */
+        estimatedCostUsd: z.number().min(0).nullable().default(null),
+        /** The multiplied figure budget admission compared. */
+        safeCostUsd: z.number().min(0).nullable().default(null),
+        currency: z.string().max(8).default('USD'),
+        costSource: z.enum(API_COST_SOURCES).default('UNKNOWN'),
+        pricingSource: shortText.nullable().default(null),
+        /** Remaining job API budget at decision time; null when unbounded. */
+        budgetRemainingUsd: z.number().min(0).nullable().default(null),
+        budgetEncumberedUsd: z.number().min(0).nullable().default(null),
+        /** The API profile that would have run it, and its verified locality. */
+        apiProfile: shortText.nullable().default(null),
+        apiRunner: shortText.nullable().default(null),
+        apiModel: shortText.nullable().default(null),
+        computeLocality: z.enum(COMPUTE_LOCALITIES).default('UNKNOWN'),
+        bindingStatus: shortText.nullable().default(null),
+        /** The bounded authorization consulted, when one existed. */
+        approvalId: shortText.nullable().default(null),
+        approvalStatus: shortText.nullable().default(null),
+        detail: z.string().max(2_000).default(''),
       })
       .passthrough()
       .nullable()

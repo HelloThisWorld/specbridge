@@ -885,6 +885,257 @@ Evidence proves the tests passed, never that the change was wise.
 
 ---
 
+## 12. Paid automatic execution (vNext.5)
+
+vNext.5 lets SpecBridge spend money without a human in the loop. That is a
+materially different kind of authority from "use prepaid capacity" or "use a
+local GPU", and it gets its own threats. The through-line for all of them:
+**every default is the non-spending one, and every unknown fails toward not
+spending.**
+
+### T42 — Accidental API spend
+
+**Threat.** A workspace starts making paid API calls its owner never
+authorized — because a binary was upgraded, a remote profile happened to exist
+in `runnerProfiles`, or a diagnostic command was run.
+
+**Mitigations.** Paid execution requires three INDEPENDENT controls, all
+correct: a profile that verifies as REMOTE compute, an explicit binding of
+that profile to the API lane, and an explicit spend mode of `MANUAL` or
+`AUTO_BOUNDED`. The default spend mode is `DISABLED` and the default binding
+is null, so an upgraded vNext.4 workspace is structurally incapable of
+spending. Installing or enabling a harness profile grants nothing; a remote
+profile sitting in the configuration never becomes a fallback. The gap-bridge
+planner runs only after the LOCAL and SUBSCRIPTION lanes have both refused for
+a subscription-capacity reason, so no diagnostic or routing path reaches it.
+Tests assert that with API unconfigured no runtime process starts, no `api_*`
+event is emitted, and behavior is byte-identical to vNext.4.
+
+**Residual risk.** An operator who configures all three controls has
+authorized spending; SpecBridge then spends within the configured budget.
+
+---
+
+### T43 — Unbounded or runaway paid retries
+
+**Threat.** A failing task retries on the paid lane until the budget — or the
+credit card — is exhausted.
+
+**Mitigations.** Bounded attempts per task and per job are enforced by the
+budget controller independently of cost, so cheap failures cannot loop
+forever either. Every attempt carries an external wall-clock ceiling enforced
+by SpecBridge. Infrastructure failures (crash, transport, launch) are
+classified separately from intelligence failures, so a dead runtime never
+looks like evidence that the task needs another expensive attempt. Paid
+retries flow through the same recovery and escalation governance as every
+other lane; there is no paid retry loop of its own.
+
+**Residual risk.** Within the configured attempt and budget ceilings, repeated
+failures still cost money. Setting `maxCostPerJobUsd` is the control.
+
+---
+
+### T44 — Unknown cost treated as zero
+
+**Threat.** Pricing is unconfigured, or a workload's token usage is not
+estimable, and the scheduler treats "no number" as "free" — spending against a
+budget it cannot compute.
+
+**Mitigations.** `ApiCostEstimate.estimatedCostUsd` is `null`, never `0`, when
+cost is not derivable, and budget admission refuses a null outright with the
+named reason `COST_UNKNOWN`. SpecBridge ships no price table and fetches no
+prices at runtime; the operator supplies them with a `source` string recorded
+on every estimate. Post-run, an attempt whose real usage cannot be determined
+is recorded with cost source `UNKNOWN`, and its budget hold is retained rather
+than released.
+
+**Residual risk.** An operator-supplied price table can be wrong or stale.
+SpecBridge records where the numbers came from; it cannot verify them.
+
+---
+
+### T45 — Cost-estimate error
+
+**Threat.** The estimate is materially lower than the real cost, so a spend
+that should have been refused is admitted.
+
+**Mitigations.** Admission compares a SAFE figure — the mean estimate times a
+configurable multiplier (default 1.5) — not the mean. Token heuristics are
+deliberately generous rather than optimistic, because an underestimate is the
+failure mode that costs money. History replaces heuristics only above a
+configured observation floor and always takes the LARGER of history and
+heuristic. Per-attempt, per-task, and per-job ceilings all apply
+independently.
+
+**Residual risk.** SpecBridge cannot enforce a mid-run cost stop, because the
+harness/provider stack exposes no incremental usage. This is stated rather
+than papered over: the enforcement is preflight estimation, reservation,
+bounded wall time, bounded attempts, and post-run reconciliation.
+
+---
+
+### T46 — Budget race / double reservation
+
+**Threat.** Two eligible tasks each read the same remaining budget and both
+spend it, overcommitting.
+
+**Mitigations.** Budget is RESERVED before dispatch through a read-modify-write
+behind an exclusive `wx` lock file, and admission is re-evaluated inside the
+lock against freshly read durable state — not against whatever the planner saw
+a moment earlier. Reservation happens before any attempt record exists, so a
+refusal has nothing to unwind. A corrupt budget file is refused loudly rather
+than read as an empty budget, which would be the most expensive possible
+misread.
+
+**Residual risk.** A stale lock left by a killed process must be removed
+manually; the error message says so and names the path.
+
+---
+
+### T47 — Crash with uncertain remote usage
+
+**Threat.** A paid attempt's process dies. SpecBridge cannot know whether the
+provider was already billed, and releasing the hold would let a job exceed its
+budget simply by crashing.
+
+**Mitigations.** Reservations left `RESERVED` by a vanished process are
+reconciled at resume to `UNKNOWN` and **stay charged** against the budget. A
+reservation already bound to a started attempt cannot be released at all —
+release is reserved for attempts refused before dispatch. Budget summaries
+report `hasUnknownCost`, so a committed total is honestly labeled a floor
+rather than an exact figure.
+
+**Residual risk.** Conservative accounting can over-charge a budget for an
+attempt that in fact never reached the provider. That direction is chosen
+deliberately.
+
+---
+
+### T48 — Stale or over-broad spend approval
+
+**Threat.** A human approves paid execution for one task, and that approval
+later authorizes materially different work, a different profile, a larger
+amount, or an unbounded stream of future spending.
+
+**Mitigations.** SpecBridge never asks "Allow API?". Every approval is scoped
+to one task FINGERPRINT (task identity, title, approved-task fingerprint, plan
+revision, and dependency set), one profile, one maximum cost, and an expiry —
+and all four are re-checked at the moment of spend, with each failure mode
+named separately (`FINGERPRINT_CHANGED`, `PROFILE_CHANGED`, `EXPIRED`,
+`COST_EXCEEDS_AUTHORIZATION`). Approvals are single-use. A human may authorize
+LESS than was requested; the CLI refuses to raise the ceiling above what the
+request explained. An explicit denial stands even under `AUTO_BOUNDED`.
+
+**Residual risk.** An approval remains valid for the work it describes until
+it expires or is consumed.
+
+---
+
+### T49 — An agent altering its own spending authority
+
+**Threat.** A model or harness — which now has filesystem and shell tools
+inside the workspace — edits the budget, the spend mode, the price table, or
+an approval amount to authorize its own spending.
+
+**Mitigations.** Spend policy lives in `.specbridge/config.json`, which is a
+PROTECTED path: it is compared byte-exactly after every attempt, and any
+modification prevents verification with evidence preserved. Budget state and
+approval records live under `.specbridge/state/` and the job namespace, also
+protected. Approvals are decided only through the CLI by a human — there is no
+MCP tool, no agent-reachable API, and no model output that can create one; an
+agent can cause a REQUEST to exist by doing work that stalls, and can never
+cause an AUTHORIZATION to exist. The bootstrap prompt states the protected
+paths explicitly, and — the part that actually holds — nothing the agent says
+changes any of it.
+
+**Residual risk.** Identical to T09: this is verification-time detection, not
+OS-level enforcement.
+
+---
+
+### T50 — A remote provider misclassified as LOCAL (or the reverse)
+
+**Threat.** A metered profile runs on the zero-cost lane and bills silently,
+or a verified-local profile is driven as a paid lane and its "spend" is
+fiction.
+
+**Mitigations.** The two bindings are mutually exclusive and mutually honest.
+A verified-LOCAL profile is refused for the API lane (`LOCAL_COMPUTE`); a
+verified-REMOTE profile is refused for the LOCAL lane (`REMOTE_COMPUTE`, T37);
+an `UNKNOWN` profile qualifies for neither by default. One profile may not be
+bound to both lanes at once (`BOUND_TO_LOCAL_LANE`). The API binding
+deliberately does not consult the managed-local-model attestation, so a
+local-attesting profile cannot accidentally verify as remote. Locality is
+never inferred from a runner name, a profile name, a provider string, or a
+model name. An execution recorded `lane = LOCAL` retains vNext.4's
+zero-marginal-cost guarantees, and nothing reclassifies a lane after
+execution.
+
+**Residual risk.** As with T37, the attestation describes a runtime profile
+SpecBridge cannot read. An operator who misattests defeats the check.
+
+---
+
+### T51 — Credential leakage on the paid lane
+
+**Threat.** A metered provider legitimately needs credentials, and those
+values leak into state, logs, evidence, or a decision record.
+
+**Mitigations.** The runtime child environment is REPLACED with a minimal safe
+base plus the profile's explicit `environmentPassthrough` NAMES (vNext.3).
+SpecBridge records only credential SOURCE names — never values, which are
+never read, compared, logged, or persisted. Configuration schemas reject
+credential-shaped keys outright. On the API lane these names are expected
+rather than disqualifying; on the LOCAL lane they remain disqualifying (T38).
+
+**Residual risk.** The provider process itself holds the credential, as it
+must to authenticate.
+
+---
+
+### T52 — Prompt injection inducing broader paid work
+
+**Threat.** Repository content, test output, or a task description contains
+text designed to make the agent expand scope — now on a lane that costs money
+per token.
+
+**Mitigations.** The economic decision is made entirely OUTSIDE the model. The
+lane, the spend mode, the gap assessment, the delay sensitivity, the cost
+estimate, and the budget reservation are all deterministic functions of
+configuration and durable state; no model output participates in any of them,
+and no enum in the scheduling vocabulary can be set from model output. Within
+an attempt, the bootstrap prompt carries the untrusted-content boundary
+verbatim, the attempt is wall-clock bounded, and the attempt count is bounded.
+An injected instruction can waste one bounded, budgeted attempt; it cannot
+authorize another one, raise a ceiling, or change a lane.
+
+**Residual risk.** One bounded paid attempt can still be wasted, at a cost no
+greater than its reservation.
+
+---
+
+### T53 — Paid execution becoming the default lane
+
+**Threat.** The scheduler drifts into treating the API as an equal strong
+lane — routing to whichever provider looks better, or staying on a paid
+provider because it succeeded once. This is an architectural risk rather than
+an attack, and it is the failure this phase most needs to prevent.
+
+**Mitigations.** `decideLane` is unchanged by vNext.5 and has no way to name
+the API lane, so the paid path is unreachable except through the gap-bridge
+planner, which runs only over a routing already refused for a
+subscription-capacity reason. There is no comparison between providers
+anywhere. Prepaid capacity returning mid-attempt does not kill the attempt,
+and the next strong task routes back to the subscription lane through the
+ordinary scheduler — recorded as an event. Ready-node selection prefers free
+and prepaid runnable work over an API-bridged task in the same pass. Mechanical,
+local-capable work stays local even during a total subscription outage.
+
+**Residual risk.** None identified for this phase; a future adaptive scheduler
+would need its own review.
+
+---
+
 ## Explicit non-claims
 
 Security models fail through overclaiming. SpecBridge does **not** claim:
@@ -914,7 +1165,14 @@ Security models fail through overclaiming. SpecBridge does **not** claim:
    sound (a loopback endpoint it parses, or its own managed server). It does
    not observe the runtime's sockets and cannot detect a runtime that
    contradicts its own profile.
-7. **Model-assisted workflows are nondeterministic.** Anything a model
+7. **API cost control is preflight and post-run, NOT mid-run.** SpecBridge
+   estimates before dispatching, reserves budget, bounds wall time and attempt
+   counts, and reconciles afterwards. It does **not** stop a running attempt
+   at a cost threshold, because the harness and provider stack expose no
+   incremental usage to stop on. Recorded cost is an operator price table
+   applied to reported usage — a computation, not an invoice — and an attempt
+   that cannot report its usage is recorded as `UNKNOWN`, never as free.
+8. **Model-assisted workflows are nondeterministic.** Anything a model
    authors — spec prose, code edits, refinements — can differ between
    runs and can be wrong. SpecBridge makes the *controls* deterministic
    (hashes, approvals, evidence, verification rules), never the model

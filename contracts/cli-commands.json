@@ -346,6 +346,23 @@
               "--help"
             ]
           },
+          "api-approve": {
+            "options": [
+              "--by",
+              "--help",
+              "--json",
+              "--max-cost",
+              "--note"
+            ]
+          },
+          "api-deny": {
+            "options": [
+              "--by",
+              "--help",
+              "--json",
+              "--note"
+            ]
+          },
           "cancel-job": {
             "options": [
               "--help",

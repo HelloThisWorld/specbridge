@@ -22,10 +22,40 @@
     "PLANNER",
     "REPLANNER"
   ],
+  "apiApprovalStatuses": [
+    "APPROVED",
+    "CONSUMED",
+    "DENIED",
+    "EXPIRED",
+    "REQUESTED",
+    "SUPERSEDED"
+  ],
+  "apiBudgetReservationStates": [
+    "COMMITTED",
+    "RELEASED",
+    "RESERVED",
+    "UNKNOWN"
+  ],
+  "apiCostSources": [
+    "COMPUTED_FROM_USAGE",
+    "ESTIMATED_PRE_DISPATCH",
+    "PROVIDER_REPORTED",
+    "UNKNOWN"
+  ],
+  "apiSpendModes": [
+    "AUTO_BOUNDED",
+    "DISABLED",
+    "MANUAL"
+  ],
   "computeLocalities": [
     "LOCAL",
     "REMOTE",
     "UNKNOWN"
+  ],
+  "delaySensitivities": [
+    "HIGH",
+    "LOW",
+    "MEDIUM"
   ],
   "enforcementLevels": [
     "contract-enforced",
@@ -117,6 +147,7 @@
     "verification_failed"
   ],
   "executionLanes": [
+    "API",
     "LOCAL",
     "SUBSCRIPTION"
   ],
@@ -146,6 +177,11 @@
     "COMPLETED",
     "REJECTED"
   ],
+  "gapForecastConfidence": [
+    "HIGH",
+    "MEDIUM",
+    "UNKNOWN"
+  ],
   "intentOutcomes": [
     "BLOCKED",
     "NEEDS_CLARIFICATION",
@@ -154,6 +190,20 @@
   ],
   "jobEventTypes": [
     "aggregation_completed",
+    "api_approval_denied",
+    "api_approval_granted",
+    "api_approval_required",
+    "api_attempt_failed",
+    "api_budget_exceeded",
+    "api_budget_exhausted",
+    "api_budget_reconciled",
+    "api_budget_reserved",
+    "api_cost_unknown",
+    "api_gap_detected",
+    "api_gap_short_deferred",
+    "api_max_returned",
+    "api_next_task_returned_to_subscription",
+    "api_task_dispatched",
     "attempt_completed",
     "attempt_interrupted",
     "attempt_started",
@@ -237,8 +287,10 @@
     "workunit_superseded"
   ],
   "laneDecisions": [
+    "API",
     "DEFER",
     "LOCAL",
+    "REQUIRE_APPROVAL",
     "SUBSCRIPTION"
   ],
   "localExecutionModeReasons": [
@@ -341,6 +393,21 @@
     "NORMAL"
   ],
   "schedulingReasonCodes": [
+    "API_APPROVAL_REQUIRED",
+    "API_ATTEMPTS_EXHAUSTED",
+    "API_BINDING_UNAVAILABLE",
+    "API_BUDGET_EXCEEDED",
+    "API_COST_UNKNOWN",
+    "API_DELAY_TOLERABLE",
+    "API_DISABLED",
+    "API_GAP_BRIDGE_SELECTED",
+    "API_GAP_SHORT_DEFER",
+    "API_LOCAL_BACKLOG_FIRST",
+    "API_MAX_RETURNED_NEXT_TASK_SUBSCRIPTION",
+    "API_PROVIDER_UNAVAILABLE",
+    "API_STRONG_TASK_ONLY",
+    "API_WASTEFUL_NEAR_RESET",
+    "API_WEEKLY_GAP_BRIDGE",
     "COMPACT_BEFORE_EXECUTION",
     "CONSERVE_QUOTA",
     "CROSS_RESET_ADMITTED",
@@ -355,6 +422,13 @@
     "STRONG_REQUIRED",
     "WEEKLY_EXHAUSTED",
     "WEEKLY_QUOTA_PRESSURE"
+  ],
+  "subscriptionGapReasons": [
+    "FIVE_HOUR_EXHAUSTED",
+    "PRE_RESET_BURN_UNSAFE",
+    "SUBSCRIPTION_TEMPORARILY_UNAVAILABLE",
+    "SUBSCRIPTION_WORKER_UNAVAILABLE",
+    "WEEKLY_EXHAUSTED"
   ],
   "taskAttemptStatuses": [
     "CANCELLED",

@@ -477,6 +477,221 @@ export const localExecutionPolicySchema: z.ZodType<LocalExecutionPolicy, z.ZodTy
   .passthrough();
 
 /**
+ * vNext.5 API spend authorization modes.
+ *
+ *   DISABLED      no automatic paid execution, ever. The safest mode and
+ *                 the backward-compatible default: a workspace upgraded
+ *                 from vNext.4 makes no paid call because the binary moved
+ *   MANUAL        the scheduler may CONCLUDE that paid execution would
+ *                 preserve continuity and records a durable, bounded
+ *                 approval request — it never spends on its own
+ *   AUTO_BOUNDED  automatic paid execution is permitted, and only while
+ *                 every policy AND budget condition passes
+ *
+ * Authorization is deliberately separate from configuration: a configured
+ * API profile, a configured binding, and spend authorization are three
+ * independent controls, and all three must be right before money moves.
+ */
+export const API_SPEND_MODES = ['DISABLED', 'MANUAL', 'AUTO_BOUNDED'] as const;
+export type ApiSpendMode = (typeof API_SPEND_MODES)[number];
+
+/**
+ * Operator-configured provider pricing. SpecBridge never fetches prices
+ * from the internet at runtime and never ships speculative "current"
+ * numbers: provider pricing changes, and a stale hard-coded table would be
+ * a silent lie in the one module whose job is to authorize spending.
+ *
+ * Absent pricing is not zero — it is UNKNOWN, and unknown cost can never
+ * authorize automatic spend.
+ */
+export interface ApiPricingProfile {
+  /** USD per one million input tokens. */
+  inputCostPerMillion: number;
+  /** USD per one million output tokens. */
+  outputCostPerMillion: number;
+  /** USD per one million cached input tokens, when the provider prices them. */
+  cachedInputCostPerMillion: number | null;
+  /** Currency of every figure above. USD only in this version. */
+  currency: 'USD';
+  /**
+   * Where the operator took these numbers from (a URL, a contract, a date).
+   * Recorded on every estimate, so a cost figure is always attributable.
+   */
+  source: string;
+}
+
+export const apiPricingProfileSchema: z.ZodType<ApiPricingProfile, z.ZodTypeDef, unknown> = z
+  .object({
+    inputCostPerMillion: z.number().min(0).max(1_000_000),
+    outputCostPerMillion: z.number().min(0).max(1_000_000),
+    cachedInputCostPerMillion: z.number().min(0).max(1_000_000).nullable().default(null),
+    currency: z.literal('USD').default('USD'),
+    source: z.string().min(1).max(200).default('operator-configured'),
+  })
+  .passthrough();
+
+/**
+ * Hard API spending guardrails. Not telemetry: an estimated attempt that
+ * exceeds any of these is never dispatched.
+ *
+ * Null means "no limit from THIS dimension" — never unlimited overall,
+ * because the remaining ceilings, the attempt counts, and the spend mode
+ * all still apply.
+ */
+export interface ApiBudgetPolicy {
+  /** Ceiling on total API spend for one job, in USD. */
+  maxCostPerJobUsd: number | null;
+  /** Ceiling on total API spend for one task, in USD. */
+  maxCostPerTaskUsd: number | null;
+  /** Ceiling on ONE API attempt's safe estimated cost, in USD. */
+  maxCostPerAttemptUsd: number | null;
+  /** Bounded API attempts per task. Paid work never retries indefinitely. */
+  maxApiAttemptsPerTask: number;
+  /** Bounded API attempts per job. */
+  maxApiAttemptsPerJob: number;
+}
+
+export const apiBudgetPolicySchema: z.ZodType<ApiBudgetPolicy, z.ZodTypeDef, unknown> = z
+  .object({
+    maxCostPerJobUsd: z.number().min(0).max(1_000_000).nullable().default(null),
+    maxCostPerTaskUsd: z.number().min(0).max(1_000_000).nullable().default(null),
+    maxCostPerAttemptUsd: z.number().min(0).max(1_000_000).nullable().default(null),
+    maxApiAttemptsPerTask: z.number().int().min(1).max(10).default(2),
+    maxApiAttemptsPerJob: z.number().int().min(1).max(1_000).default(20),
+  })
+  .passthrough();
+
+/**
+ * vNext.5 gap-bridge thresholds — the tunable half of "is this subscription
+ * gap worth paying to bridge?". Every number the planner compares lives
+ * here; none is scattered through the scheduler.
+ *
+ * The defaults are conservative by construction: a short gap defers, an
+ * ordinary task defers, and only a materially long gap on delay-sensitive
+ * work is even a candidate.
+ */
+export interface ApiGapPolicy {
+  /**
+   * A subscription gap at or under this stays a WAIT: the reset arrives
+   * sooner than a paid handoff would pay for itself.
+   */
+  shortGapDeferMs: number;
+  /** AUTO_BOUNDED requires a gap at least this long before paying. */
+  minGapForAutoBoundedMs: number;
+  /** Minimum delay sensitivity that may justify paid bridging. */
+  minDelaySensitivity: 'LOW' | 'MEDIUM' | 'HIGH';
+  /**
+   * A gap at or over this is MATERIAL whichever reset window produced it —
+   * a weekly exhaustion is not a five-hour cooldown.
+   */
+  materialGapMs: number;
+  /**
+   * Multiplier applied to the mean cost estimate before budget admission:
+   * a conservative stand-in for the P90 a later phase may measure.
+   */
+  costSafetyMultiplier: number;
+  /**
+   * Refuse to start a paid attempt whose runtime would mostly land AFTER
+   * prepaid capacity returns: paid work is refused when
+   * `timeUntilAvailable <= expectedWallTime * this ratio` and the task is
+   * not maximally delay-sensitive.
+   */
+  wastefulStartRatio: number;
+  /**
+   * What AUTO_BOUNDED does when subscription capacity is unavailable with
+   * NO known return time. Unknown availability increases caution:
+   * `MANUAL` asks a human, `DEFER` keeps waiting. Never "assume it is long".
+   */
+  unknownResetBehavior: 'MANUAL' | 'DEFER';
+  /**
+   * Restrict the paid lane to work that genuinely needs strong
+   * intelligence. Mechanical, local-capable work stays local even during a
+   * subscription outage.
+   */
+  strongTasksOnly: boolean;
+  /**
+   * Prefer running ready LOCAL work before paying to bridge, while the gap
+   * is not material and the task is not on the critical path.
+   */
+  preferReadyLocalBacklog: boolean;
+  /** Approved spend authorizations go stale after this long. */
+  approvalTtlMs: number;
+}
+
+export const apiGapPolicySchema: z.ZodType<ApiGapPolicy, z.ZodTypeDef, unknown> = z
+  .object({
+    shortGapDeferMs: z.number().int().min(0).max(86_400_000).default(20 * 60_000),
+    minGapForAutoBoundedMs: z.number().int().min(0).max(604_800_000).default(30 * 60_000),
+    minDelaySensitivity: z.enum(['LOW', 'MEDIUM', 'HIGH'] as const).default('HIGH'),
+    materialGapMs: z.number().int().min(60_000).max(604_800_000).default(60 * 60_000),
+    costSafetyMultiplier: z.number().min(1).max(10).default(1.5),
+    wastefulStartRatio: z.number().min(0).max(1).default(0.25),
+    unknownResetBehavior: z.enum(['MANUAL', 'DEFER'] as const).default('MANUAL'),
+    strongTasksOnly: z.boolean().default(true),
+    preferReadyLocalBacklog: z.boolean().default(true),
+    approvalTtlMs: z.number().int().min(60_000).max(604_800_000).default(24 * 3_600_000),
+  })
+  .passthrough();
+
+/**
+ * vNext.5 API lane policy: the pay-as-you-go continuity bridge.
+ *
+ * The economic ordering this block serves, stated once:
+ *
+ *   LOCAL          zero marginal cost
+ *   SUBSCRIPTION   prepaid strong intelligence
+ *   API            metered continuity bridge
+ *
+ * The API lane is NOT a third equal-priority lane. It is considered only
+ * after local suitability and subscription admission have both been
+ * evaluated and neither can take the work — and even then only when the
+ * gap is material, the work is delay-sensitive, spending is authorized,
+ * cost is known, and budget admits.
+ *
+ * Nothing here can weaken a safety boundary. It can only authorize
+ * SPENDING, and every default is the non-spending one.
+ */
+export interface ApiExecutionPolicy {
+  /** Spend authorization. DISABLED (the default) makes no paid call ever. */
+  spendMode: ApiSpendMode;
+  /**
+   * Runner profile bound to the API lane. Null (default) means no binding:
+   * a remote harness profile existing in `runnerProfiles` never becomes an
+   * API fallback on its own.
+   */
+  harnessProfile: string | null;
+  /** Wall-clock ceiling for ONE API harness attempt. */
+  maxApiWallTimeMs: number;
+  /**
+   * Provider pricing for the bound profile. Null means cost cannot be
+   * estimated, which forbids AUTO_BOUNDED spending outright.
+   */
+  pricing: ApiPricingProfile | null;
+  budget: ApiBudgetPolicy;
+  gap: ApiGapPolicy;
+  /**
+   * EXPERIMENTAL: allow an API binding whose compute locality cannot be
+   * VERIFIED remote. Off by default and never set by migration — the
+   * mirror image of the LOCAL lane's override, and refused for the same
+   * reason: an economic lane whose compute is unknown is not an economic
+   * lane, it is a guess with a credit card.
+   */
+  allowUnverifiedLocality: boolean;
+}
+
+export const apiExecutionPolicySchema: z.ZodType<ApiExecutionPolicy, z.ZodTypeDef, unknown> = z
+  .object({
+    spendMode: z.enum(API_SPEND_MODES).default('DISABLED'),
+    harnessProfile: z.string().min(1).max(64).nullable().default(null),
+    maxApiWallTimeMs: z.number().int().min(30_000).max(86_400_000).default(1_800_000),
+    pricing: apiPricingProfileSchema.nullable().default(null),
+    budget: apiBudgetPolicySchema.default({}),
+    gap: apiGapPolicySchema.default({}),
+    allowUnverifiedLocality: z.boolean().default(false),
+  })
+  .passthrough();
+
+/**
  * vNext.2 quota-aware scheduler policy (additive, defaulted).
  *
  * Governs how work is routed between the LOCAL lane (zero marginal cost) and
@@ -551,6 +766,8 @@ export interface JobSchedulerPolicy {
   estimator: WorkloadEstimatorPolicy;
   /** vNext.4 LOCAL-lane execution mode policy (direct vs harness). */
   localExecution: LocalExecutionPolicy;
+  /** vNext.5 API lane policy (paid continuity bridge; disabled by default). */
+  api: ApiExecutionPolicy;
 }
 
 export const jobSchedulerPolicySchema: z.ZodType<JobSchedulerPolicy, z.ZodTypeDef, unknown> = z
@@ -574,6 +791,7 @@ export const jobSchedulerPolicySchema: z.ZodType<JobSchedulerPolicy, z.ZodTypeDe
     reserve: dynamicReservePolicySchema.default({}),
     estimator: workloadEstimatorPolicySchema.default({}),
     localExecution: localExecutionPolicySchema.default({}),
+    api: apiExecutionPolicySchema.default({}),
   })
   .passthrough();
 

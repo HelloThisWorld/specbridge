@@ -1,5 +1,7 @@
 {
   "agentConfigV1": "1.0.0",
+  "apiBudget": "1.0.0",
+  "apiSpendApproval": "1.0.0",
   "attemptRecord": "1.0.0",
   "candidateArtifact": "1.0.0",
   "contextPackage": "1.0.0",
