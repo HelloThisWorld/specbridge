@@ -13,6 +13,7 @@ import { localStructuredInference } from '@specbridge/runners';
 import type { Clock } from '@specbridge/workflow';
 import type { ExecutorDispatchResult } from '../driver/executor-dispatch.js';
 import { classifyEvidenceFailure, classifyPreflightFailure } from '../driver/executor-dispatch.js';
+import { boundRenderedContext } from '../context/packet.js';
 import type { JobNode } from '../jobs/state.js';
 import type { FailureCategory } from '../vocabulary.js';
 
@@ -270,6 +271,20 @@ export interface LocalExecutionInput {
   onProgress?: ((message: string) => void) | undefined;
   /** Called before each inference request (local budget accounting). */
   onInferenceCall?: (() => void) | undefined;
+  /**
+   * vNext.7: selected repository context, already rendered.
+   *
+   * A direct model has no tools, so the interactive packet alone — steering,
+   * approved documents, the task plan — tells it WHAT to build and nothing
+   * about what the code currently looks like. Before this existed the model
+   * had to invent whole files from the spec; with it, the bounded working
+   * set the retrieval layer selected travels with the request.
+   *
+   * Absent means the vNext.2 behaviour, byte-identical.
+   */
+  repositoryContext?: string | undefined;
+  /** Selection plan id, recorded on the run for explainability. */
+  contextPlanId?: string | undefined;
 }
 
 export interface LocalExecutionResult extends ExecutorDispatchResult {
@@ -355,8 +370,27 @@ export async function dispatchLocalExecution(
           'Fix the diagnosed defect; do not restart the approach.',
         ].join('\n')
       : '';
-  const budget = Math.max(4_000, local.maximumInputCharacters - LOCAL_EXECUTOR_SYSTEM_PROMPT.length - failureFeedback.length - 500);
-  const packet = `${begin.contextMarkdown.slice(0, budget)}${failureFeedback}`;
+  // The input budget is shared between the approved-document packet and the
+  // selected repository context. Source leads on the split: a model that can
+  // see the code it must change and half the design document outperforms one
+  // with the whole document and no code, and the approved documents are the
+  // part a repair attempt least needs re-read in full.
+  const repositoryContext = input.repositoryContext ?? '';
+  const overhead = LOCAL_EXECUTOR_SYSTEM_PROMPT.length + failureFeedback.length + 500;
+  const budget = Math.max(4_000, local.maximumInputCharacters - overhead);
+  const contextShare = repositoryContext === '' ? 0 : Math.min(repositoryContext.length, Math.floor(budget * 0.6));
+  const documentShare = Math.max(1_000, budget - contextShare);
+  // The repository block is bounded on an EXCERPT boundary, never mid-file:
+  // a truncated function with no marker is the same failure that section
+  // extraction exists to avoid, and reintroducing it at the last step would
+  // be perverse. The approved-document packet is prose and truncates safely.
+  const packet = [
+    begin.contextMarkdown.slice(0, documentShare),
+    repositoryContext === '' ? '' : boundRenderedContext(repositoryContext, contextShare),
+    failureFeedback,
+  ]
+    .filter((part) => part !== '')
+    .join('\n\n');
 
   let userPrompt = packet;
   const maxCorrections = input.maxCorrections ?? 1;

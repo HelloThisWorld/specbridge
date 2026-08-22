@@ -133,6 +133,23 @@ export interface FailureAssessmentInput {
    * silent — a model may not overrule Git, an exit code, or a verifier.
    */
   proposedSource?: FailureSource | undefined;
+  /**
+   * vNext.7: OBSERVED evidence that the attempt failed for want of context.
+   *
+   * The whole point of this field is that it is not an inference. Each signal
+   * is something SpecBridge watched happen — a worker's structured output
+   * naming a repository artifact it was never given, a selected file whose
+   * hash had already moved, a mandatory reference the budget dropped, a
+   * direct model declining for want of repository access.
+   *
+   * Its effect is narrow and deliberate: it moves the SOURCE to CONTEXT,
+   * which `permitsIntelligenceEscalation` already treats as a reason to fix
+   * the context rather than to buy a bigger model. A local model that could
+   * not find an implementation it was never shown has demonstrated nothing
+   * about its own capability, and spending prepaid quota to ask it again is
+   * the exact waste this phase exists to prevent.
+   */
+  contextInsufficiencySignals?: readonly string[] | undefined;
 }
 
 export interface AssessedFailure {
@@ -199,7 +216,23 @@ export function assessFailure(input: FailureAssessmentInput): AssessedFailure {
     basis = 'DETERMINISTIC_EVIDENCE';
   }
 
-  // 4. A model proposal may refine only what the evidence leaves open.
+  // 4. Observed context insufficiency. Ranked here — below broken machinery
+  //    and execution bounds, above any model proposal — because it is
+  //    deterministic evidence about the PACKAGE rather than about the work.
+  //    An attempt that was never shown the file it had to edit did not fail
+  //    at implementation, and recording it as IMPLEMENTATION would route the
+  //    task straight at a stronger model for a question it cannot answer.
+  if (
+    (input.contextInsufficiencySignals?.length ?? 0) > 0 &&
+    input.verificationInfrastructureBroken !== true &&
+    input.harnessFailureKind !== 'INFRASTRUCTURE' &&
+    runawaySignals.length === 0
+  ) {
+    source = 'CONTEXT';
+    basis = 'DETERMINISTIC_EVIDENCE';
+  }
+
+  // 5. A model proposal may refine only what the evidence leaves open.
   if (
     input.proposedSource !== undefined &&
     source === 'UNKNOWN' &&

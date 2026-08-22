@@ -1,6 +1,245 @@
 # Changelog
 
+## 1.9.0 (unreleased) — vNext.7 Context Efficiency Runtime
+
+The previous six phases made a long-horizon job survivable: it outlives its
+worker, its quota, an outage, and its own failed attempts. This phase answers
+a narrower question.
+
+> How little can a worker be told, and still succeed?
+
+The distinction from vNext.1 is easy to blur and worth stating once:
+
+```text
+vNext.1:   Do not die when the context window fills.
+vNext.7:   Avoid filling it unnecessarily.
+```
+
+vNext.1's AutoCompact machinery is untouched. `ContextLifecycleManager`,
+`ContextBudget`, the three compaction levels, delta context, and the
+native-compaction adapter all still do exactly what they did; this phase sits
+in front of them and decides what goes in, so compaction has less to do.
+
+Three invariants govern everything below:
+
+1. **Context is disposable working memory; SpecBridge state is canonical
+   memory.** Unchanged from vNext.1, and the reason retrieval only ever
+   produces `WORKING_SET` items.
+2. **Retrieval and compression may reduce working context; they may never
+   rewrite or replace canonical engineering truth.** Pinned and durable
+   layers are assembled from durable state by the same code under every
+   strategy, including `LEGACY`.
+3. **Send context according to execution shape.** A tool-capable harness
+   receives pointers and durable state; a direct model with no tools receives
+   the bounded working set. Sending both pays for the same information twice.
+
+**Off by default.** `orchestration.jobs.context.efficiency.strategy` defaults
+to `LEGACY`, which reproduces vNext.6 assembly exactly — same items, same
+order, and no new files written into the job namespace. `SELECTIVE` and
+`PROGRESSIVE` are explicit opt-ins. `LEGACY` is a single branch rather than a
+set of disabled flags, which is what makes it a genuine rollback.
+
+### Repository context index
+
+- A derived, rebuildable, **offline** index of workspace metadata:
+  workspace-relative path, file kind, language, module association, size, line
+  count, content hash, conservatively extracted symbols and import specifiers,
+  resolved import edges, path tokens, and test/source pairing. It stores no
+  file bodies — an index that cached content would be a second copy of the
+  repository that goes stale.
+- Persisted at `.specbridge/cache/context-index.json`, deliberately **outside**
+  the job namespace: deleting it is obviously safe, costs a rebuild, and
+  cannot affect job recovery.
+- **Freshness is a content hash, never a timestamp.** Stat data finds
+  candidates for re-hashing; whether content is current is always a hash
+  comparison. At selection time each chosen file is re-read and hash-checked,
+  and a mismatch yields the *current bytes* plus a recorded staleness signal —
+  an old body is never shipped under a claim that it is what the repository
+  says now.
+- Incremental refresh driven by the Git snapshot's changed paths. A snapshot
+  that could not *observe* anything — Git unavailable, a summarized directory
+  entry — is treated as unknown scope and triggers full re-verification rather
+  than being read as "nothing changed".
+- Any doubt resolves to **rebuild**: unreadable file, invalid JSON, schema
+  failure, format-version mismatch, or a different workspace root.
+- Boundaries applied **before any read**: `.git`, `.kiro`, `.specbridge`,
+  dependency caches, build output, binaries, lockfiles, oversized files,
+  configured `execution.protectedPaths`, `.gitignore` rules, and
+  credential-shaped paths. Symlinks are recorded and never followed.
+
+### Deterministic retrieval
+
+- A structured `ContextRetrievalQuery` built **only from durable state**:
+  contract, acceptance criteria, current action, latest failure, recovery
+  decision, changed files, and prior selections. Never from a conversation.
+- Deterministic ranking over checkable facts with configurable integer
+  weights, ties broken on path. The same durable state plus the same index
+  produces the same plan, forever.
+- Four **mandatory** selection reasons that neither ranking, reranking, nor
+  the budget may drop: contract reference, failure reference, action
+  reference, and changed file — the last bounded to the first N (default 12),
+  because a branch-wide diff says something about the branch, not the task.
+- Per-role weighting profiles (`EXECUTOR`, `DIAGNOSER`, `REPLANNER`,
+  `EVALUATOR`, `PLANNER`, `CRITIC`): roles get different context, not the same
+  package at different sizes.
+- File-section selection where a structural boundary can be located
+  confidently, with the import preamble and the enclosing declaration
+  included. Where structure cannot be read reliably, the **whole bounded
+  file** is sent — a fabricated "relevant region" looks authoritative and is
+  missing the part that mattered.
+- An optional, off-by-default local reranker that sees **metadata only**,
+  cannot introduce or remove candidates, cannot displace a mandatory
+  reference, and falls back to the deterministic order. The deterministic
+  candidate set is preserved on the plan whether or not it ran.
+
+### Execution-shape-aware assembly
+
+- `MATERIALIZED` for a worker with no repository tools; `POINTER` for one that
+  reads the repository itself. The shape is decided by capability, never by
+  provider name.
+- Harness bootstraps carry canonical state the repository cannot tell them
+  plus ranked repository pointers, and no file bodies. Measured on the
+  benchmark fixture: 3,020 → 192 estimated tokens for the same working set.
+- Direct-model packets now carry selected source at all. Previously a local
+  direct attempt received steering, approved documents, and the task plan —
+  and no code, leaving it to invent whole files from the spec.
+- The paid lane uses the pointer shape with a much smaller ceiling: unrelated
+  repository content does not leave the machine.
+
+### Compression, deduplication, staleness
+
+- Deterministic structured compression first — `test-log-v1`,
+  `compiler-log-v1`, `lint-log-v1`, `diff-summary-v1`,
+  `repetition-collapse-v1` — preserving the fields a failure fingerprint is
+  computed from, so vNext.6 no-progress detection still recognises a repeated
+  failure after compression.
+- The existing local preprocessor is **strengthened rather than duplicated**:
+  it now runs deterministic extraction first and calls the local model only
+  for unstructured bulk the parsers could not read. When the local lane is
+  unavailable it falls back to the bounded deterministic view rather than
+  shipping raw bulk.
+- Compression is derived data: it records `sourceHashes` and `sourceRefs`, and
+  the canonical raw artifact stays where it already lives. Source files are
+  never compressed.
+- Authority-aware deduplication (`CANONICAL > TRUSTED > DERIVED > CLAIM`).
+  Conflicting facts are never merged into an invented compromise: the higher
+  authority survives verbatim and the drop is recorded.
+- Freshness semantics per item, with stale content removed before dispatch.
+  An item whose freshness cannot be *checked* is kept — removing context on a
+  suspicion is its own kind of context miss.
+
+### Bounded progressive expansion
+
+- Five expansion levels from `MINIMAL_BOOTSTRAP` to `BOUNDED_FALLBACK`,
+  default ceiling `MODULE_CONTEXT`. Widening advances **one level**, never a
+  jump to the ceiling and never "the repository".
+- Requires **observed** evidence of insufficiency. Six signals, each one
+  something SpecBridge watched happen. A worker asserting it needs more
+  context without naming an artifact produces no signal — otherwise a worker
+  could request its own budget increase.
+- Bounded per attempt and per task in **durable** state, so a restart cannot
+  reset the counter, and refused once the working set has grown past a
+  configured multiple of its first size.
+
+### Reliability integration (additive to vNext.6)
+
+- `FailureSource` becomes `CONTEXT` on observed insufficiency, which
+  `permitsIntelligenceEscalation` already excludes from escalation — so a
+  missing file is no longer billed as an intelligence failure.
+- New recovery action `EXPAND_CONTEXT`, distinct from `RESTART_FRESH_CONTEXT`:
+  a restart rebuilds the *same* package (right for a degraded session), while
+  expansion widens retrieval (right for an insufficient one).
+- New reason codes `CONTEXT_INSUFFICIENT_EXPAND` and
+  `CONTEXT_EXPANSION_EXHAUSTED`. When widening is spent the decision changes
+  strategy rather than re-sending a package already proven inadequate.
+- The separation of authority is preserved: **Context prepares. Reliability
+  decides. The Scheduler places.** The context layer produces an *offer*; a
+  hard boundary, an exhausted budget, or broken verification all outrank it.
+
+### Budgets, prefixes, metrics, diagnostics
+
+- Intentional per-layer allocation with reserves for pinned, durable,
+  recovery, and delta context. Reserves are floors, not quotas: retrieval can
+  never take the last token a pinned item needed. A mandatory working item may
+  exceed its allocation deliberately; when even that will not fit, assembly
+  raises `ContextBudgetError` rather than silently omitting it.
+- Stable-prefix ordering with component identity hashes for observability. An
+  item whose freshness tracks the repository is structurally barred from the
+  prefix, so a stale body can never be pinned into every subsequent prompt.
+  **No caching is ever claimed**: `cachedInputTokens` is recorded only when a
+  provider reports it, and `null` means unknown, never zero.
+- Per-attempt `ContextEfficiencyMetrics`: strategy, shape, expansion level,
+  lane/mode/runner, per-layer composition, retrieved/selected/pointer/excluded
+  counts, compression and deduplication savings, expansion count, and —
+  separately — provider-reported input and cached tokens. Deliberately
+  un-aggregated, so later analysis can ask *what did context cost per
+  successful task*, which is not the same question as "did we send fewer
+  tokens".
+- `specbridge orchestrate explain-context <jobId> <nodeId>` — what was
+  selected, why each file was included, why each candidate was excluded, what
+  was compressed, what was stale, how large the package was. Diagnostics show
+  **metadata only**: paths, hashes, ranges, reasons, sizes. Never source
+  bodies or assembled prompts.
+- Seven additive job events: `context_index_built`, `context_index_refreshed`,
+  `context_selected`, `context_stale_artifact_detected`,
+  `context_insufficient`, `context_expanded`,
+  `context_expansion_exhausted`.
+
+### Measured results
+
+Benchmark (`tests/context/context-benchmark.test.ts`), 146-file fixture, each
+scenario against the baseline it actually reduces:
+
+| Scenario | Baseline | vNext.7 | Reduction |
+| -------- | -------- | ------- | --------- |
+| single-file bug (DIRECT_MODEL) | whole source tree, 38,096 tokens | 1,640 | 95.7% |
+| multi-file feature (HARNESS) | same set materialized, 3,020 | 192 | 93.6% |
+| test-failure diagnosis | raw verifier log, 46,539 | 173 | 99.6% |
+| repair after failure | rule injected 4×, 124 | 31 | 75.0% |
+| architecture-constrained | every ranked candidate, 38,096 | 4,888 | 87.2% |
+
+Comparing `SELECTIVE` against `LEGACY` on total tokens would score retrieval
+as a regression, because `LEGACY` sends no repository content at all — the two
+are not doing the same job. The release gate is not "fewer tokens": a strategy
+passes only when it reduces redundant context *and* preserves the
+deterministic outcome.
+
+Performance (`tests/performance/context-perf.test.ts`), 4,001-file repository:
+initial index build ~1,530 ms; index size 5.14 MiB (~1.3 KiB/file, metadata
+only); incremental refresh of one changed file ~55 ms; retrieval ranking over
+the full index ~13 ms; selection ~40 ms; full assembly ~58 ms.
+
+### Backward compatibility
+
+Every schema and configuration field is additive, and `LEGACY` is the default.
+`ContextItem` gains optional `provenance`, `freshness`, `authority`,
+`selectionReason`, and `compression` fields; items written before this release
+parse unchanged and behave exactly as before. The repository index is derived
+state with no migration path by design — a version mismatch rebuilds. Deleting
+the entire context cache leaves every job recoverable from durable SpecBridge
+state plus the repository.
+
+`contracts/context-contract.json` gains the vNext.7 vocabularies additively;
+`contracts/orchestration-contract.json` gains one recovery action and two
+reason codes; `contracts/cli-commands.json` gains one command.
+
+### Threat model
+
+Thirteen new threats documented in
+[docs/security/threat-model.md](docs/security/threat-model.md) §14: stale
+context causing incorrect edits, retrieval omitting a critical constraint,
+malicious repository text manipulating the reranker, a sensitive file selected
+for a remote model, a compressed summary hiding failure identity,
+summary-of-summary decay, index corruption treated as canonical truth, the
+index escaping the workspace, diagnostics leaking source, expansion becoming a
+token-amplification loop, stable-prefix construction pinning stale state, a
+context miss misread as an intelligence failure, and a worker requesting its
+own context budget increase. Three new explicit non-claims.
+
+---
+
 ## 1.9.0 (unreleased) — vNext.6 Reliability, Eval & Recovery Runtime
+
 
 Every earlier phase answered the same question in a different way: *can
 SpecBridge keep running?* This one answers a different question — **should

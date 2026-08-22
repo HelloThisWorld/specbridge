@@ -171,6 +171,20 @@ export interface GovernFailureInput {
   evidenceRefs?: readonly string[] | undefined;
   /** A DIAGNOSER's structured proposal, when one ran. A claim, not authority. */
   proposedSource?: AssessedFailure['source'] | undefined;
+  /**
+   * vNext.7: OBSERVED evidence that the package was insufficient, from
+   * `assessContextMiss`. Empty (or absent) is the normal case, and it leaves
+   * assessment and recovery byte-identical to vNext.6.
+   */
+  contextInsufficiencySignals?: readonly string[] | undefined;
+  /**
+   * vNext.7: whether bounded context widening is on offer, from
+   * `offerContextExpansion`. An OFFER: the planner still decides, and a hard
+   * boundary, an exhausted budget, or broken verification all outrank it.
+   */
+  contextExpansion?:
+    | { available: boolean; nextLevel: string; reason: string; exhausted: boolean }
+    | undefined;
 }
 
 export interface GovernedFailure {
@@ -294,6 +308,9 @@ export function governFailedAttempt(
     runawaySignals: healthAssessment.runawaySignals,
     verificationInfrastructureBroken: verificationBroken(input.evaluation),
     ...(input.proposedSource !== undefined ? { proposedSource: input.proposedSource } : {}),
+    ...(input.contextInsufficiencySignals !== undefined
+      ? { contextInsufficiencySignals: input.contextInsufficiencySignals }
+      : {}),
   });
 
   const assessment = writeFailureAssessment(
@@ -365,6 +382,7 @@ export function governFailedAttempt(
     freshContextRestartsUsed: previous.freshContextRestarts,
     infrastructureRetriesUsed: countInfrastructureRetries(previous),
     contextRatio: input.contextRatio ?? null,
+    ...(input.contextExpansion !== undefined ? { contextExpansion: input.contextExpansion } : {}),
     resource: input.resource,
   });
 

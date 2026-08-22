@@ -34259,6 +34259,66 @@ var objectivesPolicySchema = external_exports.object({
   /** Character ceiling for one context projection document. */
   maxProjectionChars: external_exports.number().int().min(4e3).max(4e5).default(6e4)
 }).passthrough();
+var contextEfficiencyPolicySchema = external_exports.object({
+  /** LEGACY (default) | SELECTIVE | PROGRESSIVE. */
+  strategy: external_exports.enum(["LEGACY", "SELECTIVE", "PROGRESSIVE"]).default("LEGACY"),
+  // --- repository index -------------------------------------------------
+  /** Persist the derived index under `.specbridge/cache/`. Never canonical. */
+  persistIndex: external_exports.boolean().default(true),
+  /** Honour `.gitignore` files encountered while indexing. */
+  respectGitignore: external_exports.boolean().default(true),
+  /** Ceiling on indexed files before the index records truncation. */
+  maxIndexedFiles: external_exports.number().int().min(100).max(2e5).default(4e4),
+  /** Files above this many bytes are recorded as skipped, never read. */
+  maxIndexedFileBytes: external_exports.number().int().min(1024).max(4194304).default(524288),
+  // --- retrieval --------------------------------------------------------
+  /** Ranked candidates generated per query. */
+  maxCandidates: external_exports.number().int().min(10).max(1e3).default(200),
+  /** Repository artifacts MATERIALIZED into one package. */
+  maxSelectedItems: external_exports.number().int().min(1).max(60).default(12),
+  /** Repository artifacts NAMED as pointers in one package. */
+  maxPointers: external_exports.number().int().min(0).max(100).default(24),
+  /** Files at or below this many characters are always sent whole. */
+  wholeFileUnderChars: external_exports.number().int().min(500).max(2e5).default(6e3),
+  /** Target size of an extracted file section, in characters. */
+  targetSectionChars: external_exports.number().int().min(500).max(1e5).default(4e3),
+  // --- optional local reranking ----------------------------------------
+  /**
+   * Let a bounded local model refine the ORDER of the top candidates.
+   * Advisory only: it sees metadata, never file content, and it can never
+   * remove a mandatory reference. Off by default so selection stays
+   * bit-for-bit reproducible unless an operator asks otherwise.
+   */
+  localRerank: external_exports.boolean().default(false),
+  // --- compression ------------------------------------------------------
+  /** Compress mechanical output above this many characters. */
+  compressOverChars: external_exports.number().int().min(200).max(1e6).default(2e3),
+  /**
+   * Allow the bounded local model to compress unstructured bulk that
+   * deterministic parsing could not reduce. Zero marginal cost on the
+   * local lane; still bounded by the existing local inference limits.
+   */
+  localCompression: external_exports.boolean().default(true),
+  // --- layer allocation -------------------------------------------------
+  pinnedReserveRatio: external_exports.number().min(0).max(1).default(0.12),
+  durableReserveRatio: external_exports.number().min(0).max(1).default(0.18),
+  recoveryReserveRatio: external_exports.number().min(0).max(1).default(0.1),
+  deltaReserveRatio: external_exports.number().min(0).max(1).default(0.1),
+  workingSetMaxRatio: external_exports.number().min(0).max(1).default(0.45),
+  /** Working-set ceiling when the worker reads the repository itself. */
+  pointerShapeWorkingSetMaxRatio: external_exports.number().min(0).max(1).default(0.15),
+  maxSingleItemRatio: external_exports.number().min(0.05).max(1).default(0.4),
+  // --- progressive expansion -------------------------------------------
+  maxExpansionsPerAttempt: external_exports.number().int().min(0).max(4).default(1),
+  maxExpansionsPerTask: external_exports.number().int().min(0).max(12).default(3),
+  maxExpansionLevel: external_exports.enum(["MINIMAL_BOOTSTRAP", "TOP_WORKING_SET", "ADJACENT_DEPENDENCIES", "MODULE_CONTEXT", "BOUNDED_FALLBACK"]).default("MODULE_CONTEXT"),
+  maxWorkingSetGrowthFactor: external_exports.number().min(1).max(8).default(3)
+}).passthrough().refine(
+  (policy) => policy.pinnedReserveRatio + policy.durableReserveRatio + policy.recoveryReserveRatio + policy.deltaReserveRatio <= 0.85,
+  {
+    message: "Context layer reserves must leave room for retrieved working context: their sum must not exceed 0.85 of usable input."
+  }
+);
 var jobContextPolicySchema = external_exports.object({
   /** Default model context window when the provider does not declare one. */
   defaultModelContextTokens: external_exports.number().int().min(1e3).max(1e7).default(2e5),
@@ -34270,7 +34330,17 @@ var jobContextPolicySchema = external_exports.object({
   emergencyCompactionThreshold: external_exports.number().min(0.05).max(1).default(0.85),
   hardStopThreshold: external_exports.number().min(0.05).max(1).default(0.9),
   /** Bound on retained recent-delta items per task context. */
-  maxRecentDeltaItems: external_exports.number().int().min(1).max(200).default(20)
+  maxRecentDeltaItems: external_exports.number().int().min(1).max(200).default(20),
+  /**
+   * vNext.7 Context Efficiency Runtime (additive; OFF by default).
+   *
+   * The default is deliberately `LEGACY`: an upgraded workspace keeps
+   * byte-identical vNext.6 context behavior until its owner opts in. That
+   * is the same conservative-rollout policy the API gap bridge follows,
+   * and for the same reason — a phase that changes what every worker sees
+   * should not change it during an upgrade nobody asked for.
+   */
+  efficiency: contextEfficiencyPolicySchema.default({})
 }).passthrough();
 var dynamicReservePolicySchema = external_exports.object({
   baseRatio: external_exports.number().min(0).max(0.9).default(0.2),

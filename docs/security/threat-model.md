@@ -1451,6 +1451,262 @@ roll off. They remain derivable from the append-only records.
 
 ---
 
+## 14. Context efficiency (vNext.7)
+
+vNext.7 chooses what a worker is told. That makes it a new decision surface
+with two distinct risk classes, and they pull in opposite directions:
+
+- **Omission** — retrieval leaves out something the task needed, and the
+  attempt fails for a reason nobody attributes correctly.
+- **Commission** — retrieval includes something it should not have: stale
+  content presented as current, or a sensitive file sent to a remote model.
+
+Everything below is one of those two, plus the loop risks that come from
+answering the first one badly.
+
+### T69 — Stale context causing incorrect edits
+
+**Threat.** An agent receives the body of a file that has since changed and
+reasons about code that no longer exists. Because stale content looks exactly
+as authoritative as fresh content, nothing in its reasoning flags the problem;
+the edit is confidently wrong and lands on top of the newer file.
+
+**Mitigations.**
+
+- Index freshness is a **content hash**, never a timestamp. Stat data is used
+  only to find candidates for re-hashing.
+- Every selected file is re-read and hash-checked at selection time. A
+  mismatch yields the **current bytes**, never the indexed snapshot, and
+  records a `SELECTED_ARTIFACT_STALE` signal.
+- A file that no longer exists is excluded with `STALE_INDEX_ENTRY`, not
+  shipped from the index.
+- Carried-over items declare what invalidates them (`freshness`) and are
+  removed before dispatch when the world moved past them.
+- A Git snapshot that could not *observe* anything (Git unavailable, status
+  failed, a summarized directory entry) is treated as unknown scope and
+  triggers a full re-verification pass — an empty change list from a blind
+  snapshot is never read as "nothing changed".
+
+**Non-claim.** Between the hash check and the model reading the prompt, the
+file can change again. The window is milliseconds and the next attempt's
+verification is the backstop.
+
+### T70 — Retrieval omitting a critical constraint
+
+**Threat.** A ranking heuristic drops the file the contract named, or the
+acceptance criteria, and the worker optimizes the wrong thing.
+
+**Mitigations.**
+
+- Pinned and durable layers are **not retrieved**. They are assembled
+  deterministically from canonical state under every strategy, including
+  `LEGACY`, by the same code.
+- Retrieval produces `WORKING_SET` items only. No stage below it can drop a
+  protected layer.
+- Four selection reasons are **mandatory** and cannot be ranked, reranked, or
+  budgeted away: contract reference, failure reference, action reference, and
+  (bounded) changed file.
+- Budget pressure lands on optional working context first; when even the
+  mandatory set does not fit, assembly raises `ContextBudgetError` rather than
+  silently omitting it.
+
+### T71 — Malicious repository text manipulating the reranker
+
+**Threat.** A source file contains text engineered to make the optional local
+reranker promote it — or to demote the file that actually matters.
+
+**Mitigations.**
+
+- The reranker sees **metadata only**: paths, kinds, sizes, declared symbol
+  names, and the deterministic reasons. It never sees file bodies, so
+  instruction-shaped prose inside a file has no channel into ranking.
+- Its output is an ordering over ids it was given. Invented ids are discarded;
+  omitted ones keep their deterministic position.
+- It cannot remove a mandatory reference.
+- It is off by default, and the deterministic candidate order is preserved on
+  the plan for audit whether or not it ran.
+
+**Non-claim.** A crafted *path* or *symbol name* is still metadata the
+reranker sees. It can influence order within the bounded candidate set; it
+cannot introduce a candidate, remove a mandatory one, or reach outside the set.
+
+### T72 — A sensitive file selected for a remote model
+
+**Threat.** Automatic retrieval sends `.env`, a private key, or a credentials
+JSON to a paid remote provider because its filename looked relevant.
+
+**Mitigations.**
+
+- Credential-shaped paths are excluded **before any read**: `.env*`, `.netrc`,
+  `.npmrc`, `id_rsa`, `*.pem|key|p12|pfx|jks|keystore|asc|gpg`, service-account
+  JSON, and credential/secret/password-named data files. They are never
+  indexed, so they are never candidates, never ranked, and never appear in a
+  diagnostic.
+- The configured `execution.protectedPaths` are excluded from indexing —
+  reusing the operator's existing declaration rather than inventing a second
+  exclusion list.
+- `.gitignore` is honoured, so untracked local secrets are excluded on the
+  same terms Git excludes them.
+- The paid lane uses the POINTER shape with a much smaller working-set
+  ceiling: unrelated repository content does not leave the machine at all.
+
+**Non-claim.** This is a deterministic **path filter**, not a secret scanner.
+It cannot find an API key pasted into an ordinary `.ts` file. Existing
+protections (redaction in logs, protected-path enforcement) are unchanged and
+remain the primary control for that case.
+
+### T73 — A compressed summary hiding failure identity
+
+**Threat.** Compression drops the fields a failure fingerprint is computed
+from. vNext.6 then sees two occurrences of the same failure as different, and
+no-progress detection never fires — turning a bounded runtime back into a
+retry loop.
+
+**Mitigations.**
+
+- Deterministic extractors preserve identity-bearing fields verbatim: failing
+  test names, assertion text, error codes, file/line locations, and the
+  leading distinct output lines.
+- Compression is a pure function of the raw bytes, so the same failure
+  compresses identically across attempts and any fingerprint computed over it
+  matches.
+- Repetition is collapsed to a signature **plus a count**; the count is itself
+  signal and is preserved.
+- Exercised directly: two attempts with the same failure produce the same
+  fingerprint after compression, and a different failure still produces a
+  different one.
+
+### T74 — Summary-of-summary information decay
+
+**Threat.** Repeated compression of already-compressed material accumulates
+loss until the record says nothing useful.
+
+**Mitigations.**
+
+- An item already marked `compacted` is not compressed again.
+- Compression records its `sourceHashes` and `sourceRefs`, so a refresh can
+  re-compress from the **canonical raw artifact** rather than from a summary.
+- Canonical raw evidence stays in the run directory and evidence store under
+  existing retention policy; the compressed form is what the prompt receives,
+  never the only copy.
+- Source files are never compressed at all.
+
+### T75 — Index corruption treated as canonical truth
+
+**Threat.** A corrupt, truncated, or foreign index is trusted, and a job makes
+decisions from a description of a repository that does not exist.
+
+**Mitigations.**
+
+- Any doubt resolves to **rebuild**: unreadable file, invalid JSON, schema
+  failure, format-version mismatch, or a `workspaceKey` from a different root.
+- The index carries an explicit `formatVersion`; a mismatch rebuilds rather
+  than migrating, because migrating a disposable cache is work with no payoff.
+- Job state never depends on the index. Deleting the whole cache directory is
+  a supported operation; the job remains recoverable from durable SpecBridge
+  state plus the repository, and the index rebuilds on the next selection.
+
+### T76 — The repository index escaping the workspace
+
+**Threat.** Indexing follows a symlink out of the repository and pulls
+arbitrary filesystem content into a prompt.
+
+**Mitigations.**
+
+- Symlinks are recorded but **never followed** — a link can point outside the
+  workspace, and an index that resolved one would describe bytes the boundary
+  rules were never applied to.
+- Every path stays workspace-relative; `..` segments and absolute paths are
+  refused.
+- The cache file itself passes `assertInsideWorkspace`, like every other
+  SpecBridge write.
+
+### T77 — Context diagnostics leaking source
+
+**Threat.** `explain-context` prints file bodies or an assembled prompt into a
+terminal, a CI log, or a pasted bug report.
+
+**Mitigations.**
+
+- The `ContextSelectionPlan` stores paths, content hashes, ranges, reasons,
+  and estimates — **never content**. There is nothing in the persisted record
+  to redact.
+- The explanation projection measures items (layer sizes, freshness/authority
+  census) without copying their content.
+- Both the human and `--json` renderings emit metadata only.
+
+### T78 — Context expansion becoming a token-amplification loop
+
+**Threat.** Every failure is answered with more context, each attempt costs
+more than the last, and the job spends its budget growing prompts.
+
+**Mitigations.**
+
+- Widening requires **observed** evidence of insufficiency. "The attempt
+  failed" is not evidence; a worker asserting it needs more context without
+  naming an artifact is not evidence either.
+- Exactly one level per expansion, never a jump to the ceiling.
+- Bounded per attempt and per task, in **durable** state so a restart cannot
+  reset the counter.
+- Refused once the working set has grown past a configured multiple of its
+  first size.
+- The ceiling is a bounded fallback, never "the repository".
+- When widening is spent, the decision returns to the reliability planner with
+  `CONTEXT_EXPANSION_EXHAUSTED` and the strategy changes instead.
+
+### T79 — Stable-prefix construction pinning stale state
+
+**Threat.** Optimizing for provider prompt caching pins a file body into the
+prefix, and every subsequent attempt is handed the same out-of-date content —
+now with the authority of "this is the stable part".
+
+**Mitigations.**
+
+- Only `PINNED`-layer items are eligible for the prefix, and an item whose
+  freshness is `STALE_IF_REPO_CHANGES` or `EPHEMERAL` is structurally barred
+  from it.
+- Eligible kinds are an explicit list of policy and contract material.
+- The prefix hash makes an unexpected change visible; it is an observability
+  aid and is never sent to a provider.
+
+**Non-claim.** SpecBridge does not implement any provider cache protocol and
+never reports a cache hit it did not observe.
+
+### T80 — A context miss misread as an intelligence failure
+
+**Threat.** An attempt fails because the worker was never shown the file it
+had to edit, SpecBridge records it as an implementation failure, and the task
+escalates to a stronger model — spending prepaid quota, or real money, on a
+question no model could answer from that package.
+
+**Mitigations.**
+
+- Six **observable** insufficiency signals, each one something SpecBridge
+  watched happen rather than something a model claimed.
+- A model asserting it needs more context, with no artifact named, produces no
+  signal — otherwise a worker could request its own budget increase.
+- When signals are present the failure `source` becomes `CONTEXT`, which
+  `permitsIntelligenceEscalation` already excludes from escalation.
+- The recovery planner prefers `EXPAND_CONTEXT` over any escalation, and the
+  decision is durable and auditable.
+- Broken verification machinery, execution-bounds failures, and hard
+  boundaries all still outrank a context signal.
+
+### T81 — A worker requesting its own context budget increase
+
+**Threat.** A model learns that saying "I need more context" produces more
+context, and every attempt asks for a bigger package.
+
+**Mitigations.**
+
+- Signal detection is **grounded in the index**: a path the worker names only
+  counts when that path exists in the repository and was not provided. A
+  hallucinated filename produces nothing.
+- The context layer only ever produces an **offer**. Reliability decides, and
+  it may ignore the offer entirely.
+- The expansion budget is durable, bounded, and not reachable from model
+  output — the same rule that governs every other budget in the system.
+
 ## Explicit non-claims
 
 Security models fail through overclaiming. SpecBridge does **not** claim:
@@ -1498,7 +1754,26 @@ Security models fail through overclaiming. SpecBridge does **not** claim:
    window are detected deterministically and force a strategy change. A task
    that fails differently every time is not stagnating by this definition and
    keeps its attempt budget — the budget, not the detector, is the backstop.
-10. **Model-assisted workflows are nondeterministic.** Anything a model
+10. **Retrieval relevance is not proof that omitted files are irrelevant.**
+   Context selection is a ranked judgement over metadata: paths, hashes,
+   declared symbols, import edges, and what durable state names. It is
+   deterministic and auditable, and it is still a judgement. The system
+   handles being wrong through provenance, freshness checks, bounded
+   progressive expansion, and recovery — not by claiming retrieval is
+   complete. Symbol and import extraction is conservative and pattern-based,
+   not compiler-grade analysis, and the `.gitignore` matcher implements a
+   documented subset rather than the full language.
+11. **Credential-shaped path exclusion is a filter, not a secret scanner.**
+   It guarantees that a file whose PATH advertises credentials is never
+   indexed, never ranked, and never becomes remote prompt content. It cannot
+   find a key pasted into an ordinary source file; existing redaction and
+   protected-path controls remain the primary protection for that.
+12. **Stable prefixes do not guarantee provider cache hits.** SpecBridge
+   orders long-lived material consistently so caching is possible, and
+   records `cachedInputTokens` only when a provider actually reports cached
+   tokens. It implements no provider cache protocol and never reports a
+   saving it did not observe.
+13. **Model-assisted workflows are nondeterministic.** Anything a model
    authors — spec prose, code edits, refinements — can differ between
    runs and can be wrong. SpecBridge makes the *controls* deterministic
    (hashes, approvals, evidence, verification rules), never the model

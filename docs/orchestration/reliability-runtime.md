@@ -512,6 +512,9 @@ later, is the same order this phase applies to everything else.
 - [Survival runtime](survival-runtime.md) — attempts, checkpoints, context
 - [Quota scheduling](quota-scheduling.md) — lanes, modes, admission
 - [Local agentic runtime](local-agentic-runtime.md) — LOCAL execution modes
+- [Context efficiency runtime (vNext.7)](context-efficiency.md) — how a
+  context miss is told apart from an intelligence failure, and answered by
+  bounded widening rather than escalation
 - [API gap bridge](api-gap-bridge.md) — paid continuity and spend authorization
 - [Retry and repair](retry-and-repair.md) — the v1.1 failure taxonomy
 - [Threat model](../security/threat-model.md) — section 13

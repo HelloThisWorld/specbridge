@@ -76,6 +76,11 @@ reference, grouped by area.
   deterministic-first evaluation, cross-lane failure assessment, no-progress
   and oscillation detection, runaway handling, and the pure recovery planner
   that decides when more computation is no longer justified.
+- [Context efficiency runtime (vNext.7)](orchestration/context-efficiency.md) —
+  the repository context index, deterministic retrieval, execution-shape-aware
+  assembly (materialize for a direct model, point for a harness), structured
+  compression, and bounded progressive expansion when a context miss is
+  diagnosed.
 - [Orchestration configuration](orchestration/configuration.md) — every
   policy knob, with defaults.
 

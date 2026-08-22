@@ -84,6 +84,32 @@ export interface RecoveryPlanInput {
   infrastructureRetriesUsed: number;
   /** Context occupancy after the failed attempt, when measured. */
   contextRatio: number | null;
+  /**
+   * vNext.7: whether bounded context WIDENING is available right now.
+   *
+   * Supplied by the caller from the pure expansion planner, never computed
+   * here. The separation is the same one that runs through the rest of this
+   * phase: the context layer decides what widening WOULD mean and whether
+   * its budget allows it; the recovery planner decides whether widening is
+   * the right response at all. A context layer that could choose its own
+   * recovery would be retrying itself, which no subsystem in SpecBridge is
+   * permitted to do.
+   *
+   * Absent means "no widening on offer", and the planner proceeds exactly as
+   * it did in vNext.6.
+   */
+  contextExpansion?:
+    | {
+        /** True when one more bounded level is permitted by policy and budget. */
+        available: boolean;
+        /** The level the next package would be built at. */
+        nextLevel: string;
+        /** Bounded, safe explanation from the expansion planner. */
+        reason: string;
+        /** True when widening is spent and the decision must change strategy. */
+        exhausted: boolean;
+      }
+    | undefined;
   resource: RecoveryResource;
 }
 
@@ -301,7 +327,62 @@ export function planRecovery(input: RecoveryPlanInput): RecoveryPlan {
     };
   }
 
-  // 7. RUNAWAY and context degradation. Both say the SESSION went wrong
+  // 7a. Context INSUFFICIENCY, before context degradation and before any
+  //     escalation. The distinction these two rules encode is the heart of
+  //     vNext.7: a degraded session had everything it needed and lost it,
+  //     while an insufficient package never had it. The first is answered by
+  //     rebuilding the same context; the second, only by widening.
+  //
+  //     Placing this above escalation is what stops a missing file from being
+  //     billed as an intelligence failure. Nothing about the model has been
+  //     demonstrated by an attempt that was never shown the code.
+  const expansion = input.contextExpansion;
+  if (assessment.source === 'CONTEXT' && expansion?.available === true) {
+    const next = describeStrategy({
+      lane: input.lane,
+      executionMode: input.executionMode,
+      planRevision: input.planRevision,
+      freshContext: true,
+    });
+    return {
+      action: 'EXPAND_CONTEXT',
+      reasonCode: 'CONTEXT_INSUFFICIENT_EXPAND',
+      reason:
+        'The attempt failed for want of repository context that was never selected, not for want of ' +
+        `intelligence. Retrieval widens one bounded level to ${expansion.nextLevel} rather than escalating.`,
+      strategyChange: 'CONTEXT',
+      previousStrategy,
+      nextStrategy: next,
+      remediation: [
+        expansion.reason.slice(0, 500),
+        'The contract, acceptance criteria, failed approaches, and recovery state are re-injected deterministically.',
+      ],
+    };
+  }
+
+  // 7b. Context widening is SPENT.
+  //
+  //     Placed above the fresh-context rule on purpose. A restart rebuilds
+  //     the same package from the same durable state at the same retrieval
+  //     level — which is the right answer for a DEGRADED session that had
+  //     what it needed and lost it, and the wrong answer for an INSUFFICIENT
+  //     one that never had it. Re-sending a package already proven
+  //     inadequate is the retry-without-a-change this phase exists to
+  //     refuse, so the strategy changes instead.
+  if (assessment.source === 'CONTEXT' && expansion?.exhausted === true) {
+    if (canReplan(budget)) {
+      return replanPlan(
+        input,
+        previousStrategy,
+        'CONTEXT_EXPANSION_EXHAUSTED',
+        'Context has been widened as far as its bounded budget allows and the work still fails; more context is not the answer, so the approach changes instead.',
+      );
+    }
+    const modeChange = localModeChange(input);
+    if (modeChange !== null) return modeChange;
+  }
+
+  // 7c. RUNAWAY and context degradation. Both say the SESSION went wrong
   //    rather than the code, and both are answered by rebuilding context from
   //    durable state rather than by asking a bigger model the same question.
   const contextDegraded =

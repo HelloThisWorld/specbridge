@@ -320,10 +320,66 @@ describe('local context preprocessing', () => {
     expect(pinned?.content).toBe(bigLog);
     const compressed = result.items.find((item) => item.layer === 'WORKING_SET');
     expect(compressed?.compacted).toBe(true);
-    expect(compressed?.content).toContain('ENOENT');
+    // vNext.7: structured test output is reduced by PARSING, not by a model.
+    // The failing test name survives verbatim, which is what keeps the
+    // vNext.6 failure fingerprint comparable across attempts.
+    expect(result.deterministicCompressions).toBe(1);
+    expect(result.localCompressions).toBe(0);
+    expect(compressed?.content).toContain('settings-store.spec');
+    expect(compressed?.compression?.method).toBe('test-log-v1');
+    expect(compressed?.compression?.sourceHashes[0]).toBeTruthy();
   });
 
-  it('falls back to the original item when local compression fails', async () => {
+  it('falls back to the bounded local model only for unstructured bulk', async () => {
+    let calls = 0;
+    const inference: LocalExecutorInference = () => {
+      calls += 1;
+      return Promise.resolve({
+        ok: true,
+        text: JSON.stringify({
+          summary: 'The deployment narrative describes an ENOENT during teardown.',
+          keyFindings: ['save path throws ENOENT'],
+        }),
+      });
+    };
+    // Prose with no test/compiler/lint/diff structure AND no repetition the
+    // collapser can exploit — every line has a distinct signature. This is
+    // exactly the residue the bounded local lane exists for.
+    const token = (value: number): string => (value * 2_654_435_761).toString(36).slice(-5).padStart(5, 'q');
+    const prose = Array.from(
+      { length: 400 },
+      (_, index) =>
+        `Observation ${token(index + 1)}: the ${token(index + 7)} handler drained ${token(index + 13)} ` +
+        `before ${token(index + 29)} settled and released ${token(index + 41)}.`,
+    ).join('\n');
+
+    const result = await compressContextItemsLocally({
+      items: [
+        {
+          itemId: 'working-narrative',
+          layer: 'WORKING_SET',
+          kind: 'tool-result',
+          title: 'Deployment narrative',
+          content: prose,
+          createdAt: '2026-08-21T12:00:00.000Z',
+          source: 'run-1',
+          compacted: false,
+        },
+      ],
+      inference,
+      clock: () => new Date('2026-08-21T12:01:00.000Z'),
+    });
+
+    expect(calls).toBe(1);
+    expect(result.localCompressions).toBe(1);
+    const compressed = result.items.find((item) => item.layer === 'WORKING_SET');
+    expect(compressed?.content).toContain('ENOENT');
+    // Local compression is DERIVED data and names where the original lives.
+    expect(compressed?.compression?.method).toBe('local-model-v1');
+    expect(compressed?.compression?.sourceRefs).toContain('run-1');
+  });
+
+  it('falls back to the deterministic view when local compression fails', async () => {
     const inference: LocalExecutorInference = () =>
       Promise.resolve({ ok: false, kind: 'unavailable', problem: 'server down' });
     const bigLog = 'x'.repeat(10_000);
@@ -342,7 +398,44 @@ describe('local context preprocessing', () => {
       ],
       inference,
     });
+    // vNext.7: an unavailable local lane no longer means shipping raw bulk.
+    // The bounded deterministic view stands in — it is not a hole (it names
+    // its source and preserves the leading identity lines), and the raw
+    // artifact remains retrievable from where it already lives.
+    expect(result.compressedItemIds).toEqual(['working-log']);
+    expect(result.localCompressions).toBe(0);
+    expect(result.deterministicCompressions).toBe(1);
+    const item = result.items[0];
+    expect(item?.content.length).toBeLessThan(bigLog.length);
+    expect(item?.compression?.sourceRefs).toContain('test');
+    expect(item?.compression?.sourceHashes[0]).toBeTruthy();
+  });
+
+  it('leaves an artifact untouched when nothing can be reduced', async () => {
+    let calls = 0;
+    const inference: LocalExecutorInference = () => {
+      calls += 1;
+      return Promise.resolve({ ok: false, kind: 'unavailable', problem: 'server down' });
+    };
+    const small = 'a single short error line';
+    const result = await compressContextItemsLocally({
+      items: [
+        {
+          itemId: 'working-small',
+          layer: 'WORKING_SET',
+          kind: 'log',
+          title: 'Log',
+          content: small,
+          createdAt: '2026-08-21T12:00:00.000Z',
+          source: 'test',
+          compacted: false,
+        },
+      ],
+      inference,
+    });
+    // Below the threshold: no parse, no model call, no fabricated saving.
+    expect(calls).toBe(0);
     expect(result.compressedItemIds).toEqual([]);
-    expect(result.items[0]?.content).toBe(bigLog);
+    expect(result.items[0]?.content).toBe(small);
   });
 });
