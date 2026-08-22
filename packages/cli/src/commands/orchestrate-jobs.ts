@@ -24,6 +24,11 @@ import {
   readConflicts,
   readEvaluations,
   readExecutionLedger,
+  listEvaluationResults,
+  listFailureAssessments,
+  listRecoveryDecisions,
+  readTaskReliabilityState,
+  summarizeExecutionLedger,
   readJobCheckpoint,
   readJobEvents,
   readLatestWorkGraph,
@@ -1335,4 +1340,216 @@ export function registerOrchestrateJobCommands(orchestrate: Command, runtime: Cl
         }
       },
     );
+  // -------------------------------------------------------------------------
+  // explain-node — why is this task not complete, and what would unblock it
+  // -------------------------------------------------------------------------
+  orchestrate
+    .command('explain-node')
+    .description(
+      'Explain one task: evaluation verdicts, execution health, the repeating failure, ' +
+        'remaining budget, the current recovery decision, and what would unblock it (read-only)',
+    )
+    .argument('<jobId>')
+    .argument('<nodeId>')
+    .option('--json', 'output a machine-readable JSON report')
+    .action((jobId: string, nodeId: string, options: { json?: boolean }) => {
+      const context = loadExecutionContext(runtime);
+      const workspace = context.workspace;
+      const job = requireJobState(workspace, jobId);
+      const graph =
+        job.graphRevision > 0 ? requireGraphRevision(workspace, jobId, job.graphRevision) : undefined;
+      const node = graph?.nodes.find((candidate) => candidate.nodeId === nodeId);
+      if (node === undefined) {
+        throw new SpecBridgeError(
+          'INVALID_ARGUMENT',
+          `Node ${nodeId} does not exist in the active graph of job ${jobId}.`,
+          {
+            exitCode: EXIT_CODES.usageError,
+            remediation: [`List the graph with \`${CLI_BIN} orchestrate job ${jobId}\`.`],
+          },
+        );
+      }
+
+      const reliability = readTaskReliabilityState(workspace, jobId, nodeId);
+      const evaluations = listEvaluationResults(workspace, jobId, { nodeId });
+      const assessments = listFailureAssessments(workspace, jobId, { nodeId });
+      const decisions = listRecoveryDecisions(workspace, jobId, { nodeId });
+      const latestEvaluation = evaluations.at(-1);
+      const latestAssessment = assessments.at(-1);
+      const latestDecision = decisions.at(-1);
+      const ledger = summarizeExecutionLedger(readExecutionLedger(workspace, jobId, { nodeId }));
+
+      const budgets = job.budgets;
+      const remaining = {
+        attempts: Math.max(
+          0,
+          budgets.maxTaskAttempts -
+            node.attempts.filter((attempt) => attempt.role === 'EXECUTOR').length,
+        ),
+        repairs: Math.max(0, budgets.maxRepairCyclesPerTask - node.repairCycles),
+        replans: Math.max(0, budgets.maxReplansPerTask - node.replans),
+        transientRetries: Math.max(0, budgets.maxTransientRetries - job.counters.transientRetries),
+      };
+
+      // Failure fingerprints seen more than once, most repeated first: the
+      // direct answer to "what keeps happening?".
+      const fingerprintCounts = new Map<string, number>();
+      for (const entry of reliability?.observations ?? []) {
+        if (entry.failureFingerprint === null) continue;
+        fingerprintCounts.set(
+          entry.failureFingerprint,
+          (fingerprintCounts.get(entry.failureFingerprint) ?? 0) + 1,
+        );
+      }
+      const repeating = [...fingerprintCounts.entries()]
+        .filter(([, count]) => count > 1)
+        .sort((left, right) => right[1] - left[1]);
+
+      const failedChecks = (latestEvaluation?.deterministicChecks ?? []).filter(
+        (check) => check.required && check.outcome !== 'PASSED',
+      );
+
+      if (options.json === true) {
+        jsonOut(runtime, 'orchestrate-explain-node', {
+          job: { jobId, status: job.status },
+          node: {
+            nodeId,
+            taskId: node.parentTaskId,
+            title: node.title,
+            status: node.status,
+            planRevision: node.planRevision,
+          },
+          health: reliability?.health ?? 'HEALTHY',
+          evaluation: latestEvaluation ?? null,
+          failedChecks,
+          assessment: latestAssessment ?? null,
+          recovery: latestDecision ?? null,
+          repeatingFingerprints: repeating.map(([fingerprint, count]) => ({ fingerprint, count })),
+          remaining,
+          counters: {
+            stagnationEvents: reliability?.stagnationEvents ?? 0,
+            oscillationEvents: reliability?.oscillationEvents ?? 0,
+            runawayEvents: reliability?.runawayEvents ?? 0,
+            freshContextRestarts: reliability?.freshContextRestarts ?? 0,
+          },
+          costOfFailure: ledger.reliability,
+        });
+        return;
+      }
+
+      runtime.out(reportTitle(`Task ${node.parentTaskId} (${nodeId})`));
+      runtime.out(infoLine(`  status: ${node.status}   health: ${reliability?.health ?? 'HEALTHY'}`));
+      runtime.out(dim(`    ${node.title.slice(0, 140)}`));
+
+      runtime.out('');
+      runtime.out(reportTitle('Why is it not complete?'));
+      if (node.status === 'COMPLETED') {
+        runtime.out(okLine('  The task completed through verified evidence and a passing evaluation.'));
+      } else if (latestEvaluation === undefined) {
+        runtime.out(dim('  No attempt has been evaluated yet.'));
+      } else {
+        const line = `  latest evaluation: ${latestEvaluation.status}`;
+        runtime.out(latestEvaluation.status === 'PASS' ? okLine(line) : failLine(line));
+        for (const reason of latestEvaluation.reasons.slice(0, 6)) {
+          runtime.out(dim(`    ${reason.slice(0, 200)}`));
+        }
+      }
+
+      if (failedChecks.length > 0) {
+        runtime.out('');
+        runtime.out(reportTitle('Which checks failed?'));
+        for (const check of failedChecks.slice(0, 15)) {
+          runtime.out(
+            failLine(
+              `  ${check.level}/${check.name}: ${check.outcome}` +
+                `${check.detail !== undefined ? ` — ${check.detail.slice(0, 160)}` : ''}`,
+            ),
+          );
+        }
+      }
+      if ((latestEvaluation?.failedCriteria.length ?? 0) > 0) {
+        runtime.out(
+          failLine(`  failed acceptance criteria: ${latestEvaluation?.failedCriteria.join(', ')}`),
+        );
+      }
+
+      if (repeating.length > 0) {
+        runtime.out('');
+        runtime.out(reportTitle('What keeps happening?'));
+        for (const [fingerprint, count] of repeating.slice(0, 5)) {
+          runtime.out(warnLine(`  failure ${fingerprint} recurred ${count} time(s)`));
+        }
+      }
+
+      if (latestAssessment !== undefined) {
+        runtime.out('');
+        runtime.out(reportTitle('What kind of failure is it?'));
+        runtime.out(
+          infoLine(
+            `  ${latestAssessment.category} from ${latestAssessment.source} ` +
+              `(${latestAssessment.recoverability}, basis ${latestAssessment.basis})`,
+          ),
+        );
+        runtime.out(dim(`    ${latestAssessment.likelyCause.slice(0, 300)}`));
+        if (latestAssessment.runawaySignals.length > 0) {
+          runtime.out(warnLine(`  runaway signals: ${latestAssessment.runawaySignals.join(', ')}`));
+        }
+      }
+
+      runtime.out('');
+      runtime.out(reportTitle('What did SpecBridge decide, and why?'));
+      if (latestDecision === undefined) {
+        runtime.out(dim('  No recovery decision has been made for this task.'));
+      } else {
+        runtime.out(
+          infoLine(`  ${latestDecision.action}  [${latestDecision.reasonCode}]`),
+        );
+        runtime.out(dim(`    ${latestDecision.reason.slice(0, 300)}`));
+        runtime.out(
+          dim(
+            `    strategy change: ${latestDecision.strategyChange}` +
+              `${latestDecision.applied ? '' : ' (not yet acted on)'}`,
+          ),
+        );
+        if (latestDecision.requestedCapability !== undefined) {
+          runtime.out(
+            dim(
+              `    requested ${latestDecision.requestedCapability.kind} capability — a requirement, ` +
+                'not an authorization: spend policy and the scheduler still decide.',
+            ),
+          );
+        }
+      }
+
+      runtime.out('');
+      runtime.out(reportTitle('How much budget remains?'));
+      runtime.out(
+        infoLine(
+          `  attempts ${remaining.attempts}/${budgets.maxTaskAttempts}   ` +
+            `repairs ${remaining.repairs}/${budgets.maxRepairCyclesPerTask}   ` +
+            `replans ${remaining.replans}/${budgets.maxReplansPerTask}   ` +
+            `transient retries ${remaining.transientRetries}/${budgets.maxTransientRetries}`,
+        ),
+      );
+      const cost = ledger.reliability;
+      runtime.out(
+        dim(
+          `  failed attempts: ${cost.failedAttempts}` +
+            `${cost.failedAttemptMs !== null ? `, ${(cost.failedAttemptMs / 1000).toFixed(1)}s` : ''}` +
+            `${cost.failedAttemptTokens !== null ? `, ${cost.failedAttemptTokens} token(s)` : ''}` +
+            `${cost.failedAttemptCostUsd !== null ? `, $${cost.failedAttemptCostUsd.toFixed(4)}` : ''}` +
+            ' spent without a verified completion',
+        ),
+      );
+
+      runtime.out('');
+      runtime.out(reportTitle('What would unblock it?'));
+      const remediation =
+        latestDecision !== undefined && latestDecision.remediation.length > 0
+          ? latestDecision.remediation
+          : job.blocker?.remediation ?? [
+              'Nothing is blocked: resume the job and the scheduler will continue.',
+            ];
+      for (const line of remediation.slice(0, 8)) runtime.out(dim(`  ${line}`));
+    });
 }

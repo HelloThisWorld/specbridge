@@ -383,6 +383,12 @@
               "--json"
             ]
           },
+          "explain-node": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
           "job": {
             "options": [
               "--events",

@@ -994,14 +994,14 @@ var require_foldFlowLines = __commonJS({
     var FOLD_FLOW = "flow";
     var FOLD_BLOCK = "block";
     var FOLD_QUOTED = "quoted";
-    function foldFlowLines(text7, indent, mode = "flow", { indentAtStart, lineWidth = 80, minContentWidth = 20, onFold, onOverflow } = {}) {
+    function foldFlowLines(text8, indent, mode = "flow", { indentAtStart, lineWidth = 80, minContentWidth = 20, onFold, onOverflow } = {}) {
       if (!lineWidth || lineWidth < 0)
-        return text7;
+        return text8;
       if (lineWidth < minContentWidth)
         minContentWidth = 0;
       const endStep = Math.max(1 + minContentWidth, 1 + lineWidth - indent.length);
-      if (text7.length <= endStep)
-        return text7;
+      if (text8.length <= endStep)
+        return text8;
       const folds = [];
       const escapedFolds = {};
       let end = lineWidth - indent.length;
@@ -1018,14 +1018,14 @@ var require_foldFlowLines = __commonJS({
       let escStart = -1;
       let escEnd = -1;
       if (mode === FOLD_BLOCK) {
-        i2 = consumeMoreIndentedLines(text7, i2, indent.length);
+        i2 = consumeMoreIndentedLines(text8, i2, indent.length);
         if (i2 !== -1)
           end = i2 + endStep;
       }
-      for (let ch; ch = text7[i2 += 1]; ) {
+      for (let ch; ch = text8[i2 += 1]; ) {
         if (mode === FOLD_QUOTED && ch === "\\") {
           escStart = i2;
-          switch (text7[i2 + 1]) {
+          switch (text8[i2 + 1]) {
             case "x":
               i2 += 3;
               break;
@@ -1042,12 +1042,12 @@ var require_foldFlowLines = __commonJS({
         }
         if (ch === "\n") {
           if (mode === FOLD_BLOCK)
-            i2 = consumeMoreIndentedLines(text7, i2, indent.length);
+            i2 = consumeMoreIndentedLines(text8, i2, indent.length);
           end = i2 + indent.length + endStep;
           split = void 0;
         } else {
           if (ch === " " && prev && prev !== " " && prev !== "\n" && prev !== "	") {
-            const next = text7[i2 + 1];
+            const next = text8[i2 + 1];
             if (next && next !== " " && next !== "\n" && next !== "	")
               split = i2;
           }
@@ -1059,12 +1059,12 @@ var require_foldFlowLines = __commonJS({
             } else if (mode === FOLD_QUOTED) {
               while (prev === " " || prev === "	") {
                 prev = ch;
-                ch = text7[i2 += 1];
+                ch = text8[i2 += 1];
                 overflow = true;
               }
               const j = i2 > escEnd + 1 ? i2 - 2 : escStart - 1;
               if (escapedFolds[j])
-                return text7;
+                return text8;
               folds.push(j);
               escapedFolds[j] = true;
               end = j + endStep;
@@ -1079,39 +1079,39 @@ var require_foldFlowLines = __commonJS({
       if (overflow && onOverflow)
         onOverflow();
       if (folds.length === 0)
-        return text7;
+        return text8;
       if (onFold)
         onFold();
-      let res = text7.slice(0, folds[0]);
+      let res = text8.slice(0, folds[0]);
       for (let i3 = 0; i3 < folds.length; ++i3) {
         const fold = folds[i3];
-        const end2 = folds[i3 + 1] || text7.length;
+        const end2 = folds[i3 + 1] || text8.length;
         if (fold === 0)
           res = `
-${indent}${text7.slice(0, end2)}`;
+${indent}${text8.slice(0, end2)}`;
         else {
           if (mode === FOLD_QUOTED && escapedFolds[fold])
-            res += `${text7[fold]}\\`;
+            res += `${text8[fold]}\\`;
           res += `
-${indent}${text7.slice(fold + 1, end2)}`;
+${indent}${text8.slice(fold + 1, end2)}`;
         }
       }
       return res;
     }
-    function consumeMoreIndentedLines(text7, i2, indent) {
+    function consumeMoreIndentedLines(text8, i2, indent) {
       let end = i2;
       let start = i2 + 1;
-      let ch = text7[start];
+      let ch = text8[start];
       while (ch === " " || ch === "	") {
         if (i2 < start + indent) {
-          ch = text7[++i2];
+          ch = text8[++i2];
         } else {
           do {
-            ch = text7[++i2];
+            ch = text8[++i2];
           } while (ch && ch !== "\n");
           end = i2;
           start = i2 + 1;
-          ch = text7[start];
+          ch = text8[start];
         }
       }
       return end;
@@ -12139,7 +12139,7 @@ var require_core = __commonJS({
       errorsText(errors = this.errors, { separator = ", ", dataVar = "data" } = {}) {
         if (!errors || errors.length === 0)
           return "No errors";
-        return errors.map((e) => `${dataVar}${e.instancePath} ${e.message}`).reduce((text7, msg) => text7 + separator + msg);
+        return errors.map((e) => `${dataVar}${e.instancePath} ${e.message}`).reduce((text8, msg) => text8 + separator + msg);
       }
       $dataMetaSchema(metaSchema, keywordsJsonPointers) {
         const rules = this.RULES.all;
@@ -27719,6 +27719,23 @@ var jobSchedulerPolicySchema = external_exports.object({
   localExecution: localExecutionPolicySchema.default({}),
   api: apiExecutionPolicySchema.default({})
 }).passthrough();
+var reliabilityPolicySchema = external_exports.object({
+  enabled: external_exports.boolean().default(true),
+  sameFailureThreshold: external_exports.number().int().min(2).max(20).default(2),
+  oscillationThreshold: external_exports.number().int().min(2).max(20).default(3),
+  maxFreshContextRestarts: external_exports.number().int().min(0).max(10).default(1),
+  freshContextRecoveryRatio: external_exports.number().min(0.05).max(1).default(0.85),
+  maxInfrastructureRetries: external_exports.number().int().min(0).max(10).default(2),
+  maxToolCallsPerAttempt: external_exports.number().int().min(1).max(1e5).nullable().default(400),
+  maxCommandRunsPerAttempt: external_exports.number().int().min(1).max(1e5).nullable().default(200),
+  maxTestLoopsPerAttempt: external_exports.number().int().min(1).max(1e3).nullable().default(12),
+  maxAttemptWallTimeMs: external_exports.number().int().min(6e4).max(24 * 36e5).nullable().default(null),
+  maxContextUsageRatio: external_exports.number().min(0.05).max(1).default(0.95),
+  semanticReview: external_exports.enum(SEMANTIC_EVALUATION_MODES).default("auto"),
+  allowApiDeterministicRetry: external_exports.boolean().default(false),
+  gateDependentsOnEvaluation: external_exports.boolean().default(true),
+  maxRecordsPerJob: external_exports.number().int().min(10).max(2e4).default(1e3)
+}).passthrough();
 var jobPolicySchema = external_exports.object({
   /** When false, job operations refuse to start and report why. */
   enabled: external_exports.boolean().default(true),
@@ -27756,7 +27773,14 @@ var jobPolicySchema = external_exports.object({
    * quota thresholds are operational tuning — adjusting them mid-job must
    * not make a resumed job falsely report "the policy changed".
    */
-  scheduler: jobSchedulerPolicySchema.default({})
+  scheduler: jobSchedulerPolicySchema.default({}),
+  /**
+   * vNext.6 reliability policy (additive; conservative defaults). Also
+   * deliberately outside jobPolicyFingerprint: these are operational
+   * thresholds, and the BOUNDS a job is contractually held to
+   * (`budgets`) are already fingerprinted above.
+   */
+  reliability: reliabilityPolicySchema.default({})
 }).passthrough();
 var orchestrationPolicySchema = external_exports.object({
   /**
@@ -28549,27 +28573,27 @@ var import_path6 = __toESM(require("path"), 1);
 var import_fs8 = require("fs");
 var import_path7 = __toESM(require("path"), 1);
 var BOM = "\uFEFF";
-function splitLines(text7) {
+function splitLines(text8) {
   const lines = [];
   let start = 0;
   let i2 = 0;
-  while (i2 < text7.length) {
-    const code = text7.charCodeAt(i2);
+  while (i2 < text8.length) {
+    const code = text8.charCodeAt(i2);
     if (code === 10) {
-      lines.push({ text: text7.slice(start, i2), eol: "\n" });
+      lines.push({ text: text8.slice(start, i2), eol: "\n" });
       i2 += 1;
       start = i2;
     } else if (code === 13) {
-      const eol = text7.charCodeAt(i2 + 1) === 10 ? "\r\n" : "\r";
-      lines.push({ text: text7.slice(start, i2), eol });
+      const eol = text8.charCodeAt(i2 + 1) === 10 ? "\r\n" : "\r";
+      lines.push({ text: text8.slice(start, i2), eol });
       i2 += eol.length;
       start = i2;
     } else {
       i2 += 1;
     }
   }
-  if (start < text7.length) {
-    lines.push({ text: text7.slice(start), eol: "" });
+  if (start < text8.length) {
+    lines.push({ text: text8.slice(start), eol: "" });
   }
   return lines;
 }
@@ -28591,13 +28615,13 @@ var MarkdownDocument = class _MarkdownDocument {
     this.encodingSafe = encodingSafe;
     this.filePath = filePath;
   }
-  static fromText(text7, filePath) {
-    return _MarkdownDocument.create(text7, true, filePath);
+  static fromText(text8, filePath) {
+    return _MarkdownDocument.create(text8, true, filePath);
   }
   static fromBuffer(buffer, filePath) {
-    const text7 = buffer.toString("utf8");
-    const encodingSafe = Buffer.from(text7, "utf8").equals(buffer);
-    return _MarkdownDocument.create(text7, encodingSafe, filePath);
+    const text8 = buffer.toString("utf8");
+    const encodingSafe = Buffer.from(text8, "utf8").equals(buffer);
+    return _MarkdownDocument.create(text8, encodingSafe, filePath);
   }
   static load(filePath) {
     let buffer;
@@ -28608,9 +28632,9 @@ var MarkdownDocument = class _MarkdownDocument {
     }
     return _MarkdownDocument.fromBuffer(buffer, filePath);
   }
-  static create(text7, encodingSafe, filePath) {
-    const hasBom = text7.startsWith(BOM);
-    const body = hasBom ? text7.slice(1) : text7;
+  static create(text8, encodingSafe, filePath) {
+    const hasBom = text8.startsWith(BOM);
+    const body = hasBom ? text8.slice(1) : text8;
     return new _MarkdownDocument(splitLines(body), hasBom, encodingSafe, filePath);
   }
   get lineCount() {
@@ -28630,15 +28654,15 @@ var MarkdownDocument = class _MarkdownDocument {
     return line;
   }
   /** Replace the text of one line. The line ending is preserved untouched. */
-  setLineText(index, text7) {
-    if (text7.includes("\n") || text7.includes("\r")) {
+  setLineText(index, text8) {
+    if (text8.includes("\n") || text8.includes("\r")) {
       throw new SpecBridgeError(
         "INVALID_ARGUMENT",
         "setLineText received text containing a line break; surgical edits must stay on one line."
       );
     }
     const line = this.lineAt(index);
-    line.text = text7;
+    line.text = text8;
   }
   /** Reconstruct the exact document text (including BOM when present). */
   serialize() {
@@ -28660,8 +28684,8 @@ var MarkdownDocument = class _MarkdownDocument {
     const mask = new Array(this.documentLines.length).fill(false);
     let open = null;
     for (let i2 = 0; i2 < this.documentLines.length; i2 += 1) {
-      const text7 = this.documentLines[i2]?.text ?? "";
-      const match = FENCE_OPEN.exec(text7);
+      const text8 = this.documentLines[i2]?.text ?? "";
+      const match = FENCE_OPEN.exec(text8);
       if (open !== null) {
         mask[i2] = true;
         if (match !== null && match[1] !== void 0 && match[1].startsWith(open.char) && match[1].length >= open.length && (match[2] ?? "").trim() === "") {
@@ -28705,9 +28729,9 @@ var MarkdownDocument = class _MarkdownDocument {
       if (mask[i2] === true) continue;
       const match = HEADING.exec(this.documentLines[i2]?.text ?? "");
       if (match === null || match[1] === void 0) continue;
-      let text7 = (match[2] ?? "").trim();
-      text7 = text7.replace(/[ \t]+#+[ \t]*$/, "").trim();
-      headings.push({ line: i2, level: match[1].length, text: text7 });
+      let text8 = (match[2] ?? "").trim();
+      text8 = text8.replace(/[ \t]+#+[ \t]*$/, "").trim();
+      headings.push({ line: i2, level: match[1].length, text: text8 });
     }
     return headings;
   }
@@ -28734,8 +28758,8 @@ var MarkdownDocument = class _MarkdownDocument {
     const maxLevel = options?.maxLevel ?? 6;
     for (const section of this.sections()) {
       if (section.heading.level > maxLevel) continue;
-      const text7 = section.heading.text.trim();
-      const matched = typeof matcher === "string" ? text7.toLowerCase() === matcher.trim().toLowerCase() : matcher.test(text7);
+      const text8 = section.heading.text.trim();
+      const matched = typeof matcher === "string" ? text8.toLowerCase() === matcher.trim().toLowerCase() : matcher.test(text8);
       if (matched) return section;
     }
     return void 0;
@@ -28784,8 +28808,8 @@ function extractFrontMatter(document) {
     return { present: false, endLine: 0 };
   }
   for (let i2 = 1; i2 < document.lineCount; i2 += 1) {
-    const text7 = document.lineAt(i2).text.trim();
-    if (text7 === "---" || text7 === "...") {
+    const text8 = document.lineAt(i2).text.trim();
+    if (text8 === "---" || text8 === "...") {
       const raw = document.getText(1, i2);
       try {
         const data = (0, import_yaml.parse)(raw);
@@ -29017,8 +29041,8 @@ var ORDERED_ITEM = /^[ \t]*(\d+)[.)][ \t]+(.+)$/;
 var BULLET_ITEM = /^[ \t]*[-*+][ \t]+(.+)$/;
 var EARS = /\b(when|if|while|where)\b[\s\S]*\bshall\b/i;
 var KNOWN_TOP_SECTIONS = /* @__PURE__ */ new Set(["introduction", "overview", "summary", "requirements"]);
-function matchRequirementHeading(text7) {
-  const trimmed = text7.trim();
+function matchRequirementHeading(text8) {
+  const trimmed = text8.trim();
   const named = REQUIREMENT_HEADING.exec(trimmed);
   if (named !== null && named[1] !== void 0) {
     const title = (named[2] ?? "").trim();
@@ -29042,8 +29066,8 @@ function parseCriteria(document, requirementId, section, mask, diagnostics) {
   let unnumberedCount = 0;
   for (let i2 = acHeading.line + 1; i2 < endLine; i2 += 1) {
     if (mask[i2] === true) continue;
-    const text7 = document.lineAt(i2).text;
-    const ordered = ORDERED_ITEM.exec(text7);
+    const text8 = document.lineAt(i2).text;
+    const ordered = ORDERED_ITEM.exec(text8);
     if (ordered !== null && ordered[1] !== void 0 && ordered[2] !== void 0) {
       criteria.push({
         id: `${requirementId}.${ordered[1]}`,
@@ -29054,7 +29078,7 @@ function parseCriteria(document, requirementId, section, mask, diagnostics) {
       });
       continue;
     }
-    const bullet = BULLET_ITEM.exec(text7);
+    const bullet = BULLET_ITEM.exec(text8);
     if (bullet !== null && bullet[1] !== void 0 && criteria.length === 0) {
       unnumberedCount += 1;
       criteria.push({
@@ -29151,8 +29175,8 @@ function parseRequirements(document) {
   const unknownSections = [];
   for (const section of sections) {
     if (section.heading.level !== 2) continue;
-    const text7 = section.heading.text.trim().toLowerCase();
-    if (KNOWN_TOP_SECTIONS.has(text7)) continue;
+    const text8 = section.heading.text.trim().toLowerCase();
+    if (KNOWN_TOP_SECTIONS.has(text8)) continue;
     if (matchRequirementHeading(section.heading.text) !== void 0) continue;
     const insideRequirement = requirementSections.some(
       (r) => section.heading.line > r.startLine && section.heading.line < r.endLine
@@ -29206,9 +29230,9 @@ var KIND_MATCHERS = [
   [/overview|introduction|summary/i, "overview"],
   [/context|background/i, "context"]
 ];
-function classifyDesignHeading(text7) {
+function classifyDesignHeading(text8) {
   for (const [pattern, kind] of KIND_MATCHERS) {
-    if (pattern.test(text7)) return kind;
+    if (pattern.test(text8)) return kind;
   }
   return "unknown";
 }
@@ -29267,10 +29291,10 @@ function parseTasks(document) {
   const numbersSeen = /* @__PURE__ */ new Map();
   for (let i2 = 0; i2 < document.lineCount; i2 += 1) {
     if (mask[i2] === true) continue;
-    const text7 = document.lineAt(i2).text;
-    const match = CHECKBOX.exec(text7);
+    const text8 = document.lineAt(i2).text;
+    const match = CHECKBOX.exec(text8);
     if (match === null) {
-      const probe = CHECKBOX_PROBE.exec(text7);
+      const probe = CHECKBOX_PROBE.exec(text8);
       if (probe !== null) {
         const inner = probe[1] ?? "";
         const looksLikeCheckbox = inner.trim() === "" || /^[ \txX~-]+$/.test(inner);
@@ -29285,7 +29309,7 @@ function parseTasks(document) {
         }
       }
       if (allTasks.length > 0) {
-        const refMatch = REQUIREMENT_REF.exec(text7);
+        const refMatch = REQUIREMENT_REF.exec(text8);
         if (refMatch !== null) {
           const owner = allTasks[allTasks.length - 1];
           if (owner !== void 0) {
@@ -29395,8 +29419,8 @@ function nextOpenTasks(model, limit) {
   const optional2 = open.filter((task) => task.optional);
   return [...required2, ...optional2].slice(0, limit);
 }
-function normalizeHeading(text7) {
-  return text7.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+function normalizeHeading(text8) {
+  return text8.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
 }
 var CONCEPT_MATCHERS = [
   [/^current behaviou?r$|^actual behaviou?r$/, "current-behavior"],
@@ -29410,8 +29434,8 @@ var CONCEPT_MATCHERS = [
   [/^proposed fix$|^fix$|^fix approach$/, "proposed-fix"],
   [/^validation( strategy)?$|^verification( strategy)?$/, "validation-strategy"]
 ];
-function classifyBugfixHeading(text7) {
-  const normalized = normalizeHeading(text7);
+function classifyBugfixHeading(text8) {
+  const normalized = normalizeHeading(text8);
   for (const [pattern, concept] of CONCEPT_MATCHERS) {
     if (pattern.test(normalized)) return concept;
   }
@@ -29795,14 +29819,14 @@ function normalizedTaskPlanText(document) {
   let out = document.hasBom ? String.fromCharCode(65279) : "";
   for (let i2 = 0; i2 < document.lineCount; i2 += 1) {
     const line = document.lineAt(i2);
-    let text7 = line.text;
+    let text8 = line.text;
     if (mask[i2] !== true) {
-      const match = CHECKBOX_STATE_PREFIX.exec(text7);
+      const match = CHECKBOX_STATE_PREFIX.exec(text8);
       if (match !== null && match[1] !== void 0 && match[3] !== void 0) {
-        text7 = `${match[1]}${NORMALIZED_STATE}${match[3]}${text7.slice(match[0].length)}`;
+        text8 = `${match[1]}${NORMALIZED_STATE}${match[3]}${text8.slice(match[0].length)}`;
       }
     }
-    out += text7 + line.eol;
+    out += text8 + line.eol;
   }
   return out;
 }
@@ -29835,8 +29859,8 @@ function canonicalRequirementRef(raw) {
   return withoutPrefix.split(/[.-]/).map((segment) => segment.replace(/^0+(?=\d)/, "")).join(".");
 }
 var TEST_LANGUAGE = /\btest(?:s|ed|ing)?\b|\bunit[- ]tested\b|\bcovered by tests\b/i;
-function mentionsTests(text7) {
-  return TEST_LANGUAGE.test(text7);
+function mentionsTests(text8) {
+  return TEST_LANGUAGE.test(text8);
 }
 var ID_HEADING = /^((?:req)[-_. ]?\d+(?:[.-]\d+)*)[ \t]*[:.–—-]?[ \t]*(.*)$/i;
 var EXPLICIT_AC_MARKER = /^(ac[-_. ]?\d+(?:[.-]\d+)*)[ \t]*[:.–—-][ \t]*/i;
@@ -29982,16 +30006,16 @@ function extractTaskRequirementReferences(document, tasks) {
     if (mask[i2] === true) continue;
     const owner = ownerTaskAt(orderedTasks, i2);
     if (owner === void 0) continue;
-    const text7 = document.lineAt(i2).text;
+    const text8 = document.lineAt(i2).text;
     const isTaskLine = orderedTasks.some((task) => task.line === i2);
     if (!isTaskLine) {
-      const underscore = UNDERSCORE_REFS.exec(text7);
+      const underscore = UNDERSCORE_REFS.exec(text8);
       if (underscore !== null) {
         for (const item of splitReferenceList(underscore[1] ?? "")) {
           push(owner, item, i2, "underscore-refs", "deterministic");
         }
       } else {
-        const refsLine = REFS_LINE.exec(text7);
+        const refsLine = REFS_LINE.exec(text8);
         if (refsLine !== null) {
           for (const item of splitReferenceList(refsLine[1] ?? "")) {
             if (canonicalRequirementRef(item) !== void 0) {
@@ -30001,10 +30025,10 @@ function extractTaskRequirementReferences(document, tasks) {
         }
       }
     }
-    for (const match of text7.matchAll(BRACKET_REF)) {
+    for (const match of text8.matchAll(BRACKET_REF)) {
       if (match[1] !== void 0) push(owner, match[1], i2, "bracket-ref", "deterministic");
     }
-    for (const match of text7.matchAll(KEYWORD_REF)) {
+    for (const match of text8.matchAll(KEYWORD_REF)) {
       if (match[1] !== void 0) push(owner, match[1], i2, "keyword-ref", "heuristic");
     }
   }
@@ -30055,8 +30079,8 @@ function extractPathReferences(document) {
   const seen = /* @__PURE__ */ new Set();
   for (let i2 = 0; i2 < document.lineCount; i2 += 1) {
     if (mask[i2] === true) continue;
-    const text7 = document.lineAt(i2).text;
-    for (const match of text7.matchAll(BACKTICK_SPAN)) {
+    const text8 = document.lineAt(i2).text;
+    for (const match of text8.matchAll(BACKTICK_SPAN)) {
       const raw = match[1];
       if (raw === void 0) continue;
       const path54 = normalizePathCandidate(raw);
@@ -30073,7 +30097,7 @@ function extractPathReferences(document) {
         isGlob: GLOB_CHARS.test(path54)
       });
     }
-    for (const match of text7.matchAll(MARKDOWN_LINK)) {
+    for (const match of text8.matchAll(MARKDOWN_LINK)) {
       const raw = match[1];
       if (raw === void 0) continue;
       const path54 = normalizePathCandidate(raw);
@@ -30492,21 +30516,21 @@ function bodyOf(line) {
   const match = STRUCTURAL_PREFIX.exec(line);
   return (match !== null ? line.slice(match[0].length) : line).trim();
 }
-function findPlaceholdersInLine(text7) {
+function findPlaceholdersInLine(text8) {
   const found = [];
   ANGLE_TOKEN.lastIndex = 0;
-  for (let match = ANGLE_TOKEN.exec(text7); match !== null; match = ANGLE_TOKEN.exec(text7)) {
+  for (let match = ANGLE_TOKEN.exec(text8); match !== null; match = ANGLE_TOKEN.exec(text8)) {
     const token = match[1] ?? "";
     if (!HTML_TAGS.has(token)) found.push(`<${token}>`);
   }
-  const tbd = TBD_TODO.exec(text7);
+  const tbd = TBD_TODO.exec(text8);
   if (tbd !== null) found.push(tbd[0]);
-  const body = bodyOf(text7);
-  const instruction = stripListPrefix(text7.trim());
+  const body = bodyOf(text8);
+  const instruction = stripListPrefix(text8.trim());
   if (INSTRUCTION_LINE.test(instruction) || INSTRUCTION_LINE.test(body)) {
-    found.push(text7.trim());
+    found.push(text8.trim());
   } else if (TEMPLATE_LINES.has(body.toLowerCase())) {
-    found.push(text7.trim());
+    found.push(text8.trim());
   }
   return found;
 }
@@ -30520,12 +30544,12 @@ function scanPlaceholders(document) {
   let placeholderLineCount = 0;
   for (let i2 = 0; i2 < document.lineCount; i2 += 1) {
     if (mask[i2] === true) continue;
-    const text7 = document.lineAt(i2).text;
-    const trimmed = text7.trim();
+    const text8 = document.lineAt(i2).text;
+    const trimmed = text8.trim();
     if (trimmed.length === 0) continue;
-    const lineHits = findPlaceholdersInLine(text7);
+    const lineHits = findPlaceholdersInLine(text8);
     for (const hit of lineHits) hits.push({ line: i2, text: hit });
-    if (HEADING_LINE.test(text7) || TABLE_RULE.test(trimmed) || STATUS_NOTE.test(trimmed)) {
+    if (HEADING_LINE.test(text8) || TABLE_RULE.test(trimmed) || STATUS_NOTE.test(trimmed)) {
       continue;
     }
     bodyLineCount += 1;
@@ -30540,16 +30564,16 @@ function scanPlaceholders(document) {
 var EARS_TRIGGER = /^(when|if|while|where)\b/i;
 var SHALL = /\bshall\b/i;
 var TESTABLE_MODAL = /\b(shall|must|should|will)\b/i;
-function classifyEars(text7) {
-  const trimmed = text7.trim();
+function classifyEars(text8) {
+  const trimmed = text8.trim();
   if (EARS_TRIGGER.test(trimmed)) {
     return SHALL.test(trimmed) ? "ears" : "ears-malformed";
   }
   if (SHALL.test(trimmed)) return "ears";
   return "plain";
 }
-function looksTestable(text7) {
-  return TESTABLE_MODAL.test(text7);
+function looksTestable(text8) {
+  return TESTABLE_MODAL.test(text8);
 }
 var VAGUE_PHRASES = [
   "work correctly",
@@ -30583,10 +30607,10 @@ var VAGUE_PATTERN = new RegExp(
   `\\b(?:${VAGUE_PHRASES.map((phrase) => phrase.replace(/[-\s]+/g, "[-\\s]+")).join("|")})\\b`,
   "gi"
 );
-function findVaguePhrases(text7) {
+function findVaguePhrases(text8) {
   const found = [];
   VAGUE_PATTERN.lastIndex = 0;
-  for (let match = VAGUE_PATTERN.exec(text7); match !== null; match = VAGUE_PATTERN.exec(text7)) {
+  for (let match = VAGUE_PATTERN.exec(text8); match !== null; match = VAGUE_PATTERN.exec(text8)) {
     const phrase = match[0].toLowerCase().replace(/\s+/g, " ");
     if (!found.includes(phrase)) found.push(phrase);
   }
@@ -31434,7 +31458,7 @@ function analyzeSpecWorkflow(spec, evaluation, stages) {
 function buildInitialState(specName, specType, mode, origin, clock) {
   const shape = workflowShape(specType, mode);
   const stages = initialStages(shape, specName);
-  const now4 = isoNow(clock);
+  const now3 = isoNow(clock);
   return {
     schemaVersion: SPEC_STATE_SCHEMA_VERSION,
     specName,
@@ -31442,8 +31466,8 @@ function buildInitialState(specName, specType, mode, origin, clock) {
     workflowMode: mode,
     origin,
     status: deriveWorkflowStatus(shape, stages),
-    createdAt: now4,
-    updatedAt: now4,
+    createdAt: now3,
+    updatedAt: now3,
     stages
   };
 }
@@ -31478,14 +31502,14 @@ function readDescriptionFile(workspace, fromFile, cwd, maxBytes) {
   } catch (cause) {
     throw ioError("read description file", resolved, cause);
   }
-  const text7 = buffer.toString("utf8");
-  if (!Buffer.from(text7, "utf8").equals(buffer)) {
+  const text8 = buffer.toString("utf8");
+  if (!Buffer.from(text8, "utf8").equals(buffer)) {
     throw new SpecBridgeError(
       "INVALID_ARGUMENT",
       `--from-file is not valid UTF-8: ${resolved}. Re-save the file as UTF-8 and retry.`
     );
   }
-  const description = text7.replace(new RegExp("^\\uFEFF"), "").trim();
+  const description = text8.replace(new RegExp("^\\uFEFF"), "").trim();
   if (description.length === 0) {
     throw new SpecBridgeError("INVALID_ARGUMENT", `--from-file is empty: ${resolved}.`);
   }
@@ -42950,9 +42974,9 @@ ${execHelp.stderr}` : "";
   }
   const supportedTokens = /* @__PURE__ */ new Set();
   const capabilities = CODEX_CAPABILITY_PROBES.map((probe) => {
-    const text7 = probe.source === "root" ? rootText : execText;
+    const text8 = probe.source === "root" ? rootText : execText;
     const usable = probe.source === "root" ? rootUsable : execUsable;
-    const available = usable && probe.tokens.some((token) => tokenPresent(text7, token));
+    const available = usable && probe.tokens.some((token) => tokenPresent(text8, token));
     if (available) for (const token of probe.tokens) supportedTokens.add(token);
     return {
       id: probe.id,
@@ -45775,8 +45799,8 @@ function parseOpenAiResponse(style, bodyText) {
   if (!result.success) {
     return { problem: "the endpoint response does not match the responses shape" };
   }
-  let text7 = result.data.output_text;
-  if (text7 === void 0 && result.data.output !== void 0) {
+  let text8 = result.data.output_text;
+  if (text8 === void 0 && result.data.output !== void 0) {
     const parts = [];
     for (const item of result.data.output) {
       if (item.type !== void 0 && item.type !== "message") continue;
@@ -45786,10 +45810,10 @@ function parseOpenAiResponse(style, bodyText) {
         }
       }
     }
-    if (parts.length > 0) text7 = parts.join("");
+    if (parts.length > 0) text8 = parts.join("");
   }
   return {
-    ...text7 !== void 0 ? { text: text7 } : { problem: "the response carries no output text" },
+    ...text8 !== void 0 ? { text: text8 } : { problem: "the response carries no output text" },
     ...result.data.model !== void 0 ? { model: result.data.model } : {},
     ...result.data.usage !== void 0 ? {
       usage: {
@@ -45811,12 +45835,12 @@ var openAiModelsResponseSchema = external_exports.object({
 }).passthrough();
 function indicatesStructuredOutputUnsupported(status, bodyExcerpt) {
   if (status !== 400 && status !== 422) return false;
-  const text7 = (bodyExcerpt ?? "").toLowerCase();
-  return /response_format|json_schema|json schema|structured output|text\.format/.test(text7);
+  const text8 = (bodyExcerpt ?? "").toLowerCase();
+  return /response_format|json_schema|json schema|structured output|text\.format/.test(text8);
 }
-function redactSecretValue(text7, secret) {
-  if (secret === void 0 || secret.length === 0) return text7;
-  return text7.split(secret).join("<redacted>");
+function redactSecretValue(text8, secret) {
+  if (secret === void 0 || secret.length === 0) return text8;
+  return text8.split(secret).join("<redacted>");
 }
 function weakerStructuredOutputMode(mode) {
   if (mode === "json-schema") return "json-object";
@@ -45988,8 +46012,8 @@ var OpenAiCompatibleRunner = class {
     const value = process.env[variable];
     return value !== void 0 && value.length > 0 ? value : void 0;
   }
-  redact(text7) {
-    return redactSecretValue(text7, this.apiKeyValue());
+  redact(text8) {
+    return redactSecretValue(text8, this.apiKeyValue());
   }
   requestHeaders() {
     const headers = { ...this.config.headers };
@@ -46285,7 +46309,7 @@ var OpenAiCompatibleRunner = class {
       const unsupportedMode = mode !== "strict-json-prompt" && result.kind === "http-error" && indicatesStructuredOutputUnsupported(result.status, result.bodyExcerpt);
       return {
         ok: false,
-        failure: classifyHttpFailure2(result, (text7) => this.redact(text7)),
+        failure: classifyHttpFailure2(result, (text8) => this.redact(text8)),
         unsupportedMode,
         ...result.kind === "http-error" && result.bodyExcerpt !== void 0 ? { retained: this.redact(result.bodyExcerpt) } : {}
       };
@@ -47205,8 +47229,8 @@ function classifyDshFailure(failure, turnErrors = []) {
         })
       };
     case "rpc-error": {
-      const text7 = failure.message;
-      if (AUTH_PATTERN.test(text7)) {
+      const text8 = failure.message;
+      if (AUTH_PATTERN.test(text8)) {
         return {
           outcome: "failed",
           error: runnerError({
@@ -47219,7 +47243,7 @@ function classifyDshFailure(failure, turnErrors = []) {
           })
         };
       }
-      if (QUOTA_PATTERN.test(text7)) {
+      if (QUOTA_PATTERN.test(text8)) {
         return {
           outcome: "failed",
           error: runnerError({
@@ -47229,7 +47253,7 @@ function classifyDshFailure(failure, turnErrors = []) {
           })
         };
       }
-      if (RATE_PATTERN.test(text7)) {
+      if (RATE_PATTERN.test(text8)) {
         return {
           outcome: "failed",
           error: runnerError({
@@ -47240,7 +47264,7 @@ function classifyDshFailure(failure, turnErrors = []) {
           })
         };
       }
-      if (MODEL_PATTERN.test(text7)) {
+      if (MODEL_PATTERN.test(text8)) {
         return {
           outcome: "failed",
           error: runnerError({
@@ -47255,7 +47279,7 @@ function classifyDshFailure(failure, turnErrors = []) {
         outcome: "failed",
         error: runnerError({
           code: "api_error",
-          message: `The DeepSeek Harness runtime returned a protocol error: ${boundedMessage(text7)}`,
+          message: `The DeepSeek Harness runtime returned a protocol error: ${boundedMessage(text8)}`,
           ...failure.rpcCode !== void 0 ? { providerCode: String(failure.rpcCode) } : {}
         })
       };
@@ -47281,8 +47305,8 @@ function classifyDshFailure(failure, turnErrors = []) {
       };
   }
 }
-function boundedMessage(text7) {
-  return text7.length <= 500 ? text7 : `${text7.slice(0, 500)}\u2026 [truncated]`;
+function boundedMessage(text8) {
+  return text8.length <= 500 ? text8 : `${text8.slice(0, 500)}\u2026 [truncated]`;
 }
 var dshSessionEventSchema = external_exports.object({
   type: external_exports.string(),
@@ -48771,7 +48795,7 @@ function hashProtectedTree(workspaceRoot, relativeDir, into) {
   }
 }
 async function captureGitSnapshot(workspaceRoot, options = {}) {
-  const now4 = options.clock?.() ?? /* @__PURE__ */ new Date();
+  const now3 = options.clock?.() ?? /* @__PURE__ */ new Date();
   const diagnostics = [];
   const excludedPrefixes = [
     ...SNAPSHOT_EXCLUDED_PREFIXES,
@@ -48786,7 +48810,7 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
     });
     return {
       schemaVersion: GIT_SNAPSHOT_SCHEMA_VERSION,
-      capturedAt: now4.toISOString(),
+      capturedAt: now3.toISOString(),
       gitAvailable: false,
       detached: false,
       clean: false,
@@ -48860,7 +48884,7 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
   hashProtectedTree(workspaceRoot, import_path16.default.join(".specbridge", "state"), protectedHashes);
   return {
     schemaVersion: GIT_SNAPSHOT_SCHEMA_VERSION,
-    capturedAt: now4.toISOString(),
+    capturedAt: now3.toISOString(),
     gitAvailable: statusResult.ok,
     ...head !== void 0 ? { head } : {},
     ...branch !== void 0 ? { branch } : {},
@@ -49004,8 +49028,8 @@ async function capturePatch(workspaceRoot, maximumPatchBytes) {
   };
 }
 var TAIL_BYTES = 8 * 1024;
-function tail(text7) {
-  return text7.length > TAIL_BYTES ? text7.slice(text7.length - TAIL_BYTES) : text7;
+function tail(text8) {
+  return text8.length > TAIL_BYTES ? text8.slice(text8.length - TAIL_BYTES) : text8;
 }
 function skippedVerification(commands) {
   return {
@@ -49294,10 +49318,10 @@ function evidencePathEscapesRepository(recordedPath) {
 }
 var CHECKBOX_STATE_PREFIX2 = /^([ \t]*[-*+][ \t]+\[)([ xX~-])(\])/;
 function sameTaskLineIgnoringState(a2, b) {
-  const normalize = (text7) => {
-    const match = CHECKBOX_STATE_PREFIX2.exec(text7);
-    if (match === null || match[1] === void 0 || match[3] === void 0) return text7;
-    return `${match[1]} ${match[3]}${text7.slice(match[0].length)}`;
+  const normalize = (text8) => {
+    const match = CHECKBOX_STATE_PREFIX2.exec(text8);
+    if (match === null || match[1] === void 0 || match[3] === void 0) return text8;
+    return `${match[1]} ${match[3]}${text8.slice(match[0].length)}`;
   };
   return normalize(a2) === normalize(b);
 }
@@ -49828,8 +49852,8 @@ function invalidateDependentApprovals(workspace, state, stage, clock) {
   const statePath = writeSpecState(workspace, nextState);
   return { state: nextState, statePath, invalidated };
 }
-function splitLines2(text7) {
-  const lines = text7.split("\n");
+function splitLines2(text8) {
+  const lines = text8.split("\n");
   if (lines[lines.length - 1] === "") lines.pop();
   return lines;
 }
@@ -50455,15 +50479,15 @@ function readInteractiveLock(workspace) {
 }
 function acquireInteractiveLock(workspace, details) {
   const lockPath = interactiveLockPath(workspace);
-  const now4 = (details.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
+  const now3 = (details.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
   const lock = {
     schemaVersion: INTERACTIVE_LOCK_SCHEMA_VERSION,
     runId: details.runId,
     specName: details.specName,
     taskId: details.taskId,
     pid: details.pid ?? process.pid,
-    createdAt: now4,
-    heartbeatAt: now4
+    createdAt: now3,
+    heartbeatAt: now3
   };
   (0, import_fs20.mkdirSync)(import_path22.default.dirname(lockPath), { recursive: true });
   try {
@@ -50946,8 +50970,8 @@ async function abortInteractiveTask(deps, request) {
       ...report !== void 0 ? { outcome: classifyInteractiveOutcome(report) } : {}
     };
   }
-  const now4 = await captureGitSnapshot(workspace.rootDir, { clock: () => clock() });
-  const remaining = now4.gitAvailable ? agentChangedFiles(compareSnapshots(state.before, now4)).map((file) => file.path) : [];
+  const now3 = await captureGitSnapshot(workspace.rootDir, { clock: () => clock() });
+  const remaining = now3.gitAvailable ? agentChangedFiles(compareSnapshots(state.before, now3)).map((file) => file.path) : [];
   const abortedAt = clock().toISOString();
   writeRunArtifact(
     workspace,
@@ -52476,12 +52500,12 @@ function buildClarificationRound(state, candidates, policy, options) {
   const seen = /* @__PURE__ */ new Set();
   const questions = [];
   for (const candidate of candidates) {
-    const text7 = candidate.question.trim();
+    const text8 = candidate.question.trim();
     const why = candidate.whyItMatters.trim();
-    if (text7.length === 0) {
+    if (text8.length === 0) {
       throw new OrchestrationError("SBO007", "A clarification question must not be empty.");
     }
-    if (Buffer.byteLength(text7, "utf8") > policy.clarification.maxQuestionBytes) {
+    if (Buffer.byteLength(text8, "utf8") > policy.clarification.maxQuestionBytes) {
       throw new OrchestrationError(
         "SBO021",
         `A clarification question may be at most ${policy.clarification.maxQuestionBytes} bytes.`,
@@ -52491,21 +52515,21 @@ function buildClarificationRound(state, candidates, policy, options) {
     if (why.length === 0) {
       throw new OrchestrationError(
         "SBO007",
-        `Question "${text7.slice(0, 60)}" has no justification. Every question must state why the answer changes the implementation.`,
+        `Question "${text8.slice(0, 60)}" has no justification. Every question must state why the answer changes the implementation.`,
         { remediation: ["Drop the question, or explain what it would change."] }
       );
     }
-    const normalized = normalizeQuestion(text7);
+    const normalized = normalizeQuestion(text8);
     if (seen.has(normalized)) {
       throw new OrchestrationError(
         "SBO007",
-        `Question "${text7.slice(0, 60)}" is asked twice in the same round.`
+        `Question "${text8.slice(0, 60)}" is asked twice in the same round.`
       );
     }
     if (answered.has(normalized)) {
       throw new OrchestrationError(
         "SBO007",
-        `Question "${text7.slice(0, 60)}" was already answered in this run; re-asking it makes no progress.`,
+        `Question "${text8.slice(0, 60)}" was already answered in this run; re-asking it makes no progress.`,
         { remediation: ["Read the recorded decision, or supersede it with an explicit new decision."] }
       );
     }
@@ -52513,7 +52537,7 @@ function buildClarificationRound(state, candidates, policy, options) {
     questions.push(
       clarificationQuestionSchema.parse({
         id: options.idFactory(),
-        question: text7,
+        question: text8,
         whyItMatters: why,
         options: (candidate.options ?? []).slice(0, 10),
         ...candidate.relatedTaskId !== void 0 ? { relatedTaskId: candidate.relatedTaskId } : {},
@@ -54544,6 +54568,398 @@ var API_APPROVAL_STATUSES = [
   "EXPIRED",
   "SUPERSEDED"
 ];
+var EVALUATION_STATUSES = ["PASS", "FAIL", "INCONCLUSIVE"];
+var EVALUATION_CHECK_LEVELS = [
+  "EXECUTION_INTEGRITY",
+  "REPOSITORY_INTEGRITY",
+  "BUILD_STATIC",
+  "TESTS",
+  "ACCEPTANCE_CRITERIA",
+  "SEMANTIC_REVIEW"
+];
+var EVALUATION_CHECK_LEVEL_DEPTH = Object.freeze({
+  EXECUTION_INTEGRITY: 0,
+  REPOSITORY_INTEGRITY: 1,
+  BUILD_STATIC: 2,
+  TESTS: 3,
+  ACCEPTANCE_CRITERIA: 4,
+  SEMANTIC_REVIEW: 5
+});
+var EVALUATION_CHECK_OUTCOMES = [
+  "PASSED",
+  "FAILED",
+  "NOT_RUN",
+  "UNAVAILABLE",
+  "TIMED_OUT"
+];
+var FAILURE_SOURCES = [
+  /** The implementation is wrong: the model did the work badly or not at all. */
+  "IMPLEMENTATION",
+  /** The approved contract/requirement is itself inconsistent or incomplete. */
+  "REQUIREMENT_CONTRACT",
+  /** The runtime that executes work failed (harness, sandbox, process, CLI). */
+  "EXECUTION_INFRASTRUCTURE",
+  /** The model provider failed or refused (rate limit, outage, model gone). */
+  "PROVIDER",
+  /** Working context degraded: polluted, stale, truncated, or over budget. */
+  "CONTEXT",
+  /** The machinery that JUDGES work failed (test runner, verifier, tooling). */
+  "VERIFICATION_INFRASTRUCTURE",
+  /** The repository moved, diverged, or is in a state the attempt cannot use. */
+  "REPOSITORY_STATE",
+  /** A configured budget refused the work. */
+  "BUDGET",
+  /** Credentials, permissions, or spend authorization refused the work. */
+  "AUTHORIZATION",
+  /** A genuinely transient condition that repeating may resolve. */
+  "TRANSIENT",
+  /** Not determinable from the evidence available. Never guessed. */
+  "UNKNOWN"
+];
+var FAILURE_SCOPES = ["ATTEMPT", "TASK", "JOB", "WORKSPACE"];
+var FAILURE_RECOVERABILITIES = [
+  "RECOVERABLE",
+  "REQUIRES_NEW_STRATEGY",
+  "REQUIRES_HUMAN",
+  "TERMINAL"
+];
+var ASSESSMENT_BASES = [
+  "DETERMINISTIC_EVIDENCE",
+  "PROVIDER_SIGNAL",
+  "ATTEMPT_HISTORY",
+  "MODEL_DIAGNOSIS",
+  "ABSENT"
+];
+var EXECUTION_HEALTH_STATES = [
+  "HEALTHY",
+  "DEGRADED",
+  "STALLED",
+  "OSCILLATING",
+  "RUNAWAY"
+];
+var RUNAWAY_SIGNALS = [
+  /** Observed tool calls exceeded the configured per-attempt ceiling. */
+  "TOOL_CALL_BUDGET",
+  /** The attempt exceeded its wall-clock bound. */
+  "WALL_TIME_BUDGET",
+  /** Context occupancy grew past the safe bound during the attempt. */
+  "CONTEXT_GROWTH",
+  /** The same command/test cycle repeated beyond the configured ceiling. */
+  "REPEATED_COMMAND_LOOP",
+  /** Repeated edits left the tree byte-identical. */
+  "NO_OP_EDIT_LOOP"
+];
+var RECOVERY_ACTIONS = [
+  /** Repeat the same operation: transient/infrastructure conditions only. */
+  "RETRY_TRANSIENT",
+  /** Goal and plan remain valid; fix the implementation against evidence. */
+  "REPAIR",
+  /** Discard the polluted transient session; rebuild context from durable state. */
+  "RESTART_FRESH_CONTEXT",
+  /** Stay on LOCAL, change how it spends compute (DIRECT_MODEL vs HARNESS). */
+  "RETRY_DIFFERENT_LOCAL_MODE",
+  /** The implementation strategy is invalid; produce a new one. */
+  "REPLAN",
+  /** Request stronger intelligence. A REQUEST — the scheduler still places it. */
+  "ESCALATE_INTELLIGENCE",
+  /** Request a different economic lane. Also a request, never a placement. */
+  "ESCALATE_LANE",
+  /** Nothing can legitimately run now; wait for capacity to return. */
+  "WAIT_FOR_RESOURCE",
+  /** A human must decide before anything else may run. */
+  "REQUEST_HUMAN_DECISION",
+  /** Stop: a prerequisite is unsatisfied. Recoverable, not final. */
+  "BLOCK",
+  /** Stop: bounded recovery is exhausted and the task did not complete. */
+  "FAIL_TASK"
+];
+var RECOVERY_REASON_CODES = [
+  // --- retry / repair ------------------------------------------------------
+  /** A genuinely transient condition, within the bounded transient budget. */
+  "TRANSIENT_WITHIN_BUDGET",
+  /** The runtime failed, not the work; a bounded infrastructure retry applies. */
+  "INFRASTRUCTURE_RETRY",
+  /** Localized implementation defect, plan still valid, repair budget remains. */
+  "LOCALIZED_DEFECT_REPAIRABLE",
+  /** A trusted verifier failed; repair against its output rather than rerun it. */
+  "VERIFICATION_FAILED_REPAIRABLE",
+  // --- context -------------------------------------------------------------
+  /** Symptoms point at context degradation rather than at the implementation. */
+  "CONTEXT_DEGRADED",
+  /** Context occupancy reached the configured recovery threshold. */
+  "CONTEXT_THRESHOLD_REACHED",
+  /** The attempt stalled inside its session; a fresh context gets one chance. */
+  "SESSION_STALLED_FRESH_CONTEXT",
+  // --- local mode ----------------------------------------------------------
+  /** A DIRECT_MODEL attempt failed for want of repository tools, not brains. */
+  "LOCAL_MODE_CHANGE_REPOSITORY_TOOLS",
+  // --- replan --------------------------------------------------------------
+  /** Repeated repairs failed with a stable contract: the strategy is wrong. */
+  "REPEATED_REPAIR_FAILED_REPLAN",
+  /** Attempts produce the same diff and the same failure: no progress. */
+  "NO_PROGRESS_REPLAN",
+  /** Attempts alternate between previously seen states. */
+  "OSCILLATION_REPLAN",
+  /** The plan's assumptions were invalidated by observed repository state. */
+  "PLAN_INVALIDATED_REPLAN",
+  /** Deterministic acceptance criteria failed while tests passed. */
+  "CONTRACT_MISMATCH_REPLAN",
+  // --- escalation ----------------------------------------------------------
+  /** Bounded local intelligence was spent without a verified implementation. */
+  "LOCAL_INTELLIGENCE_EXHAUSTED",
+  /** The failure is an implementation failure and stronger work is justified. */
+  "IMPLEMENTATION_NEEDS_STRONGER_INTELLIGENCE",
+  /** A capability the current lane lacks is required. */
+  "LANE_CAPABILITY_REQUIRED",
+  // --- waiting -------------------------------------------------------------
+  /** Prepaid capacity returns soon enough that waiting beats any alternative. */
+  "RESOURCE_RETURNS_SOON",
+  /** Paid continuation is not authorized; the task waits rather than spends. */
+  "PAID_CONTINUATION_UNAUTHORIZED",
+  /** Paid continuation is authorized in principle but the budget refused it. */
+  "PAID_BUDGET_REFUSED",
+  /** A paid attempt failed deterministically; another identical one is refused. */
+  "PAID_DETERMINISTIC_FAILURE_NO_RETRY",
+  // --- human ---------------------------------------------------------------
+  /** The approved contract is inconsistent with what implementation requires. */
+  "CONTRACT_CONFLICT_HUMAN",
+  /** The request is genuinely ambiguous; guessing is not permitted. */
+  "AMBIGUITY_HUMAN",
+  /** Continuing needs a budget expansion only a human may authorize. */
+  "BUDGET_EXPANSION_HUMAN",
+  // --- stop ----------------------------------------------------------------
+  /** The recovery budget for this task is spent. */
+  "RECOVERY_BUDGET_EXHAUSTED",
+  /** The failure category admits no automatic recovery at all. */
+  "NO_AUTOMATIC_RECOVERY_PATH",
+  /** A hard safety, permission, or authentication boundary was reached. */
+  "HARD_BOUNDARY",
+  /** Every recovery strategy available to this task has been tried and failed. */
+  "STRATEGIES_EXHAUSTED",
+  /** The evaluation could not reach a verdict and its infrastructure is broken. */
+  "EVALUATION_INFRASTRUCTURE_BROKEN"
+];
+var RECOVERY_STRATEGY_DIMENSIONS = [
+  "SAME",
+  "IMPLEMENTATION_APPROACH",
+  "EXECUTION_MODE",
+  "CONTEXT",
+  "PLAN",
+  "INTELLIGENCE",
+  "LANE"
+];
+var RELIABILITY_LIMITS = {
+  maxChecks: 60,
+  maxFindings: 40,
+  maxListItems: STATE_LIMITS.maxListItems,
+  maxEvidenceRefs: 40,
+  maxTextChars: STATE_LIMITS.maxTextChars,
+  maxShortTextChars: STATE_LIMITS.maxShortTextChars,
+  /** Bounded per-task fingerprint history used by loop detection. */
+  maxFingerprintHistory: 12
+};
+var shortText32 = external_exports.string().min(1).max(RELIABILITY_LIMITS.maxShortTextChars);
+var text3 = external_exports.string().min(1).max(RELIABILITY_LIMITS.maxTextChars);
+var semver2 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
+var evaluationCheckSchema = external_exports.object({
+  level: external_exports.enum(EVALUATION_CHECK_LEVELS),
+  /** Stable identifier of the check itself (verifier name, criterion id). */
+  name: shortText32,
+  outcome: external_exports.enum(EVALUATION_CHECK_OUTCOMES),
+  /** False for advisory checks that never by themselves fail a task. */
+  required: external_exports.boolean().default(true),
+  /** Bounded, safe detail. Never raw model prose, never a stack trace. */
+  detail: text3.optional(),
+  /** Evidence reference (run id, verifier result key, criterion id). */
+  evidenceRef: shortText32.optional(),
+  durationMs: external_exports.number().int().min(0).nullable().default(null)
+}).passthrough();
+var semanticFindingSchema = external_exports.object({
+  /** Acceptance criterion or contract id this finding relates to, if any. */
+  criterionId: shortText32.optional(),
+  severity: external_exports.enum(["blocking", "concern", "note"]),
+  /** Bounded structured observation. Never chain-of-thought. */
+  observation: text3,
+  /** Repository path the finding points at, when it points at one. */
+  path: shortText32.optional()
+}).passthrough();
+var evaluationResultSchema = external_exports.object({
+  schemaVersion: semver2,
+  evaluationId: shortText32,
+  jobId: shortText32,
+  nodeId: shortText32,
+  taskId: shortText32,
+  attemptId: shortText32,
+  /** The economic lane the evaluated attempt ran on, for cross-lane analysis. */
+  lane: shortText32.nullable().default(null),
+  status: external_exports.enum(EVALUATION_STATUSES),
+  /** Deterministic checks, in level order. Always populated. */
+  deterministicChecks: external_exports.array(evaluationCheckSchema).max(RELIABILITY_LIMITS.maxChecks).default([]),
+  /** Semantic checks. Empty unless a bounded review actually ran. */
+  semanticChecks: external_exports.array(evaluationCheckSchema).max(RELIABILITY_LIMITS.maxChecks).default([]),
+  /** Structured semantic findings; proposals only, never authority. */
+  semanticFindings: external_exports.array(semanticFindingSchema).max(RELIABILITY_LIMITS.maxFindings).default([]),
+  /** Acceptance-criteria ids that did not hold. */
+  failedCriteria: external_exports.array(shortText32).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  /** Run ids, verifier keys, patch refs backing this verdict. */
+  evidenceRefs: external_exports.array(shortText32).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
+  /**
+   * Normalized failure fingerprints observed during evaluation. These feed
+   * no-progress detection directly, which is why they live on the durable
+   * record rather than being recomputed from logs.
+   */
+  failureSignals: external_exports.array(shortText32).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  /** Ordered, safe explanation of how the status was reached. */
+  reasons: external_exports.array(text3).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  /**
+   * True when a semantic review ran AND the deterministic layers had
+   * already passed. Recorded so the "semantic never overrides
+   * deterministic" invariant is auditable after the fact.
+   */
+  semanticReviewRan: external_exports.boolean().default(false),
+  createdAt: shortText32
+}).passthrough();
+var failureAssessmentSchema = external_exports.object({
+  schemaVersion: semver2,
+  assessmentId: shortText32,
+  jobId: shortText32,
+  nodeId: shortText32,
+  taskId: shortText32,
+  attemptId: shortText32,
+  lane: shortText32.nullable().default(null),
+  /** The existing stable failure taxonomy, unchanged. */
+  category: external_exports.enum(FAILURE_CATEGORIES),
+  source: external_exports.enum(FAILURE_SOURCES),
+  scope: external_exports.enum(FAILURE_SCOPES),
+  recoverability: external_exports.enum(FAILURE_RECOVERABILITIES),
+  /** What this assessment rests on. Not a fabricated confidence number. */
+  basis: external_exports.enum(ASSESSMENT_BASES),
+  /** Deterministic identity of the failure (see failureFingerprint). */
+  fingerprint: shortText32,
+  /** Identity of the working-tree change set this failure came with. */
+  diffFingerprint: shortText32.nullable().default(null),
+  /** How many attempts on this task have ended with this fingerprint. */
+  repeatedCount: external_exports.number().int().min(1).default(1),
+  /** Bounded, safe statement of the likely cause. Never model prose. */
+  likelyCause: text3,
+  /** A hint for the planner, which decides independently. */
+  recommendedRecoveryClass: external_exports.enum(RECOVERY_ACTIONS).nullable().default(null),
+  /** Health at the time of assessment, for the durable record. */
+  health: external_exports.enum(EXECUTION_HEALTH_STATES).default("HEALTHY"),
+  /** Runaway signals that fired, when the attempt was stopped for one. */
+  runawaySignals: external_exports.array(external_exports.enum(RUNAWAY_SIGNALS)).max(RUNAWAY_SIGNALS.length).default([]),
+  evidenceRefs: external_exports.array(shortText32).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
+  createdAt: shortText32
+}).passthrough();
+var budgetSnapshotSchema = external_exports.object({
+  attemptsUsed: external_exports.number().int().min(0),
+  attemptsMax: external_exports.number().int().min(0),
+  repairsUsed: external_exports.number().int().min(0),
+  repairsMax: external_exports.number().int().min(0),
+  replansUsed: external_exports.number().int().min(0),
+  replansMax: external_exports.number().int().min(0),
+  transientRetriesUsed: external_exports.number().int().min(0),
+  transientRetriesMax: external_exports.number().int().min(0),
+  stagnationCount: external_exports.number().int().min(0).default(0),
+  /** Shared LOCAL-lane attempts used on this task (vNext.4 budget). */
+  localAttemptsUsed: external_exports.number().int().min(0).nullable().default(null),
+  localAttemptsMax: external_exports.number().int().min(0).nullable().default(null),
+  elapsedMs: external_exports.number().int().min(0).nullable().default(null),
+  maxWallClockMs: external_exports.number().int().min(0).nullable().default(null),
+  /** vNext.5 API budget, read from its owner — never counted here. */
+  apiRemainingUsd: external_exports.number().nullable().default(null),
+  apiEncumberedUsd: external_exports.number().min(0).nullable().default(null),
+  /** Provider-reported figures only; null when nothing was reported. */
+  reportedCostUsd: external_exports.number().min(0).nullable().default(null),
+  reportedTokens: external_exports.number().int().min(0).nullable().default(null)
+}).passthrough();
+var recoveryStrategySchema = external_exports.object({
+  lane: shortText32.nullable().default(null),
+  executionMode: shortText32.nullable().default(null),
+  planRevision: external_exports.number().int().min(0).default(0),
+  /** Whether the next attempt starts from a rebuilt context. */
+  freshContext: external_exports.boolean().default(false),
+  /** Stable digest of the four fields above, for equality comparison. */
+  key: shortText32
+}).passthrough();
+var recoveryDecisionSchema = external_exports.object({
+  schemaVersion: semver2,
+  decisionId: shortText32,
+  jobId: shortText32,
+  nodeId: shortText32,
+  taskId: shortText32,
+  /** The attempt whose failure this decision responds to. */
+  attemptId: shortText32,
+  /** The assessment this decision was made from. */
+  assessmentId: shortText32.optional(),
+  /** The evaluation this decision was made from, when one exists. */
+  evaluationId: shortText32.optional(),
+  action: external_exports.enum(RECOVERY_ACTIONS),
+  reasonCode: external_exports.enum(RECOVERY_REASON_CODES),
+  /** Bounded, safe explanation. Written by policy, never by a model. */
+  reason: text3,
+  failureFingerprint: shortText32.nullable().default(null),
+  health: external_exports.enum(EXECUTION_HEALTH_STATES),
+  /** What dimension of strategy this decision changes. */
+  strategyChange: external_exports.enum(RECOVERY_STRATEGY_DIMENSIONS),
+  previousStrategy: recoveryStrategySchema.optional(),
+  nextStrategy: recoveryStrategySchema.optional(),
+  budgetSnapshot: budgetSnapshotSchema,
+  evidenceRefs: external_exports.array(shortText32).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
+  /**
+   * What a human would need to do to unblock this task, when the action
+   * stops automatic continuation. Bounded and actionable.
+   */
+  remediation: external_exports.array(text3).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  /**
+   * Set when the action REQUESTS stronger execution. It is a requirement,
+   * not an authorization: spend policy and the scheduler still decide
+   * independently, and this field never bypasses either.
+   */
+  requestedCapability: external_exports.object({
+    /** 'STRONG' asks for stronger intelligence; 'REMOTE' asks for a paid lane. */
+    kind: external_exports.enum(["STRONG", "REMOTE"]),
+    detail: text3
+  }).passthrough().optional(),
+  /** True when the decision was persisted but its attempt has not run yet. */
+  applied: external_exports.boolean().default(false),
+  createdAt: shortText32
+}).passthrough();
+var reliabilityObservationSchema = external_exports.object({
+  attemptId: shortText32,
+  attemptNumber: external_exports.number().int().min(1),
+  failureFingerprint: shortText32.nullable().default(null),
+  diffFingerprint: shortText32.nullable().default(null),
+  strategyKey: shortText32.nullable().default(null),
+  evaluationStatus: external_exports.enum(EVALUATION_STATUSES).nullable().default(null),
+  lane: shortText32.nullable().default(null),
+  at: shortText32
+}).passthrough();
+var taskReliabilityStateSchema = external_exports.object({
+  schemaVersion: semver2,
+  jobId: shortText32,
+  nodeId: shortText32,
+  taskId: shortText32,
+  health: external_exports.enum(EXECUTION_HEALTH_STATES).default("HEALTHY"),
+  /** Rolling window, oldest first. */
+  observations: external_exports.array(reliabilityObservationSchema).max(RELIABILITY_LIMITS.maxFingerprintHistory).default([]),
+  /** Strategy keys already tried and failed on this task. */
+  exhaustedStrategies: external_exports.array(shortText32).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  /** Cumulative counters — the raw material for cost-of-failure analysis. */
+  evaluationsFailed: external_exports.number().int().min(0).default(0),
+  evaluationsInconclusive: external_exports.number().int().min(0).default(0),
+  stagnationEvents: external_exports.number().int().min(0).default(0),
+  oscillationEvents: external_exports.number().int().min(0).default(0),
+  runawayEvents: external_exports.number().int().min(0).default(0),
+  freshContextRestarts: external_exports.number().int().min(0).default(0),
+  /** Wall time and spend consumed by attempts that did NOT complete. */
+  failedAttemptMs: external_exports.number().int().min(0).default(0),
+  failedAttemptTokens: external_exports.number().int().min(0).nullable().default(null),
+  failedAttemptCostUsd: external_exports.number().min(0).nullable().default(null),
+  /** The decision the task is currently acting on, when one is pending. */
+  pendingDecisionId: shortText32.optional(),
+  updatedAt: shortText32
+}).passthrough();
 var TASK_ATTEMPT_STATUSES = [
   /** The dispatch is (or was, before a crash) in flight. */
   "RUNNING",
@@ -54579,10 +54995,10 @@ var SURVIVAL_LIMITS = {
   maxShortTextChars: STATE_LIMITS.maxShortTextChars,
   maxCheckpointsPerTask: 500
 };
-var shortText32 = external_exports.string().min(1).max(SURVIVAL_LIMITS.maxShortTextChars);
-var text3 = external_exports.string().min(1).max(SURVIVAL_LIMITS.maxTextChars);
-var textList22 = external_exports.array(text3).max(SURVIVAL_LIMITS.maxListItems);
-var semver2 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
+var shortText4 = external_exports.string().min(1).max(SURVIVAL_LIMITS.maxShortTextChars);
+var text4 = external_exports.string().min(1).max(SURVIVAL_LIMITS.maxTextChars);
+var textList22 = external_exports.array(text4).max(SURVIVAL_LIMITS.maxListItems);
+var semver22 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
 var attemptMetricsSchema = external_exports.object({
   durationMs: external_exports.number().int().min(0).nullable().default(null),
   inputTokens: external_exports.number().int().min(0).nullable().default(null),
@@ -54625,123 +55041,123 @@ var attemptMetricsSchema = external_exports.object({
   reconciledCostUsd: external_exports.number().min(0).nullable().default(null)
 }).passthrough();
 var taskAttemptSchema = external_exports.object({
-  schemaVersion: semver2,
-  attemptId: shortText32,
-  jobId: shortText32,
+  schemaVersion: semver22,
+  attemptId: shortText4,
+  jobId: shortText4,
   /** Runtime graph node this attempt executes (the Task's runtime identity). */
-  nodeId: shortText32,
+  nodeId: shortText4,
   /** The approved task id (stable across graph revisions). */
-  taskId: shortText32,
+  taskId: shortText4,
   role: external_exports.enum(AGENT_ROLES),
   /** Worker identity as the scheduler assigned it. */
-  workerId: shortText32,
+  workerId: shortText4,
   /**
    * Provider identity (runner/profile name). Identity is recorded for the
    * ledger and for audit — runtime logic branches on capabilities, never
    * on this value.
    */
-  provider: shortText32,
+  provider: shortText4,
   /** Model identity when known; null when the provider does not say. */
-  model: shortText32.nullable().default(null),
+  model: shortText4.nullable().default(null),
   status: external_exports.enum(TASK_ATTEMPT_STATUSES),
   /** 1-based position within this task's attempt history. */
   attemptNumber: external_exports.number().int().min(1),
-  startedAt: shortText32,
-  completedAt: shortText32.optional(),
+  startedAt: shortText4,
+  completedAt: shortText4.optional(),
   /** Bounded outcome summary — a claim, never evidence. */
-  resultSummary: text3.optional(),
+  resultSummary: text4.optional(),
   failure: external_exports.object({
     category: external_exports.enum(FAILURE_CATEGORIES),
-    message: text3
+    message: text4
   }).passthrough().optional(),
   /** Why an INTERRUPTED attempt was reconciled (e.g. "process-restart"). */
-  interruptedReason: shortText32.optional(),
+  interruptedReason: shortText4.optional(),
   /** Task checkpoints persisted during this attempt, oldest first. */
-  checkpointIds: external_exports.array(shortText32).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  checkpointIds: external_exports.array(shortText4).max(SURVIVAL_LIMITS.maxListItems).default([]),
   /** Execution run id (`.specbridge/runs/<id>`) when the evidence path ran. */
-  runId: shortText32.optional(),
+  runId: shortText4.optional(),
   /** The interrupted/failed attempt this one continues from (lineage). */
-  resumedFromAttemptId: shortText32.optional(),
+  resumedFromAttemptId: shortText4.optional(),
   /** Provider session reference — WORKING MEMORY only, never canonical. */
-  providerSessionId: shortText32.optional(),
+  providerSessionId: shortText4.optional(),
   /** Scheduling lane (vNext.2: LOCAL / SUBSCRIPTION), when assigned. */
-  lane: shortText32.optional(),
+  lane: shortText4.optional(),
   // vNext.2 scheduling attribution (additive; audit and ledger inputs,
   // never runtime policy — policy reads live configuration and telemetry).
   /** Deterministic local-suitability class the scheduler assigned. */
-  localSuitability: shortText32.optional(),
+  localSuitability: shortText4.optional(),
   /** Complexity class the task carried when the attempt was scheduled. */
-  taskComplexity: shortText32.optional(),
+  taskComplexity: shortText4.optional(),
   /** Coarse task category from the suitability classifier. */
-  taskCategory: shortText32.optional(),
+  taskCategory: shortText4.optional(),
   /** The SchedulingDecision that routed this attempt, when one exists. */
-  schedulingDecisionId: shortText32.optional(),
+  schedulingDecisionId: shortText4.optional(),
   // vNext.4 local execution attribution (additive; absent on pre-vNext.4
   // attempts and on every SUBSCRIPTION attempt).
   /** LOCAL execution mode: DIRECT_MODEL or HARNESS. Orthogonal to lane. */
-  executionMode: shortText32.optional(),
+  executionMode: shortText4.optional(),
   /** Deterministic execution shape the resolver classified. */
-  executionShape: shortText32.optional(),
+  executionShape: shortText4.optional(),
   /** Verified compute locality of the runner that executed this attempt. */
-  computeLocality: shortText32.optional(),
+  computeLocality: shortText4.optional(),
   // vNext.5 API-lane attribution (additive; absent on every LOCAL and
   // SUBSCRIPTION attempt and on every pre-vNext.5 record). Each field is
   // ORTHOGONAL: `lane` says whether this was paid, `provider`/`model` say
   // which intelligence ran it, `executionMode`/`computeLocality` say how
   // and where. Nothing is ever collapsed into a compound value.
   /** The spend authorization mode in force when the attempt was dispatched. */
-  apiSpendMode: shortText32.optional(),
+  apiSpendMode: shortText4.optional(),
   /** Why subscription capacity was unavailable (the gap's cause). */
-  gapReason: shortText32.optional(),
+  gapReason: shortText4.optional(),
   /** When subscription capacity was expected back, when known. */
-  subscriptionAvailableAt: shortText32.optional(),
+  subscriptionAvailableAt: shortText4.optional(),
   /** Expected gap duration in milliseconds, when known. */
   estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null).optional(),
   /** How the recorded cost was determined (see API_COST_SOURCES). */
-  costSource: shortText32.optional(),
+  costSource: shortText4.optional(),
   /** Operator pricing profile the estimate used, for attribution. */
-  pricingProfile: shortText32.optional(),
+  pricingProfile: shortText4.optional(),
   /** The budget reservation funding this attempt. */
-  apiBudgetReservationId: shortText32.optional(),
+  apiBudgetReservationId: shortText4.optional(),
   /** The bounded human authorization this attempt consumed, when one applied. */
-  apiApprovalId: shortText32.optional(),
+  apiApprovalId: shortText4.optional(),
   /** Deterministic delay-sensitivity level that justified paid bridging. */
-  delaySensitivity: shortText32.optional(),
+  delaySensitivity: shortText4.optional(),
   metrics: attemptMetricsSchema.default({})
 }).passthrough();
 var checkpointDecisionSchema = external_exports.object({
-  decision: text3,
-  rationale: text3.optional(),
-  at: shortText32.optional(),
-  decidedBy: shortText32.optional()
+  decision: text4,
+  rationale: text4.optional(),
+  at: shortText4.optional(),
+  decidedBy: shortText4.optional()
 }).passthrough();
 var failedApproachSchema = external_exports.object({
-  approach: text3,
-  reason: text3,
-  at: shortText32.optional(),
+  approach: text4,
+  reason: text4,
+  at: shortText4.optional(),
   /** Evidence reference (run id, test name) backing the failure claim. */
-  evidenceRef: shortText32.optional()
+  evidenceRef: shortText4.optional()
 }).passthrough();
 var checkpointTestResultSchema = external_exports.object({
-  name: shortText32,
+  name: shortText4,
   status: external_exports.enum(["passed", "failed", "skipped", "unknown"]),
-  summary: text3.optional()
+  summary: text4.optional()
 }).passthrough();
 var checkpointRepositoryStateSchema = external_exports.object({
-  branch: shortText32.optional(),
-  head: shortText32.optional(),
+  branch: shortText4.optional(),
+  head: shortText4.optional(),
   detached: external_exports.boolean().optional(),
   clean: external_exports.boolean().optional(),
   /** Paths dirty at checkpoint time (bounded; the diff itself lives in runs/). */
-  dirtyPaths: external_exports.array(shortText32).max(SURVIVAL_LIMITS.maxChangedFiles).default([]),
+  dirtyPaths: external_exports.array(shortText4).max(SURVIVAL_LIMITS.maxChangedFiles).default([]),
   /** Reference to a stored diff artifact, when one exists. */
-  diffRef: shortText32.optional(),
+  diffRef: shortText4.optional(),
   /** The commit execution started from, when known. */
-  baselineHead: shortText32.optional()
+  baselineHead: shortText4.optional()
 }).passthrough();
 var checkpointPinnedContextSchema = external_exports.object({
   /** The task contract: what this task IS, verbatim and bounded. */
-  taskContract: text3,
+  taskContract: text4,
   acceptanceCriteria: textList22.default([]),
   /** Architecture/repository rules constraining every attempt. */
   constraints: textList22.default([]),
@@ -54749,85 +55165,110 @@ var checkpointPinnedContextSchema = external_exports.object({
   invariants: textList22.default([])
 }).passthrough();
 var taskCheckpointSchema = external_exports.object({
-  schemaVersion: semver2,
-  checkpointId: shortText32,
-  jobId: shortText32,
-  nodeId: shortText32,
-  taskId: shortText32,
+  schemaVersion: semver22,
+  checkpointId: shortText4,
+  jobId: shortText4,
+  nodeId: shortText4,
+  taskId: shortText4,
   /** The attempt that persisted this checkpoint. */
-  attemptId: shortText32,
+  attemptId: shortText4,
   /** 1-based, strictly increasing per task. */
   seq: external_exports.number().int().min(1),
   reason: external_exports.enum(TASK_CHECKPOINT_REASONS),
   /** What this task is trying to achieve right now. */
-  objective: text3,
+  objective: text4,
   pinned: checkpointPinnedContextSchema,
   completedWork: textList22.default([]),
   pendingWork: textList22.default([]),
   importantDecisions: external_exports.array(checkpointDecisionSchema).max(SURVIVAL_LIMITS.maxListItems).default([]),
   failedApproaches: external_exports.array(failedApproachSchema).max(SURVIVAL_LIMITS.maxListItems).default([]),
   changedFiles: external_exports.array(
-    external_exports.object({ path: shortText32, note: shortText32.optional() }).passthrough()
+    external_exports.object({ path: shortText4, note: shortText4.optional() }).passthrough()
   ).max(SURVIVAL_LIMITS.maxChangedFiles).default([]),
   repositoryState: checkpointRepositoryStateSchema.default({}),
   testResults: external_exports.array(checkpointTestResultSchema).max(SURVIVAL_LIMITS.maxListItems).default([]),
   knownFailures: textList22.default([]),
   unresolvedIssues: textList22.default([]),
   /** The exact next actions, in order. Resume continues from here. */
-  nextActions: external_exports.array(text3).min(1).max(SURVIVAL_LIMITS.maxListItems),
+  nextActions: external_exports.array(text4).min(1).max(SURVIVAL_LIMITS.maxListItems),
   /** Artifact references (run ids, agent results, candidate refs). */
-  relevantArtifacts: external_exports.array(shortText32).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  relevantArtifacts: external_exports.array(shortText4).max(SURVIVAL_LIMITS.maxListItems).default([]),
   /** Context references worth re-retrieving (paths, docs), never content. */
-  relevantContextReferences: external_exports.array(shortText32).max(SURVIVAL_LIMITS.maxListItems).default([]),
-  createdAt: shortText32
+  relevantContextReferences: external_exports.array(shortText4).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  createdAt: shortText4
 }).passthrough();
 var executionLedgerEntrySchema = external_exports.object({
-  attemptId: shortText32,
-  jobId: shortText32,
-  nodeId: shortText32,
-  taskId: shortText32,
+  attemptId: shortText4,
+  jobId: shortText4,
+  nodeId: shortText4,
+  taskId: shortText4,
   role: external_exports.enum(AGENT_ROLES),
-  provider: shortText32,
-  model: shortText32.nullable(),
-  lane: shortText32.nullable(),
+  provider: shortText4,
+  model: shortText4.nullable(),
+  lane: shortText4.nullable(),
   status: external_exports.enum(TASK_ATTEMPT_STATUSES),
   attemptNumber: external_exports.number().int().min(1),
-  startedAt: shortText32,
-  completedAt: shortText32.nullable(),
+  startedAt: shortText4,
+  completedAt: shortText4.nullable(),
   success: external_exports.boolean(),
-  failureReason: shortText32.nullable(),
+  failureReason: shortText4.nullable(),
   // vNext.2 scheduling attribution (additive; null when never assigned).
-  localSuitability: shortText32.nullable().default(null),
-  taskComplexity: shortText32.nullable().default(null),
-  taskCategory: shortText32.nullable().default(null),
-  schedulingDecisionId: shortText32.nullable().default(null),
+  localSuitability: shortText4.nullable().default(null),
+  taskComplexity: shortText4.nullable().default(null),
+  taskCategory: shortText4.nullable().default(null),
+  schedulingDecisionId: shortText4.nullable().default(null),
   // vNext.4 local execution attribution (additive; null when unassigned).
-  executionMode: shortText32.nullable().default(null),
-  executionShape: shortText32.nullable().default(null),
-  computeLocality: shortText32.nullable().default(null),
+  executionMode: shortText4.nullable().default(null),
+  executionShape: shortText4.nullable().default(null),
+  computeLocality: shortText4.nullable().default(null),
   // vNext.5 API economics (additive; null on every unpaid attempt). These
   // are what makes later analysis possible without a second database:
   // cost per successful task, cost by task type, bridge success rate, and
   // money spent versus subscription wait avoided all derive from here.
-  apiSpendMode: shortText32.nullable().default(null),
-  gapReason: shortText32.nullable().default(null),
-  subscriptionAvailableAt: shortText32.nullable().default(null),
+  apiSpendMode: shortText4.nullable().default(null),
+  gapReason: shortText4.nullable().default(null),
+  subscriptionAvailableAt: shortText4.nullable().default(null),
   estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null),
-  costSource: shortText32.nullable().default(null),
-  pricingProfile: shortText32.nullable().default(null),
-  apiBudgetReservationId: shortText32.nullable().default(null),
-  apiApprovalId: shortText32.nullable().default(null),
-  delaySensitivity: shortText32.nullable().default(null),
+  costSource: shortText4.nullable().default(null),
+  pricingProfile: shortText4.nullable().default(null),
+  apiBudgetReservationId: shortText4.nullable().default(null),
+  apiApprovalId: shortText4.nullable().default(null),
+  delaySensitivity: shortText4.nullable().default(null),
+  // vNext.6 reliability attribution (additive; null on every pre-vNext.6
+  // record and on any attempt the reliability layer did not govern).
+  //
+  // These are the raw facts a later adaptive scheduler needs in order to
+  // compute what failure actually COSTS: attempts per successful task,
+  // failed-token and failed-quota ratios, dollars spent on attempts that
+  // never verified, time to recovery, replan success rate. Collected now,
+  // deliberately un-aggregated — an analytics store that decided in advance
+  // which questions were worth asking would foreclose the ones that turn
+  // out to matter.
+  /** Verdict on this attempt: PASS / FAIL / INCONCLUSIVE. */
+  evaluationStatus: shortText4.nullable().default(null),
+  evaluationId: shortText4.nullable().default(null),
+  /** WHERE the failure came from, orthogonal to `failureReason`. */
+  failureSource: shortText4.nullable().default(null),
+  /** Deterministic failure identity, for cross-attempt repetition analysis. */
+  failureFingerprint: shortText4.nullable().default(null),
+  /** Deterministic progress health at the time of the failure. */
+  executionHealth: shortText4.nullable().default(null),
+  /** The recovery action SpecBridge chose after this attempt. */
+  recoveryAction: shortText4.nullable().default(null),
+  recoveryReasonCode: shortText4.nullable().default(null),
+  recoveryDecisionId: shortText4.nullable().default(null),
+  /** Which dimension of strategy the recovery changed, if any. */
+  strategyChange: shortText4.nullable().default(null),
   metrics: attemptMetricsSchema
 }).passthrough();
-var shortText4 = external_exports.string().min(1).max(200);
+var shortText5 = external_exports.string().min(1).max(200);
 var apiBudgetReservationSchema = external_exports.object({
-  reservationId: shortText4,
-  jobId: shortText4,
-  nodeId: shortText4,
-  taskId: shortText4,
+  reservationId: shortText5,
+  jobId: shortText5,
+  nodeId: shortText5,
+  taskId: shortText5,
   /** The durable attempt this reservation funds; null until dispatch. */
-  attemptId: shortText4.nullable().default(null),
+  attemptId: shortText5.nullable().default(null),
   state: external_exports.enum(API_BUDGET_RESERVATION_STATES),
   /** The safe estimated cost held at reservation time, in USD. */
   reservedUsd: external_exports.number().min(0),
@@ -54836,18 +55277,60 @@ var apiBudgetReservationSchema = external_exports.object({
   /** How `reconciledUsd` was determined. */
   costSource: external_exports.enum(API_COST_SOURCES).default("ESTIMATED_PRE_DISPATCH"),
   /** The API profile the reservation was made for (audit). */
-  profileName: shortText4.nullable().default(null),
-  createdAt: shortText4,
-  updatedAt: shortText4,
+  profileName: shortText5.nullable().default(null),
+  createdAt: shortText5,
+  updatedAt: shortText5,
   detail: external_exports.string().max(1e3).default("")
 }).passthrough();
 var apiBudgetStateSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  jobId: shortText4,
+  jobId: shortText5,
   reservations: external_exports.array(apiBudgetReservationSchema).max(5e3).default([]),
-  updatedAt: shortText4
+  updatedAt: shortText5
 }).passthrough();
-function now3(deps) {
+var CATEGORY_SOURCES = Object.freeze({
+  TRANSIENT_TRANSPORT: "TRANSIENT",
+  TRANSIENT_TOOL: "TRANSIENT",
+  // The default reading of a failing verifier is that the code is wrong;
+  // `verificationInfrastructureBroken` overrides it with actual evidence.
+  VERIFICATION_FAILURE: "IMPLEMENTATION",
+  IMPLEMENTATION_DEFECT: "IMPLEMENTATION",
+  AMBIGUITY: "REQUIREMENT_CONTRACT",
+  BLOCKED_DEPENDENCY: "EXECUTION_INFRASTRUCTURE",
+  CAPABILITY_UNAVAILABLE: "EXECUTION_INFRASTRUCTURE",
+  AUTHENTICATION: "AUTHORIZATION",
+  PERMISSION: "AUTHORIZATION",
+  SAFETY_POLICY: "AUTHORIZATION",
+  STALE_CONTEXT: "CONTEXT",
+  REPOSITORY_DIVERGED: "REPOSITORY_STATE",
+  PROTECTED_PATH: "REPOSITORY_STATE",
+  NO_PROGRESS: "IMPLEMENTATION",
+  BUDGET_EXHAUSTED: "BUDGET",
+  CANCELLED: "UNKNOWN",
+  INVALID_CONFIGURATION: "EXECUTION_INFRASTRUCTURE",
+  INTERNAL: "EXECUTION_INFRASTRUCTURE"
+});
+var CATEGORY_SCOPES = Object.freeze({
+  TRANSIENT_TRANSPORT: "ATTEMPT",
+  TRANSIENT_TOOL: "ATTEMPT",
+  VERIFICATION_FAILURE: "TASK",
+  IMPLEMENTATION_DEFECT: "TASK",
+  AMBIGUITY: "TASK",
+  BLOCKED_DEPENDENCY: "TASK",
+  CAPABILITY_UNAVAILABLE: "JOB",
+  AUTHENTICATION: "JOB",
+  PERMISSION: "JOB",
+  SAFETY_POLICY: "JOB",
+  STALE_CONTEXT: "TASK",
+  REPOSITORY_DIVERGED: "WORKSPACE",
+  PROTECTED_PATH: "WORKSPACE",
+  NO_PROGRESS: "TASK",
+  BUDGET_EXHAUSTED: "JOB",
+  CANCELLED: "ATTEMPT",
+  INVALID_CONFIGURATION: "WORKSPACE",
+  INTERNAL: "ATTEMPT"
+});
+function now4(deps) {
   return (deps.clock ?? systemClock)();
 }
 function record22(deps, job, type, payload = {}) {
@@ -54865,22 +55348,22 @@ function record22(deps, job, type, payload = {}) {
   appendJobEvent(
     deps.workspace,
     job.jobId,
-    { at: now3(deps).toISOString(), type, ...payload },
+    { at: now4(deps).toISOString(), type, ...payload },
     { maxEventBytes: deps.config.orchestration.history.maxEventBytes }
   );
   return { ...job, counters: { ...job.counters, events: stored + 1 } };
 }
 function transition22(deps, job, to) {
   assertJobTransition(job.status, to);
-  return { ...job, status: to, updatedAt: now3(deps).toISOString() };
+  return { ...job, status: to, updatedAt: now4(deps).toISOString() };
 }
 function persist22(deps, job) {
-  return writeJobState(deps.workspace, { ...job, updatedAt: now3(deps).toISOString() });
+  return writeJobState(deps.workspace, { ...job, updatedAt: now4(deps).toISOString() });
 }
 function cancelJob(deps, jobId, reason) {
   let job = requireJobState(deps.workspace, jobId);
   if (isFinalJobStatus(job.status)) return job;
-  const at = now3(deps).toISOString();
+  const at = now4(deps).toISOString();
   job = transition22(deps, job, "CANCELLED");
   job = record22(deps, job, "job_cancelled", { reason: reason.slice(0, 500) });
   return persist22(deps, { ...job, finalizedAt: at, finalOutcome: "CANCELLED" });
@@ -54892,9 +55375,9 @@ var AGENT_OUTPUT_LIMITS = {
   maxSteps: 40,
   maxResponseBytes: 262144
 };
-var shortText5 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxShortChars);
-var text4 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxTextChars);
-var textList3 = external_exports.array(text4).max(AGENT_OUTPUT_LIMITS.maxListItems);
+var shortText6 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxShortChars);
+var text5 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxTextChars);
+var textList3 = external_exports.array(text5).max(AGENT_OUTPUT_LIMITS.maxListItems);
 var classifierOutputSchema = external_exports.object({
   /** Proposed complexity class. May only RAISE the deterministic class. */
   complexity: external_exports.enum(COMPLEXITY_CLASSES),
@@ -54902,23 +55385,23 @@ var classifierOutputSchema = external_exports.object({
   reasons: textList3.default([])
 });
 var plannerStepSchema = external_exports.object({
-  id: shortText5,
-  action: text4,
+  id: shortText6,
+  action: text5,
   /** What observable evidence would show this step succeeded. */
-  expectedEvidence: text4.optional()
+  expectedEvidence: text5.optional()
 });
 var plannerOutputSchema = external_exports.object({
   decision: external_exports.enum(["PLAN", "ESCALATE"]),
   /** The planner's own complexity impression (informational only). */
   complexity: external_exports.enum(COMPLEXITY_CLASSES).optional(),
-  goal: text4.optional(),
+  goal: text5.optional(),
   steps: external_exports.array(plannerStepSchema).max(AGENT_OUTPUT_LIMITS.maxSteps).default([]),
-  testStrategy: text4.optional(),
-  verificationStrategy: text4.optional(),
+  testStrategy: text5.optional(),
+  verificationStrategy: text5.optional(),
   assumptions: textList3.default([]),
   risks: textList3.default([]),
   requiresEscalation: external_exports.boolean().default(false),
-  escalationReason: text4.optional()
+  escalationReason: text5.optional()
 });
 var criticOutputSchema = external_exports.object({
   verdict: external_exports.enum(["ACCEPT", "REVISE", "ESCALATE"]),
@@ -54927,11 +55410,11 @@ var criticOutputSchema = external_exports.object({
   /** For REVISE: concrete changes the planner should make. */
   requestedChanges: textList3.default([]),
   /** Signals the critic believes exceed local capability. */
-  escalationReason: text4.optional()
+  escalationReason: text5.optional()
 });
 var diagnoserOutputSchema = external_exports.object({
   category: external_exports.enum(FAILURE_CATEGORIES),
-  rootCause: text4,
+  rootCause: text5,
   planValidity: external_exports.enum(["VALID", "INVALID", "UNKNOWN"]),
   recommendedAction: external_exports.enum(["REPAIR", "REPLAN", "RETRY", "CLARIFY", "BLOCK"]),
   /** Observable evidence references (test names, error lines), not prose. */
@@ -54940,11 +55423,11 @@ var diagnoserOutputSchema = external_exports.object({
 var replannerOutputSchema = external_exports.object({
   decision: external_exports.enum(["REVISED_PLAN", "SUPERSEDE_NODE", "ESCALATE", "BLOCKED"]),
   /** Why the previous plan failed, in one bounded statement. */
-  reason: text4,
-  goal: text4.optional(),
+  reason: text5,
+  goal: text5.optional(),
   steps: external_exports.array(plannerStepSchema).max(AGENT_OUTPUT_LIMITS.maxSteps).default([]),
-  testStrategy: text4.optional(),
-  verificationStrategy: text4.optional(),
+  testStrategy: text5.optional(),
+  verificationStrategy: text5.optional(),
   assumptions: textList3.default([]),
   /**
    * True when the replacement approach would change APPROVED behavior,
@@ -54954,7 +55437,7 @@ var replannerOutputSchema = external_exports.object({
    * is not the only line of defense.
    */
   impactsApprovedIntent: external_exports.boolean(),
-  escalationReason: text4.optional()
+  escalationReason: text5.optional()
 });
 var stringItem = (maxLength) => ({ type: "string", minLength: 1, maxLength });
 var stepSchemaJson = {
@@ -55174,23 +55657,23 @@ var OBJECTIVE_LIMITS = {
   maxProjectionContracts: 30,
   maxProjectionExcerptChars: 2e4
 };
-var shortText6 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxShortTextChars);
-var text5 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxTextChars);
+var shortText7 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxShortTextChars);
+var text6 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxTextChars);
 var optionalText2 = external_exports.string().max(OBJECTIVE_LIMITS.maxTextChars);
-var textList4 = external_exports.array(text5).max(OBJECTIVE_LIMITS.maxListItems);
-var idList2 = external_exports.array(shortText6).max(OBJECTIVE_LIMITS.maxListItems);
-var semver22 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
+var textList4 = external_exports.array(text6).max(OBJECTIVE_LIMITS.maxListItems);
+var idList2 = external_exports.array(shortText7).max(OBJECTIVE_LIMITS.maxListItems);
+var semver3 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
 var workUnitSchema = external_exports.object({
-  workUnitId: shortText6,
+  workUnitId: shortText7,
   /** The objective (job graph node) this unit belongs to. */
-  objectiveNodeId: shortText6,
+  objectiveNodeId: shortText7,
   /** The approved task id of the objective (audit convenience). */
-  parentTaskId: shortText6,
+  parentTaskId: shortText7,
   kind: external_exports.enum(WORK_UNIT_KINDS),
-  title: text5,
-  goal: text5,
+  title: text6,
+  goal: text6,
   /** Work-unit ids that must be VERIFIED_CANDIDATE before this one runs. */
-  dependsOn: external_exports.array(shortText6).max(OBJECTIVE_LIMITS.maxDependenciesPerUnit).default([]),
+  dependsOn: external_exports.array(shortText7).max(OBJECTIVE_LIMITS.maxDependenciesPerUnit).default([]),
   /** Artifacts the unit is expected to produce (paths, report names). */
   expectedArtifacts: textList4.default([]),
   /** Product contract ids relevant to this unit (projection input). */
@@ -55198,39 +55681,39 @@ var workUnitSchema = external_exports.object({
   relevantAdrIds: idList2.default([]),
   relevantConstitutionRuleIds: idList2.default([]),
   /** Source areas the unit is expected to touch (scope screen input). */
-  expectedAreas: external_exports.array(shortText6).max(OBJECTIVE_LIMITS.maxListItems).default([]),
+  expectedAreas: external_exports.array(shortText7).max(OBJECTIVE_LIMITS.maxListItems).default([]),
   status: external_exports.enum(WORK_UNIT_STATUSES),
   /** Builder attempts consumed so far. */
   attempt: external_exports.number().int().min(0).default(0),
   /** Worker currently (or last) bound to this unit. */
-  workerId: shortText6.optional(),
-  contextProjectionHash: shortText6.optional(),
-  contractSnapshotHash: shortText6.optional(),
+  workerId: shortText7.optional(),
+  contextProjectionHash: shortText7.optional(),
+  contractSnapshotHash: shortText7.optional(),
   /** Latest candidate artifact reference (candidates/<file>). */
-  candidateRef: shortText6.optional(),
+  candidateRef: shortText7.optional(),
   /** Evaluation record references, oldest first. */
   evaluationRefs: idList2.default([]),
   latestFailure: external_exports.object({
     category: external_exports.enum(FAILURE_CATEGORIES),
-    message: text5,
-    at: shortText6
+    message: text6,
+    at: shortText7
   }).passthrough().optional(),
-  supersedes: shortText6.optional(),
-  supersededBy: shortText6.optional(),
-  integratedAt: shortText6.optional()
+  supersedes: shortText7.optional(),
+  supersededBy: shortText7.optional(),
+  integratedAt: shortText7.optional()
 }).passthrough();
 var workGraphSchema = external_exports.object({
-  schemaVersion: semver22,
-  jobId: shortText6,
+  schemaVersion: semver3,
+  jobId: shortText7,
   /** The objective node this graph decomposes. */
-  objectiveNodeId: shortText6,
-  parentTaskId: shortText6,
+  objectiveNodeId: shortText7,
+  parentTaskId: shortText7,
   /** Fingerprint of the approved objective at decomposition time. */
-  objectiveFingerprint: shortText6,
+  objectiveFingerprint: shortText7,
   revision: external_exports.number().int().min(1),
-  createdAt: shortText6,
+  createdAt: shortText7,
   /** Who proposed the decomposition ("deterministic" or a worker id). */
-  proposedBy: shortText6,
+  proposedBy: shortText7,
   /** Deterministic validation findings recorded at acceptance time. */
   validationNotes: textList4.default([]),
   units: external_exports.array(workUnitSchema).min(1).max(OBJECTIVE_LIMITS.maxWorkUnits),
@@ -55238,98 +55721,98 @@ var workGraphSchema = external_exports.object({
   revisionReason: optionalText2.optional()
 }).passthrough();
 var contextProjectionSchema = external_exports.object({
-  schemaVersion: semver22,
-  projectionId: shortText6,
-  jobId: shortText6,
-  objectiveNodeId: shortText6,
-  workUnitId: shortText6,
+  schemaVersion: semver3,
+  projectionId: shortText7,
+  jobId: shortText7,
+  objectiveNodeId: shortText7,
+  workUnitId: shortText7,
   attempt: external_exports.number().int().min(1),
-  createdAt: shortText6,
-  missionId: shortText6.optional(),
+  createdAt: shortText7,
+  missionId: shortText7.optional(),
   constitution: external_exports.object({
     version: external_exports.number().int().min(0),
     rules: external_exports.array(
-      external_exports.object({ ruleId: shortText6, version: external_exports.number().int().min(1), statement: text5 }).passthrough()
+      external_exports.object({ ruleId: shortText7, version: external_exports.number().int().min(1), statement: text6 }).passthrough()
     ).max(40).default([])
   }).passthrough(),
   objective: external_exports.object({
-    taskId: shortText6,
-    title: text5,
+    taskId: shortText7,
+    title: text6,
     acceptance: textList4.default([])
   }).passthrough(),
   workUnit: external_exports.object({
-    title: text5,
-    goal: text5,
+    title: text6,
+    goal: text6,
     kind: external_exports.enum(WORK_UNIT_KINDS),
     expectedArtifacts: textList4.default([]),
-    expectedAreas: external_exports.array(shortText6).max(OBJECTIVE_LIMITS.maxListItems).default([])
+    expectedAreas: external_exports.array(shortText7).max(OBJECTIVE_LIMITS.maxListItems).default([])
   }).passthrough(),
   contracts: external_exports.array(
     external_exports.object({
-      contractId: shortText6,
+      contractId: shortText7,
       revision: external_exports.number().int().min(1),
-      title: shortText6,
-      summary: text5,
+      title: shortText7,
+      summary: text6,
       requirements: textList4.default([]),
       invariants: textList4.default([])
     }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxProjectionContracts).default([]),
   adrs: external_exports.array(
-    external_exports.object({ adrId: shortText6, title: shortText6, decision: text5 }).passthrough()
+    external_exports.object({ adrId: shortText7, title: shortText7, decision: text6 }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxListItems).default([]),
-  decisions: external_exports.array(external_exports.object({ decisionId: shortText6, decision: text5 }).passthrough()).max(OBJECTIVE_LIMITS.maxListItems).default([]),
+  decisions: external_exports.array(external_exports.object({ decisionId: shortText7, decision: text6 }).passthrough()).max(OBJECTIVE_LIMITS.maxListItems).default([]),
   /** Bounded approved-spec excerpts (requirements/design fragments). */
   specExcerpts: external_exports.array(external_exports.string().max(OBJECTIVE_LIMITS.maxProjectionExcerptChars)).max(5).default([]),
   /** Bounded summaries of verified dependency candidates (work evidence). */
   workEvidence: textList4.default([]),
   /** Hash over the ACTIVE contract registry this projection saw. */
-  contractSnapshotHash: shortText6,
+  contractSnapshotHash: shortText7,
   /** Hash of this projection's canonical serialization (identity). */
-  contentHash: shortText6
+  contentHash: shortText7
 }).passthrough();
 var candidateArtifactSchema = external_exports.object({
-  schemaVersion: semver22,
-  candidateId: shortText6,
-  jobId: shortText6,
-  objectiveNodeId: shortText6,
-  workUnitId: shortText6,
+  schemaVersion: semver3,
+  candidateId: shortText7,
+  jobId: shortText7,
+  objectiveNodeId: shortText7,
+  workUnitId: shortText7,
   attempt: external_exports.number().int().min(1),
-  workerId: shortText6,
-  createdAt: shortText6,
+  workerId: shortText7,
+  createdAt: shortText7,
   /** Git commit the worktree was created from. */
-  baselineCommit: shortText6,
-  contextProjectionHash: shortText6,
-  contractSnapshotHash: shortText6,
+  baselineCommit: shortText7,
+  contextProjectionHash: shortText7,
+  contractSnapshotHash: shortText7,
   /** Files changed in the worktree, as observed by git. */
   changedFiles: external_exports.array(
     external_exports.object({
-      path: shortText6,
+      path: shortText7,
       changeType: external_exports.enum(["added", "modified", "deleted", "renamed"])
     }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxChangedFiles).default([]),
   /** Reference to the stored normalized patch (candidates/<file>.patch). */
-  patchRef: shortText6.optional(),
+  patchRef: shortText7.optional(),
   /** Local verification observed by SpecBridge inside the worktree. */
   localVerification: external_exports.object({
     ran: external_exports.boolean(),
     passed: external_exports.boolean(),
     commands: external_exports.array(
       external_exports.object({
-        name: shortText6,
-        status: shortText6,
+        name: shortText7,
+        status: shortText7,
         exitCode: external_exports.number().int().nullable().default(null)
       }).passthrough()
     ).max(OBJECTIVE_LIMITS.maxListItems).default([])
   }).passthrough(),
   /** The worker's structured claims (data, never authority). */
   claims: external_exports.object({
-    summary: text5,
+    summary: text6,
     assumptionsDiscovered: textList4.default([]),
     contractChangeRequests: external_exports.array(
       external_exports.object({
-        contractId: shortText6,
-        problem: text5,
-        proposal: text5
+        contractId: shortText7,
+        problem: text6,
+        proposal: text6
       }).passthrough()
     ).max(10).default([]),
     knownLimitations: textList4.default([]),
@@ -55340,68 +55823,68 @@ var candidateArtifactSchema = external_exports.object({
   rejectedReason: optionalText2.optional()
 }).passthrough();
 var evaluationRecordSchema = external_exports.object({
-  schemaVersion: semver22,
-  evaluationId: shortText6,
-  jobId: shortText6,
-  objectiveNodeId: shortText6,
-  workUnitId: shortText6,
+  schemaVersion: semver3,
+  evaluationId: shortText7,
+  jobId: shortText7,
+  objectiveNodeId: shortText7,
+  workUnitId: shortText7,
   attempt: external_exports.number().int().min(1),
   layer: external_exports.enum(EVALUATION_LAYERS),
   verdict: external_exports.enum(EVALUATION_VERDICTS),
   /** Named deterministic checks with their outcomes (deterministic layer). */
   checks: external_exports.array(
-    external_exports.object({ name: shortText6, passed: external_exports.boolean(), detail: optionalText2.optional() }).passthrough()
+    external_exports.object({ name: shortText7, passed: external_exports.boolean(), detail: optionalText2.optional() }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxEvaluationChecks).default([]),
   reasons: textList4.default([]),
   evidenceRefs: idList2.default([]),
   affectedContractIds: idList2.default([]),
   /** Decision kind for CONFLICT / NEEDS_DECISION verdicts (authority routing). */
-  decisionKind: shortText6.optional(),
+  decisionKind: shortText7.optional(),
   /** The evaluator worker, when the layer is semantic. */
-  evaluatorWorkerId: shortText6.optional(),
-  createdAt: shortText6
+  evaluatorWorkerId: shortText7.optional(),
+  createdAt: shortText7
 }).passthrough();
 var contractConflictSchema = external_exports.object({
-  schemaVersion: semver22,
-  conflictId: shortText6,
-  jobId: shortText6,
-  objectiveNodeId: shortText6,
-  contractId: shortText6,
+  schemaVersion: semver3,
+  conflictId: shortText7,
+  jobId: shortText7,
+  objectiveNodeId: shortText7,
+  contractId: shortText7,
   contractRevision: external_exports.number().int().min(1),
   claims: external_exports.array(
     external_exports.object({
-      workUnitId: shortText6,
-      candidateRef: shortText6.optional(),
-      claim: text5
+      workUnitId: shortText7,
+      candidateRef: shortText7.optional(),
+      claim: text6
     }).passthrough()
   ).min(1).max(OBJECTIVE_LIMITS.maxListItems),
   evidenceRefs: idList2.default([]),
   affectedWorkUnitIds: idList2.default([]),
-  decisionKind: shortText6,
+  decisionKind: shortText7,
   status: external_exports.enum(CONTRACT_CONFLICT_STATUSES),
   resolution: optionalText2.optional(),
-  createdAt: shortText6,
-  resolvedAt: shortText6.optional()
+  createdAt: shortText7,
+  resolvedAt: shortText7.optional()
 }).passthrough();
 var objectiveWorkerRecordSchema = external_exports.object({
-  schemaVersion: semver22,
-  workerId: shortText6,
+  schemaVersion: semver3,
+  workerId: shortText7,
   agentRole: external_exports.enum(AGENT_ROLES),
-  jobId: shortText6,
-  objectiveNodeId: shortText6,
-  workUnitId: shortText6,
+  jobId: shortText7,
+  objectiveNodeId: shortText7,
+  workUnitId: shortText7,
   attempt: external_exports.number().int().min(1),
-  contextProjectionHash: shortText6,
-  contractSnapshotHash: shortText6,
+  contextProjectionHash: shortText7,
+  contractSnapshotHash: shortText7,
   /** "worktree:<name>", "canonical", or "ephemeral" (read-only reasoning). */
-  workspaceIdentity: shortText6,
+  workspaceIdentity: shortText7,
   status: external_exports.enum(OBJECTIVE_WORKER_STATUSES),
   budget: external_exports.object({
     timeoutMs: external_exports.number().int().min(1),
     maxOutputBytes: external_exports.number().int().min(1).optional()
   }).passthrough(),
-  startedAt: shortText6,
-  finishedAt: shortText6.optional()
+  startedAt: shortText7,
+  finishedAt: shortText7.optional()
 }).passthrough();
 var WORK_UNIT_TRANSITIONS = Object.freeze({
   PLANNED: ["READY", "BLOCKED", "SUPERSEDED", "FAILED"],
@@ -55423,16 +55906,16 @@ var OBJECTIVE_OUTPUT_LIMITS = {
   maxUnits: 30,
   maxResponseBytes: 262144
 };
-var shortText7 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxShortChars);
-var text6 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxTextChars);
-var textList5 = external_exports.array(text6).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
-var shortList = external_exports.array(shortText7).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
+var shortText8 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxShortChars);
+var text7 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxTextChars);
+var textList5 = external_exports.array(text7).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
+var shortList = external_exports.array(shortText8).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
 var decomposerUnitSchema = external_exports.object({
   /** Proposal-local id ("a", "b", …); SpecBridge assigns the real ids. */
-  id: shortText7,
+  id: shortText8,
   kind: external_exports.enum(WORK_UNIT_KINDS),
-  title: text6,
-  goal: text6,
+  title: text7,
+  goal: text7,
   dependsOn: shortList.default([]),
   expectedArtifacts: textList5.default([]),
   relevantContractIds: shortList.default([]),
@@ -55441,9 +55924,9 @@ var decomposerUnitSchema = external_exports.object({
 var decomposerOutputSchema = external_exports.object({
   decision: external_exports.enum(["WORK_GRAPH", "SINGLE_UNIT", "ESCALATE"]),
   /** Why this decomposition (bounded, factual). */
-  reason: text6,
+  reason: text7,
   units: external_exports.array(decomposerUnitSchema).max(OBJECTIVE_OUTPUT_LIMITS.maxUnits).default([]),
-  escalationReason: text6.optional()
+  escalationReason: text7.optional()
 });
 var evaluatorOutputSchema = external_exports.object({
   verdict: external_exports.enum(EVALUATION_VERDICTS),
@@ -55458,46 +55941,46 @@ var evaluatorOutputSchema = external_exports.object({
    * "architecture-contract-change", "product-behavior-change", …). The
    * deterministic authority table routes it; the evaluator only names it.
    */
-  decisionKind: shortText7.optional()
+  decisionKind: shortText8.optional()
 });
 var aggregatorOutputSchema = external_exports.object({
   /** One bounded synthesis of the input artifacts. */
-  synthesis: text6,
+  synthesis: text7,
   /** Structured findings, each tied to its source artifact. */
   findings: external_exports.array(
     external_exports.object({
-      sourceWorkUnitId: shortText7,
-      finding: text6
+      sourceWorkUnitId: shortText8,
+      finding: text7
     })
   ).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems).default([]),
   /** A recommendation (data). Approving it stays a human decision. */
-  recommendation: text6.optional(),
+  recommendation: text7.optional(),
   /** Contract changes the synthesis suggests — requests, never approvals. */
   contractChangeSuggestions: external_exports.array(
     external_exports.object({
-      contractId: shortText7,
-      problem: text6,
-      proposal: text6
+      contractId: shortText8,
+      problem: text7,
+      proposal: text7
     })
   ).max(10).default([]),
   conflictsDetected: external_exports.array(
     external_exports.object({
-      contractId: shortText7,
-      claims: external_exports.array(external_exports.object({ sourceWorkUnitId: shortText7, claim: text6 })).min(1).max(10)
+      contractId: shortText8,
+      claims: external_exports.array(external_exports.object({ sourceWorkUnitId: shortText8, claim: text7 })).min(1).max(10)
     })
   ).max(10).default([])
 });
 var builderOutputSchema = external_exports.object({
   outcome: external_exports.enum(["CANDIDATE_COMPLETE", "BLOCKED", "FAILED"]),
-  summary: text6,
+  summary: text7,
   /** Files the builder believes it changed (a claim; git is the evidence). */
   changedFiles: shortList.default([]),
   assumptionsDiscovered: textList5.default([]),
   contractChangeRequests: external_exports.array(
     external_exports.object({
-      contractId: shortText7,
-      problem: text6,
-      proposal: text6
+      contractId: shortText8,
+      problem: text7,
+      proposal: text7
     })
   ).max(10).default([]),
   knownLimitations: textList5.default([]),
@@ -55653,9 +56136,9 @@ var OBJECTIVE_OUTPUT_JSON_SCHEMAS = {
     }
   }
 };
-var ID_PATTERN4 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+var ID_PATTERN5 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 function assertSegment(value, what) {
-  if (!ID_PATTERN4.test(value)) {
+  if (!ID_PATTERN5.test(value)) {
     throw new OrchestrationError("SBO040", `Invalid ${what} "${value}".`);
   }
   return value;
@@ -55710,7 +56193,7 @@ function projectionName(workUnitId, attempt) {
   return `${workUnitId}-a${String(attempt).padStart(2, "0")}.json`;
 }
 function readProjection(workspace, jobId, nodeId, workUnitId, attempt) {
-  if (!ID_PATTERN4.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
+  if (!ID_PATTERN5.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
   return readJson(
     artifactPath3(workspace, jobId, nodeId, "projections", projectionName(workUnitId, attempt)),
     (raw) => {
@@ -55723,7 +56206,7 @@ function candidateName(workUnitId, attempt) {
   return `${workUnitId}-a${String(attempt).padStart(2, "0")}`;
 }
 function readCandidate(workspace, jobId, nodeId, workUnitId, attempt) {
-  if (!ID_PATTERN4.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
+  if (!ID_PATTERN5.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
   return readJson(
     artifactPath3(workspace, jobId, nodeId, "candidates", `${candidateName(workUnitId, attempt)}.json`),
     (raw) => {
@@ -55815,30 +56298,30 @@ var quotaForecastSchema = external_exports.object({
   /** The forecast's own clock reading. */
   forecastAt: isoText
 }).passthrough();
-var shortText8 = external_exports.string().min(1).max(200);
+var shortText9 = external_exports.string().min(1).max(200);
 var schedulingDecisionSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  decisionId: shortText8,
-  jobId: shortText8,
-  nodeId: shortText8,
-  taskId: shortText8,
+  decisionId: shortText9,
+  jobId: shortText9,
+  nodeId: shortText9,
+  taskId: shortText9,
   selectedLane: external_exports.enum(LANE_DECISIONS),
   /** Worker/provider identity for run lanes; null for DEFER. */
-  selectedProvider: shortText8.nullable(),
+  selectedProvider: shortText9.nullable(),
   schedulerMode: external_exports.enum(SCHEDULER_MODES),
   reasonCode: external_exports.enum(SCHEDULING_REASON_CODES),
   /** The forecast the decision was made against. */
   quotaSnapshot: quotaForecastSchema,
   /** Bounded copy of the workload estimate. */
   workloadEstimate: external_exports.object({
-    complexity: shortText8,
-    localSuitability: shortText8,
-    taskCategory: shortText8.nullable().default(null),
+    complexity: shortText9,
+    localSuitability: shortText9,
+    taskCategory: shortText9.nullable().default(null),
     expectedWallTimeMs: external_exports.number().int().min(0),
     expectedFiveHourBurnRatio: external_exports.number().min(0).max(1),
     expectedWeeklyBurnRatio: external_exports.number().min(0).max(1),
-    confidence: shortText8,
-    basis: shortText8
+    confidence: shortText9,
+    basis: shortText9
   }).passthrough().nullable(),
   /** The dynamic reserve ratio in force. */
   reserveRatio: external_exports.number().min(0).max(1).nullable(),
@@ -55867,15 +56350,15 @@ var schedulingDecisionSchema = external_exports.object({
     reasonCode: external_exports.enum(LOCAL_EXECUTION_MODE_REASONS),
     shape: external_exports.enum(LOCAL_EXECUTION_SHAPES),
     /** Runner identity for the mode (e.g. "local-llamacpp", "deepseek-harness"). */
-    runner: shortText8.nullable().default(null),
+    runner: shortText9.nullable().default(null),
     /** Model identity when known; null when the provider does not say. */
-    model: shortText8.nullable().default(null),
+    model: shortText9.nullable().default(null),
     /** Verified compute locality of the selected runner. */
     computeLocality: external_exports.enum(COMPUTE_LOCALITIES).default("UNKNOWN"),
     /** Grounds for the locality verdict (bounded, recorded verbatim). */
     localityEvidence: external_exports.string().max(500).nullable().default(null),
     /** Status of the LOCAL harness binding when the decision was made. */
-    harnessBindingStatus: shortText8.nullable().default(null),
+    harnessBindingStatus: shortText9.nullable().default(null),
     detail: external_exports.string().max(1e3).default("")
   }).passthrough().nullable().default(null),
   /**
@@ -55898,7 +56381,7 @@ var schedulingDecisionSchema = external_exports.object({
     /** Why subscription capacity was unavailable. */
     gapReason: external_exports.enum(SUBSCRIPTION_GAP_REASONS),
     /** When capacity is expected back (ISO); null when unknown. */
-    subscriptionAvailableAt: shortText8.nullable().default(null),
+    subscriptionAvailableAt: shortText9.nullable().default(null),
     estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null),
     gapConfidence: external_exports.enum(GAP_FORECAST_CONFIDENCE).default("UNKNOWN"),
     delaySensitivity: external_exports.enum(DELAY_SENSITIVITIES),
@@ -55911,25 +56394,25 @@ var schedulingDecisionSchema = external_exports.object({
     safeCostUsd: external_exports.number().min(0).nullable().default(null),
     currency: external_exports.string().max(8).default("USD"),
     costSource: external_exports.enum(API_COST_SOURCES).default("UNKNOWN"),
-    pricingSource: shortText8.nullable().default(null),
+    pricingSource: shortText9.nullable().default(null),
     /** Remaining job API budget at decision time; null when unbounded. */
     budgetRemainingUsd: external_exports.number().min(0).nullable().default(null),
     budgetEncumberedUsd: external_exports.number().min(0).nullable().default(null),
     /** The API profile that would have run it, and its verified locality. */
-    apiProfile: shortText8.nullable().default(null),
-    apiRunner: shortText8.nullable().default(null),
-    apiModel: shortText8.nullable().default(null),
+    apiProfile: shortText9.nullable().default(null),
+    apiRunner: shortText9.nullable().default(null),
+    apiModel: shortText9.nullable().default(null),
     computeLocality: external_exports.enum(COMPUTE_LOCALITIES).default("UNKNOWN"),
-    bindingStatus: shortText8.nullable().default(null),
+    bindingStatus: shortText9.nullable().default(null),
     /** The bounded authorization consulted, when one existed. */
-    approvalId: shortText8.nullable().default(null),
-    approvalStatus: shortText8.nullable().default(null),
+    approvalId: shortText9.nullable().default(null),
+    approvalStatus: shortText9.nullable().default(null),
     detail: external_exports.string().max(2e3).default("")
   }).passthrough().nullable().default(null),
   /** For DEFER: when capacity is expected to return, when known. */
-  deferUntil: shortText8.nullable().default(null),
+  deferUntil: shortText9.nullable().default(null),
   detail: external_exports.string().max(2e3),
-  createdAt: shortText8
+  createdAt: shortText9
 }).passthrough();
 var LOCAL_EXECUTION_LIMITS = {
   maxEdits: 20,
@@ -55996,21 +56479,21 @@ var LOCAL_EXECUTOR_SYSTEM_PROMPT = [
   "  a verification cycle.",
   "- The response must be valid JSON for the provided schema."
 ].join("\n");
-var shortText9 = external_exports.string().min(1).max(200);
+var shortText10 = external_exports.string().min(1).max(200);
 var apiSpendApprovalSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  approvalId: shortText9,
-  jobId: shortText9,
-  nodeId: shortText9,
-  taskId: shortText9,
+  approvalId: shortText10,
+  jobId: shortText10,
+  nodeId: shortText10,
+  taskId: shortText10,
   /**
    * Deterministic fingerprint of the WORK this approval covers. A
    * materially changed task produces a different fingerprint and the old
    * approval no longer authorizes anything.
    */
-  taskFingerprint: shortText9,
+  taskFingerprint: shortText10,
   /** The API profile the approval is scoped to. */
-  profileName: shortText9,
+  profileName: shortText10,
   /** Maximum authorized spend for this task, in USD. */
   maxAuthorizedCostUsd: external_exports.number().min(0),
   currency: external_exports.literal("USD").default("USD"),
@@ -56019,15 +56502,15 @@ var apiSpendApprovalSchema = external_exports.object({
   status: external_exports.enum(API_APPROVAL_STATUSES),
   /** Why the bridge was proposed — recorded verbatim for the decider. */
   rationale: external_exports.string().max(2e3).default(""),
-  requestedAt: shortText9,
+  requestedAt: shortText10,
   /** After this the approval is stale even if never used. */
-  expiresAt: shortText9,
-  decidedAt: shortText9.nullable().default(null),
+  expiresAt: shortText10,
+  decidedAt: shortText10.nullable().default(null),
   /** Who decided. Human identity only; never a model or a runner. */
-  decidedBy: shortText9.nullable().default(null),
+  decidedBy: shortText10.nullable().default(null),
   decisionNote: external_exports.string().max(1e3).nullable().default(null),
   /** The attempt that consumed this approval, when one did. */
-  consumedByAttemptId: shortText9.nullable().default(null)
+  consumedByAttemptId: shortText10.nullable().default(null)
 }).passthrough();
 var PREPROCESS_SYSTEM_PROMPT = [
   "You compress one bulky engineering artifact (a log, test output, tool",
@@ -60672,11 +61155,11 @@ var EMPTY_COMPLETION_RESULT = {
 };
 
 // ../../packages/mcp-server/src/prompts/helpers.ts
-function promptResult(context, name, description, text7) {
+function promptResult(context, name, description, text8) {
   context.logger.info("prompt_requested", { prompt: name });
   return {
     description,
-    messages: [{ role: "user", content: { type: "text", text: text7 } }]
+    messages: [{ role: "user", content: { type: "text", text: text8 } }]
   };
 }
 
@@ -61001,12 +61484,12 @@ function paginate(all, options) {
     totalCount: all.length
   };
 }
-function truncateText(text7, maximumBytes) {
-  const originalBytes = import_node_buffer4.Buffer.byteLength(text7, "utf8");
+function truncateText(text8, maximumBytes) {
+  const originalBytes = import_node_buffer4.Buffer.byteLength(text8, "utf8");
   if (originalBytes <= maximumBytes) {
-    return { text: text7, truncated: false, originalBytes };
+    return { text: text8, truncated: false, originalBytes };
   }
-  const buffer = import_node_buffer4.Buffer.from(text7, "utf8").subarray(0, maximumBytes);
+  const buffer = import_node_buffer4.Buffer.from(text8, "utf8").subarray(0, maximumBytes);
   const decoded = buffer.toString("utf8").replace(/�+$/u, "");
   return { text: decoded, truncated: true, originalBytes };
 }
@@ -61043,9 +61526,9 @@ function assertStructuredSize(toolName, structured) {
 function resourceNotFound(what, remediation) {
   return new Error(`${what} was not found. ${remediation}`);
 }
-function markdownContents(context, uri, text7) {
+function markdownContents(context, uri, text8) {
   context.logger.info("resource_read", { resource: uri });
-  const bounded = truncateText(text7, LIMITS.maximumDocumentBytes);
+  const bounded = truncateText(text8, LIMITS.maximumDocumentBytes);
   return {
     contents: [
       {
@@ -61063,7 +61546,7 @@ function jsonContents(context, uri, value) {
   context.logger.info("resource_read", { resource: uri });
   const serialized = JSON.stringify(value, null, 2);
   const bounded = truncateText(serialized, LIMITS.maximumStructuredResponseBytes);
-  const text7 = bounded.truncated ? JSON.stringify(
+  const text8 = bounded.truncated ? JSON.stringify(
     {
       truncated: true,
       message: `The resource exceeded ${LIMITS.maximumStructuredResponseBytes} bytes; use the paginated tools instead.`
@@ -61071,7 +61554,7 @@ function jsonContents(context, uri, value) {
     null,
     2
   ) : serialized;
-  return { contents: [{ uri, mimeType: "application/json", text: text7 }] };
+  return { contents: [{ uri, mimeType: "application/json", text: text8 }] };
 }
 function assertPlainName(kind, value) {
   const decoded = decodeURIComponent(value);
@@ -62070,7 +62553,7 @@ function readSpecEvidenceRecords(workspace, specName) {
   return { byTask, invalidRecordCount };
 }
 async function buildSpecVerificationContext(options) {
-  const { workspace, folder, comparison, caches, now: now4 } = options;
+  const { workspace, folder, comparison, caches, now: now3 } = options;
   const spec = analyzeSpec(workspace, folder);
   const evaluation = spec.state !== void 0 ? evaluateWorkflow(workspace, spec.state) : void 0;
   const policy = resolveEffectivePolicy(workspace, folder.name, {
@@ -62125,7 +62608,7 @@ async function buildSpecVerificationContext(options) {
     approved,
     approvedAt,
     tasks: currentTasks,
-    now: now4
+    now: now3
   };
   const recordedShas = /* @__PURE__ */ new Set();
   for (const records of rawEvidence.byTask.values()) {
@@ -62177,7 +62660,7 @@ async function buildSpecVerificationContext(options) {
     freshness,
     matchedBy: options.matchedBy ?? [],
     readBaseContent: makeBaseContentReader(workspace, comparison, caches, options.signal),
-    now: now4
+    now: now3
   };
 }
 async function orchestrateVerificationCommands(options) {
@@ -63316,7 +63799,7 @@ var VERIFY_EXIT_CODES = {
   commandTimeout: 5
 };
 async function verifySpecs(request) {
-  const now4 = (request.clock ?? (() => /* @__PURE__ */ new Date()))();
+  const now3 = (request.clock ?? (() => /* @__PURE__ */ new Date()))();
   const verificationId = (request.idFactory ?? import_crypto11.randomUUID)();
   const workspace = request.workspace;
   const configRead = readAgentConfig(workspace);
@@ -63358,7 +63841,7 @@ async function verifySpecs(request) {
           ...request.strict !== void 0 ? { strict: request.strict } : {},
           ...request.explicitPolicyPath !== void 0 ? { explicitPolicyPath: request.explicitPolicyPath } : {},
           ...matchedBy !== void 0 ? { matchedBy: dedupe(matchedBy) } : {},
-          now: now4,
+          now: now3,
           ...request.signal !== void 0 ? { signal: request.signal } : {}
         })
       );
@@ -63411,7 +63894,7 @@ async function verifySpecs(request) {
     unmappedFiles: affectedResult.unmapped,
     ambiguousFiles: affectedResult.ambiguous,
     commands,
-    now: now4
+    now: now3
   };
   const globalResult = await evaluateGlobalRules(rules, globalContext);
   const selectedNames = new Set(specContexts.map((context) => context.specName));
@@ -63523,7 +64006,7 @@ async function verifySpecs(request) {
     schemaVersion: VERIFICATION_REPORT_SCHEMA_VERSION,
     tool: { name: "specbridge", version: request.toolVersion },
     verificationId,
-    createdAt: now4.toISOString(),
+    createdAt: now3.toISOString(),
     comparison: comparison.descriptor,
     selection: {
       mode: selectionMode,
@@ -63848,8 +64331,8 @@ function registerSteeringListTool(server, context) {
           diagnostics: toDiagnosticViews(workspace, info.diagnostics)
         };
       });
-      const text7 = steering.length === 0 ? "No steering documents exist (.kiro/steering is absent or empty). Steering is optional." : `${steering.length} steering document(s): ${steering.map((s) => s.name).join(", ")}.`;
-      return { text: text7, structured: { steering, count: steering.length } };
+      const text8 = steering.length === 0 ? "No steering documents exist (.kiro/steering is absent or empty). Steering is optional." : `${steering.length} steering document(s): ${steering.map((s) => s.name).join(", ")}.`;
+      return { text: text8, structured: { steering, count: steering.length } };
     }
   });
 }
@@ -63977,10 +64460,10 @@ function registerSpecListTool(server, context) {
       const lines = page.items.map(
         (spec) => `- ${spec.name} [${spec.type}/${spec.workflowMode}] ${spec.workflowStatus}, approvals ${spec.approvalHealth}, tasks ${spec.taskProgress.completed}/${spec.taskProgress.total}`
       );
-      const text7 = page.totalCount === 0 ? "No specs match. This workspace may have no specs yet; create one with spec_create." : `${page.totalCount} spec(s)${page.truncated ? ` (showing ${page.items.length})` : ""}:
+      const text8 = page.totalCount === 0 ? "No specs match. This workspace may have no specs yet; create one with spec_create." : `${page.totalCount} spec(s)${page.truncated ? ` (showing ${page.items.length})` : ""}:
 ${lines.join("\n")}`;
       return {
-        text: text7,
+        text: text8,
         structured: {
           specs: page.items,
           pagination: {
@@ -64054,10 +64537,10 @@ function registerSpecReadTool(server, context) {
         };
       });
       const present = documents.filter((doc) => doc.exists);
-      const text7 = present.length === 0 ? `Spec "${analysis.folder.name}" has none of the requested document(s) yet.` : present.map((doc) => `## ${doc.path}
+      const text8 = present.length === 0 ? `Spec "${analysis.folder.name}" has none of the requested document(s) yet.` : present.map((doc) => `## ${doc.path}
 
 ${doc.content ?? ""}${doc.truncated === true ? "\n\n[truncated]" : ""}`).join("\n\n");
-      return { text: text7, structured: { specName: analysis.folder.name, documents } };
+      return { text: text8, structured: { specName: analysis.folder.name, documents } };
     }
   });
 }
@@ -64161,7 +64644,7 @@ function registerSpecStatusTool(server, context) {
       const capped = capDiagnostics(toDiagnosticViews(workspace, allDiagnostics));
       const suggestedNextActions = suggestNextActions(bundle);
       const stageLines = stages.map((stage) => `  ${stage.stage}: ${stage.effective}`);
-      const text7 = [
+      const text8 = [
         `Spec "${summary.name}" (${summary.type}, ${summary.workflowMode}) \u2014 status ${summary.workflowStatus}, approvals ${summary.approvalHealth}.`,
         stages.length > 0 ? `Stages:
 ${stageLines.join("\n")}` : "No SpecBridge workflow state (unmanaged spec).",
@@ -64169,7 +64652,7 @@ ${stageLines.join("\n")}` : "No SpecBridge workflow state (unmanaged spec).",
         `Next: ${suggestedNextActions[0] ?? "(no suggestion)"}`
       ].join("\n");
       return {
-        text: text7,
+        text: text8,
         structured: {
           summary,
           stages,
@@ -64388,13 +64871,13 @@ function registerSpecAnalyzeTool(server, context) {
       } else if (strict && result.warningCount > 0) {
         remediation.push("Fix the warnings or re-run without strict.");
       }
-      const text7 = [
+      const text8 = [
         `Analysis of "${analysis.folder.name}" (${stagesAnalyzed.join(", ") || "no stages"}): ${result.errorCount} error(s), ${result.warningCount} warning(s), ${infoCount} info \u2014 ${passed ? "PASSED" : "FAILED"}${strict ? " (strict)" : ""}.`,
         ...capped.items.slice(0, 20).map((d) => `- ${d.severity.toUpperCase()} ${d.code}: ${d.message}${d.line !== void 0 ? ` (line ${d.line})` : ""}`),
         capped.items.length > 20 ? `\u2026 ${capped.items.length - 20} more finding(s) in structured content.` : ""
       ].filter((line) => line.length > 0).join("\n");
       return {
-        text: text7,
+        text: text8,
         structured: {
           specName: analysis.folder.name,
           stagesAnalyzed,
@@ -64484,10 +64967,10 @@ function registerSpecCreateTool(server, context) {
             "Call spec_create again with apply: true to create the spec."
           ];
         }
-        const text7 = apply ? `Created spec "${plan.specName}" (${plan.specType}, ${plan.mode}) with ${plan.files.length} file(s). Initial status: ${plan.state.status}.` : `Preview of spec "${plan.specName}" (${plan.specType}, ${plan.mode}) \u2014 nothing was written.
+        const text8 = apply ? `Created spec "${plan.specName}" (${plan.specType}, ${plan.mode}) with ${plan.files.length} file(s). Initial status: ${plan.state.status}.` : `Preview of spec "${plan.specName}" (${plan.specType}, ${plan.mode}) \u2014 nothing was written.
 ` + previewFiles.map((file) => `- ${file.path} (${file.bytes} bytes)`).join("\n");
         return {
-          text: text7,
+          text: text8,
           structured: {
             applied: apply,
             specName: plan.specName,
@@ -64640,7 +65123,7 @@ function registerSpecStageValidateTool(server, context) {
       );
       const boundedDiff = truncateText(evaluation.diff, LIMITS.maximumDocumentBytes);
       const nextStep = valid ? "Present the diff for review; after explicit user confirmation call spec_stage_apply with this candidateHash." : "Fix the error-level findings and validate again; spec_stage_apply refuses candidates with errors.";
-      const text7 = [
+      const text8 = [
         `Candidate ${args.stage}.md for "${evaluation.analysis.folder.name}": ${valid ? "VALID" : "INVALID"} (${evaluation.analysisResult.errorCount} error(s), ${evaluation.analysisResult.warningCount} warning(s)).`,
         `Candidate hash: ${evaluation.candidateHash}`,
         `Current document: ${evaluation.currentExists ? `hash ${evaluation.currentHash}` : "(absent)"}`,
@@ -64648,7 +65131,7 @@ function registerSpecStageValidateTool(server, context) {
         `Next: ${nextStep}`
       ].join("\n");
       return {
-        text: text7,
+        text: text8,
         structured: {
           specName: evaluation.analysis.folder.name,
           stage: args.stage,
@@ -64807,14 +65290,14 @@ function registerSpecStageApplyTool(server, context) {
         toDiagnosticViews(workspace, evaluation.analysisResult.diagnostics)
       );
       const nextStep = `The ${args.stage} stage is written but NOT approved. A human approves it with: specbridge spec approve ${specName} --stage ${args.stage}`;
-      const text7 = [
+      const text8 = [
         `Applied ${args.stage}.md for "${specName}" (${written.created ? "created" : "updated"}, ${written.eol.toUpperCase()} preserved).`,
         invalidation.invalidated.length > 0 ? `Invalidated dependent approval(s): ${invalidation.invalidated.join(", ")}.` : "No dependent approvals were invalidated.",
         `Authoring run: ${runId}.`,
         nextStep
       ].join("\n");
       return {
-        text: text7,
+        text: text8,
         structured: {
           applied: true,
           specName,
@@ -64919,10 +65402,10 @@ function registerTaskListTool(server, context) {
         (task) => `- ${box(task.state)} ${task.id} ${task.title}${task.optional ? " (optional)" : ""}`
       );
       const progress = model.progress;
-      const text7 = `Tasks for "${analysis.folder.name}": ${progress.completed}/${progress.total} required complete.` + (lines.length > 0 ? `
+      const text8 = `Tasks for "${analysis.folder.name}": ${progress.completed}/${progress.total} required complete.` + (lines.length > 0 ? `
 ${lines.join("\n")}` : "\n(no tasks parsed)");
       return {
-        text: text7,
+        text: text8,
         structured: {
           specName: analysis.folder.name,
           progress,
@@ -65163,7 +65646,7 @@ function registerTaskBeginTool(server, context) {
       });
       const boundedContext = truncateText(outcome.contextMarkdown, LIMITS.maximumDocumentBytes);
       const task = outcome.task;
-      const text7 = [
+      const text8 = [
         `Interactive run ${outcome.runId} started for "${outcome.specName}", task ${task.id}: ${task.title}.`,
         "",
         "Instructions:",
@@ -65173,7 +65656,7 @@ function registerTaskBeginTool(server, context) {
         `When the source changes are ready, call task_complete with runId "${outcome.runId}".`
       ].join("\n");
       return {
-        text: text7,
+        text: text8,
         structured: {
           runId: outcome.runId,
           specName: outcome.specName,
@@ -65270,7 +65753,7 @@ function registerTaskCompleteTool(server, context) {
       });
       const actualChangedFiles = report.changedFiles.filter((file) => file.modifiedDuringRun);
       const nextRecommendedAction = nextActionFor(outcome.outcome, report);
-      const text7 = [
+      const text8 = [
         `Run ${report.runId}: ${outcome.outcome.toUpperCase()} (evidence: ${report.evidenceStatus}).${outcome.finalizedNow ? "" : " [already finalized; returning the recorded result]"}`,
         `Actual changed files (${actualChangedFiles.length}): ${actualChangedFiles.map((f) => f.path).join(", ") || "(none)"}`,
         report.verification.ran ? `Verification: ${report.verification.passed ? "passed" : `FAILED (${report.verification.requiredFailed.join(", ")})`}` : "Verification: not run.",
@@ -65280,7 +65763,7 @@ ${report.violations.map((v) => `- ${v}`).join("\n")}` : "",
         `Next: ${nextRecommendedAction}`
       ].filter((line) => line.length > 0).join("\n");
       return {
-        text: text7,
+        text: text8,
         structured: {
           runId: report.runId,
           outcome: outcome.outcome,
@@ -65415,10 +65898,10 @@ function registerRunListTool(server, context) {
       const lines = page.items.map(
         (run) => `- ${run.runId.slice(0, 12)} ${run.runType} ${run.specName}${run.taskId !== void 0 ? `#${run.taskId}` : ""} \u2192 ${run.evidenceStatus ?? run.lifecycleStatus ?? run.outcome ?? "(in progress)"}`
       );
-      const text7 = page.totalCount === 0 ? "No recorded runs match." : `${page.totalCount} run(s)${page.truncated ? ` (showing ${page.items.length})` : ""}:
+      const text8 = page.totalCount === 0 ? "No recorded runs match." : `${page.totalCount} run(s)${page.truncated ? ` (showing ${page.items.length})` : ""}:
 ${lines.join("\n")}`;
       return {
-        text: text7,
+        text: text8,
         structured: {
           runs: page.items,
           pagination: {
@@ -65587,14 +66070,14 @@ function registerSpecAffectedTool(server, context) {
         return { specName: spec.specName, matches: spec.matches.slice(0, MAX_PATHS) };
       });
       if (result.unmapped.length > MAX_PATHS || result.ambiguous.length > MAX_PATHS) truncated = true;
-      const text7 = [
+      const text8 = [
         `Comparison ${request.mode}: ${comparison.changedFiles.length} changed file(s).`,
         result.affected.length > 0 ? `Affected specs: ${result.affected.map((spec) => spec.specName).join(", ")}.` : "No spec is affected by this change set.",
         result.unmapped.length > 0 ? `${result.unmapped.length} unmapped changed file(s).` : "",
         result.ambiguous.length > 0 ? `${result.ambiguous.length} file(s) claimed by more than one spec.` : ""
       ].filter((line) => line.length > 0).join("\n");
       return {
-        text: text7,
+        text: text8,
         structured: {
           comparison: { mode: request.mode, changedFiles: comparison.changedFiles.length },
           affected: boundedAffected,
@@ -65840,14 +66323,14 @@ function registerSpecRunVerificationTool(server, context) {
       const commandLines = commands.map(
         (command) => `- ${command.name}: ${command.disposition}${command.disposition === "executed" ? command.passed ? " (passed)" : ` (FAILED, exit ${command.exitCode ?? "none"})` : ""}`
       );
-      const text7 = [
+      const text8 = [
         verificationText(view, "Verification (rules + trusted commands)"),
         commands.length > 0 ? `Commands:
 ${commandLines.join("\n")}` : "No verification commands are configured.",
         persistReport && reportPath !== void 0 ? `Report persisted: ${reportPath}` : "Report not persisted (persistReport was false)."
       ].join("\n");
       return {
-        text: text7,
+        text: text8,
         structured: {
           ...view,
           commands,
@@ -66384,9 +66867,9 @@ function checkManifestSemantics(manifest) {
   checkUrl("repository", manifest.repository, issues);
   return issues;
 }
-function parseExtensionManifest(text7) {
+function parseExtensionManifest(text8) {
   const issues = [];
-  if (Buffer.byteLength(text7, "utf8") > MAX_EXTENSION_MANIFEST_BYTES) {
+  if (Buffer.byteLength(text8, "utf8") > MAX_EXTENSION_MANIFEST_BYTES) {
     issues.push(
       extensionIssue(
         "SBE008",
@@ -66400,7 +66883,7 @@ function parseExtensionManifest(text7) {
   }
   let parsed;
   try {
-    parsed = JSON.parse(text7);
+    parsed = JSON.parse(text8);
   } catch (error2) {
     issues.push(
       extensionIssue(
@@ -67300,8 +67783,8 @@ function checkManifestSemantics2(manifest) {
   }
   return issues;
 }
-function parseTemplateManifest(text7) {
-  if (Buffer.byteLength(text7, "utf8") > TEMPLATE_PACK_LIMITS.maxManifestBytes) {
+function parseTemplateManifest(text8) {
+  if (Buffer.byteLength(text8, "utf8") > TEMPLATE_PACK_LIMITS.maxManifestBytes) {
     return {
       issues: [
         issue2(
@@ -67314,7 +67797,7 @@ function parseTemplateManifest(text7) {
   }
   let parsed;
   try {
-    parsed = JSON.parse(text7);
+    parsed = JSON.parse(text8);
   } catch (cause) {
     return {
       issues: [
@@ -67360,13 +67843,13 @@ function parseTemplateManifest(text7) {
 }
 var PLACEHOLDER_PATTERN = /\{\{([^{}\r\n]*)\}\}/g;
 var VALID_PLACEHOLDER_NAME = /^[a-z][a-zA-Z0-9]*$/;
-function renderTemplateText(sourceLabel, text7, values) {
+function renderTemplateText(sourceLabel, text8, values) {
   const parts = [];
   let lastIndex = 0;
   PLACEHOLDER_PATTERN.lastIndex = 0;
   let match;
-  while ((match = PLACEHOLDER_PATTERN.exec(text7)) !== null) {
-    parts.push(text7.slice(lastIndex, match.index));
+  while ((match = PLACEHOLDER_PATTERN.exec(text8)) !== null) {
+    parts.push(text8.slice(lastIndex, match.index));
     lastIndex = match.index + match[0].length;
     const inner = match[1] ?? "";
     if (!VALID_PLACEHOLDER_NAME.test(inner)) {
@@ -67388,7 +67871,7 @@ function renderTemplateText(sourceLabel, text7, values) {
     }
     parts.push(value);
   }
-  parts.push(text7.slice(lastIndex));
+  parts.push(text8.slice(lastIndex));
   const rendered = parts.join("");
   const renderedBytes = Buffer.byteLength(rendered, "utf8");
   if (renderedBytes > TEMPLATE_PACK_LIMITS.maxRenderedFileBytes) {
@@ -67404,13 +67887,13 @@ function renderTemplateText(sourceLabel, text7, values) {
 function truncatePlaceholder(raw) {
   return raw.length > 40 ? `${raw.slice(0, 40)}\u2026` : raw;
 }
-function collectPlaceholders(text7) {
+function collectPlaceholders(text8) {
   const names = [];
   const malformed = [];
   const seen = /* @__PURE__ */ new Set();
   PLACEHOLDER_PATTERN.lastIndex = 0;
   let match;
-  while ((match = PLACEHOLDER_PATTERN.exec(text7)) !== null) {
+  while ((match = PLACEHOLDER_PATTERN.exec(text8)) !== null) {
     const inner = match[1] ?? "";
     if (!VALID_PLACEHOLDER_NAME.test(inner)) {
       malformed.push(truncatePlaceholder(match[0]));
@@ -67664,8 +68147,8 @@ function readTemplatePackDirectory(dir) {
         );
       }
       const buffer = (0, import_fs30.readFileSync)(entryPath);
-      const text7 = buffer.toString("utf8");
-      if (!Buffer.from(text7, "utf8").equals(buffer)) {
+      const text8 = buffer.toString("utf8");
+      if (!Buffer.from(text8, "utf8").equals(buffer)) {
         throw new TemplateError(
           "SBT025",
           `${entryRelative} is not valid UTF-8 text.`,
@@ -67673,7 +68156,7 @@ function readTemplatePackDirectory(dir) {
           { path: entryPath }
         );
       }
-      if (text7.includes("\0")) {
+      if (text8.includes("\0")) {
         throw new TemplateError(
           "SBT025",
           `${entryRelative} contains binary (null-byte) content.`,
@@ -67681,7 +68164,7 @@ function readTemplatePackDirectory(dir) {
           { path: entryPath }
         );
       }
-      files.set(entryRelative, text7);
+      files.set(entryRelative, text8);
     }
   };
   walk(dir, "", 0);
@@ -68155,8 +68638,8 @@ var SCORE_ID_PREFIX = 800;
 var SCORE_EXACT_TAG = 600;
 var SCORE_DISPLAY_NAME_TOKEN = 400;
 var SCORE_DESCRIPTION_TOKEN = 200;
-function tokenize(text7) {
-  return text7.toLowerCase().split(/[^a-z0-9]+/u).filter((token) => token.length > 0);
+function tokenize(text8) {
+  return text8.toLowerCase().split(/[^a-z0-9]+/u).filter((token) => token.length > 0);
 }
 function clampSearchLimit(requested) {
   if (requested === void 0 || !Number.isFinite(requested)) return DEFAULT_SEARCH_LIMIT;
@@ -68603,9 +69086,9 @@ var extensionChecksumsSchema = external_exports.object({
 function sha256HexOf(data) {
   return (0, import_crypto13.createHash)("sha256").update(data).digest("hex");
 }
-function parseExtensionChecksums(text7) {
+function parseExtensionChecksums(text8) {
   const issues = [];
-  if (Buffer.byteLength(text7, "utf8") > EXTENSION_LIMITS.maxChecksumsBytes) {
+  if (Buffer.byteLength(text8, "utf8") > EXTENSION_LIMITS.maxChecksumsBytes) {
     issues.push(
       extensionIssue(
         "SBE008",
@@ -68619,7 +69102,7 @@ function parseExtensionChecksums(text7) {
   }
   let parsed;
   try {
-    parsed = JSON.parse(text7);
+    parsed = JSON.parse(text8);
   } catch (error2) {
     issues.push(
       extensionIssue(
@@ -68802,11 +69285,11 @@ function readExtensionPackageDirectory(dir) {
   return files;
 }
 function decodeUtf8Strict(name, content) {
-  const text7 = content.toString("utf8");
-  if (!Buffer.from(text7, "utf8").equals(content) || text7.includes("\0")) {
+  const text8 = content.toString("utf8");
+  if (!Buffer.from(text8, "utf8").equals(content) || text8.includes("\0")) {
     return void 0;
   }
-  return text7;
+  return text8;
 }
 function loadExtensionPackage(files, options = {}) {
   const issues = [];
@@ -68990,15 +69473,15 @@ function validateTemplateProviderPacks(manifest, files, specbridgeVersion) {
       );
       continue;
     }
-    const text7 = decodeUtf8Strict(name, content);
-    if (text7 === void 0) {
+    const text8 = decodeUtf8Strict(name, content);
+    if (text8 === void 0) {
       issues.push(
         extensionIssue("SBE008", "files", "error", `template file "${name}" is not valid UTF-8`, name)
       );
       continue;
     }
     const pack = packs.get(packId) ?? /* @__PURE__ */ new Map();
-    pack.set(packRelative, text7);
+    pack.set(packRelative, text8);
     packs.set(packId, pack);
   }
   if (packs.size === 0) {
@@ -69119,9 +69602,9 @@ function readValidatedJson(filePath, schema, empty, label) {
   if (!(0, import_fs34.existsSync)(filePath)) {
     return { value: empty, diagnostics: [], exists: false };
   }
-  let text7;
+  let text8;
   try {
-    text7 = (0, import_fs34.readFileSync)(filePath, "utf8");
+    text8 = (0, import_fs34.readFileSync)(filePath, "utf8");
   } catch (cause) {
     return {
       value: empty,
@@ -69138,7 +69621,7 @@ function readValidatedJson(filePath, schema, empty, label) {
   }
   let parsed;
   try {
-    parsed = JSON.parse(text7);
+    parsed = JSON.parse(text8);
   } catch {
     return {
       value: empty,
@@ -69542,8 +70025,8 @@ function spawnExtensionProcess(options) {
 }
 var MAX_PROTOCOL_LOG_LINES = 200;
 var SHUTDOWN_GRACE_MS = 1e3;
-function redact(text7, secrets) {
-  let redacted = text7;
+function redact(text8, secrets) {
+  let redacted = text8;
   for (const secret of secrets) {
     if (secret.length >= 4) {
       redacted = redacted.split(secret).join("[redacted]");
@@ -70970,9 +71453,9 @@ function registerTemplateListTool(server, context) {
         ...args.cursor !== void 0 ? { cursor: args.cursor } : {},
         token: "template-list"
       });
-      const text7 = page.items.length === 0 ? "No templates match the given filters." : page.items.map((template) => `- ${template.ref} v${template.version ?? "?"} \u2014 ${template.displayName ?? "(invalid)"}`).join("\n");
+      const text8 = page.items.length === 0 ? "No templates match the given filters." : page.items.map((template) => `- ${template.ref} v${template.version ?? "?"} \u2014 ${template.displayName ?? "(invalid)"}`).join("\n");
       return {
-        text: text7,
+        text: text8,
         structured: {
           templates: page.items,
           totalCount: filtered.length,
@@ -71013,8 +71496,8 @@ function registerTemplateSearchTool(server, context) {
       const filtered = { entries: filterEntries(catalog.entries, args), diagnostics: catalog.diagnostics };
       const results = searchTemplates(filtered, args.query, args.limit !== void 0 ? { limit: args.limit } : {});
       const summaries = results.map((result) => ({ ...entrySummary(result.entry), score: result.score }));
-      const text7 = summaries.length === 0 ? `No templates match "${args.query}".` : summaries.map((result) => `- ${result.ref} (score ${result.score}) \u2014 ${result.displayName ?? ""}`).join("\n");
-      return { text: text7, structured: { results: summaries, totalCount: summaries.length } };
+      const text8 = summaries.length === 0 ? `No templates match "${args.query}".` : summaries.map((result) => `- ${result.ref} (score ${result.score}) \u2014 ${result.displayName ?? ""}`).join("\n");
+      return { text: text8, structured: { results: summaries, totalCount: summaries.length } };
     }
   });
 }
@@ -71061,13 +71544,13 @@ function registerTemplateShowTool(server, context) {
       const manifest = entry.pack.manifest;
       const summary = entrySummary(entry);
       const readme = entry.pack.readme !== void 0 ? truncateText(entry.pack.readme, LIMITS.maximumShortTextChars) : void 0;
-      const text7 = [
+      const text8 = [
         `${entry.ref} \u2014 ${manifest?.displayName ?? "(invalid template)"} v${manifest?.version ?? "?"}`,
         manifest?.description ?? "",
         manifest !== void 0 ? `Variables: ${manifest.variables.map((variable) => variable.name).join(", ") || "(none)"}` : `Invalid: ${summary.errors.join(" | ")}`
       ].filter((line) => line.length > 0).join("\n");
       return {
-        text: text7,
+        text: text8,
         structured: {
           template: summary,
           license: manifest?.license ?? null,
@@ -71389,14 +71872,14 @@ var registryIndexSchema = external_exports.object({
   updatedAt: external_exports.string().min(1).max(60),
   extensions: external_exports.array(registryExtensionEntrySchema).max(2e3)
 }).strict();
-function parseRegistryIndex(text7) {
+function parseRegistryIndex(text8) {
   const problems = [];
-  if (Buffer.byteLength(text7, "utf8") > MAX_REGISTRY_INDEX_BYTES) {
+  if (Buffer.byteLength(text8, "utf8") > MAX_REGISTRY_INDEX_BYTES) {
     return { problems: [`index exceeds ${MAX_REGISTRY_INDEX_BYTES} bytes`] };
   }
   let parsed;
   try {
-    parsed = JSON.parse(text7);
+    parsed = JSON.parse(text8);
   } catch (error2) {
     return { problems: [`index is not valid JSON: ${error2 instanceof Error ? error2.message : String(error2)}`] };
   }
@@ -71528,8 +72011,8 @@ function resolveRegistryIndex(workspace, source) {
         ]
       };
     }
-    const text7 = (0, import_fs37.readFileSync)(filePath, "utf8");
-    const parsed = parseRegistryIndex(text7);
+    const text8 = (0, import_fs37.readFileSync)(filePath, "utf8");
+    const parsed = parseRegistryIndex(text8);
     if (parsed.index === void 0) {
       throw new RegistryError(
         "SBR007",
@@ -71778,9 +72261,9 @@ function registerExtensionListTool(server, context) {
         ...args.cursor !== void 0 ? { cursor: args.cursor } : {},
         token: "extension-list"
       });
-      const text7 = page.items.length === 0 ? "No installed extensions match the given filters." : page.items.map((entry) => `- ${entry.id}@${entry.version} (${entry.kind}, ${entry.enabled ? "enabled" : "disabled"})`).join("\n");
+      const text8 = page.items.length === 0 ? "No installed extensions match the given filters." : page.items.map((entry) => `- ${entry.id}@${entry.version} (${entry.kind}, ${entry.enabled ? "enabled" : "disabled"})`).join("\n");
       return {
-        text: text7,
+        text: text8,
         structured: { extensions: page.items, totalCount: entries.length, nextCursor: page.nextCursor ?? null }
       };
     }
@@ -72873,11 +73356,11 @@ function registerJobListTool(server, context) {
         if (args.activeOnly === true && job.finalizedAt !== void 0) return false;
         return true;
       }).slice(0, 100).map(toJobSummary);
-      const text7 = jobs.length === 0 ? "No orchestration jobs match. Start one with `specbridge orchestrate run <spec>`." : jobs.map(
+      const text8 = jobs.length === 0 ? "No orchestration jobs match. Start one with `specbridge orchestrate run <spec>`." : jobs.map(
         (job) => `- ${job.jobId} ${job.status} (${job.specName}, ${job.agentRuns} agent runs, ${job.openQuestions} open question(s))`
       ).join("\n");
       return {
-        text: text7,
+        text: text8,
         structured: {
           jobs,
           diagnostics: listed.diagnostics.map((diagnostic) => ({
@@ -72945,7 +73428,7 @@ function registerJobReadTool(server, context) {
         ...node.latestFailure !== void 0 ? { latestFailureCategory: node.latestFailure.category } : {},
         ...node.latestDiagnosis !== void 0 ? { latestDiagnosisAction: node.latestDiagnosis.recommendedAction } : {}
       }));
-      const text7 = [
+      const text8 = [
         `Job ${job.jobId}: ${job.status} (${job.specName})`,
         ...job.blocker !== void 0 ? [`Blocker [${job.blocker.code}]: ${job.blocker.message}`] : [],
         ...job.openQuestions.map((question) => `Question ${question.id}: ${question.question}`),
@@ -72955,7 +73438,7 @@ function registerJobReadTool(server, context) {
         ...checkpoint !== void 0 ? [`Next action: ${checkpoint.nextAction}`] : []
       ].join("\n");
       return {
-        text: text7,
+        text: text8,
         structured: {
           job: toJobSummary(job),
           goal: job.goal,
@@ -73583,10 +74066,10 @@ function registerObjectiveReadTool(server, context) {
         status: record4.status,
         workspaceIdentity: record4.workspaceIdentity
       }));
-      const text7 = graph === void 0 ? "No work graph exists for this objective yet." : graph.units.map((unit) => `- ${unit.workUnitId} [${unit.status}] (${unit.kind}) ${unit.title}`).join("\n") + (conflicts.length > 0 ? `
+      const text8 = graph === void 0 ? "No work graph exists for this objective yet." : graph.units.map((unit) => `- ${unit.workUnitId} [${unit.status}] (${unit.kind}) ${unit.title}`).join("\n") + (conflicts.length > 0 ? `
 ${conflicts.length} contract conflict(s) recorded.` : "");
       return {
-        text: text7,
+        text: text8,
         structured: {
           workGraph: graph ?? null,
           conflicts,

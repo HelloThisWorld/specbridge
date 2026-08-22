@@ -379,6 +379,31 @@ export const executionLedgerEntrySchema = z
     apiBudgetReservationId: shortText.nullable().default(null),
     apiApprovalId: shortText.nullable().default(null),
     delaySensitivity: shortText.nullable().default(null),
+    // vNext.6 reliability attribution (additive; null on every pre-vNext.6
+    // record and on any attempt the reliability layer did not govern).
+    //
+    // These are the raw facts a later adaptive scheduler needs in order to
+    // compute what failure actually COSTS: attempts per successful task,
+    // failed-token and failed-quota ratios, dollars spent on attempts that
+    // never verified, time to recovery, replan success rate. Collected now,
+    // deliberately un-aggregated — an analytics store that decided in advance
+    // which questions were worth asking would foreclose the ones that turn
+    // out to matter.
+    /** Verdict on this attempt: PASS / FAIL / INCONCLUSIVE. */
+    evaluationStatus: shortText.nullable().default(null),
+    evaluationId: shortText.nullable().default(null),
+    /** WHERE the failure came from, orthogonal to `failureReason`. */
+    failureSource: shortText.nullable().default(null),
+    /** Deterministic failure identity, for cross-attempt repetition analysis. */
+    failureFingerprint: shortText.nullable().default(null),
+    /** Deterministic progress health at the time of the failure. */
+    executionHealth: shortText.nullable().default(null),
+    /** The recovery action SpecBridge chose after this attempt. */
+    recoveryAction: shortText.nullable().default(null),
+    recoveryReasonCode: shortText.nullable().default(null),
+    recoveryDecisionId: shortText.nullable().default(null),
+    /** Which dimension of strategy the recovery changed, if any. */
+    strategyChange: shortText.nullable().default(null),
     metrics: attemptMetricsSchema,
   })
   .passthrough();

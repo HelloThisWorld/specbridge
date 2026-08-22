@@ -34355,6 +34355,23 @@ var jobSchedulerPolicySchema = external_exports.object({
   localExecution: localExecutionPolicySchema.default({}),
   api: apiExecutionPolicySchema.default({})
 }).passthrough();
+var reliabilityPolicySchema = external_exports.object({
+  enabled: external_exports.boolean().default(true),
+  sameFailureThreshold: external_exports.number().int().min(2).max(20).default(2),
+  oscillationThreshold: external_exports.number().int().min(2).max(20).default(3),
+  maxFreshContextRestarts: external_exports.number().int().min(0).max(10).default(1),
+  freshContextRecoveryRatio: external_exports.number().min(0.05).max(1).default(0.85),
+  maxInfrastructureRetries: external_exports.number().int().min(0).max(10).default(2),
+  maxToolCallsPerAttempt: external_exports.number().int().min(1).max(1e5).nullable().default(400),
+  maxCommandRunsPerAttempt: external_exports.number().int().min(1).max(1e5).nullable().default(200),
+  maxTestLoopsPerAttempt: external_exports.number().int().min(1).max(1e3).nullable().default(12),
+  maxAttemptWallTimeMs: external_exports.number().int().min(6e4).max(24 * 36e5).nullable().default(null),
+  maxContextUsageRatio: external_exports.number().min(0.05).max(1).default(0.95),
+  semanticReview: external_exports.enum(SEMANTIC_EVALUATION_MODES).default("auto"),
+  allowApiDeterministicRetry: external_exports.boolean().default(false),
+  gateDependentsOnEvaluation: external_exports.boolean().default(true),
+  maxRecordsPerJob: external_exports.number().int().min(10).max(2e4).default(1e3)
+}).passthrough();
 var jobPolicySchema = external_exports.object({
   /** When false, job operations refuse to start and report why. */
   enabled: external_exports.boolean().default(true),
@@ -34392,7 +34409,14 @@ var jobPolicySchema = external_exports.object({
    * quota thresholds are operational tuning — adjusting them mid-job must
    * not make a resumed job falsely report "the policy changed".
    */
-  scheduler: jobSchedulerPolicySchema.default({})
+  scheduler: jobSchedulerPolicySchema.default({}),
+  /**
+   * vNext.6 reliability policy (additive; conservative defaults). Also
+   * deliberately outside jobPolicyFingerprint: these are operational
+   * thresholds, and the BOUNDS a job is contractually held to
+   * (`budgets`) are already fingerprinted above.
+   */
+  reliability: reliabilityPolicySchema.default({})
 }).passthrough();
 var orchestrationPolicySchema = external_exports.object({
   /**

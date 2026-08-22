@@ -336,6 +336,8 @@ quota thresholds are operational tuning):
 | `allowLocalExecution` | `true` | Gate for the source-mutating local path |
 | `localExecution.*` | see [local agentic runtime](local-agentic-runtime.md) | vNext.4 execution-mode strategy, LOCAL harness binding, harness wall-time bound |
 | `api.*` | see [API gap bridge](api-gap-bridge.md) | vNext.5 paid continuity lane: spend mode (`DISABLED` by default), API harness binding, operator pricing, budgets, gap thresholds |
+
+Reliability thresholds live one level up, under `orchestration.jobs.reliability` — see [reliability runtime](reliability-runtime.md). They govern what happens AFTER an attempt fails, which is a different question from where it runs.
 | `harvestWindowMs` / `harvestMinRemainingRatio` | `30m` / `0.25` | HARVEST entry |
 | `conserveRemainingRatio` | `0.2` | CONSERVE entry |
 | `weeklyPressureRatio` | `0.1` | Weekly pressure (suppresses HARVEST) |

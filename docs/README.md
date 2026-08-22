@@ -72,6 +72,10 @@ reference, grouped by area.
 - [API gap bridge (vNext.5)](orchestration/api-gap-bridge.md) — the paid
   continuity lane: spend authorization, subscription-gap forecasting, cost
   estimation, bounded budgets, and why the default is never to spend.
+- [Reliability, eval & recovery runtime (vNext.6)](orchestration/reliability-runtime.md) —
+  deterministic-first evaluation, cross-lane failure assessment, no-progress
+  and oscillation detection, runaway handling, and the pure recovery planner
+  that decides when more computation is no longer justified.
 - [Orchestration configuration](orchestration/configuration.md) — every
   policy knob, with defaults.
 

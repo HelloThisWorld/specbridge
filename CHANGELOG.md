@@ -1,5 +1,141 @@
 # Changelog
 
+## 1.9.0 (unreleased) — vNext.6 Reliability, Eval & Recovery Runtime
+
+Every earlier phase answered the same question in a different way: *can
+SpecBridge keep running?* This one answers a different question — **should
+it?**
+
+> Can SpecBridge stop a long-running agent from repeatedly doing the wrong
+> thing: wasting quota, expanding errors, or declaring success without
+> sufficient evidence?
+
+The two goals pull in opposite directions. A runtime optimized purely for
+continuity will always find something to run next, which is exactly how a
+week of prepaid quota disappears into forty attempts at one task, each one
+confident and each one identical.
+
+Two invariants govern everything below:
+
+1. **No retry without a reasoned failure classification.** There is no path
+   from "attempt failed" to "run it again" that does not pass through a
+   structured failure assessment first.
+2. **Repeated failure must change strategy, not consume more compute.** When
+   loop detection proves the same experiment is about to run a third time,
+   the recovery planner refuses it.
+
+And one that was already true, now enforced on every lane equally: a model's
+completion claim is never completion evidence. Paid or stronger compute buys
+better implementations; it never buys weaker governance.
+
+**Backward compatible.** Every schema and config field is additive. With
+`reliability.enabled` set to `false`, evaluation records are still written —
+governance is off, observability is not — and the pre-vNext.6 decision
+cascade governs transitions exactly as before. An attempt the reliability
+layer did not govern carries `null` attribution in the ledger rather than a
+fabricated verdict.
+
+### Added
+
+- **Unified execution evaluation** (`reliability/evaluation.ts`): one durable
+  verdict per ExecutionAttempt, on the same terms for every lane, over a
+  deterministic-first stack — execution integrity, repository integrity,
+  build/static, tests, acceptance criteria, and only then a bounded semantic
+  review. `PASS` / `FAIL` / `INCONCLUSIVE`, where the third is load-bearing:
+  a required check that could not run means the implementation was never
+  judged, not that it was judged wrong.
+- **Semantic review that cannot outrank evidence.** The deterministic verdict
+  is computed before a reviewer's proposal is read, so a reviewer can only
+  ever move a passing attempt to failing. On a failing attempt its opinion is
+  recorded with outcome `NOT_RUN` and a detail saying it cannot override —
+  the invariant is auditable in the record, not merely true in the code.
+- **Deterministic acceptance-criteria evaluation** (`reliability/criteria.ts`):
+  six machine-checkable criterion forms over approved state — product-contract
+  invariant guard patterns and criteria pinned on the canonical checkpoint. A
+  change can compile, pass every test, and violate approved intent; that is a
+  failed task. Criteria with no structural form are reported unchecked, never
+  assumed to hold.
+- **Cross-lane failure assessment** (`reliability/assessment.ts`): the stable
+  failure taxonomy is unchanged, and an orthogonal `FailureSource` is added
+  beside it. A crashed harness and a wrong implementation can share a
+  category and demand opposite responses, so escalation consults
+  `NON_INTELLIGENCE_FAILURE_SOURCES` before it may even be considered.
+  Assessments carry a `basis` — where the conclusion came from — rather than
+  a confidence number a model would invent.
+- **Execution health and loop detection** (`reliability/health.ts`):
+  `HEALTHY` / `DEGRADED` / `STALLED` / `OSCILLATING` / `RUNAWAY`, computed
+  from failure fingerprints, diff fingerprints, and a strategy key. Detects
+  repeated failure, same-diff no-progress, and edit oscillation (a state
+  revisited with the failure unchanged) — the last of which a
+  consecutive-pair comparison misses entirely.
+- **Attempt-level runaway handling**: per-attempt ceilings on tool calls,
+  command runs, test loops, and context growth. `RUNAWAY` outranks every
+  other health state; the attempt is stopped, checkpointed, assessed, and
+  recovered from. Metrics a runtime did not report stay unknown and never
+  fire.
+- **A pure recovery planner** (`reliability/recovery.ts`): given the same
+  durable state, assessment, budget position, policy, and history it returns
+  the same action, forever. Eleven actions from `RETRY_TRANSIENT` through
+  `WAIT_FOR_RESOURCE` to `FAIL_TASK`, chosen in a strict priority order that
+  reads as the argument for it.
+- **Durable recovery decisions**: written before they are returned, carrying
+  the action, reason code, failure fingerprint, budget snapshot, and both
+  strategies. A crash between deciding and acting leaves the reasoning on
+  disk, and a restart continues the recorded decision rather than inventing a
+  different one.
+- **Unified budget governance as a read model** (`reliability/budget.ts`):
+  no new counters. Attempts, repairs, replans, retries, wall clock, shared
+  local attempts, API dollars, and subscription quota are each read from the
+  component that already owns them, with a new soft/hard distinction so a
+  task reconsiders its approach before discovering a wall by hitting it.
+- **Reliability attribution on the ExecutionLedger**: evaluation status,
+  failure source and fingerprint, execution health, recovery action and
+  reason code, and the strategy dimension that changed — plus a
+  cost-of-failure summary (attempts, wall time, tokens, and dollars spent
+  without a verified completion).
+- **`specbridge orchestrate explain-node <jobId> <nodeId>`**: why a task is
+  not complete, which checks failed, its execution health, the repeating
+  failure fingerprint, remaining budget, why the current recovery action was
+  selected, what failure has cost so far, and what would unblock it.
+  `--json` for the same content machine-readably.
+- **Policy block** `orchestration.jobs.reliability`, deliberately small: only
+  genuinely new signals appear in it. Existing bounds stay in
+  `jobs.budgets`, `jobs.scheduler.maxLocalAttempts`, and
+  `jobs.scheduler.api.budget` rather than being restated under new names.
+
+### Changed
+
+- Task completion now requires **two** independent gates: the evidence
+  pipeline (did the trusted verifiers pass over real Git state?) and the
+  evaluation (is this attempt's work acceptable?). An attempt that satisfies
+  the verifiers but fails evaluation is governed like any other failure.
+- `applyDiagnosis` treats a persisted recovery decision as a **ceiling**. A
+  diagnoser may narrow toward caution — turning a repair into a replan when
+  it finds the plan itself invalid — but can never widen a replan back into
+  another identical repair.
+- A `REPLAN` decision records no lane at all. Recovery decides what kind of
+  attempt is required; the economic scheduler decides where and when it runs.
+  On the paid lane, carrying the failed lane forward would read as
+  authorization to spend again.
+- A paid attempt that failed deterministically is not retried on the API lane
+  (`allowApiDeterministicRetry` defaults to `false`). Escalation produces a
+  requirement, never an authorization: vNext.5 spend authorization, the API
+  budget, and the gap-bridge planner each keep an independent veto.
+- `ExecutorDispatchResult` carries the individual verifier outcomes, so
+  evaluation can distinguish "failed" from "could not run" instead of reading
+  one collapsed boolean.
+
+### Documentation
+
+- New [reliability runtime](docs/orchestration/reliability-runtime.md).
+- Threat model section 13 (T54-T68): false completion claims, semantic
+  override, repair loops and retry amplification, cross-provider ping-pong,
+  paid retry amplification, tool-loop runaway, oscillation, fingerprint
+  collision, stale recovery decisions, agents mutating policy or hiding
+  failed approaches, replanners changing approved intent, verification
+  infrastructure misclassified as implementation failure, and compaction
+  losing recovery-critical state. Two new explicit non-claims.
+
 ## 1.8.0 (unreleased) — vNext.5 API Gap Bridge
 
 A long-horizon job runs for days; Claude Max quota does not. vNext.2 handled
