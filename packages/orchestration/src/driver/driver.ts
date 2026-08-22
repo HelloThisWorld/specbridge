@@ -343,7 +343,19 @@ export async function driveJob(
         return { stop: { kind: 'interrupted' }, job };
       }
 
-      job = clearRetryWait(deps, jobId);
+      // ONE instant for this whole scheduling pass.
+      //
+      // `clearRetryWait` and `scheduleNext` both test `retryAt <= now`. Two
+      // independent clock reads let `retryAt` fall between them: the job
+      // stays WAITING_RETRY while the scheduler concludes the wait elapsed
+      // and returns work, and the dispatch then dies on an illegal
+      // WAITING_RETRY -> RUNNING transition. Sampling once makes the two
+      // gates agree by construction. Reusing this instant across the awaits
+      // below is deliberate and safe in one direction only: a slightly stale
+      // `now` can defer a pass that could have run, never dispatch one that
+      // should have waited.
+      const scheduleAt = (deps.clock ?? (() => new Date()))();
+      job = clearRetryWait(deps, jobId, scheduleAt);
       const graph = activeGraph(deps, job);
       const workers = resolveWorkers(deps.config);
       let lane: BuiltLaneContext | undefined;
@@ -365,7 +377,7 @@ export async function driveJob(
         graph,
         policy,
         workers,
-        now: (deps.clock ?? (() => new Date()))(),
+        now: scheduleAt,
         scheduling: lane?.context,
       });
       emit('decision', `${decision.kind}${'reason' in decision ? `: ${decision.reason}` : ''}`);

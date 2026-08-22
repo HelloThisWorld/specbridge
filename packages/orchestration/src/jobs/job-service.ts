@@ -2345,11 +2345,22 @@ export function blockJob(
   });
 }
 
-/** Clear WAITING_RETRY once the delay elapsed (driver calls before scheduling). */
-export function clearRetryWait(deps: JobDeps, jobId: string): JobState {
+/**
+ * Clear WAITING_RETRY once the delay elapsed (driver calls before scheduling).
+ *
+ * `at` is the instant the CALLER is scheduling against, and passing it is not
+ * optional in spirit even though it is in the signature. The scheduler
+ * applies the very same `retryAt <= now` test a moment later; if the two
+ * sample the clock independently and `retryAt` falls between the samples,
+ * they disagree — this one leaves the job WAITING_RETRY while the scheduler
+ * decides the wait elapsed and dispatches, and the dispatch then dies on an
+ * illegal WAITING_RETRY -> RUNNING transition. One instant, both gates.
+ */
+export function clearRetryWait(deps: JobDeps, jobId: string, at?: Date): JobState {
   let job = requireJobState(deps.workspace, jobId);
   if (job.status !== 'WAITING_RETRY') return job;
-  if (job.retryAt !== undefined && Date.parse(job.retryAt) > now(deps).getTime()) return job;
+  const instant = at ?? now(deps);
+  if (job.retryAt !== undefined && Date.parse(job.retryAt) > instant.getTime()) return job;
   job = transition(deps, job, 'READY');
   delete job.retryAt;
   return persist(deps, job);

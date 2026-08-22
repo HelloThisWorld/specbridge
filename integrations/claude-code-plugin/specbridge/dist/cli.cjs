@@ -66019,10 +66019,11 @@ function blockJob(deps, jobId, input) {
     blocker: { category: input.category, code: input.code, message: input.message, remediation: input.remediation, at }
   });
 }
-function clearRetryWait(deps, jobId) {
+function clearRetryWait(deps, jobId, at) {
   let job = requireJobState(deps.workspace, jobId);
   if (job.status !== "WAITING_RETRY") return job;
-  if (job.retryAt !== void 0 && Date.parse(job.retryAt) > now4(deps).getTime()) return job;
+  const instant = at ?? now4(deps);
+  if (job.retryAt !== void 0 && Date.parse(job.retryAt) > instant.getTime()) return job;
   job = transition22(deps, job, "READY");
   delete job.retryAt;
   return persist22(deps, job);
@@ -72954,7 +72955,8 @@ async function driveJob(deps, jobId, options = {}) {
         job = requireJobState(deps.workspace, jobId);
         return { stop: { kind: "interrupted" }, job };
       }
-      job = clearRetryWait(deps, jobId);
+      const scheduleAt = (deps.clock ?? (() => /* @__PURE__ */ new Date()))();
+      job = clearRetryWait(deps, jobId, scheduleAt);
       const graph = activeGraph(deps, job);
       const workers = resolveWorkers(deps.config);
       let lane;
@@ -72973,7 +72975,7 @@ async function driveJob(deps, jobId, options = {}) {
         graph,
         policy,
         workers,
-        now: (deps.clock ?? (() => /* @__PURE__ */ new Date()))(),
+        now: scheduleAt,
         scheduling: lane?.context
       });
       emit2("decision", `${decision.kind}${"reason" in decision ? `: ${decision.reason}` : ""}`);
