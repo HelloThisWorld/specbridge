@@ -68,6 +68,11 @@ export const SBO_CODES = {
   SBO049: 'execution attempt state invalid',
   SBO050: 'task checkpoint invalid',
   SBO051: 'context reconstruction failed',
+  // Dogfood & release-qualification codes (vNext.9). Additive: nothing above
+  // may be renumbered.
+  SBO052: 'qualification record invalid',
+  SBO053: 'qualification run not found',
+  SBO054: 'qualification preflight refused',
 } as const;
 
 export type SboCode = keyof typeof SBO_CODES;

@@ -1,5 +1,196 @@
 # Changelog
 
+## 1.9.0 (unreleased) — vNext.9 StepRelay Dogfood & Release Qualification
+
+Eight phases each added a capability. This one adds none. It adds the
+machinery for answering, with evidence, whether those eight work together as
+one coherent autonomous engineering runtime — and the discipline that stops
+the answer from being flattering.
+
+**Nothing here changes how an ordinary job behaves.** Qualification is opt-in:
+a workspace that never runs it creates no file, changes no policy, and
+behaves exactly as it did before.
+
+### The governing distinction
+
+A release qualification's failure mode is not "the run failed". It is "the run
+passed and nobody can say what it demonstrated". Every vocabulary in this
+phase is chosen so an exaggerated claim has no representation:
+
+```text
+a skipped scenario is not a PASS
+a simulated resource is not a REAL one
+an operator's manual code fix is not "human approval"
+a Mission that finished is not by itself a release
+```
+
+### The scenario matrix
+
+51 scenarios across Survival, Context, Local, Quota, API, Reliability,
+Adaptive, Governance, and Mission. Each declares the invariant it proves, the
+fault classes it injects, the resources it touches, its requirement, and —
+critically — **how it can honestly be executed**:
+
+| Kind | Where it runs |
+| --- | --- |
+| `POLICY` | Pure production policy functions. Anywhere, including the operator CLI. |
+| `RUNTIME` | The real driver over a temporary workspace with deterministic doubles. The regression suite. |
+| `REAL_RESOURCE` | Needs a real provider, a real quota window, or real money. Cannot be simulated. |
+
+The CLI executes `POLICY` scenarios; the regression suite executes `RUNTIME`
+ones. Neither can claim the other's coverage, and a `REQUIRED` scenario in any
+skipped state blocks the verdict. Two tests keep the matrix honest from
+opposite directions: every fault class SpecBridge claims to survive must be
+injected by some scenario, and every `RUNTIME` scenario must be recorded as
+`PASS` by the file that actually observes it.
+
+### The deterministic scenarios execute real policy
+
+The 27 `POLICY` scenarios call `decideLane`, `planApiGapBridge`,
+`assessApiBudget`, `assessHealth`, `assessFailure`, `planRecovery`,
+`generateCandidates`, `rankCandidates`, `offerContextExpansion`, and the
+decision-authority table directly. A scenario that carried its own copy of a
+rule would keep passing after the rule changed; these import the rule itself.
+
+### The release gate
+
+Computed in strict order, and the order is the policy:
+
+1. **Zero-tolerance integrity conditions** — counted, not judged.
+2. **Required scenarios** — where a skip is not a pass.
+3. **The real-product release gate** — which a fixture can never satisfy.
+4. Only then **limitations**, which can downgrade but never upgrade.
+
+Nine zero-tolerance counts (unauthorized paid execution, canonical state loss,
+adaptive hard-policy bypass, evidence-bypass completion, unrecoverable
+injected fault, accepted protected-state mutation, unbounded retry loop,
+manual durable-state repair, dependent work on a failed predecessor). Any
+non-zero count is `FAIL`, whatever else passed.
+
+`computeVerdict` takes **no policy parameters**. There is no argument by which
+a caller can make a gate more permissive for one run than for another.
+
+`PASS_WITH_LIMITATIONS` is not a softer landing for a real failure: it is
+unavailable whenever a zero-tolerance condition was observed, a required
+scenario failed, or the real-product gate is anything other than `PASSED`.
+
+### Real versus simulated
+
+Every resource is `REAL`, `SIMULATED`, or `NOT_EXERCISED`. There is no fourth
+value and no "equivalent": a fake clock that advanced five hours produced
+*simulated* evidence about a five-hour window. Attribution folds
+conservatively — `REAL` beats `SIMULATED` beats `NOT_EXERCISED` — and
+attribution from a scenario that did not run is ignored, so one fake reset can
+never make a report claim a real quota window.
+
+`realTargetQualification` is reported separately from the verdict as
+`PASSED`, `FAILED`, or `NOT_RUN`. A run that built and proved all the
+machinery but never met the external prerequisite reports `NOT_RUN` and
+`FAIL` — it demonstrated the machinery, not the release.
+
+### Human intervention accounting
+
+Nine closed intervention kinds, partitioned by whether governance worked or
+autonomy failed. `REQUIRED_BY_POLICY` must name the boundary that required it
+— recording one without a boundary is refused, so the most consequential
+distinction in the report cannot rest on an adjective. `MANUAL_CODE_FIX` and
+`MANUAL_STATE_REPAIR` are distinct members, counted separately, and never
+filed as approvals; a recorded state repair is a zero-tolerance condition.
+
+### State invariant auditing
+
+Eleven invariants over durable state, read-only by construction — an auditor
+able to write could launder the corruption it exists to find. Taken before and
+after every restart and after every injected fault, because the durability bug
+most likely to be found is state that is valid before a restart and invalid
+after hydration; `restartRegressions()` tells that apart from state that was
+already wrong.
+
+### Fault injection, and its scope
+
+33 fault classes, injected only at SpecBridge-controlled boundaries:
+telemetry providers, injected inference, injected clocks, the runner
+registry, verification commands, durable state, derived caches, and the
+orchestrating process. Injection is **explicit dependency injection only** —
+no configuration key, environment variable, CLI flag, or MCP tool constructs a
+fault plan, and a structural test asserts no production module imports the
+fault module. An armed plan's entire runtime surface is `shouldFire()`; it
+cannot kill a process, delete a file, or change a budget.
+
+### Reports
+
+Four derived reports — economic, reliability, context, adaptive — plus an
+autonomy scorecard, a timeline projected from durable job events, and the
+`DogfoodQualificationReport` that assembles them. All pure projections of
+durable records, so the report is reproducible from a run directory alone.
+
+**An unreported measurement is `unknown`, never `0`.** A provider that said
+nothing about token usage must not look cheaper than one that reported
+honestly. Context is reported **per verified task**, not only per attempt: a
+first-prompt reduction paid back in retries is not a saving. Shadow
+recommendations stay recommendations — no counterfactual outcome is attributed
+to an unexecuted candidate anywhere.
+
+### CLI (additive, opt-in)
+
+```text
+specbridge orchestrate qualify scenarios    the matrix
+specbridge orchestrate qualify preflight    fail-closed safety + economics
+specbridge orchestrate qualify run          execute and record
+specbridge orchestrate qualify runs         list runs
+specbridge orchestrate qualify report       build the release artifacts
+specbridge orchestrate qualify economics    the economic configuration alone
+```
+
+Real dogfood execution *is* `orchestrate run` — there is no second driver, no
+second scheduler, and no second state engine. Start, stop, inspect, restart,
+resume, and survival across a reboot come from the Job durability that already
+existed.
+
+Preflight **fails closed**: an unresolvable target, a dirty non-worktree tree,
+an undetermined repository state, spending with no budget ceiling,
+`AUTO_BOUNDED` with no pricing, or a workspace with no trusted verification
+all refuse. Preflight **authorizes nothing**: showing the economic
+configuration is not approval, and vNext.5 spend semantics are unchanged.
+
+A profile is a ceiling, never a grant. `full` against `spendMode: DISABLED`
+legitimately spends nothing, and that is a valid result.
+
+### Durable state (additive, opt-in)
+
+`.specbridge/qualification/<runId>/` — `run.json`, `scenarios/`, `faults/`,
+`audits/`, `interventions/`, `defects/`, `reports/`. Scenario results are
+keyed by scenario and replaced on re-run, so a fix genuinely turns a `FAIL`
+into a `PASS`; everything else is append-only, because an injected fault, an
+audit taken, and a human who intervened are facts about the past. No
+credentials are stored. No canonical state migration.
+
+### Threat model
+
+Section 16 adds T97–T107: dogfood mode bypassing governance, qualification
+accidentally spending money, fault-injection hooks exposed in production, a
+report claiming simulated behaviour as real, manual fixes hidden from autonomy
+metrics, Mission scope reduced without provenance, target-specific hacks
+contaminating general policy, a dogfood branch corrupting the operator's
+workspace, derived-cache corruption mistaken for canonical state loss,
+operator intervention misclassified as autonomous success, and a gate relaxed
+to achieve a pass. Non-claim 15 states plainly that a qualification report is
+evidence of what was observed, not a guarantee of what will happen.
+
+### Real StepRelay qualification
+
+`REAL_STEPRELAY_QUALIFICATION = NOT_RUN`. The dogfood target repository is not
+present in this execution environment, so the reusable dogfood infrastructure
+is built and the deterministic qualification runs, while the real-product
+release gate remains an unmet external prerequisite. It is not converted into
+a pass under any circumstances.
+
+### Backward compatibility
+
+Fully additive and opt-in. No configuration key was added, no default
+changed, and no existing behaviour was modified. A workspace that never runs
+`orchestrate qualify` is byte-identical to vNext.8.
+
 ## 1.9.0 (unreleased) — vNext.8 Adaptive Compute Scheduler
 
 Seven phases built a long-horizon job that survives its worker, its quota, an

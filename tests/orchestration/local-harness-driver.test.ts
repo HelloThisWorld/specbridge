@@ -15,8 +15,10 @@ import {
   readJobEvents,
   readLatestTaskCheckpoint,
   readSchedulingDecisions,
+  recordScenarioResult,
   requireGraphRevision,
   requireJobState,
+  startQualificationRun,
   summarizeLocalRuntime,
 } from '@specbridge/orchestration';
 import type {
@@ -36,6 +38,7 @@ import {
 } from '../helpers-execution.js';
 import { resolveWorkspace } from '@specbridge/core';
 import { fixturePath } from '../helpers.js';
+import { fixtureTarget, setupQualificationWorkspace } from '../helpers-qualification.js';
 
 /**
  * vNext.4 Local Agentic Runtime — driver level, fully offline.
@@ -385,6 +388,31 @@ describe('vNext.4 LOCAL execution modes, end to end', () => {
     expect(observations.byMode['DIRECT_MODEL']?.attempts).toBe(1);
     expect(observations.byMode['HARNESS']?.attempts).toBe(1);
     expect(observations.byMode['HARNESS']?.verificationPassRate).toBe(1);
+
+    // vNext.9: this test is the one that OBSERVES a verified local-harness
+    // success, so it is the one that records the qualification scenario. The
+    // fake-DSH runtime is configured through ambient environment variables,
+    // so a second file driving the harness concurrently would race on the
+    // Windows threads pool — which is why the recording lives here rather
+    // than in a qualification-suite file of its own.
+    const qualification = setupQualificationWorkspace();
+    const qualificationRun = startQualificationRun(qualification.deps, {
+      profile: 'offline',
+      target: fixtureTarget(),
+    });
+    recordScenarioResult(qualification.deps, {
+      runId: qualificationRun.runId,
+      scenarioId: 'local.harness-success',
+      status: 'PASS',
+      executor: 'regression-suite',
+      observedTransitions: [
+        { subject: 'agentic local task', from: 'dispatched', to: 'COMPLETED on LOCAL/HARNESS' },
+        { subject: 'verified compute locality', from: 'attested', to: 'LOCAL' },
+        { subject: 'completion authority', from: 'harness report', to: 'trusted repository verification' },
+      ],
+      evidenceRefs: [`job:${jobId}`, `attempt:${two[0]?.attemptId ?? 'unknown'}`],
+      resourceAttribution: { LOCAL_HARNESS: 'SIMULATED', TRUSTED_VERIFICATION: 'SIMULATED' },
+    });
   }, 180_000);
 
   it('Test A: a one-shot local task never starts a harness process', async () => {

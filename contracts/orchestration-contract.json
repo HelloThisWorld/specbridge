@@ -122,10 +122,30 @@
     "SMALL",
     "UNKNOWN"
   ],
+  "defectSources": [
+    "CONFIGURATION",
+    "CONTEXT_RETRIEVAL",
+    "EVALUATION_INFRASTRUCTURE",
+    "INFRASTRUCTURE",
+    "MODEL_IMPLEMENTATION",
+    "POLICY",
+    "RUNTIME_STATE"
+  ],
   "delaySensitivities": [
     "HIGH",
     "LOW",
     "MEDIUM"
+  ],
+  "dogfoodRunStatuses": [
+    "ABANDONED",
+    "COMPLETED",
+    "PAUSED",
+    "PREFLIGHT",
+    "RUNNING"
+  ],
+  "dogfoodTargetKinds": [
+    "FIXTURE",
+    "REAL_REPOSITORY"
   ],
   "enforcementLevels": [
     "contract-enforced",
@@ -183,7 +203,10 @@
     "SBO048",
     "SBO049",
     "SBO050",
-    "SBO051"
+    "SBO051",
+    "SBO052",
+    "SBO053",
+    "SBO054"
   ],
   "evaluationCheckLevels": [
     "ACCEPTANCE_CRITERIA",
@@ -293,6 +316,55 @@
     "UNKNOWN",
     "VERIFICATION_INFRASTRUCTURE"
   ],
+  "faultBoundaries": [
+    "CLOCK",
+    "DERIVED_CACHE",
+    "DURABLE_STATE",
+    "LOCAL_INFERENCE",
+    "PROCESS",
+    "QUOTA_TELEMETRY",
+    "RUNNER_REGISTRY",
+    "VERIFICATION_COMMAND"
+  ],
+  "faultClasses": [
+    "ADAPTIVE_CACHE_LOSS",
+    "ADAPTIVE_DRIFT",
+    "ADAPTIVE_LOW_CONFIDENCE",
+    "ADAPTIVE_POLICY_VETO",
+    "API_BUDGET_EXHAUSTION",
+    "API_DISABLED",
+    "CONTEXT_EXPANSION_EXHAUSTION",
+    "CONTEXT_MISS",
+    "CONTEXT_SATURATION",
+    "CONTRACT_VIOLATION",
+    "CROSS_RESET_TASK",
+    "DERIVED_CONTEXT_CACHE_LOSS",
+    "EDIT_OSCILLATION",
+    "FALSE_COMPLETION_CLAIM",
+    "FIVE_HOUR_EXHAUSTION",
+    "FIVE_HOUR_RESET",
+    "HARNESS_RUNAWAY",
+    "HARVEST_WINDOW",
+    "INTERRUPTED_PAID_ATTEMPT",
+    "INVALID_CONTRACT_CHANGE",
+    "LOCAL_HARNESS_INFRASTRUCTURE_FAILURE",
+    "LOCAL_INTELLIGENCE_FAILURE",
+    "PROCESS_CRASH",
+    "PROTECTED_STATE_MUTATION",
+    "REMOTE_MISCLASSIFIED_AS_LOCAL",
+    "REPEATED_IDENTICAL_FAILURE",
+    "REPLAN_WITHOUT_INTENT_CHANGE",
+    "SESSION_LOSS",
+    "SUBSCRIPTION_RETURNS_MID_API",
+    "VERIFICATION_INFRASTRUCTURE_FAILURE",
+    "WEEKLY_EXHAUSTION",
+    "WEEKLY_SCARCITY",
+    "WORKER_CRASH"
+  ],
+  "faultTriggerModes": [
+    "ONE_SHOT",
+    "REPEATED"
+  ],
   "finalPhases": [
     "ABORTED",
     "CANCELLED",
@@ -304,11 +376,30 @@
     "MEDIUM",
     "UNKNOWN"
   ],
+  "humanInterventionKinds": [
+    "MANUAL_CODE_FIX",
+    "MANUAL_CONTEXT_REPAIR",
+    "MANUAL_RECOVERY",
+    "MANUAL_SCHEDULING",
+    "MANUAL_STATE_REPAIR",
+    "MISSING_INFORMATION",
+    "REQUIRED_BY_POLICY",
+    "RUNTIME_FAILURE",
+    "UNNECESSARY_CLARIFICATION"
+  ],
   "intentOutcomes": [
     "BLOCKED",
     "NEEDS_CLARIFICATION",
     "READY",
     "REJECTED"
+  ],
+  "invariantAuditPhases": [
+    "AFTER_FAULT",
+    "AFTER_RESTART",
+    "BASELINE",
+    "BEFORE_RESTART",
+    "CHECKPOINT",
+    "FINAL"
   ],
   "jobEventTypes": [
     "adaptive_cache_invalidated",
@@ -445,6 +536,16 @@
     "REQUIRE_APPROVAL",
     "SUBSCRIPTION"
   ],
+  "limitationClasses": [
+    "COVERAGE_NOT_EXERCISED",
+    "EXCESSIVE_BUT_BOUNDED_REPLAN",
+    "HIGHER_THAN_EXPECTED_CONTEXT",
+    "PERFORMANCE_INEFFICIENCY",
+    "POOR_ADAPTIVE_CALIBRATION",
+    "SLOW_LOCAL_EXECUTION",
+    "SUBOPTIMAL_PLACEMENT",
+    "UNHELPFUL_DIAGNOSTICS"
+  ],
   "localExecutionModeReasons": [
     "LOCAL_DIRECT_ONLY_STRATEGY",
     "LOCAL_DIRECT_SELECTED",
@@ -541,6 +642,100 @@
     "known-from-user",
     "unknown"
   ],
+  "qualificationAreas": [
+    "API",
+    "Adaptive",
+    "Context",
+    "Governance",
+    "Local",
+    "Mission",
+    "Quota",
+    "Reliability",
+    "Survival"
+  ],
+  "qualificationArtifacts": [
+    "mission-metrics.json",
+    "qualification-report.md",
+    "qualification-summary.json",
+    "scenario-results.json"
+  ],
+  "qualificationProfiles": [
+    "full",
+    "local",
+    "offline",
+    "subscription"
+  ],
+  "qualificationResources": [
+    "ADAPTIVE_PROFILES",
+    "API_PROVIDER",
+    "CONTEXT_COMPACTION",
+    "FIVE_HOUR_WINDOW",
+    "HARVEST",
+    "LOCAL_DIRECT_MODEL",
+    "LOCAL_HARNESS",
+    "PROCESS_RESTART",
+    "QUOTA_TELEMETRY",
+    "REPOSITORY_CONTEXT_INDEX",
+    "SESSION_LOSS",
+    "SUBSCRIPTION_RUNNER",
+    "TARGET_REPOSITORY",
+    "TRUSTED_VERIFICATION",
+    "WEEKLY_WINDOW",
+    "WORKER_CRASH"
+  ],
+  "qualificationScenarioIds": [
+    "adaptive.cache-rebuild",
+    "adaptive.drift-detection",
+    "adaptive.hard-policy-veto",
+    "adaptive.low-confidence-fallback",
+    "adaptive.mode-rollback",
+    "adaptive.shadow-diagnostics",
+    "api.bounded-bridge",
+    "api.budget-exhaustion",
+    "api.disabled-no-spend",
+    "api.interrupted-reservation",
+    "api.max-returns-mid-attempt",
+    "api.real-bridge-observed",
+    "context.expansion-exhaustion",
+    "context.handoff-durable-truth",
+    "context.index-cache-rebuild",
+    "context.multi-window-compaction",
+    "context.progressive-expansion",
+    "context.role-specific-packets",
+    "governance.approval-is-human-only",
+    "governance.fault-injection-scoping",
+    "governance.invalid-contract-change",
+    "governance.preflight-fails-closed",
+    "governance.protected-state-mutation",
+    "governance.single-writer-integration",
+    "local.direct-success",
+    "local.harness-infrastructure-failure",
+    "local.harness-success",
+    "local.intelligence-failure-escalates",
+    "local.remote-never-local",
+    "mission.offline-full-system",
+    "mission.real-target-increment",
+    "quota.cross-reset-admission",
+    "quota.five-hour-exhaustion",
+    "quota.harvest",
+    "quota.real-window-observed",
+    "quota.reset-readmits",
+    "quota.weekly-exhaustion",
+    "quota.weekly-scarcity-suppresses-harvest",
+    "reliability.contract-violation",
+    "reliability.dependents-gated",
+    "reliability.false-completion",
+    "reliability.oscillation",
+    "reliability.replan-preserves-intent",
+    "reliability.runaway",
+    "reliability.stalled",
+    "reliability.verification-infrastructure",
+    "survival.invariants-across-restart",
+    "survival.process-restart",
+    "survival.session-loss",
+    "survival.soak",
+    "survival.worker-crash"
+  ],
   "quotaTelemetryFreshness": [
     "FRESH",
     "STALE",
@@ -605,11 +800,38 @@
     "PLAN",
     "SAME"
   ],
+  "releaseBlockerClasses": [
+    "ADAPTIVE_HARD_POLICY_BYPASS",
+    "API_BUDGET_BYPASS",
+    "CANONICAL_STATE_LOSS",
+    "COMPACTION_LOST_CRITICAL_STATE",
+    "DEPENDENT_WORK_ON_UNVERIFIED_PREDECESSOR",
+    "EVIDENCE_BYPASS",
+    "MANUAL_STATE_REPAIR_REQUIRED",
+    "PROTECTED_STATE_MUTATION",
+    "QUOTA_POLICY_VIOLATION",
+    "REMOTE_REPORTED_AS_LOCAL",
+    "REQUIRED_SCENARIO_FAILED",
+    "REQUIRED_SCENARIO_NOT_PROVEN",
+    "UNAUTHORIZED_API_SPEND",
+    "UNBOUNDED_RETRY_LOOP",
+    "UNRECOVERABLE_AFTER_FAULT"
+  ],
+  "releaseVerdicts": [
+    "FAIL",
+    "PASS",
+    "PASS_WITH_LIMITATIONS"
+  ],
   "repositorySizeClasses": [
     "LARGE",
     "MEDIUM",
     "SMALL",
     "UNKNOWN"
+  ],
+  "resourceAttributions": [
+    "NOT_EXERCISED",
+    "REAL",
+    "SIMULATED"
   ],
   "runawaySignals": [
     "CONTEXT_GROWTH",
@@ -623,6 +845,22 @@
     "COMPATIBLE",
     "EXACT",
     "UNKNOWN"
+  ],
+  "scenarioExecutionKinds": [
+    "POLICY",
+    "REAL_RESOURCE",
+    "RUNTIME"
+  ],
+  "scenarioRequirements": [
+    "RELEASE_GATE",
+    "REQUIRED",
+    "REQUIRED_WHEN_EXERCISED"
+  ],
+  "scenarioResultStatuses": [
+    "FAIL",
+    "NOT_RUN",
+    "PASS",
+    "SKIPPED_WITH_REASON"
   ],
   "schedulerModes": [
     "CONSERVE",
@@ -661,6 +899,19 @@
     "STRONG_REQUIRED",
     "WEEKLY_EXHAUSTED",
     "WEEKLY_QUOTA_PRESSURE"
+  ],
+  "stateInvariantIds": [
+    "API_BUDGET_RECONCILES",
+    "ATTEMPTS_REFERENCE_KNOWN_NODES",
+    "ATTEMPT_OWNERSHIP_COHERENT",
+    "CHECKPOINT_LINEAGE_VALID",
+    "COMPLETED_TASK_HAS_EVALUATION",
+    "COMPLETED_TASK_HAS_EVIDENCE",
+    "DEPENDENTS_RESPECT_VERIFIED_PREDECESSORS",
+    "GRAPH_REVISION_RESOLVES",
+    "LOCAL_ATTEMPTS_VERIFIED_LOCAL",
+    "NO_API_SPEND_WITHOUT_AUTHORITY",
+    "RECOVERY_REFERENCES_REAL_ATTEMPTS"
   ],
   "subscriptionGapReasons": [
     "FIVE_HOUR_EXHAUSTED",
@@ -706,5 +957,16 @@
     "REJECTED",
     "SUPERSEDED",
     "VERIFIED_CANDIDATE"
+  ],
+  "zeroToleranceConditions": [
+    "acceptedProtectedStateMutations",
+    "adaptiveHardPolicyBypasses",
+    "canonicalStateLosses",
+    "dependentsOnFailedPredecessors",
+    "evidenceBypassCompletions",
+    "manualDurableStateRepairs",
+    "unauthorizedPaidExecutions",
+    "unboundedRetryLoops",
+    "unrecoverableInjectedFaults"
   ]
 }

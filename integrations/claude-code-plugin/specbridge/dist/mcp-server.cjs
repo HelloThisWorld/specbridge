@@ -597,8 +597,8 @@ var require_Node = __commonJS({
         };
         const res = toJS.toJS(this, "", ctx);
         if (typeof onAnchor === "function")
-          for (const { count: count2, res: res2 } of ctx.anchors.values())
-            onAnchor(res2, count2);
+          for (const { count: count3, res: res2 } of ctx.anchors.values())
+            onAnchor(res2, count3);
         return typeof reviver === "function" ? applyReviver.applyReviver(reviver, { "": res }, "", res) : res;
       }
     };
@@ -704,13 +704,13 @@ var require_Alias = __commonJS({
         const anchor = anchors2 && source && anchors2.get(source);
         return anchor ? anchor.count * anchor.aliasCount : 0;
       } else if (identity3.isCollection(node)) {
-        let count2 = 0;
+        let count3 = 0;
         for (const item of node.items) {
           const c3 = getAliasCount(doc, item, anchors2);
-          if (c3 > count2)
-            count2 = c3;
+          if (c3 > count3)
+            count3 = c3;
         }
-        return count2;
+        return count3;
       } else if (identity3.isPair(node)) {
         const kc = getAliasCount(doc, node.key, anchors2);
         const vc = getAliasCount(doc, node.value, anchors2);
@@ -994,14 +994,14 @@ var require_foldFlowLines = __commonJS({
     var FOLD_FLOW = "flow";
     var FOLD_BLOCK = "block";
     var FOLD_QUOTED = "quoted";
-    function foldFlowLines(text8, indent, mode = "flow", { indentAtStart, lineWidth = 80, minContentWidth = 20, onFold, onOverflow } = {}) {
+    function foldFlowLines(text9, indent, mode = "flow", { indentAtStart, lineWidth = 80, minContentWidth = 20, onFold, onOverflow } = {}) {
       if (!lineWidth || lineWidth < 0)
-        return text8;
+        return text9;
       if (lineWidth < minContentWidth)
         minContentWidth = 0;
       const endStep = Math.max(1 + minContentWidth, 1 + lineWidth - indent.length);
-      if (text8.length <= endStep)
-        return text8;
+      if (text9.length <= endStep)
+        return text9;
       const folds = [];
       const escapedFolds = {};
       let end = lineWidth - indent.length;
@@ -1018,14 +1018,14 @@ var require_foldFlowLines = __commonJS({
       let escStart = -1;
       let escEnd = -1;
       if (mode === FOLD_BLOCK) {
-        i2 = consumeMoreIndentedLines(text8, i2, indent.length);
+        i2 = consumeMoreIndentedLines(text9, i2, indent.length);
         if (i2 !== -1)
           end = i2 + endStep;
       }
-      for (let ch; ch = text8[i2 += 1]; ) {
+      for (let ch; ch = text9[i2 += 1]; ) {
         if (mode === FOLD_QUOTED && ch === "\\") {
           escStart = i2;
-          switch (text8[i2 + 1]) {
+          switch (text9[i2 + 1]) {
             case "x":
               i2 += 3;
               break;
@@ -1042,12 +1042,12 @@ var require_foldFlowLines = __commonJS({
         }
         if (ch === "\n") {
           if (mode === FOLD_BLOCK)
-            i2 = consumeMoreIndentedLines(text8, i2, indent.length);
+            i2 = consumeMoreIndentedLines(text9, i2, indent.length);
           end = i2 + indent.length + endStep;
           split = void 0;
         } else {
           if (ch === " " && prev && prev !== " " && prev !== "\n" && prev !== "	") {
-            const next = text8[i2 + 1];
+            const next = text9[i2 + 1];
             if (next && next !== " " && next !== "\n" && next !== "	")
               split = i2;
           }
@@ -1059,12 +1059,12 @@ var require_foldFlowLines = __commonJS({
             } else if (mode === FOLD_QUOTED) {
               while (prev === " " || prev === "	") {
                 prev = ch;
-                ch = text8[i2 += 1];
+                ch = text9[i2 += 1];
                 overflow = true;
               }
               const j = i2 > escEnd + 1 ? i2 - 2 : escStart - 1;
               if (escapedFolds[j])
-                return text8;
+                return text9;
               folds.push(j);
               escapedFolds[j] = true;
               end = j + endStep;
@@ -1079,39 +1079,39 @@ var require_foldFlowLines = __commonJS({
       if (overflow && onOverflow)
         onOverflow();
       if (folds.length === 0)
-        return text8;
+        return text9;
       if (onFold)
         onFold();
-      let res = text8.slice(0, folds[0]);
+      let res = text9.slice(0, folds[0]);
       for (let i3 = 0; i3 < folds.length; ++i3) {
         const fold = folds[i3];
-        const end2 = folds[i3 + 1] || text8.length;
+        const end2 = folds[i3 + 1] || text9.length;
         if (fold === 0)
           res = `
-${indent}${text8.slice(0, end2)}`;
+${indent}${text9.slice(0, end2)}`;
         else {
           if (mode === FOLD_QUOTED && escapedFolds[fold])
-            res += `${text8[fold]}\\`;
+            res += `${text9[fold]}\\`;
           res += `
-${indent}${text8.slice(fold + 1, end2)}`;
+${indent}${text9.slice(fold + 1, end2)}`;
         }
       }
       return res;
     }
-    function consumeMoreIndentedLines(text8, i2, indent) {
+    function consumeMoreIndentedLines(text9, i2, indent) {
       let end = i2;
       let start = i2 + 1;
-      let ch = text8[start];
+      let ch = text9[start];
       while (ch === " " || ch === "	") {
         if (i2 < start + indent) {
-          ch = text8[++i2];
+          ch = text9[++i2];
         } else {
           do {
-            ch = text8[++i2];
+            ch = text9[++i2];
           } while (ch && ch !== "\n");
           end = i2;
           start = i2 + 1;
-          ch = text8[start];
+          ch = text9[start];
         }
       }
       return end;
@@ -3663,8 +3663,8 @@ var require_Document = __commonJS({
         };
         const res = toJS.toJS(this.contents, jsonArg ?? "", ctx);
         if (typeof onAnchor === "function")
-          for (const { count: count2, res: res2 } of ctx.anchors.values())
-            onAnchor(res2, count2);
+          for (const { count: count3, res: res2 } of ctx.anchors.values())
+            onAnchor(res2, count3);
         return typeof reviver === "function" ? applyReviver.applyReviver(reviver, { "": res }, "", res) : res;
       }
       /**
@@ -3741,12 +3741,12 @@ var require_errors = __commonJS({
         lineStr = prev + lineStr;
       }
       if (/[^ ]/.test(lineStr)) {
-        let count2 = 1;
+        let count3 = 1;
         const end = error2.linePos[1];
         if (end?.line === line && end.col > col) {
-          count2 = Math.max(1, Math.min(end.col - col, 80 - ci));
+          count3 = Math.max(1, Math.min(end.col - col, 80 - ci));
         }
-        const pointer = " ".repeat(ci) + "^".repeat(count2);
+        const pointer = " ".repeat(ci) + "^".repeat(count3);
         error2.message += `:
 
 ${lineStr}
@@ -7525,7 +7525,7 @@ var require_which = __commonJS({
         opt = {};
       const { pathEnv, pathExt, pathExtExe } = getPathInfo(cmd, opt);
       const found = [];
-      const step = (i2) => new Promise((resolve2, reject) => {
+      const step2 = (i2) => new Promise((resolve2, reject) => {
         if (i2 === pathEnv.length)
           return opt.all && found.length ? resolve2(found) : reject(getNotFoundError(cmd));
         const ppRaw = pathEnv[i2];
@@ -7536,7 +7536,7 @@ var require_which = __commonJS({
       });
       const subStep = (p, i2, ii) => new Promise((resolve2, reject) => {
         if (ii === pathExt.length)
-          return resolve2(step(i2 + 1));
+          return resolve2(step2(i2 + 1));
         const ext = pathExt[ii];
         isexe(p + ext, { pathExt: pathExtExe }, (er, is) => {
           if (!er && is) {
@@ -7548,7 +7548,7 @@ var require_which = __commonJS({
           return resolve2(subStep(p, i2, ii + 1));
         });
       });
-      return cb ? step(0).then((res) => cb(null, res), cb) : step(0);
+      return cb ? step2(0).then((res) => cb(null, res), cb) : step2(0);
     };
     var whichSync = (cmd, opt) => {
       opt = opt || {};
@@ -10044,23 +10044,23 @@ var require_resolve = __commonJS({
       return false;
     }
     function countKeys(schema) {
-      let count2 = 0;
+      let count3 = 0;
       for (const key in schema) {
         if (key === "$ref")
           return Infinity;
-        count2++;
+        count3++;
         if (SIMPLE_INLINED.has(key))
           continue;
         if (typeof schema[key] == "object") {
-          (0, util_1.eachItem)(schema[key], (sch) => count2 += countKeys(sch));
+          (0, util_1.eachItem)(schema[key], (sch) => count3 += countKeys(sch));
         }
-        if (count2 === Infinity)
+        if (count3 === Infinity)
           return Infinity;
       }
-      return count2;
+      return count3;
     }
-    function getFullPath(resolver, id = "", normalize) {
-      if (normalize !== false)
+    function getFullPath(resolver, id = "", normalize2) {
+      if (normalize2 !== false)
         id = normalizeId(id);
       const p = resolver.parse(id);
       return _getFullPath(resolver, p);
@@ -11456,7 +11456,7 @@ var require_fast_uri = __commonJS({
     "use strict";
     var { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, escapePreservingEscapes, reescapeHostDelimiters, isIPv4, nonSimpleDomain } = require_utils();
     var { SCHEMES, getSchemeHandler } = require_schemes();
-    function normalize(uri, options) {
+    function normalize2(uri, options) {
       if (typeof uri === "string") {
         uri = /** @type {T} */
         normalizeString(uri, options);
@@ -11723,7 +11723,7 @@ var require_fast_uri = __commonJS({
     }
     var fastUri = {
       SCHEMES,
-      normalize,
+      normalize: normalize2,
       resolve: resolve2,
       resolveComponent,
       equal,
@@ -12139,7 +12139,7 @@ var require_core = __commonJS({
       errorsText(errors = this.errors, { separator = ", ", dataVar = "data" } = {}) {
         if (!errors || errors.length === 0)
           return "No errors";
-        return errors.map((e) => `${dataVar}${e.instancePath} ${e.message}`).reduce((text8, msg) => text8 + separator + msg);
+        return errors.map((e) => `${dataVar}${e.instancePath} ${e.message}`).reduce((text9, msg) => text9 + separator + msg);
       }
       $dataMetaSchema(metaSchema, keywordsJsonPointers) {
         const rules = this.RULES.all;
@@ -13229,8 +13229,8 @@ var require_contains = __commonJS({
         cxt.result(valid, () => cxt.reset());
         function validateItemsWithCount() {
           const schValid = gen.name("_valid");
-          const count2 = gen.let("count", 0);
-          validateItems(schValid, () => gen.if(schValid, () => checkLimits(count2)));
+          const count3 = gen.let("count", 0);
+          validateItems(schValid, () => gen.if(schValid, () => checkLimits(count3)));
         }
         function validateItems(_valid, block) {
           gen.forRange("i", 0, len, (i2) => {
@@ -13243,16 +13243,16 @@ var require_contains = __commonJS({
             block();
           });
         }
-        function checkLimits(count2) {
-          gen.code((0, codegen_1._)`${count2}++`);
+        function checkLimits(count3) {
+          gen.code((0, codegen_1._)`${count3}++`);
           if (max === void 0) {
-            gen.if((0, codegen_1._)`${count2} >= ${min}`, () => gen.assign(valid, true).break());
+            gen.if((0, codegen_1._)`${count3} >= ${min}`, () => gen.assign(valid, true).break());
           } else {
-            gen.if((0, codegen_1._)`${count2} > ${max}`, () => gen.assign(valid, false).break());
+            gen.if((0, codegen_1._)`${count3} > ${max}`, () => gen.assign(valid, false).break());
             if (min === 1)
               gen.assign(valid, true);
             else
-              gen.if((0, codegen_1._)`${count2} >= ${min}`, () => gen.assign(valid, true));
+              gen.if((0, codegen_1._)`${count3} >= ${min}`, () => gen.assign(valid, true));
           }
         }
       }
@@ -15641,13 +15641,13 @@ var require_parse2 = __commonJS({
         consume(token.value);
       };
       const negate = () => {
-        let count2 = 1;
+        let count3 = 1;
         while (peek() === "!" && (peek(2) !== "(" || peek(3) === "?")) {
           advance();
           state.start++;
-          count2++;
+          count3++;
         }
-        if (count2 % 2 === 0) {
+        if (count3 % 2 === 0) {
           return false;
         }
         state.negated = true;
@@ -16678,12 +16678,12 @@ function cleanRegex(source) {
   const end = source.endsWith("$") ? source.length - 1 : source.length;
   return source.slice(start, end);
 }
-function floatSafeRemainder(val, step) {
+function floatSafeRemainder(val, step2) {
   const valDecCount = (val.toString().split(".")[1] || "").length;
-  const stepDecCount = (step.toString().split(".")[1] || "").length;
+  const stepDecCount = (step2.toString().split(".")[1] || "").length;
   const decCount = valDecCount > stepDecCount ? valDecCount : stepDecCount;
   const valInt = Number.parseInt(val.toFixed(decCount).replace(".", ""));
-  const stepInt = Number.parseInt(step.toFixed(decCount).replace(".", ""));
+  const stepInt = Number.parseInt(step2.toFixed(decCount).replace(".", ""));
   return valInt % stepInt / 10 ** decCount;
 }
 function defineLazy(object3, key, getter) {
@@ -24215,12 +24215,12 @@ ZodString2.create = (params) => {
     ...processCreateParams(params)
   });
 };
-function floatSafeRemainder2(val, step) {
+function floatSafeRemainder2(val, step2) {
   const valDecCount = (val.toString().split(".")[1] || "").length;
-  const stepDecCount = (step.toString().split(".")[1] || "").length;
+  const stepDecCount = (step2.toString().split(".")[1] || "").length;
   const decCount = valDecCount > stepDecCount ? valDecCount : stepDecCount;
   const valInt = Number.parseInt(val.toFixed(decCount).replace(".", ""));
-  const stepInt = Number.parseInt(step.toFixed(decCount).replace(".", ""));
+  const stepInt = Number.parseInt(step2.toFixed(decCount).replace(".", ""));
   return valInt % stepInt / 10 ** decCount;
 }
 var ZodNumber2 = class _ZodNumber extends ZodType2 {
@@ -28698,27 +28698,27 @@ var import_path6 = __toESM(require("path"), 1);
 var import_fs8 = require("fs");
 var import_path7 = __toESM(require("path"), 1);
 var BOM = "\uFEFF";
-function splitLines(text8) {
+function splitLines(text9) {
   const lines = [];
   let start = 0;
   let i2 = 0;
-  while (i2 < text8.length) {
-    const code = text8.charCodeAt(i2);
+  while (i2 < text9.length) {
+    const code = text9.charCodeAt(i2);
     if (code === 10) {
-      lines.push({ text: text8.slice(start, i2), eol: "\n" });
+      lines.push({ text: text9.slice(start, i2), eol: "\n" });
       i2 += 1;
       start = i2;
     } else if (code === 13) {
-      const eol = text8.charCodeAt(i2 + 1) === 10 ? "\r\n" : "\r";
-      lines.push({ text: text8.slice(start, i2), eol });
+      const eol = text9.charCodeAt(i2 + 1) === 10 ? "\r\n" : "\r";
+      lines.push({ text: text9.slice(start, i2), eol });
       i2 += eol.length;
       start = i2;
     } else {
       i2 += 1;
     }
   }
-  if (start < text8.length) {
-    lines.push({ text: text8.slice(start), eol: "" });
+  if (start < text9.length) {
+    lines.push({ text: text9.slice(start), eol: "" });
   }
   return lines;
 }
@@ -28740,13 +28740,13 @@ var MarkdownDocument = class _MarkdownDocument {
     this.encodingSafe = encodingSafe;
     this.filePath = filePath;
   }
-  static fromText(text8, filePath) {
-    return _MarkdownDocument.create(text8, true, filePath);
+  static fromText(text9, filePath) {
+    return _MarkdownDocument.create(text9, true, filePath);
   }
   static fromBuffer(buffer, filePath) {
-    const text8 = buffer.toString("utf8");
-    const encodingSafe = Buffer.from(text8, "utf8").equals(buffer);
-    return _MarkdownDocument.create(text8, encodingSafe, filePath);
+    const text9 = buffer.toString("utf8");
+    const encodingSafe = Buffer.from(text9, "utf8").equals(buffer);
+    return _MarkdownDocument.create(text9, encodingSafe, filePath);
   }
   static load(filePath) {
     let buffer;
@@ -28757,9 +28757,9 @@ var MarkdownDocument = class _MarkdownDocument {
     }
     return _MarkdownDocument.fromBuffer(buffer, filePath);
   }
-  static create(text8, encodingSafe, filePath) {
-    const hasBom = text8.startsWith(BOM);
-    const body = hasBom ? text8.slice(1) : text8;
+  static create(text9, encodingSafe, filePath) {
+    const hasBom = text9.startsWith(BOM);
+    const body = hasBom ? text9.slice(1) : text9;
     return new _MarkdownDocument(splitLines(body), hasBom, encodingSafe, filePath);
   }
   get lineCount() {
@@ -28779,15 +28779,15 @@ var MarkdownDocument = class _MarkdownDocument {
     return line;
   }
   /** Replace the text of one line. The line ending is preserved untouched. */
-  setLineText(index, text8) {
-    if (text8.includes("\n") || text8.includes("\r")) {
+  setLineText(index, text9) {
+    if (text9.includes("\n") || text9.includes("\r")) {
       throw new SpecBridgeError(
         "INVALID_ARGUMENT",
         "setLineText received text containing a line break; surgical edits must stay on one line."
       );
     }
     const line = this.lineAt(index);
-    line.text = text8;
+    line.text = text9;
   }
   /** Reconstruct the exact document text (including BOM when present). */
   serialize() {
@@ -28809,8 +28809,8 @@ var MarkdownDocument = class _MarkdownDocument {
     const mask = new Array(this.documentLines.length).fill(false);
     let open = null;
     for (let i2 = 0; i2 < this.documentLines.length; i2 += 1) {
-      const text8 = this.documentLines[i2]?.text ?? "";
-      const match = FENCE_OPEN.exec(text8);
+      const text9 = this.documentLines[i2]?.text ?? "";
+      const match = FENCE_OPEN.exec(text9);
       if (open !== null) {
         mask[i2] = true;
         if (match !== null && match[1] !== void 0 && match[1].startsWith(open.char) && match[1].length >= open.length && (match[2] ?? "").trim() === "") {
@@ -28854,9 +28854,9 @@ var MarkdownDocument = class _MarkdownDocument {
       if (mask[i2] === true) continue;
       const match = HEADING.exec(this.documentLines[i2]?.text ?? "");
       if (match === null || match[1] === void 0) continue;
-      let text8 = (match[2] ?? "").trim();
-      text8 = text8.replace(/[ \t]+#+[ \t]*$/, "").trim();
-      headings.push({ line: i2, level: match[1].length, text: text8 });
+      let text9 = (match[2] ?? "").trim();
+      text9 = text9.replace(/[ \t]+#+[ \t]*$/, "").trim();
+      headings.push({ line: i2, level: match[1].length, text: text9 });
     }
     return headings;
   }
@@ -28883,8 +28883,8 @@ var MarkdownDocument = class _MarkdownDocument {
     const maxLevel = options?.maxLevel ?? 6;
     for (const section of this.sections()) {
       if (section.heading.level > maxLevel) continue;
-      const text8 = section.heading.text.trim();
-      const matched = typeof matcher === "string" ? text8.toLowerCase() === matcher.trim().toLowerCase() : matcher.test(text8);
+      const text9 = section.heading.text.trim();
+      const matched = typeof matcher === "string" ? text9.toLowerCase() === matcher.trim().toLowerCase() : matcher.test(text9);
       if (matched) return section;
     }
     return void 0;
@@ -28933,8 +28933,8 @@ function extractFrontMatter(document) {
     return { present: false, endLine: 0 };
   }
   for (let i2 = 1; i2 < document.lineCount; i2 += 1) {
-    const text8 = document.lineAt(i2).text.trim();
-    if (text8 === "---" || text8 === "...") {
+    const text9 = document.lineAt(i2).text.trim();
+    if (text9 === "---" || text9 === "...") {
       const raw = document.getText(1, i2);
       try {
         const data = (0, import_yaml.parse)(raw);
@@ -29166,8 +29166,8 @@ var ORDERED_ITEM = /^[ \t]*(\d+)[.)][ \t]+(.+)$/;
 var BULLET_ITEM = /^[ \t]*[-*+][ \t]+(.+)$/;
 var EARS = /\b(when|if|while|where)\b[\s\S]*\bshall\b/i;
 var KNOWN_TOP_SECTIONS = /* @__PURE__ */ new Set(["introduction", "overview", "summary", "requirements"]);
-function matchRequirementHeading(text8) {
-  const trimmed = text8.trim();
+function matchRequirementHeading(text9) {
+  const trimmed = text9.trim();
   const named = REQUIREMENT_HEADING.exec(trimmed);
   if (named !== null && named[1] !== void 0) {
     const title = (named[2] ?? "").trim();
@@ -29191,8 +29191,8 @@ function parseCriteria(document, requirementId, section, mask, diagnostics) {
   let unnumberedCount = 0;
   for (let i2 = acHeading.line + 1; i2 < endLine; i2 += 1) {
     if (mask[i2] === true) continue;
-    const text8 = document.lineAt(i2).text;
-    const ordered = ORDERED_ITEM.exec(text8);
+    const text9 = document.lineAt(i2).text;
+    const ordered = ORDERED_ITEM.exec(text9);
     if (ordered !== null && ordered[1] !== void 0 && ordered[2] !== void 0) {
       criteria.push({
         id: `${requirementId}.${ordered[1]}`,
@@ -29203,7 +29203,7 @@ function parseCriteria(document, requirementId, section, mask, diagnostics) {
       });
       continue;
     }
-    const bullet = BULLET_ITEM.exec(text8);
+    const bullet = BULLET_ITEM.exec(text9);
     if (bullet !== null && bullet[1] !== void 0 && criteria.length === 0) {
       unnumberedCount += 1;
       criteria.push({
@@ -29300,8 +29300,8 @@ function parseRequirements(document) {
   const unknownSections = [];
   for (const section of sections) {
     if (section.heading.level !== 2) continue;
-    const text8 = section.heading.text.trim().toLowerCase();
-    if (KNOWN_TOP_SECTIONS.has(text8)) continue;
+    const text9 = section.heading.text.trim().toLowerCase();
+    if (KNOWN_TOP_SECTIONS.has(text9)) continue;
     if (matchRequirementHeading(section.heading.text) !== void 0) continue;
     const insideRequirement = requirementSections.some(
       (r) => section.heading.line > r.startLine && section.heading.line < r.endLine
@@ -29355,9 +29355,9 @@ var KIND_MATCHERS = [
   [/overview|introduction|summary/i, "overview"],
   [/context|background/i, "context"]
 ];
-function classifyDesignHeading(text8) {
+function classifyDesignHeading(text9) {
   for (const [pattern, kind] of KIND_MATCHERS) {
-    if (pattern.test(text8)) return kind;
+    if (pattern.test(text9)) return kind;
   }
   return "unknown";
 }
@@ -29416,10 +29416,10 @@ function parseTasks(document) {
   const numbersSeen = /* @__PURE__ */ new Map();
   for (let i2 = 0; i2 < document.lineCount; i2 += 1) {
     if (mask[i2] === true) continue;
-    const text8 = document.lineAt(i2).text;
-    const match = CHECKBOX.exec(text8);
+    const text9 = document.lineAt(i2).text;
+    const match = CHECKBOX.exec(text9);
     if (match === null) {
-      const probe = CHECKBOX_PROBE.exec(text8);
+      const probe = CHECKBOX_PROBE.exec(text9);
       if (probe !== null) {
         const inner = probe[1] ?? "";
         const looksLikeCheckbox = inner.trim() === "" || /^[ \txX~-]+$/.test(inner);
@@ -29434,7 +29434,7 @@ function parseTasks(document) {
         }
       }
       if (allTasks.length > 0) {
-        const refMatch = REQUIREMENT_REF.exec(text8);
+        const refMatch = REQUIREMENT_REF.exec(text9);
         if (refMatch !== null) {
           const owner = allTasks[allTasks.length - 1];
           if (owner !== void 0) {
@@ -29544,8 +29544,8 @@ function nextOpenTasks(model, limit) {
   const optional2 = open.filter((task) => task.optional);
   return [...required2, ...optional2].slice(0, limit);
 }
-function normalizeHeading(text8) {
-  return text8.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+function normalizeHeading(text9) {
+  return text9.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
 }
 var CONCEPT_MATCHERS = [
   [/^current behaviou?r$|^actual behaviou?r$/, "current-behavior"],
@@ -29559,8 +29559,8 @@ var CONCEPT_MATCHERS = [
   [/^proposed fix$|^fix$|^fix approach$/, "proposed-fix"],
   [/^validation( strategy)?$|^verification( strategy)?$/, "validation-strategy"]
 ];
-function classifyBugfixHeading(text8) {
-  const normalized = normalizeHeading(text8);
+function classifyBugfixHeading(text9) {
+  const normalized = normalizeHeading(text9);
   for (const [pattern, concept] of CONCEPT_MATCHERS) {
     if (pattern.test(normalized)) return concept;
   }
@@ -29944,14 +29944,14 @@ function normalizedTaskPlanText(document) {
   let out = document.hasBom ? String.fromCharCode(65279) : "";
   for (let i2 = 0; i2 < document.lineCount; i2 += 1) {
     const line = document.lineAt(i2);
-    let text8 = line.text;
+    let text9 = line.text;
     if (mask[i2] !== true) {
-      const match = CHECKBOX_STATE_PREFIX.exec(text8);
+      const match = CHECKBOX_STATE_PREFIX.exec(text9);
       if (match !== null && match[1] !== void 0 && match[3] !== void 0) {
-        text8 = `${match[1]}${NORMALIZED_STATE}${match[3]}${text8.slice(match[0].length)}`;
+        text9 = `${match[1]}${NORMALIZED_STATE}${match[3]}${text9.slice(match[0].length)}`;
       }
     }
-    out += text8 + line.eol;
+    out += text9 + line.eol;
   }
   return out;
 }
@@ -29984,8 +29984,8 @@ function canonicalRequirementRef(raw) {
   return withoutPrefix.split(/[.-]/).map((segment) => segment.replace(/^0+(?=\d)/, "")).join(".");
 }
 var TEST_LANGUAGE = /\btest(?:s|ed|ing)?\b|\bunit[- ]tested\b|\bcovered by tests\b/i;
-function mentionsTests(text8) {
-  return TEST_LANGUAGE.test(text8);
+function mentionsTests(text9) {
+  return TEST_LANGUAGE.test(text9);
 }
 var ID_HEADING = /^((?:req)[-_. ]?\d+(?:[.-]\d+)*)[ \t]*[:.–—-]?[ \t]*(.*)$/i;
 var EXPLICIT_AC_MARKER = /^(ac[-_. ]?\d+(?:[.-]\d+)*)[ \t]*[:.–—-][ \t]*/i;
@@ -30131,16 +30131,16 @@ function extractTaskRequirementReferences(document, tasks) {
     if (mask[i2] === true) continue;
     const owner = ownerTaskAt(orderedTasks, i2);
     if (owner === void 0) continue;
-    const text8 = document.lineAt(i2).text;
+    const text9 = document.lineAt(i2).text;
     const isTaskLine = orderedTasks.some((task) => task.line === i2);
     if (!isTaskLine) {
-      const underscore = UNDERSCORE_REFS.exec(text8);
+      const underscore = UNDERSCORE_REFS.exec(text9);
       if (underscore !== null) {
         for (const item of splitReferenceList(underscore[1] ?? "")) {
           push(owner, item, i2, "underscore-refs", "deterministic");
         }
       } else {
-        const refsLine = REFS_LINE.exec(text8);
+        const refsLine = REFS_LINE.exec(text9);
         if (refsLine !== null) {
           for (const item of splitReferenceList(refsLine[1] ?? "")) {
             if (canonicalRequirementRef(item) !== void 0) {
@@ -30150,10 +30150,10 @@ function extractTaskRequirementReferences(document, tasks) {
         }
       }
     }
-    for (const match of text8.matchAll(BRACKET_REF)) {
+    for (const match of text9.matchAll(BRACKET_REF)) {
       if (match[1] !== void 0) push(owner, match[1], i2, "bracket-ref", "deterministic");
     }
-    for (const match of text8.matchAll(KEYWORD_REF)) {
+    for (const match of text9.matchAll(KEYWORD_REF)) {
       if (match[1] !== void 0) push(owner, match[1], i2, "keyword-ref", "heuristic");
     }
   }
@@ -30204,8 +30204,8 @@ function extractPathReferences(document) {
   const seen = /* @__PURE__ */ new Set();
   for (let i2 = 0; i2 < document.lineCount; i2 += 1) {
     if (mask[i2] === true) continue;
-    const text8 = document.lineAt(i2).text;
-    for (const match of text8.matchAll(BACKTICK_SPAN)) {
+    const text9 = document.lineAt(i2).text;
+    for (const match of text9.matchAll(BACKTICK_SPAN)) {
       const raw = match[1];
       if (raw === void 0) continue;
       const path54 = normalizePathCandidate(raw);
@@ -30222,7 +30222,7 @@ function extractPathReferences(document) {
         isGlob: GLOB_CHARS.test(path54)
       });
     }
-    for (const match of text8.matchAll(MARKDOWN_LINK)) {
+    for (const match of text9.matchAll(MARKDOWN_LINK)) {
       const raw = match[1];
       if (raw === void 0) continue;
       const path54 = normalizePathCandidate(raw);
@@ -30641,21 +30641,21 @@ function bodyOf(line) {
   const match = STRUCTURAL_PREFIX.exec(line);
   return (match !== null ? line.slice(match[0].length) : line).trim();
 }
-function findPlaceholdersInLine(text8) {
+function findPlaceholdersInLine(text9) {
   const found = [];
   ANGLE_TOKEN.lastIndex = 0;
-  for (let match = ANGLE_TOKEN.exec(text8); match !== null; match = ANGLE_TOKEN.exec(text8)) {
+  for (let match = ANGLE_TOKEN.exec(text9); match !== null; match = ANGLE_TOKEN.exec(text9)) {
     const token = match[1] ?? "";
     if (!HTML_TAGS.has(token)) found.push(`<${token}>`);
   }
-  const tbd = TBD_TODO.exec(text8);
+  const tbd = TBD_TODO.exec(text9);
   if (tbd !== null) found.push(tbd[0]);
-  const body = bodyOf(text8);
-  const instruction = stripListPrefix(text8.trim());
+  const body = bodyOf(text9);
+  const instruction = stripListPrefix(text9.trim());
   if (INSTRUCTION_LINE.test(instruction) || INSTRUCTION_LINE.test(body)) {
-    found.push(text8.trim());
+    found.push(text9.trim());
   } else if (TEMPLATE_LINES.has(body.toLowerCase())) {
-    found.push(text8.trim());
+    found.push(text9.trim());
   }
   return found;
 }
@@ -30669,12 +30669,12 @@ function scanPlaceholders(document) {
   let placeholderLineCount = 0;
   for (let i2 = 0; i2 < document.lineCount; i2 += 1) {
     if (mask[i2] === true) continue;
-    const text8 = document.lineAt(i2).text;
-    const trimmed = text8.trim();
+    const text9 = document.lineAt(i2).text;
+    const trimmed = text9.trim();
     if (trimmed.length === 0) continue;
-    const lineHits = findPlaceholdersInLine(text8);
+    const lineHits = findPlaceholdersInLine(text9);
     for (const hit of lineHits) hits.push({ line: i2, text: hit });
-    if (HEADING_LINE.test(text8) || TABLE_RULE.test(trimmed) || STATUS_NOTE.test(trimmed)) {
+    if (HEADING_LINE.test(text9) || TABLE_RULE.test(trimmed) || STATUS_NOTE.test(trimmed)) {
       continue;
     }
     bodyLineCount += 1;
@@ -30689,16 +30689,16 @@ function scanPlaceholders(document) {
 var EARS_TRIGGER = /^(when|if|while|where)\b/i;
 var SHALL = /\bshall\b/i;
 var TESTABLE_MODAL = /\b(shall|must|should|will)\b/i;
-function classifyEars(text8) {
-  const trimmed = text8.trim();
+function classifyEars(text9) {
+  const trimmed = text9.trim();
   if (EARS_TRIGGER.test(trimmed)) {
     return SHALL.test(trimmed) ? "ears" : "ears-malformed";
   }
   if (SHALL.test(trimmed)) return "ears";
   return "plain";
 }
-function looksTestable(text8) {
-  return TESTABLE_MODAL.test(text8);
+function looksTestable(text9) {
+  return TESTABLE_MODAL.test(text9);
 }
 var VAGUE_PHRASES = [
   "work correctly",
@@ -30732,10 +30732,10 @@ var VAGUE_PATTERN = new RegExp(
   `\\b(?:${VAGUE_PHRASES.map((phrase) => phrase.replace(/[-\s]+/g, "[-\\s]+")).join("|")})\\b`,
   "gi"
 );
-function findVaguePhrases(text8) {
+function findVaguePhrases(text9) {
   const found = [];
   VAGUE_PATTERN.lastIndex = 0;
-  for (let match = VAGUE_PATTERN.exec(text8); match !== null; match = VAGUE_PATTERN.exec(text8)) {
+  for (let match = VAGUE_PATTERN.exec(text9); match !== null; match = VAGUE_PATTERN.exec(text9)) {
     const phrase = match[0].toLowerCase().replace(/\s+/g, " ");
     if (!found.includes(phrase)) found.push(phrase);
   }
@@ -31627,14 +31627,14 @@ function readDescriptionFile(workspace, fromFile, cwd, maxBytes) {
   } catch (cause) {
     throw ioError("read description file", resolved, cause);
   }
-  const text8 = buffer.toString("utf8");
-  if (!Buffer.from(text8, "utf8").equals(buffer)) {
+  const text9 = buffer.toString("utf8");
+  if (!Buffer.from(text9, "utf8").equals(buffer)) {
     throw new SpecBridgeError(
       "INVALID_ARGUMENT",
       `--from-file is not valid UTF-8: ${resolved}. Re-save the file as UTF-8 and retry.`
     );
   }
-  const description = text8.replace(new RegExp("^\\uFEFF"), "").trim();
+  const description = text9.replace(new RegExp("^\\uFEFF"), "").trim();
   if (description.length === 0) {
     throw new SpecBridgeError("INVALID_ARGUMENT", `--from-file is empty: ${resolved}.`);
   }
@@ -36990,7 +36990,7 @@ function parseMilliseconds(milliseconds) {
 
 // ../../node_modules/.pnpm/pretty-ms@9.3.0/node_modules/pretty-ms/index.js
 var isZero = (value) => value === 0 || value === 0n;
-var pluralize = (word, count2) => count2 === 1 || count2 === 1n ? word : `${word}s`;
+var pluralize = (word, count3) => count3 === 1 || count3 === 1n ? word : `${word}s`;
 var SECOND_ROUNDING_EPSILON = 1e-7;
 var ONE_DAY_IN_MILLISECONDS = 24n * 60n * 60n * 1000n;
 function prettyMilliseconds(milliseconds, options) {
@@ -39221,12 +39221,12 @@ var SignalExit = class extends SignalExitBase {
     for (const sig of signals) {
       this.#sigListeners[sig] = () => {
         const listeners = this.#process.listeners(sig);
-        let { count: count2 } = this.#emitter;
+        let { count: count3 } = this.#emitter;
         const p = process11;
         if (typeof p.__signal_exit_emitter__ === "object" && typeof p.__signal_exit_emitter__.count === "number") {
-          count2 += p.__signal_exit_emitter__.count;
+          count3 += p.__signal_exit_emitter__.count;
         }
-        if (listeners.length === count2) {
+        if (listeners.length === count3) {
           this.unload();
           const ret = this.#emitter.emit("exit", null, sig);
           const s = sig === "SIGHUP" ? this.#hupSig : sig;
@@ -43099,9 +43099,9 @@ ${execHelp.stderr}` : "";
   }
   const supportedTokens = /* @__PURE__ */ new Set();
   const capabilities = CODEX_CAPABILITY_PROBES.map((probe) => {
-    const text8 = probe.source === "root" ? rootText : execText;
+    const text9 = probe.source === "root" ? rootText : execText;
     const usable = probe.source === "root" ? rootUsable : execUsable;
-    const available = usable && probe.tokens.some((token) => tokenPresent(text8, token));
+    const available = usable && probe.tokens.some((token) => tokenPresent(text9, token));
     if (available) for (const token of probe.tokens) supportedTokens.add(token);
     return {
       id: probe.id,
@@ -45924,8 +45924,8 @@ function parseOpenAiResponse(style, bodyText) {
   if (!result.success) {
     return { problem: "the endpoint response does not match the responses shape" };
   }
-  let text8 = result.data.output_text;
-  if (text8 === void 0 && result.data.output !== void 0) {
+  let text9 = result.data.output_text;
+  if (text9 === void 0 && result.data.output !== void 0) {
     const parts = [];
     for (const item of result.data.output) {
       if (item.type !== void 0 && item.type !== "message") continue;
@@ -45935,10 +45935,10 @@ function parseOpenAiResponse(style, bodyText) {
         }
       }
     }
-    if (parts.length > 0) text8 = parts.join("");
+    if (parts.length > 0) text9 = parts.join("");
   }
   return {
-    ...text8 !== void 0 ? { text: text8 } : { problem: "the response carries no output text" },
+    ...text9 !== void 0 ? { text: text9 } : { problem: "the response carries no output text" },
     ...result.data.model !== void 0 ? { model: result.data.model } : {},
     ...result.data.usage !== void 0 ? {
       usage: {
@@ -45960,12 +45960,12 @@ var openAiModelsResponseSchema = external_exports.object({
 }).passthrough();
 function indicatesStructuredOutputUnsupported(status, bodyExcerpt) {
   if (status !== 400 && status !== 422) return false;
-  const text8 = (bodyExcerpt ?? "").toLowerCase();
-  return /response_format|json_schema|json schema|structured output|text\.format/.test(text8);
+  const text9 = (bodyExcerpt ?? "").toLowerCase();
+  return /response_format|json_schema|json schema|structured output|text\.format/.test(text9);
 }
-function redactSecretValue(text8, secret) {
-  if (secret === void 0 || secret.length === 0) return text8;
-  return text8.split(secret).join("<redacted>");
+function redactSecretValue(text9, secret) {
+  if (secret === void 0 || secret.length === 0) return text9;
+  return text9.split(secret).join("<redacted>");
 }
 function weakerStructuredOutputMode(mode) {
   if (mode === "json-schema") return "json-object";
@@ -46137,8 +46137,8 @@ var OpenAiCompatibleRunner = class {
     const value = process.env[variable];
     return value !== void 0 && value.length > 0 ? value : void 0;
   }
-  redact(text8) {
-    return redactSecretValue(text8, this.apiKeyValue());
+  redact(text9) {
+    return redactSecretValue(text9, this.apiKeyValue());
   }
   requestHeaders() {
     const headers = { ...this.config.headers };
@@ -46434,7 +46434,7 @@ var OpenAiCompatibleRunner = class {
       const unsupportedMode = mode !== "strict-json-prompt" && result.kind === "http-error" && indicatesStructuredOutputUnsupported(result.status, result.bodyExcerpt);
       return {
         ok: false,
-        failure: classifyHttpFailure2(result, (text8) => this.redact(text8)),
+        failure: classifyHttpFailure2(result, (text9) => this.redact(text9)),
         unsupportedMode,
         ...result.kind === "http-error" && result.bodyExcerpt !== void 0 ? { retained: this.redact(result.bodyExcerpt) } : {}
       };
@@ -47354,8 +47354,8 @@ function classifyDshFailure(failure, turnErrors = []) {
         })
       };
     case "rpc-error": {
-      const text8 = failure.message;
-      if (AUTH_PATTERN.test(text8)) {
+      const text9 = failure.message;
+      if (AUTH_PATTERN.test(text9)) {
         return {
           outcome: "failed",
           error: runnerError({
@@ -47368,7 +47368,7 @@ function classifyDshFailure(failure, turnErrors = []) {
           })
         };
       }
-      if (QUOTA_PATTERN.test(text8)) {
+      if (QUOTA_PATTERN.test(text9)) {
         return {
           outcome: "failed",
           error: runnerError({
@@ -47378,7 +47378,7 @@ function classifyDshFailure(failure, turnErrors = []) {
           })
         };
       }
-      if (RATE_PATTERN.test(text8)) {
+      if (RATE_PATTERN.test(text9)) {
         return {
           outcome: "failed",
           error: runnerError({
@@ -47389,7 +47389,7 @@ function classifyDshFailure(failure, turnErrors = []) {
           })
         };
       }
-      if (MODEL_PATTERN.test(text8)) {
+      if (MODEL_PATTERN.test(text9)) {
         return {
           outcome: "failed",
           error: runnerError({
@@ -47404,7 +47404,7 @@ function classifyDshFailure(failure, turnErrors = []) {
         outcome: "failed",
         error: runnerError({
           code: "api_error",
-          message: `The DeepSeek Harness runtime returned a protocol error: ${boundedMessage(text8)}`,
+          message: `The DeepSeek Harness runtime returned a protocol error: ${boundedMessage(text9)}`,
           ...failure.rpcCode !== void 0 ? { providerCode: String(failure.rpcCode) } : {}
         })
       };
@@ -47430,8 +47430,8 @@ function classifyDshFailure(failure, turnErrors = []) {
       };
   }
 }
-function boundedMessage(text8) {
-  return text8.length <= 500 ? text8 : `${text8.slice(0, 500)}\u2026 [truncated]`;
+function boundedMessage(text9) {
+  return text9.length <= 500 ? text9 : `${text9.slice(0, 500)}\u2026 [truncated]`;
 }
 var dshSessionEventSchema = external_exports.object({
   type: external_exports.string(),
@@ -47984,7 +47984,7 @@ var DeepSeekHarnessRunner = class {
     };
     execution.signal?.addEventListener("abort", onAbort, { once: true });
     let handshake;
-    let observation;
+    let observation2;
     let failure;
     let continuityChecked = false;
     const onNotification = (notification) => {
@@ -47999,7 +47999,7 @@ var DeepSeekHarnessRunner = class {
     };
     try {
       handshake = await adapter.open();
-      observation = await adapter.runPrompt({
+      observation2 = await adapter.runPrompt({
         sessionId: session.sessionId,
         prompt,
         onNotification
@@ -48011,8 +48011,8 @@ var DeepSeekHarnessRunner = class {
       execution.signal?.removeEventListener("abort", onAbort);
       await adapter.close();
     }
-    const notifications = observation?.notifications ?? adapter.partialObservation.notifications;
-    const dropped = observation?.droppedNotifications ?? adapter.partialObservation.droppedNotifications;
+    const notifications = observation2?.notifications ?? adapter.partialObservation.notifications;
+    const dropped = observation2?.droppedNotifications ?? adapter.partialObservation.droppedNotifications;
     if (dropped > 0) {
       warnings.push(`the notification stream exceeded the retention cap; ${dropped} notifications were dropped`);
     }
@@ -48024,7 +48024,7 @@ var DeepSeekHarnessRunner = class {
       session,
       warnings,
       handshake,
-      observation
+      observation2
     );
   }
   observationRecord(started, notifications, flags) {
@@ -48107,7 +48107,7 @@ var DeepSeekHarnessRunner = class {
   }
   failureResult(started, session, warnings, handshake, notifications, failure) {
     const collection = collectDshRun(notifications, session.sessionId);
-    const classified = classifyDshFailure(failure, collection.errors);
+    const classified2 = classifyDshFailure(failure, collection.errors);
     const flags = {
       timedOut: failure.closeCause === "timed-out",
       cancelled: failure.closeCause === "cancelled"
@@ -48115,23 +48115,23 @@ var DeepSeekHarnessRunner = class {
     const base = this.baseResult(started, session, warnings, handshake, notifications, collection, flags);
     return {
       ...base,
-      outcome: classified.outcome,
-      failureReason: classified.error.message,
-      error: classified.error,
+      outcome: classified2.outcome,
+      failureReason: classified2.error.message,
+      error: classified2.error,
       // A dead/lost/cancelled run is not resumable as-is; continuation goes
       // through the SpecBridge checkpoint (fresh attempt), or a genuine
       // session resume decided by orchestration on the NEXT attempt.
       resumeSupported: false
     };
   }
-  successResult(started, session, warnings, handshake, observation) {
-    const collection = collectDshRun(observation.notifications, session.sessionId);
-    const base = this.baseResult(started, session, warnings, handshake, observation.notifications, collection, {
+  successResult(started, session, warnings, handshake, observation2) {
+    const collection = collectDshRun(observation2.notifications, session.sessionId);
+    const base = this.baseResult(started, session, warnings, handshake, observation2.notifications, collection, {
       timedOut: false,
       cancelled: false
     });
     const resumeSupported = this.config.sessionPersistence === "runtime-managed";
-    const finalText = observation.finalResponse.trim();
+    const finalText = observation2.finalResponse.trim();
     if (finalText.length === 0) {
       return {
         ...base,
@@ -49153,8 +49153,8 @@ async function capturePatch(workspaceRoot, maximumPatchBytes) {
   };
 }
 var TAIL_BYTES = 8 * 1024;
-function tail(text8) {
-  return text8.length > TAIL_BYTES ? text8.slice(text8.length - TAIL_BYTES) : text8;
+function tail(text9) {
+  return text9.length > TAIL_BYTES ? text9.slice(text9.length - TAIL_BYTES) : text9;
 }
 function skippedVerification(commands) {
   return {
@@ -49443,12 +49443,12 @@ function evidencePathEscapesRepository(recordedPath) {
 }
 var CHECKBOX_STATE_PREFIX2 = /^([ \t]*[-*+][ \t]+\[)([ xX~-])(\])/;
 function sameTaskLineIgnoringState(a2, b) {
-  const normalize = (text8) => {
-    const match = CHECKBOX_STATE_PREFIX2.exec(text8);
-    if (match === null || match[1] === void 0 || match[3] === void 0) return text8;
-    return `${match[1]} ${match[3]}${text8.slice(match[0].length)}`;
+  const normalize2 = (text9) => {
+    const match = CHECKBOX_STATE_PREFIX2.exec(text9);
+    if (match === null || match[1] === void 0 || match[3] === void 0) return text9;
+    return `${match[1]} ${match[3]}${text9.slice(match[0].length)}`;
   };
-  return normalize(a2) === normalize(b);
+  return normalize2(a2) === normalize2(b);
 }
 function parseTimestamp(value) {
   const parsed = Date.parse(value);
@@ -49977,8 +49977,8 @@ function invalidateDependentApprovals(workspace, state, stage, clock) {
   const statePath = writeSpecState(workspace, nextState);
   return { state: nextState, statePath, invalidated };
 }
-function splitLines2(text8) {
-  const lines = text8.split("\n");
+function splitLines2(text9) {
+  const lines = text9.split("\n");
   if (lines[lines.length - 1] === "") lines.pop();
   return lines;
 }
@@ -51249,6 +51249,10 @@ var CONTEXT_EXPANSION_LEVEL_DEPTH = Object.freeze({
   MODULE_CONTEXT: 3,
   BOUNDED_FALLBACK: 4
 });
+function expansionLevelAtDepth(depth) {
+  const bounded2 = Math.max(0, Math.min(CONTEXT_EXPANSION_LEVELS.length - 1, Math.trunc(depth)));
+  return CONTEXT_EXPANSION_LEVELS[bounded2];
+}
 var CONTEXT_SHAPES = ["MATERIALIZED", "POINTER"];
 var CONTEXT_COMPRESSION_METHODS = [
   "none",
@@ -51620,6 +51624,69 @@ var contextExpansionStateSchema = external_exports.object({
   observedSignals: external_exports.array(external_exports.enum(["WORKER_REPORTED_MISSING_CONTEXT", "UNKNOWN_SYMBOL_REFERENCE", "SELECTED_ARTIFACT_STALE", "MANDATORY_REFERENCE_DROPPED", "DIRECT_MODEL_REQUESTED_REPOSITORY", "FAILURE_IN_UNSELECTED_FILE"])).max(24).default([]),
   updatedAt: external_exports.string().min(1).max(64)
 }).passthrough();
+function planContextExpansion(input) {
+  const currentLevel = input.state.level;
+  const stay = (refusalReason, reason, returnToReliability = false) => ({
+    expand: false,
+    nextLevel: currentLevel,
+    refusalReason,
+    reason,
+    returnToReliability
+  });
+  if (input.strategy !== "PROGRESSIVE") {
+    return stay(
+      "NOT_PROGRESSIVE_STRATEGY",
+      `Context strategy ${input.strategy} does not widen automatically; retrieval built one bounded package.`
+    );
+  }
+  if (input.signals.length === 0) {
+    return stay(
+      "NO_EVIDENCE_OF_CONTEXT_MISS",
+      "Nothing observed indicates the package was missing context; widening every turn would be an unbounded token loop."
+    );
+  }
+  if (input.state.expansionsThisAttempt >= input.policy.maxExpansionsPerAttempt) {
+    return stay(
+      "ATTEMPT_BUDGET_EXHAUSTED",
+      `This attempt already widened context ${input.state.expansionsThisAttempt} time(s); further widening needs a new attempt.`
+    );
+  }
+  if (input.state.expansionsThisTask >= input.policy.maxExpansionsPerTask) {
+    return stay(
+      "TASK_BUDGET_EXHAUSTED",
+      `Context has been widened ${input.state.expansionsThisTask} time(s) on this task without success; more context is not the answer.`,
+      true
+    );
+  }
+  const currentDepth = CONTEXT_EXPANSION_LEVEL_DEPTH[currentLevel];
+  const maxDepth = CONTEXT_EXPANSION_LEVEL_DEPTH[input.policy.maxLevel];
+  if (currentDepth >= maxDepth) {
+    return stay(
+      "MAX_LEVEL_REACHED",
+      `Retrieval is already at its widest configured level (${currentLevel}); the remaining options are a different execution mode, a replan, or an escalation.`,
+      true
+    );
+  }
+  const baseline = input.state.baselineWorkingSetTokens;
+  const latest = input.state.lastWorkingSetTokens;
+  if (baseline !== null && baseline > 0 && latest !== null) {
+    const growth = latest / baseline;
+    if (growth >= input.policy.maxWorkingSetGrowthFactor) {
+      return stay(
+        "GROWTH_CEILING_REACHED",
+        `The working set has already grown ${growth.toFixed(1)}\xD7 since the first package without a verified result; widening further would amplify tokens rather than information.`,
+        true
+      );
+    }
+  }
+  const nextLevel = expansionLevelAtDepth(currentDepth + 1);
+  return {
+    expand: true,
+    nextLevel,
+    reason: `Observed context insufficiency (${input.signals.join(", ")}); retrieval widens one level from ${currentLevel} to ${nextLevel} rather than escalating intelligence or materializing the repository.`,
+    returnToReliability: false
+  };
+}
 var shortText3 = external_exports.string().min(1).max(CONTEXT_LIMITS.maxShortTextChars);
 var selectedContextItemSchema = external_exports.object({
   /** Workspace-relative path, forward slashes. */
@@ -51801,6 +51868,7 @@ var contextEfficiencyMetricsSchema = external_exports.object({
 }).passthrough();
 
 // ../../packages/orchestration/dist/index.js
+var import_crypto11 = require("crypto");
 var import_fs23 = require("fs");
 var import_path26 = __toESM(require("path"), 1);
 var ORCHESTRATION_PHASES = [
@@ -51989,7 +52057,12 @@ var SBO_CODES = {
   // Survival-runtime codes (vNext.1). Additive: nothing above may be renumbered.
   SBO049: "execution attempt state invalid",
   SBO050: "task checkpoint invalid",
-  SBO051: "context reconstruction failed"
+  SBO051: "context reconstruction failed",
+  // Dogfood & release-qualification codes (vNext.9). Additive: nothing above
+  // may be renumbered.
+  SBO052: "qualification record invalid",
+  SBO053: "qualification run not found",
+  SBO054: "qualification preflight refused"
 };
 var OrchestrationError = class extends Error {
   code;
@@ -53190,12 +53263,12 @@ function buildClarificationRound(state, candidates, policy, options) {
   const seen = /* @__PURE__ */ new Set();
   const questions = [];
   for (const candidate of candidates) {
-    const text8 = candidate.question.trim();
+    const text9 = candidate.question.trim();
     const why = candidate.whyItMatters.trim();
-    if (text8.length === 0) {
+    if (text9.length === 0) {
       throw new OrchestrationError("SBO007", "A clarification question must not be empty.");
     }
-    if (Buffer.byteLength(text8, "utf8") > policy.clarification.maxQuestionBytes) {
+    if (Buffer.byteLength(text9, "utf8") > policy.clarification.maxQuestionBytes) {
       throw new OrchestrationError(
         "SBO021",
         `A clarification question may be at most ${policy.clarification.maxQuestionBytes} bytes.`,
@@ -53205,21 +53278,21 @@ function buildClarificationRound(state, candidates, policy, options) {
     if (why.length === 0) {
       throw new OrchestrationError(
         "SBO007",
-        `Question "${text8.slice(0, 60)}" has no justification. Every question must state why the answer changes the implementation.`,
+        `Question "${text9.slice(0, 60)}" has no justification. Every question must state why the answer changes the implementation.`,
         { remediation: ["Drop the question, or explain what it would change."] }
       );
     }
-    const normalized = normalizeQuestion(text8);
+    const normalized = normalizeQuestion(text9);
     if (seen.has(normalized)) {
       throw new OrchestrationError(
         "SBO007",
-        `Question "${text8.slice(0, 60)}" is asked twice in the same round.`
+        `Question "${text9.slice(0, 60)}" is asked twice in the same round.`
       );
     }
     if (answered.has(normalized)) {
       throw new OrchestrationError(
         "SBO007",
-        `Question "${text8.slice(0, 60)}" was already answered in this run; re-asking it makes no progress.`,
+        `Question "${text9.slice(0, 60)}" was already answered in this run; re-asking it makes no progress.`,
         { remediation: ["Read the recorded decision, or supersede it with an explicit new decision."] }
       );
     }
@@ -53227,7 +53300,7 @@ function buildClarificationRound(state, candidates, policy, options) {
     questions.push(
       clarificationQuestionSchema.parse({
         id: options.idFactory(),
-        question: text8,
+        question: text9,
         whyItMatters: why,
         options: (candidate.options ?? []).slice(0, 10),
         ...candidate.relatedTaskId !== void 0 ? { relatedTaskId: candidate.relatedTaskId } : {},
@@ -53810,12 +53883,12 @@ async function submitPlan(deps, orchestrationId, candidate) {
       }
     );
   }
-  const snapshot = await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now2(deps) });
+  const snapshot2 = await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now2(deps) });
   const binding = capturePlanBinding(deps.workspace, {
     specName: state.specName,
     taskId: candidate.taskId,
     policy,
-    gitHead: snapshot.head
+    gitHead: snapshot2.head
   });
   const revision = state.planRevision + 1;
   const previous = replacing ? readPlanRevision(deps.workspace, orchestrationId, state.planRevision) : void 0;
@@ -53929,12 +54002,12 @@ async function checkPlanFreshness(deps, orchestrationId) {
       planRevision: state.planRevision
     };
   }
-  const snapshot = await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now2(deps) });
+  const snapshot2 = await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now2(deps) });
   const current = capturePlanBinding(deps.workspace, {
     specName: state.specName,
     taskId: plan.binding.taskId,
     policy,
-    gitHead: snapshot.head
+    gitHead: snapshot2.head
   });
   const freshness = evaluatePlanFreshness(plan, current);
   return { ...freshness, planRevision: state.planRevision };
@@ -53956,12 +54029,12 @@ async function refreshPlanBinding(deps, orchestrationId) {
       { remediation: ["Submit a fresh plan; the previous revisions are preserved on disk."] }
     );
   }
-  const snapshot = await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now2(deps) });
+  const snapshot2 = await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now2(deps) });
   const current = capturePlanBinding(deps.workspace, {
     specName: state.specName,
     taskId: plan.binding.taskId,
     policy,
-    gitHead: snapshot.head
+    gitHead: snapshot2.head
   });
   const freshness = evaluatePlanFreshness(plan, current);
   if (!freshness.fresh) {
@@ -54024,15 +54097,15 @@ function recordAction(deps, orchestrationId, request) {
       );
     }
   }
-  const classified = request.failure !== void 0 ? classifyFailure({
+  const classified2 = request.failure !== void 0 ? classifyFailure({
     category: request.failure.category,
     message: request.failure.message,
     source: request.failure.source,
     exitCode: request.failure.exitCode,
     output: request.failure.output
   }) : void 0;
-  const observation = observationFingerprintSchema.parse({
-    ...classified !== void 0 ? { failureFingerprint: classified.fingerprint } : {},
+  const observation2 = observationFingerprintSchema.parse({
+    ...classified2 !== void 0 ? { failureFingerprint: classified2.fingerprint } : {},
     ...request.changedFiles !== void 0 ? { diffFingerprint: diffFingerprint(request.changedFiles) } : {},
     changedFileCount: request.changedFiles?.length ?? 0,
     actionCategory: request.action,
@@ -54041,14 +54114,14 @@ function recordAction(deps, orchestrationId, request) {
   });
   const progress = assessProgress({
     previous: state.lastObservation,
-    next: observation,
+    next: observation2,
     consecutiveNoProgress: state.counters.consecutiveNoProgress,
     maxNoProgressCycles: state.budgets.maxNoProgressCycles
   });
   const elapsedMs = Math.max(0, now2(deps).getTime() - Date.parse(state.createdAt));
   const decision = decideNextStep(
     {
-      failure: classified,
+      failure: classified2,
       counters: state.counters,
       budgets: state.budgets,
       elapsedMs,
@@ -54060,7 +54133,7 @@ function recordAction(deps, orchestrationId, request) {
   );
   state = {
     ...state,
-    lastObservation: observation,
+    lastObservation: observation2,
     counters: {
       ...state.counters,
       iterations: state.counters.iterations + 1,
@@ -54079,23 +54152,23 @@ function recordAction(deps, orchestrationId, request) {
     result: request.result,
     progressed: progress.progressed,
     consecutiveNoProgress: progress.consecutiveNoProgress,
-    changedFileCount: observation.changedFileCount,
-    ...classified !== void 0 ? { failureCategory: classified.category } : {},
-    ...classified !== void 0 ? { failureFingerprint: classified.fingerprint } : {},
+    changedFileCount: observation2.changedFileCount,
+    ...classified2 !== void 0 ? { failureCategory: classified2.category } : {},
+    ...classified2 !== void 0 ? { failureFingerprint: classified2.fingerprint } : {},
     directive: decision.directive
   });
-  if (classified?.category === "VERIFICATION_FAILURE") {
+  if (classified2?.category === "VERIFICATION_FAILURE") {
     state = record3(deps, state, "verification_failed", {
       source: request.failure?.source ?? "unknown",
-      fingerprint: classified.fingerprint
+      fingerprint: classified2.fingerprint
     });
   }
-  state = applyDirective(deps, state, decision, classified);
+  state = applyDirective(deps, state, decision, classified2);
   return {
     state: persist2(deps, state),
     decision,
     progress,
-    ...classified !== void 0 ? { classifiedFailure: classified } : {}
+    ...classified2 !== void 0 ? { classifiedFailure: classified2 } : {}
   };
 }
 async function recordActionChecked(deps, orchestrationId, request) {
@@ -54444,7 +54517,7 @@ async function resumeOrchestration(deps, orchestrationId) {
       "The orchestration policy changed since this run began. The run continues under the budgets recorded at its start; start a new run to adopt the new policy."
     );
   }
-  const snapshot = await captureGitSnapshot(deps.workspace.rootDir, {
+  const snapshot2 = await captureGitSnapshot(deps.workspace.rootDir, {
     clock: () => (deps.clock ?? (() => /* @__PURE__ */ new Date()))()
   });
   let planStale = false;
@@ -54492,7 +54565,7 @@ async function resumeOrchestration(deps, orchestrationId) {
     planStaleExplanations,
     policyChanged,
     ...activeInteractiveRun !== void 0 ? { activeInteractiveRun } : {},
-    ...snapshot.head !== void 0 ? { gitHead: snapshot.head } : {},
+    ...snapshot2.head !== void 0 ? { gitHead: snapshot2.head } : {},
     ...checkpoint !== void 0 ? { checkpoint } : {},
     nextAction,
     warnings
@@ -55144,6 +55217,208 @@ var DECISION_AUTHORITY_TABLE = Object.freeze({
   "spec-conflict": "human",
   approval: "human-only"
 });
+var INTENT_IMPACT_PATTERNS = [
+  { kind: "public-api-change", pattern: /\b(public api|api contract|breaking change|public interface)\b/i },
+  { kind: "architecture-contract-change", pattern: /\b(architecture|architectural|redesign|restructure)\b/i },
+  { kind: "new-dependency", pattern: /\b(new dependency|add(?:ing)? (?:a |the )?(?:dependency|library|package))\b/i },
+  { kind: "product-behavior-change", pattern: /\b(product behavior|user-facing behavior|delivery semantics|compatibility promise)\b/i }
+];
+function screenReplanForApprovedIntentImpact(candidate, previous) {
+  const candidateText = `${candidate.goal}
+${candidate.steps.map((step2) => step2.description).join("\n")}`;
+  const previousText = previous !== void 0 ? `${previous.goal}
+${previous.steps.map((step2) => step2.description).join("\n")}` : "";
+  const decisionKinds = [];
+  const reasons = [];
+  for (const entry of INTENT_IMPACT_PATTERNS) {
+    const inCandidate = entry.pattern.exec(candidateText);
+    if (inCandidate === null) continue;
+    if (previousText.length > 0 && entry.pattern.test(previousText)) continue;
+    decisionKinds.push(entry.kind);
+    reasons.push(`the replacement plan introduces "${(inCandidate[0] ?? "").slice(0, 60)}" (${entry.kind})`);
+  }
+  return { impacts: decisionKinds.length > 0, decisionKinds, reasons };
+}
+function expectedBurnBeforeReset(estimate2, timeToResetMs2) {
+  if (timeToResetMs2 <= 0) return 0;
+  const fraction = Math.min(1, timeToResetMs2 / Math.max(1, estimate2.expectedWallTimeMs));
+  return estimate2.expectedFiveHourBurnRatio * fraction;
+}
+function assessSubscriptionAdmission(input) {
+  const { estimate: estimate2, forecast, policy } = input;
+  const safety = policy.burnSafetyMultiplier;
+  const timeToReset = forecast.timeToFiveHourResetMs;
+  const crossesReset = timeToReset !== null && estimate2.expectedWallTimeMs > timeToReset;
+  const preResetBurn = timeToReset === null ? estimate2.expectedFiveHourBurnRatio : expectedBurnBeforeReset(estimate2, timeToReset);
+  const postResetBurn = Math.max(0, estimate2.expectedFiveHourBurnRatio - preResetBurn);
+  if (forecast.fiveHourRemainingRatio !== null) {
+    const available = Math.max(0, forecast.fiveHourRemainingRatio - input.reserveRatio);
+    const preResetBurnP90 = estimate2.expectedFiveHourBurnRatioP90 === null ? null : timeToReset === null ? estimate2.expectedFiveHourBurnRatioP90 : expectedBurnBeforeReset(
+      { ...estimate2, expectedFiveHourBurnRatio: estimate2.expectedFiveHourBurnRatioP90 },
+      timeToReset
+    );
+    const required2 = Math.max(preResetBurn * safety, preResetBurnP90 ?? 0);
+    if (required2 > available) {
+      const basis = preResetBurnP90 !== null && preResetBurnP90 > preResetBurn * safety ? `Measured P90 pre-reset burn ${(preResetBurnP90 * 100).toFixed(1)}%` : `Pre-reset burn ${(preResetBurn * 100).toFixed(1)}% x${safety} safety`;
+      return {
+        admissible: false,
+        preResetBurnRatio: preResetBurn,
+        postResetBurnRatio: postResetBurn,
+        crossesReset,
+        refusal: "five-hour",
+        detail: `${basis} exceeds ${(forecast.fiveHourRemainingRatio * 100).toFixed(1)}% remaining minus ${(input.reserveRatio * 100).toFixed(1)}% reserve.`
+      };
+    }
+  }
+  if (postResetBurn * safety > 1) {
+    return {
+      admissible: false,
+      preResetBurnRatio: preResetBurn,
+      postResetBurnRatio: postResetBurn,
+      crossesReset,
+      refusal: "five-hour",
+      detail: `The post-reset continuation alone (${(postResetBurn * 100).toFixed(1)}% x${safety}) exceeds a full five-hour window.`
+    };
+  }
+  if (forecast.weeklyRemainingRatio !== null) {
+    const weeklyRequired = estimate2.expectedWeeklyBurnRatio * safety;
+    if (weeklyRequired > forecast.weeklyRemainingRatio) {
+      return {
+        admissible: false,
+        preResetBurnRatio: preResetBurn,
+        postResetBurnRatio: postResetBurn,
+        crossesReset,
+        refusal: "weekly",
+        detail: `Expected weekly burn ${(estimate2.expectedWeeklyBurnRatio * 100).toFixed(1)}% x${safety} exceeds ${(forecast.weeklyRemainingRatio * 100).toFixed(1)}% weekly remaining.`
+      };
+    }
+  }
+  return {
+    admissible: true,
+    preResetBurnRatio: preResetBurn,
+    postResetBurnRatio: postResetBurn,
+    crossesReset,
+    detail: crossesReset ? `Admitted across the reset: ~${(preResetBurn * 100).toFixed(1)}% burns before it, the task continues after.` : `Admitted: expected burn ${(estimate2.expectedFiveHourBurnRatio * 100).toFixed(1)}% fits current capacity.`
+  };
+}
+function assessContextAdmission(input) {
+  if (input.contextUsageRatio === null) {
+    return { ok: true, compactFirst: false, detail: "Context occupancy unknown; reconstruction will budget the package." };
+  }
+  if (input.contextUsageRatio >= input.policy.contextCompactBeforeDispatchRatio) {
+    return {
+      ok: true,
+      compactFirst: true,
+      detail: `Context occupancy ${(input.contextUsageRatio * 100).toFixed(0)}% is at or above the ${(input.policy.contextCompactBeforeDispatchRatio * 100).toFixed(0)}% pre-dispatch threshold; checkpoint + compact + reconstruct runs before the dispatch.`
+    };
+  }
+  return { ok: true, compactFirst: false, detail: "Context occupancy is healthy." };
+}
+function subscriptionRouting(input, baseReason) {
+  const { forecast, policy } = input;
+  const mode = forecast.schedulerMode;
+  if (mode === "EXHAUSTED_5H") {
+    return {
+      lane: "DEFER",
+      reasonCode: "FIVE_HOUR_EXHAUSTED",
+      compactFirst: false,
+      deferUntil: forecast.fiveHourResetAt,
+      admission: null,
+      detail: "The five-hour subscription window is exhausted; strong work waits for its reset."
+    };
+  }
+  if (mode === "EXHAUSTED_WEEKLY") {
+    return {
+      lane: "DEFER",
+      reasonCode: "WEEKLY_EXHAUSTED",
+      compactFirst: false,
+      deferUntil: forecast.weeklyResetAt,
+      admission: null,
+      detail: "The weekly subscription window is exhausted; strong work waits for its reset."
+    };
+  }
+  const admission = assessSubscriptionAdmission({
+    estimate: input.estimate,
+    forecast,
+    reserveRatio: input.reserveRatio,
+    policy
+  });
+  const context = assessContextAdmission({
+    contextUsageRatio: input.contextUsageRatio ?? null,
+    policy
+  });
+  if (admission.admissible) {
+    const reasonCode = context.compactFirst ? "COMPACT_BEFORE_EXECUTION" : admission.crossesReset ? "CROSS_RESET_ADMITTED" : mode === "HARVEST" ? "HARVEST_EXPIRING_CAPACITY" : baseReason;
+    return {
+      lane: "SUBSCRIPTION",
+      reasonCode,
+      compactFirst: context.compactFirst,
+      deferUntil: null,
+      admission,
+      detail: context.compactFirst ? `${context.detail} ${admission.detail}` : admission.detail
+    };
+  }
+  if (admission.refusal === "weekly") {
+    return {
+      lane: "DEFER",
+      reasonCode: "WEEKLY_QUOTA_PRESSURE",
+      compactFirst: false,
+      deferUntil: forecast.weeklyResetAt,
+      admission,
+      detail: admission.detail
+    };
+  }
+  const staleExtra = input.staleReserveExtraRatio ?? 0;
+  if (forecast.telemetryFreshness !== "FRESH" && staleExtra > 0) {
+    const withoutStale = assessSubscriptionAdmission({
+      estimate: input.estimate,
+      forecast,
+      reserveRatio: Math.max(0, input.reserveRatio - staleExtra),
+      policy
+    });
+    if (withoutStale.admissible) {
+      return {
+        lane: "DEFER",
+        reasonCode: "STALE_TELEMETRY_CONSERVATIVE",
+        compactFirst: false,
+        deferUntil: null,
+        admission,
+        detail: `Quota telemetry is ${forecast.telemetryFreshness}; the stale-telemetry margin defers this work until a fresh observation. ${admission.detail}`
+      };
+    }
+  }
+  return {
+    lane: "DEFER",
+    reasonCode: mode === "CONSERVE" ? "CONSERVE_QUOTA" : "PRE_RESET_BURN_UNSAFE",
+    compactFirst: false,
+    deferUntil: forecast.fiveHourResetAt,
+    admission,
+    detail: admission.detail
+  };
+}
+function decideLane(input) {
+  const suitability = input.estimate.localSuitability;
+  const localEligible = suitability === "LOCAL_SAFE" || suitability === "LOCAL_TRY";
+  if (localEligible && input.localExecutionAvailable) {
+    return suitability === "LOCAL_SAFE" ? {
+      lane: "LOCAL",
+      reasonCode: "LOCAL_SAFE",
+      compactFirst: false,
+      deferUntil: null,
+      admission: null,
+      detail: "LOCAL_SAFE work runs on the local lane without consuming subscription quota."
+    } : {
+      lane: "LOCAL",
+      reasonCode: "LOCAL_TRY_FIRST",
+      compactFirst: false,
+      deferUntil: null,
+      admission: null,
+      detail: "LOCAL_TRY work attempts the local lane first; deterministic verification decides the outcome."
+    };
+  }
+  const baseReason = input.localEscalationRequired === true ? "LOCAL_ESCALATION_REQUIRED" : localEligible ? "LOCAL_UNAVAILABLE" : "STRONG_REQUIRED";
+  return subscriptionRouting(input, baseReason);
+}
 var LANE_DECISIONS = ["LOCAL", "SUBSCRIPTION", "API", "DEFER", "REQUIRE_APPROVAL"];
 var LOCAL_EXECUTION_SHAPES = ["ONE_SHOT", "AGENTIC"];
 var LOCAL_EXECUTION_MODE_REASONS = [
@@ -55306,6 +55581,18 @@ var FAILURE_SOURCES = [
   /** Not determinable from the evidence available. Never guessed. */
   "UNKNOWN"
 ];
+var NON_INTELLIGENCE_FAILURE_SOURCES = [
+  "EXECUTION_INFRASTRUCTURE",
+  "PROVIDER",
+  "VERIFICATION_INFRASTRUCTURE",
+  "REPOSITORY_STATE",
+  "BUDGET",
+  "AUTHORIZATION",
+  "TRANSIENT"
+];
+function permitsIntelligenceEscalation(source) {
+  return !NON_INTELLIGENCE_FAILURE_SOURCES.includes(source);
+}
 var FAILURE_SCOPES = ["ATTEMPT", "TASK", "JOB", "WORKSPACE"];
 var FAILURE_RECOVERABILITIES = [
   "RECOVERABLE",
@@ -56024,9 +56311,749 @@ var apiBudgetStateSchema = external_exports.object({
   reservations: external_exports.array(apiBudgetReservationSchema).max(5e3).default([]),
   updatedAt: shortText5
 }).passthrough();
+function encumbered(reservation) {
+  switch (reservation.state) {
+    case "RESERVED":
+      return reservation.reservedUsd;
+    case "COMMITTED":
+      return reservation.reconciledUsd ?? reservation.reservedUsd;
+    case "UNKNOWN":
+      return reservation.reconciledUsd ?? reservation.reservedUsd;
+    case "RELEASED":
+      return 0;
+  }
+}
+function summarizeApiBudget(state, policy, options = {}) {
+  const relevant = options.taskId === void 0 ? state.reservations : state.reservations.filter((entry) => entry.taskId === options.taskId);
+  let reservedUsd = 0;
+  let committedUsd = 0;
+  let unknownUsd = 0;
+  let hasUnknownCost = false;
+  let attempts = 0;
+  for (const entry of relevant) {
+    if (entry.state !== "RELEASED") attempts += 1;
+    if (entry.state === "RESERVED") reservedUsd += entry.reservedUsd;
+    else if (entry.state === "COMMITTED") committedUsd += encumbered(entry);
+    else if (entry.state === "UNKNOWN") {
+      unknownUsd += encumbered(entry);
+      hasUnknownCost = true;
+    }
+    if (entry.state === "COMMITTED" && entry.costSource === "UNKNOWN") hasUnknownCost = true;
+  }
+  const encumberedUsd = round(reservedUsd + committedUsd + unknownUsd);
+  const ceiling = options.taskId === void 0 ? policy.maxCostPerJobUsd : policy.maxCostPerTaskUsd;
+  return {
+    reservedUsd: round(reservedUsd),
+    committedUsd: round(committedUsd),
+    unknownUsd: round(unknownUsd),
+    encumberedUsd,
+    remainingUsd: ceiling === null ? null : round(Math.max(0, ceiling - encumberedUsd)),
+    attempts,
+    hasUnknownCost
+  };
+}
+function round(value) {
+  return Math.round(value * 1e4) / 1e4;
+}
+function assessApiBudget(input) {
+  const { policy } = input;
+  const job = summarizeApiBudget(input.state, policy);
+  const task = summarizeApiBudget(input.state, policy, { taskId: input.taskId });
+  const refuse2 = (refusal, detail) => ({
+    admissible: false,
+    refusal,
+    job,
+    task,
+    detail
+  });
+  if (task.attempts >= policy.maxApiAttemptsPerTask) {
+    return refuse2(
+      "TASK_ATTEMPTS",
+      `Task ${input.taskId} already used its ${policy.maxApiAttemptsPerTask} bounded API attempt(s); paid work does not retry indefinitely.`
+    );
+  }
+  if (job.attempts >= policy.maxApiAttemptsPerJob) {
+    return refuse2(
+      "JOB_ATTEMPTS",
+      `The job already used its ${policy.maxApiAttemptsPerJob} bounded API attempt(s).`
+    );
+  }
+  if (input.safeCostUsd === null) {
+    return refuse2(
+      "COST_UNKNOWN",
+      "The cost of this attempt cannot be estimated, so no budget reservation can be made. Unknown cost is never treated as zero."
+    );
+  }
+  const cost = input.safeCostUsd;
+  if (policy.maxCostPerAttemptUsd !== null && cost > policy.maxCostPerAttemptUsd) {
+    return refuse2(
+      "ATTEMPT_CEILING",
+      `The safe estimate $${cost.toFixed(4)} exceeds the $${policy.maxCostPerAttemptUsd} per-attempt ceiling.`
+    );
+  }
+  if (task.remainingUsd !== null && cost > task.remainingUsd) {
+    return refuse2(
+      "TASK_CEILING",
+      `The safe estimate $${cost.toFixed(4)} exceeds the $${task.remainingUsd.toFixed(4)} remaining of task ${input.taskId}'s budget.`
+    );
+  }
+  if (job.remainingUsd !== null && cost > job.remainingUsd) {
+    return refuse2(
+      "JOB_CEILING",
+      `The safe estimate $${cost.toFixed(4)} exceeds the $${job.remainingUsd.toFixed(4)} remaining of the job's API budget.`
+    );
+  }
+  return {
+    admissible: true,
+    job,
+    task,
+    detail: `The safe estimate $${cost.toFixed(4)} fits every configured ceiling (job remaining ${job.remainingUsd === null ? "unbounded" : `$${job.remainingUsd.toFixed(4)}`}).`
+  };
+}
+function strategyKey(input) {
+  const canonical = [
+    input.lane ?? "no-lane",
+    input.executionMode ?? "no-mode",
+    String(input.planRevision ?? 0),
+    input.freshContext === true ? "fresh" : "continued"
+  ].join("|");
+  return (0, import_crypto11.createHash)("sha256").update(canonical).digest("hex").slice(0, 16);
+}
+function detectRunaway(activity, thresholds2, previous = []) {
+  const signals2 = [];
+  if (thresholds2.maxToolCallsPerAttempt !== null && activity.toolCalls !== null && activity.toolCalls >= thresholds2.maxToolCallsPerAttempt) {
+    signals2.push("TOOL_CALL_BUDGET");
+  }
+  if (thresholds2.maxAttemptWallTimeMs !== null && activity.durationMs !== null && activity.durationMs >= thresholds2.maxAttemptWallTimeMs) {
+    signals2.push("WALL_TIME_BUDGET");
+  }
+  if (thresholds2.maxContextUsageRatio !== null && activity.contextUsageAfter !== null && activity.contextUsageAfter >= thresholds2.maxContextUsageRatio) {
+    signals2.push("CONTEXT_GROWTH");
+  }
+  const loopCeiling = thresholds2.maxTestLoopsPerAttempt;
+  if (loopCeiling !== null) {
+    const loops = activity.testLoops ?? null;
+    const commands = activity.commandRuns ?? null;
+    if (loops !== null && loops >= loopCeiling || commands !== null && commands >= loopCeiling * 4) {
+      signals2.push("REPEATED_COMMAND_LOOP");
+    }
+  }
+  if (thresholds2.maxCommandRunsPerAttempt !== null && activity.commandRuns !== null && activity.commandRuns >= thresholds2.maxCommandRunsPerAttempt && !signals2.includes("REPEATED_COMMAND_LOOP")) {
+    signals2.push("REPEATED_COMMAND_LOOP");
+  }
+  if (activity.emptyDiff && (activity.toolCalls ?? 0) > 0) {
+    const priorEmpty = previous.at(-1)?.diffFingerprint === null;
+    if (priorEmpty) signals2.push("NO_OP_EDIT_LOOP");
+  }
+  return signals2;
+}
+function detectOscillation(window, threshold) {
+  const scored = window.filter((entry) => entry.diffFingerprint !== null);
+  if (scored.length < Math.max(3, threshold)) return false;
+  const recent = scored.slice(-Math.max(3, threshold + 1));
+  const seen = /* @__PURE__ */ new Map();
+  let revisits = 0;
+  let previous;
+  for (const entry of recent) {
+    const diff = entry.diffFingerprint;
+    const priorCount = seen.get(diff) ?? 0;
+    if (priorCount > 0 && previous !== diff) revisits += 1;
+    seen.set(diff, priorCount + 1);
+    previous = diff;
+  }
+  if (revisits < 1) return false;
+  const failures = new Set(recent.map((entry) => entry.failureFingerprint ?? "none"));
+  const distinctStates = seen.size;
+  return distinctStates >= 2 && distinctStates < recent.length && failures.size === 1;
+}
+function assessHealth(input) {
+  const window = input.window;
+  const runawaySignals = [...input.runawaySignals ?? []];
+  const reasons = [];
+  const counts = /* @__PURE__ */ new Map();
+  for (const entry of window) {
+    if (entry.failureFingerprint === null) continue;
+    counts.set(entry.failureFingerprint, (counts.get(entry.failureFingerprint) ?? 0) + 1);
+  }
+  const repeatedFailureCount = counts.size === 0 ? 0 : Math.max(...counts.values());
+  let sameDiffRun = 0;
+  for (let index = window.length - 1; index > 0; index -= 1) {
+    const current = window[index];
+    const previous = window[index - 1];
+    if (current === void 0 || previous === void 0) break;
+    if (current.failureFingerprint === null || current.diffFingerprint === null) break;
+    if (current.failureFingerprint !== previous.failureFingerprint || current.diffFingerprint !== previous.diffFingerprint) {
+      break;
+    }
+    sameDiffRun += 1;
+  }
+  if (sameDiffRun > 0) sameDiffRun += 1;
+  const oscillating = detectOscillation(window, input.thresholds.oscillationThreshold);
+  if (runawaySignals.length > 0) {
+    reasons.push(
+      `The attempt exceeded its bounds (${runawaySignals.join(", ")}); it was stopped rather than allowed to continue.`
+    );
+    return { health: "RUNAWAY", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
+  }
+  if (input.passed === true) {
+    reasons.push("The latest attempt passed evaluation.");
+    return { health: "HEALTHY", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
+  }
+  if (sameDiffRun >= input.thresholds.sameDiffThreshold) {
+    reasons.push(
+      `${sameDiffRun} consecutive attempts produced an identical working tree and an identical failure; the same approach is producing the same result.`
+    );
+    return { health: "STALLED", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
+  }
+  if (oscillating) {
+    reasons.push(
+      "Attempts are alternating between repository states that have already failed, with the failure unchanged; the sequence has no fixed point."
+    );
+    return { health: "OSCILLATING", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
+  }
+  if (repeatedFailureCount >= input.thresholds.sameFailureThreshold) {
+    reasons.push(
+      `The same normalized failure recurred ${repeatedFailureCount} times; attempts differ but none addresses it.`
+    );
+    return { health: "STALLED", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
+  }
+  if (window.some((entry) => entry.failureFingerprint !== null)) {
+    reasons.push("Attempts are failing, but each one is materially different from the last.");
+    return { health: "DEGRADED", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
+  }
+  reasons.push("No failures recorded in the current window.");
+  return { health: "HEALTHY", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
+}
+function candidateKey(candidate) {
+  return [
+    candidate.lane,
+    candidate.executionMode ?? "-",
+    candidate.runner ?? "-",
+    candidate.model ?? "-",
+    candidate.contextStrategy
+  ].join("/");
+}
+function targetKey(candidate) {
+  return [candidate.lane, candidate.executionMode ?? "-"].join("/");
+}
+function makeCandidate(input) {
+  return {
+    candidateId: candidateKey(input),
+    lane: input.lane,
+    executionMode: input.executionMode,
+    runner: input.runner,
+    model: input.model,
+    profile: input.profile,
+    contextStrategy: input.contextStrategy,
+    computeLocality: input.computeLocality,
+    heuristicChoice: input.heuristicChoice,
+    handoffOverheadMs: input.handoffOverheadMs,
+    strategyKey: strategyKey({
+      lane: input.lane,
+      executionMode: input.executionMode,
+      planRevision: input.planRevision,
+      freshContext: false
+    })
+  };
+}
+function handoffOverheadMs(lane, mode) {
+  if (lane === "LOCAL") return mode === "HARNESS" ? 3e4 : 2e3;
+  if (lane === "API") return 3e4;
+  return 1e4;
+}
+function generateCandidates(input) {
+  const eligible = [];
+  const rejected = [];
+  const lane = input.routing.routing.lane;
+  const strategy = input.contextStrategy;
+  if (lane === "DEFER" || lane === "REQUIRE_APPROVAL") {
+    rejected.push({
+      candidateId: `${lane}/-/-/-/${strategy}`,
+      lane: "LOCAL",
+      executionMode: null,
+      runner: null,
+      code: "LANE_NOT_ELIGIBLE",
+      detail: `Hard policy produced ${lane} (${input.routing.routing.reasonCode}); no lane is eligible, so there is nothing for adaptive ranking to choose between.`
+    });
+    return { eligible, rejected };
+  }
+  if (lane === "LOCAL") {
+    const chosenMode = input.routing.localExecution?.mode ?? null;
+    if (input.localDirectAvailable) {
+      eligible.push(
+        makeCandidate({
+          lane: "LOCAL",
+          executionMode: "DIRECT_MODEL",
+          runner: input.localDirectRunner,
+          model: input.localDirectModel,
+          profile: null,
+          contextStrategy: strategy,
+          computeLocality: "LOCAL",
+          heuristicChoice: chosenMode === "DIRECT_MODEL",
+          handoffOverheadMs: handoffOverheadMs("LOCAL", "DIRECT_MODEL"),
+          planRevision: input.planRevision
+        })
+      );
+    } else {
+      rejected.push({
+        candidateId: candidateKey({
+          lane: "LOCAL",
+          executionMode: "DIRECT_MODEL",
+          runner: input.localDirectRunner,
+          model: input.localDirectModel,
+          contextStrategy: strategy
+        }),
+        lane: "LOCAL",
+        executionMode: "DIRECT_MODEL",
+        runner: input.localDirectRunner,
+        code: "RUNNER_UNAVAILABLE",
+        detail: "Local structured inference is not configured or not usable."
+      });
+    }
+    const binding = input.harnessBinding;
+    const harnessId = candidateKey({
+      lane: "LOCAL",
+      executionMode: "HARNESS",
+      runner: binding.runner,
+      model: binding.model,
+      contextStrategy: strategy
+    });
+    if (!binding.available) {
+      rejected.push({
+        candidateId: harnessId,
+        lane: "LOCAL",
+        executionMode: "HARNESS",
+        runner: binding.runner,
+        code: "RUNNER_UNAVAILABLE",
+        detail: `Local harness binding is ${binding.status}: ${binding.problems.join("; ") || "unavailable"}.`
+      });
+    } else if (binding.locality !== "LOCAL") {
+      rejected.push({
+        candidateId: harnessId,
+        lane: "LOCAL",
+        executionMode: "HARNESS",
+        runner: binding.runner,
+        code: "REMOTE_NOT_LOCAL",
+        detail: `Harness compute locality is ${binding.locality}, not verified LOCAL. Historical performance cannot make remote compute local.`
+      });
+    } else {
+      eligible.push(
+        makeCandidate({
+          lane: "LOCAL",
+          executionMode: "HARNESS",
+          runner: binding.runner,
+          model: binding.model,
+          profile: binding.profileName,
+          contextStrategy: strategy,
+          computeLocality: binding.locality,
+          heuristicChoice: chosenMode === "HARNESS",
+          handoffOverheadMs: handoffOverheadMs("LOCAL", "HARNESS"),
+          planRevision: input.planRevision
+        })
+      );
+    }
+  }
+  if (lane === "SUBSCRIPTION") {
+    eligible.push(
+      makeCandidate({
+        lane: "SUBSCRIPTION",
+        executionMode: null,
+        runner: input.subscriptionProvider,
+        model: null,
+        profile: null,
+        contextStrategy: strategy,
+        computeLocality: "UNKNOWN",
+        heuristicChoice: true,
+        handoffOverheadMs: handoffOverheadMs("SUBSCRIPTION", null),
+        planRevision: input.planRevision
+      })
+    );
+  }
+  if (lane === "API") {
+    const binding = input.apiBinding;
+    eligible.push(
+      makeCandidate({
+        lane: "API",
+        executionMode: "HARNESS",
+        runner: binding.runner,
+        model: binding.model,
+        profile: binding.profileName,
+        contextStrategy: strategy,
+        computeLocality: binding.locality,
+        heuristicChoice: true,
+        handoffOverheadMs: handoffOverheadMs("API", "HARNESS"),
+        planRevision: input.planRevision
+      })
+    );
+  }
+  const surviving = [];
+  for (const candidate of eligible) {
+    if (input.exhaustedStrategies.includes(candidate.strategyKey)) {
+      rejected.push({
+        candidateId: candidate.candidateId,
+        lane: candidate.lane,
+        executionMode: candidate.executionMode,
+        runner: candidate.runner,
+        code: "RELIABILITY_STRATEGY_FORBIDDEN",
+        detail: "This strategy is recorded as already tried and failed on this task; reliability governs repetition, not historical averages."
+      });
+      continue;
+    }
+    surviving.push(candidate);
+  }
+  return { eligible: surviving, rejected };
+}
 var EMPTY_METRIC = Object.freeze({ observations: 0, p50: null, p90: null });
+function percentile(values, fraction) {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a2, b) => a2 - b);
+  const rank = Math.ceil(fraction * sorted.length);
+  const index = Math.min(sorted.length - 1, Math.max(0, rank - 1));
+  return sorted[index] ?? null;
+}
+function summarize2(values) {
+  if (values.length === 0) return { ...EMPTY_METRIC };
+  return { observations: values.length, p50: percentile(values, 0.5), p90: percentile(values, 0.9) };
+}
+function recencyWeight(ageMs, halfLifeMs) {
+  if (!Number.isFinite(ageMs) || ageMs <= 0) return 1;
+  if (halfLifeMs <= 0) return 1;
+  return Math.min(1, Math.max(0, Math.pow(0.5, ageMs / halfLifeMs)));
+}
+function runtimeIdentityOf(observation2) {
+  return [
+    observation2.runner,
+    observation2.runnerVersion ?? "unknown",
+    observation2.model ?? "unknown",
+    observation2.contextStrategy ?? "unknown"
+  ].join("@");
+}
+function bucketsFor(observation2) {
+  const lane = observation2.lane ?? "-";
+  const category = observation2.taskCategory ?? "unknown";
+  const complexity = observation2.taskComplexity ?? "unknown";
+  return [
+    {
+      level: "EXACT",
+      signaturePart: observation2.signatureKey ?? "unknown",
+      targetPart: observation2.candidateKey,
+      lane: observation2.lane,
+      executionMode: observation2.executionMode,
+      runner: observation2.runner
+    },
+    {
+      level: "TARGET_CATEGORY",
+      signaturePart: `${category}|${complexity}`,
+      targetPart: observation2.targetKey,
+      lane: observation2.lane,
+      executionMode: observation2.executionMode,
+      runner: observation2.runner
+    },
+    {
+      level: "LANE_CATEGORY",
+      signaturePart: category,
+      targetPart: lane,
+      lane: observation2.lane,
+      executionMode: null,
+      runner: null
+    },
+    {
+      level: "LANE_GLOBAL",
+      signaturePart: "*",
+      targetPart: lane,
+      lane: observation2.lane,
+      executionMode: null,
+      runner: null
+    }
+  ];
+}
+function profileIndexKey(level, profileKey) {
+  return `${level}::${profileKey}`;
+}
+function aggregateProfiles(input) {
+  const { policy } = input;
+  const nowMs = input.now.getTime();
+  const buckets = /* @__PURE__ */ new Map();
+  let dropped = 0;
+  let kept = 0;
+  const ordered = [...input.observations].sort(
+    (left, right) => left.observedAt < right.observedAt ? 1 : left.observedAt > right.observedAt ? -1 : 0
+  );
+  for (const observation2 of ordered) {
+    if (kept >= policy.maxObservations) break;
+    const observedMs = Date.parse(observation2.observedAt);
+    const ageMs = Number.isFinite(observedMs) ? nowMs - observedMs : 0;
+    const tooOld = ageMs > policy.maxObservationAgeMs;
+    if (tooOld && !(observation2.safetyEvent && policy.safetyFailuresExemptFromDecay)) {
+      dropped += 1;
+      continue;
+    }
+    kept += 1;
+    for (const shape of bucketsFor(observation2)) {
+      const profileKey = `${shape.signaturePart}::${shape.targetPart}`;
+      const index = profileIndexKey(shape.level, profileKey);
+      let bucket = buckets.get(index);
+      if (bucket === void 0) {
+        bucket = { ...shape, observations: [] };
+        buckets.set(index, bucket);
+      }
+      bucket.observations.push(observation2);
+    }
+  }
+  const profiles = /* @__PURE__ */ new Map();
+  for (const [index, bucket] of buckets) {
+    profiles.set(index, buildProfile(bucket, policy, nowMs));
+  }
+  return {
+    profiles,
+    observationCount: kept,
+    droppedByAge: dropped,
+    builtAt: input.now.toISOString()
+  };
+}
+function buildProfile(bucket, policy, nowMs) {
+  const observations = [...bucket.observations].sort(
+    (left, right) => left.observedAt < right.observedAt ? -1 : left.observedAt > right.observedAt ? 1 : 0
+  );
+  let verified = 0;
+  let unverified = 0;
+  let implementationFailures = 0;
+  let infrastructureFailures = 0;
+  let inconclusive = 0;
+  let censored = 0;
+  let weightedSamples = 0;
+  let weightedVerified = 0;
+  let weightedIntelligence = 0;
+  let firstAttempts = 0;
+  let firstAttemptSuccesses = 0;
+  let stagnation = 0;
+  let oscillation = 0;
+  let runaway = 0;
+  let contextMisses = 0;
+  let safetyEvents = 0;
+  let failedWallTimeMs = 0;
+  let failedTokens = null;
+  let failedCostUsd = null;
+  let failedBurn = null;
+  const wallTimes = [];
+  const inputTokens = [];
+  const contextTokens = [];
+  const burns = [];
+  const costs = [];
+  const expansions = [];
+  const failureSources = {};
+  const identities = [];
+  for (const observation2 of observations) {
+    const observedMs = Date.parse(observation2.observedAt);
+    const ageMs = Number.isFinite(observedMs) ? nowMs - observedMs : 0;
+    const weight = recencyWeight(ageMs, policy.recencyHalfLifeMs);
+    weightedSamples += weight;
+    switch (observation2.label) {
+      case "VERIFIED_SUCCESS":
+        verified += 1;
+        weightedVerified += weight;
+        weightedIntelligence += weight;
+        break;
+      case "UNVERIFIED_SUCCESS":
+        unverified += 1;
+        break;
+      case "IMPLEMENTATION_FAILURE":
+        implementationFailures += 1;
+        weightedIntelligence += weight;
+        break;
+      case "INFRASTRUCTURE_FAILURE":
+        infrastructureFailures += 1;
+        break;
+      case "INCONCLUSIVE":
+        inconclusive += 1;
+        break;
+      case "CENSORED":
+        censored += 1;
+        break;
+    }
+    if (observation2.attemptNumber === 1) {
+      firstAttempts += 1;
+      if (observation2.label === "VERIFIED_SUCCESS") firstAttemptSuccesses += 1;
+    }
+    if (observation2.executionHealth === "STALLED") stagnation += 1;
+    if (observation2.executionHealth === "OSCILLATING") oscillation += 1;
+    if (observation2.executionHealth === "RUNAWAY") runaway += 1;
+    if (observation2.contextInsufficient) contextMisses += 1;
+    if (observation2.safetyEvent) safetyEvents += 1;
+    if (observation2.failureSource !== null) {
+      failureSources[observation2.failureSource] = (failureSources[observation2.failureSource] ?? 0) + 1;
+    }
+    if (observation2.wallTimeMs !== null) wallTimes.push(observation2.wallTimeMs);
+    if (observation2.inputTokens !== null) inputTokens.push(observation2.inputTokens);
+    if (observation2.contextTokens !== null) contextTokens.push(observation2.contextTokens);
+    if (observation2.fiveHourBurnRatio !== null) burns.push(observation2.fiveHourBurnRatio);
+    if (observation2.costUsd !== null) costs.push(observation2.costUsd);
+    if (observation2.contextExpansions !== null) expansions.push(observation2.contextExpansions);
+    if (observation2.label !== "VERIFIED_SUCCESS" && observation2.label !== "UNVERIFIED_SUCCESS") {
+      if (observation2.wallTimeMs !== null) failedWallTimeMs += observation2.wallTimeMs;
+      if (observation2.inputTokens !== null) {
+        failedTokens = (failedTokens ?? 0) + observation2.inputTokens;
+      }
+      if (observation2.costUsd !== null) failedCostUsd = (failedCostUsd ?? 0) + observation2.costUsd;
+      if (observation2.fiveHourBurnRatio !== null) {
+        failedBurn = (failedBurn ?? 0) + observation2.fiveHourBurnRatio;
+      }
+    }
+    const identity3 = runtimeIdentityOf(observation2);
+    if (identities[identities.length - 1] !== identity3) {
+      const existing = identities.indexOf(identity3);
+      if (existing >= 0) identities.splice(existing, 1);
+      identities.push(identity3);
+    }
+  }
+  const nonCensored = observations.length - censored;
+  const intelligenceAttempts = verified + implementationFailures;
+  const first = observations[0];
+  const last = observations[observations.length - 1];
+  return {
+    level: bucket.level,
+    profileKey: `${bucket.signaturePart}::${bucket.targetPart}`,
+    signaturePart: bucket.signaturePart,
+    targetPart: bucket.targetPart,
+    lane: bucket.lane,
+    executionMode: bucket.executionMode,
+    runner: bucket.runner,
+    samples: observations.length,
+    weightedSamples,
+    verifiedSuccesses: verified,
+    unverifiedSuccesses: unverified,
+    implementationFailures,
+    infrastructureFailures,
+    inconclusive,
+    censored,
+    weightedVerifiedSuccesses: weightedVerified,
+    weightedIntelligenceAttempts: weightedIntelligence,
+    firstAttempts,
+    firstAttemptSuccesses,
+    wallTimeMs: summarize2(wallTimes),
+    inputTokens: summarize2(inputTokens),
+    contextTokens: summarize2(contextTokens),
+    fiveHourBurnRatio: summarize2(burns),
+    apiCostUsd: summarize2(costs),
+    attemptsPerSuccess: verified > 0 ? intelligenceAttempts / verified : null,
+    stagnationRate: nonCensored > 0 ? stagnation / nonCensored : null,
+    oscillationRate: nonCensored > 0 ? oscillation / nonCensored : null,
+    runawayRate: nonCensored > 0 ? runaway / nonCensored : null,
+    contextExpansionRate: expansions.length > 0 ? expansions.filter((value) => value > 0).length / expansions.length : null,
+    contextMissRate: nonCensored > 0 ? contextMisses / nonCensored : null,
+    infrastructureFailureRate: nonCensored > 0 ? infrastructureFailures / nonCensored : null,
+    failedWallTimeMs,
+    failedTokens,
+    failedCostUsd,
+    failedFiveHourBurnRatio: failedBurn,
+    failureSources,
+    runtimeIdentities: identities,
+    latestRuntimeIdentity: identities[identities.length - 1] ?? null,
+    safetyEvents,
+    firstObservedAt: first?.observedAt ?? null,
+    lastObservedAt: last?.observedAt ?? null,
+    drift: detectDrift(observations, policy)
+  };
+}
+function detectDrift(observations, policy) {
+  const signals2 = [];
+  const details = [];
+  const identities = new Set(observations.map((observation2) => runtimeIdentityOf(observation2)));
+  if (identities.size > 1) {
+    const recent = observations[observations.length - 1];
+    signals2.push("RUNTIME_IDENTITY_CHANGED");
+    details.push(
+      `runtime identity changed across the window (${identities.size} distinct; newest ${recent !== void 0 ? runtimeIdentityOf(recent) : "unknown"})`
+    );
+  }
+  const half = Math.floor(observations.length / 2);
+  if (half >= policy.driftMinimumSamples) {
+    const older = observations.slice(0, half);
+    const recent = observations.slice(observations.length - half);
+    const olderRate = intelligenceRate(older);
+    const recentRate = intelligenceRate(recent);
+    if (olderRate !== null && recentRate !== null && olderRate > 0) {
+      const drop = (olderRate - recentRate) / olderRate;
+      if (drop >= policy.driftSuccessDropRatio) {
+        signals2.push("SUCCESS_RATE_DROP");
+        details.push(
+          `verified success fell from ${(olderRate * 100).toFixed(0)}% to ${(recentRate * 100).toFixed(0)}%`
+        );
+      }
+    }
+    const olderWall = percentile(
+      older.map((entry) => entry.wallTimeMs).filter((value) => value !== null),
+      0.5
+    );
+    const recentWall = percentile(
+      recent.map((entry) => entry.wallTimeMs).filter((value) => value !== null),
+      0.5
+    );
+    if (olderWall !== null && recentWall !== null && olderWall > 0) {
+      if (recentWall / olderWall >= policy.driftWallTimeGrowthFactor) {
+        signals2.push("WALL_TIME_GROWTH");
+        details.push(
+          `median wall time grew from ${Math.round(olderWall / 1e3)}s to ${Math.round(recentWall / 1e3)}s`
+        );
+      }
+    }
+    const olderContext = percentile(
+      older.map((entry) => entry.contextTokens).filter((value) => value !== null),
+      0.5
+    );
+    const recentContext = percentile(
+      recent.map((entry) => entry.contextTokens).filter((value) => value !== null),
+      0.5
+    );
+    if (olderContext !== null && recentContext !== null && olderContext > 0) {
+      if (recentContext / olderContext >= policy.driftWallTimeGrowthFactor) {
+        signals2.push("CONTEXT_GROWTH");
+        details.push(
+          `median context grew from ${Math.round(olderContext)} to ${Math.round(recentContext)} tokens`
+        );
+      }
+    }
+    const olderSource = dominantFailureSource(older);
+    const recentSource = dominantFailureSource(recent);
+    if (olderSource !== null && recentSource !== null && olderSource !== recentSource) {
+      signals2.push("FAILURE_SOURCE_SHIFT");
+      details.push(`dominant failure source moved from ${olderSource} to ${recentSource}`);
+    }
+  }
+  return {
+    detected: signals2.length > 0,
+    signals: signals2,
+    detail: details.join("; ")
+  };
+}
+function intelligenceRate(observations) {
+  const resolving = observations.filter(
+    (entry) => entry.label === "VERIFIED_SUCCESS" || entry.label === "IMPLEMENTATION_FAILURE"
+  );
+  if (resolving.length === 0) return null;
+  return resolving.filter((entry) => entry.label === "VERIFIED_SUCCESS").length / resolving.length;
+}
+function dominantFailureSource(observations) {
+  const counts = /* @__PURE__ */ new Map();
+  for (const observation2 of observations) {
+    if (observation2.failureSource === null) continue;
+    counts.set(observation2.failureSource, (counts.get(observation2.failureSource) ?? 0) + 1);
+  }
+  let best = null;
+  let bestCount = 0;
+  for (const [source, count22] of [...counts.entries()].sort((a2, b) => a2[0] < b[0] ? -1 : 1)) {
+    if (count22 > bestCount) {
+      best = source;
+      bestCount = count22;
+    }
+  }
+  return best;
+}
 var PREDICTION_CONFIDENCE_LEVELS = ["NONE", "LOW", "MEDIUM", "HIGH"];
 var PREDICTION_CONFIDENCE_RANK = Object.freeze({ NONE: 0, LOW: 1, MEDIUM: 2, HIGH: 3 });
+function meetsConfidence(actual, required2) {
+  return PREDICTION_CONFIDENCE_RANK[actual] >= PREDICTION_CONFIDENCE_RANK[required2];
+}
 var PROFILE_FALLBACK_LEVELS = [
   "EXACT",
   "TARGET_CATEGORY",
@@ -56319,6 +57346,30 @@ var adaptiveSchedulingDecisionSchema = external_exports.object({
   profileBuiltAt: shortText7.nullable().default(null),
   createdAt: shortText7
 }).passthrough();
+function expansionPolicyFrom(config2) {
+  const policy = config2.orchestration.jobs.context.efficiency;
+  return contextExpansionPolicySchema.parse({
+    maxExpansionsPerAttempt: policy.maxExpansionsPerAttempt,
+    maxExpansionsPerTask: policy.maxExpansionsPerTask,
+    maxLevel: policy.maxExpansionLevel,
+    maxWorkingSetGrowthFactor: policy.maxWorkingSetGrowthFactor
+  });
+}
+function offerContextExpansion(input) {
+  const strategy = input.config.orchestration.jobs.context.efficiency.strategy;
+  const decision = planContextExpansion({
+    strategy,
+    policy: expansionPolicyFrom(input.config),
+    state: input.state,
+    signals: input.signals
+  });
+  return {
+    available: decision.expand,
+    nextLevel: decision.nextLevel,
+    reason: decision.reason,
+    exhausted: decision.returnToReliability
+  };
+}
 var CATEGORY_SOURCES = Object.freeze({
   TRANSIENT_TRANSPORT: "TRANSIENT",
   TRANSIENT_TOOL: "TRANSIENT",
@@ -56361,6 +57412,585 @@ var CATEGORY_SCOPES = Object.freeze({
   INVALID_CONFIGURATION: "WORKSPACE",
   INTERNAL: "ATTEMPT"
 });
+function assessFailure(input) {
+  const category = input.classified.category;
+  const runawaySignals = [...input.runawaySignals ?? []];
+  let source = CATEGORY_SOURCES[category];
+  let basis = "DETERMINISTIC_EVIDENCE";
+  if (input.harnessFailureKind === "INFRASTRUCTURE") {
+    source = "EXECUTION_INFRASTRUCTURE";
+    basis = "PROVIDER_SIGNAL";
+  } else if (input.harnessFailureKind === "PREFLIGHT") {
+    source = "REPOSITORY_STATE";
+    basis = "PROVIDER_SIGNAL";
+  } else if (input.harnessFailureKind === "CANCELLED") {
+    source = "UNKNOWN";
+    basis = "PROVIDER_SIGNAL";
+  } else if (input.harnessFailureKind === "INTELLIGENCE") {
+    source = "IMPLEMENTATION";
+    basis = "PROVIDER_SIGNAL";
+  }
+  if (input.verificationInfrastructureBroken === true) {
+    source = "VERIFICATION_INFRASTRUCTURE";
+    basis = "DETERMINISTIC_EVIDENCE";
+  }
+  if (runawaySignals.length > 0 && input.verificationInfrastructureBroken !== true) {
+    source = runawaySignals.includes("CONTEXT_GROWTH") ? "CONTEXT" : "IMPLEMENTATION";
+    basis = "DETERMINISTIC_EVIDENCE";
+  }
+  if ((input.contextInsufficiencySignals?.length ?? 0) > 0 && input.verificationInfrastructureBroken !== true && input.harnessFailureKind !== "INFRASTRUCTURE" && runawaySignals.length === 0) {
+    source = "CONTEXT";
+    basis = "DETERMINISTIC_EVIDENCE";
+  }
+  if (input.proposedSource !== void 0 && source === "UNKNOWN" && input.harnessFailureKind === void 0) {
+    source = input.proposedSource;
+    basis = "MODEL_DIAGNOSIS";
+  }
+  const fingerprint = input.classified.fingerprint;
+  const repeatedCount = Math.max(
+    1,
+    input.history.filter((entry) => entry.failureFingerprint === fingerprint).length
+  );
+  if (repeatedCount > 1 && basis === "DETERMINISTIC_EVIDENCE") basis = "ATTEMPT_HISTORY";
+  const policy = failurePolicy(category);
+  const recoverability = deriveRecoverability({
+    category,
+    source,
+    health: input.health,
+    terminal: policy.terminal,
+    clarifiable: policy.clarifiable,
+    repairable: policy.repairable,
+    retryable: policy.retryable
+  });
+  return {
+    category,
+    source,
+    scope: CATEGORY_SCOPES[category],
+    recoverability,
+    basis,
+    fingerprint,
+    diffFingerprint: input.diffFingerprint ?? null,
+    repeatedCount,
+    likelyCause: describeCause({
+      category,
+      source,
+      repeatedCount,
+      health: input.health,
+      message: input.classified.message
+    }),
+    recommendedRecoveryClass: recommendRecoveryClass({ source, health: input.health, policy }),
+    runawaySignals
+  };
+}
+function deriveRecoverability(input) {
+  if (input.terminal) return "TERMINAL";
+  if (input.source === "REQUIREMENT_CONTRACT" || input.clarifiable) return "REQUIRES_HUMAN";
+  if (input.health === "STALLED" || input.health === "OSCILLATING" || input.health === "RUNAWAY") {
+    return "REQUIRES_NEW_STRATEGY";
+  }
+  if (input.retryable) return "RECOVERABLE";
+  if (input.repairable) return "RECOVERABLE";
+  return "REQUIRES_NEW_STRATEGY";
+}
+function recommendRecoveryClass(input) {
+  if (input.policy.terminal) return "BLOCK";
+  if (input.health === "RUNAWAY") return "RESTART_FRESH_CONTEXT";
+  if (input.source === "CONTEXT") return "RESTART_FRESH_CONTEXT";
+  if (input.source === "REQUIREMENT_CONTRACT") return "REQUEST_HUMAN_DECISION";
+  if (input.source === "BUDGET") return "BLOCK";
+  if (input.source === "AUTHORIZATION") return "REQUEST_HUMAN_DECISION";
+  if (input.source === "VERIFICATION_INFRASTRUCTURE") return "RETRY_TRANSIENT";
+  if (input.source === "EXECUTION_INFRASTRUCTURE" || input.source === "PROVIDER") {
+    return "RETRY_TRANSIENT";
+  }
+  if (input.source === "TRANSIENT") return "RETRY_TRANSIENT";
+  if (input.health === "STALLED" || input.health === "OSCILLATING") return "REPLAN";
+  if (input.policy.repairable) return "REPAIR";
+  return null;
+}
+function describeCause(input) {
+  const sourceClause = {
+    IMPLEMENTATION: "the implementation does not satisfy the trusted checks",
+    REQUIREMENT_CONTRACT: "the approved contract does not support what implementation requires",
+    EXECUTION_INFRASTRUCTURE: "the execution runtime failed, which says nothing about the task",
+    PROVIDER: "the model provider failed or refused the request",
+    CONTEXT: "the working context degraded past the point where the attempt could reason reliably",
+    VERIFICATION_INFRASTRUCTURE: "the verification machinery failed, so the implementation was never actually judged",
+    REPOSITORY_STATE: "the repository is not in a state this attempt could build on",
+    BUDGET: "a configured budget refused further work",
+    AUTHORIZATION: "authorization refused the operation",
+    TRANSIENT: "a transient condition interrupted the attempt",
+    UNKNOWN: "the available evidence does not identify a cause"
+  }[input.source];
+  const repetition = input.repeatedCount > 1 ? ` The same normalized failure has now occurred ${input.repeatedCount} times on this task.` : "";
+  const healthClause = input.health === "STALLED" ? " Attempts are no longer producing new information." : input.health === "OSCILLATING" ? " Attempts are alternating between states that have already failed." : input.health === "RUNAWAY" ? " The attempt exceeded its own execution bounds and was stopped." : "";
+  return `${input.category}: ${sourceClause}.${repetition}${healthClause} ${input.message}`.replace(/\s+/g, " ").trim().slice(0, 2e3);
+}
+function hardBudgetRefusal(view) {
+  if (view.remainingAttempts <= 0) {
+    return {
+      budget: "maxTaskAttempts",
+      detail: `all ${view.attemptsMax} execution attempts for this task are spent`
+    };
+  }
+  if (view.remainingWallClockMs !== null && view.remainingWallClockMs <= 0) {
+    return {
+      budget: "maxWallClockMs",
+      detail: `the job reached its ${view.maxWallClockMs}ms wall-clock budget`
+    };
+  }
+  return null;
+}
+function describeStrategy(input) {
+  return {
+    lane: input.lane,
+    executionMode: input.executionMode,
+    planRevision: input.planRevision,
+    freshContext: input.freshContext,
+    key: strategyKey(input)
+  };
+}
+function planRecovery(input) {
+  const { assessment, budget, policy } = input;
+  const previousStrategy = describeStrategy({
+    lane: input.lane,
+    executionMode: input.executionMode,
+    planRevision: input.planRevision,
+    freshContext: false
+  });
+  const same = (dimension = "SAME") => dimension === "SAME" ? previousStrategy : previousStrategy;
+  const stop = (action, reasonCode, reason, remediation) => ({
+    action,
+    reasonCode,
+    reason,
+    strategyChange: "SAME",
+    previousStrategy,
+    nextStrategy: same(),
+    remediation
+  });
+  if (assessment.recoverability === "TERMINAL") {
+    return stop(
+      "BLOCK",
+      "HARD_BOUNDARY",
+      `${assessment.category} is a hard boundary and has no automatic recovery path.`,
+      [
+        "This boundary is not configurable away.",
+        "All evidence and source changes are preserved; resolve the boundary explicitly, then start a new attempt."
+      ]
+    );
+  }
+  const refusal = hardBudgetRefusal(budget);
+  if (refusal !== null) {
+    return stop(
+      "FAIL_TASK",
+      "RECOVERY_BUDGET_EXHAUSTED",
+      `Recovery stopped: ${refusal.detail}.`,
+      [
+        "All evidence, attempt history, and source changes are preserved; the task stays incomplete.",
+        `Raise the ${refusal.budget} budget explicitly, or change the approach, then start a new attempt.`
+      ]
+    );
+  }
+  if (assessment.source === "REQUIREMENT_CONTRACT" || assessment.recoverability === "REQUIRES_HUMAN") {
+    return {
+      action: "REQUEST_HUMAN_DECISION",
+      reasonCode: assessment.source === "REQUIREMENT_CONTRACT" ? "CONTRACT_CONFLICT_HUMAN" : "AMBIGUITY_HUMAN",
+      reason: assessment.source === "REQUIREMENT_CONTRACT" ? "The approved contract does not support what the implementation requires; repeated repair cannot resolve a contract conflict." : "The request is underspecified in a way no safe automatic action resolves.",
+      strategyChange: "SAME",
+      previousStrategy,
+      nextStrategy: same(),
+      remediation: [
+        "Answer the recorded question, or amend and re-approve the affected stage.",
+        "SpecBridge never changes approved intent on a worker proposal."
+      ]
+    };
+  }
+  if (assessment.source === "AUTHORIZATION") {
+    return stop(
+      "BLOCK",
+      "HARD_BOUNDARY",
+      "Authorization refused the operation; SpecBridge never retries past an authorization boundary.",
+      ["Grant the required authorization explicitly, then resume the job."]
+    );
+  }
+  if (assessment.source === "BUDGET") {
+    return stop(
+      "BLOCK",
+      "BUDGET_EXPANSION_HUMAN",
+      "A configured budget refused the work; continuing requires an explicit budget decision.",
+      [
+        "Review the preserved evidence and decide explicitly whether to raise the budget or change approach."
+      ]
+    );
+  }
+  if (assessment.source === "VERIFICATION_INFRASTRUCTURE" || input.evaluation?.status === "INCONCLUSIVE") {
+    if (input.infrastructureRetriesUsed < policy.maxInfrastructureRetries) {
+      return {
+        action: "RETRY_TRANSIENT",
+        reasonCode: "INFRASTRUCTURE_RETRY",
+        reason: "The evaluation could not reach a verdict because its own machinery failed; the attempt is repeated rather than the implementation being treated as wrong.",
+        strategyChange: "SAME",
+        previousStrategy,
+        nextStrategy: same(),
+        remediation: ["Check the verification tooling if this recurs; the implementation is not implicated."]
+      };
+    }
+    return stop(
+      "BLOCK",
+      "EVALUATION_INFRASTRUCTURE_BROKEN",
+      `The verification machinery failed ${input.infrastructureRetriesUsed} time(s) and the task cannot be judged.`,
+      [
+        "The implementation was never established to be wrong; no code change is implied.",
+        "Repair the verification tooling (run `specbridge doctor`), then resume the job."
+      ]
+    );
+  }
+  if (assessment.source === "EXECUTION_INFRASTRUCTURE" || assessment.source === "PROVIDER") {
+    if (input.infrastructureRetriesUsed < policy.maxInfrastructureRetries) {
+      return {
+        action: "RETRY_TRANSIENT",
+        reasonCode: "INFRASTRUCTURE_RETRY",
+        reason: "The execution runtime failed, which is evidence about the installation rather than about the task; a bounded retry runs the same attempt again.",
+        strategyChange: "SAME",
+        previousStrategy,
+        nextStrategy: same(),
+        remediation: ["Inspect runner health with `specbridge runner doctor` if this recurs."]
+      };
+    }
+    const modeChange2 = localModeChange(input);
+    if (modeChange2 !== null) return modeChange2;
+    return escalateOrWait(input, previousStrategy, {
+      reasonCode: "LANE_CAPABILITY_REQUIRED",
+      detail: "The bound execution runtime is repeatedly unavailable; a different execution resource is required.",
+      escalationKind: "STRONG"
+    });
+  }
+  if (assessment.source === "TRANSIENT" && budget.remainingTransientRetries > 0) {
+    return {
+      action: "RETRY_TRANSIENT",
+      reasonCode: "TRANSIENT_WITHIN_BUDGET",
+      reason: `${assessment.category} is safely retryable; retrying the same idempotent operation.`,
+      strategyChange: "SAME",
+      previousStrategy,
+      nextStrategy: same(),
+      remediation: ["If the condition recurs past its budget, it is not transient."]
+    };
+  }
+  const expansion = input.contextExpansion;
+  if (assessment.source === "CONTEXT" && expansion?.available === true) {
+    const next = describeStrategy({
+      lane: input.lane,
+      executionMode: input.executionMode,
+      planRevision: input.planRevision,
+      freshContext: true
+    });
+    return {
+      action: "EXPAND_CONTEXT",
+      reasonCode: "CONTEXT_INSUFFICIENT_EXPAND",
+      reason: `The attempt failed for want of repository context that was never selected, not for want of intelligence. Retrieval widens one bounded level to ${expansion.nextLevel} rather than escalating.`,
+      strategyChange: "CONTEXT",
+      previousStrategy,
+      nextStrategy: next,
+      remediation: [
+        expansion.reason.slice(0, 500),
+        "The contract, acceptance criteria, failed approaches, and recovery state are re-injected deterministically."
+      ]
+    };
+  }
+  if (assessment.source === "CONTEXT" && expansion?.exhausted === true) {
+    if (canReplan(budget)) {
+      return replanPlan(
+        input,
+        previousStrategy,
+        "CONTEXT_EXPANSION_EXHAUSTED",
+        "Context has been widened as far as its bounded budget allows and the work still fails; more context is not the answer, so the approach changes instead."
+      );
+    }
+    const modeChange2 = localModeChange(input);
+    if (modeChange2 !== null) return modeChange2;
+  }
+  const contextDegraded = assessment.source === "CONTEXT" || input.contextRatio !== null && input.contextRatio >= policy.freshContextRecoveryRatio;
+  if ((input.health === "RUNAWAY" || contextDegraded) && input.freshContextRestartsUsed < policy.maxFreshContextRestarts) {
+    const next = describeStrategy({
+      lane: input.lane,
+      executionMode: input.executionMode,
+      planRevision: input.planRevision,
+      freshContext: true
+    });
+    return {
+      action: "RESTART_FRESH_CONTEXT",
+      reasonCode: input.health === "RUNAWAY" ? "SESSION_STALLED_FRESH_CONTEXT" : assessment.source === "CONTEXT" ? "CONTEXT_DEGRADED" : "CONTEXT_THRESHOLD_REACHED",
+      reason: input.health === "RUNAWAY" ? "The attempt exceeded its own execution bounds; the transient session is discarded and context is rebuilt from the canonical checkpoint." : "The working context degraded past the point where the attempt could reason reliably; context is rebuilt from durable state.",
+      strategyChange: "CONTEXT",
+      previousStrategy,
+      nextStrategy: next,
+      remediation: [
+        "The checkpoint, failed approaches, and acceptance criteria are re-injected deterministically."
+      ]
+    };
+  }
+  if (input.lane === "API" && !policy.allowApiDeterministicRetry) {
+    const wait = waitIfResourceReturns(input, previousStrategy, "PAID_DETERMINISTIC_FAILURE_NO_RETRY");
+    if (wait !== null) return wait;
+    if (canReplan(budget)) {
+      return replanPlan(
+        input,
+        previousStrategy,
+        "PAID_DETERMINISTIC_FAILURE_NO_RETRY",
+        "A paid attempt failed deterministically; another identical paid attempt would buy the same result, so the strategy changes instead."
+      );
+    }
+    return {
+      action: "REQUEST_HUMAN_DECISION",
+      reasonCode: "PAID_DETERMINISTIC_FAILURE_NO_RETRY",
+      reason: "A paid attempt failed deterministically and no replan budget remains; further spending needs an explicit decision.",
+      strategyChange: "SAME",
+      previousStrategy,
+      nextStrategy: same(),
+      remediation: [
+        "Review the preserved failure evidence and the recorded cost before authorizing more paid work."
+      ]
+    };
+  }
+  if (input.health === "STALLED" || input.health === "OSCILLATING") {
+    const stuckReason = input.health === "OSCILLATING" ? "OSCILLATION_REPLAN" : "NO_PROGRESS_REPLAN";
+    const modeChange2 = localModeChange(input);
+    if (modeChange2 !== null) return modeChange2;
+    if (canReplan(budget)) {
+      return replanPlan(
+        input,
+        previousStrategy,
+        stuckReason,
+        input.health === "OSCILLATING" ? "Attempts are alternating between repository states that have already failed; the plan itself is the problem." : "Repeated attempts produced an identical result; the current approach cannot succeed."
+      );
+    }
+    if (permitsIntelligenceEscalation(assessment.source)) {
+      return escalateOrWait(input, previousStrategy, {
+        reasonCode: "LOCAL_INTELLIGENCE_EXHAUSTED",
+        detail: "The task is stuck and no replan budget remains; a stronger implementation attempt is required.",
+        escalationKind: "STRONG"
+      });
+    }
+    return stop(
+      "FAIL_TASK",
+      "STRATEGIES_EXHAUSTED",
+      "The task is stuck, the replan budget is spent, and the failure is not one stronger intelligence would address.",
+      [
+        "All evidence and failed approaches are preserved.",
+        "Inspect the repeating failure fingerprint and decide the approach explicitly."
+      ]
+    );
+  }
+  if (contractMismatch(input.evaluation) && canReplan(budget)) {
+    return replanPlan(
+      input,
+      previousStrategy,
+      "CONTRACT_MISMATCH_REPLAN",
+      "Trusted tests passed but the approved acceptance criteria did not hold: the implementation strategy, not the implementation, is wrong."
+    );
+  }
+  const modeChange = localModeChange(input);
+  if (modeChange !== null) return modeChange;
+  if (input.lane === "LOCAL" && budget.remainingLocalAttempts !== null && budget.remainingLocalAttempts <= 0 && permitsIntelligenceEscalation(assessment.source)) {
+    return escalateOrWait(input, previousStrategy, {
+      reasonCode: "LOCAL_INTELLIGENCE_EXHAUSTED",
+      detail: "The shared local attempt budget is spent without a verified implementation; stronger intelligence is warranted.",
+      escalationKind: "STRONG"
+    });
+  }
+  if (assessment.recoverability === "RECOVERABLE" && budget.remainingRepairs > 0) {
+    const next = describeStrategy({
+      lane: input.lane,
+      executionMode: input.executionMode,
+      planRevision: input.planRevision,
+      freshContext: false
+    });
+    return {
+      action: "REPAIR",
+      reasonCode: assessment.category === "VERIFICATION_FAILURE" ? "VERIFICATION_FAILED_REPAIRABLE" : "LOCALIZED_DEFECT_REPAIRABLE",
+      reason: assessment.category === "VERIFICATION_FAILURE" ? "A trusted verification command failed; the implementation is repaired against its output rather than rerun unchanged." : "The failure is a localized implementation defect and the plan remains valid.",
+      strategyChange: "IMPLEMENTATION_APPROACH",
+      previousStrategy,
+      nextStrategy: next,
+      remediation: [
+        "The repair attempt receives the failure assessment, the relevant evidence, and the latest checkpoint."
+      ]
+    };
+  }
+  if (canReplan(budget)) {
+    return replanPlan(
+      input,
+      previousStrategy,
+      budget.remainingRepairs <= 0 ? "REPEATED_REPAIR_FAILED_REPLAN" : "PLAN_INVALIDATED_REPLAN",
+      budget.remainingRepairs <= 0 ? "The repair budget is spent and verification still fails; the approach itself is replaced." : "The current plan cannot address the observed failure."
+    );
+  }
+  if (permitsIntelligenceEscalation(assessment.source)) {
+    return escalateOrWait(input, previousStrategy, {
+      reasonCode: "IMPLEMENTATION_NEEDS_STRONGER_INTELLIGENCE",
+      detail: "Bounded repair and replan are spent; a stronger implementation attempt is the remaining option.",
+      escalationKind: "STRONG"
+    });
+  }
+  return stop(
+    "FAIL_TASK",
+    "STRATEGIES_EXHAUSTED",
+    "Every bounded recovery strategy for this task has been tried without verified completion.",
+    [
+      "All evidence, attempt history, failed approaches, and source changes are preserved.",
+      "Inspect `specbridge orchestrate explain-node` for what was tried and what would unblock it."
+    ]
+  );
+}
+function canReplan(budget) {
+  return budget.remainingReplans > 0 && budget.remainingJobReplans > 0;
+}
+function contractMismatch(evaluation) {
+  if (evaluation === void 0 || evaluation.status !== "FAIL") return false;
+  const failedLevels = new Set(
+    evaluation.deterministicChecks.filter((entry) => entry.required && entry.outcome === "FAILED").map((entry) => entry.level)
+  );
+  return failedLevels.size > 0 && [...failedLevels].every((level) => level === "ACCEPTANCE_CRITERIA");
+}
+function replanPlan(input, previousStrategy, reasonCode, reason) {
+  return {
+    action: "REPLAN",
+    reasonCode,
+    reason,
+    strategyChange: "PLAN",
+    previousStrategy,
+    // A replan deliberately leaves lane and execution mode UNDECIDED.
+    //
+    // Recovery decides what KIND of next attempt is required; the economic
+    // scheduler decides where and when it runs, fresh from live telemetry.
+    // Carrying the failed attempt's lane forward here would quietly turn a
+    // recovery record into a placement — and on the paid lane it would read
+    // as authorization to spend again, which no recovery decision may ever
+    // imply. The new plan revision is what makes the next attempt a
+    // materially different experiment rather than a repetition.
+    nextStrategy: describeStrategy({
+      lane: null,
+      executionMode: null,
+      planRevision: input.planRevision + 1,
+      freshContext: false
+    }),
+    remediation: [
+      "Replanning may change the implementation strategy, decomposition, or order.",
+      "It may never change approved intent: a materially different requirement needs contract authority."
+    ]
+  };
+}
+function localModeChange(input) {
+  if (input.lane !== "LOCAL") return null;
+  if (input.executionMode !== "DIRECT_MODEL") return null;
+  if (!input.resource.localHarnessAvailable) return null;
+  if (input.budget.remainingLocalAttempts !== null && input.budget.remainingLocalAttempts <= 0) {
+    return null;
+  }
+  const next = describeStrategy({
+    lane: "LOCAL",
+    executionMode: "HARNESS",
+    planRevision: input.planRevision,
+    freshContext: false
+  });
+  if (input.exhaustedStrategies.includes(next.key)) return null;
+  return {
+    action: "RETRY_DIFFERENT_LOCAL_MODE",
+    reasonCode: "LOCAL_MODE_CHANGE_REPOSITORY_TOOLS",
+    reason: "The direct local attempt failed for reasons repository tools address; the local lane switches to its harness mode rather than spending subscription quota.",
+    strategyChange: "EXECUTION_MODE",
+    previousStrategy: describeStrategy({
+      lane: input.lane,
+      executionMode: input.executionMode,
+      planRevision: input.planRevision,
+      freshContext: false
+    }),
+    nextStrategy: next,
+    remediation: ["The shared local attempt budget is unchanged; this is a LOCAL to LOCAL transition."]
+  };
+}
+function waitIfResourceReturns(input, previousStrategy, reasonCode) {
+  const returnsIn = input.resource.subscriptionReturnsInMs;
+  if (input.resource.subscriptionAvailable) return null;
+  if (returnsIn === null) return null;
+  return {
+    action: "WAIT_FOR_RESOURCE",
+    reasonCode,
+    reason: `Prepaid subscription capacity returns in ${Math.round(returnsIn / 6e4)} minute(s); waiting for it beats paying for another attempt.`,
+    strategyChange: "SAME",
+    previousStrategy,
+    nextStrategy: previousStrategy,
+    remediation: ["The task stays durably pending and resumes when capacity returns."],
+    waitMs: returnsIn
+  };
+}
+function escalateOrWait(input, previousStrategy, request) {
+  const { resource } = input;
+  if (resource.subscriptionAvailable && resource.subscriptionWorkerConfigured) {
+    return {
+      action: "ESCALATE_INTELLIGENCE",
+      reasonCode: request.reasonCode,
+      reason: `${request.detail} Prepaid subscription capacity is available and is the preferred strong lane.`,
+      strategyChange: "INTELLIGENCE",
+      previousStrategy,
+      nextStrategy: describeStrategy({
+        lane: "SUBSCRIPTION",
+        executionMode: null,
+        planRevision: input.planRevision,
+        freshContext: false
+      }),
+      remediation: ["The economic scheduler decides the actual placement and timing."],
+      requestedCapability: { kind: "STRONG", detail: request.detail.slice(0, 2e3) }
+    };
+  }
+  const wait = waitIfResourceReturns(input, previousStrategy, "RESOURCE_RETURNS_SOON");
+  if (wait !== null) return wait;
+  if (resource.apiAuthorized && resource.apiBudgetAvailable) {
+    return {
+      action: "ESCALATE_LANE",
+      reasonCode: "LANE_CAPABILITY_REQUIRED",
+      reason: `${request.detail} Prepaid capacity is unavailable with no known return time; a bounded paid continuation is requested, subject to the existing spend authorization and budget.`,
+      strategyChange: "LANE",
+      previousStrategy,
+      nextStrategy: describeStrategy({
+        lane: "API",
+        executionMode: "HARNESS",
+        planRevision: input.planRevision,
+        freshContext: false
+      }),
+      remediation: [
+        "This is a requirement, not an authorization: the gap-bridge planner and API budget decide independently."
+      ],
+      requestedCapability: { kind: "REMOTE", detail: request.detail.slice(0, 2e3) }
+    };
+  }
+  if (!resource.apiAuthorized) {
+    return {
+      action: "WAIT_FOR_RESOURCE",
+      reasonCode: "PAID_CONTINUATION_UNAUTHORIZED",
+      reason: `${request.detail} Prepaid capacity is unavailable and paid execution is not authorized; the task waits rather than spending.`,
+      strategyChange: "SAME",
+      previousStrategy,
+      nextStrategy: previousStrategy,
+      remediation: [
+        "Authorize paid execution explicitly if this work should not wait for the subscription reset."
+      ],
+      waitMs: resource.subscriptionReturnsInMs
+    };
+  }
+  return {
+    action: "WAIT_FOR_RESOURCE",
+    reasonCode: "PAID_BUDGET_REFUSED",
+    reason: `${request.detail} Prepaid capacity is unavailable and the API budget refuses another paid attempt; the task waits rather than spending beyond its authorized ceiling.`,
+    strategyChange: "SAME",
+    previousStrategy,
+    nextStrategy: previousStrategy,
+    remediation: [
+      "Raise the API budget explicitly, or let the task wait for prepaid capacity to return."
+    ],
+    waitMs: resource.subscriptionReturnsInMs
+  };
+}
 function now4(deps) {
   return (deps.clock ?? systemClock)();
 }
@@ -57329,6 +58959,12 @@ var quotaForecastSchema = external_exports.object({
   /** The forecast's own clock reading. */
   forecastAt: isoText
 }).passthrough();
+function timeToResetMs(resetAt, now5) {
+  if (resetAt === null) return null;
+  const parsed = Date.parse(resetAt);
+  if (Number.isNaN(parsed)) return null;
+  return Math.max(0, parsed - now5.getTime());
+}
 var shortText11 = external_exports.string().min(1).max(200);
 var schedulingDecisionSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
@@ -57543,6 +59179,273 @@ var apiSpendApprovalSchema = external_exports.object({
   /** The attempt that consumed this approval, when one did. */
   consumedByAttemptId: shortText12.nullable().default(null)
 }).passthrough();
+function assessSnapshotFreshness(snapshot2, now5, staleMs) {
+  if (snapshot2 === null || snapshot2.remainingRatio === null) return "UNKNOWN";
+  const observed = Date.parse(snapshot2.observedAt);
+  if (Number.isNaN(observed)) return "UNKNOWN";
+  return now5.getTime() - observed > staleMs ? "STALE" : "FRESH";
+}
+function combineFreshness(fiveHour, weekly) {
+  if (fiveHour === "UNKNOWN" && weekly === "UNKNOWN") return "UNKNOWN";
+  if (fiveHour === "UNKNOWN" || weekly === "UNKNOWN") {
+    return "STALE";
+  }
+  return fiveHour === "STALE" || weekly === "STALE" ? "STALE" : "FRESH";
+}
+function deriveSchedulerMode(input) {
+  const { policy } = input;
+  const fiveHour = input.fiveHourRemainingRatio;
+  const weekly = input.weeklyRemainingRatio;
+  if (weekly !== null && weekly <= policy.weeklyExhaustedRatio) return "EXHAUSTED_WEEKLY";
+  if (fiveHour !== null && fiveHour <= policy.fiveHourExhaustedRatio) return "EXHAUSTED_5H";
+  if (weekly !== null && weekly <= policy.weeklyPressureRatio) return "CONSERVE";
+  const resetNear = input.timeToFiveHourResetMs !== null && input.timeToFiveHourResetMs <= policy.harvestWindowMs;
+  if (resetNear && fiveHour !== null && fiveHour >= policy.harvestMinRemainingRatio && input.freshness === "FRESH") {
+    return "HARVEST";
+  }
+  if (fiveHour !== null && fiveHour <= policy.conserveRemainingRatio && !resetNear) {
+    return "CONSERVE";
+  }
+  return "NORMAL";
+}
+function buildQuotaForecast(input) {
+  const { now: now5, policy } = input;
+  const fiveHourFreshness = assessSnapshotFreshness(input.fiveHour, now5, policy.telemetryStaleMs);
+  const weeklyFreshness = assessSnapshotFreshness(input.weekly, now5, policy.telemetryStaleMs);
+  const freshness = combineFreshness(fiveHourFreshness, weeklyFreshness);
+  const fiveHourRemaining = input.fiveHour?.remainingRatio ?? null;
+  const weeklyRemaining = input.weekly?.remainingRatio ?? null;
+  const timeToFiveHour = timeToResetMs(input.fiveHour?.resetAt ?? null, now5);
+  const timeToWeekly = timeToResetMs(input.weekly?.resetAt ?? null, now5);
+  const burnRate = input.observedFiveHourBurnRatePerMinute ?? null;
+  const projected = burnRate !== null && timeToFiveHour !== null ? Math.min(1, burnRate * (timeToFiveHour / 6e4)) : null;
+  const schedulerMode = deriveSchedulerMode({
+    fiveHourRemainingRatio: fiveHourRemaining,
+    timeToFiveHourResetMs: timeToFiveHour,
+    weeklyRemainingRatio: weeklyRemaining,
+    freshness,
+    policy
+  });
+  const observedTimes = [input.fiveHour?.observedAt, input.weekly?.observedAt].filter((value) => typeof value === "string").sort();
+  return quotaForecastSchema.parse({
+    fiveHourRemainingRatio: fiveHourRemaining,
+    fiveHourResetAt: input.fiveHour?.resetAt ?? null,
+    timeToFiveHourResetMs: timeToFiveHour,
+    weeklyRemainingRatio: weeklyRemaining,
+    weeklyResetAt: input.weekly?.resetAt ?? null,
+    timeToWeeklyResetMs: timeToWeekly,
+    observedFiveHourBurnRatePerMinute: burnRate,
+    projectedBurnUntilFiveHourReset: projected,
+    schedulerMode,
+    telemetryFreshness: freshness,
+    observedAt: observedTimes[0] ?? null,
+    forecastAt: now5.toISOString()
+  });
+}
+function formatDuration(ms) {
+  if (ms < 6e4) return `${Math.round(ms / 1e3)}s`;
+  const minutes = Math.round(ms / 6e4);
+  if (minutes < 90) return `${minutes}m`;
+  const hours = ms / 36e5;
+  if (hours < 48) return `${hours.toFixed(1)}h`;
+  return `${(ms / 864e5).toFixed(1)}d`;
+}
+function delaySensitivityRank(level) {
+  return level === "HIGH" ? 3 : level === "MEDIUM" ? 2 : 1;
+}
+function planApiGapBridge(input) {
+  const { policy, binding, gap, delaySensitivity: delaySensitivity2, estimate: estimate2 } = input;
+  const gapPolicy = policy.gap;
+  const defer = (reasonCode, detail, bridgeProposed = false) => ({
+    decision: "DEFER",
+    reasonCode,
+    deferUntil: gap.expectedAvailableAt,
+    gap,
+    delaySensitivity: delaySensitivity2,
+    cost: input.cost,
+    budget: input.budget,
+    approval: input.approval,
+    bridgeProposed,
+    detail
+  });
+  if (input.subscriptionAvailable) {
+    return defer(
+      "API_MAX_RETURNED_NEXT_TASK_SUBSCRIPTION",
+      "Subscription capacity can take this work; the paid lane is not considered while prepaid strong compute is available."
+    );
+  }
+  if (policy.spendMode === "DISABLED") {
+    return defer(
+      "API_DISABLED",
+      "Paid API execution is not authorized (spend mode DISABLED); the task stays durably pending until subscription capacity returns."
+    );
+  }
+  if (!binding.available) {
+    return defer(
+      "API_BINDING_UNAVAILABLE",
+      `No usable API binding: ${binding.status}${binding.problems[0] !== void 0 ? ` \u2014 ${binding.problems[0]}` : "."}`
+    );
+  }
+  if (gapPolicy.strongTasksOnly && estimate2.localSuitability !== "STRONG_REQUIRED") {
+    return defer(
+      "API_STRONG_TASK_ONLY",
+      `The paid lane takes strong work only; this task is ${estimate2.localSuitability} and belongs on the local lane.`
+    );
+  }
+  const timeUntil = gap.timeUntilAvailableMs;
+  const materialByReason = gap.reason === "WEEKLY_EXHAUSTED";
+  if (timeUntil === null) {
+    if (gapPolicy.unknownResetBehavior === "DEFER") {
+      return defer(
+        "API_GAP_SHORT_DEFER",
+        "Subscription capacity is unavailable with no known return time; policy defers rather than spending against an unknown gap."
+      );
+    }
+    return approvalPath(
+      input,
+      "Subscription capacity is unavailable with no known return time. Policy escalates unknown availability to a human rather than spending automatically."
+    );
+  }
+  if (!materialByReason && timeUntil <= gapPolicy.shortGapDeferMs) {
+    return defer(
+      "API_GAP_SHORT_DEFER",
+      `Prepaid capacity returns in ${formatDuration(timeUntil)}, at or under the ${formatDuration(gapPolicy.shortGapDeferMs)} short-gap threshold; waiting is cheaper than a paid handoff.`
+    );
+  }
+  if (delaySensitivityRank(delaySensitivity2.level) < delaySensitivityRank(gapPolicy.minDelaySensitivity)) {
+    return defer(
+      "API_DELAY_TOLERABLE",
+      `Delay sensitivity is ${delaySensitivity2.level} (policy requires at least ${gapPolicy.minDelaySensitivity}): ${delaySensitivity2.signals[0]?.evidence ?? "nothing waits on this task"}.`
+    );
+  }
+  if (gapPolicy.preferReadyLocalBacklog && delaySensitivity2.readyLocalBacklog > 0 && !delaySensitivity2.criticalPath && !materialByReason) {
+    return defer(
+      "API_LOCAL_BACKLOG_FIRST",
+      `${delaySensitivity2.readyLocalBacklog} local task(s) are ready to run at zero marginal cost; the job stays productive without paying to bridge this task.`
+    );
+  }
+  const wastefulThreshold = estimate2.expectedWallTimeMs * gapPolicy.wastefulStartRatio;
+  if (timeUntil <= wastefulThreshold && delaySensitivity2.level !== "HIGH") {
+    return defer(
+      "API_WASTEFUL_NEAR_RESET",
+      `Prepaid capacity returns in ${formatDuration(timeUntil)}, inside the first ${Math.round(gapPolicy.wastefulStartRatio * 100)}% of this task's expected ${formatDuration(estimate2.expectedWallTimeMs)} runtime; most of the work would run on prepaid capacity anyway.`
+    );
+  }
+  const material = materialByReason || timeUntil >= gapPolicy.materialGapMs;
+  if (!material) {
+    return defer(
+      "API_GAP_SHORT_DEFER",
+      `The ${formatDuration(timeUntil)} gap is under the ${formatDuration(gapPolicy.materialGapMs)} materiality threshold; the task waits for prepaid capacity.`
+    );
+  }
+  const cost = input.cost;
+  if (cost === null || cost.safeCostUsd === null) {
+    return defer(
+      "API_COST_UNKNOWN",
+      `A ${formatDuration(timeUntil)} gap would justify bridging, but the cost of doing so cannot be estimated: ${cost?.detail ?? "no cost estimate was produced"} Unknown cost never authorizes automatic spend.`,
+      true
+    );
+  }
+  const budget = input.budget;
+  if (budget !== null && !budget.admissible) {
+    return {
+      ...defer(
+        budget.refusal === "TASK_ATTEMPTS" || budget.refusal === "JOB_ATTEMPTS" ? "API_ATTEMPTS_EXHAUSTED" : budget.refusal === "COST_UNKNOWN" ? "API_COST_UNKNOWN" : "API_BUDGET_EXCEEDED",
+        budget.detail,
+        true
+      )
+    };
+  }
+  const bridgeReason = gap.reason === "WEEKLY_EXHAUSTED" ? "API_WEEKLY_GAP_BRIDGE" : "API_GAP_BRIDGE_SELECTED";
+  const justification = `Subscription capacity (${gap.reason}) is out for ${formatDuration(timeUntil)}; delay sensitivity is ${delaySensitivity2.level} (${delaySensitivity2.blockedDependents} blocked dependent(s)${delaySensitivity2.criticalPath ? ", critical path" : ""}); one bounded paid attempt on "${binding.profileName ?? "the bound profile"}" is estimated at $${(cost.estimatedCostUsd ?? 0).toFixed(4)} (safe $${cost.safeCostUsd.toFixed(4)}).`;
+  if (policy.spendMode === "MANUAL") {
+    return approvalPath(input, justification);
+  }
+  if (input.approval?.reason === "DENIED") {
+    return defer(
+      "API_APPROVAL_REQUIRED",
+      `Paid execution for this task was explicitly denied: ${input.approval.detail}`,
+      true
+    );
+  }
+  if (gapPolicy.minGapForAutoBoundedMs > timeUntil && !materialByReason) {
+    return defer(
+      "API_GAP_SHORT_DEFER",
+      `AUTO_BOUNDED requires a gap of at least ${formatDuration(gapPolicy.minGapForAutoBoundedMs)}; this gap is ${formatDuration(timeUntil)}.`
+    );
+  }
+  return {
+    decision: "API",
+    reasonCode: bridgeReason,
+    deferUntil: null,
+    gap,
+    delaySensitivity: delaySensitivity2,
+    cost,
+    budget,
+    approval: input.approval,
+    bridgeProposed: true,
+    detail: `API gap bridge selected. ${justification}`
+  };
+}
+function approvalPath(input, justification) {
+  const check22 = input.approval;
+  if (check22?.valid === true) {
+    return {
+      decision: "API",
+      reasonCode: input.gap.reason === "WEEKLY_EXHAUSTED" ? "API_WEEKLY_GAP_BRIDGE" : "API_GAP_BRIDGE_SELECTED",
+      deferUntil: null,
+      gap: input.gap,
+      delaySensitivity: input.delaySensitivity,
+      cost: input.cost,
+      budget: input.budget,
+      approval: check22,
+      bridgeProposed: true,
+      detail: `Authorized paid execution. ${check22.detail} ${justification}`
+    };
+  }
+  if (check22?.reason === "DENIED") {
+    return {
+      decision: "DEFER",
+      reasonCode: "API_APPROVAL_REQUIRED",
+      deferUntil: input.gap.expectedAvailableAt,
+      gap: input.gap,
+      delaySensitivity: input.delaySensitivity,
+      cost: input.cost,
+      budget: input.budget,
+      approval: check22,
+      bridgeProposed: true,
+      detail: `Paid execution for this task was explicitly denied: ${check22.detail}`
+    };
+  }
+  return {
+    decision: "REQUIRE_APPROVAL",
+    reasonCode: "API_APPROVAL_REQUIRED",
+    deferUntil: null,
+    gap: input.gap,
+    delaySensitivity: input.delaySensitivity,
+    cost: input.cost,
+    budget: input.budget,
+    approval: check22,
+    bridgeProposed: true,
+    detail: `API execution would preserve continuity, but spending requires explicit authorization. ${justification}${check22?.detail !== void 0 ? ` ${check22.detail}` : ""}`
+  };
+}
+function repositorySizeClass(indexedFiles) {
+  if (indexedFiles === null || indexedFiles === void 0 || !Number.isFinite(indexedFiles)) {
+    return "UNKNOWN";
+  }
+  if (indexedFiles < 250) return "SMALL";
+  if (indexedFiles < 2500) return "MEDIUM";
+  return "LARGE";
+}
+function contextSizeClass(expectedTokens) {
+  if (expectedTokens === null || expectedTokens === void 0 || !Number.isFinite(expectedTokens)) {
+    return "UNKNOWN";
+  }
+  if (expectedTokens < 3e4) return "SMALL";
+  if (expectedTokens < 12e4) return "MEDIUM";
+  return "LARGE";
+}
 var DEFAULT_FEATURES = Object.freeze({
   estimatedFilesTouched: null,
   multiModule: false,
@@ -57554,7 +59457,563 @@ var DEFAULT_FEATURES = Object.freeze({
   blockedDependents: 0,
   criticalPath: false
 });
+function buildTaskSignature(input) {
+  const category = input.category.trim().length > 0 ? input.category.trim() : "general";
+  const verification = input.deterministicVerificationAvailable ? "DETERMINISTIC" : "NONE";
+  return {
+    key: [
+      category,
+      input.complexity,
+      input.localSuitability,
+      input.executionShape,
+      verification
+    ].join("|"),
+    category,
+    complexity: input.complexity,
+    localSuitability: input.localSuitability,
+    executionShape: input.executionShape,
+    verification,
+    repositorySize: repositorySizeClass(input.indexedFiles),
+    contextSize: contextSizeClass(input.expectedContextTokens),
+    features: { ...DEFAULT_FEATURES, ...input.features ?? {} }
+  };
+}
+function categorySignatureKey(signature2) {
+  return [signature2.category, signature2.complexity].join("|");
+}
+function categoryOnlyKey(signature2) {
+  return signature2.category;
+}
+function profileLookupKeys(candidate, signature2) {
+  return [
+    { level: "EXACT", profileKey: `${signature2.key}::${candidate.candidateId}` },
+    {
+      level: "TARGET_CATEGORY",
+      profileKey: `${categorySignatureKey(signature2)}::${targetKey(candidate)}`
+    },
+    { level: "LANE_CATEGORY", profileKey: `${categoryOnlyKey(signature2)}::${candidate.lane}` },
+    { level: "LANE_GLOBAL", profileKey: `*::${candidate.lane}` }
+  ];
+}
+function resolveProfile(input) {
+  const keys = profileLookupKeys(input.candidate, input.signature);
+  let sparse = null;
+  for (const { level, profileKey } of keys) {
+    const profile = input.profiles.profiles.get(profileIndexKey(level, profileKey));
+    if (profile === void 0) continue;
+    if (profile.weightedSamples >= input.policy.minimumComparableSamples) {
+      return { level, profileKey, profile };
+    }
+    if (sparse === null && profile.samples > 0) sparse = { level, profileKey, profile };
+  }
+  if (sparse !== null) return sparse;
+  return { level: "HEURISTIC_PRIOR", profileKey: null, profile: null };
+}
+function compareRuntimeIdentity(candidate, profile) {
+  if (profile === null || profile.latestRuntimeIdentity === null) return "UNKNOWN";
+  if (profile.level === "LANE_CATEGORY" || profile.level === "LANE_GLOBAL") return "UNKNOWN";
+  const live = runtimeIdentityOf({
+    runner: candidate.runner ?? "-",
+    model: candidate.model,
+    // The live runner version is not observable at scheduling time, so it is
+    // 'unknown' on both sides of this comparison unless a runner reported
+    // one. Unknown never resolves to "matches".
+    runnerVersion: null,
+    contextStrategy: candidate.contextStrategy
+  });
+  if (live === profile.latestRuntimeIdentity) return "EXACT";
+  const liveParts = live.split("@");
+  const historyParts = profile.latestRuntimeIdentity.split("@");
+  if (liveParts[0] !== historyParts[0]) return "CHANGED";
+  if (liveParts.includes("unknown") || historyParts.includes("unknown")) return "UNKNOWN";
+  return "COMPATIBLE";
+}
+function step(level, downBy) {
+  const rank = Math.max(0, PREDICTION_CONFIDENCE_RANK[level] - downBy);
+  return PREDICTION_CONFIDENCE_LEVELS[rank] ?? "NONE";
+}
+function assessConfidence(input) {
+  const notes = [];
+  const profile = input.profile;
+  if (profile === null || input.level === "HEURISTIC_PRIOR") {
+    return {
+      confidence: "NONE",
+      score: 0,
+      notes: ["No observed history at any profile level; the deterministic heuristic decides."]
+    };
+  }
+  const floor = input.policy.minimumSamplesForAdaptiveDecision;
+  let level = profile.weightedSamples >= floor * 4 ? "HIGH" : profile.weightedSamples >= floor ? "MEDIUM" : profile.weightedSamples > 0 ? "LOW" : "NONE";
+  if (input.level === "TARGET_CATEGORY") {
+    level = step(level, 1);
+    notes.push("Evidence came from the coarser task-category profile, not an exact match.");
+  } else if (input.level === "LANE_CATEGORY" || input.level === "LANE_GLOBAL") {
+    level = step(level, 2);
+    notes.push("Evidence came from lane-level defaults; no target-specific history exists.");
+  }
+  if (input.identityMatch === "CHANGED") {
+    level = "NONE";
+    notes.push("The runner behind this history is not the runner that would execute: cold start.");
+  } else if (input.identityMatch === "COMPATIBLE") {
+    level = step(level, 1);
+    notes.push("A model/runtime version moved since this history was measured.");
+  } else if (input.identityMatch === "UNKNOWN") {
+    level = step(level, 1);
+    notes.push("Runtime identity behind this history is unknown and is not assumed to match.");
+  }
+  if (profile.drift.detected) {
+    level = step(level, 1);
+    notes.push(`Performance drift detected: ${profile.drift.detail}.`);
+  }
+  const p50 = profile.wallTimeMs.p50;
+  const p902 = profile.wallTimeMs.p90;
+  if (p50 !== null && p902 !== null && p50 > 0 && p902 / p50 > 4) {
+    level = step(level, 1);
+    notes.push("Wall-time distribution is highly variable; the median predicts weakly.");
+  }
+  if (profile.wallTimeMs.observations === 0) {
+    notes.push("No attempt in this profile reported wall time; timing falls back to the heuristic.");
+  }
+  const score = PREDICTION_CONFIDENCE_RANK[level] / 3;
+  return { confidence: level, score, notes };
+}
 var NO_DRIFT = Object.freeze({ detected: false, signals: [], detail: "" });
+function predictCandidate(input) {
+  const { policy } = input;
+  const resolved = resolveProfile(input);
+  const profile = resolved.profile;
+  const identityMatch = compareRuntimeIdentity(input.candidate, profile);
+  const confidence = assessConfidence({
+    profile,
+    level: resolved.level,
+    identityMatch,
+    policy
+  });
+  const prior = Math.min(1, Math.max(0, input.priorSuccessProbability));
+  const successNumerator = (profile?.weightedVerifiedSuccesses ?? 0) + policy.priorStrength * prior;
+  const successDenominator = (profile?.weightedIntelligenceAttempts ?? 0) + policy.priorStrength;
+  const smoothedSuccess = Math.min(1, Math.max(0, successNumerator / successDenominator));
+  const expectedAttempts = Math.min(8, 1 / Math.max(smoothedSuccess, 0.05));
+  const wallTime = profile?.wallTimeMs.p50 ?? input.heuristicWallTimeMs ?? null;
+  const totalWallTime = wallTime === null ? null : Math.round(wallTime * expectedAttempts + input.candidate.handoffOverheadMs);
+  const notes = [...confidence.notes];
+  if (profile !== null && profile.unverifiedSuccesses > 0) {
+    notes.push(
+      `${profile.unverifiedSuccesses} attempt(s) completed without a PASS evaluation and are excluded from the success rate; completion provenance is preserved, not rounded up.`
+    );
+  }
+  if (profile !== null && profile.censored > 0) {
+    notes.push(
+      `${profile.censored} interrupted attempt(s) are counted as censored: their cost is priced, their outcome is not guessed.`
+    );
+  }
+  if (profile !== null && profile.safetyEvents > 0) {
+    notes.push(
+      `${profile.safetyEvents} safety-class failure(s) recorded for this target; these do not decay.`
+    );
+  }
+  const expectedFailedWallTimeMs = wallTime === null ? null : Math.round(wallTime * Math.max(0, expectedAttempts - 1));
+  return {
+    candidate: input.candidate,
+    level: resolved.level,
+    profileKey: resolved.profileKey,
+    confidence: confidence.confidence,
+    confidenceScore: confidence.score,
+    identityMatch,
+    drift: profile?.drift ?? NO_DRIFT,
+    verifiedSuccessProbability: smoothedSuccess,
+    priorSuccessProbability: prior,
+    observedSuccessRate: profile !== null && profile.verifiedSuccesses + profile.implementationFailures > 0 ? profile.verifiedSuccesses / (profile.verifiedSuccesses + profile.implementationFailures) : null,
+    firstAttemptSuccessRate: profile !== null && profile.firstAttempts > 0 ? profile.firstAttemptSuccesses / profile.firstAttempts : null,
+    availabilityProbability: profile !== null && profile.infrastructureFailureRate !== null ? 1 - profile.infrastructureFailureRate : null,
+    expectedAttempts,
+    expectedWallTimeMs: wallTime,
+    expectedTotalWallTimeMs: totalWallTime,
+    expectedInputTokens: profile?.inputTokens.p50 ?? input.heuristicInputTokens ?? null,
+    expectedContextTokens: profile?.contextTokens.p50 ?? input.heuristicContextTokens ?? null,
+    expectedFiveHourBurnRatio: profile?.fiveHourBurnRatio.p50 ?? input.heuristicFiveHourBurnRatio ?? null,
+    conservativeFiveHourBurnRatio: profile?.fiveHourBurnRatio.p90 ?? input.heuristicFiveHourBurnRatio ?? null,
+    expectedApiCostUsd: profile?.apiCostUsd.p50 ?? null,
+    expectedFailedWallTimeMs,
+    stagnationRate: profile?.stagnationRate ?? null,
+    oscillationRate: profile?.oscillationRate ?? null,
+    runawayRate: profile?.runawayRate ?? null,
+    contextMissRate: profile?.contextMissRate ?? null,
+    contextExpansionRate: profile?.contextExpansionRate ?? null,
+    safetyEvents: profile?.safetyEvents ?? 0,
+    sampleCount: profile?.samples ?? 0,
+    weightedSampleCount: profile?.weightedSamples ?? 0,
+    lastObservedAt: profile?.lastObservedAt ?? null,
+    notes
+  };
+}
+function normalize(value, scale) {
+  if (value === null || !Number.isFinite(value) || value <= 0) return 0;
+  const k = Math.max(1e-9, scale);
+  return value / (value + k);
+}
+function quotaOpportunityCost(input) {
+  if (input.lane !== "SUBSCRIPTION") {
+    return { value: 0, detail: "Non-subscription lane: no subscription quota pressure applies." };
+  }
+  const forecast = input.forecast;
+  const fiveHour = clamp01(forecast.fiveHourRemainingRatio ?? 1);
+  const weekly = clamp01(forecast.weeklyRemainingRatio ?? 1);
+  const mode = forecast.schedulerMode;
+  if (mode === "HARVEST") {
+    return {
+      value: -fiveHour,
+      detail: `HARVEST: ${(fiveHour * 100).toFixed(0)}% of the five-hour window expires at the coming reset, so admitted strong work is worth more now than later.`
+    };
+  }
+  let value = 0;
+  const notes = [];
+  if (mode === "CONSERVE") {
+    value += 1 - fiveHour;
+    notes.push(`CONSERVE: only ${(fiveHour * 100).toFixed(0)}% of the five-hour window remains`);
+  } else {
+    value += (1 - fiveHour) * 0.25;
+    notes.push(`five-hour window ${(fiveHour * 100).toFixed(0)}% remaining`);
+  }
+  if (weekly < 1) {
+    value += (1 - weekly) * 0.5;
+    notes.push(`weekly window ${(weekly * 100).toFixed(0)}% remaining`);
+  }
+  return { value: Math.min(1, value), detail: notes.join("; ") };
+}
+function clamp01(value) {
+  if (!Number.isFinite(value)) return 1;
+  return Math.min(1, Math.max(0, value));
+}
+function scoreCandidate(input) {
+  const { prediction, policy } = input;
+  const weights = policy.weights;
+  const components = [];
+  const successNormalized = prediction.verifiedSuccessProbability;
+  components.push({
+    name: "verifiedSuccess",
+    raw: successNormalized,
+    unit: "probability",
+    normalized: successNormalized,
+    weight: weights.successWeight,
+    contribution: weights.successWeight * successNormalized,
+    detail: `${(successNormalized * 100).toFixed(0)}% smoothed probability of verified completion (${prediction.sampleCount} sample(s), ${prediction.level}, confidence ${prediction.confidence})`
+  });
+  const latencyNormalized = normalize(prediction.expectedTotalWallTimeMs, policy.wallTimeScaleMs);
+  components.push({
+    name: "latency",
+    raw: prediction.expectedTotalWallTimeMs,
+    unit: "ms",
+    normalized: latencyNormalized,
+    weight: weights.latencyPenalty,
+    contribution: -weights.latencyPenalty * latencyNormalized,
+    detail: prediction.expectedTotalWallTimeMs === null ? "No wall-time history or heuristic; latency is unpriced rather than guessed." : `${Math.round(prediction.expectedTotalWallTimeMs / 6e4)} min expected to a verified completion across ${prediction.expectedAttempts.toFixed(1)} attempt(s)`
+  });
+  const riskMultiplier = 1 + (prediction.stagnationRate ?? 0) + (prediction.oscillationRate ?? 0) + (prediction.runawayRate ?? 0);
+  const failedWorkNormalized = Math.min(
+    1,
+    normalize(prediction.expectedFailedWallTimeMs, policy.failedWorkScaleMs) * riskMultiplier
+  );
+  components.push({
+    name: "failedWork",
+    raw: prediction.expectedFailedWallTimeMs,
+    unit: "ms",
+    normalized: failedWorkNormalized,
+    weight: weights.failedWorkPenalty,
+    contribution: -weights.failedWorkPenalty * failedWorkNormalized,
+    detail: prediction.expectedFailedWallTimeMs === null ? "No failed-work history; the retry burden is unpriced rather than guessed." : `${Math.round(prediction.expectedFailedWallTimeMs / 6e4)} min expected on attempts that do not verify, x${riskMultiplier.toFixed(2)} for observed no-progress rates (stalled ${formatRate(prediction.stagnationRate)}, oscillating ${formatRate(prediction.oscillationRate)}, runaway ${formatRate(prediction.runawayRate)})`
+  });
+  const quota = quotaOpportunityCost({
+    lane: prediction.candidate.lane,
+    forecast: input.forecast
+  });
+  components.push({
+    name: "quotaOpportunityCost",
+    raw: quota.value,
+    unit: "pressure index (-1..1, not money)",
+    normalized: quota.value,
+    weight: weights.quotaPressurePenalty,
+    contribution: -weights.quotaPressurePenalty * quota.value,
+    detail: quota.detail
+  });
+  const costPerCompletion = prediction.expectedApiCostUsd === null ? null : prediction.expectedApiCostUsd * prediction.expectedAttempts;
+  const costNormalized = normalize(costPerCompletion, policy.apiCostScaleUsd);
+  components.push({
+    name: "apiCost",
+    raw: costPerCompletion,
+    unit: "USD",
+    normalized: costNormalized,
+    weight: weights.apiCostPenalty,
+    contribution: -weights.apiCostPenalty * costNormalized,
+    detail: costPerCompletion === null ? "No observed metered cost for this target (unpriced here; current pricing governs spending)." : `$${costPerCompletion.toFixed(4)} expected per verified completion`
+  });
+  const contextPerCompletion = prediction.expectedContextTokens === null ? null : prediction.expectedContextTokens * prediction.expectedAttempts * (1 + (prediction.contextExpansionRate ?? 0));
+  const contextNormalized = normalize(contextPerCompletion, policy.contextTokenScale);
+  components.push({
+    name: "contextCost",
+    raw: contextPerCompletion,
+    unit: "tokens",
+    normalized: contextNormalized,
+    weight: weights.contextCostPenalty,
+    contribution: -weights.contextCostPenalty * contextNormalized,
+    detail: contextPerCompletion === null ? "No context-size history for this target." : `${Math.round(contextPerCompletion).toLocaleString("en-US")} tokens per verified completion (expansion rate ${formatRate(prediction.contextExpansionRate)}, context-miss rate ${formatRate(prediction.contextMissRate)})`
+  });
+  const handoffNormalized = normalize(
+    prediction.candidate.handoffOverheadMs,
+    policy.wallTimeScaleMs
+  );
+  components.push({
+    name: "handoff",
+    raw: prediction.candidate.handoffOverheadMs,
+    unit: "ms",
+    normalized: handoffNormalized,
+    weight: weights.handoffPenalty,
+    contribution: -weights.handoffPenalty * handoffNormalized,
+    detail: `${Math.round(prediction.candidate.handoffOverheadMs / 1e3)}s fixed startup overhead`
+  });
+  const score = components.reduce((sum, component) => sum + component.contribution, 0);
+  return { candidateId: prediction.candidate.candidateId, score, components };
+}
+function formatRate(value) {
+  return value === null ? "unknown" : `${(value * 100).toFixed(0)}%`;
+}
+function explainComparison(winner, runnerUp) {
+  const lines = [];
+  const label = describeCandidate(winner.prediction);
+  if (runnerUp === void 0) {
+    lines.push(`${label} is the only eligible candidate.`);
+  } else {
+    const other = describeCandidate(runnerUp.prediction);
+    lines.push(
+      `${label} scores ${winner.score.score.toFixed(3)} against ${other} at ${runnerUp.score.score.toFixed(3)} (margin ${(winner.score.score - runnerUp.score.score).toFixed(3)}).`
+    );
+    lines.push(
+      `verified success: ${(winner.prediction.verifiedSuccessProbability * 100).toFixed(0)}% vs ${(runnerUp.prediction.verifiedSuccessProbability * 100).toFixed(0)}%`
+    );
+    if (winner.prediction.expectedTotalWallTimeMs !== null && runnerUp.prediction.expectedTotalWallTimeMs !== null) {
+      lines.push(
+        `time to verified completion: ${Math.round(winner.prediction.expectedTotalWallTimeMs / 6e4)}m vs ${Math.round(runnerUp.prediction.expectedTotalWallTimeMs / 6e4)}m (retries included)`
+      );
+    }
+    lines.push(
+      `expected attempts: ${winner.prediction.expectedAttempts.toFixed(1)} vs ${runnerUp.prediction.expectedAttempts.toFixed(1)}`
+    );
+    if (winner.prediction.candidate.lane === runnerUp.prediction.candidate.lane) {
+      lines.push(`economic lane: both ${winner.prediction.candidate.lane}`);
+    }
+  }
+  lines.push(
+    `confidence: ${winner.prediction.confidence} (${winner.prediction.sampleCount} sample(s) at ${winner.prediction.level})`
+  );
+  return lines;
+}
+function describeCandidate(prediction) {
+  const candidate = prediction.candidate;
+  const parts = [candidate.lane];
+  if (candidate.executionMode !== null) parts.push(candidate.executionMode);
+  if (candidate.runner !== null) parts.push(candidate.runner);
+  return parts.join("/");
+}
+function evaluateGates(input) {
+  const { recommended, incumbent, policy } = input;
+  if (recommended.prediction.level === "HEURISTIC_PRIOR") {
+    return {
+      passes: false,
+      reason: "COLD_START",
+      detail: "No observed history at any profile level; the deterministic heuristic decides."
+    };
+  }
+  if (recommended.prediction.weightedSampleCount < policy.minimumSamplesForAdaptiveDecision) {
+    return {
+      passes: false,
+      reason: "INSUFFICIENT_SAMPLES",
+      detail: `${recommended.prediction.weightedSampleCount.toFixed(1)} weighted sample(s) for ${describeCandidate(recommended.prediction)}; ${policy.minimumSamplesForAdaptiveDecision} required before history may override the heuristic.`
+    };
+  }
+  if (incumbent.prediction.weightedSampleCount < policy.minimumComparableSamples) {
+    return {
+      passes: false,
+      reason: "INSUFFICIENT_COMPARABLE_SAMPLES",
+      detail: `The heuristic incumbent ${describeCandidate(incumbent.prediction)} carries only ${incumbent.prediction.weightedSampleCount.toFixed(1)} weighted sample(s); a comparison against a barely-measured alternative is not evidence.`
+    };
+  }
+  if (!meetsConfidence(recommended.prediction.confidence, policy.minimumConfidence)) {
+    const reason = recommended.prediction.drift.detected ? "DRIFT_DETECTED" : "CONFIDENCE_BELOW_THRESHOLD";
+    return {
+      passes: false,
+      reason,
+      detail: `Confidence ${recommended.prediction.confidence} is below the configured ${policy.minimumConfidence} floor` + (recommended.prediction.drift.detected ? ` after drift was detected (${recommended.prediction.drift.detail}).` : ".")
+    };
+  }
+  const margin = recommended.score.score - incumbent.score.score;
+  if (margin < policy.minimumUtilityImprovement) {
+    return {
+      passes: false,
+      reason: "UTILITY_MARGIN_TOO_SMALL",
+      detail: `Utility advantage ${margin.toFixed(4)} is under the ${policy.minimumUtilityImprovement} hysteresis threshold; the stable choice stands rather than chasing noise.`
+    };
+  }
+  return { passes: true, reason: null, detail: `Utility advantage ${margin.toFixed(4)}.` };
+}
+function rankCandidates(input) {
+  const eligible = input.candidates.eligible;
+  const vetoes = input.candidates.rejected;
+  if (eligible.length === 0) {
+    const blocking = vetoes.filter((entry) => entry.code !== "LANE_NOT_ELIGIBLE");
+    return {
+      mode: input.mode,
+      ranked: [],
+      vetoes,
+      heuristicCandidate: null,
+      recommendedCandidate: null,
+      selectedCandidate: null,
+      adaptiveApplied: false,
+      disagreement: false,
+      wouldApplyInAdaptiveMode: false,
+      confidence: "NONE",
+      utilityMargin: null,
+      fallbackReason: blocking.length > 0 ? "ALL_PREFERRED_CANDIDATES_VETOED" : null,
+      explanation: blocking.length > 0 ? blocking.map((entry) => `${entry.code}: ${entry.detail}`) : ["Hard policy left no eligible candidate; there is nothing to rank."]
+    };
+  }
+  const ranked = eligible.map((candidate) => {
+    const prediction = predictCandidate({
+      candidate,
+      signature: input.signature,
+      profiles: input.profiles,
+      policy: input.policy,
+      priorSuccessProbability: input.priorSuccessProbability,
+      heuristicWallTimeMs: input.heuristicWallTimeMs,
+      heuristicInputTokens: input.heuristicInputTokens,
+      heuristicContextTokens: input.heuristicContextTokens,
+      heuristicFiveHourBurnRatio: input.heuristicFiveHourBurnRatio
+    });
+    return {
+      prediction,
+      score: scoreCandidate({ prediction, policy: input.policy, forecast: input.forecast })
+    };
+  }).sort(
+    (left, right) => right.score.score !== left.score.score ? right.score.score - left.score.score : left.prediction.candidate.candidateId < right.prediction.candidate.candidateId ? -1 : 1
+  );
+  const first = ranked[0];
+  const incumbent = ranked.find((entry) => entry.prediction.candidate.heuristicChoice) ?? first;
+  const heuristicCandidate = incumbent.prediction.candidate;
+  const recommendedCandidate = first.prediction.candidate;
+  const disagreement = recommendedCandidate.candidateId !== heuristicCandidate.candidateId;
+  const utilityMargin = first.score.score - incumbent.score.score;
+  const explanation = explainComparison(
+    first,
+    ranked.find((entry) => entry.prediction.candidate.candidateId !== first.prediction.candidate.candidateId)
+  );
+  if (eligible.length === 1) {
+    return {
+      mode: input.mode,
+      ranked,
+      vetoes,
+      heuristicCandidate,
+      recommendedCandidate,
+      selectedCandidate: heuristicCandidate,
+      adaptiveApplied: false,
+      disagreement: false,
+      wouldApplyInAdaptiveMode: false,
+      confidence: first.prediction.confidence,
+      utilityMargin: 0,
+      fallbackReason: "SINGLE_CANDIDATE",
+      explanation
+    };
+  }
+  if (!disagreement) {
+    return {
+      mode: input.mode,
+      ranked,
+      vetoes,
+      heuristicCandidate,
+      recommendedCandidate,
+      selectedCandidate: heuristicCandidate,
+      adaptiveApplied: false,
+      disagreement: false,
+      wouldApplyInAdaptiveMode: false,
+      confidence: first.prediction.confidence,
+      utilityMargin: 0,
+      fallbackReason: "AGREES_WITH_HEURISTIC",
+      explanation: [
+        ...explanation,
+        "Adaptive ranking prefers the same candidate the deterministic scheduler chose."
+      ]
+    };
+  }
+  const gate = evaluateGates({ recommended: first, incumbent, policy: input.policy });
+  if (input.mode === "SHADOW") {
+    return {
+      mode: input.mode,
+      ranked,
+      vetoes,
+      heuristicCandidate,
+      recommendedCandidate,
+      selectedCandidate: heuristicCandidate,
+      adaptiveApplied: false,
+      disagreement: true,
+      wouldApplyInAdaptiveMode: gate.passes,
+      confidence: first.prediction.confidence,
+      utilityMargin,
+      fallbackReason: "MODE_SHADOW",
+      explanation: [
+        ...explanation,
+        `SHADOW mode: ${describeCandidate(first.prediction)} is recommended but ${describeCandidate(incumbent.prediction)} executes. The alternative was NOT run, so no claim is made about what it would have produced.`,
+        gate.passes ? "In ADAPTIVE mode this recommendation would have been applied." : `In ADAPTIVE mode this recommendation would NOT have been applied: ${gate.detail}`
+      ]
+    };
+  }
+  if (input.mode === "HEURISTIC") {
+    return {
+      mode: input.mode,
+      ranked,
+      vetoes,
+      heuristicCandidate,
+      recommendedCandidate,
+      selectedCandidate: heuristicCandidate,
+      adaptiveApplied: false,
+      disagreement: true,
+      wouldApplyInAdaptiveMode: gate.passes,
+      confidence: first.prediction.confidence,
+      utilityMargin,
+      fallbackReason: "MODE_HEURISTIC",
+      explanation: [...explanation, "Adaptive scheduling is disabled; the heuristic decides."]
+    };
+  }
+  if (!gate.passes) {
+    return {
+      mode: input.mode,
+      ranked,
+      vetoes,
+      heuristicCandidate,
+      recommendedCandidate,
+      selectedCandidate: heuristicCandidate,
+      adaptiveApplied: false,
+      disagreement: true,
+      wouldApplyInAdaptiveMode: false,
+      confidence: first.prediction.confidence,
+      utilityMargin,
+      fallbackReason: gate.reason,
+      explanation: [...explanation, gate.detail]
+    };
+  }
+  return {
+    mode: input.mode,
+    ranked,
+    vetoes,
+    heuristicCandidate,
+    recommendedCandidate,
+    selectedCandidate: recommendedCandidate,
+    adaptiveApplied: true,
+    disagreement: true,
+    wouldApplyInAdaptiveMode: true,
+    confidence: first.prediction.confidence,
+    utilityMargin,
+    fallbackReason: null,
+    explanation: [...explanation, gate.detail]
+  };
+}
 var PREPROCESS_SYSTEM_PROMPT = [
   "You compress one bulky engineering artifact (a log, test output, tool",
   "result, or diff) into a small structured summary another engineer will",
@@ -57562,6 +60021,2939 @@ var PREPROCESS_SYSTEM_PROMPT = [
   "failing test names, file paths, line numbers, and counts. Drop:",
   "repetition, timestamps, progress noise. Never invent content."
 ].join("\n");
+var QUALIFICATION_PROFILES = [
+  /** Deterministic fakes only. No network, no provider, no money. CI-safe. */
+  "offline",
+  /** Real local compute; strong lanes remain deterministic fakes. */
+  "local",
+  /** Real local compute and a real subscription runner. Never paid API. */
+  "subscription",
+  /** Local + subscription + API, still bounded by existing spend policy. */
+  "full"
+];
+var QUALIFICATION_AREAS = [
+  "Survival",
+  "Context",
+  "Local",
+  "Quota",
+  "API",
+  "Reliability",
+  "Adaptive",
+  "Governance",
+  "Mission"
+];
+var SCENARIO_EXECUTION_KINDS = [
+  /** Deterministic production policy functions; no workspace, no processes. */
+  "POLICY",
+  /** The real driver over a temporary workspace with deterministic doubles. */
+  "RUNTIME",
+  /** Requires a real provider, a real subscription window, or real money. */
+  "REAL_RESOURCE"
+];
+var SCENARIO_RESULT_STATUSES = ["PASS", "FAIL", "SKIPPED_WITH_REASON", "NOT_RUN"];
+var SCENARIO_REQUIREMENTS = [
+  /** Must PASS. A FAIL or a skip blocks the release verdict. */
+  "REQUIRED",
+  /** Must PASS when exercised; an honest skip is tolerated. */
+  "REQUIRED_WHEN_EXERCISED",
+  /** The final real-product gate. Never satisfiable by a synthetic fixture. */
+  "RELEASE_GATE"
+];
+var FAULT_CLASSES = [
+  "WORKER_CRASH",
+  "PROCESS_CRASH",
+  "SESSION_LOSS",
+  "CONTEXT_SATURATION",
+  "DERIVED_CONTEXT_CACHE_LOSS",
+  "ADAPTIVE_CACHE_LOSS",
+  "FIVE_HOUR_EXHAUSTION",
+  "FIVE_HOUR_RESET",
+  "CROSS_RESET_TASK",
+  "HARVEST_WINDOW",
+  "WEEKLY_SCARCITY",
+  "WEEKLY_EXHAUSTION",
+  "API_DISABLED",
+  "API_BUDGET_EXHAUSTION",
+  "INTERRUPTED_PAID_ATTEMPT",
+  "SUBSCRIPTION_RETURNS_MID_API",
+  "LOCAL_HARNESS_INFRASTRUCTURE_FAILURE",
+  "LOCAL_INTELLIGENCE_FAILURE",
+  "FALSE_COMPLETION_CLAIM",
+  "REPEATED_IDENTICAL_FAILURE",
+  "EDIT_OSCILLATION",
+  "HARNESS_RUNAWAY",
+  "CONTEXT_MISS",
+  "CONTEXT_EXPANSION_EXHAUSTION",
+  "VERIFICATION_INFRASTRUCTURE_FAILURE",
+  "CONTRACT_VIOLATION",
+  "REPLAN_WITHOUT_INTENT_CHANGE",
+  "INVALID_CONTRACT_CHANGE",
+  "PROTECTED_STATE_MUTATION",
+  "REMOTE_MISCLASSIFIED_AS_LOCAL",
+  "ADAPTIVE_POLICY_VETO",
+  "ADAPTIVE_LOW_CONFIDENCE",
+  "ADAPTIVE_DRIFT"
+];
+var FAULT_BOUNDARIES = [
+  /** The injected quota telemetry provider (vNext.2 seam). */
+  "QUOTA_TELEMETRY",
+  /** The injected local executor inference (vNext.2/vNext.4 seam). */
+  "LOCAL_INFERENCE",
+  /** The runner registry entry a dispatch resolves. */
+  "RUNNER_REGISTRY",
+  /** A trusted verification command's own process. */
+  "VERIFICATION_COMMAND",
+  /** Durable state on disk under `.specbridge/` (deletion or corruption). */
+  "DURABLE_STATE",
+  /** A derived cache under `.specbridge/cache/` (deletion or corruption). */
+  "DERIVED_CACHE",
+  /** The driver's injected clock and sleep. */
+  "CLOCK",
+  /** The orchestrating process itself (abort, kill, restart). */
+  "PROCESS"
+];
+var FAULT_TRIGGER_MODES = ["ONE_SHOT", "REPEATED"];
+var QUALIFICATION_RESOURCES = [
+  "LOCAL_DIRECT_MODEL",
+  "LOCAL_HARNESS",
+  "SUBSCRIPTION_RUNNER",
+  "API_PROVIDER",
+  "QUOTA_TELEMETRY",
+  "FIVE_HOUR_WINDOW",
+  "WEEKLY_WINDOW",
+  "HARVEST",
+  "CONTEXT_COMPACTION",
+  "REPOSITORY_CONTEXT_INDEX",
+  "ADAPTIVE_PROFILES",
+  "PROCESS_RESTART",
+  "WORKER_CRASH",
+  "SESSION_LOSS",
+  "TRUSTED_VERIFICATION",
+  "TARGET_REPOSITORY"
+];
+var RESOURCE_ATTRIBUTIONS = ["REAL", "SIMULATED", "NOT_EXERCISED"];
+var HUMAN_INTERVENTION_KINDS = [
+  /** A governance boundary required a human. Intended, not a failure. */
+  "REQUIRED_BY_POLICY",
+  /** The Mission genuinely lacked product information only a human had. */
+  "MISSING_INFORMATION",
+  /** A human had to act because the runtime broke. */
+  "RUNTIME_FAILURE",
+  /** SpecBridge asked something it should have resolved itself. */
+  "UNNECESSARY_CLARIFICATION",
+  /** A human had to steer recovery the runtime should have chosen. */
+  "MANUAL_RECOVERY",
+  /** A human edited generated source. A serious autonomy failure. */
+  "MANUAL_CODE_FIX",
+  /** A human overrode placement or resource scheduling. */
+  "MANUAL_SCHEDULING",
+  /** A human re-supplied information canonical artifacts already held. */
+  "MANUAL_CONTEXT_REPAIR",
+  /** A human edited durable control state. Release-blocking. */
+  "MANUAL_STATE_REPAIR"
+];
+var RELEASE_BLOCKER_CLASSES = [
+  "CANONICAL_STATE_LOSS",
+  "UNRECOVERABLE_AFTER_FAULT",
+  "PROTECTED_STATE_MUTATION",
+  "EVIDENCE_BYPASS",
+  "UNAUTHORIZED_API_SPEND",
+  "API_BUDGET_BYPASS",
+  "REMOTE_REPORTED_AS_LOCAL",
+  "QUOTA_POLICY_VIOLATION",
+  "UNBOUNDED_RETRY_LOOP",
+  "COMPACTION_LOST_CRITICAL_STATE",
+  "ADAPTIVE_HARD_POLICY_BYPASS",
+  "MANUAL_STATE_REPAIR_REQUIRED",
+  "DEPENDENT_WORK_ON_UNVERIFIED_PREDECESSOR",
+  "REQUIRED_SCENARIO_FAILED",
+  "REQUIRED_SCENARIO_NOT_PROVEN"
+];
+var LIMITATION_CLASSES = [
+  "SUBOPTIMAL_PLACEMENT",
+  "HIGHER_THAN_EXPECTED_CONTEXT",
+  "SLOW_LOCAL_EXECUTION",
+  "EXCESSIVE_BUT_BOUNDED_REPLAN",
+  "POOR_ADAPTIVE_CALIBRATION",
+  "UNHELPFUL_DIAGNOSTICS",
+  "PERFORMANCE_INEFFICIENCY",
+  "COVERAGE_NOT_EXERCISED"
+];
+var RELEASE_VERDICTS = ["PASS", "PASS_WITH_LIMITATIONS", "FAIL"];
+var DOGFOOD_RUN_STATUSES = [
+  /** Created; preflight recorded; nothing has executed. */
+  "PREFLIGHT",
+  /** Scenarios and/or a bound Mission are executing. */
+  "RUNNING",
+  /** Deliberately paused by the operator. NOT a failure. */
+  "PAUSED",
+  /** Final: the run produced a verdict. */
+  "COMPLETED",
+  /** Final: the operator abandoned the run. */
+  "ABANDONED"
+];
+var DOGFOOD_TARGET_KINDS = ["REAL_REPOSITORY", "FIXTURE"];
+var STATE_INVARIANT_IDS = [
+  /** No attempt is RUNNING unless the job is genuinely mid-dispatch. */
+  "ATTEMPT_OWNERSHIP_COHERENT",
+  /** Every COMPLETED node has a durable trusted-evidence reference. */
+  "COMPLETED_TASK_HAS_EVIDENCE",
+  /** Every COMPLETED node has a recorded evaluation verdict. */
+  "COMPLETED_TASK_HAS_EVALUATION",
+  /** Reserved, committed, and released API budget sum coherently. */
+  "API_BUDGET_RECONCILES",
+  /** No API-lane attempt exists without a recorded spend authority. */
+  "NO_API_SPEND_WITHOUT_AUTHORITY",
+  /** Every LOCAL-lane attempt records verified local compute locality. */
+  "LOCAL_ATTEMPTS_VERIFIED_LOCAL",
+  /** Every recovery decision references an attempt that exists. */
+  "RECOVERY_REFERENCES_REAL_ATTEMPTS",
+  /** Checkpoint sequence numbers are dense, increasing, and attributed. */
+  "CHECKPOINT_LINEAGE_VALID",
+  /** No node ran while a required predecessor was unverified. */
+  "DEPENDENTS_RESPECT_VERIFIED_PREDECESSORS",
+  /** Every attempt references a node present in some graph revision. */
+  "ATTEMPTS_REFERENCE_KNOWN_NODES",
+  /** The job's graph revision pointer resolves to a persisted revision. */
+  "GRAPH_REVISION_RESOLVES"
+];
+var INVARIANT_AUDIT_PHASES = [
+  "BASELINE",
+  "CHECKPOINT",
+  "BEFORE_RESTART",
+  "AFTER_RESTART",
+  "AFTER_FAULT",
+  "FINAL"
+];
+var DEFECT_SOURCES = [
+  /** The implementation the intelligence produced was wrong. */
+  "MODEL_IMPLEMENTATION",
+  /** SpecBridge lost, corrupted, or mis-transitioned durable state. */
+  "RUNTIME_STATE",
+  /** A scheduler or authorization rule was applied incorrectly. */
+  "POLICY",
+  /** Retrieval omitted something the task provably required. */
+  "CONTEXT_RETRIEVAL",
+  /** A provider, harness, or worker process broke. */
+  "INFRASTRUCTURE",
+  /** The verification/evaluation machinery itself was unavailable or wrong. */
+  "EVALUATION_INFRASTRUCTURE",
+  /** The dogfood configuration or environment was wrong. */
+  "CONFIGURATION"
+];
+var QUALIFICATION_LIMITS = {
+  maxListItems: 100,
+  maxTextChars: 2e3,
+  maxShortTextChars: STATE_LIMITS.maxShortTextChars,
+  maxObservations: 200,
+  maxEvidenceRefs: 50,
+  maxTimelineEntries: 1e3
+};
+var shortText13 = external_exports.string().min(1).max(QUALIFICATION_LIMITS.maxShortTextChars);
+var text8 = external_exports.string().min(1).max(QUALIFICATION_LIMITS.maxTextChars);
+var textList6 = external_exports.array(text8).max(QUALIFICATION_LIMITS.maxListItems);
+var refList = external_exports.array(shortText13).max(QUALIFICATION_LIMITS.maxEvidenceRefs);
+var semver4 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
+var count2 = external_exports.number().int().min(0);
+var runtimeVersionsSchema = external_exports.object({
+  specBridgeVersion: shortText13.nullable().default(null),
+  specBridgeCommit: shortText13.nullable().default(null),
+  nodeVersion: shortText13.nullable().default(null),
+  platform: shortText13.nullable().default(null),
+  /** Local model identity as configured/reported. */
+  localModel: shortText13.nullable().default(null),
+  /** DeepSeek Harness / DSH SDK versions when the harness reported them. */
+  harnessVersion: shortText13.nullable().default(null),
+  harnessSdkVersion: shortText13.nullable().default(null),
+  /** Subscription agent CLI version when probed. */
+  subscriptionRunnerVersion: shortText13.nullable().default(null),
+  /** Codex CLI version when that runner was exercised. */
+  codexVersion: shortText13.nullable().default(null),
+  /** vNext.7 context strategy in force. */
+  contextStrategy: shortText13.nullable().default(null),
+  /** vNext.8 adaptive mode in force. */
+  adaptiveMode: shortText13.nullable().default(null),
+  /** Fingerprint of the orchestration policy the run was bound to. */
+  policyFingerprint: shortText13.nullable().default(null)
+}).passthrough();
+var dogfoodTargetSchema = external_exports.object({
+  kind: external_exports.enum(DOGFOOD_TARGET_KINDS),
+  /** Product name, e.g. "StepRelay". */
+  name: shortText13,
+  /** Configured repository path, as given. Null when unavailable. */
+  repositoryPath: shortText13.nullable().default(null),
+  /** Whether that path resolved to a readable repository at preflight. */
+  available: external_exports.boolean().default(false),
+  /** Why the target was unavailable, when it was not. */
+  unavailableReason: text8.nullable().default(null),
+  startingCommit: shortText13.nullable().default(null),
+  endingCommit: shortText13.nullable().default(null),
+  branch: shortText13.nullable().default(null),
+  /** Isolated worktree the dogfood was confined to, when one was used. */
+  worktreePath: shortText13.nullable().default(null),
+  /** The approved spec/mission the Mission was declared against. */
+  missionSpec: shortText13.nullable().default(null)
+}).passthrough();
+var dogfoodRunSchema = external_exports.object({
+  schemaVersion: semver4,
+  runId: shortText13,
+  status: external_exports.enum(DOGFOOD_RUN_STATUSES),
+  profile: external_exports.enum(QUALIFICATION_PROFILES),
+  target: dogfoodTargetSchema,
+  versions: runtimeVersionsSchema.default({}),
+  /**
+   * Stable fingerprint of the configuration the run was started under.
+   * Comparing it across iterations is how a report can say whether run #3
+   * differed from run #1 in the system or only in the weather.
+   */
+  configurationFingerprint: shortText13,
+  /** The Mission this run is dogfooding, when one is bound. */
+  missionId: shortText13.nullable().default(null),
+  /** The long-running Job carrying the Mission's work, when one is bound. */
+  jobId: shortText13.nullable().default(null),
+  /** Iteration number within a series of dogfood runs against one target. */
+  iteration: external_exports.number().int().min(1).default(1),
+  /** The run this iteration continues from, for progress/regression views. */
+  previousRunId: shortText13.nullable().default(null),
+  /** Human-stated Mission direction, recorded verbatim and bounded. */
+  missionDirection: text8.nullable().default(null),
+  /**
+   * Approved Mission scope at the time the run started, and any later
+   * scope change with its provenance. A reduced Mission reported as the
+   * original one is the exact dishonesty this field exists to prevent.
+   */
+  approvedScope: textList6.default([]),
+  scopeChanges: external_exports.array(
+    external_exports.object({
+      at: shortText13,
+      originalScope: text8,
+      newScope: text8,
+      reason: text8,
+      authority: shortText13,
+      effectOnQualification: text8
+    }).passthrough()
+  ).max(QUALIFICATION_LIMITS.maxListItems).default([]),
+  startedAt: shortText13,
+  updatedAt: shortText13,
+  finalizedAt: shortText13.nullable().default(null),
+  /** Wall-clock milliseconds the run has been active, excluding pauses. */
+  activeMs: count2.default(0),
+  /** Wall-clock milliseconds the run spent deliberately paused. */
+  pausedMs: count2.default(0),
+  /** Operator-visible note recorded at the last state change. */
+  note: text8.nullable().default(null)
+}).passthrough();
+var observedTransitionSchema = external_exports.object({
+  /** What changed: an event type, status transition, or decision code. */
+  subject: shortText13,
+  from: shortText13.nullable().default(null),
+  to: shortText13.nullable().default(null),
+  /** Bounded explanation of why this transition mattered to the claim. */
+  detail: text8.optional()
+}).passthrough();
+var scenarioResultSchema = external_exports.object({
+  schemaVersion: semver4,
+  runId: shortText13,
+  scenarioId: shortText13,
+  area: external_exports.enum(QUALIFICATION_AREAS),
+  executionKind: external_exports.enum(SCENARIO_EXECUTION_KINDS),
+  requirement: external_exports.enum(SCENARIO_REQUIREMENTS),
+  status: external_exports.enum(SCENARIO_RESULT_STATUSES),
+  /** Required when status is SKIPPED_WITH_REASON; never a silent skip. */
+  skipReason: text8.nullable().default(null),
+  /** Required when status is FAIL: what was expected versus observed. */
+  failureDetail: text8.nullable().default(null),
+  /** Fault classes this scenario injected, when any. */
+  faultClasses: external_exports.array(external_exports.enum(FAULT_CLASSES)).max(QUALIFICATION_LIMITS.maxListItems).default([]),
+  /** The invariant the scenario asserts, in one sentence. */
+  expectedInvariant: text8,
+  observedTransitions: external_exports.array(observedTransitionSchema).max(QUALIFICATION_LIMITS.maxObservations).default([]),
+  /** Ledger entries, job events, decision ids, or test files backing this. */
+  evidenceRefs: refList.default([]),
+  /** How each resource this scenario touched was actually exercised. */
+  resourceAttribution: external_exports.record(external_exports.enum(QUALIFICATION_RESOURCES), external_exports.enum(RESOURCE_ATTRIBUTIONS)).default({}),
+  /** Which executor produced this result (`cli`, `regression-suite`, …). */
+  executor: shortText13,
+  durationMs: count2.nullable().default(null),
+  recordedAt: shortText13
+}).passthrough();
+var humanInterventionSchema = external_exports.object({
+  schemaVersion: semver4,
+  runId: shortText13,
+  interventionId: shortText13,
+  kind: external_exports.enum(HUMAN_INTERVENTION_KINDS),
+  at: shortText13,
+  /** What the human did, bounded and non-sensitive. */
+  description: text8,
+  /** Why it was necessary, in the recorder's own words. */
+  reason: text8,
+  /** The Job/node/task the intervention touched, when scoped to one. */
+  jobId: shortText13.nullable().default(null),
+  nodeId: shortText13.nullable().default(null),
+  taskId: shortText13.nullable().default(null),
+  /**
+   * The governance boundary that required it, when kind is
+   * REQUIRED_BY_POLICY — a decision kind, approval gate, or spend mode.
+   * Absent on every other kind, which is how a policy-required
+   * intervention is told from one that merely claims to be.
+   */
+  policyBoundary: shortText13.nullable().default(null),
+  /** Durable references: question id, approval id, commit, decision id. */
+  evidenceRefs: refList.default([])
+}).passthrough();
+var faultInjectionRecordSchema = external_exports.object({
+  schemaVersion: semver4,
+  runId: shortText13,
+  faultId: shortText13,
+  faultClass: external_exports.enum(FAULT_CLASSES),
+  boundary: external_exports.enum(FAULT_BOUNDARIES),
+  triggerMode: external_exports.enum(FAULT_TRIGGER_MODES),
+  /** Deterministic condition that fired the injection. */
+  trigger: text8,
+  /** The invariant expected to survive it. */
+  expectedInvariant: text8,
+  /** Whether the invariant held. Null while the outcome is unknown. */
+  survived: external_exports.boolean().nullable().default(null),
+  /** What was observed after injection. */
+  observed: text8.nullable().default(null),
+  /** The scenario that injected it. */
+  scenarioId: shortText13.nullable().default(null),
+  injectedAt: shortText13,
+  resolvedAt: shortText13.nullable().default(null)
+}).passthrough();
+var invariantViolationSchema = external_exports.object({
+  invariantId: external_exports.enum(STATE_INVARIANT_IDS),
+  /** What was found, bounded and specific enough to act on. */
+  detail: text8,
+  /** The record that violates it. */
+  subject: shortText13,
+  /** True when this invariant is release-blocking. */
+  blocking: external_exports.boolean()
+}).passthrough();
+var invariantAuditSchema = external_exports.object({
+  schemaVersion: semver4,
+  runId: shortText13,
+  auditId: shortText13,
+  phase: external_exports.enum(INVARIANT_AUDIT_PHASES),
+  jobId: shortText13.nullable().default(null),
+  at: shortText13,
+  /** Invariants actually evaluated in this audit. */
+  checked: external_exports.array(external_exports.enum(STATE_INVARIANT_IDS)).max(QUALIFICATION_LIMITS.maxListItems).default([]),
+  violations: external_exports.array(invariantViolationSchema).max(QUALIFICATION_LIMITS.maxObservations).default([]),
+  /** Context for the audit, e.g. the fault that preceded it. */
+  note: text8.nullable().default(null)
+}).passthrough();
+var dogfoodDefectSchema = external_exports.object({
+  schemaVersion: semver4,
+  runId: shortText13,
+  defectId: shortText13,
+  source: external_exports.enum(DEFECT_SOURCES),
+  /** What was observed to go wrong. */
+  observedFailure: text8,
+  /** The root cause, once understood. */
+  rootCause: text8.nullable().default(null),
+  /** The invariant or guarantee it violated. */
+  affectedInvariant: text8.nullable().default(null),
+  /** The fix, when one was applied. */
+  fix: text8.nullable().default(null),
+  /** The regression test covering it. Null means the fix is uncovered. */
+  regressionTest: shortText13.nullable().default(null),
+  /** Whether the fix changed a public contract. */
+  changesPublicContract: external_exports.boolean().default(false),
+  /** Whether the fix affects a guarantee an earlier phase committed to. */
+  affectsPriorPhaseGuarantee: external_exports.boolean().default(false),
+  /** True while the defect remains open. */
+  blocking: external_exports.boolean().default(false),
+  discoveredAt: shortText13,
+  resolvedAt: shortText13.nullable().default(null)
+}).passthrough();
+var qualificationLimitationSchema = external_exports.object({
+  class: external_exports.enum(LIMITATION_CLASSES),
+  detail: text8,
+  evidenceRefs: refList.default([])
+}).passthrough();
+var releaseBlockerSchema = external_exports.object({
+  class: external_exports.enum(RELEASE_BLOCKER_CLASSES),
+  detail: text8,
+  evidenceRefs: refList.default([])
+}).passthrough();
+var timelineEntrySchema = external_exports.object({
+  at: shortText13,
+  /** The durable event type this milestone came from. */
+  eventType: shortText13,
+  /** Human-readable milestone label. */
+  milestone: shortText13,
+  jobId: shortText13.nullable().default(null),
+  nodeId: shortText13.nullable().default(null)
+}).passthrough();
+var autonomyScorecardSchema = external_exports.object({
+  missionCompleted: external_exports.boolean().nullable().default(null),
+  objectivesTotal: count2,
+  objectivesCompleted: count2,
+  tasksTotal: count2,
+  tasksCompleted: count2,
+  /** Tasks completed with a durable PASS verdict on record. */
+  tasksVerified: count2,
+  /** Verified completions divided by tasks attempted. Null when none were. */
+  verifiedCompletionRate: external_exports.number().min(0).max(1).nullable().default(null),
+  firstAttemptSuccessRate: external_exports.number().min(0).max(1).nullable().default(null),
+  attemptsPerSuccessfulTask: external_exports.number().min(0).nullable().default(null),
+  manualInterventions: count2,
+  manualCodeEdits: count2,
+  manualSchedulerInterventions: count2,
+  manualStateRepairs: count2,
+  manualContextRepairs: count2,
+  replans: count2,
+  recoveriesAttempted: count2,
+  recoveriesSucceeded: count2,
+  processRestartsSurvived: count2,
+  sessionLossesSurvived: count2,
+  contextCompactionsSurvived: count2,
+  quotaResetsCrossed: count2,
+  localAttempts: count2,
+  subscriptionAttempts: count2,
+  apiAttempts: count2,
+  apiSpendUsd: external_exports.number().min(0).nullable().default(null),
+  failedWorkCostUsd: external_exports.number().min(0).nullable().default(null),
+  wallTimeMs: count2.nullable().default(null),
+  activeExecutionMs: count2.nullable().default(null),
+  reportedInputTokens: count2.nullable().default(null),
+  reportedOutputTokens: count2.nullable().default(null),
+  /** Tasks that reached verified completion with no human intervention. */
+  tasksCompletedWithoutIntervention: count2
+}).passthrough();
+var economicReportSchema = external_exports.object({
+  localAttempts: count2,
+  localDirectAttempts: count2,
+  localHarnessAttempts: count2,
+  subscriptionAttempts: count2,
+  apiAttempts: count2,
+  localVerifiedSuccesses: count2,
+  subscriptionVerifiedSuccesses: count2,
+  apiVerifiedSuccesses: count2,
+  /** Observed five-hour remaining ratio at the most recent observation. */
+  fiveHourRemainingRatio: external_exports.number().min(0).max(1).nullable().default(null),
+  weeklyRemainingRatio: external_exports.number().min(0).max(1).nullable().default(null),
+  /** Prepaid capacity observed unused at a reset, when observable. */
+  unusedFiveHourCapacityObservations: count2,
+  harvestEntries: count2,
+  weeklyPressureEvents: count2,
+  apiEstimatedSpendUsd: external_exports.number().min(0).nullable().default(null),
+  apiReconciledSpendUsd: external_exports.number().min(0).nullable().default(null),
+  /** API attempts whose real cost is unknowable. Never treated as zero. */
+  apiUnknownCostAttempts: count2,
+  failedWorkCostUsd: external_exports.number().min(0).nullable().default(null),
+  failedWorkMs: count2.nullable().default(null),
+  failedWorkTokens: count2.nullable().default(null)
+}).passthrough();
+var reliabilityReportSchema = external_exports.object({
+  totalFailures: count2,
+  infrastructureFailures: count2,
+  implementationFailures: count2,
+  contextFailures: count2,
+  verificationFailures: count2,
+  stalledEvents: count2,
+  oscillationEvents: count2,
+  runawayEvents: count2,
+  repairs: count2,
+  freshContextRestarts: count2,
+  contextExpansions: count2,
+  replans: count2,
+  laneEscalations: count2,
+  blockedTasks: count2,
+  successfulRecoveries: count2,
+  /** Recovery actions chosen, by action. */
+  recoveryActions: external_exports.record(external_exports.string(), count2).default({}),
+  /** Failure sources observed, by source. */
+  failureSources: external_exports.record(external_exports.string(), count2).default({}),
+  /** Deterministic health states observed, by state. */
+  healthStates: external_exports.record(external_exports.string(), count2).default({}),
+  evaluationsPassed: count2,
+  evaluationsFailed: count2,
+  evaluationsInconclusive: count2
+}).passthrough();
+var contextReportSchema = external_exports.object({
+  estimatedInputContextTokens: count2.nullable().default(null),
+  providerReportedInputTokens: count2.nullable().default(null),
+  providerReportedOutputTokens: count2.nullable().default(null),
+  workingSetItems: count2.nullable().default(null),
+  compressionSavingsTokens: count2.nullable().default(null),
+  deduplicationSavingsTokens: count2.nullable().default(null),
+  progressiveExpansions: count2,
+  expansionExhaustions: count2,
+  /**
+   * Provider-native compactions. Nullable because a runner that says
+   * nothing about its own compaction is UNKNOWN, not zero — and a zero
+   * here would read as "the provider never compacted", which is a claim
+   * SpecBridge was never in a position to make.
+   */
+  nativeCompactions: count2.nullable().default(null),
+  contextCompactions: count2,
+  contextMisses: count2,
+  indexBuilds: count2,
+  indexRefreshes: count2,
+  /** Estimated context consumed per verified task. Null when none verified. */
+  contextPerVerifiedTask: external_exports.number().min(0).nullable().default(null),
+  /** Attempts retried where the recorded cause was context insufficiency. */
+  retriesAttributableToContext: count2,
+  strategy: shortText13.nullable().default(null)
+}).passthrough();
+var adaptiveReportSchema = external_exports.object({
+  mode: shortText13.nullable().default(null),
+  heuristicDecisions: count2,
+  shadowRecommendations: count2,
+  shadowDisagreements: count2,
+  adaptiveDecisions: count2,
+  /** Predictions by confidence level. */
+  confidenceDistribution: external_exports.record(external_exports.string(), count2).default({}),
+  heuristicFallbacks: count2,
+  /** Fallbacks by reason code. */
+  fallbackReasons: external_exports.record(external_exports.string(), count2).default({}),
+  hardPolicyVetoes: count2,
+  /** Vetoes by veto code. */
+  vetoCodes: external_exports.record(external_exports.string(), count2).default({}),
+  driftEvents: count2,
+  profileRebuilds: count2,
+  /** Calibration summary, when enough observations existed to compute one. */
+  calibrationSamples: count2,
+  calibrationBrierScore: external_exports.number().min(0).nullable().default(null)
+}).passthrough();
+var zeroToleranceReportSchema = external_exports.object({
+  unauthorizedPaidExecutions: count2,
+  canonicalStateLosses: count2,
+  adaptiveHardPolicyBypasses: count2,
+  evidenceBypassCompletions: count2,
+  unrecoverableInjectedFaults: count2,
+  acceptedProtectedStateMutations: count2,
+  unboundedRetryLoops: count2,
+  manualDurableStateRepairs: count2,
+  dependentsOnFailedPredecessors: count2
+}).passthrough();
+var scenarioSummarySchema = external_exports.object({
+  total: count2,
+  passed: count2,
+  failed: count2,
+  skipped: count2,
+  notRun: count2,
+  requiredTotal: count2,
+  requiredPassed: count2,
+  requiredFailed: count2,
+  requiredUnproven: count2,
+  releaseGateStatus: external_exports.enum(SCENARIO_RESULT_STATUSES),
+  releaseGateReason: text8.nullable().default(null)
+}).passthrough();
+var dogfoodQualificationReportSchema = external_exports.object({
+  schemaVersion: semver4,
+  runId: shortText13,
+  generatedAt: shortText13,
+  profile: external_exports.enum(QUALIFICATION_PROFILES),
+  status: external_exports.enum(DOGFOOD_RUN_STATUSES),
+  target: dogfoodTargetSchema,
+  versions: runtimeVersionsSchema,
+  configurationFingerprint: shortText13,
+  missionId: shortText13.nullable().default(null),
+  jobId: shortText13.nullable().default(null),
+  iteration: external_exports.number().int().min(1),
+  previousRunId: shortText13.nullable().default(null),
+  missionDirection: text8.nullable().default(null),
+  approvedScope: textList6,
+  scopeChanges: external_exports.array(external_exports.record(external_exports.string(), external_exports.unknown())).max(QUALIFICATION_LIMITS.maxListItems),
+  startedAt: shortText13,
+  finalizedAt: shortText13.nullable(),
+  durationMs: count2.nullable(),
+  activeMs: count2,
+  pausedMs: count2,
+  /** What was REAL, SIMULATED, or NOT_EXERCISED, per resource. */
+  resourceAttribution: external_exports.record(
+    external_exports.enum(QUALIFICATION_RESOURCES),
+    external_exports.enum(RESOURCE_ATTRIBUTIONS)
+  ),
+  scenarios: scenarioSummarySchema,
+  scenarioResults: external_exports.array(scenarioResultSchema).max(500),
+  faultInjections: external_exports.array(faultInjectionRecordSchema).max(500),
+  invariantAudits: external_exports.array(invariantAuditSchema).max(500),
+  humanInterventions: external_exports.array(humanInterventionSchema).max(500),
+  defects: external_exports.array(dogfoodDefectSchema).max(500),
+  scorecard: autonomyScorecardSchema,
+  economics: economicReportSchema,
+  reliability: reliabilityReportSchema,
+  context: contextReportSchema,
+  adaptive: adaptiveReportSchema,
+  zeroTolerance: zeroToleranceReportSchema,
+  timeline: external_exports.array(timelineEntrySchema).max(QUALIFICATION_LIMITS.maxTimelineEntries),
+  blockers: external_exports.array(releaseBlockerSchema).max(QUALIFICATION_LIMITS.maxListItems),
+  limitations: external_exports.array(qualificationLimitationSchema).max(QUALIFICATION_LIMITS.maxListItems),
+  verdict: external_exports.enum(RELEASE_VERDICTS),
+  /** The reasoning behind the verdict, as discrete auditable statements. */
+  verdictBasis: textList6,
+  /**
+   * Whether the real product Mission was actually qualified. Reported
+   * separately from the verdict so that a run which built and proved all
+   * the machinery but never met the external prerequisite cannot read as
+   * though it had.
+   */
+  realTargetQualification: external_exports.enum(["PASSED", "FAILED", "NOT_RUN"]),
+  realTargetQualificationReason: text8.nullable().default(null)
+}).passthrough();
+var QUALIFICATION_SCENARIOS = Object.freeze([
+  // -------------------------------------------------------------------------
+  // Survival
+  // -------------------------------------------------------------------------
+  {
+    id: "survival.process-restart",
+    area: "Survival",
+    title: "SpecBridge process restart",
+    invariant: "A job interrupted between durable transitions reconciles on restart and continues without manual state reconstruction.",
+    executionKind: "RUNTIME",
+    requirement: "REQUIRED",
+    faultClasses: ["PROCESS_CRASH"],
+    resources: ["PROCESS_RESTART", "LOCAL_DIRECT_MODEL", "TRUSTED_VERIFICATION"],
+    minimumProfile: "offline",
+    implementedBy: "tests/qualification/offline-qualification.test.ts"
+  },
+  {
+    id: "survival.worker-crash",
+    area: "Survival",
+    title: "Worker crash during an active attempt",
+    invariant: "A worker that dies mid-attempt leaves the attempt INTERRUPTED, the checkpoint intact, and the job resumable.",
+    executionKind: "RUNTIME",
+    requirement: "REQUIRED",
+    faultClasses: ["WORKER_CRASH"],
+    resources: ["WORKER_CRASH", "LOCAL_DIRECT_MODEL"],
+    minimumProfile: "offline",
+    implementedBy: "tests/qualification/offline-qualification.test.ts"
+  },
+  {
+    id: "survival.session-loss",
+    area: "Survival",
+    title: "Provider session loss",
+    invariant: "Discarding every provider session loses no canonical state: the next attempt is reconstructed from SpecBridge records alone.",
+    executionKind: "RUNTIME",
+    requirement: "REQUIRED",
+    faultClasses: ["SESSION_LOSS"],
+    resources: ["SESSION_LOSS"],
+    minimumProfile: "offline",
+    implementedBy: "tests/qualification/offline-qualification.test.ts"
+  },
+  {
+    id: "survival.invariants-across-restart",
+    area: "Survival",
+    title: "State invariants hold before and after restart",
+    invariant: "Durable state that satisfies the invariant set before a restart satisfies it after hydration.",
+    executionKind: "RUNTIME",
+    requirement: "REQUIRED",
+    faultClasses: ["PROCESS_CRASH"],
+    resources: ["PROCESS_RESTART"],
+    minimumProfile: "offline",
+    implementedBy: "tests/qualification/offline-qualification.test.ts"
+  },
+  {
+    id: "survival.soak",
+    area: "Survival",
+    title: "Long-horizon soak with repeated restarts",
+    invariant: "Many task/attempt cycles with periodic serialization and reconstruction accumulate no state corruption and no unbounded growth.",
+    executionKind: "RUNTIME",
+    requirement: "REQUIRED",
+    faultClasses: ["PROCESS_CRASH", "CONTEXT_SATURATION"],
+    resources: ["PROCESS_RESTART", "ADAPTIVE_PROFILES", "REPOSITORY_CONTEXT_INDEX"],
+    minimumProfile: "offline",
+    implementedBy: "tests/qualification/soak.test.ts"
+  },
+  // -------------------------------------------------------------------------
+  // Context
+  // -------------------------------------------------------------------------
+  {
+    id: "context.multi-window-compaction",
+    area: "Context",
+    title: "Multi-window context compaction",
+    invariant: "Crossing several effective context windows compacts context and never terminates the job; pinned contract state survives every compaction.",
+    executionKind: "RUNTIME",
+    requirement: "REQUIRED",
+    faultClasses: ["CONTEXT_SATURATION"],
+    resources: ["CONTEXT_COMPACTION"],
+    minimumProfile: "offline",
+    implementedBy: "tests/qualification/offline-qualification.test.ts"
+  },
+  {
+    id: "context.index-cache-rebuild",
+    area: "Context",
+    title: "Derived context cache loss",
+    invariant: "Deleting or corrupting the repository context index rebuilds it and loses no canonical state.",
+    executionKind: "RUNTIME",
+    requirement: "REQUIRED",
+    faultClasses: ["DERIVED_CONTEXT_CACHE_LOSS"],
+    resources: ["REPOSITORY_CONTEXT_INDEX"],
+    minimumProfile: "offline",
+    implementedBy: "tests/qualification/derived-cache.test.ts"
+  },
+  {
+    id: "context.progressive-expansion",
+    area: "Context",
+    title: "Context miss expands progressively",
+    invariant: "A failure attributed to missing context widens retrieval by one bounded level rather than escalating intelligence.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["CONTEXT_MISS"],
+    resources: [],
+    minimumProfile: "offline"
+  },
+  {
+    id: "context.expansion-exhaustion",
+    area: "Context",
+    title: "Progressive expansion exhaustion",
+    invariant: "When bounded widening is spent, the decision returns to planning or escalation \u2014 never to an unbounded repository dump.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["CONTEXT_EXPANSION_EXHAUSTION"],
+    resources: [],
+    minimumProfile: "offline"
+  },
+  {
+    id: "context.role-specific-packets",
+    area: "Context",
+    title: "Role-specific context, not replayed conversation",
+    invariant: "Each role receives a context package built for its job; no role receives another agent private session.",
+    executionKind: "RUNTIME",
+    requirement: "REQUIRED",
+    faultClasses: [],
+    resources: [],
+    minimumProfile: "offline",
+    implementedBy: "tests/qualification/handoffs.test.ts"
+  },
+  {
+    id: "context.handoff-durable-truth",
+    area: "Context",
+    title: "Cross-agent handoff carries durable truth",
+    invariant: "A receiving worker can continue from checkpoints, contracts, and evaluations alone, without the previous worker session.",
+    executionKind: "RUNTIME",
+    requirement: "REQUIRED",
+    faultClasses: ["SESSION_LOSS"],
+    resources: ["SESSION_LOSS"],
+    minimumProfile: "offline",
+    implementedBy: "tests/qualification/handoffs.test.ts"
+  },
+  // -------------------------------------------------------------------------
+  // Local
+  // -------------------------------------------------------------------------
+  {
+    id: "local.direct-success",
+    area: "Local",
+    title: "LOCAL DIRECT_MODEL verified success",
+    invariant: "Mechanical, locally-suitable work completes on the local direct lane and is verified by the trusted evidence path.",
+    executionKind: "RUNTIME",
+    requirement: "REQUIRED",
+    faultClasses: [],
+    resources: ["LOCAL_DIRECT_MODEL", "TRUSTED_VERIFICATION"],
+    minimumProfile: "offline",
+    implementedBy: "tests/qualification/offline-qualification.test.ts"
+  },
+  {
+    id: "local.harness-success",
+    area: "Local",
+    title: "LOCAL HARNESS verified success",
+    invariant: "Agentic locally-solvable work completes through the verified-local harness and is verified by the trusted evidence path.",
+    executionKind: "RUNTIME",
+    requirement: "REQUIRED",
+    faultClasses: [],
+    resources: ["LOCAL_HARNESS", "TRUSTED_VERIFICATION"],
+    minimumProfile: "offline",
+    implementedBy: "tests/orchestration/local-harness-driver.test.ts"
+  },
+  {
+    id: "local.harness-infrastructure-failure",
+    area: "Local",
+    title: "Local harness infrastructure failure",
+    invariant: "A crashed local harness is assessed as an infrastructure failure, not as an intelligence failure, and recovery stays bounded.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["LOCAL_HARNESS_INFRASTRUCTURE_FAILURE"],
+    resources: [],
+    minimumProfile: "offline"
+  },
+  {
+    id: "local.intelligence-failure-escalates",
+    area: "Local",
+    title: "Local intelligence failure escalates after bounded recovery",
+    invariant: "Verifiably wrong local work is recovered locally within bounds and then escalated to the subscription lane.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["LOCAL_INTELLIGENCE_FAILURE"],
+    resources: [],
+    minimumProfile: "offline"
+  },
+  {
+    id: "local.remote-never-local",
+    area: "Local",
+    title: "Remote compute is never reported as LOCAL",
+    invariant: "A runner whose compute locality is not verified local is rejected from the local lane regardless of its history.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["REMOTE_MISCLASSIFIED_AS_LOCAL"],
+    resources: [],
+    minimumProfile: "offline"
+  },
+  // -------------------------------------------------------------------------
+  // Quota
+  // -------------------------------------------------------------------------
+  {
+    id: "quota.five-hour-exhaustion",
+    area: "Quota",
+    title: "Five-hour exhaustion keeps local work moving",
+    invariant: "With the five-hour window spent, local work continues and strong work defers or bridges according to policy.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["FIVE_HOUR_EXHAUSTION"],
+    resources: ["QUOTA_TELEMETRY", "FIVE_HOUR_WINDOW"],
+    minimumProfile: "offline"
+  },
+  {
+    id: "quota.reset-readmits",
+    area: "Quota",
+    title: "Quota reset re-admits deferred strong work",
+    invariant: "Advancing past the five-hour reset makes deferred strong work admissible again on the subscription lane.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["FIVE_HOUR_RESET"],
+    resources: ["QUOTA_TELEMETRY", "FIVE_HOUR_WINDOW"],
+    minimumProfile: "offline"
+  },
+  {
+    id: "quota.cross-reset-admission",
+    area: "Quota",
+    title: "Cross-reset admission uses pre-reset burn",
+    invariant: "A task longer than the remaining window is admitted on safe expected pre-reset burn; nothing is killed at the boundary.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["CROSS_RESET_TASK"],
+    resources: ["QUOTA_TELEMETRY", "FIVE_HOUR_WINDOW"],
+    minimumProfile: "offline"
+  },
+  {
+    id: "quota.harvest",
+    area: "Quota",
+    title: "HARVEST consumes expiring prepaid capacity",
+    invariant: "Meaningful unused five-hour capacity near a reset, with healthy weekly quota and valuable strong work ready, enters HARVEST.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["HARVEST_WINDOW"],
+    resources: ["QUOTA_TELEMETRY", "HARVEST", "FIVE_HOUR_WINDOW"],
+    minimumProfile: "offline"
+  },
+  {
+    id: "quota.weekly-scarcity-suppresses-harvest",
+    area: "Quota",
+    title: "Weekly scarcity suppresses harvesting",
+    invariant: "Scarce weekly quota overrides an otherwise attractive five-hour harvest.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["WEEKLY_SCARCITY"],
+    resources: ["QUOTA_TELEMETRY", "HARVEST", "WEEKLY_WINDOW"],
+    minimumProfile: "offline"
+  },
+  {
+    id: "quota.weekly-exhaustion",
+    area: "Quota",
+    title: "Weekly exhaustion keeps local work moving",
+    invariant: "A long subscription outage leaves local work running; only critical strong work may reach the API gap bridge.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["WEEKLY_EXHAUSTION"],
+    resources: ["QUOTA_TELEMETRY", "WEEKLY_WINDOW"],
+    minimumProfile: "offline"
+  },
+  {
+    id: "quota.real-window-observed",
+    area: "Quota",
+    title: "Real subscription quota window observed",
+    invariant: "A real dogfood crossed an actual subscription quota window and the scheduler behaved as the simulated scenarios predicted.",
+    executionKind: "REAL_RESOURCE",
+    requirement: "REQUIRED_WHEN_EXERCISED",
+    faultClasses: ["FIVE_HOUR_RESET"],
+    resources: ["QUOTA_TELEMETRY", "FIVE_HOUR_WINDOW", "SUBSCRIPTION_RUNNER"],
+    minimumProfile: "subscription"
+  },
+  // -------------------------------------------------------------------------
+  // API
+  // -------------------------------------------------------------------------
+  {
+    id: "api.disabled-no-spend",
+    area: "API",
+    title: "API DISABLED spends nothing",
+    invariant: "With spend mode DISABLED, a legitimate long subscription gap produces no API execution; the task waits.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["API_DISABLED"],
+    resources: [],
+    minimumProfile: "offline"
+  },
+  {
+    id: "api.bounded-bridge",
+    area: "API",
+    title: "Bounded API gap bridge",
+    invariant: "API execution occurs only when every vNext.5 condition passes: gap duration, spend mode, approval, budget, and pricing.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: [],
+    resources: [],
+    minimumProfile: "offline"
+  },
+  {
+    id: "api.budget-exhaustion",
+    area: "API",
+    title: "API budget exhaustion stops paid execution",
+    invariant: "An exhausted budget admits no further automatic paid execution, and no path bypasses it.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["API_BUDGET_EXHAUSTION"],
+    resources: [],
+    minimumProfile: "offline"
+  },
+  {
+    id: "api.interrupted-reservation",
+    area: "API",
+    title: "Interrupted paid attempt keeps conservative accounting",
+    invariant: "A reservation whose final usage is unknown survives restart as UNKNOWN spend, never released as zero.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["INTERRUPTED_PAID_ATTEMPT"],
+    resources: [],
+    minimumProfile: "offline"
+  },
+  {
+    id: "api.max-returns-mid-attempt",
+    area: "API",
+    title: "Subscription returning mid-attempt causes no ping-pong",
+    invariant: "An active atomic API attempt completes; the NEXT strong task returns to the subscription lane.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["SUBSCRIPTION_RETURNS_MID_API"],
+    resources: [],
+    minimumProfile: "offline"
+  },
+  {
+    id: "api.real-bridge-observed",
+    area: "API",
+    title: "Real authorized API bridge",
+    invariant: "A real dogfood entered the API lane only under genuine gap conditions, within an authorized budget.",
+    executionKind: "REAL_RESOURCE",
+    requirement: "REQUIRED_WHEN_EXERCISED",
+    faultClasses: [],
+    resources: ["API_PROVIDER"],
+    minimumProfile: "full"
+  },
+  // -------------------------------------------------------------------------
+  // Reliability
+  // -------------------------------------------------------------------------
+  {
+    id: "reliability.false-completion",
+    area: "Reliability",
+    title: "A completion claim is not a completion",
+    invariant: "A worker that reports success while trusted verification fails leaves the task incomplete.",
+    executionKind: "RUNTIME",
+    requirement: "REQUIRED",
+    faultClasses: ["FALSE_COMPLETION_CLAIM"],
+    resources: ["TRUSTED_VERIFICATION"],
+    minimumProfile: "offline",
+    implementedBy: "tests/qualification/offline-qualification.test.ts"
+  },
+  {
+    id: "reliability.stalled",
+    area: "Reliability",
+    title: "Repeated identical failure is STALLED, not retried",
+    invariant: "The same failure fingerprint with an equivalent diff marks the task STALLED and forces a strategy change.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["REPEATED_IDENTICAL_FAILURE"],
+    resources: [],
+    minimumProfile: "offline"
+  },
+  {
+    id: "reliability.oscillation",
+    area: "Reliability",
+    title: "Edit oscillation is detected",
+    invariant: "An A to B to A edit cycle with unchanged failure is OSCILLATING and triggers recovery.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["EDIT_OSCILLATION"],
+    resources: [],
+    minimumProfile: "offline"
+  },
+  {
+    id: "reliability.runaway",
+    area: "Reliability",
+    title: "Harness runaway is bounded",
+    invariant: "A repeated identical tool/test/edit loop is RUNAWAY: cancel, checkpoint, recover.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["HARNESS_RUNAWAY"],
+    resources: [],
+    minimumProfile: "offline"
+  },
+  {
+    id: "reliability.verification-infrastructure",
+    area: "Reliability",
+    title: "Broken verification is INCONCLUSIVE, not a failed implementation",
+    invariant: "Unavailable required verification yields INCONCLUSIVE and never blames the implementation.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["VERIFICATION_INFRASTRUCTURE_FAILURE"],
+    resources: ["TRUSTED_VERIFICATION"],
+    minimumProfile: "offline"
+  },
+  {
+    id: "reliability.contract-violation",
+    area: "Reliability",
+    title: "Passing tests do not satisfy acceptance criteria",
+    invariant: "An implementation that compiles and passes tests but violates acceptance criteria leaves the task incomplete.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["CONTRACT_VIOLATION"],
+    resources: [],
+    minimumProfile: "offline"
+  },
+  {
+    id: "reliability.replan-preserves-intent",
+    area: "Reliability",
+    title: "Replan changes strategy, not approved intent",
+    invariant: "Repeated strategy failure produces a REPLAN while approved product intent stays unchanged.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["REPLAN_WITHOUT_INTENT_CHANGE"],
+    resources: [],
+    minimumProfile: "offline"
+  },
+  {
+    id: "reliability.dependents-gated",
+    area: "Reliability",
+    title: "Dependent work waits for verified predecessors",
+    invariant: "No dependent task becomes eligible until its required predecessor holds a durable PASS.",
+    executionKind: "RUNTIME",
+    requirement: "REQUIRED",
+    faultClasses: [],
+    resources: ["TRUSTED_VERIFICATION"],
+    minimumProfile: "offline",
+    implementedBy: "tests/qualification/offline-qualification.test.ts"
+  },
+  // -------------------------------------------------------------------------
+  // Adaptive
+  // -------------------------------------------------------------------------
+  {
+    id: "adaptive.hard-policy-veto",
+    area: "Adaptive",
+    title: "Hard policy vetoes a favoured candidate",
+    invariant: "History that strongly favours a policy-forbidden candidate does not make it allowed; the candidate is vetoed with a code.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["ADAPTIVE_POLICY_VETO"],
+    resources: ["ADAPTIVE_PROFILES"],
+    minimumProfile: "offline"
+  },
+  {
+    id: "adaptive.low-confidence-fallback",
+    area: "Adaptive",
+    title: "Sparse history falls back to the heuristic",
+    invariant: "Sparse or version-changed history produces a heuristic fallback rather than overconfident routing.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["ADAPTIVE_LOW_CONFIDENCE"],
+    resources: ["ADAPTIVE_PROFILES"],
+    minimumProfile: "offline"
+  },
+  {
+    id: "adaptive.drift-detection",
+    area: "Adaptive",
+    title: "Materially degraded performance reduces confidence",
+    invariant: "Observed degradation raises a drift signal and lowers effective confidence, with a safe fallback.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["ADAPTIVE_DRIFT"],
+    resources: ["ADAPTIVE_PROFILES"],
+    minimumProfile: "offline"
+  },
+  {
+    id: "adaptive.cache-rebuild",
+    area: "Adaptive",
+    title: "Adaptive cache loss rebuilds from the ledger",
+    invariant: "Deleting or corrupting adaptive profiles rebuilds them from the ExecutionLedger, or falls back to the heuristic; the job is unaffected.",
+    executionKind: "RUNTIME",
+    requirement: "REQUIRED",
+    faultClasses: ["ADAPTIVE_CACHE_LOSS"],
+    resources: ["ADAPTIVE_PROFILES"],
+    minimumProfile: "offline",
+    implementedBy: "tests/qualification/derived-cache.test.ts"
+  },
+  {
+    id: "adaptive.mode-rollback",
+    area: "Adaptive",
+    title: "Instant rollback from ADAPTIVE to HEURISTIC",
+    invariant: "Switching the scheduler mode back to HEURISTIC continues the same job with no state migration and no job loss.",
+    executionKind: "RUNTIME",
+    requirement: "REQUIRED",
+    faultClasses: [],
+    resources: ["ADAPTIVE_PROFILES"],
+    minimumProfile: "offline",
+    implementedBy: "tests/qualification/adaptive-rollout.test.ts"
+  },
+  {
+    id: "adaptive.shadow-diagnostics",
+    area: "Adaptive",
+    title: "SHADOW records recommendations without executing them",
+    invariant: "In SHADOW mode, placement stays heuristic while adaptive recommendations, disagreements, and vetoes are recorded.",
+    executionKind: "RUNTIME",
+    requirement: "REQUIRED",
+    faultClasses: [],
+    resources: ["ADAPTIVE_PROFILES"],
+    minimumProfile: "offline",
+    implementedBy: "tests/qualification/adaptive-rollout.test.ts"
+  },
+  // -------------------------------------------------------------------------
+  // Governance
+  // -------------------------------------------------------------------------
+  {
+    id: "governance.protected-state-mutation",
+    area: "Governance",
+    title: "Protected control state cannot be mutated by workers",
+    invariant: "An attempt to edit SpecBridge control state, budget/quota policy, or approval state is refused or fails evidence.",
+    executionKind: "RUNTIME",
+    requirement: "REQUIRED",
+    faultClasses: ["PROTECTED_STATE_MUTATION"],
+    resources: [],
+    minimumProfile: "offline",
+    implementedBy: "tests/qualification/governance.test.ts"
+  },
+  {
+    id: "governance.invalid-contract-change",
+    area: "Governance",
+    title: "Approved intent cannot be silently changed",
+    invariant: "A replan or agent proposal that would alter an approved requirement requires human/contract authority.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: ["INVALID_CONTRACT_CHANGE"],
+    resources: [],
+    minimumProfile: "offline"
+  },
+  {
+    id: "governance.approval-is-human-only",
+    area: "Governance",
+    title: "Approval authority is human-only",
+    invariant: "No configuration, policy, worker, or model can hold approval authority.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: [],
+    resources: [],
+    minimumProfile: "offline"
+  },
+  {
+    id: "governance.fault-injection-scoping",
+    area: "Governance",
+    title: "Fault injection is not a production attack surface",
+    invariant: "Fault injection exists only as explicit dependency injection; no configuration, environment variable, or agent-reachable surface enables it.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: [],
+    resources: [],
+    minimumProfile: "offline"
+  },
+  {
+    id: "governance.preflight-fails-closed",
+    area: "Governance",
+    title: "Preflight fails closed on unsafe configuration",
+    invariant: "An unsafe dogfood configuration \u2014 dirty unrelated tree, missing target, unbounded spend \u2014 refuses to start.",
+    executionKind: "POLICY",
+    requirement: "REQUIRED",
+    faultClasses: [],
+    resources: [],
+    minimumProfile: "offline"
+  },
+  {
+    id: "governance.single-writer-integration",
+    area: "Governance",
+    title: "Integration passes through the single-writer path",
+    invariant: "Dogfood mode does not bypass trusted single-writer integration for convenience.",
+    executionKind: "RUNTIME",
+    requirement: "REQUIRED",
+    faultClasses: [],
+    resources: [],
+    minimumProfile: "offline",
+    implementedBy: "tests/qualification/governance.test.ts"
+  },
+  // -------------------------------------------------------------------------
+  // Mission (the release gate)
+  // -------------------------------------------------------------------------
+  {
+    id: "mission.offline-full-system",
+    area: "Mission",
+    title: "Mandatory offline full-system qualification",
+    invariant: "One deterministic run exercises a Mission with multiple objectives across local, subscription, quota, context, reliability, and adaptive behaviour to verified completion.",
+    executionKind: "RUNTIME",
+    requirement: "REQUIRED",
+    faultClasses: [
+      "WORKER_CRASH",
+      "PROCESS_CRASH",
+      "SESSION_LOSS",
+      "CONTEXT_SATURATION",
+      "FALSE_COMPLETION_CLAIM"
+    ],
+    resources: [
+      "LOCAL_DIRECT_MODEL",
+      "SUBSCRIPTION_RUNNER",
+      "QUOTA_TELEMETRY",
+      "TRUSTED_VERIFICATION",
+      "PROCESS_RESTART"
+    ],
+    minimumProfile: "offline",
+    implementedBy: "tests/qualification/offline-qualification.test.ts"
+  },
+  {
+    id: "mission.real-target-increment",
+    area: "Mission",
+    title: "Real product Mission reaches verified completion",
+    invariant: "A meaningful engineering increment of the real dogfood target is carried from high-level direction to verified implementation.",
+    executionKind: "REAL_RESOURCE",
+    requirement: "RELEASE_GATE",
+    faultClasses: [],
+    resources: ["TARGET_REPOSITORY", "SUBSCRIPTION_RUNNER", "TRUSTED_VERIFICATION"],
+    minimumProfile: "subscription"
+  }
+]);
+var BY_ID = new Map(QUALIFICATION_SCENARIOS.map((scenario) => [scenario.id, scenario]));
+var TIMELINE_MILESTONES = Object.freeze({
+  job_created: "Mission job created",
+  graph_created: "Objectives created",
+  graph_revised: "Work graph revised",
+  job_resumed: "Process restart survived",
+  node_ready: "Task ready",
+  worker_selected: "Task dispatched",
+  worker_escalated: "Escalated to stronger intelligence",
+  task_routed_local: "Lane selected: LOCAL",
+  task_routed_subscription: "Lane selected: SUBSCRIPTION",
+  task_deferred: "Task deferred for quota",
+  local_execution_mode_selected: "Local execution mode selected",
+  local_harness_selected: "Local harness selected",
+  scheduler_mode_changed: "Quota mode changed",
+  harvest_entered: "HARVEST entered",
+  harvest_exited: "HARVEST exited",
+  cross_reset_admitted: "Task admitted across a quota reset",
+  quota_exhausted: "Subscription quota exhausted",
+  context_compacted: "Context compacted",
+  context_expanded: "Context expanded",
+  context_insufficient: "Context insufficiency detected",
+  context_index_built: "Repository context index built",
+  context_index_refreshed: "Repository context index refreshed",
+  attempt_started: "Attempt started",
+  attempt_interrupted: "Attempt interrupted",
+  task_checkpoint_created: "Checkpoint created",
+  task_resumed: "Task resumed from checkpoint",
+  api_gap_detected: "API gap detected",
+  api_approval_required: "API spend approval required",
+  api_approval_granted: "API spend approved",
+  api_budget_reserved: "API budget reserved",
+  api_task_dispatched: "API bridge entered",
+  api_budget_reconciled: "API spend reconciled",
+  api_max_returned: "Subscription capacity returned",
+  evaluation_passed: "Evaluation PASS",
+  evaluation_failed: "Evaluation FAIL",
+  evaluation_inconclusive: "Evaluation INCONCLUSIVE",
+  failure_assessed: "Failure diagnosed",
+  execution_stalled: "Execution STALLED",
+  execution_oscillating: "Execution OSCILLATING",
+  execution_runaway: "Execution RUNAWAY",
+  recovery_decided: "Recovery selected",
+  replan_started: "Replan started",
+  adaptive_candidate_selected: "Adaptive placement applied",
+  adaptive_candidate_vetoed: "Adaptive candidate vetoed by hard policy",
+  adaptive_fallback_to_heuristic: "Adaptive fell back to heuristic",
+  adaptive_profile_rebuilt: "Adaptive profiles rebuilt",
+  integration_started: "Integration started",
+  objective_verified: "Objective verified",
+  node_completed: "Task completed",
+  node_failed: "Task failed",
+  job_blocked: "Job blocked",
+  job_completed: "Mission completed",
+  job_failed: "Mission failed",
+  job_cancelled: "Mission cancelled"
+});
+var QUALIFICATION_ARTIFACTS = Object.freeze({
+  summary: "qualification-summary.json",
+  report: "qualification-report.md",
+  scenarios: "scenario-results.json",
+  metrics: "mission-metrics.json"
+});
+function evaluate(scenarioId, assertions, resourceAttribution = {}) {
+  const failed = assertions.filter((assertion) => !assertion.holds);
+  const transitions = assertions.map((assertion) => ({
+    subject: assertion.claim,
+    from: null,
+    to: assertion.observed,
+    detail: assertion.holds ? "held" : "DID NOT HOLD"
+  }));
+  return {
+    scenarioId,
+    passed: failed.length === 0,
+    ...failed.length === 0 ? {} : {
+      failureDetail: failed.map((assertion) => `expected ${assertion.claim}; observed ${assertion.observed}`).join("; ")
+    },
+    transitions,
+    resourceAttribution
+  };
+}
+var NOW = /* @__PURE__ */ new Date("2026-08-01T12:00:00.000Z");
+function snapshot(window, remainingRatio, resetInMs) {
+  return {
+    window,
+    remainingRatio,
+    usedRatio: null,
+    resetAt: resetInMs === null ? null : new Date(NOW.getTime() + resetInMs).toISOString(),
+    observedAt: NOW.toISOString(),
+    source: "qualification-fixture"
+  };
+}
+function estimate(overrides = {}) {
+  return {
+    taskId: "qual-task",
+    complexity: "MEDIUM",
+    intelligenceRequirement: "MEDIUM",
+    localSuitability: "STRONG_REQUIRED",
+    expectedWallTimeMs: 12 * 6e4,
+    expectedFiveHourBurnRatio: 0.1,
+    expectedWeeklyBurnRatio: 0.02,
+    burnProfile: "steady",
+    expectedContextGrowthTokens: 2e4,
+    expectedAgentTurns: 8,
+    expectedToolCalls: 20,
+    expectedTestLoops: 2,
+    expectedInputTokens: 4e4,
+    expectedOutputTokens: 6e3,
+    tokenBasis: "heuristic",
+    retryProbability: 0.3,
+    ...overrides
+  };
+}
+function laneInput(config2, overrides = {}) {
+  return {
+    estimate: estimate(),
+    forecast: buildQuotaForecast({
+      fiveHour: snapshot("five-hour", 0.8, 3 * 36e5),
+      weekly: snapshot("weekly", 0.9, 5 * 864e5),
+      now: NOW,
+      policy: config2.orchestration.jobs.scheduler
+    }),
+    reserveRatio: 0.05,
+    localWorkerAvailable: true,
+    localExecutionAvailable: true,
+    policy: config2.orchestration.jobs.scheduler,
+    ...overrides
+  };
+}
+function observation(overrides = {}) {
+  return {
+    attemptId: "at-1",
+    attemptNumber: 1,
+    failureFingerprint: "fp-a",
+    diffFingerprint: "diff-a",
+    strategyKey: "LOCAL|DIRECT_MODEL|1|false",
+    evaluationStatus: "FAIL",
+    lane: "LOCAL",
+    at: NOW.toISOString(),
+    ...overrides
+  };
+}
+var RESOURCES = {
+  subscriptionAvailable: true,
+  subscriptionReturnsInMs: 0,
+  subscriptionWorkerConfigured: true,
+  apiAuthorized: false,
+  apiBudgetAvailable: false,
+  localAvailable: true,
+  localHarnessAvailable: true
+};
+function budgetView(overrides = {}) {
+  const base = {
+    attemptsUsed: 1,
+    attemptsMax: 4,
+    remainingAttempts: 3,
+    repairsUsed: 0,
+    repairsMax: 2,
+    remainingRepairs: 2,
+    replansUsed: 0,
+    replansMax: 2,
+    remainingReplans: 2,
+    remainingJobReplans: 4,
+    transientRetriesUsed: 0,
+    transientRetriesMax: 3,
+    remainingTransientRetries: 3,
+    stagnationCount: 0,
+    maxNoProgressCycles: 2,
+    localAttemptsUsed: 1,
+    localAttemptsMax: 2,
+    remainingLocalAttempts: 1,
+    elapsedMs: 6e4,
+    maxWallClockMs: 8 * 36e5,
+    remainingWallClockMs: 8 * 36e5 - 6e4,
+    apiRemainingUsd: null,
+    apiEncumberedUsd: null,
+    apiAvailable: false,
+    reportedCostUsd: null,
+    reportedTokens: null
+  };
+  return { ...base, ...overrides };
+}
+function classified(category, message = "qualification fixture failure") {
+  return classifyFailure({ category, message, source: "qualification-fixture", output: message });
+}
+function quotaFiveHourExhaustion(config2) {
+  const forecast = buildQuotaForecast({
+    fiveHour: snapshot("five-hour", 0, 45 * 6e4),
+    weekly: snapshot("weekly", 0.8, 5 * 864e5),
+    now: NOW,
+    policy: config2.orchestration.jobs.scheduler
+  });
+  const strong = decideLane(laneInput(config2, { forecast }));
+  const local = decideLane(
+    laneInput(config2, { forecast, estimate: estimate({ localSuitability: "LOCAL_SAFE" }) })
+  );
+  return evaluate(
+    "quota.five-hour-exhaustion",
+    [
+      {
+        claim: "the scheduler mode is EXHAUSTED_5H",
+        holds: forecast.schedulerMode === "EXHAUSTED_5H",
+        observed: forecast.schedulerMode
+      },
+      {
+        claim: "strong work DEFERs rather than running",
+        holds: strong.lane === "DEFER" && strong.reasonCode === "FIVE_HOUR_EXHAUSTED",
+        observed: `${strong.lane}/${strong.reasonCode}`
+      },
+      {
+        claim: "the defer carries the reset time",
+        holds: strong.deferUntil !== null,
+        observed: strong.deferUntil ?? "null"
+      },
+      {
+        claim: "local-safe work still runs on the LOCAL lane",
+        holds: local.lane === "LOCAL",
+        observed: `${local.lane}/${local.reasonCode}`
+      }
+    ],
+    { QUOTA_TELEMETRY: "SIMULATED", FIVE_HOUR_WINDOW: "SIMULATED" }
+  );
+}
+function quotaResetReadmits(config2) {
+  const before = decideLane(
+    laneInput(config2, {
+      forecast: buildQuotaForecast({
+        fiveHour: snapshot("five-hour", 0, 30 * 6e4),
+        weekly: snapshot("weekly", 0.8, 5 * 864e5),
+        now: NOW,
+        policy: config2.orchestration.jobs.scheduler
+      })
+    })
+  );
+  const after = decideLane(
+    laneInput(config2, {
+      forecast: buildQuotaForecast({
+        fiveHour: snapshot("five-hour", 1, 5 * 36e5),
+        weekly: snapshot("weekly", 0.8, 5 * 864e5),
+        now: NOW,
+        policy: config2.orchestration.jobs.scheduler
+      })
+    })
+  );
+  return evaluate(
+    "quota.reset-readmits",
+    [
+      {
+        claim: "strong work is deferred while the window is exhausted",
+        holds: before.lane === "DEFER",
+        observed: `${before.lane}/${before.reasonCode}`
+      },
+      {
+        claim: "the same task is admitted to SUBSCRIPTION after the reset",
+        holds: after.lane === "SUBSCRIPTION",
+        observed: `${after.lane}/${after.reasonCode}`
+      }
+    ],
+    { QUOTA_TELEMETRY: "SIMULATED", FIVE_HOUR_WINDOW: "SIMULATED" }
+  );
+}
+function quotaCrossReset(config2) {
+  const forecast = buildQuotaForecast({
+    fiveHour: snapshot("five-hour", 0.6, 10 * 6e4),
+    weekly: snapshot("weekly", 0.9, 5 * 864e5),
+    now: NOW,
+    policy: config2.orchestration.jobs.scheduler
+  });
+  const routing = decideLane(
+    laneInput(config2, {
+      forecast,
+      estimate: estimate({
+        expectedWallTimeMs: 90 * 6e4,
+        expectedFiveHourBurnRatio: 0.3
+      })
+    })
+  );
+  return evaluate(
+    "quota.cross-reset-admission",
+    [
+      {
+        claim: "a task longer than the remaining window is admitted",
+        holds: routing.lane === "SUBSCRIPTION",
+        observed: `${routing.lane}/${routing.reasonCode}`
+      },
+      {
+        claim: "the admission is attributed to crossing the reset",
+        holds: routing.admission?.crossesReset === true,
+        observed: `crossesReset=${String(routing.admission?.crossesReset)}`
+      },
+      {
+        // The whole point of vNext.2's admission rule: a 90-minute task with
+        // 10 minutes left in the window is charged for the 10 minutes, not
+        // for the 90. Comparing against the total estimate is what proves
+        // the rule is pre-reset burn rather than total duration.
+        claim: "only the pre-reset share of the estimated burn is charged",
+        holds: routing.admission !== null && routing.admission.preResetBurnRatio < 0.3,
+        observed: `preReset=${routing.admission?.preResetBurnRatio ?? "n/a"} of total 0.3`
+      }
+    ],
+    { QUOTA_TELEMETRY: "SIMULATED", FIVE_HOUR_WINDOW: "SIMULATED" }
+  );
+}
+function quotaHarvest(config2) {
+  const forecast = buildQuotaForecast({
+    fiveHour: snapshot("five-hour", 0.7, 10 * 6e4),
+    weekly: snapshot("weekly", 0.9, 5 * 864e5),
+    now: NOW,
+    policy: config2.orchestration.jobs.scheduler
+  });
+  const strong = decideLane(laneInput(config2, { forecast }));
+  const mechanical = decideLane(
+    laneInput(config2, { forecast, estimate: estimate({ localSuitability: "LOCAL_SAFE" }) })
+  );
+  return evaluate(
+    "quota.harvest",
+    [
+      {
+        claim: "the scheduler enters HARVEST",
+        holds: forecast.schedulerMode === "HARVEST",
+        observed: forecast.schedulerMode
+      },
+      {
+        claim: "strong work is admitted to consume the expiring capacity",
+        holds: strong.lane === "SUBSCRIPTION",
+        observed: `${strong.lane}/${strong.reasonCode}`
+      },
+      {
+        claim: "mechanical local-capable work stays on the LOCAL lane in HARVEST",
+        holds: mechanical.lane === "LOCAL",
+        observed: `${mechanical.lane}/${mechanical.reasonCode}`
+      }
+    ],
+    { QUOTA_TELEMETRY: "SIMULATED", HARVEST: "SIMULATED", FIVE_HOUR_WINDOW: "SIMULATED" }
+  );
+}
+function quotaWeeklyScarcity(config2) {
+  const forecast = buildQuotaForecast({
+    fiveHour: snapshot("five-hour", 0.7, 10 * 6e4),
+    weekly: snapshot("weekly", 0.05, 4 * 864e5),
+    now: NOW,
+    policy: config2.orchestration.jobs.scheduler
+  });
+  const strong = decideLane(laneInput(config2, { forecast }));
+  const weeklyHeavy = decideLane(
+    laneInput(config2, {
+      forecast,
+      estimate: estimate({ expectedWeeklyBurnRatio: 0.2, expectedFiveHourBurnRatio: 0.05 })
+    })
+  );
+  return evaluate(
+    "quota.weekly-scarcity-suppresses-harvest",
+    [
+      {
+        claim: "scarce weekly quota prevents HARVEST mode",
+        holds: forecast.schedulerMode !== "HARVEST",
+        observed: forecast.schedulerMode
+      },
+      {
+        claim: "a task whose weekly burn exceeds the scarce weekly window is refused",
+        holds: weeklyHeavy.lane === "DEFER",
+        observed: `${weeklyHeavy.lane}/${weeklyHeavy.reasonCode}`
+      },
+      {
+        claim: "the refusal is attributed to weekly pressure, not to the healthy five-hour window",
+        holds: weeklyHeavy.reasonCode === "WEEKLY_QUOTA_PRESSURE" || weeklyHeavy.admission?.refusal === "weekly",
+        observed: `${weeklyHeavy.reasonCode} (refusal=${weeklyHeavy.admission?.refusal ?? "none"})`
+      },
+      {
+        claim: "a small task that still fits the weekly window is not paralysed by scarcity",
+        holds: strong.lane === "SUBSCRIPTION" || strong.lane === "DEFER",
+        observed: `${strong.lane}/${strong.reasonCode}`
+      }
+    ],
+    { QUOTA_TELEMETRY: "SIMULATED", WEEKLY_WINDOW: "SIMULATED", HARVEST: "SIMULATED" }
+  );
+}
+function quotaWeeklyExhaustion(config2) {
+  const forecast = buildQuotaForecast({
+    fiveHour: snapshot("five-hour", 0.9, 3 * 36e5),
+    weekly: snapshot("weekly", 0, 4 * 864e5),
+    now: NOW,
+    policy: config2.orchestration.jobs.scheduler
+  });
+  const strong = decideLane(laneInput(config2, { forecast }));
+  const local = decideLane(
+    laneInput(config2, { forecast, estimate: estimate({ localSuitability: "LOCAL_SAFE" }) })
+  );
+  return evaluate(
+    "quota.weekly-exhaustion",
+    [
+      {
+        claim: "the scheduler mode is EXHAUSTED_WEEKLY",
+        holds: forecast.schedulerMode === "EXHAUSTED_WEEKLY",
+        observed: forecast.schedulerMode
+      },
+      {
+        claim: "strong work defers with the weekly reset attached",
+        holds: strong.lane === "DEFER" && strong.reasonCode === "WEEKLY_EXHAUSTED",
+        observed: `${strong.lane}/${strong.reasonCode}`
+      },
+      {
+        claim: "local work continues throughout the outage",
+        holds: local.lane === "LOCAL",
+        observed: `${local.lane}/${local.reasonCode}`
+      }
+    ],
+    { QUOTA_TELEMETRY: "SIMULATED", WEEKLY_WINDOW: "SIMULATED" }
+  );
+}
+function gapForecast(durationMs) {
+  return {
+    reason: "FIVE_HOUR_EXHAUSTED",
+    expectedAvailableAt: new Date(NOW.getTime() + durationMs).toISOString(),
+    timeUntilAvailableMs: durationMs,
+    confidence: "HIGH",
+    detail: "qualification fixture gap"
+  };
+}
+function delaySensitivity(level) {
+  return {
+    level,
+    blockedDependents: level === "HIGH" ? 3 : 0,
+    criticalPath: level === "HIGH",
+    readyLocalBacklog: 0,
+    readyAlternatives: 0,
+    signals: []
+  };
+}
+function apiBinding(available, spendMode) {
+  return {
+    status: available ? "BOUND" : "NOT_CONFIGURED",
+    available,
+    profileName: available ? "api-remote" : null,
+    runner: available ? "deepseek-harness" : null,
+    provider: available ? "deepseek" : null,
+    model: available ? "deepseek-chat" : null,
+    locality: available ? "REMOTE" : "UNKNOWN",
+    localityEvidence: available ? "public https endpoint" : "no profile bound",
+    credentialSources: available ? ["DEEPSEEK_API_KEY"] : [],
+    localityOverridden: false,
+    problems: available ? [] : ["no API harness profile is bound"],
+    maxWallTimeMs: 18e5,
+    spendMode,
+    pricingConfigured: available
+  };
+}
+var FIXTURE_PRICING = {
+  inputCostPerMillion: 1,
+  outputCostPerMillion: 2,
+  cachedInputCostPerMillion: null,
+  currency: "USD",
+  source: "qualification-fixture"
+};
+function costEstimate(estimatedUsd, safeUsd) {
+  return {
+    estimatedInputTokens: 4e4,
+    estimatedOutputTokens: 6e3,
+    estimatedCostUsd: estimatedUsd,
+    safeCostUsd: safeUsd,
+    currency: "USD",
+    confidence: "medium",
+    pricingSource: FIXTURE_PRICING.source,
+    estimateBasis: "heuristic",
+    safetyMultiplier: 1.5,
+    costSource: "ESTIMATED_PRE_DISPATCH",
+    detail: "qualification fixture estimate"
+  };
+}
+function apiDisabled(config2) {
+  const policy = {
+    ...config2.orchestration.jobs.scheduler.api,
+    spendMode: "DISABLED"
+  };
+  const plan = planApiGapBridge({
+    policy,
+    binding: apiBinding(true, policy.spendMode),
+    gap: gapForecast(6 * 36e5),
+    delaySensitivity: delaySensitivity("HIGH"),
+    estimate: estimate(),
+    cost: null,
+    budget: null,
+    approval: null,
+    subscriptionAvailable: false,
+    now: NOW
+  });
+  return evaluate("api.disabled-no-spend", [
+    {
+      claim: "a six-hour gap with DISABLED spend mode does not reach the API lane",
+      holds: plan.decision === "DEFER",
+      observed: `${plan.decision}/${plan.reasonCode}`
+    },
+    {
+      claim: "no paid execution is proposed",
+      holds: !plan.bridgeProposed,
+      observed: `bridgeProposed=${String(plan.bridgeProposed)}`
+    }
+  ]);
+}
+function apiBoundedBridge(config2) {
+  const base = config2.orchestration.jobs.scheduler.api;
+  const policy = {
+    ...base,
+    spendMode: "AUTO_BOUNDED",
+    harnessProfile: "api-remote",
+    pricing: FIXTURE_PRICING,
+    budget: { ...base.budget, maxCostPerJobUsd: 10, maxCostPerTaskUsd: 5, maxCostPerAttemptUsd: 5 }
+  };
+  const cost = costEstimate(0.5, 0.75);
+  const budget = assessApiBudget({
+    state: { schemaVersion: "1.0.0", jobId: "job-q", reservations: [], updatedAt: NOW.toISOString() },
+    policy: policy.budget,
+    taskId: "qual-task",
+    safeCostUsd: 0.75
+  });
+  const plan = planApiGapBridge({
+    policy,
+    binding: apiBinding(true, policy.spendMode),
+    gap: gapForecast(6 * 36e5),
+    delaySensitivity: delaySensitivity("HIGH"),
+    estimate: estimate(),
+    cost,
+    budget,
+    approval: null,
+    subscriptionAvailable: false,
+    now: NOW
+  });
+  const shortGap = planApiGapBridge({
+    policy,
+    binding: apiBinding(true, policy.spendMode),
+    gap: gapForecast(5 * 6e4),
+    delaySensitivity: delaySensitivity("HIGH"),
+    estimate: estimate(),
+    cost,
+    budget,
+    approval: null,
+    subscriptionAvailable: false,
+    now: NOW
+  });
+  return evaluate("api.bounded-bridge", [
+    {
+      claim: "a material gap with authorized, priced, budgeted spend reaches the API lane",
+      holds: plan.decision === "API",
+      observed: `${plan.decision}/${plan.reasonCode}`
+    },
+    {
+      claim: "a short gap does not",
+      holds: shortGap.decision === "DEFER",
+      observed: `${shortGap.decision}/${shortGap.reasonCode}`
+    }
+  ]);
+}
+function apiBudgetExhaustion(config2) {
+  const base = config2.orchestration.jobs.scheduler.api;
+  const budgetPolicy = { ...base.budget, maxCostPerJobUsd: 1, maxCostPerTaskUsd: 1 };
+  const admission = assessApiBudget({
+    state: {
+      schemaVersion: "1.0.0",
+      jobId: "job-q",
+      reservations: [
+        {
+          reservationId: "res-1",
+          jobId: "job-q",
+          nodeId: "n1",
+          taskId: "other-task",
+          attemptId: "at-1",
+          state: "COMMITTED",
+          reservedUsd: 0.95,
+          reconciledUsd: 0.95,
+          costSource: "PROVIDER_REPORTED",
+          profileName: "fixture",
+          createdAt: NOW.toISOString(),
+          updatedAt: NOW.toISOString(),
+          detail: ""
+        }
+      ],
+      updatedAt: NOW.toISOString()
+    },
+    policy: budgetPolicy,
+    taskId: "qual-task",
+    safeCostUsd: 0.5
+  });
+  const policy = {
+    ...base,
+    spendMode: "AUTO_BOUNDED",
+    harnessProfile: "api-remote",
+    pricing: FIXTURE_PRICING,
+    budget: budgetPolicy
+  };
+  const plan = planApiGapBridge({
+    policy,
+    binding: apiBinding(true, policy.spendMode),
+    gap: gapForecast(6 * 36e5),
+    delaySensitivity: delaySensitivity("HIGH"),
+    estimate: estimate(),
+    cost: costEstimate(0.4, 0.5),
+    budget: admission,
+    approval: null,
+    subscriptionAvailable: false,
+    now: NOW
+  });
+  return evaluate("api.budget-exhaustion", [
+    {
+      claim: "the budget refuses the attempt",
+      holds: !admission.admissible,
+      observed: `admissible=${String(admission.admissible)} (${admission.refusal ?? "none"})`
+    },
+    {
+      claim: "the gap bridge does not dispatch despite a material gap",
+      holds: plan.decision !== "API",
+      observed: `${plan.decision}/${plan.reasonCode}`
+    }
+  ]);
+}
+function apiInterruptedReservation(config2) {
+  const base = config2.orchestration.jobs.scheduler.api;
+  const budgetPolicy = { ...base.budget, maxCostPerJobUsd: 1, maxCostPerTaskUsd: 1 };
+  const admission = assessApiBudget({
+    state: {
+      schemaVersion: "1.0.0",
+      jobId: "job-q",
+      reservations: [
+        {
+          reservationId: "res-unknown",
+          jobId: "job-q",
+          nodeId: "n1",
+          taskId: "qual-task",
+          attemptId: "at-interrupted",
+          state: "UNKNOWN",
+          reservedUsd: 0.9,
+          reconciledUsd: null,
+          costSource: "UNKNOWN",
+          profileName: "fixture",
+          createdAt: NOW.toISOString(),
+          updatedAt: NOW.toISOString(),
+          detail: "interrupted before the provider reported usage"
+        }
+      ],
+      updatedAt: NOW.toISOString()
+    },
+    policy: budgetPolicy,
+    taskId: "qual-task",
+    safeCostUsd: 0.5
+  });
+  return evaluate("api.interrupted-reservation", [
+    {
+      claim: "spend of unknown size still consumes budget",
+      holds: !admission.admissible,
+      observed: `admissible=${String(admission.admissible)} (${admission.refusal ?? "none"})`
+    },
+    {
+      claim: "the uncertain reservation is counted, not treated as zero",
+      holds: admission.job.encumberedUsd >= 0.9 && admission.job.hasUnknownCost,
+      observed: `encumbered=${admission.job.encumberedUsd} unknown=${admission.job.unknownUsd} hasUnknownCost=${String(admission.job.hasUnknownCost)}`
+    }
+  ]);
+}
+function apiMaxReturnsMidAttempt(config2) {
+  const base = config2.orchestration.jobs.scheduler.api;
+  const policy = {
+    ...base,
+    spendMode: "AUTO_BOUNDED",
+    harnessProfile: "api-remote",
+    pricing: FIXTURE_PRICING,
+    budget: { ...base.budget, maxCostPerJobUsd: 10, maxCostPerTaskUsd: 5, maxCostPerAttemptUsd: 5 }
+  };
+  const plan = planApiGapBridge({
+    policy,
+    binding: apiBinding(true, policy.spendMode),
+    gap: gapForecast(6 * 36e5),
+    delaySensitivity: delaySensitivity("HIGH"),
+    estimate: estimate(),
+    cost: costEstimate(0.4, 0.5),
+    budget: assessApiBudget({
+      state: { schemaVersion: "1.0.0", jobId: "job-q", reservations: [], updatedAt: NOW.toISOString() },
+      policy: policy.budget,
+      taskId: "qual-task",
+      safeCostUsd: 0.5
+    }),
+    approval: null,
+    subscriptionAvailable: true,
+    now: NOW
+  });
+  const nextTask = decideLane(
+    laneInput(config2, {
+      forecast: buildQuotaForecast({
+        fiveHour: snapshot("five-hour", 0.9, 4 * 36e5),
+        weekly: snapshot("weekly", 0.9, 5 * 864e5),
+        now: NOW,
+        policy: config2.orchestration.jobs.scheduler
+      })
+    })
+  );
+  return evaluate("api.max-returns-mid-attempt", [
+    {
+      claim: "no new paid attempt starts once subscription capacity is available",
+      holds: plan.decision !== "API",
+      observed: `${plan.decision}/${plan.reasonCode}`
+    },
+    {
+      claim: "the next strong task routes to SUBSCRIPTION",
+      holds: nextTask.lane === "SUBSCRIPTION",
+      observed: `${nextTask.lane}/${nextTask.reasonCode}`
+    }
+  ]);
+}
+function reliabilityPolicyOf(config2) {
+  return config2.orchestration.jobs.reliability;
+}
+function thresholds(policy) {
+  return {
+    sameFailureThreshold: policy.sameFailureThreshold,
+    sameDiffThreshold: config_sameDiffThreshold(policy),
+    oscillationThreshold: policy.oscillationThreshold
+  };
+}
+function config_sameDiffThreshold(policy) {
+  return Math.max(2, policy.sameFailureThreshold);
+}
+function reliabilityStalled(config2) {
+  const policy = reliabilityPolicyOf(config2);
+  const window = [
+    observation({ attemptId: "at-1", attemptNumber: 1 }),
+    observation({ attemptId: "at-2", attemptNumber: 2 }),
+    observation({ attemptId: "at-3", attemptNumber: 3 })
+  ];
+  const health = assessHealth({ window, thresholds: thresholds(policy) });
+  const assessment = assessFailure({
+    classified: classified("VERIFICATION_FAILURE"),
+    lane: "LOCAL",
+    diffFingerprint: "diff-a",
+    history: window,
+    health: health.health
+  });
+  const plan = planRecovery({
+    assessment,
+    health: health.health,
+    budget: budgetView({ attemptsUsed: 3 }),
+    policy,
+    lane: "LOCAL",
+    executionMode: "DIRECT_MODEL",
+    planRevision: 1,
+    planValid: true,
+    history: window,
+    exhaustedStrategies: [strategyKey({ lane: "LOCAL", executionMode: "DIRECT_MODEL", planRevision: 1, freshContext: false })],
+    freshContextRestartsUsed: 0,
+    infrastructureRetriesUsed: 0,
+    contextRatio: 0.3,
+    resource: RESOURCES
+  });
+  return evaluate("reliability.stalled", [
+    {
+      claim: "identical diff and failure across attempts is STALLED",
+      holds: health.health === "STALLED",
+      observed: health.health
+    },
+    {
+      claim: "recovery changes strategy rather than repeating the attempt",
+      holds: plan.strategyChange !== "SAME",
+      observed: `${plan.action}/${plan.reasonCode}/${plan.strategyChange}`
+    },
+    {
+      claim: "the already-exhausted strategy is not chosen again",
+      holds: plan.nextStrategy.key !== plan.previousStrategy.key,
+      observed: `previous=${plan.previousStrategy.key} next=${plan.nextStrategy.key}`
+    }
+  ]);
+}
+function reliabilityOscillation(config2) {
+  const policy = reliabilityPolicyOf(config2);
+  const window = [
+    observation({ attemptId: "at-1", attemptNumber: 1, diffFingerprint: "diff-a" }),
+    observation({ attemptId: "at-2", attemptNumber: 2, diffFingerprint: "diff-b" }),
+    observation({ attemptId: "at-3", attemptNumber: 3, diffFingerprint: "diff-a" }),
+    observation({ attemptId: "at-4", attemptNumber: 4, diffFingerprint: "diff-b" })
+  ];
+  const health = assessHealth({ window, thresholds: thresholds(policy) });
+  return evaluate("reliability.oscillation", [
+    {
+      claim: "alternating repository states with an unchanged failure is detected",
+      holds: health.health === "OSCILLATING" || health.oscillating,
+      observed: `${health.health} (oscillating=${String(health.oscillating)})`
+    }
+  ]);
+}
+function reliabilityRunaway(config2) {
+  const policy = reliabilityPolicyOf(config2);
+  const signals2 = detectRunaway(
+    {
+      toolCalls: (policy.maxToolCallsPerAttempt ?? 200) + 50,
+      commandRuns: (policy.maxCommandRunsPerAttempt ?? 100) + 20,
+      durationMs: 10 * 6e4,
+      contextUsageAfter: 0.4,
+      testLoops: (policy.maxTestLoopsPerAttempt ?? 20) + 5,
+      emptyDiff: true
+    },
+    {
+      maxToolCallsPerAttempt: policy.maxToolCallsPerAttempt,
+      maxCommandRunsPerAttempt: policy.maxCommandRunsPerAttempt,
+      maxAttemptWallTimeMs: policy.maxAttemptWallTimeMs,
+      maxContextUsageRatio: policy.maxContextUsageRatio,
+      maxTestLoopsPerAttempt: policy.maxTestLoopsPerAttempt
+    }
+  );
+  const window = [observation({ attemptId: "at-1", attemptNumber: 1 })];
+  const health = assessHealth({ window, thresholds: thresholds(policy), runawaySignals: signals2 });
+  const plan = planRecovery({
+    assessment: assessFailure({
+      classified: classified("NO_PROGRESS"),
+      lane: "LOCAL",
+      history: window,
+      health: health.health,
+      runawaySignals: signals2
+    }),
+    health: health.health,
+    budget: budgetView(),
+    policy,
+    lane: "LOCAL",
+    executionMode: "HARNESS",
+    planRevision: 1,
+    planValid: true,
+    history: window,
+    exhaustedStrategies: [],
+    freshContextRestartsUsed: 0,
+    infrastructureRetriesUsed: 0,
+    contextRatio: 0.4,
+    resource: RESOURCES
+  });
+  return evaluate("reliability.runaway", [
+    {
+      claim: "exceeded per-attempt bounds raise runaway signals",
+      holds: signals2.length > 0,
+      observed: signals2.join(", ") || "none"
+    },
+    {
+      claim: "health is RUNAWAY, outranking any longer-term reading",
+      holds: health.health === "RUNAWAY",
+      observed: health.health
+    },
+    {
+      claim: "recovery responds with a bounded, non-repeating action",
+      holds: plan.action !== "REPAIR" || plan.strategyChange !== "SAME",
+      observed: `${plan.action}/${plan.reasonCode}`
+    }
+  ]);
+}
+function reliabilityVerificationInfrastructure(config2) {
+  const policy = reliabilityPolicyOf(config2);
+  const window = [observation({ attemptId: "at-1", attemptNumber: 1, evaluationStatus: "INCONCLUSIVE" })];
+  const assessment = assessFailure({
+    classified: classified("VERIFICATION_FAILURE", "the test runner could not start"),
+    lane: "LOCAL",
+    history: window,
+    health: "DEGRADED",
+    verificationInfrastructureBroken: true
+  });
+  const plan = planRecovery({
+    assessment,
+    health: "DEGRADED",
+    budget: budgetView(),
+    policy,
+    lane: "LOCAL",
+    executionMode: "DIRECT_MODEL",
+    planRevision: 1,
+    planValid: true,
+    history: window,
+    exhaustedStrategies: [],
+    freshContextRestartsUsed: 0,
+    infrastructureRetriesUsed: 0,
+    contextRatio: 0.2,
+    resource: RESOURCES
+  });
+  return evaluate(
+    "reliability.verification-infrastructure",
+    [
+      {
+        claim: "a broken verifier is not attributed to the implementation",
+        holds: assessment.source !== "IMPLEMENTATION",
+        observed: assessment.source
+      },
+      {
+        claim: "recovery does not rewrite code on the strength of an unproved failure",
+        holds: plan.action !== "REPAIR",
+        observed: `${plan.action}/${plan.reasonCode}`
+      }
+    ],
+    { TRUSTED_VERIFICATION: "SIMULATED" }
+  );
+}
+function reliabilityContractViolation(config2) {
+  const policy = reliabilityPolicyOf(config2);
+  const window = [observation({ attemptId: "at-1", attemptNumber: 1, evaluationStatus: "FAIL" })];
+  const assessment = assessFailure({
+    classified: classified("AMBIGUITY", "acceptance criterion AC-2 is not satisfied"),
+    lane: "SUBSCRIPTION",
+    history: window,
+    health: "DEGRADED"
+  });
+  const plan = planRecovery({
+    assessment,
+    health: "DEGRADED",
+    budget: budgetView(),
+    policy,
+    lane: "SUBSCRIPTION",
+    executionMode: null,
+    planRevision: 1,
+    planValid: true,
+    history: window,
+    exhaustedStrategies: [],
+    freshContextRestartsUsed: 0,
+    infrastructureRetriesUsed: 0,
+    contextRatio: 0.2,
+    resource: RESOURCES
+  });
+  return evaluate("reliability.contract-violation", [
+    {
+      claim: "an acceptance-criteria violation is a requirement/contract failure",
+      holds: assessment.source === "REQUIREMENT_CONTRACT",
+      observed: assessment.source
+    },
+    {
+      claim: "the task is not treated as complete",
+      holds: plan.action !== "REPAIR" || plan.strategyChange !== "SAME",
+      observed: `${plan.action}/${plan.reasonCode}`
+    }
+  ]);
+}
+function reliabilityReplanPreservesIntent(config2) {
+  const policy = reliabilityPolicyOf(config2);
+  const window = [
+    observation({ attemptId: "at-1", attemptNumber: 1, diffFingerprint: "diff-a", strategyKey: "k1" }),
+    observation({ attemptId: "at-2", attemptNumber: 2, diffFingerprint: "diff-b", strategyKey: "k2" }),
+    observation({ attemptId: "at-3", attemptNumber: 3, diffFingerprint: "diff-c", strategyKey: "k3" })
+  ];
+  const health = assessHealth({ window, thresholds: thresholds(policy) });
+  const plan = planRecovery({
+    assessment: assessFailure({
+      classified: classified("IMPLEMENTATION_DEFECT"),
+      lane: "SUBSCRIPTION",
+      diffFingerprint: "diff-c",
+      history: window,
+      health: health.health
+    }),
+    health: health.health,
+    budget: budgetView({ attemptsUsed: 3, repairsUsed: 2, repairsMax: 2, remainingRepairs: 0 }),
+    policy,
+    lane: "SUBSCRIPTION",
+    executionMode: null,
+    planRevision: 1,
+    planValid: false,
+    history: window,
+    exhaustedStrategies: ["k1", "k2", "k3"],
+    freshContextRestartsUsed: 0,
+    infrastructureRetriesUsed: 0,
+    contextRatio: 0.3,
+    resource: RESOURCES
+  });
+  const benign = screenReplanForApprovedIntentImpact(
+    { goal: "Implement the settings store", steps: [{ description: "Extract a helper and add a unit test" }] },
+    { goal: "Implement the settings store", steps: [{ description: "Write the store inline" }] }
+  );
+  return evaluate("reliability.replan-preserves-intent", [
+    {
+      claim: "exhausted repair budget with an invalid plan produces a replan-class action",
+      holds: plan.action === "REPLAN" || plan.strategyChange === "PLAN",
+      observed: `${plan.action}/${plan.reasonCode}/${plan.strategyChange}`
+    },
+    {
+      claim: "a strategy-only replan does not require human authority",
+      holds: !benign.impacts,
+      observed: `impacts=${String(benign.impacts)} kinds=${benign.decisionKinds.join(",") || "none"}`
+    }
+  ]);
+}
+function localHarnessInfrastructureFailure(config2) {
+  const policy = reliabilityPolicyOf(config2);
+  const window = [observation({ attemptId: "at-1", attemptNumber: 1, lane: "LOCAL" })];
+  const assessment = assessFailure({
+    classified: classified("CAPABILITY_UNAVAILABLE", "the local harness process exited unexpectedly"),
+    lane: "LOCAL",
+    harnessFailureKind: "INFRASTRUCTURE",
+    history: window,
+    health: "DEGRADED"
+  });
+  const plan = planRecovery({
+    assessment,
+    health: "DEGRADED",
+    budget: budgetView(),
+    policy,
+    lane: "LOCAL",
+    executionMode: "HARNESS",
+    planRevision: 1,
+    planValid: true,
+    history: window,
+    exhaustedStrategies: [],
+    freshContextRestartsUsed: 0,
+    infrastructureRetriesUsed: 0,
+    contextRatio: 0.2,
+    resource: RESOURCES
+  });
+  const exhausted = planRecovery({
+    assessment,
+    health: "DEGRADED",
+    budget: budgetView(),
+    policy,
+    lane: "LOCAL",
+    executionMode: "HARNESS",
+    planRevision: 1,
+    planValid: true,
+    history: window,
+    exhaustedStrategies: [],
+    freshContextRestartsUsed: 0,
+    infrastructureRetriesUsed: policy.maxInfrastructureRetries,
+    contextRatio: 0.2,
+    resource: RESOURCES
+  });
+  return evaluate(
+    "local.harness-infrastructure-failure",
+    [
+      {
+        claim: "a crashed harness is an infrastructure failure, not an intelligence failure",
+        holds: assessment.source === "EXECUTION_INFRASTRUCTURE",
+        observed: assessment.source
+      },
+      {
+        claim: "a crashed harness proves nothing about the implementation",
+        holds: assessment.source !== "IMPLEMENTATION",
+        observed: assessment.source
+      },
+      {
+        claim: "the first response is a bounded retry, not a rewrite",
+        holds: plan.action === "RETRY_TRANSIENT",
+        observed: `${plan.action}/${plan.reasonCode}`
+      },
+      {
+        claim: "infrastructure retries are bounded rather than endless",
+        holds: exhausted.action !== "RETRY_TRANSIENT",
+        observed: `exhausted=${exhausted.action}/${exhausted.reasonCode}`
+      }
+    ],
+    { LOCAL_HARNESS: "SIMULATED" }
+  );
+}
+function localIntelligenceFailureEscalates(config2) {
+  const policy = reliabilityPolicyOf(config2);
+  const window = [
+    observation({ attemptId: "at-1", attemptNumber: 1, lane: "LOCAL", diffFingerprint: "d1" }),
+    observation({ attemptId: "at-2", attemptNumber: 2, lane: "LOCAL", diffFingerprint: "d2" })
+  ];
+  const assessment = assessFailure({
+    classified: classified("IMPLEMENTATION_DEFECT", "the implementation does not satisfy the tests"),
+    lane: "LOCAL",
+    harnessFailureKind: "INTELLIGENCE",
+    history: window,
+    health: "STALLED"
+  });
+  const plan = planRecovery({
+    assessment,
+    health: "STALLED",
+    budget: budgetView({
+      localAttemptsUsed: 2,
+      localAttemptsMax: 2,
+      remainingLocalAttempts: 0,
+      repairsUsed: 2,
+      repairsMax: 2,
+      remainingRepairs: 0,
+      replansUsed: 2,
+      replansMax: 2,
+      remainingReplans: 0,
+      remainingJobReplans: 0
+    }),
+    policy,
+    lane: "LOCAL",
+    executionMode: "HARNESS",
+    planRevision: 2,
+    planValid: true,
+    history: window,
+    exhaustedStrategies: [
+      strategyKey({ lane: "LOCAL", executionMode: "DIRECT_MODEL", planRevision: 2, freshContext: false }),
+      strategyKey({ lane: "LOCAL", executionMode: "HARNESS", planRevision: 2, freshContext: false })
+    ],
+    freshContextRestartsUsed: policy.maxFreshContextRestarts,
+    infrastructureRetriesUsed: 0,
+    contextRatio: 0.2,
+    resource: RESOURCES
+  });
+  return evaluate(
+    "local.intelligence-failure-escalates",
+    [
+      {
+        claim: "a verifiably wrong local implementation is an implementation failure",
+        holds: assessment.source === "IMPLEMENTATION",
+        observed: assessment.source
+      },
+      {
+        claim: "with local strategies exhausted, recovery asks for stronger execution",
+        holds: plan.requestedCapability?.kind === "STRONG" || plan.action === "ESCALATE_LANE" || plan.strategyChange === "LANE",
+        observed: `${plan.action}/${plan.reasonCode}/${plan.strategyChange}`
+      }
+    ],
+    { LOCAL_HARNESS: "SIMULATED", LOCAL_DIRECT_MODEL: "SIMULATED" }
+  );
+}
+var ADAPTIVE_NOW = /* @__PURE__ */ new Date("2026-08-01T12:00:00.000Z");
+function signature() {
+  return buildTaskSignature({
+    category: "unit-test",
+    complexity: "MEDIUM",
+    localSuitability: "LOCAL_TRY",
+    executionShape: "ONE_SHOT",
+    deterministicVerificationAvailable: true
+  });
+}
+function adaptiveObservation(overrides) {
+  return {
+    attemptId: "at-x",
+    jobId: "job-q",
+    nodeId: "n1",
+    taskId: "t1",
+    signatureKey: signature().key,
+    taskCategory: "unit-test",
+    taskComplexity: "MEDIUM",
+    candidateKey: "LOCAL/DIRECT_MODEL/local-llamacpp/qwen/LEGACY",
+    targetKey: "LOCAL/DIRECT_MODEL",
+    lane: "LOCAL",
+    executionMode: "DIRECT_MODEL",
+    runner: "local-llamacpp",
+    model: "qwen",
+    contextStrategy: "LEGACY",
+    runnerVersion: null,
+    label: "VERIFIED_SUCCESS",
+    failureSource: null,
+    executionHealth: "HEALTHY",
+    recoveryAction: null,
+    attemptNumber: 1,
+    wallTimeMs: 3 * 6e4,
+    inputTokens: 2e4,
+    outputTokens: 2e3,
+    fiveHourBurnRatio: null,
+    costUsd: null,
+    contextTokens: 15e3,
+    contextExpansions: 0,
+    contextInsufficient: false,
+    safetyEvent: false,
+    observedAt: new Date(ADAPTIVE_NOW.getTime() - 6e4).toISOString(),
+    ...overrides
+  };
+}
+function localRouting() {
+  return {
+    suitability: { class: "LOCAL_TRY", category: "unit-test", signals: [] },
+    estimate: { retryProbability: 0.4 },
+    routing: { lane: "LOCAL", reasonCode: "LOCAL_TRY_FIRST" },
+    localExecution: { mode: "DIRECT_MODEL" }
+  };
+}
+function candidateInput(overrides = {}) {
+  return {
+    routing: localRouting(),
+    contextStrategy: "LEGACY",
+    harnessBinding: {
+      status: "BOUND",
+      available: true,
+      profileName: "dsh-local",
+      runner: "deepseek-harness",
+      model: "qwen",
+      locality: "LOCAL",
+      localityEvidence: "loopback endpoint",
+      credentialRisks: [],
+      localityOverridden: false,
+      problems: [],
+      maxWallTimeMs: 9e5
+    },
+    localDirectAvailable: true,
+    localDirectModel: "qwen",
+    localDirectRunner: "local-llamacpp",
+    apiBinding: {
+      status: "UNBOUND",
+      available: false,
+      profileName: null,
+      runner: null,
+      model: null,
+      locality: "UNKNOWN"
+    },
+    subscriptionProvider: "claude-code",
+    exhaustedStrategies: [],
+    planRevision: 1,
+    ...overrides
+  };
+}
+var ADAPTIVE_FORECAST = {
+  fiveHourRemainingRatio: 0.8,
+  fiveHourResetAt: null,
+  timeToFiveHourResetMs: 3 * 36e5,
+  weeklyRemainingRatio: 0.9,
+  weeklyResetAt: null,
+  timeToWeeklyResetMs: 5 * 864e5,
+  observedFiveHourBurnRatePerMinute: null,
+  projectedBurnUntilFiveHourReset: null,
+  schedulerMode: "NORMAL",
+  telemetryFreshness: "FRESH",
+  observedAt: ADAPTIVE_NOW.toISOString(),
+  forecastAt: ADAPTIVE_NOW.toISOString()
+};
+function adaptiveHardPolicyVeto(config2) {
+  const policy = config2.orchestration.jobs.scheduler.adaptive;
+  const observations = Array.from(
+    { length: 40 },
+    (_unused, index) => adaptiveObservation({
+      attemptId: `at-h-${index}`,
+      candidateKey: "LOCAL/HARNESS/deepseek-harness/qwen/LEGACY",
+      targetKey: "LOCAL/HARNESS",
+      executionMode: "HARNESS",
+      runner: "deepseek-harness",
+      label: "VERIFIED_SUCCESS",
+      wallTimeMs: 3e4
+    })
+  );
+  const remoteHarness = candidateInput({
+    harnessBinding: {
+      status: "BOUND",
+      available: true,
+      profileName: "dsh-remote",
+      runner: "deepseek-harness",
+      model: "qwen",
+      locality: "REMOTE",
+      localityEvidence: "public https endpoint",
+      credentialRisks: [],
+      localityOverridden: false,
+      problems: [],
+      maxWallTimeMs: 9e5
+    }
+  });
+  const candidates = generateCandidates(remoteHarness);
+  const ranking = rankCandidates({
+    mode: "ADAPTIVE",
+    candidates,
+    signature: signature(),
+    profiles: aggregateProfiles({ observations, policy, now: ADAPTIVE_NOW }),
+    policy,
+    forecast: ADAPTIVE_FORECAST,
+    priorSuccessProbability: 0.6,
+    heuristicWallTimeMs: 10 * 6e4
+  });
+  const harnessEligible = candidates.eligible.some(
+    (candidate) => candidate.executionMode === "HARNESS"
+  );
+  const harnessRejected = candidates.rejected.some(
+    (candidate) => candidate.executionMode === "HARNESS"
+  );
+  return evaluate(
+    "adaptive.hard-policy-veto",
+    [
+      {
+        claim: "a harness whose compute is not verified local is not an eligible candidate",
+        holds: !harnessEligible,
+        observed: `eligible=${candidates.eligible.map((c3) => c3.candidateId).join(", ") || "none"}`
+      },
+      {
+        claim: "the rejection is recorded with a veto code rather than silently dropped",
+        holds: harnessRejected,
+        observed: candidates.rejected.map((c3) => `${c3.candidateId}:${c3.code}`).join(", ") || "none"
+      },
+      {
+        claim: "the selected candidate is never the vetoed one",
+        holds: ranking.selectedCandidate === null || ranking.selectedCandidate.executionMode !== "HARNESS" || ranking.selectedCandidate.computeLocality === "LOCAL",
+        observed: `selected=${ranking.selectedCandidate?.candidateId ?? "none"}`
+      }
+    ],
+    { ADAPTIVE_PROFILES: "SIMULATED" }
+  );
+}
+function adaptiveLowConfidenceFallback(config2) {
+  const policy = config2.orchestration.jobs.scheduler.adaptive;
+  const sparse = [adaptiveObservation({ attemptId: "at-only" })];
+  const ranking = rankCandidates({
+    mode: "ADAPTIVE",
+    candidates: generateCandidates(candidateInput()),
+    signature: signature(),
+    profiles: aggregateProfiles({ observations: sparse, policy, now: ADAPTIVE_NOW }),
+    policy,
+    forecast: ADAPTIVE_FORECAST,
+    priorSuccessProbability: 0.6,
+    heuristicWallTimeMs: 10 * 6e4
+  });
+  return evaluate(
+    "adaptive.low-confidence-fallback",
+    [
+      {
+        claim: "sparse history does not produce an applied adaptive selection",
+        holds: !ranking.adaptiveApplied,
+        observed: `adaptiveApplied=${String(ranking.adaptiveApplied)} confidence=${ranking.confidence}`
+      },
+      {
+        claim: "the fallback records why it fell back",
+        holds: ranking.fallbackReason !== null,
+        observed: ranking.fallbackReason ?? "null"
+      },
+      {
+        claim: "one success out of one attempt is not treated as certainty",
+        holds: ranking.confidence !== "HIGH",
+        observed: ranking.confidence
+      }
+    ],
+    { ADAPTIVE_PROFILES: "SIMULATED" }
+  );
+}
+function adaptiveDrift(config2) {
+  const policy = config2.orchestration.jobs.scheduler.adaptive;
+  const historical = Array.from(
+    { length: 30 },
+    (_unused, index) => adaptiveObservation({
+      attemptId: `at-old-${index}`,
+      runnerVersion: "1.0.0",
+      observedAt: new Date(ADAPTIVE_NOW.getTime() - 10 * 864e5).toISOString()
+    })
+  );
+  const degraded = Array.from(
+    { length: 6 },
+    (_unused, index) => adaptiveObservation({
+      attemptId: `at-new-${index}`,
+      runnerVersion: "2.0.0",
+      label: "IMPLEMENTATION_FAILURE",
+      observedAt: new Date(ADAPTIVE_NOW.getTime() - 6e4 * index).toISOString()
+    })
+  );
+  const ranking = rankCandidates({
+    mode: "ADAPTIVE",
+    candidates: generateCandidates(candidateInput()),
+    signature: signature(),
+    profiles: aggregateProfiles({
+      observations: [...historical, ...degraded],
+      policy,
+      now: ADAPTIVE_NOW
+    }),
+    policy,
+    forecast: ADAPTIVE_FORECAST,
+    priorSuccessProbability: 0.6,
+    heuristicWallTimeMs: 10 * 6e4
+  });
+  return evaluate(
+    "adaptive.drift-detection",
+    [
+      {
+        claim: "materially degraded recent performance does not produce a confident selection",
+        holds: !ranking.adaptiveApplied || ranking.confidence !== "HIGH",
+        observed: `applied=${String(ranking.adaptiveApplied)} confidence=${ranking.confidence}`
+      },
+      {
+        claim: "the outcome is explainable rather than opaque",
+        holds: ranking.explanation.length > 0,
+        observed: `${ranking.explanation.length} explanation line(s)`
+      }
+    ],
+    { ADAPTIVE_PROFILES: "SIMULATED" }
+  );
+}
+function localRemoteNeverLocal() {
+  const remote = generateCandidates(
+    candidateInput({
+      harnessBinding: {
+        status: "BOUND",
+        available: true,
+        profileName: "dsh-remote",
+        runner: "deepseek-harness",
+        model: "qwen",
+        locality: "REMOTE",
+        localityEvidence: "public https endpoint",
+        credentialRisks: [],
+        localityOverridden: false,
+        problems: [],
+        maxWallTimeMs: 9e5
+      }
+    })
+  );
+  const unknown2 = generateCandidates(
+    candidateInput({
+      harnessBinding: {
+        status: "BOUND",
+        available: true,
+        profileName: "dsh-unknown",
+        runner: "deepseek-harness",
+        model: "qwen",
+        locality: "UNKNOWN",
+        localityEvidence: null,
+        credentialRisks: [],
+        localityOverridden: false,
+        problems: [],
+        maxWallTimeMs: 9e5
+      }
+    })
+  );
+  const localOnly = (set) => set.eligible.every(
+    (candidate) => candidate.lane !== "LOCAL" || candidate.computeLocality === "LOCAL"
+  );
+  return evaluate(
+    "local.remote-never-local",
+    [
+      {
+        claim: "a REMOTE harness never yields a LOCAL-lane candidate",
+        holds: localOnly(remote),
+        observed: remote.eligible.map((c3) => `${c3.lane}/${c3.executionMode}/${c3.computeLocality}`).join(", ")
+      },
+      {
+        claim: "an UNKNOWN-locality harness never yields a LOCAL-lane candidate",
+        holds: localOnly(unknown2),
+        observed: unknown2.eligible.map((c3) => `${c3.lane}/${c3.executionMode}/${c3.computeLocality}`).join(", ")
+      }
+    ],
+    { LOCAL_HARNESS: "SIMULATED" }
+  );
+}
+function contextProgressiveExpansion(config2) {
+  const efficient = {
+    ...config2,
+    orchestration: {
+      ...config2.orchestration,
+      jobs: {
+        ...config2.orchestration.jobs,
+        context: {
+          ...config2.orchestration.jobs.context,
+          efficiency: {
+            ...config2.orchestration.jobs.context.efficiency,
+            strategy: "PROGRESSIVE"
+          }
+        }
+      }
+    }
+  };
+  const state = contextExpansionStateSchema.parse({
+    taskId: "qual-task",
+    nodeId: "n1",
+    level: "MINIMAL_BOOTSTRAP",
+    expansionsThisAttempt: 0,
+    expansionsThisTask: 0,
+    updatedAt: NOW.toISOString()
+  });
+  const offer = offerContextExpansion({
+    config: efficient,
+    state,
+    signals: ["WORKER_REPORTED_MISSING_CONTEXT"]
+  });
+  const policy = reliabilityPolicyOf(config2);
+  const window = [observation({ attemptId: "at-1", attemptNumber: 1 })];
+  const assessment = assessFailure({
+    classified: classified("IMPLEMENTATION_DEFECT"),
+    lane: "LOCAL",
+    history: window,
+    health: "DEGRADED",
+    contextInsufficiencySignals: ["WORKER_REPORTED_MISSING_CONTEXT"]
+  });
+  const plan = planRecovery({
+    assessment,
+    health: "DEGRADED",
+    budget: budgetView(),
+    policy,
+    lane: "LOCAL",
+    executionMode: "DIRECT_MODEL",
+    planRevision: 1,
+    planValid: true,
+    history: window,
+    exhaustedStrategies: [],
+    freshContextRestartsUsed: 0,
+    infrastructureRetriesUsed: 0,
+    contextRatio: 0.2,
+    contextExpansion: {
+      available: offer.available,
+      nextLevel: offer.nextLevel,
+      reason: offer.reason,
+      exhausted: offer.exhausted
+    },
+    resource: RESOURCES
+  });
+  return evaluate("context.progressive-expansion", [
+    {
+      claim: "observed context-miss evidence moves the failure source to CONTEXT",
+      holds: assessment.source === "CONTEXT",
+      observed: assessment.source
+    },
+    {
+      claim: "bounded widening is offered",
+      holds: offer.available,
+      observed: `available=${String(offer.available)} nextLevel=${offer.nextLevel}`
+    },
+    {
+      claim: "recovery widens context rather than buying a bigger model",
+      holds: plan.requestedCapability?.kind !== "STRONG",
+      observed: `${plan.action}/${plan.reasonCode}/${plan.strategyChange}`
+    }
+  ]);
+}
+function contextExpansionExhaustion(config2) {
+  const efficiency = config2.orchestration.jobs.context.efficiency;
+  const efficient = {
+    ...config2,
+    orchestration: {
+      ...config2.orchestration,
+      jobs: {
+        ...config2.orchestration.jobs,
+        context: {
+          ...config2.orchestration.jobs.context,
+          efficiency: { ...efficiency, strategy: "PROGRESSIVE" }
+        }
+      }
+    }
+  };
+  const state = contextExpansionStateSchema.parse({
+    taskId: "qual-task",
+    nodeId: "n1",
+    level: efficiency.maxExpansionLevel,
+    expansionsThisAttempt: 0,
+    expansionsThisTask: efficiency.maxExpansionsPerTask,
+    updatedAt: NOW.toISOString()
+  });
+  const offer = offerContextExpansion({
+    config: efficient,
+    state,
+    signals: ["WORKER_REPORTED_MISSING_CONTEXT"]
+  });
+  const policy = reliabilityPolicyOf(config2);
+  const window = [
+    observation({ attemptId: "at-1", attemptNumber: 1, diffFingerprint: "d1" }),
+    observation({ attemptId: "at-2", attemptNumber: 2, diffFingerprint: "d2" })
+  ];
+  const plan = planRecovery({
+    assessment: assessFailure({
+      classified: classified("STALE_CONTEXT"),
+      lane: "LOCAL",
+      history: window,
+      health: "DEGRADED",
+      contextInsufficiencySignals: ["MANDATORY_REFERENCE_DROPPED"]
+    }),
+    health: "DEGRADED",
+    budget: budgetView(),
+    policy,
+    lane: "LOCAL",
+    executionMode: "DIRECT_MODEL",
+    planRevision: 1,
+    planValid: true,
+    history: window,
+    exhaustedStrategies: [],
+    freshContextRestartsUsed: 0,
+    infrastructureRetriesUsed: 0,
+    contextRatio: 0.5,
+    contextExpansion: {
+      available: offer.available,
+      nextLevel: offer.nextLevel,
+      reason: offer.reason,
+      exhausted: offer.exhausted
+    },
+    resource: RESOURCES
+  });
+  return evaluate("context.expansion-exhaustion", [
+    {
+      claim: "exhausted widening is reported as exhausted, not silently retried",
+      holds: offer.exhausted && !offer.available,
+      observed: `available=${String(offer.available)} exhausted=${String(offer.exhausted)}`
+    },
+    {
+      claim: "the decision returns to reliability rather than widening further",
+      holds: plan.action !== "EXPAND_CONTEXT",
+      observed: `${plan.action}/${plan.reasonCode}`
+    }
+  ]);
+}
+function governanceInvalidContractChange() {
+  const screen = screenReplanForApprovedIntentImpact(
+    {
+      goal: "Change the public API contract of the workflow definition",
+      steps: [{ description: "Introduce a breaking change to the action result protocol" }]
+    },
+    {
+      goal: "Implement the workflow definition loader",
+      steps: [{ description: "Parse the definition file and validate it" }]
+    }
+  );
+  return evaluate("governance.invalid-contract-change", [
+    {
+      claim: "a replan that would alter approved intent is screened as impacting it",
+      holds: screen.impacts,
+      observed: `impacts=${String(screen.impacts)}`
+    },
+    {
+      claim: "the decision kinds it raises require human authority",
+      holds: screen.decisionKinds.every(
+        (kind) => DECISION_AUTHORITY_TABLE[kind] === "human" || DECISION_AUTHORITY_TABLE[kind] === "human-only" || DECISION_AUTHORITY_TABLE[kind] === "policy"
+      ),
+      observed: screen.decisionKinds.join(", ") || "none"
+    }
+  ]);
+}
+function governanceApprovalHumanOnly() {
+  return evaluate("governance.approval-is-human-only", [
+    {
+      claim: "approval authority is human-only",
+      holds: DECISION_AUTHORITY_TABLE.approval === "human-only",
+      observed: DECISION_AUTHORITY_TABLE.approval
+    },
+    {
+      claim: "no autonomous authority exists for architecture or product-behaviour changes",
+      holds: DECISION_AUTHORITY_TABLE["architecture-contract-change"] === "human" && DECISION_AUTHORITY_TABLE["product-behavior-change"] === "human" && DECISION_AUTHORITY_TABLE["spec-conflict"] === "human",
+      observed: [
+        `architecture=${DECISION_AUTHORITY_TABLE["architecture-contract-change"]}`,
+        `product=${DECISION_AUTHORITY_TABLE["product-behavior-change"]}`,
+        `spec=${DECISION_AUTHORITY_TABLE["spec-conflict"]}`
+      ].join(" ")
+    }
+  ]);
+}
+var POLICY_SCENARIOS = Object.freeze({
+  "quota.five-hour-exhaustion": quotaFiveHourExhaustion,
+  "quota.reset-readmits": quotaResetReadmits,
+  "quota.cross-reset-admission": quotaCrossReset,
+  "quota.harvest": quotaHarvest,
+  "quota.weekly-scarcity-suppresses-harvest": quotaWeeklyScarcity,
+  "quota.weekly-exhaustion": quotaWeeklyExhaustion,
+  "api.disabled-no-spend": apiDisabled,
+  "api.bounded-bridge": apiBoundedBridge,
+  "api.budget-exhaustion": apiBudgetExhaustion,
+  "api.interrupted-reservation": apiInterruptedReservation,
+  "api.max-returns-mid-attempt": apiMaxReturnsMidAttempt,
+  "reliability.stalled": reliabilityStalled,
+  "reliability.oscillation": reliabilityOscillation,
+  "reliability.runaway": reliabilityRunaway,
+  "reliability.verification-infrastructure": reliabilityVerificationInfrastructure,
+  "reliability.contract-violation": reliabilityContractViolation,
+  "reliability.replan-preserves-intent": reliabilityReplanPreservesIntent,
+  "local.harness-infrastructure-failure": localHarnessInfrastructureFailure,
+  "local.intelligence-failure-escalates": localIntelligenceFailureEscalates,
+  "local.remote-never-local": () => localRemoteNeverLocal(),
+  "adaptive.hard-policy-veto": adaptiveHardPolicyVeto,
+  "adaptive.low-confidence-fallback": adaptiveLowConfidenceFallback,
+  "adaptive.drift-detection": adaptiveDrift,
+  "context.progressive-expansion": contextProgressiveExpansion,
+  "context.expansion-exhaustion": contextExpansionExhaustion,
+  "governance.invalid-contract-change": () => governanceInvalidContractChange(),
+  "governance.approval-is-human-only": () => governanceApprovalHumanOnly()
+});
 
 // ../../packages/mcp-server/src/errors.ts
 var SBMCP_CODES = {
@@ -62198,11 +67590,11 @@ var EMPTY_COMPLETION_RESULT = {
 };
 
 // ../../packages/mcp-server/src/prompts/helpers.ts
-function promptResult(context, name, description, text8) {
+function promptResult(context, name, description, text9) {
   context.logger.info("prompt_requested", { prompt: name });
   return {
     description,
-    messages: [{ role: "user", content: { type: "text", text: text8 } }]
+    messages: [{ role: "user", content: { type: "text", text: text9 } }]
   };
 }
 
@@ -62412,7 +67804,7 @@ async function buildWorkspaceDetection(context) {
   const specs = discoverSpecs(workspace);
   const configRead = readAgentConfig(workspace);
   const configStatus = !configRead.exists ? "absent-defaults" : configRead.config !== void 0 ? "valid" : "invalid";
-  const snapshot = await captureGitSnapshot(workspace.rootDir, { clock: context.clock });
+  const snapshot2 = await captureGitSnapshot(workspace.rootDir, { clock: context.clock });
   const diagnostics = [...steering.flatMap((info) => info.diagnostics), ...configRead.diagnostics];
   const suggestedNextSteps = [];
   if (specs.length === 0) {
@@ -62425,7 +67817,7 @@ async function buildWorkspaceDetection(context) {
       "Fix .specbridge/config.json; execution tools refuse an invalid configuration."
     );
   }
-  if (!snapshot.gitAvailable) {
+  if (!snapshot2.gitAvailable) {
     suggestedNextSteps.push("Initialize a Git repository; interactive task execution requires one.");
   }
   return {
@@ -62438,12 +67830,12 @@ async function buildWorkspaceDetection(context) {
     sidecarPresent: workspace.sidecarExists,
     configStatus,
     git: {
-      repository: snapshot.gitAvailable,
-      ...snapshot.gitAvailable ? {
-        clean: snapshot.clean,
-        ...snapshot.branch !== void 0 ? { branch: snapshot.branch } : {},
-        ...snapshot.head !== void 0 ? { head: snapshot.head } : {},
-        dirtyPaths: snapshot.entries.length
+      repository: snapshot2.gitAvailable,
+      ...snapshot2.gitAvailable ? {
+        clean: snapshot2.clean,
+        ...snapshot2.branch !== void 0 ? { branch: snapshot2.branch } : {},
+        ...snapshot2.head !== void 0 ? { head: snapshot2.head } : {},
+        dirtyPaths: snapshot2.entries.length
       } : {}
     },
     diagnostics: toDiagnosticViews(workspace, diagnostics),
@@ -62527,12 +67919,12 @@ function paginate(all, options) {
     totalCount: all.length
   };
 }
-function truncateText(text8, maximumBytes) {
-  const originalBytes = import_node_buffer4.Buffer.byteLength(text8, "utf8");
+function truncateText(text9, maximumBytes) {
+  const originalBytes = import_node_buffer4.Buffer.byteLength(text9, "utf8");
   if (originalBytes <= maximumBytes) {
-    return { text: text8, truncated: false, originalBytes };
+    return { text: text9, truncated: false, originalBytes };
   }
-  const buffer = import_node_buffer4.Buffer.from(text8, "utf8").subarray(0, maximumBytes);
+  const buffer = import_node_buffer4.Buffer.from(text9, "utf8").subarray(0, maximumBytes);
   const decoded = buffer.toString("utf8").replace(/�+$/u, "");
   return { text: decoded, truncated: true, originalBytes };
 }
@@ -62569,9 +67961,9 @@ function assertStructuredSize(toolName, structured) {
 function resourceNotFound(what, remediation) {
   return new Error(`${what} was not found. ${remediation}`);
 }
-function markdownContents(context, uri, text8) {
+function markdownContents(context, uri, text9) {
   context.logger.info("resource_read", { resource: uri });
-  const bounded = truncateText(text8, LIMITS.maximumDocumentBytes);
+  const bounded = truncateText(text9, LIMITS.maximumDocumentBytes);
   return {
     contents: [
       {
@@ -62589,7 +67981,7 @@ function jsonContents(context, uri, value) {
   context.logger.info("resource_read", { resource: uri });
   const serialized = JSON.stringify(value, null, 2);
   const bounded = truncateText(serialized, LIMITS.maximumStructuredResponseBytes);
-  const text8 = bounded.truncated ? JSON.stringify(
+  const text9 = bounded.truncated ? JSON.stringify(
     {
       truncated: true,
       message: `The resource exceeded ${LIMITS.maximumStructuredResponseBytes} bytes; use the paginated tools instead.`
@@ -62597,7 +67989,7 @@ function jsonContents(context, uri, value) {
     null,
     2
   ) : serialized;
-  return { contents: [{ uri, mimeType: "application/json", text: text8 }] };
+  return { contents: [{ uri, mimeType: "application/json", text: text9 }] };
 }
 function assertPlainName(kind, value) {
   const decoded = decodeURIComponent(value);
@@ -62919,13 +68311,13 @@ var runDetailShape = external_exports.object({
   artifacts: external_exports.array(external_exports.string()).describe("Artifact file names inside the run directory"),
   artifactsDir: external_exports.string().describe("Repository-relative run directory")
 });
-function toGitSummary(snapshot) {
-  if (snapshot === void 0) return void 0;
+function toGitSummary(snapshot2) {
+  if (snapshot2 === void 0) return void 0;
   return {
-    ...snapshot.head !== void 0 ? { head: snapshot.head } : {},
-    ...snapshot.branch !== void 0 ? { branch: snapshot.branch } : {},
-    clean: snapshot.clean,
-    dirtyPaths: snapshot.entries.length
+    ...snapshot2.head !== void 0 ? { head: snapshot2.head } : {},
+    ...snapshot2.branch !== void 0 ? { branch: snapshot2.branch } : {},
+    clean: snapshot2.clean,
+    dirtyPaths: snapshot2.entries.length
   };
 }
 function buildRunDetail(workspace, record4, artifactNames) {
@@ -63020,7 +68412,7 @@ var import_path30 = __toESM(require("path"), 1);
 var import_fs28 = require("fs");
 var import_path31 = __toESM(require("path"), 1);
 var import_fs29 = require("fs");
-var import_crypto11 = require("crypto");
+var import_crypto12 = require("crypto");
 var import_path32 = __toESM(require("path"), 1);
 var taskEvidenceSchema = external_exports.object({
   taskId: external_exports.string().min(1),
@@ -64843,7 +70235,7 @@ var VERIFY_EXIT_CODES = {
 };
 async function verifySpecs(request) {
   const now3 = (request.clock ?? (() => /* @__PURE__ */ new Date()))();
-  const verificationId = (request.idFactory ?? import_crypto11.randomUUID)();
+  const verificationId = (request.idFactory ?? import_crypto12.randomUUID)();
   const workspace = request.workspace;
   const configRead = readAgentConfig(workspace);
   if (configRead.config === void 0) {
@@ -65271,7 +70663,7 @@ function registerDefinedTool(server, context, definition) {
         }
         const remediation = envelope.remediation.length > 0 ? `
 Remediation:
-${envelope.remediation.map((step) => `  - ${step}`).join("\n")}` : "";
+${envelope.remediation.map((step2) => `  - ${step2}`).join("\n")}` : "";
         return {
           content: [
             {
@@ -65374,8 +70766,8 @@ function registerSteeringListTool(server, context) {
           diagnostics: toDiagnosticViews(workspace, info.diagnostics)
         };
       });
-      const text8 = steering.length === 0 ? "No steering documents exist (.kiro/steering is absent or empty). Steering is optional." : `${steering.length} steering document(s): ${steering.map((s) => s.name).join(", ")}.`;
-      return { text: text8, structured: { steering, count: steering.length } };
+      const text9 = steering.length === 0 ? "No steering documents exist (.kiro/steering is absent or empty). Steering is optional." : `${steering.length} steering document(s): ${steering.map((s) => s.name).join(", ")}.`;
+      return { text: text9, structured: { steering, count: steering.length } };
     }
   });
 }
@@ -65503,10 +70895,10 @@ function registerSpecListTool(server, context) {
       const lines = page.items.map(
         (spec) => `- ${spec.name} [${spec.type}/${spec.workflowMode}] ${spec.workflowStatus}, approvals ${spec.approvalHealth}, tasks ${spec.taskProgress.completed}/${spec.taskProgress.total}`
       );
-      const text8 = page.totalCount === 0 ? "No specs match. This workspace may have no specs yet; create one with spec_create." : `${page.totalCount} spec(s)${page.truncated ? ` (showing ${page.items.length})` : ""}:
+      const text9 = page.totalCount === 0 ? "No specs match. This workspace may have no specs yet; create one with spec_create." : `${page.totalCount} spec(s)${page.truncated ? ` (showing ${page.items.length})` : ""}:
 ${lines.join("\n")}`;
       return {
-        text: text8,
+        text: text9,
         structured: {
           specs: page.items,
           pagination: {
@@ -65580,10 +70972,10 @@ function registerSpecReadTool(server, context) {
         };
       });
       const present = documents.filter((doc) => doc.exists);
-      const text8 = present.length === 0 ? `Spec "${analysis.folder.name}" has none of the requested document(s) yet.` : present.map((doc) => `## ${doc.path}
+      const text9 = present.length === 0 ? `Spec "${analysis.folder.name}" has none of the requested document(s) yet.` : present.map((doc) => `## ${doc.path}
 
 ${doc.content ?? ""}${doc.truncated === true ? "\n\n[truncated]" : ""}`).join("\n\n");
-      return { text: text8, structured: { specName: analysis.folder.name, documents } };
+      return { text: text9, structured: { specName: analysis.folder.name, documents } };
     }
   });
 }
@@ -65687,7 +71079,7 @@ function registerSpecStatusTool(server, context) {
       const capped = capDiagnostics(toDiagnosticViews(workspace, allDiagnostics));
       const suggestedNextActions = suggestNextActions(bundle);
       const stageLines = stages.map((stage) => `  ${stage.stage}: ${stage.effective}`);
-      const text8 = [
+      const text9 = [
         `Spec "${summary.name}" (${summary.type}, ${summary.workflowMode}) \u2014 status ${summary.workflowStatus}, approvals ${summary.approvalHealth}.`,
         stages.length > 0 ? `Stages:
 ${stageLines.join("\n")}` : "No SpecBridge workflow state (unmanaged spec).",
@@ -65695,7 +71087,7 @@ ${stageLines.join("\n")}` : "No SpecBridge workflow state (unmanaged spec).",
         `Next: ${suggestedNextActions[0] ?? "(no suggestion)"}`
       ].join("\n");
       return {
-        text: text8,
+        text: text9,
         structured: {
           summary,
           stages,
@@ -65914,13 +71306,13 @@ function registerSpecAnalyzeTool(server, context) {
       } else if (strict && result.warningCount > 0) {
         remediation.push("Fix the warnings or re-run without strict.");
       }
-      const text8 = [
+      const text9 = [
         `Analysis of "${analysis.folder.name}" (${stagesAnalyzed.join(", ") || "no stages"}): ${result.errorCount} error(s), ${result.warningCount} warning(s), ${infoCount} info \u2014 ${passed ? "PASSED" : "FAILED"}${strict ? " (strict)" : ""}.`,
         ...capped.items.slice(0, 20).map((d) => `- ${d.severity.toUpperCase()} ${d.code}: ${d.message}${d.line !== void 0 ? ` (line ${d.line})` : ""}`),
         capped.items.length > 20 ? `\u2026 ${capped.items.length - 20} more finding(s) in structured content.` : ""
       ].filter((line) => line.length > 0).join("\n");
       return {
-        text: text8,
+        text: text9,
         structured: {
           specName: analysis.folder.name,
           stagesAnalyzed,
@@ -66010,10 +71402,10 @@ function registerSpecCreateTool(server, context) {
             "Call spec_create again with apply: true to create the spec."
           ];
         }
-        const text8 = apply ? `Created spec "${plan.specName}" (${plan.specType}, ${plan.mode}) with ${plan.files.length} file(s). Initial status: ${plan.state.status}.` : `Preview of spec "${plan.specName}" (${plan.specType}, ${plan.mode}) \u2014 nothing was written.
+        const text9 = apply ? `Created spec "${plan.specName}" (${plan.specType}, ${plan.mode}) with ${plan.files.length} file(s). Initial status: ${plan.state.status}.` : `Preview of spec "${plan.specName}" (${plan.specType}, ${plan.mode}) \u2014 nothing was written.
 ` + previewFiles.map((file) => `- ${file.path} (${file.bytes} bytes)`).join("\n");
         return {
-          text: text8,
+          text: text9,
           structured: {
             applied: apply,
             specName: plan.specName,
@@ -66166,7 +71558,7 @@ function registerSpecStageValidateTool(server, context) {
       );
       const boundedDiff = truncateText(evaluation.diff, LIMITS.maximumDocumentBytes);
       const nextStep = valid ? "Present the diff for review; after explicit user confirmation call spec_stage_apply with this candidateHash." : "Fix the error-level findings and validate again; spec_stage_apply refuses candidates with errors.";
-      const text8 = [
+      const text9 = [
         `Candidate ${args.stage}.md for "${evaluation.analysis.folder.name}": ${valid ? "VALID" : "INVALID"} (${evaluation.analysisResult.errorCount} error(s), ${evaluation.analysisResult.warningCount} warning(s)).`,
         `Candidate hash: ${evaluation.candidateHash}`,
         `Current document: ${evaluation.currentExists ? `hash ${evaluation.currentHash}` : "(absent)"}`,
@@ -66174,7 +71566,7 @@ function registerSpecStageValidateTool(server, context) {
         `Next: ${nextStep}`
       ].join("\n");
       return {
-        text: text8,
+        text: text9,
         structured: {
           specName: evaluation.analysis.folder.name,
           stage: args.stage,
@@ -66333,14 +71725,14 @@ function registerSpecStageApplyTool(server, context) {
         toDiagnosticViews(workspace, evaluation.analysisResult.diagnostics)
       );
       const nextStep = `The ${args.stage} stage is written but NOT approved. A human approves it with: specbridge spec approve ${specName} --stage ${args.stage}`;
-      const text8 = [
+      const text9 = [
         `Applied ${args.stage}.md for "${specName}" (${written.created ? "created" : "updated"}, ${written.eol.toUpperCase()} preserved).`,
         invalidation.invalidated.length > 0 ? `Invalidated dependent approval(s): ${invalidation.invalidated.join(", ")}.` : "No dependent approvals were invalidated.",
         `Authoring run: ${runId}.`,
         nextStep
       ].join("\n");
       return {
-        text: text8,
+        text: text9,
         structured: {
           applied: true,
           specName,
@@ -66445,10 +71837,10 @@ function registerTaskListTool(server, context) {
         (task) => `- ${box(task.state)} ${task.id} ${task.title}${task.optional ? " (optional)" : ""}`
       );
       const progress = model.progress;
-      const text8 = `Tasks for "${analysis.folder.name}": ${progress.completed}/${progress.total} required complete.` + (lines.length > 0 ? `
+      const text9 = `Tasks for "${analysis.folder.name}": ${progress.completed}/${progress.total} required complete.` + (lines.length > 0 ? `
 ${lines.join("\n")}` : "\n(no tasks parsed)");
       return {
-        text: text8,
+        text: text9,
         structured: {
           specName: analysis.folder.name,
           progress,
@@ -66689,7 +72081,7 @@ function registerTaskBeginTool(server, context) {
       });
       const boundedContext = truncateText(outcome.contextMarkdown, LIMITS.maximumDocumentBytes);
       const task = outcome.task;
-      const text8 = [
+      const text9 = [
         `Interactive run ${outcome.runId} started for "${outcome.specName}", task ${task.id}: ${task.title}.`,
         "",
         "Instructions:",
@@ -66699,7 +72091,7 @@ function registerTaskBeginTool(server, context) {
         `When the source changes are ready, call task_complete with runId "${outcome.runId}".`
       ].join("\n");
       return {
-        text: text8,
+        text: text9,
         structured: {
           runId: outcome.runId,
           specName: outcome.specName,
@@ -66796,7 +72188,7 @@ function registerTaskCompleteTool(server, context) {
       });
       const actualChangedFiles = report.changedFiles.filter((file) => file.modifiedDuringRun);
       const nextRecommendedAction = nextActionFor(outcome.outcome, report);
-      const text8 = [
+      const text9 = [
         `Run ${report.runId}: ${outcome.outcome.toUpperCase()} (evidence: ${report.evidenceStatus}).${outcome.finalizedNow ? "" : " [already finalized; returning the recorded result]"}`,
         `Actual changed files (${actualChangedFiles.length}): ${actualChangedFiles.map((f) => f.path).join(", ") || "(none)"}`,
         report.verification.ran ? `Verification: ${report.verification.passed ? "passed" : `FAILED (${report.verification.requiredFailed.join(", ")})`}` : "Verification: not run.",
@@ -66806,7 +72198,7 @@ ${report.violations.map((v) => `- ${v}`).join("\n")}` : "",
         `Next: ${nextRecommendedAction}`
       ].filter((line) => line.length > 0).join("\n");
       return {
-        text: text8,
+        text: text9,
         structured: {
           runId: report.runId,
           outcome: outcome.outcome,
@@ -66941,10 +72333,10 @@ function registerRunListTool(server, context) {
       const lines = page.items.map(
         (run) => `- ${run.runId.slice(0, 12)} ${run.runType} ${run.specName}${run.taskId !== void 0 ? `#${run.taskId}` : ""} \u2192 ${run.evidenceStatus ?? run.lifecycleStatus ?? run.outcome ?? "(in progress)"}`
       );
-      const text8 = page.totalCount === 0 ? "No recorded runs match." : `${page.totalCount} run(s)${page.truncated ? ` (showing ${page.items.length})` : ""}:
+      const text9 = page.totalCount === 0 ? "No recorded runs match." : `${page.totalCount} run(s)${page.truncated ? ` (showing ${page.items.length})` : ""}:
 ${lines.join("\n")}`;
       return {
-        text: text8,
+        text: text9,
         structured: {
           runs: page.items,
           pagination: {
@@ -67113,14 +72505,14 @@ function registerSpecAffectedTool(server, context) {
         return { specName: spec.specName, matches: spec.matches.slice(0, MAX_PATHS) };
       });
       if (result.unmapped.length > MAX_PATHS || result.ambiguous.length > MAX_PATHS) truncated = true;
-      const text8 = [
+      const text9 = [
         `Comparison ${request.mode}: ${comparison.changedFiles.length} changed file(s).`,
         result.affected.length > 0 ? `Affected specs: ${result.affected.map((spec) => spec.specName).join(", ")}.` : "No spec is affected by this change set.",
         result.unmapped.length > 0 ? `${result.unmapped.length} unmapped changed file(s).` : "",
         result.ambiguous.length > 0 ? `${result.ambiguous.length} file(s) claimed by more than one spec.` : ""
       ].filter((line) => line.length > 0).join("\n");
       return {
-        text: text8,
+        text: text9,
         structured: {
           comparison: { mode: request.mode, changedFiles: comparison.changedFiles.length },
           affected: boundedAffected,
@@ -67366,14 +72758,14 @@ function registerSpecRunVerificationTool(server, context) {
       const commandLines = commands.map(
         (command) => `- ${command.name}: ${command.disposition}${command.disposition === "executed" ? command.passed ? " (passed)" : ` (FAILED, exit ${command.exitCode ?? "none"})` : ""}`
       );
-      const text8 = [
+      const text9 = [
         verificationText(view, "Verification (rules + trusted commands)"),
         commands.length > 0 ? `Commands:
 ${commandLines.join("\n")}` : "No verification commands are configured.",
         persistReport && reportPath !== void 0 ? `Report persisted: ${reportPath}` : "Report not persisted (persistReport was false)."
       ].join("\n");
       return {
-        text: text8,
+        text: text9,
         structured: {
           ...view,
           commands,
@@ -67391,7 +72783,7 @@ var import_node_os4 = __toESM(require("os"), 1);
 var import_node_path10 = __toESM(require("path"), 1);
 
 // ../../packages/extension-sdk/dist/index.js
-var import_crypto12 = require("crypto");
+var import_crypto13 = require("crypto");
 var EXTENSION_RULE_ID_PATTERN = /^[A-Z][A-Z0-9_-]{0,63}$/;
 var MAX_EXTENSION_DIAGNOSTICS = 1e3;
 var EXTENSION_DIAGNOSTIC_SEVERITIES = ["info", "warning", "error"];
@@ -67609,7 +73001,7 @@ function computePermissionHash(input) {
       specRead: normalized.specRead
     }
   });
-  return (0, import_crypto12.createHash)("sha256").update(canonical, "utf8").digest("hex");
+  return (0, import_crypto13.createHash)("sha256").update(canonical, "utf8").digest("hex");
 }
 function describePermissions(permissions) {
   const normalized = normalizePermissions(permissions);
@@ -67910,9 +73302,9 @@ function checkManifestSemantics(manifest) {
   checkUrl("repository", manifest.repository, issues);
   return issues;
 }
-function parseExtensionManifest(text8) {
+function parseExtensionManifest(text9) {
   const issues = [];
-  if (Buffer.byteLength(text8, "utf8") > MAX_EXTENSION_MANIFEST_BYTES) {
+  if (Buffer.byteLength(text9, "utf8") > MAX_EXTENSION_MANIFEST_BYTES) {
     issues.push(
       extensionIssue(
         "SBE008",
@@ -67926,7 +73318,7 @@ function parseExtensionManifest(text8) {
   }
   let parsed;
   try {
-    parsed = JSON.parse(text8);
+    parsed = JSON.parse(text9);
   } catch (error2) {
     issues.push(
       extensionIssue(
@@ -68826,8 +74218,8 @@ function checkManifestSemantics2(manifest) {
   }
   return issues;
 }
-function parseTemplateManifest(text8) {
-  if (Buffer.byteLength(text8, "utf8") > TEMPLATE_PACK_LIMITS.maxManifestBytes) {
+function parseTemplateManifest(text9) {
+  if (Buffer.byteLength(text9, "utf8") > TEMPLATE_PACK_LIMITS.maxManifestBytes) {
     return {
       issues: [
         issue2(
@@ -68840,7 +74232,7 @@ function parseTemplateManifest(text8) {
   }
   let parsed;
   try {
-    parsed = JSON.parse(text8);
+    parsed = JSON.parse(text9);
   } catch (cause) {
     return {
       issues: [
@@ -68886,13 +74278,13 @@ function parseTemplateManifest(text8) {
 }
 var PLACEHOLDER_PATTERN = /\{\{([^{}\r\n]*)\}\}/g;
 var VALID_PLACEHOLDER_NAME = /^[a-z][a-zA-Z0-9]*$/;
-function renderTemplateText(sourceLabel, text8, values) {
+function renderTemplateText(sourceLabel, text9, values) {
   const parts = [];
   let lastIndex = 0;
   PLACEHOLDER_PATTERN.lastIndex = 0;
   let match;
-  while ((match = PLACEHOLDER_PATTERN.exec(text8)) !== null) {
-    parts.push(text8.slice(lastIndex, match.index));
+  while ((match = PLACEHOLDER_PATTERN.exec(text9)) !== null) {
+    parts.push(text9.slice(lastIndex, match.index));
     lastIndex = match.index + match[0].length;
     const inner = match[1] ?? "";
     if (!VALID_PLACEHOLDER_NAME.test(inner)) {
@@ -68914,7 +74306,7 @@ function renderTemplateText(sourceLabel, text8, values) {
     }
     parts.push(value);
   }
-  parts.push(text8.slice(lastIndex));
+  parts.push(text9.slice(lastIndex));
   const rendered = parts.join("");
   const renderedBytes = Buffer.byteLength(rendered, "utf8");
   if (renderedBytes > TEMPLATE_PACK_LIMITS.maxRenderedFileBytes) {
@@ -68930,13 +74322,13 @@ function renderTemplateText(sourceLabel, text8, values) {
 function truncatePlaceholder(raw) {
   return raw.length > 40 ? `${raw.slice(0, 40)}\u2026` : raw;
 }
-function collectPlaceholders(text8) {
+function collectPlaceholders(text9) {
   const names = [];
   const malformed = [];
   const seen = /* @__PURE__ */ new Set();
   PLACEHOLDER_PATTERN.lastIndex = 0;
   let match;
-  while ((match = PLACEHOLDER_PATTERN.exec(text8)) !== null) {
+  while ((match = PLACEHOLDER_PATTERN.exec(text9)) !== null) {
     const inner = match[1] ?? "";
     if (!VALID_PLACEHOLDER_NAME.test(inner)) {
       malformed.push(truncatePlaceholder(match[0]));
@@ -69190,8 +74582,8 @@ function readTemplatePackDirectory(dir) {
         );
       }
       const buffer = (0, import_fs30.readFileSync)(entryPath);
-      const text8 = buffer.toString("utf8");
-      if (!Buffer.from(text8, "utf8").equals(buffer)) {
+      const text9 = buffer.toString("utf8");
+      if (!Buffer.from(text9, "utf8").equals(buffer)) {
         throw new TemplateError(
           "SBT025",
           `${entryRelative} is not valid UTF-8 text.`,
@@ -69199,7 +74591,7 @@ function readTemplatePackDirectory(dir) {
           { path: entryPath }
         );
       }
-      if (text8.includes("\0")) {
+      if (text9.includes("\0")) {
         throw new TemplateError(
           "SBT025",
           `${entryRelative} contains binary (null-byte) content.`,
@@ -69207,7 +74599,7 @@ function readTemplatePackDirectory(dir) {
           { path: entryPath }
         );
       }
-      files.set(entryRelative, text8);
+      files.set(entryRelative, text9);
     }
   };
   walk(dir, "", 0);
@@ -69681,8 +75073,8 @@ var SCORE_ID_PREFIX = 800;
 var SCORE_EXACT_TAG = 600;
 var SCORE_DISPLAY_NAME_TOKEN = 400;
 var SCORE_DESCRIPTION_TOKEN = 200;
-function tokenize(text8) {
-  return text8.toLowerCase().split(/[^a-z0-9]+/u).filter((token) => token.length > 0);
+function tokenize(text9) {
+  return text9.toLowerCase().split(/[^a-z0-9]+/u).filter((token) => token.length > 0);
 }
 function clampSearchLimit(requested) {
   if (requested === void 0 || !Number.isFinite(requested)) return DEFAULT_SEARCH_LIMIT;
@@ -69993,7 +75385,7 @@ function executeTemplateApplication(workspace, plan, clock = systemClock, record
 }
 
 // ../../packages/extensions/dist/index.js
-var import_crypto13 = require("crypto");
+var import_crypto14 = require("crypto");
 var import_fs34 = require("fs");
 var import_path38 = __toESM(require("path"), 1);
 var import_child_process = require("child_process");
@@ -70127,11 +75519,11 @@ var extensionChecksumsSchema = external_exports.object({
   files: external_exports.record(external_exports.string().regex(/^[0-9a-f]{64}$/))
 }).strict();
 function sha256HexOf(data) {
-  return (0, import_crypto13.createHash)("sha256").update(data).digest("hex");
+  return (0, import_crypto14.createHash)("sha256").update(data).digest("hex");
 }
-function parseExtensionChecksums(text8) {
+function parseExtensionChecksums(text9) {
   const issues = [];
-  if (Buffer.byteLength(text8, "utf8") > EXTENSION_LIMITS.maxChecksumsBytes) {
+  if (Buffer.byteLength(text9, "utf8") > EXTENSION_LIMITS.maxChecksumsBytes) {
     issues.push(
       extensionIssue(
         "SBE008",
@@ -70145,7 +75537,7 @@ function parseExtensionChecksums(text8) {
   }
   let parsed;
   try {
-    parsed = JSON.parse(text8);
+    parsed = JSON.parse(text9);
   } catch (error2) {
     issues.push(
       extensionIssue(
@@ -70328,11 +75720,11 @@ function readExtensionPackageDirectory(dir) {
   return files;
 }
 function decodeUtf8Strict(name, content) {
-  const text8 = content.toString("utf8");
-  if (!Buffer.from(text8, "utf8").equals(content) || text8.includes("\0")) {
+  const text9 = content.toString("utf8");
+  if (!Buffer.from(text9, "utf8").equals(content) || text9.includes("\0")) {
     return void 0;
   }
-  return text8;
+  return text9;
 }
 function loadExtensionPackage(files, options = {}) {
   const issues = [];
@@ -70516,15 +75908,15 @@ function validateTemplateProviderPacks(manifest, files, specbridgeVersion) {
       );
       continue;
     }
-    const text8 = decodeUtf8Strict(name, content);
-    if (text8 === void 0) {
+    const text9 = decodeUtf8Strict(name, content);
+    if (text9 === void 0) {
       issues.push(
         extensionIssue("SBE008", "files", "error", `template file "${name}" is not valid UTF-8`, name)
       );
       continue;
     }
     const pack = packs.get(packId) ?? /* @__PURE__ */ new Map();
-    pack.set(packRelative, text8);
+    pack.set(packRelative, text9);
     packs.set(packId, pack);
   }
   if (packs.size === 0) {
@@ -70645,9 +76037,9 @@ function readValidatedJson(filePath, schema, empty, label) {
   if (!(0, import_fs34.existsSync)(filePath)) {
     return { value: empty, diagnostics: [], exists: false };
   }
-  let text8;
+  let text9;
   try {
-    text8 = (0, import_fs34.readFileSync)(filePath, "utf8");
+    text9 = (0, import_fs34.readFileSync)(filePath, "utf8");
   } catch (cause) {
     return {
       value: empty,
@@ -70664,7 +76056,7 @@ function readValidatedJson(filePath, schema, empty, label) {
   }
   let parsed;
   try {
-    parsed = JSON.parse(text8);
+    parsed = JSON.parse(text9);
   } catch {
     return {
       value: empty,
@@ -71068,8 +76460,8 @@ function spawnExtensionProcess(options) {
 }
 var MAX_PROTOCOL_LOG_LINES = 200;
 var SHUTDOWN_GRACE_MS = 1e3;
-function redact(text8, secrets) {
-  let redacted = text8;
+function redact(text9, secrets) {
+  let redacted = text9;
   for (const secret of secrets) {
     if (secret.length >= 4) {
       redacted = redacted.split(secret).join("[redacted]");
@@ -72496,9 +77888,9 @@ function registerTemplateListTool(server, context) {
         ...args.cursor !== void 0 ? { cursor: args.cursor } : {},
         token: "template-list"
       });
-      const text8 = page.items.length === 0 ? "No templates match the given filters." : page.items.map((template) => `- ${template.ref} v${template.version ?? "?"} \u2014 ${template.displayName ?? "(invalid)"}`).join("\n");
+      const text9 = page.items.length === 0 ? "No templates match the given filters." : page.items.map((template) => `- ${template.ref} v${template.version ?? "?"} \u2014 ${template.displayName ?? "(invalid)"}`).join("\n");
       return {
-        text: text8,
+        text: text9,
         structured: {
           templates: page.items,
           totalCount: filtered.length,
@@ -72539,8 +77931,8 @@ function registerTemplateSearchTool(server, context) {
       const filtered = { entries: filterEntries(catalog.entries, args), diagnostics: catalog.diagnostics };
       const results = searchTemplates(filtered, args.query, args.limit !== void 0 ? { limit: args.limit } : {});
       const summaries = results.map((result) => ({ ...entrySummary(result.entry), score: result.score }));
-      const text8 = summaries.length === 0 ? `No templates match "${args.query}".` : summaries.map((result) => `- ${result.ref} (score ${result.score}) \u2014 ${result.displayName ?? ""}`).join("\n");
-      return { text: text8, structured: { results: summaries, totalCount: summaries.length } };
+      const text9 = summaries.length === 0 ? `No templates match "${args.query}".` : summaries.map((result) => `- ${result.ref} (score ${result.score}) \u2014 ${result.displayName ?? ""}`).join("\n");
+      return { text: text9, structured: { results: summaries, totalCount: summaries.length } };
     }
   });
 }
@@ -72587,13 +77979,13 @@ function registerTemplateShowTool(server, context) {
       const manifest = entry.pack.manifest;
       const summary = entrySummary(entry);
       const readme = entry.pack.readme !== void 0 ? truncateText(entry.pack.readme, LIMITS.maximumShortTextChars) : void 0;
-      const text8 = [
+      const text9 = [
         `${entry.ref} \u2014 ${manifest?.displayName ?? "(invalid template)"} v${manifest?.version ?? "?"}`,
         manifest?.description ?? "",
         manifest !== void 0 ? `Variables: ${manifest.variables.map((variable) => variable.name).join(", ") || "(none)"}` : `Invalid: ${summary.errors.join(" | ")}`
       ].filter((line) => line.length > 0).join("\n");
       return {
-        text: text8,
+        text: text9,
         structured: {
           template: summary,
           license: manifest?.license ?? null,
@@ -72915,14 +78307,14 @@ var registryIndexSchema = external_exports.object({
   updatedAt: external_exports.string().min(1).max(60),
   extensions: external_exports.array(registryExtensionEntrySchema).max(2e3)
 }).strict();
-function parseRegistryIndex(text8) {
+function parseRegistryIndex(text9) {
   const problems = [];
-  if (Buffer.byteLength(text8, "utf8") > MAX_REGISTRY_INDEX_BYTES) {
+  if (Buffer.byteLength(text9, "utf8") > MAX_REGISTRY_INDEX_BYTES) {
     return { problems: [`index exceeds ${MAX_REGISTRY_INDEX_BYTES} bytes`] };
   }
   let parsed;
   try {
-    parsed = JSON.parse(text8);
+    parsed = JSON.parse(text9);
   } catch (error2) {
     return { problems: [`index is not valid JSON: ${error2 instanceof Error ? error2.message : String(error2)}`] };
   }
@@ -73054,8 +78446,8 @@ function resolveRegistryIndex(workspace, source) {
         ]
       };
     }
-    const text8 = (0, import_fs37.readFileSync)(filePath, "utf8");
-    const parsed = parseRegistryIndex(text8);
+    const text9 = (0, import_fs37.readFileSync)(filePath, "utf8");
+    const parsed = parseRegistryIndex(text9);
     if (parsed.index === void 0) {
       throw new RegistryError(
         "SBR007",
@@ -73304,9 +78696,9 @@ function registerExtensionListTool(server, context) {
         ...args.cursor !== void 0 ? { cursor: args.cursor } : {},
         token: "extension-list"
       });
-      const text8 = page.items.length === 0 ? "No installed extensions match the given filters." : page.items.map((entry) => `- ${entry.id}@${entry.version} (${entry.kind}, ${entry.enabled ? "enabled" : "disabled"})`).join("\n");
+      const text9 = page.items.length === 0 ? "No installed extensions match the given filters." : page.items.map((entry) => `- ${entry.id}@${entry.version} (${entry.kind}, ${entry.enabled ? "enabled" : "disabled"})`).join("\n");
       return {
-        text: text8,
+        text: text9,
         structured: { extensions: page.items, totalCount: entries.length, nextCursor: page.nextCursor ?? null }
       };
     }
@@ -73937,18 +79329,18 @@ function registerOrchestrationClarifyTool(server, context) {
           ...question.relatedTaskId !== void 0 ? { relatedTaskId: question.relatedTaskId } : {}
         }))
       );
-      const round = state.counters.clarificationRounds;
-      const asked = state.openQuestions.filter((question) => question.round === round);
+      const round2 = state.counters.clarificationRounds;
+      const asked = state.openQuestions.filter((question) => question.round === round2);
       return {
         text: [
-          `Clarification round ${round}: ${asked.length} question(s). Implementation cannot start until they are answered.`,
+          `Clarification round ${round2}: ${asked.length} question(s). Implementation cannot start until they are answered.`,
           "",
           ...asked.map((question) => `- ${question.question}
   (why: ${question.whyItMatters})`)
         ].join("\n"),
         structured: {
           ...stateSummary(workspace, state),
-          round,
+          round: round2,
           questionIds: asked.map((question) => question.id)
         }
       };
@@ -74071,11 +79463,11 @@ function registerOrchestrationSubmitPlanTool(server, context) {
       const result = await submitPlan(deps, args.orchestrationId, {
         taskId: args.taskId,
         goal: args.goal,
-        steps: args.steps.map((step) => ({
-          ...step.id !== void 0 ? { id: step.id } : {},
-          description: step.description,
-          ...step.expectedAreas !== void 0 ? { expectedAreas: step.expectedAreas } : {},
-          ...step.expectedEvidence !== void 0 ? { expectedEvidence: step.expectedEvidence } : {}
+        steps: args.steps.map((step2) => ({
+          ...step2.id !== void 0 ? { id: step2.id } : {},
+          description: step2.description,
+          ...step2.expectedAreas !== void 0 ? { expectedAreas: step2.expectedAreas } : {},
+          ...step2.expectedEvidence !== void 0 ? { expectedEvidence: step2.expectedEvidence } : {}
         })),
         testStrategy: args.testStrategy,
         verificationStrategy: args.verificationStrategy,
@@ -74100,7 +79492,7 @@ function registerOrchestrationSubmitPlanTool(server, context) {
         ...plan.openQuestions.length > 0 ? ["", "Open questions:", ...plan.openQuestions.map((v) => `  - ${v}`)] : [],
         "",
         "Steps:",
-        ...plan.steps.map((step, index) => `  ${index + 1}. ${step.description}`),
+        ...plan.steps.map((step2, index) => `  ${index + 1}. ${step2.description}`),
         "",
         `Test strategy: ${plan.testStrategy}`,
         `Verification strategy: ${plan.verificationStrategy}`,
@@ -74226,7 +79618,7 @@ function registerOrchestrationRecordActionTool(server, context) {
           `Directive: ${decision.directive}`,
           decision.reason,
           ...decision.backoffMs > 0 ? [`Wait ${decision.backoffMs}ms before retrying.`] : [],
-          ...decision.remediation.length > 0 ? ["", ...decision.remediation.map((step) => `  - ${step}`)] : []
+          ...decision.remediation.length > 0 ? ["", ...decision.remediation.map((step2) => `  - ${step2}`)] : []
         ].join("\n"),
         structured: {
           ...stateSummary(workspace, result.state),
@@ -74399,11 +79791,11 @@ function registerJobListTool(server, context) {
         if (args.activeOnly === true && job.finalizedAt !== void 0) return false;
         return true;
       }).slice(0, 100).map(toJobSummary);
-      const text8 = jobs.length === 0 ? "No orchestration jobs match. Start one with `specbridge orchestrate run <spec>`." : jobs.map(
+      const text9 = jobs.length === 0 ? "No orchestration jobs match. Start one with `specbridge orchestrate run <spec>`." : jobs.map(
         (job) => `- ${job.jobId} ${job.status} (${job.specName}, ${job.agentRuns} agent runs, ${job.openQuestions} open question(s))`
       ).join("\n");
       return {
-        text: text8,
+        text: text9,
         structured: {
           jobs,
           diagnostics: listed.diagnostics.map((diagnostic) => ({
@@ -74471,7 +79863,7 @@ function registerJobReadTool(server, context) {
         ...node.latestFailure !== void 0 ? { latestFailureCategory: node.latestFailure.category } : {},
         ...node.latestDiagnosis !== void 0 ? { latestDiagnosisAction: node.latestDiagnosis.recommendedAction } : {}
       }));
-      const text8 = [
+      const text9 = [
         `Job ${job.jobId}: ${job.status} (${job.specName})`,
         ...job.blocker !== void 0 ? [`Blocker [${job.blocker.code}]: ${job.blocker.message}`] : [],
         ...job.openQuestions.map((question) => `Question ${question.id}: ${question.question}`),
@@ -74481,7 +79873,7 @@ function registerJobReadTool(server, context) {
         ...checkpoint !== void 0 ? [`Next action: ${checkpoint.nextAction}`] : []
       ].join("\n");
       return {
-        text: text8,
+        text: text9,
         structured: {
           job: toJobSummary(job),
           goal: job.goal,
@@ -74557,7 +79949,7 @@ var missionSummaryShape = {
   contracts: external_exports.number().int(),
   contractReady: external_exports.boolean().optional()
 };
-function summarize2(context, workspace, missionId) {
+function summarize3(context, workspace, missionId) {
   const mission = requireMissionState(workspace, missionId);
   const coverage = readCoverage(workspace, missionId);
   return {
@@ -74587,7 +79979,7 @@ function registerMissionBeginTool(server, context) {
       const mission = beginMission(missionDeps(context, workspace), { name: args.name, goal: args.goal });
       return {
         text: `Mission ${mission.missionId} (${mission.name}) created in status ${mission.status}. Record the user's direction as the first turn.`,
-        structured: { mission: summarize2(context, workspace, mission.missionId) }
+        structured: { mission: summarize3(context, workspace, mission.missionId) }
       };
     }
   });
@@ -74603,7 +79995,7 @@ function registerMissionStatusTool(server, context) {
     handler: async () => {
       const workspace = context.requireWorkspace();
       const listed = listMissions(workspace);
-      const missions = listed.missions.slice(0, 50).map((mission) => summarize2(context, workspace, mission.missionId));
+      const missions = listed.missions.slice(0, 50).map((mission) => summarize3(context, workspace, mission.missionId));
       return {
         text: missions.length === 0 ? "No missions exist. Begin one with mission_begin." : missions.map((mission) => `- ${mission.missionId} ${mission.status} (${mission.name})`).join("\n"),
         structured: { missions }
@@ -74686,7 +80078,7 @@ function registerMissionReadTool(server, context) {
       }
       return {
         text: `${view}: ${records.length} record(s).`,
-        structured: { mission: summarize2(context, workspace, args.missionId), view, records }
+        structured: { mission: summarize3(context, workspace, args.missionId), view, records }
       };
     }
   });
@@ -75109,10 +80501,10 @@ function registerObjectiveReadTool(server, context) {
         status: record4.status,
         workspaceIdentity: record4.workspaceIdentity
       }));
-      const text8 = graph === void 0 ? "No work graph exists for this objective yet." : graph.units.map((unit) => `- ${unit.workUnitId} [${unit.status}] (${unit.kind}) ${unit.title}`).join("\n") + (conflicts.length > 0 ? `
+      const text9 = graph === void 0 ? "No work graph exists for this objective yet." : graph.units.map((unit) => `- ${unit.workUnitId} [${unit.status}] (${unit.kind}) ${unit.title}`).join("\n") + (conflicts.length > 0 ? `
 ${conflicts.length} contract conflict(s) recorded.` : "");
       return {
-        text: text8,
+        text: text9,
         structured: {
           workGraph: graph ?? null,
           conflicts,

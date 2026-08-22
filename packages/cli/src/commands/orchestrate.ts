@@ -27,6 +27,7 @@ import {
 import type { CliRuntime } from '../context.js';
 import { VERSION } from '../version.js';
 import { registerOrchestrateJobCommands } from './orchestrate-jobs.js';
+import { registerOrchestrateQualifyCommands } from './orchestrate-qualify.js';
 
 /**
  * `specbridge orchestrate …` — deterministic, read-only inspection of
@@ -62,6 +63,10 @@ export function registerOrchestrateCommands(program: Command, runtime: CliRuntim
 
   // v1.2 job surface (run/jobs/job/node-plan/review-plan/answer/cancel-job).
   registerOrchestrateJobCommands(orchestrate, runtime);
+
+  // vNext.9 release-qualification surface (scenarios/preflight/run/report).
+  // Opt-in and inert: nothing here runs unless an operator asks for it.
+  registerOrchestrateQualifyCommands(orchestrate, runtime);
 
   // -------------------------------------------------------------------------
   // status

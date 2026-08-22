@@ -472,6 +472,62 @@
               }
             }
           },
+          "qualify": {
+            "options": [
+              "--help"
+            ],
+            "subcommands": {
+              "economics": {
+                "options": [
+                  "--help",
+                  "--json"
+                ]
+              },
+              "preflight": {
+                "options": [
+                  "--help",
+                  "--json",
+                  "--profile",
+                  "--target",
+                  "--target-name"
+                ]
+              },
+              "report": {
+                "options": [
+                  "--help",
+                  "--json",
+                  "--markdown",
+                  "--no-write"
+                ]
+              },
+              "run": {
+                "options": [
+                  "--direction",
+                  "--failed-only",
+                  "--help",
+                  "--json",
+                  "--profile",
+                  "--run-id",
+                  "--scenario",
+                  "--target",
+                  "--target-name"
+                ]
+              },
+              "runs": {
+                "options": [
+                  "--help",
+                  "--json"
+                ]
+              },
+              "scenarios": {
+                "options": [
+                  "--area",
+                  "--help",
+                  "--json"
+                ]
+              }
+            }
+          },
           "quota": {
             "options": [
               "--help",
