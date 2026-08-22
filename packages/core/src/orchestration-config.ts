@@ -837,6 +837,206 @@ export const apiExecutionPolicySchema: z.ZodType<ApiExecutionPolicy, z.ZodTypeDe
   })
   .passthrough();
 
+// ---------------------------------------------------------------------------
+// vNext.8 adaptive compute scheduler
+// ---------------------------------------------------------------------------
+
+/**
+ * Adaptive scheduler modes (vNext.8). Rollout states, ordered by how much
+ * authority observed history is allowed to have over placement.
+ *
+ *   HEURISTIC  the vNext.2-vNext.7 deterministic scheduler decides alone.
+ *              No prediction is computed, no adaptive record is written, and
+ *              behavior is byte-identical to vNext.7. The rollback switch.
+ *   SHADOW     predictions ARE computed and recorded, and disagreement with
+ *              the heuristic is reported — but the heuristic choice still
+ *              executes. The validation state: it produces the evidence
+ *              needed to judge the adaptive layer without letting it place
+ *              a single task.
+ *   ADAPTIVE   history may SELECT among candidates the hard policy layer has
+ *              already declared eligible, when confidence clears the
+ *              configured floor and the utility margin clears hysteresis.
+ *              Below either bar it falls back to the heuristic choice.
+ *
+ * No mode grants the adaptive layer authority it does not have in HEURISTIC:
+ * ranking operates strictly inside the candidate set hard policy produced.
+ */
+export const ADAPTIVE_SCHEDULER_MODES = ['HEURISTIC', 'SHADOW', 'ADAPTIVE'] as const;
+export type AdaptiveSchedulerMode = (typeof ADAPTIVE_SCHEDULER_MODES)[number];
+
+/**
+ * Expected-utility weights.
+ *
+ * Utility is a weighted sum of NORMALIZED components — every raw quantity is
+ * mapped into [0,1) by a documented saturating function before it is
+ * weighted, so seconds, dollars, tokens, and quota percentages are never
+ * added to one another in their own units.
+ *
+ * The default weighting deliberately makes verified completion dominant:
+ * `successWeight` alone outweighs every penalty at its saturation point, so
+ * a candidate that is cheaper but materially less likely to finish loses.
+ * Marginal resource savings are a tie-breaker, never the objective.
+ */
+export interface AdaptiveUtilityWeights {
+  /** Weight on predicted probability of VERIFIED completion. Must be > 0. */
+  successWeight: number;
+  /** Penalty on expected wall time to verified completion (with retries). */
+  latencyPenalty: number;
+  /** Penalty on expected resources burned by attempts that do NOT verify. */
+  failedWorkPenalty: number;
+  /** Penalty (or, under HARVEST, bonus) on subscription quota opportunity cost. */
+  quotaPressurePenalty: number;
+  /** Penalty on expected monetary cost of a metered attempt. */
+  apiCostPenalty: number;
+  /** Penalty on expected context tokens consumed per verified completion. */
+  contextCostPenalty: number;
+  /** Penalty on fixed startup/handoff overhead of the execution shape. */
+  handoffPenalty: number;
+  [key: string]: unknown;
+}
+
+export const adaptiveUtilityWeightsSchema: z.ZodType<AdaptiveUtilityWeights, z.ZodTypeDef, unknown> = z
+  .object({
+    successWeight: z.number().finite().min(0).max(100).default(1),
+    latencyPenalty: z.number().finite().min(0).max(100).default(0.2),
+    failedWorkPenalty: z.number().finite().min(0).max(100).default(0.3),
+    quotaPressurePenalty: z.number().finite().min(0).max(100).default(0.15),
+    apiCostPenalty: z.number().finite().min(0).max(100).default(0.25),
+    contextCostPenalty: z.number().finite().min(0).max(100).default(0.1),
+    handoffPenalty: z.number().finite().min(0).max(100).default(0.05),
+  })
+  .passthrough()
+  .superRefine((value, ctx) => {
+    // A zero success weight would make the scheduler optimize cost alone —
+    // exactly the failure mode this phase exists to prevent. An all-zero
+    // weight vector makes every candidate score identically, which is a
+    // configuration mistake rather than a preference.
+    if (typeof value.successWeight === 'number' && value.successWeight <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'adaptive.weights.successWeight must be greater than zero: verified completion is the ' +
+          'objective, and a scheduler that weighs only cost is not an improvement over a coin flip.',
+      });
+    }
+    const total = [
+      value.successWeight,
+      value.latencyPenalty,
+      value.failedWorkPenalty,
+      value.quotaPressurePenalty,
+      value.apiCostPenalty,
+      value.contextCostPenalty,
+      value.handoffPenalty,
+    ].reduce((sum: number, entry) => sum + (typeof entry === 'number' ? entry : 0), 0);
+    if (total <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'adaptive.weights must not all be zero: every candidate would score identically.',
+      });
+    }
+  }) as unknown as z.ZodType<AdaptiveUtilityWeights, z.ZodTypeDef, unknown>;
+
+/**
+ * Adaptive compute scheduler policy (vNext.8, additive, defaulted OFF).
+ *
+ * Governs how observed execution history may inform placement. Like every
+ * policy in this file these are OPERATIONAL bounds; nothing here can widen
+ * an economic lane, authorize spending, relax a quota reserve, weaken
+ * locality verification, or overrule a reliability veto. Those live in their
+ * own policies and run BEFORE anything here is consulted.
+ *
+ * `mode` is the master switch and defaults to HEURISTIC, which reproduces
+ * vNext.7 scheduling exactly.
+ */
+export interface AdaptiveSchedulerPolicy {
+  mode: AdaptiveSchedulerMode;
+  /**
+   * Weighted observations a candidate needs before adaptive ranking may
+   * override the heuristic choice at all. Below this floor the prediction is
+   * still computed and recorded — it simply cannot decide anything.
+   */
+  minimumSamplesForAdaptiveDecision: number;
+  /**
+   * Weighted observations EACH compared candidate needs before a comparison
+   * between them counts as meaningful. Comparing a well-measured candidate
+   * against a barely-measured one is how sparse data wins arguments it has
+   * not earned.
+   */
+  minimumComparableSamples: number;
+  /**
+   * Strength of the Beta prior, in pseudo-observations. The prior's success
+   * rate is the EXISTING heuristic expectation for the task, identical
+   * across candidates, so the prior encodes uncertainty rather than a
+   * preference for any provider.
+   */
+  priorStrength: number;
+  /** Half-life of the deterministic recency weight applied to observations. */
+  recencyHalfLifeMs: number;
+  /** Observations older than this are dropped from rate aggregation entirely. */
+  maxObservationAgeMs: number;
+  /** Ceiling on observations folded into one profile rebuild (bounded work). */
+  maxObservations: number;
+  /** Confidence a prediction must reach before it may decide placement. */
+  minimumConfidence: 'LOW' | 'MEDIUM' | 'HIGH';
+  /**
+   * Utility margin the adaptive choice must beat the heuristic incumbent by.
+   * Hysteresis: below this margin the stable choice stands, so statistical
+   * noise cannot make placement oscillate between equivalent candidates.
+   */
+  minimumUtilityImprovement: number;
+  /** Saturation scale for the wall-time penalty, in milliseconds. */
+  wallTimeScaleMs: number;
+  /** Saturation scale for the failed-work penalty, in milliseconds. */
+  failedWorkScaleMs: number;
+  /** Saturation scale for the context-cost penalty, in tokens. */
+  contextTokenScale: number;
+  /** Saturation scale for the API-cost penalty, in USD. */
+  apiCostScaleUsd: number;
+  /** Relative success-rate drop between windows that counts as drift. */
+  driftSuccessDropRatio: number;
+  /** Median wall-time growth factor between windows that counts as drift. */
+  driftWallTimeGrowthFactor: number;
+  /** Observations each window needs before drift may be declared at all. */
+  driftMinimumSamples: number;
+  /**
+   * Whether safety-class failures (contract/authorization violations) are
+   * EXEMPT from recency decay. Rare serious events stay policy-relevant long
+   * after ordinary performance data has aged out.
+   */
+  safetyFailuresExemptFromDecay: boolean;
+  /** Retained adaptive decision records per job (oldest pruned). */
+  maxDecisionRecords: number;
+  /** Retained prediction-calibration records per job (oldest pruned). */
+  maxCalibrationRecords: number;
+  weights: AdaptiveUtilityWeights;
+  [key: string]: unknown;
+}
+
+export const adaptiveSchedulerPolicySchema: z.ZodType<AdaptiveSchedulerPolicy, z.ZodTypeDef, unknown> = z
+  .object({
+    mode: z.enum(ADAPTIVE_SCHEDULER_MODES).default('HEURISTIC'),
+    minimumSamplesForAdaptiveDecision: z.number().int().min(1).max(1_000).default(8),
+    minimumComparableSamples: z.number().int().min(1).max(1_000).default(4),
+    priorStrength: z.number().finite().min(0.5).max(100).default(4),
+    recencyHalfLifeMs: z.number().int().min(3_600_000).max(31_536_000_000).default(14 * 86_400_000),
+    maxObservationAgeMs: z.number().int().min(86_400_000).max(31_536_000_000).default(180 * 86_400_000),
+    maxObservations: z.number().int().min(50).max(200_000).default(5_000),
+    minimumConfidence: z.enum(['LOW', 'MEDIUM', 'HIGH'] as const).default('MEDIUM'),
+    minimumUtilityImprovement: z.number().finite().min(0).max(1).default(0.05),
+    wallTimeScaleMs: z.number().int().min(60_000).max(86_400_000).default(30 * 60_000),
+    failedWorkScaleMs: z.number().int().min(60_000).max(86_400_000).default(30 * 60_000),
+    contextTokenScale: z.number().int().min(1_000).max(10_000_000).default(200_000),
+    apiCostScaleUsd: z.number().finite().min(0.01).max(10_000).default(2),
+    driftSuccessDropRatio: z.number().finite().min(0.05).max(1).default(0.25),
+    driftWallTimeGrowthFactor: z.number().finite().min(1.05).max(100).default(1.5),
+    driftMinimumSamples: z.number().int().min(2).max(1_000).default(4),
+    safetyFailuresExemptFromDecay: z.boolean().default(true),
+    maxDecisionRecords: z.number().int().min(10).max(5_000).default(500),
+    maxCalibrationRecords: z.number().int().min(10).max(5_000).default(500),
+    weights: adaptiveUtilityWeightsSchema.default({}),
+  })
+  .passthrough() as unknown as z.ZodType<AdaptiveSchedulerPolicy, z.ZodTypeDef, unknown>;
+
 /**
  * vNext.2 quota-aware scheduler policy (additive, defaulted).
  *
@@ -914,6 +1114,12 @@ export interface JobSchedulerPolicy {
   localExecution: LocalExecutionPolicy;
   /** vNext.5 API lane policy (paid continuity bridge; disabled by default). */
   api: ApiExecutionPolicy;
+  /**
+   * vNext.8 adaptive compute scheduler (history-informed ranking; HEURISTIC
+   * by default). It sits strictly BELOW every field above it: those decide
+   * what is allowed, this one may only order what they already permitted.
+   */
+  adaptive: AdaptiveSchedulerPolicy;
 }
 
 export const jobSchedulerPolicySchema: z.ZodType<JobSchedulerPolicy, z.ZodTypeDef, unknown> = z
@@ -938,6 +1144,7 @@ export const jobSchedulerPolicySchema: z.ZodType<JobSchedulerPolicy, z.ZodTypeDe
     estimator: workloadEstimatorPolicySchema.default({}),
     localExecution: localExecutionPolicySchema.default({}),
     api: apiExecutionPolicySchema.default({}),
+    adaptive: adaptiveSchedulerPolicySchema.default({}),
   })
   .passthrough();
 

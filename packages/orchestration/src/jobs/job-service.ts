@@ -93,6 +93,7 @@ import {
   planContextExpansion,
 } from '@specbridge/context';
 import type { ContextInsufficiencySignal, ContextStrategy } from '@specbridge/context';
+import { recordCalibrationForAttempt } from '../adaptive/service.js';
 import {
   assessContextMiss,
   expansionPolicyFrom,
@@ -817,6 +818,10 @@ export function beginExecutorDispatch(
     apiBudgetReservationId?: string | undefined;
     apiApprovalId?: string | undefined;
     delaySensitivity?: string | undefined;
+    /** vNext.8 adaptive attribution (recorded in every mode, never policy). */
+    taskSignature?: string | undefined;
+    contextStrategy?: string | undefined;
+    runnerVersion?: string | undefined;
     estimatedCostUsd?: number | null | undefined;
     reservedCostUsd?: number | null | undefined;
     /** Quota/context observations captured at dispatch start. */
@@ -874,6 +879,9 @@ export function beginExecutorDispatch(
       apiBudgetReservationId: input.apiBudgetReservationId,
       apiApprovalId: input.apiApprovalId,
       delaySensitivity: input.delaySensitivity,
+      taskSignature: input.taskSignature,
+      contextStrategy: input.contextStrategy,
+      runnerVersion: input.runnerVersion,
       estimatedCostUsd: input.estimatedCostUsd,
       reservedCostUsd: input.reservedCostUsd,
       quotaBefore: input.quotaBefore,
@@ -1546,6 +1554,19 @@ export function completeExecutorDispatch(
   const lane = readTaskAttempt(deps.workspace, jobId, attemptId)?.lane ?? null;
   const evaluation = buildAttemptEvaluation(deps, job, node, outcome, attemptId, lane, at);
   recordEvaluation(reliabilityDepsFor(deps, jobId), evaluation);
+
+  // vNext.8: with the attempt final and its verdict on record, compare the
+  // forecast made before it started against what it actually did. Derived
+  // metadata in both directions — this never edits the attempt, the
+  // evaluation, or the ledger, and nothing reads it back to place work.
+  recordCalibrationForAttempt({
+    workspace: deps.workspace,
+    policy: policy.scheduler.adaptive,
+    jobId,
+    nodeId: node.nodeId,
+    attemptId,
+    now: now(deps),
+  });
 
   // vNext.6: the evaluation is a SECOND, independent gate on completion.
   //

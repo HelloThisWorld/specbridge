@@ -17,6 +17,55 @@
     "TEST",
     "VERIFY"
   ],
+  "adaptiveDriftSignals": [
+    "CONTEXT_GROWTH",
+    "FAILURE_SOURCE_SHIFT",
+    "RUNTIME_IDENTITY_CHANGED",
+    "SUCCESS_RATE_DROP",
+    "WALL_TIME_GROWTH"
+  ],
+  "adaptiveFallbackReasons": [
+    "AGREES_WITH_HEURISTIC",
+    "ALL_PREFERRED_CANDIDATES_VETOED",
+    "COLD_START",
+    "CONFIDENCE_BELOW_THRESHOLD",
+    "DRIFT_DETECTED",
+    "INSUFFICIENT_COMPARABLE_SAMPLES",
+    "INSUFFICIENT_SAMPLES",
+    "MODE_HEURISTIC",
+    "MODE_SHADOW",
+    "PROFILE_STORE_UNAVAILABLE",
+    "SINGLE_CANDIDATE",
+    "UTILITY_MARGIN_TOO_SMALL"
+  ],
+  "adaptiveOutcomeLabels": [
+    "CENSORED",
+    "IMPLEMENTATION_FAILURE",
+    "INCONCLUSIVE",
+    "INFRASTRUCTURE_FAILURE",
+    "UNVERIFIED_SUCCESS",
+    "VERIFIED_SUCCESS"
+  ],
+  "adaptiveSchedulerModes": [
+    "ADAPTIVE",
+    "HEURISTIC",
+    "SHADOW"
+  ],
+  "adaptiveVetoCodes": [
+    "API_APPROVAL_REQUIRED",
+    "API_BUDGET_EXCEEDED",
+    "API_COST_UNKNOWN",
+    "API_DISABLED",
+    "CAPABILITY_MISSING",
+    "CONTEXT_UNSAFE",
+    "FIVE_HOUR_QUOTA_PRESSURE",
+    "LANE_NOT_ELIGIBLE",
+    "RELIABILITY_STRATEGY_FORBIDDEN",
+    "REMOTE_NOT_LOCAL",
+    "RUNNER_UNAVAILABLE",
+    "STALE_APPROVAL",
+    "WEEKLY_QUOTA_PRESSURE"
+  ],
   "agentRoles": [
     "AGGREGATOR",
     "BUILDER",
@@ -65,6 +114,12 @@
   "computeLocalities": [
     "LOCAL",
     "REMOTE",
+    "UNKNOWN"
+  ],
+  "contextSizeClasses": [
+    "LARGE",
+    "MEDIUM",
+    "SMALL",
     "UNKNOWN"
   ],
   "delaySensitivities": [
@@ -256,6 +311,14 @@
     "REJECTED"
   ],
   "jobEventTypes": [
+    "adaptive_cache_invalidated",
+    "adaptive_candidate_selected",
+    "adaptive_candidate_vetoed",
+    "adaptive_drift_detected",
+    "adaptive_fallback_to_heuristic",
+    "adaptive_prediction_created",
+    "adaptive_profile_rebuilt",
+    "adaptive_shadow_disagreement",
     "aggregation_completed",
     "api_approval_denied",
     "api_approval_granted",
@@ -456,6 +519,19 @@
     "superseded",
     "task-fingerprint-changed"
   ],
+  "predictionConfidenceLevels": [
+    "HIGH",
+    "LOW",
+    "MEDIUM",
+    "NONE"
+  ],
+  "profileFallbackLevels": [
+    "EXACT",
+    "HEURISTIC_PRIOR",
+    "LANE_CATEGORY",
+    "LANE_GLOBAL",
+    "TARGET_CATEGORY"
+  ],
   "provenanceKinds": [
     "conflicting",
     "inferred",
@@ -529,12 +605,24 @@
     "PLAN",
     "SAME"
   ],
+  "repositorySizeClasses": [
+    "LARGE",
+    "MEDIUM",
+    "SMALL",
+    "UNKNOWN"
+  ],
   "runawaySignals": [
     "CONTEXT_GROWTH",
     "NO_OP_EDIT_LOOP",
     "REPEATED_COMMAND_LOOP",
     "TOOL_CALL_BUDGET",
     "WALL_TIME_BUDGET"
+  ],
+  "runtimeIdentityMatches": [
+    "CHANGED",
+    "COMPATIBLE",
+    "EXACT",
+    "UNKNOWN"
   ],
   "schedulerModes": [
     "CONSERVE",
@@ -596,6 +684,10 @@
     "pre-compaction",
     "recovery",
     "shutdown"
+  ],
+  "verificationStrengths": [
+    "DETERMINISTIC",
+    "NONE"
   ],
   "workUnitKinds": [
     "build",

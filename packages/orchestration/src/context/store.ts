@@ -274,6 +274,42 @@ export function readContextMetrics(
   }
 }
 
+/**
+ * Every recorded context metric for a job with the attempt it served,
+ * oldest first.
+ *
+ * The attempt id is the FILE NAME, not a field inside the record, so a
+ * caller that needs to join metrics onto attempts (vNext.8 does, to price
+ * context per verified completion) cannot recover it from `listContextMetrics`
+ * alone. Exposed here rather than duplicating the directory walk in the
+ * adaptive layer, and returning a pair rather than mutating the metrics
+ * shape, which is a published contract.
+ */
+export function listContextMetricEntries(
+  workspace: WorkspaceInfo,
+  jobId: string,
+): { attemptId: string; metrics: ContextEfficiencyMetrics }[] {
+  const dir = path.join(jobContextDir(workspace, jobId), 'metrics');
+  if (!existsSync(dir)) return [];
+  const records: { attemptId: string; metrics: ContextEfficiencyMetrics }[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith('.json')) continue;
+    try {
+      const parsed = contextEfficiencyMetricsSchema.safeParse(
+        JSON.parse(readFileSync(path.join(dir, entry.name), 'utf8')),
+      );
+      if (parsed.success) {
+        records.push({ attemptId: entry.name.slice(0, -'.json'.length), metrics: parsed.data });
+      }
+    } catch {
+      continue;
+    }
+  }
+  return records.sort((left, right) =>
+    left.metrics.createdAt < right.metrics.createdAt ? -1 : 1,
+  );
+}
+
 /** Every recorded context metric for a job, oldest first. */
 export function listContextMetrics(
   workspace: WorkspaceInfo,

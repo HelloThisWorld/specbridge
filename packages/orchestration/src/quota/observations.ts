@@ -105,6 +105,19 @@ export interface BurnAggregate {
   /** How many observations actually reported token usage (sparsity is visible). */
   tokenObservations: number;
   successRate: number | null;
+  /**
+   * vNext.8: the CONSERVATIVE tail of the same measurements.
+   *
+   * Admission has always compared a median-shaped estimate multiplied by a
+   * configured safety factor, with the multiplier standing in for
+   * uncertainty nobody had measured yet. These are that measurement. They
+   * are offered beside the medians rather than replacing them: an estimate
+   * used for planning and an estimate used for refusing to spend prepaid
+   * capacity are different numbers, and collapsing them would make one of
+   * the two wrong.
+   */
+  p90FiveHourBurnRatio: number | null;
+  p90WallTimeMs: number | null;
 }
 
 function median(values: readonly number[]): number | null {
@@ -115,6 +128,14 @@ function median(values: readonly number[]): number | null {
   const high = sorted[mid];
   if (sorted.length % 2 === 1) return high ?? null;
   return low !== undefined && high !== undefined ? (low + high) / 2 : null;
+}
+
+/** Nearest-rank P90 over the sample. Null for an empty sample. */
+function p90(values: readonly number[]): number | null {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const index = Math.min(sorted.length - 1, Math.max(0, Math.ceil(0.9 * sorted.length) - 1));
+  return sorted[index] ?? null;
 }
 
 /** Aggregate observations (optionally filtered) without fabricating gaps. */
@@ -155,6 +176,8 @@ export function aggregateBurnObservations(
       relevant.length > 0
         ? relevant.filter((observation) => observation.success).length / relevant.length
         : null,
+    p90FiveHourBurnRatio: p90(burns),
+    p90WallTimeMs: p90(walls),
   };
 }
 

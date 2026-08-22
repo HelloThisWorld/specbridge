@@ -34403,6 +34403,60 @@ var apiExecutionPolicySchema = external_exports.object({
   gap: apiGapPolicySchema.default({}),
   allowUnverifiedLocality: external_exports.boolean().default(false)
 }).passthrough();
+var ADAPTIVE_SCHEDULER_MODES = ["HEURISTIC", "SHADOW", "ADAPTIVE"];
+var adaptiveUtilityWeightsSchema = external_exports.object({
+  successWeight: external_exports.number().finite().min(0).max(100).default(1),
+  latencyPenalty: external_exports.number().finite().min(0).max(100).default(0.2),
+  failedWorkPenalty: external_exports.number().finite().min(0).max(100).default(0.3),
+  quotaPressurePenalty: external_exports.number().finite().min(0).max(100).default(0.15),
+  apiCostPenalty: external_exports.number().finite().min(0).max(100).default(0.25),
+  contextCostPenalty: external_exports.number().finite().min(0).max(100).default(0.1),
+  handoffPenalty: external_exports.number().finite().min(0).max(100).default(0.05)
+}).passthrough().superRefine((value, ctx) => {
+  if (typeof value.successWeight === "number" && value.successWeight <= 0) {
+    ctx.addIssue({
+      code: external_exports.ZodIssueCode.custom,
+      message: "adaptive.weights.successWeight must be greater than zero: verified completion is the objective, and a scheduler that weighs only cost is not an improvement over a coin flip."
+    });
+  }
+  const total = [
+    value.successWeight,
+    value.latencyPenalty,
+    value.failedWorkPenalty,
+    value.quotaPressurePenalty,
+    value.apiCostPenalty,
+    value.contextCostPenalty,
+    value.handoffPenalty
+  ].reduce((sum, entry) => sum + (typeof entry === "number" ? entry : 0), 0);
+  if (total <= 0) {
+    ctx.addIssue({
+      code: external_exports.ZodIssueCode.custom,
+      message: "adaptive.weights must not all be zero: every candidate would score identically."
+    });
+  }
+});
+var adaptiveSchedulerPolicySchema = external_exports.object({
+  mode: external_exports.enum(ADAPTIVE_SCHEDULER_MODES).default("HEURISTIC"),
+  minimumSamplesForAdaptiveDecision: external_exports.number().int().min(1).max(1e3).default(8),
+  minimumComparableSamples: external_exports.number().int().min(1).max(1e3).default(4),
+  priorStrength: external_exports.number().finite().min(0.5).max(100).default(4),
+  recencyHalfLifeMs: external_exports.number().int().min(36e5).max(31536e6).default(14 * 864e5),
+  maxObservationAgeMs: external_exports.number().int().min(864e5).max(31536e6).default(180 * 864e5),
+  maxObservations: external_exports.number().int().min(50).max(2e5).default(5e3),
+  minimumConfidence: external_exports.enum(["LOW", "MEDIUM", "HIGH"]).default("MEDIUM"),
+  minimumUtilityImprovement: external_exports.number().finite().min(0).max(1).default(0.05),
+  wallTimeScaleMs: external_exports.number().int().min(6e4).max(864e5).default(30 * 6e4),
+  failedWorkScaleMs: external_exports.number().int().min(6e4).max(864e5).default(30 * 6e4),
+  contextTokenScale: external_exports.number().int().min(1e3).max(1e7).default(2e5),
+  apiCostScaleUsd: external_exports.number().finite().min(0.01).max(1e4).default(2),
+  driftSuccessDropRatio: external_exports.number().finite().min(0.05).max(1).default(0.25),
+  driftWallTimeGrowthFactor: external_exports.number().finite().min(1.05).max(100).default(1.5),
+  driftMinimumSamples: external_exports.number().int().min(2).max(1e3).default(4),
+  safetyFailuresExemptFromDecay: external_exports.boolean().default(true),
+  maxDecisionRecords: external_exports.number().int().min(10).max(5e3).default(500),
+  maxCalibrationRecords: external_exports.number().int().min(10).max(5e3).default(500),
+  weights: adaptiveUtilityWeightsSchema.default({})
+}).passthrough();
 var jobSchedulerPolicySchema = external_exports.object({
   enabled: external_exports.boolean().default(true),
   maxLocalAttempts: external_exports.number().int().min(1).max(5).default(2),
@@ -34423,7 +34477,8 @@ var jobSchedulerPolicySchema = external_exports.object({
   reserve: dynamicReservePolicySchema.default({}),
   estimator: workloadEstimatorPolicySchema.default({}),
   localExecution: localExecutionPolicySchema.default({}),
-  api: apiExecutionPolicySchema.default({})
+  api: apiExecutionPolicySchema.default({}),
+  adaptive: adaptiveSchedulerPolicySchema.default({})
 }).passthrough();
 var reliabilityPolicySchema = external_exports.object({
   enabled: external_exports.boolean().default(true),

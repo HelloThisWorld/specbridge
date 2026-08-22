@@ -67,6 +67,21 @@ export interface WorkloadEstimate {
   retryProbability: number;
   confidence: EstimateConfidence;
   basis: EstimateBasis;
+  /**
+   * vNext.8: the MEASURED conservative tail, when enough comparable history
+   * exists and the caller asked for it. Null otherwise, and null means
+   * "unmeasured" — admission then behaves exactly as it did in vNext.7,
+   * comparing the median-shaped estimate against the configured safety
+   * multiplier.
+   *
+   * Deliberately a SEPARATE field rather than a replacement for
+   * `expectedFiveHourBurnRatio`. Planning wants a typical figure; refusing
+   * to spend prepaid capacity wants a pessimistic one. One number cannot be
+   * both, and a scheduler that used the optimistic one for admission would
+   * be trading safety for a tidier interface.
+   */
+  expectedFiveHourBurnRatioP90: number | null;
+  expectedWallTimeMsP90: number | null;
 }
 
 export interface EstimateWorkloadInput {
@@ -78,6 +93,17 @@ export interface EstimateWorkloadInput {
   policy: WorkloadEstimatorPolicy;
   /** Ledger-derived burn observations, when any exist. */
   observations?: readonly BurnObservation[] | undefined;
+  /**
+   * vNext.8: also derive the measured conservative (P90) burn and wall time
+   * from the same observations.
+   *
+   * Explicit rather than automatic, and off by default, because it makes
+   * subscription admission STRICTER. An operator running the adaptive
+   * scheduler in HEURISTIC mode has asked for vNext.7 behavior, and quietly
+   * tightening their admission rule because a new phase shipped would not be
+   * honoring that.
+   */
+  conservativeBurnFromHistory?: boolean | undefined;
   /** Explicit overrides (tests, callers with better information). */
   overrides?:
     | {
@@ -179,6 +205,8 @@ export function estimateWorkload(input: EstimateWorkloadInput): WorkloadEstimate
   let fiveHourBurn = heuristicBurnRatio(input.complexity, policy);
   let basis: EstimateBasis = 'heuristic';
   let confidence: EstimateConfidence = input.complexity === 'LOW' ? 'medium' : 'low';
+  let burnP90: number | null = null;
+  let wallTimeP90: number | null = null;
 
   // Only SUBSCRIPTION-lane history (or pre-vNext.2 unlabeled history) may
   // inform these estimates: they exist for subscription admission, and a
@@ -202,6 +230,8 @@ export function estimateWorkload(input: EstimateWorkloadInput): WorkloadEstimate
             medianOutputTokens: null,
             tokenObservations: 0,
             successRate: null,
+            p90FiveHourBurnRatio: null,
+            p90WallTimeMs: null,
           };
     const byComplexity = aggregateBurnObservations(observations, {
       taskComplexity: input.complexity,
@@ -218,6 +248,18 @@ export function estimateWorkload(input: EstimateWorkloadInput): WorkloadEstimate
         basis = 'historical';
       }
       if (basis === 'historical') confidence = 'medium';
+      // vNext.8: the measured conservative tail, from the SAME observations
+      // the medians came from. Only when the caller asked and only above the
+      // same observation floor — a P90 over two samples is not a tail, it is
+      // the larger of two numbers wearing a statistical name.
+      if (input.conservativeBurnFromHistory === true) {
+        if (aggregate.p90FiveHourBurnRatio !== null) {
+          burnP90 = Math.min(1, aggregate.p90FiveHourBurnRatio);
+        }
+        if (aggregate.p90WallTimeMs !== null) {
+          wallTimeP90 = Math.round(aggregate.p90WallTimeMs);
+        }
+      }
     }
   }
 
@@ -290,6 +332,10 @@ export function estimateWorkload(input: EstimateWorkloadInput): WorkloadEstimate
     retryProbability: heuristicRetryProbability(input.complexity, input.localSuitability),
     confidence,
     basis,
+    // The LOCAL lane burns no subscription quota, so a measured five-hour
+    // tail for it would be a number about nothing.
+    expectedFiveHourBurnRatioP90: input.localSuitability === 'LOCAL_SAFE' ? null : burnP90,
+    expectedWallTimeMsP90: wallTimeP90,
   };
 }
 

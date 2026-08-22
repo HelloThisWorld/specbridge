@@ -1,10 +1,12 @@
 import type {
+  AdaptiveSchedulerPolicy,
   AgentConfig,
   JobSchedulerPolicy,
   LocalExecutionMode,
   WorkspaceInfo,
 } from '@specbridge/core';
 import { validateLocalInferenceConfig } from '@specbridge/core';
+import type { ContextStrategy } from '@specbridge/context';
 import { estimateTokens, usableInputTokens } from '@specbridge/context';
 import type { LocalModelManager } from '@specbridge/runners';
 import type { JobDeps } from '../jobs/job-service.js';
@@ -38,6 +40,15 @@ import type { LocalHarnessBinding } from '../scheduling/local-binding.js';
 import { resolveLocalHarnessBinding } from '../scheduling/local-binding.js';
 import { classifyLocalExecutionShape } from '../scheduling/execution-shape.js';
 import { resolveLocalExecutionMode } from '../scheduling/local-resolver.js';
+import { readTaskReliabilityState } from '../reliability/store.js';
+import type { AdaptiveProfileSet } from '../adaptive/profiles.js';
+import type { AdaptiveRanking } from '../adaptive/ranking.js';
+import { rankCandidates } from '../adaptive/ranking.js';
+import { generateCandidates } from '../adaptive/candidates.js';
+import { buildTaskSignature } from '../adaptive/signature.js';
+import type { TaskSignature } from '../adaptive/signature.js';
+import { loadAdaptiveProfiles } from '../adaptive/service.js';
+import type { LoadedAdaptiveProfiles } from '../adaptive/service.js';
 
 /**
  * The driver's scheduling runtime (vNext.2): gathers everything the pure
@@ -98,6 +109,22 @@ export interface SchedulingRuntime {
   /** True while a subscription worker exists in the roster at all. */
   subscriptionWorkerAvailable: boolean;
   verificationAvailable: boolean;
+  /**
+   * vNext.8 adaptive compute scheduler.
+   *
+   * `adaptiveEnabled` is false in HEURISTIC mode, and when it is false no
+   * profile is loaded, no prediction is computed, no adaptive record is
+   * written, and no event is emitted — the pass is byte-identical to
+   * vNext.7. That is the operational rollback switch, and it costs one
+   * configuration value to pull.
+   */
+  adaptivePolicy: AdaptiveSchedulerPolicy;
+  adaptiveEnabled: boolean;
+  /** The context strategy in force (vNext.7). Recorded, never chosen here. */
+  contextStrategy: ContextStrategy;
+  /** Best-effort identity of the runner/model the DIRECT local path uses. */
+  localDirectRunner: string | null;
+  localDirectModel: string | null;
   /** Mode/reserve/freshness seen by the previous pass (event dedup). */
   lastMode: string | undefined;
   lastReserveRatio: number | undefined;
@@ -180,6 +207,16 @@ export function createSchedulingRuntime(
     apiBridgeEnabled,
     subscriptionWorkerAvailable: input.subscriptionWorkerAvailable ?? true,
     verificationAvailable: config.verification.commands.length > 0,
+    adaptivePolicy: policy.adaptive,
+    adaptiveEnabled: policy.adaptive.mode !== 'HEURISTIC',
+    contextStrategy: config.orchestration.jobs.context.efficiency.strategy as ContextStrategy,
+    // The runner that will actually record a DIRECT attempt is chosen with
+    // the worker, after this point. `defaultRunner` is the best identity
+    // available at scheduling time; when it turns out not to match, the
+    // exact profile simply misses and the coarser lane/mode level answers —
+    // which is what the fallback hierarchy is for.
+    localDirectRunner: config.defaultRunner,
+    localDirectModel: config.localInference.model ?? null,
     lastMode: undefined,
     lastReserveRatio: undefined,
     lastFreshness: undefined,
@@ -257,6 +294,24 @@ export interface BuiltLaneContext {
    * chain is a preference, and deterministic verification stays the arbiter.
    */
   overtakeCandidate: { nodeId: string; detail: string } | undefined;
+  /**
+   * vNext.8: the adaptive evaluation for this pass, present only when the
+   * adaptive scheduler is enabled. Absent in HEURISTIC mode, and absent when
+   * the profile store could not be loaded — in both cases the routings above
+   * are exactly what vNext.7 would have produced.
+   */
+  adaptive?:
+    | {
+        profiles: AdaptiveProfileSet;
+        source: LoadedAdaptiveProfiles['source'];
+        invalidatedReason: LoadedAdaptiveProfiles['invalidatedReason'];
+        jobsScanned: number;
+        /** Per-node ranking, keyed by nodeId. */
+        rankings: Map<string, AdaptiveRanking>;
+        /** Per-node task signature, keyed by nodeId. */
+        signatures: Map<string, TaskSignature>;
+      }
+    | undefined;
 }
 
 /**
@@ -352,6 +407,14 @@ export async function buildLaneContext(
     }
   }
 
+  // vNext.8: the adaptive pass runs LAST, over routings hard policy has
+  // already fixed. It can reorder how an eligible lane is spent; it cannot
+  // reach a lane that was refused, and by the time it runs every lane
+  // decision on the map is final.
+  const adaptive = runtime.adaptiveEnabled
+    ? applyAdaptiveRanking(runtime, deps, jobId, job, ready, routings, forecast)
+    : undefined;
+
   return {
     context: {
       policy: runtime.policy,
@@ -362,6 +425,116 @@ export async function buildLaneContext(
     forecast,
     reserve,
     overtakeCandidate,
+    adaptive,
+  };
+}
+
+/**
+ * Rank each ready node's eligible candidates against observed history and,
+ * in ADAPTIVE mode, apply the result.
+ *
+ * The ONLY mutation this function may perform on a routing is the LOCAL
+ * execution MODE — the single dimension where a genuine within-lane choice
+ * exists in this checkout. It never writes `routing.lane`, never touches the
+ * gap-bridge plan, and never revisits an admission decision. A reader can
+ * confirm that by looking at what it assigns.
+ */
+function applyAdaptiveRanking(
+  runtime: SchedulingRuntime,
+  deps: JobDeps,
+  jobId: string,
+  job: JobState,
+  ready: readonly JobNode[],
+  routings: Map<string, NodeLaneRouting>,
+  forecast: QuotaForecast,
+): BuiltLaneContext['adaptive'] {
+  const now = (deps.clock ?? (() => new Date()))();
+  let loaded: LoadedAdaptiveProfiles;
+  try {
+    loaded = loadAdaptiveProfiles({
+      workspace: deps.workspace,
+      policy: runtime.adaptivePolicy,
+      now,
+    });
+  } catch {
+    // Derived analytics must never fail a job. Without profiles the ranking
+    // layer sees cold start and answers with the heuristic, which is the
+    // behavior this whole subsystem degrades to by design.
+    return undefined;
+  }
+
+  const rankings = new Map<string, AdaptiveRanking>();
+  const signatures = new Map<string, TaskSignature>();
+  for (const node of ready) {
+    const assessment = routings.get(node.nodeId);
+    if (assessment === undefined) continue;
+    const signature = assessment.signature;
+    if (signature === undefined) continue;
+    const reliability = readTaskReliabilityState(deps.workspace, jobId, node.nodeId);
+    signatures.set(node.nodeId, signature);
+
+    const candidates = generateCandidates({
+      routing: assessment,
+      contextStrategy: runtime.contextStrategy,
+      harnessBinding: runtime.harnessBinding,
+      localDirectAvailable: runtime.localDirectAvailable,
+      localDirectModel: runtime.localDirectModel,
+      localDirectRunner: runtime.localDirectRunner,
+      apiBinding: runtime.apiBinding,
+      subscriptionProvider: null,
+      exhaustedStrategies: reliability?.exhaustedStrategies ?? [],
+      planRevision: job.graphRevision,
+    });
+
+    const ranking = rankCandidates({
+      mode: runtime.adaptivePolicy.mode,
+      candidates,
+      signature,
+      profiles: loaded.profiles,
+      policy: runtime.adaptivePolicy,
+      forecast,
+      // The Beta prior's mean is the EXISTING heuristic's own expectation
+      // that one attempt succeeds. Identical across candidates on a task, so
+      // it expresses uncertainty and never a preference for a provider.
+      priorSuccessProbability: 1 - assessment.estimate.retryProbability,
+      heuristicWallTimeMs: assessment.estimate.expectedWallTimeMs,
+      heuristicInputTokens: assessment.estimate.expectedInputTokens,
+      heuristicContextTokens: assessment.estimate.expectedContextGrowthTokens,
+      heuristicFiveHourBurnRatio: assessment.estimate.expectedFiveHourBurnRatio,
+    });
+    rankings.set(node.nodeId, ranking);
+
+    // Apply, in the one dimension that has an alternative here.
+    const selected = ranking.selectedCandidate;
+    if (
+      !ranking.adaptiveApplied ||
+      selected === null ||
+      selected.executionMode === null ||
+      assessment.routing.lane !== 'LOCAL' ||
+      assessment.localExecution === undefined ||
+      assessment.localExecution.mode === selected.executionMode
+    ) {
+      continue;
+    }
+    routings.set(node.nodeId, {
+      ...assessment,
+      localExecution: {
+        ...assessment.localExecution,
+        mode: selected.executionMode,
+        detail:
+          `${assessment.localExecution.detail} Adaptive scheduler selected ${selected.executionMode} ` +
+          `on observed history (confidence ${ranking.confidence}).`,
+      },
+    });
+  }
+
+  return {
+    profiles: loaded.profiles,
+    source: loaded.source,
+    invalidatedReason: loaded.invalidatedReason,
+    jobsScanned: loaded.jobsScanned,
+    rankings,
+    signatures,
   };
 }
 
@@ -486,6 +659,10 @@ function assessNode(
     taskCategory: suitability.category,
     policy: runtime.policy.estimator,
     observations,
+    // vNext.8: the measured conservative tail feeds admission only while the
+    // adaptive scheduler is on. It makes admission STRICTER, and an operator
+    // running in HEURISTIC mode asked for vNext.7 behavior.
+    conservativeBurnFromHistory: runtime.adaptiveEnabled,
   });
   const routing = decideLane({
     estimate,
@@ -499,13 +676,6 @@ function assessNode(
     policy: runtime.policy,
   });
 
-  // vNext.4: the LANE is now decided. Only then — and only for the LOCAL
-  // lane — is the execution MODE resolved. This ordering is load-bearing:
-  // a harness must never be able to pull work into the local lane, so mode
-  // resolution reads the lane decision and can never write it.
-  if (routing.lane !== 'LOCAL') {
-    return { suitability, estimate, routing };
-  }
   const directToHarness = job.escalations.some(
     (entry) => entry.nodeId === node.nodeId && entry.reason === DIRECT_TO_HARNESS_REASON,
   );
@@ -516,6 +686,31 @@ function assessNode(
     complexity: node.complexity,
     priorDirectFailureNeedsRepository: directToHarness,
   });
+
+  // vNext.8: the grouping key, computed on every pass regardless of adaptive
+  // mode so history stays comparable from the first attempt onward. Pure
+  // classification over values already derived above; it decides nothing.
+  const reliability = readTaskReliabilityState(deps.workspace, jobId, node.nodeId);
+  const signature = buildTaskSignature({
+    category: suitability.category,
+    complexity: node.complexity ?? 'MEDIUM',
+    localSuitability: suitability.class,
+    executionShape: shape.shape,
+    deterministicVerificationAvailable: runtime.verificationAvailable,
+    expectedContextTokens: estimate.expectedContextGrowthTokens,
+    features: {
+      failureClass: reliability?.health ?? null,
+      expectedTestLoopClass: runtime.verificationAvailable ? 'ITERATIVE' : 'NONE',
+    },
+  });
+
+  // vNext.4: the LANE is now decided. Only then — and only for the LOCAL
+  // lane — is the execution MODE resolved. This ordering is load-bearing:
+  // a harness must never be able to pull work into the local lane, so mode
+  // resolution reads the lane decision and can never write it.
+  if (routing.lane !== 'LOCAL') {
+    return { suitability, estimate, routing, signature };
+  }
   const localExecution = resolveLocalExecutionMode({
     strategy: runtime.policy.localExecution.strategy,
     suitability: suitability.class,
@@ -529,5 +724,5 @@ function assessNode(
       ? { override: runtime.localExecutionOverride }
       : {}),
   });
-  return { suitability, estimate, routing, shape, localExecution };
+  return { suitability, estimate, routing, shape, localExecution, signature };
 }

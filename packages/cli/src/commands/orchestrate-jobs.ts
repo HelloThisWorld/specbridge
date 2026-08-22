@@ -39,6 +39,11 @@ import {
   readProjection as readObjectiveProjection,
   readQuotaTelemetryFile,
   readSchedulingDecisions,
+  readAdaptiveDecisions,
+  readAdaptiveCalibration,
+  loadAdaptiveProfiles,
+  rebuildAdaptiveProfiles,
+  summarizeCalibration,
   readWorkerRecords,
   recordQuotaObservation,
   recordJobEvent,
@@ -82,6 +87,36 @@ import { VERSION } from '../version.js';
 
 function jsonOut(runtime: CliRuntime, schema: string, data: Record<string, unknown>): void {
   runtime.outRaw(serializeJsonReport(createJsonReport(schema, `${CLI_BIN} ${VERSION}`, data)));
+}
+
+/**
+ * Formatters for the adaptive diagnostic. Every one renders an absent
+ * measurement as "n/a" rather than as a zero: a profile that never observed
+ * a cost must not print "$0.0000", which reads as free.
+ */
+function formatMs(value: number | null): string {
+  if (value === null) return 'n/a';
+  return value >= 60_000 ? `${Math.round(value / 60_000)}m` : `${Math.round(value / 1_000)}s`;
+}
+
+function formatCount(value: number | null): string {
+  return value === null ? 'n/a' : Math.round(value).toLocaleString('en-US');
+}
+
+function formatRatio(value: number | null): string {
+  return value === null ? 'n/a' : `${(value * 100).toFixed(1)}%`;
+}
+
+function formatRate(value: number | null): string {
+  return value === null ? 'n/a' : `${(value * 100).toFixed(0)}%`;
+}
+
+function formatUsd(value: number | null): string {
+  return value === null ? 'n/a' : `$${value.toFixed(4)}`;
+}
+
+function formatScore(value: number | null): string {
+  return value === null ? 'n/a' : value.toFixed(4);
 }
 
 function statusLine(job: JobState): string {
@@ -865,6 +900,36 @@ export function registerOrchestrateJobCommands(orchestrate: Command, runtime: Cl
             ];
       });
 
+      // vNext.8: a COMPACT adaptive summary here; the full candidate
+      // comparison, score breakdown, and calibration live in
+      // `orchestrate adaptive`. Reading the profile store is deliberately
+      // non-persisting: a read-only diagnostic must not rewrite a cache.
+      const adaptivePolicy = policy.adaptive;
+      const adaptiveDecisions = readAdaptiveDecisions(context.workspace, jobId, { limit: decisionLimit });
+      const adaptiveProfiles =
+        adaptivePolicy.mode === 'HEURISTIC'
+          ? undefined
+          : loadAdaptiveProfiles({
+              workspace: context.workspace,
+              policy: adaptivePolicy,
+              now: new Date(),
+              persist: false,
+            });
+      const adaptiveSummary = {
+        mode: adaptivePolicy.mode,
+        profileCount: adaptiveProfiles?.profiles.profiles.size ?? 0,
+        observations: adaptiveProfiles?.profiles.observationCount ?? 0,
+        profilesBuiltAt: adaptiveProfiles?.profiles.builtAt ?? null,
+        decisions: adaptiveDecisions.length,
+        applied: adaptiveDecisions.filter((entry) => entry.adaptiveApplied).length,
+        disagreements: adaptiveDecisions.filter((entry) => entry.disagreement).length,
+        fallbackReasons: adaptiveDecisions.reduce<Record<string, number>>((counts, entry) => {
+          if (entry.fallbackReason === null) return counts;
+          counts[entry.fallbackReason] = (counts[entry.fallbackReason] ?? 0) + 1;
+          return counts;
+        }, {}),
+      };
+
       if (options.json === true) {
         jsonOut(runtime, 'orchestrate-scheduler', {
           schedulerEnabled: policy.enabled,
@@ -878,6 +943,7 @@ export function registerOrchestrateJobCommands(orchestrate: Command, runtime: Cl
             complexity: node.complexity ?? null,
           })),
           attemptLanes: laneCounts,
+          adaptive: adaptiveSummary,
           localExecution: {
             strategy: localExecutionPolicy.strategy,
             directAvailable,
@@ -1061,6 +1127,19 @@ export function registerOrchestrateJobCommands(orchestrate: Command, runtime: Cl
         }
       }
 
+      runtime.out(reportTitle('Adaptive scheduler'));
+      runtime.out(
+        (adaptiveSummary.mode === 'ADAPTIVE' ? okLine : dim)(
+          `  mode ${adaptiveSummary.mode}; ${adaptiveSummary.profileCount} profile(s) from ` +
+            `${adaptiveSummary.observations} observation(s); ${adaptiveSummary.decisions} recent decision(s), ` +
+            `${adaptiveSummary.applied} applied, ${adaptiveSummary.disagreements} disagreement(s)`,
+        ),
+      );
+      for (const [reason, count] of Object.entries(adaptiveSummary.fallbackReasons)) {
+        runtime.out(dim(`    fell back ${count}x: ${reason}`));
+      }
+      runtime.out(dim(`    detail: ${CLI_BIN} orchestrate adaptive ${jobId}`));
+
       runtime.out(reportTitle('Ready tasks'));
       if (readyNodes.length === 0) runtime.out(dim('  (none)'));
       for (const node of readyNodes) {
@@ -1082,6 +1161,322 @@ export function registerOrchestrateJobCommands(orchestrate: Command, runtime: Cl
         runtime.out(dim(`    ${decision.detail.slice(0, 140)}`));
       }
     });
+
+  // vNext.8 adaptive compute scheduler. Read-only by construction, with one
+  // exception that is still not a policy change: `--rebuild` discards a
+  // DERIVED cache and recomputes it from canonical history. Nothing here can
+  // alter a weight, a budget, a quota bound, or a placement — those are
+  // control-plane policy, and a diagnostic that could edit them would be a
+  // second way to configure the scheduler.
+  orchestrate
+    .command('adaptive')
+    .description(
+      'Show adaptive-scheduler state: mode, profiles, predictions, vetoes, fallbacks, calibration (read-only)',
+    )
+    .argument('[jobId]', 'job to explain adaptive decisions for (optional)')
+    .option('--node <nodeId>', 'explain one node in detail')
+    .option('--profiles', 'list derived performance profiles')
+    .option('--level <level>', 'profile level filter (EXACT|TARGET_CATEGORY|LANE_CATEGORY|LANE_GLOBAL)')
+    .option('--limit <n>', 'rows to show (default 20)')
+    .option('--rebuild', 'discard and rebuild the derived profile cache from the ExecutionLedger')
+    .option('--json', 'output a machine-readable JSON report')
+    .action(
+      (
+        jobId: string | undefined,
+        options: {
+          node?: string;
+          profiles?: boolean;
+          level?: string;
+          limit?: string;
+          rebuild?: boolean;
+          json?: boolean;
+        },
+      ) => {
+        const context = loadExecutionContext(runtime);
+        const policy = context.config.orchestration.jobs.scheduler.adaptive;
+        const limit = Math.max(1, Number(options.limit ?? '20') || 20);
+        const now = new Date();
+
+        const loaded =
+          options.rebuild === true
+            ? rebuildAdaptiveProfiles({ workspace: context.workspace, policy, now })
+            : loadAdaptiveProfiles({ workspace: context.workspace, policy, now, persist: false });
+
+        const allProfiles = [...loaded.profiles.profiles.values()]
+          .filter((profile) => options.level === undefined || profile.level === options.level)
+          .sort((left, right) =>
+            right.weightedSamples !== left.weightedSamples
+              ? right.weightedSamples - left.weightedSamples
+              : left.profileKey < right.profileKey
+                ? -1
+                : 1,
+          );
+
+        const decisions =
+          jobId === undefined
+            ? []
+            : readAdaptiveDecisions(context.workspace, jobId, {
+                limit,
+                ...(options.node !== undefined ? { nodeId: options.node } : {}),
+              });
+        const calibration =
+          jobId === undefined ? [] : readAdaptiveCalibration(context.workspace, jobId, { limit: 200 });
+        const calibrationSummary = summarizeCalibration(calibration);
+
+        const profileRows = allProfiles.slice(0, limit).map((profile) => ({
+          level: profile.level,
+          profileKey: profile.profileKey,
+          lane: profile.lane,
+          executionMode: profile.executionMode,
+          samples: profile.samples,
+          weightedSamples: Math.round(profile.weightedSamples * 100) / 100,
+          verifiedSuccesses: profile.verifiedSuccesses,
+          unverifiedSuccesses: profile.unverifiedSuccesses,
+          implementationFailures: profile.implementationFailures,
+          infrastructureFailures: profile.infrastructureFailures,
+          inconclusive: profile.inconclusive,
+          censored: profile.censored,
+          attemptsPerSuccess: profile.attemptsPerSuccess,
+          firstAttemptSuccesses: profile.firstAttemptSuccesses,
+          firstAttempts: profile.firstAttempts,
+          wallTimeMs: profile.wallTimeMs,
+          inputTokens: profile.inputTokens,
+          contextTokens: profile.contextTokens,
+          fiveHourBurnRatio: profile.fiveHourBurnRatio,
+          apiCostUsd: profile.apiCostUsd,
+          stagnationRate: profile.stagnationRate,
+          oscillationRate: profile.oscillationRate,
+          runawayRate: profile.runawayRate,
+          contextMissRate: profile.contextMissRate,
+          contextExpansionRate: profile.contextExpansionRate,
+          infrastructureFailureRate: profile.infrastructureFailureRate,
+          safetyEvents: profile.safetyEvents,
+          latestRuntimeIdentity: profile.latestRuntimeIdentity,
+          lastObservedAt: profile.lastObservedAt,
+          drift: profile.drift,
+        }));
+
+        if (options.json === true) {
+          jsonOut(runtime, 'orchestrate-adaptive', {
+            mode: policy.mode,
+            enabled: policy.mode !== 'HEURISTIC',
+            weights: policy.weights,
+            thresholds: {
+              minimumSamplesForAdaptiveDecision: policy.minimumSamplesForAdaptiveDecision,
+              minimumComparableSamples: policy.minimumComparableSamples,
+              minimumConfidence: policy.minimumConfidence,
+              minimumUtilityImprovement: policy.minimumUtilityImprovement,
+              priorStrength: policy.priorStrength,
+              recencyHalfLifeMs: policy.recencyHalfLifeMs,
+            },
+            profileStore: {
+              source: loaded.source,
+              invalidatedReason: loaded.invalidatedReason,
+              builtAt: loaded.profiles.builtAt,
+              fingerprint: loaded.fingerprint,
+              jobsScanned: loaded.jobsScanned,
+              observations: loaded.profiles.observationCount,
+              droppedByAge: loaded.profiles.droppedByAge,
+              profileCount: loaded.profiles.profiles.size,
+            },
+            profiles: profileRows,
+            decisions: decisions.map((decision) => ({
+              decisionId: decision.decisionId,
+              createdAt: decision.createdAt,
+              nodeId: decision.nodeId,
+              taskId: decision.taskId,
+              mode: decision.mode,
+              taskSignature: decision.taskSignature,
+              heuristicLane: decision.heuristicLane,
+              heuristicCandidateId: decision.heuristicCandidateId,
+              recommendedCandidateId: decision.recommendedCandidateId,
+              selectedCandidateId: decision.selectedCandidateId,
+              adaptiveApplied: decision.adaptiveApplied,
+              disagreement: decision.disagreement,
+              wouldApplyInAdaptiveMode: decision.wouldApplyInAdaptiveMode,
+              confidence: decision.confidence,
+              utilityMargin: decision.utilityMargin,
+              fallbackReason: decision.fallbackReason,
+              rejectedCandidates: decision.rejectedCandidates,
+              explanation: decision.explanation,
+              ...(options.node !== undefined ? { predictions: decision.predictions } : {}),
+            })),
+            calibration: calibrationSummary,
+          });
+          return;
+        }
+
+        runtime.out(reportTitle('Adaptive compute scheduler (vNext.8)'));
+        const modeLine =
+          `  mode ${policy.mode}` +
+          (policy.mode === 'HEURISTIC'
+            ? ' — history is recorded but never ranks or places work'
+            : policy.mode === 'SHADOW'
+              ? ' — recommendations are computed and recorded; the heuristic still executes'
+              : ' — history may select among policy-eligible candidates');
+        runtime.out(policy.mode === 'ADAPTIVE' ? okLine(modeLine) : infoLine(modeLine));
+        runtime.out(
+          dim(
+            `    floors: ${policy.minimumSamplesForAdaptiveDecision} weighted samples, ` +
+              `${policy.minimumComparableSamples} comparable, confidence >= ${policy.minimumConfidence}, ` +
+              `utility margin >= ${policy.minimumUtilityImprovement}`,
+          ),
+        );
+
+        runtime.out(reportTitle('Derived profile store'));
+        runtime.out(
+          infoLine(
+            `  ${loaded.profiles.profiles.size} profile(s) from ${loaded.profiles.observationCount} observation(s) ` +
+              `across ${loaded.jobsScanned} job(s) — ${loaded.source}` +
+              (loaded.invalidatedReason !== null ? ` (cache ${loaded.invalidatedReason})` : ''),
+          ),
+        );
+        runtime.out(
+          dim(
+            `    built ${loaded.profiles.builtAt}; ${loaded.profiles.droppedByAge} observation(s) aged out; ` +
+              'derived state — deleting it costs a rebuild and nothing else',
+          ),
+        );
+
+        runtime.out(reportTitle(`Performance profiles (${allProfiles.length})`));
+        if (profileRows.length === 0) {
+          runtime.out(dim('  (none — cold start; the deterministic heuristics decide)'));
+        }
+        for (const profile of profileRows) {
+          const resolving = profile.verifiedSuccesses + profile.implementationFailures;
+          const rate =
+            resolving > 0 ? `${Math.round((profile.verifiedSuccesses / resolving) * 100)}%` : 'n/a';
+          runtime.out(
+            okLine(
+              `  [${profile.level}] ${profile.profileKey}  ` +
+                `verified ${rate} (${profile.verifiedSuccesses}/${resolving})  ` +
+                `samples ${profile.samples} (weighted ${profile.weightedSamples})`,
+            ),
+          );
+          runtime.out(
+            dim(
+              `    P50/P90 wall ${formatMs(profile.wallTimeMs.p50)}/${formatMs(profile.wallTimeMs.p90)}  ` +
+                `context ${formatCount(profile.contextTokens.p50)}/${formatCount(profile.contextTokens.p90)} tok  ` +
+                `burn ${formatRatio(profile.fiveHourBurnRatio.p50)}/${formatRatio(profile.fiveHourBurnRatio.p90)}  ` +
+                `cost ${formatUsd(profile.apiCostUsd.p50)}/${formatUsd(profile.apiCostUsd.p90)}`,
+            ),
+          );
+          runtime.out(
+            dim(
+              `    infra-fail ${formatRate(profile.infrastructureFailureRate)}  ` +
+                `inconclusive ${profile.inconclusive}  censored ${profile.censored}  ` +
+                `unverified ${profile.unverifiedSuccesses}  ` +
+                `stalled ${formatRate(profile.stagnationRate)}  oscillating ${formatRate(profile.oscillationRate)}  ` +
+                `runaway ${formatRate(profile.runawayRate)}  context-miss ${formatRate(profile.contextMissRate)}`,
+            ),
+          );
+          if (profile.safetyEvents > 0) {
+            runtime.out(
+              warnLine(`    ${profile.safetyEvents} safety-class failure(s) on record (these do not decay)`),
+            );
+          }
+          if (profile.drift.detected) {
+            runtime.out(warnLine(`    drift: ${profile.drift.detail}`));
+          }
+        }
+
+        if (jobId === undefined) {
+          runtime.out(dim('\n  Pass a job id to see its adaptive decisions and prediction accuracy.'));
+          return;
+        }
+
+        runtime.out(reportTitle(`Adaptive decisions (${decisions.length})`));
+        if (decisions.length === 0) {
+          runtime.out(
+            dim(
+              policy.mode === 'HEURISTIC'
+                ? '  (none — adaptive mode is HEURISTIC, so nothing is computed)'
+                : '  (none recorded yet)',
+            ),
+          );
+        }
+        for (const decision of decisions) {
+          const headline =
+            `  ${decision.createdAt}  task ${decision.taskId} [${decision.mode}]  ` +
+            `${decision.selectedCandidateId ?? 'no candidate'}`;
+          runtime.out(decision.adaptiveApplied ? okLine(headline) : infoLine(headline));
+          runtime.out(dim(`    signature ${decision.taskSignature}`));
+          if (decision.disagreement) {
+            runtime.out(
+              warnLine(
+                `    recommended ${decision.recommendedCandidateId ?? 'n/a'} but executed ` +
+                  `${decision.heuristicCandidateId ?? 'n/a'}` +
+                  (decision.mode === 'SHADOW'
+                    ? ' — the alternative was NOT run, so no outcome is claimed for it'
+                    : ''),
+              ),
+            );
+          }
+          runtime.out(
+            dim(
+              `    confidence ${decision.confidence}` +
+                (decision.utilityMargin !== null
+                  ? `, margin ${decision.utilityMargin.toFixed(4)}`
+                  : '') +
+                (decision.fallbackReason !== null
+                  ? `, fell back: ${decision.fallbackReason}`
+                  : ', adaptive decided'),
+            ),
+          );
+          for (const line of decision.explanation) runtime.out(dim(`      ${line}`));
+          for (const veto of decision.rejectedCandidates) {
+            if (veto.code === 'LANE_NOT_ELIGIBLE') continue;
+            runtime.out(warnLine(`    vetoed ${veto.candidateId}: ${veto.code} — ${veto.detail}`));
+          }
+          if (options.node !== undefined) {
+            for (const prediction of decision.predictions) {
+              runtime.out(
+                infoLine(
+                  `    ${prediction.candidateId}  score ${prediction.score.toFixed(4)}  ` +
+                    `P(verified) ${(prediction.verifiedSuccessProbability * 100).toFixed(0)}%  ` +
+                    `[${prediction.level}/${prediction.confidence}/${prediction.identityMatch}]  ` +
+                    `${prediction.sampleCount} sample(s)`,
+                ),
+              );
+              for (const component of prediction.scoreComponents) {
+                runtime.out(
+                  dim(
+                    `        ${component.name.padEnd(22)} ${component.contribution >= 0 ? '+' : ''}` +
+                      `${component.contribution.toFixed(4)}  ${component.detail}`,
+                  ),
+                );
+              }
+            }
+          }
+        }
+
+        runtime.out(reportTitle('Prediction calibration'));
+        if (calibrationSummary.records === 0) {
+          runtime.out(dim('  (no calibration records yet)'));
+        } else {
+          runtime.out(
+            infoLine(
+              `  ${calibrationSummary.records} record(s), ${calibrationSummary.scoredRecords} with a ` +
+                'resolvable success outcome',
+            ),
+          );
+          runtime.out(
+            dim(
+              `    mean Brier ${formatScore(calibrationSummary.meanBrierScore)} (lower is better)  ` +
+                `wall-time error ${formatRate(calibrationSummary.meanAbsoluteWallTimeError)}  ` +
+                `context error ${formatRate(calibrationSummary.meanAbsoluteContextTokenError)}  ` +
+                `cost error ${formatRate(calibrationSummary.meanAbsoluteCostError)}`,
+            ),
+          );
+          runtime.out(
+            dim(
+              '    Calibration is derived metadata: a wrong forecast never edits the attempt, ' +
+                'the evaluation, or the ledger.',
+            ),
+          );
+        }
+      },
+    );
 
   // vNext.5 spend authorization. Deciding is a HUMAN action and lives only
   // here: no MCP tool, no agent-reachable API, and no model output can

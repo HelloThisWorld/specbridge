@@ -517,4 +517,6 @@ later, is the same order this phase applies to everything else.
   bounded widening rather than escalation
 - [API gap bridge](api-gap-bridge.md) — paid continuity and spend authorization
 - [Retry and repair](retry-and-repair.md) — the v1.1 failure taxonomy
+- [Adaptive compute scheduler](adaptive-scheduler.md) — how failed-strategy
+  vetoes and no-progress history constrain what may be ranked
 - [Threat model](../security/threat-model.md) — section 13

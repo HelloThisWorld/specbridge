@@ -7,6 +7,7 @@ import type { SuitabilityAssessment } from './suitability.js';
 import type { ExecutionShapeAssessment } from './execution-shape.js';
 import type { LocalExecutionResolution } from './local-resolver.js';
 import type { ApiGapBridgePlan } from './api-gap-bridge.js';
+import type { TaskSignature } from '../adaptive/signature.js';
 import type { LaneDecision, SchedulingReasonCode } from './vocabulary.js';
 
 /**
@@ -234,6 +235,18 @@ export interface NodeLaneRouting {
    * could run the work.
    */
   apiBridge?: ApiGapBridgePlan | undefined;
+  /**
+   * vNext.8: the deterministic TaskSignature this node was assessed under.
+   *
+   * Computed on EVERY pass, including in adaptive HEURISTIC mode, and
+   * recorded on the attempt. That is deliberate: a workspace only ever gets
+   * comparable history if the grouping key travels with the observation from
+   * the start, so switching the adaptive scheduler on later finds data
+   * already there rather than starting from nothing. Computing it changes no
+   * behavior — it is a pure classification over values the scheduler has
+   * already derived.
+   */
+  signature?: TaskSignature | undefined;
 }
 
 /**

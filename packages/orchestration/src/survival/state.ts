@@ -196,6 +196,22 @@ export const taskAttemptSchema = z
     apiApprovalId: shortText.optional(),
     /** Deterministic delay-sensitivity level that justified paid bridging. */
     delaySensitivity: shortText.optional(),
+    // vNext.8 adaptive attribution (additive; absent on every pre-vNext.8
+    // record). These three exist so historical observations can be GROUPED
+    // and their runtime identity CHECKED without re-deriving either from
+    // whatever the classifiers happen to do today: a signature recomputed
+    // months later under changed heuristics would silently re-file old
+    // attempts into buckets they were never measured in.
+    /** The coarse TaskSignature key this attempt was dispatched under. */
+    taskSignature: shortText.optional(),
+    /** vNext.7 context strategy in force for this attempt. */
+    contextStrategy: shortText.optional(),
+    /**
+     * Runner/runtime version when the provider reported one. Absent means
+     * UNKNOWN — never assumed to match the version running now, because a
+     * silent version change is exactly the case this field exists to catch.
+     */
+    runnerVersion: shortText.optional(),
     metrics: attemptMetricsSchema.default({}),
   })
   .passthrough();
@@ -404,6 +420,13 @@ export const executionLedgerEntrySchema = z
     recoveryDecisionId: shortText.nullable().default(null),
     /** Which dimension of strategy the recovery changed, if any. */
     strategyChange: shortText.nullable().default(null),
+    // vNext.8 adaptive attribution (additive; null on every pre-vNext.8
+    // record). The adaptive layer reads history through this read model, so
+    // the grouping key and the runtime identity have to travel with the
+    // observation rather than being reconstructed from it.
+    taskSignature: shortText.nullable().default(null),
+    contextStrategy: shortText.nullable().default(null),
+    runnerVersion: shortText.nullable().default(null),
     metrics: attemptMetricsSchema,
   })
   .passthrough();

@@ -27767,6 +27767,60 @@ var apiExecutionPolicySchema = external_exports.object({
   gap: apiGapPolicySchema.default({}),
   allowUnverifiedLocality: external_exports.boolean().default(false)
 }).passthrough();
+var ADAPTIVE_SCHEDULER_MODES = ["HEURISTIC", "SHADOW", "ADAPTIVE"];
+var adaptiveUtilityWeightsSchema = external_exports.object({
+  successWeight: external_exports.number().finite().min(0).max(100).default(1),
+  latencyPenalty: external_exports.number().finite().min(0).max(100).default(0.2),
+  failedWorkPenalty: external_exports.number().finite().min(0).max(100).default(0.3),
+  quotaPressurePenalty: external_exports.number().finite().min(0).max(100).default(0.15),
+  apiCostPenalty: external_exports.number().finite().min(0).max(100).default(0.25),
+  contextCostPenalty: external_exports.number().finite().min(0).max(100).default(0.1),
+  handoffPenalty: external_exports.number().finite().min(0).max(100).default(0.05)
+}).passthrough().superRefine((value, ctx) => {
+  if (typeof value.successWeight === "number" && value.successWeight <= 0) {
+    ctx.addIssue({
+      code: external_exports.ZodIssueCode.custom,
+      message: "adaptive.weights.successWeight must be greater than zero: verified completion is the objective, and a scheduler that weighs only cost is not an improvement over a coin flip."
+    });
+  }
+  const total = [
+    value.successWeight,
+    value.latencyPenalty,
+    value.failedWorkPenalty,
+    value.quotaPressurePenalty,
+    value.apiCostPenalty,
+    value.contextCostPenalty,
+    value.handoffPenalty
+  ].reduce((sum, entry) => sum + (typeof entry === "number" ? entry : 0), 0);
+  if (total <= 0) {
+    ctx.addIssue({
+      code: external_exports.ZodIssueCode.custom,
+      message: "adaptive.weights must not all be zero: every candidate would score identically."
+    });
+  }
+});
+var adaptiveSchedulerPolicySchema = external_exports.object({
+  mode: external_exports.enum(ADAPTIVE_SCHEDULER_MODES).default("HEURISTIC"),
+  minimumSamplesForAdaptiveDecision: external_exports.number().int().min(1).max(1e3).default(8),
+  minimumComparableSamples: external_exports.number().int().min(1).max(1e3).default(4),
+  priorStrength: external_exports.number().finite().min(0.5).max(100).default(4),
+  recencyHalfLifeMs: external_exports.number().int().min(36e5).max(31536e6).default(14 * 864e5),
+  maxObservationAgeMs: external_exports.number().int().min(864e5).max(31536e6).default(180 * 864e5),
+  maxObservations: external_exports.number().int().min(50).max(2e5).default(5e3),
+  minimumConfidence: external_exports.enum(["LOW", "MEDIUM", "HIGH"]).default("MEDIUM"),
+  minimumUtilityImprovement: external_exports.number().finite().min(0).max(1).default(0.05),
+  wallTimeScaleMs: external_exports.number().int().min(6e4).max(864e5).default(30 * 6e4),
+  failedWorkScaleMs: external_exports.number().int().min(6e4).max(864e5).default(30 * 6e4),
+  contextTokenScale: external_exports.number().int().min(1e3).max(1e7).default(2e5),
+  apiCostScaleUsd: external_exports.number().finite().min(0.01).max(1e4).default(2),
+  driftSuccessDropRatio: external_exports.number().finite().min(0.05).max(1).default(0.25),
+  driftWallTimeGrowthFactor: external_exports.number().finite().min(1.05).max(100).default(1.5),
+  driftMinimumSamples: external_exports.number().int().min(2).max(1e3).default(4),
+  safetyFailuresExemptFromDecay: external_exports.boolean().default(true),
+  maxDecisionRecords: external_exports.number().int().min(10).max(5e3).default(500),
+  maxCalibrationRecords: external_exports.number().int().min(10).max(5e3).default(500),
+  weights: adaptiveUtilityWeightsSchema.default({})
+}).passthrough();
 var jobSchedulerPolicySchema = external_exports.object({
   enabled: external_exports.boolean().default(true),
   maxLocalAttempts: external_exports.number().int().min(1).max(5).default(2),
@@ -27787,7 +27841,8 @@ var jobSchedulerPolicySchema = external_exports.object({
   reserve: dynamicReservePolicySchema.default({}),
   estimator: workloadEstimatorPolicySchema.default({}),
   localExecution: localExecutionPolicySchema.default({}),
-  api: apiExecutionPolicySchema.default({})
+  api: apiExecutionPolicySchema.default({}),
+  adaptive: adaptiveSchedulerPolicySchema.default({})
 }).passthrough();
 var reliabilityPolicySchema = external_exports.object({
   enabled: external_exports.boolean().default(true),
@@ -52848,7 +52903,7 @@ function setsDiffer(a2, b) {
   return false;
 }
 function stepDescriptions(steps) {
-  return steps.map((step) => step.description.trim().toLowerCase());
+  return steps.map((step2) => step2.description.trim().toLowerCase());
 }
 function assessPlanChange(previous, next) {
   const material = [];
@@ -52920,11 +52975,11 @@ function buildExecutionPlan(input) {
     assumptions: candidate.assumptions ?? [],
     openQuestions: candidate.openQuestions ?? [],
     expectedAreas: candidate.expectedAreas ?? [],
-    steps: candidate.steps.map((step, index) => ({
-      id: step.id ?? `s${index + 1}`,
-      description: step.description,
-      expectedAreas: step.expectedAreas ?? [],
-      ...step.expectedEvidence !== void 0 ? { expectedEvidence: step.expectedEvidence } : {},
+    steps: candidate.steps.map((step2, index) => ({
+      id: step2.id ?? `s${index + 1}`,
+      description: step2.description,
+      expectedAreas: step2.expectedAreas ?? [],
+      ...step2.expectedEvidence !== void 0 ? { expectedEvidence: step2.expectedEvidence } : {},
       status: "pending"
     })),
     testStrategy: candidate.testStrategy,
@@ -55781,6 +55836,22 @@ var taskAttemptSchema = external_exports.object({
   apiApprovalId: shortText42.optional(),
   /** Deterministic delay-sensitivity level that justified paid bridging. */
   delaySensitivity: shortText42.optional(),
+  // vNext.8 adaptive attribution (additive; absent on every pre-vNext.8
+  // record). These three exist so historical observations can be GROUPED
+  // and their runtime identity CHECKED without re-deriving either from
+  // whatever the classifiers happen to do today: a signature recomputed
+  // months later under changed heuristics would silently re-file old
+  // attempts into buckets they were never measured in.
+  /** The coarse TaskSignature key this attempt was dispatched under. */
+  taskSignature: shortText42.optional(),
+  /** vNext.7 context strategy in force for this attempt. */
+  contextStrategy: shortText42.optional(),
+  /**
+   * Runner/runtime version when the provider reported one. Absent means
+   * UNKNOWN — never assumed to match the version running now, because a
+   * silent version change is exactly the case this field exists to catch.
+   */
+  runnerVersion: shortText42.optional(),
   metrics: attemptMetricsSchema.default({})
 }).passthrough();
 var checkpointDecisionSchema = external_exports.object({
@@ -55917,6 +55988,13 @@ var executionLedgerEntrySchema = external_exports.object({
   recoveryDecisionId: shortText42.nullable().default(null),
   /** Which dimension of strategy the recovery changed, if any. */
   strategyChange: shortText42.nullable().default(null),
+  // vNext.8 adaptive attribution (additive; null on every pre-vNext.8
+  // record). The adaptive layer reads history through this read model, so
+  // the grouping key and the runtime identity have to travel with the
+  // observation rather than being reconstructed from it.
+  taskSignature: shortText42.nullable().default(null),
+  contextStrategy: shortText42.nullable().default(null),
+  runnerVersion: shortText42.nullable().default(null),
   metrics: attemptMetricsSchema
 }).passthrough();
 var shortText5 = external_exports.string().min(1).max(200);
@@ -55945,6 +56023,301 @@ var apiBudgetStateSchema = external_exports.object({
   jobId: shortText5,
   reservations: external_exports.array(apiBudgetReservationSchema).max(5e3).default([]),
   updatedAt: shortText5
+}).passthrough();
+var EMPTY_METRIC = Object.freeze({ observations: 0, p50: null, p90: null });
+var PREDICTION_CONFIDENCE_LEVELS = ["NONE", "LOW", "MEDIUM", "HIGH"];
+var PREDICTION_CONFIDENCE_RANK = Object.freeze({ NONE: 0, LOW: 1, MEDIUM: 2, HIGH: 3 });
+var PROFILE_FALLBACK_LEVELS = [
+  "EXACT",
+  "TARGET_CATEGORY",
+  "LANE_CATEGORY",
+  "LANE_GLOBAL",
+  "HEURISTIC_PRIOR"
+];
+var PROFILE_FALLBACK_LEVEL_DEPTH = Object.freeze({
+  EXACT: 0,
+  TARGET_CATEGORY: 1,
+  LANE_CATEGORY: 2,
+  LANE_GLOBAL: 3,
+  HEURISTIC_PRIOR: 4
+});
+var RUNTIME_IDENTITY_MATCHES = ["EXACT", "COMPATIBLE", "CHANGED", "UNKNOWN"];
+var ADAPTIVE_VETO_CODES = [
+  /** The candidate's compute is not VERIFIED local (vNext.4 authority). */
+  "REMOTE_NOT_LOCAL",
+  /** Paid execution is not authorized at all (spendMode DISABLED). */
+  "API_DISABLED",
+  /** Paid execution requires a human authorization that does not exist. */
+  "API_APPROVAL_REQUIRED",
+  /** The safe cost estimate exceeds the authorized budget. */
+  "API_BUDGET_EXCEEDED",
+  /** Current pricing is unknown; historical cost may not substitute for it. */
+  "API_COST_UNKNOWN",
+  /** A previously granted authorization no longer covers this dispatch. */
+  "STALE_APPROVAL",
+  /** The weekly subscription window is under pressure or exhausted. */
+  "WEEKLY_QUOTA_PRESSURE",
+  /** The five-hour window cannot safely admit this work. */
+  "FIVE_HOUR_QUOTA_PRESSURE",
+  /** Required context does not fit safely in the available budget. */
+  "CONTEXT_UNSAFE",
+  /** The candidate cannot satisfy the task's capability requirements. */
+  "CAPABILITY_MISSING",
+  /** vNext.6 recorded this strategy as already tried and failed on this task. */
+  "RELIABILITY_STRATEGY_FORBIDDEN",
+  /** The candidate's runner/binding is not usable right now. */
+  "RUNNER_UNAVAILABLE",
+  /** The lane itself was not selected by hard policy; no candidate exists. */
+  "LANE_NOT_ELIGIBLE"
+];
+var ADAPTIVE_FALLBACK_REASONS = [
+  /** Mode is HEURISTIC: adaptive ranking is switched off. */
+  "MODE_HEURISTIC",
+  /** Mode is SHADOW: recommendations are recorded, never executed. */
+  "MODE_SHADOW",
+  /** No history at any hierarchy level for any candidate (cold start). */
+  "COLD_START",
+  /** Evidence exists but sits below the configured sample floor. */
+  "INSUFFICIENT_SAMPLES",
+  /** Candidates could not be compared: one side lacks comparable evidence. */
+  "INSUFFICIENT_COMPARABLE_SAMPLES",
+  /** The best prediction's confidence is below the configured floor. */
+  "CONFIDENCE_BELOW_THRESHOLD",
+  /** The adaptive winner IS the heuristic choice; nothing changed. */
+  "AGREES_WITH_HEURISTIC",
+  /** The utility advantage was too small to justify moving (hysteresis). */
+  "UTILITY_MARGIN_TOO_SMALL",
+  /** Only one candidate was eligible: there was nothing to rank. */
+  "SINGLE_CANDIDATE",
+  /** Hard policy vetoed every candidate the adaptive layer preferred. */
+  "ALL_PREFERRED_CANDIDATES_VETOED",
+  /** Observed performance diverged from history; confidence was withdrawn. */
+  "DRIFT_DETECTED",
+  /** The derived profile store was unusable and is being rebuilt. */
+  "PROFILE_STORE_UNAVAILABLE"
+];
+var ADAPTIVE_DRIFT_SIGNALS = [
+  /** Verified success rate fell materially between the older and recent windows. */
+  "SUCCESS_RATE_DROP",
+  /** Median wall time to completion grew materially. */
+  "WALL_TIME_GROWTH",
+  /** Median context consumption grew materially. */
+  "CONTEXT_GROWTH",
+  /** The dominant failure source changed. */
+  "FAILURE_SOURCE_SHIFT",
+  /** The runner/model/harness identity behind the profile changed. */
+  "RUNTIME_IDENTITY_CHANGED"
+];
+var shortText6 = external_exports.string().min(1).max(200);
+var metricSummarySchema = external_exports.object({
+  observations: external_exports.number().int().min(0),
+  p50: external_exports.number().nullable().default(null),
+  p90: external_exports.number().nullable().default(null)
+}).passthrough();
+var profileSchema = external_exports.object({
+  level: external_exports.enum(PROFILE_FALLBACK_LEVELS),
+  profileKey: external_exports.string().min(1).max(400),
+  signaturePart: external_exports.string().max(400),
+  targetPart: external_exports.string().max(400),
+  lane: shortText6.nullable().default(null),
+  executionMode: shortText6.nullable().default(null),
+  runner: shortText6.nullable().default(null),
+  samples: external_exports.number().int().min(0),
+  weightedSamples: external_exports.number().min(0),
+  verifiedSuccesses: external_exports.number().int().min(0),
+  unverifiedSuccesses: external_exports.number().int().min(0),
+  implementationFailures: external_exports.number().int().min(0),
+  infrastructureFailures: external_exports.number().int().min(0),
+  inconclusive: external_exports.number().int().min(0),
+  censored: external_exports.number().int().min(0),
+  weightedVerifiedSuccesses: external_exports.number().min(0),
+  weightedIntelligenceAttempts: external_exports.number().min(0),
+  firstAttempts: external_exports.number().int().min(0),
+  firstAttemptSuccesses: external_exports.number().int().min(0),
+  wallTimeMs: metricSummarySchema,
+  inputTokens: metricSummarySchema,
+  contextTokens: metricSummarySchema,
+  fiveHourBurnRatio: metricSummarySchema,
+  apiCostUsd: metricSummarySchema,
+  attemptsPerSuccess: external_exports.number().min(0).nullable().default(null),
+  stagnationRate: external_exports.number().min(0).max(1).nullable().default(null),
+  oscillationRate: external_exports.number().min(0).max(1).nullable().default(null),
+  runawayRate: external_exports.number().min(0).max(1).nullable().default(null),
+  contextExpansionRate: external_exports.number().min(0).max(1).nullable().default(null),
+  contextMissRate: external_exports.number().min(0).max(1).nullable().default(null),
+  infrastructureFailureRate: external_exports.number().min(0).max(1).nullable().default(null),
+  failedWallTimeMs: external_exports.number().min(0),
+  failedTokens: external_exports.number().min(0).nullable().default(null),
+  failedCostUsd: external_exports.number().min(0).nullable().default(null),
+  failedFiveHourBurnRatio: external_exports.number().min(0).nullable().default(null),
+  failureSources: external_exports.record(external_exports.number().int().min(0)).default({}),
+  runtimeIdentities: external_exports.array(external_exports.string().max(300)).max(50).default([]),
+  latestRuntimeIdentity: external_exports.string().max(300).nullable().default(null),
+  safetyEvents: external_exports.number().int().min(0).default(0),
+  firstObservedAt: shortText6.nullable().default(null),
+  lastObservedAt: shortText6.nullable().default(null),
+  drift: external_exports.object({
+    detected: external_exports.boolean().default(false),
+    signals: external_exports.array(external_exports.enum(ADAPTIVE_DRIFT_SIGNALS)).max(16).default([]),
+    detail: external_exports.string().max(1e3).default("")
+  }).passthrough()
+}).passthrough();
+var adaptiveProfileCacheSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  /**
+   * Fingerprint of the canonical history the cache was built from. A
+   * mismatch means the ledger advanced and the cache is stale; it never
+   * means the ledger is wrong.
+   */
+  sourceFingerprint: external_exports.string().min(1).max(200),
+  observationCount: external_exports.number().int().min(0).default(0),
+  droppedByAge: external_exports.number().int().min(0).default(0),
+  builtAt: shortText6,
+  profiles: external_exports.array(profileSchema).max(2e4).default([])
+}).passthrough();
+var adaptiveCalibrationRecordSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  jobId: shortText6,
+  nodeId: shortText6,
+  taskId: shortText6,
+  attemptId: shortText6,
+  decisionId: shortText6.nullable().default(null),
+  candidateId: shortText6,
+  /** What was predicted before dispatch. */
+  predictedSuccessProbability: external_exports.number().min(0).max(1).nullable().default(null),
+  predictedWallTimeMs: external_exports.number().min(0).nullable().default(null),
+  predictedInputTokens: external_exports.number().min(0).nullable().default(null),
+  predictedContextTokens: external_exports.number().min(0).nullable().default(null),
+  predictedFiveHourBurnRatio: external_exports.number().min(0).max(1).nullable().default(null),
+  predictedApiCostUsd: external_exports.number().min(0).nullable().default(null),
+  predictedConfidence: shortText6,
+  /** What was observed. Null stays null; nothing is back-filled. */
+  observedOutcome: shortText6,
+  observedVerified: external_exports.boolean().nullable().default(null),
+  observedWallTimeMs: external_exports.number().min(0).nullable().default(null),
+  observedInputTokens: external_exports.number().min(0).nullable().default(null),
+  observedContextTokens: external_exports.number().min(0).nullable().default(null),
+  observedFiveHourBurnRatio: external_exports.number().min(0).nullable().default(null),
+  observedApiCostUsd: external_exports.number().min(0).nullable().default(null),
+  /** Signed relative errors, when both sides are known. */
+  wallTimeError: external_exports.number().nullable().default(null),
+  inputTokenError: external_exports.number().nullable().default(null),
+  contextTokenError: external_exports.number().nullable().default(null),
+  costError: external_exports.number().nullable().default(null),
+  /** Brier-style squared error of the success forecast, when resolvable. */
+  successBrierScore: external_exports.number().min(0).max(1).nullable().default(null),
+  createdAt: shortText6
+}).passthrough();
+var shortText7 = external_exports.string().min(1).max(200);
+var candidateShape = external_exports.object({
+  candidateId: shortText7,
+  lane: shortText7,
+  executionMode: shortText7.nullable().default(null),
+  runner: shortText7.nullable().default(null),
+  model: shortText7.nullable().default(null),
+  profile: shortText7.nullable().default(null),
+  contextStrategy: shortText7,
+  computeLocality: shortText7,
+  heuristicChoice: external_exports.boolean().default(false)
+}).passthrough();
+var predictionShape = external_exports.object({
+  candidateId: shortText7,
+  level: external_exports.enum(PROFILE_FALLBACK_LEVELS),
+  profileKey: external_exports.string().max(400).nullable().default(null),
+  confidence: external_exports.enum(PREDICTION_CONFIDENCE_LEVELS),
+  confidenceScore: external_exports.number().min(0).max(1),
+  identityMatch: external_exports.enum(RUNTIME_IDENTITY_MATCHES),
+  driftDetected: external_exports.boolean().default(false),
+  driftSignals: external_exports.array(external_exports.enum(ADAPTIVE_DRIFT_SIGNALS)).max(16).default([]),
+  /** Smoothed probability of VERIFIED completion for one attempt. */
+  verifiedSuccessProbability: external_exports.number().min(0).max(1),
+  priorSuccessProbability: external_exports.number().min(0).max(1),
+  observedSuccessRate: external_exports.number().min(0).max(1).nullable().default(null),
+  firstAttemptSuccessRate: external_exports.number().min(0).max(1).nullable().default(null),
+  availabilityProbability: external_exports.number().min(0).max(1).nullable().default(null),
+  expectedAttempts: external_exports.number().min(0),
+  expectedWallTimeMs: external_exports.number().min(0).nullable().default(null),
+  expectedTotalWallTimeMs: external_exports.number().min(0).nullable().default(null),
+  expectedInputTokens: external_exports.number().min(0).nullable().default(null),
+  expectedContextTokens: external_exports.number().min(0).nullable().default(null),
+  expectedFiveHourBurnRatio: external_exports.number().min(0).max(1).nullable().default(null),
+  conservativeFiveHourBurnRatio: external_exports.number().min(0).max(1).nullable().default(null),
+  /** Null means UNKNOWN cost, never free. */
+  expectedApiCostUsd: external_exports.number().min(0).nullable().default(null),
+  expectedFailedWallTimeMs: external_exports.number().min(0).nullable().default(null),
+  stagnationRate: external_exports.number().min(0).max(1).nullable().default(null),
+  oscillationRate: external_exports.number().min(0).max(1).nullable().default(null),
+  runawayRate: external_exports.number().min(0).max(1).nullable().default(null),
+  contextMissRate: external_exports.number().min(0).max(1).nullable().default(null),
+  contextExpansionRate: external_exports.number().min(0).max(1).nullable().default(null),
+  safetyEvents: external_exports.number().int().min(0).default(0),
+  sampleCount: external_exports.number().int().min(0),
+  weightedSampleCount: external_exports.number().min(0),
+  lastObservedAt: shortText7.nullable().default(null),
+  /** Utility score and its itemized components. */
+  score: external_exports.number(),
+  scoreComponents: external_exports.array(
+    external_exports.object({
+      name: shortText7,
+      raw: external_exports.number().nullable().default(null),
+      unit: shortText7,
+      normalized: external_exports.number(),
+      weight: external_exports.number(),
+      contribution: external_exports.number(),
+      detail: external_exports.string().max(600).default("")
+    }).passthrough()
+  ).max(32).default([])
+}).passthrough();
+var adaptiveSchedulingDecisionSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  decisionId: shortText7,
+  jobId: shortText7,
+  nodeId: shortText7,
+  taskId: shortText7,
+  mode: external_exports.enum(ADAPTIVE_SCHEDULER_MODES),
+  /** The coarse grouping key this decision was made under. */
+  taskSignature: external_exports.string().max(400),
+  /** Fine-grained current features: audit only, never the grouping key. */
+  signatureFeatures: external_exports.record(external_exports.unknown()).default({}),
+  /** The lane hard policy selected before adaptive ranking ran. */
+  heuristicLane: shortText7,
+  heuristicReasonCode: shortText7,
+  eligibleCandidates: external_exports.array(candidateShape).max(32).default([]),
+  rejectedCandidates: external_exports.array(
+    external_exports.object({
+      candidateId: shortText7,
+      lane: shortText7,
+      executionMode: shortText7.nullable().default(null),
+      runner: shortText7.nullable().default(null),
+      code: external_exports.enum(ADAPTIVE_VETO_CODES),
+      detail: external_exports.string().max(600).default("")
+    }).passthrough()
+  ).max(32).default([]),
+  predictions: external_exports.array(predictionShape).max(32).default([]),
+  /** What the deterministic scheduler chose. */
+  heuristicCandidateId: shortText7.nullable().default(null),
+  /** What ranking preferred, before gating. */
+  recommendedCandidateId: shortText7.nullable().default(null),
+  /** What actually executes. */
+  selectedCandidateId: shortText7.nullable().default(null),
+  adaptiveApplied: external_exports.boolean().default(false),
+  /**
+   * True when the recommendation differed from the heuristic choice. In
+   * SHADOW mode this records a DISAGREEMENT and nothing else: the
+   * alternative was not executed, so no outcome is attributed to it and
+   * no regret is computed.
+   */
+  disagreement: external_exports.boolean().default(false),
+  wouldApplyInAdaptiveMode: external_exports.boolean().default(false),
+  confidence: external_exports.enum(PREDICTION_CONFIDENCE_LEVELS),
+  utilityMargin: external_exports.number().nullable().default(null),
+  fallbackReason: external_exports.enum(ADAPTIVE_FALLBACK_REASONS).nullable().default(null),
+  /** Bounded, human-readable score breakdown. Never model reasoning. */
+  explanation: external_exports.array(external_exports.string().max(600)).max(24).default([]),
+  /** Profile-store provenance, so a decision is reproducible. */
+  profileObservations: external_exports.number().int().min(0).default(0),
+  profileBuiltAt: shortText7.nullable().default(null),
+  createdAt: shortText7
 }).passthrough();
 var CATEGORY_SOURCES = Object.freeze({
   TRANSIENT_TRANSPORT: "TRANSIENT",
@@ -56033,7 +56406,7 @@ var AGENT_OUTPUT_LIMITS = {
   maxSteps: 40,
   maxResponseBytes: 262144
 };
-var shortText6 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxShortChars);
+var shortText8 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxShortChars);
 var text5 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxTextChars);
 var textList3 = external_exports.array(text5).max(AGENT_OUTPUT_LIMITS.maxListItems);
 var classifierOutputSchema = external_exports.object({
@@ -56043,7 +56416,7 @@ var classifierOutputSchema = external_exports.object({
   reasons: textList3.default([])
 });
 var plannerStepSchema = external_exports.object({
-  id: shortText6,
+  id: shortText8,
   action: text5,
   /** What observable evidence would show this step succeeded. */
   expectedEvidence: text5.optional()
@@ -56315,23 +56688,23 @@ var OBJECTIVE_LIMITS = {
   maxProjectionContracts: 30,
   maxProjectionExcerptChars: 2e4
 };
-var shortText7 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxShortTextChars);
+var shortText9 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxShortTextChars);
 var text6 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxTextChars);
 var optionalText2 = external_exports.string().max(OBJECTIVE_LIMITS.maxTextChars);
 var textList4 = external_exports.array(text6).max(OBJECTIVE_LIMITS.maxListItems);
-var idList2 = external_exports.array(shortText7).max(OBJECTIVE_LIMITS.maxListItems);
+var idList2 = external_exports.array(shortText9).max(OBJECTIVE_LIMITS.maxListItems);
 var semver3 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
 var workUnitSchema = external_exports.object({
-  workUnitId: shortText7,
+  workUnitId: shortText9,
   /** The objective (job graph node) this unit belongs to. */
-  objectiveNodeId: shortText7,
+  objectiveNodeId: shortText9,
   /** The approved task id of the objective (audit convenience). */
-  parentTaskId: shortText7,
+  parentTaskId: shortText9,
   kind: external_exports.enum(WORK_UNIT_KINDS),
   title: text6,
   goal: text6,
   /** Work-unit ids that must be VERIFIED_CANDIDATE before this one runs. */
-  dependsOn: external_exports.array(shortText7).max(OBJECTIVE_LIMITS.maxDependenciesPerUnit).default([]),
+  dependsOn: external_exports.array(shortText9).max(OBJECTIVE_LIMITS.maxDependenciesPerUnit).default([]),
   /** Artifacts the unit is expected to produce (paths, report names). */
   expectedArtifacts: textList4.default([]),
   /** Product contract ids relevant to this unit (projection input). */
@@ -56339,39 +56712,39 @@ var workUnitSchema = external_exports.object({
   relevantAdrIds: idList2.default([]),
   relevantConstitutionRuleIds: idList2.default([]),
   /** Source areas the unit is expected to touch (scope screen input). */
-  expectedAreas: external_exports.array(shortText7).max(OBJECTIVE_LIMITS.maxListItems).default([]),
+  expectedAreas: external_exports.array(shortText9).max(OBJECTIVE_LIMITS.maxListItems).default([]),
   status: external_exports.enum(WORK_UNIT_STATUSES),
   /** Builder attempts consumed so far. */
   attempt: external_exports.number().int().min(0).default(0),
   /** Worker currently (or last) bound to this unit. */
-  workerId: shortText7.optional(),
-  contextProjectionHash: shortText7.optional(),
-  contractSnapshotHash: shortText7.optional(),
+  workerId: shortText9.optional(),
+  contextProjectionHash: shortText9.optional(),
+  contractSnapshotHash: shortText9.optional(),
   /** Latest candidate artifact reference (candidates/<file>). */
-  candidateRef: shortText7.optional(),
+  candidateRef: shortText9.optional(),
   /** Evaluation record references, oldest first. */
   evaluationRefs: idList2.default([]),
   latestFailure: external_exports.object({
     category: external_exports.enum(FAILURE_CATEGORIES),
     message: text6,
-    at: shortText7
+    at: shortText9
   }).passthrough().optional(),
-  supersedes: shortText7.optional(),
-  supersededBy: shortText7.optional(),
-  integratedAt: shortText7.optional()
+  supersedes: shortText9.optional(),
+  supersededBy: shortText9.optional(),
+  integratedAt: shortText9.optional()
 }).passthrough();
 var workGraphSchema = external_exports.object({
   schemaVersion: semver3,
-  jobId: shortText7,
+  jobId: shortText9,
   /** The objective node this graph decomposes. */
-  objectiveNodeId: shortText7,
-  parentTaskId: shortText7,
+  objectiveNodeId: shortText9,
+  parentTaskId: shortText9,
   /** Fingerprint of the approved objective at decomposition time. */
-  objectiveFingerprint: shortText7,
+  objectiveFingerprint: shortText9,
   revision: external_exports.number().int().min(1),
-  createdAt: shortText7,
+  createdAt: shortText9,
   /** Who proposed the decomposition ("deterministic" or a worker id). */
-  proposedBy: shortText7,
+  proposedBy: shortText9,
   /** Deterministic validation findings recorded at acceptance time. */
   validationNotes: textList4.default([]),
   units: external_exports.array(workUnitSchema).min(1).max(OBJECTIVE_LIMITS.maxWorkUnits),
@@ -56380,21 +56753,21 @@ var workGraphSchema = external_exports.object({
 }).passthrough();
 var contextProjectionSchema = external_exports.object({
   schemaVersion: semver3,
-  projectionId: shortText7,
-  jobId: shortText7,
-  objectiveNodeId: shortText7,
-  workUnitId: shortText7,
+  projectionId: shortText9,
+  jobId: shortText9,
+  objectiveNodeId: shortText9,
+  workUnitId: shortText9,
   attempt: external_exports.number().int().min(1),
-  createdAt: shortText7,
-  missionId: shortText7.optional(),
+  createdAt: shortText9,
+  missionId: shortText9.optional(),
   constitution: external_exports.object({
     version: external_exports.number().int().min(0),
     rules: external_exports.array(
-      external_exports.object({ ruleId: shortText7, version: external_exports.number().int().min(1), statement: text6 }).passthrough()
+      external_exports.object({ ruleId: shortText9, version: external_exports.number().int().min(1), statement: text6 }).passthrough()
     ).max(40).default([])
   }).passthrough(),
   objective: external_exports.object({
-    taskId: shortText7,
+    taskId: shortText9,
     title: text6,
     acceptance: textList4.default([])
   }).passthrough(),
@@ -56403,61 +56776,61 @@ var contextProjectionSchema = external_exports.object({
     goal: text6,
     kind: external_exports.enum(WORK_UNIT_KINDS),
     expectedArtifacts: textList4.default([]),
-    expectedAreas: external_exports.array(shortText7).max(OBJECTIVE_LIMITS.maxListItems).default([])
+    expectedAreas: external_exports.array(shortText9).max(OBJECTIVE_LIMITS.maxListItems).default([])
   }).passthrough(),
   contracts: external_exports.array(
     external_exports.object({
-      contractId: shortText7,
+      contractId: shortText9,
       revision: external_exports.number().int().min(1),
-      title: shortText7,
+      title: shortText9,
       summary: text6,
       requirements: textList4.default([]),
       invariants: textList4.default([])
     }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxProjectionContracts).default([]),
   adrs: external_exports.array(
-    external_exports.object({ adrId: shortText7, title: shortText7, decision: text6 }).passthrough()
+    external_exports.object({ adrId: shortText9, title: shortText9, decision: text6 }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxListItems).default([]),
-  decisions: external_exports.array(external_exports.object({ decisionId: shortText7, decision: text6 }).passthrough()).max(OBJECTIVE_LIMITS.maxListItems).default([]),
+  decisions: external_exports.array(external_exports.object({ decisionId: shortText9, decision: text6 }).passthrough()).max(OBJECTIVE_LIMITS.maxListItems).default([]),
   /** Bounded approved-spec excerpts (requirements/design fragments). */
   specExcerpts: external_exports.array(external_exports.string().max(OBJECTIVE_LIMITS.maxProjectionExcerptChars)).max(5).default([]),
   /** Bounded summaries of verified dependency candidates (work evidence). */
   workEvidence: textList4.default([]),
   /** Hash over the ACTIVE contract registry this projection saw. */
-  contractSnapshotHash: shortText7,
+  contractSnapshotHash: shortText9,
   /** Hash of this projection's canonical serialization (identity). */
-  contentHash: shortText7
+  contentHash: shortText9
 }).passthrough();
 var candidateArtifactSchema = external_exports.object({
   schemaVersion: semver3,
-  candidateId: shortText7,
-  jobId: shortText7,
-  objectiveNodeId: shortText7,
-  workUnitId: shortText7,
+  candidateId: shortText9,
+  jobId: shortText9,
+  objectiveNodeId: shortText9,
+  workUnitId: shortText9,
   attempt: external_exports.number().int().min(1),
-  workerId: shortText7,
-  createdAt: shortText7,
+  workerId: shortText9,
+  createdAt: shortText9,
   /** Git commit the worktree was created from. */
-  baselineCommit: shortText7,
-  contextProjectionHash: shortText7,
-  contractSnapshotHash: shortText7,
+  baselineCommit: shortText9,
+  contextProjectionHash: shortText9,
+  contractSnapshotHash: shortText9,
   /** Files changed in the worktree, as observed by git. */
   changedFiles: external_exports.array(
     external_exports.object({
-      path: shortText7,
+      path: shortText9,
       changeType: external_exports.enum(["added", "modified", "deleted", "renamed"])
     }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxChangedFiles).default([]),
   /** Reference to the stored normalized patch (candidates/<file>.patch). */
-  patchRef: shortText7.optional(),
+  patchRef: shortText9.optional(),
   /** Local verification observed by SpecBridge inside the worktree. */
   localVerification: external_exports.object({
     ran: external_exports.boolean(),
     passed: external_exports.boolean(),
     commands: external_exports.array(
       external_exports.object({
-        name: shortText7,
-        status: shortText7,
+        name: shortText9,
+        status: shortText9,
         exitCode: external_exports.number().int().nullable().default(null)
       }).passthrough()
     ).max(OBJECTIVE_LIMITS.maxListItems).default([])
@@ -56468,7 +56841,7 @@ var candidateArtifactSchema = external_exports.object({
     assumptionsDiscovered: textList4.default([]),
     contractChangeRequests: external_exports.array(
       external_exports.object({
-        contractId: shortText7,
+        contractId: shortText9,
         problem: text6,
         proposal: text6
       }).passthrough()
@@ -56482,67 +56855,67 @@ var candidateArtifactSchema = external_exports.object({
 }).passthrough();
 var evaluationRecordSchema = external_exports.object({
   schemaVersion: semver3,
-  evaluationId: shortText7,
-  jobId: shortText7,
-  objectiveNodeId: shortText7,
-  workUnitId: shortText7,
+  evaluationId: shortText9,
+  jobId: shortText9,
+  objectiveNodeId: shortText9,
+  workUnitId: shortText9,
   attempt: external_exports.number().int().min(1),
   layer: external_exports.enum(EVALUATION_LAYERS),
   verdict: external_exports.enum(EVALUATION_VERDICTS),
   /** Named deterministic checks with their outcomes (deterministic layer). */
   checks: external_exports.array(
-    external_exports.object({ name: shortText7, passed: external_exports.boolean(), detail: optionalText2.optional() }).passthrough()
+    external_exports.object({ name: shortText9, passed: external_exports.boolean(), detail: optionalText2.optional() }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxEvaluationChecks).default([]),
   reasons: textList4.default([]),
   evidenceRefs: idList2.default([]),
   affectedContractIds: idList2.default([]),
   /** Decision kind for CONFLICT / NEEDS_DECISION verdicts (authority routing). */
-  decisionKind: shortText7.optional(),
+  decisionKind: shortText9.optional(),
   /** The evaluator worker, when the layer is semantic. */
-  evaluatorWorkerId: shortText7.optional(),
-  createdAt: shortText7
+  evaluatorWorkerId: shortText9.optional(),
+  createdAt: shortText9
 }).passthrough();
 var contractConflictSchema = external_exports.object({
   schemaVersion: semver3,
-  conflictId: shortText7,
-  jobId: shortText7,
-  objectiveNodeId: shortText7,
-  contractId: shortText7,
+  conflictId: shortText9,
+  jobId: shortText9,
+  objectiveNodeId: shortText9,
+  contractId: shortText9,
   contractRevision: external_exports.number().int().min(1),
   claims: external_exports.array(
     external_exports.object({
-      workUnitId: shortText7,
-      candidateRef: shortText7.optional(),
+      workUnitId: shortText9,
+      candidateRef: shortText9.optional(),
       claim: text6
     }).passthrough()
   ).min(1).max(OBJECTIVE_LIMITS.maxListItems),
   evidenceRefs: idList2.default([]),
   affectedWorkUnitIds: idList2.default([]),
-  decisionKind: shortText7,
+  decisionKind: shortText9,
   status: external_exports.enum(CONTRACT_CONFLICT_STATUSES),
   resolution: optionalText2.optional(),
-  createdAt: shortText7,
-  resolvedAt: shortText7.optional()
+  createdAt: shortText9,
+  resolvedAt: shortText9.optional()
 }).passthrough();
 var objectiveWorkerRecordSchema = external_exports.object({
   schemaVersion: semver3,
-  workerId: shortText7,
+  workerId: shortText9,
   agentRole: external_exports.enum(AGENT_ROLES),
-  jobId: shortText7,
-  objectiveNodeId: shortText7,
-  workUnitId: shortText7,
+  jobId: shortText9,
+  objectiveNodeId: shortText9,
+  workUnitId: shortText9,
   attempt: external_exports.number().int().min(1),
-  contextProjectionHash: shortText7,
-  contractSnapshotHash: shortText7,
+  contextProjectionHash: shortText9,
+  contractSnapshotHash: shortText9,
   /** "worktree:<name>", "canonical", or "ephemeral" (read-only reasoning). */
-  workspaceIdentity: shortText7,
+  workspaceIdentity: shortText9,
   status: external_exports.enum(OBJECTIVE_WORKER_STATUSES),
   budget: external_exports.object({
     timeoutMs: external_exports.number().int().min(1),
     maxOutputBytes: external_exports.number().int().min(1).optional()
   }).passthrough(),
-  startedAt: shortText7,
-  finishedAt: shortText7.optional()
+  startedAt: shortText9,
+  finishedAt: shortText9.optional()
 }).passthrough();
 var WORK_UNIT_TRANSITIONS = Object.freeze({
   PLANNED: ["READY", "BLOCKED", "SUPERSEDED", "FAILED"],
@@ -56564,13 +56937,13 @@ var OBJECTIVE_OUTPUT_LIMITS = {
   maxUnits: 30,
   maxResponseBytes: 262144
 };
-var shortText8 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxShortChars);
+var shortText10 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxShortChars);
 var text7 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxTextChars);
 var textList5 = external_exports.array(text7).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
-var shortList = external_exports.array(shortText8).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
+var shortList = external_exports.array(shortText10).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
 var decomposerUnitSchema = external_exports.object({
   /** Proposal-local id ("a", "b", …); SpecBridge assigns the real ids. */
-  id: shortText8,
+  id: shortText10,
   kind: external_exports.enum(WORK_UNIT_KINDS),
   title: text7,
   goal: text7,
@@ -56599,7 +56972,7 @@ var evaluatorOutputSchema = external_exports.object({
    * "architecture-contract-change", "product-behavior-change", …). The
    * deterministic authority table routes it; the evaluator only names it.
    */
-  decisionKind: shortText8.optional()
+  decisionKind: shortText10.optional()
 });
 var aggregatorOutputSchema = external_exports.object({
   /** One bounded synthesis of the input artifacts. */
@@ -56607,7 +56980,7 @@ var aggregatorOutputSchema = external_exports.object({
   /** Structured findings, each tied to its source artifact. */
   findings: external_exports.array(
     external_exports.object({
-      sourceWorkUnitId: shortText8,
+      sourceWorkUnitId: shortText10,
       finding: text7
     })
   ).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems).default([]),
@@ -56616,15 +56989,15 @@ var aggregatorOutputSchema = external_exports.object({
   /** Contract changes the synthesis suggests — requests, never approvals. */
   contractChangeSuggestions: external_exports.array(
     external_exports.object({
-      contractId: shortText8,
+      contractId: shortText10,
       problem: text7,
       proposal: text7
     })
   ).max(10).default([]),
   conflictsDetected: external_exports.array(
     external_exports.object({
-      contractId: shortText8,
-      claims: external_exports.array(external_exports.object({ sourceWorkUnitId: shortText8, claim: text7 })).min(1).max(10)
+      contractId: shortText10,
+      claims: external_exports.array(external_exports.object({ sourceWorkUnitId: shortText10, claim: text7 })).min(1).max(10)
     })
   ).max(10).default([])
 });
@@ -56636,7 +57009,7 @@ var builderOutputSchema = external_exports.object({
   assumptionsDiscovered: textList5.default([]),
   contractChangeRequests: external_exports.array(
     external_exports.object({
-      contractId: shortText8,
+      contractId: shortText10,
       problem: text7,
       proposal: text7
     })
@@ -56956,30 +57329,30 @@ var quotaForecastSchema = external_exports.object({
   /** The forecast's own clock reading. */
   forecastAt: isoText
 }).passthrough();
-var shortText9 = external_exports.string().min(1).max(200);
+var shortText11 = external_exports.string().min(1).max(200);
 var schedulingDecisionSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  decisionId: shortText9,
-  jobId: shortText9,
-  nodeId: shortText9,
-  taskId: shortText9,
+  decisionId: shortText11,
+  jobId: shortText11,
+  nodeId: shortText11,
+  taskId: shortText11,
   selectedLane: external_exports.enum(LANE_DECISIONS),
   /** Worker/provider identity for run lanes; null for DEFER. */
-  selectedProvider: shortText9.nullable(),
+  selectedProvider: shortText11.nullable(),
   schedulerMode: external_exports.enum(SCHEDULER_MODES),
   reasonCode: external_exports.enum(SCHEDULING_REASON_CODES),
   /** The forecast the decision was made against. */
   quotaSnapshot: quotaForecastSchema,
   /** Bounded copy of the workload estimate. */
   workloadEstimate: external_exports.object({
-    complexity: shortText9,
-    localSuitability: shortText9,
-    taskCategory: shortText9.nullable().default(null),
+    complexity: shortText11,
+    localSuitability: shortText11,
+    taskCategory: shortText11.nullable().default(null),
     expectedWallTimeMs: external_exports.number().int().min(0),
     expectedFiveHourBurnRatio: external_exports.number().min(0).max(1),
     expectedWeeklyBurnRatio: external_exports.number().min(0).max(1),
-    confidence: shortText9,
-    basis: shortText9
+    confidence: shortText11,
+    basis: shortText11
   }).passthrough().nullable(),
   /** The dynamic reserve ratio in force. */
   reserveRatio: external_exports.number().min(0).max(1).nullable(),
@@ -57008,15 +57381,15 @@ var schedulingDecisionSchema = external_exports.object({
     reasonCode: external_exports.enum(LOCAL_EXECUTION_MODE_REASONS),
     shape: external_exports.enum(LOCAL_EXECUTION_SHAPES),
     /** Runner identity for the mode (e.g. "local-llamacpp", "deepseek-harness"). */
-    runner: shortText9.nullable().default(null),
+    runner: shortText11.nullable().default(null),
     /** Model identity when known; null when the provider does not say. */
-    model: shortText9.nullable().default(null),
+    model: shortText11.nullable().default(null),
     /** Verified compute locality of the selected runner. */
     computeLocality: external_exports.enum(COMPUTE_LOCALITIES).default("UNKNOWN"),
     /** Grounds for the locality verdict (bounded, recorded verbatim). */
     localityEvidence: external_exports.string().max(500).nullable().default(null),
     /** Status of the LOCAL harness binding when the decision was made. */
-    harnessBindingStatus: shortText9.nullable().default(null),
+    harnessBindingStatus: shortText11.nullable().default(null),
     detail: external_exports.string().max(1e3).default("")
   }).passthrough().nullable().default(null),
   /**
@@ -57039,7 +57412,7 @@ var schedulingDecisionSchema = external_exports.object({
     /** Why subscription capacity was unavailable. */
     gapReason: external_exports.enum(SUBSCRIPTION_GAP_REASONS),
     /** When capacity is expected back (ISO); null when unknown. */
-    subscriptionAvailableAt: shortText9.nullable().default(null),
+    subscriptionAvailableAt: shortText11.nullable().default(null),
     estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null),
     gapConfidence: external_exports.enum(GAP_FORECAST_CONFIDENCE).default("UNKNOWN"),
     delaySensitivity: external_exports.enum(DELAY_SENSITIVITIES),
@@ -57052,25 +57425,25 @@ var schedulingDecisionSchema = external_exports.object({
     safeCostUsd: external_exports.number().min(0).nullable().default(null),
     currency: external_exports.string().max(8).default("USD"),
     costSource: external_exports.enum(API_COST_SOURCES).default("UNKNOWN"),
-    pricingSource: shortText9.nullable().default(null),
+    pricingSource: shortText11.nullable().default(null),
     /** Remaining job API budget at decision time; null when unbounded. */
     budgetRemainingUsd: external_exports.number().min(0).nullable().default(null),
     budgetEncumberedUsd: external_exports.number().min(0).nullable().default(null),
     /** The API profile that would have run it, and its verified locality. */
-    apiProfile: shortText9.nullable().default(null),
-    apiRunner: shortText9.nullable().default(null),
-    apiModel: shortText9.nullable().default(null),
+    apiProfile: shortText11.nullable().default(null),
+    apiRunner: shortText11.nullable().default(null),
+    apiModel: shortText11.nullable().default(null),
     computeLocality: external_exports.enum(COMPUTE_LOCALITIES).default("UNKNOWN"),
-    bindingStatus: shortText9.nullable().default(null),
+    bindingStatus: shortText11.nullable().default(null),
     /** The bounded authorization consulted, when one existed. */
-    approvalId: shortText9.nullable().default(null),
-    approvalStatus: shortText9.nullable().default(null),
+    approvalId: shortText11.nullable().default(null),
+    approvalStatus: shortText11.nullable().default(null),
     detail: external_exports.string().max(2e3).default("")
   }).passthrough().nullable().default(null),
   /** For DEFER: when capacity is expected to return, when known. */
-  deferUntil: shortText9.nullable().default(null),
+  deferUntil: shortText11.nullable().default(null),
   detail: external_exports.string().max(2e3),
-  createdAt: shortText9
+  createdAt: shortText11
 }).passthrough();
 var LOCAL_EXECUTION_LIMITS = {
   maxEdits: 20,
@@ -57137,21 +57510,21 @@ var LOCAL_EXECUTOR_SYSTEM_PROMPT = [
   "  a verification cycle.",
   "- The response must be valid JSON for the provided schema."
 ].join("\n");
-var shortText10 = external_exports.string().min(1).max(200);
+var shortText12 = external_exports.string().min(1).max(200);
 var apiSpendApprovalSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  approvalId: shortText10,
-  jobId: shortText10,
-  nodeId: shortText10,
-  taskId: shortText10,
+  approvalId: shortText12,
+  jobId: shortText12,
+  nodeId: shortText12,
+  taskId: shortText12,
   /**
    * Deterministic fingerprint of the WORK this approval covers. A
    * materially changed task produces a different fingerprint and the old
    * approval no longer authorizes anything.
    */
-  taskFingerprint: shortText10,
+  taskFingerprint: shortText12,
   /** The API profile the approval is scoped to. */
-  profileName: shortText10,
+  profileName: shortText12,
   /** Maximum authorized spend for this task, in USD. */
   maxAuthorizedCostUsd: external_exports.number().min(0),
   currency: external_exports.literal("USD").default("USD"),
@@ -57160,16 +57533,28 @@ var apiSpendApprovalSchema = external_exports.object({
   status: external_exports.enum(API_APPROVAL_STATUSES),
   /** Why the bridge was proposed — recorded verbatim for the decider. */
   rationale: external_exports.string().max(2e3).default(""),
-  requestedAt: shortText10,
+  requestedAt: shortText12,
   /** After this the approval is stale even if never used. */
-  expiresAt: shortText10,
-  decidedAt: shortText10.nullable().default(null),
+  expiresAt: shortText12,
+  decidedAt: shortText12.nullable().default(null),
   /** Who decided. Human identity only; never a model or a runner. */
-  decidedBy: shortText10.nullable().default(null),
+  decidedBy: shortText12.nullable().default(null),
   decisionNote: external_exports.string().max(1e3).nullable().default(null),
   /** The attempt that consumed this approval, when one did. */
-  consumedByAttemptId: shortText10.nullable().default(null)
+  consumedByAttemptId: shortText12.nullable().default(null)
 }).passthrough();
+var DEFAULT_FEATURES = Object.freeze({
+  estimatedFilesTouched: null,
+  multiModule: false,
+  architectureSensitive: false,
+  securitySensitive: false,
+  migration: false,
+  expectedTestLoopClass: "NONE",
+  failureClass: null,
+  blockedDependents: 0,
+  criticalPath: false
+});
+var NO_DRIFT = Object.freeze({ detected: false, signals: [], detail: "" });
 var PREPROCESS_SYSTEM_PROMPT = [
   "You compress one bulky engineering artifact (a log, test output, tool",
   "result, or diff) into a small structured summary another engineer will",

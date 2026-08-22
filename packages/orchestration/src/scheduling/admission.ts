@@ -67,8 +67,26 @@ export function assessSubscriptionAdmission(
   // made the reserve conservative for that case.
   if (forecast.fiveHourRemainingRatio !== null) {
     const available = Math.max(0, forecast.fiveHourRemainingRatio - input.reserveRatio);
-    const required = preResetBurn * safety;
+    // vNext.8: when a measured P90 burn exists, admission compares the LARGER
+    // of the multiplied median and the measured tail. History can therefore
+    // only make this comparison stricter, never more permissive — an
+    // optimistic sample must not be able to talk admission into a risk the
+    // configured safety margin would have refused.
+    const preResetBurnP90 =
+      estimate.expectedFiveHourBurnRatioP90 === null
+        ? null
+        : timeToReset === null
+          ? estimate.expectedFiveHourBurnRatioP90
+          : expectedBurnBeforeReset(
+              { ...estimate, expectedFiveHourBurnRatio: estimate.expectedFiveHourBurnRatioP90 },
+              timeToReset,
+            );
+    const required = Math.max(preResetBurn * safety, preResetBurnP90 ?? 0);
     if (required > available) {
+      const basis =
+        preResetBurnP90 !== null && preResetBurnP90 > preResetBurn * safety
+          ? `Measured P90 pre-reset burn ${(preResetBurnP90 * 100).toFixed(1)}%`
+          : `Pre-reset burn ${(preResetBurn * 100).toFixed(1)}% x${safety} safety`;
       return {
         admissible: false,
         preResetBurnRatio: preResetBurn,
@@ -76,7 +94,7 @@ export function assessSubscriptionAdmission(
         crossesReset,
         refusal: 'five-hour',
         detail:
-          `Pre-reset burn ${(preResetBurn * 100).toFixed(1)}% x${safety} safety exceeds ` +
+          `${basis} exceeds ` +
           `${(forecast.fiveHourRemainingRatio * 100).toFixed(1)}% remaining minus ` +
           `${(input.reserveRatio * 100).toFixed(1)}% reserve.`,
       };
