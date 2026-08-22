@@ -1,4 +1,12 @@
 {
+  "acceptanceCriterionCheckKinds": [
+    "changed-within",
+    "path-absent",
+    "path-exists",
+    "pattern-absent",
+    "pattern-present",
+    "verifier-passed"
+  ],
   "actionCategories": [
     "ABORT",
     "COMPLETE",
@@ -46,6 +54,13 @@
     "AUTO_BOUNDED",
     "DISABLED",
     "MANUAL"
+  ],
+  "assessmentBases": [
+    "ABSENT",
+    "ATTEMPT_HISTORY",
+    "DETERMINISTIC_EVIDENCE",
+    "MODEL_DIAGNOSIS",
+    "PROVIDER_SIGNAL"
   ],
   "computeLocalities": [
     "LOCAL",
@@ -115,9 +130,29 @@
     "SBO050",
     "SBO051"
   ],
+  "evaluationCheckLevels": [
+    "ACCEPTANCE_CRITERIA",
+    "BUILD_STATIC",
+    "EXECUTION_INTEGRITY",
+    "REPOSITORY_INTEGRITY",
+    "SEMANTIC_REVIEW",
+    "TESTS"
+  ],
+  "evaluationCheckOutcomes": [
+    "FAILED",
+    "NOT_RUN",
+    "PASSED",
+    "TIMED_OUT",
+    "UNAVAILABLE"
+  ],
   "evaluationLayers": [
     "deterministic",
     "semantic"
+  ],
+  "evaluationStatuses": [
+    "FAIL",
+    "INCONCLUSIVE",
+    "PASS"
   ],
   "evaluationVerdicts": [
     "CONFLICT",
@@ -146,6 +181,13 @@
     "replan_started",
     "verification_failed"
   ],
+  "executionHealthStates": [
+    "DEGRADED",
+    "HEALTHY",
+    "OSCILLATING",
+    "RUNAWAY",
+    "STALLED"
+  ],
   "executionLanes": [
     "API",
     "LOCAL",
@@ -170,6 +212,31 @@
     "TRANSIENT_TOOL",
     "TRANSIENT_TRANSPORT",
     "VERIFICATION_FAILURE"
+  ],
+  "failureRecoverabilities": [
+    "RECOVERABLE",
+    "REQUIRES_HUMAN",
+    "REQUIRES_NEW_STRATEGY",
+    "TERMINAL"
+  ],
+  "failureScopes": [
+    "ATTEMPT",
+    "JOB",
+    "TASK",
+    "WORKSPACE"
+  ],
+  "failureSources": [
+    "AUTHORIZATION",
+    "BUDGET",
+    "CONTEXT",
+    "EXECUTION_INFRASTRUCTURE",
+    "IMPLEMENTATION",
+    "PROVIDER",
+    "REPOSITORY_STATE",
+    "REQUIREMENT_CONTRACT",
+    "TRANSIENT",
+    "UNKNOWN",
+    "VERIFICATION_INFRASTRUCTURE"
   ],
   "finalPhases": [
     "ABORTED",
@@ -221,12 +288,20 @@
     "contract_conflict_detected",
     "critic_completed",
     "cross_reset_admitted",
+    "dependents_gated_on_evaluation",
     "diagnosis_completed",
     "dynamic_reserve_changed",
     "evaluation_failed",
+    "evaluation_inconclusive",
     "evaluation_passed",
+    "evaluation_started",
     "execution_finished",
+    "execution_oscillating",
+    "execution_runaway",
+    "execution_stalled",
     "execution_started",
+    "failure_assessed",
+    "fresh_context_selected",
     "graph_created",
     "graph_revised",
     "harvest_entered",
@@ -240,6 +315,7 @@
     "job_created",
     "job_failed",
     "job_resumed",
+    "lane_escalation_requested",
     "local_attempt_failed",
     "local_direct_to_harness_escalated",
     "local_escalation_triggered",
@@ -248,6 +324,7 @@
     "local_harness_selected",
     "local_harness_to_subscription_escalated",
     "local_harness_unavailable",
+    "local_mode_recovery_selected",
     "local_model_started",
     "local_model_stopped",
     "local_runtime_evaluation_recorded",
@@ -265,11 +342,16 @@
     "quota_exhausted",
     "quota_snapshot_updated",
     "quota_telemetry_stale",
+    "recovery_budget_exhausted",
+    "recovery_decided",
     "repair_started",
     "replan_started",
     "repository_reconciled",
+    "resource_wait_selected",
     "scheduler_mode_changed",
     "scheduling_decision_created",
+    "semantic_review_completed",
+    "task_blocked_after_recovery",
     "task_checkpoint_created",
     "task_deferred",
     "task_resumed",
@@ -384,6 +466,65 @@
   "quotaWindows": [
     "five-hour",
     "weekly"
+  ],
+  "recoveryActions": [
+    "BLOCK",
+    "ESCALATE_INTELLIGENCE",
+    "ESCALATE_LANE",
+    "FAIL_TASK",
+    "REPAIR",
+    "REPLAN",
+    "REQUEST_HUMAN_DECISION",
+    "RESTART_FRESH_CONTEXT",
+    "RETRY_DIFFERENT_LOCAL_MODE",
+    "RETRY_TRANSIENT",
+    "WAIT_FOR_RESOURCE"
+  ],
+  "recoveryReasonCodes": [
+    "AMBIGUITY_HUMAN",
+    "BUDGET_EXPANSION_HUMAN",
+    "CONTEXT_DEGRADED",
+    "CONTEXT_THRESHOLD_REACHED",
+    "CONTRACT_CONFLICT_HUMAN",
+    "CONTRACT_MISMATCH_REPLAN",
+    "EVALUATION_INFRASTRUCTURE_BROKEN",
+    "HARD_BOUNDARY",
+    "IMPLEMENTATION_NEEDS_STRONGER_INTELLIGENCE",
+    "INFRASTRUCTURE_RETRY",
+    "LANE_CAPABILITY_REQUIRED",
+    "LOCALIZED_DEFECT_REPAIRABLE",
+    "LOCAL_INTELLIGENCE_EXHAUSTED",
+    "LOCAL_MODE_CHANGE_REPOSITORY_TOOLS",
+    "NO_AUTOMATIC_RECOVERY_PATH",
+    "NO_PROGRESS_REPLAN",
+    "OSCILLATION_REPLAN",
+    "PAID_BUDGET_REFUSED",
+    "PAID_CONTINUATION_UNAUTHORIZED",
+    "PAID_DETERMINISTIC_FAILURE_NO_RETRY",
+    "PLAN_INVALIDATED_REPLAN",
+    "RECOVERY_BUDGET_EXHAUSTED",
+    "REPEATED_REPAIR_FAILED_REPLAN",
+    "RESOURCE_RETURNS_SOON",
+    "SESSION_STALLED_FRESH_CONTEXT",
+    "STRATEGIES_EXHAUSTED",
+    "TRANSIENT_WITHIN_BUDGET",
+    "VERIFICATION_FAILED_REPAIRABLE"
+  ],
+  "recoveryStrategyDimensions": [
+    "CONTEXT",
+    "EXECUTION_MODE",
+    "IMPLEMENTATION_APPROACH",
+    "INTELLIGENCE",
+    "LANE",
+    "PLAN",
+    "SAME"
+  ],
+  "runawaySignals": [
+    "CONTEXT_GROWTH",
+    "NO_OP_EDIT_LOOP",
+    "REPEATED_COMMAND_LOOP",
+    "TOOL_CALL_BUDGET",
+    "WALL_TIME_BUDGET"
   ],
   "schedulerModes": [
     "CONSERVE",

@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { analyzeSpec, requireSpec } from '@specbridge/compat-kiro';
 import type { LocalExecutionMode, WorkspaceInfo } from '@specbridge/core';
@@ -55,7 +55,7 @@ import { isFinalJobStatus } from '../jobs/vocabulary.js';
 import { scheduleNext } from '../jobs/scheduler.js';
 import type { SchedulerDecision } from '../jobs/scheduler.js';
 import { jobDir } from '../jobs/store.js';
-import { findMissionForSpec } from '@specbridge/mission';
+import { findMissionForSpec, readContractRegistry } from '@specbridge/mission';
 import { driveObjective } from '../objectives/objective-driver.js';
 import {
   deferJobForQuota,
@@ -98,7 +98,12 @@ import {
 } from './scheduling-runtime.js';
 import { createLocalManager, runLargeRole, runLocalRole } from './workers.js';
 import type { RoleWorkerResult } from './workers.js';
+import type { ExecutorDispatchResult } from './executor-dispatch.js';
 import { dispatchExecutor } from './executor-dispatch.js';
+import type { ExecutionLane } from '../scheduling/vocabulary.js';
+import { isSubscriptionExhausted } from '../scheduling/vocabulary.js';
+import type { ExecutorReliabilityInput } from '../jobs/job-service.js';
+import type { AcceptanceCriterion, CriteriaEvidence, RecoveryResource } from '../reliability/index.js';
 
 /**
  * The long-running job driver.
@@ -1128,6 +1133,46 @@ export async function driveJob(
             }
           }
 
+          // vNext.6: hand the reliability layer what this dispatch actually
+          // OBSERVED — never a conclusion. Which runtime failed and how, what
+          // it did, and what capacity exists right now. The verdict and the
+          // recovery action are computed from these facts inside the job
+          // service, so no dispatcher (and no runner behind one) can hand in
+          // its own answer about whether it succeeded or deserves a retry.
+          const acceptanceCriteria = resolveAcceptanceCriteria(deps, jobId, job.specName, node.nodeId);
+          const dispatchVerification = (dispatch as { verification?: ExecutorDispatchResult['verification'] })
+            .verification;
+          const reliabilityInput: ExecutorReliabilityInput = {
+            ...buildReliabilityInput({
+              deps,
+              jobId,
+              dispatch,
+              lane: laneName,
+              harness: localHarnessLane || apiHarnessLane,
+              schedulingRuntime,
+              laneContext: lane,
+              nodeId: node.nodeId,
+              taskId: node.parentTaskId,
+              contextRatio: extraMetrics?.['contextUsageAfter'] ?? null,
+            }),
+            ...(dispatchVerification !== undefined ? { verification: dispatchVerification } : {}),
+            ...(acceptanceCriteria.length > 0
+              ? {
+                  acceptanceCriteria,
+                  criteriaEvidence: buildCriteriaEvidence({
+                    workspaceRoot: deps.workspace.rootDir,
+                    changedPaths: (dispatch.changedFiles ?? []).map((file) => file.path),
+                    verifierResults: new Map(
+                      (dispatchVerification?.commands ?? []).map((command) => [
+                        command.name,
+                        command.passed,
+                      ]),
+                    ),
+                  }),
+                }
+              : {}),
+          };
+
           const result = completeExecutorDispatch(deps, jobId, {
             context: {
               nodeId: decision.nodeId,
@@ -1142,7 +1187,14 @@ export async function driveJob(
             ...(dispatch.failure !== undefined ? { failure: dispatch.failure } : {}),
             ...(dispatch.changedFiles !== undefined ? { changedFiles: dispatch.changedFiles } : {}),
             ...(extraMetrics !== undefined ? { extraMetrics } : {}),
+            reliability: reliabilityInput,
           });
+          if (result.recovery !== undefined) {
+            emit(
+              'note',
+              `recovery: ${result.recovery.action} (${result.recovery.reasonCode}) — health ${result.recovery.health}`,
+            );
+          }
           emit(
             'executor-finished',
             `task ${decision.taskId}: ${dispatch.evidenceStatus ?? dispatch.failure?.category ?? 'unknown'} → ${result.nextAction}`,
@@ -1257,6 +1309,193 @@ export async function driveJob(
   } finally {
     await localManager?.stop('driver exit');
   }
+}
+
+/**
+ * The durable acceptance criteria one task is evaluated against.
+ *
+ * Derived from state that was already APPROVED, never authored at execution
+ * time: the active product contracts' machine-checkable invariants, and the
+ * criteria pinned on the task's canonical checkpoint. Nothing here can be
+ * set from model output, plan text, or repository content — a criterion an
+ * agent could write for itself would be a task grading its own homework.
+ *
+ * A contract invariant's guard pattern is a `pattern-absent` criterion: the
+ * pattern describes the SHAPE OF A VIOLATION, so a match is a failure. This
+ * is the same screening the objective runtime already performs on candidate
+ * patches, reused rather than reinvented, so both paths enforce one
+ * definition of "violates approved architecture".
+ *
+ * Criteria pinned as prose have no structural form. They are carried through
+ * as unchecked: visible in `explain-node`, available to the bounded semantic
+ * reviewer, and never a silent pass.
+ */
+function resolveAcceptanceCriteria(
+  deps: DriverDeps,
+  jobId: string,
+  specName: string,
+  nodeId: string,
+): AcceptanceCriterion[] {
+  const criteria: AcceptanceCriterion[] = [];
+  const mission = findMissionForSpec(deps.workspace, specName);
+  if (mission !== undefined) {
+    for (const contract of readContractRegistry(deps.workspace, mission.missionId)) {
+      for (const invariant of contract.invariants) {
+        for (const [index, pattern] of invariant.guardPatterns.entries()) {
+          criteria.push({
+            id: `${contract.contractId}-${invariant.invariantId}${index > 0 ? `-${index}` : ''}`.slice(0, 120),
+            text: invariant.statement.slice(0, 2_000),
+            check: { kind: 'pattern-absent', value: pattern },
+          });
+        }
+      }
+    }
+  }
+  const checkpoint = readLatestTaskCheckpoint(deps.workspace, jobId, nodeId);
+  for (const [index, statement] of (checkpoint?.pinned.acceptanceCriteria ?? []).entries()) {
+    criteria.push({ id: `AC-${index + 1}`, text: statement.slice(0, 2_000) });
+  }
+  return criteria.slice(0, 50);
+}
+
+/**
+ * The deterministic facts those criteria are checked against.
+ *
+ * Read from the repository and the trusted verifiers, never from the
+ * attempt's own account of itself: `changedPaths` comes from the evidence
+ * pipeline's Git comparison, and existence is tested against the tree.
+ *
+ * `addedLines` stays EMPTY on this path, deliberately. The executor pipeline
+ * does not retain a unified diff, and screening whole file contents instead
+ * would fail a task for a violation that was already in a file it merely
+ * touched. So pattern criteria report NOT_RUN here and surface as unchecked
+ * — the honest answer — rather than producing a verdict from evidence that
+ * does not exist. The objective runtime, which DOES have the candidate
+ * patch, screens patterns properly on its own path.
+ */
+function buildCriteriaEvidence(input: {
+  workspaceRoot: string;
+  changedPaths: readonly string[];
+  verifierResults: ReadonlyMap<string, boolean>;
+}): CriteriaEvidence {
+  const normalized = input.changedPaths.map((entry) => entry.replaceAll('\\', '/'));
+  const existing = new Set<string>();
+  for (const changed of normalized) {
+    if (existsSync(path.join(input.workspaceRoot, changed))) existing.add(changed);
+  }
+  return {
+    existingPaths: existing,
+    changedPaths: normalized,
+    addedLines: [],
+    verifierResults: input.verifierResults,
+  };
+}
+
+/**
+ * Assemble the observed facts one dispatch can report to the reliability
+ * layer.
+ *
+ * Everything here is a READING, never a judgment:
+ *
+ *   harnessFailureKind  the runtime's own already-normalized failure kind
+ *   activity            what the runtime reported doing (nulls stay unknown)
+ *   resource            live capacity, read from the scheduler's telemetry
+ *   local / api         the bounded budgets, read from their owners
+ *
+ * The API position is deliberately read from the vNext.5 budget controller
+ * rather than recomputed: reliability may decide NOT to spend, but it must
+ * never maintain a competing idea of how much money is left.
+ */
+function buildReliabilityInput(input: {
+  deps: DriverDeps;
+  jobId: string;
+  /**
+   * Structural, not the concrete result type: the dispatch union spans four
+   * execution paths and this function reads only what all of them report.
+   * Narrowing it here would make adding a fifth path a change to reliability
+   * code, which is the coupling this phase is supposed to remove.
+   */
+  dispatch: { changedFiles?: readonly { path: string }[] | undefined };
+  lane: ExecutionLane | undefined;
+  harness: boolean;
+  schedulingRuntime: SchedulingRuntime | undefined;
+  laneContext: BuiltLaneContext | undefined;
+  nodeId: string;
+  taskId: string;
+  contextRatio: number | null;
+}): ExecutorReliabilityInput {
+  const { schedulingRuntime, laneContext } = input;
+  const harnessResult = input.harness
+    ? (input.dispatch as LocalHarnessExecutionResult)
+    : undefined;
+
+  const forecast = laneContext?.forecast;
+  const subscriptionExhausted =
+    forecast !== undefined && isSubscriptionExhausted(forecast.schedulerMode);
+  const returnsInMs =
+    forecast === undefined
+      ? null
+      : forecast.schedulerMode === 'EXHAUSTED_WEEKLY'
+        ? forecast.timeToWeeklyResetMs
+        : forecast.schedulerMode === 'EXHAUSTED_5H'
+          ? forecast.timeToFiveHourResetMs
+          : null;
+
+  const apiPolicy = schedulingRuntime?.policy.api;
+  const apiSummary =
+    schedulingRuntime !== undefined
+      ? summarizeApiBudget(readApiBudgetState(input.deps.workspace, input.jobId), apiPolicy!.budget)
+      : undefined;
+
+  const resource: RecoveryResource = {
+    subscriptionAvailable: !subscriptionExhausted,
+    subscriptionReturnsInMs: returnsInMs,
+    subscriptionWorkerConfigured: resolveWorkers(input.deps.config).some(
+      (worker) => worker.reasoningTier !== 'LOCAL_SMALL',
+    ),
+    // Authorization in principle only. The gap-bridge planner and the budget
+    // still hold independent vetoes at dispatch, and a recovery decision can
+    // never substitute for either.
+    apiAuthorized: apiPolicy !== undefined && apiPolicy.spendMode !== 'DISABLED',
+    apiBudgetAvailable: apiSummary === undefined ? false : apiSummary.remainingUsd === null || apiSummary.remainingUsd > 0,
+    localAvailable: schedulingRuntime?.localInference !== undefined,
+    localHarnessAvailable: schedulingRuntime?.harnessBinding.available === true,
+  };
+
+  return {
+    resource,
+    ...(harnessResult?.failureKind !== undefined
+      ? { harnessFailureKind: harnessResult.failureKind }
+      : {}),
+    ...(harnessResult !== undefined
+      ? {
+          activity: {
+            toolCalls: harnessResult.observed.toolCalls,
+            commandRuns: harnessResult.observed.commandRuns,
+            contextUsageAfter: input.contextRatio,
+            emptyDiff: (input.dispatch.changedFiles ?? []).length === 0,
+          },
+        }
+      : {}),
+    contextRatio: input.contextRatio,
+    ...(schedulingRuntime !== undefined
+      ? {
+          local: {
+            used: localExecutorAttemptsUsed(input.deps, input.jobId, input.nodeId),
+            max: schedulingRuntime.policy.maxLocalAttempts,
+          },
+        }
+      : {}),
+    ...(apiSummary !== undefined
+      ? {
+          api: {
+            remainingUsd: apiSummary.remainingUsd,
+            encumberedUsd: apiSummary.encumberedUsd,
+            available: resource.apiAuthorized && (apiSummary.remainingUsd === null || apiSummary.remainingUsd > 0),
+          },
+        }
+      : {}),
+  };
 }
 
 /**

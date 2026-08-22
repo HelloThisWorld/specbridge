@@ -2,6 +2,11 @@ import { randomUUID } from 'node:crypto';
 import type { WorkspaceInfo } from '@specbridge/core';
 import type { GitSnapshot } from '@specbridge/evidence';
 import { OrchestrationError } from '../errors.js';
+import {
+  listEvaluationResults,
+  listFailureAssessments,
+  listRecoveryDecisions,
+} from '../reliability/store.js';
 import type { FailureCategory } from '../vocabulary.js';
 import type { AgentRole } from '../jobs/vocabulary.js';
 import type {
@@ -416,8 +421,32 @@ export function readExecutionLedger(
   options: ReadExecutionLedgerOptions = {},
 ): ExecutionLedgerEntry[] {
   const attempts = listTaskAttempts(workspace, jobId, { nodeId: options.nodeId });
-  return attempts.map((attempt) =>
-    executionLedgerEntrySchema.parse({
+  // vNext.6: join the durable reliability records onto each attempt.
+  //
+  // Indexed by attemptId rather than re-read per attempt, so a job with
+  // hundreds of attempts stays linear. Attempts with no reliability record —
+  // every pre-vNext.6 attempt, and any the layer did not govern — simply
+  // carry nulls: a missing record is unknown, never a fabricated verdict.
+  const evaluations = new Map(
+    listEvaluationResults(workspace, jobId, {
+      ...(options.nodeId !== undefined ? { nodeId: options.nodeId } : {}),
+    }).map((entry) => [entry.attemptId, entry]),
+  );
+  const assessments = new Map(
+    listFailureAssessments(workspace, jobId, {
+      ...(options.nodeId !== undefined ? { nodeId: options.nodeId } : {}),
+    }).map((entry) => [entry.attemptId, entry]),
+  );
+  const decisions = new Map(
+    listRecoveryDecisions(workspace, jobId, {
+      ...(options.nodeId !== undefined ? { nodeId: options.nodeId } : {}),
+    }).map((entry) => [entry.attemptId, entry]),
+  );
+  return attempts.map((attempt) => {
+    const evaluation = evaluations.get(attempt.attemptId);
+    const assessment = assessments.get(attempt.attemptId);
+    const decision = decisions.get(attempt.attemptId);
+    return executionLedgerEntrySchema.parse({
       attemptId: attempt.attemptId,
       jobId: attempt.jobId,
       nodeId: attempt.nodeId,
@@ -448,13 +477,45 @@ export function readExecutionLedger(
       apiBudgetReservationId: attempt.apiBudgetReservationId ?? null,
       apiApprovalId: attempt.apiApprovalId ?? null,
       delaySensitivity: attempt.delaySensitivity ?? null,
+      evaluationStatus: evaluation?.status ?? null,
+      evaluationId: evaluation?.evaluationId ?? null,
+      failureSource: assessment?.source ?? null,
+      failureFingerprint: assessment?.fingerprint ?? null,
+      executionHealth: assessment?.health ?? null,
+      recoveryAction: decision?.action ?? null,
+      recoveryReasonCode: decision?.reasonCode ?? null,
+      recoveryDecisionId: decision?.decisionId ?? null,
+      strategyChange: decision?.strategyChange ?? null,
       metrics: attempt.metrics,
-    }),
-  );
+    });
+  });
 }
 
 export interface ExecutionLedgerSummary {
   totalAttempts: number;
+  /**
+   * vNext.6 cost-of-failure aggregates. Every figure is a sum over attempts
+   * that REPORTED the underlying metric; an attempt that reported nothing
+   * contributes nothing rather than a zero, so a provider that stays silent
+   * about its usage never looks cheap by accident.
+   */
+  reliability: {
+    evaluationsPassed: number;
+    evaluationsFailed: number;
+    evaluationsInconclusive: number;
+    /** Attempts that ended without a verified, evaluated completion. */
+    failedAttempts: number;
+    /** Wall time, tokens, and dollars consumed by attempts that did NOT succeed. */
+    failedAttemptMs: number | null;
+    failedAttemptTokens: number | null;
+    failedAttemptCostUsd: number | null;
+    /** Recovery actions chosen, by action. */
+    recoveryActions: Record<string, number>;
+    /** Failure sources observed, by source. */
+    failureSources: Record<string, number>;
+    /** Health states observed, by state. */
+    healthStates: Record<string, number>;
+  };
   byProvider: Record<
     string,
     {
@@ -474,6 +535,18 @@ export interface ExecutionLedgerSummary {
 /** Aggregate the ledger without fabricating any unreported metric. */
 export function summarizeExecutionLedger(entries: readonly ExecutionLedgerEntry[]): ExecutionLedgerSummary {
   const byProvider: ExecutionLedgerSummary['byProvider'] = {};
+  const reliability: ExecutionLedgerSummary['reliability'] = {
+    evaluationsPassed: 0,
+    evaluationsFailed: 0,
+    evaluationsInconclusive: 0,
+    failedAttempts: 0,
+    failedAttemptMs: null,
+    failedAttemptTokens: null,
+    failedAttemptCostUsd: null,
+    recoveryActions: {},
+    failureSources: {},
+    healthStates: {},
+  };
   for (const entry of entries) {
     const bucket = (byProvider[entry.provider] ??= {
       attempts: 0,
@@ -495,6 +568,35 @@ export function summarizeExecutionLedger(entries: readonly ExecutionLedgerEntry[
     bucket.reportedOutputTokens = add(bucket.reportedOutputTokens, entry.metrics.outputTokens);
     bucket.reportedCostUsd = add(bucket.reportedCostUsd, entry.metrics.costUsd);
     bucket.totalDurationMs = add(bucket.totalDurationMs, entry.metrics.durationMs);
+
+    if (entry.evaluationStatus === 'PASS') reliability.evaluationsPassed += 1;
+    if (entry.evaluationStatus === 'FAIL') reliability.evaluationsFailed += 1;
+    if (entry.evaluationStatus === 'INCONCLUSIVE') reliability.evaluationsInconclusive += 1;
+    if (entry.recoveryAction !== null) {
+      reliability.recoveryActions[entry.recoveryAction] =
+        (reliability.recoveryActions[entry.recoveryAction] ?? 0) + 1;
+    }
+    if (entry.failureSource !== null) {
+      reliability.failureSources[entry.failureSource] =
+        (reliability.failureSources[entry.failureSource] ?? 0) + 1;
+    }
+    if (entry.executionHealth !== null) {
+      reliability.healthStates[entry.executionHealth] =
+        (reliability.healthStates[entry.executionHealth] ?? 0) + 1;
+    }
+    if (!entry.success) {
+      reliability.failedAttempts += 1;
+      reliability.failedAttemptMs = add(reliability.failedAttemptMs, entry.metrics.durationMs);
+      const tokens =
+        entry.metrics.inputTokens === null && entry.metrics.outputTokens === null
+          ? null
+          : (entry.metrics.inputTokens ?? 0) + (entry.metrics.outputTokens ?? 0);
+      reliability.failedAttemptTokens = add(reliability.failedAttemptTokens, tokens);
+      reliability.failedAttemptCostUsd = add(
+        reliability.failedAttemptCostUsd,
+        entry.metrics.reconciledCostUsd ?? entry.metrics.costUsd,
+      );
+    }
   }
-  return { totalAttempts: entries.length, byProvider };
+  return { totalAttempts: entries.length, byProvider, reliability };
 }

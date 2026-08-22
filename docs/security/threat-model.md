@@ -1136,6 +1136,321 @@ would need its own review.
 
 ---
 
+## 13. Reliability, evaluation and recovery (vNext.6)
+
+Earlier phases made SpecBridge hard to stop. This one makes it hard to waste.
+The threats below are not about an attacker: they are about a system that
+keeps running while doing the wrong thing, expensively, and reporting success.
+That failure mode does not need an adversary, which is precisely why it needs
+a threat model — the most likely cause of a long-horizon SpecBridge job
+burning a week of quota is not an intruder but an agent, a loop, and nobody
+watching.
+
+The governing rule under which every mitigation below sits:
+
+> A model's completion claim is never completion evidence, and no amount of
+> stronger or more expensive compute changes that.
+
+---
+
+### T54 — A model falsely claims completion
+
+**Threat.** A worker reports success — with a plausible summary and a list of
+files it says it changed — on work that does not compile, does not pass its
+tests, or was never done at all. A control plane that trusted the report would
+mark the task complete and expand the graph on top of it.
+
+**Mitigations.** Completion requires TWO independent gates. The evidence
+pipeline decides whether the trusted verifiers passed over real Git state; the
+evaluation decides whether the attempt's work is acceptable, which is a
+strictly larger question. `evaluateAttempt` never reads the worker's claim as
+evidence: Level 1 takes changed paths from Git, and a claimed-but-absent change
+is recorded as a discrepancy that Git has already overruled. An attempt whose
+verifier failed cannot reach `PASS` by any path in the function.
+
+**Residual risk.** Verification is only as strong as the configured commands.
+A workspace with no verifiers cannot establish correctness — and says so, by
+returning `INCONCLUSIVE` rather than `PASS`.
+
+---
+
+### T55 — A semantic evaluator overrides deterministic failure
+
+**Threat.** A model asked to review a change reports "looks good" over failing
+tests, and its opinion is folded into the verdict as one signal among several.
+Judgment then quietly outranks evidence.
+
+**Mitigations.** Structural, not procedural. `evaluateAttempt` computes the
+deterministic verdict FIRST and consults the semantic proposal only on an
+otherwise-passing attempt; by the time the reviewer's verdict is read, a FAIL
+or INCONCLUSIVE has already been returned. On a failing attempt the proposal
+is recorded with outcome `NOT_RUN` and a detail saying it cannot override, so
+the invariant is auditable in the record rather than merely true in the code.
+The reviewer can only ever move a PASS to FAIL — the conservative direction.
+
+**Residual risk.** A blocking semantic finding can fail a change a human would
+have accepted. That direction is chosen deliberately.
+
+---
+
+### T56 — Semantic evaluator mutates the candidate
+
+**Threat.** An evaluator "helpfully" fixes what it is reviewing, so evaluation
+and implementation blur and nothing independent judged the result.
+
+**Mitigations.** The reviewer's output is a closed structured shape —
+severity, observation, optional criterion and path — with no representable
+field for a patch, an edit, or a command. It is dispatched read-only through
+existing runner policy, and the roles permitted to mutate the canonical tree
+(`WRITING_ROLES`) do not include `EVALUATOR`.
+
+**Residual risk.** A misconfigured runner profile could grant an evaluator
+write tools. Profile capability policy, not the evaluation layer, is what
+prevents that.
+
+---
+
+### T57 — Infinite repair loop / retry amplification
+
+**Threat.** A failure produces a retry, which fails identically, which
+produces another retry. Nothing is learned; quota, wall time, and money are
+consumed until a budget finally stops it — if one is configured.
+
+**Mitigations.** No mutation attempt may follow a failure without a structured
+`FailureAssessment` first; the job state machine has never permitted
+`RUNNING → REPAIRING`, and vNext.6 routes every governed recovery through the
+same gate. Loop detection then makes repetition visible deterministically:
+the same failure fingerprint recurring, the same `(diff, failure)` pair twice,
+or alternation between states that already failed. Any of those forces a
+STRATEGY CHANGE rather than another attempt. Repairs, replans, transient
+retries, attempts, and wall clock all remain bounded by the existing job
+budgets, and exhaustion stops the task with a durable explanation.
+
+**Residual risk.** A task that fails differently every time stays `DEGRADED`
+and keeps its full attempt budget. That is intended — genuinely new
+information each round is progress — but it means the attempt budget, not loop
+detection, is the backstop there.
+
+---
+
+### T58 — Cross-provider ping-pong
+
+**Threat.** A task bounces between lanes — local fails, escalate; subscription
+fails, escalate; back to local — each switch looking like a new strategy while
+the underlying approach never changes.
+
+**Mitigations.** Lane and execution mode are two of the four dimensions in the
+strategy key; the others are plan revision and whether context was rebuilt. A
+strategy that has already failed is recorded in `exhaustedStrategies`, and the
+local mode change refuses a key already present there. Escalation is permitted
+only from failure SOURCES where stronger intelligence could help, and only
+once bounded local attempts are genuinely spent.
+
+**Residual risk.** The strategy key does not model the implementation approach
+itself. Two materially different plans that happen to share a revision number
+are not distinguishable — plan revisions are monotonic, so this is bounded in
+practice.
+
+---
+
+### T59 — Paid API retry amplification
+
+**Threat.** A paid attempt fails deterministically and is retried on the same
+paid lane, buying the identical experiment again. This is the most expensive
+mistake the system can make, and the most natural one: the lane is available,
+the task is important, and retrying is one line of code.
+
+**Mitigations.** Refused by default. `allowApiDeterministicRetry` is `false`,
+and with it off a deterministic failure on `lane = API` cannot produce another
+API attempt: the planner waits for prepaid capacity, replans, or asks a human.
+Recovery decisions never carry a lane forward for a REPLAN — placement returns
+to the economic scheduler, so a recovery record can never read as authorization
+to spend. An `ESCALATE_LANE` decision is a REQUIREMENT: vNext.5 spend
+authorization, the API budget reservation, and the gap-bridge planner each
+retain an independent veto, and the decision record says so in its own
+remediation text.
+
+**Residual risk.** An operator who sets `allowApiDeterministicRetry` to true
+has explicitly chosen to permit paid retries; the bounded API budget remains
+the enforcement.
+
+---
+
+### T60 — Tool-loop runaway inside one attempt
+
+**Threat.** A harness loops inside a single attempt — same command, same
+failing test, same file read — consuming an entire wall-clock budget without
+producing anything. Attempt-level no-progress detection cannot see it, because
+the attempt has not ended.
+
+**Mitigations.** Per-attempt ceilings on observed tool calls, command runs,
+test loops, and context growth. Exceeding one makes the attempt `RUNAWAY`,
+which outranks every other health state: the attempt is stopped, checkpointed,
+assessed, and recovered from — normally by discarding the session and
+rebuilding context from durable state rather than by asking a bigger model the
+same question.
+
+**Residual risk.** Detection depends on metrics the runtime reports. A runtime
+that reports nothing produces no signal — unknown metrics stay null and never
+fire, because stopping an attempt for the ABSENCE of evidence would make every
+silent runner permanently suspect.
+
+---
+
+### T61 — Edit oscillation and plan oscillation
+
+**Threat.** An agent fixes a symptom, breaks the other side, reverts, and
+repeats. Consecutive-pair comparison sees three different attempts and reports
+progress; the sequence has no fixed point.
+
+**Mitigations.** Oscillation is detected over a bounded window of diff
+fingerprints rather than between adjacent pairs: a repository state revisited
+after a different one, with the failure identity unchanged, is a cycle. A
+revisit while the failure CHANGES is not counted — that is new information.
+`OSCILLATING` forces a plan change, never another repair.
+
+**Residual risk.** The window is bounded (12 observations), so an oscillation
+with a period longer than the window is not detected. The attempt budget
+remains the backstop.
+
+---
+
+### T62 — Failure fingerprint collision
+
+**Threat.** Two genuinely different failures normalize to the same
+fingerprint, so unrelated attempts look like repetition — or the reverse,
+where volatile output makes one recurring failure look new every time.
+
+**Mitigations.** Fingerprints hash category, source identity, exit code, and
+normalized output through an explicit, auditable mask list (paths, timestamps,
+durations, pids, hex ids, line/column noise). They are never natural-language
+similarity, and never derived from model prose. Diff and failure fingerprints
+are compared TOGETHER for the strongest signal, so a single collision on one
+axis does not by itself establish repetition. Contract failures are given a
+distinct source from verifier failures so "criterion AC-2 failed" and "the
+tests failed" cannot hash alike.
+
+**Residual risk.** A collision would under-count distinct failures and could
+trigger a strategy change early. Changing strategy early is the safe
+direction; the reverse would not be.
+
+---
+
+### T63 — Stale or invented recovery decision
+
+**Threat.** A process crashes between deciding and acting. The restarted
+process re-derives a transition from whatever the world looks like now and
+silently chooses differently from what was recorded — so the audit trail says
+one thing and the system did another.
+
+**Mitigations.** The decision is written as its own atomic file BEFORE it is
+returned, carrying the action, reason code, failure fingerprint, budget
+snapshot, and both strategies. The task's reliability state names it as
+`pendingDecisionId`. A restart reads it and continues it rather than deciding
+again, and the record is marked `applied` only once acted on.
+
+**Residual risk.** A decision persisted against a repository that has since
+moved may no longer be the best action. Repository divergence is itself a
+classified failure with its own recovery.
+
+---
+
+### T64 — An agent mutates reliability policy or budgets
+
+**Threat.** The cheapest way past a budget is to raise it. An agent that could
+edit `.specbridge/config.json`, the job's budget snapshot, or a persisted
+decision would govern itself.
+
+**Mitigations.** `.specbridge/` is a protected path: a modification is a hard
+violation that fails Level 0 of the evaluation and blocks the task, with no
+configurable override. Budgets are snapshotted onto the job at creation, so a
+mid-run config edit cannot loosen a running job's bounds. Recovery decisions
+and evaluations are written only by the service, and every recovery-relevant
+enum is a closed vocabulary that cannot be set from spec text, plan text, or
+model output.
+
+**Residual risk.** An operator with filesystem access can change anything.
+SpecBridge governs agents, not the humans who run it.
+
+---
+
+### T65 — An agent hides failed approaches
+
+**Threat.** A worker omits what it already tried from its report, so the next
+attempt repeats it — and the omission looks like a fresh start rather than a
+loop.
+
+**Mitigations.** Failed approaches are not sourced from the worker's
+narrative. Failure fingerprints, diff fingerprints, evaluation verdicts, and
+assessments are computed by SpecBridge from Git state and verifier output and
+persisted independently of anything the worker says. Loop detection reads only
+those hashes, so a worker cannot make a repetition look novel by describing it
+differently.
+
+**Residual risk.** The prose fields on a checkpoint (`failedApproaches`) are
+worker-authored and can be incomplete. They are context for the next attempt,
+never the basis of a decision.
+
+---
+
+### T66 — A replanner changes approved intent
+
+**Threat.** Replanning is where a system is most tempted to solve a hard
+problem by changing the problem. A replan that quietly alters what the product
+is supposed to do would launder a requirement change through a recovery path.
+
+**Mitigations.** Replanning may change strategy, decomposition, and order —
+never approved intent. The existing approved-intent screen runs on replanner
+output, and a materially different requirement routes to contract/human
+authority. A recovery decision's remediation states the boundary explicitly,
+and `REQUEST_HUMAN_DECISION` is reached BEFORE any automatic action whenever
+the failure source is `REQUIREMENT_CONTRACT`.
+
+**Residual risk.** The screen is structural and can miss a subtle semantic
+drift inside an unchanged requirement. Human plan review remains available for
+high-risk work.
+
+---
+
+### T67 — Verification infrastructure failure misread as implementation failure
+
+**Threat.** The test runner cannot start, or the integration environment is
+down. Read as a failing test, this makes SpecBridge repeatedly rewrite code
+that was very likely correct — an expensive, confident, entirely wrong
+recovery.
+
+**Mitigations.** `INCONCLUSIVE` is a first-class verdict, not a soft FAIL: a
+required check that is `UNAVAILABLE`, `TIMED_OUT`, or `NOT_RUN` produces it,
+and the record says the implementation was not judged wrong. The assessment
+then sets source `VERIFICATION_INFRASTRUCTURE`, and the recovery planner
+checks broken measuring equipment BEFORE broken code — bounded infrastructure
+retries, then a block whose remediation states that no code change is implied.
+
+**Residual risk.** A verifier that fails for an environmental reason while
+still exiting non-zero is indistinguishable from a real failure. The
+distinction requires the runner to report that it could not start.
+
+---
+
+### T68 — Context compaction loses recovery-critical state
+
+**Threat.** A compaction summarizes away the task contract, the acceptance
+criteria, the failed approaches, or the current recovery decision — and the
+next attempt cheerfully repeats work that was already ruled out.
+
+**Mitigations.** None of those live in a conversation. Contracts and
+acceptance criteria are re-read from the canonical checkpoint's pinned
+context; evaluations, assessments, and decisions are separate durable records
+under `.specbridge/jobs/<id>/reliability/`; loop detection reads a bounded
+window of hashes from disk. Context reconstruction re-injects pinned state
+deterministically, so compaction cannot reach any of it — the state is not
+summarized because it was never in the summary.
+
+**Residual risk.** The rolling observation window is bounded and old entries
+roll off. They remain derivable from the append-only records.
+
+---
+
 ## Explicit non-claims
 
 Security models fail through overclaiming. SpecBridge does **not** claim:
@@ -1172,7 +1487,18 @@ Security models fail through overclaiming. SpecBridge does **not** claim:
    incremental usage to stop on. Recorded cost is an operator price table
    applied to reported usage — a computation, not an invoice — and an attempt
    that cannot report its usage is recorded as `UNKNOWN`, never as free.
-8. **Model-assisted workflows are nondeterministic.** Anything a model
+8. **Evaluation is as strong as the checks that exist.** SpecBridge decides
+   completion from execution integrity, Git state, the configured verifiers,
+   and machine-checkable acceptance criteria. A criterion with no structural
+   form is reported unchecked, never assumed to hold — but "unchecked and
+   visible" is still not the same as verified. A workspace with weak
+   verification commands gets weak evidence, honestly labeled.
+9. **Loop detection bounds waste; it does not guarantee progress.** Repeated
+   identical failure, same-diff repetition, and oscillation within a bounded
+   window are detected deterministically and force a strategy change. A task
+   that fails differently every time is not stagnating by this definition and
+   keeps its attempt budget — the budget, not the detector, is the backstop.
+10. **Model-assisted workflows are nondeterministic.** Anything a model
    authors — spec prose, code edits, refinements — can differ between
    runs and can be wrong. SpecBridge makes the *controls* deterministic
    (hashes, approvals, evidence, verification rules), never the model

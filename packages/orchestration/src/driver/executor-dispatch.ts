@@ -52,6 +52,75 @@ export interface ExecutorDispatchResult {
   failure?: ExecutorOutcome['failure'];
   changedFiles?: { path: string; contentHash?: string | undefined }[];
   usage?: { inputTokens: number | null; outputTokens: number | null; costUsd: number | null };
+  /**
+   * vNext.6: the trusted verifiers' individual outcomes.
+   *
+   * Passed through rather than summarized so evaluation can file each
+   * command at its own level and distinguish "failed" from "could not run".
+   * Collapsing them into one boolean is what makes a broken test runner look
+   * like broken code.
+   */
+  verification?: {
+    configured: boolean;
+    ran: boolean;
+    skipped: boolean;
+    commands: {
+      name: string;
+      required: boolean;
+      passed: boolean;
+      timedOut: boolean;
+      unavailable: boolean;
+      durationMs: number | null;
+      detail?: string | undefined;
+    }[];
+  };
+}
+
+/** Normalize one verification run into the reliability-facing shape. */
+export function summarizeVerificationForEvaluation(verification: {
+  configured: boolean;
+  ran: boolean;
+  skipped: boolean;
+  commands: readonly {
+    name: string;
+    required: boolean;
+    passed: boolean;
+    timedOut: boolean;
+    status: string;
+    durationMs: number;
+    stderrTail: string;
+    stdoutTail: string;
+  }[];
+}): NonNullable<ExecutorDispatchResult['verification']> {
+  return {
+    configured: verification.configured,
+    ran: verification.ran,
+    skipped: verification.skipped,
+    commands: verification.commands.map((command) => ({
+      name: command.name,
+      required: command.required,
+      passed: command.passed,
+      timedOut: command.timedOut,
+      // A command that never started proves nothing about the code. The
+      // safe-process statuses that mean "did not run" are kept distinct from
+      // a genuine non-zero exit for exactly that reason.
+      unavailable:
+        !command.passed &&
+        !command.timedOut &&
+        (command.status === 'spawn-failed' ||
+          command.status === 'not-found' ||
+          command.status === 'unavailable'),
+      durationMs: command.durationMs,
+      ...(command.passed
+        ? {}
+        : {
+            detail: `${command.status}: ${(command.stderrTail || command.stdoutTail).slice(-400)}`.slice(
+              0,
+              600,
+            ),
+          }),
+    })),
+  };
 }
 
 /** Map a preflight failure code onto the shared failure taxonomy. */
@@ -151,6 +220,7 @@ export async function dispatchExecutor(input: ExecutorDispatchInput): Promise<Ex
             path: file.path,
             contentHash: file.changeType,
           })),
+          verification: summarizeVerificationForEvaluation(report.verification),
         };
       }
       const category = classifyEvidenceFailure(report.evidenceStatus);

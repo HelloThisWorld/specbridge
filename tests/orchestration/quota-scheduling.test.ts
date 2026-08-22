@@ -821,6 +821,17 @@ describe('quota telemetry and burn observations', () => {
       apiBudgetReservationId: null,
       apiApprovalId: null,
       delaySensitivity: null,
+      // vNext.6 reliability attribution: null on an attempt the reliability
+      // layer did not govern, which is what this vNext.2 fixture represents.
+      evaluationStatus: null,
+      evaluationId: null,
+      failureSource: null,
+      failureFingerprint: null,
+      executionHealth: null,
+      recoveryAction: null,
+      recoveryReasonCode: null,
+      recoveryDecisionId: null,
+      strategyChange: null,
       metrics: {
         durationMs,
         inputTokens: null,

@@ -795,6 +795,122 @@ export const jobSchedulerPolicySchema: z.ZodType<JobSchedulerPolicy, z.ZodTypeDe
   })
   .passthrough();
 
+// ---------------------------------------------------------------------------
+// vNext.6 reliability, evaluation and recovery
+// ---------------------------------------------------------------------------
+
+/**
+ * Reliability policy: the thresholds that decide when continued computation
+ * stops being justified.
+ *
+ * Deliberately SMALL. Every bound this policy could plausibly want already
+ * exists in `jobs.budgets` — attempts, repairs, replans, transient retries,
+ * no-progress cycles, wall clock — and duplicating them here under new names
+ * would create two numbers for one rule, which is how a system ends up
+ * enforcing whichever the last author happened to read.
+ *
+ * So the mapping is explicit and one-way:
+ *
+ *   maxTaskAttempts        -> attempt bound            (jobs.budgets)
+ *   maxRepairCyclesPerTask -> repair bound             (jobs.budgets)
+ *   maxReplansPerTask      -> replan bound             (jobs.budgets)
+ *   maxTransientRetries    -> transient retry bound    (jobs.budgets)
+ *   maxNoProgressCycles    -> same-diff STALLED bound  (jobs.budgets)
+ *   maxLocalAttempts       -> shared LOCAL bound       (jobs.scheduler)
+ *   api.budget             -> paid spend bound         (jobs.scheduler.api)
+ *
+ * Only genuinely NEW signals appear below: loop shapes the earlier phases
+ * could not see, per-attempt runaway ceilings, and the review/gating
+ * switches. Defaults are conservative in the direction of stopping to think
+ * rather than running again, because the goal is not maximum attempts — it
+ * is maximum successful work per unit of compute.
+ */
+export interface ReliabilityPolicy {
+  /**
+   * When false, evaluation/assessment/recovery records are still WRITTEN but
+   * the recovery planner does not govern transitions, so pre-vNext.6
+   * behavior applies exactly. Existing workspaces stay valid either way.
+   */
+  enabled: boolean;
+  /**
+   * Occurrences of ONE normalized failure fingerprint within the bounded
+   * window that count as repeated failure. Distinct from
+   * `budgets.maxNoProgressCycles`, which counts CONSECUTIVE identical
+   * observations: a task can produce three different diffs that all fail
+   * the same test, which the consecutive counter never notices.
+   */
+  sameFailureThreshold: number;
+  /**
+   * Alternating distinct repository states within the window that count as
+   * OSCILLATING (fix, break the other side, revert, repeat).
+   */
+  oscillationThreshold: number;
+  /** Bounded fresh-context restarts per task before it stops being an answer. */
+  maxFreshContextRestarts: number;
+  /**
+   * Context occupancy at or above which recovery prefers rebuilding context
+   * over repairing code. Distinct from the scheduler's
+   * `contextCompactBeforeDispatchRatio`, which compacts BEFORE a dispatch;
+   * this one reacts to a failure that already happened.
+   */
+  freshContextRecoveryRatio: number;
+  /** Bounded retries for infrastructure failures, which prove nothing about the task. */
+  maxInfrastructureRetries: number;
+  /** Tool calls one attempt may make before it is RUNAWAY. Null disables. */
+  maxToolCallsPerAttempt: number | null;
+  /** Command runs one attempt may make before it is RUNAWAY. Null disables. */
+  maxCommandRunsPerAttempt: number | null;
+  /** Test/verify loops inside one attempt before it is RUNAWAY. Null disables. */
+  maxTestLoopsPerAttempt: number | null;
+  /** Wall-clock bound for one attempt. Null defers to the lane's own bound. */
+  maxAttemptWallTimeMs: number | null;
+  /** Context occupancy that counts as unsafe growth within one attempt. */
+  maxContextUsageRatio: number;
+  /** Bounded read-only semantic review policy. Reuses the objectives modes. */
+  semanticReview: SemanticEvaluationMode;
+  /**
+   * Whether a paid API attempt that failed DETERMINISTICALLY may be retried
+   * on the API lane at all. False by default and deliberately so: a failed
+   * paid attempt costs real money, and repeating an experiment whose result
+   * is already known is the most expensive way to learn nothing.
+   */
+  allowApiDeterministicRetry: boolean;
+  /**
+   * Whether dependent tasks must wait for a predecessor's evaluation to
+   * PASS. True by default: expanding a task graph on an unverified
+   * foundation is how one wrong implementation becomes ten.
+   */
+  gateDependentsOnEvaluation: boolean;
+  /** Retained evaluation/assessment/decision records per job (oldest pruned). */
+  maxRecordsPerJob: number;
+}
+
+export const reliabilityPolicySchema: z.ZodType<ReliabilityPolicy, z.ZodTypeDef, unknown> = z
+  .object({
+    enabled: z.boolean().default(true),
+    sameFailureThreshold: z.number().int().min(2).max(20).default(2),
+    oscillationThreshold: z.number().int().min(2).max(20).default(3),
+    maxFreshContextRestarts: z.number().int().min(0).max(10).default(1),
+    freshContextRecoveryRatio: z.number().min(0.05).max(1).default(0.85),
+    maxInfrastructureRetries: z.number().int().min(0).max(10).default(2),
+    maxToolCallsPerAttempt: z.number().int().min(1).max(100_000).nullable().default(400),
+    maxCommandRunsPerAttempt: z.number().int().min(1).max(100_000).nullable().default(200),
+    maxTestLoopsPerAttempt: z.number().int().min(1).max(1_000).nullable().default(12),
+    maxAttemptWallTimeMs: z
+      .number()
+      .int()
+      .min(60_000)
+      .max(24 * 3_600_000)
+      .nullable()
+      .default(null),
+    maxContextUsageRatio: z.number().min(0.05).max(1).default(0.95),
+    semanticReview: z.enum(SEMANTIC_EVALUATION_MODES).default('auto'),
+    allowApiDeterministicRetry: z.boolean().default(false),
+    gateDependentsOnEvaluation: z.boolean().default(true),
+    maxRecordsPerJob: z.number().int().min(10).max(20_000).default(1_000),
+  })
+  .passthrough();
+
 /**
  * v1.2 long-running job policy, additive inside the orchestration block.
  * Absent in every existing configuration file, in which case the defaults
@@ -844,6 +960,13 @@ export const jobPolicySchema = z
      * not make a resumed job falsely report "the policy changed".
      */
     scheduler: jobSchedulerPolicySchema.default({}),
+    /**
+     * vNext.6 reliability policy (additive; conservative defaults). Also
+     * deliberately outside jobPolicyFingerprint: these are operational
+     * thresholds, and the BOUNDS a job is contractually held to
+     * (`budgets`) are already fingerprinted above.
+     */
+    reliability: reliabilityPolicySchema.default({}),
   })
   .passthrough();
 export type JobPolicy = z.infer<typeof jobPolicySchema>;

@@ -415,5 +415,26 @@ export const JOB_EVENT_TYPES = [
   'api_cost_unknown',
   'api_max_returned',
   'api_next_task_returned_to_subscription',
+  // Reliability / evaluation / recovery events (vNext.6; additive, never
+  // reordered). Deliberately SEMANTIC — the moments where SpecBridge judged
+  // work or changed its mind — and deliberately few: `evaluation_passed`,
+  // `evaluation_failed`, `repair_started`, `replan_started`, and
+  // `budget_exhausted` already exist above and are REUSED rather than
+  // duplicated under reliability-flavoured names.
+  'evaluation_started',
+  'evaluation_inconclusive',
+  'semantic_review_completed',
+  'failure_assessed',
+  'execution_stalled',
+  'execution_oscillating',
+  'execution_runaway',
+  'recovery_decided',
+  'fresh_context_selected',
+  'local_mode_recovery_selected',
+  'lane_escalation_requested',
+  'resource_wait_selected',
+  'recovery_budget_exhausted',
+  'task_blocked_after_recovery',
+  'dependents_gated_on_evaluation',
 ] as const;
 export type JobEventType = (typeof JOB_EVENT_TYPES)[number];

@@ -29,6 +29,7 @@ import {
   transitionNode,
   withNode,
 } from './graph.js';
+import { executorAttempts } from './scheduler.js';
 import { assertJobTransition } from './state-machine.js';
 import type { JobCheckpoint, JobGraph, JobNode, JobState, NodeAttempt } from './state.js';
 import {
@@ -70,6 +71,31 @@ import {
 import { listTaskAttempts, readTaskAttempt } from '../survival/store.js';
 import { isFinalAttemptStatus } from '../survival/vocabulary.js';
 import { reconcileInterruptedApiReservations } from '../scheduling/api-budget.js';
+import type {
+  AcceptanceCriterion,
+  ApiBudgetPosition,
+  AttemptActivity,
+  CriteriaEvidence,
+  EvaluationResult,
+  ExecutionIntegrityInput,
+  LocalAttemptBudget,
+  NormalizedHarnessFailureKind,
+  RecoveryDecision,
+  RecoveryResource,
+  RepositoryIntegrityInput,
+  SemanticEvaluationInput,
+  VerificationInput,
+} from '../reliability/index.js';
+import {
+  evaluateAcceptanceCriteria,
+  evaluateAttempt,
+  governFailedAttempt,
+  markRecoveryDecisionApplied,
+  readRecoveryDecision,
+  readTaskReliabilityState,
+  recordEvaluation,
+  recordSuccessfulAttempt,
+} from '../reliability/index.js';
 
 /**
  * The job application service.
@@ -884,6 +910,47 @@ export interface ExecutorOutcome {
    * attempt; unknown fields simply stay null.
    */
   extraMetrics?: Record<string, number | null> | undefined;
+  /**
+   * vNext.6 reliability inputs.
+   *
+   * Entirely optional and additive. Absent, the evaluation is derived from
+   * the reported evidence status alone and the pre-vNext.6 behavior is
+   * preserved exactly — which is what keeps existing workspaces and every
+   * caller that predates this phase valid. Dispatchers that KNOW more (which
+   * verifiers ran, what the harness observed, what the lane was) supply it,
+   * and the evaluation gets correspondingly sharper.
+   */
+  reliability?: ExecutorReliabilityInput | undefined;
+}
+
+/**
+ * What a dispatcher can tell the reliability layer about its own attempt.
+ *
+ * Every field is evidence the dispatcher OBSERVED, never a judgment it made:
+ * which verifiers ran and how they ended, what Git showed, how much the
+ * runtime did. The verdict is computed here from those facts, so no
+ * dispatcher — and no runner behind one — can hand in a conclusion.
+ */
+export interface ExecutorReliabilityInput {
+  integrity?: Partial<ExecutionIntegrityInput> | undefined;
+  repository?: Partial<RepositoryIntegrityInput> | undefined;
+  verification?: VerificationInput | undefined;
+  /** Durable acceptance criteria for this task, when the contract carries them. */
+  acceptanceCriteria?: readonly AcceptanceCriterion[] | undefined;
+  criteriaEvidence?: CriteriaEvidence | undefined;
+  /** A bounded read-only semantic review, when policy warranted one. */
+  semantic?: SemanticEvaluationInput | undefined;
+  /** Observed attempt activity; unreported metrics stay null, never zero. */
+  activity?: Partial<AttemptActivity> | undefined;
+  /** The runtime's already-normalized failure kind, when it reported one. */
+  harnessFailureKind?: NormalizedHarnessFailureKind | undefined;
+  contextRatio?: number | null | undefined;
+  /** Live resource availability, read from the scheduler's own telemetry. */
+  resource?: RecoveryResource | undefined;
+  local?: LocalAttemptBudget | undefined;
+  api?: ApiBudgetPosition | undefined;
+  /** True when the task is flagged high-risk (architecture, public API, security). */
+  highRisk?: boolean | undefined;
 }
 
 export interface ExecutorOutcomeResult {
@@ -895,8 +962,418 @@ export interface ExecutorOutcomeResult {
     | 'wait-retry'
     | 'clarify'
     | 'blocked'
-    | 'job-complete';
+    | 'job-complete'
+    // vNext.6 (additive): actions the recovery planner selects that map onto
+    // a rescheduled attempt rather than onto one of the statuses above.
+    | 'replan'
+    | 'retry-strategy-change';
   classified?: ClassifiedFailure;
+  /** vNext.6: the durable verdict on this attempt, when one was produced. */
+  evaluation?: EvaluationResult;
+  /** vNext.6: the durable recovery decision, when the attempt failed. */
+  recovery?: RecoveryDecision;
+}
+
+// ---------------------------------------------------------------------------
+// vNext.6 evaluation and recovery wiring
+// ---------------------------------------------------------------------------
+
+/**
+ * Build the deterministic evaluation for one finished dispatch.
+ *
+ * The dispatcher supplies FACTS; this function computes the verdict. Where a
+ * dispatcher supplied nothing (every caller that predates vNext.6, and the
+ * simpler execution paths), the facts are derived from the reported evidence
+ * status — which the existing pipeline already produced from Git, protected
+ * paths, and the trusted verifiers, so the derivation adds no new trust.
+ *
+ * The evidence-status mapping is deliberately conservative in one direction:
+ * a status that means "we could not establish this" becomes INCONCLUSIVE,
+ * never a quiet FAIL against the implementation.
+ */
+function buildAttemptEvaluation(
+  deps: JobDeps,
+  job: JobState,
+  node: JobNode,
+  outcome: ExecutorOutcome,
+  attemptId: string,
+  lane: string | null,
+  at: string,
+): EvaluationResult {
+  const input = outcome.reliability;
+  const status = outcome.evidenceStatus;
+  const verified = status === 'verified' || status === 'manually-accepted';
+  const changedPaths = (outcome.changedFiles ?? []).map((file) => file.path);
+
+  // An evidence status that means "the attempt never got far enough to be
+  // judged" must not be read as a statement about the implementation.
+  const inconclusiveStatus = status === 'timed-out';
+  const terminatedNormally =
+    input?.integrity?.terminatedNormally ??
+    (!inconclusiveStatus && outcome.failure?.category !== 'CANCELLED');
+
+  const integrity: ExecutionIntegrityInput = {
+    terminatedNormally,
+    workerIdentityMatches: input?.integrity?.workerIdentityMatches ?? true,
+    baselineValid: input?.integrity?.baselineValid ?? true,
+    taskFingerprintValid: input?.integrity?.taskFingerprintValid ?? true,
+    approvalsStillValid: input?.integrity?.approvalsStillValid ?? true,
+    protectedPathViolations: input?.integrity?.protectedPathViolations ?? [],
+    reportValidated: input?.integrity?.reportValidated ?? true,
+    ...(input?.integrity?.terminationDetail !== undefined
+      ? { terminationDetail: input.integrity.terminationDetail }
+      : {}),
+  };
+
+  const repository: RepositoryIntegrityInput = {
+    changedPaths: input?.repository?.changedPaths ?? changedPaths,
+    ambiguousPaths: input?.repository?.ambiguousPaths ?? [],
+    headMoved: input?.repository?.headMoved ?? false,
+    taskStillExists: input?.repository?.taskStillExists ?? true,
+    ...(input?.repository?.claimedChangedPaths !== undefined
+      ? { claimedChangedPaths: input.repository.claimedChangedPaths }
+      : {}),
+    changeRequired: input?.repository?.changeRequired ?? true,
+  };
+
+  // With no reported verification detail, the reported evidence status IS the
+  // verification result: the completion pipeline already ran the trusted
+  // commands to produce it.
+  const verification: VerificationInput = input?.verification ?? {
+    configured: true,
+    skipped: false,
+    ran: !inconclusiveStatus,
+    commands: inconclusiveStatus
+      ? [
+          {
+            name: 'trusted-verification',
+            required: true,
+            passed: false,
+            timedOut: true,
+            detail: `the attempt ended with evidence status "${status ?? 'none'}"`,
+          },
+        ]
+      : [
+          {
+            name: 'trusted-verification',
+            required: true,
+            passed: verified,
+            timedOut: false,
+            ...(verified
+              ? {}
+              : {
+                  detail: `evidence status "${status ?? 'none'}" does not complete a task`,
+                }),
+          },
+        ],
+  };
+
+  const criteria =
+    input?.acceptanceCriteria !== undefined && input.criteriaEvidence !== undefined
+      ? evaluateAcceptanceCriteria(input.acceptanceCriteria, input.criteriaEvidence)
+      : { checks: [], failedCriteria: [], uncheckedCriteria: [] };
+
+  return evaluateAttempt({
+    evaluationId: `ev-${newId(deps)}`.slice(0, 64),
+    jobId: job.jobId,
+    nodeId: node.nodeId,
+    taskId: node.parentTaskId,
+    attemptId,
+    lane,
+    createdAt: at,
+    integrity,
+    repository,
+    verification,
+    criteriaChecks: criteria.checks,
+    failedCriteria: criteria.failedCriteria,
+    uncheckedCriteria: criteria.uncheckedCriteria,
+    ...(input?.semantic !== undefined ? { semantic: input.semantic } : {}),
+    ...(outcome.context.runId !== undefined ? { evidenceRefs: [outcome.context.runId] } : {}),
+  });
+}
+
+/**
+ * What the recovery planner may assume about resources when the caller did
+ * not say.
+ *
+ * Deliberately the most CONSERVATIVE world that is still able to make
+ * progress: prepaid capacity is assumed available (so escalation requests go
+ * to the preferred strong lane), and paid execution is assumed unauthorized
+ * with no budget (so nothing can accidentally route to spending because a
+ * caller forgot a field). Defaults may cost a wait; they may never cost
+ * money.
+ */
+function defaultRecoveryResource(): RecoveryResource {
+  return {
+    subscriptionAvailable: true,
+    subscriptionReturnsInMs: null,
+    subscriptionWorkerConfigured: true,
+    apiAuthorized: false,
+    apiBudgetAvailable: false,
+    localAvailable: true,
+    localHarnessAvailable: false,
+  };
+}
+
+function attemptActivity(
+  outcome: ExecutorOutcome,
+  startedAt: string | undefined,
+  at: string,
+): AttemptActivity {
+  const supplied = outcome.reliability?.activity;
+  const metrics = outcome.extraMetrics ?? {};
+  const elapsed =
+    startedAt !== undefined ? Math.max(0, Date.parse(at) - Date.parse(startedAt)) : null;
+  return {
+    toolCalls: supplied?.toolCalls ?? numeric(metrics['toolCalls']),
+    commandRuns: supplied?.commandRuns ?? numeric(metrics['commandRuns']),
+    durationMs: supplied?.durationMs ?? elapsed,
+    contextUsageAfter: supplied?.contextUsageAfter ?? numeric(metrics['contextUsageAfter']),
+    testLoops: supplied?.testLoops ?? numeric(metrics['testLoops']),
+    emptyDiff: supplied?.emptyDiff ?? (outcome.changedFiles ?? []).length === 0,
+  };
+}
+
+/** A metric the runtime did not report stays null; it never becomes zero. */
+function numeric(value: number | null | undefined): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function reliabilityDepsFor(deps: JobDeps, jobId: string): Parameters<typeof governFailedAttempt>[0] {
+  return {
+    workspace: deps.workspace,
+    policy: policyOf(deps).reliability,
+    ...(deps.clock !== undefined ? { clock: deps.clock } : {}),
+    ...(deps.idFactory !== undefined ? { idFactory: deps.idFactory } : {}),
+    recordEvent: (type, payload) => {
+      try {
+        recordJobEvent(deps, jobId, type, payload);
+      } catch {
+        // Observability must never be able to fail a run: an event budget
+        // that is already exhausted is a reason to stop recording, not a
+        // reason to lose the recovery decision that was just persisted.
+      }
+    },
+  };
+}
+
+/**
+ * The recovery decision this node is currently acting on, if any.
+ *
+ * Read from durable state rather than carried in memory, which is the point:
+ * a process that crashes between deciding and acting restarts, finds the
+ * decision on disk, and continues it. Without this, a restart would re-derive
+ * a transition from whatever the world looks like now and could silently
+ * choose differently from what was recorded — the exact "stale/invented
+ * recovery decision" failure this phase is meant to rule out.
+ */
+function pendingRecoveryDecision(
+  deps: JobDeps,
+  jobId: string,
+  nodeId: string,
+): RecoveryDecision | undefined {
+  if (!policyOf(deps).reliability.enabled) return undefined;
+  const state = readTaskReliabilityState(deps.workspace, jobId, nodeId);
+  const decisionId = state?.pendingDecisionId;
+  if (decisionId === undefined) return undefined;
+  const decision = readRecoveryDecision(deps.workspace, jobId, decisionId);
+  return decision !== undefined && !decision.applied ? decision : undefined;
+}
+
+/**
+ * Map one durable recovery decision onto the existing job/graph transitions.
+ *
+ * Deliberately a MAPPING and not a second decision. Every branch below either
+ * moves the job to a status the state machine already knows or records an
+ * escalation the router already understands — it never reconsiders, softens,
+ * or second-guesses the action. If this function ever grows a condition of
+ * its own there will be two recovery policies again, and they will disagree.
+ *
+ * The one thing it does add is BOUNDING: a wait is clamped so a decision can
+ * never park a job past its own wall-clock budget.
+ */
+function applyRecoveryDecision(
+  deps: JobDeps,
+  input: {
+    job: JobState;
+    graph: JobGraph;
+    node: JobNode;
+    decision: RecoveryDecision;
+    classified: ClassifiedFailure;
+    evaluation: EvaluationResult;
+    at: string;
+    blockWith: (
+      category: FailureCategory,
+      code: string,
+      message: string,
+      remediation: string[],
+    ) => ExecutorOutcomeResult;
+  },
+): ExecutorOutcomeResult {
+  const { decision, node, at } = input;
+  let job = input.job;
+  const graph = input.graph;
+  const retryDelayMs = policyOf(deps).retryDelayMs;
+  const finish = (
+    next: JobState,
+    nextAction: ExecutorOutcomeResult['nextAction'],
+  ): ExecutorOutcomeResult => {
+    persistGraph(deps, next, graph);
+    return {
+      job: persist(deps, next),
+      nextAction,
+      classified: input.classified,
+      evaluation: input.evaluation,
+      recovery: decision,
+    };
+  };
+
+  switch (decision.action) {
+    case 'RETRY_TRANSIENT': {
+      const backoffMs = backoffForAttempt(job.counters.transientRetries + 1, {
+        baseBackoffMs: Math.max(retryDelayMs, 1),
+        maxBackoffMs: Math.max(retryDelayMs * 16, retryDelayMs),
+      });
+      job = transition(deps, job, 'WAITING_RETRY');
+      job = {
+        ...job,
+        retryAt: new Date(now(deps).getTime() + backoffMs).toISOString(),
+        counters: { ...job.counters, transientRetries: job.counters.transientRetries + 1 },
+      };
+      job = record(deps, job, 'waiting_retry', {
+        nodeId: node.nodeId,
+        category: input.classified.category,
+        retryAt: job.retryAt,
+        reasonCode: decision.reasonCode,
+      });
+      return finish(job, 'wait-retry');
+    }
+
+    case 'WAIT_FOR_RESOURCE': {
+      // A wait is bounded by the job's own wall clock: a decision may park a
+      // task, but never past the budget the job was created under.
+      const elapsed = Math.max(0, Date.parse(at) - Date.parse(job.createdAt));
+      const remaining = Math.max(0, job.budgets.maxWallClockMs - elapsed);
+      const waitMs = Math.min(Math.max(retryDelayMs, 60_000), Math.max(remaining, retryDelayMs));
+      job = transition(deps, job, 'WAITING_RETRY');
+      job = { ...job, retryAt: new Date(now(deps).getTime() + waitMs).toISOString() };
+      job = record(deps, job, 'waiting_retry', {
+        nodeId: node.nodeId,
+        retryAt: job.retryAt,
+        reasonCode: decision.reasonCode,
+        detail: 'waiting for execution capacity rather than spending to avoid the wait',
+      });
+      return finish(job, 'wait-retry');
+    }
+
+    case 'REPAIR': {
+      // Repair still routes through DIAGNOSING. The deterministic assessment
+      // has already established that repair is the legal action; the
+      // diagnoser adds the root-cause detail the repair packet needs, and
+      // cannot widen the decision (see applyDiagnosis).
+      job = transition(deps, job, 'DIAGNOSING');
+      return finish(job, 'diagnose');
+    }
+
+    case 'REPLAN': {
+      // REPLANNING is not reachable directly from a finished dispatch, by
+      // design: the job state machine has never allowed a failure to become
+      // a new plan without passing through DIAGNOSING first. That rule is
+      // older than this phase and stronger with it — the deterministic
+      // assessment has ALREADY chosen REPLAN and persisted it, so the
+      // diagnosis step now adds root-cause detail to a decision that is
+      // already made rather than being the thing that makes it.
+      job = transition(deps, job, 'DIAGNOSING');
+      return finish(job, 'diagnose');
+    }
+
+    case 'RESTART_FRESH_CONTEXT': {
+      // The transient session is discarded; the next dispatch rebuilds a
+      // bounded package from the canonical checkpoint. The job returns to
+      // READY, and the durable decision is what tells the driver to rebuild.
+      job = transition(deps, job, 'READY');
+      job = { ...job, currentNodeId: node.nodeId };
+      job = record(deps, job, 'context_threshold_reached', {
+        nodeId: node.nodeId,
+        taskId: node.parentTaskId,
+        decisionId: decision.decisionId,
+        reasonCode: decision.reasonCode,
+      });
+      return finish(job, 'retry-strategy-change');
+    }
+
+    case 'RETRY_DIFFERENT_LOCAL_MODE': {
+      job = transition(deps, job, 'READY');
+      job = { ...job, currentNodeId: node.nodeId };
+      job = recordEscalation(deps, job, {
+        nodeId: node.nodeId,
+        role: 'EXECUTOR',
+        reason: 'LOCAL_DIRECT_TO_HARNESS',
+        detail: decision.reason.slice(0, 500),
+      });
+      return finish(job, 'retry-strategy-change');
+    }
+
+    case 'ESCALATE_INTELLIGENCE':
+    case 'ESCALATE_LANE': {
+      // A REQUEST is recorded. The economic scheduler still decides where and
+      // when the next attempt runs, and for the paid lane the spend
+      // authorization and the API budget each keep an independent veto.
+      job = transition(deps, job, 'READY');
+      job = { ...job, currentNodeId: node.nodeId };
+      job = recordEscalation(deps, job, {
+        nodeId: node.nodeId,
+        role: 'EXECUTOR',
+        reason:
+          decision.health === 'STALLED' || decision.health === 'OSCILLATING'
+            ? 'NO_PROGRESS'
+            : 'LOCAL_EXECUTION_ESCALATED',
+        detail: decision.reason.slice(0, 500),
+      });
+      return finish(job, 'retry-strategy-change');
+    }
+
+    case 'REQUEST_HUMAN_DECISION': {
+      job = transition(deps, job, 'NEEDS_CLARIFICATION');
+      const question = {
+        id: `q-${newId(deps)}`.slice(0, 64),
+        question:
+          `Task ${node.parentTaskId} cannot proceed automatically: ${decision.reason.slice(0, 600)} ` +
+          'Decide explicitly, then resume the job.',
+        whyItMatters: `${decision.reasonCode} has no safe automatic response.`,
+        options: [],
+        relatedTaskId: node.parentTaskId,
+        askedAt: at,
+        round: Math.min(
+          job.counters.clarificationRounds + 1,
+          deps.config.orchestration.clarification.maxRounds,
+        ),
+      };
+      job = {
+        ...job,
+        openQuestions: [...job.openQuestions, question],
+        counters: { ...job.counters, clarificationRounds: question.round },
+      };
+      job = record(deps, job, 'clarification_requested', {
+        nodeId: node.nodeId,
+        category: input.classified.category,
+        reasonCode: decision.reasonCode,
+      });
+      return finish(job, 'clarify');
+    }
+
+    case 'BLOCK':
+    case 'FAIL_TASK': {
+      return input.blockWith(
+        decision.reasonCode === 'RECOVERY_BUDGET_EXHAUSTED'
+          ? 'BUDGET_EXHAUSTED'
+          : input.classified.category,
+        decision.reasonCode,
+        decision.reason.slice(0, 1_500),
+        decision.remediation.length > 0 ? decision.remediation : input.classified.policy.remediation,
+      );
+    }
+  }
 }
 
 /**
@@ -1007,7 +1484,51 @@ export function completeExecutorDispatch(
     status: attemptStatus,
   });
 
-  if (outcome.failure === undefined && verified) {
+  // vNext.6: every finished attempt gets a durable verdict, including the
+  // passing ones. "Why did we believe this task was done?" is a question
+  // asked months later, and only a persisted PASS record can answer it.
+  const lane = readTaskAttempt(deps.workspace, jobId, attemptId)?.lane ?? null;
+  const evaluation = buildAttemptEvaluation(deps, job, node, outcome, attemptId, lane, at);
+  recordEvaluation(reliabilityDepsFor(deps, jobId), evaluation);
+
+  // vNext.6: the evaluation is a SECOND, independent gate on completion.
+  //
+  // The evidence pipeline answers "did the trusted verifiers pass?"; the
+  // evaluation answers "is this attempt's work acceptable?", which is a
+  // strictly larger question. A change can compile, pass every test, and
+  // still violate a deterministic acceptance criterion — approved intent is
+  // not a subset of what someone remembered to assert in a test file.
+  //
+  // So a task completes only when BOTH agree. An attempt that satisfies the
+  // verifiers but fails evaluation falls through to the failure path below
+  // and is governed like any other failure: assessed, and recovered from
+  // with a reasoned decision.
+  const evaluationBlocksCompletion =
+    policy.reliability.enabled && evaluation.status !== 'PASS';
+  if (evaluationBlocksCompletion && outcome.failure === undefined && verified) {
+    job = record(deps, job, 'evaluation_failed', {
+      nodeId: node.nodeId,
+      taskId: node.parentTaskId,
+      attemptId,
+      evaluationId: evaluation.evaluationId,
+      status: evaluation.status,
+      detail:
+        'The trusted verifiers passed but the attempt did not satisfy evaluation; ' +
+        'the task stays incomplete.',
+      failedCriteria: evaluation.failedCriteria.slice(0, 12),
+    });
+  }
+
+  if (outcome.failure === undefined && verified && !evaluationBlocksCompletion) {
+    recordSuccessfulAttempt(reliabilityDepsFor(deps, jobId), {
+      jobId,
+      nodeId: node.nodeId,
+      taskId: node.parentTaskId,
+      attemptId,
+      attemptNumber: Math.max(1, executorAttempts(node)),
+      lane,
+      evaluationStatus: evaluation.status,
+    });
     ({ job, graph } = appendAttempt(deps, job, graph, outcome.context, 'succeeded'));
     graph = transitionNode(graph, node.nodeId, 'COMPLETED');
     graph = withNode(graph, {
@@ -1079,7 +1600,7 @@ export function completeExecutorDispatch(
       job = record(deps, job, 'job_completed', {});
       job = { ...job, finalizedAt: at, finalOutcome: 'COMPLETED' };
       persistGraph(deps, job, graph);
-      return { job: persist(deps, job), nextAction: 'job-complete' };
+      return { job: persist(deps, job), nextAction: 'job-complete', evaluation };
     }
     job = transition(deps, job, 'READY');
     const next = graph.nodes.find((candidate) => candidate.status === 'READY');
@@ -1088,17 +1609,40 @@ export function completeExecutorDispatch(
       job = record(deps, job, 'node_ready', { nodeId: next.nodeId, taskId: next.parentTaskId });
     }
     persistGraph(deps, job, graph);
-    return { job: persist(deps, job), nextAction: 'node-complete' };
+    return { job: persist(deps, job), nextAction: 'node-complete', evaluation };
   }
 
   // --- Failure --------------------------------------------------------------
   // A dispatch that reports neither verified evidence nor a failure is a
   // failed verification claim: classify it as such rather than trusting it.
-  const failureInput = outcome.failure ?? {
-    category: 'VERIFICATION_FAILURE' as FailureCategory,
-    message: `The dispatch ended with evidence status "${outcome.evidenceStatus ?? 'none'}", which does not complete a task.`,
-    source: 'evidence-evaluation',
-  };
+  const failureInput =
+    outcome.failure ??
+    (evaluationBlocksCompletion && verified
+      ? {
+          // The verifiers passed; evaluation did not. Saying so precisely
+          // matters, because the failure fingerprint derived from this is
+          // what no-progress detection compares across attempts — and
+          // "contract criterion AC-2 failed" and "the tests failed" must
+          // never hash to the same experiment.
+          category: (evaluation.status === 'INCONCLUSIVE'
+            ? 'VERIFICATION_FAILURE'
+            : evaluation.failedCriteria.length > 0
+              ? 'IMPLEMENTATION_DEFECT'
+              : 'VERIFICATION_FAILURE') as FailureCategory,
+          message:
+            evaluation.reasons[0] ??
+            'The attempt satisfied the trusted verifiers but did not pass evaluation.',
+          source: 'attempt-evaluation',
+          output: evaluation.deterministicChecks
+            .filter((check) => check.required && check.outcome !== 'PASSED')
+            .map((check) => `${check.level}:${check.name}:${check.outcome}`)
+            .join('\n'),
+        }
+      : {
+          category: 'VERIFICATION_FAILURE' as FailureCategory,
+          message: `The dispatch ended with evidence status "${outcome.evidenceStatus ?? 'none'}", which does not complete a task.`,
+          source: 'evidence-evaluation',
+        });
   const classified = classifyFailure(failureInput);
 
   const observation: ObservationFingerprint = observationFingerprintSchema.parse({
@@ -1245,6 +1789,55 @@ export function completeExecutorDispatch(
     persistGraph(deps, clarify, graph);
     return { job: persist(deps, clarify), nextAction: 'clarify', classified };
   }
+  // vNext.6: the governed path.
+  //
+  // Everything below this point in the legacy cascade still exists and is
+  // still exercised — it is what runs when reliability governance is turned
+  // off, and it is the behavior existing workspaces keep. When governance IS
+  // on, the SAME evidence is routed through one place instead: evaluate,
+  // assess, detect loops, check budget, decide, persist. The difference is
+  // not that the rules changed; it is that they are now decided once, from a
+  // structured assessment, and written down.
+  if (policy.reliability.enabled) {
+    const governed = governFailedAttempt(reliabilityDepsFor(deps, jobId), {
+      jobId,
+      nodeId: node.nodeId,
+      taskId: node.parentTaskId,
+      attemptId,
+      attemptNumber: Math.max(1, executorAttempts(requireNode(graph, node.nodeId))),
+      classified,
+      evaluation,
+      lane,
+      executionMode: readTaskAttempt(deps.workspace, jobId, attemptId)?.executionMode ?? null,
+      planRevision: node.planRevision,
+      diffFingerprint: observation.diffFingerprint ?? null,
+      ...(outcome.reliability?.harnessFailureKind !== undefined
+        ? { harnessFailureKind: outcome.reliability.harnessFailureKind }
+        : {}),
+      activity: attemptActivity(outcome, outcome.context.startedAt, at),
+      budgets: job.budgets,
+      counters: job.counters,
+      node: requireNode(graph, node.nodeId),
+      executorAttempts: executorAttempts(requireNode(graph, node.nodeId)),
+      elapsedMs: Math.max(0, Date.parse(at) - Date.parse(job.createdAt)),
+      ...(outcome.reliability?.local !== undefined ? { local: outcome.reliability.local } : {}),
+      ...(outcome.reliability?.api !== undefined ? { api: outcome.reliability.api } : {}),
+      resource: outcome.reliability?.resource ?? defaultRecoveryResource(),
+      contextRatio: outcome.reliability?.contextRatio ?? null,
+      ...(outcome.context.runId !== undefined ? { evidenceRefs: [outcome.context.runId] } : {}),
+    });
+    return applyRecoveryDecision(deps, {
+      job,
+      graph,
+      node: requireNode(graph, node.nodeId),
+      decision: governed.decision,
+      classified,
+      evaluation,
+      at,
+      blockWith,
+    });
+  }
+
   if (progress.stagnated) {
     // Stagnation is handled by the diagnoser too, but the budget check is
     // deterministic: with no replan budget left, the job stops here.
@@ -1346,6 +1939,63 @@ export function applyDiagnosis(
     planValidity: result.planValidity,
     recommendedAction: result.recommendedAction,
   });
+
+  // vNext.6: a recovery decision that was already made deterministically for
+  // this attempt acts as a CEILING on what the diagnosis may do.
+  //
+  // The asymmetry is the point, and it runs in exactly one direction:
+  //
+  //   a diagnoser may move the action TOWARD caution   (repair -> replan)
+  //   a diagnoser may never move it AWAY from caution  (replan -> repair)
+  //
+  // The second half is what this phase exists to protect. Before it, a
+  // diagnoser recommending REPAIR got a repair whenever policy could legally
+  // allow one — so a task the loop detector had already proved stalled could
+  // talk its way into another identical attempt. Now the loop detector, the
+  // budget, and the lane economics have all had their say first, and no
+  // proposal can widen the result.
+  //
+  // The first half is equally deliberate. A diagnoser inspects the repository
+  // and can discover that the PLAN's assumptions were invalid — genuinely new
+  // information the failure output alone could not carry. Refusing to act on
+  // it would not be caution; it would be ignoring evidence in order to keep a
+  // decision tidy, which is its own kind of unreliability.
+  const pending = pendingRecoveryDecision(deps, jobId, node.nodeId);
+  if (pending !== undefined) {
+    const replanBudgetForCaution =
+      requireNode(graph, node.nodeId).replans < job.budgets.maxReplansPerTask &&
+      job.counters.jobReplans < job.budgets.maxJobReplans;
+    // The only permitted narrowing: a valid-looking repair becomes a replan
+    // when the diagnosis found the plan itself to be the problem.
+    const narrowsToReplan =
+      pending.action === 'REPAIR' &&
+      replanBudgetForCaution &&
+      (result.planValidity === 'INVALID' || result.recommendedAction === 'REPLAN');
+    const effective = narrowsToReplan ? 'REPLAN' : pending.action;
+
+    job = record(deps, job, 'recovery_decided', {
+      nodeId: node.nodeId,
+      decisionId: pending.decisionId,
+      action: effective,
+      plannedAction: pending.action,
+      reasonCode: narrowsToReplan ? 'PLAN_INVALIDATED_REPLAN' : pending.reasonCode,
+      diagnoserRecommended: result.recommendedAction,
+      diagnoserPlanValidity: result.planValidity,
+      narrowedByDiagnosis: narrowsToReplan,
+      applied: true,
+    });
+    markRecoveryDecisionApplied(deps.workspace, jobId, pending.decisionId);
+    if (effective === 'REPLAN') {
+      job = transition(deps, job, 'REPLANNING');
+      persistGraph(deps, job, graph);
+      return { job: persist(deps, job), applied: 'replan' };
+    }
+    if (effective === 'REPAIR') {
+      job = transition(deps, job, 'READY');
+      persistGraph(deps, job, graph);
+      return { job: persist(deps, job), applied: 'repair' };
+    }
+  }
 
   const policyOfFailure = classifyFailure({
     category: result.category,

@@ -330,6 +330,20 @@ async function buildSnapshots() {
       apiCostSources: [...orchestration.API_COST_SOURCES].sort(),
       apiBudgetReservationStates: [...orchestration.API_BUDGET_RESERVATION_STATES].sort(),
       apiApprovalStatuses: [...orchestration.API_APPROVAL_STATUSES].sort(),
+      // vNext.6 reliability, evaluation and recovery.
+      evaluationStatuses: [...orchestration.EVALUATION_STATUSES].sort(),
+      evaluationCheckLevels: [...orchestration.EVALUATION_CHECK_LEVELS].sort(),
+      evaluationCheckOutcomes: [...orchestration.EVALUATION_CHECK_OUTCOMES].sort(),
+      acceptanceCriterionCheckKinds: [...orchestration.ACCEPTANCE_CRITERION_CHECK_KINDS].sort(),
+      failureSources: [...orchestration.FAILURE_SOURCES].sort(),
+      failureScopes: [...orchestration.FAILURE_SCOPES].sort(),
+      failureRecoverabilities: [...orchestration.FAILURE_RECOVERABILITIES].sort(),
+      assessmentBases: [...orchestration.ASSESSMENT_BASES].sort(),
+      executionHealthStates: [...orchestration.EXECUTION_HEALTH_STATES].sort(),
+      runawaySignals: [...orchestration.RUNAWAY_SIGNALS].sort(),
+      recoveryActions: [...orchestration.RECOVERY_ACTIONS].sort(),
+      recoveryReasonCodes: [...orchestration.RECOVERY_REASON_CODES].sort(),
+      recoveryStrategyDimensions: [...orchestration.RECOVERY_STRATEGY_DIMENSIONS].sort(),
     },
     // Context-lifecycle vocabulary (vNext.1). Every value is stable within
     // 1.x: members may be appended, never renamed or removed.
