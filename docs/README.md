@@ -85,6 +85,9 @@ reference, grouped by area.
   history-informed placement under hard policy: task signatures, execution
   candidates, conservative smoothing with explicit confidence, expected
   utility, and the HEURISTIC / SHADOW / ADAPTIVE rollout.
+- [Dogfood & release qualification (vNext.9)](orchestration/dogfood-qualification.md) —
+  the scenario matrix, fail-closed preflight, scoped fault injection, state
+  invariant auditing, and the evidence-based release gate.
 - [Orchestration configuration](orchestration/configuration.md) — every
   policy knob, with defaults.
 

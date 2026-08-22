@@ -247,6 +247,22 @@ async function buildSnapshots() {
       // API gap-bridge families (vNext.5).
       apiBudget: orchestration.API_BUDGET_SCHEMA_VERSION,
       apiSpendApproval: orchestration.API_SPEND_APPROVAL_SCHEMA_VERSION,
+      // Reliability families (vNext.6).
+      evaluationResult: orchestration.EVALUATION_RESULT_SCHEMA_VERSION,
+      taskReliability: orchestration.TASK_RELIABILITY_SCHEMA_VERSION,
+      // Context-efficiency families (vNext.7).
+      contextSelectionPlan: context.CONTEXT_SELECTION_PLAN_SCHEMA_VERSION,
+      contextMetrics: context.CONTEXT_METRICS_SCHEMA_VERSION,
+      repositoryIndex: context.REPOSITORY_INDEX_SCHEMA_VERSION,
+      // Adaptive families (vNext.8; derived and rebuildable, versioned so a
+      // schema bump is a visible contract change rather than a silent
+      // cache rebuild).
+      adaptiveProfileCache: orchestration.ADAPTIVE_PROFILE_SCHEMA_VERSION,
+      adaptiveCalibration: orchestration.ADAPTIVE_CALIBRATION_SCHEMA_VERSION,
+      // Qualification families (vNext.9; persisted under
+      // .specbridge/qualification/).
+      dogfoodRun: orchestration.DOGFOOD_RUN_SCHEMA_VERSION,
+      qualificationReport: orchestration.QUALIFICATION_REPORT_SCHEMA_VERSION,
     },
     'verification-rules.json': {
       idPattern: 'SBV\\d{3}',
@@ -359,6 +375,34 @@ async function buildSnapshots() {
       repositorySizeClasses: [...orchestration.REPOSITORY_SIZE_CLASSES].sort(),
       contextSizeClasses: [...orchestration.CONTEXT_SIZE_CLASSES].sort(),
       verificationStrengths: [...orchestration.VERIFICATION_STRENGTHS].sort(),
+      // vNext.9 dogfood & release qualification. Additive within 1.x on the
+      // same terms. The scenario IDs are frozen deliberately: removing one,
+      // or weakening its requirement, is a release-gate change and must show
+      // up here as a contract diff rather than as a quiet edit.
+      qualificationProfiles: [...orchestration.QUALIFICATION_PROFILES].sort(),
+      qualificationAreas: [...orchestration.QUALIFICATION_AREAS].sort(),
+      scenarioExecutionKinds: [...orchestration.SCENARIO_EXECUTION_KINDS].sort(),
+      scenarioResultStatuses: [...orchestration.SCENARIO_RESULT_STATUSES].sort(),
+      scenarioRequirements: [...orchestration.SCENARIO_REQUIREMENTS].sort(),
+      faultClasses: [...orchestration.FAULT_CLASSES].sort(),
+      faultBoundaries: [...orchestration.FAULT_BOUNDARIES].sort(),
+      faultTriggerModes: [...orchestration.FAULT_TRIGGER_MODES].sort(),
+      qualificationResources: [...orchestration.QUALIFICATION_RESOURCES].sort(),
+      resourceAttributions: [...orchestration.RESOURCE_ATTRIBUTIONS].sort(),
+      humanInterventionKinds: [...orchestration.HUMAN_INTERVENTION_KINDS].sort(),
+      releaseBlockerClasses: [...orchestration.RELEASE_BLOCKER_CLASSES].sort(),
+      zeroToleranceConditions: [...orchestration.ZERO_TOLERANCE_CONDITIONS].sort(),
+      limitationClasses: [...orchestration.LIMITATION_CLASSES].sort(),
+      releaseVerdicts: [...orchestration.RELEASE_VERDICTS].sort(),
+      dogfoodRunStatuses: [...orchestration.DOGFOOD_RUN_STATUSES].sort(),
+      dogfoodTargetKinds: [...orchestration.DOGFOOD_TARGET_KINDS].sort(),
+      stateInvariantIds: [...orchestration.STATE_INVARIANT_IDS].sort(),
+      invariantAuditPhases: [...orchestration.INVARIANT_AUDIT_PHASES].sort(),
+      defectSources: [...orchestration.DEFECT_SOURCES].sort(),
+      qualificationScenarioIds: orchestration.QUALIFICATION_SCENARIOS.map(
+        (scenario) => scenario.id,
+      ).sort(),
+      qualificationArtifacts: Object.values(orchestration.QUALIFICATION_ARTIFACTS).sort(),
     },
     // Context-lifecycle vocabulary (vNext.1). Every value is stable within
     // 1.x: members may be appended, never renamed or removed.

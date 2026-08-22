@@ -1970,6 +1970,237 @@ repository mutation and grants itself a preferred route.
   paths, completion criteria, contract authority, or evidence authority. It
   has no write path to any of them.
 
+## 16. Dogfood and release qualification (vNext.9)
+
+Qualification adds no runtime capability. It adds a mode that runs the real
+control plane against a real repository for hours, a layer that deliberately
+breaks things, and a report that other people will read and act on. Each of
+those is a distinct attack surface, and the threats below are grouped by
+which one they exploit.
+
+The invariant every mitigation serves:
+
+> Qualification observes and reports. It never acquires authority the
+> runtime does not already grant, and it never asserts more than it observed.
+
+### T97 — Dogfood mode bypassing normal governance
+
+**Threat.** Qualification code takes a privileged shortcut "because it is only
+a test" — writing durable state directly, marking a task complete without
+evidence, or executing outside the single-writer path — and the mode that is
+supposed to validate governance becomes the one exception to it.
+
+**Mitigations.**
+
+- The qualification module has **no write path into job state**. It persists
+  its own records under `.specbridge/qualification/` and reads everything
+  else. There is no function in it that completes a task, flips a checkbox,
+  approves a stage, grants spend, or edits a checkpoint.
+- Real dogfood execution *is* `orchestrate run`. There is no second driver,
+  no second scheduler, and no second state engine — so there is no second
+  place for governance to be enforced differently.
+- The state invariant auditor is **read-only by construction**. An auditor
+  able to write could launder the corruption it exists to find.
+- A qualification scenario drives the real driver, the real evidence
+  pipeline, and the real protected-path boundary; the governance scenarios
+  assert that a worker proposing edits to `.specbridge/`, `.kiro/`, or `.git`
+  is refused **before application**, and that any later completion came from
+  a different attempt through trusted evidence.
+
+### T98 — Qualification accidentally spending money
+
+**Threat.** An operator runs "the full qualification" expecting a test, and it
+charges a metered provider — because a profile name implied authorization, or
+because preflight's display of the economic configuration was mistaken for
+approval.
+
+**Mitigations.**
+
+- A profile is a **ceiling, never a grant**. `full` does not authorize spend:
+  the vNext.5 spend mode, budget admission, pricing requirement, and per-task
+  approval all apply unchanged, and `full` against `spendMode: DISABLED`
+  legitimately produces zero API usage.
+- Preflight **displays** the economic configuration and explicitly states that
+  it authorizes nothing. It grants no capability and mutates no policy.
+- Preflight **refuses** an incoherent spend configuration: spending enabled
+  with no budget ceiling, `AUTO_BOUNDED` with no pricing profile, or spending
+  enabled with no bound API harness profile.
+- The `offline` default profile reaches no provider at all, so the accidental
+  invocation is the safe one.
+- No qualification command is wired into CI defaults, and none runs
+  automatically.
+
+### T99 — Fault-injection hooks exposed in production
+
+**Threat.** The mechanism that kills workers, corrupts caches, and simulates
+quota resets becomes reachable at runtime — through configuration, an
+environment variable, an MCP tool, or an agent-writable file — and a hostile
+input gains a way to break a job on demand.
+
+**Mitigations.**
+
+- Fault injection is **explicit dependency injection only**. Constructing a
+  fault plan requires calling a constructor in code and handing it to a seam
+  the caller is already injecting.
+- No configuration key, environment variable, CLI flag, or MCP tool
+  constructs one. A structural test asserts that **no production module
+  imports the fault module**, and that the orchestration configuration schema
+  contains no fault-injection field.
+- The armed plan's entire runtime surface is `shouldFire(): boolean`. It
+  cannot kill a process, delete a file, or change a budget; the harness that
+  already owns the seam does that, so no destructive capability is added
+  anywhere.
+- Injection boundaries are all SpecBridge-controlled — telemetry providers,
+  injected inference, injected clocks, the runner registry, durable state on
+  disk. None reaches inside a provider process.
+
+### T100 — A release report claiming simulated behaviour as real
+
+**Threat.** A report says a five-hour quota window was validated, and the
+reader concludes a real subscription was exercised — when a fake clock did the
+work. The claim is technically defensible and materially misleading.
+
+**Mitigations.**
+
+- Every resource is attributed `REAL`, `SIMULATED`, or `NOT_EXERCISED`. There
+  is no fourth value and no "equivalent".
+- Attribution folds **conservatively**: `REAL` beats `SIMULATED` beats
+  `NOT_EXERCISED`, and a `SIMULATED` observation can never be promoted. One
+  fake reset cannot make a report claim a real window.
+- Attribution from a scenario that did not actually run is **ignored** —
+  a skipped scenario tells us nothing about its resources.
+- A test asserts every deterministic policy scenario attributes `SIMULATED`,
+  never `REAL`, so an offline CI run cannot claim provider coverage.
+- `realTargetQualification` is reported separately from the verdict as
+  `PASSED`, `FAILED`, or `NOT_RUN`, and a `FIXTURE` target can never satisfy
+  the release gate — structurally, not by convention.
+
+### T101 — Manual fixes hidden from autonomy metrics
+
+**Threat.** An operator repairs generated source or hand-edits durable state,
+records it as "human approval", and the autonomy report shows a run that
+progressed independently when it did not.
+
+**Mitigations.**
+
+- Intervention kinds are a closed enum, and the report partitions on the enum
+  rather than on free text. `MANUAL_CODE_FIX` and `MANUAL_STATE_REPAIR` are
+  distinct members and are counted separately in the scorecard.
+- `REQUIRED_BY_POLICY` **must name the governance boundary** that required
+  it; recording one without a boundary is refused. The most consequential
+  distinction in the report therefore cannot rest on an adjective.
+- A recorded `MANUAL_STATE_REPAIR` is a zero-tolerance condition and makes the
+  verdict `FAIL`.
+- A defect whose fix has no regression test is rendered as **uncovered** in
+  the report rather than silently accepted.
+
+### T102 — Mission scope reduced without provenance
+
+**Threat.** The Mission is quietly narrowed until the runtime can finish it,
+and the report presents the reduced Mission as though it were the approved
+one.
+
+**Mitigations.**
+
+- A scope change records the **original scope**, the new scope, the reason,
+  the authority, and its effect on qualification — and the report prints both
+  scopes.
+- The approved scope is captured on the run record at start, so a later edit
+  cannot rewrite what was approved.
+
+### T103 — Target-specific hacks contaminating general policy
+
+**Threat.** A dogfood target's quirks are encoded into general routing,
+retrieval, or scheduling — `if repo == X use Claude`, `always include file
+Y` — and every other repository inherits a rule written for one.
+
+**Mitigations.**
+
+- The qualification module contains **no repository-name, path, or
+  product-specific branch**. The dogfood target is data on a run record; no
+  policy function receives it.
+- Scenario definitions are expressed in terms of lanes, modes, fault classes,
+  and invariants — never in terms of a particular product's files.
+- The adaptive signature is structurally incapable of holding a repository
+  identity (T82), so history cannot become a covert per-repository rule.
+
+### T104 — A dogfood branch corrupting the operator's workspace
+
+**Threat.** A long unattended run mutates a tree the operator was using, or an
+abort leaves their working copy in a state they did not choose.
+
+**Mitigations.**
+
+- Preflight **fails closed** on an unsafe target: a dirty working tree outside
+  `.specbridge/` that is not an isolated worktree is refused, and a repository
+  whose state could not be determined is refused for the same reason — "we
+  could not tell" is not evidence of safety.
+- A configured target path is required and is never defaulted to a
+  machine-specific location.
+- Integration reaches the canonical tree only through the existing
+  single-writer path; builders write inside isolated per-attempt worktrees.
+- Cancellation goes through existing job control, which already cancels
+  workers, reconciles budget, and preserves checkpoint integrity.
+
+### T105 — Derived-cache corruption mistaken for canonical state loss
+
+**Threat.** A corrupt repository index or adaptive profile cache is reported as
+a durability incident, and a release is blocked — or, worse, the reverse: real
+canonical loss is dismissed as "just a cache".
+
+**Mitigations.**
+
+- Derived caches live under `.specbridge/cache/` and are never canonical.
+  Absent, unparseable, schema-mismatched, and stale all collapse to one
+  response: rebuild.
+- The invariant auditor reads **canonical** state only. A cache cannot produce
+  an invariant violation, and its loss cannot produce one either — a
+  qualification scenario deletes and corrupts both caches and asserts the
+  audit result is byte-identical before and after.
+- Conversely, `GRAPH_REVISION_RESOLVES` and the evidence invariants are
+  blocking, so genuine canonical loss cannot be waved away.
+
+### T106 — Operator intervention misclassified as autonomous success
+
+**Threat.** A run succeeds because the operator knew when to nudge an agent
+with project context the Mission never carried, and the report calls it
+autonomy.
+
+**Mitigations.**
+
+- `MANUAL_CONTEXT_REPAIR` is its own intervention kind, counted separately,
+  precisely so re-supplying information canonical artifacts already held is
+  visible rather than invisible.
+- `tasksCompletedWithoutIntervention` counts only verified tasks with **no**
+  intervention scoped to them, so a nudged task cannot inflate it.
+- The handoff scenarios assert that a receiving worker continues from durable
+  artifacts alone, with the previous provider session absent from the
+  reconstructed context — which is the property that makes hidden operator
+  knowledge unnecessary in the first place.
+
+### T107 — A qualification gate relaxed to achieve a pass
+
+**Threat.** Under release pressure, a threshold is loosened, a scenario is
+marked optional, or a verdict function grows a flag — and the gate keeps
+reporting `PASS` while meaning less each time.
+
+**Mitigations.**
+
+- `computeVerdict` takes **no policy parameters**. There is no argument by
+  which a caller can make a gate more permissive for one run than for
+  another, and no threshold to tune.
+- Zero-tolerance conditions are **counts**, not booleans, so "one
+  unauthorized execution" cannot round down to "essentially none".
+- `PASS_WITH_LIMITATIONS` is unavailable whenever a zero-tolerance condition
+  was observed, a required scenario failed, or the real-product gate is
+  anything other than `PASSED` — it is not a softer landing for a real
+  failure.
+- Weakening a scenario's `requirement`, or removing one, is a visible change
+  to the matrix in `matrix.ts`, and two tests fail on coverage gaps: an
+  uninjected fault class, and a `RUNTIME` scenario nothing records.
+- Scenario ids and the report schema are versioned public contract, so a
+  quiet removal shows up as a contract diff in CI.
+
 ## Explicit non-claims
 
 Security models fail through overclaiming. SpecBridge does **not** claim:
@@ -2050,6 +2281,14 @@ Security models fail through overclaiming. SpecBridge does **not** claim:
    runs and can be wrong. SpecBridge makes the *controls* deterministic
    (hashes, approvals, evidence, verification rules), never the model
    output they govern.
+15. **A qualification report is evidence of what was observed, not a
+   guarantee of what will happen.** The deterministic qualification proves
+   that the runtime upholds its invariants against injected faults in
+   simulated conditions; it cannot prove that a real provider, a real quota
+   window, or a real repository will behave as its double did. Resources are
+   labelled `REAL`, `SIMULATED`, or `NOT_EXERCISED` precisely so the two are
+   never confused, and a run that never exercised the real product reports
+   `realTargetQualification: NOT_RUN` rather than a qualified pass.
 
 If you believe any mitigation above does not hold, that is a security
 finding: see [SECURITY.md](../../SECURITY.md) for how to report it.
