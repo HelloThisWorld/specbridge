@@ -1,5 +1,333 @@
 # Changelog
 
+## 1.9.0 (unreleased) — vNext.8 Adaptive Compute Scheduler
+
+Seven phases built a long-horizon job that survives its worker, its quota, an
+outage, its own failed attempts, and its own context window. Every routing
+decision in those phases was made from deterministic rules applied to the
+current moment. This phase adds the first layer that reads the past.
+
+> For tasks like this, on this repository, with this execution shape, under
+> current quota, budget, and context conditions: which policy-eligible
+> execution target has historically produced the best verified engineering
+> outcome for the least total wasted compute?
+
+**The invariant that governs everything:**
+
+```text
+Adaptive optimization may RANK allowed choices.
+It may never make a forbidden choice ALLOWED.
+```
+
+This is not an ML project. The first adaptive scheduler is history-informed,
+statistically conservative, deterministic given the same data, explainable,
+rebuildable from the ExecutionLedger, safe under sparse data, and disabled by
+one configuration value. There is no reinforcement learning, no neural
+predictor, no external ML service, no vector store, no online training, and no
+opaque routing.
+
+**Default mode is `HEURISTIC`, which reproduces vNext.7 scheduling exactly.**
+
+### Hard policy runs first, structurally
+
+```text
+Task -> Hard Eligibility/Policy -> Candidate Set -> Adaptive Prediction
+     -> Candidate Ranking -> Selected ELIGIBLE Candidate
+```
+
+Candidates are generated **from** the hard-policy routing, never alongside it.
+`generateCandidates` takes an already-decided `NodeLaneRouting` and can only
+enumerate ways to spend the lane that decision selected — so the economic
+invariants hold by construction rather than by convention:
+
+- `DEFER` and `REQUIRE_APPROVAL` produce **no executable candidate**. A task
+  waiting for quota, an authorization, or a gap too short to bridge keeps
+  waiting.
+- A `LOCAL` routing never yields a SUBSCRIPTION or API candidate, so history
+  cannot move mechanical local-capable work onto prepaid quota, and HARVEST
+  cannot be talked into wasting Max on it.
+- A `SUBSCRIPTION` routing never yields an API candidate, so "the API succeeds
+  4% more often" cannot outrank prepaid capacity that is already available.
+- An API candidate exists only after the vNext.5 Gap Bridge already selected
+  the API lane — meaning spend mode, budget, approval, pricing, and gap
+  duration all passed first.
+- A harness whose compute is not verified `LOCAL` is **rejected**, not ranked,
+  however good its history looks.
+- A candidate whose vNext.6 strategy key is in the task's
+  `exhaustedStrategies` is removed before ranking.
+
+Every veto is persisted with a code and surfaced in diagnostics.
+
+### Task signature and execution candidates
+
+`TaskSignature` groups comparable work through a coarse, durable key —
+`category | complexity | localSuitability | executionShape | verification` —
+with fine-grained current features (multi-module, security-sensitive,
+migration, blocked dependents, critical path, current reliability health,
+repository- and context-size class) recorded **beside** it for audit rather
+than folded into the key. A task that fails twice must not silently move to a
+different bucket because its health changed.
+
+The signature is computed on every pass, including in `HEURISTIC` mode, and
+recorded on the attempt — so a workspace that enables adaptive scheduling
+later finds comparable history already waiting.
+
+`ExecutionCandidate` keeps lane, execution mode, runner, model, profile,
+context strategy, and verified compute locality as **separate orthogonal
+fields**. No compound identity like `QWEN_LOCAL_DSH_FAST` exists anywhere;
+`candidateId` is a derived map key and is never parsed back.
+
+### Observed outcomes, and what counts as success
+
+Only executed attempts with real observations become evidence. A prediction, a
+recommendation, an unexecuted candidate, and a shadow-mode counterfactual have
+no representation in the outcome model — there is no constructor that accepts
+one, which is the structural block on a scheduler that learns from its own
+guesses.
+
+Six labels, not a boolean:
+
+| Label | Meaning |
+| --- | --- |
+| `VERIFIED_SUCCESS` | completed **and** evaluation `PASS` |
+| `UNVERIFIED_SUCCESS` | completed with no `PASS` on record — counted, never rounded up |
+| `IMPLEMENTATION_FAILURE` | the work was wrong |
+| `INFRASTRUCTURE_FAILURE` | the machinery broke |
+| `INCONCLUSIVE` | no verdict — never trained as failure |
+| `CENSORED` | interrupted — cost counted, outcome not guessed |
+
+```text
+intelligence success  VERIFIED / (VERIFIED + IMPLEMENTATION_FAILURE)
+availability          1 - INFRASTRUCTURE_FAILURE / (all non-censored)
+```
+
+A crashed harness never lowers a model's measured capability, and a broken
+verifier never does either.
+
+### Profiles: derived, rebuildable, disposable
+
+`ExecutionPerformanceProfile` aggregates by label, with weighted counts,
+first-attempt statistics, P50/P90 wall time, tokens, context, quota burn and
+cost, attempts per success, stagnation/oscillation/runaway rates, context
+expansion and miss rates, failure-source distribution, failed-work totals,
+runtime identities, and an undecayed count of safety-class failures.
+
+Nothing is fabricated: an attempt that reported no token usage contributes to
+no token statistic — never a zero, because a silent provider must not look
+cheap.
+
+The cache lives under `.specbridge/cache/` and is **never canonical**. Absent,
+unparseable, schema-mismatched, and stale all collapse to one response:
+rebuild. A schema bump rebuilds rather than migrating. Deleting the cache
+costs a rebuild and nothing else, and a job never blocks on any of it.
+
+### Smoothing, priors, confidence
+
+```text
+P(verified) = (weightedVerifiedSuccesses + priorStrength * priorMean)
+              -------------------------------------------------------
+              (weightedIntelligenceAttempts + priorStrength)
+```
+
+One success out of one attempt yields ~0.68, not 100%. The prior mean is the
+**existing heuristic's** own expectation (`1 - retryProbability`), identical
+across candidates on a task, so the prior expresses uncertainty and never
+provider favouritism.
+
+Recency is a continuous half-life decay rather than a rolling window — but
+safety-class failures (`AUTHORIZATION`, `REQUIREMENT_CONTRACT`) are exempt
+from both decay and the age cutoff. Rare and serious is not the same as old
+and irrelevant.
+
+Confidence is explicit (`NONE` / `LOW` / `MEDIUM` / `HIGH`) with a documented
+demotion ladder for coarser profile levels, changed or unknown runtime
+identity, detected drift, and unstable wall-time distributions. It is a
+**ceiling, not a vote**.
+
+Sparse data walks a hierarchy — `EXACT` → `TARGET_CATEGORY` → `LANE_CATEGORY`
+→ `LANE_GLOBAL` → `HEURISTIC_PRIOR` — and records which level answered.
+
+### Expected utility
+
+```text
+U = successWeight        * P(verified)
+  - latencyPenalty       * norm(expectedTotalWallTime,     wallTimeScaleMs)
+  - failedWorkPenalty    * failedWork
+  - quotaPressurePenalty * quotaOpportunityCost
+  - apiCostPenalty       * norm(expectedCostPerCompletion, apiCostScaleUsd)
+  - contextCostPenalty   * norm(contextPerCompletion,      contextTokenScale)
+  - handoffPenalty       * norm(handoffOverhead,           wallTimeScaleMs)
+```
+
+Every raw quantity passes through a saturating `x / (x + k)` map into `[0,1)`
+before it is weighted — seconds, dollars, tokens, and quota percentages are
+never added in their own units. Unknown normalizes to zero: guessing a penalty
+is the same error as guessing a value.
+
+Quality dominates cheapness at the default weights: a candidate 10% cheaper
+and 30% less likely to complete loses. Cost and context are priced **per
+verified completion**, so a strategy that sends a smaller package and then
+needs two more attempts has saved nothing. Failed work is amplified by
+observed no-progress rates.
+
+`QuotaOpportunityCost` is a dimensionless `[-1, 1]` pressure index — explicitly
+**not money**, and not convertible to it. HARVEST makes expiring prepaid
+capacity a *bonus*; CONSERVE and weekly pressure make scarce capacity a
+penalty. The hard quota rules are not expressible here and did not need to be:
+admission, the reserve, exhaustion, and weekly HARVEST suppression all ran
+first.
+
+### Rollout: HEURISTIC / SHADOW / ADAPTIVE
+
+Four independent gates must clear before adaptive displaces the incumbent:
+evidence floors on **both** compared candidates, confidence above the floor,
+utility margin above the hysteresis threshold, and the mode being `ADAPTIVE`.
+Failing any gate is never silent — the specific gate is persisted as the
+fallback reason.
+
+`SHADOW` computes and records recommendations while the heuristic executes,
+and records **disagreement only**. The alternative was not run, so no outcome
+is attributed to it and no regret is computed. `wouldApplyInAdaptiveMode`
+reports whether the gates would have let it act, which is the number a rollout
+is actually judged on.
+
+Hysteresis (`minimumUtilityImprovement`) keeps placement stable: long-horizon
+reproducibility matters more than chasing a fraction of a point.
+
+### History also improves the existing estimators
+
+Subscription admission has always compared a median-shaped estimate against a
+configured safety multiplier standing in for uncertainty nobody had measured.
+vNext.8 supplies the measurement: admission now compares the **larger** of the
+multiplied median and the measured **P90** burn, so history can only make
+admission stricter. Gated on the adaptive scheduler being enabled — an
+operator in `HEURISTIC` asked for vNext.7 behavior.
+
+### Calibration and drift
+
+After each attempt resolves, the forecast made before it is compared with what
+it did: relative errors on wall time, tokens, context, and cost, plus a Brier
+score where the outcome was resolvable. Only the candidate that **actually
+ran** is scored.
+
+Calibration is derived metadata in both directions: a wrong forecast never
+edits the attempt, the evaluation, or the ledger, and nothing reads
+calibration back to place work.
+
+Drift compares two windows of real observations. Its only power is to lower
+confidence — which moves placement back toward the deterministic heuristics.
+It never retrains anything.
+
+### Diagnostics
+
+`specbridge orchestrate adaptive [jobId]` shows mode and thresholds,
+profile-store provenance, profiles with their full label breakdown and
+P50/P90 distributions, per-decision candidate comparisons with itemized score
+components, hard-policy vetoes, fallback reasons, and recent prediction
+accuracy. `--node` adds the full per-candidate breakdown; `--rebuild`
+discards and recomputes the derived cache.
+
+`orchestrate scheduler` gained a compact adaptive summary.
+
+A score breakdown is rendered as an argument, not a number:
+
+```text
+LOCAL/HARNESS/deepseek-harness scores 0.712 against LOCAL/DIRECT_MODEL/local-llamacpp at 0.601 (margin 0.111).
+verified success: 82% vs 27%
+time to verified completion: 19m vs 27m (retries included)
+expected attempts: 1.2 vs 3.7
+economic lane: both LOCAL
+confidence: MEDIUM (20 sample(s) at EXACT)
+```
+
+New events: `adaptive_prediction_created`, `adaptive_candidate_selected`,
+`adaptive_candidate_vetoed`, `adaptive_shadow_disagreement`,
+`adaptive_fallback_to_heuristic`, `adaptive_drift_detected`,
+`adaptive_profile_rebuilt`, `adaptive_cache_invalidated`.
+
+### Benchmark results (simulated)
+
+Deterministic offline benchmark, 40 synthetic multi-file local tasks in a
+fixture world where `DIRECT_MODEL` verifies 20% of attempts in 5 minutes and
+`HARNESS` verifies 85% in 14 minutes:
+
+| Metric | Heuristic | Adaptive |
+| --- | --- | --- |
+| tasks completed | 9 / 40 | **35 / 40** |
+| attempts | 102 | **52** |
+| failed attempts | 93 | **17** |
+| attempts per completed task | 11.33 | **1.49** |
+| simulated failed wall time | 465 min | **238 min** |
+| simulated total wall time | **510 min** | 728 min |
+| simulated context tokens | **2.55 M** | 6.24 M |
+| simulated API spend | $0 | $0 |
+
+Reported faithfully, including the unflattering part: adaptive consumes more
+total wall time and more context, because the candidate it selects is slower
+and hungrier per attempt. It completes nearly four times as many tasks and
+wastes about half the wall time on attempts that never verify — the trade this
+phase's objective asks for. A metric set counting only prompt size or total
+minutes would score it backwards.
+
+**Cold start** with no history: adaptive is identical to heuristic on every
+simulated total, with 40 recorded fallbacks. **Historical replay** over 40
+recorded decision points: 40 disagreements, all of which would also have
+cleared every gate, at `MEDIUM` confidence — recommendation analysis only,
+typed `RECOMMENDATION_ONLY` and carrying its disclaimer as data.
+
+These numbers show the ranking logic behaves as designed on a world where the
+answer is known. They are not evidence about any real provider or repository.
+
+### What this phase does not claim
+
+Not optimal scheduling, not causal knowledge of unexecuted alternatives, not
+perfect prediction, not general reinforcement learning, not a global provider
+ranking, and not benchmark equivalence across projects. It provides
+conservative, history-informed placement under hard policy constraints.
+
+The scheduler never spends money or prepaid quota to collect training data.
+Sparse evidence produces low confidence and a heuristic fallback — there is no
+exploration branch anywhere in the code.
+
+### Configuration (additive; defaults preserve vNext.7 behavior)
+
+`orchestration.jobs.scheduler.adaptive` — `mode` (default `HEURISTIC`),
+evidence floors, `priorStrength`, recency half-life and age cutoff,
+`minimumConfidence`, `minimumUtilityImprovement`, four normalization scales,
+three drift thresholds, `safetyFailuresExemptFromDecay`, retention bounds, and
+seven utility weights. Validation rejects a non-positive `successWeight`, an
+all-zero weight vector, negatives, NaN, and out-of-range values.
+
+Adaptive settings are control-plane policy. Nothing an agent writes into a
+repository can change a weight, a budget, a quota bound, or a placement.
+
+### Durable state (additive)
+
+`TaskAttempt` and `ExecutionLedgerEntry` gained `taskSignature`,
+`contextStrategy`, and `runnerVersion` — absent on every pre-vNext.8 record,
+which simply falls back to coarser profile levels. New derived, disposable
+state: `.specbridge/cache/adaptive-profiles.json`,
+`jobs/<jobId>/adaptive/decisions.jsonl`, and
+`jobs/<jobId>/adaptive/calibration.jsonl`. No canonical state migration.
+
+### Threat model
+
+Section 15 of the threat model adds T82–T96: history poisoning through
+repository content, self-reinforcing routing bias, manual-acceptance bias,
+provider outage misclassified as intelligence failure, survivorship bias,
+stale version transfer, spend/quota/locality/reliability veto bypass,
+historical cost inferred as current price, autonomous paid exploration, metric
+gaming, counterfactual claims in shadow mode, derived-analytics corruption,
+cross-workspace leakage, tiny-score oscillation, and agent mutation of
+adaptive policy.
+
+### Backward compatibility
+
+With `mode: HEURISTIC` — the default — no profile is loaded, no prediction is
+computed, no adaptive record is written, no event is emitted, and admission
+uses the same figures it used in vNext.7. One configuration value restores
+pre-vNext.8 behavior with no migration and no loss of canonical state.
+
 ## 1.9.0 (unreleased) — vNext.7 Context Efficiency Runtime
 
 The previous six phases made a long-horizon job survivable: it outlives its

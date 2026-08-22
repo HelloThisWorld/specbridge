@@ -448,5 +448,20 @@ export const JOB_EVENT_TYPES = [
   'context_insufficient',
   'context_expanded',
   'context_expansion_exhausted',
+  // Adaptive compute scheduler events (vNext.8; additive, never reordered).
+  // Semantic, and deliberately few: these are the moments where observed
+  // history changed (or declined to change) a placement, or where derived
+  // analytics were rebuilt. The per-candidate arithmetic lives on the
+  // durable AdaptiveSchedulingDecision, not in the event stream — a scheduler
+  // that emitted an event per score would drown the timeline it exists to
+  // explain.
+  'adaptive_prediction_created',
+  'adaptive_candidate_selected',
+  'adaptive_candidate_vetoed',
+  'adaptive_shadow_disagreement',
+  'adaptive_fallback_to_heuristic',
+  'adaptive_drift_detected',
+  'adaptive_profile_rebuilt',
+  'adaptive_cache_invalidated',
 ] as const;
 export type JobEventType = (typeof JOB_EVENT_TYPES)[number];

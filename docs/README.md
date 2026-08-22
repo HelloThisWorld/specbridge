@@ -81,6 +81,10 @@ reference, grouped by area.
   assembly (materialize for a direct model, point for a harness), structured
   compression, and bounded progressive expansion when a context miss is
   diagnosed.
+- [Adaptive compute scheduler (vNext.8)](orchestration/adaptive-scheduler.md) —
+  history-informed placement under hard policy: task signatures, execution
+  candidates, conservative smoothing with explicit confidence, expected
+  utility, and the HEURISTIC / SHADOW / ADAPTIVE rollout.
 - [Orchestration configuration](orchestration/configuration.md) — every
   policy knob, with defaults.
 

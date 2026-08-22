@@ -341,6 +341,17 @@
           "--help"
         ],
         "subcommands": {
+          "adaptive": {
+            "options": [
+              "--help",
+              "--json",
+              "--level",
+              "--limit",
+              "--node",
+              "--profiles",
+              "--rebuild"
+            ]
+          },
           "answer": {
             "options": [
               "--help"

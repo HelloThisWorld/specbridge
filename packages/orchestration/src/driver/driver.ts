@@ -68,6 +68,10 @@ import {
 import type { QuotaTelemetryProvider } from '../quota/telemetry.js';
 import type { SchedulingDecisionRecord } from '../scheduling/decisions.js';
 import { appendSchedulingDecision } from '../scheduling/decisions.js';
+import {
+  ADAPTIVE_DECISION_SCHEMA_VERSION,
+  appendAdaptiveDecision,
+} from '../adaptive/decisions.js';
 import type { LocalExecutionResult, LocalExecutorInference } from '../scheduling/local-execution.js';
 import { dispatchLocalExecution } from '../scheduling/local-execution.js';
 import type { LocalHarnessExecutionResult } from '../scheduling/local-harness.js';
@@ -692,6 +696,15 @@ export async function driveJob(
                 : {}),
             ...(laneName !== undefined ? { lane: laneName } : {}),
             ...(executionMode !== undefined ? { executionMode } : {}),
+            // vNext.8: the grouping key and context strategy travel with the
+            // observation. Recorded in EVERY adaptive mode, including
+            // HEURISTIC — a workspace that switches the adaptive scheduler on
+            // later should find comparable history already waiting, not start
+            // learning from zero.
+            ...(laneRouting?.signature !== undefined
+              ? { taskSignature: laneRouting.signature.key }
+              : {}),
+            contextStrategy: deps.config.orchestration.jobs.context.efficiency.strategy,
             ...(localExecution !== undefined
               ? {
                   executionShape: localExecution.shape,
@@ -1927,7 +1940,208 @@ function persistLaneDecision(
       basis: routing.estimate.basis,
     });
   }
+  persistAdaptiveDecision(deps, jobId, {
+    nodeId: input.nodeId,
+    taskId: input.taskId,
+    heuristicLane: input.selectedLane,
+    heuristicReasonCode: input.reasonCode,
+    lane: input.lane,
+    createdAt,
+    decisionId,
+  });
   return decisionId;
+}
+
+/**
+ * Persist the vNext.8 adaptive evaluation for one node, and emit the few
+ * semantic events that go with it.
+ *
+ * Written in SHADOW as well as ADAPTIVE — a mode whose entire purpose is
+ * producing evidence would be useless without a record — and not written at
+ * all in HEURISTIC, where nothing was computed.
+ *
+ * Everything here is observability. A failure to write it is swallowed for
+ * the same reason the scheduling decision's is: the placement already
+ * happened, and losing the explanation must never lose the work.
+ */
+function persistAdaptiveDecision(
+  deps: DriverDeps,
+  jobId: string,
+  input: {
+    nodeId: string;
+    taskId: string;
+    heuristicLane: string;
+    heuristicReasonCode: string;
+    lane: BuiltLaneContext;
+    createdAt: string;
+    decisionId: string;
+  },
+): void {
+  const adaptive = input.lane.adaptive;
+  if (adaptive === undefined) return;
+  const ranking = adaptive.rankings.get(input.nodeId);
+  const signature = adaptive.signatures.get(input.nodeId);
+  if (ranking === undefined || signature === undefined) return;
+
+  try {
+    appendAdaptiveDecision(
+      deps.workspace,
+      {
+        schemaVersion: ADAPTIVE_DECISION_SCHEMA_VERSION,
+        decisionId: `ad-${input.decisionId}`.slice(0, 200),
+        jobId,
+        nodeId: input.nodeId,
+        taskId: input.taskId,
+        mode: ranking.mode,
+        taskSignature: signature.key,
+        signatureFeatures: {
+          ...signature.features,
+          repositorySize: signature.repositorySize,
+          contextSize: signature.contextSize,
+        },
+        heuristicLane: input.heuristicLane,
+        heuristicReasonCode: input.heuristicReasonCode,
+        eligibleCandidates: ranking.ranked.map((entry) => ({
+          candidateId: entry.prediction.candidate.candidateId,
+          lane: entry.prediction.candidate.lane,
+          executionMode: entry.prediction.candidate.executionMode,
+          runner: entry.prediction.candidate.runner,
+          model: entry.prediction.candidate.model,
+          profile: entry.prediction.candidate.profile,
+          contextStrategy: entry.prediction.candidate.contextStrategy,
+          computeLocality: entry.prediction.candidate.computeLocality,
+          heuristicChoice: entry.prediction.candidate.heuristicChoice,
+        })),
+        rejectedCandidates: ranking.vetoes.map((entry) => ({
+          candidateId: entry.candidateId,
+          lane: entry.lane,
+          executionMode: entry.executionMode,
+          runner: entry.runner,
+          code: entry.code,
+          detail: entry.detail.slice(0, 600),
+        })),
+        predictions: ranking.ranked.map((entry) => ({
+          candidateId: entry.prediction.candidate.candidateId,
+          level: entry.prediction.level,
+          profileKey: entry.prediction.profileKey,
+          confidence: entry.prediction.confidence,
+          confidenceScore: entry.prediction.confidenceScore,
+          identityMatch: entry.prediction.identityMatch,
+          driftDetected: entry.prediction.drift.detected,
+          driftSignals: entry.prediction.drift.signals,
+          verifiedSuccessProbability: entry.prediction.verifiedSuccessProbability,
+          priorSuccessProbability: entry.prediction.priorSuccessProbability,
+          observedSuccessRate: entry.prediction.observedSuccessRate,
+          firstAttemptSuccessRate: entry.prediction.firstAttemptSuccessRate,
+          availabilityProbability: entry.prediction.availabilityProbability,
+          expectedAttempts: entry.prediction.expectedAttempts,
+          expectedWallTimeMs: entry.prediction.expectedWallTimeMs,
+          expectedTotalWallTimeMs: entry.prediction.expectedTotalWallTimeMs,
+          expectedInputTokens: entry.prediction.expectedInputTokens,
+          expectedContextTokens: entry.prediction.expectedContextTokens,
+          expectedFiveHourBurnRatio: entry.prediction.expectedFiveHourBurnRatio,
+          conservativeFiveHourBurnRatio: entry.prediction.conservativeFiveHourBurnRatio,
+          expectedApiCostUsd: entry.prediction.expectedApiCostUsd,
+          expectedFailedWallTimeMs: entry.prediction.expectedFailedWallTimeMs,
+          stagnationRate: entry.prediction.stagnationRate,
+          oscillationRate: entry.prediction.oscillationRate,
+          runawayRate: entry.prediction.runawayRate,
+          contextMissRate: entry.prediction.contextMissRate,
+          contextExpansionRate: entry.prediction.contextExpansionRate,
+          safetyEvents: entry.prediction.safetyEvents,
+          sampleCount: entry.prediction.sampleCount,
+          weightedSampleCount: entry.prediction.weightedSampleCount,
+          lastObservedAt: entry.prediction.lastObservedAt,
+          score: entry.score.score,
+          scoreComponents: entry.score.components.map((component) => ({
+            name: component.name,
+            raw: component.raw,
+            unit: component.unit,
+            normalized: component.normalized,
+            weight: component.weight,
+            contribution: component.contribution,
+            detail: component.detail.slice(0, 600),
+          })),
+        })),
+        heuristicCandidateId: ranking.heuristicCandidate?.candidateId ?? null,
+        recommendedCandidateId: ranking.recommendedCandidate?.candidateId ?? null,
+        selectedCandidateId: ranking.selectedCandidate?.candidateId ?? null,
+        adaptiveApplied: ranking.adaptiveApplied,
+        disagreement: ranking.disagreement,
+        wouldApplyInAdaptiveMode: ranking.wouldApplyInAdaptiveMode,
+        confidence: ranking.confidence,
+        utilityMargin: ranking.utilityMargin,
+        fallbackReason: ranking.fallbackReason,
+        explanation: ranking.explanation.map((line) => line.slice(0, 600)).slice(0, 24),
+        profileObservations: adaptive.profiles.observationCount,
+        profileBuiltAt: adaptive.profiles.builtAt,
+        createdAt: input.createdAt,
+      },
+      { maxRecords: deps.config.orchestration.jobs.scheduler.adaptive.maxDecisionRecords },
+    );
+  } catch {
+    // Bounded observability only; the placement itself already happened.
+  }
+
+  recordJobEvent(deps, jobId, 'adaptive_prediction_created', {
+    nodeId: input.nodeId,
+    taskId: input.taskId,
+    mode: ranking.mode,
+    taskSignature: signature.key,
+    candidates: ranking.ranked.length,
+    confidence: ranking.confidence,
+    profileSource: adaptive.source,
+  });
+  for (const veto of ranking.vetoes) {
+    if (veto.code === 'LANE_NOT_ELIGIBLE') continue;
+    recordJobEvent(deps, jobId, 'adaptive_candidate_vetoed', {
+      nodeId: input.nodeId,
+      taskId: input.taskId,
+      candidateId: veto.candidateId,
+      code: veto.code,
+    });
+  }
+  const drifting = ranking.ranked.filter((entry) => entry.prediction.drift.detected);
+  for (const entry of drifting) {
+    recordJobEvent(deps, jobId, 'adaptive_drift_detected', {
+      nodeId: input.nodeId,
+      candidateId: entry.prediction.candidate.candidateId,
+      signals: entry.prediction.drift.signals,
+      detail: entry.prediction.drift.detail.slice(0, 300),
+    });
+  }
+  if (ranking.adaptiveApplied) {
+    recordJobEvent(deps, jobId, 'adaptive_candidate_selected', {
+      nodeId: input.nodeId,
+      taskId: input.taskId,
+      selected: ranking.selectedCandidate?.candidateId ?? null,
+      heuristic: ranking.heuristicCandidate?.candidateId ?? null,
+      confidence: ranking.confidence,
+      utilityMargin: ranking.utilityMargin,
+    });
+    return;
+  }
+  if (ranking.mode === 'SHADOW' && ranking.disagreement) {
+    // A DISAGREEMENT, and nothing more. The recommended candidate was not
+    // executed, so no outcome is attributed to it and no regret is computed.
+    recordJobEvent(deps, jobId, 'adaptive_shadow_disagreement', {
+      nodeId: input.nodeId,
+      taskId: input.taskId,
+      executed: ranking.heuristicCandidate?.candidateId ?? null,
+      recommended: ranking.recommendedCandidate?.candidateId ?? null,
+      wouldApplyInAdaptiveMode: ranking.wouldApplyInAdaptiveMode,
+      confidence: ranking.confidence,
+    });
+    return;
+  }
+  if (ranking.fallbackReason !== null && ranking.fallbackReason !== 'AGREES_WITH_HEURISTIC') {
+    recordJobEvent(deps, jobId, 'adaptive_fallback_to_heuristic', {
+      nodeId: input.nodeId,
+      taskId: input.taskId,
+      reason: ranking.fallbackReason,
+      confidence: ranking.confidence,
+    });
+  }
 }
 
 /**

@@ -344,6 +344,21 @@ async function buildSnapshots() {
       recoveryActions: [...orchestration.RECOVERY_ACTIONS].sort(),
       recoveryReasonCodes: [...orchestration.RECOVERY_REASON_CODES].sort(),
       recoveryStrategyDimensions: [...orchestration.RECOVERY_STRATEGY_DIMENSIONS].sort(),
+      // vNext.8 adaptive compute scheduler. Additive within 1.x on the same
+      // terms as everything above: members may be appended, never renamed or
+      // removed, so persisted adaptive decisions and derived profiles stay
+      // readable across upgrades.
+      adaptiveSchedulerModes: [...core.ADAPTIVE_SCHEDULER_MODES].sort(),
+      adaptiveOutcomeLabels: [...orchestration.ADAPTIVE_OUTCOME_LABELS].sort(),
+      predictionConfidenceLevels: [...orchestration.PREDICTION_CONFIDENCE_LEVELS].sort(),
+      profileFallbackLevels: [...orchestration.PROFILE_FALLBACK_LEVELS].sort(),
+      runtimeIdentityMatches: [...orchestration.RUNTIME_IDENTITY_MATCHES].sort(),
+      adaptiveVetoCodes: [...orchestration.ADAPTIVE_VETO_CODES].sort(),
+      adaptiveFallbackReasons: [...orchestration.ADAPTIVE_FALLBACK_REASONS].sort(),
+      adaptiveDriftSignals: [...orchestration.ADAPTIVE_DRIFT_SIGNALS].sort(),
+      repositorySizeClasses: [...orchestration.REPOSITORY_SIZE_CLASSES].sort(),
+      contextSizeClasses: [...orchestration.CONTEXT_SIZE_CLASSES].sort(),
+      verificationStrengths: [...orchestration.VERIFICATION_STRENGTHS].sort(),
     },
     // Context-lifecycle vocabulary (vNext.1). Every value is stable within
     // 1.x: members may be appended, never renamed or removed.

@@ -110,6 +110,10 @@ export interface BeginTaskAttemptInput {
   apiBudgetReservationId?: string | undefined;
   apiApprovalId?: string | undefined;
   delaySensitivity?: string | undefined;
+  /** vNext.8 adaptive attribution (recorded, never policy). */
+  taskSignature?: string | undefined;
+  contextStrategy?: string | undefined;
+  runnerVersion?: string | undefined;
   /** Pre-dispatch cost figures for the API lane, in USD. */
   estimatedCostUsd?: number | null | undefined;
   reservedCostUsd?: number | null | undefined;
@@ -184,6 +188,9 @@ export function beginTaskAttempt(deps: SurvivalDeps, input: BeginTaskAttemptInpu
       : {}),
     ...(input.apiApprovalId !== undefined ? { apiApprovalId: input.apiApprovalId } : {}),
     ...(input.delaySensitivity !== undefined ? { delaySensitivity: input.delaySensitivity } : {}),
+    ...(input.taskSignature !== undefined ? { taskSignature: input.taskSignature } : {}),
+    ...(input.contextStrategy !== undefined ? { contextStrategy: input.contextStrategy } : {}),
+    ...(input.runnerVersion !== undefined ? { runnerVersion: input.runnerVersion } : {}),
     metrics: {
       durationMs: null,
       inputTokens: null,
@@ -486,6 +493,9 @@ export function readExecutionLedger(
       recoveryReasonCode: decision?.reasonCode ?? null,
       recoveryDecisionId: decision?.decisionId ?? null,
       strategyChange: decision?.strategyChange ?? null,
+      taskSignature: attempt.taskSignature ?? null,
+      contextStrategy: attempt.contextStrategy ?? null,
+      runnerVersion: attempt.runnerVersion ?? null,
       metrics: attempt.metrics,
     });
   });

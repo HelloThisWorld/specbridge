@@ -128,6 +128,10 @@ function estimateOf(input: {
     retryProbability: 0.2,
     confidence: 'high',
     basis: 'heuristic',
+    // vNext.8: no measured conservative tail in a vNext.2 fixture, so
+    // admission compares the multiplied median exactly as it always has.
+    expectedFiveHourBurnRatioP90: null,
+    expectedWallTimeMsP90: null,
   };
 }
 
@@ -832,6 +836,11 @@ describe('quota telemetry and burn observations', () => {
       recoveryReasonCode: null,
       recoveryDecisionId: null,
       strategyChange: null,
+      // vNext.8 adaptive attribution: absent on a pre-vNext.8 attempt, which
+      // is exactly what this vNext.2 fixture represents.
+      taskSignature: null,
+      contextStrategy: null,
+      runnerVersion: null,
       metrics: {
         durationMs,
         inputTokens: null,

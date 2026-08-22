@@ -10525,7 +10525,7 @@ var require_which = __commonJS({
         opt = {};
       const { pathEnv, pathExt, pathExtExe } = getPathInfo(cmd, opt);
       const found = [];
-      const step = (i2) => new Promise((resolve2, reject) => {
+      const step2 = (i2) => new Promise((resolve2, reject) => {
         if (i2 === pathEnv.length)
           return opt.all && found.length ? resolve2(found) : reject(getNotFoundError(cmd));
         const ppRaw = pathEnv[i2];
@@ -10536,7 +10536,7 @@ var require_which = __commonJS({
       });
       const subStep = (p, i2, ii) => new Promise((resolve2, reject) => {
         if (ii === pathExt.length)
-          return resolve2(step(i2 + 1));
+          return resolve2(step2(i2 + 1));
         const ext = pathExt[ii];
         isexe(p + ext, { pathExt: pathExtExe }, (er, is) => {
           if (!er && is) {
@@ -10548,7 +10548,7 @@ var require_which = __commonJS({
           return resolve2(subStep(p, i2, ii + 1));
         });
       });
-      return cb ? step(0).then((res) => cb(null, res), cb) : step(0);
+      return cb ? step2(0).then((res) => cb(null, res), cb) : step2(0);
     };
     var whichSync = (cmd, opt) => {
       opt = opt || {};
@@ -14899,8 +14899,8 @@ var require_resolve = __commonJS({
       }
       return count2;
     }
-    function getFullPath(resolver, id = "", normalize2) {
-      if (normalize2 !== false)
+    function getFullPath(resolver, id = "", normalize3) {
+      if (normalize3 !== false)
         id = normalizeId(id);
       const p = resolver.parse(id);
       return _getFullPath(resolver, p);
@@ -16296,7 +16296,7 @@ var require_fast_uri = __commonJS({
     "use strict";
     var { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, escapePreservingEscapes, reescapeHostDelimiters, isIPv4, nonSimpleDomain } = require_utils2();
     var { SCHEMES, getSchemeHandler } = require_schemes();
-    function normalize2(uri, options) {
+    function normalize3(uri, options) {
       if (typeof uri === "string") {
         uri = /** @type {T} */
         normalizeString(uri, options);
@@ -16563,7 +16563,7 @@ var require_fast_uri = __commonJS({
     }
     var fastUri = {
       SCHEMES,
-      normalize: normalize2,
+      normalize: normalize3,
       resolve: resolve2,
       resolveComponent,
       equal,
@@ -21142,12 +21142,12 @@ ZodString.create = (params) => {
     ...processCreateParams(params)
   });
 };
-function floatSafeRemainder(val, step) {
+function floatSafeRemainder(val, step2) {
   const valDecCount = (val.toString().split(".")[1] || "").length;
-  const stepDecCount = (step.toString().split(".")[1] || "").length;
+  const stepDecCount = (step2.toString().split(".")[1] || "").length;
   const decCount = valDecCount > stepDecCount ? valDecCount : stepDecCount;
   const valInt = Number.parseInt(val.toFixed(decCount).replace(".", ""));
-  const stepInt = Number.parseInt(step.toFixed(decCount).replace(".", ""));
+  const stepInt = Number.parseInt(step2.toFixed(decCount).replace(".", ""));
   return valInt % stepInt / 10 ** decCount;
 }
 var ZodNumber = class _ZodNumber extends ZodType {
@@ -24741,6 +24741,60 @@ var apiExecutionPolicySchema = external_exports.object({
   gap: apiGapPolicySchema.default({}),
   allowUnverifiedLocality: external_exports.boolean().default(false)
 }).passthrough();
+var ADAPTIVE_SCHEDULER_MODES = ["HEURISTIC", "SHADOW", "ADAPTIVE"];
+var adaptiveUtilityWeightsSchema = external_exports.object({
+  successWeight: external_exports.number().finite().min(0).max(100).default(1),
+  latencyPenalty: external_exports.number().finite().min(0).max(100).default(0.2),
+  failedWorkPenalty: external_exports.number().finite().min(0).max(100).default(0.3),
+  quotaPressurePenalty: external_exports.number().finite().min(0).max(100).default(0.15),
+  apiCostPenalty: external_exports.number().finite().min(0).max(100).default(0.25),
+  contextCostPenalty: external_exports.number().finite().min(0).max(100).default(0.1),
+  handoffPenalty: external_exports.number().finite().min(0).max(100).default(0.05)
+}).passthrough().superRefine((value, ctx) => {
+  if (typeof value.successWeight === "number" && value.successWeight <= 0) {
+    ctx.addIssue({
+      code: external_exports.ZodIssueCode.custom,
+      message: "adaptive.weights.successWeight must be greater than zero: verified completion is the objective, and a scheduler that weighs only cost is not an improvement over a coin flip."
+    });
+  }
+  const total = [
+    value.successWeight,
+    value.latencyPenalty,
+    value.failedWorkPenalty,
+    value.quotaPressurePenalty,
+    value.apiCostPenalty,
+    value.contextCostPenalty,
+    value.handoffPenalty
+  ].reduce((sum, entry) => sum + (typeof entry === "number" ? entry : 0), 0);
+  if (total <= 0) {
+    ctx.addIssue({
+      code: external_exports.ZodIssueCode.custom,
+      message: "adaptive.weights must not all be zero: every candidate would score identically."
+    });
+  }
+});
+var adaptiveSchedulerPolicySchema = external_exports.object({
+  mode: external_exports.enum(ADAPTIVE_SCHEDULER_MODES).default("HEURISTIC"),
+  minimumSamplesForAdaptiveDecision: external_exports.number().int().min(1).max(1e3).default(8),
+  minimumComparableSamples: external_exports.number().int().min(1).max(1e3).default(4),
+  priorStrength: external_exports.number().finite().min(0.5).max(100).default(4),
+  recencyHalfLifeMs: external_exports.number().int().min(36e5).max(31536e6).default(14 * 864e5),
+  maxObservationAgeMs: external_exports.number().int().min(864e5).max(31536e6).default(180 * 864e5),
+  maxObservations: external_exports.number().int().min(50).max(2e5).default(5e3),
+  minimumConfidence: external_exports.enum(["LOW", "MEDIUM", "HIGH"]).default("MEDIUM"),
+  minimumUtilityImprovement: external_exports.number().finite().min(0).max(1).default(0.05),
+  wallTimeScaleMs: external_exports.number().int().min(6e4).max(864e5).default(30 * 6e4),
+  failedWorkScaleMs: external_exports.number().int().min(6e4).max(864e5).default(30 * 6e4),
+  contextTokenScale: external_exports.number().int().min(1e3).max(1e7).default(2e5),
+  apiCostScaleUsd: external_exports.number().finite().min(0.01).max(1e4).default(2),
+  driftSuccessDropRatio: external_exports.number().finite().min(0.05).max(1).default(0.25),
+  driftWallTimeGrowthFactor: external_exports.number().finite().min(1.05).max(100).default(1.5),
+  driftMinimumSamples: external_exports.number().int().min(2).max(1e3).default(4),
+  safetyFailuresExemptFromDecay: external_exports.boolean().default(true),
+  maxDecisionRecords: external_exports.number().int().min(10).max(5e3).default(500),
+  maxCalibrationRecords: external_exports.number().int().min(10).max(5e3).default(500),
+  weights: adaptiveUtilityWeightsSchema.default({})
+}).passthrough();
 var jobSchedulerPolicySchema = external_exports.object({
   enabled: external_exports.boolean().default(true),
   maxLocalAttempts: external_exports.number().int().min(1).max(5).default(2),
@@ -24761,7 +24815,8 @@ var jobSchedulerPolicySchema = external_exports.object({
   reserve: dynamicReservePolicySchema.default({}),
   estimator: workloadEstimatorPolicySchema.default({}),
   localExecution: localExecutionPolicySchema.default({}),
-  api: apiExecutionPolicySchema.default({})
+  api: apiExecutionPolicySchema.default({}),
+  adaptive: adaptiveSchedulerPolicySchema.default({})
 }).passthrough();
 var reliabilityPolicySchema = external_exports.object({
   enabled: external_exports.boolean().default(true),
@@ -25854,14 +25909,14 @@ function migrationPlanHash(target, steps) {
   const projection = {
     planSchemaVersion: MIGRATION_PLAN_SCHEMA_VERSION,
     target,
-    steps: steps.map((step) => ({
-      stepId: step.stepId,
-      family: step.family,
-      file: step.file,
-      fromVersion: step.fromVersion,
-      toVersion: step.toVersion,
-      beforeSha256: step.beforeSha256,
-      contentSha256: sha256Hex(step.content)
+    steps: steps.map((step2) => ({
+      stepId: step2.stepId,
+      family: step2.family,
+      file: step2.file,
+      fromVersion: step2.fromVersion,
+      toVersion: step2.toVersion,
+      beforeSha256: step2.beforeSha256,
+      contentSha256: sha256Hex(step2.content)
     }))
   };
   return sha256Hex(JSON.stringify(projection));
@@ -25902,25 +25957,25 @@ function applyMigrationPlan(workspace, plan, options) {
   }
   const prepared = [];
   const problems = [];
-  for (const step of plan.steps) {
-    const absolutePath = assertInsideWorkspace(workspace.rootDir, step.file);
+  for (const step2 of plan.steps) {
+    const absolutePath = assertInsideWorkspace(workspace.rootDir, step2.file);
     if (!(0, import_fs6.existsSync)(absolutePath)) {
-      problems.push(`${step.file}: the file no longer exists; the plan is stale.`);
+      problems.push(`${step2.file}: the file no longer exists; the plan is stale.`);
       continue;
     }
     const originalBytes = (0, import_fs6.readFileSync)(absolutePath);
     const currentHash = sha256Hex(originalBytes);
-    if (currentHash === sha256Hex(step.content)) {
-      prepared.push({ step, absolutePath, originalBytes, alreadyCurrent: true });
+    if (currentHash === sha256Hex(step2.content)) {
+      prepared.push({ step: step2, absolutePath, originalBytes, alreadyCurrent: true });
       continue;
     }
-    if (currentHash !== step.beforeSha256) {
+    if (currentHash !== step2.beforeSha256) {
       problems.push(
-        `${step.file}: the file changed after the plan was created (expected ${step.beforeSha256.slice(0, 12)}\u2026, found ${currentHash.slice(0, 12)}\u2026); regenerate the plan and retry.`
+        `${step2.file}: the file changed after the plan was created (expected ${step2.beforeSha256.slice(0, 12)}\u2026, found ${currentHash.slice(0, 12)}\u2026); regenerate the plan and retry.`
       );
       continue;
     }
-    prepared.push({ step, absolutePath, originalBytes, alreadyCurrent: false });
+    prepared.push({ step: step2, absolutePath, originalBytes, alreadyCurrent: false });
   }
   if (problems.length > 0) {
     return finish3("refused-stale-plan", [], problems);
@@ -26029,22 +26084,22 @@ function writeMigrationReport(workspace, plan, result, diagnostics = []) {
   write("result.json", result);
   write(
     "changed-files.json",
-    result.steps.map((step) => ({
-      file: step.file,
-      family: step.family,
-      stepId: step.stepId,
-      oldSchemaVersion: step.fromVersion,
-      newSchemaVersion: step.toVersion,
-      status: step.status,
-      beforeSha256: step.beforeSha256,
-      afterSha256: step.afterSha256 ?? null,
-      backupPath: step.backupPath ?? null,
-      warnings: plan.steps.find((s) => s.stepId === step.stepId)?.warnings ?? []
+    result.steps.map((step2) => ({
+      file: step2.file,
+      family: step2.family,
+      stepId: step2.stepId,
+      oldSchemaVersion: step2.fromVersion,
+      newSchemaVersion: step2.toVersion,
+      status: step2.status,
+      beforeSha256: step2.beforeSha256,
+      afterSha256: step2.afterSha256 ?? null,
+      backupPath: step2.backupPath ?? null,
+      warnings: plan.steps.find((s) => s.stepId === step2.stepId)?.warnings ?? []
     }))
   );
   write(
     "backups.json",
-    result.steps.filter((step) => step.backupPath !== void 0).map((step) => ({ file: step.file, backupPath: step.backupPath, sha256: step.beforeSha256 }))
+    result.steps.filter((step2) => step2.backupPath !== void 0).map((step2) => ({ file: step2.file, backupPath: step2.backupPath, sha256: step2.beforeSha256 }))
   );
   write("diagnostics.json", { diagnostics, problems: result.problems });
   const lines = [
@@ -26060,11 +26115,11 @@ function writeMigrationReport(workspace, plan, result, diagnostics = []) {
     "## Files",
     ""
   ];
-  for (const step of result.steps) {
+  for (const step2 of result.steps) {
     lines.push(
-      `- \`${step.file}\` (${step.family}): ${step.fromVersion} \u2192 ${step.toVersion} \u2014 ${step.status}`
+      `- \`${step2.file}\` (${step2.family}): ${step2.fromVersion} \u2192 ${step2.toVersion} \u2014 ${step2.status}`
     );
-    if (step.backupPath !== void 0) lines.push(`  - backup: \`${step.backupPath}\``);
+    if (step2.backupPath !== void 0) lines.push(`  - backup: \`${step2.backupPath}\``);
   }
   for (const problem of result.problems) lines.push("", `> ${problem}`);
   writeFileAtomic(import_path7.default.join(dir, "summary.md"), `${lines.join("\n")}
@@ -26102,28 +26157,28 @@ function verifyMigration(workspace, planId) {
     };
   }
   checks.push("plan hash matches plan contents");
-  for (const step of result.steps) {
-    if (step.status !== "applied" && step.status !== "already-current") continue;
-    const absolutePath = assertInsideWorkspace(workspace.rootDir, step.file);
+  for (const step2 of result.steps) {
+    if (step2.status !== "applied" && step2.status !== "already-current") continue;
+    const absolutePath = assertInsideWorkspace(workspace.rootDir, step2.file);
     if (!(0, import_fs6.existsSync)(absolutePath)) {
-      problems.push(`${step.file}: missing (was ${step.status}).`);
+      problems.push(`${step2.file}: missing (was ${step2.status}).`);
       continue;
     }
     const currentHash = sha256Hex((0, import_fs6.readFileSync)(absolutePath));
-    if (step.afterSha256 !== void 0 && currentHash !== step.afterSha256) {
+    if (step2.afterSha256 !== void 0 && currentHash !== step2.afterSha256) {
       problems.push(
-        `${step.file}: modified after the migration (expected ${step.afterSha256.slice(0, 12)}\u2026).`
+        `${step2.file}: modified after the migration (expected ${step2.afterSha256.slice(0, 12)}\u2026).`
       );
     } else {
-      checks.push(`${step.file}: current bytes match the migration result`);
+      checks.push(`${step2.file}: current bytes match the migration result`);
     }
-    if (step.backupPath !== void 0) {
-      if (!(0, import_fs6.existsSync)(step.backupPath)) {
-        problems.push(`${step.file}: backup ${step.backupPath} is missing.`);
-      } else if (sha256Hex((0, import_fs6.readFileSync)(step.backupPath)) !== step.beforeSha256) {
-        problems.push(`${step.file}: backup ${step.backupPath} does not match the original bytes.`);
+    if (step2.backupPath !== void 0) {
+      if (!(0, import_fs6.existsSync)(step2.backupPath)) {
+        problems.push(`${step2.file}: backup ${step2.backupPath} is missing.`);
+      } else if (sha256Hex((0, import_fs6.readFileSync)(step2.backupPath)) !== step2.beforeSha256) {
+        problems.push(`${step2.file}: backup ${step2.backupPath} does not match the original bytes.`);
       } else {
-        checks.push(`${step.file}: backup holds the original bytes`);
+        checks.push(`${step2.file}: backup holds the original bytes`);
       }
     }
   }
@@ -46073,12 +46128,12 @@ function evidencePathEscapesRepository(recordedPath) {
 }
 var CHECKBOX_STATE_PREFIX2 = /^([ \t]*[-*+][ \t]+\[)([ xX~-])(\])/;
 function sameTaskLineIgnoringState(a2, b) {
-  const normalize2 = (text8) => {
+  const normalize3 = (text8) => {
     const match = CHECKBOX_STATE_PREFIX2.exec(text8);
     if (match === null || match[1] === void 0 || match[3] === void 0) return text8;
     return `${match[1]} ${match[3]}${text8.slice(match[0].length)}`;
   };
-  return normalize2(a2) === normalize2(b);
+  return normalize3(a2) === normalize3(b);
 }
 function parseTimestamp(value) {
   const parsed = Date.parse(value);
@@ -53389,13 +53444,18 @@ async function buildEfficientContext(input) {
 }
 
 // ../../packages/orchestration/dist/index.js
+var import_crypto21 = require("crypto");
 var import_fs37 = require("fs");
 var import_path40 = __toESM(require("path"), 1);
-var import_crypto21 = require("crypto");
+var import_crypto22 = require("crypto");
 var import_fs38 = require("fs");
 var import_path41 = __toESM(require("path"), 1);
 var import_fs39 = require("fs");
 var import_path42 = __toESM(require("path"), 1);
+var import_fs40 = require("fs");
+var import_path43 = __toESM(require("path"), 1);
+var import_fs41 = require("fs");
+var import_path44 = __toESM(require("path"), 1);
 
 // ../../packages/mission/dist/index.js
 var import_fs30 = require("fs");
@@ -55671,12 +55731,8 @@ function observeSpecApproval(deps, missionId) {
 }
 
 // ../../packages/orchestration/dist/index.js
-var import_path43 = __toESM(require("path"), 1);
-var import_path44 = __toESM(require("path"), 1);
 var import_path45 = __toESM(require("path"), 1);
-var import_fs40 = require("fs");
 var import_path46 = __toESM(require("path"), 1);
-var import_fs41 = require("fs");
 var import_path47 = __toESM(require("path"), 1);
 var import_fs42 = require("fs");
 var import_path48 = __toESM(require("path"), 1);
@@ -55688,6 +55744,10 @@ var import_fs45 = require("fs");
 var import_path51 = __toESM(require("path"), 1);
 var import_fs46 = require("fs");
 var import_path52 = __toESM(require("path"), 1);
+var import_fs47 = require("fs");
+var import_path53 = __toESM(require("path"), 1);
+var import_fs48 = require("fs");
+var import_path54 = __toESM(require("path"), 1);
 var ORCHESTRATION_PHASES = [
   /** The run exists; no intent has been assessed yet. */
   "CREATED",
@@ -56788,7 +56848,7 @@ function setsDiffer(a2, b) {
   return false;
 }
 function stepDescriptions(steps) {
-  return steps.map((step) => step.description.trim().toLowerCase());
+  return steps.map((step2) => step2.description.trim().toLowerCase());
 }
 function assessPlanChange(previous, next) {
   const material = [];
@@ -56860,11 +56920,11 @@ function buildExecutionPlan(input) {
     assumptions: candidate.assumptions ?? [],
     openQuestions: candidate.openQuestions ?? [],
     expectedAreas: candidate.expectedAreas ?? [],
-    steps: candidate.steps.map((step, index) => ({
-      id: step.id ?? `s${index + 1}`,
-      description: step.description,
-      expectedAreas: step.expectedAreas ?? [],
-      ...step.expectedEvidence !== void 0 ? { expectedEvidence: step.expectedEvidence } : {},
+    steps: candidate.steps.map((step2, index) => ({
+      id: step2.id ?? `s${index + 1}`,
+      description: step2.description,
+      expectedAreas: step2.expectedAreas ?? [],
+      ...step2.expectedEvidence !== void 0 ? { expectedEvidence: step2.expectedEvidence } : {},
       status: "pending"
     })),
     testStrategy: candidate.testStrategy,
@@ -59491,9 +59551,9 @@ var INTENT_IMPACT_PATTERNS = [
 ];
 function screenReplanForApprovedIntentImpact(candidate, previous) {
   const candidateText = `${candidate.goal}
-${candidate.steps.map((step) => step.description).join("\n")}`;
+${candidate.steps.map((step2) => step2.description).join("\n")}`;
   const previousText = previous !== void 0 ? `${previous.goal}
-${previous.steps.map((step) => step.description).join("\n")}` : "";
+${previous.steps.map((step2) => step2.description).join("\n")}` : "";
   const decisionKinds = [];
   const reasons = [];
   for (const entry of INTENT_IMPACT_PATTERNS) {
@@ -59727,6 +59787,12 @@ function median(values) {
   if (sorted.length % 2 === 1) return high ?? null;
   return low !== void 0 && high !== void 0 ? (low + high) / 2 : null;
 }
+function p90(values) {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a2, b) => a2 - b);
+  const index = Math.min(sorted.length - 1, Math.max(0, Math.ceil(0.9 * sorted.length) - 1));
+  return sorted[index] ?? null;
+}
 function aggregateBurnObservations(observations, filter) {
   const relevant = observations.filter(
     (observation) => (filter?.taskComplexity === void 0 || observation.taskComplexity === filter.taskComplexity) && (filter?.taskCategory === void 0 || observation.taskCategory === filter.taskCategory) && (filter?.lane === void 0 || observation.lane === filter.lane)
@@ -59744,7 +59810,9 @@ function aggregateBurnObservations(observations, filter) {
     medianInputTokens: median(inputs),
     medianOutputTokens: median(outputs),
     tokenObservations: Math.max(inputs.length, outputs.length),
-    successRate: relevant.length > 0 ? relevant.filter((observation) => observation.success).length / relevant.length : null
+    successRate: relevant.length > 0 ? relevant.filter((observation) => observation.success).length / relevant.length : null,
+    p90FiveHourBurnRatio: p90(burns),
+    p90WallTimeMs: p90(walls)
   };
 }
 function observedFiveHourBurnRate(observations) {
@@ -59808,6 +59876,8 @@ function estimateWorkload(input) {
   let fiveHourBurn = heuristicBurnRatio(input.complexity, policy);
   let basis = "heuristic";
   let confidence = input.complexity === "LOW" ? "medium" : "low";
+  let burnP90 = null;
+  let wallTimeP90 = null;
   const observations = (input.observations ?? []).filter(
     (observation) => observation.lane === "SUBSCRIPTION" || observation.lane === null
   );
@@ -59823,7 +59893,9 @@ function estimateWorkload(input) {
       medianInputTokens: null,
       medianOutputTokens: null,
       tokenObservations: 0,
-      successRate: null
+      successRate: null,
+      p90FiveHourBurnRatio: null,
+      p90WallTimeMs: null
     };
     const byComplexity = aggregateBurnObservations(observations, {
       taskComplexity: input.complexity
@@ -59839,6 +59911,14 @@ function estimateWorkload(input) {
         basis = "historical";
       }
       if (basis === "historical") confidence = "medium";
+      if (input.conservativeBurnFromHistory === true) {
+        if (aggregate.p90FiveHourBurnRatio !== null) {
+          burnP90 = Math.min(1, aggregate.p90FiveHourBurnRatio);
+        }
+        if (aggregate.p90WallTimeMs !== null) {
+          wallTimeP90 = Math.round(aggregate.p90WallTimeMs);
+        }
+      }
     }
   }
   if (input.overrides?.expectedWallTimeMs !== void 0) {
@@ -59900,7 +59980,11 @@ function estimateWorkload(input) {
     tokenBasis,
     retryProbability: heuristicRetryProbability(input.complexity, input.localSuitability),
     confidence,
-    basis
+    basis,
+    // The LOCAL lane burns no subscription quota, so a measured five-hour
+    // tail for it would be a number about nothing.
+    expectedFiveHourBurnRatioP90: input.localSuitability === "LOCAL_SAFE" ? null : burnP90,
+    expectedWallTimeMsP90: wallTimeP90
   };
 }
 function expectedBurnBeforeReset(estimate, timeToResetMs2) {
@@ -59917,15 +60001,20 @@ function assessSubscriptionAdmission(input) {
   const postResetBurn = Math.max(0, estimate.expectedFiveHourBurnRatio - preResetBurn);
   if (forecast.fiveHourRemainingRatio !== null) {
     const available = Math.max(0, forecast.fiveHourRemainingRatio - input.reserveRatio);
-    const required2 = preResetBurn * safety;
+    const preResetBurnP90 = estimate.expectedFiveHourBurnRatioP90 === null ? null : timeToReset === null ? estimate.expectedFiveHourBurnRatioP90 : expectedBurnBeforeReset(
+      { ...estimate, expectedFiveHourBurnRatio: estimate.expectedFiveHourBurnRatioP90 },
+      timeToReset
+    );
+    const required2 = Math.max(preResetBurn * safety, preResetBurnP90 ?? 0);
     if (required2 > available) {
+      const basis = preResetBurnP90 !== null && preResetBurnP90 > preResetBurn * safety ? `Measured P90 pre-reset burn ${(preResetBurnP90 * 100).toFixed(1)}%` : `Pre-reset burn ${(preResetBurn * 100).toFixed(1)}% x${safety} safety`;
       return {
         admissible: false,
         preResetBurnRatio: preResetBurn,
         postResetBurnRatio: postResetBurn,
         crossesReset,
         refusal: "five-hour",
-        detail: `Pre-reset burn ${(preResetBurn * 100).toFixed(1)}% x${safety} safety exceeds ${(forecast.fiveHourRemainingRatio * 100).toFixed(1)}% remaining minus ${(input.reserveRatio * 100).toFixed(1)}% reserve.`
+        detail: `${basis} exceeds ${(forecast.fiveHourRemainingRatio * 100).toFixed(1)}% remaining minus ${(input.reserveRatio * 100).toFixed(1)}% reserve.`
       };
     }
   }
@@ -60724,6 +60813,14 @@ var NON_INTELLIGENCE_FAILURE_SOURCES = [
 function permitsIntelligenceEscalation(source) {
   return !NON_INTELLIGENCE_FAILURE_SOURCES.includes(source);
 }
+var INFRASTRUCTURE_FAILURE_SOURCES = [
+  "EXECUTION_INFRASTRUCTURE",
+  "PROVIDER",
+  "VERIFICATION_INFRASTRUCTURE"
+];
+function isInfrastructureSource(source) {
+  return INFRASTRUCTURE_FAILURE_SOURCES.includes(source);
+}
 var FAILURE_SCOPES = ["ATTEMPT", "TASK", "JOB", "WORKSPACE"];
 var FAILURE_RECOVERABILITIES = [
   "RECOVERABLE",
@@ -61414,6 +61511,22 @@ var taskAttemptSchema = external_exports.object({
   apiApprovalId: shortText42.optional(),
   /** Deterministic delay-sensitivity level that justified paid bridging. */
   delaySensitivity: shortText42.optional(),
+  // vNext.8 adaptive attribution (additive; absent on every pre-vNext.8
+  // record). These three exist so historical observations can be GROUPED
+  // and their runtime identity CHECKED without re-deriving either from
+  // whatever the classifiers happen to do today: a signature recomputed
+  // months later under changed heuristics would silently re-file old
+  // attempts into buckets they were never measured in.
+  /** The coarse TaskSignature key this attempt was dispatched under. */
+  taskSignature: shortText42.optional(),
+  /** vNext.7 context strategy in force for this attempt. */
+  contextStrategy: shortText42.optional(),
+  /**
+   * Runner/runtime version when the provider reported one. Absent means
+   * UNKNOWN — never assumed to match the version running now, because a
+   * silent version change is exactly the case this field exists to catch.
+   */
+  runnerVersion: shortText42.optional(),
   metrics: attemptMetricsSchema.default({})
 }).passthrough();
 var checkpointDecisionSchema = external_exports.object({
@@ -61550,6 +61663,13 @@ var executionLedgerEntrySchema = external_exports.object({
   recoveryDecisionId: shortText42.nullable().default(null),
   /** Which dimension of strategy the recovery changed, if any. */
   strategyChange: shortText42.nullable().default(null),
+  // vNext.8 adaptive attribution (additive; null on every pre-vNext.8
+  // record). The adaptive layer reads history through this read model, so
+  // the grouping key and the runtime identity have to travel with the
+  // observation rather than being reconstructed from it.
+  taskSignature: shortText42.nullable().default(null),
+  contextStrategy: shortText42.nullable().default(null),
+  runnerVersion: shortText42.nullable().default(null),
   metrics: attemptMetricsSchema
 }).passthrough();
 var ID_PATTERN4 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
@@ -61753,6 +61873,9 @@ function beginTaskAttempt(deps, input) {
     ...input.apiBudgetReservationId !== void 0 ? { apiBudgetReservationId: input.apiBudgetReservationId } : {},
     ...input.apiApprovalId !== void 0 ? { apiApprovalId: input.apiApprovalId } : {},
     ...input.delaySensitivity !== void 0 ? { delaySensitivity: input.delaySensitivity } : {},
+    ...input.taskSignature !== void 0 ? { taskSignature: input.taskSignature } : {},
+    ...input.contextStrategy !== void 0 ? { contextStrategy: input.contextStrategy } : {},
+    ...input.runnerVersion !== void 0 ? { runnerVersion: input.runnerVersion } : {},
     metrics: {
       durationMs: null,
       inputTokens: null,
@@ -61955,6 +62078,9 @@ function readExecutionLedger(workspace, jobId, options = {}) {
       recoveryReasonCode: decision?.reasonCode ?? null,
       recoveryDecisionId: decision?.decisionId ?? null,
       strategyChange: decision?.strategyChange ?? null,
+      taskSignature: attempt.taskSignature ?? null,
+      contextStrategy: attempt.contextStrategy ?? null,
+      runnerVersion: attempt.runnerVersion ?? null,
       metrics: attempt.metrics
     });
   });
@@ -62440,6 +62566,1413 @@ function readContextMetrics(workspace, jobId, attemptId) {
   try {
     const parsed = contextEfficiencyMetricsSchema.safeParse(JSON.parse((0, import_fs37.readFileSync)(file, "utf8")));
     return parsed.success ? parsed.data : void 0;
+  } catch {
+    return void 0;
+  }
+}
+function listContextMetricEntries(workspace, jobId) {
+  const dir = import_path40.default.join(jobContextDir(workspace, jobId), "metrics");
+  if (!(0, import_fs37.existsSync)(dir)) return [];
+  const records = [];
+  for (const entry of (0, import_fs37.readdirSync)(dir, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
+    try {
+      const parsed = contextEfficiencyMetricsSchema.safeParse(
+        JSON.parse((0, import_fs37.readFileSync)(import_path40.default.join(dir, entry.name), "utf8"))
+      );
+      if (parsed.success) {
+        records.push({ attemptId: entry.name.slice(0, -".json".length), metrics: parsed.data });
+      }
+    } catch {
+      continue;
+    }
+  }
+  return records.sort(
+    (left, right) => left.metrics.createdAt < right.metrics.createdAt ? -1 : 1
+  );
+}
+function strategyKey(input) {
+  const canonical = [
+    input.lane ?? "no-lane",
+    input.executionMode ?? "no-mode",
+    String(input.planRevision ?? 0),
+    input.freshContext === true ? "fresh" : "continued"
+  ].join("|");
+  return (0, import_crypto22.createHash)("sha256").update(canonical).digest("hex").slice(0, 16);
+}
+function detectRunaway(activity, thresholds, previous = []) {
+  const signals2 = [];
+  if (thresholds.maxToolCallsPerAttempt !== null && activity.toolCalls !== null && activity.toolCalls >= thresholds.maxToolCallsPerAttempt) {
+    signals2.push("TOOL_CALL_BUDGET");
+  }
+  if (thresholds.maxAttemptWallTimeMs !== null && activity.durationMs !== null && activity.durationMs >= thresholds.maxAttemptWallTimeMs) {
+    signals2.push("WALL_TIME_BUDGET");
+  }
+  if (thresholds.maxContextUsageRatio !== null && activity.contextUsageAfter !== null && activity.contextUsageAfter >= thresholds.maxContextUsageRatio) {
+    signals2.push("CONTEXT_GROWTH");
+  }
+  const loopCeiling = thresholds.maxTestLoopsPerAttempt;
+  if (loopCeiling !== null) {
+    const loops = activity.testLoops ?? null;
+    const commands = activity.commandRuns ?? null;
+    if (loops !== null && loops >= loopCeiling || commands !== null && commands >= loopCeiling * 4) {
+      signals2.push("REPEATED_COMMAND_LOOP");
+    }
+  }
+  if (thresholds.maxCommandRunsPerAttempt !== null && activity.commandRuns !== null && activity.commandRuns >= thresholds.maxCommandRunsPerAttempt && !signals2.includes("REPEATED_COMMAND_LOOP")) {
+    signals2.push("REPEATED_COMMAND_LOOP");
+  }
+  if (activity.emptyDiff && (activity.toolCalls ?? 0) > 0) {
+    const priorEmpty = previous.at(-1)?.diffFingerprint === null;
+    if (priorEmpty) signals2.push("NO_OP_EDIT_LOOP");
+  }
+  return signals2;
+}
+function detectOscillation(window, threshold) {
+  const scored = window.filter((entry) => entry.diffFingerprint !== null);
+  if (scored.length < Math.max(3, threshold)) return false;
+  const recent = scored.slice(-Math.max(3, threshold + 1));
+  const seen = /* @__PURE__ */ new Map();
+  let revisits = 0;
+  let previous;
+  for (const entry of recent) {
+    const diff = entry.diffFingerprint;
+    const priorCount = seen.get(diff) ?? 0;
+    if (priorCount > 0 && previous !== diff) revisits += 1;
+    seen.set(diff, priorCount + 1);
+    previous = diff;
+  }
+  if (revisits < 1) return false;
+  const failures = new Set(recent.map((entry) => entry.failureFingerprint ?? "none"));
+  const distinctStates = seen.size;
+  return distinctStates >= 2 && distinctStates < recent.length && failures.size === 1;
+}
+function assessHealth(input) {
+  const window = input.window;
+  const runawaySignals = [...input.runawaySignals ?? []];
+  const reasons = [];
+  const counts = /* @__PURE__ */ new Map();
+  for (const entry of window) {
+    if (entry.failureFingerprint === null) continue;
+    counts.set(entry.failureFingerprint, (counts.get(entry.failureFingerprint) ?? 0) + 1);
+  }
+  const repeatedFailureCount = counts.size === 0 ? 0 : Math.max(...counts.values());
+  let sameDiffRun = 0;
+  for (let index = window.length - 1; index > 0; index -= 1) {
+    const current = window[index];
+    const previous = window[index - 1];
+    if (current === void 0 || previous === void 0) break;
+    if (current.failureFingerprint === null || current.diffFingerprint === null) break;
+    if (current.failureFingerprint !== previous.failureFingerprint || current.diffFingerprint !== previous.diffFingerprint) {
+      break;
+    }
+    sameDiffRun += 1;
+  }
+  if (sameDiffRun > 0) sameDiffRun += 1;
+  const oscillating = detectOscillation(window, input.thresholds.oscillationThreshold);
+  if (runawaySignals.length > 0) {
+    reasons.push(
+      `The attempt exceeded its bounds (${runawaySignals.join(", ")}); it was stopped rather than allowed to continue.`
+    );
+    return { health: "RUNAWAY", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
+  }
+  if (input.passed === true) {
+    reasons.push("The latest attempt passed evaluation.");
+    return { health: "HEALTHY", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
+  }
+  if (sameDiffRun >= input.thresholds.sameDiffThreshold) {
+    reasons.push(
+      `${sameDiffRun} consecutive attempts produced an identical working tree and an identical failure; the same approach is producing the same result.`
+    );
+    return { health: "STALLED", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
+  }
+  if (oscillating) {
+    reasons.push(
+      "Attempts are alternating between repository states that have already failed, with the failure unchanged; the sequence has no fixed point."
+    );
+    return { health: "OSCILLATING", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
+  }
+  if (repeatedFailureCount >= input.thresholds.sameFailureThreshold) {
+    reasons.push(
+      `The same normalized failure recurred ${repeatedFailureCount} times; attempts differ but none addresses it.`
+    );
+    return { health: "STALLED", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
+  }
+  if (window.some((entry) => entry.failureFingerprint !== null)) {
+    reasons.push("Attempts are failing, but each one is materially different from the last.");
+    return { health: "DEGRADED", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
+  }
+  reasons.push("No failures recorded in the current window.");
+  return { health: "HEALTHY", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
+}
+function appendObservation(state, observation, maxWindow) {
+  const next = [...state.observations, observation];
+  return next.length > maxWindow ? next.slice(next.length - maxWindow) : next;
+}
+function candidateKey(candidate) {
+  return [
+    candidate.lane,
+    candidate.executionMode ?? "-",
+    candidate.runner ?? "-",
+    candidate.model ?? "-",
+    candidate.contextStrategy
+  ].join("/");
+}
+function targetKey(candidate) {
+  return [candidate.lane, candidate.executionMode ?? "-"].join("/");
+}
+function makeCandidate(input) {
+  return {
+    candidateId: candidateKey(input),
+    lane: input.lane,
+    executionMode: input.executionMode,
+    runner: input.runner,
+    model: input.model,
+    profile: input.profile,
+    contextStrategy: input.contextStrategy,
+    computeLocality: input.computeLocality,
+    heuristicChoice: input.heuristicChoice,
+    handoffOverheadMs: input.handoffOverheadMs,
+    strategyKey: strategyKey({
+      lane: input.lane,
+      executionMode: input.executionMode,
+      planRevision: input.planRevision,
+      freshContext: false
+    })
+  };
+}
+function handoffOverheadMs(lane, mode) {
+  if (lane === "LOCAL") return mode === "HARNESS" ? 3e4 : 2e3;
+  if (lane === "API") return 3e4;
+  return 1e4;
+}
+function generateCandidates(input) {
+  const eligible = [];
+  const rejected = [];
+  const lane = input.routing.routing.lane;
+  const strategy = input.contextStrategy;
+  if (lane === "DEFER" || lane === "REQUIRE_APPROVAL") {
+    rejected.push({
+      candidateId: `${lane}/-/-/-/${strategy}`,
+      lane: "LOCAL",
+      executionMode: null,
+      runner: null,
+      code: "LANE_NOT_ELIGIBLE",
+      detail: `Hard policy produced ${lane} (${input.routing.routing.reasonCode}); no lane is eligible, so there is nothing for adaptive ranking to choose between.`
+    });
+    return { eligible, rejected };
+  }
+  if (lane === "LOCAL") {
+    const chosenMode = input.routing.localExecution?.mode ?? null;
+    if (input.localDirectAvailable) {
+      eligible.push(
+        makeCandidate({
+          lane: "LOCAL",
+          executionMode: "DIRECT_MODEL",
+          runner: input.localDirectRunner,
+          model: input.localDirectModel,
+          profile: null,
+          contextStrategy: strategy,
+          computeLocality: "LOCAL",
+          heuristicChoice: chosenMode === "DIRECT_MODEL",
+          handoffOverheadMs: handoffOverheadMs("LOCAL", "DIRECT_MODEL"),
+          planRevision: input.planRevision
+        })
+      );
+    } else {
+      rejected.push({
+        candidateId: candidateKey({
+          lane: "LOCAL",
+          executionMode: "DIRECT_MODEL",
+          runner: input.localDirectRunner,
+          model: input.localDirectModel,
+          contextStrategy: strategy
+        }),
+        lane: "LOCAL",
+        executionMode: "DIRECT_MODEL",
+        runner: input.localDirectRunner,
+        code: "RUNNER_UNAVAILABLE",
+        detail: "Local structured inference is not configured or not usable."
+      });
+    }
+    const binding = input.harnessBinding;
+    const harnessId = candidateKey({
+      lane: "LOCAL",
+      executionMode: "HARNESS",
+      runner: binding.runner,
+      model: binding.model,
+      contextStrategy: strategy
+    });
+    if (!binding.available) {
+      rejected.push({
+        candidateId: harnessId,
+        lane: "LOCAL",
+        executionMode: "HARNESS",
+        runner: binding.runner,
+        code: "RUNNER_UNAVAILABLE",
+        detail: `Local harness binding is ${binding.status}: ${binding.problems.join("; ") || "unavailable"}.`
+      });
+    } else if (binding.locality !== "LOCAL") {
+      rejected.push({
+        candidateId: harnessId,
+        lane: "LOCAL",
+        executionMode: "HARNESS",
+        runner: binding.runner,
+        code: "REMOTE_NOT_LOCAL",
+        detail: `Harness compute locality is ${binding.locality}, not verified LOCAL. Historical performance cannot make remote compute local.`
+      });
+    } else {
+      eligible.push(
+        makeCandidate({
+          lane: "LOCAL",
+          executionMode: "HARNESS",
+          runner: binding.runner,
+          model: binding.model,
+          profile: binding.profileName,
+          contextStrategy: strategy,
+          computeLocality: binding.locality,
+          heuristicChoice: chosenMode === "HARNESS",
+          handoffOverheadMs: handoffOverheadMs("LOCAL", "HARNESS"),
+          planRevision: input.planRevision
+        })
+      );
+    }
+  }
+  if (lane === "SUBSCRIPTION") {
+    eligible.push(
+      makeCandidate({
+        lane: "SUBSCRIPTION",
+        executionMode: null,
+        runner: input.subscriptionProvider,
+        model: null,
+        profile: null,
+        contextStrategy: strategy,
+        computeLocality: "UNKNOWN",
+        heuristicChoice: true,
+        handoffOverheadMs: handoffOverheadMs("SUBSCRIPTION", null),
+        planRevision: input.planRevision
+      })
+    );
+  }
+  if (lane === "API") {
+    const binding = input.apiBinding;
+    eligible.push(
+      makeCandidate({
+        lane: "API",
+        executionMode: "HARNESS",
+        runner: binding.runner,
+        model: binding.model,
+        profile: binding.profileName,
+        contextStrategy: strategy,
+        computeLocality: binding.locality,
+        heuristicChoice: true,
+        handoffOverheadMs: handoffOverheadMs("API", "HARNESS"),
+        planRevision: input.planRevision
+      })
+    );
+  }
+  const surviving = [];
+  for (const candidate of eligible) {
+    if (input.exhaustedStrategies.includes(candidate.strategyKey)) {
+      rejected.push({
+        candidateId: candidate.candidateId,
+        lane: candidate.lane,
+        executionMode: candidate.executionMode,
+        runner: candidate.runner,
+        code: "RELIABILITY_STRATEGY_FORBIDDEN",
+        detail: "This strategy is recorded as already tried and failed on this task; reliability governs repetition, not historical averages."
+      });
+      continue;
+    }
+    surviving.push(candidate);
+  }
+  return { eligible: surviving, rejected };
+}
+var SAFETY_FAILURE_SOURCES = ["AUTHORIZATION", "REQUIREMENT_CONTRACT"];
+function labelFor(entry) {
+  if (entry.status === "INTERRUPTED" || entry.status === "CANCELLED") return "CENSORED";
+  if (entry.evaluationStatus === "INCONCLUSIVE") return "INCONCLUSIVE";
+  if (entry.success) {
+    return entry.evaluationStatus === "PASS" ? "VERIFIED_SUCCESS" : "UNVERIFIED_SUCCESS";
+  }
+  const source = entry.failureSource;
+  if (source !== null && isInfrastructureSource(source)) return "INFRASTRUCTURE_FAILURE";
+  return "IMPLEMENTATION_FAILURE";
+}
+function contextInsufficiencyFrom(entry) {
+  if (entry.failureSource === "CONTEXT") return true;
+  return entry.recoveryAction === "EXPAND_CONTEXT";
+}
+function deriveAdaptiveObservations(input) {
+  const observations = [];
+  for (const entry of input.entries) {
+    if (entry.role !== "EXECUTOR") continue;
+    if (entry.status === "RUNNING") continue;
+    const metrics = input.contextMetrics?.get(entry.attemptId);
+    const contextStrategy = entry.contextStrategy ?? metrics?.strategy ?? null;
+    const key = candidateKey({
+      lane: entry.lane ?? "-",
+      executionMode: entry.executionMode,
+      runner: entry.provider,
+      model: entry.model,
+      contextStrategy: contextStrategy ?? "-"
+    });
+    const source = entry.failureSource;
+    const burn = quotaBurn(entry);
+    observations.push({
+      attemptId: entry.attemptId,
+      jobId: entry.jobId,
+      nodeId: entry.nodeId,
+      taskId: entry.taskId,
+      signatureKey: entry.taskSignature,
+      taskCategory: entry.taskCategory,
+      taskComplexity: entry.taskComplexity,
+      candidateKey: key,
+      targetKey: targetKey({ lane: entry.lane ?? "-", executionMode: entry.executionMode }),
+      lane: entry.lane,
+      executionMode: entry.executionMode,
+      runner: entry.provider,
+      model: entry.model,
+      contextStrategy,
+      runnerVersion: entry.runnerVersion,
+      label: labelFor(entry),
+      failureSource: source,
+      executionHealth: entry.executionHealth,
+      recoveryAction: entry.recoveryAction,
+      attemptNumber: entry.attemptNumber,
+      wallTimeMs: entry.metrics.durationMs,
+      inputTokens: entry.metrics.inputTokens,
+      outputTokens: entry.metrics.outputTokens,
+      fiveHourBurnRatio: burn,
+      // Reconciled cost only. An estimate is what SpecBridge guessed before
+      // the attempt ran, and folding guesses into observed history is how a
+      // prediction quietly becomes its own evidence.
+      costUsd: entry.metrics.reconciledCostUsd,
+      contextTokens: metrics?.estimatedContextTokens ?? null,
+      contextExpansions: metrics?.contextExpansions ?? null,
+      contextInsufficient: contextInsufficiencyFrom(entry),
+      safetyEvent: source !== null && SAFETY_FAILURE_SOURCES.includes(source),
+      observedAt: entry.completedAt ?? entry.startedAt
+    });
+  }
+  return observations;
+}
+function quotaBurn(entry) {
+  const metrics = entry.metrics;
+  const before = metrics["fiveHourQuotaBefore"];
+  const after = metrics["fiveHourQuotaAfter"];
+  if (typeof before !== "number" || typeof after !== "number") return null;
+  if (!Number.isFinite(before) || !Number.isFinite(after)) return null;
+  const delta = before - after;
+  return delta >= 0 ? delta : null;
+}
+var EMPTY_METRIC = Object.freeze({ observations: 0, p50: null, p90: null });
+function percentile(values, fraction) {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a2, b) => a2 - b);
+  const rank = Math.ceil(fraction * sorted.length);
+  const index = Math.min(sorted.length - 1, Math.max(0, rank - 1));
+  return sorted[index] ?? null;
+}
+function summarize2(values) {
+  if (values.length === 0) return { ...EMPTY_METRIC };
+  return { observations: values.length, p50: percentile(values, 0.5), p90: percentile(values, 0.9) };
+}
+function recencyWeight(ageMs, halfLifeMs) {
+  if (!Number.isFinite(ageMs) || ageMs <= 0) return 1;
+  if (halfLifeMs <= 0) return 1;
+  return Math.min(1, Math.max(0, Math.pow(0.5, ageMs / halfLifeMs)));
+}
+function runtimeIdentityOf(observation) {
+  return [
+    observation.runner,
+    observation.runnerVersion ?? "unknown",
+    observation.model ?? "unknown",
+    observation.contextStrategy ?? "unknown"
+  ].join("@");
+}
+function bucketsFor(observation) {
+  const lane = observation.lane ?? "-";
+  const category = observation.taskCategory ?? "unknown";
+  const complexity = observation.taskComplexity ?? "unknown";
+  return [
+    {
+      level: "EXACT",
+      signaturePart: observation.signatureKey ?? "unknown",
+      targetPart: observation.candidateKey,
+      lane: observation.lane,
+      executionMode: observation.executionMode,
+      runner: observation.runner
+    },
+    {
+      level: "TARGET_CATEGORY",
+      signaturePart: `${category}|${complexity}`,
+      targetPart: observation.targetKey,
+      lane: observation.lane,
+      executionMode: observation.executionMode,
+      runner: observation.runner
+    },
+    {
+      level: "LANE_CATEGORY",
+      signaturePart: category,
+      targetPart: lane,
+      lane: observation.lane,
+      executionMode: null,
+      runner: null
+    },
+    {
+      level: "LANE_GLOBAL",
+      signaturePart: "*",
+      targetPart: lane,
+      lane: observation.lane,
+      executionMode: null,
+      runner: null
+    }
+  ];
+}
+function profileIndexKey(level, profileKey) {
+  return `${level}::${profileKey}`;
+}
+function aggregateProfiles(input) {
+  const { policy } = input;
+  const nowMs = input.now.getTime();
+  const buckets = /* @__PURE__ */ new Map();
+  let dropped = 0;
+  let kept = 0;
+  const ordered = [...input.observations].sort(
+    (left, right) => left.observedAt < right.observedAt ? 1 : left.observedAt > right.observedAt ? -1 : 0
+  );
+  for (const observation of ordered) {
+    if (kept >= policy.maxObservations) break;
+    const observedMs = Date.parse(observation.observedAt);
+    const ageMs = Number.isFinite(observedMs) ? nowMs - observedMs : 0;
+    const tooOld = ageMs > policy.maxObservationAgeMs;
+    if (tooOld && !(observation.safetyEvent && policy.safetyFailuresExemptFromDecay)) {
+      dropped += 1;
+      continue;
+    }
+    kept += 1;
+    for (const shape of bucketsFor(observation)) {
+      const profileKey = `${shape.signaturePart}::${shape.targetPart}`;
+      const index = profileIndexKey(shape.level, profileKey);
+      let bucket = buckets.get(index);
+      if (bucket === void 0) {
+        bucket = { ...shape, observations: [] };
+        buckets.set(index, bucket);
+      }
+      bucket.observations.push(observation);
+    }
+  }
+  const profiles = /* @__PURE__ */ new Map();
+  for (const [index, bucket] of buckets) {
+    profiles.set(index, buildProfile(bucket, policy, nowMs));
+  }
+  return {
+    profiles,
+    observationCount: kept,
+    droppedByAge: dropped,
+    builtAt: input.now.toISOString()
+  };
+}
+function buildProfile(bucket, policy, nowMs) {
+  const observations = [...bucket.observations].sort(
+    (left, right) => left.observedAt < right.observedAt ? -1 : left.observedAt > right.observedAt ? 1 : 0
+  );
+  let verified = 0;
+  let unverified = 0;
+  let implementationFailures = 0;
+  let infrastructureFailures = 0;
+  let inconclusive = 0;
+  let censored = 0;
+  let weightedSamples = 0;
+  let weightedVerified = 0;
+  let weightedIntelligence = 0;
+  let firstAttempts = 0;
+  let firstAttemptSuccesses = 0;
+  let stagnation = 0;
+  let oscillation = 0;
+  let runaway = 0;
+  let contextMisses = 0;
+  let safetyEvents = 0;
+  let failedWallTimeMs = 0;
+  let failedTokens = null;
+  let failedCostUsd = null;
+  let failedBurn = null;
+  const wallTimes = [];
+  const inputTokens = [];
+  const contextTokens = [];
+  const burns = [];
+  const costs = [];
+  const expansions = [];
+  const failureSources = {};
+  const identities = [];
+  for (const observation of observations) {
+    const observedMs = Date.parse(observation.observedAt);
+    const ageMs = Number.isFinite(observedMs) ? nowMs - observedMs : 0;
+    const weight = recencyWeight(ageMs, policy.recencyHalfLifeMs);
+    weightedSamples += weight;
+    switch (observation.label) {
+      case "VERIFIED_SUCCESS":
+        verified += 1;
+        weightedVerified += weight;
+        weightedIntelligence += weight;
+        break;
+      case "UNVERIFIED_SUCCESS":
+        unverified += 1;
+        break;
+      case "IMPLEMENTATION_FAILURE":
+        implementationFailures += 1;
+        weightedIntelligence += weight;
+        break;
+      case "INFRASTRUCTURE_FAILURE":
+        infrastructureFailures += 1;
+        break;
+      case "INCONCLUSIVE":
+        inconclusive += 1;
+        break;
+      case "CENSORED":
+        censored += 1;
+        break;
+    }
+    if (observation.attemptNumber === 1) {
+      firstAttempts += 1;
+      if (observation.label === "VERIFIED_SUCCESS") firstAttemptSuccesses += 1;
+    }
+    if (observation.executionHealth === "STALLED") stagnation += 1;
+    if (observation.executionHealth === "OSCILLATING") oscillation += 1;
+    if (observation.executionHealth === "RUNAWAY") runaway += 1;
+    if (observation.contextInsufficient) contextMisses += 1;
+    if (observation.safetyEvent) safetyEvents += 1;
+    if (observation.failureSource !== null) {
+      failureSources[observation.failureSource] = (failureSources[observation.failureSource] ?? 0) + 1;
+    }
+    if (observation.wallTimeMs !== null) wallTimes.push(observation.wallTimeMs);
+    if (observation.inputTokens !== null) inputTokens.push(observation.inputTokens);
+    if (observation.contextTokens !== null) contextTokens.push(observation.contextTokens);
+    if (observation.fiveHourBurnRatio !== null) burns.push(observation.fiveHourBurnRatio);
+    if (observation.costUsd !== null) costs.push(observation.costUsd);
+    if (observation.contextExpansions !== null) expansions.push(observation.contextExpansions);
+    if (observation.label !== "VERIFIED_SUCCESS" && observation.label !== "UNVERIFIED_SUCCESS") {
+      if (observation.wallTimeMs !== null) failedWallTimeMs += observation.wallTimeMs;
+      if (observation.inputTokens !== null) {
+        failedTokens = (failedTokens ?? 0) + observation.inputTokens;
+      }
+      if (observation.costUsd !== null) failedCostUsd = (failedCostUsd ?? 0) + observation.costUsd;
+      if (observation.fiveHourBurnRatio !== null) {
+        failedBurn = (failedBurn ?? 0) + observation.fiveHourBurnRatio;
+      }
+    }
+    const identity3 = runtimeIdentityOf(observation);
+    if (identities[identities.length - 1] !== identity3) {
+      const existing = identities.indexOf(identity3);
+      if (existing >= 0) identities.splice(existing, 1);
+      identities.push(identity3);
+    }
+  }
+  const nonCensored = observations.length - censored;
+  const intelligenceAttempts = verified + implementationFailures;
+  const first = observations[0];
+  const last = observations[observations.length - 1];
+  return {
+    level: bucket.level,
+    profileKey: `${bucket.signaturePart}::${bucket.targetPart}`,
+    signaturePart: bucket.signaturePart,
+    targetPart: bucket.targetPart,
+    lane: bucket.lane,
+    executionMode: bucket.executionMode,
+    runner: bucket.runner,
+    samples: observations.length,
+    weightedSamples,
+    verifiedSuccesses: verified,
+    unverifiedSuccesses: unverified,
+    implementationFailures,
+    infrastructureFailures,
+    inconclusive,
+    censored,
+    weightedVerifiedSuccesses: weightedVerified,
+    weightedIntelligenceAttempts: weightedIntelligence,
+    firstAttempts,
+    firstAttemptSuccesses,
+    wallTimeMs: summarize2(wallTimes),
+    inputTokens: summarize2(inputTokens),
+    contextTokens: summarize2(contextTokens),
+    fiveHourBurnRatio: summarize2(burns),
+    apiCostUsd: summarize2(costs),
+    attemptsPerSuccess: verified > 0 ? intelligenceAttempts / verified : null,
+    stagnationRate: nonCensored > 0 ? stagnation / nonCensored : null,
+    oscillationRate: nonCensored > 0 ? oscillation / nonCensored : null,
+    runawayRate: nonCensored > 0 ? runaway / nonCensored : null,
+    contextExpansionRate: expansions.length > 0 ? expansions.filter((value) => value > 0).length / expansions.length : null,
+    contextMissRate: nonCensored > 0 ? contextMisses / nonCensored : null,
+    infrastructureFailureRate: nonCensored > 0 ? infrastructureFailures / nonCensored : null,
+    failedWallTimeMs,
+    failedTokens,
+    failedCostUsd,
+    failedFiveHourBurnRatio: failedBurn,
+    failureSources,
+    runtimeIdentities: identities,
+    latestRuntimeIdentity: identities[identities.length - 1] ?? null,
+    safetyEvents,
+    firstObservedAt: first?.observedAt ?? null,
+    lastObservedAt: last?.observedAt ?? null,
+    drift: detectDrift(observations, policy)
+  };
+}
+function detectDrift(observations, policy) {
+  const signals2 = [];
+  const details = [];
+  const identities = new Set(observations.map((observation) => runtimeIdentityOf(observation)));
+  if (identities.size > 1) {
+    const recent = observations[observations.length - 1];
+    signals2.push("RUNTIME_IDENTITY_CHANGED");
+    details.push(
+      `runtime identity changed across the window (${identities.size} distinct; newest ${recent !== void 0 ? runtimeIdentityOf(recent) : "unknown"})`
+    );
+  }
+  const half = Math.floor(observations.length / 2);
+  if (half >= policy.driftMinimumSamples) {
+    const older = observations.slice(0, half);
+    const recent = observations.slice(observations.length - half);
+    const olderRate = intelligenceRate(older);
+    const recentRate = intelligenceRate(recent);
+    if (olderRate !== null && recentRate !== null && olderRate > 0) {
+      const drop = (olderRate - recentRate) / olderRate;
+      if (drop >= policy.driftSuccessDropRatio) {
+        signals2.push("SUCCESS_RATE_DROP");
+        details.push(
+          `verified success fell from ${(olderRate * 100).toFixed(0)}% to ${(recentRate * 100).toFixed(0)}%`
+        );
+      }
+    }
+    const olderWall = percentile(
+      older.map((entry) => entry.wallTimeMs).filter((value) => value !== null),
+      0.5
+    );
+    const recentWall = percentile(
+      recent.map((entry) => entry.wallTimeMs).filter((value) => value !== null),
+      0.5
+    );
+    if (olderWall !== null && recentWall !== null && olderWall > 0) {
+      if (recentWall / olderWall >= policy.driftWallTimeGrowthFactor) {
+        signals2.push("WALL_TIME_GROWTH");
+        details.push(
+          `median wall time grew from ${Math.round(olderWall / 1e3)}s to ${Math.round(recentWall / 1e3)}s`
+        );
+      }
+    }
+    const olderContext = percentile(
+      older.map((entry) => entry.contextTokens).filter((value) => value !== null),
+      0.5
+    );
+    const recentContext = percentile(
+      recent.map((entry) => entry.contextTokens).filter((value) => value !== null),
+      0.5
+    );
+    if (olderContext !== null && recentContext !== null && olderContext > 0) {
+      if (recentContext / olderContext >= policy.driftWallTimeGrowthFactor) {
+        signals2.push("CONTEXT_GROWTH");
+        details.push(
+          `median context grew from ${Math.round(olderContext)} to ${Math.round(recentContext)} tokens`
+        );
+      }
+    }
+    const olderSource = dominantFailureSource(older);
+    const recentSource = dominantFailureSource(recent);
+    if (olderSource !== null && recentSource !== null && olderSource !== recentSource) {
+      signals2.push("FAILURE_SOURCE_SHIFT");
+      details.push(`dominant failure source moved from ${olderSource} to ${recentSource}`);
+    }
+  }
+  return {
+    detected: signals2.length > 0,
+    signals: signals2,
+    detail: details.join("; ")
+  };
+}
+function intelligenceRate(observations) {
+  const resolving = observations.filter(
+    (entry) => entry.label === "VERIFIED_SUCCESS" || entry.label === "IMPLEMENTATION_FAILURE"
+  );
+  if (resolving.length === 0) return null;
+  return resolving.filter((entry) => entry.label === "VERIFIED_SUCCESS").length / resolving.length;
+}
+function dominantFailureSource(observations) {
+  const counts = /* @__PURE__ */ new Map();
+  for (const observation of observations) {
+    if (observation.failureSource === null) continue;
+    counts.set(observation.failureSource, (counts.get(observation.failureSource) ?? 0) + 1);
+  }
+  let best = null;
+  let bestCount = 0;
+  for (const [source, count2] of [...counts.entries()].sort((a2, b) => a2[0] < b[0] ? -1 : 1)) {
+    if (count2 > bestCount) {
+      best = source;
+      bestCount = count2;
+    }
+  }
+  return best;
+}
+var PREDICTION_CONFIDENCE_LEVELS = ["NONE", "LOW", "MEDIUM", "HIGH"];
+var PREDICTION_CONFIDENCE_RANK = Object.freeze({ NONE: 0, LOW: 1, MEDIUM: 2, HIGH: 3 });
+function meetsConfidence(actual, required2) {
+  return PREDICTION_CONFIDENCE_RANK[actual] >= PREDICTION_CONFIDENCE_RANK[required2];
+}
+var PROFILE_FALLBACK_LEVELS = [
+  "EXACT",
+  "TARGET_CATEGORY",
+  "LANE_CATEGORY",
+  "LANE_GLOBAL",
+  "HEURISTIC_PRIOR"
+];
+var PROFILE_FALLBACK_LEVEL_DEPTH = Object.freeze({
+  EXACT: 0,
+  TARGET_CATEGORY: 1,
+  LANE_CATEGORY: 2,
+  LANE_GLOBAL: 3,
+  HEURISTIC_PRIOR: 4
+});
+var RUNTIME_IDENTITY_MATCHES = ["EXACT", "COMPATIBLE", "CHANGED", "UNKNOWN"];
+var ADAPTIVE_VETO_CODES = [
+  /** The candidate's compute is not VERIFIED local (vNext.4 authority). */
+  "REMOTE_NOT_LOCAL",
+  /** Paid execution is not authorized at all (spendMode DISABLED). */
+  "API_DISABLED",
+  /** Paid execution requires a human authorization that does not exist. */
+  "API_APPROVAL_REQUIRED",
+  /** The safe cost estimate exceeds the authorized budget. */
+  "API_BUDGET_EXCEEDED",
+  /** Current pricing is unknown; historical cost may not substitute for it. */
+  "API_COST_UNKNOWN",
+  /** A previously granted authorization no longer covers this dispatch. */
+  "STALE_APPROVAL",
+  /** The weekly subscription window is under pressure or exhausted. */
+  "WEEKLY_QUOTA_PRESSURE",
+  /** The five-hour window cannot safely admit this work. */
+  "FIVE_HOUR_QUOTA_PRESSURE",
+  /** Required context does not fit safely in the available budget. */
+  "CONTEXT_UNSAFE",
+  /** The candidate cannot satisfy the task's capability requirements. */
+  "CAPABILITY_MISSING",
+  /** vNext.6 recorded this strategy as already tried and failed on this task. */
+  "RELIABILITY_STRATEGY_FORBIDDEN",
+  /** The candidate's runner/binding is not usable right now. */
+  "RUNNER_UNAVAILABLE",
+  /** The lane itself was not selected by hard policy; no candidate exists. */
+  "LANE_NOT_ELIGIBLE"
+];
+var ADAPTIVE_FALLBACK_REASONS = [
+  /** Mode is HEURISTIC: adaptive ranking is switched off. */
+  "MODE_HEURISTIC",
+  /** Mode is SHADOW: recommendations are recorded, never executed. */
+  "MODE_SHADOW",
+  /** No history at any hierarchy level for any candidate (cold start). */
+  "COLD_START",
+  /** Evidence exists but sits below the configured sample floor. */
+  "INSUFFICIENT_SAMPLES",
+  /** Candidates could not be compared: one side lacks comparable evidence. */
+  "INSUFFICIENT_COMPARABLE_SAMPLES",
+  /** The best prediction's confidence is below the configured floor. */
+  "CONFIDENCE_BELOW_THRESHOLD",
+  /** The adaptive winner IS the heuristic choice; nothing changed. */
+  "AGREES_WITH_HEURISTIC",
+  /** The utility advantage was too small to justify moving (hysteresis). */
+  "UTILITY_MARGIN_TOO_SMALL",
+  /** Only one candidate was eligible: there was nothing to rank. */
+  "SINGLE_CANDIDATE",
+  /** Hard policy vetoed every candidate the adaptive layer preferred. */
+  "ALL_PREFERRED_CANDIDATES_VETOED",
+  /** Observed performance diverged from history; confidence was withdrawn. */
+  "DRIFT_DETECTED",
+  /** The derived profile store was unusable and is being rebuilt. */
+  "PROFILE_STORE_UNAVAILABLE"
+];
+var ADAPTIVE_DRIFT_SIGNALS = [
+  /** Verified success rate fell materially between the older and recent windows. */
+  "SUCCESS_RATE_DROP",
+  /** Median wall time to completion grew materially. */
+  "WALL_TIME_GROWTH",
+  /** Median context consumption grew materially. */
+  "CONTEXT_GROWTH",
+  /** The dominant failure source changed. */
+  "FAILURE_SOURCE_SHIFT",
+  /** The runner/model/harness identity behind the profile changed. */
+  "RUNTIME_IDENTITY_CHANGED"
+];
+var ADAPTIVE_PROFILE_SCHEMA_VERSION = "1.0.0";
+var shortText6 = external_exports.string().min(1).max(200);
+var metricSummarySchema = external_exports.object({
+  observations: external_exports.number().int().min(0),
+  p50: external_exports.number().nullable().default(null),
+  p90: external_exports.number().nullable().default(null)
+}).passthrough();
+var profileSchema = external_exports.object({
+  level: external_exports.enum(PROFILE_FALLBACK_LEVELS),
+  profileKey: external_exports.string().min(1).max(400),
+  signaturePart: external_exports.string().max(400),
+  targetPart: external_exports.string().max(400),
+  lane: shortText6.nullable().default(null),
+  executionMode: shortText6.nullable().default(null),
+  runner: shortText6.nullable().default(null),
+  samples: external_exports.number().int().min(0),
+  weightedSamples: external_exports.number().min(0),
+  verifiedSuccesses: external_exports.number().int().min(0),
+  unverifiedSuccesses: external_exports.number().int().min(0),
+  implementationFailures: external_exports.number().int().min(0),
+  infrastructureFailures: external_exports.number().int().min(0),
+  inconclusive: external_exports.number().int().min(0),
+  censored: external_exports.number().int().min(0),
+  weightedVerifiedSuccesses: external_exports.number().min(0),
+  weightedIntelligenceAttempts: external_exports.number().min(0),
+  firstAttempts: external_exports.number().int().min(0),
+  firstAttemptSuccesses: external_exports.number().int().min(0),
+  wallTimeMs: metricSummarySchema,
+  inputTokens: metricSummarySchema,
+  contextTokens: metricSummarySchema,
+  fiveHourBurnRatio: metricSummarySchema,
+  apiCostUsd: metricSummarySchema,
+  attemptsPerSuccess: external_exports.number().min(0).nullable().default(null),
+  stagnationRate: external_exports.number().min(0).max(1).nullable().default(null),
+  oscillationRate: external_exports.number().min(0).max(1).nullable().default(null),
+  runawayRate: external_exports.number().min(0).max(1).nullable().default(null),
+  contextExpansionRate: external_exports.number().min(0).max(1).nullable().default(null),
+  contextMissRate: external_exports.number().min(0).max(1).nullable().default(null),
+  infrastructureFailureRate: external_exports.number().min(0).max(1).nullable().default(null),
+  failedWallTimeMs: external_exports.number().min(0),
+  failedTokens: external_exports.number().min(0).nullable().default(null),
+  failedCostUsd: external_exports.number().min(0).nullable().default(null),
+  failedFiveHourBurnRatio: external_exports.number().min(0).nullable().default(null),
+  failureSources: external_exports.record(external_exports.number().int().min(0)).default({}),
+  runtimeIdentities: external_exports.array(external_exports.string().max(300)).max(50).default([]),
+  latestRuntimeIdentity: external_exports.string().max(300).nullable().default(null),
+  safetyEvents: external_exports.number().int().min(0).default(0),
+  firstObservedAt: shortText6.nullable().default(null),
+  lastObservedAt: shortText6.nullable().default(null),
+  drift: external_exports.object({
+    detected: external_exports.boolean().default(false),
+    signals: external_exports.array(external_exports.enum(ADAPTIVE_DRIFT_SIGNALS)).max(16).default([]),
+    detail: external_exports.string().max(1e3).default("")
+  }).passthrough()
+}).passthrough();
+var adaptiveProfileCacheSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  /**
+   * Fingerprint of the canonical history the cache was built from. A
+   * mismatch means the ledger advanced and the cache is stale; it never
+   * means the ledger is wrong.
+   */
+  sourceFingerprint: external_exports.string().min(1).max(200),
+  observationCount: external_exports.number().int().min(0).default(0),
+  droppedByAge: external_exports.number().int().min(0).default(0),
+  builtAt: shortText6,
+  profiles: external_exports.array(profileSchema).max(2e4).default([])
+}).passthrough();
+function adaptiveCacheDir(workspace) {
+  return assertInsideWorkspace(workspace.rootDir, import_path41.default.join(workspace.sidecarDir, "cache"));
+}
+function adaptiveProfileFile(workspace) {
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path41.default.join(adaptiveCacheDir(workspace), "adaptive-profiles.json")
+  );
+}
+function readAdaptiveProfileCache(workspace, expectedFingerprint) {
+  const file = adaptiveProfileFile(workspace);
+  if (!(0, import_fs38.existsSync)(file)) return void 0;
+  try {
+    const parsed = adaptiveProfileCacheSchema.safeParse(JSON.parse((0, import_fs38.readFileSync)(file, "utf8")));
+    if (!parsed.success) return void 0;
+    if (parsed.data.schemaVersion !== ADAPTIVE_PROFILE_SCHEMA_VERSION) return void 0;
+    if (expectedFingerprint !== void 0 && parsed.data.sourceFingerprint !== expectedFingerprint) {
+      return void 0;
+    }
+    return parsed.data;
+  } catch {
+    return void 0;
+  }
+}
+function writeAdaptiveProfileCache(workspace, cache) {
+  const validated = adaptiveProfileCacheSchema.parse(cache);
+  const file = adaptiveProfileFile(workspace);
+  (0, import_fs38.mkdirSync)(import_path41.default.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated)}
+`);
+}
+function clearAdaptiveProfileCache(workspace) {
+  const file = adaptiveProfileFile(workspace);
+  if ((0, import_fs38.existsSync)(file)) (0, import_fs38.rmSync)(file, { force: true });
+}
+function toProfileCache(set, sourceFingerprint) {
+  return adaptiveProfileCacheSchema.parse({
+    schemaVersion: ADAPTIVE_PROFILE_SCHEMA_VERSION,
+    sourceFingerprint,
+    observationCount: set.observationCount,
+    droppedByAge: set.droppedByAge,
+    builtAt: set.builtAt,
+    profiles: [...set.profiles.values()]
+  });
+}
+function fromProfileCache(cache) {
+  const profiles = /* @__PURE__ */ new Map();
+  for (const entry of cache.profiles) {
+    const profile = entry;
+    profiles.set(profileIndexKey(profile.level, profile.profileKey), profile);
+  }
+  return {
+    profiles,
+    observationCount: cache.observationCount,
+    droppedByAge: cache.droppedByAge,
+    builtAt: cache.builtAt
+  };
+}
+var adaptiveCalibrationRecordSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  jobId: shortText6,
+  nodeId: shortText6,
+  taskId: shortText6,
+  attemptId: shortText6,
+  decisionId: shortText6.nullable().default(null),
+  candidateId: shortText6,
+  /** What was predicted before dispatch. */
+  predictedSuccessProbability: external_exports.number().min(0).max(1).nullable().default(null),
+  predictedWallTimeMs: external_exports.number().min(0).nullable().default(null),
+  predictedInputTokens: external_exports.number().min(0).nullable().default(null),
+  predictedContextTokens: external_exports.number().min(0).nullable().default(null),
+  predictedFiveHourBurnRatio: external_exports.number().min(0).max(1).nullable().default(null),
+  predictedApiCostUsd: external_exports.number().min(0).nullable().default(null),
+  predictedConfidence: shortText6,
+  /** What was observed. Null stays null; nothing is back-filled. */
+  observedOutcome: shortText6,
+  observedVerified: external_exports.boolean().nullable().default(null),
+  observedWallTimeMs: external_exports.number().min(0).nullable().default(null),
+  observedInputTokens: external_exports.number().min(0).nullable().default(null),
+  observedContextTokens: external_exports.number().min(0).nullable().default(null),
+  observedFiveHourBurnRatio: external_exports.number().min(0).nullable().default(null),
+  observedApiCostUsd: external_exports.number().min(0).nullable().default(null),
+  /** Signed relative errors, when both sides are known. */
+  wallTimeError: external_exports.number().nullable().default(null),
+  inputTokenError: external_exports.number().nullable().default(null),
+  contextTokenError: external_exports.number().nullable().default(null),
+  costError: external_exports.number().nullable().default(null),
+  /** Brier-style squared error of the success forecast, when resolvable. */
+  successBrierScore: external_exports.number().min(0).max(1).nullable().default(null),
+  createdAt: shortText6
+}).passthrough();
+var ADAPTIVE_CALIBRATION_SCHEMA_VERSION = "1.0.0";
+function adaptiveJobDir(workspace, jobId) {
+  return assertInsideWorkspace(workspace.rootDir, import_path41.default.join(jobDir(workspace, jobId), "adaptive"));
+}
+function calibrationFile(workspace, jobId) {
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path41.default.join(adaptiveJobDir(workspace, jobId), "calibration.jsonl")
+  );
+}
+function appendAdaptiveCalibration(workspace, record32, options) {
+  const validated = adaptiveCalibrationRecordSchema.parse(record32);
+  const dir = adaptiveJobDir(workspace, record32.jobId);
+  (0, import_fs38.mkdirSync)(dir, { recursive: true });
+  const file = calibrationFile(workspace, record32.jobId);
+  const line = `${JSON.stringify(validated)}
+`;
+  const existing = (0, import_fs38.existsSync)(file) ? (0, import_fs38.readFileSync)(file, "utf8") : "";
+  const lines = existing.split("\n").filter((entry) => entry.length > 0);
+  if (lines.length + 1 > options.maxRecords) {
+    const retained = [...lines, line.trimEnd()].slice(-options.maxRecords);
+    writeFileAtomic(file, `${retained.join("\n")}
+`);
+  } else {
+    (0, import_fs38.appendFileSync)(file, line, "utf8");
+  }
+  return validated;
+}
+function readAdaptiveCalibration(workspace, jobId, options = {}) {
+  const file = calibrationFile(workspace, jobId);
+  if (!(0, import_fs38.existsSync)(file)) return [];
+  const records = [];
+  for (const line of (0, import_fs38.readFileSync)(file, "utf8").split("\n")) {
+    if (line.length === 0) continue;
+    try {
+      const parsed = adaptiveCalibrationRecordSchema.safeParse(JSON.parse(line));
+      if (parsed.success) records.push(parsed.data);
+    } catch {
+    }
+  }
+  return options.limit !== void 0 ? records.slice(-options.limit) : records;
+}
+var ADAPTIVE_DECISION_SCHEMA_VERSION = "1.0.0";
+var shortText7 = external_exports.string().min(1).max(200);
+var candidateShape = external_exports.object({
+  candidateId: shortText7,
+  lane: shortText7,
+  executionMode: shortText7.nullable().default(null),
+  runner: shortText7.nullable().default(null),
+  model: shortText7.nullable().default(null),
+  profile: shortText7.nullable().default(null),
+  contextStrategy: shortText7,
+  computeLocality: shortText7,
+  heuristicChoice: external_exports.boolean().default(false)
+}).passthrough();
+var predictionShape = external_exports.object({
+  candidateId: shortText7,
+  level: external_exports.enum(PROFILE_FALLBACK_LEVELS),
+  profileKey: external_exports.string().max(400).nullable().default(null),
+  confidence: external_exports.enum(PREDICTION_CONFIDENCE_LEVELS),
+  confidenceScore: external_exports.number().min(0).max(1),
+  identityMatch: external_exports.enum(RUNTIME_IDENTITY_MATCHES),
+  driftDetected: external_exports.boolean().default(false),
+  driftSignals: external_exports.array(external_exports.enum(ADAPTIVE_DRIFT_SIGNALS)).max(16).default([]),
+  /** Smoothed probability of VERIFIED completion for one attempt. */
+  verifiedSuccessProbability: external_exports.number().min(0).max(1),
+  priorSuccessProbability: external_exports.number().min(0).max(1),
+  observedSuccessRate: external_exports.number().min(0).max(1).nullable().default(null),
+  firstAttemptSuccessRate: external_exports.number().min(0).max(1).nullable().default(null),
+  availabilityProbability: external_exports.number().min(0).max(1).nullable().default(null),
+  expectedAttempts: external_exports.number().min(0),
+  expectedWallTimeMs: external_exports.number().min(0).nullable().default(null),
+  expectedTotalWallTimeMs: external_exports.number().min(0).nullable().default(null),
+  expectedInputTokens: external_exports.number().min(0).nullable().default(null),
+  expectedContextTokens: external_exports.number().min(0).nullable().default(null),
+  expectedFiveHourBurnRatio: external_exports.number().min(0).max(1).nullable().default(null),
+  conservativeFiveHourBurnRatio: external_exports.number().min(0).max(1).nullable().default(null),
+  /** Null means UNKNOWN cost, never free. */
+  expectedApiCostUsd: external_exports.number().min(0).nullable().default(null),
+  expectedFailedWallTimeMs: external_exports.number().min(0).nullable().default(null),
+  stagnationRate: external_exports.number().min(0).max(1).nullable().default(null),
+  oscillationRate: external_exports.number().min(0).max(1).nullable().default(null),
+  runawayRate: external_exports.number().min(0).max(1).nullable().default(null),
+  contextMissRate: external_exports.number().min(0).max(1).nullable().default(null),
+  contextExpansionRate: external_exports.number().min(0).max(1).nullable().default(null),
+  safetyEvents: external_exports.number().int().min(0).default(0),
+  sampleCount: external_exports.number().int().min(0),
+  weightedSampleCount: external_exports.number().min(0),
+  lastObservedAt: shortText7.nullable().default(null),
+  /** Utility score and its itemized components. */
+  score: external_exports.number(),
+  scoreComponents: external_exports.array(
+    external_exports.object({
+      name: shortText7,
+      raw: external_exports.number().nullable().default(null),
+      unit: shortText7,
+      normalized: external_exports.number(),
+      weight: external_exports.number(),
+      contribution: external_exports.number(),
+      detail: external_exports.string().max(600).default("")
+    }).passthrough()
+  ).max(32).default([])
+}).passthrough();
+var adaptiveSchedulingDecisionSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  decisionId: shortText7,
+  jobId: shortText7,
+  nodeId: shortText7,
+  taskId: shortText7,
+  mode: external_exports.enum(ADAPTIVE_SCHEDULER_MODES),
+  /** The coarse grouping key this decision was made under. */
+  taskSignature: external_exports.string().max(400),
+  /** Fine-grained current features: audit only, never the grouping key. */
+  signatureFeatures: external_exports.record(external_exports.unknown()).default({}),
+  /** The lane hard policy selected before adaptive ranking ran. */
+  heuristicLane: shortText7,
+  heuristicReasonCode: shortText7,
+  eligibleCandidates: external_exports.array(candidateShape).max(32).default([]),
+  rejectedCandidates: external_exports.array(
+    external_exports.object({
+      candidateId: shortText7,
+      lane: shortText7,
+      executionMode: shortText7.nullable().default(null),
+      runner: shortText7.nullable().default(null),
+      code: external_exports.enum(ADAPTIVE_VETO_CODES),
+      detail: external_exports.string().max(600).default("")
+    }).passthrough()
+  ).max(32).default([]),
+  predictions: external_exports.array(predictionShape).max(32).default([]),
+  /** What the deterministic scheduler chose. */
+  heuristicCandidateId: shortText7.nullable().default(null),
+  /** What ranking preferred, before gating. */
+  recommendedCandidateId: shortText7.nullable().default(null),
+  /** What actually executes. */
+  selectedCandidateId: shortText7.nullable().default(null),
+  adaptiveApplied: external_exports.boolean().default(false),
+  /**
+   * True when the recommendation differed from the heuristic choice. In
+   * SHADOW mode this records a DISAGREEMENT and nothing else: the
+   * alternative was not executed, so no outcome is attributed to it and
+   * no regret is computed.
+   */
+  disagreement: external_exports.boolean().default(false),
+  wouldApplyInAdaptiveMode: external_exports.boolean().default(false),
+  confidence: external_exports.enum(PREDICTION_CONFIDENCE_LEVELS),
+  utilityMargin: external_exports.number().nullable().default(null),
+  fallbackReason: external_exports.enum(ADAPTIVE_FALLBACK_REASONS).nullable().default(null),
+  /** Bounded, human-readable score breakdown. Never model reasoning. */
+  explanation: external_exports.array(external_exports.string().max(600)).max(24).default([]),
+  /** Profile-store provenance, so a decision is reproducible. */
+  profileObservations: external_exports.number().int().min(0).default(0),
+  profileBuiltAt: shortText7.nullable().default(null),
+  createdAt: shortText7
+}).passthrough();
+function adaptiveDir(workspace, jobId) {
+  return assertInsideWorkspace(workspace.rootDir, import_path42.default.join(jobDir(workspace, jobId), "adaptive"));
+}
+function decisionsFile(workspace, jobId) {
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path42.default.join(adaptiveDir(workspace, jobId), "decisions.jsonl")
+  );
+}
+function appendAdaptiveDecision(workspace, record32, options) {
+  const validated = adaptiveSchedulingDecisionSchema.parse(record32);
+  const dir = adaptiveDir(workspace, record32.jobId);
+  (0, import_fs39.mkdirSync)(dir, { recursive: true });
+  const file = decisionsFile(workspace, record32.jobId);
+  const line = `${JSON.stringify(validated)}
+`;
+  const existing = (0, import_fs39.existsSync)(file) ? (0, import_fs39.readFileSync)(file, "utf8") : "";
+  const lines = existing.split("\n").filter((entry) => entry.length > 0);
+  if (lines.length + 1 > options.maxRecords) {
+    const retained = [...lines, line.trimEnd()].slice(-options.maxRecords);
+    writeFileAtomic(file, `${retained.join("\n")}
+`);
+  } else {
+    (0, import_fs39.appendFileSync)(file, line, "utf8");
+  }
+  return validated;
+}
+function readAdaptiveDecisions(workspace, jobId, options = {}) {
+  const file = decisionsFile(workspace, jobId);
+  if (!(0, import_fs39.existsSync)(file)) return [];
+  const records = [];
+  for (const line of (0, import_fs39.readFileSync)(file, "utf8").split("\n")) {
+    if (line.length === 0) continue;
+    try {
+      const parsed = adaptiveSchedulingDecisionSchema.safeParse(JSON.parse(line));
+      if (!parsed.success) continue;
+      if (options.nodeId !== void 0 && parsed.data.nodeId !== options.nodeId) continue;
+      records.push(parsed.data);
+    } catch {
+    }
+  }
+  return options.limit !== void 0 ? records.slice(-options.limit) : records;
+}
+function relativeError(predicted, observed) {
+  if (predicted === null || observed === null) return null;
+  if (!Number.isFinite(predicted) || !Number.isFinite(observed)) return null;
+  const denominator = Math.max(Math.abs(observed), 1e-9);
+  return (predicted - observed) / denominator;
+}
+function successBrierScore(predicted, label) {
+  if (predicted === null) return null;
+  if (label !== "VERIFIED_SUCCESS" && label !== "IMPLEMENTATION_FAILURE") return null;
+  const outcome = label === "VERIFIED_SUCCESS" ? 1 : 0;
+  const error2 = predicted - outcome;
+  return Math.min(1, Math.max(0, error2 * error2));
+}
+function buildCalibrationRecord(input) {
+  const { prediction, observation } = input;
+  const observedVerified = observation.label === "VERIFIED_SUCCESS" ? true : observation.label === "IMPLEMENTATION_FAILURE" ? false : null;
+  return {
+    schemaVersion: ADAPTIVE_CALIBRATION_SCHEMA_VERSION,
+    jobId: input.jobId,
+    nodeId: input.nodeId,
+    taskId: input.taskId,
+    attemptId: input.attemptId,
+    decisionId: input.decisionId,
+    candidateId: prediction.candidateId,
+    predictedSuccessProbability: prediction.verifiedSuccessProbability,
+    predictedWallTimeMs: prediction.expectedWallTimeMs,
+    predictedInputTokens: prediction.expectedInputTokens,
+    predictedContextTokens: prediction.expectedContextTokens,
+    predictedFiveHourBurnRatio: prediction.expectedFiveHourBurnRatio,
+    predictedApiCostUsd: prediction.expectedApiCostUsd,
+    predictedConfidence: prediction.confidence,
+    observedOutcome: observation.label,
+    observedVerified,
+    observedWallTimeMs: observation.wallTimeMs,
+    observedInputTokens: observation.inputTokens,
+    observedContextTokens: observation.contextTokens,
+    observedFiveHourBurnRatio: observation.fiveHourBurnRatio,
+    observedApiCostUsd: observation.costUsd,
+    wallTimeError: relativeError(prediction.expectedWallTimeMs, observation.wallTimeMs),
+    inputTokenError: relativeError(prediction.expectedInputTokens, observation.inputTokens),
+    contextTokenError: relativeError(prediction.expectedContextTokens, observation.contextTokens),
+    costError: relativeError(prediction.expectedApiCostUsd, observation.costUsd),
+    successBrierScore: successBrierScore(prediction.verifiedSuccessProbability, observation.label),
+    createdAt: input.createdAt
+  };
+}
+function summarizeCalibration(records) {
+  const brier = records.map((record32) => record32.successBrierScore).filter((value) => value !== null);
+  const mean = (values) => values.length === 0 ? null : values.reduce((sum, value) => sum + value, 0) / values.length;
+  const absolute = (pick2) => records.map(pick2).filter((value) => value !== null).map((value) => Math.abs(value));
+  return {
+    records: records.length,
+    scoredRecords: brier.length,
+    meanBrierScore: mean(brier),
+    meanAbsoluteWallTimeError: mean(absolute((record32) => record32.wallTimeError)),
+    meanAbsoluteContextTokenError: mean(absolute((record32) => record32.contextTokenError)),
+    meanAbsoluteCostError: mean(absolute((record32) => record32.costError))
+  };
+}
+function historyFingerprint(entries) {
+  const hash = (0, import_crypto21.createHash)("sha256");
+  const relevant = entries.filter((entry) => entry.role === "EXECUTOR").map((entry) => `${entry.attemptId}:${entry.status}:${entry.completedAt ?? "-"}`).sort();
+  for (const line of relevant) hash.update(line).update("\n");
+  return `${relevant.length}-${hash.digest("hex").slice(0, 32)}`;
+}
+function collectAdaptiveHistory(workspace) {
+  const { jobs } = listJobs(workspace);
+  const entries = [];
+  const observations = [];
+  for (const job of jobs) {
+    let ledger;
+    try {
+      ledger = readExecutionLedger(workspace, job.jobId);
+    } catch {
+      continue;
+    }
+    entries.push(...ledger);
+    let metrics = /* @__PURE__ */ new Map();
+    try {
+      metrics = new Map(
+        listContextMetricEntries(workspace, job.jobId).map(
+          (entry) => [entry.attemptId, entry.metrics]
+        )
+      );
+    } catch {
+      metrics = /* @__PURE__ */ new Map();
+    }
+    observations.push(...deriveAdaptiveObservations({ entries: ledger, contextMetrics: metrics }));
+  }
+  return { entries, observations, jobsScanned: jobs.length };
+}
+function loadAdaptiveProfiles(input) {
+  const empty = {
+    profiles: /* @__PURE__ */ new Map(),
+    observationCount: 0,
+    droppedByAge: 0,
+    builtAt: input.now.toISOString()
+  };
+  let history;
+  try {
+    history = collectAdaptiveHistory(input.workspace);
+  } catch {
+    return {
+      profiles: empty,
+      observations: [],
+      source: "rebuilt",
+      invalidatedReason: "unreadable",
+      fingerprint: "0-",
+      jobsScanned: 0
+    };
+  }
+  const fingerprint = historyFingerprint(history.entries);
+  let invalidatedReason = null;
+  if (input.forceRebuild !== true) {
+    const cached2 = readAdaptiveProfileCache(input.workspace, fingerprint);
+    if (cached2 !== void 0) {
+      return {
+        profiles: fromProfileCache(cached2),
+        observations: history.observations,
+        source: "cache",
+        invalidatedReason: null,
+        fingerprint,
+        jobsScanned: history.jobsScanned
+      };
+    }
+    const anyCache = readAdaptiveProfileCache(input.workspace);
+    invalidatedReason = anyCache === void 0 ? "absent" : "stale";
+  } else {
+    invalidatedReason = "forced";
+  }
+  let profiles;
+  try {
+    profiles = aggregateProfiles({
+      observations: history.observations,
+      policy: input.policy,
+      now: input.now
+    });
+  } catch {
+    return {
+      profiles: empty,
+      observations: history.observations,
+      source: "rebuilt",
+      invalidatedReason: "unreadable",
+      fingerprint,
+      jobsScanned: history.jobsScanned
+    };
+  }
+  if (input.persist !== false) {
+    try {
+      writeAdaptiveProfileCache(input.workspace, toProfileCache(profiles, fingerprint));
+    } catch {
+    }
+  }
+  return {
+    profiles,
+    observations: history.observations,
+    source: "rebuilt",
+    invalidatedReason,
+    fingerprint,
+    jobsScanned: history.jobsScanned
+  };
+}
+function rebuildAdaptiveProfiles(input) {
+  clearAdaptiveProfileCache(input.workspace);
+  return loadAdaptiveProfiles({ ...input, forceRebuild: true, persist: true });
+}
+function recordCalibrationForAttempt(input) {
+  if (input.policy.mode === "HEURISTIC") return void 0;
+  try {
+    const decisions = readAdaptiveDecisions(input.workspace, input.jobId, {
+      nodeId: input.nodeId
+    });
+    const decision = decisions[decisions.length - 1];
+    if (decision === void 0) return void 0;
+    const candidateId = decision.selectedCandidateId;
+    if (candidateId === null) return void 0;
+    const predicted = decision.predictions.find((entry2) => entry2.candidateId === candidateId);
+    if (predicted === void 0) return void 0;
+    const ledger = readExecutionLedger(input.workspace, input.jobId, { nodeId: input.nodeId });
+    const entry = ledger.find((candidate) => candidate.attemptId === input.attemptId);
+    if (entry === void 0) return void 0;
+    let metrics = /* @__PURE__ */ new Map();
+    try {
+      metrics = new Map(
+        listContextMetricEntries(input.workspace, input.jobId).map(
+          (record32) => [record32.attemptId, record32.metrics]
+        )
+      );
+    } catch {
+      metrics = /* @__PURE__ */ new Map();
+    }
+    const [observation] = deriveAdaptiveObservations({
+      entries: [entry],
+      contextMetrics: metrics
+    });
+    if (observation === void 0) return void 0;
+    return appendAdaptiveCalibration(
+      input.workspace,
+      buildCalibrationRecord({
+        jobId: input.jobId,
+        nodeId: input.nodeId,
+        taskId: entry.taskId,
+        attemptId: input.attemptId,
+        decisionId: decision.decisionId,
+        prediction: {
+          candidateId,
+          verifiedSuccessProbability: predicted.verifiedSuccessProbability,
+          expectedWallTimeMs: predicted.expectedWallTimeMs,
+          expectedInputTokens: predicted.expectedInputTokens,
+          expectedContextTokens: predicted.expectedContextTokens,
+          expectedFiveHourBurnRatio: predicted.expectedFiveHourBurnRatio,
+          expectedApiCostUsd: predicted.expectedApiCostUsd,
+          confidence: predicted.confidence
+        },
+        observation,
+        createdAt: input.now.toISOString()
+      }),
+      { maxRecords: input.policy.maxCalibrationRecords }
+    );
   } catch {
     return void 0;
   }
@@ -63010,10 +64543,10 @@ function assessContextMiss(input) {
   for (const symbol of extractSymbolReferences(input.workerReportedText ?? "")) {
     const declaring = input.index?.declaring(symbol) ?? [];
     if (declaring.length === 0) continue;
-    if (declaring.some((path202) => provided.has(path202))) continue;
+    if (declaring.some((path222) => provided.has(path222))) continue;
     signals2.add("UNKNOWN_SYMBOL_REFERENCE");
     if (!missingSymbols.includes(symbol)) missingSymbols.push(symbol);
-    for (const path202 of declaring) if (!missingPaths.includes(path202)) missingPaths.push(path202);
+    for (const path222 of declaring) if (!missingPaths.includes(path222)) missingPaths.push(path222);
   }
   for (const candidate of extractPathReferences2(input.failureText ?? "")) {
     if (provided.has(candidate)) continue;
@@ -63021,7 +64554,7 @@ function assessContextMiss(input) {
     signals2.add("FAILURE_IN_UNSELECTED_FILE");
     if (!missingPaths.includes(candidate)) missingPaths.push(candidate);
   }
-  const staleSelected = (input.refreshedPaths ?? []).filter((path202) => provided.has(path202));
+  const staleSelected = (input.refreshedPaths ?? []).filter((path222) => provided.has(path222));
   if (staleSelected.length > 0) signals2.add("SELECTED_ARTIFACT_STALE");
   const droppedMandatory = (input.plan?.excludedCandidates ?? []).filter(
     (entry) => entry.reason === "BUDGET_EXHAUSTED" || entry.reason === "TOO_LARGE"
@@ -63175,7 +64708,7 @@ function runCriterionCheck(check22, evidence) {
     case "changed-within": {
       const prefix = normalizePath2(check22.value);
       const outside = evidence.changedPaths.filter(
-        (path202) => !normalizePath2(path202).startsWith(prefix)
+        (path222) => !normalizePath2(path222).startsWith(prefix)
       );
       return outside.length === 0 ? { outcome: "PASSED", detail: `every change is inside ${check22.value}` } : {
         outcome: "FAILED",
@@ -63191,8 +64724,8 @@ function runCriterionCheck(check22, evidence) {
     }
   }
 }
-function normalizePath2(path202) {
-  return path202.replace(/\\/g, "/").replace(/^\.\//, "");
+function normalizePath2(path222) {
+  return path222.replace(/\\/g, "/").replace(/^\.\//, "");
 }
 function inferLevel(name) {
   return /test|spec|e2e|integration|regression|contract/i.test(name) ? "TESTS" : "BUILD_STATIC";
@@ -63623,124 +65156,6 @@ function describeCause(input) {
   const repetition = input.repeatedCount > 1 ? ` The same normalized failure has now occurred ${input.repeatedCount} times on this task.` : "";
   const healthClause = input.health === "STALLED" ? " Attempts are no longer producing new information." : input.health === "OSCILLATING" ? " Attempts are alternating between states that have already failed." : input.health === "RUNAWAY" ? " The attempt exceeded its own execution bounds and was stopped." : "";
   return `${input.category}: ${sourceClause}.${repetition}${healthClause} ${input.message}`.replace(/\s+/g, " ").trim().slice(0, 2e3);
-}
-function strategyKey(input) {
-  const canonical = [
-    input.lane ?? "no-lane",
-    input.executionMode ?? "no-mode",
-    String(input.planRevision ?? 0),
-    input.freshContext === true ? "fresh" : "continued"
-  ].join("|");
-  return (0, import_crypto21.createHash)("sha256").update(canonical).digest("hex").slice(0, 16);
-}
-function detectRunaway(activity, thresholds, previous = []) {
-  const signals2 = [];
-  if (thresholds.maxToolCallsPerAttempt !== null && activity.toolCalls !== null && activity.toolCalls >= thresholds.maxToolCallsPerAttempt) {
-    signals2.push("TOOL_CALL_BUDGET");
-  }
-  if (thresholds.maxAttemptWallTimeMs !== null && activity.durationMs !== null && activity.durationMs >= thresholds.maxAttemptWallTimeMs) {
-    signals2.push("WALL_TIME_BUDGET");
-  }
-  if (thresholds.maxContextUsageRatio !== null && activity.contextUsageAfter !== null && activity.contextUsageAfter >= thresholds.maxContextUsageRatio) {
-    signals2.push("CONTEXT_GROWTH");
-  }
-  const loopCeiling = thresholds.maxTestLoopsPerAttempt;
-  if (loopCeiling !== null) {
-    const loops = activity.testLoops ?? null;
-    const commands = activity.commandRuns ?? null;
-    if (loops !== null && loops >= loopCeiling || commands !== null && commands >= loopCeiling * 4) {
-      signals2.push("REPEATED_COMMAND_LOOP");
-    }
-  }
-  if (thresholds.maxCommandRunsPerAttempt !== null && activity.commandRuns !== null && activity.commandRuns >= thresholds.maxCommandRunsPerAttempt && !signals2.includes("REPEATED_COMMAND_LOOP")) {
-    signals2.push("REPEATED_COMMAND_LOOP");
-  }
-  if (activity.emptyDiff && (activity.toolCalls ?? 0) > 0) {
-    const priorEmpty = previous.at(-1)?.diffFingerprint === null;
-    if (priorEmpty) signals2.push("NO_OP_EDIT_LOOP");
-  }
-  return signals2;
-}
-function detectOscillation(window, threshold) {
-  const scored = window.filter((entry) => entry.diffFingerprint !== null);
-  if (scored.length < Math.max(3, threshold)) return false;
-  const recent = scored.slice(-Math.max(3, threshold + 1));
-  const seen = /* @__PURE__ */ new Map();
-  let revisits = 0;
-  let previous;
-  for (const entry of recent) {
-    const diff = entry.diffFingerprint;
-    const priorCount = seen.get(diff) ?? 0;
-    if (priorCount > 0 && previous !== diff) revisits += 1;
-    seen.set(diff, priorCount + 1);
-    previous = diff;
-  }
-  if (revisits < 1) return false;
-  const failures = new Set(recent.map((entry) => entry.failureFingerprint ?? "none"));
-  const distinctStates = seen.size;
-  return distinctStates >= 2 && distinctStates < recent.length && failures.size === 1;
-}
-function assessHealth(input) {
-  const window = input.window;
-  const runawaySignals = [...input.runawaySignals ?? []];
-  const reasons = [];
-  const counts = /* @__PURE__ */ new Map();
-  for (const entry of window) {
-    if (entry.failureFingerprint === null) continue;
-    counts.set(entry.failureFingerprint, (counts.get(entry.failureFingerprint) ?? 0) + 1);
-  }
-  const repeatedFailureCount = counts.size === 0 ? 0 : Math.max(...counts.values());
-  let sameDiffRun = 0;
-  for (let index = window.length - 1; index > 0; index -= 1) {
-    const current = window[index];
-    const previous = window[index - 1];
-    if (current === void 0 || previous === void 0) break;
-    if (current.failureFingerprint === null || current.diffFingerprint === null) break;
-    if (current.failureFingerprint !== previous.failureFingerprint || current.diffFingerprint !== previous.diffFingerprint) {
-      break;
-    }
-    sameDiffRun += 1;
-  }
-  if (sameDiffRun > 0) sameDiffRun += 1;
-  const oscillating = detectOscillation(window, input.thresholds.oscillationThreshold);
-  if (runawaySignals.length > 0) {
-    reasons.push(
-      `The attempt exceeded its bounds (${runawaySignals.join(", ")}); it was stopped rather than allowed to continue.`
-    );
-    return { health: "RUNAWAY", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
-  }
-  if (input.passed === true) {
-    reasons.push("The latest attempt passed evaluation.");
-    return { health: "HEALTHY", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
-  }
-  if (sameDiffRun >= input.thresholds.sameDiffThreshold) {
-    reasons.push(
-      `${sameDiffRun} consecutive attempts produced an identical working tree and an identical failure; the same approach is producing the same result.`
-    );
-    return { health: "STALLED", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
-  }
-  if (oscillating) {
-    reasons.push(
-      "Attempts are alternating between repository states that have already failed, with the failure unchanged; the sequence has no fixed point."
-    );
-    return { health: "OSCILLATING", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
-  }
-  if (repeatedFailureCount >= input.thresholds.sameFailureThreshold) {
-    reasons.push(
-      `The same normalized failure recurred ${repeatedFailureCount} times; attempts differ but none addresses it.`
-    );
-    return { health: "STALLED", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
-  }
-  if (window.some((entry) => entry.failureFingerprint !== null)) {
-    reasons.push("Attempts are failing, but each one is materially different from the last.");
-    return { health: "DEGRADED", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
-  }
-  reasons.push("No failures recorded in the current window.");
-  return { health: "HEALTHY", repeatedFailureCount, sameDiffRun, oscillating, runawaySignals, reasons };
-}
-function appendObservation(state, observation, maxWindow) {
-  const next = [...state.observations, observation];
-  return next.length > maxWindow ? next.slice(next.length - maxWindow) : next;
 }
 function clampNonNegative(value) {
   return value < 0 ? 0 : value;
@@ -65097,6 +66512,9 @@ function beginExecutorDispatch(deps, jobId, input) {
       apiBudgetReservationId: input.apiBudgetReservationId,
       apiApprovalId: input.apiApprovalId,
       delaySensitivity: input.delaySensitivity,
+      taskSignature: input.taskSignature,
+      contextStrategy: input.contextStrategy,
+      runnerVersion: input.runnerVersion,
       estimatedCostUsd: input.estimatedCostUsd,
       reservedCostUsd: input.reservedCostUsd,
       quotaBefore: input.quotaBefore,
@@ -65440,6 +66858,14 @@ function completeExecutorDispatch(deps, jobId, outcome) {
   const lane = readTaskAttempt(deps.workspace, jobId, attemptId)?.lane ?? null;
   const evaluation = buildAttemptEvaluation(deps, job, node, outcome, attemptId, lane, at);
   recordEvaluation(reliabilityDepsFor(deps, jobId), evaluation);
+  recordCalibrationForAttempt({
+    workspace: deps.workspace,
+    policy: policy.scheduler.adaptive,
+    jobId,
+    nodeId: node.nodeId,
+    attemptId,
+    now: now4(deps)
+  });
   const evaluationBlocksCompletion = policy.reliability.enabled && evaluation.status !== "PASS";
   if (evaluationBlocksCompletion && outcome.failure === void 0 && verified) {
     job = record22(deps, job, "evaluation_failed", {
@@ -66335,7 +67761,7 @@ var AGENT_OUTPUT_LIMITS = {
   maxSteps: 40,
   maxResponseBytes: 262144
 };
-var shortText6 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxShortChars);
+var shortText8 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxShortChars);
 var text5 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxTextChars);
 var textList3 = external_exports.array(text5).max(AGENT_OUTPUT_LIMITS.maxListItems);
 var classifierOutputSchema = external_exports.object({
@@ -66345,7 +67771,7 @@ var classifierOutputSchema = external_exports.object({
   reasons: textList3.default([])
 });
 var plannerStepSchema = external_exports.object({
-  id: shortText6,
+  id: shortText8,
   action: text5,
   /** What observable evidence would show this step succeeded. */
   expectedEvidence: text5.optional()
@@ -66440,10 +67866,10 @@ function plannerOutputToCandidate(output) {
   }
   return {
     goal: output.goal,
-    steps: output.steps.map((step) => ({
-      id: step.id,
-      description: step.action,
-      ...step.expectedEvidence !== void 0 ? { expectedEvidence: step.expectedEvidence } : {}
+    steps: output.steps.map((step2) => ({
+      id: step2.id,
+      description: step2.action,
+      ...step2.expectedEvidence !== void 0 ? { expectedEvidence: step2.expectedEvidence } : {}
     })),
     testStrategy: output.testStrategy ?? "Cover the change with the existing test suite.",
     verificationStrategy: output.verificationStrategy ?? "Run the configured trusted verification commands.",
@@ -66460,10 +67886,10 @@ function replannerOutputToCandidate(output) {
   }
   return {
     goal: output.goal,
-    steps: output.steps.map((step) => ({
-      id: step.id,
-      description: step.action,
-      ...step.expectedEvidence !== void 0 ? { expectedEvidence: step.expectedEvidence } : {}
+    steps: output.steps.map((step2) => ({
+      id: step2.id,
+      description: step2.action,
+      ...step2.expectedEvidence !== void 0 ? { expectedEvidence: step2.expectedEvidence } : {}
     })),
     testStrategy: output.testStrategy ?? "Cover the change with the existing test suite.",
     verificationStrategy: output.verificationStrategy ?? "Run the configured trusted verification commands.",
@@ -66651,7 +68077,7 @@ function buildPlannerPacket(input) {
   return sections.join("\n\n");
 }
 function renderPlanForReview(plan) {
-  const steps = plan.steps.map((step) => `${step.id}. ${step.description}`).join("\n");
+  const steps = plan.steps.map((step2) => `${step2.id}. ${step2.description}`).join("\n");
   return [
     `Goal: ${plan.goal}`,
     `Steps:
@@ -66894,7 +68320,7 @@ async function runLargeRole(invocation) {
     };
   } finally {
     try {
-      (0, import_fs38.rmSync)(import_path41.default.join(invocation.scratchDir, "tmp"), { recursive: true, force: true });
+      (0, import_fs40.rmSync)(import_path43.default.join(invocation.scratchDir, "tmp"), { recursive: true, force: true });
     } catch {
     }
   }
@@ -67286,23 +68712,23 @@ var OBJECTIVE_LIMITS = {
   maxProjectionContracts: 30,
   maxProjectionExcerptChars: 2e4
 };
-var shortText7 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxShortTextChars);
+var shortText9 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxShortTextChars);
 var text6 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxTextChars);
 var optionalText2 = external_exports.string().max(OBJECTIVE_LIMITS.maxTextChars);
 var textList4 = external_exports.array(text6).max(OBJECTIVE_LIMITS.maxListItems);
-var idList2 = external_exports.array(shortText7).max(OBJECTIVE_LIMITS.maxListItems);
+var idList2 = external_exports.array(shortText9).max(OBJECTIVE_LIMITS.maxListItems);
 var semver3 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
 var workUnitSchema = external_exports.object({
-  workUnitId: shortText7,
+  workUnitId: shortText9,
   /** The objective (job graph node) this unit belongs to. */
-  objectiveNodeId: shortText7,
+  objectiveNodeId: shortText9,
   /** The approved task id of the objective (audit convenience). */
-  parentTaskId: shortText7,
+  parentTaskId: shortText9,
   kind: external_exports.enum(WORK_UNIT_KINDS),
   title: text6,
   goal: text6,
   /** Work-unit ids that must be VERIFIED_CANDIDATE before this one runs. */
-  dependsOn: external_exports.array(shortText7).max(OBJECTIVE_LIMITS.maxDependenciesPerUnit).default([]),
+  dependsOn: external_exports.array(shortText9).max(OBJECTIVE_LIMITS.maxDependenciesPerUnit).default([]),
   /** Artifacts the unit is expected to produce (paths, report names). */
   expectedArtifacts: textList4.default([]),
   /** Product contract ids relevant to this unit (projection input). */
@@ -67310,39 +68736,39 @@ var workUnitSchema = external_exports.object({
   relevantAdrIds: idList2.default([]),
   relevantConstitutionRuleIds: idList2.default([]),
   /** Source areas the unit is expected to touch (scope screen input). */
-  expectedAreas: external_exports.array(shortText7).max(OBJECTIVE_LIMITS.maxListItems).default([]),
+  expectedAreas: external_exports.array(shortText9).max(OBJECTIVE_LIMITS.maxListItems).default([]),
   status: external_exports.enum(WORK_UNIT_STATUSES),
   /** Builder attempts consumed so far. */
   attempt: external_exports.number().int().min(0).default(0),
   /** Worker currently (or last) bound to this unit. */
-  workerId: shortText7.optional(),
-  contextProjectionHash: shortText7.optional(),
-  contractSnapshotHash: shortText7.optional(),
+  workerId: shortText9.optional(),
+  contextProjectionHash: shortText9.optional(),
+  contractSnapshotHash: shortText9.optional(),
   /** Latest candidate artifact reference (candidates/<file>). */
-  candidateRef: shortText7.optional(),
+  candidateRef: shortText9.optional(),
   /** Evaluation record references, oldest first. */
   evaluationRefs: idList2.default([]),
   latestFailure: external_exports.object({
     category: external_exports.enum(FAILURE_CATEGORIES),
     message: text6,
-    at: shortText7
+    at: shortText9
   }).passthrough().optional(),
-  supersedes: shortText7.optional(),
-  supersededBy: shortText7.optional(),
-  integratedAt: shortText7.optional()
+  supersedes: shortText9.optional(),
+  supersededBy: shortText9.optional(),
+  integratedAt: shortText9.optional()
 }).passthrough();
 var workGraphSchema = external_exports.object({
   schemaVersion: semver3,
-  jobId: shortText7,
+  jobId: shortText9,
   /** The objective node this graph decomposes. */
-  objectiveNodeId: shortText7,
-  parentTaskId: shortText7,
+  objectiveNodeId: shortText9,
+  parentTaskId: shortText9,
   /** Fingerprint of the approved objective at decomposition time. */
-  objectiveFingerprint: shortText7,
+  objectiveFingerprint: shortText9,
   revision: external_exports.number().int().min(1),
-  createdAt: shortText7,
+  createdAt: shortText9,
   /** Who proposed the decomposition ("deterministic" or a worker id). */
-  proposedBy: shortText7,
+  proposedBy: shortText9,
   /** Deterministic validation findings recorded at acceptance time. */
   validationNotes: textList4.default([]),
   units: external_exports.array(workUnitSchema).min(1).max(OBJECTIVE_LIMITS.maxWorkUnits),
@@ -67351,21 +68777,21 @@ var workGraphSchema = external_exports.object({
 }).passthrough();
 var contextProjectionSchema = external_exports.object({
   schemaVersion: semver3,
-  projectionId: shortText7,
-  jobId: shortText7,
-  objectiveNodeId: shortText7,
-  workUnitId: shortText7,
+  projectionId: shortText9,
+  jobId: shortText9,
+  objectiveNodeId: shortText9,
+  workUnitId: shortText9,
   attempt: external_exports.number().int().min(1),
-  createdAt: shortText7,
-  missionId: shortText7.optional(),
+  createdAt: shortText9,
+  missionId: shortText9.optional(),
   constitution: external_exports.object({
     version: external_exports.number().int().min(0),
     rules: external_exports.array(
-      external_exports.object({ ruleId: shortText7, version: external_exports.number().int().min(1), statement: text6 }).passthrough()
+      external_exports.object({ ruleId: shortText9, version: external_exports.number().int().min(1), statement: text6 }).passthrough()
     ).max(40).default([])
   }).passthrough(),
   objective: external_exports.object({
-    taskId: shortText7,
+    taskId: shortText9,
     title: text6,
     acceptance: textList4.default([])
   }).passthrough(),
@@ -67374,61 +68800,61 @@ var contextProjectionSchema = external_exports.object({
     goal: text6,
     kind: external_exports.enum(WORK_UNIT_KINDS),
     expectedArtifacts: textList4.default([]),
-    expectedAreas: external_exports.array(shortText7).max(OBJECTIVE_LIMITS.maxListItems).default([])
+    expectedAreas: external_exports.array(shortText9).max(OBJECTIVE_LIMITS.maxListItems).default([])
   }).passthrough(),
   contracts: external_exports.array(
     external_exports.object({
-      contractId: shortText7,
+      contractId: shortText9,
       revision: external_exports.number().int().min(1),
-      title: shortText7,
+      title: shortText9,
       summary: text6,
       requirements: textList4.default([]),
       invariants: textList4.default([])
     }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxProjectionContracts).default([]),
   adrs: external_exports.array(
-    external_exports.object({ adrId: shortText7, title: shortText7, decision: text6 }).passthrough()
+    external_exports.object({ adrId: shortText9, title: shortText9, decision: text6 }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxListItems).default([]),
-  decisions: external_exports.array(external_exports.object({ decisionId: shortText7, decision: text6 }).passthrough()).max(OBJECTIVE_LIMITS.maxListItems).default([]),
+  decisions: external_exports.array(external_exports.object({ decisionId: shortText9, decision: text6 }).passthrough()).max(OBJECTIVE_LIMITS.maxListItems).default([]),
   /** Bounded approved-spec excerpts (requirements/design fragments). */
   specExcerpts: external_exports.array(external_exports.string().max(OBJECTIVE_LIMITS.maxProjectionExcerptChars)).max(5).default([]),
   /** Bounded summaries of verified dependency candidates (work evidence). */
   workEvidence: textList4.default([]),
   /** Hash over the ACTIVE contract registry this projection saw. */
-  contractSnapshotHash: shortText7,
+  contractSnapshotHash: shortText9,
   /** Hash of this projection's canonical serialization (identity). */
-  contentHash: shortText7
+  contentHash: shortText9
 }).passthrough();
 var candidateArtifactSchema = external_exports.object({
   schemaVersion: semver3,
-  candidateId: shortText7,
-  jobId: shortText7,
-  objectiveNodeId: shortText7,
-  workUnitId: shortText7,
+  candidateId: shortText9,
+  jobId: shortText9,
+  objectiveNodeId: shortText9,
+  workUnitId: shortText9,
   attempt: external_exports.number().int().min(1),
-  workerId: shortText7,
-  createdAt: shortText7,
+  workerId: shortText9,
+  createdAt: shortText9,
   /** Git commit the worktree was created from. */
-  baselineCommit: shortText7,
-  contextProjectionHash: shortText7,
-  contractSnapshotHash: shortText7,
+  baselineCommit: shortText9,
+  contextProjectionHash: shortText9,
+  contractSnapshotHash: shortText9,
   /** Files changed in the worktree, as observed by git. */
   changedFiles: external_exports.array(
     external_exports.object({
-      path: shortText7,
+      path: shortText9,
       changeType: external_exports.enum(["added", "modified", "deleted", "renamed"])
     }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxChangedFiles).default([]),
   /** Reference to the stored normalized patch (candidates/<file>.patch). */
-  patchRef: shortText7.optional(),
+  patchRef: shortText9.optional(),
   /** Local verification observed by SpecBridge inside the worktree. */
   localVerification: external_exports.object({
     ran: external_exports.boolean(),
     passed: external_exports.boolean(),
     commands: external_exports.array(
       external_exports.object({
-        name: shortText7,
-        status: shortText7,
+        name: shortText9,
+        status: shortText9,
         exitCode: external_exports.number().int().nullable().default(null)
       }).passthrough()
     ).max(OBJECTIVE_LIMITS.maxListItems).default([])
@@ -67439,7 +68865,7 @@ var candidateArtifactSchema = external_exports.object({
     assumptionsDiscovered: textList4.default([]),
     contractChangeRequests: external_exports.array(
       external_exports.object({
-        contractId: shortText7,
+        contractId: shortText9,
         problem: text6,
         proposal: text6
       }).passthrough()
@@ -67453,67 +68879,67 @@ var candidateArtifactSchema = external_exports.object({
 }).passthrough();
 var evaluationRecordSchema = external_exports.object({
   schemaVersion: semver3,
-  evaluationId: shortText7,
-  jobId: shortText7,
-  objectiveNodeId: shortText7,
-  workUnitId: shortText7,
+  evaluationId: shortText9,
+  jobId: shortText9,
+  objectiveNodeId: shortText9,
+  workUnitId: shortText9,
   attempt: external_exports.number().int().min(1),
   layer: external_exports.enum(EVALUATION_LAYERS),
   verdict: external_exports.enum(EVALUATION_VERDICTS),
   /** Named deterministic checks with their outcomes (deterministic layer). */
   checks: external_exports.array(
-    external_exports.object({ name: shortText7, passed: external_exports.boolean(), detail: optionalText2.optional() }).passthrough()
+    external_exports.object({ name: shortText9, passed: external_exports.boolean(), detail: optionalText2.optional() }).passthrough()
   ).max(OBJECTIVE_LIMITS.maxEvaluationChecks).default([]),
   reasons: textList4.default([]),
   evidenceRefs: idList2.default([]),
   affectedContractIds: idList2.default([]),
   /** Decision kind for CONFLICT / NEEDS_DECISION verdicts (authority routing). */
-  decisionKind: shortText7.optional(),
+  decisionKind: shortText9.optional(),
   /** The evaluator worker, when the layer is semantic. */
-  evaluatorWorkerId: shortText7.optional(),
-  createdAt: shortText7
+  evaluatorWorkerId: shortText9.optional(),
+  createdAt: shortText9
 }).passthrough();
 var contractConflictSchema = external_exports.object({
   schemaVersion: semver3,
-  conflictId: shortText7,
-  jobId: shortText7,
-  objectiveNodeId: shortText7,
-  contractId: shortText7,
+  conflictId: shortText9,
+  jobId: shortText9,
+  objectiveNodeId: shortText9,
+  contractId: shortText9,
   contractRevision: external_exports.number().int().min(1),
   claims: external_exports.array(
     external_exports.object({
-      workUnitId: shortText7,
-      candidateRef: shortText7.optional(),
+      workUnitId: shortText9,
+      candidateRef: shortText9.optional(),
       claim: text6
     }).passthrough()
   ).min(1).max(OBJECTIVE_LIMITS.maxListItems),
   evidenceRefs: idList2.default([]),
   affectedWorkUnitIds: idList2.default([]),
-  decisionKind: shortText7,
+  decisionKind: shortText9,
   status: external_exports.enum(CONTRACT_CONFLICT_STATUSES),
   resolution: optionalText2.optional(),
-  createdAt: shortText7,
-  resolvedAt: shortText7.optional()
+  createdAt: shortText9,
+  resolvedAt: shortText9.optional()
 }).passthrough();
 var objectiveWorkerRecordSchema = external_exports.object({
   schemaVersion: semver3,
-  workerId: shortText7,
+  workerId: shortText9,
   agentRole: external_exports.enum(AGENT_ROLES),
-  jobId: shortText7,
-  objectiveNodeId: shortText7,
-  workUnitId: shortText7,
+  jobId: shortText9,
+  objectiveNodeId: shortText9,
+  workUnitId: shortText9,
   attempt: external_exports.number().int().min(1),
-  contextProjectionHash: shortText7,
-  contractSnapshotHash: shortText7,
+  contextProjectionHash: shortText9,
+  contractSnapshotHash: shortText9,
   /** "worktree:<name>", "canonical", or "ephemeral" (read-only reasoning). */
-  workspaceIdentity: shortText7,
+  workspaceIdentity: shortText9,
   status: external_exports.enum(OBJECTIVE_WORKER_STATUSES),
   budget: external_exports.object({
     timeoutMs: external_exports.number().int().min(1),
     maxOutputBytes: external_exports.number().int().min(1).optional()
   }).passthrough(),
-  startedAt: shortText7,
-  finishedAt: shortText7.optional()
+  startedAt: shortText9,
+  finishedAt: shortText9.optional()
 }).passthrough();
 var WORK_UNIT_TRANSITIONS = Object.freeze({
   PLANNED: ["READY", "BLOCKED", "SUPERSEDED", "FAILED"],
@@ -67834,13 +69260,13 @@ var OBJECTIVE_OUTPUT_LIMITS = {
   maxUnits: 30,
   maxResponseBytes: 262144
 };
-var shortText8 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxShortChars);
+var shortText10 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxShortChars);
 var text7 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxTextChars);
 var textList5 = external_exports.array(text7).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
-var shortList = external_exports.array(shortText8).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
+var shortList = external_exports.array(shortText10).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
 var decomposerUnitSchema = external_exports.object({
   /** Proposal-local id ("a", "b", …); SpecBridge assigns the real ids. */
-  id: shortText8,
+  id: shortText10,
   kind: external_exports.enum(WORK_UNIT_KINDS),
   title: text7,
   goal: text7,
@@ -67869,7 +69295,7 @@ var evaluatorOutputSchema = external_exports.object({
    * "architecture-contract-change", "product-behavior-change", …). The
    * deterministic authority table routes it; the evaluator only names it.
    */
-  decisionKind: shortText8.optional()
+  decisionKind: shortText10.optional()
 });
 var aggregatorOutputSchema = external_exports.object({
   /** One bounded synthesis of the input artifacts. */
@@ -67877,7 +69303,7 @@ var aggregatorOutputSchema = external_exports.object({
   /** Structured findings, each tied to its source artifact. */
   findings: external_exports.array(
     external_exports.object({
-      sourceWorkUnitId: shortText8,
+      sourceWorkUnitId: shortText10,
       finding: text7
     })
   ).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems).default([]),
@@ -67886,15 +69312,15 @@ var aggregatorOutputSchema = external_exports.object({
   /** Contract changes the synthesis suggests — requests, never approvals. */
   contractChangeSuggestions: external_exports.array(
     external_exports.object({
-      contractId: shortText8,
+      contractId: shortText10,
       problem: text7,
       proposal: text7
     })
   ).max(10).default([]),
   conflictsDetected: external_exports.array(
     external_exports.object({
-      contractId: shortText8,
-      claims: external_exports.array(external_exports.object({ sourceWorkUnitId: shortText8, claim: text7 })).min(1).max(10)
+      contractId: shortText10,
+      claims: external_exports.array(external_exports.object({ sourceWorkUnitId: shortText10, claim: text7 })).min(1).max(10)
     })
   ).max(10).default([])
 });
@@ -67906,7 +69332,7 @@ var builderOutputSchema = external_exports.object({
   assumptionsDiscovered: textList5.default([]),
   contractChangeRequests: external_exports.array(
     external_exports.object({
-      contractId: shortText8,
+      contractId: shortText10,
       problem: text7,
       proposal: text7
     })
@@ -68239,8 +69665,8 @@ async function runLargeObjectiveRole(invocation) {
   } finally {
     cleanupTempFiles(plan);
     try {
-      const { rmSync: rmSync72 } = await import("fs");
-      rmSync72(import_path45.default.join(invocation.scratchDir, "tmp"), { recursive: true, force: true });
+      const { rmSync: rmSync82 } = await import("fs");
+      rmSync82(import_path47.default.join(invocation.scratchDir, "tmp"), { recursive: true, force: true });
     } catch {
     }
   }
@@ -68327,7 +69753,7 @@ async function integrateObjective(input) {
       role: "BUILDER",
       packet,
       cwd: input.workspace.rootDir,
-      scratchDir: import_path44.default.join(jobDir(input.workspace, input.jobId), "scratch"),
+      scratchDir: import_path46.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: input.reconcileTimeoutMs ?? 6e5,
       ...input.signal !== void 0 ? { signal: input.signal } : {},
       ...input.cachedProbe !== void 0 ? { cachedProbe: input.cachedProbe } : {}
@@ -68507,19 +69933,19 @@ function objectiveDir(workspace, jobId, nodeId) {
   assertSegment(nodeId, "objective node id");
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path46.default.join(jobDir(workspace, jobId), "objectives", nodeId)
+    import_path48.default.join(jobDir(workspace, jobId), "objectives", nodeId)
   );
 }
 function artifactPath3(workspace, jobId, nodeId, ...segments) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path46.default.join(objectiveDir(workspace, jobId, nodeId), ...segments)
+    import_path48.default.join(objectiveDir(workspace, jobId, nodeId), ...segments)
   );
 }
 function readJson(file, parse3) {
-  if (!(0, import_fs40.existsSync)(file)) return void 0;
+  if (!(0, import_fs42.existsSync)(file)) return void 0;
   try {
-    return parse3(JSON.parse((0, import_fs40.readFileSync)(file, "utf8")));
+    return parse3(JSON.parse((0, import_fs42.readFileSync)(file, "utf8")));
   } catch {
     return void 0;
   }
@@ -68530,7 +69956,7 @@ function workGraphFile(workspace, jobId, nodeId, revision) {
 function storeWorkGraph(workspace, jobId, graph) {
   const validated = workGraphSchema.parse(graph);
   const file = workGraphFile(workspace, jobId, validated.objectiveNodeId, validated.revision);
-  (0, import_fs40.mkdirSync)(import_path46.default.dirname(file), { recursive: true });
+  (0, import_fs42.mkdirSync)(import_path48.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return validated;
@@ -68544,9 +69970,9 @@ function readWorkGraph(workspace, jobId, nodeId, revision) {
 }
 function listWorkGraphRevisions(workspace, jobId, nodeId) {
   const dir = artifactPath3(workspace, jobId, nodeId, "workgraphs");
-  if (!(0, import_fs40.existsSync)(dir)) return [];
+  if (!(0, import_fs42.existsSync)(dir)) return [];
   const revisions = [];
-  for (const name of (0, import_fs40.readdirSync)(dir).sort()) {
+  for (const name of (0, import_fs42.readdirSync)(dir).sort()) {
     if (!/^\d{4}\.json$/.test(name)) continue;
     revisions.push(Number.parseInt(name.slice(0, 4), 10));
   }
@@ -68565,13 +69991,13 @@ function storeProjection(workspace, jobId, nodeId, projection) {
   assertSegment(validated.workUnitId, "work unit id");
   const name = projectionName(validated.workUnitId, validated.attempt);
   const file = artifactPath3(workspace, jobId, nodeId, "projections", name);
-  if ((0, import_fs40.existsSync)(file)) {
+  if ((0, import_fs42.existsSync)(file)) {
     throw new OrchestrationError(
       "SBO041",
       `Projection ${name} already exists; projections are immutable per (workUnit, attempt).`
     );
   }
-  (0, import_fs40.mkdirSync)(import_path46.default.dirname(file), { recursive: true });
+  (0, import_fs42.mkdirSync)(import_path48.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return { projection: validated, ref: `projections/${name}` };
@@ -68594,13 +70020,13 @@ function storeCandidate(workspace, jobId, nodeId, candidate, patch, limits) {
   assertSegment(validated.workUnitId, "work unit id");
   const base = candidateName(validated.workUnitId, validated.attempt);
   const file = artifactPath3(workspace, jobId, nodeId, "candidates", `${base}.json`);
-  if ((0, import_fs40.existsSync)(file)) {
+  if ((0, import_fs42.existsSync)(file)) {
     throw new OrchestrationError(
       "SBO043",
       `Candidate ${base} already exists; candidates are immutable per (workUnit, attempt).`
     );
   }
-  (0, import_fs40.mkdirSync)(import_path46.default.dirname(file), { recursive: true });
+  (0, import_fs42.mkdirSync)(import_path48.default.dirname(file), { recursive: true });
   if (patch !== void 0) {
     if (Buffer.byteLength(patch, "utf8") > limits.maxCandidateBytes) {
       throw new OrchestrationError(
@@ -68634,9 +70060,9 @@ function readCandidatePatch(workspace, jobId, nodeId, workUnitId, attempt) {
     "candidates",
     `${candidateName(workUnitId, attempt)}.patch`
   );
-  if (!(0, import_fs40.existsSync)(file)) return void 0;
+  if (!(0, import_fs42.existsSync)(file)) return void 0;
   try {
-    return (0, import_fs40.readFileSync)(file, "utf8");
+    return (0, import_fs42.readFileSync)(file, "utf8");
   } catch {
     return void 0;
   }
@@ -68646,21 +70072,21 @@ function storeEvaluation(workspace, jobId, nodeId, evaluation) {
   assertSegment(validated.evaluationId, "evaluation id");
   const name = `${validated.evaluationId}.json`;
   const file = artifactPath3(workspace, jobId, nodeId, "evaluations", name);
-  if ((0, import_fs40.existsSync)(file)) {
+  if ((0, import_fs42.existsSync)(file)) {
     throw new OrchestrationError("SBO044", `Evaluation ${validated.evaluationId} already exists.`);
   }
-  (0, import_fs40.mkdirSync)(import_path46.default.dirname(file), { recursive: true });
+  (0, import_fs42.mkdirSync)(import_path48.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return { evaluation: validated, ref: `evaluations/${name}` };
 }
 function readEvaluations(workspace, jobId, nodeId, workUnitId) {
   const dir = artifactPath3(workspace, jobId, nodeId, "evaluations");
-  if (!(0, import_fs40.existsSync)(dir)) return [];
+  if (!(0, import_fs42.existsSync)(dir)) return [];
   const records = [];
-  for (const name of (0, import_fs40.readdirSync)(dir).sort()) {
+  for (const name of (0, import_fs42.readdirSync)(dir).sort()) {
     if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path46.default.join(dir, name), (raw) => {
+    const record32 = readJson(import_path48.default.join(dir, name), (raw) => {
       const result = evaluationRecordSchema.safeParse(raw);
       return result.success ? result.data : void 0;
     });
@@ -68674,18 +70100,18 @@ function storeConflict(workspace, jobId, nodeId, conflict) {
   const validated = contractConflictSchema.parse(conflict);
   assertSegment(validated.conflictId, "conflict id");
   const file = artifactPath3(workspace, jobId, nodeId, "conflicts", `${validated.conflictId}.json`);
-  (0, import_fs40.mkdirSync)(import_path46.default.dirname(file), { recursive: true });
+  (0, import_fs42.mkdirSync)(import_path48.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return validated;
 }
 function readConflicts(workspace, jobId, nodeId) {
   const dir = artifactPath3(workspace, jobId, nodeId, "conflicts");
-  if (!(0, import_fs40.existsSync)(dir)) return [];
+  if (!(0, import_fs42.existsSync)(dir)) return [];
   const records = [];
-  for (const name of (0, import_fs40.readdirSync)(dir).sort()) {
+  for (const name of (0, import_fs42.readdirSync)(dir).sort()) {
     if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path46.default.join(dir, name), (raw) => {
+    const record32 = readJson(import_path48.default.join(dir, name), (raw) => {
       const result = contractConflictSchema.safeParse(raw);
       return result.success ? result.data : void 0;
     });
@@ -68706,7 +70132,7 @@ function storeWorkerRecord(workspace, jobId, nodeId, record32) {
     "workers",
     workerName(validated.workUnitId, validated.attempt, validated.agentRole)
   );
-  (0, import_fs40.mkdirSync)(import_path46.default.dirname(file), { recursive: true });
+  (0, import_fs42.mkdirSync)(import_path48.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return validated;
@@ -68723,11 +70149,11 @@ function readWorkerRecord(workspace, jobId, nodeId, workUnitId, attempt, role) {
 }
 function readWorkerRecords(workspace, jobId, nodeId) {
   const dir = artifactPath3(workspace, jobId, nodeId, "workers");
-  if (!(0, import_fs40.existsSync)(dir)) return [];
+  if (!(0, import_fs42.existsSync)(dir)) return [];
   const records = [];
-  for (const name of (0, import_fs40.readdirSync)(dir).sort()) {
+  for (const name of (0, import_fs42.readdirSync)(dir).sort()) {
     if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path46.default.join(dir, name), (raw) => {
+    const record32 = readJson(import_path48.default.join(dir, name), (raw) => {
       const result = objectiveWorkerRecordSchema.safeParse(raw);
       return result.success ? result.data : void 0;
     });
@@ -68738,10 +70164,10 @@ function readWorkerRecords(workspace, jobId, nodeId) {
 function storeAggregationReport(workspace, jobId, nodeId, name, report) {
   assertSegment(name, "report name");
   const file = artifactPath3(workspace, jobId, nodeId, "reports", `${name}.json`);
-  if ((0, import_fs40.existsSync)(file)) {
+  if ((0, import_fs42.existsSync)(file)) {
     throw new OrchestrationError("SBO046", `Aggregation report "${name}" already exists.`);
   }
-  (0, import_fs40.mkdirSync)(import_path46.default.dirname(file), { recursive: true });
+  (0, import_fs42.mkdirSync)(import_path48.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(report, null, 2)}
 `);
   return { ref: `reports/${name}.json` };
@@ -69003,7 +70429,7 @@ async function git3(cwd, argv2, timeoutMs = GIT_TIMEOUT_MS3) {
   return { ok: result.status === "ok", stdout: result.stdout, stderr: result.stderr };
 }
 function worktreesRootDir(workspace, jobId) {
-  return import_path47.default.join(jobDir(workspace, jobId), "worktrees");
+  return import_path49.default.join(jobDir(workspace, jobId), "worktrees");
 }
 async function createWorkerWorktree(input) {
   const name = `${input.workUnitId}-a${String(input.attempt).padStart(2, "0")}`;
@@ -69012,7 +70438,7 @@ async function createWorkerWorktree(input) {
   }
   const dir = assertInsideWorkspace(
     input.workspace.rootDir,
-    import_path47.default.join(worktreesRootDir(input.workspace, input.jobId), name)
+    import_path49.default.join(worktreesRootDir(input.workspace, input.jobId), name)
   );
   const head = await git3(input.workspace.rootDir, ["rev-parse", "HEAD"]);
   if (!head.ok) {
@@ -69022,10 +70448,10 @@ async function createWorkerWorktree(input) {
     });
   }
   const baselineCommit = head.stdout.trim();
-  if ((0, import_fs41.existsSync)(dir)) {
+  if ((0, import_fs43.existsSync)(dir)) {
     await removeWorkerWorktree(input.workspace, input.jobId, { dir });
   }
-  (0, import_fs41.mkdirSync)(import_path47.default.dirname(dir), { recursive: true });
+  (0, import_fs43.mkdirSync)(import_path49.default.dirname(dir), { recursive: true });
   const added = await git3(input.workspace.rootDir, ["worktree", "add", "--detach", dir, baselineCommit], 18e4);
   if (!added.ok) {
     throw new OrchestrationError("SBO048", `git worktree add failed: ${added.stderr.slice(0, 500)}`, {
@@ -69098,7 +70524,7 @@ async function runWorktreeVerification(handle, commands, signal) {
 async function removeWorkerWorktree(workspace, jobId, handle) {
   await git3(workspace.rootDir, ["worktree", "remove", "--force", handle.dir], 12e4);
   try {
-    (0, import_fs41.rmSync)(handle.dir, { recursive: true, force: true });
+    (0, import_fs43.rmSync)(handle.dir, { recursive: true, force: true });
   } catch {
   }
   await git3(workspace.rootDir, ["worktree", "prune"]);
@@ -69107,14 +70533,14 @@ async function removeWorkerWorktree(workspace, jobId, handle) {
 async function pruneWorktrees(workspace, jobId) {
   const removed = [];
   const root = worktreesRootDir(workspace, jobId);
-  if ((0, import_fs41.existsSync)(root)) {
+  if ((0, import_fs43.existsSync)(root)) {
     const { readdirSync: readdirSync92 } = await import("fs");
     for (const entry of readdirSync92(root, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
-      const dir = import_path47.default.join(root, entry.name);
+      const dir = import_path49.default.join(root, entry.name);
       await git3(workspace.rootDir, ["worktree", "remove", "--force", dir], 12e4);
       try {
-        (0, import_fs41.rmSync)(dir, { recursive: true, force: true });
+        (0, import_fs43.rmSync)(dir, { recursive: true, force: true });
       } catch {
       }
       removed.push(entry.name);
@@ -69240,7 +70666,7 @@ async function decomposeObjective(input, truth, relevantContractIds, acceptance)
       role: "DECOMPOSER",
       packet,
       cwd: input.workspace.rootDir,
-      scratchDir: import_path43.default.join(jobDir(input.workspace, input.jobId), "scratch"),
+      scratchDir: import_path45.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: 6e5,
       signal: input.signal,
       cachedProbe: input.probeCache.probe
@@ -69405,7 +70831,7 @@ async function executeBuilder(context, prepared) {
     role: "BUILDER",
     packet,
     cwd: prepared.worktree.dir,
-    scratchDir: import_path43.default.join(
+    scratchDir: import_path45.default.join(
       jobDir(input.workspace, input.jobId),
       "scratch",
       `${prepared.unitId}-a${prepared.attempt}`
@@ -69780,7 +71206,7 @@ async function runSemanticEvaluation(context, graph, unitId) {
       role: "EVALUATOR",
       packet,
       cwd: input.workspace.rootDir,
-      scratchDir: import_path43.default.join(jobDir(input.workspace, input.jobId), "scratch"),
+      scratchDir: import_path45.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: 6e5,
       signal: input.signal,
       cachedProbe: input.probeCache.probe
@@ -70002,9 +71428,9 @@ async function driveObjective(input) {
     );
     const preparedAttempts = [];
     for (const unit of anyReady) {
-      const step = await prepareUnitAttempt(context, graph, unit.workUnitId);
-      graph = step.graph;
-      preparedAttempts.push(step.prepared);
+      const step2 = await prepareUnitAttempt(context, graph, unit.workUnitId);
+      graph = step2.graph;
+      preparedAttempts.push(step2.prepared);
     }
     try {
       const executed = await Promise.all(
@@ -70071,7 +71497,7 @@ async function maybeAggregateSemantically(context, graph) {
       role: "AGGREGATOR",
       packet,
       cwd: input.workspace.rootDir,
-      scratchDir: import_path43.default.join(jobDir(input.workspace, input.jobId), "scratch"),
+      scratchDir: import_path45.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: 6e5,
       signal: input.signal,
       cachedProbe: input.probeCache.probe
@@ -70293,30 +71719,30 @@ function timeToResetMs(resetAt, now5) {
   if (Number.isNaN(parsed)) return null;
   return Math.max(0, parsed - now5.getTime());
 }
-var shortText9 = external_exports.string().min(1).max(200);
+var shortText11 = external_exports.string().min(1).max(200);
 var schedulingDecisionSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  decisionId: shortText9,
-  jobId: shortText9,
-  nodeId: shortText9,
-  taskId: shortText9,
+  decisionId: shortText11,
+  jobId: shortText11,
+  nodeId: shortText11,
+  taskId: shortText11,
   selectedLane: external_exports.enum(LANE_DECISIONS),
   /** Worker/provider identity for run lanes; null for DEFER. */
-  selectedProvider: shortText9.nullable(),
+  selectedProvider: shortText11.nullable(),
   schedulerMode: external_exports.enum(SCHEDULER_MODES),
   reasonCode: external_exports.enum(SCHEDULING_REASON_CODES),
   /** The forecast the decision was made against. */
   quotaSnapshot: quotaForecastSchema,
   /** Bounded copy of the workload estimate. */
   workloadEstimate: external_exports.object({
-    complexity: shortText9,
-    localSuitability: shortText9,
-    taskCategory: shortText9.nullable().default(null),
+    complexity: shortText11,
+    localSuitability: shortText11,
+    taskCategory: shortText11.nullable().default(null),
     expectedWallTimeMs: external_exports.number().int().min(0),
     expectedFiveHourBurnRatio: external_exports.number().min(0).max(1),
     expectedWeeklyBurnRatio: external_exports.number().min(0).max(1),
-    confidence: shortText9,
-    basis: shortText9
+    confidence: shortText11,
+    basis: shortText11
   }).passthrough().nullable(),
   /** The dynamic reserve ratio in force. */
   reserveRatio: external_exports.number().min(0).max(1).nullable(),
@@ -70345,15 +71771,15 @@ var schedulingDecisionSchema = external_exports.object({
     reasonCode: external_exports.enum(LOCAL_EXECUTION_MODE_REASONS),
     shape: external_exports.enum(LOCAL_EXECUTION_SHAPES),
     /** Runner identity for the mode (e.g. "local-llamacpp", "deepseek-harness"). */
-    runner: shortText9.nullable().default(null),
+    runner: shortText11.nullable().default(null),
     /** Model identity when known; null when the provider does not say. */
-    model: shortText9.nullable().default(null),
+    model: shortText11.nullable().default(null),
     /** Verified compute locality of the selected runner. */
     computeLocality: external_exports.enum(COMPUTE_LOCALITIES).default("UNKNOWN"),
     /** Grounds for the locality verdict (bounded, recorded verbatim). */
     localityEvidence: external_exports.string().max(500).nullable().default(null),
     /** Status of the LOCAL harness binding when the decision was made. */
-    harnessBindingStatus: shortText9.nullable().default(null),
+    harnessBindingStatus: shortText11.nullable().default(null),
     detail: external_exports.string().max(1e3).default("")
   }).passthrough().nullable().default(null),
   /**
@@ -70376,7 +71802,7 @@ var schedulingDecisionSchema = external_exports.object({
     /** Why subscription capacity was unavailable. */
     gapReason: external_exports.enum(SUBSCRIPTION_GAP_REASONS),
     /** When capacity is expected back (ISO); null when unknown. */
-    subscriptionAvailableAt: shortText9.nullable().default(null),
+    subscriptionAvailableAt: shortText11.nullable().default(null),
     estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null),
     gapConfidence: external_exports.enum(GAP_FORECAST_CONFIDENCE).default("UNKNOWN"),
     delaySensitivity: external_exports.enum(DELAY_SENSITIVITIES),
@@ -70389,58 +71815,58 @@ var schedulingDecisionSchema = external_exports.object({
     safeCostUsd: external_exports.number().min(0).nullable().default(null),
     currency: external_exports.string().max(8).default("USD"),
     costSource: external_exports.enum(API_COST_SOURCES).default("UNKNOWN"),
-    pricingSource: shortText9.nullable().default(null),
+    pricingSource: shortText11.nullable().default(null),
     /** Remaining job API budget at decision time; null when unbounded. */
     budgetRemainingUsd: external_exports.number().min(0).nullable().default(null),
     budgetEncumberedUsd: external_exports.number().min(0).nullable().default(null),
     /** The API profile that would have run it, and its verified locality. */
-    apiProfile: shortText9.nullable().default(null),
-    apiRunner: shortText9.nullable().default(null),
-    apiModel: shortText9.nullable().default(null),
+    apiProfile: shortText11.nullable().default(null),
+    apiRunner: shortText11.nullable().default(null),
+    apiModel: shortText11.nullable().default(null),
     computeLocality: external_exports.enum(COMPUTE_LOCALITIES).default("UNKNOWN"),
-    bindingStatus: shortText9.nullable().default(null),
+    bindingStatus: shortText11.nullable().default(null),
     /** The bounded authorization consulted, when one existed. */
-    approvalId: shortText9.nullable().default(null),
-    approvalStatus: shortText9.nullable().default(null),
+    approvalId: shortText11.nullable().default(null),
+    approvalStatus: shortText11.nullable().default(null),
     detail: external_exports.string().max(2e3).default("")
   }).passthrough().nullable().default(null),
   /** For DEFER: when capacity is expected to return, when known. */
-  deferUntil: shortText9.nullable().default(null),
+  deferUntil: shortText11.nullable().default(null),
   detail: external_exports.string().max(2e3),
-  createdAt: shortText9
+  createdAt: shortText11
 }).passthrough();
 function schedulingDir(workspace, jobId) {
-  return assertInsideWorkspace(workspace.rootDir, import_path48.default.join(jobDir(workspace, jobId), "scheduling"));
+  return assertInsideWorkspace(workspace.rootDir, import_path50.default.join(jobDir(workspace, jobId), "scheduling"));
 }
-function decisionsFile(workspace, jobId) {
+function decisionsFile2(workspace, jobId) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path48.default.join(schedulingDir(workspace, jobId), "decisions.jsonl")
+    import_path50.default.join(schedulingDir(workspace, jobId), "decisions.jsonl")
   );
 }
 function appendSchedulingDecision(workspace, record32, options) {
   const validated = schedulingDecisionSchema.parse(record32);
   const dir = schedulingDir(workspace, record32.jobId);
-  (0, import_fs42.mkdirSync)(dir, { recursive: true });
-  const file = decisionsFile(workspace, record32.jobId);
+  (0, import_fs44.mkdirSync)(dir, { recursive: true });
+  const file = decisionsFile2(workspace, record32.jobId);
   const line = `${JSON.stringify(validated)}
 `;
-  const existing = (0, import_fs42.existsSync)(file) ? (0, import_fs42.readFileSync)(file, "utf8") : "";
+  const existing = (0, import_fs44.existsSync)(file) ? (0, import_fs44.readFileSync)(file, "utf8") : "";
   const lines = existing.split("\n").filter((entry) => entry.length > 0);
   if (lines.length + 1 > options.maxRecords) {
     const retained = [...lines, line.trimEnd()].slice(-options.maxRecords);
     writeFileAtomic(file, `${retained.join("\n")}
 `);
   } else {
-    (0, import_fs42.appendFileSync)(file, line, "utf8");
+    (0, import_fs44.appendFileSync)(file, line, "utf8");
   }
   return validated;
 }
 function readSchedulingDecisions(workspace, jobId, options = {}) {
-  const file = decisionsFile(workspace, jobId);
-  if (!(0, import_fs42.existsSync)(file)) return [];
+  const file = decisionsFile2(workspace, jobId);
+  if (!(0, import_fs44.existsSync)(file)) return [];
   const records = [];
-  for (const line of (0, import_fs42.readFileSync)(file, "utf8").split("\n")) {
+  for (const line of (0, import_fs44.readFileSync)(file, "utf8").split("\n")) {
     if (line.length === 0) continue;
     try {
       const parsed = schedulingDecisionSchema.safeParse(JSON.parse(line));
@@ -70554,7 +71980,7 @@ function validateEditPaths(workspace, edits, protectedPaths) {
   let totalBytes = 0;
   for (const edit of edits) {
     const normalized = edit.path.replace(/\\/g, "/");
-    if (import_path49.default.isAbsolute(normalized) || normalized.includes("..")) {
+    if (import_path51.default.isAbsolute(normalized) || normalized.includes("..")) {
       failures.push({ path: edit.path, problem: 'paths must be workspace-relative without ".."' });
       continue;
     }
@@ -70573,7 +71999,7 @@ function validateEditPaths(workspace, edits, protectedPaths) {
       continue;
     }
     try {
-      assertInsideWorkspace(workspace.rootDir, import_path49.default.join(workspace.rootDir, normalized));
+      assertInsideWorkspace(workspace.rootDir, import_path51.default.join(workspace.rootDir, normalized));
     } catch {
       failures.push({ path: edit.path, problem: "path escapes the workspace" });
       continue;
@@ -70594,10 +72020,10 @@ function applyEdits(workspace, edits) {
     const normalized = edit.path.replace(/\\/g, "/");
     const target = assertInsideWorkspace(
       workspace.rootDir,
-      import_path49.default.join(workspace.rootDir, normalized)
+      import_path51.default.join(workspace.rootDir, normalized)
     );
-    (0, import_fs43.mkdirSync)(import_path49.default.dirname(target), { recursive: true });
-    (0, import_fs43.writeFileSync)(target, edit.content, "utf8");
+    (0, import_fs45.mkdirSync)(import_path51.default.dirname(target), { recursive: true });
+    (0, import_fs45.writeFileSync)(target, edit.content, "utf8");
     written.push(normalized);
   }
   return written;
@@ -71300,21 +72726,21 @@ function computeObservedApiCost(input) {
   };
 }
 var API_SPEND_APPROVAL_SCHEMA_VERSION = "1.0.0";
-var shortText10 = external_exports.string().min(1).max(200);
+var shortText12 = external_exports.string().min(1).max(200);
 var apiSpendApprovalSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  approvalId: shortText10,
-  jobId: shortText10,
-  nodeId: shortText10,
-  taskId: shortText10,
+  approvalId: shortText12,
+  jobId: shortText12,
+  nodeId: shortText12,
+  taskId: shortText12,
   /**
    * Deterministic fingerprint of the WORK this approval covers. A
    * materially changed task produces a different fingerprint and the old
    * approval no longer authorizes anything.
    */
-  taskFingerprint: shortText10,
+  taskFingerprint: shortText12,
   /** The API profile the approval is scoped to. */
-  profileName: shortText10,
+  profileName: shortText12,
   /** Maximum authorized spend for this task, in USD. */
   maxAuthorizedCostUsd: external_exports.number().min(0),
   currency: external_exports.literal("USD").default("USD"),
@@ -71323,15 +72749,15 @@ var apiSpendApprovalSchema = external_exports.object({
   status: external_exports.enum(API_APPROVAL_STATUSES),
   /** Why the bridge was proposed — recorded verbatim for the decider. */
   rationale: external_exports.string().max(2e3).default(""),
-  requestedAt: shortText10,
+  requestedAt: shortText12,
   /** After this the approval is stale even if never used. */
-  expiresAt: shortText10,
-  decidedAt: shortText10.nullable().default(null),
+  expiresAt: shortText12,
+  decidedAt: shortText12.nullable().default(null),
   /** Who decided. Human identity only; never a model or a runner. */
-  decidedBy: shortText10.nullable().default(null),
+  decidedBy: shortText12.nullable().default(null),
   decisionNote: external_exports.string().max(1e3).nullable().default(null),
   /** The attempt that consumed this approval, when one did. */
-  consumedByAttemptId: shortText10.nullable().default(null)
+  consumedByAttemptId: shortText12.nullable().default(null)
 }).passthrough();
 function taskSpendFingerprint(node) {
   const canonical = JSON.stringify({
@@ -71348,7 +72774,7 @@ var ID_PATTERN7 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 function approvalsDir(workspace, jobId) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path50.default.join(jobDir(workspace, jobId), "api-approvals")
+    import_path52.default.join(jobDir(workspace, jobId), "api-approvals")
   );
 }
 function approvalFile(workspace, jobId, approvalId) {
@@ -71357,26 +72783,26 @@ function approvalFile(workspace, jobId, approvalId) {
   }
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path50.default.join(approvalsDir(workspace, jobId), `${approvalId}.json`)
+    import_path52.default.join(approvalsDir(workspace, jobId), `${approvalId}.json`)
   );
 }
 function writeApiSpendApproval(workspace, approval) {
   const validated = apiSpendApprovalSchema.parse(approval);
   const file = approvalFile(workspace, validated.jobId, validated.approvalId);
-  (0, import_fs44.mkdirSync)(import_path50.default.dirname(file), { recursive: true });
+  (0, import_fs46.mkdirSync)(import_path52.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return validated;
 }
 function listApiSpendApprovals(workspace, jobId, options = {}) {
   const dir = approvalsDir(workspace, jobId);
-  if (!(0, import_fs44.existsSync)(dir)) return [];
+  if (!(0, import_fs46.existsSync)(dir)) return [];
   const approvals = [];
-  for (const name of (0, import_fs44.readdirSync)(dir).sort()) {
+  for (const name of (0, import_fs46.readdirSync)(dir).sort()) {
     if (!name.endsWith(".json")) continue;
     try {
       const parsed = apiSpendApprovalSchema.safeParse(
-        JSON.parse((0, import_fs44.readFileSync)(import_path50.default.join(dir, name), "utf8"))
+        JSON.parse((0, import_fs46.readFileSync)(import_path52.default.join(dir, name), "utf8"))
       );
       if (parsed.success) approvals.push(parsed.data);
     } catch {
@@ -71387,8 +72813,8 @@ function listApiSpendApprovals(workspace, jobId, options = {}) {
 }
 function readApiSpendApproval(workspace, jobId, approvalId) {
   const file = approvalFile(workspace, jobId, approvalId);
-  if (!(0, import_fs44.existsSync)(file)) return void 0;
-  const parsed = apiSpendApprovalSchema.safeParse(JSON.parse((0, import_fs44.readFileSync)(file, "utf8")));
+  if (!(0, import_fs46.existsSync)(file)) return void 0;
+  const parsed = apiSpendApprovalSchema.safeParse(JSON.parse((0, import_fs46.readFileSync)(file, "utf8")));
   return parsed.success ? parsed.data : void 0;
 }
 function requestApiSpendApproval(input) {
@@ -71536,14 +72962,14 @@ var MANUAL_TELEMETRY_SOURCE = "manual-file";
 function quotaTelemetryFilePath(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path51.default.join(workspace.sidecarDir, QUOTA_TELEMETRY_FILE_NAME)
+    import_path53.default.join(workspace.sidecarDir, QUOTA_TELEMETRY_FILE_NAME)
   );
 }
 function readQuotaTelemetryFile(workspace) {
   const file = quotaTelemetryFilePath(workspace);
-  if (!(0, import_fs45.existsSync)(file)) return quotaTelemetryFileSchema.parse({});
+  if (!(0, import_fs47.existsSync)(file)) return quotaTelemetryFileSchema.parse({});
   try {
-    const parsed = quotaTelemetryFileSchema.safeParse(JSON.parse((0, import_fs45.readFileSync)(file, "utf8")));
+    const parsed = quotaTelemetryFileSchema.safeParse(JSON.parse((0, import_fs47.readFileSync)(file, "utf8")));
     return parsed.success ? parsed.data : quotaTelemetryFileSchema.parse({});
   } catch {
     return quotaTelemetryFileSchema.parse({});
@@ -72590,6 +74016,590 @@ function resolveLocalExecutionMode(input) {
     `One-shot work (${input.shape.signals[0]?.signal ?? "bounded"}) runs as a single bounded local request; a tool loop would add cost without adding capability.`
   );
 }
+function repositorySizeClass(indexedFiles) {
+  if (indexedFiles === null || indexedFiles === void 0 || !Number.isFinite(indexedFiles)) {
+    return "UNKNOWN";
+  }
+  if (indexedFiles < 250) return "SMALL";
+  if (indexedFiles < 2500) return "MEDIUM";
+  return "LARGE";
+}
+function contextSizeClass(expectedTokens) {
+  if (expectedTokens === null || expectedTokens === void 0 || !Number.isFinite(expectedTokens)) {
+    return "UNKNOWN";
+  }
+  if (expectedTokens < 3e4) return "SMALL";
+  if (expectedTokens < 12e4) return "MEDIUM";
+  return "LARGE";
+}
+var DEFAULT_FEATURES = Object.freeze({
+  estimatedFilesTouched: null,
+  multiModule: false,
+  architectureSensitive: false,
+  securitySensitive: false,
+  migration: false,
+  expectedTestLoopClass: "NONE",
+  failureClass: null,
+  blockedDependents: 0,
+  criticalPath: false
+});
+function buildTaskSignature(input) {
+  const category = input.category.trim().length > 0 ? input.category.trim() : "general";
+  const verification = input.deterministicVerificationAvailable ? "DETERMINISTIC" : "NONE";
+  return {
+    key: [
+      category,
+      input.complexity,
+      input.localSuitability,
+      input.executionShape,
+      verification
+    ].join("|"),
+    category,
+    complexity: input.complexity,
+    localSuitability: input.localSuitability,
+    executionShape: input.executionShape,
+    verification,
+    repositorySize: repositorySizeClass(input.indexedFiles),
+    contextSize: contextSizeClass(input.expectedContextTokens),
+    features: { ...DEFAULT_FEATURES, ...input.features ?? {} }
+  };
+}
+function categorySignatureKey(signature) {
+  return [signature.category, signature.complexity].join("|");
+}
+function categoryOnlyKey(signature) {
+  return signature.category;
+}
+function profileLookupKeys(candidate, signature) {
+  return [
+    { level: "EXACT", profileKey: `${signature.key}::${candidate.candidateId}` },
+    {
+      level: "TARGET_CATEGORY",
+      profileKey: `${categorySignatureKey(signature)}::${targetKey(candidate)}`
+    },
+    { level: "LANE_CATEGORY", profileKey: `${categoryOnlyKey(signature)}::${candidate.lane}` },
+    { level: "LANE_GLOBAL", profileKey: `*::${candidate.lane}` }
+  ];
+}
+function resolveProfile(input) {
+  const keys = profileLookupKeys(input.candidate, input.signature);
+  let sparse = null;
+  for (const { level, profileKey } of keys) {
+    const profile = input.profiles.profiles.get(profileIndexKey(level, profileKey));
+    if (profile === void 0) continue;
+    if (profile.weightedSamples >= input.policy.minimumComparableSamples) {
+      return { level, profileKey, profile };
+    }
+    if (sparse === null && profile.samples > 0) sparse = { level, profileKey, profile };
+  }
+  if (sparse !== null) return sparse;
+  return { level: "HEURISTIC_PRIOR", profileKey: null, profile: null };
+}
+function compareRuntimeIdentity(candidate, profile) {
+  if (profile === null || profile.latestRuntimeIdentity === null) return "UNKNOWN";
+  if (profile.level === "LANE_CATEGORY" || profile.level === "LANE_GLOBAL") return "UNKNOWN";
+  const live = runtimeIdentityOf({
+    runner: candidate.runner ?? "-",
+    model: candidate.model,
+    // The live runner version is not observable at scheduling time, so it is
+    // 'unknown' on both sides of this comparison unless a runner reported
+    // one. Unknown never resolves to "matches".
+    runnerVersion: null,
+    contextStrategy: candidate.contextStrategy
+  });
+  if (live === profile.latestRuntimeIdentity) return "EXACT";
+  const liveParts = live.split("@");
+  const historyParts = profile.latestRuntimeIdentity.split("@");
+  if (liveParts[0] !== historyParts[0]) return "CHANGED";
+  if (liveParts.includes("unknown") || historyParts.includes("unknown")) return "UNKNOWN";
+  return "COMPATIBLE";
+}
+function step(level, downBy) {
+  const rank = Math.max(0, PREDICTION_CONFIDENCE_RANK[level] - downBy);
+  return PREDICTION_CONFIDENCE_LEVELS[rank] ?? "NONE";
+}
+function assessConfidence(input) {
+  const notes = [];
+  const profile = input.profile;
+  if (profile === null || input.level === "HEURISTIC_PRIOR") {
+    return {
+      confidence: "NONE",
+      score: 0,
+      notes: ["No observed history at any profile level; the deterministic heuristic decides."]
+    };
+  }
+  const floor = input.policy.minimumSamplesForAdaptiveDecision;
+  let level = profile.weightedSamples >= floor * 4 ? "HIGH" : profile.weightedSamples >= floor ? "MEDIUM" : profile.weightedSamples > 0 ? "LOW" : "NONE";
+  if (input.level === "TARGET_CATEGORY") {
+    level = step(level, 1);
+    notes.push("Evidence came from the coarser task-category profile, not an exact match.");
+  } else if (input.level === "LANE_CATEGORY" || input.level === "LANE_GLOBAL") {
+    level = step(level, 2);
+    notes.push("Evidence came from lane-level defaults; no target-specific history exists.");
+  }
+  if (input.identityMatch === "CHANGED") {
+    level = "NONE";
+    notes.push("The runner behind this history is not the runner that would execute: cold start.");
+  } else if (input.identityMatch === "COMPATIBLE") {
+    level = step(level, 1);
+    notes.push("A model/runtime version moved since this history was measured.");
+  } else if (input.identityMatch === "UNKNOWN") {
+    level = step(level, 1);
+    notes.push("Runtime identity behind this history is unknown and is not assumed to match.");
+  }
+  if (profile.drift.detected) {
+    level = step(level, 1);
+    notes.push(`Performance drift detected: ${profile.drift.detail}.`);
+  }
+  const p50 = profile.wallTimeMs.p50;
+  const p902 = profile.wallTimeMs.p90;
+  if (p50 !== null && p902 !== null && p50 > 0 && p902 / p50 > 4) {
+    level = step(level, 1);
+    notes.push("Wall-time distribution is highly variable; the median predicts weakly.");
+  }
+  if (profile.wallTimeMs.observations === 0) {
+    notes.push("No attempt in this profile reported wall time; timing falls back to the heuristic.");
+  }
+  const score = PREDICTION_CONFIDENCE_RANK[level] / 3;
+  return { confidence: level, score, notes };
+}
+var NO_DRIFT = Object.freeze({ detected: false, signals: [], detail: "" });
+function predictCandidate(input) {
+  const { policy } = input;
+  const resolved = resolveProfile(input);
+  const profile = resolved.profile;
+  const identityMatch = compareRuntimeIdentity(input.candidate, profile);
+  const confidence = assessConfidence({
+    profile,
+    level: resolved.level,
+    identityMatch,
+    policy
+  });
+  const prior = Math.min(1, Math.max(0, input.priorSuccessProbability));
+  const successNumerator = (profile?.weightedVerifiedSuccesses ?? 0) + policy.priorStrength * prior;
+  const successDenominator = (profile?.weightedIntelligenceAttempts ?? 0) + policy.priorStrength;
+  const smoothedSuccess = Math.min(1, Math.max(0, successNumerator / successDenominator));
+  const expectedAttempts = Math.min(8, 1 / Math.max(smoothedSuccess, 0.05));
+  const wallTime = profile?.wallTimeMs.p50 ?? input.heuristicWallTimeMs ?? null;
+  const totalWallTime = wallTime === null ? null : Math.round(wallTime * expectedAttempts + input.candidate.handoffOverheadMs);
+  const notes = [...confidence.notes];
+  if (profile !== null && profile.unverifiedSuccesses > 0) {
+    notes.push(
+      `${profile.unverifiedSuccesses} attempt(s) completed without a PASS evaluation and are excluded from the success rate; completion provenance is preserved, not rounded up.`
+    );
+  }
+  if (profile !== null && profile.censored > 0) {
+    notes.push(
+      `${profile.censored} interrupted attempt(s) are counted as censored: their cost is priced, their outcome is not guessed.`
+    );
+  }
+  if (profile !== null && profile.safetyEvents > 0) {
+    notes.push(
+      `${profile.safetyEvents} safety-class failure(s) recorded for this target; these do not decay.`
+    );
+  }
+  const expectedFailedWallTimeMs = wallTime === null ? null : Math.round(wallTime * Math.max(0, expectedAttempts - 1));
+  return {
+    candidate: input.candidate,
+    level: resolved.level,
+    profileKey: resolved.profileKey,
+    confidence: confidence.confidence,
+    confidenceScore: confidence.score,
+    identityMatch,
+    drift: profile?.drift ?? NO_DRIFT,
+    verifiedSuccessProbability: smoothedSuccess,
+    priorSuccessProbability: prior,
+    observedSuccessRate: profile !== null && profile.verifiedSuccesses + profile.implementationFailures > 0 ? profile.verifiedSuccesses / (profile.verifiedSuccesses + profile.implementationFailures) : null,
+    firstAttemptSuccessRate: profile !== null && profile.firstAttempts > 0 ? profile.firstAttemptSuccesses / profile.firstAttempts : null,
+    availabilityProbability: profile !== null && profile.infrastructureFailureRate !== null ? 1 - profile.infrastructureFailureRate : null,
+    expectedAttempts,
+    expectedWallTimeMs: wallTime,
+    expectedTotalWallTimeMs: totalWallTime,
+    expectedInputTokens: profile?.inputTokens.p50 ?? input.heuristicInputTokens ?? null,
+    expectedContextTokens: profile?.contextTokens.p50 ?? input.heuristicContextTokens ?? null,
+    expectedFiveHourBurnRatio: profile?.fiveHourBurnRatio.p50 ?? input.heuristicFiveHourBurnRatio ?? null,
+    conservativeFiveHourBurnRatio: profile?.fiveHourBurnRatio.p90 ?? input.heuristicFiveHourBurnRatio ?? null,
+    expectedApiCostUsd: profile?.apiCostUsd.p50 ?? null,
+    expectedFailedWallTimeMs,
+    stagnationRate: profile?.stagnationRate ?? null,
+    oscillationRate: profile?.oscillationRate ?? null,
+    runawayRate: profile?.runawayRate ?? null,
+    contextMissRate: profile?.contextMissRate ?? null,
+    contextExpansionRate: profile?.contextExpansionRate ?? null,
+    safetyEvents: profile?.safetyEvents ?? 0,
+    sampleCount: profile?.samples ?? 0,
+    weightedSampleCount: profile?.weightedSamples ?? 0,
+    lastObservedAt: profile?.lastObservedAt ?? null,
+    notes
+  };
+}
+function normalize2(value, scale) {
+  if (value === null || !Number.isFinite(value) || value <= 0) return 0;
+  const k = Math.max(1e-9, scale);
+  return value / (value + k);
+}
+function quotaOpportunityCost(input) {
+  if (input.lane !== "SUBSCRIPTION") {
+    return { value: 0, detail: "Non-subscription lane: no subscription quota pressure applies." };
+  }
+  const forecast = input.forecast;
+  const fiveHour = clamp01(forecast.fiveHourRemainingRatio ?? 1);
+  const weekly = clamp01(forecast.weeklyRemainingRatio ?? 1);
+  const mode = forecast.schedulerMode;
+  if (mode === "HARVEST") {
+    return {
+      value: -fiveHour,
+      detail: `HARVEST: ${(fiveHour * 100).toFixed(0)}% of the five-hour window expires at the coming reset, so admitted strong work is worth more now than later.`
+    };
+  }
+  let value = 0;
+  const notes = [];
+  if (mode === "CONSERVE") {
+    value += 1 - fiveHour;
+    notes.push(`CONSERVE: only ${(fiveHour * 100).toFixed(0)}% of the five-hour window remains`);
+  } else {
+    value += (1 - fiveHour) * 0.25;
+    notes.push(`five-hour window ${(fiveHour * 100).toFixed(0)}% remaining`);
+  }
+  if (weekly < 1) {
+    value += (1 - weekly) * 0.5;
+    notes.push(`weekly window ${(weekly * 100).toFixed(0)}% remaining`);
+  }
+  return { value: Math.min(1, value), detail: notes.join("; ") };
+}
+function clamp01(value) {
+  if (!Number.isFinite(value)) return 1;
+  return Math.min(1, Math.max(0, value));
+}
+function scoreCandidate(input) {
+  const { prediction, policy } = input;
+  const weights = policy.weights;
+  const components = [];
+  const successNormalized = prediction.verifiedSuccessProbability;
+  components.push({
+    name: "verifiedSuccess",
+    raw: successNormalized,
+    unit: "probability",
+    normalized: successNormalized,
+    weight: weights.successWeight,
+    contribution: weights.successWeight * successNormalized,
+    detail: `${(successNormalized * 100).toFixed(0)}% smoothed probability of verified completion (${prediction.sampleCount} sample(s), ${prediction.level}, confidence ${prediction.confidence})`
+  });
+  const latencyNormalized = normalize2(prediction.expectedTotalWallTimeMs, policy.wallTimeScaleMs);
+  components.push({
+    name: "latency",
+    raw: prediction.expectedTotalWallTimeMs,
+    unit: "ms",
+    normalized: latencyNormalized,
+    weight: weights.latencyPenalty,
+    contribution: -weights.latencyPenalty * latencyNormalized,
+    detail: prediction.expectedTotalWallTimeMs === null ? "No wall-time history or heuristic; latency is unpriced rather than guessed." : `${Math.round(prediction.expectedTotalWallTimeMs / 6e4)} min expected to a verified completion across ${prediction.expectedAttempts.toFixed(1)} attempt(s)`
+  });
+  const riskMultiplier = 1 + (prediction.stagnationRate ?? 0) + (prediction.oscillationRate ?? 0) + (prediction.runawayRate ?? 0);
+  const failedWorkNormalized = Math.min(
+    1,
+    normalize2(prediction.expectedFailedWallTimeMs, policy.failedWorkScaleMs) * riskMultiplier
+  );
+  components.push({
+    name: "failedWork",
+    raw: prediction.expectedFailedWallTimeMs,
+    unit: "ms",
+    normalized: failedWorkNormalized,
+    weight: weights.failedWorkPenalty,
+    contribution: -weights.failedWorkPenalty * failedWorkNormalized,
+    detail: prediction.expectedFailedWallTimeMs === null ? "No failed-work history; the retry burden is unpriced rather than guessed." : `${Math.round(prediction.expectedFailedWallTimeMs / 6e4)} min expected on attempts that do not verify, x${riskMultiplier.toFixed(2)} for observed no-progress rates (stalled ${formatRate(prediction.stagnationRate)}, oscillating ${formatRate(prediction.oscillationRate)}, runaway ${formatRate(prediction.runawayRate)})`
+  });
+  const quota = quotaOpportunityCost({
+    lane: prediction.candidate.lane,
+    forecast: input.forecast
+  });
+  components.push({
+    name: "quotaOpportunityCost",
+    raw: quota.value,
+    unit: "pressure index (-1..1, not money)",
+    normalized: quota.value,
+    weight: weights.quotaPressurePenalty,
+    contribution: -weights.quotaPressurePenalty * quota.value,
+    detail: quota.detail
+  });
+  const costPerCompletion = prediction.expectedApiCostUsd === null ? null : prediction.expectedApiCostUsd * prediction.expectedAttempts;
+  const costNormalized = normalize2(costPerCompletion, policy.apiCostScaleUsd);
+  components.push({
+    name: "apiCost",
+    raw: costPerCompletion,
+    unit: "USD",
+    normalized: costNormalized,
+    weight: weights.apiCostPenalty,
+    contribution: -weights.apiCostPenalty * costNormalized,
+    detail: costPerCompletion === null ? "No observed metered cost for this target (unpriced here; current pricing governs spending)." : `$${costPerCompletion.toFixed(4)} expected per verified completion`
+  });
+  const contextPerCompletion = prediction.expectedContextTokens === null ? null : prediction.expectedContextTokens * prediction.expectedAttempts * (1 + (prediction.contextExpansionRate ?? 0));
+  const contextNormalized = normalize2(contextPerCompletion, policy.contextTokenScale);
+  components.push({
+    name: "contextCost",
+    raw: contextPerCompletion,
+    unit: "tokens",
+    normalized: contextNormalized,
+    weight: weights.contextCostPenalty,
+    contribution: -weights.contextCostPenalty * contextNormalized,
+    detail: contextPerCompletion === null ? "No context-size history for this target." : `${Math.round(contextPerCompletion).toLocaleString("en-US")} tokens per verified completion (expansion rate ${formatRate(prediction.contextExpansionRate)}, context-miss rate ${formatRate(prediction.contextMissRate)})`
+  });
+  const handoffNormalized = normalize2(
+    prediction.candidate.handoffOverheadMs,
+    policy.wallTimeScaleMs
+  );
+  components.push({
+    name: "handoff",
+    raw: prediction.candidate.handoffOverheadMs,
+    unit: "ms",
+    normalized: handoffNormalized,
+    weight: weights.handoffPenalty,
+    contribution: -weights.handoffPenalty * handoffNormalized,
+    detail: `${Math.round(prediction.candidate.handoffOverheadMs / 1e3)}s fixed startup overhead`
+  });
+  const score = components.reduce((sum, component) => sum + component.contribution, 0);
+  return { candidateId: prediction.candidate.candidateId, score, components };
+}
+function formatRate(value) {
+  return value === null ? "unknown" : `${(value * 100).toFixed(0)}%`;
+}
+function explainComparison(winner, runnerUp) {
+  const lines = [];
+  const label = describeCandidate(winner.prediction);
+  if (runnerUp === void 0) {
+    lines.push(`${label} is the only eligible candidate.`);
+  } else {
+    const other = describeCandidate(runnerUp.prediction);
+    lines.push(
+      `${label} scores ${winner.score.score.toFixed(3)} against ${other} at ${runnerUp.score.score.toFixed(3)} (margin ${(winner.score.score - runnerUp.score.score).toFixed(3)}).`
+    );
+    lines.push(
+      `verified success: ${(winner.prediction.verifiedSuccessProbability * 100).toFixed(0)}% vs ${(runnerUp.prediction.verifiedSuccessProbability * 100).toFixed(0)}%`
+    );
+    if (winner.prediction.expectedTotalWallTimeMs !== null && runnerUp.prediction.expectedTotalWallTimeMs !== null) {
+      lines.push(
+        `time to verified completion: ${Math.round(winner.prediction.expectedTotalWallTimeMs / 6e4)}m vs ${Math.round(runnerUp.prediction.expectedTotalWallTimeMs / 6e4)}m (retries included)`
+      );
+    }
+    lines.push(
+      `expected attempts: ${winner.prediction.expectedAttempts.toFixed(1)} vs ${runnerUp.prediction.expectedAttempts.toFixed(1)}`
+    );
+    if (winner.prediction.candidate.lane === runnerUp.prediction.candidate.lane) {
+      lines.push(`economic lane: both ${winner.prediction.candidate.lane}`);
+    }
+  }
+  lines.push(
+    `confidence: ${winner.prediction.confidence} (${winner.prediction.sampleCount} sample(s) at ${winner.prediction.level})`
+  );
+  return lines;
+}
+function describeCandidate(prediction) {
+  const candidate = prediction.candidate;
+  const parts = [candidate.lane];
+  if (candidate.executionMode !== null) parts.push(candidate.executionMode);
+  if (candidate.runner !== null) parts.push(candidate.runner);
+  return parts.join("/");
+}
+function evaluateGates(input) {
+  const { recommended, incumbent, policy } = input;
+  if (recommended.prediction.level === "HEURISTIC_PRIOR") {
+    return {
+      passes: false,
+      reason: "COLD_START",
+      detail: "No observed history at any profile level; the deterministic heuristic decides."
+    };
+  }
+  if (recommended.prediction.weightedSampleCount < policy.minimumSamplesForAdaptiveDecision) {
+    return {
+      passes: false,
+      reason: "INSUFFICIENT_SAMPLES",
+      detail: `${recommended.prediction.weightedSampleCount.toFixed(1)} weighted sample(s) for ${describeCandidate(recommended.prediction)}; ${policy.minimumSamplesForAdaptiveDecision} required before history may override the heuristic.`
+    };
+  }
+  if (incumbent.prediction.weightedSampleCount < policy.minimumComparableSamples) {
+    return {
+      passes: false,
+      reason: "INSUFFICIENT_COMPARABLE_SAMPLES",
+      detail: `The heuristic incumbent ${describeCandidate(incumbent.prediction)} carries only ${incumbent.prediction.weightedSampleCount.toFixed(1)} weighted sample(s); a comparison against a barely-measured alternative is not evidence.`
+    };
+  }
+  if (!meetsConfidence(recommended.prediction.confidence, policy.minimumConfidence)) {
+    const reason = recommended.prediction.drift.detected ? "DRIFT_DETECTED" : "CONFIDENCE_BELOW_THRESHOLD";
+    return {
+      passes: false,
+      reason,
+      detail: `Confidence ${recommended.prediction.confidence} is below the configured ${policy.minimumConfidence} floor` + (recommended.prediction.drift.detected ? ` after drift was detected (${recommended.prediction.drift.detail}).` : ".")
+    };
+  }
+  const margin = recommended.score.score - incumbent.score.score;
+  if (margin < policy.minimumUtilityImprovement) {
+    return {
+      passes: false,
+      reason: "UTILITY_MARGIN_TOO_SMALL",
+      detail: `Utility advantage ${margin.toFixed(4)} is under the ${policy.minimumUtilityImprovement} hysteresis threshold; the stable choice stands rather than chasing noise.`
+    };
+  }
+  return { passes: true, reason: null, detail: `Utility advantage ${margin.toFixed(4)}.` };
+}
+function rankCandidates2(input) {
+  const eligible = input.candidates.eligible;
+  const vetoes = input.candidates.rejected;
+  if (eligible.length === 0) {
+    const blocking = vetoes.filter((entry) => entry.code !== "LANE_NOT_ELIGIBLE");
+    return {
+      mode: input.mode,
+      ranked: [],
+      vetoes,
+      heuristicCandidate: null,
+      recommendedCandidate: null,
+      selectedCandidate: null,
+      adaptiveApplied: false,
+      disagreement: false,
+      wouldApplyInAdaptiveMode: false,
+      confidence: "NONE",
+      utilityMargin: null,
+      fallbackReason: blocking.length > 0 ? "ALL_PREFERRED_CANDIDATES_VETOED" : null,
+      explanation: blocking.length > 0 ? blocking.map((entry) => `${entry.code}: ${entry.detail}`) : ["Hard policy left no eligible candidate; there is nothing to rank."]
+    };
+  }
+  const ranked = eligible.map((candidate) => {
+    const prediction = predictCandidate({
+      candidate,
+      signature: input.signature,
+      profiles: input.profiles,
+      policy: input.policy,
+      priorSuccessProbability: input.priorSuccessProbability,
+      heuristicWallTimeMs: input.heuristicWallTimeMs,
+      heuristicInputTokens: input.heuristicInputTokens,
+      heuristicContextTokens: input.heuristicContextTokens,
+      heuristicFiveHourBurnRatio: input.heuristicFiveHourBurnRatio
+    });
+    return {
+      prediction,
+      score: scoreCandidate({ prediction, policy: input.policy, forecast: input.forecast })
+    };
+  }).sort(
+    (left, right) => right.score.score !== left.score.score ? right.score.score - left.score.score : left.prediction.candidate.candidateId < right.prediction.candidate.candidateId ? -1 : 1
+  );
+  const first = ranked[0];
+  const incumbent = ranked.find((entry) => entry.prediction.candidate.heuristicChoice) ?? first;
+  const heuristicCandidate = incumbent.prediction.candidate;
+  const recommendedCandidate = first.prediction.candidate;
+  const disagreement = recommendedCandidate.candidateId !== heuristicCandidate.candidateId;
+  const utilityMargin = first.score.score - incumbent.score.score;
+  const explanation = explainComparison(
+    first,
+    ranked.find((entry) => entry.prediction.candidate.candidateId !== first.prediction.candidate.candidateId)
+  );
+  if (eligible.length === 1) {
+    return {
+      mode: input.mode,
+      ranked,
+      vetoes,
+      heuristicCandidate,
+      recommendedCandidate,
+      selectedCandidate: heuristicCandidate,
+      adaptiveApplied: false,
+      disagreement: false,
+      wouldApplyInAdaptiveMode: false,
+      confidence: first.prediction.confidence,
+      utilityMargin: 0,
+      fallbackReason: "SINGLE_CANDIDATE",
+      explanation
+    };
+  }
+  if (!disagreement) {
+    return {
+      mode: input.mode,
+      ranked,
+      vetoes,
+      heuristicCandidate,
+      recommendedCandidate,
+      selectedCandidate: heuristicCandidate,
+      adaptiveApplied: false,
+      disagreement: false,
+      wouldApplyInAdaptiveMode: false,
+      confidence: first.prediction.confidence,
+      utilityMargin: 0,
+      fallbackReason: "AGREES_WITH_HEURISTIC",
+      explanation: [
+        ...explanation,
+        "Adaptive ranking prefers the same candidate the deterministic scheduler chose."
+      ]
+    };
+  }
+  const gate = evaluateGates({ recommended: first, incumbent, policy: input.policy });
+  if (input.mode === "SHADOW") {
+    return {
+      mode: input.mode,
+      ranked,
+      vetoes,
+      heuristicCandidate,
+      recommendedCandidate,
+      selectedCandidate: heuristicCandidate,
+      adaptiveApplied: false,
+      disagreement: true,
+      wouldApplyInAdaptiveMode: gate.passes,
+      confidence: first.prediction.confidence,
+      utilityMargin,
+      fallbackReason: "MODE_SHADOW",
+      explanation: [
+        ...explanation,
+        `SHADOW mode: ${describeCandidate(first.prediction)} is recommended but ${describeCandidate(incumbent.prediction)} executes. The alternative was NOT run, so no claim is made about what it would have produced.`,
+        gate.passes ? "In ADAPTIVE mode this recommendation would have been applied." : `In ADAPTIVE mode this recommendation would NOT have been applied: ${gate.detail}`
+      ]
+    };
+  }
+  if (input.mode === "HEURISTIC") {
+    return {
+      mode: input.mode,
+      ranked,
+      vetoes,
+      heuristicCandidate,
+      recommendedCandidate,
+      selectedCandidate: heuristicCandidate,
+      adaptiveApplied: false,
+      disagreement: true,
+      wouldApplyInAdaptiveMode: gate.passes,
+      confidence: first.prediction.confidence,
+      utilityMargin,
+      fallbackReason: "MODE_HEURISTIC",
+      explanation: [...explanation, "Adaptive scheduling is disabled; the heuristic decides."]
+    };
+  }
+  if (!gate.passes) {
+    return {
+      mode: input.mode,
+      ranked,
+      vetoes,
+      heuristicCandidate,
+      recommendedCandidate,
+      selectedCandidate: heuristicCandidate,
+      adaptiveApplied: false,
+      disagreement: true,
+      wouldApplyInAdaptiveMode: false,
+      confidence: first.prediction.confidence,
+      utilityMargin,
+      fallbackReason: gate.reason,
+      explanation: [...explanation, gate.detail]
+    };
+  }
+  return {
+    mode: input.mode,
+    ranked,
+    vetoes,
+    heuristicCandidate,
+    recommendedCandidate,
+    selectedCandidate: recommendedCandidate,
+    adaptiveApplied: true,
+    disagreement: true,
+    wouldApplyInAdaptiveMode: true,
+    confidence: first.prediction.confidence,
+    utilityMargin,
+    fallbackReason: null,
+    explanation: [...explanation, gate.detail]
+  };
+}
 function createSchedulingRuntime(config2, workspace, input) {
   const policy = config2.orchestration.jobs.scheduler;
   if (!policy.enabled) return void 0;
@@ -72617,6 +74627,16 @@ function createSchedulingRuntime(config2, workspace, input) {
     apiBridgeEnabled,
     subscriptionWorkerAvailable: input.subscriptionWorkerAvailable ?? true,
     verificationAvailable: config2.verification.commands.length > 0,
+    adaptivePolicy: policy.adaptive,
+    adaptiveEnabled: policy.adaptive.mode !== "HEURISTIC",
+    contextStrategy: config2.orchestration.jobs.context.efficiency.strategy,
+    // The runner that will actually record a DIRECT attempt is chosen with
+    // the worker, after this point. `defaultRunner` is the best identity
+    // available at scheduling time; when it turns out not to match, the
+    // exact profile simply misses and the coarser lane/mode level answers —
+    // which is what the fallback hierarchy is for.
+    localDirectRunner: config2.defaultRunner,
+    localDirectModel: config2.localInference.model ?? null,
     lastMode: void 0,
     lastReserveRatio: void 0,
     lastFreshness: void 0,
@@ -72715,6 +74735,7 @@ async function buildLaneContext(runtime, deps, jobId, job, graph) {
       if (assessment.routing.lane !== "DEFER") break;
     }
   }
+  const adaptive = runtime.adaptiveEnabled ? applyAdaptiveRanking(runtime, deps, jobId, job, ready, routings, forecast) : void 0;
   return {
     context: {
       policy: runtime.policy,
@@ -72724,7 +74745,80 @@ async function buildLaneContext(runtime, deps, jobId, job, graph) {
     },
     forecast,
     reserve,
-    overtakeCandidate
+    overtakeCandidate,
+    adaptive
+  };
+}
+function applyAdaptiveRanking(runtime, deps, jobId, job, ready, routings, forecast) {
+  const now5 = (deps.clock ?? (() => /* @__PURE__ */ new Date()))();
+  let loaded;
+  try {
+    loaded = loadAdaptiveProfiles({
+      workspace: deps.workspace,
+      policy: runtime.adaptivePolicy,
+      now: now5
+    });
+  } catch {
+    return void 0;
+  }
+  const rankings = /* @__PURE__ */ new Map();
+  const signatures = /* @__PURE__ */ new Map();
+  for (const node of ready) {
+    const assessment = routings.get(node.nodeId);
+    if (assessment === void 0) continue;
+    const signature = assessment.signature;
+    if (signature === void 0) continue;
+    const reliability = readTaskReliabilityState(deps.workspace, jobId, node.nodeId);
+    signatures.set(node.nodeId, signature);
+    const candidates = generateCandidates({
+      routing: assessment,
+      contextStrategy: runtime.contextStrategy,
+      harnessBinding: runtime.harnessBinding,
+      localDirectAvailable: runtime.localDirectAvailable,
+      localDirectModel: runtime.localDirectModel,
+      localDirectRunner: runtime.localDirectRunner,
+      apiBinding: runtime.apiBinding,
+      subscriptionProvider: null,
+      exhaustedStrategies: reliability?.exhaustedStrategies ?? [],
+      planRevision: job.graphRevision
+    });
+    const ranking = rankCandidates2({
+      mode: runtime.adaptivePolicy.mode,
+      candidates,
+      signature,
+      profiles: loaded.profiles,
+      policy: runtime.adaptivePolicy,
+      forecast,
+      // The Beta prior's mean is the EXISTING heuristic's own expectation
+      // that one attempt succeeds. Identical across candidates on a task, so
+      // it expresses uncertainty and never a preference for a provider.
+      priorSuccessProbability: 1 - assessment.estimate.retryProbability,
+      heuristicWallTimeMs: assessment.estimate.expectedWallTimeMs,
+      heuristicInputTokens: assessment.estimate.expectedInputTokens,
+      heuristicContextTokens: assessment.estimate.expectedContextGrowthTokens,
+      heuristicFiveHourBurnRatio: assessment.estimate.expectedFiveHourBurnRatio
+    });
+    rankings.set(node.nodeId, ranking);
+    const selected = ranking.selectedCandidate;
+    if (!ranking.adaptiveApplied || selected === null || selected.executionMode === null || assessment.routing.lane !== "LOCAL" || assessment.localExecution === void 0 || assessment.localExecution.mode === selected.executionMode) {
+      continue;
+    }
+    routings.set(node.nodeId, {
+      ...assessment,
+      localExecution: {
+        ...assessment.localExecution,
+        mode: selected.executionMode,
+        detail: `${assessment.localExecution.detail} Adaptive scheduler selected ${selected.executionMode} on observed history (confidence ${ranking.confidence}).`
+      }
+    });
+  }
+  return {
+    profiles: loaded.profiles,
+    source: loaded.source,
+    invalidatedReason: loaded.invalidatedReason,
+    jobsScanned: loaded.jobsScanned,
+    rankings,
+    signatures
   };
 }
 function assessApiGapBridge(runtime, deps, jobId, job, node, assessment, context) {
@@ -72799,7 +74893,11 @@ function assessNode(runtime, deps, jobId, job, node, forecast, reserve, observat
     localSuitability: suitability.class,
     taskCategory: suitability.category,
     policy: runtime.policy.estimator,
-    observations
+    observations,
+    // vNext.8: the measured conservative tail feeds admission only while the
+    // adaptive scheduler is on. It makes admission STRICTER, and an operator
+    // running in HEURISTIC mode asked for vNext.7 behavior.
+    conservativeBurnFromHistory: runtime.adaptiveEnabled
   });
   const routing = decideLane({
     estimate,
@@ -72812,9 +74910,6 @@ function assessNode(runtime, deps, jobId, job, node, forecast, reserve, observat
     contextUsageRatio: estimateNodeContextRatio(deps, jobId, node.nodeId),
     policy: runtime.policy
   });
-  if (routing.lane !== "LOCAL") {
-    return { suitability, estimate, routing };
-  }
   const directToHarness = job.escalations.some(
     (entry) => entry.nodeId === node.nodeId && entry.reason === DIRECT_TO_HARNESS_REASON
   );
@@ -72825,6 +74920,22 @@ function assessNode(runtime, deps, jobId, job, node, forecast, reserve, observat
     complexity: node.complexity,
     priorDirectFailureNeedsRepository: directToHarness
   });
+  const reliability = readTaskReliabilityState(deps.workspace, jobId, node.nodeId);
+  const signature = buildTaskSignature({
+    category: suitability.category,
+    complexity: node.complexity ?? "MEDIUM",
+    localSuitability: suitability.class,
+    executionShape: shape.shape,
+    deterministicVerificationAvailable: runtime.verificationAvailable,
+    expectedContextTokens: estimate.expectedContextGrowthTokens,
+    features: {
+      failureClass: reliability?.health ?? null,
+      expectedTestLoopClass: runtime.verificationAvailable ? "ITERATIVE" : "NONE"
+    }
+  });
+  if (routing.lane !== "LOCAL") {
+    return { suitability, estimate, routing, signature };
+  }
   const localExecution = resolveLocalExecutionMode({
     strategy: runtime.policy.localExecution.strategy,
     suitability: suitability.class,
@@ -72836,7 +74947,7 @@ function assessNode(runtime, deps, jobId, job, node, forecast, reserve, observat
     maxLocalAttempts: runtime.policy.maxLocalAttempts,
     ...runtime.localExecutionOverride !== void 0 ? { override: runtime.localExecutionOverride } : {}
   });
-  return { suitability, estimate, routing, shape, localExecution };
+  return { suitability, estimate, routing, shape, localExecution, signature };
 }
 function defaultSleep(ms, signal) {
   return new Promise((resolve2) => {
@@ -72862,7 +74973,7 @@ function specExcerptFor(workspace, specName, maxChars) {
       if (file === void 0) continue;
       try {
         parts.push(`--- ${kind} ---
-${(0, import_fs39.readFileSync)(file.path, "utf8")}`);
+${(0, import_fs41.readFileSync)(file.path, "utf8")}`);
       } catch {
       }
     }
@@ -73221,6 +75332,13 @@ async function driveJob(deps, jobId, options = {}) {
             ...apiLane && schedulingRuntime?.apiBinding.model != null ? { model: schedulingRuntime.apiBinding.model } : localExecution?.harness?.model != null ? { model: localExecution.harness.model } : {},
             ...laneName !== void 0 ? { lane: laneName } : {},
             ...executionMode !== void 0 ? { executionMode } : {},
+            // vNext.8: the grouping key and context strategy travel with the
+            // observation. Recorded in EVERY adaptive mode, including
+            // HEURISTIC — a workspace that switches the adaptive scheduler on
+            // later should find comparable history already waiting, not start
+            // learning from zero.
+            ...laneRouting?.signature !== void 0 ? { taskSignature: laneRouting.signature.key } : {},
+            contextStrategy: deps.config.orchestration.jobs.context.efficiency.strategy,
             ...localExecution !== void 0 ? {
               executionShape: localExecution.shape,
               computeLocality: executionMode === "HARNESS" ? localExecution.harness?.locality ?? "UNKNOWN" : "LOCAL"
@@ -73777,7 +75895,7 @@ function buildCriteriaEvidence(input) {
   const normalized = input.changedPaths.map((entry) => entry.replaceAll("\\", "/"));
   const existing = /* @__PURE__ */ new Set();
   for (const changed of normalized) {
-    if ((0, import_fs39.existsSync)(import_path42.default.join(input.workspaceRoot, changed))) existing.add(changed);
+    if ((0, import_fs41.existsSync)(import_path44.default.join(input.workspaceRoot, changed))) existing.add(changed);
   }
   return {
     existingPaths: existing,
@@ -74068,7 +76186,178 @@ function persistLaneDecision(deps, jobId, input) {
       basis: routing.estimate.basis
     });
   }
+  persistAdaptiveDecision(deps, jobId, {
+    nodeId: input.nodeId,
+    taskId: input.taskId,
+    heuristicLane: input.selectedLane,
+    heuristicReasonCode: input.reasonCode,
+    lane: input.lane,
+    createdAt,
+    decisionId
+  });
   return decisionId;
+}
+function persistAdaptiveDecision(deps, jobId, input) {
+  const adaptive = input.lane.adaptive;
+  if (adaptive === void 0) return;
+  const ranking = adaptive.rankings.get(input.nodeId);
+  const signature = adaptive.signatures.get(input.nodeId);
+  if (ranking === void 0 || signature === void 0) return;
+  try {
+    appendAdaptiveDecision(
+      deps.workspace,
+      {
+        schemaVersion: ADAPTIVE_DECISION_SCHEMA_VERSION,
+        decisionId: `ad-${input.decisionId}`.slice(0, 200),
+        jobId,
+        nodeId: input.nodeId,
+        taskId: input.taskId,
+        mode: ranking.mode,
+        taskSignature: signature.key,
+        signatureFeatures: {
+          ...signature.features,
+          repositorySize: signature.repositorySize,
+          contextSize: signature.contextSize
+        },
+        heuristicLane: input.heuristicLane,
+        heuristicReasonCode: input.heuristicReasonCode,
+        eligibleCandidates: ranking.ranked.map((entry) => ({
+          candidateId: entry.prediction.candidate.candidateId,
+          lane: entry.prediction.candidate.lane,
+          executionMode: entry.prediction.candidate.executionMode,
+          runner: entry.prediction.candidate.runner,
+          model: entry.prediction.candidate.model,
+          profile: entry.prediction.candidate.profile,
+          contextStrategy: entry.prediction.candidate.contextStrategy,
+          computeLocality: entry.prediction.candidate.computeLocality,
+          heuristicChoice: entry.prediction.candidate.heuristicChoice
+        })),
+        rejectedCandidates: ranking.vetoes.map((entry) => ({
+          candidateId: entry.candidateId,
+          lane: entry.lane,
+          executionMode: entry.executionMode,
+          runner: entry.runner,
+          code: entry.code,
+          detail: entry.detail.slice(0, 600)
+        })),
+        predictions: ranking.ranked.map((entry) => ({
+          candidateId: entry.prediction.candidate.candidateId,
+          level: entry.prediction.level,
+          profileKey: entry.prediction.profileKey,
+          confidence: entry.prediction.confidence,
+          confidenceScore: entry.prediction.confidenceScore,
+          identityMatch: entry.prediction.identityMatch,
+          driftDetected: entry.prediction.drift.detected,
+          driftSignals: entry.prediction.drift.signals,
+          verifiedSuccessProbability: entry.prediction.verifiedSuccessProbability,
+          priorSuccessProbability: entry.prediction.priorSuccessProbability,
+          observedSuccessRate: entry.prediction.observedSuccessRate,
+          firstAttemptSuccessRate: entry.prediction.firstAttemptSuccessRate,
+          availabilityProbability: entry.prediction.availabilityProbability,
+          expectedAttempts: entry.prediction.expectedAttempts,
+          expectedWallTimeMs: entry.prediction.expectedWallTimeMs,
+          expectedTotalWallTimeMs: entry.prediction.expectedTotalWallTimeMs,
+          expectedInputTokens: entry.prediction.expectedInputTokens,
+          expectedContextTokens: entry.prediction.expectedContextTokens,
+          expectedFiveHourBurnRatio: entry.prediction.expectedFiveHourBurnRatio,
+          conservativeFiveHourBurnRatio: entry.prediction.conservativeFiveHourBurnRatio,
+          expectedApiCostUsd: entry.prediction.expectedApiCostUsd,
+          expectedFailedWallTimeMs: entry.prediction.expectedFailedWallTimeMs,
+          stagnationRate: entry.prediction.stagnationRate,
+          oscillationRate: entry.prediction.oscillationRate,
+          runawayRate: entry.prediction.runawayRate,
+          contextMissRate: entry.prediction.contextMissRate,
+          contextExpansionRate: entry.prediction.contextExpansionRate,
+          safetyEvents: entry.prediction.safetyEvents,
+          sampleCount: entry.prediction.sampleCount,
+          weightedSampleCount: entry.prediction.weightedSampleCount,
+          lastObservedAt: entry.prediction.lastObservedAt,
+          score: entry.score.score,
+          scoreComponents: entry.score.components.map((component) => ({
+            name: component.name,
+            raw: component.raw,
+            unit: component.unit,
+            normalized: component.normalized,
+            weight: component.weight,
+            contribution: component.contribution,
+            detail: component.detail.slice(0, 600)
+          }))
+        })),
+        heuristicCandidateId: ranking.heuristicCandidate?.candidateId ?? null,
+        recommendedCandidateId: ranking.recommendedCandidate?.candidateId ?? null,
+        selectedCandidateId: ranking.selectedCandidate?.candidateId ?? null,
+        adaptiveApplied: ranking.adaptiveApplied,
+        disagreement: ranking.disagreement,
+        wouldApplyInAdaptiveMode: ranking.wouldApplyInAdaptiveMode,
+        confidence: ranking.confidence,
+        utilityMargin: ranking.utilityMargin,
+        fallbackReason: ranking.fallbackReason,
+        explanation: ranking.explanation.map((line) => line.slice(0, 600)).slice(0, 24),
+        profileObservations: adaptive.profiles.observationCount,
+        profileBuiltAt: adaptive.profiles.builtAt,
+        createdAt: input.createdAt
+      },
+      { maxRecords: deps.config.orchestration.jobs.scheduler.adaptive.maxDecisionRecords }
+    );
+  } catch {
+  }
+  recordJobEvent(deps, jobId, "adaptive_prediction_created", {
+    nodeId: input.nodeId,
+    taskId: input.taskId,
+    mode: ranking.mode,
+    taskSignature: signature.key,
+    candidates: ranking.ranked.length,
+    confidence: ranking.confidence,
+    profileSource: adaptive.source
+  });
+  for (const veto of ranking.vetoes) {
+    if (veto.code === "LANE_NOT_ELIGIBLE") continue;
+    recordJobEvent(deps, jobId, "adaptive_candidate_vetoed", {
+      nodeId: input.nodeId,
+      taskId: input.taskId,
+      candidateId: veto.candidateId,
+      code: veto.code
+    });
+  }
+  const drifting = ranking.ranked.filter((entry) => entry.prediction.drift.detected);
+  for (const entry of drifting) {
+    recordJobEvent(deps, jobId, "adaptive_drift_detected", {
+      nodeId: input.nodeId,
+      candidateId: entry.prediction.candidate.candidateId,
+      signals: entry.prediction.drift.signals,
+      detail: entry.prediction.drift.detail.slice(0, 300)
+    });
+  }
+  if (ranking.adaptiveApplied) {
+    recordJobEvent(deps, jobId, "adaptive_candidate_selected", {
+      nodeId: input.nodeId,
+      taskId: input.taskId,
+      selected: ranking.selectedCandidate?.candidateId ?? null,
+      heuristic: ranking.heuristicCandidate?.candidateId ?? null,
+      confidence: ranking.confidence,
+      utilityMargin: ranking.utilityMargin
+    });
+    return;
+  }
+  if (ranking.mode === "SHADOW" && ranking.disagreement) {
+    recordJobEvent(deps, jobId, "adaptive_shadow_disagreement", {
+      nodeId: input.nodeId,
+      taskId: input.taskId,
+      executed: ranking.heuristicCandidate?.candidateId ?? null,
+      recommended: ranking.recommendedCandidate?.candidateId ?? null,
+      wouldApplyInAdaptiveMode: ranking.wouldApplyInAdaptiveMode,
+      confidence: ranking.confidence
+    });
+    return;
+  }
+  if (ranking.fallbackReason !== null && ranking.fallbackReason !== "AGREES_WITH_HEURISTIC") {
+    recordJobEvent(deps, jobId, "adaptive_fallback_to_heuristic", {
+      nodeId: input.nodeId,
+      taskId: input.taskId,
+      reason: ranking.fallbackReason,
+      confidence: ranking.confidence
+    });
+  }
 }
 function emitSchedulingTransitions(deps, jobId, runtime, lane, emit2) {
   const forecast = lane.forecast;
@@ -74320,7 +76609,7 @@ async function runRole(deps, jobId, role, decision, packet, runtime) {
     runnerProfile: decision.worker.runnerProfile ?? deps.config.defaultRunner,
     role,
     packet,
-    scratchDir: import_path42.default.join(jobDir(deps.workspace, jobId), "scratch"),
+    scratchDir: import_path44.default.join(jobDir(deps.workspace, jobId), "scratch"),
     timeoutMs: 6e5,
     signal: runtime.signal,
     cachedProbe: runtime.probeCache.probe
@@ -74413,7 +76702,7 @@ async function applyRoleOutput(deps, jobId, role, result, context, node, activeP
       const candidate = replannerOutputToCandidate(output);
       const screen = screenReplanForApprovedIntentImpact(
         { goal: candidate.goal, steps: candidate.steps },
-        activePlan !== void 0 ? { goal: activePlan.goal, steps: activePlan.steps.map((step) => ({ description: step.description })) } : void 0
+        activePlan !== void 0 ? { goal: activePlan.goal, steps: activePlan.steps.map((step2) => ({ description: step2.description })) } : void 0
       );
       if (output.impactsApprovedIntent || screen.impacts) {
         askClarification(deps, jobId, [
@@ -74610,17 +76899,17 @@ async function git22(cwd, argv2, timeoutMs = GIT_TIMEOUT_MS22) {
   return { ok: result.status === "ok", stdout: result.stdout, stderr: result.stderr };
 }
 function seedSidecar(source, targetRoot, specNames) {
-  const sidecar = import_path52.default.join(targetRoot, ".specbridge");
-  (0, import_fs46.mkdirSync)(sidecar, { recursive: true });
-  const config2 = import_path52.default.join(source.sidecarDir, "config.json");
-  if ((0, import_fs46.existsSync)(config2)) (0, import_fs46.copyFileSync)(config2, import_path52.default.join(sidecar, "config.json"));
-  const stateDir = import_path52.default.join(source.sidecarDir, "state", "specs");
-  if (!(0, import_fs46.existsSync)(stateDir)) return;
-  const targetState = import_path52.default.join(sidecar, "state", "specs");
-  (0, import_fs46.mkdirSync)(targetState, { recursive: true });
+  const sidecar = import_path54.default.join(targetRoot, ".specbridge");
+  (0, import_fs48.mkdirSync)(sidecar, { recursive: true });
+  const config2 = import_path54.default.join(source.sidecarDir, "config.json");
+  if ((0, import_fs48.existsSync)(config2)) (0, import_fs48.copyFileSync)(config2, import_path54.default.join(sidecar, "config.json"));
+  const stateDir = import_path54.default.join(source.sidecarDir, "state", "specs");
+  if (!(0, import_fs48.existsSync)(stateDir)) return;
+  const targetState = import_path54.default.join(sidecar, "state", "specs");
+  (0, import_fs48.mkdirSync)(targetState, { recursive: true });
   for (const name of new Set(specNames)) {
-    const file = import_path52.default.join(stateDir, `${name}.json`);
-    if ((0, import_fs46.existsSync)(file)) (0, import_fs46.copyFileSync)(file, import_path52.default.join(targetState, `${name}.json`));
+    const file = import_path54.default.join(stateDir, `${name}.json`);
+    if ((0, import_fs48.existsSync)(file)) (0, import_fs48.copyFileSync)(file, import_path54.default.join(targetState, `${name}.json`));
   }
 }
 function syntheticNode(evaluationCase) {
@@ -74648,8 +76937,8 @@ async function evaluateLocalRuntime(input) {
   const modes = input.modes ?? ["DIRECT_MODEL", "HARNESS"];
   const binding = resolveLocalHarnessBinding(input.config);
   const harnessProfile = input.harnessProfile ?? binding.profileName ?? void 0;
-  const workRoot = input.workRoot ?? import_path52.default.join(input.workspace.sidecarDir, "local-runtime-eval");
-  (0, import_fs46.mkdirSync)(workRoot, { recursive: true });
+  const workRoot = input.workRoot ?? import_path54.default.join(input.workspace.sidecarDir, "local-runtime-eval");
+  (0, import_fs48.mkdirSync)(workRoot, { recursive: true });
   const head = await git22(input.workspace.rootDir, ["rev-parse", "HEAD"]);
   if (!head.ok) {
     throw new OrchestrationError(
@@ -74708,7 +76997,7 @@ async function evaluateLocalRuntime(input) {
 }
 async function runArm(options) {
   const { input, evaluationCase, mode, workRoot } = options;
-  const armDir = import_path52.default.join(
+  const armDir = import_path54.default.join(
     workRoot,
     `${evaluationCase.caseId}-${mode === "HARNESS" ? "harness" : "direct"}`.replace(
       /[^A-Za-z0-9._-]/g,
@@ -74739,9 +77028,9 @@ async function runArm(options) {
   if (mode === "HARNESS" && options.harnessProfile === void 0) {
     return unavailable("no harness profile is bound or configured for the harness arm");
   }
-  if ((0, import_fs46.existsSync)(armDir)) {
+  if ((0, import_fs48.existsSync)(armDir)) {
     await git22(input.workspace.rootDir, ["worktree", "remove", "--force", armDir]);
-    (0, import_fs46.rmSync)(armDir, { recursive: true, force: true });
+    (0, import_fs48.rmSync)(armDir, { recursive: true, force: true });
   }
   const added = await git22(
     input.workspace.rootDir,
@@ -74817,7 +77106,7 @@ async function runArm(options) {
     if (input.keepWorktrees !== true) {
       await git22(input.workspace.rootDir, ["worktree", "remove", "--force", armDir]);
       try {
-        (0, import_fs46.rmSync)(armDir, { recursive: true, force: true });
+        (0, import_fs48.rmSync)(armDir, { recursive: true, force: true });
       } catch {
       }
       await git22(input.workspace.rootDir, ["worktree", "prune"]);
@@ -75390,20 +77679,20 @@ var import_node_fs6 = require("fs");
 var import_node_path8 = __toESM(require("path"), 1);
 
 // ../../packages/drift/dist/index.js
-var import_fs47 = require("fs");
-var import_path53 = __toESM(require("path"), 1);
-var import_picomatch = __toESM(require_picomatch2(), 1);
-var import_fs48 = require("fs");
-var import_path54 = __toESM(require("path"), 1);
 var import_fs49 = require("fs");
 var import_path55 = __toESM(require("path"), 1);
+var import_picomatch = __toESM(require_picomatch2(), 1);
 var import_fs50 = require("fs");
 var import_path56 = __toESM(require("path"), 1);
 var import_fs51 = require("fs");
 var import_path57 = __toESM(require("path"), 1);
 var import_fs52 = require("fs");
-var import_crypto22 = require("crypto");
 var import_path58 = __toESM(require("path"), 1);
+var import_fs53 = require("fs");
+var import_path59 = __toESM(require("path"), 1);
+var import_fs54 = require("fs");
+var import_crypto23 = require("crypto");
+var import_path60 = __toESM(require("path"), 1);
 var taskEvidenceSchema = external_exports.object({
   taskId: external_exports.string().min(1),
   status: external_exports.enum(["recorded", "verified", "rejected"]),
@@ -75504,24 +77793,24 @@ var verificationPolicySchema = external_exports.object({
   }
 });
 function policyDir(workspace) {
-  return import_path53.default.join(workspace.sidecarDir, "policies");
+  return import_path55.default.join(workspace.sidecarDir, "policies");
 }
 function policyPath(workspace, specName) {
-  const resolved = import_path53.default.resolve(policyDir(workspace), `${specName}.json`);
-  const relative = import_path53.default.relative(workspace.rootDir, resolved);
-  if (relative.startsWith("..") || import_path53.default.isAbsolute(relative)) {
-    return import_path53.default.join(policyDir(workspace), "invalid-spec-name.json");
+  const resolved = import_path55.default.resolve(policyDir(workspace), `${specName}.json`);
+  const relative = import_path55.default.relative(workspace.rootDir, resolved);
+  if (relative.startsWith("..") || import_path55.default.isAbsolute(relative)) {
+    return import_path55.default.join(policyDir(workspace), "invalid-spec-name.json");
   }
   return resolved;
 }
 function readVerificationPolicy(workspace, specName, explicitPath) {
-  const filePath = explicitPath !== void 0 ? import_path53.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
-  if (!(0, import_fs47.existsSync)(filePath)) {
+  const filePath = explicitPath !== void 0 ? import_path55.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
+  if (!(0, import_fs49.existsSync)(filePath)) {
     return { path: filePath, exists: false, diagnostics: [] };
   }
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs47.readFileSync)(filePath, "utf8"));
+    parsed = JSON.parse((0, import_fs49.readFileSync)(filePath, "utf8"));
   } catch (cause) {
     return {
       path: filePath,
@@ -75584,7 +77873,7 @@ function resolveEffectivePolicy(workspace, specName, options = {}) {
   const storedMode = policy?.mode ?? "advisory";
   const strictFromCli = options.strict === true && storedMode !== "strict";
   const mode = options.strict === true ? "strict" : storedMode;
-  const workspaceRelativePolicyPath = import_path53.default.relative(workspace.rootDir, read.path).split(import_path53.default.sep).join("/");
+  const workspaceRelativePolicyPath = import_path55.default.relative(workspace.rootDir, read.path).split(import_path55.default.sep).join("/");
   return {
     specName,
     mode,
@@ -75745,33 +78034,33 @@ function mergeNumstat(files, stats) {
 function sniffBinary(absolutePath) {
   let fd;
   try {
-    fd = (0, import_fs48.openSync)(absolutePath, "r");
+    fd = (0, import_fs50.openSync)(absolutePath, "r");
     const buffer = Buffer.alloc(8e3);
-    const bytesRead = (0, import_fs48.readSync)(fd, buffer, 0, buffer.length, 0);
+    const bytesRead = (0, import_fs50.readSync)(fd, buffer, 0, buffer.length, 0);
     return buffer.subarray(0, bytesRead).includes(0);
   } catch {
     return false;
   } finally {
-    if (fd !== void 0) (0, import_fs48.closeSync)(fd);
+    if (fd !== void 0) (0, import_fs50.closeSync)(fd);
   }
 }
 function flagSymlinkEscapes(repoRoot, files) {
   const resolvedRoot = (() => {
     try {
-      return (0, import_fs48.realpathSync)(repoRoot);
+      return (0, import_fs50.realpathSync)(repoRoot);
     } catch {
-      return import_path54.default.resolve(repoRoot);
+      return import_path56.default.resolve(repoRoot);
     }
   })();
   for (const file of files) {
     if (file.changeType === "deleted") continue;
-    const absolute = import_path54.default.join(repoRoot, file.path.split("/").join(import_path54.default.sep));
+    const absolute = import_path56.default.join(repoRoot, file.path.split("/").join(import_path56.default.sep));
     try {
-      const stats = (0, import_fs48.lstatSync)(absolute);
+      const stats = (0, import_fs50.lstatSync)(absolute);
       if (!stats.isSymbolicLink()) continue;
-      const target = (0, import_fs48.realpathSync)(absolute);
-      const relative = import_path54.default.relative(resolvedRoot, target);
-      if (relative.startsWith("..") || import_path54.default.isAbsolute(relative)) {
+      const target = (0, import_fs50.realpathSync)(absolute);
+      const relative = import_path56.default.relative(resolvedRoot, target);
+      if (relative.startsWith("..") || import_path56.default.isAbsolute(relative)) {
         file.symlinkOutsideRepository = true;
       }
     } catch {
@@ -75899,7 +78188,7 @@ async function resolveComparison(repoRoot, request, options = {}) {
     const known = new Set(files.map((file) => file.path));
     for (const token of untracked.stdout.split("\0")) {
       if (token.length === 0 || known.has(token)) continue;
-      const absolute = import_path54.default.join(repoRoot, token.split("/").join(import_path54.default.sep));
+      const absolute = import_path56.default.join(repoRoot, token.split("/").join(import_path56.default.sep));
       files.push({
         path: token,
         changeType: "untracked",
@@ -75979,9 +78268,9 @@ function specMatchReasons(specName, policy, validEvidencePaths, designPathRefere
 function readSpecEvidenceRecords(workspace, specName) {
   const byTask = /* @__PURE__ */ new Map();
   let invalidRecordCount = 0;
-  const specDir = import_path55.default.join(workspace.sidecarDir, "evidence", specName);
-  if ((0, import_fs49.existsSync)(specDir)) {
-    const taskDirs = (0, import_fs49.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
+  const specDir = import_path57.default.join(workspace.sidecarDir, "evidence", specName);
+  if ((0, import_fs51.existsSync)(specDir)) {
+    const taskDirs = (0, import_fs51.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
     for (const taskDir of taskDirs) {
       const { records, diagnostics } = listTaskEvidence(workspace, specName, taskDir);
       invalidRecordCount += diagnostics.length;
@@ -76028,7 +78317,7 @@ async function buildSpecVerificationContext(options) {
     }
     if (effective("tasks") && tasksStage !== void 0) {
       const planHash2 = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(
-        import_path55.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path55.default.sep))
+        import_path57.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path57.default.sep))
       );
       if (planHash2 !== void 0) approved.tasksPlanHash = planHash2;
     }
@@ -76256,7 +78545,7 @@ async function evaluateGlobalRules(rules, context) {
   return { diagnostics, disabledRules };
 }
 function repoRelative(workspace, absolutePath) {
-  return import_path56.default.relative(workspace.rootDir, absolutePath).split(import_path56.default.sep).join("/");
+  return import_path58.default.relative(workspace.rootDir, absolutePath).split(import_path58.default.sep).join("/");
 }
 function isSpecInfraPath(candidate) {
   return candidate === ".git" || candidate.startsWith(".git/") || candidate.startsWith(".kiro/") || candidate.startsWith(".specbridge/");
@@ -76937,14 +79226,14 @@ var sbv018 = {
     if (designDocument === void 0) return [];
     const designFile = designDocument.filePath;
     const designRepoPath = designFile !== void 0 ? repoRelative(context.workspace, designFile) : void 0;
-    const specDir = import_path56.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
+    const specDir = import_path58.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
     return context.traceability.designPathReferences.filter((reference) => !reference.isGlob).filter((reference) => {
-      const fromRoot = import_path56.default.join(
+      const fromRoot = import_path58.default.join(
         context.workspace.rootDir,
-        reference.path.split("/").join(import_path56.default.sep)
+        reference.path.split("/").join(import_path58.default.sep)
       );
-      const fromSpecDir = import_path56.default.join(specDir, reference.path.split("/").join(import_path56.default.sep));
-      return !(0, import_fs50.existsSync)(fromRoot) && !(0, import_fs50.existsSync)(fromSpecDir);
+      const fromSpecDir = import_path58.default.join(specDir, reference.path.split("/").join(import_path58.default.sep));
+      return !(0, import_fs52.existsSync)(fromRoot) && !(0, import_fs52.existsSync)(fromSpecDir);
     }).map(
       (reference) => makeDiagnostic({
         rule: this,
@@ -77191,9 +79480,9 @@ function loadSpecMatchingInfo(workspace, folder, options) {
     }
   }
   const evidencePaths = /* @__PURE__ */ new Set();
-  const evidenceDir2 = import_path57.default.join(workspace.sidecarDir, "evidence", folder.name);
-  if ((0, import_fs51.existsSync)(evidenceDir2)) {
-    for (const entry of (0, import_fs52.readdirSync)(evidenceDir2, { withFileTypes: true })) {
+  const evidenceDir2 = import_path59.default.join(workspace.sidecarDir, "evidence", folder.name);
+  if ((0, import_fs53.existsSync)(evidenceDir2)) {
+    for (const entry of (0, import_fs54.readdirSync)(evidenceDir2, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
       const { records } = listTaskEvidence(workspace, folder.name, entry.name);
       for (const record5 of records) {
@@ -77251,7 +79540,7 @@ var VERIFY_EXIT_CODES = {
 };
 async function verifySpecs(request) {
   const now5 = (request.clock ?? (() => /* @__PURE__ */ new Date()))();
-  const verificationId = (request.idFactory ?? import_crypto22.randomUUID)();
+  const verificationId = (request.idFactory ?? import_crypto23.randomUUID)();
   const workspace = request.workspace;
   const configRead = readAgentConfig(workspace);
   if (configRead.config === void 0) {
@@ -77302,8 +79591,8 @@ async function verifySpecs(request) {
   let artifactsDir;
   const ensureArtifactsDir = () => {
     if (artifactsDir === void 0) {
-      const base = request.reportsDir ?? import_path58.default.join(workspace.sidecarDir, "reports");
-      artifactsDir = import_path58.default.join(base, verificationId);
+      const base = request.reportsDir ?? import_path60.default.join(workspace.sidecarDir, "reports");
+      artifactsDir = import_path60.default.join(base, verificationId);
     }
     return artifactsDir;
   };
@@ -77326,8 +79615,8 @@ async function verifySpecs(request) {
       onCommandFinished: (result, stdout, stderr) => {
         const dir = ensureArtifactsDir();
         const safeName = result.name.replace(/[^A-Za-z0-9._-]+/g, "-");
-        writeFileAtomic(import_path58.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
-        writeFileAtomic(import_path58.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
+        writeFileAtomic(import_path60.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
+        writeFileAtomic(import_path60.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
       }
     } : {}
   }) : { mode: "none", commands: [], missingRequired: [] };
@@ -77478,7 +79767,7 @@ async function verifySpecs(request) {
   verificationReportSchema.parse(report);
   if (persistArtifacts && artifactsDir !== void 0) {
     writeFileAtomic(
-      import_path58.default.join(artifactsDir, "report.json"),
+      import_path60.default.join(artifactsDir, "report.json"),
       `${JSON.stringify(report, null, 2)}
 `
     );
@@ -77587,18 +79876,18 @@ function resolveExitCode(report, comparison, commands, failOn) {
 }
 
 // ../../packages/templates/dist/index.js
-var import_fs53 = require("fs");
-var import_path59 = __toESM(require("path"), 1);
-var import_fs54 = require("fs");
-var import_path60 = __toESM(require("path"), 1);
 var import_fs55 = require("fs");
 var import_path61 = __toESM(require("path"), 1);
-var import_path62 = __toESM(require("path"), 1);
 var import_fs56 = require("fs");
-var import_path63 = __toESM(require("path"), 1);
+var import_path62 = __toESM(require("path"), 1);
 var import_fs57 = require("fs");
-var import_os = require("os");
+var import_path63 = __toESM(require("path"), 1);
 var import_path64 = __toESM(require("path"), 1);
+var import_fs58 = require("fs");
+var import_path65 = __toESM(require("path"), 1);
+var import_fs59 = require("fs");
+var import_os = require("os");
+var import_path66 = __toESM(require("path"), 1);
 var SPECBRIDGE_VERSION = "1.0.0";
 var TEMPLATE_ERROR_CODES = {
   SBT001: "template not found",
@@ -78427,11 +80716,11 @@ function readTemplatePackDirectory(dir) {
         { path: currentDir }
       );
     }
-    const entries = (0, import_fs53.readdirSync)(currentDir, { withFileTypes: true }).sort(
+    const entries = (0, import_fs55.readdirSync)(currentDir, { withFileTypes: true }).sort(
       (a2, b) => a2.name.localeCompare(b.name, "en")
     );
     for (const entry of entries) {
-      const entryPath = import_path59.default.join(currentDir, entry.name);
+      const entryPath = import_path61.default.join(currentDir, entry.name);
       const entryRelative = relative === "" ? entry.name : `${relative}/${entry.name}`;
       const stat = statNoFollow(entryPath);
       if (stat.isSymbolicLink()) {
@@ -78483,7 +80772,7 @@ function readTemplatePackDirectory(dir) {
           { path: dir }
         );
       }
-      const buffer = (0, import_fs53.readFileSync)(entryPath);
+      const buffer = (0, import_fs55.readFileSync)(entryPath);
       const text8 = buffer.toString("utf8");
       if (!Buffer.from(text8, "utf8").equals(buffer)) {
         throw new TemplateError(
@@ -78509,7 +80798,7 @@ function readTemplatePackDirectory(dir) {
 }
 function statNoFollow(target) {
   try {
-    return (0, import_fs53.lstatSync)(target);
+    return (0, import_fs55.lstatSync)(target);
   } catch (cause) {
     throw new TemplateError(
       "SBT007",
@@ -78873,7 +81162,7 @@ var BUILTIN_TEMPLATE_PACKS = [
   }
 ];
 function projectTemplatesDir(workspace) {
-  return import_path60.default.join(workspace.sidecarDir, "templates");
+  return import_path62.default.join(workspace.sidecarDir, "templates");
 }
 function builtinEntries(options) {
   const entries = [];
@@ -78898,11 +81187,11 @@ function builtinEntries(options) {
 function projectEntries(workspace, options, diagnostics) {
   if (workspace === void 0) return [];
   const dir = projectTemplatesDir(workspace);
-  if (!(0, import_fs54.existsSync)(dir)) return [];
+  if (!(0, import_fs56.existsSync)(dir)) return [];
   const entries = [];
   let names;
   try {
-    names = (0, import_fs54.readdirSync)(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory() && !entry.isSymbolicLink()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
+    names = (0, import_fs56.readdirSync)(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory() && !entry.isSymbolicLink()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
   } catch (cause) {
     diagnostics.push({
       severity: "warning",
@@ -78912,7 +81201,7 @@ function projectEntries(workspace, options, diagnostics) {
     return [];
   }
   for (const name of names) {
-    const packDir = import_path60.default.join(dir, name);
+    const packDir = import_path62.default.join(dir, name);
     let pack;
     try {
       const data = readTemplatePackDirectory(packDir);
@@ -79156,7 +81445,7 @@ var templateRecordSchema = external_exports.discriminatedUnion("type", [
   templateScaffoldRecordSchema
 ]);
 function templateRecordsPath(workspace) {
-  return import_path61.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
+  return import_path63.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
 }
 var recordCounter = 0;
 function newTemplateRecordId(clock = systemClock) {
@@ -79167,8 +81456,8 @@ function appendTemplateRecord(workspace, record5) {
   const validated = templateRecordSchema.parse(record5);
   const filePath = templateRecordsPath(workspace);
   try {
-    (0, import_fs55.mkdirSync)(workspace.sidecarDir, { recursive: true });
-    (0, import_fs55.appendFileSync)(filePath, `${JSON.stringify(validated)}
+    (0, import_fs57.mkdirSync)(workspace.sidecarDir, { recursive: true });
+    (0, import_fs57.appendFileSync)(filePath, `${JSON.stringify(validated)}
 `, "utf8");
   } catch (cause) {
     throw ioError("append template record to", filePath, cause);
@@ -79177,10 +81466,10 @@ function appendTemplateRecord(workspace, record5) {
 function readTemplateRecords(workspace) {
   const filePath = templateRecordsPath(workspace);
   const diagnostics = [];
-  if (!(0, import_fs55.existsSync)(filePath)) return { records: [], diagnostics };
+  if (!(0, import_fs57.existsSync)(filePath)) return { records: [], diagnostics };
   let text8;
   try {
-    text8 = (0, import_fs55.readFileSync)(filePath, "utf8");
+    text8 = (0, import_fs57.readFileSync)(filePath, "utf8");
   } catch (cause) {
     diagnostics.push({
       severity: "warning",
@@ -79379,7 +81668,7 @@ function planTemplateApplication(workspace, catalog, request, clock = systemCloc
   };
 }
 function toPosix2(relative) {
-  return relative.split(import_path62.default.sep).join("/");
+  return relative.split(import_path64.default.sep).join("/");
 }
 function executeTemplateApplication(workspace, plan, clock = systemClock, recordId) {
   let creation;
@@ -79409,15 +81698,15 @@ function executeTemplateApplication(workspace, plan, clock = systemClock, record
     })),
     variableNames: plan.variableNames,
     createdPaths: [
-      ...creation.writtenFiles.map((file) => toPosix2(import_path62.default.relative(workspace.rootDir, file))),
-      toPosix2(import_path62.default.relative(workspace.rootDir, creation.statePath))
+      ...creation.writtenFiles.map((file) => toPosix2(import_path64.default.relative(workspace.rootDir, file))),
+      toPosix2(import_path64.default.relative(workspace.rootDir, creation.statePath))
     ]
   };
   appendTemplateRecord(workspace, record5);
   return { plan, creation, recordId: id };
 }
 function planTemplateInstall(workspace, catalog, request) {
-  const sourceDir = import_path63.default.resolve(request.cwd ?? workspace.rootDir, request.sourcePath);
+  const sourceDir = import_path65.default.resolve(request.cwd ?? workspace.rootDir, request.sourcePath);
   try {
     assertInsideWorkspace(workspace.rootDir, sourceDir);
   } catch (cause) {
@@ -79443,8 +81732,8 @@ function planTemplateInstall(workspace, catalog, request) {
     );
   }
   const templateId = pack.manifest.id;
-  const targetDir = import_path63.default.join(projectTemplatesDir(workspace), templateId);
-  if ((0, import_fs56.existsSync)(targetDir)) {
+  const targetDir = import_path65.default.join(projectTemplatesDir(workspace), templateId);
+  if ((0, import_fs58.existsSync)(targetDir)) {
     throw new TemplateError(
       "SBT021",
       `Template "project:${templateId}" is already installed at ${targetDir}.`,
@@ -79470,16 +81759,16 @@ function planTemplateInstall(workspace, catalog, request) {
   };
 }
 function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) {
-  const tmpParent = import_path63.default.join(workspace.sidecarDir, "tmp");
-  const tempDir = import_path63.default.join(
+  const tmpParent = import_path65.default.join(workspace.sidecarDir, "tmp");
+  const tempDir = import_path65.default.join(
     tmpParent,
     `template-install-${plan.templateId}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`
   );
   try {
-    (0, import_fs56.mkdirSync)(tempDir, { recursive: true });
+    (0, import_fs58.mkdirSync)(tempDir, { recursive: true });
     for (const [relative, content] of plan.pack.files) {
-      const target = import_path63.default.join(tempDir, relative);
-      (0, import_fs56.mkdirSync)(import_path63.default.dirname(target), { recursive: true });
+      const target = import_path65.default.join(tempDir, relative);
+      (0, import_fs58.mkdirSync)(import_path65.default.dirname(target), { recursive: true });
       writeFileAtomic(target, content);
     }
     const copied = loadTemplatePack(readTemplatePackDirectory(tempDir));
@@ -79491,8 +81780,8 @@ function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) 
         { path: plan.sourceDir }
       );
     }
-    (0, import_fs56.mkdirSync)(import_path63.default.dirname(plan.targetDir), { recursive: true });
-    if ((0, import_fs56.existsSync)(plan.targetDir)) {
+    (0, import_fs58.mkdirSync)(import_path65.default.dirname(plan.targetDir), { recursive: true });
+    if ((0, import_fs58.existsSync)(plan.targetDir)) {
       throw new TemplateError(
         "SBT021",
         `Template "project:${plan.templateId}" was installed by another process.`,
@@ -79500,11 +81789,11 @@ function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) 
         { path: plan.targetDir }
       );
     }
-    (0, import_fs56.renameSync)(tempDir, plan.targetDir);
+    (0, import_fs58.renameSync)(tempDir, plan.targetDir);
   } finally {
-    (0, import_fs56.rmSync)(tempDir, { recursive: true, force: true });
+    (0, import_fs58.rmSync)(tempDir, { recursive: true, force: true });
     try {
-      (0, import_fs56.rmdirSync)(tmpParent);
+      (0, import_fs58.rmdirSync)(tmpParent);
     } catch {
     }
   }
@@ -79519,8 +81808,8 @@ function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) 
     templateId: plan.templateId,
     templateVersion: plan.templateVersion,
     manifestHash: plan.manifestHash,
-    sourcePath: import_path63.default.relative(workspace.rootDir, plan.sourceDir).split(import_path63.default.sep).join("/"),
-    installedPath: import_path63.default.relative(workspace.rootDir, plan.targetDir).split(import_path63.default.sep).join("/")
+    sourcePath: import_path65.default.relative(workspace.rootDir, plan.sourceDir).split(import_path65.default.sep).join("/"),
+    installedPath: import_path65.default.relative(workspace.rootDir, plan.targetDir).split(import_path65.default.sep).join("/")
   });
   return { plan, installedPath: plan.targetDir, recordId: id };
 }
@@ -79550,10 +81839,10 @@ function planTemplateUninstall(workspace, rawReference) {
       { reference: rawReference }
     );
   }
-  const dir = import_path63.default.join(projectTemplatesDir(workspace), reference.id);
+  const dir = import_path65.default.join(projectTemplatesDir(workspace), reference.id);
   let stat;
   try {
-    stat = (0, import_fs56.lstatSync)(dir);
+    stat = (0, import_fs58.lstatSync)(dir);
   } catch {
     throw new TemplateError(
       "SBT001",
@@ -79573,18 +81862,18 @@ function planTemplateUninstall(workspace, rawReference) {
   return { templateId: reference.id, ref: `project:${reference.id}`, dir };
 }
 function executeTemplateUninstall(workspace, plan, clock = systemClock, recordId) {
-  const tmpParent = import_path63.default.join(workspace.sidecarDir, "tmp");
-  const tempDir = import_path63.default.join(
+  const tmpParent = import_path65.default.join(workspace.sidecarDir, "tmp");
+  const tempDir = import_path65.default.join(
     tmpParent,
     `template-uninstall-${plan.templateId}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`
   );
-  (0, import_fs56.mkdirSync)(tmpParent, { recursive: true });
-  (0, import_fs56.renameSync)(plan.dir, tempDir);
+  (0, import_fs58.mkdirSync)(tmpParent, { recursive: true });
+  (0, import_fs58.renameSync)(plan.dir, tempDir);
   try {
-    (0, import_fs56.rmSync)(tempDir, { recursive: true, force: true });
+    (0, import_fs58.rmSync)(tempDir, { recursive: true, force: true });
   } finally {
     try {
-      (0, import_fs56.rmdirSync)(tmpParent);
+      (0, import_fs58.rmdirSync)(tmpParent);
     } catch {
     }
   }
@@ -79597,7 +81886,7 @@ function executeTemplateUninstall(workspace, plan, clock = systemClock, recordId
     result: "ok",
     templateRef: plan.ref,
     templateId: plan.templateId,
-    uninstalledPath: import_path63.default.relative(workspace.rootDir, plan.dir).split(import_path63.default.sep).join("/")
+    uninstalledPath: import_path65.default.relative(workspace.rootDir, plan.dir).split(import_path65.default.sep).join("/")
   });
   return { plan, recordId: id };
 }
@@ -79683,10 +81972,10 @@ The built-in variables \`specName\`, \`title\`, \`description\`, \`kind\`, and
 
 \`\`\`bash
 # From the directory containing this template pack:
-specbridge template validate ./${import_path64.default.basename(request.outputPath)}
+specbridge template validate ./${import_path66.default.basename(request.outputPath)}
 
 # Then install it into a project for a real preview:
-specbridge template install ./${import_path64.default.basename(request.outputPath)}
+specbridge template install ./${import_path66.default.basename(request.outputPath)}
 specbridge template preview project:${request.templateId} --name example-spec
 \`\`\`
 
@@ -79906,9 +82195,9 @@ ${idCheck.problems.map((p) => `  - ${p}`).join("\n")}`,
   if (new Set(modes).size !== modes.length) {
     throw new TemplateError("SBT015", "--modes contains duplicates.", "List each mode once.", {});
   }
-  const outputDir = import_path64.default.resolve(request.cwd, request.outputPath);
-  const relative = import_path64.default.relative(import_path64.default.resolve(request.cwd), outputDir);
-  if (relative.startsWith("..") || import_path64.default.isAbsolute(relative)) {
+  const outputDir = import_path66.default.resolve(request.cwd, request.outputPath);
+  const relative = import_path66.default.relative(import_path66.default.resolve(request.cwd), outputDir);
+  if (relative.startsWith("..") || import_path66.default.isAbsolute(relative)) {
     throw new TemplateError(
       "SBT007",
       `Scaffold output ${outputDir} is outside the current directory.`,
@@ -79916,7 +82205,7 @@ ${idCheck.problems.map((p) => `  - ${p}`).join("\n")}`,
       { path: outputDir }
     );
   }
-  if ((0, import_fs57.existsSync)(outputDir)) {
+  if ((0, import_fs59.existsSync)(outputDir)) {
     throw new TemplateError(
       "SBT025",
       `Scaffold output directory already exists: ${outputDir}.`,
@@ -79948,21 +82237,21 @@ ${idCheck.problems.map((p) => `  - ${p}`).join("\n")}`,
   return { templateId: request.templateId, kind: request.kind, outputDir, files };
 }
 function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId) {
-  const tmpParent = workspace !== void 0 ? import_path64.default.join(workspace.sidecarDir, "tmp") : import_path64.default.join((0, import_os.tmpdir)(), "specbridge-scaffold");
-  const tempDir = import_path64.default.join(
+  const tmpParent = workspace !== void 0 ? import_path66.default.join(workspace.sidecarDir, "tmp") : import_path66.default.join((0, import_os.tmpdir)(), "specbridge-scaffold");
+  const tempDir = import_path66.default.join(
     tmpParent,
     `template-scaffold-${plan.templateId}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`
   );
   const writtenFiles = [];
   try {
-    (0, import_fs57.mkdirSync)(tempDir, { recursive: true });
+    (0, import_fs59.mkdirSync)(tempDir, { recursive: true });
     for (const [relative, content] of plan.files) {
-      const target = import_path64.default.join(tempDir, relative);
-      (0, import_fs57.mkdirSync)(import_path64.default.dirname(target), { recursive: true });
+      const target = import_path66.default.join(tempDir, relative);
+      (0, import_fs59.mkdirSync)(import_path66.default.dirname(target), { recursive: true });
       writeFileAtomic(target, content);
     }
-    (0, import_fs57.mkdirSync)(import_path64.default.dirname(plan.outputDir), { recursive: true });
-    if ((0, import_fs57.existsSync)(plan.outputDir)) {
+    (0, import_fs59.mkdirSync)(import_path66.default.dirname(plan.outputDir), { recursive: true });
+    if ((0, import_fs59.existsSync)(plan.outputDir)) {
       throw new TemplateError(
         "SBT025",
         `Scaffold output directory was created by another process: ${plan.outputDir}.`,
@@ -79970,14 +82259,14 @@ function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId)
         { path: plan.outputDir }
       );
     }
-    (0, import_fs57.renameSync)(tempDir, plan.outputDir);
+    (0, import_fs59.renameSync)(tempDir, plan.outputDir);
     for (const relative of plan.files.keys()) {
-      writtenFiles.push(import_path64.default.join(plan.outputDir, relative));
+      writtenFiles.push(import_path66.default.join(plan.outputDir, relative));
     }
   } finally {
-    (0, import_fs57.rmSync)(tempDir, { recursive: true, force: true });
+    (0, import_fs59.rmSync)(tempDir, { recursive: true, force: true });
     try {
-      (0, import_fs57.rmdirSync)(tmpParent);
+      (0, import_fs59.rmdirSync)(tmpParent);
     } catch {
     }
   }
@@ -79992,7 +82281,7 @@ function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId)
       result: "ok",
       templateId: plan.templateId,
       kind: plan.kind,
-      outputPath: import_path64.default.relative(workspace.rootDir, plan.outputDir).split(import_path64.default.sep).join("/")
+      outputPath: import_path66.default.relative(workspace.rootDir, plan.outputDir).split(import_path66.default.sep).join("/")
     });
   }
   return { plan, writtenFiles, recordId: id };
@@ -80002,7 +82291,7 @@ function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId)
 var import_zlib = require("zlib");
 
 // ../../packages/extension-sdk/dist/index.js
-var import_crypto23 = require("crypto");
+var import_crypto24 = require("crypto");
 var EXTENSION_RULE_ID_PATTERN = /^[A-Z][A-Z0-9_-]{0,63}$/;
 var MAX_EXTENSION_DIAGNOSTICS = 1e3;
 var EXTENSION_DIAGNOSTIC_SEVERITIES = ["info", "warning", "error"];
@@ -80223,7 +82512,7 @@ function computePermissionHash(input) {
       specRead: normalized.specRead
     }
   });
-  return (0, import_crypto23.createHash)("sha256").update(canonical, "utf8").digest("hex");
+  return (0, import_crypto24.createHash)("sha256").update(canonical, "utf8").digest("hex");
 }
 function describePermissions(permissions) {
   const normalized = normalizePermissions(permissions);
@@ -80909,16 +83198,12 @@ var TEMPLATE_PROVIDER_TEMPLATES_DIR = "templates";
 var MAX_TEMPLATE_PROVIDER_PACKS = 20;
 
 // ../../packages/extensions/dist/index.js
-var import_fs58 = require("fs");
-var import_path65 = __toESM(require("path"), 1);
-var import_crypto24 = require("crypto");
-var import_fs59 = require("fs");
-var import_path66 = __toESM(require("path"), 1);
-var import_child_process2 = require("child_process");
 var import_fs60 = require("fs");
 var import_path67 = __toESM(require("path"), 1);
+var import_crypto25 = require("crypto");
 var import_fs61 = require("fs");
 var import_path68 = __toESM(require("path"), 1);
+var import_child_process2 = require("child_process");
 var import_fs62 = require("fs");
 var import_path69 = __toESM(require("path"), 1);
 var import_fs63 = require("fs");
@@ -80929,6 +83214,10 @@ var import_fs65 = require("fs");
 var import_path72 = __toESM(require("path"), 1);
 var import_fs66 = require("fs");
 var import_path73 = __toESM(require("path"), 1);
+var import_fs67 = require("fs");
+var import_path74 = __toESM(require("path"), 1);
+var import_fs68 = require("fs");
+var import_path75 = __toESM(require("path"), 1);
 var ExtensionError = class extends SpecBridgeError {
   extensionCode;
   /** Actionable next step, always present. */
@@ -81300,7 +83589,7 @@ var extensionChecksumsSchema = external_exports.object({
   files: external_exports.record(external_exports.string().regex(/^[0-9a-f]{64}$/))
 }).strict();
 function sha256HexOf(data) {
-  return (0, import_crypto24.createHash)("sha256").update(data).digest("hex");
+  return (0, import_crypto25.createHash)("sha256").update(data).digest("hex");
 }
 function computeExtensionChecksums(files) {
   const entries = {};
@@ -81430,7 +83719,7 @@ var FORBIDDEN_LIFECYCLE_SCRIPTS = [
   "postuninstall"
 ];
 function readExtensionPackageDirectory(dir) {
-  const rootStat = (0, import_fs58.lstatSync)(dir, { throwIfNoEntry: false });
+  const rootStat = (0, import_fs60.lstatSync)(dir, { throwIfNoEntry: false });
   if (rootStat === void 0 || !rootStat.isDirectory()) {
     throw new ExtensionError(
       "SBE008",
@@ -81455,7 +83744,7 @@ function readExtensionPackageDirectory(dir) {
         "Flatten the package layout."
       );
     }
-    for (const entry of (0, import_fs58.readdirSync)(currentDir, { withFileTypes: true })) {
+    for (const entry of (0, import_fs60.readdirSync)(currentDir, { withFileTypes: true })) {
       const relativePath = relativePrefix === "" ? entry.name : `${relativePrefix}/${entry.name}`;
       if (entry.isSymbolicLink()) {
         throw new ExtensionError(
@@ -81481,7 +83770,7 @@ function readExtensionPackageDirectory(dir) {
             "Remove the directory before validating or packaging."
           );
         }
-        walk(import_path65.default.join(currentDir, entry.name), relativePath, depth + 1);
+        walk(import_path67.default.join(currentDir, entry.name), relativePath, depth + 1);
         continue;
       }
       if (!entry.isFile()) {
@@ -81498,7 +83787,7 @@ function readExtensionPackageDirectory(dir) {
           "Reduce the package contents."
         );
       }
-      const content = (0, import_fs58.readFileSync)(import_path65.default.join(currentDir, entry.name));
+      const content = (0, import_fs60.readFileSync)(import_path67.default.join(currentDir, entry.name));
       totalBytes += content.length;
       if (totalBytes > EXTENSION_LIMITS.maxExtractedTotalBytes) {
         throw new ExtensionError(
@@ -81773,10 +84062,10 @@ var EXTENSION_RECORDS_FILE_NAME = "records.jsonl";
 var EXTENSION_STATE_SCHEMA_VERSION = "1.0.0";
 var systemClock2 = () => /* @__PURE__ */ new Date();
 function extensionsDir(workspace) {
-  return import_path66.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
+  return import_path68.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
 }
 function installedRootDir(workspace) {
-  return import_path66.default.join(extensionsDir(workspace), "installed");
+  return import_path68.default.join(extensionsDir(workspace), "installed");
 }
 function installedVersionDir(workspace, id, version2) {
   if (!validateExtensionId(id).valid || parseSemver2(version2) === void 0) {
@@ -81786,7 +84075,7 @@ function installedVersionDir(workspace, id, version2) {
       "Use a valid extension ID and X.Y.Z version."
     );
   }
-  const dir = import_path66.default.join(installedRootDir(workspace), id, version2);
+  const dir = import_path68.default.join(installedRootDir(workspace), id, version2);
   assertInsideWorkspace(workspace.rootDir, dir);
   return dir;
 }
@@ -81830,12 +84119,12 @@ function emptyPermissionGrants() {
   return { schemaVersion: EXTENSION_STATE_SCHEMA_VERSION, grants: {} };
 }
 function readValidatedJson(filePath, schema, empty, label) {
-  if (!(0, import_fs59.existsSync)(filePath)) {
+  if (!(0, import_fs61.existsSync)(filePath)) {
     return { value: empty, diagnostics: [], exists: false };
   }
   let text8;
   try {
-    text8 = (0, import_fs59.readFileSync)(filePath, "utf8");
+    text8 = (0, import_fs61.readFileSync)(filePath, "utf8");
   } catch (cause) {
     return {
       value: empty,
@@ -81885,13 +84174,13 @@ function readValidatedJson(filePath, schema, empty, label) {
   return { value: result.data, diagnostics: [], exists: true };
 }
 function extensionStatePath(workspace) {
-  return import_path66.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
+  return import_path68.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
 }
 function permissionGrantsPath(workspace) {
-  return import_path66.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
+  return import_path68.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
 }
 function extensionRecordsPath(workspace) {
-  return import_path66.default.join(extensionsDir(workspace), EXTENSION_RECORDS_FILE_NAME);
+  return import_path68.default.join(extensionsDir(workspace), EXTENSION_RECORDS_FILE_NAME);
 }
 function readExtensionState(workspace) {
   const { value, diagnostics, exists } = readValidatedJson(
@@ -81942,8 +84231,8 @@ function appendExtensionRecord(workspace, record5) {
   const filePath = extensionRecordsPath(workspace);
   assertInsideWorkspace(workspace.rootDir, filePath);
   try {
-    (0, import_fs59.mkdirSync)(extensionsDir(workspace), { recursive: true });
-    (0, import_fs59.appendFileSync)(filePath, `${JSON.stringify(validated)}
+    (0, import_fs61.mkdirSync)(extensionsDir(workspace), { recursive: true });
+    (0, import_fs61.appendFileSync)(filePath, `${JSON.stringify(validated)}
 `, "utf8");
   } catch (cause) {
     throw ioError("append extension record to", filePath, cause);
@@ -82176,9 +84465,9 @@ function resolveEntrypoint(installedDir, entrypoint) {
   if (problem !== void 0) {
     throw new ExtensionError("SBE012", `entrypoint "${entrypoint}": ${problem}.`, "Fix the extension manifest.");
   }
-  const resolved = import_path67.default.join(installedDir, ...entrypoint.split("/"));
-  const relative = import_path67.default.relative(installedDir, resolved);
-  if (relative.startsWith("..") || import_path67.default.isAbsolute(relative)) {
+  const resolved = import_path69.default.join(installedDir, ...entrypoint.split("/"));
+  const relative = import_path69.default.relative(installedDir, resolved);
+  if (relative.startsWith("..") || import_path69.default.isAbsolute(relative)) {
     throw new ExtensionError(
       "SBE012",
       `entrypoint "${entrypoint}" escapes the installed extension directory.`,
@@ -82186,9 +84475,9 @@ function resolveEntrypoint(installedDir, entrypoint) {
     );
   }
   let current = installedDir;
-  for (const segment of relative.split(import_path67.default.sep)) {
-    current = import_path67.default.join(current, segment);
-    const stat = (0, import_fs60.lstatSync)(current, { throwIfNoEntry: false });
+  for (const segment of relative.split(import_path69.default.sep)) {
+    current = import_path69.default.join(current, segment);
+    const stat = (0, import_fs62.lstatSync)(current, { throwIfNoEntry: false });
     if (stat === void 0) {
       throw new ExtensionError(
         "SBE012",
@@ -82204,7 +84493,7 @@ function resolveEntrypoint(installedDir, entrypoint) {
       );
     }
   }
-  const finalStat = (0, import_fs60.lstatSync)(resolved, { throwIfNoEntry: false });
+  const finalStat = (0, import_fs62.lstatSync)(resolved, { throwIfNoEntry: false });
   if (finalStat === void 0 || !finalStat.isFile()) {
     throw new ExtensionError(
       "SBE012",
@@ -82785,14 +85074,14 @@ async function runAnalyzerExtension(workspace, extensionId, input, options = {})
 }
 function compatibilityOf(workspace, record5, specbridgeVersion) {
   try {
-    const manifestPath = import_path68.default.join(
+    const manifestPath = import_path70.default.join(
       installedVersionDir(workspace, record5.id, record5.version),
       EXTENSION_MANIFEST_FILE_NAME
     );
-    if (!(0, import_fs61.existsSync)(manifestPath)) {
+    if (!(0, import_fs63.existsSync)(manifestPath)) {
       return { compatibility: "unknown", deprecated: false };
     }
-    const parsed = parseExtensionManifest((0, import_fs61.readFileSync)(manifestPath, "utf8"));
+    const parsed = parseExtensionManifest((0, import_fs63.readFileSync)(manifestPath, "utf8"));
     if (parsed.manifest === void 0) {
       return { compatibility: "unknown", deprecated: false };
     }
@@ -83071,8 +85360,8 @@ async function runExporterExtension(workspace, extensionId, input, options = {})
   };
 }
 function validateExportTargets(outputDir, files) {
-  const resolvedRoot = import_path69.default.resolve(outputDir);
-  const rootStat = (0, import_fs62.lstatSync)(resolvedRoot, { throwIfNoEntry: false });
+  const resolvedRoot = import_path71.default.resolve(outputDir);
+  const rootStat = (0, import_fs64.lstatSync)(resolvedRoot, { throwIfNoEntry: false });
   if (rootStat !== void 0 && rootStat.isSymbolicLink()) {
     throw new ExtensionError(
       "SBE011",
@@ -83091,9 +85380,9 @@ function validateExportTargets(outputDir, files) {
         "Report this to the extension author; nothing was written."
       );
     }
-    const target = import_path69.default.resolve(resolvedRoot, ...file.path.split("/"));
-    const relative = import_path69.default.relative(resolvedRoot, target);
-    if (relative.startsWith("..") || import_path69.default.isAbsolute(relative)) {
+    const target = import_path71.default.resolve(resolvedRoot, ...file.path.split("/"));
+    const relative = import_path71.default.relative(resolvedRoot, target);
+    if (relative.startsWith("..") || import_path71.default.isAbsolute(relative)) {
       throw new ExtensionError(
         "SBE030",
         `exporter output path "${file.path}" escapes the output directory.`,
@@ -83109,9 +85398,9 @@ function validateExportTargets(outputDir, files) {
     }
     seen.add(target.toLowerCase());
     let current = resolvedRoot;
-    for (const segment of relative.split(import_path69.default.sep)) {
-      current = import_path69.default.join(current, segment);
-      const stat = (0, import_fs62.lstatSync)(current, { throwIfNoEntry: false });
+    for (const segment of relative.split(import_path71.default.sep)) {
+      current = import_path71.default.join(current, segment);
+      const stat = (0, import_fs64.lstatSync)(current, { throwIfNoEntry: false });
       if (stat?.isSymbolicLink() === true) {
         throw new ExtensionError(
           "SBE011",
@@ -83120,7 +85409,7 @@ function validateExportTargets(outputDir, files) {
         );
       }
     }
-    if ((0, import_fs62.existsSync)(target)) {
+    if ((0, import_fs64.existsSync)(target)) {
       throw new ExtensionError(
         "SBE030",
         `export target "${file.path}" already exists in the output directory.`,
@@ -83140,7 +85429,7 @@ function writeExportFiles(workspace, extensionId, extensionVersion, specName, ou
     if (target === void 0 || file === void 0) {
       continue;
     }
-    (0, import_fs62.mkdirSync)(import_path69.default.dirname(target.target), { recursive: true });
+    (0, import_fs64.mkdirSync)(import_path71.default.dirname(target.target), { recursive: true });
     writeFileAtomic(target.target, file.content);
     written.push(target.relative);
   }
@@ -83227,19 +85516,19 @@ function installExtensionPackage(files, options, archiveSha256) {
     return { ...base, dryRun: true };
   }
   const recordId = newExtensionRecordId(clock);
-  const stagingDir = import_path70.default.join(extensionsDir(workspace), `tmp-install-${recordId}`);
+  const stagingDir = import_path72.default.join(extensionsDir(workspace), `tmp-install-${recordId}`);
   assertInsideWorkspace(workspace.rootDir, stagingDir);
   try {
     for (const [name, content] of files) {
-      const target = import_path70.default.join(stagingDir, ...name.split("/"));
+      const target = import_path72.default.join(stagingDir, ...name.split("/"));
       assertInsideWorkspace(workspace.rootDir, target);
-      (0, import_fs63.mkdirSync)(import_path70.default.dirname(target), { recursive: true });
+      (0, import_fs65.mkdirSync)(import_path72.default.dirname(target), { recursive: true });
       writeFileAtomic(target, content);
     }
-    (0, import_fs63.mkdirSync)(import_path70.default.dirname(targetDir), { recursive: true });
-    (0, import_fs63.renameSync)(stagingDir, targetDir);
+    (0, import_fs65.mkdirSync)(import_path72.default.dirname(targetDir), { recursive: true });
+    (0, import_fs65.renameSync)(stagingDir, targetDir);
   } catch (cause) {
-    (0, import_fs63.rmSync)(stagingDir, { recursive: true, force: true });
+    (0, import_fs65.rmSync)(stagingDir, { recursive: true, force: true });
     if (cause instanceof ExtensionError) {
       throw cause;
     }
@@ -83292,7 +85581,7 @@ function installExtensionPackage(files, options, archiveSha256) {
       }
     });
   } catch (cause) {
-    (0, import_fs63.rmSync)(targetDir, { recursive: true, force: true });
+    (0, import_fs65.rmSync)(targetDir, { recursive: true, force: true });
     if (cause instanceof ExtensionError) {
       throw cause;
     }
@@ -83347,8 +85636,8 @@ function buildExtensionArchive(sourceDir, options = {}) {
   const manifest = validation.manifest;
   const archive = createDeterministicZip(runtimeFiles);
   const archiveSha256 = sha256HexOf(archive);
-  const outputDir = options.outputDir ?? import_path71.default.join(sourceDir, "dist");
-  const archivePath = import_path71.default.join(
+  const outputDir = options.outputDir ?? import_path73.default.join(sourceDir, "dist");
+  const archivePath = import_path73.default.join(
     outputDir,
     `${manifest.id}-${manifest.version}${EXTENSION_ARCHIVE_SUFFIX}`
   );
@@ -83362,7 +85651,7 @@ function buildExtensionArchive(sourceDir, options = {}) {
     );
   }
   if (options.dryRun !== true) {
-    (0, import_fs64.mkdirSync)(outputDir, { recursive: true });
+    (0, import_fs66.mkdirSync)(outputDir, { recursive: true });
     writeFileAtomic(archivePath, archive);
   }
   return {
@@ -84160,7 +86449,7 @@ function scaffoldExtension(options) {
     );
   }
   const outputDir = options.outputDir;
-  if ((0, import_fs65.existsSync)(outputDir) && (0, import_fs65.readdirSync)(outputDir).length > 0) {
+  if ((0, import_fs67.existsSync)(outputDir) && (0, import_fs67.readdirSync)(outputDir).length > 0) {
     throw new ExtensionError(
       "SBE030",
       `output directory "${outputDir}" already exists and is not empty.`,
@@ -84220,8 +86509,8 @@ function scaffoldExtension(options) {
     };
   }
   for (const [name, content] of files) {
-    const target = import_path72.default.join(outputDir, ...name.split("/"));
-    (0, import_fs65.mkdirSync)(import_path72.default.dirname(target), { recursive: true });
+    const target = import_path74.default.join(outputDir, ...name.split("/"));
+    (0, import_fs67.mkdirSync)(import_path74.default.dirname(target), { recursive: true });
     writeFileAtomic(target, content);
   }
   return {
@@ -84334,7 +86623,7 @@ function uninstallExtension(options) {
     );
   }
   const installedDir = installedVersionDir(workspace, options.id, version2);
-  const stat = (0, import_fs66.lstatSync)(installedDir, { throwIfNoEntry: false });
+  const stat = (0, import_fs68.lstatSync)(installedDir, { throwIfNoEntry: false });
   if (stat !== void 0 && stat.isSymbolicLink()) {
     throw new ExtensionError(
       "SBE011",
@@ -84348,11 +86637,11 @@ function uninstallExtension(options) {
   const recordId = newExtensionRecordId(clock);
   let trashPath;
   if (stat !== void 0) {
-    const trashDir = import_path73.default.join(extensionsDir(workspace), "trash");
-    trashPath = import_path73.default.join(trashDir, `${options.id}-${version2}-${recordId}`);
+    const trashDir = import_path75.default.join(extensionsDir(workspace), "trash");
+    trashPath = import_path75.default.join(trashDir, `${options.id}-${version2}-${recordId}`);
     assertInsideWorkspace(workspace.rootDir, trashPath);
-    (0, import_fs66.mkdirSync)(trashDir, { recursive: true });
-    (0, import_fs66.renameSync)(installedDir, trashPath);
+    (0, import_fs68.mkdirSync)(trashDir, { recursive: true });
+    (0, import_fs68.renameSync)(installedDir, trashPath);
   }
   writeExtensionState(workspace, {
     ...state,
@@ -84466,11 +86755,11 @@ function createExtensionVerifierHook(workspace, options = {}) {
 }
 
 // ../../packages/registry/dist/index.js
-var import_fs67 = require("fs");
-var import_path74 = __toESM(require("path"), 1);
-var import_crypto25 = require("crypto");
-var import_fs68 = require("fs");
-var import_path75 = __toESM(require("path"), 1);
+var import_fs69 = require("fs");
+var import_path76 = __toESM(require("path"), 1);
+var import_crypto26 = require("crypto");
+var import_fs70 = require("fs");
+var import_path77 = __toESM(require("path"), 1);
 var BUILTIN_REGISTRY_INDEX_JSON = '{\n  "schemaVersion": "1.0.0",\n  "name": "specbridge-examples",\n  "updatedAt": "2026-01-01T00:00:00.000Z",\n  "extensions": [\n    {\n      "id": "example-analyzer",\n      "displayName": "example-analyzer",\n      "description": "Deterministic spec diagnostics contributed by the example-analyzer analyzer extension.",\n      "kind": "analyzer",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-analyzer-1.0.0.specbridge-extension.zip",\n          "sha256": "e6e0948a315b09e53bd18997dce21888af9adbb3997fbf82955399dcf3252a19",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "analyzer",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-exporter",\n      "displayName": "example-exporter",\n      "description": "Candidate export files produced by the example-exporter exporter extension.",\n      "kind": "exporter",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-exporter-1.0.0.specbridge-extension.zip",\n          "sha256": "68f42755a4e56d0e318012ec8c0e3b093e44429182ca93b02d9fb4ce2ec308a3",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "exporter",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-runner",\n      "displayName": "example-runner",\n      "description": "An out-of-process runner adapter provided by the example-runner extension.",\n      "kind": "runner",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-runner-1.0.0.specbridge-extension.zip",\n          "sha256": "5ef3db937d872bfe09495695e9ecb0a3cf3beaf9e006fabdc2972ef55ace80ef",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": true,\n              "repositoryWrite": true,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "runner",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-template-provider",\n      "displayName": "example-template-provider",\n      "description": "Spec template packs contributed by the example-template-provider template-provider extension.",\n      "kind": "template-provider",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-template-provider-1.0.0.specbridge-extension.zip",\n          "sha256": "f7caa11a13473f0891cc8d237ec4f9f2962a2dd1bd2baba4e9d01570de29044b",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": false,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "template-provider",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-verifier",\n      "displayName": "example-verifier",\n      "description": "Verification diagnostics contributed by the example-verifier verifier extension.",\n      "kind": "verifier",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-verifier-1.0.0.specbridge-extension.zip",\n          "sha256": "d531c9078fcbeef6573a95773eefafd409d798bac1223c83748e0229ae0225bf",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "verifier",\n        "specbridge-extension"\n      ]\n    }\n  ]\n}\n';
 var REGISTRY_ERROR_CODES = {
   SBR001: "registry not found",
@@ -84627,20 +86916,20 @@ var cachedRegistrySchema = external_exports.object({
   index: registryIndexSchema
 }).passthrough();
 function registryCacheDir(workspace) {
-  return import_path74.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
+  return import_path76.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
 }
 function registryCachePath(workspace, name) {
-  const target = import_path74.default.join(registryCacheDir(workspace), `${name}.json`);
+  const target = import_path76.default.join(registryCacheDir(workspace), `${name}.json`);
   assertInsideWorkspace(workspace.rootDir, target);
   return target;
 }
 function readRegistryCache(workspace, name) {
   const filePath = registryCachePath(workspace, name);
-  if (!(0, import_fs67.existsSync)(filePath)) {
+  if (!(0, import_fs69.existsSync)(filePath)) {
     return { diagnostics: [] };
   }
   try {
-    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs67.readFileSync)(filePath, "utf8")));
+    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs69.readFileSync)(filePath, "utf8")));
     if (!parsed.success) {
       return {
         diagnostics: [
@@ -84673,7 +86962,7 @@ function writeRegistryCache(workspace, name, indexText, index, options = {}) {
     sourceName: name,
     ...options.sourceUrl === void 0 ? {} : { sourceUrl: options.sourceUrl },
     retrievedAt: (options.clock?.() ?? /* @__PURE__ */ new Date()).toISOString(),
-    contentSha256: (0, import_crypto25.createHash)("sha256").update(indexText, "utf8").digest("hex"),
+    contentSha256: (0, import_crypto26.createHash)("sha256").update(indexText, "utf8").digest("hex"),
     index
   });
   writeFileAtomic(registryCachePath(workspace, name), `${JSON.stringify(cache, null, 2)}
@@ -84693,9 +86982,9 @@ function resolveRegistryIndex(workspace, source) {
     return { sourceName: source.name, index: parsed.index, origin: "builtin", diagnostics: [] };
   }
   if (source.type === "local-file") {
-    const filePath = import_path74.default.resolve(workspace.rootDir, source.file);
+    const filePath = import_path76.default.resolve(workspace.rootDir, source.file);
     assertInsideWorkspace(workspace.rootDir, filePath);
-    if (!(0, import_fs67.existsSync)(filePath)) {
+    if (!(0, import_fs69.existsSync)(filePath)) {
       return {
         sourceName: source.name,
         index: { schemaVersion: "1.0.0", name: source.name, updatedAt: "unknown", extensions: [] },
@@ -84710,7 +86999,7 @@ function resolveRegistryIndex(workspace, source) {
         ]
       };
     }
-    const text8 = (0, import_fs67.readFileSync)(filePath, "utf8");
+    const text8 = (0, import_fs69.readFileSync)(filePath, "utf8");
     const parsed = parseRegistryIndex(text8);
     if (parsed.index === void 0) {
       throw new RegistryError(
@@ -84953,7 +87242,7 @@ var registriesConfigSchema = external_exports.object({
   registries: external_exports.array(registrySourceSchema).max(20)
 }).passthrough();
 function registriesConfigPath(workspace) {
-  return import_path75.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
+  return import_path77.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
 }
 function defaultRegistriesConfig() {
   return {
@@ -84963,12 +87252,12 @@ function defaultRegistriesConfig() {
 }
 function readRegistriesConfig(workspace) {
   const filePath = registriesConfigPath(workspace);
-  if (!(0, import_fs68.existsSync)(filePath)) {
+  if (!(0, import_fs70.existsSync)(filePath)) {
     return { config: defaultRegistriesConfig(), diagnostics: [], exists: false };
   }
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs68.readFileSync)(filePath, "utf8"));
+    parsed = JSON.parse((0, import_fs70.readFileSync)(filePath, "utf8"));
   } catch (cause) {
     return {
       config: defaultRegistriesConfig(),
@@ -85603,7 +87892,7 @@ function collectInterruptedMigrationFindings(workspace, earlier) {
     let steps = [];
     try {
       const parsed = JSON.parse((0, import_node_fs6.readFileSync)(planPath, "utf8"));
-      steps = (parsed.steps ?? []).filter((step) => typeof step.file === "string").map((step) => ({ file: step.file }));
+      steps = (parsed.steps ?? []).filter((step2) => typeof step2.file === "string").map((step2) => ({ file: step2.file }));
     } catch {
       findings.push(
         finding(MIGRATIONS_FAMILY, toRel(workspace, planPath), "invalid", null, MIGRATION_PLAN_SCHEMA_VERSION, [
@@ -85615,25 +87904,25 @@ function collectInterruptedMigrationFindings(workspace, earlier) {
     const reportOnly = [
       `Migration ${planId} has a plan but no result; it was interrupted before completing.`
     ];
-    for (const step of steps) {
-      const backupAbs = import_node_path8.default.join(reportDir, "backups", ...step.file.split("/"));
+    for (const step2 of steps) {
+      const backupAbs = import_node_path8.default.join(reportDir, "backups", ...step2.file.split("/"));
       const backupExists = (0, import_node_fs6.existsSync)(backupAbs);
-      const targetFinding = earlier.find((candidate) => candidate.path === step.file);
+      const targetFinding = earlier.find((candidate) => candidate.path === step2.file);
       const targetFailing = targetFinding !== void 0 && FAILING_STATUSES.includes(targetFinding.status);
       if (targetFailing && backupExists) {
         findings.push(
           finding(
             MIGRATIONS_FAMILY,
-            step.file,
+            step2.file,
             "recoverable",
             rawSchemaVersion(planPath),
             MIGRATION_PLAN_SCHEMA_VERSION,
             [
-              `Migration ${planId} was interrupted, ${step.file} currently fails validation, and a backup of the original bytes exists.`
+              `Migration ${planId} was interrupted, ${step2.file} currently fails validation, and a backup of the original bytes exists.`
             ],
             {
               kind: "restore-from-migration-backup",
-              reason: `Migration ${planId} was interrupted before recording a result and ${step.file} fails validation. Restoring copies the backed-up original bytes back; the current bytes are quarantined first. Review the migration report before applying.`,
+              reason: `Migration ${planId} was interrupted before recording a result and ${step2.file} fails validation. Restoring copies the backed-up original bytes back; the current bytes are quarantined first. Review the migration report before applying.`,
               risk: "medium",
               confidence: "manual-review",
               backupPath: toRel(workspace, backupAbs)
@@ -85642,7 +87931,7 @@ function collectInterruptedMigrationFindings(workspace, earlier) {
         );
       } else {
         reportOnly.push(
-          targetFailing ? `${step.file} fails validation but no backup exists under the report directory; restore manually.` : `${step.file} currently passes its family validation; no restore is proposed.`
+          targetFailing ? `${step2.file} fails validation but no backup exists under the report directory; restore manually.` : `${step2.file} currently passes its family validation; no restore is proposed.`
         );
       }
     }
@@ -87971,7 +90260,7 @@ function renderPreflightFailure(runtime, preflight) {
   if (failure.remediation.length > 0) {
     runtime.err("");
     runtime.err("Resolution:");
-    for (const step of failure.remediation) runtime.err(`  ${step}`);
+    for (const step2 of failure.remediation) runtime.err(`  ${step2}`);
   }
 }
 function renderDryRunPlan(runtime, workspace, plan) {
@@ -89062,7 +91351,7 @@ function renderAuthoringOutcome(runtime, workspace, specName, stage, outcome, op
       if (outcome.remediation.length > 0) {
         runtime.err("");
         runtime.err("Run:");
-        for (const step of outcome.remediation) runtime.err(`  ${step}`);
+        for (const step2 of outcome.remediation) runtime.err(`  ${step2}`);
       }
       return;
     }
@@ -89084,7 +91373,7 @@ function renderAuthoringOutcome(runtime, workspace, specName, stage, outcome, op
         runtime.err("Compatible configured profiles:");
         for (const profile of outcome.failure.compatibleProfiles) runtime.err(`  ${profile}`);
       }
-      for (const step of outcome.failure.error.remediation) runtime.err(`  ${step}`);
+      for (const step2 of outcome.failure.error.remediation) runtime.err(`  ${step2}`);
       return;
     }
     case "runner-unavailable": {
@@ -90339,19 +92628,19 @@ function printPlan(runtime, plan) {
   runtime.out(`  Plan hash: ${plan.planHash}`);
   runtime.out();
   runtime.out(sectionTitle("Steps"));
-  for (const step of plan.steps) {
-    runtime.out(okLine(`${step.stepId}: ${step.file} (${step.family}) ${step.fromVersion} \u2192 ${step.toVersion}`));
-    for (const change of step.changes) runtime.out(`      - ${change}`);
-    for (const warning2 of step.warnings) runtime.out(warnLine(warning2));
+  for (const step2 of plan.steps) {
+    runtime.out(okLine(`${step2.stepId}: ${step2.file} (${step2.family}) ${step2.fromVersion} \u2192 ${step2.toVersion}`));
+    for (const change of step2.changes) runtime.out(`      - ${change}`);
+    for (const warning2 of step2.warnings) runtime.out(warnLine(warning2));
   }
 }
 function printApplyResult(runtime, result, reportDir) {
   runtime.out(sectionTitle("Result"));
-  for (const step of result.steps) {
-    const line = step.status === "applied" || step.status === "already-current" ? okLine : failLine;
-    runtime.out(line(`${step.stepId}: ${step.file} \u2014 ${step.status}`));
-    if (step.backupPath !== void 0) runtime.out(`      backup: ${step.backupPath}`);
-    for (const problem of step.problems) runtime.out(failLine(problem));
+  for (const step2 of result.steps) {
+    const line = step2.status === "applied" || step2.status === "already-current" ? okLine : failLine;
+    runtime.out(line(`${step2.stepId}: ${step2.file} \u2014 ${step2.status}`));
+    if (step2.backupPath !== void 0) runtime.out(`      backup: ${step2.backupPath}`);
+    for (const problem of step2.problems) runtime.out(failLine(problem));
   }
   for (const problem of result.problems) runtime.out(failLine(problem));
   if (reportDir !== void 0) {
@@ -90414,12 +92703,12 @@ Examples:
         serializeJsonReport(
           createJsonReport("specbridge.migrate-status/1", `${CLI_BIN} ${VERSION}`, {
             families: summaries,
-            pendingSteps: steps.map((step) => ({
-              stepId: step.stepId,
-              family: step.family,
-              file: step.file,
-              fromVersion: step.fromVersion,
-              toVersion: step.toVersion
+            pendingSteps: steps.map((step2) => ({
+              stepId: step2.stepId,
+              family: step2.family,
+              file: step2.file,
+              fromVersion: step2.fromVersion,
+              toVersion: step2.toVersion
             })),
             healthy
           })
@@ -90572,8 +92861,8 @@ Examples:
     const result = applyMigrationPlan(workspace, plan, {
       now: () => runtime.now(),
       ...options.backupDirectory !== void 0 ? { backupDirectory: options.backupDirectory } : {},
-      validateStep: (step, written) => {
-        if (step.stepId !== "config-v1-to-v2") return [];
+      validateStep: (step2, written) => {
+        if (step2.stepId !== "config-v1-to-v2") return [];
         const check6 = agentConfigV2Schema.safeParse(written);
         return check6.success ? [] : check6.error.issues.map(
           (issue4) => `${issue4.path.join(".") || "(root)"}: ${issue4.message}`
@@ -91298,7 +93587,7 @@ Examples:
         }
         if (outcome.remediation.length > 0) {
           runtime.err("");
-          for (const step of outcome.remediation) runtime.err(`  ${step}`);
+          for (const step2 of outcome.remediation) runtime.err(`  ${step2}`);
         }
         return;
       }
@@ -91520,10 +93809,10 @@ Examples:
 
 // ../../packages/mcp-server/dist/chunk-JYVBX4T7.js
 var import_buffer7 = require("buffer");
-var import_fs69 = require("fs");
-var import_path76 = __toESM(require("path"), 1);
-var import_crypto26 = require("crypto");
-var import_path77 = __toESM(require("path"), 1);
+var import_fs71 = require("fs");
+var import_path78 = __toESM(require("path"), 1);
+var import_crypto27 = require("crypto");
+var import_path79 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/core.js
 var NEVER2 = Object.freeze({
@@ -91684,12 +93973,12 @@ function cleanRegex(source) {
   const end = source.endsWith("$") ? source.length - 1 : source.length;
   return source.slice(start, end);
 }
-function floatSafeRemainder2(val, step) {
+function floatSafeRemainder2(val, step2) {
   const valDecCount = (val.toString().split(".")[1] || "").length;
-  const stepDecCount = (step.toString().split(".")[1] || "").length;
+  const stepDecCount = (step2.toString().split(".")[1] || "").length;
   const decCount = valDecCount > stepDecCount ? valDecCount : stepDecCount;
   const valInt = Number.parseInt(val.toFixed(decCount).replace(".", ""));
-  const stepInt = Number.parseInt(step.toFixed(decCount).replace(".", ""));
+  const stepInt = Number.parseInt(step2.toFixed(decCount).replace(".", ""));
   return valInt % stepInt / 10 ** decCount;
 }
 function defineLazy(object3, key, getter) {
@@ -101851,12 +104140,12 @@ var EMPTY_COMPLETION_RESULT = {
 };
 
 // ../../packages/mcp-server/dist/chunk-JYVBX4T7.js
-var import_fs70 = require("fs");
-var import_fs71 = require("fs");
-var import_path78 = __toESM(require("path"), 1);
 var import_fs72 = require("fs");
+var import_fs73 = require("fs");
+var import_path80 = __toESM(require("path"), 1);
+var import_fs74 = require("fs");
 var import_os2 = __toESM(require("os"), 1);
-var import_path79 = __toESM(require("path"), 1);
+var import_path81 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 var import_node_process11 = __toESM(require("process"), 1);
@@ -102315,10 +104604,10 @@ function validateProjectRoot(value, source, cwd) {
       remediation: ["Pass a plain filesystem path as --project-root."]
     };
   }
-  const resolved = import_path76.default.resolve(cwd, value);
+  const resolved = import_path78.default.resolve(cwd, value);
   let canonical;
   try {
-    canonical = (0, import_fs69.realpathSync)(resolved);
+    canonical = (0, import_fs71.realpathSync)(resolved);
   } catch {
     return {
       ok: false,
@@ -102331,7 +104620,7 @@ function validateProjectRoot(value, source, cwd) {
   }
   let stats;
   try {
-    stats = (0, import_fs69.statSync)(canonical);
+    stats = (0, import_fs71.statSync)(canonical);
   } catch {
     return {
       ok: false,
@@ -102359,7 +104648,7 @@ var ServerContext = class {
     this.projectRoot = options.projectRoot;
     this.logger = options.logger;
     this.clock = options.clock ?? (() => /* @__PURE__ */ new Date());
-    this.idFactory = options.idFactory ?? import_crypto26.randomUUID;
+    this.idFactory = options.idFactory ?? import_crypto27.randomUUID;
   }
   /**
    * Resolve the `.kiro` workspace from the pinned project root, or
@@ -102588,8 +104877,8 @@ var paginationShape = external_exports.object({
   nextCursor: external_exports.string().optional()
 });
 function repoRelative2(workspace, target) {
-  const relative = import_path77.default.isAbsolute(target) ? import_path77.default.relative(workspace.rootDir, target) : target;
-  const posix = relative.split(import_path77.default.sep).join("/");
+  const relative = import_path79.default.isAbsolute(target) ? import_path79.default.relative(workspace.rootDir, target) : target;
+  const posix = relative.split(import_path79.default.sep).join("/");
   return posix === "" ? "." : posix;
 }
 function toDiagnosticView(workspace, diagnostic) {
@@ -103089,7 +105378,7 @@ function registerRunResources(server, context) {
         throw resourceNotFound(`Run "${runId}"`, "List runs with the run_list tool.");
       }
       const directory = runDir(workspace, record5.runId);
-      const artifactNames = (0, import_fs70.existsSync)(directory) ? (0, import_fs70.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
+      const artifactNames = (0, import_fs72.existsSync)(directory) ? (0, import_fs72.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
       return jsonContents(context, uri.href, buildRunDetail(workspace, record5, artifactNames));
     }
   );
@@ -103226,7 +105515,7 @@ function registerDefinedTool(server, context, definition) {
         }
         const remediation = envelope.remediation.length > 0 ? `
 Remediation:
-${envelope.remediation.map((step) => `  - ${step}`).join("\n")}` : "";
+${envelope.remediation.map((step2) => `  - ${step2}`).join("\n")}` : "";
         return {
           content: [
             {
@@ -104905,7 +107194,7 @@ function registerRunReadTool(server, context) {
         });
       }
       const directory = runDir(workspace, record5.runId);
-      const artifactNames = (0, import_fs71.existsSync)(directory) ? (0, import_fs71.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS2.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
+      const artifactNames = (0, import_fs73.existsSync)(directory) ? (0, import_fs73.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS2.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
       const detail = buildRunDetail(workspace, record5, artifactNames);
       const lines = [
         `Run ${detail.summary.runId} \u2014 ${detail.summary.runType} for spec "${detail.summary.specName}"${detail.summary.taskId !== void 0 ? `, task ${detail.summary.taskId}` : ""}.`,
@@ -105265,7 +107554,7 @@ function registerSpecRunVerificationTool(server, context) {
         durationMs: command.durationMs,
         timedOut: command.timedOut
       }));
-      const reportPath = result.artifactsDir !== void 0 ? import_path78.default.relative(workspace.rootDir, result.artifactsDir).split(import_path78.default.sep).join("/") : void 0;
+      const reportPath = result.artifactsDir !== void 0 ? import_path80.default.relative(workspace.rootDir, result.artifactsDir).split(import_path80.default.sep).join("/") : void 0;
       const commandLines = commands.map(
         (command) => `- ${command.name}: ${command.disposition}${command.disposition === "executed" ? command.passed ? " (passed)" : ` (FAILED, exit ${command.exitCode ?? "none"})` : ""}`
       );
@@ -105384,18 +107673,18 @@ var conformanceSummaryShape = external_exports.object({
   note: external_exports.string()
 });
 async function invocationFreeConformanceSummary(profile) {
-  const scratch = (0, import_fs72.mkdtempSync)(import_path79.default.join(import_os2.default.tmpdir(), "specbridge-mcp-conformance-"));
+  const scratch = (0, import_fs74.mkdtempSync)(import_path81.default.join(import_os2.default.tmpdir(), "specbridge-mcp-conformance-"));
   let result;
   try {
     result = await runRunnerConformance({
       profile,
       workspaceRoot: scratch,
-      runDir: import_path79.default.join(scratch, ".specbridge-conformance-runs"),
+      runDir: import_path81.default.join(scratch, ".specbridge-conformance-runs"),
       invocationsAllowed: false,
       timeoutMs: RUNNER_PROBE_TIMEOUT_MS
     });
   } finally {
-    (0, import_fs72.rmSync)(scratch, { recursive: true, force: true });
+    (0, import_fs74.rmSync)(scratch, { recursive: true, force: true });
   }
   return {
     passed: result.passed,
@@ -106913,11 +109202,11 @@ function registerOrchestrationSubmitPlanTool(server, context) {
       const result = await submitPlan(deps, args.orchestrationId, {
         taskId: args.taskId,
         goal: args.goal,
-        steps: args.steps.map((step) => ({
-          ...step.id !== void 0 ? { id: step.id } : {},
-          description: step.description,
-          ...step.expectedAreas !== void 0 ? { expectedAreas: step.expectedAreas } : {},
-          ...step.expectedEvidence !== void 0 ? { expectedEvidence: step.expectedEvidence } : {}
+        steps: args.steps.map((step2) => ({
+          ...step2.id !== void 0 ? { id: step2.id } : {},
+          description: step2.description,
+          ...step2.expectedAreas !== void 0 ? { expectedAreas: step2.expectedAreas } : {},
+          ...step2.expectedEvidence !== void 0 ? { expectedEvidence: step2.expectedEvidence } : {}
         })),
         testStrategy: args.testStrategy,
         verificationStrategy: args.verificationStrategy,
@@ -106942,7 +109231,7 @@ function registerOrchestrationSubmitPlanTool(server, context) {
         ...plan.openQuestions.length > 0 ? ["", "Open questions:", ...plan.openQuestions.map((v) => `  - ${v}`)] : [],
         "",
         "Steps:",
-        ...plan.steps.map((step, index) => `  ${index + 1}. ${step.description}`),
+        ...plan.steps.map((step2, index) => `  ${index + 1}. ${step2.description}`),
         "",
         `Test strategy: ${plan.testStrategy}`,
         `Verification strategy: ${plan.verificationStrategy}`,
@@ -107068,7 +109357,7 @@ function registerOrchestrationRecordActionTool(server, context) {
           `Directive: ${decision.directive}`,
           decision.reason,
           ...decision.backoffMs > 0 ? [`Wait ${decision.backoffMs}ms before retrying.`] : [],
-          ...decision.remediation.length > 0 ? ["", ...decision.remediation.map((step) => `  - ${step}`)] : []
+          ...decision.remediation.length > 0 ? ["", ...decision.remediation.map((step2) => `  - ${step2}`)] : []
         ].join("\n"),
         structured: {
           ...stateSummary(workspace, result.state),
@@ -107395,7 +109684,7 @@ var missionSummaryShape = {
   contracts: external_exports.number().int(),
   contractReady: external_exports.boolean().optional()
 };
-function summarize2(context, workspace, missionId) {
+function summarize3(context, workspace, missionId) {
   const mission = requireMissionState(workspace, missionId);
   const coverage = readCoverage(workspace, missionId);
   return {
@@ -107425,7 +109714,7 @@ function registerMissionBeginTool(server, context) {
       const mission = beginMission(missionDeps(context, workspace), { name: args.name, goal: args.goal });
       return {
         text: `Mission ${mission.missionId} (${mission.name}) created in status ${mission.status}. Record the user's direction as the first turn.`,
-        structured: { mission: summarize2(context, workspace, mission.missionId) }
+        structured: { mission: summarize3(context, workspace, mission.missionId) }
       };
     }
   });
@@ -107441,7 +109730,7 @@ function registerMissionStatusTool(server, context) {
     handler: async () => {
       const workspace = context.requireWorkspace();
       const listed = listMissions(workspace);
-      const missions = listed.missions.slice(0, 50).map((mission) => summarize2(context, workspace, mission.missionId));
+      const missions = listed.missions.slice(0, 50).map((mission) => summarize3(context, workspace, mission.missionId));
       return {
         text: missions.length === 0 ? "No missions exist. Begin one with mission_begin." : missions.map((mission) => `- ${mission.missionId} ${mission.status} (${mission.name})`).join("\n"),
         structured: { missions }
@@ -107524,7 +109813,7 @@ function registerMissionReadTool(server, context) {
       }
       return {
         text: `${view}: ${records.length} record(s).`,
-        structured: { mission: summarize2(context, workspace, args.missionId), view, records }
+        structured: { mission: summarize3(context, workspace, args.missionId), view, records }
       };
     }
   });
@@ -108314,8 +110603,8 @@ async function runMcpServe(argv2, io = {
 }
 
 // ../../packages/mcp-server/dist/index.js
-var import_fs73 = require("fs");
-var import_path80 = __toESM(require("path"), 1);
+var import_fs75 = require("fs");
+var import_path82 = __toESM(require("path"), 1);
 async function runMcpDoctor(options = {}) {
   const checks = [];
   const env = options.env ?? process.env;
@@ -108408,7 +110697,7 @@ async function runMcpDoctor(options = {}) {
   const pluginRoot = env["CLAUDE_PLUGIN_ROOT"];
   if (pluginRoot !== void 0 && pluginRoot.length > 0) {
     const missing = ["dist/mcp-server.cjs", "dist/cli.cjs"].filter(
-      (relative) => !(0, import_fs73.existsSync)(import_path80.default.join(pluginRoot, relative))
+      (relative) => !(0, import_fs75.existsSync)(import_path82.default.join(pluginRoot, relative))
     );
     checks.push(
       missing.length === 0 ? { name: "plugin-bundle", status: "ok", detail: `Bundled executables present under ${pluginRoot}` } : {
@@ -109428,6 +111717,25 @@ function registerRegistryCommands(program2, runtime) {
 function jsonOut3(runtime, schema, data) {
   runtime.outRaw(serializeJsonReport(createJsonReport(schema, `${CLI_BIN} ${VERSION}`, data)));
 }
+function formatMs(value) {
+  if (value === null) return "n/a";
+  return value >= 6e4 ? `${Math.round(value / 6e4)}m` : `${Math.round(value / 1e3)}s`;
+}
+function formatCount(value) {
+  return value === null ? "n/a" : Math.round(value).toLocaleString("en-US");
+}
+function formatRatio(value) {
+  return value === null ? "n/a" : `${(value * 100).toFixed(1)}%`;
+}
+function formatRate2(value) {
+  return value === null ? "n/a" : `${(value * 100).toFixed(0)}%`;
+}
+function formatUsd(value) {
+  return value === null ? "n/a" : `$${value.toFixed(4)}`;
+}
+function formatScore(value) {
+  return value === null ? "n/a" : value.toFixed(4);
+}
 function statusLine2(job) {
   const label = `${job.jobId}  ${job.status}  spec ${job.specName}`;
   if (job.status === "COMPLETED") return okLine(label);
@@ -109717,7 +112025,7 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
     const plan = parsed.data;
     runtime.out(reportTitle(`Plan for ${nodeId} (task ${node.parentTaskId}), revision ${plan.revision}`));
     runtime.out(infoLine(`goal: ${plan.goal}`));
-    for (const step of plan.steps) runtime.out(dim2(`  ${step.id}. ${step.description}`));
+    for (const step2 of plan.steps) runtime.out(dim2(`  ${step2.id}. ${step2.description}`));
     runtime.out(infoLine(`test strategy: ${plan.testStrategy}`));
     runtime.out(infoLine(`verification: ${plan.verificationStrategy}`));
     if (plan.assumptions.length > 0) {
@@ -110038,6 +112346,28 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
         }
       ];
     });
+    const adaptivePolicy = policy.adaptive;
+    const adaptiveDecisions = readAdaptiveDecisions(context.workspace, jobId, { limit: decisionLimit });
+    const adaptiveProfiles = adaptivePolicy.mode === "HEURISTIC" ? void 0 : loadAdaptiveProfiles({
+      workspace: context.workspace,
+      policy: adaptivePolicy,
+      now: /* @__PURE__ */ new Date(),
+      persist: false
+    });
+    const adaptiveSummary = {
+      mode: adaptivePolicy.mode,
+      profileCount: adaptiveProfiles?.profiles.profiles.size ?? 0,
+      observations: adaptiveProfiles?.profiles.observationCount ?? 0,
+      profilesBuiltAt: adaptiveProfiles?.profiles.builtAt ?? null,
+      decisions: adaptiveDecisions.length,
+      applied: adaptiveDecisions.filter((entry) => entry.adaptiveApplied).length,
+      disagreements: adaptiveDecisions.filter((entry) => entry.disagreement).length,
+      fallbackReasons: adaptiveDecisions.reduce((counts, entry) => {
+        if (entry.fallbackReason === null) return counts;
+        counts[entry.fallbackReason] = (counts[entry.fallbackReason] ?? 0) + 1;
+        return counts;
+      }, {})
+    };
     if (options.json === true) {
       jsonOut3(runtime, "orchestrate-scheduler", {
         schedulerEnabled: policy.enabled,
@@ -110051,6 +112381,7 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
           complexity: node.complexity ?? null
         })),
         attemptLanes: laneCounts,
+        adaptive: adaptiveSummary,
         localExecution: {
           strategy: localExecutionPolicy.strategy,
           directAvailable,
@@ -110217,6 +112548,16 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
         );
       }
     }
+    runtime.out(reportTitle("Adaptive scheduler"));
+    runtime.out(
+      (adaptiveSummary.mode === "ADAPTIVE" ? okLine : dim2)(
+        `  mode ${adaptiveSummary.mode}; ${adaptiveSummary.profileCount} profile(s) from ${adaptiveSummary.observations} observation(s); ${adaptiveSummary.decisions} recent decision(s), ${adaptiveSummary.applied} applied, ${adaptiveSummary.disagreements} disagreement(s)`
+      )
+    );
+    for (const [reason, count2] of Object.entries(adaptiveSummary.fallbackReasons)) {
+      runtime.out(dim2(`    fell back ${count2}x: ${reason}`));
+    }
+    runtime.out(dim2(`    detail: ${CLI_BIN} orchestrate adaptive ${jobId}`));
     runtime.out(reportTitle("Ready tasks"));
     if (readyNodes.length === 0) runtime.out(dim2("  (none)"));
     for (const node of readyNodes) {
@@ -110237,6 +112578,227 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
       runtime.out(dim2(`    ${decision.detail.slice(0, 140)}`));
     }
   });
+  orchestrate.command("adaptive").description(
+    "Show adaptive-scheduler state: mode, profiles, predictions, vetoes, fallbacks, calibration (read-only)"
+  ).argument("[jobId]", "job to explain adaptive decisions for (optional)").option("--node <nodeId>", "explain one node in detail").option("--profiles", "list derived performance profiles").option("--level <level>", "profile level filter (EXACT|TARGET_CATEGORY|LANE_CATEGORY|LANE_GLOBAL)").option("--limit <n>", "rows to show (default 20)").option("--rebuild", "discard and rebuild the derived profile cache from the ExecutionLedger").option("--json", "output a machine-readable JSON report").action(
+    (jobId, options) => {
+      const context = loadExecutionContext(runtime);
+      const policy = context.config.orchestration.jobs.scheduler.adaptive;
+      const limit = Math.max(1, Number(options.limit ?? "20") || 20);
+      const now5 = /* @__PURE__ */ new Date();
+      const loaded = options.rebuild === true ? rebuildAdaptiveProfiles({ workspace: context.workspace, policy, now: now5 }) : loadAdaptiveProfiles({ workspace: context.workspace, policy, now: now5, persist: false });
+      const allProfiles = [...loaded.profiles.profiles.values()].filter((profile) => options.level === void 0 || profile.level === options.level).sort(
+        (left, right) => right.weightedSamples !== left.weightedSamples ? right.weightedSamples - left.weightedSamples : left.profileKey < right.profileKey ? -1 : 1
+      );
+      const decisions = jobId === void 0 ? [] : readAdaptiveDecisions(context.workspace, jobId, {
+        limit,
+        ...options.node !== void 0 ? { nodeId: options.node } : {}
+      });
+      const calibration = jobId === void 0 ? [] : readAdaptiveCalibration(context.workspace, jobId, { limit: 200 });
+      const calibrationSummary = summarizeCalibration(calibration);
+      const profileRows = allProfiles.slice(0, limit).map((profile) => ({
+        level: profile.level,
+        profileKey: profile.profileKey,
+        lane: profile.lane,
+        executionMode: profile.executionMode,
+        samples: profile.samples,
+        weightedSamples: Math.round(profile.weightedSamples * 100) / 100,
+        verifiedSuccesses: profile.verifiedSuccesses,
+        unverifiedSuccesses: profile.unverifiedSuccesses,
+        implementationFailures: profile.implementationFailures,
+        infrastructureFailures: profile.infrastructureFailures,
+        inconclusive: profile.inconclusive,
+        censored: profile.censored,
+        attemptsPerSuccess: profile.attemptsPerSuccess,
+        firstAttemptSuccesses: profile.firstAttemptSuccesses,
+        firstAttempts: profile.firstAttempts,
+        wallTimeMs: profile.wallTimeMs,
+        inputTokens: profile.inputTokens,
+        contextTokens: profile.contextTokens,
+        fiveHourBurnRatio: profile.fiveHourBurnRatio,
+        apiCostUsd: profile.apiCostUsd,
+        stagnationRate: profile.stagnationRate,
+        oscillationRate: profile.oscillationRate,
+        runawayRate: profile.runawayRate,
+        contextMissRate: profile.contextMissRate,
+        contextExpansionRate: profile.contextExpansionRate,
+        infrastructureFailureRate: profile.infrastructureFailureRate,
+        safetyEvents: profile.safetyEvents,
+        latestRuntimeIdentity: profile.latestRuntimeIdentity,
+        lastObservedAt: profile.lastObservedAt,
+        drift: profile.drift
+      }));
+      if (options.json === true) {
+        jsonOut3(runtime, "orchestrate-adaptive", {
+          mode: policy.mode,
+          enabled: policy.mode !== "HEURISTIC",
+          weights: policy.weights,
+          thresholds: {
+            minimumSamplesForAdaptiveDecision: policy.minimumSamplesForAdaptiveDecision,
+            minimumComparableSamples: policy.minimumComparableSamples,
+            minimumConfidence: policy.minimumConfidence,
+            minimumUtilityImprovement: policy.minimumUtilityImprovement,
+            priorStrength: policy.priorStrength,
+            recencyHalfLifeMs: policy.recencyHalfLifeMs
+          },
+          profileStore: {
+            source: loaded.source,
+            invalidatedReason: loaded.invalidatedReason,
+            builtAt: loaded.profiles.builtAt,
+            fingerprint: loaded.fingerprint,
+            jobsScanned: loaded.jobsScanned,
+            observations: loaded.profiles.observationCount,
+            droppedByAge: loaded.profiles.droppedByAge,
+            profileCount: loaded.profiles.profiles.size
+          },
+          profiles: profileRows,
+          decisions: decisions.map((decision) => ({
+            decisionId: decision.decisionId,
+            createdAt: decision.createdAt,
+            nodeId: decision.nodeId,
+            taskId: decision.taskId,
+            mode: decision.mode,
+            taskSignature: decision.taskSignature,
+            heuristicLane: decision.heuristicLane,
+            heuristicCandidateId: decision.heuristicCandidateId,
+            recommendedCandidateId: decision.recommendedCandidateId,
+            selectedCandidateId: decision.selectedCandidateId,
+            adaptiveApplied: decision.adaptiveApplied,
+            disagreement: decision.disagreement,
+            wouldApplyInAdaptiveMode: decision.wouldApplyInAdaptiveMode,
+            confidence: decision.confidence,
+            utilityMargin: decision.utilityMargin,
+            fallbackReason: decision.fallbackReason,
+            rejectedCandidates: decision.rejectedCandidates,
+            explanation: decision.explanation,
+            ...options.node !== void 0 ? { predictions: decision.predictions } : {}
+          })),
+          calibration: calibrationSummary
+        });
+        return;
+      }
+      runtime.out(reportTitle("Adaptive compute scheduler (vNext.8)"));
+      const modeLine = `  mode ${policy.mode}` + (policy.mode === "HEURISTIC" ? " \u2014 history is recorded but never ranks or places work" : policy.mode === "SHADOW" ? " \u2014 recommendations are computed and recorded; the heuristic still executes" : " \u2014 history may select among policy-eligible candidates");
+      runtime.out(policy.mode === "ADAPTIVE" ? okLine(modeLine) : infoLine(modeLine));
+      runtime.out(
+        dim2(
+          `    floors: ${policy.minimumSamplesForAdaptiveDecision} weighted samples, ${policy.minimumComparableSamples} comparable, confidence >= ${policy.minimumConfidence}, utility margin >= ${policy.minimumUtilityImprovement}`
+        )
+      );
+      runtime.out(reportTitle("Derived profile store"));
+      runtime.out(
+        infoLine(
+          `  ${loaded.profiles.profiles.size} profile(s) from ${loaded.profiles.observationCount} observation(s) across ${loaded.jobsScanned} job(s) \u2014 ${loaded.source}` + (loaded.invalidatedReason !== null ? ` (cache ${loaded.invalidatedReason})` : "")
+        )
+      );
+      runtime.out(
+        dim2(
+          `    built ${loaded.profiles.builtAt}; ${loaded.profiles.droppedByAge} observation(s) aged out; derived state \u2014 deleting it costs a rebuild and nothing else`
+        )
+      );
+      runtime.out(reportTitle(`Performance profiles (${allProfiles.length})`));
+      if (profileRows.length === 0) {
+        runtime.out(dim2("  (none \u2014 cold start; the deterministic heuristics decide)"));
+      }
+      for (const profile of profileRows) {
+        const resolving = profile.verifiedSuccesses + profile.implementationFailures;
+        const rate = resolving > 0 ? `${Math.round(profile.verifiedSuccesses / resolving * 100)}%` : "n/a";
+        runtime.out(
+          okLine(
+            `  [${profile.level}] ${profile.profileKey}  verified ${rate} (${profile.verifiedSuccesses}/${resolving})  samples ${profile.samples} (weighted ${profile.weightedSamples})`
+          )
+        );
+        runtime.out(
+          dim2(
+            `    P50/P90 wall ${formatMs(profile.wallTimeMs.p50)}/${formatMs(profile.wallTimeMs.p90)}  context ${formatCount(profile.contextTokens.p50)}/${formatCount(profile.contextTokens.p90)} tok  burn ${formatRatio(profile.fiveHourBurnRatio.p50)}/${formatRatio(profile.fiveHourBurnRatio.p90)}  cost ${formatUsd(profile.apiCostUsd.p50)}/${formatUsd(profile.apiCostUsd.p90)}`
+          )
+        );
+        runtime.out(
+          dim2(
+            `    infra-fail ${formatRate2(profile.infrastructureFailureRate)}  inconclusive ${profile.inconclusive}  censored ${profile.censored}  unverified ${profile.unverifiedSuccesses}  stalled ${formatRate2(profile.stagnationRate)}  oscillating ${formatRate2(profile.oscillationRate)}  runaway ${formatRate2(profile.runawayRate)}  context-miss ${formatRate2(profile.contextMissRate)}`
+          )
+        );
+        if (profile.safetyEvents > 0) {
+          runtime.out(
+            warnLine(`    ${profile.safetyEvents} safety-class failure(s) on record (these do not decay)`)
+          );
+        }
+        if (profile.drift.detected) {
+          runtime.out(warnLine(`    drift: ${profile.drift.detail}`));
+        }
+      }
+      if (jobId === void 0) {
+        runtime.out(dim2("\n  Pass a job id to see its adaptive decisions and prediction accuracy."));
+        return;
+      }
+      runtime.out(reportTitle(`Adaptive decisions (${decisions.length})`));
+      if (decisions.length === 0) {
+        runtime.out(
+          dim2(
+            policy.mode === "HEURISTIC" ? "  (none \u2014 adaptive mode is HEURISTIC, so nothing is computed)" : "  (none recorded yet)"
+          )
+        );
+      }
+      for (const decision of decisions) {
+        const headline = `  ${decision.createdAt}  task ${decision.taskId} [${decision.mode}]  ${decision.selectedCandidateId ?? "no candidate"}`;
+        runtime.out(decision.adaptiveApplied ? okLine(headline) : infoLine(headline));
+        runtime.out(dim2(`    signature ${decision.taskSignature}`));
+        if (decision.disagreement) {
+          runtime.out(
+            warnLine(
+              `    recommended ${decision.recommendedCandidateId ?? "n/a"} but executed ${decision.heuristicCandidateId ?? "n/a"}` + (decision.mode === "SHADOW" ? " \u2014 the alternative was NOT run, so no outcome is claimed for it" : "")
+            )
+          );
+        }
+        runtime.out(
+          dim2(
+            `    confidence ${decision.confidence}` + (decision.utilityMargin !== null ? `, margin ${decision.utilityMargin.toFixed(4)}` : "") + (decision.fallbackReason !== null ? `, fell back: ${decision.fallbackReason}` : ", adaptive decided")
+          )
+        );
+        for (const line of decision.explanation) runtime.out(dim2(`      ${line}`));
+        for (const veto of decision.rejectedCandidates) {
+          if (veto.code === "LANE_NOT_ELIGIBLE") continue;
+          runtime.out(warnLine(`    vetoed ${veto.candidateId}: ${veto.code} \u2014 ${veto.detail}`));
+        }
+        if (options.node !== void 0) {
+          for (const prediction of decision.predictions) {
+            runtime.out(
+              infoLine(
+                `    ${prediction.candidateId}  score ${prediction.score.toFixed(4)}  P(verified) ${(prediction.verifiedSuccessProbability * 100).toFixed(0)}%  [${prediction.level}/${prediction.confidence}/${prediction.identityMatch}]  ${prediction.sampleCount} sample(s)`
+              )
+            );
+            for (const component of prediction.scoreComponents) {
+              runtime.out(
+                dim2(
+                  `        ${component.name.padEnd(22)} ${component.contribution >= 0 ? "+" : ""}${component.contribution.toFixed(4)}  ${component.detail}`
+                )
+              );
+            }
+          }
+        }
+      }
+      runtime.out(reportTitle("Prediction calibration"));
+      if (calibrationSummary.records === 0) {
+        runtime.out(dim2("  (no calibration records yet)"));
+      } else {
+        runtime.out(
+          infoLine(
+            `  ${calibrationSummary.records} record(s), ${calibrationSummary.scoredRecords} with a resolvable success outcome`
+          )
+        );
+        runtime.out(
+          dim2(
+            `    mean Brier ${formatScore(calibrationSummary.meanBrierScore)} (lower is better)  wall-time error ${formatRate2(calibrationSummary.meanAbsoluteWallTimeError)}  context error ${formatRate2(calibrationSummary.meanAbsoluteContextTokenError)}  cost error ${formatRate2(calibrationSummary.meanAbsoluteCostError)}`
+          )
+        );
+        runtime.out(
+          dim2(
+            "    Calibration is derived metadata: a wrong forecast never edits the attempt, the evaluation, or the ledger."
+          )
+        );
+      }
+    }
+  );
   orchestrate.command("api-approve").description("Approve one bounded API spend request for a task (human decision; CLI only)").argument("<jobId>").argument("<approvalId>").option("--max-cost <usd>", "authorize LESS than requested (never more)").option("--note <text>", "note recorded with the decision").option("--by <name>", "who is approving (recorded for audit)").option("--json", "output a machine-readable JSON report").action(
     (jobId, approvalId, options) => {
       const context = loadExecutionContext(runtime);
@@ -110774,10 +113336,10 @@ function registerOrchestrateCommands(program2, runtime) {
           nonGoals: plan.nonGoals,
           constraints: plan.constraints,
           assumptions: plan.assumptions,
-          steps: plan.steps.map((step) => ({
-            id: step.id,
-            description: step.description,
-            status: step.status
+          steps: plan.steps.map((step2) => ({
+            id: step2.id,
+            description: step2.description,
+            status: step2.status
           })),
           testStrategy: plan.testStrategy,
           verificationStrategy: plan.verificationStrategy,
@@ -110807,8 +113369,8 @@ function registerOrchestrateCommands(program2, runtime) {
     if (plan !== void 0) {
       runtime.out(sectionTitle(`Execution plan (revision ${plan.revision})`));
       runtime.out(`  Goal: ${plan.goal}`);
-      for (const [index, step] of plan.steps.entries()) {
-        runtime.out(`  ${index + 1}. ${step.description} ${dim2(`[${step.status}]`)}`);
+      for (const [index, step2] of plan.steps.entries()) {
+        runtime.out(`  ${index + 1}. ${step2.description} ${dim2(`[${step2.status}]`)}`);
       }
       runtime.out(dim2(`  Test strategy: ${plan.testStrategy}`));
       runtime.out(dim2(`  Verification: ${plan.verificationStrategy}`));
@@ -110827,7 +113389,7 @@ function registerOrchestrateCommands(program2, runtime) {
     if (detail.blocker !== void 0) {
       runtime.out(sectionTitle("Blocker"));
       runtime.out(blockedLine(`  ${detail.blocker.category}: ${detail.blocker.message}`));
-      for (const step of detail.blocker.remediation) runtime.out(dim2(`    - ${step}`));
+      for (const step2 of detail.blocker.remediation) runtime.out(dim2(`    - ${step2}`));
     }
     runtime.out(sectionTitle(`Recent events (${detail.recentEvents.length} of ${detail.totalEvents})`));
     for (const event of detail.recentEvents) runtime.out(dim2(`  ${event.at}  ${event.type}`));
@@ -111410,7 +113972,7 @@ async function runCli(argv2, ioOverrides) {
     }
     if (isOrchestrationError(error2)) {
       io.out(`${error2.code} (${error2.category}): ${error2.message}`);
-      for (const step of error2.remediation) io.out(dim2(`  - ${step}`));
+      for (const step2 of error2.remediation) io.out(dim2(`  - ${step2}`));
       return EXIT_CODES.usageError;
     }
     const message = error2 instanceof Error ? error2.stack ?? error2.message : String(error2);

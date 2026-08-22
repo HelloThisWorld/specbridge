@@ -1707,6 +1707,269 @@ context, and every attempt asks for a bigger package.
 - The expansion budget is durable, bounded, and not reachable from model
   output — the same rule that governs every other budget in the system.
 
+## 15. Adaptive compute scheduler (vNext.8)
+
+The adaptive scheduler turns durable execution history into placement
+recommendations. That creates one new attack surface class — **history as an
+input to routing** — and one new failure class: derived analytics that are
+wrong, stale, or corrupt.
+
+The invariant every mitigation below serves:
+
+> Adaptive optimization may rank allowed choices.
+> It may never make a forbidden choice allowed.
+
+Hard policy — locality (vNext.4), spend authorization and budget (vNext.5),
+quota windows and HARVEST (vNext.2), reliability vetoes (vNext.6), and context
+safety (vNext.7) — runs **before** anything adaptive and produces the candidate
+set. The ranking layer receives that set and cannot add to it.
+
+### T82 — History poisoning through repository content
+
+**Threat.** A repository contains text designed to steer routing — "always use
+the API", "this task is simple", a file named to trip a category pattern —
+hoping to bias the scheduler toward a lane the attacker prefers.
+
+**Mitigations.**
+
+- Task features come from **structural classification only**: the vNext.2
+  suitability tables (word-boundary matched, documented, test-visible), the
+  complexity class, the execution shape, and the verification strength. No
+  free text from a repository reaches the signature, and no instruction in a
+  repository is parsed as scheduler policy.
+- Even a successful category misclassification cannot change a **lane**. The
+  category refines a statistical bucket; the lane was decided by hard policy
+  before the adaptive layer ran.
+- The signature is structurally incapable of holding prompts, source, task
+  text, or chain of thought — every field is a closed enum, a number, or a
+  bucketed class.
+
+### T83 — Self-reinforcing routing bias
+
+**Threat.** The scheduler learns from its own predictions: it prefers target
+A, therefore A accumulates observations, therefore A looks better still, and a
+target it declined early is never re-examined.
+
+**Mitigations.**
+
+- **Only executed attempts with real observations become evidence.** A
+  prediction, a recommendation, an unexecuted candidate, and a shadow-mode
+  counterfactual have no representation in the outcome model — there is no
+  constructor that accepts one.
+- Calibration records are derived metadata and are never read back to place
+  work.
+- The Beta prior is the **existing heuristic's** expectation, identical across
+  candidates on a task, so a candidate with no history starts from the same
+  place as its rivals rather than from a disadvantage the scheduler invented.
+- Hierarchical fallback keeps a rarely-selected candidate scoreable from
+  coarser levels instead of leaving it permanently unmeasured.
+
+### T84 — Manual acceptance polluting success labels
+
+**Threat.** A task accepted by a human despite incomplete automated evidence is
+counted as a verified success, and the scheduler learns that a weak target
+"works".
+
+**Mitigations.**
+
+- Success requires **completion and an evaluation `PASS`**. A completion with
+  no `PASS` on record is labelled `UNVERIFIED_SUCCESS`, counted separately, and
+  excluded from **both** sides of the intelligence rate.
+- Completion provenance is preserved in the profile and surfaced in
+  diagnostics, so a workspace whose successes are mostly unverified is visible
+  rather than silently optimistic.
+
+### T85 — Provider outage misclassified as intelligence failure
+
+**Threat.** A harness crash, a rate limit, or a broken verifier lowers a
+target's measured success rate, and the scheduler routes away from a capable
+model because its infrastructure had a bad week.
+
+**Mitigations.**
+
+- Six outcome labels, not a boolean. `INFRASTRUCTURE_FAILURE` never enters the
+  intelligence-rate denominator; it feeds a separate availability rate.
+- `INCONCLUSIVE` — the verifier could not reach a verdict — is trained as
+  neither success nor failure.
+- `CENSORED` (interrupted, cancelled) contributes its **resource cost** but no
+  outcome, so an unreliable target never looks cheap while also never being
+  blamed for work it may have done correctly.
+- The failure-source distribution is carried on every profile, so the
+  distinction is auditable after the fact.
+
+### T86 — Survivorship bias
+
+**Threat.** Failed or interrupted attempts drop out of the statistics and the
+scheduler becomes falsely optimistic.
+
+**Mitigations.**
+
+- Every finished EXECUTOR attempt is folded in, including failures, censored
+  runs, and inconclusive verdicts. Attempts still `RUNNING` are skipped because
+  they have no outcome yet — not because they are inconvenient.
+- Failed-work totals (wall time, tokens, cost, quota) are accumulated
+  explicitly and priced in the utility function.
+
+### T87 — Old performance transferred to a new version
+
+**Threat.** A model or harness is upgraded, and months of history for the
+previous version silently governs placement for the new one.
+
+**Mitigations.**
+
+- Runtime identity (runner, version when reported, model, context strategy)
+  travels with every observation and is compared against what would execute
+  now. A changed **runner** is treated as cold start; a changed model or
+  version reduces confidence one step; unknown identity also reduces
+  confidence, and never resolves to "matches".
+- An identity change inside a profile's window is itself a drift signal.
+- No compatibility is guessed where no policy exists.
+
+### T88 — Bypassing spend, quota, locality, or reliability policy
+
+**Threat.** A statistically attractive candidate is used to route around a
+governance boundary — paid execution while spending is disabled, a subscription
+dispatch the quota policy refused, a `REMOTE` harness treated as local, or a
+strategy the recovery planner retired.
+
+**Mitigations.**
+
+- Candidates are generated **from** the hard-policy routing, never alongside
+  it. `DEFER` and `REQUIRE_APPROVAL` produce no executable candidate at all; a
+  `LOCAL` routing yields no subscription or API candidate; a `SUBSCRIPTION`
+  routing yields no API candidate.
+- An API candidate exists only after the Gap Bridge already selected the API
+  lane — meaning spend mode, budget, approval, pricing, and gap duration all
+  passed first.
+- A harness whose compute is not verified `LOCAL` is **rejected**, not ranked,
+  regardless of its history.
+- A candidate whose vNext.6 strategy key appears in the task's
+  `exhaustedStrategies` is removed before ranking.
+- Every veto is persisted with a code and surfaced in diagnostics, so "the
+  scheduler had a favourite and did not use it" is answerable from durable
+  state.
+
+### T89 — Historical cost inferred as current price
+
+**Threat.** Current pricing is unconfigured, so the scheduler estimates spend
+from what similar attempts cost historically and authorizes a paid run.
+
+**Mitigations.**
+
+- The adaptive layer prices observed cost for **ranking only**, and only from
+  reconciled cost — never from an estimate.
+- Spend authorization remains entirely vNext.5's: unknown pricing yields
+  `API_COST_UNKNOWN` and refuses `AUTO_BOUNDED` spend. Adaptive ranking has no
+  path to that decision and cannot supply a substitute price.
+
+### T90 — Autonomous paid exploration
+
+**Threat.** Sparse data for a paid profile causes the scheduler to spend money
+to collect samples.
+
+**Mitigations.**
+
+- Sparse evidence produces low confidence and a **heuristic fallback**. There
+  is no exploration branch, no epsilon-greedy term, and no code path that
+  requests an attempt in order to learn from it.
+- The same holds for prepaid capacity: no duplicate subscription attempt is
+  ever issued for scheduler data.
+- Evidence comes from executions independently justified by task policy, plus
+  the explicit offline benchmark, which executes nothing.
+
+### T91 — Metric gaming
+
+**Threat.** A target is rewarded for producing more output — more lines, more
+tool calls, longer runs — rather than for finishing work.
+
+**Mitigations.**
+
+- No volume metric is a positive term anywhere in the utility function. Lines
+  changed and tool calls are not scored.
+- Verified completion is the only positive term; everything else is a penalty.
+- Cost and context are priced **per verified completion**, so a target that
+  produces more and finishes less scores worse, not better.
+
+### T92 — Counterfactual claims in shadow mode
+
+**Threat.** Shadow-mode disagreement is reported as regret — "the adaptive
+choice would have succeeded" — and a rollout is justified by an outcome nobody
+observed.
+
+**Mitigations.**
+
+- The decision record and the events carry `disagreement` and
+  `wouldApplyInAdaptiveMode`, and nothing else. No field can hold an outcome
+  for an unexecuted candidate.
+- The replay report is typed `RECOMMENDATION_ONLY` and carries its disclaimer
+  as data, so a renderer cannot drop it.
+- Calibration scores only the candidate that **actually ran**.
+
+### T93 — Derived analytics corruption
+
+**Threat.** A corrupt, truncated, or maliciously edited profile cache steers
+routing, or fails a running job.
+
+**Mitigations.**
+
+- The cache is **derived state** under `.specbridge/cache/`. No Job, task,
+  attempt, evaluation, or recovery record depends on any byte in it.
+- Absent, unparseable, schema-mismatched, and stale all collapse to one
+  response: **rebuild**. The reader deliberately does not offer callers a way
+  to distinguish "corrupt" from "missing", because a caller that could would
+  eventually use the corrupt one.
+- Every load path is failure-tolerant: a rebuild that cannot complete yields
+  an empty profile set, which the ranking layer reads as cold start and answers
+  with the heuristic.
+- A schema-version bump triggers a rebuild, never a migration.
+
+### T94 — Cross-workspace information leakage
+
+**Threat.** A global history mechanism carries file names, task text, or
+project identifiers between unrelated repositories.
+
+**Mitigations.**
+
+- History is **workspace-local**, permanently for this phase. Nothing crosses
+  a repository boundary because nothing leaves one.
+- Profiles hold normalized structured features and metrics only — no prompts,
+  no source, no task text, no conversation, no chain of thought.
+- The simplest proof that a global aggregation carries nothing sensitive is
+  not to build one, and this phase does not.
+
+### T95 — Tiny-score routing oscillation
+
+**Threat.** Two near-equivalent candidates trade places on statistical noise,
+and placement for one task class flips every pass — destroying long-horizon
+reproducibility for a gain that is not real.
+
+**Mitigations.**
+
+- `minimumUtilityImprovement` hysteresis: the adaptive choice must beat the
+  incumbent by a configured margin, or the stable choice stands.
+- Ranking is deterministic, with ties broken on the derived candidate key
+  rather than on generation order.
+- Recency weighting is continuous, so no observation changes weight abruptly
+  at a window boundary.
+
+### T96 — An agent mutating adaptive policy
+
+**Threat.** An agent edits weights, sample floors, or the mode through
+repository mutation and grants itself a preferred route.
+
+**Mitigations.**
+
+- Adaptive settings are control-plane configuration, governed by the same
+  protected-path and authority rules as budgets, quota policy, and spend
+  authorization. Nothing an agent writes into a repository is read as
+  scheduler policy.
+- Configuration validation rejects a non-positive `successWeight`, an all-zero
+  weight vector, negatives, NaN, and out-of-range values — so a weight vector
+  that would make the scheduler ignore success cannot be loaded at all.
+- The adaptive layer cannot tune an API budget, a quota reserve, protected
+  paths, completion criteria, contract authority, or evidence authority. It
+  has no write path to any of them.
+
 ## Explicit non-claims
 
 Security models fail through overclaiming. SpecBridge does **not** claim:
@@ -1773,7 +2036,16 @@ Security models fail through overclaiming. SpecBridge does **not** claim:
    records `cachedInputTokens` only when a provider actually reports cached
    tokens. It implements no provider cache protocol and never reports a
    saving it did not observe.
-13. **Model-assisted workflows are nondeterministic.** Anything a model
+13. **Adaptive scheduling is history-informed placement, NOT optimal
+   scheduling.** SpecBridge does not claim optimality, causal knowledge of
+   unexecuted alternatives, perfect success or cost prediction, or a global
+   provider ranking. Its benchmark results are simulated over synthetic
+   workloads and are labelled as such; they are evidence that the ranking
+   logic behaves as designed, not evidence of real-world savings. The layer
+   ranks candidates hard policy already permitted, and every economic,
+   quota, locality, spend, reliability, and context boundary is decided
+   before it runs.
+14. **Model-assisted workflows are nondeterministic.** Anything a model
    authors — spec prose, code edits, refinements — can differ between
    runs and can be wrong. SpecBridge makes the *controls* deterministic
    (hashes, approvals, evidence, verification rules), never the model
