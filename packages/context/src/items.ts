@@ -1,5 +1,15 @@
 import { z } from 'zod';
-import { CONTEXT_HEALTH_LEVELS, CONTEXT_LAYERS, COMPACTION_LEVELS } from './vocabulary.js';
+import {
+  CONTEXT_AUTHORITY_LEVELS,
+  CONTEXT_COMPRESSION_METHODS,
+  CONTEXT_FRESHNESS_KINDS,
+  CONTEXT_HEALTH_LEVELS,
+  CONTEXT_LAYERS,
+  CONTEXT_ORIGIN_KINDS,
+  CONTEXT_SELECTION_REASONS,
+  COMPACTION_LEVELS,
+} from './vocabulary.js';
+import type { ContextAuthority, ContextFreshness } from './vocabulary.js';
 
 /**
  * Context items and packages.
@@ -25,6 +35,68 @@ export const CONTEXT_LIMITS = {
 } as const;
 
 const shortText = z.string().min(1).max(CONTEXT_LIMITS.maxShortTextChars);
+
+/**
+ * Where one context item's content came from (vNext.7, additive).
+ *
+ * Provenance is what makes selected context AUDITABLE rather than merely
+ * plausible: a repository excerpt names its path and the content hash it was
+ * read at, a compressed artifact names the hashes it was derived from, a
+ * diff names its baseline. An agent should not receive untraceable generated
+ * context, and a diagnostic should be able to say where every byte came from
+ * without printing the bytes.
+ *
+ * Every field is optional and the schema passes through unknown keys: a
+ * pre-vNext.7 item simply carries no provenance, which parses unchanged.
+ */
+export const contextProvenanceSchema = z
+  .object({
+    kind: z.enum(CONTEXT_ORIGIN_KINDS),
+    /** Workspace-relative path, forward slashes, when the origin is a file. */
+    path: shortText.optional(),
+    /** SHA-256 of the exact source bytes this content was taken from. */
+    contentHash: shortText.optional(),
+    /** 1-based inclusive line range, when a section rather than a whole file. */
+    startLine: z.number().int().min(1).optional(),
+    endLine: z.number().int().min(1).optional(),
+    /** Enclosing symbol name, when a symbol range was extracted. */
+    symbol: shortText.optional(),
+    /**
+     * The baseline this content is relative to: a checkpoint id, a Git
+     * revision, a prior context generation. A delta without a baseline is
+     * not a delta, it is an assertion.
+     */
+    baselineRef: shortText.optional(),
+    /** Run/verification/artifact ids this content was derived from. */
+    artifactRefs: z.array(shortText).max(20).default([]),
+    /** Content hashes of the sources a DERIVED item was computed from. */
+    sourceHashes: z.array(shortText).max(20).default([]),
+  })
+  .passthrough();
+export type ContextProvenance = z.infer<typeof contextProvenanceSchema>;
+
+/**
+ * How one item was compressed, and from what (vNext.7, additive).
+ *
+ * Compression is DERIVED data. The record names its method and its sources
+ * so the canonical raw evidence stays retrievable — the prompt receives the
+ * compressed representation, never the only copy.
+ */
+export const contextCompressionSchema = z
+  .object({
+    method: z.enum(CONTEXT_COMPRESSION_METHODS),
+    sourceBytes: z.number().int().min(0),
+    compressedBytes: z.number().int().min(0),
+    /** Content hashes of the raw artifacts this was compressed from. */
+    sourceHashes: z.array(shortText).max(20).default([]),
+    /** Run/artifact ids where the canonical raw evidence still lives. */
+    sourceRefs: z.array(shortText).max(20).default([]),
+    createdAt: shortText,
+    /** Model/profile identity when a local model performed the compression. */
+    model: shortText.optional(),
+  })
+  .passthrough();
+export type ContextCompression = z.infer<typeof contextCompressionSchema>;
 
 /**
  * One bounded piece of context.
@@ -58,6 +130,26 @@ export const contextItemSchema = z
     foldedIntoCheckpointId: shortText.optional(),
     /** True when micro-compaction already produced this structured form. */
     compacted: z.boolean().default(false),
+    // --- vNext.7 Context Efficiency (all additive, all optional) ----------
+    /** Where this content came from, at what hash, over what range. */
+    provenance: contextProvenanceSchema.optional(),
+    /**
+     * How long this content stays true. Absent means CURRENT (see
+     * `itemFreshness`) so every pre-vNext.7 item behaves exactly as before:
+     * true as assembled, with nothing observed that invalidates it.
+     */
+    freshness: z.enum(CONTEXT_FRESHNESS_KINDS).optional(),
+    /**
+     * How much authority this content carries when two items disagree.
+     * Absent means DERIVED (see `itemAuthority`) — the conservative middle:
+     * a legacy item never outranks canonical state, and never loses to a
+     * model claim.
+     */
+    authority: z.enum(CONTEXT_AUTHORITY_LEVELS).optional(),
+    /** Why retrieval selected this item, when retrieval produced it. */
+    selectionReason: z.enum(CONTEXT_SELECTION_REASONS).optional(),
+    /** Compression record, when this item's content is compressed. */
+    compression: contextCompressionSchema.optional(),
   })
   .passthrough();
 export type ContextItem = z.infer<typeof contextItemSchema>;
@@ -111,6 +203,23 @@ export const contextPackageSchema = z
   })
   .passthrough();
 export type ContextPackage = z.infer<typeof contextPackageSchema>;
+
+/**
+ * Freshness of one item, with the conservative default for items that
+ * predate vNext.7 (or were built without one): CURRENT — true as assembled.
+ */
+export function itemFreshness(item: Pick<ContextItem, 'freshness'>): ContextFreshness {
+  return item.freshness ?? 'CURRENT';
+}
+
+/**
+ * Authority of one item, defaulting to DERIVED. Deliberately the middle
+ * rank: an item that never declared its authority may not outrank a
+ * canonical contract, and may not be discarded in favour of a model claim.
+ */
+export function itemAuthority(item: Pick<ContextItem, 'authority'>): ContextAuthority {
+  return item.authority ?? 'DERIVED';
+}
 
 /** Items of one layer, in stable insertion order. */
 export function itemsInLayer(items: readonly ContextItem[], layer: ContextItem['layer']): ContextItem[] {

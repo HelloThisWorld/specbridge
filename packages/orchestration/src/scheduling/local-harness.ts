@@ -136,6 +136,10 @@ export interface LocalHarnessExecutionInput {
   profileName: string;
   /** Latest durable checkpoint for this task, when one exists. */
   checkpoint?: TaskCheckpoint | undefined;
+  /** vNext.7: ranked repository pointers for the bootstrap (never bodies). */
+  repositoryPointers?: readonly string[] | undefined;
+  /** Selection plan id, recorded for explainability. */
+  contextPlanId?: string | undefined;
   /** Wall-clock ceiling for this attempt (external bound; always enforced). */
   maxWallTimeMs: number;
   clock?: Clock | undefined;
@@ -192,6 +196,18 @@ export function buildHarnessBootstrapPrompt(input: {
   documentPaths: readonly string[];
   checkpoint?: TaskCheckpoint | undefined;
   repairContext?: { category: string; message: string; recommendedAction?: string | undefined } | undefined;
+  /**
+   * vNext.7: high-value repository POINTERS, one per line.
+   *
+   * The single highest-leverage line in a harness bootstrap. A tool-capable
+   * agent that knows where to start reads three files; the same agent
+   * without that hint searches, and the search is charged to the same
+   * context window the bootstrap was trying to protect. What it must NOT
+   * become is a place to paste file bodies — the harness reads current bytes
+   * itself, and a body here would be both redundant and, by the time it is
+   * read, potentially stale.
+   */
+  repositoryPointers?: readonly string[] | undefined;
 }): string {
   const checkpoint = input.checkpoint;
   const lines: string[] = [
@@ -294,13 +310,22 @@ export function buildHarnessBootstrapPrompt(input: {
     );
   }
 
+  const pointers = input.repositoryPointers ?? [];
   lines.push(
     '',
     '## E. Where to find everything else',
     '',
     'Read these yourself with your tools instead of asking for them — they are on disk, current, and approved:',
     ...input.documentPaths.map((entry) => `- ${entry}`),
-    '- the source files the task touches: locate them in the repository',
+    ...(pointers.length > 0
+      ? [
+          '',
+          'SpecBridge selected these repository locations as the highest-value starting points for this task.',
+          'They are a ranked hint, not a boundary: read them first, and read anything else you need.',
+          'Their content is not reproduced here on purpose — the bytes on disk are current, and a copy in this prompt would not be.',
+          ...pointers.map((entry) => `- ${entry}`),
+        ]
+      : ['- the source files the task touches: locate them in the repository']),
     '',
     '## F. Untrusted content boundary',
     '',
@@ -401,6 +426,9 @@ export async function dispatchLocalHarnessExecution(
       '.kiro/steering/*.md (project steering rules, when present)',
     ],
     ...(input.checkpoint !== undefined ? { checkpoint: input.checkpoint } : {}),
+    ...(input.repositoryPointers !== undefined && input.repositoryPointers.length > 0
+      ? { repositoryPointers: input.repositoryPointers }
+      : {}),
     ...(input.mode === 'repair' && input.node.latestFailure !== undefined
       ? {
           repairContext: {

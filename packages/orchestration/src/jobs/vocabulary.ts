@@ -436,5 +436,17 @@ export const JOB_EVENT_TYPES = [
   'recovery_budget_exhausted',
   'task_blocked_after_recovery',
   'dependents_gated_on_evaluation',
+  // Context-efficiency events (vNext.7; additive, never reordered). Semantic
+  // again: the moments where SpecBridge chose what a worker would see, found
+  // its picture of the repository out of date, or widened retrieval because
+  // evidence said the package was insufficient. The per-file selection detail
+  // lives on the durable ContextSelectionPlan, not in the event stream.
+  'context_index_built',
+  'context_index_refreshed',
+  'context_selected',
+  'context_stale_artifact_detected',
+  'context_insufficient',
+  'context_expanded',
+  'context_expansion_exhausted',
 ] as const;
 export type JobEventType = (typeof JOB_EVENT_TYPES)[number];

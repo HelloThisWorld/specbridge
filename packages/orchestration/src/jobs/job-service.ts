@@ -87,6 +87,22 @@ import type {
   VerificationInput,
 } from '../reliability/index.js';
 import {
+  RepositoryContextIndex,
+  applyExpansion,
+  initialExpansionState,
+  planContextExpansion,
+} from '@specbridge/context';
+import type { ContextInsufficiencySignal, ContextStrategy } from '@specbridge/context';
+import {
+  assessContextMiss,
+  expansionPolicyFrom,
+  listContextSelectionPlans,
+  offerContextExpansion,
+  readContextExpansionState,
+  readRepositoryIndexCache,
+  writeContextExpansionState,
+} from '../context/index.js';
+import {
   evaluateAcceptanceCriteria,
   evaluateAttempt,
   governFailedAttempt,
@@ -951,6 +967,27 @@ export interface ExecutorReliabilityInput {
   api?: ApiBudgetPosition | undefined;
   /** True when the task is flagged high-risk (architecture, public API, security). */
   highRisk?: boolean | undefined;
+  /**
+   * vNext.7: bounded text the worker itself produced in STRUCTURED fields —
+   * blocking questions, remaining risks, an escalation reason.
+   *
+   * Used only to detect whether the worker named a repository artifact it
+   * was never given. Deliberately not a transcript, and deliberately not
+   * read for sentiment: a worker asserting "I need more context" without
+   * naming anything produces no signal at all, because that claim is exactly
+   * what an underperforming model says and acting on it would let a worker
+   * request its own budget increase.
+   */
+  workerReportedText?: string | undefined;
+  /**
+   * vNext.7: a DIRECT_MODEL attempt declined for want of repository access.
+   *
+   * A structured decision the local executor already makes (its ESCALATE
+   * outcome), not an interpretation of prose. It is the clearest possible
+   * evidence that the failure was about the PACKAGE rather than the model:
+   * a model with no tools said it could not see the code.
+   */
+  directModelRequestedRepository?: boolean | undefined;
 }
 
 export interface ExecutorOutcomeResult {
@@ -1298,6 +1335,25 @@ function applyRecoveryDecision(
         taskId: node.parentTaskId,
         decisionId: decision.decisionId,
         reasonCode: decision.reasonCode,
+      });
+      return finish(job, 'retry-strategy-change');
+    }
+
+    case 'EXPAND_CONTEXT': {
+      // vNext.7: the package was insufficient, not the intelligence. The task
+      // returns to READY exactly like a fresh-context restart — what differs
+      // is the durable expansion state the next assembly reads, which widens
+      // retrieval by one bounded level. Nothing about the lane, the model, or
+      // the plan changes here, deliberately: this decision asserts that the
+      // experiment was never actually run with what it needed.
+      job = transition(deps, job, 'READY');
+      job = { ...job, currentNodeId: node.nodeId };
+      job = record(deps, job, 'context_threshold_reached', {
+        nodeId: node.nodeId,
+        taskId: node.parentTaskId,
+        decisionId: decision.decisionId,
+        reasonCode: decision.reasonCode,
+        detail: 'context insufficiency observed; retrieval widens one bounded level',
       });
       return finish(job, 'retry-strategy-change');
     }
@@ -1799,6 +1855,25 @@ export function completeExecutorDispatch(
   // not that the rules changed; it is that they are now decided once, from a
   // structured assessment, and written down.
   if (policy.reliability.enabled) {
+    // vNext.7: was this a CONTEXT miss rather than an intelligence failure?
+    //
+    // Assessed from OBSERVED evidence — the plan that built the failing
+    // package, the repository index, the failure text, and what the worker
+    // itself named in structured output. When nothing observed says the
+    // package was insufficient, `signals` is empty and everything below is
+    // byte-identical to vNext.6.
+    const contextMiss = assessDispatchContextMiss(deps, {
+      jobId,
+      nodeId: node.nodeId,
+      attemptId,
+      failureText: classified.message,
+      ...(outcome.reliability?.workerReportedText !== undefined
+        ? { workerReportedText: outcome.reliability.workerReportedText }
+        : {}),
+      ...(outcome.reliability?.directModelRequestedRepository === true
+        ? { directModelRequestedRepository: true }
+        : {}),
+    });
     const governed = governFailedAttempt(reliabilityDepsFor(deps, jobId), {
       jobId,
       nodeId: node.nodeId,
@@ -1824,8 +1899,40 @@ export function completeExecutorDispatch(
       ...(outcome.reliability?.api !== undefined ? { api: outcome.reliability.api } : {}),
       resource: outcome.reliability?.resource ?? defaultRecoveryResource(),
       contextRatio: outcome.reliability?.contextRatio ?? null,
+      ...(contextMiss.signals.length > 0
+        ? {
+            contextInsufficiencySignals: contextMiss.signals,
+            contextExpansion: contextMiss.offer,
+          }
+        : {}),
       ...(outcome.context.runId !== undefined ? { evidenceRefs: [outcome.context.runId] } : {}),
     });
+    if (contextMiss.signals.length > 0) {
+      recordJobEvent(deps, jobId, 'context_insufficient', {
+        nodeId: node.nodeId,
+        taskId: node.parentTaskId,
+        attemptId,
+        signals: contextMiss.signals,
+        missingPaths: contextMiss.missingPaths.slice(0, 20),
+        expansionAvailable: contextMiss.offer.available,
+        nextLevel: contextMiss.offer.nextLevel,
+      });
+    }
+    if (governed.decision.action === 'EXPAND_CONTEXT') {
+      applyContextExpansion(deps, {
+        jobId,
+        nodeId: node.nodeId,
+        taskId: node.parentTaskId,
+        signals: contextMiss.signals,
+        at,
+      });
+    } else if (contextMiss.offer.exhausted) {
+      recordJobEvent(deps, jobId, 'context_expansion_exhausted', {
+        nodeId: node.nodeId,
+        taskId: node.parentTaskId,
+        reason: contextMiss.offer.reason.slice(0, 500),
+      });
+    }
     return applyRecoveryDecision(deps, {
       job,
       graph,
@@ -2626,3 +2733,121 @@ export function countLocalInferenceCall(deps: JobDeps, jobId: string): JobState 
 }
 
 export { listGraphRevisions };
+
+// ---------------------------------------------------------------------------
+// vNext.7 context-miss governance
+// ---------------------------------------------------------------------------
+
+interface DispatchContextMiss {
+  signals: string[];
+  missingPaths: string[];
+  offer: { available: boolean; nextLevel: string; reason: string; exhausted: boolean };
+}
+
+/**
+ * Decide whether the failed attempt failed for want of CONTEXT.
+ *
+ * Read-only and best-effort. If the plan is missing, the index cannot be
+ * read, or anything else goes wrong, the answer is "no signals" — which
+ * leaves the reliability decision exactly where vNext.6 left it. A
+ * diagnostic that could itself fail a dispatch would be a poor trade for the
+ * information it provides.
+ *
+ * The index is loaded from the CACHE only (never rebuilt here): this runs on
+ * a failure path, and paying for a full repository walk to decide how to
+ * classify a failure would be its own kind of waste.
+ */
+function assessDispatchContextMiss(
+  deps: JobDeps,
+  input: {
+    jobId: string;
+    nodeId: string;
+    attemptId: string;
+    failureText: string;
+    workerReportedText?: string | undefined;
+    directModelRequestedRepository?: boolean | undefined;
+  },
+): DispatchContextMiss {
+  const at = now(deps).toISOString();
+  const idle: DispatchContextMiss = {
+    signals: [],
+    missingPaths: [],
+    offer: { available: false, nextLevel: 'TOP_WORKING_SET', reason: '', exhausted: false },
+  };
+  if (deps.config.orchestration.jobs.context.efficiency.strategy === 'LEGACY') return idle;
+  try {
+    const plan = listContextSelectionPlans(deps.workspace, input.jobId, {
+      nodeId: input.nodeId,
+      attemptId: input.attemptId,
+    }).at(-1);
+    const cached = readRepositoryIndexCache(deps.workspace);
+    const index = cached === undefined ? undefined : new RepositoryContextIndex(cached);
+    const miss = assessContextMiss({
+      plan,
+      index,
+      failureText: input.failureText,
+      ...(input.workerReportedText !== undefined
+        ? { workerReportedText: input.workerReportedText }
+        : {}),
+      ...(input.directModelRequestedRepository === true
+        ? { directModelRequestedRepository: true }
+        : {}),
+    });
+    if (miss.signals.length === 0) return idle;
+    const state =
+      readContextExpansionState(deps.workspace, input.jobId, input.nodeId) ??
+      initialExpansionState({ taskId: plan?.taskId ?? input.nodeId, nodeId: input.nodeId, now: at });
+    return {
+      signals: miss.signals,
+      missingPaths: miss.missingPaths,
+      offer: offerContextExpansion({ config: deps.config, state, signals: miss.signals }),
+    };
+  } catch {
+    return idle;
+  }
+}
+
+/**
+ * Record that retrieval widens one level for the next attempt.
+ *
+ * The durable expansion state is what makes the bound REAL: it survives a
+ * restart, so a process that dies mid-recovery cannot reset the widening
+ * budget and start the loop again. Recovery decided; this only writes down
+ * what the next assembly must read.
+ */
+function applyContextExpansion(
+  deps: JobDeps,
+  input: {
+    jobId: string;
+    nodeId: string;
+    taskId: string;
+    signals: readonly string[];
+    at: string;
+  },
+): void {
+  try {
+    const state =
+      readContextExpansionState(deps.workspace, input.jobId, input.nodeId) ??
+      initialExpansionState({ taskId: input.taskId, nodeId: input.nodeId, now: input.at });
+    const signals = input.signals as ContextInsufficiencySignal[];
+    const decision = planContextExpansion({
+      strategy: deps.config.orchestration.jobs.context.efficiency.strategy as ContextStrategy,
+      policy: expansionPolicyFrom(deps.config),
+      state,
+      signals,
+    });
+    if (!decision.expand) return;
+    const next = applyExpansion(state, decision, { signals, now: input.at });
+    writeContextExpansionState(deps.workspace, input.jobId, input.nodeId, next);
+    recordJobEvent(deps, input.jobId, 'context_expanded', {
+      nodeId: input.nodeId,
+      taskId: input.taskId,
+      level: next.level,
+      expansionsThisTask: next.expansionsThisTask,
+      signals: [...signals],
+    });
+  } catch {
+    // Expansion is an optimization. Failing to record it costs a level of
+    // widening, never the recovery decision that was already persisted.
+  }
+}

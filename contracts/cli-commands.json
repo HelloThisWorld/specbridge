@@ -383,6 +383,13 @@
               "--json"
             ]
           },
+          "explain-context": {
+            "options": [
+              "--attempt",
+              "--help",
+              "--json"
+            ]
+          },
           "explain-node": {
             "options": [
               "--help",

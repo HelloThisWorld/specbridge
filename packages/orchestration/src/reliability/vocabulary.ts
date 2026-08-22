@@ -362,6 +362,17 @@ export const RECOVERY_ACTIONS = [
   'REPAIR',
   /** Discard the polluted transient session; rebuild context from durable state. */
   'RESTART_FRESH_CONTEXT',
+  /**
+   * vNext.7: the attempt failed for want of CONTEXT, not intelligence.
+   *
+   * Distinct from RESTART_FRESH_CONTEXT, which rebuilds the SAME context
+   * because the session degraded. This one widens retrieval by exactly one
+   * bounded level because something the worker genuinely needed was never
+   * selected. Conflating the two would answer a missing file by re-sending
+   * the same package, which is the retry-without-a-change this phase exists
+   * to refuse.
+   */
+  'EXPAND_CONTEXT',
   /** Stay on LOCAL, change how it spends compute (DIRECT_MODEL vs HARNESS). */
   'RETRY_DIFFERENT_LOCAL_MODE',
   /** The implementation strategy is invalid; produce a new one. */
@@ -386,6 +397,7 @@ export const MUTATING_RECOVERY_ACTIONS: readonly RecoveryAction[] = [
   'RETRY_TRANSIENT',
   'REPAIR',
   'RESTART_FRESH_CONTEXT',
+  'EXPAND_CONTEXT',
   'RETRY_DIFFERENT_LOCAL_MODE',
   'REPLAN',
   'ESCALATE_INTELLIGENCE',
@@ -425,6 +437,18 @@ export const RECOVERY_REASON_CODES = [
   'CONTEXT_THRESHOLD_REACHED',
   /** The attempt stalled inside its session; a fresh context gets one chance. */
   'SESSION_STALLED_FRESH_CONTEXT',
+  /**
+   * vNext.7: observed evidence says a required repository artifact was never
+   * in the package. Retrieval widens one level; intelligence is untouched,
+   * because nothing has been shown about it.
+   */
+  'CONTEXT_INSUFFICIENT_EXPAND',
+  /**
+   * vNext.7: context was widened as far as its budget allows and the work
+   * still fails. More context is no longer the answer, and the decision
+   * returns to the ordinary strategy-change path.
+   */
+  'CONTEXT_EXPANSION_EXHAUSTED',
   // --- local mode ----------------------------------------------------------
   /** A DIRECT_MODEL attempt failed for want of repository tools, not brains. */
   'LOCAL_MODE_CHANGE_REPOSITORY_TOOLS',

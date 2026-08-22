@@ -75,11 +75,11 @@ export interface ReconstructedTaskContext {
   attempts: TaskAttempt[];
 }
 
-function bullets(lines: readonly string[]): string {
+export function bullets(lines: readonly string[]): string {
   return lines.map((line) => `- ${line}`).join('\n');
 }
 
-function pinnedItems(
+export function pinnedItems(
   job: JobState,
   node: JobNode,
   checkpoint: TaskCheckpoint | undefined,
@@ -97,6 +97,8 @@ function pinnedItems(
     createdAt,
     source: checkpoint?.checkpointId ?? node.nodeId,
     compacted: false,
+    authority: 'CANONICAL',
+    freshness: 'IMMUTABLE',
   });
   items.push({
     itemId: 'pinned-job-goal',
@@ -107,6 +109,8 @@ function pinnedItems(
     createdAt,
     source: job.jobId,
     compacted: false,
+    authority: 'CANONICAL',
+    freshness: 'IMMUTABLE',
   });
   const criteria = checkpoint?.pinned.acceptanceCriteria ?? [];
   if (criteria.length > 0) {
@@ -119,6 +123,8 @@ function pinnedItems(
       createdAt,
       source: checkpoint?.checkpointId ?? node.nodeId,
       compacted: false,
+      authority: 'CANONICAL',
+      freshness: 'IMMUTABLE',
     });
   }
   const constraints = [
@@ -135,12 +141,14 @@ function pinnedItems(
       createdAt,
       source: checkpoint?.checkpointId ?? node.nodeId,
       compacted: false,
+      authority: 'CANONICAL',
+      freshness: 'IMMUTABLE',
     });
   }
   return items;
 }
 
-function durableItems(checkpoint: TaskCheckpoint | undefined, createdAt: string): ContextItem[] {
+export function durableItems(checkpoint: TaskCheckpoint | undefined, createdAt: string): ContextItem[] {
   if (checkpoint === undefined) return [];
   const items: ContextItem[] = [];
   const push = (id: string, kind: string, title: string, content: string): void => {
@@ -154,6 +162,7 @@ function durableItems(checkpoint: TaskCheckpoint | undefined, createdAt: string)
       createdAt,
       source: checkpoint.checkpointId,
       compacted: false,
+      authority: 'CANONICAL',
     });
   };
   push('durable-objective', 'objective', 'Current objective', checkpoint.objective);
@@ -215,7 +224,7 @@ function durableItems(checkpoint: TaskCheckpoint | undefined, createdAt: string)
   return items;
 }
 
-function repositoryItem(snapshot: GitSnapshot | undefined, createdAt: string): ContextItem[] {
+export function repositoryItem(snapshot: GitSnapshot | undefined, createdAt: string): ContextItem[] {
   if (snapshot === undefined) return [];
   const lines = [
     snapshot.head !== undefined ? `HEAD: ${snapshot.head}` : 'HEAD: (no commits)',
@@ -241,6 +250,8 @@ function repositoryItem(snapshot: GitSnapshot | undefined, createdAt: string): C
       createdAt,
       source: 'git-snapshot',
       compacted: false,
+      authority: 'TRUSTED',
+      freshness: 'STALE_IF_REPO_CHANGES',
     },
   ];
 }
@@ -309,6 +320,8 @@ export function reconstructTaskContext(
     createdAt,
     source: checkpoint?.checkpointId ?? node.nodeId,
     compacted: false,
+    authority: 'CANONICAL',
+    freshness: 'EPHEMERAL',
   });
 
   try {

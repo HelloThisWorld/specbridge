@@ -353,6 +353,26 @@ async function buildSnapshots() {
       healthLevels: [...context.CONTEXT_HEALTH_LEVELS].sort(),
       compactionLevels: [...context.COMPACTION_LEVELS].sort(),
       nativeCompactionModes: [...context.NATIVE_COMPACTION_MODES].sort(),
+      // Context-efficiency vocabulary (vNext.7). Additive within 1.x on the
+      // same terms as everything above: members may be appended, never
+      // renamed or removed, so persisted selection plans and metrics stay
+      // readable across upgrades.
+      strategies: [...context.CONTEXT_STRATEGIES].sort(),
+      shapes: [...context.CONTEXT_SHAPES].sort(),
+      freshnessKinds: [...context.CONTEXT_FRESHNESS_KINDS].sort(),
+      authorityLevels: [...context.CONTEXT_AUTHORITY_LEVELS].sort(),
+      originKinds: [...context.CONTEXT_ORIGIN_KINDS].sort(),
+      selectionReasons: [...context.CONTEXT_SELECTION_REASONS].sort(),
+      mandatorySelectionReasons: [...context.MANDATORY_SELECTION_REASONS].sort(),
+      exclusionReasons: [...context.CONTEXT_EXCLUSION_REASONS].sort(),
+      expansionLevels: [...context.CONTEXT_EXPANSION_LEVELS].sort(),
+      compressionMethods: [...context.CONTEXT_COMPRESSION_METHODS].sort(),
+      insufficiencySignals: [...context.CONTEXT_INSUFFICIENCY_SIGNALS].sort(),
+      retrievalRoles: [...context.RETRIEVAL_ROLES].sort(),
+      repositoryFileKinds: [...context.REPOSITORY_FILE_KINDS].sort(),
+      repositorySkipReasons: [...context.REPOSITORY_SKIP_REASONS].sort(),
+      stalenessReasons: [...context.STALENESS_REASONS].sort(),
+      expansionRefusalReasons: [...context.EXPANSION_REFUSAL_REASONS].sort(),
     },
     // Mission Discovery vocabulary. Every value is stable within 1.x:
     // members may be appended, never renamed or removed.

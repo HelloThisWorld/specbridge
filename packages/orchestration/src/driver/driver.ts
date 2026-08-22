@@ -19,6 +19,9 @@ import {
   buildPlannerPacket,
   buildReplannerPacket,
 } from '../agents/prompts.js';
+import type { ContextShape } from '@specbridge/context';
+import { buildTaskContextPackage } from '../context/selection-service.js';
+import { renderMaterializedContext, renderPointerContext } from '../context/packet.js';
 import { OrchestrationError } from '../errors.js';
 import { executionPlanSchema } from '../state.js';
 import type { ExecutionPlan } from '../state.js';
@@ -804,6 +807,29 @@ export async function driveJob(
             localHarnessLane || apiHarnessLane
               ? readLatestTaskCheckpoint(deps.workspace, jobId, node.nodeId)
               : undefined;
+
+          // vNext.7: build the shape-appropriate context package.
+          //
+          // The SHAPE is decided by what the worker can do for itself, never
+          // by which provider it is: a tool-capable harness receives pointers
+          // and reads current bytes; a direct model with no tools receives a
+          // bounded, materialized working set. Sending both to either would
+          // pay for the same information twice.
+          //
+          // Under the LEGACY default this call is skipped entirely and every
+          // dispatch below is byte-identical to vNext.6.
+          const contextSupplement =
+            deps.config.orchestration.jobs.context.efficiency.strategy === 'LEGACY'
+              ? undefined
+              : await buildDispatchContext(deps, {
+                  jobId,
+                  node,
+                  shape: localHarnessLane || apiHarnessLane ? 'POINTER' : 'MATERIALIZED',
+                  ...(laneName !== undefined ? { lane: laneName } : {}),
+                  ...(executionMode !== undefined ? { executionMode } : {}),
+                  ...(harnessProfileName !== undefined ? { runner: harnessProfileName } : {}),
+                  emit: (message) => emit('note', message),
+                });
           const dispatch = apiHarnessLane
             ? // vNext.5: the paid continuity bridge. Same runner, same
               // evidence pipeline, same completion authority — the only
@@ -822,6 +848,16 @@ export async function driveJob(
                 // never seen this job, and nothing on disk records what was
                 // already decided, tried, and ruled out.
                 ...(harnessCheckpoint !== undefined ? { checkpoint: harnessCheckpoint } : {}),
+                // vNext.7: the paid lane is where data minimization matters
+                // most. Pointers, never bodies — the harness fetches what it
+                // needs, and unrelated repository content never leaves the
+                // machine at all.
+                ...(contextSupplement?.pointers !== undefined
+                  ? {
+                      repositoryPointers: contextSupplement.pointers,
+                      contextPlanId: contextSupplement.planId,
+                    }
+                  : {}),
                 maxWallTimeMs: (schedulingRuntime as SchedulingRuntime).apiBinding.maxWallTimeMs,
                 ...(deps.clock !== undefined ? { clock: deps.clock } : {}),
                 ...(deps.idFactory !== undefined ? { idFactory: deps.idFactory } : {}),
@@ -843,6 +879,12 @@ export async function driveJob(
                 // reads the repository itself, but nothing on disk records
                 // what was already decided, tried, and ruled out.
                 ...(harnessCheckpoint !== undefined ? { checkpoint: harnessCheckpoint } : {}),
+                ...(contextSupplement?.pointers !== undefined
+                  ? {
+                      repositoryPointers: contextSupplement.pointers,
+                      contextPlanId: contextSupplement.planId,
+                    }
+                  : {}),
                 maxWallTimeMs: schedulingRuntime.harnessBinding.maxWallTimeMs,
                 ...(deps.clock !== undefined ? { clock: deps.clock } : {}),
                 ...(deps.idFactory !== undefined ? { idFactory: deps.idFactory } : {}),
@@ -861,6 +903,14 @@ export async function driveJob(
                   SchedulingRuntime['localInference']
                 >,
                 maxCorrections: policy.maxLocalOutputCorrections,
+                // vNext.7: a direct model has no tools, so the selected
+                // working set is the only way it ever sees current source.
+                ...(contextSupplement?.rendered !== undefined
+                  ? {
+                      repositoryContext: contextSupplement.rendered,
+                      contextPlanId: contextSupplement.planId,
+                    }
+                  : {}),
                 ...(deps.clock !== undefined ? { clock: deps.clock } : {}),
                 ...(deps.idFactory !== undefined ? { idFactory: deps.idFactory } : {}),
                 ...(signal !== undefined ? { signal } : {}),
@@ -1156,6 +1206,20 @@ export async function driveJob(
               contextRatio: extraMetrics?.['contextUsageAfter'] ?? null,
             }),
             ...(dispatchVerification !== undefined ? { verification: dispatchVerification } : {}),
+            // vNext.7: what the WORKER itself said, from structured fields
+            // only. A direct model that declines gives its escalation
+            // reason; a harness gives its blocking questions. Both are
+            // scanned for repository artifacts the package did not include —
+            // never read for sentiment.
+            ...(workerReportedTextOf(dispatch) !== undefined
+              ? { workerReportedText: workerReportedTextOf(dispatch) }
+              : {}),
+            // A direct local model that DECLINED is the clearest evidence
+            // there is that the package, not the model, was insufficient:
+            // a model with no tools said it could not see the code.
+            ...(localLane && (dispatch as { escalated?: boolean }).escalated === true
+              ? { directModelRequestedRepository: true }
+              : {}),
             ...(acceptanceCriteria.length > 0
               ? {
                   acceptanceCriteria,
@@ -2322,4 +2386,106 @@ async function applyRoleOutput(
       return;
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// vNext.7 context efficiency
+// ---------------------------------------------------------------------------
+
+interface DispatchContextSupplement {
+  planId: string;
+  /** Rendered working set, for a worker with no repository tools. */
+  rendered?: string | undefined;
+  /** Ranked repository locations, for a worker that reads the repository. */
+  pointers?: string[] | undefined;
+}
+
+/**
+ * Build the context supplement for one dispatch.
+ *
+ * Deliberately best-effort. Context efficiency is an OPTIMIZATION layered
+ * over a runtime that already works without it, so a failure here — an
+ * unreadable index, a budget that cannot be satisfied, a workspace the
+ * scanner could not walk — degrades to the vNext.6 packet and says so,
+ * rather than failing a dispatch that would otherwise have run. The failure
+ * mode this guards against is the one where a token-saving feature becomes a
+ * new way for a long-running job to stop.
+ */
+async function buildDispatchContext(
+  deps: JobDeps,
+  input: {
+    jobId: string;
+    node: JobNode;
+    shape: ContextShape;
+    lane?: string | undefined;
+    executionMode?: string | undefined;
+    runner?: string | undefined;
+    emit: (message: string) => void;
+  },
+): Promise<DispatchContextSupplement | undefined> {
+  const attemptId = requireJobState(deps.workspace, input.jobId).currentAttemptId;
+  try {
+    const built = await buildTaskContextPackage(deps, {
+      jobId: input.jobId,
+      nodeId: input.node.nodeId,
+      role: 'EXECUTOR',
+      shape: input.shape,
+      ...(attemptId !== undefined ? { attemptId } : {}),
+      ...(input.lane !== undefined ? { lane: input.lane } : {}),
+      ...(input.executionMode !== undefined ? { executionMode: input.executionMode } : {}),
+      ...(input.runner !== undefined ? { runner: input.runner } : {}),
+    });
+    recordJobEvent(deps, input.jobId, 'context_selected', {
+      nodeId: input.node.nodeId,
+      taskId: input.node.parentTaskId,
+      planId: built.plan.planId,
+      strategy: built.plan.strategy,
+      shape: built.plan.shape,
+      expansionLevel: built.plan.expansionLevel,
+      selectedFiles: built.plan.selectedWorkingItems.length,
+      pointers: built.plan.pointers.length,
+      excluded: built.plan.excludedCandidates.length,
+      estimatedTokens: built.metrics.estimatedContextTokens,
+      workingSetTokens: built.metrics.workingSetTokens,
+    });
+    if (input.shape === 'POINTER') {
+      return { planId: built.plan.planId, pointers: renderPointerContext(built.plan) };
+    }
+    return {
+      planId: built.plan.planId,
+      rendered: renderMaterializedContext(built.assembled.package),
+    };
+  } catch (cause) {
+    input.emit(
+      `context selection unavailable; continuing with the legacy packet (${
+        cause instanceof Error ? cause.message.slice(0, 200) : String(cause).slice(0, 200)
+      })`,
+    );
+    return undefined;
+  }
+}
+
+/**
+ * Bounded text the worker produced in STRUCTURED result fields.
+ *
+ * Deliberately narrow: an escalation reason and a set of blocking questions,
+ * both of which are already part of the runner output contract. This is not
+ * a transcript, and nothing downstream treats it as one — it is scanned for
+ * repository paths and symbols, and it is discarded otherwise.
+ */
+function workerReportedTextOf(dispatch: unknown): string | undefined {
+  const record = dispatch as {
+    escalationReason?: unknown;
+    blockingQuestions?: unknown;
+    failure?: { message?: unknown };
+  };
+  const parts: string[] = [];
+  if (typeof record.escalationReason === 'string') parts.push(record.escalationReason);
+  if (Array.isArray(record.blockingQuestions)) {
+    for (const entry of record.blockingQuestions) {
+      if (typeof entry === 'string') parts.push(entry);
+    }
+  }
+  if (parts.length === 0) return undefined;
+  return parts.join('\n').slice(0, 8_000);
 }

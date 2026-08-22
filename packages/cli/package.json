@@ -41,6 +41,7 @@
   },
   "devDependencies": {
     "@specbridge/compat-kiro": "workspace:*",
+    "@specbridge/context": "workspace:*",
     "@specbridge/core": "workspace:*",
     "@specbridge/drift": "workspace:*",
     "@specbridge/evidence": "workspace:*",

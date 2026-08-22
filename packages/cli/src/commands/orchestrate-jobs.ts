@@ -24,6 +24,9 @@ import {
   readConflicts,
   readEvaluations,
   readExecutionLedger,
+  listContextSelectionPlans,
+  readContextExpansionState,
+  readContextMetrics,
   listEvaluationResults,
   listFailureAssessments,
   listRecoveryDecisions,
@@ -47,6 +50,7 @@ import {
   reviewNodePlan,
   summarizeLocalRuntime,
 } from '@specbridge/orchestration';
+import { explainContextSelection, renderContextExplanation } from '@specbridge/context';
 import { localModelDoctor } from '@specbridge/runners';
 import { validateLocalInferenceConfig } from '@specbridge/core';
 import type { DriverEvent, JobState } from '@specbridge/orchestration';
@@ -1551,5 +1555,104 @@ export function registerOrchestrateJobCommands(orchestrate: Command, runtime: Cl
               'Nothing is blocked: resume the job and the scheduler will continue.',
             ];
       for (const line of remediation.slice(0, 8)) runtime.out(dim(`  ${line}`));
+    });
+
+  // -------------------------------------------------------------------------
+  // explain-context — what context was selected for this task, and why
+  // -------------------------------------------------------------------------
+  orchestrate
+    .command('explain-context')
+    .description(
+      'Explain the context selected for one task: which repository artifacts were included, ' +
+        'which were excluded and why, what was compressed, and how large the package was (read-only)',
+    )
+    .argument('<jobId>')
+    .argument('<nodeId>')
+    .option('--attempt <attemptId>', 'explain the package built for one specific attempt')
+    .option('--json', 'output a machine-readable JSON report')
+    .action((jobId: string, nodeId: string, options: { attempt?: string; json?: boolean }) => {
+      const context = loadExecutionContext(runtime);
+      const workspace = context.workspace;
+      const job = requireJobState(workspace, jobId);
+      const graph =
+        job.graphRevision > 0 ? requireGraphRevision(workspace, jobId, job.graphRevision) : undefined;
+      const node = graph?.nodes.find((candidate) => candidate.nodeId === nodeId);
+      if (node === undefined) {
+        throw new SpecBridgeError(
+          'INVALID_ARGUMENT',
+          `Node ${nodeId} does not exist in the active graph of job ${jobId}.`,
+          {
+            exitCode: EXIT_CODES.usageError,
+            remediation: [`List the graph with \`${CLI_BIN} orchestrate job ${jobId}\`.`],
+          },
+        );
+      }
+
+      const plans = listContextSelectionPlans(workspace, jobId, {
+        nodeId,
+        ...(options.attempt !== undefined ? { attemptId: options.attempt } : {}),
+      });
+      const plan = plans.at(-1);
+      const strategy = context.config.orchestration.jobs.context.efficiency.strategy;
+      if (plan === undefined) {
+        if (options.json === true) {
+          jsonOut(runtime, 'orchestrate-explain-context', {
+            job: { jobId, status: job.status },
+            node: { nodeId, taskId: node.parentTaskId },
+            strategy,
+            plan: null,
+            expansion: readContextExpansionState(workspace, jobId, nodeId) ?? null,
+          });
+          return;
+        }
+        runtime.out(reportTitle(`Task ${node.parentTaskId} (${nodeId})`));
+        runtime.out(
+          strategy === 'LEGACY'
+            ? infoLine(
+                '  Context strategy is LEGACY: assembly uses durable state only, with no repository ' +
+                  'retrieval to explain.',
+              )
+            : dim('  No context selection has been recorded for this task yet.'),
+        );
+        return;
+      }
+
+      const metrics =
+        plan.attemptId === undefined
+          ? undefined
+          : readContextMetrics(workspace, jobId, plan.attemptId);
+      const explanation = explainContextSelection({
+        plan,
+        ...(metrics !== undefined ? { metrics } : {}),
+      });
+      const expansion = readContextExpansionState(workspace, jobId, nodeId);
+
+      if (options.json === true) {
+        jsonOut(runtime, 'orchestrate-explain-context', {
+          job: { jobId, status: job.status },
+          node: { nodeId, taskId: node.parentTaskId, title: node.title },
+          strategy,
+          explanation,
+          metrics: metrics ?? null,
+          expansion: expansion ?? null,
+          planCount: plans.length,
+        });
+        return;
+      }
+
+      runtime.out(renderContextExplanation(explanation));
+      if (expansion !== undefined && expansion.expansionsThisTask > 0) {
+        runtime.out('');
+        runtime.out(
+          infoLine(
+            `  Retrieval has widened ${expansion.expansionsThisTask} time(s) on this task; ` +
+              `it is currently at ${expansion.level}.`,
+          ),
+        );
+      }
+      if (plans.length > 1) {
+        runtime.out('');
+        runtime.out(dim(`  ${plans.length} context plans recorded; showing the most recent.`));
+      }
     });
 }

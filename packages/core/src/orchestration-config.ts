@@ -287,6 +287,142 @@ export const objectivesPolicySchema = z
 export type ObjectivesPolicy = z.infer<typeof objectivesPolicySchema>;
 
 /**
+ * Context-efficiency policy (vNext.7, additive, defaulted OFF).
+ *
+ * Governs how much repository context a worker receives and how it is
+ * chosen. Like every other policy in this file these are OPERATIONAL bounds:
+ * they can only make context SMALLER or its selection more conservative.
+ * Nothing here can drop pinned or durable state, weaken a protected-path
+ * boundary, or let retrieval reach outside the workspace — those are
+ * structural properties of the context runtime, not settings.
+ *
+ * `strategy` is the master switch and defaults to LEGACY, which reproduces
+ * vNext.6 assembly exactly. SELECTIVE and PROGRESSIVE are explicit opt-ins.
+ */
+export interface ContextEfficiencyPolicy {
+  strategy: 'LEGACY' | 'SELECTIVE' | 'PROGRESSIVE';
+  persistIndex: boolean;
+  respectGitignore: boolean;
+  maxIndexedFiles: number;
+  maxIndexedFileBytes: number;
+  maxCandidates: number;
+  maxSelectedItems: number;
+  maxPointers: number;
+  wholeFileUnderChars: number;
+  targetSectionChars: number;
+  localRerank: boolean;
+  compressOverChars: number;
+  localCompression: boolean;
+  pinnedReserveRatio: number;
+  durableReserveRatio: number;
+  recoveryReserveRatio: number;
+  deltaReserveRatio: number;
+  workingSetMaxRatio: number;
+  pointerShapeWorkingSetMaxRatio: number;
+  maxSingleItemRatio: number;
+  maxExpansionsPerAttempt: number;
+  maxExpansionsPerTask: number;
+  maxExpansionLevel:
+    | 'MINIMAL_BOOTSTRAP'
+    | 'TOP_WORKING_SET'
+    | 'ADJACENT_DEPENDENCIES'
+    | 'MODULE_CONTEXT'
+    | 'BOUNDED_FALLBACK';
+  maxWorkingSetGrowthFactor: number;
+  /** Unknown keys survive (`passthrough`), exactly like every policy here. */
+  [key: string]: unknown;
+}
+
+/**
+ * The schema carries an EXPLICIT type annotation rather than relying on
+ * inference.
+ *
+ * Not a style choice: `agentConfigSchema` composes every policy in this file,
+ * and its inferred declaration is already megabytes of serialized generics.
+ * Adding one more inferred object literal pushed TypeScript past the limit at
+ * which it will serialize a type into a `.d.ts` at all (TS7056), breaking the
+ * package build. Naming the output type collapses this policy's contribution
+ * to a single interface reference and keeps the declaration emit bounded.
+ */
+export const contextEfficiencyPolicySchema: z.ZodType<ContextEfficiencyPolicy, z.ZodTypeDef, unknown> = z
+  .object({
+    /** LEGACY (default) | SELECTIVE | PROGRESSIVE. */
+    strategy: z.enum(['LEGACY', 'SELECTIVE', 'PROGRESSIVE']).default('LEGACY'),
+
+    // --- repository index -------------------------------------------------
+    /** Persist the derived index under `.specbridge/cache/`. Never canonical. */
+    persistIndex: z.boolean().default(true),
+    /** Honour `.gitignore` files encountered while indexing. */
+    respectGitignore: z.boolean().default(true),
+    /** Ceiling on indexed files before the index records truncation. */
+    maxIndexedFiles: z.number().int().min(100).max(200_000).default(40_000),
+    /** Files above this many bytes are recorded as skipped, never read. */
+    maxIndexedFileBytes: z.number().int().min(1_024).max(4_194_304).default(524_288),
+
+    // --- retrieval --------------------------------------------------------
+    /** Ranked candidates generated per query. */
+    maxCandidates: z.number().int().min(10).max(1_000).default(200),
+    /** Repository artifacts MATERIALIZED into one package. */
+    maxSelectedItems: z.number().int().min(1).max(60).default(12),
+    /** Repository artifacts NAMED as pointers in one package. */
+    maxPointers: z.number().int().min(0).max(100).default(24),
+    /** Files at or below this many characters are always sent whole. */
+    wholeFileUnderChars: z.number().int().min(500).max(200_000).default(6_000),
+    /** Target size of an extracted file section, in characters. */
+    targetSectionChars: z.number().int().min(500).max(100_000).default(4_000),
+
+    // --- optional local reranking ----------------------------------------
+    /**
+     * Let a bounded local model refine the ORDER of the top candidates.
+     * Advisory only: it sees metadata, never file content, and it can never
+     * remove a mandatory reference. Off by default so selection stays
+     * bit-for-bit reproducible unless an operator asks otherwise.
+     */
+    localRerank: z.boolean().default(false),
+
+    // --- compression ------------------------------------------------------
+    /** Compress mechanical output above this many characters. */
+    compressOverChars: z.number().int().min(200).max(1_000_000).default(2_000),
+    /**
+     * Allow the bounded local model to compress unstructured bulk that
+     * deterministic parsing could not reduce. Zero marginal cost on the
+     * local lane; still bounded by the existing local inference limits.
+     */
+    localCompression: z.boolean().default(true),
+
+    // --- layer allocation -------------------------------------------------
+    pinnedReserveRatio: z.number().min(0).max(1).default(0.12),
+    durableReserveRatio: z.number().min(0).max(1).default(0.18),
+    recoveryReserveRatio: z.number().min(0).max(1).default(0.1),
+    deltaReserveRatio: z.number().min(0).max(1).default(0.1),
+    workingSetMaxRatio: z.number().min(0).max(1).default(0.45),
+    /** Working-set ceiling when the worker reads the repository itself. */
+    pointerShapeWorkingSetMaxRatio: z.number().min(0).max(1).default(0.15),
+    maxSingleItemRatio: z.number().min(0.05).max(1).default(0.4),
+
+    // --- progressive expansion -------------------------------------------
+    maxExpansionsPerAttempt: z.number().int().min(0).max(4).default(1),
+    maxExpansionsPerTask: z.number().int().min(0).max(12).default(3),
+    maxExpansionLevel: z
+      .enum(['MINIMAL_BOOTSTRAP', 'TOP_WORKING_SET', 'ADJACENT_DEPENDENCIES', 'MODULE_CONTEXT', 'BOUNDED_FALLBACK'])
+      .default('MODULE_CONTEXT'),
+    maxWorkingSetGrowthFactor: z.number().min(1).max(8).default(3),
+  })
+  .passthrough()
+  .refine(
+    (policy) =>
+      policy.pinnedReserveRatio +
+        policy.durableReserveRatio +
+        policy.recoveryReserveRatio +
+        policy.deltaReserveRatio <=
+      0.85,
+    {
+      message:
+        'Context layer reserves must leave room for retrieved working context: their sum must not exceed 0.85 of usable input.',
+    },
+  ) as unknown as z.ZodType<ContextEfficiencyPolicy, z.ZodTypeDef, unknown>;
+
+/**
  * Survival-runtime context policy (vNext.1, additive, defaulted).
  *
  * Governs how worker context is budgeted, monitored, and compacted. These
@@ -312,6 +448,16 @@ export const jobContextPolicySchema = z
     hardStopThreshold: z.number().min(0.05).max(1).default(0.9),
     /** Bound on retained recent-delta items per task context. */
     maxRecentDeltaItems: z.number().int().min(1).max(200).default(20),
+    /**
+     * vNext.7 Context Efficiency Runtime (additive; OFF by default).
+     *
+     * The default is deliberately `LEGACY`: an upgraded workspace keeps
+     * byte-identical vNext.6 context behavior until its owner opts in. That
+     * is the same conservative-rollout policy the API gap bridge follows,
+     * and for the same reason — a phase that changes what every worker sees
+     * should not change it during an upgrade nobody asked for.
+     */
+    efficiency: contextEfficiencyPolicySchema.default({}),
   })
   .passthrough();
 export type JobContextPolicy = z.infer<typeof jobContextPolicySchema>;
