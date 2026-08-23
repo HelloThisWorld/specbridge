@@ -170,7 +170,13 @@ export interface DriveOptions {
 export type DriverStop =
   | { kind: 'completed' }
   | { kind: 'blocked'; reason: string }
-  | { kind: 'needs-human'; what: 'clarification' | 'plan-review'; detail: string }
+  /**
+   * vNext.10 appends `authority`: the one stop an unattended run may
+   * legitimately make. Deliberately distinct from `clarification` — "I need
+   * permission" and "I need information" have different audiences, different
+   * urgency, and different consequences for the autonomy report.
+   */
+  | { kind: 'needs-human'; what: 'clarification' | 'plan-review' | 'authority'; detail: string }
   | { kind: 'interrupted' }
   /**
    * vNext.2: no lane can take the remaining work until quota returns. The
@@ -1360,7 +1366,9 @@ export async function driveJob(
             jobId,
             decision.what === 'plan-review'
               ? 'Review the pending plan, then resume the job.'
-              : 'Answer the open clarification question(s), then resume the job.',
+              : decision.what === 'authority'
+                ? 'Decide the open authority question, then resume the job.'
+                : 'Answer the open clarification question(s), then resume the job.',
           );
           job = requireJobState(deps.workspace, jobId);
           return { stop: { kind: 'needs-human', what: decision.what, detail: decision.reason }, job };
@@ -1368,6 +1376,13 @@ export async function driveJob(
 
         case 'JOB_COMPLETE': {
           job = completeJobIfDone(deps, jobId);
+          if (job.status !== 'COMPLETED') {
+            // The task plan is finished and the sealed contract is not. The
+            // closure gate moved the job to QUALIFYING; the driver's work is
+            // done and the closure lifecycle owns what happens next.
+            checkpointJob(deps, jobId, 'Contract closure decides what remains.');
+            return { stop: { kind: 'final', status: job.status }, job };
+          }
           checkpointJob(deps, jobId, 'Job complete.');
           return { stop: { kind: 'completed' }, job };
         }

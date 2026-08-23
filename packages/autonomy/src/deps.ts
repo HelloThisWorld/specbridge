@@ -1,6 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import type { AgentConfig, AutonomyPolicy, WorkspaceInfo } from '@specbridge/core';
-import type { DelegatedAuthorityResolver, JobDeps } from '@specbridge/orchestration';
+import type {
+  CompletionGate,
+  DelegatedAuthorityResolver,
+  JobDeps,
+} from '@specbridge/orchestration';
 
 /**
  * The dependency bundle every autonomy service takes.
@@ -23,6 +27,11 @@ export interface AutonomyDeps {
    * Present only for jobs governed by an executable seal.
    */
   authorityResolver?: DelegatedAuthorityResolver | undefined;
+  /**
+   * The contract-closure completion gate threaded through to the job
+   * service. Present only for jobs governed by a closure ledger.
+   */
+  completionGate?: CompletionGate | undefined;
 }
 
 /**

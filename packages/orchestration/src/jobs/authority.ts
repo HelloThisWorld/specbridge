@@ -240,3 +240,65 @@ export function resolvePlanReviewRequirement(
   }
   return { humanReviewRequired: true };
 }
+
+// ---------------------------------------------------------------------------
+// Completion gate (vNext.10)
+// ---------------------------------------------------------------------------
+
+/**
+ * The seam through which a SEALED Mission's completion is decided by
+ * evidence rather than by task checkboxes.
+ *
+ * `completeJobIfDone` has always completed a job when every runtime node
+ * completed through verified evidence. That is the right rule for a v1.2
+ * job, whose scope IS its task plan. It is the wrong rule for a sealed
+ * Mission, and it is exactly the rule that let the previous long-horizon
+ * dogfood declare a product COMPLETE with seven approved requirements
+ * unimplemented: every task was checked off, so the job completed.
+ *
+ * Same shape and same direction as `DelegatedAuthorityResolver`:
+ * orchestration defines the contract, @specbridge/autonomy implements it
+ * from the Contract Closure Ledger, and a job with no gate (every unsealed
+ * workspace) completes exactly as it did in v1.2.
+ *
+ * A gate can only ever REFUSE. It cannot complete a job that has unfinished
+ * nodes, and it is consulted only after the v1.2 rule has already said yes.
+ */
+export interface CompletionAssessment {
+  mayComplete: boolean;
+  /** One line for the job event and the operator report. */
+  reason: string;
+  /** How many sealed items remain unclosed. Zero when `mayComplete`. */
+  unclosed: number;
+}
+
+export interface CompletionGate {
+  assess(jobId: string): CompletionAssessment;
+}
+
+/**
+ * Consult a gate, failing CLOSED to refusing completion.
+ *
+ * The asymmetry is deliberate and is the opposite of the authority seam's.
+ * There, a broken resolver must not grant autonomy, so failure means "ask".
+ * Here, a broken gate must not grant COMPLETION, so failure means "not yet"
+ * — a job that stays open is recoverable, and a job wrongly declared
+ * complete is the failure this entire mechanism exists to prevent.
+ */
+export function assessCompletion(
+  gate: CompletionGate | undefined,
+  jobId: string,
+): CompletionAssessment | undefined {
+  if (gate === undefined) return undefined;
+  try {
+    return gate.assess(jobId);
+  } catch (cause) {
+    return {
+      mayComplete: false,
+      unclosed: -1,
+      reason:
+        'the contract closure gate could not be evaluated, so completion is refused: ' +
+        `${(cause instanceof Error ? cause.message : String(cause)).slice(0, 200)}`,
+    };
+  }
+}

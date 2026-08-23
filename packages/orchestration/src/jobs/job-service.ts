@@ -17,8 +17,8 @@ import { buildExecutionPlan, capturePlanBinding, evaluatePlanFreshness } from '.
 import { assessProgress, diffFingerprint } from '../progress.js';
 import { backoffForAttempt } from '../retry.js';
 import type { FailureCategory } from '../vocabulary.js';
-import type { DelegatedAuthorityResolver } from './authority.js';
-import { resolvePlanReviewRequirement } from './authority.js';
+import type { CompletionGate, DelegatedAuthorityResolver } from './authority.js';
+import { assessCompletion, resolvePlanReviewRequirement } from './authority.js';
 import { assessComplexity, mergeComplexity } from './complexity.js';
 import type { ComplexityInput } from './complexity.js';
 import {
@@ -144,6 +144,12 @@ export interface JobDeps {
    * every unsealed job, which then behaves exactly as it did in v1.2.
    */
   authorityResolver?: DelegatedAuthorityResolver | undefined;
+  /**
+   * vNext.10: the contract-closure completion gate, supplied by
+   * @specbridge/autonomy for a sealed Mission. Absent for every unsealed
+   * job, which then completes exactly as it did in v1.2.
+   */
+  completionGate?: CompletionGate | undefined;
 }
 
 function policyOf(deps: JobDeps): JobPolicy {
@@ -773,6 +779,17 @@ export function noteEscalation(
  * Reconcile a job whose nodes all finished but whose status transition was
  * interrupted (crash between the graph write and the job write). Idempotent.
  */
+/**
+ * Complete the job when every runtime node completed through verified
+ * evidence — AND, for a sealed Mission, when the closure ledger agrees.
+ *
+ * The v1.2 rule runs first and is unchanged: unfinished nodes still refuse.
+ * The gate is consulted only after that rule has said yes, and it can only
+ * refuse. A refused job moves to QUALIFYING rather than erroring, because
+ * "the task list is finished and the contract is not" is not a failure — it
+ * is the moment the closure lifecycle takes over and generates the work that
+ * is actually missing.
+ */
 export function completeJobIfDone(deps: JobDeps, jobId: string): JobState {
   let job = requireJobState(deps.workspace, jobId);
   if (isFinalJobStatus(job.status)) return job;
@@ -780,9 +797,28 @@ export function completeJobIfDone(deps: JobDeps, jobId: string): JobState {
   if (!allNodesComplete(graph)) {
     throw new OrchestrationError('SBO027', 'The job cannot complete: unfinished nodes remain.');
   }
+
+  const closure = assessCompletion(deps.completionGate, jobId);
+  if (closure !== undefined && !closure.mayComplete) {
+    if (job.status === 'QUALIFYING') {
+      // Already there; the closure lifecycle owns the next move.
+      return job;
+    }
+    job = transition(deps, job, 'QUALIFYING');
+    job = record(deps, job, 'closure_audit_completed', {
+      directive: 'CONTRACT_CLOSURE_AUDIT',
+      unclosed: closure.unclosed,
+      reason: closure.reason.slice(0, 500),
+    });
+    return persist(deps, { ...job, closurePhase: 'CONTRACT_CLOSURE_AUDIT' });
+  }
+
   const at = now(deps).toISOString();
   job = transition(deps, job, 'COMPLETED');
-  job = record(deps, job, 'job_completed', { reconciled: true });
+  job = record(deps, job, 'job_completed', {
+    reconciled: true,
+    ...(closure !== undefined ? { closure: closure.reason.slice(0, 300) } : {}),
+  });
   return persist(deps, { ...job, finalizedAt: at, finalOutcome: 'COMPLETED' });
 }
 

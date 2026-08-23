@@ -27,6 +27,7 @@ import type { PreflightReport } from '../preflight/state.js';
 import type { DriverHost } from '../supervisor/host.js';
 import type { SupervisionResult, SupervisionStop } from '../supervisor/supervisor.js';
 import { superviseJob } from '../supervisor/supervisor.js';
+import { createClosureCompletionGate } from '../closure/gate.js';
 import {
   advanceClosurePhase,
   buildClosureLedger,
@@ -170,15 +171,19 @@ export async function runUnattendedMission(
     emit('closure', `closure ledger built with ${ledger.entries.length} sealed item(s)`);
   }
 
-  // The authority resolver is what makes the driver stop asking about
-  // architecture and keep asking about promises. Installed only for a
-  // workspace whose human explicitly chose AUTHORITY_ONLY.
-  const supervisedDeps: AutonomyDeps = shouldDelegateAuthority(policy)
-    ? {
-        ...deps,
-        authorityResolver: createAuthorityResolver({ workspace: deps.workspace, policy }),
-      }
-    : deps;
+  // Two seams, installed together because they are the two halves of the
+  // same promise. The authority resolver is what makes the driver stop
+  // asking about architecture and keep asking about promises; the completion
+  // gate is what stops the driver writing COMPLETED because the task list
+  // ran out. Without the second, every other piece of closure machinery can
+  // be correct and the job still completes on checkboxes.
+  const supervisedDeps: AutonomyDeps = {
+    ...deps,
+    ...(shouldDelegateAuthority(policy)
+      ? { authorityResolver: createAuthorityResolver({ workspace: deps.workspace, policy }) }
+      : {}),
+    completionGate: createClosureCompletionGate(deps.workspace),
+  };
 
   // Resolved AFTER supervisedDeps exists, so the driver runs with the
   // authority resolver bound.
