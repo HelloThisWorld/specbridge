@@ -50,7 +50,8 @@ if (args.includes('--help')) {
     '--max-budget-usd <usd>         budget limit',
     '--setting-sources <sources>    configuration sources',
   ];
-  if (scenario !== 'no-structured-output') flags.push('--json-schema <file>  constrain final output');
+  if (scenario !== 'no-structured-output')
+    flags.push('--json-schema <schema>  JSON Schema for structured output validation');
   if (scenario !== 'no-resume') {
     flags.push('--session-id <uuid>   session id');
     flags.push('--resume <uuid>       resume a session');
@@ -167,6 +168,20 @@ function stageMarkdownFor(stage) {
 
 const stageMatch = /Stage to produce: (\w+)/.exec(stdin);
 const roleMatch = /SpecBridge orchestration role: (\w+)/.exec(stdin);
+
+// Mirror the real CLI contract: --json-schema takes the schema itself. A
+// filesystem path (the historical SpecBridge defect) fails here exactly as
+// Claude Code fails, with the diagnostic on stderr and no stdout envelope.
+const schemaArg = argValue('--json-schema');
+if (schemaArg !== undefined) {
+  try {
+    JSON.parse(schemaArg);
+  } catch (error) {
+    process.stderr.write(`Error: --json-schema is not valid JSON: ${error.message}
+`);
+    process.exit(1);
+  }
+}
 
 if (scenario === 'exec-timeout') await sleepForever();
 
@@ -442,7 +457,10 @@ if (roleMatch !== null) {
             conflictsDetected: [],
           },
   };
-  emitEnvelope({ result: JSON.stringify(ROLE_RESPONSES[role] ?? ROLE_RESPONSES.PLANNER) });
+  const roleReport = ROLE_RESPONSES[role] ?? ROLE_RESPONSES.PLANNER;
+  if (scenario === 'structured-output') emitEnvelope({ structured_output: roleReport });
+  else if (scenario === 'structured-result') emitEnvelope({ structured_result: roleReport });
+  else emitEnvelope({ result: JSON.stringify(roleReport) });
   process.exit(0);
 }
 
@@ -458,7 +476,8 @@ if (stageMatch !== null) {
     openQuestions: [],
     referencedFiles: scenario === 'escape-paths' ? ['../outside.txt', '/etc/passwd', 'src/ok.txt'] : [],
   };
-  if (scenario === 'structured-result') emitEnvelope({ structured_result: report });
+  if (scenario === 'structured-output') emitEnvelope({ structured_output: report });
+  else if (scenario === 'structured-result') emitEnvelope({ structured_result: report });
   else emitEnvelope({ result: JSON.stringify(report) });
   process.exit(0);
 }
@@ -496,6 +515,7 @@ const report = {
   blockingQuestions: scenario === 'reports-blocked' ? ['What storage backend?'] : [],
   recommendedNextActions: [],
 };
-if (scenario === 'structured-result') emitEnvelope({ structured_result: report });
+if (scenario === 'structured-output') emitEnvelope({ structured_output: report });
+else if (scenario === 'structured-result') emitEnvelope({ structured_result: report });
 else emitEnvelope({ result: JSON.stringify(report) });
 process.exit(0);

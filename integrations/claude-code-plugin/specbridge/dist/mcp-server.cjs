@@ -30208,35 +30208,35 @@ function extractPathReferences(document) {
     for (const match of text9.matchAll(BACKTICK_SPAN)) {
       const raw = match[1];
       if (raw === void 0) continue;
-      const path54 = normalizePathCandidate(raw);
-      if (path54 === void 0) continue;
-      const key = `${path54} ${i2}`;
+      const path53 = normalizePathCandidate(raw);
+      if (path53 === void 0) continue;
+      const key = `${path53} ${i2}`;
       if (seen.has(key)) continue;
       seen.add(key);
       references.push({
         raw,
-        path: path54,
+        path: path53,
         line: i2,
         method: "backtick-path",
         confidence: "deterministic",
-        isGlob: GLOB_CHARS.test(path54)
+        isGlob: GLOB_CHARS.test(path53)
       });
     }
     for (const match of text9.matchAll(MARKDOWN_LINK)) {
       const raw = match[1];
       if (raw === void 0) continue;
-      const path54 = normalizePathCandidate(raw);
-      if (path54 === void 0) continue;
-      const key = `${path54} ${i2}`;
+      const path53 = normalizePathCandidate(raw);
+      if (path53 === void 0) continue;
+      const key = `${path53} ${i2}`;
       if (seen.has(key)) continue;
       seen.add(key);
       references.push({
         raw,
-        path: path54,
+        path: path53,
         line: i2,
         method: "markdown-link",
         confidence: "deterministic",
-        isGlob: GLOB_CHARS.test(path54)
+        isGlob: GLOB_CHARS.test(path53)
       });
     }
   }
@@ -33902,9 +33902,9 @@ var import_crypto9 = require("crypto");
 
 // ../../packages/execution/dist/index.js
 var import_fs18 = require("fs");
-var import_path19 = __toESM(require("path"), 1);
+var import_path18 = __toESM(require("path"), 1);
 var import_fs19 = require("fs");
-var import_path20 = __toESM(require("path"), 1);
+var import_path19 = __toESM(require("path"), 1);
 
 // ../../packages/runners/dist/index.js
 var import_buffer = require("buffer");
@@ -40691,9 +40691,8 @@ var import_crypto3 = require("crypto");
 var import_fs12 = require("fs");
 var import_path12 = __toESM(require("path"), 1);
 var import_fs13 = require("fs");
-var import_path13 = __toESM(require("path"), 1);
 var import_fs14 = require("fs");
-var import_path14 = __toESM(require("path"), 1);
+var import_path13 = __toESM(require("path"), 1);
 var import_buffer2 = require("buffer");
 var import_buffer3 = require("buffer");
 var import_crypto4 = require("crypto");
@@ -41378,7 +41377,7 @@ function errorMessage(error2) {
 var import_buffer5 = require("buffer");
 var import_crypto5 = require("crypto");
 var import_fs15 = require("fs");
-var import_path15 = __toESM(require("path"), 1);
+var import_path14 = __toESM(require("path"), 1);
 var DEFAULT_MAX_STDOUT_BYTES = 10 * 1024 * 1024;
 var DEFAULT_MAX_STDERR_BYTES = 1024 * 1024;
 function assertSafeToken(value, what) {
@@ -42419,14 +42418,7 @@ function buildClaudeInvocation(input) {
   argv.push(supports("--print") ? "--print" : "-p");
   argv.push("--output-format", "json");
   if (supports("--json-schema")) {
-    const schemaPath = import_path13.default.join(execution.runDir, "tmp", "output-schema.json");
-    if (input.materializeTempFiles !== false) {
-      (0, import_fs13.mkdirSync)(import_path13.default.dirname(schemaPath), { recursive: true });
-      writeFileAtomic(schemaPath, `${JSON.stringify(input.outputJsonSchema, null, 2)}
-`);
-      tempFiles.push(schemaPath);
-    }
-    argv.push("--json-schema", schemaPath);
+    argv.push("--json-schema", JSON.stringify(input.outputJsonSchema));
   } else {
     skippedFlags.push("--json-schema");
   }
@@ -42496,6 +42488,9 @@ var claudeEnvelopeSchema = external_exports.object({
   is_error: external_exports.boolean().optional(),
   result: external_exports.string().optional(),
   session_id: external_exports.string().optional(),
+  // Current Claude Code emits `structured_output`; `structured_result`
+  // is the obsolete spelling, still parsed for older installations.
+  structured_output: external_exports.unknown().optional(),
   structured_result: external_exports.unknown().optional(),
   permission_denials: external_exports.array(external_exports.unknown()).optional()
 }).passthrough();
@@ -42521,8 +42516,9 @@ function parseClaudeEnvelope(stdout) {
     const envelope = claudeEnvelopeSchema.safeParse(parsed);
     if (!envelope.success) continue;
     const data = envelope.data;
-    if (data.structured_result !== void 0) {
-      return { envelope: data, structuredResult: data.structured_result };
+    const structured = data.structured_output ?? data.structured_result;
+    if (structured !== void 0 && structured !== null) {
+      return { envelope: data, structuredResult: structured };
     }
     if (data.result !== void 0) {
       return { envelope: data, reportText: data.result };
@@ -43225,9 +43221,9 @@ function buildCodexInvocation(input) {
   argv.push("--json");
   const sandbox = input.toolPolicy === "implementation" ? config2.sandbox === "read-only" ? "read-only" : "workspace-write" : "read-only";
   argv.push("--sandbox", sandbox);
-  const tmpDir = import_path14.default.join(execution.runDir, "tmp");
+  const tmpDir = import_path13.default.join(execution.runDir, "tmp");
   if (supports("--output-schema")) {
-    const schemaPath = import_path14.default.join(tmpDir, "codex-output-schema.json");
+    const schemaPath = import_path13.default.join(tmpDir, "codex-output-schema.json");
     if (input.materializeTempFiles !== false) {
       (0, import_fs14.mkdirSync)(tmpDir, { recursive: true });
       writeFileAtomic(schemaPath, `${JSON.stringify(input.outputJsonSchema, null, 2)}
@@ -43240,7 +43236,7 @@ function buildCodexInvocation(input) {
   }
   let lastMessagePath;
   if (supports("--output-last-message")) {
-    lastMessagePath = import_path14.default.join(tmpDir, "codex-last-message.txt");
+    lastMessagePath = import_path13.default.join(tmpDir, "codex-last-message.txt");
     if (input.materializeTempFiles !== false) {
       (0, import_fs14.mkdirSync)(tmpDir, { recursive: true });
     }
@@ -46411,10 +46407,10 @@ var OpenAiCompatibleRunner = class {
     return this.mapCompleted(attempt.body, attempt.mode, model, started);
   }
   async requestOnce(model, messages, mode, execution) {
-    const path64 = this.config.apiStyle === "chat-completions" ? "/chat/completions" : "/responses";
+    const path53 = this.config.apiStyle === "chat-completions" ? "/chat/completions" : "/responses";
     const result = await safeHttpRequest({
       method: "POST",
-      url: this.endpointUrl(path64),
+      url: this.endpointUrl(path53),
       body: buildOpenAiRequestBody(this.config.apiStyle, {
         model,
         messages,
@@ -48507,7 +48503,7 @@ function hashDirectory(root) {
       return;
     }
     for (const entry of entries) {
-      const full = import_path15.default.join(dir, entry);
+      const full = import_path14.default.join(dir, entry);
       let stats;
       try {
         stats = (0, import_fs15.statSync)(full);
@@ -48515,7 +48511,7 @@ function hashDirectory(root) {
         continue;
       }
       if (stats.isDirectory()) {
-        if (import_path15.default.resolve(full) === import_path15.default.resolve(dir) || full.includes(".specbridge-conformance-runs")) continue;
+        if (import_path14.default.resolve(full) === import_path14.default.resolve(dir) || full.includes(".specbridge-conformance-runs")) continue;
         hash.update(`d:${entry}`);
         walk(full);
       } else {
@@ -48849,11 +48845,11 @@ async function runRunnerConformance(context, executionGroups = []) {
 // ../../packages/evidence/dist/index.js
 var import_crypto6 = require("crypto");
 var import_fs16 = require("fs");
-var import_path16 = __toESM(require("path"), 1);
+var import_path15 = __toESM(require("path"), 1);
 var import_buffer6 = require("buffer");
 var import_fs17 = require("fs");
+var import_path16 = __toESM(require("path"), 1);
 var import_path17 = __toESM(require("path"), 1);
-var import_path18 = __toESM(require("path"), 1);
 var GIT_SNAPSHOT_SCHEMA_VERSION = "1.0.0";
 var SNAPSHOT_EXCLUDED_PREFIXES = [".specbridge/"];
 var GIT_TIMEOUT_MS = 3e4;
@@ -48872,7 +48868,7 @@ async function git(workspaceRoot, argv) {
   return { ok: true, stdout: result.stdout };
 }
 function toPosix(relative) {
-  return relative.split(import_path16.default.sep).join("/");
+  return relative.split(import_path15.default.sep).join("/");
 }
 function hashFileIfRegular(absolutePath) {
   try {
@@ -48901,7 +48897,7 @@ function isExcluded(relativePath, excludedPrefixes) {
   return excludedPrefixes.some((prefix) => relativePath.startsWith(prefix));
 }
 function hashProtectedTree(workspaceRoot, relativeDir, into) {
-  const absoluteDir = import_path16.default.join(workspaceRoot, relativeDir);
+  const absoluteDir = import_path15.default.join(workspaceRoot, relativeDir);
   let entries;
   try {
     entries = (0, import_fs16.readdirSync)(absoluteDir, { withFileTypes: true });
@@ -48909,12 +48905,12 @@ function hashProtectedTree(workspaceRoot, relativeDir, into) {
     return;
   }
   for (const entry of entries) {
-    const relative = import_path16.default.join(relativeDir, entry.name);
+    const relative = import_path15.default.join(relativeDir, entry.name);
     if (entry.isSymbolicLink()) continue;
     if (entry.isDirectory()) {
       hashProtectedTree(workspaceRoot, relative, into);
     } else if (entry.isFile()) {
-      const hash = hashFileIfRegular(import_path16.default.join(workspaceRoot, relative));
+      const hash = hashFileIfRegular(import_path15.default.join(workspaceRoot, relative));
       if (hash !== void 0) into[toPosix(relative)] = hash;
     }
   }
@@ -48978,7 +48974,7 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
     if (isExcluded(rawEntry.path, excludedPrefixes)) continue;
     if (rawEntry.status === "??" && rawEntry.path.endsWith("/")) {
       const expanded = {};
-      hashProtectedTree(workspaceRoot, rawEntry.path.slice(0, -1).split("/").join(import_path16.default.sep), expanded);
+      hashProtectedTree(workspaceRoot, rawEntry.path.slice(0, -1).split("/").join(import_path15.default.sep), expanded);
       const files = Object.keys(expanded).sort();
       if (files.length === 0) {
         entries.push({ path: rawEntry.path, status: rawEntry.status });
@@ -48994,7 +48990,7 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
       }
       continue;
     }
-    const hash = hashFileIfRegular(import_path16.default.join(workspaceRoot, rawEntry.path.split("/").join(import_path16.default.sep)));
+    const hash = hashFileIfRegular(import_path15.default.join(workspaceRoot, rawEntry.path.split("/").join(import_path15.default.sep)));
     entries.push({
       path: rawEntry.path,
       status: rawEntry.status,
@@ -49004,9 +49000,9 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
   entries.sort((a2, b) => a2.path.localeCompare(b.path, "en"));
   const protectedHashes = {};
   hashProtectedTree(workspaceRoot, ".kiro", protectedHashes);
-  const configHash = hashFileIfRegular(import_path16.default.join(workspaceRoot, ".specbridge", "config.json"));
+  const configHash = hashFileIfRegular(import_path15.default.join(workspaceRoot, ".specbridge", "config.json"));
   if (configHash !== void 0) protectedHashes[".specbridge/config.json"] = configHash;
-  hashProtectedTree(workspaceRoot, import_path16.default.join(".specbridge", "state"), protectedHashes);
+  hashProtectedTree(workspaceRoot, import_path15.default.join(".specbridge", "state"), protectedHashes);
   return {
     schemaVersion: GIT_SNAPSHOT_SCHEMA_VERSION,
     capturedAt: now3.toISOString(),
@@ -49286,13 +49282,13 @@ function taskIdDirName(taskId) {
 function evidenceTaskDir(workspace, specName, taskId) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path17.default.join(workspace.sidecarDir, "evidence", specName, taskIdDirName(taskId))
+    import_path16.default.join(workspace.sidecarDir, "evidence", specName, taskIdDirName(taskId))
   );
 }
 function writeTaskEvidence(workspace, record4) {
   const validated = taskEvidenceRecordSchema.parse(record4);
   const dir = evidenceTaskDir(workspace, validated.specName, validated.taskId);
-  const filePath = import_path17.default.join(dir, `${validated.runId}.json`);
+  const filePath = import_path16.default.join(dir, `${validated.runId}.json`);
   if ((0, import_fs17.existsSync)(filePath)) {
     throw new SpecBridgeError(
       "INVALID_STATE",
@@ -49310,7 +49306,7 @@ function listTaskEvidence(workspace, specName, taskId) {
   const diagnostics = [];
   for (const entry of (0, import_fs17.readdirSync)(dir, { withFileTypes: true })) {
     if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
-    const filePath = import_path17.default.join(dir, entry.name);
+    const filePath = import_path16.default.join(dir, entry.name);
     try {
       const parsed = JSON.parse((0, import_fs17.readFileSync)(filePath, "utf8"));
       const result = taskEvidenceRecordSchema.safeParse(parsed);
@@ -49438,7 +49434,7 @@ var ACCEPTED_STATUSES = /* @__PURE__ */ new Set(["verified", "manually-accepted"
 var FUTURE_SKEW_TOLERANCE_MS = 5 * 60 * 1e3;
 function evidencePathEscapesRepository(recordedPath) {
   if (recordedPath.includes("\0")) return true;
-  if (import_path18.default.isAbsolute(recordedPath) || /^[A-Za-z]:/.test(recordedPath)) return true;
+  if (import_path17.default.isAbsolute(recordedPath) || /^[A-Za-z]:/.test(recordedPath)) return true;
   return recordedPath.split(/[\\/]/).includes("..");
 }
 var CHECKBOX_STATE_PREFIX2 = /^([ \t]*[-*+][ \t]+\[)([ xX~-])(\])/;
@@ -49645,11 +49641,11 @@ function reusableCommandPass(assessments, commandName, currentHeadSha) {
 }
 
 // ../../packages/execution/dist/index.js
-var import_path21 = __toESM(require("path"), 1);
+var import_path20 = __toESM(require("path"), 1);
 var import_fs20 = require("fs");
-var import_path22 = __toESM(require("path"), 1);
+var import_path21 = __toESM(require("path"), 1);
 var import_crypto7 = require("crypto");
-var import_path23 = __toESM(require("path"), 1);
+var import_path22 = __toESM(require("path"), 1);
 var RUN_RECORD_SCHEMA_VERSION = "1.0.0";
 var runRecordSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
@@ -49679,16 +49675,16 @@ var runRecordSchema = external_exports.object({
   abortReason: external_exports.string().optional()
 }).passthrough();
 function runsRootDir(workspace) {
-  return import_path19.default.join(workspace.sidecarDir, "runs");
+  return import_path18.default.join(workspace.sidecarDir, "runs");
 }
 function runDir(workspace, runId) {
   if (!/^[A-Za-z0-9._-]+$/.test(runId)) {
     throw new SpecBridgeError("INVALID_ARGUMENT", `Invalid run id "${runId}".`);
   }
-  return assertInsideWorkspace(workspace.rootDir, import_path19.default.join(runsRootDir(workspace), runId));
+  return assertInsideWorkspace(workspace.rootDir, import_path18.default.join(runsRootDir(workspace), runId));
 }
 function runArtifactPath(workspace, runId, fileName) {
-  return assertInsideWorkspace(workspace.rootDir, import_path19.default.join(runDir(workspace, runId), fileName));
+  return assertInsideWorkspace(workspace.rootDir, import_path18.default.join(runDir(workspace, runId), fileName));
 }
 function createRun(workspace, record4) {
   const validated = runRecordSchema.parse(record4);
@@ -49700,12 +49696,12 @@ function createRun(workspace, record4) {
     );
   }
   (0, import_fs18.mkdirSync)(dir, { recursive: true });
-  writeFileAtomic(import_path19.default.join(dir, "run.json"), `${JSON.stringify(validated, null, 2)}
+  writeFileAtomic(import_path18.default.join(dir, "run.json"), `${JSON.stringify(validated, null, 2)}
 `);
   return dir;
 }
 function readRunRecord(workspace, runId) {
-  const filePath = import_path19.default.join(runDir(workspace, runId), "run.json");
+  const filePath = import_path18.default.join(runDir(workspace, runId), "run.json");
   if (!(0, import_fs18.existsSync)(filePath)) return void 0;
   try {
     const parsed = JSON.parse((0, import_fs18.readFileSync)(filePath, "utf8"));
@@ -49722,7 +49718,7 @@ function updateRunRecord(workspace, runId, patch) {
   }
   const next = runRecordSchema.parse({ ...current, ...patch });
   writeFileAtomic(
-    import_path19.default.join(runDir(workspace, runId), "run.json"),
+    import_path18.default.join(runDir(workspace, runId), "run.json"),
     `${JSON.stringify(next, null, 2)}
 `
   );
@@ -49743,7 +49739,7 @@ function listRuns(workspace) {
         severity: "warning",
         code: "RUN_RECORD_UNREADABLE",
         message: `Run directory ${entry.name} has no readable run.json; ignoring it.`,
-        file: import_path19.default.join(root, entry.name)
+        file: import_path18.default.join(root, entry.name)
       });
     }
   }
@@ -49766,7 +49762,7 @@ function appendRunEvent(workspace, runId, event) {
 `, "utf8");
 }
 function readRunArtifactJson(workspace, runId, fileName) {
-  const filePath = import_path19.default.join(runDir(workspace, runId), fileName);
+  const filePath = import_path18.default.join(runDir(workspace, runId), fileName);
   if (!(0, import_fs18.existsSync)(filePath)) return void 0;
   try {
     return JSON.parse((0, import_fs18.readFileSync)(filePath, "utf8"));
@@ -50091,7 +50087,7 @@ function unifiedDiff(oldText, newText, options = {}) {
 function stageDocumentPath(workspace, specName, stage) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path20.default.join(workspace.kiroDir, "specs", specName, `${stage}.md`)
+    import_path19.default.join(workspace.kiroDir, "specs", specName, `${stage}.md`)
   );
 }
 function normalizeCandidateMarkdown(markdown) {
@@ -50528,7 +50524,7 @@ function buildEvidenceSpecContext(workspace, specName, state, task) {
   }
   const tasksStage = stateStage(state, "tasks");
   if (tasksStage?.status === "approved") {
-    const planHash2 = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(import_path21.default.join(workspace.kiroDir, "specs", specName, "tasks.md"));
+    const planHash2 = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(import_path20.default.join(workspace.kiroDir, "specs", specName, "tasks.md"));
     if (planHash2 !== void 0) specContext.tasksPlanHash = planHash2;
   }
   return specContext;
@@ -50554,7 +50550,7 @@ function applyConfiguredProtectedPaths(config2, comparison) {
 function taskLineIntact(workspace, specName, task) {
   try {
     const document = MarkdownDocument.load(
-      import_path21.default.join(workspace.kiroDir, "specs", specName, "tasks.md")
+      import_path20.default.join(workspace.kiroDir, "specs", specName, "tasks.md")
     );
     if (task.line >= document.lineCount) return false;
     return document.lineAt(task.line).text === task.rawLineText;
@@ -50576,7 +50572,7 @@ var interactiveLockSchema = external_exports.object({
 function interactiveLockPath(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path22.default.join(workspace.sidecarDir, "locks", "interactive-task.lock")
+    import_path21.default.join(workspace.sidecarDir, "locks", "interactive-task.lock")
   );
 }
 function readInteractiveLock(workspace) {
@@ -50614,7 +50610,7 @@ function acquireInteractiveLock(workspace, details) {
     createdAt: now3,
     heartbeatAt: now3
   };
-  (0, import_fs20.mkdirSync)(import_path22.default.dirname(lockPath), { recursive: true });
+  (0, import_fs20.mkdirSync)(import_path21.default.dirname(lockPath), { recursive: true });
   try {
     (0, import_fs20.writeFileSync)(lockPath, `${JSON.stringify(lock, null, 2)}
 `, { flag: "wx" });
@@ -50997,7 +50993,7 @@ async function completeInteractiveTask(deps, request) {
     );
   }
   const task = state.task;
-  const tasksPath = import_path23.default.join(workspace.kiroDir, "specs", record4.specName, "tasks.md");
+  const tasksPath = import_path22.default.join(workspace.kiroDir, "specs", record4.specName, "tasks.md");
   let taskIntact = false;
   try {
     const document = MarkdownDocument.load(tasksPath);
@@ -51129,10 +51125,10 @@ async function abortInteractiveTask(deps, request) {
 
 // ../../packages/orchestration/dist/index.js
 var import_fs21 = require("fs");
-var import_path24 = __toESM(require("path"), 1);
+var import_path23 = __toESM(require("path"), 1);
 var import_crypto10 = require("crypto");
 var import_fs22 = require("fs");
-var import_path25 = __toESM(require("path"), 1);
+var import_path24 = __toESM(require("path"), 1);
 
 // ../../packages/context/dist/index.js
 var CONTEXT_LAYERS = [
@@ -51870,7 +51866,7 @@ var contextEfficiencyMetricsSchema = external_exports.object({
 // ../../packages/orchestration/dist/index.js
 var import_crypto11 = require("crypto");
 var import_fs23 = require("fs");
-var import_path26 = __toESM(require("path"), 1);
+var import_path25 = __toESM(require("path"), 1);
 var ORCHESTRATION_PHASES = [
   /** The run exists; no intent has been assessed yet. */
   "CREATED",
@@ -53386,7 +53382,7 @@ function effectiveDecisions(decisions) {
 var ORCHESTRATION_DIR_NAME = "orchestration";
 var ID_PATTERN2 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 function orchestrationRootDir(workspace) {
-  return import_path24.default.join(workspace.sidecarDir, ORCHESTRATION_DIR_NAME);
+  return import_path23.default.join(workspace.sidecarDir, ORCHESTRATION_DIR_NAME);
 }
 function assertOrchestrationId(orchestrationId) {
   if (!ID_PATTERN2.test(orchestrationId)) {
@@ -53400,13 +53396,13 @@ function orchestrationDir(workspace, orchestrationId) {
   assertOrchestrationId(orchestrationId);
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path24.default.join(orchestrationRootDir(workspace), orchestrationId)
+    import_path23.default.join(orchestrationRootDir(workspace), orchestrationId)
   );
 }
 function artifactPath2(workspace, orchestrationId, ...segments) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path24.default.join(orchestrationDir(workspace, orchestrationId), ...segments)
+    import_path23.default.join(orchestrationDir(workspace, orchestrationId), ...segments)
   );
 }
 function planHash(plan) {
@@ -53483,7 +53479,7 @@ function writeOrchestrationState(workspace, state) {
   const validated = orchestrationStateSchema.parse(state);
   const dir = orchestrationDir(workspace, validated.orchestrationId);
   (0, import_fs21.mkdirSync)(dir, { recursive: true });
-  writeFileAtomic(import_path24.default.join(dir, "state.json"), `${JSON.stringify(validated, null, 2)}
+  writeFileAtomic(import_path23.default.join(dir, "state.json"), `${JSON.stringify(validated, null, 2)}
 `);
   return validated;
 }
@@ -53495,7 +53491,7 @@ function createOrchestrationRun(workspace, state) {
       `Orchestration directory already exists: ${dir}. Ids must be unique.`
     );
   }
-  (0, import_fs21.mkdirSync)(import_path24.default.join(dir, "plans"), { recursive: true });
+  (0, import_fs21.mkdirSync)(import_path23.default.join(dir, "plans"), { recursive: true });
   return writeOrchestrationState(workspace, state);
 }
 function listOrchestrationRuns(workspace) {
@@ -53532,7 +53528,7 @@ function storePlanRevision(workspace, orchestrationId, plan) {
     "plans",
     `${String(validated.revision).padStart(4, "0")}.json`
   );
-  (0, import_fs21.mkdirSync)(import_path24.default.dirname(file), { recursive: true });
+  (0, import_fs21.mkdirSync)(import_path23.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return { plan: validated, hash: planHash(validated), file };
@@ -53564,7 +53560,7 @@ function appendOrchestrationEvent(workspace, orchestrationId, event, limits) {
     );
   }
   const file = artifactPath2(workspace, orchestrationId, "events.jsonl");
-  (0, import_fs21.mkdirSync)(import_path24.default.dirname(file), { recursive: true });
+  (0, import_fs21.mkdirSync)(import_path23.default.dirname(file), { recursive: true });
   (0, import_fs21.appendFileSync)(file, line, "utf8");
 }
 function readOrchestrationEvents(workspace, orchestrationId, options = {}) {
@@ -55008,7 +55004,7 @@ var NODE_TRANSITIONS = Object.freeze({
 var JOBS_DIR_NAME = "jobs";
 var ID_PATTERN22 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 function jobsRootDir(workspace) {
-  return import_path25.default.join(workspace.sidecarDir, JOBS_DIR_NAME);
+  return import_path24.default.join(workspace.sidecarDir, JOBS_DIR_NAME);
 }
 function assertJobId(jobId) {
   if (!ID_PATTERN22.test(jobId)) {
@@ -55020,12 +55016,12 @@ function assertJobId(jobId) {
 }
 function jobDir(workspace, jobId) {
   assertJobId(jobId);
-  return assertInsideWorkspace(workspace.rootDir, import_path25.default.join(jobsRootDir(workspace), jobId));
+  return assertInsideWorkspace(workspace.rootDir, import_path24.default.join(jobsRootDir(workspace), jobId));
 }
 function artifactPath22(workspace, jobId, ...segments) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path25.default.join(jobDir(workspace, jobId), ...segments)
+    import_path24.default.join(jobDir(workspace, jobId), ...segments)
   );
 }
 function majorOf22(version2) {
@@ -55095,7 +55091,7 @@ function writeJobState(workspace, job) {
   const validated = jobStateSchema.parse(job);
   const dir = jobDir(workspace, validated.jobId);
   (0, import_fs22.mkdirSync)(dir, { recursive: true });
-  writeFileAtomic(import_path25.default.join(dir, "job.json"), `${JSON.stringify(validated, null, 2)}
+  writeFileAtomic(import_path24.default.join(dir, "job.json"), `${JSON.stringify(validated, null, 2)}
 `);
   return validated;
 }
@@ -55158,7 +55154,7 @@ function appendJobEvent(workspace, jobId, event, limits) {
     );
   }
   const file = artifactPath22(workspace, jobId, "events.jsonl");
-  (0, import_fs22.mkdirSync)(import_path25.default.dirname(file), { recursive: true });
+  (0, import_fs22.mkdirSync)(import_path24.default.dirname(file), { recursive: true });
   (0, import_fs22.appendFileSync)(file, line, "utf8");
 }
 function readJobEvents(workspace, jobId, options = {}) {
@@ -58808,13 +58804,13 @@ function objectiveDir(workspace, jobId, nodeId) {
   assertSegment(nodeId, "objective node id");
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path26.default.join(jobDir(workspace, jobId), "objectives", nodeId)
+    import_path25.default.join(jobDir(workspace, jobId), "objectives", nodeId)
   );
 }
 function artifactPath3(workspace, jobId, nodeId, ...segments) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path26.default.join(objectiveDir(workspace, jobId, nodeId), ...segments)
+    import_path25.default.join(objectiveDir(workspace, jobId, nodeId), ...segments)
   );
 }
 function readJson(file, parse3) {
@@ -58882,7 +58878,7 @@ function readEvaluations(workspace, jobId, nodeId, workUnitId) {
   const records = [];
   for (const name of (0, import_fs23.readdirSync)(dir).sort()) {
     if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path26.default.join(dir, name), (raw) => {
+    const record32 = readJson(import_path25.default.join(dir, name), (raw) => {
       const result = evaluationRecordSchema.safeParse(raw);
       return result.success ? result.data : void 0;
     });
@@ -58898,7 +58894,7 @@ function readConflicts(workspace, jobId, nodeId) {
   const records = [];
   for (const name of (0, import_fs23.readdirSync)(dir).sort()) {
     if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path26.default.join(dir, name), (raw) => {
+    const record32 = readJson(import_path25.default.join(dir, name), (raw) => {
       const result = contractConflictSchema.safeParse(raw);
       return result.success ? result.data : void 0;
     });
@@ -58912,7 +58908,7 @@ function readWorkerRecords(workspace, jobId, nodeId) {
   const records = [];
   for (const name of (0, import_fs23.readdirSync)(dir).sort()) {
     if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path26.default.join(dir, name), (raw) => {
+    const record32 = readJson(import_path25.default.join(dir, name), (raw) => {
       const result = objectiveWorkerRecordSchema.safeParse(raw);
       return result.success ? result.data : void 0;
     });
@@ -68401,19 +68397,19 @@ function registerRunResources(server, context) {
 
 // ../../packages/drift/dist/index.js
 var import_fs24 = require("fs");
-var import_path27 = __toESM(require("path"), 1);
+var import_path26 = __toESM(require("path"), 1);
 var import_picomatch = __toESM(require_picomatch2(), 1);
 var import_fs25 = require("fs");
-var import_path28 = __toESM(require("path"), 1);
+var import_path27 = __toESM(require("path"), 1);
 var import_fs26 = require("fs");
-var import_path29 = __toESM(require("path"), 1);
+var import_path28 = __toESM(require("path"), 1);
 var import_fs27 = require("fs");
-var import_path30 = __toESM(require("path"), 1);
+var import_path29 = __toESM(require("path"), 1);
 var import_fs28 = require("fs");
-var import_path31 = __toESM(require("path"), 1);
+var import_path30 = __toESM(require("path"), 1);
 var import_fs29 = require("fs");
 var import_crypto12 = require("crypto");
-var import_path32 = __toESM(require("path"), 1);
+var import_path31 = __toESM(require("path"), 1);
 var taskEvidenceSchema = external_exports.object({
   taskId: external_exports.string().min(1),
   status: external_exports.enum(["recorded", "verified", "rejected"]),
@@ -68514,18 +68510,18 @@ var verificationPolicySchema = external_exports.object({
   }
 });
 function policyDir(workspace) {
-  return import_path27.default.join(workspace.sidecarDir, "policies");
+  return import_path26.default.join(workspace.sidecarDir, "policies");
 }
 function policyPath(workspace, specName) {
-  const resolved = import_path27.default.resolve(policyDir(workspace), `${specName}.json`);
-  const relative = import_path27.default.relative(workspace.rootDir, resolved);
-  if (relative.startsWith("..") || import_path27.default.isAbsolute(relative)) {
-    return import_path27.default.join(policyDir(workspace), "invalid-spec-name.json");
+  const resolved = import_path26.default.resolve(policyDir(workspace), `${specName}.json`);
+  const relative = import_path26.default.relative(workspace.rootDir, resolved);
+  if (relative.startsWith("..") || import_path26.default.isAbsolute(relative)) {
+    return import_path26.default.join(policyDir(workspace), "invalid-spec-name.json");
   }
   return resolved;
 }
 function readVerificationPolicy(workspace, specName, explicitPath) {
-  const filePath = explicitPath !== void 0 ? import_path27.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
+  const filePath = explicitPath !== void 0 ? import_path26.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
   if (!(0, import_fs24.existsSync)(filePath)) {
     return { path: filePath, exists: false, diagnostics: [] };
   }
@@ -68594,7 +68590,7 @@ function resolveEffectivePolicy(workspace, specName, options = {}) {
   const storedMode = policy?.mode ?? "advisory";
   const strictFromCli = options.strict === true && storedMode !== "strict";
   const mode = options.strict === true ? "strict" : storedMode;
-  const workspaceRelativePolicyPath = import_path27.default.relative(workspace.rootDir, read.path).split(import_path27.default.sep).join("/");
+  const workspaceRelativePolicyPath = import_path26.default.relative(workspace.rootDir, read.path).split(import_path26.default.sep).join("/");
   return {
     specName,
     mode,
@@ -68753,18 +68749,18 @@ function flagSymlinkEscapes(repoRoot, files) {
     try {
       return (0, import_fs25.realpathSync)(repoRoot);
     } catch {
-      return import_path28.default.resolve(repoRoot);
+      return import_path27.default.resolve(repoRoot);
     }
   })();
   for (const file of files) {
     if (file.changeType === "deleted") continue;
-    const absolute = import_path28.default.join(repoRoot, file.path.split("/").join(import_path28.default.sep));
+    const absolute = import_path27.default.join(repoRoot, file.path.split("/").join(import_path27.default.sep));
     try {
       const stats = (0, import_fs25.lstatSync)(absolute);
       if (!stats.isSymbolicLink()) continue;
       const target = (0, import_fs25.realpathSync)(absolute);
-      const relative = import_path28.default.relative(resolvedRoot, target);
-      if (relative.startsWith("..") || import_path28.default.isAbsolute(relative)) {
+      const relative = import_path27.default.relative(resolvedRoot, target);
+      if (relative.startsWith("..") || import_path27.default.isAbsolute(relative)) {
         file.symlinkOutsideRepository = true;
       }
     } catch {
@@ -68892,7 +68888,7 @@ async function resolveComparison(repoRoot, request, options = {}) {
     const known = new Set(files.map((file) => file.path));
     for (const token of untracked.stdout.split("\0")) {
       if (token.length === 0 || known.has(token)) continue;
-      const absolute = import_path28.default.join(repoRoot, token.split("/").join(import_path28.default.sep));
+      const absolute = import_path27.default.join(repoRoot, token.split("/").join(import_path27.default.sep));
       files.push({
         path: token,
         changeType: "untracked",
@@ -68972,7 +68968,7 @@ function specMatchReasons(specName, policy, validEvidencePaths, designPathRefere
 function readSpecEvidenceRecords(workspace, specName) {
   const byTask = /* @__PURE__ */ new Map();
   let invalidRecordCount = 0;
-  const specDir = import_path29.default.join(workspace.sidecarDir, "evidence", specName);
+  const specDir = import_path28.default.join(workspace.sidecarDir, "evidence", specName);
   if ((0, import_fs26.existsSync)(specDir)) {
     const taskDirs = (0, import_fs26.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
     for (const taskDir of taskDirs) {
@@ -69021,7 +69017,7 @@ async function buildSpecVerificationContext(options) {
     }
     if (effective("tasks") && tasksStage !== void 0) {
       const planHash2 = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(
-        import_path29.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path29.default.sep))
+        import_path28.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path28.default.sep))
       );
       if (planHash2 !== void 0) approved.tasksPlanHash = planHash2;
     }
@@ -69243,7 +69239,7 @@ async function evaluateGlobalRules(rules, context) {
   return { diagnostics, disabledRules };
 }
 function repoRelative2(workspace, absolutePath) {
-  return import_path30.default.relative(workspace.rootDir, absolutePath).split(import_path30.default.sep).join("/");
+  return import_path29.default.relative(workspace.rootDir, absolutePath).split(import_path29.default.sep).join("/");
 }
 function isSpecInfraPath(candidate) {
   return candidate === ".git" || candidate.startsWith(".git/") || candidate.startsWith(".kiro/") || candidate.startsWith(".specbridge/");
@@ -69924,13 +69920,13 @@ var sbv018 = {
     if (designDocument === void 0) return [];
     const designFile = designDocument.filePath;
     const designRepoPath = designFile !== void 0 ? repoRelative2(context.workspace, designFile) : void 0;
-    const specDir = import_path30.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
+    const specDir = import_path29.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
     return context.traceability.designPathReferences.filter((reference) => !reference.isGlob).filter((reference) => {
-      const fromRoot = import_path30.default.join(
+      const fromRoot = import_path29.default.join(
         context.workspace.rootDir,
-        reference.path.split("/").join(import_path30.default.sep)
+        reference.path.split("/").join(import_path29.default.sep)
       );
-      const fromSpecDir = import_path30.default.join(specDir, reference.path.split("/").join(import_path30.default.sep));
+      const fromSpecDir = import_path29.default.join(specDir, reference.path.split("/").join(import_path29.default.sep));
       return !(0, import_fs27.existsSync)(fromRoot) && !(0, import_fs27.existsSync)(fromSpecDir);
     }).map(
       (reference) => makeDiagnostic({
@@ -70175,7 +70171,7 @@ function loadSpecMatchingInfo(workspace, folder, options) {
     }
   }
   const evidencePaths = /* @__PURE__ */ new Set();
-  const evidenceDir2 = import_path31.default.join(workspace.sidecarDir, "evidence", folder.name);
+  const evidenceDir2 = import_path30.default.join(workspace.sidecarDir, "evidence", folder.name);
   if ((0, import_fs28.existsSync)(evidenceDir2)) {
     for (const entry of (0, import_fs29.readdirSync)(evidenceDir2, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
@@ -70286,8 +70282,8 @@ async function verifySpecs(request) {
   let artifactsDir;
   const ensureArtifactsDir = () => {
     if (artifactsDir === void 0) {
-      const base = request.reportsDir ?? import_path32.default.join(workspace.sidecarDir, "reports");
-      artifactsDir = import_path32.default.join(base, verificationId);
+      const base = request.reportsDir ?? import_path31.default.join(workspace.sidecarDir, "reports");
+      artifactsDir = import_path31.default.join(base, verificationId);
     }
     return artifactsDir;
   };
@@ -70310,8 +70306,8 @@ async function verifySpecs(request) {
       onCommandFinished: (result, stdout, stderr) => {
         const dir = ensureArtifactsDir();
         const safeName = result.name.replace(/[^A-Za-z0-9._-]+/g, "-");
-        writeFileAtomic(import_path32.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
-        writeFileAtomic(import_path32.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
+        writeFileAtomic(import_path31.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
+        writeFileAtomic(import_path31.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
       }
     } : {}
   }) : { mode: "none", commands: [], missingRequired: [] };
@@ -70462,7 +70458,7 @@ async function verifySpecs(request) {
   verificationReportSchema.parse(report);
   if (persistArtifacts && artifactsDir !== void 0) {
     writeFileAtomic(
-      import_path32.default.join(artifactsDir, "report.json"),
+      import_path31.default.join(artifactsDir, "report.json"),
       `${JSON.stringify(report, null, 2)}
 `
     );
@@ -73687,16 +73683,16 @@ var MAX_TEMPLATE_PROVIDER_PACKS = 20;
 
 // ../../packages/extensions/dist/index.js
 var import_fs33 = require("fs");
-var import_path37 = __toESM(require("path"), 1);
+var import_path36 = __toESM(require("path"), 1);
 
 // ../../packages/templates/dist/index.js
 var import_fs30 = require("fs");
-var import_path33 = __toESM(require("path"), 1);
+var import_path32 = __toESM(require("path"), 1);
 var import_fs31 = require("fs");
-var import_path34 = __toESM(require("path"), 1);
+var import_path33 = __toESM(require("path"), 1);
 var import_fs32 = require("fs");
+var import_path34 = __toESM(require("path"), 1);
 var import_path35 = __toESM(require("path"), 1);
-var import_path36 = __toESM(require("path"), 1);
 var SPECBRIDGE_VERSION = "1.0.0";
 var TEMPLATE_ERROR_CODES = {
   SBT001: "template not found",
@@ -74529,7 +74525,7 @@ function readTemplatePackDirectory(dir) {
       (a2, b) => a2.name.localeCompare(b.name, "en")
     );
     for (const entry of entries) {
-      const entryPath = import_path33.default.join(currentDir, entry.name);
+      const entryPath = import_path32.default.join(currentDir, entry.name);
       const entryRelative = relative === "" ? entry.name : `${relative}/${entry.name}`;
       const stat = statNoFollow(entryPath);
       if (stat.isSymbolicLink()) {
@@ -74885,7 +74881,7 @@ var BUILTIN_TEMPLATE_PACKS = [
   }
 ];
 function projectTemplatesDir(workspace) {
-  return import_path34.default.join(workspace.sidecarDir, "templates");
+  return import_path33.default.join(workspace.sidecarDir, "templates");
 }
 function builtinEntries(options) {
   const entries = [];
@@ -74924,7 +74920,7 @@ function projectEntries(workspace, options, diagnostics) {
     return [];
   }
   for (const name of names) {
-    const packDir = import_path34.default.join(dir, name);
+    const packDir = import_path33.default.join(dir, name);
     let pack;
     try {
       const data = readTemplatePackDirectory(packDir);
@@ -75167,7 +75163,7 @@ var templateRecordSchema = external_exports.discriminatedUnion("type", [
   templateScaffoldRecordSchema
 ]);
 function templateRecordsPath(workspace) {
-  return import_path35.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
+  return import_path34.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
 }
 var recordCounter = 0;
 function newTemplateRecordId(clock = systemClock) {
@@ -75346,7 +75342,7 @@ function planTemplateApplication(workspace, catalog, request, clock = systemCloc
   };
 }
 function toPosix2(relative) {
-  return relative.split(import_path36.default.sep).join("/");
+  return relative.split(import_path35.default.sep).join("/");
 }
 function executeTemplateApplication(workspace, plan, clock = systemClock, recordId) {
   let creation;
@@ -75376,8 +75372,8 @@ function executeTemplateApplication(workspace, plan, clock = systemClock, record
     })),
     variableNames: plan.variableNames,
     createdPaths: [
-      ...creation.writtenFiles.map((file) => toPosix2(import_path36.default.relative(workspace.rootDir, file))),
-      toPosix2(import_path36.default.relative(workspace.rootDir, creation.statePath))
+      ...creation.writtenFiles.map((file) => toPosix2(import_path35.default.relative(workspace.rootDir, file))),
+      toPosix2(import_path35.default.relative(workspace.rootDir, creation.statePath))
     ]
   };
   appendTemplateRecord(workspace, record4);
@@ -75387,12 +75383,12 @@ function executeTemplateApplication(workspace, plan, clock = systemClock, record
 // ../../packages/extensions/dist/index.js
 var import_crypto14 = require("crypto");
 var import_fs34 = require("fs");
-var import_path38 = __toESM(require("path"), 1);
+var import_path37 = __toESM(require("path"), 1);
 var import_child_process = require("child_process");
 var import_fs35 = require("fs");
-var import_path39 = __toESM(require("path"), 1);
+var import_path38 = __toESM(require("path"), 1);
 var import_fs36 = require("fs");
-var import_path40 = __toESM(require("path"), 1);
+var import_path39 = __toESM(require("path"), 1);
 var ExtensionError = class extends SpecBridgeError {
   extensionCode;
   /** Actionable next step, always present. */
@@ -75687,7 +75683,7 @@ function readExtensionPackageDirectory(dir) {
             "Remove the directory before validating or packaging."
           );
         }
-        walk(import_path37.default.join(currentDir, entry.name), relativePath, depth + 1);
+        walk(import_path36.default.join(currentDir, entry.name), relativePath, depth + 1);
         continue;
       }
       if (!entry.isFile()) {
@@ -75704,7 +75700,7 @@ function readExtensionPackageDirectory(dir) {
           "Reduce the package contents."
         );
       }
-      const content = (0, import_fs33.readFileSync)(import_path37.default.join(currentDir, entry.name));
+      const content = (0, import_fs33.readFileSync)(import_path36.default.join(currentDir, entry.name));
       totalBytes += content.length;
       if (totalBytes > EXTENSION_LIMITS.maxExtractedTotalBytes) {
         throw new ExtensionError(
@@ -75977,10 +75973,10 @@ var EXTENSION_STATE_FILE_NAME = "state.json";
 var EXTENSION_GRANTS_FILE_NAME = "grants.json";
 var EXTENSION_STATE_SCHEMA_VERSION = "1.0.0";
 function extensionsDir(workspace) {
-  return import_path38.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
+  return import_path37.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
 }
 function installedRootDir(workspace) {
-  return import_path38.default.join(extensionsDir(workspace), "installed");
+  return import_path37.default.join(extensionsDir(workspace), "installed");
 }
 function installedVersionDir(workspace, id, version2) {
   if (!validateExtensionId(id).valid || parseSemver(version2) === void 0) {
@@ -75990,7 +75986,7 @@ function installedVersionDir(workspace, id, version2) {
       "Use a valid extension ID and X.Y.Z version."
     );
   }
-  const dir = import_path38.default.join(installedRootDir(workspace), id, version2);
+  const dir = import_path37.default.join(installedRootDir(workspace), id, version2);
   assertInsideWorkspace(workspace.rootDir, dir);
   return dir;
 }
@@ -76089,10 +76085,10 @@ function readValidatedJson(filePath, schema, empty, label) {
   return { value: result.data, diagnostics: [], exists: true };
 }
 function extensionStatePath(workspace) {
-  return import_path38.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
+  return import_path37.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
 }
 function permissionGrantsPath(workspace) {
-  return import_path38.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
+  return import_path37.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
 }
 function readExtensionState(workspace) {
   const { value, diagnostics, exists } = readValidatedJson(
@@ -76273,9 +76269,9 @@ function resolveEntrypoint(installedDir, entrypoint) {
   if (problem !== void 0) {
     throw new ExtensionError("SBE012", `entrypoint "${entrypoint}": ${problem}.`, "Fix the extension manifest.");
   }
-  const resolved = import_path39.default.join(installedDir, ...entrypoint.split("/"));
-  const relative = import_path39.default.relative(installedDir, resolved);
-  if (relative.startsWith("..") || import_path39.default.isAbsolute(relative)) {
+  const resolved = import_path38.default.join(installedDir, ...entrypoint.split("/"));
+  const relative = import_path38.default.relative(installedDir, resolved);
+  if (relative.startsWith("..") || import_path38.default.isAbsolute(relative)) {
     throw new ExtensionError(
       "SBE012",
       `entrypoint "${entrypoint}" escapes the installed extension directory.`,
@@ -76283,8 +76279,8 @@ function resolveEntrypoint(installedDir, entrypoint) {
     );
   }
   let current = installedDir;
-  for (const segment of relative.split(import_path39.default.sep)) {
-    current = import_path39.default.join(current, segment);
+  for (const segment of relative.split(import_path38.default.sep)) {
+    current = import_path38.default.join(current, segment);
     const stat = (0, import_fs35.lstatSync)(current, { throwIfNoEntry: false });
     if (stat === void 0) {
       throw new ExtensionError(
@@ -76832,7 +76828,7 @@ async function probeExtensionHandshake(enabled, options = {}) {
 }
 function compatibilityOf(workspace, record4, specbridgeVersion) {
   try {
-    const manifestPath = import_path40.default.join(
+    const manifestPath = import_path39.default.join(
       installedVersionDir(workspace, record4.id, record4.version),
       EXTENSION_MANIFEST_FILE_NAME
     );
@@ -78218,9 +78214,9 @@ function registerTemplateApplyTool(server, context) {
 
 // ../../packages/registry/dist/index.js
 var import_fs37 = require("fs");
-var import_path41 = __toESM(require("path"), 1);
+var import_path40 = __toESM(require("path"), 1);
 var import_fs38 = require("fs");
-var import_path42 = __toESM(require("path"), 1);
+var import_path41 = __toESM(require("path"), 1);
 var BUILTIN_REGISTRY_INDEX_JSON = '{\n  "schemaVersion": "1.0.0",\n  "name": "specbridge-examples",\n  "updatedAt": "2026-01-01T00:00:00.000Z",\n  "extensions": [\n    {\n      "id": "example-analyzer",\n      "displayName": "example-analyzer",\n      "description": "Deterministic spec diagnostics contributed by the example-analyzer analyzer extension.",\n      "kind": "analyzer",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-analyzer-1.0.0.specbridge-extension.zip",\n          "sha256": "e6e0948a315b09e53bd18997dce21888af9adbb3997fbf82955399dcf3252a19",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "analyzer",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-exporter",\n      "displayName": "example-exporter",\n      "description": "Candidate export files produced by the example-exporter exporter extension.",\n      "kind": "exporter",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-exporter-1.0.0.specbridge-extension.zip",\n          "sha256": "68f42755a4e56d0e318012ec8c0e3b093e44429182ca93b02d9fb4ce2ec308a3",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "exporter",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-runner",\n      "displayName": "example-runner",\n      "description": "An out-of-process runner adapter provided by the example-runner extension.",\n      "kind": "runner",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-runner-1.0.0.specbridge-extension.zip",\n          "sha256": "5ef3db937d872bfe09495695e9ecb0a3cf3beaf9e006fabdc2972ef55ace80ef",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": true,\n              "repositoryWrite": true,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "runner",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-template-provider",\n      "displayName": "example-template-provider",\n      "description": "Spec template packs contributed by the example-template-provider template-provider extension.",\n      "kind": "template-provider",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-template-provider-1.0.0.specbridge-extension.zip",\n          "sha256": "f7caa11a13473f0891cc8d237ec4f9f2962a2dd1bd2baba4e9d01570de29044b",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": false,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "template-provider",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-verifier",\n      "displayName": "example-verifier",\n      "description": "Verification diagnostics contributed by the example-verifier verifier extension.",\n      "kind": "verifier",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-verifier-1.0.0.specbridge-extension.zip",\n          "sha256": "d531c9078fcbeef6573a95773eefafd409d798bac1223c83748e0229ae0225bf",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "verifier",\n        "specbridge-extension"\n      ]\n    }\n  ]\n}\n';
 var REGISTRY_ERROR_CODES = {
   SBR001: "registry not found",
@@ -78376,10 +78372,10 @@ var cachedRegistrySchema = external_exports.object({
   index: registryIndexSchema
 }).passthrough();
 function registryCacheDir(workspace) {
-  return import_path41.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
+  return import_path40.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
 }
 function registryCachePath(workspace, name) {
-  const target = import_path41.default.join(registryCacheDir(workspace), `${name}.json`);
+  const target = import_path40.default.join(registryCacheDir(workspace), `${name}.json`);
   assertInsideWorkspace(workspace.rootDir, target);
   return target;
 }
@@ -78429,7 +78425,7 @@ function resolveRegistryIndex(workspace, source) {
     return { sourceName: source.name, index: parsed.index, origin: "builtin", diagnostics: [] };
   }
   if (source.type === "local-file") {
-    const filePath = import_path41.default.resolve(workspace.rootDir, source.file);
+    const filePath = import_path40.default.resolve(workspace.rootDir, source.file);
     assertInsideWorkspace(workspace.rootDir, filePath);
     if (!(0, import_fs37.existsSync)(filePath)) {
       return {
@@ -78542,7 +78538,7 @@ var registriesConfigSchema = external_exports.object({
   registries: external_exports.array(registrySourceSchema).max(20)
 }).passthrough();
 function registriesConfigPath(workspace) {
-  return import_path42.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
+  return import_path41.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
 }
 function defaultRegistriesConfig() {
   return {

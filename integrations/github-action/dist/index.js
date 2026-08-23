@@ -42355,6 +42355,9 @@ var claudeEnvelopeSchema = external_exports.object({
   is_error: external_exports.boolean().optional(),
   result: external_exports.string().optional(),
   session_id: external_exports.string().optional(),
+  // Current Claude Code emits `structured_output`; `structured_result`
+  // is the obsolete spelling, still parsed for older installations.
+  structured_output: external_exports.unknown().optional(),
   structured_result: external_exports.unknown().optional(),
   permission_denials: external_exports.array(external_exports.unknown()).optional()
 }).passthrough();
