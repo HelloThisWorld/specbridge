@@ -172,6 +172,46 @@ function projectionName(workUnitId: string, attempt: number): string {
   return `${workUnitId}-a${String(attempt).padStart(2, '0')}.json`;
 }
 
+/**
+ * The projection content that immutability is actually about.
+ *
+ * `createdAt` is excluded because it is a fact about when the projection was
+ * DERIVED, not about what a worker was shown. Two derivations of the same
+ * (workUnit, attempt) from the same durable truth differ only in that field,
+ * and treating them as different projections is what turned a resumed
+ * attempt into a crash loop (found by the vNext.10 StepRelay dogfood: the
+ * driver died on `Projection wu-1-a02.json already exists`, was restarted by
+ * the supervisor, and died again at the same line).
+ */
+function projectionIdentity(projection: ContextProjection): string {
+  const {
+    createdAt: _createdAt,
+    contentHash: _contentHash,
+    ...rest
+  } = projection as ContextProjection & { createdAt?: unknown; contentHash?: unknown };
+  // `contentHash` is excluded because `buildContextProjection` folds
+  // `createdAt` into it, so two derivations of the same attempt hash
+  // differently even when a worker would be shown identical material. The
+  // remaining fields ARE what a worker sees.
+  return JSON.stringify(rest);
+}
+
+/**
+ * Store a context projection.
+ *
+ * Immutable per (workUnit, attempt), and IDEMPOTENT for the same content.
+ * Those are different properties and the distinction is the whole fix:
+ *
+ *   re-deriving the SAME projection for the same attempt is not a mutation.
+ *   It happens on every resume, because a driver that died between writing
+ *   the projection and completing the attempt is reconciled onto that same
+ *   attempt number, and the projection is derived again from the same
+ *   durable truth.
+ *
+ *   writing DIFFERENT content under the same key IS a mutation, and still
+ *   throws. That is the case the invariant exists for: a worker must never
+ *   be able to claim it was shown something other than what it was shown.
+ */
 export function storeProjection(
   workspace: WorkspaceInfo,
   jobId: string,
@@ -183,9 +223,29 @@ export function storeProjection(
   const name = projectionName(validated.workUnitId, validated.attempt);
   const file = artifactPath(workspace, jobId, nodeId, 'projections', name);
   if (existsSync(file)) {
+    const existing = readFileSync(file, 'utf8');
+    let existingProjection: ContextProjection | undefined;
+    try {
+      existingProjection = contextProjectionSchema.parse(JSON.parse(existing));
+    } catch {
+      // An unreadable projection cannot be shown to be the same one, so the
+      // invariant holds and this throws below.
+      existingProjection = undefined;
+    }
+    if (
+      existingProjection !== undefined &&
+      projectionIdentity(existingProjection) === projectionIdentity(validated)
+    ) {
+      // Same attempt, same content: the resume re-derived what is already on
+      // disk. Return the stored projection rather than the fresh one, so the
+      // recorded `createdAt` stays the moment the worker's context was first
+      // fixed.
+      return { projection: existingProjection, ref: `projections/${name}` };
+    }
     throw new OrchestrationError(
       'SBO041',
-      `Projection ${name} already exists; projections are immutable per (workUnit, attempt).`,
+      `Projection ${name} already exists with DIFFERENT content; projections are immutable per ` +
+        '(workUnit, attempt). A new derivation belongs to a new attempt.',
     );
   }
   mkdirSync(path.dirname(file), { recursive: true });
