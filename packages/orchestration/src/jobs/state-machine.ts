@@ -13,6 +13,33 @@ import { isFinalJobStatus, isFinalNodeStatus } from './vocabulary.js';
  */
 
 /**
+ * Operational recovery statuses, plus the authority stop, reachable from any
+ * status where the underlying condition can be OBSERVED. Spelled once and
+ * spread into the rows below so the table cannot drift member by member.
+ */
+const RECOVERY_TARGETS = [
+  'WAITING_RESOURCE',
+  'RECOVERING_PROVIDER',
+  'REPAIRING_TOOLCHAIN',
+  'REPAIRING_ENVIRONMENT',
+  'REPAIRING_CONTROL_PLANE',
+  'NEEDS_AUTHORITY',
+] as const satisfies readonly JobStatus[];
+
+/** Where an operational status may go once its condition clears. */
+const RECOVERY_EXITS = [
+  'READY',
+  'PLANNING',
+  'REPLANNING',
+  'QUALIFYING',
+  ...RECOVERY_TARGETS,
+  'NEEDS_CLARIFICATION',
+  'BLOCKED',
+  'CANCELLED',
+  'FAILED',
+] as const satisfies readonly JobStatus[];
+
+/**
  * Allowed job transitions, keyed by source status.
  *
  * Reading the table:
@@ -27,22 +54,52 @@ import { isFinalJobStatus, isFinalNodeStatus } from './vocabulary.js';
  *     first: `RUNNING → REPAIRING` is not a legal edge, which enforces
  *     "no repair without a reasoned diagnosis" structurally.
  *   - Final statuses have no outgoing transitions at all.
+ *
+ * vNext.10 adds the autonomous operational statuses. Two rules shape every
+ * edge added for them, and they are the whole point of the phase:
+ *
+ *   1. Every operational status can return to `READY` on its own. That is
+ *      what makes "the reason for waiting disappeared" a runtime event
+ *      rather than a support ticket. None of them is a terminus.
+ *   2. `NEEDS_AUTHORITY` is reachable from every non-final status, and is
+ *      NOT reachable from any budget, complexity, or retry condition. The
+ *      table permits the edge; `authority.ts` decides whether a given
+ *      situation may take it.
+ *
+ * `QUALIFYING` sits between the last implementation node and `COMPLETED`.
+ * The table still allows the historical `READY|RUNNING|REPAIRING` to
+ * `COMPLETED` edges, because a non-sealed v1.2 job completes exactly as it
+ * always did; the closure ORACLE, not this table, is what forbids a SEALED
+ * mission from completing without closure evidence. Two places enforcing
+ * the same rule would be two places to forget it.
  */
 const JOB_TRANSITIONS: Readonly<Record<JobStatus, readonly JobStatus[]>> = Object.freeze({
-  CREATED: ['PLANNING', 'BLOCKED', 'NEEDS_CLARIFICATION', 'CANCELLED', 'FAILED'],
+  CREATED: ['PLANNING', 'BLOCKED', 'NEEDS_CLARIFICATION', 'NEEDS_AUTHORITY', 'CANCELLED', 'FAILED'],
   // PLANNING/REPLANNING → WAITING_RETRY (vNext.2, additive): a paid-tier
   // reasoning step may have to wait for subscription quota to return. The
   // wait resumes through READY; the pipeline re-derives the pending stage
   // from durable state, so nothing about the plan lifecycle is lost.
-  PLANNING: ['READY', 'NEEDS_CLARIFICATION', 'WAITING_RETRY', 'BLOCKED', 'CANCELLED', 'FAILED'],
+  PLANNING: [
+    'READY',
+    'NEEDS_CLARIFICATION',
+    'WAITING_RETRY',
+    ...RECOVERY_TARGETS,
+    'BLOCKED',
+    'CANCELLED',
+    'FAILED',
+  ],
   READY: [
     'RUNNING',
     // A repair dispatch starts from READY after a diagnosis recommended it.
     'REPAIRING',
     'PLANNING',
     'REPLANNING',
+    // vNext.10: planned implementation is done; the closure lifecycle owns
+    // whether COMPLETED is available at all.
+    'QUALIFYING',
     'NEEDS_CLARIFICATION',
     'WAITING_RETRY',
+    ...RECOVERY_TARGETS,
     'COMPLETED',
     'BLOCKED',
     'CANCELLED',
@@ -54,6 +111,7 @@ const JOB_TRANSITIONS: Readonly<Record<JobStatus, readonly JobStatus[]>> = Objec
     'DIAGNOSING',
     'WAITING_RETRY',
     'NEEDS_CLARIFICATION',
+    ...RECOVERY_TARGETS,
     'COMPLETED',
     'BLOCKED',
     'CANCELLED',
@@ -64,6 +122,10 @@ const JOB_TRANSITIONS: Readonly<Record<JobStatus, readonly JobStatus[]>> = Objec
     'REPLANNING',
     'WAITING_RETRY',
     'NEEDS_CLARIFICATION',
+    // A diagnosis is exactly where an operational cause is IDENTIFIED: a
+    // dead provider, a missing tool, an unhealthy environment, a runner
+    // defect. Naming the cause is what lets the job recover without a human.
+    ...RECOVERY_TARGETS,
     // A diagnosis may conclude nothing is wrong with the approach and hand
     // control back to the scheduler (e.g. the failure was transient).
     'READY',
@@ -78,27 +140,86 @@ const JOB_TRANSITIONS: Readonly<Record<JobStatus, readonly JobStatus[]>> = Objec
     'DIAGNOSING',
     'WAITING_RETRY',
     'NEEDS_CLARIFICATION',
+    ...RECOVERY_TARGETS,
     'COMPLETED',
     'BLOCKED',
     'CANCELLED',
     'FAILED',
   ],
-  REPLANNING: ['READY', 'PLANNING', 'NEEDS_CLARIFICATION', 'WAITING_RETRY', 'BLOCKED', 'CANCELLED', 'FAILED'],
-  WAITING_RETRY: ['READY', 'BLOCKED', 'CANCELLED', 'FAILED'],
+  REPLANNING: [
+    'READY',
+    'PLANNING',
+    'QUALIFYING',
+    'NEEDS_CLARIFICATION',
+    'WAITING_RETRY',
+    ...RECOVERY_TARGETS,
+    'BLOCKED',
+    'CANCELLED',
+    'FAILED',
+  ],
+  WAITING_RETRY: ['READY', ...RECOVERY_TARGETS, 'BLOCKED', 'CANCELLED', 'FAILED'],
   NEEDS_CLARIFICATION: [
     // Another bounded round of questions.
     'NEEDS_CLARIFICATION',
     'READY',
     'PLANNING',
     'REPLANNING',
+    'NEEDS_AUTHORITY',
     'BLOCKED',
     'CANCELLED',
     'FAILED',
   ],
-  BLOCKED: ['READY', 'PLANNING', 'REPLANNING', 'NEEDS_CLARIFICATION', 'CANCELLED', 'FAILED'],
+  BLOCKED: [
+    'READY',
+    'PLANNING',
+    'REPLANNING',
+    'NEEDS_CLARIFICATION',
+    // A blocker whose real cause turns out to be operational is recoverable
+    // without a human; a blocker whose real cause is authority is not.
+    ...RECOVERY_TARGETS,
+    'CANCELLED',
+    'FAILED',
+  ],
   COMPLETED: [],
   FAILED: [],
   CANCELLED: [],
+  // -------------------------------------------------------------------------
+  // vNext.10 autonomous statuses.
+  // -------------------------------------------------------------------------
+  WAITING_RESOURCE: [...RECOVERY_EXITS, 'RUNNING'],
+  RECOVERING_PROVIDER: [...RECOVERY_EXITS, 'RUNNING'],
+  REPAIRING_TOOLCHAIN: [...RECOVERY_EXITS, 'RUNNING'],
+  REPAIRING_ENVIRONMENT: [...RECOVERY_EXITS, 'RUNNING'],
+  REPAIRING_CONTROL_PLANE: [...RECOVERY_EXITS, 'RUNNING'],
+  QUALIFYING: [
+    // The closure audit found a gap: more real implementation work exists.
+    'READY',
+    'PLANNING',
+    'REPLANNING',
+    // A qualification failure is diagnosed before it is repaired, exactly
+    // like any other failure. QUALIFYING gets no shortcut to REPAIRING.
+    'DIAGNOSING',
+    'RUNNING',
+    'QUALIFYING',
+    ...RECOVERY_TARGETS,
+    'NEEDS_CLARIFICATION',
+    'COMPLETED',
+    'BLOCKED',
+    'CANCELLED',
+    'FAILED',
+  ],
+  NEEDS_AUTHORITY: [
+    // Resolving one authority question may reveal the next one.
+    'NEEDS_AUTHORITY',
+    'READY',
+    'PLANNING',
+    'REPLANNING',
+    'QUALIFYING',
+    'NEEDS_CLARIFICATION',
+    'BLOCKED',
+    'CANCELLED',
+    'FAILED',
+  ],
 });
 
 export function allowedJobTransitions(from: JobStatus): readonly JobStatus[] {

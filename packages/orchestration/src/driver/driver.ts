@@ -25,7 +25,8 @@ import { renderMaterializedContext, renderPointerContext } from '../context/pack
 import { OrchestrationError } from '../errors.js';
 import { executionPlanSchema } from '../state.js';
 import type { ExecutionPlan } from '../state.js';
-import { screenReplanForApprovedIntentImpact } from '../jobs/authority.js';
+import { resolveDelegatedAuthority, screenReplanForApprovedIntentImpact } from '../jobs/authority.js';
+import { escalateAuthority } from '../jobs/autonomous-states.js';
 import { findNode } from '../jobs/graph.js';
 import type { JobDeps } from '../jobs/job-service.js';
 import {
@@ -2596,6 +2597,41 @@ async function applyRoleOutput(
           : undefined,
       );
       if (output.impactsApprovedIntent || screen.impacts) {
+        // vNext.10: under a sealed Mission the screens above are INPUT to the
+        // authority firewall rather than a verdict. The firewall re-reads
+        // them against what the human actually delegated, so "restructure
+        // the module layout" stops being a 03:00 question while "change the
+        // public API" still is. With no resolver bound this whole branch is
+        // skipped and the v1.2 clarification below runs unchanged.
+        const delegated = resolveDelegatedAuthority(deps.authorityResolver, {
+          jobId,
+          nodeId: node.nodeId,
+          decisionKinds: screen.decisionKinds,
+          reasons: screen.reasons,
+          proposal: `${candidate.goal}\n${candidate.steps
+            .map((step) => step.description)
+            .join('\n')}`.slice(0, 4_000),
+        });
+        if (delegated?.kind === 'AUTONOMOUS') {
+          recordJobEvent(deps, jobId, 'authority_delegated', {
+            nodeId: node.nodeId,
+            decisionKinds: [...screen.decisionKinds],
+            reason: delegated.reason.slice(0, 300),
+          });
+          await recordPlan(deps, jobId, { context, candidate, producedByTier }, { replan: true });
+          return;
+        }
+        if (delegated?.kind === 'NEEDS_AUTHORITY') {
+          escalateAuthority(deps, jobId, {
+            surface: delegated.surface,
+            reason: delegated.reason,
+            question: delegated.question,
+            whyItMatters: delegated.whyItMatters,
+            nodeId: node.nodeId,
+            ...(delegated.options !== undefined ? { options: delegated.options } : {}),
+          });
+          return;
+        }
         askClarification(deps, jobId, [
           {
             question:

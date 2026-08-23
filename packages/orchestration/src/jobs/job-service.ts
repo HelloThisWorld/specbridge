@@ -17,6 +17,7 @@ import { buildExecutionPlan, capturePlanBinding, evaluatePlanFreshness } from '.
 import { assessProgress, diffFingerprint } from '../progress.js';
 import { backoffForAttempt } from '../retry.js';
 import type { FailureCategory } from '../vocabulary.js';
+import type { DelegatedAuthorityResolver } from './authority.js';
 import { assessComplexity, mergeComplexity } from './complexity.js';
 import type { ComplexityInput } from './complexity.js';
 import {
@@ -136,6 +137,12 @@ export interface JobDeps {
   idFactory?: (() => string) | undefined;
   /** Host label recorded on the job (e.g. "cli", "daemon"). */
   host?: string | undefined;
+  /**
+   * vNext.10: the delegated-authority resolver, supplied by
+   * @specbridge/autonomy when a sealed Mission governs this job. Absent for
+   * every unsealed job, which then behaves exactly as it did in v1.2.
+   */
+  authorityResolver?: DelegatedAuthorityResolver | undefined;
 }
 
 function policyOf(deps: JobDeps): JobPolicy {
@@ -745,6 +752,45 @@ export function recordJobEvent(
   let job = requireJobState(deps.workspace, jobId);
   job = record(deps, job, type, payload);
   return persist(deps, job);
+}
+
+/**
+ * The shared state-mutation primitive for the vNext.10 autonomous statuses.
+ *
+ * `record`, `transition`, and `persist` are private to this module on
+ * purpose: every job status change goes through the same event-budget check
+ * and the same fail-closed transition table, and a second module that
+ * reimplemented them would be a second place for that to stop being true.
+ * Rather than exporting three primitives, this exports the one composition
+ * `autonomous-states.ts` needs, which is also the only composition that is
+ * ever correct: transition, record why, patch, persist, atomically.
+ *
+ * A transition to the SAME status is legal here and is a no-op on the
+ * status while still recording the event and applying the patch — an
+ * operational condition that recurs (a second failed provider probe) is a
+ * real observation even though the job has not moved.
+ */
+export function applyJobTransition(
+  deps: JobDeps,
+  jobId: string,
+  input: {
+    to: JobStatus;
+    event: JobEventType;
+    payload?: Record<string, unknown>;
+    patch?: Partial<JobState>;
+  },
+): JobState {
+  let job = requireJobState(deps.workspace, jobId);
+  if (isFinalJobStatus(job.status)) {
+    throw new OrchestrationError(
+      'SBO026',
+      `Job is ${job.status}; autonomous status changes are not possible on a finalized job.`,
+      { details: { from: job.status, to: input.to } },
+    );
+  }
+  if (job.status !== input.to) job = transition(deps, job, input.to);
+  job = record(deps, job, input.event, input.payload ?? {});
+  return persist(deps, { ...job, ...(input.patch ?? {}) });
 }
 
 /** Record an explicit human review of a node's active plan. */

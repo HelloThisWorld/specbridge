@@ -55,8 +55,106 @@ export const JOB_STATUSES = [
   'FAILED',
   /** Final: the user cancelled; never auto-restarted. */
   'CANCELLED',
+  // -------------------------------------------------------------------------
+  // Autonomous operational statuses (vNext.10; appended, never reordered).
+  //
+  // Every one of these exists because the previous long-horizon dogfood
+  // proved that folding operational failure into BLOCKED makes an
+  // unattended run stop for a human who can do nothing useful. They share
+  // one property that BLOCKED deliberately lacks: the runtime knows what it
+  // is waiting for, and the supervisor may leave the status on its own when
+  // that reason disappears. None of them is final, and none of them is a
+  // request for a human.
+  // -------------------------------------------------------------------------
+  /**
+   * A named resource is unavailable and expected back: a subscription quota
+   * window, a provider cooldown, a rate limit. `retryAt` carries the earliest
+   * legal resume, and the supervisor wakes the job without any `--resume`.
+   */
+  'WAITING_RESOURCE',
+  /**
+   * A provider or local inference process is being restarted, failed over,
+   * or re-probed. The work itself is fine; the thing that was going to do it
+   * is not, and SpecBridge is fixing that.
+   */
+  'RECOVERING_PROVIDER',
+  /**
+   * A missing or broken ENGINEERING tool is being provisioned under the
+   * Toolsmith capability broker: a package manager, a build toolchain, a
+   * browser runtime, a project-local script. Never the product's own code.
+   */
+  'REPAIRING_TOOLCHAIN',
+  /**
+   * A local product runtime environment (compose project, broker, database,
+   * app server) is being provisioned, restarted, or repaired. Distinct from
+   * REPAIRING_TOOLCHAIN on purpose: a Kafka broker that will not become
+   * healthy is a different problem from a missing `pnpm`, and telemetry that
+   * merged them could not say which one an overnight run actually hit.
+   */
+  'REPAIRING_ENVIRONMENT',
+  /**
+   * A recoverable SpecBridge/runner defect is being repaired through the
+   * governed control-plane repair path, with the product job checkpointed
+   * and suspended. The narrowest and most heavily gated of these statuses.
+   */
+  'REPAIRING_CONTROL_PLANE',
+  /**
+   * Planned implementation is done and the job is in the closure lifecycle:
+   * contract-closure audit, system-scenario qualification, reproducibility,
+   * final audit. Work can still be GENERATED from here — QUALIFYING is not
+   * a victory lap, it is the phase that decides whether COMPLETED is even
+   * available.
+   */
+  'QUALIFYING',
+  /**
+   * Continuing genuinely requires PRODUCT AUTHORITY the sealed Mission does
+   * not contain. Deliberately NOT ordinary BLOCKED, and deliberately not
+   * reachable from complexity, risk, diff size, or repeated failure: this
+   * status is the one thing an unattended run is allowed to stop a human
+   * for, so its meaning must stay narrow enough to be worth waking up to.
+   */
+  'NEEDS_AUTHORITY',
 ] as const;
 export type JobStatus = (typeof JOB_STATUSES)[number];
+
+/**
+ * Statuses in which the runtime is recovering from an OPERATIONAL problem.
+ *
+ * The defining property: a supervisor may leave the status by itself when
+ * the underlying condition clears. Nothing here is a human request, and
+ * `humanInterventionsAfterSeal` must never be incremented for any of them.
+ */
+export const OPERATIONAL_JOB_STATUSES: readonly JobStatus[] = [
+  'WAITING_RESOURCE',
+  'RECOVERING_PROVIDER',
+  'REPAIRING_TOOLCHAIN',
+  'REPAIRING_ENVIRONMENT',
+  'REPAIRING_CONTROL_PLANE',
+  'WAITING_RETRY',
+];
+
+export function isOperationalJobStatus(status: JobStatus): boolean {
+  return OPERATIONAL_JOB_STATUSES.includes(status);
+}
+
+/**
+ * Statuses that genuinely require a person before anything else may run.
+ *
+ * `BLOCKED` is here because a blocker names an external prerequisite only a
+ * human can satisfy. `NEEDS_CLARIFICATION` is here because an unanswered
+ * question stalls the job. `NEEDS_AUTHORITY` is here because that is its
+ * entire purpose. Nothing else is: an unattended run that stops in any
+ * other non-final status has a supervisor bug, not a governance event.
+ */
+export const HUMAN_ATTENTION_JOB_STATUSES: readonly JobStatus[] = [
+  'NEEDS_AUTHORITY',
+  'NEEDS_CLARIFICATION',
+  'BLOCKED',
+];
+
+export function requiresHumanAttention(status: JobStatus): boolean {
+  return HUMAN_ATTENTION_JOB_STATUSES.includes(status);
+}
 
 /** Statuses from which no further scheduling can proceed. */
 export const FINAL_JOB_STATUSES: readonly JobStatus[] = ['COMPLETED', 'FAILED', 'CANCELLED'];
@@ -463,5 +561,46 @@ export const JOB_EVENT_TYPES = [
   'adaptive_drift_detected',
   'adaptive_profile_rebuilt',
   'adaptive_cache_invalidated',
+  // Overnight autonomous runtime events (vNext.10; additive, never
+  // reordered). Semantic again, and deliberately about AUTHORITY and
+  // OPERATIONAL OWNERSHIP: the moments where a human's delegated intent was
+  // bound to a job, where the runtime took a decision instead of asking,
+  // where it recovered without help, and the single moment where it stopped
+  // because the decision was genuinely not its to make. The per-check
+  // detail lives on the durable autonomy records, not in this stream.
+  'autonomy_seal_bound',
+  'autonomy_policy_drift_detected',
+  'authority_delegated',
+  'authority_escalated',
+  'authority_resolved',
+  'supervisor_attached',
+  'supervisor_lease_reclaimed',
+  'supervisor_detached',
+  'driver_restarted',
+  'resource_wait_started',
+  'resource_wait_ended',
+  'provider_recovery_started',
+  'provider_recovery_completed',
+  'toolchain_repair_started',
+  'toolchain_repair_completed',
+  'toolsmith_grant_issued',
+  'toolsmith_grant_denied',
+  'environment_provision_started',
+  'environment_ready',
+  'environment_failed',
+  'environment_repaired',
+  'environment_torn_down',
+  'browser_scenario_started',
+  'browser_scenario_completed',
+  'ux_critique_completed',
+  'control_plane_defect_detected',
+  'control_plane_repair_started',
+  'control_plane_repair_completed',
+  'context_rollover',
+  'closure_audit_completed',
+  'gap_work_generated',
+  'system_qualification_started',
+  'system_qualification_completed',
+  'reproducibility_completed',
 ] as const;
 export type JobEventType = (typeof JOB_EVENT_TYPES)[number];

@@ -121,3 +121,75 @@ export function assertAutonomousDecisionAllowed(
     },
   );
 }
+
+// ---------------------------------------------------------------------------
+// Delegated authority hook (vNext.10)
+// ---------------------------------------------------------------------------
+
+/**
+ * The seam through which an OVERNIGHT run replaces "ask a human" with
+ * "decide, or decide harder".
+ *
+ * The v1.2 table above is the right default for an interactive session: a
+ * person is present, and a plan that mentions restructuring deserves a
+ * glance. It is the wrong default at 03:00, when the same glance costs eight
+ * hours. Rather than making the table conditional (which would put the
+ * authority policy in two places), the driver consults an optional resolver
+ * that @specbridge/autonomy supplies from the sealed intent.
+ *
+ * The dependency points the right way: orchestration defines the CONTRACT,
+ * autonomy implements it. Nothing here imports the autonomy package, and a
+ * workspace with no seal has no resolver and behaves exactly as it did in
+ * v1.2 — which is also what makes this safe to add to an existing runtime.
+ *
+ * A resolver can only ever move a decision TOWARDS autonomy. It is consulted
+ * at points where the driver was already about to stop, so a resolver that
+ * throws, returns nothing, or is absent leaves the historical human gate in
+ * place. There is deliberately no path by which a resolver can introduce a
+ * gate that the v1.2 rules did not already have.
+ */
+export interface DelegatedAuthorityContext {
+  jobId: string;
+  nodeId?: string | undefined;
+  /** Decision kinds the deterministic screens produced. */
+  decisionKinds: readonly JobDecisionKind[];
+  /** Human-readable reasons from those screens. */
+  reasons: readonly string[];
+  /** Bounded proposal text the screens ran against. */
+  proposal?: string | undefined;
+}
+
+export type DelegatedAuthorityVerdict =
+  | { kind: 'AUTONOMOUS'; reason: string }
+  | { kind: 'ESCALATE_INTELLIGENCE'; reason: string }
+  | {
+      kind: 'NEEDS_AUTHORITY';
+      surface: string;
+      reason: string;
+      question: string;
+      whyItMatters: string;
+      options?: readonly string[] | undefined;
+    };
+
+export interface DelegatedAuthorityResolver {
+  resolve(context: DelegatedAuthorityContext): DelegatedAuthorityVerdict;
+}
+
+/**
+ * Consult a resolver, failing closed to the historical behaviour.
+ *
+ * A resolver that throws is a bug in the autonomy layer, and the correct
+ * response to a bug in the thing that grants autonomy is to grant none: the
+ * job asks the human exactly as it would have without any resolver at all.
+ */
+export function resolveDelegatedAuthority(
+  resolver: DelegatedAuthorityResolver | undefined,
+  context: DelegatedAuthorityContext,
+): DelegatedAuthorityVerdict | undefined {
+  if (resolver === undefined) return undefined;
+  try {
+    return resolver.resolve(context);
+  } catch {
+    return undefined;
+  }
+}

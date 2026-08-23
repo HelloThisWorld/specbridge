@@ -283,6 +283,72 @@ export type JobCounters = z.infer<typeof jobCountersSchema>;
 // Job state
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Autonomous operational state (vNext.10)
+// ---------------------------------------------------------------------------
+
+/**
+ * Why a job is in an operational status, and when it may leave.
+ *
+ * The load-bearing field is `wakeAt`. A wait with a wake time is a schedule;
+ * a wait without one is a poll, and the supervisor treats them differently:
+ * the first sleeps until the instant, the second re-checks on an interval
+ * and eventually classifies the resource as unrecoverable rather than
+ * waiting on it forever. Conflating the two is how an overnight run either
+ * burns a window polling or sleeps through a reset that already happened.
+ */
+export const operationalWaitSchema = z
+  .object({
+    /** Vocabulary kind from @specbridge/autonomy (`ResourceWaitKind`). */
+    kind: shortText,
+    /** What is unavailable, in one line. Never a credential or a URL secret. */
+    detail: text,
+    /** When the condition is EXPECTED to clear, when that is knowable. */
+    wakeAt: shortText.optional(),
+    /** How many times the runtime has already re-checked this condition. */
+    checks: z.number().int().min(0).default(0),
+    startedAt: shortText,
+    /** Recovery attempts made for this condition (restarts, failovers). */
+    recoveryAttempts: z.number().int().min(0).default(0),
+  })
+  .passthrough();
+export type OperationalWait = z.infer<typeof operationalWaitSchema>;
+
+/**
+ * One open request for PRODUCT AUTHORITY.
+ *
+ * Deliberately a first-class field rather than another clarification
+ * question: a clarification is "I need information", and this is "I need
+ * permission". They have different audiences, different urgency, and
+ * different consequences for the autonomy report, and the previous dogfood
+ * showed what happens when a runtime has only one word for both.
+ *
+ * `options` are the ways forward SpecBridge can see. They are suggestions
+ * for a human, never a menu the runtime may pick from on its own.
+ */
+export const authorityRequestSchema = z
+  .object({
+    requestId: shortText,
+    at: shortText,
+    /** Vocabulary surface from @specbridge/autonomy. */
+    surface: shortText,
+    /** Vocabulary reason from @specbridge/autonomy. */
+    reason: shortText,
+    question: text,
+    whyItMatters: text,
+    nodeId: shortText.optional(),
+    contractId: shortText.optional(),
+    options: z.array(text).max(10).default([]),
+    /** Difficulty signals observed. Recorded; never why this was asked. */
+    observedSignals: z.array(shortText).max(20).default([]),
+    resolvedAt: shortText.optional(),
+    resolvedBy: shortText.optional(),
+    resolution: z.enum(['APPROVED', 'REJECTED', 'AMENDED', 'WITHDRAWN']).optional(),
+    resolutionNote: text.optional(),
+  })
+  .passthrough();
+export type AuthorityRequest = z.infer<typeof authorityRequestSchema>;
+
 export const jobStateSchema = z
   .object({
     schemaVersion: z.string().regex(/^\d+\.\d+\.\d+$/),
@@ -335,6 +401,36 @@ export const jobStateSchema = z
     /** Set exactly once, when the job reaches a final status. */
     finalizedAt: shortText.optional(),
     finalOutcome: shortText.optional(),
+    /**
+     * vNext.10: why the job is in an operational status, present exactly
+     * when it is in one. Cleared on the way back to READY.
+     */
+    operationalWait: operationalWaitSchema.optional(),
+    /** vNext.10: the open authority request, present exactly in NEEDS_AUTHORITY. */
+    authorityRequest: authorityRequestSchema.optional(),
+    /**
+     * vNext.10: the closure phase, present once the job enters QUALIFYING.
+     * The closure ORACLE owns what it means; the job carries it so a fresh
+     * process resumes the right phase without re-deriving it.
+     */
+    closurePhase: shortText.optional(),
+    /** vNext.10: bounded counters the autonomy telemetry aggregates. */
+    autonomyCounters: z
+      .object({
+        authorityEscalations: z.number().int().min(0).default(0),
+        autonomousRecoveries: z.number().int().min(0).default(0),
+        resourceWaits: z.number().int().min(0).default(0),
+        providerRecoveries: z.number().int().min(0).default(0),
+        toolchainRepairs: z.number().int().min(0).default(0),
+        environmentRepairs: z.number().int().min(0).default(0),
+        controlPlaneRepairs: z.number().int().min(0).default(0),
+        contextRollovers: z.number().int().min(0).default(0),
+        gapClosureCycles: z.number().int().min(0).default(0),
+        systemQualificationCycles: z.number().int().min(0).default(0),
+        driverRestarts: z.number().int().min(0).default(0),
+      })
+      .passthrough()
+      .optional(),
   })
   .passthrough();
 export type JobState = z.infer<typeof jobStateSchema>;

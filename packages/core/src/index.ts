@@ -10,6 +10,7 @@ export * from './verification-types.js';
 export * from './agent-config.js';
 export * from './local-inference-config.js';
 export * from './orchestration-config.js';
+export * from './autonomy-config.js';
 export * from './runner-config.js';
 export * from './config-migration.js';
 export * from './state-migration.js';
