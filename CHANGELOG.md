@@ -138,6 +138,46 @@ including when it should.
 
 Result: `CERTIFIED`, `humanInterventionsAfterSeal = 0`.
 
+### The dogfood, and the five defects it found
+
+A real unattended run against a StepRelay worktree — sealed intent, real
+Claude on the subscription lane, a real llama.cpp classifier, real Docker.
+It ran for an hour and stopped on its own attempt budget, honestly, with one
+intervention reported.
+
+It found five defects that 2,552 tests did not, two of them in code written
+phases ago:
+
+1. **The plan-review gate was a complexity gate.** `planReview: 'high-risk'`
+   at `complexity: HIGH` stopped the run after a successful plan — the exact
+   03:00 question this phase exists to remove, kept alive by the one layer
+   nobody had revisited.
+2. **A resumed attempt could not re-derive its own projection.** The
+   objective runtime's immutability check killed the driver on every restart;
+   only the supervisor's no-progress budget stopped the loop.
+3. **Windows batch verification commands could not be spawned at all.** Node
+   20.12+/22 rejects `.bat`/`.cmd` without a shell, so `["./gradlew.bat",
+   "test"]` was `spawn-failed` every time. This explains the whole run.
+4. **An unstartable verifier was treated as an implementation defect.** The
+   consequence of (3): the runtime repaired code that had never been tested,
+   three times. The task path had kept `did not run` and `failed` apart since
+   v0.3; the objective path had not.
+5. **The primary metric under-reported.** A job sitting in `BLOCKED` reported
+   `humanInterventionsAfterSeal: 0`, because the block was recorded as
+   `budget_exhausted` and the event map listed only `job_blocked`. A list of
+   known causes can be incomplete; a job's current status cannot be.
+
+The fifth is the one worth dwelling on: the measurement itself was wrong, so
+nothing downstream could have caught it. It is fixed, and the same run now
+reports `1`.
+
+Honest non-claims from that run are documented in
+[the dogfood record](docs/autonomy/dogfood.md): the product was not built,
+the browser and environment paths were not exercised against it, and the
+control-plane repair path — configured — was never triggered, because nothing
+classified those three recoverable SpecBridge defects as control-plane
+defects. Detection is narrower than the defects a real run produces.
+
 ### Public CLI
 
 ```text

@@ -119,7 +119,7 @@ the intent in the evening, run one command, read the report in the morning.
   matrix, and the three defects it found.
 - [Operator setup](autonomy/operator-setup.md) — the evening checklist.
 - [The vNext.10 dogfood](autonomy/dogfood.md) — a real unattended run on a
-  real repository: what it proved, what it did not, and the two defects it
+  real repository: what it proved, what it did not, and the five defects it
   found that 2,500 tests did not.
 
 ## Mission-driven development

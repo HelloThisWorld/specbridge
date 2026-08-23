@@ -112,24 +112,40 @@ The lease reclaim is real: the first driver was killed mid-flight, stopped
 heartbeating, and a later supervisor took ownership at **generation 2** and
 carried on. Nobody typed `--resume`.
 
-Telemetry, live:
+It ran for an hour, cycling implement → diagnose → replan → implement, and
+then stopped **on its own budget**:
 
 ```
-✓ humanInterventionsAfterSeal: 0
+executor-finished: task 1: IMPLEMENTATION_DEFECT → blocked
+JOB_BLOCKED: Recovery stopped: all 4 execution attempts for this task are spent.
+WAIT_FOR_HUMAN: the job is BLOCKED and cannot proceed without a person
+```
+
+That is the bounded stop working. It did not loop, it did not spin, and it
+did not quietly declare anything finished.
+
+Final telemetry:
+
+```
+✗ humanInterventionsAfterSeal: 1
 · authority escalations: 0
-recoveries 0 · failovers 1 · quota waits 0 · context rollovers 0
+recoveries 0 · failovers 2 · quota waits 0 · context rollovers 0
 toolsmith 0 (0 self-created) · gap cycles 0 · driver restarts 1
-closure 0% · elapsed 37m · tokens 90,957 · cost $8.3695
+closure 0% · elapsed 60m · tokens 203,911 · cost $16.7335
 ```
 
-`closure 0%` is the honest number: the implementation had not produced
-passing evidence for any sealed item yet, so nothing was closed, and the
-ledger said so rather than reporting progress against a task list.
+**One intervention, honestly reported.** The run ended needing a person, so
+the metric says so. It said `0` until the fourth defect below was fixed —
+which is the most important thing this exercise produced.
 
-## The two defects it found
+`closure 0%` is the other honest number: the implementation never produced
+passing evidence for any sealed item, so nothing closed, and the ledger said
+so rather than reporting progress against a task list.
 
-Both are the reason to run a dogfood at all. Neither was caught by 2,500
-tests.
+## The five defects it found
+
+This is the reason to run a dogfood. None of them was caught by 2,500 tests,
+and two of them were in code written years before this phase.
 
 ### 1. The plan-review gate was a complexity gate
 
@@ -190,6 +206,67 @@ Immutability and idempotence are different properties. Re-deriving the same
 content is what every resume does; writing *different* content under the same
 key is the thing the invariant exists to prevent, and still throws.
 
+### 3. Windows batch verification commands could not be spawned at all
+
+This one explains the entire shape of the run. Every builder candidate
+recorded:
+
+```json
+"localVerification": { "ran": true, "passed": false, "commands": [
+  { "name": "test",  "status": "spawn-failed" },
+  { "name": "check", "status": "spawn-failed" } ] }
+```
+
+Since Node 20.12 / 22 (CVE-2024-27980), `spawn` without a shell rejects
+`.bat` and `.cmd` with `EINVAL`. A correct security fix — and it silently
+made the obvious Windows verification command impossible:
+
+```jsonc
+"argv": ["./gradlew.bat", "test"]   // spawn-failed, every time
+"argv": ["./mvnw.cmd", "verify"]    // spawn-failed, every time
+```
+
+A resolved batch wrapper now runs through `cmd.exe` with a command line
+SpecBridge builds itself: every element a discrete quoted token, so no
+argument can become an operator, and Node's shell option is still never set
+anywhere in the package. A source-level security test enforces that, and it
+correctly rejected an earlier draft of the explanatory comment for merely
+containing the forbidden string.
+
+### 4. An unstartable verifier was treated as an implementation defect
+
+The consequence of #3, and the more interesting bug. The objective evaluation
+folded `spawn-failed` into a plain verification failure, so the runtime did
+exactly what that category asks for: repaired the implementation, replanned,
+repaired again. Three cycles rewriting code that had never been tested.
+
+This is the distinction vNext.6 built its whole `INCONCLUSIVE` vocabulary
+around, and the task-execution path has honoured it since v0.3 —
+`executor-dispatch` marks a spawn-failed command `unavailable` because "a
+command that never started proves nothing about the code". The objective path
+did not. Both now share one definition of "did not run", and an unstartable
+verifier is categorised `CAPABILITY_UNAVAILABLE` so recovery repairs the
+toolchain rather than the code.
+
+### 5. The primary metric under-reported
+
+The sharpest one, because the measurement itself was wrong and so nothing
+downstream could have noticed. The run ended in `BLOCKED` — a job that
+plainly needs a person — and the report said:
+
+```
+✓ humanInterventionsAfterSeal: 0
+```
+
+`blockJob` records `budget_exhausted` rather than `job_blocked` when the
+blocker is a budget, and the intervention event map listed only the latter.
+
+A LIST of known causes can be incomplete. A job's current STATUS cannot be.
+Interventions are now also derived from the job sitting in a human-attention
+status, whatever event carried it there — `NEEDS_AUTHORITY` still excluded,
+because folding governance-working into the metric would make it
+unfalsifiable in the other direction. The same run now reports `1`.
+
 ## What this proves, and what it does not
 
 **Proved.**
@@ -208,21 +285,31 @@ key is the thing the invariant exists to prevent, and still throws.
 - Real local and subscription compute, real provider-reported usage, no
   fabricated cost.
 
+- The bounded stop is real: attempts exhausted, `BLOCKED`, one intervention
+  reported. No loop, no spin, no quiet completion.
+
 **Not proved, and not claimed.**
 
-- **The product was not finished.** This run reached replanning on task 1 of
-  3. Building the whole workbench — REST surface, dashboard, compose stack,
-  browser evidence — is a genuine overnight-scale exercise, and this was a
-  bounded session run inside a working day. `closure 0%` and the ledger's
-  unclosed items say exactly that, and the completion oracle would have
-  refused `COMPLETED` in any case.
+- **The product was not built.** The run never got past task 1 of 3, and the
+  reason was defect #3: its verification commands could not start, so no
+  implementation could ever be accepted. The fixes are covered by regression
+  tests; the dogfood was NOT re-run to completion afterwards, because a
+  genuine overnight-scale build is not something a working-day session can
+  contain. `closure 0%` and the unclosed ledger say exactly that, and the
+  completion oracle would have refused `COMPLETED` regardless.
 - **The browser and environment paths were not exercised end to end here.**
   No system scenario ran, because the implementation never reached the point
   of having something to run one against. Both are covered by their own
   tests and by the certification; neither has yet been proven against this
   product.
-- **The control-plane repair path was configured but never triggered.** No
-  SpecBridge defect of the recoverable class arose during the run.
+- **The control-plane repair path was configured but never triggered.** Which
+  is itself worth noting honestly: three of the five defects above WERE
+  recoverable SpecBridge defects, and the runtime did not recognise them as
+  such. Nothing classified `spawn-failed` verification, a crash-looping
+  projection write, or a mis-categorised failure as `CONTROL_PLANE_DEFECT`,
+  so the governed repair path was never entered. Detection is the gap: the
+  repair machinery is tested, and what feeds it is narrower than the defects
+  a real run produces.
 
 ## Reproducing it
 
