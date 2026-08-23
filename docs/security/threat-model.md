@@ -2201,6 +2201,290 @@ reporting `PASS` while meaning less each time.
 - Scenario ids and the report schema are versioned public contract, so a
   quiet removal shows up as a contract diff in CI.
 
+## 17. Overnight autonomous runtime (vNext.10)
+
+Unattended execution changes the security question. Every earlier phase could
+assume that a person would eventually look at what happened; this one is
+explicitly designed to run for eight hours with nobody watching, which makes
+"the runtime quietly gave itself more room" the threat that matters most.
+
+The organising mitigation is stated once and enforced everywhere below:
+
+> Autonomy means taking responsibility inside granted authority.
+> It never means expanding authority.
+
+### T108 — Autonomy assumed rather than granted
+
+**Threat.** A workspace becomes unattended by accident — an upgrade default,
+a copied configuration, a function called from the wrong place — and the
+runtime starts deciding things nobody delegated.
+
+**Mitigations.**
+
+- Every autonomy default is the CONSERVATIVE one: `mode: INTERACTIVE`,
+  `humanGate: ALL`, supervisor off, Toolsmith off, environments off, browser
+  off, critic `DISABLED`. Upgrading SpecBridge cannot make an existing
+  workspace more autonomous than it was.
+- Delegated authority comes from a SEALED Mission, never from configuration
+  alone. `evaluateAuthority` returns `NEEDS_AUTHORITY` with reason
+  `NO_SEAL_BOUND` for every surface when no executable seal is bound.
+- `runUnattendedMission` refuses outright unless `autonomy.mode` is
+  `OVERNIGHT` or `ZERO_TOUCH`. A runtime that went unattended because
+  somebody called the wrong function would be exactly the implicit authority
+  this phase exists to prevent.
+- The delegated-authority resolver is installed only when the operator chose
+  BOTH an unattended mode and `humanGate: AUTHORITY_ONLY`.
+
+### T109 — Widening delegation after the human authorized a narrower one
+
+**Threat.** A human seals an intent under one delegation; configuration is
+later edited (by a person, a script, or an agent) to grant more; the running
+job silently executes under the wider grant.
+
+**Mitigations.**
+
+- The seal records `autonomyPolicyFingerprint` at authorization time.
+  `assessSealExecutability` compares it against the live policy on every
+  execution path and refuses on ANY difference.
+- Drift refuses in BOTH directions. A narrower live policy is also refused,
+  because a job that believed it could provision containers and now cannot
+  would fail halfway through in a way nobody predicted.
+- The fingerprint deliberately excludes operational tuning (intervals,
+  timeouts, byte ceilings): those change how patiently the runtime waits,
+  never what it may do. Only authority-bearing values participate.
+- Recovering requires re-authorization by a human. There is no override.
+
+### T110 — An agent editing the policy that governs it
+
+**Threat.** The most direct attack available to a frustrated agent: widen the
+Toolsmith capabilities, raise the spend ceiling, add a verification command
+that always passes, or edit the seal.
+
+**Mitigations.**
+
+- The Toolsmith broker denies `.specbridge/config.json`,
+  `.specbridge/autonomy/**`, `.claude/settings*.json`, and `.kiro/**` with
+  `WOULD_CREATE_AUTHORITY`, whatever capability class carries the request and
+  whatever reason it gives.
+- Seals are written through `writeImmutableRecord`, which REFUSES an existing
+  path. An authorization that can be edited in place is a suggestion.
+- The seal carries an `authorityDigest` over exactly its authority content,
+  so a mutation is detectable even if a write succeeded by some other route.
+- Verification commands still come only from configuration, and no
+  agent-reachable surface writes configuration.
+
+### T111 — Difficulty laundered into a human gate, or a human gate laundered away
+
+**Threat.** Two mirror-image failures. Either "this looks risky, better ask"
+creeps back in and the unattended run stops at 03:00 for a hard-but-ordinary
+decision; or a genuine authority question is reclassified as ordinary
+engineering and applied silently.
+
+**Mitigations.**
+
+- `evaluateAuthority` does not TAKE complexity, diff size, attempt count, or
+  confidence as parameters. They cannot influence a verdict they are not an
+  input to.
+- `NON_AUTHORITY_SIGNALS` is an enumerable, snapshotted list, and
+  `verifyNonAuthoritySignalsCannotGate` proves at runtime that passing every
+  member at once still yields `AUTONOMOUS` for every delegated surface.
+- The hard authority surfaces have NO configuration representation. They are
+  not defaults that could be overridden; the schema cannot express them.
+- The driver seam is consulted only where the driver was ALREADY about to
+  stop, and a resolver that throws is treated as absent. The seam can remove
+  a false gate; it structurally cannot add a real one.
+- Two independent deterministic screens run behind an agent's own
+  declaration: the v1.2 intent screen and the vNext.10 promise-vocabulary
+  text screen.
+
+### T112 — Silent contract modification under delegated authority
+
+**Threat.** The run needs a sealed contract changed to finish, and applies
+the change itself rather than stopping — the single worst outcome available
+to this system.
+
+**Mitigations.**
+
+- `sealed-contract-change` and `contract-change-request` are hard authority
+  surfaces with no delegation path.
+- Only an explicit human decision moves a ContractChangeRequest to APPROVED
+  or REJECTED (vNext.3 invariant, unchanged), and no MCP tool performs it.
+- `autonomy seal --confirm` is CLI-only, exactly like stage approval.
+- The zero-touch certification's sixteenth scenario constructs this case
+  deliberately and asserts BOTH that the verdict is `NEEDS_AUTHORITY` AND
+  that the seal's `authorityDigest` is unchanged afterwards. An outcome of
+  `SELF_AUTHORIZED` fails the certification.
+
+### T113 — Self-repair weakening the invariants that constrain it
+
+**Threat.** A control-plane repair, triggered because a product task keeps
+failing, patches away the verification gate, the protected-path check, the
+spend authorization, or the completion oracle — and the suite goes green.
+
+**Mitigations.**
+
+- `screenPatchForInvariants` runs BEFORE any test in the repair lifecycle, so
+  a patch that disables a gate never gets the chance to make the suite pass.
+- The screen reads added and removed lines separately: an added
+  `bypassPermissions`/`--yolo`/`mayComplete = true` is a violation, and a
+  removed `assertInsideWorkspace`/`evaluateAuthority`/`assertMissionMayComplete`
+  is a violation unless the same file adds it back (a refactor that moves a
+  guard is not a weakening).
+- A diff that cannot be PARSED abandons the repair. "We could not look" and
+  "we looked and it was fine" never produce the same outcome.
+- Stages complete in strict order; `activateRepair` additionally refuses
+  without a recorded regression test and a passed canary.
+- The running control plane is never overwritten: a repair builds into a
+  derived staged artifact path and the supervisor adopts it on next start.
+- `maxRepairsPerJob` bounds it. A job that keeps hitting control-plane
+  defects is a signal for a person.
+
+### T114 — Autonomous tooling as an installation vector
+
+**Threat.** "The agent installs what it needs" becomes an arbitrary-command
+primitive, a path traversal, or a way to pull an unvetted image.
+
+**Mitigations.**
+
+- Requests name a CAPABILITY CLASS, never a command. The executor maps each
+  class to a fixed argv shape with exactly one variable position, and that
+  position is the already-brokered target. No shell, ever.
+- Workspace-scoped capabilities pass the workspace boundary check and the
+  protected-path glob before a grant is issued.
+- Scope preference is PROJECT_LOCAL then PORTABLE then CONTAINERIZED then
+  USER_LOCAL, with NO machine-global option. An admin-shaped target is denied
+  with the portable route named.
+- `allowedImageRegistries` and `allowedPackageRegistries` constrain remote
+  fetches when configured; `maxDownloadBytes` and `maxGrantsPerJob` bound
+  them always.
+- A capability with no single safe command shape is refused with the
+  alternative named rather than guessed at.
+- Every grant AND every denial is durably recorded and printable.
+
+### T115 — A supervisor driving a job another supervisor already owns
+
+**Threat.** Two drivers mutate one job's durable state concurrently, and the
+job's canonical truth is whatever raced last.
+
+**Mitigations.**
+
+- Ownership is a lease with an expiry and a generation counter. A LIVE lease
+  belonging to another owner is never taken, and there is deliberately no
+  force flag.
+- Liveness is decided by `expiresAt` alone. `pid` and `hostname` are
+  diagnostic; a recycled pid cannot grant ownership.
+- Reclaiming bumps the generation, so a zombie owner returning from a long
+  pause finds a higher generation and stands down.
+- `leaseTtlMs >= 3 * heartbeatIntervalMs` is enforced by the schema, so a
+  tight lease cannot reclaim from a live owner.
+- Long sleeps are taken in heartbeat-sized slices so a five-hour quota wait
+  never looks like a dead owner.
+
+### T116 — An unattended run spending money nobody authorized
+
+**Threat.** Eight hours of automatic execution meets an exhausted
+subscription and bills the operator for the night.
+
+**Mitigations.**
+
+- Every vNext.5 control is unchanged: spend mode, budget, per-task ceilings,
+  approval records, and reconciliation against provider-reported usage.
+- The seal carries its OWN ceiling, and the effective ceiling is the SMALLER
+  of the seal's and the configuration's. A generous seal cannot loosen a
+  strict configuration and vice versa.
+- An unknown cost or an unknown ceiling is treated as OUTSIDE the
+  authorization. The runtime cannot prove it is inside, so it is not.
+- Preflight refuses an unattended launch when a non-DISABLED spend mode has
+  no declared ceiling — in the evening, not at 03:00.
+- No cost is ever fabricated: unreported usage stays `null` and renders as
+  `n/a`.
+
+### T117 — A skipped check reported as a passing one
+
+**Threat.** No browser is installed, no container runtime answers, or a
+reproducibility step cannot run — and the run reports success anyway.
+
+**Mitigations.**
+
+- `SKIPPED_NO_RUNTIME` is a distinct browser status from `FAILED` and from
+  `PASSED`, carries a reason, and `isClosingBrowserResult` returns false for
+  it. The acceptance criterion stays unclosed.
+- `ENVIRONMENT_UNAVAILABLE` registers NO closure evidence in either
+  direction: an environment that would not start proved nothing about the
+  product, and recording it as a failure would send gap closure off to repair
+  code that was never exercised.
+- A reproducibility step that cannot run is `UNAVAILABLE`, and an
+  `UNAVAILABLE` step makes the run `INCONCLUSIVE` rather than passing.
+- Preflight reports `INDETERMINATE` when any probe could not decide, and
+  `assertOvernightReady` refuses to launch on it.
+- Environment evidence separates `applicationLevelReady` from
+  `livenessOnlyReady`, so shallow readiness cannot be read as deep.
+
+### T118 — Completion declared without evidence
+
+**Threat.** The exact failure of the previous dogfood: every task checked
+off, build green, agent reports done, seven approved requirements
+unimplemented.
+
+**Mitigations.**
+
+- Mission completion is gated by the Contract Closure Ledger, one entry per
+  SEALED item, built once from the seal and never rebuilt mid-run from
+  evolving mission state.
+- `IMPLEMENTED` and `VERIFIED` are different statuses and only the second
+  closes. `AGENT_ASSERTION` is a recordable evidence kind deliberately absent
+  from `CLOSING_EVIDENCE_KINDS`.
+- Evidence captured against a different git head is STALE and does not close.
+- `requiresBrowserScenario`/`requiresSystemScenario` are frozen from the seal,
+  so a UI criterion cannot be closed by a unit test and no later agent can
+  decide the browser check was optional.
+- `assertMissionMayComplete` THROWS rather than returning a boolean, takes no
+  arguments, and has no override. An empty ledger cannot complete.
+- Closure audits are append-only, so a completion claim is re-checkable long
+  after the run.
+
+### T119 — A subjective critic becoming an unbounded repair loop
+
+**Threat.** A UI reviewer generates new "material" findings indefinitely, and
+an unattended run spends the night on taste.
+
+**Mitigations.**
+
+- There is no `PASS` verdict. The strongest statement is
+  `NO_MATERIAL_FINDINGS`, which asserts the absence of problems it looked for
+  and nothing about whether the product works.
+- `AESTHETIC_PREFERENCE` findings are forced to `COSMETIC` severity whatever
+  the critic claimed, and only `MATERIAL` findings create work.
+- The verdict is COMPUTED from normalized findings rather than taken from the
+  critic, so a critic cannot manufacture work by asserting a conclusion its
+  own evidence does not support.
+- `critiqueEffect` refuses to act on a scenario that already failed
+  deterministically. `criticCanOverrideDeterministicFailure()` returns false,
+  always.
+- `maxCriticRepairCycles` bounds critic-caused work; exhausting it makes
+  further critiques advisory rather than failing the run.
+
+### T120 — Autonomy metrics that cannot be falsified
+
+**Threat.** `humanInterventionsAfterSeal = 0` becomes decorative: a run
+either claims zero by escalating everything to authority, or the number
+absorbs so many categories that it means nothing.
+
+**Mitigations.**
+
+- Authority escalations are counted SEPARATELY from interventions. An
+  authority stop is governance working; an unnecessary clarification is the
+  runtime failing.
+- Interventions are derived from durable job events
+  (`clarification_requested`, `job_blocked`), not from a self-report.
+- Every measurement is recomputed from disk on read, so a counter cannot
+  drift across the process restarts that are normal here.
+- Unknown measurements are `null` and render as `n/a`. A provider that
+  reported no cost has not reported a cost of zero.
+- The certification aggregates interventions across all scenarios and fails
+  on a single one, and reports `INCOMPLETE` rather than a qualified pass when
+  any scenario was skipped.
+
 ## Explicit non-claims
 
 Security models fail through overclaiming. SpecBridge does **not** claim:
@@ -2289,6 +2573,24 @@ Security models fail through overclaiming. SpecBridge does **not** claim:
    labelled `REAL`, `SIMULATED`, or `NOT_EXERCISED` precisely so the two are
    never confused, and a run that never exercised the real product reports
    `realTargetQualification: NOT_RUN` rather than a qualified pass.
+
+16. **Zero-touch is not omnipotence.** SpecBridge cannot work through
+   permanent total loss of every allowed compute lane, cannot invent a
+   human-only credential, cannot spend past an authorized ceiling, cannot
+   change sealed product authority, and cannot survive machine failure such
+   as permanent disk loss. These are honest limits of the autonomy model, not
+   defects in it, and a run that meets one classifies it rather than looping.
+17. **A certified fault matrix is not a guarantee about unlisted faults.**
+   The zero-touch certification proves that the assembled runtime handles the
+   sixteen fault classes it injects, at SpecBridge-controlled seams, without
+   human intervention. A fault outside the matrix is handled by the recovery
+   classifier's fallback — a bounded retry that eventually gives up honestly
+   — and no claim is made that every possible failure is recoverable.
+18. **`humanInterventionsAfterSeal = 0` describes one run, not the system.**
+   It is a measurement of what happened, derived from durable events. It is
+   not a prediction, and it says nothing about whether the sealed contract
+   described the right product — that judgment is the human's, made once, in
+   the evening.
 
 If you believe any mitigation above does not hold, that is a security
 finding: see [SECURITY.md](../../SECURITY.md) for how to report it.

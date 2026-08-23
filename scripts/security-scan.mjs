@@ -64,9 +64,13 @@ const SOURCE_RULES = [
     'permission-bypass-string',
     /(?:bypassPermissions|dangerously-skip-permissions)/,
     // Reviewed exceptions: these files DEFINE the forbidden-fragment
-    // blocklists that reject the strings (verified defensive use).
+    // blocklists that reject the strings (verified defensive use). The
+    // vNext.10 invariant screen is the same case one level up: it detects a
+    // control-plane PATCH that would introduce a permission bypass, so the
+    // string has to appear in its detector table.
     (file) =>
       [
+        `packages${path.sep}autonomy${path.sep}src${path.sep}repair${path.sep}invariant-screen.ts`,
         `packages${path.sep}core${path.sep}src${path.sep}agent-config.ts`,
         `packages${path.sep}runners${path.sep}src${path.sep}claude-code${path.sep}invocation.ts`,
         `packages${path.sep}runners${path.sep}src${path.sep}gemini-cli${path.sep}invocation.ts`,
