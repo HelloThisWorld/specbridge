@@ -11,3 +11,8 @@ export * from './environment/index.js';
 export * from './browser/index.js';
 export * from './critic/index.js';
 export * from './closure/index.js';
+export * from './qualification/index.js';
+export * from './telemetry/index.js';
+export * from './repair/index.js';
+export * from './runtime/index.js';
+export * from './certification/index.js';

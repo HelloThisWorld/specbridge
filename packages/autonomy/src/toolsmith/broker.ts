@@ -252,6 +252,9 @@ function matchesProtected(relative: string, context: BrokerContext): BrokerDecis
   return undefined;
 }
 
+/** Characters that must be escaped when copied into a generated regex. */
+const ESCAPE_IN_PATTERN = /[.+^${}()|[\]\\/]/;
+
 /**
  * The small glob subset protected paths actually use: `*`, `**`, and `?`.
  *
@@ -262,13 +265,30 @@ function matchesProtected(relative: string, context: BrokerContext): BrokerDecis
  * through, at 03:00.
  */
 function globMatches(pattern: string, value: string): boolean {
-  const escaped = pattern
-    .replace(/[.+^${}()|[\]\\]/g, '\\$&')
-    .replace(/\*\*\/?/g, ' ')
-    .replace(/\*/g, '[^/]*')
-    .replace(/\?/g, '[^/]')
-    .replace(/ /g, '(?:.*/)?');
-  return new RegExp(`^${escaped}$`).test(value);
+  // Translated by scanning rather than by chained `replace` calls. A chain
+  // has to smuggle `**` past the later passes through a placeholder
+  // character, and any placeholder is a character some real pattern might
+  // contain. Scanning once has no placeholder and no such hazard.
+  let source = '^';
+  for (let index = 0; index < pattern.length; index += 1) {
+    const char = pattern[index] as string;
+    if (char === '*') {
+      if (pattern[index + 1] === '*') {
+        // `**/` matches any number of leading segments, including none.
+        index += pattern[index + 2] === '/' ? 2 : 1;
+        source += '(?:.*/)?';
+        continue;
+      }
+      source += '[^/]*';
+      continue;
+    }
+    if (char === '?') {
+      source += '[^/]';
+      continue;
+    }
+    source += ESCAPE_IN_PATTERN.test(char) ? `\\${char}` : char;
+  }
+  return new RegExp(`${source}$`).test(value);
 }
 
 function registryOf(image: string): string | null {

@@ -108,7 +108,14 @@ function matchesAny(text: string, patterns: readonly RegExp[]): boolean {
  */
 export function compileAcceptanceCriteria(
   mission: MissionState,
-  contracts: readonly ProductContract[],
+  /**
+   * Present so the signature says what this compiles FROM, and so a future
+   * revision that derives criteria from contract text is an implementation
+   * change rather than a call-site change. Today only the mission's own
+   * success criteria are compiled: contract requirements are already sealed
+   * individually and are audited as their own closure entries.
+   */
+  _contracts: readonly ProductContract[],
 ): SealedAcceptanceCriterion[] {
   const out: SealedAcceptanceCriterion[] = [];
   mission.successCriteria.slice(0, SEAL_LIMITS.maxCriteria).forEach((statement, index) => {
