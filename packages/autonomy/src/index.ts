@@ -10,3 +10,4 @@ export * from './toolsmith/index.js';
 export * from './environment/index.js';
 export * from './browser/index.js';
 export * from './critic/index.js';
+export * from './closure/index.js';
