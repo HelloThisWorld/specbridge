@@ -184,6 +184,9 @@ export async function runUnattendedMission(
   // authority resolver bound.
   const host = typeof options.host === 'function' ? options.host(supervisedDeps) : options.host;
 
+  // One session start for the whole night, threaded into every supervision
+  // pass, so `maxSessionMs` bounds the run rather than one pass of it.
+  const sessionStartedAt = nowIso(deps);
   const startedMs = now(deps).getTime();
   const recoveries: RecoveryClassification[] = [];
   const audits: ClosureAudit[] = [];
@@ -204,6 +207,7 @@ export async function runUnattendedMission(
       ...(options.sleep !== undefined ? { sleep: options.sleep } : {}),
       ...(options.maxSupervisionCycles !== undefined ? { maxCycles: options.maxSupervisionCycles } : {}),
       ...(options.ownerId !== undefined ? { ownerId: `${options.ownerId}-${cycles}` } : {}),
+      sessionStartedAt,
       onEvent: (event) => emit(event.kind, event.message),
     });
 
@@ -358,6 +362,17 @@ export function applyRecovery(
       });
       break;
     }
+    case 'WAITING_RETRY':
+      // The classifier's fallback for a failure it does not recognise. No
+      // status change: an unclassified failure is handled by the supervisor's
+      // own restart accounting, which doubles the backoff and eventually
+      // gives up. Transitioning the job as well would record a wait nothing
+      // is actually waiting on.
+      recordJobEvent(jobDeps, input.jobId, 'waiting_retry', {
+        detail: classification.detail.slice(0, 300),
+        unclassified: true,
+      });
+      break;
     case 'REPAIRING_CONTROL_PLANE':
       // Deliberately NOT transitioned here. A control-plane repair needs a
       // repair id, and the record that carries it is created by

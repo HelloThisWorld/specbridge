@@ -65,6 +65,16 @@ export interface SuperviseOptions {
   maxCycles?: number | undefined;
   /** Override the generated owner id (deterministic tests). */
   ownerId?: string | undefined;
+  /**
+   * When the unattended SESSION began, as opposed to this supervision pass.
+   *
+   * The unattended runtime calls `superviseJob` once per supervise/close
+   * cycle, so a per-call start would make `maxSessionMs` a ceiling on one
+   * pass rather than on the night — which is not what the field is
+   * documented to mean, and not what an operator setting it expects.
+   * Defaults to now, which is correct for a single-pass caller.
+   */
+  sessionStartedAt?: string | undefined;
 }
 
 export interface SupervisionEvent {
@@ -273,7 +283,7 @@ export async function superviseJob(
   }
   emit('lease', `lease acquired by ${ownerId} (generation ${acquisition.lease?.generation ?? 1})`);
 
-  const sessionStartedAt = nowIso(deps);
+  const sessionStartedAt = options.sessionStartedAt ?? nowIso(deps);
   let job = requireJobState(deps.workspace, jobId);
   let supervised = registerSupervisedJob(deps, {
     jobId,
@@ -306,6 +316,9 @@ export async function superviseJob(
         ...(job.operationalWait !== undefined ? { wait: job.operationalWait } : {}),
         ...(job.retryAt !== undefined ? { retryAt: job.retryAt } : {}),
         supervised,
+        // This loop awaits the host inline, so a driver is never running at
+        // the moment a decision is taken. The field exists for a host that
+        // runs detached, and `decideSupervision` handles it either way.
         driverRunning: false,
         progressFingerprint: fingerprint,
         sessionStartedAt,
