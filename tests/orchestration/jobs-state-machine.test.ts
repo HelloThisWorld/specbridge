@@ -47,7 +47,52 @@ describe('job state machine', () => {
 
   it('COMPLETED is reachable only from statuses where work actually ran', () => {
     const sources = JOB_STATUSES.filter((status) => canJobTransition(status, 'COMPLETED'));
-    expect(sources.sort()).toEqual(['READY', 'REPAIRING', 'RUNNING'].sort());
+    // vNext.10 adds QUALIFYING, and it belongs here for the same reason as
+    // the other three: it is a status in which work runs. The closure audit,
+    // the system scenarios, and the reproducibility qualification all happen
+    // there, and for a SEALED mission it is the only path to COMPLETED — the
+    // closure oracle refuses the others. No operational status appears in
+    // this list: a job cannot complete out of a wait, a provider recovery, a
+    // toolchain repair, or an authority stop.
+    expect(sources.sort()).toEqual(['QUALIFYING', 'READY', 'REPAIRING', 'RUNNING'].sort());
+  });
+
+  it('no operational or human-attention status can reach COMPLETED', () => {
+    for (const status of [
+      'WAITING_RESOURCE',
+      'RECOVERING_PROVIDER',
+      'REPAIRING_TOOLCHAIN',
+      'REPAIRING_ENVIRONMENT',
+      'REPAIRING_CONTROL_PLANE',
+      'WAITING_RETRY',
+      'NEEDS_AUTHORITY',
+      'NEEDS_CLARIFICATION',
+      'BLOCKED',
+    ] as const) {
+      expect(canJobTransition(status, 'COMPLETED'), status).toBe(false);
+    }
+  });
+
+  it('every operational status can return to READY on its own', () => {
+    for (const status of [
+      'WAITING_RESOURCE',
+      'RECOVERING_PROVIDER',
+      'REPAIRING_TOOLCHAIN',
+      'REPAIRING_ENVIRONMENT',
+      'REPAIRING_CONTROL_PLANE',
+      'WAITING_RETRY',
+    ] as const) {
+      expect(canJobTransition(status, 'READY'), status).toBe(true);
+    }
+  });
+
+  it('NEEDS_AUTHORITY is reachable from every non-final status', () => {
+    const nonFinal = JOB_STATUSES.filter(
+      (status) => !['COMPLETED', 'FAILED', 'CANCELLED', 'NEEDS_AUTHORITY'].includes(status),
+    );
+    for (const status of nonFinal) {
+      expect(canJobTransition(status, 'NEEDS_AUTHORITY'), status).toBe(true);
+    }
   });
 
   it('WAITING_RETRY resumes only through READY', () => {

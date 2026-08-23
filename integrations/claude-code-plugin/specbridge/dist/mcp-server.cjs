@@ -28103,6 +28103,233 @@ var agentConfigSchema = external_exports.object({
     ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message });
   }
 });
+var AUTONOMY_MODES = ["INTERACTIVE", "SUPERVISED", "OVERNIGHT", "ZERO_TOUCH"];
+var HUMAN_GATE_MODES = ["ALL", "AUTHORITY_ONLY"];
+var DELEGATION_SETTINGS = ["AUTO", "HUMAN"];
+var HARD_HUMAN_AUTHORITY_SURFACES = Object.freeze([
+  "sealed-contract-modification",
+  "product-semantics-change",
+  "wire-protocol-change",
+  "persistence-compatibility-change",
+  "security-boundary-expansion",
+  "spend-beyond-authorized-ceiling",
+  "human-only-credential",
+  "external-irreversible-action"
+]);
+var delegatedDecisionsSchema = external_exports.object({
+  /** Implementation structure, algorithms, internal APIs, module layout. */
+  implementation: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN"),
+  /** Internal architecture inside the sealed contracts. */
+  internalArchitecture: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN"),
+  /** Adding, upgrading, or replacing a project dependency. */
+  dependencySelection: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN"),
+  /** Creating project-local tools, scripts, generators, fixtures. */
+  toolingCreation: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN"),
+  /** Test harnesses, fixtures, fault injectors, conformance kits. */
+  testInfrastructure: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN"),
+  /** Provisioning local runtime environments (compose, brokers, databases). */
+  environmentProvisioning: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN"),
+  /** Driving a real browser against the product under test. */
+  browserVerification: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN"),
+  /** Decomposing sealed work into tasks and revising that decomposition. */
+  workDecomposition: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN")
+}).passthrough();
+var delegatedRecoverySchema = external_exports.object({
+  /** Provider failover, restart, cooldown, and health recovery. */
+  provider: external_exports.enum(DELEGATION_SETTINGS).default("AUTO"),
+  /** Restarting dead drivers and reconciling interrupted attempts. */
+  process: external_exports.enum(DELEGATION_SETTINGS).default("AUTO"),
+  /** Installing or building missing project-local engineering tooling. */
+  toolchain: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN"),
+  /** Repairing a failing implementation against fresh evidence. */
+  implementation: external_exports.enum(DELEGATION_SETTINGS).default("AUTO"),
+  /** Checkpoint, compact, reconstruct, continue in a fresh session. */
+  context: external_exports.enum(DELEGATION_SETTINGS).default("AUTO"),
+  /** Restarting and repairing local runtime environments. */
+  environment: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN"),
+  /** Governed self-repair of a recoverable SpecBridge/toolchain defect. */
+  controlPlane: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN")
+}).passthrough();
+var supervisorPolicySchema = external_exports.object({
+  enabled: external_exports.boolean().default(false),
+  /** How often the owning process refreshes its lease. */
+  heartbeatIntervalMs: external_exports.number().int().min(1e3).max(3e5).default(15e3),
+  /**
+   * How long a lease stays valid without a heartbeat. A lease older than
+   * this is reclaimable: the owner is presumed dead. Must be comfortably
+   * larger than the heartbeat interval; the schema enforces 3x.
+   */
+  leaseTtlMs: external_exports.number().int().min(5e3).max(18e5).default(9e4),
+  /** How often the supervisor re-evaluates sleeping/waiting jobs. */
+  pollIntervalMs: external_exports.number().int().min(1e3).max(6e5).default(2e4),
+  /** Hard ceiling on driver restarts for one job, ever. */
+  maxRestarts: external_exports.number().int().min(0).max(1e3).default(50),
+  /** Consecutive restarts with no progress before the job is given up. */
+  maxConsecutiveRestarts: external_exports.number().int().min(1).max(50).default(5),
+  /** Backoff floor and ceiling between restarts. */
+  restartBackoffMs: external_exports.number().int().min(100).max(6e5).default(5e3),
+  maxRestartBackoffMs: external_exports.number().int().min(1e3).max(36e5).default(3e5),
+  /**
+   * Wall-clock ceiling on one unattended supervision session. Reaching it
+   * is not a failure: the job is checkpointed and left resumable.
+   */
+  maxSessionMs: external_exports.number().int().min(6e4).max(7 * 24 * 36e5).default(14 * 36e5),
+  /**
+   * Longest a job may sit in WAITING_RESOURCE with NO identified future
+   * recovery before it is classified honestly rather than waited on.
+   */
+  maxIndefiniteWaitMs: external_exports.number().int().min(6e4).max(24 * 36e5).default(2 * 36e5)
+}).passthrough().superRefine((policy, ctx) => {
+  if (policy.leaseTtlMs < policy.heartbeatIntervalMs * 3) {
+    ctx.addIssue({
+      code: external_exports.ZodIssueCode.custom,
+      path: ["leaseTtlMs"],
+      message: `leaseTtlMs (${policy.leaseTtlMs}) must be at least 3x heartbeatIntervalMs (${policy.heartbeatIntervalMs}); a tighter lease reclaims jobs from live owners.`
+    });
+  }
+  if (policy.maxRestartBackoffMs < policy.restartBackoffMs) {
+    ctx.addIssue({
+      code: external_exports.ZodIssueCode.custom,
+      path: ["maxRestartBackoffMs"],
+      message: "maxRestartBackoffMs must be at least restartBackoffMs"
+    });
+  }
+});
+var TOOLSMITH_CAPABILITIES = [
+  /** Write a script/tool inside the workspace (never outside it). */
+  "PROJECT_LOCAL_SCRIPT",
+  /** Add a dev/test dependency to the project's own manifest. */
+  "PROJECT_DEPENDENCY",
+  /** Run the project's package manager to install declared dependencies. */
+  "PACKAGE_MANAGER_INSTALL",
+  /** Download a language/build toolchain into a project-local directory. */
+  "PROJECT_LOCAL_TOOLCHAIN",
+  /** Download a browser runtime into a project-local or user-local cache. */
+  "BROWSER_RUNTIME",
+  /** Pull a container image from a configured registry. */
+  "CONTAINER_IMAGE",
+  /** Start/stop containers and compose projects for the product under test. */
+  "CONTAINER_LIFECYCLE",
+  /** Install a CLI tool into a user-local (never system) prefix. */
+  "USER_LOCAL_CLI",
+  /** Generate fixtures, fakes, simulators, and fault injectors. */
+  "CODE_GENERATION"
+];
+var toolsmithPolicySchema = external_exports.object({
+  enabled: external_exports.boolean().default(false),
+  /** The capability classes the broker may grant. Empty means none. */
+  capabilities: external_exports.array(external_exports.enum(TOOLSMITH_CAPABILITIES)).max(TOOLSMITH_CAPABILITIES.length).default([]),
+  /** Hard ceiling on granted requests for one job. */
+  maxGrantsPerJob: external_exports.number().int().min(0).max(500).default(40),
+  /** Hard ceiling on bytes one grant may fetch, when the fetch is measurable. */
+  maxDownloadBytes: external_exports.number().int().min(0).max(8 * 1024 * 1024 * 1024).default(2 * 1024 * 1024 * 1024),
+  /** Wall-clock ceiling for one provisioning action. */
+  timeoutMs: external_exports.number().int().min(1e3).max(36e5).default(9e5),
+  /**
+   * Registries a CONTAINER_IMAGE grant may pull from. Empty means "the
+   * daemon's default", which is the operator's own docker configuration —
+   * SpecBridge does not add registries.
+   */
+  allowedImageRegistries: external_exports.array(external_exports.string().min(1).max(200)).max(20).default([]),
+  /**
+   * Package registries a PACKAGE_MANAGER_INSTALL may reach. Empty means
+   * the project's own configured registry.
+   */
+  allowedPackageRegistries: external_exports.array(external_exports.string().min(1).max(200)).max(20).default([]),
+  /**
+   * User-local prefix for USER_LOCAL_CLI grants, relative to the user's
+   * home. Never absolute, never a system path.
+   */
+  userLocalPrefix: external_exports.string().min(1).max(120).default(".specbridge/tools")
+}).passthrough();
+var environmentPolicySchema = external_exports.object({
+  enabled: external_exports.boolean().default(false),
+  /** Concurrent environment instances one job may hold. */
+  maxInstances: external_exports.number().int().min(1).max(20).default(3),
+  /** Ceiling for one service to become ready. */
+  readinessTimeoutMs: external_exports.number().int().min(1e3).max(36e5).default(18e4),
+  /** Interval between readiness probe attempts. */
+  probeIntervalMs: external_exports.number().int().min(100).max(6e4).default(2e3),
+  /** Bounded restarts of one service before the instance is unhealthy. */
+  maxServiceRestarts: external_exports.number().int().min(0).max(20).default(3),
+  /** Keep logs and container state when provisioning fails. */
+  retainDiagnosticsOnFailure: external_exports.boolean().default(true),
+  /** Ceiling on retained log bytes per service. */
+  maxLogBytesPerService: external_exports.number().int().min(1024).max(64 * 1024 * 1024).default(2 * 1024 * 1024),
+  /** Tear down instances when the owning job reaches a final status. */
+  teardownOnJobFinal: external_exports.boolean().default(true)
+}).passthrough();
+var browserPolicySchema = external_exports.object({
+  enabled: external_exports.boolean().default(false),
+  /** Isolated contexts one scenario may open (multi-user products need >1). */
+  maxContexts: external_exports.number().int().min(1).max(16).default(4),
+  /** Per-navigation ceiling. */
+  navigationTimeoutMs: external_exports.number().int().min(1e3).max(6e5).default(3e4),
+  /** Whole-scenario ceiling. */
+  scenarioTimeoutMs: external_exports.number().int().min(1e3).max(36e5).default(3e5),
+  /** Capture screenshots as durable evidence. */
+  captureScreenshots: external_exports.boolean().default(true),
+  /** Capture console and network failures as durable evidence. */
+  captureConsole: external_exports.boolean().default(true),
+  /** Ceiling on retained evidence bytes for one scenario. */
+  maxEvidenceBytes: external_exports.number().int().min(1024).max(256 * 1024 * 1024).default(16 * 1024 * 1024),
+  /** Viewports a responsive check exercises, as `WIDTHxHEIGHT`. */
+  viewports: external_exports.array(external_exports.string().regex(/^\d{2,5}x\d{2,5}$/)).max(8).default(["1280x800", "390x844"])
+}).passthrough();
+var CRITIC_MODES = ["DISABLED", "ADVISORY", "BLOCKING"];
+var criticPolicySchema = external_exports.object({
+  mode: external_exports.enum(CRITIC_MODES).default("DISABLED"),
+  /** Repair cycles the critic alone may cause for one scenario. */
+  maxCriticRepairCycles: external_exports.number().int().min(0).max(10).default(2),
+  /** Findings retained per critique. */
+  maxFindings: external_exports.number().int().min(1).max(200).default(25)
+}).passthrough();
+var closurePolicySchema = external_exports.object({
+  enabled: external_exports.boolean().default(true),
+  /** Audit then generate gap work then implement then audit again, bounded. */
+  maxGapClosureCycles: external_exports.number().int().min(0).max(50).default(8),
+  /** System-scenario qualification attempts before the phase gives up. */
+  maxSystemQualificationCycles: external_exports.number().int().min(0).max(20).default(4),
+  /** Gap work units one closure cycle may generate. */
+  maxGapWorkPerCycle: external_exports.number().int().min(1).max(100).default(12),
+  /**
+   * Require mission-level system acceptance scenarios when the sealed
+   * acceptance criteria imply them. Turning this off does not make an
+   * unproven requirement closed — it removes the SCENARIO phase, and the
+   * requirement then has to close on other evidence.
+   */
+  requireSystemScenarios: external_exports.boolean().default(true),
+  /** Run the reproducibility phase (clean build, fresh environment). */
+  requireReproducibility: external_exports.boolean().default(true),
+  /** Ceiling for one reproducibility qualification. */
+  reproducibilityTimeoutMs: external_exports.number().int().min(6e4).max(24 * 36e5).default(36e5)
+}).passthrough();
+var controlPlaneRepairPolicySchema = external_exports.object({
+  enabled: external_exports.boolean().default(false),
+  /** Absolute path to the SpecBridge source checkout a repair may patch. */
+  sourcePath: external_exports.string().min(1).max(4096).optional(),
+  /** Governed repairs one product job may trigger. */
+  maxRepairsPerJob: external_exports.number().int().min(0).max(10).default(2),
+  /** Run the full SpecBridge qualification before a repaired build is used. */
+  requireFullQualification: external_exports.boolean().default(true),
+  /** Re-run the exact failed operation against the repaired build. */
+  requireCanary: external_exports.boolean().default(true),
+  /** Ceiling for one repair task, end to end. */
+  timeoutMs: external_exports.number().int().min(6e4).max(24 * 36e5).default(2 * 36e5)
+}).passthrough();
+var autonomyPolicySchema = external_exports.object({
+  mode: external_exports.enum(AUTONOMY_MODES).default("INTERACTIVE"),
+  humanGate: external_exports.enum(HUMAN_GATE_MODES).default("ALL"),
+  decisions: delegatedDecisionsSchema.default({}),
+  recovery: delegatedRecoverySchema.default({}),
+  supervisor: supervisorPolicySchema.default({}),
+  toolsmith: toolsmithPolicySchema.default({}),
+  environments: environmentPolicySchema.default({}),
+  browser: browserPolicySchema.default({}),
+  critic: criticPolicySchema.default({}),
+  closure: closurePolicySchema.default({}),
+  controlPlaneRepair: controlPlaneRepairPolicySchema.default({})
+}).passthrough();
 var RUNNER_CONFIG_SCHEMA_VERSION = "2.0.0";
 var BUILT_IN_PROFILE_NAMES = {
   "claude-code": "claude-code",
@@ -28412,7 +28639,9 @@ var agentConfigV2Schema = external_exports.object({
   /** v1.1 governed orchestration policy (additive; safe defaults). */
   orchestration: orchestrationPolicySchema.default({}),
   /** v1.2 managed local inference (additive; disabled by default). */
-  localInference: localInferenceConfigSchema.default({})
+  localInference: localInferenceConfigSchema.default({}),
+  /** vNext.10 overnight autonomy policy (additive; INTERACTIVE by default). */
+  autonomy: autonomyPolicySchema.default({})
 }).passthrough().superRefine((config2, ctx) => {
   if (!config2.schemaVersion.startsWith("2.")) {
     ctx.addIssue({
@@ -28546,7 +28775,8 @@ function resolveAgentConfigFromV1(v1) {
     verification: v1.verification,
     execution: v1.execution,
     orchestration: v1.orchestration,
-    localInference: v1.localInference
+    localInference: v1.localInference,
+    autonomy: autonomyPolicySchema.parse({})
   };
 }
 function resolveAgentConfigFromV2(v2) {
@@ -28561,7 +28791,8 @@ function resolveAgentConfigFromV2(v2) {
     verification: v2.verification,
     execution: v2.execution,
     orchestration: v2.orchestration,
-    localInference: v2.localInference
+    localInference: v2.localInference,
+    autonomy: v2.autonomy
   };
 }
 function defaultResolvedAgentConfig() {
@@ -28576,7 +28807,8 @@ function defaultResolvedAgentConfig() {
     verification: verificationConfigSchema.parse({}),
     execution: executionPolicySchema.parse({}),
     orchestration: orchestrationPolicySchema.parse({}),
-    localInference: localInferenceConfigSchema.parse({})
+    localInference: localInferenceConfigSchema.parse({}),
+    autonomy: autonomyPolicySchema.parse({})
   };
 }
 function resolvedConfigDiagnostics(config2) {
@@ -54593,7 +54825,66 @@ var JOB_STATUSES = [
   /** Final: the job ended without completion. */
   "FAILED",
   /** Final: the user cancelled; never auto-restarted. */
-  "CANCELLED"
+  "CANCELLED",
+  // -------------------------------------------------------------------------
+  // Autonomous operational statuses (vNext.10; appended, never reordered).
+  //
+  // Every one of these exists because the previous long-horizon dogfood
+  // proved that folding operational failure into BLOCKED makes an
+  // unattended run stop for a human who can do nothing useful. They share
+  // one property that BLOCKED deliberately lacks: the runtime knows what it
+  // is waiting for, and the supervisor may leave the status on its own when
+  // that reason disappears. None of them is final, and none of them is a
+  // request for a human.
+  // -------------------------------------------------------------------------
+  /**
+   * A named resource is unavailable and expected back: a subscription quota
+   * window, a provider cooldown, a rate limit. `retryAt` carries the earliest
+   * legal resume, and the supervisor wakes the job without any `--resume`.
+   */
+  "WAITING_RESOURCE",
+  /**
+   * A provider or local inference process is being restarted, failed over,
+   * or re-probed. The work itself is fine; the thing that was going to do it
+   * is not, and SpecBridge is fixing that.
+   */
+  "RECOVERING_PROVIDER",
+  /**
+   * A missing or broken ENGINEERING tool is being provisioned under the
+   * Toolsmith capability broker: a package manager, a build toolchain, a
+   * browser runtime, a project-local script. Never the product's own code.
+   */
+  "REPAIRING_TOOLCHAIN",
+  /**
+   * A local product runtime environment (compose project, broker, database,
+   * app server) is being provisioned, restarted, or repaired. Distinct from
+   * REPAIRING_TOOLCHAIN on purpose: a Kafka broker that will not become
+   * healthy is a different problem from a missing `pnpm`, and telemetry that
+   * merged them could not say which one an overnight run actually hit.
+   */
+  "REPAIRING_ENVIRONMENT",
+  /**
+   * A recoverable SpecBridge/runner defect is being repaired through the
+   * governed control-plane repair path, with the product job checkpointed
+   * and suspended. The narrowest and most heavily gated of these statuses.
+   */
+  "REPAIRING_CONTROL_PLANE",
+  /**
+   * Planned implementation is done and the job is in the closure lifecycle:
+   * contract-closure audit, system-scenario qualification, reproducibility,
+   * final audit. Work can still be GENERATED from here — QUALIFYING is not
+   * a victory lap, it is the phase that decides whether COMPLETED is even
+   * available.
+   */
+  "QUALIFYING",
+  /**
+   * Continuing genuinely requires PRODUCT AUTHORITY the sealed Mission does
+   * not contain. Deliberately NOT ordinary BLOCKED, and deliberately not
+   * reachable from complexity, risk, diff size, or repeated failure: this
+   * status is the one thing an unattended run is allowed to stop a human
+   * for, so its meaning must stay narrow enough to be worth waking up to.
+   */
+  "NEEDS_AUTHORITY"
 ];
 var FINAL_JOB_STATUSES = ["COMPLETED", "FAILED", "CANCELLED"];
 function isFinalJobStatus(status) {
@@ -54834,6 +55125,38 @@ var jobCountersSchema = external_exports.object({
   reportedCostUsd: external_exports.number().min(0).nullable().default(null),
   reportedTokens: external_exports.number().int().min(0).nullable().default(null)
 }).passthrough();
+var operationalWaitSchema = external_exports.object({
+  /** Vocabulary kind from @specbridge/autonomy (`ResourceWaitKind`). */
+  kind: shortText23,
+  /** What is unavailable, in one line. Never a credential or a URL secret. */
+  detail: text22,
+  /** When the condition is EXPECTED to clear, when that is knowable. */
+  wakeAt: shortText23.optional(),
+  /** How many times the runtime has already re-checked this condition. */
+  checks: external_exports.number().int().min(0).default(0),
+  startedAt: shortText23,
+  /** Recovery attempts made for this condition (restarts, failovers). */
+  recoveryAttempts: external_exports.number().int().min(0).default(0)
+}).passthrough();
+var authorityRequestSchema = external_exports.object({
+  requestId: shortText23,
+  at: shortText23,
+  /** Vocabulary surface from @specbridge/autonomy. */
+  surface: shortText23,
+  /** Vocabulary reason from @specbridge/autonomy. */
+  reason: shortText23,
+  question: text22,
+  whyItMatters: text22,
+  nodeId: shortText23.optional(),
+  contractId: shortText23.optional(),
+  options: external_exports.array(text22).max(10).default([]),
+  /** Difficulty signals observed. Recorded; never why this was asked. */
+  observedSignals: external_exports.array(shortText23).max(20).default([]),
+  resolvedAt: shortText23.optional(),
+  resolvedBy: shortText23.optional(),
+  resolution: external_exports.enum(["APPROVED", "REJECTED", "AMENDED", "WITHDRAWN"]).optional(),
+  resolutionNote: text22.optional()
+}).passthrough();
 var jobStateSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
   jobId: shortText23,
@@ -54876,7 +55199,34 @@ var jobStateSchema = external_exports.object({
   latestEvidence: external_exports.object({ taskId: shortText23, runId: shortText23, evidenceStatus: shortText23, at: shortText23 }).passthrough().optional(),
   /** Set exactly once, when the job reaches a final status. */
   finalizedAt: shortText23.optional(),
-  finalOutcome: shortText23.optional()
+  finalOutcome: shortText23.optional(),
+  /**
+   * vNext.10: why the job is in an operational status, present exactly
+   * when it is in one. Cleared on the way back to READY.
+   */
+  operationalWait: operationalWaitSchema.optional(),
+  /** vNext.10: the open authority request, present exactly in NEEDS_AUTHORITY. */
+  authorityRequest: authorityRequestSchema.optional(),
+  /**
+   * vNext.10: the closure phase, present once the job enters QUALIFYING.
+   * The closure ORACLE owns what it means; the job carries it so a fresh
+   * process resumes the right phase without re-deriving it.
+   */
+  closurePhase: shortText23.optional(),
+  /** vNext.10: bounded counters the autonomy telemetry aggregates. */
+  autonomyCounters: external_exports.object({
+    authorityEscalations: external_exports.number().int().min(0).default(0),
+    autonomousRecoveries: external_exports.number().int().min(0).default(0),
+    resourceWaits: external_exports.number().int().min(0).default(0),
+    providerRecoveries: external_exports.number().int().min(0).default(0),
+    toolchainRepairs: external_exports.number().int().min(0).default(0),
+    environmentRepairs: external_exports.number().int().min(0).default(0),
+    controlPlaneRepairs: external_exports.number().int().min(0).default(0),
+    contextRollovers: external_exports.number().int().min(0).default(0),
+    gapClosureCycles: external_exports.number().int().min(0).default(0),
+    systemQualificationCycles: external_exports.number().int().min(0).default(0),
+    driverRestarts: external_exports.number().int().min(0).default(0)
+  }).passthrough().optional()
 }).passthrough();
 var jobCheckpointSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
@@ -54896,21 +55246,61 @@ var jobCheckpointSchema = external_exports.object({
   /** The exact next legal action, in one line. */
   nextAction: text22
 }).passthrough();
+var RECOVERY_TARGETS = [
+  "WAITING_RESOURCE",
+  "RECOVERING_PROVIDER",
+  "REPAIRING_TOOLCHAIN",
+  "REPAIRING_ENVIRONMENT",
+  "REPAIRING_CONTROL_PLANE",
+  "NEEDS_AUTHORITY"
+];
+var RECOVERY_EXITS = [
+  "READY",
+  "PLANNING",
+  "REPLANNING",
+  "QUALIFYING",
+  ...RECOVERY_TARGETS,
+  "NEEDS_CLARIFICATION",
+  "BLOCKED",
+  "CANCELLED",
+  "FAILED"
+];
 var JOB_TRANSITIONS = Object.freeze({
-  CREATED: ["PLANNING", "BLOCKED", "NEEDS_CLARIFICATION", "CANCELLED", "FAILED"],
+  // A job can meet an operational failure before it has a graph: the very
+  // first dispatch is as capable of finding a dead provider as the hundredth.
+  CREATED: [
+    "PLANNING",
+    ...RECOVERY_TARGETS,
+    "BLOCKED",
+    "NEEDS_CLARIFICATION",
+    "CANCELLED",
+    "FAILED"
+  ],
   // PLANNING/REPLANNING → WAITING_RETRY (vNext.2, additive): a paid-tier
   // reasoning step may have to wait for subscription quota to return. The
   // wait resumes through READY; the pipeline re-derives the pending stage
   // from durable state, so nothing about the plan lifecycle is lost.
-  PLANNING: ["READY", "NEEDS_CLARIFICATION", "WAITING_RETRY", "BLOCKED", "CANCELLED", "FAILED"],
+  PLANNING: [
+    "READY",
+    "NEEDS_CLARIFICATION",
+    "WAITING_RETRY",
+    ...RECOVERY_TARGETS,
+    "BLOCKED",
+    "CANCELLED",
+    "FAILED"
+  ],
   READY: [
     "RUNNING",
     // A repair dispatch starts from READY after a diagnosis recommended it.
     "REPAIRING",
     "PLANNING",
     "REPLANNING",
+    // vNext.10: planned implementation is done; the closure lifecycle owns
+    // whether COMPLETED is available at all.
+    "QUALIFYING",
     "NEEDS_CLARIFICATION",
     "WAITING_RETRY",
+    ...RECOVERY_TARGETS,
     "COMPLETED",
     "BLOCKED",
     "CANCELLED",
@@ -54922,6 +55312,7 @@ var JOB_TRANSITIONS = Object.freeze({
     "DIAGNOSING",
     "WAITING_RETRY",
     "NEEDS_CLARIFICATION",
+    ...RECOVERY_TARGETS,
     "COMPLETED",
     "BLOCKED",
     "CANCELLED",
@@ -54932,6 +55323,10 @@ var JOB_TRANSITIONS = Object.freeze({
     "REPLANNING",
     "WAITING_RETRY",
     "NEEDS_CLARIFICATION",
+    // A diagnosis is exactly where an operational cause is IDENTIFIED: a
+    // dead provider, a missing tool, an unhealthy environment, a runner
+    // defect. Naming the cause is what lets the job recover without a human.
+    ...RECOVERY_TARGETS,
     // A diagnosis may conclude nothing is wrong with the approach and hand
     // control back to the scheduler (e.g. the failure was transient).
     "READY",
@@ -54946,27 +55341,86 @@ var JOB_TRANSITIONS = Object.freeze({
     "DIAGNOSING",
     "WAITING_RETRY",
     "NEEDS_CLARIFICATION",
+    ...RECOVERY_TARGETS,
     "COMPLETED",
     "BLOCKED",
     "CANCELLED",
     "FAILED"
   ],
-  REPLANNING: ["READY", "PLANNING", "NEEDS_CLARIFICATION", "WAITING_RETRY", "BLOCKED", "CANCELLED", "FAILED"],
-  WAITING_RETRY: ["READY", "BLOCKED", "CANCELLED", "FAILED"],
+  REPLANNING: [
+    "READY",
+    "PLANNING",
+    "QUALIFYING",
+    "NEEDS_CLARIFICATION",
+    "WAITING_RETRY",
+    ...RECOVERY_TARGETS,
+    "BLOCKED",
+    "CANCELLED",
+    "FAILED"
+  ],
+  WAITING_RETRY: ["READY", ...RECOVERY_TARGETS, "BLOCKED", "CANCELLED", "FAILED"],
   NEEDS_CLARIFICATION: [
     // Another bounded round of questions.
     "NEEDS_CLARIFICATION",
     "READY",
     "PLANNING",
     "REPLANNING",
+    "NEEDS_AUTHORITY",
     "BLOCKED",
     "CANCELLED",
     "FAILED"
   ],
-  BLOCKED: ["READY", "PLANNING", "REPLANNING", "NEEDS_CLARIFICATION", "CANCELLED", "FAILED"],
+  BLOCKED: [
+    "READY",
+    "PLANNING",
+    "REPLANNING",
+    "NEEDS_CLARIFICATION",
+    // A blocker whose real cause turns out to be operational is recoverable
+    // without a human; a blocker whose real cause is authority is not.
+    ...RECOVERY_TARGETS,
+    "CANCELLED",
+    "FAILED"
+  ],
   COMPLETED: [],
   FAILED: [],
-  CANCELLED: []
+  CANCELLED: [],
+  // -------------------------------------------------------------------------
+  // vNext.10 autonomous statuses.
+  // -------------------------------------------------------------------------
+  WAITING_RESOURCE: [...RECOVERY_EXITS, "RUNNING"],
+  RECOVERING_PROVIDER: [...RECOVERY_EXITS, "RUNNING"],
+  REPAIRING_TOOLCHAIN: [...RECOVERY_EXITS, "RUNNING"],
+  REPAIRING_ENVIRONMENT: [...RECOVERY_EXITS, "RUNNING"],
+  REPAIRING_CONTROL_PLANE: [...RECOVERY_EXITS, "RUNNING"],
+  QUALIFYING: [
+    // The closure audit found a gap: more real implementation work exists.
+    "READY",
+    "PLANNING",
+    "REPLANNING",
+    // A qualification failure is diagnosed before it is repaired, exactly
+    // like any other failure. QUALIFYING gets no shortcut to REPAIRING.
+    "DIAGNOSING",
+    "RUNNING",
+    "QUALIFYING",
+    ...RECOVERY_TARGETS,
+    "NEEDS_CLARIFICATION",
+    "COMPLETED",
+    "BLOCKED",
+    "CANCELLED",
+    "FAILED"
+  ],
+  NEEDS_AUTHORITY: [
+    // Resolving one authority question may reveal the next one.
+    "NEEDS_AUTHORITY",
+    "READY",
+    "PLANNING",
+    "REPLANNING",
+    "QUALIFYING",
+    "NEEDS_CLARIFICATION",
+    "BLOCKED",
+    "CANCELLED",
+    "FAILED"
+  ]
 });
 function canJobTransition(from, to) {
   return JOB_TRANSITIONS[from].includes(to);

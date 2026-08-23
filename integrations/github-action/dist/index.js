@@ -34721,6 +34721,233 @@ var agentConfigSchema = external_exports.object({
     ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message });
   }
 });
+var AUTONOMY_MODES = ["INTERACTIVE", "SUPERVISED", "OVERNIGHT", "ZERO_TOUCH"];
+var HUMAN_GATE_MODES = ["ALL", "AUTHORITY_ONLY"];
+var DELEGATION_SETTINGS = ["AUTO", "HUMAN"];
+var HARD_HUMAN_AUTHORITY_SURFACES = Object.freeze([
+  "sealed-contract-modification",
+  "product-semantics-change",
+  "wire-protocol-change",
+  "persistence-compatibility-change",
+  "security-boundary-expansion",
+  "spend-beyond-authorized-ceiling",
+  "human-only-credential",
+  "external-irreversible-action"
+]);
+var delegatedDecisionsSchema = external_exports.object({
+  /** Implementation structure, algorithms, internal APIs, module layout. */
+  implementation: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN"),
+  /** Internal architecture inside the sealed contracts. */
+  internalArchitecture: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN"),
+  /** Adding, upgrading, or replacing a project dependency. */
+  dependencySelection: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN"),
+  /** Creating project-local tools, scripts, generators, fixtures. */
+  toolingCreation: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN"),
+  /** Test harnesses, fixtures, fault injectors, conformance kits. */
+  testInfrastructure: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN"),
+  /** Provisioning local runtime environments (compose, brokers, databases). */
+  environmentProvisioning: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN"),
+  /** Driving a real browser against the product under test. */
+  browserVerification: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN"),
+  /** Decomposing sealed work into tasks and revising that decomposition. */
+  workDecomposition: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN")
+}).passthrough();
+var delegatedRecoverySchema = external_exports.object({
+  /** Provider failover, restart, cooldown, and health recovery. */
+  provider: external_exports.enum(DELEGATION_SETTINGS).default("AUTO"),
+  /** Restarting dead drivers and reconciling interrupted attempts. */
+  process: external_exports.enum(DELEGATION_SETTINGS).default("AUTO"),
+  /** Installing or building missing project-local engineering tooling. */
+  toolchain: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN"),
+  /** Repairing a failing implementation against fresh evidence. */
+  implementation: external_exports.enum(DELEGATION_SETTINGS).default("AUTO"),
+  /** Checkpoint, compact, reconstruct, continue in a fresh session. */
+  context: external_exports.enum(DELEGATION_SETTINGS).default("AUTO"),
+  /** Restarting and repairing local runtime environments. */
+  environment: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN"),
+  /** Governed self-repair of a recoverable SpecBridge/toolchain defect. */
+  controlPlane: external_exports.enum(DELEGATION_SETTINGS).default("HUMAN")
+}).passthrough();
+var supervisorPolicySchema = external_exports.object({
+  enabled: external_exports.boolean().default(false),
+  /** How often the owning process refreshes its lease. */
+  heartbeatIntervalMs: external_exports.number().int().min(1e3).max(3e5).default(15e3),
+  /**
+   * How long a lease stays valid without a heartbeat. A lease older than
+   * this is reclaimable: the owner is presumed dead. Must be comfortably
+   * larger than the heartbeat interval; the schema enforces 3x.
+   */
+  leaseTtlMs: external_exports.number().int().min(5e3).max(18e5).default(9e4),
+  /** How often the supervisor re-evaluates sleeping/waiting jobs. */
+  pollIntervalMs: external_exports.number().int().min(1e3).max(6e5).default(2e4),
+  /** Hard ceiling on driver restarts for one job, ever. */
+  maxRestarts: external_exports.number().int().min(0).max(1e3).default(50),
+  /** Consecutive restarts with no progress before the job is given up. */
+  maxConsecutiveRestarts: external_exports.number().int().min(1).max(50).default(5),
+  /** Backoff floor and ceiling between restarts. */
+  restartBackoffMs: external_exports.number().int().min(100).max(6e5).default(5e3),
+  maxRestartBackoffMs: external_exports.number().int().min(1e3).max(36e5).default(3e5),
+  /**
+   * Wall-clock ceiling on one unattended supervision session. Reaching it
+   * is not a failure: the job is checkpointed and left resumable.
+   */
+  maxSessionMs: external_exports.number().int().min(6e4).max(7 * 24 * 36e5).default(14 * 36e5),
+  /**
+   * Longest a job may sit in WAITING_RESOURCE with NO identified future
+   * recovery before it is classified honestly rather than waited on.
+   */
+  maxIndefiniteWaitMs: external_exports.number().int().min(6e4).max(24 * 36e5).default(2 * 36e5)
+}).passthrough().superRefine((policy, ctx) => {
+  if (policy.leaseTtlMs < policy.heartbeatIntervalMs * 3) {
+    ctx.addIssue({
+      code: external_exports.ZodIssueCode.custom,
+      path: ["leaseTtlMs"],
+      message: `leaseTtlMs (${policy.leaseTtlMs}) must be at least 3x heartbeatIntervalMs (${policy.heartbeatIntervalMs}); a tighter lease reclaims jobs from live owners.`
+    });
+  }
+  if (policy.maxRestartBackoffMs < policy.restartBackoffMs) {
+    ctx.addIssue({
+      code: external_exports.ZodIssueCode.custom,
+      path: ["maxRestartBackoffMs"],
+      message: "maxRestartBackoffMs must be at least restartBackoffMs"
+    });
+  }
+});
+var TOOLSMITH_CAPABILITIES = [
+  /** Write a script/tool inside the workspace (never outside it). */
+  "PROJECT_LOCAL_SCRIPT",
+  /** Add a dev/test dependency to the project's own manifest. */
+  "PROJECT_DEPENDENCY",
+  /** Run the project's package manager to install declared dependencies. */
+  "PACKAGE_MANAGER_INSTALL",
+  /** Download a language/build toolchain into a project-local directory. */
+  "PROJECT_LOCAL_TOOLCHAIN",
+  /** Download a browser runtime into a project-local or user-local cache. */
+  "BROWSER_RUNTIME",
+  /** Pull a container image from a configured registry. */
+  "CONTAINER_IMAGE",
+  /** Start/stop containers and compose projects for the product under test. */
+  "CONTAINER_LIFECYCLE",
+  /** Install a CLI tool into a user-local (never system) prefix. */
+  "USER_LOCAL_CLI",
+  /** Generate fixtures, fakes, simulators, and fault injectors. */
+  "CODE_GENERATION"
+];
+var toolsmithPolicySchema = external_exports.object({
+  enabled: external_exports.boolean().default(false),
+  /** The capability classes the broker may grant. Empty means none. */
+  capabilities: external_exports.array(external_exports.enum(TOOLSMITH_CAPABILITIES)).max(TOOLSMITH_CAPABILITIES.length).default([]),
+  /** Hard ceiling on granted requests for one job. */
+  maxGrantsPerJob: external_exports.number().int().min(0).max(500).default(40),
+  /** Hard ceiling on bytes one grant may fetch, when the fetch is measurable. */
+  maxDownloadBytes: external_exports.number().int().min(0).max(8 * 1024 * 1024 * 1024).default(2 * 1024 * 1024 * 1024),
+  /** Wall-clock ceiling for one provisioning action. */
+  timeoutMs: external_exports.number().int().min(1e3).max(36e5).default(9e5),
+  /**
+   * Registries a CONTAINER_IMAGE grant may pull from. Empty means "the
+   * daemon's default", which is the operator's own docker configuration —
+   * SpecBridge does not add registries.
+   */
+  allowedImageRegistries: external_exports.array(external_exports.string().min(1).max(200)).max(20).default([]),
+  /**
+   * Package registries a PACKAGE_MANAGER_INSTALL may reach. Empty means
+   * the project's own configured registry.
+   */
+  allowedPackageRegistries: external_exports.array(external_exports.string().min(1).max(200)).max(20).default([]),
+  /**
+   * User-local prefix for USER_LOCAL_CLI grants, relative to the user's
+   * home. Never absolute, never a system path.
+   */
+  userLocalPrefix: external_exports.string().min(1).max(120).default(".specbridge/tools")
+}).passthrough();
+var environmentPolicySchema = external_exports.object({
+  enabled: external_exports.boolean().default(false),
+  /** Concurrent environment instances one job may hold. */
+  maxInstances: external_exports.number().int().min(1).max(20).default(3),
+  /** Ceiling for one service to become ready. */
+  readinessTimeoutMs: external_exports.number().int().min(1e3).max(36e5).default(18e4),
+  /** Interval between readiness probe attempts. */
+  probeIntervalMs: external_exports.number().int().min(100).max(6e4).default(2e3),
+  /** Bounded restarts of one service before the instance is unhealthy. */
+  maxServiceRestarts: external_exports.number().int().min(0).max(20).default(3),
+  /** Keep logs and container state when provisioning fails. */
+  retainDiagnosticsOnFailure: external_exports.boolean().default(true),
+  /** Ceiling on retained log bytes per service. */
+  maxLogBytesPerService: external_exports.number().int().min(1024).max(64 * 1024 * 1024).default(2 * 1024 * 1024),
+  /** Tear down instances when the owning job reaches a final status. */
+  teardownOnJobFinal: external_exports.boolean().default(true)
+}).passthrough();
+var browserPolicySchema = external_exports.object({
+  enabled: external_exports.boolean().default(false),
+  /** Isolated contexts one scenario may open (multi-user products need >1). */
+  maxContexts: external_exports.number().int().min(1).max(16).default(4),
+  /** Per-navigation ceiling. */
+  navigationTimeoutMs: external_exports.number().int().min(1e3).max(6e5).default(3e4),
+  /** Whole-scenario ceiling. */
+  scenarioTimeoutMs: external_exports.number().int().min(1e3).max(36e5).default(3e5),
+  /** Capture screenshots as durable evidence. */
+  captureScreenshots: external_exports.boolean().default(true),
+  /** Capture console and network failures as durable evidence. */
+  captureConsole: external_exports.boolean().default(true),
+  /** Ceiling on retained evidence bytes for one scenario. */
+  maxEvidenceBytes: external_exports.number().int().min(1024).max(256 * 1024 * 1024).default(16 * 1024 * 1024),
+  /** Viewports a responsive check exercises, as `WIDTHxHEIGHT`. */
+  viewports: external_exports.array(external_exports.string().regex(/^\d{2,5}x\d{2,5}$/)).max(8).default(["1280x800", "390x844"])
+}).passthrough();
+var CRITIC_MODES = ["DISABLED", "ADVISORY", "BLOCKING"];
+var criticPolicySchema = external_exports.object({
+  mode: external_exports.enum(CRITIC_MODES).default("DISABLED"),
+  /** Repair cycles the critic alone may cause for one scenario. */
+  maxCriticRepairCycles: external_exports.number().int().min(0).max(10).default(2),
+  /** Findings retained per critique. */
+  maxFindings: external_exports.number().int().min(1).max(200).default(25)
+}).passthrough();
+var closurePolicySchema = external_exports.object({
+  enabled: external_exports.boolean().default(true),
+  /** Audit then generate gap work then implement then audit again, bounded. */
+  maxGapClosureCycles: external_exports.number().int().min(0).max(50).default(8),
+  /** System-scenario qualification attempts before the phase gives up. */
+  maxSystemQualificationCycles: external_exports.number().int().min(0).max(20).default(4),
+  /** Gap work units one closure cycle may generate. */
+  maxGapWorkPerCycle: external_exports.number().int().min(1).max(100).default(12),
+  /**
+   * Require mission-level system acceptance scenarios when the sealed
+   * acceptance criteria imply them. Turning this off does not make an
+   * unproven requirement closed — it removes the SCENARIO phase, and the
+   * requirement then has to close on other evidence.
+   */
+  requireSystemScenarios: external_exports.boolean().default(true),
+  /** Run the reproducibility phase (clean build, fresh environment). */
+  requireReproducibility: external_exports.boolean().default(true),
+  /** Ceiling for one reproducibility qualification. */
+  reproducibilityTimeoutMs: external_exports.number().int().min(6e4).max(24 * 36e5).default(36e5)
+}).passthrough();
+var controlPlaneRepairPolicySchema = external_exports.object({
+  enabled: external_exports.boolean().default(false),
+  /** Absolute path to the SpecBridge source checkout a repair may patch. */
+  sourcePath: external_exports.string().min(1).max(4096).optional(),
+  /** Governed repairs one product job may trigger. */
+  maxRepairsPerJob: external_exports.number().int().min(0).max(10).default(2),
+  /** Run the full SpecBridge qualification before a repaired build is used. */
+  requireFullQualification: external_exports.boolean().default(true),
+  /** Re-run the exact failed operation against the repaired build. */
+  requireCanary: external_exports.boolean().default(true),
+  /** Ceiling for one repair task, end to end. */
+  timeoutMs: external_exports.number().int().min(6e4).max(24 * 36e5).default(2 * 36e5)
+}).passthrough();
+var autonomyPolicySchema = external_exports.object({
+  mode: external_exports.enum(AUTONOMY_MODES).default("INTERACTIVE"),
+  humanGate: external_exports.enum(HUMAN_GATE_MODES).default("ALL"),
+  decisions: delegatedDecisionsSchema.default({}),
+  recovery: delegatedRecoverySchema.default({}),
+  supervisor: supervisorPolicySchema.default({}),
+  toolsmith: toolsmithPolicySchema.default({}),
+  environments: environmentPolicySchema.default({}),
+  browser: browserPolicySchema.default({}),
+  critic: criticPolicySchema.default({}),
+  closure: closurePolicySchema.default({}),
+  controlPlaneRepair: controlPlaneRepairPolicySchema.default({})
+}).passthrough();
 var RUNNER_CONFIG_SCHEMA_VERSION = "2.0.0";
 var BUILT_IN_PROFILE_NAMES = {
   "claude-code": "claude-code",
@@ -35029,7 +35256,9 @@ var agentConfigV2Schema = external_exports.object({
   /** v1.1 governed orchestration policy (additive; safe defaults). */
   orchestration: orchestrationPolicySchema.default({}),
   /** v1.2 managed local inference (additive; disabled by default). */
-  localInference: localInferenceConfigSchema.default({})
+  localInference: localInferenceConfigSchema.default({}),
+  /** vNext.10 overnight autonomy policy (additive; INTERACTIVE by default). */
+  autonomy: autonomyPolicySchema.default({})
 }).passthrough().superRefine((config, ctx) => {
   if (!config.schemaVersion.startsWith("2.")) {
     ctx.addIssue({
@@ -35163,7 +35392,8 @@ function resolveAgentConfigFromV1(v1) {
     verification: v1.verification,
     execution: v1.execution,
     orchestration: v1.orchestration,
-    localInference: v1.localInference
+    localInference: v1.localInference,
+    autonomy: autonomyPolicySchema.parse({})
   };
 }
 function resolveAgentConfigFromV2(v2) {
@@ -35178,7 +35408,8 @@ function resolveAgentConfigFromV2(v2) {
     verification: v2.verification,
     execution: v2.execution,
     orchestration: v2.orchestration,
-    localInference: v2.localInference
+    localInference: v2.localInference,
+    autonomy: v2.autonomy
   };
 }
 function defaultResolvedAgentConfig() {
@@ -35193,7 +35424,8 @@ function defaultResolvedAgentConfig() {
     verification: verificationConfigSchema.parse({}),
     execution: executionPolicySchema.parse({}),
     orchestration: orchestrationPolicySchema.parse({}),
-    localInference: localInferenceConfigSchema.parse({})
+    localInference: localInferenceConfigSchema.parse({}),
+    autonomy: autonomyPolicySchema.parse({})
   };
 }
 function resolvedConfigDiagnostics(config) {

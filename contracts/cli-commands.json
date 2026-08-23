@@ -7,6 +7,84 @@
       "--version"
     ],
     "subcommands": {
+      "autonomy": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "certification": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "policy": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "repairs": {
+            "options": [
+              "--help"
+            ]
+          },
+          "report": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "revoke": {
+            "options": [
+              "--help",
+              "--reason"
+            ]
+          },
+          "seal": {
+            "options": [
+              "--confirm",
+              "--help",
+              "--json",
+              "--lanes",
+              "--max-spend"
+            ]
+          },
+          "seals": {
+            "options": [
+              "--help",
+              "--json",
+              "--mission"
+            ]
+          },
+          "setup": {
+            "options": [
+              "--help",
+              "--json",
+              "--mode",
+              "--specbridge-source"
+            ]
+          },
+          "status": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "supervision": {
+            "options": [
+              "--help",
+              "--limit"
+            ]
+          },
+          "toolsmith": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          }
+        }
+      },
       "compat": {
         "options": [
           "--help"
@@ -586,6 +664,28 @@
             "options": [
               "--help",
               "--json"
+            ]
+          }
+        }
+      },
+      "overnight": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "preflight": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "run": {
+            "options": [
+              "--goal",
+              "--help",
+              "--job",
+              "--json",
+              "--max-cycles"
             ]
           }
         }
