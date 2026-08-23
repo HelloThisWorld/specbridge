@@ -152,6 +152,19 @@ a plan proposing a wire-format change or an auth bypass still reaches a
 human; a plan that is merely large does not. It only ever relaxes — with no
 resolver, no seal, or a resolver that throws, the v1.2 answer is unchanged.
 
+The fix was then confirmed in the same live run rather than only in tests.
+After the first implementation attempt failed and the runtime replanned, the
+replacement plan went straight to work:
+
+```
+REPLANNER for task 1 ...
+DISPATCH_EXECUTOR: Task 1 has an approved plan (revision 2) and is ready to
+implement.
+```
+
+No `AWAIT_HUMAN`. A HIGH-complexity replacement plan, at 01:19, with nobody
+watching.
+
 The same fix exposed a wiring bug that would have hidden it:
 `runUnattendedMission` took a `DriverHost` **value**, so the CLI necessarily
 built the host before the authority resolver existed and the driver ran
