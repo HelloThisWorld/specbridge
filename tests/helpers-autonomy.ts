@@ -4,39 +4,55 @@ import type { AgentConfig, AutonomyPolicy, WorkspaceInfo } from '@specbridge/cor
 import { overnightAutonomyPreset, readAgentConfig, resolveWorkspace } from '@specbridge/core';
 import type { AutonomyDeps, MissionSeal, ProbeRunner } from '@specbridge/autonomy';
 import { draftSeal, sealMission } from '@specbridge/autonomy';
+import type { MissionDeps } from '@specbridge/mission';
 import { recordAssessment } from '@specbridge/mission';
-import { coveredMission, setupMissionFixture } from './helpers-mission.js';
+import { coveredMission } from './helpers-mission.js';
 import type { MissionFixture } from './helpers-mission.js';
-import { idCounter, passingCommand, tickingClock } from './helpers-execution.js';
+import { copyFixtureToTemp } from './helpers.js';
+import {
+  EXECUTION_SPEC,
+  approveAllStages,
+  idCounter,
+  initGitRepo,
+  passingCommand,
+  tickingClock,
+} from './helpers-execution.js';
 
 /**
  * Shared setup for vNext.10 autonomy tests.
  *
- * Two properties matter more than convenience here.
+ * Three properties matter more than convenience here.
+ *
+ * The workspace is a REAL approved-spec fixture, not an empty directory. An
+ * autonomy fixture has to be able to create a job, build a graph, and audit
+ * closure against it, and a workspace with no `tasks.md` cannot do any of
+ * that. The mission records live in the same workspace, so a seal and the
+ * spec it governs are genuinely co-located exactly as they are in production.
  *
  * The clock and id factory are injected and deterministic, so a seal, a
  * lease, and a preflight report are byte-reproducible across runs. Autonomy
  * records are evidence about what a run was allowed to do, and evidence that
  * changes between identical runs is not evidence.
  *
- * Nothing spawns a process. No git, no docker, no model. Every probe the
- * preflight runs is injected, so the suite asserts the CLASSIFICATION logic
- * rather than whatever happens to be installed on the machine running it —
- * which is also the only way `SATISFIABLE_AUTONOMOUSLY` can be tested at all.
+ * Nothing spawns a process by default. No docker, no browser, no model.
+ * Every probe the preflight runs is injected, so the suite asserts the
+ * CLASSIFICATION logic rather than whatever happens to be installed on the
+ * machine running it — which is also the only way `SATISFIABLE_AUTONOMOUSLY`
+ * can be tested at all.
  */
 
 export interface AutonomyFixture {
   root: string;
   workspace: WorkspaceInfo;
   config: AgentConfig;
+  specName: string;
   clock: () => Date;
   deps: AutonomyDeps;
   mission: MissionFixture;
-  missionId: string;
 }
 
 export interface AutonomyFixtureOptions {
-  /** Merged over the OVERNIGHT preset. */
+  /** Merged over the OVERNIGHT preset, one level deep. */
   autonomy?: Record<string, unknown> | undefined;
   /** Start from conservative defaults instead of the OVERNIGHT preset. */
   interactive?: boolean | undefined;
@@ -44,11 +60,23 @@ export interface AutonomyFixtureOptions {
   verificationCommands?: Record<string, unknown>[] | undefined;
   /** Merged into the top-level configuration. */
   extraTopLevel?: Record<string, unknown> | undefined;
+  /**
+   * Initialize a git repository. Off by default: a per-test `git init` is
+   * three blocking spawns, and nothing in the autonomy suite reads Git
+   * evidence. Tests that drive a real job opt in.
+   */
+  git?: boolean | undefined;
 }
 
 export function setupAutonomyFixture(options: AutonomyFixtureOptions = {}): AutonomyFixture {
-  const mission = setupMissionFixture();
-  const root = mission.root;
+  const root = copyFixtureToTemp('v03-ready-feature');
+  if (options.git === true) initGitRepo(root);
+
+  const workspace = resolveWorkspace(root);
+  if (workspace === undefined) throw new Error('autonomy fixture has no .kiro workspace');
+
+  const clock = tickingClock('2026-08-20T21:00:00.000Z');
+  approveAllStages(workspace, EXECUTION_SPEC, clock);
 
   const autonomy = options.interactive === true ? {} : overnightPresetObject(options.autonomy);
   const config: Record<string, unknown> = {
@@ -66,23 +94,29 @@ export function setupAutonomyFixture(options: AutonomyFixtureOptions = {}): Auto
     `${JSON.stringify(config, null, 2)}\n`,
     'utf8',
   );
-
   // A declared package manager, so preflight exercises the toolchain probes
   // rather than reporting NOT_APPLICABLE for a project that looks empty.
   writeFileSync(
     path.join(root, 'package.json'),
-    `${JSON.stringify({ name: 'autonomy-fixture', private: true, packageManager: 'pnpm@9.15.9' }, null, 2)}\n`,
+    `${JSON.stringify(
+      { name: 'autonomy-fixture', private: true, packageManager: 'pnpm@9.15.9' },
+      null,
+      2,
+    )}\n`,
     'utf8',
   );
 
-  const workspace = resolveWorkspace(root);
-  if (workspace === undefined) throw new Error('autonomy fixture workspace did not resolve');
   const read = readAgentConfig(workspace);
   if (read.config === undefined) {
     throw new Error(`fixture config invalid: ${read.diagnostics.map((d) => d.message).join('; ')}`);
   }
 
-  const clock = tickingClock('2026-08-20T21:00:00.000Z');
+  const missionDeps: MissionDeps = {
+    workspace,
+    clock,
+    idFactory: idCounter('mission'),
+    host: 'test',
+  };
   const deps: AutonomyDeps = {
     workspace,
     config: read.config,
@@ -90,7 +124,15 @@ export function setupAutonomyFixture(options: AutonomyFixtureOptions = {}): Auto
     idFactory: idCounter('auto'),
     host: 'test',
   };
-  return { root, workspace, config: read.config, clock, deps, mission, missionId: '' };
+  return {
+    root,
+    workspace,
+    config: read.config,
+    specName: EXECUTION_SPEC,
+    clock,
+    deps,
+    mission: { root, workspace, clock, deps: missionDeps },
+  };
 }
 
 /**
@@ -104,8 +146,12 @@ function overnightPresetObject(overrides?: Record<string, unknown>): Record<stri
   for (const [key, value] of Object.entries(overrides ?? {})) {
     const base = merged[key];
     merged[key] =
-      typeof value === 'object' && value !== null && !Array.isArray(value) &&
-      typeof base === 'object' && base !== null && !Array.isArray(base)
+      typeof value === 'object' &&
+      value !== null &&
+      !Array.isArray(value) &&
+      typeof base === 'object' &&
+      base !== null &&
+      !Array.isArray(base)
         ? { ...(base as Record<string, unknown>), ...(value as Record<string, unknown>) }
         : value;
   }
@@ -116,12 +162,15 @@ function overnightPresetObject(overrides?: Record<string, unknown>): Record<stri
  * A fixture whose mission has covered topics, one product contract, and
  * success criteria — the minimum a seal needs to be COMPLETE.
  *
- * The criteria are deliberately chosen so the deterministic screens classify
- * one as implying a system scenario and one as implying a browser scenario:
- * the tests that exercise the closure lifecycle need both surfaces present,
- * and hand-setting the flags would test the schema instead of the compiler.
+ * The criteria are chosen so the deterministic screens classify one as
+ * implying a system scenario and one as implying a browser scenario: the
+ * closure tests need both surfaces present, and hand-setting the flags would
+ * test the schema instead of the compiler.
  */
-export function sealableMission(fixture: AutonomyFixture): { missionId: string; contractId: string } {
+export function sealableMission(fixture: AutonomyFixture): {
+  missionId: string;
+  contractId: string;
+} {
   const covered = coveredMission(fixture.mission);
   recordAssessment(fixture.mission.deps, covered.missionId, {
     missionUpdates: {
@@ -139,7 +188,10 @@ export function sealableMission(fixture: AutonomyFixture): { missionId: string; 
 /** Draft and authorize a seal for a sealable mission. */
 export function sealedMission(
   fixture: AutonomyFixture,
-  options: { maxApiSpendUsd?: number | null; allowedLanes?: ('LOCAL' | 'SUBSCRIPTION' | 'API')[] } = {},
+  options: {
+    maxApiSpendUsd?: number | null;
+    allowedLanes?: ('LOCAL' | 'SUBSCRIPTION' | 'API')[];
+  } = {},
 ): { seal: MissionSeal; missionId: string } {
   const { missionId } = sealableMission(fixture);
   const draft = draftSeal(fixture.deps, {
@@ -163,7 +215,9 @@ export function policyOf(fixture: AutonomyFixture): AutonomyPolicy {
  * is reported unavailable, which keeps every test explicit about the world
  * it is asserting against.
  */
-export function fakeProbeRunner(table: Record<string, { ok: boolean; output?: string }>): ProbeRunner {
+export function fakeProbeRunner(
+  table: Record<string, { ok: boolean; output?: string }>,
+): ProbeRunner {
   return async (executable, argv) => {
     // The bare-executable shorthand answers ONLY a `--version` probe. A table
     // entry for `docker` must not silently answer `docker info`: "the CLI is
@@ -172,10 +226,13 @@ export function fakeProbeRunner(table: Record<string, { ok: boolean; output?: st
     // that distinction untestable.
     const key = [executable, ...argv].join(' ');
     const hit =
-      table[key] ??
-      (argv.length === 1 && argv[0] === '--version' ? table[executable] : undefined);
+      table[key] ?? (argv.length === 1 && argv[0] === '--version' ? table[executable] : undefined);
     if (hit === undefined) return { ok: false, output: '', detail: 'not configured in this test' };
-    return { ok: hit.ok, output: hit.output ?? '', ...(hit.ok ? {} : { detail: 'configured failure' }) };
+    return {
+      ok: hit.ok,
+      output: hit.output ?? '',
+      ...(hit.ok ? {} : { detail: 'configured failure' }),
+    };
   };
 }
 

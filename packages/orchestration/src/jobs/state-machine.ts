@@ -74,7 +74,16 @@ const RECOVERY_EXITS = [
  * the same rule would be two places to forget it.
  */
 const JOB_TRANSITIONS: Readonly<Record<JobStatus, readonly JobStatus[]>> = Object.freeze({
-  CREATED: ['PLANNING', 'BLOCKED', 'NEEDS_CLARIFICATION', 'NEEDS_AUTHORITY', 'CANCELLED', 'FAILED'],
+  // A job can meet an operational failure before it has a graph: the very
+  // first dispatch is as capable of finding a dead provider as the hundredth.
+  CREATED: [
+    'PLANNING',
+    ...RECOVERY_TARGETS,
+    'BLOCKED',
+    'NEEDS_CLARIFICATION',
+    'CANCELLED',
+    'FAILED',
+  ],
   // PLANNING/REPLANNING → WAITING_RETRY (vNext.2, additive): a paid-tier
   // reasoning step may have to wait for subscription quota to return. The
   // wait resumes through READY; the pipeline re-derives the pending stage

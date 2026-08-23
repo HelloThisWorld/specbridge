@@ -72,7 +72,8 @@ const SIGNATURES: readonly {
     detail: 'the provider is temporarily unavailable',
   },
   {
-    pattern: /\b(llama|local model|inference server|model process)\b.*\b(exit|crash|died|refused|unavailable)\b/i,
+    pattern:
+      /\b(llama|local model|inference server|model process)\b.*\b(exit(?:ed|s|ing)?|crash(?:ed|es|ing)?|die[ds]?|refused|unavailable|terminated)\b/i,
     status: 'RECOVERING_PROVIDER',
     waitKind: 'LOCAL_RUNTIME_RESTART',
     detail: 'the local inference process stopped answering',

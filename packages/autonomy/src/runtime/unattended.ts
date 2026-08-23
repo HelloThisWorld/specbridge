@@ -345,6 +345,13 @@ export function applyRecovery(
       });
       break;
     }
+    case 'REPAIRING_CONTROL_PLANE':
+      // Deliberately NOT transitioned here. A control-plane repair needs a
+      // repair id, and the record that carries it is created by
+      // `detectControlPlaneDefect`, which performs the transition itself.
+      // Doing it in both places would let a job enter the status with no
+      // repair to leave it.
+      break;
     default:
       break;
   }
