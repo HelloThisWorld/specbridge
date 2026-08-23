@@ -6,3 +6,5 @@ export * from './seal/index.js';
 export * from './authority/index.js';
 export * from './supervisor/index.js';
 export * from './preflight/index.js';
+export * from './toolsmith/index.js';
+export * from './environment/index.js';
