@@ -25,7 +25,7 @@ import { setupAutonomyFixture } from '../helpers-autonomy.js';
 
 describe('humanInterventionsAfterSeal', () => {
   it('counts a job blocked on an exhausted budget', () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const job = createJob(fixture.deps, {
       specName: fixture.specName,
       goal: 'Implement the sealed product intent.',
@@ -44,7 +44,7 @@ describe('humanInterventionsAfterSeal', () => {
   });
 
   it('counts a job blocked for any other reason, whatever event carried it', () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const job = createJob(fixture.deps, {
       specName: fixture.specName,
       goal: 'Implement the sealed product intent.',
@@ -60,7 +60,7 @@ describe('humanInterventionsAfterSeal', () => {
   });
 
   it('does NOT count an authority stop as an intervention', () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const job = createJob(fixture.deps, {
       specName: fixture.specName,
       goal: 'Implement the sealed product intent.',
@@ -82,7 +82,7 @@ describe('humanInterventionsAfterSeal', () => {
   });
 
   it('a healthy job reports zero', () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const job = createJob(fixture.deps, {
       specName: fixture.specName,
       goal: 'Implement the sealed product intent.',
@@ -92,7 +92,7 @@ describe('humanInterventionsAfterSeal', () => {
   });
 
   it('renders an unknown measurement as n/a, never as zero', () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const job = createJob(fixture.deps, {
       specName: fixture.specName,
       goal: 'Implement the sealed product intent.',

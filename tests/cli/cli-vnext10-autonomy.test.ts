@@ -41,7 +41,7 @@ function parseJson(stdout: string): Record<string, unknown> {
 
 describe('autonomy setup', () => {
   it('writes the OVERNIGHT preset and preserves the rest of the config', async () => {
-    const fixture = setupAutonomyFixture({ interactive: true });
+    const fixture = setupAutonomyFixture({ spec: true, interactive: true });
     const before = JSON.parse(
       readFileSync(path.join(fixture.root, '.specbridge', 'config.json'), 'utf8'),
     ) as Record<string, unknown>;
@@ -60,7 +60,7 @@ describe('autonomy setup', () => {
   });
 
   it('leaves control-plane repair off unless a source path is supplied', async () => {
-    const fixture = setupAutonomyFixture({ interactive: true });
+    const fixture = setupAutonomyFixture({ spec: true, interactive: true });
     await cli(fixture, 'autonomy', 'setup', '--mode', 'overnight');
     const config = JSON.parse(
       readFileSync(path.join(fixture.root, '.specbridge', 'config.json'), 'utf8'),
@@ -76,7 +76,7 @@ describe('autonomy setup', () => {
   });
 
   it('refuses an unknown mode rather than guessing', async () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const result = await cli(fixture, 'autonomy', 'setup', '--mode', 'YOLO');
     expect(result.code).toBe(2);
     expect(`${result.stdout}${result.stderr}`).toMatch(/Unknown autonomy mode/);
@@ -85,7 +85,7 @@ describe('autonomy setup', () => {
 
 describe('autonomy policy', () => {
   it('prints the authority boundary alongside the delegated surfaces', async () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const result = await cli(fixture, 'autonomy', 'policy');
     expect(result.code).toBe(0);
     for (const surface of HARD_HUMAN_AUTHORITY_SURFACES) {
@@ -97,7 +97,7 @@ describe('autonomy policy', () => {
 
 describe('autonomy seal', () => {
   it('drafts without --confirm and does not authorize', async () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const { missionId } = sealableMission(fixture);
     const result = await cli(fixture, 'autonomy', 'seal', missionId, '--json');
     expect(result.code).toBe(0);
@@ -107,7 +107,7 @@ describe('autonomy seal', () => {
   });
 
   it('authorizes with --confirm and reports the sealed authority', async () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const { missionId } = sealableMission(fixture);
     const result = await cli(fixture, 'autonomy', 'seal', missionId, '--confirm', '--json');
     expect(result.code).toBe(0);
@@ -119,7 +119,7 @@ describe('autonomy seal', () => {
   });
 
   it('refuses an incomplete seal with the gaps named, exit 1', async () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const { beginMission } = await import('@specbridge/mission');
     const mission = beginMission(fixture.mission.deps, {
       name: 'bare',
@@ -132,7 +132,7 @@ describe('autonomy seal', () => {
   });
 
   it('lists seals and revokes one', async () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const { seal } = sealedMission(fixture);
 
     const listed = await cli(fixture, 'autonomy', 'seals', '--json');
@@ -154,7 +154,7 @@ describe('autonomy seal', () => {
 
 describe('overnight preflight', () => {
   it('refuses an unsealed mission with exit 1 and names what a person must do', async () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const { missionId } = sealableMission(fixture);
     const result = await cli(fixture, 'overnight', 'preflight', missionId);
     expect(result.code).toBe(1);
@@ -163,7 +163,7 @@ describe('overnight preflight', () => {
   });
 
   it('reports the checks and never leaks a credential-shaped value', async () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     sealedMission(fixture);
     const result = await cli(fixture, 'overnight', 'preflight', 'steprelay', '--json');
     const serialized = result.stdout.toLowerCase();
@@ -177,7 +177,7 @@ describe('overnight preflight', () => {
 
 describe('overnight run', () => {
   it('refuses a mission with no authorized seal', async () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const { missionId } = sealableMission(fixture);
     const result = await cli(fixture, 'overnight', 'run', missionId);
     expect(result.code).toBe(2);
@@ -187,7 +187,7 @@ describe('overnight run', () => {
 
 describe('inspection is read-only', () => {
   it('status, report, toolsmith, supervision, repairs, certification change nothing', async () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const { seal } = sealedMission(fixture);
     const { createJob } = await import('@specbridge/orchestration');
     const { bindSealToJob, buildClosureLedger } = await import('@specbridge/autonomy');
@@ -217,7 +217,7 @@ describe('inspection is read-only', () => {
   });
 
   it('the report names unclosed items and prints n/a for unknown measurements', async () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const { seal } = sealedMission(fixture);
     const { createJob } = await import('@specbridge/orchestration');
     const { bindSealToJob, buildClosureLedger } = await import('@specbridge/autonomy');

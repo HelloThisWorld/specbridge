@@ -140,14 +140,14 @@ async function executeScenario(
 ): Promise<ScenarioExecution> {
   switch (scenario.fault) {
     case 'STRONG_PROVIDER_UNAVAILABLE':
-      return recoveryScenario(setupAutonomyFixture(), {
+      return recoveryScenario(setupAutonomyFixture({ spec: true }), {
         message: 'provider returned 529 overloaded for three consecutive dispatches',
         expectStatus: 'WAITING_RESOURCE',
         expectWait: 'PROVIDER_COOLDOWN',
       });
 
     case 'STRONG_QUOTA_EXHAUSTED':
-      return recoveryScenario(setupAutonomyFixture(), {
+      return recoveryScenario(setupAutonomyFixture({ spec: true }), {
         message: 'subscription quota exhausted; capacity returns at the next window',
         retryAt: '2026-08-21T02:00:00.000Z',
         expectStatus: 'WAITING_RESOURCE',
@@ -155,7 +155,7 @@ async function executeScenario(
       });
 
     case 'LOCAL_RUNTIME_CRASH':
-      return recoveryScenario(setupAutonomyFixture(), {
+      return recoveryScenario(setupAutonomyFixture({ spec: true }), {
         message: 'local model server exited with code 139',
         expectStatus: 'RECOVERING_PROVIDER',
         expectWait: 'LOCAL_RUNTIME_RESTART',
@@ -168,7 +168,7 @@ async function executeScenario(
       return contextExhaustionScenario();
 
     case 'WORKER_PROCESS_TERMINATED':
-      return recoveryScenario(setupAutonomyFixture(), {
+      return recoveryScenario(setupAutonomyFixture({ spec: true }), {
         message: 'spawn claude ENOENT after the worker process was terminated',
         expectStatus: 'REPAIRING_TOOLCHAIN',
         expectWait: 'TOOLCHAIN_PROVISIONING',
@@ -178,7 +178,7 @@ async function executeScenario(
       return driverTerminationScenario();
 
     case 'CONTAINER_SERVICE_CRASH':
-      return recoveryScenario(setupAutonomyFixture(), {
+      return recoveryScenario(setupAutonomyFixture({ spec: true }), {
         message: 'container kafka exited unexpectedly during the system scenario',
         expectStatus: 'REPAIRING_ENVIRONMENT',
         expectWait: 'ENVIRONMENT_READINESS',
@@ -200,7 +200,7 @@ async function executeScenario(
       return replanScenario();
 
     case 'TRANSIENT_NETWORK_FAILURE':
-      return recoveryScenario(setupAutonomyFixture(), {
+      return recoveryScenario(setupAutonomyFixture({ spec: true }), {
         message: 'connect ECONNREFUSED 127.0.0.1:11434',
         expectStatus: 'RECOVERING_PROVIDER',
         expectWait: 'EXTERNAL_SERVICE_OUTAGE',
@@ -250,7 +250,7 @@ async function invalidOutputScenario(): Promise<ScenarioExecution> {
 
 /** ZT-05: context exhaustion rolls over without losing task state. */
 async function contextExhaustionScenario(): Promise<ScenarioExecution> {
-  const fixture = setupAutonomyFixture();
+  const fixture = setupAutonomyFixture({ spec: true });
   const { jobId, deps, itemIds } = sealedJob(fixture);
 
   // Attribution recorded BEFORE the rollover is durable task memory. If it
@@ -291,7 +291,7 @@ async function contextExhaustionScenario(): Promise<ScenarioExecution> {
 
 /** ZT-07: the driver dies and the supervisor restarts it. */
 async function driverTerminationScenario(): Promise<ScenarioExecution> {
-  const fixture = setupAutonomyFixture();
+  const fixture = setupAutonomyFixture({ spec: true });
   const { jobId } = sealedJob(fixture);
   const runs: number[] = [];
   const host = faultHost({
@@ -321,7 +321,7 @@ async function driverTerminationScenario(): Promise<ScenarioExecution> {
 
 /** ZT-09: a service that answers only after several probes. */
 async function delayedReadinessScenario(): Promise<ScenarioExecution> {
-  const fixture = setupAutonomyFixture();
+  const fixture = setupAutonomyFixture({ spec: true });
   const plan = saveEnvironmentPlan(fixture.deps, {
     planId: 'env-slow',
     name: 'slow-postgres',
@@ -391,7 +391,7 @@ async function delayedReadinessScenario(): Promise<ScenarioExecution> {
 
 /** ZT-10: a missing dependency becomes engineering work, not a wait. */
 async function missingDependencyScenario(): Promise<ScenarioExecution> {
-  const fixture = setupAutonomyFixture();
+  const fixture = setupAutonomyFixture({ spec: true });
   const { jobId, deps } = sealedJob(fixture);
   const classification = applyRecovery(deps, {
     jobId,
@@ -424,7 +424,7 @@ async function missingDependencyScenario(): Promise<ScenarioExecution> {
 
 /** ZT-11: no browser runtime. A skip with a reason, and a grant requested. */
 async function missingBrowserScenario(): Promise<ScenarioExecution> {
-  const fixture = setupAutonomyFixture();
+  const fixture = setupAutonomyFixture({ spec: true });
   const { jobId, deps } = sealedJob(fixture);
   saveBrowserScenario(deps, {
     scenarioId: 'bs-zt11',
@@ -474,7 +474,7 @@ async function missingBrowserScenario(): Promise<ScenarioExecution> {
 
 /** ZT-12: the implementation is wrong; gap work repairs it. */
 async function failingTestScenario(): Promise<ScenarioExecution> {
-  const fixture = setupAutonomyFixture();
+  const fixture = setupAutonomyFixture({ spec: true });
   const { jobId, deps, itemIds } = sealedJob(fixture);
   const item = itemIds[0] as string;
 
@@ -514,7 +514,7 @@ async function failingTestScenario(): Promise<ScenarioExecution> {
 
 /** ZT-13: an architecture-flavoured replan proceeds under delegated authority. */
 async function replanScenario(): Promise<ScenarioExecution> {
-  const fixture = setupAutonomyFixture();
+  const fixture = setupAutonomyFixture({ spec: true });
   const { jobId } = sealedJob(fixture);
   const resolver = createAuthorityResolver({
     workspace: fixture.workspace,
@@ -578,7 +578,7 @@ async function controlPlaneDefectScenario(): Promise<ScenarioExecution> {
 
 /** ZT-16: the authority case. The one that must stop. */
 async function authorityScenario(): Promise<ScenarioExecution> {
-  const fixture = setupAutonomyFixture();
+  const fixture = setupAutonomyFixture({ spec: true });
   const { seal } = sealedMission(fixture);
   const job = createJob(fixture.deps, {
     specName: fixture.specName,
@@ -642,7 +642,7 @@ describe('golden zero-touch certification', () => {
     'runs the full fault matrix with zero human interventions',
     { timeout: 240_000 },
     async () => {
-      const host = setupAutonomyFixture();
+      const host = setupAutonomyFixture({ spec: true });
       const run = await runZeroTouchCertification(host.deps, {
         execute: executeScenario,
         runId: 'zt-golden',
@@ -662,7 +662,7 @@ describe('golden zero-touch certification', () => {
   );
 
   it('a partial matrix certifies nothing', async () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const run = await runZeroTouchCertification(fixture.deps, {
       execute: async () => ({
         outcome: 'SKIPPED_WITH_REASON',
@@ -679,7 +679,7 @@ describe('golden zero-touch certification', () => {
   });
 
   it('one human intervention fails the certification whatever else passed', async () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const run = await runZeroTouchCertification(fixture.deps, {
       execute: async (scenario) => ({
         outcome: scenario.expectation,
@@ -694,7 +694,7 @@ describe('golden zero-touch certification', () => {
   });
 
   it('a runtime that self-authorized a sealed contract change fails', async () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const run = await runZeroTouchCertification(fixture.deps, {
       execute: async (scenario) => ({
         outcome: scenario.expectation === 'NEEDS_AUTHORITY' ? 'SELF_AUTHORIZED' : 'SELF_RECOVERED',

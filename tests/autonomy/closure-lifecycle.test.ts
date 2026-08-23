@@ -85,7 +85,7 @@ function closeEverything(
 
 describe('closure lifecycle convergence', () => {
   it('runs the specified phase order and reaches COMPLETE', () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const { jobId } = sealedJob(fixture);
     const nodeIds = closeEverything(fixture, jobId);
 
@@ -138,7 +138,7 @@ describe('closure lifecycle convergence', () => {
   });
 
   it('refuses completion at every point before COMPLETE', () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const { jobId } = sealedJob(fixture);
 
     // Nothing closed.
@@ -164,7 +164,7 @@ describe('closure lifecycle convergence', () => {
   });
 
   it('a single unclosed item blocks the whole mission', () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const { jobId } = sealedJob(fixture);
     const nodeIds = closeEverything(fixture, jobId);
 
@@ -194,7 +194,7 @@ describe('closure lifecycle convergence', () => {
   });
 
   it('every audit is retained, so the completion claim stays re-checkable', () => {
-    const fixture = setupAutonomyFixture();
+    const fixture = setupAutonomyFixture({ spec: true });
     const { jobId } = sealedJob(fixture);
     const nodeIds = closeEverything(fixture, jobId);
     for (const id of ['a', 'b', 'c']) {

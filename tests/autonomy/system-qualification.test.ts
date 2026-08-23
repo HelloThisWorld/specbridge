@@ -68,7 +68,7 @@ function setup(): {
   systemItem: string;
   browserItem: string;
 } {
-  const fixture = setupAutonomyFixture();
+  const fixture = setupAutonomyFixture({ spec: true });
   const { seal } = sealedMission(fixture);
   const job = createJob(fixture.deps, {
     specName: fixture.specName,

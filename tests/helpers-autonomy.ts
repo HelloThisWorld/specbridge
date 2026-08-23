@@ -8,7 +8,7 @@ import type { MissionDeps } from '@specbridge/mission';
 import { recordAssessment } from '@specbridge/mission';
 import { coveredMission } from './helpers-mission.js';
 import type { MissionFixture } from './helpers-mission.js';
-import { copyFixtureToTemp } from './helpers.js';
+import { copyFixtureToTemp, emptyTempDir } from './helpers.js';
 import {
   EXECUTION_SPEC,
   approveAllStages,
@@ -23,11 +23,13 @@ import {
  *
  * Three properties matter more than convenience here.
  *
- * The workspace is a REAL approved-spec fixture, not an empty directory. An
- * autonomy fixture has to be able to create a job, build a graph, and audit
- * closure against it, and a workspace with no `tasks.md` cannot do any of
- * that. The mission records live in the same workspace, so a seal and the
- * spec it governs are genuinely co-located exactly as they are in production.
+ * A fixture built with `{ spec: true }` gets a REAL approved-spec workspace,
+ * not an empty directory. An autonomy fixture that creates a job has to be
+ * able to build a graph and audit closure against it, and a workspace with no
+ * `tasks.md` cannot do any of that. The mission records live in the same
+ * workspace either way, so a seal and the spec it governs are genuinely
+ * co-located exactly as they are in production. Without `spec` the workspace
+ * is a bare `.kiro`, which is all the majority of these tests ever read.
  *
  * The clock and id factory are injected and deterministic, so a seal, a
  * lease, and a preflight report are byte-reproducible across runs. Autonomy
@@ -45,6 +47,11 @@ export interface AutonomyFixture {
   root: string;
   workspace: WorkspaceInfo;
   config: AgentConfig;
+  /**
+   * The approved spec, present only when the fixture was built with
+   * `{ spec: true }`. Reading it without one would name a spec that does
+   * not exist.
+   */
   specName: string;
   clock: () => Date;
   deps: AutonomyDeps;
@@ -66,17 +73,32 @@ export interface AutonomyFixtureOptions {
    * evidence. Tests that drive a real job opt in.
    */
   git?: boolean | undefined;
+  /**
+   * Copy the approved-spec fixture and approve its three stages.
+   *
+   * OFF by default, for the same reason `setupOrchestrationFixture` defaults
+   * `git` off and the qualification helper skips `git init`: a recursive
+   * fixture copy plus three hash-based stage approvals is the single largest
+   * per-test cost here, and most autonomy behaviour — seals, policy,
+   * ledgers, brokers, probes — never touches a spec at all.
+   *
+   * Tests that CREATE A JOB opt in, because `createJob` needs an approved
+   * task plan (and spawns one `git rev-parse` for its baseline snapshot).
+   */
+  spec?: boolean | undefined;
 }
 
 export function setupAutonomyFixture(options: AutonomyFixtureOptions = {}): AutonomyFixture {
-  const root = copyFixtureToTemp('v03-ready-feature');
+  const withSpec = options.spec === true;
+  const root = withSpec ? copyFixtureToTemp('v03-ready-feature') : emptyTempDir();
+  if (!withSpec) mkdirSync(path.join(root, '.kiro', 'specs'), { recursive: true });
   if (options.git === true) initGitRepo(root);
 
   const workspace = resolveWorkspace(root);
   if (workspace === undefined) throw new Error('autonomy fixture has no .kiro workspace');
 
   const clock = tickingClock('2026-08-20T21:00:00.000Z');
-  approveAllStages(workspace, EXECUTION_SPEC, clock);
+  if (withSpec) approveAllStages(workspace, EXECUTION_SPEC, clock);
 
   const autonomy = options.interactive === true ? {} : overnightPresetObject(options.autonomy);
   const config: Record<string, unknown> = {

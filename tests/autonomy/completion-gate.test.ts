@@ -31,7 +31,7 @@ function jobFixture(): {
   jobId: string;
   deps: JobDeps;
 } {
-  const fixture = setupAutonomyFixture();
+  const fixture = setupAutonomyFixture({ spec: true });
   const job = createJob(fixture.deps, {
     specName: fixture.specName,
     goal: 'Implement the sealed product intent.',
