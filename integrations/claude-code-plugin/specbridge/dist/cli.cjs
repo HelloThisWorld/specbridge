@@ -60186,6 +60186,18 @@ function resolvePlanReviewRequirement(resolver, input) {
   }
   return { humanReviewRequired: true };
 }
+function assessCompletion(gate, jobId) {
+  if (gate === void 0) return void 0;
+  try {
+    return gate.assess(jobId);
+  } catch (cause) {
+    return {
+      mayComplete: false,
+      unclosed: -1,
+      reason: `the contract closure gate could not be evaluated, so completion is refused: ${(cause instanceof Error ? cause.message : String(cause)).slice(0, 200)}`
+    };
+  }
+}
 var LOCAL_WORKER_ID = "local-llamacpp";
 var CLAUDE_WORKER_ID = "claude-code";
 function resolveWorkers(config2) {
@@ -61090,10 +61102,22 @@ function scheduleNext(input) {
       reason: job.openQuestions.length > 0 ? `${job.openQuestions.length} clarification question(s) are open.` : "A user decision is required before the job can continue."
     };
   }
-  if (job.status === "WAITING_RETRY") {
-    const retryAt = job.retryAt ?? input.now.toISOString();
-    if (Date.parse(retryAt) > input.now.getTime()) {
-      return { kind: "WAIT_RETRY", retryAt, reason: `A transient failure defers the next attempt until ${retryAt}.` };
+  if (job.status === "NEEDS_AUTHORITY") {
+    return {
+      kind: "AWAIT_HUMAN",
+      what: "authority",
+      ...job.authorityRequest?.nodeId !== void 0 ? { nodeId: job.authorityRequest.nodeId } : {},
+      reason: job.authorityRequest?.question ?? "Continuing requires product authority the sealed Mission does not contain."
+    };
+  }
+  if (job.status === "WAITING_RETRY" || isOperationalJobStatus(job.status)) {
+    const wakeAt = job.operationalWait?.wakeAt ?? job.retryAt ?? input.now.toISOString();
+    if (Date.parse(wakeAt) > input.now.getTime()) {
+      return {
+        kind: "WAIT_RETRY",
+        retryAt: wakeAt,
+        reason: job.operationalWait !== void 0 ? `Waiting on ${job.operationalWait.kind} until ${wakeAt}.` : `A transient failure defers the next attempt until ${wakeAt}.`
+      };
     }
   }
   const budgetStop2 = checkJobBudgets(input);
@@ -67103,9 +67127,25 @@ function completeJobIfDone(deps, jobId) {
   if (!allNodesComplete(graph)) {
     throw new OrchestrationError("SBO027", "The job cannot complete: unfinished nodes remain.");
   }
+  const closure = assessCompletion(deps.completionGate, jobId);
+  if (closure !== void 0 && !closure.mayComplete) {
+    if (job.status === "QUALIFYING") {
+      return job;
+    }
+    job = transition22(deps, job, "QUALIFYING");
+    job = record22(deps, job, "closure_audit_completed", {
+      directive: "CONTRACT_CLOSURE_AUDIT",
+      unclosed: closure.unclosed,
+      reason: closure.reason.slice(0, 500)
+    });
+    return persist22(deps, { ...job, closurePhase: "CONTRACT_CLOSURE_AUDIT" });
+  }
   const at = now4(deps).toISOString();
   job = transition22(deps, job, "COMPLETED");
-  job = record22(deps, job, "job_completed", { reconciled: true });
+  job = record22(deps, job, "job_completed", {
+    reconciled: true,
+    ...closure !== void 0 ? { closure: closure.reason.slice(0, 300) } : {}
+  });
   return persist22(deps, { ...job, finalizedAt: at, finalOutcome: "COMPLETED" });
 }
 function recordJobEvent(deps, jobId, type, payload = {}) {
@@ -70849,15 +70889,33 @@ function readLatestWorkGraph(workspace, jobId, nodeId) {
 function projectionName(workUnitId, attempt) {
   return `${workUnitId}-a${String(attempt).padStart(2, "0")}.json`;
 }
+function projectionIdentity(projection) {
+  const {
+    createdAt: _createdAt,
+    contentHash: _contentHash,
+    ...rest
+  } = projection;
+  return JSON.stringify(rest);
+}
 function storeProjection(workspace, jobId, nodeId, projection) {
   const validated = contextProjectionSchema.parse(projection);
   assertSegment(validated.workUnitId, "work unit id");
   const name = projectionName(validated.workUnitId, validated.attempt);
   const file = artifactPath3(workspace, jobId, nodeId, "projections", name);
   if ((0, import_fs42.existsSync)(file)) {
+    const existing = (0, import_fs42.readFileSync)(file, "utf8");
+    let existingProjection;
+    try {
+      existingProjection = contextProjectionSchema.parse(JSON.parse(existing));
+    } catch {
+      existingProjection = void 0;
+    }
+    if (existingProjection !== void 0 && projectionIdentity(existingProjection) === projectionIdentity(validated)) {
+      return { projection: existingProjection, ref: `projections/${name}` };
+    }
     throw new OrchestrationError(
       "SBO041",
-      `Projection ${name} already exists; projections are immutable per (workUnit, attempt).`
+      `Projection ${name} already exists with DIFFERENT content; projections are immutable per (workUnit, attempt). A new derivation belongs to a new attempt.`
     );
   }
   (0, import_fs42.mkdirSync)(import_path47.default.dirname(file), { recursive: true });
@@ -76695,13 +76753,17 @@ async function driveJob(deps, jobId, options = {}) {
           checkpointJob(
             deps,
             jobId,
-            decision.what === "plan-review" ? "Review the pending plan, then resume the job." : "Answer the open clarification question(s), then resume the job."
+            decision.what === "plan-review" ? "Review the pending plan, then resume the job." : decision.what === "authority" ? "Decide the open authority question, then resume the job." : "Answer the open clarification question(s), then resume the job."
           );
           job = requireJobState(deps.workspace, jobId);
           return { stop: { kind: "needs-human", what: decision.what, detail: decision.reason }, job };
         }
         case "JOB_COMPLETE": {
           job = completeJobIfDone(deps, jobId);
+          if (job.status !== "COMPLETED") {
+            checkpointJob(deps, jobId, "Contract closure decides what remains.");
+            return { stop: { kind: "final", status: job.status }, job };
+          }
           checkpointJob(deps, jobId, "Job complete.");
           return { stop: { kind: "completed" }, job };
         }
@@ -121685,7 +121747,7 @@ async function superviseJob(deps, jobId, options) {
     );
   }
   emit2("lease", `lease acquired by ${ownerId} (generation ${acquisition.lease?.generation ?? 1})`);
-  const sessionStartedAt = nowIso4(deps);
+  const sessionStartedAt = options.sessionStartedAt ?? nowIso4(deps);
   let job = requireJobState(deps.workspace, jobId);
   let supervised = registerSupervisedJob(deps, {
     jobId,
@@ -121715,6 +121777,9 @@ async function superviseJob(deps, jobId, options) {
         ...job.operationalWait !== void 0 ? { wait: job.operationalWait } : {},
         ...job.retryAt !== void 0 ? { retryAt: job.retryAt } : {},
         supervised,
+        // This loop awaits the host inline, so a driver is never running at
+        // the moment a decision is taken. The field exists for a host that
+        // runs detached, and `decideSupervision` handles it either way.
         driverRunning: false,
         progressFingerprint: fingerprint,
         sessionStartedAt
@@ -123038,6 +123103,28 @@ function decideClosure(ledger, policy, input) {
     unclosed: []
   };
 }
+function missionMayComplete(ledger) {
+  const unclosed = ledger.entries.filter((entry2) => !isClosingStatus(entry2.status));
+  if (ledger.entries.length === 0) {
+    return {
+      mayComplete: false,
+      reason: "the closure ledger is empty: a seal with no auditable contract items cannot be shown to be complete",
+      unclosedIds: []
+    };
+  }
+  if (unclosed.length > 0) {
+    return {
+      mayComplete: false,
+      reason: `${unclosed.length} sealed contract item(s) are not closed on trusted evidence`,
+      unclosedIds: unclosed.map((entry2) => entry2.itemId).slice(0, 100)
+    };
+  }
+  return {
+    mayComplete: true,
+    reason: `all ${ledger.entries.length} sealed contract item(s) are closed`,
+    unclosedIds: []
+  };
+}
 function closingEvidenceForGap(entry2, gap) {
   if (gap === "SCENARIO_MISSING" || gap === "SCENARIO_FAILED") {
     return entry2.requiresBrowserScenario ? "BROWSER_SCENARIO" : "SYSTEM_SCENARIO";
@@ -123257,6 +123344,22 @@ function saveLedger2(deps, ledger) {
   writeJsonRecord(closureLedgerFile(deps.workspace, next.jobId), next);
   return next;
 }
+function createClosureCompletionGate(workspace) {
+  return {
+    assess(jobId) {
+      const ledger = readClosureLedger(workspace, jobId);
+      if (ledger === void 0) {
+        return { mayComplete: true, reason: "no closure ledger governs this job", unclosed: 0 };
+      }
+      const verdict = missionMayComplete(ledger);
+      return {
+        mayComplete: verdict.mayComplete,
+        reason: verdict.reason,
+        unclosed: verdict.unclosedIds.length
+      };
+    }
+  };
+}
 var shortText92 = external_exports.string().max(200);
 var text92 = external_exports.string().max(4e3);
 var systemStepSchema = external_exports.object({
@@ -123415,12 +123518,6 @@ var autonomyTelemetrySchema = external_exports.object({
 function telemetryFile(workspace, jobId) {
   assertAutonomyId("job", jobId);
   return autonomyPath(workspace, "telemetry", `${jobId}.json`);
-}
-function readAutonomyTelemetry(workspace, jobId) {
-  return readJsonRecord(
-    telemetryFile(workspace, jobId),
-    (raw) => autonomyTelemetrySchema.parse(raw)
-  );
 }
 var INTERVENTION_EVENTS = Object.freeze({
   clarification_requested: "the runtime asked a question it should have resolved itself",
@@ -123720,11 +123817,13 @@ async function runUnattendedMission(deps, options) {
     const ledger = buildClosureLedger(deps, { jobId: options.jobId, seal });
     emit2("closure", `closure ledger built with ${ledger.entries.length} sealed item(s)`);
   }
-  const supervisedDeps = shouldDelegateAuthority(policy) ? {
+  const supervisedDeps = {
     ...deps,
-    authorityResolver: createAuthorityResolver({ workspace: deps.workspace, policy })
-  } : deps;
+    ...shouldDelegateAuthority(policy) ? { authorityResolver: createAuthorityResolver({ workspace: deps.workspace, policy }) } : {},
+    completionGate: createClosureCompletionGate(deps.workspace)
+  };
   const host = typeof options.host === "function" ? options.host(supervisedDeps) : options.host;
+  const sessionStartedAt = nowIso4(deps);
   const startedMs = now5(deps).getTime();
   const recoveries = [];
   const audits = [];
@@ -123743,6 +123842,7 @@ async function runUnattendedMission(deps, options) {
       ...options.sleep !== void 0 ? { sleep: options.sleep } : {},
       ...options.maxSupervisionCycles !== void 0 ? { maxCycles: options.maxSupervisionCycles } : {},
       ...options.ownerId !== void 0 ? { ownerId: `${options.ownerId}-${cycles}` } : {},
+      sessionStartedAt,
       onEvent: (event) => emit2(event.kind, event.message)
     });
     const resolution = await resolveSupervisionStop(supervisedDeps, {
@@ -123842,6 +123942,12 @@ function applyRecovery(deps, input) {
       });
       break;
     }
+    case "WAITING_RETRY":
+      recordJobEvent(jobDeps2, input.jobId, "waiting_retry", {
+        detail: classification.detail.slice(0, 300),
+        unclassified: true
+      });
+      break;
     case "REPAIRING_CONTROL_PLANE":
       break;
     default:
@@ -124530,7 +124636,7 @@ function registerInspection(autonomy, runtime) {
   });
   autonomy.command("report <jobId>").description("The autonomy report for one job (read-only)").option("--json", "machine-readable output").action((jobId, options) => {
     const deps = autonomyDeps(runtime);
-    const telemetry = readAutonomyTelemetry(deps.workspace, jobId) ?? computeAutonomyTelemetry(deps, { jobId });
+    const telemetry = computeAutonomyTelemetry(deps, { jobId });
     const ledger = readClosureLedger(deps.workspace, jobId);
     const job = requireJobState(deps.workspace, jobId);
     if (options.json === true) {

@@ -22,7 +22,6 @@ import {
   listLeases,
   listSeals,
   listToolsmithRequests,
-  readAutonomyTelemetry,
   readClosureLedger,
   readSeal,
   readSupervisionLog,
@@ -598,8 +597,11 @@ function registerInspection(autonomy: Command, runtime: CliRuntime): void {
     .option('--json', 'machine-readable output')
     .action((jobId: string, options: { json?: boolean }) => {
       const deps = autonomyDeps(runtime);
-      const telemetry =
-        readAutonomyTelemetry(deps.workspace, jobId) ?? computeAutonomyTelemetry(deps, { jobId });
+      // Always RECOMPUTED, never read back. Telemetry is derived from durable
+      // state by design, and preferring a stored record would make `report`
+      // show the numbers as of whenever the last run happened to write them —
+      // which for a job still executing is exactly the wrong answer.
+      const telemetry = computeAutonomyTelemetry(deps, { jobId });
       const ledger = readClosureLedger(deps.workspace, jobId);
       const job = requireJobState(deps.workspace, jobId);
 
