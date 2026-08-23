@@ -60172,6 +60172,20 @@ function resolveDelegatedAuthority(resolver, context) {
     return void 0;
   }
 }
+function resolvePlanReviewRequirement(resolver, input) {
+  if (!input.policyRequiresReview) return { humanReviewRequired: false };
+  const verdict = resolveDelegatedAuthority(resolver, {
+    jobId: input.jobId,
+    nodeId: input.nodeId,
+    decisionKinds: [],
+    reasons: [input.policyReason],
+    proposal: input.planText.slice(0, 4e3)
+  });
+  if (verdict?.kind === "AUTONOMOUS") {
+    return { humanReviewRequired: false, relaxedBecause: verdict.reason };
+  }
+  return { humanReviewRequired: true };
+}
 var LOCAL_WORKER_ID = "local-llamacpp";
 var CLAUDE_WORKER_ID = "claude-code";
 function resolveWorkers(config2) {
@@ -66682,6 +66696,15 @@ function assertJobsEnabled(deps) {
     { remediation: ["Set orchestration.jobs.enabled to true, or drive tasks interactively."] }
   );
 }
+function planTextOf(plan) {
+  if (plan === void 0) return "";
+  const goal = typeof plan["goal"] === "string" ? plan["goal"] : "";
+  const steps = Array.isArray(plan["steps"]) ? plan["steps"] : [];
+  const descriptions = steps.map(
+    (step2) => step2 !== null && typeof step2 === "object" && typeof step2.description === "string" ? step2.description : ""
+  ).filter((description) => description.length > 0);
+  return [goal, ...descriptions].join("\n").slice(0, 4e3);
+}
 function record22(deps, job, type, payload = {}) {
   const stored = countJobEvents(deps.workspace, job.jobId);
   if (stored >= job.budgets.maxEvents) {
@@ -66979,7 +67002,17 @@ async function recordPlan(deps, jobId, result, options = {}) {
   storeNodePlan(deps.workspace, jobId, node.nodeId, revision, plan);
   ({ job, graph } = appendAttempt(deps, job, graph, result.context, "succeeded"));
   const criticApplies = policy.routing.critic !== "disabled" && result.producedByTier === "LOCAL_SMALL";
-  const humanReview = policy.planReview === "always" || policy.planReview === "high-risk" && (requireNode(graph, node.nodeId).complexity ?? "LOW") === "HIGH";
+  const complexity = requireNode(graph, node.nodeId).complexity ?? "LOW";
+  const policyRequiresReview = policy.planReview === "always" || policy.planReview === "high-risk" && complexity === "HIGH";
+  const review = resolvePlanReviewRequirement(deps.authorityResolver, {
+    jobId,
+    nodeId: node.nodeId,
+    policyRequiresReview,
+    policyReason: `plan review by ${policy.planReview} policy at complexity ${complexity}`,
+    planText: `${result.candidate.goal}
+${result.candidate.steps.map((step2) => step2.description).join("\n")}`
+  });
+  const humanReview = review.humanReviewRequired;
   const approved = !criticApplies && !humanReview;
   graph = withNode(graph, {
     ...requireNode(graph, node.nodeId),
@@ -67021,7 +67054,15 @@ function recordCriticVerdict(deps, jobId, result) {
   let graph = requireGraphRevision(deps.workspace, jobId, job.graphRevision);
   const node = requireNode(graph, result.context.nodeId);
   ({ job, graph } = appendAttempt(deps, job, graph, result.context, "succeeded"));
-  const humanReview = policy.planReview === "always" || policy.planReview === "high-risk" && (node.complexity ?? "LOW") === "HIGH";
+  const activePlan = readNodePlan(deps.workspace, jobId, node.nodeId, node.planRevision);
+  const policyRequiresReview = policy.planReview === "always" || policy.planReview === "high-risk" && (node.complexity ?? "LOW") === "HIGH";
+  const humanReview = resolvePlanReviewRequirement(deps.authorityResolver, {
+    jobId,
+    nodeId: node.nodeId,
+    policyRequiresReview,
+    policyReason: `plan review by ${policy.planReview} policy at complexity ${node.complexity ?? "LOW"}`,
+    planText: planTextOf(activePlan)
+  }).humanReviewRequired;
   const accepted = result.verdict === "ACCEPT";
   graph = withNode(graph, {
     ...requireNode(graph, node.nodeId),
@@ -123683,6 +123724,7 @@ async function runUnattendedMission(deps, options) {
     ...deps,
     authorityResolver: createAuthorityResolver({ workspace: deps.workspace, policy })
   } : deps;
+  const host = typeof options.host === "function" ? options.host(supervisedDeps) : options.host;
   const startedMs = now5(deps).getTime();
   const recoveries = [];
   const audits = [];
@@ -123696,7 +123738,7 @@ async function runUnattendedMission(deps, options) {
       break;
     }
     const supervision = await superviseJob(supervisedDeps, options.jobId, {
-      host: options.host,
+      host,
       ...options.signal !== void 0 ? { signal: options.signal } : {},
       ...options.sleep !== void 0 ? { sleep: options.sleep } : {},
       ...options.maxSupervisionCycles !== void 0 ? { maxCycles: options.maxSupervisionCycles } : {},
@@ -124382,7 +124424,9 @@ function registerOvernight(program2, runtime) {
       const result = await runUnattendedMission(deps, {
         missionId,
         jobId,
-        host: createInProcessDriverHost({ ...deps, registry: context.registry }),
+        // A factory: the runtime hands back deps carrying the authority
+        // resolver, and the driver must run under those.
+        host: (runDeps) => createInProcessDriverHost({ ...runDeps, registry: context.registry }),
         ...options.maxCycles !== void 0 ? { maxCycles: Number(options.maxCycles) } : {},
         onEvent: (event) => {
           if (options.json !== true) runtime.out(dim2(`  ${event.kind}: ${event.message}`));

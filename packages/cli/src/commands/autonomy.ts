@@ -462,7 +462,10 @@ function registerOvernight(program: Command, runtime: CliRuntime): void {
         const result = await runUnattendedMission(deps, {
           missionId,
           jobId,
-          host: createInProcessDriverHost({ ...deps, registry: context.registry }),
+          // A factory: the runtime hands back deps carrying the authority
+          // resolver, and the driver must run under those.
+          host: (runDeps) =>
+            createInProcessDriverHost({ ...runDeps, registry: context.registry }),
           ...(options.maxCycles !== undefined ? { maxCycles: Number(options.maxCycles) } : {}),
           onEvent: (event) => {
             if (options.json !== true) runtime.out(dim(`  ${event.kind}: ${event.message}`));

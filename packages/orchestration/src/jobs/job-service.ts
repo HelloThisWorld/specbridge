@@ -18,6 +18,7 @@ import { assessProgress, diffFingerprint } from '../progress.js';
 import { backoffForAttempt } from '../retry.js';
 import type { FailureCategory } from '../vocabulary.js';
 import type { DelegatedAuthorityResolver } from './authority.js';
+import { resolvePlanReviewRequirement } from './authority.js';
 import { assessComplexity, mergeComplexity } from './complexity.js';
 import type { ComplexityInput } from './complexity.js';
 import {
@@ -164,6 +165,28 @@ function assertJobsEnabled(deps: JobDeps): void {
     'Job orchestration is disabled by `orchestration.jobs.enabled` in .specbridge/config.json.',
     { remediation: ['Set orchestration.jobs.enabled to true, or drive tasks interactively.'] },
   );
+}
+
+/**
+ * The reviewable text of a stored plan, bounded.
+ *
+ * Used to screen a plan for PROMISE vocabulary when the authority firewall
+ * decides whether a policy-mandated review still needs a person. A plan that
+ * cannot be read yields empty text, which screens as no promises and leaves
+ * the v1.2 gate exactly where it was.
+ */
+function planTextOf(plan: Record<string, unknown> | undefined): string {
+  if (plan === undefined) return '';
+  const goal = typeof plan['goal'] === 'string' ? plan['goal'] : '';
+  const steps = Array.isArray(plan['steps']) ? plan['steps'] : [];
+  const descriptions = steps
+    .map((step) =>
+      step !== null && typeof step === 'object' && typeof (step as { description?: unknown }).description === 'string'
+        ? (step as { description: string }).description
+        : '',
+    )
+    .filter((description) => description.length > 0);
+  return [goal, ...descriptions].join('\n').slice(0, 4_000);
 }
 
 /** Append an event, keeping the persisted counter and the log consistent. */
@@ -608,12 +631,25 @@ export async function recordPlan(
 
   ({ job, graph } = appendAttempt(deps, job, graph, result.context, 'succeeded'));
 
-  // Gates: local plans go to the critic; human review by policy.
+  // Gates: local plans go to the critic; human review by policy — and, under
+  // a sealed Mission, the authority firewall gets to dissolve a review that
+  // exists only because the work is HARD.
   const criticApplies =
     policy.routing.critic !== 'disabled' && result.producedByTier === 'LOCAL_SMALL';
-  const humanReview =
+  const complexity = requireNode(graph, node.nodeId).complexity ?? 'LOW';
+  const policyRequiresReview =
     policy.planReview === 'always' ||
-    (policy.planReview === 'high-risk' && (requireNode(graph, node.nodeId).complexity ?? 'LOW') === 'HIGH');
+    (policy.planReview === 'high-risk' && complexity === 'HIGH');
+  const review = resolvePlanReviewRequirement(deps.authorityResolver, {
+    jobId,
+    nodeId: node.nodeId,
+    policyRequiresReview,
+    policyReason: `plan review by ${policy.planReview} policy at complexity ${complexity}`,
+    planText: `${result.candidate.goal}\n${result.candidate.steps
+      .map((step) => step.description)
+      .join('\n')}`,
+  });
+  const humanReview = review.humanReviewRequired;
   const approved = !criticApplies && !humanReview;
 
   graph = withNode(graph, {
@@ -674,9 +710,17 @@ export function recordCriticVerdict(
 
   ({ job, graph } = appendAttempt(deps, job, graph, result.context, 'succeeded'));
 
-  const humanReview =
+  const activePlan = readNodePlan(deps.workspace, jobId, node.nodeId, node.planRevision);
+  const policyRequiresReview =
     policy.planReview === 'always' ||
     (policy.planReview === 'high-risk' && (node.complexity ?? 'LOW') === 'HIGH');
+  const humanReview = resolvePlanReviewRequirement(deps.authorityResolver, {
+    jobId,
+    nodeId: node.nodeId,
+    policyRequiresReview,
+    policyReason: `plan review by ${policy.planReview} policy at complexity ${node.complexity ?? 'LOW'}`,
+    planText: planTextOf(activePlan),
+  }).humanReviewRequired;
 
   const accepted = result.verdict === 'ACCEPT';
   graph = withNode(graph, {

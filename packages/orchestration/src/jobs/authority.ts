@@ -193,3 +193,50 @@ export function resolveDelegatedAuthority(
     return undefined;
   }
 }
+
+/**
+ * Whether a plan still needs a HUMAN review under delegated authority.
+ *
+ * Found by the vNext.10 StepRelay dogfood, which is exactly what a dogfood is
+ * for. The v1.2 rule is `planReview === 'high-risk' && complexity === 'HIGH'`,
+ * and that is a COMPLEXITY gate: the run stopped at
+ * `AWAIT_HUMAN: Plan revision 1 ... requires an explicit human review` after
+ * successfully classifying and planning the task. Under `humanGate:
+ * AUTHORITY_ONLY` that is precisely the 03:00 question vNext.10 exists to
+ * remove — a hard plan deserves a stronger reasoner and a critic, not a
+ * sleeping person.
+ *
+ * The plan TEXT is passed through, so the promise-vocabulary screen still
+ * runs on it: a plan that proposes changing a public API or a wire format
+ * still reaches a human. What no longer reaches one is a plan that is merely
+ * large.
+ *
+ * Fails closed in every ambiguous case. With no resolver (every unsealed
+ * workspace) the v1.2 answer is returned unchanged.
+ */
+export function resolvePlanReviewRequirement(
+  resolver: DelegatedAuthorityResolver | undefined,
+  input: {
+    jobId: string;
+    nodeId: string;
+    /** What the v1.2 policy concluded. Only ever relaxed, never tightened. */
+    policyRequiresReview: boolean;
+    /** Why the policy concluded it, for the recorded reason. */
+    policyReason: string;
+    /** The plan being reviewed, bounded. Screened for promise vocabulary. */
+    planText: string;
+  },
+): { humanReviewRequired: boolean; relaxedBecause?: string } {
+  if (!input.policyRequiresReview) return { humanReviewRequired: false };
+  const verdict = resolveDelegatedAuthority(resolver, {
+    jobId: input.jobId,
+    nodeId: input.nodeId,
+    decisionKinds: [],
+    reasons: [input.policyReason],
+    proposal: input.planText.slice(0, 4_000),
+  });
+  if (verdict?.kind === 'AUTONOMOUS') {
+    return { humanReviewRequired: false, relaxedBecause: verdict.reason };
+  }
+  return { humanReviewRequired: true };
+}

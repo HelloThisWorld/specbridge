@@ -64,8 +64,17 @@ export interface UnattendedOptions {
   missionId: string;
   /** An existing job to continue; a new one is created when absent. */
   jobId: string;
-  /** How the driver runs. Injected; see supervisor/host.ts. */
-  host: DriverHost;
+  /**
+   * How the driver runs.
+   *
+   * A FACTORY, not a value, because the deps the driver runs under are not
+   * known until this function has resolved the seal and built the authority
+   * resolver. A host constructed by the caller would carry deps with no
+   * resolver, and the driver would keep asking about architecture at 03:00 —
+   * which is exactly the defect the StepRelay dogfood found. A plain
+   * `DriverHost` is still accepted for tests that inject a fake.
+   */
+  host: DriverHost | ((deps: AutonomyDeps) => DriverHost);
   signal?: AbortSignal | undefined;
   sleep?: ((ms: number, signal?: AbortSignal) => Promise<void>) | undefined;
   onEvent?: ((event: { kind: string; message: string }) => void) | undefined;
@@ -171,6 +180,10 @@ export async function runUnattendedMission(
       }
     : deps;
 
+  // Resolved AFTER supervisedDeps exists, so the driver runs with the
+  // authority resolver bound.
+  const host = typeof options.host === 'function' ? options.host(supervisedDeps) : options.host;
+
   const startedMs = now(deps).getTime();
   const recoveries: RecoveryClassification[] = [];
   const audits: ClosureAudit[] = [];
@@ -186,7 +199,7 @@ export async function runUnattendedMission(
     }
 
     const supervision: SupervisionResult = await superviseJob(supervisedDeps, options.jobId, {
-      host: options.host,
+      host,
       ...(options.signal !== undefined ? { signal: options.signal } : {}),
       ...(options.sleep !== undefined ? { sleep: options.sleep } : {}),
       ...(options.maxSupervisionCycles !== undefined ? { maxCycles: options.maxSupervisionCycles } : {}),
