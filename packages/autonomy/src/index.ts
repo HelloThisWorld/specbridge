@@ -8,3 +8,5 @@ export * from './supervisor/index.js';
 export * from './preflight/index.js';
 export * from './toolsmith/index.js';
 export * from './environment/index.js';
+export * from './browser/index.js';
+export * from './critic/index.js';

@@ -347,6 +347,7 @@ describe('compose plan helper', () => {
       composeFile: 'docker-compose.yml',
       services: [{ serviceId: 'redis', kind: 'CACHE' }],
     });
-    expect(built.services[0]?.probes[0]?.kind).toBe('CONTAINER_HEALTHCHECK');
+    const services = built.services as { probes: { kind: string }[] }[];
+    expect(services[0]?.probes[0]?.kind).toBe('CONTAINER_HEALTHCHECK');
   });
 });
