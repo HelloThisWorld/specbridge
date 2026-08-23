@@ -37775,6 +37775,16 @@ function resolveExecutable(command, cwd) {
   }
   return void 0;
 }
+var WINDOWS_BATCH_EXTENSIONS = [".bat", ".cmd"];
+function isWindowsBatch(resolved) {
+  if (process.platform !== "win32") return false;
+  const extension = import_path14.default.extname(resolved).toLowerCase();
+  return WINDOWS_BATCH_EXTENSIONS.includes(extension);
+}
+function cmdCommandLine(executable, argv2) {
+  const quote = (value) => `"${value.replace(/"/g, '""')}"`;
+  return `"${[quote(executable), ...argv2.map(quote)].join(" ")}"`;
+}
 async function runSafeProcess(request) {
   assertSafeToken(request.executable, "executable");
   for (const argument of request.argv) {
@@ -37809,7 +37819,12 @@ async function runSafeProcess(request) {
       }
     };
   }
-  const result = await execa(request.executable, request.argv, {
+  const resolved = resolveExecutable(request.executable, request.cwd);
+  const batch = isWindowsBatch(resolved);
+  const spawnExecutable = batch ? process.env["COMSPEC"] ?? "cmd.exe" : request.executable;
+  const spawnArgv = batch ? ["/d", "/s", "/c", cmdCommandLine(resolved, request.argv)] : request.argv;
+  const result = await execa(spawnExecutable, spawnArgv, {
+    ...batch ? { windowsVerbatimArguments: true } : {},
     cwd: request.cwd,
     timeout: request.timeoutMs,
     ...request.signal !== void 0 ? { cancelSignal: request.signal } : {},
@@ -71139,6 +71154,14 @@ function screenGuardPatterns(patch, contracts, constitutionRules) {
   }
   return hits;
 }
+var UNAVAILABLE_COMMAND_STATUSES = [
+  "spawn-failed",
+  "not-found",
+  "unavailable"
+];
+function isUnavailableStatus(status) {
+  return UNAVAILABLE_COMMAND_STATUSES.includes(status);
+}
 function evaluateDeterministically(input) {
   const checks = [];
   const reasons = [];
@@ -71170,15 +71193,23 @@ function evaluateDeterministically(input) {
   });
   if (!freshness.fresh) reasons.push(`stale context: ${freshness.reasons.join("; ")}`);
   const verificationRelevant = input.workUnit.kind === "build";
+  const failedCommands = input.candidate.localVerification.commands.filter(
+    (command) => command.status !== "ok"
+  );
+  const verificationUnavailable = verificationRelevant && input.candidate.localVerification.ran && !input.candidate.localVerification.passed && failedCommands.length > 0 && failedCommands.every((command) => isUnavailableStatus(command.status));
   const verificationOk = !verificationRelevant || !input.candidate.localVerification.ran || input.candidate.localVerification.passed;
   checks.push({
     name: "local-verification",
     passed: verificationOk,
     ...verificationOk ? {} : {
-      detail: input.candidate.localVerification.commands.filter((command) => command.status !== "ok").map((command) => command.name).join(", ")
+      detail: `${verificationUnavailable ? "could not run" : "failed"}: ${failedCommands.map((command) => `${command.name} (${command.status})`).join(", ")}`.slice(0, 600)
     }
   });
-  if (!verificationOk) reasons.push("local verification failed inside the isolated worktree");
+  if (!verificationOk) {
+    reasons.push(
+      verificationUnavailable ? `local verification COULD NOT RUN inside the isolated worktree (${failedCommands.map((command) => `${command.name}: ${command.status}`).join(", ")}); nothing was proven about the candidate` : "local verification failed inside the isolated worktree"
+    );
+  }
   const changesOk = input.workUnit.kind !== "build" || input.candidate.changedFiles.length > 0;
   checks.push({
     name: "non-empty-change",
@@ -71966,11 +71997,18 @@ async function evaluateCandidate(context, graph, unitId, attempt, candidate, pro
     return persistGraph2(input, recordConflict(input, graph, unitId, candidate, deterministic.reasons, deterministic.affectedContractIds, deterministic.decisionKind));
   }
   if (deterministic.verdict === "FAIL") {
-    const stale = deterministic.checks.some((check22) => check22.name === "projection-freshness" && !check22.passed);
+    const stale = deterministic.checks.some(
+      (check22) => check22.name === "projection-freshness" && !check22.passed
+    );
+    const failedChecks = deterministic.checks.filter((check22) => !check22.passed);
+    const failedCommands = candidate.localVerification.commands.filter(
+      (command) => command.status !== "ok"
+    );
+    const verificationUnavailable = failedChecks.length === 1 && failedChecks[0]?.name === "local-verification" && failedCommands.length > 0 && failedCommands.every((command) => isUnavailableStatus(command.status));
     return persistGraph2(
       input,
       applyUnitRejection(input, graph, unitId, attempt, {
-        category: stale ? "STALE_CONTEXT" : "VERIFICATION_FAILURE",
+        category: stale ? "STALE_CONTEXT" : verificationUnavailable ? "CAPABILITY_UNAVAILABLE" : "VERIFICATION_FAILURE",
         message: `Deterministic evaluation failed: ${deterministic.reasons.join("; ").slice(0, 1200)}`
       })
     );
@@ -123521,7 +123559,13 @@ function telemetryFile(workspace, jobId) {
 }
 var INTERVENTION_EVENTS = Object.freeze({
   clarification_requested: "the runtime asked a question it should have resolved itself",
-  job_blocked: "the job stopped in BLOCKED, needing an explicit user action"
+  job_blocked: "the job stopped in BLOCKED, needing an explicit user action",
+  // `blockJob` records `budget_exhausted` rather than `job_blocked` when the
+  // blocker is a budget. The vNext.10 dogfood ended exactly there — "all 4
+  // execution attempts for this task are spent" — and the metric reported
+  // ZERO interventions for a job sitting in BLOCKED. A budget stop still
+  // needs a person; only the event name differed.
+  budget_exhausted: "the job stopped on an exhausted budget, needing an explicit user action"
 });
 function computeAutonomyTelemetry(deps, input) {
   const read = readJobState(deps.workspace, input.jobId);
@@ -123555,6 +123599,13 @@ function computeAutonomyTelemetry(deps, input) {
   supervisorWakeups += supervisionLog.filter(
     (entry2) => entry2.action === "WOKEN_ON_SCHEDULE" || entry2.action === "WOKEN_ON_RESOURCE_RETURN"
   ).length;
+  if (job !== void 0 && requiresHumanAttention(job.status) && job.status !== "NEEDS_AUTHORITY" && interventions.length === 0) {
+    interventions.push({
+      at: job.updatedAt,
+      kind: `status:${job.status}`,
+      detail: job.blocker?.message ?? `the job is ${job.status} and cannot proceed without a person`
+    });
+  }
   const ledger = readClosureLedger(deps.workspace, input.jobId);
   const totals = ledger !== void 0 ? summarizeClosure(ledger.entries) : void 0;
   const toolsmith = listToolsmithRequests(deps.workspace, input.jobId);

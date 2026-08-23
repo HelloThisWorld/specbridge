@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { WorkspaceInfo } from '@specbridge/core';
 import type { JobState } from '@specbridge/orchestration';
-import { readJobEvents, readJobState } from '@specbridge/orchestration';
+import { readJobEvents, readJobState, requiresHumanAttention } from '@specbridge/orchestration';
 import type { AutonomyDeps } from '../deps.js';
 import { nowIso } from '../deps.js';
 import { assertAutonomyId, autonomyPath, readJsonRecord, writeJsonRecord } from '../store.js';
@@ -129,6 +129,12 @@ export function readAutonomyTelemetry(
 const INTERVENTION_EVENTS: Readonly<Record<string, string>> = Object.freeze({
   clarification_requested: 'the runtime asked a question it should have resolved itself',
   job_blocked: 'the job stopped in BLOCKED, needing an explicit user action',
+  // `blockJob` records `budget_exhausted` rather than `job_blocked` when the
+  // blocker is a budget. The vNext.10 dogfood ended exactly there — "all 4
+  // execution attempts for this task are spent" — and the metric reported
+  // ZERO interventions for a job sitting in BLOCKED. A budget stop still
+  // needs a person; only the event name differed.
+  budget_exhausted: 'the job stopped on an exhausted budget, needing an explicit user action',
 });
 
 export interface ComputeTelemetryInput {
@@ -183,6 +189,29 @@ export function computeAutonomyTelemetry(
   supervisorWakeups += supervisionLog.filter(
     (entry) => entry.action === 'WOKEN_ON_SCHEDULE' || entry.action === 'WOKEN_ON_RESOURCE_RETURN',
   ).length;
+
+  // Belt and braces on the PRIMARY metric. The event map above is a list of
+  // known causes, and a list can be incomplete — as it was. The job's CURRENT
+  // status is not a list: if it is sitting in a human-attention status right
+  // now, a human is needed right now, whatever event carried it there.
+  //
+  // NEEDS_AUTHORITY is deliberately excluded, because an authority stop is
+  // governance working and is counted separately. Folding it in here would
+  // make the metric unfalsifiable in the other direction.
+  if (
+    job !== undefined &&
+    requiresHumanAttention(job.status) &&
+    job.status !== 'NEEDS_AUTHORITY' &&
+    interventions.length === 0
+  ) {
+    interventions.push({
+      at: job.updatedAt,
+      kind: `status:${job.status}`,
+      detail:
+        job.blocker?.message ??
+        `the job is ${job.status} and cannot proceed without a person`,
+    });
+  }
 
   const ledger = readClosureLedger(deps.workspace, input.jobId);
   const totals = ledger !== undefined ? summarizeClosure(ledger.entries) : undefined;

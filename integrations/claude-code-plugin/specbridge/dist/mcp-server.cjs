@@ -41647,6 +41647,16 @@ function resolveExecutable(command, cwd) {
   }
   return void 0;
 }
+var WINDOWS_BATCH_EXTENSIONS = [".bat", ".cmd"];
+function isWindowsBatch(resolved) {
+  if (process.platform !== "win32") return false;
+  const extension = import_path11.default.extname(resolved).toLowerCase();
+  return WINDOWS_BATCH_EXTENSIONS.includes(extension);
+}
+function cmdCommandLine(executable, argv) {
+  const quote = (value) => `"${value.replace(/"/g, '""')}"`;
+  return `"${[quote(executable), ...argv.map(quote)].join(" ")}"`;
+}
 async function runSafeProcess(request) {
   assertSafeToken(request.executable, "executable");
   for (const argument of request.argv) {
@@ -41681,7 +41691,12 @@ async function runSafeProcess(request) {
       }
     };
   }
-  const result = await execa(request.executable, request.argv, {
+  const resolved = resolveExecutable(request.executable, request.cwd);
+  const batch = isWindowsBatch(resolved);
+  const spawnExecutable = batch ? process.env["COMSPEC"] ?? "cmd.exe" : request.executable;
+  const spawnArgv = batch ? ["/d", "/s", "/c", cmdCommandLine(resolved, request.argv)] : request.argv;
+  const result = await execa(spawnExecutable, spawnArgv, {
+    ...batch ? { windowsVerbatimArguments: true } : {},
     cwd: request.cwd,
     timeout: request.timeoutMs,
     ...request.signal !== void 0 ? { cancelSignal: request.signal } : {},

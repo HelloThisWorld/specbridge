@@ -103,6 +103,59 @@ export function resolveExecutable(command: string, cwd: string): string | undefi
 }
 
 /**
+ * Windows batch wrappers, which Node refuses to spawn directly.
+ *
+ * Since Node 20.12 / 22 (CVE-2024-27980) `child_process.spawn` without a
+ * shell rejects `.bat` and `.cmd` files with EINVAL. That is a security fix
+ * and it is correct — but it means a verification command written the
+ * obvious way on Windows cannot run at all:
+ *
+ *   "argv": ["gradlew.bat", "test"]      EINVAL
+ *   "argv": ["mvnw.cmd", "verify"]       EINVAL
+ *   "argv": ["npm.cmd", "test"]          EINVAL
+ *
+ * Found by the vNext.10 StepRelay dogfood, where every builder attempt
+ * recorded `spawn-failed` for both trusted verification commands and the
+ * runtime spent three repair cycles rewriting code that had never been
+ * tested.
+ */
+const WINDOWS_BATCH_EXTENSIONS: readonly string[] = ['.bat', '.cmd'];
+
+function isWindowsBatch(resolved: string): boolean {
+  if (process.platform !== 'win32') return false;
+  const extension = path.extname(resolved).toLowerCase();
+  return WINDOWS_BATCH_EXTENSIONS.includes(extension);
+}
+
+/**
+ * Build the `cmd.exe` command line for a batch wrapper.
+ *
+ * We construct it ourselves rather than enabling Node's shell option, which
+ * would also interpret the ARGUMENTS as a shell string and reintroduce
+ * exactly the injection surface `runSafeProcess` exists to avoid. Here every
+ * element stays a discrete quoted token, so no argument can become an
+ * operator. The shell option is never set anywhere in this package, and a
+ * source-level test in tests/runners/security-v061.test.ts enforces that.
+ *
+ * Two cmd.exe rules the shape depends on, and both are easy to get wrong:
+ *
+ *   Inside double quotes, `&`, `|`, `>` and friends are already literal.
+ *   Caret-escaping them there inserts literal carets instead.
+ *
+ *   With `/s`, cmd strips the FIRST and LAST quote of the command line and
+ *   takes the rest verbatim. So the whole line needs an extra outer pair, or
+ *   the executable's own quotes are the ones consumed — which is precisely
+ *   the `'…gradlew.bat" "--version' is not recognized` failure.
+ *
+ * The trust boundary is unchanged: verification commands come only from
+ * `.specbridge/config.json`, never from spec text, plan text, or model output.
+ */
+function cmdCommandLine(executable: string, argv: readonly string[]): string {
+  const quote = (value: string): string => `"${value.replace(/"/g, '""')}"`;
+  return `"${[quote(executable), ...argv.map(quote)].join(' ')}"`;
+}
+
+/**
  * Run one process. Never throws for process-level failures (nonzero exit,
  * timeout, missing executable) — those come back as a structured result.
  * Throws only for caller bugs (malformed argv).
@@ -146,7 +199,18 @@ export async function runSafeProcess(request: SafeProcessRequest): Promise<SafeP
     };
   }
 
-  const result = await execa(request.executable, request.argv, {
+  // A Windows batch wrapper is invoked through cmd.exe with verbatim
+  // arguments we quote ourselves. Everything else spawns directly, exactly
+  // as before.
+  const resolved = resolveExecutable(request.executable, request.cwd) as string;
+  const batch = isWindowsBatch(resolved);
+  const spawnExecutable = batch ? (process.env['COMSPEC'] ?? 'cmd.exe') : request.executable;
+  const spawnArgv = batch
+    ? ['/d', '/s', '/c', cmdCommandLine(resolved, request.argv)]
+    : request.argv;
+
+  const result = await execa(spawnExecutable, spawnArgv, {
+    ...(batch ? { windowsVerbatimArguments: true } : {}),
     cwd: request.cwd,
     timeout: request.timeoutMs,
     ...(request.signal !== undefined ? { cancelSignal: request.signal } : {}),
