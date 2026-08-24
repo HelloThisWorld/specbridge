@@ -147,6 +147,15 @@ export interface ReadinessInput {
   missionCoverage: MissionCoverage | undefined;
   /** True when the mission's record bounds refused some material statements. */
   overflowed?: boolean | undefined;
+  /**
+   * Product contracts the intake compiled.
+   *
+   * Synthesis needs at least one, and an intake that reaches the human with
+   * none produces an immutable approval pointing at a mission that cannot
+   * synthesize — the approval is written, then the very next step fails. The
+   * gate belongs here, before anybody authorizes anything.
+   */
+  productContractCount?: number | undefined;
 }
 
 /**
@@ -195,6 +204,14 @@ export function assessReadiness(input: ReadinessInput): IntakeReadiness {
         : 'Delta authority analysis is incomplete.',
     );
   }
+  const contractCount = input.productContractCount;
+  if (contractCount !== undefined && contractCount === 0) {
+    reasons.push(
+      'No product contract was compiled from the submitted specification, so there is nothing ' +
+        'to build. State what the feature promises — a public surface, a configuration format, ' +
+        'a failure behaviour — rather than only how it should be implemented.',
+    );
+  }
   if (!missionContractReady) {
     reasons.push(
       input.missionCoverage === undefined
@@ -204,7 +221,11 @@ export function assessReadiness(input: ReadinessInput): IntakeReadiness {
   }
 
   const ready =
-    unaccounted.length === 0 && open.length === 0 && deltaComplete && missionContractReady;
+    unaccounted.length === 0 &&
+    open.length === 0 &&
+    deltaComplete &&
+    missionContractReady &&
+    (contractCount === undefined || contractCount > 0);
   if (ready) {
     reasons.push(
       'Every normative statement is accounted for, no product question is open, delta ' +

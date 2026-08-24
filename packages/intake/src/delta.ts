@@ -96,11 +96,48 @@ export interface DeltaAnalysisRequest {
  * the authority to NOT build something, and a later feature that quietly
  * builds it should be visible.
  */
+/**
+ * The durable surfaces a statement touches.
+ *
+ * The statement's OWN words decide when they name anything; the heading the
+ * author filed it under is a FALLBACK, consulted only when the sentence
+ * names no surface at all.
+ *
+ * Both halves were learned from the same document. Reading the sentence
+ * alone missed "the exported format is additive-only within a major version"
+ * under a "## Compatibility" heading — no durable surface in the words, and
+ * a whole specification compiled to zero product contracts. Letting the
+ * heading always participate went too far the other way: "Operations
+ * console" matched `public-api` for every statement beneath it, and five
+ * cleanly separated contracts collapsed into one with fifty-seven
+ * requirements. The heading supplies what the sentence lacks; it never
+ * overrides what the sentence says.
+ */
+function surfacesFor(chunk: SourceChunk, statement: string): ReturnType<typeof surfacesOf> {
+  const own = surfacesOf(statement);
+  if (own.length > 0) return own;
+  return surfacesOf(chunk.headingPath.join(' '));
+}
+
+/** Topics, with the same fallback: the heading fills a silent sentence. */
+function topicsFor(chunk: SourceChunk, statement: string): ReturnType<typeof topicsOf> {
+  const own = topicsOf(statement);
+  if (own.length > 0) return own;
+  return topicsOf(chunk.headingPath.join(' '));
+}
+
 export function analyzeDeltaAuthority(request: DeltaAnalysisRequest): DeltaAuthorityAnalysis {
   const items: DeltaItem[] = [];
-  const material = request.chunks.filter(
-    (chunk) => chunk.kind === 'normative' || chunk.kind === 'scenario' || chunk.kind === 'non-goal',
-  );
+  const material = request.chunks.filter((chunk) => {
+    if (chunk.kind === 'normative' || chunk.kind === 'scenario' || chunk.kind === 'non-goal') {
+      return true;
+    }
+    // A PROSE statement under a heading that names a durable product surface
+    // is a promise too. Specifications state their compatibility policy and
+    // their canonical model in paragraphs, not in bullet lists with modal
+    // verbs, and a classifier that only reads grammatical mood misses them.
+    return chunk.kind === 'narrative' && surfacesOf(chunk.headingPath.join(' ')).length > 0;
+  });
 
   const index = buildContractIndex(request.existingContracts);
   let sequence = 0;
@@ -110,7 +147,7 @@ export function analyzeDeltaAuthority(request: DeltaAnalysisRequest): DeltaAutho
     const statement = statementOf(chunk);
     if (statement.length === 0) continue;
     const tokens = tokenSet(statement);
-    const surfaces = surfacesOf(statement);
+    const surfaces = surfacesFor(chunk, statement);
     const publicSurface = surfaces.length > 0;
     const item = classifyStatement({
       itemId: `D-${String(++sequence).padStart(3, '0')}`,
@@ -118,7 +155,7 @@ export function analyzeDeltaAuthority(request: DeltaAnalysisRequest): DeltaAutho
       chunkId: chunk.chunkId,
       tokens,
       surfaces: surfaces.map((match) => match.surface),
-      topics: topicsOf(statement),
+      topics: topicsFor(chunk, statement),
       publicSurface,
       index,
       constitutionRules: request.constitutionRules,

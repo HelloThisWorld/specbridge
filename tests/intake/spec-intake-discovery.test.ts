@@ -13,7 +13,7 @@ import {
   screenCandidate,
   startSpecIntake,
 } from '@specbridge/intake';
-import { recordAssessment } from '@specbridge/mission';
+import { readContractRegistry, recordAssessment } from '@specbridge/mission';
 import { sealableMission } from '../helpers-autonomy.js';
 import { emptyTempDir } from '../helpers.js';
 import { goldenSpecText, setupIntakeFixture, unambiguousSpecText } from '../helpers-intake.js';
@@ -408,6 +408,32 @@ describe('spec intake — convergence', () => {
     const states = new Set(result.coverage.map((entry) => entry.state));
     expect(states.has('UNACCOUNTED')).toBe(false);
     expect(result.coverage.length).toBeGreaterThan(4);
+  });
+
+  it('refuses to converge when no product contract was compiled', () => {
+    const fixture = setupIntakeFixture();
+    // A specification that only says HOW, never WHAT the product promises.
+    // Reaching the human with this writes an immutable approval pointing at a
+    // mission that cannot synthesize — the approval lands, then the very next
+    // step fails. The gate belongs before anybody authorizes anything.
+    const started = startSpecIntake(fixture.intake, {
+      name: 'implementation-only',
+      kind: 'text',
+      content: [
+        '# Refactor',
+        '',
+        '- Use a background thread pool to poll for due timers.',
+        '- Cache the parsed configuration in memory.',
+        '',
+      ].join('\n'),
+    });
+    const result = runIntakeDiscovery(fixture.intake, started.intake.intakeId);
+    expect(result.readiness.ready).toBe(false);
+    expect(result.readiness.reasons.join(' ')).toContain('No product contract was compiled');
+    // It also asks the required-topic questions, which is correct: a
+    // specification that says only HOW has not stated what it promises.
+    // The contract gate is what stops it reaching an approval either way.
+    expect(readContractRegistry(fixture.workspace, started.mission.missionId)).toEqual([]);
   });
 
   it('a new blocking question re-opens a converged intake', () => {

@@ -524,6 +524,9 @@ export function runIntakeDiscovery(
     questions,
     missionCoverage,
     overflowed: compiled.overflowItemIds.length > 0,
+    productContractCount: readContractRegistry(deps.workspace, intake.missionId).filter(
+      (contract) => contract.status !== 'superseded',
+    ).length,
   });
 
   // --- 8. Fold into the intake status --------------------------------------

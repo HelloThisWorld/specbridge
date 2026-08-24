@@ -236,6 +236,54 @@ describe('delta authority analysis — classification', () => {
     expect(analysis.complete).toBe(false);
   });
 
+  it('reads the heading an author filed a statement under', () => {
+    const fixture = setupIntakeFixture();
+    // A compatibility policy stated as prose under "## Compatibility". The
+    // sentence alone names no durable surface; the heading does, and the
+    // author put it there deliberately. Classifying from the sentence alone
+    // compiled a whole specification to ZERO product contracts, which then
+    // failed synthesis with "needs at least one recorded product contract" —
+    // after the human had already approved it.
+    const { analysis } = analyze(
+      fixture,
+      [
+        '# Feature',
+        '',
+        '## Compatibility',
+        '',
+        'The exported format is additive-only within a major version: fields may be added, ',
+        'never removed or re-meaned.',
+        '',
+      ].join('\n'),
+      'none',
+    );
+    const item = analysis.items.find((entry) => entry.statement.includes('additive-only'));
+    expect(item).toBeDefined();
+    expect(item?.classification).toBe('NEW_DELEGATED_SURFACE');
+    expect(item?.affectedSurfaces).toContain('compatibility-promise');
+  });
+
+  it('a positive promise carrying "never" is not an exclusion', () => {
+    const parsed = parseSpecificationDocument(
+      [
+        '# Feature',
+        '',
+        '## Compatibility',
+        '',
+        'Fields may be added, never removed or re-meaned.',
+        '',
+        '- The console must not expose an administrative endpoint.',
+        '',
+      ].join('\n'),
+    );
+    // "never" inside a positive commitment is a qualification, not a
+    // non-goal. "must not" is a genuine exclusion.
+    const promise = parsed.chunks.find((chunk) => chunk.text.startsWith('Fields may be added'));
+    expect(promise?.kind).not.toBe('non-goal');
+    const exclusion = parsed.chunks.find((chunk) => chunk.text.includes('administrative endpoint'));
+    expect(exclusion?.kind).toBe('non-goal');
+  });
+
   it('never leaves an item unclassified', () => {
     const fixture = setupIntakeFixture();
     const { analysis } = analyze(fixture, goldenSpecText(), 'none');

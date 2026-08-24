@@ -88,8 +88,18 @@ const IMPERATIVE_PATTERN = new RegExp(`^(${IMPERATIVE_VERBS.join('|')})\\b`, 'i'
 /** Headings (or lines) that make everything under them a stated exclusion. */
 const NON_GOAL_PATTERN = /\b(non-?goals?|out of scope|explicitly not|not in scope|excluded)\b/i;
 
-/** Statements that are themselves exclusions, wherever they appear. */
-const NEGATIVE_REQUIREMENT_PATTERN = /\b(must not|shall not|will not|may not|never)\b/i;
+/**
+ * Statements that are themselves exclusions, wherever they appear.
+ *
+ * Deliberately does NOT include a bare "never". A positive promise routinely
+ * carries one as a qualification — "fields may be added, never removed" is a
+ * compatibility COMMITMENT, not a non-goal — and treating it as an exclusion
+ * dropped the only contract-bearing statement in a specification, which then
+ * failed synthesis with "needs at least one recorded product contract". A
+ * genuine exclusion says "must not"; a `## Non-goals` heading still marks
+ * everything beneath it however it is phrased.
+ */
+const NEGATIVE_REQUIREMENT_PATTERN = /\b(must not|shall not|will not|may not|cannot)\b/i;
 
 /** Headings (or lines) that make everything under them a scenario/edge case. */
 const SCENARIO_PATTERN =

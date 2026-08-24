@@ -280,6 +280,33 @@ the approval summary read "CTR-001 would be extended" directly above the
 feature's own "CTR-001 Observable Behaviour". Affected contracts are now
 qualified by their owning mission, title, and revision.
 
+Three more surfaced once the run reached real compute:
+
+- **An unusable plan killed the driver.** The local planner returned a
+  schema-valid `PLAN` decision with no goal and no steps;
+  `plannerOutputToCandidate` threw SBO037 out of the driver, the supervisor
+  logged `DRIVER_DIED`, and the restart put the same planner in front of the
+  same empty plan. It is an INTELLIGENCE failure of that attempt, so it now
+  escalates through `INVALID_LOCAL_OUTPUT` to a worker that can plan. This is
+  a pre-existing orchestration defect the intake path exposed, fixed with a
+  driver test that fails with the exact dogfood error without it.
+- **A positive promise carrying "never" read as an exclusion.** "fields may
+  be added, never removed" is a compatibility COMMITMENT; classifying it as a
+  non-goal dropped the only contract-bearing statement in a specification,
+  which then failed synthesis — after the approval was already written. A
+  genuine exclusion says "must not"; a `## Non-goals` heading still marks
+  everything beneath it however it is phrased.
+- **The heading an author files a statement under was ignored.** A section
+  headed `## Compatibility` whose sentence names no durable surface is still
+  a compatibility promise. The heading is now a FALLBACK, consulted only when
+  the sentence names nothing — letting it always participate collapsed five
+  cleanly separated contracts into one with fifty-seven requirements, because
+  "Operations console" matched `public-api` for everything beneath it.
+
+The approval gate also grew a condition it should always have had: an intake
+that compiled NO product contract cannot converge. Reaching a human with one
+writes an immutable approval pointing at a mission that cannot synthesize.
+
 ## 1.10.0 (unreleased) — vNext.10 Overnight Autonomous Product Runtime
 
 Nine phases made a long-horizon run SURVIVE. This one makes it not need a

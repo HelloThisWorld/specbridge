@@ -92,6 +92,24 @@ separate `.specbridge/` directory
 
 ## What it does
 
+**Zero-touch spec intake** — submit a full product specification into an
+existing repository and get an unattended build. Discovery grounds itself in
+what the repository already promises, asks only the questions that need
+*product* authority (never framework, transport, or schema choices), and
+converges deterministically. You approve once; the seal, the preflight, and
+the launch happen from that one authorization, and the generated
+requirements/design/tasks inherit its authority with explicit provenance
+rather than three more approvals.
+
+```bash
+specbridge spec start airport-demo --file ./demo-spec.md
+specbridge spec answer airport-demo Q-001 "…"
+specbridge spec approve airport-demo --build
+```
+
+[Spec intake](docs/autonomy/spec-intake.md) ·
+[overnight autonomy](docs/autonomy/overnight-autonomy.md)
+
 **Spec workflow and approvals** — create Kiro-compatible specs offline
 (`spec new`, four workflows, ten templates), analyze them
 deterministically, and gate every stage behind an explicit human approval
