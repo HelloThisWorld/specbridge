@@ -164,6 +164,38 @@ describe('spec intake CLI — the product workflow', () => {
     expect(requirements?.['approvalMode']).toBe('DERIVED_FROM_INTENT_APPROVAL');
   });
 
+  it('spec status says WHICH human decision authorized a derived stage', async () => {
+    const fixture = setupIntakeFixture({ spec: true, git: true });
+    const file = writeSpecFile(fixture, 'demo-spec.md', unambiguousSpecText());
+    await cli(fixture.root, 'spec', 'start', 'settings-export', '--file', file);
+    await cli(fixture.root, 'spec', 'approve', 'settings-export', '--build', '--no-launch');
+    const intake = listSpecIntakes(fixture.intake).intakes[0];
+    const specName = intake?.specName as string;
+
+    // A status view showing a bare "Approved" would hide the difference
+    // between a person reading the document and authority inherited from an
+    // approved product truth — the one thing the mode exists to make visible.
+    const status = await cli(fixture.root, 'spec', 'status', specName);
+    expect(status.code).toBe(0);
+    expect(status.stdout).toContain('Authority: derived from human approval approval-');
+
+    const json = jsonOf(await cli(fixture.root, 'spec', 'status', specName, '--json'));
+    const stages = json['stages'] as Record<string, unknown>[];
+    for (const stage of stages) {
+      expect(stage['approvalMode']).toBe('DERIVED_FROM_INTENT_APPROVAL');
+      expect(String(stage['sourceApprovalId'])).toMatch(/^approval-/);
+      expect(String(stage['authorityDigest'])).toMatch(/^[0-9a-f]{32}$/);
+    }
+
+    // The MANUAL path reports HUMAN explicitly, so a consumer never has to
+    // infer it from a missing key.
+    const manual = jsonOf(await cli(fixture.root, 'spec', 'status', fixture.specName, '--json'));
+    for (const stage of manual['stages'] as Record<string, unknown>[]) {
+      expect(stage['approvalMode']).toBe('HUMAN');
+      expect(stage['sourceApprovalId']).toBeNull();
+    }
+  });
+
   it('inspects an intake and reports the zero-touch boundary', async () => {
     const fixture = setupIntakeFixture({ spec: true, git: true });
     const file = writeSpecFile(fixture, 'demo-spec.md', unambiguousSpecText());

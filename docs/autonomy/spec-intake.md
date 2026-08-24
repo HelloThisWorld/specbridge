@@ -346,6 +346,55 @@ latitude:
   written for a human. Nothing in a document can close a question, lower a
   materiality, or approve anything.
 
+## The Golden Spec dogfood
+
+The path was proven on the real thing: a raw airport passenger identity /
+boarding validation workbench specification submitted into the **StepRelay**
+repository, which already carries an approved mission, nine sealed contracts,
+and an approved spec.
+
+```text
+3,462 bytes  ->  67 sections  ->  84 pieces of repository evidence
+             ->  59 material statements classified
+             ->  4 product questions, 1 refused
+             ->  4 recorded answers
+             ->  ONE approval
+             ->  9 contracts · 27 acceptance criteria · 84 closure items
+             ->  55/55 normative statements traced
+             ->  seal · preflight · launch
+```
+
+**The four questions it asked**, all genuinely product authority, all
+predicted in advance by the person who wrote the specification:
+
+1. How strictly must this match Step Functions — an exact compatibility
+   promise, a named subset, or an authoring resemblance?
+2. What does *replay* promise: a new execution seeded from the original, or
+   the original resumed in place?
+3. What does *redrive* promise: only the failed states, or the whole
+   execution?
+4. The specification carries passport, boarding-pass, and face-photo
+   payloads and states no visibility policy — may they be persisted, returned
+   by the API, and shown in operational views?
+
+**What it did not ask.** "Use one Spring Boot demo application. Different
+REST controllers/services inside the same application should simulate
+multiple microservices" — thirty statements of that kind classified
+`IMPLEMENTATION_DETAIL` and were delegated. No question about Spring Boot,
+controller decomposition, Docker Compose topology, the broker, the frontend
+framework, or the test runner.
+
+**What it protected.** `CTR-001 r1 "Workflow Definition Schema" (from
+steprelay)` was reported as *extended*, not changed. The prior mission's
+registry was left byte-identical.
+
+**What it found.** Nine defects that 2,600 tests had not — listed in the
+[CHANGELOG](../../CHANGELOG.md#1101-unreleased--vnext101-zero-touch-spec-intake).
+Three of them were pre-existing runtime defects the intake path merely
+exposed: a driver that died on an unplannable plan instead of escalating, a
+blocked job that discarded the evidence it blocked on, and a surface contract
+with no size bound.
+
 ## Related
 
 - [Overnight autonomy](./overnight-autonomy.md) — what happens after the approval

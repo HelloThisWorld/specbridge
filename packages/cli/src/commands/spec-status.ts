@@ -47,6 +47,21 @@ function describeStage(
       if (stage.stored.approvedAt !== null) {
         runtime.out(dim(`    Approved at: ${stage.stored.approvedAt}`));
       }
+      // WHICH human decision authorized this, when the answer is not "a
+      // person read this document". A derived approval inherits authority
+      // from an explicitly approved product truth, and a status view that
+      // showed a bare "Approved" would hide the difference — which is the
+      // one thing the mode exists to make visible.
+      if (stage.stored.approvalMode === 'DERIVED_FROM_INTENT_APPROVAL') {
+        runtime.out(
+          dim(
+            `    Authority: derived from human approval ${stage.stored.sourceApprovalId ?? '(unnamed)'}`,
+          ),
+        );
+        if (verbose && stage.stored.authorityDigest !== undefined) {
+          runtime.out(dim(`    Approved product truth: ${stage.stored.authorityDigest}`));
+        }
+      }
       runtime.out(dim('    Content unchanged since approval'));
       if (verbose && stage.stored.approvedHash !== null) {
         runtime.out(dim(`    Approved hash: ${stage.stored.approvedHash}`));
@@ -133,6 +148,12 @@ Examples:
                   approvedAt: stage.stored.approvedAt,
                   approvedHash: stage.stored.approvedHash,
                   currentHash: stage.currentHash ?? null,
+                  // Absent means HUMAN, which is what every approval recorded
+                  // before vNext.10.1 is; reported explicitly so a consumer
+                  // never has to infer it from a missing key.
+                  approvalMode: stage.stored.approvalMode ?? 'HUMAN',
+                  sourceApprovalId: stage.stored.sourceApprovalId ?? null,
+                  authorityDigest: stage.stored.authorityDigest ?? null,
                   prerequisites: stage.prerequisites,
                 })) ?? null,
               files: folder.files.map((f) => ({ fileName: f.fileName, kind: f.kind })),

@@ -83817,7 +83817,7 @@ var IMPERATIVE_VERBS = [
 ];
 var IMPERATIVE_PATTERN = new RegExp(`^(${IMPERATIVE_VERBS.join("|")})\\b`, "i");
 var NON_GOAL_PATTERN = /\b(non-?goals?|out of scope|explicitly not|not in scope|excluded)\b/i;
-var NEGATIVE_REQUIREMENT_PATTERN = /\b(must not|shall not|will not|may not|never)\b/i;
+var NEGATIVE_REQUIREMENT_PATTERN = /\b(must not|shall not|will not|may not|cannot)\b/i;
 var SCENARIO_PATTERN = /\b(edge cases?|scenarios?|test cases?|examples? including|cases? including|acceptance)\b/i;
 var EXAMPLE_PATTERN = /\b(for example|e\.g\.|such as, for instance|sample)\b/i;
 function parseSpecificationDocument(content) {
@@ -84380,11 +84380,24 @@ function clip2(value, max) {
 var MATCH_CONTAINMENT = 0.6;
 var SAME_STATEMENT_JACCARD = 0.7;
 var MIN_TOKENS_FOR_MATCH = 4;
+function surfacesFor(chunk, statement) {
+  const own = surfacesOf(statement);
+  if (own.length > 0) return own;
+  return surfacesOf(chunk.headingPath.join(" "));
+}
+function topicsFor(chunk, statement) {
+  const own = topicsOf(statement);
+  if (own.length > 0) return own;
+  return topicsOf(chunk.headingPath.join(" "));
+}
 function analyzeDeltaAuthority(request) {
   const items = [];
-  const material = request.chunks.filter(
-    (chunk) => chunk.kind === "normative" || chunk.kind === "scenario" || chunk.kind === "non-goal"
-  );
+  const material = request.chunks.filter((chunk) => {
+    if (chunk.kind === "normative" || chunk.kind === "scenario" || chunk.kind === "non-goal") {
+      return true;
+    }
+    return chunk.kind === "narrative" && surfacesOf(chunk.headingPath.join(" ")).length > 0;
+  });
   const index = buildContractIndex(request.existingContracts);
   let sequence = 0;
   for (const chunk of material) {
@@ -84392,7 +84405,7 @@ function analyzeDeltaAuthority(request) {
     const statement = statementOf(chunk);
     if (statement.length === 0) continue;
     const tokens = tokenSet(statement);
-    const surfaces = surfacesOf(statement);
+    const surfaces = surfacesFor(chunk, statement);
     const publicSurface = surfaces.length > 0;
     const item = classifyStatement({
       itemId: `D-${String(++sequence).padStart(3, "0")}`,
@@ -84400,7 +84413,7 @@ function analyzeDeltaAuthority(request) {
       chunkId: chunk.chunkId,
       tokens,
       surfaces: surfaces.map((match) => match.surface),
-      topics: topicsOf(statement),
+      topics: topicsFor(chunk, statement),
       publicSurface,
       index,
       constitutionRules: request.constitutionRules,
@@ -85238,6 +85251,7 @@ var SURFACE_CONTRACTS = Object.freeze({
     compatibilityPolicy: "internal"
   }
 });
+var MAX_REQUIREMENTS_PER_CONTRACT = 12;
 var BEHAVIOUR_CONTRACT = {
   title: "Observable Behaviour",
   summary: "The scenarios and edge cases this feature must handle, as a user observes them.",
@@ -85356,18 +85370,37 @@ function compileMissionTruth(deps, intakeDeps2, request) {
   if (map.fieldsWritten !== true) map.fieldsWritten = true;
   writeProjectionMap(intakeDeps2.workspace, request.intakeId, map);
   const converged = request.blockedItemIds.length === 0 && request.openQuestionCount === 0;
+  const buckets = [];
   for (const [key, items] of converged ? [...pendingBySurface.entries()].sort() : []) {
+    const parts = Math.max(1, Math.ceil(items.length / MAX_REQUIREMENTS_PER_CONTRACT));
+    for (let part = 0; part < parts; part += 1) {
+      buckets.push({
+        key,
+        items: items.slice(
+          part * MAX_REQUIREMENTS_PER_CONTRACT,
+          (part + 1) * MAX_REQUIREMENTS_PER_CONTRACT
+        ),
+        part: part + 1,
+        parts
+      });
+    }
+  }
+  const submitted = [];
+  for (const bucket of buckets) {
+    const { key, items } = bucket;
     if (contracts.length >= 40) break;
     const base = key === BEHAVIOUR_SURFACE_KEY ? BEHAVIOUR_CONTRACT : SURFACE_CONTRACTS[key];
     if (base === void 0) continue;
     const priorForSurface = map.surfaceContracts[key];
-    const shape = priorForSurface === void 0 ? base : {
+    const partSuffix = bucket.parts > 1 ? ` (part ${bucket.part} of ${bucket.parts})` : "";
+    const shape = priorForSurface === void 0 ? { ...base, title: `${base.title}${partSuffix}` } : {
       ...base,
-      title: `${base.title} (addendum)`,
+      title: `${base.title} (addendum)${partSuffix}`,
       summary: `${base.summary} Recorded after ${priorForSurface}, which is unchanged.`
     };
     const decisionIds = items.map((item) => map.itemDecisions[item.itemId]).filter((id) => id !== void 0);
     if (decisionIds.length === 0) continue;
+    submitted.push({ key, items });
     contracts.push({
       title: shape.title,
       summary: shape.summary,
@@ -85388,17 +85421,11 @@ function compileMissionTruth(deps, intakeDeps2, request) {
     const contractAssessment = recordAssessment(deps, request.missionId, { contracts });
     mission = contractAssessment.mission;
     contractIds = contractAssessment.contractIds;
-    const orderedKeys = [...pendingBySurface.keys()].sort().filter((key) => {
-      const shape = key === BEHAVIOUR_SURFACE_KEY ? BEHAVIOUR_CONTRACT : SURFACE_CONTRACTS[key];
-      return shape !== void 0;
-    });
-    orderedKeys.forEach((key, index) => {
+    submitted.forEach((bucket, index) => {
       const contractId = contractIds[index];
       if (contractId === void 0) return;
-      map.surfaceContracts[key] = contractId;
-      for (const item of pendingBySurface.get(key) ?? []) {
-        map.itemContracts[item.itemId] = contractId;
-      }
+      map.surfaceContracts[bucket.key] ??= contractId;
+      for (const item of bucket.items) map.itemContracts[item.itemId] = contractId;
     });
     writeProjectionMap(intakeDeps2.workspace, request.intakeId, map);
   }
@@ -85606,12 +85633,18 @@ function assessReadiness(input) {
       input.analysis.reasons.length > 0 ? `Delta authority analysis is incomplete: ${input.analysis.reasons.join(" ")}` : "Delta authority analysis is incomplete."
     );
   }
+  const contractCount = input.productContractCount;
+  if (contractCount !== void 0 && contractCount === 0) {
+    reasons.push(
+      "No product contract was compiled from the submitted specification, so there is nothing to build. State what the feature promises \u2014 a public surface, a configuration format, a failure behaviour \u2014 rather than only how it should be implemented."
+    );
+  }
   if (!missionContractReady) {
     reasons.push(
       input.missionCoverage === void 0 ? "The mission has no coverage snapshot yet." : `The mission coverage gate does not hold: ${input.missionCoverage.reasons.join(" ")}`
     );
   }
-  const ready = unaccounted.length === 0 && open.length === 0 && deltaComplete && missionContractReady;
+  const ready = unaccounted.length === 0 && open.length === 0 && deltaComplete && missionContractReady && (contractCount === void 0 || contractCount > 0);
   if (ready) {
     reasons.push(
       "Every normative statement is accounted for, no product question is open, delta authority analysis is complete, and the mission coverage gate holds."
@@ -85931,7 +85964,10 @@ function runIntakeDiscovery(deps, intakeId, options = {}) {
     analysis,
     questions,
     missionCoverage,
-    overflowed: compiled.overflowItemIds.length > 0
+    overflowed: compiled.overflowItemIds.length > 0,
+    productContractCount: readContractRegistry(deps.workspace, intake.missionId).filter(
+      (contract) => contract.status !== "superseded"
+    ).length
   });
   const openCount = questions.filter((question) => question.status === "open").length;
   const status = readiness.ready ? "READY_FOR_APPROVAL" : openCount > 0 ? "AWAITING_PRODUCT_ANSWERS" : "DISCOVERING";
@@ -86145,6 +86181,7 @@ function admitAndRecord(deps, input) {
 }
 function countsOf(items) {
   const counts = {};
+  for (const cls of DELTA_AUTHORITY_CLASSES) counts[cls] = 0;
   for (const item of items) counts[item.classification] = (counts[item.classification] ?? 0) + 1;
   return counts;
 }
