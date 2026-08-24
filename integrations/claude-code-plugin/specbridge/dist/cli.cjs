@@ -102218,12 +102218,12 @@ var SAME_STATEMENT_JACCARD = 0.7;
 var MIN_TOKENS_FOR_MATCH = 4;
 function surfacesFor(chunk, statement) {
   const own = surfacesOf(statement);
-  if (own.length > 0) return own;
+  if (own.length > 0 || chunk.kind !== "narrative") return own;
   return surfacesOf(chunk.headingPath.join(" "));
 }
 function topicsFor(chunk, statement) {
   const own = topicsOf(statement);
-  if (own.length > 0) return own;
+  if (own.length > 0 || chunk.kind !== "narrative") return own;
   return topicsOf(chunk.headingPath.join(" "));
 }
 function analyzeDeltaAuthority(request) {
