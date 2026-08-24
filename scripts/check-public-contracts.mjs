@@ -180,6 +180,7 @@ async function buildSnapshots() {
   const execution = await importDist('execution');
   const orchestration = await importDist('orchestration');
   const mission = await importDist('mission');
+  const autonomy = await importDist('autonomy');
   const mcp = await importDist('mcp-server');
   const context = await importDist('context');
 
@@ -236,6 +237,21 @@ async function buildSnapshots() {
       missionContract: mission.MISSION_CONTRACT_SCHEMA_VERSION,
       missionCcr: mission.MISSION_CCR_SCHEMA_VERSION,
       missionCheckpoint: mission.MISSION_CHECKPOINT_SCHEMA_VERSION,
+      // Overnight autonomous runtime families (vNext.10; persisted under
+      // .specbridge/autonomy/).
+      missionSeal: autonomy.SEAL_SCHEMA_VERSION,
+      supervisorState: autonomy.SUPERVISOR_SCHEMA_VERSION,
+      overnightPreflight: autonomy.PREFLIGHT_SCHEMA_VERSION,
+      toolsmithRecord: autonomy.TOOLSMITH_SCHEMA_VERSION,
+      environmentRecord: autonomy.ENVIRONMENT_SCHEMA_VERSION,
+      browserScenario: autonomy.BROWSER_SCHEMA_VERSION,
+      uxCritique: autonomy.CRITIC_SCHEMA_VERSION,
+      closureLedger: autonomy.CLOSURE_SCHEMA_VERSION,
+      systemScenario: autonomy.SYSTEM_SCENARIO_SCHEMA_VERSION,
+      reproducibilityRun: autonomy.REPRODUCIBILITY_SCHEMA_VERSION,
+      controlPlaneRepair: autonomy.REPAIR_SCHEMA_VERSION,
+      autonomyTelemetry: autonomy.TELEMETRY_SCHEMA_VERSION,
+      zeroTouchCertification: autonomy.CERTIFICATION_SCHEMA_VERSION,
       // Survival-runtime families (vNext.1; persisted under .specbridge/jobs/<id>/).
       taskAttempt: orchestration.TASK_ATTEMPT_SCHEMA_VERSION,
       taskCheckpoint: orchestration.TASK_CHECKPOINT_SCHEMA_VERSION,
@@ -317,6 +333,9 @@ async function buildSnapshots() {
       // Objective-runtime vocabulary (additive within 1.x).
       agentRoles: [...orchestration.AGENT_ROLES].sort(),
       jobEventTypes: [...orchestration.JOB_EVENT_TYPES].sort(),
+      jobStatuses: [...orchestration.JOB_STATUSES].sort(),
+      operationalJobStatuses: [...orchestration.OPERATIONAL_JOB_STATUSES].sort(),
+      humanAttentionJobStatuses: [...orchestration.HUMAN_ATTENTION_JOB_STATUSES].sort(),
       workUnitStatuses: [...orchestration.WORK_UNIT_STATUSES].sort(),
       workUnitKinds: [...orchestration.WORK_UNIT_KINDS].sort(),
       evaluationVerdicts: [...orchestration.EVALUATION_VERDICTS].sort(),
@@ -450,6 +469,68 @@ async function buildSnapshots() {
       ccrStatuses: [...mission.CCR_STATUSES].sort(),
       eventTypes: [...mission.MISSION_EVENT_TYPES].sort(),
       errorCodes: Object.keys(mission.SBM_CODES).sort(),
+    },
+    // Overnight autonomous runtime vocabulary (vNext.10). Every value is
+    // stable within 1.x: members may be appended, never renamed or removed.
+    // `hardHumanAuthoritySurfaces` and `nonAuthoritySignals` are the two that
+    // matter most: the first names what a human always decides, the second
+    // names what can NEVER become a human gate, and both are promises rather
+    // than implementation details.
+    'autonomy-contract.json': {
+      autonomyModes: [...core.AUTONOMY_MODES].sort(),
+      humanGateModes: [...core.HUMAN_GATE_MODES].sort(),
+      delegationSettings: [...core.DELEGATION_SETTINGS].sort(),
+      hardHumanAuthoritySurfaces: [...core.HARD_HUMAN_AUTHORITY_SURFACES].sort(),
+      toolsmithCapabilities: [...core.TOOLSMITH_CAPABILITIES].sort(),
+      criticModes: [...core.CRITIC_MODES].sort(),
+      sealStatuses: [...autonomy.SEAL_STATUSES].sort(),
+      sealedAuthorityKinds: [...autonomy.SEALED_AUTHORITY_KINDS].sort(),
+      requiredSealAuthorityKinds: [...autonomy.REQUIRED_SEAL_AUTHORITY_KINDS].sort(),
+      autonomousDecisionSurfaces: [...autonomy.AUTONOMOUS_DECISION_SURFACES].sort(),
+      authorityVerdicts: [...autonomy.AUTHORITY_VERDICTS].sort(),
+      authorityReasons: [...autonomy.AUTHORITY_REASONS].sort(),
+      nonAuthoritySignals: [...autonomy.NON_AUTHORITY_SIGNALS].sort(),
+      supervisionStatuses: [...autonomy.SUPERVISION_STATUSES].sort(),
+      supervisionActions: [...autonomy.SUPERVISION_ACTIONS].sort(),
+      resourceWaitKinds: [...autonomy.RESOURCE_WAIT_KINDS].sort(),
+      preflightCapabilities: [...autonomy.PREFLIGHT_CAPABILITIES].sort(),
+      preflightOutcomes: [...autonomy.PREFLIGHT_OUTCOMES].sort(),
+      preflightVerdicts: [...autonomy.PREFLIGHT_VERDICTS].sort(),
+      toolsmithRequestStatuses: [...autonomy.TOOLSMITH_REQUEST_STATUSES].sort(),
+      toolsmithDenialReasons: [...autonomy.TOOLSMITH_DENIAL_REASONS].sort(),
+      toolInstallScopes: [...autonomy.TOOL_INSTALL_SCOPES].sort(),
+      serviceKinds: [...autonomy.SERVICE_KINDS].sort(),
+      readinessProbeKinds: [...autonomy.READINESS_PROBE_KINDS].sort(),
+      applicationLevelProbes: [...autonomy.APPLICATION_LEVEL_PROBES].sort(),
+      environmentStatuses: [...autonomy.ENVIRONMENT_STATUSES].sort(),
+      environmentFailureKinds: [...autonomy.ENVIRONMENT_FAILURE_KINDS].sort(),
+      browserStepKinds: [...autonomy.BROWSER_STEP_KINDS].sort(),
+      browserAssertionSteps: [...autonomy.BROWSER_ASSERTION_STEPS].sort(),
+      browserScenarioStatuses: [...autonomy.BROWSER_SCENARIO_STATUSES].sort(),
+      browserEvidenceKinds: [...autonomy.BROWSER_EVIDENCE_KINDS].sort(),
+      uxFindingKinds: [...autonomy.UX_FINDING_KINDS].sort(),
+      uxFindingSeverities: [...autonomy.UX_FINDING_SEVERITIES].sort(),
+      uxCritiqueVerdicts: [...autonomy.UX_CRITIQUE_VERDICTS].sort(),
+      closureStatuses: [...autonomy.CLOSURE_STATUSES].sort(),
+      closingStatuses: [...autonomy.CLOSING_STATUSES].sort(),
+      closureEvidenceKinds: [...autonomy.CLOSURE_EVIDENCE_KINDS].sort(),
+      closingEvidenceKinds: [...autonomy.CLOSING_EVIDENCE_KINDS].sort(),
+      closurePhases: [...autonomy.CLOSURE_PHASES].sort(),
+      closureDirectives: [...autonomy.CLOSURE_DIRECTIVES].sort(),
+      closureGapKinds: [...autonomy.CLOSURE_GAP_KINDS].sort(),
+      controlPlaneDefectKinds: [...autonomy.CONTROL_PLANE_DEFECT_KINDS].sort(),
+      controlPlaneRepairStages: [...autonomy.CONTROL_PLANE_REPAIR_STAGES].sort(),
+      controlPlaneRepairStatuses: [...autonomy.CONTROL_PLANE_REPAIR_STATUSES].sort(),
+      protectedControlPlaneInvariants: [...autonomy.PROTECTED_CONTROL_PLANE_INVARIANTS].sort(),
+      autonomyCounters: [...autonomy.AUTONOMY_COUNTERS].sort(),
+      autonomyMeasurements: [...autonomy.AUTONOMY_MEASUREMENTS].sort(),
+      zeroTouchFaults: [...autonomy.ZERO_TOUCH_FAULTS].sort(),
+      zeroTouchExpectations: [...autonomy.ZERO_TOUCH_EXPECTATIONS].sort(),
+      zeroTouchOutcomes: [...autonomy.ZERO_TOUCH_OUTCOMES].sort(),
+      certificationVerdicts: [...autonomy.CERTIFICATION_VERDICTS].sort(),
+      reproducibilityDimensions: [...autonomy.REPRODUCIBILITY_DIMENSIONS].sort(),
+      certificationScenarioIds: autonomy.CERTIFICATION_MATRIX.map((s) => s.id).sort(),
+      errorCodes: Object.keys(autonomy.SBA_CODES).sort(),
     },
     'mcp-contract.json': {
       serverName: mcp.MCP_SERVER_NAME,

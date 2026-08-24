@@ -121,3 +121,184 @@ export function assertAutonomousDecisionAllowed(
     },
   );
 }
+
+// ---------------------------------------------------------------------------
+// Delegated authority hook (vNext.10)
+// ---------------------------------------------------------------------------
+
+/**
+ * The seam through which an OVERNIGHT run replaces "ask a human" with
+ * "decide, or decide harder".
+ *
+ * The v1.2 table above is the right default for an interactive session: a
+ * person is present, and a plan that mentions restructuring deserves a
+ * glance. It is the wrong default at 03:00, when the same glance costs eight
+ * hours. Rather than making the table conditional (which would put the
+ * authority policy in two places), the driver consults an optional resolver
+ * that @specbridge/autonomy supplies from the sealed intent.
+ *
+ * The dependency points the right way: orchestration defines the CONTRACT,
+ * autonomy implements it. Nothing here imports the autonomy package, and a
+ * workspace with no seal has no resolver and behaves exactly as it did in
+ * v1.2 — which is also what makes this safe to add to an existing runtime.
+ *
+ * A resolver can only ever move a decision TOWARDS autonomy. It is consulted
+ * at points where the driver was already about to stop, so a resolver that
+ * throws, returns nothing, or is absent leaves the historical human gate in
+ * place. There is deliberately no path by which a resolver can introduce a
+ * gate that the v1.2 rules did not already have.
+ */
+export interface DelegatedAuthorityContext {
+  jobId: string;
+  nodeId?: string | undefined;
+  /** Decision kinds the deterministic screens produced. */
+  decisionKinds: readonly JobDecisionKind[];
+  /** Human-readable reasons from those screens. */
+  reasons: readonly string[];
+  /** Bounded proposal text the screens ran against. */
+  proposal?: string | undefined;
+}
+
+export type DelegatedAuthorityVerdict =
+  | { kind: 'AUTONOMOUS'; reason: string }
+  | { kind: 'ESCALATE_INTELLIGENCE'; reason: string }
+  | {
+      kind: 'NEEDS_AUTHORITY';
+      surface: string;
+      reason: string;
+      question: string;
+      whyItMatters: string;
+      options?: readonly string[] | undefined;
+    };
+
+export interface DelegatedAuthorityResolver {
+  resolve(context: DelegatedAuthorityContext): DelegatedAuthorityVerdict;
+}
+
+/**
+ * Consult a resolver, failing closed to the historical behaviour.
+ *
+ * A resolver that throws is a bug in the autonomy layer, and the correct
+ * response to a bug in the thing that grants autonomy is to grant none: the
+ * job asks the human exactly as it would have without any resolver at all.
+ */
+export function resolveDelegatedAuthority(
+  resolver: DelegatedAuthorityResolver | undefined,
+  context: DelegatedAuthorityContext,
+): DelegatedAuthorityVerdict | undefined {
+  if (resolver === undefined) return undefined;
+  try {
+    return resolver.resolve(context);
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Whether a plan still needs a HUMAN review under delegated authority.
+ *
+ * Found by the vNext.10 StepRelay dogfood, which is exactly what a dogfood is
+ * for. The v1.2 rule is `planReview === 'high-risk' && complexity === 'HIGH'`,
+ * and that is a COMPLEXITY gate: the run stopped at
+ * `AWAIT_HUMAN: Plan revision 1 ... requires an explicit human review` after
+ * successfully classifying and planning the task. Under `humanGate:
+ * AUTHORITY_ONLY` that is precisely the 03:00 question vNext.10 exists to
+ * remove — a hard plan deserves a stronger reasoner and a critic, not a
+ * sleeping person.
+ *
+ * The plan TEXT is passed through, so the promise-vocabulary screen still
+ * runs on it: a plan that proposes changing a public API or a wire format
+ * still reaches a human. What no longer reaches one is a plan that is merely
+ * large.
+ *
+ * Fails closed in every ambiguous case. With no resolver (every unsealed
+ * workspace) the v1.2 answer is returned unchanged.
+ */
+export function resolvePlanReviewRequirement(
+  resolver: DelegatedAuthorityResolver | undefined,
+  input: {
+    jobId: string;
+    nodeId: string;
+    /** What the v1.2 policy concluded. Only ever relaxed, never tightened. */
+    policyRequiresReview: boolean;
+    /** Why the policy concluded it, for the recorded reason. */
+    policyReason: string;
+    /** The plan being reviewed, bounded. Screened for promise vocabulary. */
+    planText: string;
+  },
+): { humanReviewRequired: boolean; relaxedBecause?: string } {
+  if (!input.policyRequiresReview) return { humanReviewRequired: false };
+  const verdict = resolveDelegatedAuthority(resolver, {
+    jobId: input.jobId,
+    nodeId: input.nodeId,
+    decisionKinds: [],
+    reasons: [input.policyReason],
+    proposal: input.planText.slice(0, 4_000),
+  });
+  if (verdict?.kind === 'AUTONOMOUS') {
+    return { humanReviewRequired: false, relaxedBecause: verdict.reason };
+  }
+  return { humanReviewRequired: true };
+}
+
+// ---------------------------------------------------------------------------
+// Completion gate (vNext.10)
+// ---------------------------------------------------------------------------
+
+/**
+ * The seam through which a SEALED Mission's completion is decided by
+ * evidence rather than by task checkboxes.
+ *
+ * `completeJobIfDone` has always completed a job when every runtime node
+ * completed through verified evidence. That is the right rule for a v1.2
+ * job, whose scope IS its task plan. It is the wrong rule for a sealed
+ * Mission, and it is exactly the rule that let the previous long-horizon
+ * dogfood declare a product COMPLETE with seven approved requirements
+ * unimplemented: every task was checked off, so the job completed.
+ *
+ * Same shape and same direction as `DelegatedAuthorityResolver`:
+ * orchestration defines the contract, @specbridge/autonomy implements it
+ * from the Contract Closure Ledger, and a job with no gate (every unsealed
+ * workspace) completes exactly as it did in v1.2.
+ *
+ * A gate can only ever REFUSE. It cannot complete a job that has unfinished
+ * nodes, and it is consulted only after the v1.2 rule has already said yes.
+ */
+export interface CompletionAssessment {
+  mayComplete: boolean;
+  /** One line for the job event and the operator report. */
+  reason: string;
+  /** How many sealed items remain unclosed. Zero when `mayComplete`. */
+  unclosed: number;
+}
+
+export interface CompletionGate {
+  assess(jobId: string): CompletionAssessment;
+}
+
+/**
+ * Consult a gate, failing CLOSED to refusing completion.
+ *
+ * The asymmetry is deliberate and is the opposite of the authority seam's.
+ * There, a broken resolver must not grant autonomy, so failure means "ask".
+ * Here, a broken gate must not grant COMPLETION, so failure means "not yet"
+ * — a job that stays open is recoverable, and a job wrongly declared
+ * complete is the failure this entire mechanism exists to prevent.
+ */
+export function assessCompletion(
+  gate: CompletionGate | undefined,
+  jobId: string,
+): CompletionAssessment | undefined {
+  if (gate === undefined) return undefined;
+  try {
+    return gate.assess(jobId);
+  } catch (cause) {
+    return {
+      mayComplete: false,
+      unclosed: -1,
+      reason:
+        'the contract closure gate could not be evaluated, so completion is refused: ' +
+        `${(cause instanceof Error ? cause.message : String(cause)).slice(0, 200)}`,
+    };
+  }
+}

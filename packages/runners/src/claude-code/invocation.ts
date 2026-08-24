@@ -1,8 +1,7 @@
-import { mkdirSync, rmSync } from 'node:fs';
-import path from 'node:path';
+import { rmSync } from 'node:fs';
 import { z } from 'zod';
 import type { ClaudeRunnerConfig } from '@specbridge/core';
-import { SpecBridgeError, writeFileAtomic } from '@specbridge/core';
+import { SpecBridgeError } from '@specbridge/core';
 import type { RunnerExecutionOptions, RunnerToolPolicy } from '../contract.js';
 import type { SafeProcessResult } from '../safe-process.js';
 import { runSafeProcess } from '../safe-process.js';
@@ -33,7 +32,10 @@ export interface ClaudeInvocationPlan {
   argv: string[];
   /** Prompt content delivered via stdin. */
   stdin: string;
-  /** Temp files the invocation writes under `<runDir>/tmp/`. */
+  /**
+   * Temp files the invocation writes under `<runDir>/tmp/`. Claude Code
+   * needs none: the output schema travels inside the argument vector.
+   */
   tempFiles: string[];
   /** Flags that were requested but skipped because the CLI lacks them. */
   skippedFlags: string[];
@@ -51,8 +53,8 @@ export interface BuildInvocationInput {
   resumeSessionId?: string;
   execution: RunnerExecutionOptions;
   /**
-   * False for dry-run previews: temp files (the output schema) are not
-   * written and a placeholder path appears in the argv instead.
+   * Retained for callers shared with runners that DO materialize temp
+   * files. Claude Code writes none, so this no longer affects the plan.
    */
   materializeTempFiles?: boolean;
 }
@@ -84,13 +86,10 @@ export function buildClaudeInvocation(input: BuildInvocationInput): ClaudeInvoca
   argv.push('--output-format', 'json');
 
   if (supports('--json-schema')) {
-    const schemaPath = path.join(execution.runDir, 'tmp', 'output-schema.json');
-    if (input.materializeTempFiles !== false) {
-      mkdirSync(path.dirname(schemaPath), { recursive: true });
-      writeFileAtomic(schemaPath, `${JSON.stringify(input.outputJsonSchema, null, 2)}\n`);
-      tempFiles.push(schemaPath);
-    }
-    argv.push('--json-schema', schemaPath);
+    // Claude Code takes the JSON Schema DEFINITION as the flag value, not a
+    // path to a schema file. The serialized schema is exactly one argv
+    // element: no shell is involved, so no quoting is applied here.
+    argv.push('--json-schema', JSON.stringify(input.outputJsonSchema));
   } else {
     skippedFlags.push('--json-schema');
   }
@@ -185,6 +184,9 @@ const claudeEnvelopeSchema = z
     is_error: z.boolean().optional(),
     result: z.string().optional(),
     session_id: z.string().optional(),
+    // Current Claude Code emits `structured_output`; `structured_result`
+    // is the obsolete spelling, still parsed for older installations.
+    structured_output: z.unknown().optional(),
     structured_result: z.unknown().optional(),
     permission_denials: z.array(z.unknown()).optional(),
   })
@@ -229,8 +231,9 @@ export function parseClaudeEnvelope(stdout: string): EnvelopeParseResult {
     const envelope = claudeEnvelopeSchema.safeParse(parsed);
     if (!envelope.success) continue;
     const data = envelope.data;
-    if (data.structured_result !== undefined) {
-      return { envelope: data, structuredResult: data.structured_result };
+    const structured = data.structured_output ?? data.structured_result;
+    if (structured !== undefined && structured !== null) {
+      return { envelope: data, structuredResult: structured };
     }
     if (data.result !== undefined) {
       return { envelope: data, reportText: data.result };
@@ -240,4 +243,56 @@ export function parseClaudeEnvelope(stdout: string): EnvelopeParseResult {
   }
 
   return { problem: 'no JSON result envelope found in the runner output' };
+}
+
+/** Upper bound on stderr characters retained in a failure diagnostic. */
+export const MAX_STDERR_DIAGNOSTIC_CHARS = 500;
+
+/**
+ * Patterns whose matches never survive into a retained diagnostic. Bounded
+ * process output is still process output: a CLI is free to echo an
+ * authorization header or a key-shaped value into stderr.
+ */
+const CREDENTIAL_PATTERNS: readonly RegExp[] = [
+  /\bsk-[A-Za-z0-9_-]{8,}/gi,
+  /\bbearer\s+[A-Za-z0-9._-]{8,}/gi,
+  /\boauth-[A-Za-z0-9-]{6,}/gi,
+  /\b(?:api[-_]?keys?|access[-_]?tokens?|secrets?|passwords?)\b(?:\s*[:=]\s*\S+)?/gi,
+];
+
+/** Replace credential-shaped substrings with a fixed marker. */
+export function redactCredentials(text: string): string {
+  let redacted = text;
+  for (const pattern of CREDENTIAL_PATTERNS) redacted = redacted.replace(pattern, '[redacted]');
+  return redacted;
+}
+
+/**
+ * A bounded, single-line, credential-scrubbed excerpt of stderr, or
+ * undefined when stderr carries nothing useful. Never returns unbounded
+ * process output.
+ */
+export function stderrDiagnostic(stderr: string): string | undefined {
+  const collapsed = redactCredentials(stderr).replace(/\s+/g, ' ').trim();
+  if (collapsed.length === 0) return undefined;
+  if (collapsed.length <= MAX_STDERR_DIAGNOSTIC_CHARS) return collapsed;
+  return `${collapsed.slice(0, MAX_STDERR_DIAGNOSTIC_CHARS)}… [truncated]`;
+}
+
+/**
+ * Compose the problem text for a Claude invocation that produced no usable
+ * result envelope. When the process also exited non-zero, the CLI's own
+ * stderr message is the only signal that explains why — losing it collapses
+ * every provider-side failure into an indistinguishable "no output".
+ *
+ * This changes diagnostics only. A provider or CLI failure remains a WORKER
+ * failure: it never becomes task completion and never completes a task.
+ */
+export function claudeFailureProblem(
+  problem: string,
+  processResult: Pick<SafeProcessResult, 'status' | 'stderr'>,
+): string {
+  if (processResult.status !== 'nonzero-exit') return problem;
+  const diagnostic = stderrDiagnostic(processResult.stderr);
+  return diagnostic === undefined ? problem : `${problem} (claude stderr: ${diagnostic})`;
 }

@@ -91,6 +91,37 @@ reference, grouped by area.
 - [Orchestration configuration](orchestration/configuration.md) — every
   policy knob, with defaults.
 
+## Overnight autonomy (vNext.10)
+
+The phase that removes the human from ordinary engineering overnight: seal
+the intent in the evening, run one command, read the report in the morning.
+
+- [Overnight autonomy](autonomy/overnight-autonomy.md) — the model, the
+  intent seal, the autonomous states, and **what zero-touch does not
+  guarantee**.
+- [Authority firewall](autonomy/authority-firewall.md) — difficulty routes to
+  stronger intelligence; only an authority boundary wakes a human.
+- [Supervisor lifecycle](autonomy/supervisor.md) — leases, restart
+  accounting, and why a live lease is never preempted.
+- [Toolsmith](autonomy/toolsmith.md) — building tools without creating
+  authority.
+- [Environment lifecycle](autonomy/environments.md) — readiness that means
+  something, and evidence that says how deeply it was checked.
+- [Browser evidence](autonomy/browser-evidence.md) — first-class UI evidence,
+  and the UX critic's negative authority.
+- [Contract closure](autonomy/contract-closure.md) — the completion oracle
+  and the automatic gap-closure lifecycle.
+- [Control-plane repair](autonomy/control-plane-repair.md) — governed
+  self-repair that cannot weaken its own constraints.
+- [Autonomy telemetry](autonomy/telemetry.md) — the honest report, where an
+  unknown is `null` and never zero.
+- [Zero-touch certification](autonomy/certification.md) — the sixteen-fault
+  matrix, and the three defects it found.
+- [Operator setup](autonomy/operator-setup.md) — the evening checklist.
+- [The vNext.10 dogfood](autonomy/dogfood.md) — a real unattended run on a
+  real repository: what it proved, what it did not, and the five defects it
+  found that 2,500 tests did not.
+
 ## Mission-driven development
 
 - [Mission Discovery](mission/mission-discovery.md) — the lifecycle from a

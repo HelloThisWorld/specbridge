@@ -5,6 +5,7 @@ import {
   cleanupTempFiles,
   costFromEnvelope,
   localStructuredInference,
+  claudeFailureProblem,
   parseClaudeEnvelope,
   probeClaude,
   runSafeProcess,
@@ -228,7 +229,14 @@ export async function runLargeObjectiveRole<Role extends ObjectiveContractRole>(
     }
     const parsed = parseClaudeEnvelope(processResult.stdout);
     if (parsed.problem !== undefined) {
-      return { ok: false, kind: 'invalid-output', problem: parsed.problem, probe };
+      // See runLargeRole: a non-zero exit without an envelope must keep the
+      // CLI's bounded stderr diagnostic, and remains a worker failure.
+      return {
+        ok: false,
+        kind: 'invalid-output',
+        problem: claudeFailureProblem(parsed.problem, processResult),
+        probe,
+      };
     }
     const text =
       parsed.structuredResult !== undefined

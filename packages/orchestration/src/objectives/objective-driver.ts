@@ -69,6 +69,7 @@ import {
 } from './store.js';
 import {
   evaluateDeterministically,
+  isUnavailableStatus,
   nextEvaluationId,
   semanticEvaluationRequired,
 } from './evaluation.js';
@@ -832,11 +833,36 @@ async function evaluateCandidate(
     return persistGraph(input, recordConflict(input, graph, unitId, candidate, deterministic.reasons, deterministic.affectedContractIds, deterministic.decisionKind));
   }
   if (deterministic.verdict === 'FAIL') {
-    const stale = deterministic.checks.some((check) => check.name === 'projection-freshness' && !check.passed);
+    const stale = deterministic.checks.some(
+      (check) => check.name === 'projection-freshness' && !check.passed,
+    );
+    // A verification command that never STARTED is a toolchain failure, not a
+    // code failure. Categorising it as VERIFICATION_FAILURE sends the
+    // reliability runtime off to repair an implementation that was never
+    // tested — which is exactly what the vNext.10 dogfood spent three
+    // repair/replan cycles doing when `gradlew.bat` could not be spawned in
+    // the builder's worktree.
+    //
+    // Only when local verification is the SOLE failing check: a candidate
+    // that also tripped a guard or changed nothing has real problems whether
+    // or not its tests could run.
+    const failedChecks = deterministic.checks.filter((check) => !check.passed);
+    const failedCommands = candidate.localVerification.commands.filter(
+      (command) => command.status !== 'ok',
+    );
+    const verificationUnavailable =
+      failedChecks.length === 1 &&
+      failedChecks[0]?.name === 'local-verification' &&
+      failedCommands.length > 0 &&
+      failedCommands.every((command) => isUnavailableStatus(command.status));
     return persistGraph(
       input,
       applyUnitRejection(input, graph, unitId, attempt, {
-        category: stale ? 'STALE_CONTEXT' : 'VERIFICATION_FAILURE',
+        category: stale
+          ? 'STALE_CONTEXT'
+          : verificationUnavailable
+            ? 'CAPABILITY_UNAVAILABLE'
+            : 'VERIFICATION_FAILURE',
         message: `Deterministic evaluation failed: ${deterministic.reasons.join('; ').slice(0, 1_200)}`,
       }),
     );

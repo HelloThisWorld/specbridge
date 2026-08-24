@@ -17,6 +17,8 @@ import { buildExecutionPlan, capturePlanBinding, evaluatePlanFreshness } from '.
 import { assessProgress, diffFingerprint } from '../progress.js';
 import { backoffForAttempt } from '../retry.js';
 import type { FailureCategory } from '../vocabulary.js';
+import type { CompletionGate, DelegatedAuthorityResolver } from './authority.js';
+import { assessCompletion, resolvePlanReviewRequirement } from './authority.js';
 import { assessComplexity, mergeComplexity } from './complexity.js';
 import type { ComplexityInput } from './complexity.js';
 import {
@@ -136,6 +138,18 @@ export interface JobDeps {
   idFactory?: (() => string) | undefined;
   /** Host label recorded on the job (e.g. "cli", "daemon"). */
   host?: string | undefined;
+  /**
+   * vNext.10: the delegated-authority resolver, supplied by
+   * @specbridge/autonomy when a sealed Mission governs this job. Absent for
+   * every unsealed job, which then behaves exactly as it did in v1.2.
+   */
+  authorityResolver?: DelegatedAuthorityResolver | undefined;
+  /**
+   * vNext.10: the contract-closure completion gate, supplied by
+   * @specbridge/autonomy for a sealed Mission. Absent for every unsealed
+   * job, which then completes exactly as it did in v1.2.
+   */
+  completionGate?: CompletionGate | undefined;
 }
 
 function policyOf(deps: JobDeps): JobPolicy {
@@ -157,6 +171,28 @@ function assertJobsEnabled(deps: JobDeps): void {
     'Job orchestration is disabled by `orchestration.jobs.enabled` in .specbridge/config.json.',
     { remediation: ['Set orchestration.jobs.enabled to true, or drive tasks interactively.'] },
   );
+}
+
+/**
+ * The reviewable text of a stored plan, bounded.
+ *
+ * Used to screen a plan for PROMISE vocabulary when the authority firewall
+ * decides whether a policy-mandated review still needs a person. A plan that
+ * cannot be read yields empty text, which screens as no promises and leaves
+ * the v1.2 gate exactly where it was.
+ */
+function planTextOf(plan: Record<string, unknown> | undefined): string {
+  if (plan === undefined) return '';
+  const goal = typeof plan['goal'] === 'string' ? plan['goal'] : '';
+  const steps = Array.isArray(plan['steps']) ? plan['steps'] : [];
+  const descriptions = steps
+    .map((step) =>
+      step !== null && typeof step === 'object' && typeof (step as { description?: unknown }).description === 'string'
+        ? (step as { description: string }).description
+        : '',
+    )
+    .filter((description) => description.length > 0);
+  return [goal, ...descriptions].join('\n').slice(0, 4_000);
 }
 
 /** Append an event, keeping the persisted counter and the log consistent. */
@@ -601,12 +637,25 @@ export async function recordPlan(
 
   ({ job, graph } = appendAttempt(deps, job, graph, result.context, 'succeeded'));
 
-  // Gates: local plans go to the critic; human review by policy.
+  // Gates: local plans go to the critic; human review by policy — and, under
+  // a sealed Mission, the authority firewall gets to dissolve a review that
+  // exists only because the work is HARD.
   const criticApplies =
     policy.routing.critic !== 'disabled' && result.producedByTier === 'LOCAL_SMALL';
-  const humanReview =
+  const complexity = requireNode(graph, node.nodeId).complexity ?? 'LOW';
+  const policyRequiresReview =
     policy.planReview === 'always' ||
-    (policy.planReview === 'high-risk' && (requireNode(graph, node.nodeId).complexity ?? 'LOW') === 'HIGH');
+    (policy.planReview === 'high-risk' && complexity === 'HIGH');
+  const review = resolvePlanReviewRequirement(deps.authorityResolver, {
+    jobId,
+    nodeId: node.nodeId,
+    policyRequiresReview,
+    policyReason: `plan review by ${policy.planReview} policy at complexity ${complexity}`,
+    planText: `${result.candidate.goal}\n${result.candidate.steps
+      .map((step) => step.description)
+      .join('\n')}`,
+  });
+  const humanReview = review.humanReviewRequired;
   const approved = !criticApplies && !humanReview;
 
   graph = withNode(graph, {
@@ -667,9 +716,17 @@ export function recordCriticVerdict(
 
   ({ job, graph } = appendAttempt(deps, job, graph, result.context, 'succeeded'));
 
-  const humanReview =
+  const activePlan = readNodePlan(deps.workspace, jobId, node.nodeId, node.planRevision);
+  const policyRequiresReview =
     policy.planReview === 'always' ||
     (policy.planReview === 'high-risk' && (node.complexity ?? 'LOW') === 'HIGH');
+  const humanReview = resolvePlanReviewRequirement(deps.authorityResolver, {
+    jobId,
+    nodeId: node.nodeId,
+    policyRequiresReview,
+    policyReason: `plan review by ${policy.planReview} policy at complexity ${node.complexity ?? 'LOW'}`,
+    planText: planTextOf(activePlan),
+  }).humanReviewRequired;
 
   const accepted = result.verdict === 'ACCEPT';
   graph = withNode(graph, {
@@ -722,6 +779,17 @@ export function noteEscalation(
  * Reconcile a job whose nodes all finished but whose status transition was
  * interrupted (crash between the graph write and the job write). Idempotent.
  */
+/**
+ * Complete the job when every runtime node completed through verified
+ * evidence — AND, for a sealed Mission, when the closure ledger agrees.
+ *
+ * The v1.2 rule runs first and is unchanged: unfinished nodes still refuse.
+ * The gate is consulted only after that rule has said yes, and it can only
+ * refuse. A refused job moves to QUALIFYING rather than erroring, because
+ * "the task list is finished and the contract is not" is not a failure — it
+ * is the moment the closure lifecycle takes over and generates the work that
+ * is actually missing.
+ */
 export function completeJobIfDone(deps: JobDeps, jobId: string): JobState {
   let job = requireJobState(deps.workspace, jobId);
   if (isFinalJobStatus(job.status)) return job;
@@ -729,9 +797,28 @@ export function completeJobIfDone(deps: JobDeps, jobId: string): JobState {
   if (!allNodesComplete(graph)) {
     throw new OrchestrationError('SBO027', 'The job cannot complete: unfinished nodes remain.');
   }
+
+  const closure = assessCompletion(deps.completionGate, jobId);
+  if (closure !== undefined && !closure.mayComplete) {
+    if (job.status === 'QUALIFYING') {
+      // Already there; the closure lifecycle owns the next move.
+      return job;
+    }
+    job = transition(deps, job, 'QUALIFYING');
+    job = record(deps, job, 'closure_audit_completed', {
+      directive: 'CONTRACT_CLOSURE_AUDIT',
+      unclosed: closure.unclosed,
+      reason: closure.reason.slice(0, 500),
+    });
+    return persist(deps, { ...job, closurePhase: 'CONTRACT_CLOSURE_AUDIT' });
+  }
+
   const at = now(deps).toISOString();
   job = transition(deps, job, 'COMPLETED');
-  job = record(deps, job, 'job_completed', { reconciled: true });
+  job = record(deps, job, 'job_completed', {
+    reconciled: true,
+    ...(closure !== undefined ? { closure: closure.reason.slice(0, 300) } : {}),
+  });
   return persist(deps, { ...job, finalizedAt: at, finalOutcome: 'COMPLETED' });
 }
 
@@ -745,6 +832,45 @@ export function recordJobEvent(
   let job = requireJobState(deps.workspace, jobId);
   job = record(deps, job, type, payload);
   return persist(deps, job);
+}
+
+/**
+ * The shared state-mutation primitive for the vNext.10 autonomous statuses.
+ *
+ * `record`, `transition`, and `persist` are private to this module on
+ * purpose: every job status change goes through the same event-budget check
+ * and the same fail-closed transition table, and a second module that
+ * reimplemented them would be a second place for that to stop being true.
+ * Rather than exporting three primitives, this exports the one composition
+ * `autonomous-states.ts` needs, which is also the only composition that is
+ * ever correct: transition, record why, patch, persist, atomically.
+ *
+ * A transition to the SAME status is legal here and is a no-op on the
+ * status while still recording the event and applying the patch — an
+ * operational condition that recurs (a second failed provider probe) is a
+ * real observation even though the job has not moved.
+ */
+export function applyJobTransition(
+  deps: JobDeps,
+  jobId: string,
+  input: {
+    to: JobStatus;
+    event: JobEventType;
+    payload?: Record<string, unknown>;
+    patch?: Partial<JobState>;
+  },
+): JobState {
+  let job = requireJobState(deps.workspace, jobId);
+  if (isFinalJobStatus(job.status)) {
+    throw new OrchestrationError(
+      'SBO026',
+      `Job is ${job.status}; autonomous status changes are not possible on a finalized job.`,
+      { details: { from: job.status, to: input.to } },
+    );
+  }
+  if (job.status !== input.to) job = transition(deps, job, input.to);
+  job = record(deps, job, input.event, input.payload ?? {});
+  return persist(deps, { ...job, ...(input.patch ?? {}) });
 }
 
 /** Record an explicit human review of a node's active plan. */

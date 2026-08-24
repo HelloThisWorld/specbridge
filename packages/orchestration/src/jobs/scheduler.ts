@@ -9,7 +9,7 @@ import { findNode, nextSchedulableNode, unfinishedNodes } from './graph.js';
 import { selectWorker } from './routing.js';
 import type { JobGraph, JobNode, JobState, JobWorkerProfile } from './state.js';
 import type { AgentRole, EscalationReason } from './vocabulary.js';
-import { isFinalJobStatus } from './vocabulary.js';
+import { isFinalJobStatus, isOperationalJobStatus } from './vocabulary.js';
 
 /**
  * The deterministic scheduler.
@@ -72,7 +72,7 @@ export type SchedulerDecision =
     }
   | {
       kind: 'AWAIT_HUMAN';
-      what: 'clarification' | 'plan-review';
+      what: 'clarification' | 'plan-review' | 'authority';
       nodeId?: string;
       reason: string;
     }
@@ -282,10 +282,37 @@ export function scheduleNext(input: ScheduleInput): SchedulerDecision {
           : 'A user decision is required before the job can continue.',
     };
   }
-  if (job.status === 'WAITING_RETRY') {
-    const retryAt = job.retryAt ?? input.now.toISOString();
-    if (Date.parse(retryAt) > input.now.getTime()) {
-      return { kind: 'WAIT_RETRY', retryAt, reason: `A transient failure defers the next attempt until ${retryAt}.` };
+  if (job.status === 'NEEDS_AUTHORITY') {
+    // The one status an unattended run may legitimately stop a human for.
+    // Falling through to ordinary scheduling here would let the runtime
+    // proceed past its own authority firewall, which is the single worst
+    // thing this system could do.
+    return {
+      kind: 'AWAIT_HUMAN',
+      what: 'authority',
+      ...(job.authorityRequest?.nodeId !== undefined
+        ? { nodeId: job.authorityRequest.nodeId }
+        : {}),
+      reason:
+        job.authorityRequest?.question ??
+        'Continuing requires product authority the sealed Mission does not contain.',
+    };
+  }
+  if (job.status === 'WAITING_RETRY' || isOperationalJobStatus(job.status)) {
+    // Operational statuses are the SUPERVISOR's to leave: it clears them when
+    // the condition it recorded actually clears. A driver consulted while one
+    // is in force waits rather than dispatching, and never clears it itself —
+    // a driver that decided a provider was back would be guessing.
+    const wakeAt = job.operationalWait?.wakeAt ?? job.retryAt ?? input.now.toISOString();
+    if (Date.parse(wakeAt) > input.now.getTime()) {
+      return {
+        kind: 'WAIT_RETRY',
+        retryAt: wakeAt,
+        reason:
+          job.operationalWait !== undefined
+            ? `Waiting on ${job.operationalWait.kind} until ${wakeAt}.`
+            : `A transient failure defers the next attempt until ${wakeAt}.`,
+      };
     }
     // The wait elapsed; fall through to normal scheduling below.
   }

@@ -6,11 +6,15 @@ import { claudeRunnerConfigSchema } from '@specbridge/core';
 import type { RunnerExecutionOptions } from '@specbridge/runners';
 import {
   ClaudeCodeRunner,
+  MAX_STDERR_DIAGNOSTIC_CHARS,
   assertNoForbiddenArguments,
   buildClaudeInvocation,
+  claudeFailureProblem,
   parseClaudeEnvelope,
   probeClaude,
+  redactCredentials,
   runSafeProcess,
+  stderrDiagnostic,
 } from '@specbridge/runners';
 import { FAKE_CLAUDE_PATH } from '../helpers-execution.js';
 
@@ -354,5 +358,166 @@ describe('safe process guardrails', () => {
     });
     expect(result.observation.redactedArgv).toContain('<redacted>');
     expect(result.observation.redactedArgv.join(' ')).not.toContain('super-secret');
+  });
+});
+
+/**
+ * Regression coverage for the Claude Code CLI contract.
+ *
+ * SpecBridge previously materialized `output-schema.json` and passed its
+ * PATH as the `--json-schema` value. Claude Code takes the schema itself,
+ * so every large-tier reasoning role failed with the CLI's own
+ * "--json-schema is not valid JSON" on stderr and nothing on stdout,
+ * surfacing only as "the runner produced no output".
+ */
+describe('the --json-schema contract', () => {
+  const SCHEMA = {
+    type: 'object',
+    properties: { decision: { type: 'string' } },
+    required: ['decision'],
+    additionalProperties: false,
+  };
+
+  async function planWithSchema() {
+    scenario('success');
+    const config = fakeConfig();
+    const probe = await probeClaude(config);
+    return buildClaudeInvocation({
+      config,
+      probe,
+      prompt: 'prompt text',
+      toolPolicy: 'inspect-only',
+      outputJsonSchema: SCHEMA,
+      execution: execOptions(),
+    });
+  }
+
+  it('passes the serialized schema as exactly one argv element', async () => {
+    const plan = await planWithSchema();
+    const index = plan.argv.indexOf('--json-schema');
+    expect(index).toBeGreaterThanOrEqual(0);
+    const value = plan.argv[index + 1] ?? '';
+    expect(JSON.parse(value)).toEqual(SCHEMA);
+    // No shell quoting is applied: the value is a bare JSON document.
+    expect(value.startsWith('{')).toBe(true);
+  });
+
+  it('never passes a schema filesystem path and writes no schema file', async () => {
+    const plan = await planWithSchema();
+    const value = plan.argv[plan.argv.indexOf('--json-schema') + 1] ?? '';
+    expect(value).not.toContain('output-schema.json');
+    expect(path.isAbsolute(value)).toBe(false);
+    expect(plan.tempFiles).toEqual([]);
+  });
+
+  it('keeps the bypass protections intact when a schema is present', async () => {
+    const plan = await planWithSchema();
+    expect(() => assertNoForbiddenArguments(plan.argv)).not.toThrow();
+    for (const forbidden of ['--dangerously-skip-permissions', 'bypassPermissions']) {
+      expect(plan.argv.join(' ')).not.toContain(forbidden);
+    }
+  });
+
+  it('the fake CLI rejects a schema path exactly as Claude Code does', async () => {
+    scenario('success');
+    const config = fakeConfig();
+    const result = await runSafeProcess({
+      executable: config.command,
+      argv: [
+        ...config.commandArgs,
+        '-p',
+        '--output-format',
+        'json',
+        '--json-schema',
+        'C:/tmp/output-schema.json',
+      ],
+      cwd: process.cwd(),
+      timeoutMs: 30_000,
+      stdin: 'anything',
+    });
+    expect(result.status).toBe('nonzero-exit');
+    expect(result.stdout.trim()).toBe('');
+    expect(result.stderr).toContain('--json-schema is not valid JSON');
+  });
+});
+
+describe('structured output envelope fields', () => {
+  it('parses the current structured_output field', () => {
+    const parsed = parseClaudeEnvelope('{"type":"result","structured_output":{"decision":"PLAN"}}');
+    expect(parsed.structuredResult).toEqual({ decision: 'PLAN' });
+    expect(parsed.problem).toBeUndefined();
+  });
+
+  it('still parses the obsolete structured_result spelling', () => {
+    const parsed = parseClaudeEnvelope('{"type":"result","structured_result":{"decision":"PLAN"}}');
+    expect(parsed.structuredResult).toEqual({ decision: 'PLAN' });
+  });
+
+  it('prefers structured_output when both are present', () => {
+    const parsed = parseClaudeEnvelope(
+      '{"structured_output":{"decision":"PLAN"},"structured_result":{"decision":"STALE"}}',
+    );
+    expect(parsed.structuredResult).toEqual({ decision: 'PLAN' });
+  });
+
+  it('falls back to the result text when no structured field is present', () => {
+    const parsed = parseClaudeEnvelope('{"type":"result","result":"{\\"decision\\":\\"PLAN\\"}"}');
+    expect(parsed.structuredResult).toBeUndefined();
+    expect(parsed.reportText).toBe('{"decision":"PLAN"}');
+  });
+
+  it('treats a null structured field as absent rather than a value', () => {
+    const parsed = parseClaudeEnvelope('{"type":"result","structured_output":null,"result":"{}"}');
+    expect(parsed.structuredResult).toBeUndefined();
+    expect(parsed.reportText).toBe('{}');
+  });
+
+  it('a structured_output envelope validates through the runner', async () => {
+    scenario('structured-output');
+    const runner = new ClaudeCodeRunner(fakeConfig());
+    const result = await runner.executeTask(TASK_INPUT, execOptions());
+    expect(result.outcome).toBe('completed');
+    expect(result.report).toBeDefined();
+  });
+});
+
+describe('failure diagnostics', () => {
+  it('retains a bounded stderr excerpt for a non-zero exit with no envelope', () => {
+    const problem = claudeFailureProblem('the runner produced no output', {
+      status: 'nonzero-exit',
+      stderr: 'Error: --json-schema is not valid JSON: JSON Parse error\n',
+    });
+    expect(problem).toContain('the runner produced no output');
+    expect(problem).toContain('--json-schema is not valid JSON');
+  });
+
+  it('leaves the problem untouched when the process exited cleanly', () => {
+    const problem = claudeFailureProblem('no JSON result envelope found in the runner output', {
+      status: 'ok',
+      stderr: 'noise that must not be appended',
+    });
+    expect(problem).toBe('no JSON result envelope found in the runner output');
+  });
+
+  it('bounds the diagnostic instead of embedding unbounded process output', () => {
+    const diagnostic = stderrDiagnostic('x'.repeat(50_000)) ?? '';
+    expect(diagnostic.length).toBeLessThanOrEqual(MAX_STDERR_DIAGNOSTIC_CHARS + 20);
+    expect(diagnostic).toContain('truncated');
+  });
+
+  it('returns nothing for empty or whitespace-only stderr', () => {
+    expect(stderrDiagnostic('')).toBeUndefined();
+    expect(stderrDiagnostic('   \n\t ')).toBeUndefined();
+  });
+
+  it('never lets credential-shaped values into a diagnostic', () => {
+    const dirty =
+      'auth failed: Bearer abcdef1234567890 api_key=super-secret-value sk-ant-0123456789abcdef';
+    const clean = redactCredentials(dirty);
+    expect(clean).not.toContain('abcdef1234567890');
+    expect(clean).not.toContain('super-secret-value');
+    expect(clean).not.toContain('sk-ant-0123456789abcdef');
+    expect(clean).toContain('[redacted]');
+    expect(stderrDiagnostic(dirty) ?? '').not.toContain('super-secret-value');
   });
 });

@@ -1,5 +1,219 @@
 # Changelog
 
+## 1.10.0 (unreleased) — vNext.10 Overnight Autonomous Product Runtime
+
+Nine phases made a long-horizon run SURVIVE. This one makes it not need a
+person.
+
+That is a different problem, and it fails in a specific way. A runtime that
+cannot recover stops honestly. A runtime that recovers but keeps ASKING is
+worse than useless overnight: the human is asleep, so a question costs eight
+hours whether it was a good question or not.
+
+**Nothing here changes how an ordinary job behaves.** Every autonomy default
+is the conservative one — `mode: INTERACTIVE`, `humanGate: ALL`, supervisor
+off, Toolsmith off, environments off, browser off, critic disabled — so
+upgrading cannot make an existing workspace more autonomous than it was. A
+workspace with no seal has no authority resolver and behaves exactly as v1.2
+did.
+
+### The two rules
+
+**Difficulty is answered with intelligence, not with a question.**
+
+```text
+HIGH complexity      ->  use a stronger reasoner
+AUTHORITY BOUNDARY   ->  wake the human
+```
+
+Complexity, diff size, architectural weight, low confidence, and a pile of
+failed attempts are never reasons to stop. `evaluateAuthority` does not take
+any of them as parameters, `NON_AUTHORITY_SIGNALS` enumerates them, and
+`verifyNonAuthoritySignalsCannotGate` proves at runtime that passing all of
+them at once still yields `AUTONOMOUS`.
+
+**Completion is decided by evidence, not by assertion.**
+
+```text
+IMPLEMENTED   something claims to implement this
+VERIFIED      trusted evidence demonstrates it holds
+```
+
+Only the second closes a contract item.
+
+### The failure that motivated the completion oracle
+
+The previous dogfood declared a product COMPLETE while seven approved
+requirements had no implementation at all. Nothing lied: every task was
+checked off, the build was green, the tests passed, the agent said done. All
+four statements were true and the product was not finished, because "the task
+list is complete" and "the contract is satisfied" were the same fact in the
+runtime.
+
+The Contract Closure Ledger holds one entry per SEALED item, built once from
+the seal. `AGENT_ASSERTION` is a recordable evidence kind deliberately absent
+from `CLOSING_EVIDENCE_KINDS`. Evidence captured against a different git head
+is stale. A UI acceptance criterion carries `requiresBrowserScenario` frozen
+from the seal, so a unit test cannot close it. An empty ledger cannot
+complete — `closureRatio` returns `null` rather than `1.0`, because a seal
+that promised nothing has a ratio that means nothing.
+
+### What was added
+
+**`@specbridge/autonomy`** — the new package.
+
+- **MissionSeal.** A human authorizes a complete product intent ONCE, and the
+  delegated engineering latitude is recorded with it. Immutable; re-sealing
+  supersedes rather than edits. Compilation from mission state is
+  deterministic, which is exactly what lets human authority flow into derived
+  artifacts without a second approval round. The policy fingerprint is
+  recorded, and drift in EITHER direction refuses execution.
+- **Authority firewall.** A pure function over frozen tables. Eleven hard
+  authority surfaces with no configuration representation anywhere; twenty-six
+  delegated engineering surfaces. `refineIntentImpactUnderSeal` re-reads the
+  v1.2 intent screen through the seal, so "restructure the module layout"
+  stops being a 03:00 question while "change the public API" still is.
+- **Supervisor.** Durable job ownership through a lease with an expiry and a
+  generation counter. A live lease is never preempted and there is no force
+  flag. Restart backoff resets on PROGRESS, not on a successful start —
+  treating a start as success is how a crash loop runs all night at full
+  speed.
+- **Overnight preflight.** Twenty-four capability probes with a third answer
+  most readiness checks lack: `SATISFIABLE_AUTONOMOUSLY`. A missing browser
+  runtime the Toolsmith may install is work, not a blocker. `INDETERMINATE`
+  refuses a launch, because "we could not tell" is not "probably fine".
+- **Toolsmith.** Capability classes, not commands; a fixed argv shape with one
+  variable position; scope preference from PROJECT_LOCAL to USER_LOCAL with no
+  machine-global option. Agents may create TOOLS, never AUTHORITY.
+- **Environment lifecycle.** Plan / instance / evidence, a readiness
+  DEPENDENCY graph rather than a list, restarts inside the readiness window,
+  and diagnostics retained on failure. Evidence separates
+  `applicationLevelReady` from `livenessOnlyReady`, because a container with
+  an open port is not a ready Kafka broker.
+- **Browser evidence.** A closed step vocabulary with no "evaluate JavaScript"
+  step — a scenario that could script the DOM could fabricate what it asserts.
+  Isolated contexts per participant. Playwright by dynamic import, never a
+  declared dependency; absence is `SKIPPED_NO_RUNTIME` with a reason.
+- **UX critic with negative authority only.** No `PASS` verdict exists.
+  `AESTHETIC_PREFERENCE` is forced to `COSMETIC`. The verdict is computed from
+  normalized findings rather than taken from the critic.
+  `critiqueEffect` refuses to act on an already-failed scenario.
+- **Control-plane self-repair.** Strict stage ordering, a mandatory regression
+  test, a mandatory canary, and an invariant screen that runs BEFORE the tests
+  so a patch disabling the verification gate never gets to make the suite
+  green. The running control plane is never overwritten.
+- **Autonomy telemetry.** `humanInterventionsAfterSeal` is the product metric.
+  Authority escalations are counted separately, so the metric stays falsifiable
+  in both directions. Unknown measurements are `null` and render `n/a`.
+
+**Job vocabulary and state machine** gain the autonomous operational statuses
+— `WAITING_RESOURCE`, `RECOVERING_PROVIDER`, `REPAIRING_TOOLCHAIN`,
+`REPAIRING_ENVIRONMENT`, `REPAIRING_CONTROL_PLANE`, `QUALIFYING` — plus
+`NEEDS_AUTHORITY` as a first-class durable state. Deliberately NOT overloading
+`BLOCKED`, which is what made operational failure sticky. Every operational
+status can return to `READY` on its own, asserted by a test over the table.
+
+**The driver** gains one seam: an optional `DelegatedAuthorityResolver`
+consulted where it was already about to stop. It can remove a false gate; it
+structurally cannot add a real one.
+
+### The zero-touch certification
+
+Sixteen fault classes. Fifteen must `SELF_RECOVER`; the sixteenth must reach
+`NEEDS_AUTHORITY` with the seal's authority digest unchanged. A certification
+that only proved the first fifteen would certify a runtime that never asks —
+including when it should.
+
+**It found three real defects before it went green:**
+
+- `CREATED` could not reach any operational status, so a job meeting a dead
+  provider on its first dispatch threw `Invalid job transition` instead of
+  waiting. Seven of sixteen scenarios crashed on it.
+- The local-runtime signature missed the most common phrasing: `\bexit\b`
+  does not match "exited", so `local model server exited with code 139` fell
+  through to an unclassified backoff instead of restarting the process.
+- Control-plane repair transitioned nowhere: the classifier named the status
+  and nothing performed it, so the repair record opened against a job still in
+  `CREATED`.
+
+Result: `CERTIFIED`, `humanInterventionsAfterSeal = 0`.
+
+### The dogfood, and the five defects it found
+
+A real unattended run against a StepRelay worktree — sealed intent, real
+Claude on the subscription lane, a real llama.cpp classifier, real Docker.
+It ran for an hour and stopped on its own attempt budget, honestly, with one
+intervention reported.
+
+It found five defects that 2,552 tests did not, two of them in code written
+phases ago:
+
+1. **The plan-review gate was a complexity gate.** `planReview: 'high-risk'`
+   at `complexity: HIGH` stopped the run after a successful plan — the exact
+   03:00 question this phase exists to remove, kept alive by the one layer
+   nobody had revisited.
+2. **A resumed attempt could not re-derive its own projection.** The
+   objective runtime's immutability check killed the driver on every restart;
+   only the supervisor's no-progress budget stopped the loop.
+3. **Windows batch verification commands could not be spawned at all.** Node
+   20.12+/22 rejects `.bat`/`.cmd` without a shell, so `["./gradlew.bat",
+   "test"]` was `spawn-failed` every time. This explains the whole run.
+4. **An unstartable verifier was treated as an implementation defect.** The
+   consequence of (3): the runtime repaired code that had never been tested,
+   three times. The task path had kept `did not run` and `failed` apart since
+   v0.3; the objective path had not.
+5. **The primary metric under-reported.** A job sitting in `BLOCKED` reported
+   `humanInterventionsAfterSeal: 0`, because the block was recorded as
+   `budget_exhausted` and the event map listed only `job_blocked`. A list of
+   known causes can be incomplete; a job's current status cannot be.
+
+The fifth is the one worth dwelling on: the measurement itself was wrong, so
+nothing downstream could have caught it. It is fixed, and the same run now
+reports `1`.
+
+Honest non-claims from that run are documented in
+[the dogfood record](docs/autonomy/dogfood.md): the product was not built,
+the browser and environment paths were not exercised against it, and the
+control-plane repair path — configured — was never triggered, because nothing
+classified those three recoverable SpecBridge defects as control-plane
+defects. Detection is narrower than the defects a real run produces.
+
+### Public CLI
+
+```text
+specbridge autonomy setup [--mode overnight] [--specbridge-source <path>]
+specbridge autonomy policy
+specbridge autonomy seal <mission> --confirm [--max-spend <usd>] [--lanes ...]
+specbridge autonomy seals | revoke <sealId> --reason <text>
+specbridge overnight preflight <mission>
+specbridge overnight run <mission> [--job <id>]
+specbridge autonomy status | report <jobId> | toolsmith <jobId>
+specbridge autonomy supervision | repairs | certification
+```
+
+Four commands do everything an operator needs. Everything else is inspection,
+and a test holds those to being read-only — a runtime whose progress depended
+on somebody watching would not be unattended. `autonomy seal --confirm` is
+CLI-only, exactly like stage approval.
+
+### Configuration
+
+New optional `autonomy` block. Engineering latitude is configurable; product
+authority is not. The authority boundaries have no schema representation at
+all, so no configuration file, environment variable, or agent proposal can
+express "let the machine decide this one".
+
+### Security
+
+Threat model gains T108–T120 covering assumed autonomy, delegation widening
+after authorization, agents editing their own policy, difficulty laundered
+into a gate (and a gate laundered away), silent contract modification,
+self-repair weakening its own constraints, tooling as an installation vector,
+concurrent supervisors, unauthorized spend, skipped checks reported as passes,
+completion without evidence, unbounded subjective critique, and unfalsifiable
+metrics. Three new explicit non-claims state what zero-touch does NOT
+guarantee.
+
 ## 1.9.0 (unreleased) — vNext.9 StepRelay Dogfood & Release Qualification
 
 Eight phases each added a capability. This one adds none. It adds the

@@ -31,13 +31,14 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.29.0",
+    "@specbridge/autonomy": "workspace:*",
+    "@specbridge/mission": "workspace:*",
     "commander": "^12.1.0",
     "execa": "^9.4.0",
     "picocolors": "^1.1.0",
     "picomatch": "^4.0.2",
     "yaml": "^2.5.0",
-    "zod": "^3.23.8",
-    "@specbridge/mission": "workspace:*"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@specbridge/compat-kiro": "workspace:*",

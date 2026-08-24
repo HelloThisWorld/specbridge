@@ -98,6 +98,27 @@ export function screenGuardPatterns(
  * PASS means "no deterministic reason to reject"; CONFLICT carries the
  * guard evidence and the decision kind for authority routing.
  */
+/**
+ * Safe-process statuses that mean the command NEVER RAN.
+ *
+ * The same set `executor-dispatch` uses, deliberately: one definition of
+ * "did not run" across both execution paths, because the difference between
+ * a failing test and an unstartable test runner is the difference between
+ * repairing code and repairing a toolchain.
+ *
+ * `timeout` is NOT here. A command that started and hung has told us
+ * something about the candidate, even if not much.
+ */
+const UNAVAILABLE_COMMAND_STATUSES: readonly string[] = [
+  'spawn-failed',
+  'not-found',
+  'unavailable',
+];
+
+export function isUnavailableStatus(status: string): boolean {
+  return UNAVAILABLE_COMMAND_STATUSES.includes(status);
+}
+
 export function evaluateDeterministically(input: DeterministicEvaluationInput): EvaluationRecord {
   const checks: { name: string; passed: boolean; detail?: string }[] = [];
   const reasons: string[] = [];
@@ -139,7 +160,24 @@ export function evaluateDeterministically(input: DeterministicEvaluationInput): 
   if (!freshness.fresh) reasons.push(`stale context: ${freshness.reasons.join('; ')}`);
 
   // 4. Local verification (builders run the trusted commands in the worktree).
+  //
+  // "The tests failed" and "the test runner never started" are different
+  // facts, and conflating them is expensive: the vNext.10 StepRelay dogfood
+  // spent three repair/replan cycles rewriting correct code because
+  // `gradlew.bat` could not be spawned inside the builder's worktree. The
+  // task-execution path has always kept them apart (see `executor-dispatch`,
+  // which marks a spawn-failed command `unavailable` because "a command that
+  // never started proves nothing about the code"); this path did not.
   const verificationRelevant = input.workUnit.kind === 'build';
+  const failedCommands = input.candidate.localVerification.commands.filter(
+    (command) => command.status !== 'ok',
+  );
+  const verificationUnavailable =
+    verificationRelevant &&
+    input.candidate.localVerification.ran &&
+    !input.candidate.localVerification.passed &&
+    failedCommands.length > 0 &&
+    failedCommands.every((command) => isUnavailableStatus(command.status));
   const verificationOk =
     !verificationRelevant ||
     !input.candidate.localVerification.ran ||
@@ -150,13 +188,20 @@ export function evaluateDeterministically(input: DeterministicEvaluationInput): 
     ...(verificationOk
       ? {}
       : {
-          detail: input.candidate.localVerification.commands
-            .filter((command) => command.status !== 'ok')
-            .map((command) => command.name)
-            .join(', '),
+          detail: `${verificationUnavailable ? 'could not run' : 'failed'}: ${failedCommands
+            .map((command) => `${command.name} (${command.status})`)
+            .join(', ')}`.slice(0, 600),
         }),
   });
-  if (!verificationOk) reasons.push('local verification failed inside the isolated worktree');
+  if (!verificationOk) {
+    reasons.push(
+      verificationUnavailable
+        ? `local verification COULD NOT RUN inside the isolated worktree (${failedCommands
+            .map((command) => `${command.name}: ${command.status}`)
+            .join(', ')}); nothing was proven about the candidate`
+        : 'local verification failed inside the isolated worktree',
+    );
+  }
 
   // 5. A build candidate must actually change something.
   const changesOk = input.workUnit.kind !== 'build' || input.candidate.changedFiles.length > 0;

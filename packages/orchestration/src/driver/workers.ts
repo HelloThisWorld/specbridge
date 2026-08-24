@@ -5,6 +5,7 @@ import {
   LocalModelManager,
   buildClaudeInvocation,
   localStructuredInference,
+  claudeFailureProblem,
   parseClaudeEnvelope,
   probeClaude,
   runSafeProcess,
@@ -277,7 +278,15 @@ export async function runLargeRole<Role extends AgentContractRole>(
     }
     const parsed = parseClaudeEnvelope(processResult.stdout);
     if (parsed.problem !== undefined) {
-      return { ok: false, kind: 'invalid-output', problem: parsed.problem };
+      // A non-zero exit with no usable envelope means the CLI's own stderr
+      // message is the only explanation. Keep a bounded, scrubbed excerpt:
+      // a provider failure stays a WORKER failure, never a task failure.
+      return {
+        ok: false,
+        kind: 'invalid-output',
+        problem: claudeFailureProblem(parsed.problem, processResult),
+        probe,
+      };
     }
     const text =
       parsed.structuredResult !== undefined

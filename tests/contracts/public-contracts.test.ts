@@ -19,19 +19,46 @@ function readContract(name: string): unknown {
   return JSON.parse(readFileSync(path.join(contractsDir, name), 'utf8'));
 }
 
+/**
+ * The checker walks the SHIPPED `--help` surface, which costs one full Node
+ * start plus one full CLI-bundle parse per command — 158 of them at vNext.10,
+ * roughly 70s on an idle developer machine and well past that on a loaded
+ * 4-vCPU runner. It blocks a test worker for the whole time, and at vNext.10
+ * it finally exceeded its 120s budget on `node 20 on windows-latest`.
+ *
+ * CI already runs this exact command as a dedicated step ("Public contract
+ * snapshots match the built surface" -> `pnpm check:public-contracts`, which
+ * is byte-identically `node scripts/check-public-contracts.mjs --check`). On
+ * CI this test is therefore a second execution of a check that has already
+ * failed the build if it was going to, bought at the price of the
+ * longest-blocking test in the suite.
+ *
+ * It is skipped there and kept everywhere else, because locally `pnpm test`
+ * is often the only gate anyone runs. The invariant is not relaxed: contract
+ * drift still fails every one of the six CI matrix jobs, through the step
+ * that exists to enforce it. Only the duplicate execution goes.
+ */
+const onCi = process.env['CI'] !== undefined;
+
 describe('public contract snapshots', () => {
-  it('checker passes against the current build (requires pnpm build)', { timeout: 120_000 }, () => {
-    const cliDist = path.join(repoRoot, 'packages', 'cli', 'dist', 'index.js');
-    if (!existsSync(cliDist)) {
-      throw new Error('packages/cli/dist is missing — run "pnpm build" before the contract tests.');
-    }
-    const output = execFileSync(
-      process.execPath,
-      [path.join(repoRoot, 'scripts', 'check-public-contracts.mjs'), '--check'],
-      { cwd: repoRoot, encoding: 'utf8', env: { ...process.env, NO_COLOR: '1' } },
-    );
-    expect(output).toContain('all snapshots match');
-  });
+  it.skipIf(onCi)(
+    'checker passes against the current build (requires pnpm build)',
+    { timeout: 120_000 },
+    () => {
+      const cliDist = path.join(repoRoot, 'packages', 'cli', 'dist', 'index.js');
+      if (!existsSync(cliDist)) {
+        throw new Error(
+          'packages/cli/dist is missing — run "pnpm build" before the contract tests.',
+        );
+      }
+      const output = execFileSync(
+        process.execPath,
+        [path.join(repoRoot, 'scripts', 'check-public-contracts.mjs'), '--check'],
+        { cwd: repoRoot, encoding: 'utf8', env: { ...process.env, NO_COLOR: '1' } },
+      );
+      expect(output).toContain('all snapshots match');
+    },
+  );
 
   it('snapshot files exist for every frozen area', () => {
     const expected = [

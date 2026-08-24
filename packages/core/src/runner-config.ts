@@ -7,6 +7,8 @@ import type { LocalInferenceConfig } from './local-inference-config.js';
 import { localInferenceConfigSchema } from './local-inference-config.js';
 import type { OrchestrationPolicy } from './orchestration-config.js';
 import { orchestrationPolicySchema } from './orchestration-config.js';
+import type { AutonomyPolicy } from './autonomy-config.js';
+import { autonomyPolicySchema } from './autonomy-config.js';
 import type {
   AgentConfigFileV1,
   ClaudeRunnerConfig,
@@ -619,6 +621,8 @@ export const agentConfigV2Schema = z
     orchestration: orchestrationPolicySchema.default({}),
     /** v1.2 managed local inference (additive; disabled by default). */
     localInference: localInferenceConfigSchema.default({}),
+    /** vNext.10 overnight autonomy policy (additive; INTERACTIVE by default). */
+    autonomy: autonomyPolicySchema.default({}),
   })
   .passthrough()
   .superRefine((config, ctx) => {
@@ -685,6 +689,8 @@ export interface AgentConfig {
   orchestration: OrchestrationPolicy;
   /** v1.2 managed local inference (always resolved, never undefined). */
   localInference: LocalInferenceConfig;
+  /** vNext.10 overnight autonomy policy (always resolved, never undefined). */
+  autonomy: AutonomyPolicy;
 }
 
 function builtInClaudeProfile(base?: Partial<ClaudeRunnerConfig>): ClaudeProfileConfig {
@@ -803,6 +809,7 @@ export function resolveAgentConfigFromV1(v1: AgentConfigFileV1): AgentConfig {
     execution: v1.execution,
     orchestration: v1.orchestration,
     localInference: v1.localInference,
+    autonomy: autonomyPolicySchema.parse({}),
   };
 }
 
@@ -820,6 +827,7 @@ export function resolveAgentConfigFromV2(v2: AgentConfigFileV2): AgentConfig {
     execution: v2.execution,
     orchestration: v2.orchestration,
     localInference: v2.localInference,
+    autonomy: v2.autonomy,
   };
 }
 
@@ -837,6 +845,7 @@ export function defaultResolvedAgentConfig(): AgentConfig {
     execution: executionPolicySchema.parse({}),
     orchestration: orchestrationPolicySchema.parse({}),
     localInference: localInferenceConfigSchema.parse({}),
+    autonomy: autonomyPolicySchema.parse({}),
   };
 }
 
