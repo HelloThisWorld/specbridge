@@ -125,14 +125,19 @@ function renderSummary(runtime: CliRuntime, summary: ApprovalSummary): void {
     }
   }
   runtime.out(sectionTitle('Existing contracts affected'));
-  if (summary.changedContractIds.length === 0 && summary.extendedContractIds.length === 0) {
+  if (summary.affectedContracts.length === 0) {
     runtime.out(okLine('  none — no existing sealed contract is modified'));
   } else {
-    for (const contractId of summary.changedContractIds) {
-      runtime.out(failLine(`  ${contractId} would CHANGE`));
-    }
-    for (const contractId of summary.extendedContractIds) {
-      runtime.out(warnLine(`  ${contractId} would be extended`));
+    // Qualified by the owning mission: contract ids are unique only within a
+    // mission, and this feature's own registry starts at CTR-001 too.
+    for (const contract of summary.affectedContracts) {
+      const label =
+        `  ${contract.contractId} r${contract.revision} "${contract.title}" (from ${contract.missionName ?? contract.missionId})`;
+      runtime.out(
+        contract.relation === 'CHANGED'
+          ? failLine(`${label} would CHANGE`)
+          : warnLine(`${label} would be extended`),
+      );
     }
   }
   if (summary.decisions.length > 0) {

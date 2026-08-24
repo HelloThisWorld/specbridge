@@ -464,6 +464,14 @@ export function runIntakeDiscovery(
     analysis,
     blockedItemIds,
     openQuestionCount: questions.filter((question) => question.status === 'open').length,
+    answeredQuestions: questions
+      .filter((question) => question.status === 'answered' && question.answer !== undefined)
+      .map((question) => ({
+        questionId: question.questionId,
+        answer: question.answer ?? '',
+        sourceChunkIds: [...question.sourceChunkIds],
+        ...(question.deltaItemId !== undefined ? { deltaItemId: question.deltaItemId } : {}),
+      })),
   });
 
   // --- 6. Ask about required topics NOTHING addressed ----------------------

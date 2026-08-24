@@ -100599,6 +100599,26 @@ var deltaAuthorityAnalysisSchema = external_exports.object({
   modifiedContractIds: idList4.default([]),
   /** Existing contracts this specification would EXTEND, by id. */
   extendedContractIds: idList4.default([]),
+  /**
+   * The same contracts, QUALIFIED by the mission that owns them.
+   *
+   * Contract ids are only unique within a mission, so a feature whose own
+   * registry also starts at CTR-001 produces an approval summary reading
+   * "CTR-001 would be extended" directly above "CTR-001 Observable
+   * Behaviour" — two different contracts, one label. The dogfood produced
+   * exactly that. The bare id lists stay for compatibility; anything a
+   * person reads uses these.
+   */
+  affectedContracts: external_exports.array(
+    external_exports.object({
+      contractId: shortText15,
+      missionId: shortText15,
+      missionName: shortText15.optional(),
+      title: shortText15,
+      revision: external_exports.number().int().min(1),
+      relation: external_exports.enum(["EXTENDED", "CHANGED"])
+    }).passthrough()
+  ).max(INTAKE_LIMITS.maxRefsPerRecord).default([]),
   /** New public surfaces this specification itself authorizes. */
   newSurfaces: textList7.default([]),
   complete: external_exports.boolean().default(false),
@@ -101573,6 +101593,7 @@ function splitBlocks(content) {
   const headingLevels = [];
   let offset = 0;
   let index = 0;
+  let listIntro;
   const lineBytes = (line) => Buffer.byteLength(`${line}
 `, "utf8");
   while (index < lines.length) {
@@ -101593,6 +101614,7 @@ function splitBlocks(content) {
       }
       headingLevels.push(level);
       headingPath.push(title);
+      listIntro = void 0;
       offset += lineBytes(line);
       index += 1;
       blocks.push({
@@ -101619,6 +101641,7 @@ function splitBlocks(content) {
         index += 1;
         if (next.trimStart().startsWith(fence3)) break;
       }
+      listIntro = void 0;
       blocks.push({
         lines: collected2,
         startOffset: start,
@@ -101637,6 +101660,7 @@ function splitBlocks(content) {
     }
     const listMatch = /^(\s*)([-*+]|\d+[.)])\s+/.exec(line);
     if (listMatch !== null) {
+      const intro = listIntro;
       const indent = (listMatch[1] ?? "").length;
       const collected2 = [line];
       offset += lineBytes(line);
@@ -101655,7 +101679,7 @@ function splitBlocks(content) {
         lines: collected2,
         startOffset: start,
         endOffset: offset,
-        headingPath: [...headingPath],
+        headingPath: intro === void 0 ? [...headingPath] : [...headingPath, intro],
         heading: false,
         fenced: false,
         listItem: true
@@ -101678,6 +101702,8 @@ function splitBlocks(content) {
       offset += lineBytes(line);
       index += 1;
     }
+    const paragraph = collected.join(" ").trim();
+    listIntro = paragraph.endsWith(":") ? paragraph.replace(/:$/, "").trim().slice(0, 160) : void 0;
     blocks.push({
       lines: collected,
       startOffset: start,
@@ -101685,7 +101711,9 @@ function splitBlocks(content) {
       headingPath: [...headingPath],
       heading: false,
       fenced: false,
-      listItem: false
+      listItem: false,
+      /** True when this paragraph introduces the list beneath it. */
+      introducesList: listIntro !== void 0
     });
   }
   return blocks;
@@ -101782,21 +101810,38 @@ function readGitHead(rootDir) {
     const refMatch = /^ref:\s*(.+)$/.exec(head);
     if (refMatch === null) return null;
     const ref = (refMatch[1] ?? "").trim();
-    const refFile = import_path84.default.join(gitDir, ...ref.split("/"));
-    if ((0, import_fs76.existsSync)(refFile)) {
+    for (const dir of refDirsFor(gitDir)) {
+      const refFile = import_path84.default.join(dir, ...ref.split("/"));
+      if (!(0, import_fs76.existsSync)(refFile)) continue;
       const sha = (0, import_fs76.readFileSync)(refFile, "utf8").trim();
-      return /^[0-9a-f]{40}$/i.test(sha) ? sha.toLowerCase() : null;
+      if (/^[0-9a-f]{40}$/i.test(sha)) return sha.toLowerCase();
     }
-    const packed = import_path84.default.join(gitDir, "packed-refs");
-    if (!(0, import_fs76.existsSync)(packed)) return null;
-    for (const line of (0, import_fs76.readFileSync)(packed, "utf8").split("\n")) {
-      const entry2 = /^([0-9a-f]{40})\s+(.+)$/.exec(line.trim());
-      if (entry2 !== null && entry2[2] === ref) return (entry2[1] ?? "").toLowerCase();
+    for (const dir of refDirsFor(gitDir)) {
+      const packed = import_path84.default.join(dir, "packed-refs");
+      if (!(0, import_fs76.existsSync)(packed)) continue;
+      for (const line of (0, import_fs76.readFileSync)(packed, "utf8").split("\n")) {
+        const entry2 = /^([0-9a-f]{40})\s+(.+)$/.exec(line.trim());
+        if (entry2 !== null && entry2[2] === ref) return (entry2[1] ?? "").toLowerCase();
+      }
     }
     return null;
   } catch {
     return null;
   }
+}
+function refDirsFor(gitDir) {
+  const dirs = [gitDir];
+  const commonFile = import_path84.default.join(gitDir, "commondir");
+  if ((0, import_fs76.existsSync)(commonFile)) {
+    try {
+      const target = (0, import_fs76.readFileSync)(commonFile, "utf8").trim();
+      if (target.length > 0) {
+        dirs.push(import_path84.default.isAbsolute(target) ? target : import_path84.default.resolve(gitDir, target));
+      }
+    } catch {
+    }
+  }
+  return dirs;
 }
 function groundInRepository(deps, request) {
   const workspace = deps.workspace;
@@ -102105,6 +102150,29 @@ function analyzeDeltaAuthority(request) {
   const extendedContractIds = unique(
     items.filter((item) => item.classification === "EXISTING_CONTRACT_EXTENSION").map((item) => item.existingContractId).filter((id) => id !== void 0)
   );
+  const owners = /* @__PURE__ */ new Map();
+  for (const owned of request.existingContracts) {
+    owners.set(`${owned.missionId}/${owned.contract.contractId}`, owned);
+  }
+  const affectedContracts = [];
+  const seenAffected = /* @__PURE__ */ new Set();
+  for (const item of items) {
+    const relation = item.classification === "EXISTING_CONTRACT_EXTENSION" ? "EXTENDED" : item.classification === "EXISTING_SEALED_CONTRACT_CHANGE" || item.classification === "CONTRADICTION" ? "CHANGED" : void 0;
+    if (relation === void 0) continue;
+    if (item.existingContractId === void 0 || item.existingMissionId === void 0) continue;
+    const key = `${item.existingMissionId}/${item.existingContractId}/${relation}`;
+    if (seenAffected.has(key)) continue;
+    seenAffected.add(key);
+    const owned = owners.get(`${item.existingMissionId}/${item.existingContractId}`);
+    affectedContracts.push({
+      contractId: item.existingContractId,
+      missionId: item.existingMissionId,
+      ...owned !== void 0 ? { missionName: owned.missionName } : {},
+      title: owned?.contract.title ?? item.existingContractId,
+      revision: item.existingContractRevision ?? owned?.contract.revision ?? 1,
+      relation
+    });
+  }
   const newSurfaces = unique(
     items.filter((item) => item.classification === "NEW_DELEGATED_SURFACE").flatMap((item) => item.affectedSurfaces)
   );
@@ -102132,6 +102200,7 @@ function analyzeDeltaAuthority(request) {
     counts,
     modifiedContractIds: modifiedContractIds.slice(0, INTAKE_LIMITS.maxRefsPerRecord),
     extendedContractIds: extendedContractIds.slice(0, INTAKE_LIMITS.maxRefsPerRecord),
+    affectedContracts: affectedContracts.slice(0, INTAKE_LIMITS.maxRefsPerRecord),
     newSurfaces: newSurfaces.slice(0, INTAKE_LIMITS.maxItems),
     complete,
     reasons
@@ -102914,6 +102983,15 @@ function compileMissionTruth(deps, intakeDeps3, request) {
   const missionBefore = requireMissionState(intakeDeps3.workspace, request.missionId);
   const missionGoal = missionBefore.goal;
   const blocked2 = new Set(request.blockedItemIds);
+  const chunkKinds = new Map(request.source.chunks.map((chunk) => [chunk.chunkId, chunk.kind]));
+  const isExclusion = (item) => item.sourceChunkIds.some((chunkId) => chunkKinds.get(chunkId) === "non-goal");
+  const resolutionFor = (item) => {
+    for (const answered of request.answeredQuestions ?? []) {
+      const matches = answered.deltaItemId === item.itemId || answered.sourceChunkIds.some((chunkId) => item.sourceChunkIds.includes(chunkId));
+      if (matches) return answered.answer;
+    }
+    return void 0;
+  };
   const decisionBudget = Math.max(
     0,
     MISSION_LIMITS.maxDecisions - missionBefore.counters.decisions - TOPIC_DECISION_RESERVE
@@ -102975,6 +103053,7 @@ function compileMissionTruth(deps, intakeDeps3, request) {
       }
     }
     if (!bearsContract) continue;
+    if (isExclusion(item)) continue;
     if (map.itemContracts[item.itemId] !== void 0) continue;
     const key = surfaceKeyFor(item);
     const bucket = pendingBySurface.get(key) ?? [];
@@ -103026,7 +103105,7 @@ function compileMissionTruth(deps, intakeDeps3, request) {
       classification: shape.classification,
       compatibilityPolicy: shape.compatibilityPolicy,
       requirements: items.slice(0, 60).map((item) => ({
-        statement: clip(item.statement, INTAKE_LIMITS.maxTextChars),
+        statement: clip(requirementStatement(item, resolutionFor(item)), INTAKE_LIMITS.maxTextChars),
         decisionIds: [map.itemDecisions[item.itemId] ?? decisionIds[0] ?? ""].filter(
           (id) => id.length > 0
         )
@@ -103065,11 +103144,14 @@ function missionFieldsFrom(request) {
       nonGoals.push(clip(chunk.text, 600));
       continue;
     }
+    if (introducesList(chunk)) continue;
     if (chunk.kind === "scenario" && criteria.length < 34) {
       criteria.push(acceptanceCriterionFrom(chunk));
       continue;
     }
-    if (chunk.kind === "normative" && criteria.length < 40 && VERIFIABLE_PATTERN.test(chunk.text)) {
+    if (chunk.kind === "normative" && criteria.length < 40 && // The heading path counts: a capability bullet inherits the framing of
+    // the sentence that introduced its list.
+    VERIFIABLE_PATTERN.test(`${chunk.headingPath.join(" ")} ${chunk.text}`)) {
       criteria.push(acceptanceCriterionFrom(chunk));
       continue;
     }
@@ -103085,6 +103167,9 @@ function missionFieldsFrom(request) {
 }
 var VERIFIABLE_PATTERN = /\b(end[- ]to[- ]end|demonstrab\w+|runnable|must actually|verif\w+|prove[sn]?|browser|console|render\w*|display\w*|user can|buildable|usable|run(s|nable)? locally|docker|compose)\b/i;
 var CONSTRAINT_PATTERN = /\b(must not|only|no more than|at most|within|limited to|constraint|budget|never)\b/i;
+function introducesList(chunk) {
+  return chunk.kind !== "heading" && /:$/.test(chunk.text.trim());
+}
 function acceptanceCriterionFrom(chunk) {
   const body = chunk.text.replace(/^(\s*)([-*+]|\d+[.)])\s+/, "").trim();
   const context = chunk.headingPath[chunk.headingPath.length - 1];
@@ -103146,6 +103231,12 @@ var TOPIC_PREFIX = {
   "failure-semantics": "Failure semantics:",
   compatibility: "Compatibility:"
 };
+function requirementStatement(item, resolution) {
+  const base = item.statement.trim();
+  if (resolution === void 0) return base;
+  const terminated = /[.!?]$/.test(base) ? base : `${base}.`;
+  return `${terminated} Resolved by the recorded product decision: ${clip(resolution, 800)}`;
+}
 function surfaceKeyFor(item) {
   const surfaces = item.affectedSurfaces.length > 0 ? item.affectedSurfaces : surfacesOf(item.statement).map((s) => s.surface);
   const first = surfaces[0];
@@ -103352,6 +103443,14 @@ function buildApprovalSummary(input) {
     })),
     extendedContractIds: [...input.analysis.extendedContractIds],
     changedContractIds: [...input.analysis.modifiedContractIds],
+    affectedContracts: input.analysis.affectedContracts.map((contract) => ({
+      contractId: contract.contractId,
+      missionId: contract.missionId,
+      ...contract.missionName !== void 0 ? { missionName: contract.missionName } : {},
+      title: contract.title,
+      revision: contract.revision,
+      relation: contract.relation
+    })),
     decisions: input.questions.filter((question) => question.status === "answered").map((question) => ({
       questionId: question.questionId,
       question: clip(question.question, 400),
@@ -103608,12 +103707,21 @@ async function runSealAndBuild(deps, options) {
   let preflight;
   let unattended;
   const outcome = ledger.outcome;
-  if (outcome !== void 0 && outcome !== "LAUNCHED") {
+  if (outcome === "COMPLETED") {
     return {
       lifecycle: ledger,
       outcome,
       humanPrerequisites: [...ledger.humanPrerequisites]
     };
+  }
+  if (outcome !== void 0) {
+    ledger = writeLifecycle(deps.workspace, {
+      ...ledger,
+      outcome: void 0,
+      finishedAt: void 0,
+      humanPrerequisites: [],
+      updatedAt: nowIso5(deps)
+    });
   }
   const persist3 = (next) => {
     const written = writeLifecycle(deps.workspace, {
@@ -103860,7 +103968,23 @@ async function runSealAndBuild(deps, options) {
   if (!isStepSettled(stepOf(ledger, "RESOLVE_PREREQUISITES").status)) {
     begin("RESOLVE_PREREQUISITES");
     try {
-      preflight = preflight ?? await runPreflight2(deps, options, approval.missionId, sealId);
+      if (preflight === void 0) {
+        preflight = await runPreflight2(deps, options, approval.missionId, sealId);
+        ledger = persist3(
+          withStep({ ...ledger, preflightReportId: preflight.reportId }, "PREFLIGHT", {
+            detail: preflight.verdict,
+            result: preflight.reportId,
+            settledAt: nowIso5(deps)
+          })
+        );
+        appendIntakeEvent(deps.workspace, options.intakeId, {
+          at: nowIso5(deps),
+          type: "preflight_completed",
+          reportId: preflight.reportId,
+          verdict: preflight.verdict,
+          rechecked: true
+        });
+      }
       const resolution = resolvePrerequisites(deps, options.intakeId, preflight);
       ledger = persist3({
         ...ledger,
@@ -104318,7 +104442,13 @@ function runIntakeDiscovery(deps, intakeId, options = {}) {
     grounding,
     analysis,
     blockedItemIds,
-    openQuestionCount: questions.filter((question) => question.status === "open").length
+    openQuestionCount: questions.filter((question) => question.status === "open").length,
+    answeredQuestions: questions.filter((question) => question.status === "answered" && question.answer !== void 0).map((question) => ({
+      questionId: question.questionId,
+      answer: question.answer ?? "",
+      sourceChunkIds: [...question.sourceChunkIds],
+      ...question.deltaItemId !== void 0 ? { deltaItemId: question.deltaItemId } : {}
+    }))
   });
   let mission = requireMissionState(deps.workspace, intake.missionId);
   let missionCoverage = refreshCoverage(missionDepsOf(deps), mission);
@@ -104885,14 +105015,14 @@ function renderSummary(runtime, summary) {
     }
   }
   runtime.out(sectionTitle("Existing contracts affected"));
-  if (summary.changedContractIds.length === 0 && summary.extendedContractIds.length === 0) {
+  if (summary.affectedContracts.length === 0) {
     runtime.out(okLine("  none \u2014 no existing sealed contract is modified"));
   } else {
-    for (const contractId of summary.changedContractIds) {
-      runtime.out(failLine(`  ${contractId} would CHANGE`));
-    }
-    for (const contractId of summary.extendedContractIds) {
-      runtime.out(warnLine(`  ${contractId} would be extended`));
+    for (const contract of summary.affectedContracts) {
+      const label = `  ${contract.contractId} r${contract.revision} "${contract.title}" (from ${contract.missionName ?? contract.missionId})`;
+      runtime.out(
+        contract.relation === "CHANGED" ? failLine(`${label} would CHANGE`) : warnLine(`${label} would be extended`)
+      );
     }
   }
   if (summary.decisions.length > 0) {

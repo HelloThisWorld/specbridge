@@ -226,23 +226,80 @@ describe('seal-and-build — the full transition', () => {
     expect(readJobState(fixture.workspace, jobId).kind).toBe('ok');
   });
 
-  it('calling it again on a finished lifecycle performs no work', async () => {
+  it('RESUMES after the human satisfies the prerequisite it stopped on', async () => {
+    const fixture = setupIntakeFixture({ spec: true, git: true });
+    const id = approvedGoldenIntake(fixture);
+
+    // Nothing available: the run stops, correctly, before a job exists.
+    const stopped = await runSealAndBuild(fixture.intake, {
+      intakeId: id,
+      launch: false,
+      probeRunner: fakeProbeRunner({}),
+    });
+    expect(stopped.outcome).toBe('HUMAN_PREREQUISITE_REQUIRED');
+    expect(stopped.lifecycle.jobId).toBeUndefined();
+
+    // The person starts the container runtime and resumes. The dogfood found
+    // an earlier version short-circuiting on the recorded outcome and
+    // repeating the same refusal verbatim — a resume that cannot resume.
+    const resumed = await runSealAndBuild(fixture.intake, {
+      intakeId: id,
+      launch: false,
+      probeRunner: allAvailableProbeRunner(),
+    });
+    expect(resumed.outcome).toBe('LAUNCHED');
+    expect(resumed.humanPrerequisites).toEqual([]);
+    expect(resumed.lifecycle.jobId).toBeDefined();
+    // The work already done was reconciled, not repeated.
+    const byStep = new Map(resumed.lifecycle.steps.map((step) => [step.step, step.status]));
+    expect(byStep.get('SYNTHESIZE')).toBe('COMPLETED');
+    expect(byStep.get('SEAL')).toBe('COMPLETED');
+    expect(byStep.get('RESOLVE_PREREQUISITES')).toBe('COMPLETED');
+    expect(requireIntakeState(fixture.workspace, id).status).toBe('BUILDING');
+
+    // The PREFLIGHT step now reports the verdict the LAUNCH acted on, not the
+    // stale one that stopped the first attempt. The dogfood's ledger showed
+    // "PREFLIGHT: COMPLETED — HUMAN_ACTION_REQUIRED" beside a build that had
+    // proceeded, which invites exactly the wrong conclusion.
+    const preflightStep = resumed.lifecycle.steps.find((step) => step.step === 'PREFLIGHT');
+    expect(preflightStep?.detail).toBe('OVERNIGHT_READY');
+    expect(resumed.lifecycle.preflightReportId).toBe(preflightStep?.result);
+  });
+
+  it('calling it again on a COMPLETED lifecycle performs no work', async () => {
     const fixture = setupIntakeFixture({ spec: true, git: true });
     const id = approvedGoldenIntake(fixture);
     const first = await runSealAndBuild(fixture.intake, {
       intakeId: id,
-      launch: false,
-      probeRunner: fakeProbeRunner({}),
+      launch: true,
+      probeRunner: allAvailableProbeRunner(),
+      runUnattended: async (_deps, input) =>
+        ({
+          stop: { kind: 'completed', rationale: 'closed on evidence' },
+          job: requireJobState(fixture.workspace, input.jobId),
+          seal: requireSeal(
+            fixture.workspace,
+            latestExecutableSeal(fixture.workspace, input.missionId)?.sealId as string,
+          ),
+          telemetry: {} as never,
+          audits: [],
+          recoveries: [],
+          cycles: 1,
+        }) as unknown as UnattendedResult,
     });
-    expect(first.outcome).toBe('HUMAN_PREREQUISITE_REQUIRED');
+    expect(first.outcome).toBe('COMPLETED');
     const attemptsBefore = first.lifecycle.steps.map((step) => step.attempts).join(',');
 
+    // COMPLETED is the ONE genuinely terminal outcome: re-entering is a read.
     const second = await runSealAndBuild(fixture.intake, {
       intakeId: id,
-      launch: false,
-      probeRunner: fakeProbeRunner({}),
+      launch: true,
+      probeRunner: allAvailableProbeRunner(),
+      runUnattended: async () => {
+        throw new Error('a COMPLETED lifecycle must not run the unattended runtime again');
+      },
     });
-    expect(second.outcome).toBe('HUMAN_PREREQUISITE_REQUIRED');
+    expect(second.outcome).toBe('COMPLETED');
     expect(second.lifecycle.steps.map((step) => step.attempts).join(',')).toBe(attemptsBefore);
   });
 

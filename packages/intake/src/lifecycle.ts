@@ -188,14 +188,36 @@ export async function runSealAndBuild(
   let unattended: UnattendedResult | undefined;
   const outcome: BuildOutcome | undefined = ledger.outcome;
 
-  // A settled lifecycle with a terminal outcome is done. Re-entering is a
-  // read, not a rerun.
-  if (outcome !== undefined && outcome !== 'LAUNCHED') {
+  // Only COMPLETED is genuinely terminal. Re-entering that is a read.
+  //
+  // Every other recorded outcome is a state a resume EXISTS TO LEAVE. The
+  // vNext.10.1 dogfood proved the point: the build stopped on
+  // HUMAN_PREREQUISITE_REQUIRED because a container daemon was not running,
+  // the operator started it and ran `--resume`, and an earlier version of
+  // this guard short-circuited on the stale outcome and repeated the same
+  // refusal verbatim. A resume that cannot resume is not a resume.
+  //
+  // Re-entry is safe because the step ledger is reconciled against durable
+  // reality rather than trusted, and a FAILED step is not settled — so the
+  // work already done is skipped and the step that stopped it is retried.
+  if (outcome === 'COMPLETED') {
     return {
       lifecycle: ledger,
       outcome,
       humanPrerequisites: [...ledger.humanPrerequisites],
     };
+  }
+  if (outcome !== undefined) {
+    // Clear the recorded ending: this run has not finished, and leaving the
+    // old outcome on the ledger would make an in-flight resume read as a
+    // completed failure to anything inspecting it.
+    ledger = writeLifecycle(deps.workspace, {
+      ...ledger,
+      outcome: undefined,
+      finishedAt: undefined,
+      humanPrerequisites: [],
+      updatedAt: nowIso(deps),
+    } as never);
   }
 
   const persist = (next: BuildLifecycle): BuildLifecycle => {
@@ -474,7 +496,30 @@ export async function runSealAndBuild(
   if (!isStepSettled(stepOf(ledger, 'RESOLVE_PREREQUISITES').status)) {
     begin('RESOLVE_PREREQUISITES');
     try {
-      preflight = preflight ?? (await runPreflight(deps, options, approval.missionId, sealId));
+      if (preflight === undefined) {
+        // A RESUMED run reaches here with the PREFLIGHT step already settled
+        // and no report in memory, so it takes a fresh one — and that fresh
+        // verdict is the one the launch acts on. Recording it back onto the
+        // PREFLIGHT step matters: the dogfood resumed after a person started
+        // the container runtime, and the ledger went on displaying the
+        // original HUMAN_ACTION_REQUIRED beside a build that proceeded. A
+        // report must never show a verdict the run did not rely on.
+        preflight = await runPreflight(deps, options, approval.missionId, sealId);
+        ledger = persist(
+          withStep({ ...ledger, preflightReportId: preflight.reportId }, 'PREFLIGHT', {
+            detail: preflight.verdict,
+            result: preflight.reportId,
+            settledAt: nowIso(deps),
+          }),
+        );
+        appendIntakeEvent(deps.workspace, options.intakeId, {
+          at: nowIso(deps),
+          type: 'preflight_completed',
+          reportId: preflight.reportId,
+          verdict: preflight.verdict,
+          rechecked: true,
+        });
+      }
       const resolution = resolvePrerequisites(deps, options.intakeId, preflight);
       ledger = persist({
         ...ledger,

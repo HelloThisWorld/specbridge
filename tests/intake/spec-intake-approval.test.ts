@@ -14,12 +14,13 @@ import {
   readApproval,
   readIntakeEvents,
   readProductBaseline,
+  requireIntakeState,
   recordDerivedApprovals,
   runIntakeDiscovery,
   runSealAndBuild,
   startSpecIntake,
 } from '@specbridge/intake';
-import { readContractRegistry, readDecisions } from '@specbridge/mission';
+import { readContractRegistry, readDecisions, requireMissionState } from '@specbridge/mission';
 import { allAvailableProbeRunner } from '../helpers-autonomy.js';
 import type { IntakeFixture } from '../helpers-intake.js';
 import { goldenSpecText, setupIntakeFixture } from '../helpers-intake.js';
@@ -361,5 +362,34 @@ describe('spec intake — the telemetry boundary', () => {
     expect(afterBuild.jobId).toBeDefined();
     expect(afterBuild.humanInterventionsAfterSeal).toBe(0);
     expect(afterBuild.questionsRefused).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe('spec intake — what the builder is handed', () => {
+  it('carries the human’s answer into the requirement, and keeps non-goals out of it', () => {
+    const fixture = setupIntakeFixture();
+    const id = readyGoldenIntake(fixture);
+    const intake = requireIntakeState(fixture.workspace, id);
+    const contracts = readContractRegistry(fixture.workspace, intake.missionId);
+    const statements = contracts.flatMap((contract) =>
+      contract.requirements.map((requirement) => requirement.statement),
+    );
+
+    // The dogfood produced an acceptance criterion still reading "Step
+    // Functions-compatible or Step Functions-like" AFTER the human had
+    // chosen — handing the builder back the exact ambiguity the
+    // conversation existed to remove.
+    const hedged = statements.find((statement) => statement.includes('Step Functions-compatible'));
+    expect(hedged).toBeDefined();
+    expect(hedged).toContain('Resolved by the recorded product decision:');
+    expect(hedged).toContain('must run unchanged with identical semantics');
+
+    // A non-goal is authority NOT to build something. It belongs on the
+    // mission's non-goals, never as a requirement a builder implements.
+    const mission = requireMissionState(fixture.workspace, intake.missionId);
+    expect(mission.nonGoals.join(' ')).toContain('must not contain airport-specific');
+    for (const statement of statements) {
+      expect(statement, statement).not.toContain('must not contain airport-specific');
+    }
   });
 });

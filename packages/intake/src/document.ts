@@ -113,6 +113,8 @@ interface RawBlock {
   fenced: boolean;
   /** True when the block is one list item. */
   listItem: boolean;
+  /** True when this paragraph ends in ":" and introduces the list below it. */
+  introducesList?: boolean;
 }
 
 export interface ParsedDocument {
@@ -186,6 +188,8 @@ function splitBlocks(content: string): RawBlock[] {
 
   let offset = 0;
   let index = 0;
+  /** The most recent "…:" paragraph, while a list directly follows it. */
+  let listIntro: string | undefined;
 
   const lineBytes = (line: string): number => Buffer.byteLength(`${line}\n`, 'utf8');
 
@@ -211,6 +215,7 @@ function splitBlocks(content: string): RawBlock[] {
       }
       headingLevels.push(level);
       headingPath.push(title);
+      listIntro = undefined;
       offset += lineBytes(line);
       index += 1;
       blocks.push({
@@ -239,6 +244,7 @@ function splitBlocks(content: string): RawBlock[] {
         index += 1;
         if (next.trimStart().startsWith(fence)) break;
       }
+      listIntro = undefined;
       blocks.push({
         lines: collected,
         startOffset: start,
@@ -261,6 +267,13 @@ function splitBlocks(content: string): RawBlock[] {
     // List item: the marker line plus any deeper-indented continuation.
     const listMatch = /^(\s*)([-*+]|\d+[.)])\s+/.exec(line);
     if (listMatch !== null) {
+      // A list introduced by "…:" belongs to its intro. Without this the
+      // intro becomes an acceptance criterion nobody can close ("The console
+      // must support:") while its ten actual capabilities become neither a
+      // requirement nor a criterion — which is exactly what the dogfood's
+      // sealed ledger showed. Carrying the intro on the item's heading path
+      // gives each capability the intro's framing and vocabulary.
+      const intro = listIntro;
       const indent = (listMatch[1] ?? '').length;
       const collected: string[] = [line];
       offset += lineBytes(line);
@@ -279,7 +292,7 @@ function splitBlocks(content: string): RawBlock[] {
         lines: collected,
         startOffset: start,
         endOffset: offset,
-        headingPath: [...headingPath],
+        headingPath: intro === undefined ? [...headingPath] : [...headingPath, intro],
         heading: false,
         fenced: false,
         listItem: true,
@@ -305,6 +318,10 @@ function splitBlocks(content: string): RawBlock[] {
       offset += lineBytes(line);
       index += 1;
     }
+    const paragraph = collected.join(' ').trim();
+    listIntro = paragraph.endsWith(':')
+      ? paragraph.replace(/:$/, '').trim().slice(0, 160)
+      : undefined;
     blocks.push({
       lines: collected,
       startOffset: start,
@@ -313,6 +330,8 @@ function splitBlocks(content: string): RawBlock[] {
       heading: false,
       fenced: false,
       listItem: false,
+      /** True when this paragraph introduces the list beneath it. */
+      introducesList: listIntro !== undefined,
     });
   }
 

@@ -215,6 +215,21 @@ export interface ApprovalSummary {
   extendedContractIds: string[];
   /** Existing sealed contracts this specification would CHANGE. */
   changedContractIds: string[];
+  /**
+   * The same contracts, qualified by the mission that owns them.
+   *
+   * What a person actually reads. A bare "CTR-001 would be extended" sitting
+   * above the feature's own "CTR-001 Observable Behaviour" names two
+   * different contracts with one label.
+   */
+  affectedContracts: {
+    contractId: string;
+    missionId: string;
+    missionName?: string | undefined;
+    title: string;
+    revision: number;
+    relation: 'EXTENDED' | 'CHANGED';
+  }[];
   decisions: { questionId: string; question: string; answer: string }[];
   nonGoals: string[];
   acceptanceCriteriaCount: number;
@@ -241,6 +256,14 @@ export function buildApprovalSummary(input: {
       })),
     extendedContractIds: [...input.analysis.extendedContractIds],
     changedContractIds: [...input.analysis.modifiedContractIds],
+    affectedContracts: input.analysis.affectedContracts.map((contract) => ({
+      contractId: contract.contractId,
+      missionId: contract.missionId,
+      ...(contract.missionName !== undefined ? { missionName: contract.missionName } : {}),
+      title: contract.title,
+      revision: contract.revision,
+      relation: contract.relation as 'EXTENDED' | 'CHANGED',
+    })),
     decisions: input.questions
       .filter((question) => question.status === 'answered')
       .map((question) => ({

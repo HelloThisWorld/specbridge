@@ -246,6 +246,31 @@ export const deltaAuthorityAnalysisSchema = z
     modifiedContractIds: idList.default([]),
     /** Existing contracts this specification would EXTEND, by id. */
     extendedContractIds: idList.default([]),
+    /**
+     * The same contracts, QUALIFIED by the mission that owns them.
+     *
+     * Contract ids are only unique within a mission, so a feature whose own
+     * registry also starts at CTR-001 produces an approval summary reading
+     * "CTR-001 would be extended" directly above "CTR-001 Observable
+     * Behaviour" — two different contracts, one label. The dogfood produced
+     * exactly that. The bare id lists stay for compatibility; anything a
+     * person reads uses these.
+     */
+    affectedContracts: z
+      .array(
+        z
+          .object({
+            contractId: shortText,
+            missionId: shortText,
+            missionName: shortText.optional(),
+            title: shortText,
+            revision: z.number().int().min(1),
+            relation: z.enum(['EXTENDED', 'CHANGED']),
+          })
+          .passthrough(),
+      )
+      .max(INTAKE_LIMITS.maxRefsPerRecord)
+      .default([]),
     /** New public surfaces this specification itself authorizes. */
     newSurfaces: textList.default([]),
     complete: z.boolean().default(false),

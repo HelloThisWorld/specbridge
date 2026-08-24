@@ -147,6 +147,39 @@ export function analyzeDeltaAuthority(request: DeltaAnalysisRequest): DeltaAutho
       .map((item) => item.existingContractId)
       .filter((id): id is string => id !== undefined),
   );
+  // The same contracts, qualified by their owning mission. Contract ids are
+  // unique only within a mission, so a bare id is ambiguous the moment the
+  // feature's own registry also has one.
+  const owners = new Map<string, OwnedContract>();
+  for (const owned of request.existingContracts) {
+    owners.set(`${owned.missionId}/${owned.contract.contractId}`, owned);
+  }
+  const affectedContracts: DeltaAuthorityAnalysis['affectedContracts'] = [];
+  const seenAffected = new Set<string>();
+  for (const item of items) {
+    const relation =
+      item.classification === 'EXISTING_CONTRACT_EXTENSION'
+        ? ('EXTENDED' as const)
+        : item.classification === 'EXISTING_SEALED_CONTRACT_CHANGE' ||
+            item.classification === 'CONTRADICTION'
+          ? ('CHANGED' as const)
+          : undefined;
+    if (relation === undefined) continue;
+    if (item.existingContractId === undefined || item.existingMissionId === undefined) continue;
+    const key = `${item.existingMissionId}/${item.existingContractId}/${relation}`;
+    if (seenAffected.has(key)) continue;
+    seenAffected.add(key);
+    const owned = owners.get(`${item.existingMissionId}/${item.existingContractId}`);
+    affectedContracts.push({
+      contractId: item.existingContractId,
+      missionId: item.existingMissionId,
+      ...(owned !== undefined ? { missionName: owned.missionName } : {}),
+      title: owned?.contract.title ?? item.existingContractId,
+      revision: item.existingContractRevision ?? owned?.contract.revision ?? 1,
+      relation,
+    });
+  }
+
   const newSurfaces = unique(
     items
       .filter((item) => item.classification === 'NEW_DELEGATED_SURFACE')
@@ -186,6 +219,7 @@ export function analyzeDeltaAuthority(request: DeltaAnalysisRequest): DeltaAutho
     counts,
     modifiedContractIds: modifiedContractIds.slice(0, INTAKE_LIMITS.maxRefsPerRecord),
     extendedContractIds: extendedContractIds.slice(0, INTAKE_LIMITS.maxRefsPerRecord),
+    affectedContracts: affectedContracts.slice(0, INTAKE_LIMITS.maxRefsPerRecord),
     newSurfaces: newSurfaces.slice(0, INTAKE_LIMITS.maxItems),
     complete,
     reasons,

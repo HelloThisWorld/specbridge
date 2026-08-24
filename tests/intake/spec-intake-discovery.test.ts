@@ -1,3 +1,5 @@
+import { mkdirSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { QuestionCandidate } from '@specbridge/intake';
 import {
@@ -5,6 +7,7 @@ import {
   answerIntakeQuestion,
   groundInRepository,
   parseSpecificationDocument,
+  readGitHead,
   readRefusals,
   runIntakeDiscovery,
   screenCandidate,
@@ -12,6 +15,7 @@ import {
 } from '@specbridge/intake';
 import { recordAssessment } from '@specbridge/mission';
 import { sealableMission } from '../helpers-autonomy.js';
+import { emptyTempDir } from '../helpers.js';
 import { goldenSpecText, setupIntakeFixture, unambiguousSpecText } from '../helpers-intake.js';
 
 /**
@@ -433,5 +437,60 @@ describe('spec intake — convergence', () => {
     const after = runIntakeDiscovery(fixture.intake, id);
     expect(after.readiness.ready).toBe(false);
     expect(after.readiness.missionContractReady).toBe(false);
+  });
+});
+
+describe('spec intake — resolving the repository baseline', () => {
+  it('resolves HEAD in a LINKED WORKTREE, where refs live in the common directory', () => {
+    // The vNext.10.1 dogfood ran in a git worktree and recorded a null
+    // baseline commit. A worktree's `.git` is a FILE naming a per-worktree
+    // gitdir with its own HEAD, but the REF that HEAD points at lives in the
+    // COMMON directory named by `commondir` — so resolving the ref relative
+    // to the per-worktree gitdir finds nothing, and the feature lineage
+    // cannot say what the work started from.
+    const root = emptyTempDir();
+    const common = path.join(root, 'common.git');
+    const worktreeGitDir = path.join(root, 'common.git', 'worktrees', 'feature');
+    const checkout = path.join(root, 'checkout');
+    const sha = 'a'.repeat(40);
+
+    mkdirSync(path.join(common, 'refs', 'heads', 'dogfood'), { recursive: true });
+    writeFileSync(path.join(common, 'refs', 'heads', 'dogfood', 'intake'), `${sha}\n`, 'utf8');
+    mkdirSync(worktreeGitDir, { recursive: true });
+    writeFileSync(path.join(worktreeGitDir, 'HEAD'), 'ref: refs/heads/dogfood/intake\n', 'utf8');
+    // Relative, exactly as git writes it.
+    writeFileSync(path.join(worktreeGitDir, 'commondir'), '../..\n', 'utf8');
+    mkdirSync(checkout, { recursive: true });
+    writeFileSync(path.join(checkout, '.git'), `gitdir: ${worktreeGitDir}\n`, 'utf8');
+
+    expect(readGitHead(checkout)).toBe(sha);
+  });
+
+  it('resolves a detached HEAD and a packed ref, and reports null when it cannot', () => {
+    const root = emptyTempDir();
+    const sha = 'b'.repeat(40);
+
+    const detached = path.join(root, 'detached');
+    mkdirSync(path.join(detached, '.git'), { recursive: true });
+    writeFileSync(path.join(detached, '.git', 'HEAD'), `${sha}\n`, 'utf8');
+    expect(readGitHead(detached)).toBe(sha);
+
+    const packed = path.join(root, 'packed');
+    mkdirSync(path.join(packed, '.git'), { recursive: true });
+    writeFileSync(path.join(packed, '.git', 'HEAD'), 'ref: refs/heads/main\n', 'utf8');
+    writeFileSync(
+      path.join(packed, '.git', 'packed-refs'),
+      `# pack-refs with: peeled fully-peeled sorted\n${sha} refs/heads/main\n`,
+      'utf8',
+    );
+    expect(readGitHead(packed)).toBe(sha);
+
+    // A repository with no commits: null, which is a different fact from
+    // "unchanged" and is recorded as one.
+    const empty = path.join(root, 'empty');
+    mkdirSync(path.join(empty, '.git'), { recursive: true });
+    writeFileSync(path.join(empty, '.git', 'HEAD'), 'ref: refs/heads/main\n', 'utf8');
+    expect(readGitHead(empty)).toBeNull();
+    expect(readGitHead(path.join(root, 'nothing-here'))).toBeNull();
   });
 });

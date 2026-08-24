@@ -116,11 +116,19 @@ const TEST_DIR_PATTERN = /^(tests?|spec|specs|__tests__|it|integration-tests?|e2
 /**
  * Resolve the current commit by reading `.git` directly.
  *
- * Handles the three shapes that occur in practice: a plain repository, a
- * worktree (`.git` is a FILE naming the real gitdir), and a packed ref. A
- * repository with no commits, or one this cannot make sense of, returns
- * `null` — which is a different fact from "unchanged" and is recorded as
- * one.
+ * Handles the four shapes that occur in practice: a plain repository, a
+ * detached HEAD, a packed ref, and a LINKED WORKTREE.
+ *
+ * The worktree case is the one that is easy to get wrong, and the vNext.10.1
+ * dogfood got it wrong. A worktree's `.git` is a FILE naming a per-worktree
+ * gitdir, and that directory has its own `HEAD` — but the REF that HEAD
+ * points at lives in the COMMON directory named by `commondir`, along with
+ * `packed-refs`. Reading the ref relative to the per-worktree gitdir finds
+ * nothing, so the commit resolves to `null` and the feature lineage cannot
+ * record what the work started from.
+ *
+ * A repository with no commits, or one this cannot make sense of, returns
+ * `null` — a different fact from "unchanged", and recorded as one.
  */
 export function readGitHead(rootDir: string): string | null {
   try {
@@ -141,21 +149,46 @@ export function readGitHead(rootDir: string): string | null {
     const refMatch = /^ref:\s*(.+)$/.exec(head);
     if (refMatch === null) return null;
     const ref = (refMatch[1] ?? '').trim();
-    const refFile = path.join(gitDir, ...ref.split('/'));
-    if (existsSync(refFile)) {
+
+    // Refs are resolved against the per-worktree directory first (a worktree
+    // may carry its own `refs/bisect`, for instance) and then against the
+    // common directory, which is where an ordinary branch actually lives.
+    for (const dir of refDirsFor(gitDir)) {
+      const refFile = path.join(dir, ...ref.split('/'));
+      if (!existsSync(refFile)) continue;
       const sha = readFileSync(refFile, 'utf8').trim();
-      return /^[0-9a-f]{40}$/i.test(sha) ? sha.toLowerCase() : null;
+      if (/^[0-9a-f]{40}$/i.test(sha)) return sha.toLowerCase();
     }
-    const packed = path.join(gitDir, 'packed-refs');
-    if (!existsSync(packed)) return null;
-    for (const line of readFileSync(packed, 'utf8').split('\n')) {
-      const entry = /^([0-9a-f]{40})\s+(.+)$/.exec(line.trim());
-      if (entry !== null && entry[2] === ref) return (entry[1] ?? '').toLowerCase();
+    for (const dir of refDirsFor(gitDir)) {
+      const packed = path.join(dir, 'packed-refs');
+      if (!existsSync(packed)) continue;
+      for (const line of readFileSync(packed, 'utf8').split('\n')) {
+        const entry = /^([0-9a-f]{40})\s+(.+)$/.exec(line.trim());
+        if (entry !== null && entry[2] === ref) return (entry[1] ?? '').toLowerCase();
+      }
     }
     return null;
   } catch {
     return null;
   }
+}
+
+/** The gitdir itself, then the common directory a worktree shares. */
+function refDirsFor(gitDir: string): string[] {
+  const dirs = [gitDir];
+  const commonFile = path.join(gitDir, 'commondir');
+  if (existsSync(commonFile)) {
+    try {
+      const target = readFileSync(commonFile, 'utf8').trim();
+      if (target.length > 0) {
+        dirs.push(path.isAbsolute(target) ? target : path.resolve(gitDir, target));
+      }
+    } catch {
+      // An unreadable commondir means the common directory cannot be found;
+      // the per-worktree directory alone is still worth trying.
+    }
+  }
+  return dirs;
 }
 
 // ---------------------------------------------------------------------------

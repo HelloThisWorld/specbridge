@@ -265,6 +265,18 @@ export interface CompileRequest {
   blockedItemIds: readonly string[];
   /** Product questions still open. Contracts wait for zero. */
   openQuestionCount: number;
+  /**
+   * Product questions the human ANSWERED.
+   *
+   * A requirement compiled from a statement the human just disambiguated
+   * must carry the disambiguation. The dogfood produced a task plan whose
+   * acceptance criterion still read "Step Functions-compatible or Step
+   * Functions-like" after the human had chosen — handing the builder back
+   * the exact ambiguity the conversation existed to remove.
+   */
+  answeredQuestions?:
+    | readonly { questionId: string; answer: string; sourceChunkIds: string[]; deltaItemId?: string | undefined }[]
+    | undefined;
 }
 
 export interface CompileResult {
@@ -314,6 +326,18 @@ export function compileMissionTruth(
   const missionBefore = requireMissionState(intakeDeps.workspace, request.missionId);
   const missionGoal = missionBefore.goal;
   const blocked = new Set(request.blockedItemIds);
+  const chunkKinds = new Map(request.source.chunks.map((chunk) => [chunk.chunkId, chunk.kind]));
+  const isExclusion = (item: DeltaItem): boolean =>
+    item.sourceChunkIds.some((chunkId) => chunkKinds.get(chunkId) === 'non-goal');
+  const resolutionFor = (item: DeltaItem): string | undefined => {
+    for (const answered of request.answeredQuestions ?? []) {
+      const matches =
+        answered.deltaItemId === item.itemId ||
+        answered.sourceChunkIds.some((chunkId) => item.sourceChunkIds.includes(chunkId));
+      if (matches) return answered.answer;
+    }
+    return undefined;
+  };
   // What the mission can still hold, minus the reserve for topic decisions.
   const decisionBudget = Math.max(
     0,
@@ -406,6 +430,12 @@ export function compileMissionTruth(
     }
 
     if (!bearsContract) continue;
+    // A non-goal is authority NOT to build something. It is already carried
+    // by `mission.nonGoals`; turning it into a contract requirement asks a
+    // builder to implement an exclusion, which is how the dogfood ended up
+    // with "and must not contain airport-specific workflow topology." as an
+    // acceptance criterion.
+    if (isExclusion(item)) continue;
     if (map.itemContracts[item.itemId] !== undefined) continue;
     // An extension of an existing contract becomes a requirement on the
     // FEATURE's own contract, never a write into the prior mission's
@@ -506,7 +536,7 @@ export function compileMissionTruth(
       classification: shape.classification,
       compatibilityPolicy: shape.compatibilityPolicy,
       requirements: items.slice(0, 60).map((item) => ({
-        statement: clip(item.statement, INTAKE_LIMITS.maxTextChars),
+        statement: clip(requirementStatement(item, resolutionFor(item)), INTAKE_LIMITS.maxTextChars),
         decisionIds: [map.itemDecisions[item.itemId] ?? decisionIds[0] ?? ''].filter(
           (id) => id.length > 0,
         ),
@@ -556,6 +586,11 @@ function missionFieldsFrom(request: CompileRequest): MissionAssessmentInput['mis
       nonGoals.push(clip(chunk.text, 600));
       continue;
     }
+    // A colon-terminated intro ("The console must support:") is not a
+    // closable criterion — its list items are, and they now carry it on
+    // their heading path. Admitting the intro too would put an unclosable
+    // item in the ledger, which can hold a finished run open forever.
+    if (introducesList(chunk)) continue;
     if (chunk.kind === 'scenario' && criteria.length < 34) {
       criteria.push(acceptanceCriterionFrom(chunk));
       continue;
@@ -563,7 +598,9 @@ function missionFieldsFrom(request: CompileRequest): MissionAssessmentInput['mis
     if (
       chunk.kind === 'normative' &&
       criteria.length < 40 &&
-      VERIFIABLE_PATTERN.test(chunk.text)
+      // The heading path counts: a capability bullet inherits the framing of
+      // the sentence that introduced its list.
+      VERIFIABLE_PATTERN.test(`${chunk.headingPath.join(' ')} ${chunk.text}`)
     ) {
       criteria.push(acceptanceCriterionFrom(chunk));
       continue;
@@ -593,6 +630,17 @@ const VERIFIABLE_PATTERN =
 
 const CONSTRAINT_PATTERN =
   /\b(must not|only|no more than|at most|within|limited to|constraint|budget|never)\b/i;
+
+/**
+ * A chunk that only introduces the list beneath it.
+ *
+ * Detected from the text rather than carried on the record, so it holds for
+ * any chunk read back from disk. The list items themselves end with ';' or
+ * '.' and never with a bare colon.
+ */
+function introducesList(chunk: SourceChunk): boolean {
+  return chunk.kind !== 'heading' && /:$/.test(chunk.text.trim());
+}
 
 function acceptanceCriterionFrom(chunk: SourceChunk): string {
   const body = chunk.text.replace(/^(\s*)([-*+]|\d+[.)])\s+/, '').trim();
@@ -713,6 +761,22 @@ const TOPIC_PREFIX: Partial<Record<DiscoveryTopic, string>> = {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/**
+ * The requirement text a builder implements against.
+ *
+ * The submitted sentence, plus the human's answer when one settled it. Both
+ * halves matter: the sentence keeps the requirement traceable to the
+ * document, and the answer is the part that makes it buildable. Appending
+ * rather than replacing means the projection still traces to the source AND
+ * to the recorded decision.
+ */
+function requirementStatement(item: DeltaItem, resolution: string | undefined): string {
+  const base = item.statement.trim();
+  if (resolution === undefined) return base;
+  const terminated = /[.!?]$/.test(base) ? base : `${base}.`;
+  return `${terminated} Resolved by the recorded product decision: ${clip(resolution, 800)}`;
+}
 
 function surfaceKeyFor(item: DeltaItem): string {
   const surfaces = item.affectedSurfaces.length > 0 ? item.affectedSurfaces : surfacesOf(item.statement).map((s) => s.surface);

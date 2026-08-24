@@ -240,6 +240,46 @@ and backward compatibility. Suite: 196 files / 2,630 tests.
   the rest become facts, and an overflow leaves statements `UNACCOUNTED` with
   a reason rather than raising `SBM006`.
 
+### Defects the StepRelay dogfood found
+
+The Golden Spec ran against the real StepRelay repository — an existing
+product with an approved mission, nine sealed contracts, and 84 pieces of
+durable evidence. Six defects surfaced that 2,630 tests had not.
+
+- **A linked worktree resolved no baseline commit.** A worktree's `.git` is a
+  file naming a per-worktree gitdir with its own `HEAD`, but the ref it points
+  at lives in the COMMON directory named by `commondir`. Feature lineage could
+  not say what the work started from.
+- **`--resume` short-circuited on the stale outcome.** The build stopped on
+  `HUMAN_PREREQUISITE_REQUIRED` because a container daemon was not running;
+  the operator started it, ran `--resume`, and got the same refusal verbatim.
+  Only `COMPLETED` is terminal now — every other outcome is a state a resume
+  exists to leave.
+- **The ledger displayed a preflight verdict the launch did not act on.** A
+  resumed run takes a fresh preflight, and that verdict is now written back
+  onto the step, so a report never shows `HUMAN_ACTION_REQUIRED` beside a
+  build that proceeded.
+- **Answered questions did not reach the requirement text.** The task plan
+  handed a builder "Step Functions-compatible or Step Functions-like" AFTER
+  the human had chosen — the exact ambiguity the conversation existed to
+  remove. Requirements now carry the recorded decision alongside the source
+  sentence.
+- **A non-goal became a requirement.** "…must not contain airport-specific
+  workflow topology" appeared as an acceptance criterion, asking a builder to
+  implement an exclusion. Exclusions are carried by the mission's non-goals
+  and never by a contract.
+- **A list-introducing line was sealed instead of its list.** "The console
+  must support:" was an unclosable acceptance criterion while its ten
+  capabilities became neither a requirement nor a criterion. A colon-
+  terminated intro now belongs to the list beneath it: the sealed ledger went
+  from 19 criteria to 27, with every console capability individually
+  closable.
+
+Also surfaced and fixed: contract ids are unique only within a mission, so
+the approval summary read "CTR-001 would be extended" directly above the
+feature's own "CTR-001 Observable Behaviour". Affected contracts are now
+qualified by their owning mission, title, and revision.
+
 ## 1.10.0 (unreleased) — vNext.10 Overnight Autonomous Product Runtime
 
 Nine phases made a long-horizon run SURVIVE. This one makes it not need a

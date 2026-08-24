@@ -354,5 +354,18 @@ describe('delta authority analysis — prior seals are never silently mutated', 
     expect(analysis.extendedContractIds).toContain(contracts[0]?.contractId);
     expect(analysis.modifiedContractIds).toEqual([]);
     expect(analysis.newSurfaces).toContain('public-api');
+
+    // Qualified by the owning mission. The dogfood produced an approval
+    // summary reading "CTR-001 would be extended" directly above the
+    // feature's own "CTR-001 Observable Behaviour" — two different contracts
+    // wearing one label, because contract ids are unique only within a
+    // mission.
+    expect(analysis.affectedContracts).toHaveLength(1);
+    const affected = analysis.affectedContracts[0];
+    expect(affected?.contractId).toBe(contracts[0]?.contractId);
+    expect(affected?.missionId).toBe(prior.missionId);
+    expect(affected?.title).toBe(contracts[0]?.title);
+    expect(affected?.revision).toBe(contracts[0]?.revision);
+    expect(affected?.relation).toBe('EXTENDED');
   });
 });

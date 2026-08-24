@@ -91,6 +91,37 @@ describe('spec intake — ingesting a full specification', () => {
     expect(bullets.some((chunk) => chunk.text.includes('malformed face data'))).toBe(true);
   });
 
+  it('gives a list its introducing sentence, so each item is closable on its own', () => {
+    // The dogfood's sealed ledger carried "The console must support:" as an
+    // acceptance criterion — a colon-terminated fragment nobody can close —
+    // while the ten capabilities beneath it became neither a requirement nor
+    // a criterion. The intro belongs to its list.
+    const parsed = parseSpecificationDocument(
+      [
+        '## Operations console',
+        '',
+        'The console must support:',
+        '',
+        '- discover/view workflow definitions;',
+        '- list workflow executions;',
+        '',
+        'A later paragraph that introduces nothing.',
+        '',
+        '- an unrelated bullet.',
+        '',
+      ].join('\n'),
+    );
+    const capability = parsed.chunks.find((chunk) => chunk.text.includes('list workflow executions'));
+    expect(capability?.headingPath).toEqual(['Operations console', 'The console must support']);
+
+    // The intro's own chunk still exists — nothing is dropped from the
+    // index — and a paragraph that does NOT end in a colon does not claim
+    // the list beneath it.
+    expect(parsed.chunks.some((chunk) => chunk.text === 'The console must support:')).toBe(true);
+    const unrelated = parsed.chunks.find((chunk) => chunk.text.includes('an unrelated bullet'));
+    expect(unrelated?.headingPath).toEqual(['Operations console']);
+  });
+
   it('classifies non-goals, examples, and headings apart from requirements', () => {
     const parsed = parseSpecificationDocument(
       [
