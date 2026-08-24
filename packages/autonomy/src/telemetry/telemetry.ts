@@ -11,7 +11,7 @@ import { countSelfCreatedTools, listToolsmithRequests } from '../toolsmith/servi
 import { listBrowserResults } from '../browser/service.js';
 import { listCritiques } from '../critic/critic.js';
 import { readSupervisionLog } from '../supervisor/store.js';
-import { readSealBinding } from '../seal/service.js';
+import { readSeal, readSealBinding } from '../seal/service.js';
 
 /**
  * Autonomy telemetry.
@@ -57,6 +57,18 @@ export const autonomyTelemetrySchema = z
     humanInterventionsAfterSeal: z.number().int().min(0),
     /** Times the runtime correctly stopped for product authority. */
     humanAuthorityEscalations: z.number().int().min(0),
+    /**
+     * Authority escalations that happened AFTER the seal instant.
+     *
+     * Separate from the counter above because the boundary is what the
+     * vNext.10.1 intake path made precise: an escalation recorded before the
+     * intent was sealed belongs to discovery, not to the unattended run.
+     * `null` when the seal carries no `sealedAt` and the boundary therefore
+     * cannot be placed — which is a different fact from zero.
+     */
+    humanAuthorityEscalationsAfterSeal: z.number().int().min(0).nullable().default(null),
+    /** The instant the zero-touch boundary starts: when the intent was sealed. */
+    boundaryStartedAt: shortText.nullable().default(null),
 
     // --- Autonomy at work --------------------------------------------------
     autonomousRecoveryCount: z.number().int().min(0),
@@ -166,14 +178,35 @@ export function computeAutonomyTelemetry(
   let quotaWaits = 0;
   let contextRollovers = 0;
   let supervisorWakeups = 0;
+  let escalationsAfterBoundary = 0;
+
+  // The zero-touch boundary starts when the intent was SEALED. Before
+  // vNext.10.1 that instant and the job's own start were effectively the
+  // same, because a person sealed by hand and launched immediately. The
+  // intake path seals from an approval, so the two can differ, and an
+  // intervention recorded before the authorization is not an intervention
+  // "after the seal" whatever the metric is called. When the boundary cannot
+  // be placed, everything counts — the conservative direction.
+  const bindingForBoundary = readSealBinding(deps.workspace, input.jobId);
+  const boundary =
+    bindingForBoundary !== undefined
+      ? readSealedAt(deps, bindingForBoundary.sealId)
+      : undefined;
+  const boundaryMs = boundary !== undefined ? Date.parse(boundary) : Number.NaN;
+  const afterBoundary = (at: string): boolean => {
+    if (!Number.isFinite(boundaryMs)) return true;
+    const eventMs = Date.parse(at);
+    return !Number.isFinite(eventMs) || eventMs >= boundaryMs;
+  };
 
   for (const event of events) {
     const type = String(event['type'] ?? '');
     const at = String(event['at'] ?? '');
     const explanation = INTERVENTION_EVENTS[type];
-    if (explanation !== undefined) {
+    if (explanation !== undefined && afterBoundary(at)) {
       interventions.push({ at, kind: type, detail: explanation });
     }
+    if (type === 'authority_escalated' && afterBoundary(at)) escalationsAfterBoundary += 1;
     if (type === 'worker_escalated' || type === 'local_harness_to_subscription_escalated') {
       providerFailovers += 1;
     }
@@ -233,6 +266,8 @@ export function computeAutonomyTelemetry(
 
     humanInterventionsAfterSeal: interventions.length,
     humanAuthorityEscalations: counters?.authorityEscalations ?? 0,
+    humanAuthorityEscalationsAfterSeal: boundary === undefined ? null : escalationsAfterBoundary,
+    boundaryStartedAt: boundary ?? null,
 
     autonomousRecoveryCount: counters?.autonomousRecoveries ?? 0,
     providerFailovers,
@@ -281,6 +316,21 @@ function elapsedFromJob(job: JobState | undefined): number | null {
   const updated = Date.parse(job.finalizedAt ?? job.updatedAt);
   if (!Number.isFinite(created) || !Number.isFinite(updated)) return null;
   return Math.max(0, updated - created);
+}
+
+/**
+ * The instant the bound seal was authorized.
+ *
+ * `undefined` when there is no binding, no seal, or no `sealedAt` — each of
+ * which means the boundary cannot be placed, and the caller then counts
+ * everything rather than guessing.
+ */
+function readSealedAt(deps: AutonomyDeps, sealId: string): string | undefined {
+  try {
+    return readSeal(deps.workspace, sealId)?.sealedAt;
+  } catch {
+    return undefined;
+  }
 }
 
 function safeEvents(workspace: WorkspaceInfo, jobId: string): Record<string, unknown>[] {

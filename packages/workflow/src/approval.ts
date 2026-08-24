@@ -49,9 +49,38 @@ import {
  * The approved Markdown file itself is never rewritten.
  */
 
+/**
+ * Provenance for an approval whose authority DERIVES from an earlier,
+ * explicit human decision rather than from this call.
+ *
+ * The gates do not change: prerequisites, deterministic analysis, and the
+ * byte-exact hash all still apply, and a derived approval that fails any of
+ * them fails. What changes is only what is RECORDED — the mode, the human
+ * decision it descends from, and the digest of the truth that decision
+ * approved.
+ *
+ * This package deliberately does not know what an "intake approval" is. It
+ * stamps a provenance it is given; whoever passes one is responsible for
+ * having proved the artifact is a projection of exactly that approved truth,
+ * and @specbridge/intake refuses to call this until it has.
+ */
+export interface DerivedApprovalProvenance {
+  /** The human authority record id (e.g. an intake approval). */
+  approvalId: string;
+  /** Digest of the canonical truth that approval covered. */
+  authorityDigest: string;
+}
+
 export interface ApprovalRequest {
   stage: StageName;
   revoke?: boolean;
+  /**
+   * Record this approval as DERIVED rather than as a fresh human decision.
+   *
+   * Absent means the approval is a human one, which is what every existing
+   * caller does and what every existing record already says.
+   */
+  derivedFrom?: DerivedApprovalProvenance;
 }
 
 export interface ApprovalOptions {
@@ -72,6 +101,8 @@ export type ApprovalResult =
       invalidated: StageName[];
       /** True when sidecar state was created by this command. */
       initialized: boolean;
+      /** How the recorded approval got its authority. */
+      approvalMode: 'HUMAN' | 'DERIVED_FROM_INTENT_APPROVAL';
       analysis: SpecAnalysisResult;
       diagnostics: Diagnostic[];
     }
@@ -181,6 +212,9 @@ function clearedApproval(stage: StageApproval): StageApproval {
     approvedPlanHash: _plan,
     hashAlgorithm: _algorithm,
     hashSemanticsVersion: _semantics,
+    approvalMode: _mode,
+    sourceApprovalId: _source,
+    authorityDigest: _digest,
     ...rest
   } = stage;
   return { ...rest, status: 'draft', approvedAt: null, approvedHash: null };
@@ -387,8 +421,17 @@ export function approveStage(
   // (semantics v2) so later `[ ]` → `[x]` progress does not read as a plan
   // change. Other stages stay exact-byte only.
   const planHash = request.stage === 'tasks' ? tryTaskPlanHashOfFile(filePath) : undefined;
+  // Re-approving a stage strips any earlier derived provenance: this call is
+  // the authority now, and carrying a stale `sourceApprovalId` forward would
+  // credit a human decision that did not cover the current bytes.
+  const {
+    approvalMode: _mode,
+    sourceApprovalId: _source,
+    authorityDigest: _digest,
+    ...withoutProvenance
+  } = target;
   stages[request.stage] = {
-    ...target,
+    ...withoutProvenance,
     status: 'approved',
     approvedAt: isoNow(clock),
     approvedHash: hash,
@@ -397,6 +440,13 @@ export function approveStage(
           approvedPlanHash: planHash,
           hashAlgorithm: 'sha256' as const,
           hashSemanticsVersion: TASK_PLAN_HASH_SEMANTICS_VERSION,
+        }
+      : {}),
+    ...(request.derivedFrom !== undefined
+      ? {
+          approvalMode: 'DERIVED_FROM_INTENT_APPROVAL' as const,
+          sourceApprovalId: request.derivedFrom.approvalId,
+          authorityDigest: request.derivedFrom.authorityDigest,
         }
       : {}),
   };
@@ -418,6 +468,8 @@ export function approveStage(
     reapproved,
     invalidated,
     initialized,
+    approvalMode:
+      request.derivedFrom !== undefined ? 'DERIVED_FROM_INTENT_APPROVAL' : 'HUMAN',
     analysis,
     diagnostics,
   };

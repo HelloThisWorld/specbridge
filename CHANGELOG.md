@@ -1,5 +1,245 @@
 # Changelog
 
+## 1.10.1 (unreleased) — vNext.10.1 Zero-Touch Spec Intake
+
+vNext.10 made a long-horizon run survive without a person. It started at a
+Mission Seal — and creating one took eight commands.
+
+This release removes the eight commands, not the authority.
+
+```text
+existing repository + one new specification
+        ↓
+repository-grounded discovery
+        ↓
+only genuine product questions
+        ↓
+ONE human approval  ─────────────  the zero-touch boundary starts here
+        ↓
+synthesis · derived approvals · seal · preflight · launch
+        ↓
+the vNext.10 unattended runtime
+        ↓
+COMPLETED
+```
+
+**Nothing was removed.** `mission begin`, `mission contract-ready`,
+`mission synthesize`, `spec approve --stage`, `autonomy seal`,
+`overnight preflight`, and `overnight run` all behave exactly as they did.
+The new path is a higher-level orchestration of those authorities; a
+workspace that never uses it is byte-identical in behaviour.
+
+### The workflow
+
+```bash
+specbridge spec start airport-demo --file ./demo-spec.md
+specbridge spec answer airport-demo Q-001 "Strict: an existing definition must run unchanged."
+specbridge spec approve airport-demo --build
+```
+
+Four commands and one flag, of which exactly **one** carries human authority.
+The Claude Code plugin exposes the same path as `/specbridge:build`.
+
+### New package: `@specbridge/intake`
+
+`vocabulary.ts` (all closed enums), `document.ts` (deterministic parsing),
+`grounding.ts` (repository-grounded discovery), `delta.ts` (Delta Authority
+Analysis), `questions.ts` (generation + six refusal screens), `compile.ts`
+(canonical truth → mission records), `convergence.ts` (the four gates),
+`approval.ts` (the single authorization), `derived-approval.ts` (projection
+equivalence), `lifecycle.ts` (the nine-step transition), `service.ts`,
+`telemetry.ts`.
+
+It sits ON TOP of mission, autonomy, orchestration, and workflow, and
+`IntakeDeps` is structurally an `AutonomyDeps` — a bundle that could not be
+handed straight to them would mean the intake had built parallel versions of
+things that already exist.
+
+### Full spec intake
+
+`mission begin --goal "one or two sentences"` was never going to carry a real
+specification. `spec start` takes the whole document, stores it **verbatim**
+and content-addressed under `.specbridge/intake/<id>/source/<sha256>.md`
+before anything is parsed, and indexes it by byte offset. The parse is
+SpecBridge's *reading* of the document; if the two ever disagree, the
+document wins. A model summary never replaces it.
+
+List items are cut individually, because a specification enumerates its edge
+cases as a bullet list and treating the list as one chunk would let a
+discovery pass account for "the edge cases" collectively while dropping four
+of them. And **a bullet is an obligation** unless it is plainly an
+illustration: an earlier version demanded a modal verb and quietly filed
+"Sequential execution is deterministic" as narrative, which dropped it out of
+the coverage gate that exists to stop exactly that.
+
+### Repository-grounded discovery
+
+Discovery in an existing repository is not product design. Two categories
+come out and keeping them apart is the whole job: **authoritative** evidence
+is existing product truth (sealed contracts, constitution rules, ADRs, prior
+seals, approved specs, feature lineage) and can answer a product question;
+**context** is everything else (modules, build system, test surfaces, public
+interface files) and informs engineering decisions, which are delegated and
+never asked about. Read-only and offline throughout — the head commit comes
+from reading `.git` rather than spawning git.
+
+### Delta Authority Analysis
+
+Seven classes, and only three need human attention:
+
+```text
+NEW_DELEGATED_SURFACE            a new public surface THIS spec authorizes
+IMPLEMENTATION_DETAIL            engineering latitude inside the seal
+EXISTING_CONTRACT_COMPATIBLE     an existing contract already promises it
+EXISTING_CONTRACT_EXTENSION      adds to a contract whose policy permits it
+EXISTING_SEALED_CONTRACT_CHANGE  would change an existing sealed promise ← human
+CONTRADICTION                    collides with an active contract or rule  ← human
+UNKNOWN_PRODUCT_AUTHORITY        blocked on an open product question       ← human
+```
+
+Both failure directions are expensive and look nothing alike. Over-
+classifying puts a human gate in front of every new endpoint — a new REST
+route, console screen, or configuration format for a NEW feature is public
+and modifies no old promise. Under-classifying silently rewrites a promise
+the product already made. A `frozen` contract has no additive form, so an
+item that would extend one is a change to it.
+
+A feature intake **never writes into a prior mission's registry**: an
+extension becomes a requirement on the feature's own contract and is recorded
+on the approval, and the older contract stays byte-identical.
+
+### Question discipline
+
+A question is generated only when the document is structurally unresolved: a
+hedged compatibility promise (`X-compatible or X-like`), a semantically
+loaded verb used without a definition (`replay`, `redrive`, `exactly-once`),
+a sensitive payload with no stated visibility policy, an author-flagged
+ambiguity, or a would-be sealed-contract change.
+
+Every admitted question carries `kind`, `productSurface`, `evidenceGap`, and
+`resolves` — and the generator cannot produce one without all four. Then six
+screens run on every candidate, including any an agent proposes through the
+`DiscoveryProposer` seam, and **every refusal is recorded**:
+`ENGINEERING_DECISION`, `ELABORATION_NOT_DECISION`, `IMMATERIAL_TO_PRODUCT`,
+`DUPLICATE`, `ANSWERED_BY_EVIDENCE`, `ANSWERED_BY_SPECIFICATION`.
+
+`ENGINEERING_QUESTION_SURFACES` is a negative list — the mirror of
+`NON_AUTHORITY_SIGNALS` — and a test enumerates all fifteen members and
+proves none reaches a human.
+
+### Convergence
+
+Four deterministic gates: every normative statement accounted for, no open
+question, delta analysis complete, mission coverage gate holds. When all four
+hold the intake is `READY_FOR_APPROVAL` and discovery **stops**. There is no
+fifth gate a model could argue itself into. A specification carrying more
+material public statements than one mission record can hold says so and asks
+to be split, rather than crashing on a schema bound.
+
+### One approval, and derived approval
+
+The approval is one immutable record whose every field is a reference or a
+digest. `authorityDigest` hashes exactly the approved product truth: ordering
+is not authority, a contract revision is.
+
+`requirements.md`, `design.md`, and `tasks.md` are deterministic projections
+of that truth, so their authority **derives** — under one condition this
+proves rather than assumes: *the projection must contain no semantic
+authority the human did not approve*. Every normative line is traced back to
+an approved element, and a line that traces to nothing **fails** the derived
+approval rather than warning about it.
+
+What gets recorded is honest about what it is — `approvalMode:
+DERIVED_FROM_INTENT_APPROVAL` plus `sourceApprovalId` and `authorityDigest`,
+never a forged manual receipt. An absent `approvalMode` means `HUMAN`, so
+every approval recorded before this release reads exactly as it did.
+
+### The atomic seal-and-build transition
+
+Nine durable transactions behind one product operation:
+
+```text
+CONTRACT_READY → SYNTHESIZE → VALIDATE_PROJECTION → DERIVE_APPROVALS
+   → SEAL → PREFLIGHT → RESOLVE_PREREQUISITES → CREATE_JOB → LAUNCH
+```
+
+A durable step ledger records each step `RUNNING` before it acts. On re-entry
+the lifecycle does **not trust that record**: it asks durable reality whether
+the effect already exists and marks the step `RECONCILED` when it does.
+Reality is the authority; the ledger is the plan. `spec intake <name>
+--resume` continues idempotently from the first unsettled step.
+
+A human-only prerequisite stops **before the job exists** — preflight is step
+6 and job creation is step 8, deliberately. A diverging projection stops
+before the seal. And a `SATISFIABLE_AUTONOMOUSLY` capability is pre-authorized
+through the Toolsmith broker while somebody is still awake, so a denial is
+found now rather than at 03:00.
+
+### The telemetry boundary
+
+```text
+discoveryHumanTurns                  answers given BEFORE authorizing — never a failure
+productQuestionsAsked                what discovery asked
+questionsRefused                     what it declined to ask — the honesty check
+authorityApprovalCount               exactly 1 for a completed intake
+humanInterventionsAfterSeal          the vNext.10 metric, from the approval forward
+humanAuthorityEscalationsAfterSeal   correct authority stops after it
+```
+
+`null` means unknown, never zero. `computeAutonomyTelemetry` now places the
+boundary at the seal's `sealedAt` instant when one is bound; when it cannot
+be placed, everything counts, which is the conservative direction.
+
+### Feature lineage
+
+`.specbridge/intake/baseline.json` records, per feature, the baseline commit,
+the seals already in force, and the contracts created, extended, or changed.
+Grounding reads it — which is what makes the second specification discovery
+sees get smarter rather than start over.
+
+### Surfaces
+
+- **CLI**: `spec start`, `spec discover`, `spec answer`, `spec intake
+  [--resume]`, `spec abandon-intake`, and `spec approve <name> --build`. The
+  `--build` flag lives on the same command as `--stage` so the relationship
+  between approving a document and approving a product is visible; `--stage`
+  moved from `requiredOption` to `option` with the identical refusal one line
+  later, so every existing invocation is unchanged.
+- **MCP**: `spec_intake_start`, `spec_intake_read`, `spec_intake_answer`
+  (64 → 67 tools). There is deliberately **no** `spec_intake_approve`, and
+  the bundled plugin is verified to expose no approval tool of any kind.
+- **Plugin**: the `build` skill (14 → 15), driving those three tools and
+  ending at a summary and a command it cannot run.
+- **Contracts**: new `contracts/intake-contract.json`; eight new schema
+  families; `stageApprovalSchema` gains three optional provenance fields.
+
+### Tests
+
+`tests/intake/` (60) — ingestion and provenance, repository-grounded
+discovery, question discipline, convergence, delta classification, prior-seal
+protection, the single approval, derived approval and its refusals, the
+lifecycle, crash-resume, and the telemetry boundary — plus
+`tests/cli/cli-vnext101-intake.test.ts` (13) covering the product workflow
+and backward compatibility. Suite: 196 files / 2,630 tests.
+
+### Defects this release found and fixed
+
+- **`{...EMPTY_MAP}` is a shallow copy.** The projection map's module-level
+  empty literal shared its nested objects across every intake in a process, so
+  one feature's decision ids leaked into the next one's map and produced a
+  contract citing a decision from a different mission.
+- **A declarative requirement bullet read as narrative**, dropping it out of
+  the normative set and therefore out of the coverage gate.
+- **Topic resolution ignored prose and headings**, so a specification with a
+  `## Canonical model` section was asked to restate it.
+- **`complete` on the delta analysis meant "classified"**, which would have
+  let a caller checking one boolean walk past a would-be sealed-contract
+  change. It now means classified *and* nothing needs authority nobody gave.
+- **A very long specification crashed on the mission's decision bound.** It
+  now degrades honestly: only contract-bearing statements become decisions,
+  the rest become facts, and an overflow leaves statements `UNACCOUNTED` with
+  a reason rather than raising `SBM006`.
+
 ## 1.10.0 (unreleased) — vNext.10 Overnight Autonomous Product Runtime
 
 Nine phases made a long-horizon run SURVIVE. This one makes it not need a

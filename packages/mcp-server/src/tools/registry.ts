@@ -68,6 +68,11 @@ import {
   registerMissionSynthesizeTool,
 } from './mission-tools.js';
 import {
+  registerSpecIntakeAnswerTool,
+  registerSpecIntakeReadTool,
+  registerSpecIntakeStartTool,
+} from './intake-tools.js';
+import {
   registerEvaluationReadTool,
   registerObjectiveReadTool,
   registerWorkunitReadTool,
@@ -155,6 +160,13 @@ export const TOOL_CATALOG: readonly ToolRegistryEntry[] = [
   { name: 'objective_read', readOnly: true, summary: 'One objective’s work graph, conflicts, and workers' },
   { name: 'workunit_read', readOnly: true, summary: 'One work unit: projection identity, candidate, evaluations' },
   { name: 'evaluation_read', readOnly: true, summary: 'Evaluation records of one objective or work unit' },
+  // vNext.10.1 Zero-Touch Spec Intake. There is deliberately no
+  // `spec_intake_approve`: approving a discovered specification authorizes an
+  // unattended build, and that authority is CLI-only, exactly like
+  // `autonomy seal` and `mission ccr`.
+  { name: 'spec_intake_start', readOnly: false, summary: 'Ingest a product specification and run repository-grounded discovery' },
+  { name: 'spec_intake_read', readOnly: true, summary: 'One spec intake: questions, refusals, delta authority, approval summary' },
+  { name: 'spec_intake_answer', readOnly: false, summary: 'Record the user’s answer to one product question' },
 ] as const;
 
 export function registerAllTools(server: McpServer, context: ServerContext): void {
@@ -219,6 +231,9 @@ export function registerAllTools(server: McpServer, context: ServerContext): voi
   registerContractListTool(server, context);
   registerContractReadTool(server, context);
   registerContractChangeRequestTool(server, context);
+  registerSpecIntakeStartTool(server, context);
+  registerSpecIntakeReadTool(server, context);
+  registerSpecIntakeAnswerTool(server, context);
   registerObjectiveReadTool(server, context);
   registerWorkunitReadTool(server, context);
   registerEvaluationReadTool(server, context);

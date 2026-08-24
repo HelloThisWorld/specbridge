@@ -79,6 +79,36 @@ try {
   check('bundled CLI reads the fixture workspace', false, String(cause));
 }
 
+// vNext.10.1: the bundled CLI carries the Zero-Touch Spec Intake entry path.
+// The `build` skill instructs the user to run `spec approve <name> --build`,
+// and that instruction is only TRUE if the binary the plugin ships has it.
+try {
+  const help = execFileSync(process.execPath, [cliBundle, 'spec', '--help'], {
+    cwd: fixtureRoot,
+    encoding: 'utf8',
+    env: { ...process.env, NO_COLOR: '1' },
+  });
+  check(
+    'bundled CLI exposes the spec-intake commands',
+    ['start', 'discover', 'answer', 'intake'].every((command) =>
+      new RegExp(String.raw`^\s*${command}\b`, 'm').test(help),
+    ),
+    help.slice(0, 400),
+  );
+  const approve = execFileSync(process.execPath, [cliBundle, 'spec', 'approve', '--help'], {
+    cwd: fixtureRoot,
+    encoding: 'utf8',
+    env: { ...process.env, NO_COLOR: '1' },
+  });
+  check(
+    'bundled CLI exposes spec approve --build alongside --stage',
+    approve.includes('--build') && approve.includes('--stage'),
+    approve.slice(0, 400),
+  );
+} catch (cause) {
+  check('bundled CLI exposes the spec-intake commands', false, String(cause));
+}
+
 // Built-in templates ship inside the bundle: list and preview must work in
 // the isolated fixture with no monorepo and no network.
 try {
@@ -216,6 +246,22 @@ async function verifyMcpServer() {
         toolNames.includes(name),
       ),
       toolNames.filter((name) => name.startsWith('template_')).join(','),
+    );
+    // vNext.10.1: the Zero-Touch Spec Intake entry path must actually ship in
+    // the bundle, and the approval must NOT — it is CLI-only and human-only,
+    // and a bundled tool that could authorize a build would be the whole
+    // authority model gone in one line.
+    check(
+      'isolated server exposes the spec-intake entry path',
+      ['spec_intake_start', 'spec_intake_read', 'spec_intake_answer'].every((name) =>
+        toolNames.includes(name),
+      ),
+      toolNames.filter((name) => name.startsWith('spec_intake_')).join(','),
+    );
+    check(
+      'isolated server exposes NO approval tool of any kind',
+      !toolNames.some((name) => /_approve$/.test(name) || name === 'spec_intake_approve'),
+      toolNames.filter((name) => name.includes('approve')).join(',') || '(none)',
     );
 
     send({

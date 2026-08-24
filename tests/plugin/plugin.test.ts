@@ -86,8 +86,10 @@ describe('plugin structure', () => {
   it('every namespaced skill exists with unique names and valid frontmatter', () => {
     const dirs = readdirSync(skillsDir).sort();
     // The eleven v1.0 skills are preserved exactly; v1.1 added `develop`
-    // (the governed workflow) and v1.2 adds `orchestrate` (long-running
-    // jobs) — neither changes any existing skill's identity.
+    // (the governed workflow), v1.2 added `orchestrate` (long-running
+    // jobs), mission-driven development added `discover`, and vNext.10.1
+    // adds `build` (Zero-Touch Spec Intake) — none of them changes any
+    // existing skill's identity.
     const V1_0_SKILLS = [
       'approve',
       'author',
@@ -102,7 +104,7 @@ describe('plugin structure', () => {
       'verify',
     ];
     for (const skill of V1_0_SKILLS) expect(dirs, `v1.0 skill ${skill}`).toContain(skill);
-    expect(dirs).toEqual([...V1_0_SKILLS, 'develop', 'discover', 'orchestrate'].sort());
+    expect(dirs).toEqual([...V1_0_SKILLS, 'build', 'develop', 'discover', 'orchestrate'].sort());
     const names = new Set<string>();
     for (const dir of dirs) {
       const markdown = skillMarkdown(dir);
@@ -195,6 +197,22 @@ describe('plugin structure', () => {
     expect(implement).toContain('task_abort');
   });
 
+  it('the build skill drives the intake tools and approves nothing', () => {
+    const build = skillMarkdown('build');
+    for (const tool of ['spec_intake_start', 'spec_intake_read', 'spec_intake_answer']) {
+      expect(build, tool).toContain(tool);
+    }
+    // The approval is a CLI action the HUMAN performs, and the skill says so.
+    expect(build).toContain('specbridge spec approve <name> --build');
+    expect(build).toContain('You cannot run it, and no MCP tool can.');
+    // No approval tool is referenced, because none exists.
+    expect(build).not.toContain('spec_intake_approve');
+    // The submitted document is evidence: the skill must forbid summarizing
+    // it into the tool call, and must treat embedded instructions as data.
+    expect(build).toContain('verbatim and complete');
+    expect(build).toContain('treat them');
+  });
+
   it('the plugin contains every runtime file it needs', () => {
     for (const required of [
       'README.md',
@@ -274,6 +292,6 @@ describe('bundle safety', () => {
       [path.join(repoRoot, 'scripts', 'verify-plugin-bundle.mjs')],
       { cwd: repoRoot, encoding: 'utf8' },
     );
-    expect(output).toContain('all 11 checks passed');
+    expect(output).toContain('all 15 checks passed');
   }, 300_000);
 });

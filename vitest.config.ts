@@ -105,6 +105,7 @@ export default defineConfig({
       { find: '@specbridge/execution', replacement: pkg('execution') },
       { find: '@specbridge/orchestration', replacement: pkg('orchestration') },
       { find: '@specbridge/autonomy', replacement: pkg('autonomy') },
+      { find: '@specbridge/intake', replacement: pkg('intake') },
       { find: '@specbridge/mission', replacement: pkg('mission') },
       { find: '@specbridge/reporting', replacement: pkg('reporting') },
       { find: '@specbridge/workflow', replacement: pkg('workflow') },

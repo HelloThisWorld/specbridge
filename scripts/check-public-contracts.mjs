@@ -183,6 +183,7 @@ async function buildSnapshots() {
   const autonomy = await importDist('autonomy');
   const mcp = await importDist('mcp-server');
   const context = await importDist('context');
+  const intake = await importDist('intake');
 
   const snapshots = {
     'cli-commands.json': {
@@ -252,6 +253,16 @@ async function buildSnapshots() {
       controlPlaneRepair: autonomy.REPAIR_SCHEMA_VERSION,
       autonomyTelemetry: autonomy.TELEMETRY_SCHEMA_VERSION,
       zeroTouchCertification: autonomy.CERTIFICATION_SCHEMA_VERSION,
+      // Zero-Touch Spec Intake families (vNext.10.1; persisted under
+      // .specbridge/intake/).
+      specIntakeState: intake.INTAKE_STATE_SCHEMA_VERSION,
+      specIntakeSource: intake.INTAKE_SOURCE_SCHEMA_VERSION,
+      specIntakeGrounding: intake.INTAKE_GROUNDING_SCHEMA_VERSION,
+      specIntakeDelta: intake.INTAKE_DELTA_SCHEMA_VERSION,
+      specIntakeApproval: intake.INTAKE_APPROVAL_SCHEMA_VERSION,
+      specIntakeLifecycle: intake.INTAKE_LIFECYCLE_SCHEMA_VERSION,
+      specIntakeTelemetry: intake.INTAKE_TELEMETRY_SCHEMA_VERSION,
+      productBaseline: intake.PRODUCT_BASELINE_SCHEMA_VERSION,
       // Survival-runtime families (vNext.1; persisted under .specbridge/jobs/<id>/).
       taskAttempt: orchestration.TASK_ATTEMPT_SCHEMA_VERSION,
       taskCheckpoint: orchestration.TASK_CHECKPOINT_SCHEMA_VERSION,
@@ -531,6 +542,32 @@ async function buildSnapshots() {
       reproducibilityDimensions: [...autonomy.REPRODUCIBILITY_DIMENSIONS].sort(),
       certificationScenarioIds: autonomy.CERTIFICATION_MATRIX.map((s) => s.id).sort(),
       errorCodes: Object.keys(autonomy.SBA_CODES).sort(),
+    },
+    // Zero-Touch Spec Intake vocabulary (vNext.10.1). Every value is stable
+    // within 1.x: members may be appended, never renamed or removed, so a
+    // persisted intake, approval, and build ledger stay readable across
+    // upgrades. `engineeringQuestionSurfaces` is the one to read twice: it
+    // is a NEGATIVE list — the surfaces discovery will never ask a human
+    // about — and it is a promise rather than an implementation detail, the
+    // same way `nonAuthoritySignals` is.
+    'intake-contract.json': {
+      intakeStatuses: [...intake.INTAKE_STATUSES].sort(),
+      specSourceKinds: [...intake.SPEC_SOURCE_KINDS].sort(),
+      sourceChunkKinds: [...intake.SOURCE_CHUNK_KINDS].sort(),
+      chunkCoverageStates: [...intake.CHUNK_COVERAGE_STATES].sort(),
+      repositoryEvidenceKinds: [...intake.REPOSITORY_EVIDENCE_KINDS].sort(),
+      deltaAuthorityClasses: [...intake.DELTA_AUTHORITY_CLASSES].sort(),
+      authoritySensitiveDeltaClasses: [...intake.AUTHORITY_SENSITIVE_DELTA_CLASSES].sort(),
+      productQuestionKinds: [...intake.PRODUCT_QUESTION_KINDS].sort(),
+      questionRefusalReasons: [...intake.QUESTION_REFUSAL_REASONS].sort(),
+      engineeringQuestionSurfaces: [...intake.ENGINEERING_QUESTION_SURFACES].sort(),
+      approvalModes: [...intake.APPROVAL_MODES].sort(),
+      divergenceKinds: [...intake.DIVERGENCE_KINDS].sort(),
+      buildLifecycleSteps: [...intake.BUILD_LIFECYCLE_STEPS],
+      buildStepStatuses: [...intake.BUILD_STEP_STATUSES].sort(),
+      buildOutcomes: [...intake.BUILD_OUTCOMES].sort(),
+      eventTypes: [...intake.INTAKE_EVENT_TYPES].sort(),
+      errorCodes: Object.keys(intake.SBI_CODES).sort(),
     },
     'mcp-contract.json': {
       serverName: mcp.MCP_SERVER_NAME,

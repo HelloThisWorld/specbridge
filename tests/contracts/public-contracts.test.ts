@@ -74,6 +74,7 @@ describe('public contract snapshots', () => {
       'plugin-skills.json',
       'github-action.json',
       'context-contract.json',
+      'intake-contract.json',
     ];
     const present = readdirSync(contractsDir).filter((name) => name.endsWith('.json'));
     for (const name of expected) expect(present, name).toContain(name);
@@ -142,15 +143,22 @@ describe('public contract snapshots', () => {
       'evaluation_read',
     ];
     for (const name of MISSION_ADDITIONS) expect(tools).toContain(name);
+    // vNext.10.1 Zero-Touch Spec Intake. Three tools, and the fourth one a
+    // reader might expect — an approval — deliberately does not exist.
+    const INTAKE_ADDITIONS = ['spec_intake_start', 'spec_intake_read', 'spec_intake_answer'];
+    for (const name of INTAKE_ADDITIONS) expect(tools).toContain(name);
+    expect(tools).not.toContain('spec_intake_approve');
+    expect(tools.filter((name) => name.startsWith('spec_intake_'))).toHaveLength(3);
     expect(
       tools.filter(
         (name) =>
           !V1_1_ADDITIONS.includes(name) &&
           !V1_2_ADDITIONS.includes(name) &&
-          !MISSION_ADDITIONS.includes(name),
+          !MISSION_ADDITIONS.includes(name) &&
+          !INTAKE_ADDITIONS.includes(name),
       ),
     ).toHaveLength(37);
-    expect(tools).toHaveLength(64);
+    expect(tools).toHaveLength(67);
     // No approval tool, no shell, no filesystem, no git — at any version.
     for (const forbidden of tools) {
       expect(forbidden).not.toMatch(/^(.*_approve|.*_shell|.*_exec|.*_git|.*_write_file)$/);
@@ -206,8 +214,9 @@ describe('public contract snapshots', () => {
     ]) {
       expect(skills, name).toContain(name);
     }
+    // vNext.10.1 adds `build`: the Zero-Touch Spec Intake entry path.
     expect(skills).toEqual([
-      'approve', 'author', 'continue', 'develop', 'discover', 'doctor', 'extensions',
+      'approve', 'author', 'build', 'continue', 'develop', 'discover', 'doctor', 'extensions',
       'implement', 'new', 'orchestrate', 'runners', 'status', 'templates', 'verify',
     ]);
   });

@@ -853,6 +853,12 @@
           "--help"
         ],
         "subcommands": {
+          "abandon-intake": {
+            "options": [
+              "--help",
+              "--reason"
+            ]
+          },
           "accept-task": {
             "options": [
               "--help",
@@ -882,10 +888,21 @@
               "--strict"
             ]
           },
-          "approve": {
+          "answer": {
             "options": [
               "--help",
+              "--json"
+            ]
+          },
+          "approve": {
+            "options": [
+              "--build",
+              "--help",
               "--json",
+              "--lanes",
+              "--max-cycles",
+              "--max-spend",
+              "--no-launch",
               "--revoke",
               "--stage"
             ]
@@ -897,6 +914,12 @@
               "--help",
               "--out",
               "--target"
+            ]
+          },
+          "discover": {
+            "options": [
+              "--help",
+              "--json"
             ]
           },
           "export": {
@@ -922,6 +945,14 @@
               "--stage",
               "--timeout",
               "--verbose"
+            ]
+          },
+          "intake": {
+            "options": [
+              "--help",
+              "--json",
+              "--no-launch",
+              "--resume"
             ]
           },
           "list": {
@@ -1012,6 +1043,17 @@
               "--raw",
               "--state",
               "--status"
+            ]
+          },
+          "start": {
+            "options": [
+              "--file",
+              "--goal",
+              "--help",
+              "--json",
+              "--spec-name",
+              "--stdin",
+              "--text"
             ]
           },
           "status": {

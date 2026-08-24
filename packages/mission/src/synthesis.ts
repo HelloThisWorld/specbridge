@@ -111,6 +111,38 @@ export function topologicalContractOrder(contracts: readonly ProductContract[]):
   return ordered;
 }
 
+/**
+ * The compiler's own fixed statements.
+ *
+ * Every string here is a CONSTANT of the synthesis template rather than a
+ * product promise: it is emitted identically for every mission, carries no
+ * mission-specific authority, and says what SpecBridge guarantees about any
+ * synthesized spec.
+ *
+ * Exported because vNext.10.1's projection-equivalence check has to tell
+ * these apart from statements that trace to approved product truth, and the
+ * only drift-proof way to do that is for the compiler and the checker to
+ * share one list. Matching is EXACT: no mission-specific content can
+ * accidentally equal one of these, so this is a shared constant rather than
+ * a loophole.
+ */
+export const SYNTHESIS_TEMPLATE_STATEMENTS: readonly string[] = Object.freeze([
+  'The system SHALL respect the Architecture Constitution recorded for this mission.',
+  'Anything not covered by a recorded product contract.',
+  'No constitution rules were recorded; module structure is an implementation decision.',
+  'Failure semantics follow the invariants of the recorded contracts.',
+  'All external input is validated before it reaches the canonical model.',
+  'Every objective completes only through trusted verification: acceptance criteria map to tests, and evidence — never a claim — flips a task checkbox.',
+  'No ADRs recorded yet; material trade-offs will be captured as ADRs when they surface.',
+]);
+
+/** One template statement by index, so the compiler cannot drift from the list. */
+function template(index: number): string {
+  const value = SYNTHESIS_TEMPLATE_STATEMENTS[index];
+  if (value === undefined) throw new Error(`synthesis template statement ${index} is missing`);
+  return value;
+}
+
 function asCriterion(statement: string): string {
   const trimmed = statement.trim().replace(/\s+/g, ' ');
   const terminated = /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
@@ -214,13 +246,13 @@ export function compileMissionDocuments(input: {
   if (mission.nonGoals.length > 0) {
     for (const nonGoal of mission.nonGoals) requirementLines.push(`- ${nonGoal}`);
   } else {
-    requirementLines.push('- Anything not covered by a recorded product contract.');
+    requirementLines.push(`- ${template(1)}`);
   }
   requirementLines.push('', '## Non-Functional Requirements', '');
   if (mission.constraints.length > 0) {
     for (const constraint of mission.constraints) requirementLines.push(`- ${constraint}`);
   } else {
-    requirementLines.push('- The system SHALL respect the Architecture Constitution recorded for this mission.');
+    requirementLines.push(`- ${template(0)}`);
   }
   requirementLines.push('');
 
@@ -247,7 +279,7 @@ export function compileMissionDocuments(input: {
       designLines.push(`- ${rule.ruleId}: ${rule.statement}`);
     }
   } else {
-    designLines.push('No constitution rules were recorded; module structure is an implementation decision.');
+    designLines.push(template(2));
   }
   designLines.push('', '## Components and Interfaces', '');
   for (const contract of contracts) {
@@ -279,7 +311,7 @@ export function compileMissionDocuments(input: {
       designLines.push(`- ${decision.decisionId}: ${decision.decision}`);
     }
   } else {
-    designLines.push('- Failure semantics follow the invariants of the recorded contracts.');
+    designLines.push(`- ${template(3)}`);
   }
   designLines.push('', '## Security Considerations', '');
   const securityDecisions = input.decisions.filter(
@@ -290,13 +322,10 @@ export function compileMissionDocuments(input: {
       designLines.push(`- ${decision.decisionId}: ${decision.decision}`);
     }
   } else {
-    designLines.push('- All external input is validated before it reaches the canonical model.');
+    designLines.push(`- ${template(4)}`);
   }
   designLines.push('', '## Testing Strategy', '');
-  designLines.push(
-    'Every objective completes only through trusted verification: acceptance criteria map to tests, and evidence — never a claim — flips a task checkbox.',
-    '',
-  );
+  designLines.push(template(5), '');
   designLines.push('## Risks and Trade-offs', '');
   const activeAdrs = input.adrs.filter((adr) => adr.status === 'accepted');
   if (activeAdrs.length > 0) {
@@ -304,7 +333,7 @@ export function compileMissionDocuments(input: {
       designLines.push(`- ${adr.adrId} ${adr.title}: ${adr.decision}`);
     }
   } else {
-    designLines.push('- No ADRs recorded yet; material trade-offs will be captured as ADRs when they surface.');
+    designLines.push(`- ${template(6)}`);
   }
   designLines.push('');
 

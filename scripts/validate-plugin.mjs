@@ -84,7 +84,7 @@ for (const required of [
 }
 
 // --- skills -------------------------------------------------------------------
-const EXPECTED_SKILLS = ['approve', 'author', 'continue', 'develop', 'discover', 'doctor', 'extensions', 'implement', 'new', 'orchestrate', 'runners', 'status', 'templates', 'verify'];
+const EXPECTED_SKILLS = ['approve', 'author', 'build', 'continue', 'develop', 'discover', 'doctor', 'extensions', 'implement', 'new', 'orchestrate', 'runners', 'status', 'templates', 'verify'];
 const skillsDir = path.join(pluginRoot, 'skills');
 const skillDirs = existsSync(skillsDir)
   ? readdirSync(skillsDir, { withFileTypes: true })
