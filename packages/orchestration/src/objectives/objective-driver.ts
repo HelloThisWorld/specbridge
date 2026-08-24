@@ -1200,7 +1200,32 @@ function acceptanceForObjective(
   }
 }
 
-function failureFromAggregation(graph: WorkGraph, aggregation: StructuralAggregation): ObjectiveDriveResult {
+/**
+ * Failure categories that say the MACHINERY failed, not the code.
+ *
+ * A unit carrying one of these was never actually judged: the builder
+ * produced a candidate, the candidate passed whatever ran before the
+ * machinery broke, and then a tool, a transport, a credential, or a
+ * configuration failed. Nothing about the implementation was learned.
+ */
+const NON_IMPLEMENTATION_UNIT_FAILURES: readonly FailureCategory[] = [
+  'TRANSIENT_TOOL',
+  'TRANSIENT_TRANSPORT',
+  'CAPABILITY_UNAVAILABLE',
+  'AUTHENTICATION',
+  'PERMISSION',
+  'INVALID_CONFIGURATION',
+  'BLOCKED_DEPENDENCY',
+];
+
+/**
+ * The failure an objective reports when its units could not integrate.
+ *
+ * Exported for the same reason `aggregateStructurally` is: it decides what a
+ * recovery loop will spend its budget on, and getting it wrong is expensive
+ * and silent.
+ */
+export function failureFromAggregation(graph: WorkGraph, aggregation: StructuralAggregation): ObjectiveDriveResult {
   const blockedUnits = graph.units.filter((unit) => unit.status === 'BLOCKED');
   const humanBlocked = blockedUnits.filter((unit) => unit.latestFailure?.category === 'AMBIGUITY');
   if (humanBlocked.length > 0) {
@@ -1213,6 +1238,40 @@ function failureFromAggregation(graph: WorkGraph, aggregation: StructuralAggrega
       'objective:aggregation',
     );
   }
+  // A unit that failed because the MACHINERY failed must not be reported as
+  // an implementation defect.
+  //
+  // The vNext.10.1 dogfood lost a whole task budget to this. The builder
+  // produced a candidate; local verification passed; the deterministic
+  // evaluation passed; then the semantic evaluator's endpoint answered HTTP
+  // 400 and the unit was rejected as TRANSIENT_TOOL. Aggregation dropped that
+  // category on the floor and reported IMPLEMENTATION_DEFECT, so the
+  // DIAGNOSER and the REPLANNER spent four attempts rewriting code that had
+  // already passed every trusted check, converged on the same fingerprint
+  // each time, and handed the job to a human.
+  //
+  // Only when NO failed unit blames the implementation: one unit that
+  // genuinely failed its checks makes IMPLEMENTATION_DEFECT the honest answer
+  // for the objective, whatever else also broke.
+  const failedUnits = graph.units.filter((unit) => unit.status === 'FAILED');
+  const categories = failedUnits.map((unit) => unit.latestFailure?.category);
+  const infrastructure = categories.filter(
+    (category): category is FailureCategory =>
+      category !== undefined && NON_IMPLEMENTATION_UNIT_FAILURES.includes(category),
+  );
+  if (failedUnits.length > 0 && infrastructure.length === failedUnits.length) {
+    const category = infrastructure[0] ?? 'TRANSIENT_TOOL';
+    const detail = failedUnits
+      .map((unit) => `${unit.workUnitId}: ${unit.latestFailure?.message ?? 'no detail recorded'}`)
+      .join(' | ');
+    return failResult(
+      category,
+      `The objective could not integrate because the machinery failed, not the ` +
+        `implementation: ${detail.slice(0, 1_400)}`,
+      'objective:aggregation',
+    );
+  }
+
   return failResult(
     'IMPLEMENTATION_DEFECT',
     `The objective cannot integrate: ${aggregation.reasons.join('; ').slice(0, 1_500)}`,

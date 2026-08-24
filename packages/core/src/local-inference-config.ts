@@ -126,6 +126,45 @@ export function defaultLocalInferenceConfig(): LocalInferenceConfig {
   return localInferenceConfigSchema.parse({});
 }
 
+
+/**
+ * Characters per token, deliberately LOW.
+ *
+ * Under-estimating how much text a token holds under-estimates how much text
+ * the context holds, which is the safe direction: the guard refuses a packet
+ * slightly too early rather than handing the server one it will reject.
+ * Code and JSON tokenize closer to 3 characters than English prose does.
+ */
+const CHARACTERS_PER_TOKEN = 3;
+
+/** Share of the context the PROMPT may occupy; the rest is for the answer. */
+const INPUT_SHARE_OF_CONTEXT = 0.6;
+
+/**
+ * The prompt ceiling that actually holds, in characters.
+ *
+ * `maximumInputCharacters` and `contextSize` are configured independently and
+ * their defaults contradict each other: 48,000 characters is roughly 14,000
+ * tokens, and the default context is 8,192. A packet between the two limits
+ * passed every check SpecBridge made and was then refused by the server as a
+ * bare HTTP 400.
+ *
+ * The vNext.10.1 dogfood lost a task to exactly that. The semantic evaluator's
+ * packet cleared the character guard, llama-server answered 400, and the unit
+ * was rejected — while an oversize packet caught HERE escalates to the large
+ * tier and never fails the task at all. The difference between a clean
+ * escalation and a burnt budget was one unenforced relationship.
+ */
+export function effectiveLocalInputCharacters(config: {
+  maximumInputCharacters: number;
+  contextSize: number;
+}): number {
+  const fitsInContext = Math.floor(
+    config.contextSize * CHARACTERS_PER_TOKEN * INPUT_SHARE_OF_CONTEXT,
+  );
+  return Math.max(1_000, Math.min(config.maximumInputCharacters, fitsInContext));
+}
+
 export interface LocalInferenceValidation {
   ok: boolean;
   problems: string[];

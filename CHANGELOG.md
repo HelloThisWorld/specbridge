@@ -296,6 +296,30 @@ Three more surfaced once the run reached real compute:
   which then failed synthesis — after the approval was already written. A
   genuine exclusion says "must not"; a `## Non-goals` heading still marks
   everything beneath it however it is phrased.
+- **A transient tool failure was reported as an implementation defect, and
+  burned a whole task budget.** The builder produced a candidate; local
+  verification passed; the deterministic evaluation passed; then the semantic
+  evaluator's endpoint answered HTTP 400. The unit was rejected as
+  `TRANSIENT_TOOL`, and aggregation dropped that category on the floor and
+  reported `IMPLEMENTATION_DEFECT`. The DIAGNOSER and the REPLANNER then
+  spent four attempts rewriting code that had already passed every trusted
+  check, converged on the same failure fingerprint each time, and handed the
+  job to a person. An objective now reports the category its units actually
+  carried — but only when NO failed unit blames the implementation, because
+  one genuinely failing check makes `IMPLEMENTATION_DEFECT` the honest answer
+  whatever else also broke.
+
+- **The local prompt ceiling bore no relation to the context window.**
+  `maximumInputCharacters` (48,000) and `contextSize` (8,192) are configured
+  independently and their defaults contradict each other — 48,000 characters
+  is roughly 14,000 tokens. A packet between the two limits passed every
+  check SpecBridge made and was then refused by the server as a bare HTTP
+  400. That is what triggered the failure above, and the difference matters:
+  an oversize packet caught by SpecBridge reports `context-exceeded` and
+  escalates to the large tier without failing anything, while the same packet
+  caught by the server rejected the work unit. The ceiling is now the LOWER
+  of the configured limit and what the context can hold, leaving room for the
+  answer as well as the question; it only ever tightens.
 - **An instruction to go and ask product sealed as a product requirement.**
   The Golden Spec said, under a `## Compatibility` heading, "if the degree of
   Step Functions compatibility is ambiguous, ask a product question during

@@ -1,5 +1,6 @@
 import path from 'node:path';
 import type { AgentConfig, ClaudeProfileConfig, WorkspaceInfo } from '@specbridge/core';
+import { effectiveLocalInputCharacters } from '@specbridge/core';
 import {
   buildClaudeInvocation,
   cleanupTempFiles,
@@ -75,11 +76,16 @@ export async function runLocalObjectiveRole<Role extends ObjectiveContractRole>(
   }
   const local = invocation.config.localInference;
   const system = objectiveRoleSystemPrompt(invocation.role);
-  if (system.length + invocation.packet.length > local.maximumInputCharacters) {
+  const inputCeiling = effectiveLocalInputCharacters(local);
+  if (system.length + invocation.packet.length > inputCeiling) {
     return {
       ok: false,
       kind: 'context-exceeded',
-      problem: `The packet exceeds the configured local input limit of ${local.maximumInputCharacters} characters.`,
+      problem:
+        `The packet is ${system.length + invocation.packet.length} characters and the local ` +
+        `input ceiling is ${inputCeiling} — the lower of the configured ` +
+        `${local.maximumInputCharacters}-character limit and what a ${local.contextSize}-token ` +
+        `context can hold.`,
     };
   }
   const started = await invocation.manager.ensureStarted(invocation.signal);

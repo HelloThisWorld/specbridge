@@ -4,6 +4,7 @@ import {
   WORK_UNIT_STATUSES,
   acceptWorkGraphProposal,
   aggregateStructurally,
+  failureFromAggregation,
   allowedWorkUnitTransitions,
   canWorkUnitTransition,
   promoteReadyUnits,
@@ -349,5 +350,66 @@ describe('parallel dispatch-set selection (deterministic, conservative)', () => 
       unresolvedDecision: false,
     });
     expect(alone.map((entry) => entry.workUnitId)).toEqual(['wu-1']);
+  });
+});
+
+
+describe('what an objective reports when its units did not integrate', () => {
+  /** A graph holding one FAILED unit carrying `category`. */
+  function graphWithFailedUnit(category: string, message: string): WorkGraph {
+    const base = singleUnitGraph({
+      jobId: 'job-1',
+      node: {
+        nodeId: 'n-1',
+        parentTaskId: '1',
+        taskFingerprint: 'f'.repeat(64),
+        title: 'implement the thing',
+      },
+      relevantContractIds: [],
+      createdAt: '2026-08-24T16:24:52.989Z',
+      reason: 'one unit',
+    });
+    return {
+      ...base,
+      units: base.units.map((unit, index) =>
+        index === 0
+          ? {
+              ...unit,
+              status: 'FAILED' as const,
+              latestFailure: { category, message, at: '2026-08-24T17:11:55.291Z' },
+            }
+          : unit,
+      ),
+    } as WorkGraph;
+  }
+
+  it('does not call it an implementation defect when the MACHINERY is what failed', () => {
+    // The vNext.10.1 dogfood lost a whole task budget to this. The builder
+    // produced a candidate, local verification passed, the deterministic
+    // evaluation passed — and then the semantic evaluator's endpoint
+    // answered HTTP 400. The unit was rejected as TRANSIENT_TOOL, and
+    // aggregation dropped that category and reported IMPLEMENTATION_DEFECT.
+    // The DIAGNOSER and REPLANNER then spent four attempts rewriting code
+    // that had already passed every trusted check, converged on the same
+    // failure fingerprint each time, and handed the job to a person.
+    const graph = graphWithFailedUnit(
+      'TRANSIENT_TOOL',
+      'The semantic evaluator failed: the endpoint answered HTTP 400',
+    );
+    const result = failureFromAggregation(graph, aggregateStructurally(graph));
+
+    expect(result.failure?.category).toBe('TRANSIENT_TOOL');
+    expect(result.failure?.message).toContain('the machinery failed, not the');
+    expect(result.failure?.message).toContain('HTTP 400');
+  });
+
+  it('still calls it an implementation defect when the implementation is what failed', () => {
+    const graph = graphWithFailedUnit(
+      'VERIFICATION_FAILURE',
+      'the trusted check ./gradlew test exited 1',
+    );
+    const result = failureFromAggregation(graph, aggregateStructurally(graph));
+
+    expect(result.failure?.category).toBe('IMPLEMENTATION_DEFECT');
   });
 });

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import type { LocalInferenceConfig } from '@specbridge/core';
-import { localInferenceConfigSchema } from '@specbridge/core';
+import { effectiveLocalInputCharacters, localInferenceConfigSchema } from '@specbridge/core';
 import {
   LocalModelManager,
   localModelDoctor,
@@ -314,5 +314,41 @@ describe('configuration safety', () => {
 
   it('null bytes are rejected in paths', () => {
     expect(() => localInferenceConfigSchema.parse({ executable: 'a\0b' })).toThrow();
+  });
+});
+
+
+describe('the prompt ceiling that actually holds', () => {
+  it('refuses more text than the context can hold, whatever the character limit says', () => {
+    // The two settings are configured independently and their DEFAULTS
+    // contradict each other: 48,000 characters is roughly 14,000 tokens and
+    // the default context is 8,192. A packet between the two passed every
+    // check SpecBridge made and was then refused by llama-server as a bare
+    // HTTP 400.
+    //
+    // The vNext.10.1 dogfood lost a whole task to that. An oversize packet
+    // caught HERE reports `context-exceeded` and escalates to the large
+    // tier without failing anything; the same packet caught by the SERVER
+    // rejected the work unit and burned its attempt budget.
+    expect(
+      effectiveLocalInputCharacters({ maximumInputCharacters: 48_000, contextSize: 8_192 }),
+    ).toBeLessThan(48_000);
+  });
+
+  it('never loosens a limit the operator set deliberately', () => {
+    // A generous context does not license more than the configured ceiling.
+    expect(
+      effectiveLocalInputCharacters({ maximumInputCharacters: 10_000, contextSize: 131_072 }),
+    ).toBe(10_000);
+  });
+
+  it('leaves room for the answer, not just the question', () => {
+    // A ceiling equal to the whole context would let a prompt fill it and
+    // leave the model nowhere to reply.
+    const ceiling = effectiveLocalInputCharacters({
+      maximumInputCharacters: 2_000_000,
+      contextSize: 8_192,
+    });
+    expect(ceiling).toBeLessThan(8_192 * 3);
   });
 });

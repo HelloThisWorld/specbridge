@@ -24492,6 +24492,14 @@ var localInferenceConfigSchema = external_exports.object({
   /** Extra llama-server arguments (reserved flags rejected above). */
   extraArgs: extraArgsSchema
 }).passthrough();
+var CHARACTERS_PER_TOKEN = 3;
+var INPUT_SHARE_OF_CONTEXT = 0.6;
+function effectiveLocalInputCharacters(config2) {
+  const fitsInContext = Math.floor(
+    config2.contextSize * CHARACTERS_PER_TOKEN * INPUT_SHARE_OF_CONTEXT
+  );
+  return Math.max(1e3, Math.min(config2.maximumInputCharacters, fitsInContext));
+}
 function validateLocalInferenceConfig(config2) {
   const problems = [];
   if (!config2.enabled) {
@@ -69163,11 +69171,12 @@ function observedExcerpt(text93) {
 async function runLocalRole(invocation) {
   const local = invocation.config.localInference;
   const system = roleSystemPrompt(invocation.role);
-  if (system.length + invocation.packet.length > local.maximumInputCharacters) {
+  const inputCeiling = effectiveLocalInputCharacters(local);
+  if (system.length + invocation.packet.length > inputCeiling) {
     return {
       ok: false,
       kind: "context-exceeded",
-      problem: `The packet exceeds the configured local input limit of ${local.maximumInputCharacters} characters.`
+      problem: `The packet is ${system.length + invocation.packet.length} characters and the local input ceiling is ${inputCeiling} \u2014 the lower of the configured ${local.maximumInputCharacters}-character limit and what a ${local.contextSize}-token context can hold.`
     };
   }
   const started = await invocation.manager.ensureStarted(invocation.signal);
@@ -70569,11 +70578,12 @@ async function runLocalObjectiveRole(invocation) {
   }
   const local = invocation.config.localInference;
   const system = objectiveRoleSystemPrompt(invocation.role);
-  if (system.length + invocation.packet.length > local.maximumInputCharacters) {
+  const inputCeiling = effectiveLocalInputCharacters(local);
+  if (system.length + invocation.packet.length > inputCeiling) {
     return {
       ok: false,
       kind: "context-exceeded",
-      problem: `The packet exceeds the configured local input limit of ${local.maximumInputCharacters} characters.`
+      problem: `The packet is ${system.length + invocation.packet.length} characters and the local input ceiling is ${inputCeiling} \u2014 the lower of the configured ${local.maximumInputCharacters}-character limit and what a ${local.contextSize}-token context can hold.`
     };
   }
   const started = await invocation.manager.ensureStarted(invocation.signal);
@@ -72425,6 +72435,15 @@ function acceptanceForObjective(workspace, mission, taskId) {
     return [];
   }
 }
+var NON_IMPLEMENTATION_UNIT_FAILURES = [
+  "TRANSIENT_TOOL",
+  "TRANSIENT_TRANSPORT",
+  "CAPABILITY_UNAVAILABLE",
+  "AUTHENTICATION",
+  "PERMISSION",
+  "INVALID_CONFIGURATION",
+  "BLOCKED_DEPENDENCY"
+];
 function failureFromAggregation(graph, aggregation) {
   const blockedUnits = graph.units.filter((unit) => unit.status === "BLOCKED");
   const humanBlocked = blockedUnits.filter((unit) => unit.latestFailure?.category === "AMBIGUITY");
@@ -72432,6 +72451,20 @@ function failureFromAggregation(graph, aggregation) {
     return failResult(
       "AMBIGUITY",
       humanBlocked.map((unit) => `${unit.workUnitId}: ${unit.latestFailure?.message ?? "needs a decision"}`).join(" | ").slice(0, 1800),
+      "objective:aggregation"
+    );
+  }
+  const failedUnits = graph.units.filter((unit) => unit.status === "FAILED");
+  const categories = failedUnits.map((unit) => unit.latestFailure?.category);
+  const infrastructure = categories.filter(
+    (category) => category !== void 0 && NON_IMPLEMENTATION_UNIT_FAILURES.includes(category)
+  );
+  if (failedUnits.length > 0 && infrastructure.length === failedUnits.length) {
+    const category = infrastructure[0] ?? "TRANSIENT_TOOL";
+    const detail = failedUnits.map((unit) => `${unit.workUnitId}: ${unit.latestFailure?.message ?? "no detail recorded"}`).join(" | ");
+    return failResult(
+      category,
+      `The objective could not integrate because the machinery failed, not the implementation: ${detail.slice(0, 1400)}`,
       "objective:aggregation"
     );
   }
