@@ -2473,6 +2473,85 @@ export function cancelJob(deps: JobDeps, jobId: string, reason: string): JobStat
 }
 
 /** Block the job explicitly (scheduler budget stops route through here). */
+/**
+ * Blocker categories a PERSON can fix outside SpecBridge and then continue.
+ *
+ * Every member names an ENVIRONMENTAL cause: a daemon that was not running,
+ * a credential that had expired, a tool that was not installed, a permission
+ * that was not granted. None of them is a product decision.
+ *
+ * Deliberately EXCLUDED: `IMPLEMENTATION_DEFECT`, `AMBIGUITY`,
+ * `VERIFICATION_FAILURE`, `NO_PROGRESS`, `BUDGET_EXHAUSTED`,
+ * `SAFETY_POLICY`, `CANCELLED`. Those are not fixed by fixing the machine,
+ * and letting a retry clear them would turn "I installed docker" into
+ * "ignore the failing tests".
+ */
+export const OPERATOR_FIXABLE_BLOCKER_CATEGORIES: readonly FailureCategory[] = [
+  'CAPABILITY_UNAVAILABLE',
+  'AUTHENTICATION',
+  'PERMISSION',
+  'BLOCKED_DEPENDENCY',
+  'TRANSIENT_TRANSPORT',
+  'TRANSIENT_TOOL',
+  'INVALID_CONFIGURATION',
+];
+
+export interface RetryBlockedResult {
+  job: JobState;
+  /** True when this call actually cleared a blocker. */
+  cleared: boolean;
+  /** Why it did not, when it did not. */
+  reason?: string;
+}
+
+/**
+ * Return a BLOCKED job to the schedulable path after a person fixed the
+ * cause outside SpecBridge.
+ *
+ * The vNext.10.1 dogfood needed exactly this and it did not exist. The build
+ * blocked on an expired OAuth token; a person can re-authenticate in five
+ * seconds, and there was then no way to say "I fixed it, continue" — the
+ * supervisor kept answering WAIT_FOR_HUMAN, and the only other command was
+ * `cancel-job`, which is final. An intake that cannot be continued after an
+ * environmental fix is a dead end.
+ *
+ * Human-invoked only, and narrow twice over: it clears ONLY an
+ * operator-fixable category, and it clears the blocker rather than the
+ * failure history — attempts, budgets, and evaluations are untouched, so a
+ * job that was genuinely out of road runs out of road again immediately.
+ */
+export function retryBlockedJob(
+  deps: JobDeps,
+  jobId: string,
+  input: { reason: string },
+): RetryBlockedResult {
+  let job = requireJobState(deps.workspace, jobId);
+  if (job.status !== 'BLOCKED') {
+    return { job, cleared: false, reason: `the job is ${job.status}, not BLOCKED` };
+  }
+  const category = job.blocker?.category;
+  if (category === undefined) {
+    return { job, cleared: false, reason: 'the job is BLOCKED with no recorded blocker' };
+  }
+  if (!OPERATOR_FIXABLE_BLOCKER_CATEGORIES.includes(category)) {
+    return {
+      job,
+      cleared: false,
+      reason:
+        `the blocker is ${category}, which is not something fixing the machine resolves`,
+    };
+  }
+  job = transition(deps, job, 'READY');
+  const { blocker: _cleared, ...rest } = job;
+  job = persist(deps, rest as JobState);
+  job = record(deps, job, 'job_unblocked', {
+    category,
+    code: job.blocker?.code ?? null,
+    reason: input.reason.slice(0, 500),
+  });
+  return { job: persist(deps, job), cleared: true };
+}
+
 export function blockJob(
   deps: JobDeps,
   jobId: string,

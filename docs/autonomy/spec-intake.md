@@ -264,6 +264,18 @@ does. Reality is the authority; the ledger is the plan.
 specbridge spec intake <name> --resume   # idempotent; continues from the first unsettled step
 ```
 
+`--resume` also **continues a job blocked on something a person fixed**. If
+the build stopped because a container daemon was not running or a credential
+had expired, fixing that and resuming is the signal "I fixed it, continue" —
+the blocker is cleared and the job returns to the schedulable path. It is
+narrow by construction: only an environmental blocker
+(`CAPABILITY_UNAVAILABLE`, `AUTHENTICATION`, `PERMISSION`,
+`BLOCKED_DEPENDENCY`, the transient pair, `INVALID_CONFIGURATION`) clears
+this way, and the failure history is untouched, so a job that was genuinely
+out of road runs out of road again immediately. An
+`IMPLEMENTATION_DEFECT` or a budget stop is never cleared by fixing the
+machine.
+
 Two refusals are worth naming:
 
 - **A human-only prerequisite stops before the job exists.** Preflight is step

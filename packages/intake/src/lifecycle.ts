@@ -12,7 +12,7 @@ import {
 import type { ProbeRunner } from '@specbridge/autonomy';
 import type { DriverHost } from '@specbridge/autonomy';
 import type { ToolsmithCapability } from '@specbridge/core';
-import { createJob, readJobState } from '@specbridge/orchestration';
+import { createJob, readJobState, retryBlockedJob } from '@specbridge/orchestration';
 import {
   markContractReady,
   readAdrs,
@@ -584,6 +584,30 @@ export async function runSealAndBuild(
   if (jobId === undefined) {
     fail('CREATE_JOB', 'no job id is recorded after job creation');
     return finish(deps, options, ledger, 'FAILED', { preflight });
+  }
+
+  // A person running `--resume` after fixing an environmental cause is the
+  // signal "I fixed it, continue". Without this the intake is a dead end:
+  // the dogfood blocked on an expired OAuth token, which takes five seconds
+  // to fix, and the supervisor then answered WAIT_FOR_HUMAN forever because
+  // nothing could tell it the machine had changed.
+  //
+  // Narrow by construction — `retryBlockedJob` refuses any blocker that is
+  // not operator-fixable, so this cannot turn "I installed docker" into
+  // "ignore the failing tests".
+  {
+    const retry = retryBlockedJob(deps, jobId, {
+      reason: 'the operator resumed the intake after fixing the cause',
+    });
+    if (retry.cleared) {
+      emit('lifecycle', `job ${jobId} unblocked and returned to the schedulable path`);
+      appendIntakeEvent(deps.workspace, options.intakeId, {
+        at: nowIso(deps),
+        type: 'build_step_started',
+        step: 'LAUNCH',
+        unblocked: true,
+      });
+    }
   }
 
   // --- 9. LAUNCH -----------------------------------------------------------

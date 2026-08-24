@@ -6,7 +6,7 @@ import {
   readSealBinding,
   requireSeal,
 } from '@specbridge/autonomy';
-import { readJobState, requireJobState } from '@specbridge/orchestration';
+import { blockJob, readJobState, requireJobState } from '@specbridge/orchestration';
 import { requireMissionState } from '@specbridge/mission';
 import { readSpecState } from '@specbridge/core';
 import {
@@ -264,6 +264,54 @@ describe('seal-and-build — the full transition', () => {
     const preflightStep = resumed.lifecycle.steps.find((step) => step.step === 'PREFLIGHT');
     expect(preflightStep?.detail).toBe('OVERNIGHT_READY');
     expect(resumed.lifecycle.preflightReportId).toBe(preflightStep?.result);
+  });
+
+  it('continues a job blocked on an environmental cause, and refuses to on a product one', async () => {
+    const fixture = setupIntakeFixture({ spec: true, git: true });
+    const id = approvedGoldenIntake(fixture);
+    const first = await runSealAndBuild(fixture.intake, {
+      intakeId: id,
+      launch: false,
+      probeRunner: allAvailableProbeRunner(),
+    });
+    const jobId = first.lifecycle.jobId as string;
+
+    // The dogfood blocked here: an expired OAuth token, five seconds to fix,
+    // and then nothing could tell SpecBridge the machine had changed. The
+    // supervisor answered WAIT_FOR_HUMAN forever and the only other command
+    // was `cancel-job`, which is final.
+    blockJob(fixture.deps, jobId, {
+      category: 'AUTHENTICATION',
+      code: 'LARGE_WORKER_FAILED',
+      message: 'The PLANNER worker is not authenticated: 401 OAuth access token has expired.',
+      remediation: ['Re-authenticate the worker.'],
+    });
+    expect(requireJobState(fixture.workspace, jobId).status).toBe('BLOCKED');
+
+    await runSealAndBuild(fixture.intake, {
+      intakeId: id,
+      launch: false,
+      probeRunner: allAvailableProbeRunner(),
+    });
+    const unblocked = requireJobState(fixture.workspace, jobId);
+    expect(unblocked.status).toBe('READY');
+    expect(unblocked.blocker).toBeUndefined();
+
+    // A PRODUCT blocker is a different thing entirely, and fixing the machine
+    // does not resolve it. Turning "I installed docker" into "ignore the
+    // failing tests" is the failure this refusal prevents.
+    blockJob(fixture.deps, jobId, {
+      category: 'IMPLEMENTATION_DEFECT',
+      code: 'DEFECT',
+      message: 'The save path drops the payload before persistence.',
+      remediation: ['Fix the defect.'],
+    });
+    await runSealAndBuild(fixture.intake, {
+      intakeId: id,
+      launch: false,
+      probeRunner: allAvailableProbeRunner(),
+    });
+    expect(requireJobState(fixture.workspace, jobId).status).toBe('BLOCKED');
   });
 
   it('calling it again on a COMPLETED lifecycle performs no work', async () => {

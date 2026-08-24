@@ -332,6 +332,18 @@ And `spec status` now says WHICH human decision authorized a stage: it
 rendered a bare "✓ Approved" for a derived stage, hiding the one difference
 `approvalMode` exists to make visible.
 
+And one gap the dogfood made unavoidable: **there was no way to say "I fixed
+it, continue".** The build blocked on an expired token — five seconds to fix —
+and the supervisor then answered `WAIT_FOR_HUMAN` forever, because nothing
+could tell it the machine had changed. The only other command was
+`cancel-job`, which is final. `spec intake --resume` now clears an
+ENVIRONMENTAL blocker (`CAPABILITY_UNAVAILABLE`, `AUTHENTICATION`,
+`PERMISSION`, `BLOCKED_DEPENDENCY`, the transient pair,
+`INVALID_CONFIGURATION`) and returns the job to the schedulable path. The
+failure history is untouched, so a job genuinely out of road runs out of road
+again immediately, and an `IMPLEMENTATION_DEFECT` or a budget stop is never
+cleared by fixing the machine. New job event: `job_unblocked`.
+
 ### A new non-claim
 
 **An already-expired credential is not detectable before launch.** The

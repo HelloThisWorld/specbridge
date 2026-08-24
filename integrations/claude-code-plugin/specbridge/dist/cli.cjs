@@ -68223,6 +68223,41 @@ function cancelJob(deps, jobId, reason) {
   job = record22(deps, job, "job_cancelled", { reason: reason.slice(0, 500) });
   return persist22(deps, { ...job, finalizedAt: at, finalOutcome: "CANCELLED" });
 }
+var OPERATOR_FIXABLE_BLOCKER_CATEGORIES = [
+  "CAPABILITY_UNAVAILABLE",
+  "AUTHENTICATION",
+  "PERMISSION",
+  "BLOCKED_DEPENDENCY",
+  "TRANSIENT_TRANSPORT",
+  "TRANSIENT_TOOL",
+  "INVALID_CONFIGURATION"
+];
+function retryBlockedJob(deps, jobId, input) {
+  let job = requireJobState(deps.workspace, jobId);
+  if (job.status !== "BLOCKED") {
+    return { job, cleared: false, reason: `the job is ${job.status}, not BLOCKED` };
+  }
+  const category = job.blocker?.category;
+  if (category === void 0) {
+    return { job, cleared: false, reason: "the job is BLOCKED with no recorded blocker" };
+  }
+  if (!OPERATOR_FIXABLE_BLOCKER_CATEGORIES.includes(category)) {
+    return {
+      job,
+      cleared: false,
+      reason: `the blocker is ${category}, which is not something fixing the machine resolves`
+    };
+  }
+  job = transition22(deps, job, "READY");
+  const { blocker: _cleared, ...rest } = job;
+  job = persist22(deps, rest);
+  job = record22(deps, job, "job_unblocked", {
+    category,
+    code: job.blocker?.code ?? null,
+    reason: input.reason.slice(0, 500)
+  });
+  return { job: persist22(deps, job), cleared: true };
+}
 function blockJob(deps, jobId, input) {
   let job = requireJobState(deps.workspace, jobId);
   if (job.status === "BLOCKED") return job;
@@ -104147,6 +104182,20 @@ async function runSealAndBuild(deps, options) {
   if (jobId === void 0) {
     fail("CREATE_JOB", "no job id is recorded after job creation");
     return finish3(deps, options, ledger, "FAILED", { preflight });
+  }
+  {
+    const retry = retryBlockedJob(deps, jobId, {
+      reason: "the operator resumed the intake after fixing the cause"
+    });
+    if (retry.cleared) {
+      emit2("lifecycle", `job ${jobId} unblocked and returned to the schedulable path`);
+      appendIntakeEvent(deps.workspace, options.intakeId, {
+        at: nowIso5(deps),
+        type: "build_step_started",
+        step: "LAUNCH",
+        unblocked: true
+      });
+    }
   }
   if (options.launch === false) {
     settle("LAUNCH", "SKIPPED", "launch was not requested; the job is ready to run");
