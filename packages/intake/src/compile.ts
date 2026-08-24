@@ -241,6 +241,21 @@ const SURFACE_CONTRACTS: Readonly<Record<IrreversibleSurface, SurfaceContractSha
     },
   });
 
+/**
+ * How many requirements one contract may carry before it splits.
+ *
+ * The mission schema allows sixty; a contract a person would actually write
+ * has a handful. The difference matters twice over. A registry entry with
+ * forty-one requirements is not a promise anybody can read, and it compiles
+ * to ONE objective a planner has to plan in a single shot — the vNext.10.1
+ * dogfood produced exactly that, and the large-tier planner returned
+ * something that was not a plan, twice, and blocked the job.
+ *
+ * Splitting is honest about what it is: the parts are numbered, each is a
+ * contract in its own right, and the requirement set is unchanged.
+ */
+const MAX_REQUIREMENTS_PER_CONTRACT = 12;
+
 /** The behaviour contract every feature gets: the scenarios it must satisfy. */
 const BEHAVIOUR_CONTRACT: SurfaceContractShape = {
   title: 'Observable Behaviour',
@@ -505,7 +520,28 @@ export function compileMissionTruth(
   // the complete set. Every later pass finds the items already mapped and
   // does nothing, which is what makes re-running discovery free.
   const converged = request.blockedItemIds.length === 0 && request.openQuestionCount === 0;
+  // Surfaces are expanded into bounded parts first, so the loop below sees
+  // one contract's worth of requirements at a time.
+  const buckets: { key: string; items: DeltaItem[]; part: number; parts: number }[] = [];
   for (const [key, items] of converged ? [...pendingBySurface.entries()].sort() : []) {
+    const parts = Math.max(1, Math.ceil(items.length / MAX_REQUIREMENTS_PER_CONTRACT));
+    for (let part = 0; part < parts; part += 1) {
+      buckets.push({
+        key,
+        items: items.slice(
+          part * MAX_REQUIREMENTS_PER_CONTRACT,
+          (part + 1) * MAX_REQUIREMENTS_PER_CONTRACT,
+        ),
+        part: part + 1,
+        parts,
+      });
+    }
+  }
+
+  /** Buckets actually submitted, in submission order. The mapping key. */
+  const submitted: { key: string; items: DeltaItem[] }[] = [];
+  for (const bucket of buckets) {
+    const { key, items } = bucket;
     if (contracts.length >= 40) break;
     const base =
       key === BEHAVIOUR_SURFACE_KEY
@@ -518,18 +554,20 @@ export function compileMissionTruth(
     // honestly beats either a confusing twin or a silent mutation of the
     // contract already approved.
     const priorForSurface = map.surfaceContracts[key];
+    const partSuffix = bucket.parts > 1 ? ` (part ${bucket.part} of ${bucket.parts})` : '';
     const shape: SurfaceContractShape =
       priorForSurface === undefined
-        ? base
+        ? { ...base, title: `${base.title}${partSuffix}` }
         : {
             ...base,
-            title: `${base.title} (addendum)`,
+            title: `${base.title} (addendum)${partSuffix}`,
             summary: `${base.summary} Recorded after ${priorForSurface}, which is unchanged.`,
           };
     const decisionIds = items
       .map((item) => map.itemDecisions[item.itemId])
       .filter((id): id is string => id !== undefined);
     if (decisionIds.length === 0) continue;
+    submitted.push({ key, items });
     contracts.push({
       title: shape.title,
       summary: shape.summary,
@@ -551,20 +589,18 @@ export function compileMissionTruth(
     const contractAssessment = recordAssessment(deps, request.missionId, { contracts });
     mission = contractAssessment.mission;
     contractIds = contractAssessment.contractIds;
-    const orderedKeys = [...pendingBySurface.keys()].sort().filter((key) => {
-      const shape =
-        key === BEHAVIOUR_SURFACE_KEY
-          ? BEHAVIOUR_CONTRACT
-          : SURFACE_CONTRACTS[key as IrreversibleSurface];
-      return shape !== undefined;
-    });
-    orderedKeys.forEach((key, index) => {
+    // `submitted` was appended inside the same loop that pushed each
+    // contract, so index alignment holds exactly — including when a surface
+    // split into parts and when a bucket was skipped for want of a decision.
+    // Re-deriving the list with a filter here got it wrong and silently lost
+    // a contract from the map.
+    submitted.forEach((bucket, index) => {
       const contractId = contractIds[index];
       if (contractId === undefined) return;
-      map.surfaceContracts[key] = contractId;
-      for (const item of pendingBySurface.get(key) ?? []) {
-        map.itemContracts[item.itemId] = contractId;
-      }
+      // The surface points at its FIRST part; later parts are found through
+      // the per-item map, which is what idempotence actually consults.
+      map.surfaceContracts[bucket.key] ??= contractId;
+      for (const item of bucket.items) map.itemContracts[item.itemId] = contractId;
     });
     writeProjectionMap(intakeDeps.workspace, request.intakeId, map);
   }

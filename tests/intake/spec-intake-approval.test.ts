@@ -366,6 +366,40 @@ describe('spec intake — the telemetry boundary', () => {
 });
 
 describe('spec intake — what the builder is handed', () => {
+  it('splits an oversized surface into numbered parts a planner can plan', () => {
+    const fixture = setupIntakeFixture();
+    const id = readyGoldenIntake(fixture);
+    const intake = requireIntakeState(fixture.workspace, id);
+    const contracts = readContractRegistry(fixture.workspace, intake.missionId);
+
+    // The mission schema allows sixty requirements per contract; a contract a
+    // person would write has a handful. The dogfood compiled one with
+    // forty-one, which is not a promise anybody can read AND compiles to one
+    // objective a planner has to plan in a single shot — the large-tier
+    // planner returned something that was not a plan, twice, and blocked the
+    // job.
+    for (const contract of contracts) {
+      expect(contract.requirements.length, contract.title).toBeLessThanOrEqual(12);
+    }
+    const parts = contracts.filter((contract) =>
+      /\(part \d+ of \d+\)/.test(contract.title),
+    );
+    expect(parts.length).toBeGreaterThan(0);
+    // Numbered honestly, and the requirement set is unchanged: every part is
+    // a contract in its own right.
+    expect(parts[0]?.title).toMatch(/\(part 1 of \d+\)$/);
+    const total = contracts.reduce((sum, contract) => sum + contract.requirements.length, 0);
+    expect(total).toBeGreaterThan(40);
+    // Every requirement still traces to a recorded decision.
+    for (const contract of contracts) {
+      expect(contract.decisionIds.length).toBeGreaterThan(0);
+      for (const requirement of contract.requirements) {
+        expect(requirement.decisionIds.length, requirement.statement).toBeGreaterThan(0);
+      }
+    }
+  });
+
+
   it('carries the human’s answer into the requirement, and keeps non-goals out of it', () => {
     const fixture = setupIntakeFixture();
     const id = readyGoldenIntake(fixture);
