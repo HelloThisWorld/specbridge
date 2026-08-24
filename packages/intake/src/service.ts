@@ -26,7 +26,7 @@ import {
   readGitHead,
 } from './grounding.js';
 import { analyzeDeltaAuthority, raiseItemForQuestion } from './delta.js';
-import { requiresProductAuthority } from './vocabulary.js';
+import { DELTA_AUTHORITY_CLASSES, requiresProductAuthority } from './vocabulary.js';
 import type { DiscoveryProposer } from './questions.js';
 import type { QuestionCandidate } from './questions.js';
 import {
@@ -1026,8 +1026,17 @@ function admitAndRecord(deps: IntakeDeps, input: AdmitAndRecordInput): AdmitAndR
   };
 }
 
+/**
+ * Counts per delta class, ZERO-FILLED across the whole enum.
+ *
+ * Matching `analyzeDeltaAuthority`, which zero-fills too. A reader must be
+ * able to tell "no contradictions" from "this key does not exist", and a
+ * consumer reading `counts['CONTRADICTION']` should not get `0` from the
+ * pure analyzer and `undefined` from the service that rewrote it.
+ */
 function countsOf(items: readonly { classification: string }[]): Record<string, number> {
   const counts: Record<string, number> = {};
+  for (const cls of DELTA_AUTHORITY_CLASSES) counts[cls] = 0;
   for (const item of items) counts[item.classification] = (counts[item.classification] ?? 0) + 1;
   return counts;
 }

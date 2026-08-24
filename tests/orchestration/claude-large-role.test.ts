@@ -2,7 +2,7 @@ import { mkdtempSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { runLargeRole } from '@specbridge/orchestration';
+import { OBSERVED_OUTPUT_EXCERPT_CHARS, runLargeRole } from '@specbridge/orchestration';
 import { FAKE_CLAUDE_PATH, setupExecutionFixtureV2 } from '../helpers-execution.js';
 
 /**
@@ -73,5 +73,25 @@ describe('runLargeRole against the fake Claude CLI', () => {
     if (result.ok) return;
     expect(result.kind).toBe('invalid-output');
     expect(result.problem).not.toContain('claude stderr');
+  });
+
+  it('retains a bounded excerpt of what the worker actually returned', async () => {
+    scenario('role-invalid');
+    const result = await runLargeRole(invocation());
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+
+    // The vNext.10.1 dogfood blocked a job on "the response is not a single
+    // valid JSON document" and retained NOTHING — a message with no evidence
+    // behind it. An operator needs to see what came back.
+    expect(result.observed).toBeDefined();
+    expect(result.observed).toContain('I would suggest planning carefully');
+    expect((result.observed ?? '').length).toBeLessThanOrEqual(
+      OBSERVED_OUTPUT_EXCERPT_CHARS,
+    );
+    // Retained for a human to read, never parsed and never repaired: mining
+    // JSON out of prose is exactly the silent malformed-output repair the
+    // contract validator exists to refuse.
+    expect(result.ok).toBe(false);
   });
 });

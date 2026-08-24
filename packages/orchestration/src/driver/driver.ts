@@ -2360,7 +2360,16 @@ async function handleRoleDecision(
         category: 'CAPABILITY_UNAVAILABLE',
         code: 'LARGE_WORKER_FAILED',
         message: `The large-agent ${role} failed twice: ${result.problem.slice(0, 500)}`,
-        remediation: ['Check the Claude Code installation with `specbridge runner doctor claude-code`.'],
+        remediation: [
+          'Check the Claude Code installation with `specbridge runner doctor claude-code`.',
+          // The excerpt is the whole point of the remediation. A job blocked
+          // on "the response is not a single valid JSON document" with
+          // nothing retained leaves an operator a message and no evidence,
+          // which is not how anything else here reports a failure.
+          ...(result.observed !== undefined && result.observed.length > 0
+            ? [`The worker returned: ${result.observed}`]
+            : []),
+        ],
       });
     }
     runtime.emit('role-finished', `${role} failed on the large tier (${result.kind})`);
