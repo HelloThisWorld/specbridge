@@ -65,7 +65,7 @@ function analyzeAgainstContracts(
           })),
           invariants: [],
           affectedObjectiveIds: [],
-          status: 'ACTIVE',
+          status: 'active',
           decisionIds: ['DEC-001'],
           turnIds: [],
           recordedAt: '2026-08-20T20:00:00.000Z',

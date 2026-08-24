@@ -251,4 +251,56 @@ describe('spec intake — ingesting a full specification', () => {
       first.source.contentHash,
     );
   });
+
+  it('files an instruction to go and ask product as guidance, not as an obligation', () => {
+    // The StepRelay Golden Spec said, under a "Compatibility" heading:
+    //
+    //   "If the meaning or required degree of Step Functions compatibility is
+    //    ambiguous, ask a product question during discovery rather than
+    //    assuming a compatibility promise."
+    //
+    // That is guidance to whoever writes the specification. Filed as a
+    // requirement it sealed as the ONLY member of a contract named
+    // "Compatibility Promise", and the unattended build stopped on it: the
+    // builder could satisfy it in full while promising nothing, so it raised a
+    // change request and waited for a human — the one thing this whole path
+    // exists to prevent.
+    const parsed = parseSpecificationDocument(
+      [
+        '# Compatibility',
+        '',
+        '- If the meaning or required degree of Step Functions compatibility is ambiguous, ' +
+          'ask a product question during discovery rather than assuming a compatibility promise.',
+        '',
+        '- The exported format is additive-only within a major version.',
+        '',
+      ].join('\n'),
+    );
+
+    const guidance = parsed.chunks.find((chunk) => chunk.text.includes('ask a product question'));
+    expect(guidance?.kind).toBe('process-guidance');
+
+    // The real promise beside it is untouched.
+    const promise = parsed.chunks.find((chunk) => chunk.text.includes('additive-only'));
+    expect(promise?.kind).toBe('normative');
+  });
+
+  it('does not mistake a requirement that happens to use the word "ask" for guidance', () => {
+    // The screen needs both an instruction verb AND an object naming product
+    // authority. A product that asks its USER something is a requirement.
+    const parsed = parseSpecificationDocument(
+      [
+        '# Console',
+        '',
+        '- The console must ask the user to confirm before deleting an execution.',
+        '',
+        '- The importer must request a decision from the operator before overwriting.',
+        '',
+      ].join('\n'),
+    );
+
+    for (const chunk of parsed.chunks.filter((candidate) => candidate.text.startsWith('The '))) {
+      expect(chunk.kind).toBe('normative');
+    }
+  });
 });

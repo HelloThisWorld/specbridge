@@ -95,6 +95,17 @@ export const SOURCE_CHUNK_KINDS = [
   'narrative',
   /** A heading with no body of its own. */
   'heading',
+  /**
+   * An instruction to whoever is WRITING or REVIEWING the specification —
+   * "ask a product question during discovery", "raise this with the product
+   * owner" — rather than a statement of what the product owes anyone.
+   *
+   * It is neither normative nor narrative, and the difference is load-
+   * bearing: filed as normative it becomes a contract requirement no
+   * builder can implement, and filed as narrative under a surface-naming
+   * heading it becomes one anyway.
+   */
+  'process-guidance',
 ] as const;
 export type SourceChunkKind = (typeof SOURCE_CHUNK_KINDS)[number];
 

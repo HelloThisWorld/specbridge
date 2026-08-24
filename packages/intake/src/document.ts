@@ -3,6 +3,7 @@ import { IntakeError } from './errors.js';
 import type { SourceChunk } from './state.js';
 import { INTAKE_LIMITS } from './state.js';
 import type { SourceChunkKind } from './vocabulary.js';
+import { PROCESS_INSTRUCTION_PATTERN } from './text.js';
 
 /**
  * Deterministic parsing of a submitted specification.
@@ -354,6 +355,19 @@ function classifyBlock(block: RawBlock, trimmed: string): SourceChunkKind {
 
   const headingContext = block.headingPath.join(' / ');
   const body = trimmed.replace(/^(\s*)([-*+]|\d+[.)])\s+/, '');
+
+  // An instruction to go and get a product decision is guidance to whoever
+  // is writing the specification, not a promise the product makes.
+  //
+  // The StepRelay Golden Spec said "if the degree of Step Functions
+  // compatibility is ambiguous, ask a product question during discovery".
+  // That sealed as the ONLY requirement of a contract named "Compatibility
+  // Promise", and the builder stopped: it could satisfy the requirement in
+  // full while promising nothing, so it raised a change request and waited
+  // for a human. The sentence still marks an ambiguity worth asking about —
+  // the question generator reads every kind but `heading` — but the ANSWER
+  // is the durable truth, and the instruction to ask is spent once asked.
+  if (PROCESS_INSTRUCTION_PATTERN.test(body)) return 'process-guidance';
 
   // An exclusion is an exclusion wherever it appears, and a non-goal heading
   // makes everything beneath it one.

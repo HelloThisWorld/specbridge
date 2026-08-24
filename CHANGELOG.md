@@ -296,6 +296,18 @@ Three more surfaced once the run reached real compute:
   which then failed synthesis — after the approval was already written. A
   genuine exclusion says "must not"; a `## Non-goals` heading still marks
   everything beneath it however it is phrased.
+- **An instruction to go and ask product sealed as a product requirement.**
+  The Golden Spec said, under a `## Compatibility` heading, "if the degree of
+  Step Functions compatibility is ambiguous, ask a product question during
+  discovery". That is guidance to whoever writes the specification, and it
+  sealed as the ONLY requirement of a contract named "Compatibility
+  Promise". The unattended build then stopped on it — correctly: the builder
+  could satisfy the requirement in full while promising nothing, so it raised
+  `CCR-001` and waited for a human, which is the one thing this path exists to
+  prevent. Such a statement is now its own chunk kind, `process-guidance`: it
+  is neither normative nor narrative, never becomes a requirement, and still
+  feeds the author-flagged-ambiguity marker that asks the question. The answer
+  is the durable truth; the instruction to ask is spent once asked.
 - **Re-submitting an unchanged specification invented a question.** The
   Golden Spec, sent again at the repository its own first run had sealed,
   stopped and asked a human whether to change `CTR-005 R9` — quoting back at

@@ -278,6 +278,16 @@ export const CONDITIONAL_SUPPORT_PATTERN =
   /\b(where|if|when)\s+(supported|available|applicable|appropriate|required|possible|the\s+\w+\s+semantics?\s+(allow|support|permit))\b/i;
 
 /** Phrases in which the author flags an unresolved product commitment. */
+/**
+ * An instruction to obtain a PRODUCT DECISION, aimed at the reader of the
+ * specification rather than at the product.
+ *
+ * Deliberately narrow: it requires both an instruction verb and an object
+ * that names product authority or the discovery process, so "the console must
+ * ask the user to confirm before deleting" stays the requirement it is.
+ */
+export const PROCESS_INSTRUCTION_PATTERN =
+  /\b(ask|asks|raise|raises|seek|seeks|obtain|request|confirm|clarify|escalate|defer)\b[^.]{0,48}\b(product (question|decision|owner|authority)|during discovery|with the product)\b/i;
 export const AUTHOR_FLAGGED_AMBIGUITY_PATTERN =
   /\b(is ambiguous|are ambiguous|ambiguity|unclear|to be (decided|determined)|tbd|undecided|open question|needs? a (product )?decision)\b/i;
 

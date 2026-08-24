@@ -82566,7 +82566,18 @@ var SOURCE_CHUNK_KINDS = [
   /** Framing prose: motivation, background, restatement. */
   "narrative",
   /** A heading with no body of its own. */
-  "heading"
+  "heading",
+  /**
+   * An instruction to whoever is WRITING or REVIEWING the specification —
+   * "ask a product question during discovery", "raise this with the product
+   * owner" — rather than a statement of what the product owes anyone.
+   *
+   * It is neither normative nor narrative, and the difference is load-
+   * bearing: filed as normative it becomes a contract requirement no
+   * builder can implement, and filed as narrative under a surface-naming
+   * heading it becomes one anyway.
+   */
+  "process-guidance"
 ];
 var CHUNK_COVERAGE_STATES = [
   /** A canonical fact, requirement, criterion, or non-goal carries it. */
@@ -83701,6 +83712,7 @@ var COMPATIBILITY_HEDGE_PATTERNS = Object.freeze([
   /\bcompatible[- ]?ish\b/i
 ]);
 var CONDITIONAL_SUPPORT_PATTERN = /\b(where|if|when)\s+(supported|available|applicable|appropriate|required|possible|the\s+\w+\s+semantics?\s+(allow|support|permit))\b/i;
+var PROCESS_INSTRUCTION_PATTERN = /\b(ask|asks|raise|raises|seek|seeks|obtain|request|confirm|clarify|escalate|defer)\b[^.]{0,48}\b(product (question|decision|owner|authority)|during discovery|with the product)\b/i;
 var AUTHOR_FLAGGED_AMBIGUITY_PATTERN = /\b(is ambiguous|are ambiguous|ambiguity|unclear|to be (decided|determined)|tbd|undecided|open question|needs? a (product )?decision)\b/i;
 var SENSITIVE_DATA_PATTERN = /\b(biometric|face (photo|image|data|scan)|facial|fingerprint|passport|national id|identity document|boarding[- ]pass|personal data|personally identifiable|pii|health (record|data)|payment (card|details)|credit card|ssn|social security)\b/i;
 var VISIBILITY_POLICY_PATTERN = /\b(redact\w*|not (stored|persisted|logged|retained)|retention|encrypt\w*|in memory only|ephemeral|never (stored|logged|persisted)|privacy policy|data (handling|visibility|protection) policy|masked?|anonymi[sz]ed?)\b/i;
@@ -83998,6 +84010,7 @@ function classifyBlock(block, trimmed) {
   if (block.fenced) return "example";
   const headingContext = block.headingPath.join(" / ");
   const body = trimmed.replace(/^(\s*)([-*+]|\d+[.)])\s+/, "");
+  if (PROCESS_INSTRUCTION_PATTERN.test(body)) return "process-guidance";
   if (NON_GOAL_PATTERN.test(headingContext) || NON_GOAL_PATTERN.test(body)) return "non-goal";
   if (NEGATIVE_REQUIREMENT_PATTERN.test(body)) return "non-goal";
   if (SCENARIO_PATTERN.test(headingContext)) return "scenario";
