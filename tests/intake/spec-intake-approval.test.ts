@@ -368,7 +368,54 @@ describe('spec intake — the telemetry boundary', () => {
 describe('spec intake — what the builder is handed', () => {
   it('splits an oversized surface into numbered parts a planner can plan', () => {
     const fixture = setupIntakeFixture();
-    const id = readyGoldenIntake(fixture);
+    // Eighteen console capabilities, all one public surface. Built here
+    // rather than taken from the Golden Spec so the assertion is about the
+    // BOUND rather than about one document's shape.
+    const started = startSpecIntake(fixture.intake, {
+      name: 'big-console',
+      kind: 'text',
+      content: [
+        '# Console',
+        '',
+        '## Goal',
+        '',
+        'Add an operations console so a user can inspect and drive executions.',
+        '',
+        '## Requirements',
+        '',
+        'The console must support:',
+        '',
+        ...Array.from(
+          { length: 18 },
+          (_, index) => `- expose a REST endpoint that serves capability ${index + 1};`,
+        ),
+        '',
+        '## System boundaries',
+        '',
+        'The console lives in the existing web module and changes no other component.',
+        '',
+        '## Canonical model',
+        '',
+        'The console reasons in Execution records: an identifier, a state, and a history.',
+        '',
+        '## Failure semantics',
+        '',
+        '- A request for an unknown execution must return a not-found response.',
+        '',
+        '## Compatibility',
+        '',
+        'The console API is additive-only within a major version.',
+        '',
+      ].join('\n'),
+    });
+    const id = started.intake.intakeId;
+    let discovery = runIntakeDiscovery(fixture.intake, id);
+    for (const question of discovery.questions.filter((q) => q.status === 'open')) {
+      discovery = answerIntakeQuestion(fixture.intake, id, {
+        questionId: question.questionId,
+        answer: question.options[0] ?? 'The strict reading holds.',
+      }).discovery;
+    }
     const intake = requireIntakeState(fixture.workspace, id);
     const contracts = readContractRegistry(fixture.workspace, intake.missionId);
 
@@ -389,7 +436,7 @@ describe('spec intake — what the builder is handed', () => {
     // a contract in its own right.
     expect(parts[0]?.title).toMatch(/\(part 1 of \d+\)$/);
     const total = contracts.reduce((sum, contract) => sum + contract.requirements.length, 0);
-    expect(total).toBeGreaterThan(40);
+    expect(total).toBeGreaterThan(18);
     // Every requirement still traces to a recorded decision.
     for (const contract of contracts) {
       expect(contract.decisionIds.length).toBeGreaterThan(0);

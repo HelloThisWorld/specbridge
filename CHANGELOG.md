@@ -298,10 +298,14 @@ Three more surfaced once the run reached real compute:
   everything beneath it however it is phrased.
 - **The heading an author files a statement under was ignored.** A section
   headed `## Compatibility` whose sentence names no durable surface is still
-  a compatibility promise. The heading is now a FALLBACK, consulted only when
-  the sentence names nothing — letting it always participate collapsed five
-  cleanly separated contracts into one with fifty-seven requirements, because
-  "Operations console" matched `public-api` for everything beneath it.
+  a compatibility promise. The heading is now a FALLBACK consulted only for
+  PROSE, and the limit took two corrections to find: letting it always
+  participate first collapsed five separated contracts into one with
+  fifty-seven requirements, and then turned all thirty delegated
+  implementation details into public contract requirements — promising a
+  framework choice to users. A normative bullet says what it is in its own
+  words; a paragraph under a section heading is where an author states a
+  policy without repeating the heading in the sentence.
 
 The approval gate also grew a condition it should always have had: an intake
 that compiled NO product contract cannot converge. Reaching a human with one

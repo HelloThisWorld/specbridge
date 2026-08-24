@@ -103,26 +103,32 @@ export interface DeltaAnalysisRequest {
  * author filed it under is a FALLBACK, consulted only when the sentence
  * names no surface at all.
  *
- * Both halves were learned from the same document. Reading the sentence
- * alone missed "the exported format is additive-only within a major version"
- * under a "## Compatibility" heading — no durable surface in the words, and
- * a whole specification compiled to zero product contracts. Letting the
- * heading always participate went too far the other way: "Operations
- * console" matched `public-api` for every statement beneath it, and five
- * cleanly separated contracts collapsed into one with fifty-seven
- * requirements. The heading supplies what the sentence lacks; it never
- * overrides what the sentence says.
+ * Both halves were learned from the same document, and so was the LIMIT.
+ *
+ * Reading the sentence alone missed "the exported format is additive-only
+ * within a major version" under a "## Compatibility" heading — no durable
+ * surface in the words — and a whole specification compiled to zero product
+ * contracts. But letting the heading speak for every statement went further
+ * wrong: under "## Infrastructure", "Use one Spring Boot demo application"
+ * inherited a product surface and became a public contract REQUIREMENT, which
+ * promises a framework choice to users. Thirty delegated implementation
+ * details turned into promises that way.
+ *
+ * So the fallback is restricted to PROSE, which is the case it was introduced
+ * for. A normative bullet says what it is in its own words; a paragraph under
+ * a section heading is where an author states a policy without repeating the
+ * heading in the sentence.
  */
 function surfacesFor(chunk: SourceChunk, statement: string): ReturnType<typeof surfacesOf> {
   const own = surfacesOf(statement);
-  if (own.length > 0) return own;
+  if (own.length > 0 || chunk.kind !== 'narrative') return own;
   return surfacesOf(chunk.headingPath.join(' '));
 }
 
-/** Topics, with the same fallback: the heading fills a silent sentence. */
+/** Topics, with the same restriction: the heading speaks only for prose. */
 function topicsFor(chunk: SourceChunk, statement: string): ReturnType<typeof topicsOf> {
   const own = topicsOf(statement);
-  if (own.length > 0) return own;
+  if (own.length > 0 || chunk.kind !== 'narrative') return own;
   return topicsOf(chunk.headingPath.join(' '));
 }
 
