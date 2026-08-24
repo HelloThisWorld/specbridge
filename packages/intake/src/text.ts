@@ -242,6 +242,12 @@ const TOPIC_RULES: readonly { topic: DiscoveryTopic; pattern: RegExp }[] = Objec
  * Matching one of these against a statement that ALSO matches an existing
  * contract is what separates extending a product from rewriting it.
  */
+/** Any run of whitespace, including the newlines a re-wrapped paragraph gains. */
+export const WHITESPACE_RUN = /\s+/g;
+
+/** Sentence-final punctuation, which carries no promise. */
+export const TRAILING_PUNCTUATION = /[.;:,\s]+$/;
+
 export const CHANGE_INTENT_PATTERN =
   /\b(change|changes|changed|replace|replaces|replaced|rename|renames|renamed|remove|removes|removed|delete|deletes|drop|drops|dropped|migrate away|deprecate\w*|break|breaks|breaking|rework|redefine\w*|no longer|instead of|supersede\w*|overrid\w+)\b/i;
 

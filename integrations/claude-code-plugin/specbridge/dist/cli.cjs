@@ -101519,6 +101519,8 @@ var TOPIC_RULES = Object.freeze([
     pattern: /\b(api|endpoint|interface|console|command|contract)\b/i
   }
 ]);
+var WHITESPACE_RUN = /\s+/g;
+var TRAILING_PUNCTUATION = /[.;:,\s]+$/;
 var CHANGE_INTENT_PATTERN = /\b(change|changes|changed|replace|replaces|replaced|rename|renames|renamed|remove|removes|removed|delete|deletes|drop|drops|dropped|migrate away|deprecate\w*|break|breaks|breaking|rework|redefine\w*|no longer|instead of|supersede\w*|overrid\w+)\b/i;
 var NEGATION_PATTERN = /\b(must not|shall not|will not|may not|never|no longer|cannot|is not|are not|without)\b/i;
 var COMPATIBILITY_HEDGE_PATTERNS = Object.freeze([
@@ -102397,6 +102399,13 @@ function classifyStatement(input) {
         rationale: `Contradicts ${contract.contractId} r${contract.revision} ${match.element.elementKind} ${match.element.elementId}: "${clip(match.element.statement, 200)}". Both cannot hold.`
       };
     }
+    if (match.restates) {
+      return {
+        ...shared,
+        classification: "EXISTING_CONTRACT_COMPATIBLE",
+        rationale: `Restates ${contract.contractId} r${contract.revision} ${match.element.elementKind} ${match.element.elementId} word for word. A promise repeated is not a promise changed.`
+      };
+    }
     if (CHANGE_INTENT_PATTERN.test(input.statement)) {
       return {
         ...shared,
@@ -102451,6 +102460,9 @@ function classifyStatement(input) {
     rationale: "Names no durable product surface and engages no existing contract: ordinary engineering latitude the seal delegates."
   };
 }
+function normalizeStatement(value) {
+  return value.toLowerCase().replace(WHITESPACE_RUN, " ").replace(TRAILING_PUNCTUATION, "").trim();
+}
 function findBestMatch(input) {
   const explicit = /\bCTR-\d{3,}\b/gi.exec(input.statement);
   if (explicit !== null) {
@@ -102459,7 +102471,9 @@ function findBestMatch(input) {
       const element = input.index.elements.find(
         (candidate) => candidate.owner.contract.contractId === owned.contract.contractId && candidate.elementKind === "summary"
       );
-      if (element !== void 0) return { element, containment: 1, same: false };
+      if (element !== void 0) {
+        return { element, containment: 1, same: false, restates: false };
+      }
     }
   }
   if (input.tokens.size < MIN_TOKENS_FOR_MATCH) return void 0;
@@ -102469,8 +102483,9 @@ function findBestMatch(input) {
     const score = containment(input.tokens, element.tokens);
     if (score < MATCH_CONTAINMENT) continue;
     const same = jaccard(input.tokens, element.tokens) >= SAME_STATEMENT_JACCARD;
+    const restates = normalizeStatement(input.statement) === normalizeStatement(element.statement);
     if (best === void 0 || score > best.containment) {
-      best = { element, containment: score, same };
+      best = { element, containment: score, same, restates };
     }
   }
   return best;
@@ -103608,9 +103623,9 @@ var NORMATIVE_LINE_PATTERNS = Object.freeze([
   /^\s*[-*]\s+\*\*(Acceptance|Invariant|Criterion)\b/i
 ]);
 var TEMPLATE_STATEMENTS = new Set(
-  SYNTHESIS_TEMPLATE_STATEMENTS.map((statement) => normalizeStatement(statement))
+  SYNTHESIS_TEMPLATE_STATEMENTS.map((statement) => normalizeStatement2(statement))
 );
-function normalizeStatement(value) {
+function normalizeStatement2(value) {
   return value.trim().replace(/^[-*]\s+/, "").replace(/\*\*/g, "").replace(/\s+/g, " ").toLowerCase();
 }
 var STRUCTURAL_LINE_PATTERNS = Object.freeze([
@@ -103630,7 +103645,7 @@ function extractNormativeStatements(stage, content) {
     if (line.length === 0) continue;
     if (STRUCTURAL_LINE_PATTERNS.some((pattern) => pattern.test(raw))) continue;
     if (!NORMATIVE_LINE_PATTERNS.some((pattern) => pattern.test(line))) continue;
-    if (TEMPLATE_STATEMENTS.has(normalizeStatement(line))) continue;
+    if (TEMPLATE_STATEMENTS.has(normalizeStatement2(line))) continue;
     out.push({
       stage,
       line: index + 1,

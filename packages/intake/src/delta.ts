@@ -8,6 +8,8 @@ import type { OwnedContract } from './grounding.js';
 import {
   CHANGE_INTENT_PATTERN,
   NEGATION_PATTERN,
+  TRAILING_PUNCTUATION,
+  WHITESPACE_RUN,
   clip,
   containment,
   jaccard,
@@ -393,7 +395,27 @@ function classifyStatement(input: ClassifyInput): DeltaItem {
       };
     }
 
-    // 2b. Change-shaped language aimed at an existing promise.
+    // 2b. The promise, restated.
+    //
+    // This has to precede every change branch below. The StepRelay Golden
+    // Spec, re-submitted against the repository its own first run had
+    // sealed, gated a human on CTR-005 R9 — a requirement whose text it
+    // matched BYTE FOR BYTE — because the sealed sentence ends "without
+    // frontend code changes" and the word "changes" reads as change intent.
+    // Resubmitting a specification must not manufacture authority questions
+    // out of promises the product already made in those exact words.
+    if (match.restates) {
+      return {
+        ...shared,
+        classification: 'EXISTING_CONTRACT_COMPATIBLE',
+        rationale:
+          `Restates ${contract.contractId} r${contract.revision} ` +
+          `${match.element.elementKind} ${match.element.elementId} word for word. ` +
+          'A promise repeated is not a promise changed.',
+      };
+    }
+
+    // 2c. Change-shaped language aimed at an existing promise.
     if (CHANGE_INTENT_PATTERN.test(input.statement)) {
       return {
         ...shared,
@@ -405,7 +427,7 @@ function classifyStatement(input: ClassifyInput): DeltaItem {
       };
     }
 
-    // 2c. An invariant is never "extended". Touching one is changing it.
+    // 2d. An invariant is never "extended". Touching one is changing it.
     if (match.element.elementKind === 'invariant' && match.containment >= MATCH_CONTAINMENT) {
       return {
         ...shared,
@@ -417,7 +439,7 @@ function classifyStatement(input: ClassifyInput): DeltaItem {
       };
     }
 
-    // 2d. The same promise, already made.
+    // 2e. The same promise, near enough to read as already made.
     if (match.same) {
       return {
         ...shared,
@@ -428,7 +450,7 @@ function classifyStatement(input: ClassifyInput): DeltaItem {
       };
     }
 
-    // 2e. An addition to a contract whose policy permits additions.
+    // 2f. An addition to a contract whose policy permits additions.
     if (contract.compatibilityPolicy === 'frozen') {
       return {
         ...shared,
@@ -487,6 +509,20 @@ interface ElementMatch {
   element: IndexedElement;
   containment: number;
   same: boolean;
+  /**
+   * The statement IS the sealed one, allowing for case, spacing and trailing
+   * punctuation. Stronger than `same`, which is a token-overlap threshold and
+   * so admits "retries up to 3 times" / "retries up to 5 times".
+   */
+  restates: boolean;
+}
+
+/**
+ * The form of a statement that survives being written down twice: case,
+ * spacing and a trailing full stop carry no promise.
+ */
+function normalizeStatement(value: string): string {
+  return value.toLowerCase().replace(WHITESPACE_RUN, ' ').replace(TRAILING_PUNCTUATION, '').trim();
 }
 
 function findBestMatch(input: ClassifyInput): ElementMatch | undefined {
@@ -502,7 +538,9 @@ function findBestMatch(input: ClassifyInput): ElementMatch | undefined {
           candidate.owner.contract.contractId === owned.contract.contractId &&
           candidate.elementKind === 'summary',
       );
-      if (element !== undefined) return { element, containment: 1, same: false };
+      if (element !== undefined) {
+        return { element, containment: 1, same: false, restates: false };
+      }
     }
   }
 
@@ -514,8 +552,9 @@ function findBestMatch(input: ClassifyInput): ElementMatch | undefined {
     const score = containment(input.tokens, element.tokens);
     if (score < MATCH_CONTAINMENT) continue;
     const same = jaccard(input.tokens, element.tokens) >= SAME_STATEMENT_JACCARD;
+    const restates = normalizeStatement(input.statement) === normalizeStatement(element.statement);
     if (best === undefined || score > best.containment) {
-      best = { element, containment: score, same };
+      best = { element, containment: score, same, restates };
     }
   }
   return best;

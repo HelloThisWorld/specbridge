@@ -296,6 +296,13 @@ Three more surfaced once the run reached real compute:
   which then failed synthesis — after the approval was already written. A
   genuine exclusion says "must not"; a `## Non-goals` heading still marks
   everything beneath it however it is phrased.
+- **Re-submitting an unchanged specification invented a question.** The
+  Golden Spec, sent again at the repository its own first run had sealed,
+  stopped and asked a human whether to change `CTR-005 R9` — quoting back at
+  them a sentence it matched BYTE FOR BYTE. The sealed text ends "without
+  frontend code changes", and the word "changes" read as an intent to
+  change. A restatement now outranks every change branch, and restatement
+  means text-identical rather than similar, so an altered number still gates.
 - **The heading an author files a statement under was ignored.** A section
   headed `## Compatibility` whose sentence names no durable surface is still
   a compatibility promise. The heading is now a FALLBACK consulted only for

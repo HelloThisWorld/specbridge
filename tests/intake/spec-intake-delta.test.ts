@@ -31,6 +31,51 @@ import { goldenSpecText, setupIntakeFixture } from '../helpers-intake.js';
  * classifying rewrites a promise the product already made.
  */
 
+/**
+ * Classify `content` against contracts written for the test, so a branch can
+ * be pinned to the exact sealed wording that provokes it.
+ */
+function analyzeAgainstContracts(
+  fixture: IntakeFixture,
+  content: string,
+  requirements: readonly { requirementId: string; statement: string }[],
+): DeltaAuthorityAnalysis {
+  const intakeId = 'intake-test';
+  return analyzeDeltaAuthority({
+    intakeId,
+    analyzedAt: '2026-08-20T21:00:00.000Z',
+    chunks: parseSpecificationDocument(content).chunks,
+    grounding: groundInRepository(fixture.intake, { intakeId, excludeMissionIds: [] }),
+    existingContracts: [
+      {
+        missionId: 'm-prior',
+        missionName: 'prior',
+        contract: {
+          schemaVersion: '1.0.0',
+          contractId: 'CTR-005',
+          revision: 1,
+          title: 'Feature Public Surface',
+          summary: 'The console surface this feature exposes.',
+          classification: 'public',
+          compatibilityPolicy: 'additive-only',
+          dependsOn: [],
+          requirements: requirements.map((requirement) => ({
+            ...requirement,
+            decisionIds: ['DEC-001'],
+          })),
+          invariants: [],
+          affectedObjectiveIds: [],
+          status: 'ACTIVE',
+          decisionIds: ['DEC-001'],
+          turnIds: [],
+          recordedAt: '2026-08-20T20:00:00.000Z',
+        },
+      },
+    ],
+    constitutionRules: [],
+  });
+}
+
 /** Grounding + analysis for one submitted document against the workspace. */
 function analyze(
   fixture: IntakeFixture,
@@ -114,7 +159,8 @@ describe('delta authority analysis — classification', () => {
     const item = analysis.items[0];
     expect(item?.classification).toBe('EXISTING_CONTRACT_COMPATIBLE');
     expect(item?.existingContractId).toBe(contracts[0]?.contractId);
-    expect(item?.rationale).toContain('already promises this');
+    // Exact, so it takes the restatement branch rather than the token-overlap one.
+    expect(item?.rationale).toContain('word for word');
   });
 
   it('classifies an addition to an additive-only contract as an extension', () => {
@@ -415,5 +461,59 @@ describe('delta authority analysis — prior seals are never silently mutated', 
     expect(affected?.title).toBe(contracts[0]?.title);
     expect(affected?.revision).toBe(contracts[0]?.revision);
     expect(affected?.relation).toBe('EXTENDED');
+  });
+
+  it('a sealed promise restated word for word is not a change, whatever words it contains', () => {
+    // The StepRelay Golden Spec, re-submitted against the repository its own
+    // first run had sealed, stopped and asked a human whether to change
+    // CTR-005 R9 — quoting back at them a sentence it matched BYTE FOR BYTE.
+    // The sealed text ends "without frontend code changes", and the word
+    // "changes" read as an intent to change.
+    //
+    // Re-submitting a specification is the ordinary case: an author edits one
+    // paragraph and sends the document again. Every untouched paragraph has
+    // to pass in silence, or the second submission of an unchanged document
+    // invents authority questions out of promises already made.
+    const fixture = setupIntakeFixture({ spec: true });
+    const promise =
+      'If a different valid workflow configuration is loaded, the console must ' +
+      'automatically render the corresponding different workflow graph and state ' +
+      'structure without frontend code changes.';
+
+    const analysis = analyzeAgainstContracts(
+      fixture,
+      ['# Console', '', `- ${promise}`, ''].join('\n'),
+      [{ requirementId: 'R9', statement: promise }],
+    );
+
+    const item = analysis.items[0];
+    expect(item?.classification).toBe('EXISTING_CONTRACT_COMPATIBLE');
+    expect(item?.existingContractId).toBe('CTR-005');
+    expect(item?.existingElementIds).toEqual(['R9']);
+    expect(item?.rationale).toContain('word for word');
+    expect(requiresProductAuthority(item?.classification ?? 'UNKNOWN_PRODUCT_AUTHORITY')).toBe(
+      false,
+    );
+    expect(analysis.complete).toBe(true);
+  });
+
+  it('restatement means text-identical, not merely similar — an altered number still gates', () => {
+    // The guard above must not decay into "close enough is the same promise".
+    // These two sentences share almost every token and promise different
+    // things, and only a human may say which one the product makes.
+    const fixture = setupIntakeFixture({ spec: true });
+    const sealed = 'The console must replace a failed step badge within 3 seconds of the change.';
+    const altered = 'The console must replace a failed step badge within 9 seconds of the change.';
+
+    const analysis = analyzeAgainstContracts(
+      fixture,
+      ['# Console', '', `- ${altered}`, ''].join('\n'),
+      [{ requirementId: 'R9', statement: sealed }],
+    );
+
+    const item = analysis.items[0];
+    expect(item?.existingContractId).toBe('CTR-005');
+    expect(item?.classification).toBe('EXISTING_SEALED_CONTRACT_CHANGE');
+    expect(analysis.complete).toBe(false);
   });
 });
