@@ -143,8 +143,16 @@ const server = createServer((request, response) => {
         return;
       }
       const schemaName = format.json_schema?.name ?? 'PLANNER';
-      const content =
-        scenario === 'invalid-output'
+      // `empty-plan`: SCHEMA-VALID output that plans nothing. A PLAN
+      // decision with zero steps passes contract validation and is still not
+      // a plan — the StepRelay dogfood's local model produced exactly this
+      // and killed the driver, which the supervisor restarted straight back
+      // into the same wall.
+      const emptyPlan =
+        scenario === 'empty-plan' && (schemaName === 'PLANNER' || schemaName === 'REPLANNER');
+      const content = emptyPlan
+        ? JSON.stringify({ ...ROLE_RESPONSES[schemaName], goal: undefined, steps: [] })
+        : scenario === 'invalid-output'
           ? 'I think the plan should be: first we look around, then we code!'
           : JSON.stringify(ROLE_RESPONSES[schemaName] ?? ROLE_RESPONSES.PLANNER);
       response.writeHead(200, { 'content-type': 'application/json' });

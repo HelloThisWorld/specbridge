@@ -2,7 +2,11 @@ import { mkdtempSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { runLargeRole } from '@specbridge/orchestration';
+import {
+  OBSERVED_OUTPUT_EXCERPT_CHARS,
+  looksLikeAuthenticationFailure,
+  runLargeRole,
+} from '@specbridge/orchestration';
 import { FAKE_CLAUDE_PATH, setupExecutionFixtureV2 } from '../helpers-execution.js';
 
 /**
@@ -73,5 +77,63 @@ describe('runLargeRole against the fake Claude CLI', () => {
     if (result.ok) return;
     expect(result.kind).toBe('invalid-output');
     expect(result.problem).not.toContain('claude stderr');
+  });
+
+  it('names an expired credential as an unavailable worker, not as garbage output', () => {
+    // The vNext.10.1 dogfood hit this and it cost an entire run: the worker
+    // exited ZERO and its result body was an auth error, so the response was
+    // "not a single valid JSON document" — technically true, and the least
+    // useful sentence available. An expired credential is a HUMAN
+    // prerequisite, and saying so is the difference between a five-second
+    // fix and a morning of confusion.
+    expect(
+      looksLikeAuthenticationFailure(
+        'Failed to authenticate. API Error: 401 OAuth access token has expired. Re-authenticate to continue.',
+      ),
+    ).toBe(true);
+    for (const message of [
+      'Error: 403 Forbidden',
+      'Invalid API key provided',
+      'Your credentials are expired',
+      'Please log in to continue',
+    ]) {
+      expect(looksLikeAuthenticationFailure(message), message).toBe(true);
+    }
+
+    // And NOT a plan that merely talks about authentication — the very
+    // specification that produced the dogfood is about identity verification,
+    // so this is the false positive that matters.
+    const plan = JSON.stringify({
+      decision: 'PLAN',
+      goal: 'Implement Gate 1: validate passport and boarding-pass information.',
+      steps: [
+        { id: '1', action: 'Reject an unauthorized passenger with a 401-shaped API response.' },
+        { id: '2', action: 'Re-authenticate the demo operator session on expiry.' },
+      ],
+    });
+    expect(looksLikeAuthenticationFailure(plan)).toBe(false);
+    expect(looksLikeAuthenticationFailure('')).toBe(false);
+    // A long document is a document, whatever words it contains.
+    expect(looksLikeAuthenticationFailure(`401 unauthorized ${'x'.repeat(2_500)}`)).toBe(false);
+  });
+
+  it('retains a bounded excerpt of what the worker actually returned', async () => {
+    scenario('role-invalid');
+    const result = await runLargeRole(invocation());
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+
+    // The vNext.10.1 dogfood blocked a job on "the response is not a single
+    // valid JSON document" and retained NOTHING — a message with no evidence
+    // behind it. An operator needs to see what came back.
+    expect(result.observed).toBeDefined();
+    expect(result.observed).toContain('I would suggest planning carefully');
+    expect((result.observed ?? '').length).toBeLessThanOrEqual(
+      OBSERVED_OUTPUT_EXCERPT_CHARS,
+    );
+    // Retained for a human to read, never parsed and never repaired: mining
+    // JSON out of prose is exactly the silent malformed-output repair the
+    // contract validator exists to refuse.
+    expect(result.ok).toBe(false);
   });
 });

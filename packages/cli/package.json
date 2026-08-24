@@ -32,6 +32,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.29.0",
     "@specbridge/autonomy": "workspace:*",
+    "@specbridge/intake": "workspace:*",
     "@specbridge/mission": "workspace:*",
     "commander": "^12.1.0",
     "execa": "^9.4.0",

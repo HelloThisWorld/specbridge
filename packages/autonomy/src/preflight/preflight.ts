@@ -379,14 +379,27 @@ export async function runOvernightPreflight(
       ],
     },
   );
+  // Deliberately honest about its own reach. This check knows what the
+  // MISSION declares it needs; it cannot know whether a credential the
+  // worker already holds is still valid.
+  //
+  // The vNext.10.1 dogfood proved that is not hypothetical: the run reached
+  // OVERNIGHT_READY, launched, and died on "401 OAuth access token has
+  // expired" — while `claude auth status` reported `loggedIn: true` and
+  // exited zero. A probe cannot promise more than it observes, so the
+  // observation says what it checked rather than implying a guarantee.
   add(
     'KNOWN_CREDENTIALS_PRESENT',
     'READY',
-    'no additional human-only credential is known to be required for this mission',
+    'no additional human-only credential is DECLARED for this mission (an already-held ' +
+      'credential is not revalidated: a worker CLI can report a live session for a token that ' +
+      'is expired, and only a real call finds out)',
     {
       remediation: [
         'Credentials discovered mid-run stop the job in NEEDS_AUTHORITY; SpecBridge never ' +
           'authenticates on your behalf.',
+        'If a run has been idle for a long time, re-authenticate the worker before leaving: ' +
+          'an expired token is not visible to any pre-launch probe.',
       ],
     },
   );

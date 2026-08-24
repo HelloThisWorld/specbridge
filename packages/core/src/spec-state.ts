@@ -54,9 +54,33 @@ export const stageApprovalSchema = z.object({
     .optional(),
   hashAlgorithm: z.literal('sha256').optional(),
   hashSemanticsVersion: z.string().optional(),
+  /**
+   * How this approval got its authority.
+   *
+   * ABSENT MEANS `HUMAN`, which is what every approval recorded before
+   * vNext.10.1 is and what every `spec approve --stage` still writes. The
+   * field exists so the other case can be told apart honestly rather than
+   * disguised as the first: a `DERIVED_FROM_INTENT_APPROVAL` stage was
+   * projected by the deterministic compiler from canonical product truth a
+   * human explicitly approved, and it records WHICH approval.
+   *
+   * The question "which human decision authorized this artifact?" has an
+   * answer under both modes. Under this one the answer is a record id and a
+   * digest, which is stronger than a timestamp.
+   */
+  approvalMode: z.enum(['HUMAN', 'DERIVED_FROM_INTENT_APPROVAL']).optional(),
+  /** The human authority record a derived approval descends from. */
+  sourceApprovalId: z.string().min(1).max(200).optional(),
+  /** Digest of the approved canonical truth this artifact projects. */
+  authorityDigest: z.string().min(1).max(200).optional(),
 });
 
 export type StageApproval = z.infer<typeof stageApprovalSchema>;
+
+/** Whether a stage approval carries human authority directly. */
+export function isHumanStageApproval(stage: StageApproval): boolean {
+  return stage.approvalMode === undefined || stage.approvalMode === 'HUMAN';
+}
 
 const stagesSchema = z
   .object({
@@ -127,6 +151,29 @@ export const specWorkflowStateSchema = z
           code: z.ZodIssueCode.custom,
           path: ['stages', name],
           message: 'a stage that is not approved must not record approvedPlanHash',
+        });
+      }
+      // A derived approval must name the human decision it descends from.
+      // Without both fields the record could not answer "which human
+      // authorized this?", which is the only reason the mode is allowed to
+      // exist at all.
+      if (
+        approval.approvalMode === 'DERIVED_FROM_INTENT_APPROVAL' &&
+        (approval.sourceApprovalId === undefined || approval.authorityDigest === undefined)
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['stages', name],
+          message:
+            'a derived approval must record sourceApprovalId and authorityDigest so its human ' +
+            'authority is traceable',
+        });
+      }
+      if (!approved && approval.approvalMode !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['stages', name],
+          message: 'a stage that is not approved must not record an approvalMode',
         });
       }
     }

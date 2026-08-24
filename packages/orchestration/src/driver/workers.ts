@@ -52,6 +52,71 @@ export interface RoleWorkerFailure {
   ok: false;
   kind: 'worker-unavailable' | 'invalid-output' | 'cancelled' | 'context-exceeded';
   problem: string;
+  /**
+   * A bounded excerpt of what the worker actually returned.
+   *
+   * Carried ONLY for invalid output, and only so an operator can see it. The
+   * vNext.10.1 dogfood blocked a job with "the response is not a single
+   * valid JSON document" and retained nothing at all — a message with no
+   * evidence behind it, which is exactly what this codebase refuses to do
+   * everywhere else. Never parsed, never repaired, never acted on: mining
+   * JSON out of prose is the silent malformed-output repair the contract
+   * validator exists to refuse.
+   */
+  observed?: string | undefined;
+}
+
+/** The bound on a retained excerpt. Enough to recognise, too little to act on. */
+export const OBSERVED_OUTPUT_EXCERPT_CHARS = 600;
+
+/**
+ * A response that is an AUTHENTICATION failure wearing the shape of output.
+ *
+ * The vNext.10.1 dogfood hit this: the worker exited zero and its result body
+ * was "Failed to authenticate. API Error: 401 OAuth access token has expired.
+ * Re-authenticate to continue." Because it is not JSON, it was classified
+ * `invalid-output` and the job blocked on "the response is not a single valid
+ * JSON document" — technically true, and the least useful sentence available.
+ * An expired credential is a HUMAN prerequisite, and saying so is the
+ * difference between a five-second fix and a morning of confusion.
+ *
+ * Three conditions together, because a legitimate plan can talk about
+ * authentication — the very specification that produced this run is about
+ * identity verification. It must have FAILED validation, it must be short
+ * enough to be an error rather than a document, and it must carry an
+ * unambiguous credential signature.
+ */
+const AUTH_FAILURE_PATTERN = new RegExp(
+  String.raw`\b(401|403|unauthorized|unauthenticated|failed to authenticate` +
+    String.raw`|re-?authenticate|oauth[^.]{0,40}\bexpired\b|token has expired` +
+    String.raw`|expired token|invalid api key|api key not found|please log ?in` +
+    String.raw`|credentials? (are )?(invalid|missing|expired))\b`,
+  'i',
+);
+
+const AUTH_FAILURE_MAX_CHARS = 2_000;
+
+export function looksLikeAuthenticationFailure(text: string): boolean {
+  const collapsed = text.trim();
+  if (collapsed.length === 0 || collapsed.length > AUTH_FAILURE_MAX_CHARS) return false;
+  // A JSON DOCUMENT is never an authentication error, whatever words it
+  // contains. This is the discriminator that matters: the specification
+  // behind the dogfood is about identity verification, and a perfectly good
+  // plan for it says "reject an unauthorized passenger with a 401-shaped
+  // response". An auth failure is a bare error string, not a document.
+  try {
+    JSON.parse(collapsed);
+    return false;
+  } catch {
+    // Not JSON — which is the only case that reaches here in production
+    // anyway, since this runs only after contract validation failed.
+  }
+  return AUTH_FAILURE_PATTERN.test(collapsed);
+}
+
+/** A bounded, single-line excerpt of an offending response. */
+export function observedExcerpt(text: string): string {
+  return text.replace(/\s+/g, ' ').trim().slice(0, OBSERVED_OUTPUT_EXCERPT_CHARS);
 }
 
 export type RoleWorkerResult<Role extends AgentContractRole> =
@@ -97,6 +162,8 @@ export async function runLocalRole<Role extends AgentContractRole>(
   }
 
   let corrected = false;
+  /** The most recent response that failed validation, for the failure record. */
+  let lastObserved: string | undefined;
   let userPrompt = invocation.packet;
   for (let attempt = 0; attempt <= invocation.maxCorrections; attempt += 1) {
     if (invocation.signal?.aborted === true) {
@@ -153,6 +220,7 @@ export async function runLocalRole<Role extends AgentContractRole>(
           corrected,
         };
       }
+      lastObserved = retried.text;
       userPrompt = `${invocation.packet}\n\n${correctionMessage(invocation.role, validated.problem)}`;
       corrected = true;
       continue;
@@ -167,6 +235,7 @@ export async function runLocalRole<Role extends AgentContractRole>(
         corrected,
       };
     }
+    lastObserved = result.text;
     userPrompt = `${invocation.packet}\n\n${correctionMessage(invocation.role, validated.problem)}`;
     corrected = true;
   }
@@ -174,6 +243,7 @@ export async function runLocalRole<Role extends AgentContractRole>(
     ok: false,
     kind: 'invalid-output',
     problem: `The local ${invocation.role} output stayed invalid after ${invocation.maxCorrections} bounded correction(s).`,
+    ...(lastObserved !== undefined ? { observed: observedExcerpt(lastObserved) } : {}),
   };
 }
 
@@ -294,7 +364,25 @@ export async function runLargeRole<Role extends AgentContractRole>(
         : (parsed.reportText ?? '');
     const validated = validateAgentOutput(invocation.role, text);
     if (!validated.ok) {
-      return { ok: false, kind: 'invalid-output', problem: validated.problem, probe };
+      if (looksLikeAuthenticationFailure(text)) {
+        return {
+          ok: false,
+          // NOT invalid-output: the worker is unusable, not incoherent, and
+          // the two need different answers from a person.
+          kind: 'worker-unavailable',
+          problem:
+            `The ${invocation.role} worker is not authenticated: ${observedExcerpt(text)}`,
+          observed: observedExcerpt(text),
+          probe,
+        };
+      }
+      return {
+        ok: false,
+        kind: 'invalid-output',
+        problem: validated.problem,
+        observed: observedExcerpt(text),
+        probe,
+      };
     }
     const usage = usageFromEnvelope(parsed.envelope, 0);
     const cost = costFromEnvelope(parsed.envelope);

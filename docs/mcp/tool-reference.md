@@ -7,7 +7,7 @@ Generated from the authoritative registries of the `specbridge` MCP server
 (version 1.1.0). Tool names, resource URI templates, and prompt
 names are stable contracts — see docs/stability/public-contracts.md.
 
-## Tools (64)
+## Tools (67)
 
 | Tool | Access | Summary |
 | --- | --- | --- |
@@ -55,6 +55,9 @@ names are stable contracts — see docs/stability/public-contracts.md.
 | `spec_check_drift` | read-only | Deterministic drift rules (no commands) |
 | `spec_context` | read-only | Bounded agent-ready context |
 | `spec_create` | write | Preview-first offline spec creation |
+| `spec_intake_answer` | write | Record the user’s answer to one product question |
+| `spec_intake_read` | read-only | One spec intake: questions, refusals, delta authority, approval summary |
+| `spec_intake_start` | write | Ingest a product specification and run repository-grounded discovery |
 | `spec_list` | read-only | List specs with status and progress |
 | `spec_read` | read-only | Read canonical spec documents |
 | `spec_run_verification` | write | Drift rules + trusted configured commands |

@@ -500,6 +500,7 @@
     "job_created",
     "job_failed",
     "job_resumed",
+    "job_unblocked",
     "lane_escalation_requested",
     "local_attempt_failed",
     "local_direct_to_harness_escalated",

@@ -2360,7 +2360,16 @@ async function handleRoleDecision(
         category: 'CAPABILITY_UNAVAILABLE',
         code: 'LARGE_WORKER_FAILED',
         message: `The large-agent ${role} failed twice: ${result.problem.slice(0, 500)}`,
-        remediation: ['Check the Claude Code installation with `specbridge runner doctor claude-code`.'],
+        remediation: [
+          'Check the Claude Code installation with `specbridge runner doctor claude-code`.',
+          // The excerpt is the whole point of the remediation. A job blocked
+          // on "the response is not a single valid JSON document" with
+          // nothing retained leaves an operator a message and no evidence,
+          // which is not how anything else here reports a failure.
+          ...(result.observed !== undefined && result.observed.length > 0
+            ? [`The worker returned: ${result.observed}`]
+            : []),
+        ],
       });
     }
     runtime.emit('role-finished', `${role} failed on the large tier (${result.kind})`);
@@ -2541,6 +2550,32 @@ async function applyRoleOutput(
         });
         return;
       }
+      // A `PLAN` decision carrying no goal or no steps has not planned
+      // anything. That is an INTELLIGENCE failure of this attempt, not a
+      // control-plane fault: `plannerOutputToCandidate` throws SBO037, and
+      // an uncaught throw here kills the driver, which the supervisor
+      // restarts straight back into the same local planner and the same
+      // empty plan. The vNext.10.1 StepRelay dogfood did exactly that —
+      // "DRIVER_DIED: A PLAN decision requires a goal and at least one
+      // step" — and it would have burned the whole restart budget without
+      // ever reaching a model that could plan.
+      //
+      // Routed through the SAME path as an explicit escalation, so the
+      // scheduler moves the role to a stronger worker instead of retrying
+      // the one that just failed.
+      if (output.steps.length === 0 || output.goal === undefined) {
+        recordRoleFailure(deps, jobId, {
+          context,
+          outcome: 'escalated',
+          escalation: {
+            reason: 'INVALID_LOCAL_OUTPUT',
+            detail:
+              'The planner returned a PLAN decision with no goal or no steps, which is not a ' +
+              'usable plan.',
+          },
+        });
+        return;
+      }
       await recordPlan(deps, jobId, {
         context,
         candidate: plannerOutputToCandidate(output),
@@ -2600,6 +2635,23 @@ async function applyRoleOutput(
       }
       if (output.decision === 'SUPERSEDE_NODE') {
         supersedeNode(deps, jobId, { nodeId: node.nodeId, reason: output.reason });
+        return;
+      }
+      // A REVISED_PLAN carrying no goal or no steps has revised nothing.
+      // Same reasoning as the PLANNER branch: an intelligence failure, not a
+      // control-plane fault, and an uncaught throw here would kill the
+      // driver mid-replan.
+      if (output.steps.length === 0 || output.goal === undefined) {
+        recordRoleFailure(deps, jobId, {
+          context,
+          outcome: 'escalated',
+          escalation: {
+            reason: 'INVALID_LOCAL_OUTPUT',
+            detail:
+              'The replanner returned a REVISED_PLAN decision with no goal or no steps, which ' +
+              'is not a usable plan.',
+          },
+        });
         return;
       }
       // REVISED_PLAN: both the model's own flag and the deterministic screen

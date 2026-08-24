@@ -14,6 +14,7 @@ import {
   warnLine,
 } from '@specbridge/reporting';
 import type { CliRuntime } from '../context.js';
+import { runApproveAndBuild } from './spec-intake.js';
 import { relPath } from '../context.js';
 import { VERSION } from '../version.js';
 
@@ -28,6 +29,12 @@ interface SpecApproveOptions {
   stage?: string;
   revoke?: boolean;
   json?: boolean;
+  /** vNext.10.1: approve a discovered specification and authorize the build. */
+  build?: boolean;
+  maxSpend?: string;
+  lanes?: string;
+  launch?: boolean;
+  maxCycles?: string;
 }
 
 function resultToJson(specName: string, result: ApprovalResult): unknown {
@@ -80,8 +87,26 @@ function resultToJson(specName: string, result: ApprovalResult): unknown {
 export function registerSpecApproveCommand(spec: Command, runtime: CliRuntime): void {
   spec
     .command('approve <name>')
-    .description('Approve (or revoke) a workflow stage; approvals live in .specbridge, never in .kiro')
-    .requiredOption('--stage <stage>', `stage to approve: ${STAGE_NAMES.join(' | ')}`)
+    .description(
+      'Approve a workflow stage, or with --build approve a discovered specification and ' +
+        'authorize the unattended build',
+    )
+    // NOT `requiredOption`: `--build` approves a whole discovered
+    // specification rather than one document, and demanding `--stage`
+    // alongside it would ask which of three derived files the human is
+    // authorizing — which is exactly the question vNext.10.1 removes. Every
+    // existing `--stage` invocation is byte-for-byte unchanged; the check
+    // below is the same refusal `requiredOption` produced, moved one line.
+    .option('--stage <stage>', `stage to approve: ${STAGE_NAMES.join(' | ')}`)
+    .option('--build', 'approve the discovered specification and build it autonomously')
+    .option('--max-spend <usd>', 'with --build: monetary ceiling this authorization carries')
+    .option(
+      '--lanes <lanes>',
+      'with --build: comma-separated lanes: LOCAL,SUBSCRIPTION,API',
+      'LOCAL,SUBSCRIPTION',
+    )
+    .option('--no-launch', 'with --build: stop after creating the job instead of launching')
+    .option('--max-cycles <n>', 'with --build: bound on supervise/close cycles (diagnostics)')
     .option('--revoke', 'revoke the stage approval (dependent approvals are invalidated too)')
     .option('--json', 'output a machine-readable JSON report')
     .addHelpText(
@@ -104,13 +129,46 @@ approval initializes the sidecar state (origin: existing-kiro-workspace).
 
 Exit codes: 0 approved/revoked · 1 blocked (prerequisites or analysis errors) · 2 usage error.
 
+--build is a different operation on the same authority. It approves the
+DISCOVERED SPECIFICATION of a "spec start" intake — the goal, contracts,
+acceptance criteria, non-goals, and your answers to every product question —
+and then seals, preflights, and launches the unattended build. The three
+generated documents inherit that authority with explicit
+DERIVED_FROM_INTENT_APPROVAL provenance instead of being approved again.
+
 Examples:
   ${CLI_BIN} spec approve notification-preferences --stage requirements
   ${CLI_BIN} spec approve notification-preferences --stage design
   ${CLI_BIN} spec approve login-timeout-fix --stage bugfix
-  ${CLI_BIN} spec approve notification-preferences --stage requirements --revoke`,
+  ${CLI_BIN} spec approve notification-preferences --stage requirements --revoke
+  ${CLI_BIN} spec approve airport-demo --build`,
     )
-    .action((name: string, options: SpecApproveOptions) => {
+    .action(async (name: string, options: SpecApproveOptions) => {
+      if (options.build === true) {
+        if (options.revoke === true) {
+          throw new SpecBridgeError(
+            'INVALID_ARGUMENT',
+            '--revoke applies to a stage approval, not to --build. A build authorization is ' +
+              'withdrawn by revoking its seal: `specbridge autonomy revoke <sealId> --reason "…"`.',
+          );
+        }
+        if (options.stage !== undefined) {
+          throw new SpecBridgeError(
+            'INVALID_ARGUMENT',
+            '--build approves the whole discovered specification; --stage approves one ' +
+              'document. Pass one or the other.',
+          );
+        }
+        await runApproveAndBuild(runtime, name, {
+          ...(options.json === true ? { json: true } : {}),
+          ...(options.maxSpend !== undefined ? { maxSpend: options.maxSpend } : {}),
+          ...(options.lanes !== undefined ? { lanes: options.lanes } : {}),
+          ...(options.maxCycles !== undefined ? { maxCycles: options.maxCycles } : {}),
+          launch: options.launch !== false,
+        });
+        return;
+      }
+
       const stage = options.stage as StageName | undefined;
       if (stage === undefined || !STAGE_NAMES.includes(stage)) {
         throw new SpecBridgeError(

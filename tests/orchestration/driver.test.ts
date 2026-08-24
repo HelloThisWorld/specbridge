@@ -278,6 +278,38 @@ describe('driveJob — StepRelay readiness scenarios', () => {
     }
   }, 240_000);
 
+  it('scenario: a schema-valid plan with no steps escalates instead of killing the driver', async () => {
+    process.env['FAKE_CLAUDE_SCENARIO'] = 'success';
+    try {
+      const fixture = driverFixture({
+        defaultRunner: 'claude-code',
+        useFakeClaude: true,
+        // The local planner returns a PLAN decision with no goal and no
+        // steps. It passes the contract schema and plans nothing.
+        local: { scenario: 'empty-plan' },
+        jobs: { budgets: { maxAgentRuns: 80 }, planReview: 'auto' },
+      });
+      const jobId = startJob(fixture);
+      const result = await driveJob(fixture.driverDeps, jobId, {});
+
+      // The vNext.10.1 StepRelay dogfood died here: SBO037 propagated out of
+      // `plannerOutputToCandidate`, the supervisor logged DRIVER_DIED, and
+      // the restart put the same local planner back in front of the same
+      // empty plan. An unusable plan is an INTELLIGENCE failure of that
+      // attempt, so it escalates to a worker that can plan.
+      expect(result.stop.kind).toBe('completed');
+      expect(
+        result.job.escalations.some((entry) => entry.reason === 'INVALID_LOCAL_OUTPUT'),
+      ).toBe(true);
+      const graph = requireGraphRevision(fixture.workspace, jobId, result.job.graphRevision);
+      expect(graph.nodes.every((node) => node.status === 'COMPLETED')).toBe(true);
+      // No driver death, so no restart accounting was spent on it.
+      expect(result.job.counters.jobReplans).toBe(0);
+    } finally {
+      delete process.env['FAKE_CLAUDE_SCENARIO'];
+    }
+  }, 240_000);
+
   it('scenario: manual escalation mode asks instead of spending paid reasoning', async () => {
     const fixture = driverFixture({
       local: false,

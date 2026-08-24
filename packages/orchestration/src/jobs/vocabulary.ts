@@ -439,6 +439,8 @@ export const JOB_EVENT_TYPES = [
   'checkpoint_created',
   'budget_exhausted',
   'job_blocked',
+  /** A person fixed an environmental cause and continued the job. */
+  'job_unblocked',
   'job_completed',
   'job_failed',
   'job_cancelled',
