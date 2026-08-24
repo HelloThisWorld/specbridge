@@ -210,6 +210,15 @@ SpecBridge **cannot**:
 - prove reproducibility an environment cannot provide. A machine that cannot
   do a clean build reports `INCONCLUSIVE`, which is explicitly not a pass.
 
+- **detect a credential that has already expired.** The preflight verifies
+  what the mission DECLARES it needs; it cannot revalidate a credential the
+  worker already holds. The vNext.10.1 dogfood proved this is not
+  hypothetical: the run reached `OVERNIGHT_READY`, launched, and died on
+  "401 OAuth access token has expired" — while the worker CLI's own
+  `auth status` reported a live session and exited zero. Only a real call
+  finds out. If a machine has been idle for a long time, re-authenticate the
+  worker before leaving it: no pre-launch probe can see this.
+
 And two limits worth naming separately because they are easy to misread:
 
 **A skipped browser scenario is not a passing one.** A workspace with no

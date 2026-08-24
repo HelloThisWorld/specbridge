@@ -307,6 +307,41 @@ The approval gate also grew a condition it should always have had: an intake
 that compiled NO product contract cannot converge. Reaching a human with one
 writes an immutable approval pointing at a mission that cannot synthesize.
 
+Then three more, once the run reached a large-tier worker:
+
+- **A blocked job discarded the evidence it blocked on.** `persistAgentResult`
+  runs only on the success path, so a job that blocked on "the response is not
+  a single valid JSON document" retained nothing — a message with no evidence
+  behind it. `RoleWorkerFailure` now carries a bounded `observed` excerpt and
+  the blocker shows it. Retained for a human to read, never parsed and never
+  repaired.
+- **An expired credential read as garbage output.** The excerpt paid for
+  itself immediately: the worker had exited ZERO with "Failed to authenticate.
+  API Error: 401 OAuth access token has expired." as its result body. It is
+  now classified `worker-unavailable` with the credential named. The guard is
+  narrow — a JSON document is never an authentication error, because a
+  perfectly good plan for an identity-verification feature says "reject an
+  unauthorized passenger with a 401-shaped response", and the test asserts
+  that false positive directly.
+- **A surface contract had no size bound.** The Golden Spec compiled one with
+  FORTY-ONE requirements, which is not a promise anybody can read and compiles
+  to one objective a planner must plan in a single shot. A surface now splits
+  into numbered parts at twelve.
+
+And `spec status` now says WHICH human decision authorized a stage: it
+rendered a bare "✓ Approved" for a derived stage, hiding the one difference
+`approvalMode` exists to make visible.
+
+### A new non-claim
+
+**An already-expired credential is not detectable before launch.** The
+dogfood reached `OVERNIGHT_READY`, launched, and died on an expired OAuth
+token — while the worker CLI's own `auth status` reported a live session and
+exited zero. The preflight verifies what the mission DECLARES it needs; it
+cannot revalidate a credential the worker already holds, and only a real call
+finds out. `KNOWN_CREDENTIALS_PRESENT` now says exactly that instead of
+implying a guarantee it cannot make.
+
 ## 1.10.0 (unreleased) — vNext.10 Overnight Autonomous Product Runtime
 
 Nine phases made a long-horizon run SURVIVE. This one makes it not need a

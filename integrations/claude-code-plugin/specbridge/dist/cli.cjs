@@ -69107,6 +69107,21 @@ ${fence2(
   ].join("\n\n");
 }
 var OBSERVED_OUTPUT_EXCERPT_CHARS = 600;
+var AUTH_FAILURE_PATTERN = new RegExp(
+  String.raw`\b(401|403|unauthorized|unauthenticated|failed to authenticate` + String.raw`|re-?authenticate|oauth[^.]{0,40}\bexpired\b|token has expired` + String.raw`|expired token|invalid api key|api key not found|please log ?in` + String.raw`|credentials? (are )?(invalid|missing|expired))\b`,
+  "i"
+);
+var AUTH_FAILURE_MAX_CHARS = 2e3;
+function looksLikeAuthenticationFailure(text93) {
+  const collapsed = text93.trim();
+  if (collapsed.length === 0 || collapsed.length > AUTH_FAILURE_MAX_CHARS) return false;
+  try {
+    JSON.parse(collapsed);
+    return false;
+  } catch {
+  }
+  return AUTH_FAILURE_PATTERN.test(collapsed);
+}
 function observedExcerpt(text93) {
   return text93.replace(/\s+/g, " ").trim().slice(0, OBSERVED_OUTPUT_EXCERPT_CHARS);
 }
@@ -69281,6 +69296,17 @@ async function runLargeRole(invocation) {
     const text93 = parsed.structuredResult !== void 0 ? JSON.stringify(parsed.structuredResult) : parsed.reportText ?? "";
     const validated = validateAgentOutput(invocation.role, text93);
     if (!validated.ok) {
+      if (looksLikeAuthenticationFailure(text93)) {
+        return {
+          ok: false,
+          // NOT invalid-output: the worker is unusable, not incoherent, and
+          // the two need different answers from a person.
+          kind: "worker-unavailable",
+          problem: `The ${invocation.role} worker is not authenticated: ${observedExcerpt(text93)}`,
+          observed: observedExcerpt(text93),
+          probe
+        };
+      }
       return {
         ok: false,
         kind: "invalid-output",
@@ -98071,10 +98097,11 @@ async function runOvernightPreflight(deps, request) {
   add2(
     "KNOWN_CREDENTIALS_PRESENT",
     "READY",
-    "no additional human-only credential is known to be required for this mission",
+    "no additional human-only credential is DECLARED for this mission (an already-held credential is not revalidated: a worker CLI can report a live session for a token that is expired, and only a real call finds out)",
     {
       remediation: [
-        "Credentials discovered mid-run stop the job in NEEDS_AUTHORITY; SpecBridge never authenticates on your behalf."
+        "Credentials discovered mid-run stop the job in NEEDS_AUTHORITY; SpecBridge never authenticates on your behalf.",
+        "If a run has been idle for a long time, re-authenticate the worker before leaving: an expired token is not visible to any pre-launch probe."
       ]
     }
   );
@@ -105835,6 +105862,16 @@ function describeStage(runtime, evaluation, stage, verbose) {
       if (stage.stored.approvedAt !== null) {
         runtime.out(dim2(`    Approved at: ${stage.stored.approvedAt}`));
       }
+      if (stage.stored.approvalMode === "DERIVED_FROM_INTENT_APPROVAL") {
+        runtime.out(
+          dim2(
+            `    Authority: derived from human approval ${stage.stored.sourceApprovalId ?? "(unnamed)"}`
+          )
+        );
+        if (verbose && stage.stored.authorityDigest !== void 0) {
+          runtime.out(dim2(`    Approved product truth: ${stage.stored.authorityDigest}`));
+        }
+      }
       runtime.out(dim2("    Content unchanged since approval"));
       if (verbose && stage.stored.approvedHash !== null) {
         runtime.out(dim2(`    Approved hash: ${stage.stored.approvedHash}`));
@@ -105912,6 +105949,12 @@ Examples:
               approvedAt: stage.stored.approvedAt,
               approvedHash: stage.stored.approvedHash,
               currentHash: stage.currentHash ?? null,
+              // Absent means HUMAN, which is what every approval recorded
+              // before vNext.10.1 is; reported explicitly so a consumer
+              // never has to infer it from a missing key.
+              approvalMode: stage.stored.approvalMode ?? "HUMAN",
+              sourceApprovalId: stage.stored.sourceApprovalId ?? null,
+              authorityDigest: stage.stored.authorityDigest ?? null,
               prerequisites: stage.prerequisites
             })) ?? null,
             files: folder.files.map((f) => ({ fileName: f.fileName, kind: f.kind })),
