@@ -296,6 +296,35 @@ Three more surfaced once the run reached real compute:
   which then failed synthesis — after the approval was already written. A
   genuine exclusion says "must not"; a `## Non-goals` heading still marks
   everything beneath it however it is phrased.
+- **An objective-role failure threw away what the worker returned.** "The
+  response is not a single valid JSON document" is technically true and the
+  least useful sentence available. The dogfood lost a work unit to it three
+  times over: the builder finished in nineteen seconds, the record kept
+  nothing, and neither a person nor the runtime could tell an expired
+  credential from a rate limit from a model that wrapped its JSON in prose.
+  The task driver already carried the observed text for exactly this reason;
+  the objective path did not, and now does.
+- **A product decision was made and the job never noticed.** The
+  clarification question says "change request(s) CCR-001 await a human
+  decision. Resolve the prerequisite, then resume the job." A person does
+  exactly that, resumes — and nothing happens. The question and the decision
+  that answers it were never bound together: the CCR id lived only in the
+  question's prose, the job knew only that it was NEEDS_CLARIFICATION, and
+  the supervisor gates on status alone. A question raised FOR change
+  requests now records them, and a resume closes it once every one has left
+  NEEDS_HUMAN (reading the ids back out of the question text for questions
+  stored before this). A question a person must answer in words is
+  untouched.
+
+- **Time spent waiting for a person was charged to the compute budget.**
+  `elapsed = now - createdAt`, so a job that asked one product question at
+  midnight and was answered at eight woke with its whole eight-hour
+  wall-clock budget spent without having run anything. In the dogfood the
+  split was 7.8 hours waiting against 1.5 hours of work. The budget bounds
+  how long a job may WORK, and a job parked on a decision only a person can
+  make is not working; that time is now banked on entry to a human-only
+  status and subtracted. For a long-horizon run this is the difference
+  between a product question costing one command and costing the night.
 - **An oversize evaluator packet rejected the work unit instead of asking a
   bigger model.** A packet too large for the small tier is not a failure of
   anything — it is a ROUTING fact, and the answer is the tier that can hold

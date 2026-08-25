@@ -52395,7 +52395,18 @@ var clarificationQuestionSchema = external_exports.object({
   /** Spec stage / task this question concerns, when applicable. */
   relatedTaskId: shortText4.optional(),
   askedAt: shortText4,
-  round: external_exports.number().int().min(1)
+  round: external_exports.number().int().min(1),
+  /**
+   * Contract change requests this question is waiting on, when it is one
+   * of those.
+   *
+   * A question that says "CCR-001 awaits a human decision" is ANSWERED by
+   * that decision — there is no second answer to give. Recorded so a resume
+   * can ask whether it happened; without it the link lives only in the
+   * question's prose and nothing can reconcile it, so approving the change
+   * request leaves the job wedged on a question it already satisfied.
+   */
+  awaitingCcrIds: external_exports.array(shortText4).max(20).optional()
 }).passthrough();
 var clarificationDecisionSchema = external_exports.object({
   id: shortText4,
@@ -54945,6 +54956,14 @@ var JOB_STATUSES = [
    */
   "NEEDS_AUTHORITY"
 ];
+var HUMAN_ATTENTION_JOB_STATUSES = [
+  "NEEDS_AUTHORITY",
+  "NEEDS_CLARIFICATION",
+  "BLOCKED"
+];
+function requiresHumanAttention(status) {
+  return HUMAN_ATTENTION_JOB_STATUSES.includes(status);
+}
 var FINAL_JOB_STATUSES = ["COMPLETED", "FAILED", "CANCELLED"];
 function isFinalJobStatus(status) {
   return FINAL_JOB_STATUSES.includes(status);
@@ -55174,6 +55193,8 @@ var jobBudgetsSchema = external_exports.object({
 }).passthrough();
 var jobCountersSchema = external_exports.object({
   agentRuns: external_exports.number().int().min(0).default(0),
+  /** Milliseconds this job spent parked on a person. Never charged to the wall-clock budget. */
+  humanWaitMs: external_exports.number().int().min(0).default(0),
   localInferenceCalls: external_exports.number().int().min(0).default(0),
   jobReplans: external_exports.number().int().min(0).default(0),
   transientRetries: external_exports.number().int().min(0).default(0),
@@ -55242,6 +55263,14 @@ var jobStateSchema = external_exports.object({
   currentAttemptId: shortText23.optional(),
   /** Present in WAITING_RETRY: when the next attempt may run. */
   retryAt: shortText23.optional(),
+  /**
+   * When the job entered a status that only a person can leave.
+   *
+   * Time spent here is NOT compute and must not be charged to the
+   * wall-clock budget: a job that asks one product question at midnight and
+   * is answered at eight would otherwise wake with its whole night spent.
+   */
+  humanWaitSince: shortText23.optional(),
   openQuestions: external_exports.array(clarificationQuestionSchema).max(STATE_LIMITS.maxQuestions).default([]),
   decisions: external_exports.array(clarificationDecisionSchema).max(STATE_LIMITS.maxDecisions).default([]),
   /** Escalations recorded for audit, newest last, bounded. */
@@ -58525,7 +58554,27 @@ function record22(deps, job, type, payload = {}) {
 }
 function transition22(deps, job, to) {
   assertJobTransition(job.status, to);
-  return { ...job, status: to, updatedAt: now4(deps).toISOString() };
+  const at = now4(deps).toISOString();
+  const wasWaiting = requiresHumanAttention(job.status);
+  const willWait = requiresHumanAttention(to);
+  if (!wasWaiting && willWait) {
+    return { ...job, status: to, updatedAt: at, humanWaitSince: at };
+  }
+  if (wasWaiting && !willWait) {
+    const since = job.humanWaitSince === void 0 ? void 0 : Date.parse(job.humanWaitSince);
+    const banked = since === void 0 || Number.isNaN(since) ? 0 : Math.max(0, now4(deps).getTime() - since);
+    const { humanWaitSince: _stopped, ...rest } = job;
+    return {
+      ...rest,
+      status: to,
+      updatedAt: at,
+      counters: {
+        ...job.counters,
+        humanWaitMs: (job.counters.humanWaitMs ?? 0) + banked
+      }
+    };
+  }
+  return { ...job, status: to, updatedAt: at };
 }
 function persist22(deps, job) {
   return writeJobState(deps.workspace, { ...job, updatedAt: now4(deps).toISOString() });
@@ -58872,6 +58921,14 @@ var workUnitSchema = external_exports.object({
     message: text6,
     at: shortText9
   }).passthrough().optional(),
+  /**
+   * Change requests this unit is BLOCKED on, when it is.
+   *
+   * Recorded so a resume can ask whether they were decided. Without it the
+   * link between the question and the decision that answers it lives only
+   * in the question's prose, which nothing can reconcile.
+   */
+  blockedByCcrIds: idList2.optional(),
   supersedes: shortText9.optional(),
   supersededBy: shortText9.optional(),
   integratedAt: shortText9.optional()

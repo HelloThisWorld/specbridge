@@ -179,6 +179,19 @@ export type ObjectiveOutputValidation<Role extends ObjectiveContractRole> =
  * Validate one COMPLETE model response against an objective-role contract.
  * Exactly one JSON document; no substring extraction, no silent repair.
  */
+/** Any run of whitespace, so a refused response reads as one line. */
+const WHITESPACE_RUN = /\s+/g;
+
+/** How much of a refused response is worth keeping on the record. */
+export const OBJECTIVE_OBSERVED_EXCERPT_CHARS = 600;
+
+/** A single-line, bounded excerpt of what a worker actually returned. */
+export function observedObjectiveOutput(text: string): string {
+  const flattened = text.replace(WHITESPACE_RUN, ' ').trim();
+  if (flattened.length === 0) return '(nothing at all)';
+  return flattened.slice(0, OBJECTIVE_OBSERVED_EXCERPT_CHARS);
+}
+
 export function validateObjectiveOutput<Role extends ObjectiveContractRole>(
   role: Role,
   responseText: string,
@@ -190,7 +203,21 @@ export function validateObjectiveOutput<Role extends ObjectiveContractRole>(
   try {
     parsed = JSON.parse(responseText.trim());
   } catch {
-    return { ok: false, problem: 'the response is not a single valid JSON document' };
+    // Say what was actually returned.
+    //
+    // "the response is not a single valid JSON document" is technically true
+    // and the least useful sentence available. The vNext.10.1 dogfood lost a
+    // work unit to it three times over: the builder finished in nineteen
+    // seconds, the record kept nothing, and neither a person nor the runtime
+    // could tell an expired credential from a rate limit from a model that
+    // wrapped its JSON in prose. The task driver already carries the observed
+    // text for exactly this reason; the objective path did not.
+    return {
+      ok: false,
+      problem:
+        'the response is not a single valid JSON document. The worker returned: ' +
+        observedObjectiveOutput(responseText),
+    };
   }
   if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
     return { ok: false, problem: 'the response must be a JSON object' };

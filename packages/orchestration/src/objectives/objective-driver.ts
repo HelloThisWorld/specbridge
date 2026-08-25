@@ -906,6 +906,7 @@ async function evaluateCandidate(
     graph = transitionUnit(graph, unitId, 'BLOCKED');
     graph = withUnit(graph, {
       ...requireUnit(graph, unitId),
+      blockedByCcrIds: [...materialCcrs],
       latestFailure: {
         category: 'AMBIGUITY',
         message:

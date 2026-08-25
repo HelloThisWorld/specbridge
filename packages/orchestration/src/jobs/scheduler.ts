@@ -191,7 +191,18 @@ function successfulAttemptIndex(node: JobNode, role: AgentRole): number {
 /** Budget checks that apply before ANY dispatch. Returns a stop decision or null. */
 function checkJobBudgets(input: ScheduleInput): SchedulerDecision | null {
   const { job, policy, now } = input;
-  const elapsed = Math.max(0, now.getTime() - Date.parse(job.createdAt));
+  // Wall clock MINUS the time a person was being waited on. The budget
+  // bounds how long the job may WORK, and a job parked on a product decision
+  // is not working. The vNext.10.1 dogfood asked one question, was answered
+  // sixteen hours later, and woke to find its eight-hour budget spent without
+  // having run anything — which for a long-horizon project means every
+  // genuine authority question costs a night.
+  const waited =
+    (job.counters.humanWaitMs ?? 0) +
+    (job.humanWaitSince === undefined
+      ? 0
+      : Math.max(0, now.getTime() - Date.parse(job.humanWaitSince)));
+  const elapsed = Math.max(0, now.getTime() - Date.parse(job.createdAt) - waited);
   if (elapsed >= job.budgets.maxWallClockMs) {
     return {
       kind: 'JOB_BLOCKED',

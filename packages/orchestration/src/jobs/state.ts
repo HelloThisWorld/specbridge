@@ -266,6 +266,8 @@ export type JobBudgets = z.infer<typeof jobBudgetsSchema>;
 export const jobCountersSchema = z
   .object({
     agentRuns: z.number().int().min(0).default(0),
+    /** Milliseconds this job spent parked on a person. Never charged to the wall-clock budget. */
+    humanWaitMs: z.number().int().min(0).default(0),
     localInferenceCalls: z.number().int().min(0).default(0),
     jobReplans: z.number().int().min(0).default(0),
     transientRetries: z.number().int().min(0).default(0),
@@ -376,6 +378,14 @@ export const jobStateSchema = z
     currentAttemptId: shortText.optional(),
     /** Present in WAITING_RETRY: when the next attempt may run. */
     retryAt: shortText.optional(),
+    /**
+     * When the job entered a status that only a person can leave.
+     *
+     * Time spent here is NOT compute and must not be charged to the
+     * wall-clock budget: a job that asks one product question at midnight and
+     * is answered at eight would otherwise wake with its whole night spent.
+     */
+    humanWaitSince: shortText.optional(),
     openQuestions: z.array(clarificationQuestionSchema).max(STATE_LIMITS.maxQuestions).default([]),
     decisions: z.array(clarificationDecisionSchema).max(STATE_LIMITS.maxDecisions).default([]),
     /** Escalations recorded for audit, newest last, bounded. */

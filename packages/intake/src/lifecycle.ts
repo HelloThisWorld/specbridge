@@ -12,10 +12,16 @@ import {
 import type { ProbeRunner } from '@specbridge/autonomy';
 import type { DriverHost } from '@specbridge/autonomy';
 import type { ToolsmithCapability } from '@specbridge/core';
-import { createJob, readJobState, retryBlockedJob } from '@specbridge/orchestration';
+import {
+  createJob,
+  readJobState,
+  reconcileDecidedCcrs,
+  retryBlockedJob,
+} from '@specbridge/orchestration';
 import {
   markContractReady,
   readAdrs,
+  readCcrs,
   readConstitution,
   readContractRegistry,
   readDecisions,
@@ -607,6 +613,30 @@ export async function runSealAndBuild(
         step: 'LAUNCH',
         unblocked: true,
       });
+    }
+  }
+
+  // The same signal for a PRODUCT decision rather than an environmental one.
+  //
+  // A clarification question that says "CCR-001 awaits a human decision" is
+  // answered BY that decision; there is no second answer to type. The dogfood
+  // wedged here for sixteen hours after the change request was approved,
+  // because the job knew only that it was NEEDS_CLARIFICATION and the
+  // supervisor gates on status alone.
+  {
+    const ccrs = new Map(
+      readCcrs(deps.workspace, approval.missionId).map((ccr) => [ccr.ccrId, ccr.status]),
+    );
+    const reconciled = reconcileDecidedCcrs(
+      deps,
+      jobId,
+      (ccrId) => ccrs.has(ccrId) && ccrs.get(ccrId) !== 'NEEDS_HUMAN',
+    );
+    if (reconciled.closed.length > 0) {
+      emit(
+        'lifecycle',
+        `${reconciled.closed.length} clarification question(s) answered by a recorded change-request decision`,
+      );
     }
   }
 

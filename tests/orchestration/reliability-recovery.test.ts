@@ -39,6 +39,7 @@ function budget(overrides: Partial<BudgetView> = {}): BudgetView {
     budgets: defaultAgentConfig().orchestration.jobs.budgets as never,
     counters: {
       agentRuns: 2,
+      humanWaitMs: 0,
       localInferenceCalls: 1,
       jobReplans: 0,
       transientRetries: 0,

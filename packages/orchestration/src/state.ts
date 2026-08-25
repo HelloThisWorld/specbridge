@@ -59,6 +59,17 @@ export const clarificationQuestionSchema = z
     relatedTaskId: shortText.optional(),
     askedAt: shortText,
     round: z.number().int().min(1),
+    /**
+     * Contract change requests this question is waiting on, when it is one
+     * of those.
+     *
+     * A question that says "CCR-001 awaits a human decision" is ANSWERED by
+     * that decision — there is no second answer to give. Recorded so a resume
+     * can ask whether it happened; without it the link lives only in the
+     * question's prose and nothing can reconcile it, so approving the change
+     * request leaves the job wedged on a question it already satisfied.
+     */
+    awaitingCcrIds: z.array(shortText).max(20).optional(),
   })
   .passthrough();
 export type ClarificationQuestion = z.infer<typeof clarificationQuestionSchema>;

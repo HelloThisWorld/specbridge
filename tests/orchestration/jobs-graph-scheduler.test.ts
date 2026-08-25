@@ -100,6 +100,7 @@ function testJob(overrides: Partial<JobState> = {}): JobState {
     },
     counters: {
       agentRuns: 0,
+      humanWaitMs: 0,
       localInferenceCalls: 0,
       jobReplans: 0,
       transientRetries: 0,
@@ -431,5 +432,37 @@ describe('scheduleNext', () => {
   it('NEEDS_CLARIFICATION yields AWAIT_HUMAN clarification', () => {
     const decision = schedule({ job: testJob({ status: 'NEEDS_CLARIFICATION' }) });
     expect(decision).toMatchObject({ kind: 'AWAIT_HUMAN', what: 'clarification' });
+  });
+});
+
+describe('the wall-clock budget pays for work, not for waiting', () => {
+  const CREATED = new Date(Date.parse(NOW.toISOString()) - 20 * 3_600_000).toISOString();
+
+  it('does not charge a job for the hours it spent parked on a person', () => {
+    // The vNext.10.1 dogfood asked one product question, was answered
+    // sixteen hours later, and woke to find its eight-hour budget spent
+    // without having run anything. For a long-horizon project that means
+    // every genuine authority question costs a night.
+    const job = testJob({ createdAt: CREATED });
+    const decision = schedule({
+      job: {
+        ...job,
+        budgets: { ...job.budgets, maxWallClockMs: 8 * 3_600_000 },
+        counters: { ...job.counters, humanWaitMs: 16 * 3_600_000 },
+      },
+    });
+    expect(decision.kind).not.toBe('JOB_BLOCKED');
+  });
+
+  it('still stops a job that genuinely worked past its budget', () => {
+    const job = testJob({ createdAt: CREATED });
+    const decision = schedule({
+      job: {
+        ...job,
+        budgets: { ...job.budgets, maxWallClockMs: 8 * 3_600_000 },
+        counters: { ...job.counters, humanWaitMs: 0 },
+      },
+    });
+    expect(decision.kind).toBe('JOB_BLOCKED');
   });
 });

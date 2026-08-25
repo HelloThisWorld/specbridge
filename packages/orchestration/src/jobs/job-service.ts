@@ -63,7 +63,7 @@ import type {
   JobEventType,
   JobStatus,
 } from './vocabulary.js';
-import { isFinalJobStatus } from './vocabulary.js';
+import { isFinalJobStatus, requiresHumanAttention } from './vocabulary.js';
 import {
   beginTaskAttempt,
   completeTaskAttempt,
@@ -225,7 +225,33 @@ function record(
 
 function transition(deps: JobDeps, job: JobState, to: JobStatus): JobState {
   assertJobTransition(job.status, to);
-  return { ...job, status: to, updatedAt: now(deps).toISOString() };
+  const at = now(deps).toISOString();
+  const wasWaiting = requiresHumanAttention(job.status);
+  const willWait = requiresHumanAttention(to);
+
+  // Entering a human-only status starts a clock that the budget does not pay
+  // for; leaving one banks the time and stops it.
+  if (!wasWaiting && willWait) {
+    return { ...job, status: to, updatedAt: at, humanWaitSince: at };
+  }
+  if (wasWaiting && !willWait) {
+    const since = job.humanWaitSince === undefined ? undefined : Date.parse(job.humanWaitSince);
+    const banked =
+      since === undefined || Number.isNaN(since)
+        ? 0
+        : Math.max(0, now(deps).getTime() - since);
+    const { humanWaitSince: _stopped, ...rest } = job;
+    return {
+      ...rest,
+      status: to,
+      updatedAt: at,
+      counters: {
+        ...job.counters,
+        humanWaitMs: (job.counters.humanWaitMs ?? 0) + banked,
+      },
+    };
+  }
+  return { ...job, status: to, updatedAt: at };
 }
 
 function persist(deps: JobDeps, job: JobState): JobState {
@@ -303,6 +329,7 @@ export function createJob(deps: JobDeps, request: CreateJobRequest): JobState {
     },
     counters: {
       agentRuns: 0,
+      humanWaitMs: 0,
       localInferenceCalls: 0,
       jobReplans: 0,
       transientRetries: 0,
@@ -1966,6 +1993,9 @@ export function completeExecutorDispatch(
     // Ambiguity and blocked dependencies need a user, not a model: the
     // failure is recorded as a concrete question so the stop is actionable.
     let clarify = transition(deps, job, 'NEEDS_CLARIFICATION');
+    // A question raised BECAUSE change requests await a decision is answered
+    // BY that decision. Bind the two, so a resume can tell.
+    const awaitingCcrIds = [...classified.message.matchAll(CCR_ID_PATTERN)].map((hit) => hit[0]);
     const question = {
       id: `q-${newId(deps)}`.slice(0, 64),
       question:
@@ -1979,6 +2009,7 @@ export function completeExecutorDispatch(
         clarify.counters.clarificationRounds + 1,
         deps.config.orchestration.clarification.maxRounds,
       ),
+      ...(awaitingCcrIds.length > 0 ? { awaitingCcrIds } : {}),
     };
     clarify = {
       ...clarify,
@@ -2417,6 +2448,58 @@ export function askClarification(
     questionIds: added.map((question) => question.id),
   });
   return persist(deps, job);
+}
+
+/** `CCR-001` and friends, as they appear in a driver failure message. */
+const CCR_ID_PATTERN = /\bCCR-\d{3,}\b/g;
+
+/**
+ * Close clarification questions whose change requests have been decided.
+ *
+ * The question tells a person: "change request(s) CCR-001 await a human
+ * decision. Resolve the prerequisite, then resume the job." They resolve it,
+ * they resume — and nothing happens, because the job only knows it is
+ * NEEDS_CLARIFICATION and the supervisor gates on status alone. The decision
+ * that answers the question and the question itself were never bound
+ * together.
+ *
+ * The vNext.10.1 dogfood wedged here for sixteen hours after the change
+ * request was approved. For a long-horizon run this is the difference between
+ * a product decision costing one command and costing the rest of the night:
+ * every genuine authority question would permanently park the job.
+ *
+ * Only questions raised FOR change requests are affected, and only when
+ * EVERY request they name has left NEEDS_HUMAN. A question a person actually
+ * has to answer in words is untouched.
+ */
+export function reconcileDecidedCcrs(
+  deps: JobDeps,
+  jobId: string,
+  decided: (ccrId: string) => boolean,
+): { job: JobState; closed: string[] } {
+  let job = requireJobState(deps.workspace, jobId);
+  if (job.status !== 'NEEDS_CLARIFICATION') return { job, closed: [] };
+
+  const answered = job.openQuestions.filter((question) => {
+    // The field is authoritative when present. When it is not — a question
+    // stored by a version that did not record it — the ids are read back out
+    // of the question's own text, which names them verbatim.
+    const waiting =
+      question.awaitingCcrIds ?? [...question.question.matchAll(CCR_ID_PATTERN)].map((h) => h[0]);
+    return waiting.length > 0 && waiting.every((ccrId) => decided(ccrId));
+  });
+  if (answered.length === 0) return { job, closed: [] };
+
+  const closed = answered.map((question) => question.id);
+  const remaining = job.openQuestions.filter((question) => !closed.includes(question.id));
+  job = persist(deps, { ...job, openQuestions: remaining });
+  job = record(deps, job, 'clarification_resolved', {
+    questionIds: closed,
+    by: 'ccr-decision',
+  });
+  // Nothing is left to ask: the job is schedulable again.
+  if (remaining.length === 0) job = transition(deps, job, 'READY');
+  return { job: persist(deps, job), closed };
 }
 
 export function answerClarification(

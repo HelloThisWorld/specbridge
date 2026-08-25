@@ -56420,7 +56420,18 @@ var clarificationQuestionSchema = external_exports.object({
   /** Spec stage / task this question concerns, when applicable. */
   relatedTaskId: shortText5.optional(),
   askedAt: shortText5,
-  round: external_exports.number().int().min(1)
+  round: external_exports.number().int().min(1),
+  /**
+   * Contract change requests this question is waiting on, when it is one
+   * of those.
+   *
+   * A question that says "CCR-001 awaits a human decision" is ANSWERED by
+   * that decision — there is no second answer to give. Recorded so a resume
+   * can ask whether it happened; without it the link lives only in the
+   * question's prose and nothing can reconcile it, so approving the change
+   * request leaves the job wedged on a question it already satisfied.
+   */
+  awaitingCcrIds: external_exports.array(shortText5).max(20).optional()
 }).passthrough();
 var clarificationDecisionSchema = external_exports.object({
   id: shortText5,
@@ -59262,6 +59273,8 @@ var jobBudgetsSchema = external_exports.object({
 }).passthrough();
 var jobCountersSchema = external_exports.object({
   agentRuns: external_exports.number().int().min(0).default(0),
+  /** Milliseconds this job spent parked on a person. Never charged to the wall-clock budget. */
+  humanWaitMs: external_exports.number().int().min(0).default(0),
   localInferenceCalls: external_exports.number().int().min(0).default(0),
   jobReplans: external_exports.number().int().min(0).default(0),
   transientRetries: external_exports.number().int().min(0).default(0),
@@ -59330,6 +59343,14 @@ var jobStateSchema = external_exports.object({
   currentAttemptId: shortText22.optional(),
   /** Present in WAITING_RETRY: when the next attempt may run. */
   retryAt: shortText22.optional(),
+  /**
+   * When the job entered a status that only a person can leave.
+   *
+   * Time spent here is NOT compute and must not be charged to the
+   * wall-clock budget: a job that asks one product question at midnight and
+   * is answered at eight would otherwise wake with its whole night spent.
+   */
+  humanWaitSince: shortText22.optional(),
   openQuestions: external_exports.array(clarificationQuestionSchema).max(STATE_LIMITS.maxQuestions).default([]),
   decisions: external_exports.array(clarificationDecisionSchema).max(STATE_LIMITS.maxDecisions).default([]),
   /** Escalations recorded for audit, newest last, bounded. */
@@ -61120,7 +61141,8 @@ function successfulAttemptIndex(node, role) {
 }
 function checkJobBudgets(input) {
   const { job, policy, now: now52 } = input;
-  const elapsed = Math.max(0, now52.getTime() - Date.parse(job.createdAt));
+  const waited = (job.counters.humanWaitMs ?? 0) + (job.humanWaitSince === void 0 ? 0 : Math.max(0, now52.getTime() - Date.parse(job.humanWaitSince)));
+  const elapsed = Math.max(0, now52.getTime() - Date.parse(job.createdAt) - waited);
   if (elapsed >= job.budgets.maxWallClockMs) {
     return {
       kind: "JOB_BLOCKED",
@@ -66833,7 +66855,27 @@ function record22(deps, job, type, payload = {}) {
 }
 function transition22(deps, job, to) {
   assertJobTransition(job.status, to);
-  return { ...job, status: to, updatedAt: now4(deps).toISOString() };
+  const at = now4(deps).toISOString();
+  const wasWaiting = requiresHumanAttention(job.status);
+  const willWait = requiresHumanAttention(to);
+  if (!wasWaiting && willWait) {
+    return { ...job, status: to, updatedAt: at, humanWaitSince: at };
+  }
+  if (wasWaiting && !willWait) {
+    const since = job.humanWaitSince === void 0 ? void 0 : Date.parse(job.humanWaitSince);
+    const banked = since === void 0 || Number.isNaN(since) ? 0 : Math.max(0, now4(deps).getTime() - since);
+    const { humanWaitSince: _stopped, ...rest } = job;
+    return {
+      ...rest,
+      status: to,
+      updatedAt: at,
+      counters: {
+        ...job.counters,
+        humanWaitMs: (job.counters.humanWaitMs ?? 0) + banked
+      }
+    };
+  }
+  return { ...job, status: to, updatedAt: at };
 }
 function persist22(deps, job) {
   return writeJobState(deps.workspace, { ...job, updatedAt: now4(deps).toISOString() });
@@ -66893,6 +66935,7 @@ function createJob(deps, request) {
     },
     counters: {
       agentRuns: 0,
+      humanWaitMs: 0,
       localInferenceCalls: 0,
       jobReplans: 0,
       transientRetries: 0,
@@ -67881,6 +67924,7 @@ function completeExecutorDispatch(deps, jobId, outcome) {
   }
   if (classified2.policy.clarifiable && !classified2.policy.repairable) {
     let clarify = transition22(deps, job, "NEEDS_CLARIFICATION");
+    const awaitingCcrIds = [...classified2.message.matchAll(CCR_ID_PATTERN)].map((hit) => hit[0]);
     const question = {
       id: `q-${newId4(deps)}`.slice(0, 64),
       question: `Task ${node.parentTaskId} cannot proceed: ${classified2.message.slice(0, 600)} Resolve the prerequisite (or decide otherwise), then resume the job.`,
@@ -67891,7 +67935,8 @@ function completeExecutorDispatch(deps, jobId, outcome) {
       round: Math.min(
         clarify.counters.clarificationRounds + 1,
         deps.config.orchestration.clarification.maxRounds
-      )
+      ),
+      ...awaitingCcrIds.length > 0 ? { awaitingCcrIds } : {}
     };
     clarify = {
       ...clarify,
@@ -68185,6 +68230,25 @@ function askClarification(deps, jobId, questions) {
     questionIds: added.map((question) => question.id)
   });
   return persist22(deps, job);
+}
+var CCR_ID_PATTERN = /\bCCR-\d{3,}\b/g;
+function reconcileDecidedCcrs(deps, jobId, decided2) {
+  let job = requireJobState(deps.workspace, jobId);
+  if (job.status !== "NEEDS_CLARIFICATION") return { job, closed: [] };
+  const answered = job.openQuestions.filter((question) => {
+    const waiting = question.awaitingCcrIds ?? [...question.question.matchAll(CCR_ID_PATTERN)].map((h2) => h2[0]);
+    return waiting.length > 0 && waiting.every((ccrId) => decided2(ccrId));
+  });
+  if (answered.length === 0) return { job, closed: [] };
+  const closed = answered.map((question) => question.id);
+  const remaining = job.openQuestions.filter((question) => !closed.includes(question.id));
+  job = persist22(deps, { ...job, openQuestions: remaining });
+  job = record22(deps, job, "clarification_resolved", {
+    questionIds: closed,
+    by: "ccr-decision"
+  });
+  if (remaining.length === 0) job = transition22(deps, job, "READY");
+  return { job: persist22(deps, job), closed };
 }
 function answerClarification(deps, jobId, answers) {
   assertJobsEnabled(deps);
@@ -69809,6 +69873,14 @@ var workUnitSchema = external_exports.object({
     message: text6,
     at: shortText9
   }).passthrough().optional(),
+  /**
+   * Change requests this unit is BLOCKED on, when it is.
+   *
+   * Recorded so a resume can ask whether they were decided. Without it the
+   * link between the question and the decision that answers it lives only
+   * in the question's prose, which nothing can reconcile.
+   */
+  blockedByCcrIds: idList2.optional(),
   supersedes: shortText9.optional(),
   supersededBy: shortText9.optional(),
   integratedAt: shortText9.optional()
@@ -70404,6 +70476,13 @@ var SCHEMAS2 = {
   AGGREGATOR: aggregatorOutputSchema,
   BUILDER: builderOutputSchema
 };
+var WHITESPACE_RUN = /\s+/g;
+var OBJECTIVE_OBSERVED_EXCERPT_CHARS = 600;
+function observedObjectiveOutput(text93) {
+  const flattened = text93.replace(WHITESPACE_RUN, " ").trim();
+  if (flattened.length === 0) return "(nothing at all)";
+  return flattened.slice(0, OBJECTIVE_OBSERVED_EXCERPT_CHARS);
+}
 function validateObjectiveOutput(role, responseText) {
   if (Buffer.byteLength(responseText, "utf8") > OBJECTIVE_OUTPUT_LIMITS.maxResponseBytes) {
     return { ok: false, problem: `the response exceeds ${OBJECTIVE_OUTPUT_LIMITS.maxResponseBytes} bytes` };
@@ -70412,7 +70491,10 @@ function validateObjectiveOutput(role, responseText) {
   try {
     parsed = JSON.parse(responseText.trim());
   } catch {
-    return { ok: false, problem: "the response is not a single valid JSON document" };
+    return {
+      ok: false,
+      problem: "the response is not a single valid JSON document. The worker returned: " + observedObjectiveOutput(responseText)
+    };
   }
   if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
     return { ok: false, problem: "the response must be a JSON object" };
@@ -72193,6 +72275,7 @@ async function evaluateCandidate(context, graph, unitId, attempt, candidate, pro
     graph = transitionUnit(graph, unitId, "BLOCKED");
     graph = withUnit(graph, {
       ...requireUnit(graph, unitId),
+      blockedByCcrIds: [...materialCcrs],
       latestFailure: {
         category: "AMBIGUITY",
         message: `The builder discovered the approved contract cannot express what the implementation needs; change request(s) ${materialCcrs.join(", ")} await a human decision.`,
@@ -101571,7 +101654,7 @@ var TOPIC_RULES = Object.freeze([
     pattern: /\b(api|endpoint|interface|console|command|contract)\b/i
   }
 ]);
-var WHITESPACE_RUN = /\s+/g;
+var WHITESPACE_RUN2 = /\s+/g;
 var TRAILING_PUNCTUATION = /[.;:,\s]+$/;
 var CHANGE_INTENT_PATTERN = /\b(change|changes|changed|replace|replaces|replaced|rename|renames|renamed|remove|removes|removed|delete|deletes|drop|drops|dropped|migrate away|deprecate\w*|break|breaks|breaking|rework|redefine\w*|no longer|instead of|supersede\w*|overrid\w+)\b/i;
 var NEGATION_PATTERN = /\b(must not|shall not|will not|may not|never|no longer|cannot|is not|are not|without)\b/i;
@@ -102515,7 +102598,7 @@ function classifyStatement(input) {
   };
 }
 function normalizeStatement(value) {
-  return value.toLowerCase().replace(WHITESPACE_RUN, " ").replace(TRAILING_PUNCTUATION, "").trim();
+  return value.toLowerCase().replace(WHITESPACE_RUN2, " ").replace(TRAILING_PUNCTUATION, "").trim();
 }
 function findBestMatch(input) {
   const explicit = /\bCTR-\d{3,}\b/gi.exec(input.statement);
@@ -104264,6 +104347,22 @@ async function runSealAndBuild(deps, options) {
         step: "LAUNCH",
         unblocked: true
       });
+    }
+  }
+  {
+    const ccrs = new Map(
+      readCcrs(deps.workspace, approval.missionId).map((ccr) => [ccr.ccrId, ccr.status])
+    );
+    const reconciled = reconcileDecidedCcrs(
+      deps,
+      jobId,
+      (ccrId) => ccrs.has(ccrId) && ccrs.get(ccrId) !== "NEEDS_HUMAN"
+    );
+    if (reconciled.closed.length > 0) {
+      emit2(
+        "lifecycle",
+        `${reconciled.closed.length} clarification question(s) answered by a recorded change-request decision`
+      );
     }
   }
   if (options.launch === false) {

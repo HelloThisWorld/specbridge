@@ -90,6 +90,14 @@ export const workUnitSchema = z
       })
       .passthrough()
       .optional(),
+    /**
+     * Change requests this unit is BLOCKED on, when it is.
+     *
+     * Recorded so a resume can ask whether they were decided. Without it the
+     * link between the question and the decision that answers it lives only
+     * in the question's prose, which nothing can reconcile.
+     */
+    blockedByCcrIds: idList.optional(),
     supersedes: shortText.optional(),
     supersededBy: shortText.optional(),
     integratedAt: shortText.optional(),
