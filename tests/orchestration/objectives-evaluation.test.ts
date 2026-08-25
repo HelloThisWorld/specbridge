@@ -284,3 +284,69 @@ describe('objective agent output contracts', () => {
     }
   });
 });
+
+
+describe('the scope check compares paths, not the prose an area was written in', () => {
+  /** Evaluate one candidate against areas written the way models write them. */
+  function evaluateWithAreas(areas: string[], changed: string[]) {
+    const proj = projection();
+    return evaluateDeterministically({
+      candidate: {
+        ...candidate(proj, {}),
+        changedFiles: changed.map((path) => ({ path, changeType: 'modified' as const })),
+      },
+      workUnit: { ...UNIT, expectedAreas: areas },
+      projection: proj,
+      contracts: [ACTION_RESULT_CONTRACT],
+      constitutionRules: [],
+      constitutionVersion: 1,
+      protectedViolations: [],
+      patch: 'diff --git a/settings.gradle.kts b/settings.gradle.kts',
+      createdAt: '2026-08-10T10:11:00.000Z',
+      evaluationId: 'wu-1-a01-e01',
+    });
+  }
+
+  it('accepts a candidate whose files match an area described in words', () => {
+    // The DECOMPOSER contract lets an area be free text, and models use it:
+    // these three are verbatim from the vNext.10.1 dogfood. Compared
+    // literally, no real path can ever match them, so the check refused the
+    // builder three times running on an identical verdict and forced a
+    // replan — for changes that were exactly what the areas described.
+    const record = evaluateWithAreas(
+      [
+        'settings.gradle.kts (root multi-project registration)',
+        'the new demo module directory and its build.gradle.kts',
+        'docs/STATUS.md (boundary statement, if status tracking applies)',
+      ],
+      [
+        'README.md',
+        'docs/STATUS.md',
+        'settings.gradle.kts',
+        'steprelay-demo/build.gradle.kts',
+      ],
+    );
+    const scope = record.checks.find((check) => check.name === 'scope');
+    expect(scope?.passed).toBe(true);
+  });
+
+  it('still refuses a candidate that touches nothing the areas name', () => {
+    const record = evaluateWithAreas(
+      ['src/protocol (the result envelope)'],
+      ['docs/README.md', 'infra/terraform/main.tf'],
+    );
+    const scope = record.checks.find((check) => check.name === 'scope');
+    expect(scope?.passed).toBe(false);
+  });
+
+  it('does not judge scope at all when no area names a path', () => {
+    // A check that cannot make its comparison must not fail the work.
+    const record = evaluateWithAreas(
+      ['wherever the workflow engine keeps its state machine'],
+      ['src/engine/machine.ts'],
+    );
+    const scope = record.checks.find((check) => check.name === 'scope');
+    expect(scope?.passed).toBe(true);
+    expect(scope?.detail).toContain('not judged');
+  });
+});

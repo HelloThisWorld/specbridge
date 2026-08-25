@@ -119,6 +119,44 @@ export function isUnavailableStatus(status: string): boolean {
   return UNAVAILABLE_COMMAND_STATUSES.includes(status);
 }
 
+/** A leading article, so "the new demo module" starts at the noun. */
+const LEADING_ARTICLE = /^(?:the|a|an)\s+/i;
+
+/** Trailing punctuation or an opening parenthetical the model appended. */
+const TRAILING_PUNCTUATION_OR_PAREN = /[).,;:]+$/;
+
+/** A bare filename with an extension, e.g. `settings.gradle.kts`. */
+const PATH_LIKE_FILE = /^[\w.-]+\.[A-Za-z0-9]{1,8}$/;
+/**
+ * The path a declared "expected area" actually names, if it names one.
+ *
+ * The DECOMPOSER contract lets an area be free text, and models write it that
+ * way: "settings.gradle.kts (root multi-project registration)", "the new demo
+ * module directory and its build.gradle.kts". Compared literally, a real path
+ * can never match either, so the scope check refused every candidate.
+ *
+ * The vNext.10.1 dogfood lost a whole objective to this. The builder changed
+ * settings.gradle.kts, docs/STATUS.md and the new module — exactly what the
+ * areas described — and was refused three times running on an identical
+ * verdict, then forced a replan. An objective whose decomposer writes
+ * descriptive areas could not be built at all.
+ *
+ * A check that cannot make its comparison must not fail the work. Areas that
+ * yield no path are dropped, and when none survives the check is recorded as
+ * not judged rather than as passed.
+ */
+function pathPrefixOf(area: string): string | undefined {
+  const trimmed = area.trim().replace(LEADING_ARTICLE, '');
+  // The first token that looks like a path: it has a separator or an
+  // extension, and no spaces.
+  for (const token of trimmed.split(/[\s,;]+/)) {
+    const candidate = token.replace(TRAILING_PUNCTUATION_OR_PAREN, '');
+    if (candidate.length === 0) continue;
+    if (candidate.includes('/') || PATH_LIKE_FILE.test(candidate)) return candidate;
+  }
+  return undefined;
+}
+
 export function evaluateDeterministically(input: DeterministicEvaluationInput): EvaluationRecord {
   const checks: { name: string; passed: boolean; detail?: string }[] = [];
   const reasons: string[] = [];
@@ -216,9 +254,17 @@ export function evaluateDeterministically(input: DeterministicEvaluationInput): 
   //    areas were declared; a fully-off-scope change is a failure).
   let scopeDetail: string | undefined;
   let scopeOk = true;
-  if (input.workUnit.expectedAreas.length > 0 && input.candidate.changedFiles.length > 0) {
+  const declaredAreas = input.workUnit.expectedAreas
+    .map((area) => pathPrefixOf(area))
+    .filter((area): area is string => area !== undefined);
+  if (declaredAreas.length > 0 && input.candidate.changedFiles.length > 0) {
     const inScope = input.candidate.changedFiles.filter((file) =>
-      input.workUnit.expectedAreas.some((area) => file.path === area || file.path.startsWith(area.endsWith('/') ? area : `${area}/`) || file.path.startsWith(area)),
+      declaredAreas.some(
+        (area) =>
+          file.path === area ||
+          file.path.startsWith(area.endsWith('/') ? area : `${area}/`) ||
+          file.path.startsWith(area),
+      ),
     );
     if (inScope.length === 0) {
       scopeOk = false;
@@ -227,6 +273,9 @@ export function evaluateDeterministically(input: DeterministicEvaluationInput): 
     } else if (inScope.length < input.candidate.changedFiles.length) {
       scopeDetail = `${input.candidate.changedFiles.length - inScope.length} changed file(s) outside declared areas (advisory)`;
     }
+  }
+  if (declaredAreas.length === 0 && input.workUnit.expectedAreas.length > 0) {
+    scopeDetail = 'the declared areas name no path this check can compare against; scope not judged';
   }
   checks.push({ name: 'scope', passed: scopeOk, ...(scopeDetail !== undefined ? { detail: scopeDetail } : {}) });
 

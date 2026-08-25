@@ -304,6 +304,20 @@ Three more surfaced once the run reached real compute:
   credential from a rate limit from a model that wrapped its JSON in prose.
   The task driver already carried the observed text for exactly this reason;
   the objective path did not, and now does.
+- **The scope check compared file paths against the prose an area was
+  written in.** The DECOMPOSER contract lets an expected area be free text,
+  and models use it that way: "settings.gradle.kts (root multi-project
+  registration)", "the new demo module directory and its build.gradle.kts".
+  Compared literally, no real path can ever match either, so a candidate
+  that changed exactly what the areas described was refused three times
+  running on an identical verdict and the objective was forced into a
+  replan. An objective whose decomposer wrote descriptive areas could not be
+  built at all — and the one that succeeded in the same run succeeded only
+  because its area list was empty, which skips the check entirely.
+  Each area now yields the path it names, if it names one; areas that name
+  none are dropped, and when none survives the check records that scope was
+  NOT JUDGED rather than passing silently. A check that cannot make its
+  comparison must not fail the work.
 - **A product decision was made and the job never noticed.** The
   clarification question says "change request(s) CCR-001 await a human
   decision. Resolve the prerequisite, then resume the job." A person does
