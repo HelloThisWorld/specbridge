@@ -71388,6 +71388,18 @@ var UNAVAILABLE_COMMAND_STATUSES = [
 function isUnavailableStatus(status) {
   return UNAVAILABLE_COMMAND_STATUSES.includes(status);
 }
+var LEADING_ARTICLE = /^(?:the|a|an)\s+/i;
+var TRAILING_PUNCTUATION_OR_PAREN = /[).,;:]+$/;
+var PATH_LIKE_FILE = /^[\w.-]+\.[A-Za-z0-9]{1,8}$/;
+function pathPrefixOf(area) {
+  const trimmed = area.trim().replace(LEADING_ARTICLE, "");
+  for (const token of trimmed.split(/[\s,;]+/)) {
+    const candidate = token.replace(TRAILING_PUNCTUATION_OR_PAREN, "");
+    if (candidate.length === 0) continue;
+    if (candidate.includes("/") || PATH_LIKE_FILE.test(candidate)) return candidate;
+  }
+  return void 0;
+}
 function evaluateDeterministically(input) {
   const checks = [];
   const reasons = [];
@@ -71445,9 +71457,12 @@ function evaluateDeterministically(input) {
   if (!changesOk) reasons.push("the candidate contains no changes");
   let scopeDetail;
   let scopeOk = true;
-  if (input.workUnit.expectedAreas.length > 0 && input.candidate.changedFiles.length > 0) {
+  const declaredAreas = input.workUnit.expectedAreas.map((area) => pathPrefixOf(area)).filter((area) => area !== void 0);
+  if (declaredAreas.length > 0 && input.candidate.changedFiles.length > 0) {
     const inScope = input.candidate.changedFiles.filter(
-      (file) => input.workUnit.expectedAreas.some((area) => file.path === area || file.path.startsWith(area.endsWith("/") ? area : `${area}/`) || file.path.startsWith(area))
+      (file) => declaredAreas.some(
+        (area) => file.path === area || file.path.startsWith(area.endsWith("/") ? area : `${area}/`) || file.path.startsWith(area)
+      )
     );
     if (inScope.length === 0) {
       scopeOk = false;
@@ -71456,6 +71471,9 @@ function evaluateDeterministically(input) {
     } else if (inScope.length < input.candidate.changedFiles.length) {
       scopeDetail = `${input.candidate.changedFiles.length - inScope.length} changed file(s) outside declared areas (advisory)`;
     }
+  }
+  if (declaredAreas.length === 0 && input.workUnit.expectedAreas.length > 0) {
+    scopeDetail = "the declared areas name no path this check can compare against; scope not judged";
   }
   checks.push({ name: "scope", passed: scopeOk, ...scopeDetail !== void 0 ? { detail: scopeDetail } : {} });
   const guardHits = screenGuardPatterns(input.patch, input.contracts, input.constitutionRules);
