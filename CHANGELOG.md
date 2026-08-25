@@ -296,6 +296,15 @@ Three more surfaced once the run reached real compute:
   which then failed synthesis — after the approval was already written. A
   genuine exclusion says "must not"; a `## Non-goals` heading still marks
   everything beneath it however it is phrased.
+- **An oversize evaluator packet rejected the work unit instead of asking a
+  bigger model.** A packet too large for the small tier is not a failure of
+  anything — it is a ROUTING fact, and the answer is the tier that can hold
+  it. The task driver has always known this: a `context-exceeded` local
+  result escalates with `CONTEXT_LIMIT_EXCEEDED` and never fails the task.
+  The objective driver had no such path, so a candidate that had passed local
+  verification AND deterministic evaluation was thrown away because nobody
+  asked the model that could read it — 35,287 characters against a 14,745
+  ceiling in the dogfood. The objective driver now escalates too.
 - **A transient tool failure was reported as an implementation defect, and
   burned a whole task budget.** The builder produced a candidate; local
   verification passed; the deterministic evaluation passed; then the semantic

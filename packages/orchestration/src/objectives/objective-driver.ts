@@ -1034,33 +1034,54 @@ async function runSemanticEvaluation(
     question: `Does this candidate satisfy work unit "${unit.title}" without contradicting the approved contracts?`,
   });
   input.onProgress?.(`EVALUATOR on ${selection.worker.workerId} for ${unitId}`);
-  const result =
-    selection.worker.reasoningTier === 'LOCAL_SMALL' && input.localManager !== undefined
-      ? await runLocalObjectiveRole({
-          manager: input.localManager,
-          config: input.config,
-          role: 'EVALUATOR',
-          packet,
-          maxCorrections: input.policy.maxLocalOutputCorrections,
-          onInferenceCall: () => undefined,
-          signal: input.signal,
-        })
-      : await (async () => {
-          const large = await runLargeObjectiveRole({
-            workspace: input.workspace,
-            config: input.config,
-            runnerProfile: selection.worker.runnerProfile ?? input.config.defaultRunner,
-            role: 'EVALUATOR',
-            packet,
-            cwd: input.workspace.rootDir,
-            scratchDir: path.join(jobDir(input.workspace, input.jobId), 'scratch'),
-            timeoutMs: 600_000,
-            signal: input.signal,
-            cachedProbe: input.probeCache.probe,
-          });
-          if (large.probe !== undefined) input.probeCache.probe = large.probe;
-          return large;
-        })();
+  const runLarge = async (): Promise<Awaited<ReturnType<typeof runLargeObjectiveRole>>> => {
+    const large = await runLargeObjectiveRole({
+      workspace: input.workspace,
+      config: input.config,
+      runnerProfile: selection.worker.runnerProfile ?? input.config.defaultRunner,
+      role: 'EVALUATOR',
+      packet,
+      cwd: input.workspace.rootDir,
+      scratchDir: path.join(jobDir(input.workspace, input.jobId), 'scratch'),
+      timeoutMs: 600_000,
+      signal: input.signal,
+      cachedProbe: input.probeCache.probe,
+    });
+    if (large.probe !== undefined) input.probeCache.probe = large.probe;
+    return large;
+  };
+  const ranLocally =
+    selection.worker.reasoningTier === 'LOCAL_SMALL' && input.localManager !== undefined;
+  let result = ranLocally
+    ? await runLocalObjectiveRole({
+        manager: input.localManager!,
+        config: input.config,
+        role: 'EVALUATOR',
+        packet,
+        maxCorrections: input.policy.maxLocalOutputCorrections,
+        onInferenceCall: () => undefined,
+        signal: input.signal,
+      })
+    : await runLarge();
+
+  // A packet too big for the small tier is not a failure of anything. It is a
+  // ROUTING fact, and the answer is the tier that can hold it.
+  //
+  // The task driver has always done this — a `context-exceeded` local result
+  // escalates with CONTEXT_LIMIT_EXCEEDED and never fails the task. The
+  // objective driver did not, so an oversize evaluator packet rejected the
+  // work unit instead. In the vNext.10.1 dogfood the evaluator packet was
+  // 35,287 characters against a 14,745 ceiling: a candidate that had passed
+  // local verification AND deterministic evaluation was thrown away because
+  // nobody asked the bigger model.
+  if (!result.ok && result.kind === 'context-exceeded' && ranLocally) {
+    input.onProgress?.(
+      `EVALUATOR packet exceeds the local tier for ${unitId}; escalating to ${
+        selection.worker.runnerProfile ?? input.config.defaultRunner
+      }`,
+    );
+    result = await runLarge();
+  }
   input.countWorkerRun({
     role: 'EVALUATOR',
     workerId: selection.worker.workerId,

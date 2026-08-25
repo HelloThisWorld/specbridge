@@ -72293,15 +72293,7 @@ async function runSemanticEvaluation(context, graph, unitId) {
     question: `Does this candidate satisfy work unit "${unit.title}" without contradicting the approved contracts?`
   });
   input.onProgress?.(`EVALUATOR on ${selection.worker.workerId} for ${unitId}`);
-  const result = selection.worker.reasoningTier === "LOCAL_SMALL" && input.localManager !== void 0 ? await runLocalObjectiveRole({
-    manager: input.localManager,
-    config: input.config,
-    role: "EVALUATOR",
-    packet,
-    maxCorrections: input.policy.maxLocalOutputCorrections,
-    onInferenceCall: () => void 0,
-    signal: input.signal
-  }) : await (async () => {
+  const runLarge = async () => {
     const large = await runLargeObjectiveRole({
       workspace: input.workspace,
       config: input.config,
@@ -72316,7 +72308,23 @@ async function runSemanticEvaluation(context, graph, unitId) {
     });
     if (large.probe !== void 0) input.probeCache.probe = large.probe;
     return large;
-  })();
+  };
+  const ranLocally = selection.worker.reasoningTier === "LOCAL_SMALL" && input.localManager !== void 0;
+  let result = ranLocally ? await runLocalObjectiveRole({
+    manager: input.localManager,
+    config: input.config,
+    role: "EVALUATOR",
+    packet,
+    maxCorrections: input.policy.maxLocalOutputCorrections,
+    onInferenceCall: () => void 0,
+    signal: input.signal
+  }) : await runLarge();
+  if (!result.ok && result.kind === "context-exceeded" && ranLocally) {
+    input.onProgress?.(
+      `EVALUATOR packet exceeds the local tier for ${unitId}; escalating to ${selection.worker.runnerProfile ?? input.config.defaultRunner}`
+    );
+    result = await runLarge();
+  }
   input.countWorkerRun({
     role: "EVALUATOR",
     workerId: selection.worker.workerId,
