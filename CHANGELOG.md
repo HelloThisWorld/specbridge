@@ -304,6 +304,16 @@ Three more surfaced once the run reached real compute:
   credential from a rate limit from a model that wrapped its JSON in prose.
   The task driver already carried the observed text for exactly this reason;
   the objective path did not, and now does.
+- **The overnight runtime could not survive its own backoff sleep.** The
+  supervisor’s sleep timer was unref()’d, so whenever a backoff or recheck
+  wait was the only pending work — no driver child yet, no other live handle
+  — the event loop drained and the whole process exited 0 mid-supervision,
+  with nothing logged anywhere. Every unexplained overnight stop traced back
+  to this one call: runs that "kept dying" were exiting cleanly inside their
+  own retry pause. The environment service carried the identical sleep. Both
+  timers now hold the process open, and a child-process regression test
+  proves a process awaiting the sleep survives to wake up — in-process the
+  test runner itself hides the bug.
 - **A stored candidate was invisible to the drive loop.** `CANDIDATE_READY`
   is not READY (never dispatched), not EVALUATING (never resumed), and not
   final (aggregation counts it as pending) — so a drive that found one had
