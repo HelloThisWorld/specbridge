@@ -57,6 +57,7 @@ import {
   readAggregationReport,
   readCandidate,
   readCandidatePatch,
+  readEvaluations,
   readLatestWorkGraph,
   readProjection,
   readWorkerRecords,
@@ -817,6 +818,50 @@ async function resumeStoredCandidate(
     return persistGraph(input, transitionUnit(graph, unitId, 'READY'));
   }
   const patch = readCandidatePatch(input.workspace, input.jobId, input.node.nodeId, unitId, attempt);
+  // Reconcile the unit's evaluation history with what is actually on disk.
+  // Ids are numbered from evaluationRefs and the records are immutable; refs
+  // that undercount the stored records make the next write collide.
+  const stored = readEvaluations(input.workspace, input.jobId, input.node.nodeId, unitId);
+  if (stored.length > requireUnit(graph, unitId).evaluationRefs.length) {
+    graph = persistGraph(
+      input,
+      withUnit(graph, {
+        ...requireUnit(graph, unitId),
+        evaluationRefs: stored.map((record) => `evaluations/${record.evaluationId}.json`).slice(-20),
+      }),
+    );
+  }
+
+  // A deterministic verdict already stored for this attempt is a FACT, not
+  // something to recompute: the record is immutable (so re-running collides
+  // on its id — that collision killed the driver in a loop), and the verdict
+  // is a pure function of stored inputs, so recomputation could only agree.
+  // Resume downstream of it instead.
+  const priorDeterministic = stored.find(
+    (record) => record.attempt === attempt && record.layer === 'deterministic',
+  );
+  if (priorDeterministic !== undefined) {
+    if (priorDeterministic.verdict !== 'PASS') {
+      // A stored non-PASS cannot resume into evaluation; the candidate is
+      // already judged. Back to READY for a rebuild.
+      graph = persistGraph(input, transitionUnit(graph, unitId, 'REJECTED'));
+      return persistGraph(input, transitionUnit(graph, unitId, 'READY'));
+    }
+    if (
+      !semanticEvaluationRequired(
+        input.policy.objectives.semanticEvaluation,
+        requireUnit(graph, unitId),
+        candidate,
+        priorDeterministic,
+      )
+    ) {
+      return persistGraph(input, transitionUnit(graph, unitId, 'VERIFIED_CANDIDATE'));
+    }
+    input.onProgress?.(
+      `resuming semantic evaluation for ${unitId} (deterministic verdict already stored)`,
+    );
+    return persistGraph(input, transitionUnit(graph, unitId, 'EVALUATING'));
+  }
   input.onProgress?.(`resuming stored candidate for ${unitId} (attempt ${attempt})`);
   return evaluateCandidate(context, graph, unitId, attempt, candidate, projection, patch);
 }

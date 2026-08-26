@@ -72268,6 +72268,37 @@ async function resumeStoredCandidate(context, graph, unitId) {
     return persistGraph2(input, transitionUnit(graph, unitId, "READY"));
   }
   const patch = readCandidatePatch(input.workspace, input.jobId, input.node.nodeId, unitId, attempt);
+  const stored = readEvaluations(input.workspace, input.jobId, input.node.nodeId, unitId);
+  if (stored.length > requireUnit(graph, unitId).evaluationRefs.length) {
+    graph = persistGraph2(
+      input,
+      withUnit(graph, {
+        ...requireUnit(graph, unitId),
+        evaluationRefs: stored.map((record32) => `evaluations/${record32.evaluationId}.json`).slice(-20)
+      })
+    );
+  }
+  const priorDeterministic = stored.find(
+    (record32) => record32.attempt === attempt && record32.layer === "deterministic"
+  );
+  if (priorDeterministic !== void 0) {
+    if (priorDeterministic.verdict !== "PASS") {
+      graph = persistGraph2(input, transitionUnit(graph, unitId, "REJECTED"));
+      return persistGraph2(input, transitionUnit(graph, unitId, "READY"));
+    }
+    if (!semanticEvaluationRequired(
+      input.policy.objectives.semanticEvaluation,
+      requireUnit(graph, unitId),
+      candidate,
+      priorDeterministic
+    )) {
+      return persistGraph2(input, transitionUnit(graph, unitId, "VERIFIED_CANDIDATE"));
+    }
+    input.onProgress?.(
+      `resuming semantic evaluation for ${unitId} (deterministic verdict already stored)`
+    );
+    return persistGraph2(input, transitionUnit(graph, unitId, "EVALUATING"));
+  }
   input.onProgress?.(`resuming stored candidate for ${unitId} (attempt ${attempt})`);
   return evaluateCandidate(context, graph, unitId, attempt, candidate, projection, patch);
 }
