@@ -72268,6 +72268,16 @@ async function resumeStoredCandidate(context, graph, unitId) {
     return persistGraph2(input, transitionUnit(graph, unitId, "READY"));
   }
   const patch = readCandidatePatch(input.workspace, input.jobId, input.node.nodeId, unitId, attempt);
+  const stored = readEvaluations(input.workspace, input.jobId, input.node.nodeId, unitId);
+  if (stored.length > unit.evaluationRefs.length) {
+    graph = persistGraph2(
+      input,
+      withUnit(graph, {
+        ...requireUnit(graph, unitId),
+        evaluationRefs: stored.map((record32) => `evaluations/${record32.evaluationId}.json`).slice(-20)
+      })
+    );
+  }
   input.onProgress?.(`resuming stored candidate for ${unitId} (attempt ${attempt})`);
   return evaluateCandidate(context, graph, unitId, attempt, candidate, projection, patch);
 }

@@ -57,6 +57,7 @@ import {
   readAggregationReport,
   readCandidate,
   readCandidatePatch,
+  readEvaluations,
   readLatestWorkGraph,
   readProjection,
   readWorkerRecords,
@@ -817,6 +818,24 @@ async function resumeStoredCandidate(
     return persistGraph(input, transitionUnit(graph, unitId, 'READY'));
   }
   const patch = readCandidatePatch(input.workspace, input.jobId, input.node.nodeId, unitId, attempt);
+  // Reconcile the unit's evaluation history with what is actually on disk.
+  //
+  // Evaluation ids are numbered from the unit's evaluationRefs, and the
+  // stored records are immutable. A unit whose refs undercount the stored
+  // records — a crash between store and graph write, or state surgery —
+  // makes the next write collide with an existing file, and that collision
+  // killed the driver in a restart loop: "Evaluation wu-2-a03-e01 already
+  // exists", forever. Disk is the authority; the refs follow it.
+  const stored = readEvaluations(input.workspace, input.jobId, input.node.nodeId, unitId);
+  if (stored.length > unit.evaluationRefs.length) {
+    graph = persistGraph(
+      input,
+      withUnit(graph, {
+        ...requireUnit(graph, unitId),
+        evaluationRefs: stored.map((record) => `evaluations/${record.evaluationId}.json`).slice(-20),
+      }),
+    );
+  }
   input.onProgress?.(`resuming stored candidate for ${unitId} (attempt ${attempt})`);
   return evaluateCandidate(context, graph, unitId, attempt, candidate, projection, patch);
 }

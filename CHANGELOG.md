@@ -304,6 +304,15 @@ Three more surfaced once the run reached real compute:
   credential from a rate limit from a model that wrapped its JSON in prose.
   The task driver already carried the observed text for exactly this reason;
   the objective path did not, and now does.
+- **An evaluation-id collision killed the driver in a restart loop.**
+  Evaluation ids are numbered from the unit’s `evaluationRefs`, and stored
+  records are immutable. A unit whose refs undercounted the stored records —
+  a crash between the record store and the graph write, or state surgery —
+  made the next write collide with an existing file, and the uncaught
+  "Evaluation wu-2-a03-e01 already exists" killed the driver on every
+  restart, forever. The candidate-resume path now reconciles the refs
+  against the records actually on disk before evaluating: disk is the
+  authority; the refs follow it.
 - **A stored candidate was invisible to the drive loop.** `CANDIDATE_READY`
   is not READY (never dispatched), not EVALUATING (never resumed), and not
   final (aggregation counts it as pending) — so a drive that found one had
