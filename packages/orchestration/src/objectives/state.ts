@@ -98,6 +98,14 @@ export const workUnitSchema = z
      * in the question's prose, which nothing can reconcile.
      */
     blockedByCcrIds: idList.optional(),
+    /**
+     * The recorded human answer that resolved this unit's NEEDS_DECISION,
+     * when one has. Carried on the unit so a re-evaluation SEES the answer —
+     * an evaluator that asked once and is shown nothing new will ask again,
+     * and the answer a person typed at the job level otherwise reaches no
+     * projection, no packet, and no evaluation.
+     */
+    operatorDecision: text.optional(),
     supersedes: shortText.optional(),
     supersededBy: shortText.optional(),
     integratedAt: shortText.optional(),

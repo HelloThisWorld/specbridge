@@ -1032,7 +1032,14 @@ async function runSemanticEvaluation(
     candidate,
     diff: patch,
     deterministic: deterministicRecord,
-    question: `Does this candidate satisfy work unit "${unit.title}" without contradicting the approved contracts?`,
+    question:
+      `Does this candidate satisfy work unit "${unit.title}" without contradicting the approved contracts?` +
+      // A recorded human decision resolves a prior NEEDS_DECISION. Shown to
+      // the evaluator so it does not ask the same question a second time —
+      // an evaluator given nothing new will conclude nothing new.
+      (unit.operatorDecision !== undefined
+        ? ` A recorded operator decision resolves the prior NEEDS_DECISION and is binding: ${unit.operatorDecision}`
+        : ''),
   });
   input.onProgress?.(`EVALUATOR on ${selection.worker.workerId} for ${unitId}`);
   const runLarge = async (): Promise<Awaited<ReturnType<typeof runLargeObjectiveRole>>> => {
@@ -1248,7 +1255,14 @@ const NON_IMPLEMENTATION_UNIT_FAILURES: readonly FailureCategory[] = [
  * and silent.
  */
 export function failureFromAggregation(graph: WorkGraph, aggregation: StructuralAggregation): ObjectiveDriveResult {
-  const blockedUnits = graph.units.filter((unit) => unit.status === 'BLOCKED');
+  // FAILED counts too: a unit whose bounded attempts ran out while it was
+  // waiting on a person is still waiting on a person. Reporting it as an
+  // implementation defect burned four task attempts on re-observing the same
+  // stale unit — each dispatch did no work, spent an attempt, and the job
+  // ended BUDGET_EXHAUSTED with the human's answer already recorded.
+  const blockedUnits = graph.units.filter(
+    (unit) => unit.status === 'BLOCKED' || unit.status === 'FAILED',
+  );
   const humanBlocked = blockedUnits.filter((unit) => unit.latestFailure?.category === 'AMBIGUITY');
   if (humanBlocked.length > 0) {
     return failResult(

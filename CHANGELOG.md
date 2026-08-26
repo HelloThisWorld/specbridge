@@ -304,6 +304,24 @@ Three more surfaced once the run reached real compute:
   credential from a rate limit from a model that wrapped its JSON in prose.
   The task driver already carried the observed text for exactly this reason;
   the objective path did not, and now does.
+- **The wall-clock budget existed twice, and only one copy learned to skip
+  human waits.** The scheduler subtracted time parked on a person; the
+  recovery path still computed `now - createdAt`, so the same job passed one
+  check and was refused by the other — 7.5 hours waiting on two product
+  decisions turned 4 hours of real work into BUDGET_EXHAUSTED. One function,
+  `workedMsOf`, now feeds both.
+
+- **A human answer to an evaluator question was write-only.** `orchestrate
+  answer` recorded the decision on the job, but the objectives path reads
+  mission decisions, never job decisions: the work unit stayed
+  FAILED(AMBIGUITY) carrying a question a person had already answered, and
+  each re-dispatch re-observed the stale unit, spent a task attempt doing
+  nothing, and reported IMPLEMENTATION_DEFECT — four attempts burned to
+  BUDGET_EXHAUSTED with the answer sitting on disk. Three coordinated fixes:
+  an answered question now revives the units it named (with the decision
+  attached to the unit), the re-run evaluator is SHOWN the recorded decision
+  so it does not ask again, and aggregation reports a FAILED-on-AMBIGUITY
+  unit as AMBIGUITY rather than as an implementation defect.
 - **The scope check compared file paths against the prose an area was
   written in.** The DECOMPOSER contract lets an expected area be free text,
   and models use it that way: "settings.gradle.kts (root multi-project

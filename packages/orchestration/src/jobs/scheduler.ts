@@ -8,6 +8,7 @@ import { isSubscriptionExhausted } from '../scheduling/vocabulary.js';
 import { findNode, nextSchedulableNode, unfinishedNodes } from './graph.js';
 import { selectWorker } from './routing.js';
 import type { JobGraph, JobNode, JobState, JobWorkerProfile } from './state.js';
+import { workedMsOf } from './state.js';
 import type { AgentRole, EscalationReason } from './vocabulary.js';
 import { isFinalJobStatus, isOperationalJobStatus } from './vocabulary.js';
 
@@ -197,12 +198,7 @@ function checkJobBudgets(input: ScheduleInput): SchedulerDecision | null {
   // sixteen hours later, and woke to find its eight-hour budget spent without
   // having run anything — which for a long-horizon project means every
   // genuine authority question costs a night.
-  const waited =
-    (job.counters.humanWaitMs ?? 0) +
-    (job.humanWaitSince === undefined
-      ? 0
-      : Math.max(0, now.getTime() - Date.parse(job.humanWaitSince)));
-  const elapsed = Math.max(0, now.getTime() - Date.parse(job.createdAt) - waited);
+  const elapsed = workedMsOf(job, now.getTime());
   if (elapsed >= job.budgets.maxWallClockMs) {
     return {
       kind: 'JOB_BLOCKED',
