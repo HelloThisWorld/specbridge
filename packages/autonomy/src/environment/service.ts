@@ -214,8 +214,10 @@ export interface ProvisionOptions {
 
 function defaultSleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve) => {
+    // No unref: an environment wait must hold the process open. The same
+    // call in the supervisor silently exited the whole runtime whenever its
+    // sleep was the only pending handle.
     const timer = setTimeout(resolve, ms);
-    timer.unref?.();
     signal?.addEventListener('abort', () => { clearTimeout(timer); resolve(); }, { once: true });
   });
 }

@@ -1,3 +1,6 @@
+import { execFileSync } from 'node:child_process';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { overnightAutonomyPreset } from '@specbridge/core';
 import type { DriverHost, DriverRunOutcome, SupervisedJob } from '@specbridge/autonomy';
@@ -358,5 +361,27 @@ describe('lease persistence', () => {
     const second = acquireJobLease(fixture.deps, 'job-1', 'sup-b', POLICY);
     expect(second.acquired).toBe(false);
     expect(second.heldBy).toBe('sup-a');
+  });
+});
+
+describe('the supervisor sleep keeps the process alive', () => {
+  it('a child process awaiting supervisorSleep survives to wake up', () => {
+    // An earlier version unref()’d the timer. Whenever a backoff or recheck
+    // sleep was the only pending work — no driver child yet, no other handle
+    // — the event loop drained and the WHOLE PROCESS exited 0 mid-
+    // supervision, with nothing logged anywhere. Every unexplained overnight
+    // stop in the vNext.10.1 dogfood traced back to this one call. The only
+    // honest way to test aliveness is a real child process: in-process, the
+    // test runner itself keeps the loop alive and hides the bug.
+    const dist = pathToFileURL(path.resolve('packages/autonomy/dist/index.js')).href;
+    const script =
+      `const m = await import(${JSON.stringify(dist)});` +
+      `await m.supervisorSleep(400);` +
+      `console.log('WOKE');`;
+    const out = execFileSync(process.execPath, ['--input-type=module', '-e', script], {
+      encoding: 'utf8',
+      timeout: 20_000,
+    });
+    expect(out).toContain('WOKE');
   });
 });

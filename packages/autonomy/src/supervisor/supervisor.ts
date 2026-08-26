@@ -97,10 +97,22 @@ export interface SupervisionResult {
   cycles: number;
 }
 
-function defaultSleep(ms: number, signal?: AbortSignal): Promise<void> {
+/**
+ * The supervisor's sleep MUST keep the process alive.
+ *
+ * An earlier version unref()'d the timer, and that single call was the
+ * silent killer behind every unexplained overnight stop: whenever a backoff
+ * or recheck sleep was the only pending work — no driver child yet, no other
+ * handle — the event loop drained and the WHOLE PROCESS exited 0,
+ * mid-supervision, with nothing logged anywhere. An overnight runtime that
+ * cannot survive its own backoff sleep is not an overnight runtime.
+ *
+ * Exported so a regression test can prove, in a real child process, that
+ * awaiting this sleep holds the process open until it resolves.
+ */
+export function supervisorSleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve) => {
     const timer = setTimeout(resolve, ms);
-    timer.unref?.();
     signal?.addEventListener('abort', () => {
       clearTimeout(timer);
       resolve();
@@ -262,7 +274,7 @@ export async function superviseJob(
     });
   }
   const ownerId = options.ownerId ?? `sup-${newId(deps)}`.slice(0, 60);
-  const sleep = options.sleep ?? defaultSleep;
+  const sleep = options.sleep ?? supervisorSleep;
   const emit = (kind: SupervisionEvent['kind'], message: string): void => {
     options.onEvent?.({ kind, message });
   };

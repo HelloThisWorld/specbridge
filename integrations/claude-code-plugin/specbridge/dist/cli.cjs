@@ -97600,10 +97600,9 @@ function readSupervisionLog(workspace, limit = 500) {
     limit
   ).entries;
 }
-function defaultSleep2(ms, signal) {
+function supervisorSleep(ms, signal) {
   return new Promise((resolve2) => {
     const timer = setTimeout(resolve2, ms);
-    timer.unref?.();
     signal?.addEventListener("abort", () => {
       clearTimeout(timer);
       resolve2();
@@ -97689,7 +97688,7 @@ async function superviseJob(deps, jobId, options) {
     });
   }
   const ownerId = options.ownerId ?? `sup-${newId5(deps)}`.slice(0, 60);
-  const sleep2 = options.sleep ?? defaultSleep2;
+  const sleep2 = options.sleep ?? supervisorSleep;
   const emit2 = (kind, message2) => {
     options.onEvent?.({ kind, message: message2 });
   };
