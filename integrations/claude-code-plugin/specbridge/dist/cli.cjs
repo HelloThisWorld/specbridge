@@ -50252,13 +50252,15 @@ var import_path34 = __toESM(require("path"), 1);
 var import_crypto19 = require("crypto");
 var import_fs33 = require("fs");
 var import_path35 = __toESM(require("path"), 1);
-var import_crypto20 = require("crypto");
 var import_fs34 = require("fs");
 var import_path36 = __toESM(require("path"), 1);
+var import_crypto20 = require("crypto");
 var import_fs35 = require("fs");
 var import_path37 = __toESM(require("path"), 1);
 var import_fs36 = require("fs");
 var import_path38 = __toESM(require("path"), 1);
+var import_fs37 = require("fs");
+var import_path39 = __toESM(require("path"), 1);
 
 // ../../packages/context/dist/index.js
 var import_crypto10 = require("crypto");
@@ -53864,17 +53866,17 @@ async function buildEfficientContext(input) {
 
 // ../../packages/orchestration/dist/index.js
 var import_crypto21 = require("crypto");
-var import_fs37 = require("fs");
-var import_path39 = __toESM(require("path"), 1);
-var import_crypto22 = require("crypto");
 var import_fs38 = require("fs");
 var import_path40 = __toESM(require("path"), 1);
+var import_crypto22 = require("crypto");
 var import_fs39 = require("fs");
 var import_path41 = __toESM(require("path"), 1);
 var import_fs40 = require("fs");
 var import_path42 = __toESM(require("path"), 1);
 var import_fs41 = require("fs");
 var import_path43 = __toESM(require("path"), 1);
+var import_fs42 = require("fs");
+var import_path44 = __toESM(require("path"), 1);
 
 // ../../packages/mission/dist/index.js
 var import_fs30 = require("fs");
@@ -56161,10 +56163,8 @@ function observeSpecApproval(deps, missionId) {
 }
 
 // ../../packages/orchestration/dist/index.js
-var import_path44 = __toESM(require("path"), 1);
 var import_path45 = __toESM(require("path"), 1);
 var import_path46 = __toESM(require("path"), 1);
-var import_fs42 = require("fs");
 var import_path47 = __toESM(require("path"), 1);
 var import_fs43 = require("fs");
 var import_path48 = __toESM(require("path"), 1);
@@ -59414,6 +59414,10 @@ var jobCheckpointSchema = external_exports.object({
   /** The exact next legal action, in one line. */
   nextAction: text22
 }).passthrough();
+function workedMsOf(job, nowMs) {
+  const waited = (job.counters.humanWaitMs ?? 0) + (job.humanWaitSince === void 0 ? 0 : Math.max(0, nowMs - Date.parse(job.humanWaitSince)));
+  return Math.max(0, nowMs - Date.parse(job.createdAt) - waited);
+}
 var RECOVERY_TARGETS = [
   "WAITING_RESOURCE",
   "RECOVERING_PROVIDER",
@@ -61141,8 +61145,7 @@ function successfulAttemptIndex(node, role) {
 }
 function checkJobBudgets(input) {
   const { job, policy, now: now52 } = input;
-  const waited = (job.counters.humanWaitMs ?? 0) + (job.humanWaitSince === void 0 ? 0 : Math.max(0, now52.getTime() - Date.parse(job.humanWaitSince)));
-  const elapsed = Math.max(0, now52.getTime() - Date.parse(job.createdAt) - waited);
+  const elapsed = workedMsOf(job, now52.getTime());
   if (elapsed >= job.budgets.maxWallClockMs) {
     return {
       kind: "JOB_BLOCKED",
@@ -61494,6 +61497,592 @@ function scheduleNext(input) {
     reason: baseReason
   };
 }
+var WORK_UNIT_STATUSES = [
+  /** Declared in the work graph; dependencies not yet satisfied. */
+  "PLANNED",
+  /** Dependencies satisfied; the unit can be dispatched. */
+  "READY",
+  /** A builder attempt is in flight in an isolated worktree. */
+  "BUILDING",
+  /** A candidate artifact exists and awaits evaluation. */
+  "CANDIDATE_READY",
+  /** A semantic evaluation dispatch is in flight. */
+  "EVALUATING",
+  /** The candidate passed every required evaluation layer. */
+  "VERIFIED_CANDIDATE",
+  /** The candidate was rejected; the unit may retry within budget. */
+  "REJECTED",
+  /** The unit ended without a verified candidate. */
+  "FAILED",
+  /** The unit cannot proceed without an explicit decision. */
+  "BLOCKED",
+  /** The unit was replaced in a later work-graph revision. */
+  "SUPERSEDED",
+  /** The unit's candidate was applied by the canonical integrator. */
+  "INTEGRATED"
+];
+var FINAL_WORK_UNIT_STATUSES = [
+  "FAILED",
+  "SUPERSEDED",
+  "INTEGRATED"
+];
+function isFinalWorkUnitStatus(status) {
+  return FINAL_WORK_UNIT_STATUSES.includes(status);
+}
+var WORK_UNIT_KINDS = ["build", "investigation", "integration"];
+var EVALUATION_LAYERS = ["deterministic", "semantic"];
+var EVALUATION_VERDICTS = ["PASS", "FAIL", "CONFLICT", "NEEDS_DECISION"];
+var OBJECTIVE_WORKER_STATUSES = [
+  "RUNNING",
+  "FINISHED",
+  "FAILED",
+  /** A later attempt or graph revision replaced this worker; results from it are refused. */
+  "SUPERSEDED"
+];
+var CONTRACT_CONFLICT_STATUSES = [
+  "OPEN",
+  /** Resolved autonomously (implementation-detail conflicts only). */
+  "RESOLVED_AUTO",
+  /** Resolved by an explicit human decision. */
+  "RESOLVED_HUMAN"
+];
+var WORK_GRAPH_SCHEMA_VERSION = "1.0.0";
+var CONTEXT_PROJECTION_SCHEMA_VERSION = "1.0.0";
+var CANDIDATE_ARTIFACT_SCHEMA_VERSION = "1.0.0";
+var EVALUATION_RECORD_SCHEMA_VERSION = "1.0.0";
+var CONTRACT_CONFLICT_SCHEMA_VERSION = "1.0.0";
+var OBJECTIVE_WORKER_SCHEMA_VERSION = "1.0.0";
+var OBJECTIVE_LIMITS = {
+  maxWorkUnits: 30,
+  maxDependenciesPerUnit: 20,
+  maxShortTextChars: 512,
+  maxTextChars: 2e3,
+  maxListItems: 30,
+  maxChangedFiles: 500,
+  maxEvaluationChecks: 40,
+  maxProjectionContracts: 30,
+  maxProjectionExcerptChars: 2e4
+};
+var shortText32 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxShortTextChars);
+var text3 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxTextChars);
+var optionalText2 = external_exports.string().max(OBJECTIVE_LIMITS.maxTextChars);
+var textList22 = external_exports.array(text3).max(OBJECTIVE_LIMITS.maxListItems);
+var idList2 = external_exports.array(shortText32).max(OBJECTIVE_LIMITS.maxListItems);
+var semver2 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
+var workUnitSchema = external_exports.object({
+  workUnitId: shortText32,
+  /** The objective (job graph node) this unit belongs to. */
+  objectiveNodeId: shortText32,
+  /** The approved task id of the objective (audit convenience). */
+  parentTaskId: shortText32,
+  kind: external_exports.enum(WORK_UNIT_KINDS),
+  title: text3,
+  goal: text3,
+  /** Work-unit ids that must be VERIFIED_CANDIDATE before this one runs. */
+  dependsOn: external_exports.array(shortText32).max(OBJECTIVE_LIMITS.maxDependenciesPerUnit).default([]),
+  /** Artifacts the unit is expected to produce (paths, report names). */
+  expectedArtifacts: textList22.default([]),
+  /** Product contract ids relevant to this unit (projection input). */
+  relevantContractIds: idList2.default([]),
+  relevantAdrIds: idList2.default([]),
+  relevantConstitutionRuleIds: idList2.default([]),
+  /** Source areas the unit is expected to touch (scope screen input). */
+  expectedAreas: external_exports.array(shortText32).max(OBJECTIVE_LIMITS.maxListItems).default([]),
+  status: external_exports.enum(WORK_UNIT_STATUSES),
+  /** Builder attempts consumed so far. */
+  attempt: external_exports.number().int().min(0).default(0),
+  /** Worker currently (or last) bound to this unit. */
+  workerId: shortText32.optional(),
+  contextProjectionHash: shortText32.optional(),
+  contractSnapshotHash: shortText32.optional(),
+  /** Latest candidate artifact reference (candidates/<file>). */
+  candidateRef: shortText32.optional(),
+  /** Evaluation record references, oldest first. */
+  evaluationRefs: idList2.default([]),
+  latestFailure: external_exports.object({
+    category: external_exports.enum(FAILURE_CATEGORIES),
+    message: text3,
+    at: shortText32
+  }).passthrough().optional(),
+  /**
+   * Change requests this unit is BLOCKED on, when it is.
+   *
+   * Recorded so a resume can ask whether they were decided. Without it the
+   * link between the question and the decision that answers it lives only
+   * in the question's prose, which nothing can reconcile.
+   */
+  blockedByCcrIds: idList2.optional(),
+  /**
+   * The recorded human answer that resolved this unit's NEEDS_DECISION,
+   * when one has. Carried on the unit so a re-evaluation SEES the answer —
+   * an evaluator that asked once and is shown nothing new will ask again,
+   * and the answer a person typed at the job level otherwise reaches no
+   * projection, no packet, and no evaluation.
+   */
+  operatorDecision: text3.optional(),
+  supersedes: shortText32.optional(),
+  supersededBy: shortText32.optional(),
+  integratedAt: shortText32.optional()
+}).passthrough();
+var workGraphSchema = external_exports.object({
+  schemaVersion: semver2,
+  jobId: shortText32,
+  /** The objective node this graph decomposes. */
+  objectiveNodeId: shortText32,
+  parentTaskId: shortText32,
+  /** Fingerprint of the approved objective at decomposition time. */
+  objectiveFingerprint: shortText32,
+  revision: external_exports.number().int().min(1),
+  createdAt: shortText32,
+  /** Who proposed the decomposition ("deterministic" or a worker id). */
+  proposedBy: shortText32,
+  /** Deterministic validation findings recorded at acceptance time. */
+  validationNotes: textList22.default([]),
+  units: external_exports.array(workUnitSchema).min(1).max(OBJECTIVE_LIMITS.maxWorkUnits),
+  supersedes: external_exports.number().int().min(1).optional(),
+  revisionReason: optionalText2.optional()
+}).passthrough();
+var contextProjectionSchema = external_exports.object({
+  schemaVersion: semver2,
+  projectionId: shortText32,
+  jobId: shortText32,
+  objectiveNodeId: shortText32,
+  workUnitId: shortText32,
+  attempt: external_exports.number().int().min(1),
+  createdAt: shortText32,
+  missionId: shortText32.optional(),
+  constitution: external_exports.object({
+    version: external_exports.number().int().min(0),
+    rules: external_exports.array(
+      external_exports.object({ ruleId: shortText32, version: external_exports.number().int().min(1), statement: text3 }).passthrough()
+    ).max(40).default([])
+  }).passthrough(),
+  objective: external_exports.object({
+    taskId: shortText32,
+    title: text3,
+    acceptance: textList22.default([])
+  }).passthrough(),
+  workUnit: external_exports.object({
+    title: text3,
+    goal: text3,
+    kind: external_exports.enum(WORK_UNIT_KINDS),
+    expectedArtifacts: textList22.default([]),
+    expectedAreas: external_exports.array(shortText32).max(OBJECTIVE_LIMITS.maxListItems).default([])
+  }).passthrough(),
+  contracts: external_exports.array(
+    external_exports.object({
+      contractId: shortText32,
+      revision: external_exports.number().int().min(1),
+      title: shortText32,
+      summary: text3,
+      requirements: textList22.default([]),
+      invariants: textList22.default([])
+    }).passthrough()
+  ).max(OBJECTIVE_LIMITS.maxProjectionContracts).default([]),
+  adrs: external_exports.array(
+    external_exports.object({ adrId: shortText32, title: shortText32, decision: text3 }).passthrough()
+  ).max(OBJECTIVE_LIMITS.maxListItems).default([]),
+  decisions: external_exports.array(external_exports.object({ decisionId: shortText32, decision: text3 }).passthrough()).max(OBJECTIVE_LIMITS.maxListItems).default([]),
+  /** Bounded approved-spec excerpts (requirements/design fragments). */
+  specExcerpts: external_exports.array(external_exports.string().max(OBJECTIVE_LIMITS.maxProjectionExcerptChars)).max(5).default([]),
+  /** Bounded summaries of verified dependency candidates (work evidence). */
+  workEvidence: textList22.default([]),
+  /** Hash over the ACTIVE contract registry this projection saw. */
+  contractSnapshotHash: shortText32,
+  /** Hash of this projection's canonical serialization (identity). */
+  contentHash: shortText32
+}).passthrough();
+var candidateArtifactSchema = external_exports.object({
+  schemaVersion: semver2,
+  candidateId: shortText32,
+  jobId: shortText32,
+  objectiveNodeId: shortText32,
+  workUnitId: shortText32,
+  attempt: external_exports.number().int().min(1),
+  workerId: shortText32,
+  createdAt: shortText32,
+  /** Git commit the worktree was created from. */
+  baselineCommit: shortText32,
+  contextProjectionHash: shortText32,
+  contractSnapshotHash: shortText32,
+  /** Files changed in the worktree, as observed by git. */
+  changedFiles: external_exports.array(
+    external_exports.object({
+      path: shortText32,
+      changeType: external_exports.enum(["added", "modified", "deleted", "renamed"])
+    }).passthrough()
+  ).max(OBJECTIVE_LIMITS.maxChangedFiles).default([]),
+  /** Reference to the stored normalized patch (candidates/<file>.patch). */
+  patchRef: shortText32.optional(),
+  /** Local verification observed by SpecBridge inside the worktree. */
+  localVerification: external_exports.object({
+    ran: external_exports.boolean(),
+    passed: external_exports.boolean(),
+    commands: external_exports.array(
+      external_exports.object({
+        name: shortText32,
+        status: shortText32,
+        exitCode: external_exports.number().int().nullable().default(null)
+      }).passthrough()
+    ).max(OBJECTIVE_LIMITS.maxListItems).default([])
+  }).passthrough(),
+  /** The worker's structured claims (data, never authority). */
+  claims: external_exports.object({
+    summary: text3,
+    assumptionsDiscovered: textList22.default([]),
+    contractChangeRequests: external_exports.array(
+      external_exports.object({
+        contractId: shortText32,
+        problem: text3,
+        proposal: text3
+      }).passthrough()
+    ).max(10).default([]),
+    knownLimitations: textList22.default([]),
+    /** Investigation units: the structured report body. */
+    report: external_exports.string().max(16e3).optional()
+  }).passthrough(),
+  /** Set when identity/staleness guards rejected the candidate. */
+  rejectedReason: optionalText2.optional()
+}).passthrough();
+var evaluationRecordSchema = external_exports.object({
+  schemaVersion: semver2,
+  evaluationId: shortText32,
+  jobId: shortText32,
+  objectiveNodeId: shortText32,
+  workUnitId: shortText32,
+  attempt: external_exports.number().int().min(1),
+  layer: external_exports.enum(EVALUATION_LAYERS),
+  verdict: external_exports.enum(EVALUATION_VERDICTS),
+  /** Named deterministic checks with their outcomes (deterministic layer). */
+  checks: external_exports.array(
+    external_exports.object({ name: shortText32, passed: external_exports.boolean(), detail: optionalText2.optional() }).passthrough()
+  ).max(OBJECTIVE_LIMITS.maxEvaluationChecks).default([]),
+  reasons: textList22.default([]),
+  evidenceRefs: idList2.default([]),
+  affectedContractIds: idList2.default([]),
+  /** Decision kind for CONFLICT / NEEDS_DECISION verdicts (authority routing). */
+  decisionKind: shortText32.optional(),
+  /** The evaluator worker, when the layer is semantic. */
+  evaluatorWorkerId: shortText32.optional(),
+  createdAt: shortText32
+}).passthrough();
+var contractConflictSchema = external_exports.object({
+  schemaVersion: semver2,
+  conflictId: shortText32,
+  jobId: shortText32,
+  objectiveNodeId: shortText32,
+  contractId: shortText32,
+  contractRevision: external_exports.number().int().min(1),
+  claims: external_exports.array(
+    external_exports.object({
+      workUnitId: shortText32,
+      candidateRef: shortText32.optional(),
+      claim: text3
+    }).passthrough()
+  ).min(1).max(OBJECTIVE_LIMITS.maxListItems),
+  evidenceRefs: idList2.default([]),
+  affectedWorkUnitIds: idList2.default([]),
+  decisionKind: shortText32,
+  status: external_exports.enum(CONTRACT_CONFLICT_STATUSES),
+  resolution: optionalText2.optional(),
+  createdAt: shortText32,
+  resolvedAt: shortText32.optional()
+}).passthrough();
+var objectiveWorkerRecordSchema = external_exports.object({
+  schemaVersion: semver2,
+  workerId: shortText32,
+  agentRole: external_exports.enum(AGENT_ROLES),
+  jobId: shortText32,
+  objectiveNodeId: shortText32,
+  workUnitId: shortText32,
+  attempt: external_exports.number().int().min(1),
+  contextProjectionHash: shortText32,
+  contractSnapshotHash: shortText32,
+  /** "worktree:<name>", "canonical", or "ephemeral" (read-only reasoning). */
+  workspaceIdentity: shortText32,
+  status: external_exports.enum(OBJECTIVE_WORKER_STATUSES),
+  budget: external_exports.object({
+    timeoutMs: external_exports.number().int().min(1),
+    maxOutputBytes: external_exports.number().int().min(1).optional()
+  }).passthrough(),
+  startedAt: shortText32,
+  finishedAt: shortText32.optional()
+}).passthrough();
+var ID_PATTERN3 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+function assertSegment(value, what) {
+  if (!ID_PATTERN3.test(value)) {
+    throw new OrchestrationError("SBO040", `Invalid ${what} "${value}".`);
+  }
+  return value;
+}
+function objectiveDir(workspace, jobId, nodeId) {
+  assertSegment(nodeId, "objective node id");
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path36.default.join(jobDir(workspace, jobId), "objectives", nodeId)
+  );
+}
+function artifactPath3(workspace, jobId, nodeId, ...segments) {
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path36.default.join(objectiveDir(workspace, jobId, nodeId), ...segments)
+  );
+}
+function readJson(file, parse3) {
+  if (!(0, import_fs34.existsSync)(file)) return void 0;
+  try {
+    return parse3(JSON.parse((0, import_fs34.readFileSync)(file, "utf8")));
+  } catch {
+    return void 0;
+  }
+}
+function workGraphFile(workspace, jobId, nodeId, revision) {
+  return artifactPath3(workspace, jobId, nodeId, "workgraphs", `${String(revision).padStart(4, "0")}.json`);
+}
+function storeWorkGraph(workspace, jobId, graph) {
+  const validated = workGraphSchema.parse(graph);
+  const file = workGraphFile(workspace, jobId, validated.objectiveNodeId, validated.revision);
+  (0, import_fs34.mkdirSync)(import_path36.default.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
+`);
+  return validated;
+}
+function readWorkGraph(workspace, jobId, nodeId, revision) {
+  if (!Number.isInteger(revision) || revision < 1) return void 0;
+  return readJson(workGraphFile(workspace, jobId, nodeId, revision), (raw) => {
+    const result = workGraphSchema.safeParse(raw);
+    return result.success ? result.data : void 0;
+  });
+}
+function listWorkGraphRevisions(workspace, jobId, nodeId) {
+  const dir = artifactPath3(workspace, jobId, nodeId, "workgraphs");
+  if (!(0, import_fs34.existsSync)(dir)) return [];
+  const revisions = [];
+  for (const name of (0, import_fs34.readdirSync)(dir).sort()) {
+    if (!/^\d{4}\.json$/.test(name)) continue;
+    revisions.push(Number.parseInt(name.slice(0, 4), 10));
+  }
+  return revisions;
+}
+function readLatestWorkGraph(workspace, jobId, nodeId) {
+  const revisions = listWorkGraphRevisions(workspace, jobId, nodeId);
+  const latest = revisions.at(-1);
+  return latest === void 0 ? void 0 : readWorkGraph(workspace, jobId, nodeId, latest);
+}
+function projectionName(workUnitId, attempt) {
+  return `${workUnitId}-a${String(attempt).padStart(2, "0")}.json`;
+}
+function projectionIdentity(projection) {
+  const {
+    createdAt: _createdAt,
+    contentHash: _contentHash,
+    ...rest
+  } = projection;
+  return JSON.stringify(rest);
+}
+function storeProjection(workspace, jobId, nodeId, projection) {
+  const validated = contextProjectionSchema.parse(projection);
+  assertSegment(validated.workUnitId, "work unit id");
+  const name = projectionName(validated.workUnitId, validated.attempt);
+  const file = artifactPath3(workspace, jobId, nodeId, "projections", name);
+  if ((0, import_fs34.existsSync)(file)) {
+    const existing = (0, import_fs34.readFileSync)(file, "utf8");
+    let existingProjection;
+    try {
+      existingProjection = contextProjectionSchema.parse(JSON.parse(existing));
+    } catch {
+      existingProjection = void 0;
+    }
+    if (existingProjection !== void 0 && projectionIdentity(existingProjection) === projectionIdentity(validated)) {
+      return { projection: existingProjection, ref: `projections/${name}` };
+    }
+    throw new OrchestrationError(
+      "SBO041",
+      `Projection ${name} already exists with DIFFERENT content; projections are immutable per (workUnit, attempt). A new derivation belongs to a new attempt.`
+    );
+  }
+  (0, import_fs34.mkdirSync)(import_path36.default.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
+`);
+  return { projection: validated, ref: `projections/${name}` };
+}
+function readProjection(workspace, jobId, nodeId, workUnitId, attempt) {
+  if (!ID_PATTERN3.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
+  return readJson(
+    artifactPath3(workspace, jobId, nodeId, "projections", projectionName(workUnitId, attempt)),
+    (raw) => {
+      const result = contextProjectionSchema.safeParse(raw);
+      return result.success ? result.data : void 0;
+    }
+  );
+}
+function candidateName(workUnitId, attempt) {
+  return `${workUnitId}-a${String(attempt).padStart(2, "0")}`;
+}
+function storeCandidate(workspace, jobId, nodeId, candidate, patch, limits) {
+  const validated = candidateArtifactSchema.parse(candidate);
+  assertSegment(validated.workUnitId, "work unit id");
+  const base = candidateName(validated.workUnitId, validated.attempt);
+  const file = artifactPath3(workspace, jobId, nodeId, "candidates", `${base}.json`);
+  if ((0, import_fs34.existsSync)(file)) {
+    throw new OrchestrationError(
+      "SBO043",
+      `Candidate ${base} already exists; candidates are immutable per (workUnit, attempt).`
+    );
+  }
+  (0, import_fs34.mkdirSync)(import_path36.default.dirname(file), { recursive: true });
+  if (patch !== void 0) {
+    if (Buffer.byteLength(patch, "utf8") > limits.maxCandidateBytes) {
+      throw new OrchestrationError(
+        "SBO043",
+        `The candidate patch for ${base} exceeds the ${limits.maxCandidateBytes}-byte bound and was refused.`,
+        { remediation: ["Split the work unit, or raise orchestration.jobs.objectives.maxCandidateBytes explicitly."] }
+      );
+    }
+    writeFileAtomic(artifactPath3(workspace, jobId, nodeId, "candidates", `${base}.patch`), patch);
+  }
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
+`);
+  return { candidate: validated, ref: `candidates/${base}.json` };
+}
+function readCandidate(workspace, jobId, nodeId, workUnitId, attempt) {
+  if (!ID_PATTERN3.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
+  return readJson(
+    artifactPath3(workspace, jobId, nodeId, "candidates", `${candidateName(workUnitId, attempt)}.json`),
+    (raw) => {
+      const result = candidateArtifactSchema.safeParse(raw);
+      return result.success ? result.data : void 0;
+    }
+  );
+}
+function readCandidatePatch(workspace, jobId, nodeId, workUnitId, attempt) {
+  if (!ID_PATTERN3.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
+  const file = artifactPath3(
+    workspace,
+    jobId,
+    nodeId,
+    "candidates",
+    `${candidateName(workUnitId, attempt)}.patch`
+  );
+  if (!(0, import_fs34.existsSync)(file)) return void 0;
+  try {
+    return (0, import_fs34.readFileSync)(file, "utf8");
+  } catch {
+    return void 0;
+  }
+}
+function storeEvaluation(workspace, jobId, nodeId, evaluation) {
+  const validated = evaluationRecordSchema.parse(evaluation);
+  assertSegment(validated.evaluationId, "evaluation id");
+  const name = `${validated.evaluationId}.json`;
+  const file = artifactPath3(workspace, jobId, nodeId, "evaluations", name);
+  if ((0, import_fs34.existsSync)(file)) {
+    throw new OrchestrationError("SBO044", `Evaluation ${validated.evaluationId} already exists.`);
+  }
+  (0, import_fs34.mkdirSync)(import_path36.default.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
+`);
+  return { evaluation: validated, ref: `evaluations/${name}` };
+}
+function readEvaluations(workspace, jobId, nodeId, workUnitId) {
+  const dir = artifactPath3(workspace, jobId, nodeId, "evaluations");
+  if (!(0, import_fs34.existsSync)(dir)) return [];
+  const records = [];
+  for (const name of (0, import_fs34.readdirSync)(dir).sort()) {
+    if (!name.endsWith(".json")) continue;
+    const record32 = readJson(import_path36.default.join(dir, name), (raw) => {
+      const result = evaluationRecordSchema.safeParse(raw);
+      return result.success ? result.data : void 0;
+    });
+    if (record32 !== void 0 && (workUnitId === void 0 || record32.workUnitId === workUnitId)) {
+      records.push(record32);
+    }
+  }
+  return records;
+}
+function storeConflict(workspace, jobId, nodeId, conflict) {
+  const validated = contractConflictSchema.parse(conflict);
+  assertSegment(validated.conflictId, "conflict id");
+  const file = artifactPath3(workspace, jobId, nodeId, "conflicts", `${validated.conflictId}.json`);
+  (0, import_fs34.mkdirSync)(import_path36.default.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
+`);
+  return validated;
+}
+function readConflicts(workspace, jobId, nodeId) {
+  const dir = artifactPath3(workspace, jobId, nodeId, "conflicts");
+  if (!(0, import_fs34.existsSync)(dir)) return [];
+  const records = [];
+  for (const name of (0, import_fs34.readdirSync)(dir).sort()) {
+    if (!name.endsWith(".json")) continue;
+    const record32 = readJson(import_path36.default.join(dir, name), (raw) => {
+      const result = contractConflictSchema.safeParse(raw);
+      return result.success ? result.data : void 0;
+    });
+    if (record32 !== void 0) records.push(record32);
+  }
+  return records;
+}
+function workerName(workUnitId, attempt, role) {
+  return `${workUnitId}-a${String(attempt).padStart(2, "0")}-${role.toLowerCase()}.json`;
+}
+function storeWorkerRecord(workspace, jobId, nodeId, record32) {
+  const validated = objectiveWorkerRecordSchema.parse(record32);
+  assertSegment(validated.workUnitId, "work unit id");
+  const file = artifactPath3(
+    workspace,
+    jobId,
+    nodeId,
+    "workers",
+    workerName(validated.workUnitId, validated.attempt, validated.agentRole)
+  );
+  (0, import_fs34.mkdirSync)(import_path36.default.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
+`);
+  return validated;
+}
+function readWorkerRecord(workspace, jobId, nodeId, workUnitId, attempt, role) {
+  if (!ID_PATTERN3.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
+  return readJson(
+    artifactPath3(workspace, jobId, nodeId, "workers", workerName(workUnitId, attempt, role)),
+    (raw) => {
+      const result = objectiveWorkerRecordSchema.safeParse(raw);
+      return result.success ? result.data : void 0;
+    }
+  );
+}
+function readWorkerRecords(workspace, jobId, nodeId) {
+  const dir = artifactPath3(workspace, jobId, nodeId, "workers");
+  if (!(0, import_fs34.existsSync)(dir)) return [];
+  const records = [];
+  for (const name of (0, import_fs34.readdirSync)(dir).sort()) {
+    if (!name.endsWith(".json")) continue;
+    const record32 = readJson(import_path36.default.join(dir, name), (raw) => {
+      const result = objectiveWorkerRecordSchema.safeParse(raw);
+      return result.success ? result.data : void 0;
+    });
+    if (record32 !== void 0) records.push(record32);
+  }
+  return records;
+}
+function storeAggregationReport(workspace, jobId, nodeId, name, report) {
+  assertSegment(name, "report name");
+  const file = artifactPath3(workspace, jobId, nodeId, "reports", `${name}.json`);
+  if ((0, import_fs34.existsSync)(file)) {
+    throw new OrchestrationError("SBO046", `Aggregation report "${name}" already exists.`);
+  }
+  (0, import_fs34.mkdirSync)(import_path36.default.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(report, null, 2)}
+`);
+  return { ref: `reports/${name}.json` };
+}
+function readAggregationReport(workspace, jobId, nodeId, name) {
+  if (!ID_PATTERN3.test(name)) return void 0;
+  return readJson(
+    artifactPath3(workspace, jobId, nodeId, "reports", `${name}.json`),
+    (raw) => raw !== null && typeof raw === "object" ? raw : void 0
+  );
+}
 var EVALUATION_STATUSES = ["PASS", "FAIL", "INCONCLUSIVE"];
 var EVALUATION_CHECK_LEVELS = [
   "EXECUTION_INTEGRITY",
@@ -61738,40 +62327,40 @@ var RELIABILITY_LIMITS = {
   /** Bounded per-task fingerprint history used by loop detection. */
   maxFingerprintHistory: 12
 };
-var shortText32 = external_exports.string().min(1).max(RELIABILITY_LIMITS.maxShortTextChars);
-var text3 = external_exports.string().min(1).max(RELIABILITY_LIMITS.maxTextChars);
-var semver2 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
+var shortText42 = external_exports.string().min(1).max(RELIABILITY_LIMITS.maxShortTextChars);
+var text4 = external_exports.string().min(1).max(RELIABILITY_LIMITS.maxTextChars);
+var semver22 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
 var evaluationCheckSchema = external_exports.object({
   level: external_exports.enum(EVALUATION_CHECK_LEVELS),
   /** Stable identifier of the check itself (verifier name, criterion id). */
-  name: shortText32,
+  name: shortText42,
   outcome: external_exports.enum(EVALUATION_CHECK_OUTCOMES),
   /** False for advisory checks that never by themselves fail a task. */
   required: external_exports.boolean().default(true),
   /** Bounded, safe detail. Never raw model prose, never a stack trace. */
-  detail: text3.optional(),
+  detail: text4.optional(),
   /** Evidence reference (run id, verifier result key, criterion id). */
-  evidenceRef: shortText32.optional(),
+  evidenceRef: shortText42.optional(),
   durationMs: external_exports.number().int().min(0).nullable().default(null)
 }).passthrough();
 var semanticFindingSchema = external_exports.object({
   /** Acceptance criterion or contract id this finding relates to, if any. */
-  criterionId: shortText32.optional(),
+  criterionId: shortText42.optional(),
   severity: external_exports.enum(["blocking", "concern", "note"]),
   /** Bounded structured observation. Never chain-of-thought. */
-  observation: text3,
+  observation: text4,
   /** Repository path the finding points at, when it points at one. */
-  path: shortText32.optional()
+  path: shortText42.optional()
 }).passthrough();
 var evaluationResultSchema = external_exports.object({
-  schemaVersion: semver2,
-  evaluationId: shortText32,
-  jobId: shortText32,
-  nodeId: shortText32,
-  taskId: shortText32,
-  attemptId: shortText32,
+  schemaVersion: semver22,
+  evaluationId: shortText42,
+  jobId: shortText42,
+  nodeId: shortText42,
+  taskId: shortText42,
+  attemptId: shortText42,
   /** The economic lane the evaluated attempt ran on, for cross-lane analysis. */
-  lane: shortText32.nullable().default(null),
+  lane: shortText42.nullable().default(null),
   status: external_exports.enum(EVALUATION_STATUSES),
   /** Deterministic checks, in level order. Always populated. */
   deterministicChecks: external_exports.array(evaluationCheckSchema).max(RELIABILITY_LIMITS.maxChecks).default([]),
@@ -61780,33 +62369,33 @@ var evaluationResultSchema = external_exports.object({
   /** Structured semantic findings; proposals only, never authority. */
   semanticFindings: external_exports.array(semanticFindingSchema).max(RELIABILITY_LIMITS.maxFindings).default([]),
   /** Acceptance-criteria ids that did not hold. */
-  failedCriteria: external_exports.array(shortText32).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  failedCriteria: external_exports.array(shortText42).max(RELIABILITY_LIMITS.maxListItems).default([]),
   /** Run ids, verifier keys, patch refs backing this verdict. */
-  evidenceRefs: external_exports.array(shortText32).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
+  evidenceRefs: external_exports.array(shortText42).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
   /**
    * Normalized failure fingerprints observed during evaluation. These feed
    * no-progress detection directly, which is why they live on the durable
    * record rather than being recomputed from logs.
    */
-  failureSignals: external_exports.array(shortText32).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  failureSignals: external_exports.array(shortText42).max(RELIABILITY_LIMITS.maxListItems).default([]),
   /** Ordered, safe explanation of how the status was reached. */
-  reasons: external_exports.array(text3).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  reasons: external_exports.array(text4).max(RELIABILITY_LIMITS.maxListItems).default([]),
   /**
    * True when a semantic review ran AND the deterministic layers had
    * already passed. Recorded so the "semantic never overrides
    * deterministic" invariant is auditable after the fact.
    */
   semanticReviewRan: external_exports.boolean().default(false),
-  createdAt: shortText32
+  createdAt: shortText42
 }).passthrough();
 var failureAssessmentSchema = external_exports.object({
-  schemaVersion: semver2,
-  assessmentId: shortText32,
-  jobId: shortText32,
-  nodeId: shortText32,
-  taskId: shortText32,
-  attemptId: shortText32,
-  lane: shortText32.nullable().default(null),
+  schemaVersion: semver22,
+  assessmentId: shortText42,
+  jobId: shortText42,
+  nodeId: shortText42,
+  taskId: shortText42,
+  attemptId: shortText42,
+  lane: shortText42.nullable().default(null),
   /** The existing stable failure taxonomy, unchanged. */
   category: external_exports.enum(FAILURE_CATEGORIES),
   source: external_exports.enum(FAILURE_SOURCES),
@@ -61815,21 +62404,21 @@ var failureAssessmentSchema = external_exports.object({
   /** What this assessment rests on. Not a fabricated confidence number. */
   basis: external_exports.enum(ASSESSMENT_BASES),
   /** Deterministic identity of the failure (see failureFingerprint). */
-  fingerprint: shortText32,
+  fingerprint: shortText42,
   /** Identity of the working-tree change set this failure came with. */
-  diffFingerprint: shortText32.nullable().default(null),
+  diffFingerprint: shortText42.nullable().default(null),
   /** How many attempts on this task have ended with this fingerprint. */
   repeatedCount: external_exports.number().int().min(1).default(1),
   /** Bounded, safe statement of the likely cause. Never model prose. */
-  likelyCause: text3,
+  likelyCause: text4,
   /** A hint for the planner, which decides independently. */
   recommendedRecoveryClass: external_exports.enum(RECOVERY_ACTIONS).nullable().default(null),
   /** Health at the time of assessment, for the durable record. */
   health: external_exports.enum(EXECUTION_HEALTH_STATES).default("HEALTHY"),
   /** Runaway signals that fired, when the attempt was stopped for one. */
   runawaySignals: external_exports.array(external_exports.enum(RUNAWAY_SIGNALS)).max(RUNAWAY_SIGNALS.length).default([]),
-  evidenceRefs: external_exports.array(shortText32).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
-  createdAt: shortText32
+  evidenceRefs: external_exports.array(shortText42).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
+  createdAt: shortText42
 }).passthrough();
 var budgetSnapshotSchema = external_exports.object({
   attemptsUsed: external_exports.number().int().min(0),
@@ -61854,43 +62443,43 @@ var budgetSnapshotSchema = external_exports.object({
   reportedTokens: external_exports.number().int().min(0).nullable().default(null)
 }).passthrough();
 var recoveryStrategySchema = external_exports.object({
-  lane: shortText32.nullable().default(null),
-  executionMode: shortText32.nullable().default(null),
+  lane: shortText42.nullable().default(null),
+  executionMode: shortText42.nullable().default(null),
   planRevision: external_exports.number().int().min(0).default(0),
   /** Whether the next attempt starts from a rebuilt context. */
   freshContext: external_exports.boolean().default(false),
   /** Stable digest of the four fields above, for equality comparison. */
-  key: shortText32
+  key: shortText42
 }).passthrough();
 var recoveryDecisionSchema = external_exports.object({
-  schemaVersion: semver2,
-  decisionId: shortText32,
-  jobId: shortText32,
-  nodeId: shortText32,
-  taskId: shortText32,
+  schemaVersion: semver22,
+  decisionId: shortText42,
+  jobId: shortText42,
+  nodeId: shortText42,
+  taskId: shortText42,
   /** The attempt whose failure this decision responds to. */
-  attemptId: shortText32,
+  attemptId: shortText42,
   /** The assessment this decision was made from. */
-  assessmentId: shortText32.optional(),
+  assessmentId: shortText42.optional(),
   /** The evaluation this decision was made from, when one exists. */
-  evaluationId: shortText32.optional(),
+  evaluationId: shortText42.optional(),
   action: external_exports.enum(RECOVERY_ACTIONS),
   reasonCode: external_exports.enum(RECOVERY_REASON_CODES),
   /** Bounded, safe explanation. Written by policy, never by a model. */
-  reason: text3,
-  failureFingerprint: shortText32.nullable().default(null),
+  reason: text4,
+  failureFingerprint: shortText42.nullable().default(null),
   health: external_exports.enum(EXECUTION_HEALTH_STATES),
   /** What dimension of strategy this decision changes. */
   strategyChange: external_exports.enum(RECOVERY_STRATEGY_DIMENSIONS),
   previousStrategy: recoveryStrategySchema.optional(),
   nextStrategy: recoveryStrategySchema.optional(),
   budgetSnapshot: budgetSnapshotSchema,
-  evidenceRefs: external_exports.array(shortText32).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
+  evidenceRefs: external_exports.array(shortText42).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
   /**
    * What a human would need to do to unblock this task, when the action
    * stops automatic continuation. Bounded and actionable.
    */
-  remediation: external_exports.array(text3).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  remediation: external_exports.array(text4).max(RELIABILITY_LIMITS.maxListItems).default([]),
   /**
    * Set when the action REQUESTS stronger execution. It is a requirement,
    * not an authorization: spend policy and the scheduler still decide
@@ -61899,32 +62488,32 @@ var recoveryDecisionSchema = external_exports.object({
   requestedCapability: external_exports.object({
     /** 'STRONG' asks for stronger intelligence; 'REMOTE' asks for a paid lane. */
     kind: external_exports.enum(["STRONG", "REMOTE"]),
-    detail: text3
+    detail: text4
   }).passthrough().optional(),
   /** True when the decision was persisted but its attempt has not run yet. */
   applied: external_exports.boolean().default(false),
-  createdAt: shortText32
+  createdAt: shortText42
 }).passthrough();
 var reliabilityObservationSchema = external_exports.object({
-  attemptId: shortText32,
+  attemptId: shortText42,
   attemptNumber: external_exports.number().int().min(1),
-  failureFingerprint: shortText32.nullable().default(null),
-  diffFingerprint: shortText32.nullable().default(null),
-  strategyKey: shortText32.nullable().default(null),
+  failureFingerprint: shortText42.nullable().default(null),
+  diffFingerprint: shortText42.nullable().default(null),
+  strategyKey: shortText42.nullable().default(null),
   evaluationStatus: external_exports.enum(EVALUATION_STATUSES).nullable().default(null),
-  lane: shortText32.nullable().default(null),
-  at: shortText32
+  lane: shortText42.nullable().default(null),
+  at: shortText42
 }).passthrough();
 var taskReliabilityStateSchema = external_exports.object({
-  schemaVersion: semver2,
-  jobId: shortText32,
-  nodeId: shortText32,
-  taskId: shortText32,
+  schemaVersion: semver22,
+  jobId: shortText42,
+  nodeId: shortText42,
+  taskId: shortText42,
   health: external_exports.enum(EXECUTION_HEALTH_STATES).default("HEALTHY"),
   /** Rolling window, oldest first. */
   observations: external_exports.array(reliabilityObservationSchema).max(RELIABILITY_LIMITS.maxFingerprintHistory).default([]),
   /** Strategy keys already tried and failed on this task. */
-  exhaustedStrategies: external_exports.array(shortText32).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  exhaustedStrategies: external_exports.array(shortText42).max(RELIABILITY_LIMITS.maxListItems).default([]),
   /** Cumulative counters — the raw material for cost-of-failure analysis. */
   evaluationsFailed: external_exports.number().int().min(0).default(0),
   evaluationsInconclusive: external_exports.number().int().min(0).default(0),
@@ -61937,13 +62526,13 @@ var taskReliabilityStateSchema = external_exports.object({
   failedAttemptTokens: external_exports.number().int().min(0).nullable().default(null),
   failedAttemptCostUsd: external_exports.number().min(0).nullable().default(null),
   /** The decision the task is currently acting on, when one is pending. */
-  pendingDecisionId: shortText32.optional(),
-  updatedAt: shortText32
+  pendingDecisionId: shortText42.optional(),
+  updatedAt: shortText42
 }).passthrough();
 var TASK_RELIABILITY_SCHEMA_VERSION = "1.0.0";
-var ID_PATTERN3 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+var ID_PATTERN4 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 function assertRecordId(kind, id) {
-  if (!ID_PATTERN3.test(id)) {
+  if (!ID_PATTERN4.test(id)) {
     throw new OrchestrationError("SBO049", `Invalid ${kind} id "${id}".`, {
       remediation: ["Ids are generated by SpecBridge; pass one returned by a reliability operation."]
     });
@@ -61951,50 +62540,50 @@ function assertRecordId(kind, id) {
   return id;
 }
 function reliabilityDir(workspace, jobId) {
-  return assertInsideWorkspace(workspace.rootDir, import_path36.default.join(jobDir(workspace, jobId), "reliability"));
+  return assertInsideWorkspace(workspace.rootDir, import_path37.default.join(jobDir(workspace, jobId), "reliability"));
 }
 function recordDir(workspace, jobId, kind) {
-  return assertInsideWorkspace(workspace.rootDir, import_path36.default.join(reliabilityDir(workspace, jobId), kind));
+  return assertInsideWorkspace(workspace.rootDir, import_path37.default.join(reliabilityDir(workspace, jobId), kind));
 }
 function recordFile(workspace, jobId, kind, id) {
   assertRecordId(kind, id);
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path36.default.join(recordDir(workspace, jobId, kind), `${id}.json`)
+    import_path37.default.join(recordDir(workspace, jobId, kind), `${id}.json`)
   );
 }
 function writeRecord(file, value) {
-  (0, import_fs34.mkdirSync)(import_path36.default.dirname(file), { recursive: true });
+  (0, import_fs35.mkdirSync)(import_path37.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(value, null, 2)}
 `);
 }
 function readRecord(file, parse3) {
-  if (!(0, import_fs34.existsSync)(file)) return void 0;
+  if (!(0, import_fs35.existsSync)(file)) return void 0;
   try {
-    return parse3(JSON.parse((0, import_fs34.readFileSync)(file, "utf8")));
+    return parse3(JSON.parse((0, import_fs35.readFileSync)(file, "utf8")));
   } catch {
     return void 0;
   }
 }
 function listRecords(workspace, jobId, kind, parse3) {
   const dir = recordDir(workspace, jobId, kind);
-  if (!(0, import_fs34.existsSync)(dir)) return [];
+  if (!(0, import_fs35.existsSync)(dir)) return [];
   const records = [];
-  for (const entry2 of (0, import_fs34.readdirSync)(dir).sort()) {
+  for (const entry2 of (0, import_fs35.readdirSync)(dir).sort()) {
     if (!entry2.endsWith(".json")) continue;
-    const record32 = readRecord(import_path36.default.join(dir, entry2), parse3);
+    const record32 = readRecord(import_path37.default.join(dir, entry2), parse3);
     if (record32 !== void 0) records.push(record32);
   }
   return records;
 }
 function pruneRecords(workspace, jobId, kind, max) {
   const dir = recordDir(workspace, jobId, kind);
-  if (!(0, import_fs34.existsSync)(dir)) return;
-  const files = (0, import_fs34.readdirSync)(dir).filter((entry2) => entry2.endsWith(".json")).sort();
+  if (!(0, import_fs35.existsSync)(dir)) return;
+  const files = (0, import_fs35.readdirSync)(dir).filter((entry2) => entry2.endsWith(".json")).sort();
   if (files.length <= max) return;
   for (const stale of files.slice(0, files.length - max)) {
     try {
-      (0, import_fs34.rmSync)(import_path36.default.join(dir, stale), { force: true });
+      (0, import_fs35.rmSync)(import_path37.default.join(dir, stale), { force: true });
     } catch {
     }
   }
@@ -62063,7 +62652,7 @@ function taskStateFile(workspace, jobId, nodeId) {
   assertRecordId("node", nodeId);
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path36.default.join(recordDir(workspace, jobId, "tasks"), `${nodeId}.json`)
+    import_path37.default.join(recordDir(workspace, jobId, "tasks"), `${nodeId}.json`)
   );
 }
 function readTaskReliabilityState(workspace, jobId, nodeId) {
@@ -62132,10 +62721,10 @@ var SURVIVAL_LIMITS = {
   maxShortTextChars: STATE_LIMITS.maxShortTextChars,
   maxCheckpointsPerTask: 500
 };
-var shortText42 = external_exports.string().min(1).max(SURVIVAL_LIMITS.maxShortTextChars);
-var text4 = external_exports.string().min(1).max(SURVIVAL_LIMITS.maxTextChars);
-var textList22 = external_exports.array(text4).max(SURVIVAL_LIMITS.maxListItems);
-var semver22 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
+var shortText52 = external_exports.string().min(1).max(SURVIVAL_LIMITS.maxShortTextChars);
+var text5 = external_exports.string().min(1).max(SURVIVAL_LIMITS.maxTextChars);
+var textList3 = external_exports.array(text5).max(SURVIVAL_LIMITS.maxListItems);
+var semver3 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
 var attemptMetricsSchema = external_exports.object({
   durationMs: external_exports.number().int().min(0).nullable().default(null),
   inputTokens: external_exports.number().int().min(0).nullable().default(null),
@@ -62178,88 +62767,88 @@ var attemptMetricsSchema = external_exports.object({
   reconciledCostUsd: external_exports.number().min(0).nullable().default(null)
 }).passthrough();
 var taskAttemptSchema = external_exports.object({
-  schemaVersion: semver22,
-  attemptId: shortText42,
-  jobId: shortText42,
+  schemaVersion: semver3,
+  attemptId: shortText52,
+  jobId: shortText52,
   /** Runtime graph node this attempt executes (the Task's runtime identity). */
-  nodeId: shortText42,
+  nodeId: shortText52,
   /** The approved task id (stable across graph revisions). */
-  taskId: shortText42,
+  taskId: shortText52,
   role: external_exports.enum(AGENT_ROLES),
   /** Worker identity as the scheduler assigned it. */
-  workerId: shortText42,
+  workerId: shortText52,
   /**
    * Provider identity (runner/profile name). Identity is recorded for the
    * ledger and for audit — runtime logic branches on capabilities, never
    * on this value.
    */
-  provider: shortText42,
+  provider: shortText52,
   /** Model identity when known; null when the provider does not say. */
-  model: shortText42.nullable().default(null),
+  model: shortText52.nullable().default(null),
   status: external_exports.enum(TASK_ATTEMPT_STATUSES),
   /** 1-based position within this task's attempt history. */
   attemptNumber: external_exports.number().int().min(1),
-  startedAt: shortText42,
-  completedAt: shortText42.optional(),
+  startedAt: shortText52,
+  completedAt: shortText52.optional(),
   /** Bounded outcome summary — a claim, never evidence. */
-  resultSummary: text4.optional(),
+  resultSummary: text5.optional(),
   failure: external_exports.object({
     category: external_exports.enum(FAILURE_CATEGORIES),
-    message: text4
+    message: text5
   }).passthrough().optional(),
   /** Why an INTERRUPTED attempt was reconciled (e.g. "process-restart"). */
-  interruptedReason: shortText42.optional(),
+  interruptedReason: shortText52.optional(),
   /** Task checkpoints persisted during this attempt, oldest first. */
-  checkpointIds: external_exports.array(shortText42).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  checkpointIds: external_exports.array(shortText52).max(SURVIVAL_LIMITS.maxListItems).default([]),
   /** Execution run id (`.specbridge/runs/<id>`) when the evidence path ran. */
-  runId: shortText42.optional(),
+  runId: shortText52.optional(),
   /** The interrupted/failed attempt this one continues from (lineage). */
-  resumedFromAttemptId: shortText42.optional(),
+  resumedFromAttemptId: shortText52.optional(),
   /** Provider session reference — WORKING MEMORY only, never canonical. */
-  providerSessionId: shortText42.optional(),
+  providerSessionId: shortText52.optional(),
   /** Scheduling lane (vNext.2: LOCAL / SUBSCRIPTION), when assigned. */
-  lane: shortText42.optional(),
+  lane: shortText52.optional(),
   // vNext.2 scheduling attribution (additive; audit and ledger inputs,
   // never runtime policy — policy reads live configuration and telemetry).
   /** Deterministic local-suitability class the scheduler assigned. */
-  localSuitability: shortText42.optional(),
+  localSuitability: shortText52.optional(),
   /** Complexity class the task carried when the attempt was scheduled. */
-  taskComplexity: shortText42.optional(),
+  taskComplexity: shortText52.optional(),
   /** Coarse task category from the suitability classifier. */
-  taskCategory: shortText42.optional(),
+  taskCategory: shortText52.optional(),
   /** The SchedulingDecision that routed this attempt, when one exists. */
-  schedulingDecisionId: shortText42.optional(),
+  schedulingDecisionId: shortText52.optional(),
   // vNext.4 local execution attribution (additive; absent on pre-vNext.4
   // attempts and on every SUBSCRIPTION attempt).
   /** LOCAL execution mode: DIRECT_MODEL or HARNESS. Orthogonal to lane. */
-  executionMode: shortText42.optional(),
+  executionMode: shortText52.optional(),
   /** Deterministic execution shape the resolver classified. */
-  executionShape: shortText42.optional(),
+  executionShape: shortText52.optional(),
   /** Verified compute locality of the runner that executed this attempt. */
-  computeLocality: shortText42.optional(),
+  computeLocality: shortText52.optional(),
   // vNext.5 API-lane attribution (additive; absent on every LOCAL and
   // SUBSCRIPTION attempt and on every pre-vNext.5 record). Each field is
   // ORTHOGONAL: `lane` says whether this was paid, `provider`/`model` say
   // which intelligence ran it, `executionMode`/`computeLocality` say how
   // and where. Nothing is ever collapsed into a compound value.
   /** The spend authorization mode in force when the attempt was dispatched. */
-  apiSpendMode: shortText42.optional(),
+  apiSpendMode: shortText52.optional(),
   /** Why subscription capacity was unavailable (the gap's cause). */
-  gapReason: shortText42.optional(),
+  gapReason: shortText52.optional(),
   /** When subscription capacity was expected back, when known. */
-  subscriptionAvailableAt: shortText42.optional(),
+  subscriptionAvailableAt: shortText52.optional(),
   /** Expected gap duration in milliseconds, when known. */
   estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null).optional(),
   /** How the recorded cost was determined (see API_COST_SOURCES). */
-  costSource: shortText42.optional(),
+  costSource: shortText52.optional(),
   /** Operator pricing profile the estimate used, for attribution. */
-  pricingProfile: shortText42.optional(),
+  pricingProfile: shortText52.optional(),
   /** The budget reservation funding this attempt. */
-  apiBudgetReservationId: shortText42.optional(),
+  apiBudgetReservationId: shortText52.optional(),
   /** The bounded human authorization this attempt consumed, when one applied. */
-  apiApprovalId: shortText42.optional(),
+  apiApprovalId: shortText52.optional(),
   /** Deterministic delay-sensitivity level that justified paid bridging. */
-  delaySensitivity: shortText42.optional(),
+  delaySensitivity: shortText52.optional(),
   // vNext.8 adaptive attribution (additive; absent on every pre-vNext.8
   // record). These three exist so historical observations can be GROUPED
   // and their runtime identity CHECKED without re-deriving either from
@@ -62267,126 +62856,126 @@ var taskAttemptSchema = external_exports.object({
   // months later under changed heuristics would silently re-file old
   // attempts into buckets they were never measured in.
   /** The coarse TaskSignature key this attempt was dispatched under. */
-  taskSignature: shortText42.optional(),
+  taskSignature: shortText52.optional(),
   /** vNext.7 context strategy in force for this attempt. */
-  contextStrategy: shortText42.optional(),
+  contextStrategy: shortText52.optional(),
   /**
    * Runner/runtime version when the provider reported one. Absent means
    * UNKNOWN — never assumed to match the version running now, because a
    * silent version change is exactly the case this field exists to catch.
    */
-  runnerVersion: shortText42.optional(),
+  runnerVersion: shortText52.optional(),
   metrics: attemptMetricsSchema.default({})
 }).passthrough();
 var checkpointDecisionSchema = external_exports.object({
-  decision: text4,
-  rationale: text4.optional(),
-  at: shortText42.optional(),
-  decidedBy: shortText42.optional()
+  decision: text5,
+  rationale: text5.optional(),
+  at: shortText52.optional(),
+  decidedBy: shortText52.optional()
 }).passthrough();
 var failedApproachSchema = external_exports.object({
-  approach: text4,
-  reason: text4,
-  at: shortText42.optional(),
+  approach: text5,
+  reason: text5,
+  at: shortText52.optional(),
   /** Evidence reference (run id, test name) backing the failure claim. */
-  evidenceRef: shortText42.optional()
+  evidenceRef: shortText52.optional()
 }).passthrough();
 var checkpointTestResultSchema = external_exports.object({
-  name: shortText42,
+  name: shortText52,
   status: external_exports.enum(["passed", "failed", "skipped", "unknown"]),
-  summary: text4.optional()
+  summary: text5.optional()
 }).passthrough();
 var checkpointRepositoryStateSchema = external_exports.object({
-  branch: shortText42.optional(),
-  head: shortText42.optional(),
+  branch: shortText52.optional(),
+  head: shortText52.optional(),
   detached: external_exports.boolean().optional(),
   clean: external_exports.boolean().optional(),
   /** Paths dirty at checkpoint time (bounded; the diff itself lives in runs/). */
-  dirtyPaths: external_exports.array(shortText42).max(SURVIVAL_LIMITS.maxChangedFiles).default([]),
+  dirtyPaths: external_exports.array(shortText52).max(SURVIVAL_LIMITS.maxChangedFiles).default([]),
   /** Reference to a stored diff artifact, when one exists. */
-  diffRef: shortText42.optional(),
+  diffRef: shortText52.optional(),
   /** The commit execution started from, when known. */
-  baselineHead: shortText42.optional()
+  baselineHead: shortText52.optional()
 }).passthrough();
 var checkpointPinnedContextSchema = external_exports.object({
   /** The task contract: what this task IS, verbatim and bounded. */
-  taskContract: text4,
-  acceptanceCriteria: textList22.default([]),
+  taskContract: text5,
+  acceptanceCriteria: textList3.default([]),
   /** Architecture/repository rules constraining every attempt. */
-  constraints: textList22.default([]),
+  constraints: textList3.default([]),
   /** Critical invariants that override any convenient shortcut. */
-  invariants: textList22.default([])
+  invariants: textList3.default([])
 }).passthrough();
 var taskCheckpointSchema = external_exports.object({
-  schemaVersion: semver22,
-  checkpointId: shortText42,
-  jobId: shortText42,
-  nodeId: shortText42,
-  taskId: shortText42,
+  schemaVersion: semver3,
+  checkpointId: shortText52,
+  jobId: shortText52,
+  nodeId: shortText52,
+  taskId: shortText52,
   /** The attempt that persisted this checkpoint. */
-  attemptId: shortText42,
+  attemptId: shortText52,
   /** 1-based, strictly increasing per task. */
   seq: external_exports.number().int().min(1),
   reason: external_exports.enum(TASK_CHECKPOINT_REASONS),
   /** What this task is trying to achieve right now. */
-  objective: text4,
+  objective: text5,
   pinned: checkpointPinnedContextSchema,
-  completedWork: textList22.default([]),
-  pendingWork: textList22.default([]),
+  completedWork: textList3.default([]),
+  pendingWork: textList3.default([]),
   importantDecisions: external_exports.array(checkpointDecisionSchema).max(SURVIVAL_LIMITS.maxListItems).default([]),
   failedApproaches: external_exports.array(failedApproachSchema).max(SURVIVAL_LIMITS.maxListItems).default([]),
   changedFiles: external_exports.array(
-    external_exports.object({ path: shortText42, note: shortText42.optional() }).passthrough()
+    external_exports.object({ path: shortText52, note: shortText52.optional() }).passthrough()
   ).max(SURVIVAL_LIMITS.maxChangedFiles).default([]),
   repositoryState: checkpointRepositoryStateSchema.default({}),
   testResults: external_exports.array(checkpointTestResultSchema).max(SURVIVAL_LIMITS.maxListItems).default([]),
-  knownFailures: textList22.default([]),
-  unresolvedIssues: textList22.default([]),
+  knownFailures: textList3.default([]),
+  unresolvedIssues: textList3.default([]),
   /** The exact next actions, in order. Resume continues from here. */
-  nextActions: external_exports.array(text4).min(1).max(SURVIVAL_LIMITS.maxListItems),
+  nextActions: external_exports.array(text5).min(1).max(SURVIVAL_LIMITS.maxListItems),
   /** Artifact references (run ids, agent results, candidate refs). */
-  relevantArtifacts: external_exports.array(shortText42).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  relevantArtifacts: external_exports.array(shortText52).max(SURVIVAL_LIMITS.maxListItems).default([]),
   /** Context references worth re-retrieving (paths, docs), never content. */
-  relevantContextReferences: external_exports.array(shortText42).max(SURVIVAL_LIMITS.maxListItems).default([]),
-  createdAt: shortText42
+  relevantContextReferences: external_exports.array(shortText52).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  createdAt: shortText52
 }).passthrough();
 var executionLedgerEntrySchema = external_exports.object({
-  attemptId: shortText42,
-  jobId: shortText42,
-  nodeId: shortText42,
-  taskId: shortText42,
+  attemptId: shortText52,
+  jobId: shortText52,
+  nodeId: shortText52,
+  taskId: shortText52,
   role: external_exports.enum(AGENT_ROLES),
-  provider: shortText42,
-  model: shortText42.nullable(),
-  lane: shortText42.nullable(),
+  provider: shortText52,
+  model: shortText52.nullable(),
+  lane: shortText52.nullable(),
   status: external_exports.enum(TASK_ATTEMPT_STATUSES),
   attemptNumber: external_exports.number().int().min(1),
-  startedAt: shortText42,
-  completedAt: shortText42.nullable(),
+  startedAt: shortText52,
+  completedAt: shortText52.nullable(),
   success: external_exports.boolean(),
-  failureReason: shortText42.nullable(),
+  failureReason: shortText52.nullable(),
   // vNext.2 scheduling attribution (additive; null when never assigned).
-  localSuitability: shortText42.nullable().default(null),
-  taskComplexity: shortText42.nullable().default(null),
-  taskCategory: shortText42.nullable().default(null),
-  schedulingDecisionId: shortText42.nullable().default(null),
+  localSuitability: shortText52.nullable().default(null),
+  taskComplexity: shortText52.nullable().default(null),
+  taskCategory: shortText52.nullable().default(null),
+  schedulingDecisionId: shortText52.nullable().default(null),
   // vNext.4 local execution attribution (additive; null when unassigned).
-  executionMode: shortText42.nullable().default(null),
-  executionShape: shortText42.nullable().default(null),
-  computeLocality: shortText42.nullable().default(null),
+  executionMode: shortText52.nullable().default(null),
+  executionShape: shortText52.nullable().default(null),
+  computeLocality: shortText52.nullable().default(null),
   // vNext.5 API economics (additive; null on every unpaid attempt). These
   // are what makes later analysis possible without a second database:
   // cost per successful task, cost by task type, bridge success rate, and
   // money spent versus subscription wait avoided all derive from here.
-  apiSpendMode: shortText42.nullable().default(null),
-  gapReason: shortText42.nullable().default(null),
-  subscriptionAvailableAt: shortText42.nullable().default(null),
+  apiSpendMode: shortText52.nullable().default(null),
+  gapReason: shortText52.nullable().default(null),
+  subscriptionAvailableAt: shortText52.nullable().default(null),
   estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null),
-  costSource: shortText42.nullable().default(null),
-  pricingProfile: shortText42.nullable().default(null),
-  apiBudgetReservationId: shortText42.nullable().default(null),
-  apiApprovalId: shortText42.nullable().default(null),
-  delaySensitivity: shortText42.nullable().default(null),
+  costSource: shortText52.nullable().default(null),
+  pricingProfile: shortText52.nullable().default(null),
+  apiBudgetReservationId: shortText52.nullable().default(null),
+  apiApprovalId: shortText52.nullable().default(null),
+  delaySensitivity: shortText52.nullable().default(null),
   // vNext.6 reliability attribution (additive; null on every pre-vNext.6
   // record and on any attempt the reliability layer did not govern).
   //
@@ -62398,32 +62987,32 @@ var executionLedgerEntrySchema = external_exports.object({
   // which questions were worth asking would foreclose the ones that turn
   // out to matter.
   /** Verdict on this attempt: PASS / FAIL / INCONCLUSIVE. */
-  evaluationStatus: shortText42.nullable().default(null),
-  evaluationId: shortText42.nullable().default(null),
+  evaluationStatus: shortText52.nullable().default(null),
+  evaluationId: shortText52.nullable().default(null),
   /** WHERE the failure came from, orthogonal to `failureReason`. */
-  failureSource: shortText42.nullable().default(null),
+  failureSource: shortText52.nullable().default(null),
   /** Deterministic failure identity, for cross-attempt repetition analysis. */
-  failureFingerprint: shortText42.nullable().default(null),
+  failureFingerprint: shortText52.nullable().default(null),
   /** Deterministic progress health at the time of the failure. */
-  executionHealth: shortText42.nullable().default(null),
+  executionHealth: shortText52.nullable().default(null),
   /** The recovery action SpecBridge chose after this attempt. */
-  recoveryAction: shortText42.nullable().default(null),
-  recoveryReasonCode: shortText42.nullable().default(null),
-  recoveryDecisionId: shortText42.nullable().default(null),
+  recoveryAction: shortText52.nullable().default(null),
+  recoveryReasonCode: shortText52.nullable().default(null),
+  recoveryDecisionId: shortText52.nullable().default(null),
   /** Which dimension of strategy the recovery changed, if any. */
-  strategyChange: shortText42.nullable().default(null),
+  strategyChange: shortText52.nullable().default(null),
   // vNext.8 adaptive attribution (additive; null on every pre-vNext.8
   // record). The adaptive layer reads history through this read model, so
   // the grouping key and the runtime identity have to travel with the
   // observation rather than being reconstructed from it.
-  taskSignature: shortText42.nullable().default(null),
-  contextStrategy: shortText42.nullable().default(null),
-  runnerVersion: shortText42.nullable().default(null),
+  taskSignature: shortText52.nullable().default(null),
+  contextStrategy: shortText52.nullable().default(null),
+  runnerVersion: shortText52.nullable().default(null),
   metrics: attemptMetricsSchema
 }).passthrough();
-var ID_PATTERN4 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+var ID_PATTERN5 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 function assertRecordId2(kind, id) {
-  if (!ID_PATTERN4.test(id)) {
+  if (!ID_PATTERN5.test(id)) {
     throw new OrchestrationError("SBO049", `Invalid ${kind} id "${id}".`, {
       remediation: ["Ids are generated by SpecBridge; pass one returned by a survival operation."]
     });
@@ -62433,33 +63022,33 @@ function assertRecordId2(kind, id) {
 function taskAttemptsDir(workspace, jobId) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path37.default.join(jobDir(workspace, jobId), "task-attempts")
+    import_path38.default.join(jobDir(workspace, jobId), "task-attempts")
   );
 }
 function taskAttemptFile(workspace, jobId, attemptId) {
   assertRecordId2("attempt", attemptId);
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path37.default.join(taskAttemptsDir(workspace, jobId), `${attemptId}.json`)
+    import_path38.default.join(taskAttemptsDir(workspace, jobId), `${attemptId}.json`)
   );
 }
 function taskCheckpointsDir(workspace, jobId, nodeId) {
   assertRecordId2("node", nodeId);
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path37.default.join(jobDir(workspace, jobId), "task-checkpoints", nodeId)
+    import_path38.default.join(jobDir(workspace, jobId), "task-checkpoints", nodeId)
   );
 }
 function writeNewTaskAttempt(workspace, attempt) {
   const validated = taskAttemptSchema.parse(attempt);
   const file = taskAttemptFile(workspace, validated.jobId, validated.attemptId);
-  if ((0, import_fs35.existsSync)(file)) {
+  if ((0, import_fs36.existsSync)(file)) {
     throw new OrchestrationError(
       "SBO049",
       `Attempt ${validated.attemptId} already exists; attempts are append-only.`
     );
   }
-  (0, import_fs35.mkdirSync)(import_path37.default.dirname(file), { recursive: true });
+  (0, import_fs36.mkdirSync)(import_path38.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return validated;
@@ -62467,7 +63056,7 @@ function writeNewTaskAttempt(workspace, attempt) {
 function updateTaskAttempt(workspace, attempt) {
   const validated = taskAttemptSchema.parse(attempt);
   const file = taskAttemptFile(workspace, validated.jobId, validated.attemptId);
-  if (!(0, import_fs35.existsSync)(file)) {
+  if (!(0, import_fs36.existsSync)(file)) {
     throw new OrchestrationError(
       "SBO049",
       `Attempt ${validated.attemptId} does not exist; create it with writeNewTaskAttempt first.`
@@ -62479,9 +63068,9 @@ function updateTaskAttempt(workspace, attempt) {
 }
 function readTaskAttempt(workspace, jobId, attemptId) {
   const file = taskAttemptFile(workspace, jobId, attemptId);
-  if (!(0, import_fs35.existsSync)(file)) return void 0;
+  if (!(0, import_fs36.existsSync)(file)) return void 0;
   try {
-    const parsed = taskAttemptSchema.safeParse(JSON.parse((0, import_fs35.readFileSync)(file, "utf8")));
+    const parsed = taskAttemptSchema.safeParse(JSON.parse((0, import_fs36.readFileSync)(file, "utf8")));
     return parsed.success ? parsed.data : void 0;
   } catch {
     return void 0;
@@ -62489,13 +63078,13 @@ function readTaskAttempt(workspace, jobId, attemptId) {
 }
 function listTaskAttempts(workspace, jobId, options = {}) {
   const dir = taskAttemptsDir(workspace, jobId);
-  if (!(0, import_fs35.existsSync)(dir)) return [];
+  if (!(0, import_fs36.existsSync)(dir)) return [];
   const attempts = [];
-  for (const entry2 of (0, import_fs35.readdirSync)(dir, { withFileTypes: true })) {
+  for (const entry2 of (0, import_fs36.readdirSync)(dir, { withFileTypes: true })) {
     if (!entry2.isFile() || !entry2.name.endsWith(".json")) continue;
     try {
       const parsed = taskAttemptSchema.safeParse(
-        JSON.parse((0, import_fs35.readFileSync)(import_path37.default.join(dir, entry2.name), "utf8"))
+        JSON.parse((0, import_fs36.readFileSync)(import_path38.default.join(dir, entry2.name), "utf8"))
       );
       if (!parsed.success) continue;
       if (options.nodeId !== void 0 && parsed.data.nodeId !== options.nodeId) continue;
@@ -62518,24 +63107,24 @@ function writeTaskCheckpoint(workspace, checkpoint) {
   const dir = taskCheckpointsDir(workspace, validated.jobId, validated.nodeId);
   const file = assertInsideWorkspace(
     workspace.rootDir,
-    import_path37.default.join(dir, `${String(validated.seq).padStart(4, "0")}.json`)
+    import_path38.default.join(dir, `${String(validated.seq).padStart(4, "0")}.json`)
   );
-  if ((0, import_fs35.existsSync)(file)) {
+  if ((0, import_fs36.existsSync)(file)) {
     throw new OrchestrationError(
       "SBO050",
       `Checkpoint seq ${validated.seq} for node ${validated.nodeId} already exists; checkpoints are append-only.`
     );
   }
-  (0, import_fs35.mkdirSync)(dir, { recursive: true });
+  (0, import_fs36.mkdirSync)(dir, { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return { checkpoint: validated, file };
 }
 function listTaskCheckpointSeqs(workspace, jobId, nodeId) {
   const dir = taskCheckpointsDir(workspace, jobId, nodeId);
-  if (!(0, import_fs35.existsSync)(dir)) return [];
+  if (!(0, import_fs36.existsSync)(dir)) return [];
   const seqs = [];
-  for (const name of (0, import_fs35.readdirSync)(dir).sort()) {
+  for (const name of (0, import_fs36.readdirSync)(dir).sort()) {
     if (!/^\d{4}\.json$/.test(name)) continue;
     seqs.push(Number.parseInt(name.slice(0, 4), 10));
   }
@@ -62544,10 +63133,10 @@ function listTaskCheckpointSeqs(workspace, jobId, nodeId) {
 function readTaskCheckpoint(workspace, jobId, nodeId, seq) {
   if (!Number.isInteger(seq) || seq < 1) return void 0;
   const dir = taskCheckpointsDir(workspace, jobId, nodeId);
-  const file = import_path37.default.join(dir, `${String(seq).padStart(4, "0")}.json`);
-  if (!(0, import_fs35.existsSync)(file)) return void 0;
+  const file = import_path38.default.join(dir, `${String(seq).padStart(4, "0")}.json`);
+  if (!(0, import_fs36.existsSync)(file)) return void 0;
   try {
-    const parsed = taskCheckpointSchema.safeParse(JSON.parse((0, import_fs35.readFileSync)(file, "utf8")));
+    const parsed = taskCheckpointSchema.safeParse(JSON.parse((0, import_fs36.readFileSync)(file, "utf8")));
     return parsed.success ? parsed.data : void 0;
   } catch {
     return void 0;
@@ -62894,14 +63483,14 @@ function summarizeExecutionLedger(entries) {
   return { totalAttempts: entries.length, byProvider, reliability };
 }
 var API_BUDGET_SCHEMA_VERSION = "1.0.0";
-var shortText52 = external_exports.string().min(1).max(200);
+var shortText6 = external_exports.string().min(1).max(200);
 var apiBudgetReservationSchema = external_exports.object({
-  reservationId: shortText52,
-  jobId: shortText52,
-  nodeId: shortText52,
-  taskId: shortText52,
+  reservationId: shortText6,
+  jobId: shortText6,
+  nodeId: shortText6,
+  taskId: shortText6,
   /** The durable attempt this reservation funds; null until dispatch. */
-  attemptId: shortText52.nullable().default(null),
+  attemptId: shortText6.nullable().default(null),
   state: external_exports.enum(API_BUDGET_RESERVATION_STATES),
   /** The safe estimated cost held at reservation time, in USD. */
   reservedUsd: external_exports.number().min(0),
@@ -62910,35 +63499,35 @@ var apiBudgetReservationSchema = external_exports.object({
   /** How `reconciledUsd` was determined. */
   costSource: external_exports.enum(API_COST_SOURCES).default("ESTIMATED_PRE_DISPATCH"),
   /** The API profile the reservation was made for (audit). */
-  profileName: shortText52.nullable().default(null),
-  createdAt: shortText52,
-  updatedAt: shortText52,
+  profileName: shortText6.nullable().default(null),
+  createdAt: shortText6,
+  updatedAt: shortText6,
   detail: external_exports.string().max(1e3).default("")
 }).passthrough();
 var apiBudgetStateSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  jobId: shortText52,
+  jobId: shortText6,
   reservations: external_exports.array(apiBudgetReservationSchema).max(5e3).default([]),
-  updatedAt: shortText52
+  updatedAt: shortText6
 }).passthrough();
 function budgetDir(workspace, jobId) {
-  return assertInsideWorkspace(workspace.rootDir, import_path38.default.join(jobDir(workspace, jobId), "api-budget"));
+  return assertInsideWorkspace(workspace.rootDir, import_path39.default.join(jobDir(workspace, jobId), "api-budget"));
 }
 function budgetFile(workspace, jobId) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path38.default.join(budgetDir(workspace, jobId), "reservations.json")
+    import_path39.default.join(budgetDir(workspace, jobId), "reservations.json")
   );
 }
 function budgetLockFile(workspace, jobId) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path38.default.join(budgetDir(workspace, jobId), "reservations.lock")
+    import_path39.default.join(budgetDir(workspace, jobId), "reservations.lock")
   );
 }
 function readApiBudgetState(workspace, jobId) {
   const file = budgetFile(workspace, jobId);
-  if (!(0, import_fs36.existsSync)(file)) {
+  if (!(0, import_fs37.existsSync)(file)) {
     return {
       schemaVersion: API_BUDGET_SCHEMA_VERSION,
       jobId,
@@ -62948,7 +63537,7 @@ function readApiBudgetState(workspace, jobId) {
   }
   const parsed = (() => {
     try {
-      return apiBudgetStateSchema.safeParse(JSON.parse((0, import_fs36.readFileSync)(file, "utf8")));
+      return apiBudgetStateSchema.safeParse(JSON.parse((0, import_fs37.readFileSync)(file, "utf8")));
     } catch {
       return { success: false };
     }
@@ -62968,10 +63557,10 @@ function readApiBudgetState(workspace, jobId) {
 }
 function withBudgetLock(workspace, jobId, now52, mutate) {
   const dir = budgetDir(workspace, jobId);
-  (0, import_fs36.mkdirSync)(dir, { recursive: true });
+  (0, import_fs37.mkdirSync)(dir, { recursive: true });
   const lockPath = budgetLockFile(workspace, jobId);
   try {
-    (0, import_fs36.writeFileSync)(lockPath, `${JSON.stringify({ jobId, at: now52 })}
+    (0, import_fs37.writeFileSync)(lockPath, `${JSON.stringify({ jobId, at: now52 })}
 `, { flag: "wx" });
   } catch {
     throw new OrchestrationError(
@@ -62994,7 +63583,7 @@ function withBudgetLock(workspace, jobId, now52, mutate) {
     return result;
   } finally {
     try {
-      (0, import_fs36.rmSync)(lockPath, { force: true });
+      (0, import_fs37.rmSync)(lockPath, { force: true });
     } catch {
     }
   }
@@ -63175,7 +63764,7 @@ function reconcileApiBudget(input) {
 }
 function reconcileInterruptedApiReservations(workspace, jobId, now52, reason = "process-restart") {
   const iso = now52.toISOString();
-  if (!(0, import_fs36.existsSync)(budgetFile(workspace, jobId))) return [];
+  if (!(0, import_fs37.existsSync)(budgetFile(workspace, jobId))) return [];
   return withBudgetLock(workspace, jobId, iso, (state) => {
     const reconciled = [];
     const reservations = state.reservations.map((entry2) => {
@@ -63193,9 +63782,9 @@ function reconcileInterruptedApiReservations(workspace, jobId, now52, reason = "
     return { state: { ...state, reservations }, result: reconciled };
   });
 }
-var ID_PATTERN5 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
+var ID_PATTERN6 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 function assertRecordId3(kind, id) {
-  if (!ID_PATTERN5.test(id)) {
+  if (!ID_PATTERN6.test(id)) {
     throw new OrchestrationError("SBO049", `Invalid context ${kind} id "${id}".`, {
       remediation: ["Ids are generated by SpecBridge; pass one returned by a context operation."]
     });
@@ -63203,19 +63792,19 @@ function assertRecordId3(kind, id) {
   return id;
 }
 function contextCacheDir(workspace) {
-  return assertInsideWorkspace(workspace.rootDir, import_path39.default.join(workspace.sidecarDir, "cache"));
+  return assertInsideWorkspace(workspace.rootDir, import_path40.default.join(workspace.sidecarDir, "cache"));
 }
 function repositoryIndexFile(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path39.default.join(contextCacheDir(workspace), "context-index.json")
+    import_path40.default.join(contextCacheDir(workspace), "context-index.json")
   );
 }
 function readRepositoryIndexCache(workspace) {
   const file = repositoryIndexFile(workspace);
-  if (!(0, import_fs37.existsSync)(file)) return void 0;
+  if (!(0, import_fs38.existsSync)(file)) return void 0;
   try {
-    const parsed = repositoryContextIndexSchema.safeParse(JSON.parse((0, import_fs37.readFileSync)(file, "utf8")));
+    const parsed = repositoryContextIndexSchema.safeParse(JSON.parse((0, import_fs38.readFileSync)(file, "utf8")));
     return parsed.success ? parsed.data : void 0;
   } catch {
     return void 0;
@@ -63224,25 +63813,25 @@ function readRepositoryIndexCache(workspace) {
 function writeRepositoryIndexCache(workspace, state) {
   const validated = repositoryContextIndexSchema.parse(state);
   const file = repositoryIndexFile(workspace);
-  (0, import_fs37.mkdirSync)(import_path39.default.dirname(file), { recursive: true });
+  (0, import_fs38.mkdirSync)(import_path40.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated)}
 `);
 }
 function jobContextDir(workspace, jobId) {
-  return assertInsideWorkspace(workspace.rootDir, import_path39.default.join(jobDir(workspace, jobId), "context"));
+  return assertInsideWorkspace(workspace.rootDir, import_path40.default.join(jobDir(workspace, jobId), "context"));
 }
 function expansionFile(workspace, jobId, nodeId) {
   assertRecordId3("node", nodeId);
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path39.default.join(jobContextDir(workspace, jobId), "expansion", `${nodeId}.json`)
+    import_path40.default.join(jobContextDir(workspace, jobId), "expansion", `${nodeId}.json`)
   );
 }
 function readContextExpansionState(workspace, jobId, nodeId) {
   const file = expansionFile(workspace, jobId, nodeId);
-  if (!(0, import_fs37.existsSync)(file)) return void 0;
+  if (!(0, import_fs38.existsSync)(file)) return void 0;
   try {
-    const parsed = contextExpansionStateSchema.safeParse(JSON.parse((0, import_fs37.readFileSync)(file, "utf8")));
+    const parsed = contextExpansionStateSchema.safeParse(JSON.parse((0, import_fs38.readFileSync)(file, "utf8")));
     return parsed.success ? parsed.data : void 0;
   } catch {
     return void 0;
@@ -63251,7 +63840,7 @@ function readContextExpansionState(workspace, jobId, nodeId) {
 function writeContextExpansionState(workspace, jobId, nodeId, state) {
   const validated = contextExpansionStateSchema.parse(state);
   const file = expansionFile(workspace, jobId, nodeId);
-  (0, import_fs37.mkdirSync)(import_path39.default.dirname(file), { recursive: true });
+  (0, import_fs38.mkdirSync)(import_path40.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return validated;
@@ -63260,27 +63849,27 @@ function planFile(workspace, jobId, planId) {
   assertRecordId3("plan", planId);
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path39.default.join(jobContextDir(workspace, jobId), "plans", `${planId}.json`)
+    import_path40.default.join(jobContextDir(workspace, jobId), "plans", `${planId}.json`)
   );
 }
 function writeContextSelectionPlan(workspace, plan) {
   const validated = contextSelectionPlanSchema.parse(plan);
   if (validated.jobId === void 0) return validated;
   const file = planFile(workspace, validated.jobId, validated.planId);
-  (0, import_fs37.mkdirSync)(import_path39.default.dirname(file), { recursive: true });
+  (0, import_fs38.mkdirSync)(import_path40.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return validated;
 }
 function listContextSelectionPlans(workspace, jobId, options = {}) {
-  const dir = import_path39.default.join(jobContextDir(workspace, jobId), "plans");
-  if (!(0, import_fs37.existsSync)(dir)) return [];
+  const dir = import_path40.default.join(jobContextDir(workspace, jobId), "plans");
+  if (!(0, import_fs38.existsSync)(dir)) return [];
   const plans = [];
-  for (const entry2 of (0, import_fs37.readdirSync)(dir, { withFileTypes: true })) {
+  for (const entry2 of (0, import_fs38.readdirSync)(dir, { withFileTypes: true })) {
     if (!entry2.isFile() || !entry2.name.endsWith(".json")) continue;
     try {
       const parsed = contextSelectionPlanSchema.safeParse(
-        JSON.parse((0, import_fs37.readFileSync)(import_path39.default.join(dir, entry2.name), "utf8"))
+        JSON.parse((0, import_fs38.readFileSync)(import_path40.default.join(dir, entry2.name), "utf8"))
       );
       if (!parsed.success) continue;
       if (options.nodeId !== void 0 && parsed.data.nodeId !== options.nodeId) continue;
@@ -63298,36 +63887,36 @@ function metricsFile(workspace, jobId, attemptId) {
   assertRecordId3("attempt", attemptId);
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path39.default.join(jobContextDir(workspace, jobId), "metrics", `${attemptId}.json`)
+    import_path40.default.join(jobContextDir(workspace, jobId), "metrics", `${attemptId}.json`)
   );
 }
 function writeContextMetrics(workspace, jobId, attemptId, metrics) {
   const validated = contextEfficiencyMetricsSchema.parse(metrics);
   const file = metricsFile(workspace, jobId, attemptId);
-  (0, import_fs37.mkdirSync)(import_path39.default.dirname(file), { recursive: true });
+  (0, import_fs38.mkdirSync)(import_path40.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return validated;
 }
 function readContextMetrics(workspace, jobId, attemptId) {
   const file = metricsFile(workspace, jobId, attemptId);
-  if (!(0, import_fs37.existsSync)(file)) return void 0;
+  if (!(0, import_fs38.existsSync)(file)) return void 0;
   try {
-    const parsed = contextEfficiencyMetricsSchema.safeParse(JSON.parse((0, import_fs37.readFileSync)(file, "utf8")));
+    const parsed = contextEfficiencyMetricsSchema.safeParse(JSON.parse((0, import_fs38.readFileSync)(file, "utf8")));
     return parsed.success ? parsed.data : void 0;
   } catch {
     return void 0;
   }
 }
 function listContextMetricEntries(workspace, jobId) {
-  const dir = import_path39.default.join(jobContextDir(workspace, jobId), "metrics");
-  if (!(0, import_fs37.existsSync)(dir)) return [];
+  const dir = import_path40.default.join(jobContextDir(workspace, jobId), "metrics");
+  if (!(0, import_fs38.existsSync)(dir)) return [];
   const records = [];
-  for (const entry2 of (0, import_fs37.readdirSync)(dir, { withFileTypes: true })) {
+  for (const entry2 of (0, import_fs38.readdirSync)(dir, { withFileTypes: true })) {
     if (!entry2.isFile() || !entry2.name.endsWith(".json")) continue;
     try {
       const parsed = contextEfficiencyMetricsSchema.safeParse(
-        JSON.parse((0, import_fs37.readFileSync)(import_path39.default.join(dir, entry2.name), "utf8"))
+        JSON.parse((0, import_fs38.readFileSync)(import_path40.default.join(dir, entry2.name), "utf8"))
       );
       if (parsed.success) {
         records.push({ attemptId: entry2.name.slice(0, -".json".length), metrics: parsed.data });
@@ -63341,14 +63930,14 @@ function listContextMetricEntries(workspace, jobId) {
   );
 }
 function listContextMetrics(workspace, jobId) {
-  const dir = import_path39.default.join(jobContextDir(workspace, jobId), "metrics");
-  if (!(0, import_fs37.existsSync)(dir)) return [];
+  const dir = import_path40.default.join(jobContextDir(workspace, jobId), "metrics");
+  if (!(0, import_fs38.existsSync)(dir)) return [];
   const records = [];
-  for (const entry2 of (0, import_fs37.readdirSync)(dir, { withFileTypes: true })) {
+  for (const entry2 of (0, import_fs38.readdirSync)(dir, { withFileTypes: true })) {
     if (!entry2.isFile() || !entry2.name.endsWith(".json")) continue;
     try {
       const parsed = contextEfficiencyMetricsSchema.safeParse(
-        JSON.parse((0, import_fs37.readFileSync)(import_path39.default.join(dir, entry2.name), "utf8"))
+        JSON.parse((0, import_fs38.readFileSync)(import_path40.default.join(dir, entry2.name), "utf8"))
       );
       if (parsed.success) records.push(parsed.data);
     } catch {
@@ -64165,7 +64754,7 @@ var ADAPTIVE_DRIFT_SIGNALS = [
   "RUNTIME_IDENTITY_CHANGED"
 ];
 var ADAPTIVE_PROFILE_SCHEMA_VERSION = "1.0.0";
-var shortText6 = external_exports.string().min(1).max(200);
+var shortText7 = external_exports.string().min(1).max(200);
 var metricSummarySchema = external_exports.object({
   observations: external_exports.number().int().min(0),
   p50: external_exports.number().nullable().default(null),
@@ -64176,9 +64765,9 @@ var profileSchema = external_exports.object({
   profileKey: external_exports.string().min(1).max(400),
   signaturePart: external_exports.string().max(400),
   targetPart: external_exports.string().max(400),
-  lane: shortText6.nullable().default(null),
-  executionMode: shortText6.nullable().default(null),
-  runner: shortText6.nullable().default(null),
+  lane: shortText7.nullable().default(null),
+  executionMode: shortText7.nullable().default(null),
+  runner: shortText7.nullable().default(null),
   samples: external_exports.number().int().min(0),
   weightedSamples: external_exports.number().min(0),
   verifiedSuccesses: external_exports.number().int().min(0),
@@ -64211,8 +64800,8 @@ var profileSchema = external_exports.object({
   runtimeIdentities: external_exports.array(external_exports.string().max(300)).max(50).default([]),
   latestRuntimeIdentity: external_exports.string().max(300).nullable().default(null),
   safetyEvents: external_exports.number().int().min(0).default(0),
-  firstObservedAt: shortText6.nullable().default(null),
-  lastObservedAt: shortText6.nullable().default(null),
+  firstObservedAt: shortText7.nullable().default(null),
+  lastObservedAt: shortText7.nullable().default(null),
   drift: external_exports.object({
     detected: external_exports.boolean().default(false),
     signals: external_exports.array(external_exports.enum(ADAPTIVE_DRIFT_SIGNALS)).max(16).default([]),
@@ -64229,23 +64818,23 @@ var adaptiveProfileCacheSchema = external_exports.object({
   sourceFingerprint: external_exports.string().min(1).max(200),
   observationCount: external_exports.number().int().min(0).default(0),
   droppedByAge: external_exports.number().int().min(0).default(0),
-  builtAt: shortText6,
+  builtAt: shortText7,
   profiles: external_exports.array(profileSchema).max(2e4).default([])
 }).passthrough();
 function adaptiveCacheDir(workspace) {
-  return assertInsideWorkspace(workspace.rootDir, import_path40.default.join(workspace.sidecarDir, "cache"));
+  return assertInsideWorkspace(workspace.rootDir, import_path41.default.join(workspace.sidecarDir, "cache"));
 }
 function adaptiveProfileFile(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path40.default.join(adaptiveCacheDir(workspace), "adaptive-profiles.json")
+    import_path41.default.join(adaptiveCacheDir(workspace), "adaptive-profiles.json")
   );
 }
 function readAdaptiveProfileCache(workspace, expectedFingerprint) {
   const file = adaptiveProfileFile(workspace);
-  if (!(0, import_fs38.existsSync)(file)) return void 0;
+  if (!(0, import_fs39.existsSync)(file)) return void 0;
   try {
-    const parsed = adaptiveProfileCacheSchema.safeParse(JSON.parse((0, import_fs38.readFileSync)(file, "utf8")));
+    const parsed = adaptiveProfileCacheSchema.safeParse(JSON.parse((0, import_fs39.readFileSync)(file, "utf8")));
     if (!parsed.success) return void 0;
     if (parsed.data.schemaVersion !== ADAPTIVE_PROFILE_SCHEMA_VERSION) return void 0;
     if (expectedFingerprint !== void 0 && parsed.data.sourceFingerprint !== expectedFingerprint) {
@@ -64259,13 +64848,13 @@ function readAdaptiveProfileCache(workspace, expectedFingerprint) {
 function writeAdaptiveProfileCache(workspace, cache) {
   const validated = adaptiveProfileCacheSchema.parse(cache);
   const file = adaptiveProfileFile(workspace);
-  (0, import_fs38.mkdirSync)(import_path40.default.dirname(file), { recursive: true });
+  (0, import_fs39.mkdirSync)(import_path41.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated)}
 `);
 }
 function clearAdaptiveProfileCache(workspace) {
   const file = adaptiveProfileFile(workspace);
-  if ((0, import_fs38.existsSync)(file)) (0, import_fs38.rmSync)(file, { force: true });
+  if ((0, import_fs39.existsSync)(file)) (0, import_fs39.rmSync)(file, { force: true });
 }
 function toProfileCache(set, sourceFingerprint) {
   return adaptiveProfileCacheSchema.parse({
@@ -64292,12 +64881,12 @@ function fromProfileCache(cache) {
 }
 var adaptiveCalibrationRecordSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  jobId: shortText6,
-  nodeId: shortText6,
-  taskId: shortText6,
-  attemptId: shortText6,
-  decisionId: shortText6.nullable().default(null),
-  candidateId: shortText6,
+  jobId: shortText7,
+  nodeId: shortText7,
+  taskId: shortText7,
+  attemptId: shortText7,
+  decisionId: shortText7.nullable().default(null),
+  candidateId: shortText7,
   /** What was predicted before dispatch. */
   predictedSuccessProbability: external_exports.number().min(0).max(1).nullable().default(null),
   predictedWallTimeMs: external_exports.number().min(0).nullable().default(null),
@@ -64305,9 +64894,9 @@ var adaptiveCalibrationRecordSchema = external_exports.object({
   predictedContextTokens: external_exports.number().min(0).nullable().default(null),
   predictedFiveHourBurnRatio: external_exports.number().min(0).max(1).nullable().default(null),
   predictedApiCostUsd: external_exports.number().min(0).nullable().default(null),
-  predictedConfidence: shortText6,
+  predictedConfidence: shortText7,
   /** What was observed. Null stays null; nothing is back-filled. */
-  observedOutcome: shortText6,
+  observedOutcome: shortText7,
   observedVerified: external_exports.boolean().nullable().default(null),
   observedWallTimeMs: external_exports.number().min(0).nullable().default(null),
   observedInputTokens: external_exports.number().min(0).nullable().default(null),
@@ -64321,41 +64910,41 @@ var adaptiveCalibrationRecordSchema = external_exports.object({
   costError: external_exports.number().nullable().default(null),
   /** Brier-style squared error of the success forecast, when resolvable. */
   successBrierScore: external_exports.number().min(0).max(1).nullable().default(null),
-  createdAt: shortText6
+  createdAt: shortText7
 }).passthrough();
 var ADAPTIVE_CALIBRATION_SCHEMA_VERSION = "1.0.0";
 function adaptiveJobDir(workspace, jobId) {
-  return assertInsideWorkspace(workspace.rootDir, import_path40.default.join(jobDir(workspace, jobId), "adaptive"));
+  return assertInsideWorkspace(workspace.rootDir, import_path41.default.join(jobDir(workspace, jobId), "adaptive"));
 }
 function calibrationFile(workspace, jobId) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path40.default.join(adaptiveJobDir(workspace, jobId), "calibration.jsonl")
+    import_path41.default.join(adaptiveJobDir(workspace, jobId), "calibration.jsonl")
   );
 }
 function appendAdaptiveCalibration(workspace, record32, options) {
   const validated = adaptiveCalibrationRecordSchema.parse(record32);
   const dir = adaptiveJobDir(workspace, record32.jobId);
-  (0, import_fs38.mkdirSync)(dir, { recursive: true });
+  (0, import_fs39.mkdirSync)(dir, { recursive: true });
   const file = calibrationFile(workspace, record32.jobId);
   const line = `${JSON.stringify(validated)}
 `;
-  const existing = (0, import_fs38.existsSync)(file) ? (0, import_fs38.readFileSync)(file, "utf8") : "";
+  const existing = (0, import_fs39.existsSync)(file) ? (0, import_fs39.readFileSync)(file, "utf8") : "";
   const lines = existing.split("\n").filter((entry2) => entry2.length > 0);
   if (lines.length + 1 > options.maxRecords) {
     const retained = [...lines, line.trimEnd()].slice(-options.maxRecords);
     writeFileAtomic(file, `${retained.join("\n")}
 `);
   } else {
-    (0, import_fs38.appendFileSync)(file, line, "utf8");
+    (0, import_fs39.appendFileSync)(file, line, "utf8");
   }
   return validated;
 }
 function readAdaptiveCalibration(workspace, jobId, options = {}) {
   const file = calibrationFile(workspace, jobId);
-  if (!(0, import_fs38.existsSync)(file)) return [];
+  if (!(0, import_fs39.existsSync)(file)) return [];
   const records = [];
-  for (const line of (0, import_fs38.readFileSync)(file, "utf8").split("\n")) {
+  for (const line of (0, import_fs39.readFileSync)(file, "utf8").split("\n")) {
     if (line.length === 0) continue;
     try {
       const parsed = adaptiveCalibrationRecordSchema.safeParse(JSON.parse(line));
@@ -64366,20 +64955,20 @@ function readAdaptiveCalibration(workspace, jobId, options = {}) {
   return options.limit !== void 0 ? records.slice(-options.limit) : records;
 }
 var ADAPTIVE_DECISION_SCHEMA_VERSION = "1.0.0";
-var shortText7 = external_exports.string().min(1).max(200);
+var shortText8 = external_exports.string().min(1).max(200);
 var candidateShape = external_exports.object({
-  candidateId: shortText7,
-  lane: shortText7,
-  executionMode: shortText7.nullable().default(null),
-  runner: shortText7.nullable().default(null),
-  model: shortText7.nullable().default(null),
-  profile: shortText7.nullable().default(null),
-  contextStrategy: shortText7,
-  computeLocality: shortText7,
+  candidateId: shortText8,
+  lane: shortText8,
+  executionMode: shortText8.nullable().default(null),
+  runner: shortText8.nullable().default(null),
+  model: shortText8.nullable().default(null),
+  profile: shortText8.nullable().default(null),
+  contextStrategy: shortText8,
+  computeLocality: shortText8,
   heuristicChoice: external_exports.boolean().default(false)
 }).passthrough();
 var predictionShape = external_exports.object({
-  candidateId: shortText7,
+  candidateId: shortText8,
   level: external_exports.enum(PROFILE_FALLBACK_LEVELS),
   profileKey: external_exports.string().max(400).nullable().default(null),
   confidence: external_exports.enum(PREDICTION_CONFIDENCE_LEVELS),
@@ -64411,14 +65000,14 @@ var predictionShape = external_exports.object({
   safetyEvents: external_exports.number().int().min(0).default(0),
   sampleCount: external_exports.number().int().min(0),
   weightedSampleCount: external_exports.number().min(0),
-  lastObservedAt: shortText7.nullable().default(null),
+  lastObservedAt: shortText8.nullable().default(null),
   /** Utility score and its itemized components. */
   score: external_exports.number(),
   scoreComponents: external_exports.array(
     external_exports.object({
-      name: shortText7,
+      name: shortText8,
       raw: external_exports.number().nullable().default(null),
-      unit: shortText7,
+      unit: shortText8,
       normalized: external_exports.number(),
       weight: external_exports.number(),
       contribution: external_exports.number(),
@@ -64428,36 +65017,36 @@ var predictionShape = external_exports.object({
 }).passthrough();
 var adaptiveSchedulingDecisionSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  decisionId: shortText7,
-  jobId: shortText7,
-  nodeId: shortText7,
-  taskId: shortText7,
+  decisionId: shortText8,
+  jobId: shortText8,
+  nodeId: shortText8,
+  taskId: shortText8,
   mode: external_exports.enum(ADAPTIVE_SCHEDULER_MODES),
   /** The coarse grouping key this decision was made under. */
   taskSignature: external_exports.string().max(400),
   /** Fine-grained current features: audit only, never the grouping key. */
   signatureFeatures: external_exports.record(external_exports.unknown()).default({}),
   /** The lane hard policy selected before adaptive ranking ran. */
-  heuristicLane: shortText7,
-  heuristicReasonCode: shortText7,
+  heuristicLane: shortText8,
+  heuristicReasonCode: shortText8,
   eligibleCandidates: external_exports.array(candidateShape).max(32).default([]),
   rejectedCandidates: external_exports.array(
     external_exports.object({
-      candidateId: shortText7,
-      lane: shortText7,
-      executionMode: shortText7.nullable().default(null),
-      runner: shortText7.nullable().default(null),
+      candidateId: shortText8,
+      lane: shortText8,
+      executionMode: shortText8.nullable().default(null),
+      runner: shortText8.nullable().default(null),
       code: external_exports.enum(ADAPTIVE_VETO_CODES),
       detail: external_exports.string().max(600).default("")
     }).passthrough()
   ).max(32).default([]),
   predictions: external_exports.array(predictionShape).max(32).default([]),
   /** What the deterministic scheduler chose. */
-  heuristicCandidateId: shortText7.nullable().default(null),
+  heuristicCandidateId: shortText8.nullable().default(null),
   /** What ranking preferred, before gating. */
-  recommendedCandidateId: shortText7.nullable().default(null),
+  recommendedCandidateId: shortText8.nullable().default(null),
   /** What actually executes. */
-  selectedCandidateId: shortText7.nullable().default(null),
+  selectedCandidateId: shortText8.nullable().default(null),
   adaptiveApplied: external_exports.boolean().default(false),
   /**
    * True when the recommendation differed from the heuristic choice. In
@@ -64474,41 +65063,41 @@ var adaptiveSchedulingDecisionSchema = external_exports.object({
   explanation: external_exports.array(external_exports.string().max(600)).max(24).default([]),
   /** Profile-store provenance, so a decision is reproducible. */
   profileObservations: external_exports.number().int().min(0).default(0),
-  profileBuiltAt: shortText7.nullable().default(null),
-  createdAt: shortText7
+  profileBuiltAt: shortText8.nullable().default(null),
+  createdAt: shortText8
 }).passthrough();
 function adaptiveDir(workspace, jobId) {
-  return assertInsideWorkspace(workspace.rootDir, import_path41.default.join(jobDir(workspace, jobId), "adaptive"));
+  return assertInsideWorkspace(workspace.rootDir, import_path42.default.join(jobDir(workspace, jobId), "adaptive"));
 }
 function decisionsFile(workspace, jobId) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path41.default.join(adaptiveDir(workspace, jobId), "decisions.jsonl")
+    import_path42.default.join(adaptiveDir(workspace, jobId), "decisions.jsonl")
   );
 }
 function appendAdaptiveDecision(workspace, record32, options) {
   const validated = adaptiveSchedulingDecisionSchema.parse(record32);
   const dir = adaptiveDir(workspace, record32.jobId);
-  (0, import_fs39.mkdirSync)(dir, { recursive: true });
+  (0, import_fs40.mkdirSync)(dir, { recursive: true });
   const file = decisionsFile(workspace, record32.jobId);
   const line = `${JSON.stringify(validated)}
 `;
-  const existing = (0, import_fs39.existsSync)(file) ? (0, import_fs39.readFileSync)(file, "utf8") : "";
+  const existing = (0, import_fs40.existsSync)(file) ? (0, import_fs40.readFileSync)(file, "utf8") : "";
   const lines = existing.split("\n").filter((entry2) => entry2.length > 0);
   if (lines.length + 1 > options.maxRecords) {
     const retained = [...lines, line.trimEnd()].slice(-options.maxRecords);
     writeFileAtomic(file, `${retained.join("\n")}
 `);
   } else {
-    (0, import_fs39.appendFileSync)(file, line, "utf8");
+    (0, import_fs40.appendFileSync)(file, line, "utf8");
   }
   return validated;
 }
 function readAdaptiveDecisions(workspace, jobId, options = {}) {
   const file = decisionsFile(workspace, jobId);
-  if (!(0, import_fs39.existsSync)(file)) return [];
+  if (!(0, import_fs40.existsSync)(file)) return [];
   const records = [];
-  for (const line of (0, import_fs39.readFileSync)(file, "utf8").split("\n")) {
+  for (const line of (0, import_fs40.readFileSync)(file, "utf8").split("\n")) {
     if (line.length === 0) continue;
     try {
       const parsed = adaptiveSchedulingDecisionSchema.safeParse(JSON.parse(line));
@@ -67977,7 +68566,10 @@ function completeExecutorDispatch(deps, jobId, outcome) {
       counters: job.counters,
       node: requireNode(graph, node.nodeId),
       executorAttempts: executorAttempts(requireNode(graph, node.nodeId)),
-      elapsedMs: Math.max(0, Date.parse(at) - Date.parse(job.createdAt)),
+      // Worked time, not wall time: the recovery budget must not charge the
+      // hours a person was being waited on, or every product decision costs
+      // the rest of the night twice over.
+      elapsedMs: workedMsOf(job, Date.parse(at)),
       ...outcome.reliability?.local !== void 0 ? { local: outcome.reliability.local } : {},
       ...outcome.reliability?.api !== void 0 ? { api: outcome.reliability.api } : {},
       resource: outcome.reliability?.resource ?? defaultRecoveryResource(),
@@ -68250,6 +68842,34 @@ function reconcileDecidedCcrs(deps, jobId, decided2) {
   if (remaining.length === 0) job = transition22(deps, job, "READY");
   return { job: persist22(deps, job), closed };
 }
+var UNIT_ID_PATTERN = /\bwu-[A-Za-z0-9][\w-]*\b/g;
+function reviveUnitsNamedBy(deps, job, question, answer) {
+  const named = [...question.matchAll(UNIT_ID_PATTERN)].map((hit) => hit[0]);
+  if (named.length === 0) return;
+  const graph = job.graphRevision > 0 ? readGraphRevision(deps.workspace, job.jobId, job.graphRevision) : void 0;
+  if (graph === void 0) return;
+  for (const node of graph.nodes) {
+    const workGraph = readLatestWorkGraph(deps.workspace, job.jobId, node.nodeId);
+    if (workGraph === void 0) continue;
+    let changed = false;
+    const units = workGraph.units.map((unit) => {
+      if (!named.includes(unit.workUnitId)) return unit;
+      if (unit.status !== "BLOCKED" && unit.status !== "FAILED") return unit;
+      if (unit.latestFailure?.category !== "AMBIGUITY") return unit;
+      changed = true;
+      const { latestFailure: _resolved, ...rest } = unit;
+      const mustRebuild = (unit.blockedByCcrIds?.length ?? 0) > 0 || unit.candidateRef === void 0;
+      return {
+        ...rest,
+        status: mustRebuild ? "READY" : "CANDIDATE_READY",
+        operatorDecision: answer.slice(0, 2e3)
+      };
+    });
+    if (changed) {
+      storeWorkGraph(deps.workspace, job.jobId, { ...workGraph, units });
+    }
+  }
+}
 function answerClarification(deps, jobId, answers) {
   assertJobsEnabled(deps);
   let job = requireJobState(deps.workspace, jobId);
@@ -68278,6 +68898,9 @@ function answerClarification(deps, jobId, answers) {
     decisions: [...job.decisions, ...decisions],
     openQuestions: job.openQuestions.filter((question) => !answered.has(question.id))
   };
+  for (const decision of decisions) {
+    reviveUnitsNamedBy(deps, job, decision.question, decision.answer);
+  }
   job = record22(deps, job, "clarification_resolved", {
     decisionIds: decisions.map((decision) => decision.id),
     remaining: job.openQuestions.length
@@ -68835,60 +69458,60 @@ var AGENT_OUTPUT_LIMITS = {
   maxSteps: 40,
   maxResponseBytes: 262144
 };
-var shortText8 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxShortChars);
-var text5 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxTextChars);
-var textList3 = external_exports.array(text5).max(AGENT_OUTPUT_LIMITS.maxListItems);
+var shortText9 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxShortChars);
+var text6 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxTextChars);
+var textList4 = external_exports.array(text6).max(AGENT_OUTPUT_LIMITS.maxListItems);
 var classifierOutputSchema = external_exports.object({
   /** Proposed complexity class. May only RAISE the deterministic class. */
   complexity: external_exports.enum(COMPLEXITY_CLASSES),
   /** Short factual reasons tied to the task text. */
-  reasons: textList3.default([])
+  reasons: textList4.default([])
 });
 var plannerStepSchema = external_exports.object({
-  id: shortText8,
-  action: text5,
+  id: shortText9,
+  action: text6,
   /** What observable evidence would show this step succeeded. */
-  expectedEvidence: text5.optional()
+  expectedEvidence: text6.optional()
 });
 var plannerOutputSchema = external_exports.object({
   decision: external_exports.enum(["PLAN", "ESCALATE"]),
   /** The planner's own complexity impression (informational only). */
   complexity: external_exports.enum(COMPLEXITY_CLASSES).optional(),
-  goal: text5.optional(),
+  goal: text6.optional(),
   steps: external_exports.array(plannerStepSchema).max(AGENT_OUTPUT_LIMITS.maxSteps).default([]),
-  testStrategy: text5.optional(),
-  verificationStrategy: text5.optional(),
-  assumptions: textList3.default([]),
-  risks: textList3.default([]),
+  testStrategy: text6.optional(),
+  verificationStrategy: text6.optional(),
+  assumptions: textList4.default([]),
+  risks: textList4.default([]),
   requiresEscalation: external_exports.boolean().default(false),
-  escalationReason: text5.optional()
+  escalationReason: text6.optional()
 });
 var criticOutputSchema = external_exports.object({
   verdict: external_exports.enum(["ACCEPT", "REVISE", "ESCALATE"]),
   /** Specific, factual objections or confirmations. */
-  reasons: textList3.default([]),
+  reasons: textList4.default([]),
   /** For REVISE: concrete changes the planner should make. */
-  requestedChanges: textList3.default([]),
+  requestedChanges: textList4.default([]),
   /** Signals the critic believes exceed local capability. */
-  escalationReason: text5.optional()
+  escalationReason: text6.optional()
 });
 var diagnoserOutputSchema = external_exports.object({
   category: external_exports.enum(FAILURE_CATEGORIES),
-  rootCause: text5,
+  rootCause: text6,
   planValidity: external_exports.enum(["VALID", "INVALID", "UNKNOWN"]),
   recommendedAction: external_exports.enum(["REPAIR", "REPLAN", "RETRY", "CLARIFY", "BLOCK"]),
   /** Observable evidence references (test names, error lines), not prose. */
-  evidence: textList3.default([])
+  evidence: textList4.default([])
 });
 var replannerOutputSchema = external_exports.object({
   decision: external_exports.enum(["REVISED_PLAN", "SUPERSEDE_NODE", "ESCALATE", "BLOCKED"]),
   /** Why the previous plan failed, in one bounded statement. */
-  reason: text5,
-  goal: text5.optional(),
+  reason: text6,
+  goal: text6.optional(),
   steps: external_exports.array(plannerStepSchema).max(AGENT_OUTPUT_LIMITS.maxSteps).default([]),
-  testStrategy: text5.optional(),
-  verificationStrategy: text5.optional(),
-  assumptions: textList3.default([]),
+  testStrategy: text6.optional(),
+  verificationStrategy: text6.optional(),
+  assumptions: textList4.default([]),
   /**
    * True when the replacement approach would change APPROVED behavior,
    * public API, architecture constraints, or product intent. A true value
@@ -68897,7 +69520,7 @@ var replannerOutputSchema = external_exports.object({
    * is not the only line of defense.
    */
   impactsApprovedIntent: external_exports.boolean(),
-  escalationReason: text5.optional()
+  escalationReason: text6.optional()
 });
 var SCHEMAS = {
   CLASSIFIER: classifierOutputSchema,
@@ -69440,7 +70063,7 @@ async function runLargeRole(invocation) {
     };
   } finally {
     try {
-      (0, import_fs40.rmSync)(import_path42.default.join(invocation.scratchDir, "tmp"), { recursive: true, force: true });
+      (0, import_fs41.rmSync)(import_path43.default.join(invocation.scratchDir, "tmp"), { recursive: true, force: true });
     } catch {
     }
   }
@@ -69766,309 +70389,6 @@ function buildAggregatorPacket(input) {
     "Return the AGGREGATOR JSON object now."
   ].join("\n");
 }
-var WORK_UNIT_STATUSES = [
-  /** Declared in the work graph; dependencies not yet satisfied. */
-  "PLANNED",
-  /** Dependencies satisfied; the unit can be dispatched. */
-  "READY",
-  /** A builder attempt is in flight in an isolated worktree. */
-  "BUILDING",
-  /** A candidate artifact exists and awaits evaluation. */
-  "CANDIDATE_READY",
-  /** A semantic evaluation dispatch is in flight. */
-  "EVALUATING",
-  /** The candidate passed every required evaluation layer. */
-  "VERIFIED_CANDIDATE",
-  /** The candidate was rejected; the unit may retry within budget. */
-  "REJECTED",
-  /** The unit ended without a verified candidate. */
-  "FAILED",
-  /** The unit cannot proceed without an explicit decision. */
-  "BLOCKED",
-  /** The unit was replaced in a later work-graph revision. */
-  "SUPERSEDED",
-  /** The unit's candidate was applied by the canonical integrator. */
-  "INTEGRATED"
-];
-var FINAL_WORK_UNIT_STATUSES = [
-  "FAILED",
-  "SUPERSEDED",
-  "INTEGRATED"
-];
-function isFinalWorkUnitStatus(status) {
-  return FINAL_WORK_UNIT_STATUSES.includes(status);
-}
-var WORK_UNIT_KINDS = ["build", "investigation", "integration"];
-var EVALUATION_LAYERS = ["deterministic", "semantic"];
-var EVALUATION_VERDICTS = ["PASS", "FAIL", "CONFLICT", "NEEDS_DECISION"];
-var OBJECTIVE_WORKER_STATUSES = [
-  "RUNNING",
-  "FINISHED",
-  "FAILED",
-  /** A later attempt or graph revision replaced this worker; results from it are refused. */
-  "SUPERSEDED"
-];
-var CONTRACT_CONFLICT_STATUSES = [
-  "OPEN",
-  /** Resolved autonomously (implementation-detail conflicts only). */
-  "RESOLVED_AUTO",
-  /** Resolved by an explicit human decision. */
-  "RESOLVED_HUMAN"
-];
-var WORK_GRAPH_SCHEMA_VERSION = "1.0.0";
-var CONTEXT_PROJECTION_SCHEMA_VERSION = "1.0.0";
-var CANDIDATE_ARTIFACT_SCHEMA_VERSION = "1.0.0";
-var EVALUATION_RECORD_SCHEMA_VERSION = "1.0.0";
-var CONTRACT_CONFLICT_SCHEMA_VERSION = "1.0.0";
-var OBJECTIVE_WORKER_SCHEMA_VERSION = "1.0.0";
-var OBJECTIVE_LIMITS = {
-  maxWorkUnits: 30,
-  maxDependenciesPerUnit: 20,
-  maxShortTextChars: 512,
-  maxTextChars: 2e3,
-  maxListItems: 30,
-  maxChangedFiles: 500,
-  maxEvaluationChecks: 40,
-  maxProjectionContracts: 30,
-  maxProjectionExcerptChars: 2e4
-};
-var shortText9 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxShortTextChars);
-var text6 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxTextChars);
-var optionalText2 = external_exports.string().max(OBJECTIVE_LIMITS.maxTextChars);
-var textList4 = external_exports.array(text6).max(OBJECTIVE_LIMITS.maxListItems);
-var idList2 = external_exports.array(shortText9).max(OBJECTIVE_LIMITS.maxListItems);
-var semver3 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
-var workUnitSchema = external_exports.object({
-  workUnitId: shortText9,
-  /** The objective (job graph node) this unit belongs to. */
-  objectiveNodeId: shortText9,
-  /** The approved task id of the objective (audit convenience). */
-  parentTaskId: shortText9,
-  kind: external_exports.enum(WORK_UNIT_KINDS),
-  title: text6,
-  goal: text6,
-  /** Work-unit ids that must be VERIFIED_CANDIDATE before this one runs. */
-  dependsOn: external_exports.array(shortText9).max(OBJECTIVE_LIMITS.maxDependenciesPerUnit).default([]),
-  /** Artifacts the unit is expected to produce (paths, report names). */
-  expectedArtifacts: textList4.default([]),
-  /** Product contract ids relevant to this unit (projection input). */
-  relevantContractIds: idList2.default([]),
-  relevantAdrIds: idList2.default([]),
-  relevantConstitutionRuleIds: idList2.default([]),
-  /** Source areas the unit is expected to touch (scope screen input). */
-  expectedAreas: external_exports.array(shortText9).max(OBJECTIVE_LIMITS.maxListItems).default([]),
-  status: external_exports.enum(WORK_UNIT_STATUSES),
-  /** Builder attempts consumed so far. */
-  attempt: external_exports.number().int().min(0).default(0),
-  /** Worker currently (or last) bound to this unit. */
-  workerId: shortText9.optional(),
-  contextProjectionHash: shortText9.optional(),
-  contractSnapshotHash: shortText9.optional(),
-  /** Latest candidate artifact reference (candidates/<file>). */
-  candidateRef: shortText9.optional(),
-  /** Evaluation record references, oldest first. */
-  evaluationRefs: idList2.default([]),
-  latestFailure: external_exports.object({
-    category: external_exports.enum(FAILURE_CATEGORIES),
-    message: text6,
-    at: shortText9
-  }).passthrough().optional(),
-  /**
-   * Change requests this unit is BLOCKED on, when it is.
-   *
-   * Recorded so a resume can ask whether they were decided. Without it the
-   * link between the question and the decision that answers it lives only
-   * in the question's prose, which nothing can reconcile.
-   */
-  blockedByCcrIds: idList2.optional(),
-  supersedes: shortText9.optional(),
-  supersededBy: shortText9.optional(),
-  integratedAt: shortText9.optional()
-}).passthrough();
-var workGraphSchema = external_exports.object({
-  schemaVersion: semver3,
-  jobId: shortText9,
-  /** The objective node this graph decomposes. */
-  objectiveNodeId: shortText9,
-  parentTaskId: shortText9,
-  /** Fingerprint of the approved objective at decomposition time. */
-  objectiveFingerprint: shortText9,
-  revision: external_exports.number().int().min(1),
-  createdAt: shortText9,
-  /** Who proposed the decomposition ("deterministic" or a worker id). */
-  proposedBy: shortText9,
-  /** Deterministic validation findings recorded at acceptance time. */
-  validationNotes: textList4.default([]),
-  units: external_exports.array(workUnitSchema).min(1).max(OBJECTIVE_LIMITS.maxWorkUnits),
-  supersedes: external_exports.number().int().min(1).optional(),
-  revisionReason: optionalText2.optional()
-}).passthrough();
-var contextProjectionSchema = external_exports.object({
-  schemaVersion: semver3,
-  projectionId: shortText9,
-  jobId: shortText9,
-  objectiveNodeId: shortText9,
-  workUnitId: shortText9,
-  attempt: external_exports.number().int().min(1),
-  createdAt: shortText9,
-  missionId: shortText9.optional(),
-  constitution: external_exports.object({
-    version: external_exports.number().int().min(0),
-    rules: external_exports.array(
-      external_exports.object({ ruleId: shortText9, version: external_exports.number().int().min(1), statement: text6 }).passthrough()
-    ).max(40).default([])
-  }).passthrough(),
-  objective: external_exports.object({
-    taskId: shortText9,
-    title: text6,
-    acceptance: textList4.default([])
-  }).passthrough(),
-  workUnit: external_exports.object({
-    title: text6,
-    goal: text6,
-    kind: external_exports.enum(WORK_UNIT_KINDS),
-    expectedArtifacts: textList4.default([]),
-    expectedAreas: external_exports.array(shortText9).max(OBJECTIVE_LIMITS.maxListItems).default([])
-  }).passthrough(),
-  contracts: external_exports.array(
-    external_exports.object({
-      contractId: shortText9,
-      revision: external_exports.number().int().min(1),
-      title: shortText9,
-      summary: text6,
-      requirements: textList4.default([]),
-      invariants: textList4.default([])
-    }).passthrough()
-  ).max(OBJECTIVE_LIMITS.maxProjectionContracts).default([]),
-  adrs: external_exports.array(
-    external_exports.object({ adrId: shortText9, title: shortText9, decision: text6 }).passthrough()
-  ).max(OBJECTIVE_LIMITS.maxListItems).default([]),
-  decisions: external_exports.array(external_exports.object({ decisionId: shortText9, decision: text6 }).passthrough()).max(OBJECTIVE_LIMITS.maxListItems).default([]),
-  /** Bounded approved-spec excerpts (requirements/design fragments). */
-  specExcerpts: external_exports.array(external_exports.string().max(OBJECTIVE_LIMITS.maxProjectionExcerptChars)).max(5).default([]),
-  /** Bounded summaries of verified dependency candidates (work evidence). */
-  workEvidence: textList4.default([]),
-  /** Hash over the ACTIVE contract registry this projection saw. */
-  contractSnapshotHash: shortText9,
-  /** Hash of this projection's canonical serialization (identity). */
-  contentHash: shortText9
-}).passthrough();
-var candidateArtifactSchema = external_exports.object({
-  schemaVersion: semver3,
-  candidateId: shortText9,
-  jobId: shortText9,
-  objectiveNodeId: shortText9,
-  workUnitId: shortText9,
-  attempt: external_exports.number().int().min(1),
-  workerId: shortText9,
-  createdAt: shortText9,
-  /** Git commit the worktree was created from. */
-  baselineCommit: shortText9,
-  contextProjectionHash: shortText9,
-  contractSnapshotHash: shortText9,
-  /** Files changed in the worktree, as observed by git. */
-  changedFiles: external_exports.array(
-    external_exports.object({
-      path: shortText9,
-      changeType: external_exports.enum(["added", "modified", "deleted", "renamed"])
-    }).passthrough()
-  ).max(OBJECTIVE_LIMITS.maxChangedFiles).default([]),
-  /** Reference to the stored normalized patch (candidates/<file>.patch). */
-  patchRef: shortText9.optional(),
-  /** Local verification observed by SpecBridge inside the worktree. */
-  localVerification: external_exports.object({
-    ran: external_exports.boolean(),
-    passed: external_exports.boolean(),
-    commands: external_exports.array(
-      external_exports.object({
-        name: shortText9,
-        status: shortText9,
-        exitCode: external_exports.number().int().nullable().default(null)
-      }).passthrough()
-    ).max(OBJECTIVE_LIMITS.maxListItems).default([])
-  }).passthrough(),
-  /** The worker's structured claims (data, never authority). */
-  claims: external_exports.object({
-    summary: text6,
-    assumptionsDiscovered: textList4.default([]),
-    contractChangeRequests: external_exports.array(
-      external_exports.object({
-        contractId: shortText9,
-        problem: text6,
-        proposal: text6
-      }).passthrough()
-    ).max(10).default([]),
-    knownLimitations: textList4.default([]),
-    /** Investigation units: the structured report body. */
-    report: external_exports.string().max(16e3).optional()
-  }).passthrough(),
-  /** Set when identity/staleness guards rejected the candidate. */
-  rejectedReason: optionalText2.optional()
-}).passthrough();
-var evaluationRecordSchema = external_exports.object({
-  schemaVersion: semver3,
-  evaluationId: shortText9,
-  jobId: shortText9,
-  objectiveNodeId: shortText9,
-  workUnitId: shortText9,
-  attempt: external_exports.number().int().min(1),
-  layer: external_exports.enum(EVALUATION_LAYERS),
-  verdict: external_exports.enum(EVALUATION_VERDICTS),
-  /** Named deterministic checks with their outcomes (deterministic layer). */
-  checks: external_exports.array(
-    external_exports.object({ name: shortText9, passed: external_exports.boolean(), detail: optionalText2.optional() }).passthrough()
-  ).max(OBJECTIVE_LIMITS.maxEvaluationChecks).default([]),
-  reasons: textList4.default([]),
-  evidenceRefs: idList2.default([]),
-  affectedContractIds: idList2.default([]),
-  /** Decision kind for CONFLICT / NEEDS_DECISION verdicts (authority routing). */
-  decisionKind: shortText9.optional(),
-  /** The evaluator worker, when the layer is semantic. */
-  evaluatorWorkerId: shortText9.optional(),
-  createdAt: shortText9
-}).passthrough();
-var contractConflictSchema = external_exports.object({
-  schemaVersion: semver3,
-  conflictId: shortText9,
-  jobId: shortText9,
-  objectiveNodeId: shortText9,
-  contractId: shortText9,
-  contractRevision: external_exports.number().int().min(1),
-  claims: external_exports.array(
-    external_exports.object({
-      workUnitId: shortText9,
-      candidateRef: shortText9.optional(),
-      claim: text6
-    }).passthrough()
-  ).min(1).max(OBJECTIVE_LIMITS.maxListItems),
-  evidenceRefs: idList2.default([]),
-  affectedWorkUnitIds: idList2.default([]),
-  decisionKind: shortText9,
-  status: external_exports.enum(CONTRACT_CONFLICT_STATUSES),
-  resolution: optionalText2.optional(),
-  createdAt: shortText9,
-  resolvedAt: shortText9.optional()
-}).passthrough();
-var objectiveWorkerRecordSchema = external_exports.object({
-  schemaVersion: semver3,
-  workerId: shortText9,
-  agentRole: external_exports.enum(AGENT_ROLES),
-  jobId: shortText9,
-  objectiveNodeId: shortText9,
-  workUnitId: shortText9,
-  attempt: external_exports.number().int().min(1),
-  contextProjectionHash: shortText9,
-  contractSnapshotHash: shortText9,
-  /** "worktree:<name>", "canonical", or "ephemeral" (read-only reasoning). */
-  workspaceIdentity: shortText9,
-  status: external_exports.enum(OBJECTIVE_WORKER_STATUSES),
-  budget: external_exports.object({
-    timeoutMs: external_exports.number().int().min(1),
-    maxOutputBytes: external_exports.number().int().min(1).optional()
-  }).passthrough(),
-  startedAt: shortText9,
-  finishedAt: shortText9.optional()
-}).passthrough();
 var WORK_UNIT_TRANSITIONS = Object.freeze({
   PLANNED: ["READY", "BLOCKED", "SUPERSEDED", "FAILED"],
   READY: ["BUILDING", "CANDIDATE_READY", "BLOCKED", "SUPERSEDED", "FAILED"],
@@ -70810,7 +71130,7 @@ async function runLargeObjectiveRole(invocation) {
     cleanupTempFiles(plan);
     try {
       const { rmSync: rmSync82 } = await import("fs");
-      rmSync82(import_path46.default.join(invocation.scratchDir, "tmp"), { recursive: true, force: true });
+      rmSync82(import_path47.default.join(invocation.scratchDir, "tmp"), { recursive: true, force: true });
     } catch {
     }
   }
@@ -70897,7 +71217,7 @@ async function integrateObjective(input) {
       role: "BUILDER",
       packet,
       cwd: input.workspace.rootDir,
-      scratchDir: import_path45.default.join(jobDir(input.workspace, input.jobId), "scratch"),
+      scratchDir: import_path46.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: input.reconcileTimeoutMs ?? 6e5,
       ...input.signal !== void 0 ? { signal: input.signal } : {},
       ...input.cachedProbe !== void 0 ? { cachedProbe: input.cachedProbe } : {}
@@ -71065,281 +71385,6 @@ function evaluateProjectionFreshness(projection, current) {
     reasons.push("the active contract registry or constitution changed since this projection was built");
   }
   return { fresh: false, reasons };
-}
-var ID_PATTERN6 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
-function assertSegment(value, what) {
-  if (!ID_PATTERN6.test(value)) {
-    throw new OrchestrationError("SBO040", `Invalid ${what} "${value}".`);
-  }
-  return value;
-}
-function objectiveDir(workspace, jobId, nodeId) {
-  assertSegment(nodeId, "objective node id");
-  return assertInsideWorkspace(
-    workspace.rootDir,
-    import_path47.default.join(jobDir(workspace, jobId), "objectives", nodeId)
-  );
-}
-function artifactPath3(workspace, jobId, nodeId, ...segments) {
-  return assertInsideWorkspace(
-    workspace.rootDir,
-    import_path47.default.join(objectiveDir(workspace, jobId, nodeId), ...segments)
-  );
-}
-function readJson(file, parse3) {
-  if (!(0, import_fs42.existsSync)(file)) return void 0;
-  try {
-    return parse3(JSON.parse((0, import_fs42.readFileSync)(file, "utf8")));
-  } catch {
-    return void 0;
-  }
-}
-function workGraphFile(workspace, jobId, nodeId, revision) {
-  return artifactPath3(workspace, jobId, nodeId, "workgraphs", `${String(revision).padStart(4, "0")}.json`);
-}
-function storeWorkGraph(workspace, jobId, graph) {
-  const validated = workGraphSchema.parse(graph);
-  const file = workGraphFile(workspace, jobId, validated.objectiveNodeId, validated.revision);
-  (0, import_fs42.mkdirSync)(import_path47.default.dirname(file), { recursive: true });
-  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
-`);
-  return validated;
-}
-function readWorkGraph(workspace, jobId, nodeId, revision) {
-  if (!Number.isInteger(revision) || revision < 1) return void 0;
-  return readJson(workGraphFile(workspace, jobId, nodeId, revision), (raw) => {
-    const result = workGraphSchema.safeParse(raw);
-    return result.success ? result.data : void 0;
-  });
-}
-function listWorkGraphRevisions(workspace, jobId, nodeId) {
-  const dir = artifactPath3(workspace, jobId, nodeId, "workgraphs");
-  if (!(0, import_fs42.existsSync)(dir)) return [];
-  const revisions = [];
-  for (const name of (0, import_fs42.readdirSync)(dir).sort()) {
-    if (!/^\d{4}\.json$/.test(name)) continue;
-    revisions.push(Number.parseInt(name.slice(0, 4), 10));
-  }
-  return revisions;
-}
-function readLatestWorkGraph(workspace, jobId, nodeId) {
-  const revisions = listWorkGraphRevisions(workspace, jobId, nodeId);
-  const latest = revisions.at(-1);
-  return latest === void 0 ? void 0 : readWorkGraph(workspace, jobId, nodeId, latest);
-}
-function projectionName(workUnitId, attempt) {
-  return `${workUnitId}-a${String(attempt).padStart(2, "0")}.json`;
-}
-function projectionIdentity(projection) {
-  const {
-    createdAt: _createdAt,
-    contentHash: _contentHash,
-    ...rest
-  } = projection;
-  return JSON.stringify(rest);
-}
-function storeProjection(workspace, jobId, nodeId, projection) {
-  const validated = contextProjectionSchema.parse(projection);
-  assertSegment(validated.workUnitId, "work unit id");
-  const name = projectionName(validated.workUnitId, validated.attempt);
-  const file = artifactPath3(workspace, jobId, nodeId, "projections", name);
-  if ((0, import_fs42.existsSync)(file)) {
-    const existing = (0, import_fs42.readFileSync)(file, "utf8");
-    let existingProjection;
-    try {
-      existingProjection = contextProjectionSchema.parse(JSON.parse(existing));
-    } catch {
-      existingProjection = void 0;
-    }
-    if (existingProjection !== void 0 && projectionIdentity(existingProjection) === projectionIdentity(validated)) {
-      return { projection: existingProjection, ref: `projections/${name}` };
-    }
-    throw new OrchestrationError(
-      "SBO041",
-      `Projection ${name} already exists with DIFFERENT content; projections are immutable per (workUnit, attempt). A new derivation belongs to a new attempt.`
-    );
-  }
-  (0, import_fs42.mkdirSync)(import_path47.default.dirname(file), { recursive: true });
-  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
-`);
-  return { projection: validated, ref: `projections/${name}` };
-}
-function readProjection(workspace, jobId, nodeId, workUnitId, attempt) {
-  if (!ID_PATTERN6.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
-  return readJson(
-    artifactPath3(workspace, jobId, nodeId, "projections", projectionName(workUnitId, attempt)),
-    (raw) => {
-      const result = contextProjectionSchema.safeParse(raw);
-      return result.success ? result.data : void 0;
-    }
-  );
-}
-function candidateName(workUnitId, attempt) {
-  return `${workUnitId}-a${String(attempt).padStart(2, "0")}`;
-}
-function storeCandidate(workspace, jobId, nodeId, candidate, patch, limits) {
-  const validated = candidateArtifactSchema.parse(candidate);
-  assertSegment(validated.workUnitId, "work unit id");
-  const base = candidateName(validated.workUnitId, validated.attempt);
-  const file = artifactPath3(workspace, jobId, nodeId, "candidates", `${base}.json`);
-  if ((0, import_fs42.existsSync)(file)) {
-    throw new OrchestrationError(
-      "SBO043",
-      `Candidate ${base} already exists; candidates are immutable per (workUnit, attempt).`
-    );
-  }
-  (0, import_fs42.mkdirSync)(import_path47.default.dirname(file), { recursive: true });
-  if (patch !== void 0) {
-    if (Buffer.byteLength(patch, "utf8") > limits.maxCandidateBytes) {
-      throw new OrchestrationError(
-        "SBO043",
-        `The candidate patch for ${base} exceeds the ${limits.maxCandidateBytes}-byte bound and was refused.`,
-        { remediation: ["Split the work unit, or raise orchestration.jobs.objectives.maxCandidateBytes explicitly."] }
-      );
-    }
-    writeFileAtomic(artifactPath3(workspace, jobId, nodeId, "candidates", `${base}.patch`), patch);
-  }
-  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
-`);
-  return { candidate: validated, ref: `candidates/${base}.json` };
-}
-function readCandidate(workspace, jobId, nodeId, workUnitId, attempt) {
-  if (!ID_PATTERN6.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
-  return readJson(
-    artifactPath3(workspace, jobId, nodeId, "candidates", `${candidateName(workUnitId, attempt)}.json`),
-    (raw) => {
-      const result = candidateArtifactSchema.safeParse(raw);
-      return result.success ? result.data : void 0;
-    }
-  );
-}
-function readCandidatePatch(workspace, jobId, nodeId, workUnitId, attempt) {
-  if (!ID_PATTERN6.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
-  const file = artifactPath3(
-    workspace,
-    jobId,
-    nodeId,
-    "candidates",
-    `${candidateName(workUnitId, attempt)}.patch`
-  );
-  if (!(0, import_fs42.existsSync)(file)) return void 0;
-  try {
-    return (0, import_fs42.readFileSync)(file, "utf8");
-  } catch {
-    return void 0;
-  }
-}
-function storeEvaluation(workspace, jobId, nodeId, evaluation) {
-  const validated = evaluationRecordSchema.parse(evaluation);
-  assertSegment(validated.evaluationId, "evaluation id");
-  const name = `${validated.evaluationId}.json`;
-  const file = artifactPath3(workspace, jobId, nodeId, "evaluations", name);
-  if ((0, import_fs42.existsSync)(file)) {
-    throw new OrchestrationError("SBO044", `Evaluation ${validated.evaluationId} already exists.`);
-  }
-  (0, import_fs42.mkdirSync)(import_path47.default.dirname(file), { recursive: true });
-  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
-`);
-  return { evaluation: validated, ref: `evaluations/${name}` };
-}
-function readEvaluations(workspace, jobId, nodeId, workUnitId) {
-  const dir = artifactPath3(workspace, jobId, nodeId, "evaluations");
-  if (!(0, import_fs42.existsSync)(dir)) return [];
-  const records = [];
-  for (const name of (0, import_fs42.readdirSync)(dir).sort()) {
-    if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path47.default.join(dir, name), (raw) => {
-      const result = evaluationRecordSchema.safeParse(raw);
-      return result.success ? result.data : void 0;
-    });
-    if (record32 !== void 0 && (workUnitId === void 0 || record32.workUnitId === workUnitId)) {
-      records.push(record32);
-    }
-  }
-  return records;
-}
-function storeConflict(workspace, jobId, nodeId, conflict) {
-  const validated = contractConflictSchema.parse(conflict);
-  assertSegment(validated.conflictId, "conflict id");
-  const file = artifactPath3(workspace, jobId, nodeId, "conflicts", `${validated.conflictId}.json`);
-  (0, import_fs42.mkdirSync)(import_path47.default.dirname(file), { recursive: true });
-  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
-`);
-  return validated;
-}
-function readConflicts(workspace, jobId, nodeId) {
-  const dir = artifactPath3(workspace, jobId, nodeId, "conflicts");
-  if (!(0, import_fs42.existsSync)(dir)) return [];
-  const records = [];
-  for (const name of (0, import_fs42.readdirSync)(dir).sort()) {
-    if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path47.default.join(dir, name), (raw) => {
-      const result = contractConflictSchema.safeParse(raw);
-      return result.success ? result.data : void 0;
-    });
-    if (record32 !== void 0) records.push(record32);
-  }
-  return records;
-}
-function workerName(workUnitId, attempt, role) {
-  return `${workUnitId}-a${String(attempt).padStart(2, "0")}-${role.toLowerCase()}.json`;
-}
-function storeWorkerRecord(workspace, jobId, nodeId, record32) {
-  const validated = objectiveWorkerRecordSchema.parse(record32);
-  assertSegment(validated.workUnitId, "work unit id");
-  const file = artifactPath3(
-    workspace,
-    jobId,
-    nodeId,
-    "workers",
-    workerName(validated.workUnitId, validated.attempt, validated.agentRole)
-  );
-  (0, import_fs42.mkdirSync)(import_path47.default.dirname(file), { recursive: true });
-  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
-`);
-  return validated;
-}
-function readWorkerRecord(workspace, jobId, nodeId, workUnitId, attempt, role) {
-  if (!ID_PATTERN6.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
-  return readJson(
-    artifactPath3(workspace, jobId, nodeId, "workers", workerName(workUnitId, attempt, role)),
-    (raw) => {
-      const result = objectiveWorkerRecordSchema.safeParse(raw);
-      return result.success ? result.data : void 0;
-    }
-  );
-}
-function readWorkerRecords(workspace, jobId, nodeId) {
-  const dir = artifactPath3(workspace, jobId, nodeId, "workers");
-  if (!(0, import_fs42.existsSync)(dir)) return [];
-  const records = [];
-  for (const name of (0, import_fs42.readdirSync)(dir).sort()) {
-    if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path47.default.join(dir, name), (raw) => {
-      const result = objectiveWorkerRecordSchema.safeParse(raw);
-      return result.success ? result.data : void 0;
-    });
-    if (record32 !== void 0) records.push(record32);
-  }
-  return records;
-}
-function storeAggregationReport(workspace, jobId, nodeId, name, report) {
-  assertSegment(name, "report name");
-  const file = artifactPath3(workspace, jobId, nodeId, "reports", `${name}.json`);
-  if ((0, import_fs42.existsSync)(file)) {
-    throw new OrchestrationError("SBO046", `Aggregation report "${name}" already exists.`);
-  }
-  (0, import_fs42.mkdirSync)(import_path47.default.dirname(file), { recursive: true });
-  writeFileAtomic(file, `${JSON.stringify(report, null, 2)}
-`);
-  return { ref: `reports/${name}.json` };
-}
-function readAggregationReport(workspace, jobId, nodeId, name) {
-  if (!ID_PATTERN6.test(name)) return void 0;
-  return readJson(
-    artifactPath3(workspace, jobId, nodeId, "reports", `${name}.json`),
-    (raw) => raw !== null && typeof raw === "object" ? raw : void 0
-  );
 }
 function screenGuardPatterns(patch, contracts, constitutionRules) {
   if (patch === void 0 || patch.length === 0) return [];
@@ -71862,7 +71907,7 @@ async function decomposeObjective(input, truth, relevantContractIds, acceptance)
       role: "DECOMPOSER",
       packet,
       cwd: input.workspace.rootDir,
-      scratchDir: import_path44.default.join(jobDir(input.workspace, input.jobId), "scratch"),
+      scratchDir: import_path45.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: 6e5,
       signal: input.signal,
       cachedProbe: input.probeCache.probe
@@ -72027,7 +72072,7 @@ async function executeBuilder(context, prepared) {
     role: "BUILDER",
     packet,
     cwd: prepared.worktree.dir,
-    scratchDir: import_path44.default.join(
+    scratchDir: import_path45.default.join(
       jobDir(input.workspace, input.jobId),
       "scratch",
       `${prepared.unitId}-a${prepared.attempt}`
@@ -72391,7 +72436,10 @@ async function runSemanticEvaluation(context, graph, unitId) {
     candidate,
     diff: patch,
     deterministic: deterministicRecord,
-    question: `Does this candidate satisfy work unit "${unit.title}" without contradicting the approved contracts?`
+    question: `Does this candidate satisfy work unit "${unit.title}" without contradicting the approved contracts?` + // A recorded human decision resolves a prior NEEDS_DECISION. Shown to
+    // the evaluator so it does not ask the same question a second time —
+    // an evaluator given nothing new will conclude nothing new.
+    (unit.operatorDecision !== void 0 ? ` A recorded operator decision resolves the prior NEEDS_DECISION and is binding: ${unit.operatorDecision}` : "")
   });
   input.onProgress?.(`EVALUATOR on ${selection.worker.workerId} for ${unitId}`);
   const runLarge = async () => {
@@ -72402,7 +72450,7 @@ async function runSemanticEvaluation(context, graph, unitId) {
       role: "EVALUATOR",
       packet,
       cwd: input.workspace.rootDir,
-      scratchDir: import_path44.default.join(jobDir(input.workspace, input.jobId), "scratch"),
+      scratchDir: import_path45.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: 6e5,
       signal: input.signal,
       cachedProbe: input.probeCache.probe
@@ -72554,7 +72602,9 @@ var NON_IMPLEMENTATION_UNIT_FAILURES = [
   "BLOCKED_DEPENDENCY"
 ];
 function failureFromAggregation(graph, aggregation) {
-  const blockedUnits = graph.units.filter((unit) => unit.status === "BLOCKED");
+  const blockedUnits = graph.units.filter(
+    (unit) => unit.status === "BLOCKED" || unit.status === "FAILED"
+  );
   const humanBlocked = blockedUnits.filter((unit) => unit.latestFailure?.category === "AMBIGUITY");
   if (humanBlocked.length > 0) {
     return failResult(
@@ -72732,7 +72782,7 @@ async function maybeAggregateSemantically(context, graph) {
       role: "AGGREGATOR",
       packet,
       cwd: input.workspace.rootDir,
-      scratchDir: import_path44.default.join(jobDir(input.workspace, input.jobId), "scratch"),
+      scratchDir: import_path45.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: 6e5,
       signal: input.signal,
       cachedProbe: input.probeCache.probe
@@ -76208,7 +76258,7 @@ function specExcerptFor(workspace, specName, maxChars) {
       if (file === void 0) continue;
       try {
         parts.push(`--- ${kind} ---
-${(0, import_fs41.readFileSync)(file.path, "utf8")}`);
+${(0, import_fs42.readFileSync)(file.path, "utf8")}`);
       } catch {
       }
     }
@@ -77134,7 +77184,7 @@ function buildCriteriaEvidence(input) {
   const normalized = input.changedPaths.map((entry2) => entry2.replaceAll("\\", "/"));
   const existing = /* @__PURE__ */ new Set();
   for (const changed of normalized) {
-    if ((0, import_fs41.existsSync)(import_path43.default.join(input.workspaceRoot, changed))) existing.add(changed);
+    if ((0, import_fs42.existsSync)(import_path44.default.join(input.workspaceRoot, changed))) existing.add(changed);
   }
   return {
     existingPaths: existing,
@@ -77855,7 +77905,7 @@ async function runRole(deps, jobId, role, decision, packet, runtime) {
     runnerProfile: decision.worker.runnerProfile ?? deps.config.defaultRunner,
     role,
     packet,
-    scratchDir: import_path43.default.join(jobDir(deps.workspace, jobId), "scratch"),
+    scratchDir: import_path44.default.join(jobDir(deps.workspace, jobId), "scratch"),
     timeoutMs: 6e5,
     signal: runtime.signal,
     cachedProbe: runtime.probeCache.probe

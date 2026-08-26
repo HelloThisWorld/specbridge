@@ -481,3 +481,22 @@ export const jobCheckpointSchema = z
   })
   .passthrough();
 export type JobCheckpoint = z.infer<typeof jobCheckpointSchema>;
+
+/**
+ * How long this job has actually WORKED, in milliseconds.
+ *
+ * Wall clock minus every stretch spent parked on a person. This is the ONLY
+ * correct input to a wall-clock budget check, and it must exist exactly once:
+ * the scheduler had the subtraction and the recovery path did not, so the
+ * same job passed one budget check and was refused by the other — after
+ * waiting 7.5 hours for two product decisions, its 4 hours of real work were
+ * judged as 11.5.
+ */
+export function workedMsOf(job: JobState, nowMs: number): number {
+  const waited =
+    (job.counters.humanWaitMs ?? 0) +
+    (job.humanWaitSince === undefined
+      ? 0
+      : Math.max(0, nowMs - Date.parse(job.humanWaitSince)));
+  return Math.max(0, nowMs - Date.parse(job.createdAt) - waited);
+}

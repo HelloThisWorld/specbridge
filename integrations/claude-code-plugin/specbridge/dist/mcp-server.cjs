@@ -106,17 +106,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path40) {
-      const ctrl = callVisitor(key, node, visitor, path40);
+    function visit_(key, node, visitor, path41) {
+      const ctrl = callVisitor(key, node, visitor, path41);
       if (identity3.isNode(ctrl) || identity3.isPair(ctrl)) {
-        replaceNode(key, path40, ctrl);
-        return visit_(key, ctrl, visitor, path40);
+        replaceNode(key, path41, ctrl);
+        return visit_(key, ctrl, visitor, path41);
       }
       if (typeof ctrl !== "symbol") {
         if (identity3.isCollection(node)) {
-          path40 = Object.freeze(path40.concat(node));
+          path41 = Object.freeze(path41.concat(node));
           for (let i2 = 0; i2 < node.items.length; ++i2) {
-            const ci = visit_(i2, node.items[i2], visitor, path40);
+            const ci = visit_(i2, node.items[i2], visitor, path41);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -127,13 +127,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity3.isPair(node)) {
-          path40 = Object.freeze(path40.concat(node));
-          const ck = visit_("key", node.key, visitor, path40);
+          path41 = Object.freeze(path41.concat(node));
+          const ck = visit_("key", node.key, visitor, path41);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path40);
+          const cv = visit_("value", node.value, visitor, path41);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -154,17 +154,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path40) {
-      const ctrl = await callVisitor(key, node, visitor, path40);
+    async function visitAsync_(key, node, visitor, path41) {
+      const ctrl = await callVisitor(key, node, visitor, path41);
       if (identity3.isNode(ctrl) || identity3.isPair(ctrl)) {
-        replaceNode(key, path40, ctrl);
-        return visitAsync_(key, ctrl, visitor, path40);
+        replaceNode(key, path41, ctrl);
+        return visitAsync_(key, ctrl, visitor, path41);
       }
       if (typeof ctrl !== "symbol") {
         if (identity3.isCollection(node)) {
-          path40 = Object.freeze(path40.concat(node));
+          path41 = Object.freeze(path41.concat(node));
           for (let i2 = 0; i2 < node.items.length; ++i2) {
-            const ci = await visitAsync_(i2, node.items[i2], visitor, path40);
+            const ci = await visitAsync_(i2, node.items[i2], visitor, path41);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -175,13 +175,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity3.isPair(node)) {
-          path40 = Object.freeze(path40.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path40);
+          path41 = Object.freeze(path41.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path41);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path40);
+          const cv = await visitAsync_("value", node.value, visitor, path41);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -208,23 +208,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path40) {
+    function callVisitor(key, node, visitor, path41) {
       if (typeof visitor === "function")
-        return visitor(key, node, path40);
+        return visitor(key, node, path41);
       if (identity3.isMap(node))
-        return visitor.Map?.(key, node, path40);
+        return visitor.Map?.(key, node, path41);
       if (identity3.isSeq(node))
-        return visitor.Seq?.(key, node, path40);
+        return visitor.Seq?.(key, node, path41);
       if (identity3.isPair(node))
-        return visitor.Pair?.(key, node, path40);
+        return visitor.Pair?.(key, node, path41);
       if (identity3.isScalar(node))
-        return visitor.Scalar?.(key, node, path40);
+        return visitor.Scalar?.(key, node, path41);
       if (identity3.isAlias(node))
-        return visitor.Alias?.(key, node, path40);
+        return visitor.Alias?.(key, node, path41);
       return void 0;
     }
-    function replaceNode(key, path40, node) {
-      const parent = path40[path40.length - 1];
+    function replaceNode(key, path41, node) {
+      const parent = path41[path41.length - 1];
       if (identity3.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity3.isPair(parent)) {
@@ -834,10 +834,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity3 = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path40, value) {
+    function collectionFromPath(schema, path41, value) {
       let v = value;
-      for (let i2 = path40.length - 1; i2 >= 0; --i2) {
-        const k = path40[i2];
+      for (let i2 = path41.length - 1; i2 >= 0; --i2) {
+        const k = path41[i2];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a2 = [];
           a2[k] = v;
@@ -856,7 +856,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path40) => path40 == null || typeof path40 === "object" && !!path40[Symbol.iterator]().next().done;
+    var isEmptyPath = (path41) => path41 == null || typeof path41 === "object" && !!path41[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -886,11 +886,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path40, value) {
-        if (isEmptyPath(path40))
+      addIn(path41, value) {
+        if (isEmptyPath(path41))
           this.add(value);
         else {
-          const [key, ...rest] = path40;
+          const [key, ...rest] = path41;
           const node = this.get(key, true);
           if (identity3.isCollection(node))
             node.addIn(rest, value);
@@ -904,8 +904,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path40) {
-        const [key, ...rest] = path40;
+      deleteIn(path41) {
+        const [key, ...rest] = path41;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -919,8 +919,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path40, keepScalar) {
-        const [key, ...rest] = path40;
+      getIn(path41, keepScalar) {
+        const [key, ...rest] = path41;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity3.isScalar(node) ? node.value : node;
@@ -938,8 +938,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path40) {
-        const [key, ...rest] = path40;
+      hasIn(path41) {
+        const [key, ...rest] = path41;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -949,8 +949,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path40, value) {
-        const [key, ...rest] = path40;
+      setIn(path41, value) {
+        const [key, ...rest] = path41;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -3465,9 +3465,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path40, value) {
+      addIn(path41, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path40, value);
+          this.contents.addIn(path41, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -3542,14 +3542,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path40) {
-        if (Collection.isEmptyPath(path40)) {
+      deleteIn(path41) {
+        if (Collection.isEmptyPath(path41)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path40) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path41) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -3564,10 +3564,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path40, keepScalar) {
-        if (Collection.isEmptyPath(path40))
+      getIn(path41, keepScalar) {
+        if (Collection.isEmptyPath(path41))
           return !keepScalar && identity3.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity3.isCollection(this.contents) ? this.contents.getIn(path40, keepScalar) : void 0;
+        return identity3.isCollection(this.contents) ? this.contents.getIn(path41, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -3578,10 +3578,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path40) {
-        if (Collection.isEmptyPath(path40))
+      hasIn(path41) {
+        if (Collection.isEmptyPath(path41))
           return this.contents !== void 0;
-        return identity3.isCollection(this.contents) ? this.contents.hasIn(path40) : false;
+        return identity3.isCollection(this.contents) ? this.contents.hasIn(path41) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -3598,13 +3598,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path40, value) {
-        if (Collection.isEmptyPath(path40)) {
+      setIn(path41, value) {
+        if (Collection.isEmptyPath(path41)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path40), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path41), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path40, value);
+          this.contents.setIn(path41, value);
         }
       }
       /**
@@ -5564,9 +5564,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path40) => {
+    visit.itemAtPath = (cst, path41) => {
       let item = cst;
-      for (const [field, index] of path40) {
+      for (const [field, index] of path41) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -5575,23 +5575,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path40) => {
-      const parent = visit.itemAtPath(cst, path40.slice(0, -1));
-      const field = path40[path40.length - 1][0];
+    visit.parentCollection = (cst, path41) => {
+      const parent = visit.itemAtPath(cst, path41.slice(0, -1));
+      const field = path41[path41.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path40, item, visitor) {
-      let ctrl = visitor(item, path40);
+    function _visit(path41, item, visitor) {
+      let ctrl = visitor(item, path41);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i2 = 0; i2 < token.items.length; ++i2) {
-            const ci = _visit(Object.freeze(path40.concat([[field, i2]])), token.items[i2], visitor);
+            const ci = _visit(Object.freeze(path41.concat([[field, i2]])), token.items[i2], visitor);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -5602,10 +5602,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path40);
+            ctrl = ctrl(item, path41);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path40) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path41) : ctrl;
     }
     exports2.visit = visit;
   }
@@ -7363,7 +7363,7 @@ var require_windows = __commonJS({
     module2.exports = isexe;
     isexe.sync = sync;
     var fs = require("fs");
-    function checkPathExt(path40, options) {
+    function checkPathExt(path41, options) {
       var pathext = options.pathExt !== void 0 ? options.pathExt : process.env.PATHEXT;
       if (!pathext) {
         return true;
@@ -7374,25 +7374,25 @@ var require_windows = __commonJS({
       }
       for (var i2 = 0; i2 < pathext.length; i2++) {
         var p = pathext[i2].toLowerCase();
-        if (p && path40.substr(-p.length).toLowerCase() === p) {
+        if (p && path41.substr(-p.length).toLowerCase() === p) {
           return true;
         }
       }
       return false;
     }
-    function checkStat(stat, path40, options) {
+    function checkStat(stat, path41, options) {
       if (!stat.isSymbolicLink() && !stat.isFile()) {
         return false;
       }
-      return checkPathExt(path40, options);
+      return checkPathExt(path41, options);
     }
-    function isexe(path40, options, cb) {
-      fs.stat(path40, function(er, stat) {
-        cb(er, er ? false : checkStat(stat, path40, options));
+    function isexe(path41, options, cb) {
+      fs.stat(path41, function(er, stat) {
+        cb(er, er ? false : checkStat(stat, path41, options));
       });
     }
-    function sync(path40, options) {
-      return checkStat(fs.statSync(path40), path40, options);
+    function sync(path41, options) {
+      return checkStat(fs.statSync(path41), path41, options);
     }
   }
 });
@@ -7404,13 +7404,13 @@ var require_mode = __commonJS({
     module2.exports = isexe;
     isexe.sync = sync;
     var fs = require("fs");
-    function isexe(path40, options, cb) {
-      fs.stat(path40, function(er, stat) {
+    function isexe(path41, options, cb) {
+      fs.stat(path41, function(er, stat) {
         cb(er, er ? false : checkStat(stat, options));
       });
     }
-    function sync(path40, options) {
-      return checkStat(fs.statSync(path40), options);
+    function sync(path41, options) {
+      return checkStat(fs.statSync(path41), options);
     }
     function checkStat(stat, options) {
       return stat.isFile() && checkMode(stat, options);
@@ -7444,7 +7444,7 @@ var require_isexe = __commonJS({
     }
     module2.exports = isexe;
     isexe.sync = sync;
-    function isexe(path40, options, cb) {
+    function isexe(path41, options, cb) {
       if (typeof options === "function") {
         cb = options;
         options = {};
@@ -7454,7 +7454,7 @@ var require_isexe = __commonJS({
           throw new TypeError("callback not provided");
         }
         return new Promise(function(resolve2, reject) {
-          isexe(path40, options || {}, function(er, is) {
+          isexe(path41, options || {}, function(er, is) {
             if (er) {
               reject(er);
             } else {
@@ -7463,7 +7463,7 @@ var require_isexe = __commonJS({
           });
         });
       }
-      core(path40, options || {}, function(er, is) {
+      core(path41, options || {}, function(er, is) {
         if (er) {
           if (er.code === "EACCES" || options && options.ignoreErrors) {
             er = null;
@@ -7473,9 +7473,9 @@ var require_isexe = __commonJS({
         cb(er, is);
       });
     }
-    function sync(path40, options) {
+    function sync(path41, options) {
       try {
-        return core.sync(path40, options || {});
+        return core.sync(path41, options || {});
       } catch (er) {
         if (options && options.ignoreErrors || er.code === "EACCES") {
           return false;
@@ -7492,7 +7492,7 @@ var require_which = __commonJS({
   "../../node_modules/.pnpm/which@2.0.2/node_modules/which/which.js"(exports2, module2) {
     "use strict";
     var isWindows = process.platform === "win32" || process.env.OSTYPE === "cygwin" || process.env.OSTYPE === "msys";
-    var path40 = require("path");
+    var path41 = require("path");
     var COLON = isWindows ? ";" : ":";
     var isexe = require_isexe();
     var getNotFoundError = (cmd) => Object.assign(new Error(`not found: ${cmd}`), { code: "ENOENT" });
@@ -7530,7 +7530,7 @@ var require_which = __commonJS({
           return opt.all && found.length ? resolve2(found) : reject(getNotFoundError(cmd));
         const ppRaw = pathEnv[i2];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path40.join(pathPart, cmd);
+        const pCmd = path41.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         resolve2(subStep(p, i2, 0));
       });
@@ -7557,7 +7557,7 @@ var require_which = __commonJS({
       for (let i2 = 0; i2 < pathEnv.length; i2++) {
         const ppRaw = pathEnv[i2];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path40.join(pathPart, cmd);
+        const pCmd = path41.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         for (let j = 0; j < pathExt.length; j++) {
           const cur = p + pathExt[j];
@@ -7605,7 +7605,7 @@ var require_path_key = __commonJS({
 var require_resolveCommand = __commonJS({
   "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js"(exports2, module2) {
     "use strict";
-    var path40 = require("path");
+    var path41 = require("path");
     var which = require_which();
     var getPathKey = require_path_key();
     function resolveCommandAttempt(parsed, withoutPathExt) {
@@ -7623,7 +7623,7 @@ var require_resolveCommand = __commonJS({
       try {
         resolved = which.sync(parsed.command, {
           path: env[getPathKey({ env })],
-          pathExt: withoutPathExt ? path40.delimiter : void 0
+          pathExt: withoutPathExt ? path41.delimiter : void 0
         });
       } catch (e) {
       } finally {
@@ -7632,7 +7632,7 @@ var require_resolveCommand = __commonJS({
         }
       }
       if (resolved) {
-        resolved = path40.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
+        resolved = path41.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
       }
       return resolved;
     }
@@ -7686,8 +7686,8 @@ var require_shebang_command = __commonJS({
       if (!match) {
         return null;
       }
-      const [path40, argument] = match[0].replace(/#! ?/, "").split(" ");
-      const binary = path40.split("/").pop();
+      const [path41, argument] = match[0].replace(/#! ?/, "").split(" ");
+      const binary = path41.split("/").pop();
       if (binary === "env") {
         return argument;
       }
@@ -7722,7 +7722,7 @@ var require_readShebang = __commonJS({
 var require_parse = __commonJS({
   "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js"(exports2, module2) {
     "use strict";
-    var path40 = require("path");
+    var path41 = require("path");
     var resolveCommand = require_resolveCommand();
     var escape2 = require_escape();
     var readShebang = require_readShebang();
@@ -7747,7 +7747,7 @@ var require_parse = __commonJS({
       const needsShell = !isExecutableRegExp.test(commandFile);
       if (parsed.options.forceShell || needsShell) {
         const needsDoubleEscapeMetaChars = isCmdShimRegExp.test(commandFile);
-        parsed.command = path40.normalize(parsed.command);
+        parsed.command = path41.normalize(parsed.command);
         parsed.command = escape2.command(parsed.command);
         parsed.args = parsed.args.map((arg) => escape2.argument(arg, needsDoubleEscapeMetaChars));
         const shellCommand = [parsed.command].concat(parsed.args).join(" ");
@@ -11053,8 +11053,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path40) {
-      let input = path40;
+    function removeDotSegments(path41) {
+      let input = path41;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -11306,8 +11306,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path40, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path40 && path40 !== "/" ? path40 : void 0;
+        const [path41, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path41 && path41 !== "/" ? path41 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -14968,8 +14968,8 @@ var require_utils2 = __commonJS({
       }
       return output;
     };
-    exports2.basename = (path40, { windows } = {}) => {
-      const segs = path40.split(windows ? /[\\/]/ : "/");
+    exports2.basename = (path41, { windows } = {}) => {
+      const segs = path41.split(windows ? /[\\/]/ : "/");
       const last = segs[segs.length - 1];
       if (last === "") {
         return segs[segs.length - 2];
@@ -16714,10 +16714,10 @@ function assignProp(target, prop, value) {
     configurable: true
   });
 }
-function getElementAtPath(obj, path40) {
-  if (!path40)
+function getElementAtPath(obj, path41) {
+  if (!path41)
     return obj;
-  return path40.reduce((acc, key) => acc?.[key], obj);
+  return path41.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -17037,11 +17037,11 @@ function aborted(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path40, issues) {
+function prefixIssues(path41, issues) {
   return issues.map((iss) => {
     var _a;
     (_a = iss).path ?? (_a.path = []);
-    iss.path.unshift(path40);
+    iss.path.unshift(path41);
     return iss;
   });
 }
@@ -23129,8 +23129,8 @@ function getErrorMap() {
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path40, errorMaps, issueData } = params;
-  const fullPath = [...path40, ...issueData.path || []];
+  const { data, path: path41, errorMaps, issueData } = params;
+  const fullPath = [...path41, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -23246,11 +23246,11 @@ var errorUtil;
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path40, key) {
+  constructor(parent, value, path41, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path40;
+    this._path = path41;
     this._key = key;
   }
   get path() {
@@ -38568,13 +38568,13 @@ var logOutputSync = ({ serializedResult, fdNumber, state, verboseInfo, encoding,
   }
 };
 var writeToFiles = (serializedResult, stdioItems, outputFiles) => {
-  for (const { path: path40, append } of stdioItems.filter(({ type }) => FILE_TYPES.has(type))) {
-    const pathString = typeof path40 === "string" ? path40 : path40.toString();
+  for (const { path: path41, append } of stdioItems.filter(({ type }) => FILE_TYPES.has(type))) {
+    const pathString = typeof path41 === "string" ? path41 : path41.toString();
     if (append || outputFiles.has(pathString)) {
-      (0, import_node_fs4.appendFileSync)(path40, serializedResult);
+      (0, import_node_fs4.appendFileSync)(path41, serializedResult);
     } else {
       outputFiles.add(pathString);
-      (0, import_node_fs4.writeFileSync)(path40, serializedResult);
+      (0, import_node_fs4.writeFileSync)(path41, serializedResult);
     }
   }
 };
@@ -51420,6 +51420,8 @@ var import_path23 = __toESM(require("path"), 1);
 var import_crypto10 = require("crypto");
 var import_fs22 = require("fs");
 var import_path24 = __toESM(require("path"), 1);
+var import_fs23 = require("fs");
+var import_path25 = __toESM(require("path"), 1);
 
 // ../../packages/context/dist/index.js
 var CONTEXT_LAYERS = [
@@ -52156,8 +52158,6 @@ var contextEfficiencyMetricsSchema = external_exports.object({
 
 // ../../packages/orchestration/dist/index.js
 var import_crypto11 = require("crypto");
-var import_fs23 = require("fs");
-var import_path25 = __toESM(require("path"), 1);
 var ORCHESTRATION_PHASES = [
   /** The run exists; no intent has been assessed yet. */
   "CREATED",
@@ -56071,6 +56071,426 @@ var API_APPROVAL_STATUSES = [
   "EXPIRED",
   "SUPERSEDED"
 ];
+var WORK_UNIT_STATUSES = [
+  /** Declared in the work graph; dependencies not yet satisfied. */
+  "PLANNED",
+  /** Dependencies satisfied; the unit can be dispatched. */
+  "READY",
+  /** A builder attempt is in flight in an isolated worktree. */
+  "BUILDING",
+  /** A candidate artifact exists and awaits evaluation. */
+  "CANDIDATE_READY",
+  /** A semantic evaluation dispatch is in flight. */
+  "EVALUATING",
+  /** The candidate passed every required evaluation layer. */
+  "VERIFIED_CANDIDATE",
+  /** The candidate was rejected; the unit may retry within budget. */
+  "REJECTED",
+  /** The unit ended without a verified candidate. */
+  "FAILED",
+  /** The unit cannot proceed without an explicit decision. */
+  "BLOCKED",
+  /** The unit was replaced in a later work-graph revision. */
+  "SUPERSEDED",
+  /** The unit's candidate was applied by the canonical integrator. */
+  "INTEGRATED"
+];
+var WORK_UNIT_KINDS = ["build", "investigation", "integration"];
+var EVALUATION_LAYERS = ["deterministic", "semantic"];
+var EVALUATION_VERDICTS = ["PASS", "FAIL", "CONFLICT", "NEEDS_DECISION"];
+var OBJECTIVE_WORKER_STATUSES = [
+  "RUNNING",
+  "FINISHED",
+  "FAILED",
+  /** A later attempt or graph revision replaced this worker; results from it are refused. */
+  "SUPERSEDED"
+];
+var CONTRACT_CONFLICT_STATUSES = [
+  "OPEN",
+  /** Resolved autonomously (implementation-detail conflicts only). */
+  "RESOLVED_AUTO",
+  /** Resolved by an explicit human decision. */
+  "RESOLVED_HUMAN"
+];
+var OBJECTIVE_LIMITS = {
+  maxWorkUnits: 30,
+  maxDependenciesPerUnit: 20,
+  maxShortTextChars: 512,
+  maxTextChars: 2e3,
+  maxListItems: 30,
+  maxChangedFiles: 500,
+  maxEvaluationChecks: 40,
+  maxProjectionContracts: 30,
+  maxProjectionExcerptChars: 2e4
+};
+var shortText32 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxShortTextChars);
+var text3 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxTextChars);
+var optionalText2 = external_exports.string().max(OBJECTIVE_LIMITS.maxTextChars);
+var textList22 = external_exports.array(text3).max(OBJECTIVE_LIMITS.maxListItems);
+var idList2 = external_exports.array(shortText32).max(OBJECTIVE_LIMITS.maxListItems);
+var semver2 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
+var workUnitSchema = external_exports.object({
+  workUnitId: shortText32,
+  /** The objective (job graph node) this unit belongs to. */
+  objectiveNodeId: shortText32,
+  /** The approved task id of the objective (audit convenience). */
+  parentTaskId: shortText32,
+  kind: external_exports.enum(WORK_UNIT_KINDS),
+  title: text3,
+  goal: text3,
+  /** Work-unit ids that must be VERIFIED_CANDIDATE before this one runs. */
+  dependsOn: external_exports.array(shortText32).max(OBJECTIVE_LIMITS.maxDependenciesPerUnit).default([]),
+  /** Artifacts the unit is expected to produce (paths, report names). */
+  expectedArtifacts: textList22.default([]),
+  /** Product contract ids relevant to this unit (projection input). */
+  relevantContractIds: idList2.default([]),
+  relevantAdrIds: idList2.default([]),
+  relevantConstitutionRuleIds: idList2.default([]),
+  /** Source areas the unit is expected to touch (scope screen input). */
+  expectedAreas: external_exports.array(shortText32).max(OBJECTIVE_LIMITS.maxListItems).default([]),
+  status: external_exports.enum(WORK_UNIT_STATUSES),
+  /** Builder attempts consumed so far. */
+  attempt: external_exports.number().int().min(0).default(0),
+  /** Worker currently (or last) bound to this unit. */
+  workerId: shortText32.optional(),
+  contextProjectionHash: shortText32.optional(),
+  contractSnapshotHash: shortText32.optional(),
+  /** Latest candidate artifact reference (candidates/<file>). */
+  candidateRef: shortText32.optional(),
+  /** Evaluation record references, oldest first. */
+  evaluationRefs: idList2.default([]),
+  latestFailure: external_exports.object({
+    category: external_exports.enum(FAILURE_CATEGORIES),
+    message: text3,
+    at: shortText32
+  }).passthrough().optional(),
+  /**
+   * Change requests this unit is BLOCKED on, when it is.
+   *
+   * Recorded so a resume can ask whether they were decided. Without it the
+   * link between the question and the decision that answers it lives only
+   * in the question's prose, which nothing can reconcile.
+   */
+  blockedByCcrIds: idList2.optional(),
+  /**
+   * The recorded human answer that resolved this unit's NEEDS_DECISION,
+   * when one has. Carried on the unit so a re-evaluation SEES the answer —
+   * an evaluator that asked once and is shown nothing new will ask again,
+   * and the answer a person typed at the job level otherwise reaches no
+   * projection, no packet, and no evaluation.
+   */
+  operatorDecision: text3.optional(),
+  supersedes: shortText32.optional(),
+  supersededBy: shortText32.optional(),
+  integratedAt: shortText32.optional()
+}).passthrough();
+var workGraphSchema = external_exports.object({
+  schemaVersion: semver2,
+  jobId: shortText32,
+  /** The objective node this graph decomposes. */
+  objectiveNodeId: shortText32,
+  parentTaskId: shortText32,
+  /** Fingerprint of the approved objective at decomposition time. */
+  objectiveFingerprint: shortText32,
+  revision: external_exports.number().int().min(1),
+  createdAt: shortText32,
+  /** Who proposed the decomposition ("deterministic" or a worker id). */
+  proposedBy: shortText32,
+  /** Deterministic validation findings recorded at acceptance time. */
+  validationNotes: textList22.default([]),
+  units: external_exports.array(workUnitSchema).min(1).max(OBJECTIVE_LIMITS.maxWorkUnits),
+  supersedes: external_exports.number().int().min(1).optional(),
+  revisionReason: optionalText2.optional()
+}).passthrough();
+var contextProjectionSchema = external_exports.object({
+  schemaVersion: semver2,
+  projectionId: shortText32,
+  jobId: shortText32,
+  objectiveNodeId: shortText32,
+  workUnitId: shortText32,
+  attempt: external_exports.number().int().min(1),
+  createdAt: shortText32,
+  missionId: shortText32.optional(),
+  constitution: external_exports.object({
+    version: external_exports.number().int().min(0),
+    rules: external_exports.array(
+      external_exports.object({ ruleId: shortText32, version: external_exports.number().int().min(1), statement: text3 }).passthrough()
+    ).max(40).default([])
+  }).passthrough(),
+  objective: external_exports.object({
+    taskId: shortText32,
+    title: text3,
+    acceptance: textList22.default([])
+  }).passthrough(),
+  workUnit: external_exports.object({
+    title: text3,
+    goal: text3,
+    kind: external_exports.enum(WORK_UNIT_KINDS),
+    expectedArtifacts: textList22.default([]),
+    expectedAreas: external_exports.array(shortText32).max(OBJECTIVE_LIMITS.maxListItems).default([])
+  }).passthrough(),
+  contracts: external_exports.array(
+    external_exports.object({
+      contractId: shortText32,
+      revision: external_exports.number().int().min(1),
+      title: shortText32,
+      summary: text3,
+      requirements: textList22.default([]),
+      invariants: textList22.default([])
+    }).passthrough()
+  ).max(OBJECTIVE_LIMITS.maxProjectionContracts).default([]),
+  adrs: external_exports.array(
+    external_exports.object({ adrId: shortText32, title: shortText32, decision: text3 }).passthrough()
+  ).max(OBJECTIVE_LIMITS.maxListItems).default([]),
+  decisions: external_exports.array(external_exports.object({ decisionId: shortText32, decision: text3 }).passthrough()).max(OBJECTIVE_LIMITS.maxListItems).default([]),
+  /** Bounded approved-spec excerpts (requirements/design fragments). */
+  specExcerpts: external_exports.array(external_exports.string().max(OBJECTIVE_LIMITS.maxProjectionExcerptChars)).max(5).default([]),
+  /** Bounded summaries of verified dependency candidates (work evidence). */
+  workEvidence: textList22.default([]),
+  /** Hash over the ACTIVE contract registry this projection saw. */
+  contractSnapshotHash: shortText32,
+  /** Hash of this projection's canonical serialization (identity). */
+  contentHash: shortText32
+}).passthrough();
+var candidateArtifactSchema = external_exports.object({
+  schemaVersion: semver2,
+  candidateId: shortText32,
+  jobId: shortText32,
+  objectiveNodeId: shortText32,
+  workUnitId: shortText32,
+  attempt: external_exports.number().int().min(1),
+  workerId: shortText32,
+  createdAt: shortText32,
+  /** Git commit the worktree was created from. */
+  baselineCommit: shortText32,
+  contextProjectionHash: shortText32,
+  contractSnapshotHash: shortText32,
+  /** Files changed in the worktree, as observed by git. */
+  changedFiles: external_exports.array(
+    external_exports.object({
+      path: shortText32,
+      changeType: external_exports.enum(["added", "modified", "deleted", "renamed"])
+    }).passthrough()
+  ).max(OBJECTIVE_LIMITS.maxChangedFiles).default([]),
+  /** Reference to the stored normalized patch (candidates/<file>.patch). */
+  patchRef: shortText32.optional(),
+  /** Local verification observed by SpecBridge inside the worktree. */
+  localVerification: external_exports.object({
+    ran: external_exports.boolean(),
+    passed: external_exports.boolean(),
+    commands: external_exports.array(
+      external_exports.object({
+        name: shortText32,
+        status: shortText32,
+        exitCode: external_exports.number().int().nullable().default(null)
+      }).passthrough()
+    ).max(OBJECTIVE_LIMITS.maxListItems).default([])
+  }).passthrough(),
+  /** The worker's structured claims (data, never authority). */
+  claims: external_exports.object({
+    summary: text3,
+    assumptionsDiscovered: textList22.default([]),
+    contractChangeRequests: external_exports.array(
+      external_exports.object({
+        contractId: shortText32,
+        problem: text3,
+        proposal: text3
+      }).passthrough()
+    ).max(10).default([]),
+    knownLimitations: textList22.default([]),
+    /** Investigation units: the structured report body. */
+    report: external_exports.string().max(16e3).optional()
+  }).passthrough(),
+  /** Set when identity/staleness guards rejected the candidate. */
+  rejectedReason: optionalText2.optional()
+}).passthrough();
+var evaluationRecordSchema = external_exports.object({
+  schemaVersion: semver2,
+  evaluationId: shortText32,
+  jobId: shortText32,
+  objectiveNodeId: shortText32,
+  workUnitId: shortText32,
+  attempt: external_exports.number().int().min(1),
+  layer: external_exports.enum(EVALUATION_LAYERS),
+  verdict: external_exports.enum(EVALUATION_VERDICTS),
+  /** Named deterministic checks with their outcomes (deterministic layer). */
+  checks: external_exports.array(
+    external_exports.object({ name: shortText32, passed: external_exports.boolean(), detail: optionalText2.optional() }).passthrough()
+  ).max(OBJECTIVE_LIMITS.maxEvaluationChecks).default([]),
+  reasons: textList22.default([]),
+  evidenceRefs: idList2.default([]),
+  affectedContractIds: idList2.default([]),
+  /** Decision kind for CONFLICT / NEEDS_DECISION verdicts (authority routing). */
+  decisionKind: shortText32.optional(),
+  /** The evaluator worker, when the layer is semantic. */
+  evaluatorWorkerId: shortText32.optional(),
+  createdAt: shortText32
+}).passthrough();
+var contractConflictSchema = external_exports.object({
+  schemaVersion: semver2,
+  conflictId: shortText32,
+  jobId: shortText32,
+  objectiveNodeId: shortText32,
+  contractId: shortText32,
+  contractRevision: external_exports.number().int().min(1),
+  claims: external_exports.array(
+    external_exports.object({
+      workUnitId: shortText32,
+      candidateRef: shortText32.optional(),
+      claim: text3
+    }).passthrough()
+  ).min(1).max(OBJECTIVE_LIMITS.maxListItems),
+  evidenceRefs: idList2.default([]),
+  affectedWorkUnitIds: idList2.default([]),
+  decisionKind: shortText32,
+  status: external_exports.enum(CONTRACT_CONFLICT_STATUSES),
+  resolution: optionalText2.optional(),
+  createdAt: shortText32,
+  resolvedAt: shortText32.optional()
+}).passthrough();
+var objectiveWorkerRecordSchema = external_exports.object({
+  schemaVersion: semver2,
+  workerId: shortText32,
+  agentRole: external_exports.enum(AGENT_ROLES),
+  jobId: shortText32,
+  objectiveNodeId: shortText32,
+  workUnitId: shortText32,
+  attempt: external_exports.number().int().min(1),
+  contextProjectionHash: shortText32,
+  contractSnapshotHash: shortText32,
+  /** "worktree:<name>", "canonical", or "ephemeral" (read-only reasoning). */
+  workspaceIdentity: shortText32,
+  status: external_exports.enum(OBJECTIVE_WORKER_STATUSES),
+  budget: external_exports.object({
+    timeoutMs: external_exports.number().int().min(1),
+    maxOutputBytes: external_exports.number().int().min(1).optional()
+  }).passthrough(),
+  startedAt: shortText32,
+  finishedAt: shortText32.optional()
+}).passthrough();
+var ID_PATTERN3 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+function assertSegment(value, what) {
+  if (!ID_PATTERN3.test(value)) {
+    throw new OrchestrationError("SBO040", `Invalid ${what} "${value}".`);
+  }
+  return value;
+}
+function objectiveDir(workspace, jobId, nodeId) {
+  assertSegment(nodeId, "objective node id");
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path25.default.join(jobDir(workspace, jobId), "objectives", nodeId)
+  );
+}
+function artifactPath3(workspace, jobId, nodeId, ...segments) {
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path25.default.join(objectiveDir(workspace, jobId, nodeId), ...segments)
+  );
+}
+function readJson(file, parse3) {
+  if (!(0, import_fs23.existsSync)(file)) return void 0;
+  try {
+    return parse3(JSON.parse((0, import_fs23.readFileSync)(file, "utf8")));
+  } catch {
+    return void 0;
+  }
+}
+function workGraphFile(workspace, jobId, nodeId, revision) {
+  return artifactPath3(workspace, jobId, nodeId, "workgraphs", `${String(revision).padStart(4, "0")}.json`);
+}
+function readWorkGraph(workspace, jobId, nodeId, revision) {
+  if (!Number.isInteger(revision) || revision < 1) return void 0;
+  return readJson(workGraphFile(workspace, jobId, nodeId, revision), (raw) => {
+    const result = workGraphSchema.safeParse(raw);
+    return result.success ? result.data : void 0;
+  });
+}
+function listWorkGraphRevisions(workspace, jobId, nodeId) {
+  const dir = artifactPath3(workspace, jobId, nodeId, "workgraphs");
+  if (!(0, import_fs23.existsSync)(dir)) return [];
+  const revisions = [];
+  for (const name of (0, import_fs23.readdirSync)(dir).sort()) {
+    if (!/^\d{4}\.json$/.test(name)) continue;
+    revisions.push(Number.parseInt(name.slice(0, 4), 10));
+  }
+  return revisions;
+}
+function readLatestWorkGraph(workspace, jobId, nodeId) {
+  const revisions = listWorkGraphRevisions(workspace, jobId, nodeId);
+  const latest = revisions.at(-1);
+  return latest === void 0 ? void 0 : readWorkGraph(workspace, jobId, nodeId, latest);
+}
+function projectionName(workUnitId, attempt) {
+  return `${workUnitId}-a${String(attempt).padStart(2, "0")}.json`;
+}
+function readProjection(workspace, jobId, nodeId, workUnitId, attempt) {
+  if (!ID_PATTERN3.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
+  return readJson(
+    artifactPath3(workspace, jobId, nodeId, "projections", projectionName(workUnitId, attempt)),
+    (raw) => {
+      const result = contextProjectionSchema.safeParse(raw);
+      return result.success ? result.data : void 0;
+    }
+  );
+}
+function candidateName(workUnitId, attempt) {
+  return `${workUnitId}-a${String(attempt).padStart(2, "0")}`;
+}
+function readCandidate(workspace, jobId, nodeId, workUnitId, attempt) {
+  if (!ID_PATTERN3.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
+  return readJson(
+    artifactPath3(workspace, jobId, nodeId, "candidates", `${candidateName(workUnitId, attempt)}.json`),
+    (raw) => {
+      const result = candidateArtifactSchema.safeParse(raw);
+      return result.success ? result.data : void 0;
+    }
+  );
+}
+function readEvaluations(workspace, jobId, nodeId, workUnitId) {
+  const dir = artifactPath3(workspace, jobId, nodeId, "evaluations");
+  if (!(0, import_fs23.existsSync)(dir)) return [];
+  const records = [];
+  for (const name of (0, import_fs23.readdirSync)(dir).sort()) {
+    if (!name.endsWith(".json")) continue;
+    const record32 = readJson(import_path25.default.join(dir, name), (raw) => {
+      const result = evaluationRecordSchema.safeParse(raw);
+      return result.success ? result.data : void 0;
+    });
+    if (record32 !== void 0 && (workUnitId === void 0 || record32.workUnitId === workUnitId)) {
+      records.push(record32);
+    }
+  }
+  return records;
+}
+function readConflicts(workspace, jobId, nodeId) {
+  const dir = artifactPath3(workspace, jobId, nodeId, "conflicts");
+  if (!(0, import_fs23.existsSync)(dir)) return [];
+  const records = [];
+  for (const name of (0, import_fs23.readdirSync)(dir).sort()) {
+    if (!name.endsWith(".json")) continue;
+    const record32 = readJson(import_path25.default.join(dir, name), (raw) => {
+      const result = contractConflictSchema.safeParse(raw);
+      return result.success ? result.data : void 0;
+    });
+    if (record32 !== void 0) records.push(record32);
+  }
+  return records;
+}
+function readWorkerRecords(workspace, jobId, nodeId) {
+  const dir = artifactPath3(workspace, jobId, nodeId, "workers");
+  if (!(0, import_fs23.existsSync)(dir)) return [];
+  const records = [];
+  for (const name of (0, import_fs23.readdirSync)(dir).sort()) {
+    if (!name.endsWith(".json")) continue;
+    const record32 = readJson(import_path25.default.join(dir, name), (raw) => {
+      const result = objectiveWorkerRecordSchema.safeParse(raw);
+      return result.success ? result.data : void 0;
+    });
+    if (record32 !== void 0) records.push(record32);
+  }
+  return records;
+}
 var EVALUATION_STATUSES = ["PASS", "FAIL", "INCONCLUSIVE"];
 var EVALUATION_CHECK_LEVELS = [
   "EXECUTION_INTEGRITY",
@@ -56296,40 +56716,40 @@ var RELIABILITY_LIMITS = {
   /** Bounded per-task fingerprint history used by loop detection. */
   maxFingerprintHistory: 12
 };
-var shortText32 = external_exports.string().min(1).max(RELIABILITY_LIMITS.maxShortTextChars);
-var text3 = external_exports.string().min(1).max(RELIABILITY_LIMITS.maxTextChars);
-var semver2 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
+var shortText42 = external_exports.string().min(1).max(RELIABILITY_LIMITS.maxShortTextChars);
+var text4 = external_exports.string().min(1).max(RELIABILITY_LIMITS.maxTextChars);
+var semver22 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
 var evaluationCheckSchema = external_exports.object({
   level: external_exports.enum(EVALUATION_CHECK_LEVELS),
   /** Stable identifier of the check itself (verifier name, criterion id). */
-  name: shortText32,
+  name: shortText42,
   outcome: external_exports.enum(EVALUATION_CHECK_OUTCOMES),
   /** False for advisory checks that never by themselves fail a task. */
   required: external_exports.boolean().default(true),
   /** Bounded, safe detail. Never raw model prose, never a stack trace. */
-  detail: text3.optional(),
+  detail: text4.optional(),
   /** Evidence reference (run id, verifier result key, criterion id). */
-  evidenceRef: shortText32.optional(),
+  evidenceRef: shortText42.optional(),
   durationMs: external_exports.number().int().min(0).nullable().default(null)
 }).passthrough();
 var semanticFindingSchema = external_exports.object({
   /** Acceptance criterion or contract id this finding relates to, if any. */
-  criterionId: shortText32.optional(),
+  criterionId: shortText42.optional(),
   severity: external_exports.enum(["blocking", "concern", "note"]),
   /** Bounded structured observation. Never chain-of-thought. */
-  observation: text3,
+  observation: text4,
   /** Repository path the finding points at, when it points at one. */
-  path: shortText32.optional()
+  path: shortText42.optional()
 }).passthrough();
 var evaluationResultSchema = external_exports.object({
-  schemaVersion: semver2,
-  evaluationId: shortText32,
-  jobId: shortText32,
-  nodeId: shortText32,
-  taskId: shortText32,
-  attemptId: shortText32,
+  schemaVersion: semver22,
+  evaluationId: shortText42,
+  jobId: shortText42,
+  nodeId: shortText42,
+  taskId: shortText42,
+  attemptId: shortText42,
   /** The economic lane the evaluated attempt ran on, for cross-lane analysis. */
-  lane: shortText32.nullable().default(null),
+  lane: shortText42.nullable().default(null),
   status: external_exports.enum(EVALUATION_STATUSES),
   /** Deterministic checks, in level order. Always populated. */
   deterministicChecks: external_exports.array(evaluationCheckSchema).max(RELIABILITY_LIMITS.maxChecks).default([]),
@@ -56338,33 +56758,33 @@ var evaluationResultSchema = external_exports.object({
   /** Structured semantic findings; proposals only, never authority. */
   semanticFindings: external_exports.array(semanticFindingSchema).max(RELIABILITY_LIMITS.maxFindings).default([]),
   /** Acceptance-criteria ids that did not hold. */
-  failedCriteria: external_exports.array(shortText32).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  failedCriteria: external_exports.array(shortText42).max(RELIABILITY_LIMITS.maxListItems).default([]),
   /** Run ids, verifier keys, patch refs backing this verdict. */
-  evidenceRefs: external_exports.array(shortText32).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
+  evidenceRefs: external_exports.array(shortText42).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
   /**
    * Normalized failure fingerprints observed during evaluation. These feed
    * no-progress detection directly, which is why they live on the durable
    * record rather than being recomputed from logs.
    */
-  failureSignals: external_exports.array(shortText32).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  failureSignals: external_exports.array(shortText42).max(RELIABILITY_LIMITS.maxListItems).default([]),
   /** Ordered, safe explanation of how the status was reached. */
-  reasons: external_exports.array(text3).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  reasons: external_exports.array(text4).max(RELIABILITY_LIMITS.maxListItems).default([]),
   /**
    * True when a semantic review ran AND the deterministic layers had
    * already passed. Recorded so the "semantic never overrides
    * deterministic" invariant is auditable after the fact.
    */
   semanticReviewRan: external_exports.boolean().default(false),
-  createdAt: shortText32
+  createdAt: shortText42
 }).passthrough();
 var failureAssessmentSchema = external_exports.object({
-  schemaVersion: semver2,
-  assessmentId: shortText32,
-  jobId: shortText32,
-  nodeId: shortText32,
-  taskId: shortText32,
-  attemptId: shortText32,
-  lane: shortText32.nullable().default(null),
+  schemaVersion: semver22,
+  assessmentId: shortText42,
+  jobId: shortText42,
+  nodeId: shortText42,
+  taskId: shortText42,
+  attemptId: shortText42,
+  lane: shortText42.nullable().default(null),
   /** The existing stable failure taxonomy, unchanged. */
   category: external_exports.enum(FAILURE_CATEGORIES),
   source: external_exports.enum(FAILURE_SOURCES),
@@ -56373,21 +56793,21 @@ var failureAssessmentSchema = external_exports.object({
   /** What this assessment rests on. Not a fabricated confidence number. */
   basis: external_exports.enum(ASSESSMENT_BASES),
   /** Deterministic identity of the failure (see failureFingerprint). */
-  fingerprint: shortText32,
+  fingerprint: shortText42,
   /** Identity of the working-tree change set this failure came with. */
-  diffFingerprint: shortText32.nullable().default(null),
+  diffFingerprint: shortText42.nullable().default(null),
   /** How many attempts on this task have ended with this fingerprint. */
   repeatedCount: external_exports.number().int().min(1).default(1),
   /** Bounded, safe statement of the likely cause. Never model prose. */
-  likelyCause: text3,
+  likelyCause: text4,
   /** A hint for the planner, which decides independently. */
   recommendedRecoveryClass: external_exports.enum(RECOVERY_ACTIONS).nullable().default(null),
   /** Health at the time of assessment, for the durable record. */
   health: external_exports.enum(EXECUTION_HEALTH_STATES).default("HEALTHY"),
   /** Runaway signals that fired, when the attempt was stopped for one. */
   runawaySignals: external_exports.array(external_exports.enum(RUNAWAY_SIGNALS)).max(RUNAWAY_SIGNALS.length).default([]),
-  evidenceRefs: external_exports.array(shortText32).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
-  createdAt: shortText32
+  evidenceRefs: external_exports.array(shortText42).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
+  createdAt: shortText42
 }).passthrough();
 var budgetSnapshotSchema = external_exports.object({
   attemptsUsed: external_exports.number().int().min(0),
@@ -56412,43 +56832,43 @@ var budgetSnapshotSchema = external_exports.object({
   reportedTokens: external_exports.number().int().min(0).nullable().default(null)
 }).passthrough();
 var recoveryStrategySchema = external_exports.object({
-  lane: shortText32.nullable().default(null),
-  executionMode: shortText32.nullable().default(null),
+  lane: shortText42.nullable().default(null),
+  executionMode: shortText42.nullable().default(null),
   planRevision: external_exports.number().int().min(0).default(0),
   /** Whether the next attempt starts from a rebuilt context. */
   freshContext: external_exports.boolean().default(false),
   /** Stable digest of the four fields above, for equality comparison. */
-  key: shortText32
+  key: shortText42
 }).passthrough();
 var recoveryDecisionSchema = external_exports.object({
-  schemaVersion: semver2,
-  decisionId: shortText32,
-  jobId: shortText32,
-  nodeId: shortText32,
-  taskId: shortText32,
+  schemaVersion: semver22,
+  decisionId: shortText42,
+  jobId: shortText42,
+  nodeId: shortText42,
+  taskId: shortText42,
   /** The attempt whose failure this decision responds to. */
-  attemptId: shortText32,
+  attemptId: shortText42,
   /** The assessment this decision was made from. */
-  assessmentId: shortText32.optional(),
+  assessmentId: shortText42.optional(),
   /** The evaluation this decision was made from, when one exists. */
-  evaluationId: shortText32.optional(),
+  evaluationId: shortText42.optional(),
   action: external_exports.enum(RECOVERY_ACTIONS),
   reasonCode: external_exports.enum(RECOVERY_REASON_CODES),
   /** Bounded, safe explanation. Written by policy, never by a model. */
-  reason: text3,
-  failureFingerprint: shortText32.nullable().default(null),
+  reason: text4,
+  failureFingerprint: shortText42.nullable().default(null),
   health: external_exports.enum(EXECUTION_HEALTH_STATES),
   /** What dimension of strategy this decision changes. */
   strategyChange: external_exports.enum(RECOVERY_STRATEGY_DIMENSIONS),
   previousStrategy: recoveryStrategySchema.optional(),
   nextStrategy: recoveryStrategySchema.optional(),
   budgetSnapshot: budgetSnapshotSchema,
-  evidenceRefs: external_exports.array(shortText32).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
+  evidenceRefs: external_exports.array(shortText42).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
   /**
    * What a human would need to do to unblock this task, when the action
    * stops automatic continuation. Bounded and actionable.
    */
-  remediation: external_exports.array(text3).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  remediation: external_exports.array(text4).max(RELIABILITY_LIMITS.maxListItems).default([]),
   /**
    * Set when the action REQUESTS stronger execution. It is a requirement,
    * not an authorization: spend policy and the scheduler still decide
@@ -56457,32 +56877,32 @@ var recoveryDecisionSchema = external_exports.object({
   requestedCapability: external_exports.object({
     /** 'STRONG' asks for stronger intelligence; 'REMOTE' asks for a paid lane. */
     kind: external_exports.enum(["STRONG", "REMOTE"]),
-    detail: text3
+    detail: text4
   }).passthrough().optional(),
   /** True when the decision was persisted but its attempt has not run yet. */
   applied: external_exports.boolean().default(false),
-  createdAt: shortText32
+  createdAt: shortText42
 }).passthrough();
 var reliabilityObservationSchema = external_exports.object({
-  attemptId: shortText32,
+  attemptId: shortText42,
   attemptNumber: external_exports.number().int().min(1),
-  failureFingerprint: shortText32.nullable().default(null),
-  diffFingerprint: shortText32.nullable().default(null),
-  strategyKey: shortText32.nullable().default(null),
+  failureFingerprint: shortText42.nullable().default(null),
+  diffFingerprint: shortText42.nullable().default(null),
+  strategyKey: shortText42.nullable().default(null),
   evaluationStatus: external_exports.enum(EVALUATION_STATUSES).nullable().default(null),
-  lane: shortText32.nullable().default(null),
-  at: shortText32
+  lane: shortText42.nullable().default(null),
+  at: shortText42
 }).passthrough();
 var taskReliabilityStateSchema = external_exports.object({
-  schemaVersion: semver2,
-  jobId: shortText32,
-  nodeId: shortText32,
-  taskId: shortText32,
+  schemaVersion: semver22,
+  jobId: shortText42,
+  nodeId: shortText42,
+  taskId: shortText42,
   health: external_exports.enum(EXECUTION_HEALTH_STATES).default("HEALTHY"),
   /** Rolling window, oldest first. */
   observations: external_exports.array(reliabilityObservationSchema).max(RELIABILITY_LIMITS.maxFingerprintHistory).default([]),
   /** Strategy keys already tried and failed on this task. */
-  exhaustedStrategies: external_exports.array(shortText32).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  exhaustedStrategies: external_exports.array(shortText42).max(RELIABILITY_LIMITS.maxListItems).default([]),
   /** Cumulative counters — the raw material for cost-of-failure analysis. */
   evaluationsFailed: external_exports.number().int().min(0).default(0),
   evaluationsInconclusive: external_exports.number().int().min(0).default(0),
@@ -56495,8 +56915,8 @@ var taskReliabilityStateSchema = external_exports.object({
   failedAttemptTokens: external_exports.number().int().min(0).nullable().default(null),
   failedAttemptCostUsd: external_exports.number().min(0).nullable().default(null),
   /** The decision the task is currently acting on, when one is pending. */
-  pendingDecisionId: shortText32.optional(),
-  updatedAt: shortText32
+  pendingDecisionId: shortText42.optional(),
+  updatedAt: shortText42
 }).passthrough();
 var TASK_ATTEMPT_STATUSES = [
   /** The dispatch is (or was, before a crash) in flight. */
@@ -56533,10 +56953,10 @@ var SURVIVAL_LIMITS = {
   maxShortTextChars: STATE_LIMITS.maxShortTextChars,
   maxCheckpointsPerTask: 500
 };
-var shortText42 = external_exports.string().min(1).max(SURVIVAL_LIMITS.maxShortTextChars);
-var text4 = external_exports.string().min(1).max(SURVIVAL_LIMITS.maxTextChars);
-var textList22 = external_exports.array(text4).max(SURVIVAL_LIMITS.maxListItems);
-var semver22 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
+var shortText5 = external_exports.string().min(1).max(SURVIVAL_LIMITS.maxShortTextChars);
+var text5 = external_exports.string().min(1).max(SURVIVAL_LIMITS.maxTextChars);
+var textList3 = external_exports.array(text5).max(SURVIVAL_LIMITS.maxListItems);
+var semver3 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
 var attemptMetricsSchema = external_exports.object({
   durationMs: external_exports.number().int().min(0).nullable().default(null),
   inputTokens: external_exports.number().int().min(0).nullable().default(null),
@@ -56579,88 +56999,88 @@ var attemptMetricsSchema = external_exports.object({
   reconciledCostUsd: external_exports.number().min(0).nullable().default(null)
 }).passthrough();
 var taskAttemptSchema = external_exports.object({
-  schemaVersion: semver22,
-  attemptId: shortText42,
-  jobId: shortText42,
+  schemaVersion: semver3,
+  attemptId: shortText5,
+  jobId: shortText5,
   /** Runtime graph node this attempt executes (the Task's runtime identity). */
-  nodeId: shortText42,
+  nodeId: shortText5,
   /** The approved task id (stable across graph revisions). */
-  taskId: shortText42,
+  taskId: shortText5,
   role: external_exports.enum(AGENT_ROLES),
   /** Worker identity as the scheduler assigned it. */
-  workerId: shortText42,
+  workerId: shortText5,
   /**
    * Provider identity (runner/profile name). Identity is recorded for the
    * ledger and for audit — runtime logic branches on capabilities, never
    * on this value.
    */
-  provider: shortText42,
+  provider: shortText5,
   /** Model identity when known; null when the provider does not say. */
-  model: shortText42.nullable().default(null),
+  model: shortText5.nullable().default(null),
   status: external_exports.enum(TASK_ATTEMPT_STATUSES),
   /** 1-based position within this task's attempt history. */
   attemptNumber: external_exports.number().int().min(1),
-  startedAt: shortText42,
-  completedAt: shortText42.optional(),
+  startedAt: shortText5,
+  completedAt: shortText5.optional(),
   /** Bounded outcome summary — a claim, never evidence. */
-  resultSummary: text4.optional(),
+  resultSummary: text5.optional(),
   failure: external_exports.object({
     category: external_exports.enum(FAILURE_CATEGORIES),
-    message: text4
+    message: text5
   }).passthrough().optional(),
   /** Why an INTERRUPTED attempt was reconciled (e.g. "process-restart"). */
-  interruptedReason: shortText42.optional(),
+  interruptedReason: shortText5.optional(),
   /** Task checkpoints persisted during this attempt, oldest first. */
-  checkpointIds: external_exports.array(shortText42).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  checkpointIds: external_exports.array(shortText5).max(SURVIVAL_LIMITS.maxListItems).default([]),
   /** Execution run id (`.specbridge/runs/<id>`) when the evidence path ran. */
-  runId: shortText42.optional(),
+  runId: shortText5.optional(),
   /** The interrupted/failed attempt this one continues from (lineage). */
-  resumedFromAttemptId: shortText42.optional(),
+  resumedFromAttemptId: shortText5.optional(),
   /** Provider session reference — WORKING MEMORY only, never canonical. */
-  providerSessionId: shortText42.optional(),
+  providerSessionId: shortText5.optional(),
   /** Scheduling lane (vNext.2: LOCAL / SUBSCRIPTION), when assigned. */
-  lane: shortText42.optional(),
+  lane: shortText5.optional(),
   // vNext.2 scheduling attribution (additive; audit and ledger inputs,
   // never runtime policy — policy reads live configuration and telemetry).
   /** Deterministic local-suitability class the scheduler assigned. */
-  localSuitability: shortText42.optional(),
+  localSuitability: shortText5.optional(),
   /** Complexity class the task carried when the attempt was scheduled. */
-  taskComplexity: shortText42.optional(),
+  taskComplexity: shortText5.optional(),
   /** Coarse task category from the suitability classifier. */
-  taskCategory: shortText42.optional(),
+  taskCategory: shortText5.optional(),
   /** The SchedulingDecision that routed this attempt, when one exists. */
-  schedulingDecisionId: shortText42.optional(),
+  schedulingDecisionId: shortText5.optional(),
   // vNext.4 local execution attribution (additive; absent on pre-vNext.4
   // attempts and on every SUBSCRIPTION attempt).
   /** LOCAL execution mode: DIRECT_MODEL or HARNESS. Orthogonal to lane. */
-  executionMode: shortText42.optional(),
+  executionMode: shortText5.optional(),
   /** Deterministic execution shape the resolver classified. */
-  executionShape: shortText42.optional(),
+  executionShape: shortText5.optional(),
   /** Verified compute locality of the runner that executed this attempt. */
-  computeLocality: shortText42.optional(),
+  computeLocality: shortText5.optional(),
   // vNext.5 API-lane attribution (additive; absent on every LOCAL and
   // SUBSCRIPTION attempt and on every pre-vNext.5 record). Each field is
   // ORTHOGONAL: `lane` says whether this was paid, `provider`/`model` say
   // which intelligence ran it, `executionMode`/`computeLocality` say how
   // and where. Nothing is ever collapsed into a compound value.
   /** The spend authorization mode in force when the attempt was dispatched. */
-  apiSpendMode: shortText42.optional(),
+  apiSpendMode: shortText5.optional(),
   /** Why subscription capacity was unavailable (the gap's cause). */
-  gapReason: shortText42.optional(),
+  gapReason: shortText5.optional(),
   /** When subscription capacity was expected back, when known. */
-  subscriptionAvailableAt: shortText42.optional(),
+  subscriptionAvailableAt: shortText5.optional(),
   /** Expected gap duration in milliseconds, when known. */
   estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null).optional(),
   /** How the recorded cost was determined (see API_COST_SOURCES). */
-  costSource: shortText42.optional(),
+  costSource: shortText5.optional(),
   /** Operator pricing profile the estimate used, for attribution. */
-  pricingProfile: shortText42.optional(),
+  pricingProfile: shortText5.optional(),
   /** The budget reservation funding this attempt. */
-  apiBudgetReservationId: shortText42.optional(),
+  apiBudgetReservationId: shortText5.optional(),
   /** The bounded human authorization this attempt consumed, when one applied. */
-  apiApprovalId: shortText42.optional(),
+  apiApprovalId: shortText5.optional(),
   /** Deterministic delay-sensitivity level that justified paid bridging. */
-  delaySensitivity: shortText42.optional(),
+  delaySensitivity: shortText5.optional(),
   // vNext.8 adaptive attribution (additive; absent on every pre-vNext.8
   // record). These three exist so historical observations can be GROUPED
   // and their runtime identity CHECKED without re-deriving either from
@@ -56668,126 +57088,126 @@ var taskAttemptSchema = external_exports.object({
   // months later under changed heuristics would silently re-file old
   // attempts into buckets they were never measured in.
   /** The coarse TaskSignature key this attempt was dispatched under. */
-  taskSignature: shortText42.optional(),
+  taskSignature: shortText5.optional(),
   /** vNext.7 context strategy in force for this attempt. */
-  contextStrategy: shortText42.optional(),
+  contextStrategy: shortText5.optional(),
   /**
    * Runner/runtime version when the provider reported one. Absent means
    * UNKNOWN — never assumed to match the version running now, because a
    * silent version change is exactly the case this field exists to catch.
    */
-  runnerVersion: shortText42.optional(),
+  runnerVersion: shortText5.optional(),
   metrics: attemptMetricsSchema.default({})
 }).passthrough();
 var checkpointDecisionSchema = external_exports.object({
-  decision: text4,
-  rationale: text4.optional(),
-  at: shortText42.optional(),
-  decidedBy: shortText42.optional()
+  decision: text5,
+  rationale: text5.optional(),
+  at: shortText5.optional(),
+  decidedBy: shortText5.optional()
 }).passthrough();
 var failedApproachSchema = external_exports.object({
-  approach: text4,
-  reason: text4,
-  at: shortText42.optional(),
+  approach: text5,
+  reason: text5,
+  at: shortText5.optional(),
   /** Evidence reference (run id, test name) backing the failure claim. */
-  evidenceRef: shortText42.optional()
+  evidenceRef: shortText5.optional()
 }).passthrough();
 var checkpointTestResultSchema = external_exports.object({
-  name: shortText42,
+  name: shortText5,
   status: external_exports.enum(["passed", "failed", "skipped", "unknown"]),
-  summary: text4.optional()
+  summary: text5.optional()
 }).passthrough();
 var checkpointRepositoryStateSchema = external_exports.object({
-  branch: shortText42.optional(),
-  head: shortText42.optional(),
+  branch: shortText5.optional(),
+  head: shortText5.optional(),
   detached: external_exports.boolean().optional(),
   clean: external_exports.boolean().optional(),
   /** Paths dirty at checkpoint time (bounded; the diff itself lives in runs/). */
-  dirtyPaths: external_exports.array(shortText42).max(SURVIVAL_LIMITS.maxChangedFiles).default([]),
+  dirtyPaths: external_exports.array(shortText5).max(SURVIVAL_LIMITS.maxChangedFiles).default([]),
   /** Reference to a stored diff artifact, when one exists. */
-  diffRef: shortText42.optional(),
+  diffRef: shortText5.optional(),
   /** The commit execution started from, when known. */
-  baselineHead: shortText42.optional()
+  baselineHead: shortText5.optional()
 }).passthrough();
 var checkpointPinnedContextSchema = external_exports.object({
   /** The task contract: what this task IS, verbatim and bounded. */
-  taskContract: text4,
-  acceptanceCriteria: textList22.default([]),
+  taskContract: text5,
+  acceptanceCriteria: textList3.default([]),
   /** Architecture/repository rules constraining every attempt. */
-  constraints: textList22.default([]),
+  constraints: textList3.default([]),
   /** Critical invariants that override any convenient shortcut. */
-  invariants: textList22.default([])
+  invariants: textList3.default([])
 }).passthrough();
 var taskCheckpointSchema = external_exports.object({
-  schemaVersion: semver22,
-  checkpointId: shortText42,
-  jobId: shortText42,
-  nodeId: shortText42,
-  taskId: shortText42,
+  schemaVersion: semver3,
+  checkpointId: shortText5,
+  jobId: shortText5,
+  nodeId: shortText5,
+  taskId: shortText5,
   /** The attempt that persisted this checkpoint. */
-  attemptId: shortText42,
+  attemptId: shortText5,
   /** 1-based, strictly increasing per task. */
   seq: external_exports.number().int().min(1),
   reason: external_exports.enum(TASK_CHECKPOINT_REASONS),
   /** What this task is trying to achieve right now. */
-  objective: text4,
+  objective: text5,
   pinned: checkpointPinnedContextSchema,
-  completedWork: textList22.default([]),
-  pendingWork: textList22.default([]),
+  completedWork: textList3.default([]),
+  pendingWork: textList3.default([]),
   importantDecisions: external_exports.array(checkpointDecisionSchema).max(SURVIVAL_LIMITS.maxListItems).default([]),
   failedApproaches: external_exports.array(failedApproachSchema).max(SURVIVAL_LIMITS.maxListItems).default([]),
   changedFiles: external_exports.array(
-    external_exports.object({ path: shortText42, note: shortText42.optional() }).passthrough()
+    external_exports.object({ path: shortText5, note: shortText5.optional() }).passthrough()
   ).max(SURVIVAL_LIMITS.maxChangedFiles).default([]),
   repositoryState: checkpointRepositoryStateSchema.default({}),
   testResults: external_exports.array(checkpointTestResultSchema).max(SURVIVAL_LIMITS.maxListItems).default([]),
-  knownFailures: textList22.default([]),
-  unresolvedIssues: textList22.default([]),
+  knownFailures: textList3.default([]),
+  unresolvedIssues: textList3.default([]),
   /** The exact next actions, in order. Resume continues from here. */
-  nextActions: external_exports.array(text4).min(1).max(SURVIVAL_LIMITS.maxListItems),
+  nextActions: external_exports.array(text5).min(1).max(SURVIVAL_LIMITS.maxListItems),
   /** Artifact references (run ids, agent results, candidate refs). */
-  relevantArtifacts: external_exports.array(shortText42).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  relevantArtifacts: external_exports.array(shortText5).max(SURVIVAL_LIMITS.maxListItems).default([]),
   /** Context references worth re-retrieving (paths, docs), never content. */
-  relevantContextReferences: external_exports.array(shortText42).max(SURVIVAL_LIMITS.maxListItems).default([]),
-  createdAt: shortText42
+  relevantContextReferences: external_exports.array(shortText5).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  createdAt: shortText5
 }).passthrough();
 var executionLedgerEntrySchema = external_exports.object({
-  attemptId: shortText42,
-  jobId: shortText42,
-  nodeId: shortText42,
-  taskId: shortText42,
+  attemptId: shortText5,
+  jobId: shortText5,
+  nodeId: shortText5,
+  taskId: shortText5,
   role: external_exports.enum(AGENT_ROLES),
-  provider: shortText42,
-  model: shortText42.nullable(),
-  lane: shortText42.nullable(),
+  provider: shortText5,
+  model: shortText5.nullable(),
+  lane: shortText5.nullable(),
   status: external_exports.enum(TASK_ATTEMPT_STATUSES),
   attemptNumber: external_exports.number().int().min(1),
-  startedAt: shortText42,
-  completedAt: shortText42.nullable(),
+  startedAt: shortText5,
+  completedAt: shortText5.nullable(),
   success: external_exports.boolean(),
-  failureReason: shortText42.nullable(),
+  failureReason: shortText5.nullable(),
   // vNext.2 scheduling attribution (additive; null when never assigned).
-  localSuitability: shortText42.nullable().default(null),
-  taskComplexity: shortText42.nullable().default(null),
-  taskCategory: shortText42.nullable().default(null),
-  schedulingDecisionId: shortText42.nullable().default(null),
+  localSuitability: shortText5.nullable().default(null),
+  taskComplexity: shortText5.nullable().default(null),
+  taskCategory: shortText5.nullable().default(null),
+  schedulingDecisionId: shortText5.nullable().default(null),
   // vNext.4 local execution attribution (additive; null when unassigned).
-  executionMode: shortText42.nullable().default(null),
-  executionShape: shortText42.nullable().default(null),
-  computeLocality: shortText42.nullable().default(null),
+  executionMode: shortText5.nullable().default(null),
+  executionShape: shortText5.nullable().default(null),
+  computeLocality: shortText5.nullable().default(null),
   // vNext.5 API economics (additive; null on every unpaid attempt). These
   // are what makes later analysis possible without a second database:
   // cost per successful task, cost by task type, bridge success rate, and
   // money spent versus subscription wait avoided all derive from here.
-  apiSpendMode: shortText42.nullable().default(null),
-  gapReason: shortText42.nullable().default(null),
-  subscriptionAvailableAt: shortText42.nullable().default(null),
+  apiSpendMode: shortText5.nullable().default(null),
+  gapReason: shortText5.nullable().default(null),
+  subscriptionAvailableAt: shortText5.nullable().default(null),
   estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null),
-  costSource: shortText42.nullable().default(null),
-  pricingProfile: shortText42.nullable().default(null),
-  apiBudgetReservationId: shortText42.nullable().default(null),
-  apiApprovalId: shortText42.nullable().default(null),
-  delaySensitivity: shortText42.nullable().default(null),
+  costSource: shortText5.nullable().default(null),
+  pricingProfile: shortText5.nullable().default(null),
+  apiBudgetReservationId: shortText5.nullable().default(null),
+  apiApprovalId: shortText5.nullable().default(null),
+  delaySensitivity: shortText5.nullable().default(null),
   // vNext.6 reliability attribution (additive; null on every pre-vNext.6
   // record and on any attempt the reliability layer did not govern).
   //
@@ -56799,37 +57219,37 @@ var executionLedgerEntrySchema = external_exports.object({
   // which questions were worth asking would foreclose the ones that turn
   // out to matter.
   /** Verdict on this attempt: PASS / FAIL / INCONCLUSIVE. */
-  evaluationStatus: shortText42.nullable().default(null),
-  evaluationId: shortText42.nullable().default(null),
+  evaluationStatus: shortText5.nullable().default(null),
+  evaluationId: shortText5.nullable().default(null),
   /** WHERE the failure came from, orthogonal to `failureReason`. */
-  failureSource: shortText42.nullable().default(null),
+  failureSource: shortText5.nullable().default(null),
   /** Deterministic failure identity, for cross-attempt repetition analysis. */
-  failureFingerprint: shortText42.nullable().default(null),
+  failureFingerprint: shortText5.nullable().default(null),
   /** Deterministic progress health at the time of the failure. */
-  executionHealth: shortText42.nullable().default(null),
+  executionHealth: shortText5.nullable().default(null),
   /** The recovery action SpecBridge chose after this attempt. */
-  recoveryAction: shortText42.nullable().default(null),
-  recoveryReasonCode: shortText42.nullable().default(null),
-  recoveryDecisionId: shortText42.nullable().default(null),
+  recoveryAction: shortText5.nullable().default(null),
+  recoveryReasonCode: shortText5.nullable().default(null),
+  recoveryDecisionId: shortText5.nullable().default(null),
   /** Which dimension of strategy the recovery changed, if any. */
-  strategyChange: shortText42.nullable().default(null),
+  strategyChange: shortText5.nullable().default(null),
   // vNext.8 adaptive attribution (additive; null on every pre-vNext.8
   // record). The adaptive layer reads history through this read model, so
   // the grouping key and the runtime identity have to travel with the
   // observation rather than being reconstructed from it.
-  taskSignature: shortText42.nullable().default(null),
-  contextStrategy: shortText42.nullable().default(null),
-  runnerVersion: shortText42.nullable().default(null),
+  taskSignature: shortText5.nullable().default(null),
+  contextStrategy: shortText5.nullable().default(null),
+  runnerVersion: shortText5.nullable().default(null),
   metrics: attemptMetricsSchema
 }).passthrough();
-var shortText5 = external_exports.string().min(1).max(200);
+var shortText6 = external_exports.string().min(1).max(200);
 var apiBudgetReservationSchema = external_exports.object({
-  reservationId: shortText5,
-  jobId: shortText5,
-  nodeId: shortText5,
-  taskId: shortText5,
+  reservationId: shortText6,
+  jobId: shortText6,
+  nodeId: shortText6,
+  taskId: shortText6,
   /** The durable attempt this reservation funds; null until dispatch. */
-  attemptId: shortText5.nullable().default(null),
+  attemptId: shortText6.nullable().default(null),
   state: external_exports.enum(API_BUDGET_RESERVATION_STATES),
   /** The safe estimated cost held at reservation time, in USD. */
   reservedUsd: external_exports.number().min(0),
@@ -56838,16 +57258,16 @@ var apiBudgetReservationSchema = external_exports.object({
   /** How `reconciledUsd` was determined. */
   costSource: external_exports.enum(API_COST_SOURCES).default("ESTIMATED_PRE_DISPATCH"),
   /** The API profile the reservation was made for (audit). */
-  profileName: shortText5.nullable().default(null),
-  createdAt: shortText5,
-  updatedAt: shortText5,
+  profileName: shortText6.nullable().default(null),
+  createdAt: shortText6,
+  updatedAt: shortText6,
   detail: external_exports.string().max(1e3).default("")
 }).passthrough();
 var apiBudgetStateSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  jobId: shortText5,
+  jobId: shortText6,
   reservations: external_exports.array(apiBudgetReservationSchema).max(5e3).default([]),
-  updatedAt: shortText5
+  updatedAt: shortText6
 }).passthrough();
 function encumbered(reservation) {
   switch (reservation.state) {
@@ -57673,7 +58093,7 @@ var ADAPTIVE_DRIFT_SIGNALS = [
   /** The runner/model/harness identity behind the profile changed. */
   "RUNTIME_IDENTITY_CHANGED"
 ];
-var shortText6 = external_exports.string().min(1).max(200);
+var shortText7 = external_exports.string().min(1).max(200);
 var metricSummarySchema = external_exports.object({
   observations: external_exports.number().int().min(0),
   p50: external_exports.number().nullable().default(null),
@@ -57684,9 +58104,9 @@ var profileSchema = external_exports.object({
   profileKey: external_exports.string().min(1).max(400),
   signaturePart: external_exports.string().max(400),
   targetPart: external_exports.string().max(400),
-  lane: shortText6.nullable().default(null),
-  executionMode: shortText6.nullable().default(null),
-  runner: shortText6.nullable().default(null),
+  lane: shortText7.nullable().default(null),
+  executionMode: shortText7.nullable().default(null),
+  runner: shortText7.nullable().default(null),
   samples: external_exports.number().int().min(0),
   weightedSamples: external_exports.number().min(0),
   verifiedSuccesses: external_exports.number().int().min(0),
@@ -57719,8 +58139,8 @@ var profileSchema = external_exports.object({
   runtimeIdentities: external_exports.array(external_exports.string().max(300)).max(50).default([]),
   latestRuntimeIdentity: external_exports.string().max(300).nullable().default(null),
   safetyEvents: external_exports.number().int().min(0).default(0),
-  firstObservedAt: shortText6.nullable().default(null),
-  lastObservedAt: shortText6.nullable().default(null),
+  firstObservedAt: shortText7.nullable().default(null),
+  lastObservedAt: shortText7.nullable().default(null),
   drift: external_exports.object({
     detected: external_exports.boolean().default(false),
     signals: external_exports.array(external_exports.enum(ADAPTIVE_DRIFT_SIGNALS)).max(16).default([]),
@@ -57737,17 +58157,17 @@ var adaptiveProfileCacheSchema = external_exports.object({
   sourceFingerprint: external_exports.string().min(1).max(200),
   observationCount: external_exports.number().int().min(0).default(0),
   droppedByAge: external_exports.number().int().min(0).default(0),
-  builtAt: shortText6,
+  builtAt: shortText7,
   profiles: external_exports.array(profileSchema).max(2e4).default([])
 }).passthrough();
 var adaptiveCalibrationRecordSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  jobId: shortText6,
-  nodeId: shortText6,
-  taskId: shortText6,
-  attemptId: shortText6,
-  decisionId: shortText6.nullable().default(null),
-  candidateId: shortText6,
+  jobId: shortText7,
+  nodeId: shortText7,
+  taskId: shortText7,
+  attemptId: shortText7,
+  decisionId: shortText7.nullable().default(null),
+  candidateId: shortText7,
   /** What was predicted before dispatch. */
   predictedSuccessProbability: external_exports.number().min(0).max(1).nullable().default(null),
   predictedWallTimeMs: external_exports.number().min(0).nullable().default(null),
@@ -57755,9 +58175,9 @@ var adaptiveCalibrationRecordSchema = external_exports.object({
   predictedContextTokens: external_exports.number().min(0).nullable().default(null),
   predictedFiveHourBurnRatio: external_exports.number().min(0).max(1).nullable().default(null),
   predictedApiCostUsd: external_exports.number().min(0).nullable().default(null),
-  predictedConfidence: shortText6,
+  predictedConfidence: shortText7,
   /** What was observed. Null stays null; nothing is back-filled. */
-  observedOutcome: shortText6,
+  observedOutcome: shortText7,
   observedVerified: external_exports.boolean().nullable().default(null),
   observedWallTimeMs: external_exports.number().min(0).nullable().default(null),
   observedInputTokens: external_exports.number().min(0).nullable().default(null),
@@ -57771,22 +58191,22 @@ var adaptiveCalibrationRecordSchema = external_exports.object({
   costError: external_exports.number().nullable().default(null),
   /** Brier-style squared error of the success forecast, when resolvable. */
   successBrierScore: external_exports.number().min(0).max(1).nullable().default(null),
-  createdAt: shortText6
+  createdAt: shortText7
 }).passthrough();
-var shortText7 = external_exports.string().min(1).max(200);
+var shortText8 = external_exports.string().min(1).max(200);
 var candidateShape = external_exports.object({
-  candidateId: shortText7,
-  lane: shortText7,
-  executionMode: shortText7.nullable().default(null),
-  runner: shortText7.nullable().default(null),
-  model: shortText7.nullable().default(null),
-  profile: shortText7.nullable().default(null),
-  contextStrategy: shortText7,
-  computeLocality: shortText7,
+  candidateId: shortText8,
+  lane: shortText8,
+  executionMode: shortText8.nullable().default(null),
+  runner: shortText8.nullable().default(null),
+  model: shortText8.nullable().default(null),
+  profile: shortText8.nullable().default(null),
+  contextStrategy: shortText8,
+  computeLocality: shortText8,
   heuristicChoice: external_exports.boolean().default(false)
 }).passthrough();
 var predictionShape = external_exports.object({
-  candidateId: shortText7,
+  candidateId: shortText8,
   level: external_exports.enum(PROFILE_FALLBACK_LEVELS),
   profileKey: external_exports.string().max(400).nullable().default(null),
   confidence: external_exports.enum(PREDICTION_CONFIDENCE_LEVELS),
@@ -57818,14 +58238,14 @@ var predictionShape = external_exports.object({
   safetyEvents: external_exports.number().int().min(0).default(0),
   sampleCount: external_exports.number().int().min(0),
   weightedSampleCount: external_exports.number().min(0),
-  lastObservedAt: shortText7.nullable().default(null),
+  lastObservedAt: shortText8.nullable().default(null),
   /** Utility score and its itemized components. */
   score: external_exports.number(),
   scoreComponents: external_exports.array(
     external_exports.object({
-      name: shortText7,
+      name: shortText8,
       raw: external_exports.number().nullable().default(null),
-      unit: shortText7,
+      unit: shortText8,
       normalized: external_exports.number(),
       weight: external_exports.number(),
       contribution: external_exports.number(),
@@ -57835,36 +58255,36 @@ var predictionShape = external_exports.object({
 }).passthrough();
 var adaptiveSchedulingDecisionSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  decisionId: shortText7,
-  jobId: shortText7,
-  nodeId: shortText7,
-  taskId: shortText7,
+  decisionId: shortText8,
+  jobId: shortText8,
+  nodeId: shortText8,
+  taskId: shortText8,
   mode: external_exports.enum(ADAPTIVE_SCHEDULER_MODES),
   /** The coarse grouping key this decision was made under. */
   taskSignature: external_exports.string().max(400),
   /** Fine-grained current features: audit only, never the grouping key. */
   signatureFeatures: external_exports.record(external_exports.unknown()).default({}),
   /** The lane hard policy selected before adaptive ranking ran. */
-  heuristicLane: shortText7,
-  heuristicReasonCode: shortText7,
+  heuristicLane: shortText8,
+  heuristicReasonCode: shortText8,
   eligibleCandidates: external_exports.array(candidateShape).max(32).default([]),
   rejectedCandidates: external_exports.array(
     external_exports.object({
-      candidateId: shortText7,
-      lane: shortText7,
-      executionMode: shortText7.nullable().default(null),
-      runner: shortText7.nullable().default(null),
+      candidateId: shortText8,
+      lane: shortText8,
+      executionMode: shortText8.nullable().default(null),
+      runner: shortText8.nullable().default(null),
       code: external_exports.enum(ADAPTIVE_VETO_CODES),
       detail: external_exports.string().max(600).default("")
     }).passthrough()
   ).max(32).default([]),
   predictions: external_exports.array(predictionShape).max(32).default([]),
   /** What the deterministic scheduler chose. */
-  heuristicCandidateId: shortText7.nullable().default(null),
+  heuristicCandidateId: shortText8.nullable().default(null),
   /** What ranking preferred, before gating. */
-  recommendedCandidateId: shortText7.nullable().default(null),
+  recommendedCandidateId: shortText8.nullable().default(null),
   /** What actually executes. */
-  selectedCandidateId: shortText7.nullable().default(null),
+  selectedCandidateId: shortText8.nullable().default(null),
   adaptiveApplied: external_exports.boolean().default(false),
   /**
    * True when the recommendation differed from the heuristic choice. In
@@ -57881,8 +58301,8 @@ var adaptiveSchedulingDecisionSchema = external_exports.object({
   explanation: external_exports.array(external_exports.string().max(600)).max(24).default([]),
   /** Profile-store provenance, so a decision is reproducible. */
   profileObservations: external_exports.number().int().min(0).default(0),
-  profileBuiltAt: shortText7.nullable().default(null),
-  createdAt: shortText7
+  profileBuiltAt: shortText8.nullable().default(null),
+  createdAt: shortText8
 }).passthrough();
 function expansionPolicyFrom(config2) {
   const policy = config2.orchestration.jobs.context.efficiency;
@@ -58594,60 +59014,60 @@ var AGENT_OUTPUT_LIMITS = {
   maxSteps: 40,
   maxResponseBytes: 262144
 };
-var shortText8 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxShortChars);
-var text5 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxTextChars);
-var textList3 = external_exports.array(text5).max(AGENT_OUTPUT_LIMITS.maxListItems);
+var shortText9 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxShortChars);
+var text6 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxTextChars);
+var textList4 = external_exports.array(text6).max(AGENT_OUTPUT_LIMITS.maxListItems);
 var classifierOutputSchema = external_exports.object({
   /** Proposed complexity class. May only RAISE the deterministic class. */
   complexity: external_exports.enum(COMPLEXITY_CLASSES),
   /** Short factual reasons tied to the task text. */
-  reasons: textList3.default([])
+  reasons: textList4.default([])
 });
 var plannerStepSchema = external_exports.object({
-  id: shortText8,
-  action: text5,
+  id: shortText9,
+  action: text6,
   /** What observable evidence would show this step succeeded. */
-  expectedEvidence: text5.optional()
+  expectedEvidence: text6.optional()
 });
 var plannerOutputSchema = external_exports.object({
   decision: external_exports.enum(["PLAN", "ESCALATE"]),
   /** The planner's own complexity impression (informational only). */
   complexity: external_exports.enum(COMPLEXITY_CLASSES).optional(),
-  goal: text5.optional(),
+  goal: text6.optional(),
   steps: external_exports.array(plannerStepSchema).max(AGENT_OUTPUT_LIMITS.maxSteps).default([]),
-  testStrategy: text5.optional(),
-  verificationStrategy: text5.optional(),
-  assumptions: textList3.default([]),
-  risks: textList3.default([]),
+  testStrategy: text6.optional(),
+  verificationStrategy: text6.optional(),
+  assumptions: textList4.default([]),
+  risks: textList4.default([]),
   requiresEscalation: external_exports.boolean().default(false),
-  escalationReason: text5.optional()
+  escalationReason: text6.optional()
 });
 var criticOutputSchema = external_exports.object({
   verdict: external_exports.enum(["ACCEPT", "REVISE", "ESCALATE"]),
   /** Specific, factual objections or confirmations. */
-  reasons: textList3.default([]),
+  reasons: textList4.default([]),
   /** For REVISE: concrete changes the planner should make. */
-  requestedChanges: textList3.default([]),
+  requestedChanges: textList4.default([]),
   /** Signals the critic believes exceed local capability. */
-  escalationReason: text5.optional()
+  escalationReason: text6.optional()
 });
 var diagnoserOutputSchema = external_exports.object({
   category: external_exports.enum(FAILURE_CATEGORIES),
-  rootCause: text5,
+  rootCause: text6,
   planValidity: external_exports.enum(["VALID", "INVALID", "UNKNOWN"]),
   recommendedAction: external_exports.enum(["REPAIR", "REPLAN", "RETRY", "CLARIFY", "BLOCK"]),
   /** Observable evidence references (test names, error lines), not prose. */
-  evidence: textList3.default([])
+  evidence: textList4.default([])
 });
 var replannerOutputSchema = external_exports.object({
   decision: external_exports.enum(["REVISED_PLAN", "SUPERSEDE_NODE", "ESCALATE", "BLOCKED"]),
   /** Why the previous plan failed, in one bounded statement. */
-  reason: text5,
-  goal: text5.optional(),
+  reason: text6,
+  goal: text6.optional(),
   steps: external_exports.array(plannerStepSchema).max(AGENT_OUTPUT_LIMITS.maxSteps).default([]),
-  testStrategy: text5.optional(),
-  verificationStrategy: text5.optional(),
-  assumptions: textList3.default([]),
+  testStrategy: text6.optional(),
+  verificationStrategy: text6.optional(),
+  assumptions: textList4.default([]),
   /**
    * True when the replacement approach would change APPROVED behavior,
    * public API, architecture constraints, or product intent. A true value
@@ -58656,7 +59076,7 @@ var replannerOutputSchema = external_exports.object({
    * is not the only line of defense.
    */
   impactsApprovedIntent: external_exports.boolean(),
-  escalationReason: text5.optional()
+  escalationReason: text6.optional()
 });
 var stringItem = (maxLength) => ({ type: "string", minLength: 1, maxLength });
 var stepSchemaJson = {
@@ -58828,295 +59248,6 @@ var ROLE_INSTRUCTIONS2 = {
     "You may RECOMMEND a contract change in contractChangeSuggestions; approving one is a human decision that you cannot make."
   ].join("\n")
 };
-var WORK_UNIT_STATUSES = [
-  /** Declared in the work graph; dependencies not yet satisfied. */
-  "PLANNED",
-  /** Dependencies satisfied; the unit can be dispatched. */
-  "READY",
-  /** A builder attempt is in flight in an isolated worktree. */
-  "BUILDING",
-  /** A candidate artifact exists and awaits evaluation. */
-  "CANDIDATE_READY",
-  /** A semantic evaluation dispatch is in flight. */
-  "EVALUATING",
-  /** The candidate passed every required evaluation layer. */
-  "VERIFIED_CANDIDATE",
-  /** The candidate was rejected; the unit may retry within budget. */
-  "REJECTED",
-  /** The unit ended without a verified candidate. */
-  "FAILED",
-  /** The unit cannot proceed without an explicit decision. */
-  "BLOCKED",
-  /** The unit was replaced in a later work-graph revision. */
-  "SUPERSEDED",
-  /** The unit's candidate was applied by the canonical integrator. */
-  "INTEGRATED"
-];
-var WORK_UNIT_KINDS = ["build", "investigation", "integration"];
-var EVALUATION_LAYERS = ["deterministic", "semantic"];
-var EVALUATION_VERDICTS = ["PASS", "FAIL", "CONFLICT", "NEEDS_DECISION"];
-var OBJECTIVE_WORKER_STATUSES = [
-  "RUNNING",
-  "FINISHED",
-  "FAILED",
-  /** A later attempt or graph revision replaced this worker; results from it are refused. */
-  "SUPERSEDED"
-];
-var CONTRACT_CONFLICT_STATUSES = [
-  "OPEN",
-  /** Resolved autonomously (implementation-detail conflicts only). */
-  "RESOLVED_AUTO",
-  /** Resolved by an explicit human decision. */
-  "RESOLVED_HUMAN"
-];
-var OBJECTIVE_LIMITS = {
-  maxWorkUnits: 30,
-  maxDependenciesPerUnit: 20,
-  maxShortTextChars: 512,
-  maxTextChars: 2e3,
-  maxListItems: 30,
-  maxChangedFiles: 500,
-  maxEvaluationChecks: 40,
-  maxProjectionContracts: 30,
-  maxProjectionExcerptChars: 2e4
-};
-var shortText9 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxShortTextChars);
-var text6 = external_exports.string().min(1).max(OBJECTIVE_LIMITS.maxTextChars);
-var optionalText2 = external_exports.string().max(OBJECTIVE_LIMITS.maxTextChars);
-var textList4 = external_exports.array(text6).max(OBJECTIVE_LIMITS.maxListItems);
-var idList2 = external_exports.array(shortText9).max(OBJECTIVE_LIMITS.maxListItems);
-var semver3 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
-var workUnitSchema = external_exports.object({
-  workUnitId: shortText9,
-  /** The objective (job graph node) this unit belongs to. */
-  objectiveNodeId: shortText9,
-  /** The approved task id of the objective (audit convenience). */
-  parentTaskId: shortText9,
-  kind: external_exports.enum(WORK_UNIT_KINDS),
-  title: text6,
-  goal: text6,
-  /** Work-unit ids that must be VERIFIED_CANDIDATE before this one runs. */
-  dependsOn: external_exports.array(shortText9).max(OBJECTIVE_LIMITS.maxDependenciesPerUnit).default([]),
-  /** Artifacts the unit is expected to produce (paths, report names). */
-  expectedArtifacts: textList4.default([]),
-  /** Product contract ids relevant to this unit (projection input). */
-  relevantContractIds: idList2.default([]),
-  relevantAdrIds: idList2.default([]),
-  relevantConstitutionRuleIds: idList2.default([]),
-  /** Source areas the unit is expected to touch (scope screen input). */
-  expectedAreas: external_exports.array(shortText9).max(OBJECTIVE_LIMITS.maxListItems).default([]),
-  status: external_exports.enum(WORK_UNIT_STATUSES),
-  /** Builder attempts consumed so far. */
-  attempt: external_exports.number().int().min(0).default(0),
-  /** Worker currently (or last) bound to this unit. */
-  workerId: shortText9.optional(),
-  contextProjectionHash: shortText9.optional(),
-  contractSnapshotHash: shortText9.optional(),
-  /** Latest candidate artifact reference (candidates/<file>). */
-  candidateRef: shortText9.optional(),
-  /** Evaluation record references, oldest first. */
-  evaluationRefs: idList2.default([]),
-  latestFailure: external_exports.object({
-    category: external_exports.enum(FAILURE_CATEGORIES),
-    message: text6,
-    at: shortText9
-  }).passthrough().optional(),
-  /**
-   * Change requests this unit is BLOCKED on, when it is.
-   *
-   * Recorded so a resume can ask whether they were decided. Without it the
-   * link between the question and the decision that answers it lives only
-   * in the question's prose, which nothing can reconcile.
-   */
-  blockedByCcrIds: idList2.optional(),
-  supersedes: shortText9.optional(),
-  supersededBy: shortText9.optional(),
-  integratedAt: shortText9.optional()
-}).passthrough();
-var workGraphSchema = external_exports.object({
-  schemaVersion: semver3,
-  jobId: shortText9,
-  /** The objective node this graph decomposes. */
-  objectiveNodeId: shortText9,
-  parentTaskId: shortText9,
-  /** Fingerprint of the approved objective at decomposition time. */
-  objectiveFingerprint: shortText9,
-  revision: external_exports.number().int().min(1),
-  createdAt: shortText9,
-  /** Who proposed the decomposition ("deterministic" or a worker id). */
-  proposedBy: shortText9,
-  /** Deterministic validation findings recorded at acceptance time. */
-  validationNotes: textList4.default([]),
-  units: external_exports.array(workUnitSchema).min(1).max(OBJECTIVE_LIMITS.maxWorkUnits),
-  supersedes: external_exports.number().int().min(1).optional(),
-  revisionReason: optionalText2.optional()
-}).passthrough();
-var contextProjectionSchema = external_exports.object({
-  schemaVersion: semver3,
-  projectionId: shortText9,
-  jobId: shortText9,
-  objectiveNodeId: shortText9,
-  workUnitId: shortText9,
-  attempt: external_exports.number().int().min(1),
-  createdAt: shortText9,
-  missionId: shortText9.optional(),
-  constitution: external_exports.object({
-    version: external_exports.number().int().min(0),
-    rules: external_exports.array(
-      external_exports.object({ ruleId: shortText9, version: external_exports.number().int().min(1), statement: text6 }).passthrough()
-    ).max(40).default([])
-  }).passthrough(),
-  objective: external_exports.object({
-    taskId: shortText9,
-    title: text6,
-    acceptance: textList4.default([])
-  }).passthrough(),
-  workUnit: external_exports.object({
-    title: text6,
-    goal: text6,
-    kind: external_exports.enum(WORK_UNIT_KINDS),
-    expectedArtifacts: textList4.default([]),
-    expectedAreas: external_exports.array(shortText9).max(OBJECTIVE_LIMITS.maxListItems).default([])
-  }).passthrough(),
-  contracts: external_exports.array(
-    external_exports.object({
-      contractId: shortText9,
-      revision: external_exports.number().int().min(1),
-      title: shortText9,
-      summary: text6,
-      requirements: textList4.default([]),
-      invariants: textList4.default([])
-    }).passthrough()
-  ).max(OBJECTIVE_LIMITS.maxProjectionContracts).default([]),
-  adrs: external_exports.array(
-    external_exports.object({ adrId: shortText9, title: shortText9, decision: text6 }).passthrough()
-  ).max(OBJECTIVE_LIMITS.maxListItems).default([]),
-  decisions: external_exports.array(external_exports.object({ decisionId: shortText9, decision: text6 }).passthrough()).max(OBJECTIVE_LIMITS.maxListItems).default([]),
-  /** Bounded approved-spec excerpts (requirements/design fragments). */
-  specExcerpts: external_exports.array(external_exports.string().max(OBJECTIVE_LIMITS.maxProjectionExcerptChars)).max(5).default([]),
-  /** Bounded summaries of verified dependency candidates (work evidence). */
-  workEvidence: textList4.default([]),
-  /** Hash over the ACTIVE contract registry this projection saw. */
-  contractSnapshotHash: shortText9,
-  /** Hash of this projection's canonical serialization (identity). */
-  contentHash: shortText9
-}).passthrough();
-var candidateArtifactSchema = external_exports.object({
-  schemaVersion: semver3,
-  candidateId: shortText9,
-  jobId: shortText9,
-  objectiveNodeId: shortText9,
-  workUnitId: shortText9,
-  attempt: external_exports.number().int().min(1),
-  workerId: shortText9,
-  createdAt: shortText9,
-  /** Git commit the worktree was created from. */
-  baselineCommit: shortText9,
-  contextProjectionHash: shortText9,
-  contractSnapshotHash: shortText9,
-  /** Files changed in the worktree, as observed by git. */
-  changedFiles: external_exports.array(
-    external_exports.object({
-      path: shortText9,
-      changeType: external_exports.enum(["added", "modified", "deleted", "renamed"])
-    }).passthrough()
-  ).max(OBJECTIVE_LIMITS.maxChangedFiles).default([]),
-  /** Reference to the stored normalized patch (candidates/<file>.patch). */
-  patchRef: shortText9.optional(),
-  /** Local verification observed by SpecBridge inside the worktree. */
-  localVerification: external_exports.object({
-    ran: external_exports.boolean(),
-    passed: external_exports.boolean(),
-    commands: external_exports.array(
-      external_exports.object({
-        name: shortText9,
-        status: shortText9,
-        exitCode: external_exports.number().int().nullable().default(null)
-      }).passthrough()
-    ).max(OBJECTIVE_LIMITS.maxListItems).default([])
-  }).passthrough(),
-  /** The worker's structured claims (data, never authority). */
-  claims: external_exports.object({
-    summary: text6,
-    assumptionsDiscovered: textList4.default([]),
-    contractChangeRequests: external_exports.array(
-      external_exports.object({
-        contractId: shortText9,
-        problem: text6,
-        proposal: text6
-      }).passthrough()
-    ).max(10).default([]),
-    knownLimitations: textList4.default([]),
-    /** Investigation units: the structured report body. */
-    report: external_exports.string().max(16e3).optional()
-  }).passthrough(),
-  /** Set when identity/staleness guards rejected the candidate. */
-  rejectedReason: optionalText2.optional()
-}).passthrough();
-var evaluationRecordSchema = external_exports.object({
-  schemaVersion: semver3,
-  evaluationId: shortText9,
-  jobId: shortText9,
-  objectiveNodeId: shortText9,
-  workUnitId: shortText9,
-  attempt: external_exports.number().int().min(1),
-  layer: external_exports.enum(EVALUATION_LAYERS),
-  verdict: external_exports.enum(EVALUATION_VERDICTS),
-  /** Named deterministic checks with their outcomes (deterministic layer). */
-  checks: external_exports.array(
-    external_exports.object({ name: shortText9, passed: external_exports.boolean(), detail: optionalText2.optional() }).passthrough()
-  ).max(OBJECTIVE_LIMITS.maxEvaluationChecks).default([]),
-  reasons: textList4.default([]),
-  evidenceRefs: idList2.default([]),
-  affectedContractIds: idList2.default([]),
-  /** Decision kind for CONFLICT / NEEDS_DECISION verdicts (authority routing). */
-  decisionKind: shortText9.optional(),
-  /** The evaluator worker, when the layer is semantic. */
-  evaluatorWorkerId: shortText9.optional(),
-  createdAt: shortText9
-}).passthrough();
-var contractConflictSchema = external_exports.object({
-  schemaVersion: semver3,
-  conflictId: shortText9,
-  jobId: shortText9,
-  objectiveNodeId: shortText9,
-  contractId: shortText9,
-  contractRevision: external_exports.number().int().min(1),
-  claims: external_exports.array(
-    external_exports.object({
-      workUnitId: shortText9,
-      candidateRef: shortText9.optional(),
-      claim: text6
-    }).passthrough()
-  ).min(1).max(OBJECTIVE_LIMITS.maxListItems),
-  evidenceRefs: idList2.default([]),
-  affectedWorkUnitIds: idList2.default([]),
-  decisionKind: shortText9,
-  status: external_exports.enum(CONTRACT_CONFLICT_STATUSES),
-  resolution: optionalText2.optional(),
-  createdAt: shortText9,
-  resolvedAt: shortText9.optional()
-}).passthrough();
-var objectiveWorkerRecordSchema = external_exports.object({
-  schemaVersion: semver3,
-  workerId: shortText9,
-  agentRole: external_exports.enum(AGENT_ROLES),
-  jobId: shortText9,
-  objectiveNodeId: shortText9,
-  workUnitId: shortText9,
-  attempt: external_exports.number().int().min(1),
-  contextProjectionHash: shortText9,
-  contractSnapshotHash: shortText9,
-  /** "worktree:<name>", "canonical", or "ephemeral" (read-only reasoning). */
-  workspaceIdentity: shortText9,
-  status: external_exports.enum(OBJECTIVE_WORKER_STATUSES),
-  budget: external_exports.object({
-    timeoutMs: external_exports.number().int().min(1),
-    maxOutputBytes: external_exports.number().int().min(1).optional()
-  }).passthrough(),
-  startedAt: shortText9,
-  finishedAt: shortText9.optional()
-}).passthrough();
 var WORK_UNIT_TRANSITIONS = Object.freeze({
   PLANNED: ["READY", "BLOCKED", "SUPERSEDED", "FAILED"],
   READY: ["BUILDING", "CANDIDATE_READY", "BLOCKED", "SUPERSEDED", "FAILED"],
@@ -59367,129 +59498,6 @@ var OBJECTIVE_OUTPUT_JSON_SCHEMAS = {
     }
   }
 };
-var ID_PATTERN6 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
-function assertSegment(value, what) {
-  if (!ID_PATTERN6.test(value)) {
-    throw new OrchestrationError("SBO040", `Invalid ${what} "${value}".`);
-  }
-  return value;
-}
-function objectiveDir(workspace, jobId, nodeId) {
-  assertSegment(nodeId, "objective node id");
-  return assertInsideWorkspace(
-    workspace.rootDir,
-    import_path25.default.join(jobDir(workspace, jobId), "objectives", nodeId)
-  );
-}
-function artifactPath3(workspace, jobId, nodeId, ...segments) {
-  return assertInsideWorkspace(
-    workspace.rootDir,
-    import_path25.default.join(objectiveDir(workspace, jobId, nodeId), ...segments)
-  );
-}
-function readJson(file, parse3) {
-  if (!(0, import_fs23.existsSync)(file)) return void 0;
-  try {
-    return parse3(JSON.parse((0, import_fs23.readFileSync)(file, "utf8")));
-  } catch {
-    return void 0;
-  }
-}
-function workGraphFile(workspace, jobId, nodeId, revision) {
-  return artifactPath3(workspace, jobId, nodeId, "workgraphs", `${String(revision).padStart(4, "0")}.json`);
-}
-function readWorkGraph(workspace, jobId, nodeId, revision) {
-  if (!Number.isInteger(revision) || revision < 1) return void 0;
-  return readJson(workGraphFile(workspace, jobId, nodeId, revision), (raw) => {
-    const result = workGraphSchema.safeParse(raw);
-    return result.success ? result.data : void 0;
-  });
-}
-function listWorkGraphRevisions(workspace, jobId, nodeId) {
-  const dir = artifactPath3(workspace, jobId, nodeId, "workgraphs");
-  if (!(0, import_fs23.existsSync)(dir)) return [];
-  const revisions = [];
-  for (const name of (0, import_fs23.readdirSync)(dir).sort()) {
-    if (!/^\d{4}\.json$/.test(name)) continue;
-    revisions.push(Number.parseInt(name.slice(0, 4), 10));
-  }
-  return revisions;
-}
-function readLatestWorkGraph(workspace, jobId, nodeId) {
-  const revisions = listWorkGraphRevisions(workspace, jobId, nodeId);
-  const latest = revisions.at(-1);
-  return latest === void 0 ? void 0 : readWorkGraph(workspace, jobId, nodeId, latest);
-}
-function projectionName(workUnitId, attempt) {
-  return `${workUnitId}-a${String(attempt).padStart(2, "0")}.json`;
-}
-function readProjection(workspace, jobId, nodeId, workUnitId, attempt) {
-  if (!ID_PATTERN6.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
-  return readJson(
-    artifactPath3(workspace, jobId, nodeId, "projections", projectionName(workUnitId, attempt)),
-    (raw) => {
-      const result = contextProjectionSchema.safeParse(raw);
-      return result.success ? result.data : void 0;
-    }
-  );
-}
-function candidateName(workUnitId, attempt) {
-  return `${workUnitId}-a${String(attempt).padStart(2, "0")}`;
-}
-function readCandidate(workspace, jobId, nodeId, workUnitId, attempt) {
-  if (!ID_PATTERN6.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
-  return readJson(
-    artifactPath3(workspace, jobId, nodeId, "candidates", `${candidateName(workUnitId, attempt)}.json`),
-    (raw) => {
-      const result = candidateArtifactSchema.safeParse(raw);
-      return result.success ? result.data : void 0;
-    }
-  );
-}
-function readEvaluations(workspace, jobId, nodeId, workUnitId) {
-  const dir = artifactPath3(workspace, jobId, nodeId, "evaluations");
-  if (!(0, import_fs23.existsSync)(dir)) return [];
-  const records = [];
-  for (const name of (0, import_fs23.readdirSync)(dir).sort()) {
-    if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path25.default.join(dir, name), (raw) => {
-      const result = evaluationRecordSchema.safeParse(raw);
-      return result.success ? result.data : void 0;
-    });
-    if (record32 !== void 0 && (workUnitId === void 0 || record32.workUnitId === workUnitId)) {
-      records.push(record32);
-    }
-  }
-  return records;
-}
-function readConflicts(workspace, jobId, nodeId) {
-  const dir = artifactPath3(workspace, jobId, nodeId, "conflicts");
-  if (!(0, import_fs23.existsSync)(dir)) return [];
-  const records = [];
-  for (const name of (0, import_fs23.readdirSync)(dir).sort()) {
-    if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path25.default.join(dir, name), (raw) => {
-      const result = contractConflictSchema.safeParse(raw);
-      return result.success ? result.data : void 0;
-    });
-    if (record32 !== void 0) records.push(record32);
-  }
-  return records;
-}
-function readWorkerRecords(workspace, jobId, nodeId) {
-  const dir = artifactPath3(workspace, jobId, nodeId, "workers");
-  if (!(0, import_fs23.existsSync)(dir)) return [];
-  const records = [];
-  for (const name of (0, import_fs23.readdirSync)(dir).sort()) {
-    if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path25.default.join(dir, name), (raw) => {
-      const result = objectiveWorkerRecordSchema.safeParse(raw);
-      return result.success ? result.data : void 0;
-    });
-    if (record32 !== void 0) records.push(record32);
-  }
-  return records;
-}
 var QUOTA_SNAPSHOT_SCHEMA_VERSION = "1.0.0";
 var isoText = external_exports.string().min(1).max(64);
 var ratio = external_exports.number().min(0).max(1);
@@ -83278,10 +83286,10 @@ var intakeTelemetrySchema = external_exports.object({
   jobId: shortText15.optional(),
   sealId: shortText15.optional()
 }).passthrough();
-var ID_PATTERN3 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+var ID_PATTERN4 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 var INTAKE_DIR_NAME = "intake";
 function assertIntakeId(id) {
-  if (!ID_PATTERN3.test(id)) {
+  if (!ID_PATTERN4.test(id)) {
     throw new IntakeError("SBI005", `Invalid spec intake id "${id}".`, {
       remediation: ["Ids are generated by SpecBridge; pass one returned by an intake operation."],
       details: { id }
@@ -83364,7 +83372,7 @@ function listIntakes(workspace) {
   const diagnostics = [];
   for (const entry of (0, import_fs40.readdirSync)(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    if (!ID_PATTERN3.test(entry.name)) continue;
+    if (!ID_PATTERN4.test(entry.name)) continue;
     const file = import_path43.default.join(root, entry.name, "intake.json");
     if (!(0, import_fs40.existsSync)(file)) continue;
     try {

@@ -39,6 +39,7 @@ import {
   JOB_STATE_SCHEMA_VERSION,
   jobCheckpointSchema,
   jobGraphSchema,
+  workedMsOf,
 } from './state.js';
 import {
   appendJobEvent,
@@ -64,6 +65,7 @@ import type {
   JobStatus,
 } from './vocabulary.js';
 import { isFinalJobStatus, requiresHumanAttention } from './vocabulary.js';
+import { readLatestWorkGraph, storeWorkGraph } from '../objectives/store.js';
 import {
   beginTaskAttempt,
   completeTaskAttempt,
@@ -2072,7 +2074,10 @@ export function completeExecutorDispatch(
       counters: job.counters,
       node: requireNode(graph, node.nodeId),
       executorAttempts: executorAttempts(requireNode(graph, node.nodeId)),
-      elapsedMs: Math.max(0, Date.parse(at) - Date.parse(job.createdAt)),
+      // Worked time, not wall time: the recovery budget must not charge the
+      // hours a person was being waited on, or every product decision costs
+      // the rest of the night twice over.
+      elapsedMs: workedMsOf(job, Date.parse(at)),
       ...(outcome.reliability?.local !== undefined ? { local: outcome.reliability.local } : {}),
       ...(outcome.reliability?.api !== undefined ? { api: outcome.reliability.api } : {}),
       resource: outcome.reliability?.resource ?? defaultRecoveryResource(),
@@ -2502,6 +2507,53 @@ export function reconcileDecidedCcrs(
   return { job: persist(deps, job), closed };
 }
 
+/** `wu-...` ids as they appear in a clarification question's text. */
+const UNIT_ID_PATTERN = /\bwu-[A-Za-z0-9][\w-]*\b/g;
+
+/**
+ * Wake the work units a just-answered question named.
+ *
+ * A unit parked (or exhausted) on AMBIGUITY returns to the evaluable path
+ * with the human's answer attached, so the re-run evaluation SEES the
+ * decision instead of asking it again. Only AMBIGUITY units are touched —
+ * a unit that failed its checks stays failed, whatever a question said.
+ */
+function reviveUnitsNamedBy(deps: JobDeps, job: JobState, question: string, answer: string): void {
+  const named = [...question.matchAll(UNIT_ID_PATTERN)].map((hit) => hit[0]);
+  if (named.length === 0) return;
+  const graph =
+    job.graphRevision > 0 ? readGraphRevision(deps.workspace, job.jobId, job.graphRevision) : undefined;
+  if (graph === undefined) return;
+  for (const node of graph.nodes) {
+    const workGraph = readLatestWorkGraph(deps.workspace, job.jobId, node.nodeId);
+    if (workGraph === undefined) continue;
+    let changed = false;
+    const units = workGraph.units.map((unit) => {
+      if (!named.includes(unit.workUnitId)) return unit;
+      if (unit.status !== 'BLOCKED' && unit.status !== 'FAILED') return unit;
+      if (unit.latestFailure?.category !== 'AMBIGUITY') return unit;
+      changed = true;
+      const { latestFailure: _resolved, ...rest } = unit;
+      // Two different ambiguities revive differently. A unit blocked on a
+      // CHANGE REQUEST built its candidate against the old contract revision
+      // — the decision that unblocks it also staled that candidate, so it
+      // must REBUILD, not re-evaluate. A unit stopped by an evaluator's
+      // NEEDS_DECISION has a sound candidate; the decision is the missing
+      // input to the evaluation, so it goes straight back to evaluating.
+      const mustRebuild =
+        (unit.blockedByCcrIds?.length ?? 0) > 0 || unit.candidateRef === undefined;
+      return {
+        ...rest,
+        status: mustRebuild ? ('READY' as const) : ('CANDIDATE_READY' as const),
+        operatorDecision: answer.slice(0, 2_000),
+      };
+    });
+    if (changed) {
+      storeWorkGraph(deps.workspace, job.jobId, { ...workGraph, units });
+    }
+  }
+}
+
 export function answerClarification(
   deps: JobDeps,
   jobId: string,
@@ -2536,6 +2588,13 @@ export function answerClarification(
     decisions: [...job.decisions, ...decisions],
     openQuestions: job.openQuestions.filter((question) => !answered.has(question.id)),
   };
+  // Deliver each answer to the work unit whose ambiguity raised the
+  // question. Without this the answer is WRITE-ONLY: the objectives path
+  // reads mission decisions, never job decisions, so the unit stayed
+  // FAILED(AMBIGUITY) carrying a question a person had already answered.
+  for (const decision of decisions) {
+    reviveUnitsNamedBy(deps, job, decision.question, decision.answer);
+  }
   job = record(deps, job, 'clarification_resolved', {
     decisionIds: decisions.map((decision) => decision.id),
     remaining: job.openQuestions.length,

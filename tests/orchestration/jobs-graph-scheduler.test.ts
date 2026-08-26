@@ -8,6 +8,7 @@ import {
   promoteReadyNodes,
   reviseGraphSuperseding,
   scheduleNext,
+  workedMsOf,
   transitionNode,
   withNode,
 } from '@specbridge/orchestration';
@@ -464,5 +465,29 @@ describe('the wall-clock budget pays for work, not for waiting', () => {
       },
     });
     expect(decision.kind).toBe('JOB_BLOCKED');
+  });
+});
+
+
+describe('workedMsOf — the one definition of how long a job has worked', () => {
+  // The scheduler had the human-wait subtraction and the recovery path did
+  // not, so the same job passed one wall-clock check and was refused by the
+  // other: 7.5 hours parked on two product decisions turned 4 hours of real
+  // work into a BUDGET_EXHAUSTED verdict. One function now feeds both.
+  const CREATED = Date.parse('2026-08-25T12:00:00.000Z');
+
+  it('subtracts banked waits and a live one', () => {
+    const job = {
+      ...testJob({ createdAt: new Date(CREATED).toISOString() }),
+      counters: { ...testJob().counters, humanWaitMs: 2 * 3_600_000 },
+      humanWaitSince: new Date(CREATED + 9 * 3_600_000).toISOString(),
+    };
+    // 10h elapsed, 2h banked, 1h still waiting -> 7h worked.
+    expect(workedMsOf(job, CREATED + 10 * 3_600_000)).toBe(7 * 3_600_000);
+  });
+
+  it('is plain wall clock for a job that never waited', () => {
+    const job = testJob({ createdAt: new Date(CREATED).toISOString() });
+    expect(workedMsOf(job, CREATED + 3 * 3_600_000)).toBe(3 * 3_600_000);
   });
 });
