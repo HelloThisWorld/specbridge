@@ -443,6 +443,7 @@
     "budget_exhausted",
     "candidate_failed",
     "candidate_ready",
+    "candidate_resume_missing",
     "checkpoint_created",
     "clarification_requested",
     "clarification_resolved",
