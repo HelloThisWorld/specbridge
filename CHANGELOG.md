@@ -304,6 +304,18 @@ Three more surfaced once the run reached real compute:
   credential from a rate limit from a model that wrapped its JSON in prose.
   The task driver already carried the observed text for exactly this reason;
   the objective path did not, and now does.
+- **A stored candidate was invisible to the drive loop.** `CANDIDATE_READY`
+  is not READY (never dispatched), not EVALUATING (never resumed), and not
+  final (aggregation counts it as pending) — so a drive that found one had
+  nothing it could do and fell through to "cannot integrate: unit(s) still
+  in progress", which burned a task attempt. Five attempts died that way on
+  a unit whose candidate was sound and whose ambiguity a person had already
+  resolved; the same hole swallowed any unit whose process died between the
+  deterministic and semantic evaluation layers, because crash reconciliation
+  maps interrupted evaluations back to exactly this state. The loop now
+  resumes a stored candidate into the same evaluation path a fresh build
+  uses; missing artifacts send the unit back to READY for a rebuild, and
+  evaluating an existing candidate consumes no builder attempt.
 - **The wall-clock budget existed twice, and only one copy learned to skip
   human waits.** The scheduler subtracted time parked on a person; the
   recovery path still computed `now - createdAt`, so the same job passed one

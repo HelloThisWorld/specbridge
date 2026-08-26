@@ -790,6 +790,37 @@ function applyUnitRejection(
 // Evaluation
 // ---------------------------------------------------------------------------
 
+/**
+ * Re-enter evaluation for a unit whose candidate is already on disk.
+ *
+ * Loads the stored artifacts the interrupted attempt persisted and hands
+ * them to the SAME evaluation path a fresh build uses. When any artifact is
+ * missing the unit returns to READY for a rebuild rather than failing — a
+ * lost file is a reason to rebuild, not a verdict about the work.
+ */
+async function resumeStoredCandidate(
+  context: UnitAttemptContext,
+  graph: WorkGraph,
+  unitId: string,
+): Promise<WorkGraph> {
+  const { input } = context;
+  const unit = requireUnit(graph, unitId);
+  const attempt = Math.max(1, unit.attempt);
+  const candidate = readCandidate(input.workspace, input.jobId, input.node.nodeId, unitId, attempt);
+  const projection = readProjection(input.workspace, input.jobId, input.node.nodeId, unitId, attempt);
+  if (candidate === undefined || projection === undefined) {
+    input.recordEvent('candidate_resume_missing', {
+      nodeId: input.node.nodeId,
+      workUnitId: unitId,
+      attempt,
+    });
+    return persistGraph(input, transitionUnit(graph, unitId, 'READY'));
+  }
+  const patch = readCandidatePatch(input.workspace, input.jobId, input.node.nodeId, unitId, attempt);
+  input.onProgress?.(`resuming stored candidate for ${unitId} (attempt ${attempt})`);
+  return evaluateCandidate(context, graph, unitId, attempt, candidate, projection, patch);
+}
+
 async function evaluateCandidate(
   context: UnitAttemptContext,
   graph: WorkGraph,
@@ -1381,6 +1412,26 @@ export async function driveObjective(input: ObjectiveDriveInput): Promise<Object
     const evaluating = graph.units.find((unit) => unit.status === 'EVALUATING');
     if (evaluating !== undefined) {
       graph = await runSemanticEvaluation(context, graph, evaluating.workUnitId);
+      continue;
+    }
+
+    // A unit holding a stored candidate resumes into evaluation here.
+    //
+    // This state was invisible to the loop: CANDIDATE_READY units are not
+    // READY (never dispatched), not EVALUATING (not resumed above), and not
+    // final (aggregation counts them as pending) — so a drive that found one
+    // had nothing to do and fell through to failureFromAggregation, which
+    // burned a task attempt on "unit(s) still in progress". Five attempts
+    // died that way in the vNext.10.1 dogfood, on a unit whose candidate was
+    // sound and whose ambiguity a person had already resolved. The same hole
+    // swallowed any unit whose process died between the deterministic and
+    // semantic evaluation layers.
+    //
+    // Evaluating a stored candidate consumes NO builder attempt: the bound
+    // gates BUILDING, and this unit is past building.
+    const candidateReady = graph.units.find((unit) => unit.status === 'CANDIDATE_READY');
+    if (candidateReady !== undefined) {
+      graph = await resumeStoredCandidate(context, graph, candidateReady.workUnitId);
       continue;
     }
 

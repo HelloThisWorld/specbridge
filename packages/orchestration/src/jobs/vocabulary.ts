@@ -450,6 +450,8 @@ export const JOB_EVENT_TYPES = [
   'workgraph_revised',
   'worker_started',
   'candidate_ready',
+  /** A stored candidate re-entered evaluation, but its artifacts were gone; the unit rebuilds. */
+  'candidate_resume_missing',
   'candidate_failed',
   'evaluation_passed',
   'evaluation_failed',

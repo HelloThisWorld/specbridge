@@ -72253,6 +72253,24 @@ function applyUnitRejection(input, graph, unitId, attempt, failure) {
   }
   return withFailure;
 }
+async function resumeStoredCandidate(context, graph, unitId) {
+  const { input } = context;
+  const unit = requireUnit(graph, unitId);
+  const attempt = Math.max(1, unit.attempt);
+  const candidate = readCandidate(input.workspace, input.jobId, input.node.nodeId, unitId, attempt);
+  const projection = readProjection(input.workspace, input.jobId, input.node.nodeId, unitId, attempt);
+  if (candidate === void 0 || projection === void 0) {
+    input.recordEvent("candidate_resume_missing", {
+      nodeId: input.node.nodeId,
+      workUnitId: unitId,
+      attempt
+    });
+    return persistGraph2(input, transitionUnit(graph, unitId, "READY"));
+  }
+  const patch = readCandidatePatch(input.workspace, input.jobId, input.node.nodeId, unitId, attempt);
+  input.onProgress?.(`resuming stored candidate for ${unitId} (attempt ${attempt})`);
+  return evaluateCandidate(context, graph, unitId, attempt, candidate, projection, patch);
+}
 async function evaluateCandidate(context, graph, unitId, attempt, candidate, projection, patch) {
   const { input, truth } = context;
   const unit = requireUnit(graph, unitId);
@@ -72678,6 +72696,11 @@ async function driveObjective(input) {
     const evaluating = graph.units.find((unit) => unit.status === "EVALUATING");
     if (evaluating !== void 0) {
       graph = await runSemanticEvaluation(context, graph, evaluating.workUnitId);
+      continue;
+    }
+    const candidateReady = graph.units.find((unit) => unit.status === "CANDIDATE_READY");
+    if (candidateReady !== void 0) {
+      graph = await resumeStoredCandidate(context, graph, candidateReady.workUnitId);
       continue;
     }
     const aggregation = aggregateStructurally(graph);
