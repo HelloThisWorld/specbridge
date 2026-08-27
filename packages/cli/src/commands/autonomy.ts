@@ -32,6 +32,7 @@ import {
   sealMission,
   formatMeasurement,
   computeAutonomyTelemetry,
+  waiveClosureItem,
 } from '@specbridge/autonomy';
 import { createJob, listJobs, requireJobState } from '@specbridge/orchestration';
 import { findMissionForSpec, listMissions } from '@specbridge/mission';
@@ -765,6 +766,33 @@ function registerInspection(autonomy: Command, runtime: CliRuntime): void {
 // Registration
 // ---------------------------------------------------------------------------
 
+function registerClosure(autonomy: Command, runtime: CliRuntime): void {
+  const closure = autonomy.command('closure').description('Inspect and decide on the contract-closure ledger');
+  closure
+    .command('waive <jobId> <itemId>')
+    .description(
+      'Waive one sealed closure item with YOUR authority (human decision). ' +
+        'A waiver is an attestation, not a shortcut: name the evidence you inspected.',
+    )
+    .requiredOption('--reason <text>', 'why this item is satisfied or does not apply — name the evidence')
+    .option('--by <name>', 'who attests', 'operator')
+    .action((jobId: string, itemId: string, options: { reason: string; by: string }) => {
+      const deps = autonomyDeps(runtime);
+      const ledger = waiveClosureItem(deps, {
+        jobId,
+        itemId,
+        reason: options.reason,
+        waivedBy: options.by,
+      });
+      const entry = ledger.entries.find((candidate) => candidate.itemId === itemId);
+      runtime.out(
+        entry?.status === 'WAIVED'
+          ? okLine(`${itemId} waived by ${options.by}. The waiver is durable and appears in every audit.`)
+          : failLine(`${itemId} was not waived (status ${entry?.status ?? 'unknown'}).`),
+      );
+    });
+}
+
 export function registerAutonomyCommands(program: Command, runtime: CliRuntime): void {
   const autonomy = program
     .command('autonomy')
@@ -773,6 +801,7 @@ export function registerAutonomyCommands(program: Command, runtime: CliRuntime):
   registerPolicy(autonomy, runtime);
   registerSeal(autonomy, runtime);
   registerInspection(autonomy, runtime);
+  registerClosure(autonomy, runtime);
   registerOvernight(program, runtime);
 }
 

@@ -99772,6 +99772,24 @@ function registerClosureEvidence(deps, input) {
   });
   return saveLedger2(deps, { ...ledger, entries });
 }
+function waiveClosureItem(deps, input) {
+  const ledger = requireLedger(deps.workspace, input.jobId);
+  const at = nowIso4(deps);
+  const entries = ledger.entries.map(
+    (existing) => existing.itemId === input.itemId ? {
+      ...existing,
+      status: "WAIVED",
+      waiver: {
+        reason: input.reason.slice(0, 4e3),
+        waivedAt: at,
+        waivedBy: input.waivedBy.slice(0, 200)
+      },
+      gaps: [],
+      updatedAt: at
+    } : existing
+  );
+  return saveLedger2(deps, { ...ledger, entries });
+}
 function runClosureAudit(deps, input) {
   const policy = autonomyPolicyOf(deps).closure;
   const ledger = requireLedger(deps.workspace, input.jobId);
@@ -131638,12 +131656,31 @@ function registerInspection(autonomy, runtime) {
     }
   });
 }
+function registerClosure(autonomy, runtime) {
+  const closure = autonomy.command("closure").description("Inspect and decide on the contract-closure ledger");
+  closure.command("waive <jobId> <itemId>").description(
+    "Waive one sealed closure item with YOUR authority (human decision). A waiver is an attestation, not a shortcut: name the evidence you inspected."
+  ).requiredOption("--reason <text>", "why this item is satisfied or does not apply \u2014 name the evidence").option("--by <name>", "who attests", "operator").action((jobId, itemId, options) => {
+    const deps = autonomyDeps(runtime);
+    const ledger = waiveClosureItem(deps, {
+      jobId,
+      itemId,
+      reason: options.reason,
+      waivedBy: options.by
+    });
+    const entry2 = ledger.entries.find((candidate) => candidate.itemId === itemId);
+    runtime.out(
+      entry2?.status === "WAIVED" ? okLine(`${itemId} waived by ${options.by}. The waiver is durable and appears in every audit.`) : failLine(`${itemId} was not waived (status ${entry2?.status ?? "unknown"}).`)
+    );
+  });
+}
 function registerAutonomyCommands(program2, runtime) {
   const autonomy = program2.command("autonomy").description("Delegated authority, supervision, and the unattended runtime");
   registerSetup(autonomy, runtime);
   registerPolicy(autonomy, runtime);
   registerSeal(autonomy, runtime);
   registerInspection(autonomy, runtime);
+  registerClosure(autonomy, runtime);
   registerOvernight(program2, runtime);
 }
 
