@@ -558,7 +558,29 @@ async function executeBuilder(
   prepared: PreparedAttempt,
 ): Promise<ExecutedAttempt> {
   const { input } = context;
-  await applyDependencyPatches(prepared.worktree, prepared.dependencyPatches);
+  // A dependency patch that no longer applies is an ATTEMPT failure, exactly
+  // as applyDependencyPatches's own contract says — never a driver death.
+  //
+  // The dogfood hit this the ordinary way: wu-2 and wu-3 verified before
+  // n-3 integrated; integration moved the shared build files; the fresh
+  // worktree for wu-4 then took wu-2's patch with conflicts, the throw went
+  // uncaught, and the driver died at the same line on every restart until
+  // the supervisor gave up. The failure now folds into the attempt with the
+  // thrown category (REPOSITORY_DIVERGED), where recovery can replan the
+  // stale sibling instead of the process dying.
+  try {
+    await applyDependencyPatches(prepared.worktree, prepared.dependencyPatches);
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : String(cause);
+    return {
+      prepared,
+      result: {
+        ok: false,
+        kind: 'worker-unavailable',
+        problem: `dependency patches no longer apply to the current baseline: ${message.slice(0, 500)}`,
+      },
+    };
+  }
   const packet = buildBuilderPacket({ projection: prepared.projection });
   const result = await runLargeObjectiveRole({
     workspace: input.workspace,

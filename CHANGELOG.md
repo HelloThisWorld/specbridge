@@ -304,6 +304,15 @@ Three more surfaced once the run reached real compute:
   credential from a rate limit from a model that wrapped its JSON in prose.
   The task driver already carried the observed text for exactly this reason;
   the objective path did not, and now does.
+- **A dependency patch that no longer applied killed the driver.** A
+  dependent unit builds in a fresh worktree on top of its siblings’
+  verified candidates; when integration moves the shared files first, a
+  sibling’s patch can genuinely conflict. `applyDependencyPatches` already
+  documented the contract — a conflict "fails the creation of THIS attempt"
+  — but nothing caught its throw, so the driver died at the same line on
+  every restart until the supervisor gave up. The failure now folds into
+  the attempt as a categorized rejection, where recovery can replan the
+  stale sibling instead of the process dying.
 - **An evidence cap enforced itself as a driver-killing crash.** A node’s
   attempt history was schema-capped at 50; every TASK attempt appends
   several ROLE records, so a node living through real recovery reached the

@@ -72145,7 +72145,19 @@ async function prepareUnitAttempt(context, graph, unitId) {
 }
 async function executeBuilder(context, prepared) {
   const { input } = context;
-  await applyDependencyPatches(prepared.worktree, prepared.dependencyPatches);
+  try {
+    await applyDependencyPatches(prepared.worktree, prepared.dependencyPatches);
+  } catch (cause) {
+    const message2 = cause instanceof Error ? cause.message : String(cause);
+    return {
+      prepared,
+      result: {
+        ok: false,
+        kind: "worker-unavailable",
+        problem: `dependency patches no longer apply to the current baseline: ${message2.slice(0, 500)}`
+      }
+    };
+  }
   const packet = buildBuilderPacket({ projection: prepared.projection });
   const result = await runLargeObjectiveRole({
     workspace: input.workspace,
