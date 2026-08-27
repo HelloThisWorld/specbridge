@@ -46,7 +46,15 @@ export const JOB_CHECKPOINT_SCHEMA_VERSION = '1.0.0';
 export const JOB_STATE_LIMITS = {
   maxNodes: 200,
   maxDependenciesPerNode: 50,
-  maxAttemptsPerNode: 50,
+  // 200, not 50. Every TASK attempt appends several ROLE records (classifier,
+  // planner, diagnoser, replanner, evaluator, executor), so a node living
+  // through real recovery reaches 50 long before its actual attempt budget
+  // does — and the cap enforced itself as an unhandled schema throw that
+  // killed the driver at the same write on every restart, permanently. The
+  // REAL bound on attempts is the attempt budget, refused explicitly; this
+  // is an evidence array, and evidence arrays must not make state
+  // unwritable.
+  maxAttemptsPerNode: 200,
   maxEscalationsRecorded: 100,
   maxGoalChars: 4_000,
 } as const;

@@ -304,6 +304,14 @@ Three more surfaced once the run reached real compute:
   credential from a rate limit from a model that wrapped its JSON in prose.
   The task driver already carried the observed text for exactly this reason;
   the objective path did not, and now does.
+- **An evidence cap enforced itself as a driver-killing crash.** A node’s
+  attempt history was schema-capped at 50; every TASK attempt appends
+  several ROLE records, so a node living through real recovery reached the
+  cap long before its actual attempt budget — and from then on the job
+  graph was unwritable: an unhandled validation throw killed the driver at
+  the same write on every restart, permanently. The real bound on attempts
+  is the attempt budget, refused explicitly; evidence arrays must not make
+  state unwritable. The cap is now 200.
 - **Sibling progress invalidated in-flight work.** The semantic-resume path
   recomputed the deterministic evaluation against LIVE mission truth, so
   when n-3 completed and the mission recorded its facts, every projection
