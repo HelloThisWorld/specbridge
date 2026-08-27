@@ -1445,7 +1445,7 @@ ${correction}`;
 // ---------------------------------------------------------------------------
 
 /** Acceptance criteria of the objective, from the mission provenance map. */
-function acceptanceForObjective(
+export function acceptanceForObjective(
   workspace: WorkspaceInfo,
   mission: MissionState,
   taskId: string,

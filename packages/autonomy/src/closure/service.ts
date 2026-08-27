@@ -1,6 +1,7 @@
 import type { WorkspaceInfo } from '@specbridge/core';
 import { readContractRegistry, requireMissionState } from '@specbridge/mission';
 import {
+  acceptanceForObjective,
   contractsForObjective,
   readGraphRevision,
   recordJobEvent,
@@ -461,12 +462,24 @@ export function attributeCompletedWork(
   for (const node of graph.nodes) {
     if (node.status !== 'COMPLETED') continue;
     const contractIds = contractsForObjective(deps.workspace, mission, node.parentTaskId);
+    // Acceptance criteria often declare no contract; their linkage to a task
+    // is the acceptance STATEMENT itself, which the intake compiled from the
+    // very same criteria. Statement identity is the provenance.
+    const acceptance = new Set(
+      acceptanceForObjective(deps.workspace, mission, node.parentTaskId).map((line) =>
+        line.trim().toLowerCase(),
+      ),
+    );
     const itemIds = ledger.entries
       .filter((entry) => {
         const owner = entry.itemId.split(/[/#]/)[0] ?? '';
         if (contractIds.includes(owner)) return true;
         const declared = criterionContracts.get(entry.itemId);
-        return declared !== undefined && declared.some((id) => contractIds.includes(id));
+        if (declared !== undefined && declared.some((id) => contractIds.includes(id))) return true;
+        return (
+          entry.kind === 'acceptance-criterion' &&
+          acceptance.has(entry.statement.trim().toLowerCase())
+        );
       })
       .map((entry) => entry.itemId);
     if (itemIds.length === 0) continue;

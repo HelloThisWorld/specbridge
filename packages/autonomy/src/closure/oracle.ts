@@ -216,24 +216,40 @@ export function decideClosure(
     };
   }
 
-  if (unclosed.length > 0) {
+  // An item that REQUIRES a system or browser scenario can only close in
+  // the scenario phases — holding those phases hostage to its closure is a
+  // deadlock by construction, and the dogfood sat in it: six criteria
+  // waiting for scenarios that could not start until the six criteria
+  // closed. Gap work is for items ordinary implementation can close; the
+  // scenario-owned remainder advances the ladder instead of blocking it.
+  const scenarioOwned = unclosed.filter(
+    (entry) => entry.requiresSystemScenario || entry.requiresBrowserScenario,
+  );
+  const implementationOwned = unclosed.filter(
+    (entry) => !entry.requiresSystemScenario && !entry.requiresBrowserScenario,
+  );
+
+  if (implementationOwned.length > 0) {
     if (ledger.gapCycles >= policy.maxGapClosureCycles) {
       return {
         directive: 'BUDGET_EXHAUSTED',
         nextPhase: ledger.phase,
         rationale:
-          `${unclosed.length} sealed item(s) remain unclosed after ${ledger.gapCycles} gap-closure ` +
+          `${implementationOwned.length} sealed item(s) remain unclosed after ${ledger.gapCycles} gap-closure ` +
           'cycles; generating the same work again would not change that',
-        unclosed,
+        unclosed: implementationOwned,
       };
     }
     return {
       directive: 'GENERATE_GAP_WORK',
       nextPhase: 'GAP_IMPLEMENTATION',
-      rationale: `${unclosed.length} sealed item(s) are not closed on trusted evidence`,
+      rationale: `${implementationOwned.length} sealed item(s) are not closed on trusted evidence`,
+      // The FULL unclosed list, scenario-owned included: gap work is also
+      // the record of which evidence kind each item still needs.
       unclosed,
     };
   }
+  void scenarioOwned; // they close in the phases below, which now get to run
 
   // Everything closes on its own evidence. The remaining phases are about
   // whether the SYSTEM works, not whether the items were implemented.

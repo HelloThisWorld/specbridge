@@ -99565,22 +99565,31 @@ function decideClosure(ledger, policy, input) {
       unclosed
     };
   }
-  if (unclosed.length > 0) {
+  const scenarioOwned = unclosed.filter(
+    (entry2) => entry2.requiresSystemScenario || entry2.requiresBrowserScenario
+  );
+  const implementationOwned = unclosed.filter(
+    (entry2) => !entry2.requiresSystemScenario && !entry2.requiresBrowserScenario
+  );
+  if (implementationOwned.length > 0) {
     if (ledger.gapCycles >= policy.maxGapClosureCycles) {
       return {
         directive: "BUDGET_EXHAUSTED",
         nextPhase: ledger.phase,
-        rationale: `${unclosed.length} sealed item(s) remain unclosed after ${ledger.gapCycles} gap-closure cycles; generating the same work again would not change that`,
-        unclosed
+        rationale: `${implementationOwned.length} sealed item(s) remain unclosed after ${ledger.gapCycles} gap-closure cycles; generating the same work again would not change that`,
+        unclosed: implementationOwned
       };
     }
     return {
       directive: "GENERATE_GAP_WORK",
       nextPhase: "GAP_IMPLEMENTATION",
-      rationale: `${unclosed.length} sealed item(s) are not closed on trusted evidence`,
+      rationale: `${implementationOwned.length} sealed item(s) are not closed on trusted evidence`,
+      // The FULL unclosed list, scenario-owned included: gap work is also
+      // the record of which evidence kind each item still needs.
       unclosed
     };
   }
+  void scenarioOwned;
   const needsSystem = policy.requireSystemScenarios && ledger.entries.some((entry2) => entry2.requiresSystemScenario) && ledger.systemCycles === 0;
   if (needsSystem) {
     return {
@@ -99838,11 +99847,17 @@ function attributeCompletedWork(deps, input) {
   for (const node of graph.nodes) {
     if (node.status !== "COMPLETED") continue;
     const contractIds = contractsForObjective(deps.workspace, mission, node.parentTaskId);
+    const acceptance = new Set(
+      acceptanceForObjective(deps.workspace, mission, node.parentTaskId).map(
+        (line) => line.trim().toLowerCase()
+      )
+    );
     const itemIds = ledger.entries.filter((entry2) => {
       const owner = entry2.itemId.split(/[/#]/)[0] ?? "";
       if (contractIds.includes(owner)) return true;
       const declared = criterionContracts.get(entry2.itemId);
-      return declared !== void 0 && declared.some((id) => contractIds.includes(id));
+      if (declared !== void 0 && declared.some((id) => contractIds.includes(id))) return true;
+      return entry2.kind === "acceptance-criterion" && acceptance.has(entry2.statement.trim().toLowerCase());
     }).map((entry2) => entry2.itemId);
     if (itemIds.length === 0) continue;
     attributeNodeToItems(deps, {
