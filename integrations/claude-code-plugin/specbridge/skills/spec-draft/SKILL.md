@@ -84,18 +84,31 @@ If the user answers, fold the answer into the draft verbatim. If they say
 "decide later", leave the section absent — intake will raise it as a proper
 tracked question with provenance.
 
-## 4. Write the file and hand off
+## 4. Write the file, then flow straight into intake
 
-Show the full draft in the conversation, get the user's "看OK / looks good"
-(any wording), then write it to the output path and hand off:
+Show the full draft in the conversation and get the user's "看OK / looks
+good" (any wording). Then write it to the output path — and DO NOT stop
+there. The confirmed draft is the input to the next skill:
+
+1. Start discovery in this same conversation with the `spec_intake_start`
+   MCP tool (pass the file path). The user should not have to switch to a
+   terminal between "looks good" and the product questions.
+2. From here, follow the `build` skill's discipline exactly: present the
+   product questions SpecBridge raises, relay the user's answers VERBATIM
+   through `spec_intake_answer`, and never answer one yourself.
+3. When intake reports ready, present the one command that stays human:
 
 ```
-specbridge spec start <feature-name> --file <output-path>
+specbridge spec approve <feature-name> --build
 ```
 
-Tell the user what happens next: repository-grounded discovery, a handful of
-product questions at most, then one `spec approve <name> --build` and the
-run is hands-off.
+That approval is the single deliberate break in the chain — agents cannot
+perform it, by design. Everything before it flows; everything after it is
+the unattended run.
+
+If the SpecBridge MCP tools are not available in this session, fall back to
+handing the user the CLI command instead:
+`specbridge spec start <feature-name> --file <output-path>`.
 
 ## Hard boundaries
 
