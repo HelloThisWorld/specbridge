@@ -304,6 +304,19 @@ Three more surfaced once the run reached real compute:
   credential from a rate limit from a model that wrapped its JSON in prose.
   The task driver already carried the observed text for exactly this reason;
   the objective path did not, and now does.
+- **Sibling progress invalidated in-flight work.** The semantic-resume path
+  recomputed the deterministic evaluation against LIVE mission truth, so
+  when n-3 completed and the mission recorded its facts, every projection
+  hash moved and n-4’s stored candidate — built and deterministically
+  PASSED against the truth of its own build — began failing identity
+  binding on every resume. The evaluator reported that mismatch verbatim
+  and honestly, and was initially read as fabricating; the burn was blamed
+  on the messenger. The resume now uses the STORED deterministic record for
+  the attempt and recomputes only when none exists (the first pass, when
+  live truth IS build truth). Identity binds a candidate to the snapshot it
+  was built against; whether moved truth demands a rebuild is the
+  projection-freshness check’s question, answered by what actually changed
+  rather than by any byte of the world having moved.
 - **A semantic verdict could overturn the deterministic layer.** The
   evaluator asserted, three attempts running, that the identity-binding
   check had FAILED — while its own evidence packet said "passed", and that

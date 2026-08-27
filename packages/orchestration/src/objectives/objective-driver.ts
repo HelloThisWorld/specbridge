@@ -1106,18 +1106,42 @@ async function runSemanticEvaluation(
   }
   const patch = readCandidatePatch(input.workspace, input.jobId, input.node.nodeId, unitId, attempt);
   const evaluations = requireUnit(graph, unitId).evaluationRefs.length;
-  const deterministicRecord = evaluateDeterministically({
-    candidate,
-    workUnit: unit,
-    projection,
-    contracts: truth.contracts,
-    constitutionRules: truth.constitution?.rules ?? [],
-    constitutionVersion: truth.constitution?.version ?? 0,
-    protectedViolations: [],
-    patch,
-    createdAt: at,
-    evaluationId: nextEvaluationId(unitId, attempt, evaluations + 1),
-  });
+  // The deterministic verdict for this attempt, stored if it exists —
+  // recomputed only when it does not (the first pass, moments after the
+  // build, when live truth IS build truth).
+  //
+  // Recomputing against LIVE truth broke identity binding for any candidate
+  // that outlived a truth append: n-3 completed, the mission recorded its
+  // facts, every projection hash moved, and n-4's stored candidate — built
+  // and deterministically PASSED against the truth of its own build — began
+  // failing identity binding on every semantic resume. The evaluator then
+  // reported that mismatch, verbatim and honestly, and was read as
+  // fabricating; the burn was blamed on the messenger. Sibling progress must
+  // not invalidate in-flight work: identity binds a candidate to the
+  // snapshot it was BUILT against, and whether moved truth demands a rebuild
+  // is the projection-freshness check's question, answered by what actually
+  // changed (contract revisions, constitution version) rather than by any
+  // byte of the world having moved.
+  const storedDeterministic = readEvaluations(
+    input.workspace,
+    input.jobId,
+    input.node.nodeId,
+    unitId,
+  ).find((record) => record.attempt === attempt && record.layer === 'deterministic');
+  const deterministicRecord =
+    storedDeterministic ??
+    evaluateDeterministically({
+      candidate,
+      workUnit: unit,
+      projection,
+      contracts: truth.contracts,
+      constitutionRules: truth.constitution?.rules ?? [],
+      constitutionVersion: truth.constitution?.version ?? 0,
+      protectedViolations: [],
+      patch,
+      createdAt: at,
+      evaluationId: nextEvaluationId(unitId, attempt, evaluations + 1),
+    });
 
   const selection = selectWorker({
     role: 'EVALUATOR',

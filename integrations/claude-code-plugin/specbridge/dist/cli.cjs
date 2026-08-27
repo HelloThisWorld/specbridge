@@ -72549,7 +72549,13 @@ async function runSemanticEvaluation(context, graph, unitId) {
   }
   const patch = readCandidatePatch(input.workspace, input.jobId, input.node.nodeId, unitId, attempt);
   const evaluations = requireUnit(graph, unitId).evaluationRefs.length;
-  const deterministicRecord = evaluateDeterministically({
+  const storedDeterministic = readEvaluations(
+    input.workspace,
+    input.jobId,
+    input.node.nodeId,
+    unitId
+  ).find((record42) => record42.attempt === attempt && record42.layer === "deterministic");
+  const deterministicRecord = storedDeterministic ?? evaluateDeterministically({
     candidate,
     workUnit: unit,
     projection,
