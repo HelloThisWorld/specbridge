@@ -4,7 +4,7 @@ import path from 'node:path';
 import type { AgentConfig, JobPolicy, WorkspaceInfo } from '@specbridge/core';
 import { assertInsideWorkspace, jobPolicyFingerprint, writeFileAtomic } from '@specbridge/core';
 import { captureGitSnapshot } from '@specbridge/evidence';
-import { readInteractiveLock } from '@specbridge/execution';
+import { diagnoseInteractiveLock, readInteractiveLock, removeDiagnosedLock } from '@specbridge/execution';
 import type { Clock } from '@specbridge/workflow';
 import { systemClock } from '@specbridge/workflow';
 import { OrchestrationError } from '../errors.js';
@@ -2615,6 +2615,140 @@ export function cancelJob(deps: JobDeps, jobId: string, reason: string): JobStat
 }
 
 /** Block the job explicitly (scheduler budget stops route through here). */
+/**
+ * Self-diagnosis and self-repair on resume (vNext.10.1, dogfood-derived).
+ *
+ * The dogfood proved the checkpoint model right and the RE-ENTRY wrong:
+ * every artifact needed to continue was on disk, and a person still had to
+ * perform the same state surgeries by hand before `--resume` would move —
+ * clearing a run lock whose owner was dead, re-checking a budget verdict an
+ * older formula wrote, returning work-unit attempts that infrastructure
+ * outages had eaten, and banking a dangling human-wait clock. An unattended
+ * runtime whose recovery loop has a human inside it is not unattended.
+ *
+ * The shape follows deer-flow's lease reconciliation — a dead worker's run
+ * is diagnosed, repaired, and resumed as part of TAKEOVER, not as a human
+ * ceremony — and its doctor stance: machine-readable findings plus applied
+ * repairs, never a paragraph to interpret.
+ *
+ * Boundary, stated once: every repair reverses a verdict INFRASTRUCTURE
+ * wrote. A failing test stays failed, an IMPLEMENTATION_DEFECT stays a
+ * defect, an AMBIGUITY still waits for its person, and no product-authority
+ * surface is touched.
+ */
+export interface SelfHealRepair {
+  code:
+    | 'STALE_RUN_LOCK_REMOVED'
+    | 'BUDGET_VERDICT_RECOMPUTED'
+    | 'TRANSIENT_BURNED_UNIT_REVIVED'
+    | 'DANGLING_HUMAN_WAIT_BANKED';
+  detail: string;
+}
+
+const TRANSIENT_UNIT_FAILURES: readonly string[] = ['TRANSIENT_TOOL', 'TRANSIENT_TRANSPORT'];
+
+export function selfHealOnResume(
+  deps: JobDeps,
+  jobId: string,
+): { job: JobState; repairs: SelfHealRepair[] } {
+  const repairs: SelfHealRepair[] = [];
+  let job = requireJobState(deps.workspace, jobId);
+
+  // 1. A run lock whose owner is provably dead. The diagnosis is the SAME
+  //    one `run recover-lock` performs; removal only when it says stale.
+  const lock = diagnoseInteractiveLock(deps.workspace, () => now(deps));
+  if (lock.state === 'stale' && lock.safeToRemove) {
+    removeDiagnosedLock(deps.workspace, () => now(deps));
+    repairs.push({
+      code: 'STALE_RUN_LOCK_REMOVED',
+      detail: lock.findings.join(' ').slice(0, 280),
+    });
+  }
+
+  // 2. A dangling human-wait clock: entered a human-only status and the
+  //    process died while parked. Bank it, so the budget stays honest.
+  if (job.humanWaitSince !== undefined) {
+    const since = Date.parse(job.humanWaitSince);
+    const banked = Number.isNaN(since) ? 0 : Math.max(0, now(deps).getTime() - since);
+    const { humanWaitSince: _banked, ...rest } = job;
+    job = persist(deps, {
+      ...rest,
+      counters: { ...job.counters, humanWaitMs: (job.counters.humanWaitMs ?? 0) + banked },
+    } as JobState);
+    repairs.push({
+      code: 'DANGLING_HUMAN_WAIT_BANKED',
+      detail: `${Math.round(banked / 60_000)} minute(s) banked from an interrupted park`,
+    });
+  }
+
+  // 3. A budget verdict that no longer holds under current rules. The
+  //    blocker is a RECORDED conclusion; the formula that wrote it may have
+  //    been wrong (the wall-clock double-count was), or its inputs may have
+  //    moved (an operator raised the budget). Re-derive; keep only if it
+  //    still holds.
+  if (job.status === 'BLOCKED' && job.blocker?.category === 'BUDGET_EXHAUSTED') {
+    const worked = workedMsOf(job, now(deps).getTime());
+    const stillOver =
+      worked >= job.budgets.maxWallClockMs || job.counters.agentRuns >= job.budgets.maxAgentRuns;
+    if (!stillOver) {
+      const { blocker: _stale, ...rest } = job;
+      job = persist(deps, rest as JobState);
+      job = transition(deps, job, 'READY');
+      job = persist(deps, job);
+      repairs.push({
+        code: 'BUDGET_VERDICT_RECOMPUTED',
+        detail:
+          `BUDGET_EXHAUSTED no longer holds: worked ${Math.round(worked / 60_000)}m of ` +
+          `${Math.round(job.budgets.maxWallClockMs / 60_000)}m, ${job.counters.agentRuns} of ` +
+          `${job.budgets.maxAgentRuns} dispatches`,
+      });
+    }
+  }
+
+  // 4. Work units whose attempts were eaten by pure infrastructure refusals
+  //    (a quota window, a dead transport). EVERY failure on the unit must be
+  //    transient-infrastructure; one implementation verdict and it stays
+  //    where it failed. Nothing was built on those attempts, so READY at
+  //    attempt 0 restores exactly what the outage took.
+  const graph =
+    job.graphRevision > 0 ? readGraphRevision(deps.workspace, jobId, job.graphRevision) : undefined;
+  if (graph !== undefined) {
+    for (const node of graph.nodes) {
+      const workGraph = readLatestWorkGraph(deps.workspace, jobId, node.nodeId);
+      if (workGraph === undefined) continue;
+      const revived = workGraph.units.filter(
+        (unit) =>
+          unit.status === 'FAILED' &&
+          TRANSIENT_UNIT_FAILURES.includes(unit.latestFailure?.category ?? ''),
+      );
+      if (revived.length === 0) continue;
+      storeWorkGraph(deps.workspace, jobId, {
+        ...workGraph,
+        units: workGraph.units.map((unit) => {
+          if (!revived.includes(unit)) return unit;
+          const { latestFailure: _outage, ...rest } = unit;
+          return { ...rest, status: 'READY' as const, attempt: 0 };
+        }),
+      });
+      repairs.push({
+        code: 'TRANSIENT_BURNED_UNIT_REVIVED',
+        detail: `${node.nodeId}: ${revived.map((unit) => unit.workUnitId).join(', ')} — attempts eaten by transient infrastructure; nothing was built on them`,
+      });
+    }
+  }
+
+  if (repairs.length > 0) {
+    job = requireJobState(deps.workspace, jobId);
+    job = persist(
+      deps,
+      record(deps, job, 'self_heal_applied', {
+        repairs: repairs.map((repair) => ({ code: repair.code, detail: repair.detail.slice(0, 200) })),
+      }),
+    );
+  }
+  return { job, repairs };
+}
+
 /**
  * Blocker categories a PERSON can fix outside SpecBridge and then continue.
  *

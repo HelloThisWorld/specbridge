@@ -441,6 +441,8 @@ export const JOB_EVENT_TYPES = [
   'job_blocked',
   /** A person fixed an environmental cause and continued the job. */
   'job_unblocked',
+  /** Self-diagnosis on resume repaired state a previous incident broke. */
+  'self_heal_applied',
   'job_completed',
   'job_failed',
   'job_cancelled',

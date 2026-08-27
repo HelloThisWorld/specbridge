@@ -291,6 +291,8 @@ export const SUPERVISION_ACTIONS = [
   'DRIVER_STARTED',
   'DRIVER_EXITED_CLEANLY',
   'DRIVER_DIED',
+  /** A person explicitly resumed; the give-up ledger starts fresh. */
+  'RESET_ON_EXPLICIT_RESUME',
   'DRIVER_RESTARTED',
   'ATTEMPT_RECONCILED',
   'WAKE_SCHEDULED',

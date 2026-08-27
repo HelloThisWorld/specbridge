@@ -132,6 +132,47 @@ export function supervisorSleep(ms: number, signal?: AbortSignal): Promise<void>
  * would turn "restart the supervisor" into "forgive the crash loop", which
  * is the same bug as not counting at all.
  */
+
+/**
+ * Reset a job's give-up ledger because a PERSON explicitly resumed it.
+ *
+ * GIVE_UP protects an unattended night from an infinite restart loop; an
+ * operator typing `--resume` is the opposite situation — a person is
+ * present, has usually just changed something (fixed the machine, decided a
+ * question, upgraded the binary), and is asking for exactly one more
+ * attempt. Without this, the persisted consecutive-restart count made the
+ * supervisor refuse before the changed world got its first try.
+ * Restart HISTORY is untouched; only the consecutive counter and backoff
+ * reset.
+ */
+export function resetSupervisedJobForExplicitResume(
+  deps: AutonomyDeps,
+  ownerId: string,
+  jobId: string,
+): boolean {
+  const state = loadSupervisorState(deps, ownerId);
+  const supervised = state.jobs.find((job) => job.jobId === jobId);
+  if (supervised === undefined) return false;
+  const changed =
+    supervised.consecutiveRestarts > 0 ||
+    supervised.backoffMs > 0 ||
+    supervised.status === 'RELEASED';
+  if (!changed) return false;
+  supervised.consecutiveRestarts = 0;
+  supervised.backoffMs = 0;
+  if (supervised.status === 'RELEASED') supervised.status = 'REGISTERED';
+  delete (supervised as { releasedAt?: unknown }).releasedAt;
+  delete (supervised as { releaseReason?: unknown }).releaseReason;
+  writeSupervisorState(deps.workspace, state);
+  appendSupervisionLog(deps, {
+    ownerId,
+    jobId,
+    action: 'RESET_ON_EXPLICIT_RESUME',
+    detail: 'a person resumed the job; the give-up ledger starts fresh for the changed world',
+  });
+  return true;
+}
+
 export function registerSupervisedJob(
   deps: AutonomyDeps,
   input: { jobId: string; specName: string; sealId?: string | undefined; ownerId?: string | undefined },

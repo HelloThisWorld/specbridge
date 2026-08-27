@@ -304,6 +304,24 @@ Three more surfaced once the run reached real compute:
   credential from a rate limit from a model that wrapped its JSON in prose.
   The task driver already carried the observed text for exactly this reason;
   the objective path did not, and now does.
+- **Resume now diagnoses and repairs what a previous incident broke, by
+  itself.** The dogfood proved the checkpoint model right and the RE-ENTRY
+  wrong: every artifact needed to continue was on disk, and a person still
+  performed the same state surgeries by hand before `--resume` would move.
+  `selfHealOnResume` now runs before launch — it removes a run lock whose
+  owner is provably dead (the same diagnosis `run recover-lock` performs),
+  re-derives a recorded BUDGET_EXHAUSTED verdict and keeps it only if it
+  still holds under current rules, revives work units whose every failure
+  was transient infrastructure (a quota window, a dead transport — nothing
+  was built on those attempts), and banks a dangling human-wait clock. An
+  explicit resume also resets the supervisor’s give-up ledger: a person
+  present and asking is the opposite of the unattended loop GIVE_UP
+  protects. Every repair is a machine-readable `self_heal_applied` event.
+  Verdicts about the WORK are never touched — a failing test stays failed,
+  an ambiguity still waits for its person. The shape follows deer-flow’s
+  lease reconciliation (repair as part of takeover, not as human ceremony)
+  and its doctor stance (findings plus applied repairs, never prose to
+  interpret).
 - **The overnight runtime could not survive its own backoff sleep.** The
   supervisor’s sleep timer was unref()’d, so whenever a backoff or recheck
   wait was the only pending work — no driver child yet, no other live handle

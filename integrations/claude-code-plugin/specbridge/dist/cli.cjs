@@ -68918,6 +68918,79 @@ function cancelJob(deps, jobId, reason) {
   job = record22(deps, job, "job_cancelled", { reason: reason.slice(0, 500) });
   return persist22(deps, { ...job, finalizedAt: at, finalOutcome: "CANCELLED" });
 }
+var TRANSIENT_UNIT_FAILURES = ["TRANSIENT_TOOL", "TRANSIENT_TRANSPORT"];
+function selfHealOnResume(deps, jobId) {
+  const repairs = [];
+  let job = requireJobState(deps.workspace, jobId);
+  const lock = diagnoseInteractiveLock(deps.workspace, () => now4(deps));
+  if (lock.state === "stale" && lock.safeToRemove) {
+    removeDiagnosedLock(deps.workspace, () => now4(deps));
+    repairs.push({
+      code: "STALE_RUN_LOCK_REMOVED",
+      detail: lock.findings.join(" ").slice(0, 280)
+    });
+  }
+  if (job.humanWaitSince !== void 0) {
+    const since = Date.parse(job.humanWaitSince);
+    const banked = Number.isNaN(since) ? 0 : Math.max(0, now4(deps).getTime() - since);
+    const { humanWaitSince: _banked, ...rest } = job;
+    job = persist22(deps, {
+      ...rest,
+      counters: { ...job.counters, humanWaitMs: (job.counters.humanWaitMs ?? 0) + banked }
+    });
+    repairs.push({
+      code: "DANGLING_HUMAN_WAIT_BANKED",
+      detail: `${Math.round(banked / 6e4)} minute(s) banked from an interrupted park`
+    });
+  }
+  if (job.status === "BLOCKED" && job.blocker?.category === "BUDGET_EXHAUSTED") {
+    const worked = workedMsOf(job, now4(deps).getTime());
+    const stillOver = worked >= job.budgets.maxWallClockMs || job.counters.agentRuns >= job.budgets.maxAgentRuns;
+    if (!stillOver) {
+      const { blocker: _stale, ...rest } = job;
+      job = persist22(deps, rest);
+      job = transition22(deps, job, "READY");
+      job = persist22(deps, job);
+      repairs.push({
+        code: "BUDGET_VERDICT_RECOMPUTED",
+        detail: `BUDGET_EXHAUSTED no longer holds: worked ${Math.round(worked / 6e4)}m of ${Math.round(job.budgets.maxWallClockMs / 6e4)}m, ${job.counters.agentRuns} of ${job.budgets.maxAgentRuns} dispatches`
+      });
+    }
+  }
+  const graph = job.graphRevision > 0 ? readGraphRevision(deps.workspace, jobId, job.graphRevision) : void 0;
+  if (graph !== void 0) {
+    for (const node of graph.nodes) {
+      const workGraph = readLatestWorkGraph(deps.workspace, jobId, node.nodeId);
+      if (workGraph === void 0) continue;
+      const revived = workGraph.units.filter(
+        (unit) => unit.status === "FAILED" && TRANSIENT_UNIT_FAILURES.includes(unit.latestFailure?.category ?? "")
+      );
+      if (revived.length === 0) continue;
+      storeWorkGraph(deps.workspace, jobId, {
+        ...workGraph,
+        units: workGraph.units.map((unit) => {
+          if (!revived.includes(unit)) return unit;
+          const { latestFailure: _outage, ...rest } = unit;
+          return { ...rest, status: "READY", attempt: 0 };
+        })
+      });
+      repairs.push({
+        code: "TRANSIENT_BURNED_UNIT_REVIVED",
+        detail: `${node.nodeId}: ${revived.map((unit) => unit.workUnitId).join(", ")} \u2014 attempts eaten by transient infrastructure; nothing was built on them`
+      });
+    }
+  }
+  if (repairs.length > 0) {
+    job = requireJobState(deps.workspace, jobId);
+    job = persist22(
+      deps,
+      record22(deps, job, "self_heal_applied", {
+        repairs: repairs.map((repair) => ({ code: repair.code, detail: repair.detail.slice(0, 200) }))
+      })
+    );
+  }
+  return { job, repairs };
+}
 var OPERATOR_FIXABLE_BLOCKER_CATEGORIES = [
   "CAPABILITY_UNAVAILABLE",
   "AUTHENTICATION",
@@ -96045,6 +96118,8 @@ var SUPERVISION_ACTIONS = [
   "DRIVER_STARTED",
   "DRIVER_EXITED_CLEANLY",
   "DRIVER_DIED",
+  /** A person explicitly resumed; the give-up ledger starts fresh. */
+  "RESET_ON_EXPLICIT_RESUME",
   "DRIVER_RESTARTED",
   "ATTEMPT_RECONCILED",
   "WAKE_SCHEDULED",
@@ -97639,6 +97714,26 @@ function supervisorSleep(ms, signal) {
       resolve2();
     }, { once: true });
   });
+}
+function resetSupervisedJobForExplicitResume(deps, ownerId, jobId) {
+  const state = loadSupervisorState(deps, ownerId);
+  const supervised = state.jobs.find((job) => job.jobId === jobId);
+  if (supervised === void 0) return false;
+  const changed = supervised.consecutiveRestarts > 0 || supervised.backoffMs > 0 || supervised.status === "RELEASED";
+  if (!changed) return false;
+  supervised.consecutiveRestarts = 0;
+  supervised.backoffMs = 0;
+  if (supervised.status === "RELEASED") supervised.status = "REGISTERED";
+  delete supervised.releasedAt;
+  delete supervised.releaseReason;
+  writeSupervisorState(deps.workspace, state);
+  appendSupervisionLog(deps, {
+    ownerId,
+    jobId,
+    action: "RESET_ON_EXPLICIT_RESUME",
+    detail: "a person resumed the job; the give-up ledger starts fresh for the changed world"
+  });
+  return true;
 }
 function registerSupervisedJob(deps, input) {
   const ownerId = input.ownerId ?? newId5(deps);
@@ -104469,6 +104564,13 @@ async function runSealAndBuild(deps, options) {
         unblocked: true
       });
     }
+  }
+  {
+    const healed = selfHealOnResume(deps, jobId);
+    for (const repair of healed.repairs) {
+      emit2("lifecycle", `self-heal: ${repair.code} \u2014 ${repair.detail.slice(0, 160)}`);
+    }
+    resetSupervisedJobForExplicitResume(autonomyDepsOf(deps), hostOf2(deps), jobId);
   }
   {
     const ccrs = new Map(

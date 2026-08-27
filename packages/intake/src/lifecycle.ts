@@ -6,6 +6,7 @@ import {
   requestToolsmithCapability,
   requiredSurfacesFor,
   runOvernightPreflight,
+  resetSupervisedJobForExplicitResume,
   runUnattendedMission,
   sealMission,
 } from '@specbridge/autonomy';
@@ -17,6 +18,7 @@ import {
   readJobState,
   reconcileDecidedCcrs,
   retryBlockedJob,
+  selfHealOnResume,
 } from '@specbridge/orchestration';
 import {
   markContractReady,
@@ -614,6 +616,19 @@ export async function runSealAndBuild(
         unblocked: true,
       });
     }
+  }
+
+  // Self-diagnosis before re-entry (deer-flow's reconciliation stance):
+  // repair what a previous incident provably broke — a dead owner's run
+  // lock, a budget verdict an older formula wrote, unit attempts a quota
+  // outage ate, a dangling human-wait clock — and log each repair as an
+  // event. Verdicts about the WORK are never touched.
+  {
+    const healed = selfHealOnResume(deps, jobId);
+    for (const repair of healed.repairs) {
+      emit('lifecycle', `self-heal: ${repair.code} — ${repair.detail.slice(0, 160)}`);
+    }
+    resetSupervisedJobForExplicitResume(autonomyDepsOf(deps), hostOf(deps), jobId);
   }
 
   // The same signal for a PRODUCT decision rather than an environmental one.

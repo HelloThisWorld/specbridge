@@ -542,6 +542,7 @@
     "resource_wait_started",
     "scheduler_mode_changed",
     "scheduling_decision_created",
+    "self_heal_applied",
     "semantic_review_completed",
     "supervisor_attached",
     "supervisor_detached",
