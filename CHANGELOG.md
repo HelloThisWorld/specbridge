@@ -332,6 +332,18 @@ Three more surfaced once the run reached real compute:
   lease reconciliation (repair as part of takeover, not as human ceremony)
   and its doctor stance (findings plus applied repairs, never prose to
   interpret).
+- **Reconciling a conflicting candidate was capped at ten minutes.**
+  Integration hands a conflicting candidate to a worker that must read the
+  conflict, understand two change sets, and re-apply one against the other
+  in a real repository — a build-sized job on a question-sized ceiling. Four
+  reconciliations in a row died at exactly 600000 ms with the same failure
+  fingerprint, one task attempt each, while the operator’s configured
+  builder timeout sat at an hour. The reconciliation now gets the same
+  budget a build gets (`builderTimeoutMs`). The timed-out run also left the
+  repository run-lock held, which the next dispatch reported as a
+  dependency block; `run recover-lock --remove` is the designed recovery and
+  worked, but a terminated reconciliation should release its own lock — an
+  open item, recorded here rather than silently.
 - **The overnight runtime could not survive its own backoff sleep.** The
   supervisor’s sleep timer was unref()’d, so whenever a backoff or recheck
   wait was the only pending work — no driver child yet, no other live handle

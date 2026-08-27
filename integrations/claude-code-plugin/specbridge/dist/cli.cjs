@@ -73089,6 +73089,14 @@ async function integrateVerifiedCandidates(input, graph) {
     workspace: input.workspace,
     config: input.config,
     jobId: input.jobId,
+    // Reconciling a conflicting candidate is a BUILD-sized job, not a
+    // question-sized one: the worker reads the conflict, understands two
+    // change sets, and re-applies one against the other in a real
+    // repository. The default 10-minute ceiling killed four reconciliations
+    // in a row on the dogfood — same fingerprint, one attempt each — while
+    // the operator's configured builder timeout sat at an hour. The
+    // reconciliation now gets the same budget a build gets.
+    reconcileTimeoutMs: input.policy.objectives.builderTimeoutMs,
     specName: input.specName,
     taskId: input.node.parentTaskId,
     objectiveNodeId: input.node.nodeId,
