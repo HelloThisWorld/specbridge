@@ -463,6 +463,7 @@
   ],
   "supervisionActions": [
     "ATTEMPT_RECONCILED",
+    "CLOSURE_HANDOFF",
     "DRIVER_DIED",
     "DRIVER_EXITED_CLEANLY",
     "DRIVER_RESTARTED",

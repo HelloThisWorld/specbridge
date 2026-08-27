@@ -84,6 +84,15 @@ export interface SupervisionEvent {
 
 export type SupervisionStop =
   | { kind: 'completed'; status: string }
+  /**
+   * The driver finished every planned node and the closure gate refused
+   * COMPLETED: the job now belongs to the closure lifecycle, not to another
+   * driver restart. Without this stop the supervisor read "final" as an
+   * unexplained exit and restarted the driver into the same wall five times,
+   * then gave up — and the closure cycle that was waiting one return-frame
+   * up never ran.
+   */
+  | { kind: 'closure-handoff'; status: string }
   | { kind: 'needs-human'; status: string; detail: string }
   | { kind: 'gave-up'; reason: string }
   | { kind: 'released'; reason: string }
@@ -535,7 +544,18 @@ async function applyDecision(
         ...(input.options.signal !== undefined ? { signal: input.options.signal } : {}),
         onEvent: (event) => input.emit('driver', `${event.kind}: ${event.message}`),
       });
-      return { supervised: foldDriverOutcome(deps, input, outcome, decision.action) };
+      const supervised = foldDriverOutcome(deps, input, outcome, decision.action);
+      if (outcome.kind === 'exited' && outcome.stop.kind === 'final') {
+        const job = requireJobState(deps.workspace, jobId);
+        appendSupervisionLog(deps, {
+          ownerId,
+          jobId,
+          action: 'CLOSURE_HANDOFF',
+          detail: `planned work exhausted; the closure lifecycle owns the job (status ${job.status})`,
+        });
+        return { supervised, stop: { kind: 'closure-handoff', status: job.status } };
+      }
+      return { supervised };
     }
     default: {
       return { supervised: input.supervised };

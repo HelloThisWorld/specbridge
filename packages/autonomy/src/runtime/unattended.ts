@@ -283,6 +283,12 @@ async function resolveSupervisionStop(
   switch (input.stop.kind) {
     case 'completed':
       return { stop: { kind: 'completed', rationale: 'the job reached a terminal COMPLETED status' } };
+    case 'closure-handoff':
+      // Not a stop at all: the driver is done and the closure lifecycle is
+      // next. Returning no stop sends the loop straight into
+      // runClosureCycle, which is the handoff this stop exists to make.
+      input.emit('closure', `driver work exhausted (status ${input.stop.status}); entering the closure lifecycle`);
+      return {};
     case 'interrupted':
       return { stop: { kind: 'interrupted' } };
     case 'gave-up':

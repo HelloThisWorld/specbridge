@@ -96284,6 +96284,8 @@ var SUPERVISION_ACTIONS = [
   "DRIVER_DIED",
   /** A person explicitly resumed; the give-up ledger starts fresh. */
   "RESET_ON_EXPLICIT_RESUME",
+  /** Planned work exhausted with the closure gate unsatisfied; the closure lifecycle takes over. */
+  "CLOSURE_HANDOFF",
   "DRIVER_RESTARTED",
   "ATTEMPT_RECONCILED",
   "WAKE_SCHEDULED",
@@ -98162,7 +98164,18 @@ async function applyDecision(deps, input) {
         ...input.options.signal !== void 0 ? { signal: input.options.signal } : {},
         onEvent: (event) => input.emit("driver", `${event.kind}: ${event.message}`)
       });
-      return { supervised: foldDriverOutcome(deps, input, outcome, decision.action) };
+      const supervised = foldDriverOutcome(deps, input, outcome, decision.action);
+      if (outcome.kind === "exited" && outcome.stop.kind === "final") {
+        const job2 = requireJobState(deps.workspace, jobId);
+        appendSupervisionLog(deps, {
+          ownerId,
+          jobId,
+          action: "CLOSURE_HANDOFF",
+          detail: `planned work exhausted; the closure lifecycle owns the job (status ${job2.status})`
+        });
+        return { supervised, stop: { kind: "closure-handoff", status: job2.status } };
+      }
+      return { supervised };
     }
     default: {
       return { supervised: input.supervised };
@@ -100427,6 +100440,9 @@ async function resolveSupervisionStop(deps, input) {
   switch (input.stop.kind) {
     case "completed":
       return { stop: { kind: "completed", rationale: "the job reached a terminal COMPLETED status" } };
+    case "closure-handoff":
+      input.emit("closure", `driver work exhausted (status ${input.stop.status}); entering the closure lifecycle`);
+      return {};
     case "interrupted":
       return { stop: { kind: "interrupted" } };
     case "gave-up":

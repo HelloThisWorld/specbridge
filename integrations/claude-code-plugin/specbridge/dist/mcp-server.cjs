@@ -81114,6 +81114,8 @@ var SUPERVISION_ACTIONS = [
   "DRIVER_DIED",
   /** A person explicitly resumed; the give-up ledger starts fresh. */
   "RESET_ON_EXPLICIT_RESUME",
+  /** Planned work exhausted with the closure gate unsatisfied; the closure lifecycle takes over. */
+  "CLOSURE_HANDOFF",
   "DRIVER_RESTARTED",
   "ATTEMPT_RECONCILED",
   "WAKE_SCHEDULED",
