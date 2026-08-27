@@ -72149,14 +72149,49 @@ async function executeBuilder(context, prepared) {
     await applyDependencyPatches(prepared.worktree, prepared.dependencyPatches);
   } catch (cause) {
     const message2 = cause instanceof Error ? cause.message : String(cause);
-    return {
-      prepared,
-      result: {
-        ok: false,
-        kind: "worker-unavailable",
-        problem: `dependency patches no longer apply to the current baseline: ${message2.slice(0, 500)}`
-      }
-    };
+    input.onProgress?.(
+      `dependency patches conflict in ${prepared.unitId}'s worktree; attempting one bounded reconciliation`
+    );
+    const packet2 = [
+      `Sibling work units' verified changes must be present in this worktree before ${prepared.unitId} builds, but their patches no longer apply cleanly to the current baseline.`,
+      "Apply the INTENT of the patches below with minimal integration edits. Where the baseline already contains an equivalent change, keep the baseline. Change nothing beyond what the patches intend.",
+      "Do not touch .kiro/ or .specbridge/. Do not run git commands that rewrite history, push, or merge.",
+      "",
+      ...prepared.dependencyPatches.flatMap((entry2) => [
+        `Patch of ${entry2.workUnitId}:`,
+        fence2(entry2.patch, 24e3),
+        ""
+      ]),
+      "The apply reported:",
+      fence2(message2.slice(0, 4e3), 4e3)
+    ].join("\n");
+    const reconcile = await runLargeObjectiveRole({
+      workspace: input.workspace,
+      config: input.config,
+      runnerProfile: input.runnerProfile ?? input.config.defaultRunner,
+      role: "BUILDER",
+      packet: packet2,
+      cwd: prepared.worktree.dir,
+      scratchDir: import_path45.default.join(
+        jobDir(input.workspace, input.jobId),
+        "scratch",
+        `${prepared.unitId}-a${prepared.attempt}-depfix`
+      ),
+      timeoutMs: input.policy.objectives.builderTimeoutMs,
+      signal: input.signal,
+      cachedProbe: input.probeCache.probe
+    });
+    if (!reconcile.ok || reconcile.output.outcome !== "CANDIDATE_COMPLETE") {
+      return {
+        prepared,
+        result: {
+          ok: false,
+          kind: "worker-unavailable",
+          problem: `dependency patches no longer apply and reconciliation failed: ${message2.slice(0, 400)}`
+        }
+      };
+    }
+    if (reconcile.probe !== void 0) input.probeCache.probe = reconcile.probe;
   }
   const packet = buildBuilderPacket({ projection: prepared.projection });
   const result = await runLargeObjectiveRole({

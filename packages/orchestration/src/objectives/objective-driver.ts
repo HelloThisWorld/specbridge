@@ -19,6 +19,7 @@ import type { Clock } from '@specbridge/workflow';
 import { OrchestrationError } from '../errors.js';
 import type { FailureCategory } from '../vocabulary.js';
 import { requiresHuman } from '../jobs/authority.js';
+import { fence } from '../agents/prompts.js';
 import type { JobDecisionKind } from '../jobs/vocabulary.js';
 import { JOB_DECISION_KINDS } from '../jobs/vocabulary.js';
 import type { JobNode } from '../jobs/state.js';
@@ -571,15 +572,56 @@ async function executeBuilder(
   try {
     await applyDependencyPatches(prepared.worktree, prepared.dependencyPatches);
   } catch (cause) {
+    // The same answer integration already has: one bounded reconciliation by
+    // a worker, applying the INTENT of the conflicting sibling patches to
+    // this worktree. A conflict is deterministic — retrying the raw apply
+    // can only fail identically, which is how three attempts burned on one
+    // conflict before this branch existed.
     const message = cause instanceof Error ? cause.message : String(cause);
-    return {
-      prepared,
-      result: {
-        ok: false,
-        kind: 'worker-unavailable',
-        problem: `dependency patches no longer apply to the current baseline: ${message.slice(0, 500)}`,
-      },
-    };
+    input.onProgress?.(
+      `dependency patches conflict in ${prepared.unitId}'s worktree; attempting one bounded reconciliation`,
+    );
+    const packet = [
+      `Sibling work units' verified changes must be present in this worktree before ${prepared.unitId} builds, but their patches no longer apply cleanly to the current baseline.`,
+      'Apply the INTENT of the patches below with minimal integration edits. Where the baseline already contains an equivalent change, keep the baseline. Change nothing beyond what the patches intend.',
+      'Do not touch .kiro/ or .specbridge/. Do not run git commands that rewrite history, push, or merge.',
+      '',
+      ...prepared.dependencyPatches.flatMap((entry) => [
+        `Patch of ${entry.workUnitId}:`,
+        fence(entry.patch, 24_000),
+        '',
+      ]),
+      'The apply reported:',
+      fence(message.slice(0, 4_000), 4_000),
+    ].join('\n');
+    const reconcile = await runLargeObjectiveRole({
+      workspace: input.workspace,
+      config: input.config,
+      runnerProfile: input.runnerProfile ?? input.config.defaultRunner,
+      role: 'BUILDER',
+      packet,
+      cwd: prepared.worktree.dir,
+      scratchDir: path.join(
+        jobDir(input.workspace, input.jobId),
+        'scratch',
+        `${prepared.unitId}-a${prepared.attempt}-depfix`,
+      ),
+      timeoutMs: input.policy.objectives.builderTimeoutMs,
+      signal: input.signal,
+      cachedProbe: input.probeCache.probe,
+    });
+    if (!reconcile.ok || reconcile.output.outcome !== 'CANDIDATE_COMPLETE') {
+      return {
+        prepared,
+        result: {
+          ok: false,
+          kind: 'worker-unavailable',
+          problem:
+            `dependency patches no longer apply and reconciliation failed: ${message.slice(0, 400)}`,
+        },
+      };
+    }
+    if (reconcile.probe !== undefined) input.probeCache.probe = reconcile.probe;
   }
   const packet = buildBuilderPacket({ projection: prepared.projection });
   const result = await runLargeObjectiveRole({
