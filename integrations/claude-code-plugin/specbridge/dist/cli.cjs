@@ -70341,7 +70341,8 @@ var ROLE_INSTRUCTIONS2 = {
     "FAIL when the candidate is defective or incomplete \u2014 cite the specific evidence.",
     "CONFLICT when the candidate contradicts an approved contract or constitution rule \u2014 name the contract ids and the decisionKind (implementation-detail, public-api-change, architecture-contract-change, product-behavior-change).",
     "NEEDS_DECISION when the candidate is coherent but rests on a choice the approved truth leaves open \u2014 name the decisionKind.",
-    "Judge only from the provided projection, diff, and deterministic evidence. You never see, and must not assume, any worker conversation."
+    "Judge only from the provided projection, diff, and deterministic evidence. You never see, and must not assume, any worker conversation.",
+    "The deterministic evidence is SETTLED FACT, verified programmatically before you were asked. A check listed as passed HAS passed \u2014 identity binding, scope, and local verification included. Never re-adjudicate one, and never cite a deterministic check as failed when the evidence says it passed: your lane is what no machine already judged."
   ].join("\n"),
   AGGREGATOR: [
     "You synthesize SEVERAL valid structured artifacts into one bounded result for a stated question.",
@@ -72516,6 +72517,20 @@ function recordConflict(input, graph, unitId, candidate, reasons, affectedContra
     }
   });
 }
+function deterministicReadjudication(output, deterministic) {
+  if (output.verdict !== "FAIL" && output.verdict !== "CONFLICT") return void 0;
+  const passed = deterministic.checks.filter((check22) => check22.passed).map((check22) => check22.name);
+  for (const reason of output.reasons) {
+    for (const name of passed) {
+      if (!reason.includes(name)) continue;
+      const claimsFailed = new RegExp(
+        `${name}[^.]{0,80}(FAILED|failed)|deterministic[^.]{0,80}${name}`
+      ).test(reason) && /FAILED|failed/.test(reason);
+      if (claimsFailed) return name;
+    }
+  }
+  return void 0;
+}
 async function runSemanticEvaluation(context, graph, unitId) {
   const { input, truth } = context;
   const unit = requireUnit(graph, unitId);
@@ -72564,13 +72579,13 @@ async function runSemanticEvaluation(context, graph, unitId) {
     (unit.operatorDecision !== void 0 ? ` A recorded operator decision resolves the prior NEEDS_DECISION and is binding: ${unit.operatorDecision}` : "")
   });
   input.onProgress?.(`EVALUATOR on ${selection.worker.workerId} for ${unitId}`);
-  const runLarge = async () => {
+  const runLarge = async (packetOverride) => {
     const large = await runLargeObjectiveRole({
       workspace: input.workspace,
       config: input.config,
       runnerProfile: selection.worker.runnerProfile ?? input.config.defaultRunner,
       role: "EVALUATOR",
-      packet,
+      packet: packetOverride ?? packet,
       cwd: input.workspace.rootDir,
       scratchDir: import_path45.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: 6e5,
@@ -72611,7 +72626,45 @@ async function runSemanticEvaluation(context, graph, unitId) {
       })
     );
   }
-  const output = result.output;
+  let output = result.output;
+  const reaskEvaluator = async (correction) => {
+    const followUp = `${packet}
+
+CORRECTION REQUIRED:
+${correction}`;
+    const second = ranLocally && input.localManager !== void 0 ? await runLocalObjectiveRole({
+      manager: input.localManager,
+      config: input.config,
+      role: "EVALUATOR",
+      packet: followUp,
+      maxCorrections: input.policy.maxLocalOutputCorrections,
+      onInferenceCall: () => void 0,
+      signal: input.signal
+    }) : await runLarge(followUp);
+    input.countWorkerRun({
+      role: "EVALUATOR",
+      workerId: selection.worker.workerId,
+      outcome: second.ok ? "succeeded" : "failed",
+      ...second.ok && second.usage !== void 0 ? { usage: second.usage } : {}
+    });
+    return second.ok ? second.output : void 0;
+  };
+  const contradiction = deterministicReadjudication(output, deterministicRecord);
+  if (contradiction !== void 0) {
+    input.recordEvent("evaluation_contradiction_screened", {
+      nodeId: input.node.nodeId,
+      workUnitId: unitId,
+      attempt,
+      check: contradiction
+    });
+    input.onProgress?.(
+      `EVALUATOR re-adjudicated settled deterministic check "${contradiction}" for ${unitId}; re-asking once`
+    );
+    const reasked = await reaskEvaluator(
+      `Your previous answer claimed the deterministic "${contradiction}" check FAILED. The deterministic evidence in your packet says it PASSED, and that layer ran the real comparison \u2014 it is settled fact. Re-judge on semantic grounds only. If nothing else blocks, say so.`
+    );
+    if (reasked !== void 0) output = reasked;
+  }
   const record32 = storeEvaluation(input.workspace, input.jobId, input.node.nodeId, {
     schemaVersion: "1.0.0",
     evaluationId: nextEvaluationId(unitId, attempt, evaluations + 2),

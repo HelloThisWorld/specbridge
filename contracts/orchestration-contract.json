@@ -476,6 +476,7 @@
     "environment_ready",
     "environment_repaired",
     "environment_torn_down",
+    "evaluation_contradiction_screened",
     "evaluation_failed",
     "evaluation_inconclusive",
     "evaluation_passed",

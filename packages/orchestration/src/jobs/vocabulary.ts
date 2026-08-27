@@ -454,6 +454,8 @@ export const JOB_EVENT_TYPES = [
   'candidate_ready',
   /** A stored candidate re-entered evaluation, but its artifacts were gone; the unit rebuilds. */
   'candidate_resume_missing',
+  /** A blocking semantic reason re-adjudicated a settled deterministic check; one re-ask issued. */
+  'evaluation_contradiction_screened',
   'candidate_failed',
   'evaluation_passed',
   'evaluation_failed',

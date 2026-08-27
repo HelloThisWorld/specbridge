@@ -49,6 +49,7 @@ const ROLE_INSTRUCTIONS: Record<ObjectiveContractRole, string> = {
     'CONFLICT when the candidate contradicts an approved contract or constitution rule — name the contract ids and the decisionKind (implementation-detail, public-api-change, architecture-contract-change, product-behavior-change).',
     'NEEDS_DECISION when the candidate is coherent but rests on a choice the approved truth leaves open — name the decisionKind.',
     'Judge only from the provided projection, diff, and deterministic evidence. You never see, and must not assume, any worker conversation.',
+    'The deterministic evidence is SETTLED FACT, verified programmatically before you were asked. A check listed as passed HAS passed — identity binding, scope, and local verification included. Never re-adjudicate one, and never cite a deterministic check as failed when the evidence says it passed: your lane is what no machine already judged.',
   ].join('\n'),
   AGGREGATOR: [
     'You synthesize SEVERAL valid structured artifacts into one bounded result for a stated question.',

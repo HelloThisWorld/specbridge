@@ -59240,7 +59240,8 @@ var ROLE_INSTRUCTIONS2 = {
     "FAIL when the candidate is defective or incomplete \u2014 cite the specific evidence.",
     "CONFLICT when the candidate contradicts an approved contract or constitution rule \u2014 name the contract ids and the decisionKind (implementation-detail, public-api-change, architecture-contract-change, product-behavior-change).",
     "NEEDS_DECISION when the candidate is coherent but rests on a choice the approved truth leaves open \u2014 name the decisionKind.",
-    "Judge only from the provided projection, diff, and deterministic evidence. You never see, and must not assume, any worker conversation."
+    "Judge only from the provided projection, diff, and deterministic evidence. You never see, and must not assume, any worker conversation.",
+    "The deterministic evidence is SETTLED FACT, verified programmatically before you were asked. A check listed as passed HAS passed \u2014 identity binding, scope, and local verification included. Never re-adjudicate one, and never cite a deterministic check as failed when the evidence says it passed: your lane is what no machine already judged."
   ].join("\n"),
   AGGREGATOR: [
     "You synthesize SEVERAL valid structured artifacts into one bounded result for a stated question.",

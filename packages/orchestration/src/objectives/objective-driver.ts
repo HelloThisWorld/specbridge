@@ -47,7 +47,7 @@ import {
 import type { StructuralAggregation } from './graph.js';
 import { integrateObjective } from './integrator.js';
 import { buildContextProjection } from './projection.js';
-import type { CandidateArtifact, ContextProjection, WorkGraph, WorkUnit } from './state.js';
+import type { CandidateArtifact, ContextProjection, EvaluationRecord, WorkGraph, WorkUnit } from './state.js';
 import {
   CANDIDATE_ARTIFACT_SCHEMA_VERSION,
   CONTRACT_CONFLICT_SCHEMA_VERSION,
@@ -1058,6 +1058,32 @@ function recordConflict(
 // Semantic evaluation dispatch
 // ---------------------------------------------------------------------------
 
+/**
+ * The deterministic check a blocking semantic reason wrongly re-adjudicates,
+ * if any.
+ *
+ * Narrow on purpose: only a BLOCKING verdict is screened, and only a reason
+ * that names a check the deterministic record shows as PASSED while calling
+ * it failed. Anything subtler is the evaluator's honest judgment and stands.
+ */
+function deterministicReadjudication(
+  output: EvaluatorOutput,
+  deterministic: EvaluationRecord,
+): string | undefined {
+  if (output.verdict !== 'FAIL' && output.verdict !== 'CONFLICT') return undefined;
+  const passed = deterministic.checks.filter((check) => check.passed).map((check) => check.name);
+  for (const reason of output.reasons) {
+    for (const name of passed) {
+      if (!reason.includes(name)) continue;
+      const claimsFailed = new RegExp(
+        `${name}[^.]{0,80}(FAILED|failed)|deterministic[^.]{0,80}${name}`,
+      ).test(reason) && /FAILED|failed/.test(reason);
+      if (claimsFailed) return name;
+    }
+  }
+  return undefined;
+}
+
 async function runSemanticEvaluation(
   context: UnitAttemptContext,
   graph: WorkGraph,
@@ -1118,13 +1144,15 @@ async function runSemanticEvaluation(
         : ''),
   });
   input.onProgress?.(`EVALUATOR on ${selection.worker.workerId} for ${unitId}`);
-  const runLarge = async (): Promise<Awaited<ReturnType<typeof runLargeObjectiveRole>>> => {
+  const runLarge = async (
+    packetOverride?: string,
+  ): Promise<Awaited<ReturnType<typeof runLargeObjectiveRole>>> => {
     const large = await runLargeObjectiveRole({
       workspace: input.workspace,
       config: input.config,
       runnerProfile: selection.worker.runnerProfile ?? input.config.defaultRunner,
       role: 'EVALUATOR',
-      packet,
+      packet: packetOverride ?? packet,
       cwd: input.workspace.rootDir,
       scratchDir: path.join(jobDir(input.workspace, input.jobId), 'scratch'),
       timeoutMs: 600_000,
@@ -1184,7 +1212,60 @@ async function runSemanticEvaluation(
       }),
     );
   }
-  const output: EvaluatorOutput = result.output;
+  let output: EvaluatorOutput = result.output;
+  // A semantic verdict may not overturn the deterministic layer. The
+  // deterministic checks ran real comparisons; the evaluator only READS
+  // them. In the dogfood the evaluator asserted, three attempts running,
+  // that the identity-binding check had FAILED while its own evidence
+  // packet said "passed" — a fabricated blocking reason that cost the unit
+  // its whole attempt budget. A reason that re-adjudicates a passed check
+  // gets one bounded re-ask naming the contradiction; if the re-ask stands
+  // its ground the verdict is kept, because a screen must not become a
+  // rubber stamp in the other direction.
+  const reaskEvaluator = async (correction: string): Promise<EvaluatorOutput | undefined> => {
+    const followUp = `${packet}
+
+CORRECTION REQUIRED:
+${correction}`;
+    const second =
+      ranLocally && input.localManager !== undefined
+        ? await runLocalObjectiveRole({
+            manager: input.localManager,
+            config: input.config,
+            role: 'EVALUATOR',
+            packet: followUp,
+            maxCorrections: input.policy.maxLocalOutputCorrections,
+            onInferenceCall: () => undefined,
+            signal: input.signal,
+          })
+        : await runLarge(followUp);
+    input.countWorkerRun({
+      role: 'EVALUATOR',
+      workerId: selection.worker.workerId,
+      outcome: second.ok ? 'succeeded' : 'failed',
+      ...(second.ok && second.usage !== undefined ? { usage: second.usage } : {}),
+    });
+    return second.ok ? (second.output as EvaluatorOutput) : undefined;
+  };
+  const contradiction = deterministicReadjudication(output, deterministicRecord);
+  if (contradiction !== undefined) {
+    input.recordEvent('evaluation_contradiction_screened', {
+      nodeId: input.node.nodeId,
+      workUnitId: unitId,
+      attempt,
+      check: contradiction,
+    });
+    input.onProgress?.(
+      `EVALUATOR re-adjudicated settled deterministic check "${contradiction}" for ${unitId}; re-asking once`,
+    );
+    const reasked = await reaskEvaluator(
+      `Your previous answer claimed the deterministic "${contradiction}" check FAILED. ` +
+        `The deterministic evidence in your packet says it PASSED, and that layer ran the real ` +
+        `comparison — it is settled fact. Re-judge on semantic grounds only. ` +
+        `If nothing else blocks, say so.`,
+    );
+    if (reasked !== undefined) output = reasked;
+  }
   const record = storeEvaluation(input.workspace, input.jobId, input.node.nodeId, {
     schemaVersion: '1.0.0',
     evaluationId: nextEvaluationId(unitId, attempt, evaluations + 2),

@@ -304,6 +304,16 @@ Three more surfaced once the run reached real compute:
   credential from a rate limit from a model that wrapped its JSON in prose.
   The task driver already carried the observed text for exactly this reason;
   the objective path did not, and now does.
+- **A semantic verdict could overturn the deterministic layer.** The
+  evaluator asserted, three attempts running, that the identity-binding
+  check had FAILED — while its own evidence packet said "passed", and that
+  layer had run the real hash comparison. One fabricated blocking reason
+  cost the unit its whole attempt budget. The evaluator prompt now states
+  the deterministic evidence is settled fact, and a blocking reason that
+  re-adjudicates a passed deterministic check triggers one bounded re-ask
+  naming the contradiction (recorded as `evaluation_contradiction_screened`).
+  If the re-ask stands its ground the verdict is kept — a screen must not
+  become a rubber stamp in the other direction.
 - **Resume now diagnoses and repairs what a previous incident broke, by
   itself.** The dogfood proved the checkpoint model right and the RE-ENTRY
   wrong: every artifact needed to continue was on disk, and a person still
