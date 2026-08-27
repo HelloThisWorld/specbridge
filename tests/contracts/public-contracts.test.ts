@@ -214,10 +214,11 @@ describe('public contract snapshots', () => {
     ]) {
       expect(skills, name).toContain(name);
     }
-    // vNext.10.1 adds `build`: the Zero-Touch Spec Intake entry path.
+    // vNext.10.1 adds `build` (the Zero-Touch Spec Intake entry path) and
+    // `spec-draft` (conversation -> specification, feeding `build`).
     expect(skills).toEqual([
       'approve', 'author', 'build', 'continue', 'develop', 'discover', 'doctor', 'extensions',
-      'implement', 'new', 'orchestrate', 'runners', 'status', 'templates', 'verify',
+      'implement', 'new', 'orchestrate', 'runners', 'spec-draft', 'status', 'templates', 'verify',
     ]);
   });
 

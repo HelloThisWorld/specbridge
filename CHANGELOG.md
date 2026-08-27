@@ -1578,6 +1578,15 @@ fabricated verdict.
 
 ### Added
 
+- **`spec-draft` plugin skill — conversation to specification.** "幫我寫成
+  spec" / "output to spec" / "turn this into a spec" now routes to a scribe
+  skill that harvests what the user actually said, arranges it into the
+  canonical template exactly as intake reads it (a bullet is an obligation;
+  headings speak for prose; semantic verbs must state side effects), asks
+  only for missing PRODUCT decisions, writes the file on confirmation, and
+  hands off to `specbridge spec start`. It invents nothing: a gap is a
+  question, not a blank to fill creatively.
+
 - **Unified execution evaluation** (`reliability/evaluation.ts`): one durable
   verdict per ExecutionAttempt, on the same terms for every lane, over a
   deterministic-first stack — execution integrity, repository integrity,
