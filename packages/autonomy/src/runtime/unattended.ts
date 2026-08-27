@@ -33,6 +33,7 @@ import {
   buildClosureLedger,
   generateGapWork,
   readClosureLedger,
+  attributeCompletedWork,
   runClosureAudit,
 } from '../closure/service.js';
 import type { ClosureAudit } from '../closure/state.js';
@@ -229,7 +230,7 @@ export async function runUnattendedMission(
 
     // The driver ran out of planned work. That is where the closure
     // lifecycle takes over and decides whether COMPLETED is even available.
-    const outcome = runClosureCycle(supervisedDeps, { jobId: options.jobId, emit });
+    const outcome = runClosureCycle(supervisedDeps, { jobId: options.jobId, missionId: options.missionId, emit });
     audits.push(outcome.audit);
     if (outcome.stop !== undefined) {
       stop = outcome.stop;
@@ -416,7 +417,7 @@ interface ClosureCycleOutcome {
  */
 function runClosureCycle(
   deps: AutonomyDeps,
-  input: { jobId: string; emit: (kind: string, message: string) => void },
+  input: { jobId: string; missionId: string; emit: (kind: string, message: string) => void },
 ): ClosureCycleOutcome {
   const job = requireJobState(deps.workspace, input.jobId);
   const graph = safeGraph(deps, job);
@@ -426,6 +427,16 @@ function runClosureCycle(
   const implementationComplete =
     graph.length > 0 &&
     graph.every((node) => node.status === 'COMPLETED' || node.status === 'SUPERSEDED');
+
+  // Carry earned evidence to the ledger before judging it. Idempotent, so
+  // it also heals attributions a crash lost.
+  const swept = attributeCompletedWork(deps, {
+    jobId: input.jobId,
+    missionId: input.missionId,
+  });
+  if (swept.attributed > 0) {
+    input.emit('closure', `attributed completed work to ${swept.attributed} sealed item reference(s)`);
+  }
 
   const { audit } = runClosureAudit(deps, {
     jobId: input.jobId,

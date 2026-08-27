@@ -1,6 +1,11 @@
 import type { WorkspaceInfo } from '@specbridge/core';
-import { readContractRegistry } from '@specbridge/mission';
-import { recordJobEvent } from '@specbridge/orchestration';
+import { readContractRegistry, requireMissionState } from '@specbridge/mission';
+import {
+  contractsForObjective,
+  readGraphRevision,
+  recordJobEvent,
+  requireJobState,
+} from '@specbridge/orchestration';
 import { AutonomyError } from '../errors.js';
 import type { AutonomyDeps } from '../deps.js';
 import { autonomyPolicyOf, jobDepsOf, newRecordId, now, nowIso } from '../deps.js';
@@ -12,6 +17,7 @@ import {
   writeJsonRecord,
 } from '../store.js';
 import type { MissionSeal } from '../seal/state.js';
+import { latestExecutableSeal } from '../seal/service.js';
 import type { ClosureEvidenceKind, ClosureGapKind, ClosurePhase } from '../vocabulary.js';
 import type {
   ClosureAudit,
@@ -411,6 +417,78 @@ export function runClosureAudit(deps: AutonomyDeps, input: AuditInput): AuditRes
  * objectives from an audit would be writing product intent, which is exactly
  * the authority the seal reserves.
  */
+
+/**
+ * Attribute every COMPLETED node's work and trusted verification to the
+ * sealed items it implements. Idempotent: attribution and evidence both
+ * dedup, so running it on every audit costs nothing and heals everything.
+ *
+ * This closes the loop the dogfood found open. Five objectives completed on
+ * real trusted verification — and the ledger stayed at 53 items NOT_STARTED,
+ * because nothing ever carried the evidence from the job to the ledger:
+ * `attributeNodeToItems` and `registerClosureEvidence` existed with no
+ * caller on the implementation path. The closure audit then saw an empty
+ * ledger over a finished job, generated gap work no executor could run, and
+ * regenerated it every cycle. Evidence that is earned but never attributed
+ * is indistinguishable from evidence that never existed.
+ *
+ * Attribution is by contract: a node's task maps to contract ids
+ * (`contractsForObjective`), and an item belongs to a contract via its
+ * itemId (`CTR-x/Rn`, `CTR-x#In`) or, for acceptance criteria, its
+ * declared contractIds. Items with no contract linkage are left for the
+ * scenario phases, which own them.
+ */
+export function attributeCompletedWork(
+  deps: AutonomyDeps,
+  input: { jobId: string; missionId: string },
+): { attributed: number } {
+  const mission = requireMissionState(deps.workspace, input.missionId);
+  const graph =
+    requireJobState(deps.workspace, input.jobId).graphRevision > 0
+      ? readGraphRevision(
+          deps.workspace,
+          input.jobId,
+          requireJobState(deps.workspace, input.jobId).graphRevision,
+        )
+      : undefined;
+  if (graph === undefined) return { attributed: 0 };
+  const ledger = requireLedger(deps.workspace, input.jobId);
+  const seal = latestExecutableSeal(deps.workspace, input.missionId);
+  const criterionContracts = new Map(
+    (seal?.acceptanceCriteria ?? []).map((criterion) => [criterion.criterionId, criterion.contractIds]),
+  );
+  let attributed = 0;
+  for (const node of graph.nodes) {
+    if (node.status !== 'COMPLETED') continue;
+    const contractIds = contractsForObjective(deps.workspace, mission, node.parentTaskId);
+    const itemIds = ledger.entries
+      .filter((entry) => {
+        const owner = entry.itemId.split(/[/#]/)[0] ?? '';
+        if (contractIds.includes(owner)) return true;
+        const declared = criterionContracts.get(entry.itemId);
+        return declared !== undefined && declared.some((id) => contractIds.includes(id));
+      })
+      .map((entry) => entry.itemId);
+    if (itemIds.length === 0) continue;
+    attributeNodeToItems(deps, {
+      jobId: input.jobId,
+      nodeId: node.nodeId,
+      taskId: node.parentTaskId,
+      itemIds,
+    });
+    registerClosureEvidence(deps, {
+      jobId: input.jobId,
+      itemIds,
+      kind: 'TRUSTED_VERIFICATION',
+      ref: `node:${node.nodeId}`,
+      passed: true,
+      detail: `Task ${node.parentTaskId} completed through the trusted verification pipeline.`,
+    });
+    attributed += itemIds.length;
+  }
+  return { attributed };
+}
+
 export function generateGapWork(
   deps: AutonomyDeps,
   input: { jobId: string; audit: ClosureAudit },

@@ -99723,6 +99723,46 @@ function entry(at, input) {
     updatedAt: at
   };
 }
+function attributeNodeToItems(deps, input) {
+  const ledger = requireLedger(deps.workspace, input.jobId);
+  const at = nowIso4(deps);
+  const entries = ledger.entries.map((existing) => {
+    if (!input.itemIds.includes(existing.itemId)) return existing;
+    if (existing.attributedNodeIds.includes(input.nodeId)) return existing;
+    return {
+      ...existing,
+      attributedNodeIds: [...existing.attributedNodeIds, input.nodeId].slice(0, 50),
+      attributedTaskIds: [.../* @__PURE__ */ new Set([...existing.attributedTaskIds, input.taskId])].slice(0, 50),
+      updatedAt: at
+    };
+  });
+  return saveLedger2(deps, { ...ledger, entries });
+}
+function registerClosureEvidence(deps, input) {
+  const ledger = requireLedger(deps.workspace, input.jobId);
+  const at = nowIso4(deps);
+  const entries = ledger.entries.map((existing) => {
+    if (!input.itemIds.includes(existing.itemId)) return existing;
+    return {
+      ...existing,
+      evidence: [
+        ...existing.evidence.filter(
+          (ref) => !(ref.kind === input.kind && ref.ref === input.ref)
+        ),
+        {
+          kind: input.kind,
+          ref: input.ref.slice(0, 200),
+          passed: input.passed,
+          recordedAt: at,
+          ...input.gitHead !== void 0 ? { gitHead: input.gitHead } : {},
+          ...input.detail !== void 0 ? { detail: input.detail.slice(0, 4e3) } : {}
+        }
+      ].slice(-50),
+      updatedAt: at
+    };
+  });
+  return saveLedger2(deps, { ...ledger, entries });
+}
 function runClosureAudit(deps, input) {
   const policy = autonomyPolicyOf(deps).closure;
   const ledger = requireLedger(deps.workspace, input.jobId);
@@ -99780,6 +99820,48 @@ function runClosureAudit(deps, input) {
   } catch {
   }
   return { ledger: saved, audit };
+}
+function attributeCompletedWork(deps, input) {
+  const mission = requireMissionState(deps.workspace, input.missionId);
+  const graph = requireJobState(deps.workspace, input.jobId).graphRevision > 0 ? readGraphRevision(
+    deps.workspace,
+    input.jobId,
+    requireJobState(deps.workspace, input.jobId).graphRevision
+  ) : void 0;
+  if (graph === void 0) return { attributed: 0 };
+  const ledger = requireLedger(deps.workspace, input.jobId);
+  const seal = latestExecutableSeal(deps.workspace, input.missionId);
+  const criterionContracts = new Map(
+    (seal?.acceptanceCriteria ?? []).map((criterion) => [criterion.criterionId, criterion.contractIds])
+  );
+  let attributed = 0;
+  for (const node of graph.nodes) {
+    if (node.status !== "COMPLETED") continue;
+    const contractIds = contractsForObjective(deps.workspace, mission, node.parentTaskId);
+    const itemIds = ledger.entries.filter((entry2) => {
+      const owner = entry2.itemId.split(/[/#]/)[0] ?? "";
+      if (contractIds.includes(owner)) return true;
+      const declared = criterionContracts.get(entry2.itemId);
+      return declared !== void 0 && declared.some((id) => contractIds.includes(id));
+    }).map((entry2) => entry2.itemId);
+    if (itemIds.length === 0) continue;
+    attributeNodeToItems(deps, {
+      jobId: input.jobId,
+      nodeId: node.nodeId,
+      taskId: node.parentTaskId,
+      itemIds
+    });
+    registerClosureEvidence(deps, {
+      jobId: input.jobId,
+      itemIds,
+      kind: "TRUSTED_VERIFICATION",
+      ref: `node:${node.nodeId}`,
+      passed: true,
+      detail: `Task ${node.parentTaskId} completed through the trusted verification pipeline.`
+    });
+    attributed += itemIds.length;
+  }
+  return { attributed };
 }
 function generateGapWork(deps, input) {
   const policy = autonomyPolicyOf(deps).closure;
@@ -100415,7 +100497,7 @@ async function runUnattendedMission(deps, options) {
       stop = resolution.stop;
       break;
     }
-    const outcome = runClosureCycle(supervisedDeps, { jobId: options.jobId, emit: emit2 });
+    const outcome = runClosureCycle(supervisedDeps, { jobId: options.jobId, missionId: options.missionId, emit: emit2 });
     audits.push(outcome.audit);
     if (outcome.stop !== void 0) {
       stop = outcome.stop;
@@ -100523,6 +100605,13 @@ function runClosureCycle(deps, input) {
   const graph = safeGraph(deps, job);
   const completedNodeIds = graph.filter((node) => node.status === "COMPLETED").map((node) => node.nodeId);
   const implementationComplete = graph.length > 0 && graph.every((node) => node.status === "COMPLETED" || node.status === "SUPERSEDED");
+  const swept = attributeCompletedWork(deps, {
+    jobId: input.jobId,
+    missionId: input.missionId
+  });
+  if (swept.attributed > 0) {
+    input.emit("closure", `attributed completed work to ${swept.attributed} sealed item reference(s)`);
+  }
   const { audit } = runClosureAudit(deps, {
     jobId: input.jobId,
     completedNodeIds,
