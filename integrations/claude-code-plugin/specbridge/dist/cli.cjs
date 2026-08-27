@@ -71259,6 +71259,32 @@ async function integrateObjective(input) {
     } catch {
     }
   };
+  {
+    const unmerged = await runSafeProcess({
+      executable: "git",
+      argv: ["ls-files", "-u"],
+      cwd: input.workspace.rootDir,
+      timeoutMs: 6e4,
+      maxStdoutBytes: 1024 * 1024,
+      maxStderrBytes: 64 * 1024
+    });
+    if (unmerged.status === "ok" && unmerged.stdout.trim().length > 0) {
+      const paths = [...new Set(
+        unmerged.stdout.trim().split("\n").map((line) => line.split("	").pop() ?? "").filter(Boolean)
+      )];
+      input.onProgress?.(
+        `clearing conflict residue a dead prior integration left in the index: ${paths.join(", ").slice(0, 200)}`
+      );
+      await runSafeProcess({
+        executable: "git",
+        argv: ["add", "--", ...paths],
+        cwd: input.workspace.rootDir,
+        timeoutMs: 6e4,
+        maxStdoutBytes: 64 * 1024,
+        maxStderrBytes: 64 * 1024
+      });
+    }
+  }
   const applied = [];
   for (const entry2 of input.candidates) {
     if (entry2.patch === void 0 || entry2.patch.trim().length === 0) continue;
