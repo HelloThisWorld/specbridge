@@ -68390,6 +68390,21 @@ function completeExecutorDispatch(deps, jobId, outcome) {
       reason: "milestone"
     });
     if (allNodesComplete(graph)) {
+      const closure = assessCompletion(deps.completionGate, jobId);
+      if (closure !== void 0 && !closure.mayComplete) {
+        job = record22(deps, job, "closure_audit_completed", {
+          directive: "CONTRACT_CLOSURE_AUDIT",
+          unclosed: closure.unclosed,
+          reason: closure.reason.slice(0, 300)
+        });
+        job = transition22(deps, job, "READY");
+        persistGraph(deps, job, graph);
+        return {
+          job: persist22(deps, { ...job, closurePhase: "CONTRACT_CLOSURE_AUDIT" }),
+          nextAction: "node-complete",
+          evaluation
+        };
+      }
       job = transition22(deps, job, "COMPLETED");
       job = record22(deps, job, "job_completed", {});
       job = { ...job, finalizedAt: at, finalOutcome: "COMPLETED" };

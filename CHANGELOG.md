@@ -2398,6 +2398,17 @@ development is an additional mode, never forced.
 
 ### Fixed
 
+- **A driver-side shortcut declared COMPLETED without consulting the
+  closure gate.** `completeJobIfDone` has always asked the contract-closure
+  completion gate before finalizing; the driver’s own all-nodes-complete
+  branch did not, and the dogfood walked straight through it — job stamped
+  COMPLETED and finalized while the closure ledger sat at 53 sealed items
+  NOT_STARTED with zero evidence, no system scenario run, reproducibility
+  never attempted. The shortcut now consults the same gate: refused means
+  the job parks in CONTRACT_CLOSURE_AUDIT and the driver runs out of
+  planned work, which is exactly where the closure lifecycle takes over.
+  COMPLETED is earned, never declared.
+
 - The shared model-API HTTP client no longer composes its total timeout
   with `AbortSignal.any([AbortSignal.timeout(ms), external])`. On Node 20
   the composite holds only weak references to its sources, so an

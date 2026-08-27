@@ -1828,6 +1828,34 @@ export function completeExecutorDispatch(
     });
 
     if (allNodesComplete(graph)) {
+      // COMPLETED is EARNED, never declared. completeJobIfDone has always
+      // consulted the contract-closure gate; this driver-side shortcut did
+      // not, and the dogfood walked straight through it: every objective
+      // done, job stamped COMPLETED, final outcome recorded — while the
+      // closure ledger sat at 53 sealed items NOT_STARTED with zero
+      // evidence, no system scenario ever run, reproducibility never
+      // attempted. A runtime that says COMPLETED with an empty evidence
+      // ledger is lying about the one thing the seal exists to guarantee.
+      //
+      // When the gate refuses, the job parks in CONTRACT_CLOSURE_AUDIT and
+      // the driver simply runs out of planned work — which is exactly where
+      // the closure lifecycle takes over and generates the work that can
+      // close the ledger.
+      const closure = assessCompletion(deps.completionGate, jobId);
+      if (closure !== undefined && !closure.mayComplete) {
+        job = record(deps, job, 'closure_audit_completed', {
+          directive: 'CONTRACT_CLOSURE_AUDIT',
+          unclosed: closure.unclosed,
+          reason: closure.reason.slice(0, 300),
+        });
+        job = transition(deps, job, 'READY');
+        persistGraph(deps, job, graph);
+        return {
+          job: persist(deps, { ...job, closurePhase: 'CONTRACT_CLOSURE_AUDIT' }),
+          nextAction: 'node-complete',
+          evaluation,
+        };
+      }
       job = transition(deps, job, 'COMPLETED');
       job = record(deps, job, 'job_completed', {});
       job = { ...job, finalizedAt: at, finalOutcome: 'COMPLETED' };
