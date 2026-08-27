@@ -133,6 +133,44 @@ export async function integrateObjective(input: IntegrateObjectiveInput): Promis
     }
   };
 
+  // Clear conflict residue a DEAD prior integration left in the git index.
+  //
+  // Abort deliberately never resets the working tree — what a failed run
+  // changed is evidence. But unmerged INDEX entries are machinery residue,
+  // not evidence, and they poison every later apply: the dogfood's
+  // reconciliation worker found wu-3's content "already fully present and
+  // internally consistent in the workspace" while the patch failed purely
+  // because four paths sat unmerged from a run the timeout had killed.
+  // Staging those paths keeps the workspace byte-for-byte as found and
+  // clears only the flags. The run lock serializes writers, so unmerged
+  // entries at integration start can never belong to a live run.
+  {
+    const unmerged = await runSafeProcess({
+      executable: 'git',
+      argv: ['ls-files', '-u'],
+      cwd: input.workspace.rootDir,
+      timeoutMs: 60_000,
+      maxStdoutBytes: 1024 * 1024,
+      maxStderrBytes: 64 * 1024,
+    });
+    if (unmerged.status === 'ok' && unmerged.stdout.trim().length > 0) {
+      const paths = [...new Set(
+        unmerged.stdout.trim().split('\n').map((line) => line.split('\t').pop() ?? '').filter(Boolean),
+      )];
+      input.onProgress?.(
+        `clearing conflict residue a dead prior integration left in the index: ${paths.join(', ').slice(0, 200)}`,
+      );
+      await runSafeProcess({
+        executable: 'git',
+        argv: ['add', '--', ...paths],
+        cwd: input.workspace.rootDir,
+        timeoutMs: 60_000,
+        maxStdoutBytes: 64 * 1024,
+        maxStderrBytes: 64 * 1024,
+      });
+    }
+  }
+
   const applied: string[] = [];
   for (const entry of input.candidates) {
     if (entry.patch === undefined || entry.patch.trim().length === 0) continue;
