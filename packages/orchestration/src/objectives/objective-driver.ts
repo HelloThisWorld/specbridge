@@ -611,13 +611,18 @@ async function executeBuilder(
       cachedProbe: input.probeCache.probe,
     });
     if (!reconcile.ok || reconcile.output.outcome !== 'CANDIDATE_COMPLETE') {
+      // Say why the RECONCILIATION failed, not just why the apply did — the
+      // first version reported only the original conflict, which made three
+      // identical failures undiagnosable.
+      const why = !reconcile.ok
+        ? `${reconcile.kind}: ${reconcile.problem.slice(0, 400)}`
+        : `worker outcome ${reconcile.output.outcome}: ${(reconcile.output.summary ?? '').slice(0, 300)}`;
       return {
         prepared,
         result: {
           ok: false,
           kind: 'worker-unavailable',
-          problem:
-            `dependency patches no longer apply and reconciliation failed: ${message.slice(0, 400)}`,
+          problem: `dependency reconciliation failed — ${why} (original conflict: ${message.slice(0, 200)})`,
         },
       };
     }

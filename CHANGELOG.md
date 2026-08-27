@@ -304,6 +304,12 @@ Three more surfaced once the run reached real compute:
   credential from a rate limit from a model that wrapped its JSON in prose.
   The task driver already carried the observed text for exactly this reason;
   the objective path did not, and now does.
+- **A failed dependency reconciliation reported the wrong failure.** The
+  fold carried only the ORIGINAL apply conflict, not why the reconciliation
+  itself failed, so three identical failures were undiagnosable from their
+  own records. The failure now names the reconciliation’s outcome (worker
+  kind and problem, or the non-complete outcome and its summary) with the
+  original conflict attached as context.
 - **A dependency patch that no longer applied killed the driver.** A
   dependent unit builds in a fresh worktree on top of its siblings’
   verified candidates; when integration moves the shared files first, a

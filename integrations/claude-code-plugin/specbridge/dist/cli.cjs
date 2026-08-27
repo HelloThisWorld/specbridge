@@ -72182,12 +72182,13 @@ async function executeBuilder(context, prepared) {
       cachedProbe: input.probeCache.probe
     });
     if (!reconcile.ok || reconcile.output.outcome !== "CANDIDATE_COMPLETE") {
+      const why = !reconcile.ok ? `${reconcile.kind}: ${reconcile.problem.slice(0, 400)}` : `worker outcome ${reconcile.output.outcome}: ${(reconcile.output.summary ?? "").slice(0, 300)}`;
       return {
         prepared,
         result: {
           ok: false,
           kind: "worker-unavailable",
-          problem: `dependency patches no longer apply and reconciliation failed: ${message2.slice(0, 400)}`
+          problem: `dependency reconciliation failed \u2014 ${why} (original conflict: ${message2.slice(0, 200)})`
         }
       };
     }
