@@ -465,20 +465,24 @@ export function attributeCompletedWork(
     // Acceptance criteria often declare no contract; their linkage to a task
     // is the acceptance STATEMENT itself, which the intake compiled from the
     // very same criteria. Statement identity is the provenance.
-    const acceptance = new Set(
-      acceptanceForObjective(deps.workspace, mission, node.parentTaskId).map((line) =>
-        line.trim().toLowerCase(),
-      ),
-    );
+    const acceptance = acceptanceForObjective(deps.workspace, mission, node.parentTaskId)
+      .map((line) => line.trim().toLowerCase())
+      .filter((line) => line.length >= 12);
     const itemIds = ledger.entries
       .filter((entry) => {
         const owner = entry.itemId.split(/[/#]/)[0] ?? '';
         if (contractIds.includes(owner)) return true;
         const declared = criterionContracts.get(entry.itemId);
         if (declared !== undefined && declared.some((id) => contractIds.includes(id))) return true;
-        return (
-          entry.kind === 'acceptance-criterion' &&
-          acceptance.has(entry.statement.trim().toLowerCase())
+        if (entry.kind !== 'acceptance-criterion') return false;
+        // CONTAINMENT, not equality: the ledger holds the compiled sentence
+        // ("The demo must cover edge cases including at least: passport
+        // present, boarding pass missing;") while the task plan carries the
+        // raw fragment it was compiled from. Either direction counts, and
+        // short fragments are excluded above so nothing trivial matches.
+        const statement = entry.statement.trim().toLowerCase();
+        return acceptance.some(
+          (line) => statement.includes(line) || line.includes(statement),
         );
       })
       .map((entry) => entry.itemId);

@@ -99847,17 +99847,17 @@ function attributeCompletedWork(deps, input) {
   for (const node of graph.nodes) {
     if (node.status !== "COMPLETED") continue;
     const contractIds = contractsForObjective(deps.workspace, mission, node.parentTaskId);
-    const acceptance = new Set(
-      acceptanceForObjective(deps.workspace, mission, node.parentTaskId).map(
-        (line) => line.trim().toLowerCase()
-      )
-    );
+    const acceptance = acceptanceForObjective(deps.workspace, mission, node.parentTaskId).map((line) => line.trim().toLowerCase()).filter((line) => line.length >= 12);
     const itemIds = ledger.entries.filter((entry2) => {
       const owner = entry2.itemId.split(/[/#]/)[0] ?? "";
       if (contractIds.includes(owner)) return true;
       const declared = criterionContracts.get(entry2.itemId);
       if (declared !== void 0 && declared.some((id) => contractIds.includes(id))) return true;
-      return entry2.kind === "acceptance-criterion" && acceptance.has(entry2.statement.trim().toLowerCase());
+      if (entry2.kind !== "acceptance-criterion") return false;
+      const statement = entry2.statement.trim().toLowerCase();
+      return acceptance.some(
+        (line) => statement.includes(line) || line.includes(statement)
+      );
     }).map((entry2) => entry2.itemId);
     if (itemIds.length === 0) continue;
     attributeNodeToItems(deps, {
