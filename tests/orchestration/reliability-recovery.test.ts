@@ -40,6 +40,7 @@ function budget(overrides: Partial<BudgetView> = {}): BudgetView {
     counters: {
       agentRuns: 2,
       humanWaitMs: 0,
+      deadIdleMs: 0,
       localInferenceCalls: 1,
       jobReplans: 0,
       transientRetries: 0,

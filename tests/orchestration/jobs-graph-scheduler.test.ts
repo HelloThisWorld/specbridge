@@ -102,6 +102,7 @@ function testJob(overrides: Partial<JobState> = {}): JobState {
     counters: {
       agentRuns: 0,
       humanWaitMs: 0,
+      deadIdleMs: 0,
       localInferenceCalls: 0,
       jobReplans: 0,
       transientRetries: 0,

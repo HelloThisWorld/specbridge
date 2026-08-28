@@ -59347,6 +59347,14 @@ var jobCountersSchema = external_exports.object({
   agentRuns: external_exports.number().int().min(0).default(0),
   /** Milliseconds this job spent parked on a person. Never charged to the wall-clock budget. */
   humanWaitMs: external_exports.number().int().min(0).default(0),
+  /**
+   * Milliseconds a DEAD process sat idle before someone resumed. Banked by
+   * `selfHealOnResume` when it removes a stale run lock, and excluded from
+   * the wall-clock budget for the same reason human waits are: nothing was
+   * working, and charging the night's outage to the job made a 4-hour run
+   * report as 11.
+   */
+  deadIdleMs: external_exports.number().int().min(0).default(0),
   localInferenceCalls: external_exports.number().int().min(0).default(0),
   jobReplans: external_exports.number().int().min(0).default(0),
   transientRetries: external_exports.number().int().min(0).default(0),
@@ -59487,7 +59495,7 @@ var jobCheckpointSchema = external_exports.object({
   nextAction: text22
 }).passthrough();
 function workedMsOf(job, nowMs) {
-  const waited = (job.counters.humanWaitMs ?? 0) + (job.humanWaitSince === void 0 ? 0 : Math.max(0, nowMs - Date.parse(job.humanWaitSince)));
+  const waited = (job.counters.humanWaitMs ?? 0) + (job.counters.deadIdleMs ?? 0) + (job.humanWaitSince === void 0 ? 0 : Math.max(0, nowMs - Date.parse(job.humanWaitSince)));
   return Math.max(0, nowMs - Date.parse(job.createdAt) - waited);
 }
 var RECOVERY_TARGETS = [
@@ -67597,6 +67605,7 @@ function createJob(deps, request) {
     counters: {
       agentRuns: 0,
       humanWaitMs: 0,
+      deadIdleMs: 0,
       localInferenceCalls: 0,
       jobReplans: 0,
       transientRetries: 0,
@@ -69016,6 +69025,20 @@ function selfHealOnResume(deps, jobId) {
       code: "STALE_RUN_LOCK_REMOVED",
       detail: lock.findings.join(" ").slice(0, 280)
     });
+    if (job.humanWaitSince === void 0) {
+      const diedAt = Date.parse(job.updatedAt);
+      const idle = Number.isNaN(diedAt) ? 0 : Math.max(0, now4(deps).getTime() - diedAt);
+      if (idle > 0) {
+        job = persist22(deps, {
+          ...job,
+          counters: { ...job.counters, deadIdleMs: (job.counters.deadIdleMs ?? 0) + idle }
+        });
+        repairs.push({
+          code: "DEAD_IDLE_BANKED",
+          detail: `${Math.round(idle / 6e4)} minute(s) of dead-process idle excluded from the wall clock`
+        });
+      }
+    }
   }
   if (job.humanWaitSince !== void 0) {
     const since = Date.parse(job.humanWaitSince);

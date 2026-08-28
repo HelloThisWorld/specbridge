@@ -576,6 +576,41 @@ describe('checkpoints and resume', () => {
     expect(report.warnings.join(' ')).toContain('policy changed');
   });
 
+  it('banks dead-process idle on stale-lock removal, and the wall clock excludes it', async () => {
+    const fixture = jobFixture();
+    const { spawnSync } = await import('node:child_process');
+    const { acquireInteractiveLock } = await import('@specbridge/execution');
+    const { selfHealOnResume, workedMsOf } = await import('@specbridge/orchestration');
+
+    // A lock owned by a genuinely dead process: the same evidence
+    // `run recover-lock` demands before it will call anything stale.
+    const dead = spawnSync(process.execPath, ['-e', 'process.exit(0)']);
+    const diedAt = requireJobState(fixture.workspace, fixture.jobId).updatedAt;
+    acquireInteractiveLock(fixture.workspace, {
+      runId: 'run-dead-process',
+      specName: fixture.specName,
+      taskId: '1',
+      pid: dead.pid ?? 999_999,
+      clock: () => new Date(diedAt),
+    });
+
+    // Four hours later, somebody resumes.
+    const resumedAt = Date.parse(diedAt) + 4 * 3_600_000;
+    const healed = selfHealOnResume(
+      { ...fixture.deps, clock: () => new Date(resumedAt) },
+      fixture.jobId,
+    );
+
+    const codes = healed.repairs.map((repair) => repair.code);
+    expect(codes).toContain('STALE_RUN_LOCK_REMOVED');
+    expect(codes).toContain('DEAD_IDLE_BANKED');
+    const banked = healed.job.counters.deadIdleMs ?? 0;
+    expect(banked).toBeGreaterThanOrEqual(4 * 3_600_000 - 60_000);
+    // The dead hours are excluded: the job "worked" only the sliver between
+    // its creation and the moment its process died.
+    expect(workedMsOf(healed.job, resumedAt)).toBeLessThan(60_000);
+  });
+
   it('resume detects a stale plan and forces REPLANNING (approved stage changed)', async () => {
     const fixture = jobFixture();
     const { nodeId } = await planFirstNode(fixture);

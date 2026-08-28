@@ -55266,6 +55266,14 @@ var jobCountersSchema = external_exports.object({
   agentRuns: external_exports.number().int().min(0).default(0),
   /** Milliseconds this job spent parked on a person. Never charged to the wall-clock budget. */
   humanWaitMs: external_exports.number().int().min(0).default(0),
+  /**
+   * Milliseconds a DEAD process sat idle before someone resumed. Banked by
+   * `selfHealOnResume` when it removes a stale run lock, and excluded from
+   * the wall-clock budget for the same reason human waits are: nothing was
+   * working, and charging the night's outage to the job made a 4-hour run
+   * report as 11.
+   */
+  deadIdleMs: external_exports.number().int().min(0).default(0),
   localInferenceCalls: external_exports.number().int().min(0).default(0),
   jobReplans: external_exports.number().int().min(0).default(0),
   transientRetries: external_exports.number().int().min(0).default(0),

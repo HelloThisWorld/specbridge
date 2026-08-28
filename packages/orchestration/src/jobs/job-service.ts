@@ -332,6 +332,7 @@ export function createJob(deps: JobDeps, request: CreateJobRequest): JobState {
     counters: {
       agentRuns: 0,
       humanWaitMs: 0,
+      deadIdleMs: 0,
       localInferenceCalls: 0,
       jobReplans: 0,
       transientRetries: 0,
@@ -2669,7 +2670,8 @@ export interface SelfHealRepair {
     | 'STALE_RUN_LOCK_REMOVED'
     | 'BUDGET_VERDICT_RECOMPUTED'
     | 'TRANSIENT_BURNED_UNIT_REVIVED'
-    | 'DANGLING_HUMAN_WAIT_BANKED';
+    | 'DANGLING_HUMAN_WAIT_BANKED'
+    | 'DEAD_IDLE_BANKED';
   detail: string;
 }
 
@@ -2691,6 +2693,27 @@ export function selfHealOnResume(
       code: 'STALE_RUN_LOCK_REMOVED',
       detail: lock.findings.join(' ').slice(0, 280),
     });
+    // A stale lock proves the process DIED, and the job record froze with
+    // it: `updatedAt` is the moment of death. Everything between then and
+    // this resume was a machine sitting dark, not the job working — bank
+    // it, or the night's outage is charged to the wall-clock budget (the
+    // dogfood watched a 4-hour job report as 11 this way). Only when no
+    // human-wait clock is running: a parked job's gap is the person's, and
+    // repair 2 banks that one.
+    if (job.humanWaitSince === undefined) {
+      const diedAt = Date.parse(job.updatedAt);
+      const idle = Number.isNaN(diedAt) ? 0 : Math.max(0, now(deps).getTime() - diedAt);
+      if (idle > 0) {
+        job = persist(deps, {
+          ...job,
+          counters: { ...job.counters, deadIdleMs: (job.counters.deadIdleMs ?? 0) + idle },
+        });
+        repairs.push({
+          code: 'DEAD_IDLE_BANKED',
+          detail: `${Math.round(idle / 60_000)} minute(s) of dead-process idle excluded from the wall clock`,
+        });
+      }
+    }
   }
 
   // 2. A dangling human-wait clock: entered a human-only status and the

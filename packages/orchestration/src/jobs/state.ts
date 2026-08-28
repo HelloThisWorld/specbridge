@@ -276,6 +276,14 @@ export const jobCountersSchema = z
     agentRuns: z.number().int().min(0).default(0),
     /** Milliseconds this job spent parked on a person. Never charged to the wall-clock budget. */
     humanWaitMs: z.number().int().min(0).default(0),
+    /**
+     * Milliseconds a DEAD process sat idle before someone resumed. Banked by
+     * `selfHealOnResume` when it removes a stale run lock, and excluded from
+     * the wall-clock budget for the same reason human waits are: nothing was
+     * working, and charging the night's outage to the job made a 4-hour run
+     * report as 11.
+     */
+    deadIdleMs: z.number().int().min(0).default(0),
     localInferenceCalls: z.number().int().min(0).default(0),
     jobReplans: z.number().int().min(0).default(0),
     transientRetries: z.number().int().min(0).default(0),
@@ -503,6 +511,7 @@ export type JobCheckpoint = z.infer<typeof jobCheckpointSchema>;
 export function workedMsOf(job: JobState, nowMs: number): number {
   const waited =
     (job.counters.humanWaitMs ?? 0) +
+    (job.counters.deadIdleMs ?? 0) +
     (job.humanWaitSince === undefined
       ? 0
       : Math.max(0, nowMs - Date.parse(job.humanWaitSince)));

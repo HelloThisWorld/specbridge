@@ -56,6 +56,16 @@ the items, never a quiet pass.
 seals created before this change report a policy change rather than running
 under a completion bar the human never saw. Re-seal to adopt it.
 
+### Dead-process idle is not work
+
+When `selfHealOnResume` removes a stale run lock — positive evidence the
+owning process died — it now banks the gap between the job record's last
+write and the resume into a new `deadIdleMs` counter, which `workedMsOf`
+excludes from the wall-clock budget alongside human waits. The dogfood
+watched a job report eleven worked hours of which seven were a dead process
+waiting for morning; budgets and telemetry now charge only the hours
+something was actually running.
+
 ## 1.10.1 (unreleased) — vNext.10.1 Zero-Touch Spec Intake
 
 vNext.10 made a long-horizon run survive without a person. It started at a
