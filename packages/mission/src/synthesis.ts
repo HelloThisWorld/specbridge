@@ -158,6 +158,68 @@ interface CompiledDocuments {
   tasks: string;
   provenance: RequirementProvenance[];
   objectiveCount: number;
+  /** The mission's success criteria, carried for the coverage validation. */
+  successCriteria: readonly string[];
+}
+
+/**
+ * Assign every mission success criterion to exactly one objective.
+ *
+ * This mapping is the fix for a defect the vNext.10.1 dogfood paid for in
+ * eleven human waivers: success criteria were sealed into the closure ledger
+ * as acceptance criteria, but the compiled task plan never carried them, so
+ * no completed work could ever be attributed to them and the only way to
+ * close them was a person attesting one by one at the end of the night.
+ * A sealed criterion that no task owns is a promise no work can prove.
+ *
+ * Deterministic on purpose: token overlap against each contract's own text,
+ * ties broken by contract order, and a criterion that matches nothing lands
+ * on the LAST objective — the most downstream one, which is where
+ * whole-product criteria ("the demo runs end to end") belong anyway.
+ */
+export function assignSuccessCriteria(
+  successCriteria: readonly string[],
+  contracts: readonly ProductContract[],
+): Map<number, { index: number; statement: string }[]> {
+  const assignments = new Map<number, { index: number; statement: string }[]>();
+  if (contracts.length === 0) return assignments;
+  const contractTokens = contracts.map((contract) =>
+    tokenize(
+      [
+        contract.title,
+        contract.summary,
+        ...contract.requirements.map((requirement) => requirement.statement),
+        ...contract.invariants.map((invariant) => invariant.statement),
+      ].join(' '),
+    ),
+  );
+  successCriteria.forEach((statement, index) => {
+    const criterionTokens = tokenize(statement);
+    let best = contracts.length - 1;
+    let bestScore = 0;
+    contractTokens.forEach((tokens, contractIndex) => {
+      let score = 0;
+      for (const token of criterionTokens) if (tokens.has(token)) score += 1;
+      if (score > bestScore) {
+        bestScore = score;
+        best = contractIndex;
+      }
+    });
+    const bucket = assignments.get(best) ?? [];
+    bucket.push({ index, statement });
+    assignments.set(best, bucket);
+  });
+  return assignments;
+}
+
+/** Lowercased word tokens long enough to carry meaning. */
+function tokenize(text: string): Set<string> {
+  return new Set(
+    text
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter((token) => token.length >= 4),
+  );
 }
 
 /**
@@ -180,6 +242,9 @@ export function compileMissionDocuments(input: {
   }
   const activeRules = input.constitutionRules.filter((rule) => rule.status === 'active');
   const primaryUser = mission.targetUsers[0] ?? 'user of the system';
+  // Every success criterion is owned by exactly one objective, so every
+  // sealed acceptance criterion has work that can be attributed to it.
+  const criteriaByContract = assignSuccessCriteria(mission.successCriteria, contracts);
 
   // --- requirements.md -------------------------------------------------------
   const provenance: RequirementProvenance[] = [];
@@ -230,6 +295,18 @@ export function compileMissionDocuments(input: {
       rows.push({
         criterionId: `${number}.${criterionNumber}`,
         source: `${contract.contractId}/r${contract.revision}/${invariant.invariantId}`,
+      });
+    }
+    // The success criteria assigned to this objective. The `mission/sc/<n>`
+    // source is resolved by `acceptanceForObjective` back to the mission's
+    // own statement, which is byte-identical to the sealed AC-nnn statement —
+    // that identity is what lets completed work close the ledger entry.
+    for (const assigned of criteriaByContract.get(index) ?? []) {
+      criterionNumber += 1;
+      requirementLines.push(`${criterionNumber}. ${asCriterion(assigned.statement)}`);
+      rows.push({
+        criterionId: `${number}.${criterionNumber}`,
+        source: `mission/sc/${assigned.index}`,
       });
     }
     requirementLines.push('');
@@ -349,6 +426,9 @@ export function compileMissionDocuments(input: {
     for (const invariant of contract.invariants) {
       taskLines.push(`  - Acceptance: ${invariant.statement.trim()}`);
     }
+    for (const assigned of criteriaByContract.get(index) ?? []) {
+      taskLines.push(`  - Acceptance: ${assigned.statement.trim()}`);
+    }
     taskLines.push(`  - Contract: ${contract.contractId} r${contract.revision}`);
     const refs = provenance[index]?.criteria.map((row) => row.criterionId) ?? [];
     if (refs.length > 0) {
@@ -363,6 +443,7 @@ export function compileMissionDocuments(input: {
     tasks: `${taskLines.join('\n').replace(/\n+$/, '')}\n`,
     provenance,
     objectiveCount: contracts.length,
+    successCriteria: mission.successCriteria,
   };
 }
 
@@ -384,6 +465,16 @@ export function validateCompiledDocuments(documents: CompiledDocuments): string[
   }
   if (tasksModel.allTasks.some((task) => task.children.length > 0)) {
     problems.push('objectives must be leaf tasks; nested checkbox children were generated');
+  }
+  // Fail closed on criterion coverage. A sealed acceptance criterion that no
+  // task carries can only ever be closed by a human waiver, so a plan that
+  // drops one is not a smaller plan — it is a plan for a different product.
+  for (const criterion of documents.successCriteria) {
+    if (!documents.tasks.includes(criterion.trim())) {
+      problems.push(
+        `success criterion is carried by no task in the compiled plan: "${criterion.slice(0, 120)}"`,
+      );
+    }
   }
   return problems;
 }

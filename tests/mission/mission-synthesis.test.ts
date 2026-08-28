@@ -12,6 +12,8 @@ import {
   markContractReady,
   observeSpecApproval,
   readSpecCandidate,
+  recordAssessment,
+  recordTurn,
   requireMissionState,
   synthesizeMissionSpec,
 } from '@specbridge/mission';
@@ -112,5 +114,75 @@ describe('mission → spec synthesis', () => {
     const after = readdirSync(path.join(fixture.root, '.kiro'));
     expect(after.sort()).toEqual([...new Set([...before, 'specs'])].sort());
     expect(readdirSync(path.join(fixture.root, '.kiro', 'specs'))).toEqual(['steprelay']);
+  });
+
+  it('every success criterion is carried by a task, on the best-matching objective', () => {
+    // Defect 37 of the vNext.10.1 dogfood: sealed acceptance criteria that
+    // no task carried could only ever close by human waiver — the dogfood
+    // paid eleven of them. The compiled plan must own every criterion.
+    const fixture = setupMissionFixture();
+    const covered = coveredMission(fixture);
+    const modelCriterion =
+      'The demo must prove sequential execution end-to-end against one workflow definition.';
+    const consoleCriterion =
+      'The operations console must render the execution history in a browser.';
+    const turn = recordTurn(fixture.deps, covered.missionId, {
+      speaker: 'user',
+      kind: 'statement',
+      text: 'The operations console must show execution history in the browser.',
+    });
+    const decided = recordAssessment(fixture.deps, covered.missionId, {
+      decisions: [
+        {
+          decision: 'The operations console shows execution history.',
+          provenance: 'known-from-user',
+          sourceTurnId: turn.turn.turnId,
+          topics: ['public-api'],
+        },
+      ],
+      missionUpdates: { successCriteria: [modelCriterion, consoleCriterion] },
+    });
+    recordAssessment(fixture.deps, covered.missionId, {
+      contracts: [
+        {
+          title: 'Operations Console',
+          summary: 'The browser console operators use to inspect execution history.',
+          classification: 'public',
+          compatibilityPolicy: 'additive-only',
+          requirements: [
+            { statement: 'The console renders the execution history of every workflow run.' },
+          ],
+          decisionIds: [decided.decisionIds[0] ?? ''],
+        },
+      ],
+    });
+    markContractReady(fixture.deps, covered.missionId);
+    synthesizeMissionSpec(fixture.deps, covered.missionId);
+
+    const tasksMarkdown = readFileSync(
+      path.join(fixture.workspace.kiroDir, 'specs', 'steprelay', 'tasks.md'),
+      'utf8',
+    );
+    // Both criteria are task acceptance lines, byte-identical to the mission
+    // record (identity is what lets closure attribution find them later).
+    expect(tasksMarkdown).toContain(`- Acceptance: ${modelCriterion}`);
+    expect(tasksMarkdown).toContain(`- Acceptance: ${consoleCriterion}`);
+    // And each landed on the objective whose contract it talks about.
+    const objectiveOf = (needle: string): number => {
+      const blocks = tasksMarkdown.split(/\n- \[ \] /).slice(1);
+      return blocks.findIndex((block) => block.includes(needle)) + 1;
+    };
+    expect(objectiveOf(consoleCriterion)).toBe(objectiveOf('Operations Console'));
+    expect(objectiveOf(modelCriterion)).toBe(objectiveOf('Canonical Workflow Model'));
+
+    // The provenance rows resolve them for `acceptanceForObjective`.
+    const provenance = JSON.parse(
+      readSpecCandidate(fixture.workspace, covered.missionId, 'provenance.json') ?? '{}',
+    ) as { requirements: { criteria: { source: string }[] }[] };
+    const sources = provenance.requirements.flatMap((row) =>
+      row.criteria.map((criterion) => criterion.source),
+    );
+    expect(sources).toContain('mission/sc/0');
+    expect(sources).toContain('mission/sc/1');
   });
 });

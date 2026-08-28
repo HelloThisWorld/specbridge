@@ -1465,6 +1465,15 @@ export function acceptanceForObjective(
       .filter((source): source is string => typeof source === 'string');
     const statements: string[] = [];
     for (const source of sources) {
+      // A mission-level success criterion assigned to this objective by the
+      // compiler. Resolved from the mission itself so the statement is
+      // byte-identical to the sealed acceptance criterion it closes.
+      const successCriterion = /^mission\/sc\/(\d+)$/.exec(source);
+      if (successCriterion !== null) {
+        const statement = mission.successCriteria[Number.parseInt(successCriterion[1] ?? '', 10)];
+        if (statement !== undefined) statements.push(statement);
+        continue;
+      }
       const [contractId, , itemId] = source.split('/');
       const contract = contracts.find((candidate) => candidate.contractId === contractId);
       if (contract === undefined) continue;
@@ -1473,7 +1482,9 @@ export function acceptanceForObjective(
       const invariant = contract.invariants.find((candidate) => candidate.invariantId === itemId);
       if (invariant !== undefined) statements.push(invariant.statement);
     }
-    return statements.slice(0, 30);
+    // High enough that no objective's real criteria are ever cut: a dropped
+    // line here silently breaks closure attribution for that criterion.
+    return statements.slice(0, 80);
   } catch {
     return [];
   }
