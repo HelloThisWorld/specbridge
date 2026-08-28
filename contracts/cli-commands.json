@@ -1265,6 +1265,34 @@
             ]
           }
         }
+      },
+      "workspace": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "bootstrap": {
+            "options": [
+              "--help",
+              "--json",
+              "--rebuild"
+            ]
+          },
+          "inspect": {
+            "options": [
+              "--help",
+              "--json",
+              "--max-sections",
+              "--repo"
+            ]
+          },
+          "snapshot": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          }
+        }
       }
     }
   }

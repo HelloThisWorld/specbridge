@@ -96,6 +96,10 @@ reference, grouped by area.
 The phase that removes the human from ordinary engineering overnight: seal
 the intent in the evening, run one command, read the report in the morning.
 
+- [Workspace bootstrap](intake/workspace-bootstrap.md) — **understand the
+  current system before product discovery**: the evidence-backed
+  CurrentSystemSnapshot for Brownfield and Greenfield work, bounded
+  multi-repo support, and the repository-aware conversation surface.
 - [Zero-touch spec intake](autonomy/spec-intake.md) — **submit a
   specification, answer only product questions, approve once, and the build
   runs unattended**. The entry path in front of everything below.

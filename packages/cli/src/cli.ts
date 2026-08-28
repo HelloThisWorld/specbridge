@@ -41,6 +41,7 @@ import { registerOrchestrateCommands } from './commands/orchestrate.js';
 import { registerLocalModelCommands } from './commands/local-model.js';
 import { registerMissionCommands } from './commands/mission.js';
 import { registerAutonomyCommands } from './commands/autonomy.js';
+import { registerWorkspaceCommands } from './commands/workspace.js';
 
 function buildProgram(runtime: CliRuntime): Command {
   const program = new Command();
@@ -111,6 +112,7 @@ honest error; nothing pretends to work before it does.`,
   registerLocalModelCommands(program, runtime);
   registerMissionCommands(program, runtime);
   registerAutonomyCommands(program, runtime);
+  registerWorkspaceCommands(program, runtime);
 
   return program;
 }

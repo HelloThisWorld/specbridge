@@ -2,6 +2,54 @@
 
 ## Unreleased
 
+### Workspace Bootstrap — vNext.10.2 Phase 1
+
+Repository awareness now starts BEFORE Product Discovery, not after formal
+intake. `specbridge workspace bootstrap` (and the `workspace_bootstrap` MCP
+tool) builds a durable, versioned **CurrentSystemSnapshot**: an
+evidence-backed, bounded answer to "what does this system currently appear
+to be?", so a Brownfield conversation builds on the existing RBAC, the
+existing scheduler, the existing audit trail — instead of re-proposing them.
+
+- **Deterministic and offline.** Findings are extracted from the EXISTING
+  RepositoryContextIndex (reused, not replaced) plus bounded manifest
+  reads: capabilities and domain objects from declared symbols,
+  architecture from known dependency markers, patterns as visibly-inferred
+  interpretations with supporting files, uncertainties for what could not
+  be determined. No model, no vector store, no network.
+- **Four evidence classes, one of which binds.** `SEALED_PRODUCT_TRUTH`
+  (active contracts, rules, ADRs, seals — with exact ownership and
+  revision), `DOCUMENTED_ARCHITECTURE`, `OBSERVED_IMPLEMENTATION`, and
+  `INFERRED_PATTERN`. Every material finding carries evidence refs
+  (repository, path, symbol, content hash, or contract id) — a finding
+  without evidence is rejected by schema. Repository observations cannot
+  become product authority: bootstrap writes only
+  `.specbridge/bootstrap/`, structurally.
+- **Brownfield / Greenfield / PARTIAL** decided from deterministic
+  evidence. An empty repository is a clean baseline, not an error.
+- **Bounded multi-repo.** An explicit `.specbridge/repositories.json`
+  manifest or detected child repositories, each with its own recorded
+  baseline; evidence refs preserve repository identity. Paths outside the
+  workspace root fail closed — path containment is not weakened.
+- **Fail-safe freshness.** Snapshot reads always carry a FRESH/STALE
+  verdict; reuse requires matching baselines AND a no-change index refresh.
+  The untargeted index refresh gained `discoverAdditions` (one traversal
+  with stat-based read skipping) so a caller with no Git snapshot still
+  sees brand-new files; cache corruption degrades to rebuild.
+- **Repository-aware conversation.** `workspace_snapshot` returns the
+  concise current-system summary; `repository_inspect` answers deeper
+  questions with bounded sections via the existing retrieval ranking —
+  protected and credential-shaped paths stay unreachable. The `spec-draft`
+  skill now consults the snapshot for Brownfield work and drafts a product
+  DELTA: reuse by reference, never restating the existing system, never
+  promoting an observation into a requirement.
+- **Formal Spec Intake is unchanged** and still performs its own grounding.
+  Bootstrap helps the conversation; intake governs product authority.
+
+Explicit non-claims: no vector RAG, no embeddings, no semantic search, no
+DeerFlow/research integration, no secondary builder model, no LLM gateway,
+no external knowledge retrieval, and no autonomous product authority.
+
 ### Every sealed criterion is carried by a task (dogfood defect 37)
 
 The synthesized plan now assigns every mission success criterion to exactly

@@ -49,6 +49,7 @@
     "registry_list",
     "registry_search",
     "registry_show",
+    "repository_inspect",
     "run_list",
     "run_read",
     "runner_doctor",
@@ -81,7 +82,9 @@
     "template_preview",
     "template_search",
     "template_show",
+    "workspace_bootstrap",
     "workspace_detect",
+    "workspace_snapshot",
     "workunit_read"
   ]
 }

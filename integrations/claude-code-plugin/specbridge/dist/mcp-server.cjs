@@ -106,17 +106,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path41) {
-      const ctrl = callVisitor(key, node, visitor, path41);
+    function visit_(key, node, visitor, path47) {
+      const ctrl = callVisitor(key, node, visitor, path47);
       if (identity3.isNode(ctrl) || identity3.isPair(ctrl)) {
-        replaceNode(key, path41, ctrl);
-        return visit_(key, ctrl, visitor, path41);
+        replaceNode(key, path47, ctrl);
+        return visit_(key, ctrl, visitor, path47);
       }
       if (typeof ctrl !== "symbol") {
         if (identity3.isCollection(node)) {
-          path41 = Object.freeze(path41.concat(node));
+          path47 = Object.freeze(path47.concat(node));
           for (let i2 = 0; i2 < node.items.length; ++i2) {
-            const ci = visit_(i2, node.items[i2], visitor, path41);
+            const ci = visit_(i2, node.items[i2], visitor, path47);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -127,13 +127,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity3.isPair(node)) {
-          path41 = Object.freeze(path41.concat(node));
-          const ck = visit_("key", node.key, visitor, path41);
+          path47 = Object.freeze(path47.concat(node));
+          const ck = visit_("key", node.key, visitor, path47);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path41);
+          const cv = visit_("value", node.value, visitor, path47);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -154,17 +154,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path41) {
-      const ctrl = await callVisitor(key, node, visitor, path41);
+    async function visitAsync_(key, node, visitor, path47) {
+      const ctrl = await callVisitor(key, node, visitor, path47);
       if (identity3.isNode(ctrl) || identity3.isPair(ctrl)) {
-        replaceNode(key, path41, ctrl);
-        return visitAsync_(key, ctrl, visitor, path41);
+        replaceNode(key, path47, ctrl);
+        return visitAsync_(key, ctrl, visitor, path47);
       }
       if (typeof ctrl !== "symbol") {
         if (identity3.isCollection(node)) {
-          path41 = Object.freeze(path41.concat(node));
+          path47 = Object.freeze(path47.concat(node));
           for (let i2 = 0; i2 < node.items.length; ++i2) {
-            const ci = await visitAsync_(i2, node.items[i2], visitor, path41);
+            const ci = await visitAsync_(i2, node.items[i2], visitor, path47);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -175,13 +175,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity3.isPair(node)) {
-          path41 = Object.freeze(path41.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path41);
+          path47 = Object.freeze(path47.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path47);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path41);
+          const cv = await visitAsync_("value", node.value, visitor, path47);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -208,23 +208,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path41) {
+    function callVisitor(key, node, visitor, path47) {
       if (typeof visitor === "function")
-        return visitor(key, node, path41);
+        return visitor(key, node, path47);
       if (identity3.isMap(node))
-        return visitor.Map?.(key, node, path41);
+        return visitor.Map?.(key, node, path47);
       if (identity3.isSeq(node))
-        return visitor.Seq?.(key, node, path41);
+        return visitor.Seq?.(key, node, path47);
       if (identity3.isPair(node))
-        return visitor.Pair?.(key, node, path41);
+        return visitor.Pair?.(key, node, path47);
       if (identity3.isScalar(node))
-        return visitor.Scalar?.(key, node, path41);
+        return visitor.Scalar?.(key, node, path47);
       if (identity3.isAlias(node))
-        return visitor.Alias?.(key, node, path41);
+        return visitor.Alias?.(key, node, path47);
       return void 0;
     }
-    function replaceNode(key, path41, node) {
-      const parent = path41[path41.length - 1];
+    function replaceNode(key, path47, node) {
+      const parent = path47[path47.length - 1];
       if (identity3.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity3.isPair(parent)) {
@@ -834,10 +834,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity3 = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path41, value) {
+    function collectionFromPath(schema, path47, value) {
       let v = value;
-      for (let i2 = path41.length - 1; i2 >= 0; --i2) {
-        const k = path41[i2];
+      for (let i2 = path47.length - 1; i2 >= 0; --i2) {
+        const k = path47[i2];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a2 = [];
           a2[k] = v;
@@ -856,7 +856,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path41) => path41 == null || typeof path41 === "object" && !!path41[Symbol.iterator]().next().done;
+    var isEmptyPath = (path47) => path47 == null || typeof path47 === "object" && !!path47[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -886,11 +886,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path41, value) {
-        if (isEmptyPath(path41))
+      addIn(path47, value) {
+        if (isEmptyPath(path47))
           this.add(value);
         else {
-          const [key, ...rest] = path41;
+          const [key, ...rest] = path47;
           const node = this.get(key, true);
           if (identity3.isCollection(node))
             node.addIn(rest, value);
@@ -904,8 +904,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path41) {
-        const [key, ...rest] = path41;
+      deleteIn(path47) {
+        const [key, ...rest] = path47;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -919,8 +919,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path41, keepScalar) {
-        const [key, ...rest] = path41;
+      getIn(path47, keepScalar) {
+        const [key, ...rest] = path47;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity3.isScalar(node) ? node.value : node;
@@ -938,8 +938,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path41) {
-        const [key, ...rest] = path41;
+      hasIn(path47) {
+        const [key, ...rest] = path47;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -949,8 +949,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path41, value) {
-        const [key, ...rest] = path41;
+      setIn(path47, value) {
+        const [key, ...rest] = path47;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -3465,9 +3465,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path41, value) {
+      addIn(path47, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path41, value);
+          this.contents.addIn(path47, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -3542,14 +3542,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path41) {
-        if (Collection.isEmptyPath(path41)) {
+      deleteIn(path47) {
+        if (Collection.isEmptyPath(path47)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path41) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path47) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -3564,10 +3564,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path41, keepScalar) {
-        if (Collection.isEmptyPath(path41))
+      getIn(path47, keepScalar) {
+        if (Collection.isEmptyPath(path47))
           return !keepScalar && identity3.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity3.isCollection(this.contents) ? this.contents.getIn(path41, keepScalar) : void 0;
+        return identity3.isCollection(this.contents) ? this.contents.getIn(path47, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -3578,10 +3578,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path41) {
-        if (Collection.isEmptyPath(path41))
+      hasIn(path47) {
+        if (Collection.isEmptyPath(path47))
           return this.contents !== void 0;
-        return identity3.isCollection(this.contents) ? this.contents.hasIn(path41) : false;
+        return identity3.isCollection(this.contents) ? this.contents.hasIn(path47) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -3598,13 +3598,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path41, value) {
-        if (Collection.isEmptyPath(path41)) {
+      setIn(path47, value) {
+        if (Collection.isEmptyPath(path47)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path41), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path47), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path41, value);
+          this.contents.setIn(path47, value);
         }
       }
       /**
@@ -5564,9 +5564,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path41) => {
+    visit.itemAtPath = (cst, path47) => {
       let item = cst;
-      for (const [field, index] of path41) {
+      for (const [field, index] of path47) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -5575,23 +5575,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path41) => {
-      const parent = visit.itemAtPath(cst, path41.slice(0, -1));
-      const field = path41[path41.length - 1][0];
+    visit.parentCollection = (cst, path47) => {
+      const parent = visit.itemAtPath(cst, path47.slice(0, -1));
+      const field = path47[path47.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path41, item, visitor) {
-      let ctrl = visitor(item, path41);
+    function _visit(path47, item, visitor) {
+      let ctrl = visitor(item, path47);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i2 = 0; i2 < token.items.length; ++i2) {
-            const ci = _visit(Object.freeze(path41.concat([[field, i2]])), token.items[i2], visitor);
+            const ci = _visit(Object.freeze(path47.concat([[field, i2]])), token.items[i2], visitor);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -5602,10 +5602,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path41);
+            ctrl = ctrl(item, path47);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path41) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path47) : ctrl;
     }
     exports2.visit = visit;
   }
@@ -7363,7 +7363,7 @@ var require_windows = __commonJS({
     module2.exports = isexe;
     isexe.sync = sync;
     var fs = require("fs");
-    function checkPathExt(path41, options) {
+    function checkPathExt(path47, options) {
       var pathext = options.pathExt !== void 0 ? options.pathExt : process.env.PATHEXT;
       if (!pathext) {
         return true;
@@ -7374,25 +7374,25 @@ var require_windows = __commonJS({
       }
       for (var i2 = 0; i2 < pathext.length; i2++) {
         var p = pathext[i2].toLowerCase();
-        if (p && path41.substr(-p.length).toLowerCase() === p) {
+        if (p && path47.substr(-p.length).toLowerCase() === p) {
           return true;
         }
       }
       return false;
     }
-    function checkStat(stat, path41, options) {
+    function checkStat(stat, path47, options) {
       if (!stat.isSymbolicLink() && !stat.isFile()) {
         return false;
       }
-      return checkPathExt(path41, options);
+      return checkPathExt(path47, options);
     }
-    function isexe(path41, options, cb) {
-      fs.stat(path41, function(er, stat) {
-        cb(er, er ? false : checkStat(stat, path41, options));
+    function isexe(path47, options, cb) {
+      fs.stat(path47, function(er, stat) {
+        cb(er, er ? false : checkStat(stat, path47, options));
       });
     }
-    function sync(path41, options) {
-      return checkStat(fs.statSync(path41), path41, options);
+    function sync(path47, options) {
+      return checkStat(fs.statSync(path47), path47, options);
     }
   }
 });
@@ -7404,13 +7404,13 @@ var require_mode = __commonJS({
     module2.exports = isexe;
     isexe.sync = sync;
     var fs = require("fs");
-    function isexe(path41, options, cb) {
-      fs.stat(path41, function(er, stat) {
+    function isexe(path47, options, cb) {
+      fs.stat(path47, function(er, stat) {
         cb(er, er ? false : checkStat(stat, options));
       });
     }
-    function sync(path41, options) {
-      return checkStat(fs.statSync(path41), options);
+    function sync(path47, options) {
+      return checkStat(fs.statSync(path47), options);
     }
     function checkStat(stat, options) {
       return stat.isFile() && checkMode(stat, options);
@@ -7444,7 +7444,7 @@ var require_isexe = __commonJS({
     }
     module2.exports = isexe;
     isexe.sync = sync;
-    function isexe(path41, options, cb) {
+    function isexe(path47, options, cb) {
       if (typeof options === "function") {
         cb = options;
         options = {};
@@ -7454,7 +7454,7 @@ var require_isexe = __commonJS({
           throw new TypeError("callback not provided");
         }
         return new Promise(function(resolve2, reject) {
-          isexe(path41, options || {}, function(er, is) {
+          isexe(path47, options || {}, function(er, is) {
             if (er) {
               reject(er);
             } else {
@@ -7463,7 +7463,7 @@ var require_isexe = __commonJS({
           });
         });
       }
-      core(path41, options || {}, function(er, is) {
+      core(path47, options || {}, function(er, is) {
         if (er) {
           if (er.code === "EACCES" || options && options.ignoreErrors) {
             er = null;
@@ -7473,9 +7473,9 @@ var require_isexe = __commonJS({
         cb(er, is);
       });
     }
-    function sync(path41, options) {
+    function sync(path47, options) {
       try {
-        return core.sync(path41, options || {});
+        return core.sync(path47, options || {});
       } catch (er) {
         if (options && options.ignoreErrors || er.code === "EACCES") {
           return false;
@@ -7492,7 +7492,7 @@ var require_which = __commonJS({
   "../../node_modules/.pnpm/which@2.0.2/node_modules/which/which.js"(exports2, module2) {
     "use strict";
     var isWindows = process.platform === "win32" || process.env.OSTYPE === "cygwin" || process.env.OSTYPE === "msys";
-    var path41 = require("path");
+    var path47 = require("path");
     var COLON = isWindows ? ";" : ":";
     var isexe = require_isexe();
     var getNotFoundError = (cmd) => Object.assign(new Error(`not found: ${cmd}`), { code: "ENOENT" });
@@ -7530,7 +7530,7 @@ var require_which = __commonJS({
           return opt.all && found.length ? resolve2(found) : reject(getNotFoundError(cmd));
         const ppRaw = pathEnv[i2];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path41.join(pathPart, cmd);
+        const pCmd = path47.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         resolve2(subStep(p, i2, 0));
       });
@@ -7557,7 +7557,7 @@ var require_which = __commonJS({
       for (let i2 = 0; i2 < pathEnv.length; i2++) {
         const ppRaw = pathEnv[i2];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path41.join(pathPart, cmd);
+        const pCmd = path47.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         for (let j = 0; j < pathExt.length; j++) {
           const cur = p + pathExt[j];
@@ -7605,7 +7605,7 @@ var require_path_key = __commonJS({
 var require_resolveCommand = __commonJS({
   "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js"(exports2, module2) {
     "use strict";
-    var path41 = require("path");
+    var path47 = require("path");
     var which = require_which();
     var getPathKey = require_path_key();
     function resolveCommandAttempt(parsed, withoutPathExt) {
@@ -7619,11 +7619,11 @@ var require_resolveCommand = __commonJS({
         } catch (err) {
         }
       }
-      let resolved;
+      let resolved2;
       try {
-        resolved = which.sync(parsed.command, {
+        resolved2 = which.sync(parsed.command, {
           path: env[getPathKey({ env })],
-          pathExt: withoutPathExt ? path41.delimiter : void 0
+          pathExt: withoutPathExt ? path47.delimiter : void 0
         });
       } catch (e) {
       } finally {
@@ -7631,10 +7631,10 @@ var require_resolveCommand = __commonJS({
           process.chdir(cwd);
         }
       }
-      if (resolved) {
-        resolved = path41.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
+      if (resolved2) {
+        resolved2 = path47.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved2);
       }
-      return resolved;
+      return resolved2;
     }
     function resolveCommand(parsed) {
       return resolveCommandAttempt(parsed) || resolveCommandAttempt(parsed, true);
@@ -7686,8 +7686,8 @@ var require_shebang_command = __commonJS({
       if (!match) {
         return null;
       }
-      const [path41, argument] = match[0].replace(/#! ?/, "").split(" ");
-      const binary = path41.split("/").pop();
+      const [path47, argument] = match[0].replace(/#! ?/, "").split(" ");
+      const binary = path47.split("/").pop();
       if (binary === "env") {
         return argument;
       }
@@ -7722,7 +7722,7 @@ var require_readShebang = __commonJS({
 var require_parse = __commonJS({
   "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js"(exports2, module2) {
     "use strict";
-    var path41 = require("path");
+    var path47 = require("path");
     var resolveCommand = require_resolveCommand();
     var escape2 = require_escape();
     var readShebang = require_readShebang();
@@ -7747,7 +7747,7 @@ var require_parse = __commonJS({
       const needsShell = !isExecutableRegExp.test(commandFile);
       if (parsed.options.forceShell || needsShell) {
         const needsDoubleEscapeMetaChars = isCmdShimRegExp.test(commandFile);
-        parsed.command = path41.normalize(parsed.command);
+        parsed.command = path47.normalize(parsed.command);
         parsed.command = escape2.command(parsed.command);
         parsed.args = parsed.args.map((arg) => escape2.argument(arg, needsDoubleEscapeMetaChars));
         const shellCommand = [parsed.command].concat(parsed.args).join(" ");
@@ -10059,8 +10059,8 @@ var require_resolve = __commonJS({
       }
       return count3;
     }
-    function getFullPath(resolver, id = "", normalize2) {
-      if (normalize2 !== false)
+    function getFullPath(resolver, id = "", normalize3) {
+      if (normalize3 !== false)
         id = normalizeId(id);
       const p = resolver.parse(id);
       return _getFullPath(resolver, p);
@@ -11053,8 +11053,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path41) {
-      let input = path41;
+    function removeDotSegments(path47) {
+      let input = path47;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -11306,8 +11306,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path41, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path41 && path41 !== "/" ? path41 : void 0;
+        const [path47, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path47 && path47 !== "/" ? path47 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -11456,7 +11456,7 @@ var require_fast_uri = __commonJS({
     "use strict";
     var { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, escapePreservingEscapes, reescapeHostDelimiters, isIPv4, nonSimpleDomain } = require_utils();
     var { SCHEMES, getSchemeHandler } = require_schemes();
-    function normalize2(uri, options) {
+    function normalize3(uri, options) {
       if (typeof uri === "string") {
         uri = /** @type {T} */
         normalizeString(uri, options);
@@ -11468,9 +11468,9 @@ var require_fast_uri = __commonJS({
     }
     function resolve2(baseURI, relativeURI, options) {
       const schemelessOptions = options ? Object.assign({ scheme: "null" }, options) : { scheme: "null" };
-      const resolved = resolveComponent(parse3(baseURI, schemelessOptions), parse3(relativeURI, schemelessOptions), schemelessOptions, true);
+      const resolved2 = resolveComponent(parse3(baseURI, schemelessOptions), parse3(relativeURI, schemelessOptions), schemelessOptions, true);
       schemelessOptions.skipEscape = true;
-      return serialize2(resolved, schemelessOptions);
+      return serialize2(resolved2, schemelessOptions);
     }
     function resolveComponent(base, relative, options, skipNormalization) {
       const target = {};
@@ -11723,7 +11723,7 @@ var require_fast_uri = __commonJS({
     }
     var fastUri = {
       SCHEMES,
-      normalize: normalize2,
+      normalize: normalize3,
       resolve: resolve2,
       resolveComponent,
       equal,
@@ -14968,8 +14968,8 @@ var require_utils2 = __commonJS({
       }
       return output;
     };
-    exports2.basename = (path41, { windows } = {}) => {
-      const segs = path41.split(windows ? /[\\/]/ : "/");
+    exports2.basename = (path47, { windows } = {}) => {
+      const segs = path47.split(windows ? /[\\/]/ : "/");
       const last = segs[segs.length - 1];
       if (last === "") {
         return segs[segs.length - 2];
@@ -15662,7 +15662,7 @@ var require_parse2 = __commonJS({
         state[type]--;
         stack.pop();
       };
-      const push = (tok) => {
+      const push2 = (tok) => {
         if (prev.type === "globstar") {
           const isBrace = state.braces > 0 && (tok.type === "comma" || tok.type === "brace");
           const isExtglob = tok.extglob === true || extglobs.length && (tok.type === "pipe" || tok.type === "paren");
@@ -15696,8 +15696,8 @@ var require_parse2 = __commonJS({
         token.tokensIndex = tokens.length;
         const output = (opts.capture ? "(" : "") + token.open;
         increment2("parens");
-        push({ type, value: value2, output: state.output ? "" : ONE_CHAR });
-        push({ type: "paren", extglob: true, value: advance(), output });
+        push2({ type, value: value2, output: state.output ? "" : ONE_CHAR });
+        push2({ type: "paren", extglob: true, value: advance(), output });
         extglobs.push(token);
       };
       const extglobClose = (token) => {
@@ -15717,7 +15717,7 @@ var require_parse2 = __commonJS({
           }
           state.output = token.output + open.output;
           state.backtrack = true;
-          push({ type: "paren", extglob: true, value, output: "" });
+          push2({ type: "paren", extglob: true, value, output: "" });
           decrement("parens");
           return;
         }
@@ -15739,7 +15739,7 @@ var require_parse2 = __commonJS({
             state.negatedExtglob = true;
           }
         }
-        push({ type: "paren", extglob: true, value, output });
+        push2({ type: "paren", extglob: true, value, output });
         decrement("parens");
       };
       if (opts.fastpaths !== false && !/(^[*!]|[/()[\]{}"])/.test(input)) {
@@ -15800,7 +15800,7 @@ var require_parse2 = __commonJS({
           }
           if (!next) {
             value += "\\";
-            push({ type: "text", value });
+            push2({ type: "text", value });
             continue;
           }
           const match = /^\\+/.exec(remaining());
@@ -15818,7 +15818,7 @@ var require_parse2 = __commonJS({
             value += advance();
           }
           if (state.brackets === 0) {
-            push({ type: "text", value });
+            push2({ type: "text", value });
             continue;
           }
         }
@@ -15866,13 +15866,13 @@ var require_parse2 = __commonJS({
         if (value === '"') {
           state.quotes = state.quotes === 1 ? 0 : 1;
           if (opts.keepQuotes === true) {
-            push({ type: "text", value });
+            push2({ type: "text", value });
           }
           continue;
         }
         if (value === "(") {
           increment2("parens");
-          push({ type: "paren", value });
+          push2({ type: "paren", value });
           continue;
         }
         if (value === ")") {
@@ -15884,7 +15884,7 @@ var require_parse2 = __commonJS({
             extglobClose(extglobs.pop());
             continue;
           }
-          push({ type: "paren", value, output: state.parens ? ")" : "\\)" });
+          push2({ type: "paren", value, output: state.parens ? ")" : "\\)" });
           decrement("parens");
           continue;
         }
@@ -15897,19 +15897,19 @@ var require_parse2 = __commonJS({
           } else {
             increment2("brackets");
           }
-          push({ type: "bracket", value });
+          push2({ type: "bracket", value });
           continue;
         }
         if (value === "]") {
           if (opts.nobracket === true || prev && prev.type === "bracket" && prev.value.length === 1) {
-            push({ type: "text", value, output: `\\${value}` });
+            push2({ type: "text", value, output: `\\${value}` });
             continue;
           }
           if (state.brackets === 0) {
             if (opts.strictBrackets === true) {
               throw new SyntaxError(syntaxError("opening", "["));
             }
-            push({ type: "text", value, output: `\\${value}` });
+            push2({ type: "text", value, output: `\\${value}` });
             continue;
           }
           decrement("brackets");
@@ -15943,13 +15943,13 @@ var require_parse2 = __commonJS({
             tokensIndex: state.tokens.length
           };
           braces.push(open);
-          push(open);
+          push2(open);
           continue;
         }
         if (value === "}") {
           const brace = braces[braces.length - 1];
           if (opts.nobrace === true || !brace) {
-            push({ type: "text", value, output: value });
+            push2({ type: "text", value, output: value });
             continue;
           }
           let output = ")";
@@ -15978,7 +15978,7 @@ var require_parse2 = __commonJS({
               state.output += t.output || t.value;
             }
           }
-          push({ type: "brace", value, output });
+          push2({ type: "brace", value, output });
           decrement("braces");
           braces.pop();
           continue;
@@ -15987,7 +15987,7 @@ var require_parse2 = __commonJS({
           if (extglobs.length > 0) {
             extglobs[extglobs.length - 1].conditions++;
           }
-          push({ type: "text", value });
+          push2({ type: "text", value });
           continue;
         }
         if (value === ",") {
@@ -15997,7 +15997,7 @@ var require_parse2 = __commonJS({
             brace.comma = true;
             output = "|";
           }
-          push({ type: "comma", value, output });
+          push2({ type: "comma", value, output });
           continue;
         }
         if (value === "/") {
@@ -16009,7 +16009,7 @@ var require_parse2 = __commonJS({
             prev = bos;
             continue;
           }
-          push({ type: "slash", value, output: SLASH_LITERAL });
+          push2({ type: "slash", value, output: SLASH_LITERAL });
           continue;
         }
         if (value === ".") {
@@ -16023,10 +16023,10 @@ var require_parse2 = __commonJS({
             continue;
           }
           if (state.braces + state.parens === 0 && prev.type !== "bos" && prev.type !== "slash") {
-            push({ type: "text", value, output: DOT_LITERAL });
+            push2({ type: "text", value, output: DOT_LITERAL });
             continue;
           }
-          push({ type: "dot", value, output: DOT_LITERAL });
+          push2({ type: "dot", value, output: DOT_LITERAL });
           continue;
         }
         if (value === "?") {
@@ -16041,14 +16041,14 @@ var require_parse2 = __commonJS({
             if (prev.value === "(" && !/[!=<:]/.test(next) || next === "<" && !/<([!=]|\w+>)/.test(remaining())) {
               output = `\\${value}`;
             }
-            push({ type: "text", value, output });
+            push2({ type: "text", value, output });
             continue;
           }
           if (opts.dot !== true && (prev.type === "slash" || prev.type === "bos")) {
-            push({ type: "qmark", value, output: QMARK_NO_DOT });
+            push2({ type: "qmark", value, output: QMARK_NO_DOT });
             continue;
           }
-          push({ type: "qmark", value, output: QMARK });
+          push2({ type: "qmark", value, output: QMARK });
           continue;
         }
         if (value === "!") {
@@ -16069,22 +16069,22 @@ var require_parse2 = __commonJS({
             continue;
           }
           if (prev && prev.value === "(" || opts.regex === false) {
-            push({ type: "plus", value, output: PLUS_LITERAL });
+            push2({ type: "plus", value, output: PLUS_LITERAL });
             continue;
           }
           if (prev && (prev.type === "bracket" || prev.type === "paren" || prev.type === "brace") || state.parens > 0) {
-            push({ type: "plus", value });
+            push2({ type: "plus", value });
             continue;
           }
-          push({ type: "plus", value: PLUS_LITERAL });
+          push2({ type: "plus", value: PLUS_LITERAL });
           continue;
         }
         if (value === "@") {
           if (opts.noextglob !== true && peek() === "(" && peek(2) !== "?") {
-            push({ type: "at", extglob: true, value, output: "" });
+            push2({ type: "at", extglob: true, value, output: "" });
             continue;
           }
-          push({ type: "text", value });
+          push2({ type: "text", value });
           continue;
         }
         if (value !== "*") {
@@ -16096,7 +16096,7 @@ var require_parse2 = __commonJS({
             value += match[0];
             state.index += match[0].length;
           }
-          push({ type: "text", value });
+          push2({ type: "text", value });
           continue;
         }
         if (prev && (prev.type === "globstar" || prev.star === true)) {
@@ -16124,13 +16124,13 @@ var require_parse2 = __commonJS({
           const isStart = prior.type === "slash" || prior.type === "bos";
           const afterStar = before && (before.type === "star" || before.type === "globstar");
           if (opts.bash === true && (!isStart || rest[0] && rest[0] !== "/")) {
-            push({ type: "star", value, output: "" });
+            push2({ type: "star", value, output: "" });
             continue;
           }
           const isBrace = state.braces > 0 && (prior.type === "comma" || prior.type === "brace");
           const isExtglob = extglobs.length && (prior.type === "pipe" || prior.type === "paren");
           if (!isStart && prior.type !== "paren" && !isBrace && !isExtglob) {
-            push({ type: "star", value, output: "" });
+            push2({ type: "star", value, output: "" });
             continue;
           }
           while (rest.slice(0, 3) === "/**") {
@@ -16171,7 +16171,7 @@ var require_parse2 = __commonJS({
             state.output += prior.output + prev.output;
             state.globstar = true;
             consume(value + advance());
-            push({ type: "slash", value: "/", output: "" });
+            push2({ type: "slash", value: "/", output: "" });
             continue;
           }
           if (prior.type === "bos" && rest[0] === "/") {
@@ -16181,7 +16181,7 @@ var require_parse2 = __commonJS({
             state.output = prev.output;
             state.globstar = true;
             consume(value + advance());
-            push({ type: "slash", value: "/", output: "" });
+            push2({ type: "slash", value: "/", output: "" });
             continue;
           }
           state.output = state.output.slice(0, -prev.output.length);
@@ -16199,12 +16199,12 @@ var require_parse2 = __commonJS({
           if (prev.type === "bos" || prev.type === "slash") {
             token.output = nodot + token.output;
           }
-          push(token);
+          push2(token);
           continue;
         }
         if (prev && (prev.type === "bracket" || prev.type === "paren") && opts.regex === true) {
           token.output = value;
-          push(token);
+          push2(token);
           continue;
         }
         if (state.index === state.start || prev.type === "slash" || prev.type === "dot") {
@@ -16223,7 +16223,7 @@ var require_parse2 = __commonJS({
             prev.output += ONE_CHAR;
           }
         }
-        push(token);
+        push2(token);
       }
       while (state.brackets > 0) {
         if (opts.strictBrackets === true) throw new SyntaxError(syntaxError("closing", "]"));
@@ -16241,7 +16241,7 @@ var require_parse2 = __commonJS({
         decrement("braces");
       }
       if (opts.strictSlashes !== true && (prev.type === "star" || prev.type === "bracket")) {
-        push({ type: "maybe_slash", value: "", output: `${SLASH_LITERAL}?` });
+        push2({ type: "maybe_slash", value: "", output: `${SLASH_LITERAL}?` });
       }
       if (state.backtrack === true) {
         state.output = "";
@@ -16714,10 +16714,10 @@ function assignProp(target, prop, value) {
     configurable: true
   });
 }
-function getElementAtPath(obj, path41) {
-  if (!path41)
+function getElementAtPath(obj, path47) {
+  if (!path47)
     return obj;
-  return path41.reduce((acc, key) => acc?.[key], obj);
+  return path47.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -17037,11 +17037,11 @@ function aborted(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path41, issues) {
+function prefixIssues(path47, issues) {
   return issues.map((iss) => {
     var _a;
     (_a = iss).path ?? (_a.path = []);
-    iss.path.unshift(path41);
+    iss.path.unshift(path47);
     return iss;
   });
 }
@@ -23129,8 +23129,8 @@ function getErrorMap() {
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path41, errorMaps, issueData } = params;
-  const fullPath = [...path41, ...issueData.path || []];
+  const { data, path: path47, errorMaps, issueData } = params;
+  const fullPath = [...path47, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -23246,11 +23246,11 @@ var errorUtil;
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path41, key) {
+  constructor(parent, value, path47, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path41;
+    this._path = path47;
     this._key = key;
   }
   get path() {
@@ -26785,16 +26785,16 @@ function resolveWorkspace(startDir) {
 }
 function assertInsideWorkspace(rootDir, target) {
   const resolvedRoot = import_path.default.resolve(rootDir);
-  const resolved = import_path.default.resolve(resolvedRoot, target);
-  const relative = import_path.default.relative(resolvedRoot, resolved);
+  const resolved2 = import_path.default.resolve(resolvedRoot, target);
+  const relative = import_path.default.relative(resolvedRoot, resolved2);
   if (relative.startsWith("..") || import_path.default.isAbsolute(relative)) {
     throw new SpecBridgeError(
       "PATH_OUTSIDE_WORKSPACE",
-      `Refusing to touch ${resolved}: it is outside the workspace root ${resolvedRoot}.`,
-      { rootDir: resolvedRoot, target: resolved }
+      `Refusing to touch ${resolved2}: it is outside the workspace root ${resolvedRoot}.`,
+      { rootDir: resolvedRoot, target: resolved2 }
     );
   }
-  return resolved;
+  return resolved2;
 }
 function writeFileAtomic(filePath, data) {
   const dir = import_path.default.dirname(filePath);
@@ -29918,8 +29918,8 @@ function writeDocumentAtomic(document, targetPath, options) {
       `Refusing to write ${targetPath}: the source file was not valid UTF-8, so a write could corrupt it.`
     );
   }
-  const resolved = assertInsideWorkspace(options.workspaceRoot, targetPath);
-  writeFileAtomic(resolved, document.toBuffer());
+  const resolved2 = assertInsideWorkspace(options.workspaceRoot, targetPath);
+  writeFileAtomic(resolved2, document.toBuffer());
 }
 var CHECKBOX_LINE = /^([ \t]*[-*+][ \t]+\[)([^\]])(\].*)$/;
 var STATE_CHAR = {
@@ -30385,7 +30385,7 @@ function extractTaskRequirementReferences(document, tasks) {
   const orderedTasks = [...tasks.allTasks].sort((a2, b) => a2.line - b.line);
   const firstTaskLine = orderedTasks[0]?.line ?? 0;
   const seen = /* @__PURE__ */ new Set();
-  const push = (task, raw, line, method, confidence) => {
+  const push2 = (task, raw, line, method, confidence) => {
     const canonical = canonicalRequirementRef(raw);
     const key = `${task.id} ${canonical ?? raw.toLowerCase()}`;
     if (seen.has(key)) return;
@@ -30409,24 +30409,24 @@ function extractTaskRequirementReferences(document, tasks) {
       const underscore = UNDERSCORE_REFS.exec(text15);
       if (underscore !== null) {
         for (const item of splitReferenceList(underscore[1] ?? "")) {
-          push(owner, item, i2, "underscore-refs", "deterministic");
+          push2(owner, item, i2, "underscore-refs", "deterministic");
         }
       } else {
         const refsLine = REFS_LINE.exec(text15);
         if (refsLine !== null) {
           for (const item of splitReferenceList(refsLine[1] ?? "")) {
             if (canonicalRequirementRef(item) !== void 0) {
-              push(owner, item, i2, "refs-line", "deterministic");
+              push2(owner, item, i2, "refs-line", "deterministic");
             }
           }
         }
       }
     }
     for (const match of text15.matchAll(BRACKET_REF)) {
-      if (match[1] !== void 0) push(owner, match[1], i2, "bracket-ref", "deterministic");
+      if (match[1] !== void 0) push2(owner, match[1], i2, "bracket-ref", "deterministic");
     }
     for (const match of text15.matchAll(KEYWORD_REF)) {
-      if (match[1] !== void 0) push(owner, match[1], i2, "keyword-ref", "heuristic");
+      if (match[1] !== void 0) push2(owner, match[1], i2, "keyword-ref", "heuristic");
     }
   }
   return references;
@@ -31116,12 +31116,12 @@ function shortHash(hash) {
 }
 function resolveStageFile(workspace, stage) {
   const relative = stage.file.split("/").join(import_path8.default.sep);
-  const resolved = import_path8.default.resolve(workspace.rootDir, relative);
-  const check3 = import_path8.default.relative(workspace.rootDir, resolved);
+  const resolved2 = import_path8.default.resolve(workspace.rootDir, relative);
+  const check3 = import_path8.default.relative(workspace.rootDir, resolved2);
   if (check3.startsWith("..") || import_path8.default.isAbsolute(check3)) {
     return import_path8.default.join(workspace.rootDir, ".specbridge", "invalid-path", import_path8.default.basename(stage.file));
   }
-  return resolved;
+  return resolved2;
 }
 function evaluateWorkflow(workspace, state) {
   const shape = workflowShape(state.specType, state.workflowMode);
@@ -31873,18 +31873,18 @@ function newSpecState(specName, specType, mode, clock = systemClock) {
 }
 var DEFAULT_MAX_DESCRIPTION_BYTES = 1024 * 1024;
 function readDescriptionFile(workspace, fromFile, cwd, maxBytes) {
-  const resolved = import_path9.default.resolve(cwd, fromFile);
-  assertInsideWorkspace(workspace.rootDir, resolved);
+  const resolved2 = import_path9.default.resolve(cwd, fromFile);
+  assertInsideWorkspace(workspace.rootDir, resolved2);
   let stats;
   try {
-    stats = (0, import_fs9.statSync)(resolved);
+    stats = (0, import_fs9.statSync)(resolved2);
   } catch (cause) {
-    throw ioError("read description file", resolved, cause);
+    throw ioError("read description file", resolved2, cause);
   }
   if (stats.isDirectory()) {
     throw new SpecBridgeError(
       "INVALID_ARGUMENT",
-      `--from-file points at a directory: ${resolved}. Point it at a UTF-8 text file.`
+      `--from-file points at a directory: ${resolved2}. Point it at a UTF-8 text file.`
     );
   }
   if (stats.size > maxBytes) {
@@ -31895,20 +31895,20 @@ function readDescriptionFile(workspace, fromFile, cwd, maxBytes) {
   }
   let buffer;
   try {
-    buffer = (0, import_fs9.readFileSync)(resolved);
+    buffer = (0, import_fs9.readFileSync)(resolved2);
   } catch (cause) {
-    throw ioError("read description file", resolved, cause);
+    throw ioError("read description file", resolved2, cause);
   }
   const text15 = buffer.toString("utf8");
   if (!Buffer.from(text15, "utf8").equals(buffer)) {
     throw new SpecBridgeError(
       "INVALID_ARGUMENT",
-      `--from-file is not valid UTF-8: ${resolved}. Re-save the file as UTF-8 and retry.`
+      `--from-file is not valid UTF-8: ${resolved2}. Re-save the file as UTF-8 and retry.`
     );
   }
   const description = text15.replace(new RegExp("^\\uFEFF"), "").trim();
   if (description.length === 0) {
-    throw new SpecBridgeError("INVALID_ARGUMENT", `--from-file is empty: ${resolved}.`);
+    throw new SpecBridgeError("INVALID_ARGUMENT", `--from-file is empty: ${resolved2}.`);
   }
   return description;
 }
@@ -33470,13 +33470,13 @@ function recordAssessment(deps, missionId, input) {
   }
   const updates = input.missionUpdates;
   if (updates !== void 0) {
-    const bounded = (values) => values?.slice(0, MISSION_LIMITS.maxListItems).map((value) => value.slice(0, MISSION_LIMITS.maxTextChars));
+    const bounded3 = (values) => values?.slice(0, MISSION_LIMITS.maxListItems).map((value) => value.slice(0, MISSION_LIMITS.maxTextChars));
     mission = {
       ...mission,
-      ...updates.nonGoals !== void 0 ? { nonGoals: bounded(updates.nonGoals) ?? [] } : {},
-      ...updates.targetUsers !== void 0 ? { targetUsers: bounded(updates.targetUsers) ?? [] } : {},
-      ...updates.constraints !== void 0 ? { constraints: bounded(updates.constraints) ?? [] } : {},
-      ...updates.successCriteria !== void 0 ? { successCriteria: bounded(updates.successCriteria) ?? [] } : {},
+      ...updates.nonGoals !== void 0 ? { nonGoals: bounded3(updates.nonGoals) ?? [] } : {},
+      ...updates.targetUsers !== void 0 ? { targetUsers: bounded3(updates.targetUsers) ?? [] } : {},
+      ...updates.constraints !== void 0 ? { constraints: bounded3(updates.constraints) ?? [] } : {},
+      ...updates.successCriteria !== void 0 ? { successCriteria: bounded3(updates.successCriteria) ?? [] } : {},
       ...updates.assumptions !== void 0 ? {
         assumptions: updates.assumptions.slice(0, MISSION_LIMITS.maxListItems).map((assumption, index) => ({
           id: `A-${pad(index + 1, 3)}`,
@@ -34236,8 +34236,8 @@ function observeSpecApproval(deps, missionId) {
 }
 
 // ../../packages/orchestration/dist/index.js
-var import_crypto8 = require("crypto");
-var import_crypto9 = require("crypto");
+var import_crypto10 = require("crypto");
+var import_crypto11 = require("crypto");
 
 // ../../packages/execution/dist/index.js
 var import_fs18 = require("fs");
@@ -38631,13 +38631,13 @@ var logOutputSync = ({ serializedResult, fdNumber, state, verboseInfo, encoding,
   }
 };
 var writeToFiles = (serializedResult, stdioItems, outputFiles) => {
-  for (const { path: path41, append } of stdioItems.filter(({ type }) => FILE_TYPES.has(type))) {
-    const pathString = typeof path41 === "string" ? path41 : path41.toString();
+  for (const { path: path47, append } of stdioItems.filter(({ type }) => FILE_TYPES.has(type))) {
+    const pathString = typeof path47 === "string" ? path47 : path47.toString();
     if (append || outputFiles.has(pathString)) {
-      (0, import_node_fs4.appendFileSync)(path41, serializedResult);
+      (0, import_node_fs4.appendFileSync)(path47, serializedResult);
     } else {
       outputFiles.add(pathString);
-      (0, import_node_fs4.writeFileSync)(path41, serializedResult);
+      (0, import_node_fs4.writeFileSync)(path47, serializedResult);
     }
   }
 };
@@ -41740,8 +41740,8 @@ function isExecutableFile(candidate) {
 }
 function resolveExecutable(command, cwd) {
   if (command.includes("/") || command.includes("\\")) {
-    const resolved = import_path11.default.resolve(cwd, command);
-    return isExecutableFile(resolved) ? resolved : void 0;
+    const resolved2 = import_path11.default.resolve(cwd, command);
+    return isExecutableFile(resolved2) ? resolved2 : void 0;
   }
   const pathValue = process.env["PATH"] ?? process.env["Path"] ?? "";
   const extensions = process.platform === "win32" ? ["", ...(process.env["PATHEXT"] ?? ".COM;.EXE;.BAT;.CMD").split(";")] : [""];
@@ -41755,9 +41755,9 @@ function resolveExecutable(command, cwd) {
   return void 0;
 }
 var WINDOWS_BATCH_EXTENSIONS = [".bat", ".cmd"];
-function isWindowsBatch(resolved) {
+function isWindowsBatch(resolved2) {
   if (process.platform !== "win32") return false;
-  const extension = import_path11.default.extname(resolved).toLowerCase();
+  const extension = import_path11.default.extname(resolved2).toLowerCase();
   return WINDOWS_BATCH_EXTENSIONS.includes(extension);
 }
 function cmdCommandLine(executable, argv) {
@@ -41798,10 +41798,10 @@ async function runSafeProcess(request) {
       }
     };
   }
-  const resolved = resolveExecutable(request.executable, request.cwd);
-  const batch = isWindowsBatch(resolved);
+  const resolved2 = resolveExecutable(request.executable, request.cwd);
+  const batch = isWindowsBatch(resolved2);
   const spawnExecutable = batch ? process.env["COMSPEC"] ?? "cmd.exe" : request.executable;
-  const spawnArgv = batch ? ["/d", "/s", "/c", cmdCommandLine(resolved, request.argv)] : request.argv;
+  const spawnArgv = batch ? ["/d", "/s", "/c", cmdCommandLine(resolved2, request.argv)] : request.argv;
   const result = await execa(spawnExecutable, spawnArgv, {
     ...batch ? { windowsVerbatimArguments: true } : {},
     cwd: request.cwd,
@@ -43837,7 +43837,7 @@ function redactCodexStdoutForRetention(stdout) {
 }
 function normalizeCodexEvents(stream, context, timestamp) {
   const normalized = [];
-  const push = (type, providerEventType, payload) => {
+  const push2 = (type, providerEventType, payload) => {
     if (normalized.length >= MAX_RETAINED_EVENTS) return;
     normalized.push(
       normalizedRunnerEventSchema.parse({
@@ -43856,17 +43856,17 @@ function normalizeCodexEvents(stream, context, timestamp) {
   for (const event of stream.events) {
     switch (event.type) {
       case "thread.started":
-        push("session.started", event.type, {
+        push2("session.started", event.type, {
           ...event.thread_id !== void 0 ? { threadId: event.thread_id } : {}
         });
         break;
       case "turn.started":
-        push("turn.started", event.type, {});
+        push2("turn.started", event.type, {});
         break;
       case "turn.completed":
-        push("turn.completed", event.type, {});
+        push2("turn.completed", event.type, {});
         if (event.usage !== void 0) {
-          push("usage.updated", event.type, {
+          push2("usage.updated", event.type, {
             inputTokens: event.usage.input_tokens ?? null,
             cachedInputTokens: event.usage.cached_input_tokens ?? null,
             outputTokens: event.usage.output_tokens ?? null
@@ -43874,12 +43874,12 @@ function normalizeCodexEvents(stream, context, timestamp) {
         }
         break;
       case "turn.failed":
-        push("error", event.type, {
+        push2("error", event.type, {
           message: boundedPayloadText(event.error?.message ?? "turn failed", 500)
         });
         break;
       case "error":
-        push("error", event.type, {
+        push2("error", event.type, {
           message: boundedPayloadText(event.error?.message ?? event.message ?? "error", 500)
         });
         break;
@@ -43890,7 +43890,7 @@ function normalizeCodexEvents(stream, context, timestamp) {
         if (item === void 0 || item.type === void 0) break;
         if (item.type === "agent_message" || item.type === "reasoning") {
           if (event.type === "item.completed") {
-            push("message.completed", `${event.type}:${item.type}`, itemPayload(item));
+            push2("message.completed", `${event.type}:${item.type}`, itemPayload(item));
           }
           break;
         }
@@ -43898,7 +43898,7 @@ function normalizeCodexEvents(stream, context, timestamp) {
         if (mapping === void 0) break;
         const type = event.type === "item.started" ? mapping.started : item.status === "failed" ? mapping.failed : mapping.completed;
         if (event.type === "item.updated" && item.type !== "todo_list") break;
-        push(type, `${event.type}:${item.type}`, itemPayload(item));
+        push2(type, `${event.type}:${item.type}`, itemPayload(item));
         break;
       }
       default:
@@ -44826,7 +44826,7 @@ function redactGeminiStdoutForRetention(stdout) {
 }
 function normalizeGeminiEvents(stream, context, timestamp) {
   const normalized = [];
-  const push = (type, providerEventType, payload) => {
+  const push2 = (type, providerEventType, payload) => {
     if (normalized.length >= MAX_RETAINED_GEMINI_EVENTS) return;
     normalized.push(
       normalizedRunnerEventSchema.parse({
@@ -44845,24 +44845,24 @@ function normalizeGeminiEvents(stream, context, timestamp) {
   for (const event of stream.events) {
     switch (event.type) {
       case "session.started":
-        push("session.started", event.type, {
+        push2("session.started", event.type, {
           ...event.session_id !== void 0 ? { sessionId: event.session_id } : {}
         });
         break;
       case "thought":
-        push("message.completed", event.type, {
+        push2("message.completed", event.type, {
           redacted: true,
           textLength: event.text?.length ?? 0
         });
         break;
       case "tool.started":
-        push("tool.started", event.type, {
+        push2("tool.started", event.type, {
           ...event.name !== void 0 ? { tool: event.name } : {},
           ...event.path !== void 0 ? { path: boundedPayloadText(event.path, 500) } : {}
         });
         break;
       case "tool.completed":
-        push(
+        push2(
           event.status === "failed" || event.status === "denied" ? "tool.failed" : "tool.completed",
           event.type,
           {
@@ -44872,25 +44872,25 @@ function normalizeGeminiEvents(stream, context, timestamp) {
         );
         break;
       case "file.edited":
-        push("file.changed", event.type, {
+        push2("file.changed", event.type, {
           ...event.path !== void 0 ? { path: boundedPayloadText(event.path, 500) } : {},
           ...event.kind !== void 0 ? { kind: event.kind } : {}
         });
         break;
       case "usage":
-        push("usage.updated", event.type, {
+        push2("usage.updated", event.type, {
           inputTokens: event.input_tokens ?? null,
           cachedInputTokens: event.cached_input_tokens ?? null,
           outputTokens: event.output_tokens ?? null
         });
         break;
       case "result":
-        push("message.completed", event.type, {
+        push2("message.completed", event.type, {
           textLength: event.response?.length ?? 0
         });
         break;
       case "error":
-        push("error", event.type, {
+        push2("error", event.type, {
           message: boundedPayloadText(event.message ?? event.text ?? "error", 500)
         });
         break;
@@ -45470,11 +45470,11 @@ function checkRedirectTarget(current, location) {
   return { ok: true, nextUrl: next };
 }
 async function safeHttpRequest(request) {
-  const bounded = createBoundedAbort(request.timeoutMs, request.signal);
+  const bounded3 = createBoundedAbort(request.timeoutMs, request.signal);
   try {
-    return await performSafeHttpRequest(request, bounded.signal);
+    return await performSafeHttpRequest(request, bounded3.signal);
   } finally {
-    bounded.release();
+    bounded3.release();
   }
 }
 async function performSafeHttpRequest(request, signal) {
@@ -47236,7 +47236,7 @@ var DshSdkAdapter = class {
     const client = this.instance();
     const retained = [];
     let dropped = 0;
-    const collect = (notification) => {
+    const collect2 = (notification) => {
       options.onNotification?.(notification);
       if (retained.length < MAX_RETAINED_DSH_NOTIFICATIONS) retained.push(notification);
       else dropped += 1;
@@ -47256,7 +47256,7 @@ var DshSdkAdapter = class {
           }
           received = true;
         }
-        collect(notification);
+        collect2(notification);
         if (notification.method === "session.status" && notification.params["sessionId"] === options.sessionId && notification.params["status"] === "idle") {
           break;
         }
@@ -47475,15 +47475,15 @@ async function probeDeepSeekHarness(config2, options = {}) {
     required: true,
     detail: `@deepseek-ai/dsh-sdk-client ${DSH_SDK_TESTED_VERSION} (developer preview)`
   });
-  const resolved = resolveExecutable(executable, cwd);
+  const resolved2 = resolveExecutable(executable, cwd);
   capabilities.push({
     id: "runtime-command",
     label: "Configured runtime command resolves",
-    available: resolved !== void 0,
+    available: resolved2 !== void 0,
     required: true,
-    detail: resolved ?? `"${executable}" was not found (the launch spec is explicit; no global command is assumed)`
+    detail: resolved2 ?? `"${executable}" was not found (the launch spec is explicit; no global command is assumed)`
   });
-  if (resolved === void 0) {
+  if (resolved2 === void 0) {
     diagnostics.push({
       severity: "error",
       code: "RUNNER_EXECUTABLE_NOT_FOUND",
@@ -47552,7 +47552,7 @@ async function probeDeepSeekHarness(config2, options = {}) {
   let version2;
   let handshakeVerified = false;
   let status;
-  if (resolved === void 0) {
+  if (resolved2 === void 0) {
     status = "unavailable";
   } else if (gaps.length > 0) {
     status = "misconfigured";
@@ -47611,7 +47611,7 @@ async function probeDeepSeekHarness(config2, options = {}) {
   return {
     status,
     executable,
-    resolvedExecutable: resolved,
+    resolvedExecutable: resolved2,
     version: version2,
     capabilities,
     diagnostics,
@@ -47918,7 +47918,7 @@ function assistantMessagePayload(event) {
 }
 function normalizeDshEvents(notifications, rootSessionId, context, fallbackTimestamp) {
   const normalized = [];
-  const push = (type, providerEventType, payload, at) => {
+  const push2 = (type, providerEventType, payload, at) => {
     if (normalized.length >= 5e3) return;
     normalized.push(
       normalizedRunnerEventSchema.parse({
@@ -47938,14 +47938,14 @@ function normalizeDshEvents(notifications, rootSessionId, context, fallbackTimes
   for (const notification of notifications) {
     const parsed = parseDshNotification(notification);
     if (parsed.method === "subagent.started") {
-      push("tool.started", "subagent.started", {
+      push2("tool.started", "subagent.started", {
         subagent: boundedPayloadText(String(parsed.params["childSessionId"] ?? "unknown"), 200)
       });
       continue;
     }
     if (parsed.method === "subagent.finished") {
       const status = parsed.params["status"];
-      push(status === "error" ? "tool.failed" : "tool.completed", "subagent.finished", {
+      push2(status === "error" ? "tool.failed" : "tool.completed", "subagent.finished", {
         subagent: boundedPayloadText(String(parsed.params["childSessionId"] ?? "unknown"), 200),
         status: typeof status === "string" ? status : null
       });
@@ -47957,20 +47957,20 @@ function normalizeDshEvents(notifications, rootSessionId, context, fallbackTimes
     const provider = `session.event:${event.type}`;
     if (!sessionStarted && rootEvent) {
       sessionStarted = true;
-      push("session.started", provider, { firstEventSeq: event.seq }, event.time);
+      push2("session.started", provider, { firstEventSeq: event.seq }, event.time);
     }
     if (!rootEvent && event.type !== "assistant/message") continue;
     switch (event.type) {
       case "turn/start":
-        push("turn.started", provider, { turn: tolerantCount2(event.data["turn"]) ?? null }, event.time);
+        push2("turn.started", provider, { turn: tolerantCount2(event.data["turn"]) ?? null }, event.time);
         break;
       case "turn/end": {
         const reason = event.data["reason"];
         const kind = isRecord22(reason) && typeof reason["kind"] === "string" ? reason["kind"] : "unknown";
-        push("turn.completed", provider, { turn: tolerantCount2(event.data["turn"]) ?? null, reason: kind }, event.time);
+        push2("turn.completed", provider, { turn: tolerantCount2(event.data["turn"]) ?? null, reason: kind }, event.time);
         if (kind === "error") {
           const failure = isRecord22(reason) ? reason["error"] : void 0;
-          push(
+          push2(
             "error",
             provider,
             {
@@ -47986,13 +47986,13 @@ function normalizeDshEvents(notifications, rootSessionId, context, fallbackTimes
         break;
       }
       case "assistant/message": {
-        push("message.completed", provider, {
+        push2("message.completed", provider, {
           ...rootEvent ? {} : { subagentSession: boundedPayloadText(parsed.sessionId ?? "?", 200) },
           ...assistantMessagePayload(event)
         }, event.time);
         const usage = event.data["usage"];
         if (isRecord22(usage)) {
-          push("usage.updated", provider, {
+          push2("usage.updated", provider, {
             inputTokens: tolerantCount2(usage["inputTokens"]) ?? null,
             cachedInputTokens: tolerantCount2(usage["cacheReadTokens"]) ?? null,
             outputTokens: tolerantCount2(usage["outputTokens"]) ?? null,
@@ -48002,7 +48002,7 @@ function normalizeDshEvents(notifications, rootSessionId, context, fallbackTimes
         break;
       }
       case "tool/call":
-        push("tool.started", provider, {
+        push2("tool.started", provider, {
           tool: boundedPayloadText(String(event.data["name"] ?? "unknown"), 200),
           argumentChars: typeof event.data["arguments"] === "string" ? event.data["arguments"].length : null
         }, event.time);
@@ -48010,33 +48010,33 @@ function normalizeDshEvents(notifications, rootSessionId, context, fallbackTimes
       case "tool/result": {
         const error2 = event.data["error"];
         if (isRecord22(error2)) {
-          push("tool.failed", provider, {
+          push2("tool.failed", provider, {
             errorName: boundedPayloadText(String(error2["name"] ?? "error"), 200),
             errorCode: boundedPayloadText(String(error2["code"] ?? "unknown"), 120)
           }, event.time);
         } else {
-          push("tool.completed", provider, {}, event.time);
+          push2("tool.completed", provider, {}, event.time);
         }
         break;
       }
       case "command/run":
-        push("command.started", provider, {
+        push2("command.started", provider, {
           ...typeof event.data["command"] === "string" ? { command: boundedPayloadText(event.data["command"], 500) } : {}
         }, event.time);
         break;
       case "command/done":
-        push("command.completed", provider, {
+        push2("command.completed", provider, {
           ...tolerantCount2(event.data["exitCode"]) !== void 0 ? { exitCode: tolerantCount2(event.data["exitCode"]) ?? null } : {}
         }, event.time);
         break;
       case "todo/write":
-        push("plan.updated", provider, {
+        push2("plan.updated", provider, {
           todoCount: Array.isArray(event.data["todos"]) ? event.data["todos"].length : null
         }, event.time);
         break;
       case "compaction/end":
       case "compaction/prune":
-        push("compaction.occurred", provider, { kind: event.type }, event.time);
+        push2("compaction.occurred", provider, { kind: event.type }, event.time);
         break;
       default:
         break;
@@ -48632,9 +48632,9 @@ function instantiateRunner(config2, options = {}) {
   }
 }
 function createDefaultRunnerRegistry(config2, options = {}) {
-  const resolved = config2 ?? defaultResolvedAgentConfig();
+  const resolved2 = config2 ?? defaultResolvedAgentConfig();
   const registry2 = new RunnerRegistry();
-  for (const [name, profileConfig] of Object.entries(resolved.runnerProfiles)) {
+  for (const [name, profileConfig] of Object.entries(resolved2.runnerProfiles)) {
     if (profileConfig.runner === "extension") {
       if (profileConfig.enabled !== true || options.extensionRunner === void 0) {
         continue;
@@ -49793,12 +49793,12 @@ function evidencePathEscapesRepository(recordedPath) {
 }
 var CHECKBOX_STATE_PREFIX2 = /^([ \t]*[-*+][ \t]+\[)([ xX~-])(\])/;
 function sameTaskLineIgnoringState(a2, b) {
-  const normalize2 = (text15) => {
+  const normalize3 = (text15) => {
     const match = CHECKBOX_STATE_PREFIX2.exec(text15);
     if (match === null || match[1] === void 0 || match[3] === void 0) return text15;
     return `${match[1]} ${match[3]}${text15.slice(match[0].length)}`;
   };
-  return normalize2(a2) === normalize2(b);
+  return normalize3(a2) === normalize3(b);
 }
 function parseTimestamp(value) {
   const parsed = Date.parse(value);
@@ -51478,15 +51478,21 @@ async function abortInteractiveTask(deps, request) {
 }
 
 // ../../packages/orchestration/dist/index.js
-var import_fs21 = require("fs");
-var import_path23 = __toESM(require("path"), 1);
-var import_crypto10 = require("crypto");
-var import_fs22 = require("fs");
-var import_path24 = __toESM(require("path"), 1);
 var import_fs23 = require("fs");
 var import_path25 = __toESM(require("path"), 1);
+var import_crypto12 = require("crypto");
+var import_fs24 = require("fs");
+var import_path26 = __toESM(require("path"), 1);
+var import_fs25 = require("fs");
+var import_path27 = __toESM(require("path"), 1);
 
 // ../../packages/context/dist/index.js
+var import_crypto8 = require("crypto");
+var import_fs21 = require("fs");
+var import_path23 = __toESM(require("path"), 1);
+var import_crypto9 = require("crypto");
+var import_fs22 = require("fs");
+var import_path24 = __toESM(require("path"), 1);
 var CONTEXT_LAYERS = [
   "PINNED",
   "DURABLE_TASK_STATE",
@@ -51602,8 +51608,8 @@ var CONTEXT_EXPANSION_LEVEL_DEPTH = Object.freeze({
   BOUNDED_FALLBACK: 4
 });
 function expansionLevelAtDepth(depth) {
-  const bounded2 = Math.max(0, Math.min(CONTEXT_EXPANSION_LEVELS.length - 1, Math.trunc(depth)));
-  return CONTEXT_EXPANSION_LEVELS[bounded2];
+  const bounded22 = Math.max(0, Math.min(CONTEXT_EXPANSION_LEVELS.length - 1, Math.trunc(depth)));
+  return CONTEXT_EXPANSION_LEVELS[bounded22];
 }
 var CONTEXT_SHAPES = ["MATERIALIZED", "POINTER"];
 var CONTEXT_COMPRESSION_METHODS = [
@@ -51760,6 +51766,8 @@ var contextBudgetConfigSchema = external_exports.object({
   (config2) => config2.prepareThreshold <= config2.proactiveCompactionThreshold && config2.proactiveCompactionThreshold <= config2.emergencyCompactionThreshold && config2.emergencyCompactionThreshold <= config2.hardStopThreshold,
   { message: "Context thresholds must be ordered: prepare <= proactive <= emergency <= hard stop." }
 );
+var REPOSITORY_INDEX_SCHEMA_VERSION = "1.0.0";
+var REPOSITORY_INDEX_FORMAT_VERSION = 1;
 var REPOSITORY_INDEX_LIMITS = {
   /** Ceiling on indexed files. Beyond it the index records truncation. */
   maxEntries: 4e4,
@@ -51834,6 +51842,149 @@ var repositoryContextIndexSchema = external_exports.object({
   /** Wall time of the pass that produced this state, in milliseconds. */
   buildMs: external_exports.number().int().min(0).default(0)
 }).passthrough();
+function isIndexReusable(state, expected) {
+  return state.formatVersion === REPOSITORY_INDEX_FORMAT_VERSION && state.workspaceKey === expected.workspaceKey && state.schemaVersion.split(".")[0] === REPOSITORY_INDEX_SCHEMA_VERSION.split(".")[0];
+}
+var ALWAYS_IGNORED_DIRECTORIES = [
+  ".git",
+  ".hg",
+  ".svn",
+  ".kiro",
+  ".specbridge",
+  "node_modules",
+  "bower_components",
+  "vendor",
+  "dist",
+  "build",
+  "out",
+  "coverage",
+  ".next",
+  ".nuxt",
+  ".svelte-kit",
+  ".turbo",
+  ".parcel-cache",
+  ".cache",
+  ".gradle",
+  ".idea",
+  ".vscode-test",
+  "__pycache__",
+  ".pytest_cache",
+  ".mypy_cache",
+  ".tox",
+  ".venv",
+  "venv",
+  "target",
+  "Pods",
+  "DerivedData"
+];
+var BINARY_EXTENSIONS = [
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".bmp",
+  ".ico",
+  ".icns",
+  ".webp",
+  ".avif",
+  ".tif",
+  ".tiff",
+  ".pdf",
+  ".zip",
+  ".gz",
+  ".tgz",
+  ".bz2",
+  ".xz",
+  ".7z",
+  ".rar",
+  ".jar",
+  ".war",
+  ".class",
+  ".exe",
+  ".dll",
+  ".so",
+  ".dylib",
+  ".o",
+  ".a",
+  ".lib",
+  ".obj",
+  ".bin",
+  ".wasm",
+  ".pyc",
+  ".pyo",
+  ".woff",
+  ".woff2",
+  ".ttf",
+  ".otf",
+  ".eot",
+  ".mp3",
+  ".mp4",
+  ".mov",
+  ".avi",
+  ".mkv",
+  ".wav",
+  ".flac",
+  ".ogg",
+  ".webm",
+  ".db",
+  ".sqlite",
+  ".sqlite3",
+  ".mdb",
+  ".pack",
+  ".idx",
+  ".node",
+  ".dmg",
+  ".iso",
+  ".img"
+];
+var CREDENTIAL_SHAPED_PATTERNS = [
+  /(^|\/)\.env(\.|$)/i,
+  /(^|\/)\.netrc$/i,
+  /(^|\/)\.npmrc$/i,
+  /(^|\/)\.pypirc$/i,
+  /(^|\/)\.htpasswd$/i,
+  /(^|\/)id_(rsa|dsa|ecdsa|ed25519)(\.|$)/i,
+  // A credential-bearing DATA file: `credentials.json`, `db-secrets.yaml`,
+  // `foo-service-credentials.json`. Deliberately scoped to data extensions
+  // (and extensionless files) so that ordinary source ABOUT secrets — a
+  // `secret-store.ts`, a `credentials-form.tsx` — stays retrievable. The
+  // boundary is meant to stop credential FILES reaching a remote prompt, not
+  // to make the word unsearchable.
+  /(^|\/)[\w-]*(?:credential|secret|passwd|password)s?[\w-]*\.(?:json|ya?ml|txt|ini|cfg|conf|env|properties|toml|xml|csv)$/i,
+  /(^|\/)[\w-]*(?:credential|secret|passwd|password)s?[\w-]*$/i,
+  /\.(pem|key|p12|pfx|jks|keystore|asc|gpg|ppk)$/i,
+  /(^|\/)service[-_]?account.*\.json$/i
+];
+var IGNORED_FILENAMES = [
+  "package-lock.json",
+  "pnpm-lock.yaml",
+  "yarn.lock",
+  "npm-shrinkwrap.json",
+  "Cargo.lock",
+  "poetry.lock",
+  "Gemfile.lock",
+  "composer.lock",
+  "go.sum",
+  ".DS_Store"
+];
+var TEST_PATH_PATTERNS = [
+  /(^|\/)tests?(\/|$)/i,
+  /(^|\/)__tests__(\/|$)/i,
+  /(^|\/)spec(\/|$)/i,
+  /\.(test|spec)\.[cm]?[jt]sx?$/i,
+  /_test\.(go|py|rb)$/i,
+  /(^|\/)test_[^/]+\.py$/i,
+  /Test[s]?\.(java|cs|kt)$/
+];
+var CONFIG_FILENAME_PATTERNS = [
+  /^(package|tsconfig[^/]*|jsconfig|pyproject|setup|Cargo|go|composer|Gemfile|pom)\.(json|toml|cfg|mod|xml)$/i,
+  /\.(config|conf|rc)\.[cm]?[jt]s$/i,
+  /^\.[a-z0-9_-]+rc(\.[a-z]+)?$/i,
+  /^(Dockerfile|Makefile|Justfile)$/i,
+  /\.(ya?ml|ini|toml|properties)$/i
+];
+var DOC_EXTENSIONS = [".md", ".mdx", ".rst", ".adoc", ".txt"];
+var DATA_EXTENSIONS = [".json", ".csv", ".tsv", ".xml", ".ndjson", ".jsonl"];
 var LANGUAGE_BY_EXTENSION = Object.freeze({
   ".ts": "typescript",
   ".tsx": "typescript",
@@ -51880,6 +52031,654 @@ var LANGUAGE_BY_EXTENSION = Object.freeze({
   ".graphql": "graphql",
   ".gql": "graphql"
 });
+function languageOf(relativePath) {
+  const extension = import_path23.default.posix.extname(relativePath).toLowerCase();
+  return LANGUAGE_BY_EXTENSION[extension] ?? (extension === "" ? "none" : extension.slice(1));
+}
+function isBinaryPath(relativePath) {
+  return BINARY_EXTENSIONS.includes(import_path23.default.posix.extname(relativePath).toLowerCase());
+}
+function isCredentialShapedPath(relativePath) {
+  return CREDENTIAL_SHAPED_PATTERNS.some((pattern) => pattern.test(relativePath));
+}
+function isTestPath(relativePath) {
+  return TEST_PATH_PATTERNS.some((pattern) => pattern.test(relativePath));
+}
+function classifyFileKind(relativePath) {
+  if (isTestPath(relativePath)) return "test";
+  const base = import_path23.default.posix.basename(relativePath);
+  const extension = import_path23.default.posix.extname(relativePath).toLowerCase();
+  if (DOC_EXTENSIONS.includes(extension)) return "doc";
+  if (CONFIG_FILENAME_PATTERNS.some((pattern) => pattern.test(base))) return "config";
+  if (DATA_EXTENSIONS.includes(extension)) return "data";
+  if (LANGUAGE_BY_EXTENSION[extension] !== void 0) return "source";
+  return "other";
+}
+function compileIgnoreLine(line, base) {
+  let body = line.trim();
+  if (body === "" || body.startsWith("#")) return void 0;
+  const negated = body.startsWith("!");
+  if (negated) body = body.slice(1);
+  const directoryOnly = body.endsWith("/");
+  if (directoryOnly) body = body.slice(0, -1);
+  if (body === "") return void 0;
+  const anchored = body.startsWith("/") || body.slice(0, -1).includes("/");
+  if (body.startsWith("/")) body = body.slice(1);
+  let source = "";
+  for (let index = 0; index < body.length; index += 1) {
+    const character = body[index];
+    if (character === "*") {
+      if (body[index + 1] === "*") {
+        if (body[index + 2] === "/") {
+          source += "(?:.*/)?";
+          index += 2;
+        } else {
+          source += ".*";
+          index += 1;
+        }
+        continue;
+      }
+      source += "[^/]*";
+      continue;
+    }
+    if (character === "?") {
+      source += "[^/]";
+      continue;
+    }
+    if (character === "[") {
+      const close = body.indexOf("]", index + 1);
+      if (close !== -1) {
+        source += body.slice(index, close + 1);
+        index = close;
+        continue;
+      }
+    }
+    source += character.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+  const prefix = base === "" ? "" : `${base}/`;
+  const head = anchored ? `^${escapeLiteral(prefix)}` : `^${escapeLiteral(prefix)}(?:.*/)?`;
+  return {
+    pattern: new RegExp(`${head}${source}(?:/.*)?$`),
+    negated,
+    directoryOnly
+  };
+}
+function escapeLiteral(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+function readIgnoreScope(rootDir, base) {
+  const file = import_path23.default.join(rootDir, base, ".gitignore");
+  let text15;
+  try {
+    text15 = (0, import_fs21.readFileSync)(file, "utf8");
+  } catch {
+    return void 0;
+  }
+  const rules = [];
+  for (const line of text15.split(/\r?\n/)) {
+    const rule = compileIgnoreLine(line, base);
+    if (rule !== void 0) rules.push(rule);
+  }
+  return rules.length === 0 ? void 0 : { base, rules };
+}
+function isIgnoredByScopes(relativePath, isDirectory2, scopes) {
+  let ignored = false;
+  for (const scope of scopes) {
+    for (const rule of scope.rules) {
+      if (rule.directoryOnly && !isDirectory2) continue;
+      if (!rule.pattern.test(relativePath)) continue;
+      ignored = !rule.negated;
+    }
+  }
+  return ignored;
+}
+var TS_SYMBOL_PATTERNS = [
+  /^\s*export\s+(?:default\s+)?(?:async\s+)?(?:abstract\s+)?(?:class|interface|type|enum|function|const|let|var)\s+([A-Za-z_$][\w$]*)/gm,
+  /^\s*(?:export\s+)?(?:declare\s+)?(?:abstract\s+)?class\s+([A-Za-z_$][\w$]*)/gm
+];
+var TS_EXPORT_LIST = /^\s*export\s*\{([^}]*)\}/gm;
+var TS_IMPORT_PATTERNS = [
+  /^\s*import\s[^'"]*['"]([^'"]+)['"]/gm,
+  /^\s*export\s[^'"]*from\s*['"]([^'"]+)['"]/gm,
+  /\brequire\(\s*['"]([^'"]+)['"]\s*\)/gm,
+  /\bimport\(\s*['"]([^'"]+)['"]\s*\)/gm
+];
+var PY_SYMBOL_PATTERN = /^\s*(?:async\s+)?(?:def|class)\s+([A-Za-z_][\w]*)/gm;
+var PY_IMPORT_PATTERNS = [
+  /^\s*from\s+([.\w]+)\s+import\s/gm,
+  /^\s*import\s+([.\w]+)/gm
+];
+var GO_SYMBOL_PATTERN = /^\s*(?:func|type)\s+(?:\([^)]*\)\s*)?([A-Za-z_][\w]*)/gm;
+var GO_IMPORT_PATTERN = /^\s*(?:import\s+)?_?\s*"([^"]+)"/gm;
+var JVM_SYMBOL_PATTERN = /^\s*(?:public\s+|internal\s+|private\s+|protected\s+|sealed\s+|abstract\s+|final\s+|static\s+|open\s+|data\s+)*(?:class|interface|record|enum|object|struct)\s+([A-Za-z_][\w]*)/gm;
+var JVM_IMPORT_PATTERN = /^\s*(?:import|using)\s+(?:static\s+)?([\w.]+)/gm;
+var RUST_SYMBOL_PATTERN = /^\s*(?:pub(?:\([^)]*\))?\s+)?(?:async\s+)?(?:fn|struct|enum|trait|type)\s+([A-Za-z_][\w]*)/gm;
+var RUST_IMPORT_PATTERN = /^\s*use\s+([\w:]+)/gm;
+function collect(text15, pattern, limit) {
+  const found = [];
+  pattern.lastIndex = 0;
+  let match = pattern.exec(text15);
+  while (match !== null && found.length < limit) {
+    const value = match[1]?.trim();
+    if (value !== void 0 && value.length > 0 && value.length <= 200) found.push(value);
+    match = pattern.exec(text15);
+  }
+  return found;
+}
+function extractSignals(relativePath, text15) {
+  const language = languageOf(relativePath);
+  const symbolLimit = REPOSITORY_INDEX_LIMITS.maxSymbolsPerEntry;
+  const importLimit = REPOSITORY_INDEX_LIMITS.maxImportsPerEntry;
+  const symbols = /* @__PURE__ */ new Set();
+  const imports = /* @__PURE__ */ new Set();
+  const add = (target, values, limit) => {
+    for (const value of values) {
+      if (target.size >= limit) return;
+      target.add(value);
+    }
+  };
+  switch (language) {
+    case "typescript":
+    case "javascript":
+    case "vue":
+    case "svelte": {
+      for (const pattern of TS_SYMBOL_PATTERNS) add(symbols, collect(text15, pattern, symbolLimit), symbolLimit);
+      for (const group of collect(text15, TS_EXPORT_LIST, symbolLimit)) {
+        add(
+          symbols,
+          group.split(",").map((entry) => (entry.split(/\sas\s/).pop() ?? entry).trim()).filter((entry) => /^[A-Za-z_$][\w$]*$/.test(entry)),
+          symbolLimit
+        );
+      }
+      for (const pattern of TS_IMPORT_PATTERNS) add(imports, collect(text15, pattern, importLimit), importLimit);
+      break;
+    }
+    case "python": {
+      add(symbols, collect(text15, PY_SYMBOL_PATTERN, symbolLimit), symbolLimit);
+      for (const pattern of PY_IMPORT_PATTERNS) add(imports, collect(text15, pattern, importLimit), importLimit);
+      break;
+    }
+    case "go": {
+      add(symbols, collect(text15, GO_SYMBOL_PATTERN, symbolLimit), symbolLimit);
+      add(imports, collect(text15, GO_IMPORT_PATTERN, importLimit), importLimit);
+      break;
+    }
+    case "java":
+    case "kotlin":
+    case "csharp":
+    case "scala": {
+      add(symbols, collect(text15, JVM_SYMBOL_PATTERN, symbolLimit), symbolLimit);
+      add(imports, collect(text15, JVM_IMPORT_PATTERN, importLimit), importLimit);
+      break;
+    }
+    case "rust": {
+      add(symbols, collect(text15, RUST_SYMBOL_PATTERN, symbolLimit), symbolLimit);
+      add(imports, collect(text15, RUST_IMPORT_PATTERN, importLimit), importLimit);
+      break;
+    }
+    default:
+      break;
+  }
+  return { symbols: [...symbols], imports: [...imports] };
+}
+function pathTokens(relativePath) {
+  const withoutExtension = relativePath.replace(/\.[A-Za-z0-9]+$/, "");
+  const rawTokens = withoutExtension.split(/[/\\._-]+/).flatMap((segment) => segment.split(/(?<=[a-z0-9])(?=[A-Z])/)).map((segment) => segment.toLowerCase()).filter((segment) => segment.length >= 2 && segment.length <= 64);
+  return [...new Set(rawTokens)].slice(0, REPOSITORY_INDEX_LIMITS.maxTokensPerEntry);
+}
+function moduleOf(relativePath) {
+  const segments = relativePath.split("/");
+  segments.pop();
+  if (segments.length === 0) return "";
+  for (const marker of ["packages", "apps", "services", "libs", "modules"]) {
+    const at = segments.indexOf(marker);
+    if (at !== -1 && segments.length > at + 1) return segments.slice(0, at + 2).join("/");
+  }
+  const srcAt = segments.indexOf("src");
+  if (srcAt > 0) return segments.slice(0, srcAt).join("/");
+  return segments.join("/");
+}
+function testStem(relativePath) {
+  return import_path23.default.posix.basename(relativePath).replace(/\.[A-Za-z0-9]+$/, "").replace(/\.(test|spec)$/i, "").replace(/^test_/i, "").replace(/_test$/i, "").replace(/Tests?$/, "");
+}
+function resolveImportPath(fromPath, specifier, known) {
+  if (!specifier.startsWith(".")) return void 0;
+  const base = import_path23.default.posix.normalize(import_path23.default.posix.join(import_path23.default.posix.dirname(fromPath), specifier));
+  if (base.startsWith("..")) return void 0;
+  const candidates = [
+    base,
+    base.replace(/\.js$/, ".ts"),
+    base.replace(/\.js$/, ".tsx"),
+    base.replace(/\.mjs$/, ".mts"),
+    `${base}.ts`,
+    `${base}.tsx`,
+    `${base}.js`,
+    `${base}.jsx`,
+    `${base}.py`,
+    `${base}.go`,
+    `${base}/index.ts`,
+    `${base}/index.js`,
+    `${base}/mod.rs`
+  ];
+  return candidates.find((candidate) => known.has(candidate));
+}
+function isProtected(relativePath, protectedPaths) {
+  return protectedPaths.some((prefix) => {
+    const normalized = prefix.replace(/\\/g, "/").replace(/\/+$/, "");
+    if (normalized === "") return false;
+    return relativePath === normalized || relativePath.startsWith(`${normalized}/`);
+  });
+}
+function buildEntry(rootDir, relativePath, indexedAt) {
+  const absolute = import_path23.default.join(rootDir, relativePath);
+  let bytes;
+  let mtimeMs;
+  try {
+    const stat = (0, import_fs21.statSync)(absolute);
+    mtimeMs = stat.mtimeMs;
+    bytes = (0, import_fs21.readFileSync)(absolute);
+  } catch {
+    return void 0;
+  }
+  if (bytes.includes(0)) return void 0;
+  const text15 = bytes.toString("utf8");
+  const signals2 = extractSignals(relativePath, text15);
+  const kind = classifyFileKind(relativePath);
+  return {
+    path: relativePath,
+    kind,
+    language: languageOf(relativePath),
+    module: moduleOf(relativePath),
+    sizeBytes: bytes.byteLength,
+    lineCount: text15.length === 0 ? 0 : text15.split("\n").length,
+    contentHash: (0, import_crypto8.createHash)("sha256").update(bytes).digest("hex"),
+    mtimeMs,
+    symbols: signals2.symbols,
+    imports: signals2.imports,
+    importPaths: [],
+    tokens: pathTokens(relativePath),
+    testTargets: [],
+    indexedAt
+  };
+}
+function scanWorkspace(options) {
+  const rootDir = import_path23.default.resolve(options.rootDir);
+  const protectedPaths = options.protectedPaths ?? [];
+  const respectGitignore = options.respectGitignore !== false;
+  const maxEntries = options.maxEntries ?? REPOSITORY_INDEX_LIMITS.maxEntries;
+  const maxFileBytes = options.maxFileBytes ?? REPOSITORY_INDEX_LIMITS.maxFileBytes;
+  const entries = [];
+  const skipped = [];
+  const skippedCounts = {};
+  let truncated = false;
+  const note = (relativePath, reason) => {
+    skippedCounts[reason] = (skippedCounts[reason] ?? 0) + 1;
+    if (skipped.length < REPOSITORY_INDEX_LIMITS.maxSkippedRecorded) {
+      skipped.push({ path: relativePath, reason });
+    }
+  };
+  const walk = (relativeDir, scopes) => {
+    if (truncated) return;
+    const absoluteDir = import_path23.default.join(rootDir, relativeDir);
+    let dirents;
+    try {
+      dirents = (0, import_fs21.readdirSync)(absoluteDir, { withFileTypes: true });
+    } catch {
+      note(relativeDir === "" ? "." : relativeDir, "unreadable");
+      return;
+    }
+    const localScope = respectGitignore ? readIgnoreScope(rootDir, relativeDir) : void 0;
+    const activeScopes = localScope === void 0 ? scopes : [...scopes, localScope];
+    const sorted = [...dirents].sort((left, right) => left.name < right.name ? -1 : left.name > right.name ? 1 : 0);
+    for (const dirent of sorted) {
+      if (truncated) return;
+      const relativePath = relativeDir === "" ? dirent.name : `${relativeDir}/${dirent.name}`;
+      if (relativePath.length > REPOSITORY_INDEX_LIMITS.maxPathChars) {
+        note(relativePath.slice(0, REPOSITORY_INDEX_LIMITS.maxPathChars), "unreadable");
+        continue;
+      }
+      if (dirent.isSymbolicLink()) continue;
+      if (dirent.isDirectory()) {
+        if (ALWAYS_IGNORED_DIRECTORIES.includes(dirent.name)) {
+          note(relativePath, "ignored-directory");
+          continue;
+        }
+        if (isProtected(relativePath, protectedPaths)) {
+          note(relativePath, "protected-path");
+          continue;
+        }
+        if (respectGitignore && isIgnoredByScopes(relativePath, true, activeScopes)) {
+          note(relativePath, "gitignored");
+          continue;
+        }
+        walk(relativePath, activeScopes);
+        continue;
+      }
+      if (!dirent.isFile()) continue;
+      if (IGNORED_FILENAMES.includes(dirent.name)) {
+        note(relativePath, "ignored-directory");
+        continue;
+      }
+      if (isCredentialShapedPath(relativePath)) {
+        note(relativePath, "credential-shaped");
+        continue;
+      }
+      if (isProtected(relativePath, protectedPaths)) {
+        note(relativePath, "protected-path");
+        continue;
+      }
+      if (isBinaryPath(relativePath)) {
+        note(relativePath, "binary");
+        continue;
+      }
+      if (respectGitignore && isIgnoredByScopes(relativePath, false, activeScopes)) {
+        note(relativePath, "gitignored");
+        continue;
+      }
+      let size;
+      let mtimeMs;
+      try {
+        const stat = (0, import_fs21.statSync)(import_path23.default.join(rootDir, relativePath));
+        size = stat.size;
+        mtimeMs = stat.mtimeMs;
+      } catch {
+        note(relativePath, "unreadable");
+        continue;
+      }
+      if (size > maxFileBytes) {
+        note(relativePath, "too-large");
+        continue;
+      }
+      if (entries.length >= maxEntries) {
+        note(relativePath, "entry-limit");
+        truncated = true;
+        return;
+      }
+      const known = options.reuse?.get(relativePath);
+      if (known !== void 0 && known.sizeBytes === size && known.mtimeMs === mtimeMs) {
+        entries.push(known);
+        continue;
+      }
+      const entry = buildEntry(rootDir, relativePath, options.indexedAt);
+      if (entry === void 0) {
+        note(relativePath, "binary");
+        continue;
+      }
+      entries.push(entry);
+    }
+  };
+  walk("", []);
+  return { entries, skipped, skippedCounts, truncated };
+}
+function linkEntries(entries) {
+  const known = new Set(entries.map((entry) => entry.path));
+  const sourcesByStem = /* @__PURE__ */ new Map();
+  for (const entry of entries) {
+    if (entry.kind === "test") continue;
+    const stem2 = testStem(entry.path).toLowerCase();
+    if (stem2 === "") continue;
+    const bucket = sourcesByStem.get(stem2);
+    if (bucket === void 0) sourcesByStem.set(stem2, [entry.path]);
+    else if (bucket.length < REPOSITORY_INDEX_LIMITS.maxImportsPerEntry) bucket.push(entry.path);
+  }
+  return entries.map((entry) => {
+    const importPaths = [];
+    for (const specifier of entry.imports) {
+      const resolved2 = resolveImportPath(entry.path, specifier, known);
+      if (resolved2 !== void 0 && !importPaths.includes(resolved2)) importPaths.push(resolved2);
+    }
+    let testTargets = [];
+    if (entry.kind === "test") {
+      const stem2 = testStem(entry.path).toLowerCase();
+      const byName = stem2 === "" ? [] : sourcesByStem.get(stem2) ?? [];
+      testTargets = [.../* @__PURE__ */ new Set([...importPaths, ...byName])].slice(
+        0,
+        REPOSITORY_INDEX_LIMITS.maxImportsPerEntry
+      );
+    }
+    return { ...entry, importPaths, testTargets };
+  });
+}
+function workspaceKeyFor(rootDir) {
+  return (0, import_crypto9.createHash)("sha256").update(import_path24.default.resolve(rootDir)).digest("hex").slice(0, 32);
+}
+function buildRepositoryIndex(options) {
+  const startedAt = Date.now();
+  const scan = scanWorkspace({ ...options, indexedAt: options.now });
+  const entries = linkEntries(scan.entries);
+  return repositoryContextIndexSchema.parse({
+    schemaVersion: REPOSITORY_INDEX_SCHEMA_VERSION,
+    formatVersion: REPOSITORY_INDEX_FORMAT_VERSION,
+    workspaceKey: workspaceKeyFor(options.rootDir),
+    builtAt: options.now,
+    updatedAt: options.now,
+    baselineRef: options.baselineRef ?? null,
+    entries,
+    skipped: scan.skipped,
+    truncated: scan.truncated,
+    skippedCounts: scan.skippedCounts,
+    buildMs: options.elapsedMs?.() ?? Math.max(0, Date.now() - startedAt)
+  });
+}
+function refreshRepositoryIndex(previous, options) {
+  const workspaceKey = workspaceKeyFor(options.rootDir);
+  if (previous === void 0 || !isIndexReusable(previous, { workspaceKey })) {
+    return {
+      state: buildRepositoryIndex(options),
+      refreshedPaths: [],
+      removedPaths: [],
+      addedPaths: [],
+      rebuilt: true
+    };
+  }
+  const startedAt = Date.now();
+  const byPath = new Map(previous.entries.map((entry) => [entry.path, entry]));
+  const refreshedPaths = [];
+  const removedPaths = [];
+  const addedPaths = [];
+  let discovery;
+  for (const deleted of options.deletedPaths ?? []) {
+    if (byPath.delete(normalize(deleted))) removedPaths.push(normalize(deleted));
+  }
+  if (options.changedPaths !== void 0) {
+    for (const raw of options.changedPaths) {
+      const relativePath = normalize(raw);
+      if (relativePath === "" || relativePath.startsWith("..")) continue;
+      if (isCredentialShapedPath(relativePath) || isBinaryPath(relativePath)) {
+        if (byPath.delete(relativePath)) removedPaths.push(relativePath);
+        continue;
+      }
+      const existing = byPath.get(relativePath);
+      const rebuiltEntry = safeBuildEntry(options.rootDir, relativePath, options.now, options.maxFileBytes);
+      if (rebuiltEntry === void 0) {
+        if (byPath.delete(relativePath)) removedPaths.push(relativePath);
+        continue;
+      }
+      if (existing === void 0) {
+        if (byPath.size >= (options.maxEntries ?? REPOSITORY_INDEX_LIMITS.maxEntries)) continue;
+        byPath.set(relativePath, rebuiltEntry);
+        addedPaths.push(relativePath);
+        continue;
+      }
+      if (existing.contentHash !== rebuiltEntry.contentHash) {
+        byPath.set(relativePath, rebuiltEntry);
+        refreshedPaths.push(relativePath);
+      } else {
+        byPath.set(relativePath, { ...existing, mtimeMs: rebuiltEntry.mtimeMs });
+      }
+    }
+  } else {
+    for (const entry of previous.entries) {
+      const absolute = import_path24.default.join(options.rootDir, entry.path);
+      let size;
+      let mtimeMs;
+      try {
+        const stat = (0, import_fs22.statSync)(absolute);
+        size = stat.size;
+        mtimeMs = stat.mtimeMs;
+      } catch {
+        byPath.delete(entry.path);
+        removedPaths.push(entry.path);
+        continue;
+      }
+      if (size === entry.sizeBytes && mtimeMs === entry.mtimeMs) continue;
+      const rebuiltEntry = safeBuildEntry(options.rootDir, entry.path, options.now, options.maxFileBytes);
+      if (rebuiltEntry === void 0) {
+        byPath.delete(entry.path);
+        removedPaths.push(entry.path);
+        continue;
+      }
+      byPath.set(entry.path, rebuiltEntry);
+      if (rebuiltEntry.contentHash !== entry.contentHash) refreshedPaths.push(entry.path);
+    }
+    if (options.discoverAdditions === true) {
+      const scan = scanWorkspace({ ...options, indexedAt: options.now, reuse: byPath });
+      discovery = scan;
+      const walked = new Map(scan.entries.map((entry) => [entry.path, entry]));
+      for (const [knownPath, known] of byPath) {
+        const seen = walked.get(knownPath);
+        if (seen === void 0) {
+          byPath.delete(knownPath);
+          removedPaths.push(knownPath);
+          continue;
+        }
+        if (seen !== known && seen.contentHash !== known.contentHash) {
+          refreshedPaths.push(knownPath);
+        }
+      }
+      for (const [walkedPath, entry] of walked) {
+        if (!byPath.has(walkedPath)) addedPaths.push(walkedPath);
+        byPath.set(walkedPath, entry);
+      }
+    }
+  }
+  const relinked = refreshedPaths.length + removedPaths.length + addedPaths.length > 0 ? linkEntries([...byPath.values()]) : [...byPath.values()];
+  const ordered = [...relinked].sort(
+    (left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0
+  );
+  return {
+    state: repositoryContextIndexSchema.parse({
+      ...previous,
+      updatedAt: options.now,
+      baselineRef: options.baselineRef ?? previous.baselineRef,
+      entries: ordered,
+      // A discovery walk re-observed the whole tree; its skip and truncation
+      // facts replace the previous walk's, which described an older tree.
+      ...discovery !== void 0 ? {
+        skipped: discovery.skipped,
+        skippedCounts: discovery.skippedCounts,
+        truncated: discovery.truncated
+      } : {},
+      buildMs: options.elapsedMs?.() ?? Math.max(0, Date.now() - startedAt)
+    }),
+    refreshedPaths,
+    removedPaths,
+    addedPaths,
+    rebuilt: false
+  };
+}
+function normalize(value) {
+  return value.replace(/\\/g, "/").replace(/^\.\//, "");
+}
+function safeBuildEntry(rootDir, relativePath, now5, maxFileBytes) {
+  const limit = maxFileBytes ?? REPOSITORY_INDEX_LIMITS.maxFileBytes;
+  try {
+    if ((0, import_fs22.statSync)(import_path24.default.join(rootDir, relativePath)).size > limit) return void 0;
+  } catch {
+    return void 0;
+  }
+  return buildEntry(rootDir, relativePath, now5);
+}
+var RepositoryContextIndex = class {
+  /**
+   * Every lookup this class offers is O(1) after construction.
+   *
+   * That is a hard requirement rather than an optimization: ranking runs on
+   * EVERY dispatch of a long-horizon job, and a single linear scan hidden
+   * behind one of these accessors turns proximity expansion — which calls
+   * several of them per anchor — into an O(anchors x files) pass that is
+   * measurably slow on a real repository. The reverse maps are built once,
+   * here, from the same entries the forward maps use.
+   */
+  constructor(state) {
+    this.state = state;
+    this.byPath = new Map(state.entries.map((entry) => [entry.path, entry]));
+    this.importersOf = /* @__PURE__ */ new Map();
+    this.bySymbol = /* @__PURE__ */ new Map();
+    this.byBasename = /* @__PURE__ */ new Map();
+    this.testsBySource = /* @__PURE__ */ new Map();
+    this.byModule = /* @__PURE__ */ new Map();
+    for (const entry of state.entries) {
+      for (const target of entry.importPaths) {
+        push(this.importersOf, target, entry.path);
+      }
+      for (const symbol of entry.symbols) {
+        push(this.bySymbol, symbol.toLowerCase(), entry.path);
+      }
+      push(this.byBasename, basename(entry.path).toLowerCase(), entry.path);
+      push(this.byModule, entry.module, entry.path);
+      if (entry.kind === "test") {
+        for (const target of entry.testTargets) push(this.testsBySource, target, entry.path);
+      }
+    }
+  }
+  state;
+  byPath;
+  importersOf;
+  bySymbol;
+  byBasename;
+  testsBySource;
+  byModule;
+  get entries() {
+    return this.state.entries;
+  }
+  get size() {
+    return this.state.entries.length;
+  }
+  get(relativePath) {
+    return this.byPath.get(normalize(relativePath));
+  }
+  has(relativePath) {
+    return this.byPath.has(normalize(relativePath));
+  }
+  /** Files this file imports (repository-internal edges only). */
+  dependenciesOf(relativePath) {
+    return [...this.get(relativePath)?.importPaths ?? []];
+  }
+  /** Files that import this file. */
+  dependentsOf(relativePath) {
+    return [...this.importersOf.get(normalize(relativePath)) ?? []];
+  }
+  /** Files declaring a symbol with this exact name (case-insensitive). */
+  declaring(symbol) {
+    return [...this.bySymbol.get(symbol.toLowerCase()) ?? []];
+  }
+  /** Files whose basename matches exactly (case-insensitive). */
+  namedExactly(fileName) {
+    return [...this.byBasename.get(fileName.toLowerCase()) ?? []];
+  }
+  /** Tests that most likely cover this source file. */
+  testsFor(relativePath) {
+    return [...this.testsBySource.get(normalize(relativePath)) ?? []];
+  }
+  /** Source files a test file most likely covers. */
+  sourcesFor(relativePath) {
+    return [...this.get(relativePath)?.testTargets ?? []];
+  }
+  /** Entries in the same module/package directory. */
+  siblingsIn(module2) {
+    return [...this.byModule.get(module2) ?? []];
+  }
+};
+function push(map, key, value) {
+  const bucket = map.get(key);
+  if (bucket === void 0) map.set(key, [value]);
+  else if (!bucket.includes(value)) bucket.push(value);
+}
+function basename(relativePath) {
+  const at = relativePath.lastIndexOf("/");
+  return at === -1 ? relativePath : relativePath.slice(at + 1);
+}
 var RETRIEVAL_ROLES = [
   "EXECUTOR",
   "DIAGNOSER",
@@ -51888,6 +52687,167 @@ var RETRIEVAL_ROLES = [
   "PLANNER",
   "CRITIC"
 ];
+var RETRIEVAL_QUERY_LIMITS = {
+  maxPathsPerBucket: 60,
+  maxSymbols: 40,
+  maxTokens: 48,
+  maxObjectiveChars: 4e3,
+  maxScannedTextChars: 6e4
+};
+var PATH_PATTERN = /(?:^|[\s('"`[<])((?:\.{0,2}\/)?(?:[\w.@-]+\/)+[\w.@-]+\.[A-Za-z0-9]{1,10}|[\w.@-]+\.(?:ts|tsx|mts|cts|js|jsx|mjs|cjs|py|go|rs|java|kt|cs|rb|php|swift|scala|c|h|cc|cpp|hpp|sql|sh|ps1|vue|svelte|md|json|ya?ml|toml))(?::(\d+))?(?::(\d+))?(?=$|[\s)'"`\]>,;:.!?])/g;
+var BACKTICK_SYMBOL_PATTERN = /`([A-Za-z_$][\w$.]{2,80})`/g;
+var CAMEL_SYMBOL_PATTERN = /\b([A-Z][a-z0-9]+(?:[A-Z][a-z0-9]+)+)\b/g;
+var STACK_FRAME_SYMBOL_PATTERN = /\bat\s+(?:new\s+)?([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)/g;
+var STOP_TOKENS = /* @__PURE__ */ new Set([
+  "the",
+  "and",
+  "for",
+  "with",
+  "that",
+  "this",
+  "from",
+  "into",
+  "must",
+  "should",
+  "when",
+  "then",
+  "test",
+  "tests",
+  "src",
+  "lib",
+  "index",
+  "main",
+  "new",
+  "add",
+  "fix",
+  "use",
+  "not",
+  "all",
+  "any",
+  "task",
+  "file",
+  "files",
+  "code",
+  "error",
+  "failed",
+  "failure",
+  "expected",
+  "received",
+  "value"
+]);
+function normalizePath(value) {
+  return value.replace(/\\/g, "/").replace(/^\.\//, "").replace(/:\d+(?::\d+)?$/, "").trim();
+}
+function extractPathReferencesWithLines(text15) {
+  const bounded22 = text15.slice(0, RETRIEVAL_QUERY_LIMITS.maxScannedTextChars);
+  const found = [];
+  PATH_PATTERN.lastIndex = 0;
+  let match = PATH_PATTERN.exec(bounded22);
+  while (match !== null && found.length < RETRIEVAL_QUERY_LIMITS.maxPathsPerBucket * 4) {
+    const candidate = normalizePath(match[1] ?? "");
+    const line = match[2] === void 0 ? void 0 : Number(match[2]);
+    if (candidate !== "" && !candidate.startsWith("..")) {
+      const existing = found.find((entry) => entry.path === candidate);
+      if (existing === void 0) {
+        found.push({ path: candidate, ...line !== void 0 && Number.isFinite(line) ? { line } : {} });
+      } else if (existing.line === void 0 && line !== void 0 && Number.isFinite(line)) {
+        existing.line = line;
+      }
+    }
+    match = PATH_PATTERN.exec(bounded22);
+  }
+  return found;
+}
+function extractPathReferences2(text15) {
+  return extractPathReferencesWithLines(text15).map((reference) => reference.path);
+}
+function extractSymbolReferences(text15) {
+  const bounded22 = text15.slice(0, RETRIEVAL_QUERY_LIMITS.maxScannedTextChars);
+  const found = /* @__PURE__ */ new Set();
+  for (const pattern of [BACKTICK_SYMBOL_PATTERN, STACK_FRAME_SYMBOL_PATTERN, CAMEL_SYMBOL_PATTERN]) {
+    pattern.lastIndex = 0;
+    let match = pattern.exec(bounded22);
+    while (match !== null && found.size < RETRIEVAL_QUERY_LIMITS.maxSymbols) {
+      const raw = (match[1] ?? "").trim();
+      for (const part of raw.split(".")) {
+        if (part.length >= 3 && part.length <= 80 && !/^\d+$/.test(part)) found.add(part);
+      }
+      match = pattern.exec(bounded22);
+    }
+  }
+  return [...found].slice(0, RETRIEVAL_QUERY_LIMITS.maxSymbols);
+}
+function extractTokens(text15) {
+  const bounded22 = text15.slice(0, RETRIEVAL_QUERY_LIMITS.maxScannedTextChars);
+  const tokens = /* @__PURE__ */ new Set();
+  for (const raw of bounded22.split(/[^A-Za-z0-9]+/)) {
+    if (raw.length < 3 || raw.length > 40) continue;
+    for (const part of raw.split(/(?<=[a-z0-9])(?=[A-Z])/)) {
+      const token = part.toLowerCase();
+      if (token.length < 3 || STOP_TOKENS.has(token)) continue;
+      tokens.add(token);
+      if (tokens.size >= RETRIEVAL_QUERY_LIMITS.maxTokens) return [...tokens];
+    }
+  }
+  return [...tokens];
+}
+function bounded(values) {
+  return [...new Set((values ?? []).map(normalizePath).filter((value) => value !== ""))].slice(
+    0,
+    RETRIEVAL_QUERY_LIMITS.maxPathsPerBucket
+  );
+}
+function buildRetrievalQuery(input) {
+  const contractText = [input.contract ?? "", ...input.acceptanceCriteria ?? []].join("\n");
+  const actionText = [input.currentAction ?? "", input.recoveryText ?? ""].join("\n");
+  const failureText = input.failureText ?? "";
+  const objective = (input.objective ?? input.contract ?? "").slice(
+    0,
+    RETRIEVAL_QUERY_LIMITS.maxObjectiveChars
+  );
+  const symbols = [
+    .../* @__PURE__ */ new Set([
+      ...extractSymbolReferences(failureText),
+      ...extractSymbolReferences(contractText),
+      ...extractSymbolReferences(actionText)
+    ])
+  ].slice(0, RETRIEVAL_QUERY_LIMITS.maxSymbols);
+  const tokens = [
+    .../* @__PURE__ */ new Set([
+      ...extractTokens(objective),
+      ...extractTokens(actionText),
+      ...extractTokens(failureText)
+    ])
+  ].slice(0, RETRIEVAL_QUERY_LIMITS.maxTokens);
+  const lineHints = {};
+  for (const reference of [
+    ...extractPathReferencesWithLines(failureText),
+    ...extractPathReferencesWithLines(actionText)
+  ]) {
+    if (reference.line === void 0) continue;
+    const bucket = lineHints[reference.path];
+    if (bucket === void 0) lineHints[reference.path] = [reference.line];
+    else if (!bucket.includes(reference.line)) bucket.push(reference.line);
+  }
+  return {
+    taskId: input.taskId,
+    nodeId: input.nodeId,
+    attemptId: input.attemptId,
+    role: input.role,
+    objective,
+    contractPaths: bounded(extractPathReferences2(contractText)),
+    failurePaths: bounded(extractPathReferences2(failureText)),
+    actionPaths: bounded(extractPathReferences2(actionText)),
+    lineHints,
+    changedPaths: bounded(input.changedPaths),
+    checkpointChangedPaths: bounded(input.checkpointChangedPaths),
+    priorRelevantPaths: bounded(input.priorRelevantPaths),
+    symbols,
+    tokens,
+    failureFingerprint: input.failureFingerprint,
+    expansionLevel: input.expansionLevel ?? "TOP_WORKING_SET"
+  };
+}
 var DEFAULT_RANKING_WEIGHTS = Object.freeze({
   explicitContractReference: 1e3,
   explicitFailureReference: 1200,
@@ -51912,6 +52872,265 @@ var ROLE_WEIGHT_MULTIPLIERS = Object.freeze({
   PLANNER: { explicitContractReference: 1.3, moduleProximity: 1.25 },
   CRITIC: { explicitContractReference: 1.2, changedFile: 1.2 }
 });
+function weightsForRole(role, base = DEFAULT_RANKING_WEIGHTS) {
+  const multipliers = ROLE_WEIGHT_MULTIPLIERS[role];
+  const adjusted = { ...base };
+  for (const [key, multiplier] of Object.entries(multipliers)) {
+    adjusted[key] = Math.round(base[key] * multiplier);
+  }
+  return adjusted;
+}
+var MANDATORY_REASONS = /* @__PURE__ */ new Set([
+  "EXPLICIT_CONTRACT_REFERENCE",
+  "EXPLICIT_FAILURE_REFERENCE",
+  "EXPLICIT_ACTION_REFERENCE",
+  "CHANGED_FILE"
+]);
+function rankCandidates(index, query, options = {}) {
+  const weights = options.weights ?? weightsForRole(query.role);
+  const maxCandidates = options.maxCandidates ?? 200;
+  const excluded = new Set((options.excludedPaths ?? []).map((value) => value.replace(/\\/g, "/")));
+  const accumulators = /* @__PURE__ */ new Map();
+  const nonMandatoryChanged = /* @__PURE__ */ new Set();
+  const add = (relativePath, reason, score, depth, detail) => {
+    if (score <= 0) return;
+    const normalized = relativePath.replace(/\\/g, "/");
+    if (excluded.has(normalized)) return;
+    const entry = index.get(normalized);
+    if (entry === void 0) return;
+    const existing = accumulators.get(entry.path);
+    if (existing === void 0) {
+      accumulators.set(entry.path, {
+        entry,
+        signals: [{ reason, score, ...detail !== void 0 ? { detail } : {} }],
+        eligibleAtDepth: depth
+      });
+      return;
+    }
+    existing.eligibleAtDepth = Math.min(existing.eligibleAtDepth, depth);
+    const sameReason = existing.signals.find((signal) => signal.reason === reason);
+    if (sameReason === void 0) {
+      existing.signals.push({ reason, score, ...detail !== void 0 ? { detail } : {} });
+    } else if (score > sameReason.score) {
+      sameReason.score = score;
+      if (detail !== void 0) sameReason.detail = detail;
+    }
+  };
+  const level1 = CONTEXT_EXPANSION_LEVEL_DEPTH.TOP_WORKING_SET;
+  const level2 = CONTEXT_EXPANSION_LEVEL_DEPTH.ADJACENT_DEPENDENCIES;
+  const level3 = CONTEXT_EXPANSION_LEVEL_DEPTH.MODULE_CONTEXT;
+  for (const reference of query.failurePaths) {
+    add(reference, "EXPLICIT_FAILURE_REFERENCE", weights.explicitFailureReference, 0, reference);
+  }
+  for (const reference of query.contractPaths) {
+    add(reference, "EXPLICIT_CONTRACT_REFERENCE", weights.explicitContractReference, 0, reference);
+  }
+  for (const reference of query.actionPaths) {
+    add(reference, "EXPLICIT_ACTION_REFERENCE", weights.explicitActionReference, 0, reference);
+  }
+  const changedLimit = options.maxMandatoryChangedFiles ?? 12;
+  const changedSorted = [...query.changedPaths].sort();
+  changedSorted.forEach((reference, position) => {
+    add(
+      reference,
+      "CHANGED_FILE",
+      weights.changedFile,
+      position < changedLimit ? 0 : level1,
+      reference
+    );
+    if (position >= changedLimit) nonMandatoryChanged.add(reference.replace(/\\/g, "/"));
+  });
+  for (const reference of query.checkpointChangedPaths) {
+    add(reference, "CHECKPOINT_CHANGED_FILE", weights.checkpointChangedFile, level1, reference);
+  }
+  for (const reference of query.priorRelevantPaths) {
+    add(reference, "PRIOR_TASK_RELEVANCE", weights.priorTaskRelevance, level1, reference);
+  }
+  for (const bucket of [query.failurePaths, query.contractPaths, query.actionPaths]) {
+    for (const reference of bucket) {
+      if (reference.includes("/")) continue;
+      for (const resolved2 of index.namedExactly(reference)) {
+        add(resolved2, "EXPLICIT_FAILURE_REFERENCE", weights.explicitFailureReference, 0, reference);
+      }
+    }
+  }
+  for (const symbol of query.symbols) {
+    for (const declaring of index.declaring(symbol)) {
+      add(declaring, "SYMBOL_MATCH", weights.symbolMatch, level1, symbol);
+    }
+  }
+  if (query.tokens.length > 0) {
+    const queryTokens = new Set(query.tokens);
+    for (const entry of index.entries) {
+      if (excluded.has(entry.path)) continue;
+      let overlap = 0;
+      for (const token of entry.tokens) if (queryTokens.has(token)) overlap += 1;
+      if (overlap === 0) continue;
+      add(
+        entry.path,
+        "TOKEN_OVERLAP",
+        Math.min(weights.tokenOverlapCap, overlap * weights.tokenOverlapPerToken),
+        level1,
+        `${overlap} token(s)`
+      );
+    }
+  }
+  const anchorLimit = options.maxProximityAnchors ?? 25;
+  const anchors = [...accumulators.entries()].map(([path311, accumulator]) => ({
+    path: path311,
+    score: accumulator.signals.reduce((sum, signal) => sum + signal.score, 0)
+  })).sort(
+    (left, right) => right.score !== left.score ? right.score - left.score : left.path < right.path ? -1 : 1
+  ).slice(0, anchorLimit).map((entry) => entry.path);
+  for (const anchor of anchors) {
+    for (const test of index.testsFor(anchor)) {
+      add(test, "TEST_SOURCE_PAIR", weights.testSourcePair, level2, anchor);
+    }
+    for (const source of index.sourcesFor(anchor)) {
+      add(source, "TEST_SOURCE_PAIR", weights.testSourcePair, level2, anchor);
+    }
+    for (const dependency of index.dependenciesOf(anchor)) {
+      add(dependency, "DEPENDENCY_PROXIMITY", weights.dependencyProximity, level2, anchor);
+    }
+    for (const dependent of index.dependentsOf(anchor)) {
+      add(dependent, "DEPENDENCY_PROXIMITY", weights.dependencyProximity, level2, anchor);
+    }
+  }
+  const anchorModules = new Set(anchors.map((anchor) => index.get(anchor)?.module ?? ""));
+  for (const module2 of anchorModules) {
+    if (module2 === "") continue;
+    for (const sibling of index.siblingsIn(module2)) {
+      add(sibling, "MODULE_PROXIMITY", weights.moduleProximity, level3, module2);
+    }
+  }
+  const ranked = [];
+  for (const accumulator of accumulators.values()) {
+    const { entry } = accumulator;
+    const positive = accumulator.signals.reduce((sum, signal) => sum + signal.score, 0);
+    const kindPenalty = entry.kind === "doc" || entry.kind === "data" ? weights.nonSourcePenalty : 0;
+    const sizePenalty = Math.floor(entry.sizeBytes / 10240) * weights.sizePenaltyPer10Kib;
+    const mandatory = accumulator.signals.some(
+      (signal) => MANDATORY_REASONS.has(signal.reason) && !(signal.reason === "CHANGED_FILE" && nonMandatoryChanged.has(entry.path))
+    );
+    const score = mandatory ? positive : Math.max(1, positive - kindPenalty - sizePenalty);
+    const primary = [...accumulator.signals].sort((left, right) => right.score - left.score)[0];
+    ranked.push({
+      path: entry.path,
+      entry,
+      score,
+      primaryReason: primary?.reason ?? "TOKEN_OVERLAP",
+      signals: [...accumulator.signals].sort((left, right) => right.score - left.score),
+      mandatory,
+      eligibleAtDepth: mandatory ? 0 : accumulator.eligibleAtDepth
+    });
+  }
+  ranked.sort(
+    (left, right) => right.score !== left.score ? right.score - left.score : left.path < right.path ? -1 : 1
+  );
+  return ranked.slice(0, maxCandidates);
+}
+var DEFAULT_SECTION_OPTIONS = {
+  wholeFileUnderChars: 6e3,
+  targetSectionChars: 4e3,
+  marginLines: 12,
+  maxPreambleLines: 40
+};
+var DECLARATION_PATTERNS = [
+  /^\s*(?:export\s+)?(?:default\s+)?(?:async\s+)?(?:abstract\s+)?(?:class|interface|type|enum|function|const|let|var)\s+([A-Za-z_$][\w$]*)/,
+  /^\s*(?:public|private|protected|internal|static|final|open|sealed|data)\s+.*?\b(?:class|interface|record|enum|struct|object)\s+([A-Za-z_][\w]*)/,
+  /^\s*(?:async\s+)?(?:def|class)\s+([A-Za-z_][\w]*)/,
+  /^\s*(?:pub(?:\([^)]*\))?\s+)?(?:async\s+)?(?:fn|struct|enum|trait|impl)\s+([A-Za-z_][\w]*)/,
+  /^\s*func\s+(?:\([^)]*\)\s*)?([A-Za-z_][\w]*)/
+];
+var PREAMBLE_PATTERN = /^\s*(?:import\b|from\s+[\w.]+\s+import\b|package\b|using\b|use\b|require\(|#include\b|@\w|\/\*|\*|\/\/|#)/;
+function findDeclarations(lines) {
+  const declarations = [];
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (line.length > 400) continue;
+    for (const pattern of DECLARATION_PATTERNS) {
+      const match = pattern.exec(line);
+      if (match?.[1] !== void 0) {
+        declarations.push({ name: match[1], line: index });
+        break;
+      }
+    }
+  }
+  return declarations;
+}
+function preamble(lines, maxLines) {
+  let end = 0;
+  for (let index = 0; index < Math.min(lines.length, maxLines); index += 1) {
+    const line = lines[index];
+    if (line.trim() === "" || PREAMBLE_PATTERN.test(line)) {
+      end = index + 1;
+      continue;
+    }
+    break;
+  }
+  return { text: lines.slice(0, end).join("\n"), endLine: end };
+}
+function extractSection(input) {
+  const supplied = input.options ?? {};
+  const options = {
+    wholeFileUnderChars: supplied.wholeFileUnderChars ?? DEFAULT_SECTION_OPTIONS.wholeFileUnderChars,
+    targetSectionChars: supplied.targetSectionChars ?? DEFAULT_SECTION_OPTIONS.targetSectionChars,
+    marginLines: supplied.marginLines ?? DEFAULT_SECTION_OPTIONS.marginLines,
+    maxPreambleLines: supplied.maxPreambleLines ?? DEFAULT_SECTION_OPTIONS.maxPreambleLines
+  };
+  const content = input.content;
+  if (content.length <= options.wholeFileUnderChars) {
+    return { content, sectioned: false, wholeFileReason: "small-enough" };
+  }
+  const lines = content.split("\n");
+  const declarations = findDeclarations(lines);
+  let anchorLine;
+  let anchorSymbol;
+  const referenced = (input.lines ?? []).filter((line) => line >= 1 && line <= lines.length);
+  if (referenced.length > 0) {
+    anchorLine = referenced[0] - 1;
+    anchorSymbol = [...declarations].reverse().find((entry) => entry.line <= anchorLine)?.name;
+  } else if ((input.symbols?.length ?? 0) > 0 && declarations.length > 0) {
+    const wanted = new Set((input.symbols ?? []).map((symbol) => symbol.toLowerCase()));
+    const hit = declarations.find((entry) => wanted.has(entry.name.toLowerCase()));
+    if (hit !== void 0) {
+      anchorLine = hit.line;
+      anchorSymbol = hit.name;
+    }
+  }
+  if (anchorLine === void 0) {
+    return { content, sectioned: false, wholeFileReason: "no-reliable-structure" };
+  }
+  const declarationStart = [...declarations].reverse().find((entry) => entry.line <= anchorLine)?.line ?? anchorLine;
+  const nextDeclaration = declarations.find((entry) => entry.line > declarationStart)?.line ?? lines.length;
+  let start = Math.max(0, declarationStart - options.marginLines);
+  let end = Math.min(lines.length, nextDeclaration + options.marginLines);
+  while (lines.slice(start, end).join("\n").length > options.targetSectionChars && end - start > 20) {
+    if (end - anchorLine > anchorLine - start) end -= 1;
+    else start += 1;
+  }
+  const head = preamble(lines, options.maxPreambleLines);
+  const body = lines.slice(start, end).join("\n");
+  const includeHead = head.text.trim() !== "" && head.endLine <= start;
+  const omittedBefore = start - (includeHead ? head.endLine : 0);
+  const omittedAfter = lines.length - end;
+  const parts = [];
+  if (includeHead) {
+    parts.push(head.text);
+    if (omittedBefore > 0) parts.push(`\u2026 [${omittedBefore} line(s) omitted] \u2026`);
+  } else if (start > 0) {
+    parts.push(`\u2026 [${start} line(s) omitted] \u2026`);
+  }
+  parts.push(body);
+  if (omittedAfter > 0) parts.push(`\u2026 [${omittedAfter} line(s) omitted] \u2026`);
+  return {
+    content: parts.join("\n"),
+    startLine: start + 1,
+    endLine: end,
+    symbol: anchorSymbol,
+    sectioned: true
+  };
+}
 var contextAllocationPolicySchema = external_exports.object({
   /** Share of usable input guaranteed to PINNED items. */
   pinnedReserveRatio: external_exports.number().min(0).max(1).default(0.12),
@@ -52220,7 +53439,9 @@ var contextEfficiencyMetricsSchema = external_exports.object({
 }).passthrough();
 
 // ../../packages/orchestration/dist/index.js
-var import_crypto11 = require("crypto");
+var import_fs26 = require("fs");
+var import_path28 = __toESM(require("path"), 1);
+var import_crypto13 = require("crypto");
 var ORCHESTRATION_PHASES = [
   /** The run exists; no intent has been assessed yet. */
   "CREATED",
@@ -53013,14 +54234,14 @@ function normalizeFailureOutput(raw) {
 }
 function failureFingerprint(input) {
   const normalized = input.output !== void 0 ? normalizeFailureOutput(input.output) : "";
-  const bounded2 = normalized.slice(0, 16384);
+  const bounded22 = normalized.slice(0, 16384);
   const canonical = [
     input.category,
     input.source,
     input.exitCode === void 0 ? "no-exit-code" : String(input.exitCode),
-    bounded2
+    bounded22
   ].join("\0");
-  return (0, import_crypto8.createHash)("sha256").update(canonical).digest("hex").slice(0, 32);
+  return (0, import_crypto10.createHash)("sha256").update(canonical).digest("hex").slice(0, 32);
 }
 function classifyFailure(input) {
   return {
@@ -53038,7 +54259,7 @@ function classifyFailure(input) {
 }
 function diffFingerprint(changed) {
   const canonical = [...changed].map((entry) => `${entry.path}:${entry.contentHash ?? "no-hash"}`).sort((a2, b) => a2.localeCompare(b, "en")).join("\n");
-  return (0, import_crypto9.createHash)("sha256").update(canonical).digest("hex").slice(0, 32);
+  return (0, import_crypto11.createHash)("sha256").update(canonical).digest("hex").slice(0, 32);
 }
 function isMateriallyIdentical(previous, next) {
   if (previous === void 0) return false;
@@ -53747,7 +54968,7 @@ function effectiveDecisions(decisions) {
 var ORCHESTRATION_DIR_NAME = "orchestration";
 var ID_PATTERN2 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 function orchestrationRootDir(workspace) {
-  return import_path23.default.join(workspace.sidecarDir, ORCHESTRATION_DIR_NAME);
+  return import_path25.default.join(workspace.sidecarDir, ORCHESTRATION_DIR_NAME);
 }
 function assertOrchestrationId(orchestrationId) {
   if (!ID_PATTERN2.test(orchestrationId)) {
@@ -53761,13 +54982,13 @@ function orchestrationDir(workspace, orchestrationId) {
   assertOrchestrationId(orchestrationId);
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path23.default.join(orchestrationRootDir(workspace), orchestrationId)
+    import_path25.default.join(orchestrationRootDir(workspace), orchestrationId)
   );
 }
 function artifactPath2(workspace, orchestrationId, ...segments) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path23.default.join(orchestrationDir(workspace, orchestrationId), ...segments)
+    import_path25.default.join(orchestrationDir(workspace, orchestrationId), ...segments)
   );
 }
 function planHash(plan) {
@@ -53778,10 +54999,10 @@ function majorOf2(version2) {
 }
 function readOrchestrationState(workspace, orchestrationId) {
   const file = artifactPath2(workspace, orchestrationId, "state.json");
-  if (!(0, import_fs21.existsSync)(file)) return { kind: "missing" };
+  if (!(0, import_fs23.existsSync)(file)) return { kind: "missing" };
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs21.readFileSync)(file, "utf8"));
+    parsed = JSON.parse((0, import_fs23.readFileSync)(file, "utf8"));
   } catch (cause) {
     return {
       kind: "corrupt",
@@ -53843,28 +55064,28 @@ function requireOrchestrationState(workspace, orchestrationId) {
 function writeOrchestrationState(workspace, state) {
   const validated = orchestrationStateSchema.parse(state);
   const dir = orchestrationDir(workspace, validated.orchestrationId);
-  (0, import_fs21.mkdirSync)(dir, { recursive: true });
-  writeFileAtomic(import_path23.default.join(dir, "state.json"), `${JSON.stringify(validated, null, 2)}
+  (0, import_fs23.mkdirSync)(dir, { recursive: true });
+  writeFileAtomic(import_path25.default.join(dir, "state.json"), `${JSON.stringify(validated, null, 2)}
 `);
   return validated;
 }
 function createOrchestrationRun(workspace, state) {
   const dir = orchestrationDir(workspace, state.orchestrationId);
-  if ((0, import_fs21.existsSync)(dir)) {
+  if ((0, import_fs23.existsSync)(dir)) {
     throw new OrchestrationError(
       "SBO003",
       `Orchestration directory already exists: ${dir}. Ids must be unique.`
     );
   }
-  (0, import_fs21.mkdirSync)(import_path23.default.join(dir, "plans"), { recursive: true });
+  (0, import_fs23.mkdirSync)(import_path25.default.join(dir, "plans"), { recursive: true });
   return writeOrchestrationState(workspace, state);
 }
 function listOrchestrationRuns(workspace) {
   const root = orchestrationRootDir(workspace);
-  if (!(0, import_fs21.existsSync)(root)) return { runs: [], diagnostics: [] };
+  if (!(0, import_fs23.existsSync)(root)) return { runs: [], diagnostics: [] };
   const runs = [];
   const diagnostics = [];
-  for (const entry of (0, import_fs21.readdirSync)(root, { withFileTypes: true })) {
+  for (const entry of (0, import_fs23.readdirSync)(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
     if (!ID_PATTERN2.test(entry.name)) continue;
     const read = readOrchestrationState(workspace, entry.name);
@@ -53893,7 +55114,7 @@ function storePlanRevision(workspace, orchestrationId, plan) {
     "plans",
     `${String(validated.revision).padStart(4, "0")}.json`
   );
-  (0, import_fs21.mkdirSync)(import_path23.default.dirname(file), { recursive: true });
+  (0, import_fs23.mkdirSync)(import_path25.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return { plan: validated, hash: planHash(validated), file };
@@ -53906,9 +55127,9 @@ function readPlanRevision(workspace, orchestrationId, revision) {
     "plans",
     `${String(revision).padStart(4, "0")}.json`
   );
-  if (!(0, import_fs21.existsSync)(file)) return void 0;
+  if (!(0, import_fs23.existsSync)(file)) return void 0;
   try {
-    const result = executionPlanSchema.safeParse(JSON.parse((0, import_fs21.readFileSync)(file, "utf8")));
+    const result = executionPlanSchema.safeParse(JSON.parse((0, import_fs23.readFileSync)(file, "utf8")));
     return result.success ? result.data : void 0;
   } catch {
     return void 0;
@@ -53925,15 +55146,15 @@ function appendOrchestrationEvent(workspace, orchestrationId, event, limits) {
     );
   }
   const file = artifactPath2(workspace, orchestrationId, "events.jsonl");
-  (0, import_fs21.mkdirSync)(import_path23.default.dirname(file), { recursive: true });
-  (0, import_fs21.appendFileSync)(file, line, "utf8");
+  (0, import_fs23.mkdirSync)(import_path25.default.dirname(file), { recursive: true });
+  (0, import_fs23.appendFileSync)(file, line, "utf8");
 }
 function readOrchestrationEvents(workspace, orchestrationId, options = {}) {
   const file = artifactPath2(workspace, orchestrationId, "events.jsonl");
-  if (!(0, import_fs21.existsSync)(file)) return { events: [], total: 0, truncated: false };
+  if (!(0, import_fs23.existsSync)(file)) return { events: [], total: 0, truncated: false };
   let raw;
   try {
-    raw = (0, import_fs21.readFileSync)(file, "utf8");
+    raw = (0, import_fs23.readFileSync)(file, "utf8");
   } catch {
     return { events: [], total: 0, truncated: false };
   }
@@ -53953,9 +55174,9 @@ function readOrchestrationEvents(workspace, orchestrationId, options = {}) {
 }
 function countOrchestrationEvents(workspace, orchestrationId) {
   const file = artifactPath2(workspace, orchestrationId, "events.jsonl");
-  if (!(0, import_fs21.existsSync)(file)) return 0;
+  if (!(0, import_fs23.existsSync)(file)) return 0;
   try {
-    return (0, import_fs21.readFileSync)(file, "utf8").split("\n").filter((line) => line.trim().length > 0).length;
+    return (0, import_fs23.readFileSync)(file, "utf8").split("\n").filter((line) => line.trim().length > 0).length;
   } catch {
     return 0;
   }
@@ -53969,9 +55190,9 @@ function writeOrchestrationCheckpoint(workspace, orchestrationId, checkpoint) {
 }
 function readOrchestrationCheckpoint(workspace, orchestrationId) {
   const file = artifactPath2(workspace, orchestrationId, "checkpoint.json");
-  if (!(0, import_fs21.existsSync)(file)) return void 0;
+  if (!(0, import_fs23.existsSync)(file)) return void 0;
   try {
-    const result = orchestrationCheckpointSchema.safeParse(JSON.parse((0, import_fs21.readFileSync)(file, "utf8")));
+    const result = orchestrationCheckpointSchema.safeParse(JSON.parse((0, import_fs23.readFileSync)(file, "utf8")));
     return result.success ? result.data : void 0;
   } catch {
     return void 0;
@@ -53984,7 +55205,7 @@ function now2(deps) {
   return (deps.clock ?? systemClock)();
 }
 function newId(deps) {
-  return (deps.idFactory ?? import_crypto10.randomUUID)();
+  return (deps.idFactory ?? import_crypto12.randomUUID)();
 }
 function assertEnabled(policy) {
   if (policy.enabled) return;
@@ -55625,7 +56846,7 @@ var NODE_TRANSITIONS = Object.freeze({
 var JOBS_DIR_NAME = "jobs";
 var ID_PATTERN22 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 function jobsRootDir(workspace) {
-  return import_path24.default.join(workspace.sidecarDir, JOBS_DIR_NAME);
+  return import_path26.default.join(workspace.sidecarDir, JOBS_DIR_NAME);
 }
 function assertJobId(jobId) {
   if (!ID_PATTERN22.test(jobId)) {
@@ -55637,12 +56858,12 @@ function assertJobId(jobId) {
 }
 function jobDir(workspace, jobId) {
   assertJobId(jobId);
-  return assertInsideWorkspace(workspace.rootDir, import_path24.default.join(jobsRootDir(workspace), jobId));
+  return assertInsideWorkspace(workspace.rootDir, import_path26.default.join(jobsRootDir(workspace), jobId));
 }
 function artifactPath22(workspace, jobId, ...segments) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path24.default.join(jobDir(workspace, jobId), ...segments)
+    import_path26.default.join(jobDir(workspace, jobId), ...segments)
   );
 }
 function majorOf22(version2) {
@@ -55650,10 +56871,10 @@ function majorOf22(version2) {
 }
 function readJobState(workspace, jobId) {
   const file = artifactPath22(workspace, jobId, "job.json");
-  if (!(0, import_fs22.existsSync)(file)) return { kind: "missing" };
+  if (!(0, import_fs24.existsSync)(file)) return { kind: "missing" };
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs22.readFileSync)(file, "utf8"));
+    parsed = JSON.parse((0, import_fs24.readFileSync)(file, "utf8"));
   } catch (cause) {
     return { kind: "corrupt", problem: cause instanceof Error ? cause.message : String(cause), file };
   }
@@ -55711,17 +56932,17 @@ function requireJobState(workspace, jobId) {
 function writeJobState(workspace, job) {
   const validated = jobStateSchema.parse(job);
   const dir = jobDir(workspace, validated.jobId);
-  (0, import_fs22.mkdirSync)(dir, { recursive: true });
-  writeFileAtomic(import_path24.default.join(dir, "job.json"), `${JSON.stringify(validated, null, 2)}
+  (0, import_fs24.mkdirSync)(dir, { recursive: true });
+  writeFileAtomic(import_path26.default.join(dir, "job.json"), `${JSON.stringify(validated, null, 2)}
 `);
   return validated;
 }
 function listJobs(workspace) {
   const root = jobsRootDir(workspace);
-  if (!(0, import_fs22.existsSync)(root)) return { jobs: [], diagnostics: [] };
+  if (!(0, import_fs24.existsSync)(root)) return { jobs: [], diagnostics: [] };
   const jobs = [];
   const diagnostics = [];
-  for (const entry of (0, import_fs22.readdirSync)(root, { withFileTypes: true })) {
+  for (const entry of (0, import_fs24.readdirSync)(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
     if (!ID_PATTERN22.test(entry.name)) continue;
     const read = readJobState(workspace, entry.name);
@@ -55745,9 +56966,9 @@ function listJobs(workspace) {
 function readGraphRevision(workspace, jobId, revision) {
   if (!Number.isInteger(revision) || revision < 1) return void 0;
   const file = artifactPath22(workspace, jobId, "graphs", `${String(revision).padStart(4, "0")}.json`);
-  if (!(0, import_fs22.existsSync)(file)) return void 0;
+  if (!(0, import_fs24.existsSync)(file)) return void 0;
   try {
-    const result = jobGraphSchema.safeParse(JSON.parse((0, import_fs22.readFileSync)(file, "utf8")));
+    const result = jobGraphSchema.safeParse(JSON.parse((0, import_fs24.readFileSync)(file, "utf8")));
     return result.success ? result.data : void 0;
   } catch {
     return void 0;
@@ -55775,15 +56996,15 @@ function appendJobEvent(workspace, jobId, event, limits) {
     );
   }
   const file = artifactPath22(workspace, jobId, "events.jsonl");
-  (0, import_fs22.mkdirSync)(import_path24.default.dirname(file), { recursive: true });
-  (0, import_fs22.appendFileSync)(file, line, "utf8");
+  (0, import_fs24.mkdirSync)(import_path26.default.dirname(file), { recursive: true });
+  (0, import_fs24.appendFileSync)(file, line, "utf8");
 }
 function readJobEvents(workspace, jobId, options = {}) {
   const file = artifactPath22(workspace, jobId, "events.jsonl");
-  if (!(0, import_fs22.existsSync)(file)) return { events: [], total: 0, truncated: false };
+  if (!(0, import_fs24.existsSync)(file)) return { events: [], total: 0, truncated: false };
   let raw;
   try {
-    raw = (0, import_fs22.readFileSync)(file, "utf8");
+    raw = (0, import_fs24.readFileSync)(file, "utf8");
   } catch {
     return { events: [], total: 0, truncated: false };
   }
@@ -55803,18 +57024,18 @@ function readJobEvents(workspace, jobId, options = {}) {
 }
 function countJobEvents(workspace, jobId) {
   const file = artifactPath22(workspace, jobId, "events.jsonl");
-  if (!(0, import_fs22.existsSync)(file)) return 0;
+  if (!(0, import_fs24.existsSync)(file)) return 0;
   try {
-    return (0, import_fs22.readFileSync)(file, "utf8").split("\n").filter((line) => line.trim().length > 0).length;
+    return (0, import_fs24.readFileSync)(file, "utf8").split("\n").filter((line) => line.trim().length > 0).length;
   } catch {
     return 0;
   }
 }
 function readJobCheckpoint(workspace, jobId) {
   const file = artifactPath22(workspace, jobId, "checkpoint.json");
-  if (!(0, import_fs22.existsSync)(file)) return void 0;
+  if (!(0, import_fs24.existsSync)(file)) return void 0;
   try {
-    const result = jobCheckpointSchema.safeParse(JSON.parse((0, import_fs22.readFileSync)(file, "utf8")));
+    const result = jobCheckpointSchema.safeParse(JSON.parse((0, import_fs24.readFileSync)(file, "utf8")));
     return result.success ? result.data : void 0;
   } catch {
     return void 0;
@@ -56458,19 +57679,19 @@ function objectiveDir(workspace, jobId, nodeId) {
   assertSegment(nodeId, "objective node id");
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path25.default.join(jobDir(workspace, jobId), "objectives", nodeId)
+    import_path27.default.join(jobDir(workspace, jobId), "objectives", nodeId)
   );
 }
 function artifactPath3(workspace, jobId, nodeId, ...segments) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path25.default.join(objectiveDir(workspace, jobId, nodeId), ...segments)
+    import_path27.default.join(objectiveDir(workspace, jobId, nodeId), ...segments)
   );
 }
 function readJson(file, parse3) {
-  if (!(0, import_fs23.existsSync)(file)) return void 0;
+  if (!(0, import_fs25.existsSync)(file)) return void 0;
   try {
-    return parse3(JSON.parse((0, import_fs23.readFileSync)(file, "utf8")));
+    return parse3(JSON.parse((0, import_fs25.readFileSync)(file, "utf8")));
   } catch {
     return void 0;
   }
@@ -56487,9 +57708,9 @@ function readWorkGraph(workspace, jobId, nodeId, revision) {
 }
 function listWorkGraphRevisions(workspace, jobId, nodeId) {
   const dir = artifactPath3(workspace, jobId, nodeId, "workgraphs");
-  if (!(0, import_fs23.existsSync)(dir)) return [];
+  if (!(0, import_fs25.existsSync)(dir)) return [];
   const revisions = [];
-  for (const name of (0, import_fs23.readdirSync)(dir).sort()) {
+  for (const name of (0, import_fs25.readdirSync)(dir).sort()) {
     if (!/^\d{4}\.json$/.test(name)) continue;
     revisions.push(Number.parseInt(name.slice(0, 4), 10));
   }
@@ -56528,11 +57749,11 @@ function readCandidate(workspace, jobId, nodeId, workUnitId, attempt) {
 }
 function readEvaluations(workspace, jobId, nodeId, workUnitId) {
   const dir = artifactPath3(workspace, jobId, nodeId, "evaluations");
-  if (!(0, import_fs23.existsSync)(dir)) return [];
+  if (!(0, import_fs25.existsSync)(dir)) return [];
   const records = [];
-  for (const name of (0, import_fs23.readdirSync)(dir).sort()) {
+  for (const name of (0, import_fs25.readdirSync)(dir).sort()) {
     if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path25.default.join(dir, name), (raw) => {
+    const record32 = readJson(import_path27.default.join(dir, name), (raw) => {
       const result = evaluationRecordSchema.safeParse(raw);
       return result.success ? result.data : void 0;
     });
@@ -56544,11 +57765,11 @@ function readEvaluations(workspace, jobId, nodeId, workUnitId) {
 }
 function readConflicts(workspace, jobId, nodeId) {
   const dir = artifactPath3(workspace, jobId, nodeId, "conflicts");
-  if (!(0, import_fs23.existsSync)(dir)) return [];
+  if (!(0, import_fs25.existsSync)(dir)) return [];
   const records = [];
-  for (const name of (0, import_fs23.readdirSync)(dir).sort()) {
+  for (const name of (0, import_fs25.readdirSync)(dir).sort()) {
     if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path25.default.join(dir, name), (raw) => {
+    const record32 = readJson(import_path27.default.join(dir, name), (raw) => {
       const result = contractConflictSchema.safeParse(raw);
       return result.success ? result.data : void 0;
     });
@@ -56558,11 +57779,11 @@ function readConflicts(workspace, jobId, nodeId) {
 }
 function readWorkerRecords(workspace, jobId, nodeId) {
   const dir = artifactPath3(workspace, jobId, nodeId, "workers");
-  if (!(0, import_fs23.existsSync)(dir)) return [];
+  if (!(0, import_fs25.existsSync)(dir)) return [];
   const records = [];
-  for (const name of (0, import_fs23.readdirSync)(dir).sort()) {
+  for (const name of (0, import_fs25.readdirSync)(dir).sort()) {
     if (!name.endsWith(".json")) continue;
-    const record32 = readJson(import_path25.default.join(dir, name), (raw) => {
+    const record32 = readJson(import_path27.default.join(dir, name), (raw) => {
       const result = objectiveWorkerRecordSchema.safeParse(raw);
       return result.success ? result.data : void 0;
     });
@@ -57447,6 +58668,32 @@ function assessApiBudget(input) {
     detail: `The safe estimate $${cost.toFixed(4)} fits every configured ceiling (job remaining ${job.remainingUsd === null ? "unbounded" : `$${job.remainingUsd.toFixed(4)}`}).`
   };
 }
+function contextCacheDir(workspace) {
+  return assertInsideWorkspace(workspace.rootDir, import_path28.default.join(workspace.sidecarDir, "cache"));
+}
+function repositoryIndexFile(workspace) {
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path28.default.join(contextCacheDir(workspace), "context-index.json")
+  );
+}
+function readRepositoryIndexCache(workspace) {
+  const file = repositoryIndexFile(workspace);
+  if (!(0, import_fs26.existsSync)(file)) return void 0;
+  try {
+    const parsed = repositoryContextIndexSchema.safeParse(JSON.parse((0, import_fs26.readFileSync)(file, "utf8")));
+    return parsed.success ? parsed.data : void 0;
+  } catch {
+    return void 0;
+  }
+}
+function writeRepositoryIndexCache(workspace, state) {
+  const validated = repositoryContextIndexSchema.parse(state);
+  const file = repositoryIndexFile(workspace);
+  (0, import_fs26.mkdirSync)(import_path28.default.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated)}
+`);
+}
 function strategyKey(input) {
   const canonical = [
     input.lane ?? "no-lane",
@@ -57454,7 +58701,7 @@ function strategyKey(input) {
     String(input.planRevision ?? 0),
     input.freshContext === true ? "fresh" : "continued"
   ].join("|");
-  return (0, import_crypto11.createHash)("sha256").update(canonical).digest("hex").slice(0, 16);
+  return (0, import_crypto13.createHash)("sha256").update(canonical).digest("hex").slice(0, 16);
 }
 function detectRunaway(activity, thresholds2, previous = []) {
   const signals2 = [];
@@ -58383,6 +59630,65 @@ var adaptiveSchedulingDecisionSchema = external_exports.object({
   profileBuiltAt: shortText8.nullable().default(null),
   createdAt: shortText8
 }).passthrough();
+function efficiencyPolicy(config2) {
+  return config2.orchestration.jobs.context.efficiency;
+}
+function indexProtectedPaths(config2) {
+  return [...config2.execution.protectedPaths];
+}
+function changedPathsFrom(snapshot2) {
+  if (snapshot2 === void 0) return void 0;
+  if (!snapshot2.gitAvailable) return void 0;
+  const paths = snapshot2.entries.map((entry) => entry.path.replace(/\\/g, "/"));
+  if (paths.some((entry) => entry.endsWith("/"))) return void 0;
+  return paths;
+}
+function ensureRepositoryIndex(input) {
+  const policy = efficiencyPolicy(input.config);
+  const options = {
+    rootDir: input.workspace.rootDir,
+    now: input.now,
+    protectedPaths: indexProtectedPaths(input.config),
+    respectGitignore: policy.respectGitignore,
+    maxEntries: policy.maxIndexedFiles,
+    maxFileBytes: policy.maxIndexedFileBytes,
+    baselineRef: input.gitSnapshot?.head ?? null
+  };
+  if (input.rebuild === true) {
+    const state = buildRepositoryIndex(options);
+    if (input.persist !== false && policy.persistIndex) {
+      writeRepositoryIndexCache(input.workspace, state);
+    }
+    return {
+      index: new RepositoryContextIndex(state),
+      state,
+      rebuilt: true,
+      refreshedPaths: [],
+      removedPaths: [],
+      addedPaths: [],
+      buildMs: state.buildMs
+    };
+  }
+  const cached2 = policy.persistIndex ? readRepositoryIndexCache(input.workspace) : void 0;
+  const changedPaths = changedPathsFrom(input.gitSnapshot);
+  const refreshed = refreshRepositoryIndex(cached2, {
+    ...options,
+    ...changedPaths !== void 0 ? { changedPaths } : {},
+    ...input.discoverAdditions === true && changedPaths === void 0 ? { discoverAdditions: true } : {}
+  });
+  if (input.persist !== false && policy.persistIndex) {
+    writeRepositoryIndexCache(input.workspace, refreshed.state);
+  }
+  return {
+    index: new RepositoryContextIndex(refreshed.state),
+    state: refreshed.state,
+    rebuilt: refreshed.rebuilt,
+    refreshedPaths: refreshed.refreshedPaths,
+    removedPaths: refreshed.removedPaths,
+    addedPaths: refreshed.addedPaths,
+    buildMs: refreshed.state.buildMs
+  };
+}
 function expansionPolicyFrom(config2) {
   const policy = config2.orchestration.jobs.context.efficiency;
   return contextExpansionPolicySchema.parse({
@@ -60238,12 +61544,12 @@ function assessConfidence(input) {
 var NO_DRIFT = Object.freeze({ detected: false, signals: [], detail: "" });
 function predictCandidate(input) {
   const { policy } = input;
-  const resolved = resolveProfile(input);
-  const profile = resolved.profile;
+  const resolved2 = resolveProfile(input);
+  const profile = resolved2.profile;
   const identityMatch = compareRuntimeIdentity(input.candidate, profile);
   const confidence = assessConfidence({
     profile,
-    level: resolved.level,
+    level: resolved2.level,
     identityMatch,
     policy
   });
@@ -60273,8 +61579,8 @@ function predictCandidate(input) {
   const expectedFailedWallTimeMs = wallTime === null ? null : Math.round(wallTime * Math.max(0, expectedAttempts - 1));
   return {
     candidate: input.candidate,
-    level: resolved.level,
-    profileKey: resolved.profileKey,
+    level: resolved2.level,
+    profileKey: resolved2.profileKey,
     confidence: confidence.confidence,
     confidenceScore: confidence.score,
     identityMatch,
@@ -60305,7 +61611,7 @@ function predictCandidate(input) {
     notes
   };
 }
-function normalize(value, scale) {
+function normalize2(value, scale) {
   if (value === null || !Number.isFinite(value) || value <= 0) return 0;
   const k = Math.max(1e-9, scale);
   return value / (value + k);
@@ -60357,7 +61663,7 @@ function scoreCandidate(input) {
     contribution: weights.successWeight * successNormalized,
     detail: `${(successNormalized * 100).toFixed(0)}% smoothed probability of verified completion (${prediction.sampleCount} sample(s), ${prediction.level}, confidence ${prediction.confidence})`
   });
-  const latencyNormalized = normalize(prediction.expectedTotalWallTimeMs, policy.wallTimeScaleMs);
+  const latencyNormalized = normalize2(prediction.expectedTotalWallTimeMs, policy.wallTimeScaleMs);
   components.push({
     name: "latency",
     raw: prediction.expectedTotalWallTimeMs,
@@ -60370,7 +61676,7 @@ function scoreCandidate(input) {
   const riskMultiplier = 1 + (prediction.stagnationRate ?? 0) + (prediction.oscillationRate ?? 0) + (prediction.runawayRate ?? 0);
   const failedWorkNormalized = Math.min(
     1,
-    normalize(prediction.expectedFailedWallTimeMs, policy.failedWorkScaleMs) * riskMultiplier
+    normalize2(prediction.expectedFailedWallTimeMs, policy.failedWorkScaleMs) * riskMultiplier
   );
   components.push({
     name: "failedWork",
@@ -60395,7 +61701,7 @@ function scoreCandidate(input) {
     detail: quota.detail
   });
   const costPerCompletion = prediction.expectedApiCostUsd === null ? null : prediction.expectedApiCostUsd * prediction.expectedAttempts;
-  const costNormalized = normalize(costPerCompletion, policy.apiCostScaleUsd);
+  const costNormalized = normalize2(costPerCompletion, policy.apiCostScaleUsd);
   components.push({
     name: "apiCost",
     raw: costPerCompletion,
@@ -60406,7 +61712,7 @@ function scoreCandidate(input) {
     detail: costPerCompletion === null ? "No observed metered cost for this target (unpriced here; current pricing governs spending)." : `$${costPerCompletion.toFixed(4)} expected per verified completion`
   });
   const contextPerCompletion = prediction.expectedContextTokens === null ? null : prediction.expectedContextTokens * prediction.expectedAttempts * (1 + (prediction.contextExpansionRate ?? 0));
-  const contextNormalized = normalize(contextPerCompletion, policy.contextTokenScale);
+  const contextNormalized = normalize2(contextPerCompletion, policy.contextTokenScale);
   components.push({
     name: "contextCost",
     raw: contextPerCompletion,
@@ -60416,7 +61722,7 @@ function scoreCandidate(input) {
     contribution: -weights.contextCostPenalty * contextNormalized,
     detail: contextPerCompletion === null ? "No context-size history for this target." : `${Math.round(contextPerCompletion).toLocaleString("en-US")} tokens per verified completion (expansion rate ${formatRate(prediction.contextExpansionRate)}, context-miss rate ${formatRate(prediction.contextMissRate)})`
   });
-  const handoffNormalized = normalize(
+  const handoffNormalized = normalize2(
     prediction.candidate.handoffOverheadMs,
     policy.wallTimeScaleMs
   );
@@ -60513,7 +61819,7 @@ function evaluateGates(input) {
   }
   return { passes: true, reason: null, detail: `Utility advantage ${margin.toFixed(4)}.` };
 }
-function rankCandidates(input) {
+function rankCandidates2(input) {
   const eligible = input.candidates.eligible;
   const vetoes = input.candidates.rejected;
   if (eligible.length === 0) {
@@ -63208,7 +64514,7 @@ function adaptiveHardPolicyVeto(config2) {
     }
   });
   const candidates = generateCandidates(remoteHarness);
-  const ranking = rankCandidates({
+  const ranking = rankCandidates2({
     mode: "ADAPTIVE",
     candidates,
     signature: signature(),
@@ -63249,7 +64555,7 @@ function adaptiveHardPolicyVeto(config2) {
 function adaptiveLowConfidenceFallback(config2) {
   const policy = config2.orchestration.jobs.scheduler.adaptive;
   const sparse = [adaptiveObservation({ attemptId: "at-only" })];
-  const ranking = rankCandidates({
+  const ranking = rankCandidates2({
     mode: "ADAPTIVE",
     candidates: generateCandidates(candidateInput()),
     signature: signature(),
@@ -63300,7 +64606,7 @@ function adaptiveDrift(config2) {
       observedAt: new Date(ADAPTIVE_NOW.getTime() - 6e4 * index).toISOString()
     })
   );
-  const ranking = rankCandidates({
+  const ranking = rankCandidates2({
     mode: "ADAPTIVE",
     candidates: generateCandidates(candidateInput()),
     signature: signature(),
@@ -63917,14 +65223,14 @@ function validateProjectRoot(value, source, cwd) {
       remediation: ["Pass a plain filesystem path as --project-root."]
     };
   }
-  const resolved = import_node_path7.default.resolve(cwd, value);
+  const resolved2 = import_node_path7.default.resolve(cwd, value);
   let canonical;
   try {
-    canonical = (0, import_node_fs6.realpathSync)(resolved);
+    canonical = (0, import_node_fs6.realpathSync)(resolved2);
   } catch {
     return {
       ok: false,
-      message: `The project root does not exist: ${resolved} (from ${source}).`,
+      message: `The project root does not exist: ${resolved2} (from ${source}).`,
       remediation: [
         "Pass an existing directory as --project-root,",
         "or start the server from inside the project."
@@ -68621,16 +69927,16 @@ function resourceNotFound(what, remediation) {
 }
 function markdownContents(context, uri, text15) {
   context.logger.info("resource_read", { resource: uri });
-  const bounded = truncateText(text15, LIMITS.maximumDocumentBytes);
+  const bounded3 = truncateText(text15, LIMITS.maximumDocumentBytes);
   return {
     contents: [
       {
         uri,
         mimeType: "text/markdown",
-        text: bounded.truncated ? `${bounded.text}
+        text: bounded3.truncated ? `${bounded3.text}
 
 [content truncated at ${LIMITS.maximumDocumentBytes} bytes]
-` : bounded.text
+` : bounded3.text
       }
     ]
   };
@@ -68638,8 +69944,8 @@ function markdownContents(context, uri, text15) {
 function jsonContents(context, uri, value) {
   context.logger.info("resource_read", { resource: uri });
   const serialized = JSON.stringify(value, null, 2);
-  const bounded = truncateText(serialized, LIMITS.maximumStructuredResponseBytes);
-  const text15 = bounded.truncated ? JSON.stringify(
+  const bounded3 = truncateText(serialized, LIMITS.maximumStructuredResponseBytes);
+  const text15 = bounded3.truncated ? JSON.stringify(
     {
       truncated: true,
       message: `The resource exceeded ${LIMITS.maximumStructuredResponseBytes} bytes; use the paginated tools instead.`
@@ -69058,20 +70364,20 @@ function registerRunResources(server, context) {
 }
 
 // ../../packages/drift/dist/index.js
-var import_fs24 = require("fs");
-var import_path26 = __toESM(require("path"), 1);
-var import_picomatch = __toESM(require_picomatch2(), 1);
-var import_fs25 = require("fs");
-var import_path27 = __toESM(require("path"), 1);
-var import_fs26 = require("fs");
-var import_path28 = __toESM(require("path"), 1);
 var import_fs27 = require("fs");
 var import_path29 = __toESM(require("path"), 1);
+var import_picomatch = __toESM(require_picomatch2(), 1);
 var import_fs28 = require("fs");
 var import_path30 = __toESM(require("path"), 1);
 var import_fs29 = require("fs");
-var import_crypto12 = require("crypto");
 var import_path31 = __toESM(require("path"), 1);
+var import_fs30 = require("fs");
+var import_path32 = __toESM(require("path"), 1);
+var import_fs31 = require("fs");
+var import_path33 = __toESM(require("path"), 1);
+var import_fs32 = require("fs");
+var import_crypto14 = require("crypto");
+var import_path34 = __toESM(require("path"), 1);
 var taskEvidenceSchema = external_exports.object({
   taskId: external_exports.string().min(1),
   status: external_exports.enum(["recorded", "verified", "rejected"]),
@@ -69172,24 +70478,24 @@ var verificationPolicySchema = external_exports.object({
   }
 });
 function policyDir(workspace) {
-  return import_path26.default.join(workspace.sidecarDir, "policies");
+  return import_path29.default.join(workspace.sidecarDir, "policies");
 }
 function policyPath(workspace, specName) {
-  const resolved = import_path26.default.resolve(policyDir(workspace), `${specName}.json`);
-  const relative = import_path26.default.relative(workspace.rootDir, resolved);
-  if (relative.startsWith("..") || import_path26.default.isAbsolute(relative)) {
-    return import_path26.default.join(policyDir(workspace), "invalid-spec-name.json");
+  const resolved2 = import_path29.default.resolve(policyDir(workspace), `${specName}.json`);
+  const relative = import_path29.default.relative(workspace.rootDir, resolved2);
+  if (relative.startsWith("..") || import_path29.default.isAbsolute(relative)) {
+    return import_path29.default.join(policyDir(workspace), "invalid-spec-name.json");
   }
-  return resolved;
+  return resolved2;
 }
 function readVerificationPolicy(workspace, specName, explicitPath) {
-  const filePath = explicitPath !== void 0 ? import_path26.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
-  if (!(0, import_fs24.existsSync)(filePath)) {
+  const filePath = explicitPath !== void 0 ? import_path29.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
+  if (!(0, import_fs27.existsSync)(filePath)) {
     return { path: filePath, exists: false, diagnostics: [] };
   }
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs24.readFileSync)(filePath, "utf8"));
+    parsed = JSON.parse((0, import_fs27.readFileSync)(filePath, "utf8"));
   } catch (cause) {
     return {
       path: filePath,
@@ -69252,7 +70558,7 @@ function resolveEffectivePolicy(workspace, specName, options = {}) {
   const storedMode = policy?.mode ?? "advisory";
   const strictFromCli = options.strict === true && storedMode !== "strict";
   const mode = options.strict === true ? "strict" : storedMode;
-  const workspaceRelativePolicyPath = import_path26.default.relative(workspace.rootDir, read.path).split(import_path26.default.sep).join("/");
+  const workspaceRelativePolicyPath = import_path29.default.relative(workspace.rootDir, read.path).split(import_path29.default.sep).join("/");
   return {
     specName,
     mode,
@@ -69396,33 +70702,33 @@ function mergeNumstat(files, stats) {
 function sniffBinary(absolutePath) {
   let fd;
   try {
-    fd = (0, import_fs25.openSync)(absolutePath, "r");
+    fd = (0, import_fs28.openSync)(absolutePath, "r");
     const buffer = Buffer.alloc(8e3);
-    const bytesRead = (0, import_fs25.readSync)(fd, buffer, 0, buffer.length, 0);
+    const bytesRead = (0, import_fs28.readSync)(fd, buffer, 0, buffer.length, 0);
     return buffer.subarray(0, bytesRead).includes(0);
   } catch {
     return false;
   } finally {
-    if (fd !== void 0) (0, import_fs25.closeSync)(fd);
+    if (fd !== void 0) (0, import_fs28.closeSync)(fd);
   }
 }
 function flagSymlinkEscapes(repoRoot, files) {
   const resolvedRoot = (() => {
     try {
-      return (0, import_fs25.realpathSync)(repoRoot);
+      return (0, import_fs28.realpathSync)(repoRoot);
     } catch {
-      return import_path27.default.resolve(repoRoot);
+      return import_path30.default.resolve(repoRoot);
     }
   })();
   for (const file of files) {
     if (file.changeType === "deleted") continue;
-    const absolute = import_path27.default.join(repoRoot, file.path.split("/").join(import_path27.default.sep));
+    const absolute = import_path30.default.join(repoRoot, file.path.split("/").join(import_path30.default.sep));
     try {
-      const stats = (0, import_fs25.lstatSync)(absolute);
+      const stats = (0, import_fs28.lstatSync)(absolute);
       if (!stats.isSymbolicLink()) continue;
-      const target = (0, import_fs25.realpathSync)(absolute);
-      const relative = import_path27.default.relative(resolvedRoot, target);
-      if (relative.startsWith("..") || import_path27.default.isAbsolute(relative)) {
+      const target = (0, import_fs28.realpathSync)(absolute);
+      const relative = import_path30.default.relative(resolvedRoot, target);
+      if (relative.startsWith("..") || import_path30.default.isAbsolute(relative)) {
         file.symlinkOutsideRepository = true;
       }
     } catch {
@@ -69550,7 +70856,7 @@ async function resolveComparison(repoRoot, request, options = {}) {
     const known = new Set(files.map((file) => file.path));
     for (const token of untracked.stdout.split("\0")) {
       if (token.length === 0 || known.has(token)) continue;
-      const absolute = import_path27.default.join(repoRoot, token.split("/").join(import_path27.default.sep));
+      const absolute = import_path30.default.join(repoRoot, token.split("/").join(import_path30.default.sep));
       files.push({
         path: token,
         changeType: "untracked",
@@ -69590,8 +70896,8 @@ function makeBaseContentReader(workspace, comparison, caches, signal) {
 async function resolveAncestryCached(workspace, shas, caches, signal) {
   const missing = shas.filter((sha) => !caches.ancestry.has(sha));
   if (missing.length > 0) {
-    const resolved = await resolveCommitAncestry(workspace.rootDir, missing, signal);
-    for (const [sha, ancestry] of resolved) caches.ancestry.set(sha, ancestry);
+    const resolved2 = await resolveCommitAncestry(workspace.rootDir, missing, signal);
+    for (const [sha, ancestry] of resolved2) caches.ancestry.set(sha, ancestry);
   }
   const view = /* @__PURE__ */ new Map();
   for (const sha of shas) {
@@ -69630,9 +70936,9 @@ function specMatchReasons(specName, policy, validEvidencePaths, designPathRefere
 function readSpecEvidenceRecords(workspace, specName) {
   const byTask = /* @__PURE__ */ new Map();
   let invalidRecordCount = 0;
-  const specDir = import_path28.default.join(workspace.sidecarDir, "evidence", specName);
-  if ((0, import_fs26.existsSync)(specDir)) {
-    const taskDirs = (0, import_fs26.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
+  const specDir = import_path31.default.join(workspace.sidecarDir, "evidence", specName);
+  if ((0, import_fs29.existsSync)(specDir)) {
+    const taskDirs = (0, import_fs29.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
     for (const taskDir of taskDirs) {
       const { records, diagnostics } = listTaskEvidence(workspace, specName, taskDir);
       invalidRecordCount += diagnostics.length;
@@ -69679,7 +70985,7 @@ async function buildSpecVerificationContext(options) {
     }
     if (effective("tasks") && tasksStage !== void 0) {
       const planHash2 = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(
-        import_path28.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path28.default.sep))
+        import_path31.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path31.default.sep))
       );
       if (planHash2 !== void 0) approved.tasksPlanHash = planHash2;
     }
@@ -69842,9 +71148,9 @@ function resolveGlobalRuleConfig(rule, policies) {
   if (policies.length === 0) {
     return { enabled: true, severity: rule.defaultSeverity.advisory, overridden: false };
   }
-  const resolved = policies.map((policy) => resolveRuleConfig(rule, policy));
-  const enabled = resolved.some((config2) => config2.enabled);
-  const strictest = resolved.reduce(
+  const resolved2 = policies.map((policy) => resolveRuleConfig(rule, policy));
+  const enabled = resolved2.some((config2) => config2.enabled);
+  const strictest = resolved2.reduce(
     (best, config2) => SEVERITY_ORDER[config2.severity] < SEVERITY_ORDER[best.severity] ? config2 : best
   );
   return { enabled, severity: strictest.severity, overridden: strictest.overridden };
@@ -69876,12 +71182,12 @@ async function evaluateSpecRules(rules, context) {
   const disabledRules = [];
   for (const rule of rules) {
     if (rule.scope !== "spec") continue;
-    const resolved = resolveRuleConfig(rule, context.policy);
-    if (!resolved.enabled) {
+    const resolved2 = resolveRuleConfig(rule, context.policy);
+    if (!resolved2.enabled) {
       disabledRules.push(rule.id);
       continue;
     }
-    diagnostics.push(...await rule.evaluate(context, resolved));
+    diagnostics.push(...await rule.evaluate(context, resolved2));
   }
   return { diagnostics, disabledRules };
 }
@@ -69891,17 +71197,17 @@ async function evaluateGlobalRules(rules, context) {
   const disabledRules = [];
   for (const rule of rules) {
     if (rule.scope !== "global") continue;
-    const resolved = resolveGlobalRuleConfig(rule, policies);
-    if (!resolved.enabled) {
+    const resolved2 = resolveGlobalRuleConfig(rule, policies);
+    if (!resolved2.enabled) {
       disabledRules.push(rule.id);
       continue;
     }
-    diagnostics.push(...await rule.evaluate(context, resolved));
+    diagnostics.push(...await rule.evaluate(context, resolved2));
   }
   return { diagnostics, disabledRules };
 }
 function repoRelative2(workspace, absolutePath) {
-  return import_path29.default.relative(workspace.rootDir, absolutePath).split(import_path29.default.sep).join("/");
+  return import_path32.default.relative(workspace.rootDir, absolutePath).split(import_path32.default.sep).join("/");
 }
 function isSpecInfraPath(candidate) {
   return candidate === ".git" || candidate.startsWith(".git/") || candidate.startsWith(".kiro/") || candidate.startsWith(".specbridge/");
@@ -69933,7 +71239,7 @@ var sbv001 = {
   scope: "spec",
   triggeredWhen: "A feature spec is missing requirements.md, design.md, or tasks.md, or a bugfix spec is missing bugfix.md, design.md, or tasks.md.",
   resolution: "Create the missing document (specbridge spec new scaffolds Kiro-compatible files), or remove the incomplete spec folder.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const type = context.spec.classification.type;
     if (type !== "feature" && type !== "bugfix") return [];
     const required2 = type === "bugfix" ? ["bugfix.md", "design.md", "tasks.md"] : ["requirements.md", "design.md", "tasks.md"];
@@ -69941,7 +71247,7 @@ var sbv001 = {
     return required2.filter((fileName) => !present.has(fileName)).map(
       (fileName) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `The ${type} spec "${context.specName}" is missing ${fileName}.`,
         specName: context.specName,
         file: { path: `.kiro/specs/${context.specName}/${fileName}` },
@@ -69959,12 +71265,12 @@ var sbv002 = {
   scope: "spec",
   triggeredWhen: "An approved stage document no longer matches its recorded approval hash. For the tasks stage, checkbox-only progress is NOT stale (hash semantics v2); any other byte change is.",
   resolution: "Review the changed document and re-approve the stage (specbridge spec approve <name> --stage <stage>), or restore the approved content.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     if (context.evaluation === void 0) return [];
     return context.evaluation.stages.filter((stage) => stage.effective === "modified-after-approval").map(
       (stage) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `The approved ${stage.stage} stage of "${context.specName}" changed after approval (approved hash ${stage.stored.approvedHash?.slice(0, 12) ?? "(none)"}\u2026, current ${stage.currentHash?.slice(0, 12) ?? "missing"}\u2026).`,
         specName: context.specName,
         file: { path: stage.stored.file },
@@ -69987,7 +71293,7 @@ var sbv003 = {
   scope: "spec",
   triggeredWhen: "A later-stage approval depends on an earlier stage that is stale, revoked, or was never approved.",
   resolution: "Re-approve the earlier stage first, then re-approve the dependent stage \u2014 approvals form a chain.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     if (context.evaluation === void 0) return [];
     const diagnostics = [];
     for (const stage of context.evaluation.stages) {
@@ -69996,7 +71302,7 @@ var sbv003 = {
         diagnostics.push(
           makeDiagnostic({
             rule: this,
-            severity: resolved.severity,
+            severity: resolved2.severity,
             message: `The ${stage.stage} approval of "${context.specName}" is invalid because an earlier stage changed after it was approved.`,
             specName: context.specName,
             file: { path: stage.stored.file },
@@ -70013,7 +71319,7 @@ var sbv003 = {
         diagnostics.push(
           makeDiagnostic({
             rule: this,
-            severity: resolved.severity,
+            severity: resolved2.severity,
             message: `The ${stage.stage} stage of "${context.specName}" is approved although ${unapproved.join(" and ")} ${unapproved.length === 1 ? "is" : "are"} not.`,
             specName: context.specName,
             file: { path: stage.stored.file },
@@ -70034,8 +71340,8 @@ var sbv004 = {
   scope: "spec",
   triggeredWhen: "A task checkbox is [x] but no verified or manually accepted evidence record exists for it. Error severity when the policy sets requireVerifiedTaskEvidence.",
   resolution: "Run the task through specbridge spec run (which records evidence), accept it explicitly with specbridge spec accept-task, or uncheck the box.",
-  evaluate(context, resolved) {
-    const severity = context.policy.requireVerifiedTaskEvidence ? "error" : resolved.severity;
+  evaluate(context, resolved2) {
+    const severity = context.policy.requireVerifiedTaskEvidence ? "error" : resolved2.severity;
     return doneLeafTasks(context).filter((task) => {
       const assessment = context.evidence.assessmentsByTask.get(task.id);
       return assessment === void 0 || assessment.bucket === "missing" || assessment.bucket === "invalid";
@@ -70067,14 +71373,14 @@ var sbv005 = {
   scope: "spec",
   triggeredWhen: "Verifying a single named spec whose policy declares impact areas: a changed repository file matches none of them. (In --changed/--all runs, cross-spec coverage is reported by SBV014 instead.)",
   resolution: "Revert the unrelated change, split it into its own change set, or extend the impact areas in the spec verification policy after review.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     if (context.selectionMode !== "single") return [];
     if (context.policy.impactAreas.length === 0) return [];
     const matcher = compilePathMatchers(context.policy.impactAreas);
     return context.changedFiles.filter((file) => !isSpecInfraPath(file.path)).filter((file) => matcher(file.path).length === 0).map(
       (file) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `${file.path} is outside the impact areas declared for ${context.specName}.`,
         specName: context.specName,
         file: { path: file.path },
@@ -70096,7 +71402,7 @@ var sbv006 = {
   scope: "global",
   triggeredWhen: "The comparison touches a protected path (.kiro/**, .specbridge/state/**, .specbridge/config.json, .git/**, or configured additions). The verified specs\u2019 own spec files, sidecar state, and policy are exempt \u2014 changing them is spec authoring, which the approval rules govern \u2014 and checkbox-only tasks.md progress is always exempt.",
   resolution: "Remove the protected-path change from this change set, or \u2014 if this is deliberate spec authoring for a spec not under verification \u2014 verify that spec too.",
-  async evaluate(context, resolved) {
+  async evaluate(context, resolved2) {
     if (!context.comparison.ok) return [];
     const selectedSpecs = context.specContexts.map((spec) => spec.specName);
     const patterns = /* @__PURE__ */ new Set();
@@ -70134,7 +71440,7 @@ var sbv006 = {
         );
         continue;
       }
-      const severity = immutableMatcher(file.path).length > 0 ? "error" : resolved.severity;
+      const severity = immutableMatcher(file.path).length > 0 ? "error" : resolved2.severity;
       diagnostics.push(
         makeDiagnostic({
           rule: this,
@@ -70169,10 +71475,10 @@ var sbv007 = {
   scope: "spec",
   triggeredWhen: "An identifiable requirement ID is referenced by no task \u2014 neither directly nor through any of its acceptance criteria. Error severity when the policy sets requireRequirementTaskLinks.",
   resolution: "Add an implementation task referencing the requirement (e.g. a _Requirements: 1.2_ detail line), or remove the requirement if it is obsolete.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const { catalog, references } = context.traceability;
     if (catalog.requirements.length === 0 || context.spec.tasks === void 0) return [];
-    const severity = context.policy.requireRequirementTaskLinks ? "error" : resolved.severity;
+    const severity = context.policy.requireRequirementTaskLinks ? "error" : resolved2.severity;
     const referenced = new Set(
       references.map((reference) => reference.canonical).filter((canonical) => canonical !== void 0)
     );
@@ -70214,7 +71520,7 @@ var sbv008 = {
   scope: "spec",
   triggeredWhen: "Requirement linking is in use in this tasks document, but a leaf implementation task carries no requirement reference. Clearly non-requirement work (documentation, release, cleanup chores) is excluded.",
   resolution: "Add a _Requirements: \u2026_ detail line to the task, or leave it unlinked deliberately if it is supporting work.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const model = context.spec.tasks;
     if (model === void 0) return [];
     const { references, catalog } = context.traceability;
@@ -70225,7 +71531,7 @@ var sbv008 = {
     ).map(
       (task) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `Task ${task.id} ("${task.title}") has no requirement reference while other tasks in this plan are linked.`,
         specName: context.specName,
         taskId: task.id,
@@ -70244,7 +71550,7 @@ var sbv009 = {
   scope: "spec",
   triggeredWhen: "A task references a requirement or acceptance-criterion ID that does not exist in the requirements document. References recognized only heuristically (keyword phrases) warn instead of erroring.",
   resolution: "Fix the reference to point at an existing requirement ID, or add the missing requirement to requirements.md and re-approve it.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const { catalog, references } = context.traceability;
     if (catalog.entries.length === 0) return [];
     const filePath = tasksFilePath(context);
@@ -70253,7 +71559,7 @@ var sbv009 = {
     ).map(
       (reference) => makeDiagnostic({
         rule: this,
-        severity: reference.confidence === "heuristic" ? "warning" : resolved.severity,
+        severity: reference.confidence === "heuristic" ? "warning" : resolved2.severity,
         message: `Task ${reference.taskId} references "${reference.raw}", which matches no requirement or acceptance criterion in requirements.md.`,
         specName: context.specName,
         taskId: reference.taskId,
@@ -70279,7 +71585,7 @@ var sbv010 = {
   scope: "spec",
   triggeredWhen: "A parent task checkbox is [x] while at least one of its subtasks is not.",
   resolution: "Finish (or uncheck) the open subtasks, or uncheck the parent task.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const model = context.spec.tasks;
     if (model === void 0) return [];
     const diagnostics = [];
@@ -70298,7 +71604,7 @@ var sbv010 = {
       diagnostics.push(
         makeDiagnostic({
           rule: this,
-          severity: resolved.severity,
+          severity: resolved2.severity,
           message: `Parent task ${task.id} is checked but ${open.length} of its subtasks ${open.length === 1 ? "is" : "are"} not complete (${open.map((child) => child.id).join(", ")}).`,
           specName: context.specName,
           taskId: task.id,
@@ -70322,7 +71628,7 @@ var SBV015_CODES = /* @__PURE__ */ new Set([
   "plan-hash-changed",
   "approved-after-evidence"
 ]);
-function staleEvidenceDiagnostics(rule, context, resolved, codes) {
+function staleEvidenceDiagnostics(rule, context, resolved2, codes) {
   const diagnostics = [];
   for (const task of doneLeafTasks(context)) {
     const assessment = context.evidence.assessmentsByTask.get(task.id);
@@ -70334,7 +71640,7 @@ function staleEvidenceDiagnostics(rule, context, resolved, codes) {
     diagnostics.push(
       makeDiagnostic({
         rule,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `Task ${task.id} is checked but its evidence is stale: ${matching.map((reason) => reason.message).join("; ")}.`,
         specName: context.specName,
         taskId: task.id,
@@ -70360,8 +71666,8 @@ var sbv011 = {
   scope: "spec",
   triggeredWhen: "A checked task has evidence whose recorded task identity, commit lineage, or approval linkage no longer matches the repository (the task text changed, history diverged, or a referenced stage is no longer approved).",
   resolution: "Re-run the task (specbridge spec run) or re-accept it (specbridge spec accept-task) so fresh evidence is recorded, or uncheck the box.",
-  evaluate(context, resolved) {
-    return staleEvidenceDiagnostics(this, context, resolved, SBV011_CODES);
+  evaluate(context, resolved2) {
+    return staleEvidenceDiagnostics(this, context, resolved2, SBV011_CODES);
   }
 };
 var sbv015 = {
@@ -70373,8 +71679,8 @@ var sbv015 = {
   scope: "spec",
   triggeredWhen: "The requirements/bugfix document, design, or task plan changed (or was re-approved) after the evidence for a checked task was recorded \u2014 the implementation was verified against an older spec.",
   resolution: "Re-run or re-accept the affected tasks against the current spec so the evidence describes what is approved now.",
-  evaluate(context, resolved) {
-    return staleEvidenceDiagnostics(this, context, resolved, SBV015_CODES);
+  evaluate(context, resolved2) {
+    return staleEvidenceDiagnostics(this, context, resolved2, SBV015_CODES);
   }
 };
 var sbv012 = {
@@ -70386,7 +71692,7 @@ var sbv012 = {
   scope: "global",
   triggeredWhen: "A trusted verification command required by a spec policy failed, could not start, or did not run in this verification with no reusable passing evidence.",
   resolution: "Fix the failing command locally, or run the verification with --run-verification so a current result is produced.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const diagnostics = [];
     for (const command of context.commands.commands) {
       if (!command.required || command.passed || command.timedOut) continue;
@@ -70395,7 +71701,7 @@ var sbv012 = {
       diagnostics.push(
         makeDiagnostic({
           rule: this,
-          severity: resolved.severity,
+          severity: resolved2.severity,
           message: message2,
           specName,
           evidence: {
@@ -70422,11 +71728,11 @@ var sbv013 = {
   scope: "global",
   triggeredWhen: "A spec policy requires a verification command by name, but no command with that name is configured in .specbridge/config.json.",
   resolution: "Add the command to verification.commands in .specbridge/config.json (argv array form), or remove the name from the policy.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     return context.commands.missingRequired.map(
       ({ name, requiredBySpecs }) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `Verification command "${name}" is required by ${requiredBySpecs.join(", ")} but is not configured in .specbridge/config.json.`,
         specName: requiredBySpecs.length === 1 ? requiredBySpecs[0] ?? null : null,
         evidence: { command: name, requiredBySpecs }
@@ -70443,11 +71749,11 @@ var sbv025 = {
   scope: "global",
   triggeredWhen: "A trusted verification command exceeded its configured timeout. Required commands error; optional commands warn.",
   resolution: "Raise the command timeout in .specbridge/config.json, or make the command faster/scoped.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     return context.commands.commands.filter((command) => command.timedOut).map(
       (command) => makeDiagnostic({
         rule: this,
-        severity: command.required ? resolved.severity : "warning",
+        severity: command.required ? resolved2.severity : "warning",
         message: `Verification command "${command.name}" timed out after ${command.durationMs ?? "?"} ms.`,
         specName: command.requiredBySpecs.length === 1 ? command.requiredBySpecs[0] ?? null : null,
         evidence: {
@@ -70469,12 +71775,12 @@ var sbv014 = {
   scope: "global",
   triggeredWhen: "In --changed or --all verification, a changed source or test file maps to no spec: no spec directory, impact area, task evidence, or design reference claims it.",
   resolution: "Add the path to the owning spec\u2019s impact areas, create a spec for the work, or accept unmapped changes by policy (rules.SBV014).",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     if (context.selection.mode === "single") return [];
     return context.unmappedFiles.map(
       (file) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `${file.path} does not map to any spec (no impact area, evidence, or spec reference claims it).`,
         file: { path: file.path },
         evidence: { changedPath: file.path, changeType: file.changeType }
@@ -70491,7 +71797,7 @@ var sbv016 = {
   scope: "spec",
   triggeredWhen: "A managed spec has checked tasks while its task plan is not approved (never approved, or approval revoked). Unmanaged specs (no sidecar state) are not judged.",
   resolution: "Approve the task plan first (specbridge spec approve <name> --stage tasks), or uncheck the boxes.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const state = context.spec.state;
     if (state === void 0 || context.spec.tasks === void 0) return [];
     const tasksStage = context.evaluation?.stages.find((stage) => stage.stage === "tasks");
@@ -70499,7 +71805,7 @@ var sbv016 = {
     return context.spec.tasks.allTasks.filter((task) => task.state === "done").map(
       (task) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `Task ${task.id} is checked but the task plan of "${context.specName}" has never been approved (status: ${tasksStage.stored.status}).`,
         specName: context.specName,
         taskId: task.id,
@@ -70518,11 +71824,11 @@ var sbv017 = {
   scope: "spec",
   triggeredWhen: "A checked task (or its referenced requirement) explicitly mentions tests, but its valid evidence contains neither a passing test command nor changed test files. Error severity when the policy sets requireTestEvidence. Test-language detection is heuristic.",
   resolution: "Run the configured test command as part of the task (spec run records it), or record a manual acceptance explaining how the tests were covered.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const model = context.spec.tasks;
     const tasksDocument = context.spec.documents.tasks;
     if (model === void 0 || tasksDocument === void 0) return [];
-    const severity = context.policy.requireTestEvidence ? "error" : resolved.severity;
+    const severity = context.policy.requireTestEvidence ? "error" : resolved2.severity;
     const { catalog, references } = context.traceability;
     const diagnostics = [];
     for (const task of doneLeafTasks(context)) {
@@ -70577,23 +71883,23 @@ var sbv018 = {
   scope: "spec",
   triggeredWhen: "design.md explicitly references a repository path (in backticks or a Markdown link) that exists neither relative to the repository root nor relative to the spec folder. Glob patterns are not checked.",
   resolution: "Fix the path in design.md, or delete the reference if the file was intentionally removed (then re-approve the design).",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const designDocument = context.spec.documents.design;
     if (designDocument === void 0) return [];
     const designFile = designDocument.filePath;
     const designRepoPath = designFile !== void 0 ? repoRelative2(context.workspace, designFile) : void 0;
-    const specDir = import_path29.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
+    const specDir = import_path32.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
     return context.traceability.designPathReferences.filter((reference) => !reference.isGlob).filter((reference) => {
-      const fromRoot = import_path29.default.join(
+      const fromRoot = import_path32.default.join(
         context.workspace.rootDir,
-        reference.path.split("/").join(import_path29.default.sep)
+        reference.path.split("/").join(import_path32.default.sep)
       );
-      const fromSpecDir = import_path29.default.join(specDir, reference.path.split("/").join(import_path29.default.sep));
-      return !(0, import_fs27.existsSync)(fromRoot) && !(0, import_fs27.existsSync)(fromSpecDir);
+      const fromSpecDir = import_path32.default.join(specDir, reference.path.split("/").join(import_path32.default.sep));
+      return !(0, import_fs30.existsSync)(fromRoot) && !(0, import_fs30.existsSync)(fromSpecDir);
     }).map(
       (reference) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `design.md references \`${reference.raw}\`, which does not exist in the repository.`,
         specName: context.specName,
         file: designRepoPath !== void 0 ? { path: designRepoPath, line: reference.line + 1 } : null,
@@ -70611,7 +71917,7 @@ var sbv019 = {
   scope: "spec",
   triggeredWhen: "The spec has valid task evidence, yet the comparison contains implementation files that no evidence record accounts for \u2014 work happened outside recorded task runs.",
   resolution: "Run the remaining work as tasks (spec run records the files), or accept that untracked edits reduce evidence coverage.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const hasValidEvidence = [...context.evidence.assessmentsByTask.values()].some(
       (assessment) => assessment.bucket === "valid"
     );
@@ -70627,7 +71933,7 @@ var sbv019 = {
     return candidates.filter((file) => !isSpecInfraPath(file.path)).filter((file) => !evidencePaths.has(file.path)).map(
       (file) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `${file.path} changed but appears in no valid task evidence for ${context.specName}.`,
         specName: context.specName,
         file: { path: file.path },
@@ -70645,11 +71951,11 @@ var sbv020 = {
   scope: "spec",
   triggeredWhen: "The spec\u2019s verification policy file exists but is not valid JSON, does not match the versioned schema, or contains rejected glob patterns. Verification then runs with secure defaults.",
   resolution: "Fix the policy file (specbridge spec policy validate <name> pinpoints the problem), or delete it to use defaults.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     return context.policy.policyDiagnostics.map(
       (diagnostic) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: diagnostic.message,
         specName: context.specName,
         file: context.policy.policyPath !== void 0 ? { path: context.policy.policyPath } : null,
@@ -70667,13 +71973,13 @@ var sbv021 = {
   scope: "global",
   triggeredWhen: "The requested Git comparison cannot be resolved: a ref does not exist locally, no merge base exists, the clone is shallow, or the directory is not a git work tree.",
   resolution: "Fetch the missing refs yourself (SpecBridge never fetches automatically). In GitHub Actions, check out with actions/checkout@v4 and fetch-depth: 0.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const failure = context.comparison.failure;
     if (context.comparison.ok || failure === void 0) return [];
     return [
       makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: failure.message,
         evidence: {
           reason: failure.reason,
@@ -70693,11 +71999,11 @@ var sbv022 = {
   scope: "global",
   triggeredWhen: "A changed file maps to more than one spec (overlapping impact areas or evidence). Every matching spec is verified; the overlap itself is reported.",
   resolution: "Narrow the overlapping impact areas so each path has one owning spec, or accept the shared ownership deliberately.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     return context.ambiguousFiles.map(
       (entry) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `${entry.path} maps to ${entry.specs.length} specs: ${entry.specs.map((spec) => `${spec.name} (via ${spec.via.join(", ")})`).join("; ")}.`,
         file: { path: entry.path },
         evidence: { specs: entry.specs }
@@ -70714,7 +72020,7 @@ var sbv023 = {
   scope: "spec",
   triggeredWhen: "The comparison modifies a managed spec\u2019s tasks.md beyond checkbox transitions \u2014 task text, IDs, hierarchy, or references changed relative to the comparison base.",
   resolution: "If the plan change is intentional, review and re-approve the task plan; otherwise revert the tasks.md edit.",
-  async evaluate(context, resolved) {
+  async evaluate(context, resolved2) {
     if (context.spec.state === void 0) return [];
     if (!context.comparison.ok) return [];
     const repoPath = `.kiro/specs/${context.specName}/tasks.md`;
@@ -70733,7 +72039,7 @@ var sbv023 = {
     return [
       makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `tasks.md of "${context.specName}" changed beyond checkbox progress in this comparison (task text, IDs, hierarchy, or references differ from the base).`,
         specName: context.specName,
         file: { path: repoPath },
@@ -70754,7 +72060,7 @@ var sbv024 = {
   scope: "spec",
   triggeredWhen: "An evidence record lists changed-file paths that escape the repository (absolute paths or .. traversal). Such records are never trusted.",
   resolution: "Delete or regenerate the corrupt evidence record; evidence must only reference repository-relative paths.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const diagnostics = [];
     for (const [taskId, assessment] of context.evidence.assessmentsByTask) {
       for (const item of assessment.all) {
@@ -70762,7 +72068,7 @@ var sbv024 = {
         diagnostics.push(
           makeDiagnostic({
             rule: this,
-            severity: resolved.severity,
+            severity: resolved2.severity,
             message: `Evidence record ${item.record.runId} for task ${taskId} references paths outside the repository: ${item.pathViolations.join(", ")}.`,
             specName: context.specName,
             taskId,
@@ -70833,9 +72139,9 @@ function loadSpecMatchingInfo(workspace, folder, options) {
     }
   }
   const evidencePaths = /* @__PURE__ */ new Set();
-  const evidenceDir2 = import_path30.default.join(workspace.sidecarDir, "evidence", folder.name);
-  if ((0, import_fs28.existsSync)(evidenceDir2)) {
-    for (const entry of (0, import_fs29.readdirSync)(evidenceDir2, { withFileTypes: true })) {
+  const evidenceDir2 = import_path33.default.join(workspace.sidecarDir, "evidence", folder.name);
+  if ((0, import_fs31.existsSync)(evidenceDir2)) {
+    for (const entry of (0, import_fs32.readdirSync)(evidenceDir2, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
       const { records } = listTaskEvidence(workspace, folder.name, entry.name);
       for (const record4 of records) {
@@ -70893,7 +72199,7 @@ var VERIFY_EXIT_CODES = {
 };
 async function verifySpecs(request) {
   const now5 = (request.clock ?? (() => /* @__PURE__ */ new Date()))();
-  const verificationId = (request.idFactory ?? import_crypto12.randomUUID)();
+  const verificationId = (request.idFactory ?? import_crypto14.randomUUID)();
   const workspace = request.workspace;
   const configRead = readAgentConfig(workspace);
   if (configRead.config === void 0) {
@@ -70944,8 +72250,8 @@ async function verifySpecs(request) {
   let artifactsDir;
   const ensureArtifactsDir = () => {
     if (artifactsDir === void 0) {
-      const base = request.reportsDir ?? import_path31.default.join(workspace.sidecarDir, "reports");
-      artifactsDir = import_path31.default.join(base, verificationId);
+      const base = request.reportsDir ?? import_path34.default.join(workspace.sidecarDir, "reports");
+      artifactsDir = import_path34.default.join(base, verificationId);
     }
     return artifactsDir;
   };
@@ -70968,8 +72274,8 @@ async function verifySpecs(request) {
       onCommandFinished: (result, stdout, stderr) => {
         const dir = ensureArtifactsDir();
         const safeName = result.name.replace(/[^A-Za-z0-9._-]+/g, "-");
-        writeFileAtomic(import_path31.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
-        writeFileAtomic(import_path31.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
+        writeFileAtomic(import_path34.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
+        writeFileAtomic(import_path34.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
       }
     } : {}
   }) : { mode: "none", commands: [], missingRequired: [] };
@@ -71120,7 +72426,7 @@ async function verifySpecs(request) {
   verificationReportSchema.parse(report);
   if (persistArtifacts && artifactsDir !== void 0) {
     writeFileAtomic(
-      import_path31.default.join(artifactsDir, "report.json"),
+      import_path34.default.join(artifactsDir, "report.json"),
       `${JSON.stringify(report, null, 2)}
 `
     );
@@ -71482,20 +72788,20 @@ function registerSteeringReadTool(server, context) {
         }
         throw cause;
       }
-      const bounded = truncateText(body, LIMITS.maximumDocumentBytes);
+      const bounded3 = truncateText(body, LIMITS.maximumDocumentBytes);
       const hash = trySha256File(info.path);
       return {
-        text: bounded.truncated ? `${info.fileName} (truncated to ${LIMITS.maximumDocumentBytes} bytes)
+        text: bounded3.truncated ? `${info.fileName} (truncated to ${LIMITS.maximumDocumentBytes} bytes)
 
-${bounded.text}` : `${info.fileName}
+${bounded3.text}` : `${info.fileName}
 
-${bounded.text}`,
+${bounded3.text}`,
         structured: {
           name: info.name,
           path: repoRelative(workspace, info.path),
           contentType: "text/markdown",
-          content: bounded.text,
-          truncated: bounded.truncated,
+          content: bounded3.text,
+          truncated: bounded3.truncated,
           sizeBytes: info.sizeBytes,
           ...hash !== void 0 ? { contentHash: hash } : {},
           inclusion: info.inclusion,
@@ -71614,14 +72920,14 @@ function registerSpecReadTool(server, context) {
         if (document === void 0) {
           return { document: kind, path: relativePath, exists: false };
         }
-        const bounded = truncateText(document.bodyText(), LIMITS.maximumDocumentBytes);
+        const bounded3 = truncateText(document.bodyText(), LIMITS.maximumDocumentBytes);
         const hash = document.filePath !== void 0 ? trySha256File(document.filePath) : void 0;
         return {
           document: kind,
           path: document.filePath !== void 0 ? repoRelative(workspace, document.filePath) : relativePath,
           exists: true,
-          content: bounded.text,
-          truncated: bounded.truncated,
+          content: bounded3.text,
+          truncated: bounded3.truncated,
           ...hash !== void 0 ? { contentHash: hash } : {},
           lineCount: document.lineCount,
           eol: document.dominantEol(),
@@ -71887,14 +73193,14 @@ function registerSpecContextTool(server, context) {
 `;
         truncated = true;
       }
-      const bounded = truncateText(markdown, LIMITS.maximumDocumentBytes);
+      const bounded3 = truncateText(markdown, LIMITS.maximumDocumentBytes);
       return {
-        text: bounded.text,
+        text: bounded3.text,
         structured: {
           specName: analysis.folder.name,
           format: format2,
-          markdown: bounded.text,
-          truncated: truncated || bounded.truncated,
+          markdown: bounded3.text,
+          truncated: truncated || bounded3.truncated,
           approvalSummary,
           verificationCommands,
           ...selectedTask !== void 0 ? { selectedTask } : {}
@@ -73441,7 +74747,7 @@ var import_node_os4 = __toESM(require("os"), 1);
 var import_node_path10 = __toESM(require("path"), 1);
 
 // ../../packages/extension-sdk/dist/index.js
-var import_crypto13 = require("crypto");
+var import_crypto15 = require("crypto");
 var EXTENSION_RULE_ID_PATTERN = /^[A-Z][A-Z0-9_-]{0,63}$/;
 var MAX_EXTENSION_DIAGNOSTICS = 1e3;
 var EXTENSION_DIAGNOSTIC_SEVERITIES = ["info", "warning", "error"];
@@ -73659,7 +74965,7 @@ function computePermissionHash(input) {
       specRead: normalized.specRead
     }
   });
-  return (0, import_crypto13.createHash)("sha256").update(canonical, "utf8").digest("hex");
+  return (0, import_crypto15.createHash)("sha256").update(canonical, "utf8").digest("hex");
 }
 function describePermissions(permissions) {
   const normalized = normalizePermissions(permissions);
@@ -74302,7 +75608,7 @@ function createLineDecoder(options) {
   const maxLineBytes = options.maxLineBytes ?? MAX_PROTOCOL_MESSAGE_BYTES;
   let buffered = Buffer.alloc(0);
   let overflowed = false;
-  const push = (chunk) => {
+  const push2 = (chunk) => {
     if (overflowed) {
       return;
     }
@@ -74338,23 +75644,23 @@ function createLineDecoder(options) {
       options.onLine(line);
     }
   };
-  return { push, end };
+  return { push: push2, end };
 }
 var TEMPLATE_PROVIDER_TEMPLATES_DIR = "templates";
 var MAX_TEMPLATE_PROVIDER_PACKS = 20;
 
 // ../../packages/extensions/dist/index.js
-var import_fs33 = require("fs");
-var import_path36 = __toESM(require("path"), 1);
+var import_fs36 = require("fs");
+var import_path39 = __toESM(require("path"), 1);
 
 // ../../packages/templates/dist/index.js
-var import_fs30 = require("fs");
-var import_path32 = __toESM(require("path"), 1);
-var import_fs31 = require("fs");
-var import_path33 = __toESM(require("path"), 1);
-var import_fs32 = require("fs");
-var import_path34 = __toESM(require("path"), 1);
+var import_fs33 = require("fs");
 var import_path35 = __toESM(require("path"), 1);
+var import_fs34 = require("fs");
+var import_path36 = __toESM(require("path"), 1);
+var import_fs35 = require("fs");
+var import_path37 = __toESM(require("path"), 1);
+var import_path38 = __toESM(require("path"), 1);
 var SPECBRIDGE_VERSION = "1.0.0";
 var TEMPLATE_ERROR_CODES = {
   SBT001: "template not found",
@@ -75183,11 +76489,11 @@ function readTemplatePackDirectory(dir) {
         { path: currentDir }
       );
     }
-    const entries = (0, import_fs30.readdirSync)(currentDir, { withFileTypes: true }).sort(
+    const entries = (0, import_fs33.readdirSync)(currentDir, { withFileTypes: true }).sort(
       (a2, b) => a2.name.localeCompare(b.name, "en")
     );
     for (const entry of entries) {
-      const entryPath = import_path32.default.join(currentDir, entry.name);
+      const entryPath = import_path35.default.join(currentDir, entry.name);
       const entryRelative = relative === "" ? entry.name : `${relative}/${entry.name}`;
       const stat = statNoFollow(entryPath);
       if (stat.isSymbolicLink()) {
@@ -75239,7 +76545,7 @@ function readTemplatePackDirectory(dir) {
           { path: dir }
         );
       }
-      const buffer = (0, import_fs30.readFileSync)(entryPath);
+      const buffer = (0, import_fs33.readFileSync)(entryPath);
       const text15 = buffer.toString("utf8");
       if (!Buffer.from(text15, "utf8").equals(buffer)) {
         throw new TemplateError(
@@ -75265,7 +76571,7 @@ function readTemplatePackDirectory(dir) {
 }
 function statNoFollow(target) {
   try {
-    return (0, import_fs30.lstatSync)(target);
+    return (0, import_fs33.lstatSync)(target);
   } catch (cause) {
     throw new TemplateError(
       "SBT007",
@@ -75543,7 +76849,7 @@ var BUILTIN_TEMPLATE_PACKS = [
   }
 ];
 function projectTemplatesDir(workspace) {
-  return import_path33.default.join(workspace.sidecarDir, "templates");
+  return import_path36.default.join(workspace.sidecarDir, "templates");
 }
 function builtinEntries(options) {
   const entries = [];
@@ -75568,11 +76874,11 @@ function builtinEntries(options) {
 function projectEntries(workspace, options, diagnostics) {
   if (workspace === void 0) return [];
   const dir = projectTemplatesDir(workspace);
-  if (!(0, import_fs31.existsSync)(dir)) return [];
+  if (!(0, import_fs34.existsSync)(dir)) return [];
   const entries = [];
   let names;
   try {
-    names = (0, import_fs31.readdirSync)(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory() && !entry.isSymbolicLink()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
+    names = (0, import_fs34.readdirSync)(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory() && !entry.isSymbolicLink()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
   } catch (cause) {
     diagnostics.push({
       severity: "warning",
@@ -75582,7 +76888,7 @@ function projectEntries(workspace, options, diagnostics) {
     return [];
   }
   for (const name of names) {
-    const packDir = import_path33.default.join(dir, name);
+    const packDir = import_path36.default.join(dir, name);
     let pack;
     try {
       const data = readTemplatePackDirectory(packDir);
@@ -75825,7 +77131,7 @@ var templateRecordSchema = external_exports.discriminatedUnion("type", [
   templateScaffoldRecordSchema
 ]);
 function templateRecordsPath(workspace) {
-  return import_path34.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
+  return import_path37.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
 }
 var recordCounter = 0;
 function newTemplateRecordId(clock = systemClock) {
@@ -75836,8 +77142,8 @@ function appendTemplateRecord(workspace, record4) {
   const validated = templateRecordSchema.parse(record4);
   const filePath = templateRecordsPath(workspace);
   try {
-    (0, import_fs32.mkdirSync)(workspace.sidecarDir, { recursive: true });
-    (0, import_fs32.appendFileSync)(filePath, `${JSON.stringify(validated)}
+    (0, import_fs35.mkdirSync)(workspace.sidecarDir, { recursive: true });
+    (0, import_fs35.appendFileSync)(filePath, `${JSON.stringify(validated)}
 `, "utf8");
   } catch (cause) {
     throw ioError("append template record to", filePath, cause);
@@ -75911,7 +77217,7 @@ function planTemplateApplication(workspace, catalog, request, clock = systemCloc
   const requestedDescription = request.description?.trim();
   const descriptionIsPlaceholder = requestedDescription === void 0 || requestedDescription.length === 0;
   const description = descriptionIsPlaceholder ? manifest.kind === "bugfix" ? DEFAULT_BUGFIX_DESCRIPTION : DEFAULT_FEATURE_DESCRIPTION : requestedDescription;
-  const resolved = resolveVariables(manifest, request.variables ?? {}, {
+  const resolved2 = resolveVariables(manifest, request.variables ?? {}, {
     specName: request.specName,
     title,
     description,
@@ -75930,7 +77236,7 @@ function planTemplateApplication(workspace, catalog, request, clock = systemCloc
         { reference: entry.ref, source: file.source }
       );
     }
-    const content = renderTemplateText(file.source, source, resolved.values);
+    const content = renderTemplateText(file.source, source, resolved2.values);
     const stage = TARGET_STAGES[file.target];
     if (stage === void 0) {
       throw new TemplateError(
@@ -75997,14 +77303,14 @@ function planTemplateApplication(workspace, catalog, request, clock = systemCloc
     manifest,
     manifestHash,
     mode,
-    variableNames: resolved.variableNames,
+    variableNames: resolved2.variableNames,
     specPlan,
     candidateHash,
     diagnostics
   };
 }
 function toPosix2(relative) {
-  return relative.split(import_path35.default.sep).join("/");
+  return relative.split(import_path38.default.sep).join("/");
 }
 function executeTemplateApplication(workspace, plan, clock = systemClock, recordId) {
   let creation;
@@ -76034,8 +77340,8 @@ function executeTemplateApplication(workspace, plan, clock = systemClock, record
     })),
     variableNames: plan.variableNames,
     createdPaths: [
-      ...creation.writtenFiles.map((file) => toPosix2(import_path35.default.relative(workspace.rootDir, file))),
-      toPosix2(import_path35.default.relative(workspace.rootDir, creation.statePath))
+      ...creation.writtenFiles.map((file) => toPosix2(import_path38.default.relative(workspace.rootDir, file))),
+      toPosix2(import_path38.default.relative(workspace.rootDir, creation.statePath))
     ]
   };
   appendTemplateRecord(workspace, record4);
@@ -76043,14 +77349,14 @@ function executeTemplateApplication(workspace, plan, clock = systemClock, record
 }
 
 // ../../packages/extensions/dist/index.js
-var import_crypto14 = require("crypto");
-var import_fs34 = require("fs");
-var import_path37 = __toESM(require("path"), 1);
+var import_crypto16 = require("crypto");
+var import_fs37 = require("fs");
+var import_path40 = __toESM(require("path"), 1);
 var import_child_process = require("child_process");
-var import_fs35 = require("fs");
-var import_path38 = __toESM(require("path"), 1);
-var import_fs36 = require("fs");
-var import_path39 = __toESM(require("path"), 1);
+var import_fs38 = require("fs");
+var import_path41 = __toESM(require("path"), 1);
+var import_fs39 = require("fs");
+var import_path42 = __toESM(require("path"), 1);
 var ExtensionError = class extends SpecBridgeError {
   extensionCode;
   /** Actionable next step, always present. */
@@ -76177,7 +77483,7 @@ var extensionChecksumsSchema = external_exports.object({
   files: external_exports.record(external_exports.string().regex(/^[0-9a-f]{64}$/))
 }).strict();
 function sha256HexOf(data) {
-  return (0, import_crypto14.createHash)("sha256").update(data).digest("hex");
+  return (0, import_crypto16.createHash)("sha256").update(data).digest("hex");
 }
 function parseExtensionChecksums(text15) {
   const issues = [];
@@ -76294,7 +77600,7 @@ var FORBIDDEN_LIFECYCLE_SCRIPTS = [
   "postuninstall"
 ];
 function readExtensionPackageDirectory(dir) {
-  const rootStat = (0, import_fs33.lstatSync)(dir, { throwIfNoEntry: false });
+  const rootStat = (0, import_fs36.lstatSync)(dir, { throwIfNoEntry: false });
   if (rootStat === void 0 || !rootStat.isDirectory()) {
     throw new ExtensionError(
       "SBE008",
@@ -76319,7 +77625,7 @@ function readExtensionPackageDirectory(dir) {
         "Flatten the package layout."
       );
     }
-    for (const entry of (0, import_fs33.readdirSync)(currentDir, { withFileTypes: true })) {
+    for (const entry of (0, import_fs36.readdirSync)(currentDir, { withFileTypes: true })) {
       const relativePath = relativePrefix === "" ? entry.name : `${relativePrefix}/${entry.name}`;
       if (entry.isSymbolicLink()) {
         throw new ExtensionError(
@@ -76345,7 +77651,7 @@ function readExtensionPackageDirectory(dir) {
             "Remove the directory before validating or packaging."
           );
         }
-        walk(import_path36.default.join(currentDir, entry.name), relativePath, depth + 1);
+        walk(import_path39.default.join(currentDir, entry.name), relativePath, depth + 1);
         continue;
       }
       if (!entry.isFile()) {
@@ -76362,7 +77668,7 @@ function readExtensionPackageDirectory(dir) {
           "Reduce the package contents."
         );
       }
-      const content = (0, import_fs33.readFileSync)(import_path36.default.join(currentDir, entry.name));
+      const content = (0, import_fs36.readFileSync)(import_path39.default.join(currentDir, entry.name));
       totalBytes += content.length;
       if (totalBytes > EXTENSION_LIMITS.maxExtractedTotalBytes) {
         throw new ExtensionError(
@@ -76635,10 +77941,10 @@ var EXTENSION_STATE_FILE_NAME = "state.json";
 var EXTENSION_GRANTS_FILE_NAME = "grants.json";
 var EXTENSION_STATE_SCHEMA_VERSION = "1.0.0";
 function extensionsDir(workspace) {
-  return import_path37.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
+  return import_path40.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
 }
 function installedRootDir(workspace) {
-  return import_path37.default.join(extensionsDir(workspace), "installed");
+  return import_path40.default.join(extensionsDir(workspace), "installed");
 }
 function installedVersionDir(workspace, id, version2) {
   if (!validateExtensionId(id).valid || parseSemver(version2) === void 0) {
@@ -76648,7 +77954,7 @@ function installedVersionDir(workspace, id, version2) {
       "Use a valid extension ID and X.Y.Z version."
     );
   }
-  const dir = import_path37.default.join(installedRootDir(workspace), id, version2);
+  const dir = import_path40.default.join(installedRootDir(workspace), id, version2);
   assertInsideWorkspace(workspace.rootDir, dir);
   return dir;
 }
@@ -76692,12 +77998,12 @@ function emptyPermissionGrants() {
   return { schemaVersion: EXTENSION_STATE_SCHEMA_VERSION, grants: {} };
 }
 function readValidatedJson(filePath, schema, empty, label) {
-  if (!(0, import_fs34.existsSync)(filePath)) {
+  if (!(0, import_fs37.existsSync)(filePath)) {
     return { value: empty, diagnostics: [], exists: false };
   }
   let text15;
   try {
-    text15 = (0, import_fs34.readFileSync)(filePath, "utf8");
+    text15 = (0, import_fs37.readFileSync)(filePath, "utf8");
   } catch (cause) {
     return {
       value: empty,
@@ -76747,10 +78053,10 @@ function readValidatedJson(filePath, schema, empty, label) {
   return { value: result.data, diagnostics: [], exists: true };
 }
 function extensionStatePath(workspace) {
-  return import_path37.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
+  return import_path40.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
 }
 function permissionGrantsPath(workspace) {
-  return import_path37.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
+  return import_path40.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
 }
 function readExtensionState(workspace) {
   const { value, diagnostics, exists } = readValidatedJson(
@@ -76931,9 +78237,9 @@ function resolveEntrypoint(installedDir, entrypoint) {
   if (problem !== void 0) {
     throw new ExtensionError("SBE012", `entrypoint "${entrypoint}": ${problem}.`, "Fix the extension manifest.");
   }
-  const resolved = import_path38.default.join(installedDir, ...entrypoint.split("/"));
-  const relative = import_path38.default.relative(installedDir, resolved);
-  if (relative.startsWith("..") || import_path38.default.isAbsolute(relative)) {
+  const resolved2 = import_path41.default.join(installedDir, ...entrypoint.split("/"));
+  const relative = import_path41.default.relative(installedDir, resolved2);
+  if (relative.startsWith("..") || import_path41.default.isAbsolute(relative)) {
     throw new ExtensionError(
       "SBE012",
       `entrypoint "${entrypoint}" escapes the installed extension directory.`,
@@ -76941,9 +78247,9 @@ function resolveEntrypoint(installedDir, entrypoint) {
     );
   }
   let current = installedDir;
-  for (const segment of relative.split(import_path38.default.sep)) {
-    current = import_path38.default.join(current, segment);
-    const stat = (0, import_fs35.lstatSync)(current, { throwIfNoEntry: false });
+  for (const segment of relative.split(import_path41.default.sep)) {
+    current = import_path41.default.join(current, segment);
+    const stat = (0, import_fs38.lstatSync)(current, { throwIfNoEntry: false });
     if (stat === void 0) {
       throw new ExtensionError(
         "SBE012",
@@ -76959,7 +78265,7 @@ function resolveEntrypoint(installedDir, entrypoint) {
       );
     }
   }
-  const finalStat = (0, import_fs35.lstatSync)(resolved, { throwIfNoEntry: false });
+  const finalStat = (0, import_fs38.lstatSync)(resolved2, { throwIfNoEntry: false });
   if (finalStat === void 0 || !finalStat.isFile()) {
     throw new ExtensionError(
       "SBE012",
@@ -76967,7 +78273,7 @@ function resolveEntrypoint(installedDir, entrypoint) {
       "Reinstall the extension."
     );
   }
-  return resolved;
+  return resolved2;
 }
 function buildSanitizedEnvironment(granted, source = process.env) {
   const environment = {};
@@ -77490,14 +78796,14 @@ async function probeExtensionHandshake(enabled, options = {}) {
 }
 function compatibilityOf(workspace, record4, specbridgeVersion) {
   try {
-    const manifestPath = import_path39.default.join(
+    const manifestPath = import_path42.default.join(
       installedVersionDir(workspace, record4.id, record4.version),
       EXTENSION_MANIFEST_FILE_NAME
     );
-    if (!(0, import_fs36.existsSync)(manifestPath)) {
+    if (!(0, import_fs39.existsSync)(manifestPath)) {
       return { compatibility: "unknown", deprecated: false };
     }
-    const parsed = parseExtensionManifest((0, import_fs36.readFileSync)(manifestPath, "utf8"));
+    const parsed = parseExtensionManifest((0, import_fs39.readFileSync)(manifestPath, "utf8"));
     if (parsed.manifest === void 0) {
       return { compatibility: "unknown", deprecated: false };
     }
@@ -78393,10 +79699,10 @@ function registerRunnerDoctorTool(server, context) {
         timeoutMs: RUNNER_PROBE_TIMEOUT_MS
       });
       const view = toDetectionView(detection, args.verbose === true);
-      const findings = view.diagnostics.map((diagnostic) => `- [${diagnostic.severity}] ${diagnostic.message}`).join("\n");
+      const findings2 = view.diagnostics.map((diagnostic) => `- [${diagnostic.severity}] ${diagnostic.message}`).join("\n");
       return {
-        text: `Runner ${profileName} (${profile.runner.name}): status ${view.status}, support ${view.supportLevel}, authentication ${view.authentication}.${findings.length > 0 ? `
-${findings}` : ""}`,
+        text: `Runner ${profileName} (${profile.runner.name}): status ${view.status}, support ${view.supportLevel}, authentication ${view.authentication}.${findings2.length > 0 ? `
+${findings2}` : ""}`,
         structured: {
           profile: profileName,
           implementation: profile.runner.name,
@@ -78875,10 +80181,10 @@ function registerTemplateApplyTool(server, context) {
 }
 
 // ../../packages/registry/dist/index.js
-var import_fs37 = require("fs");
-var import_path40 = __toESM(require("path"), 1);
-var import_fs38 = require("fs");
-var import_path41 = __toESM(require("path"), 1);
+var import_fs40 = require("fs");
+var import_path43 = __toESM(require("path"), 1);
+var import_fs41 = require("fs");
+var import_path44 = __toESM(require("path"), 1);
 var BUILTIN_REGISTRY_INDEX_JSON = '{\n  "schemaVersion": "1.0.0",\n  "name": "specbridge-examples",\n  "updatedAt": "2026-01-01T00:00:00.000Z",\n  "extensions": [\n    {\n      "id": "example-analyzer",\n      "displayName": "example-analyzer",\n      "description": "Deterministic spec diagnostics contributed by the example-analyzer analyzer extension.",\n      "kind": "analyzer",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-analyzer-1.0.0.specbridge-extension.zip",\n          "sha256": "e6e0948a315b09e53bd18997dce21888af9adbb3997fbf82955399dcf3252a19",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "analyzer",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-exporter",\n      "displayName": "example-exporter",\n      "description": "Candidate export files produced by the example-exporter exporter extension.",\n      "kind": "exporter",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-exporter-1.0.0.specbridge-extension.zip",\n          "sha256": "68f42755a4e56d0e318012ec8c0e3b093e44429182ca93b02d9fb4ce2ec308a3",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "exporter",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-runner",\n      "displayName": "example-runner",\n      "description": "An out-of-process runner adapter provided by the example-runner extension.",\n      "kind": "runner",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-runner-1.0.0.specbridge-extension.zip",\n          "sha256": "5ef3db937d872bfe09495695e9ecb0a3cf3beaf9e006fabdc2972ef55ace80ef",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": true,\n              "repositoryWrite": true,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "runner",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-template-provider",\n      "displayName": "example-template-provider",\n      "description": "Spec template packs contributed by the example-template-provider template-provider extension.",\n      "kind": "template-provider",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-template-provider-1.0.0.specbridge-extension.zip",\n          "sha256": "f7caa11a13473f0891cc8d237ec4f9f2962a2dd1bd2baba4e9d01570de29044b",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": false,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "template-provider",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-verifier",\n      "displayName": "example-verifier",\n      "description": "Verification diagnostics contributed by the example-verifier verifier extension.",\n      "kind": "verifier",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-verifier-1.0.0.specbridge-extension.zip",\n          "sha256": "d531c9078fcbeef6573a95773eefafd409d798bac1223c83748e0229ae0225bf",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "verifier",\n        "specbridge-extension"\n      ]\n    }\n  ]\n}\n';
 var REGISTRY_ERROR_CODES = {
   SBR001: "registry not found",
@@ -79034,20 +80340,20 @@ var cachedRegistrySchema = external_exports.object({
   index: registryIndexSchema
 }).passthrough();
 function registryCacheDir(workspace) {
-  return import_path40.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
+  return import_path43.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
 }
 function registryCachePath(workspace, name) {
-  const target = import_path40.default.join(registryCacheDir(workspace), `${name}.json`);
+  const target = import_path43.default.join(registryCacheDir(workspace), `${name}.json`);
   assertInsideWorkspace(workspace.rootDir, target);
   return target;
 }
 function readRegistryCache(workspace, name) {
   const filePath = registryCachePath(workspace, name);
-  if (!(0, import_fs37.existsSync)(filePath)) {
+  if (!(0, import_fs40.existsSync)(filePath)) {
     return { diagnostics: [] };
   }
   try {
-    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs37.readFileSync)(filePath, "utf8")));
+    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs40.readFileSync)(filePath, "utf8")));
     if (!parsed.success) {
       return {
         diagnostics: [
@@ -79087,9 +80393,9 @@ function resolveRegistryIndex(workspace, source) {
     return { sourceName: source.name, index: parsed.index, origin: "builtin", diagnostics: [] };
   }
   if (source.type === "local-file") {
-    const filePath = import_path40.default.resolve(workspace.rootDir, source.file);
+    const filePath = import_path43.default.resolve(workspace.rootDir, source.file);
     assertInsideWorkspace(workspace.rootDir, filePath);
-    if (!(0, import_fs37.existsSync)(filePath)) {
+    if (!(0, import_fs40.existsSync)(filePath)) {
       return {
         sourceName: source.name,
         index: { schemaVersion: "1.0.0", name: source.name, updatedAt: "unknown", extensions: [] },
@@ -79104,7 +80410,7 @@ function resolveRegistryIndex(workspace, source) {
         ]
       };
     }
-    const text15 = (0, import_fs37.readFileSync)(filePath, "utf8");
+    const text15 = (0, import_fs40.readFileSync)(filePath, "utf8");
     const parsed = parseRegistryIndex(text15);
     if (parsed.index === void 0) {
       throw new RegistryError(
@@ -79200,7 +80506,7 @@ var registriesConfigSchema = external_exports.object({
   registries: external_exports.array(registrySourceSchema).max(20)
 }).passthrough();
 function registriesConfigPath(workspace) {
-  return import_path41.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
+  return import_path44.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
 }
 function defaultRegistriesConfig() {
   return {
@@ -79210,12 +80516,12 @@ function defaultRegistriesConfig() {
 }
 function readRegistriesConfig(workspace) {
   const filePath = registriesConfigPath(workspace);
-  if (!(0, import_fs38.existsSync)(filePath)) {
+  if (!(0, import_fs41.existsSync)(filePath)) {
     return { config: defaultRegistriesConfig(), diagnostics: [], exists: false };
   }
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs38.readFileSync)(filePath, "utf8"));
+    parsed = JSON.parse((0, import_fs41.readFileSync)(filePath, "utf8"));
   } catch (cause) {
     return {
       config: defaultRegistriesConfig(),
@@ -79310,9 +80616,9 @@ function readableRegistryIndexes(workspace, registryFilter) {
       continue;
     }
     try {
-      const resolved = resolveRegistryIndex(workspace, source);
-      if (resolved !== void 0) {
-        indexes.push({ registryName: resolved.sourceName, index: resolved.index });
+      const resolved2 = resolveRegistryIndex(workspace, source);
+      if (resolved2 !== void 0) {
+        indexes.push({ registryName: resolved2.sourceName, index: resolved2.index });
       }
     } catch {
     }
@@ -81123,15 +82429,15 @@ function registerContractChangeRequestTool(server, context) {
 }
 
 // ../../packages/intake/dist/index.js
-var import_crypto15 = require("crypto");
-var import_fs40 = require("fs");
-var import_path43 = __toESM(require("path"), 1);
-var import_fs41 = require("fs");
-var import_path44 = __toESM(require("path"), 1);
+var import_crypto17 = require("crypto");
+var import_fs43 = require("fs");
+var import_path46 = __toESM(require("path"), 1);
+var import_fs44 = require("fs");
+var import_path47 = __toESM(require("path"), 1);
 
 // ../../packages/autonomy/dist/index.js
-var import_fs39 = require("fs");
-var import_path42 = __toESM(require("path"), 1);
+var import_fs42 = require("fs");
+var import_path45 = __toESM(require("path"), 1);
 var SEAL_STATUSES = [
   /** Drafted from mission state; not yet authorized by a human. */
   "DRAFT",
@@ -81538,26 +82844,26 @@ var CERTIFICATION_VERDICTS = ["CERTIFIED", "NOT_CERTIFIED", "INCOMPLETE"];
 function autonomyDir(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path42.default.join(workspace.rootDir, ".specbridge", "autonomy")
+    import_path45.default.join(workspace.rootDir, ".specbridge", "autonomy")
   );
 }
 function autonomyPath(workspace, ...segments) {
-  return assertInsideWorkspace(workspace.rootDir, import_path42.default.join(autonomyDir(workspace), ...segments));
+  return assertInsideWorkspace(workspace.rootDir, import_path45.default.join(autonomyDir(workspace), ...segments));
 }
 function readJsonRecord(file, parse3) {
-  if (!(0, import_fs39.existsSync)(file)) return void 0;
+  if (!(0, import_fs42.existsSync)(file)) return void 0;
   try {
-    return parse3(JSON.parse((0, import_fs39.readFileSync)(file, "utf8")));
+    return parse3(JSON.parse((0, import_fs42.readFileSync)(file, "utf8")));
   } catch {
     return void 0;
   }
 }
 function listJsonRecords(dir, parse3) {
-  if (!(0, import_fs39.existsSync)(dir)) return [];
+  if (!(0, import_fs42.existsSync)(dir)) return [];
   const out = [];
-  for (const entry2 of (0, import_fs39.readdirSync)(dir).sort()) {
+  for (const entry2 of (0, import_fs42.readdirSync)(dir).sort()) {
     if (!entry2.endsWith(".json")) continue;
-    const value = readJsonRecord(import_path42.default.join(dir, entry2), parse3);
+    const value = readJsonRecord(import_path45.default.join(dir, entry2), parse3);
     if (value !== void 0) out.push(value);
   }
   return out;
@@ -82690,9 +83996,15 @@ var certificationRunSchema = external_exports.object({
 }).passthrough();
 
 // ../../packages/intake/dist/index.js
-var import_fs42 = require("fs");
-var import_path45 = __toESM(require("path"), 1);
-var import_path46 = __toESM(require("path"), 1);
+var import_fs45 = require("fs");
+var import_path48 = __toESM(require("path"), 1);
+var import_path49 = __toESM(require("path"), 1);
+var import_fs46 = require("fs");
+var import_path50 = __toESM(require("path"), 1);
+var import_fs47 = require("fs");
+var import_path51 = __toESM(require("path"), 1);
+var import_fs48 = require("fs");
+var import_path52 = __toESM(require("path"), 1);
 var INTAKE_STATUSES = [
   /** The source specification is ingested; discovery has not run. */
   "INGESTED",
@@ -82939,7 +84251,9 @@ var SBI_CODES = {
   SBI014: "build lifecycle step failed",
   SBI015: "overnight prerequisite requires a person",
   SBI016: "product baseline invalid",
-  SBI017: "intake record already exists"
+  SBI017: "intake record already exists",
+  SBI018: "workspace bootstrap input rejected",
+  SBI019: "workspace snapshot not found"
 };
 var IntakeError = class extends Error {
   code;
@@ -82975,7 +84289,7 @@ function hostOf(deps) {
   return deps.host ?? "cli";
 }
 function newId2(deps) {
-  return (deps.idFactory ?? import_crypto15.randomUUID)();
+  return (deps.idFactory ?? import_crypto17.randomUUID)();
 }
 function newRecordId(deps, prefix) {
   const raw = newId2(deps).replace(/[^A-Za-z0-9._-]/g, "").slice(0, 40);
@@ -83402,41 +84716,41 @@ function assertIntakeId(id) {
 function intakeRootDir(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path43.default.join(workspace.rootDir, ".specbridge", INTAKE_DIR_NAME)
+    import_path46.default.join(workspace.rootDir, ".specbridge", INTAKE_DIR_NAME)
   );
 }
 function intakeDir(workspace, intakeId) {
   assertIntakeId(intakeId);
-  return assertInsideWorkspace(workspace.rootDir, import_path43.default.join(intakeRootDir(workspace), intakeId));
+  return assertInsideWorkspace(workspace.rootDir, import_path46.default.join(intakeRootDir(workspace), intakeId));
 }
 function intakePath(workspace, intakeId, ...segments) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path43.default.join(intakeDir(workspace, intakeId), ...segments)
+    import_path46.default.join(intakeDir(workspace, intakeId), ...segments)
   );
 }
 function writeJson(file, value) {
-  (0, import_fs40.mkdirSync)(import_path43.default.dirname(file), { recursive: true });
+  (0, import_fs43.mkdirSync)(import_path46.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(value, null, 2)}
 `);
 }
 function readJson2(file, parse3) {
-  if (!(0, import_fs40.existsSync)(file)) return void 0;
+  if (!(0, import_fs43.existsSync)(file)) return void 0;
   try {
-    return parse3(JSON.parse((0, import_fs40.readFileSync)(file, "utf8")));
+    return parse3(JSON.parse((0, import_fs43.readFileSync)(file, "utf8")));
   } catch {
     return void 0;
   }
 }
 function appendJsonl2(file, value) {
-  (0, import_fs40.mkdirSync)(import_path43.default.dirname(file), { recursive: true });
-  (0, import_fs40.appendFileSync)(file, `${JSON.stringify(value)}
+  (0, import_fs43.mkdirSync)(import_path46.default.dirname(file), { recursive: true });
+  (0, import_fs43.appendFileSync)(file, `${JSON.stringify(value)}
 `, "utf8");
 }
 function readFolded(file, key, parse3) {
-  if (!(0, import_fs40.existsSync)(file)) return [];
+  if (!(0, import_fs43.existsSync)(file)) return [];
   const folded = /* @__PURE__ */ new Map();
-  for (const line of (0, import_fs40.readFileSync)(file, "utf8").split("\n")) {
+  for (const line of (0, import_fs43.readFileSync)(file, "utf8").split("\n")) {
     if (line.trim().length === 0) continue;
     try {
       const value = parse3(JSON.parse(line));
@@ -83469,16 +84783,16 @@ function writeIntakeState(workspace, state) {
 }
 function listIntakes(workspace) {
   const root = intakeRootDir(workspace);
-  if (!(0, import_fs40.existsSync)(root)) return { intakes: [], diagnostics: [] };
+  if (!(0, import_fs43.existsSync)(root)) return { intakes: [], diagnostics: [] };
   const intakes = [];
   const diagnostics = [];
-  for (const entry of (0, import_fs40.readdirSync)(root, { withFileTypes: true })) {
+  for (const entry of (0, import_fs43.readdirSync)(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
     if (!ID_PATTERN4.test(entry.name)) continue;
-    const file = import_path43.default.join(root, entry.name, "intake.json");
-    if (!(0, import_fs40.existsSync)(file)) continue;
+    const file = import_path46.default.join(root, entry.name, "intake.json");
+    if (!(0, import_fs43.existsSync)(file)) continue;
     try {
-      intakes.push(specIntakeStateSchema.parse(JSON.parse((0, import_fs40.readFileSync)(file, "utf8"))));
+      intakes.push(specIntakeStateSchema.parse(JSON.parse((0, import_fs43.readFileSync)(file, "utf8"))));
     } catch (cause) {
       diagnostics.push({
         intakeId: entry.name,
@@ -83508,8 +84822,8 @@ function sourceFile(workspace, intakeId, contentHash) {
 }
 function storeSourceText(workspace, intakeId, contentHash, content) {
   const file = sourceFile(workspace, intakeId, contentHash);
-  if (!(0, import_fs40.existsSync)(file)) {
-    (0, import_fs40.mkdirSync)(import_path43.default.dirname(file), { recursive: true });
+  if (!(0, import_fs43.existsSync)(file)) {
+    (0, import_fs43.mkdirSync)(import_path46.default.dirname(file), { recursive: true });
     writeFileAtomic(file, content);
   }
   return file;
@@ -83601,7 +84915,7 @@ function appendIntakeEvent(workspace, intakeId, event) {
 function baselineFile(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path43.default.join(intakeRootDir(workspace), "baseline.json")
+    import_path46.default.join(intakeRootDir(workspace), "baseline.json")
   );
 }
 function readProductBaseline(workspace) {
@@ -84211,7 +85525,7 @@ var BUILD_MARKERS = [
 ];
 function detectBuildSystem(rootDir) {
   for (const marker of BUILD_MARKERS) {
-    if ((0, import_fs41.existsSync)(import_path44.default.join(rootDir, marker.file))) return marker.system;
+    if ((0, import_fs44.existsSync)(import_path47.default.join(rootDir, marker.file))) return marker.system;
   }
   return null;
 }
@@ -84248,33 +85562,33 @@ var PUBLIC_INTERFACE_PATTERNS = [
 var TEST_DIR_PATTERN = /^(tests?|spec|specs|__tests__|it|integration-tests?|e2e)$/i;
 function readGitHead(rootDir) {
   try {
-    const dotGit = import_path44.default.join(rootDir, ".git");
-    if (!(0, import_fs41.existsSync)(dotGit)) return null;
+    const dotGit = import_path47.default.join(rootDir, ".git");
+    if (!(0, import_fs44.existsSync)(dotGit)) return null;
     let gitDir = dotGit;
-    if ((0, import_fs41.statSync)(dotGit).isFile()) {
-      const pointer = (0, import_fs41.readFileSync)(dotGit, "utf8").trim();
+    if ((0, import_fs44.statSync)(dotGit).isFile()) {
+      const pointer = (0, import_fs44.readFileSync)(dotGit, "utf8").trim();
       const match = /^gitdir:\s*(.+)$/.exec(pointer);
       if (match === null) return null;
       const target = match[1] ?? "";
-      gitDir = import_path44.default.isAbsolute(target) ? target : import_path44.default.resolve(rootDir, target);
+      gitDir = import_path47.default.isAbsolute(target) ? target : import_path47.default.resolve(rootDir, target);
     }
-    const headFile = import_path44.default.join(gitDir, "HEAD");
-    if (!(0, import_fs41.existsSync)(headFile)) return null;
-    const head = (0, import_fs41.readFileSync)(headFile, "utf8").trim();
+    const headFile = import_path47.default.join(gitDir, "HEAD");
+    if (!(0, import_fs44.existsSync)(headFile)) return null;
+    const head = (0, import_fs44.readFileSync)(headFile, "utf8").trim();
     if (/^[0-9a-f]{40}$/i.test(head)) return head.toLowerCase();
     const refMatch = /^ref:\s*(.+)$/.exec(head);
     if (refMatch === null) return null;
     const ref = (refMatch[1] ?? "").trim();
     for (const dir of refDirsFor(gitDir)) {
-      const refFile = import_path44.default.join(dir, ...ref.split("/"));
-      if (!(0, import_fs41.existsSync)(refFile)) continue;
-      const sha = (0, import_fs41.readFileSync)(refFile, "utf8").trim();
+      const refFile = import_path47.default.join(dir, ...ref.split("/"));
+      if (!(0, import_fs44.existsSync)(refFile)) continue;
+      const sha = (0, import_fs44.readFileSync)(refFile, "utf8").trim();
       if (/^[0-9a-f]{40}$/i.test(sha)) return sha.toLowerCase();
     }
     for (const dir of refDirsFor(gitDir)) {
-      const packed = import_path44.default.join(dir, "packed-refs");
-      if (!(0, import_fs41.existsSync)(packed)) continue;
-      for (const line of (0, import_fs41.readFileSync)(packed, "utf8").split("\n")) {
+      const packed = import_path47.default.join(dir, "packed-refs");
+      if (!(0, import_fs44.existsSync)(packed)) continue;
+      for (const line of (0, import_fs44.readFileSync)(packed, "utf8").split("\n")) {
         const entry = /^([0-9a-f]{40})\s+(.+)$/.exec(line.trim());
         if (entry !== null && entry[2] === ref) return (entry[1] ?? "").toLowerCase();
       }
@@ -84286,12 +85600,12 @@ function readGitHead(rootDir) {
 }
 function refDirsFor(gitDir) {
   const dirs = [gitDir];
-  const commonFile = import_path44.default.join(gitDir, "commondir");
-  if ((0, import_fs41.existsSync)(commonFile)) {
+  const commonFile = import_path47.default.join(gitDir, "commondir");
+  if ((0, import_fs44.existsSync)(commonFile)) {
     try {
-      const target = (0, import_fs41.readFileSync)(commonFile, "utf8").trim();
+      const target = (0, import_fs44.readFileSync)(commonFile, "utf8").trim();
       if (target.length > 0) {
-        dirs.push(import_path44.default.isAbsolute(target) ? target : import_path44.default.resolve(gitDir, target));
+        dirs.push(import_path47.default.isAbsolute(target) ? target : import_path47.default.resolve(gitDir, target));
       }
     } catch {
     }
@@ -84343,7 +85657,7 @@ function groundInRepository(deps, request) {
       summary: `existing Kiro spec with ${folder.files.length} document(s)`,
       authoritative: false,
       topics: [],
-      path: import_path44.default.posix.join(".kiro", "specs", folder.name)
+      path: import_path47.default.posix.join(".kiro", "specs", folder.name)
     });
   }
   for (const steering of safeSteering(workspace, notes)) {
@@ -84354,7 +85668,7 @@ function groundInRepository(deps, request) {
       summary: `steering document (${steering.inclusion})`,
       authoritative: false,
       topics: [],
-      path: import_path44.default.posix.join(".kiro", "steering", steering.fileName)
+      path: import_path47.default.posix.join(".kiro", "steering", steering.fileName)
     });
   }
   const buildSystem = detectBuildSystem(workspace.rootDir);
@@ -84398,7 +85712,7 @@ function groundInRepository(deps, request) {
     });
   }
   for (const container of modules.slice(0, 40)) {
-    const dir = import_path44.default.join(workspace.rootDir, container);
+    const dir = import_path47.default.join(workspace.rootDir, container);
     for (const entry of safeReaddir(dir, notes)) {
       if (!entry.isDirectory()) continue;
       if (MODULE_DENYLIST.has(entry.name) || entry.name.startsWith(".")) continue;
@@ -84550,7 +85864,7 @@ function safeSteering(workspace, notes) {
 }
 function safeReaddir(dir, notes) {
   try {
-    return (0, import_fs41.readdirSync)(dir, { withFileTypes: true });
+    return (0, import_fs44.readdirSync)(dir, { withFileTypes: true });
   } catch (cause) {
     notes.push(`Directory ${dir} could not be listed: ${message(cause)}.`);
     return [];
@@ -85362,14 +86676,14 @@ function emptyProjectionMap() {
 function mapFile(workspace, intakeId) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path45.default.join(workspace.rootDir, ".specbridge", "intake", intakeId, "mission-map.json")
+    import_path48.default.join(workspace.rootDir, ".specbridge", "intake", intakeId, "mission-map.json")
   );
 }
 function readProjectionMap(workspace, intakeId) {
   const file = mapFile(workspace, intakeId);
-  if (!(0, import_fs42.existsSync)(file)) return emptyProjectionMap();
+  if (!(0, import_fs45.existsSync)(file)) return emptyProjectionMap();
   try {
-    const raw = JSON.parse((0, import_fs42.readFileSync)(file, "utf8"));
+    const raw = JSON.parse((0, import_fs45.readFileSync)(file, "utf8"));
     return {
       itemContracts: raw.itemContracts ?? {},
       itemDecisions: raw.itemDecisions ?? {},
@@ -85384,7 +86698,7 @@ function readProjectionMap(workspace, intakeId) {
 }
 function writeProjectionMap(workspace, intakeId, map) {
   const file = mapFile(workspace, intakeId);
-  (0, import_fs42.mkdirSync)(import_path45.default.dirname(file), { recursive: true });
+  (0, import_fs45.mkdirSync)(import_path48.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(map, null, 2)}
 `);
 }
@@ -85460,9 +86774,9 @@ var BEHAVIOUR_CONTRACT = {
 var BEHAVIOUR_SURFACE_KEY = "__behaviour__";
 var TOPIC_DECISION_RESERVE = 12;
 var FACT_BUDGET = 120;
-function compileMissionTruth(deps, intakeDeps2, request) {
-  const map = readProjectionMap(intakeDeps2.workspace, request.intakeId);
-  const missionBefore = requireMissionState(intakeDeps2.workspace, request.missionId);
+function compileMissionTruth(deps, intakeDeps3, request) {
+  const map = readProjectionMap(intakeDeps3.workspace, request.intakeId);
+  const missionBefore = requireMissionState(intakeDeps3.workspace, request.missionId);
   const missionGoal = missionBefore.goal;
   const blocked2 = new Set(request.blockedItemIds);
   const chunkKinds = new Map(request.source.chunks.map((chunk) => [chunk.chunkId, chunk.kind]));
@@ -85486,7 +86800,7 @@ function compileMissionTruth(deps, intakeDeps2, request) {
       text: sourceTurnText(request.source)
     });
     map.sourceTurnId = turn.turnId;
-    writeProjectionMap(intakeDeps2.workspace, request.intakeId, map);
+    writeProjectionMap(intakeDeps3.workspace, request.intakeId, map);
   }
   const sourceTurnId = map.sourceTurnId;
   const facts = [];
@@ -85567,7 +86881,7 @@ function compileMissionTruth(deps, intakeDeps2, request) {
     if (topic !== void 0 && decisionId !== void 0) map.topicDecisions[topic] = decisionId;
   });
   if (map.fieldsWritten !== true) map.fieldsWritten = true;
-  writeProjectionMap(intakeDeps2.workspace, request.intakeId, map);
+  writeProjectionMap(intakeDeps3.workspace, request.intakeId, map);
   const converged = request.blockedItemIds.length === 0 && request.openQuestionCount === 0;
   const buckets = [];
   for (const [key, items] of converged ? [...pendingBySurface.entries()].sort() : []) {
@@ -85626,7 +86940,7 @@ function compileMissionTruth(deps, intakeDeps2, request) {
       map.surfaceContracts[bucket.key] ??= contractId;
       for (const item of bucket.items) map.itemContracts[item.itemId] = contractId;
     });
-    writeProjectionMap(intakeDeps2.workspace, request.intakeId, map);
+    writeProjectionMap(intakeDeps3.workspace, request.intakeId, map);
   }
   return { mission, map, compiledItemIds, resolvedTopics, contractIds, overflowItemIds };
 }
@@ -85946,7 +87260,7 @@ function startSpecIntake(deps, request) {
     receivedVia: hostOf(deps),
     byteLength,
     contentHash,
-    storedAt: import_path46.default.posix.join(
+    storedAt: import_path49.default.posix.join(
       ".specbridge",
       "intake",
       intakeId,
@@ -86394,6 +87708,946 @@ function deriveGoal(chunks, name) {
 function listSpecIntakes(deps) {
   return listIntakes(deps.workspace);
 }
+var BOOTSTRAP_SCHEMA_VERSION = "1.0.0";
+var BOOTSTRAP_LIMITS = {
+  maxRepositories: 12,
+  maxFindingsPerCategory: 40,
+  maxEvidencePerFinding: 8,
+  maxUncertainties: 40,
+  maxProductTruthRefs: 300,
+  maxTextChars: 600,
+  maxIdChars: 128,
+  maxPathChars: 512
+};
+var shortText25 = external_exports.string().min(1).max(BOOTSTRAP_LIMITS.maxTextChars);
+var idText = external_exports.string().min(1).max(BOOTSTRAP_LIMITS.maxIdChars);
+var pathText2 = external_exports.string().max(BOOTSTRAP_LIMITS.maxPathChars);
+var SYSTEM_EVIDENCE_CLASSES = [
+  "SEALED_PRODUCT_TRUTH",
+  "DOCUMENTED_ARCHITECTURE",
+  "OBSERVED_IMPLEMENTATION",
+  "INFERRED_PATTERN"
+];
+var systemEvidenceRefSchema = external_exports.object({
+  /** Which repository the evidence lives in. */
+  repositoryId: idText,
+  /** Repository-relative path, forward slashes, when the source is a file. */
+  path: pathText2.optional(),
+  /** The declared symbol the finding is about, when one names it. */
+  symbol: shortText25.optional(),
+  /** 1-based line range, when known. */
+  startLine: external_exports.number().int().min(1).optional(),
+  endLine: external_exports.number().int().min(1).optional(),
+  /** SHA-256 of the file bytes the finding described, when file-backed. */
+  contentHash: shortText25.optional(),
+  /** Product-truth locators, when the source is SpecBridge state. */
+  missionId: idText.optional(),
+  contractId: idText.optional(),
+  contractRevision: external_exports.number().int().min(1).optional(),
+  adrId: idText.optional(),
+  decisionId: idText.optional(),
+  ruleId: idText.optional(),
+  sealId: idText.optional()
+}).passthrough().refine(
+  (ref) => ref.path !== void 0 || ref.contractId !== void 0 || ref.adrId !== void 0 || ref.decisionId !== void 0 || ref.ruleId !== void 0 || ref.sealId !== void 0,
+  { message: "an evidence ref must locate a file or a product-truth record" }
+);
+var systemFindingSchema = external_exports.object({
+  findingId: idText,
+  class: external_exports.enum(SYSTEM_EVIDENCE_CLASSES),
+  statement: shortText25,
+  evidence: external_exports.array(systemEvidenceRefSchema).min(1).max(BOOTSTRAP_LIMITS.maxEvidencePerFinding)
+}).passthrough();
+var systemUncertaintySchema = external_exports.object({
+  area: shortText25,
+  detail: shortText25
+}).passthrough();
+var productTruthReferenceSchema = external_exports.object({
+  kind: external_exports.enum(["contract", "constitution-rule", "adr", "decision", "seal"]),
+  missionId: idText,
+  ref: idText,
+  revision: external_exports.number().int().min(1).optional(),
+  title: shortText25
+}).passthrough();
+var repositorySnapshotIdentitySchema = external_exports.object({
+  repositoryId: idText,
+  relPath: pathText2,
+  role: shortText25.optional(),
+  /** Git HEAD at snapshot time; null when not a git repository (or unborn). */
+  gitHead: shortText25.nullable().default(null),
+  /** Indexed file count attributed to this repository. */
+  indexedFiles: external_exports.number().int().min(0).default(0)
+}).passthrough();
+var SNAPSHOT_MODES = ["BROWNFIELD", "GREENFIELD", "PARTIAL"];
+var findings = external_exports.array(systemFindingSchema).max(BOOTSTRAP_LIMITS.maxFindingsPerCategory).default([]);
+var currentSystemSnapshotSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  snapshotId: idText,
+  /** Stable digest of the workspace root, same derivation as the index. */
+  workspaceKey: idText,
+  createdAt: shortText25,
+  repositories: external_exports.array(repositorySnapshotIdentitySchema).min(1).max(BOOTSTRAP_LIMITS.maxRepositories),
+  mode: external_exports.enum(SNAPSHOT_MODES),
+  architecture: findings,
+  capabilities: findings,
+  publicSurfaces: findings,
+  domainObjects: findings,
+  implementationPatterns: findings,
+  constraints: findings,
+  uncertainties: external_exports.array(systemUncertaintySchema).max(BOOTSTRAP_LIMITS.maxUncertainties).default([]),
+  existingProductTruth: external_exports.array(productTruthReferenceSchema).max(BOOTSTRAP_LIMITS.maxProductTruthRefs).default([]),
+  /** Bounded facts about the index this snapshot was synthesized from. */
+  indexStats: external_exports.object({
+    entries: external_exports.number().int().min(0),
+    truncated: external_exports.boolean(),
+    skipped: external_exports.number().int().min(0).default(0)
+  }).passthrough(),
+  /** Hash over the material content, for change detection and identity. */
+  contentHash: idText
+}).passthrough();
+function allFindings(snapshot2) {
+  return [
+    ...snapshot2.architecture.map((finding) => ({ category: "architecture", finding })),
+    ...snapshot2.capabilities.map((finding) => ({ category: "capability", finding })),
+    ...snapshot2.publicSurfaces.map((finding) => ({ category: "public-surface", finding })),
+    ...snapshot2.domainObjects.map((finding) => ({ category: "domain-object", finding })),
+    ...snapshot2.implementationPatterns.map((finding) => ({
+      category: "implementation-pattern",
+      finding
+    })),
+    ...snapshot2.constraints.map((finding) => ({ category: "constraint", finding }))
+  ];
+}
+var repositoryManifestSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/).default("1.0.0"),
+  repositories: external_exports.array(
+    external_exports.object({
+      id: external_exports.string().min(1).max(64).regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/),
+      /** Workspace-relative directory. Must stay inside the workspace. */
+      path: pathText2,
+      role: shortText25.optional()
+    }).passthrough()
+  ).min(1).max(BOOTSTRAP_LIMITS.maxRepositories)
+}).passthrough();
+function repositoryManifestFile(workspace) {
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path50.default.join(workspace.sidecarDir, "repositories.json")
+  );
+}
+var DETECTION_DENYLIST = /* @__PURE__ */ new Set([
+  ".git",
+  ".kiro",
+  ".specbridge",
+  "node_modules",
+  "dist",
+  "build",
+  "target",
+  "out",
+  "coverage",
+  "vendor"
+]);
+function readRepositoryManifest(workspace) {
+  const file = repositoryManifestFile(workspace);
+  if (!(0, import_fs46.existsSync)(file)) return void 0;
+  let raw;
+  try {
+    raw = JSON.parse((0, import_fs46.readFileSync)(file, "utf8"));
+  } catch (cause) {
+    throw new IntakeError("SBI018", `The repository manifest at ${file} is not valid JSON.`, {
+      remediation: ["Fix or delete .specbridge/repositories.json; without it the workspace root is the repository."],
+      details: { cause: cause instanceof Error ? cause.message : String(cause) }
+    });
+  }
+  return repositoryManifestSchema.parse(raw);
+}
+function resolveRepositories(workspace) {
+  const notes = [];
+  const manifest = readRepositoryManifest(workspace);
+  if (manifest !== void 0) {
+    const seen = /* @__PURE__ */ new Set();
+    const repositories = manifest.repositories.map((entry) => {
+      if (seen.has(entry.id)) {
+        throw new IntakeError("SBI018", `The repository manifest names "${entry.id}" twice.`);
+      }
+      seen.add(entry.id);
+      const absDir = assertInsideWorkspace(workspace.rootDir, entry.path);
+      if (!(0, import_fs46.existsSync)(absDir) || !(0, import_fs46.statSync)(absDir).isDirectory()) {
+        throw new IntakeError(
+          "SBI018",
+          `The repository manifest names "${entry.id}" at ${entry.path}, which is not a directory.`,
+          {
+            remediation: [
+              "Repository paths are workspace-relative and must exist. External sibling repositories are not supported; place repository roots inside the workspace."
+            ]
+          }
+        );
+      }
+      return resolved(workspace, entry.id, absDir, entry.role);
+    });
+    return { repositories, source: "manifest", notes };
+  }
+  const children = [];
+  try {
+    for (const entry of (0, import_fs46.readdirSync)(workspace.rootDir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      if (DETECTION_DENYLIST.has(entry.name) || entry.name.startsWith(".")) continue;
+      const absDir = import_path50.default.join(workspace.rootDir, entry.name);
+      if (!(0, import_fs46.existsSync)(import_path50.default.join(absDir, ".git"))) continue;
+      if (children.length >= BOOTSTRAP_LIMITS.maxRepositories) {
+        notes.push("More child repositories exist than the bootstrap bound; declare a manifest to choose.");
+        break;
+      }
+      children.push(resolved(workspace, entry.name, absDir, void 0));
+    }
+  } catch (cause) {
+    notes.push(`The workspace root could not be listed: ${cause instanceof Error ? cause.message : String(cause)}.`);
+  }
+  if (children.length > 0) {
+    const rootIsRepo = (0, import_fs46.existsSync)(import_path50.default.join(workspace.rootDir, ".git"));
+    const repositories = rootIsRepo ? [resolved(workspace, rootRepositoryId(workspace), workspace.rootDir, void 0), ...children] : children;
+    return {
+      repositories: repositories.slice(0, BOOTSTRAP_LIMITS.maxRepositories),
+      source: "detected-children",
+      notes
+    };
+  }
+  return {
+    repositories: [resolved(workspace, rootRepositoryId(workspace), workspace.rootDir, void 0)],
+    source: "workspace-root",
+    notes
+  };
+}
+function rootRepositoryId(workspace) {
+  const base = import_path50.default.basename(workspace.rootDir).replace(/[^A-Za-z0-9._-]/g, "-").replace(/^[^A-Za-z0-9]+/, "");
+  return base.length > 0 ? base.slice(0, 64) : "workspace";
+}
+function resolved(workspace, repositoryId, absDir, role) {
+  const relPath = import_path50.default.relative(workspace.rootDir, absDir).replace(/\\/g, "/");
+  return {
+    repositoryId,
+    relPath,
+    ...role !== void 0 ? { role } : {},
+    absDir,
+    gitHead: readGitHead(absDir),
+    isGitRepository: (0, import_fs46.existsSync)(import_path50.default.join(absDir, ".git"))
+  };
+}
+function repositoryOfPath(repositories, workspaceRelativePath) {
+  const normalized = workspaceRelativePath.replace(/\\/g, "/");
+  let best;
+  let bestLength = -1;
+  for (const repo of repositories) {
+    if (repo.relPath === "") {
+      if (bestLength < 0) {
+        best = repo;
+        bestLength = 0;
+      }
+      continue;
+    }
+    const prefix = `${repo.relPath}/`;
+    if ((normalized === repo.relPath || normalized.startsWith(prefix)) && repo.relPath.length > bestLength) {
+      best = repo;
+      bestLength = repo.relPath.length;
+    }
+  }
+  return best;
+}
+function repositoryRelativePath(repository, workspaceRelativePath) {
+  const normalized = workspaceRelativePath.replace(/\\/g, "/");
+  if (repository.relPath === "") return normalized;
+  const prefix = `${repository.relPath}/`;
+  return normalized.startsWith(prefix) ? normalized.slice(prefix.length) : normalized;
+}
+var CAPABILITY_SUFFIXES = [
+  "Service",
+  "Scheduler",
+  "Manager",
+  "Registry",
+  "Audit",
+  "Auditor",
+  "AuditLog",
+  "Engine",
+  "Gateway",
+  "Orchestrator",
+  "Dispatcher",
+  "Coordinator",
+  "Provider",
+  "Authenticator",
+  "Authorizer"
+];
+var DOMAIN_NOISE_PATTERN = /(Error|Exception|Config(uration)?|Options?|Utils?|Helper|Factory|Builder|Test|Mock|Stub|Fixture|Impl|Base|Abstract|Props|State|Context|Provider|Module|Plugin|Constants?)$/;
+var PUBLIC_INTERFACE_FILE_PATTERNS = [
+  /(^|\/)openapi\.(ya?ml|json)$/i,
+  /(^|\/)swagger\.(ya?ml|json)$/i,
+  /\.proto$/i,
+  /\.graphql$/i,
+  /\.avsc$/i,
+  /(^|\/)schema\.(json|sql|graphql)$/i,
+  /(^|\/)index\.d\.ts$/i
+];
+var MIGRATION_PATH_PATTERN = /(^|\/)(migrations?|db\/migrate|flyway|liquibase)(\/|$)/i;
+var DEPENDENCY_ARCHITECTURE = [
+  { pattern: /spring-?boot|springframework\.boot/i, label: "Spring Boot backend framework" },
+  { pattern: /"react"/, label: "React frontend" },
+  { pattern: /"vue"/, label: "Vue frontend" },
+  { pattern: /"next"/, label: "Next.js frontend framework" },
+  { pattern: /"express"/, label: "Express HTTP server" },
+  { pattern: /"fastify"/, label: "Fastify HTTP server" },
+  { pattern: /\bkafka\b/i, label: "Kafka messaging" },
+  { pattern: /rabbitmq|amqp/i, label: "AMQP messaging" },
+  { pattern: /postgres|postgresql|\bpg\b/i, label: "PostgreSQL persistence" },
+  { pattern: /\bmysql\b/i, label: "MySQL persistence" },
+  { pattern: /mongodb|mongoose/i, label: "MongoDB persistence" },
+  { pattern: /\bredis\b/i, label: "Redis" },
+  { pattern: /prometheus|micrometer/i, label: "Prometheus metrics integration" },
+  { pattern: /grafana/i, label: "Grafana integration" },
+  { pattern: /kubernetes|k8s|client-java|kubectl/i, label: "Kubernetes integration" },
+  { pattern: /grpc/i, label: "gRPC communication" },
+  { pattern: /graphql/i, label: "GraphQL API" },
+  { pattern: /testcontainers/i, label: "Testcontainers-based integration testing" }
+];
+var MANIFEST_BASENAMES = /* @__PURE__ */ new Set([
+  "package.json",
+  "build.gradle",
+  "build.gradle.kts",
+  "settings.gradle",
+  "settings.gradle.kts",
+  "pom.xml",
+  "go.mod",
+  "cargo.toml",
+  "pyproject.toml",
+  "requirements.txt",
+  "gemfile",
+  "docker-compose.yml",
+  "docker-compose.yaml"
+]);
+var MAX_MANIFEST_READ_BYTES = 262144;
+function synthesizeSystemFindings(input) {
+  const ids = idFactory();
+  const entries = input.index.entries;
+  const uncertainties = [];
+  for (const note of input.notes ?? []) {
+    uncertainties.push({ area: "repository resolution", detail: clip3(note) });
+  }
+  const fileRef = (entry, symbol) => {
+    const repo = repositoryOfPath(input.repositories, entry.path);
+    return {
+      repositoryId: repo?.repositoryId ?? "workspace",
+      path: repo !== void 0 ? repositoryRelativePath(repo, entry.path) : entry.path,
+      contentHash: entry.contentHash,
+      ...symbol !== void 0 ? { symbol } : {}
+    };
+  };
+  const contracts = safeContracts2(input.workspace);
+  const rules = safeRules(input.workspace);
+  const truth = [];
+  for (const owned of contracts) {
+    truth.push({
+      kind: "contract",
+      missionId: owned.missionId,
+      ref: owned.contract.contractId,
+      revision: owned.contract.revision,
+      title: clip3(`${owned.contract.title} \u2014 ${owned.contract.summary}`)
+    });
+  }
+  for (const rule of rules) {
+    truth.push({
+      kind: "constitution-rule",
+      missionId: rule.missionId,
+      ref: rule.ruleId,
+      title: clip3(rule.statement)
+    });
+  }
+  for (const owned of contracts.slice(0, 3)) {
+    void owned;
+  }
+  for (const missionId of [...new Set(contracts.map((owned) => owned.missionId))]) {
+    for (const adr of safeAdrs(input.workspace, missionId)) {
+      if (adr.status !== "accepted") continue;
+      truth.push({
+        kind: "adr",
+        missionId,
+        ref: adr.adrId,
+        title: clip3(`${adr.title}: ${adr.decision}`)
+      });
+    }
+  }
+  for (const seal of safeSeals(input.workspace)) {
+    if (seal.status !== "SEALED") continue;
+    truth.push({
+      kind: "seal",
+      missionId: seal.missionId,
+      ref: seal.sealId,
+      title: clip3(
+        `sealed ${seal.contracts.length} contract(s), ${seal.acceptanceCriteria.length} acceptance criteria`
+      )
+    });
+  }
+  const constraints = [];
+  for (const owned of contracts) {
+    if (owned.contract.classification !== "public") continue;
+    constraints.push({
+      findingId: ids("con"),
+      class: "SEALED_PRODUCT_TRUTH",
+      statement: clip3(
+        `Existing compatibility promise: ${owned.contract.title} is ${owned.contract.compatibilityPolicy} (${owned.contract.contractId} r${owned.contract.revision}).`
+      ),
+      evidence: [
+        {
+          repositoryId: "specbridge",
+          missionId: owned.missionId,
+          contractId: owned.contract.contractId,
+          contractRevision: owned.contract.revision
+        }
+      ]
+    });
+  }
+  const architecture = [];
+  const sourceEntries = entries.filter((entry) => entry.kind === "source");
+  const languageCounts = /* @__PURE__ */ new Map();
+  for (const entry of sourceEntries) {
+    const existing = languageCounts.get(entry.language);
+    if (existing === void 0) languageCounts.set(entry.language, { count: 1, sample: entry });
+    else existing.count += 1;
+  }
+  const topLanguages = [...languageCounts.entries()].sort((a2, b) => b[1].count - a2[1].count).slice(0, 3);
+  if (topLanguages.length > 0) {
+    architecture.push({
+      findingId: ids("arc"),
+      class: "OBSERVED_IMPLEMENTATION",
+      statement: clip3(
+        `Primary implementation language(s): ${topLanguages.map(([language, info]) => `${language} (${info.count} source file(s))`).join(", ")}.`
+      ),
+      evidence: topLanguages.map(([, info]) => fileRef(info.sample))
+    });
+  }
+  const manifestEntries = entries.filter(
+    (entry) => MANIFEST_BASENAMES.has(import_path51.default.posix.basename(entry.path).toLowerCase())
+  );
+  const architectureLabels = /* @__PURE__ */ new Map();
+  for (const entry of manifestEntries.slice(0, 40)) {
+    const body = boundedRead(input.workspace, entry.path);
+    if (body === void 0) {
+      uncertainties.push({
+        area: "build manifests",
+        detail: clip3(`${entry.path} could not be read; dependency-derived findings may be missing.`)
+      });
+      continue;
+    }
+    for (const { pattern, label } of DEPENDENCY_ARCHITECTURE) {
+      if (pattern.test(body) && !architectureLabels.has(label)) {
+        architectureLabels.set(label, entry);
+      }
+    }
+    const javaVersion = /(?:sourceCompatibility|languageVersion|maven\.compiler\.source|java\.version)\D{0,20}(\d{1,2})/.exec(
+      body
+    );
+    if (javaVersion !== null && entry.path.match(/gradle|pom/i) !== null) {
+      constraints.push({
+        findingId: ids("con"),
+        class: "OBSERVED_IMPLEMENTATION",
+        statement: clip3(`The build declares Java ${javaVersion[1]}.`),
+        evidence: [fileRef(entry)]
+      });
+    }
+    const engines = /"engines"\s*:\s*\{[^}]*"node"\s*:\s*"([^"]+)"/.exec(body);
+    if (engines !== null) {
+      constraints.push({
+        findingId: ids("con"),
+        class: "OBSERVED_IMPLEMENTATION",
+        statement: clip3(`The package declares a Node engine constraint of ${engines[1]}.`),
+        evidence: [fileRef(entry)]
+      });
+    }
+  }
+  for (const [label, entry] of [...architectureLabels.entries()].slice(
+    0,
+    BOOTSTRAP_LIMITS.maxFindingsPerCategory - architecture.length
+  )) {
+    architecture.push({
+      findingId: ids("arc"),
+      class: "OBSERVED_IMPLEMENTATION",
+      statement: clip3(`${label} (declared by ${import_path51.default.posix.basename(entry.path)}).`),
+      evidence: [fileRef(entry)]
+    });
+  }
+  const docEntries = entries.filter((entry) => entry.kind === "doc").filter(
+    (entry) => /(^|\/)(readme|architecture|design|adr[s]?[/-]|docs\/)/i.test(entry.path) || /(^|\/)docs\//i.test(entry.path)
+  ).slice(0, 10);
+  for (const entry of docEntries) {
+    const heading = firstHeading(input.workspace, entry.path);
+    architecture.push({
+      findingId: ids("arc"),
+      class: "DOCUMENTED_ARCHITECTURE",
+      statement: clip3(
+        heading !== void 0 ? `Documentation: "${heading}" (${entry.path}).` : `Documentation present at ${entry.path}.`
+      ),
+      evidence: [fileRef(entry)]
+    });
+    if (architecture.length >= BOOTSTRAP_LIMITS.maxFindingsPerCategory) break;
+  }
+  const capabilities = [];
+  const capabilitySeen = /* @__PURE__ */ new Set();
+  const rankedSources = [...sourceEntries].sort(
+    (a2, b) => fanIn(input.index, b.path) - fanIn(input.index, a2.path)
+  );
+  for (const entry of rankedSources) {
+    for (const symbol of entry.symbols) {
+      if (capabilitySeen.has(symbol)) continue;
+      const suffix = CAPABILITY_SUFFIXES.find((candidate) => symbol.endsWith(candidate));
+      if (suffix === void 0 || symbol.length <= suffix.length) continue;
+      capabilitySeen.add(symbol);
+      capabilities.push({
+        findingId: ids("cap"),
+        class: "OBSERVED_IMPLEMENTATION",
+        statement: clip3(`Existing capability: ${symbol} (${entry.path}).`),
+        evidence: [fileRef(entry, symbol)]
+      });
+      if (capabilities.length >= BOOTSTRAP_LIMITS.maxFindingsPerCategory) break;
+    }
+    if (capabilities.length >= BOOTSTRAP_LIMITS.maxFindingsPerCategory) break;
+  }
+  const domainObjects = [];
+  const domainSeen = /* @__PURE__ */ new Set();
+  for (const entry of rankedSources) {
+    for (const symbol of entry.symbols) {
+      if (domainSeen.has(symbol) || capabilitySeen.has(symbol)) continue;
+      if (!/^[A-Z][A-Za-z0-9]{2,40}$/.test(symbol)) continue;
+      if (DOMAIN_NOISE_PATTERN.test(symbol)) continue;
+      if (CAPABILITY_SUFFIXES.some((suffix) => symbol.endsWith(suffix))) continue;
+      domainSeen.add(symbol);
+      domainObjects.push({
+        findingId: ids("dom"),
+        class: "OBSERVED_IMPLEMENTATION",
+        statement: clip3(`Domain object: ${symbol} (${entry.path}).`),
+        evidence: [fileRef(entry, symbol)]
+      });
+      if (domainObjects.length >= 20) break;
+    }
+    if (domainObjects.length >= 20) break;
+  }
+  const publicSurfaces = [];
+  for (const entry of entries) {
+    if (publicSurfaces.length >= BOOTSTRAP_LIMITS.maxFindingsPerCategory) break;
+    if (PUBLIC_INTERFACE_FILE_PATTERNS.some((pattern) => pattern.test(entry.path))) {
+      publicSurfaces.push({
+        findingId: ids("pub"),
+        class: "OBSERVED_IMPLEMENTATION",
+        statement: clip3(`Public interface definition: ${entry.path}.`),
+        evidence: [fileRef(entry)]
+      });
+      continue;
+    }
+    if (MIGRATION_PATH_PATTERN.test(entry.path) && entry.kind !== "other") {
+      publicSurfaces.push({
+        findingId: ids("pub"),
+        class: "OBSERVED_IMPLEMENTATION",
+        statement: clip3(`Database migration surface: ${entry.path}.`),
+        evidence: [fileRef(entry)]
+      });
+    }
+  }
+  const controllerEntries = sourceEntries.filter(
+    (entry) => entry.symbols.some((symbol) => /Controller$/.test(symbol))
+  );
+  if (controllerEntries.length > 0 && publicSurfaces.length < BOOTSTRAP_LIMITS.maxFindingsPerCategory) {
+    publicSurfaces.push({
+      findingId: ids("pub"),
+      class: "OBSERVED_IMPLEMENTATION",
+      statement: clip3(
+        `HTTP controller surface: ${controllerEntries.length} controller class(es), e.g. ${controllerEntries[0]?.symbols.find((symbol) => /Controller$/.test(symbol)) ?? "Controller"}.`
+      ),
+      evidence: controllerEntries.slice(0, 3).map(
+        (entry) => fileRef(entry, entry.symbols.find((symbol) => /Controller$/.test(symbol)))
+      )
+    });
+  }
+  const implementationPatterns = [];
+  const withSuffix = (suffix) => sourceEntries.filter((entry) => entry.symbols.some((symbol) => suffix.test(symbol)));
+  const controllers = withSuffix(/Controller$/);
+  const services = withSuffix(/Service$/);
+  const repositoriesLayer = withSuffix(/(Repository|Dao)$/);
+  if (controllers.length >= 2 && services.length >= 2 && repositoriesLayer.length >= 2) {
+    implementationPatterns.push({
+      findingId: ids("pat"),
+      class: "INFERRED_PATTERN",
+      statement: clip3(
+        `The backend appears to use controller \u2192 service \u2192 repository layering (${controllers.length}/${services.length}/${repositoriesLayer.length} classes).`
+      ),
+      evidence: [controllers[0], services[0], repositoriesLayer[0]].filter((entry) => entry !== void 0).map((entry) => fileRef(entry))
+    });
+  }
+  const asyncShapes = sourceEntries.filter(
+    (entry) => entry.symbols.some((symbol) => /(Job|Worker|Consumer|Listener|Handler)$/.test(symbol))
+  );
+  if (asyncShapes.length >= 3) {
+    implementationPatterns.push({
+      findingId: ids("pat"),
+      class: "INFERRED_PATTERN",
+      statement: clip3(
+        `Work appears to run through asynchronous job/handler classes (${asyncShapes.length} found).`
+      ),
+      evidence: asyncShapes.slice(0, 3).map((entry) => fileRef(entry))
+    });
+  }
+  const testedSources = new Set(
+    entries.filter((entry) => entry.kind === "test").flatMap((entry) => entry.testTargets)
+  );
+  if (testedSources.size >= 3) {
+    implementationPatterns.push({
+      findingId: ids("pat"),
+      class: "INFERRED_PATTERN",
+      statement: clip3(
+        `Tests appear to accompany sources by convention (${testedSources.size} source file(s) with matched tests).`
+      ),
+      evidence: entries.filter((entry) => entry.kind === "test" && entry.testTargets.length > 0).slice(0, 3).map((entry) => fileRef(entry))
+    });
+  }
+  for (const repo of input.repositories) {
+    const marker = manifestEntries.find(
+      (entry) => repositoryOfPath(input.repositories, entry.path)?.repositoryId === repo.repositoryId
+    );
+    if (marker === void 0) continue;
+    constraints.push({
+      findingId: ids("con"),
+      class: "OBSERVED_IMPLEMENTATION",
+      statement: clip3(
+        `Repository "${repo.repositoryId}" builds with ${import_path51.default.posix.basename(marker.path)}.`
+      ),
+      evidence: [fileRef(marker)]
+    });
+    if (constraints.length >= BOOTSTRAP_LIMITS.maxFindingsPerCategory) break;
+  }
+  if (input.index.state.truncated) {
+    uncertainties.push({
+      area: "index coverage",
+      detail: clip3(
+        `The repository index hit its entry ceiling (${entries.length}); findings describe the indexed part only.`
+      )
+    });
+  }
+  if (sourceEntries.length > 0 && sourceEntries.every((entry) => entry.symbols.length === 0)) {
+    uncertainties.push({
+      area: "symbol extraction",
+      detail: "No declared symbols could be extracted; capability and domain-object findings are unavailable."
+    });
+  }
+  for (const repo of input.repositories) {
+    if (repo.isGitRepository && repo.gitHead === null) {
+      uncertainties.push({
+        area: "repository baseline",
+        detail: clip3(`Repository "${repo.repositoryId}" has a .git but no resolvable HEAD.`)
+      });
+    }
+  }
+  const mode = detectMode({
+    sourceFiles: sourceEntries.length,
+    hasProductTruth: truth.length > 0,
+    truncated: input.index.state.truncated,
+    resolutionNotes: (input.notes ?? []).length
+  });
+  if (mode === "GREENFIELD") {
+    uncertainties.length = 0;
+  }
+  return {
+    mode,
+    architecture: bounded2(architecture),
+    capabilities: bounded2(capabilities),
+    publicSurfaces: bounded2(publicSurfaces),
+    domainObjects: bounded2(domainObjects),
+    implementationPatterns: bounded2(implementationPatterns),
+    constraints: bounded2(constraints),
+    uncertainties: uncertainties.slice(0, BOOTSTRAP_LIMITS.maxUncertainties),
+    existingProductTruth: truth.slice(0, BOOTSTRAP_LIMITS.maxProductTruthRefs)
+  };
+}
+function detectMode(input) {
+  if (input.hasProductTruth || input.sourceFiles >= 3) {
+    return input.resolutionNotes > 0 ? "PARTIAL" : "BROWNFIELD";
+  }
+  if (input.sourceFiles === 0 && !input.truncated) return "GREENFIELD";
+  return "PARTIAL";
+}
+function idFactory() {
+  let sequence = 0;
+  return (prefix) => `${prefix}-${String(++sequence).padStart(3, "0")}`;
+}
+function bounded2(findings2) {
+  return findings2.slice(0, BOOTSTRAP_LIMITS.maxFindingsPerCategory);
+}
+function fanIn(index, filePath) {
+  return index.dependentsOf(filePath).length;
+}
+function clip3(value) {
+  const collapsed = value.replace(/\s+/g, " ").trim();
+  return collapsed.length > BOOTSTRAP_LIMITS.maxTextChars ? `${collapsed.slice(0, BOOTSTRAP_LIMITS.maxTextChars - 1)}\u2026` : collapsed;
+}
+function boundedRead(workspace, relPath) {
+  try {
+    const abs = import_path51.default.join(workspace.rootDir, relPath);
+    if (!(0, import_fs47.existsSync)(abs)) return void 0;
+    const body = (0, import_fs47.readFileSync)(abs, "utf8");
+    return body.length > MAX_MANIFEST_READ_BYTES ? body.slice(0, MAX_MANIFEST_READ_BYTES) : body;
+  } catch {
+    return void 0;
+  }
+}
+function firstHeading(workspace, relPath) {
+  const body = boundedRead(workspace, relPath);
+  if (body === void 0) return void 0;
+  const match = /^#{1,3}\s+(.{3,120})$/m.exec(body.slice(0, 4e3));
+  return match?.[1]?.trim();
+}
+function safeContracts2(workspace) {
+  try {
+    return activeProductContracts(workspace);
+  } catch {
+    return [];
+  }
+}
+function safeRules(workspace) {
+  try {
+    return activeConstitutionRules(workspace);
+  } catch {
+    return [];
+  }
+}
+function safeAdrs(workspace, missionId) {
+  try {
+    return readAdrs(workspace, missionId);
+  } catch {
+    return [];
+  }
+}
+function safeSeals(workspace) {
+  try {
+    return listSeals(workspace);
+  } catch {
+    return [];
+  }
+}
+function bootstrapDir(workspace) {
+  return assertInsideWorkspace(workspace.rootDir, import_path52.default.join(workspace.sidecarDir, "bootstrap"));
+}
+function snapshotFile(workspace) {
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path52.default.join(bootstrapDir(workspace), "current-system-snapshot.json")
+  );
+}
+function readCurrentSystemSnapshot(workspace) {
+  const file = snapshotFile(workspace);
+  if (!(0, import_fs48.existsSync)(file)) return void 0;
+  try {
+    return currentSystemSnapshotSchema.parse(JSON.parse((0, import_fs48.readFileSync)(file, "utf8")));
+  } catch {
+    return void 0;
+  }
+}
+function persistSnapshot(workspace, snapshot2) {
+  (0, import_fs48.mkdirSync)(bootstrapDir(workspace), { recursive: true });
+  writeFileAtomic(snapshotFile(workspace), `${JSON.stringify(snapshot2, null, 2)}
+`);
+}
+function assessSnapshotFreshness2(workspace, snapshot2) {
+  if (snapshot2 === void 0) return { status: "ABSENT", reasons: ["no snapshot exists"] };
+  const reasons = [];
+  if (snapshot2.workspaceKey !== workspaceKeyFor(workspace.rootDir)) {
+    reasons.push("the snapshot describes a different workspace root");
+  }
+  if (snapshot2.schemaVersion.split(".")[0] !== BOOTSTRAP_SCHEMA_VERSION.split(".")[0]) {
+    reasons.push("the snapshot schema is from an incompatible version");
+  }
+  let resolution;
+  try {
+    resolution = resolveRepositories(workspace);
+  } catch (cause) {
+    return {
+      status: "STALE",
+      reasons: [
+        `the repository set can no longer be resolved: ${cause instanceof Error ? cause.message : String(cause)}`
+      ]
+    };
+  }
+  const current = new Map(resolution.repositories.map((repo) => [repo.repositoryId, repo]));
+  for (const recorded of snapshot2.repositories) {
+    const live = current.get(recorded.repositoryId);
+    if (live === void 0) {
+      reasons.push(`repository "${recorded.repositoryId}" is no longer part of the workspace`);
+      continue;
+    }
+    if ((live.gitHead ?? null) !== (recorded.gitHead ?? null)) {
+      reasons.push(`repository "${recorded.repositoryId}" moved from ${recorded.gitHead ?? "no-git"} to ${live.gitHead ?? "no-git"}`);
+    }
+  }
+  for (const live of resolution.repositories) {
+    if (!snapshot2.repositories.some((recorded) => recorded.repositoryId === live.repositoryId)) {
+      reasons.push(`repository "${live.repositoryId}" was added after the snapshot`);
+    }
+  }
+  return reasons.length === 0 ? { status: "FRESH", reasons: [] } : { status: "STALE", reasons };
+}
+function bootstrapWorkspace(deps, options = {}) {
+  const workspace = deps.workspace;
+  const resolution = resolveRepositories(workspace);
+  const ensured = ensureRepositoryIndex({
+    workspace,
+    config: deps.config,
+    now: nowIso2(deps),
+    // Bootstrap has no Git snapshot to name additions, so the refresh walks
+    // for them: a snapshot that missed a brand-new capability file would
+    // claim currency over a repository it has not actually seen.
+    discoverAdditions: true,
+    ...options.rebuild === true ? { rebuild: true } : {}
+  });
+  const changedBytes = ensured.rebuilt || ensured.refreshedPaths.length > 0 || ensured.addedPaths.length > 0 || ensured.removedPaths.length > 0;
+  const existing = readCurrentSystemSnapshot(workspace);
+  if (options.rebuild !== true && existing !== void 0 && !changedBytes) {
+    const freshness = assessSnapshotFreshness2(workspace, existing);
+    if (freshness.status === "FRESH") {
+      return {
+        snapshot: existing,
+        reused: true,
+        indexRebuilt: ensured.rebuilt,
+        refreshedPaths: ensured.refreshedPaths.length
+      };
+    }
+  }
+  const synthesized = synthesizeSystemFindings({
+    workspace,
+    repositories: resolution.repositories,
+    index: ensured.index,
+    notes: resolution.notes
+  });
+  const repositories = resolution.repositories.map((repo) => ({
+    repositoryId: repo.repositoryId,
+    relPath: repo.relPath,
+    ...repo.role !== void 0 ? { role: repo.role } : {},
+    gitHead: repo.gitHead,
+    indexedFiles: countIndexed(ensured.index, resolution.repositories, repo)
+  }));
+  const material = {
+    repositories,
+    mode: synthesized.mode,
+    architecture: synthesized.architecture,
+    capabilities: synthesized.capabilities,
+    publicSurfaces: synthesized.publicSurfaces,
+    domainObjects: synthesized.domainObjects,
+    implementationPatterns: synthesized.implementationPatterns,
+    constraints: synthesized.constraints,
+    uncertainties: synthesized.uncertainties,
+    existingProductTruth: synthesized.existingProductTruth
+  };
+  const contentHash = sha256Hex(JSON.stringify(material)).slice(0, 64);
+  const snapshot2 = currentSystemSnapshotSchema.parse({
+    schemaVersion: BOOTSTRAP_SCHEMA_VERSION,
+    snapshotId: `snap-${contentHash.slice(0, 12)}`,
+    workspaceKey: workspaceKeyFor(workspace.rootDir),
+    createdAt: nowIso2(deps),
+    ...material,
+    indexStats: {
+      entries: ensured.state.entries.length,
+      truncated: ensured.state.truncated,
+      skipped: Object.values(ensured.state.skippedCounts).reduce((sum, count3) => sum + count3, 0)
+    },
+    contentHash
+  });
+  persistSnapshot(workspace, snapshot2);
+  return {
+    snapshot: snapshot2,
+    reused: false,
+    indexRebuilt: ensured.rebuilt,
+    refreshedPaths: ensured.refreshedPaths.length
+  };
+}
+function countIndexed(index, repositories, repo) {
+  let count3 = 0;
+  for (const entry of index.entries) {
+    if (repositoryOfPath(repositories, entry.path)?.repositoryId === repo.repositoryId) count3 += 1;
+  }
+  return count3;
+}
+function readWorkspaceSnapshot(workspace) {
+  const snapshot2 = readCurrentSystemSnapshot(workspace);
+  return { snapshot: snapshot2, freshness: assessSnapshotFreshness2(workspace, snapshot2) };
+}
+function inspectWorkspace(deps, options) {
+  const question = options.question.trim();
+  if (question.length === 0 || question.length > 2e3) {
+    throw new IntakeError("SBI018", "An inspection question must be 1\u20132000 characters.");
+  }
+  const policy = deps.config.orchestration.jobs.context.efficiency;
+  const maxSections = Math.min(
+    Math.max(1, options.maxSections ?? 5),
+    policy.maxSelectedItems
+  );
+  const workspace = deps.workspace;
+  const resolution = resolveRepositories(workspace);
+  const ensured = ensureRepositoryIndex({
+    workspace,
+    config: deps.config,
+    now: nowIso2(deps)
+  });
+  const query = buildRetrievalQuery({
+    taskId: "workspace-inspect",
+    role: "PLANNER",
+    objective: question
+  });
+  const ranked = rankCandidates(ensured.index, query, {
+    maxCandidates: policy.maxCandidates
+  });
+  const scoped = ranked.filter((candidate) => {
+    if (options.repositoryId === void 0) return true;
+    return repositoryOfPath(resolution.repositories, candidate.path)?.repositoryId === options.repositoryId;
+  });
+  const sections = [];
+  const pointers = [];
+  for (const candidate of scoped) {
+    const entry = ensured.index.get(candidate.path);
+    if (entry === void 0) continue;
+    const repo = repositoryOfPath(resolution.repositories, entry.path);
+    const repositoryId = repo?.repositoryId ?? "workspace";
+    if (sections.length >= maxSections) {
+      if (pointers.length < policy.maxPointers) {
+        pointers.push({
+          repositoryId,
+          path: repo !== void 0 ? repositoryRelativePath(repo, entry.path) : entry.path
+        });
+      }
+      continue;
+    }
+    let body;
+    try {
+      body = (0, import_fs48.readFileSync)(
+        assertInsideWorkspace(workspace.rootDir, entry.path),
+        "utf8"
+      );
+    } catch {
+      continue;
+    }
+    if (body.length > policy.maxIndexedFileBytes) body = body.slice(0, policy.maxIndexedFileBytes);
+    const section = extractSection({
+      content: body,
+      symbols: query.symbols,
+      options: {
+        wholeFileUnderChars: policy.wholeFileUnderChars,
+        targetSectionChars: policy.targetSectionChars
+      }
+    });
+    sections.push({
+      repositoryId,
+      path: repo !== void 0 ? repositoryRelativePath(repo, entry.path) : entry.path,
+      content: section.content,
+      ...section.startLine !== void 0 ? { startLine: section.startLine } : {},
+      ...section.endLine !== void 0 ? { endLine: section.endLine } : {},
+      ...section.symbol !== void 0 ? { symbol: section.symbol } : {},
+      contentHash: entry.contentHash,
+      sectioned: section.sectioned
+    });
+  }
+  return { sections, pointers };
+}
 
 // ../../packages/mcp-server/src/tools/intake-tools.ts
 function intakeDeps(context, workspace) {
@@ -86555,10 +88809,10 @@ function registerSpecIntakeReadTool(server, context) {
           structured: all
         };
       }
-      const resolved = requireIntakeFor(deps, args.subject);
-      const overview = describeIntake(deps, resolved.intakeId);
+      const resolved2 = requireIntakeFor(deps, args.subject);
+      const overview = describeIntake(deps, resolved2.intakeId);
       const structured = {
-        intake: summarize4(workspace, context, resolved.intakeId)
+        intake: summarize4(workspace, context, resolved2.intakeId)
       };
       switch (args.view) {
         case "questions":
@@ -86636,19 +88890,248 @@ function registerSpecIntakeAnswerTool(server, context) {
     handler: async (args) => {
       const workspace = context.requireWorkspace();
       const deps = intakeDeps(context, workspace);
-      const resolved = requireIntakeFor(deps, args.subject);
-      const result = answerIntakeQuestion(deps, resolved.intakeId, {
+      const resolved2 = requireIntakeFor(deps, args.subject);
+      const result = answerIntakeQuestion(deps, resolved2.intakeId, {
         questionId: args.questionId,
         answer: args.answer
       });
       const open = result.discovery.questions.filter((question) => question.status === "open");
       return {
-        text: `Recorded the answer to ${args.questionId}. ` + (result.discovery.readiness.ready ? `The specification is ready. Present the approval summary and ask the user to run \`specbridge spec approve ${resolved.name} --build\`.` : `${open.length} product question(s) remain.`),
+        text: `Recorded the answer to ${args.questionId}. ` + (result.discovery.readiness.ready ? `The specification is ready. Present the approval summary and ask the user to run \`specbridge spec approve ${resolved2.name} --build\`.` : `${open.length} product question(s) remain.`),
         structured: {
-          intake: summarize4(workspace, context, resolved.intakeId),
+          intake: summarize4(workspace, context, resolved2.intakeId),
           questions: renderQuestions(open),
           ready: result.discovery.readiness.ready,
           readinessReasons: [...result.discovery.readiness.reasons]
+        }
+      };
+    }
+  });
+}
+
+// ../../packages/mcp-server/src/tools/workspace-bootstrap.ts
+function intakeDeps2(context, workspace) {
+  return {
+    workspace,
+    config: requireAgentConfig(workspace),
+    clock: context.clock,
+    idFactory: context.idFactory,
+    host: "mcp"
+  };
+}
+var findingShape = external_exports.object({
+  class: external_exports.string(),
+  statement: external_exports.string(),
+  evidence: external_exports.array(
+    external_exports.object({
+      repositoryId: external_exports.string(),
+      path: external_exports.string().optional(),
+      symbol: external_exports.string().optional(),
+      contractId: external_exports.string().optional(),
+      adrId: external_exports.string().optional()
+    })
+  )
+});
+var snapshotSummaryShape = {
+  snapshotId: external_exports.string(),
+  mode: external_exports.string(),
+  createdAt: external_exports.string(),
+  repositories: external_exports.array(
+    external_exports.object({
+      repositoryId: external_exports.string(),
+      relPath: external_exports.string(),
+      role: external_exports.string().optional(),
+      gitHead: external_exports.string().nullable(),
+      indexedFiles: external_exports.number().int()
+    })
+  ),
+  capabilities: external_exports.array(findingShape),
+  architecture: external_exports.array(findingShape),
+  publicSurfaces: external_exports.array(findingShape),
+  domainObjects: external_exports.array(findingShape),
+  implementationPatterns: external_exports.array(findingShape),
+  constraints: external_exports.array(findingShape),
+  uncertainties: external_exports.array(external_exports.object({ area: external_exports.string(), detail: external_exports.string() })),
+  existingProductTruth: external_exports.array(
+    external_exports.object({
+      kind: external_exports.string(),
+      missionId: external_exports.string(),
+      ref: external_exports.string(),
+      revision: external_exports.number().int().optional(),
+      title: external_exports.string()
+    })
+  )
+};
+function renderFinding(finding) {
+  return {
+    class: finding.class,
+    statement: finding.statement,
+    evidence: finding.evidence.map((ref) => ({
+      repositoryId: ref.repositoryId,
+      ...ref.path !== void 0 ? { path: ref.path } : {},
+      ...ref.symbol !== void 0 ? { symbol: ref.symbol } : {},
+      ...ref.contractId !== void 0 ? { contractId: ref.contractId } : {},
+      ...ref.adrId !== void 0 ? { adrId: ref.adrId } : {}
+    }))
+  };
+}
+function renderSnapshot(snapshot2) {
+  return {
+    snapshotId: snapshot2.snapshotId,
+    mode: snapshot2.mode,
+    createdAt: snapshot2.createdAt,
+    repositories: snapshot2.repositories.map((repo) => ({
+      repositoryId: repo.repositoryId,
+      relPath: repo.relPath,
+      ...repo.role !== void 0 ? { role: repo.role } : {},
+      gitHead: repo.gitHead,
+      indexedFiles: repo.indexedFiles
+    })),
+    capabilities: snapshot2.capabilities.map(renderFinding),
+    architecture: snapshot2.architecture.map(renderFinding),
+    publicSurfaces: snapshot2.publicSurfaces.map(renderFinding),
+    domainObjects: snapshot2.domainObjects.map(renderFinding),
+    implementationPatterns: snapshot2.implementationPatterns.map(renderFinding),
+    constraints: snapshot2.constraints.map(renderFinding),
+    uncertainties: snapshot2.uncertainties.map((entry) => ({
+      area: entry.area,
+      detail: entry.detail
+    })),
+    existingProductTruth: snapshot2.existingProductTruth.map((ref) => ({
+      kind: ref.kind,
+      missionId: ref.missionId,
+      ref: ref.ref,
+      ...ref.revision !== void 0 ? { revision: ref.revision } : {},
+      title: ref.title
+    }))
+  };
+}
+function registerWorkspaceBootstrapTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "workspace_bootstrap",
+    title: "Bootstrap the workspace",
+    description: "Build (or cheaply revalidate) the CurrentSystemSnapshot: an evidence-backed, bounded understanding of what the system currently is, BEFORE product discovery starts. Brownfield repositories yield capabilities, architecture, surfaces, and constraints with evidence refs; an empty repository yields a clean GREENFIELD baseline. Deterministic and offline; reuses the existing repository index; creates no product authority.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    inputSchema: {
+      rebuild: external_exports.boolean().optional().describe("Force a full index rebuild and snapshot regeneration")
+    },
+    outputSchema: {
+      reused: external_exports.boolean(),
+      indexRebuilt: external_exports.boolean(),
+      refreshedPaths: external_exports.number().int(),
+      snapshot: external_exports.object(snapshotSummaryShape)
+    },
+    handler: async (args) => {
+      const workspace = context.requireWorkspace();
+      const result = bootstrapWorkspace(intakeDeps2(context, workspace), {
+        ...args.rebuild === true ? { rebuild: true } : {}
+      });
+      const snapshot2 = result.snapshot;
+      return {
+        text: `Workspace is ${snapshot2.mode}: ${snapshot2.repositories.length} repository/repositories, ${snapshot2.capabilities.length} capability, ${snapshot2.architecture.length} architecture, ${snapshot2.existingProductTruth.length} product-truth reference(s)` + (result.reused ? " (snapshot current; reused)" : ` (snapshot ${snapshot2.snapshotId} generated)`) + ". Build the product conversation ON this system; use repository_inspect for deeper questions.",
+        structured: {
+          reused: result.reused,
+          indexRebuilt: result.indexRebuilt,
+          refreshedPaths: result.refreshedPaths,
+          snapshot: renderSnapshot(snapshot2)
+        }
+      };
+    }
+  });
+}
+function registerWorkspaceSnapshotTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "workspace_snapshot",
+    title: "Read the current-system snapshot",
+    description: "Read the persisted CurrentSystemSnapshot with an explicit freshness verdict. A stale snapshot is still returned as background, but it is NEVER silently presented as current: check `freshness.status` and re-run workspace_bootstrap when it says STALE. Read-only.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    inputSchema: {},
+    outputSchema: {
+      present: external_exports.boolean(),
+      freshness: external_exports.object({ status: external_exports.string(), reasons: external_exports.array(external_exports.string()) }),
+      snapshot: external_exports.object(snapshotSummaryShape).optional(),
+      findingCount: external_exports.number().int()
+    },
+    handler: async () => {
+      const workspace = context.requireWorkspace();
+      const { snapshot: snapshot2, freshness } = readWorkspaceSnapshot(workspace);
+      return {
+        text: snapshot2 === void 0 ? "No snapshot exists yet. Run workspace_bootstrap first." : freshness.status === "FRESH" ? `Current system (${snapshot2.mode}, fresh): ${allFindings(snapshot2).length} finding(s).` : `STALE snapshot (${freshness.reasons[0] ?? "repositories moved"}). Re-run workspace_bootstrap before relying on it.`,
+        structured: {
+          present: snapshot2 !== void 0,
+          freshness: { status: freshness.status, reasons: [...freshness.reasons] },
+          ...snapshot2 !== void 0 ? { snapshot: renderSnapshot(snapshot2) } : {},
+          findingCount: snapshot2 !== void 0 ? allFindings(snapshot2).length : 0
+        }
+      };
+    }
+  });
+}
+function registerRepositoryInspectTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "repository_inspect",
+    title: "Bounded repository inspection",
+    description: "Answer a deeper question about the current implementation with a BOUNDED set of relevant file sections, selected by the existing deterministic repository index and retrieval ranking. Never dumps the repository; protected and credential-shaped paths are never readable through it. What it returns is OBSERVED IMPLEMENTATION \u2014 evidence about what the code does today, never product authority.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    inputSchema: {
+      question: external_exports.string().min(1).max(2e3).describe("What you need to know about the current implementation"),
+      repositoryId: external_exports.string().max(64).optional().describe("Restrict the inspection to one repository of the snapshot"),
+      maxSections: external_exports.number().int().min(1).max(12).optional().describe("File sections to materialize (default 5, bounded by policy)")
+    },
+    outputSchema: {
+      sections: external_exports.array(
+        external_exports.object({
+          repositoryId: external_exports.string(),
+          path: external_exports.string(),
+          content: external_exports.string(),
+          startLine: external_exports.number().int().optional(),
+          endLine: external_exports.number().int().optional(),
+          symbol: external_exports.string().optional(),
+          contentHash: external_exports.string(),
+          sectioned: external_exports.boolean()
+        })
+      ),
+      pointers: external_exports.array(external_exports.object({ repositoryId: external_exports.string(), path: external_exports.string() }))
+    },
+    handler: async (args) => {
+      const workspace = context.requireWorkspace();
+      const result = inspectWorkspace(intakeDeps2(context, workspace), {
+        question: args.question,
+        ...args.repositoryId !== void 0 ? { repositoryId: args.repositoryId } : {},
+        ...args.maxSections !== void 0 ? { maxSections: args.maxSections } : {}
+      });
+      return {
+        text: result.sections.length === 0 ? "Nothing in the index ranked as relevant to that question." : `${result.sections.length} relevant section(s): ` + result.sections.map((section) => `${section.repositoryId}:${section.path}`).join(", ") + ". This is observed implementation, not product authority.",
+        structured: {
+          sections: result.sections.map((section) => ({
+            repositoryId: section.repositoryId,
+            path: section.path,
+            content: section.content,
+            ...section.startLine !== void 0 ? { startLine: section.startLine } : {},
+            ...section.endLine !== void 0 ? { endLine: section.endLine } : {},
+            ...section.symbol !== void 0 ? { symbol: section.symbol } : {},
+            contentHash: section.contentHash,
+            sectioned: section.sectioned
+          })),
+          pointers: result.pointers.map((pointer) => ({
+            repositoryId: pointer.repositoryId,
+            path: pointer.path
+          }))
         }
       };
     }
@@ -86834,6 +89317,9 @@ function registerAllTools(server, context) {
   registerSpecIntakeStartTool(server, context);
   registerSpecIntakeReadTool(server, context);
   registerSpecIntakeAnswerTool(server, context);
+  registerWorkspaceBootstrapTool(server, context);
+  registerWorkspaceSnapshotTool(server, context);
+  registerRepositoryInspectTool(server, context);
   registerObjectiveReadTool(server, context);
   registerWorkunitReadTool(server, context);
   registerEvaluationReadTool(server, context);

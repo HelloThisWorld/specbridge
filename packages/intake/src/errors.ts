@@ -28,6 +28,8 @@ export const SBI_CODES = {
   SBI015: 'overnight prerequisite requires a person',
   SBI016: 'product baseline invalid',
   SBI017: 'intake record already exists',
+  SBI018: 'workspace bootstrap input rejected',
+  SBI019: 'workspace snapshot not found',
 } as const;
 
 export type SbiCode = keyof typeof SBI_CODES;

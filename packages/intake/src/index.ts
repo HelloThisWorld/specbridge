@@ -15,3 +15,4 @@ export * from './derived-approval.js';
 export * from './lifecycle.js';
 export * from './service.js';
 export * from './telemetry.js';
+export * from './bootstrap/index.js';

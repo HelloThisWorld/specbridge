@@ -49,6 +49,13 @@ export interface EnsureIndexInput {
   rebuild?: boolean | undefined;
   /** Skip persistence (used by read-only diagnostics). */
   persist?: boolean | undefined;
+  /**
+   * Discover files the cached index has never seen, for callers with no Git
+   * snapshot to name additions (Workspace Bootstrap). One traversal with
+   * stat-based read skipping; ignored when the snapshot supplies changed
+   * paths.
+   */
+  discoverAdditions?: boolean | undefined;
 }
 
 export interface EnsureIndexResult {
@@ -145,6 +152,9 @@ export function ensureRepositoryIndex(input: EnsureIndexInput): EnsureIndexResul
   const refreshed = refreshRepositoryIndex(cached, {
     ...options,
     ...(changedPaths !== undefined ? { changedPaths } : {}),
+    ...(input.discoverAdditions === true && changedPaths === undefined
+      ? { discoverAdditions: true }
+      : {}),
   });
 
   if (input.persist !== false && policy.persistIndex) {

@@ -73,6 +73,11 @@ import {
   registerSpecIntakeStartTool,
 } from './intake-tools.js';
 import {
+  registerRepositoryInspectTool,
+  registerWorkspaceBootstrapTool,
+  registerWorkspaceSnapshotTool,
+} from './workspace-bootstrap.js';
+import {
   registerEvaluationReadTool,
   registerObjectiveReadTool,
   registerWorkunitReadTool,
@@ -167,6 +172,12 @@ export const TOOL_CATALOG: readonly ToolRegistryEntry[] = [
   { name: 'spec_intake_start', readOnly: false, summary: 'Ingest a product specification and run repository-grounded discovery' },
   { name: 'spec_intake_read', readOnly: true, summary: 'One spec intake: questions, refusals, delta authority, approval summary' },
   { name: 'spec_intake_answer', readOnly: false, summary: 'Record the user’s answer to one product question' },
+  // Workspace Bootstrap (vNext.10.2 Phase 1): the repository-aware starting
+  // point of a product conversation. Reads the repository and existing
+  // product truth; creates no product authority.
+  { name: 'workspace_bootstrap', readOnly: false, summary: 'Build or revalidate the CurrentSystemSnapshot' },
+  { name: 'workspace_snapshot', readOnly: true, summary: 'Current-system summary with an explicit freshness verdict' },
+  { name: 'repository_inspect', readOnly: true, summary: 'Bounded repository sections for a deeper implementation question' },
 ] as const;
 
 export function registerAllTools(server: McpServer, context: ServerContext): void {
@@ -234,6 +245,9 @@ export function registerAllTools(server: McpServer, context: ServerContext): voi
   registerSpecIntakeStartTool(server, context);
   registerSpecIntakeReadTool(server, context);
   registerSpecIntakeAnswerTool(server, context);
+  registerWorkspaceBootstrapTool(server, context);
+  registerWorkspaceSnapshotTool(server, context);
+  registerRepositoryInspectTool(server, context);
   registerObjectiveReadTool(server, context);
   registerWorkunitReadTool(server, context);
   registerEvaluationReadTool(server, context);

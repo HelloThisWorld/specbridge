@@ -90,7 +90,9 @@
     "SBI014",
     "SBI015",
     "SBI016",
-    "SBI017"
+    "SBI017",
+    "SBI018",
+    "SBI019"
   ],
   "eventTypes": [
     "baseline_recorded",

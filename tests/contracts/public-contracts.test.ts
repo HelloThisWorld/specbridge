@@ -149,16 +149,22 @@ describe('public contract snapshots', () => {
     for (const name of INTAKE_ADDITIONS) expect(tools).toContain(name);
     expect(tools).not.toContain('spec_intake_approve');
     expect(tools.filter((name) => name.startsWith('spec_intake_'))).toHaveLength(3);
+    // vNext.10.2 Phase 1 Workspace Bootstrap. Three tools, none of which can
+    // create product authority: bootstrap and inspection read the repository
+    // and existing truth; nothing writes a contract.
+    const BOOTSTRAP_ADDITIONS = ['workspace_bootstrap', 'workspace_snapshot', 'repository_inspect'];
+    for (const name of BOOTSTRAP_ADDITIONS) expect(tools).toContain(name);
     expect(
       tools.filter(
         (name) =>
           !V1_1_ADDITIONS.includes(name) &&
           !V1_2_ADDITIONS.includes(name) &&
           !MISSION_ADDITIONS.includes(name) &&
-          !INTAKE_ADDITIONS.includes(name),
+          !INTAKE_ADDITIONS.includes(name) &&
+          !BOOTSTRAP_ADDITIONS.includes(name),
       ),
     ).toHaveLength(37);
-    expect(tools).toHaveLength(67);
+    expect(tools).toHaveLength(70);
     // No approval tool, no shell, no filesystem, no git — at any version.
     for (const forbidden of tools) {
       expect(forbidden).not.toMatch(/^(.*_approve|.*_shell|.*_exec|.*_git|.*_write_file)$/);

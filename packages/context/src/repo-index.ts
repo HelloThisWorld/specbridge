@@ -13,7 +13,7 @@ import {
   isIndexReusable,
   repositoryContextIndexSchema,
 } from './repo-index-state.js';
-import type { ScanOptions } from './repo-index-scan.js';
+import type { ScanOptions, ScanResult } from './repo-index-scan.js';
 import {
   buildEntry,
   isBinaryPath,
@@ -94,6 +94,16 @@ export interface RefreshIndexOptions extends BuildIndexOptions {
   changedPaths?: readonly string[] | undefined;
   /** Paths known to be deleted (skips the stat that would fail anyway). */
   deletedPaths?: readonly string[] | undefined;
+  /**
+   * Also DISCOVER files the previous index has never seen. The untargeted
+   * refresh only re-verifies known entries — correct between dispatch turns,
+   * where the Git snapshot names every addition, but blind for a caller with
+   * no change source at all (Workspace Bootstrap): a brand-new file would
+   * stay invisible until a rebuild, and a snapshot claiming currency over it
+   * would be wrong. Costs one full traversal with stat-based read skipping;
+   * ignored when `changedPaths` is supplied.
+   */
+  discoverAdditions?: boolean | undefined;
 }
 
 export interface RefreshResult {
@@ -135,6 +145,7 @@ export function refreshRepositoryIndex(
   const refreshedPaths: string[] = [];
   const removedPaths: string[] = [];
   const addedPaths: string[] = [];
+  let discovery: ScanResult | undefined;
 
   for (const deleted of options.deletedPaths ?? []) {
     if (byPath.delete(normalize(deleted))) removedPaths.push(normalize(deleted));
@@ -202,6 +213,32 @@ export function refreshRepositoryIndex(
       byPath.set(entry.path, rebuiltEntry);
       if (rebuiltEntry.contentHash !== entry.contentHash) refreshedPaths.push(entry.path);
     }
+
+    if (options.discoverAdditions === true) {
+      // A full walk with stat-based read skipping: unchanged known files are
+      // carried over without a read, unknown files are indexed for the first
+      // time, and files the walk no longer reaches (deleted, newly ignored,
+      // newly protected) drop out — all under the same exclusion rules as a
+      // build, because it IS the build walk.
+      const scan = scanWorkspace({ ...options, indexedAt: options.now, reuse: byPath });
+      discovery = scan;
+      const walked = new Map(scan.entries.map((entry) => [entry.path, entry]));
+      for (const [knownPath, known] of byPath) {
+        const seen = walked.get(knownPath);
+        if (seen === undefined) {
+          byPath.delete(knownPath);
+          removedPaths.push(knownPath);
+          continue;
+        }
+        if (seen !== known && seen.contentHash !== known.contentHash) {
+          refreshedPaths.push(knownPath);
+        }
+      }
+      for (const [walkedPath, entry] of walked) {
+        if (!byPath.has(walkedPath)) addedPaths.push(walkedPath);
+        byPath.set(walkedPath, entry);
+      }
+    }
   }
 
   const relinked =
@@ -218,6 +255,15 @@ export function refreshRepositoryIndex(
       updatedAt: options.now,
       baselineRef: options.baselineRef ?? previous.baselineRef,
       entries: ordered,
+      // A discovery walk re-observed the whole tree; its skip and truncation
+      // facts replace the previous walk's, which described an older tree.
+      ...(discovery !== undefined
+        ? {
+            skipped: discovery.skipped,
+            skippedCounts: discovery.skippedCounts,
+            truncated: discovery.truncated,
+          }
+        : {}),
       buildMs: options.elapsedMs?.() ?? Math.max(0, Date.now() - startedAt),
     }),
     refreshedPaths,

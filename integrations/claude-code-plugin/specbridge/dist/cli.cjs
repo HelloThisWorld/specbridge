@@ -968,7 +968,7 @@ var require_command = __commonJS({
     "use strict";
     var EventEmitter2 = require("events").EventEmitter;
     var childProcess = require("child_process");
-    var path90 = require("path");
+    var path97 = require("path");
     var fs = require("fs");
     var process11 = require("process");
     var { Argument: Argument2, humanReadableArgName } = require_argument();
@@ -1901,9 +1901,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
         let launchWithNode = false;
         const sourceExt = [".js", ".ts", ".tsx", ".mjs", ".cjs"];
         function findFile(baseDir, baseName) {
-          const localBin = path90.resolve(baseDir, baseName);
+          const localBin = path97.resolve(baseDir, baseName);
           if (fs.existsSync(localBin)) return localBin;
-          if (sourceExt.includes(path90.extname(baseName))) return void 0;
+          if (sourceExt.includes(path97.extname(baseName))) return void 0;
           const foundExt = sourceExt.find(
             (ext) => fs.existsSync(`${localBin}${ext}`)
           );
@@ -1921,17 +1921,17 @@ Expecting one of '${allowedValues.join("', '")}'`);
           } catch (err) {
             resolvedScriptPath = this._scriptPath;
           }
-          executableDir = path90.resolve(
-            path90.dirname(resolvedScriptPath),
+          executableDir = path97.resolve(
+            path97.dirname(resolvedScriptPath),
             executableDir
           );
         }
         if (executableDir) {
           let localFile = findFile(executableDir, executableFile);
           if (!localFile && !subcommand._executableFile && this._scriptPath) {
-            const legacyName = path90.basename(
+            const legacyName = path97.basename(
               this._scriptPath,
-              path90.extname(this._scriptPath)
+              path97.extname(this._scriptPath)
             );
             if (legacyName !== this._name) {
               localFile = findFile(
@@ -1942,7 +1942,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
           }
           executableFile = localFile || executableFile;
         }
-        launchWithNode = sourceExt.includes(path90.extname(executableFile));
+        launchWithNode = sourceExt.includes(path97.extname(executableFile));
         let proc;
         if (process11.platform !== "win32") {
           if (launchWithNode) {
@@ -2782,7 +2782,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @return {Command}
        */
       nameFromFilename(filename) {
-        this._name = path90.basename(filename, path90.extname(filename));
+        this._name = path97.basename(filename, path97.extname(filename));
         return this;
       }
       /**
@@ -2796,9 +2796,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @param {string} [path]
        * @return {(string|null|Command)}
        */
-      executableDir(path91) {
-        if (path91 === void 0) return this._executableDir;
-        this._executableDir = path91;
+      executableDir(path98) {
+        if (path98 === void 0) return this._executableDir;
+        this._executableDir = path98;
         return this;
       }
       /**
@@ -3106,17 +3106,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path90) {
-      const ctrl = callVisitor(key, node, visitor, path90);
+    function visit_(key, node, visitor, path97) {
+      const ctrl = callVisitor(key, node, visitor, path97);
       if (identity3.isNode(ctrl) || identity3.isPair(ctrl)) {
-        replaceNode(key, path90, ctrl);
-        return visit_(key, ctrl, visitor, path90);
+        replaceNode(key, path97, ctrl);
+        return visit_(key, ctrl, visitor, path97);
       }
       if (typeof ctrl !== "symbol") {
         if (identity3.isCollection(node)) {
-          path90 = Object.freeze(path90.concat(node));
+          path97 = Object.freeze(path97.concat(node));
           for (let i2 = 0; i2 < node.items.length; ++i2) {
-            const ci = visit_(i2, node.items[i2], visitor, path90);
+            const ci = visit_(i2, node.items[i2], visitor, path97);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -3127,13 +3127,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity3.isPair(node)) {
-          path90 = Object.freeze(path90.concat(node));
-          const ck = visit_("key", node.key, visitor, path90);
+          path97 = Object.freeze(path97.concat(node));
+          const ck = visit_("key", node.key, visitor, path97);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path90);
+          const cv = visit_("value", node.value, visitor, path97);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -3154,17 +3154,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path90) {
-      const ctrl = await callVisitor(key, node, visitor, path90);
+    async function visitAsync_(key, node, visitor, path97) {
+      const ctrl = await callVisitor(key, node, visitor, path97);
       if (identity3.isNode(ctrl) || identity3.isPair(ctrl)) {
-        replaceNode(key, path90, ctrl);
-        return visitAsync_(key, ctrl, visitor, path90);
+        replaceNode(key, path97, ctrl);
+        return visitAsync_(key, ctrl, visitor, path97);
       }
       if (typeof ctrl !== "symbol") {
         if (identity3.isCollection(node)) {
-          path90 = Object.freeze(path90.concat(node));
+          path97 = Object.freeze(path97.concat(node));
           for (let i2 = 0; i2 < node.items.length; ++i2) {
-            const ci = await visitAsync_(i2, node.items[i2], visitor, path90);
+            const ci = await visitAsync_(i2, node.items[i2], visitor, path97);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -3175,13 +3175,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity3.isPair(node)) {
-          path90 = Object.freeze(path90.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path90);
+          path97 = Object.freeze(path97.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path97);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path90);
+          const cv = await visitAsync_("value", node.value, visitor, path97);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -3208,23 +3208,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path90) {
+    function callVisitor(key, node, visitor, path97) {
       if (typeof visitor === "function")
-        return visitor(key, node, path90);
+        return visitor(key, node, path97);
       if (identity3.isMap(node))
-        return visitor.Map?.(key, node, path90);
+        return visitor.Map?.(key, node, path97);
       if (identity3.isSeq(node))
-        return visitor.Seq?.(key, node, path90);
+        return visitor.Seq?.(key, node, path97);
       if (identity3.isPair(node))
-        return visitor.Pair?.(key, node, path90);
+        return visitor.Pair?.(key, node, path97);
       if (identity3.isScalar(node))
-        return visitor.Scalar?.(key, node, path90);
+        return visitor.Scalar?.(key, node, path97);
       if (identity3.isAlias(node))
-        return visitor.Alias?.(key, node, path90);
+        return visitor.Alias?.(key, node, path97);
       return void 0;
     }
-    function replaceNode(key, path90, node) {
-      const parent = path90[path90.length - 1];
+    function replaceNode(key, path97, node) {
+      const parent = path97[path97.length - 1];
       if (identity3.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity3.isPair(parent)) {
@@ -3834,10 +3834,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity3 = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path90, value) {
+    function collectionFromPath(schema, path97, value) {
       let v = value;
-      for (let i2 = path90.length - 1; i2 >= 0; --i2) {
-        const k = path90[i2];
+      for (let i2 = path97.length - 1; i2 >= 0; --i2) {
+        const k = path97[i2];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a2 = [];
           a2[k] = v;
@@ -3856,7 +3856,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path90) => path90 == null || typeof path90 === "object" && !!path90[Symbol.iterator]().next().done;
+    var isEmptyPath = (path97) => path97 == null || typeof path97 === "object" && !!path97[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -3886,11 +3886,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path90, value) {
-        if (isEmptyPath(path90))
+      addIn(path97, value) {
+        if (isEmptyPath(path97))
           this.add(value);
         else {
-          const [key, ...rest] = path90;
+          const [key, ...rest] = path97;
           const node = this.get(key, true);
           if (identity3.isCollection(node))
             node.addIn(rest, value);
@@ -3904,8 +3904,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path90) {
-        const [key, ...rest] = path90;
+      deleteIn(path97) {
+        const [key, ...rest] = path97;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -3919,8 +3919,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path90, keepScalar) {
-        const [key, ...rest] = path90;
+      getIn(path97, keepScalar) {
+        const [key, ...rest] = path97;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity3.isScalar(node) ? node.value : node;
@@ -3938,8 +3938,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path90) {
-        const [key, ...rest] = path90;
+      hasIn(path97) {
+        const [key, ...rest] = path97;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -3949,8 +3949,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path90, value) {
-        const [key, ...rest] = path90;
+      setIn(path97, value) {
+        const [key, ...rest] = path97;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -6465,9 +6465,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path90, value) {
+      addIn(path97, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path90, value);
+          this.contents.addIn(path97, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -6542,14 +6542,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path90) {
-        if (Collection.isEmptyPath(path90)) {
+      deleteIn(path97) {
+        if (Collection.isEmptyPath(path97)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path90) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path97) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -6564,10 +6564,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path90, keepScalar) {
-        if (Collection.isEmptyPath(path90))
+      getIn(path97, keepScalar) {
+        if (Collection.isEmptyPath(path97))
           return !keepScalar && identity3.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity3.isCollection(this.contents) ? this.contents.getIn(path90, keepScalar) : void 0;
+        return identity3.isCollection(this.contents) ? this.contents.getIn(path97, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -6578,10 +6578,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path90) {
-        if (Collection.isEmptyPath(path90))
+      hasIn(path97) {
+        if (Collection.isEmptyPath(path97))
           return this.contents !== void 0;
-        return identity3.isCollection(this.contents) ? this.contents.hasIn(path90) : false;
+        return identity3.isCollection(this.contents) ? this.contents.hasIn(path97) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -6598,13 +6598,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path90, value) {
-        if (Collection.isEmptyPath(path90)) {
+      setIn(path97, value) {
+        if (Collection.isEmptyPath(path97)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path90), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path97), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path90, value);
+          this.contents.setIn(path97, value);
         }
       }
       /**
@@ -8564,9 +8564,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path90) => {
+    visit.itemAtPath = (cst, path97) => {
       let item = cst;
-      for (const [field, index] of path90) {
+      for (const [field, index] of path97) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -8575,23 +8575,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path90) => {
-      const parent = visit.itemAtPath(cst, path90.slice(0, -1));
-      const field = path90[path90.length - 1][0];
+    visit.parentCollection = (cst, path97) => {
+      const parent = visit.itemAtPath(cst, path97.slice(0, -1));
+      const field = path97[path97.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path90, item, visitor) {
-      let ctrl = visitor(item, path90);
+    function _visit(path97, item, visitor) {
+      let ctrl = visitor(item, path97);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i2 = 0; i2 < token.items.length; ++i2) {
-            const ci = _visit(Object.freeze(path90.concat([[field, i2]])), token.items[i2], visitor);
+            const ci = _visit(Object.freeze(path97.concat([[field, i2]])), token.items[i2], visitor);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -8602,10 +8602,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path90);
+            ctrl = ctrl(item, path97);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path90) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path97) : ctrl;
     }
     exports2.visit = visit;
   }
@@ -10363,7 +10363,7 @@ var require_windows = __commonJS({
     module2.exports = isexe;
     isexe.sync = sync;
     var fs = require("fs");
-    function checkPathExt(path90, options) {
+    function checkPathExt(path97, options) {
       var pathext = options.pathExt !== void 0 ? options.pathExt : process.env.PATHEXT;
       if (!pathext) {
         return true;
@@ -10374,25 +10374,25 @@ var require_windows = __commonJS({
       }
       for (var i2 = 0; i2 < pathext.length; i2++) {
         var p = pathext[i2].toLowerCase();
-        if (p && path90.substr(-p.length).toLowerCase() === p) {
+        if (p && path97.substr(-p.length).toLowerCase() === p) {
           return true;
         }
       }
       return false;
     }
-    function checkStat(stat, path90, options) {
+    function checkStat(stat, path97, options) {
       if (!stat.isSymbolicLink() && !stat.isFile()) {
         return false;
       }
-      return checkPathExt(path90, options);
+      return checkPathExt(path97, options);
     }
-    function isexe(path90, options, cb) {
-      fs.stat(path90, function(er, stat) {
-        cb(er, er ? false : checkStat(stat, path90, options));
+    function isexe(path97, options, cb) {
+      fs.stat(path97, function(er, stat) {
+        cb(er, er ? false : checkStat(stat, path97, options));
       });
     }
-    function sync(path90, options) {
-      return checkStat(fs.statSync(path90), path90, options);
+    function sync(path97, options) {
+      return checkStat(fs.statSync(path97), path97, options);
     }
   }
 });
@@ -10404,13 +10404,13 @@ var require_mode = __commonJS({
     module2.exports = isexe;
     isexe.sync = sync;
     var fs = require("fs");
-    function isexe(path90, options, cb) {
-      fs.stat(path90, function(er, stat) {
+    function isexe(path97, options, cb) {
+      fs.stat(path97, function(er, stat) {
         cb(er, er ? false : checkStat(stat, options));
       });
     }
-    function sync(path90, options) {
-      return checkStat(fs.statSync(path90), options);
+    function sync(path97, options) {
+      return checkStat(fs.statSync(path97), options);
     }
     function checkStat(stat, options) {
       return stat.isFile() && checkMode(stat, options);
@@ -10444,7 +10444,7 @@ var require_isexe = __commonJS({
     }
     module2.exports = isexe;
     isexe.sync = sync;
-    function isexe(path90, options, cb) {
+    function isexe(path97, options, cb) {
       if (typeof options === "function") {
         cb = options;
         options = {};
@@ -10454,7 +10454,7 @@ var require_isexe = __commonJS({
           throw new TypeError("callback not provided");
         }
         return new Promise(function(resolve2, reject) {
-          isexe(path90, options || {}, function(er, is) {
+          isexe(path97, options || {}, function(er, is) {
             if (er) {
               reject(er);
             } else {
@@ -10463,7 +10463,7 @@ var require_isexe = __commonJS({
           });
         });
       }
-      core(path90, options || {}, function(er, is) {
+      core(path97, options || {}, function(er, is) {
         if (er) {
           if (er.code === "EACCES" || options && options.ignoreErrors) {
             er = null;
@@ -10473,9 +10473,9 @@ var require_isexe = __commonJS({
         cb(er, is);
       });
     }
-    function sync(path90, options) {
+    function sync(path97, options) {
       try {
-        return core.sync(path90, options || {});
+        return core.sync(path97, options || {});
       } catch (er) {
         if (options && options.ignoreErrors || er.code === "EACCES") {
           return false;
@@ -10492,7 +10492,7 @@ var require_which = __commonJS({
   "../../node_modules/.pnpm/which@2.0.2/node_modules/which/which.js"(exports2, module2) {
     "use strict";
     var isWindows = process.platform === "win32" || process.env.OSTYPE === "cygwin" || process.env.OSTYPE === "msys";
-    var path90 = require("path");
+    var path97 = require("path");
     var COLON = isWindows ? ";" : ":";
     var isexe = require_isexe();
     var getNotFoundError = (cmd) => Object.assign(new Error(`not found: ${cmd}`), { code: "ENOENT" });
@@ -10530,7 +10530,7 @@ var require_which = __commonJS({
           return opt.all && found.length ? resolve2(found) : reject(getNotFoundError(cmd));
         const ppRaw = pathEnv[i2];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path90.join(pathPart, cmd);
+        const pCmd = path97.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         resolve2(subStep(p, i2, 0));
       });
@@ -10557,7 +10557,7 @@ var require_which = __commonJS({
       for (let i2 = 0; i2 < pathEnv.length; i2++) {
         const ppRaw = pathEnv[i2];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path90.join(pathPart, cmd);
+        const pCmd = path97.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         for (let j = 0; j < pathExt.length; j++) {
           const cur = p + pathExt[j];
@@ -10605,7 +10605,7 @@ var require_path_key = __commonJS({
 var require_resolveCommand = __commonJS({
   "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js"(exports2, module2) {
     "use strict";
-    var path90 = require("path");
+    var path97 = require("path");
     var which = require_which();
     var getPathKey = require_path_key();
     function resolveCommandAttempt(parsed, withoutPathExt) {
@@ -10619,11 +10619,11 @@ var require_resolveCommand = __commonJS({
         } catch (err) {
         }
       }
-      let resolved;
+      let resolved2;
       try {
-        resolved = which.sync(parsed.command, {
+        resolved2 = which.sync(parsed.command, {
           path: env[getPathKey({ env })],
-          pathExt: withoutPathExt ? path90.delimiter : void 0
+          pathExt: withoutPathExt ? path97.delimiter : void 0
         });
       } catch (e) {
       } finally {
@@ -10631,10 +10631,10 @@ var require_resolveCommand = __commonJS({
           process.chdir(cwd);
         }
       }
-      if (resolved) {
-        resolved = path90.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
+      if (resolved2) {
+        resolved2 = path97.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved2);
       }
-      return resolved;
+      return resolved2;
     }
     function resolveCommand(parsed) {
       return resolveCommandAttempt(parsed) || resolveCommandAttempt(parsed, true);
@@ -10686,8 +10686,8 @@ var require_shebang_command = __commonJS({
       if (!match) {
         return null;
       }
-      const [path90, argument] = match[0].replace(/#! ?/, "").split(" ");
-      const binary = path90.split("/").pop();
+      const [path97, argument] = match[0].replace(/#! ?/, "").split(" ");
+      const binary = path97.split("/").pop();
       if (binary === "env") {
         return argument;
       }
@@ -10722,7 +10722,7 @@ var require_readShebang = __commonJS({
 var require_parse = __commonJS({
   "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js"(exports2, module2) {
     "use strict";
-    var path90 = require("path");
+    var path97 = require("path");
     var resolveCommand = require_resolveCommand();
     var escape2 = require_escape();
     var readShebang = require_readShebang();
@@ -10747,7 +10747,7 @@ var require_parse = __commonJS({
       const needsShell = !isExecutableRegExp.test(commandFile);
       if (parsed.options.forceShell || needsShell) {
         const needsDoubleEscapeMetaChars = isCmdShimRegExp.test(commandFile);
-        parsed.command = path90.normalize(parsed.command);
+        parsed.command = path97.normalize(parsed.command);
         parsed.command = escape2.command(parsed.command);
         parsed.args = parsed.args.map((arg) => escape2.argument(arg, needsDoubleEscapeMetaChars));
         const shellCommand = [parsed.command].concat(parsed.args).join(" ");
@@ -11185,8 +11185,8 @@ var require_utils = __commonJS({
       }
       return output;
     };
-    exports2.basename = (path90, { windows } = {}) => {
-      const segs = path90.split(windows ? /[\\/]/ : "/");
+    exports2.basename = (path97, { windows } = {}) => {
+      const segs = path97.split(windows ? /[\\/]/ : "/");
       const last = segs[segs.length - 1];
       if (last === "") {
         return segs[segs.length - 2];
@@ -14602,9 +14602,9 @@ var require_keyword = __commonJS({
       if (Array.isArray(def.keyword) ? !def.keyword.includes(keyword) : def.keyword !== keyword) {
         throw new Error("ajv implementation error");
       }
-      const deps = def.dependencies;
-      if (deps === null || deps === void 0 ? void 0 : deps.some((kwd) => !Object.prototype.hasOwnProperty.call(schema, kwd))) {
-        throw new Error(`parent schema must have dependencies of ${keyword}: ${deps.join(",")}`);
+      const deps2 = def.dependencies;
+      if (deps2 === null || deps2 === void 0 ? void 0 : deps2.some((kwd) => !Object.prototype.hasOwnProperty.call(schema, kwd))) {
+        throw new Error(`parent schema must have dependencies of ${keyword}: ${deps2.join(",")}`);
       }
       if (def.validateSchema) {
         const valid = def.validateSchema(schema[keyword]);
@@ -15893,8 +15893,8 @@ var require_utils2 = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path90) {
-      let input = path90;
+    function removeDotSegments(path97) {
+      let input = path97;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -16146,8 +16146,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path90, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path90 && path90 !== "/" ? path90 : void 0;
+        const [path97, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path97 && path97 !== "/" ? path97 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -16308,9 +16308,9 @@ var require_fast_uri = __commonJS({
     }
     function resolve2(baseURI, relativeURI, options) {
       const schemelessOptions = options ? Object.assign({ scheme: "null" }, options) : { scheme: "null" };
-      const resolved = resolveComponent(parse3(baseURI, schemelessOptions), parse3(relativeURI, schemelessOptions), schemelessOptions, true);
+      const resolved2 = resolveComponent(parse3(baseURI, schemelessOptions), parse3(relativeURI, schemelessOptions), schemelessOptions, true);
       schemelessOptions.skipEscape = true;
-      return serialize2(resolved, schemelessOptions);
+      return serialize2(resolved2, schemelessOptions);
     }
     function resolveComponent(base, relative, options, skipNormalization) {
       const target = {};
@@ -18111,14 +18111,14 @@ var require_dependencies = __commonJS({
     var util_1 = require_util();
     var code_1 = require_code2();
     exports2.error = {
-      message: ({ params: { property, depsCount, deps } }) => {
+      message: ({ params: { property, depsCount, deps: deps2 } }) => {
         const property_ies = depsCount === 1 ? "property" : "properties";
-        return (0, codegen_1.str)`must have ${property_ies} ${deps} when property ${property} is present`;
+        return (0, codegen_1.str)`must have ${property_ies} ${deps2} when property ${property} is present`;
       },
-      params: ({ params: { property, depsCount, deps, missingProperty } }) => (0, codegen_1._)`{property: ${property},
+      params: ({ params: { property, depsCount, deps: deps2, missingProperty } }) => (0, codegen_1._)`{property: ${property},
     missingProperty: ${missingProperty},
     depsCount: ${depsCount},
-    deps: ${deps}}`
+    deps: ${deps2}}`
       // TODO change to reference
     };
     var def = {
@@ -18138,8 +18138,8 @@ var require_dependencies = __commonJS({
       for (const key in schema) {
         if (key === "__proto__")
           continue;
-        const deps = Array.isArray(schema[key]) ? propertyDeps : schemaDeps;
-        deps[key] = schema[key];
+        const deps2 = Array.isArray(schema[key]) ? propertyDeps : schemaDeps;
+        deps2[key] = schema[key];
       }
       return [propertyDeps, schemaDeps];
     }
@@ -18149,23 +18149,23 @@ var require_dependencies = __commonJS({
         return;
       const missing = gen.let("missing");
       for (const prop in propertyDeps) {
-        const deps = propertyDeps[prop];
-        if (deps.length === 0)
+        const deps2 = propertyDeps[prop];
+        if (deps2.length === 0)
           continue;
         const hasProperty = (0, code_1.propertyInData)(gen, data, prop, it.opts.ownProperties);
         cxt.setParams({
           property: prop,
-          depsCount: deps.length,
-          deps: deps.join(", ")
+          depsCount: deps2.length,
+          deps: deps2.join(", ")
         });
         if (it.allErrors) {
           gen.if(hasProperty, () => {
-            for (const depProp of deps) {
+            for (const depProp of deps2) {
               (0, code_1.checkReportMissingProp)(cxt, depProp);
             }
           });
         } else {
-          gen.if((0, codegen_1._)`${hasProperty} && (${(0, code_1.checkMissingProp)(cxt, deps, missing)})`);
+          gen.if((0, codegen_1._)`${hasProperty} && (${(0, code_1.checkMissingProp)(cxt, deps2, missing)})`);
           (0, code_1.reportMissingProp)(cxt, missing);
           gen.else();
         }
@@ -20056,8 +20056,8 @@ function getErrorMap() {
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path90, errorMaps, issueData } = params;
-  const fullPath = [...path90, ...issueData.path || []];
+  const { data, path: path97, errorMaps, issueData } = params;
+  const fullPath = [...path97, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -20173,11 +20173,11 @@ var errorUtil;
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path90, key) {
+  constructor(parent, value, path97, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path90;
+    this._path = path97;
     this._key = key;
   }
   get path() {
@@ -23730,16 +23730,16 @@ function requireWorkspace(startDir) {
 }
 function assertInsideWorkspace(rootDir, target) {
   const resolvedRoot = import_path.default.resolve(rootDir);
-  const resolved = import_path.default.resolve(resolvedRoot, target);
-  const relative = import_path.default.relative(resolvedRoot, resolved);
+  const resolved2 = import_path.default.resolve(resolvedRoot, target);
+  const relative = import_path.default.relative(resolvedRoot, resolved2);
   if (relative.startsWith("..") || import_path.default.isAbsolute(relative)) {
     throw new SpecBridgeError(
       "PATH_OUTSIDE_WORKSPACE",
-      `Refusing to touch ${resolved}: it is outside the workspace root ${resolvedRoot}.`,
-      { rootDir: resolvedRoot, target: resolved }
+      `Refusing to touch ${resolved2}: it is outside the workspace root ${resolvedRoot}.`,
+      { rootDir: resolvedRoot, target: resolved2 }
     );
   }
-  return resolved;
+  return resolved2;
 }
 function writeFileAtomic(filePath, data) {
   const dir = import_path.default.dirname(filePath);
@@ -26609,14 +26609,14 @@ function buildRecoveryPlan(options) {
   };
 }
 function assertInsideSidecar(workspace, relative) {
-  const resolved = assertInsideWorkspace(workspace.rootDir, relative);
-  const sidecarRelative = import_path8.default.relative(workspace.sidecarDir, resolved);
+  const resolved2 = assertInsideWorkspace(workspace.rootDir, relative);
+  const sidecarRelative = import_path8.default.relative(workspace.sidecarDir, resolved2);
   if (sidecarRelative.startsWith("..") || import_path8.default.isAbsolute(sidecarRelative)) {
     throw new Error(
       `Recovery refuses to touch ${relative}: only files inside ${SIDECAR_DIR_NAME}/ are recoverable.`
     );
   }
-  return resolved;
+  return resolved2;
 }
 function applyRecoveryPlan(workspace, plan, options) {
   const startedAt = options.now().toISOString();
@@ -27792,8 +27792,8 @@ function writeDocumentAtomic(document, targetPath, options) {
       `Refusing to write ${targetPath}: the source file was not valid UTF-8, so a write could corrupt it.`
     );
   }
-  const resolved = assertInsideWorkspace(options.workspaceRoot, targetPath);
-  writeFileAtomic(resolved, document.toBuffer());
+  const resolved2 = assertInsideWorkspace(options.workspaceRoot, targetPath);
+  writeFileAtomic(resolved2, document.toBuffer());
 }
 var CHECKBOX_LINE = /^([ \t]*[-*+][ \t]+\[)([^\]])(\].*)$/;
 var STATE_CHAR = {
@@ -29048,12 +29048,12 @@ function shortHash(hash) {
 }
 function resolveStageFile(workspace, stage) {
   const relative = stage.file.split("/").join(import_path12.default.sep);
-  const resolved = import_path12.default.resolve(workspace.rootDir, relative);
-  const check6 = import_path12.default.relative(workspace.rootDir, resolved);
+  const resolved2 = import_path12.default.resolve(workspace.rootDir, relative);
+  const check6 = import_path12.default.relative(workspace.rootDir, resolved2);
   if (check6.startsWith("..") || import_path12.default.isAbsolute(check6)) {
     return import_path12.default.join(workspace.rootDir, ".specbridge", "invalid-path", import_path12.default.basename(stage.file));
   }
-  return resolved;
+  return resolved2;
 }
 function evaluateWorkflow(workspace, state) {
   const shape = workflowShape(state.specType, state.workflowMode);
@@ -30078,18 +30078,18 @@ function revoke(workspace, state, shape, stage, clock, diagnostics) {
 }
 var DEFAULT_MAX_DESCRIPTION_BYTES = 1024 * 1024;
 function readDescriptionFile(workspace, fromFile, cwd, maxBytes) {
-  const resolved = import_path13.default.resolve(cwd, fromFile);
-  assertInsideWorkspace(workspace.rootDir, resolved);
+  const resolved2 = import_path13.default.resolve(cwd, fromFile);
+  assertInsideWorkspace(workspace.rootDir, resolved2);
   let stats;
   try {
-    stats = (0, import_fs12.statSync)(resolved);
+    stats = (0, import_fs12.statSync)(resolved2);
   } catch (cause) {
-    throw ioError("read description file", resolved, cause);
+    throw ioError("read description file", resolved2, cause);
   }
   if (stats.isDirectory()) {
     throw new SpecBridgeError(
       "INVALID_ARGUMENT",
-      `--from-file points at a directory: ${resolved}. Point it at a UTF-8 text file.`
+      `--from-file points at a directory: ${resolved2}. Point it at a UTF-8 text file.`
     );
   }
   if (stats.size > maxBytes) {
@@ -30100,20 +30100,20 @@ function readDescriptionFile(workspace, fromFile, cwd, maxBytes) {
   }
   let buffer;
   try {
-    buffer = (0, import_fs12.readFileSync)(resolved);
+    buffer = (0, import_fs12.readFileSync)(resolved2);
   } catch (cause) {
-    throw ioError("read description file", resolved, cause);
+    throw ioError("read description file", resolved2, cause);
   }
   const text15 = buffer.toString("utf8");
   if (!Buffer.from(text15, "utf8").equals(buffer)) {
     throw new SpecBridgeError(
       "INVALID_ARGUMENT",
-      `--from-file is not valid UTF-8: ${resolved}. Re-save the file as UTF-8 and retry.`
+      `--from-file is not valid UTF-8: ${resolved2}. Re-save the file as UTF-8 and retry.`
     );
   }
   const description = text15.replace(new RegExp("^\\uFEFF"), "").trim();
   if (description.length === 0) {
-    throw new SpecBridgeError("INVALID_ARGUMENT", `--from-file is empty: ${resolved}.`);
+    throw new SpecBridgeError("INVALID_ARGUMENT", `--from-file is empty: ${resolved2}.`);
   }
   return description;
 }
@@ -34713,13 +34713,13 @@ var logOutputSync = ({ serializedResult, fdNumber, state, verboseInfo, encoding,
   }
 };
 var writeToFiles = (serializedResult, stdioItems, outputFiles) => {
-  for (const { path: path90, append } of stdioItems.filter(({ type }) => FILE_TYPES.has(type))) {
-    const pathString = typeof path90 === "string" ? path90 : path90.toString();
+  for (const { path: path97, append } of stdioItems.filter(({ type }) => FILE_TYPES.has(type))) {
+    const pathString = typeof path97 === "string" ? path97 : path97.toString();
     if (append || outputFiles.has(pathString)) {
-      (0, import_node_fs4.appendFileSync)(path90, serializedResult);
+      (0, import_node_fs4.appendFileSync)(path97, serializedResult);
     } else {
       outputFiles.add(pathString);
-      (0, import_node_fs4.writeFileSync)(path90, serializedResult);
+      (0, import_node_fs4.writeFileSync)(path97, serializedResult);
     }
   }
 };
@@ -37825,8 +37825,8 @@ function isExecutableFile(candidate) {
 }
 function resolveExecutable(command, cwd) {
   if (command.includes("/") || command.includes("\\")) {
-    const resolved = import_path14.default.resolve(cwd, command);
-    return isExecutableFile(resolved) ? resolved : void 0;
+    const resolved2 = import_path14.default.resolve(cwd, command);
+    return isExecutableFile(resolved2) ? resolved2 : void 0;
   }
   const pathValue = process.env["PATH"] ?? process.env["Path"] ?? "";
   const extensions = process.platform === "win32" ? ["", ...(process.env["PATHEXT"] ?? ".COM;.EXE;.BAT;.CMD").split(";")] : [""];
@@ -37840,9 +37840,9 @@ function resolveExecutable(command, cwd) {
   return void 0;
 }
 var WINDOWS_BATCH_EXTENSIONS = [".bat", ".cmd"];
-function isWindowsBatch(resolved) {
+function isWindowsBatch(resolved2) {
   if (process.platform !== "win32") return false;
-  const extension = import_path14.default.extname(resolved).toLowerCase();
+  const extension = import_path14.default.extname(resolved2).toLowerCase();
   return WINDOWS_BATCH_EXTENSIONS.includes(extension);
 }
 function cmdCommandLine(executable, argv2) {
@@ -37883,10 +37883,10 @@ async function runSafeProcess(request) {
       }
     };
   }
-  const resolved = resolveExecutable(request.executable, request.cwd);
-  const batch = isWindowsBatch(resolved);
+  const resolved2 = resolveExecutable(request.executable, request.cwd);
+  const batch = isWindowsBatch(resolved2);
   const spawnExecutable = batch ? process.env["COMSPEC"] ?? "cmd.exe" : request.executable;
-  const spawnArgv = batch ? ["/d", "/s", "/c", cmdCommandLine(resolved, request.argv)] : request.argv;
+  const spawnArgv = batch ? ["/d", "/s", "/c", cmdCommandLine(resolved2, request.argv)] : request.argv;
   const result = await execa(spawnExecutable, spawnArgv, {
     ...batch ? { windowsVerbatimArguments: true } : {},
     cwd: request.cwd,
@@ -41578,11 +41578,11 @@ function checkRedirectTarget(current, location) {
   return { ok: true, nextUrl: next };
 }
 async function safeHttpRequest(request) {
-  const bounded3 = createBoundedAbort(request.timeoutMs, request.signal);
+  const bounded4 = createBoundedAbort(request.timeoutMs, request.signal);
   try {
-    return await performSafeHttpRequest(request, bounded3.signal);
+    return await performSafeHttpRequest(request, bounded4.signal);
   } finally {
-    bounded3.release();
+    bounded4.release();
   }
 }
 async function performSafeHttpRequest(request, signal) {
@@ -43583,15 +43583,15 @@ async function probeDeepSeekHarness(config2, options = {}) {
     required: true,
     detail: `@deepseek-ai/dsh-sdk-client ${DSH_SDK_TESTED_VERSION} (developer preview)`
   });
-  const resolved = resolveExecutable(executable, cwd);
+  const resolved2 = resolveExecutable(executable, cwd);
   capabilities.push({
     id: "runtime-command",
     label: "Configured runtime command resolves",
-    available: resolved !== void 0,
+    available: resolved2 !== void 0,
     required: true,
-    detail: resolved ?? `"${executable}" was not found (the launch spec is explicit; no global command is assumed)`
+    detail: resolved2 ?? `"${executable}" was not found (the launch spec is explicit; no global command is assumed)`
   });
-  if (resolved === void 0) {
+  if (resolved2 === void 0) {
     diagnostics.push({
       severity: "error",
       code: "RUNNER_EXECUTABLE_NOT_FOUND",
@@ -43660,7 +43660,7 @@ async function probeDeepSeekHarness(config2, options = {}) {
   let version2;
   let handshakeVerified = false;
   let status;
-  if (resolved === void 0) {
+  if (resolved2 === void 0) {
     status = "unavailable";
   } else if (gaps.length > 0) {
     status = "misconfigured";
@@ -43719,7 +43719,7 @@ async function probeDeepSeekHarness(config2, options = {}) {
   return {
     status,
     executable,
-    resolvedExecutable: resolved,
+    resolvedExecutable: resolved2,
     version: version2,
     capabilities,
     diagnostics,
@@ -44740,9 +44740,9 @@ function instantiateRunner(config2, options = {}) {
   }
 }
 function createDefaultRunnerRegistry(config2, options = {}) {
-  const resolved = config2 ?? defaultResolvedAgentConfig();
+  const resolved2 = config2 ?? defaultResolvedAgentConfig();
   const registry2 = new RunnerRegistry();
-  for (const [name, profileConfig] of Object.entries(resolved.runnerProfiles)) {
+  for (const [name, profileConfig] of Object.entries(resolved2.runnerProfiles)) {
     if (profileConfig.runner === "extension") {
       if (profileConfig.enabled !== true || options.extensionRunner === void 0) {
         continue;
@@ -47669,18 +47669,18 @@ function validateReferencedFiles(workspace, referenced) {
       rejected.push(file);
       continue;
     }
-    const resolved = import_path24.default.resolve(workspace.rootDir, file);
-    const relative = import_path24.default.relative(import_path24.default.resolve(workspace.rootDir), resolved);
+    const resolved2 = import_path24.default.resolve(workspace.rootDir, file);
+    const relative = import_path24.default.relative(import_path24.default.resolve(workspace.rootDir), resolved2);
     if (relative.startsWith("..") || import_path24.default.isAbsolute(relative)) rejected.push(file);
     else accepted.push(file);
   }
   return { accepted, rejected };
 }
-async function authoringArgvPreview(deps, plan, prompt, toolPolicy, timeoutMs) {
-  const profileConfig = deps.registry.getProfile(plan.profile).config;
+async function authoringArgvPreview(deps2, plan, prompt, toolPolicy, timeoutMs) {
+  const profileConfig = deps2.registry.getProfile(plan.profile).config;
   const execution = {
-    workspaceRoot: deps.workspace.rootDir,
-    runDir: import_path24.default.join(deps.workspace.sidecarDir, "runs", "<run-id>"),
+    workspaceRoot: deps2.workspace.rootDir,
+    runDir: import_path24.default.join(deps2.workspace.sidecarDir, "runs", "<run-id>"),
     timeoutMs
   };
   if (profileConfig.runner === "claude-code") {
@@ -47719,20 +47719,20 @@ function includedDocumentPaths(specName, steering, documents) {
     ...documents.map((section) => `.kiro/specs/${specName}/${section.stage}.md`)
   ];
 }
-async function runAuthoringAttempts(deps, request, runId, primary, input, timeoutMs, clock) {
+async function runAuthoringAttempts(deps2, request, runId, primary, input, timeoutMs, clock) {
   const operation = request.intent === "refine" ? "stage-refinement" : "stage-generation";
   const attempts = [];
-  const backoff = deps.backoff ?? ((ms) => (0, import_promises12.setTimeout)(ms));
+  const backoff = deps2.backoff ?? ((ms) => (0, import_promises12.setTimeout)(ms));
   const candidates = [primary.profile, ...primary.fallbackChain];
   let lastFailure;
   let parentAttemptId;
-  const initialTree = candidates.length > 1 ? await captureGitSnapshot(deps.workspace.rootDir) : void 0;
+  const initialTree = candidates.length > 1 ? await captureGitSnapshot(deps2.workspace.rootDir) : void 0;
   const treeFingerprint = (snapshot2) => JSON.stringify(snapshot2.entries.map((entry2) => [entry2.path, entry2.contentHash]));
   for (let index = 0; index < candidates.length; index += 1) {
     const profileName = candidates[index];
     const isFallback = index > 0;
     if (isFallback && initialTree !== void 0 && initialTree.gitAvailable) {
-      const treeNow = await captureGitSnapshot(deps.workspace.rootDir);
+      const treeNow = await captureGitSnapshot(deps2.workspace.rootDir);
       if (treeFingerprint(treeNow) !== treeFingerprint(initialTree)) {
         attempts.push({
           profile: profileName,
@@ -47740,7 +47740,7 @@ async function runAuthoringAttempts(deps, request, runId, primary, input, timeou
           outcome: "not-attempted",
           reason: "the repository changed since the run started; fallback never runs after repository modification"
         });
-        appendRunEvent(deps.workspace, runId, {
+        appendRunEvent(deps2.workspace, runId, {
           at: clock().toISOString(),
           type: "fallback-stopped",
           profile: profileName,
@@ -47749,7 +47749,7 @@ async function runAuthoringAttempts(deps, request, runId, primary, input, timeou
         break;
       }
     }
-    const selection = isFallback ? selectRunner(deps.registry, deps.config, { operation, explicitProfile: profileName }) : { ok: true, plan: primary };
+    const selection = isFallback ? selectRunner(deps2.registry, deps2.config, { operation, explicitProfile: profileName }) : { ok: true, plan: primary };
     if (!selection.ok) {
       attempts.push({
         profile: profileName,
@@ -47757,7 +47757,7 @@ async function runAuthoringAttempts(deps, request, runId, primary, input, timeou
         outcome: "not-attempted",
         reason: selection.failure.error.message
       });
-      appendRunEvent(deps.workspace, runId, {
+      appendRunEvent(deps2.workspace, runId, {
         at: clock().toISOString(),
         type: "fallback-skipped",
         profile: profileName,
@@ -47766,15 +47766,15 @@ async function runAuthoringAttempts(deps, request, runId, primary, input, timeou
       continue;
     }
     const plan = selection.plan;
-    const runner = deps.registry.get(plan.profile);
-    const profileConfig = deps.registry.getProfile(plan.profile).config;
+    const runner = deps2.registry.get(plan.profile);
+    const profileConfig = deps2.registry.getProfile(plan.profile).config;
     const profileTimeout = request.timeoutMs ?? (profileConfig.runner !== "mock" ? profileConfig.timeoutMs : timeoutMs);
     let transportRetries = 0;
     let correctionRetries = 0;
     let correction;
     for (; ; ) {
       const attemptKind = correction !== void 0 ? "correction-retry" : transportRetries > 0 ? "transport-retry" : isFallback ? "fallback" : "initial";
-      const attempt = createAttempt(deps.workspace, {
+      const attempt = createAttempt(deps2.workspace, {
         runId,
         profile: plan.profile,
         runner: plan.runner,
@@ -47788,7 +47788,7 @@ async function runAuthoringAttempts(deps, request, runId, primary, input, timeou
         capabilitySnapshot: plan.declaredCapabilities,
         createdAt: clock().toISOString()
       });
-      appendRunEvent(deps.workspace, runId, {
+      appendRunEvent(deps2.workspace, runId, {
         at: clock().toISOString(),
         type: "attempt-start",
         attemptId: attempt.attemptId,
@@ -47798,16 +47798,16 @@ async function runAuthoringAttempts(deps, request, runId, primary, input, timeou
       const result = await runner.generateStage(
         { ...input, ...correction !== void 0 ? { correction } : {} },
         {
-          workspaceRoot: deps.workspace.rootDir,
-          runDir: runDir(deps.workspace, runId),
+          workspaceRoot: deps2.workspace.rootDir,
+          runDir: runDir(deps2.workspace, runId),
           timeoutMs: profileTimeout,
-          ...deps.signal !== void 0 ? { signal: deps.signal } : {},
+          ...deps2.signal !== void 0 ? { signal: deps2.signal } : {},
           ...request.model !== void 0 ? { model: request.model } : {},
           ...request.maxTurns !== void 0 ? { maxTurns: request.maxTurns } : {},
           ...request.maxBudgetUsd !== void 0 ? { maxBudgetUsd: request.maxBudgetUsd } : {}
         }
       );
-      finalizeAttempt(deps.workspace, attempt, {
+      finalizeAttempt(deps2.workspace, attempt, {
         finishedAt: clock().toISOString(),
         outcome: result.outcome,
         durationMs: result.durationMs,
@@ -47824,7 +47824,7 @@ async function runAuthoringAttempts(deps, request, runId, primary, input, timeou
       });
       if (result.invalidStructuredOutput !== void 0) {
         writeAttemptArtifact(
-          deps.workspace,
+          deps2.workspace,
           runId,
           attempt.attemptId,
           "invalid-candidate.txt",
@@ -47868,7 +47868,7 @@ async function runAuthoringAttempts(deps, request, runId, primary, input, timeou
       }
       const decision = fallbackEligible(operation, result.outcome, result.error);
       if (!decision.eligible) {
-        appendRunEvent(deps.workspace, runId, {
+        appendRunEvent(deps2.workspace, runId, {
           at: clock().toISOString(),
           type: "fallback-stopped",
           profile: plan.profile,
@@ -47882,9 +47882,9 @@ async function runAuthoringAttempts(deps, request, runId, primary, input, timeou
   const last = lastFailure;
   return { kind: "failure", result: last.result, plan: last.plan, attempts };
 }
-async function authorStage(deps, request) {
-  const clock = deps.clock ?? systemClock;
-  const { workspace, config: config2 } = deps;
+async function authorStage(deps2, request) {
+  const clock = deps2.clock ?? systemClock;
+  const { workspace, config: config2 } = deps2;
   const folder = requireSpec(workspace, request.specName);
   const spec = analyzeSpec(workspace, folder);
   const specName = folder.name;
@@ -47933,7 +47933,7 @@ async function authorStage(deps, request) {
     }
   }
   const operation = request.intent === "refine" ? "stage-refinement" : "stage-generation";
-  const selection = selectRunner(deps.registry, config2, {
+  const selection = selectRunner(deps2.registry, config2, {
     operation,
     ...request.runnerName !== void 0 ? { explicitProfile: request.runnerName } : {}
   });
@@ -47945,8 +47945,8 @@ async function authorStage(deps, request) {
     };
   }
   const plan = selection.plan;
-  const runner = deps.registry.get(plan.profile);
-  const profileConfig = deps.registry.getProfile(plan.profile).config;
+  const runner = deps2.registry.get(plan.profile);
+  const profileConfig = deps2.registry.getProfile(plan.profile).config;
   const steering = steeringSections(workspace);
   const contextStages = contextStagesFor(gate.shape, request.stage);
   const documents = specDocumentSections(spec, evaluation, contextStages);
@@ -47979,7 +47979,7 @@ async function authorStage(deps, request) {
   const timeoutMs = request.timeoutMs ?? (profileConfig.runner !== "mock" ? profileConfig.timeoutMs : 18e5);
   const targetFile = stageDocumentPath(workspace, specName, request.stage);
   if (request.dryRun === true) {
-    const argvPreview = plan.category === "agent-cli" ? await authoringArgvPreview(deps, plan, prompt, toolPolicy, timeoutMs) : void 0;
+    const argvPreview = plan.category === "agent-cli" ? await authoringArgvPreview(deps2, plan, prompt, toolPolicy, timeoutMs) : void 0;
     return {
       kind: "dry-run",
       exitCode: EXIT_CODES.ok,
@@ -48017,7 +48017,7 @@ async function authorStage(deps, request) {
       };
     }
   }
-  const runId = (deps.idFactory ?? import_crypto6.randomUUID)();
+  const runId = (deps2.idFactory ?? import_crypto6.randomUUID)();
   const createdAt = clock().toISOString();
   createRun(workspace, {
     schemaVersion: RUN_RECORD_SCHEMA_VERSION,
@@ -48059,7 +48059,7 @@ async function authorStage(deps, request) {
   );
   appendRunEvent(workspace, runId, { at: createdAt, type: "runner-start", runner: plan.profile });
   const loop = await runAuthoringAttempts(
-    deps,
+    deps2,
     request,
     runId,
     plan,
@@ -48228,18 +48228,18 @@ function policyRelevantDirtyPaths(before, evaluation) {
     return true;
   }).map((entry2) => entry2.path);
 }
-async function preflightTaskRun(deps, request) {
-  const { workspace, config: config2 } = deps;
+async function preflightTaskRun(deps2, request) {
+  const { workspace, config: config2 } = deps2;
   const allowDirty = request.allowDirty === true;
   const verificationCommands = config2.verification.commands;
   const warnings = [];
   const operation = request.operation ?? "task-execution";
-  const runnerSelection = selectRunner(deps.registry, config2, {
+  const runnerSelection = selectRunner(deps2.registry, config2, {
     operation,
     ...request.runnerName !== void 0 ? { explicitProfile: request.runnerName } : {}
   });
   const runnerName = runnerSelection.ok ? runnerSelection.plan.profile : runnerSelection.failure.profile ?? request.runnerName ?? config2.defaultRunner;
-  const profileConfig = deps.registry.has(runnerName) ? deps.registry.getProfile(runnerName).config : void 0;
+  const profileConfig = deps2.registry.has(runnerName) ? deps2.registry.getProfile(runnerName).config : void 0;
   const timeoutMs = request.timeoutMs ?? profileTimeoutMs(profileConfig);
   const folder = requireSpec(workspace, request.specName);
   const spec = analyzeSpec(workspace, folder);
@@ -48351,7 +48351,7 @@ async function preflightTaskRun(deps, request) {
       `${predecessors.length} earlier task(s) are still open (next would be ${predecessors[0]?.id}); running ${task.id} out of order.`
     );
   }
-  const runner = deps.registry.get(runnerName);
+  const runner = deps2.registry.get(runnerName);
   base.runner = runner;
   const detection = await runner.detect({
     workspaceRoot: workspace.rootDir,
@@ -48368,7 +48368,7 @@ async function preflightTaskRun(deps, request) {
     });
   }
   const before = await captureGitSnapshot(workspace.rootDir, {
-    ...deps.clock !== void 0 ? { clock: deps.clock } : {}
+    ...deps2.clock !== void 0 ? { clock: deps2.clock } : {}
   });
   base.before = before;
   if (!before.gitAvailable) {
@@ -48470,12 +48470,12 @@ function completeTaskCheckbox(workspace, specName, expected, clock) {
     ...newHash !== void 0 ? { newHash } : {}
   };
 }
-async function taskArgvPreview(deps, preflight, prompt, runIdPreview) {
+async function taskArgvPreview(deps2, preflight, prompt, runIdPreview) {
   const profileConfig = preflight.profileConfig;
   if (profileConfig === void 0) return void 0;
   const execution = {
-    workspaceRoot: deps.workspace.rootDir,
-    runDir: import_path26.default.join(deps.workspace.sidecarDir, "runs", runIdPreview),
+    workspaceRoot: deps2.workspace.rootDir,
+    runDir: import_path26.default.join(deps2.workspace.sidecarDir, "runs", runIdPreview),
     timeoutMs: preflight.timeoutMs
   };
   if (profileConfig.runner === "claude-code") {
@@ -48535,8 +48535,8 @@ function exitCodeForEvidence(status, outcome) {
 function boundaryNoteFor(preflight) {
   return preflight.runner?.executionBoundaryNote?.("implementation") ?? "Repository access is bounded by the configured runner safety boundary. Permission bypasses are never used.";
 }
-function buildPrompt(deps, preflight, extraObservations = []) {
-  const { workspace } = deps;
+function buildPrompt(deps2, preflight, extraObservations = []) {
+  const { workspace } = deps2;
   const spec = preflight.spec;
   const state = preflight.state;
   const evaluation = preflight.evaluation;
@@ -48562,9 +48562,9 @@ function buildPrompt(deps, preflight, extraObservations = []) {
   };
   return buildTaskExecutionPrompt(input);
 }
-async function runApprovedTask(deps, request) {
-  const clock = deps.clock ?? systemClock;
-  const preflight = await preflightTaskRun(deps, {
+async function runApprovedTask(deps2, request) {
+  const clock = deps2.clock ?? systemClock;
+  const preflight = await preflightTaskRun(deps2, {
     specName: request.specName,
     selector: {
       ...request.taskId !== void 0 ? { taskId: request.taskId } : {},
@@ -48590,11 +48590,11 @@ async function runApprovedTask(deps, request) {
     };
   }
   const task = preflight.task;
-  const prompt = buildPrompt(deps, preflight, request.extraObservations ?? []);
+  const prompt = buildPrompt(deps2, preflight, request.extraObservations ?? []);
   const profileConfig = preflight.profileConfig;
   if (request.dryRun === true) {
-    const runIdPreview = (deps.idFactory ?? import_crypto7.randomUUID)();
-    const argvPreview = await taskArgvPreview(deps, preflight, prompt, runIdPreview);
+    const runIdPreview = (deps2.idFactory ?? import_crypto7.randomUUID)();
+    const argvPreview = await taskArgvPreview(deps2, preflight, prompt, runIdPreview);
     const artifactBase = `.specbridge/runs/${runIdPreview}`;
     return {
       kind: "dry-run",
@@ -48639,11 +48639,11 @@ async function runApprovedTask(deps, request) {
       }
     };
   }
-  const runId = (deps.idFactory ?? import_crypto7.randomUUID)();
-  const sessionId = (deps.idFactory ?? import_crypto7.randomUUID)();
-  const parent = latestRunForTask(deps.workspace, preflight.spec.folder.name, task.id);
+  const runId = (deps2.idFactory ?? import_crypto7.randomUUID)();
+  const sessionId = (deps2.idFactory ?? import_crypto7.randomUUID)();
+  const parent = latestRunForTask(deps2.workspace, preflight.spec.folder.name, task.id);
   const createdAt = clock().toISOString();
-  createRun(deps.workspace, {
+  createRun(deps2.workspace, {
     schemaVersion: RUN_RECORD_SCHEMA_VERSION,
     runId,
     kind: "task-execution",
@@ -48657,9 +48657,9 @@ async function runApprovedTask(deps, request) {
     promptVersion: PROMPT_CONTRACT_VERSION,
     warnings: preflight.warnings
   });
-  writeRunArtifact(deps.workspace, runId, "prompt.md", prompt);
+  writeRunArtifact(deps2.workspace, runId, "prompt.md", prompt);
   writeRunArtifact(
-    deps.workspace,
+    deps2.workspace,
     runId,
     "runner-request.json",
     `${JSON.stringify(
@@ -48678,12 +48678,12 @@ async function runApprovedTask(deps, request) {
     )}
 `
   );
-  appendRunEvent(deps.workspace, runId, { at: createdAt, type: "runner-start", task: task.id });
-  deps.onProgress?.(`Executing task ${task.id} with ${preflight.runnerName}\u2026`);
+  appendRunEvent(deps2.workspace, runId, { at: createdAt, type: "runner-start", task: task.id });
+  deps2.onProgress?.(`Executing task ${task.id} with ${preflight.runnerName}\u2026`);
   const runner = preflight.runner;
   if (runner === void 0) throw new Error("preflight.ok implies runner");
   const selectionPlan = preflight.selectionPlan;
-  const attempt = selectionPlan !== void 0 ? createAttempt(deps.workspace, {
+  const attempt = selectionPlan !== void 0 ? createAttempt(deps2.workspace, {
     runId,
     profile: selectionPlan.profile,
     runner: selectionPlan.runner,
@@ -48706,17 +48706,17 @@ async function runApprovedTask(deps, request) {
       sessionId
     },
     {
-      workspaceRoot: deps.workspace.rootDir,
-      runDir: runDir(deps.workspace, runId),
+      workspaceRoot: deps2.workspace.rootDir,
+      runDir: runDir(deps2.workspace, runId),
       timeoutMs: preflight.timeoutMs,
-      ...deps.signal !== void 0 ? { signal: deps.signal } : {},
+      ...deps2.signal !== void 0 ? { signal: deps2.signal } : {},
       ...request.model !== void 0 ? { model: request.model } : {},
       ...request.maxTurns !== void 0 ? { maxTurns: request.maxTurns } : {},
       ...request.maxBudgetUsd !== void 0 ? { maxBudgetUsd: request.maxBudgetUsd } : {}
     }
   );
   if (attempt !== void 0 && selectionPlan !== void 0) {
-    finalizeAttempt(deps.workspace, attempt, {
+    finalizeAttempt(deps2.workspace, attempt, {
       finishedAt: clock().toISOString(),
       outcome: result.outcome,
       durationMs: result.durationMs,
@@ -48732,7 +48732,7 @@ async function runApprovedTask(deps, request) {
       )
     });
   }
-  const report = await finalizeTaskRun(deps, {
+  const report = await finalizeTaskRun(deps2, {
     runId,
     ...parent !== void 0 ? { parentRunId: parent.runId } : {},
     specName: preflight.spec.folder.name,
@@ -48746,9 +48746,9 @@ async function runApprovedTask(deps, request) {
   });
   return { kind: "executed", exitCode: report.exitCode, report };
 }
-async function finalizeTaskRun(deps, context) {
-  const clock = deps.clock ?? systemClock;
-  const { workspace, config: config2 } = deps;
+async function finalizeTaskRun(deps2, context) {
+  const clock = deps2.clock ?? systemClock;
+  const { workspace, config: config2 } = deps2;
   const { runId, task, result } = context;
   writeRunArtifact(workspace, runId, "raw-stdout.log", result.rawStdout);
   writeRunArtifact(workspace, runId, "raw-stderr.log", result.rawStderr);
@@ -48819,12 +48819,12 @@ async function finalizeTaskRun(deps, context) {
   if (context.noVerify) {
     verification = skippedVerification(config2.verification.commands);
   } else if (result.outcome === "completed" && agentChanges.length > 0) {
-    deps.onProgress?.("Running trusted verification commands\u2026");
+    deps2.onProgress?.("Running trusted verification commands\u2026");
     verification = await runVerificationCommands(
       workspace.rootDir,
       config2.verification.commands,
       {
-        ...deps.signal !== void 0 ? { signal: deps.signal } : {},
+        ...deps2.signal !== void 0 ? { signal: deps2.signal } : {},
         onCommandFinished: (commandResult, stdout, stderr) => {
           writeRunArtifact(
             workspace,
@@ -49033,12 +49033,12 @@ function taskLineIntact(workspace, specName, task) {
     return false;
   }
 }
-async function runAllOpenTasks(deps, request) {
+async function runAllOpenTasks(deps2, request) {
   const attempted = [];
-  const stopOnUnverified = deps.config.execution.stopOnUnverifiedTask;
+  const stopOnUnverified = deps2.config.execution.stopOnUnverifiedTask;
   for (; ; ) {
     const allowDirty = request.allowDirty === true || attempted.length > 0;
-    const outcome = await runApprovedTask(deps, { ...request, allowDirty, next: true });
+    const outcome = await runApprovedTask(deps2, { ...request, allowDirty, next: true });
     if (outcome.kind === "nothing-to-do") {
       return { attempted, exitCode: attempted.length === 0 ? EXIT_CODES.ok : summaryExit(attempted) };
     }
@@ -49098,9 +49098,9 @@ function diverges(current, recordedAfter) {
   }
   return differences;
 }
-async function resumeRun(deps, request) {
-  const clock = deps.clock ?? systemClock;
-  const { workspace } = deps;
+async function resumeRun(deps2, request) {
+  const clock = deps2.clock ?? systemClock;
+  const { workspace } = deps2;
   const original = readRunRecord(workspace, request.runId);
   if (original === void 0) {
     return refuse(
@@ -49138,7 +49138,7 @@ async function resumeRun(deps, request) {
       [`specbridge spec run ${original.specName} --task ${original.taskId}`]
     );
   }
-  const preflight = await preflightTaskRun(deps, {
+  const preflight = await preflightTaskRun(deps2, {
     specName: original.specName,
     selector: { taskId: original.taskId },
     runnerName: original.runner,
@@ -49254,7 +49254,7 @@ async function resumeRun(deps, request) {
       }
     };
   }
-  const runId = (deps.idFactory ?? import_crypto8.randomUUID)();
+  const runId = (deps2.idFactory ?? import_crypto8.randomUUID)();
   const createdAt = clock().toISOString();
   createRun(workspace, {
     schemaVersion: RUN_RECORD_SCHEMA_VERSION,
@@ -49277,7 +49277,7 @@ async function resumeRun(deps, request) {
     originalRunId: original.runId,
     sessionId: original.sessionId
   });
-  deps.onProgress?.(`Resuming task ${task.id} (session ${original.sessionId})\u2026`);
+  deps2.onProgress?.(`Resuming task ${task.id} (session ${original.sessionId})\u2026`);
   const result = await runner.resumeTask(
     {
       specName: original.specName,
@@ -49291,10 +49291,10 @@ async function resumeRun(deps, request) {
       workspaceRoot: workspace.rootDir,
       runDir: runDir(workspace, runId),
       timeoutMs: preflight.timeoutMs,
-      ...deps.signal !== void 0 ? { signal: deps.signal } : {}
+      ...deps2.signal !== void 0 ? { signal: deps2.signal } : {}
     }
   );
-  const report = await finalizeTaskRun(deps, {
+  const report = await finalizeTaskRun(deps2, {
     runId,
     parentRunId: original.runId,
     specName: original.specName,
@@ -49423,37 +49423,37 @@ function diagnoseInteractiveLock(workspace, clock = () => /* @__PURE__ */ new Da
     };
   }
   const lock = read.lock;
-  const findings = [];
+  const findings2 = [];
   const record5 = readRunRecord(workspace, lock.runId);
   if (record5 === void 0) {
-    findings.push(`The lock references run ${lock.runId}, which has no readable run record.`);
+    findings2.push(`The lock references run ${lock.runId}, which has no readable run record.`);
   } else if (record5.lifecycleStatus === "COMPLETED" || record5.lifecycleStatus === "ABORTED") {
-    findings.push(
+    findings2.push(
       `The lock references run ${lock.runId}, which is already finalized (${record5.lifecycleStatus}); the lock should have been released.`
     );
-    return { state: "stale", path: read.path, lock, findings, safeToRemove: true };
+    return { state: "stale", path: read.path, lock, findings: findings2, safeToRemove: true };
   } else {
-    findings.push(`The lock references run ${lock.runId} (spec "${lock.specName}", task ${lock.taskId}), still awaiting completion.`);
+    findings2.push(`The lock references run ${lock.runId} (spec "${lock.specName}", task ${lock.taskId}), still awaiting completion.`);
   }
   const alive = processAlive(lock.pid);
   if (alive === false) {
-    findings.push(`The owning process (pid ${lock.pid}) is no longer running.`);
-    return { state: "stale", path: read.path, lock, findings, safeToRemove: true };
+    findings2.push(`The owning process (pid ${lock.pid}) is no longer running.`);
+    return { state: "stale", path: read.path, lock, findings: findings2, safeToRemove: true };
   }
   if (alive === true) {
-    findings.push(`The owning process (pid ${lock.pid}) is still running.`);
-    return { state: "active", path: read.path, lock, findings, safeToRemove: false };
+    findings2.push(`The owning process (pid ${lock.pid}) is still running.`);
+    return { state: "active", path: read.path, lock, findings: findings2, safeToRemove: false };
   }
-  findings.push(`The owning process (pid ${lock.pid}) cannot be checked on this system.`);
+  findings2.push(`The owning process (pid ${lock.pid}) cannot be checked on this system.`);
   const heartbeatAge = clock().getTime() - Date.parse(lock.heartbeatAt);
   if (Number.isFinite(heartbeatAge) && heartbeatAge > LOCK_STALE_HEARTBEAT_MS) {
-    findings.push(
+    findings2.push(
       `The lock heartbeat is ${Math.round(heartbeatAge / 36e5)}h old (threshold ${LOCK_STALE_HEARTBEAT_MS / 36e5}h).`
     );
-    return { state: "stale", path: read.path, lock, findings, safeToRemove: true };
+    return { state: "stale", path: read.path, lock, findings: findings2, safeToRemove: true };
   }
-  findings.push("The lock heartbeat is recent; the owner may still be alive.");
-  return { state: "ambiguous", path: read.path, lock, findings, safeToRemove: false };
+  findings2.push("The lock heartbeat is recent; the owner may still be alive.");
+  return { state: "ambiguous", path: read.path, lock, findings: findings2, safeToRemove: false };
 }
 function removeDiagnosedLock(workspace, clock = () => /* @__PURE__ */ new Date()) {
   const diagnosis = diagnoseInteractiveLock(workspace, clock);
@@ -49477,11 +49477,11 @@ var INTERACTIVE_AGENT_INSTRUCTIONS = [
 function blocked(code2, message2, remediation = [], details) {
   return { kind: "blocked", code: code2, message: message2, remediation, ...details !== void 0 ? { details } : {} };
 }
-function buildInteractiveContext(deps, specName, task) {
-  const folder = requireSpec(deps.workspace, specName);
-  const spec = analyzeSpec(deps.workspace, folder);
+function buildInteractiveContext(deps2, specName, task) {
+  const folder = requireSpec(deps2.workspace, specName);
+  const spec = analyzeSpec(deps2.workspace, folder);
   const state = spec.state;
-  const evaluation = state !== void 0 ? evaluateWorkflow(deps.workspace, state) : void 0;
+  const evaluation = state !== void 0 ? evaluateWorkflow(deps2.workspace, state) : void 0;
   const documentStage = state?.specType === "bugfix" ? "bugfix" : "requirements";
   const lines = [];
   lines.push(`# Interactive task context: ${specName} \u2014 task ${task.id}`);
@@ -49491,7 +49491,7 @@ function buildInteractiveContext(deps, specName, task) {
     lines.push(`Requirement references: ${task.requirementRefs.join(", ")}`);
   }
   lines.push("");
-  for (const steering of steeringSections(deps.workspace)) {
+  for (const steering of steeringSections(deps2.workspace)) {
     lines.push(`## Steering: ${steering.name}`);
     lines.push("");
     lines.push(steering.body.trimEnd());
@@ -49512,9 +49512,9 @@ function buildInteractiveContext(deps, specName, task) {
   return `${lines.join("\n").replace(/\n+$/, "")}
 `;
 }
-async function beginInteractiveTask(deps, request) {
-  const clock = deps.clock ?? systemClock;
-  const { workspace, config: config2 } = deps;
+async function beginInteractiveTask(deps2, request) {
+  const clock = deps2.clock ?? systemClock;
+  const { workspace, config: config2 } = deps2;
   const allowDirty = request.allowDirty === true;
   const runVerificationOnComplete = request.runVerificationOnComplete !== false;
   const warnings = [];
@@ -49567,7 +49567,7 @@ async function beginInteractiveTask(deps, request) {
       `${predecessors.length} earlier task(s) are still open (next would be ${predecessors[0]?.id}); running ${task.id} out of order.`
     );
   }
-  const runId = (deps.idFactory ?? import_crypto9.randomUUID)();
+  const runId = (deps2.idFactory ?? import_crypto9.randomUUID)();
   const acquisition = acquireInteractiveLock(workspace, {
     runId,
     specName,
@@ -49627,7 +49627,7 @@ async function beginInteractiveTask(deps, request) {
       resumeSupported: false,
       warnings,
       lifecycleStatus: "AWAITING_AGENT_CHANGES",
-      host: deps.host ?? "mcp"
+      host: deps2.host ?? "mcp"
     });
     const fingerprint = taskFingerprint({
       id: task.id,
@@ -49657,7 +49657,7 @@ async function beginInteractiveTask(deps, request) {
       `${JSON.stringify(buildEvidenceSpecContext(workspace, specName, spec.state, task), null, 2)}
 `
     );
-    const contextMarkdown = buildInteractiveContext(deps, specName, task);
+    const contextMarkdown = buildInteractiveContext(deps2, specName, task);
     writeRunArtifact(workspace, runId, "context.md", contextMarkdown);
     appendRunEvent(workspace, runId, {
       at: createdAt,
@@ -49759,9 +49759,9 @@ function readFinalReport(workspace, runId) {
   const artifact = readRunArtifactJson(workspace, runId, "report.json");
   return artifact?.report;
 }
-async function completeInteractiveTask(deps, request) {
-  const clock = deps.clock ?? systemClock;
-  const { workspace } = deps;
+async function completeInteractiveTask(deps2, request) {
+  const clock = deps2.clock ?? systemClock;
+  const { workspace } = deps2;
   const loaded = loadInteractiveRun(workspace, request.runId);
   if (!loaded.ok) return loaded.failure;
   const { record: record5, state } = loaded;
@@ -49859,9 +49859,9 @@ async function completeInteractiveTask(deps, request) {
   const finalReport = await finalizeTaskRun(
     {
       workspace,
-      config: deps.config,
-      ...deps.clock !== void 0 ? { clock: deps.clock } : {},
-      ...deps.signal !== void 0 ? { signal: deps.signal } : {}
+      config: deps2.config,
+      ...deps2.clock !== void 0 ? { clock: deps2.clock } : {},
+      ...deps2.signal !== void 0 ? { signal: deps2.signal } : {}
     },
     {
       runId: request.runId,
@@ -49891,9 +49891,9 @@ async function completeInteractiveTask(deps, request) {
     finalizedNow: true
   };
 }
-async function abortInteractiveTask(deps, request) {
-  const clock = deps.clock ?? systemClock;
-  const { workspace } = deps;
+async function abortInteractiveTask(deps2, request) {
+  const clock = deps2.clock ?? systemClock;
+  const { workspace } = deps2;
   const reason = request.reason.trim();
   if (reason.length === 0) {
     return blocked("run-state-invalid", "task_abort requires a non-empty reason.", []);
@@ -50151,7 +50151,7 @@ var resumeConformanceGroup = {
         check2("resume", "resume.refusals", "unsafe resumes are refused", "skipped", fixture.error)
       ];
     }
-    const deps = { workspace: fixture.workspace, config: fixture.config, registry: fixture.registry };
+    const deps2 = { workspace: fixture.workspace, config: fixture.config, registry: fixture.registry };
     createRun(fixture.workspace, {
       schemaVersion: RUN_RECORD_SCHEMA_VERSION,
       runId: "conf-resume-verified",
@@ -50166,7 +50166,7 @@ var resumeConformanceGroup = {
       outcome: "completed",
       warnings: []
     });
-    const verifiedResume = await resumeRun(deps, { runId: "conf-resume-verified" });
+    const verifiedResume = await resumeRun(deps2, { runId: "conf-resume-verified" });
     results.push(
       check2(
         "resume",
@@ -50189,7 +50189,7 @@ var resumeConformanceGroup = {
       outcome: "failed",
       warnings: []
     });
-    const sessionlessResume = await resumeRun(deps, { runId: "conf-resume-no-session" });
+    const sessionlessResume = await resumeRun(deps2, { runId: "conf-resume-no-session" });
     results.push(
       check2(
         "resume",
@@ -50233,7 +50233,7 @@ var resumeConformanceGroup = {
       "git-after.json",
       fakeSnapshot([{ path: "src/from-previous-session.txt", status: " M", contentHash: "deadbeef" }])
     );
-    const divergedResume = await resumeRun(deps, { runId: "conf-resume-diverged" });
+    const divergedResume = await resumeRun(deps2, { runId: "conf-resume-diverged" });
     results.push(
       check2(
         "resume",
@@ -51418,8 +51418,11 @@ function scanWorkspace(options) {
         continue;
       }
       let size;
+      let mtimeMs;
       try {
-        size = (0, import_fs28.statSync)(import_path30.default.join(rootDir, relativePath)).size;
+        const stat = (0, import_fs28.statSync)(import_path30.default.join(rootDir, relativePath));
+        size = stat.size;
+        mtimeMs = stat.mtimeMs;
       } catch {
         note(relativePath, "unreadable");
         continue;
@@ -51432,6 +51435,11 @@ function scanWorkspace(options) {
         note(relativePath, "entry-limit");
         truncated = true;
         return;
+      }
+      const known = options.reuse?.get(relativePath);
+      if (known !== void 0 && known.sizeBytes === size && known.mtimeMs === mtimeMs) {
+        entries.push(known);
+        continue;
       }
       const entry2 = buildEntry(rootDir, relativePath, options.indexedAt);
       if (entry2 === void 0) {
@@ -51458,8 +51466,8 @@ function linkEntries(entries) {
   return entries.map((entry2) => {
     const importPaths = [];
     for (const specifier of entry2.imports) {
-      const resolved = resolveImportPath(entry2.path, specifier, known);
-      if (resolved !== void 0 && !importPaths.includes(resolved)) importPaths.push(resolved);
+      const resolved2 = resolveImportPath(entry2.path, specifier, known);
+      if (resolved2 !== void 0 && !importPaths.includes(resolved2)) importPaths.push(resolved2);
     }
     let testTargets = [];
     if (entry2.kind === "test") {
@@ -51510,6 +51518,7 @@ function refreshRepositoryIndex(previous, options) {
   const refreshedPaths = [];
   const removedPaths = [];
   const addedPaths = [];
+  let discovery;
   for (const deleted of options.deletedPaths ?? []) {
     if (byPath.delete(normalize(deleted))) removedPaths.push(normalize(deleted));
   }
@@ -51564,6 +51573,26 @@ function refreshRepositoryIndex(previous, options) {
       byPath.set(entry2.path, rebuiltEntry);
       if (rebuiltEntry.contentHash !== entry2.contentHash) refreshedPaths.push(entry2.path);
     }
+    if (options.discoverAdditions === true) {
+      const scan = scanWorkspace({ ...options, indexedAt: options.now, reuse: byPath });
+      discovery = scan;
+      const walked = new Map(scan.entries.map((entry2) => [entry2.path, entry2]));
+      for (const [knownPath, known] of byPath) {
+        const seen = walked.get(knownPath);
+        if (seen === void 0) {
+          byPath.delete(knownPath);
+          removedPaths.push(knownPath);
+          continue;
+        }
+        if (seen !== known && seen.contentHash !== known.contentHash) {
+          refreshedPaths.push(knownPath);
+        }
+      }
+      for (const [walkedPath, entry2] of walked) {
+        if (!byPath.has(walkedPath)) addedPaths.push(walkedPath);
+        byPath.set(walkedPath, entry2);
+      }
+    }
   }
   const relinked = refreshedPaths.length + removedPaths.length + addedPaths.length > 0 ? linkEntries([...byPath.values()]) : [...byPath.values()];
   const ordered = [...relinked].sort(
@@ -51575,6 +51604,13 @@ function refreshRepositoryIndex(previous, options) {
       updatedAt: options.now,
       baselineRef: options.baselineRef ?? previous.baselineRef,
       entries: ordered,
+      // A discovery walk re-observed the whole tree; its skip and truncation
+      // facts replace the previous walk's, which described an older tree.
+      ...discovery !== void 0 ? {
+        skipped: discovery.skipped,
+        skippedCounts: discovery.skippedCounts,
+        truncated: discovery.truncated
+      } : {},
       buildMs: options.elapsedMs?.() ?? Math.max(0, Date.now() - startedAt)
     }),
     refreshedPaths,
@@ -51975,8 +52011,8 @@ function rankCandidates(index, query, options = {}) {
   for (const bucket of [query.failurePaths, query.contractPaths, query.actionPaths]) {
     for (const reference of bucket) {
       if (reference.includes("/")) continue;
-      for (const resolved of index.namedExactly(reference)) {
-        add2(resolved, "EXPLICIT_FAILURE_REFERENCE", weights.explicitFailureReference, 0, reference);
+      for (const resolved2 of index.namedExactly(reference)) {
+        add2(resolved2, "EXPLICIT_FAILURE_REFERENCE", weights.explicitFailureReference, 0, reference);
       }
     }
   }
@@ -52203,17 +52239,17 @@ function tally(entries) {
     (left, right) => right.count !== left.count ? right.count - left.count : left.key < right.key ? -1 : 1
   );
 }
-function renderFindings(title, findings) {
-  if (findings.length === 0) return [];
-  const lines = [`${title} (${findings.length} distinct):`];
-  for (const finding2 of findings.slice(0, COMPRESSION_LIMITS.maxFindingsListed)) {
+function renderFindings(title, findings2) {
+  if (findings2.length === 0) return [];
+  const lines = [`${title} (${findings2.length} distinct):`];
+  for (const finding2 of findings2.slice(0, COMPRESSION_LIMITS.maxFindingsListed)) {
     const where = finding2.path !== void 0 ? ` [${finding2.path}${finding2.line !== void 0 ? `:${finding2.line}` : ""}]` : "";
     const repeat = finding2.count > 1 ? ` \xD7${finding2.count}` : "";
     const message2 = finding2.message !== void 0 ? ` \u2014 ${finding2.message}` : "";
     lines.push(`- ${finding2.key}${where}${repeat}${message2}`);
   }
-  if (findings.length > COMPRESSION_LIMITS.maxFindingsListed) {
-    lines.push(`- \u2026 ${findings.length - COMPRESSION_LIMITS.maxFindingsListed} further distinct entries omitted`);
+  if (findings2.length > COMPRESSION_LIMITS.maxFindingsListed) {
+    lines.push(`- \u2026 ${findings2.length - COMPRESSION_LIMITS.maxFindingsListed} further distinct entries omitted`);
   }
   return lines;
 }
@@ -52229,7 +52265,7 @@ function identityBlock(raw) {
   }
   return lines;
 }
-function finish(parts, method, raw, findings, structured) {
+function finish(parts, method, raw, findings2, structured) {
   const body = parts.filter((part) => part !== "").join("\n");
   const text15 = body.length <= COMPRESSION_LIMITS.maxOutputChars ? body : `${body.slice(0, COMPRESSION_LIMITS.maxOutputChars - 40)}
 \u2026 [compressed representation truncated] \u2026`;
@@ -52238,7 +52274,7 @@ function finish(parts, method, raw, findings, structured) {
     method,
     sourceBytes: Buffer.byteLength(raw, "utf8"),
     compressedBytes: Buffer.byteLength(text15, "utf8"),
-    findings: [...findings],
+    findings: [...findings2],
     referencedPaths: referencedPathsIn(raw),
     sourceHash: hashOf(raw),
     structured
@@ -52369,7 +52405,7 @@ var LINT_PATTERNS = [
 ];
 function compressLintOutput(raw) {
   const scanned = raw.slice(0, COMPRESSION_LIMITS.maxScanChars);
-  const findings = [];
+  const findings2 = [];
   let currentPath;
   for (const line of scanned.split("\n")) {
     const trimmed = line.trimEnd();
@@ -52380,7 +52416,7 @@ function compressLintOutput(raw) {
     }
     const stylish = LINT_PATTERNS[0]?.exec(trimmed);
     if (stylish !== null && stylish !== void 0) {
-      findings.push({
+      findings2.push({
         key: stylish[5] ?? "unknown-rule",
         count: 1,
         ...currentPath !== void 0 ? { path: currentPath } : {},
@@ -52391,7 +52427,7 @@ function compressLintOutput(raw) {
     }
     const coded = LINT_PATTERNS[1]?.exec(trimmed);
     if (coded !== null && coded !== void 0) {
-      findings.push({
+      findings2.push({
         key: coded[4] ?? "unknown-rule",
         count: 1,
         path: (coded[1] ?? "").replace(/\\/g, "/"),
@@ -52400,16 +52436,16 @@ function compressLintOutput(raw) {
       });
     }
   }
-  const byRule = tally(findings);
+  const byRule = tally(findings2);
   const parts = [
     "## Lint output (deterministically compressed)",
-    `Raw output: ${scanned.split("\n").length} line(s), ${raw.length} characters. ${findings.length} finding(s).`,
+    `Raw output: ${scanned.split("\n").length} line(s), ${raw.length} characters. ${findings2.length} finding(s).`,
     ...renderFindings("Findings by rule", byRule),
     "",
     "Leading output, verbatim (failure identity):",
     ...identityBlock(scanned).map((line) => `> ${line}`)
   ];
-  return finish(parts, "lint-log-v1", raw, byRule, findings.length > 0);
+  return finish(parts, "lint-log-v1", raw, byRule, findings2.length > 0);
 }
 function compressDiff(raw) {
   const scanned = raw.slice(0, COMPRESSION_LIMITS.maxScanChars);
@@ -52486,7 +52522,7 @@ function collapseRepetition(raw) {
     }
     counts.set(signature2, (counts.get(signature2) ?? 0) + 1);
   }
-  const findings = order.map((signature2) => ({
+  const findings2 = order.map((signature2) => ({
     key: examples.get(signature2) ?? signature2,
     count: counts.get(signature2) ?? 1
   })).sort(
@@ -52495,13 +52531,13 @@ function collapseRepetition(raw) {
   const parts = [
     "## Output (repetition collapsed)",
     `Raw output: ${lines.length} line(s), ${raw.length} characters; ${order.length} distinct line signature(s).`,
-    ...renderFindings("Distinct lines by frequency", findings),
+    ...renderFindings("Distinct lines by frequency", findings2),
     "",
     "Leading output, verbatim (failure identity):",
     ...identityBlock(scanned).map((line) => `> ${line}`)
   ];
   const structured = order.length > 0 && order.length < lines.length / 2;
-  return finish(parts, "repetition-collapse-v1", raw, findings, structured);
+  return finish(parts, "repetition-collapse-v1", raw, findings2, structured);
 }
 function classifyArtifact(kind, content) {
   const normalized = kind.toLowerCase();
@@ -53077,8 +53113,8 @@ function selectWorkingSet(input) {
       });
       continue;
     }
-    const resolved = resolveFresh(input.rootDir, candidate.entry, { withContent: true });
-    if (resolved.status === "missing") {
+    const resolved2 = resolveFresh(input.rootDir, candidate.entry, { withContent: true });
+    if (resolved2.status === "missing") {
       excluded.push({
         path: candidate.path,
         reason: "STALE_INDEX_ENTRY",
@@ -53087,11 +53123,11 @@ function selectWorkingSet(input) {
       });
       continue;
     }
-    if (resolved.status === "stale") {
+    if (resolved2.status === "stale") {
       refreshedPaths.push(candidate.path);
     }
-    const content = resolved.content;
-    const currentHash = resolved.currentHash;
+    const content = resolved2.content;
+    const currentHash = resolved2.currentHash;
     if (content === void 0 || currentHash === null) {
       excluded.push({
         path: candidate.path,
@@ -54917,12 +54953,12 @@ function readMissionEvents(workspace, missionId, options = {}) {
   const window = parsed.slice(Math.max(0, parsed.length - offset - limit), parsed.length - offset);
   return { events: window, total: parsed.length, truncated: parsed.length > window.length };
 }
-function now(deps) {
-  return (deps.clock ?? systemClock)();
+function now(deps2) {
+  return (deps2.clock ?? systemClock)();
 }
-function record2(deps, mission, type, payload = {}) {
-  appendMissionEvent(deps.workspace, mission.missionId, {
-    at: now(deps).toISOString(),
+function record2(deps2, mission, type, payload = {}) {
+  appendMissionEvent(deps2.workspace, mission.missionId, {
+    at: now(deps2).toISOString(),
     type,
     ...payload
   });
@@ -54931,15 +54967,15 @@ function record2(deps, mission, type, payload = {}) {
     counters: { ...mission.counters, events: mission.counters.events + 1 }
   };
 }
-function transition(deps, mission, to) {
+function transition(deps2, mission, to) {
   assertMissionTransition(mission.status, to);
-  const moved = { ...mission, status: to, updatedAt: now(deps).toISOString() };
-  return record2(deps, moved, "status_changed", { from: mission.status, to });
+  const moved = { ...mission, status: to, updatedAt: now(deps2).toISOString() };
+  return record2(deps2, moved, "status_changed", { from: mission.status, to });
 }
-function persist(deps, mission) {
-  return writeMissionState(deps.workspace, {
+function persist(deps2, mission) {
+  return writeMissionState(deps2.workspace, {
     ...mission,
-    updatedAt: now(deps).toISOString()
+    updatedAt: now(deps2).toISOString()
   });
 }
 function assertNotFinal(mission) {
@@ -54966,7 +55002,7 @@ function assertDiscoveryOpen(mission, what) {
 function pad(value, width) {
   return String(value).padStart(width, "0");
 }
-function beginMission(deps, request) {
+function beginMission(deps2, request) {
   const name = request.name.trim();
   const goal = request.goal.trim();
   if (name.length === 0 || goal.length === 0) {
@@ -54974,32 +55010,32 @@ function beginMission(deps, request) {
       remediation: ["Describe the product direction in one or two sentences."]
     });
   }
-  const createdAt = now(deps).toISOString();
+  const createdAt = now(deps2).toISOString();
   const mission = missionStateSchema.parse({
     schemaVersion: MISSION_STATE_SCHEMA_VERSION,
-    missionId: `m-${(deps.idFactory ?? import_crypto15.randomUUID)()}`,
+    missionId: `m-${(deps2.idFactory ?? import_crypto15.randomUUID)()}`,
     name: name.slice(0, MISSION_LIMITS.maxNameChars),
     status: "IDEA",
     goal: goal.slice(0, MISSION_LIMITS.maxTextChars),
     createdAt,
     updatedAt: createdAt,
-    host: deps.host ?? "cli"
+    host: deps2.host ?? "cli"
   });
-  initializeMissionRecord(deps.workspace, mission);
-  writeConstitution(deps.workspace, mission.missionId, {
+  initializeMissionRecord(deps2.workspace, mission);
+  writeConstitution(deps2.workspace, mission.missionId, {
     schemaVersion: MISSION_CONSTITUTION_SCHEMA_VERSION,
     missionId: mission.missionId,
     version: 0,
     updatedAt: createdAt,
     rules: []
   });
-  const recorded = record2(deps, mission, "mission_created", { name: mission.name });
-  const persisted = persist(deps, recorded);
-  refreshCoverage(deps, persisted);
+  const recorded = record2(deps2, mission, "mission_created", { name: mission.name });
+  const persisted = persist(deps2, recorded);
+  refreshCoverage(deps2, persisted);
   return persisted;
 }
-function recordTurn(deps, missionId, request) {
-  let mission = requireMissionState(deps.workspace, missionId);
+function recordTurn(deps2, missionId, request) {
+  let mission = requireMissionState(deps2.workspace, missionId);
   assertNotFinal(mission);
   if (mission.counters.turns >= MISSION_LIMITS.maxTurns) {
     throw new MissionError("SBM006", `The mission reached its ${MISSION_LIMITS.maxTurns}-turn bound.`);
@@ -55008,34 +55044,34 @@ function recordTurn(deps, missionId, request) {
   if (text24.length === 0) {
     throw new MissionError("SBM005", "A turn needs visible text.");
   }
-  if (request.inReplyTo !== void 0 && findTurn(deps.workspace, missionId, request.inReplyTo) === void 0) {
+  if (request.inReplyTo !== void 0 && findTurn(deps2.workspace, missionId, request.inReplyTo) === void 0) {
     throw new MissionError("SBM005", `Turn "${request.inReplyTo}" does not exist; inReplyTo must reference a recorded turn.`);
   }
   const sequence = mission.sequences.turn + 1;
   const turn = {
     turnId: `t-${sequence}`,
-    at: now(deps).toISOString(),
+    at: now(deps2).toISOString(),
     speaker: request.speaker,
     kind: request.kind,
     text: text24.slice(0, MISSION_LIMITS.maxTurnTextChars),
     refs: (request.refs ?? []).slice(0, MISSION_LIMITS.maxRefsPerRecord),
     ...request.inReplyTo !== void 0 ? { inReplyTo: request.inReplyTo } : {}
   };
-  appendTurn(deps.workspace, missionId, turn);
+  appendTurn(deps2.workspace, missionId, turn);
   mission = {
     ...mission,
     sequences: { ...mission.sequences, turn: sequence },
     counters: { ...mission.counters, turns: mission.counters.turns + 1 }
   };
-  mission = record2(deps, mission, "turn_recorded", {
+  mission = record2(deps2, mission, "turn_recorded", {
     turnId: turn.turnId,
     speaker: turn.speaker,
     kind: turn.kind
   });
   if (mission.status === "IDEA") {
-    mission = transition(deps, mission, "DISCOVERING");
+    mission = transition(deps2, mission, "DISCOVERING");
   }
-  return { mission: persist(deps, mission), turn };
+  return { mission: persist(deps2, mission), turn };
 }
 function validateSafeRegex(patterns, what) {
   const validated = [];
@@ -55049,14 +55085,14 @@ function validateSafeRegex(patterns, what) {
   }
   return validated;
 }
-function requireUserTurn(deps, missionId, turnId, what) {
+function requireUserTurn(deps2, missionId, turnId, what) {
   if (turnId === void 0) {
     throw new MissionError(
       "SBM007",
       `${what} claims user provenance but references no conversation turn. A user-provenance decision must point at the visible turn that confirms it.`
     );
   }
-  const turn = findTurn(deps.workspace, missionId, turnId);
+  const turn = findTurn(deps2.workspace, missionId, turnId);
   if (turn === void 0) {
     throw new MissionError("SBM007", `${what} references turn "${turnId}", which does not exist.`);
   }
@@ -55080,10 +55116,10 @@ function requireDecisions(activeDecisions, decisionIds, what) {
     }
   }
 }
-function recordAssessment(deps, missionId, input) {
-  let mission = requireMissionState(deps.workspace, missionId);
+function recordAssessment(deps2, missionId, input) {
+  let mission = requireMissionState(deps2.workspace, missionId);
   assertDiscoveryOpen(mission, "a discovery assessment");
-  const at = now(deps).toISOString();
+  const at = now(deps2).toISOString();
   const factIds = [];
   const questionIds = [];
   const decisionIds = [];
@@ -55095,18 +55131,18 @@ function recordAssessment(deps, missionId, input) {
     if (mission.counters.facts >= MISSION_LIMITS.maxFacts) {
       throw new MissionError("SBM006", `The mission reached its ${MISSION_LIMITS.maxFacts}-fact bound.`);
     }
-    if (fact.sourceTurnId !== void 0 && findTurn(deps.workspace, missionId, fact.sourceTurnId) === void 0) {
+    if (fact.sourceTurnId !== void 0 && findTurn(deps2.workspace, missionId, fact.sourceTurnId) === void 0) {
       throw new MissionError("SBM005", `Fact references turn "${fact.sourceTurnId}", which does not exist.`);
     }
     if (fact.supersedesFactId !== void 0) {
-      const existing = readFacts(deps.workspace, missionId).find(
+      const existing = readFacts(deps2.workspace, missionId).find(
         (candidate) => candidate.factId === fact.supersedesFactId
       );
       if (existing === void 0) {
         throw new MissionError("SBM009", `Fact "${fact.supersedesFactId}" cannot be superseded: it does not exist.`);
       }
-      appendFact(deps.workspace, missionId, { ...existing, status: "superseded" });
-      mission = record2(deps, mission, "fact_superseded", { factId: existing.factId });
+      appendFact(deps2.workspace, missionId, { ...existing, status: "superseded" });
+      mission = record2(deps2, mission, "fact_superseded", { factId: existing.factId });
     }
     const sequence = mission.sequences.fact + 1;
     const recordFact = {
@@ -55119,14 +55155,14 @@ function recordAssessment(deps, missionId, input) {
       ...fact.supersedesFactId !== void 0 ? { supersedes: fact.supersedesFactId } : {},
       recordedAt: at
     };
-    appendFact(deps.workspace, missionId, recordFact);
+    appendFact(deps2.workspace, missionId, recordFact);
     factIds.push(recordFact.factId);
     mission = {
       ...mission,
       sequences: { ...mission.sequences, fact: sequence },
       counters: { ...mission.counters, facts: mission.counters.facts + 1 }
     };
-    mission = record2(deps, mission, "fact_recorded", {
+    mission = record2(deps2, mission, "fact_recorded", {
       factId: recordFact.factId,
       provenance: recordFact.provenance
     });
@@ -55156,7 +55192,7 @@ function recordAssessment(deps, missionId, input) {
       ...question.sourceTurnId !== void 0 ? { sourceTurnId: question.sourceTurnId } : {},
       askedAt: at
     };
-    appendQuestion(deps.workspace, missionId, recordQuestion);
+    appendQuestion(deps2.workspace, missionId, recordQuestion);
     questionIds.push(recordQuestion.questionId);
     if (assessment.raisedFrom !== void 0) {
       materialityRaised.push({
@@ -55174,19 +55210,19 @@ function recordAssessment(deps, missionId, input) {
         openQuestions: mission.counters.openQuestions + 1
       }
     };
-    mission = record2(deps, mission, "question_opened", {
+    mission = record2(deps2, mission, "question_opened", {
       questionId: recordQuestion.questionId,
       materiality: recordQuestion.materiality
     });
   }
   for (const decision of input.decisions ?? []) {
-    mission = recordDecisionInternal(deps, missionId, mission, decision, at, decisionIds);
+    mission = recordDecisionInternal(deps2, missionId, mission, decision, at, decisionIds);
   }
   if ((input.constitutionRules ?? []).length > 0) {
-    const activeDecisions = readDecisions(deps.workspace, missionId).filter(
+    const activeDecisions = readDecisions(deps2.workspace, missionId).filter(
       (decision) => decision.status === "active"
     );
-    let constitution = readConstitution(deps.workspace, missionId) ?? {
+    let constitution = readConstitution(deps2.workspace, missionId) ?? {
       schemaVersion: MISSION_CONSTITUTION_SCHEMA_VERSION,
       missionId,
       version: 0,
@@ -55211,7 +55247,7 @@ function recordAssessment(deps, missionId, input) {
         rules = rules.map(
           (candidate) => candidate.ruleId === rule.supersedesRuleId ? { ...candidate, status: "superseded" } : candidate
         );
-        mission = record2(deps, mission, "constitution_rule_superseded", { ruleId: rule.supersedesRuleId });
+        mission = record2(deps2, mission, "constitution_rule_superseded", { ruleId: rule.supersedesRuleId });
       }
       const sequence = mission.sequences.constitutionRule + 1;
       const ruleId = `CON-${pad(sequence, 3)}`;
@@ -55243,12 +55279,12 @@ function recordAssessment(deps, missionId, input) {
         sequences: { ...mission.sequences, constitutionRule: sequence },
         counters: { ...mission.counters, constitutionRules: mission.counters.constitutionRules + 1 }
       };
-      mission = record2(deps, mission, "constitution_rule_recorded", { ruleId });
+      mission = record2(deps2, mission, "constitution_rule_recorded", { ruleId });
     }
-    writeConstitution(deps.workspace, missionId, constitution);
+    writeConstitution(deps2.workspace, missionId, constitution);
   }
   if ((input.adrs ?? []).length > 0) {
-    const activeDecisions = readDecisions(deps.workspace, missionId).filter(
+    const activeDecisions = readDecisions(deps2.workspace, missionId).filter(
       (decision) => decision.status === "active"
     );
     for (const adr of input.adrs ?? []) {
@@ -55283,18 +55319,18 @@ function recordAssessment(deps, missionId, input) {
         ...adr.supersedesAdrId !== void 0 ? { supersedes: adr.supersedesAdrId } : {},
         recordedAt: at
       });
-      storeAdr(deps.workspace, missionId, document);
+      storeAdr(deps2.workspace, missionId, document);
       adrIds.push(adrId);
       mission = {
         ...mission,
         sequences: { ...mission.sequences, adr: sequence },
         counters: { ...mission.counters, adrs: mission.counters.adrs + 1 }
       };
-      mission = record2(deps, mission, "adr_recorded", { adrId });
+      mission = record2(deps2, mission, "adr_recorded", { adrId });
     }
   }
   if ((input.contracts ?? []).length > 0) {
-    const activeDecisions = readDecisions(deps.workspace, missionId).filter(
+    const activeDecisions = readDecisions(deps2.workspace, missionId).filter(
       (decision) => decision.status === "active"
     );
     for (const contract of input.contracts ?? []) {
@@ -55332,25 +55368,25 @@ function recordAssessment(deps, missionId, input) {
         turnIds: (contract.turnIds ?? []).slice(0, MISSION_LIMITS.maxRefsPerRecord),
         recordedAt: at
       });
-      storeContractRevision(deps.workspace, missionId, document);
+      storeContractRevision(deps2.workspace, missionId, document);
       contractIds.push(contractId);
       mission = {
         ...mission,
         sequences: { ...mission.sequences, contract: sequence },
         counters: { ...mission.counters, contracts: mission.counters.contracts + 1 }
       };
-      mission = record2(deps, mission, "contract_recorded", { contractId, revision: 1 });
+      mission = record2(deps2, mission, "contract_recorded", { contractId, revision: 1 });
     }
   }
   const updates = input.missionUpdates;
   if (updates !== void 0) {
-    const bounded3 = (values) => values?.slice(0, MISSION_LIMITS.maxListItems).map((value) => value.slice(0, MISSION_LIMITS.maxTextChars));
+    const bounded4 = (values) => values?.slice(0, MISSION_LIMITS.maxListItems).map((value) => value.slice(0, MISSION_LIMITS.maxTextChars));
     mission = {
       ...mission,
-      ...updates.nonGoals !== void 0 ? { nonGoals: bounded3(updates.nonGoals) ?? [] } : {},
-      ...updates.targetUsers !== void 0 ? { targetUsers: bounded3(updates.targetUsers) ?? [] } : {},
-      ...updates.constraints !== void 0 ? { constraints: bounded3(updates.constraints) ?? [] } : {},
-      ...updates.successCriteria !== void 0 ? { successCriteria: bounded3(updates.successCriteria) ?? [] } : {},
+      ...updates.nonGoals !== void 0 ? { nonGoals: bounded4(updates.nonGoals) ?? [] } : {},
+      ...updates.targetUsers !== void 0 ? { targetUsers: bounded4(updates.targetUsers) ?? [] } : {},
+      ...updates.constraints !== void 0 ? { constraints: bounded4(updates.constraints) ?? [] } : {},
+      ...updates.successCriteria !== void 0 ? { successCriteria: bounded4(updates.successCriteria) ?? [] } : {},
       ...updates.assumptions !== void 0 ? {
         assumptions: updates.assumptions.slice(0, MISSION_LIMITS.maxListItems).map((assumption, index) => ({
           id: `A-${pad(index + 1, 3)}`,
@@ -55362,12 +55398,12 @@ function recordAssessment(deps, missionId, input) {
     };
   }
   if (mission.status === "IDEA") {
-    mission = transition(deps, mission, "DISCOVERING");
+    mission = transition(deps2, mission, "DISCOVERING");
   }
-  const coverage = refreshCoverage(deps, mission);
-  mission = reconcileStatusWithCoverage(deps, mission, coverage);
+  const coverage = refreshCoverage(deps2, mission);
+  mission = reconcileStatusWithCoverage(deps2, mission, coverage);
   return {
-    mission: persist(deps, mission),
+    mission: persist(deps2, mission),
     coverage,
     factIds,
     questionIds,
@@ -55378,7 +55414,7 @@ function recordAssessment(deps, missionId, input) {
     materialityRaised
   };
 }
-function recordDecisionInternal(deps, missionId, mission, input, at, outIds) {
+function recordDecisionInternal(deps2, missionId, mission, input, at, outIds) {
   if (mission.counters.decisions >= MISSION_LIMITS.maxDecisions) {
     throw new MissionError("SBM006", `The mission reached its ${MISSION_LIMITS.maxDecisions}-decision bound.`);
   }
@@ -55390,11 +55426,11 @@ function recordDecisionInternal(deps, missionId, mission, input, at, outIds) {
     );
   }
   if (input.provenance === "known-from-user") {
-    requireUserTurn(deps, missionId, input.sourceTurnId, "A decision");
-  } else if (input.sourceTurnId !== void 0 && findTurn(deps.workspace, missionId, input.sourceTurnId) === void 0) {
+    requireUserTurn(deps2, missionId, input.sourceTurnId, "A decision");
+  } else if (input.sourceTurnId !== void 0 && findTurn(deps2.workspace, missionId, input.sourceTurnId) === void 0) {
     throw new MissionError("SBM005", `Decision references turn "${input.sourceTurnId}", which does not exist.`);
   }
-  const questions = readQuestions(deps.workspace, missionId);
+  const questions = readQuestions(deps2.workspace, missionId);
   let answeredQuestion;
   if (input.questionId !== void 0) {
     answeredQuestion = questions.find((question) => question.questionId === input.questionId);
@@ -55403,14 +55439,14 @@ function recordDecisionInternal(deps, missionId, mission, input, at, outIds) {
     }
   }
   if (input.supersedesDecisionId !== void 0) {
-    const previous = readDecisions(deps.workspace, missionId).find(
+    const previous = readDecisions(deps2.workspace, missionId).find(
       (candidate) => candidate.decisionId === input.supersedesDecisionId
     );
     if (previous === void 0) {
       throw new MissionError("SBM009", `Decision "${input.supersedesDecisionId}" cannot be superseded: it does not exist.`);
     }
-    appendDecision(deps.workspace, missionId, { ...previous, status: "superseded" });
-    mission = record2(deps, mission, "decision_superseded", { decisionId: previous.decisionId });
+    appendDecision(deps2.workspace, missionId, { ...previous, status: "superseded" });
+    mission = record2(deps2, mission, "decision_superseded", { decisionId: previous.decisionId });
   }
   const sequence = mission.sequences.decision + 1;
   const decision = {
@@ -55429,20 +55465,20 @@ function recordDecisionInternal(deps, missionId, mission, input, at, outIds) {
     resultingArtifactIds: [],
     decidedAt: at
   };
-  appendDecision(deps.workspace, missionId, decision);
+  appendDecision(deps2.workspace, missionId, decision);
   outIds.push(decision.decisionId);
   mission = {
     ...mission,
     sequences: { ...mission.sequences, decision: sequence },
     counters: { ...mission.counters, decisions: mission.counters.decisions + 1 }
   };
-  mission = record2(deps, mission, "decision_recorded", {
+  mission = record2(deps2, mission, "decision_recorded", {
     decisionId: decision.decisionId,
     provenance: decision.provenance,
     ...decision.questionId !== void 0 ? { questionId: decision.questionId } : {}
   });
   if (answeredQuestion !== void 0 && answeredQuestion.status === "open") {
-    appendQuestion(deps.workspace, missionId, {
+    appendQuestion(deps2.workspace, missionId, {
       ...answeredQuestion,
       status: "answered",
       resolvedByDecisionId: decision.decisionId
@@ -55451,17 +55487,17 @@ function recordDecisionInternal(deps, missionId, mission, input, at, outIds) {
       ...mission,
       counters: { ...mission.counters, openQuestions: Math.max(0, mission.counters.openQuestions - 1) }
     };
-    mission = record2(deps, mission, "question_answered", {
+    mission = record2(deps2, mission, "question_answered", {
       questionId: answeredQuestion.questionId,
       decisionId: decision.decisionId
     });
   }
   return mission;
 }
-function answerQuestion(deps, missionId, request) {
-  const mission = requireMissionState(deps.workspace, missionId);
+function answerQuestion(deps2, missionId, request) {
+  const mission = requireMissionState(deps2.workspace, missionId);
   assertDiscoveryOpen(mission, "an answer");
-  const question = readQuestions(deps.workspace, missionId).find(
+  const question = readQuestions(deps2.workspace, missionId).find(
     (candidate) => candidate.questionId === request.questionId
   );
   if (question === void 0) {
@@ -55474,13 +55510,13 @@ function answerQuestion(deps, missionId, request) {
   if (answer.length === 0) {
     throw new MissionError("SBM005", "An answer needs text.");
   }
-  const { turn } = recordTurn(deps, missionId, {
+  const { turn } = recordTurn(deps2, missionId, {
     speaker: "user",
     kind: "statement",
     text: answer,
     refs: [question.questionId]
   });
-  const assessment = recordAssessment(deps, missionId, {
+  const assessment = recordAssessment(deps2, missionId, {
     decisions: [
       {
         decision: answer,
@@ -55493,7 +55529,7 @@ function answerQuestion(deps, missionId, request) {
     ]
   });
   const decisionId = assessment.decisionIds[0];
-  const decision = readDecisions(deps.workspace, missionId).find(
+  const decision = readDecisions(deps2.workspace, missionId).find(
     (candidate) => candidate.decisionId === decisionId
   );
   if (decision === void 0) {
@@ -55501,34 +55537,34 @@ function answerQuestion(deps, missionId, request) {
   }
   return { mission: assessment.mission, decision, coverage: assessment.coverage };
 }
-function refreshCoverage(deps, mission) {
+function refreshCoverage(deps2, mission) {
   const coverage = computeCoverage({
     missionId: mission.missionId,
-    facts: readFacts(deps.workspace, mission.missionId),
-    questions: readQuestions(deps.workspace, mission.missionId),
-    decisions: readDecisions(deps.workspace, mission.missionId),
-    now: now(deps)
+    facts: readFacts(deps2.workspace, mission.missionId),
+    questions: readQuestions(deps2.workspace, mission.missionId),
+    decisions: readDecisions(deps2.workspace, mission.missionId),
+    now: now(deps2)
   });
-  writeCoverage(deps.workspace, mission.missionId, coverage);
+  writeCoverage(deps2.workspace, mission.missionId, coverage);
   return coverage;
 }
-function reconcileStatusWithCoverage(deps, mission, coverage) {
+function reconcileStatusWithCoverage(deps2, mission, coverage) {
   const blocking = coverage.blockingQuestionIds.length > 0;
   if (mission.status === "DISCOVERING" && blocking) {
-    return transition(deps, mission, "NEEDS_DECISION");
+    return transition(deps2, mission, "NEEDS_DECISION");
   }
   if (mission.status === "NEEDS_DECISION" && !blocking) {
-    return transition(deps, mission, "DISCOVERING");
+    return transition(deps2, mission, "DISCOVERING");
   }
   if (mission.status === "CONTRACT_READY" && !coverage.contractReady) {
-    return transition(deps, mission, blocking ? "NEEDS_DECISION" : "DISCOVERING");
+    return transition(deps2, mission, blocking ? "NEEDS_DECISION" : "DISCOVERING");
   }
   return mission;
 }
-function markContractReady(deps, missionId) {
-  let mission = requireMissionState(deps.workspace, missionId);
+function markContractReady(deps2, missionId) {
+  let mission = requireMissionState(deps2.workspace, missionId);
   assertNotFinal(mission);
-  const coverage = refreshCoverage(deps, mission);
+  const coverage = refreshCoverage(deps2, mission);
   if (!coverage.contractReady) {
     throw new MissionError(
       "SBM008",
@@ -55546,36 +55582,36 @@ function markContractReady(deps, missionId) {
     );
   }
   if (mission.status !== "CONTRACT_READY") {
-    mission = transition(deps, mission, "CONTRACT_READY");
-    mission = persist(deps, mission);
+    mission = transition(deps2, mission, "CONTRACT_READY");
+    mission = persist(deps2, mission);
   }
   return { mission, coverage };
 }
-function reopenDiscovery(deps, missionId, reason) {
-  let mission = requireMissionState(deps.workspace, missionId);
+function reopenDiscovery(deps2, missionId, reason) {
+  let mission = requireMissionState(deps2.workspace, missionId);
   assertNotFinal(mission);
   if (DISCOVERY_STATUSES.includes(mission.status) && mission.status !== "CONTRACT_READY") {
     return mission;
   }
-  mission = transition(deps, mission, "DISCOVERING");
-  mission = record2(deps, mission, "status_changed", { reason: reason.slice(0, 500), reopened: true });
-  return persist(deps, mission);
+  mission = transition(deps2, mission, "DISCOVERING");
+  mission = record2(deps2, mission, "status_changed", { reason: reason.slice(0, 500), reopened: true });
+  return persist(deps2, mission);
 }
-function abandonMission(deps, missionId, reason) {
-  let mission = requireMissionState(deps.workspace, missionId);
+function abandonMission(deps2, missionId, reason) {
+  let mission = requireMissionState(deps2.workspace, missionId);
   if (isFinalMissionStatus(mission.status)) return mission;
-  const at = now(deps).toISOString();
-  mission = transition(deps, mission, "ABANDONED");
-  mission = record2(deps, mission, "mission_abandoned", { reason: reason.slice(0, 500) });
-  return persist(deps, { ...mission, abandonedAt: at, abandonReason: reason.slice(0, MISSION_LIMITS.maxTextChars) });
+  const at = now(deps2).toISOString();
+  mission = transition(deps2, mission, "ABANDONED");
+  mission = record2(deps2, mission, "mission_abandoned", { reason: reason.slice(0, 500) });
+  return persist(deps2, { ...mission, abandonedAt: at, abandonReason: reason.slice(0, MISSION_LIMITS.maxTextChars) });
 }
-function createContractChangeRequest(deps, missionId, request) {
-  let mission = requireMissionState(deps.workspace, missionId);
+function createContractChangeRequest(deps2, missionId, request) {
+  let mission = requireMissionState(deps2.workspace, missionId);
   assertNotFinal(mission);
   if (mission.counters.ccrs >= MISSION_LIMITS.maxCcrs) {
     throw new MissionError("SBM006", `The mission reached its ${MISSION_LIMITS.maxCcrs}-change-request bound.`);
   }
-  const contract = readContract(deps.workspace, missionId, request.contractId);
+  const contract = readContract(deps2.workspace, missionId, request.contractId);
   if (contract === void 0) {
     throw new MissionError("SBM009", `Contract "${request.contractId}" does not exist in this mission's registry.`);
   }
@@ -55585,7 +55621,7 @@ function createContractChangeRequest(deps, missionId, request) {
   });
   const material = contract.classification === "public" || contract.compatibilityPolicy === "frozen" || contract.compatibilityPolicy === "additive-only" || screen.level === "blocking";
   const sequence = mission.sequences.ccr + 1;
-  const at = now(deps).toISOString();
+  const at = now(deps2).toISOString();
   const ccr = contractChangeRequestSchema.parse({
     schemaVersion: MISSION_CCR_SCHEMA_VERSION,
     ccrId: `CCR-${pad(sequence, 3)}`,
@@ -55600,31 +55636,31 @@ function createContractChangeRequest(deps, missionId, request) {
     ...request.originJobId !== void 0 ? { originJobId: request.originJobId } : {},
     createdAt: at
   });
-  writeCcr(deps.workspace, missionId, ccr);
+  writeCcr(deps2.workspace, missionId, ccr);
   mission = {
     ...mission,
     sequences: { ...mission.sequences, ccr: sequence },
     counters: { ...mission.counters, ccrs: mission.counters.ccrs + 1 }
   };
-  mission = record2(deps, mission, "ccr_created", {
+  mission = record2(deps2, mission, "ccr_created", {
     ccrId: ccr.ccrId,
     contractId: ccr.contractId,
     status: ccr.status,
     raisedBy: ccr.raisedBy
   });
-  return { mission: persist(deps, mission), ccr, material };
+  return { mission: persist(deps2, mission), ccr, material };
 }
-function decideContractChangeRequest(deps, missionId, request) {
-  let mission = requireMissionState(deps.workspace, missionId);
+function decideContractChangeRequest(deps2, missionId, request) {
+  let mission = requireMissionState(deps2.workspace, missionId);
   assertNotFinal(mission);
-  const existing = readCcr(deps.workspace, missionId, request.ccrId);
+  const existing = readCcr(deps2.workspace, missionId, request.ccrId);
   if (existing === void 0) {
     throw new MissionError("SBM009", `Change request "${request.ccrId}" does not exist.`);
   }
   if (existing.status !== "PROPOSED" && existing.status !== "NEEDS_HUMAN") {
     throw new MissionError("SBM013", `Change request ${existing.ccrId} is already ${existing.status}.`);
   }
-  const at = now(deps).toISOString();
+  const at = now(deps2).toISOString();
   if (request.decision === "rejected") {
     const rejected = {
       ...existing,
@@ -55632,17 +55668,17 @@ function decideContractChangeRequest(deps, missionId, request) {
       decidedAt: at,
       ...request.note !== void 0 ? { decisionNote: request.note.slice(0, MISSION_LIMITS.maxTextChars) } : {}
     };
-    writeCcr(deps.workspace, missionId, rejected);
-    mission = record2(deps, mission, "ccr_decided", { ccrId: existing.ccrId, decision: "rejected" });
-    return { mission: persist(deps, mission), ccr: rejected };
+    writeCcr(deps2.workspace, missionId, rejected);
+    mission = record2(deps2, mission, "ccr_decided", { ccrId: existing.ccrId, decision: "rejected" });
+    return { mission: persist(deps2, mission), ccr: rejected };
   }
-  const current = readContract(deps.workspace, missionId, existing.contractId);
+  const current = readContract(deps2.workspace, missionId, existing.contractId);
   if (current === void 0) {
     throw new MissionError("SBM009", `Contract "${existing.contractId}" vanished from the registry.`);
   }
   const decisionIds = [];
   mission = recordDecisionInternal(
-    deps,
+    deps2,
     missionId,
     mission,
     {
@@ -55691,7 +55727,7 @@ function decideContractChangeRequest(deps, missionId, request) {
       status: "active"
     });
   }
-  storeContractRevision(deps.workspace, missionId, nextRevision);
+  storeContractRevision(deps2.workspace, missionId, nextRevision);
   const approved = {
     ...existing,
     status: "APPROVED",
@@ -55699,27 +55735,27 @@ function decideContractChangeRequest(deps, missionId, request) {
     ...request.note !== void 0 ? { decisionNote: request.note.slice(0, MISSION_LIMITS.maxTextChars) } : {},
     resultingRevision: nextRevisionNumber
   };
-  writeCcr(deps.workspace, missionId, approved);
-  mission = record2(deps, mission, "ccr_decided", { ccrId: existing.ccrId, decision: "approved" });
-  mission = record2(deps, mission, "contract_revised", {
+  writeCcr(deps2.workspace, missionId, approved);
+  mission = record2(deps2, mission, "ccr_decided", { ccrId: existing.ccrId, decision: "approved" });
+  mission = record2(deps2, mission, "contract_revised", {
     contractId: current.contractId,
     revision: nextRevisionNumber,
     ccrId: existing.ccrId
   });
-  mission = record2(deps, mission, "ccr_applied", {
+  mission = record2(deps2, mission, "ccr_applied", {
     ccrId: existing.ccrId,
     contractId: current.contractId,
     revision: nextRevisionNumber
   });
-  return { mission: persist(deps, mission), ccr: approved, contract: nextRevision };
+  return { mission: persist(deps2, mission), ccr: approved, contract: nextRevision };
 }
-function describeMission(deps, missionId) {
-  const mission = requireMissionState(deps.workspace, missionId);
-  const coverage = refreshCoverage(deps, mission);
-  const questions = readQuestions(deps.workspace, missionId);
+function describeMission(deps2, missionId) {
+  const mission = requireMissionState(deps2.workspace, missionId);
+  const coverage = refreshCoverage(deps2, mission);
+  const questions = readQuestions(deps2.workspace, missionId);
   const openQuestions = questions.filter((question) => question.status === "open");
-  const constitution = readConstitution(deps.workspace, missionId);
-  const openCcrs = readCcrs(deps.workspace, missionId).filter(
+  const constitution = readConstitution(deps2.workspace, missionId);
+  const openCcrs = readCcrs(deps2.workspace, missionId).filter(
     (ccr) => ccr.status === "PROPOSED" || ccr.status === "NEEDS_HUMAN"
   );
   return {
@@ -55727,12 +55763,12 @@ function describeMission(deps, missionId) {
     coverage,
     openQuestions,
     blockingQuestions: openQuestions.filter((question) => question.materiality === "blocking"),
-    activeDecisionCount: readDecisions(deps.workspace, missionId).filter(
+    activeDecisionCount: readDecisions(deps2.workspace, missionId).filter(
       (decision) => decision.status === "active"
     ).length,
     constitutionVersion: constitution?.version ?? 0,
     activeConstitutionRules: constitution?.rules.filter((rule) => rule.status === "active").length ?? 0,
-    contractCount: readContractRegistry(deps.workspace, missionId).length,
+    contractCount: readContractRegistry(deps2.workspace, missionId).length,
     adrCount: mission.counters.adrs,
     openCcrs
   };
@@ -56047,8 +56083,8 @@ function validateCompiledDocuments(documents) {
   }
   return problems;
 }
-function synthesizeMissionSpec(deps, missionId, request = {}) {
-  let mission = requireMissionState(deps.workspace, missionId);
+function synthesizeMissionSpec(deps2, missionId, request = {}) {
+  let mission = requireMissionState(deps2.workspace, missionId);
   if (mission.status !== "CONTRACT_READY") {
     throw new MissionError(
       "SBM014",
@@ -56060,7 +56096,7 @@ function synthesizeMissionSpec(deps, missionId, request = {}) {
       }
     );
   }
-  const coverage = refreshCoverage(deps, mission);
+  const coverage = refreshCoverage(deps2, mission);
   if (!coverage.contractReady) {
     throw new MissionError("SBM008", `The coverage gate no longer holds: ${coverage.reasons.join(" ")}`);
   }
@@ -56069,10 +56105,10 @@ function synthesizeMissionSpec(deps, missionId, request = {}) {
   if (!nameCheck.valid) {
     throw new MissionError("SBM005", `"${specName}" is not a valid spec name: ${nameCheck.problems.join("; ")}`);
   }
-  const contracts = readContractRegistry(deps.workspace, missionId);
-  const constitution = readConstitution(deps.workspace, missionId);
-  const adrs = readAdrs(deps.workspace, missionId);
-  const decisions = readDecisions(deps.workspace, missionId);
+  const contracts = readContractRegistry(deps2.workspace, missionId);
+  const constitution = readConstitution(deps2.workspace, missionId);
+  const adrs = readAdrs(deps2.workspace, missionId);
+  const decisions = readDecisions(deps2.workspace, missionId);
   const compiled = compileMissionDocuments({
     mission,
     contracts,
@@ -56084,20 +56120,20 @@ function synthesizeMissionSpec(deps, missionId, request = {}) {
   if (problems.length > 0) {
     throw new MissionError("SBM011", `The compiled spec candidates are invalid: ${problems.join("; ")}.`);
   }
-  const at = (deps.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
+  const at = (deps2.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
   mission = { ...mission, updatedAt: at };
   assertMissionTransition(mission.status, "SPEC_SYNTHESIS");
   mission = { ...mission, status: "SPEC_SYNTHESIS" };
-  appendMissionEvent(deps.workspace, missionId, { at, type: "synthesis_started", specName });
-  mission = writeMissionState(deps.workspace, {
+  appendMissionEvent(deps2.workspace, missionId, { at, type: "synthesis_started", specName });
+  mission = writeMissionState(deps2.workspace, {
     ...mission,
     counters: { ...mission.counters, events: mission.counters.events + 1 }
   });
-  writeSpecCandidate(deps.workspace, missionId, "requirements.md", compiled.requirements);
-  writeSpecCandidate(deps.workspace, missionId, "design.md", compiled.design);
-  writeSpecCandidate(deps.workspace, missionId, "tasks.md", compiled.tasks);
+  writeSpecCandidate(deps2.workspace, missionId, "requirements.md", compiled.requirements);
+  writeSpecCandidate(deps2.workspace, missionId, "design.md", compiled.design);
+  writeSpecCandidate(deps2.workspace, missionId, "tasks.md", compiled.tasks);
   writeSpecCandidate(
-    deps.workspace,
+    deps2.workspace,
     missionId,
     "provenance.json",
     `${JSON.stringify(
@@ -56119,7 +56155,7 @@ function synthesizeMissionSpec(deps, missionId, request = {}) {
   );
   try {
     const plan = planSpecCreationFromFiles(
-      deps.workspace,
+      deps2.workspace,
       {
         name: specName,
         specType: "feature",
@@ -56133,19 +56169,19 @@ function synthesizeMissionSpec(deps, missionId, request = {}) {
           { fileName: "tasks.md", stage: "tasks", content: compiled.tasks }
         ]
       },
-      deps.clock ?? (() => /* @__PURE__ */ new Date())
+      deps2.clock ?? (() => /* @__PURE__ */ new Date())
     );
-    executeSpecCreation(deps.workspace, plan);
+    executeSpecCreation(deps2.workspace, plan);
   } catch (cause) {
-    const failedAt = (deps.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
-    appendMissionEvent(deps.workspace, missionId, {
+    const failedAt = (deps2.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
+    appendMissionEvent(deps2.workspace, missionId, {
       at: failedAt,
       type: "status_changed",
       from: "SPEC_SYNTHESIS",
       to: "CONTRACT_READY",
       reason: "synthesis failed"
     });
-    writeMissionState(deps.workspace, {
+    writeMissionState(deps2.workspace, {
       ...mission,
       status: "CONTRACT_READY",
       updatedAt: failedAt,
@@ -56158,19 +56194,19 @@ function synthesizeMissionSpec(deps, missionId, request = {}) {
     );
   }
   assertMissionTransition("SPEC_SYNTHESIS", "SPEC_REVIEW");
-  appendMissionEvent(deps.workspace, missionId, {
+  appendMissionEvent(deps2.workspace, missionId, {
     at,
     type: "synthesis_completed",
     specName,
     objectives: compiled.objectiveCount
   });
-  appendMissionEvent(deps.workspace, missionId, {
+  appendMissionEvent(deps2.workspace, missionId, {
     at,
     type: "status_changed",
     from: "SPEC_SYNTHESIS",
     to: "SPEC_REVIEW"
   });
-  mission = writeMissionState(deps.workspace, {
+  mission = writeMissionState(deps2.workspace, {
     ...mission,
     status: "SPEC_REVIEW",
     specName,
@@ -56190,33 +56226,33 @@ function synthesizeMissionSpec(deps, missionId, request = {}) {
     warnings: []
   };
 }
-function observeSpecApproval(deps, missionId) {
-  let mission = requireMissionState(deps.workspace, missionId);
+function observeSpecApproval(deps2, missionId) {
+  let mission = requireMissionState(deps2.workspace, missionId);
   if (mission.status !== "SPEC_REVIEW" || mission.specName === void 0) return mission;
   let approved = false;
   try {
-    const spec = analyzeSpec(deps.workspace, requireSpec(deps.workspace, mission.specName));
+    const spec = analyzeSpec(deps2.workspace, requireSpec(deps2.workspace, mission.specName));
     if (spec.state !== void 0) {
-      approved = evaluateWorkflow(deps.workspace, spec.state).effectiveStatus === "READY_FOR_IMPLEMENTATION";
+      approved = evaluateWorkflow(deps2.workspace, spec.state).effectiveStatus === "READY_FOR_IMPLEMENTATION";
     }
   } catch {
     return mission;
   }
   if (!approved) return mission;
-  const at = (deps.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
+  const at = (deps2.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
   assertMissionTransition("SPEC_REVIEW", "APPROVED");
-  appendMissionEvent(deps.workspace, missionId, {
+  appendMissionEvent(deps2.workspace, missionId, {
     at,
     type: "spec_approval_observed",
     specName: mission.specName
   });
-  appendMissionEvent(deps.workspace, missionId, {
+  appendMissionEvent(deps2.workspace, missionId, {
     at,
     type: "status_changed",
     from: "SPEC_REVIEW",
     to: "APPROVED"
   });
-  mission = writeMissionState(deps.workspace, {
+  mission = writeMissionState(deps2.workspace, {
     ...mission,
     status: "APPROVED",
     approvedAt: at,
@@ -58023,14 +58059,14 @@ function orchestrationStorageBytes(workspace, orchestrationId) {
   walk(dir);
   return total;
 }
-function policyOf(deps) {
-  return deps.config.orchestration;
+function policyOf(deps2) {
+  return deps2.config.orchestration;
 }
-function now2(deps) {
-  return (deps.clock ?? systemClock)();
+function now2(deps2) {
+  return (deps2.clock ?? systemClock)();
 }
-function newId(deps) {
-  return (deps.idFactory ?? import_crypto18.randomUUID)();
+function newId(deps2) {
+  return (deps2.idFactory ?? import_crypto18.randomUUID)();
 }
 function assertEnabled(policy) {
   if (policy.enabled) return;
@@ -58044,9 +58080,9 @@ function assertEnabled(policy) {
     }
   );
 }
-function record3(deps, state, type, payload = {}) {
-  const policy = policyOf(deps);
-  const stored = countOrchestrationEvents(deps.workspace, state.orchestrationId);
+function record3(deps2, state, type, payload = {}) {
+  const policy = policyOf(deps2);
+  const stored = countOrchestrationEvents(deps2.workspace, state.orchestrationId);
   if (stored >= state.budgets.maxEvents) {
     throw new OrchestrationError(
       "SBO020",
@@ -58060,25 +58096,25 @@ function record3(deps, state, type, payload = {}) {
     );
   }
   appendOrchestrationEvent(
-    deps.workspace,
+    deps2.workspace,
     state.orchestrationId,
-    { at: now2(deps).toISOString(), type, ...payload },
+    { at: now2(deps2).toISOString(), type, ...payload },
     { maxEventBytes: policy.history.maxEventBytes }
   );
   return { ...state, counters: { ...state.counters, events: stored + 1 } };
 }
-function transition2(deps, state, to) {
+function transition2(deps2, state, to) {
   assertTransition(state.phase, to);
-  return { ...state, phase: to, updatedAt: now2(deps).toISOString() };
+  return { ...state, phase: to, updatedAt: now2(deps2).toISOString() };
 }
-function persist2(deps, state) {
-  return writeOrchestrationState(deps.workspace, {
+function persist2(deps2, state) {
+  return writeOrchestrationState(deps2.workspace, {
     ...state,
-    updatedAt: now2(deps).toISOString()
+    updatedAt: now2(deps2).toISOString()
   });
 }
-function beginOrchestration(deps, request) {
-  const policy = policyOf(deps);
+function beginOrchestration(deps2, request) {
+  const policy = policyOf(deps2);
   assertEnabled(policy);
   const goal = request.goal.trim();
   if (goal.length === 0) {
@@ -58086,17 +58122,17 @@ function beginOrchestration(deps, request) {
       remediation: ["Describe what the user asked for, in one or two sentences."]
     });
   }
-  const createdAt = now2(deps).toISOString();
+  const createdAt = now2(deps2).toISOString();
   const state = {
     schemaVersion: ORCHESTRATION_STATE_SCHEMA_VERSION,
-    orchestrationId: newId(deps),
+    orchestrationId: newId(deps2),
     specName: request.specName,
     ...request.taskId !== void 0 ? { taskId: request.taskId } : {},
     phase: "CREATED",
     goal: goal.slice(0, 4e3),
     createdAt,
     updatedAt: createdAt,
-    host: deps.host ?? "mcp",
+    host: deps2.host ?? "mcp",
     planningMode: policy.planning.mode,
     policyFingerprint: orchestrationPolicyFingerprint(policy),
     budgets: {
@@ -58124,18 +58160,18 @@ function beginOrchestration(deps, request) {
     planStaleReasons: [],
     interactiveRunIds: []
   };
-  createOrchestrationRun(deps.workspace, state);
-  const recorded = record3(deps, state, "orchestration_started", {
+  createOrchestrationRun(deps2.workspace, state);
+  const recorded = record3(deps2, state, "orchestration_started", {
     specName: state.specName,
     ...state.taskId !== void 0 ? { taskId: state.taskId } : {},
     planningMode: state.planningMode
   });
-  return persist2(deps, recorded);
+  return persist2(deps2, recorded);
 }
-function assessIntent(deps, orchestrationId, submission) {
-  const policy = policyOf(deps);
+function assessIntent(deps2, orchestrationId, submission) {
+  const policy = policyOf(deps2);
   assertEnabled(policy);
-  let state = requireOrchestrationState(deps.workspace, orchestrationId);
+  let state = requireOrchestrationState(deps2.workspace, orchestrationId);
   if (isFinalPhase(state.phase)) {
     throw new OrchestrationError(
       "SBO005",
@@ -58145,18 +58181,18 @@ function assessIntent(deps, orchestrationId, submission) {
   }
   const validation = validateIntent(
     {
-      workspace: deps.workspace,
+      workspace: deps2.workspace,
       specName: state.specName,
       taskId: state.taskId,
       policy,
       orchestrationId
     },
     submission,
-    { assessedAt: now2(deps).toISOString() }
+    { assessedAt: now2(deps2).toISOString() }
   );
   const target = validation.assessment.outcome === "READY" ? "READY_TO_PLAN" : validation.assessment.outcome === "NEEDS_CLARIFICATION" ? "NEEDS_CLARIFICATION" : validation.assessment.outcome === "REJECTED" ? "REJECTED" : "BLOCKED";
   state = { ...state, intent: validation.assessment };
-  state = transition2(deps, state, target);
+  state = transition2(deps2, state, target);
   if (target === "BLOCKED" && validation.blockers[0] !== void 0) {
     const first = validation.blockers[0];
     state = {
@@ -58166,25 +58202,25 @@ function assessIntent(deps, orchestrationId, submission) {
         code: first.code,
         message: first.message,
         remediation: first.remediation,
-        at: now2(deps).toISOString()
+        at: now2(deps2).toISOString()
       }
     };
   }
   if (target === "REJECTED") {
     state = {
       ...state,
-      finalizedAt: now2(deps).toISOString(),
+      finalizedAt: now2(deps2).toISOString(),
       finalOutcome: "REJECTED"
     };
   }
-  state = record3(deps, state, "intent_assessed", {
+  state = record3(deps2, state, "intent_assessed", {
     outcome: validation.assessment.outcome,
     overridden: validation.overridden,
     ...validation.assessment.overriddenFrom !== void 0 ? { submittedOutcome: validation.assessment.overriddenFrom } : {},
     blockers: validation.blockers.map((blocker) => blocker.code)
   });
   return {
-    state: persist2(deps, state),
+    state: persist2(deps2, state),
     overridden: validation.overridden,
     blockers: validation.blockers.map((blocker) => ({
       code: blocker.code,
@@ -58193,14 +58229,14 @@ function assessIntent(deps, orchestrationId, submission) {
     }))
   };
 }
-function requestClarification(deps, orchestrationId, candidates) {
-  const policy = policyOf(deps);
+function requestClarification(deps2, orchestrationId, candidates) {
+  const policy = policyOf(deps2);
   assertEnabled(policy);
-  let state = requireOrchestrationState(deps.workspace, orchestrationId);
+  let state = requireOrchestrationState(deps2.workspace, orchestrationId);
   assertActionAllowed(state.phase, "REQUEST_CLARIFICATION");
   const round2 = buildClarificationRound(state, candidates, policy, {
-    askedAt: now2(deps).toISOString(),
-    idFactory: () => newId(deps)
+    askedAt: now2(deps2).toISOString(),
+    idFactory: () => newId(deps2)
   });
   state = {
     ...state,
@@ -58208,18 +58244,18 @@ function requestClarification(deps, orchestrationId, candidates) {
     counters: { ...state.counters, clarificationRounds: round2.round }
   };
   if (state.phase !== "NEEDS_CLARIFICATION") {
-    state = transition2(deps, state, "NEEDS_CLARIFICATION");
+    state = transition2(deps2, state, "NEEDS_CLARIFICATION");
   }
-  state = record3(deps, state, "clarification_requested", {
+  state = record3(deps2, state, "clarification_requested", {
     round: round2.round,
     questionIds: round2.questions.map((question) => question.id)
   });
-  return persist2(deps, state);
+  return persist2(deps2, state);
 }
-function resolveClarification(deps, orchestrationId, candidates) {
-  const policy = policyOf(deps);
+function resolveClarification(deps2, orchestrationId, candidates) {
+  const policy = policyOf(deps2);
   assertEnabled(policy);
-  let state = requireOrchestrationState(deps.workspace, orchestrationId);
+  let state = requireOrchestrationState(deps2.workspace, orchestrationId);
   if (isFinalPhase(state.phase)) {
     throw new OrchestrationError(
       "SBO005",
@@ -58227,8 +58263,8 @@ function resolveClarification(deps, orchestrationId, candidates) {
     );
   }
   const decisions = buildClarificationDecisions(state, candidates, policy, {
-    decidedAt: now2(deps).toISOString(),
-    idFactory: () => newId(deps)
+    decidedAt: now2(deps2).toISOString(),
+    idFactory: () => newId(deps2)
   });
   const answeredIds = new Set(decisions.map((decision) => decision.questionId));
   state = {
@@ -58237,19 +58273,19 @@ function resolveClarification(deps, orchestrationId, candidates) {
     openQuestions: state.openQuestions.filter((question) => !answeredIds.has(question.id))
   };
   if (state.openQuestions.length === 0 && state.phase === "NEEDS_CLARIFICATION") {
-    state = transition2(deps, state, "READY_TO_PLAN");
+    state = transition2(deps2, state, "READY_TO_PLAN");
   }
-  state = record3(deps, state, "clarification_resolved", {
+  state = record3(deps2, state, "clarification_resolved", {
     decisionIds: decisions.map((decision) => decision.id),
     remainingQuestions: state.openQuestions.length
   });
   const requiresSpecChange = decisions.filter((decision) => /\b(spec|requirement|design|acceptance criteri)\b/i.test(decision.impact ?? "")).map((decision) => decision.id);
-  return { state: persist2(deps, state), requiresSpecChange };
+  return { state: persist2(deps2, state), requiresSpecChange };
 }
-async function submitPlan(deps, orchestrationId, candidate) {
-  const policy = policyOf(deps);
+async function submitPlan(deps2, orchestrationId, candidate) {
+  const policy = policyOf(deps2);
   assertEnabled(policy);
-  let state = requireOrchestrationState(deps.workspace, orchestrationId);
+  let state = requireOrchestrationState(deps2.workspace, orchestrationId);
   if (isFinalPhase(state.phase)) {
     throw new OrchestrationError(
       "SBO005",
@@ -58290,26 +58326,26 @@ async function submitPlan(deps, orchestrationId, candidate) {
       }
     );
   }
-  const snapshot2 = await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now2(deps) });
-  const binding = capturePlanBinding(deps.workspace, {
+  const snapshot2 = await captureGitSnapshot(deps2.workspace.rootDir, { clock: () => now2(deps2) });
+  const binding = capturePlanBinding(deps2.workspace, {
     specName: state.specName,
     taskId: candidate.taskId,
     policy,
     gitHead: snapshot2.head
   });
   const revision = state.planRevision + 1;
-  const previous = replacing ? readPlanRevision(deps.workspace, orchestrationId, state.planRevision) : void 0;
+  const previous = replacing ? readPlanRevision(deps2.workspace, orchestrationId, state.planRevision) : void 0;
   const plan = buildExecutionPlan({
     candidate,
     specName: state.specName,
     binding,
     revision,
-    planId: newId(deps),
-    createdAt: now2(deps).toISOString(),
+    planId: newId(deps2),
+    createdAt: now2(deps2).toISOString(),
     policy,
     ...previous !== void 0 ? { supersedes: previous.planId } : {}
   });
-  const stored = storePlanRevision(deps.workspace, orchestrationId, plan);
+  const stored = storePlanRevision(deps2.workspace, orchestrationId, plan);
   const materiality = previous !== void 0 ? assessPlanChange(previous, plan) : void 0;
   const reviewRequired = policy.planning.mode === "review" && (state.planReview?.decision !== "approved" || materiality?.materiality === "material");
   state = {
@@ -58328,7 +58364,7 @@ async function submitPlan(deps, orchestrationId, candidate) {
     }
   };
   if (reviewRequired) delete state.planReview;
-  state = record3(deps, state, "plan_created", {
+  state = record3(deps2, state, "plan_created", {
     revision,
     planId: plan.planId,
     planHash: stored.hash,
@@ -58337,24 +58373,24 @@ async function submitPlan(deps, orchestrationId, candidate) {
     ...materiality !== void 0 ? { materialChanges: materiality.materialChanges } : {}
   });
   if (replacing) {
-    state = record3(deps, state, "replan_started", {
+    state = record3(deps2, state, "replan_started", {
       revision,
       ...candidate.replanReason !== void 0 ? { reason: candidate.replanReason } : {}
     });
   }
-  state = transition2(deps, state, reviewRequired ? "AWAITING_PLAN_REVIEW" : "READY_TO_EXECUTE");
+  state = transition2(deps2, state, reviewRequired ? "AWAITING_PLAN_REVIEW" : "READY_TO_EXECUTE");
   return {
-    state: persist2(deps, state),
+    state: persist2(deps2, state),
     plan,
     planHash: stored.hash,
     reviewRequired,
     ...materiality !== void 0 ? { materiality } : {}
   };
 }
-function reviewPlan(deps, orchestrationId, request) {
-  const policy = policyOf(deps);
+function reviewPlan(deps2, orchestrationId, request) {
+  const policy = policyOf(deps2);
   assertEnabled(policy);
-  let state = requireOrchestrationState(deps.workspace, orchestrationId);
+  let state = requireOrchestrationState(deps2.workspace, orchestrationId);
   if (state.phase !== "AWAITING_PLAN_REVIEW") {
     throw new OrchestrationError(
       "SBO004",
@@ -58374,7 +58410,7 @@ function reviewPlan(deps, orchestrationId, request) {
       }
     );
   }
-  const reviewedAt = now2(deps).toISOString();
+  const reviewedAt = now2(deps2).toISOString();
   state = {
     ...state,
     planReview: {
@@ -58386,21 +58422,21 @@ function reviewPlan(deps, orchestrationId, request) {
       ...request.note !== void 0 ? { note: request.note } : {}
     }
   };
-  state = record3(deps, state, "plan_reviewed", {
+  state = record3(deps2, state, "plan_reviewed", {
     decision: request.decision,
     revision: state.planRevision,
     planHash: request.planHash
   });
-  state = transition2(deps, state, request.decision === "approved" ? "READY_TO_EXECUTE" : "READY_TO_PLAN");
-  return persist2(deps, state);
+  state = transition2(deps2, state, request.decision === "approved" ? "READY_TO_EXECUTE" : "READY_TO_PLAN");
+  return persist2(deps2, state);
 }
-async function checkPlanFreshness(deps, orchestrationId) {
-  const policy = policyOf(deps);
-  const state = requireOrchestrationState(deps.workspace, orchestrationId);
+async function checkPlanFreshness(deps2, orchestrationId) {
+  const policy = policyOf(deps2);
+  const state = requireOrchestrationState(deps2.workspace, orchestrationId);
   if (state.planRevision === 0) {
     return { fresh: false, reasons: ["no-plan"], explanations: ["No plan exists yet."], planRevision: 0 };
   }
-  const plan = readPlanRevision(deps.workspace, orchestrationId, state.planRevision);
+  const plan = readPlanRevision(deps2.workspace, orchestrationId, state.planRevision);
   if (plan === void 0) {
     return {
       fresh: false,
@@ -58409,8 +58445,8 @@ async function checkPlanFreshness(deps, orchestrationId) {
       planRevision: state.planRevision
     };
   }
-  const snapshot2 = await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now2(deps) });
-  const current = capturePlanBinding(deps.workspace, {
+  const snapshot2 = await captureGitSnapshot(deps2.workspace.rootDir, { clock: () => now2(deps2) });
+  const current = capturePlanBinding(deps2.workspace, {
     specName: state.specName,
     taskId: plan.binding.taskId,
     policy,
@@ -58419,16 +58455,16 @@ async function checkPlanFreshness(deps, orchestrationId) {
   const freshness = evaluatePlanFreshness(plan, current);
   return { ...freshness, planRevision: state.planRevision };
 }
-async function refreshPlanBinding(deps, orchestrationId) {
-  const policy = policyOf(deps);
-  let state = requireOrchestrationState(deps.workspace, orchestrationId);
+async function refreshPlanBinding(deps2, orchestrationId) {
+  const policy = policyOf(deps2);
+  let state = requireOrchestrationState(deps2.workspace, orchestrationId);
   if (state.planRevision === 0) {
     return {
       state,
       freshness: { fresh: false, reasons: ["no-plan"], explanations: ["No plan exists yet."], planRevision: 0 }
     };
   }
-  const plan = readPlanRevision(deps.workspace, orchestrationId, state.planRevision);
+  const plan = readPlanRevision(deps2.workspace, orchestrationId, state.planRevision);
   if (plan === void 0) {
     throw new OrchestrationError(
       "SBO010",
@@ -58436,8 +58472,8 @@ async function refreshPlanBinding(deps, orchestrationId) {
       { remediation: ["Submit a fresh plan; the previous revisions are preserved on disk."] }
     );
   }
-  const snapshot2 = await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now2(deps) });
-  const current = capturePlanBinding(deps.workspace, {
+  const snapshot2 = await captureGitSnapshot(deps2.workspace.rootDir, { clock: () => now2(deps2) });
+  const current = capturePlanBinding(deps2.workspace, {
     specName: state.specName,
     taskId: plan.binding.taskId,
     policy,
@@ -58446,16 +58482,16 @@ async function refreshPlanBinding(deps, orchestrationId) {
   const freshness = evaluatePlanFreshness(plan, current);
   if (!freshness.fresh) {
     state = { ...state, planStaleReasons: freshness.reasons };
-    state = record3(deps, state, "plan_invalidated", {
+    state = record3(deps2, state, "plan_invalidated", {
       revision: state.planRevision,
       reasons: freshness.reasons
     });
     if (state.phase !== "REPLANNING" && !isFinalPhase(state.phase)) {
-      state = transition2(deps, state, "REPLANNING");
+      state = transition2(deps2, state, "REPLANNING");
     }
-    state = persist2(deps, state);
+    state = persist2(deps2, state);
   } else if (state.planStaleReasons.length > 0) {
-    state = persist2(deps, { ...state, planStaleReasons: [] });
+    state = persist2(deps2, { ...state, planStaleReasons: [] });
   }
   return {
     state,
@@ -58467,10 +58503,10 @@ async function refreshPlanBinding(deps, orchestrationId) {
     }
   };
 }
-function recordAction(deps, orchestrationId, request) {
-  const policy = policyOf(deps);
+function recordAction(deps2, orchestrationId, request) {
+  const policy = policyOf(deps2);
   assertEnabled(policy);
-  let state = requireOrchestrationState(deps.workspace, orchestrationId);
+  let state = requireOrchestrationState(deps2.workspace, orchestrationId);
   if (isFinalPhase(state.phase)) {
     throw new OrchestrationError(
       "SBO005",
@@ -58525,7 +58561,7 @@ function recordAction(deps, orchestrationId, request) {
     consecutiveNoProgress: state.counters.consecutiveNoProgress,
     maxNoProgressCycles: state.budgets.maxNoProgressCycles
   });
-  const elapsedMs = Math.max(0, now2(deps).getTime() - Date.parse(state.createdAt));
+  const elapsedMs = Math.max(0, now2(deps2).getTime() - Date.parse(state.createdAt));
   const decision = decideNextStep(
     {
       failure: classified2,
@@ -58549,13 +58585,13 @@ function recordAction(deps, orchestrationId, request) {
       ...decision.directive === "REPAIR" ? { repairCycles: state.counters.repairCycles + 1 } : {}
     }
   };
-  state = record3(deps, state, "action_recorded", {
+  state = record3(deps2, state, "action_recorded", {
     action: request.action,
     target: request.target.slice(0, 200),
     ...request.planStepId !== void 0 ? { planStepId: request.planStepId } : {},
     result: request.result
   });
-  state = record3(deps, state, "observation_recorded", {
+  state = record3(deps2, state, "observation_recorded", {
     result: request.result,
     progressed: progress.progressed,
     consecutiveNoProgress: progress.consecutiveNoProgress,
@@ -58565,42 +58601,42 @@ function recordAction(deps, orchestrationId, request) {
     directive: decision.directive
   });
   if (classified2?.category === "VERIFICATION_FAILURE") {
-    state = record3(deps, state, "verification_failed", {
+    state = record3(deps2, state, "verification_failed", {
       source: request.failure?.source ?? "unknown",
       fingerprint: classified2.fingerprint
     });
   }
-  state = applyDirective(deps, state, decision, classified2);
+  state = applyDirective(deps2, state, decision, classified2);
   return {
-    state: persist2(deps, state),
+    state: persist2(deps2, state),
     decision,
     progress,
     ...classified2 !== void 0 ? { classifiedFailure: classified2 } : {}
   };
 }
-async function recordActionChecked(deps, orchestrationId, request) {
+async function recordActionChecked(deps2, orchestrationId, request) {
   const needsFreshPlan = request.action === "EDIT" || request.action === "VERIFY" || request.action === "COMPLETE";
   if (needsFreshPlan) {
-    const state = requireOrchestrationState(deps.workspace, orchestrationId);
+    const state = requireOrchestrationState(deps2.workspace, orchestrationId);
     if (state.planRevision > 0 && !isFinalPhase(state.phase)) {
-      await refreshPlanBinding(deps, orchestrationId);
+      await refreshPlanBinding(deps2, orchestrationId);
     }
   }
-  return recordAction(deps, orchestrationId, request);
+  return recordAction(deps2, orchestrationId, request);
 }
-function applyDirective(deps, input, decision, failure) {
+function applyDirective(deps2, input, decision, failure) {
   let state = input;
-  const at = now2(deps).toISOString();
+  const at = now2(deps2).toISOString();
   switch (decision.directive) {
     case "CONTINUE":
     case "RETRY":
     case "VERIFY":
-      if (state.phase === "READY_TO_EXECUTE") state = transition2(deps, state, "EXECUTING");
+      if (state.phase === "READY_TO_EXECUTE") state = transition2(deps2, state, "EXECUTING");
       return state;
     case "REPAIR": {
       if (state.phase !== "REPAIRING") {
-        state = transition2(deps, state, "REPAIRING");
-        state = record3(deps, state, "repair_started", {
+        state = transition2(deps2, state, "REPAIRING");
+        state = record3(deps2, state, "repair_started", {
           cycle: state.counters.repairCycles,
           ...failure !== void 0 ? { fingerprint: failure.fingerprint } : {}
         });
@@ -58612,17 +58648,17 @@ function applyDirective(deps, input, decision, failure) {
     }
     case "REPLAN":
       if (state.planRevision > 0 && state.phase !== "REPLANNING") {
-        state = transition2(deps, state, "REPLANNING");
+        state = transition2(deps2, state, "REPLANNING");
       }
       return state;
     case "CLARIFY":
       if (state.phase !== "NEEDS_CLARIFICATION") {
-        state = transition2(deps, state, "NEEDS_CLARIFICATION");
+        state = transition2(deps2, state, "NEEDS_CLARIFICATION");
       }
       return state;
     case "BLOCK": {
-      state = transition2(deps, state, "BLOCKED");
-      state = record3(deps, state, "execution_blocked", {
+      state = transition2(deps2, state, "BLOCKED");
+      state = record3(deps2, state, "execution_blocked", {
         ...failure !== void 0 ? { category: failure.category } : {},
         reason: decision.reason
       });
@@ -58638,8 +58674,8 @@ function applyDirective(deps, input, decision, failure) {
       };
     }
     case "STOP_BUDGET_EXHAUSTED": {
-      state = transition2(deps, state, "BLOCKED");
-      state = record3(deps, state, "budget_exhausted", {
+      state = transition2(deps2, state, "BLOCKED");
+      state = record3(deps2, state, "budget_exhausted", {
         budget: decision.exhaustedBudget ?? "unknown",
         reason: decision.reason
       });
@@ -58655,18 +58691,18 @@ function applyDirective(deps, input, decision, failure) {
       };
     }
     case "STOP_FINAL": {
-      state = transition2(deps, state, "CANCELLED");
-      state = record3(deps, state, "execution_cancelled", { reason: decision.reason });
+      state = transition2(deps2, state, "CANCELLED");
+      state = record3(deps2, state, "execution_cancelled", { reason: decision.reason });
       return { ...state, finalizedAt: at, finalOutcome: "CANCELLED" };
     }
   }
 }
-function finalizeOrchestration(deps, orchestrationId, request) {
-  let state = requireOrchestrationState(deps.workspace, orchestrationId);
+function finalizeOrchestration(deps2, orchestrationId, request) {
+  let state = requireOrchestrationState(deps2.workspace, orchestrationId);
   if (isFinalPhase(state.phase)) {
     return state;
   }
-  const at = now2(deps).toISOString();
+  const at = now2(deps2).toISOString();
   if (request.outcome === "completed") {
     const accepted = request.evidenceStatus === "verified" || request.evidenceStatus === "manually-accepted";
     if (!accepted) {
@@ -58682,29 +58718,29 @@ function finalizeOrchestration(deps, orchestrationId, request) {
         }
       );
     }
-    state = transition2(deps, state, "COMPLETED");
-    state = record3(deps, state, "execution_completed", {
+    state = transition2(deps2, state, "COMPLETED");
+    state = record3(deps2, state, "execution_completed", {
       evidenceStatus: request.evidenceStatus,
       ...request.interactiveRunId !== void 0 ? { runId: request.interactiveRunId } : {}
     });
-    return persist2(deps, { ...state, finalizedAt: at, finalOutcome: "COMPLETED" });
+    return persist2(deps2, { ...state, finalizedAt: at, finalOutcome: "COMPLETED" });
   }
   if (request.outcome === "cancelled") {
-    state = transition2(deps, state, "CANCELLED");
-    state = record3(deps, state, "execution_cancelled", { reason: request.reason });
-    return persist2(deps, { ...state, finalizedAt: at, finalOutcome: "CANCELLED" });
+    state = transition2(deps2, state, "CANCELLED");
+    state = record3(deps2, state, "execution_cancelled", { reason: request.reason });
+    return persist2(deps2, { ...state, finalizedAt: at, finalOutcome: "CANCELLED" });
   }
-  state = transition2(deps, state, "ABORTED");
-  state = record3(deps, state, "execution_aborted", { reason: request.reason });
-  return persist2(deps, { ...state, finalizedAt: at, finalOutcome: "ABORTED" });
+  state = transition2(deps2, state, "ABORTED");
+  state = record3(deps2, state, "execution_aborted", { reason: request.reason });
+  return persist2(deps2, { ...state, finalizedAt: at, finalOutcome: "ABORTED" });
 }
-function createCheckpoint(deps, orchestrationId, input) {
-  let state = requireOrchestrationState(deps.workspace, orchestrationId);
-  const plan = state.planRevision > 0 ? readPlanRevision(deps.workspace, orchestrationId, state.planRevision) : void 0;
+function createCheckpoint(deps2, orchestrationId, input) {
+  let state = requireOrchestrationState(deps2.workspace, orchestrationId);
+  const plan = state.planRevision > 0 ? readPlanRevision(deps2.workspace, orchestrationId, state.planRevision) : void 0;
   const checkpoint = orchestrationCheckpointSchema.parse({
     schemaVersion: ORCHESTRATION_CHECKPOINT_SCHEMA_VERSION,
     orchestrationId,
-    createdAt: now2(deps).toISOString(),
+    createdAt: now2(deps2).toISOString(),
     specName: state.specName,
     ...state.taskId !== void 0 ? { taskId: state.taskId } : {},
     phase: state.phase,
@@ -58718,9 +58754,9 @@ function createCheckpoint(deps, orchestrationId, input) {
     ...state.blocker !== void 0 ? { blocker: state.blocker } : {},
     nextAction: input.nextAction
   });
-  writeOrchestrationCheckpoint(deps.workspace, orchestrationId, checkpoint);
-  state = record3(deps, state, "checkpoint_created", { phase: state.phase });
-  persist2(deps, state);
+  writeOrchestrationCheckpoint(deps2.workspace, orchestrationId, checkpoint);
+  state = record3(deps2, state, "checkpoint_created", { phase: state.phase });
+  persist2(deps2, state);
   return checkpoint;
 }
 function budgetUsage(state) {
@@ -58896,10 +58932,10 @@ function describeOrchestration(workspace, state, options = {}) {
     totalEvents: page.total
   };
 }
-async function resumeOrchestration(deps, orchestrationId) {
-  const state = requireOrchestrationState(deps.workspace, orchestrationId);
+async function resumeOrchestration(deps2, orchestrationId) {
+  const state = requireOrchestrationState(deps2.workspace, orchestrationId);
   const warnings = [];
-  const checkpoint = readOrchestrationCheckpoint(deps.workspace, orchestrationId);
+  const checkpoint = readOrchestrationCheckpoint(deps2.workspace, orchestrationId);
   if (isFinalPhase(state.phase)) {
     const explanation2 = explainOrchestration(state);
     return {
@@ -58917,21 +58953,21 @@ async function resumeOrchestration(deps, orchestrationId) {
       ]
     };
   }
-  const currentFingerprint = orchestrationPolicyFingerprint(deps.config.orchestration);
+  const currentFingerprint = orchestrationPolicyFingerprint(deps2.config.orchestration);
   const policyChanged = currentFingerprint !== state.policyFingerprint;
   if (policyChanged) {
     warnings.push(
       "The orchestration policy changed since this run began. The run continues under the budgets recorded at its start; start a new run to adopt the new policy."
     );
   }
-  const snapshot2 = await captureGitSnapshot(deps.workspace.rootDir, {
-    clock: () => (deps.clock ?? (() => /* @__PURE__ */ new Date()))()
+  const snapshot2 = await captureGitSnapshot(deps2.workspace.rootDir, {
+    clock: () => (deps2.clock ?? (() => /* @__PURE__ */ new Date()))()
   });
   let planStale = false;
   let planStaleReasons = [];
   let planStaleExplanations = [];
   if (state.planRevision > 0) {
-    const freshness = await checkPlanFreshness(deps, orchestrationId);
+    const freshness = await checkPlanFreshness(deps2, orchestrationId);
     planStale = !freshness.fresh;
     planStaleReasons = freshness.reasons;
     planStaleExplanations = freshness.explanations;
@@ -58943,8 +58979,8 @@ async function resumeOrchestration(deps, orchestrationId) {
   }
   let activeInteractiveRun;
   if (state.activeInteractiveRunId !== void 0) {
-    const record32 = readRunRecord(deps.workspace, state.activeInteractiveRunId);
-    const lock = readInteractiveLock(deps.workspace);
+    const record32 = readRunRecord(deps2.workspace, state.activeInteractiveRunId);
+    const lock = readInteractiveLock(deps2.workspace);
     const lockHeld = lock.state === "held" && lock.lock.runId === state.activeInteractiveRunId;
     activeInteractiveRun = {
       runId: state.activeInteractiveRunId,
@@ -63232,16 +63268,16 @@ function readLatestTaskCheckpoint(workspace, jobId, nodeId) {
   }
   return void 0;
 }
-function now22(deps) {
-  return (deps.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
+function now22(deps2) {
+  return (deps2.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
 }
-function newId2(deps) {
-  return (deps.idFactory ?? import_crypto20.randomUUID)();
+function newId2(deps2) {
+  return (deps2.idFactory ?? import_crypto20.randomUUID)();
 }
-function beginTaskAttempt(deps, input) {
-  const attemptNumber = nextAttemptNumber2(deps.workspace, input.jobId, input.nodeId);
+function beginTaskAttempt(deps2, input) {
+  const attemptNumber = nextAttemptNumber2(deps2.workspace, input.jobId, input.nodeId);
   if (input.resumedFromAttemptId !== void 0) {
-    const previous = readTaskAttempt(deps.workspace, input.jobId, input.resumedFromAttemptId);
+    const previous = readTaskAttempt(deps2.workspace, input.jobId, input.resumedFromAttemptId);
     if (previous === void 0) {
       throw new OrchestrationError(
         "SBO049",
@@ -63259,7 +63295,7 @@ function beginTaskAttempt(deps, input) {
     schemaVersion: TASK_ATTEMPT_SCHEMA_VERSION,
     // The generated id is used in full: truncating it could alias two ids
     // from a deterministic factory, and append-only storage refuses aliases.
-    attemptId: `ta-${String(attemptNumber).padStart(4, "0")}-${newId2(deps)}`.slice(0, 64),
+    attemptId: `ta-${String(attemptNumber).padStart(4, "0")}-${newId2(deps2)}`.slice(0, 64),
     jobId: input.jobId,
     nodeId: input.nodeId,
     taskId: input.taskId,
@@ -63269,7 +63305,7 @@ function beginTaskAttempt(deps, input) {
     model: input.model ?? null,
     status: "RUNNING",
     attemptNumber,
-    startedAt: now22(deps),
+    startedAt: now22(deps2),
     checkpointIds: [],
     ...input.runId !== void 0 ? { runId: input.runId } : {},
     ...input.providerSessionId !== void 0 ? { providerSessionId: input.providerSessionId } : {},
@@ -63317,10 +63353,10 @@ function beginTaskAttempt(deps, input) {
       reconciledCostUsd: null
     }
   };
-  return writeNewTaskAttempt(deps.workspace, attempt);
+  return writeNewTaskAttempt(deps2.workspace, attempt);
 }
-function requireOpenAttempt(deps, jobId, attemptId) {
-  const attempt = readTaskAttempt(deps.workspace, jobId, attemptId);
+function requireOpenAttempt(deps2, jobId, attemptId) {
+  const attempt = readTaskAttempt(deps2.workspace, jobId, attemptId);
   if (attempt === void 0) {
     throw new OrchestrationError("SBO049", `Attempt ${attemptId} of job ${jobId} was not found.`);
   }
@@ -63333,9 +63369,9 @@ function requireOpenAttempt(deps, jobId, attemptId) {
   }
   return attempt;
 }
-function completeTaskAttempt(deps, input) {
-  const attempt = requireOpenAttempt(deps, input.jobId, input.attemptId);
-  const completedAt = now22(deps);
+function completeTaskAttempt(deps2, input) {
+  const attempt = requireOpenAttempt(deps2, input.jobId, input.attemptId);
+  const completedAt = now22(deps2);
   const derivedDuration = Math.max(0, Date.parse(completedAt) - Date.parse(attempt.startedAt));
   const finalized = {
     ...attempt,
@@ -63350,24 +63386,24 @@ function completeTaskAttempt(deps, input) {
       ...input.metrics ?? {}
     }
   };
-  return updateTaskAttempt(deps.workspace, finalized);
+  return updateTaskAttempt(deps2.workspace, finalized);
 }
-function reconcileInterruptedAttempts(deps, jobId, reason = "process-restart") {
-  const running = listTaskAttempts(deps.workspace, jobId, { status: "RUNNING" });
+function reconcileInterruptedAttempts(deps2, jobId, reason = "process-restart") {
+  const running = listTaskAttempts(deps2.workspace, jobId, { status: "RUNNING" });
   const reconciled = [];
   for (const attempt of running) {
     const interrupted = {
       ...attempt,
       status: "INTERRUPTED",
-      completedAt: now22(deps),
+      completedAt: now22(deps2),
       interruptedReason: reason
     };
-    reconciled.push(updateTaskAttempt(deps.workspace, interrupted));
+    reconciled.push(updateTaskAttempt(deps2.workspace, interrupted));
   }
   return reconciled;
 }
-function createTaskCheckpoint(deps, input) {
-  const attempt = readTaskAttempt(deps.workspace, input.jobId, input.attemptId);
+function createTaskCheckpoint(deps2, input) {
+  const attempt = readTaskAttempt(deps2.workspace, input.jobId, input.attemptId);
   if (attempt === void 0) {
     throw new OrchestrationError(
       "SBO050",
@@ -63380,8 +63416,8 @@ function createTaskCheckpoint(deps, input) {
       `Attempt ${input.attemptId} belongs to node ${attempt.nodeId}, not ${input.nodeId}.`
     );
   }
-  const previous = readLatestTaskCheckpoint(deps.workspace, input.jobId, input.nodeId);
-  const seqs = listTaskCheckpointSeqs(deps.workspace, input.jobId, input.nodeId);
+  const previous = readLatestTaskCheckpoint(deps2.workspace, input.jobId, input.nodeId);
+  const seqs = listTaskCheckpointSeqs(deps2.workspace, input.jobId, input.nodeId);
   const seq = (seqs[seqs.length - 1] ?? 0) + 1;
   const mergeTexts = (older, newer) => {
     const merged = [...older];
@@ -63425,14 +63461,14 @@ function createTaskCheckpoint(deps, input) {
     nextActions: input.nextActions,
     relevantArtifacts: input.relevantArtifacts ?? [],
     relevantContextReferences: input.relevantContextReferences ?? [],
-    createdAt: now22(deps)
+    createdAt: now22(deps2)
   });
-  const stored = writeTaskCheckpoint(deps.workspace, checkpoint).checkpoint;
+  const stored = writeTaskCheckpoint(deps2.workspace, checkpoint).checkpoint;
   const linked = {
     ...attempt,
     checkpointIds: [...attempt.checkpointIds, stored.checkpointId].slice(-50)
   };
-  updateTaskAttempt(deps.workspace, linked);
+  updateTaskAttempt(deps2.workspace, linked);
   return stored;
 }
 function readExecutionLedger(workspace, jobId, options = {}) {
@@ -65455,7 +65491,8 @@ function ensureRepositoryIndex(input) {
   const changedPaths = changedPathsFrom(input.gitSnapshot);
   const refreshed = refreshRepositoryIndex(cached2, {
     ...options,
-    ...changedPaths !== void 0 ? { changedPaths } : {}
+    ...changedPaths !== void 0 ? { changedPaths } : {},
+    ...input.discoverAdditions === true && changedPaths === void 0 ? { discoverAdditions: true } : {}
   });
   if (input.persist !== false && policy.persistIndex) {
     writeRepositoryIndexCache(input.workspace, refreshed.state);
@@ -65659,15 +65696,15 @@ ${bullets(checkpoint.nextActions)}`
     compacted: true
   };
 }
-function reconstructTaskContext(deps, input) {
-  const job = requireJobState(deps.workspace, input.jobId);
+function reconstructTaskContext(deps2, input) {
+  const job = requireJobState(deps2.workspace, input.jobId);
   if (job.graphRevision < 1) {
     throw new OrchestrationError(
       "SBO051",
       `Job ${input.jobId} has no runtime graph yet; there is no task context to reconstruct.`
     );
   }
-  const graph = requireGraphRevision(deps.workspace, input.jobId, job.graphRevision);
+  const graph = requireGraphRevision(deps2.workspace, input.jobId, job.graphRevision);
   const node = graph.nodes.find((candidate) => candidate.nodeId === input.nodeId);
   if (node === void 0) {
     throw new OrchestrationError(
@@ -65675,10 +65712,10 @@ function reconstructTaskContext(deps, input) {
       `Node ${input.nodeId} does not exist in graph revision ${job.graphRevision} of job ${input.jobId}.`
     );
   }
-  const checkpoint = readLatestTaskCheckpoint(deps.workspace, input.jobId, input.nodeId);
-  const attempts = listTaskAttempts(deps.workspace, input.jobId, { nodeId: input.nodeId });
-  const createdAt = (deps.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
-  const budget = input.budget ?? contextBudgetFromPolicy(deps.config.orchestration.jobs.context);
+  const checkpoint = readLatestTaskCheckpoint(deps2.workspace, input.jobId, input.nodeId);
+  const attempts = listTaskAttempts(deps2.workspace, input.jobId, { nodeId: input.nodeId });
+  const createdAt = (deps2.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
+  const budget = input.budget ?? contextBudgetFromPolicy(deps2.config.orchestration.jobs.context);
   const items = [
     ...pinnedItems(job, node, checkpoint, createdAt),
     ...durableItems(checkpoint, createdAt),
@@ -65721,28 +65758,28 @@ function reconstructTaskContext(deps, input) {
     throw cause;
   }
 }
-function nowIso(deps) {
-  return (deps.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
+function nowIso(deps2) {
+  return (deps2.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
 }
-function latestFailureText(deps, jobId, nodeId, node) {
+function latestFailureText(deps2, jobId, nodeId, node) {
   const parts = [];
   if (node.latestFailure !== void 0) {
     parts.push(`${node.latestFailure.category}: ${node.latestFailure.message}`);
   }
-  const assessment = listFailureAssessments(deps.workspace, jobId, { nodeId }).at(-1);
+  const assessment = listFailureAssessments(deps2.workspace, jobId, { nodeId }).at(-1);
   if (assessment !== void 0) {
     parts.push(assessment.likelyCause);
     parts.push(...assessment.evidenceRefs);
   }
   return parts.join("\n");
 }
-function recoveryText(deps, jobId, nodeId) {
-  const decision = listRecoveryDecisions(deps.workspace, jobId, { nodeId }).at(-1);
+function recoveryText(deps2, jobId, nodeId) {
+  const decision = listRecoveryDecisions(deps2.workspace, jobId, { nodeId }).at(-1);
   if (decision === void 0) return "";
   return [decision.action, decision.reason, ...decision.remediation].join("\n");
 }
-function priorRelevantPaths(deps, jobId, nodeId) {
-  const plans = listContextSelectionPlans(deps.workspace, jobId, { nodeId }).slice(-3);
+function priorRelevantPaths(deps2, jobId, nodeId) {
+  const plans = listContextSelectionPlans(deps2.workspace, jobId, { nodeId }).slice(-3);
   const paths = /* @__PURE__ */ new Set();
   for (const plan of plans) {
     for (const entry2 of plan.selectedWorkingItems) paths.add(entry2.path);
@@ -65750,15 +65787,15 @@ function priorRelevantPaths(deps, jobId, nodeId) {
   }
   return [...paths];
 }
-async function buildTaskContextPackage(deps, input) {
-  const job = requireJobState(deps.workspace, input.jobId);
+async function buildTaskContextPackage(deps2, input) {
+  const job = requireJobState(deps2.workspace, input.jobId);
   if (job.graphRevision < 1) {
     throw new OrchestrationError(
       "SBO051",
       `Job ${input.jobId} has no runtime graph yet; there is no task context to build.`
     );
   }
-  const graph = requireGraphRevision(deps.workspace, input.jobId, job.graphRevision);
+  const graph = requireGraphRevision(deps2.workspace, input.jobId, job.graphRevision);
   const node = graph.nodes.find((candidate) => candidate.nodeId === input.nodeId);
   if (node === void 0) {
     throw new OrchestrationError(
@@ -65766,15 +65803,15 @@ async function buildTaskContextPackage(deps, input) {
       `Node ${input.nodeId} does not exist in graph revision ${job.graphRevision} of job ${input.jobId}.`
     );
   }
-  const contextPolicy = deps.config.orchestration.jobs.context;
+  const contextPolicy = deps2.config.orchestration.jobs.context;
   const policy = contextPolicy.efficiency;
   const strategy = policy.strategy;
-  const createdAt = nowIso(deps);
+  const createdAt = nowIso(deps2);
   const budget = input.budget ?? contextBudgetFromPolicy(contextPolicy);
-  const checkpoint = readLatestTaskCheckpoint(deps.workspace, input.jobId, input.nodeId);
-  const attempts = listTaskAttempts(deps.workspace, input.jobId, { nodeId: input.nodeId });
-  const snapshot2 = input.gitSnapshot ?? await captureGitSnapshot(deps.workspace.rootDir, {
-    clock: () => (deps.clock ?? (() => /* @__PURE__ */ new Date()))()
+  const checkpoint = readLatestTaskCheckpoint(deps2.workspace, input.jobId, input.nodeId);
+  const attempts = listTaskAttempts(deps2.workspace, input.jobId, { nodeId: input.nodeId });
+  const snapshot2 = input.gitSnapshot ?? await captureGitSnapshot(deps2.workspace.rootDir, {
+    clock: () => (deps2.clock ?? (() => /* @__PURE__ */ new Date()))()
   });
   const nextActions = checkpoint?.nextActions ?? [`Start task ${node.parentTaskId}: ${node.title}`];
   const currentActionText = input.currentAction ?? bullets(nextActions);
@@ -65797,7 +65834,7 @@ async function buildTaskContextPackage(deps, input) {
       freshness: "EPHEMERAL"
     }
   ];
-  const stored = readContextExpansionState(deps.workspace, input.jobId, input.nodeId) ?? initialExpansionState({ taskId: node.parentTaskId, nodeId: input.nodeId, now: createdAt });
+  const stored = readContextExpansionState(deps2.workspace, input.jobId, input.nodeId) ?? initialExpansionState({ taskId: node.parentTaskId, nodeId: input.nodeId, now: createdAt });
   const expansion = input.attemptId !== void 0 ? beginAttemptExpansion(stored, createdAt) : stored;
   if (strategy === "LEGACY") {
     const result2 = await buildEfficientContext({
@@ -65818,7 +65855,7 @@ async function buildTaskContextPackage(deps, input) {
       checkpointId: checkpoint?.checkpointId,
       checkpointSummaryItem: checkpoint !== void 0 ? checkpointSummaryItem(checkpoint, createdAt) : void 0
     }).catch(rethrowBudget);
-    return persistAndReturn(deps, input, {
+    return persistAndReturn(deps2, input, {
       job,
       node,
       checkpoint,
@@ -65830,8 +65867,8 @@ async function buildTaskContextPackage(deps, input) {
     });
   }
   const indexed = ensureRepositoryIndex({
-    workspace: deps.workspace,
-    config: deps.config,
+    workspace: deps2.workspace,
+    config: deps2.config,
     now: createdAt,
     gitSnapshot: snapshot2,
     ...input.rebuildIndex === true ? { rebuild: true } : {}
@@ -65845,12 +65882,12 @@ async function buildTaskContextPackage(deps, input) {
     objective: checkpoint?.objective ?? node.title,
     acceptanceCriteria: checkpoint?.pinned.acceptanceCriteria ?? [],
     currentAction: currentActionText,
-    failureText: latestFailureText(deps, input.jobId, input.nodeId, node),
-    recoveryText: recoveryText(deps, input.jobId, input.nodeId),
-    failureFingerprint: readTaskReliabilityState(deps.workspace, input.jobId, input.nodeId)?.observations.at(-1)?.failureFingerprint ?? void 0,
+    failureText: latestFailureText(deps2, input.jobId, input.nodeId, node),
+    recoveryText: recoveryText(deps2, input.jobId, input.nodeId),
+    failureFingerprint: readTaskReliabilityState(deps2.workspace, input.jobId, input.nodeId)?.observations.at(-1)?.failureFingerprint ?? void 0,
     changedPaths: snapshot2.entries.map((entry2) => entry2.path.replace(/\\/g, "/")),
     checkpointChangedPaths: (checkpoint?.changedFiles ?? []).map((file) => file.path),
-    priorRelevantPaths: priorRelevantPaths(deps, input.jobId, input.nodeId),
+    priorRelevantPaths: priorRelevantPaths(deps2, input.jobId, input.nodeId),
     expansionLevel: expansion.level
   });
   const allocationPolicy = contextAllocationPolicySchema.parse({
@@ -65882,7 +65919,7 @@ async function buildTaskContextPackage(deps, input) {
     executionMode: input.executionMode ?? null,
     runner: input.runner ?? null,
     index: indexed.index,
-    rootDir: deps.workspace.rootDir,
+    rootDir: deps2.workspace.rootDir,
     query,
     rankOptions: { maxCandidates: policy.maxCandidates },
     sectionOptions: {
@@ -65904,7 +65941,7 @@ async function buildTaskContextPackage(deps, input) {
     checkpointSummaryItem: checkpoint !== void 0 ? checkpointSummaryItem(checkpoint, createdAt) : void 0,
     contextExpansionsSoFar: expansion.expansionsThisTask
   }).catch(rethrowBudget);
-  return persistAndReturn(deps, input, {
+  return persistAndReturn(deps2, input, {
     job,
     node,
     checkpoint,
@@ -65931,13 +65968,13 @@ function rethrowBudget(cause) {
   }
   throw cause;
 }
-function persistAndReturn(deps, input, data) {
+function persistAndReturn(deps2, input, data) {
   const { result } = data;
   if (input.persist !== false && data.strategy !== "LEGACY") {
-    writeContextSelectionPlan(deps.workspace, result.plan);
+    writeContextSelectionPlan(deps2.workspace, result.plan);
     if (input.attemptId !== void 0) {
-      writeContextMetrics(deps.workspace, input.jobId, input.attemptId, result.metrics);
-      writeContextExpansionState(deps.workspace, input.jobId, input.nodeId, {
+      writeContextMetrics(deps2.workspace, input.jobId, input.attemptId, result.metrics);
+      writeContextExpansionState(deps2.workspace, input.jobId, input.nodeId, {
         ...data.expansion,
         lastWorkingSetTokens: result.metrics.workingSetTokens,
         baselineWorkingSetTokens: data.expansion.baselineWorkingSetTokens ?? result.metrics.workingSetTokens
@@ -67116,22 +67153,22 @@ function escalateOrWait(input, previousStrategy, request) {
     waitMs: resource.subscriptionReturnsInMs
   };
 }
-function now3(deps) {
-  return (deps.clock ?? (() => /* @__PURE__ */ new Date()))();
+function now3(deps2) {
+  return (deps2.clock ?? (() => /* @__PURE__ */ new Date()))();
 }
-function newId3(deps, prefix) {
-  const raw = (deps.idFactory ?? (() => `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`))();
+function newId3(deps2, prefix) {
+  const raw = (deps2.idFactory ?? (() => `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`))();
   return `${prefix}-${raw}`.replace(/[^A-Za-z0-9._-]/g, "-").slice(0, 64);
 }
-function emit(deps, type, payload) {
-  deps.recordEvent?.(type, payload);
+function emit(deps2, type, payload) {
+  deps2.recordEvent?.(type, payload);
 }
-function recordEvaluation(deps, result) {
-  const stored = writeEvaluationResult(deps.workspace, result, {
-    maxRecords: deps.policy.maxRecordsPerJob
+function recordEvaluation(deps2, result) {
+  const stored = writeEvaluationResult(deps2.workspace, result, {
+    maxRecords: deps2.policy.maxRecordsPerJob
   });
   emit(
-    deps,
+    deps2,
     stored.status === "PASS" ? "evaluation_passed" : stored.status === "FAIL" ? "evaluation_failed" : "evaluation_inconclusive",
     {
       nodeId: stored.nodeId,
@@ -67146,7 +67183,7 @@ function recordEvaluation(deps, result) {
     }
   );
   if (stored.semanticReviewRan) {
-    emit(deps, "semantic_review_completed", {
+    emit(deps2, "semantic_review_completed", {
       nodeId: stored.nodeId,
       taskId: stored.taskId,
       attemptId: stored.attemptId,
@@ -67156,10 +67193,10 @@ function recordEvaluation(deps, result) {
   }
   return stored;
 }
-function governFailedAttempt(deps, input) {
-  const at = now3(deps).toISOString();
+function governFailedAttempt(deps2, input) {
+  const at = now3(deps2).toISOString();
   const previous = requireTaskReliabilityState(
-    deps.workspace,
+    deps2.workspace,
     input.jobId,
     input.nodeId,
     input.taskId,
@@ -67168,11 +67205,11 @@ function governFailedAttempt(deps, input) {
   const runawaySignals = detectRunaway(
     input.activity,
     {
-      maxToolCallsPerAttempt: deps.policy.maxToolCallsPerAttempt,
-      maxCommandRunsPerAttempt: deps.policy.maxCommandRunsPerAttempt,
-      maxAttemptWallTimeMs: deps.policy.maxAttemptWallTimeMs,
-      maxContextUsageRatio: deps.policy.maxContextUsageRatio,
-      maxTestLoopsPerAttempt: deps.policy.maxTestLoopsPerAttempt
+      maxToolCallsPerAttempt: deps2.policy.maxToolCallsPerAttempt,
+      maxCommandRunsPerAttempt: deps2.policy.maxCommandRunsPerAttempt,
+      maxAttemptWallTimeMs: deps2.policy.maxAttemptWallTimeMs,
+      maxContextUsageRatio: deps2.policy.maxContextUsageRatio,
+      maxTestLoopsPerAttempt: deps2.policy.maxTestLoopsPerAttempt
     },
     previous.observations
   );
@@ -67199,17 +67236,17 @@ function governFailedAttempt(deps, input) {
   const healthAssessment = assessHealth({
     window,
     thresholds: {
-      sameFailureThreshold: deps.policy.sameFailureThreshold,
+      sameFailureThreshold: deps2.policy.sameFailureThreshold,
       // The same-diff bound is the EXISTING no-progress budget, read from
       // its owner rather than duplicated under a reliability-specific name.
       sameDiffThreshold: input.budgets.maxNoProgressCycles,
-      oscillationThreshold: deps.policy.oscillationThreshold
+      oscillationThreshold: deps2.policy.oscillationThreshold
     },
     runawaySignals,
     passed: false
   });
   if (healthAssessment.health === "RUNAWAY") {
-    emit(deps, "execution_runaway", {
+    emit(deps2, "execution_runaway", {
       nodeId: input.nodeId,
       taskId: input.taskId,
       attemptId: input.attemptId,
@@ -67218,7 +67255,7 @@ function governFailedAttempt(deps, input) {
       detail: healthAssessment.reasons[0]?.slice(0, 300) ?? "the attempt exceeded its bounds"
     });
   } else if (healthAssessment.health === "OSCILLATING") {
-    emit(deps, "execution_oscillating", {
+    emit(deps2, "execution_oscillating", {
       nodeId: input.nodeId,
       taskId: input.taskId,
       attemptId: input.attemptId,
@@ -67226,7 +67263,7 @@ function governFailedAttempt(deps, input) {
       failureFingerprint: input.classified.fingerprint
     });
   } else if (healthAssessment.health === "STALLED") {
-    emit(deps, "execution_stalled", {
+    emit(deps2, "execution_stalled", {
       nodeId: input.nodeId,
       taskId: input.taskId,
       attemptId: input.attemptId,
@@ -67248,10 +67285,10 @@ function governFailedAttempt(deps, input) {
     ...input.contextInsufficiencySignals !== void 0 ? { contextInsufficiencySignals: input.contextInsufficiencySignals } : {}
   });
   const assessment = writeFailureAssessment(
-    deps.workspace,
+    deps2.workspace,
     failureAssessmentSchema.parse({
       schemaVersion: FAILURE_ASSESSMENT_SCHEMA_VERSION,
-      assessmentId: newId3(deps, "fa"),
+      assessmentId: newId3(deps2, "fa"),
       jobId: input.jobId,
       nodeId: input.nodeId,
       taskId: input.taskId,
@@ -67272,9 +67309,9 @@ function governFailedAttempt(deps, input) {
       evidenceRefs: [...input.evidenceRefs ?? []].slice(0, 40),
       createdAt: at
     }),
-    { maxRecords: deps.policy.maxRecordsPerJob }
+    { maxRecords: deps2.policy.maxRecordsPerJob }
   );
-  emit(deps, "failure_assessed", {
+  emit(deps2, "failure_assessed", {
     nodeId: input.nodeId,
     taskId: input.taskId,
     attemptId: input.attemptId,
@@ -67301,7 +67338,7 @@ function governFailedAttempt(deps, input) {
     ...input.evaluation !== void 0 ? { evaluation: input.evaluation } : {},
     health: healthAssessment.health,
     budget,
-    policy: deps.policy,
+    policy: deps2.policy,
     lane: input.lane ?? null,
     executionMode: input.executionMode ?? null,
     planRevision: input.planRevision,
@@ -67315,10 +67352,10 @@ function governFailedAttempt(deps, input) {
     resource: input.resource
   });
   const decision = writeRecoveryDecision(
-    deps.workspace,
+    deps2.workspace,
     recoveryDecisionSchema.parse({
       schemaVersion: RECOVERY_DECISION_SCHEMA_VERSION,
-      decisionId: newId3(deps, "rd"),
+      decisionId: newId3(deps2, "rd"),
       jobId: input.jobId,
       nodeId: input.nodeId,
       taskId: input.taskId,
@@ -67340,10 +67377,10 @@ function governFailedAttempt(deps, input) {
       applied: false,
       createdAt: at
     }),
-    { maxRecords: deps.policy.maxRecordsPerJob }
+    { maxRecords: deps2.policy.maxRecordsPerJob }
   );
-  emitDecisionEvents(deps, input, decision, plan);
-  const state = writeTaskReliabilityState(deps.workspace, {
+  emitDecisionEvents(deps2, input, decision, plan);
+  const state = writeTaskReliabilityState(deps2.workspace, {
     ...previous,
     health: healthAssessment.health,
     observations: window,
@@ -67360,10 +67397,10 @@ function governFailedAttempt(deps, input) {
   });
   return { assessment, decision, health: healthAssessment.health, budget, state, action: plan.action };
 }
-function recordSuccessfulAttempt(deps, input) {
-  const at = now3(deps).toISOString();
+function recordSuccessfulAttempt(deps2, input) {
+  const at = now3(deps2).toISOString();
   const previous = requireTaskReliabilityState(
-    deps.workspace,
+    deps2.workspace,
     input.jobId,
     input.nodeId,
     input.taskId,
@@ -67390,7 +67427,7 @@ function recordSuccessfulAttempt(deps, input) {
     updatedAt: at
   };
   delete next.pendingDecisionId;
-  return writeTaskReliabilityState(deps.workspace, next);
+  return writeTaskReliabilityState(deps2.workspace, next);
 }
 function verificationBroken(evaluation) {
   if (evaluation === void 0) return false;
@@ -67411,7 +67448,7 @@ function rememberStrategy(previous, plan, observation2) {
   const next = [...previous.exhaustedStrategies, key];
   return next.length > RELIABILITY_LIMITS.maxListItems ? next.slice(next.length - RELIABILITY_LIMITS.maxListItems) : next;
 }
-function emitDecisionEvents(deps, input, decision, plan) {
+function emitDecisionEvents(deps2, input, decision, plan) {
   const base = {
     nodeId: input.nodeId,
     taskId: input.taskId,
@@ -67422,7 +67459,7 @@ function emitDecisionEvents(deps, input, decision, plan) {
     health: decision.health,
     strategyChange: decision.strategyChange
   };
-  emit(deps, "recovery_decided", {
+  emit(deps2, "recovery_decided", {
     ...base,
     reason: decision.reason.slice(0, 300),
     remainingAttempts: decision.budgetSnapshot.attemptsMax - decision.budgetSnapshot.attemptsUsed,
@@ -67431,10 +67468,10 @@ function emitDecisionEvents(deps, input, decision, plan) {
   });
   switch (plan.action) {
     case "RESTART_FRESH_CONTEXT":
-      emit(deps, "fresh_context_selected", base);
+      emit(deps2, "fresh_context_selected", base);
       break;
     case "RETRY_DIFFERENT_LOCAL_MODE":
-      emit(deps, "local_mode_recovery_selected", {
+      emit(deps2, "local_mode_recovery_selected", {
         ...base,
         fromMode: input.executionMode ?? "unknown",
         toMode: plan.nextStrategy.executionMode ?? "unknown"
@@ -67442,7 +67479,7 @@ function emitDecisionEvents(deps, input, decision, plan) {
       break;
     case "ESCALATE_INTELLIGENCE":
     case "ESCALATE_LANE":
-      emit(deps, "lane_escalation_requested", {
+      emit(deps2, "lane_escalation_requested", {
         ...base,
         requestedKind: plan.requestedCapability?.kind ?? "STRONG",
         // Said explicitly in the timeline because it is the invariant most
@@ -67451,23 +67488,23 @@ function emitDecisionEvents(deps, input, decision, plan) {
       });
       break;
     case "WAIT_FOR_RESOURCE":
-      emit(deps, "resource_wait_selected", {
+      emit(deps2, "resource_wait_selected", {
         ...base,
         waitMs: plan.waitMs ?? null
       });
       break;
     case "FAIL_TASK":
-      emit(deps, "recovery_budget_exhausted", {
+      emit(deps2, "recovery_budget_exhausted", {
         ...base,
         budgetSnapshot: decision.budgetSnapshot
       });
-      emit(deps, "task_blocked_after_recovery", {
+      emit(deps2, "task_blocked_after_recovery", {
         ...base,
         remediation: decision.remediation.slice(0, 5)
       });
       break;
     case "BLOCK":
-      emit(deps, "task_blocked_after_recovery", {
+      emit(deps2, "task_blocked_after_recovery", {
         ...base,
         remediation: decision.remediation.slice(0, 5)
       });
@@ -67476,17 +67513,17 @@ function emitDecisionEvents(deps, input, decision, plan) {
       break;
   }
 }
-function policyOf2(deps) {
-  return deps.config.orchestration.jobs;
+function policyOf2(deps2) {
+  return deps2.config.orchestration.jobs;
 }
-function now4(deps) {
-  return (deps.clock ?? systemClock)();
+function now4(deps2) {
+  return (deps2.clock ?? systemClock)();
 }
-function newId4(deps) {
-  return (deps.idFactory ?? import_crypto19.randomUUID)();
+function newId4(deps2) {
+  return (deps2.idFactory ?? import_crypto19.randomUUID)();
 }
-function assertJobsEnabled(deps) {
-  if (policyOf2(deps).enabled) return;
+function assertJobsEnabled(deps2) {
+  if (policyOf2(deps2).enabled) return;
   throw new OrchestrationError(
     "SBO025",
     "Job orchestration is disabled by `orchestration.jobs.enabled` in .specbridge/config.json.",
@@ -67502,8 +67539,8 @@ function planTextOf(plan) {
   ).filter((description) => description.length > 0);
   return [goal, ...descriptions].join("\n").slice(0, 4e3);
 }
-function record22(deps, job, type, payload = {}) {
-  const stored = countJobEvents(deps.workspace, job.jobId);
+function record22(deps2, job, type, payload = {}) {
+  const stored = countJobEvents(deps2.workspace, job.jobId);
   if (stored >= job.budgets.maxEvents) {
     throw new OrchestrationError(
       "SBO020",
@@ -67515,16 +67552,16 @@ function record22(deps, job, type, payload = {}) {
     );
   }
   appendJobEvent(
-    deps.workspace,
+    deps2.workspace,
     job.jobId,
-    { at: now4(deps).toISOString(), type, ...payload },
-    { maxEventBytes: deps.config.orchestration.history.maxEventBytes }
+    { at: now4(deps2).toISOString(), type, ...payload },
+    { maxEventBytes: deps2.config.orchestration.history.maxEventBytes }
   );
   return { ...job, counters: { ...job.counters, events: stored + 1 } };
 }
-function transition22(deps, job, to) {
+function transition22(deps2, job, to) {
   assertJobTransition(job.status, to);
-  const at = now4(deps).toISOString();
+  const at = now4(deps2).toISOString();
   const wasWaiting = requiresHumanAttention(job.status);
   const willWait = requiresHumanAttention(to);
   if (!wasWaiting && willWait) {
@@ -67532,7 +67569,7 @@ function transition22(deps, job, to) {
   }
   if (wasWaiting && !willWait) {
     const since = job.humanWaitSince === void 0 ? void 0 : Date.parse(job.humanWaitSince);
-    const banked = since === void 0 || Number.isNaN(since) ? 0 : Math.max(0, now4(deps).getTime() - since);
+    const banked = since === void 0 || Number.isNaN(since) ? 0 : Math.max(0, now4(deps2).getTime() - since);
     const { humanWaitSince: _stopped, ...rest } = job;
     return {
       ...rest,
@@ -67546,19 +67583,19 @@ function transition22(deps, job, to) {
   }
   return { ...job, status: to, updatedAt: at };
 }
-function persist22(deps, job) {
-  return writeJobState(deps.workspace, { ...job, updatedAt: now4(deps).toISOString() });
+function persist22(deps2, job) {
+  return writeJobState(deps2.workspace, { ...job, updatedAt: now4(deps2).toISOString() });
 }
-function persistGraph(deps, job, graph) {
-  const existing = readGraphRevision(deps.workspace, job.jobId, graph.revision);
+function persistGraph(deps2, job, graph) {
+  const existing = readGraphRevision(deps2.workspace, job.jobId, graph.revision);
   if (existing === void 0) {
-    return storeGraphRevision(deps.workspace, job.jobId, graph).graph;
+    return storeGraphRevision(deps2.workspace, job.jobId, graph).graph;
   }
   const validated = jobGraphSchema.parse(graph);
   const file = assertInsideWorkspace(
-    deps.workspace.rootDir,
+    deps2.workspace.rootDir,
     import_path35.default.join(
-      jobDir(deps.workspace, job.jobId),
+      jobDir(deps2.workspace, job.jobId),
       "graphs",
       `${String(validated.revision).padStart(4, "0")}.json`
     )
@@ -67568,26 +67605,26 @@ function persistGraph(deps, job, graph) {
 `);
   return validated;
 }
-function createJob(deps, request) {
-  assertJobsEnabled(deps);
-  const policy = policyOf2(deps);
+function createJob(deps2, request) {
+  assertJobsEnabled(deps2);
+  const policy = policyOf2(deps2);
   const goal = request.goal.trim();
   if (goal.length === 0) {
     throw new OrchestrationError("SBO006", "A job needs a stated goal.", {
       remediation: ["Describe what should be accomplished, in one or two sentences."]
     });
   }
-  const createdAt = now4(deps).toISOString();
+  const createdAt = now4(deps2).toISOString();
   const job = {
     schemaVersion: JOB_STATE_SCHEMA_VERSION,
-    jobId: `job-${newId4(deps)}`,
+    jobId: `job-${newId4(deps2)}`,
     specName: request.specName,
     status: "CREATED",
     goal: goal.slice(0, 4e3),
     createdAt,
     updatedAt: createdAt,
-    host: deps.host ?? "cli",
-    policyFingerprint: jobPolicyFingerprint(deps.config.orchestration),
+    host: deps2.host ?? "cli",
+    policyFingerprint: jobPolicyFingerprint(deps2.config.orchestration),
     budgets: {
       maxAgentRuns: policy.budgets.maxAgentRuns,
       maxTaskAttempts: policy.budgets.maxTaskAttempts,
@@ -67620,24 +67657,24 @@ function createJob(deps, request) {
     decisions: [],
     escalations: []
   };
-  initializeJobRecord(deps.workspace, job);
-  const recorded = record22(deps, job, "job_created", { specName: job.specName });
-  return persist22(deps, recorded);
+  initializeJobRecord(deps2.workspace, job);
+  const recorded = record22(deps2, job, "job_created", { specName: job.specName });
+  return persist22(deps2, recorded);
 }
-async function buildJobGraph(deps, jobId) {
-  assertJobsEnabled(deps);
-  let job = requireJobState(deps.workspace, jobId);
+async function buildJobGraph(deps2, jobId) {
+  assertJobsEnabled(deps2);
+  let job = requireJobState(deps2.workspace, jobId);
   if (job.status !== "CREATED") {
     throw new OrchestrationError("SBO027", `The graph is built exactly once, from CREATED (job is ${job.status}).`);
   }
-  const snapshot2 = await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now4(deps) });
-  const built = buildInitialGraph(deps.workspace, {
+  const snapshot2 = await captureGitSnapshot(deps2.workspace.rootDir, { clock: () => now4(deps2) });
+  const built = buildInitialGraph(deps2.workspace, {
     jobId,
     specName: job.specName,
-    createdAt: now4(deps).toISOString(),
+    createdAt: now4(deps2).toISOString(),
     gitHead: snapshot2.head
   });
-  const policy = policyOf2(deps);
+  const policy = policyOf2(deps2);
   const graph = {
     ...built.graph,
     nodes: built.graph.nodes.map((node) => {
@@ -67651,16 +67688,16 @@ async function buildJobGraph(deps, jobId) {
       };
     })
   };
-  storeGraphRevision(deps.workspace, jobId, graph);
+  storeGraphRevision(deps2.workspace, jobId, graph);
   job = { ...job, graphRevision: graph.revision, currentNodeId: graph.nodes[0]?.nodeId };
-  job = transition22(deps, job, "PLANNING");
-  job = record22(deps, job, "graph_created", {
+  job = transition22(deps2, job, "PLANNING");
+  job = record22(deps2, job, "graph_created", {
     revision: graph.revision,
     nodes: graph.nodes.length,
     ...built.skippedCompleted.length > 0 ? { skippedCompleted: built.skippedCompleted.length } : {}
   });
-  job = transition22(deps, job, "READY");
-  return { job: persist22(deps, job), graph };
+  job = transition22(deps2, job, "READY");
+  return { job: persist22(deps2, job), graph };
 }
 function complexityInputFor(node) {
   return {
@@ -67672,18 +67709,18 @@ function complexityInputFor(node) {
     previousReplanCount: node.replans
   };
 }
-function activeGraph(deps, job) {
+function activeGraph(deps2, job) {
   if (job.graphRevision === 0) return void 0;
-  return requireGraphRevision(deps.workspace, job.jobId, job.graphRevision);
+  return requireGraphRevision(deps2.workspace, job.jobId, job.graphRevision);
 }
-function appendAttempt(deps, job, graph, context, outcome, extras = {}) {
+function appendAttempt(deps2, job, graph, context, outcome, extras = {}) {
   const node = requireNode(graph, context.nodeId);
   const attempt = {
     attempt: node.attempts.length + 1,
     role: context.role,
     workerId: context.workerId,
     startedAt: context.startedAt,
-    finishedAt: now4(deps).toISOString(),
+    finishedAt: now4(deps2).toISOString(),
     outcome,
     ...context.agentResultRef !== void 0 ? { agentResultRef: context.agentResultRef } : {},
     ...context.runId !== void 0 ? { runId: context.runId } : {},
@@ -67705,8 +67742,8 @@ function appendAttempt(deps, job, graph, context, outcome, extras = {}) {
   };
   return { job: nextJob, graph: nextGraph };
 }
-function recordEscalation(deps, job, input) {
-  const at = now4(deps).toISOString();
+function recordEscalation(deps2, job, input) {
+  const at = now4(deps2).toISOString();
   const entry2 = {
     at,
     ...input.nodeId !== void 0 ? { nodeId: input.nodeId } : {},
@@ -67719,32 +67756,32 @@ function recordEscalation(deps, job, input) {
     escalations: [...job.escalations, entry2].slice(-100),
     counters: { ...job.counters, escalations: job.counters.escalations + 1 }
   };
-  next = record22(deps, next, "worker_escalated", {
+  next = record22(deps2, next, "worker_escalated", {
     ...input.nodeId !== void 0 ? { nodeId: input.nodeId } : {},
     role: input.role,
     reason: input.reason
   });
   return next;
 }
-function beginPlanning(deps, jobId, nodeId) {
-  assertJobsEnabled(deps);
-  let job = requireJobState(deps.workspace, jobId);
+function beginPlanning(deps2, jobId, nodeId) {
+  assertJobsEnabled(deps2);
+  let job = requireJobState(deps2.workspace, jobId);
   if (job.status === "PLANNING") return job;
-  job = transition22(deps, job, "PLANNING");
+  job = transition22(deps2, job, "PLANNING");
   job = { ...job, currentNodeId: nodeId };
-  job = record22(deps, job, "planning_started", { nodeId });
-  return persist22(deps, job);
+  job = record22(deps2, job, "planning_started", { nodeId });
+  return persist22(deps2, job);
 }
-function recordRoleFailure(deps, jobId, input) {
-  assertJobsEnabled(deps);
-  let job = requireJobState(deps.workspace, jobId);
-  let graph = requireGraphRevision(deps.workspace, jobId, job.graphRevision);
-  ({ job, graph } = appendAttempt(deps, job, graph, input.context, input.outcome, {
+function recordRoleFailure(deps2, jobId, input) {
+  assertJobsEnabled(deps2);
+  let job = requireJobState(deps2.workspace, jobId);
+  let graph = requireGraphRevision(deps2.workspace, jobId, job.graphRevision);
+  ({ job, graph } = appendAttempt(deps2, job, graph, input.context, input.outcome, {
     ...input.failureCategory !== void 0 ? { failureCategory: input.failureCategory } : {},
     ...input.escalation !== void 0 ? { escalationReason: input.escalation.reason } : {}
   }));
   if (input.escalation !== void 0) {
-    job = recordEscalation(deps, job, {
+    job = recordEscalation(deps2, job, {
       nodeId: input.context.nodeId,
       role: input.context.role,
       reason: input.escalation.reason,
@@ -67752,38 +67789,38 @@ function recordRoleFailure(deps, jobId, input) {
     });
   }
   if (job.status === "PLANNING") {
-    job = transition22(deps, job, "READY");
+    job = transition22(deps2, job, "READY");
   }
-  persistGraph(deps, job, graph);
-  return persist22(deps, job);
+  persistGraph(deps2, job, graph);
+  return persist22(deps2, job);
 }
-function recordClassification(deps, jobId, result) {
-  assertJobsEnabled(deps);
-  let job = requireJobState(deps.workspace, jobId);
-  let graph = requireGraphRevision(deps.workspace, jobId, job.graphRevision);
+function recordClassification(deps2, jobId, result) {
+  assertJobsEnabled(deps2);
+  let job = requireJobState(deps2.workspace, jobId);
+  let graph = requireGraphRevision(deps2.workspace, jobId, job.graphRevision);
   const node = requireNode(graph, result.context.nodeId);
   const deterministic = node.complexity ?? "LOW";
   const effective = mergeComplexity(deterministic, result.proposedClass);
-  ({ job, graph } = appendAttempt(deps, job, graph, result.context, "succeeded"));
+  ({ job, graph } = appendAttempt(deps2, job, graph, result.context, "succeeded"));
   graph = withNode(graph, {
     ...requireNode(graph, node.nodeId),
     complexity: effective,
     complexitySignals: effective !== deterministic ? [...node.complexitySignals, `classifier-raised(${deterministic}->${effective})`] : node.complexitySignals
   });
-  job = record22(deps, job, "classification_completed", {
+  job = record22(deps2, job, "classification_completed", {
     nodeId: node.nodeId,
     deterministic,
     proposed: result.proposedClass,
     effective
   });
-  persistGraph(deps, job, graph);
-  return { job: persist22(deps, job), effectiveClass: effective };
+  persistGraph(deps2, job, graph);
+  return { job: persist22(deps2, job), effectiveClass: effective };
 }
-async function recordPlan(deps, jobId, result, options = {}) {
-  assertJobsEnabled(deps);
-  const policy = policyOf2(deps);
-  let job = requireJobState(deps.workspace, jobId);
-  let graph = requireGraphRevision(deps.workspace, jobId, job.graphRevision);
+async function recordPlan(deps2, jobId, result, options = {}) {
+  assertJobsEnabled(deps2);
+  const policy = policyOf2(deps2);
+  let job = requireJobState(deps2.workspace, jobId);
+  let graph = requireGraphRevision(deps2.workspace, jobId, job.graphRevision);
   const node = requireNode(graph, result.context.nodeId);
   if (options.replan === true) {
     if (node.replans >= job.budgets.maxReplansPerTask) {
@@ -67801,11 +67838,11 @@ async function recordPlan(deps, jobId, result, options = {}) {
       );
     }
   }
-  const gitHead = options.gitHead ?? (await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now4(deps) })).head;
-  const binding = capturePlanBinding(deps.workspace, {
+  const gitHead = options.gitHead ?? (await captureGitSnapshot(deps2.workspace.rootDir, { clock: () => now4(deps2) })).head;
+  const binding = capturePlanBinding(deps2.workspace, {
     specName: job.specName,
     taskId: node.parentTaskId,
-    policy: deps.config.orchestration,
+    policy: deps2.config.orchestration,
     gitHead
   });
   const revision = node.planRevision + 1;
@@ -67815,15 +67852,15 @@ async function recordPlan(deps, jobId, result, options = {}) {
     binding,
     revision,
     planId: `${node.nodeId}-p${revision}`,
-    createdAt: now4(deps).toISOString(),
-    policy: deps.config.orchestration
+    createdAt: now4(deps2).toISOString(),
+    policy: deps2.config.orchestration
   });
-  storeNodePlan(deps.workspace, jobId, node.nodeId, revision, plan);
-  ({ job, graph } = appendAttempt(deps, job, graph, result.context, "succeeded"));
+  storeNodePlan(deps2.workspace, jobId, node.nodeId, revision, plan);
+  ({ job, graph } = appendAttempt(deps2, job, graph, result.context, "succeeded"));
   const criticApplies = policy.routing.critic !== "disabled" && result.producedByTier === "LOCAL_SMALL";
   const complexity = requireNode(graph, node.nodeId).complexity ?? "LOW";
   const policyRequiresReview = policy.planReview === "always" || policy.planReview === "high-risk" && complexity === "HIGH";
-  const review = resolvePlanReviewRequirement(deps.authorityResolver, {
+  const review = resolvePlanReviewRequirement(deps2.authorityResolver, {
     jobId,
     nodeId: node.nodeId,
     policyRequiresReview,
@@ -67851,9 +67888,9 @@ ${result.candidate.steps.map((step2) => step2.description).join("\n")}`
   graph = withNode(graph, withoutVerdict);
   if (options.replan === true) {
     job = { ...job, counters: { ...job.counters, jobReplans: job.counters.jobReplans + 1 } };
-    job = record22(deps, job, "replan_started", { nodeId: node.nodeId, revision });
+    job = record22(deps2, job, "replan_started", { nodeId: node.nodeId, revision });
   }
-  job = record22(deps, job, "plan_created", {
+  job = record22(deps2, job, "plan_created", {
     nodeId: node.nodeId,
     revision,
     producedByTier: result.producedByTier,
@@ -67861,21 +67898,21 @@ ${result.candidate.steps.map((step2) => step2.description).join("\n")}`
     humanReview
   });
   if (job.status === "PLANNING" || job.status === "REPLANNING") {
-    job = transition22(deps, job, "READY");
+    job = transition22(deps2, job, "READY");
   }
-  persistGraph(deps, job, graph);
-  return { job: persist22(deps, job), plan };
+  persistGraph(deps2, job, graph);
+  return { job: persist22(deps2, job), plan };
 }
-function recordCriticVerdict(deps, jobId, result) {
-  assertJobsEnabled(deps);
-  const policy = policyOf2(deps);
-  let job = requireJobState(deps.workspace, jobId);
-  let graph = requireGraphRevision(deps.workspace, jobId, job.graphRevision);
+function recordCriticVerdict(deps2, jobId, result) {
+  assertJobsEnabled(deps2);
+  const policy = policyOf2(deps2);
+  let job = requireJobState(deps2.workspace, jobId);
+  let graph = requireGraphRevision(deps2.workspace, jobId, job.graphRevision);
   const node = requireNode(graph, result.context.nodeId);
-  ({ job, graph } = appendAttempt(deps, job, graph, result.context, "succeeded"));
-  const activePlan = readNodePlan(deps.workspace, jobId, node.nodeId, node.planRevision);
+  ({ job, graph } = appendAttempt(deps2, job, graph, result.context, "succeeded"));
+  const activePlan = readNodePlan(deps2.workspace, jobId, node.nodeId, node.planRevision);
   const policyRequiresReview = policy.planReview === "always" || policy.planReview === "high-risk" && (node.complexity ?? "LOW") === "HIGH";
-  const humanReview = resolvePlanReviewRequirement(deps.authorityResolver, {
+  const humanReview = resolvePlanReviewRequirement(deps2.authorityResolver, {
     jobId,
     nodeId: node.nodeId,
     policyRequiresReview,
@@ -67890,66 +67927,66 @@ function recordCriticVerdict(deps, jobId, result) {
     planApproved: accepted && !humanReview,
     humanReviewRequired: accepted ? humanReview : false
   });
-  job = record22(deps, job, "critic_completed", {
+  job = record22(deps2, job, "critic_completed", {
     nodeId: node.nodeId,
     planRevision: node.planRevision,
     verdict: result.verdict,
     reasons: result.reasons.slice(0, 10).map((reason) => reason.slice(0, 200))
   });
   if (result.verdict === "REVISE" || result.verdict === "ESCALATE") {
-    job = transition22(deps, job, "PLANNING");
+    job = transition22(deps2, job, "PLANNING");
   }
-  persistGraph(deps, job, graph);
+  persistGraph(deps2, job, graph);
   return {
-    job: persist22(deps, job),
+    job: persist22(deps2, job),
     verdict: result.verdict,
     humanReviewRequired: accepted ? humanReview : false
   };
 }
-function noteEscalation(deps, jobId, input) {
-  let job = requireJobState(deps.workspace, jobId);
+function noteEscalation(deps2, jobId, input) {
+  let job = requireJobState(deps2.workspace, jobId);
   const already = job.escalations.some(
     (entry2) => entry2.nodeId === input.nodeId && entry2.reason === input.reason
   );
   if (already) return job;
-  job = recordEscalation(deps, job, input);
-  return persist22(deps, job);
+  job = recordEscalation(deps2, job, input);
+  return persist22(deps2, job);
 }
-function completeJobIfDone(deps, jobId) {
-  let job = requireJobState(deps.workspace, jobId);
+function completeJobIfDone(deps2, jobId) {
+  let job = requireJobState(deps2.workspace, jobId);
   if (isFinalJobStatus(job.status)) return job;
-  const graph = requireGraphRevision(deps.workspace, jobId, job.graphRevision);
+  const graph = requireGraphRevision(deps2.workspace, jobId, job.graphRevision);
   if (!allNodesComplete(graph)) {
     throw new OrchestrationError("SBO027", "The job cannot complete: unfinished nodes remain.");
   }
-  const closure = assessCompletion(deps.completionGate, jobId);
+  const closure = assessCompletion(deps2.completionGate, jobId);
   if (closure !== void 0 && !closure.mayComplete) {
     if (job.status === "QUALIFYING") {
       return job;
     }
-    job = transition22(deps, job, "QUALIFYING");
-    job = record22(deps, job, "closure_audit_completed", {
+    job = transition22(deps2, job, "QUALIFYING");
+    job = record22(deps2, job, "closure_audit_completed", {
       directive: "CONTRACT_CLOSURE_AUDIT",
       unclosed: closure.unclosed,
       reason: closure.reason.slice(0, 500)
     });
-    return persist22(deps, { ...job, closurePhase: "CONTRACT_CLOSURE_AUDIT" });
+    return persist22(deps2, { ...job, closurePhase: "CONTRACT_CLOSURE_AUDIT" });
   }
-  const at = now4(deps).toISOString();
-  job = transition22(deps, job, "COMPLETED");
-  job = record22(deps, job, "job_completed", {
+  const at = now4(deps2).toISOString();
+  job = transition22(deps2, job, "COMPLETED");
+  job = record22(deps2, job, "job_completed", {
     reconciled: true,
     ...closure !== void 0 ? { closure: closure.reason.slice(0, 300) } : {}
   });
-  return persist22(deps, { ...job, finalizedAt: at, finalOutcome: "COMPLETED" });
+  return persist22(deps2, { ...job, finalizedAt: at, finalOutcome: "COMPLETED" });
 }
-function recordJobEvent(deps, jobId, type, payload = {}) {
-  let job = requireJobState(deps.workspace, jobId);
-  job = record22(deps, job, type, payload);
-  return persist22(deps, job);
+function recordJobEvent(deps2, jobId, type, payload = {}) {
+  let job = requireJobState(deps2.workspace, jobId);
+  job = record22(deps2, job, type, payload);
+  return persist22(deps2, job);
 }
-function applyJobTransition(deps, jobId, input) {
-  let job = requireJobState(deps.workspace, jobId);
+function applyJobTransition(deps2, jobId, input) {
+  let job = requireJobState(deps2.workspace, jobId);
   if (isFinalJobStatus(job.status)) {
     throw new OrchestrationError(
       "SBO026",
@@ -67957,14 +67994,14 @@ function applyJobTransition(deps, jobId, input) {
       { details: { from: job.status, to: input.to } }
     );
   }
-  if (job.status !== input.to) job = transition22(deps, job, input.to);
-  job = record22(deps, job, input.event, input.payload ?? {});
-  return persist22(deps, { ...job, ...input.patch ?? {} });
+  if (job.status !== input.to) job = transition22(deps2, job, input.to);
+  job = record22(deps2, job, input.event, input.payload ?? {});
+  return persist22(deps2, { ...job, ...input.patch ?? {} });
 }
-function reviewNodePlan(deps, jobId, input) {
-  assertJobsEnabled(deps);
-  let job = requireJobState(deps.workspace, jobId);
-  let graph = requireGraphRevision(deps.workspace, jobId, job.graphRevision);
+function reviewNodePlan(deps2, jobId, input) {
+  assertJobsEnabled(deps2);
+  let job = requireJobState(deps2.workspace, jobId);
+  let graph = requireGraphRevision(deps2.workspace, jobId, job.graphRevision);
   const node = requireNode(graph, input.nodeId);
   if (!node.humanReviewRequired) {
     throw new OrchestrationError("SBO012", `Node ${input.nodeId} has no pending human plan review.`);
@@ -67974,7 +68011,7 @@ function reviewNodePlan(deps, jobId, input) {
     planApproved: input.decision === "approved",
     humanReviewRequired: input.decision === "approved" ? false : true
   });
-  job = record22(deps, job, "plan_reviewed", {
+  job = record22(deps2, job, "plan_reviewed", {
     nodeId: node.nodeId,
     planRevision: node.planRevision,
     decision: input.decision,
@@ -67982,22 +68019,22 @@ function reviewNodePlan(deps, jobId, input) {
   });
   if (input.decision === "rejected") {
     graph = withNode(graph, { ...requireNode(graph, node.nodeId), humanReviewRequired: false });
-    if (job.status === "READY") job = transition22(deps, job, "PLANNING");
+    if (job.status === "READY") job = transition22(deps2, job, "PLANNING");
   }
-  persistGraph(deps, job, graph);
-  return persist22(deps, job);
+  persistGraph(deps2, job, graph);
+  return persist22(deps2, job);
 }
-function beginExecutorDispatch(deps, jobId, input) {
-  assertJobsEnabled(deps);
-  let job = requireJobState(deps.workspace, jobId);
-  let graph = requireGraphRevision(deps.workspace, jobId, job.graphRevision);
+function beginExecutorDispatch(deps2, jobId, input) {
+  assertJobsEnabled(deps2);
+  let job = requireJobState(deps2.workspace, jobId);
+  let graph = requireGraphRevision(deps2.workspace, jobId, job.graphRevision);
   const node = requireNode(graph, input.nodeId);
   graph = transitionNode(graph, node.nodeId, input.mode === "repair" ? "REPAIRING" : "RUNNING");
-  job = transition22(deps, job, input.mode === "repair" ? "REPAIRING" : "RUNNING");
-  const priorAttempts = listTaskAttempts(deps.workspace, jobId, { nodeId: node.nodeId });
+  job = transition22(deps2, job, input.mode === "repair" ? "REPAIRING" : "RUNNING");
+  const priorAttempts = listTaskAttempts(deps2.workspace, jobId, { nodeId: node.nodeId });
   const lineageParent = [...priorAttempts].reverse().find((prior) => isFinalAttemptStatus(prior.status));
   const attempt = beginTaskAttempt(
-    { workspace: deps.workspace, clock: deps.clock, idFactory: deps.idFactory },
+    { workspace: deps2.workspace, clock: deps2.clock, idFactory: deps2.idFactory },
     {
       jobId,
       nodeId: node.nodeId,
@@ -68035,13 +68072,13 @@ function beginExecutorDispatch(deps, jobId, input) {
     }
   );
   job = { ...job, currentNodeId: node.nodeId, currentAttemptId: attempt.attemptId };
-  job = record22(deps, job, input.mode === "repair" ? "repair_started" : "execution_started", {
+  job = record22(deps2, job, input.mode === "repair" ? "repair_started" : "execution_started", {
     nodeId: node.nodeId,
     taskId: node.parentTaskId,
     workerId: input.workerId,
     ...input.mode === "repair" ? { cycle: node.repairCycles + 1 } : {}
   });
-  job = record22(deps, job, "attempt_started", {
+  job = record22(deps2, job, "attempt_started", {
     nodeId: node.nodeId,
     taskId: node.parentTaskId,
     attemptId: attempt.attemptId,
@@ -68049,10 +68086,10 @@ function beginExecutorDispatch(deps, jobId, input) {
     provider: attempt.provider,
     ...attempt.resumedFromAttemptId !== void 0 ? { resumedFromAttemptId: attempt.resumedFromAttemptId } : {}
   });
-  persistGraph(deps, job, graph);
-  return persist22(deps, job);
+  persistGraph(deps2, job, graph);
+  return persist22(deps2, job);
 }
-function buildAttemptEvaluation(deps, job, node, outcome, attemptId, lane, at) {
+function buildAttemptEvaluation(deps2, job, node, outcome, attemptId, lane, at) {
   const input = outcome.reliability;
   const status = outcome.evidenceStatus;
   const verified = status === "verified" || status === "manually-accepted";
@@ -68103,7 +68140,7 @@ function buildAttemptEvaluation(deps, job, node, outcome, attemptId, lane, at) {
   };
   const criteria = input?.acceptanceCriteria !== void 0 && input.criteriaEvidence !== void 0 ? evaluateAcceptanceCriteria(input.acceptanceCriteria, input.criteriaEvidence) : { checks: [], failedCriteria: [], uncheckedCriteria: [] };
   return evaluateAttempt({
-    evaluationId: `ev-${newId4(deps)}`.slice(0, 64),
+    evaluationId: `ev-${newId4(deps2)}`.slice(0, 64),
     jobId: job.jobId,
     nodeId: node.nodeId,
     taskId: node.parentTaskId,
@@ -68147,37 +68184,37 @@ function attemptActivity(outcome, startedAt, at) {
 function numeric(value) {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
-function reliabilityDepsFor(deps, jobId) {
+function reliabilityDepsFor(deps2, jobId) {
   return {
-    workspace: deps.workspace,
-    policy: policyOf2(deps).reliability,
-    ...deps.clock !== void 0 ? { clock: deps.clock } : {},
-    ...deps.idFactory !== void 0 ? { idFactory: deps.idFactory } : {},
+    workspace: deps2.workspace,
+    policy: policyOf2(deps2).reliability,
+    ...deps2.clock !== void 0 ? { clock: deps2.clock } : {},
+    ...deps2.idFactory !== void 0 ? { idFactory: deps2.idFactory } : {},
     recordEvent: (type, payload) => {
       try {
-        recordJobEvent(deps, jobId, type, payload);
+        recordJobEvent(deps2, jobId, type, payload);
       } catch {
       }
     }
   };
 }
-function pendingRecoveryDecision(deps, jobId, nodeId) {
-  if (!policyOf2(deps).reliability.enabled) return void 0;
-  const state = readTaskReliabilityState(deps.workspace, jobId, nodeId);
+function pendingRecoveryDecision(deps2, jobId, nodeId) {
+  if (!policyOf2(deps2).reliability.enabled) return void 0;
+  const state = readTaskReliabilityState(deps2.workspace, jobId, nodeId);
   const decisionId = state?.pendingDecisionId;
   if (decisionId === void 0) return void 0;
-  const decision = readRecoveryDecision(deps.workspace, jobId, decisionId);
+  const decision = readRecoveryDecision(deps2.workspace, jobId, decisionId);
   return decision !== void 0 && !decision.applied ? decision : void 0;
 }
-function applyRecoveryDecision(deps, input) {
+function applyRecoveryDecision(deps2, input) {
   const { decision, node, at } = input;
   let job = input.job;
   const graph = input.graph;
-  const retryDelayMs = policyOf2(deps).retryDelayMs;
+  const retryDelayMs = policyOf2(deps2).retryDelayMs;
   const finish5 = (next, nextAction) => {
-    persistGraph(deps, next, graph);
+    persistGraph(deps2, next, graph);
     return {
-      job: persist22(deps, next),
+      job: persist22(deps2, next),
       nextAction,
       classified: input.classified,
       evaluation: input.evaluation,
@@ -68190,13 +68227,13 @@ function applyRecoveryDecision(deps, input) {
         baseBackoffMs: Math.max(retryDelayMs, 1),
         maxBackoffMs: Math.max(retryDelayMs * 16, retryDelayMs)
       });
-      job = transition22(deps, job, "WAITING_RETRY");
+      job = transition22(deps2, job, "WAITING_RETRY");
       job = {
         ...job,
-        retryAt: new Date(now4(deps).getTime() + backoffMs).toISOString(),
+        retryAt: new Date(now4(deps2).getTime() + backoffMs).toISOString(),
         counters: { ...job.counters, transientRetries: job.counters.transientRetries + 1 }
       };
-      job = record22(deps, job, "waiting_retry", {
+      job = record22(deps2, job, "waiting_retry", {
         nodeId: node.nodeId,
         category: input.classified.category,
         retryAt: job.retryAt,
@@ -68208,9 +68245,9 @@ function applyRecoveryDecision(deps, input) {
       const elapsed = Math.max(0, Date.parse(at) - Date.parse(job.createdAt));
       const remaining = Math.max(0, job.budgets.maxWallClockMs - elapsed);
       const waitMs = Math.min(Math.max(retryDelayMs, 6e4), Math.max(remaining, retryDelayMs));
-      job = transition22(deps, job, "WAITING_RETRY");
-      job = { ...job, retryAt: new Date(now4(deps).getTime() + waitMs).toISOString() };
-      job = record22(deps, job, "waiting_retry", {
+      job = transition22(deps2, job, "WAITING_RETRY");
+      job = { ...job, retryAt: new Date(now4(deps2).getTime() + waitMs).toISOString() };
+      job = record22(deps2, job, "waiting_retry", {
         nodeId: node.nodeId,
         retryAt: job.retryAt,
         reasonCode: decision.reasonCode,
@@ -68219,17 +68256,17 @@ function applyRecoveryDecision(deps, input) {
       return finish5(job, "wait-retry");
     }
     case "REPAIR": {
-      job = transition22(deps, job, "DIAGNOSING");
+      job = transition22(deps2, job, "DIAGNOSING");
       return finish5(job, "diagnose");
     }
     case "REPLAN": {
-      job = transition22(deps, job, "DIAGNOSING");
+      job = transition22(deps2, job, "DIAGNOSING");
       return finish5(job, "diagnose");
     }
     case "RESTART_FRESH_CONTEXT": {
-      job = transition22(deps, job, "READY");
+      job = transition22(deps2, job, "READY");
       job = { ...job, currentNodeId: node.nodeId };
-      job = record22(deps, job, "context_threshold_reached", {
+      job = record22(deps2, job, "context_threshold_reached", {
         nodeId: node.nodeId,
         taskId: node.parentTaskId,
         decisionId: decision.decisionId,
@@ -68238,9 +68275,9 @@ function applyRecoveryDecision(deps, input) {
       return finish5(job, "retry-strategy-change");
     }
     case "EXPAND_CONTEXT": {
-      job = transition22(deps, job, "READY");
+      job = transition22(deps2, job, "READY");
       job = { ...job, currentNodeId: node.nodeId };
-      job = record22(deps, job, "context_threshold_reached", {
+      job = record22(deps2, job, "context_threshold_reached", {
         nodeId: node.nodeId,
         taskId: node.parentTaskId,
         decisionId: decision.decisionId,
@@ -68250,9 +68287,9 @@ function applyRecoveryDecision(deps, input) {
       return finish5(job, "retry-strategy-change");
     }
     case "RETRY_DIFFERENT_LOCAL_MODE": {
-      job = transition22(deps, job, "READY");
+      job = transition22(deps2, job, "READY");
       job = { ...job, currentNodeId: node.nodeId };
-      job = recordEscalation(deps, job, {
+      job = recordEscalation(deps2, job, {
         nodeId: node.nodeId,
         role: "EXECUTOR",
         reason: "LOCAL_DIRECT_TO_HARNESS",
@@ -68262,9 +68299,9 @@ function applyRecoveryDecision(deps, input) {
     }
     case "ESCALATE_INTELLIGENCE":
     case "ESCALATE_LANE": {
-      job = transition22(deps, job, "READY");
+      job = transition22(deps2, job, "READY");
       job = { ...job, currentNodeId: node.nodeId };
-      job = recordEscalation(deps, job, {
+      job = recordEscalation(deps2, job, {
         nodeId: node.nodeId,
         role: "EXECUTOR",
         reason: decision.health === "STALLED" || decision.health === "OSCILLATING" ? "NO_PROGRESS" : "LOCAL_EXECUTION_ESCALATED",
@@ -68273,9 +68310,9 @@ function applyRecoveryDecision(deps, input) {
       return finish5(job, "retry-strategy-change");
     }
     case "REQUEST_HUMAN_DECISION": {
-      job = transition22(deps, job, "NEEDS_CLARIFICATION");
+      job = transition22(deps2, job, "NEEDS_CLARIFICATION");
       const question = {
-        id: `q-${newId4(deps)}`.slice(0, 64),
+        id: `q-${newId4(deps2)}`.slice(0, 64),
         question: `Task ${node.parentTaskId} cannot proceed automatically: ${decision.reason.slice(0, 600)} Decide explicitly, then resume the job.`,
         whyItMatters: `${decision.reasonCode} has no safe automatic response.`,
         options: [],
@@ -68283,7 +68320,7 @@ function applyRecoveryDecision(deps, input) {
         askedAt: at,
         round: Math.min(
           job.counters.clarificationRounds + 1,
-          deps.config.orchestration.clarification.maxRounds
+          deps2.config.orchestration.clarification.maxRounds
         )
       };
       job = {
@@ -68291,7 +68328,7 @@ function applyRecoveryDecision(deps, input) {
         openQuestions: [...job.openQuestions, question],
         counters: { ...job.counters, clarificationRounds: question.round }
       };
-      job = record22(deps, job, "clarification_requested", {
+      job = record22(deps2, job, "clarification_requested", {
         nodeId: node.nodeId,
         category: input.classified.category,
         reasonCode: decision.reasonCode
@@ -68309,10 +68346,10 @@ function applyRecoveryDecision(deps, input) {
     }
   }
 }
-function finalizeDispatchAttempt(deps, job, node, outcome, status) {
-  const survivalDeps = { workspace: deps.workspace, clock: deps.clock, idFactory: deps.idFactory };
+function finalizeDispatchAttempt(deps2, job, node, outcome, status) {
+  const survivalDeps = { workspace: deps2.workspace, clock: deps2.clock, idFactory: deps2.idFactory };
   let attemptId = job.currentAttemptId;
-  if (attemptId === void 0 || readTaskAttempt(deps.workspace, job.jobId, attemptId) === void 0) {
+  if (attemptId === void 0 || readTaskAttempt(deps2.workspace, job.jobId, attemptId) === void 0) {
     attemptId = beginTaskAttempt(survivalDeps, {
       jobId: job.jobId,
       nodeId: node.nodeId,
@@ -68323,7 +68360,7 @@ function finalizeDispatchAttempt(deps, job, node, outcome, status) {
       runId: outcome.context.runId
     }).attemptId;
   }
-  const existing = readTaskAttempt(deps.workspace, job.jobId, attemptId);
+  const existing = readTaskAttempt(deps2.workspace, job.jobId, attemptId);
   if (existing !== void 0 && isFinalAttemptStatus(existing.status)) {
     return attemptId;
   }
@@ -68351,37 +68388,37 @@ function finalizeDispatchAttempt(deps, job, node, outcome, status) {
   });
   return attemptId;
 }
-function completeExecutorDispatch(deps, jobId, outcome) {
-  assertJobsEnabled(deps);
-  const policy = policyOf2(deps);
-  let job = requireJobState(deps.workspace, jobId);
-  let graph = requireGraphRevision(deps.workspace, jobId, job.graphRevision);
+function completeExecutorDispatch(deps2, jobId, outcome) {
+  assertJobsEnabled(deps2);
+  const policy = policyOf2(deps2);
+  let job = requireJobState(deps2.workspace, jobId);
+  let graph = requireGraphRevision(deps2.workspace, jobId, job.graphRevision);
   const node = requireNode(graph, outcome.context.nodeId);
-  const at = now4(deps).toISOString();
+  const at = now4(deps2).toISOString();
   const verified = outcome.evidenceStatus === "verified" || outcome.evidenceStatus === "manually-accepted";
   const attemptStatus = outcome.failure === void 0 && verified ? "COMPLETED" : outcome.failure?.category === "CANCELLED" ? "CANCELLED" : "FAILED";
-  const attemptId = finalizeDispatchAttempt(deps, job, node, outcome, attemptStatus);
+  const attemptId = finalizeDispatchAttempt(deps2, job, node, outcome, attemptStatus);
   job = { ...job, currentAttemptId: void 0 };
-  job = record22(deps, job, "attempt_completed", {
+  job = record22(deps2, job, "attempt_completed", {
     nodeId: node.nodeId,
     taskId: node.parentTaskId,
     attemptId,
     status: attemptStatus
   });
-  const lane = readTaskAttempt(deps.workspace, jobId, attemptId)?.lane ?? null;
-  const evaluation = buildAttemptEvaluation(deps, job, node, outcome, attemptId, lane, at);
-  recordEvaluation(reliabilityDepsFor(deps, jobId), evaluation);
+  const lane = readTaskAttempt(deps2.workspace, jobId, attemptId)?.lane ?? null;
+  const evaluation = buildAttemptEvaluation(deps2, job, node, outcome, attemptId, lane, at);
+  recordEvaluation(reliabilityDepsFor(deps2, jobId), evaluation);
   recordCalibrationForAttempt({
-    workspace: deps.workspace,
+    workspace: deps2.workspace,
     policy: policy.scheduler.adaptive,
     jobId,
     nodeId: node.nodeId,
     attemptId,
-    now: now4(deps)
+    now: now4(deps2)
   });
   const evaluationBlocksCompletion = policy.reliability.enabled && evaluation.status !== "PASS";
   if (evaluationBlocksCompletion && outcome.failure === void 0 && verified) {
-    job = record22(deps, job, "evaluation_failed", {
+    job = record22(deps2, job, "evaluation_failed", {
       nodeId: node.nodeId,
       taskId: node.parentTaskId,
       attemptId,
@@ -68392,7 +68429,7 @@ function completeExecutorDispatch(deps, jobId, outcome) {
     });
   }
   if (outcome.failure === void 0 && verified && !evaluationBlocksCompletion) {
-    recordSuccessfulAttempt(reliabilityDepsFor(deps, jobId), {
+    recordSuccessfulAttempt(reliabilityDepsFor(deps2, jobId), {
       jobId,
       nodeId: node.nodeId,
       taskId: node.parentTaskId,
@@ -68401,7 +68438,7 @@ function completeExecutorDispatch(deps, jobId, outcome) {
       lane,
       evaluationStatus: evaluation.status
     });
-    ({ job, graph } = appendAttempt(deps, job, graph, outcome.context, "succeeded"));
+    ({ job, graph } = appendAttempt(deps2, job, graph, outcome.context, "succeeded"));
     graph = transitionNode(graph, node.nodeId, "COMPLETED");
     graph = withNode(graph, {
       ...requireNode(graph, node.nodeId),
@@ -68422,14 +68459,14 @@ function completeExecutorDispatch(deps, jobId, outcome) {
         at
       }
     };
-    job = record22(deps, job, "node_completed", {
+    job = record22(deps2, job, "node_completed", {
       nodeId: node.nodeId,
       taskId: node.parentTaskId,
       evidenceStatus: outcome.evidenceStatus,
       ...outcome.context.runId !== void 0 ? { runId: outcome.context.runId } : {}
     });
     const milestone = createTaskCheckpoint(
-      { workspace: deps.workspace, clock: deps.clock, idFactory: deps.idFactory },
+      { workspace: deps2.workspace, clock: deps2.clock, idFactory: deps2.idFactory },
       {
         jobId,
         nodeId: node.nodeId,
@@ -68456,42 +68493,42 @@ function completeExecutorDispatch(deps, jobId, outcome) {
         relevantArtifacts: outcome.context.runId !== void 0 ? [outcome.context.runId] : []
       }
     );
-    job = record22(deps, job, "task_checkpoint_created", {
+    job = record22(deps2, job, "task_checkpoint_created", {
       nodeId: node.nodeId,
       taskId: node.parentTaskId,
       checkpointId: milestone.checkpointId,
       reason: "milestone"
     });
     if (allNodesComplete(graph)) {
-      const closure = assessCompletion(deps.completionGate, jobId);
+      const closure = assessCompletion(deps2.completionGate, jobId);
       if (closure !== void 0 && !closure.mayComplete) {
-        job = record22(deps, job, "closure_audit_completed", {
+        job = record22(deps2, job, "closure_audit_completed", {
           directive: "CONTRACT_CLOSURE_AUDIT",
           unclosed: closure.unclosed,
           reason: closure.reason.slice(0, 300)
         });
-        job = transition22(deps, job, "READY");
-        persistGraph(deps, job, graph);
+        job = transition22(deps2, job, "READY");
+        persistGraph(deps2, job, graph);
         return {
-          job: persist22(deps, { ...job, closurePhase: "CONTRACT_CLOSURE_AUDIT" }),
+          job: persist22(deps2, { ...job, closurePhase: "CONTRACT_CLOSURE_AUDIT" }),
           nextAction: "node-complete",
           evaluation
         };
       }
-      job = transition22(deps, job, "COMPLETED");
-      job = record22(deps, job, "job_completed", {});
+      job = transition22(deps2, job, "COMPLETED");
+      job = record22(deps2, job, "job_completed", {});
       job = { ...job, finalizedAt: at, finalOutcome: "COMPLETED" };
-      persistGraph(deps, job, graph);
-      return { job: persist22(deps, job), nextAction: "job-complete", evaluation };
+      persistGraph(deps2, job, graph);
+      return { job: persist22(deps2, job), nextAction: "job-complete", evaluation };
     }
-    job = transition22(deps, job, "READY");
+    job = transition22(deps2, job, "READY");
     const next = graph.nodes.find((candidate) => candidate.status === "READY");
     job = { ...job, currentNodeId: next?.nodeId };
     if (next !== void 0) {
-      job = record22(deps, job, "node_ready", { nodeId: next.nodeId, taskId: next.parentTaskId });
+      job = record22(deps2, job, "node_ready", { nodeId: next.nodeId, taskId: next.parentTaskId });
     }
-    persistGraph(deps, job, graph);
-    return { job: persist22(deps, job), nextAction: "node-complete", evaluation };
+    persistGraph(deps2, job, graph);
+    return { job: persist22(deps2, job), nextAction: "node-complete", evaluation };
   }
   const failureInput = outcome.failure ?? (evaluationBlocksCompletion && verified ? {
     // The verifiers passed; evaluation did not. Saying so precisely
@@ -68523,7 +68560,7 @@ function completeExecutorDispatch(deps, jobId, outcome) {
     consecutiveNoProgress: node.consecutiveNoProgress,
     maxNoProgressCycles: job.budgets.maxNoProgressCycles
   });
-  ({ job, graph } = appendAttempt(deps, job, graph, outcome.context, "failed", {
+  ({ job, graph } = appendAttempt(deps2, job, graph, outcome.context, "failed", {
     failureCategory: classified2.category,
     failureFingerprint: classified2.fingerprint
   }));
@@ -68540,13 +68577,13 @@ function completeExecutorDispatch(deps, jobId, outcome) {
     ...outcome.mode === "repair" ? { repairCycles: requireNode(graph, node.nodeId).repairCycles + 1 } : {}
   });
   if (classified2.category === "VERIFICATION_FAILURE") {
-    job = record22(deps, job, "verification_failed", {
+    job = record22(deps2, job, "verification_failed", {
       nodeId: node.nodeId,
       fingerprint: classified2.fingerprint,
       source: failureInput.source
     });
   }
-  job = record22(deps, job, "execution_finished", {
+  job = record22(deps2, job, "execution_finished", {
     nodeId: node.nodeId,
     outcome: "failed",
     category: classified2.category,
@@ -68555,22 +68592,22 @@ function completeExecutorDispatch(deps, jobId, outcome) {
   });
   graph = transitionNode(graph, node.nodeId, "READY");
   const blockWith = (category, code2, message2, remediation) => {
-    let blocked2 = transition22(deps, job, "BLOCKED");
-    blocked2 = record22(deps, blocked2, category === "BUDGET_EXHAUSTED" ? "budget_exhausted" : "job_blocked", {
+    let blocked2 = transition22(deps2, job, "BLOCKED");
+    blocked2 = record22(deps2, blocked2, category === "BUDGET_EXHAUSTED" ? "budget_exhausted" : "job_blocked", {
       nodeId: node.nodeId,
       category,
       reason: message2.slice(0, 500)
     });
     blocked2 = { ...blocked2, blocker: { category, code: code2, message: message2, remediation, at } };
-    persistGraph(deps, blocked2, graph);
-    return { job: persist22(deps, blocked2), nextAction: "blocked", classified: classified2 };
+    persistGraph(deps2, blocked2, graph);
+    return { job: persist22(deps2, blocked2), nextAction: "blocked", classified: classified2 };
   };
   if (classified2.category === "CANCELLED") {
-    let cancelled = transition22(deps, job, "CANCELLED");
-    cancelled = record22(deps, cancelled, "job_cancelled", { nodeId: node.nodeId });
+    let cancelled = transition22(deps2, job, "CANCELLED");
+    cancelled = record22(deps2, cancelled, "job_cancelled", { nodeId: node.nodeId });
     cancelled = { ...cancelled, finalizedAt: at, finalOutcome: "CANCELLED" };
-    persistGraph(deps, cancelled, graph);
-    return { job: persist22(deps, cancelled), nextAction: "blocked", classified: classified2 };
+    persistGraph(deps2, cancelled, graph);
+    return { job: persist22(deps2, cancelled), nextAction: "blocked", classified: classified2 };
   }
   if (classified2.policy.terminal) {
     return blockWith(
@@ -68593,25 +68630,25 @@ function completeExecutorDispatch(deps, jobId, outcome) {
       baseBackoffMs: Math.max(policy.retryDelayMs, 1),
       maxBackoffMs: Math.max(policy.retryDelayMs * 16, policy.retryDelayMs)
     });
-    let waiting = transition22(deps, job, "WAITING_RETRY");
+    let waiting = transition22(deps2, job, "WAITING_RETRY");
     waiting = {
       ...waiting,
-      retryAt: new Date(now4(deps).getTime() + backoffMs).toISOString(),
+      retryAt: new Date(now4(deps2).getTime() + backoffMs).toISOString(),
       counters: { ...waiting.counters, transientRetries: waiting.counters.transientRetries + 1 }
     };
-    waiting = record22(deps, waiting, "waiting_retry", {
+    waiting = record22(deps2, waiting, "waiting_retry", {
       nodeId: node.nodeId,
       category: classified2.category,
       retryAt: waiting.retryAt
     });
-    persistGraph(deps, waiting, graph);
-    return { job: persist22(deps, waiting), nextAction: "wait-retry", classified: classified2 };
+    persistGraph(deps2, waiting, graph);
+    return { job: persist22(deps2, waiting), nextAction: "wait-retry", classified: classified2 };
   }
   if (classified2.policy.clarifiable && !classified2.policy.repairable) {
-    let clarify = transition22(deps, job, "NEEDS_CLARIFICATION");
+    let clarify = transition22(deps2, job, "NEEDS_CLARIFICATION");
     const awaitingCcrIds = [...classified2.message.matchAll(CCR_ID_PATTERN)].map((hit) => hit[0]);
     const question = {
-      id: `q-${newId4(deps)}`.slice(0, 64),
+      id: `q-${newId4(deps2)}`.slice(0, 64),
       question: `Task ${node.parentTaskId} cannot proceed: ${classified2.message.slice(0, 600)} Resolve the prerequisite (or decide otherwise), then resume the job.`,
       whyItMatters: `${classified2.category} has no safe automatic response.`,
       options: [],
@@ -68619,7 +68656,7 @@ function completeExecutorDispatch(deps, jobId, outcome) {
       askedAt: at,
       round: Math.min(
         clarify.counters.clarificationRounds + 1,
-        deps.config.orchestration.clarification.maxRounds
+        deps2.config.orchestration.clarification.maxRounds
       ),
       ...awaitingCcrIds.length > 0 ? { awaitingCcrIds } : {}
     };
@@ -68628,15 +68665,15 @@ function completeExecutorDispatch(deps, jobId, outcome) {
       openQuestions: [...clarify.openQuestions, question],
       counters: { ...clarify.counters, clarificationRounds: question.round }
     };
-    clarify = record22(deps, clarify, "clarification_requested", {
+    clarify = record22(deps2, clarify, "clarification_requested", {
       nodeId: node.nodeId,
       category: classified2.category
     });
-    persistGraph(deps, clarify, graph);
-    return { job: persist22(deps, clarify), nextAction: "clarify", classified: classified2 };
+    persistGraph(deps2, clarify, graph);
+    return { job: persist22(deps2, clarify), nextAction: "clarify", classified: classified2 };
   }
   if (policy.reliability.enabled) {
-    const contextMiss = assessDispatchContextMiss(deps, {
+    const contextMiss = assessDispatchContextMiss(deps2, {
       jobId,
       nodeId: node.nodeId,
       attemptId,
@@ -68644,7 +68681,7 @@ function completeExecutorDispatch(deps, jobId, outcome) {
       ...outcome.reliability?.workerReportedText !== void 0 ? { workerReportedText: outcome.reliability.workerReportedText } : {},
       ...outcome.reliability?.directModelRequestedRepository === true ? { directModelRequestedRepository: true } : {}
     });
-    const governed = governFailedAttempt(reliabilityDepsFor(deps, jobId), {
+    const governed = governFailedAttempt(reliabilityDepsFor(deps2, jobId), {
       jobId,
       nodeId: node.nodeId,
       taskId: node.parentTaskId,
@@ -68653,7 +68690,7 @@ function completeExecutorDispatch(deps, jobId, outcome) {
       classified: classified2,
       evaluation,
       lane,
-      executionMode: readTaskAttempt(deps.workspace, jobId, attemptId)?.executionMode ?? null,
+      executionMode: readTaskAttempt(deps2.workspace, jobId, attemptId)?.executionMode ?? null,
       planRevision: node.planRevision,
       diffFingerprint: observation2.diffFingerprint ?? null,
       ...outcome.reliability?.harnessFailureKind !== void 0 ? { harnessFailureKind: outcome.reliability.harnessFailureKind } : {},
@@ -68677,7 +68714,7 @@ function completeExecutorDispatch(deps, jobId, outcome) {
       ...outcome.context.runId !== void 0 ? { evidenceRefs: [outcome.context.runId] } : {}
     });
     if (contextMiss.signals.length > 0) {
-      recordJobEvent(deps, jobId, "context_insufficient", {
+      recordJobEvent(deps2, jobId, "context_insufficient", {
         nodeId: node.nodeId,
         taskId: node.parentTaskId,
         attemptId,
@@ -68688,7 +68725,7 @@ function completeExecutorDispatch(deps, jobId, outcome) {
       });
     }
     if (governed.decision.action === "EXPAND_CONTEXT") {
-      applyContextExpansion(deps, {
+      applyContextExpansion(deps2, {
         jobId,
         nodeId: node.nodeId,
         taskId: node.parentTaskId,
@@ -68696,13 +68733,13 @@ function completeExecutorDispatch(deps, jobId, outcome) {
         at
       });
     } else if (contextMiss.offer.exhausted) {
-      recordJobEvent(deps, jobId, "context_expansion_exhausted", {
+      recordJobEvent(deps2, jobId, "context_expansion_exhausted", {
         nodeId: node.nodeId,
         taskId: node.parentTaskId,
         reason: contextMiss.offer.reason.slice(0, 500)
       });
     }
-    return applyRecoveryDecision(deps, {
+    return applyRecoveryDecision(deps2, {
       job,
       graph,
       node: requireNode(graph, node.nodeId),
@@ -68732,9 +68769,9 @@ function completeExecutorDispatch(deps, jobId, outcome) {
         ["The implementation changes and all failure evidence are preserved."]
       );
     }
-    const diagnosing = transition22(deps, job, "DIAGNOSING");
-    persistGraph(deps, diagnosing, graph);
-    return { job: persist22(deps, diagnosing), nextAction: "diagnose", classified: classified2 };
+    const diagnosing = transition22(deps2, job, "DIAGNOSING");
+    persistGraph(deps2, diagnosing, graph);
+    return { job: persist22(deps2, diagnosing), nextAction: "diagnose", classified: classified2 };
   }
   return blockWith(
     classified2.category,
@@ -68743,16 +68780,16 @@ function completeExecutorDispatch(deps, jobId, outcome) {
     classified2.policy.remediation
   );
 }
-function applyDiagnosis(deps, jobId, result) {
-  assertJobsEnabled(deps);
-  let job = requireJobState(deps.workspace, jobId);
-  let graph = requireGraphRevision(deps.workspace, jobId, job.graphRevision);
+function applyDiagnosis(deps2, jobId, result) {
+  assertJobsEnabled(deps2);
+  let job = requireJobState(deps2.workspace, jobId);
+  let graph = requireGraphRevision(deps2.workspace, jobId, job.graphRevision);
   const node = requireNode(graph, result.context.nodeId);
-  const at = now4(deps).toISOString();
+  const at = now4(deps2).toISOString();
   if (job.status !== "DIAGNOSING") {
     throw new OrchestrationError("SBO027", `A diagnosis applies only while DIAGNOSING (job is ${job.status}).`);
   }
-  ({ job, graph } = appendAttempt(deps, job, graph, result.context, "succeeded"));
+  ({ job, graph } = appendAttempt(deps2, job, graph, result.context, "succeeded"));
   graph = withNode(graph, {
     ...requireNode(graph, node.nodeId),
     latestDiagnosis: {
@@ -68763,18 +68800,18 @@ function applyDiagnosis(deps, jobId, result) {
       ...result.context.agentResultRef !== void 0 ? { agentResultRef: result.context.agentResultRef } : {}
     }
   });
-  job = record22(deps, job, "diagnosis_completed", {
+  job = record22(deps2, job, "diagnosis_completed", {
     nodeId: node.nodeId,
     category: result.category,
     planValidity: result.planValidity,
     recommendedAction: result.recommendedAction
   });
-  const pending = pendingRecoveryDecision(deps, jobId, node.nodeId);
+  const pending = pendingRecoveryDecision(deps2, jobId, node.nodeId);
   if (pending !== void 0) {
     const replanBudgetForCaution = requireNode(graph, node.nodeId).replans < job.budgets.maxReplansPerTask && job.counters.jobReplans < job.budgets.maxJobReplans;
     const narrowsToReplan = pending.action === "REPAIR" && replanBudgetForCaution && (result.planValidity === "INVALID" || result.recommendedAction === "REPLAN");
     const effective = narrowsToReplan ? "REPLAN" : pending.action;
-    job = record22(deps, job, "recovery_decided", {
+    job = record22(deps2, job, "recovery_decided", {
       nodeId: node.nodeId,
       decisionId: pending.decisionId,
       action: effective,
@@ -68785,16 +68822,16 @@ function applyDiagnosis(deps, jobId, result) {
       narrowedByDiagnosis: narrowsToReplan,
       applied: true
     });
-    markRecoveryDecisionApplied(deps.workspace, jobId, pending.decisionId);
+    markRecoveryDecisionApplied(deps2.workspace, jobId, pending.decisionId);
     if (effective === "REPLAN") {
-      job = transition22(deps, job, "REPLANNING");
-      persistGraph(deps, job, graph);
-      return { job: persist22(deps, job), applied: "replan" };
+      job = transition22(deps2, job, "REPLANNING");
+      persistGraph(deps2, job, graph);
+      return { job: persist22(deps2, job), applied: "replan" };
     }
     if (effective === "REPAIR") {
-      job = transition22(deps, job, "READY");
-      persistGraph(deps, job, graph);
-      return { job: persist22(deps, job), applied: "repair" };
+      job = transition22(deps2, job, "READY");
+      persistGraph(deps2, job, graph);
+      return { job: persist22(deps2, job), applied: "repair" };
     }
   }
   const policyOfFailure = classifyFailure({
@@ -68805,37 +68842,37 @@ function applyDiagnosis(deps, jobId, result) {
   const repairBudgetLeft = requireNode(graph, node.nodeId).repairCycles < job.budgets.maxRepairCyclesPerTask;
   const replanBudgetLeft = requireNode(graph, node.nodeId).replans < job.budgets.maxReplansPerTask && job.counters.jobReplans < job.budgets.maxJobReplans;
   if (result.recommendedAction === "REPAIR" && policyOfFailure.repairable && result.planValidity === "VALID" && repairBudgetLeft) {
-    job = transition22(deps, job, "READY");
-    persistGraph(deps, job, graph);
-    return { job: persist22(deps, job), applied: "repair" };
+    job = transition22(deps2, job, "READY");
+    persistGraph(deps2, job, graph);
+    return { job: persist22(deps2, job), applied: "repair" };
   }
   const wantsReplan = result.recommendedAction === "REPLAN" || result.planValidity === "INVALID" || result.recommendedAction === "REPAIR" && (!repairBudgetLeft || !policyOfFailure.repairable);
   if (wantsReplan && policyOfFailure.replannable !== false && replanBudgetLeft) {
-    job = transition22(deps, job, "REPLANNING");
-    persistGraph(deps, job, graph);
-    return { job: persist22(deps, job), applied: "replan" };
+    job = transition22(deps2, job, "REPLANNING");
+    persistGraph(deps2, job, graph);
+    return { job: persist22(deps2, job), applied: "replan" };
   }
   if (result.recommendedAction === "RETRY" && policyOfFailure.retryable) {
     if (job.counters.transientRetries < job.budgets.maxTransientRetries) {
-      const delay = policyOf2(deps).retryDelayMs;
-      job = transition22(deps, job, "WAITING_RETRY");
+      const delay = policyOf2(deps2).retryDelayMs;
+      job = transition22(deps2, job, "WAITING_RETRY");
       job = {
         ...job,
-        retryAt: new Date(now4(deps).getTime() + delay).toISOString(),
+        retryAt: new Date(now4(deps2).getTime() + delay).toISOString(),
         counters: { ...job.counters, transientRetries: job.counters.transientRetries + 1 }
       };
-      job = record22(deps, job, "waiting_retry", { nodeId: node.nodeId, retryAt: job.retryAt });
-      persistGraph(deps, job, graph);
-      return { job: persist22(deps, job), applied: "wait-retry" };
+      job = record22(deps2, job, "waiting_retry", { nodeId: node.nodeId, retryAt: job.retryAt });
+      persistGraph(deps2, job, graph);
+      return { job: persist22(deps2, job), applied: "wait-retry" };
     }
   }
   if (result.recommendedAction === "CLARIFY" || policyOfFailure.clarifiable) {
-    job = transition22(deps, job, "NEEDS_CLARIFICATION");
-    job = record22(deps, job, "clarification_requested", { nodeId: node.nodeId });
-    persistGraph(deps, job, graph);
-    return { job: persist22(deps, job), applied: "clarify" };
+    job = transition22(deps2, job, "NEEDS_CLARIFICATION");
+    job = record22(deps2, job, "clarification_requested", { nodeId: node.nodeId });
+    persistGraph(deps2, job, graph);
+    return { job: persist22(deps2, job), applied: "clarify" };
   }
-  job = transition22(deps, job, "BLOCKED");
+  job = transition22(deps2, job, "BLOCKED");
   job = {
     ...job,
     blocker: {
@@ -68846,14 +68883,14 @@ function applyDiagnosis(deps, jobId, result) {
       at
     }
   };
-  job = record22(deps, job, "job_blocked", { nodeId: node.nodeId, category: result.category });
-  persistGraph(deps, job, graph);
-  return { job: persist22(deps, job), applied: "blocked" };
+  job = record22(deps2, job, "job_blocked", { nodeId: node.nodeId, category: result.category });
+  persistGraph(deps2, job, graph);
+  return { job: persist22(deps2, job), applied: "blocked" };
 }
-function supersedeNode(deps, jobId, input) {
-  assertJobsEnabled(deps);
-  let job = requireJobState(deps.workspace, jobId);
-  const graph = requireGraphRevision(deps.workspace, jobId, job.graphRevision);
+function supersedeNode(deps2, jobId, input) {
+  assertJobsEnabled(deps2);
+  let job = requireJobState(deps2.workspace, jobId);
+  const graph = requireGraphRevision(deps2.workspace, jobId, job.graphRevision);
   const node = requireNode(graph, input.nodeId);
   if (node.replans >= job.budgets.maxReplansPerTask || job.counters.jobReplans >= job.budgets.maxJobReplans) {
     throw new OrchestrationError("SBO013", "No replan budget remains; the node cannot be superseded.", {
@@ -68863,42 +68900,42 @@ function supersedeNode(deps, jobId, input) {
   const revised = reviseGraphSuperseding(graph, {
     supersedeNodeId: input.nodeId,
     replanReason: input.reason,
-    createdAt: now4(deps).toISOString()
+    createdAt: now4(deps2).toISOString()
   });
-  storeGraphRevision(deps.workspace, jobId, revised);
+  storeGraphRevision(deps2.workspace, jobId, revised);
   job = {
     ...job,
     graphRevision: revised.revision,
     currentNodeId: node.supersededBy,
     counters: { ...job.counters, jobReplans: job.counters.jobReplans + 1 }
   };
-  job = record22(deps, job, "graph_revised", {
+  job = record22(deps2, job, "graph_revised", {
     revision: revised.revision,
     supersedes: graph.revision,
     supersededNode: input.nodeId,
     reason: input.reason.slice(0, 500)
   });
-  job = record22(deps, job, "node_superseded", { nodeId: input.nodeId });
-  if (job.status === "REPLANNING") job = transition22(deps, job, "READY");
-  return { job: persist22(deps, job), graph: revised };
+  job = record22(deps2, job, "node_superseded", { nodeId: input.nodeId });
+  if (job.status === "REPLANNING") job = transition22(deps2, job, "READY");
+  return { job: persist22(deps2, job), graph: revised };
 }
-function askClarification(deps, jobId, questions) {
-  assertJobsEnabled(deps);
-  let job = requireJobState(deps.workspace, jobId);
+function askClarification(deps2, jobId, questions) {
+  assertJobsEnabled(deps2);
+  let job = requireJobState(deps2.workspace, jobId);
   if (isFinalJobStatus(job.status)) {
     throw new OrchestrationError("SBO026", `Job is ${job.status}; no questions can be asked.`);
   }
-  const maxRounds = deps.config.orchestration.clarification.maxRounds;
+  const maxRounds = deps2.config.orchestration.clarification.maxRounds;
   if (job.counters.clarificationRounds >= maxRounds) {
     throw new OrchestrationError("SBO008", `All ${maxRounds} clarification rounds are used.`, {
       failureCategory: "BUDGET_EXHAUSTED"
     });
   }
-  const at = now4(deps).toISOString();
+  const at = now4(deps2).toISOString();
   const round2 = job.counters.clarificationRounds + 1;
-  const added = questions.slice(0, deps.config.orchestration.clarification.maxQuestionsPerRound).map(
+  const added = questions.slice(0, deps2.config.orchestration.clarification.maxQuestionsPerRound).map(
     (candidate) => ({
-      id: `q-${newId4(deps)}`.slice(0, 64),
+      id: `q-${newId4(deps2)}`.slice(0, 64),
       question: candidate.question.slice(0, 1e3),
       whyItMatters: candidate.whyItMatters.slice(0, 1e3),
       options: [],
@@ -68912,16 +68949,16 @@ function askClarification(deps, jobId, questions) {
     openQuestions: [...job.openQuestions, ...added],
     counters: { ...job.counters, clarificationRounds: round2 }
   };
-  if (job.status !== "NEEDS_CLARIFICATION") job = transition22(deps, job, "NEEDS_CLARIFICATION");
-  job = record22(deps, job, "clarification_requested", {
+  if (job.status !== "NEEDS_CLARIFICATION") job = transition22(deps2, job, "NEEDS_CLARIFICATION");
+  job = record22(deps2, job, "clarification_requested", {
     round: round2,
     questionIds: added.map((question) => question.id)
   });
-  return persist22(deps, job);
+  return persist22(deps2, job);
 }
 var CCR_ID_PATTERN = /\bCCR-\d{3,}\b/g;
-function reconcileDecidedCcrs(deps, jobId, decided2) {
-  let job = requireJobState(deps.workspace, jobId);
+function reconcileDecidedCcrs(deps2, jobId, decided2) {
+  let job = requireJobState(deps2.workspace, jobId);
   if (job.status !== "NEEDS_CLARIFICATION") return { job, closed: [] };
   const answered = job.openQuestions.filter((question) => {
     const waiting = question.awaitingCcrIds ?? [...question.question.matchAll(CCR_ID_PATTERN)].map((h2) => h2[0]);
@@ -68930,22 +68967,22 @@ function reconcileDecidedCcrs(deps, jobId, decided2) {
   if (answered.length === 0) return { job, closed: [] };
   const closed = answered.map((question) => question.id);
   const remaining = job.openQuestions.filter((question) => !closed.includes(question.id));
-  job = persist22(deps, { ...job, openQuestions: remaining });
-  job = record22(deps, job, "clarification_resolved", {
+  job = persist22(deps2, { ...job, openQuestions: remaining });
+  job = record22(deps2, job, "clarification_resolved", {
     questionIds: closed,
     by: "ccr-decision"
   });
-  if (remaining.length === 0) job = transition22(deps, job, "READY");
-  return { job: persist22(deps, job), closed };
+  if (remaining.length === 0) job = transition22(deps2, job, "READY");
+  return { job: persist22(deps2, job), closed };
 }
 var UNIT_ID_PATTERN = /\bwu-[A-Za-z0-9][\w-]*\b/g;
-function reviveUnitsNamedBy(deps, job, question, answer) {
+function reviveUnitsNamedBy(deps2, job, question, answer) {
   const named = [...question.matchAll(UNIT_ID_PATTERN)].map((hit) => hit[0]);
   if (named.length === 0) return;
-  const graph = job.graphRevision > 0 ? readGraphRevision(deps.workspace, job.jobId, job.graphRevision) : void 0;
+  const graph = job.graphRevision > 0 ? readGraphRevision(deps2.workspace, job.jobId, job.graphRevision) : void 0;
   if (graph === void 0) return;
   for (const node of graph.nodes) {
-    const workGraph = readLatestWorkGraph(deps.workspace, job.jobId, node.nodeId);
+    const workGraph = readLatestWorkGraph(deps2.workspace, job.jobId, node.nodeId);
     if (workGraph === void 0) continue;
     let changed = false;
     const units = workGraph.units.map((unit) => {
@@ -68962,23 +68999,23 @@ function reviveUnitsNamedBy(deps, job, question, answer) {
       };
     });
     if (changed) {
-      storeWorkGraph(deps.workspace, job.jobId, { ...workGraph, units });
+      storeWorkGraph(deps2.workspace, job.jobId, { ...workGraph, units });
     }
   }
 }
-function answerClarification(deps, jobId, answers) {
-  assertJobsEnabled(deps);
-  let job = requireJobState(deps.workspace, jobId);
+function answerClarification(deps2, jobId, answers) {
+  assertJobsEnabled(deps2);
+  let job = requireJobState(deps2.workspace, jobId);
   if (job.status !== "NEEDS_CLARIFICATION") {
     throw new OrchestrationError("SBO027", `Answers apply only while NEEDS_CLARIFICATION (job is ${job.status}).`);
   }
-  const at = now4(deps).toISOString();
+  const at = now4(deps2).toISOString();
   const answered = /* @__PURE__ */ new Set();
   const decisions = answers.filter((answer) => job.openQuestions.some((question) => question.id === answer.questionId)).map((answer) => {
     answered.add(answer.questionId);
     const question = job.openQuestions.find((candidate) => candidate.id === answer.questionId);
     return {
-      id: `d-${newId4(deps)}`.slice(0, 64),
+      id: `d-${newId4(deps2)}`.slice(0, 64),
       questionId: answer.questionId,
       question: question?.question ?? "",
       answer: answer.answer.slice(0, 2e3),
@@ -68995,41 +69032,41 @@ function answerClarification(deps, jobId, answers) {
     openQuestions: job.openQuestions.filter((question) => !answered.has(question.id))
   };
   for (const decision of decisions) {
-    reviveUnitsNamedBy(deps, job, decision.question, decision.answer);
+    reviveUnitsNamedBy(deps2, job, decision.question, decision.answer);
   }
-  job = record22(deps, job, "clarification_resolved", {
+  job = record22(deps2, job, "clarification_resolved", {
     decisionIds: decisions.map((decision) => decision.id),
     remaining: job.openQuestions.length
   });
   if (job.openQuestions.length === 0) {
-    job = transition22(deps, job, "READY");
+    job = transition22(deps2, job, "READY");
   }
-  return persist22(deps, job);
+  return persist22(deps2, job);
 }
-function cancelJob(deps, jobId, reason) {
-  let job = requireJobState(deps.workspace, jobId);
+function cancelJob(deps2, jobId, reason) {
+  let job = requireJobState(deps2.workspace, jobId);
   if (isFinalJobStatus(job.status)) return job;
-  const at = now4(deps).toISOString();
-  job = transition22(deps, job, "CANCELLED");
-  job = record22(deps, job, "job_cancelled", { reason: reason.slice(0, 500) });
-  return persist22(deps, { ...job, finalizedAt: at, finalOutcome: "CANCELLED" });
+  const at = now4(deps2).toISOString();
+  job = transition22(deps2, job, "CANCELLED");
+  job = record22(deps2, job, "job_cancelled", { reason: reason.slice(0, 500) });
+  return persist22(deps2, { ...job, finalizedAt: at, finalOutcome: "CANCELLED" });
 }
 var TRANSIENT_UNIT_FAILURES = ["TRANSIENT_TOOL", "TRANSIENT_TRANSPORT"];
-function selfHealOnResume(deps, jobId) {
+function selfHealOnResume(deps2, jobId) {
   const repairs = [];
-  let job = requireJobState(deps.workspace, jobId);
-  const lock = diagnoseInteractiveLock(deps.workspace, () => now4(deps));
+  let job = requireJobState(deps2.workspace, jobId);
+  const lock = diagnoseInteractiveLock(deps2.workspace, () => now4(deps2));
   if (lock.state === "stale" && lock.safeToRemove) {
-    removeDiagnosedLock(deps.workspace, () => now4(deps));
+    removeDiagnosedLock(deps2.workspace, () => now4(deps2));
     repairs.push({
       code: "STALE_RUN_LOCK_REMOVED",
       detail: lock.findings.join(" ").slice(0, 280)
     });
     if (job.humanWaitSince === void 0) {
       const diedAt = Date.parse(job.updatedAt);
-      const idle = Number.isNaN(diedAt) ? 0 : Math.max(0, now4(deps).getTime() - diedAt);
+      const idle = Number.isNaN(diedAt) ? 0 : Math.max(0, now4(deps2).getTime() - diedAt);
       if (idle > 0) {
-        job = persist22(deps, {
+        job = persist22(deps2, {
           ...job,
           counters: { ...job.counters, deadIdleMs: (job.counters.deadIdleMs ?? 0) + idle }
         });
@@ -69042,9 +69079,9 @@ function selfHealOnResume(deps, jobId) {
   }
   if (job.humanWaitSince !== void 0) {
     const since = Date.parse(job.humanWaitSince);
-    const banked = Number.isNaN(since) ? 0 : Math.max(0, now4(deps).getTime() - since);
+    const banked = Number.isNaN(since) ? 0 : Math.max(0, now4(deps2).getTime() - since);
     const { humanWaitSince: _banked, ...rest } = job;
-    job = persist22(deps, {
+    job = persist22(deps2, {
       ...rest,
       counters: { ...job.counters, humanWaitMs: (job.counters.humanWaitMs ?? 0) + banked }
     });
@@ -69054,29 +69091,29 @@ function selfHealOnResume(deps, jobId) {
     });
   }
   if (job.status === "BLOCKED" && job.blocker?.category === "BUDGET_EXHAUSTED") {
-    const worked = workedMsOf(job, now4(deps).getTime());
+    const worked = workedMsOf(job, now4(deps2).getTime());
     const stillOver = worked >= job.budgets.maxWallClockMs || job.counters.agentRuns >= job.budgets.maxAgentRuns;
     if (!stillOver) {
       const { blocker: _stale, ...rest } = job;
-      job = persist22(deps, rest);
-      job = transition22(deps, job, "READY");
-      job = persist22(deps, job);
+      job = persist22(deps2, rest);
+      job = transition22(deps2, job, "READY");
+      job = persist22(deps2, job);
       repairs.push({
         code: "BUDGET_VERDICT_RECOMPUTED",
         detail: `BUDGET_EXHAUSTED no longer holds: worked ${Math.round(worked / 6e4)}m of ${Math.round(job.budgets.maxWallClockMs / 6e4)}m, ${job.counters.agentRuns} of ${job.budgets.maxAgentRuns} dispatches`
       });
     }
   }
-  const graph = job.graphRevision > 0 ? readGraphRevision(deps.workspace, jobId, job.graphRevision) : void 0;
+  const graph = job.graphRevision > 0 ? readGraphRevision(deps2.workspace, jobId, job.graphRevision) : void 0;
   if (graph !== void 0) {
     for (const node of graph.nodes) {
-      const workGraph = readLatestWorkGraph(deps.workspace, jobId, node.nodeId);
+      const workGraph = readLatestWorkGraph(deps2.workspace, jobId, node.nodeId);
       if (workGraph === void 0) continue;
       const revived = workGraph.units.filter(
         (unit) => unit.status === "FAILED" && TRANSIENT_UNIT_FAILURES.includes(unit.latestFailure?.category ?? "")
       );
       if (revived.length === 0) continue;
-      storeWorkGraph(deps.workspace, jobId, {
+      storeWorkGraph(deps2.workspace, jobId, {
         ...workGraph,
         units: workGraph.units.map((unit) => {
           if (!revived.includes(unit)) return unit;
@@ -69091,10 +69128,10 @@ function selfHealOnResume(deps, jobId) {
     }
   }
   if (repairs.length > 0) {
-    job = requireJobState(deps.workspace, jobId);
+    job = requireJobState(deps2.workspace, jobId);
     job = persist22(
-      deps,
-      record22(deps, job, "self_heal_applied", {
+      deps2,
+      record22(deps2, job, "self_heal_applied", {
         repairs: repairs.map((repair) => ({ code: repair.code, detail: repair.detail.slice(0, 200) }))
       })
     );
@@ -69110,8 +69147,8 @@ var OPERATOR_FIXABLE_BLOCKER_CATEGORIES = [
   "TRANSIENT_TOOL",
   "INVALID_CONFIGURATION"
 ];
-function retryBlockedJob(deps, jobId, input) {
-  let job = requireJobState(deps.workspace, jobId);
+function retryBlockedJob(deps2, jobId, input) {
+  let job = requireJobState(deps2.workspace, jobId);
   if (job.status !== "BLOCKED") {
     return { job, cleared: false, reason: `the job is ${job.status}, not BLOCKED` };
   }
@@ -69126,83 +69163,83 @@ function retryBlockedJob(deps, jobId, input) {
       reason: `the blocker is ${category}, which is not something fixing the machine resolves`
     };
   }
-  job = transition22(deps, job, "READY");
+  job = transition22(deps2, job, "READY");
   const { blocker: _cleared, ...rest } = job;
-  job = persist22(deps, rest);
-  job = record22(deps, job, "job_unblocked", {
+  job = persist22(deps2, rest);
+  job = record22(deps2, job, "job_unblocked", {
     category,
     code: job.blocker?.code ?? null,
     reason: input.reason.slice(0, 500)
   });
-  return { job: persist22(deps, job), cleared: true };
+  return { job: persist22(deps2, job), cleared: true };
 }
-function blockJob(deps, jobId, input) {
-  let job = requireJobState(deps.workspace, jobId);
+function blockJob(deps2, jobId, input) {
+  let job = requireJobState(deps2.workspace, jobId);
   if (job.status === "BLOCKED") return job;
-  const at = now4(deps).toISOString();
-  job = transition22(deps, job, "BLOCKED");
-  job = record22(deps, job, input.category === "BUDGET_EXHAUSTED" ? "budget_exhausted" : "job_blocked", {
+  const at = now4(deps2).toISOString();
+  job = transition22(deps2, job, "BLOCKED");
+  job = record22(deps2, job, input.category === "BUDGET_EXHAUSTED" ? "budget_exhausted" : "job_blocked", {
     code: input.code,
     reason: input.message.slice(0, 500)
   });
-  return persist22(deps, {
+  return persist22(deps2, {
     ...job,
     blocker: { category: input.category, code: input.code, message: input.message, remediation: input.remediation, at }
   });
 }
-function clearRetryWait(deps, jobId, at) {
-  let job = requireJobState(deps.workspace, jobId);
+function clearRetryWait(deps2, jobId, at) {
+  let job = requireJobState(deps2.workspace, jobId);
   if (job.status !== "WAITING_RETRY") return job;
-  const instant = at ?? now4(deps);
+  const instant = at ?? now4(deps2);
   if (job.retryAt !== void 0 && Date.parse(job.retryAt) > instant.getTime()) return job;
-  job = transition22(deps, job, "READY");
+  job = transition22(deps2, job, "READY");
   delete job.retryAt;
-  return persist22(deps, job);
+  return persist22(deps2, job);
 }
-function promoteNodeForQuotaOvertake(deps, jobId, input) {
-  assertJobsEnabled(deps);
-  let job = requireJobState(deps.workspace, jobId);
-  let graph = requireGraphRevision(deps.workspace, jobId, job.graphRevision);
+function promoteNodeForQuotaOvertake(deps2, jobId, input) {
+  assertJobsEnabled(deps2);
+  let job = requireJobState(deps2.workspace, jobId);
+  let graph = requireGraphRevision(deps2.workspace, jobId, job.graphRevision);
   const node = requireNode(graph, input.nodeId);
   if (node.status !== "PENDING") {
     return job;
   }
   graph = transitionNode(graph, node.nodeId, "READY");
-  job = record22(deps, job, "node_ready", {
+  job = record22(deps2, job, "node_ready", {
     nodeId: node.nodeId,
     taskId: node.parentTaskId,
     quotaOvertake: true,
     detail: input.detail.slice(0, 300)
   });
-  persistGraph(deps, job, graph);
-  return persist22(deps, job);
+  persistGraph(deps2, job, graph);
+  return persist22(deps2, job);
 }
-function deferJobForQuota(deps, jobId, input) {
-  assertJobsEnabled(deps);
-  let job = requireJobState(deps.workspace, jobId);
-  const at = now4(deps);
+function deferJobForQuota(deps2, jobId, input) {
+  assertJobsEnabled(deps2);
+  let job = requireJobState(deps2.workspace, jobId);
+  const at = now4(deps2);
   const retryAt = input.until !== null && Date.parse(input.until) > at.getTime() ? input.until : new Date(at.getTime() + Math.max(1e3, input.pollMs)).toISOString();
   if (job.status !== "WAITING_RETRY") {
-    job = transition22(deps, job, "WAITING_RETRY");
+    job = transition22(deps2, job, "WAITING_RETRY");
   }
   job = { ...job, retryAt };
-  job = record22(deps, job, "task_deferred", {
+  job = record22(deps2, job, "task_deferred", {
     nodeId: input.nodeId,
     taskId: input.taskId,
     reasonCode: input.reasonCode.slice(0, 100),
     retryAt,
     detail: input.detail.slice(0, 500)
   });
-  return persist22(deps, job);
+  return persist22(deps2, job);
 }
-function checkpointJob(deps, jobId, nextAction) {
-  let job = requireJobState(deps.workspace, jobId);
-  const graph = job.graphRevision > 0 ? readGraphRevision(deps.workspace, jobId, job.graphRevision) : void 0;
+function checkpointJob(deps2, jobId, nextAction) {
+  let job = requireJobState(deps2.workspace, jobId);
+  const graph = job.graphRevision > 0 ? readGraphRevision(deps2.workspace, jobId, job.graphRevision) : void 0;
   const nodes = graph?.nodes ?? [];
   const checkpoint = jobCheckpointSchema.parse({
     schemaVersion: JOB_CHECKPOINT_SCHEMA_VERSION,
     jobId,
-    createdAt: now4(deps).toISOString(),
+    createdAt: now4(deps2).toISOString(),
     specName: job.specName,
     status: job.status,
     graphRevision: job.graphRevision,
@@ -69215,21 +69252,21 @@ function checkpointJob(deps, jobId, nextAction) {
     ...job.blocker !== void 0 ? { blocker: job.blocker } : {},
     nextAction: nextAction.slice(0, 2e3)
   });
-  writeJobCheckpoint(deps.workspace, jobId, checkpoint);
-  job = record22(deps, job, "checkpoint_created", { status: job.status });
-  persist22(deps, job);
+  writeJobCheckpoint(deps2.workspace, jobId, checkpoint);
+  job = record22(deps2, job, "checkpoint_created", { status: job.status });
+  persist22(deps2, job);
   return checkpoint;
 }
-async function resumeJob(deps, jobId) {
-  assertJobsEnabled(deps);
-  let job = requireJobState(deps.workspace, jobId);
+async function resumeJob(deps2, jobId) {
+  assertJobsEnabled(deps2);
+  let job = requireJobState(deps2.workspace, jobId);
   const warnings = [];
   const reconciled = [];
-  const checkpoint = readJobCheckpoint(deps.workspace, jobId);
+  const checkpoint = readJobCheckpoint(deps2.workspace, jobId);
   if (isFinalJobStatus(job.status)) {
     return {
       job,
-      graph: job.graphRevision > 0 ? readGraphRevision(deps.workspace, jobId, job.graphRevision) : void 0,
+      graph: job.graphRevision > 0 ? readGraphRevision(deps2.workspace, jobId, job.graphRevision) : void 0,
       finalized: true,
       reconciled,
       planStale: false,
@@ -69240,14 +69277,14 @@ async function resumeJob(deps, jobId) {
       nextAction: "Create a new job for further work."
     };
   }
-  const currentFingerprint = jobPolicyFingerprint(deps.config.orchestration);
+  const currentFingerprint = jobPolicyFingerprint(deps2.config.orchestration);
   const policyChanged = currentFingerprint !== job.policyFingerprint;
   if (policyChanged) {
     warnings.push(
       "The job policy changed since this job began. The job continues under the budgets recorded at its start."
     );
   }
-  let graph = job.graphRevision > 0 ? requireGraphRevision(deps.workspace, jobId, job.graphRevision) : void 0;
+  let graph = job.graphRevision > 0 ? requireGraphRevision(deps2.workspace, jobId, job.graphRevision) : void 0;
   if (graph !== void 0) {
     for (const node of graph.nodes) {
       if (node.status === "RUNNING" || node.status === "REPAIRING") {
@@ -69258,16 +69295,16 @@ async function resumeJob(deps, jobId) {
   }
   if (job.status === "RUNNING" || job.status === "REPAIRING" || job.status === "PLANNING") {
     const interrupted = job.status;
-    job = { ...job, status: "READY", updatedAt: now4(deps).toISOString() };
+    job = { ...job, status: "READY", updatedAt: now4(deps2).toISOString() };
     reconciled.push(`job: ${interrupted} \u2192 READY (interrupted process)`);
   }
   const interruptedAttempts = reconcileInterruptedAttempts(
-    { workspace: deps.workspace, clock: deps.clock },
+    { workspace: deps2.workspace, clock: deps2.clock },
     jobId
   );
   for (const attempt of interruptedAttempts) {
     reconciled.push(`attempt ${attempt.attemptId}: RUNNING \u2192 INTERRUPTED (worker disappeared)`);
-    job = record22(deps, job, "attempt_interrupted", {
+    job = record22(deps2, job, "attempt_interrupted", {
       nodeId: attempt.nodeId,
       taskId: attempt.taskId,
       attemptId: attempt.attemptId,
@@ -69278,15 +69315,15 @@ async function resumeJob(deps, jobId) {
     job = { ...job, currentAttemptId: void 0 };
   }
   const interruptedReservations = reconcileInterruptedApiReservations(
-    deps.workspace,
+    deps2.workspace,
     jobId,
-    now4(deps)
+    now4(deps2)
   );
   for (const reservation of interruptedReservations) {
     reconciled.push(
       `api budget ${reservation.reservationId}: RESERVED \u2192 UNKNOWN ($${reservation.reservedUsd.toFixed(4)} stays charged; remote usage cannot be ruled out)`
     );
-    job = record22(deps, job, "api_budget_reconciled", {
+    job = record22(deps2, job, "api_budget_reconciled", {
       nodeId: reservation.nodeId,
       taskId: reservation.taskId,
       reservationId: reservation.reservationId,
@@ -69296,22 +69333,22 @@ async function resumeJob(deps, jobId) {
       costSource: reservation.costSource
     });
   }
-  const snapshot2 = await captureGitSnapshot(deps.workspace.rootDir, { clock: () => now4(deps) });
+  const snapshot2 = await captureGitSnapshot(deps2.workspace.rootDir, { clock: () => now4(deps2) });
   let planStale = false;
   let planStaleReasons = [];
   if (graph !== void 0 && job.currentNodeId !== void 0) {
     const node = findNode(graph, job.currentNodeId);
     if (node !== void 0 && node.planRevision > 0) {
-      const raw = readNodePlan(deps.workspace, jobId, node.nodeId, node.planRevision);
+      const raw = readNodePlan(deps2.workspace, jobId, node.nodeId, node.planRevision);
       const parsed = raw !== void 0 ? executionPlanSchema.safeParse(raw) : void 0;
       if (parsed === void 0 || !parsed.success) {
         warnings.push(`The plan for node ${node.nodeId} is missing or unreadable; a fresh plan is required.`);
         graph = withNode(graph, { ...node, planApproved: false, planRevision: 0 });
       } else {
-        const current = capturePlanBinding(deps.workspace, {
+        const current = capturePlanBinding(deps2.workspace, {
           specName: job.specName,
           taskId: node.parentTaskId,
-          policy: deps.config.orchestration,
+          policy: deps2.config.orchestration,
           gitHead: snapshot2.head
         });
         const freshness = evaluatePlanFreshness(parsed.data, current);
@@ -69321,31 +69358,31 @@ async function resumeJob(deps, jobId) {
           warnings.push("The recorded plan no longer matches the repository; it will not be executed as-is.");
           graph = withNode(graph, { ...node, planApproved: false });
           if (job.status === "READY") {
-            job = transition22(deps, job, "REPLANNING");
+            job = transition22(deps2, job, "REPLANNING");
           }
         }
       }
     }
   }
-  const lock = readInteractiveLock(deps.workspace);
+  const lock = readInteractiveLock(deps2.workspace);
   if (lock.state === "held") {
     warnings.push(
       `The repository lock is held by run ${lock.lock.runId}; recover it with \`specbridge run recover-lock\` before dispatching.`
     );
   }
-  if (graph !== void 0) persistGraph(deps, job, graph);
-  job = record22(deps, job, "job_resumed", {
+  if (graph !== void 0) persistGraph(deps2, job, graph);
+  job = record22(deps2, job, "job_resumed", {
     reconciled: reconciled.length,
     planStale,
     policyChanged
   });
   if (reconciled.length > 0 || planStale) {
-    job = record22(deps, job, "repository_reconciled", {
+    job = record22(deps2, job, "repository_reconciled", {
       ...snapshot2.head !== void 0 ? { gitHead: snapshot2.head } : {},
       planStale
     });
   }
-  job = persist22(deps, job);
+  job = persist22(deps2, job);
   return {
     job,
     graph,
@@ -69361,9 +69398,9 @@ async function resumeJob(deps, jobId) {
     nextAction: planStale ? "Produce a replacement plan: the recorded plan is stale." : "Continue with the scheduler decision."
   };
 }
-function recordObjectiveWorkerAttempt(deps, jobId, input) {
-  assertJobsEnabled(deps);
-  let job = requireJobState(deps.workspace, jobId);
+function recordObjectiveWorkerAttempt(deps2, jobId, input) {
+  assertJobsEnabled(deps2);
+  let job = requireJobState(deps2.workspace, jobId);
   if (job.counters.agentRuns >= job.budgets.maxAgentRuns) {
     throw new OrchestrationError(
       "SBO032",
@@ -69371,25 +69408,25 @@ function recordObjectiveWorkerAttempt(deps, jobId, input) {
       { failureCategory: "BUDGET_EXHAUSTED" }
     );
   }
-  let graph = requireGraphRevision(deps.workspace, jobId, job.graphRevision);
+  let graph = requireGraphRevision(deps2.workspace, jobId, job.graphRevision);
   ({ job, graph } = appendAttempt(
-    deps,
+    deps2,
     job,
     graph,
     {
       nodeId: input.nodeId,
       role: input.role,
       workerId: input.workerId,
-      startedAt: now4(deps).toISOString(),
+      startedAt: now4(deps2).toISOString(),
       ...input.usage !== void 0 ? { usage: input.usage } : {}
     },
     input.outcome === "succeeded" ? "succeeded" : input.outcome
   ));
-  persistGraph(deps, job, graph);
-  return persist22(deps, job);
+  persistGraph(deps2, job, graph);
+  return persist22(deps2, job);
 }
-function countLocalInferenceCall(deps, jobId) {
-  let job = requireJobState(deps.workspace, jobId);
+function countLocalInferenceCall(deps2, jobId) {
+  let job = requireJobState(deps2.workspace, jobId);
   if (job.counters.localInferenceCalls >= job.budgets.maxLocalInferenceCalls) {
     throw new OrchestrationError(
       "SBO032",
@@ -69401,22 +69438,22 @@ function countLocalInferenceCall(deps, jobId) {
     ...job,
     counters: { ...job.counters, localInferenceCalls: job.counters.localInferenceCalls + 1 }
   };
-  return persist22(deps, job);
+  return persist22(deps2, job);
 }
-function assessDispatchContextMiss(deps, input) {
-  const at = now4(deps).toISOString();
+function assessDispatchContextMiss(deps2, input) {
+  const at = now4(deps2).toISOString();
   const idle = {
     signals: [],
     missingPaths: [],
     offer: { available: false, nextLevel: "TOP_WORKING_SET", reason: "", exhausted: false }
   };
-  if (deps.config.orchestration.jobs.context.efficiency.strategy === "LEGACY") return idle;
+  if (deps2.config.orchestration.jobs.context.efficiency.strategy === "LEGACY") return idle;
   try {
-    const plan = listContextSelectionPlans(deps.workspace, input.jobId, {
+    const plan = listContextSelectionPlans(deps2.workspace, input.jobId, {
       nodeId: input.nodeId,
       attemptId: input.attemptId
     }).at(-1);
-    const cached2 = readRepositoryIndexCache(deps.workspace);
+    const cached2 = readRepositoryIndexCache(deps2.workspace);
     const index = cached2 === void 0 ? void 0 : new RepositoryContextIndex(cached2);
     const miss = assessContextMiss({
       plan,
@@ -69426,30 +69463,30 @@ function assessDispatchContextMiss(deps, input) {
       ...input.directModelRequestedRepository === true ? { directModelRequestedRepository: true } : {}
     });
     if (miss.signals.length === 0) return idle;
-    const state = readContextExpansionState(deps.workspace, input.jobId, input.nodeId) ?? initialExpansionState({ taskId: plan?.taskId ?? input.nodeId, nodeId: input.nodeId, now: at });
+    const state = readContextExpansionState(deps2.workspace, input.jobId, input.nodeId) ?? initialExpansionState({ taskId: plan?.taskId ?? input.nodeId, nodeId: input.nodeId, now: at });
     return {
       signals: miss.signals,
       missingPaths: miss.missingPaths,
-      offer: offerContextExpansion({ config: deps.config, state, signals: miss.signals })
+      offer: offerContextExpansion({ config: deps2.config, state, signals: miss.signals })
     };
   } catch {
     return idle;
   }
 }
-function applyContextExpansion(deps, input) {
+function applyContextExpansion(deps2, input) {
   try {
-    const state = readContextExpansionState(deps.workspace, input.jobId, input.nodeId) ?? initialExpansionState({ taskId: input.taskId, nodeId: input.nodeId, now: input.at });
+    const state = readContextExpansionState(deps2.workspace, input.jobId, input.nodeId) ?? initialExpansionState({ taskId: input.taskId, nodeId: input.nodeId, now: input.at });
     const signals2 = input.signals;
     const decision = planContextExpansion({
-      strategy: deps.config.orchestration.jobs.context.efficiency.strategy,
-      policy: expansionPolicyFrom(deps.config),
+      strategy: deps2.config.orchestration.jobs.context.efficiency.strategy,
+      policy: expansionPolicyFrom(deps2.config),
       state,
       signals: signals2
     });
     if (!decision.expand) return;
     const next = applyExpansion(state, decision, { signals: signals2, now: input.at });
-    writeContextExpansionState(deps.workspace, input.jobId, input.nodeId, next);
-    recordJobEvent(deps, input.jobId, "context_expanded", {
+    writeContextExpansionState(deps2.workspace, input.jobId, input.nodeId, next);
+    recordJobEvent(deps2, input.jobId, "context_expanded", {
       nodeId: input.nodeId,
       taskId: input.taskId,
       level: next.level,
@@ -69459,10 +69496,10 @@ function applyContextExpansion(deps, input) {
   } catch {
   }
 }
-function enterResourceWait(deps, jobId, input) {
-  const previous = requireJobState(deps.workspace, jobId);
-  const wait = buildWait(deps, previous, input);
-  return applyJobTransition(deps, jobId, {
+function enterResourceWait(deps2, jobId, input) {
+  const previous = requireJobState(deps2.workspace, jobId);
+  const wait = buildWait(deps2, previous, input);
+  return applyJobTransition(deps2, jobId, {
     to: "WAITING_RESOURCE",
     event: "resource_wait_started",
     payload: {
@@ -69478,10 +69515,10 @@ function enterResourceWait(deps, jobId, input) {
     }
   });
 }
-function enterProviderRecovery(deps, jobId, input) {
-  const previous = requireJobState(deps.workspace, jobId);
-  const wait = buildWait(deps, previous, input);
-  return applyJobTransition(deps, jobId, {
+function enterProviderRecovery(deps2, jobId, input) {
+  const previous = requireJobState(deps2.workspace, jobId);
+  const wait = buildWait(deps2, previous, input);
+  return applyJobTransition(deps2, jobId, {
     to: "RECOVERING_PROVIDER",
     event: "provider_recovery_started",
     payload: { kind: input.kind, detail: input.detail.slice(0, 300), attempt: wait.recoveryAttempts },
@@ -69491,32 +69528,32 @@ function enterProviderRecovery(deps, jobId, input) {
     }
   });
 }
-function enterToolchainRepair(deps, jobId, input) {
-  const previous = requireJobState(deps.workspace, jobId);
-  return applyJobTransition(deps, jobId, {
+function enterToolchainRepair(deps2, jobId, input) {
+  const previous = requireJobState(deps2.workspace, jobId);
+  return applyJobTransition(deps2, jobId, {
     to: "REPAIRING_TOOLCHAIN",
     event: "toolchain_repair_started",
     payload: { kind: input.kind, detail: input.detail.slice(0, 300) },
     patch: {
-      operationalWait: buildWait(deps, previous, input),
+      operationalWait: buildWait(deps2, previous, input),
       autonomyCounters: bump(previous, "toolchainRepairs")
     }
   });
 }
-function enterEnvironmentRepair(deps, jobId, input) {
-  const previous = requireJobState(deps.workspace, jobId);
-  return applyJobTransition(deps, jobId, {
+function enterEnvironmentRepair(deps2, jobId, input) {
+  const previous = requireJobState(deps2.workspace, jobId);
+  return applyJobTransition(deps2, jobId, {
     to: "REPAIRING_ENVIRONMENT",
     event: "environment_failed",
     payload: { kind: input.kind, detail: input.detail.slice(0, 300) },
     patch: {
-      operationalWait: buildWait(deps, previous, input),
+      operationalWait: buildWait(deps2, previous, input),
       autonomyCounters: bump(previous, "environmentRepairs")
     }
   });
 }
-function clearOperationalState(deps, jobId, input) {
-  const job = requireJobState(deps.workspace, jobId);
+function clearOperationalState(deps2, jobId, input) {
+  const job = requireJobState(deps2.workspace, jobId);
   if (!isOperationalJobStatus(job.status)) {
     throw new OrchestrationError(
       "SBO027",
@@ -69525,7 +69562,7 @@ function clearOperationalState(deps, jobId, input) {
     );
   }
   const event = eventForOperationalExit(job.status);
-  return applyJobTransition(deps, jobId, {
+  return applyJobTransition(deps2, jobId, {
     to: input.to ?? "READY",
     event,
     payload: {
@@ -69553,8 +69590,8 @@ function eventForOperationalExit(status) {
       return "resource_wait_ended";
   }
 }
-function enterQualifying(deps, jobId, input) {
-  return applyJobTransition(deps, jobId, {
+function enterQualifying(deps2, jobId, input) {
+  return applyJobTransition(deps2, jobId, {
     to: "QUALIFYING",
     event: "closure_audit_completed",
     payload: {
@@ -69564,10 +69601,10 @@ function enterQualifying(deps, jobId, input) {
     patch: { closurePhase: input.phase, operationalWait: void 0 }
   });
 }
-function escalateAuthority(deps, jobId, input) {
-  const job = requireJobState(deps.workspace, jobId);
+function escalateAuthority(deps2, jobId, input) {
+  const job = requireJobState(deps2.workspace, jobId);
   if (job.authorityRequest !== void 0 && job.authorityRequest.resolvedAt === void 0) {
-    return job.status === "NEEDS_AUTHORITY" ? job : applyJobTransition(deps, jobId, {
+    return job.status === "NEEDS_AUTHORITY" ? job : applyJobTransition(deps2, jobId, {
       to: "NEEDS_AUTHORITY",
       event: "authority_escalated",
       payload: { surface: job.authorityRequest.surface, existing: true }
@@ -69575,7 +69612,7 @@ function escalateAuthority(deps, jobId, input) {
   }
   const request = authorityRequestSchema.parse({
     requestId: `auth-${Date.now().toString(36)}-${job.counters.escalations + 1}`,
-    at: new Date(deps.clock !== void 0 ? deps.clock().getTime() : Date.now()).toISOString(),
+    at: new Date(deps2.clock !== void 0 ? deps2.clock().getTime() : Date.now()).toISOString(),
     surface: input.surface,
     reason: input.reason,
     question: input.question.slice(0, 2e3),
@@ -69585,7 +69622,7 @@ function escalateAuthority(deps, jobId, input) {
     options: [...input.options ?? []].slice(0, 10),
     observedSignals: [...input.observedSignals ?? []].slice(0, 20)
   });
-  return applyJobTransition(deps, jobId, {
+  return applyJobTransition(deps2, jobId, {
     to: "NEEDS_AUTHORITY",
     event: "authority_escalated",
     payload: { surface: request.surface, reason: request.reason, requestId: request.requestId },
@@ -69596,8 +69633,8 @@ function escalateAuthority(deps, jobId, input) {
     }
   });
 }
-function buildWait(deps, job, input) {
-  const at = new Date(deps.clock !== void 0 ? deps.clock().getTime() : Date.now()).toISOString();
+function buildWait(deps2, job, input) {
+  const at = new Date(deps2.clock !== void 0 ? deps2.clock().getTime() : Date.now()).toISOString();
   const existing = job.operationalWait !== void 0 && job.operationalWait.kind === input.kind ? job.operationalWait : void 0;
   return operationalWaitSchema.parse({
     kind: input.kind,
@@ -69625,9 +69662,9 @@ function bump(job, key) {
   const current = counters[key];
   return { ...counters, [key]: (typeof current === "number" ? current : 0) + 1 };
 }
-function countAutonomyEvent(deps, jobId, key, event, payload = {}) {
-  const job = requireJobState(deps.workspace, jobId);
-  return applyJobTransition(deps, jobId, {
+function countAutonomyEvent(deps2, jobId, key, event, payload = {}) {
+  const job = requireJobState(deps2.workspace, jobId);
+  return applyJobTransition(deps2, jobId, {
     to: job.status,
     event,
     payload,
@@ -72178,31 +72215,31 @@ async function prepareUnitAttempt(context, graph, unitId) {
   for (const dependencyId of unit.dependsOn) {
     const dependency = findUnit(graph, dependencyId);
     if (dependency === void 0) continue;
-    const resolved = dependency.status === "SUPERSEDED" && dependency.supersededBy !== void 0 ? findUnit(graph, dependency.supersededBy) : dependency;
-    if (resolved === void 0) continue;
+    const resolved2 = dependency.status === "SUPERSEDED" && dependency.supersededBy !== void 0 ? findUnit(graph, dependency.supersededBy) : dependency;
+    if (resolved2 === void 0) continue;
     const candidate = readCandidate(
       input.workspace,
       input.jobId,
       input.node.nodeId,
-      resolved.workUnitId,
-      Math.max(1, resolved.attempt)
+      resolved2.workUnitId,
+      Math.max(1, resolved2.attempt)
     );
     if (candidate !== void 0) {
       workEvidence.push(
-        `${resolved.workUnitId} (${resolved.title.slice(0, 120)}): ${candidate.claims.summary.slice(0, 400)}`
+        `${resolved2.workUnitId} (${resolved2.title.slice(0, 120)}): ${candidate.claims.summary.slice(0, 400)}`
       );
       if (candidate.claims.report !== void 0) {
-        workEvidence.push(`${resolved.workUnitId} report: ${candidate.claims.report.slice(0, 800)}`);
+        workEvidence.push(`${resolved2.workUnitId} report: ${candidate.claims.report.slice(0, 800)}`);
       }
       const patch = readCandidatePatch(
         input.workspace,
         input.jobId,
         input.node.nodeId,
-        resolved.workUnitId,
-        Math.max(1, resolved.attempt)
+        resolved2.workUnitId,
+        Math.max(1, resolved2.attempt)
       );
       if (patch !== void 0 && patch.trim().length > 0) {
-        dependencyPatches.push({ workUnitId: resolved.workUnitId, patch });
+        dependencyPatches.push({ workUnitId: resolved2.workUnitId, patch });
       }
     }
   }
@@ -73706,7 +73743,7 @@ function failureResult(category, message2, source, escalated) {
   };
 }
 async function dispatchLocalExecution(input) {
-  const deps = {
+  const deps2 = {
     workspace: input.workspace,
     config: input.config,
     ...input.clock !== void 0 ? { clock: input.clock } : {},
@@ -73714,7 +73751,7 @@ async function dispatchLocalExecution(input) {
     ...input.signal !== void 0 ? { signal: input.signal } : {},
     host: "local-executor"
   };
-  const begin = await beginInteractiveTask(deps, {
+  const begin = await beginInteractiveTask(deps2, {
     specName: input.specName,
     taskId: input.node.parentTaskId,
     allowDirty: input.allowDirty,
@@ -73731,7 +73768,7 @@ async function dispatchLocalExecution(input) {
   input.onProgress?.(`local executor: run ${begin.runId} started for task ${begin.task.id}`);
   const abort = async (reason) => {
     try {
-      await abortInteractiveTask(deps, { runId: begin.runId, reason: reason.slice(0, 500) });
+      await abortInteractiveTask(deps2, { runId: begin.runId, reason: reason.slice(0, 500) });
     } catch {
     }
   };
@@ -73842,7 +73879,7 @@ Your previous response was invalid (${lastProblem.slice(0, 300)}). Return ONLY v
     );
   }
   input.onProgress?.(`local executor: applied ${written.length} file(s); verifying`);
-  const completion = await completeInteractiveTask(deps, {
+  const completion = await completeInteractiveTask(deps2, {
     runId: begin.runId,
     summary: `[local-executor] ${output.summary}`.slice(0, 2e3),
     reportedChangedFiles: written
@@ -74056,7 +74093,7 @@ async function dispatchLocalHarnessExecution(input) {
   const lane = input.lane ?? "LOCAL";
   const label = lane === "API" ? "api harness" : "local harness";
   const source = lane === "API" ? "api-harness" : "local-harness";
-  const deps = {
+  const deps2 = {
     workspace: input.workspace,
     config: input.config,
     ...input.clock !== void 0 ? { clock: input.clock } : {},
@@ -74076,7 +74113,7 @@ async function dispatchLocalHarnessExecution(input) {
       false
     );
   }
-  const begin = await beginInteractiveTask(deps, {
+  const begin = await beginInteractiveTask(deps2, {
     specName: input.specName,
     taskId: input.node.parentTaskId,
     allowDirty: input.allowDirty,
@@ -74094,7 +74131,7 @@ async function dispatchLocalHarnessExecution(input) {
   input.onProgress?.(`${label}: run ${begin.runId} started for task ${begin.task.id}`);
   const abort = async (reason) => {
     try {
-      await abortInteractiveTask(deps, { runId: begin.runId, reason: reason.slice(0, 500) });
+      await abortInteractiveTask(deps2, { runId: begin.runId, reason: reason.slice(0, 500) });
     } catch {
     }
   };
@@ -74196,7 +74233,7 @@ async function dispatchLocalHarnessExecution(input) {
   }
   input.onProgress?.(`${label}: agent reported completion; running trusted verification`);
   const report = result.report;
-  const completion = await completeInteractiveTask(deps, {
+  const completion = await completeInteractiveTask(deps2, {
     runId: begin.runId,
     summary: `[${source}] ${report?.summary ?? "harness attempt"}`.slice(0, 2e3),
     ...report?.changedFiles !== void 0 ? { reportedChangedFiles: [...report.changedFiles] } : {},
@@ -75835,12 +75872,12 @@ function assessConfidence(input) {
 var NO_DRIFT = Object.freeze({ detected: false, signals: [], detail: "" });
 function predictCandidate(input) {
   const { policy } = input;
-  const resolved = resolveProfile(input);
-  const profile = resolved.profile;
+  const resolved2 = resolveProfile(input);
+  const profile = resolved2.profile;
   const identityMatch = compareRuntimeIdentity(input.candidate, profile);
   const confidence = assessConfidence({
     profile,
-    level: resolved.level,
+    level: resolved2.level,
     identityMatch,
     policy
   });
@@ -75870,8 +75907,8 @@ function predictCandidate(input) {
   const expectedFailedWallTimeMs = wallTime === null ? null : Math.round(wallTime * Math.max(0, expectedAttempts - 1));
   return {
     candidate: input.candidate,
-    level: resolved.level,
-    profileKey: resolved.profileKey,
+    level: resolved2.level,
+    profileKey: resolved2.profileKey,
     confidence: confidence.confidence,
     confidenceScore: confidence.score,
     identityMatch,
@@ -76312,10 +76349,10 @@ function createSchedulingRuntime(config2, workspace, input) {
     lastObservedAt: void 0
   };
 }
-function estimateNodeContextRatio(deps, jobId, nodeId) {
-  const checkpoint = readLatestTaskCheckpoint(deps.workspace, jobId, nodeId);
+function estimateNodeContextRatio(deps2, jobId, nodeId) {
+  const checkpoint = readLatestTaskCheckpoint(deps2.workspace, jobId, nodeId);
   if (checkpoint === void 0) return null;
-  const budget = contextBudgetFromPolicy(deps.config.orchestration.jobs.context);
+  const budget = contextBudgetFromPolicy(deps2.config.orchestration.jobs.context);
   const usable = usableInputTokens(budget);
   const serialized = JSON.stringify({
     objective: checkpoint.objective,
@@ -76332,8 +76369,8 @@ function estimateNodeContextRatio(deps, jobId, nodeId) {
   });
   return Math.round(estimateTokens(serialized) / usable * 1e4) / 1e4;
 }
-function localExecutorAttemptsUsed(deps, jobId, nodeId) {
-  return listTaskAttempts(deps.workspace, jobId, { nodeId }).filter(
+function localExecutorAttemptsUsed(deps2, jobId, nodeId) {
+  return listTaskAttempts(deps2.workspace, jobId, { nodeId }).filter(
     (attempt) => attempt.lane === "LOCAL" && attempt.role === "EXECUTOR" && (attempt.status === "FAILED" || attempt.status === "INTERRUPTED")
   ).length;
 }
@@ -76343,14 +76380,14 @@ var LOCAL_ESCALATION_REASONS = [
   "LOCAL_EXECUTION_ESCALATED"
 ];
 var DIRECT_TO_HARNESS_REASON = "LOCAL_DIRECT_TO_HARNESS";
-async function buildLaneContext(runtime, deps, jobId, job, graph) {
-  const ledger = readExecutionLedger(deps.workspace, jobId);
+async function buildLaneContext(runtime, deps2, jobId, job, graph) {
+  const ledger = readExecutionLedger(deps2.workspace, jobId);
   const observations = deriveBurnObservations(ledger);
   const { fiveHour, weekly } = await runtime.manager.snapshot();
   const forecast = buildQuotaForecast({
     fiveHour,
     weekly,
-    now: (deps.clock ?? (() => /* @__PURE__ */ new Date()))(),
+    now: (deps2.clock ?? (() => /* @__PURE__ */ new Date()))(),
     policy: runtime.policy,
     observedFiveHourBurnRatePerMinute: observedFiveHourBurnRate(observations)
   });
@@ -76362,7 +76399,7 @@ async function buildLaneContext(runtime, deps, jobId, job, graph) {
   const routings = /* @__PURE__ */ new Map();
   const ready = (graph?.nodes ?? []).filter((node) => node.status === "READY");
   for (const node of ready) {
-    routings.set(node.nodeId, assessNode(runtime, deps, jobId, job, node, forecast, reserve, observations));
+    routings.set(node.nodeId, assessNode(runtime, deps2, jobId, job, node, forecast, reserve, observations));
   }
   if (runtime.apiBridgeEnabled && ready.length > 0) {
     const readyLocalNodeIds = ready.filter((node) => routings.get(node.nodeId)?.routing.lane === "LOCAL").map((node) => node.nodeId);
@@ -76373,12 +76410,12 @@ async function buildLaneContext(runtime, deps, jobId, job, graph) {
     for (const node of ready) {
       const assessment = routings.get(node.nodeId);
       if (assessment === void 0 || assessment.routing.lane !== "DEFER") continue;
-      const bridged = assessApiGapBridge(runtime, deps, jobId, job, node, assessment, {
+      const bridged = assessApiGapBridge(runtime, deps2, jobId, job, node, assessment, {
         forecast,
         readyLocalNodeIds,
         readyRunnableNodeIds,
         graph,
-        now: (deps.clock ?? (() => /* @__PURE__ */ new Date()))()
+        now: (deps2.clock ?? (() => /* @__PURE__ */ new Date()))()
       });
       if (bridged !== void 0) routings.set(node.nodeId, bridged);
     }
@@ -76392,7 +76429,7 @@ async function buildLaneContext(runtime, deps, jobId, job, graph) {
         break;
       }
       if (node.status !== "PENDING") break;
-      const assessment = assessNode(runtime, deps, jobId, job, node, forecast, reserve, observations);
+      const assessment = assessNode(runtime, deps2, jobId, job, node, forecast, reserve, observations);
       if (assessment.routing.lane === "LOCAL") {
         routings.set(node.nodeId, assessment);
         overtakeCandidate = {
@@ -76404,7 +76441,7 @@ async function buildLaneContext(runtime, deps, jobId, job, graph) {
       if (assessment.routing.lane !== "DEFER") break;
     }
   }
-  const adaptive = runtime.adaptiveEnabled ? applyAdaptiveRanking(runtime, deps, jobId, job, ready, routings, forecast) : void 0;
+  const adaptive = runtime.adaptiveEnabled ? applyAdaptiveRanking(runtime, deps2, jobId, job, ready, routings, forecast) : void 0;
   return {
     context: {
       policy: runtime.policy,
@@ -76418,12 +76455,12 @@ async function buildLaneContext(runtime, deps, jobId, job, graph) {
     adaptive
   };
 }
-function applyAdaptiveRanking(runtime, deps, jobId, job, ready, routings, forecast) {
-  const now52 = (deps.clock ?? (() => /* @__PURE__ */ new Date()))();
+function applyAdaptiveRanking(runtime, deps2, jobId, job, ready, routings, forecast) {
+  const now52 = (deps2.clock ?? (() => /* @__PURE__ */ new Date()))();
   let loaded;
   try {
     loaded = loadAdaptiveProfiles({
-      workspace: deps.workspace,
+      workspace: deps2.workspace,
       policy: runtime.adaptivePolicy,
       now: now52
     });
@@ -76437,7 +76474,7 @@ function applyAdaptiveRanking(runtime, deps, jobId, job, ready, routings, foreca
     if (assessment === void 0) continue;
     const signature2 = assessment.signature;
     if (signature2 === void 0) continue;
-    const reliability = readTaskReliabilityState(deps.workspace, jobId, node.nodeId);
+    const reliability = readTaskReliabilityState(deps2.workspace, jobId, node.nodeId);
     signatures.set(node.nodeId, signature2);
     const candidates = generateCandidates({
       routing: assessment,
@@ -76490,7 +76527,7 @@ function applyAdaptiveRanking(runtime, deps, jobId, job, ready, routings, foreca
     signatures
   };
 }
-function assessApiGapBridge(runtime, deps, jobId, job, node, assessment, context) {
+function assessApiGapBridge(runtime, deps2, jobId, job, node, assessment, context) {
   const apiPolicy = runtime.policy.api;
   const gapReason = runtime.subscriptionWorkerAvailable ? subscriptionGapReasonFor(assessment.routing.reasonCode) : "SUBSCRIPTION_WORKER_UNAVAILABLE";
   if (gapReason === void 0) return void 0;
@@ -76512,13 +76549,13 @@ function assessApiGapBridge(runtime, deps, jobId, job, node, assessment, context
     safetyMultiplier: apiPolicy.gap.costSafetyMultiplier
   });
   const budget = assessApiBudget({
-    state: readApiBudgetState(deps.workspace, jobId),
+    state: readApiBudgetState(deps2.workspace, jobId),
     policy: apiPolicy.budget,
     taskId: node.parentTaskId,
     safeCostUsd: cost.safeCostUsd
   });
   const approval = runtime.apiBinding.profileName === null ? null : checkApiSpendApproval({
-    approvals: listApiSpendApprovals(deps.workspace, jobId, { nodeId: node.nodeId }),
+    approvals: listApiSpendApprovals(deps2.workspace, jobId, { nodeId: node.nodeId }),
     nodeId: node.nodeId,
     taskFingerprint: taskSpendFingerprint(node),
     profileName: runtime.apiBinding.profileName,
@@ -76542,8 +76579,8 @@ function assessApiGapBridge(runtime, deps, jobId, job, node, assessment, context
   void job;
   return { ...assessment, routing: applyApiGapBridge(assessment.routing, plan), apiBridge: plan };
 }
-function assessNode(runtime, deps, jobId, job, node, forecast, reserve, observations) {
-  const attemptsUsed = localExecutorAttemptsUsed(deps, jobId, node.nodeId);
+function assessNode(runtime, deps2, jobId, job, node, forecast, reserve, observations) {
+  const attemptsUsed = localExecutorAttemptsUsed(deps2, jobId, node.nodeId);
   const stickyEscalation = job.escalations.some(
     (entry2) => entry2.nodeId === node.nodeId && LOCAL_ESCALATION_REASONS.includes(entry2.reason)
   );
@@ -76576,7 +76613,7 @@ function assessNode(runtime, deps, jobId, job, node, forecast, reserve, observat
     localWorkerAvailable: runtime.localWorkerAvailable && !stickyEscalation,
     localExecutionAvailable: runtime.localExecutionAvailable && !stickyEscalation,
     localEscalationRequired: stickyEscalation || attemptsUsed >= runtime.policy.maxLocalAttempts,
-    contextUsageRatio: estimateNodeContextRatio(deps, jobId, node.nodeId),
+    contextUsageRatio: estimateNodeContextRatio(deps2, jobId, node.nodeId),
     policy: runtime.policy
   });
   const directToHarness = job.escalations.some(
@@ -76589,7 +76626,7 @@ function assessNode(runtime, deps, jobId, job, node, forecast, reserve, observat
     complexity: node.complexity,
     priorDirectFailureNeedsRepository: directToHarness
   });
-  const reliability = readTaskReliabilityState(deps.workspace, jobId, node.nodeId);
+  const reliability = readTaskReliabilityState(deps2.workspace, jobId, node.nodeId);
   const signature2 = buildTaskSignature({
     category: suitability.category,
     complexity: node.complexity ?? "MEDIUM",
@@ -76652,31 +76689,31 @@ ${(0, import_fs42.readFileSync)(file.path, "utf8")}`);
   }
 }
 var agentResultSequence = 0;
-function persistAgentResult(deps, jobId, role, raw) {
+function persistAgentResult(deps2, jobId, role, raw) {
   agentResultSequence += 1;
   const name = `${Date.now()}-${String(agentResultSequence).padStart(4, "0")}-${role.toLowerCase()}.json`;
   try {
     return storeAgentResult(
-      deps.workspace,
+      deps2.workspace,
       jobId,
       name,
       JSON.parse(raw),
-      { maxBytes: deps.config.orchestration.jobs.maxAgentResultBytes }
+      { maxBytes: deps2.config.orchestration.jobs.maxAgentResultBytes }
     ).ref;
   } catch {
     return void 0;
   }
 }
-async function driveJob(deps, jobId, options = {}) {
+async function driveJob(deps2, jobId, options = {}) {
   const emit22 = (kind, message2) => {
     options.onEvent?.({ kind, message: message2 });
   };
   const sleep2 = options.sleep ?? defaultSleep;
   const signal = options.signal;
-  const policy = deps.config.orchestration.jobs;
-  let job = requireJobState(deps.workspace, jobId);
+  const policy = deps2.config.orchestration.jobs;
+  let job = requireJobState(deps2.workspace, jobId);
   if (job.status !== "CREATED") {
-    const resume = await resumeJob(deps, jobId);
+    const resume = await resumeJob(deps2, jobId);
     job = resume.job;
     for (const warning2 of resume.warnings) emit22("note", warning2);
     if (resume.finalized) {
@@ -76684,26 +76721,26 @@ async function driveJob(deps, jobId, options = {}) {
     }
   }
   const probeCache = { probe: void 0 };
-  const localManager = createLocalManager(deps.config, (event) => {
+  const localManager = createLocalManager(deps2.config, (event) => {
     emit22("local-model", `${event.type}: ${event.detail}`);
     if (event.type === "ready") {
-      recordJobEvent(deps, jobId, "local_model_started", { detail: event.detail.slice(0, 200) });
+      recordJobEvent(deps2, jobId, "local_model_started", { detail: event.detail.slice(0, 200) });
     }
     if (event.type === "stopped" || event.type === "exited") {
-      recordJobEvent(deps, jobId, "local_model_stopped", {
+      recordJobEvent(deps2, jobId, "local_model_stopped", {
         kind: event.type,
         detail: event.detail.slice(0, 200)
       });
     }
   });
-  const missionDriven = policy.objectives.enabled === true && findMissionForSpec(deps.workspace, job.specName) !== void 0;
-  const schedulingRuntime = createSchedulingRuntime(deps.config, deps.workspace, {
+  const missionDriven = policy.objectives.enabled === true && findMissionForSpec(deps2.workspace, job.specName) !== void 0;
+  const schedulingRuntime = createSchedulingRuntime(deps2.config, deps2.workspace, {
     localManager,
     missionDriven,
     // vNext.5: whether prepaid strong compute exists at all. A roster with
     // no subscription worker is a different gap from an exhausted quota
     // window — it never "resets" — and the planner must be able to tell.
-    subscriptionWorkerAvailable: resolveWorkers(deps.config).some(
+    subscriptionWorkerAvailable: resolveWorkers(deps2.config).some(
       (worker) => worker.reasoningTier !== "LOCAL_SMALL"
     ),
     options: {
@@ -76721,32 +76758,32 @@ async function driveJob(deps, jobId, options = {}) {
     for (; ; ) {
       loops += 1;
       if (loops > maxLoop) {
-        blockJob(deps, jobId, {
+        blockJob(deps2, jobId, {
           category: "INTERNAL",
           code: "DRIVER_LOOP_BOUND",
           message: `The driver exceeded ${maxLoop} scheduling cycles without finishing; stopping for inspection.`,
           remediation: ["Inspect the job events; this indicates a scheduling defect, not a task failure."]
         });
-        job = requireJobState(deps.workspace, jobId);
+        job = requireJobState(deps2.workspace, jobId);
         return { stop: { kind: "blocked", reason: "driver loop bound reached" }, job };
       }
       if (signal?.aborted === true) {
-        checkpointJob(deps, jobId, "Interrupted; resume with `specbridge orchestrate run` to continue.");
-        job = requireJobState(deps.workspace, jobId);
+        checkpointJob(deps2, jobId, "Interrupted; resume with `specbridge orchestrate run` to continue.");
+        job = requireJobState(deps2.workspace, jobId);
         return { stop: { kind: "interrupted" }, job };
       }
-      const scheduleAt = (deps.clock ?? (() => /* @__PURE__ */ new Date()))();
-      job = clearRetryWait(deps, jobId, scheduleAt);
-      const graph = activeGraph(deps, job);
-      const workers = resolveWorkers(deps.config);
+      const scheduleAt = (deps2.clock ?? (() => /* @__PURE__ */ new Date()))();
+      job = clearRetryWait(deps2, jobId, scheduleAt);
+      const graph = activeGraph(deps2, job);
+      const workers = resolveWorkers(deps2.config);
       let lane;
       if (schedulingRuntime !== void 0 && graph !== void 0 && !isFinalJobStatus(job.status)) {
-        lane = await buildLaneContext(schedulingRuntime, deps, jobId, job, graph);
-        emitSchedulingTransitions(deps, jobId, schedulingRuntime, lane, emit22);
+        lane = await buildLaneContext(schedulingRuntime, deps2, jobId, job, graph);
+        emitSchedulingTransitions(deps2, jobId, schedulingRuntime, lane, emit22);
         if (lane.overtakeCandidate !== void 0 && job.status === "READY") {
-          promoteNodeForQuotaOvertake(deps, jobId, lane.overtakeCandidate);
+          promoteNodeForQuotaOvertake(deps2, jobId, lane.overtakeCandidate);
           emit22("note", `quota overtake: ${lane.overtakeCandidate.detail}`);
-          job = requireJobState(deps.workspace, jobId);
+          job = requireJobState(deps2.workspace, jobId);
           continue;
         }
       }
@@ -76762,24 +76799,24 @@ async function driveJob(deps, jobId, options = {}) {
       if (decision.kind !== "WAIT_QUOTA") unboundedQuotaDefers = 0;
       switch (decision.kind) {
         case "BUILD_GRAPH": {
-          const built = await buildJobGraph(deps, jobId);
+          const built = await buildJobGraph(deps2, jobId);
           emit22("note", `Runtime graph: ${built.graph.nodes.length} node(s) from the approved task plan.`);
-          checkpointJob(deps, jobId, "Graph built; classify and plan the first node.");
+          checkpointJob(deps2, jobId, "Graph built; classify and plan the first node.");
           break;
         }
         case "RUN_ROLE": {
-          const outcome = await handleRoleDecision(deps, jobId, decision, {
+          const outcome = await handleRoleDecision(deps2, jobId, decision, {
             localManager,
             probeCache,
             signal,
             emit: emit22
           });
           if (outcome === "stop-interrupted") {
-            checkpointJob(deps, jobId, "Interrupted during a role run; resume to continue.");
-            job = requireJobState(deps.workspace, jobId);
+            checkpointJob(deps2, jobId, "Interrupted during a role run; resume to continue.");
+            job = requireJobState(deps2.workspace, jobId);
             return { stop: { kind: "interrupted" }, job };
           }
-          checkpointJob(deps, jobId, "Continue with the next scheduler decision.");
+          checkpointJob(deps2, jobId, "Continue with the next scheduler decision.");
           break;
         }
         case "DISPATCH_EXECUTOR": {
@@ -76802,7 +76839,7 @@ async function driveJob(deps, jobId, options = {}) {
           let quotaBefore;
           let contextBefore = null;
           if (schedulingRuntime !== void 0 && lane !== void 0 && laneName !== void 0 && laneRouting !== void 0) {
-            schedulingDecisionId = persistLaneDecision(deps, jobId, {
+            schedulingDecisionId = persistLaneDecision(deps2, jobId, {
               nodeId: node.nodeId,
               taskId: node.parentTaskId,
               selectedLane: laneName,
@@ -76818,7 +76855,7 @@ async function driveJob(deps, jobId, options = {}) {
               } : {}
             });
             if (laneName !== "API") {
-              recordJobEvent(deps, jobId, laneName === "LOCAL" ? "task_routed_local" : "task_routed_subscription", {
+              recordJobEvent(deps2, jobId, laneName === "LOCAL" ? "task_routed_local" : "task_routed_subscription", {
                 nodeId: node.nodeId,
                 taskId: node.parentTaskId,
                 reasonCode: laneRouting.routing.reasonCode,
@@ -76828,7 +76865,7 @@ async function driveJob(deps, jobId, options = {}) {
               });
             }
             if (apiBridgedWhileMaxReturned && laneName === "SUBSCRIPTION") {
-              recordJobEvent(deps, jobId, "api_next_task_returned_to_subscription", {
+              recordJobEvent(deps2, jobId, "api_next_task_returned_to_subscription", {
                 nodeId: node.nodeId,
                 taskId: node.parentTaskId,
                 reasonCode: laneRouting.routing.reasonCode,
@@ -76837,7 +76874,7 @@ async function driveJob(deps, jobId, options = {}) {
               apiBridgedWhileMaxReturned = false;
             }
             if (localExecution !== void 0 && executionMode !== void 0) {
-              recordJobEvent(deps, jobId, "local_execution_mode_selected", {
+              recordJobEvent(deps2, jobId, "local_execution_mode_selected", {
                 nodeId: node.nodeId,
                 taskId: node.parentTaskId,
                 executionMode,
@@ -76846,7 +76883,7 @@ async function driveJob(deps, jobId, options = {}) {
                 suitability: laneRouting.suitability.class
               });
               if (executionMode === "HARNESS") {
-                recordJobEvent(deps, jobId, "local_harness_selected", {
+                recordJobEvent(deps2, jobId, "local_harness_selected", {
                   nodeId: node.nodeId,
                   taskId: node.parentTaskId,
                   profile: localExecution.harness?.profileName ?? "unknown",
@@ -76855,7 +76892,7 @@ async function driveJob(deps, jobId, options = {}) {
                   reasonCode: localExecution.reasonCode ?? "UNKNOWN"
                 });
               } else if (localExecution.reasonCode === "LOCAL_HARNESS_NOT_VERIFIED_LOCAL") {
-                recordJobEvent(deps, jobId, "local_harness_locality_rejected", {
+                recordJobEvent(deps2, jobId, "local_harness_locality_rejected", {
                   nodeId: node.nodeId,
                   taskId: node.parentTaskId,
                   bindingStatus: schedulingRuntime?.harnessBinding.status ?? "UNKNOWN",
@@ -76863,7 +76900,7 @@ async function driveJob(deps, jobId, options = {}) {
                   detail: (schedulingRuntime?.harnessBinding.problems[0] ?? "not verified local").slice(0, 300)
                 });
               } else if (localExecution.reasonCode === "LOCAL_HARNESS_UNAVAILABLE") {
-                recordJobEvent(deps, jobId, "local_harness_unavailable", {
+                recordJobEvent(deps2, jobId, "local_harness_unavailable", {
                   nodeId: node.nodeId,
                   taskId: node.parentTaskId,
                   bindingStatus: schedulingRuntime?.harnessBinding.status ?? "UNKNOWN",
@@ -76872,7 +76909,7 @@ async function driveJob(deps, jobId, options = {}) {
               }
             }
             if (laneName === "SUBSCRIPTION" && laneRouting.routing.admission?.crossesReset === true) {
-              recordJobEvent(deps, jobId, "cross_reset_admitted", {
+              recordJobEvent(deps2, jobId, "cross_reset_admitted", {
                 nodeId: node.nodeId,
                 taskId: node.parentTaskId,
                 preResetBurnRatio: laneRouting.routing.admission.preResetBurnRatio,
@@ -76884,10 +76921,10 @@ async function driveJob(deps, jobId, options = {}) {
               fiveHourRemainingRatio: lane.forecast.fiveHourRemainingRatio,
               weeklyRemainingRatio: lane.forecast.weeklyRemainingRatio
             };
-            contextBefore = estimateNodeContextRatio(deps, jobId, node.nodeId);
+            contextBefore = estimateNodeContextRatio(deps2, jobId, node.nodeId);
             if (decision.compactFirst === true) {
-              const reconstructed = reconstructTaskContext(deps, { jobId, nodeId: node.nodeId });
-              recordJobEvent(deps, jobId, "context_compaction_before_dispatch", {
+              const reconstructed = reconstructTaskContext(deps2, { jobId, nodeId: node.nodeId });
+              recordJobEvent(deps2, jobId, "context_compaction_before_dispatch", {
                 nodeId: node.nodeId,
                 contextUsageRatio: contextBefore,
                 passes: reconstructed.assembled.compactions.map((record32) => record32.level),
@@ -76911,7 +76948,7 @@ async function driveJob(deps, jobId, options = {}) {
           }
           if (apiLane && schedulingRuntime !== void 0 && apiBridge !== void 0) {
             const apiPolicy = schedulingRuntime.policy.api;
-            recordJobEvent(deps, jobId, "api_gap_detected", {
+            recordJobEvent(deps2, jobId, "api_gap_detected", {
               nodeId: node.nodeId,
               taskId: node.parentTaskId,
               gapReason: apiBridge.gap.reason,
@@ -76923,19 +76960,19 @@ async function driveJob(deps, jobId, options = {}) {
               reasonCode: apiBridge.reasonCode
             });
             const reservation = reserveApiBudget({
-              workspace: deps.workspace,
+              workspace: deps2.workspace,
               jobId,
               nodeId: node.nodeId,
               taskId: node.parentTaskId,
               policy: apiPolicy.budget,
               safeCostUsd: apiBridge.cost?.safeCostUsd ?? null,
               profileName: schedulingRuntime.apiBinding.profileName,
-              now: (deps.clock ?? (() => /* @__PURE__ */ new Date()))(),
-              reservationId: `ar-${(deps.idFactory ?? (() => `${Date.now()}`))()}`.slice(0, 64),
+              now: (deps2.clock ?? (() => /* @__PURE__ */ new Date()))(),
+              reservationId: `ar-${(deps2.idFactory ?? (() => `${Date.now()}`))()}`.slice(0, 64),
               detail: apiBridge.detail
             });
             if (!reservation.ok) {
-              recordJobEvent(deps, jobId, "api_budget_exceeded", {
+              recordJobEvent(deps2, jobId, "api_budget_exceeded", {
                 nodeId: node.nodeId,
                 taskId: node.parentTaskId,
                 refusal: reservation.admission.refusal ?? "UNKNOWN",
@@ -76943,14 +76980,14 @@ async function driveJob(deps, jobId, options = {}) {
                 detail: reservation.admission.detail.slice(0, 300)
               });
               if (reservation.admission.refusal === "JOB_CEILING" || reservation.admission.refusal === "JOB_ATTEMPTS") {
-                recordJobEvent(deps, jobId, "api_budget_exhausted", {
+                recordJobEvent(deps2, jobId, "api_budget_exhausted", {
                   jobId,
                   refusal: reservation.admission.refusal,
                   encumberedUsd: reservation.admission.job.encumberedUsd
                 });
               }
               emit22("waiting", `api budget refused: ${reservation.admission.detail}`);
-              job = deferJobForQuota(deps, jobId, {
+              job = deferJobForQuota(deps2, jobId, {
                 nodeId: node.nodeId,
                 taskId: node.parentTaskId,
                 until: apiBridge.gap.expectedAvailableAt,
@@ -76959,11 +76996,11 @@ async function driveJob(deps, jobId, options = {}) {
                 pollMs: schedulingRuntime.policy.deferPollMs
               });
               checkpointJob(
-                deps,
+                deps2,
                 jobId,
                 "API budget refused the bridge; the task waits for subscription capacity."
               );
-              job = requireJobState(deps.workspace, jobId);
+              job = requireJobState(deps2.workspace, jobId);
               return {
                 stop: {
                   kind: "deferred",
@@ -76975,7 +77012,7 @@ async function driveJob(deps, jobId, options = {}) {
             }
             apiReservationId = reservation.reservation.reservationId;
             apiApprovalId = apiBridge.approval?.approval?.approvalId;
-            recordJobEvent(deps, jobId, "api_budget_reserved", {
+            recordJobEvent(deps2, jobId, "api_budget_reserved", {
               nodeId: node.nodeId,
               taskId: node.parentTaskId,
               reservationId: apiReservationId,
@@ -76988,7 +77025,7 @@ async function driveJob(deps, jobId, options = {}) {
               `api budget reserved $${reservation.reservation.reservedUsd.toFixed(4)} for task ${node.parentTaskId}`
             );
           }
-          beginExecutorDispatch(deps, jobId, {
+          beginExecutorDispatch(deps2, jobId, {
             nodeId: decision.nodeId,
             mode: decision.mode,
             workerId: decision.worker.workerId,
@@ -77007,7 +77044,7 @@ async function driveJob(deps, jobId, options = {}) {
             // later should find comparable history already waiting, not start
             // learning from zero.
             ...laneRouting?.signature !== void 0 ? { taskSignature: laneRouting.signature.key } : {},
-            contextStrategy: deps.config.orchestration.jobs.context.efficiency.strategy,
+            contextStrategy: deps2.config.orchestration.jobs.context.efficiency.strategy,
             ...localExecution !== void 0 ? {
               executionShape: localExecution.shape,
               computeLocality: executionMode === "HARNESS" ? localExecution.harness?.locality ?? "UNKNOWN" : "LOCAL"
@@ -77039,27 +77076,27 @@ async function driveJob(deps, jobId, options = {}) {
             ...quotaBefore !== void 0 ? { quotaBefore } : {},
             ...contextBefore !== null ? { contextUsageBefore: contextBefore } : {}
           });
-          const startedAt = (deps.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
+          const startedAt = (deps2.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
           if (apiLane && schedulingRuntime !== void 0 && apiBridge !== void 0) {
-            const attemptId = requireJobState(deps.workspace, jobId).currentAttemptId;
+            const attemptId = requireJobState(deps2.workspace, jobId).currentAttemptId;
             if (attemptId !== void 0) {
               if (apiReservationId !== void 0) {
                 bindApiBudgetReservation(
-                  deps.workspace,
+                  deps2.workspace,
                   jobId,
                   apiReservationId,
                   attemptId,
-                  (deps.clock ?? (() => /* @__PURE__ */ new Date()))()
+                  (deps2.clock ?? (() => /* @__PURE__ */ new Date()))()
                 );
               }
               if (apiApprovalId !== void 0) {
                 try {
-                  consumeApiSpendApproval(deps.workspace, jobId, apiApprovalId, attemptId);
+                  consumeApiSpendApproval(deps2.workspace, jobId, apiApprovalId, attemptId);
                 } catch {
                 }
               }
-              writeApiHandoffCheckpoint(deps, jobId, node, attemptId, apiBridge);
-              recordJobEvent(deps, jobId, "api_task_dispatched", {
+              writeApiHandoffCheckpoint(deps2, jobId, node, attemptId, apiBridge);
+              recordJobEvent(deps2, jobId, "api_task_dispatched", {
                 nodeId: node.nodeId,
                 taskId: node.parentTaskId,
                 attemptId,
@@ -77077,12 +77114,12 @@ async function driveJob(deps, jobId, options = {}) {
             }
           }
           const allowDirty = decision.mode === "repair" || (graph?.nodes.some((candidate) => candidate.status === "COMPLETED") ?? false) || node.attempts.some((attempt) => attempt.role === "EXECUTOR") || node.attempts.some((attempt) => attempt.role === "BUILDER");
-          const mission = policy.objectives.enabled === true ? findMissionForSpec(deps.workspace, job.specName) : void 0;
+          const mission = policy.objectives.enabled === true ? findMissionForSpec(deps2.workspace, job.specName) : void 0;
           const localHarnessLane = laneName === "LOCAL" && harnessProfileName !== void 0 && schedulingRuntime !== void 0;
           const localLane = laneName === "LOCAL" && !localHarnessLane && schedulingRuntime !== void 0 && schedulingRuntime.localInference !== void 0;
           const apiHarnessLane = apiLane && harnessProfileName !== void 0 && schedulingRuntime !== void 0;
-          const harnessCheckpoint = localHarnessLane || apiHarnessLane ? readLatestTaskCheckpoint(deps.workspace, jobId, node.nodeId) : void 0;
-          const contextSupplement = deps.config.orchestration.jobs.context.efficiency.strategy === "LEGACY" ? void 0 : await buildDispatchContext(deps, {
+          const harnessCheckpoint = localHarnessLane || apiHarnessLane ? readLatestTaskCheckpoint(deps2.workspace, jobId, node.nodeId) : void 0;
+          const contextSupplement = deps2.config.orchestration.jobs.context.efficiency.strategy === "LEGACY" ? void 0 : await buildDispatchContext(deps2, {
             jobId,
             node,
             shape: localHarnessLane || apiHarnessLane ? "POINTER" : "MATERIALIZED",
@@ -77096,9 +77133,9 @@ async function driveJob(deps, jobId, options = {}) {
             // evidence pipeline, same completion authority — the only
             // differences are who is billed and what bounds the attempt.
             await dispatchApiHarnessExecution({
-              workspace: deps.workspace,
-              config: deps.config,
-              registry: deps.registry,
+              workspace: deps2.workspace,
+              config: deps2.config,
+              registry: deps2.registry,
               node,
               specName: job.specName,
               jobId,
@@ -77118,15 +77155,15 @@ async function driveJob(deps, jobId, options = {}) {
                 contextPlanId: contextSupplement.planId
               } : {},
               maxWallTimeMs: schedulingRuntime.apiBinding.maxWallTimeMs,
-              ...deps.clock !== void 0 ? { clock: deps.clock } : {},
-              ...deps.idFactory !== void 0 ? { idFactory: deps.idFactory } : {},
+              ...deps2.clock !== void 0 ? { clock: deps2.clock } : {},
+              ...deps2.idFactory !== void 0 ? { idFactory: deps2.idFactory } : {},
               ...signal !== void 0 ? { signal } : {},
               onProgress: (message2) => emit22("note", message2)
             })
           ) : localHarnessLane ? await dispatchLocalHarnessExecution({
-            workspace: deps.workspace,
-            config: deps.config,
-            registry: deps.registry,
+            workspace: deps2.workspace,
+            config: deps2.config,
+            registry: deps2.registry,
             node,
             specName: job.specName,
             jobId,
@@ -77142,13 +77179,13 @@ async function driveJob(deps, jobId, options = {}) {
               contextPlanId: contextSupplement.planId
             } : {},
             maxWallTimeMs: schedulingRuntime.harnessBinding.maxWallTimeMs,
-            ...deps.clock !== void 0 ? { clock: deps.clock } : {},
-            ...deps.idFactory !== void 0 ? { idFactory: deps.idFactory } : {},
+            ...deps2.clock !== void 0 ? { clock: deps2.clock } : {},
+            ...deps2.idFactory !== void 0 ? { idFactory: deps2.idFactory } : {},
             ...signal !== void 0 ? { signal } : {},
             onProgress: (message2) => emit22("note", message2)
           }) : localLane ? await dispatchLocalExecution({
-            workspace: deps.workspace,
-            config: deps.config,
+            workspace: deps2.workspace,
+            config: deps2.config,
             node,
             specName: job.specName,
             mode: decision.mode,
@@ -77161,49 +77198,49 @@ async function driveJob(deps, jobId, options = {}) {
               repositoryContext: contextSupplement.rendered,
               contextPlanId: contextSupplement.planId
             } : {},
-            ...deps.clock !== void 0 ? { clock: deps.clock } : {},
-            ...deps.idFactory !== void 0 ? { idFactory: deps.idFactory } : {},
+            ...deps2.clock !== void 0 ? { clock: deps2.clock } : {},
+            ...deps2.idFactory !== void 0 ? { idFactory: deps2.idFactory } : {},
             ...signal !== void 0 ? { signal } : {},
             onProgress: (message2) => emit22("note", message2),
-            onInferenceCall: () => countLocalInferenceCall(deps, jobId)
+            onInferenceCall: () => countLocalInferenceCall(deps2, jobId)
           }) : mission !== void 0 ? await driveObjective({
-            workspace: deps.workspace,
-            config: deps.config,
+            workspace: deps2.workspace,
+            config: deps2.config,
             jobId,
             specName: job.specName,
             node,
             mission,
             policy,
-            workers: resolveWorkers(deps.config),
+            workers: resolveWorkers(deps2.config),
             allowDirty,
             runnerProfile: decision.worker.runnerProfile,
             localManager,
             probeCache,
-            ...deps.clock !== void 0 ? { clock: deps.clock } : {},
-            ...deps.idFactory !== void 0 ? { idFactory: deps.idFactory } : {},
+            ...deps2.clock !== void 0 ? { clock: deps2.clock } : {},
+            ...deps2.idFactory !== void 0 ? { idFactory: deps2.idFactory } : {},
             ...signal !== void 0 ? { signal } : {},
             onProgress: (message2) => emit22("note", message2),
-            countWorkerRun: (run) => recordObjectiveWorkerAttempt(deps, jobId, { nodeId: node.nodeId, ...run }),
-            recordEvent: (type, payload) => recordJobEvent(deps, jobId, type, payload)
+            countWorkerRun: (run) => recordObjectiveWorkerAttempt(deps2, jobId, { nodeId: node.nodeId, ...run }),
+            recordEvent: (type, payload) => recordJobEvent(deps2, jobId, type, payload)
           }) : await dispatchExecutor({
-            workspace: deps.workspace,
-            config: deps.config,
-            registry: deps.registry,
+            workspace: deps2.workspace,
+            config: deps2.config,
+            registry: deps2.registry,
             node,
             specName: job.specName,
             mode: decision.mode,
             allowDirty,
             runnerProfile: decision.worker.runnerProfile,
             ...options.executorTimeoutMs !== void 0 ? { timeoutMs: options.executorTimeoutMs } : {},
-            ...deps.clock !== void 0 ? { clock: deps.clock } : {},
-            ...deps.idFactory !== void 0 ? { idFactory: deps.idFactory } : {},
+            ...deps2.clock !== void 0 ? { clock: deps2.clock } : {},
+            ...deps2.idFactory !== void 0 ? { idFactory: deps2.idFactory } : {},
             ...signal !== void 0 ? { signal } : {},
             onProgress: (message2) => emit22("note", message2)
           });
           if (localLane) {
             const localResult = dispatch;
             if (localResult.failure !== void 0) {
-              recordJobEvent(deps, jobId, "local_attempt_failed", {
+              recordJobEvent(deps2, jobId, "local_attempt_failed", {
                 nodeId: node.nodeId,
                 taskId: node.parentTaskId,
                 category: localResult.failure.category,
@@ -77211,29 +77248,29 @@ async function driveJob(deps, jobId, options = {}) {
                 executionMode: "DIRECT_MODEL"
               });
             }
-            const harnessCanTakeOver = schedulingRuntime !== void 0 && schedulingRuntime.harnessBinding.available && schedulingRuntime.policy.localExecution.strategy !== "DIRECT_ONLY" && localExecutorAttemptsUsed(deps, jobId, node.nodeId) < schedulingRuntime.policy.maxLocalAttempts;
+            const harnessCanTakeOver = schedulingRuntime !== void 0 && schedulingRuntime.harnessBinding.available && schedulingRuntime.policy.localExecution.strategy !== "DIRECT_ONLY" && localExecutorAttemptsUsed(deps2, jobId, node.nodeId) < schedulingRuntime.policy.maxLocalAttempts;
             const needsRepositoryTools = localResult.failure !== void 0 && directFailureNeedsRepositoryTools(localResult);
             if (harnessCanTakeOver && needsRepositoryTools) {
-              noteEscalation(deps, jobId, {
+              noteEscalation(deps2, jobId, {
                 nodeId: node.nodeId,
                 role: "EXECUTOR",
                 reason: "LOCAL_DIRECT_TO_HARNESS",
                 detail: (localResult.escalationReason ?? localResult.failure?.message ?? "the direct attempt lacked repository knowledge").slice(0, 500)
               });
-              recordJobEvent(deps, jobId, "local_direct_to_harness_escalated", {
+              recordJobEvent(deps2, jobId, "local_direct_to_harness_escalated", {
                 nodeId: node.nodeId,
                 taskId: node.parentTaskId,
                 category: localResult.failure?.category ?? "unknown",
                 detail: (localResult.escalationReason ?? "the direct attempt lacked repository knowledge").slice(0, 300)
               });
             } else if (localResult.escalated) {
-              noteEscalation(deps, jobId, {
+              noteEscalation(deps2, jobId, {
                 nodeId: node.nodeId,
                 role: "EXECUTOR",
                 reason: "LOCAL_EXECUTION_ESCALATED",
                 detail: (localResult.escalationReason ?? localResult.failure?.message ?? "local execution declined").slice(0, 500)
               });
-              recordJobEvent(deps, jobId, "local_escalation_triggered", {
+              recordJobEvent(deps2, jobId, "local_escalation_triggered", {
                 nodeId: node.nodeId,
                 taskId: node.parentTaskId,
                 detail: (localResult.escalationReason ?? "bounded local attempts exhausted").slice(0, 300)
@@ -77243,7 +77280,7 @@ async function driveJob(deps, jobId, options = {}) {
           if (localHarnessLane) {
             const harnessResult = dispatch;
             if (harnessResult.failure !== void 0) {
-              recordJobEvent(deps, jobId, "local_attempt_failed", {
+              recordJobEvent(deps2, jobId, "local_attempt_failed", {
                 nodeId: node.nodeId,
                 taskId: node.parentTaskId,
                 category: harnessResult.failure.category,
@@ -77252,23 +77289,23 @@ async function driveJob(deps, jobId, options = {}) {
                 failureKind: harnessResult.failureKind ?? "UNKNOWN"
               });
             }
-            const localAttemptsAfter = localExecutorAttemptsUsed(deps, jobId, node.nodeId) + 1;
+            const localAttemptsAfter = localExecutorAttemptsUsed(deps2, jobId, node.nodeId) + 1;
             const budgetSpent = schedulingRuntime !== void 0 && localAttemptsAfter >= schedulingRuntime.policy.maxLocalAttempts;
             const intelligenceFailure = harnessResult.failure !== void 0 && harnessResult.failureKind === "INTELLIGENCE";
             if (intelligenceFailure && (harnessResult.escalated || budgetSpent)) {
-              noteEscalation(deps, jobId, {
+              noteEscalation(deps2, jobId, {
                 nodeId: node.nodeId,
                 role: "EXECUTOR",
                 reason: "LOCAL_EXECUTION_ESCALATED",
                 detail: (harnessResult.escalationReason ?? harnessResult.failure?.message ?? "the local harness could not implement the task").slice(0, 500)
               });
-              recordJobEvent(deps, jobId, "local_harness_to_subscription_escalated", {
+              recordJobEvent(deps2, jobId, "local_harness_to_subscription_escalated", {
                 nodeId: node.nodeId,
                 taskId: node.parentTaskId,
                 localAttempts: localAttemptsAfter,
                 detail: (harnessResult.escalationReason ?? "local harness attempts exhausted").slice(0, 300)
               });
-              recordJobEvent(deps, jobId, "local_escalation_triggered", {
+              recordJobEvent(deps2, jobId, "local_escalation_triggered", {
                 nodeId: node.nodeId,
                 taskId: node.parentTaskId,
                 detail: "the local harness did not produce a verifiable implementation"
@@ -77281,7 +77318,7 @@ async function driveJob(deps, jobId, options = {}) {
             extraMetrics = {
               fiveHourQuotaAfter: after.fiveHour?.remainingRatio ?? null,
               weeklyQuotaAfter: after.weekly?.remainingRatio ?? null,
-              contextUsageAfter: estimateNodeContextRatio(deps, jobId, node.nodeId)
+              contextUsageAfter: estimateNodeContextRatio(deps2, jobId, node.nodeId)
             };
           }
           if (localHarnessLane || apiHarnessLane) {
@@ -77315,19 +77352,19 @@ async function driveJob(deps, jobId, options = {}) {
             };
             if (apiReservationId !== void 0) {
               const reconciled = reconcileApiBudget({
-                workspace: deps.workspace,
+                workspace: deps2.workspace,
                 jobId,
                 reservationId: apiReservationId,
                 observedCostUsd: observedCost.costUsd,
                 costSource: observedCost.source,
-                now: (deps.clock ?? (() => /* @__PURE__ */ new Date()))(),
+                now: (deps2.clock ?? (() => /* @__PURE__ */ new Date()))(),
                 detail: observedCost.detail
               });
               const summary = summarizeApiBudget(
-                readApiBudgetState(deps.workspace, jobId),
+                readApiBudgetState(deps2.workspace, jobId),
                 schedulingRuntime.policy.api.budget
               );
-              recordJobEvent(deps, jobId, "api_budget_reconciled", {
+              recordJobEvent(deps2, jobId, "api_budget_reconciled", {
                 nodeId: node.nodeId,
                 taskId: node.parentTaskId,
                 reservationId: apiReservationId,
@@ -77339,7 +77376,7 @@ async function driveJob(deps, jobId, options = {}) {
                 remainingUsd: summary.remainingUsd
               });
               if (observedCost.costUsd === null) {
-                recordJobEvent(deps, jobId, "api_cost_unknown", {
+                recordJobEvent(deps2, jobId, "api_cost_unknown", {
                   nodeId: node.nodeId,
                   taskId: node.parentTaskId,
                   reservationId: apiReservationId,
@@ -77352,7 +77389,7 @@ async function driveJob(deps, jobId, options = {}) {
               );
             }
             if (apiResult.failure !== void 0) {
-              recordJobEvent(deps, jobId, "api_attempt_failed", {
+              recordJobEvent(deps2, jobId, "api_attempt_failed", {
                 nodeId: node.nodeId,
                 taskId: node.parentTaskId,
                 category: apiResult.failure.category,
@@ -77364,7 +77401,7 @@ async function driveJob(deps, jobId, options = {}) {
             const fiveHourBack = (after.fiveHour?.remainingRatio ?? 0) > schedulingRuntime.policy.fiveHourExhaustedRatio;
             const weeklyBack = (after.weekly?.remainingRatio ?? 0) > schedulingRuntime.policy.weeklyExhaustedRatio;
             if (fiveHourBack && weeklyBack) {
-              recordJobEvent(deps, jobId, "api_max_returned", {
+              recordJobEvent(deps2, jobId, "api_max_returned", {
                 nodeId: node.nodeId,
                 taskId: node.parentTaskId,
                 fiveHourRemainingRatio: after.fiveHour?.remainingRatio ?? null,
@@ -77374,11 +77411,11 @@ async function driveJob(deps, jobId, options = {}) {
               apiBridgedWhileMaxReturned = true;
             }
           }
-          const acceptanceCriteria = resolveAcceptanceCriteria(deps, jobId, job.specName, node.nodeId);
+          const acceptanceCriteria = resolveAcceptanceCriteria(deps2, jobId, job.specName, node.nodeId);
           const dispatchVerification = dispatch.verification;
           const reliabilityInput = {
             ...buildReliabilityInput({
-              deps,
+              deps: deps2,
               jobId,
               dispatch,
               lane: laneName,
@@ -77403,7 +77440,7 @@ async function driveJob(deps, jobId, options = {}) {
             ...acceptanceCriteria.length > 0 ? {
               acceptanceCriteria,
               criteriaEvidence: buildCriteriaEvidence({
-                workspaceRoot: deps.workspace.rootDir,
+                workspaceRoot: deps2.workspace.rootDir,
                 changedPaths: (dispatch.changedFiles ?? []).map((file) => file.path),
                 verifierResults: new Map(
                   (dispatchVerification?.commands ?? []).map((command) => [
@@ -77414,7 +77451,7 @@ async function driveJob(deps, jobId, options = {}) {
               })
             } : {}
           };
-          const result = completeExecutorDispatch(deps, jobId, {
+          const result = completeExecutorDispatch(deps2, jobId, {
             context: {
               nodeId: decision.nodeId,
               role: "EXECUTOR",
@@ -77441,12 +77478,12 @@ async function driveJob(deps, jobId, options = {}) {
             `task ${decision.taskId}: ${dispatch.evidenceStatus ?? dispatch.failure?.category ?? "unknown"} \u2192 ${result.nextAction}`
           );
           checkpointJob(
-            deps,
+            deps2,
             jobId,
             result.nextAction === "job-complete" ? "Job complete." : `Executor outcome ${result.nextAction}; continue with the next scheduler decision.`
           );
           if (result.nextAction === "job-complete") {
-            job = requireJobState(deps.workspace, jobId);
+            job = requireJobState(deps2.workspace, jobId);
             return { stop: { kind: "completed" }, job };
           }
           break;
@@ -77459,7 +77496,7 @@ async function driveJob(deps, jobId, options = {}) {
         }
         case "WAIT_QUOTA": {
           if (schedulingRuntime !== void 0 && lane !== void 0) {
-            persistLaneDecision(deps, jobId, {
+            persistLaneDecision(deps2, jobId, {
               nodeId: decision.nodeId,
               taskId: decision.taskId,
               selectedLane: decision.awaitingApiApproval === true ? "REQUIRE_APPROVAL" : "DEFER",
@@ -77471,9 +77508,9 @@ async function driveJob(deps, jobId, options = {}) {
               lane,
               apiBinding: schedulingRuntime.apiBinding
             });
-            recordApiGapObservations(deps, jobId, schedulingRuntime, decision, graph, emit22);
+            recordApiGapObservations(deps2, jobId, schedulingRuntime, decision, graph, emit22);
           }
-          job = deferJobForQuota(deps, jobId, {
+          job = deferJobForQuota(deps2, jobId, {
             nodeId: decision.nodeId,
             taskId: decision.taskId,
             until: decision.until,
@@ -77482,7 +77519,7 @@ async function driveJob(deps, jobId, options = {}) {
             pollMs: schedulingRuntime?.policy.deferPollMs ?? 6e4
           });
           emit22("waiting", `quota: ${decision.reasonCode} \u2014 ${decision.reason}`);
-          const nowMs = (deps.clock ?? (() => /* @__PURE__ */ new Date()))().getTime();
+          const nowMs = (deps2.clock ?? (() => /* @__PURE__ */ new Date()))().getTime();
           const waitMs = Math.max(0, Date.parse(job.retryAt ?? new Date(nowMs).toISOString()) - nowMs);
           const holdMs = schedulingRuntime?.policy.maxQuotaHoldMs ?? 6e5;
           unboundedQuotaDefers = decision.until === null ? unboundedQuotaDefers + 1 : 0;
@@ -77490,8 +77527,8 @@ async function driveJob(deps, jobId, options = {}) {
             await sleep2(waitMs, signal);
             break;
           }
-          checkpointJob(deps, jobId, `Deferred for subscription quota until ${job.retryAt ?? "unknown"}; resume to continue.`);
-          job = requireJobState(deps.workspace, jobId);
+          checkpointJob(deps2, jobId, `Deferred for subscription quota until ${job.retryAt ?? "unknown"}; resume to continue.`);
+          job = requireJobState(deps2.workspace, jobId);
           return {
             stop: { kind: "deferred", until: job.retryAt ?? null, reason: decision.reason },
             job
@@ -77499,26 +77536,26 @@ async function driveJob(deps, jobId, options = {}) {
         }
         case "AWAIT_HUMAN": {
           checkpointJob(
-            deps,
+            deps2,
             jobId,
             decision.what === "plan-review" ? "Review the pending plan, then resume the job." : decision.what === "authority" ? "Decide the open authority question, then resume the job." : "Answer the open clarification question(s), then resume the job."
           );
-          job = requireJobState(deps.workspace, jobId);
+          job = requireJobState(deps2.workspace, jobId);
           return { stop: { kind: "needs-human", what: decision.what, detail: decision.reason }, job };
         }
         case "JOB_COMPLETE": {
-          job = completeJobIfDone(deps, jobId);
+          job = completeJobIfDone(deps2, jobId);
           if (job.status !== "COMPLETED") {
-            checkpointJob(deps, jobId, "Contract closure decides what remains.");
+            checkpointJob(deps2, jobId, "Contract closure decides what remains.");
             return { stop: { kind: "final", status: job.status }, job };
           }
-          checkpointJob(deps, jobId, "Job complete.");
+          checkpointJob(deps2, jobId, "Job complete.");
           return { stop: { kind: "completed" }, job };
         }
         case "JOB_BLOCKED": {
-          job = requireJobState(deps.workspace, jobId);
+          job = requireJobState(deps2.workspace, jobId);
           if (job.status !== "BLOCKED") {
-            blockJob(deps, jobId, {
+            blockJob(deps2, jobId, {
               category: decision.budget !== void 0 ? "BUDGET_EXHAUSTED" : "BLOCKED_DEPENDENCY",
               code: decision.budget ?? "BLOCKED",
               message: decision.reason,
@@ -77528,12 +77565,12 @@ async function driveJob(deps, jobId, options = {}) {
               ]
             });
           }
-          checkpointJob(deps, jobId, "Blocked; an explicit user action is required.");
-          job = requireJobState(deps.workspace, jobId);
+          checkpointJob(deps2, jobId, "Blocked; an explicit user action is required.");
+          job = requireJobState(deps2.workspace, jobId);
           return { stop: { kind: "blocked", reason: decision.reason }, job };
         }
         case "JOB_FINAL": {
-          job = requireJobState(deps.workspace, jobId);
+          job = requireJobState(deps2.workspace, jobId);
           return { stop: { kind: "final", status: job.status }, job };
         }
       }
@@ -77542,11 +77579,11 @@ async function driveJob(deps, jobId, options = {}) {
     await localManager?.stop("driver exit");
   }
 }
-function resolveAcceptanceCriteria(deps, jobId, specName, nodeId) {
+function resolveAcceptanceCriteria(deps2, jobId, specName, nodeId) {
   const criteria = [];
-  const mission = findMissionForSpec(deps.workspace, specName);
+  const mission = findMissionForSpec(deps2.workspace, specName);
   if (mission !== void 0) {
-    for (const contract of readContractRegistry(deps.workspace, mission.missionId)) {
+    for (const contract of readContractRegistry(deps2.workspace, mission.missionId)) {
       for (const invariant of contract.invariants) {
         for (const [index, pattern] of invariant.guardPatterns.entries()) {
           criteria.push({
@@ -77558,7 +77595,7 @@ function resolveAcceptanceCriteria(deps, jobId, specName, nodeId) {
       }
     }
   }
-  const checkpoint = readLatestTaskCheckpoint(deps.workspace, jobId, nodeId);
+  const checkpoint = readLatestTaskCheckpoint(deps2.workspace, jobId, nodeId);
   for (const [index, statement] of (checkpoint?.pinned.acceptanceCriteria ?? []).entries()) {
     criteria.push({ id: `AC-${index + 1}`, text: statement.slice(0, 2e3) });
   }
@@ -77635,11 +77672,11 @@ function directFailureNeedsRepositoryTools(result) {
   }
   return failure.category === "CAPABILITY_UNAVAILABLE" && result.escalationReason !== void 0;
 }
-function writeApiHandoffCheckpoint(deps, jobId, node, attemptId, bridge) {
+function writeApiHandoffCheckpoint(deps2, jobId, node, attemptId, bridge) {
   try {
-    const previous = readLatestTaskCheckpoint(deps.workspace, jobId, node.nodeId);
+    const previous = readLatestTaskCheckpoint(deps2.workspace, jobId, node.nodeId);
     createTaskCheckpoint(
-      { workspace: deps.workspace, clock: deps.clock, idFactory: deps.idFactory },
+      { workspace: deps2.workspace, clock: deps2.clock, idFactory: deps2.idFactory },
       {
         jobId,
         nodeId: node.nodeId,
@@ -77667,11 +77704,11 @@ function writeApiHandoffCheckpoint(deps, jobId, node, attemptId, bridge) {
   } catch {
   }
 }
-function recordApiGapObservations(deps, jobId, runtime, decision, graph, emit22) {
+function recordApiGapObservations(deps2, jobId, runtime, decision, graph, emit22) {
   const bridge = decision.laneRouting?.apiBridge;
   if (bridge === void 0) return;
-  const now52 = (deps.clock ?? (() => /* @__PURE__ */ new Date()))();
-  recordJobEvent(deps, jobId, "api_gap_detected", {
+  const now52 = (deps2.clock ?? (() => /* @__PURE__ */ new Date()))();
+  recordJobEvent(deps2, jobId, "api_gap_detected", {
     nodeId: decision.nodeId,
     taskId: decision.taskId,
     gapReason: bridge.gap.reason,
@@ -77683,7 +77720,7 @@ function recordApiGapObservations(deps, jobId, runtime, decision, graph, emit22)
     reasonCode: bridge.reasonCode
   });
   if (bridge.reasonCode === "API_GAP_SHORT_DEFER" || bridge.reasonCode === "API_WASTEFUL_NEAR_RESET") {
-    recordJobEvent(deps, jobId, "api_gap_short_deferred", {
+    recordJobEvent(deps2, jobId, "api_gap_short_deferred", {
       nodeId: decision.nodeId,
       taskId: decision.taskId,
       estimatedGapDurationMs: bridge.gap.timeUntilAvailableMs,
@@ -77691,14 +77728,14 @@ function recordApiGapObservations(deps, jobId, runtime, decision, graph, emit22)
     });
   }
   if (bridge.reasonCode === "API_COST_UNKNOWN") {
-    recordJobEvent(deps, jobId, "api_cost_unknown", {
+    recordJobEvent(deps2, jobId, "api_cost_unknown", {
       nodeId: decision.nodeId,
       taskId: decision.taskId,
       detail: (bridge.cost?.detail ?? bridge.detail).slice(0, 300)
     });
   }
   if (bridge.reasonCode === "API_BUDGET_EXCEEDED") {
-    recordJobEvent(deps, jobId, "api_budget_exceeded", {
+    recordJobEvent(deps2, jobId, "api_budget_exceeded", {
       nodeId: decision.nodeId,
       taskId: decision.taskId,
       refusal: bridge.budget?.refusal ?? "UNKNOWN",
@@ -77714,7 +77751,7 @@ function recordApiGapObservations(deps, jobId, runtime, decision, graph, emit22)
   const safeCost = bridge.cost?.safeCostUsd;
   if (safeCost === null || safeCost === void 0) return;
   const requested = requestApiSpendApproval({
-    workspace: deps.workspace,
+    workspace: deps2.workspace,
     jobId,
     nodeId: node.nodeId,
     taskId: node.parentTaskId,
@@ -77723,12 +77760,12 @@ function recordApiGapObservations(deps, jobId, runtime, decision, graph, emit22)
     maxAuthorizedCostUsd: safeCost,
     estimatedCostUsd: bridge.cost?.estimatedCostUsd ?? null,
     rationale: bridge.detail,
-    approvalId: `aa-${(deps.idFactory ?? (() => `${Date.now()}`))()}`.slice(0, 64),
+    approvalId: `aa-${(deps2.idFactory ?? (() => `${Date.now()}`))()}`.slice(0, 64),
     now: now52,
     ttlMs: runtime.policy.api.gap.approvalTtlMs
   });
   if (!requested.created) return;
-  recordJobEvent(deps, jobId, "api_approval_required", {
+  recordJobEvent(deps2, jobId, "api_approval_required", {
     nodeId: node.nodeId,
     taskId: node.parentTaskId,
     approvalId: requested.approval.approvalId,
@@ -77745,13 +77782,13 @@ function recordApiGapObservations(deps, jobId, runtime, decision, graph, emit22)
     `api spend approval required (${requested.approval.approvalId}): up to $${safeCost.toFixed(4)} on "${profileName}" for task ${node.parentTaskId}`
   );
 }
-function persistLaneDecision(deps, jobId, input) {
-  const createdAt = (deps.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
-  const decisionId = `sd-${(deps.idFactory ?? (() => `${Date.now()}`))()}`.slice(0, 64);
+function persistLaneDecision(deps2, jobId, input) {
+  const createdAt = (deps2.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
+  const decisionId = `sd-${(deps2.idFactory ?? (() => `${Date.now()}`))()}`.slice(0, 64);
   const routing = input.laneRouting;
   try {
     appendSchedulingDecision(
-      deps.workspace,
+      deps2.workspace,
       {
         schemaVersion: "1.0.0",
         decisionId,
@@ -77777,7 +77814,7 @@ function persistLaneDecision(deps, jobId, input) {
         preResetBurnRatio: routing?.routing.admission?.preResetBurnRatio ?? null,
         crossesReset: routing?.routing.admission?.crossesReset ?? false,
         contextStatus: routing !== void 0 ? {
-          usageRatio: estimateNodeContextRatio(deps, jobId, input.nodeId),
+          usageRatio: estimateNodeContextRatio(deps2, jobId, input.nodeId),
           compactFirst: routing.routing.compactFirst
         } : null,
         localExecution: routing?.localExecution?.mode != null && routing.localExecution.reasonCode !== null ? {
@@ -77799,7 +77836,7 @@ function persistLaneDecision(deps, jobId, input) {
         // ones where it declined to spend.
         apiBridge: routing?.apiBridge !== void 0 ? {
           decision: routing.apiBridge.decision,
-          spendMode: deps.config.orchestration.jobs.scheduler.api.spendMode,
+          spendMode: deps2.config.orchestration.jobs.scheduler.api.spendMode,
           gapReason: routing.apiBridge.gap.reason,
           subscriptionAvailableAt: routing.apiBridge.gap.expectedAvailableAt,
           estimatedGapDurationMs: routing.apiBridge.gap.timeUntilAvailableMs,
@@ -77828,11 +77865,11 @@ function persistLaneDecision(deps, jobId, input) {
         detail: input.detail.slice(0, 2e3),
         createdAt
       },
-      { maxRecords: deps.config.orchestration.jobs.scheduler.maxDecisionRecords }
+      { maxRecords: deps2.config.orchestration.jobs.scheduler.maxDecisionRecords }
     );
   } catch {
   }
-  recordJobEvent(deps, jobId, "scheduling_decision_created", {
+  recordJobEvent(deps2, jobId, "scheduling_decision_created", {
     decisionId,
     nodeId: input.nodeId,
     taskId: input.taskId,
@@ -77842,14 +77879,14 @@ function persistLaneDecision(deps, jobId, input) {
     ...input.deferUntil !== null ? { deferUntil: input.deferUntil } : {}
   });
   if (routing !== void 0) {
-    recordJobEvent(deps, jobId, "local_suitability_classified", {
+    recordJobEvent(deps2, jobId, "local_suitability_classified", {
       nodeId: input.nodeId,
       taskId: input.taskId,
       suitability: routing.suitability.class,
       category: routing.suitability.category,
       signals: routing.suitability.signals.slice(0, 5).map((signal) => signal.signal)
     });
-    recordJobEvent(deps, jobId, "workload_estimated", {
+    recordJobEvent(deps2, jobId, "workload_estimated", {
       nodeId: input.nodeId,
       taskId: input.taskId,
       expectedWallTimeMs: routing.estimate.expectedWallTimeMs,
@@ -77859,7 +77896,7 @@ function persistLaneDecision(deps, jobId, input) {
       basis: routing.estimate.basis
     });
   }
-  persistAdaptiveDecision(deps, jobId, {
+  persistAdaptiveDecision(deps2, jobId, {
     nodeId: input.nodeId,
     taskId: input.taskId,
     heuristicLane: input.selectedLane,
@@ -77870,7 +77907,7 @@ function persistLaneDecision(deps, jobId, input) {
   });
   return decisionId;
 }
-function persistAdaptiveDecision(deps, jobId, input) {
+function persistAdaptiveDecision(deps2, jobId, input) {
   const adaptive = input.lane.adaptive;
   if (adaptive === void 0) return;
   const ranking = adaptive.rankings.get(input.nodeId);
@@ -77878,7 +77915,7 @@ function persistAdaptiveDecision(deps, jobId, input) {
   if (ranking === void 0 || signature2 === void 0) return;
   try {
     appendAdaptiveDecision(
-      deps.workspace,
+      deps2.workspace,
       {
         schemaVersion: ADAPTIVE_DECISION_SCHEMA_VERSION,
         decisionId: `ad-${input.decisionId}`.slice(0, 200),
@@ -77970,11 +78007,11 @@ function persistAdaptiveDecision(deps, jobId, input) {
         profileBuiltAt: adaptive.profiles.builtAt,
         createdAt: input.createdAt
       },
-      { maxRecords: deps.config.orchestration.jobs.scheduler.adaptive.maxDecisionRecords }
+      { maxRecords: deps2.config.orchestration.jobs.scheduler.adaptive.maxDecisionRecords }
     );
   } catch {
   }
-  recordJobEvent(deps, jobId, "adaptive_prediction_created", {
+  recordJobEvent(deps2, jobId, "adaptive_prediction_created", {
     nodeId: input.nodeId,
     taskId: input.taskId,
     mode: ranking.mode,
@@ -77985,7 +78022,7 @@ function persistAdaptiveDecision(deps, jobId, input) {
   });
   for (const veto of ranking.vetoes) {
     if (veto.code === "LANE_NOT_ELIGIBLE") continue;
-    recordJobEvent(deps, jobId, "adaptive_candidate_vetoed", {
+    recordJobEvent(deps2, jobId, "adaptive_candidate_vetoed", {
       nodeId: input.nodeId,
       taskId: input.taskId,
       candidateId: veto.candidateId,
@@ -77994,7 +78031,7 @@ function persistAdaptiveDecision(deps, jobId, input) {
   }
   const drifting = ranking.ranked.filter((entry2) => entry2.prediction.drift.detected);
   for (const entry2 of drifting) {
-    recordJobEvent(deps, jobId, "adaptive_drift_detected", {
+    recordJobEvent(deps2, jobId, "adaptive_drift_detected", {
       nodeId: input.nodeId,
       candidateId: entry2.prediction.candidate.candidateId,
       signals: entry2.prediction.drift.signals,
@@ -78002,7 +78039,7 @@ function persistAdaptiveDecision(deps, jobId, input) {
     });
   }
   if (ranking.adaptiveApplied) {
-    recordJobEvent(deps, jobId, "adaptive_candidate_selected", {
+    recordJobEvent(deps2, jobId, "adaptive_candidate_selected", {
       nodeId: input.nodeId,
       taskId: input.taskId,
       selected: ranking.selectedCandidate?.candidateId ?? null,
@@ -78013,7 +78050,7 @@ function persistAdaptiveDecision(deps, jobId, input) {
     return;
   }
   if (ranking.mode === "SHADOW" && ranking.disagreement) {
-    recordJobEvent(deps, jobId, "adaptive_shadow_disagreement", {
+    recordJobEvent(deps2, jobId, "adaptive_shadow_disagreement", {
       nodeId: input.nodeId,
       taskId: input.taskId,
       executed: ranking.heuristicCandidate?.candidateId ?? null,
@@ -78024,7 +78061,7 @@ function persistAdaptiveDecision(deps, jobId, input) {
     return;
   }
   if (ranking.fallbackReason !== null && ranking.fallbackReason !== "AGREES_WITH_HEURISTIC") {
-    recordJobEvent(deps, jobId, "adaptive_fallback_to_heuristic", {
+    recordJobEvent(deps2, jobId, "adaptive_fallback_to_heuristic", {
       nodeId: input.nodeId,
       taskId: input.taskId,
       reason: ranking.fallbackReason,
@@ -78032,10 +78069,10 @@ function persistAdaptiveDecision(deps, jobId, input) {
     });
   }
 }
-function emitSchedulingTransitions(deps, jobId, runtime, lane, emit22) {
+function emitSchedulingTransitions(deps2, jobId, runtime, lane, emit22) {
   const forecast = lane.forecast;
   if (runtime.lastObservedAt !== forecast.observedAt) {
-    recordJobEvent(deps, jobId, "quota_snapshot_updated", {
+    recordJobEvent(deps2, jobId, "quota_snapshot_updated", {
       fiveHourRemainingRatio: forecast.fiveHourRemainingRatio,
       weeklyRemainingRatio: forecast.weeklyRemainingRatio,
       fiveHourResetAt: forecast.fiveHourResetAt,
@@ -78047,7 +78084,7 @@ function emitSchedulingTransitions(deps, jobId, runtime, lane, emit22) {
   }
   if (runtime.lastFreshness !== forecast.telemetryFreshness) {
     if (forecast.telemetryFreshness === "STALE") {
-      recordJobEvent(deps, jobId, "quota_telemetry_stale", {
+      recordJobEvent(deps2, jobId, "quota_telemetry_stale", {
         observedAt: forecast.observedAt,
         staleThresholdMs: runtime.policy.telemetryStaleMs
       });
@@ -78057,7 +78094,7 @@ function emitSchedulingTransitions(deps, jobId, runtime, lane, emit22) {
   }
   if (runtime.lastMode !== forecast.schedulerMode) {
     if (runtime.lastMode !== void 0) {
-      recordJobEvent(deps, jobId, "scheduler_mode_changed", {
+      recordJobEvent(deps2, jobId, "scheduler_mode_changed", {
         from: runtime.lastMode,
         to: forecast.schedulerMode,
         fiveHourRemainingRatio: forecast.fiveHourRemainingRatio,
@@ -78066,16 +78103,16 @@ function emitSchedulingTransitions(deps, jobId, runtime, lane, emit22) {
       });
     }
     if (forecast.schedulerMode === "HARVEST") {
-      recordJobEvent(deps, jobId, "harvest_entered", {
+      recordJobEvent(deps2, jobId, "harvest_entered", {
         fiveHourRemainingRatio: forecast.fiveHourRemainingRatio,
         timeToFiveHourResetMs: forecast.timeToFiveHourResetMs,
         reserveRatio: lane.reserve.ratio
       });
     } else if (runtime.lastMode === "HARVEST") {
-      recordJobEvent(deps, jobId, "harvest_exited", { to: forecast.schedulerMode });
+      recordJobEvent(deps2, jobId, "harvest_exited", { to: forecast.schedulerMode });
     }
     if (forecast.schedulerMode === "EXHAUSTED_5H" || forecast.schedulerMode === "EXHAUSTED_WEEKLY") {
-      recordJobEvent(deps, jobId, "quota_exhausted", {
+      recordJobEvent(deps2, jobId, "quota_exhausted", {
         window: forecast.schedulerMode === "EXHAUSTED_5H" ? "five-hour" : "weekly",
         resetAt: forecast.schedulerMode === "EXHAUSTED_5H" ? forecast.fiveHourResetAt : forecast.weeklyResetAt
       });
@@ -78086,7 +78123,7 @@ function emitSchedulingTransitions(deps, jobId, runtime, lane, emit22) {
   const reserveDelta = runtime.lastReserveRatio === void 0 ? Number.POSITIVE_INFINITY : Math.abs(lane.reserve.ratio - runtime.lastReserveRatio);
   if (reserveDelta >= 0.05) {
     if (runtime.lastReserveRatio !== void 0) {
-      recordJobEvent(deps, jobId, "dynamic_reserve_changed", {
+      recordJobEvent(deps2, jobId, "dynamic_reserve_changed", {
         from: runtime.lastReserveRatio,
         to: lane.reserve.ratio,
         timeComponent: lane.reserve.basis.timeComponent,
@@ -78097,18 +78134,18 @@ function emitSchedulingTransitions(deps, jobId, runtime, lane, emit22) {
     runtime.lastReserveRatio = lane.reserve.ratio;
   }
 }
-async function handleRoleDecision(deps, jobId, decision, runtime) {
-  const policy = deps.config.orchestration.jobs;
+async function handleRoleDecision(deps2, jobId, decision, runtime) {
+  const policy = deps2.config.orchestration.jobs;
   const role = decision.role;
-  const job = requireJobState(deps.workspace, jobId);
-  const graph = activeGraph(deps, job);
+  const job = requireJobState(deps2.workspace, jobId);
+  const graph = activeGraph(deps2, job);
   const node = graph !== void 0 ? findNode(graph, decision.nodeId) : void 0;
   if (node === void 0) {
     throw new OrchestrationError("SBO031", `Node ${decision.nodeId} vanished between scheduling and the role run.`);
   }
   if (decision.escalation !== void 0) {
     if (!escalationAllowed(policy) && decision.worker.costTier === "PAID") {
-      askClarification(deps, jobId, [
+      askClarification(deps2, jobId, [
         {
           question: `Escalate ${role} for task ${node.parentTaskId} to the paid large agent? (${decision.escalation.detail})`,
           whyItMatters: "Escalation mode is manual; paid reasoning needs an explicit decision.",
@@ -78117,7 +78154,7 @@ async function handleRoleDecision(deps, jobId, decision, runtime) {
       ]);
       return "continue";
     }
-    noteEscalation(deps, jobId, {
+    noteEscalation(deps2, jobId, {
       nodeId: node.nodeId,
       role,
       reason: decision.escalation.reason,
@@ -78125,26 +78162,26 @@ async function handleRoleDecision(deps, jobId, decision, runtime) {
     });
   }
   if (role === "PLANNER" && job.status === "READY") {
-    beginPlanning(deps, jobId, node.nodeId);
+    beginPlanning(deps2, jobId, node.nodeId);
   }
-  recordJobEvent(deps, jobId, "worker_selected", {
+  recordJobEvent(deps2, jobId, "worker_selected", {
     nodeId: node.nodeId,
     role,
     workerId: decision.worker.workerId,
     tier: decision.worker.reasoningTier
   });
-  const startedAt = (deps.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
-  const specExcerpt = specExcerptFor(deps.workspace, job.specName, 12e3);
+  const startedAt = (deps2.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
+  const specExcerpt = specExcerptFor(deps2.workspace, job.specName, 12e3);
   const packetBase = {
     specName: job.specName,
     taskId: node.parentTaskId,
     taskTitle: node.title,
     specExcerpt
   };
-  const activePlan = readActivePlan(deps, jobId, node);
+  const activePlan = readActivePlan(deps2, jobId, node);
   const packet = buildPacketFor(role, packetBase, node, activePlan, job);
   runtime.emit("role-started", `${role} for task ${node.parentTaskId} on ${decision.worker.workerId}`);
-  const result = await runRole(deps, jobId, role, decision, packet, runtime);
+  const result = await runRole(deps2, jobId, role, decision, packet, runtime);
   if (!result.ok) {
     if (result.kind === "cancelled") return "stop-interrupted";
     const attemptContext = {
@@ -78154,7 +78191,7 @@ async function handleRoleDecision(deps, jobId, decision, runtime) {
       startedAt
     };
     if (decision.worker.reasoningTier === "LOCAL_SMALL") {
-      recordRoleFailure(deps, jobId, {
+      recordRoleFailure(deps2, jobId, {
         context: attemptContext,
         outcome: result.kind === "invalid-output" ? "invalid-output" : "failed",
         escalation: {
@@ -78168,12 +78205,12 @@ async function handleRoleDecision(deps, jobId, decision, runtime) {
     const previousLargeFailures = node.attempts.filter(
       (attempt) => attempt.role === role && attempt.workerId === decision.worker.workerId && (attempt.outcome === "failed" || attempt.outcome === "invalid-output")
     ).length;
-    recordRoleFailure(deps, jobId, {
+    recordRoleFailure(deps2, jobId, {
       context: attemptContext,
       outcome: result.kind === "invalid-output" ? "invalid-output" : "failed"
     });
     if (previousLargeFailures >= 1) {
-      blockJob(deps, jobId, {
+      blockJob(deps2, jobId, {
         category: "CAPABILITY_UNAVAILABLE",
         code: "LARGE_WORKER_FAILED",
         message: `The large-agent ${role} failed twice: ${result.problem.slice(0, 500)}`,
@@ -78190,7 +78227,7 @@ async function handleRoleDecision(deps, jobId, decision, runtime) {
     runtime.emit("role-finished", `${role} failed on the large tier (${result.kind})`);
     return "continue";
   }
-  const agentResultRef = persistAgentResult(deps, jobId, role, result.raw);
+  const agentResultRef = persistAgentResult(deps2, jobId, role, result.raw);
   const context = {
     nodeId: node.nodeId,
     role,
@@ -78199,13 +78236,13 @@ async function handleRoleDecision(deps, jobId, decision, runtime) {
     ...agentResultRef !== void 0 ? { agentResultRef } : {},
     ...result.usage !== void 0 ? { usage: result.usage } : {}
   };
-  await applyRoleOutput(deps, jobId, role, result, context, node, activePlan);
+  await applyRoleOutput(deps2, jobId, role, result, context, node, activePlan);
   runtime.emit("role-finished", `${role} for task ${node.parentTaskId} succeeded`);
   return "continue";
 }
-function readActivePlan(deps, jobId, node) {
+function readActivePlan(deps2, jobId, node) {
   if (node.planRevision === 0) return void 0;
-  const raw = readNodePlan(deps.workspace, jobId, node.nodeId, node.planRevision);
+  const raw = readNodePlan(deps2.workspace, jobId, node.nodeId, node.planRevision);
   if (raw === void 0) return void 0;
   const parsed = executionPlanSchema.safeParse(raw);
   return parsed.success ? parsed.data : void 0;
@@ -78268,28 +78305,28 @@ function buildPacketFor(role, base, node, activePlan, job) {
     }
   }
 }
-async function runRole(deps, jobId, role, decision, packet, runtime) {
+async function runRole(deps2, jobId, role, decision, packet, runtime) {
   if (decision.worker.reasoningTier === "LOCAL_SMALL") {
     if (runtime.localManager === void 0) {
       return { ok: false, kind: "worker-unavailable", problem: "No local model manager is active." };
     }
     return runLocalRole({
       manager: runtime.localManager,
-      config: deps.config,
+      config: deps2.config,
       role,
       packet,
-      maxCorrections: deps.config.orchestration.jobs.maxLocalOutputCorrections,
-      onInferenceCall: () => countLocalInferenceCall(deps, jobId),
+      maxCorrections: deps2.config.orchestration.jobs.maxLocalOutputCorrections,
+      onInferenceCall: () => countLocalInferenceCall(deps2, jobId),
       signal: runtime.signal
     });
   }
   const result = await runLargeRole({
-    workspace: deps.workspace,
-    config: deps.config,
-    runnerProfile: decision.worker.runnerProfile ?? deps.config.defaultRunner,
+    workspace: deps2.workspace,
+    config: deps2.config,
+    runnerProfile: decision.worker.runnerProfile ?? deps2.config.defaultRunner,
     role,
     packet,
-    scratchDir: import_path44.default.join(jobDir(deps.workspace, jobId), "scratch"),
+    scratchDir: import_path44.default.join(jobDir(deps2.workspace, jobId), "scratch"),
     timeoutMs: 6e5,
     signal: runtime.signal,
     cachedProbe: runtime.probeCache.probe
@@ -78297,18 +78334,18 @@ async function runRole(deps, jobId, role, decision, packet, runtime) {
   if (result.probe !== void 0) runtime.probeCache.probe = result.probe;
   return result;
 }
-async function applyRoleOutput(deps, jobId, role, result, context, node, activePlan) {
+async function applyRoleOutput(deps2, jobId, role, result, context, node, activePlan) {
   const producedByTier = context.workerId === "local-llamacpp" ? "LOCAL_SMALL" : "LARGE_AGENT";
   switch (role) {
     case "CLASSIFIER": {
       const output = result.output;
-      recordClassification(deps, jobId, { context, proposedClass: output.complexity });
+      recordClassification(deps2, jobId, { context, proposedClass: output.complexity });
       return;
     }
     case "PLANNER": {
       const output = result.output;
       if (output.decision === "ESCALATE" || output.requiresEscalation) {
-        recordRoleFailure(deps, jobId, {
+        recordRoleFailure(deps2, jobId, {
           context,
           outcome: "escalated",
           escalation: {
@@ -78319,7 +78356,7 @@ async function applyRoleOutput(deps, jobId, role, result, context, node, activeP
         return;
       }
       if (output.steps.length === 0 || output.goal === void 0) {
-        recordRoleFailure(deps, jobId, {
+        recordRoleFailure(deps2, jobId, {
           context,
           outcome: "escalated",
           escalation: {
@@ -78329,7 +78366,7 @@ async function applyRoleOutput(deps, jobId, role, result, context, node, activeP
         });
         return;
       }
-      await recordPlan(deps, jobId, {
+      await recordPlan(deps2, jobId, {
         context,
         candidate: plannerOutputToCandidate(output),
         producedByTier
@@ -78338,13 +78375,13 @@ async function applyRoleOutput(deps, jobId, role, result, context, node, activeP
     }
     case "CRITIC": {
       const output = result.output;
-      recordCriticVerdict(deps, jobId, {
+      recordCriticVerdict(deps2, jobId, {
         context,
         verdict: output.verdict,
         reasons: [...output.reasons, ...output.requestedChanges]
       });
       if (output.verdict === "ESCALATE") {
-        noteEscalation(deps, jobId, {
+        noteEscalation(deps2, jobId, {
           nodeId: node.nodeId,
           role: "CRITIC",
           reason: "CRITIC_ESCALATED",
@@ -78355,7 +78392,7 @@ async function applyRoleOutput(deps, jobId, role, result, context, node, activeP
     }
     case "DIAGNOSER": {
       const output = result.output;
-      applyDiagnosis(deps, jobId, {
+      applyDiagnosis(deps2, jobId, {
         context,
         category: output.category,
         planValidity: output.planValidity,
@@ -78367,7 +78404,7 @@ async function applyRoleOutput(deps, jobId, role, result, context, node, activeP
     case "REPLANNER": {
       const output = result.output;
       if (output.decision === "ESCALATE") {
-        recordRoleFailure(deps, jobId, {
+        recordRoleFailure(deps2, jobId, {
           context,
           outcome: "escalated",
           escalation: {
@@ -78378,7 +78415,7 @@ async function applyRoleOutput(deps, jobId, role, result, context, node, activeP
         return;
       }
       if (output.decision === "BLOCKED") {
-        blockJob(deps, jobId, {
+        blockJob(deps2, jobId, {
           category: "BLOCKED_DEPENDENCY",
           code: "REPLANNER_BLOCKED",
           message: output.reason,
@@ -78387,11 +78424,11 @@ async function applyRoleOutput(deps, jobId, role, result, context, node, activeP
         return;
       }
       if (output.decision === "SUPERSEDE_NODE") {
-        supersedeNode(deps, jobId, { nodeId: node.nodeId, reason: output.reason });
+        supersedeNode(deps2, jobId, { nodeId: node.nodeId, reason: output.reason });
         return;
       }
       if (output.steps.length === 0 || output.goal === void 0) {
-        recordRoleFailure(deps, jobId, {
+        recordRoleFailure(deps2, jobId, {
           context,
           outcome: "escalated",
           escalation: {
@@ -78407,7 +78444,7 @@ async function applyRoleOutput(deps, jobId, role, result, context, node, activeP
         activePlan !== void 0 ? { goal: activePlan.goal, steps: activePlan.steps.map((step2) => ({ description: step2.description })) } : void 0
       );
       if (output.impactsApprovedIntent || screen.impacts) {
-        const delegated = resolveDelegatedAuthority(deps.authorityResolver, {
+        const delegated = resolveDelegatedAuthority(deps2.authorityResolver, {
           jobId,
           nodeId: node.nodeId,
           decisionKinds: screen.decisionKinds,
@@ -78416,16 +78453,16 @@ async function applyRoleOutput(deps, jobId, role, result, context, node, activeP
 ${candidate.steps.map((step2) => step2.description).join("\n")}`.slice(0, 4e3)
         });
         if (delegated?.kind === "AUTONOMOUS") {
-          recordJobEvent(deps, jobId, "authority_delegated", {
+          recordJobEvent(deps2, jobId, "authority_delegated", {
             nodeId: node.nodeId,
             decisionKinds: [...screen.decisionKinds],
             reason: delegated.reason.slice(0, 300)
           });
-          await recordPlan(deps, jobId, { context, candidate, producedByTier }, { replan: true });
+          await recordPlan(deps2, jobId, { context, candidate, producedByTier }, { replan: true });
           return;
         }
         if (delegated?.kind === "NEEDS_AUTHORITY") {
-          escalateAuthority(deps, jobId, {
+          escalateAuthority(deps2, jobId, {
             surface: delegated.surface,
             reason: delegated.reason,
             question: delegated.question,
@@ -78435,7 +78472,7 @@ ${candidate.steps.map((step2) => step2.description).join("\n")}`.slice(0, 4e3)
           });
           return;
         }
-        askClarification(deps, jobId, [
+        askClarification(deps2, jobId, [
           {
             question: `The proposed replacement plan for task ${node.parentTaskId} may change approved intent${screen.reasons.length > 0 ? ` (${screen.reasons.join("; ")})` : ""}. Proceed, change the spec, or decide otherwise?`,
             whyItMatters: "Replanning may never silently change approved behavior, public API, architecture, or product decisions.",
@@ -78444,15 +78481,15 @@ ${candidate.steps.map((step2) => step2.description).join("\n")}`.slice(0, 4e3)
         ]);
         return;
       }
-      await recordPlan(deps, jobId, { context, candidate, producedByTier }, { replan: true });
+      await recordPlan(deps2, jobId, { context, candidate, producedByTier }, { replan: true });
       return;
     }
   }
 }
-async function buildDispatchContext(deps, input) {
-  const attemptId = requireJobState(deps.workspace, input.jobId).currentAttemptId;
+async function buildDispatchContext(deps2, input) {
+  const attemptId = requireJobState(deps2.workspace, input.jobId).currentAttemptId;
   try {
-    const built = await buildTaskContextPackage(deps, {
+    const built = await buildTaskContextPackage(deps2, {
       jobId: input.jobId,
       nodeId: input.node.nodeId,
       role: "EXECUTOR",
@@ -78462,7 +78499,7 @@ async function buildDispatchContext(deps, input) {
       ...input.executionMode !== void 0 ? { executionMode: input.executionMode } : {},
       ...input.runner !== void 0 ? { runner: input.runner } : {}
     });
-    recordJobEvent(deps, input.jobId, "context_selected", {
+    recordJobEvent(deps2, input.jobId, "context_selected", {
       nodeId: input.node.nodeId,
       taskId: input.node.parentTaskId,
       planId: built.plan.planId,
@@ -80331,25 +80368,25 @@ function economicConfiguration(config2) {
 }
 function runPreflight(input) {
   const { config: config2, profile, target } = input;
-  const findings = [];
+  const findings2 = [];
   const economics = economicConfiguration(config2);
   const paidCapable = PAID_CAPABLE_PROFILES.includes(profile);
   if (target.kind === "FIXTURE") {
-    findings.push(
+    findings2.push(
       ok(
         "target.repository",
         `Target is the deterministic fixture "${target.name}". The real-product release gate is not satisfiable by this run.`
       )
     );
   } else if (target.repositoryPath === null) {
-    findings.push(
+    findings2.push(
       refuse2("target.repository", "No dogfood target repository is configured.", [
         "Configure the dogfood target repository path before starting a real dogfood run.",
         "Offline qualification does not need a target: run it with --profile offline."
       ])
     );
   } else if (!(0, import_fs50.existsSync)(target.repositoryPath) || !(0, import_fs50.statSync)(target.repositoryPath).isDirectory()) {
-    findings.push(
+    findings2.push(
       refuse2(
         "target.repository",
         `The configured dogfood target "${target.repositoryPath}" does not exist or is not a directory.`,
@@ -80360,12 +80397,12 @@ function runPreflight(input) {
       )
     );
   } else {
-    findings.push(ok("target.repository", `Dogfood target resolved at ${target.repositoryPath}.`));
+    findings2.push(ok("target.repository", `Dogfood target resolved at ${target.repositoryPath}.`));
   }
   if (target.kind === "REAL_REPOSITORY") {
     const repository = input.targetRepository;
     if (repository === null || repository === void 0) {
-      findings.push(
+      findings2.push(
         refuse2(
           "target.working-tree",
           "The dogfood target repository status could not be determined.",
@@ -80373,13 +80410,13 @@ function runPreflight(input) {
         )
       );
     } else if (!repository.isGitRepository) {
-      findings.push(
+      findings2.push(
         refuse2("target.working-tree", "The dogfood target is not a git repository.", [
           "Dogfood execution requires git for isolated worktrees and evidence."
         ])
       );
     } else if (!repository.isolatedWorktree && repository.dirtyPaths.length > 0) {
-      findings.push(
+      findings2.push(
         refuse2(
           "target.working-tree",
           `The dogfood target has ${repository.dirtyPaths.length} uncommitted change(s) outside .specbridge/ and is not an isolated worktree.`,
@@ -80390,7 +80427,7 @@ function runPreflight(input) {
         )
       );
     } else if (!repository.isolatedWorktree) {
-      findings.push(
+      findings2.push(
         warn(
           "target.working-tree",
           `Dogfood will run directly in ${repository.branch ?? "the current branch"} rather than an isolated worktree.`,
@@ -80398,7 +80435,7 @@ function runPreflight(input) {
         )
       );
     } else {
-      findings.push(
+      findings2.push(
         ok(
           "target.working-tree",
           `Dogfood is confined to the isolated worktree ${target.worktreePath ?? "(configured)"} on ${repository.branch ?? "a dedicated branch"}.`
@@ -80408,7 +80445,7 @@ function runPreflight(input) {
   }
   if (profile !== "offline") {
     if (!economics.localModelConfigured) {
-      findings.push(
+      findings2.push(
         refuse2(
           "runners.local",
           `Profile "${profile}" exercises real local compute, but no local model is configured or enabled.`,
@@ -80418,12 +80455,12 @@ function runPreflight(input) {
         )
       );
     } else {
-      findings.push(ok("runners.local", "Local inference is configured and enabled."));
+      findings2.push(ok("runners.local", "Local inference is configured and enabled."));
     }
   }
   if (profile === "subscription" || profile === "full") {
     if (!economics.subscriptionWorkerConfigured) {
-      findings.push(
+      findings2.push(
         refuse2(
           "runners.subscription",
           `Profile "${profile}" requires a subscription-backed strong worker, and no role routes to one.`,
@@ -80431,10 +80468,10 @@ function runPreflight(input) {
         )
       );
     } else {
-      findings.push(ok("runners.subscription", "A subscription-backed strong worker is configured."));
+      findings2.push(ok("runners.subscription", "A subscription-backed strong worker is configured."));
     }
     if (economics.quotaTelemetrySource === "none") {
-      findings.push(
+      findings2.push(
         warn(
           "quota.telemetry",
           "No quota telemetry source is configured; quota-aware scheduling will operate without observations.",
@@ -80442,15 +80479,15 @@ function runPreflight(input) {
         )
       );
     } else {
-      findings.push(
+      findings2.push(
         ok("quota.telemetry", `Quota telemetry source: ${economics.quotaTelemetrySource}.`)
       );
     }
   }
-  findings.push(ok("economics.api-spend-mode", `API spend mode: ${economics.apiSpendMode}.`));
+  findings2.push(ok("economics.api-spend-mode", `API spend mode: ${economics.apiSpendMode}.`));
   if (economics.apiSpendMode !== "DISABLED") {
     if (economics.apiMaxBudgetUsd === null) {
-      findings.push(
+      findings2.push(
         refuse2(
           "economics.api-budget",
           `API spend mode is ${economics.apiSpendMode} with no maximum total budget configured.`,
@@ -80458,7 +80495,7 @@ function runPreflight(input) {
         )
       );
     } else {
-      findings.push(
+      findings2.push(
         ok(
           "economics.api-budget",
           `API budget ceiling: $${economics.apiMaxBudgetUsd.toFixed(2)} total` + (economics.apiPerTaskCeilingUsd === null ? "" : `, $${economics.apiPerTaskCeilingUsd.toFixed(2)} per task`) + "."
@@ -80466,7 +80503,7 @@ function runPreflight(input) {
       );
     }
     if (economics.apiSpendMode === "AUTO_BOUNDED" && !economics.apiPricingConfigured) {
-      findings.push(
+      findings2.push(
         refuse2(
           "economics.api-pricing",
           "AUTO_BOUNDED spending requires a pricing profile; without one, cost cannot be estimated before dispatch.",
@@ -80475,7 +80512,7 @@ function runPreflight(input) {
       );
     }
     if (economics.apiHarnessProfile === null) {
-      findings.push(
+      findings2.push(
         refuse2(
           "economics.api-binding",
           `API spend mode is ${economics.apiSpendMode} with no API harness profile bound.`,
@@ -80485,7 +80522,7 @@ function runPreflight(input) {
     }
   }
   if (paidCapable && economics.apiSpendMode === "DISABLED") {
-    findings.push(
+    findings2.push(
       ok(
         "economics.api-spend",
         'The "full" profile is selected but API spending is DISABLED. This run will spend nothing, which is a valid result.'
@@ -80493,7 +80530,7 @@ function runPreflight(input) {
     );
   }
   if (!paidCapable && economics.apiSpendMode !== "DISABLED") {
-    findings.push(
+    findings2.push(
       ok(
         "economics.api-profile",
         `Profile "${profile}" will not use the API lane regardless of spend mode ${economics.apiSpendMode}.`
@@ -80501,7 +80538,7 @@ function runPreflight(input) {
     );
   }
   if (economics.verificationCommands.length === 0) {
-    findings.push(
+    findings2.push(
       refuse2(
         "verification.commands",
         "No trusted verification commands are configured; nothing could verify a completion.",
@@ -80509,14 +80546,14 @@ function runPreflight(input) {
       )
     );
   } else {
-    findings.push(
+    findings2.push(
       ok(
         "verification.commands",
         `Trusted verification: ${economics.verificationCommands.join(", ")}.`
       )
     );
   }
-  findings.push(
+  findings2.push(
     economics.protectedPaths.length === 0 ? warn(
       "governance.protected-paths",
       "No protected paths are configured for the target repository.",
@@ -80526,7 +80563,7 @@ function runPreflight(input) {
       `Protected paths: ${economics.protectedPaths.length} configured.`
     )
   );
-  findings.push(
+  findings2.push(
     ok(
       "runtime.strategies",
       `Context strategy: ${economics.contextStrategy}; adaptive scheduler mode: ${economics.adaptiveMode}.`
@@ -80534,9 +80571,9 @@ function runPreflight(input) {
   );
   return {
     profile,
-    findings,
+    findings: findings2,
     economics,
-    safe: !findings.some((finding2) => finding2.severity === "refuse"),
+    safe: !findings2.some((finding2) => finding2.severity === "refuse"),
     paidCapable
   };
 }
@@ -81805,10 +81842,10 @@ function collectVersions(config2, overrides = {}) {
     policyFingerprint: overrides.policyFingerprint ?? null
   };
 }
-function startQualificationRun(deps, request) {
-  const now52 = deps.clock().toISOString();
-  const runId = request.runId ?? `qual-${deps.idFactory()}`;
-  const existing = readDogfoodRun(deps.workspace, runId);
+function startQualificationRun(deps2, request) {
+  const now52 = deps2.clock().toISOString();
+  const runId = request.runId ?? `qual-${deps2.idFactory()}`;
+  const existing = readDogfoodRun(deps2.workspace, runId);
   if (existing !== void 0) {
     throw new OrchestrationError("SBO052", `Qualification run "${runId}" already exists.`, {
       remediation: [
@@ -81817,15 +81854,15 @@ function startQualificationRun(deps, request) {
       ]
     });
   }
-  const previous = request.previousRunId === void 0 || request.previousRunId === null ? void 0 : readDogfoodRun(deps.workspace, request.previousRunId);
+  const previous = request.previousRunId === void 0 || request.previousRunId === null ? void 0 : readDogfoodRun(deps2.workspace, request.previousRunId);
   const run = dogfoodRunSchema.parse({
     schemaVersion: DOGFOOD_RUN_SCHEMA_VERSION,
     runId,
     status: "PREFLIGHT",
     profile: request.profile,
     target: request.target,
-    versions: collectVersions(deps.config, request.versions ?? {}),
-    configurationFingerprint: configurationFingerprint(deps.config),
+    versions: collectVersions(deps2.config, request.versions ?? {}),
+    configurationFingerprint: configurationFingerprint(deps2.config),
     missionId: request.missionId ?? null,
     jobId: request.jobId ?? null,
     iteration: previous === void 0 ? 1 : previous.iteration + 1,
@@ -81840,21 +81877,21 @@ function startQualificationRun(deps, request) {
     pausedMs: 0,
     note: null
   });
-  return writeDogfoodRun(deps.workspace, run);
+  return writeDogfoodRun(deps2.workspace, run);
 }
-function transition3(deps, runId, status, note) {
-  const run = requireDogfoodRun(deps.workspace, runId);
+function transition3(deps2, runId, status, note) {
+  const run = requireDogfoodRun(deps2.workspace, runId);
   if (isFinalDogfoodRunStatus(run.status)) {
     throw new OrchestrationError(
       "SBO052",
       `Qualification run "${runId}" is already ${run.status} and cannot transition to ${status}.`
     );
   }
-  const now52 = deps.clock();
+  const now52 = deps2.clock();
   const elapsed = Math.max(0, now52.getTime() - Date.parse(run.updatedAt));
   const activeMs = run.status === "PAUSED" ? run.activeMs : run.activeMs + elapsed;
   const pausedMs = run.status === "PAUSED" ? run.pausedMs + elapsed : run.pausedMs;
-  return writeDogfoodRun(deps.workspace, {
+  return writeDogfoodRun(deps2.workspace, {
     ...run,
     status,
     activeMs,
@@ -81864,10 +81901,10 @@ function transition3(deps, runId, status, note) {
     note: note ?? run.note
   });
 }
-function markRunRunning(deps, runId, note) {
-  return transition3(deps, runId, "RUNNING", note);
+function markRunRunning(deps2, runId, note) {
+  return transition3(deps2, runId, "RUNNING", note);
 }
-function recordScenarioResult(deps, input) {
+function recordScenarioResult(deps2, input) {
   const scenario = findScenario(input.scenarioId);
   if (scenario === void 0) {
     throw new OrchestrationError(
@@ -81890,7 +81927,7 @@ function recordScenarioResult(deps, input) {
       { remediation: ["A failed scenario must record what was expected and what was observed."] }
     );
   }
-  return writeScenarioResult(deps.workspace, {
+  return writeScenarioResult(deps2.workspace, {
     schemaVersion: "1.0.0",
     runId: input.runId,
     scenarioId: scenario.id,
@@ -81907,7 +81944,7 @@ function recordScenarioResult(deps, input) {
     resourceAttribution: { ...input.resourceAttribution ?? {} },
     executor: input.executor,
     durationMs: input.durationMs ?? null,
-    recordedAt: deps.clock().toISOString()
+    recordedAt: deps2.clock().toISOString()
   });
 }
 function listRuns2(workspace) {
@@ -83518,17 +83555,17 @@ function skipReasonFor(scenario, profile, targetAvailable) {
   return "No executable implementation is registered for this scenario in this invocation.";
 }
 function runQualificationScenarios(input) {
-  const { deps, run, executor } = input;
+  const { deps: deps2, run, executor } = input;
   const only = input.only === void 0 ? null : new Set(input.only);
   const existing = new Map(
-    listScenarioResults(deps.workspace, run.runId).map((result) => [result.scenarioId, result])
+    listScenarioResults(deps2.workspace, run.runId).map((result) => [result.scenarioId, result])
   );
   const targetAvailable = run.target.kind === "REAL_REPOSITORY" && run.target.available;
   const executed = [];
   const skipped = [];
   const preserved = [];
   const outcomes = new Map(
-    runPolicyScenarios(deps.config).map((outcome) => [outcome.scenarioId, outcome])
+    runPolicyScenarios(deps2.config).map((outcome) => [outcome.scenarioId, outcome])
   );
   for (const scenario of QUALIFICATION_SCENARIOS) {
     if (only !== null && !only.has(scenario.id)) {
@@ -83545,7 +83582,7 @@ function runQualificationScenarios(input) {
     const runnable = outcome !== void 0 && profileSatisfies(run.profile, scenario.minimumProfile);
     if (runnable) {
       executed.push(
-        recordScenarioResult(deps, {
+        recordScenarioResult(deps2, {
           runId: run.runId,
           scenarioId: scenario.id,
           status: outcome.passed ? "PASS" : "FAIL",
@@ -83562,7 +83599,7 @@ function runQualificationScenarios(input) {
       continue;
     }
     skipped.push(
-      recordScenarioResult(deps, {
+      recordScenarioResult(deps2, {
         runId: run.runId,
         scenarioId: scenario.id,
         status: "SKIPPED_WITH_REASON",
@@ -84259,12 +84296,12 @@ function policyDir(workspace) {
   return import_path56.default.join(workspace.sidecarDir, "policies");
 }
 function policyPath(workspace, specName) {
-  const resolved = import_path56.default.resolve(policyDir(workspace), `${specName}.json`);
-  const relative = import_path56.default.relative(workspace.rootDir, resolved);
+  const resolved2 = import_path56.default.resolve(policyDir(workspace), `${specName}.json`);
+  const relative = import_path56.default.relative(workspace.rootDir, resolved2);
   if (relative.startsWith("..") || import_path56.default.isAbsolute(relative)) {
     return import_path56.default.join(policyDir(workspace), "invalid-spec-name.json");
   }
-  return resolved;
+  return resolved2;
 }
 function readVerificationPolicy(workspace, specName, explicitPath) {
   const filePath = explicitPath !== void 0 ? import_path56.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
@@ -84691,8 +84728,8 @@ function makeBaseContentReader(workspace, comparison, caches, signal) {
 async function resolveAncestryCached(workspace, shas, caches, signal) {
   const missing = shas.filter((sha) => !caches.ancestry.has(sha));
   if (missing.length > 0) {
-    const resolved = await resolveCommitAncestry(workspace.rootDir, missing, signal);
-    for (const [sha, ancestry] of resolved) caches.ancestry.set(sha, ancestry);
+    const resolved2 = await resolveCommitAncestry(workspace.rootDir, missing, signal);
+    for (const [sha, ancestry] of resolved2) caches.ancestry.set(sha, ancestry);
   }
   const view = /* @__PURE__ */ new Map();
   for (const sha of shas) {
@@ -84943,9 +84980,9 @@ function resolveGlobalRuleConfig(rule, policies) {
   if (policies.length === 0) {
     return { enabled: true, severity: rule.defaultSeverity.advisory, overridden: false };
   }
-  const resolved = policies.map((policy) => resolveRuleConfig(rule, policy));
-  const enabled = resolved.some((config2) => config2.enabled);
-  const strictest = resolved.reduce(
+  const resolved2 = policies.map((policy) => resolveRuleConfig(rule, policy));
+  const enabled = resolved2.some((config2) => config2.enabled);
+  const strictest = resolved2.reduce(
     (best, config2) => SEVERITY_ORDER[config2.severity] < SEVERITY_ORDER[best.severity] ? config2 : best
   );
   return { enabled, severity: strictest.severity, overridden: strictest.overridden };
@@ -84983,12 +85020,12 @@ async function evaluateSpecRules(rules, context) {
   const disabledRules = [];
   for (const rule of rules) {
     if (rule.scope !== "spec") continue;
-    const resolved = resolveRuleConfig(rule, context.policy);
-    if (!resolved.enabled) {
+    const resolved2 = resolveRuleConfig(rule, context.policy);
+    if (!resolved2.enabled) {
       disabledRules.push(rule.id);
       continue;
     }
-    diagnostics.push(...await rule.evaluate(context, resolved));
+    diagnostics.push(...await rule.evaluate(context, resolved2));
   }
   return { diagnostics, disabledRules };
 }
@@ -84998,12 +85035,12 @@ async function evaluateGlobalRules(rules, context) {
   const disabledRules = [];
   for (const rule of rules) {
     if (rule.scope !== "global") continue;
-    const resolved = resolveGlobalRuleConfig(rule, policies);
-    if (!resolved.enabled) {
+    const resolved2 = resolveGlobalRuleConfig(rule, policies);
+    if (!resolved2.enabled) {
       disabledRules.push(rule.id);
       continue;
     }
-    diagnostics.push(...await rule.evaluate(context, resolved));
+    diagnostics.push(...await rule.evaluate(context, resolved2));
   }
   return { diagnostics, disabledRules };
 }
@@ -85040,7 +85077,7 @@ var sbv001 = {
   scope: "spec",
   triggeredWhen: "A feature spec is missing requirements.md, design.md, or tasks.md, or a bugfix spec is missing bugfix.md, design.md, or tasks.md.",
   resolution: "Create the missing document (specbridge spec new scaffolds Kiro-compatible files), or remove the incomplete spec folder.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const type = context.spec.classification.type;
     if (type !== "feature" && type !== "bugfix") return [];
     const required2 = type === "bugfix" ? ["bugfix.md", "design.md", "tasks.md"] : ["requirements.md", "design.md", "tasks.md"];
@@ -85048,7 +85085,7 @@ var sbv001 = {
     return required2.filter((fileName) => !present.has(fileName)).map(
       (fileName) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `The ${type} spec "${context.specName}" is missing ${fileName}.`,
         specName: context.specName,
         file: { path: `.kiro/specs/${context.specName}/${fileName}` },
@@ -85066,12 +85103,12 @@ var sbv002 = {
   scope: "spec",
   triggeredWhen: "An approved stage document no longer matches its recorded approval hash. For the tasks stage, checkbox-only progress is NOT stale (hash semantics v2); any other byte change is.",
   resolution: "Review the changed document and re-approve the stage (specbridge spec approve <name> --stage <stage>), or restore the approved content.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     if (context.evaluation === void 0) return [];
     return context.evaluation.stages.filter((stage) => stage.effective === "modified-after-approval").map(
       (stage) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `The approved ${stage.stage} stage of "${context.specName}" changed after approval (approved hash ${stage.stored.approvedHash?.slice(0, 12) ?? "(none)"}\u2026, current ${stage.currentHash?.slice(0, 12) ?? "missing"}\u2026).`,
         specName: context.specName,
         file: { path: stage.stored.file },
@@ -85094,7 +85131,7 @@ var sbv003 = {
   scope: "spec",
   triggeredWhen: "A later-stage approval depends on an earlier stage that is stale, revoked, or was never approved.",
   resolution: "Re-approve the earlier stage first, then re-approve the dependent stage \u2014 approvals form a chain.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     if (context.evaluation === void 0) return [];
     const diagnostics = [];
     for (const stage of context.evaluation.stages) {
@@ -85103,7 +85140,7 @@ var sbv003 = {
         diagnostics.push(
           makeDiagnostic({
             rule: this,
-            severity: resolved.severity,
+            severity: resolved2.severity,
             message: `The ${stage.stage} approval of "${context.specName}" is invalid because an earlier stage changed after it was approved.`,
             specName: context.specName,
             file: { path: stage.stored.file },
@@ -85120,7 +85157,7 @@ var sbv003 = {
         diagnostics.push(
           makeDiagnostic({
             rule: this,
-            severity: resolved.severity,
+            severity: resolved2.severity,
             message: `The ${stage.stage} stage of "${context.specName}" is approved although ${unapproved.join(" and ")} ${unapproved.length === 1 ? "is" : "are"} not.`,
             specName: context.specName,
             file: { path: stage.stored.file },
@@ -85141,8 +85178,8 @@ var sbv004 = {
   scope: "spec",
   triggeredWhen: "A task checkbox is [x] but no verified or manually accepted evidence record exists for it. Error severity when the policy sets requireVerifiedTaskEvidence.",
   resolution: "Run the task through specbridge spec run (which records evidence), accept it explicitly with specbridge spec accept-task, or uncheck the box.",
-  evaluate(context, resolved) {
-    const severity = context.policy.requireVerifiedTaskEvidence ? "error" : resolved.severity;
+  evaluate(context, resolved2) {
+    const severity = context.policy.requireVerifiedTaskEvidence ? "error" : resolved2.severity;
     return doneLeafTasks(context).filter((task) => {
       const assessment = context.evidence.assessmentsByTask.get(task.id);
       return assessment === void 0 || assessment.bucket === "missing" || assessment.bucket === "invalid";
@@ -85174,14 +85211,14 @@ var sbv005 = {
   scope: "spec",
   triggeredWhen: "Verifying a single named spec whose policy declares impact areas: a changed repository file matches none of them. (In --changed/--all runs, cross-spec coverage is reported by SBV014 instead.)",
   resolution: "Revert the unrelated change, split it into its own change set, or extend the impact areas in the spec verification policy after review.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     if (context.selectionMode !== "single") return [];
     if (context.policy.impactAreas.length === 0) return [];
     const matcher = compilePathMatchers(context.policy.impactAreas);
     return context.changedFiles.filter((file) => !isSpecInfraPath(file.path)).filter((file) => matcher(file.path).length === 0).map(
       (file) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `${file.path} is outside the impact areas declared for ${context.specName}.`,
         specName: context.specName,
         file: { path: file.path },
@@ -85203,7 +85240,7 @@ var sbv006 = {
   scope: "global",
   triggeredWhen: "The comparison touches a protected path (.kiro/**, .specbridge/state/**, .specbridge/config.json, .git/**, or configured additions). The verified specs\u2019 own spec files, sidecar state, and policy are exempt \u2014 changing them is spec authoring, which the approval rules govern \u2014 and checkbox-only tasks.md progress is always exempt.",
   resolution: "Remove the protected-path change from this change set, or \u2014 if this is deliberate spec authoring for a spec not under verification \u2014 verify that spec too.",
-  async evaluate(context, resolved) {
+  async evaluate(context, resolved2) {
     if (!context.comparison.ok) return [];
     const selectedSpecs = context.specContexts.map((spec) => spec.specName);
     const patterns = /* @__PURE__ */ new Set();
@@ -85241,7 +85278,7 @@ var sbv006 = {
         );
         continue;
       }
-      const severity = immutableMatcher(file.path).length > 0 ? "error" : resolved.severity;
+      const severity = immutableMatcher(file.path).length > 0 ? "error" : resolved2.severity;
       diagnostics.push(
         makeDiagnostic({
           rule: this,
@@ -85276,10 +85313,10 @@ var sbv007 = {
   scope: "spec",
   triggeredWhen: "An identifiable requirement ID is referenced by no task \u2014 neither directly nor through any of its acceptance criteria. Error severity when the policy sets requireRequirementTaskLinks.",
   resolution: "Add an implementation task referencing the requirement (e.g. a _Requirements: 1.2_ detail line), or remove the requirement if it is obsolete.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const { catalog, references } = context.traceability;
     if (catalog.requirements.length === 0 || context.spec.tasks === void 0) return [];
-    const severity = context.policy.requireRequirementTaskLinks ? "error" : resolved.severity;
+    const severity = context.policy.requireRequirementTaskLinks ? "error" : resolved2.severity;
     const referenced = new Set(
       references.map((reference) => reference.canonical).filter((canonical) => canonical !== void 0)
     );
@@ -85321,7 +85358,7 @@ var sbv008 = {
   scope: "spec",
   triggeredWhen: "Requirement linking is in use in this tasks document, but a leaf implementation task carries no requirement reference. Clearly non-requirement work (documentation, release, cleanup chores) is excluded.",
   resolution: "Add a _Requirements: \u2026_ detail line to the task, or leave it unlinked deliberately if it is supporting work.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const model = context.spec.tasks;
     if (model === void 0) return [];
     const { references, catalog } = context.traceability;
@@ -85332,7 +85369,7 @@ var sbv008 = {
     ).map(
       (task) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `Task ${task.id} ("${task.title}") has no requirement reference while other tasks in this plan are linked.`,
         specName: context.specName,
         taskId: task.id,
@@ -85351,7 +85388,7 @@ var sbv009 = {
   scope: "spec",
   triggeredWhen: "A task references a requirement or acceptance-criterion ID that does not exist in the requirements document. References recognized only heuristically (keyword phrases) warn instead of erroring.",
   resolution: "Fix the reference to point at an existing requirement ID, or add the missing requirement to requirements.md and re-approve it.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const { catalog, references } = context.traceability;
     if (catalog.entries.length === 0) return [];
     const filePath = tasksFilePath(context);
@@ -85360,7 +85397,7 @@ var sbv009 = {
     ).map(
       (reference) => makeDiagnostic({
         rule: this,
-        severity: reference.confidence === "heuristic" ? "warning" : resolved.severity,
+        severity: reference.confidence === "heuristic" ? "warning" : resolved2.severity,
         message: `Task ${reference.taskId} references "${reference.raw}", which matches no requirement or acceptance criterion in requirements.md.`,
         specName: context.specName,
         taskId: reference.taskId,
@@ -85386,7 +85423,7 @@ var sbv010 = {
   scope: "spec",
   triggeredWhen: "A parent task checkbox is [x] while at least one of its subtasks is not.",
   resolution: "Finish (or uncheck) the open subtasks, or uncheck the parent task.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const model = context.spec.tasks;
     if (model === void 0) return [];
     const diagnostics = [];
@@ -85405,7 +85442,7 @@ var sbv010 = {
       diagnostics.push(
         makeDiagnostic({
           rule: this,
-          severity: resolved.severity,
+          severity: resolved2.severity,
           message: `Parent task ${task.id} is checked but ${open.length} of its subtasks ${open.length === 1 ? "is" : "are"} not complete (${open.map((child) => child.id).join(", ")}).`,
           specName: context.specName,
           taskId: task.id,
@@ -85429,7 +85466,7 @@ var SBV015_CODES = /* @__PURE__ */ new Set([
   "plan-hash-changed",
   "approved-after-evidence"
 ]);
-function staleEvidenceDiagnostics(rule, context, resolved, codes) {
+function staleEvidenceDiagnostics(rule, context, resolved2, codes) {
   const diagnostics = [];
   for (const task of doneLeafTasks(context)) {
     const assessment = context.evidence.assessmentsByTask.get(task.id);
@@ -85441,7 +85478,7 @@ function staleEvidenceDiagnostics(rule, context, resolved, codes) {
     diagnostics.push(
       makeDiagnostic({
         rule,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `Task ${task.id} is checked but its evidence is stale: ${matching.map((reason) => reason.message).join("; ")}.`,
         specName: context.specName,
         taskId: task.id,
@@ -85467,8 +85504,8 @@ var sbv011 = {
   scope: "spec",
   triggeredWhen: "A checked task has evidence whose recorded task identity, commit lineage, or approval linkage no longer matches the repository (the task text changed, history diverged, or a referenced stage is no longer approved).",
   resolution: "Re-run the task (specbridge spec run) or re-accept it (specbridge spec accept-task) so fresh evidence is recorded, or uncheck the box.",
-  evaluate(context, resolved) {
-    return staleEvidenceDiagnostics(this, context, resolved, SBV011_CODES);
+  evaluate(context, resolved2) {
+    return staleEvidenceDiagnostics(this, context, resolved2, SBV011_CODES);
   }
 };
 var sbv015 = {
@@ -85480,8 +85517,8 @@ var sbv015 = {
   scope: "spec",
   triggeredWhen: "The requirements/bugfix document, design, or task plan changed (or was re-approved) after the evidence for a checked task was recorded \u2014 the implementation was verified against an older spec.",
   resolution: "Re-run or re-accept the affected tasks against the current spec so the evidence describes what is approved now.",
-  evaluate(context, resolved) {
-    return staleEvidenceDiagnostics(this, context, resolved, SBV015_CODES);
+  evaluate(context, resolved2) {
+    return staleEvidenceDiagnostics(this, context, resolved2, SBV015_CODES);
   }
 };
 var sbv012 = {
@@ -85493,7 +85530,7 @@ var sbv012 = {
   scope: "global",
   triggeredWhen: "A trusted verification command required by a spec policy failed, could not start, or did not run in this verification with no reusable passing evidence.",
   resolution: "Fix the failing command locally, or run the verification with --run-verification so a current result is produced.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const diagnostics = [];
     for (const command of context.commands.commands) {
       if (!command.required || command.passed || command.timedOut) continue;
@@ -85502,7 +85539,7 @@ var sbv012 = {
       diagnostics.push(
         makeDiagnostic({
           rule: this,
-          severity: resolved.severity,
+          severity: resolved2.severity,
           message: message2,
           specName,
           evidence: {
@@ -85529,11 +85566,11 @@ var sbv013 = {
   scope: "global",
   triggeredWhen: "A spec policy requires a verification command by name, but no command with that name is configured in .specbridge/config.json.",
   resolution: "Add the command to verification.commands in .specbridge/config.json (argv array form), or remove the name from the policy.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     return context.commands.missingRequired.map(
       ({ name, requiredBySpecs }) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `Verification command "${name}" is required by ${requiredBySpecs.join(", ")} but is not configured in .specbridge/config.json.`,
         specName: requiredBySpecs.length === 1 ? requiredBySpecs[0] ?? null : null,
         evidence: { command: name, requiredBySpecs }
@@ -85550,11 +85587,11 @@ var sbv025 = {
   scope: "global",
   triggeredWhen: "A trusted verification command exceeded its configured timeout. Required commands error; optional commands warn.",
   resolution: "Raise the command timeout in .specbridge/config.json, or make the command faster/scoped.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     return context.commands.commands.filter((command) => command.timedOut).map(
       (command) => makeDiagnostic({
         rule: this,
-        severity: command.required ? resolved.severity : "warning",
+        severity: command.required ? resolved2.severity : "warning",
         message: `Verification command "${command.name}" timed out after ${command.durationMs ?? "?"} ms.`,
         specName: command.requiredBySpecs.length === 1 ? command.requiredBySpecs[0] ?? null : null,
         evidence: {
@@ -85576,12 +85613,12 @@ var sbv014 = {
   scope: "global",
   triggeredWhen: "In --changed or --all verification, a changed source or test file maps to no spec: no spec directory, impact area, task evidence, or design reference claims it.",
   resolution: "Add the path to the owning spec\u2019s impact areas, create a spec for the work, or accept unmapped changes by policy (rules.SBV014).",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     if (context.selection.mode === "single") return [];
     return context.unmappedFiles.map(
       (file) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `${file.path} does not map to any spec (no impact area, evidence, or spec reference claims it).`,
         file: { path: file.path },
         evidence: { changedPath: file.path, changeType: file.changeType }
@@ -85598,7 +85635,7 @@ var sbv016 = {
   scope: "spec",
   triggeredWhen: "A managed spec has checked tasks while its task plan is not approved (never approved, or approval revoked). Unmanaged specs (no sidecar state) are not judged.",
   resolution: "Approve the task plan first (specbridge spec approve <name> --stage tasks), or uncheck the boxes.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const state = context.spec.state;
     if (state === void 0 || context.spec.tasks === void 0) return [];
     const tasksStage = context.evaluation?.stages.find((stage) => stage.stage === "tasks");
@@ -85606,7 +85643,7 @@ var sbv016 = {
     return context.spec.tasks.allTasks.filter((task) => task.state === "done").map(
       (task) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `Task ${task.id} is checked but the task plan of "${context.specName}" has never been approved (status: ${tasksStage.stored.status}).`,
         specName: context.specName,
         taskId: task.id,
@@ -85625,11 +85662,11 @@ var sbv017 = {
   scope: "spec",
   triggeredWhen: "A checked task (or its referenced requirement) explicitly mentions tests, but its valid evidence contains neither a passing test command nor changed test files. Error severity when the policy sets requireTestEvidence. Test-language detection is heuristic.",
   resolution: "Run the configured test command as part of the task (spec run records it), or record a manual acceptance explaining how the tests were covered.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const model = context.spec.tasks;
     const tasksDocument = context.spec.documents.tasks;
     if (model === void 0 || tasksDocument === void 0) return [];
-    const severity = context.policy.requireTestEvidence ? "error" : resolved.severity;
+    const severity = context.policy.requireTestEvidence ? "error" : resolved2.severity;
     const { catalog, references } = context.traceability;
     const diagnostics = [];
     for (const task of doneLeafTasks(context)) {
@@ -85684,7 +85721,7 @@ var sbv018 = {
   scope: "spec",
   triggeredWhen: "design.md explicitly references a repository path (in backticks or a Markdown link) that exists neither relative to the repository root nor relative to the spec folder. Glob patterns are not checked.",
   resolution: "Fix the path in design.md, or delete the reference if the file was intentionally removed (then re-approve the design).",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const designDocument = context.spec.documents.design;
     if (designDocument === void 0) return [];
     const designFile = designDocument.filePath;
@@ -85700,7 +85737,7 @@ var sbv018 = {
     }).map(
       (reference) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `design.md references \`${reference.raw}\`, which does not exist in the repository.`,
         specName: context.specName,
         file: designRepoPath !== void 0 ? { path: designRepoPath, line: reference.line + 1 } : null,
@@ -85718,7 +85755,7 @@ var sbv019 = {
   scope: "spec",
   triggeredWhen: "The spec has valid task evidence, yet the comparison contains implementation files that no evidence record accounts for \u2014 work happened outside recorded task runs.",
   resolution: "Run the remaining work as tasks (spec run records the files), or accept that untracked edits reduce evidence coverage.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const hasValidEvidence = [...context.evidence.assessmentsByTask.values()].some(
       (assessment) => assessment.bucket === "valid"
     );
@@ -85734,7 +85771,7 @@ var sbv019 = {
     return candidates.filter((file) => !isSpecInfraPath(file.path)).filter((file) => !evidencePaths.has(file.path)).map(
       (file) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `${file.path} changed but appears in no valid task evidence for ${context.specName}.`,
         specName: context.specName,
         file: { path: file.path },
@@ -85752,11 +85789,11 @@ var sbv020 = {
   scope: "spec",
   triggeredWhen: "The spec\u2019s verification policy file exists but is not valid JSON, does not match the versioned schema, or contains rejected glob patterns. Verification then runs with secure defaults.",
   resolution: "Fix the policy file (specbridge spec policy validate <name> pinpoints the problem), or delete it to use defaults.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     return context.policy.policyDiagnostics.map(
       (diagnostic) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: diagnostic.message,
         specName: context.specName,
         file: context.policy.policyPath !== void 0 ? { path: context.policy.policyPath } : null,
@@ -85774,13 +85811,13 @@ var sbv021 = {
   scope: "global",
   triggeredWhen: "The requested Git comparison cannot be resolved: a ref does not exist locally, no merge base exists, the clone is shallow, or the directory is not a git work tree.",
   resolution: "Fetch the missing refs yourself (SpecBridge never fetches automatically). In GitHub Actions, check out with actions/checkout@v4 and fetch-depth: 0.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const failure = context.comparison.failure;
     if (context.comparison.ok || failure === void 0) return [];
     return [
       makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: failure.message,
         evidence: {
           reason: failure.reason,
@@ -85800,11 +85837,11 @@ var sbv022 = {
   scope: "global",
   triggeredWhen: "A changed file maps to more than one spec (overlapping impact areas or evidence). Every matching spec is verified; the overlap itself is reported.",
   resolution: "Narrow the overlapping impact areas so each path has one owning spec, or accept the shared ownership deliberately.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     return context.ambiguousFiles.map(
       (entry2) => makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `${entry2.path} maps to ${entry2.specs.length} specs: ${entry2.specs.map((spec) => `${spec.name} (via ${spec.via.join(", ")})`).join("; ")}.`,
         file: { path: entry2.path },
         evidence: { specs: entry2.specs }
@@ -85821,7 +85858,7 @@ var sbv023 = {
   scope: "spec",
   triggeredWhen: "The comparison modifies a managed spec\u2019s tasks.md beyond checkbox transitions \u2014 task text, IDs, hierarchy, or references changed relative to the comparison base.",
   resolution: "If the plan change is intentional, review and re-approve the task plan; otherwise revert the tasks.md edit.",
-  async evaluate(context, resolved) {
+  async evaluate(context, resolved2) {
     if (context.spec.state === void 0) return [];
     if (!context.comparison.ok) return [];
     const repoPath = `.kiro/specs/${context.specName}/tasks.md`;
@@ -85840,7 +85877,7 @@ var sbv023 = {
     return [
       makeDiagnostic({
         rule: this,
-        severity: resolved.severity,
+        severity: resolved2.severity,
         message: `tasks.md of "${context.specName}" changed beyond checkbox progress in this comparison (task text, IDs, hierarchy, or references differ from the base).`,
         specName: context.specName,
         file: { path: repoPath },
@@ -85861,7 +85898,7 @@ var sbv024 = {
   scope: "spec",
   triggeredWhen: "An evidence record lists changed-file paths that escape the repository (absolute paths or .. traversal). Such records are never trusted.",
   resolution: "Delete or regenerate the corrupt evidence record; evidence must only reference repository-relative paths.",
-  evaluate(context, resolved) {
+  evaluate(context, resolved2) {
     const diagnostics = [];
     for (const [taskId, assessment] of context.evidence.assessmentsByTask) {
       for (const item of assessment.all) {
@@ -85869,7 +85906,7 @@ var sbv024 = {
         diagnostics.push(
           makeDiagnostic({
             rule: this,
-            severity: resolved.severity,
+            severity: resolved2.severity,
             message: `Evidence record ${item.record.runId} for task ${taskId} references paths outside the repository: ${item.pathViolations.join(", ")}.`,
             specName: context.specName,
             taskId,
@@ -87432,9 +87469,9 @@ function checkPackRendering(pack, clock) {
     supplied[variable.name] = sample;
   }
   if (!renderable) return issues;
-  let resolved;
+  let resolved2;
   try {
-    resolved = resolveVariables(manifest, supplied, {
+    resolved2 = resolveVariables(manifest, supplied, {
       specName: "example-spec",
       title: "Example Spec",
       description: "Example description used by template validation.",
@@ -87457,7 +87494,7 @@ function checkPackRendering(pack, clock) {
     if (content === void 0) continue;
     let rendered;
     try {
-      rendered = renderTemplateText(file.source, content, resolved.values);
+      rendered = renderTemplateText(file.source, content, resolved2.values);
     } catch (cause) {
       issues.push(
         issue2(
@@ -88038,7 +88075,7 @@ function planTemplateApplication(workspace, catalog, request, clock = systemCloc
   const requestedDescription = request.description?.trim();
   const descriptionIsPlaceholder = requestedDescription === void 0 || requestedDescription.length === 0;
   const description = descriptionIsPlaceholder ? manifest.kind === "bugfix" ? DEFAULT_BUGFIX_DESCRIPTION : DEFAULT_FEATURE_DESCRIPTION : requestedDescription;
-  const resolved = resolveVariables(manifest, request.variables ?? {}, {
+  const resolved2 = resolveVariables(manifest, request.variables ?? {}, {
     specName: request.specName,
     title,
     description,
@@ -88057,7 +88094,7 @@ function planTemplateApplication(workspace, catalog, request, clock = systemCloc
         { reference: entry2.ref, source: file.source }
       );
     }
-    const content = renderTemplateText(file.source, source, resolved.values);
+    const content = renderTemplateText(file.source, source, resolved2.values);
     const stage = TARGET_STAGES[file.target];
     if (stage === void 0) {
       throw new TemplateError(
@@ -88124,7 +88161,7 @@ function planTemplateApplication(workspace, catalog, request, clock = systemCloc
     manifest,
     manifestHash,
     mode,
-    variableNames: resolved.variableNames,
+    variableNames: resolved2.variableNames,
     specPlan,
     candidateHash,
     diagnostics
@@ -90928,8 +90965,8 @@ function resolveEntrypoint(installedDir, entrypoint) {
   if (problem !== void 0) {
     throw new ExtensionError("SBE012", `entrypoint "${entrypoint}": ${problem}.`, "Fix the extension manifest.");
   }
-  const resolved = import_path70.default.join(installedDir, ...entrypoint.split("/"));
-  const relative = import_path70.default.relative(installedDir, resolved);
+  const resolved2 = import_path70.default.join(installedDir, ...entrypoint.split("/"));
+  const relative = import_path70.default.relative(installedDir, resolved2);
   if (relative.startsWith("..") || import_path70.default.isAbsolute(relative)) {
     throw new ExtensionError(
       "SBE012",
@@ -90956,7 +90993,7 @@ function resolveEntrypoint(installedDir, entrypoint) {
       );
     }
   }
-  const finalStat = (0, import_fs64.lstatSync)(resolved, { throwIfNoEntry: false });
+  const finalStat = (0, import_fs64.lstatSync)(resolved2, { throwIfNoEntry: false });
   if (finalStat === void 0 || !finalStat.isFile()) {
     throw new ExtensionError(
       "SBE012",
@@ -90964,7 +91001,7 @@ function resolveEntrypoint(installedDir, entrypoint) {
       "Reinstall the extension."
     );
   }
-  return resolved;
+  return resolved2;
 }
 function buildSanitizedEnvironment(granted, source = process.env) {
   const environment = {};
@@ -91794,10 +91831,10 @@ async function runExporterExtension(workspace, extensionId, input, options = {})
       { extensionId, kind: enabled.manifest.kind }
     );
   }
-  const bounded3 = exporterInputSchema.parse(input);
+  const bounded4 = exporterInputSchema.parse(input);
   const outcome = await invokeExtensionOperation(enabled, {
     operation: "exporter.export",
-    payload: bounded3,
+    payload: bounded4,
     ...options.configuration === void 0 ? {} : { configuration: options.configuration },
     ...options.timeoutMs === void 0 ? {} : { timeoutMs: options.timeoutMs },
     ...options.signal === void 0 ? {} : { signal: options.signal },
@@ -93140,9 +93177,9 @@ async function runVerifierExtension(workspace, extensionId, input, options = {})
       { extensionId, kind: enabled.manifest.kind }
     );
   }
-  const bounded3 = verifierInputSchema.parse(input);
-  const payload = enabled.manifest.permissions.repositoryRead ? bounded3 : (() => {
-    const { files: _files, ...rest } = bounded3;
+  const bounded4 = verifierInputSchema.parse(input);
+  const payload = enabled.manifest.permissions.repositoryRead ? bounded4 : (() => {
+    const { files: _files, ...rest } = bounded4;
     return rest;
   })();
   const outcome = await invokeExtensionOperation(enabled, {
@@ -93925,7 +93962,7 @@ function collectConfigFindings(workspace) {
 var SPEC_STATE_QUARANTINE_REASON = "The spec state file cannot be read as valid workflow state. Quarantining preserves the exact bytes for manual review; approvals are never invented \u2014 re-approve the stages you trust after review.";
 function collectSpecStateFindings(workspace, specName) {
   const stateDir = import_node_path8.default.join(workspace.sidecarDir, "state", "specs");
-  const findings = [];
+  const findings2 = [];
   let names = listJsonFiles(stateDir).map((name) => name.slice(0, -".json".length));
   if (specName !== void 0) names = names.filter((name) => name === specName);
   for (const name of names) {
@@ -93934,7 +93971,7 @@ function collectSpecStateFindings(workspace, specName) {
     const declared = rawSchemaVersion(absolute);
     const specDir = import_node_path8.default.join(workspace.kiroDir, "specs", name);
     if (!(0, import_node_fs6.existsSync)(specDir)) {
-      findings.push(
+      findings2.push(
         finding(
           "spec-state",
           relPath2,
@@ -93970,7 +94007,7 @@ function collectSpecStateFindings(workspace, specName) {
           currentHash === void 0 ? `${stage}: the approved file ${approval.file} is missing or unreadable.` : `${stage}: ${approval.file} changed after approval; re-approve explicitly with "${CLI_BIN} spec approve ${name} --stage ${stage}".`
         );
       }
-      findings.push(
+      findings2.push(
         finding(
           "spec-state",
           relPath2,
@@ -93985,13 +94022,13 @@ function collectSpecStateFindings(workspace, specName) {
     const code2 = read.diagnostics[0]?.code ?? "SIDECAR_STATE_INVALID_SHAPE";
     const problems = read.diagnostics.map((diagnostic) => diagnostic.message);
     if (code2 === "SIDECAR_STATE_LEGACY") {
-      findings.push(finding("spec-state", relPath2, "legacy", declared, SPEC_STATE_SCHEMA_VERSION, problems));
+      findings2.push(finding("spec-state", relPath2, "legacy", declared, SPEC_STATE_SCHEMA_VERSION, problems));
     } else if (code2 === "SIDECAR_STATE_UNSUPPORTED_VERSION") {
-      findings.push(
+      findings2.push(
         finding("spec-state", relPath2, "incompatible", declared, SPEC_STATE_SCHEMA_VERSION, problems)
       );
     } else if (code2 === "SIDECAR_STATE_INVALID_SHAPE" || code2 === "SIDECAR_STATE_INVALID_JSON") {
-      findings.push(
+      findings2.push(
         finding("spec-state", relPath2, "invalid", declared, SPEC_STATE_SCHEMA_VERSION, problems, {
           kind: "quarantine-file",
           reason: SPEC_STATE_QUARANTINE_REASON,
@@ -94000,18 +94037,18 @@ function collectSpecStateFindings(workspace, specName) {
         })
       );
     } else {
-      findings.push(finding("spec-state", relPath2, "invalid", declared, SPEC_STATE_SCHEMA_VERSION, problems));
+      findings2.push(finding("spec-state", relPath2, "invalid", declared, SPEC_STATE_SCHEMA_VERSION, problems));
     }
   }
-  return findings;
+  return findings2;
 }
 function collectRunFindings(workspace) {
-  const findings = [];
+  const findings2 = [];
   const root = runsRootDir(workspace);
   if ((0, import_node_fs6.existsSync)(root)) {
     const { runs, diagnostics } = listRuns(workspace);
     for (const run of runs) {
-      findings.push(
+      findings2.push(
         finding(
           "runs",
           toRel(workspace, import_node_path8.default.join(root, run.runId, "run.json")),
@@ -94027,7 +94064,7 @@ function collectRunFindings(workspace) {
       const runJson = import_node_path8.default.join(runDirAbs, "run.json");
       const relPath2 = toRel(workspace, runJson);
       if ((0, import_node_fs6.existsSync)(runJson)) {
-        findings.push(
+        findings2.push(
           finding("runs", relPath2, "invalid", rawSchemaVersion(runJson), RUN_RECORD_SCHEMA_VERSION, [diagnostic.message], {
             kind: "quarantine-file",
             reason: "run.json does not match the run record schema. Quarantining preserves the exact bytes for manual review; run history is never rewritten.",
@@ -94036,7 +94073,7 @@ function collectRunFindings(workspace) {
           })
         );
       } else {
-        findings.push(
+        findings2.push(
           finding("runs", relPath2, "invalid", null, RUN_RECORD_SCHEMA_VERSION, [
             `${diagnostic.message} (run.json is missing entirely; nothing to quarantine)`
           ])
@@ -94047,13 +94084,13 @@ function collectRunFindings(workspace) {
   const lock = readInteractiveLock(workspace);
   const lockRel = toRel(workspace, interactiveLockPath(workspace));
   if (lock.state === "held") {
-    findings.push(
+    findings2.push(
       finding("runs", lockRel, "valid", lock.lock.schemaVersion, INTERACTIVE_LOCK_SCHEMA_VERSION, [
         `An interactive lock is currently held by run ${lock.lock.runId}; a valid lock is never removed automatically.`
       ])
     );
   } else if (lock.state === "unreadable") {
-    findings.push(
+    findings2.push(
       finding("runs", lockRel, "recoverable", rawSchemaVersion(lock.path), INTERACTIVE_LOCK_SCHEMA_VERSION, [lock.problem], {
         kind: "remove-stale-lock",
         reason: "The interactive lock file exists but cannot be read, so it cannot protect any run. Removal moves it into quarantine (preserved).",
@@ -94062,14 +94099,14 @@ function collectRunFindings(workspace) {
       })
     );
   }
-  return findings;
+  return findings2;
 }
 function pathEscapesRepository(candidate) {
   return import_node_path8.default.isAbsolute(candidate) || candidate.split(/[\\/]/).includes("..");
 }
 var EVIDENCE_NOTE = "Evidence records are append-only history and are preserved as-is; SpecBridge never proposes automatic recovery for evidence \u2014 manual review only.";
 function collectEvidenceFindings(workspace, specName) {
-  const findings = [];
+  const findings2 = [];
   const evidenceRoot = import_node_path8.default.join(workspace.sidecarDir, "evidence");
   let specDirs = listDirectories(evidenceRoot);
   if (specName !== void 0) specDirs = specDirs.filter((name) => name === specName);
@@ -94082,7 +94119,7 @@ function collectEvidenceFindings(workspace, specName) {
         try {
           parsed = JSON.parse((0, import_node_fs6.readFileSync)(absolute, "utf8"));
         } catch {
-          findings.push(
+          findings2.push(
             finding("evidence", relPath2, "invalid", null, EVIDENCE_SCHEMA_VERSION, [
               `The evidence record is not valid JSON. ${EVIDENCE_NOTE}`
             ])
@@ -94091,7 +94128,7 @@ function collectEvidenceFindings(workspace, specName) {
         }
         const result = taskEvidenceRecordSchema.safeParse(parsed);
         if (!result.success) {
-          findings.push(
+          findings2.push(
             finding("evidence", relPath2, "invalid", rawSchemaVersion(absolute), EVIDENCE_SCHEMA_VERSION, [
               `The evidence record does not match the versioned schema. ${EVIDENCE_NOTE}`
             ])
@@ -94100,7 +94137,7 @@ function collectEvidenceFindings(workspace, specName) {
         }
         const escaping = result.data.changedFiles.map((change) => change.path).filter((candidate) => pathEscapesRepository(candidate));
         if (escaping.length > 0) {
-          findings.push(
+          findings2.push(
             finding("evidence", relPath2, "invalid", result.data.schemaVersion, EVIDENCE_SCHEMA_VERSION, [
               ...escaping.map((candidate) => `Changed file "${candidate}" points outside the repository.`),
               EVIDENCE_NOTE
@@ -94108,56 +94145,56 @@ function collectEvidenceFindings(workspace, specName) {
           );
           continue;
         }
-        findings.push(finding("evidence", relPath2, "valid", result.data.schemaVersion, EVIDENCE_SCHEMA_VERSION, []));
+        findings2.push(finding("evidence", relPath2, "valid", result.data.schemaVersion, EVIDENCE_SCHEMA_VERSION, []));
       }
     }
   }
-  return findings;
+  return findings2;
 }
 function collectPolicyFindings(workspace, specName) {
-  const findings = [];
+  const findings2 = [];
   let names = listJsonFiles(policyDir(workspace)).map((name) => name.slice(0, -".json".length));
   if (specName !== void 0) names = names.filter((name) => name === specName);
   for (const name of names) {
     const read = readVerificationPolicy(workspace, name);
     const relPath2 = toRel(workspace, read.path);
     if (read.policy === void 0) {
-      findings.push(
+      findings2.push(
         finding("policies", relPath2, "invalid", rawSchemaVersion(read.path), VERIFICATION_POLICY_SCHEMA_VERSION, [
           ...read.diagnostics.map((diagnostic) => diagnostic.message),
           "Verification is fail-closed: an invalid policy is never half-applied. The file is user-authored; fix it manually."
         ])
       );
     } else {
-      findings.push(
+      findings2.push(
         finding("policies", relPath2, "valid", read.policy.schemaVersion, VERIFICATION_POLICY_SCHEMA_VERSION, [])
       );
     }
   }
-  return findings;
+  return findings2;
 }
 function collectTemplateFindings(workspace) {
-  const findings = [];
+  const findings2 = [];
   const recordsPath = templateRecordsPath(workspace);
   if ((0, import_node_fs6.existsSync)(recordsPath)) {
     const { diagnostics } = readTemplateRecords(workspace);
     const relPath2 = toRel(workspace, recordsPath);
     if (diagnostics.length > 0) {
-      findings.push(
+      findings2.push(
         finding("templates", relPath2, "invalid", null, TEMPLATE_RECORD_SCHEMA_VERSION, [
           ...diagnostics.map((diagnostic) => diagnostic.message),
           "The record log is append-only; the tolerant reader already skips bad lines. No recovery is proposed."
         ])
       );
     } else {
-      findings.push(finding("templates", relPath2, "valid", null, TEMPLATE_RECORD_SCHEMA_VERSION, []));
+      findings2.push(finding("templates", relPath2, "valid", null, TEMPLATE_RECORD_SCHEMA_VERSION, []));
     }
   }
   for (const packName of listDirectories(projectTemplatesDir(workspace))) {
     const manifestPath = import_node_path8.default.join(projectTemplatesDir(workspace), packName, TEMPLATE_MANIFEST_FILE_NAME);
     const relPath2 = toRel(workspace, manifestPath);
     if (!(0, import_node_fs6.existsSync)(manifestPath)) {
-      findings.push(
+      findings2.push(
         finding("templates", relPath2, "invalid", null, TEMPLATE_RECORD_SCHEMA_VERSION, [
           `Installed template pack "${packName}" has no ${TEMPLATE_MANIFEST_FILE_NAME}; nothing to quarantine.`
         ])
@@ -94167,7 +94204,7 @@ function collectTemplateFindings(workspace) {
     const parsed = parseTemplateManifest((0, import_node_fs6.readFileSync)(manifestPath, "utf8"));
     const errors = parsed.issues.filter((issue4) => issue4.severity === "error");
     if (parsed.manifest === void 0 || errors.length > 0) {
-      findings.push(
+      findings2.push(
         finding(
           "templates",
           relPath2,
@@ -94184,29 +94221,29 @@ function collectTemplateFindings(workspace) {
         )
       );
     } else {
-      findings.push(
+      findings2.push(
         finding("templates", relPath2, "valid", parsed.manifest.schemaVersion, TEMPLATE_RECORD_SCHEMA_VERSION, [])
       );
     }
   }
-  return findings;
+  return findings2;
 }
 function collectExtensionFindings(workspace) {
-  const findings = [];
+  const findings2 = [];
   const statePath = extensionStatePath(workspace);
   const grantsPath = permissionGrantsPath(workspace);
   const stateRead = readExtensionState(workspace);
   if (stateRead.exists) {
     const relPath2 = toRel(workspace, statePath);
     if (stateRead.diagnostics.length > 0) {
-      findings.push(
+      findings2.push(
         finding("extensions", relPath2, "invalid", rawSchemaVersion(statePath), EXTENSION_STATE_SCHEMA_VERSION, [
           ...stateRead.diagnostics.map((diagnostic) => diagnostic.message),
           "Extension state is security-relevant; no automatic recovery is proposed. Fix or remove the file manually."
         ])
       );
     } else {
-      findings.push(
+      findings2.push(
         finding("extensions", relPath2, "valid", stateRead.state.schemaVersion, EXTENSION_STATE_SCHEMA_VERSION, [])
       );
     }
@@ -94220,7 +94257,7 @@ function collectExtensionFindings(workspace) {
       isDir = false;
     }
     if (!isDir) {
-      findings.push(
+      findings2.push(
         finding(
           "extensions",
           toRel(workspace, dir),
@@ -94238,7 +94275,7 @@ function collectExtensionFindings(workspace) {
     const grantsRead = readPermissionGrants(workspace);
     const relPath2 = toRel(workspace, grantsPath);
     if (grantsRead.diagnostics.length > 0) {
-      findings.push(
+      findings2.push(
         finding("extensions", relPath2, "invalid", rawSchemaVersion(grantsPath), EXTENSION_STATE_SCHEMA_VERSION, [
           ...grantsRead.diagnostics.map((diagnostic) => diagnostic.message),
           "Permission grants are security-relevant; no automatic recovery is proposed. Fix or remove the file manually."
@@ -94265,7 +94302,7 @@ function collectExtensionFindings(workspace) {
           );
         }
       }
-      findings.push(
+      findings2.push(
         finding(
           "extensions",
           relPath2,
@@ -94277,23 +94314,23 @@ function collectExtensionFindings(workspace) {
       );
     }
   }
-  return findings;
+  return findings2;
 }
 function collectRegistryFindings(workspace) {
-  const findings = [];
+  const findings2 = [];
   const configPath = registriesConfigPath(workspace);
   if ((0, import_node_fs6.existsSync)(configPath)) {
     const read = readRegistriesConfig(workspace);
     const relPath2 = toRel(workspace, configPath);
     if (read.diagnostics.length > 0) {
-      findings.push(
+      findings2.push(
         finding("registries", relPath2, "invalid", rawSchemaVersion(configPath), REGISTRIES_SCHEMA_VERSION, [
           ...read.diagnostics.map((diagnostic) => diagnostic.message),
           "registries.json is user-authored; fix it manually \u2014 no automatic recovery is proposed."
         ])
       );
     } else {
-      findings.push(
+      findings2.push(
         finding("registries", relPath2, "valid", read.config.schemaVersion, REGISTRIES_SCHEMA_VERSION, [])
       );
     }
@@ -94306,7 +94343,7 @@ function collectRegistryFindings(workspace) {
     try {
       read = readRegistryCache(workspace, name);
     } catch {
-      findings.push(
+      findings2.push(
         finding("registries", relPath2, "invalid", null, REGISTRY_CACHE_SCHEMA_VERSION, [
           `Cache entry "${fileName}" has an unsafe name and was ignored.`
         ])
@@ -94314,11 +94351,11 @@ function collectRegistryFindings(workspace) {
       continue;
     }
     if (read.cache !== void 0) {
-      findings.push(
+      findings2.push(
         finding("registries", relPath2, "valid", read.cache.schemaVersion, REGISTRY_CACHE_SCHEMA_VERSION, [])
       );
     } else {
-      findings.push(
+      findings2.push(
         finding(
           "registries",
           relPath2,
@@ -94336,7 +94373,7 @@ function collectRegistryFindings(workspace) {
       );
     }
   }
-  return findings;
+  return findings2;
 }
 var FAILING_STATUSES = [
   "invalid",
@@ -94345,7 +94382,7 @@ var FAILING_STATUSES = [
   "unrecoverable"
 ];
 function collectInterruptedMigrationFindings(workspace, earlier) {
-  const findings = [];
+  const findings2 = [];
   const migrationsDir = import_node_path8.default.join(workspace.sidecarDir, "migrations");
   for (const planId of listDirectories(migrationsDir).filter((name) => name.startsWith("m-"))) {
     const reportDir = import_node_path8.default.join(migrationsDir, planId);
@@ -94357,7 +94394,7 @@ function collectInterruptedMigrationFindings(workspace, earlier) {
       const parsed = JSON.parse((0, import_node_fs6.readFileSync)(planPath, "utf8"));
       steps = (parsed.steps ?? []).filter((step2) => typeof step2.file === "string").map((step2) => ({ file: step2.file }));
     } catch {
-      findings.push(
+      findings2.push(
         finding(MIGRATIONS_FAMILY, toRel(workspace, planPath), "invalid", null, MIGRATION_PLAN_SCHEMA_VERSION, [
           `Migration ${planId} was interrupted (no result.json) and its plan.json cannot be parsed; review the report directory manually.`
         ])
@@ -94373,7 +94410,7 @@ function collectInterruptedMigrationFindings(workspace, earlier) {
       const targetFinding = earlier.find((candidate) => candidate.path === step2.file);
       const targetFailing = targetFinding !== void 0 && FAILING_STATUSES.includes(targetFinding.status);
       if (targetFailing && backupExists) {
-        findings.push(
+        findings2.push(
           finding(
             MIGRATIONS_FAMILY,
             step2.file,
@@ -94399,7 +94436,7 @@ function collectInterruptedMigrationFindings(workspace, earlier) {
       }
     }
     if (reportOnly.length > 1 || steps.length === 0) {
-      findings.push(
+      findings2.push(
         finding(
           MIGRATIONS_FAMILY,
           toRel(workspace, planPath),
@@ -94411,24 +94448,24 @@ function collectInterruptedMigrationFindings(workspace, earlier) {
       );
     }
   }
-  return findings;
+  return findings2;
 }
 function collectStateFindings(workspace, families, specName) {
   if (!(0, import_node_fs6.existsSync)(workspace.sidecarDir)) return [];
   const wants = (family) => families === void 0 || families.includes(family);
-  const findings = [];
-  if (wants("config")) findings.push(...collectConfigFindings(workspace));
-  if (wants("spec-state")) findings.push(...collectSpecStateFindings(workspace, specName));
-  if (wants("runs")) findings.push(...collectRunFindings(workspace));
-  if (wants("evidence")) findings.push(...collectEvidenceFindings(workspace, specName));
-  if (wants("policies")) findings.push(...collectPolicyFindings(workspace, specName));
-  if (wants("templates")) findings.push(...collectTemplateFindings(workspace));
-  if (wants("extensions")) findings.push(...collectExtensionFindings(workspace));
-  if (wants("registries")) findings.push(...collectRegistryFindings(workspace));
+  const findings2 = [];
+  if (wants("config")) findings2.push(...collectConfigFindings(workspace));
+  if (wants("spec-state")) findings2.push(...collectSpecStateFindings(workspace, specName));
+  if (wants("runs")) findings2.push(...collectRunFindings(workspace));
+  if (wants("evidence")) findings2.push(...collectEvidenceFindings(workspace, specName));
+  if (wants("policies")) findings2.push(...collectPolicyFindings(workspace, specName));
+  if (wants("templates")) findings2.push(...collectTemplateFindings(workspace));
+  if (wants("extensions")) findings2.push(...collectExtensionFindings(workspace));
+  if (wants("registries")) findings2.push(...collectRegistryFindings(workspace));
   if (wants(MIGRATIONS_FAMILY)) {
-    findings.push(...collectInterruptedMigrationFindings(workspace, findings));
+    findings2.push(...collectInterruptedMigrationFindings(workspace, findings2));
   }
-  return findings;
+  return findings2;
 }
 function inspectConfigMigration(workspace) {
   const configPath = import_node_path8.default.join(workspace.sidecarDir, "config.json");
@@ -94469,8 +94506,8 @@ function collectMigrationSteps(workspace) {
   const inspection = inspectConfigMigration(workspace);
   return inspection.step !== void 0 ? [inspection.step] : [];
 }
-function buildRecoveryActions(workspace, findings) {
-  const source = findings ?? collectStateFindings(workspace);
+function buildRecoveryActions(workspace, findings2) {
+  const source = findings2 ?? collectStateFindings(workspace);
   const proposals = source.filter((candidate) => candidate.recovery !== void 0).sort(
     (a2, b) => a2.family.localeCompare(b.family, "en") || a2.path.localeCompare(b.path, "en")
   );
@@ -95651,25 +95688,25 @@ function registerTemplateCommands(program2, runtime) {
       issues = [...entry2.pack.issues, ...entry2.valid ? checkPackRendering(entry2.pack, clock) : []];
     } else {
       const workspace = runtime.tryWorkspace();
-      const resolved = import_node_path11.default.resolve(runtime.cwd, target);
-      if (!(0, import_node_fs7.existsSync)(resolved)) {
+      const resolved2 = import_node_path11.default.resolve(runtime.cwd, target);
+      if (!(0, import_node_fs7.existsSync)(resolved2)) {
         throw new SpecBridgeError(
           "SPEC_NOT_FOUND",
           `"${target}" is neither a known template nor an existing directory. Run "${CLI_BIN} template list" to see templates, or pass a path to a local template pack.`
         );
       }
       if (workspace !== void 0) {
-        const relativeToRoot = import_node_path11.default.relative(workspace.rootDir, resolved);
+        const relativeToRoot = import_node_path11.default.relative(workspace.rootDir, resolved2);
         const inside = !relativeToRoot.startsWith("..") && !import_node_path11.default.isAbsolute(relativeToRoot);
         if (!inside) {
           throw new SpecBridgeError(
             "PATH_OUTSIDE_WORKSPACE",
-            `Template pack path ${resolved} is outside the repository. Copy the pack into the repository before validating it.`
+            `Template pack path ${resolved2} is outside the repository. Copy the pack into the repository before validating it.`
           );
         }
       }
-      subject = resolved;
-      const pack = loadTemplatePack(readTemplatePackDirectory(resolved));
+      subject = resolved2;
+      const pack = loadTemplatePack(readTemplatePackDirectory(resolved2));
       issues = [...pack.issues, ...pack.valid ? checkPackRendering(pack, clock) : []];
     }
     const errors = issues.filter((issue4) => issue4.severity === "error");
@@ -96807,26 +96844,26 @@ var AutonomyError = class extends Error {
     this.retryable = options.retryable ?? false;
   }
 };
-function jobDepsOf(deps) {
-  return deps;
+function jobDepsOf(deps2) {
+  return deps2;
 }
-function autonomyPolicyOf(deps) {
-  return deps.config.autonomy;
+function autonomyPolicyOf(deps2) {
+  return deps2.config.autonomy;
 }
-function now5(deps) {
-  return (deps.clock ?? (() => /* @__PURE__ */ new Date()))();
+function now5(deps2) {
+  return (deps2.clock ?? (() => /* @__PURE__ */ new Date()))();
 }
-function nowIso4(deps) {
-  return now5(deps).toISOString();
+function nowIso4(deps2) {
+  return now5(deps2).toISOString();
 }
-function newId5(deps) {
-  return (deps.idFactory ?? import_crypto28.randomUUID)();
+function newId5(deps2) {
+  return (deps2.idFactory ?? import_crypto28.randomUUID)();
 }
-function hostOf(deps) {
-  return deps.host ?? "cli";
+function hostOf(deps2) {
+  return deps2.host ?? "cli";
 }
-function newRecordId(deps, prefix) {
-  const raw = newId5(deps).replace(/[^A-Za-z0-9._-]/g, "").slice(0, 40);
+function newRecordId(deps2, prefix) {
+  const raw = newId5(deps2).replace(/[^A-Za-z0-9._-]/g, "").slice(0, 40);
   return `${prefix}-${raw.length > 0 ? raw : "x"}`;
 }
 var ID_PATTERN9 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
@@ -97073,13 +97110,13 @@ function computeAuthorityDigest(seal) {
   };
   return sha256Hex(JSON.stringify(canonical)).slice(0, 32);
 }
-function draftSeal(deps, request) {
-  const mission = requireMissionState(deps.workspace, request.missionId);
-  const policy = autonomyPolicyOf(deps);
-  const contracts = readContractRegistry(deps.workspace, request.missionId);
-  const constitution = readConstitution(deps.workspace, request.missionId);
-  const adrs = readAdrs(deps.workspace, request.missionId);
-  const decisions = readDecisions(deps.workspace, request.missionId).filter(
+function draftSeal(deps2, request) {
+  const mission = requireMissionState(deps2.workspace, request.missionId);
+  const policy = autonomyPolicyOf(deps2);
+  const contracts = readContractRegistry(deps2.workspace, request.missionId);
+  const constitution = readConstitution(deps2.workspace, request.missionId);
+  const adrs = readAdrs(deps2.workspace, request.missionId);
+  const decisions = readDecisions(deps2.workspace, request.missionId).filter(
     (decision) => decision.status === "active"
   );
   const contractRefs = contracts.filter((contract) => contract.status !== "superseded").slice(0, SEAL_LIMITS.maxContractRefs).map((contract) => ({
@@ -97114,20 +97151,20 @@ function draftSeal(deps, request) {
       toolsmithCapabilities: [...policy.toolsmith.capabilities]
     }
   };
-  const sealId = request.sealId ?? newRecordId(deps, "seal");
+  const sealId = request.sealId ?? newRecordId(deps2, "seal");
   const seal = missionSealSchema.parse({
     schemaVersion: SEAL_SCHEMA_VERSION,
     sealId,
     missionId: mission.missionId,
     ...mission.specName !== void 0 ? { specName: mission.specName } : {},
     status: "DRAFT",
-    createdAt: nowIso4(deps),
+    createdAt: nowIso4(deps2),
     ...request.supersedes !== void 0 ? { supersedes: request.supersedes } : {},
     ...base,
     presentAuthorityKinds: presentAuthorityKinds(base),
     authorityDigest: computeAuthorityDigest(base)
   });
-  writeImmutableRecord(sealFile(deps.workspace, sealId), seal, "seal");
+  writeImmutableRecord(sealFile(deps2.workspace, sealId), seal, "seal");
   return seal;
 }
 function presentAuthorityKinds(base) {
@@ -97184,8 +97221,8 @@ function gapExplanation(kind) {
       return `The seal is missing ${kind}.`;
   }
 }
-function sealMission(deps, request) {
-  const existing = requireSeal(deps.workspace, request.sealId);
+function sealMission(deps2, request) {
+  const existing = requireSeal(deps2.workspace, request.sealId);
   if (existing.status === "SEALED") return existing;
   if (isFinalSealStatus(existing.status)) {
     throw new AutonomyError(
@@ -97208,32 +97245,32 @@ function sealMission(deps, request) {
   const sealed = missionSealSchema.parse({
     ...existing,
     status: "SEALED",
-    sealedAt: nowIso4(deps),
-    sealedVia: (request.via ?? hostOf(deps)).slice(0, SEAL_LIMITS.maxShortTextChars)
+    sealedAt: nowIso4(deps2),
+    sealedVia: (request.via ?? hostOf(deps2)).slice(0, SEAL_LIMITS.maxShortTextChars)
   });
-  writeJsonRecord(sealFile(deps.workspace, existing.sealId), sealed);
+  writeJsonRecord(sealFile(deps2.workspace, existing.sealId), sealed);
   if (existing.supersedes !== void 0) {
-    markSuperseded(deps, existing.supersedes, existing.sealId);
+    markSuperseded(deps2, existing.supersedes, existing.sealId);
   }
   return sealed;
 }
-function markSuperseded(deps, sealId, bySealId) {
-  const previous = readSeal(deps.workspace, sealId);
+function markSuperseded(deps2, sealId, bySealId) {
+  const previous = readSeal(deps2.workspace, sealId);
   if (previous === void 0 || previous.status === "SUPERSEDED") return;
   writeJsonRecord(
-    sealFile(deps.workspace, sealId),
+    sealFile(deps2.workspace, sealId),
     missionSealSchema.parse({ ...previous, status: "SUPERSEDED", supersededBy: bySealId })
   );
 }
-function revokeSeal(deps, sealId, reason) {
-  const seal = requireSeal(deps.workspace, sealId);
+function revokeSeal(deps2, sealId, reason) {
+  const seal = requireSeal(deps2.workspace, sealId);
   const revoked = missionSealSchema.parse({
     ...seal,
     status: "REVOKED",
-    revokedAt: nowIso4(deps),
+    revokedAt: nowIso4(deps2),
     revokedReason: reason.slice(0, SEAL_LIMITS.maxTextChars)
   });
-  writeJsonRecord(sealFile(deps.workspace, sealId), revoked);
+  writeJsonRecord(sealFile(deps2.workspace, sealId), revoked);
   return revoked;
 }
 function readSeal(workspace, sealId) {
@@ -97293,18 +97330,18 @@ function requireExecutableSeal(seal, policy) {
     details: { reason: assessment.reason ?? "UNKNOWN" }
   });
 }
-function bindSealToJob(deps, jobId, sealId) {
-  const seal = requireSeal(deps.workspace, sealId);
-  requireExecutableSeal(seal, autonomyPolicyOf(deps));
+function bindSealToJob(deps2, jobId, sealId) {
+  const seal = requireSeal(deps2.workspace, sealId);
+  requireExecutableSeal(seal, autonomyPolicyOf(deps2));
   const binding = sealBindingSchema.parse({
     schemaVersion: SEAL_SCHEMA_VERSION,
     jobId,
     sealId,
     missionId: seal.missionId,
-    boundAt: nowIso4(deps),
+    boundAt: nowIso4(deps2),
     boundPolicyFingerprint: seal.delegatedAuthority.policyFingerprint
   });
-  writeJsonRecord(bindingFile(deps.workspace, jobId), binding);
+  writeJsonRecord(bindingFile(deps2.workspace, jobId), binding);
   return binding;
 }
 function readSealBinding(workspace, jobId) {
@@ -97878,12 +97915,12 @@ function progressFingerprint(input) {
     input.agentRuns
   ].join(":");
 }
-function createInProcessDriverHost(deps, options = {}) {
+function createInProcessDriverHost(deps2, options = {}) {
   return {
     label: "in-process",
     async run(request) {
       try {
-        const result = await driveJob(deps, request.jobId, {
+        const result = await driveJob(deps2, request.jobId, {
           ...options,
           ...request.signal !== void 0 ? { signal: request.signal } : {},
           ...request.onEvent !== void 0 ? { onEvent: (event) => request.onEvent?.({ kind: event.kind, message: event.message }) } : {}
@@ -97933,14 +97970,14 @@ function writeSupervisorState(workspace, state) {
   writeJsonRecord(supervisorStateFile(workspace), validated);
   return validated;
 }
-function loadSupervisorState(deps, ownerId) {
-  const existing = readSupervisorState(deps.workspace);
+function loadSupervisorState(deps2, ownerId) {
+  const existing = readSupervisorState(deps2.workspace);
   if (existing !== void 0) return existing;
   return supervisorStateSchema.parse({
     schemaVersion: SUPERVISOR_SCHEMA_VERSION,
     ownerId,
-    startedAt: nowIso4(deps),
-    heartbeatAt: nowIso4(deps),
+    startedAt: nowIso4(deps2),
+    heartbeatAt: nowIso4(deps2),
     pid: process.pid,
     hostname: safeHostname(),
     jobs: []
@@ -97961,16 +97998,16 @@ function upsertSupervisedJob(state, job) {
 function findSupervisedJob(state, jobId) {
   return state.jobs.find((entry2) => entry2.jobId === jobId);
 }
-function appendSupervisionLog(deps, entry2) {
+function appendSupervisionLog(deps2, entry2) {
   const validated = supervisionLogEntrySchema.parse({
-    at: nowIso4(deps),
+    at: nowIso4(deps2),
     ownerId: entry2.ownerId,
     ...entry2.jobId !== void 0 ? { jobId: entry2.jobId } : {},
     action: entry2.action,
     ...entry2.detail !== void 0 ? { detail: entry2.detail.slice(0, 4e3) } : {},
     ...entry2.generation !== void 0 ? { generation: entry2.generation } : {}
   });
-  appendJsonl2(supervisionLogFile(deps.workspace), validated);
+  appendJsonl2(supervisionLogFile(deps2.workspace), validated);
   return validated;
 }
 function readSupervisionLog(workspace, limit = 500) {
@@ -97989,8 +98026,8 @@ function supervisorSleep(ms, signal) {
     }, { once: true });
   });
 }
-function resetSupervisedJobForExplicitResume(deps, ownerId, jobId) {
-  const state = loadSupervisorState(deps, ownerId);
+function resetSupervisedJobForExplicitResume(deps2, ownerId, jobId) {
+  const state = loadSupervisorState(deps2, ownerId);
   const supervised = state.jobs.find((job) => job.jobId === jobId);
   if (supervised === void 0) return false;
   const changed = supervised.consecutiveRestarts > 0 || supervised.backoffMs > 0 || supervised.status === "RELEASED";
@@ -98000,8 +98037,8 @@ function resetSupervisedJobForExplicitResume(deps, ownerId, jobId) {
   if (supervised.status === "RELEASED") supervised.status = "REGISTERED";
   delete supervised.releasedAt;
   delete supervised.releaseReason;
-  writeSupervisorState(deps.workspace, state);
-  appendSupervisionLog(deps, {
+  writeSupervisorState(deps2.workspace, state);
+  appendSupervisionLog(deps2, {
     ownerId,
     jobId,
     action: "RESET_ON_EXPLICIT_RESUME",
@@ -98009,9 +98046,9 @@ function resetSupervisedJobForExplicitResume(deps, ownerId, jobId) {
   });
   return true;
 }
-function registerSupervisedJob(deps, input) {
-  const ownerId = input.ownerId ?? newId5(deps);
-  const state = loadSupervisorState(deps, ownerId);
+function registerSupervisedJob(deps2, input) {
+  const ownerId = input.ownerId ?? newId5(deps2);
+  const state = loadSupervisorState(deps2, ownerId);
   const existing = findSupervisedJob(state, input.jobId);
   const supervised = supervisedJobSchema.parse(
     existing ?? {
@@ -98019,19 +98056,19 @@ function registerSupervisedJob(deps, input) {
       specName: input.specName,
       ...input.sealId !== void 0 ? { sealId: input.sealId } : {},
       status: "REGISTERED",
-      registeredAt: nowIso4(deps)
+      registeredAt: nowIso4(deps2)
     }
   );
-  writeSupervisorState(deps.workspace, {
+  writeSupervisorState(deps2.workspace, {
     ...upsertSupervisedJob(state, supervised),
     schemaVersion: SUPERVISOR_SCHEMA_VERSION,
-    heartbeatAt: nowIso4(deps)
+    heartbeatAt: nowIso4(deps2)
   });
   return supervised;
 }
-function acquireJobLease(deps, jobId, ownerId, policy) {
-  const at = now5(deps);
-  const existing = readLease(deps.workspace, jobId);
+function acquireJobLease(deps2, jobId, ownerId, policy) {
+  const at = now5(deps2);
+  const existing = readLease(deps2.workspace, jobId);
   if (isLeaseLive(existing, at) && existing?.ownerId !== ownerId) {
     return { acquired: false, ...existing !== void 0 ? { heldBy: existing.ownerId } : {} };
   }
@@ -98043,11 +98080,11 @@ function acquireJobLease(deps, jobId, ownerId, policy) {
     ttlMs: policy.leaseTtlMs,
     pid: process.pid,
     ...safeHostname() !== void 0 ? { hostname: safeHostname() } : {},
-    host: hostOf(deps),
+    host: hostOf(deps2),
     schemaVersion: SUPERVISOR_SCHEMA_VERSION
   });
-  const lease = writeLease(deps.workspace, claim2.lease);
-  appendSupervisionLog(deps, {
+  const lease = writeLease(deps2.workspace, claim2.lease);
+  appendSupervisionLog(deps2, {
     ownerId,
     jobId,
     action: claim2.reclaimed ? "LEASE_EXPIRED_RECLAIMED" : "LEASE_ACQUIRED",
@@ -98056,9 +98093,9 @@ function acquireJobLease(deps, jobId, ownerId, policy) {
   });
   return { acquired: true, lease };
 }
-function renewJobLease(deps, jobId, ownerId, policy) {
-  const at = now5(deps);
-  const existing = readLease(deps.workspace, jobId);
+function renewJobLease(deps2, jobId, ownerId, policy) {
+  const at = now5(deps2);
+  const existing = readLease(deps2.workspace, jobId);
   if (existing !== void 0 && existing.ownerId !== ownerId && isLeaseLive(existing, at)) {
     return void 0;
   }
@@ -98069,30 +98106,30 @@ function renewJobLease(deps, jobId, ownerId, policy) {
     now: at,
     ttlMs: policy.leaseTtlMs,
     pid: process.pid,
-    host: hostOf(deps),
+    host: hostOf(deps2),
     schemaVersion: SUPERVISOR_SCHEMA_VERSION
   });
-  return writeLease(deps.workspace, claim2.lease);
+  return writeLease(deps2.workspace, claim2.lease);
 }
-function releaseJobLease(deps, jobId, ownerId, reason) {
-  const existing = readLease(deps.workspace, jobId);
+function releaseJobLease(deps2, jobId, ownerId, reason) {
+  const existing = readLease(deps2.workspace, jobId);
   if (existing === void 0 || existing.ownerId !== ownerId) return;
-  writeLease(deps.workspace, releaseLeaseRecord(existing, now5(deps), reason));
-  appendSupervisionLog(deps, { ownerId, jobId, action: "RELEASED_ON_TERMINAL_STATUS", detail: reason });
+  writeLease(deps2.workspace, releaseLeaseRecord(existing, now5(deps2), reason));
+  appendSupervisionLog(deps2, { ownerId, jobId, action: "RELEASED_ON_TERMINAL_STATUS", detail: reason });
 }
-async function superviseJob(deps, jobId, options) {
-  const policy = autonomyPolicyOf(deps).supervisor;
+async function superviseJob(deps2, jobId, options) {
+  const policy = autonomyPolicyOf(deps2).supervisor;
   if (!policy.enabled) {
     throw new AutonomyError("SBA001", "The supervisor is disabled by `autonomy.supervisor.enabled`.", {
       remediation: ["Run `specbridge autonomy setup --mode overnight`, or drive the job in the foreground."]
     });
   }
-  const ownerId = options.ownerId ?? `sup-${newId5(deps)}`.slice(0, 60);
+  const ownerId = options.ownerId ?? `sup-${newId5(deps2)}`.slice(0, 60);
   const sleep2 = options.sleep ?? supervisorSleep;
   const emit22 = (kind, message2) => {
     options.onEvent?.({ kind, message: message2 });
   };
-  const acquisition = acquireJobLease(deps, jobId, ownerId, policy);
+  const acquisition = acquireJobLease(deps2, jobId, ownerId, policy);
   if (!acquisition.acquired) {
     throw new AutonomyError(
       "SBA008",
@@ -98107,14 +98144,14 @@ async function superviseJob(deps, jobId, options) {
     );
   }
   emit22("lease", `lease acquired by ${ownerId} (generation ${acquisition.lease?.generation ?? 1})`);
-  const sessionStartedAt = options.sessionStartedAt ?? nowIso4(deps);
-  let job = requireJobState(deps.workspace, jobId);
-  let supervised = registerSupervisedJob(deps, {
+  const sessionStartedAt = options.sessionStartedAt ?? nowIso4(deps2);
+  let job = requireJobState(deps2.workspace, jobId);
+  let supervised = registerSupervisedJob(deps2, {
     jobId,
     specName: job.specName,
     ownerId
   });
-  recordJobEvent(jobDepsOf(deps), jobId, "supervisor_attached", {
+  recordJobEvent(jobDepsOf(deps2), jobId, "supervisor_attached", {
     ownerId,
     host: options.host.label
   });
@@ -98128,10 +98165,10 @@ async function superviseJob(deps, jobId, options) {
         stop = { kind: "interrupted" };
         break;
       }
-      job = requireJobState(deps.workspace, jobId);
-      const fingerprint = fingerprintOf(deps, job);
+      job = requireJobState(deps2.workspace, jobId);
+      const fingerprint = fingerprintOf(deps2, job);
       const decision = decideSupervision({
-        now: now5(deps),
+        now: now5(deps2),
         policy,
         status: job.status,
         ...job.operationalWait !== void 0 ? { wait: job.operationalWait } : {},
@@ -98145,7 +98182,7 @@ async function superviseJob(deps, jobId, options) {
         sessionStartedAt
       });
       emit22("decision", `${decision.action}: ${decision.reason}`);
-      const outcome = await applyDecision(deps, {
+      const outcome = await applyDecision(deps2, {
         jobId,
         ownerId,
         policy,
@@ -98161,47 +98198,47 @@ async function superviseJob(deps, jobId, options) {
         stop = outcome.stop;
         break;
       }
-      renewJobLease(deps, jobId, ownerId, policy);
-      persistSupervised(deps, ownerId, supervised);
+      renewJobLease(deps2, jobId, ownerId, policy);
+      persistSupervised(deps2, ownerId, supervised);
     }
   } finally {
-    persistSupervised(deps, ownerId, supervised);
-    releaseJobLease(deps, jobId, ownerId, stop?.kind ?? "supervision ended");
-    recordJobEvent(jobDepsOf(deps), jobId, "supervisor_detached", {
+    persistSupervised(deps2, ownerId, supervised);
+    releaseJobLease(deps2, jobId, ownerId, stop?.kind ?? "supervision ended");
+    recordJobEvent(jobDepsOf(deps2), jobId, "supervisor_detached", {
       ownerId,
       stop: stop?.kind ?? "unknown",
       cycles
     });
   }
-  job = requireJobState(deps.workspace, jobId);
+  job = requireJobState(deps2.workspace, jobId);
   return { stop: stop ?? { kind: "cycles-exhausted" }, job, supervised, cycles };
 }
-async function applyDecision(deps, input) {
+async function applyDecision(deps2, input) {
   const { decision, jobId, ownerId, policy } = input;
   switch (decision.action) {
     case "RELEASE": {
-      const job = requireJobState(deps.workspace, jobId);
-      appendSupervisionLog(deps, {
+      const job = requireJobState(deps2.workspace, jobId);
+      appendSupervisionLog(deps2, {
         ownerId,
         jobId,
         action: job.status === "COMPLETED" ? "RELEASED_ON_TERMINAL_STATUS" : "SESSION_BUDGET_REACHED",
         detail: decision.reason
       });
       return {
-        supervised: { ...input.supervised, status: "RELEASED", releasedAt: nowIso4(deps), releaseReason: decision.reason },
+        supervised: { ...input.supervised, status: "RELEASED", releasedAt: nowIso4(deps2), releaseReason: decision.reason },
         stop: job.status === "COMPLETED" ? { kind: "completed", status: job.status } : { kind: "released", reason: decision.reason }
       };
     }
     case "WAIT_FOR_HUMAN": {
-      const job = requireJobState(deps.workspace, jobId);
-      appendSupervisionLog(deps, {
+      const job = requireJobState(deps2.workspace, jobId);
+      appendSupervisionLog(deps2, {
         ownerId,
         jobId,
         action: "RELEASED_ON_AUTHORITY_STOP",
         detail: decision.reason
       });
       return {
-        supervised: { ...input.supervised, status: "RELEASED", releasedAt: nowIso4(deps), releaseReason: decision.reason },
+        supervised: { ...input.supervised, status: "RELEASED", releasedAt: nowIso4(deps2), releaseReason: decision.reason },
         stop: {
           kind: "needs-human",
           status: decision.status,
@@ -98210,21 +98247,21 @@ async function applyDecision(deps, input) {
       };
     }
     case "GIVE_UP": {
-      appendSupervisionLog(deps, {
+      appendSupervisionLog(deps2, {
         ownerId,
         jobId,
         action: input.supervised.consecutiveRestarts >= policy.maxConsecutiveRestarts || input.supervised.restarts >= policy.maxRestarts ? "RESTART_BUDGET_EXHAUSTED" : "INDEFINITE_WAIT_CLASSIFIED",
         detail: decision.reason
       });
       return {
-        supervised: { ...input.supervised, status: "RELEASED", releasedAt: nowIso4(deps), releaseReason: decision.reason },
+        supervised: { ...input.supervised, status: "RELEASED", releasedAt: nowIso4(deps2), releaseReason: decision.reason },
         stop: { kind: "gave-up", reason: decision.reason }
       };
     }
     case "SLEEP_UNTIL": {
-      const waitMs = Math.max(0, Date.parse(decision.wakeAt) - now5(deps).getTime());
-      appendSupervisionLog(deps, { ownerId, jobId, action: "WAKE_SCHEDULED", detail: decision.reason });
-      await sleepInSlices(deps, {
+      const waitMs = Math.max(0, Date.parse(decision.wakeAt) - now5(deps2).getTime());
+      appendSupervisionLog(deps2, { ownerId, jobId, action: "WAKE_SCHEDULED", detail: decision.reason });
+      await sleepInSlices(deps2, {
         totalMs: waitMs,
         sliceMs: policy.heartbeatIntervalMs,
         jobId,
@@ -98233,10 +98270,10 @@ async function applyDecision(deps, input) {
         sleep: input.sleep,
         signal: input.options.signal
       });
-      appendSupervisionLog(deps, { ownerId, jobId, action: "WOKEN_ON_SCHEDULE", detail: decision.wakeAt });
-      const job = requireJobState(deps.workspace, jobId);
+      appendSupervisionLog(deps2, { ownerId, jobId, action: "WOKEN_ON_SCHEDULE", detail: decision.wakeAt });
+      const job = requireJobState(deps2.workspace, jobId);
       if (isOperationalJobStatus(job.status)) {
-        clearOperationalState(jobDepsOf(deps), jobId, { resolution: "the scheduled wait elapsed" });
+        clearOperationalState(jobDepsOf(deps2), jobId, { resolution: "the scheduled wait elapsed" });
       }
       return { supervised: { ...input.supervised, status: "SLEEPING" } };
     }
@@ -98249,20 +98286,20 @@ async function applyDecision(deps, input) {
       if (decision.action === "RESTART_DRIVER" && decision.backoffMs > 0) {
         await input.sleep(decision.backoffMs, input.options.signal);
       }
-      const job = requireJobState(deps.workspace, jobId);
+      const job = requireJobState(deps2.workspace, jobId);
       if (isOperationalJobStatus(job.status)) {
-        clearOperationalState(jobDepsOf(deps), jobId, {
+        clearOperationalState(jobDepsOf(deps2), jobId, {
           resolution: "the supervisor is resuming the driver"
         });
       }
-      appendSupervisionLog(deps, {
+      appendSupervisionLog(deps2, {
         ownerId,
         jobId,
         action: decision.action === "START_DRIVER" ? "DRIVER_STARTED" : "DRIVER_RESTARTED",
         detail: decision.reason
       });
       if (decision.action === "RESTART_DRIVER") {
-        countAutonomyEvent(jobDepsOf(deps), jobId, "driverRestarts", "driver_restarted", {
+        countAutonomyEvent(jobDepsOf(deps2), jobId, "driverRestarts", "driver_restarted", {
           reason: decision.reason.slice(0, 300),
           restarts: input.supervised.restarts + 1
         });
@@ -98272,10 +98309,10 @@ async function applyDecision(deps, input) {
         ...input.options.signal !== void 0 ? { signal: input.options.signal } : {},
         onEvent: (event) => input.emit("driver", `${event.kind}: ${event.message}`)
       });
-      const supervised = foldDriverOutcome(deps, input, outcome, decision.action);
+      const supervised = foldDriverOutcome(deps2, input, outcome, decision.action);
       if (outcome.kind === "exited" && outcome.stop.kind === "final") {
-        const job2 = requireJobState(deps.workspace, jobId);
-        appendSupervisionLog(deps, {
+        const job2 = requireJobState(deps2.workspace, jobId);
+        appendSupervisionLog(deps2, {
           ownerId,
           jobId,
           action: "CLOSURE_HANDOFF",
@@ -98290,13 +98327,13 @@ async function applyDecision(deps, input) {
     }
   }
 }
-function foldDriverOutcome(deps, input, outcome, action) {
-  const after = fingerprintOf(deps, requireJobState(deps.workspace, input.jobId));
+function foldDriverOutcome(deps2, input, outcome, action) {
+  const after = fingerprintOf(deps2, requireJobState(deps2.workspace, input.jobId));
   const madeProgress = after !== input.fingerprint;
   const starts = input.supervised.starts + 1;
   const restarts = input.supervised.restarts + (action === "RESTART_DRIVER" ? 1 : 0);
   const unclean = outcome.kind === "crashed";
-  appendSupervisionLog(deps, {
+  appendSupervisionLog(deps2, {
     ownerId: input.ownerId,
     jobId: input.jobId,
     action: unclean ? "DRIVER_DIED" : "DRIVER_EXITED_CLEANLY",
@@ -98311,10 +98348,10 @@ function foldDriverOutcome(deps, input, outcome, action) {
       consecutiveRestarts: 0,
       backoffMs: 0,
       lastProgressFingerprint: after,
-      lastProgressAt: nowIso4(deps),
+      lastProgressAt: nowIso4(deps2),
       nextAttemptAt: void 0,
       lastAction: unclean ? "DRIVER_DIED" : "DRIVER_EXITED_CLEANLY",
-      lastActionAt: nowIso4(deps)
+      lastActionAt: nowIso4(deps2)
     });
   }
   const backoffMs = nextBackoffMs(
@@ -98330,21 +98367,21 @@ function foldDriverOutcome(deps, input, outcome, action) {
     consecutiveRestarts: input.supervised.consecutiveRestarts + 1,
     backoffMs,
     lastProgressFingerprint: after,
-    nextAttemptAt: new Date(now5(deps).getTime() + backoffMs).toISOString(),
+    nextAttemptAt: new Date(now5(deps2).getTime() + backoffMs).toISOString(),
     lastAction: unclean ? "DRIVER_DIED" : "DRIVER_EXITED_CLEANLY",
-    lastActionAt: nowIso4(deps)
+    lastActionAt: nowIso4(deps2)
   });
 }
-async function sleepInSlices(deps, input) {
+async function sleepInSlices(deps2, input) {
   let remaining = input.totalMs;
   while (remaining > 0) {
     if (input.signal?.aborted === true) return;
     const slice = Math.min(remaining, Math.max(1, input.sliceMs));
     await input.sleep(slice, input.signal);
     remaining -= slice;
-    const renewed = renewJobLease(deps, input.jobId, input.ownerId, input.policy);
+    const renewed = renewJobLease(deps2, input.jobId, input.ownerId, input.policy);
     if (renewed === void 0) return;
-    appendSupervisionLog(deps, {
+    appendSupervisionLog(deps2, {
       ownerId: input.ownerId,
       jobId: input.jobId,
       action: "LEASE_RENEWED",
@@ -98352,19 +98389,19 @@ async function sleepInSlices(deps, input) {
     });
   }
 }
-function persistSupervised(deps, ownerId, supervised) {
-  const state = loadSupervisorState(deps, ownerId);
-  writeSupervisorState(deps.workspace, {
+function persistSupervised(deps2, ownerId, supervised) {
+  const state = loadSupervisorState(deps2, ownerId);
+  writeSupervisorState(deps2.workspace, {
     ...upsertSupervisedJob(state, supervised),
     ownerId,
-    heartbeatAt: nowIso4(deps)
+    heartbeatAt: nowIso4(deps2)
   });
 }
-function fingerprintOf(deps, job) {
+function fingerprintOf(deps2, job) {
   let completedNodes = 0;
   let totalAttempts = 0;
   try {
-    const graph = readGraphRevision(deps.workspace, job.jobId, job.graphRevision);
+    const graph = readGraphRevision(deps2.workspace, job.jobId, job.graphRevision);
     if (graph !== void 0) {
       for (const node of graph.nodes) {
         if (node.status === "COMPLETED") completedNodes += 1;
@@ -98544,13 +98581,13 @@ function detectBuildTool(projectDir) {
   return null;
 }
 var DEFAULT_MIN_FREE_DISK = 5 * 1024 * 1024 * 1024;
-async function runOvernightPreflight(deps, request) {
-  const policy = autonomyPolicyOf(deps);
-  const projectDir = request.projectDir ?? deps.workspace.rootDir;
+async function runOvernightPreflight(deps2, request) {
+  const policy = autonomyPolicyOf(deps2);
+  const projectDir = request.projectDir ?? deps2.workspace.rootDir;
   const run = request.probeRunner ?? createProcessProbeRunner(projectDir);
-  const at = nowIso4(deps);
+  const at = nowIso4(deps2);
   const checks = [];
-  const seal = resolveSeal(deps, request);
+  const seal = resolveSeal(deps2, request);
   const add2 = (capability, outcome, observed, extra = {}) => {
     checks.push({
       capability,
@@ -98564,11 +98601,11 @@ async function runOvernightPreflight(deps, request) {
   };
   add2(
     "WORKSPACE_WRITABLE",
-    isWritableDirectory(deps.workspace.rootDir) ? "READY" : "HUMAN_REQUIRED",
-    `workspace root ${deps.workspace.rootDir}`,
+    isWritableDirectory(deps2.workspace.rootDir) ? "READY" : "HUMAN_REQUIRED",
+    `workspace root ${deps2.workspace.rootDir}`,
     { remediation: ["Grant write access to the workspace, or run from a writable checkout."] }
   );
-  const free = freeDiskBytes(deps.workspace.rootDir);
+  const free = freeDiskBytes(deps2.workspace.rootDir);
   const minFree = request.minFreeDiskBytes ?? DEFAULT_MIN_FREE_DISK;
   add2(
     "DISK_SPACE",
@@ -98588,8 +98625,8 @@ async function runOvernightPreflight(deps, request) {
   );
   add2(
     "PROTECTED_PATHS_CONFIGURED",
-    deps.config.execution.protectedPaths.length > 0 ? "READY" : "HUMAN_REQUIRED",
-    `${deps.config.execution.protectedPaths.length} protected path pattern(s)`,
+    deps2.config.execution.protectedPaths.length > 0 ? "READY" : "HUMAN_REQUIRED",
+    `${deps2.config.execution.protectedPaths.length} protected path pattern(s)`,
     {
       remediation: [
         "Declare protectedPaths in .specbridge/config.json before running unattended: an overnight run edits files for hours with nobody watching the diff."
@@ -98597,7 +98634,7 @@ async function runOvernightPreflight(deps, request) {
     }
   );
   addSealChecks(add2, seal, policy);
-  const strongWorkers = Object.entries(deps.config.runnerProfiles).filter(
+  const strongWorkers = Object.entries(deps2.config.runnerProfiles).filter(
     ([name]) => name !== "mock"
   );
   add2(
@@ -98610,7 +98647,7 @@ async function runOvernightPreflight(deps, request) {
       ]
     }
   );
-  const localInference = deps.config.localInference;
+  const localInference = deps2.config.localInference;
   add2(
     "LOCAL_MODEL_STARTABLE",
     localInference.enabled ? "READY" : "NOT_APPLICABLE",
@@ -98621,7 +98658,7 @@ async function runOvernightPreflight(deps, request) {
       ]
     }
   );
-  const apiPolicy = deps.config.orchestration.jobs.scheduler.api;
+  const apiPolicy = deps2.config.orchestration.jobs.scheduler.api;
   const spendMode = apiPolicy.spendMode;
   add2(
     "API_FALLBACK_AUTHORIZED",
@@ -98647,8 +98684,8 @@ async function runOvernightPreflight(deps, request) {
   );
   add2(
     "TRUSTED_VERIFICATION_CONFIGURED",
-    deps.config.verification.commands.length > 0 ? "READY" : "HUMAN_REQUIRED",
-    `${deps.config.verification.commands.length} trusted verification command(s)`,
+    deps2.config.verification.commands.length > 0 ? "READY" : "HUMAN_REQUIRED",
+    `${deps2.config.verification.commands.length} trusted verification command(s)`,
     {
       remediation: [
         "Configure verification commands. Without them nothing can close a contract item on trusted evidence, and the run cannot legitimately reach COMPLETED."
@@ -98765,7 +98802,7 @@ async function runOvernightPreflight(deps, request) {
       ]
     }
   );
-  const report = buildReport(deps, {
+  const report = buildReport(deps2, {
     request,
     policy,
     seal,
@@ -98773,15 +98810,15 @@ async function runOvernightPreflight(deps, request) {
     at
   });
   writeJsonRecord(
-    autonomyPath(deps.workspace, "preflight", `${report.reportId}.json`),
+    autonomyPath(deps2.workspace, "preflight", `${report.reportId}.json`),
     report
   );
   return report;
 }
-function resolveSeal(deps, request) {
-  if (request.sealId !== void 0) return readSeal(deps.workspace, request.sealId);
-  if (request.missionId !== void 0) return latestExecutableSeal(deps.workspace, request.missionId);
-  return latestExecutableSeal(deps.workspace, request.subject);
+function resolveSeal(deps2, request) {
+  if (request.sealId !== void 0) return readSeal(deps2.workspace, request.sealId);
+  if (request.missionId !== void 0) return latestExecutableSeal(deps2.workspace, request.missionId);
+  return latestExecutableSeal(deps2.workspace, request.subject);
 }
 function addSealChecks(add2, seal, policy) {
   if (seal === void 0) {
@@ -98822,7 +98859,7 @@ function addSealChecks(add2, seal, policy) {
 function toolsmithGrants(policy, capability) {
   return policy.toolsmith.enabled && policy.toolsmith.capabilities.includes(capability);
 }
-function buildReport(deps, input) {
+function buildReport(deps2, input) {
   const humanActions = [];
   const autonomousActions = [];
   const unknowns = [];
@@ -98840,9 +98877,9 @@ function buildReport(deps, input) {
   const verdict = humanActions.length > 0 ? "HUMAN_ACTION_REQUIRED" : unknowns.length > 0 ? "INDETERMINATE" : "OVERNIGHT_READY";
   return preflightReportSchema.parse({
     schemaVersion: PREFLIGHT_SCHEMA_VERSION,
-    reportId: input.request.reportId ?? newRecordId(deps, "pf"),
+    reportId: input.request.reportId ?? newRecordId(deps2, "pf"),
     createdAt: input.at,
-    host: hostOf(deps),
+    host: hostOf(deps2),
     subject: input.request.subject,
     ...input.request.missionId !== void 0 ? { missionId: input.request.missionId } : {},
     ...input.seal !== void 0 ? { sealId: input.seal.sealId } : {},
@@ -99025,16 +99062,16 @@ function decideToolsmithRequest(request, context) {
 }
 function assertInsideWorkspaceBoundary(target, context) {
   if (import_path82.default.isAbsolute(target)) {
-    const resolved = import_path82.default.resolve(target);
+    const resolved2 = import_path82.default.resolve(target);
     const root = import_path82.default.resolve(context.workspaceRoot);
-    if (resolved !== root && !resolved.startsWith(root + import_path82.default.sep)) {
+    if (resolved2 !== root && !resolved2.startsWith(root + import_path82.default.sep)) {
       return {
         granted: false,
         reason: "TARGET_OUTSIDE_WORKSPACE",
         detail: `"${target}" is outside the workspace. Project tooling lives in the project.`
       };
     }
-    return matchesProtected(import_path82.default.relative(root, resolved), context);
+    return matchesProtected(import_path82.default.relative(root, resolved2), context);
   }
   const normalized = import_path82.default.normalize(target).replace(/\\/g, "/");
   if (normalized.startsWith("../") || normalized === "..") {
@@ -99112,9 +99149,9 @@ function listToolsmithRequests(workspace, jobId) {
     (raw) => toolsmithRequestSchema.parse(raw)
   ).sort((a2, b) => a2.requestedAt.localeCompare(b.requestedAt));
 }
-function requestToolsmithCapability(deps, input) {
-  const policy = autonomyPolicyOf(deps);
-  const ledger = loadLedger(deps, input.jobId);
+function requestToolsmithCapability(deps2, input) {
+  const policy = autonomyPolicyOf(deps2);
+  const ledger = loadLedger(deps2, input.jobId);
   const scope = input.scope ?? preferredScopeFor(input.capability);
   const decision = decideToolsmithRequest(
     {
@@ -99126,15 +99163,15 @@ function requestToolsmithCapability(deps, input) {
     },
     {
       policy,
-      workspaceRoot: deps.workspace.rootDir,
-      protectedPaths: deps.config.execution.protectedPaths,
+      workspaceRoot: deps2.workspace.rootDir,
+      protectedPaths: deps2.config.execution.protectedPaths,
       grantsUsed: ledger.granted
     }
   );
-  const at = nowIso4(deps);
+  const at = nowIso4(deps2);
   const request = toolsmithRequestSchema.parse({
     schemaVersion: TOOLSMITH_SCHEMA_VERSION,
-    requestId: input.requestId ?? newRecordId(deps, "ts"),
+    requestId: input.requestId ?? newRecordId(deps2, "ts"),
     jobId: input.jobId,
     capability: input.capability,
     purpose: input.purpose.slice(0, 4e3),
@@ -99150,19 +99187,19 @@ function requestToolsmithCapability(deps, input) {
       ...decision.suggestedAlternative !== void 0 ? { suggestedAlternative: decision.suggestedAlternative } : {}
     }
   });
-  writeJsonRecord(requestFile(deps.workspace, input.jobId, request.requestId), request);
-  saveLedger(deps, input.jobId, {
+  writeJsonRecord(requestFile(deps2.workspace, input.jobId, request.requestId), request);
+  saveLedger(deps2, input.jobId, {
     ...ledger,
     granted: ledger.granted + (decision.granted ? 1 : 0),
     denied: ledger.denied + (decision.granted ? 0 : 1)
   });
-  recordToolsmithEvent(deps, input.jobId, request, decision);
+  recordToolsmithEvent(deps2, input.jobId, request, decision);
   return { request, decision };
 }
-function recordToolsmithEvent(deps, jobId, request, decision) {
+function recordToolsmithEvent(deps2, jobId, request, decision) {
   try {
     recordJobEvent(
-      jobDepsOf(deps),
+      jobDepsOf(deps2),
       jobId,
       decision.granted ? "toolsmith_grant_issued" : "toolsmith_grant_denied",
       {
@@ -99179,16 +99216,16 @@ function recordToolsmithEvent(deps, jobId, request, decision) {
 function writesFileDirectly(capability) {
   return capability === "PROJECT_LOCAL_SCRIPT" || capability === "CODE_GENERATION";
 }
-function loadLedger(deps, jobId) {
-  return readToolsmithLedger(deps.workspace, jobId) ?? toolsmithLedgerSchema.parse({
+function loadLedger(deps2, jobId) {
+  return readToolsmithLedger(deps2.workspace, jobId) ?? toolsmithLedgerSchema.parse({
     schemaVersion: TOOLSMITH_SCHEMA_VERSION,
     jobId,
-    updatedAt: nowIso4(deps)
+    updatedAt: nowIso4(deps2)
   });
 }
-function saveLedger(deps, jobId, ledger) {
-  const next = toolsmithLedgerSchema.parse({ ...ledger, updatedAt: nowIso4(deps) });
-  writeJsonRecord(ledgerFile(deps.workspace, jobId), next);
+function saveLedger(deps2, jobId, ledger) {
+  const next = toolsmithLedgerSchema.parse({ ...ledger, updatedAt: nowIso4(deps2) });
+  writeJsonRecord(ledgerFile(deps2.workspace, jobId), next);
   return next;
 }
 function countSelfCreatedTools(workspace, jobId) {
@@ -99509,8 +99546,8 @@ function defaultSleep2(ms, signal) {
     }, { once: true });
   });
 }
-async function provisionEnvironment(deps, options) {
-  const policy = autonomyPolicyOf(deps).environments;
+async function provisionEnvironment(deps2, options) {
+  const policy = autonomyPolicyOf(deps2).environments;
   if (!policy.enabled) {
     throw new AutonomyError(
       "SBA016",
@@ -99518,7 +99555,7 @@ async function provisionEnvironment(deps, options) {
       { remediation: ["Enable it, or provide the environment yourself before the run."] }
     );
   }
-  const plan = readEnvironmentPlan(deps.workspace, options.planId);
+  const plan = readEnvironmentPlan(deps2.workspace, options.planId);
   if (plan === void 0) {
     throw new AutonomyError("SBA014", `No environment plan "${options.planId}" exists.`, {
       details: { planId: options.planId }
@@ -99526,50 +99563,50 @@ async function provisionEnvironment(deps, options) {
   }
   const ordered = orderServicesForReadiness(plan);
   const sleep2 = options.sleep ?? defaultSleep2;
-  const probe = options.probeExecutor ?? createReadinessProbeExecutor({ cwd: deps.workspace.rootDir });
+  const probe = options.probeExecutor ?? createReadinessProbeExecutor({ cwd: deps2.workspace.rootDir });
   const emit22 = options.onEvent ?? (() => void 0);
   let instance = writeInstance(
-    deps,
+    deps2,
     environmentInstanceSchema.parse({
       schemaVersion: ENVIRONMENT_SCHEMA_VERSION,
-      instanceId: options.instanceId ?? newRecordId(deps, "envi"),
+      instanceId: options.instanceId ?? newRecordId(deps2, "envi"),
       planId: plan.planId,
       ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
       status: "PROVISIONING",
-      createdAt: nowIso4(deps),
+      createdAt: nowIso4(deps2),
       services: ordered.map((service) => ({ serviceId: service.serviceId, status: "PENDING" }))
     })
   );
-  emitJobEvent(deps, options.jobId, "environment_provision_started", {
+  emitJobEvent(deps2, options.jobId, "environment_provision_started", {
     planId: plan.planId,
     instanceId: instance.instanceId,
     services: ordered.length
   });
-  const startedAtMs = now5(deps).getTime();
+  const startedAtMs = now5(deps2).getTime();
   const provisioned = await options.runtime.provision({
     plan,
-    workspaceRoot: deps.workspace.rootDir,
+    workspaceRoot: deps2.workspace.rootDir,
     timeoutMs: policy.readinessTimeoutMs,
     ...options.signal !== void 0 ? { signal: options.signal } : {}
   });
   if (!provisioned.ok) {
     emit22(`provisioning failed: ${provisioned.detail}`);
-    return finishFailed(deps, options, plan, instance, {
+    return finishFailed(deps2, options, plan, instance, {
       failureKind: provisioned.failureKind ?? "RUNTIME_UNAVAILABLE",
       detail: provisioned.detail
     });
   }
-  instance = writeInstance(deps, {
+  instance = writeInstance(deps2, {
     ...instance,
     status: "WAITING_READY",
     services: instance.services.map((service) => ({
       ...service,
       status: "STARTING",
-      startedAt: nowIso4(deps)
+      startedAt: nowIso4(deps2)
     }))
   });
   for (const service of ordered) {
-    const result = await waitForService(deps, {
+    const result = await waitForService(deps2, {
       plan,
       service,
       instance,
@@ -99580,7 +99617,7 @@ async function provisionEnvironment(deps, options) {
       emit: emit22,
       ...options.signal !== void 0 ? { signal: options.signal } : {}
     });
-    instance = writeInstance(deps, {
+    instance = writeInstance(deps2, {
       ...instance,
       services: instance.services.map(
         (entry2) => entry2.serviceId === service.serviceId ? result.state : entry2
@@ -99588,37 +99625,37 @@ async function provisionEnvironment(deps, options) {
       repairs: instance.repairs + result.restarts
     });
     if (result.state.status !== "READY") {
-      return finishFailed(deps, options, plan, instance, {
+      return finishFailed(deps2, options, plan, instance, {
         failureKind: result.state.failureKind ?? "READINESS_TIMEOUT",
         detail: result.state.lastProbeDetail ?? `service ${service.serviceId} never became ready`
       });
     }
   }
-  const ready = writeInstance(deps, {
+  const ready = writeInstance(deps2, {
     ...instance,
     status: "READY",
-    readyAt: nowIso4(deps)
+    readyAt: nowIso4(deps2)
   });
-  writeEvidence(deps, plan, ready, now5(deps).getTime() - startedAtMs, []);
-  emitJobEvent(deps, options.jobId, "environment_ready", {
+  writeEvidence(deps2, plan, ready, now5(deps2).getTime() - startedAtMs, []);
+  emitJobEvent(deps2, options.jobId, "environment_ready", {
     instanceId: ready.instanceId,
     planId: plan.planId
   });
   return ready;
 }
-async function waitForService(deps, input) {
+async function waitForService(deps2, input) {
   const { service, probe, sleep: sleep2, policy } = input;
-  const deadlineMs = now5(deps).getTime() + Math.min(service.readinessTimeoutMs, policy.readinessTimeoutMs);
+  const deadlineMs = now5(deps2).getTime() + Math.min(service.readinessTimeoutMs, policy.readinessTimeoutMs);
   const maxRestarts = Math.min(service.maxRestarts, policy.maxServiceRestarts);
   let state = {
     serviceId: service.serviceId,
     status: "WAITING_READY",
-    startedAt: nowIso4(deps),
+    startedAt: nowIso4(deps2),
     restarts: 0,
     probeAttempts: 0
   };
   let restarts = 0;
-  while (now5(deps).getTime() < deadlineMs) {
+  while (now5(deps2).getTime() < deadlineMs) {
     if (input.signal?.aborted === true) {
       return { state: { ...state, status: "FAILED", failureKind: "UNKNOWN" }, restarts };
     }
@@ -99641,7 +99678,7 @@ async function waitForService(deps, input) {
         state: {
           ...state,
           status: "READY",
-          readyAt: nowIso4(deps),
+          readyAt: nowIso4(deps2),
           lastProbeKind: lastKind,
           lastProbeDetail: lastDetail
         },
@@ -99649,14 +99686,14 @@ async function waitForService(deps, input) {
       };
     }
     state = { ...state, lastProbeKind: lastKind, lastProbeDetail: lastDetail };
-    const elapsedFraction = 1 - (deadlineMs - now5(deps).getTime()) / Math.max(1, service.readinessTimeoutMs);
+    const elapsedFraction = 1 - (deadlineMs - now5(deps2).getTime()) / Math.max(1, service.readinessTimeoutMs);
     if (restarts < maxRestarts && elapsedFraction > (restarts + 1) / (maxRestarts + 1)) {
       restarts += 1;
       input.emit(`${service.serviceId} not ready after ${state.probeAttempts} probes; restarting`);
       const restarted = await input.runtime.restart({
         plan: input.plan,
         service,
-        workspaceRoot: deps.workspace.rootDir,
+        workspaceRoot: deps2.workspace.rootDir,
         timeoutMs: policy.readinessTimeoutMs,
         ...input.signal !== void 0 ? { signal: input.signal } : {}
       });
@@ -99679,8 +99716,8 @@ async function waitForService(deps, input) {
     restarts
   };
 }
-async function finishFailed(deps, options, plan, instance, failure) {
-  const policy = autonomyPolicyOf(deps).environments;
+async function finishFailed(deps2, options, plan, instance, failure) {
+  const policy = autonomyPolicyOf(deps2).environments;
   const logRefs = [];
   if (policy.retainDiagnosticsOnFailure) {
     for (const service of plan.services) {
@@ -99688,15 +99725,15 @@ async function finishFailed(deps, options, plan, instance, failure) {
         const text142 = await options.runtime.logs({
           plan,
           service,
-          workspaceRoot: deps.workspace.rootDir,
+          workspaceRoot: deps2.workspace.rootDir,
           maxBytes: policy.maxLogBytesPerService
         });
-        if (text142.length > 0) logRefs.push(retainLog(deps, instance.instanceId, service.serviceId, text142));
+        if (text142.length > 0) logRefs.push(retainLog(deps2, instance.instanceId, service.serviceId, text142));
       } catch {
       }
     }
   }
-  const failed = writeInstance(deps, {
+  const failed = writeInstance(deps2, {
     ...instance,
     status: "FAILED",
     failureKind: failure.failureKind,
@@ -99706,8 +99743,8 @@ async function finishFailed(deps, options, plan, instance, failure) {
       (service) => service.status === "READY" ? service : { ...service, status: "FAILED" }
     )
   });
-  writeEvidence(deps, plan, failed, null, logRefs);
-  emitJobEvent(deps, options.jobId, "environment_failed", {
+  writeEvidence(deps2, plan, failed, null, logRefs);
+  emitJobEvent(deps2, options.jobId, "environment_failed", {
     instanceId: failed.instanceId,
     planId: plan.planId,
     failureKind: failure.failureKind,
@@ -99715,7 +99752,7 @@ async function finishFailed(deps, options, plan, instance, failure) {
   });
   return failed;
 }
-function retainLog(deps, instanceId, serviceId, text142) {
+function retainLog(deps2, instanceId, serviceId, text142) {
   const relative = import_path83.default.posix.join(
     ".specbridge",
     "autonomy",
@@ -99724,42 +99761,42 @@ function retainLog(deps, instanceId, serviceId, text142) {
     instanceId,
     `${serviceId}.log`
   );
-  const absolute = autonomyPath(deps.workspace, "environments", "logs", instanceId, `${serviceId}.log`);
+  const absolute = autonomyPath(deps2.workspace, "environments", "logs", instanceId, `${serviceId}.log`);
   (0, import_fs75.mkdirSync)(import_path83.default.dirname(absolute), { recursive: true });
   (0, import_fs75.writeFileSync)(absolute, text142, "utf8");
   return relative;
 }
-async function teardownEnvironment(deps, input) {
-  const instance = readEnvironmentInstance(deps.workspace, input.instanceId);
+async function teardownEnvironment(deps2, input) {
+  const instance = readEnvironmentInstance(deps2.workspace, input.instanceId);
   if (instance === void 0) {
     throw new AutonomyError("SBA014", `No environment instance "${input.instanceId}" exists.`);
   }
-  const plan = readEnvironmentPlan(deps.workspace, instance.planId);
+  const plan = readEnvironmentPlan(deps2.workspace, instance.planId);
   if (plan === void 0) {
     throw new AutonomyError("SBA014", `Environment plan "${instance.planId}" is missing.`);
   }
-  const policy = autonomyPolicyOf(deps).environments;
+  const policy = autonomyPolicyOf(deps2).environments;
   const retain = input.retain ?? (instance.status === "FAILED" && policy.retainDiagnosticsOnFailure);
   await input.runtime.teardown({
     plan,
-    workspaceRoot: deps.workspace.rootDir,
+    workspaceRoot: deps2.workspace.rootDir,
     timeoutMs: policy.readinessTimeoutMs,
     retain
   });
-  const stopped = writeInstance(deps, {
+  const stopped = writeInstance(deps2, {
     ...instance,
     status: "STOPPED",
-    stoppedAt: nowIso4(deps),
+    stoppedAt: nowIso4(deps2),
     diagnosticsRetained: retain,
     services: instance.services.map((service) => ({ ...service, status: "STOPPED" }))
   });
-  emitJobEvent(deps, instance.jobId, "environment_torn_down", {
+  emitJobEvent(deps2, instance.jobId, "environment_torn_down", {
     instanceId: stopped.instanceId,
     retained: retain
   });
   return stopped;
 }
-function writeEvidence(deps, plan, instance, totalMs, logRefs) {
+function writeEvidence(deps2, plan, instance, totalMs, logRefs) {
   const byId = new Map(plan.services.map((service) => [service.serviceId, service]));
   const applicationLevelReady = [];
   const livenessOnlyReady = [];
@@ -99777,7 +99814,7 @@ function writeEvidence(deps, plan, instance, totalMs, logRefs) {
     schemaVersion: ENVIRONMENT_SCHEMA_VERSION,
     instanceId: instance.instanceId,
     planId: plan.planId,
-    recordedAt: nowIso4(deps),
+    recordedAt: nowIso4(deps2),
     status: instance.status,
     applicationLevelReady,
     livenessOnlyReady,
@@ -99785,18 +99822,18 @@ function writeEvidence(deps, plan, instance, totalMs, logRefs) {
     totalReadinessMs: totalMs,
     logRefs: [...logRefs].slice(0, 60)
   });
-  writeJsonRecord(environmentEvidenceFile(deps.workspace, instance.instanceId), evidence);
+  writeJsonRecord(environmentEvidenceFile(deps2.workspace, instance.instanceId), evidence);
   return evidence;
 }
-function writeInstance(deps, instance) {
+function writeInstance(deps2, instance) {
   const validated = environmentInstanceSchema.parse(instance);
-  writeJsonRecord(environmentInstanceFile(deps.workspace, validated.instanceId), validated);
+  writeJsonRecord(environmentInstanceFile(deps2.workspace, validated.instanceId), validated);
   return validated;
 }
-function emitJobEvent(deps, jobId, type, payload) {
+function emitJobEvent(deps2, jobId, type, payload) {
   if (jobId === void 0) return;
   try {
-    recordJobEvent(jobDepsOf(deps), jobId, type, payload);
+    recordJobEvent(jobDepsOf(deps2), jobId, type, payload);
   } catch {
   }
 }
@@ -100033,8 +100070,8 @@ function listBrowserResults(workspace) {
     (raw) => browserScenarioResultSchema.parse(raw)
   ).sort((a2, b) => a2.startedAt.localeCompare(b.startedAt));
 }
-async function runBrowserScenario(deps, options) {
-  const policy = autonomyPolicyOf(deps).browser;
+async function runBrowserScenario(deps2, options) {
+  const policy = autonomyPolicyOf(deps2).browser;
   if (!policy.enabled) {
     throw new AutonomyError(
       "SBA018",
@@ -100042,7 +100079,7 @@ async function runBrowserScenario(deps, options) {
       { remediation: ["Enable it, or close UI criteria on other evidence."] }
     );
   }
-  const scenario = readBrowserScenario(deps.workspace, options.scenarioId);
+  const scenario = readBrowserScenario(deps2.workspace, options.scenarioId);
   if (scenario === void 0) {
     throw new AutonomyError("SBA017", `No browser scenario "${options.scenarioId}" exists.`);
   }
@@ -100053,10 +100090,10 @@ async function runBrowserScenario(deps, options) {
       { remediation: ["Raise autonomy.browser.maxContexts, or split the scenario."] }
     );
   }
-  const resultId = options.resultId ?? newRecordId(deps, "br");
-  const startedAt = nowIso4(deps);
-  const startedMs = now5(deps).getTime();
-  emitJobEvent2(deps, options.jobId, "browser_scenario_started", {
+  const resultId = options.resultId ?? newRecordId(deps2, "br");
+  const startedAt = nowIso4(deps2);
+  const startedMs = now5(deps2).getTime();
+  emitJobEvent2(deps2, options.jobId, "browser_scenario_started", {
     scenarioId: scenario.scenarioId,
     resultId,
     contexts: scenario.contexts.length
@@ -100064,7 +100101,7 @@ async function runBrowserScenario(deps, options) {
   const availability = await options.driver.available();
   if (!availability.ok) {
     return persist3(
-      deps,
+      deps2,
       browserScenarioResultSchema.parse({
         schemaVersion: BROWSER_SCHEMA_VERSION,
         resultId,
@@ -100072,7 +100109,7 @@ async function runBrowserScenario(deps, options) {
         ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
         status: "SKIPPED_NO_RUNTIME",
         startedAt,
-        finishedAt: nowIso4(deps),
+        finishedAt: nowIso4(deps2),
         driver: options.driver.label,
         skipReason: availability.reason
       }),
@@ -100094,7 +100131,7 @@ async function runBrowserScenario(deps, options) {
     });
   } catch (cause) {
     return persist3(
-      deps,
+      deps2,
       browserScenarioResultSchema.parse({
         schemaVersion: BROWSER_SCHEMA_VERSION,
         resultId,
@@ -100102,7 +100139,7 @@ async function runBrowserScenario(deps, options) {
         ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
         status: "ERRORED",
         startedAt,
-        finishedAt: nowIso4(deps),
+        finishedAt: nowIso4(deps2),
         driver: options.driver.label,
         failureDetail: (cause instanceof Error ? cause.message : String(cause)).slice(0, 4e3)
       }),
@@ -100115,7 +100152,7 @@ async function runBrowserScenario(deps, options) {
         failureDetail = "the scenario was cancelled";
         break;
       }
-      const before = now5(deps).getTime();
+      const before = now5(deps2).getTime();
       const outcome = await session.step(step2);
       const assertion = isAssertionStep(step2);
       if (assertion) {
@@ -100125,7 +100162,7 @@ async function runBrowserScenario(deps, options) {
       let evidenceRef;
       if (outcome.evidence !== void 0 && policy.captureScreenshots) {
         evidenceRef = writeEvidenceFile(
-          deps,
+          deps2,
           resultId,
           `${String(index).padStart(3, "0")}-${outcome.evidence.label}`,
           outcome.evidence.kind === "SCREENSHOT" ? "png" : "html",
@@ -100144,7 +100181,7 @@ async function runBrowserScenario(deps, options) {
         context: step2.context,
         ok: outcome.ok,
         detail: outcome.detail.slice(0, 4e3),
-        durationMs: Math.max(0, now5(deps).getTime() - before),
+        durationMs: Math.max(0, now5(deps2).getTime() - before),
         ...evidenceRef !== void 0 ? { evidenceRef } : {}
       });
       if (!outcome.ok) {
@@ -100153,7 +100190,7 @@ async function runBrowserScenario(deps, options) {
         if (snapshot2.length > 0) {
           evidence.push({
             kind: "DOM_SNAPSHOT",
-            ref: writeEvidenceFile(deps, resultId, `${String(index).padStart(3, "0")}-dom`, "html", snapshot2),
+            ref: writeEvidenceFile(deps2, resultId, `${String(index).padStart(3, "0")}-dom`, "html", snapshot2),
             label: "dom-at-failure",
             context: step2.context
           });
@@ -100166,7 +100203,7 @@ async function runBrowserScenario(deps, options) {
       evidence.push({
         kind: "CONSOLE_LOG",
         ref: writeEvidenceFile(
-          deps,
+          deps2,
           resultId,
           "console",
           "json",
@@ -100178,7 +100215,7 @@ async function runBrowserScenario(deps, options) {
     }
     const status = failureDetail !== void 0 ? "FAILED" : assertionsRun > 0 ? "PASSED" : "FAILED";
     return persist3(
-      deps,
+      deps2,
       browserScenarioResultSchema.parse({
         schemaVersion: BROWSER_SCHEMA_VERSION,
         resultId,
@@ -100186,7 +100223,7 @@ async function runBrowserScenario(deps, options) {
         ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
         status,
         startedAt,
-        finishedAt: nowIso4(deps),
+        finishedAt: nowIso4(deps2),
         driver: options.driver.label,
         steps,
         assertionsRun,
@@ -100194,7 +100231,7 @@ async function runBrowserScenario(deps, options) {
         observations: observations.slice(0, 200),
         evidence,
         ...failureDetail !== void 0 ? { failureDetail } : assertionsRun === 0 ? { failureDetail: "the scenario ran no assertions and therefore proved nothing" } : {},
-        durationMs: now5(deps).getTime() - startedMs
+        durationMs: now5(deps2).getTime() - startedMs
       }),
       options.jobId
     );
@@ -100202,10 +100239,10 @@ async function runBrowserScenario(deps, options) {
     await session.close();
   }
 }
-function writeEvidenceFile(deps, resultId, name, extension, data) {
+function writeEvidenceFile(deps2, resultId, name, extension, data) {
   const safe = name.replace(/[^A-Za-z0-9._-]/g, "-").slice(0, 60);
   const absolute = autonomyPath(
-    deps.workspace,
+    deps2.workspace,
     "browser",
     "evidence",
     resultId,
@@ -100222,9 +100259,9 @@ function writeEvidenceFile(deps, resultId, name, extension, data) {
     `${safe}.${extension}`
   );
 }
-function persist3(deps, result, jobId) {
-  writeJsonRecord(browserResultFile(deps.workspace, result.resultId), result);
-  emitJobEvent2(deps, jobId, "browser_scenario_completed", {
+function persist3(deps2, result, jobId) {
+  writeJsonRecord(browserResultFile(deps2.workspace, result.resultId), result);
+  emitJobEvent2(deps2, jobId, "browser_scenario_completed", {
     scenarioId: result.scenarioId,
     resultId: result.resultId,
     status: result.status,
@@ -100233,10 +100270,10 @@ function persist3(deps, result, jobId) {
   });
   return result;
 }
-function emitJobEvent2(deps, jobId, type, payload) {
+function emitJobEvent2(deps2, jobId, type, payload) {
   if (jobId === void 0) return;
   try {
-    recordJobEvent(jobDepsOf(deps), jobId, type, payload);
+    recordJobEvent(jobDepsOf(deps2), jobId, type, payload);
   } catch {
   }
 }
@@ -100844,10 +100881,10 @@ function readClosureLedger(workspace, jobId) {
     (raw) => closureLedgerSchema.parse(raw)
   );
 }
-function buildClosureLedger(deps, input) {
-  const at = nowIso4(deps);
+function buildClosureLedger(deps2, input) {
+  const at = nowIso4(deps2);
   const entries = [];
-  const registry2 = readContractRegistry(deps.workspace, input.seal.missionId);
+  const registry2 = readContractRegistry(deps2.workspace, input.seal.missionId);
   const byContract = new Map(registry2.map((contract) => [contract.contractId, contract]));
   for (const ref of input.seal.contracts) {
     const contract = byContract.get(ref.contractId);
@@ -100895,7 +100932,7 @@ function buildClosureLedger(deps, input) {
     phase: "IMPLEMENTATION",
     entries
   });
-  writeJsonRecord(closureLedgerFile(deps.workspace, input.jobId), ledger);
+  writeJsonRecord(closureLedgerFile(deps2.workspace, input.jobId), ledger);
   return ledger;
 }
 function entry(at, input) {
@@ -100914,9 +100951,9 @@ function entry(at, input) {
     updatedAt: at
   };
 }
-function attributeNodeToItems(deps, input) {
-  const ledger = requireLedger(deps.workspace, input.jobId);
-  const at = nowIso4(deps);
+function attributeNodeToItems(deps2, input) {
+  const ledger = requireLedger(deps2.workspace, input.jobId);
+  const at = nowIso4(deps2);
   const entries = ledger.entries.map((existing) => {
     if (!input.itemIds.includes(existing.itemId)) return existing;
     if (existing.attributedNodeIds.includes(input.nodeId)) return existing;
@@ -100927,11 +100964,11 @@ function attributeNodeToItems(deps, input) {
       updatedAt: at
     };
   });
-  return saveLedger2(deps, { ...ledger, entries });
+  return saveLedger2(deps2, { ...ledger, entries });
 }
-function registerClosureEvidence(deps, input) {
-  const ledger = requireLedger(deps.workspace, input.jobId);
-  const at = nowIso4(deps);
+function registerClosureEvidence(deps2, input) {
+  const ledger = requireLedger(deps2.workspace, input.jobId);
+  const at = nowIso4(deps2);
   const entries = ledger.entries.map((existing) => {
     if (!input.itemIds.includes(existing.itemId)) return existing;
     return {
@@ -100952,11 +100989,11 @@ function registerClosureEvidence(deps, input) {
       updatedAt: at
     };
   });
-  return saveLedger2(deps, { ...ledger, entries });
+  return saveLedger2(deps2, { ...ledger, entries });
 }
-function waiveClosureItem(deps, input) {
-  const ledger = requireLedger(deps.workspace, input.jobId);
-  const at = nowIso4(deps);
+function waiveClosureItem(deps2, input) {
+  const ledger = requireLedger(deps2.workspace, input.jobId);
+  const at = nowIso4(deps2);
   const entries = ledger.entries.map(
     (existing) => existing.itemId === input.itemId ? {
       ...existing,
@@ -100970,19 +101007,19 @@ function waiveClosureItem(deps, input) {
       updatedAt: at
     } : existing
   );
-  return saveLedger2(deps, { ...ledger, entries });
+  return saveLedger2(deps2, { ...ledger, entries });
 }
-function runClosureAudit(deps, input) {
-  const policy = autonomyPolicyOf(deps).closure;
-  const ledger = requireLedger(deps.workspace, input.jobId);
+function runClosureAudit(deps2, input) {
+  const policy = autonomyPolicyOf(deps2).closure;
+  const ledger = requireLedger(deps2.workspace, input.jobId);
   const completed = new Set(input.completedNodeIds);
-  const at = nowIso4(deps);
+  const at = nowIso4(deps2);
   const entries = ledger.entries.map((existing) => {
     const attributedNodesComplete = existing.attributedNodeIds.length > 0 && existing.attributedNodeIds.every((nodeId) => completed.has(nodeId));
     const assessment = assessItemClosure(
       existing,
       {
-        now: now5(deps),
+        now: now5(deps2),
         ...input.gitHead !== void 0 ? { gitHead: input.gitHead } : {},
         ...input.maxEvidenceAgeMs !== void 0 ? { maxEvidenceAgeMs: input.maxEvidenceAgeMs } : {}
       },
@@ -100996,7 +101033,7 @@ function runClosureAudit(deps, input) {
   const totals = summarizeClosure(entries);
   const audit = closureAuditSchema.parse({
     schemaVersion: CLOSURE_SCHEMA_VERSION,
-    auditId: input.auditId ?? newRecordId(deps, "ca"),
+    auditId: input.auditId ?? newRecordId(deps2, "ca"),
     jobId: input.jobId,
     sealId: ledger.sealId,
     createdAt: at,
@@ -101012,13 +101049,13 @@ function runClosureAudit(deps, input) {
     })),
     rationale: verdict.rationale
   });
-  const saved = saveLedger2(deps, { ...ledger, entries, phase: verdict.nextPhase });
+  const saved = saveLedger2(deps2, { ...ledger, entries, phase: verdict.nextPhase });
   writeJsonRecord(
-    autonomyPath(deps.workspace, "closure", input.jobId, "audits", `${audit.auditId}.json`),
+    autonomyPath(deps2.workspace, "closure", input.jobId, "audits", `${audit.auditId}.json`),
     audit
   );
   try {
-    recordJobEvent(jobDepsOf(deps), input.jobId, "closure_audit_completed", {
+    recordJobEvent(jobDepsOf(deps2), input.jobId, "closure_audit_completed", {
       auditId: audit.auditId,
       directive: audit.directive,
       phase: audit.phase,
@@ -101030,24 +101067,24 @@ function runClosureAudit(deps, input) {
   }
   return { ledger: saved, audit };
 }
-function attributeCompletedWork(deps, input) {
-  const mission = requireMissionState(deps.workspace, input.missionId);
-  const graph = requireJobState(deps.workspace, input.jobId).graphRevision > 0 ? readGraphRevision(
-    deps.workspace,
+function attributeCompletedWork(deps2, input) {
+  const mission = requireMissionState(deps2.workspace, input.missionId);
+  const graph = requireJobState(deps2.workspace, input.jobId).graphRevision > 0 ? readGraphRevision(
+    deps2.workspace,
     input.jobId,
-    requireJobState(deps.workspace, input.jobId).graphRevision
+    requireJobState(deps2.workspace, input.jobId).graphRevision
   ) : void 0;
   if (graph === void 0) return { attributed: 0 };
-  const ledger = requireLedger(deps.workspace, input.jobId);
-  const seal = latestExecutableSeal(deps.workspace, input.missionId);
+  const ledger = requireLedger(deps2.workspace, input.jobId);
+  const seal = latestExecutableSeal(deps2.workspace, input.missionId);
   const criterionContracts = new Map(
     (seal?.acceptanceCriteria ?? []).map((criterion) => [criterion.criterionId, criterion.contractIds])
   );
   let attributed = 0;
   for (const node of graph.nodes) {
     if (node.status !== "COMPLETED") continue;
-    const contractIds = contractsForObjective(deps.workspace, mission, node.parentTaskId);
-    const acceptance = acceptanceForObjective(deps.workspace, mission, node.parentTaskId).map((line) => line.trim().toLowerCase()).filter((line) => line.length >= 12);
+    const contractIds = contractsForObjective(deps2.workspace, mission, node.parentTaskId);
+    const acceptance = acceptanceForObjective(deps2.workspace, mission, node.parentTaskId).map((line) => line.trim().toLowerCase()).filter((line) => line.length >= 12);
     const itemIds = ledger.entries.filter((entry2) => {
       const owner = entry2.itemId.split(/[/#]/)[0] ?? "";
       if (contractIds.includes(owner)) return true;
@@ -101060,13 +101097,13 @@ function attributeCompletedWork(deps, input) {
       );
     }).map((entry2) => entry2.itemId);
     if (itemIds.length === 0) continue;
-    attributeNodeToItems(deps, {
+    attributeNodeToItems(deps2, {
       jobId: input.jobId,
       nodeId: node.nodeId,
       taskId: node.parentTaskId,
       itemIds
     });
-    registerClosureEvidence(deps, {
+    registerClosureEvidence(deps2, {
       jobId: input.jobId,
       itemIds,
       kind: "TRUSTED_VERIFICATION",
@@ -101078,18 +101115,18 @@ function attributeCompletedWork(deps, input) {
   }
   return { attributed };
 }
-function generateGapWork(deps, input) {
-  const policy = autonomyPolicyOf(deps).closure;
-  const ledger = requireLedger(deps.workspace, input.jobId);
+function generateGapWork(deps2, input) {
+  const policy = autonomyPolicyOf(deps2).closure;
+  const ledger = requireLedger(deps2.workspace, input.jobId);
   const byId = new Map(ledger.entries.map((existing) => [existing.itemId, existing]));
-  const at = nowIso4(deps);
+  const at = nowIso4(deps2);
   const generated = [];
   for (const unclosed of input.audit.unclosed.slice(0, policy.maxGapWorkPerCycle)) {
     const existing = byId.get(unclosed.itemId);
     if (existing === void 0) continue;
     const gap = unclosed.gaps[0] ?? "NO_EVIDENCE";
     const item = gapWorkItemSchema.parse({
-      gapId: newRecordId(deps, "gap"),
+      gapId: newRecordId(deps2, "gap"),
       itemId: unclosed.itemId,
       gapKind: gap,
       objective: objectiveFor(existing.statement, gap),
@@ -101098,14 +101135,14 @@ function generateGapWork(deps, input) {
       auditId: input.audit.auditId
     });
     writeJsonRecord(
-      autonomyPath(deps.workspace, "closure", input.jobId, "gaps", `${item.gapId}.json`),
+      autonomyPath(deps2.workspace, "closure", input.jobId, "gaps", `${item.gapId}.json`),
       item
     );
     generated.push(item);
   }
-  saveLedger2(deps, { ...ledger, gapCycles: ledger.gapCycles + 1 });
+  saveLedger2(deps2, { ...ledger, gapCycles: ledger.gapCycles + 1 });
   try {
-    recordJobEvent(jobDepsOf(deps), input.jobId, "gap_work_generated", {
+    recordJobEvent(jobDepsOf(deps2), input.jobId, "gap_work_generated", {
       auditId: input.audit.auditId,
       generated: generated.length,
       cycle: ledger.gapCycles + 1
@@ -101128,9 +101165,9 @@ function objectiveFor(statement, gap) {
   };
   return `${prefix[gap]} ${statement}`.slice(0, 4e3);
 }
-function advanceClosurePhase(deps, input) {
-  const ledger = requireLedger(deps.workspace, input.jobId);
-  return saveLedger2(deps, {
+function advanceClosurePhase(deps2, input) {
+  const ledger = requireLedger(deps2.workspace, input.jobId);
+  return saveLedger2(deps2, {
     ...ledger,
     phase: input.phase,
     systemCycles: ledger.systemCycles + (input.systemCycle === true ? 1 : 0),
@@ -101149,9 +101186,9 @@ function requireLedger(workspace, jobId) {
   }
   return ledger;
 }
-function saveLedger2(deps, ledger) {
-  const next = closureLedgerSchema.parse({ ...ledger, updatedAt: nowIso4(deps) });
-  writeJsonRecord(closureLedgerFile(deps.workspace, next.jobId), next);
+function saveLedger2(deps2, ledger) {
+  const next = closureLedgerSchema.parse({ ...ledger, updatedAt: nowIso4(deps2) });
+  writeJsonRecord(closureLedgerFile(deps2.workspace, next.jobId), next);
   return next;
 }
 function createClosureCompletionGate(workspace, policy) {
@@ -101238,14 +101275,14 @@ function resultFile(workspace, resultId) {
   assertAutonomyId("system result", resultId);
   return autonomyPath(workspace, "system", "results", `${resultId}.json`);
 }
-function saveSystemScenario(deps, input) {
+function saveSystemScenario(deps2, input) {
   const scenario = systemScenarioSchema.parse({
     schemaVersion: SYSTEM_SCENARIO_SCHEMA_VERSION,
-    scenarioId: input.scenarioId ?? newRecordId(deps, "ss"),
-    createdAt: nowIso4(deps),
+    scenarioId: input.scenarioId ?? newRecordId(deps2, "ss"),
+    createdAt: nowIso4(deps2),
     ...input
   });
-  writeJsonRecord(scenarioFile(deps.workspace, scenario.scenarioId), scenario);
+  writeJsonRecord(scenarioFile(deps2.workspace, scenario.scenarioId), scenario);
   return scenario;
 }
 function readSystemScenario(workspace, scenarioId) {
@@ -101260,26 +101297,26 @@ function listSystemScenarios(workspace) {
     (raw) => systemScenarioSchema.parse(raw)
   ).sort((a2, b) => a2.scenarioId.localeCompare(b.scenarioId));
 }
-async function runSystemScenario(deps, options) {
-  const scenario = readSystemScenario(deps.workspace, options.scenarioId);
+async function runSystemScenario(deps2, options) {
+  const scenario = readSystemScenario(deps2.workspace, options.scenarioId);
   if (scenario === void 0) {
     throw new AutonomyError("SBA024", `No system scenario "${options.scenarioId}" exists.`);
   }
-  const resultId = options.resultId ?? newRecordId(deps, "sr");
-  const startedAt = nowIso4(deps);
-  emit2(deps, options.jobId, "system_qualification_started", {
+  const resultId = options.resultId ?? newRecordId(deps2, "sr");
+  const startedAt = nowIso4(deps2);
+  emit2(deps2, options.jobId, "system_qualification_started", {
     scenarioId: scenario.scenarioId,
     resultId
   });
   if (scenario.environmentPlanId !== void 0 && options.runtime === void 0) {
-    return finish3(deps, options, scenario, {
+    return finish3(deps2, options, scenario, {
       resultId,
       startedAt,
       status: "ENVIRONMENT_UNAVAILABLE",
       failureDetail: `the scenario declares environment plan ${scenario.environmentPlanId} and no environment runtime is available in this session; the product was never exercised`
     });
   }
-  const instance = scenario.environmentPlanId === void 0 || options.runtime === void 0 ? void 0 : await provisionEnvironment(deps, {
+  const instance = scenario.environmentPlanId === void 0 || options.runtime === void 0 ? void 0 : await provisionEnvironment(deps2, {
     planId: scenario.environmentPlanId,
     ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
     runtime: options.runtime,
@@ -101288,7 +101325,7 @@ async function runSystemScenario(deps, options) {
     ...options.signal !== void 0 ? { signal: options.signal } : {}
   });
   if (instance !== void 0 && instance.status !== "READY") {
-    return finish3(deps, options, scenario, {
+    return finish3(deps2, options, scenario, {
       resultId,
       startedAt,
       status: "ENVIRONMENT_UNAVAILABLE",
@@ -101325,16 +101362,16 @@ async function runSystemScenario(deps, options) {
         failureDetail = `step "${step2.name}" declares a fault but the scenario declares no environment plan`;
         break;
       }
-      faultInjected = await injectFault(deps, {
+      faultInjected = await injectFault(deps2, {
         environmentPlanId: scenario.environmentPlanId,
         runtime: options.runtime,
         fault: step2.injectFault
       });
     }
-    const before = now5(deps).getTime();
+    const before = now5(deps2).getTime();
     const outcome = await runCommand({
       argv: step2.argv,
-      cwd: deps.workspace.rootDir,
+      cwd: deps2.workspace.rootDir,
       timeoutMs: step2.timeoutMs
     });
     steps.push({
@@ -101342,7 +101379,7 @@ async function runSystemScenario(deps, options) {
       name: step2.name,
       ok: outcome.ok,
       detail: outcome.detail.slice(0, 4e3),
-      durationMs: Math.max(0, now5(deps).getTime() - before),
+      durationMs: Math.max(0, now5(deps2).getTime() - before),
       ...faultInjected !== void 0 ? { faultInjected } : {}
     });
     if (!outcome.ok) {
@@ -101353,7 +101390,7 @@ async function runSystemScenario(deps, options) {
   const browserResultIds = [];
   if (failureDetail === void 0 && options.browserDriver !== void 0) {
     for (const browserScenarioId of scenario.browserScenarioIds) {
-      const browserResult = await runBrowserScenario(deps, {
+      const browserResult = await runBrowserScenario(deps2, {
         scenarioId: browserScenarioId,
         driver: options.browserDriver,
         ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
@@ -101369,7 +101406,7 @@ async function runSystemScenario(deps, options) {
       }
     }
   }
-  const result = await finish3(deps, options, scenario, {
+  const result = await finish3(deps2, options, scenario, {
     resultId,
     startedAt,
     status: failureDetail === void 0 ? "PASSED" : "FAILED",
@@ -101379,7 +101416,7 @@ async function runSystemScenario(deps, options) {
     ...failureDetail !== void 0 ? { failureDetail } : {}
   });
   if (options.teardown !== false && instance !== void 0 && options.runtime !== void 0) {
-    await teardownEnvironment(deps, {
+    await teardownEnvironment(deps2, {
       instanceId: instance.instanceId,
       runtime: options.runtime,
       retain: result.status !== "PASSED"
@@ -101387,9 +101424,9 @@ async function runSystemScenario(deps, options) {
   }
   return result;
 }
-async function injectFault(deps, input) {
+async function injectFault(deps2, input) {
   const plan = readJsonRecord(
-    autonomyPath(deps.workspace, "environments", "plans", `${input.environmentPlanId}.json`),
+    autonomyPath(deps2.workspace, "environments", "plans", `${input.environmentPlanId}.json`),
     (raw) => raw
   );
   const service = plan?.services.find((entry2) => entry2.serviceId === input.fault.serviceId);
@@ -101397,23 +101434,23 @@ async function injectFault(deps, input) {
   await input.runtime.restart({
     plan,
     service,
-    workspaceRoot: deps.workspace.rootDir,
+    workspaceRoot: deps2.workspace.rootDir,
     timeoutMs: 12e4
   });
   return `${input.fault.kind} ${input.fault.serviceId}`;
 }
-async function finish3(deps, options, scenario, input) {
+async function finish3(deps2, options, scenario, input) {
   const result = systemScenarioResultSchema.parse({
     schemaVersion: SYSTEM_SCENARIO_SCHEMA_VERSION,
     scenarioId: scenario.scenarioId,
     ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
-    finishedAt: nowIso4(deps),
+    finishedAt: nowIso4(deps2),
     ...input
   });
-  writeJsonRecord(resultFile(deps.workspace, result.resultId), result);
+  writeJsonRecord(resultFile(deps2.workspace, result.resultId), result);
   if (options.registerClosure === true && scenario.itemIds.length > 0 && options.jobId !== void 0) {
     if (result.status !== "ENVIRONMENT_UNAVAILABLE") {
-      registerClosureEvidence(deps, {
+      registerClosureEvidence(deps2, {
         jobId: options.jobId,
         itemIds: scenario.itemIds,
         kind: "SYSTEM_SCENARIO",
@@ -101423,17 +101460,17 @@ async function finish3(deps, options, scenario, input) {
       });
     }
   }
-  emit2(deps, options.jobId, "system_qualification_completed", {
+  emit2(deps2, options.jobId, "system_qualification_completed", {
     scenarioId: scenario.scenarioId,
     resultId: result.resultId,
     status: result.status
   });
   return result;
 }
-function emit2(deps, jobId, type, payload) {
+function emit2(deps2, jobId, type, payload) {
   if (jobId === void 0) return;
   try {
-    recordJobEvent(jobDepsOf(deps), jobId, type, payload);
+    recordJobEvent(jobDepsOf(deps2), jobId, type, payload);
   } catch {
   }
 }
@@ -101491,11 +101528,11 @@ function resultFile2(workspace, runId) {
   assertAutonomyId("reproducibility run", runId);
   return autonomyPath(workspace, "reproducibility", `${runId}.json`);
 }
-async function runReproducibilityQualification(deps, options) {
-  const policy = autonomyPolicyOf(deps).closure;
-  const runId = options.runId ?? newRecordId(deps, "rp");
-  const startedAt = nowIso4(deps);
-  const deadline = now5(deps).getTime() + policy.reproducibilityTimeoutMs;
+async function runReproducibilityQualification(deps2, options) {
+  const policy = autonomyPolicyOf(deps2).closure;
+  const runId = options.runId ?? newRecordId(deps2, "rp");
+  const startedAt = nowIso4(deps2);
+  const deadline = now5(deps2).getTime() + policy.reproducibilityTimeoutMs;
   const run = options.commandRunner ?? (async (input) => {
     const [executable, ...argv2] = input.argv;
     if (executable === void 0) return { outcome: "UNAVAILABLE", detail: "empty command" };
@@ -101523,7 +101560,7 @@ async function runReproducibilityQualification(deps, options) {
   let failureDetail;
   let unavailable;
   for (const step2 of options.steps) {
-    if (options.signal?.aborted === true || now5(deps).getTime() > deadline) {
+    if (options.signal?.aborted === true || now5(deps2).getTime() > deadline) {
       steps.push({
         stepId: step2.stepId,
         dimension: step2.dimension,
@@ -101535,7 +101572,7 @@ async function runReproducibilityQualification(deps, options) {
       unavailable = unavailable ?? "the reproducibility window elapsed";
       continue;
     }
-    const before = now5(deps).getTime();
+    const before = now5(deps2).getTime();
     const outcome = await run({
       argv: step2.argv,
       cwd: step2.cwd !== void 0 ? `${options.checkoutPath}/${step2.cwd}` : options.checkoutPath,
@@ -101547,7 +101584,7 @@ async function runReproducibilityQualification(deps, options) {
       name: step2.name,
       outcome: outcome.outcome,
       detail: outcome.detail.slice(0, 4e3),
-      durationMs: Math.max(0, now5(deps).getTime() - before)
+      durationMs: Math.max(0, now5(deps2).getTime() - before)
     });
     if (outcome.outcome === "FAILED") {
       failureDetail = `${step2.name}: ${outcome.detail}`;
@@ -101564,7 +101601,7 @@ async function runReproducibilityQualification(deps, options) {
     ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
     status,
     startedAt,
-    finishedAt: nowIso4(deps),
+    finishedAt: nowIso4(deps2),
     checkoutPath: options.checkoutPath.slice(0, 200),
     ...options.gitHead !== void 0 ? { gitHead: options.gitHead } : {},
     dimensions: [...new Set(options.steps.map((step2) => step2.dimension))],
@@ -101572,17 +101609,17 @@ async function runReproducibilityQualification(deps, options) {
     ...failureDetail !== void 0 ? { failureDetail } : {},
     ...unavailable !== void 0 ? { inconclusiveReason: unavailable } : {}
   });
-  writeJsonRecord(resultFile2(deps.workspace, runId), result);
+  writeJsonRecord(resultFile2(deps2.workspace, runId), result);
   if (options.jobId !== void 0) {
     if (status === "PASSED") {
-      advanceClosurePhase(deps, {
+      advanceClosurePhase(deps2, {
         jobId: options.jobId,
         phase: "FINAL_CONTRACT_AUDIT",
         reproducibilityPassed: true
       });
     }
     if (options.itemIds !== void 0 && options.itemIds.length > 0 && status !== "INCONCLUSIVE") {
-      registerClosureEvidence(deps, {
+      registerClosureEvidence(deps2, {
         jobId: options.jobId,
         itemIds: options.itemIds,
         kind: "REPRODUCIBILITY_RUN",
@@ -101593,7 +101630,7 @@ async function runReproducibilityQualification(deps, options) {
       });
     }
     try {
-      recordJobEvent(jobDepsOf(deps), options.jobId, "reproducibility_completed", {
+      recordJobEvent(jobDepsOf(deps2), options.jobId, "reproducibility_completed", {
         runId,
         status,
         dimensions: result.dimensions.length
@@ -101603,13 +101640,13 @@ async function runReproducibilityQualification(deps, options) {
   }
   return result;
 }
-function ensureSystemScenarios(deps, input) {
-  const ledger = readClosureLedger(deps.workspace, input.jobId);
+function ensureSystemScenarios(deps2, input) {
+  const ledger = readClosureLedger(deps2.workspace, input.jobId);
   const open = ledger?.entries.filter(
     (entry2) => (entry2.requiresSystemScenario || entry2.requiresBrowserScenario) && !isClosingStatus(entry2.status)
   ) ?? [];
   if (open.length === 0) return { scenarios: [], uncovered: [] };
-  const existing = listSystemScenarios(deps.workspace);
+  const existing = listSystemScenarios(deps2.workspace);
   const openIds = new Set(open.map((entry2) => entry2.itemId));
   const covering = existing.filter(
     (scenario) => scenario.itemIds.some((itemId) => openIds.has(itemId))
@@ -101617,16 +101654,16 @@ function ensureSystemScenarios(deps, input) {
   const covered = new Set(covering.flatMap((scenario) => scenario.itemIds));
   const uncoveredIds = open.map((entry2) => entry2.itemId).filter((itemId) => !covered.has(itemId));
   if (uncoveredIds.length === 0) return { scenarios: covering, uncovered: [] };
-  const commands = deps.config.verification.commands;
+  const commands = deps2.config.verification.commands;
   if (commands.length === 0) {
     return { scenarios: covering, uncovered: uncoveredIds };
   }
   const plans = listJsonRecords(
-    autonomyPath(deps.workspace, "environments", "plans"),
+    autonomyPath(deps2.workspace, "environments", "plans"),
     (raw) => environmentPlanSchema.parse(raw)
   );
-  const browserScenarioIds = listBrowserScenarios(deps.workspace).map((scenario) => scenario.scenarioId).slice(0, 20);
-  const synthesized = saveSystemScenario(deps, {
+  const browserScenarioIds = listBrowserScenarios(deps2.workspace).map((scenario) => scenario.scenarioId).slice(0, 20);
+  const synthesized = saveSystemScenario(deps2, {
     scenarioId: `ss-default-${input.jobId}`.slice(0, 200),
     name: "Default mission qualification scenario",
     intent: "Synthesized deterministically from the trusted verification commands: run the full suite against the integrated product" + (plans.length === 1 ? " with its declared environment provisioned" : "") + (browserScenarioIds.length > 0 ? ", then the authored browser scenarios" : "") + ".",
@@ -101643,8 +101680,8 @@ function ensureSystemScenarios(deps, input) {
   });
   return { scenarios: [...covering, synthesized], uncovered: [] };
 }
-async function runSystemScenarioPhase(deps, options) {
-  const { scenarios, uncovered } = ensureSystemScenarios(deps, { jobId: options.jobId });
+async function runSystemScenarioPhase(deps2, options) {
+  const { scenarios, uncovered } = ensureSystemScenarios(deps2, { jobId: options.jobId });
   const result = {
     executed: 0,
     passed: 0,
@@ -101655,7 +101692,7 @@ async function runSystemScenarioPhase(deps, options) {
   for (const scenario of scenarios) {
     if (options.signal?.aborted === true) break;
     options.emit?.(`running system scenario ${scenario.scenarioId} (${scenario.name})`);
-    const run = await runSystemScenario(deps, {
+    const run = await runSystemScenario(deps2, {
       scenarioId: scenario.scenarioId,
       jobId: options.jobId,
       ...options.runtime !== void 0 ? { runtime: options.runtime } : {},
@@ -101677,16 +101714,16 @@ async function runSystemScenarioPhase(deps, options) {
       `${uncovered.length} scenario-owned item(s) have no scenario to run (no trusted verification commands to synthesize one from)`
     );
   }
-  advanceClosurePhase(deps, {
+  advanceClosurePhase(deps2, {
     jobId: options.jobId,
     phase: "SYSTEM_SCENARIO_QUALIFICATION",
     systemCycle: true
   });
   return result;
 }
-async function runReleaseQualificationPhase(deps, options) {
-  const commands = deps.config.verification.commands;
-  advanceClosurePhase(deps, {
+async function runReleaseQualificationPhase(deps2, options) {
+  const commands = deps2.config.verification.commands;
+  advanceClosurePhase(deps2, {
     jobId: options.jobId,
     phase: "RELEASE_QUALIFICATION",
     releaseQualificationCycle: true
@@ -101698,21 +101735,21 @@ async function runReleaseQualificationPhase(deps, options) {
     detail = "no trusted verification commands are configured; the integrated tree cannot be qualified";
   } else {
     options.emit?.(`release qualification: running ${commands.length} trusted command(s) against the integrated tree`);
-    const run = options.verify !== void 0 ? await options.verify(commands) : await runVerificationCommands(deps.workspace.rootDir, [...commands], {
+    const run = options.verify !== void 0 ? await options.verify(commands) : await runVerificationCommands(deps2.workspace.rootDir, [...commands], {
       ...options.signal !== void 0 ? { signal: options.signal } : {}
     });
     passed = run.passed;
     detail = run.passed ? `all ${commands.length} trusted command(s) passed against the integrated tree` : `required command(s) failed: ${run.requiredFailed.join(", ").slice(0, 300)}`;
   }
   if (passed) {
-    advanceClosurePhase(deps, {
+    advanceClosurePhase(deps2, {
       jobId: options.jobId,
       phase: "RELEASE_QUALIFICATION",
       releaseQualificationPassed: true
     });
   }
   try {
-    recordJobEvent(jobDepsOf(deps), options.jobId, "release_qualification_completed", {
+    recordJobEvent(jobDepsOf(deps2), options.jobId, "release_qualification_completed", {
       passed,
       detail: detail.slice(0, 300)
     });
@@ -101721,25 +101758,25 @@ async function runReleaseQualificationPhase(deps, options) {
   options.emit?.(`release qualification: ${passed ? "PASSED" : "FAILED"} \u2014 ${detail}`);
   return { passed, detail };
 }
-async function runReproducibilityPhase(deps, options) {
-  advanceClosurePhase(deps, {
+async function runReproducibilityPhase(deps2, options) {
+  advanceClosurePhase(deps2, {
     jobId: options.jobId,
     phase: "REPRODUCIBILITY",
     reproducibilityCycle: true
   });
-  const commands = deps.config.verification.commands;
+  const commands = deps2.config.verification.commands;
   if (commands.length === 0) {
     const detail = "no trusted verification commands are configured; there is nothing to reproduce";
     options.emit?.(`reproducibility: NOT_RUN \u2014 ${detail}`);
     return { status: "NOT_RUN", detail };
   }
-  const runId = newRecordId(deps, "rp");
-  const checkoutPath = autonomyPath(deps.workspace, "reproducibility", "checkouts", runId);
+  const runId = newRecordId(deps2, "rp");
+  const checkoutPath = autonomyPath(deps2.workspace, "reproducibility", "checkouts", runId);
   (0, import_fs77.mkdirSync)(import_path86.default.dirname(checkoutPath), { recursive: true });
   const head = await runSafeProcess({
     executable: "git",
     argv: ["rev-parse", "HEAD"],
-    cwd: deps.workspace.rootDir,
+    cwd: deps2.workspace.rootDir,
     timeoutMs: 6e4,
     maxStdoutBytes: 4096,
     maxStderrBytes: 4096
@@ -101748,7 +101785,7 @@ async function runReproducibilityPhase(deps, options) {
   const checkout = await runSafeProcess({
     executable: "git",
     argv: ["worktree", "add", "--detach", checkoutPath, "HEAD"],
-    cwd: deps.workspace.rootDir,
+    cwd: deps2.workspace.rootDir,
     timeoutMs: 3e5,
     maxStdoutBytes: 64 * 1024,
     maxStderrBytes: 64 * 1024
@@ -101759,7 +101796,7 @@ async function runReproducibilityPhase(deps, options) {
     return { status: "INCONCLUSIVE", detail };
   }
   const steps = [];
-  const installer = detectNodeInstaller(deps.workspace);
+  const installer = detectNodeInstaller(deps2.workspace);
   if (installer !== void 0) {
     steps.push({
       stepId: "install",
@@ -101779,7 +101816,7 @@ async function runReproducibilityPhase(deps, options) {
     });
   });
   try {
-    const result = await runReproducibilityQualification(deps, {
+    const result = await runReproducibilityQualification(deps2, {
       jobId: options.jobId,
       steps,
       checkoutPath,
@@ -101791,13 +101828,13 @@ async function runReproducibilityPhase(deps, options) {
     const detail = result.status === "PASSED" ? `reproduced from a clean checkout of ${gitHead ?? "HEAD"}` : result.failureDetail ?? result.inconclusiveReason ?? `reproducibility ${result.status}`;
     options.emit?.(`reproducibility: ${result.status} \u2014 ${detail}`);
     if (result.status === "PASSED") {
-      await removeCheckout(deps.workspace, checkoutPath);
+      await removeCheckout(deps2.workspace, checkoutPath);
     } else {
       options.emit?.(`the checkout is retained for diagnosis at ${checkoutPath}`);
     }
     return { status: result.status, detail };
   } catch (error2) {
-    await removeCheckout(deps.workspace, checkoutPath);
+    await removeCheckout(deps2.workspace, checkoutPath);
     throw error2;
   }
 }
@@ -101818,10 +101855,10 @@ async function removeCheckout(workspace, checkoutPath) {
     maxStderrBytes: 16 * 1024
   });
 }
-async function runGapRepairs(deps, options) {
-  const policy = deps.config.orchestration.jobs.objectives;
-  const commands = deps.config.verification.commands;
-  const ledger = readClosureLedger(deps.workspace, options.jobId);
+async function runGapRepairs(deps2, options) {
+  const policy = deps2.config.orchestration.jobs.objectives;
+  const commands = deps2.config.verification.commands;
+  const ledger = readClosureLedger(deps2.workspace, options.jobId);
   const result = { repaired: [], failed: [] };
   for (const item of options.items) {
     if (options.signal?.aborted === true) {
@@ -101833,10 +101870,10 @@ async function runGapRepairs(deps, options) {
     const fail = (reason) => {
       options.emit?.(`gap ${item.gapId} (${item.itemId}): ${reason}`);
       result.failed.push({ gapId: item.gapId, reason });
-      recordGapEvent(deps, options.jobId, item, false, reason);
+      recordGapEvent(deps2, options.jobId, item, false, reason);
     };
     const worktree = await createWorkerWorktree({
-      workspace: deps.workspace,
+      workspace: deps2.workspace,
       jobId: options.jobId,
       workUnitId: `gap-${item.gapId}`.slice(0, 40),
       attempt: 1
@@ -101855,13 +101892,13 @@ async function runGapRepairs(deps, options) {
       ].join("\n");
       options.emit?.(`gap ${item.gapId} (${item.itemId}): repair builder started`);
       const built = await runLargeObjectiveRole({
-        workspace: deps.workspace,
-        config: deps.config,
-        runnerProfile: deps.config.defaultRunner,
+        workspace: deps2.workspace,
+        config: deps2.config,
+        runnerProfile: deps2.config.defaultRunner,
         role: "BUILDER",
         packet,
         cwd: worktree.dir,
-        scratchDir: autonomyPath(deps.workspace, "closure", options.jobId, "scratch", item.gapId),
+        scratchDir: autonomyPath(deps2.workspace, "closure", options.jobId, "scratch", item.gapId),
         timeoutMs: policy.builderTimeoutMs,
         ...options.signal !== void 0 ? { signal: options.signal } : {}
       });
@@ -101888,7 +101925,7 @@ async function runGapRepairs(deps, options) {
         continue;
       }
       const patchFile = import_path86.default.join(
-        autonomyPath(deps.workspace, "closure", options.jobId, "scratch", item.gapId),
+        autonomyPath(deps2.workspace, "closure", options.jobId, "scratch", item.gapId),
         "repair.patch"
       );
       (0, import_fs77.mkdirSync)(import_path86.default.dirname(patchFile), { recursive: true });
@@ -101896,7 +101933,7 @@ async function runGapRepairs(deps, options) {
       const applied = await runSafeProcess({
         executable: "git",
         argv: ["apply", "--3way", patchFile],
-        cwd: deps.workspace.rootDir,
+        cwd: deps2.workspace.rootDir,
         timeoutMs: 3e5,
         maxStdoutBytes: 64 * 1024,
         maxStderrBytes: 64 * 1024
@@ -101905,7 +101942,7 @@ async function runGapRepairs(deps, options) {
         fail(`the verified repair no longer applies to the canonical tree: ${applied.stderr.split("\n")[0] ?? applied.status}`);
         continue;
       }
-      registerClosureEvidence(deps, {
+      registerClosureEvidence(deps2, {
         jobId: options.jobId,
         itemIds: [item.itemId],
         kind: "TRUSTED_VERIFICATION",
@@ -101913,7 +101950,7 @@ async function runGapRepairs(deps, options) {
         passed: true,
         detail: `Gap repair (${item.gapKind}) verified by the full trusted suite in an isolated worktree.`
       });
-      advanceClosurePhase(deps, {
+      advanceClosurePhase(deps2, {
         jobId: options.jobId,
         phase: "GAP_IMPLEMENTATION",
         releaseQualificationPassed: false,
@@ -101921,16 +101958,16 @@ async function runGapRepairs(deps, options) {
       });
       result.repaired.push(item.gapId);
       options.emit?.(`gap ${item.gapId} (${item.itemId}): repaired, verified, and integrated`);
-      recordGapEvent(deps, options.jobId, item, true, `${collected.changedFiles.length} file(s) changed`);
+      recordGapEvent(deps2, options.jobId, item, true, `${collected.changedFiles.length} file(s) changed`);
     } finally {
-      await removeWorkerWorktree(deps.workspace, options.jobId, worktree);
+      await removeWorkerWorktree(deps2.workspace, options.jobId, worktree);
     }
   }
   return result;
 }
-function recordGapEvent(deps, jobId, item, ok2, detail) {
+function recordGapEvent(deps2, jobId, item, ok2, detail) {
   try {
-    recordJobEvent(jobDepsOf(deps), jobId, "gap_repair_completed", {
+    recordJobEvent(jobDepsOf(deps2), jobId, "gap_repair_completed", {
       gapId: item.gapId,
       itemId: item.itemId,
       gapKind: item.gapKind,
@@ -102025,10 +102062,10 @@ var INTERVENTION_EVENTS = Object.freeze({
   // needs a person; only the event name differed.
   budget_exhausted: "the job stopped on an exhausted budget, needing an explicit user action"
 });
-function computeAutonomyTelemetry(deps, input) {
-  const read = readJobState(deps.workspace, input.jobId);
+function computeAutonomyTelemetry(deps2, input) {
+  const read = readJobState(deps2.workspace, input.jobId);
   const job = read.kind === "ok" ? read.job : void 0;
-  const events = safeEvents(deps.workspace, input.jobId);
+  const events = safeEvents(deps2.workspace, input.jobId);
   const counters = job?.autonomyCounters;
   const interventions = [];
   let providerFailovers = 0;
@@ -102037,8 +102074,8 @@ function computeAutonomyTelemetry(deps, input) {
   let contextRollovers = 0;
   let supervisorWakeups = 0;
   let escalationsAfterBoundary = 0;
-  const bindingForBoundary = readSealBinding(deps.workspace, input.jobId);
-  const boundary = bindingForBoundary !== void 0 ? readSealedAt(deps, bindingForBoundary.sealId) : void 0;
+  const bindingForBoundary = readSealBinding(deps2.workspace, input.jobId);
+  const boundary = bindingForBoundary !== void 0 ? readSealedAt(deps2, bindingForBoundary.sealId) : void 0;
   const boundaryMs = boundary !== void 0 ? Date.parse(boundary) : Number.NaN;
   const afterBoundary = (at) => {
     if (!Number.isFinite(boundaryMs)) return true;
@@ -102063,7 +102100,7 @@ function computeAutonomyTelemetry(deps, input) {
     if (type === "context_rollover" || type === "fresh_context_selected") contextRollovers += 1;
     if (type === "driver_restarted" || type === "supervisor_attached") supervisorWakeups += 1;
   }
-  const supervisionLog = readSupervisionLog(deps.workspace, 2e3);
+  const supervisionLog = readSupervisionLog(deps2.workspace, 2e3);
   supervisorWakeups += supervisionLog.filter(
     (entry2) => entry2.action === "WOKEN_ON_SCHEDULE" || entry2.action === "WOKEN_ON_RESOURCE_RETURN"
   ).length;
@@ -102074,21 +102111,21 @@ function computeAutonomyTelemetry(deps, input) {
       detail: job.blocker?.message ?? `the job is ${job.status} and cannot proceed without a person`
     });
   }
-  const ledger = readClosureLedger(deps.workspace, input.jobId);
+  const ledger = readClosureLedger(deps2.workspace, input.jobId);
   const totals = ledger !== void 0 ? summarizeClosure(ledger.entries) : void 0;
-  const toolsmith = listToolsmithRequests(deps.workspace, input.jobId);
-  const browserResults = listBrowserResults(deps.workspace).filter(
+  const toolsmith = listToolsmithRequests(deps2.workspace, input.jobId);
+  const browserResults = listBrowserResults(deps2.workspace).filter(
     (result) => result.jobId === input.jobId
   );
-  const critiques = listCritiques(deps.workspace).filter(
+  const critiques = listCritiques(deps2.workspace).filter(
     (critique) => critique.jobId === input.jobId
   );
-  const binding = readSealBinding(deps.workspace, input.jobId);
+  const binding = readSealBinding(deps2.workspace, input.jobId);
   const telemetry = autonomyTelemetrySchema.parse({
     schemaVersion: TELEMETRY_SCHEMA_VERSION,
     jobId: input.jobId,
     ...binding !== void 0 ? { sealId: binding.sealId, missionId: binding.missionId } : {},
-    recordedAt: nowIso4(deps),
+    recordedAt: nowIso4(deps2),
     jobStatus: job?.status ?? "UNKNOWN",
     humanInterventionsAfterSeal: interventions.length,
     humanAuthorityEscalations: counters?.authorityEscalations ?? 0,
@@ -102100,7 +102137,7 @@ function computeAutonomyTelemetry(deps, input) {
     quotaWaits: Math.max(quotaWaits, counters?.resourceWaits ?? 0),
     contextRollovers: Math.max(contextRollovers, counters?.contextRollovers ?? 0),
     toolsmithActions: toolsmith.length,
-    selfCreatedTools: countSelfCreatedTools(deps.workspace, input.jobId),
+    selfCreatedTools: countSelfCreatedTools(deps2.workspace, input.jobId),
     toolchainRepairs: counters?.toolchainRepairs ?? 0,
     environmentRepairs: counters?.environmentRepairs ?? 0,
     controlPlaneRepairs: counters?.controlPlaneRepairs ?? 0,
@@ -102127,7 +102164,7 @@ function computeAutonomyTelemetry(deps, input) {
     } : {},
     interventions: interventions.slice(0, 200)
   });
-  writeJsonRecord(telemetryFile(deps.workspace, input.jobId), telemetry);
+  writeJsonRecord(telemetryFile(deps2.workspace, input.jobId), telemetry);
   return telemetry;
 }
 function elapsedFromJob(job) {
@@ -102137,9 +102174,9 @@ function elapsedFromJob(job) {
   if (!Number.isFinite(created) || !Number.isFinite(updated)) return null;
   return Math.max(0, updated - created);
 }
-function readSealedAt(deps, sealId) {
+function readSealedAt(deps2, sealId) {
   try {
-    return readSeal(deps.workspace, sealId)?.sealedAt;
+    return readSeal(deps2.workspace, sealId)?.sealedAt;
   } catch {
     return void 0;
   }
@@ -102308,8 +102345,8 @@ function classifyFailure2(observation2) {
     humanRequired: false
   };
 }
-async function runUnattendedMission(deps, options) {
-  const policy = autonomyPolicyOf(deps);
+async function runUnattendedMission(deps2, options) {
+  const policy = autonomyPolicyOf(deps2);
   if (!isUnattendedMode(policy.mode)) {
     throw new AutonomyError(
       "SBA001",
@@ -102318,11 +102355,11 @@ async function runUnattendedMission(deps, options) {
     );
   }
   const seal = requireExecutableSeal(
-    readJobSeal(deps.workspace, options.jobId) ?? latestExecutableSeal(deps.workspace, options.missionId),
+    readJobSeal(deps2.workspace, options.jobId) ?? latestExecutableSeal(deps2.workspace, options.missionId),
     policy
   );
   const surfaces = requiredSurfacesFor(seal);
-  const report = options.preflightReport ?? await runOvernightPreflight(deps, {
+  const report = options.preflightReport ?? await runOvernightPreflight(deps2, {
     subject: options.missionId,
     missionId: options.missionId,
     sealId: seal.sealId,
@@ -102331,9 +102368,9 @@ async function runUnattendedMission(deps, options) {
   });
   assertOvernightReady(report);
   const emit22 = (kind, message2) => options.onEvent?.({ kind, message: message2 });
-  if (readJobSeal(deps.workspace, options.jobId) === void 0) {
-    bindSealToJob(deps, options.jobId, seal.sealId);
-    recordJobEvent(jobDepsOf(deps), options.jobId, "autonomy_seal_bound", {
+  if (readJobSeal(deps2.workspace, options.jobId) === void 0) {
+    bindSealToJob(deps2, options.jobId, seal.sealId);
+    recordJobEvent(jobDepsOf(deps2), options.jobId, "autonomy_seal_bound", {
       sealId: seal.sealId,
       missionId: seal.missionId,
       mode: policy.mode,
@@ -102341,18 +102378,18 @@ async function runUnattendedMission(deps, options) {
       criteria: seal.acceptanceCriteria.length
     });
   }
-  if (readClosureLedger(deps.workspace, options.jobId) === void 0) {
-    const ledger = buildClosureLedger(deps, { jobId: options.jobId, seal });
+  if (readClosureLedger(deps2.workspace, options.jobId) === void 0) {
+    const ledger = buildClosureLedger(deps2, { jobId: options.jobId, seal });
     emit22("closure", `closure ledger built with ${ledger.entries.length} sealed item(s)`);
   }
   const supervisedDeps = {
-    ...deps,
-    ...shouldDelegateAuthority(policy) ? { authorityResolver: createAuthorityResolver({ workspace: deps.workspace, policy }) } : {},
-    completionGate: createClosureCompletionGate(deps.workspace, policy.closure)
+    ...deps2,
+    ...shouldDelegateAuthority(policy) ? { authorityResolver: createAuthorityResolver({ workspace: deps2.workspace, policy }) } : {},
+    completionGate: createClosureCompletionGate(deps2.workspace, policy.closure)
   };
   const host = typeof options.host === "function" ? options.host(supervisedDeps) : options.host;
-  const sessionStartedAt = nowIso4(deps);
-  const startedMs = now5(deps).getTime();
+  const sessionStartedAt = nowIso4(deps2);
+  const startedMs = now5(deps2).getTime();
   const recoveries = [];
   const audits = [];
   const maxCycles = options.maxCycles ?? 100;
@@ -102401,11 +102438,11 @@ async function runUnattendedMission(deps, options) {
   }
   const telemetry = computeAutonomyTelemetry(supervisedDeps, {
     jobId: options.jobId,
-    elapsedWallTimeMs: now5(deps).getTime() - startedMs
+    elapsedWallTimeMs: now5(deps2).getTime() - startedMs
   });
   return {
     stop: stop ?? { kind: "cycles-exhausted" },
-    job: requireJobState(deps.workspace, options.jobId),
+    job: requireJobState(deps2.workspace, options.jobId),
     seal,
     telemetry,
     audits,
@@ -102413,7 +102450,7 @@ async function runUnattendedMission(deps, options) {
     cycles
   };
 }
-async function resolveSupervisionStop(deps, input) {
+async function resolveSupervisionStop(deps2, input) {
   switch (input.stop.kind) {
     case "completed":
       return { stop: { kind: "completed", rationale: "the job reached a terminal COMPLETED status" } };
@@ -102425,7 +102462,7 @@ async function resolveSupervisionStop(deps, input) {
     case "gave-up":
       return { stop: { kind: "gave-up", reason: input.stop.reason } };
     case "needs-human": {
-      const job = requireJobState(deps.workspace, input.jobId);
+      const job = requireJobState(deps2.workspace, input.jobId);
       if (input.stop.status === "NEEDS_AUTHORITY") {
         return {
           stop: {
@@ -102441,9 +102478,9 @@ async function resolveSupervisionStop(deps, input) {
     case "released":
     case "cycles-exhausted":
     default: {
-      const job = requireJobState(deps.workspace, input.jobId);
+      const job = requireJobState(deps2.workspace, input.jobId);
       if (job.status === "BLOCKED" && job.blocker !== void 0) {
-        const recovery = applyRecovery(deps, {
+        const recovery = applyRecovery(deps2, {
           jobId: input.jobId,
           observation: { kind: "blocked", detail: job.blocker.message },
           emit: input.emit
@@ -102454,10 +102491,10 @@ async function resolveSupervisionStop(deps, input) {
     }
   }
 }
-function applyRecovery(deps, input) {
+function applyRecovery(deps2, input) {
   const classification = classifyFailure2(input.observation);
   input.emit?.("recovery", `${classification.status}: ${classification.detail}`);
-  const jobDeps2 = jobDepsOf(deps);
+  const jobDeps2 = jobDepsOf(deps2);
   const payload = {
     kind: classification.waitKind,
     detail: classification.detail,
@@ -102495,19 +102532,19 @@ function applyRecovery(deps, input) {
   }
   return classification;
 }
-async function runClosureCycle(deps, input) {
-  const job = requireJobState(deps.workspace, input.jobId);
-  const graph = safeGraph(deps, job);
+async function runClosureCycle(deps2, input) {
+  const job = requireJobState(deps2.workspace, input.jobId);
+  const graph = safeGraph(deps2, job);
   const completedNodeIds = graph.filter((node) => node.status === "COMPLETED").map((node) => node.nodeId);
   const implementationComplete = graph.length > 0 && graph.every((node) => node.status === "COMPLETED" || node.status === "SUPERSEDED");
-  const swept = attributeCompletedWork(deps, {
+  const swept = attributeCompletedWork(deps2, {
     jobId: input.jobId,
     missionId: input.missionId
   });
   if (swept.attributed > 0) {
     input.emit("closure", `attributed completed work to ${swept.attributed} sealed item reference(s)`);
   }
-  const { audit } = runClosureAudit(deps, {
+  const { audit } = runClosureAudit(deps2, {
     jobId: input.jobId,
     completedNodeIds,
     implementationComplete
@@ -102521,7 +102558,7 @@ async function runClosureCycle(deps, input) {
     case "NEEDS_AUTHORITY":
       return { audit, stop: { kind: "needs-authority", question: audit.rationale } };
     case "GENERATE_GAP_WORK": {
-      const generated = generateGapWork(deps, { jobId: input.jobId, audit });
+      const generated = generateGapWork(deps2, { jobId: input.jobId, audit });
       input.emit("closure", `generated ${generated.length} gap work item(s)`);
       if (generated.length === 0) {
         return {
@@ -102532,7 +102569,7 @@ async function runClosureCycle(deps, input) {
           }
         };
       }
-      const repairs = await runGapRepairs(deps, {
+      const repairs = await runGapRepairs(deps2, {
         jobId: input.jobId,
         items: generated,
         ...input.signal !== void 0 ? { signal: input.signal } : {},
@@ -102542,15 +102579,15 @@ async function runClosureCycle(deps, input) {
         "closure",
         `gap repairs: ${repairs.repaired.length} integrated, ${repairs.failed.length} failed`
       );
-      clearOperationalStateIfNeeded(deps, input.jobId);
+      clearOperationalStateIfNeeded(deps2, input.jobId);
       return { audit };
     }
     case "RUN_SYSTEM_SCENARIOS": {
-      enterQualifying(jobDepsOf(deps), input.jobId, {
+      enterQualifying(jobDepsOf(deps2), input.jobId, {
         phase: "SYSTEM_SCENARIO_QUALIFICATION",
         detail: audit.rationale
       });
-      const scenarios = await runSystemScenarioPhase(deps, {
+      const scenarios = await runSystemScenarioPhase(deps2, {
         jobId: input.jobId,
         ...input.environmentRuntime !== void 0 ? { runtime: input.environmentRuntime } : {},
         ...input.probeExecutor !== void 0 ? { probeExecutor: input.probeExecutor } : {},
@@ -102563,49 +102600,49 @@ async function runClosureCycle(deps, input) {
         "closure",
         `system scenarios: ${scenarios.passed}/${scenarios.executed} passed` + (scenarios.environmentUnavailable > 0 ? `, ${scenarios.environmentUnavailable} environment-unavailable` : "") + (scenarios.uncovered.length > 0 ? `, ${scenarios.uncovered.length} item(s) uncovered` : "")
       );
-      clearOperationalStateIfNeeded(deps, input.jobId);
+      clearOperationalStateIfNeeded(deps2, input.jobId);
       return { audit };
     }
     case "RUN_RELEASE_QUALIFICATION": {
-      enterQualifying(jobDepsOf(deps), input.jobId, { phase: "RELEASE_QUALIFICATION" });
-      await runReleaseQualificationPhase(deps, {
+      enterQualifying(jobDepsOf(deps2), input.jobId, { phase: "RELEASE_QUALIFICATION" });
+      await runReleaseQualificationPhase(deps2, {
         jobId: input.jobId,
         ...input.signal !== void 0 ? { signal: input.signal } : {},
         emit: (message2) => input.emit("closure", message2)
       });
-      clearOperationalStateIfNeeded(deps, input.jobId);
+      clearOperationalStateIfNeeded(deps2, input.jobId);
       return { audit };
     }
     case "RUN_REPRODUCIBILITY": {
-      enterQualifying(jobDepsOf(deps), input.jobId, { phase: "REPRODUCIBILITY" });
-      await runReproducibilityPhase(deps, {
+      enterQualifying(jobDepsOf(deps2), input.jobId, { phase: "REPRODUCIBILITY" });
+      await runReproducibilityPhase(deps2, {
         jobId: input.jobId,
         ...input.signal !== void 0 ? { signal: input.signal } : {},
         emit: (message2) => input.emit("closure", message2)
       });
-      clearOperationalStateIfNeeded(deps, input.jobId);
+      clearOperationalStateIfNeeded(deps2, input.jobId);
       return { audit };
     }
     case "CONTINUE_IMPLEMENTATION":
     default:
-      clearOperationalStateIfNeeded(deps, input.jobId);
+      clearOperationalStateIfNeeded(deps2, input.jobId);
       return { audit };
   }
 }
-function clearOperationalStateIfNeeded(deps, jobId) {
-  const job = requireJobState(deps.workspace, jobId);
+function clearOperationalStateIfNeeded(deps2, jobId) {
+  const job = requireJobState(deps2.workspace, jobId);
   if (job.status === "QUALIFYING" || job.operationalWait !== void 0) {
     try {
-      clearOperationalState(jobDepsOf(deps), jobId, {
+      clearOperationalState(jobDepsOf(deps2), jobId, {
         resolution: "the closure audit returned work to implementation"
       });
     } catch {
     }
   }
 }
-function safeGraph(deps, job) {
+function safeGraph(deps2, job) {
   try {
-    const graph = readGraphRevision(deps.workspace, job.jobId, job.graphRevision);
+    const graph = readGraphRevision(deps2.workspace, job.jobId, job.graphRevision);
     return graph?.nodes.map((node) => ({ nodeId: node.nodeId, status: node.status })) ?? [];
   } catch {
     return [];
@@ -102824,6 +102861,12 @@ var import_fs81 = require("fs");
 var import_path90 = __toESM(require("path"), 1);
 var import_fs82 = require("fs");
 var import_path91 = __toESM(require("path"), 1);
+var import_fs83 = require("fs");
+var import_path92 = __toESM(require("path"), 1);
+var import_fs84 = require("fs");
+var import_path93 = __toESM(require("path"), 1);
+var import_fs85 = require("fs");
+var import_path94 = __toESM(require("path"), 1);
 var INTAKE_STATUSES = [
   /** The source specification is ingested; discovery has not run. */
   "INGESTED",
@@ -103078,7 +103121,9 @@ var SBI_CODES = {
   SBI014: "build lifecycle step failed",
   SBI015: "overnight prerequisite requires a person",
   SBI016: "product baseline invalid",
-  SBI017: "intake record already exists"
+  SBI017: "intake record already exists",
+  SBI018: "workspace bootstrap input rejected",
+  SBI019: "workspace snapshot not found"
 };
 var IntakeError = class extends Error {
   code;
@@ -103096,31 +103141,31 @@ var IntakeError = class extends Error {
     this.retryable = options.retryable ?? false;
   }
 };
-function autonomyDepsOf(deps) {
-  return deps;
+function autonomyDepsOf(deps2) {
+  return deps2;
 }
-function missionDepsOf(deps) {
+function missionDepsOf(deps2) {
   return {
-    workspace: deps.workspace,
-    clock: deps.clock,
-    idFactory: deps.idFactory,
-    host: deps.host
+    workspace: deps2.workspace,
+    clock: deps2.clock,
+    idFactory: deps2.idFactory,
+    host: deps2.host
   };
 }
-function now6(deps) {
-  return (deps.clock ?? (() => /* @__PURE__ */ new Date()))();
+function now6(deps2) {
+  return (deps2.clock ?? (() => /* @__PURE__ */ new Date()))();
 }
-function nowIso5(deps) {
-  return now6(deps).toISOString();
+function nowIso5(deps2) {
+  return now6(deps2).toISOString();
 }
-function hostOf2(deps) {
-  return deps.host ?? "cli";
+function hostOf2(deps2) {
+  return deps2.host ?? "cli";
 }
-function newId6(deps) {
-  return (deps.idFactory ?? import_crypto29.randomUUID)();
+function newId6(deps2) {
+  return (deps2.idFactory ?? import_crypto29.randomUUID)();
 }
-function newRecordId2(deps, prefix) {
-  const raw = newId6(deps).replace(/[^A-Za-z0-9._-]/g, "").slice(0, 40);
+function newRecordId2(deps2, prefix) {
+  const raw = newId6(deps2).replace(/[^A-Za-z0-9._-]/g, "").slice(0, 40);
   return `${prefix}-${raw.length > 0 ? raw : "x"}`;
 }
 var INTAKE_STATE_SCHEMA_VERSION = "1.0.0";
@@ -104499,8 +104544,8 @@ function refDirsFor(gitDir) {
   }
   return dirs;
 }
-function groundInRepository(deps, request) {
-  const workspace = deps.workspace;
+function groundInRepository(deps2, request) {
+  const workspace = deps2.workspace;
   const exclude = new Set(request.excludeMissionIds ?? []);
   const evidence = [];
   const notes = [];
@@ -104649,7 +104694,7 @@ function groundInRepository(deps, request) {
   return {
     schemaVersion: INTAKE_GROUNDING_SCHEMA_VERSION,
     intakeId: request.intakeId,
-    groundedAt: nowIso5(deps),
+    groundedAt: nowIso5(deps2),
     baselineCommit: readGitHead(workspace.rootDir),
     existingProduct,
     evidence: evidence.slice(0, INTAKE_LIMITS.maxEvidence),
@@ -105661,7 +105706,7 @@ var BEHAVIOUR_CONTRACT = {
 var BEHAVIOUR_SURFACE_KEY = "__behaviour__";
 var TOPIC_DECISION_RESERVE = 12;
 var FACT_BUDGET = 120;
-function compileMissionTruth(deps, intakeDeps3, request) {
+function compileMissionTruth(deps2, intakeDeps3, request) {
   const map = readProjectionMap(intakeDeps3.workspace, request.intakeId);
   const missionBefore = requireMissionState(intakeDeps3.workspace, request.missionId);
   const missionGoal = missionBefore.goal;
@@ -105681,7 +105726,7 @@ function compileMissionTruth(deps, intakeDeps3, request) {
   );
   const overflowItemIds = [];
   if (map.sourceTurnId === void 0) {
-    const { turn } = recordTurn(deps, request.missionId, {
+    const { turn } = recordTurn(deps2, request.missionId, {
       speaker: "user",
       kind: "statement",
       text: sourceTurnText(request.source)
@@ -105752,7 +105797,7 @@ function compileMissionTruth(deps, intakeDeps3, request) {
     resolvedTopics.push(topic);
     topicDecisionInputs.push(resolution);
   }
-  const decisionAssessment = recordAssessment(deps, request.missionId, {
+  const decisionAssessment = recordAssessment(deps2, request.missionId, {
     ...facts.length > 0 ? { facts } : {},
     ...decisions.length > 0 || topicDecisionInputs.length > 0 ? { decisions: [...decisions, ...topicDecisionInputs] } : {},
     ...map.fieldsWritten !== true ? { missionUpdates: missionFieldsFrom(request) } : {}
@@ -105818,7 +105863,7 @@ function compileMissionTruth(deps, intakeDeps3, request) {
   let mission = decisionAssessment.mission;
   let contractIds = [];
   if (contracts.length > 0) {
-    const contractAssessment = recordAssessment(deps, request.missionId, { contracts });
+    const contractAssessment = recordAssessment(deps2, request.missionId, { contracts });
     mission = contractAssessment.mission;
     contractIds = contractAssessment.contractIds;
     submitted.forEach((bucket, index) => {
@@ -106291,8 +106336,8 @@ function approvedElements(approval, contracts, decisions) {
   approval.acceptanceCriteria.forEach(
     (statement, index) => out.push({ id: `AC-${index + 1}`, text: statement })
   );
-  for (const resolved of approval.resolvedQuestions) {
-    out.push({ id: `ANSWER-${resolved.questionId}`, text: `${resolved.question} ${resolved.answer}` });
+  for (const resolved2 of approval.resolvedQuestions) {
+    out.push({ id: `ANSWER-${resolved2.questionId}`, text: `${resolved2.question} ${resolved2.answer}` });
   }
   for (const contract of contracts) {
     out.push({
@@ -106372,8 +106417,8 @@ function recordDerivedApprovals(request) {
   }
   return { approved, results };
 }
-function emptyLedger(deps, approval) {
-  const at = nowIso5(deps);
+function emptyLedger(deps2, approval) {
+  const at = nowIso5(deps2);
   return {
     schemaVersion: INTAKE_LIFECYCLE_SCHEMA_VERSION,
     intakeId: approval.intakeId,
@@ -106401,11 +106446,11 @@ function withStep(ledger, step2, patch) {
   const steps = ledger.steps.some((record5) => record5.step === step2) ? ledger.steps.map((record5) => record5.step === step2 ? merged : record5) : [...ledger.steps, merged];
   return { ...ledger, steps };
 }
-async function runSealAndBuild(deps, options) {
-  const approval = requireApproval(deps.workspace, options.intakeId);
-  let ledger = readLifecycle(deps.workspace, options.intakeId) ?? emptyLedger(deps, approval);
+async function runSealAndBuild(deps2, options) {
+  const approval = requireApproval(deps2.workspace, options.intakeId);
+  let ledger = readLifecycle(deps2.workspace, options.intakeId) ?? emptyLedger(deps2, approval);
   const emit3 = (kind, message2) => options.onEvent?.({ kind, message: message2 });
-  const autonomy = autonomyDepsOf(deps);
+  const autonomy = autonomyDepsOf(deps2);
   let preflight;
   let unattended;
   const outcome = ledger.outcome;
@@ -106417,18 +106462,18 @@ async function runSealAndBuild(deps, options) {
     };
   }
   if (outcome !== void 0) {
-    ledger = writeLifecycle(deps.workspace, {
+    ledger = writeLifecycle(deps2.workspace, {
       ...ledger,
       outcome: void 0,
       finishedAt: void 0,
       humanPrerequisites: [],
-      updatedAt: nowIso5(deps)
+      updatedAt: nowIso5(deps2)
     });
   }
   const persist4 = (next) => {
-    const written = writeLifecycle(deps.workspace, {
+    const written = writeLifecycle(deps2.workspace, {
       ...next,
-      updatedAt: nowIso5(deps)
+      updatedAt: nowIso5(deps2)
     });
     ledger = written;
     return written;
@@ -106438,12 +106483,12 @@ async function runSealAndBuild(deps, options) {
     persist4(
       withStep(ledger, step2, {
         status: "RUNNING",
-        startedAt: nowIso5(deps),
+        startedAt: nowIso5(deps2),
         attempts: record5.attempts + 1
       })
     );
-    appendIntakeEvent(deps.workspace, options.intakeId, {
-      at: nowIso5(deps),
+    appendIntakeEvent(deps2.workspace, options.intakeId, {
+      at: nowIso5(deps2),
       type: "build_step_started",
       step: step2
     });
@@ -106453,13 +106498,13 @@ async function runSealAndBuild(deps, options) {
     persist4(
       withStep(ledger, step2, {
         status,
-        settledAt: nowIso5(deps),
+        settledAt: nowIso5(deps2),
         detail: detail.slice(0, INTAKE_LIMITS.maxTextChars),
         ...result !== void 0 ? { result } : {}
       })
     );
-    appendIntakeEvent(deps.workspace, options.intakeId, {
-      at: nowIso5(deps),
+    appendIntakeEvent(deps2.workspace, options.intakeId, {
+      at: nowIso5(deps2),
       type: "build_step_completed",
       step: step2,
       status,
@@ -106471,12 +106516,12 @@ async function runSealAndBuild(deps, options) {
     persist4(
       withStep(ledger, step2, {
         status: "FAILED",
-        settledAt: nowIso5(deps),
+        settledAt: nowIso5(deps2),
         detail: detail.slice(0, INTAKE_LIMITS.maxTextChars)
       })
     );
-    appendIntakeEvent(deps.workspace, options.intakeId, {
-      at: nowIso5(deps),
+    appendIntakeEvent(deps2.workspace, options.intakeId, {
+      at: nowIso5(deps2),
       type: "build_step_failed",
       step: step2,
       detail: detail.slice(0, 600)
@@ -106484,23 +106529,23 @@ async function runSealAndBuild(deps, options) {
     emit3("lifecycle", `${step2} FAILED: ${detail}`);
   };
   if (!isStepSettled(stepOf(ledger, "CONTRACT_READY").status)) {
-    const mission = requireMissionState(deps.workspace, approval.missionId);
+    const mission = requireMissionState(deps2.workspace, approval.missionId);
     if (mission.status !== "IDEA" && mission.status !== "DISCOVERING" && mission.status !== "NEEDS_DECISION") {
       settle("CONTRACT_READY", "RECONCILED", `the mission is already ${mission.status}`);
     } else {
       begin("CONTRACT_READY");
       try {
-        const { mission: ready } = markContractReady(missionDepsOf(deps), approval.missionId);
+        const { mission: ready } = markContractReady(missionDepsOf(deps2), approval.missionId);
         settle("CONTRACT_READY", "COMPLETED", `the mission is ${ready.status}`);
       } catch (cause) {
         fail("CONTRACT_READY", messageOf(cause));
-        return finish4(deps, options, ledger, "FAILED", { preflight });
+        return finish4(deps2, options, ledger, "FAILED", { preflight });
       }
     }
   }
   let specName = ledger.specName;
   if (!isStepSettled(stepOf(ledger, "SYNTHESIZE").status)) {
-    const mission = requireMissionState(deps.workspace, approval.missionId);
+    const mission = requireMissionState(deps2.workspace, approval.missionId);
     if (mission.specName !== void 0) {
       specName = mission.specName;
       ledger = persist4({ ...ledger, specName });
@@ -106508,8 +106553,8 @@ async function runSealAndBuild(deps, options) {
     } else {
       begin("SYNTHESIZE");
       try {
-        const intake = requireIntakeState(deps.workspace, options.intakeId);
-        const result = synthesizeMissionSpec(missionDepsOf(deps), approval.missionId, {
+        const intake = requireIntakeState(deps2.workspace, options.intakeId);
+        const result = synthesizeMissionSpec(missionDepsOf(deps2), approval.missionId, {
           specName: intake.specName ?? void 0
         });
         specName = result.specName;
@@ -106522,23 +106567,23 @@ async function runSealAndBuild(deps, options) {
         );
       } catch (cause) {
         fail("SYNTHESIZE", messageOf(cause));
-        return finish4(deps, options, ledger, "FAILED", { preflight });
+        return finish4(deps2, options, ledger, "FAILED", { preflight });
       }
     }
   }
-  specName = specName ?? requireMissionState(deps.workspace, approval.missionId).specName;
+  specName = specName ?? requireMissionState(deps2.workspace, approval.missionId).specName;
   if (specName === void 0) {
     fail("SYNTHESIZE", "no spec name is recorded after synthesis");
-    return finish4(deps, options, ledger, "FAILED", { preflight });
+    return finish4(deps2, options, ledger, "FAILED", { preflight });
   }
   if (!isStepSettled(stepOf(ledger, "VALIDATE_PROJECTION").status)) {
     begin("VALIDATE_PROJECTION");
     try {
-      const equivalence = validateProjection(deps, approval, specName);
-      writeProjectionEquivalence(deps.workspace, equivalence);
+      const equivalence = validateProjection(deps2, approval, specName);
+      writeProjectionEquivalence(deps2.workspace, equivalence);
       if (!equivalence.equivalent) {
-        appendIntakeEvent(deps.workspace, options.intakeId, {
-          at: nowIso5(deps),
+        appendIntakeEvent(deps2.workspace, options.intakeId, {
+          at: nowIso5(deps2),
           type: "projection_diverged",
           divergences: equivalence.divergences.length
         });
@@ -106546,10 +106591,10 @@ async function runSealAndBuild(deps, options) {
           "VALIDATE_PROJECTION",
           `${equivalence.divergences.length} divergence(s): ` + equivalence.divergences.slice(0, 3).map((divergence) => `${divergence.kind} \u2014 ${divergence.detail}`).join(" | ")
         );
-        return finish4(deps, options, ledger, "FAILED", { preflight });
+        return finish4(deps2, options, ledger, "FAILED", { preflight });
       }
-      appendIntakeEvent(deps.workspace, options.intakeId, {
-        at: nowIso5(deps),
+      appendIntakeEvent(deps2.workspace, options.intakeId, {
+        at: nowIso5(deps2),
         type: "projection_validated",
         checked: equivalence.checkedStatements,
         traced: equivalence.tracedStatements
@@ -106561,27 +106606,27 @@ async function runSealAndBuild(deps, options) {
       );
     } catch (cause) {
       fail("VALIDATE_PROJECTION", messageOf(cause));
-      return finish4(deps, options, ledger, "FAILED", { preflight });
+      return finish4(deps2, options, ledger, "FAILED", { preflight });
     }
   }
   if (!isStepSettled(stepOf(ledger, "DERIVE_APPROVALS").status)) {
-    const state = readSpecState(deps.workspace, specName).state;
+    const state = readSpecState(deps2.workspace, specName).state;
     if (state?.status === "READY_FOR_IMPLEMENTATION") {
       settle("DERIVE_APPROVALS", "RECONCILED", "every stage of the spec is already approved");
     } else {
       begin("DERIVE_APPROVALS");
       try {
-        const equivalence = validateProjection(deps, approval, specName);
+        const equivalence = validateProjection(deps2, approval, specName);
         const derived = recordDerivedApprovals({
-          workspace: deps.workspace,
+          workspace: deps2.workspace,
           approval,
           specName,
           equivalence,
-          clock: deps.clock ?? (() => /* @__PURE__ */ new Date())
+          clock: deps2.clock ?? (() => /* @__PURE__ */ new Date())
         });
         for (const stage of derived.approved) {
-          appendIntakeEvent(deps.workspace, options.intakeId, {
-            at: nowIso5(deps),
+          appendIntakeEvent(deps2.workspace, options.intakeId, {
+            at: nowIso5(deps2),
             type: "derived_approval_recorded",
             stage,
             approvalId: approval.approvalId,
@@ -106595,13 +106640,13 @@ async function runSealAndBuild(deps, options) {
         );
       } catch (cause) {
         fail("DERIVE_APPROVALS", messageOf(cause));
-        return finish4(deps, options, ledger, "FAILED", { preflight });
+        return finish4(deps2, options, ledger, "FAILED", { preflight });
       }
     }
   }
   let sealId = ledger.sealId ?? approval.sealId;
   if (!isStepSettled(stepOf(ledger, "SEAL").status)) {
-    const existing = latestExecutableSeal(deps.workspace, approval.missionId);
+    const existing = latestExecutableSeal(deps2.workspace, approval.missionId);
     if (approval.sealId !== void 0 && existing?.sealId === approval.sealId) {
       sealId = existing.sealId;
       ledger = persist4({ ...ledger, sealId });
@@ -106611,7 +106656,7 @@ async function runSealAndBuild(deps, options) {
       try {
         const draft = draftSeal(autonomy, {
           missionId: approval.missionId,
-          sealId: newRecordId2(deps, "seal"),
+          sealId: newRecordId2(deps2, "seal"),
           maxApiSpendUsd: approval.maxApiSpendUsd,
           allowedLanes: approval.allowedLanes
         });
@@ -106621,17 +106666,17 @@ async function runSealAndBuild(deps, options) {
             "SEAL",
             `the seal is missing authority required for unattended execution: ${completeness.missing.join(", ")}`
           );
-          return finish4(deps, options, ledger, "FAILED", { preflight });
+          return finish4(deps2, options, ledger, "FAILED", { preflight });
         }
         const seal = sealMission(autonomy, {
           sealId: draft.sealId,
           via: `intake-approval:${approval.approvalId}`
         });
         sealId = seal.sealId;
-        bindApprovalSeal(deps.workspace, options.intakeId, seal.sealId);
+        bindApprovalSeal(deps2.workspace, options.intakeId, seal.sealId);
         ledger = persist4({ ...ledger, sealId });
-        appendIntakeEvent(deps.workspace, options.intakeId, {
-          at: nowIso5(deps),
+        appendIntakeEvent(deps2.workspace, options.intakeId, {
+          at: nowIso5(deps2),
           type: "seal_created",
           sealId: seal.sealId,
           approvalId: approval.approvalId,
@@ -106646,17 +106691,17 @@ async function runSealAndBuild(deps, options) {
         );
       } catch (cause) {
         fail("SEAL", messageOf(cause));
-        return finish4(deps, options, ledger, "FAILED", { preflight });
+        return finish4(deps2, options, ledger, "FAILED", { preflight });
       }
     }
   }
   if (!isStepSettled(stepOf(ledger, "PREFLIGHT").status)) {
     begin("PREFLIGHT");
     try {
-      preflight = await runPreflight2(deps, options, approval.missionId, sealId);
+      preflight = await runPreflight2(deps2, options, approval.missionId, sealId);
       ledger = persist4({ ...ledger, preflightReportId: preflight.reportId });
-      appendIntakeEvent(deps.workspace, options.intakeId, {
-        at: nowIso5(deps),
+      appendIntakeEvent(deps2.workspace, options.intakeId, {
+        at: nowIso5(deps2),
         type: "preflight_completed",
         reportId: preflight.reportId,
         verdict: preflight.verdict
@@ -106664,40 +106709,40 @@ async function runSealAndBuild(deps, options) {
       settle("PREFLIGHT", "COMPLETED", preflight.verdict, preflight.reportId);
     } catch (cause) {
       fail("PREFLIGHT", messageOf(cause));
-      return finish4(deps, options, ledger, "FAILED", { preflight });
+      return finish4(deps2, options, ledger, "FAILED", { preflight });
     }
   }
   if (!isStepSettled(stepOf(ledger, "RESOLVE_PREREQUISITES").status)) {
     begin("RESOLVE_PREREQUISITES");
     try {
       if (preflight === void 0) {
-        preflight = await runPreflight2(deps, options, approval.missionId, sealId);
+        preflight = await runPreflight2(deps2, options, approval.missionId, sealId);
         ledger = persist4(
           withStep({ ...ledger, preflightReportId: preflight.reportId }, "PREFLIGHT", {
             detail: preflight.verdict,
             result: preflight.reportId,
-            settledAt: nowIso5(deps)
+            settledAt: nowIso5(deps2)
           })
         );
-        appendIntakeEvent(deps.workspace, options.intakeId, {
-          at: nowIso5(deps),
+        appendIntakeEvent(deps2.workspace, options.intakeId, {
+          at: nowIso5(deps2),
           type: "preflight_completed",
           reportId: preflight.reportId,
           verdict: preflight.verdict,
           rechecked: true
         });
       }
-      const resolution = resolvePrerequisites(deps, options.intakeId, preflight);
+      const resolution = resolvePrerequisites(deps2, options.intakeId, preflight);
       ledger = persist4({
         ...ledger,
         resolvedPrerequisites: resolution.resolved.slice(0, INTAKE_LIMITS.maxItems),
         humanPrerequisites: resolution.human.slice(0, INTAKE_LIMITS.maxItems)
       });
-      for (const resolved of resolution.resolved) {
-        appendIntakeEvent(deps.workspace, options.intakeId, {
-          at: nowIso5(deps),
+      for (const resolved2 of resolution.resolved) {
+        appendIntakeEvent(deps2.workspace, options.intakeId, {
+          at: nowIso5(deps2),
           type: "prerequisite_resolved",
-          detail: resolved.slice(0, 400)
+          detail: resolved2.slice(0, 400)
         });
       }
       if (resolution.human.length > 0) {
@@ -106705,7 +106750,7 @@ async function runSealAndBuild(deps, options) {
           "RESOLVE_PREREQUISITES",
           `${resolution.human.length} prerequisite(s) only a person can satisfy: ` + resolution.human.slice(0, 4).join(" | ")
         );
-        return finish4(deps, options, ledger, "HUMAN_PREREQUISITE_REQUIRED", { preflight });
+        return finish4(deps2, options, ledger, "HUMAN_PREREQUISITE_REQUIRED", { preflight });
       }
       settle(
         "RESOLVE_PREREQUISITES",
@@ -106714,23 +106759,23 @@ async function runSealAndBuild(deps, options) {
       );
     } catch (cause) {
       fail("RESOLVE_PREREQUISITES", messageOf(cause));
-      return finish4(deps, options, ledger, "FAILED", { preflight });
+      return finish4(deps2, options, ledger, "FAILED", { preflight });
     }
   }
   let jobId = ledger.jobId;
   if (!isStepSettled(stepOf(ledger, "CREATE_JOB").status)) {
-    if (jobId !== void 0 && readJobState(deps.workspace, jobId).kind === "ok") {
+    if (jobId !== void 0 && readJobState(deps2.workspace, jobId).kind === "ok") {
       settle("CREATE_JOB", "RECONCILED", `job ${jobId} already exists`, jobId);
     } else {
       begin("CREATE_JOB");
       try {
-        const job = createJob(deps, { specName, goal: approval.goal });
+        const job = createJob(deps2, { specName, goal: approval.goal });
         jobId = job.jobId;
         ledger = persist4({ ...ledger, jobId });
-        const intake = requireIntakeState(deps.workspace, options.intakeId);
-        writeIntakeState(deps.workspace, { ...intake, jobId, specName, sealId, status: "BUILDING" });
-        appendIntakeEvent(deps.workspace, options.intakeId, {
-          at: nowIso5(deps),
+        const intake = requireIntakeState(deps2.workspace, options.intakeId);
+        writeIntakeState(deps2.workspace, { ...intake, jobId, specName, sealId, status: "BUILDING" });
+        appendIntakeEvent(deps2.workspace, options.intakeId, {
+          at: nowIso5(deps2),
           type: "job_created",
           jobId,
           specName
@@ -106738,23 +106783,23 @@ async function runSealAndBuild(deps, options) {
         settle("CREATE_JOB", "COMPLETED", `job created for spec "${specName}"`, jobId);
       } catch (cause) {
         fail("CREATE_JOB", messageOf(cause));
-        return finish4(deps, options, ledger, "FAILED", { preflight });
+        return finish4(deps2, options, ledger, "FAILED", { preflight });
       }
     }
   }
   jobId = jobId ?? stepOf(ledger, "CREATE_JOB").result;
   if (jobId === void 0) {
     fail("CREATE_JOB", "no job id is recorded after job creation");
-    return finish4(deps, options, ledger, "FAILED", { preflight });
+    return finish4(deps2, options, ledger, "FAILED", { preflight });
   }
   {
-    const retry = retryBlockedJob(deps, jobId, {
+    const retry = retryBlockedJob(deps2, jobId, {
       reason: "the operator resumed the intake after fixing the cause"
     });
     if (retry.cleared) {
       emit3("lifecycle", `job ${jobId} unblocked and returned to the schedulable path`);
-      appendIntakeEvent(deps.workspace, options.intakeId, {
-        at: nowIso5(deps),
+      appendIntakeEvent(deps2.workspace, options.intakeId, {
+        at: nowIso5(deps2),
         type: "build_step_started",
         step: "LAUNCH",
         unblocked: true
@@ -106762,18 +106807,18 @@ async function runSealAndBuild(deps, options) {
     }
   }
   {
-    const healed = selfHealOnResume(deps, jobId);
+    const healed = selfHealOnResume(deps2, jobId);
     for (const repair of healed.repairs) {
       emit3("lifecycle", `self-heal: ${repair.code} \u2014 ${repair.detail.slice(0, 160)}`);
     }
-    resetSupervisedJobForExplicitResume(autonomyDepsOf(deps), hostOf2(deps), jobId);
+    resetSupervisedJobForExplicitResume(autonomyDepsOf(deps2), hostOf2(deps2), jobId);
   }
   {
     const ccrs = new Map(
-      readCcrs(deps.workspace, approval.missionId).map((ccr) => [ccr.ccrId, ccr.status])
+      readCcrs(deps2.workspace, approval.missionId).map((ccr) => [ccr.ccrId, ccr.status])
     );
     const reconciled = reconcileDecidedCcrs(
-      deps,
+      deps2,
       jobId,
       (ccrId) => ccrs.has(ccrId) && ccrs.get(ccrId) !== "NEEDS_HUMAN"
     );
@@ -106786,38 +106831,38 @@ async function runSealAndBuild(deps, options) {
   }
   if (options.launch === false) {
     settle("LAUNCH", "SKIPPED", "launch was not requested; the job is ready to run");
-    return finish4(deps, options, ledger, "LAUNCHED", { preflight });
+    return finish4(deps2, options, ledger, "LAUNCHED", { preflight });
   }
   begin("LAUNCH");
   try {
-    appendIntakeEvent(deps.workspace, options.intakeId, {
-      at: nowIso5(deps),
+    appendIntakeEvent(deps2.workspace, options.intakeId, {
+      at: nowIso5(deps2),
       type: "unattended_launched",
       jobId,
       sealId: sealId ?? null
     });
-    unattended = await launchUnattended(deps, options, {
+    unattended = await launchUnattended(deps2, options, {
       missionId: approval.missionId,
       jobId,
       preflight
     });
     settle("LAUNCH", "COMPLETED", `the unattended run stopped: ${unattended.stop.kind}`, jobId);
     const finalOutcome = unattended.stop.kind === "completed" ? "COMPLETED" : unattended.stop.kind === "needs-authority" ? "NEEDS_AUTHORITY" : "LAUNCHED";
-    return finish4(deps, options, ledger, finalOutcome, { preflight, unattended });
+    return finish4(deps2, options, ledger, finalOutcome, { preflight, unattended });
   } catch (cause) {
     fail("LAUNCH", messageOf(cause));
-    return finish4(deps, options, ledger, "FAILED", { preflight });
+    return finish4(deps2, options, ledger, "FAILED", { preflight });
   }
 }
-function validateProjection(deps, approval, specName) {
-  const mission = requireMissionState(deps.workspace, approval.missionId);
-  const contracts = readContractRegistry(deps.workspace, approval.missionId);
-  const constitution = readConstitution(deps.workspace, approval.missionId);
-  const adrs = readAdrs(deps.workspace, approval.missionId);
-  const decisions = readDecisions(deps.workspace, approval.missionId).filter(
+function validateProjection(deps2, approval, specName) {
+  const mission = requireMissionState(deps2.workspace, approval.missionId);
+  const contracts = readContractRegistry(deps2.workspace, approval.missionId);
+  const constitution = readConstitution(deps2.workspace, approval.missionId);
+  const adrs = readAdrs(deps2.workspace, approval.missionId);
+  const decisions = readDecisions(deps2.workspace, approval.missionId).filter(
     (decision) => decision.status === "active"
   );
-  const questions = readQuestions2(deps.workspace, approval.intakeId);
+  const questions = readQuestions2(deps2.workspace, approval.intakeId);
   const currentDigest = computeIntakeAuthorityDigest(
     canonicalTruthOf({
       mission,
@@ -106829,10 +106874,10 @@ function validateProjection(deps, approval, specName) {
     })
   );
   return checkProjectionEquivalence({
-    workspace: deps.workspace,
+    workspace: deps2.workspace,
     approval,
     specName,
-    checkedAt: nowIso5(deps),
+    checkedAt: nowIso5(deps2),
     approvedElements: approvedElements(
       approval,
       contracts.map((contract) => ({
@@ -106847,9 +106892,9 @@ function validateProjection(deps, approval, specName) {
     currentAuthorityDigest: currentDigest
   });
 }
-async function runPreflight2(deps, options, missionId, sealId) {
-  const autonomy = autonomyDepsOf(deps);
-  const seal = latestExecutableSeal(deps.workspace, missionId);
+async function runPreflight2(deps2, options, missionId, sealId) {
+  const autonomy = autonomyDepsOf(deps2);
+  const seal = latestExecutableSeal(deps2.workspace, missionId);
   const surfaces = requiredSurfacesFor(seal);
   return runOvernightPreflight(autonomy, {
     subject: missionId,
@@ -106860,10 +106905,10 @@ async function runPreflight2(deps, options, missionId, sealId) {
     ...options.probeRunner !== void 0 ? { probeRunner: options.probeRunner } : {}
   });
 }
-function resolvePrerequisites(deps, intakeId, report) {
-  const resolved = [];
+function resolvePrerequisites(deps2, intakeId, report) {
+  const resolved2 = [];
   const human = [];
-  const autonomy = autonomyDepsOf(deps);
+  const autonomy = autonomyDepsOf(deps2);
   for (const check6 of report.checks) {
     if (check6.outcome === "HUMAN_REQUIRED") {
       human.push(
@@ -106880,7 +106925,7 @@ function resolvePrerequisites(deps, intakeId, report) {
     if (check6.outcome !== "SATISFIABLE_AUTONOMOUSLY") continue;
     const capability = check6.satisfiedBy;
     if (capability === void 0) {
-      resolved.push(`${check6.capability}: the runtime provides this during the run`);
+      resolved2.push(`${check6.capability}: the runtime provides this during the run`);
       continue;
     }
     const decision = requestToolsmithCapability(autonomy, {
@@ -106888,21 +106933,21 @@ function resolvePrerequisites(deps, intakeId, report) {
       capability,
       target: check6.capability,
       purpose: `Overnight preflight classified ${check6.capability} as satisfiable by the runtime; pre-authorizing it before the unattended launch.`,
-      requestId: newRecordId2(deps, "ts")
+      requestId: newRecordId2(deps2, "ts")
     });
     if (decision.request.status === "GRANTED") {
-      resolved.push(`${check6.capability}: pre-authorized as ${capability}`);
+      resolved2.push(`${check6.capability}: pre-authorized as ${capability}`);
       continue;
     }
     human.push(
       `${check6.capability}: the preflight expected the runtime to provide this, but the Toolsmith broker denied ${capability} (${decision.request.denialReason ?? "no reason recorded"}). Grant the capability in the autonomy policy, or provide it manually.`
     );
   }
-  return { resolved, human };
+  return { resolved: resolved2, human };
 }
-async function launchUnattended(deps, options, input) {
+async function launchUnattended(deps2, options, input) {
   if (options.runUnattended !== void 0) {
-    return options.runUnattended(deps, { missionId: input.missionId, jobId: input.jobId });
+    return options.runUnattended(deps2, { missionId: input.missionId, jobId: input.jobId });
   }
   if (options.host === void 0) {
     throw new IntakeError(
@@ -106910,7 +106955,7 @@ async function launchUnattended(deps, options, input) {
       "The unattended launch needs a driver host. Pass one, or run with --no-launch and launch with `specbridge overnight run`."
     );
   }
-  return runUnattendedMission(autonomyDepsOf(deps), {
+  return runUnattendedMission(autonomyDepsOf(deps2), {
     missionId: input.missionId,
     jobId: input.jobId,
     host: options.host,
@@ -106918,25 +106963,25 @@ async function launchUnattended(deps, options, input) {
     ...options.maxCycles !== void 0 ? { maxCycles: options.maxCycles } : {},
     ...options.signal !== void 0 ? { signal: options.signal } : {},
     ...options.onEvent !== void 0 ? { onEvent: options.onEvent } : {},
-    ownerId: hostOf2(deps)
+    ownerId: hostOf2(deps2)
   });
 }
-function finish4(deps, options, ledger, outcome, extras) {
-  const finished7 = writeLifecycle(deps.workspace, {
+function finish4(deps2, options, ledger, outcome, extras) {
+  const finished7 = writeLifecycle(deps2.workspace, {
     ...ledger,
     outcome,
-    updatedAt: nowIso5(deps),
-    finishedAt: nowIso5(deps)
+    updatedAt: nowIso5(deps2),
+    finishedAt: nowIso5(deps2)
   });
-  appendIntakeEvent(deps.workspace, options.intakeId, {
-    at: nowIso5(deps),
+  appendIntakeEvent(deps2.workspace, options.intakeId, {
+    at: nowIso5(deps2),
     type: "build_finished",
     outcome,
     ...finished7.jobId !== void 0 ? { jobId: finished7.jobId } : {}
   });
-  const intake = requireIntakeState(deps.workspace, options.intakeId);
+  const intake = requireIntakeState(deps2.workspace, options.intakeId);
   const status = outcome === "COMPLETED" ? "BUILT" : outcome === "LAUNCHED" ? "BUILDING" : outcome === "NEEDS_AUTHORITY" ? "BUILDING" : "BLOCKED";
-  writeIntakeState(deps.workspace, {
+  writeIntakeState(deps2.workspace, {
     ...intake,
     status,
     ...finished7.jobId !== void 0 ? { jobId: finished7.jobId } : {},
@@ -106954,7 +106999,7 @@ function finish4(deps, options, ledger, outcome, extras) {
 function messageOf(cause) {
   return cause instanceof Error ? cause.message : String(cause);
 }
-function startSpecIntake(deps, request) {
+function startSpecIntake(deps2, request) {
   const name = request.name.trim();
   if (name.length === 0) {
     throw new IntakeError("SBI005", "A spec intake needs a name.", {
@@ -106973,20 +107018,20 @@ function startSpecIntake(deps, request) {
       { remediation: ["Split the specification, or submit the part this feature covers."] }
     );
   }
-  const intakeId = request.intakeId ?? newRecordId2(deps, "intake");
+  const intakeId = request.intakeId ?? newRecordId2(deps2, "intake");
   const contentHash = sha256Hex(content);
-  const storedPath = storeSourceText(deps.workspace, intakeId, contentHash, content);
+  const storedPath = storeSourceText(deps2.workspace, intakeId, contentHash, content);
   const parsed = parseSpecificationDocument(content);
-  const at = nowIso5(deps);
+  const at = nowIso5(deps2);
   const goal = request.goal?.trim() ?? deriveGoal(parsed.chunks, name);
-  const mission = beginMission(missionDepsOf(deps), { name, goal });
-  const source = writeSpecSource(deps.workspace, {
+  const mission = beginMission(missionDepsOf(deps2), { name, goal });
+  const source = writeSpecSource(deps2.workspace, {
     schemaVersion: INTAKE_SOURCE_SCHEMA_VERSION,
     intakeId,
     kind: request.kind,
     ...request.originPath !== void 0 ? { originPath: clip(request.originPath, 500) } : {},
     receivedAt: at,
-    receivedVia: hostOf2(deps),
+    receivedVia: hostOf2(deps2),
     byteLength,
     contentHash,
     storedAt: import_path91.default.posix.join(
@@ -107000,7 +107045,7 @@ function startSpecIntake(deps, request) {
     chunks: parsed.chunks
   });
   void storedPath;
-  const intake = writeIntakeState(deps.workspace, {
+  const intake = writeIntakeState(deps2.workspace, {
     schemaVersion: INTAKE_STATE_SCHEMA_VERSION,
     intakeId,
     name,
@@ -107008,9 +107053,9 @@ function startSpecIntake(deps, request) {
     missionId: mission.missionId,
     createdAt: at,
     updatedAt: at,
-    host: hostOf2(deps),
+    host: hostOf2(deps2),
     sourceContentHash: contentHash,
-    baselineCommit: readGitHead(deps.workspace.rootDir),
+    baselineCommit: readGitHead(deps2.workspace.rootDir),
     counters: {
       sourceChunks: parsed.chunks.length,
       normativeChunks: parsed.normativeCount,
@@ -107027,13 +107072,13 @@ function startSpecIntake(deps, request) {
     sequences: { question: 0, refusal: 0, deltaItem: 0, evidence: 0 },
     ...request.specName !== void 0 ? { specName: request.specName } : {}
   });
-  appendIntakeEvent(deps.workspace, intakeId, {
+  appendIntakeEvent(deps2.workspace, intakeId, {
     at,
     type: "intake_created",
     name,
     missionId: mission.missionId
   });
-  appendIntakeEvent(deps.workspace, intakeId, {
+  appendIntakeEvent(deps2.workspace, intakeId, {
     at,
     type: "source_ingested",
     kind: request.kind,
@@ -107044,53 +107089,53 @@ function startSpecIntake(deps, request) {
   });
   return { intake, source, mission };
 }
-function startSpecIntakeFromFile(deps, request) {
-  const resolved = import_path91.default.resolve(request.file);
-  if (!(0, import_fs82.existsSync)(resolved)) {
+function startSpecIntakeFromFile(deps2, request) {
+  const resolved2 = import_path91.default.resolve(request.file);
+  if (!(0, import_fs82.existsSync)(resolved2)) {
     throw new IntakeError("SBI007", `No specification file at ${request.file}.`, {
       remediation: ["Check the path, or pass the specification text with --text."]
     });
   }
-  const size = (0, import_fs82.statSync)(resolved).size;
+  const size = (0, import_fs82.statSync)(resolved2).size;
   if (size > INTAKE_LIMITS.maxSourceBytes) {
     throw new IntakeError(
       "SBI006",
       `${request.file} is ${size} bytes, over the ${INTAKE_LIMITS.maxSourceBytes}-byte bound.`
     );
   }
-  const content = (0, import_fs82.readFileSync)(resolved, "utf8");
-  return startSpecIntake(deps, {
+  const content = (0, import_fs82.readFileSync)(resolved2, "utf8");
+  return startSpecIntake(deps2, {
     ...request,
     kind: "file",
     content,
-    originPath: resolved
+    originPath: resolved2
   });
 }
-function runIntakeDiscovery(deps, intakeId, options = {}) {
-  let intake = requireIntakeState(deps.workspace, intakeId);
+function runIntakeDiscovery(deps2, intakeId, options = {}) {
+  let intake = requireIntakeState(deps2.workspace, intakeId);
   if (intake.status === "ABANDONED") {
     throw new IntakeError("SBI004", `Spec intake ${intakeId} is ABANDONED and read-only.`);
   }
-  const source = requireSpecSource(deps.workspace, intakeId);
-  const at = nowIso5(deps);
+  const source = requireSpecSource(deps2.workspace, intakeId);
+  const at = nowIso5(deps2);
   const grounding = writeGrounding(
-    deps.workspace,
-    groundInRepository(deps, {
+    deps2.workspace,
+    groundInRepository(deps2, {
       intakeId,
       excludeMissionIds: [intake.missionId]
     })
   );
-  appendIntakeEvent(deps.workspace, intakeId, {
+  appendIntakeEvent(deps2.workspace, intakeId, {
     at,
     type: "grounding_completed",
     evidence: grounding.evidence.length,
     priorMissions: grounding.priorMissionIds.length,
     existingProduct: grounding.existingProduct
   });
-  const existingContracts = activeProductContracts(deps.workspace, {
+  const existingContracts = activeProductContracts(deps2.workspace, {
     excludeMissionIds: [intake.missionId]
   });
-  const constitutionRules = activeConstitutionRules(deps.workspace, {
+  const constitutionRules = activeConstitutionRules(deps2.workspace, {
     excludeMissionIds: [intake.missionId]
   });
   let analysis = analyzeDeltaAuthority({
@@ -107110,7 +107155,7 @@ function runIntakeDiscovery(deps, intakeId, options = {}) {
   let questionSequence = intake.sequences.question;
   let refusalSequence = intake.sequences.refusal;
   const newQuestions = [];
-  const admitted = admitAndRecord(deps, {
+  const admitted = admitAndRecord(deps2, {
     intakeId,
     missionId: intake.missionId,
     candidates,
@@ -107123,7 +107168,7 @@ function runIntakeDiscovery(deps, intakeId, options = {}) {
   questionSequence = admitted.nextQuestionSequence;
   refusalSequence = admitted.nextRefusalSequence;
   newQuestions.push(...admitted.opened);
-  let questions = readQuestions2(deps.workspace, intakeId);
+  let questions = readQuestions2(deps2.workspace, intakeId);
   const openByItem = /* @__PURE__ */ new Map();
   for (const question of questions) {
     if (question.status !== "open") continue;
@@ -107152,7 +107197,7 @@ function runIntakeDiscovery(deps, intakeId, options = {}) {
   const authoritySensitive = raisedItems.filter(
     (item) => requiresProductAuthority(item.classification)
   );
-  analysis = writeDeltaAnalysis(deps.workspace, {
+  analysis = writeDeltaAnalysis(deps2.workspace, {
     ...analysis,
     items: raisedItems,
     counts: countsOf(raisedItems),
@@ -107163,7 +107208,7 @@ function runIntakeDiscovery(deps, intakeId, options = {}) {
       "The submitted specification contains no statements the classifier recognised as material."
     ] : []
   });
-  appendIntakeEvent(deps.workspace, intakeId, {
+  appendIntakeEvent(deps2.workspace, intakeId, {
     at,
     type: "delta_analysis_completed",
     items: analysis.items.length,
@@ -107174,7 +107219,7 @@ function runIntakeDiscovery(deps, intakeId, options = {}) {
   const blockedItemIds = analysis.items.filter(
     (item) => item.classification === "UNKNOWN_PRODUCT_AUTHORITY" || item.classification === "CONTRADICTION" || item.classification === "EXISTING_SEALED_CONTRACT_CHANGE"
   ).map((item) => item.itemId);
-  const compiled = compileMissionTruth(missionDepsOf(deps), deps, {
+  const compiled = compileMissionTruth(missionDepsOf(deps2), deps2, {
     intakeId,
     missionId: intake.missionId,
     source,
@@ -107189,11 +107234,11 @@ function runIntakeDiscovery(deps, intakeId, options = {}) {
       ...question.deltaItemId !== void 0 ? { deltaItemId: question.deltaItemId } : {}
     }))
   });
-  let mission = requireMissionState(deps.workspace, intake.missionId);
-  let missionCoverage = refreshCoverage(missionDepsOf(deps), mission);
+  let mission = requireMissionState(deps2.workspace, intake.missionId);
+  let missionCoverage = refreshCoverage(missionDepsOf(deps2), mission);
   const unknownRequired = missionCoverage.topics.filter((topic) => topic.required && topic.status === "unknown").map((topic) => topic.topicId);
   if (unknownRequired.length > 0) {
-    const topicAdmission = admitAndRecord(deps, {
+    const topicAdmission = admitAndRecord(deps2, {
       intakeId,
       missionId: intake.missionId,
       candidates: generateRequiredTopicCandidates(unknownRequired),
@@ -107206,9 +107251,9 @@ function runIntakeDiscovery(deps, intakeId, options = {}) {
     questionSequence = topicAdmission.nextQuestionSequence;
     refusalSequence = topicAdmission.nextRefusalSequence;
     newQuestions.push(...topicAdmission.opened);
-    questions = readQuestions2(deps.workspace, intakeId);
-    mission = requireMissionState(deps.workspace, intake.missionId);
-    missionCoverage = refreshCoverage(missionDepsOf(deps), mission);
+    questions = readQuestions2(deps2.workspace, intakeId);
+    mission = requireMissionState(deps2.workspace, intake.missionId);
+    missionCoverage = refreshCoverage(missionDepsOf(deps2), mission);
   }
   const coverage = reconcileCoverage({
     chunks: source.chunks,
@@ -107217,7 +107262,7 @@ function runIntakeDiscovery(deps, intakeId, options = {}) {
     evidence: grounding.evidence,
     overflowItemIds: compiled.overflowItemIds
   });
-  appendIntakeEvent(deps.workspace, intakeId, {
+  appendIntakeEvent(deps2.workspace, intakeId, {
     at,
     type: "coverage_reconciled",
     unaccounted: coverage.filter((entry2) => entry2.state === "UNACCOUNTED").length,
@@ -107229,29 +107274,29 @@ function runIntakeDiscovery(deps, intakeId, options = {}) {
     questions,
     missionCoverage,
     overflowed: compiled.overflowItemIds.length > 0,
-    productContractCount: readContractRegistry(deps.workspace, intake.missionId).filter(
+    productContractCount: readContractRegistry(deps2.workspace, intake.missionId).filter(
       (contract) => contract.status !== "superseded"
     ).length
   });
   const openCount = questions.filter((question) => question.status === "open").length;
   const status = readiness.ready ? "READY_FOR_APPROVAL" : openCount > 0 ? "AWAITING_PRODUCT_ANSWERS" : "DISCOVERING";
   if (status !== intake.status && intake.status !== "APPROVED" && intake.status !== "BUILDING") {
-    appendIntakeEvent(deps.workspace, intakeId, {
+    appendIntakeEvent(deps2.workspace, intakeId, {
       at,
       type: "status_changed",
       from: intake.status,
       to: status
     });
     if (status === "READY_FOR_APPROVAL") {
-      appendIntakeEvent(deps.workspace, intakeId, {
+      appendIntakeEvent(deps2.workspace, intakeId, {
         at,
         type: "ready_for_approval",
-        contracts: readContractRegistry(deps.workspace, intake.missionId).length,
+        contracts: readContractRegistry(deps2.workspace, intake.missionId).length,
         criteria: mission.successCriteria.length
       });
     }
   }
-  intake = writeIntakeState(deps.workspace, {
+  intake = writeIntakeState(deps2.workspace, {
     ...intake,
     status: intake.status === "APPROVED" || intake.status === "BUILDING" || intake.status === "BUILT" ? intake.status : status,
     counters: {
@@ -107260,7 +107305,7 @@ function runIntakeDiscovery(deps, intakeId, options = {}) {
       deltaItems: analysis.items.length,
       questionsAsked: questions.length,
       questionsAnswered: questions.filter((question) => question.status === "answered").length,
-      questionsRefused: readRefusals(deps.workspace, intakeId).length,
+      questionsRefused: readRefusals(deps2.workspace, intakeId).length,
       groundingPasses: intake.counters.groundingPasses + 1
     },
     sequences: {
@@ -107277,14 +107322,14 @@ function runIntakeDiscovery(deps, intakeId, options = {}) {
     analysis,
     questions,
     newQuestions,
-    refusals: readRefusals(deps.workspace, intakeId),
+    refusals: readRefusals(deps2.workspace, intakeId),
     coverage,
     readiness,
     missionCoverage
   };
 }
-function answerIntakeQuestion(deps, intakeId, request, options = {}) {
-  const intake = requireIntakeState(deps.workspace, intakeId);
+function answerIntakeQuestion(deps2, intakeId, request, options = {}) {
+  const intake = requireIntakeState(deps2.workspace, intakeId);
   if (intake.status === "APPROVED" || intake.status === "BUILDING" || intake.status === "BUILT") {
     throw new IntakeError(
       "SBI003",
@@ -107296,7 +107341,7 @@ function answerIntakeQuestion(deps, intakeId, request, options = {}) {
       }
     );
   }
-  const questions = readQuestions2(deps.workspace, intakeId);
+  const questions = readQuestions2(deps2.workspace, intakeId);
   const question = questions.find((candidate) => candidate.questionId === request.questionId);
   if (question === void 0) {
     throw new IntakeError("SBI005", `No product question "${request.questionId}" on this intake.`, {
@@ -107316,8 +107361,8 @@ function answerIntakeQuestion(deps, intakeId, request, options = {}) {
       `Question ${request.questionId} was never mirrored into the mission and cannot record a governed answer.`
     );
   }
-  const at = nowIso5(deps);
-  const result = answerQuestion(missionDepsOf(deps), intake.missionId, {
+  const at = nowIso5(deps2);
+  const result = answerQuestion(missionDepsOf(deps2), intake.missionId, {
     questionId: question.missionQuestionId,
     answer
   });
@@ -107328,14 +107373,14 @@ function answerIntakeQuestion(deps, intakeId, request, options = {}) {
     answeredAt: at,
     decisionId: result.decision.decisionId
   };
-  appendQuestion2(deps.workspace, intakeId, answered);
-  appendIntakeEvent(deps.workspace, intakeId, {
+  appendQuestion2(deps2.workspace, intakeId, answered);
+  appendIntakeEvent(deps2.workspace, intakeId, {
     at,
     type: "question_answered",
     questionId: answered.questionId,
     decisionId: result.decision.decisionId
   });
-  writeIntakeState(deps.workspace, {
+  writeIntakeState(deps2.workspace, {
     ...intake,
     counters: {
       ...intake.counters,
@@ -107343,23 +107388,23 @@ function answerIntakeQuestion(deps, intakeId, request, options = {}) {
       questionsAnswered: intake.counters.questionsAnswered + 1
     }
   });
-  const discovery = runIntakeDiscovery(deps, intakeId, options);
+  const discovery = runIntakeDiscovery(deps2, intakeId, options);
   return { question: answered, intake: discovery.intake, discovery };
 }
-function approveIntake(deps, request) {
-  const intake = requireIntakeState(deps.workspace, request.intakeId);
+function approveIntake(deps2, request) {
+  const intake = requireIntakeState(deps2.workspace, request.intakeId);
   if (intake.status === "ABANDONED") {
     throw new IntakeError("SBI004", `Spec intake ${request.intakeId} is ABANDONED.`);
   }
-  const existing = readApproval(deps.workspace, request.intakeId);
+  const existing = readApproval(deps2.workspace, request.intakeId);
   if (existing !== void 0) {
     return {
       approval: existing,
       intake,
-      summary: summaryOf(deps, intake)
+      summary: summaryOf(deps2, intake)
     };
   }
-  const discovery = runIntakeDiscovery(deps, request.intakeId);
+  const discovery = runIntakeDiscovery(deps2, request.intakeId);
   if (!discovery.readiness.ready) {
     throw new IntakeError(
       "SBI010",
@@ -107380,23 +107425,23 @@ function approveIntake(deps, request) {
       }
     );
   }
-  const mission = requireMissionState(deps.workspace, intake.missionId);
-  const contracts = readContractRegistry(deps.workspace, intake.missionId);
-  const constitution = readConstitution(deps.workspace, intake.missionId);
-  const adrs = readAdrs(deps.workspace, intake.missionId);
-  const decisions = readDecisions(deps.workspace, intake.missionId).filter(
+  const mission = requireMissionState(deps2.workspace, intake.missionId);
+  const contracts = readContractRegistry(deps2.workspace, intake.missionId);
+  const constitution = readConstitution(deps2.workspace, intake.missionId);
+  const adrs = readAdrs(deps2.workspace, intake.missionId);
+  const decisions = readDecisions(deps2.workspace, intake.missionId).filter(
     (decision) => decision.status === "active"
   );
-  const source = requireSpecSource(deps.workspace, request.intakeId);
-  const at = nowIso5(deps);
+  const source = requireSpecSource(deps2.workspace, request.intakeId);
+  const at = nowIso5(deps2);
   const approval = writeApproval(
-    deps.workspace,
+    deps2.workspace,
     buildIntakeApproval({
-      approvalId: request.approvalId ?? newRecordId2(deps, "approval"),
+      approvalId: request.approvalId ?? newRecordId2(deps2, "approval"),
       intakeId: request.intakeId,
       missionId: intake.missionId,
       approvedAt: at,
-      approvedVia: request.via ?? hostOf2(deps),
+      approvedVia: request.via ?? hostOf2(deps2),
       source,
       mission,
       contracts,
@@ -107409,7 +107454,7 @@ function approveIntake(deps, request) {
       allowedLanes: request.allowedLanes ?? ["LOCAL", "SUBSCRIPTION"]
     })
   );
-  appendIntakeEvent(deps.workspace, request.intakeId, {
+  appendIntakeEvent(deps2.workspace, request.intakeId, {
     at,
     type: "intake_approved",
     approvalId: approval.approvalId,
@@ -107419,13 +107464,13 @@ function approveIntake(deps, request) {
     criteria: approval.acceptanceCriteria.length,
     answeredQuestions: approval.resolvedQuestions.length
   });
-  appendIntakeEvent(deps.workspace, request.intakeId, {
+  appendIntakeEvent(deps2.workspace, request.intakeId, {
     at,
     type: "status_changed",
     from: intake.status,
     to: "APPROVED"
   });
-  const approved = writeIntakeState(deps.workspace, {
+  const approved = writeIntakeState(deps2.workspace, {
     ...intake,
     status: "APPROVED",
     approvalId: approval.approvalId,
@@ -107435,7 +107480,7 @@ function approveIntake(deps, request) {
       authorityApprovalCount: intake.counters.authorityApprovalCount + 1
     }
   });
-  recordBaselineEntry(deps, approved, approval, discovery.analysis);
+  recordBaselineEntry(deps2, approved, approval, discovery.analysis);
   return {
     approval,
     intake: approved,
@@ -107447,25 +107492,25 @@ function approveIntake(deps, request) {
     })
   };
 }
-function describeIntake(deps, intakeId) {
-  const intake = requireIntakeState(deps.workspace, intakeId);
-  const contracts = readContractRegistry(deps.workspace, intake.missionId);
+function describeIntake(deps2, intakeId) {
+  const intake = requireIntakeState(deps2.workspace, intakeId);
+  const contracts = readContractRegistry(deps2.workspace, intake.missionId);
   return {
     intake,
-    source: readSpecSource(deps.workspace, intakeId),
-    grounding: readGrounding(deps.workspace, intakeId),
-    analysis: readDeltaAnalysis(deps.workspace, intakeId),
-    questions: readQuestions2(deps.workspace, intakeId),
-    refusals: readRefusals(deps.workspace, intakeId),
-    approval: readApproval(deps.workspace, intakeId),
-    lifecycle: readLifecycle(deps.workspace, intakeId),
-    summary: summaryOf(deps, intake),
-    missionCoverage: readCoverage(deps.workspace, intake.missionId),
+    source: readSpecSource(deps2.workspace, intakeId),
+    grounding: readGrounding(deps2.workspace, intakeId),
+    analysis: readDeltaAnalysis(deps2.workspace, intakeId),
+    questions: readQuestions2(deps2.workspace, intakeId),
+    refusals: readRefusals(deps2.workspace, intakeId),
+    approval: readApproval(deps2.workspace, intakeId),
+    lifecycle: readLifecycle(deps2.workspace, intakeId),
+    summary: summaryOf(deps2, intake),
+    missionCoverage: readCoverage(deps2.workspace, intake.missionId),
     contracts
   };
 }
-function requireIntakeFor(deps, subject) {
-  const found = findIntake(deps.workspace, subject);
+function requireIntakeFor(deps2, subject) {
+  const found = findIntake(deps2.workspace, subject);
   if (found === void 0) {
     throw new IntakeError("SBI001", `No spec intake matches "${subject}".`, {
       remediation: [
@@ -107476,39 +107521,39 @@ function requireIntakeFor(deps, subject) {
   }
   return found;
 }
-function abandonIntake(deps, intakeId, reason) {
-  const intake = requireIntakeState(deps.workspace, intakeId);
+function abandonIntake(deps2, intakeId, reason) {
+  const intake = requireIntakeState(deps2.workspace, intakeId);
   if (intake.status === "ABANDONED") return intake;
-  const at = nowIso5(deps);
-  appendIntakeEvent(deps.workspace, intakeId, {
+  const at = nowIso5(deps2);
+  appendIntakeEvent(deps2.workspace, intakeId, {
     at,
     type: "intake_abandoned",
     reason: clip(reason, 500)
   });
-  return writeIntakeState(deps.workspace, {
+  return writeIntakeState(deps2.workspace, {
     ...intake,
     status: "ABANDONED",
     abandonedAt: at,
     abandonReason: clip(reason, INTAKE_LIMITS.maxTextChars)
   });
 }
-function summaryOf(deps, intake) {
-  const analysis = readDeltaAnalysis(deps.workspace, intake.intakeId);
+function summaryOf(deps2, intake) {
+  const analysis = readDeltaAnalysis(deps2.workspace, intake.intakeId);
   if (analysis === void 0) return void 0;
   return buildApprovalSummary({
-    mission: requireMissionState(deps.workspace, intake.missionId),
-    contracts: readContractRegistry(deps.workspace, intake.missionId),
+    mission: requireMissionState(deps2.workspace, intake.missionId),
+    contracts: readContractRegistry(deps2.workspace, intake.missionId),
     analysis,
-    questions: readQuestions2(deps.workspace, intake.intakeId)
+    questions: readQuestions2(deps2.workspace, intake.intakeId)
   });
 }
-function admitAndRecord(deps, input) {
+function admitAndRecord(deps2, input) {
   const admission = admitQuestions({
     candidates: input.candidates,
     context: {
       chunks: input.chunks,
       evidence: input.evidence,
-      existing: readQuestions2(deps.workspace, input.intakeId)
+      existing: readQuestions2(deps2.workspace, input.intakeId)
     },
     at: input.at,
     questionSequence: input.questionSequence,
@@ -107516,7 +107561,7 @@ function admitAndRecord(deps, input) {
   });
   const opened = [];
   if (admission.questions.length > 0) {
-    const assessment = recordAssessment(missionDepsOf(deps), input.missionId, {
+    const assessment = recordAssessment(missionDepsOf(deps2), input.missionId, {
       questions: admission.questions.map((question) => ({
         question: question.question,
         whyItMatters: question.whyItMatters,
@@ -107532,9 +107577,9 @@ function admitAndRecord(deps, input) {
         ...question,
         ...missionQuestionId !== void 0 ? { missionQuestionId } : {}
       };
-      appendQuestion2(deps.workspace, input.intakeId, stored);
+      appendQuestion2(deps2.workspace, input.intakeId, stored);
       opened.push(stored);
-      appendIntakeEvent(deps.workspace, input.intakeId, {
+      appendIntakeEvent(deps2.workspace, input.intakeId, {
         at: input.at,
         type: "question_opened",
         questionId: stored.questionId,
@@ -107545,8 +107590,8 @@ function admitAndRecord(deps, input) {
     });
   }
   for (const refusal of admission.refusals) {
-    appendRefusal(deps.workspace, input.intakeId, refusal);
-    appendIntakeEvent(deps.workspace, input.intakeId, {
+    appendRefusal(deps2.workspace, input.intakeId, refusal);
+    appendIntakeEvent(deps2.workspace, input.intakeId, {
       at: input.at,
       type: "question_refused",
       refusalId: refusal.refusalId,
@@ -107573,8 +107618,8 @@ function deriveGoal(chunks, name) {
   const derived = opening !== void 0 ? firstSentence(opening.text, 600) : "";
   return derived.length >= 12 ? derived : `Deliver the ${name} feature as specified.`;
 }
-function recordBaselineEntry(deps, intake, approval, analysis) {
-  const baseline = readProductBaseline(deps.workspace);
+function recordBaselineEntry(deps2, intake, approval, analysis) {
+  const baseline = readProductBaseline(deps2.workspace);
   const predecessorSealIds = baseline.features.filter((feature) => feature.sealId !== void 0 && feature.intakeId !== intake.intakeId).map((feature) => feature.sealId);
   const entry2 = {
     intakeId: intake.intakeId,
@@ -107589,19 +107634,19 @@ function recordBaselineEntry(deps, intake, approval, analysis) {
     implementationCommits: []
   };
   const features = baseline.features.filter((feature) => feature.intakeId !== intake.intakeId);
-  writeProductBaseline(deps.workspace, {
+  writeProductBaseline(deps2.workspace, {
     ...baseline,
     updatedAt: approval.approvedAt,
     features: [...features, entry2].slice(-INTAKE_LIMITS.maxItems)
   });
-  appendIntakeEvent(deps.workspace, intake.intakeId, {
+  appendIntakeEvent(deps2.workspace, intake.intakeId, {
     at: approval.approvedAt,
     type: "baseline_recorded",
     predecessors: predecessorSealIds.length
   });
 }
-function recordFeatureOutcome(deps, intakeId, outcome) {
-  const baseline = readProductBaseline(deps.workspace);
+function recordFeatureOutcome(deps2, intakeId, outcome) {
+  const baseline = readProductBaseline(deps2.workspace);
   const index = baseline.features.findIndex((feature) => feature.intakeId === intakeId);
   if (index < 0) return;
   const existing = baseline.features[index];
@@ -107617,29 +107662,29 @@ function recordFeatureOutcome(deps, intakeId, outcome) {
   };
   const features = [...baseline.features];
   features[index] = updated;
-  writeProductBaseline(deps.workspace, {
+  writeProductBaseline(deps2.workspace, {
     ...baseline,
-    updatedAt: nowIso5(deps),
+    updatedAt: nowIso5(deps2),
     features
   });
 }
-function listSpecIntakes(deps) {
-  return listIntakes(deps.workspace);
+function listSpecIntakes(deps2) {
+  return listIntakes(deps2.workspace);
 }
 var INTAKE_TELEMETRY_SCHEMA_VERSION = "1.0.0";
-function computeIntakeTelemetry(deps, intakeId) {
-  const intake = requireIntakeState(deps.workspace, intakeId);
-  const approval = readApproval(deps.workspace, intakeId);
-  const questions = readQuestions2(deps.workspace, intakeId);
-  const refusals = readRefusals(deps.workspace, intakeId);
+function computeIntakeTelemetry(deps2, intakeId) {
+  const intake = requireIntakeState(deps2.workspace, intakeId);
+  const approval = readApproval(deps2.workspace, intakeId);
+  const questions = readQuestions2(deps2.workspace, intakeId);
+  const refusals = readRefusals(deps2.workspace, intakeId);
   let autonomy;
   if (intake.jobId !== void 0) {
-    autonomy = readAutonomyTelemetry(deps.workspace, intake.jobId) ?? safeCompute(deps, intake.jobId);
+    autonomy = readAutonomyTelemetry(deps2.workspace, intake.jobId) ?? safeCompute(deps2, intake.jobId);
   }
   return intakeTelemetrySchema.parse({
     schemaVersion: INTAKE_TELEMETRY_SCHEMA_VERSION,
     intakeId,
-    recordedAt: nowIso5(deps),
+    recordedAt: nowIso5(deps2),
     status: intake.status,
     discoveryHumanTurns: intake.counters.discoveryHumanTurns,
     productQuestionsAsked: questions.length,
@@ -107652,12 +107697,952 @@ function computeIntakeTelemetry(deps, intakeId) {
     ...intake.sealId !== void 0 ? { sealId: intake.sealId } : {}
   });
 }
-function safeCompute(deps, jobId) {
+function safeCompute(deps2, jobId) {
   try {
-    return computeAutonomyTelemetry(autonomyDepsOf(deps), { jobId });
+    return computeAutonomyTelemetry(autonomyDepsOf(deps2), { jobId });
   } catch {
     return void 0;
   }
+}
+var BOOTSTRAP_SCHEMA_VERSION = "1.0.0";
+var BOOTSTRAP_LIMITS = {
+  maxRepositories: 12,
+  maxFindingsPerCategory: 40,
+  maxEvidencePerFinding: 8,
+  maxUncertainties: 40,
+  maxProductTruthRefs: 300,
+  maxTextChars: 600,
+  maxIdChars: 128,
+  maxPathChars: 512
+};
+var shortText24 = external_exports.string().min(1).max(BOOTSTRAP_LIMITS.maxTextChars);
+var idText = external_exports.string().min(1).max(BOOTSTRAP_LIMITS.maxIdChars);
+var pathText2 = external_exports.string().max(BOOTSTRAP_LIMITS.maxPathChars);
+var SYSTEM_EVIDENCE_CLASSES = [
+  "SEALED_PRODUCT_TRUTH",
+  "DOCUMENTED_ARCHITECTURE",
+  "OBSERVED_IMPLEMENTATION",
+  "INFERRED_PATTERN"
+];
+var systemEvidenceRefSchema = external_exports.object({
+  /** Which repository the evidence lives in. */
+  repositoryId: idText,
+  /** Repository-relative path, forward slashes, when the source is a file. */
+  path: pathText2.optional(),
+  /** The declared symbol the finding is about, when one names it. */
+  symbol: shortText24.optional(),
+  /** 1-based line range, when known. */
+  startLine: external_exports.number().int().min(1).optional(),
+  endLine: external_exports.number().int().min(1).optional(),
+  /** SHA-256 of the file bytes the finding described, when file-backed. */
+  contentHash: shortText24.optional(),
+  /** Product-truth locators, when the source is SpecBridge state. */
+  missionId: idText.optional(),
+  contractId: idText.optional(),
+  contractRevision: external_exports.number().int().min(1).optional(),
+  adrId: idText.optional(),
+  decisionId: idText.optional(),
+  ruleId: idText.optional(),
+  sealId: idText.optional()
+}).passthrough().refine(
+  (ref) => ref.path !== void 0 || ref.contractId !== void 0 || ref.adrId !== void 0 || ref.decisionId !== void 0 || ref.ruleId !== void 0 || ref.sealId !== void 0,
+  { message: "an evidence ref must locate a file or a product-truth record" }
+);
+var systemFindingSchema = external_exports.object({
+  findingId: idText,
+  class: external_exports.enum(SYSTEM_EVIDENCE_CLASSES),
+  statement: shortText24,
+  evidence: external_exports.array(systemEvidenceRefSchema).min(1).max(BOOTSTRAP_LIMITS.maxEvidencePerFinding)
+}).passthrough();
+var systemUncertaintySchema = external_exports.object({
+  area: shortText24,
+  detail: shortText24
+}).passthrough();
+var productTruthReferenceSchema = external_exports.object({
+  kind: external_exports.enum(["contract", "constitution-rule", "adr", "decision", "seal"]),
+  missionId: idText,
+  ref: idText,
+  revision: external_exports.number().int().min(1).optional(),
+  title: shortText24
+}).passthrough();
+var repositorySnapshotIdentitySchema = external_exports.object({
+  repositoryId: idText,
+  relPath: pathText2,
+  role: shortText24.optional(),
+  /** Git HEAD at snapshot time; null when not a git repository (or unborn). */
+  gitHead: shortText24.nullable().default(null),
+  /** Indexed file count attributed to this repository. */
+  indexedFiles: external_exports.number().int().min(0).default(0)
+}).passthrough();
+var SNAPSHOT_MODES = ["BROWNFIELD", "GREENFIELD", "PARTIAL"];
+var findings = external_exports.array(systemFindingSchema).max(BOOTSTRAP_LIMITS.maxFindingsPerCategory).default([]);
+var currentSystemSnapshotSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  snapshotId: idText,
+  /** Stable digest of the workspace root, same derivation as the index. */
+  workspaceKey: idText,
+  createdAt: shortText24,
+  repositories: external_exports.array(repositorySnapshotIdentitySchema).min(1).max(BOOTSTRAP_LIMITS.maxRepositories),
+  mode: external_exports.enum(SNAPSHOT_MODES),
+  architecture: findings,
+  capabilities: findings,
+  publicSurfaces: findings,
+  domainObjects: findings,
+  implementationPatterns: findings,
+  constraints: findings,
+  uncertainties: external_exports.array(systemUncertaintySchema).max(BOOTSTRAP_LIMITS.maxUncertainties).default([]),
+  existingProductTruth: external_exports.array(productTruthReferenceSchema).max(BOOTSTRAP_LIMITS.maxProductTruthRefs).default([]),
+  /** Bounded facts about the index this snapshot was synthesized from. */
+  indexStats: external_exports.object({
+    entries: external_exports.number().int().min(0),
+    truncated: external_exports.boolean(),
+    skipped: external_exports.number().int().min(0).default(0)
+  }).passthrough(),
+  /** Hash over the material content, for change detection and identity. */
+  contentHash: idText
+}).passthrough();
+function allFindings(snapshot2) {
+  return [
+    ...snapshot2.architecture.map((finding2) => ({ category: "architecture", finding: finding2 })),
+    ...snapshot2.capabilities.map((finding2) => ({ category: "capability", finding: finding2 })),
+    ...snapshot2.publicSurfaces.map((finding2) => ({ category: "public-surface", finding: finding2 })),
+    ...snapshot2.domainObjects.map((finding2) => ({ category: "domain-object", finding: finding2 })),
+    ...snapshot2.implementationPatterns.map((finding2) => ({
+      category: "implementation-pattern",
+      finding: finding2
+    })),
+    ...snapshot2.constraints.map((finding2) => ({ category: "constraint", finding: finding2 }))
+  ];
+}
+var repositoryManifestSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/).default("1.0.0"),
+  repositories: external_exports.array(
+    external_exports.object({
+      id: external_exports.string().min(1).max(64).regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/),
+      /** Workspace-relative directory. Must stay inside the workspace. */
+      path: pathText2,
+      role: shortText24.optional()
+    }).passthrough()
+  ).min(1).max(BOOTSTRAP_LIMITS.maxRepositories)
+}).passthrough();
+function repositoryManifestFile(workspace) {
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path92.default.join(workspace.sidecarDir, "repositories.json")
+  );
+}
+var DETECTION_DENYLIST = /* @__PURE__ */ new Set([
+  ".git",
+  ".kiro",
+  ".specbridge",
+  "node_modules",
+  "dist",
+  "build",
+  "target",
+  "out",
+  "coverage",
+  "vendor"
+]);
+function readRepositoryManifest(workspace) {
+  const file = repositoryManifestFile(workspace);
+  if (!(0, import_fs83.existsSync)(file)) return void 0;
+  let raw;
+  try {
+    raw = JSON.parse((0, import_fs83.readFileSync)(file, "utf8"));
+  } catch (cause) {
+    throw new IntakeError("SBI018", `The repository manifest at ${file} is not valid JSON.`, {
+      remediation: ["Fix or delete .specbridge/repositories.json; without it the workspace root is the repository."],
+      details: { cause: cause instanceof Error ? cause.message : String(cause) }
+    });
+  }
+  return repositoryManifestSchema.parse(raw);
+}
+function resolveRepositories(workspace) {
+  const notes = [];
+  const manifest = readRepositoryManifest(workspace);
+  if (manifest !== void 0) {
+    const seen = /* @__PURE__ */ new Set();
+    const repositories = manifest.repositories.map((entry2) => {
+      if (seen.has(entry2.id)) {
+        throw new IntakeError("SBI018", `The repository manifest names "${entry2.id}" twice.`);
+      }
+      seen.add(entry2.id);
+      const absDir = assertInsideWorkspace(workspace.rootDir, entry2.path);
+      if (!(0, import_fs83.existsSync)(absDir) || !(0, import_fs83.statSync)(absDir).isDirectory()) {
+        throw new IntakeError(
+          "SBI018",
+          `The repository manifest names "${entry2.id}" at ${entry2.path}, which is not a directory.`,
+          {
+            remediation: [
+              "Repository paths are workspace-relative and must exist. External sibling repositories are not supported; place repository roots inside the workspace."
+            ]
+          }
+        );
+      }
+      return resolved(workspace, entry2.id, absDir, entry2.role);
+    });
+    return { repositories, source: "manifest", notes };
+  }
+  const children = [];
+  try {
+    for (const entry2 of (0, import_fs83.readdirSync)(workspace.rootDir, { withFileTypes: true })) {
+      if (!entry2.isDirectory()) continue;
+      if (DETECTION_DENYLIST.has(entry2.name) || entry2.name.startsWith(".")) continue;
+      const absDir = import_path92.default.join(workspace.rootDir, entry2.name);
+      if (!(0, import_fs83.existsSync)(import_path92.default.join(absDir, ".git"))) continue;
+      if (children.length >= BOOTSTRAP_LIMITS.maxRepositories) {
+        notes.push("More child repositories exist than the bootstrap bound; declare a manifest to choose.");
+        break;
+      }
+      children.push(resolved(workspace, entry2.name, absDir, void 0));
+    }
+  } catch (cause) {
+    notes.push(`The workspace root could not be listed: ${cause instanceof Error ? cause.message : String(cause)}.`);
+  }
+  if (children.length > 0) {
+    const rootIsRepo = (0, import_fs83.existsSync)(import_path92.default.join(workspace.rootDir, ".git"));
+    const repositories = rootIsRepo ? [resolved(workspace, rootRepositoryId(workspace), workspace.rootDir, void 0), ...children] : children;
+    return {
+      repositories: repositories.slice(0, BOOTSTRAP_LIMITS.maxRepositories),
+      source: "detected-children",
+      notes
+    };
+  }
+  return {
+    repositories: [resolved(workspace, rootRepositoryId(workspace), workspace.rootDir, void 0)],
+    source: "workspace-root",
+    notes
+  };
+}
+function rootRepositoryId(workspace) {
+  const base = import_path92.default.basename(workspace.rootDir).replace(/[^A-Za-z0-9._-]/g, "-").replace(/^[^A-Za-z0-9]+/, "");
+  return base.length > 0 ? base.slice(0, 64) : "workspace";
+}
+function resolved(workspace, repositoryId, absDir, role) {
+  const relPath2 = import_path92.default.relative(workspace.rootDir, absDir).replace(/\\/g, "/");
+  return {
+    repositoryId,
+    relPath: relPath2,
+    ...role !== void 0 ? { role } : {},
+    absDir,
+    gitHead: readGitHead(absDir),
+    isGitRepository: (0, import_fs83.existsSync)(import_path92.default.join(absDir, ".git"))
+  };
+}
+function repositoryOfPath(repositories, workspaceRelativePath) {
+  const normalized = workspaceRelativePath.replace(/\\/g, "/");
+  let best;
+  let bestLength = -1;
+  for (const repo of repositories) {
+    if (repo.relPath === "") {
+      if (bestLength < 0) {
+        best = repo;
+        bestLength = 0;
+      }
+      continue;
+    }
+    const prefix = `${repo.relPath}/`;
+    if ((normalized === repo.relPath || normalized.startsWith(prefix)) && repo.relPath.length > bestLength) {
+      best = repo;
+      bestLength = repo.relPath.length;
+    }
+  }
+  return best;
+}
+function repositoryRelativePath(repository, workspaceRelativePath) {
+  const normalized = workspaceRelativePath.replace(/\\/g, "/");
+  if (repository.relPath === "") return normalized;
+  const prefix = `${repository.relPath}/`;
+  return normalized.startsWith(prefix) ? normalized.slice(prefix.length) : normalized;
+}
+var CAPABILITY_SUFFIXES = [
+  "Service",
+  "Scheduler",
+  "Manager",
+  "Registry",
+  "Audit",
+  "Auditor",
+  "AuditLog",
+  "Engine",
+  "Gateway",
+  "Orchestrator",
+  "Dispatcher",
+  "Coordinator",
+  "Provider",
+  "Authenticator",
+  "Authorizer"
+];
+var DOMAIN_NOISE_PATTERN = /(Error|Exception|Config(uration)?|Options?|Utils?|Helper|Factory|Builder|Test|Mock|Stub|Fixture|Impl|Base|Abstract|Props|State|Context|Provider|Module|Plugin|Constants?)$/;
+var PUBLIC_INTERFACE_FILE_PATTERNS = [
+  /(^|\/)openapi\.(ya?ml|json)$/i,
+  /(^|\/)swagger\.(ya?ml|json)$/i,
+  /\.proto$/i,
+  /\.graphql$/i,
+  /\.avsc$/i,
+  /(^|\/)schema\.(json|sql|graphql)$/i,
+  /(^|\/)index\.d\.ts$/i
+];
+var MIGRATION_PATH_PATTERN = /(^|\/)(migrations?|db\/migrate|flyway|liquibase)(\/|$)/i;
+var DEPENDENCY_ARCHITECTURE = [
+  { pattern: /spring-?boot|springframework\.boot/i, label: "Spring Boot backend framework" },
+  { pattern: /"react"/, label: "React frontend" },
+  { pattern: /"vue"/, label: "Vue frontend" },
+  { pattern: /"next"/, label: "Next.js frontend framework" },
+  { pattern: /"express"/, label: "Express HTTP server" },
+  { pattern: /"fastify"/, label: "Fastify HTTP server" },
+  { pattern: /\bkafka\b/i, label: "Kafka messaging" },
+  { pattern: /rabbitmq|amqp/i, label: "AMQP messaging" },
+  { pattern: /postgres|postgresql|\bpg\b/i, label: "PostgreSQL persistence" },
+  { pattern: /\bmysql\b/i, label: "MySQL persistence" },
+  { pattern: /mongodb|mongoose/i, label: "MongoDB persistence" },
+  { pattern: /\bredis\b/i, label: "Redis" },
+  { pattern: /prometheus|micrometer/i, label: "Prometheus metrics integration" },
+  { pattern: /grafana/i, label: "Grafana integration" },
+  { pattern: /kubernetes|k8s|client-java|kubectl/i, label: "Kubernetes integration" },
+  { pattern: /grpc/i, label: "gRPC communication" },
+  { pattern: /graphql/i, label: "GraphQL API" },
+  { pattern: /testcontainers/i, label: "Testcontainers-based integration testing" }
+];
+var MANIFEST_BASENAMES = /* @__PURE__ */ new Set([
+  "package.json",
+  "build.gradle",
+  "build.gradle.kts",
+  "settings.gradle",
+  "settings.gradle.kts",
+  "pom.xml",
+  "go.mod",
+  "cargo.toml",
+  "pyproject.toml",
+  "requirements.txt",
+  "gemfile",
+  "docker-compose.yml",
+  "docker-compose.yaml"
+]);
+var MAX_MANIFEST_READ_BYTES = 262144;
+function synthesizeSystemFindings(input) {
+  const ids = idFactory();
+  const entries = input.index.entries;
+  const uncertainties = [];
+  for (const note of input.notes ?? []) {
+    uncertainties.push({ area: "repository resolution", detail: clip3(note) });
+  }
+  const fileRef = (entry2, symbol) => {
+    const repo = repositoryOfPath(input.repositories, entry2.path);
+    return {
+      repositoryId: repo?.repositoryId ?? "workspace",
+      path: repo !== void 0 ? repositoryRelativePath(repo, entry2.path) : entry2.path,
+      contentHash: entry2.contentHash,
+      ...symbol !== void 0 ? { symbol } : {}
+    };
+  };
+  const contracts = safeContracts2(input.workspace);
+  const rules = safeRules(input.workspace);
+  const truth = [];
+  for (const owned of contracts) {
+    truth.push({
+      kind: "contract",
+      missionId: owned.missionId,
+      ref: owned.contract.contractId,
+      revision: owned.contract.revision,
+      title: clip3(`${owned.contract.title} \u2014 ${owned.contract.summary}`)
+    });
+  }
+  for (const rule of rules) {
+    truth.push({
+      kind: "constitution-rule",
+      missionId: rule.missionId,
+      ref: rule.ruleId,
+      title: clip3(rule.statement)
+    });
+  }
+  for (const owned of contracts.slice(0, 3)) {
+    void owned;
+  }
+  for (const missionId of [...new Set(contracts.map((owned) => owned.missionId))]) {
+    for (const adr of safeAdrs(input.workspace, missionId)) {
+      if (adr.status !== "accepted") continue;
+      truth.push({
+        kind: "adr",
+        missionId,
+        ref: adr.adrId,
+        title: clip3(`${adr.title}: ${adr.decision}`)
+      });
+    }
+  }
+  for (const seal of safeSeals(input.workspace)) {
+    if (seal.status !== "SEALED") continue;
+    truth.push({
+      kind: "seal",
+      missionId: seal.missionId,
+      ref: seal.sealId,
+      title: clip3(
+        `sealed ${seal.contracts.length} contract(s), ${seal.acceptanceCriteria.length} acceptance criteria`
+      )
+    });
+  }
+  const constraints = [];
+  for (const owned of contracts) {
+    if (owned.contract.classification !== "public") continue;
+    constraints.push({
+      findingId: ids("con"),
+      class: "SEALED_PRODUCT_TRUTH",
+      statement: clip3(
+        `Existing compatibility promise: ${owned.contract.title} is ${owned.contract.compatibilityPolicy} (${owned.contract.contractId} r${owned.contract.revision}).`
+      ),
+      evidence: [
+        {
+          repositoryId: "specbridge",
+          missionId: owned.missionId,
+          contractId: owned.contract.contractId,
+          contractRevision: owned.contract.revision
+        }
+      ]
+    });
+  }
+  const architecture = [];
+  const sourceEntries = entries.filter((entry2) => entry2.kind === "source");
+  const languageCounts = /* @__PURE__ */ new Map();
+  for (const entry2 of sourceEntries) {
+    const existing = languageCounts.get(entry2.language);
+    if (existing === void 0) languageCounts.set(entry2.language, { count: 1, sample: entry2 });
+    else existing.count += 1;
+  }
+  const topLanguages = [...languageCounts.entries()].sort((a2, b) => b[1].count - a2[1].count).slice(0, 3);
+  if (topLanguages.length > 0) {
+    architecture.push({
+      findingId: ids("arc"),
+      class: "OBSERVED_IMPLEMENTATION",
+      statement: clip3(
+        `Primary implementation language(s): ${topLanguages.map(([language, info]) => `${language} (${info.count} source file(s))`).join(", ")}.`
+      ),
+      evidence: topLanguages.map(([, info]) => fileRef(info.sample))
+    });
+  }
+  const manifestEntries = entries.filter(
+    (entry2) => MANIFEST_BASENAMES.has(import_path93.default.posix.basename(entry2.path).toLowerCase())
+  );
+  const architectureLabels = /* @__PURE__ */ new Map();
+  for (const entry2 of manifestEntries.slice(0, 40)) {
+    const body = boundedRead(input.workspace, entry2.path);
+    if (body === void 0) {
+      uncertainties.push({
+        area: "build manifests",
+        detail: clip3(`${entry2.path} could not be read; dependency-derived findings may be missing.`)
+      });
+      continue;
+    }
+    for (const { pattern, label } of DEPENDENCY_ARCHITECTURE) {
+      if (pattern.test(body) && !architectureLabels.has(label)) {
+        architectureLabels.set(label, entry2);
+      }
+    }
+    const javaVersion = /(?:sourceCompatibility|languageVersion|maven\.compiler\.source|java\.version)\D{0,20}(\d{1,2})/.exec(
+      body
+    );
+    if (javaVersion !== null && entry2.path.match(/gradle|pom/i) !== null) {
+      constraints.push({
+        findingId: ids("con"),
+        class: "OBSERVED_IMPLEMENTATION",
+        statement: clip3(`The build declares Java ${javaVersion[1]}.`),
+        evidence: [fileRef(entry2)]
+      });
+    }
+    const engines = /"engines"\s*:\s*\{[^}]*"node"\s*:\s*"([^"]+)"/.exec(body);
+    if (engines !== null) {
+      constraints.push({
+        findingId: ids("con"),
+        class: "OBSERVED_IMPLEMENTATION",
+        statement: clip3(`The package declares a Node engine constraint of ${engines[1]}.`),
+        evidence: [fileRef(entry2)]
+      });
+    }
+  }
+  for (const [label, entry2] of [...architectureLabels.entries()].slice(
+    0,
+    BOOTSTRAP_LIMITS.maxFindingsPerCategory - architecture.length
+  )) {
+    architecture.push({
+      findingId: ids("arc"),
+      class: "OBSERVED_IMPLEMENTATION",
+      statement: clip3(`${label} (declared by ${import_path93.default.posix.basename(entry2.path)}).`),
+      evidence: [fileRef(entry2)]
+    });
+  }
+  const docEntries = entries.filter((entry2) => entry2.kind === "doc").filter(
+    (entry2) => /(^|\/)(readme|architecture|design|adr[s]?[/-]|docs\/)/i.test(entry2.path) || /(^|\/)docs\//i.test(entry2.path)
+  ).slice(0, 10);
+  for (const entry2 of docEntries) {
+    const heading = firstHeading(input.workspace, entry2.path);
+    architecture.push({
+      findingId: ids("arc"),
+      class: "DOCUMENTED_ARCHITECTURE",
+      statement: clip3(
+        heading !== void 0 ? `Documentation: "${heading}" (${entry2.path}).` : `Documentation present at ${entry2.path}.`
+      ),
+      evidence: [fileRef(entry2)]
+    });
+    if (architecture.length >= BOOTSTRAP_LIMITS.maxFindingsPerCategory) break;
+  }
+  const capabilities = [];
+  const capabilitySeen = /* @__PURE__ */ new Set();
+  const rankedSources = [...sourceEntries].sort(
+    (a2, b) => fanIn(input.index, b.path) - fanIn(input.index, a2.path)
+  );
+  for (const entry2 of rankedSources) {
+    for (const symbol of entry2.symbols) {
+      if (capabilitySeen.has(symbol)) continue;
+      const suffix = CAPABILITY_SUFFIXES.find((candidate) => symbol.endsWith(candidate));
+      if (suffix === void 0 || symbol.length <= suffix.length) continue;
+      capabilitySeen.add(symbol);
+      capabilities.push({
+        findingId: ids("cap"),
+        class: "OBSERVED_IMPLEMENTATION",
+        statement: clip3(`Existing capability: ${symbol} (${entry2.path}).`),
+        evidence: [fileRef(entry2, symbol)]
+      });
+      if (capabilities.length >= BOOTSTRAP_LIMITS.maxFindingsPerCategory) break;
+    }
+    if (capabilities.length >= BOOTSTRAP_LIMITS.maxFindingsPerCategory) break;
+  }
+  const domainObjects = [];
+  const domainSeen = /* @__PURE__ */ new Set();
+  for (const entry2 of rankedSources) {
+    for (const symbol of entry2.symbols) {
+      if (domainSeen.has(symbol) || capabilitySeen.has(symbol)) continue;
+      if (!/^[A-Z][A-Za-z0-9]{2,40}$/.test(symbol)) continue;
+      if (DOMAIN_NOISE_PATTERN.test(symbol)) continue;
+      if (CAPABILITY_SUFFIXES.some((suffix) => symbol.endsWith(suffix))) continue;
+      domainSeen.add(symbol);
+      domainObjects.push({
+        findingId: ids("dom"),
+        class: "OBSERVED_IMPLEMENTATION",
+        statement: clip3(`Domain object: ${symbol} (${entry2.path}).`),
+        evidence: [fileRef(entry2, symbol)]
+      });
+      if (domainObjects.length >= 20) break;
+    }
+    if (domainObjects.length >= 20) break;
+  }
+  const publicSurfaces = [];
+  for (const entry2 of entries) {
+    if (publicSurfaces.length >= BOOTSTRAP_LIMITS.maxFindingsPerCategory) break;
+    if (PUBLIC_INTERFACE_FILE_PATTERNS.some((pattern) => pattern.test(entry2.path))) {
+      publicSurfaces.push({
+        findingId: ids("pub"),
+        class: "OBSERVED_IMPLEMENTATION",
+        statement: clip3(`Public interface definition: ${entry2.path}.`),
+        evidence: [fileRef(entry2)]
+      });
+      continue;
+    }
+    if (MIGRATION_PATH_PATTERN.test(entry2.path) && entry2.kind !== "other") {
+      publicSurfaces.push({
+        findingId: ids("pub"),
+        class: "OBSERVED_IMPLEMENTATION",
+        statement: clip3(`Database migration surface: ${entry2.path}.`),
+        evidence: [fileRef(entry2)]
+      });
+    }
+  }
+  const controllerEntries = sourceEntries.filter(
+    (entry2) => entry2.symbols.some((symbol) => /Controller$/.test(symbol))
+  );
+  if (controllerEntries.length > 0 && publicSurfaces.length < BOOTSTRAP_LIMITS.maxFindingsPerCategory) {
+    publicSurfaces.push({
+      findingId: ids("pub"),
+      class: "OBSERVED_IMPLEMENTATION",
+      statement: clip3(
+        `HTTP controller surface: ${controllerEntries.length} controller class(es), e.g. ${controllerEntries[0]?.symbols.find((symbol) => /Controller$/.test(symbol)) ?? "Controller"}.`
+      ),
+      evidence: controllerEntries.slice(0, 3).map(
+        (entry2) => fileRef(entry2, entry2.symbols.find((symbol) => /Controller$/.test(symbol)))
+      )
+    });
+  }
+  const implementationPatterns = [];
+  const withSuffix = (suffix) => sourceEntries.filter((entry2) => entry2.symbols.some((symbol) => suffix.test(symbol)));
+  const controllers = withSuffix(/Controller$/);
+  const services = withSuffix(/Service$/);
+  const repositoriesLayer = withSuffix(/(Repository|Dao)$/);
+  if (controllers.length >= 2 && services.length >= 2 && repositoriesLayer.length >= 2) {
+    implementationPatterns.push({
+      findingId: ids("pat"),
+      class: "INFERRED_PATTERN",
+      statement: clip3(
+        `The backend appears to use controller \u2192 service \u2192 repository layering (${controllers.length}/${services.length}/${repositoriesLayer.length} classes).`
+      ),
+      evidence: [controllers[0], services[0], repositoriesLayer[0]].filter((entry2) => entry2 !== void 0).map((entry2) => fileRef(entry2))
+    });
+  }
+  const asyncShapes = sourceEntries.filter(
+    (entry2) => entry2.symbols.some((symbol) => /(Job|Worker|Consumer|Listener|Handler)$/.test(symbol))
+  );
+  if (asyncShapes.length >= 3) {
+    implementationPatterns.push({
+      findingId: ids("pat"),
+      class: "INFERRED_PATTERN",
+      statement: clip3(
+        `Work appears to run through asynchronous job/handler classes (${asyncShapes.length} found).`
+      ),
+      evidence: asyncShapes.slice(0, 3).map((entry2) => fileRef(entry2))
+    });
+  }
+  const testedSources = new Set(
+    entries.filter((entry2) => entry2.kind === "test").flatMap((entry2) => entry2.testTargets)
+  );
+  if (testedSources.size >= 3) {
+    implementationPatterns.push({
+      findingId: ids("pat"),
+      class: "INFERRED_PATTERN",
+      statement: clip3(
+        `Tests appear to accompany sources by convention (${testedSources.size} source file(s) with matched tests).`
+      ),
+      evidence: entries.filter((entry2) => entry2.kind === "test" && entry2.testTargets.length > 0).slice(0, 3).map((entry2) => fileRef(entry2))
+    });
+  }
+  for (const repo of input.repositories) {
+    const marker = manifestEntries.find(
+      (entry2) => repositoryOfPath(input.repositories, entry2.path)?.repositoryId === repo.repositoryId
+    );
+    if (marker === void 0) continue;
+    constraints.push({
+      findingId: ids("con"),
+      class: "OBSERVED_IMPLEMENTATION",
+      statement: clip3(
+        `Repository "${repo.repositoryId}" builds with ${import_path93.default.posix.basename(marker.path)}.`
+      ),
+      evidence: [fileRef(marker)]
+    });
+    if (constraints.length >= BOOTSTRAP_LIMITS.maxFindingsPerCategory) break;
+  }
+  if (input.index.state.truncated) {
+    uncertainties.push({
+      area: "index coverage",
+      detail: clip3(
+        `The repository index hit its entry ceiling (${entries.length}); findings describe the indexed part only.`
+      )
+    });
+  }
+  if (sourceEntries.length > 0 && sourceEntries.every((entry2) => entry2.symbols.length === 0)) {
+    uncertainties.push({
+      area: "symbol extraction",
+      detail: "No declared symbols could be extracted; capability and domain-object findings are unavailable."
+    });
+  }
+  for (const repo of input.repositories) {
+    if (repo.isGitRepository && repo.gitHead === null) {
+      uncertainties.push({
+        area: "repository baseline",
+        detail: clip3(`Repository "${repo.repositoryId}" has a .git but no resolvable HEAD.`)
+      });
+    }
+  }
+  const mode = detectMode({
+    sourceFiles: sourceEntries.length,
+    hasProductTruth: truth.length > 0,
+    truncated: input.index.state.truncated,
+    resolutionNotes: (input.notes ?? []).length
+  });
+  if (mode === "GREENFIELD") {
+    uncertainties.length = 0;
+  }
+  return {
+    mode,
+    architecture: bounded3(architecture),
+    capabilities: bounded3(capabilities),
+    publicSurfaces: bounded3(publicSurfaces),
+    domainObjects: bounded3(domainObjects),
+    implementationPatterns: bounded3(implementationPatterns),
+    constraints: bounded3(constraints),
+    uncertainties: uncertainties.slice(0, BOOTSTRAP_LIMITS.maxUncertainties),
+    existingProductTruth: truth.slice(0, BOOTSTRAP_LIMITS.maxProductTruthRefs)
+  };
+}
+function detectMode(input) {
+  if (input.hasProductTruth || input.sourceFiles >= 3) {
+    return input.resolutionNotes > 0 ? "PARTIAL" : "BROWNFIELD";
+  }
+  if (input.sourceFiles === 0 && !input.truncated) return "GREENFIELD";
+  return "PARTIAL";
+}
+function idFactory() {
+  let sequence = 0;
+  return (prefix) => `${prefix}-${String(++sequence).padStart(3, "0")}`;
+}
+function bounded3(findings2) {
+  return findings2.slice(0, BOOTSTRAP_LIMITS.maxFindingsPerCategory);
+}
+function fanIn(index, filePath) {
+  return index.dependentsOf(filePath).length;
+}
+function clip3(value) {
+  const collapsed = value.replace(/\s+/g, " ").trim();
+  return collapsed.length > BOOTSTRAP_LIMITS.maxTextChars ? `${collapsed.slice(0, BOOTSTRAP_LIMITS.maxTextChars - 1)}\u2026` : collapsed;
+}
+function boundedRead(workspace, relPath2) {
+  try {
+    const abs = import_path93.default.join(workspace.rootDir, relPath2);
+    if (!(0, import_fs84.existsSync)(abs)) return void 0;
+    const body = (0, import_fs84.readFileSync)(abs, "utf8");
+    return body.length > MAX_MANIFEST_READ_BYTES ? body.slice(0, MAX_MANIFEST_READ_BYTES) : body;
+  } catch {
+    return void 0;
+  }
+}
+function firstHeading(workspace, relPath2) {
+  const body = boundedRead(workspace, relPath2);
+  if (body === void 0) return void 0;
+  const match = /^#{1,3}\s+(.{3,120})$/m.exec(body.slice(0, 4e3));
+  return match?.[1]?.trim();
+}
+function safeContracts2(workspace) {
+  try {
+    return activeProductContracts(workspace);
+  } catch {
+    return [];
+  }
+}
+function safeRules(workspace) {
+  try {
+    return activeConstitutionRules(workspace);
+  } catch {
+    return [];
+  }
+}
+function safeAdrs(workspace, missionId) {
+  try {
+    return readAdrs(workspace, missionId);
+  } catch {
+    return [];
+  }
+}
+function safeSeals(workspace) {
+  try {
+    return listSeals(workspace);
+  } catch {
+    return [];
+  }
+}
+function bootstrapDir(workspace) {
+  return assertInsideWorkspace(workspace.rootDir, import_path94.default.join(workspace.sidecarDir, "bootstrap"));
+}
+function snapshotFile(workspace) {
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path94.default.join(bootstrapDir(workspace), "current-system-snapshot.json")
+  );
+}
+function readCurrentSystemSnapshot(workspace) {
+  const file = snapshotFile(workspace);
+  if (!(0, import_fs85.existsSync)(file)) return void 0;
+  try {
+    return currentSystemSnapshotSchema.parse(JSON.parse((0, import_fs85.readFileSync)(file, "utf8")));
+  } catch {
+    return void 0;
+  }
+}
+function persistSnapshot(workspace, snapshot2) {
+  (0, import_fs85.mkdirSync)(bootstrapDir(workspace), { recursive: true });
+  writeFileAtomic(snapshotFile(workspace), `${JSON.stringify(snapshot2, null, 2)}
+`);
+}
+function assessSnapshotFreshness2(workspace, snapshot2) {
+  if (snapshot2 === void 0) return { status: "ABSENT", reasons: ["no snapshot exists"] };
+  const reasons = [];
+  if (snapshot2.workspaceKey !== workspaceKeyFor(workspace.rootDir)) {
+    reasons.push("the snapshot describes a different workspace root");
+  }
+  if (snapshot2.schemaVersion.split(".")[0] !== BOOTSTRAP_SCHEMA_VERSION.split(".")[0]) {
+    reasons.push("the snapshot schema is from an incompatible version");
+  }
+  let resolution;
+  try {
+    resolution = resolveRepositories(workspace);
+  } catch (cause) {
+    return {
+      status: "STALE",
+      reasons: [
+        `the repository set can no longer be resolved: ${cause instanceof Error ? cause.message : String(cause)}`
+      ]
+    };
+  }
+  const current = new Map(resolution.repositories.map((repo) => [repo.repositoryId, repo]));
+  for (const recorded of snapshot2.repositories) {
+    const live = current.get(recorded.repositoryId);
+    if (live === void 0) {
+      reasons.push(`repository "${recorded.repositoryId}" is no longer part of the workspace`);
+      continue;
+    }
+    if ((live.gitHead ?? null) !== (recorded.gitHead ?? null)) {
+      reasons.push(`repository "${recorded.repositoryId}" moved from ${recorded.gitHead ?? "no-git"} to ${live.gitHead ?? "no-git"}`);
+    }
+  }
+  for (const live of resolution.repositories) {
+    if (!snapshot2.repositories.some((recorded) => recorded.repositoryId === live.repositoryId)) {
+      reasons.push(`repository "${live.repositoryId}" was added after the snapshot`);
+    }
+  }
+  return reasons.length === 0 ? { status: "FRESH", reasons: [] } : { status: "STALE", reasons };
+}
+function bootstrapWorkspace(deps2, options = {}) {
+  const workspace = deps2.workspace;
+  const resolution = resolveRepositories(workspace);
+  const ensured = ensureRepositoryIndex({
+    workspace,
+    config: deps2.config,
+    now: nowIso5(deps2),
+    // Bootstrap has no Git snapshot to name additions, so the refresh walks
+    // for them: a snapshot that missed a brand-new capability file would
+    // claim currency over a repository it has not actually seen.
+    discoverAdditions: true,
+    ...options.rebuild === true ? { rebuild: true } : {}
+  });
+  const changedBytes = ensured.rebuilt || ensured.refreshedPaths.length > 0 || ensured.addedPaths.length > 0 || ensured.removedPaths.length > 0;
+  const existing = readCurrentSystemSnapshot(workspace);
+  if (options.rebuild !== true && existing !== void 0 && !changedBytes) {
+    const freshness = assessSnapshotFreshness2(workspace, existing);
+    if (freshness.status === "FRESH") {
+      return {
+        snapshot: existing,
+        reused: true,
+        indexRebuilt: ensured.rebuilt,
+        refreshedPaths: ensured.refreshedPaths.length
+      };
+    }
+  }
+  const synthesized = synthesizeSystemFindings({
+    workspace,
+    repositories: resolution.repositories,
+    index: ensured.index,
+    notes: resolution.notes
+  });
+  const repositories = resolution.repositories.map((repo) => ({
+    repositoryId: repo.repositoryId,
+    relPath: repo.relPath,
+    ...repo.role !== void 0 ? { role: repo.role } : {},
+    gitHead: repo.gitHead,
+    indexedFiles: countIndexed(ensured.index, resolution.repositories, repo)
+  }));
+  const material = {
+    repositories,
+    mode: synthesized.mode,
+    architecture: synthesized.architecture,
+    capabilities: synthesized.capabilities,
+    publicSurfaces: synthesized.publicSurfaces,
+    domainObjects: synthesized.domainObjects,
+    implementationPatterns: synthesized.implementationPatterns,
+    constraints: synthesized.constraints,
+    uncertainties: synthesized.uncertainties,
+    existingProductTruth: synthesized.existingProductTruth
+  };
+  const contentHash = sha256Hex(JSON.stringify(material)).slice(0, 64);
+  const snapshot2 = currentSystemSnapshotSchema.parse({
+    schemaVersion: BOOTSTRAP_SCHEMA_VERSION,
+    snapshotId: `snap-${contentHash.slice(0, 12)}`,
+    workspaceKey: workspaceKeyFor(workspace.rootDir),
+    createdAt: nowIso5(deps2),
+    ...material,
+    indexStats: {
+      entries: ensured.state.entries.length,
+      truncated: ensured.state.truncated,
+      skipped: Object.values(ensured.state.skippedCounts).reduce((sum, count3) => sum + count3, 0)
+    },
+    contentHash
+  });
+  persistSnapshot(workspace, snapshot2);
+  return {
+    snapshot: snapshot2,
+    reused: false,
+    indexRebuilt: ensured.rebuilt,
+    refreshedPaths: ensured.refreshedPaths.length
+  };
+}
+function countIndexed(index, repositories, repo) {
+  let count3 = 0;
+  for (const entry2 of index.entries) {
+    if (repositoryOfPath(repositories, entry2.path)?.repositoryId === repo.repositoryId) count3 += 1;
+  }
+  return count3;
+}
+function readWorkspaceSnapshot(workspace) {
+  const snapshot2 = readCurrentSystemSnapshot(workspace);
+  return { snapshot: snapshot2, freshness: assessSnapshotFreshness2(workspace, snapshot2) };
+}
+function inspectWorkspace(deps2, options) {
+  const question = options.question.trim();
+  if (question.length === 0 || question.length > 2e3) {
+    throw new IntakeError("SBI018", "An inspection question must be 1\u20132000 characters.");
+  }
+  const policy = deps2.config.orchestration.jobs.context.efficiency;
+  const maxSections = Math.min(
+    Math.max(1, options.maxSections ?? 5),
+    policy.maxSelectedItems
+  );
+  const workspace = deps2.workspace;
+  const resolution = resolveRepositories(workspace);
+  const ensured = ensureRepositoryIndex({
+    workspace,
+    config: deps2.config,
+    now: nowIso5(deps2)
+  });
+  const query = buildRetrievalQuery({
+    taskId: "workspace-inspect",
+    role: "PLANNER",
+    objective: question
+  });
+  const ranked = rankCandidates(ensured.index, query, {
+    maxCandidates: policy.maxCandidates
+  });
+  const scoped = ranked.filter((candidate) => {
+    if (options.repositoryId === void 0) return true;
+    return repositoryOfPath(resolution.repositories, candidate.path)?.repositoryId === options.repositoryId;
+  });
+  const sections = [];
+  const pointers = [];
+  for (const candidate of scoped) {
+    const entry2 = ensured.index.get(candidate.path);
+    if (entry2 === void 0) continue;
+    const repo = repositoryOfPath(resolution.repositories, entry2.path);
+    const repositoryId = repo?.repositoryId ?? "workspace";
+    if (sections.length >= maxSections) {
+      if (pointers.length < policy.maxPointers) {
+        pointers.push({
+          repositoryId,
+          path: repo !== void 0 ? repositoryRelativePath(repo, entry2.path) : entry2.path
+        });
+      }
+      continue;
+    }
+    let body;
+    try {
+      body = (0, import_fs85.readFileSync)(
+        assertInsideWorkspace(workspace.rootDir, entry2.path),
+        "utf8"
+      );
+    } catch {
+      continue;
+    }
+    if (body.length > policy.maxIndexedFileBytes) body = body.slice(0, policy.maxIndexedFileBytes);
+    const section = extractSection({
+      content: body,
+      symbols: query.symbols,
+      options: {
+        wholeFileUnderChars: policy.wholeFileUnderChars,
+        targetSectionChars: policy.targetSectionChars
+      }
+    });
+    sections.push({
+      repositoryId,
+      path: repo !== void 0 ? repositoryRelativePath(repo, entry2.path) : entry2.path,
+      content: section.content,
+      ...section.startLine !== void 0 ? { startLine: section.startLine } : {},
+      ...section.endLine !== void 0 ? { endLine: section.endLine } : {},
+      ...section.symbol !== void 0 ? { symbol: section.symbol } : {},
+      contentHash: entry2.contentHash,
+      sectioned: section.sectioned
+    });
+  }
+  return { sections, pointers };
 }
 
 // ../../packages/cli/src/execution-context.ts
@@ -107939,20 +108924,20 @@ Examples:
           "Pass exactly one of --file, --text, or --stdin."
         );
       }
-      const deps = intakeDeps(runtime);
-      const started = options.file !== void 0 ? startSpecIntakeFromFile(deps, {
+      const deps2 = intakeDeps(runtime);
+      const started = options.file !== void 0 ? startSpecIntakeFromFile(deps2, {
         name,
         file: options.file,
         ...options.goal !== void 0 ? { goal: options.goal } : {},
         ...options.specName !== void 0 ? { specName: options.specName } : {}
-      }) : startSpecIntake(deps, {
+      }) : startSpecIntake(deps2, {
         name,
         kind: options.stdin === true ? "stdin" : "text",
         content: options.stdin === true ? readStdin() : options.text ?? "",
         ...options.goal !== void 0 ? { goal: options.goal } : {},
         ...options.specName !== void 0 ? { specName: options.specName } : {}
       });
-      const discovery = runIntakeDiscovery(deps, started.intake.intakeId);
+      const discovery = runIntakeDiscovery(deps2, started.intake.intakeId);
       if (options.json === true) {
         jsonOut(runtime, "spec-intake-start/v1", {
           intake: intakeSummary(discovery.intake),
@@ -107995,9 +108980,9 @@ Examples:
     }
   );
   spec.command("discover <name>").description("Re-run repository-grounded discovery and show the open product questions").option("--json", "machine-readable output").action((name, options) => {
-    const deps = intakeDeps(runtime);
-    const intake = requireIntakeFor(deps, name);
-    const discovery = runIntakeDiscovery(deps, intake.intakeId);
+    const deps2 = intakeDeps(runtime);
+    const intake = requireIntakeFor(deps2, name);
+    const discovery = runIntakeDiscovery(deps2, intake.intakeId);
     if (options.json === true) {
       jsonOut(runtime, "spec-intake-discover/v1", {
         intake: intakeSummary(discovery.intake),
@@ -108029,7 +109014,7 @@ Examples:
     renderDiscovery(runtime, discovery);
     runtime.out("");
     if (discovery.readiness.ready) {
-      const overview = describeIntake(deps, intake.intakeId);
+      const overview = describeIntake(deps2, intake.intakeId);
       if (overview.summary !== void 0) renderSummary(runtime, overview.summary);
       runtime.out("");
       runtime.out(okLine("Specification ready."));
@@ -108041,9 +109026,9 @@ Examples:
   });
   spec.command("answer <name> <questionId> <answer...>").description("Record your answer to one open product question").option("--json", "machine-readable output").action(
     (name, questionId, answerWords, options) => {
-      const deps = intakeDeps(runtime);
-      const intake = requireIntakeFor(deps, name);
-      const result = answerIntakeQuestion(deps, intake.intakeId, {
+      const deps2 = intakeDeps(runtime);
+      const intake = requireIntakeFor(deps2, name);
+      const result = answerIntakeQuestion(deps2, intake.intakeId, {
         questionId,
         answer: answerWords.join(" ")
       });
@@ -108065,7 +109050,7 @@ Examples:
       }
       if (result.discovery.readiness.ready) {
         runtime.out("");
-        const overview = describeIntake(deps, intake.intakeId);
+        const overview = describeIntake(deps2, intake.intakeId);
         if (overview.summary !== void 0) renderSummary(runtime, overview.summary);
         runtime.out("");
         runtime.out(okLine("Specification ready."));
@@ -108077,9 +109062,9 @@ Examples:
   );
   spec.command("intake [name]").description("Inspect spec intakes; with --resume, continue an interrupted build").option("--resume", "continue the seal-and-build lifecycle idempotently").option("--no-launch", "with --resume, stop after creating the job").option("--json", "machine-readable output").action(
     async (name, options) => {
-      const deps = intakeDeps(runtime);
+      const deps2 = intakeDeps(runtime);
       if (name === void 0) {
-        const listed = listSpecIntakes(deps);
+        const listed = listSpecIntakes(deps2);
         if (options.json === true) {
           jsonOut(runtime, "spec-intake-list/v1", {
             intakes: listed.intakes.map(intakeSummary),
@@ -108103,17 +109088,17 @@ Examples:
         for (const diagnostic of listed.diagnostics) runtime.out(warnLine(diagnostic.message));
         return;
       }
-      const intake = requireIntakeFor(deps, name);
+      const intake = requireIntakeFor(deps2, name);
       if (options.resume === true) {
-        await runBuild(runtime, deps, intake.intakeId, {
+        await runBuild(runtime, deps2, intake.intakeId, {
           launch: options.launch !== false,
           json: options.json === true,
           subject: name
         });
         return;
       }
-      const overview = describeIntake(deps, intake.intakeId);
-      const telemetry = computeIntakeTelemetry(deps, intake.intakeId);
+      const overview = describeIntake(deps2, intake.intakeId);
+      const telemetry = computeIntakeTelemetry(deps2, intake.intakeId);
       if (options.json === true) {
         jsonOut(runtime, "spec-intake-show/v1", {
           ...overviewJson(overview),
@@ -108152,19 +109137,19 @@ Examples:
     }
   );
   spec.command("abandon-intake <name>").description("Abandon a spec intake (final; the record stays readable)").requiredOption("--reason <text>").action((name, options) => {
-    const deps = intakeDeps(runtime);
-    const intake = requireIntakeFor(deps, name);
-    const abandoned = abandonIntake(deps, intake.intakeId, options.reason);
+    const deps2 = intakeDeps(runtime);
+    const intake = requireIntakeFor(deps2, name);
+    const abandoned = abandonIntake(deps2, intake.intakeId, options.reason);
     runtime.out(okLine(`Spec intake ${abandoned.intakeId} is ${abandoned.status}.`));
   });
 }
 async function runApproveAndBuild(runtime, name, options) {
-  const deps = intakeDeps(runtime);
-  const intake = requireIntakeFor(deps, name);
+  const deps2 = intakeDeps(runtime);
+  const intake = requireIntakeFor(deps2, name);
   const lanes = (options.lanes ?? "LOCAL,SUBSCRIPTION").split(",").map((lane) => lane.trim().toUpperCase()).filter(
     (lane) => lane === "LOCAL" || lane === "SUBSCRIPTION" || lane === "API"
   );
-  const approved = approveIntake(deps, {
+  const approved = approveIntake(deps2, {
     intakeId: intake.intakeId,
     via: "cli",
     maxApiSpendUsd: options.maxSpend !== void 0 ? Number(options.maxSpend) : null,
@@ -108180,16 +109165,16 @@ async function runApproveAndBuild(runtime, name, options) {
     runtime.out(dim2("Everything from here is unattended."));
     runtime.out("");
   }
-  await runBuild(runtime, deps, intake.intakeId, {
+  await runBuild(runtime, deps2, intake.intakeId, {
     launch: options.launch,
     json: options.json === true,
     subject: name,
     ...options.maxCycles !== void 0 ? { maxCycles: Number(options.maxCycles) } : {}
   });
 }
-async function runBuild(runtime, deps, intakeId, options) {
+async function runBuild(runtime, deps2, intakeId, options) {
   const context = loadExecutionContext(runtime);
-  const result = await runSealAndBuild(deps, {
+  const result = await runSealAndBuild(deps2, {
     intakeId,
     launch: options.launch,
     // A FACTORY, because the deps the driver runs under are not known until
@@ -108205,13 +109190,13 @@ async function runBuild(runtime, deps, intakeId, options) {
       if (!options.json) runtime.out(dim2(`  ${event.kind}: ${event.message}`));
     }
   });
-  recordFeatureOutcome(deps, intakeId, {
+  recordFeatureOutcome(deps2, intakeId, {
     ...result.lifecycle.sealId !== void 0 ? { sealId: result.lifecycle.sealId } : {},
     ...result.lifecycle.specName !== void 0 ? { specName: result.lifecycle.specName } : {},
     ...result.lifecycle.jobId !== void 0 ? { jobId: result.lifecycle.jobId } : {},
     outcome: result.outcome
   });
-  const telemetry = computeIntakeTelemetry(deps, intakeId);
+  const telemetry = computeIntakeTelemetry(deps2, intakeId);
   if (options.json) {
     jsonOut(runtime, "spec-intake-build/v1", {
       intakeId,
@@ -108865,7 +109850,7 @@ Examples:
       throw new SpecBridgeError("INVALID_ARGUMENT", "--dry-run plans a single task; combine it with --task or --next.");
     }
     const context = loadExecutionContext(runtime);
-    const deps = {
+    const deps2 = {
       workspace: context.workspace,
       config: context.config,
       registry: context.registry,
@@ -108885,7 +109870,7 @@ Examples:
       ...options.verify === false ? { noVerify: true } : {}
     };
     if (options.all === true) {
-      const summary = await runAllOpenTasks(deps, shared);
+      const summary = await runAllOpenTasks(deps2, shared);
       runtime.exitCode = summary.exitCode;
       if (options.json === true) {
         runtime.outRaw(
@@ -108915,7 +109900,7 @@ Examples:
       }
       return;
     }
-    const outcome = await runApprovedTask(deps, {
+    const outcome = await runApprovedTask(deps2, {
       ...shared,
       ...options.task !== void 0 ? { taskId: options.task } : { next: true },
       ...options.dryRun === true ? { dryRun: true } : {}
@@ -111048,18 +112033,18 @@ var CURRENT_FAMILY_VERSIONS = {
 };
 var NO_MIGRATION_NOTE = "all versions current; no migration has ever been required for this family";
 function requireSupportedTarget(target) {
-  const resolved = target ?? VERSION;
-  if (resolved !== VERSION) {
+  const resolved2 = target ?? VERSION;
+  if (resolved2 !== VERSION) {
     throw new SpecBridgeError(
       "INVALID_ARGUMENT",
-      `--target ${resolved} is not supported; the only supported migration target is ${VERSION}.`
+      `--target ${resolved2} is not supported; the only supported migration target is ${VERSION}.`
     );
   }
-  return resolved;
+  return resolved2;
 }
-function familySummaries(workspace, findings) {
+function familySummaries(workspace, findings2) {
   return STATE_FAMILY_IDS.map((family) => {
-    const familyFindings = findings.filter((candidate) => candidate.family === family);
+    const familyFindings = findings2.filter((candidate) => candidate.family === family);
     const versions = [
       ...new Set(
         familyFindings.map((candidate) => candidate.schemaVersion).filter((version2) => version2 !== null)
@@ -111147,10 +112132,10 @@ Examples:
   ${CLI_BIN} migrate status --json`
   ).action((options) => {
     const workspace = runtime.workspace();
-    const findings = collectStateFindings(workspace, [...STATE_FAMILY_IDS]);
+    const findings2 = collectStateFindings(workspace, [...STATE_FAMILY_IDS]);
     const steps = collectMigrationSteps(workspace);
     const inspection = inspectConfigMigration(workspace);
-    const summaries = familySummaries(workspace, findings).map(
+    const summaries = familySummaries(workspace, findings2).map(
       (summary) => summary.family === "config" && inspection.status === "invalid" ? { ...summary, invalidFindings: Math.max(summary.invalidFindings, 1) } : summary
     );
     const pending = steps.length + summaries.reduce((sum, summary) => sum + summary.pendingMigrations, 0);
@@ -111450,10 +112435,10 @@ function selectedFamilies(options) {
   }
   return { families };
 }
-function countsByStatus(findings) {
+function countsByStatus(findings2) {
   const counts = {};
   for (const status of STATUS_ORDER) {
-    const count3 = findings.filter((candidate) => candidate.status === status).length;
+    const count3 = findings2.filter((candidate) => candidate.status === status).length;
     if (count3 > 0) counts[status] = count3;
   }
   return counts;
@@ -111463,11 +112448,11 @@ function statusLine(status) {
   if (status === "stale" || status === "migration-required" || status === "legacy") return warnLine;
   return failLine;
 }
-function printFindings(runtime, findings) {
-  const families = [...new Set(findings.map((candidate) => candidate.family))];
+function printFindings(runtime, findings2) {
+  const families = [...new Set(findings2.map((candidate) => candidate.family))];
   for (const family of families) {
     runtime.out(sectionTitle(family));
-    for (const found of findings.filter((candidate) => candidate.family === family)) {
+    for (const found of findings2.filter((candidate) => candidate.family === family)) {
       runtime.out(statusLine(found.status)(`${found.path}`, found.status));
       for (const problem of found.problems) runtime.out(`      ${problem}`);
     }
@@ -111512,16 +112497,16 @@ Examples:
   ).action((options) => {
     const workspace = runtime.workspace();
     const selection = selectedFamilies(options);
-    const findings = collectStateFindings(workspace, selection.families, selection.specName);
-    const healthy = findings.every((candidate) => candidate.status === "valid");
-    const counts = countsByStatus(findings);
+    const findings2 = collectStateFindings(workspace, selection.families, selection.specName);
+    const healthy = findings2.every((candidate) => candidate.status === "valid");
+    const counts = countsByStatus(findings2);
     if (options.json === true) {
       runtime.outRaw(
         serializeJsonReport(
           createJsonReport("specbridge.state-validate/1", `${CLI_BIN} ${VERSION}`, {
             families: selection.families ?? [...STATE_FAMILY_IDS, MIGRATIONS_FAMILY],
             ...selection.specName !== void 0 ? { spec: selection.specName } : {},
-            findings,
+            findings: findings2,
             counts,
             healthy
           })
@@ -111532,12 +112517,12 @@ Examples:
     }
     runtime.out(reportTitle("State validation"));
     runtime.out();
-    if (findings.length === 0) {
+    if (findings2.length === 0) {
       runtime.out(infoLine("No persisted SpecBridge state exists yet; nothing to validate."));
       runtime.exitCode = EXIT_CODES.ok;
       return;
     }
-    printFindings(runtime, findings);
+    printFindings(runtime, findings2);
     runtime.out(sectionTitle("Summary"));
     for (const [status, count3] of Object.entries(counts)) {
       runtime.out(statusLine(status)(`${status}: ${count3}`));
@@ -111644,8 +112629,8 @@ Examples:
     if (options.ack !== void 0) {
       throw new SpecBridgeError("INVALID_ARGUMENT", "--ack is only meaningful together with --apply <planId>.");
     }
-    const findings = collectStateFindings(workspace);
-    const actions = buildRecoveryActions(workspace, findings);
+    const findings2 = collectStateFindings(workspace);
+    const actions = buildRecoveryActions(workspace, findings2);
     if (actions.length === 0) {
       if (options.json === true) {
         runtime.outRaw(
@@ -112265,12 +113250,12 @@ Examples:
   });
 }
 
-// ../../packages/mcp-server/dist/chunk-FD3VO6XP.js
+// ../../packages/mcp-server/dist/chunk-W3SPE6R5.js
 var import_buffer7 = require("buffer");
-var import_fs83 = require("fs");
-var import_path92 = __toESM(require("path"), 1);
+var import_fs86 = require("fs");
+var import_path95 = __toESM(require("path"), 1);
 var import_crypto30 = require("crypto");
-var import_path93 = __toESM(require("path"), 1);
+var import_path96 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/core.js
 var NEVER2 = Object.freeze({
@@ -112467,10 +113452,10 @@ function assignProp(target, prop, value) {
     configurable: true
   });
 }
-function getElementAtPath(obj, path90) {
-  if (!path90)
+function getElementAtPath(obj, path97) {
+  if (!path97)
     return obj;
-  return path90.reduce((acc, key) => acc?.[key], obj);
+  return path97.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -112790,11 +113775,11 @@ function aborted2(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path90, issues) {
+function prefixIssues(path97, issues) {
   return issues.map((iss) => {
     var _a;
     (_a = iss).path ?? (_a.path = []);
-    iss.path.unshift(path90);
+    iss.path.unshift(path97);
     return iss;
   });
 }
@@ -122597,13 +123582,13 @@ var EMPTY_COMPLETION_RESULT = {
   }
 };
 
-// ../../packages/mcp-server/dist/chunk-FD3VO6XP.js
-var import_fs84 = require("fs");
-var import_fs85 = require("fs");
-var import_path94 = __toESM(require("path"), 1);
-var import_fs86 = require("fs");
+// ../../packages/mcp-server/dist/chunk-W3SPE6R5.js
+var import_fs87 = require("fs");
+var import_fs88 = require("fs");
+var import_path97 = __toESM(require("path"), 1);
+var import_fs89 = require("fs");
 var import_os3 = __toESM(require("os"), 1);
-var import_path95 = __toESM(require("path"), 1);
+var import_path98 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 var import_node_process11 = __toESM(require("process"), 1);
@@ -122697,7 +123682,7 @@ var StdioServerTransport = class {
   }
 };
 
-// ../../packages/mcp-server/dist/chunk-FD3VO6XP.js
+// ../../packages/mcp-server/dist/chunk-W3SPE6R5.js
 var MCP_SERVER_NAME = "specbridge";
 var MCP_SERVER_VERSION = "1.1.0";
 var MCP_SERVER_TITLE = "SpecBridge";
@@ -123062,14 +124047,14 @@ function validateProjectRoot(value, source, cwd) {
       remediation: ["Pass a plain filesystem path as --project-root."]
     };
   }
-  const resolved = import_path92.default.resolve(cwd, value);
+  const resolved2 = import_path95.default.resolve(cwd, value);
   let canonical;
   try {
-    canonical = (0, import_fs83.realpathSync)(resolved);
+    canonical = (0, import_fs86.realpathSync)(resolved2);
   } catch {
     return {
       ok: false,
-      message: `The project root does not exist: ${resolved} (from ${source}).`,
+      message: `The project root does not exist: ${resolved2} (from ${source}).`,
       remediation: [
         "Pass an existing directory as --project-root,",
         "or start the server from inside the project."
@@ -123078,7 +124063,7 @@ function validateProjectRoot(value, source, cwd) {
   }
   let stats;
   try {
-    stats = (0, import_fs83.statSync)(canonical);
+    stats = (0, import_fs86.statSync)(canonical);
   } catch {
     return {
       ok: false,
@@ -123335,8 +124320,8 @@ var paginationShape = external_exports.object({
   nextCursor: external_exports.string().optional()
 });
 function repoRelative2(workspace, target) {
-  const relative = import_path93.default.isAbsolute(target) ? import_path93.default.relative(workspace.rootDir, target) : target;
-  const posix = relative.split(import_path93.default.sep).join("/");
+  const relative = import_path96.default.isAbsolute(target) ? import_path96.default.relative(workspace.rootDir, target) : target;
+  const posix = relative.split(import_path96.default.sep).join("/");
   return posix === "" ? "." : posix;
 }
 function toDiagnosticView(workspace, diagnostic) {
@@ -123427,16 +124412,16 @@ function resourceNotFound(what, remediation) {
 }
 function markdownContents(context, uri, text15) {
   context.logger.info("resource_read", { resource: uri });
-  const bounded3 = truncateText(text15, LIMITS.maximumDocumentBytes);
+  const bounded4 = truncateText(text15, LIMITS.maximumDocumentBytes);
   return {
     contents: [
       {
         uri,
         mimeType: "text/markdown",
-        text: bounded3.truncated ? `${bounded3.text}
+        text: bounded4.truncated ? `${bounded4.text}
 
 [content truncated at ${LIMITS.maximumDocumentBytes} bytes]
-` : bounded3.text
+` : bounded4.text
       }
     ]
   };
@@ -123444,8 +124429,8 @@ function markdownContents(context, uri, text15) {
 function jsonContents(context, uri, value) {
   context.logger.info("resource_read", { resource: uri });
   const serialized = JSON.stringify(value, null, 2);
-  const bounded3 = truncateText(serialized, LIMITS.maximumStructuredResponseBytes);
-  const text15 = bounded3.truncated ? JSON.stringify(
+  const bounded4 = truncateText(serialized, LIMITS.maximumStructuredResponseBytes);
+  const text15 = bounded4.truncated ? JSON.stringify(
     {
       truncated: true,
       message: `The resource exceeded ${LIMITS.maximumStructuredResponseBytes} bytes; use the paginated tools instead.`
@@ -123836,7 +124821,7 @@ function registerRunResources(server, context) {
         throw resourceNotFound(`Run "${runId}"`, "List runs with the run_list tool.");
       }
       const directory = runDir(workspace, record5.runId);
-      const artifactNames = (0, import_fs84.existsSync)(directory) ? (0, import_fs84.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
+      const artifactNames = (0, import_fs87.existsSync)(directory) ? (0, import_fs87.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
       return jsonContents(context, uri.href, buildRunDetail(workspace, record5, artifactNames));
     }
   );
@@ -124128,20 +125113,20 @@ function registerSteeringReadTool(server, context) {
         }
         throw cause;
       }
-      const bounded3 = truncateText(body, LIMITS.maximumDocumentBytes);
+      const bounded4 = truncateText(body, LIMITS.maximumDocumentBytes);
       const hash = trySha256File(info.path);
       return {
-        text: bounded3.truncated ? `${info.fileName} (truncated to ${LIMITS.maximumDocumentBytes} bytes)
+        text: bounded4.truncated ? `${info.fileName} (truncated to ${LIMITS.maximumDocumentBytes} bytes)
 
-${bounded3.text}` : `${info.fileName}
+${bounded4.text}` : `${info.fileName}
 
-${bounded3.text}`,
+${bounded4.text}`,
         structured: {
           name: info.name,
           path: repoRelative2(workspace, info.path),
           contentType: "text/markdown",
-          content: bounded3.text,
-          truncated: bounded3.truncated,
+          content: bounded4.text,
+          truncated: bounded4.truncated,
           sizeBytes: info.sizeBytes,
           ...hash !== void 0 ? { contentHash: hash } : {},
           inclusion: info.inclusion,
@@ -124256,14 +125241,14 @@ function registerSpecReadTool(server, context) {
         if (document === void 0) {
           return { document: kind, path: relativePath, exists: false };
         }
-        const bounded3 = truncateText(document.bodyText(), LIMITS.maximumDocumentBytes);
+        const bounded4 = truncateText(document.bodyText(), LIMITS.maximumDocumentBytes);
         const hash = document.filePath !== void 0 ? trySha256File(document.filePath) : void 0;
         return {
           document: kind,
           path: document.filePath !== void 0 ? repoRelative2(workspace, document.filePath) : relativePath,
           exists: true,
-          content: bounded3.text,
-          truncated: bounded3.truncated,
+          content: bounded4.text,
+          truncated: bounded4.truncated,
           ...hash !== void 0 ? { contentHash: hash } : {},
           lineCount: document.lineCount,
           eol: document.dominantEol(),
@@ -124525,14 +125510,14 @@ function registerSpecContextTool(server, context) {
 `;
         truncated = true;
       }
-      const bounded3 = truncateText(markdown, LIMITS.maximumDocumentBytes);
+      const bounded4 = truncateText(markdown, LIMITS.maximumDocumentBytes);
       return {
-        text: bounded3.text,
+        text: bounded4.text,
         structured: {
           specName: analysis.folder.name,
           format: format2,
-          markdown: bounded3.text,
-          truncated: truncated || bounded3.truncated,
+          markdown: bounded4.text,
+          truncated: truncated || bounded4.truncated,
           approvalSummary,
           verificationCommands,
           ...selectedTask !== void 0 ? { selectedTask } : {}
@@ -125446,8 +126431,8 @@ function registerTaskCompleteTool(server, context) {
     handler: async (args, extras) => context.withWriteLock(async () => {
       assertInputSize("summary", args.summary, LIMITS.maximumShortTextChars);
       const workspace = context.requireWorkspace();
-      const deps = { ...interactiveDeps(context, workspace), signal: extras.signal };
-      const outcome = await completeInteractiveTask(deps, {
+      const deps2 = { ...interactiveDeps(context, workspace), signal: extras.signal };
+      const outcome = await completeInteractiveTask(deps2, {
         runId: args.runId,
         summary: args.summary,
         ...args.runVerification !== void 0 ? { runVerification: args.runVerification } : {},
@@ -125652,7 +126637,7 @@ function registerRunReadTool(server, context) {
         });
       }
       const directory = runDir(workspace, record5.runId);
-      const artifactNames = (0, import_fs85.existsSync)(directory) ? (0, import_fs85.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS2.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
+      const artifactNames = (0, import_fs88.existsSync)(directory) ? (0, import_fs88.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS2.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
       const detail = buildRunDetail(workspace, record5, artifactNames);
       const lines = [
         `Run ${detail.summary.runId} \u2014 ${detail.summary.runType} for spec "${detail.summary.specName}"${detail.summary.taskId !== void 0 ? `, task ${detail.summary.taskId}` : ""}.`,
@@ -126012,7 +126997,7 @@ function registerSpecRunVerificationTool(server, context) {
         durationMs: command.durationMs,
         timedOut: command.timedOut
       }));
-      const reportPath = result.artifactsDir !== void 0 ? import_path94.default.relative(workspace.rootDir, result.artifactsDir).split(import_path94.default.sep).join("/") : void 0;
+      const reportPath = result.artifactsDir !== void 0 ? import_path97.default.relative(workspace.rootDir, result.artifactsDir).split(import_path97.default.sep).join("/") : void 0;
       const commandLines = commands.map(
         (command) => `- ${command.name}: ${command.disposition}${command.disposition === "executed" ? command.passed ? " (passed)" : ` (FAILED, exit ${command.exitCode ?? "none"})` : ""}`
       );
@@ -126131,18 +127116,18 @@ var conformanceSummaryShape = external_exports.object({
   note: external_exports.string()
 });
 async function invocationFreeConformanceSummary(profile) {
-  const scratch = (0, import_fs86.mkdtempSync)(import_path95.default.join(import_os3.default.tmpdir(), "specbridge-mcp-conformance-"));
+  const scratch = (0, import_fs89.mkdtempSync)(import_path98.default.join(import_os3.default.tmpdir(), "specbridge-mcp-conformance-"));
   let result;
   try {
     result = await runRunnerConformance({
       profile,
       workspaceRoot: scratch,
-      runDir: import_path95.default.join(scratch, ".specbridge-conformance-runs"),
+      runDir: import_path98.default.join(scratch, ".specbridge-conformance-runs"),
       invocationsAllowed: false,
       timeoutMs: RUNNER_PROBE_TIMEOUT_MS
     });
   } finally {
-    (0, import_fs86.rmSync)(scratch, { recursive: true, force: true });
+    (0, import_fs89.rmSync)(scratch, { recursive: true, force: true });
   }
   return {
     passed: result.passed,
@@ -126353,10 +127338,10 @@ function registerRunnerDoctorTool(server, context) {
         timeoutMs: RUNNER_PROBE_TIMEOUT_MS
       });
       const view = toDetectionView(detection, args.verbose === true);
-      const findings = view.diagnostics.map((diagnostic) => `- [${diagnostic.severity}] ${diagnostic.message}`).join("\n");
+      const findings2 = view.diagnostics.map((diagnostic) => `- [${diagnostic.severity}] ${diagnostic.message}`).join("\n");
       return {
-        text: `Runner ${profileName} (${profile.runner.name}): status ${view.status}, support ${view.supportLevel}, authentication ${view.authentication}.${findings.length > 0 ? `
-${findings}` : ""}`,
+        text: `Runner ${profileName} (${profile.runner.name}): status ${view.status}, support ${view.supportLevel}, authentication ${view.authentication}.${findings2.length > 0 ? `
+${findings2}` : ""}`,
         structured: {
           profile: profileName,
           implementation: profile.runner.name,
@@ -126855,9 +127840,9 @@ function readableRegistryIndexes(workspace, registryFilter) {
       continue;
     }
     try {
-      const resolved = resolveRegistryIndex(workspace, source);
-      if (resolved !== void 0) {
-        indexes.push({ registryName: resolved.sourceName, index: resolved.index });
+      const resolved2 = resolveRegistryIndex(workspace, source);
+      if (resolved2 !== void 0) {
+        indexes.push({ registryName: resolved2.sourceName, index: resolved2.index });
       }
     } catch {
     }
@@ -127284,7 +128269,7 @@ function registerOrchestrationStatusTool(server, context) {
     },
     handler: async (args) => {
       const workspace = context.requireWorkspace();
-      const deps = orchestrationDeps(context, workspace);
+      const deps2 = orchestrationDeps(context, workspace);
       if (args.orchestrationId === void 0) {
         const listed = listOrchestrationRuns(workspace);
         const latest = listed.runs[0];
@@ -127319,7 +128304,7 @@ function registerOrchestrationStatusTool(server, context) {
           }
         };
       }
-      const report = await resumeOrchestration(deps, args.orchestrationId);
+      const report = await resumeOrchestration(deps2, args.orchestrationId);
       const detail = describeOrchestration(workspace, report.state, {
         eventLimit: args.eventLimit ?? 20
       });
@@ -127382,8 +128367,8 @@ function registerOrchestrationBeginTool(server, context) {
     },
     handler: async (args) => context.withWriteLock(async () => {
       const workspace = context.requireWorkspace();
-      const deps = orchestrationDeps(context, workspace);
-      const state = beginOrchestration(deps, {
+      const deps2 = orchestrationDeps(context, workspace);
+      const state = beginOrchestration(deps2, {
         specName: args.specName,
         goal: args.goal,
         ...args.taskId !== void 0 ? { taskId: args.taskId } : {}
@@ -127454,8 +128439,8 @@ function registerOrchestrationAssessIntentTool(server, context) {
     },
     handler: async (args) => context.withWriteLock(async () => {
       const workspace = context.requireWorkspace();
-      const deps = orchestrationDeps(context, workspace);
-      const result = assessIntent(deps, args.orchestrationId, {
+      const deps2 = orchestrationDeps(context, workspace);
+      const result = assessIntent(deps2, args.orchestrationId, {
         outcome: args.outcome,
         summary: args.summary,
         ...args.reasons !== void 0 ? { reasons: args.reasons } : {},
@@ -127515,9 +128500,9 @@ function registerOrchestrationClarifyTool(server, context) {
     },
     handler: async (args) => context.withWriteLock(async () => {
       const workspace = context.requireWorkspace();
-      const deps = orchestrationDeps(context, workspace);
+      const deps2 = orchestrationDeps(context, workspace);
       const state = requestClarification(
-        deps,
+        deps2,
         args.orchestrationId,
         args.questions.map((question) => ({
           question: question.question,
@@ -127575,9 +128560,9 @@ function registerOrchestrationResolveClarificationTool(server, context) {
     },
     handler: async (args) => context.withWriteLock(async () => {
       const workspace = context.requireWorkspace();
-      const deps = orchestrationDeps(context, workspace);
+      const deps2 = orchestrationDeps(context, workspace);
       const result = resolveClarification(
-        deps,
+        deps2,
         args.orchestrationId,
         args.decisions.map((decision) => ({
           questionId: decision.questionId,
@@ -127656,8 +128641,8 @@ function registerOrchestrationSubmitPlanTool(server, context) {
     },
     handler: async (args) => context.withWriteLock(async () => {
       const workspace = context.requireWorkspace();
-      const deps = orchestrationDeps(context, workspace);
-      const result = await submitPlan(deps, args.orchestrationId, {
+      const deps2 = orchestrationDeps(context, workspace);
+      const result = await submitPlan(deps2, args.orchestrationId, {
         taskId: args.taskId,
         goal: args.goal,
         steps: args.steps.map((step2) => ({
@@ -127737,8 +128722,8 @@ function registerOrchestrationReviewPlanTool(server, context) {
     outputSchema: { ...stateSummaryShape, decision: external_exports.string(), planRevision: external_exports.number().int() },
     handler: async (args) => context.withWriteLock(async () => {
       const workspace = context.requireWorkspace();
-      const deps = orchestrationDeps(context, workspace);
-      const state = reviewPlan(deps, args.orchestrationId, {
+      const deps2 = orchestrationDeps(context, workspace);
+      const state = reviewPlan(deps2, args.orchestrationId, {
         planHash: args.planHash,
         decision: args.decision,
         ...args.note !== void 0 ? { note: args.note } : {},
@@ -127798,8 +128783,8 @@ function registerOrchestrationRecordActionTool(server, context) {
     },
     handler: async (args) => context.withWriteLock(async () => {
       const workspace = context.requireWorkspace();
-      const deps = orchestrationDeps(context, workspace);
-      const result = await recordActionChecked(deps, args.orchestrationId, {
+      const deps2 = orchestrationDeps(context, workspace);
+      const result = await recordActionChecked(deps2, args.orchestrationId, {
         action: args.action,
         target: args.target,
         result: args.result,
@@ -127862,8 +128847,8 @@ function registerOrchestrationCheckpointTool(server, context) {
     },
     handler: async (args) => context.withWriteLock(async () => {
       const workspace = context.requireWorkspace();
-      const deps = orchestrationDeps(context, workspace);
-      const checkpoint = createCheckpoint(deps, args.orchestrationId, {
+      const deps2 = orchestrationDeps(context, workspace);
+      const checkpoint = createCheckpoint(deps2, args.orchestrationId, {
         nextAction: args.nextAction,
         ...args.observations !== void 0 ? { observations: args.observations } : {},
         ...args.latestVerifier !== void 0 ? { latestVerifier: args.latestVerifier } : {}
@@ -127904,8 +128889,8 @@ function registerOrchestrationFinalizeTool(server, context) {
     outputSchema: { ...stateSummaryShape, finalOutcome: external_exports.string(), finalizedAt: external_exports.string().optional() },
     handler: async (args) => context.withWriteLock(async () => {
       const workspace = context.requireWorkspace();
-      const deps = orchestrationDeps(context, workspace);
-      const state = finalizeOrchestration(deps, args.orchestrationId, {
+      const deps2 = orchestrationDeps(context, workspace);
+      const state = finalizeOrchestration(deps2, args.orchestrationId, {
         outcome: args.outcome,
         reason: args.reason,
         ...args.evidenceStatus !== void 0 ? { evidenceStatus: args.evidenceStatus } : {},
@@ -128214,14 +129199,14 @@ function registerMissionReadTool(server, context) {
     },
     handler: async (args) => {
       const workspace = context.requireWorkspace();
-      const deps = missionDeps(context, workspace);
-      observeSpecApproval(deps, args.missionId);
+      const deps2 = missionDeps(context, workspace);
+      observeSpecApproval(deps2, args.missionId);
       const view = args.view ?? "overview";
       const limit = args.limit ?? 50;
       let records = [];
       switch (view) {
         case "overview": {
-          const overview = describeMission(deps, args.missionId);
+          const overview = describeMission(deps2, args.missionId);
           records = [
             {
               goal: overview.mission.goal,
@@ -128533,9 +129518,9 @@ function registerMissionSynthesizeTool(server, context) {
     },
     handler: async (args) => {
       const workspace = context.requireWorkspace();
-      const deps = missionDeps(context, workspace);
-      markContractReady(deps, args.missionId);
-      const result = synthesizeMissionSpec(deps, args.missionId, { specName: args.specName });
+      const deps2 = missionDeps(context, workspace);
+      markContractReady(deps2, args.missionId);
+      const result = synthesizeMissionSpec(deps2, args.missionId, { specName: args.specName });
       return {
         text: `Synthesized spec "${result.specName}" with ${result.objectiveCount} objective(s). The user approves it with: specbridge spec approve ${result.specName} --stage requirements|design|tasks.`,
         structured: {
@@ -128744,14 +129729,14 @@ function registerSpecIntakeStartTool(server, context) {
     },
     handler: async (args) => {
       const workspace = context.requireWorkspace();
-      const deps = intakeDeps2(context, workspace);
-      const started = startSpecIntake(deps, {
+      const deps2 = intakeDeps2(context, workspace);
+      const started = startSpecIntake(deps2, {
         name: args.name,
         kind: "text",
         content: args.specification,
         ...args.goal !== void 0 ? { goal: args.goal } : {}
       });
-      const discovery = runIntakeDiscovery(deps, started.intake.intakeId);
+      const discovery = runIntakeDiscovery(deps2, started.intake.intakeId);
       const open = discovery.questions.filter((question) => question.status === "open");
       return {
         text: `Spec intake ${started.intake.intakeId} created for "${args.name}". ${started.source.chunks.length} section(s) ingested. ` + (discovery.readiness.ready ? `No product question is open; the specification is ready for the human approval (\`specbridge spec approve ${args.name} --build\`).` : `${open.length} product question(s) need the user's decision.`),
@@ -128804,9 +129789,9 @@ function registerSpecIntakeReadTool(server, context) {
     },
     handler: async (args) => {
       const workspace = context.requireWorkspace();
-      const deps = intakeDeps2(context, workspace);
+      const deps2 = intakeDeps2(context, workspace);
       if (args.subject === void 0) {
-        const listed = listSpecIntakes(deps);
+        const listed = listSpecIntakes(deps2);
         const all = {
           intakes: listed.intakes.map((intake) => summarize22(workspace, context, intake.intakeId))
         };
@@ -128815,10 +129800,10 @@ function registerSpecIntakeReadTool(server, context) {
           structured: all
         };
       }
-      const resolved = requireIntakeFor(deps, args.subject);
-      const overview = describeIntake(deps, resolved.intakeId);
+      const resolved2 = requireIntakeFor(deps2, args.subject);
+      const overview = describeIntake(deps2, resolved2.intakeId);
       const structured = {
-        intake: summarize22(workspace, context, resolved.intakeId)
+        intake: summarize22(workspace, context, resolved2.intakeId)
       };
       switch (args.view) {
         case "questions":
@@ -128895,20 +129880,247 @@ function registerSpecIntakeAnswerTool(server, context) {
     },
     handler: async (args) => {
       const workspace = context.requireWorkspace();
-      const deps = intakeDeps2(context, workspace);
-      const resolved = requireIntakeFor(deps, args.subject);
-      const result = answerIntakeQuestion(deps, resolved.intakeId, {
+      const deps2 = intakeDeps2(context, workspace);
+      const resolved2 = requireIntakeFor(deps2, args.subject);
+      const result = answerIntakeQuestion(deps2, resolved2.intakeId, {
         questionId: args.questionId,
         answer: args.answer
       });
       const open = result.discovery.questions.filter((question) => question.status === "open");
       return {
-        text: `Recorded the answer to ${args.questionId}. ` + (result.discovery.readiness.ready ? `The specification is ready. Present the approval summary and ask the user to run \`specbridge spec approve ${resolved.name} --build\`.` : `${open.length} product question(s) remain.`),
+        text: `Recorded the answer to ${args.questionId}. ` + (result.discovery.readiness.ready ? `The specification is ready. Present the approval summary and ask the user to run \`specbridge spec approve ${resolved2.name} --build\`.` : `${open.length} product question(s) remain.`),
         structured: {
-          intake: summarize22(workspace, context, resolved.intakeId),
+          intake: summarize22(workspace, context, resolved2.intakeId),
           questions: renderQuestions(open),
           ready: result.discovery.readiness.ready,
           readinessReasons: [...result.discovery.readiness.reasons]
+        }
+      };
+    }
+  });
+}
+function intakeDeps22(context, workspace) {
+  return {
+    workspace,
+    config: requireAgentConfig(workspace),
+    clock: context.clock,
+    idFactory: context.idFactory,
+    host: "mcp"
+  };
+}
+var findingShape = external_exports.object({
+  class: external_exports.string(),
+  statement: external_exports.string(),
+  evidence: external_exports.array(
+    external_exports.object({
+      repositoryId: external_exports.string(),
+      path: external_exports.string().optional(),
+      symbol: external_exports.string().optional(),
+      contractId: external_exports.string().optional(),
+      adrId: external_exports.string().optional()
+    })
+  )
+});
+var snapshotSummaryShape = {
+  snapshotId: external_exports.string(),
+  mode: external_exports.string(),
+  createdAt: external_exports.string(),
+  repositories: external_exports.array(
+    external_exports.object({
+      repositoryId: external_exports.string(),
+      relPath: external_exports.string(),
+      role: external_exports.string().optional(),
+      gitHead: external_exports.string().nullable(),
+      indexedFiles: external_exports.number().int()
+    })
+  ),
+  capabilities: external_exports.array(findingShape),
+  architecture: external_exports.array(findingShape),
+  publicSurfaces: external_exports.array(findingShape),
+  domainObjects: external_exports.array(findingShape),
+  implementationPatterns: external_exports.array(findingShape),
+  constraints: external_exports.array(findingShape),
+  uncertainties: external_exports.array(external_exports.object({ area: external_exports.string(), detail: external_exports.string() })),
+  existingProductTruth: external_exports.array(
+    external_exports.object({
+      kind: external_exports.string(),
+      missionId: external_exports.string(),
+      ref: external_exports.string(),
+      revision: external_exports.number().int().optional(),
+      title: external_exports.string()
+    })
+  )
+};
+function renderFinding(finding2) {
+  return {
+    class: finding2.class,
+    statement: finding2.statement,
+    evidence: finding2.evidence.map((ref) => ({
+      repositoryId: ref.repositoryId,
+      ...ref.path !== void 0 ? { path: ref.path } : {},
+      ...ref.symbol !== void 0 ? { symbol: ref.symbol } : {},
+      ...ref.contractId !== void 0 ? { contractId: ref.contractId } : {},
+      ...ref.adrId !== void 0 ? { adrId: ref.adrId } : {}
+    }))
+  };
+}
+function renderSnapshot(snapshot2) {
+  return {
+    snapshotId: snapshot2.snapshotId,
+    mode: snapshot2.mode,
+    createdAt: snapshot2.createdAt,
+    repositories: snapshot2.repositories.map((repo) => ({
+      repositoryId: repo.repositoryId,
+      relPath: repo.relPath,
+      ...repo.role !== void 0 ? { role: repo.role } : {},
+      gitHead: repo.gitHead,
+      indexedFiles: repo.indexedFiles
+    })),
+    capabilities: snapshot2.capabilities.map(renderFinding),
+    architecture: snapshot2.architecture.map(renderFinding),
+    publicSurfaces: snapshot2.publicSurfaces.map(renderFinding),
+    domainObjects: snapshot2.domainObjects.map(renderFinding),
+    implementationPatterns: snapshot2.implementationPatterns.map(renderFinding),
+    constraints: snapshot2.constraints.map(renderFinding),
+    uncertainties: snapshot2.uncertainties.map((entry2) => ({
+      area: entry2.area,
+      detail: entry2.detail
+    })),
+    existingProductTruth: snapshot2.existingProductTruth.map((ref) => ({
+      kind: ref.kind,
+      missionId: ref.missionId,
+      ref: ref.ref,
+      ...ref.revision !== void 0 ? { revision: ref.revision } : {},
+      title: ref.title
+    }))
+  };
+}
+function registerWorkspaceBootstrapTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "workspace_bootstrap",
+    title: "Bootstrap the workspace",
+    description: "Build (or cheaply revalidate) the CurrentSystemSnapshot: an evidence-backed, bounded understanding of what the system currently is, BEFORE product discovery starts. Brownfield repositories yield capabilities, architecture, surfaces, and constraints with evidence refs; an empty repository yields a clean GREENFIELD baseline. Deterministic and offline; reuses the existing repository index; creates no product authority.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    inputSchema: {
+      rebuild: external_exports.boolean().optional().describe("Force a full index rebuild and snapshot regeneration")
+    },
+    outputSchema: {
+      reused: external_exports.boolean(),
+      indexRebuilt: external_exports.boolean(),
+      refreshedPaths: external_exports.number().int(),
+      snapshot: external_exports.object(snapshotSummaryShape)
+    },
+    handler: async (args) => {
+      const workspace = context.requireWorkspace();
+      const result = bootstrapWorkspace(intakeDeps22(context, workspace), {
+        ...args.rebuild === true ? { rebuild: true } : {}
+      });
+      const snapshot2 = result.snapshot;
+      return {
+        text: `Workspace is ${snapshot2.mode}: ${snapshot2.repositories.length} repository/repositories, ${snapshot2.capabilities.length} capability, ${snapshot2.architecture.length} architecture, ${snapshot2.existingProductTruth.length} product-truth reference(s)` + (result.reused ? " (snapshot current; reused)" : ` (snapshot ${snapshot2.snapshotId} generated)`) + ". Build the product conversation ON this system; use repository_inspect for deeper questions.",
+        structured: {
+          reused: result.reused,
+          indexRebuilt: result.indexRebuilt,
+          refreshedPaths: result.refreshedPaths,
+          snapshot: renderSnapshot(snapshot2)
+        }
+      };
+    }
+  });
+}
+function registerWorkspaceSnapshotTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "workspace_snapshot",
+    title: "Read the current-system snapshot",
+    description: "Read the persisted CurrentSystemSnapshot with an explicit freshness verdict. A stale snapshot is still returned as background, but it is NEVER silently presented as current: check `freshness.status` and re-run workspace_bootstrap when it says STALE. Read-only.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    inputSchema: {},
+    outputSchema: {
+      present: external_exports.boolean(),
+      freshness: external_exports.object({ status: external_exports.string(), reasons: external_exports.array(external_exports.string()) }),
+      snapshot: external_exports.object(snapshotSummaryShape).optional(),
+      findingCount: external_exports.number().int()
+    },
+    handler: async () => {
+      const workspace = context.requireWorkspace();
+      const { snapshot: snapshot2, freshness } = readWorkspaceSnapshot(workspace);
+      return {
+        text: snapshot2 === void 0 ? "No snapshot exists yet. Run workspace_bootstrap first." : freshness.status === "FRESH" ? `Current system (${snapshot2.mode}, fresh): ${allFindings(snapshot2).length} finding(s).` : `STALE snapshot (${freshness.reasons[0] ?? "repositories moved"}). Re-run workspace_bootstrap before relying on it.`,
+        structured: {
+          present: snapshot2 !== void 0,
+          freshness: { status: freshness.status, reasons: [...freshness.reasons] },
+          ...snapshot2 !== void 0 ? { snapshot: renderSnapshot(snapshot2) } : {},
+          findingCount: snapshot2 !== void 0 ? allFindings(snapshot2).length : 0
+        }
+      };
+    }
+  });
+}
+function registerRepositoryInspectTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "repository_inspect",
+    title: "Bounded repository inspection",
+    description: "Answer a deeper question about the current implementation with a BOUNDED set of relevant file sections, selected by the existing deterministic repository index and retrieval ranking. Never dumps the repository; protected and credential-shaped paths are never readable through it. What it returns is OBSERVED IMPLEMENTATION \u2014 evidence about what the code does today, never product authority.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    inputSchema: {
+      question: external_exports.string().min(1).max(2e3).describe("What you need to know about the current implementation"),
+      repositoryId: external_exports.string().max(64).optional().describe("Restrict the inspection to one repository of the snapshot"),
+      maxSections: external_exports.number().int().min(1).max(12).optional().describe("File sections to materialize (default 5, bounded by policy)")
+    },
+    outputSchema: {
+      sections: external_exports.array(
+        external_exports.object({
+          repositoryId: external_exports.string(),
+          path: external_exports.string(),
+          content: external_exports.string(),
+          startLine: external_exports.number().int().optional(),
+          endLine: external_exports.number().int().optional(),
+          symbol: external_exports.string().optional(),
+          contentHash: external_exports.string(),
+          sectioned: external_exports.boolean()
+        })
+      ),
+      pointers: external_exports.array(external_exports.object({ repositoryId: external_exports.string(), path: external_exports.string() }))
+    },
+    handler: async (args) => {
+      const workspace = context.requireWorkspace();
+      const result = inspectWorkspace(intakeDeps22(context, workspace), {
+        question: args.question,
+        ...args.repositoryId !== void 0 ? { repositoryId: args.repositoryId } : {},
+        ...args.maxSections !== void 0 ? { maxSections: args.maxSections } : {}
+      });
+      return {
+        text: result.sections.length === 0 ? "Nothing in the index ranked as relevant to that question." : `${result.sections.length} relevant section(s): ` + result.sections.map((section) => `${section.repositoryId}:${section.path}`).join(", ") + ". This is observed implementation, not product authority.",
+        structured: {
+          sections: result.sections.map((section) => ({
+            repositoryId: section.repositoryId,
+            path: section.path,
+            content: section.content,
+            ...section.startLine !== void 0 ? { startLine: section.startLine } : {},
+            ...section.endLine !== void 0 ? { endLine: section.endLine } : {},
+            ...section.symbol !== void 0 ? { symbol: section.symbol } : {},
+            contentHash: section.contentHash,
+            sectioned: section.sectioned
+          })),
+          pointers: result.pointers.map((pointer) => ({
+            repositoryId: pointer.repositoryId,
+            path: pointer.path
+          }))
         }
       };
     }
@@ -129096,7 +130308,13 @@ var TOOL_CATALOG = [
   // `autonomy seal` and `mission ccr`.
   { name: "spec_intake_start", readOnly: false, summary: "Ingest a product specification and run repository-grounded discovery" },
   { name: "spec_intake_read", readOnly: true, summary: "One spec intake: questions, refusals, delta authority, approval summary" },
-  { name: "spec_intake_answer", readOnly: false, summary: "Record the user\u2019s answer to one product question" }
+  { name: "spec_intake_answer", readOnly: false, summary: "Record the user\u2019s answer to one product question" },
+  // Workspace Bootstrap (vNext.10.2 Phase 1): the repository-aware starting
+  // point of a product conversation. Reads the repository and existing
+  // product truth; creates no product authority.
+  { name: "workspace_bootstrap", readOnly: false, summary: "Build or revalidate the CurrentSystemSnapshot" },
+  { name: "workspace_snapshot", readOnly: true, summary: "Current-system summary with an explicit freshness verdict" },
+  { name: "repository_inspect", readOnly: true, summary: "Bounded repository sections for a deeper implementation question" }
 ];
 function registerAllTools(server, context) {
   registerWorkspaceDetectTool(server, context);
@@ -129163,6 +130381,9 @@ function registerAllTools(server, context) {
   registerSpecIntakeStartTool(server, context);
   registerSpecIntakeReadTool(server, context);
   registerSpecIntakeAnswerTool(server, context);
+  registerWorkspaceBootstrapTool(server, context);
+  registerWorkspaceSnapshotTool(server, context);
+  registerRepositoryInspectTool(server, context);
   registerObjectiveReadTool(server, context);
   registerWorkunitReadTool(server, context);
   registerEvaluationReadTool(server, context);
@@ -129329,8 +130550,8 @@ async function runMcpServe(argv2, io = {
 }
 
 // ../../packages/mcp-server/dist/index.js
-var import_fs87 = require("fs");
-var import_path96 = __toESM(require("path"), 1);
+var import_fs90 = require("fs");
+var import_path99 = __toESM(require("path"), 1);
 async function runMcpDoctor(options = {}) {
   const checks = [];
   const env = options.env ?? process.env;
@@ -129423,7 +130644,7 @@ async function runMcpDoctor(options = {}) {
   const pluginRoot = env["CLAUDE_PLUGIN_ROOT"];
   if (pluginRoot !== void 0 && pluginRoot.length > 0) {
     const missing = ["dist/mcp-server.cjs", "dist/cli.cjs"].filter(
-      (relative) => !(0, import_fs87.existsSync)(import_path96.default.join(pluginRoot, relative))
+      (relative) => !(0, import_fs90.existsSync)(import_path99.default.join(pluginRoot, relative))
     );
     checks.push(
       missing.length === 0 ? { name: "plugin-bundle", status: "ok", detail: `Bundled executables present under ${pluginRoot}` } : {
@@ -129597,9 +130818,9 @@ function readableIndexes(runtime, registryFilter) {
       continue;
     }
     try {
-      const resolved = resolveRegistryIndex(workspace, source);
-      if (resolved !== void 0) {
-        indexes.push({ registryName: resolved.sourceName, index: resolved.index });
+      const resolved2 = resolveRegistryIndex(workspace, source);
+      if (resolved2 !== void 0) {
+        indexes.push({ registryName: resolved2.sourceName, index: resolved2.index });
       }
     } catch {
     }
@@ -129607,9 +130828,9 @@ function readableIndexes(runtime, registryFilter) {
   return indexes;
 }
 function resolveConformanceTarget(runtime, target) {
-  const resolved = import_node_path22.default.resolve(runtime.cwd, target);
-  if ((0, import_node_fs18.existsSync)(resolved) && (0, import_node_fs18.lstatSync)(resolved).isDirectory()) {
-    const files = readExtensionPackageDirectory(resolved);
+  const resolved2 = import_node_path22.default.resolve(runtime.cwd, target);
+  if ((0, import_node_fs18.existsSync)(resolved2) && (0, import_node_fs18.lstatSync)(resolved2).isDirectory()) {
+    const files = readExtensionPackageDirectory(resolved2);
     const validation = loadExtensionPackage(files, { checksums: "verify-if-present" });
     const errors = validation.issues.filter((issue4) => issue4.severity === "error");
     if (validation.manifest === void 0 || validation.manifestSha256 === void 0 || validation.permissionHash === void 0 || errors.length > 0) {
@@ -129633,7 +130854,7 @@ function resolveConformanceTarget(runtime, target) {
         installRecordId: "not-installed"
       },
       manifest: validation.manifest,
-      installedDir: resolved,
+      installedDir: resolved2,
       permissionHash: validation.permissionHash,
       manifestSha256: validation.manifestSha256
     };
@@ -129792,19 +131013,19 @@ function registerExtensionCommands(program2, runtime) {
     }
   });
   extension.command("validate <path-or-extension>").description("Validate a package directory, archive, or installed extension (never executes code)").option("--json", "output a machine-readable JSON report").action((target, options) => {
-    const resolved = import_node_path22.default.resolve(runtime.cwd, target);
+    const resolved2 = import_node_path22.default.resolve(runtime.cwd, target);
     let issues;
     let manifestId = null;
     let where;
-    if ((0, import_node_fs18.existsSync)(resolved) && (0, import_node_fs18.lstatSync)(resolved).isDirectory()) {
-      const validation = loadExtensionPackage(readExtensionPackageDirectory(resolved), {
+    if ((0, import_node_fs18.existsSync)(resolved2) && (0, import_node_fs18.lstatSync)(resolved2).isDirectory()) {
+      const validation = loadExtensionPackage(readExtensionPackageDirectory(resolved2), {
         checksums: "verify-if-present"
       });
       issues = validation.issues;
       manifestId = validation.manifest?.id ?? null;
       where = `directory ${target}`;
-    } else if ((0, import_node_fs18.existsSync)(resolved) && resolved.endsWith(".zip")) {
-      const bytes = (0, import_node_fs18.readFileSync)(resolved);
+    } else if ((0, import_node_fs18.existsSync)(resolved2) && resolved2.endsWith(".zip")) {
+      const bytes = (0, import_node_fs18.readFileSync)(resolved2);
       const validation = loadExtensionPackage(extractZipArchive(bytes));
       issues = validation.issues;
       manifestId = validation.manifest?.id ?? null;
@@ -129860,11 +131081,11 @@ function registerExtensionCommands(program2, runtime) {
           `SBR010: registry "${options.registry}" has no validated cache yet. Run \`${CLI_BIN} registry update ${options.registry} --network\` first.`
         );
       }
-      const resolved = resolveRegistryExtension(
+      const resolved2 = resolveRegistryExtension(
         [{ registryName: resolvedIndex.sourceName, index: resolvedIndex.index }],
         source
       );
-      const archive = await downloadRegistryArchive(resolved.version.archiveUrl, {
+      const archive = await downloadRegistryArchive(resolved2.version.archiveUrl, {
         network: options.network === true,
         http: safeHttpRequest,
         maxArchiveBytes: EXTENSION_LIMITS.maxArchiveBytes
@@ -129872,13 +131093,13 @@ function registerExtensionCommands(program2, runtime) {
       result = installExtensionFromArchiveBytes(archive, {
         workspace,
         sourceLabel: `registry:${options.registry}`,
-        expectedArchiveSha256: resolved.version.sha256,
+        expectedArchiveSha256: resolved2.version.sha256,
         ...options.dryRun === true ? { dryRun: true } : {},
         clock: () => runtime.now()
       });
     } else {
-      const resolved = import_node_path22.default.resolve(runtime.cwd, source);
-      if (!(0, import_node_fs18.existsSync)(resolved)) {
+      const resolved2 = import_node_path22.default.resolve(runtime.cwd, source);
+      if (!(0, import_node_fs18.existsSync)(resolved2)) {
         throw new SpecBridgeError(
           "INVALID_ARGUMENT",
           `"${source}" does not exist. Pass a package directory, a .zip archive, or use --registry.`
@@ -129886,11 +131107,11 @@ function registerExtensionCommands(program2, runtime) {
       }
       const installOptions = {
         workspace,
-        sourceLabel: (0, import_node_fs18.lstatSync)(resolved).isDirectory() ? `local-directory:${source}` : `local-archive:${source}`,
+        sourceLabel: (0, import_node_fs18.lstatSync)(resolved2).isDirectory() ? `local-directory:${source}` : `local-archive:${source}`,
         ...options.dryRun === true ? { dryRun: true } : {},
         clock: () => runtime.now()
       };
-      result = (0, import_node_fs18.lstatSync)(resolved).isDirectory() ? installExtensionFromDirectory(resolved, installOptions) : installExtensionFromArchiveBytes((0, import_node_fs18.readFileSync)(resolved), installOptions);
+      result = (0, import_node_fs18.lstatSync)(resolved2).isDirectory() ? installExtensionFromDirectory(resolved2, installOptions) : installExtensionFromArchiveBytes((0, import_node_fs18.readFileSync)(resolved2), installOptions);
     }
     if (options.json === true) {
       jsonOut2(runtime, "specbridge.extension-install/1", { ...result });
@@ -130179,9 +131400,9 @@ function readableIndexes2(runtime, registryFilter) {
       continue;
     }
     try {
-      const resolved = resolveRegistryIndex(workspace, source);
-      if (resolved !== void 0) {
-        indexes.push({ registryName: resolved.sourceName, index: resolved.index });
+      const resolved2 = resolveRegistryIndex(workspace, source);
+      if (resolved2 !== void 0) {
+        indexes.push({ registryName: resolved2.sourceName, index: resolved2.index });
       }
     } catch {
     }
@@ -130204,9 +131425,9 @@ function registerRegistryCommands(program2, runtime) {
         extensionCount = cache.cache?.index.extensions.length ?? null;
       } else {
         try {
-          const resolved = resolveRegistryIndex(workspace, source);
+          const resolved2 = resolveRegistryIndex(workspace, source);
           cacheStatus = "readable";
-          extensionCount = resolved?.index.extensions.length ?? null;
+          extensionCount = resolved2?.index.extensions.length ?? null;
         } catch {
           cacheStatus = "invalid";
         }
@@ -130401,9 +131622,9 @@ function registerRegistryCommands(program2, runtime) {
     let problems = [];
     let extensionCount = 0;
     let label = target;
-    const resolved = import_node_path23.default.resolve(runtime.cwd, target);
-    if ((0, import_node_fs19.existsSync)(resolved) && (0, import_node_fs19.lstatSync)(resolved).isFile()) {
-      const parsed = parseRegistryIndex((0, import_node_fs19.readFileSync)(resolved, "utf8"));
+    const resolved2 = import_node_path23.default.resolve(runtime.cwd, target);
+    if ((0, import_node_fs19.existsSync)(resolved2) && (0, import_node_fs19.lstatSync)(resolved2).isFile()) {
+      const parsed = parseRegistryIndex((0, import_node_fs19.readFileSync)(resolved2, "utf8"));
       problems = parsed.problems;
       extensionCount = parsed.index?.extensions.length ?? 0;
       label = `file ${target}`;
@@ -130495,7 +131716,7 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
   orchestrate.command("run").description("Run the long-running job orchestrator for one approved spec (foreground, resumable)").argument("<spec>", "spec name under .kiro/specs/").option("--goal <text>", "stated goal recorded on the job (default: implement the approved plan)").option("--resume <jobId>", "resume an existing job instead of creating one").option("--dry-run", "validate and show what would run, without creating or advancing anything").option("--json", "output a machine-readable JSON report of the final state").action(
     async (specName, options) => {
       const context = loadExecutionContext(runtime);
-      const deps = {
+      const deps2 = {
         workspace: context.workspace,
         config: context.config,
         registry: context.registry,
@@ -130564,7 +131785,7 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
             `Job ${active.jobId} is already active (${active.status}) for "${specName}". Resume it with --resume ${active.jobId}, or cancel it with \`${CLI_BIN} orchestrate cancel-job ${active.jobId}\`.`
           );
         }
-        const job = createJob(deps, {
+        const job = createJob(deps2, {
           specName,
           goal: options.goal ?? `Implement the approved task plan of "${specName}".`
         });
@@ -130578,7 +131799,7 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
       };
       process.once("SIGINT", onSigint);
       try {
-        const result = await driveJob(deps, jobId, {
+        const result = await driveJob(deps2, jobId, {
           signal: controller.signal,
           onEvent: (event) => {
             if (event.kind === "decision") runtime.out(dim2(`  \u2192 ${event.message}`));
@@ -130771,8 +131992,8 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
       throw new SpecBridgeError("INVALID_ARGUMENT", "Pass exactly one of --approve or --reject.");
     }
     const context = loadExecutionContext(runtime);
-    const deps = { workspace: context.workspace, config: context.config, host: "cli" };
-    reviewNodePlan(deps, jobId, {
+    const deps2 = { workspace: context.workspace, config: context.config, host: "cli" };
+    reviewNodePlan(deps2, jobId, {
       nodeId,
       decision: options.approve === true ? "approved" : "rejected",
       note: options.note
@@ -130785,8 +132006,8 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
   });
   orchestrate.command("answer").description("Answer an open clarification question (human decision)").argument("<jobId>").argument("<questionId>").argument("<answer...>").action((jobId, questionId, answerWords) => {
     const context = loadExecutionContext(runtime);
-    const deps = { workspace: context.workspace, config: context.config, host: "cli" };
-    const job = answerClarification(deps, jobId, [
+    const deps2 = { workspace: context.workspace, config: context.config, host: "cli" };
+    const job = answerClarification(deps2, jobId, [
       { questionId, answer: answerWords.join(" ") }
     ]);
     runtime.out(okLine(`Recorded the decision. ${job.openQuestions.length} question(s) remain open.`));
@@ -130796,8 +132017,8 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
   });
   orchestrate.command("cancel-job").description("Cancel a job (final; never auto-restarted)").argument("<jobId>").option("--reason <text>", "reason recorded on the cancellation", "cancelled from the CLI").action((jobId, options) => {
     const context = loadExecutionContext(runtime);
-    const deps = { workspace: context.workspace, config: context.config, host: "cli" };
-    const job = cancelJob(deps, jobId, options.reason);
+    const deps2 = { workspace: context.workspace, config: context.config, host: "cli" };
+    const job = cancelJob(deps2, jobId, options.reason);
     runtime.out(okLine(`Job ${jobId} is ${job.status}.`));
   });
   orchestrate.command("objective").description("One objective in depth: work graph, unit statuses, workers, conflicts, evaluations").argument("<jobId>").argument("<nodeId>").option("--json", "output a machine-readable JSON report").action((jobId, nodeId, options) => {
@@ -132146,7 +133367,7 @@ function registerOrchestrateQualifyCommands(orchestrate, runtime) {
         }
       }
       let sequence = 0;
-      const deps = {
+      const deps2 = {
         workspace: context.workspace,
         config: context.config,
         clock: () => runtime.now(),
@@ -132155,7 +133376,7 @@ function registerOrchestrateQualifyCommands(orchestrate, runtime) {
           return `${Date.now().toString(36)}${String(sequence).padStart(3, "0")}`;
         }
       };
-      const run = options.runId === void 0 ? startQualificationRun(deps, {
+      const run = options.runId === void 0 ? startQualificationRun(deps2, {
         profile,
         target: resolveTarget(options),
         missionDirection: options.direction ?? null,
@@ -132182,7 +133403,7 @@ function registerOrchestrateQualifyCommands(orchestrate, runtime) {
         }
       }
       const result = executeQualificationRun({
-        deps,
+        deps: deps2,
         run,
         executor: "cli",
         ...options.scenario === void 0 ? {} : { only: options.scenario },
@@ -132797,9 +134018,9 @@ function registerMissionCommands(program2, runtime) {
     for (const diagnostic of listed.diagnostics) runtime.out(warnLine(diagnostic.message));
   });
   mission.command("show").description("One mission in depth: status, coverage, open questions, artifacts").argument("<missionId>").option("--json", "output a machine-readable JSON report").action((missionId, options) => {
-    const deps = missionDeps2(runtime);
-    observeSpecApproval(deps, missionId);
-    const overview = describeMission(deps, missionId);
+    const deps2 = missionDeps2(runtime);
+    observeSpecApproval(deps2, missionId);
+    const overview = describeMission(deps2, missionId);
     if (options.json === true) {
       jsonOut7(runtime, "mission-show", {
         mission: missionSummary(overview.mission),
@@ -133111,8 +134332,8 @@ function registerSetup(autonomy, runtime) {
 }
 function registerPolicy(autonomy, runtime) {
   autonomy.command("policy").description("Print the resolved autonomy policy and the authority boundary").option("--json", "machine-readable output").action((options) => {
-    const deps = autonomyDeps(runtime);
-    const policy = deps.config.autonomy;
+    const deps2 = autonomyDeps(runtime);
+    const policy = deps2.config.autonomy;
     if (options.json === true) {
       jsonOut8(runtime, "autonomy-policy/v1", {
         policy,
@@ -133137,18 +134358,18 @@ function registerPolicy(autonomy, runtime) {
 function registerSeal(autonomy, runtime) {
   autonomy.command("seal <mission>").description("Draft, and with --confirm authorize, the delegated intent seal").option("--confirm", "authorize the seal (this is the human authorization)").option("--max-spend <usd>", "monetary ceiling this seal authorizes").option("--lanes <lanes>", "comma-separated lanes: LOCAL,SUBSCRIPTION,API", "LOCAL,SUBSCRIPTION").option("--json", "machine-readable output").action(
     (subject, options) => {
-      const deps = autonomyDeps(runtime);
+      const deps2 = autonomyDeps(runtime);
       const missionId = resolveMissionId(runtime, subject);
       const lanes = options.lanes.split(",").map((lane) => lane.trim().toUpperCase()).filter(
         (lane) => lane === "LOCAL" || lane === "SUBSCRIPTION" || lane === "API"
       );
-      const draft = draftSeal(deps, {
+      const draft = draftSeal(deps2, {
         missionId,
         maxApiSpendUsd: options.maxSpend !== void 0 ? Number(options.maxSpend) : null,
         allowedLanes: lanes.length > 0 ? lanes : ["LOCAL"]
       });
       const completeness = assessSealCompleteness(draft);
-      const seal = options.confirm === true && completeness.complete ? sealMission(deps, { sealId: draft.sealId, via: "cli" }) : draft;
+      const seal = options.confirm === true && completeness.complete ? sealMission(deps2, { sealId: draft.sealId, via: "cli" }) : draft;
       if (options.json === true) {
         jsonOut8(runtime, "autonomy-seal/v1", {
           sealId: seal.sealId,
@@ -133216,8 +134437,8 @@ function registerSeal(autonomy, runtime) {
     }
   });
   autonomy.command("revoke <sealId>").description("Withdraw a seal; delegated execution stops immediately").requiredOption("--reason <reason>", "why the authorization is withdrawn").action((sealId, options) => {
-    const deps = autonomyDeps(runtime);
-    const seal = revokeSeal(deps, sealId, options.reason);
+    const deps2 = autonomyDeps(runtime);
+    const seal = revokeSeal(deps2, sealId, options.reason);
     runtime.out(okLine(`Seal ${seal.sealId} is ${seal.status}.`));
   });
 }
@@ -133254,11 +134475,11 @@ function renderPreflight(runtime, report) {
 function registerOvernight(program2, runtime) {
   const overnight = program2.command("overnight").description("Prepare and launch an unattended mission build");
   overnight.command("preflight <mission>").description("Find the human-only prerequisites before you leave the machine").option("--json", "machine-readable output").action(async (subject, options) => {
-    const deps = autonomyDeps(runtime);
+    const deps2 = autonomyDeps(runtime);
     const missionId = resolveMissionId(runtime, subject);
-    const seal = latestExecutableSeal(deps.workspace, missionId);
+    const seal = latestExecutableSeal(deps2.workspace, missionId);
     const surfaces = requiredSurfacesFor(seal);
-    const report = await runOvernightPreflight(deps, {
+    const report = await runOvernightPreflight(deps2, {
       subject: missionId,
       missionId,
       ...seal !== void 0 ? { sealId: seal.sealId } : {},
@@ -133285,14 +134506,14 @@ function registerOvernight(program2, runtime) {
   overnight.command("run <mission>").description("Launch the unattended build. Progress needs nobody after this").option("--job <id>", "continue an existing job").option("--goal <text>", "goal recorded on a newly created job").option("--max-cycles <n>", "bound on supervise/close cycles (diagnostics)").option("--json", "machine-readable output").action(
     async (subject, options) => {
       const context = loadExecutionContext(runtime);
-      const deps = {
+      const deps2 = {
         workspace: context.workspace,
         config: context.config,
         clock: () => runtime.now(),
         host: "cli"
       };
       const missionId = resolveMissionId(runtime, subject);
-      const seal = latestExecutableSeal(deps.workspace, missionId);
+      const seal = latestExecutableSeal(deps2.workspace, missionId);
       if (seal === void 0) {
         throw new SpecBridgeError(
           "INVALID_STATE",
@@ -133306,11 +134527,11 @@ function registerOvernight(program2, runtime) {
           `Mission ${missionId} has synthesized no spec yet; there is nothing to build.`
         );
       }
-      const jobId = options.job ?? createJob(deps, {
+      const jobId = options.job ?? createJob(deps2, {
         specName,
         goal: options.goal ?? seal.goal
       }).jobId;
-      const result = await runUnattendedMission(deps, {
+      const result = await runUnattendedMission(deps2, {
         missionId,
         jobId,
         // A factory: the runtime hands back deps carrying the authority
@@ -133424,10 +134645,10 @@ function registerInspection(autonomy, runtime) {
     }
   });
   autonomy.command("report <jobId>").description("The autonomy report for one job (read-only)").option("--json", "machine-readable output").action((jobId, options) => {
-    const deps = autonomyDeps(runtime);
-    const telemetry = computeAutonomyTelemetry(deps, { jobId });
-    const ledger = readClosureLedger(deps.workspace, jobId);
-    const job = requireJobState(deps.workspace, jobId);
+    const deps2 = autonomyDeps(runtime);
+    const telemetry = computeAutonomyTelemetry(deps2, { jobId });
+    const ledger = readClosureLedger(deps2.workspace, jobId);
+    const job = requireJobState(deps2.workspace, jobId);
     if (options.json === true) {
       jsonOut8(runtime, "autonomy-report/v1", {
         jobId,
@@ -133561,8 +134782,8 @@ function registerClosure(autonomy, runtime) {
   closure.command("waive <jobId> <itemId>").description(
     "Waive one sealed closure item with YOUR authority (human decision). A waiver is an attestation, not a shortcut: name the evidence you inspected."
   ).requiredOption("--reason <text>", "why this item is satisfied or does not apply \u2014 name the evidence").option("--by <name>", "who attests", "operator").action((jobId, itemId, options) => {
-    const deps = autonomyDeps(runtime);
-    const ledger = waiveClosureItem(deps, {
+    const deps2 = autonomyDeps(runtime);
+    const ledger = waiveClosureItem(deps2, {
       jobId,
       itemId,
       reason: options.reason,
@@ -133582,6 +134803,130 @@ function registerAutonomyCommands(program2, runtime) {
   registerInspection(autonomy, runtime);
   registerClosure(autonomy, runtime);
   registerOvernight(program2, runtime);
+}
+
+// ../../packages/cli/src/commands/workspace.ts
+function deps(runtime) {
+  const context = loadExecutionContext(runtime);
+  return {
+    workspace: context.workspace,
+    config: context.config,
+    clock: () => runtime.now(),
+    host: "cli"
+  };
+}
+function renderFindings2(runtime, title, findings2) {
+  if (findings2.length === 0) return;
+  runtime.out(sectionTitle(title));
+  for (const finding2 of findings2.slice(0, 15)) {
+    runtime.out(`  [${finding2.class}] ${finding2.statement}`);
+    const first = finding2.evidence[0];
+    if (first !== void 0) {
+      const where = first.path !== void 0 ? `${first.repositoryId}:${first.path}` : first.contractId ?? first.adrId ?? first.ruleId ?? first.decisionId ?? first.sealId ?? first.repositoryId;
+      runtime.out(dim2(`      evidence: ${where}${finding2.evidence.length > 1 ? ` (+${finding2.evidence.length - 1})` : ""}`));
+    }
+  }
+  if (findings2.length > 15) runtime.out(dim2(`  \u2026 ${findings2.length - 15} more`));
+}
+function registerWorkspaceCommands(program2, runtime) {
+  const workspace = program2.command("workspace").description("Workspace bootstrap: understand the current system before product discovery");
+  workspace.command("bootstrap").description("Build or revalidate the CurrentSystemSnapshot for this workspace").option("--rebuild", "force a full index rebuild and snapshot regeneration").option("--json", "machine-readable output").action((options) => {
+    const result = bootstrapWorkspace(deps(runtime), {
+      ...options.rebuild === true ? { rebuild: true } : {}
+    });
+    if (options.json === true) {
+      runtime.out(JSON.stringify({ reused: result.reused, snapshot: result.snapshot }, null, 2));
+      return;
+    }
+    const snapshot2 = result.snapshot;
+    runtime.out(reportTitle(`Workspace bootstrap \u2014 ${snapshot2.mode}`));
+    runtime.out(
+      result.reused ? okLine("snapshot is current; reused without regeneration") : okLine(`snapshot ${snapshot2.snapshotId} generated`)
+    );
+    for (const repo of snapshot2.repositories) {
+      runtime.out(
+        infoLine(
+          `${repo.repositoryId}${repo.relPath === "" ? "" : ` (${repo.relPath}/)`}: ${repo.indexedFiles} indexed file(s), ${repo.gitHead === null ? "no git baseline" : `HEAD ${repo.gitHead.slice(0, 12)}`}`
+        )
+      );
+    }
+    runtime.out(
+      infoLine(
+        `${snapshot2.capabilities.length} capability, ${snapshot2.architecture.length} architecture, ${snapshot2.publicSurfaces.length} surface, ${snapshot2.existingProductTruth.length} product-truth reference(s)`
+      )
+    );
+    if (snapshot2.uncertainties.length > 0) {
+      runtime.out(warnLine(`${snapshot2.uncertainties.length} uncertainty/uncertainties recorded \u2014 see \`workspace snapshot\``));
+    }
+  });
+  workspace.command("snapshot").description("Show what SpecBridge currently believes about this system").option("--json", "machine-readable output").action((options) => {
+    const d = deps(runtime);
+    const snapshot2 = readCurrentSystemSnapshot(d.workspace);
+    const freshness = assessSnapshotFreshness2(d.workspace, snapshot2);
+    if (options.json === true) {
+      runtime.out(JSON.stringify({ freshness, snapshot: snapshot2 }, null, 2));
+      return;
+    }
+    if (snapshot2 === void 0) {
+      runtime.out(warnLine("No snapshot exists yet. Run `specbridge workspace bootstrap`."));
+      return;
+    }
+    runtime.out(reportTitle(`Current system \u2014 ${snapshot2.mode}`));
+    if (freshness.status === "STALE") {
+      runtime.out(warnLine("STALE: the repositories moved since this snapshot was taken."));
+      for (const reason of freshness.reasons.slice(0, 5)) runtime.out(dim2(`  ${reason}`));
+      runtime.out(dim2("  Re-run `specbridge workspace bootstrap` before relying on it."));
+    } else {
+      runtime.out(okLine(`fresh as of ${snapshot2.createdAt}`));
+    }
+    renderFindings2(runtime, "Capabilities", snapshot2.capabilities);
+    renderFindings2(runtime, "Architecture", snapshot2.architecture);
+    renderFindings2(runtime, "Public surfaces", snapshot2.publicSurfaces);
+    renderFindings2(runtime, "Domain objects", snapshot2.domainObjects);
+    renderFindings2(runtime, "Implementation patterns", snapshot2.implementationPatterns);
+    renderFindings2(runtime, "Constraints", snapshot2.constraints);
+    if (snapshot2.existingProductTruth.length > 0) {
+      runtime.out(sectionTitle("Existing product truth"));
+      for (const ref of snapshot2.existingProductTruth.slice(0, 15)) {
+        runtime.out(`  ${ref.kind} ${ref.ref}${ref.revision !== void 0 ? ` r${ref.revision}` : ""}: ${ref.title}`);
+      }
+      if (snapshot2.existingProductTruth.length > 15) {
+        runtime.out(dim2(`  \u2026 ${snapshot2.existingProductTruth.length - 15} more`));
+      }
+    }
+    if (snapshot2.uncertainties.length > 0) {
+      runtime.out(sectionTitle("Uncertainties"));
+      for (const entry2 of snapshot2.uncertainties.slice(0, 10)) {
+        runtime.out(`  ${entry2.area}: ${entry2.detail}`);
+      }
+    }
+  });
+  workspace.command("inspect <question...>").description("Bounded deeper inspection of the current implementation").option("--repo <id>", "restrict to one repository of the snapshot").option("--max-sections <n>", "file sections to materialize (default 5)").option("--json", "machine-readable output").action((question, options) => {
+    const result = inspectWorkspace(deps(runtime), {
+      question: question.join(" "),
+      ...options.repo !== void 0 ? { repositoryId: options.repo } : {},
+      ...options.maxSections !== void 0 ? { maxSections: Number(options.maxSections) } : {}
+    });
+    if (options.json === true) {
+      runtime.out(JSON.stringify(result, null, 2));
+      return;
+    }
+    if (result.sections.length === 0) {
+      runtime.out(warnLine("Nothing in the index ranked as relevant to that question."));
+      return;
+    }
+    for (const section of result.sections) {
+      runtime.out(
+        sectionTitle(
+          `${section.repositoryId}:${section.path}` + (section.startLine !== void 0 ? ` (${section.startLine}\u2013${section.endLine})` : "")
+        )
+      );
+      runtime.out(section.content);
+    }
+    if (result.pointers.length > 0) {
+      runtime.out(dim2(`also relevant: ${result.pointers.map((p) => `${p.repositoryId}:${p.path}`).join(", ")}`));
+    }
+  });
 }
 
 // ../../packages/cli/src/cli.ts
@@ -133644,6 +134989,7 @@ honest error; nothing pretends to work before it does.`
   registerLocalModelCommands(program2, runtime);
   registerMissionCommands(program2, runtime);
   registerAutonomyCommands(program2, runtime);
+  registerWorkspaceCommands(program2, runtime);
   return program2;
 }
 async function runCli(argv2, ioOverrides) {

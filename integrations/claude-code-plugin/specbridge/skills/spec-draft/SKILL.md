@@ -15,6 +15,39 @@ The intake pipeline downstream treats the document as evidence — so a
 sentence you invented becomes a requirement nobody asked for, sealed into a
 contract. Write nothing the user did not say or explicitly confirm.
 
+## 0. Know the current system first (Brownfield)
+
+Before drafting for an EXISTING system, consult the workspace snapshot:
+
+1. Call the `workspace_snapshot` MCP tool. If it reports no snapshot or a
+   STALE one, call `workspace_bootstrap` first (CLI fallback:
+   `specbridge workspace bootstrap`, then `specbridge workspace snapshot`).
+2. Read the snapshot's capabilities, architecture, constraints, and
+   existing product truth. Mode GREENFIELD means an empty baseline — skip
+   this section entirely and draft exactly as before.
+3. When the conversation needs deeper knowledge of the implementation
+   ("can the existing JobScheduler run across clusters?"), use the
+   `repository_inspect` tool with a focused question. Never paste whole
+   repositories into the conversation.
+
+What the snapshot changes about the DRAFT:
+
+- **Write a product delta, not a re-founding.** Capabilities the snapshot
+  shows as existing (an RBAC service, a scheduler, an audit trail) are
+  reused by reference — "reuse the existing PermissionService for
+  authorization" — never restated as new requirements. A draft that
+  re-specifies the existing system asks the overnight run to rebuild it.
+- **Snapshot classes are trust levels, and only one of them binds.**
+  `SEALED_PRODUCT_TRUTH` is existing product authority — respect it and
+  name the contract when the new feature touches it. `DOCUMENTED_ARCHITECTURE`,
+  `OBSERVED_IMPLEMENTATION`, and `INFERRED_PATTERN` are evidence about
+  today's system, NOT requirements: "retryCount = 3 today" enters the spec
+  as a requirement only if the user explicitly decides it should be
+  promised. Ask; never promote an observation silently.
+- **Constraints inform, the user decides.** Existing framework, language,
+  and compatibility constraints belong in `## Compatibility` or the gap
+  list as facts to confirm, not as invented obligations.
+
 ## 1. Harvest before you draft
 
 Re-read the conversation and collect, verbatim where possible:
@@ -26,7 +59,9 @@ Re-read the conversation and collect, verbatim where possible:
 - claims about compatibility with anything external;
 - semantic verbs whose behavior users can observe (replay, redrive, sync,
   merge, retry, undo…) and what the user said they mean;
-- anything about sensitive data, visibility, or retention.
+- anything about sensitive data, visibility, or retention;
+- for Brownfield work: which EXISTING capabilities from the snapshot the
+  feature builds on, and which sealed contracts it touches.
 
 ## 2. Draft into the canonical shape
 
@@ -114,6 +149,11 @@ handing the user the CLI command instead:
 
 - Never invent a requirement, an edge case, or a compatibility claim the
   user did not state. A gap is a question, not a blank to fill creatively.
+- Never promote a repository observation into a requirement. What the code
+  does today (`OBSERVED_IMPLEMENTATION`, `INFERRED_PATTERN`) is evidence
+  for the conversation; it becomes a promise only through the user's own
+  words. Never restate existing capabilities as new requirements — reuse
+  them by reference.
 - Never include secrets, tokens, or credentials in the document — intake
   stores it verbatim, forever.
 - Never run `spec start` yourself without the user confirming the draft;

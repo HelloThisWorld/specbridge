@@ -30,7 +30,8 @@
     "@specbridge/mission": "workspace:*",
     "@specbridge/orchestration": "workspace:*",
     "@specbridge/workflow": "workspace:*",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "@specbridge/context": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.3.0",

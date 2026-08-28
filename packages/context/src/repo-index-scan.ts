@@ -525,6 +525,14 @@ export interface ScanOptions {
   maxFileBytes?: number | undefined;
   /** ISO timestamp stamped on every produced entry. */
   indexedAt: string;
+  /**
+   * Previously indexed entries by path. When a walked file's size AND mtime
+   * both match the known entry, the entry is reused without a re-read — a
+   * PERFORMANCE shortcut over bytes already hashed once, identical to the
+   * one the untargeted refresh applies. This is what makes an
+   * additions-discovering walk cost a traversal rather than a full rebuild.
+   */
+  reuse?: ReadonlyMap<string, RepositoryIndexEntry> | undefined;
 }
 
 export interface ScanResult {
@@ -676,8 +684,11 @@ export function scanWorkspace(options: ScanOptions): ScanResult {
         continue;
       }
       let size: number;
+      let mtimeMs: number;
       try {
-        size = statSync(path.join(rootDir, relativePath)).size;
+        const stat = statSync(path.join(rootDir, relativePath));
+        size = stat.size;
+        mtimeMs = stat.mtimeMs;
       } catch {
         note(relativePath, 'unreadable');
         continue;
@@ -690,6 +701,11 @@ export function scanWorkspace(options: ScanOptions): ScanResult {
         note(relativePath, 'entry-limit');
         truncated = true;
         return;
+      }
+      const known = options.reuse?.get(relativePath);
+      if (known !== undefined && known.sizeBytes === size && known.mtimeMs === mtimeMs) {
+        entries.push(known);
+        continue;
       }
       const entry = buildEntry(rootDir, relativePath, options.indexedAt);
       if (entry === undefined) {
