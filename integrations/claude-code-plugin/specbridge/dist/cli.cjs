@@ -968,7 +968,7 @@ var require_command = __commonJS({
     "use strict";
     var EventEmitter2 = require("events").EventEmitter;
     var childProcess = require("child_process");
-    var path88 = require("path");
+    var path90 = require("path");
     var fs = require("fs");
     var process11 = require("process");
     var { Argument: Argument2, humanReadableArgName } = require_argument();
@@ -1901,9 +1901,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
         let launchWithNode = false;
         const sourceExt = [".js", ".ts", ".tsx", ".mjs", ".cjs"];
         function findFile(baseDir, baseName) {
-          const localBin = path88.resolve(baseDir, baseName);
+          const localBin = path90.resolve(baseDir, baseName);
           if (fs.existsSync(localBin)) return localBin;
-          if (sourceExt.includes(path88.extname(baseName))) return void 0;
+          if (sourceExt.includes(path90.extname(baseName))) return void 0;
           const foundExt = sourceExt.find(
             (ext) => fs.existsSync(`${localBin}${ext}`)
           );
@@ -1921,17 +1921,17 @@ Expecting one of '${allowedValues.join("', '")}'`);
           } catch (err) {
             resolvedScriptPath = this._scriptPath;
           }
-          executableDir = path88.resolve(
-            path88.dirname(resolvedScriptPath),
+          executableDir = path90.resolve(
+            path90.dirname(resolvedScriptPath),
             executableDir
           );
         }
         if (executableDir) {
           let localFile = findFile(executableDir, executableFile);
           if (!localFile && !subcommand._executableFile && this._scriptPath) {
-            const legacyName = path88.basename(
+            const legacyName = path90.basename(
               this._scriptPath,
-              path88.extname(this._scriptPath)
+              path90.extname(this._scriptPath)
             );
             if (legacyName !== this._name) {
               localFile = findFile(
@@ -1942,7 +1942,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
           }
           executableFile = localFile || executableFile;
         }
-        launchWithNode = sourceExt.includes(path88.extname(executableFile));
+        launchWithNode = sourceExt.includes(path90.extname(executableFile));
         let proc;
         if (process11.platform !== "win32") {
           if (launchWithNode) {
@@ -2782,7 +2782,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @return {Command}
        */
       nameFromFilename(filename) {
-        this._name = path88.basename(filename, path88.extname(filename));
+        this._name = path90.basename(filename, path90.extname(filename));
         return this;
       }
       /**
@@ -2796,9 +2796,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @param {string} [path]
        * @return {(string|null|Command)}
        */
-      executableDir(path89) {
-        if (path89 === void 0) return this._executableDir;
-        this._executableDir = path89;
+      executableDir(path91) {
+        if (path91 === void 0) return this._executableDir;
+        this._executableDir = path91;
         return this;
       }
       /**
@@ -3106,17 +3106,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path88) {
-      const ctrl = callVisitor(key, node, visitor, path88);
+    function visit_(key, node, visitor, path90) {
+      const ctrl = callVisitor(key, node, visitor, path90);
       if (identity3.isNode(ctrl) || identity3.isPair(ctrl)) {
-        replaceNode(key, path88, ctrl);
-        return visit_(key, ctrl, visitor, path88);
+        replaceNode(key, path90, ctrl);
+        return visit_(key, ctrl, visitor, path90);
       }
       if (typeof ctrl !== "symbol") {
         if (identity3.isCollection(node)) {
-          path88 = Object.freeze(path88.concat(node));
+          path90 = Object.freeze(path90.concat(node));
           for (let i2 = 0; i2 < node.items.length; ++i2) {
-            const ci = visit_(i2, node.items[i2], visitor, path88);
+            const ci = visit_(i2, node.items[i2], visitor, path90);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -3127,13 +3127,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity3.isPair(node)) {
-          path88 = Object.freeze(path88.concat(node));
-          const ck = visit_("key", node.key, visitor, path88);
+          path90 = Object.freeze(path90.concat(node));
+          const ck = visit_("key", node.key, visitor, path90);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path88);
+          const cv = visit_("value", node.value, visitor, path90);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -3154,17 +3154,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path88) {
-      const ctrl = await callVisitor(key, node, visitor, path88);
+    async function visitAsync_(key, node, visitor, path90) {
+      const ctrl = await callVisitor(key, node, visitor, path90);
       if (identity3.isNode(ctrl) || identity3.isPair(ctrl)) {
-        replaceNode(key, path88, ctrl);
-        return visitAsync_(key, ctrl, visitor, path88);
+        replaceNode(key, path90, ctrl);
+        return visitAsync_(key, ctrl, visitor, path90);
       }
       if (typeof ctrl !== "symbol") {
         if (identity3.isCollection(node)) {
-          path88 = Object.freeze(path88.concat(node));
+          path90 = Object.freeze(path90.concat(node));
           for (let i2 = 0; i2 < node.items.length; ++i2) {
-            const ci = await visitAsync_(i2, node.items[i2], visitor, path88);
+            const ci = await visitAsync_(i2, node.items[i2], visitor, path90);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -3175,13 +3175,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity3.isPair(node)) {
-          path88 = Object.freeze(path88.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path88);
+          path90 = Object.freeze(path90.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path90);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path88);
+          const cv = await visitAsync_("value", node.value, visitor, path90);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -3208,23 +3208,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path88) {
+    function callVisitor(key, node, visitor, path90) {
       if (typeof visitor === "function")
-        return visitor(key, node, path88);
+        return visitor(key, node, path90);
       if (identity3.isMap(node))
-        return visitor.Map?.(key, node, path88);
+        return visitor.Map?.(key, node, path90);
       if (identity3.isSeq(node))
-        return visitor.Seq?.(key, node, path88);
+        return visitor.Seq?.(key, node, path90);
       if (identity3.isPair(node))
-        return visitor.Pair?.(key, node, path88);
+        return visitor.Pair?.(key, node, path90);
       if (identity3.isScalar(node))
-        return visitor.Scalar?.(key, node, path88);
+        return visitor.Scalar?.(key, node, path90);
       if (identity3.isAlias(node))
-        return visitor.Alias?.(key, node, path88);
+        return visitor.Alias?.(key, node, path90);
       return void 0;
     }
-    function replaceNode(key, path88, node) {
-      const parent = path88[path88.length - 1];
+    function replaceNode(key, path90, node) {
+      const parent = path90[path90.length - 1];
       if (identity3.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity3.isPair(parent)) {
@@ -3834,10 +3834,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity3 = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path88, value) {
+    function collectionFromPath(schema, path90, value) {
       let v = value;
-      for (let i2 = path88.length - 1; i2 >= 0; --i2) {
-        const k = path88[i2];
+      for (let i2 = path90.length - 1; i2 >= 0; --i2) {
+        const k = path90[i2];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a2 = [];
           a2[k] = v;
@@ -3856,7 +3856,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path88) => path88 == null || typeof path88 === "object" && !!path88[Symbol.iterator]().next().done;
+    var isEmptyPath = (path90) => path90 == null || typeof path90 === "object" && !!path90[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -3886,11 +3886,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path88, value) {
-        if (isEmptyPath(path88))
+      addIn(path90, value) {
+        if (isEmptyPath(path90))
           this.add(value);
         else {
-          const [key, ...rest] = path88;
+          const [key, ...rest] = path90;
           const node = this.get(key, true);
           if (identity3.isCollection(node))
             node.addIn(rest, value);
@@ -3904,8 +3904,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path88) {
-        const [key, ...rest] = path88;
+      deleteIn(path90) {
+        const [key, ...rest] = path90;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -3919,8 +3919,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path88, keepScalar) {
-        const [key, ...rest] = path88;
+      getIn(path90, keepScalar) {
+        const [key, ...rest] = path90;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity3.isScalar(node) ? node.value : node;
@@ -3938,8 +3938,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path88) {
-        const [key, ...rest] = path88;
+      hasIn(path90) {
+        const [key, ...rest] = path90;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -3949,8 +3949,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path88, value) {
-        const [key, ...rest] = path88;
+      setIn(path90, value) {
+        const [key, ...rest] = path90;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -6465,9 +6465,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path88, value) {
+      addIn(path90, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path88, value);
+          this.contents.addIn(path90, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -6542,14 +6542,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path88) {
-        if (Collection.isEmptyPath(path88)) {
+      deleteIn(path90) {
+        if (Collection.isEmptyPath(path90)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path88) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path90) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -6564,10 +6564,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path88, keepScalar) {
-        if (Collection.isEmptyPath(path88))
+      getIn(path90, keepScalar) {
+        if (Collection.isEmptyPath(path90))
           return !keepScalar && identity3.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity3.isCollection(this.contents) ? this.contents.getIn(path88, keepScalar) : void 0;
+        return identity3.isCollection(this.contents) ? this.contents.getIn(path90, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -6578,10 +6578,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path88) {
-        if (Collection.isEmptyPath(path88))
+      hasIn(path90) {
+        if (Collection.isEmptyPath(path90))
           return this.contents !== void 0;
-        return identity3.isCollection(this.contents) ? this.contents.hasIn(path88) : false;
+        return identity3.isCollection(this.contents) ? this.contents.hasIn(path90) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -6598,13 +6598,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path88, value) {
-        if (Collection.isEmptyPath(path88)) {
+      setIn(path90, value) {
+        if (Collection.isEmptyPath(path90)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path88), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path90), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path88, value);
+          this.contents.setIn(path90, value);
         }
       }
       /**
@@ -8564,9 +8564,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path88) => {
+    visit.itemAtPath = (cst, path90) => {
       let item = cst;
-      for (const [field, index] of path88) {
+      for (const [field, index] of path90) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -8575,23 +8575,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path88) => {
-      const parent = visit.itemAtPath(cst, path88.slice(0, -1));
-      const field = path88[path88.length - 1][0];
+    visit.parentCollection = (cst, path90) => {
+      const parent = visit.itemAtPath(cst, path90.slice(0, -1));
+      const field = path90[path90.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path88, item, visitor) {
-      let ctrl = visitor(item, path88);
+    function _visit(path90, item, visitor) {
+      let ctrl = visitor(item, path90);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i2 = 0; i2 < token.items.length; ++i2) {
-            const ci = _visit(Object.freeze(path88.concat([[field, i2]])), token.items[i2], visitor);
+            const ci = _visit(Object.freeze(path90.concat([[field, i2]])), token.items[i2], visitor);
             if (typeof ci === "number")
               i2 = ci - 1;
             else if (ci === BREAK)
@@ -8602,10 +8602,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path88);
+            ctrl = ctrl(item, path90);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path88) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path90) : ctrl;
     }
     exports2.visit = visit;
   }
@@ -10363,7 +10363,7 @@ var require_windows = __commonJS({
     module2.exports = isexe;
     isexe.sync = sync;
     var fs = require("fs");
-    function checkPathExt(path88, options) {
+    function checkPathExt(path90, options) {
       var pathext = options.pathExt !== void 0 ? options.pathExt : process.env.PATHEXT;
       if (!pathext) {
         return true;
@@ -10374,25 +10374,25 @@ var require_windows = __commonJS({
       }
       for (var i2 = 0; i2 < pathext.length; i2++) {
         var p = pathext[i2].toLowerCase();
-        if (p && path88.substr(-p.length).toLowerCase() === p) {
+        if (p && path90.substr(-p.length).toLowerCase() === p) {
           return true;
         }
       }
       return false;
     }
-    function checkStat(stat, path88, options) {
+    function checkStat(stat, path90, options) {
       if (!stat.isSymbolicLink() && !stat.isFile()) {
         return false;
       }
-      return checkPathExt(path88, options);
+      return checkPathExt(path90, options);
     }
-    function isexe(path88, options, cb) {
-      fs.stat(path88, function(er, stat) {
-        cb(er, er ? false : checkStat(stat, path88, options));
+    function isexe(path90, options, cb) {
+      fs.stat(path90, function(er, stat) {
+        cb(er, er ? false : checkStat(stat, path90, options));
       });
     }
-    function sync(path88, options) {
-      return checkStat(fs.statSync(path88), path88, options);
+    function sync(path90, options) {
+      return checkStat(fs.statSync(path90), path90, options);
     }
   }
 });
@@ -10404,13 +10404,13 @@ var require_mode = __commonJS({
     module2.exports = isexe;
     isexe.sync = sync;
     var fs = require("fs");
-    function isexe(path88, options, cb) {
-      fs.stat(path88, function(er, stat) {
+    function isexe(path90, options, cb) {
+      fs.stat(path90, function(er, stat) {
         cb(er, er ? false : checkStat(stat, options));
       });
     }
-    function sync(path88, options) {
-      return checkStat(fs.statSync(path88), options);
+    function sync(path90, options) {
+      return checkStat(fs.statSync(path90), options);
     }
     function checkStat(stat, options) {
       return stat.isFile() && checkMode(stat, options);
@@ -10444,7 +10444,7 @@ var require_isexe = __commonJS({
     }
     module2.exports = isexe;
     isexe.sync = sync;
-    function isexe(path88, options, cb) {
+    function isexe(path90, options, cb) {
       if (typeof options === "function") {
         cb = options;
         options = {};
@@ -10454,7 +10454,7 @@ var require_isexe = __commonJS({
           throw new TypeError("callback not provided");
         }
         return new Promise(function(resolve2, reject) {
-          isexe(path88, options || {}, function(er, is) {
+          isexe(path90, options || {}, function(er, is) {
             if (er) {
               reject(er);
             } else {
@@ -10463,7 +10463,7 @@ var require_isexe = __commonJS({
           });
         });
       }
-      core(path88, options || {}, function(er, is) {
+      core(path90, options || {}, function(er, is) {
         if (er) {
           if (er.code === "EACCES" || options && options.ignoreErrors) {
             er = null;
@@ -10473,9 +10473,9 @@ var require_isexe = __commonJS({
         cb(er, is);
       });
     }
-    function sync(path88, options) {
+    function sync(path90, options) {
       try {
-        return core.sync(path88, options || {});
+        return core.sync(path90, options || {});
       } catch (er) {
         if (options && options.ignoreErrors || er.code === "EACCES") {
           return false;
@@ -10492,7 +10492,7 @@ var require_which = __commonJS({
   "../../node_modules/.pnpm/which@2.0.2/node_modules/which/which.js"(exports2, module2) {
     "use strict";
     var isWindows = process.platform === "win32" || process.env.OSTYPE === "cygwin" || process.env.OSTYPE === "msys";
-    var path88 = require("path");
+    var path90 = require("path");
     var COLON = isWindows ? ";" : ":";
     var isexe = require_isexe();
     var getNotFoundError = (cmd) => Object.assign(new Error(`not found: ${cmd}`), { code: "ENOENT" });
@@ -10530,7 +10530,7 @@ var require_which = __commonJS({
           return opt.all && found.length ? resolve2(found) : reject(getNotFoundError(cmd));
         const ppRaw = pathEnv[i2];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path88.join(pathPart, cmd);
+        const pCmd = path90.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         resolve2(subStep(p, i2, 0));
       });
@@ -10557,7 +10557,7 @@ var require_which = __commonJS({
       for (let i2 = 0; i2 < pathEnv.length; i2++) {
         const ppRaw = pathEnv[i2];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path88.join(pathPart, cmd);
+        const pCmd = path90.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         for (let j = 0; j < pathExt.length; j++) {
           const cur = p + pathExt[j];
@@ -10605,7 +10605,7 @@ var require_path_key = __commonJS({
 var require_resolveCommand = __commonJS({
   "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js"(exports2, module2) {
     "use strict";
-    var path88 = require("path");
+    var path90 = require("path");
     var which = require_which();
     var getPathKey = require_path_key();
     function resolveCommandAttempt(parsed, withoutPathExt) {
@@ -10623,7 +10623,7 @@ var require_resolveCommand = __commonJS({
       try {
         resolved = which.sync(parsed.command, {
           path: env[getPathKey({ env })],
-          pathExt: withoutPathExt ? path88.delimiter : void 0
+          pathExt: withoutPathExt ? path90.delimiter : void 0
         });
       } catch (e) {
       } finally {
@@ -10632,7 +10632,7 @@ var require_resolveCommand = __commonJS({
         }
       }
       if (resolved) {
-        resolved = path88.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
+        resolved = path90.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
       }
       return resolved;
     }
@@ -10686,8 +10686,8 @@ var require_shebang_command = __commonJS({
       if (!match) {
         return null;
       }
-      const [path88, argument] = match[0].replace(/#! ?/, "").split(" ");
-      const binary = path88.split("/").pop();
+      const [path90, argument] = match[0].replace(/#! ?/, "").split(" ");
+      const binary = path90.split("/").pop();
       if (binary === "env") {
         return argument;
       }
@@ -10722,7 +10722,7 @@ var require_readShebang = __commonJS({
 var require_parse = __commonJS({
   "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js"(exports2, module2) {
     "use strict";
-    var path88 = require("path");
+    var path90 = require("path");
     var resolveCommand = require_resolveCommand();
     var escape2 = require_escape();
     var readShebang = require_readShebang();
@@ -10747,7 +10747,7 @@ var require_parse = __commonJS({
       const needsShell = !isExecutableRegExp.test(commandFile);
       if (parsed.options.forceShell || needsShell) {
         const needsDoubleEscapeMetaChars = isCmdShimRegExp.test(commandFile);
-        parsed.command = path88.normalize(parsed.command);
+        parsed.command = path90.normalize(parsed.command);
         parsed.command = escape2.command(parsed.command);
         parsed.args = parsed.args.map((arg) => escape2.argument(arg, needsDoubleEscapeMetaChars));
         const shellCommand = [parsed.command].concat(parsed.args).join(" ");
@@ -11185,8 +11185,8 @@ var require_utils = __commonJS({
       }
       return output;
     };
-    exports2.basename = (path88, { windows } = {}) => {
-      const segs = path88.split(windows ? /[\\/]/ : "/");
+    exports2.basename = (path90, { windows } = {}) => {
+      const segs = path90.split(windows ? /[\\/]/ : "/");
       const last = segs[segs.length - 1];
       if (last === "") {
         return segs[segs.length - 2];
@@ -15893,8 +15893,8 @@ var require_utils2 = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path88) {
-      let input = path88;
+    function removeDotSegments(path90) {
+      let input = path90;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -16146,8 +16146,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path88, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path88 && path88 !== "/" ? path88 : void 0;
+        const [path90, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path90 && path90 !== "/" ? path90 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -20056,8 +20056,8 @@ function getErrorMap() {
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path88, errorMaps, issueData } = params;
-  const fullPath = [...path88, ...issueData.path || []];
+  const { data, path: path90, errorMaps, issueData } = params;
+  const fullPath = [...path90, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -20173,11 +20173,11 @@ var errorUtil;
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path88, key) {
+  constructor(parent, value, path90, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path88;
+    this._path = path90;
     this._key = key;
   }
   get path() {
@@ -25375,6 +25375,13 @@ var closurePolicySchema = external_exports.object({
    * requirement then has to close on other evidence.
    */
   requireSystemScenarios: external_exports.boolean().default(true),
+  /**
+   * Require the release qualification: the full trusted verification suite
+   * must pass against the INTEGRATED tree before completion. Per-unit
+   * verification proves each change in its own worktree; this proves the
+   * changes still hold together after all of them landed.
+   */
+  requireReleaseQualification: external_exports.boolean().default(true),
   /** Run the reproducibility phase (clean build, fresh environment). */
   requireReproducibility: external_exports.boolean().default(true),
   /** Ceiling for one reproducibility qualification. */
@@ -25478,6 +25485,7 @@ function autonomyPolicyFingerprint(policy) {
       enabled: policy.closure.enabled,
       maxGapClosureCycles: policy.closure.maxGapClosureCycles,
       requireSystemScenarios: policy.closure.requireSystemScenarios,
+      requireReleaseQualification: policy.closure.requireReleaseQualification,
       requireReproducibility: policy.closure.requireReproducibility
     },
     controlPlaneRepair: {
@@ -26319,9 +26327,9 @@ function applyMigrationPlan(workspace, plan, options) {
     target: plan.target,
     startedAt
   };
-  const finish4 = (status, steps, problems2) => ({ ...base, status, steps, problems: problems2, finishedAt: options.now().toISOString() });
+  const finish5 = (status, steps, problems2) => ({ ...base, status, steps, problems: problems2, finishedAt: options.now().toISOString() });
   if (expectedHash !== plan.planHash) {
-    return finish4("refused-stale-plan", [], [
+    return finish5("refused-stale-plan", [], [
       'The plan hash does not match its contents. The plan file was modified after it was created; regenerate it with "migrate plan" and retry.'
     ]);
   }
@@ -26348,7 +26356,7 @@ function applyMigrationPlan(workspace, plan, options) {
     prepared.push({ step: step2, absolutePath, originalBytes, alreadyCurrent: false });
   }
   if (problems.length > 0) {
-    return finish4("refused-stale-plan", [], problems);
+    return finish5("refused-stale-plan", [], problems);
   }
   const pending = prepared.filter((entry2) => !entry2.alreadyCurrent);
   const results = prepared.filter((entry2) => entry2.alreadyCurrent).map((entry2) => ({
@@ -26363,7 +26371,7 @@ function applyMigrationPlan(workspace, plan, options) {
     problems: []
   }));
   if (pending.length === 0) {
-    return finish4("nothing-to-do", results, []);
+    return finish5("nothing-to-do", results, []);
   }
   const backupRoot = assertInsideWorkspace(
     workspace.rootDir,
@@ -26394,7 +26402,7 @@ function applyMigrationPlan(workspace, plan, options) {
         problems: entry2 === failed ? failure : []
       });
     }
-    return finish4("failed", results, failure);
+    return finish5("failed", results, failure);
   };
   for (const entry2 of pending) {
     try {
@@ -26435,7 +26443,7 @@ function applyMigrationPlan(workspace, plan, options) {
       problems: []
     });
   }
-  return finish4("applied", results, []);
+  return finish5("applied", results, []);
 }
 function migrationReportDir(workspace, planId) {
   return assertInsideWorkspace(
@@ -26612,7 +26620,7 @@ function assertInsideSidecar(workspace, relative) {
 }
 function applyRecoveryPlan(workspace, plan, options) {
   const startedAt = options.now().toISOString();
-  const finish4 = (status, actions, problems) => {
+  const finish5 = (status, actions, problems) => {
     const result = {
       planId: plan.planId,
       planHash: plan.planHash,
@@ -26627,12 +26635,12 @@ function applyRecoveryPlan(workspace, plan, options) {
   };
   const token = options.acknowledgementToken.trim().toLowerCase();
   if (token !== plan.planHash && token !== recoveryAcknowledgementToken(plan)) {
-    return finish4("refused-bad-acknowledgement", [], [
+    return finish5("refused-bad-acknowledgement", [], [
       'The acknowledgement token does not match this plan. Re-run "state recover --plan" and pass the token it prints (or the full plan hash) to --apply.'
     ]);
   }
   if (recoveryPlanHash(plan.actions) !== plan.planHash) {
-    return finish4("refused-stale-plan", [], [
+    return finish5("refused-stale-plan", [], [
       "The plan hash does not match its contents; the plan file was modified after it was created."
     ]);
   }
@@ -26671,7 +26679,7 @@ function applyRecoveryPlan(workspace, plan, options) {
     }
   }
   if (staleProblems.length > 0) {
-    return finish4("refused-stale-plan", [], staleProblems);
+    return finish5("refused-stale-plan", [], staleProblems);
   }
   const quarantineRoot = import_path8.default.join(workspace.sidecarDir, "quarantine", plan.planId);
   const executedMoves = [];
@@ -26722,7 +26730,7 @@ function applyRecoveryPlan(workspace, plan, options) {
         problems: action.actionId === failedAction.actionId ? failure : []
       });
     }
-    return finish4("failed", results, failure);
+    return finish5("failed", results, failure);
   };
   for (const action of plan.actions) {
     try {
@@ -26778,7 +26786,7 @@ function applyRecoveryPlan(workspace, plan, options) {
     ]);
   }
   void createdDirs;
-  return finish4("applied", results, []);
+  return finish5("applied", results, []);
 }
 function recoveryLogPath(workspace) {
   return import_path8.default.join(workspace.sidecarDir, "recovery", "log.jsonl");
@@ -34705,13 +34713,13 @@ var logOutputSync = ({ serializedResult, fdNumber, state, verboseInfo, encoding,
   }
 };
 var writeToFiles = (serializedResult, stdioItems, outputFiles) => {
-  for (const { path: path88, append } of stdioItems.filter(({ type }) => FILE_TYPES.has(type))) {
-    const pathString = typeof path88 === "string" ? path88 : path88.toString();
+  for (const { path: path90, append } of stdioItems.filter(({ type }) => FILE_TYPES.has(type))) {
+    const pathString = typeof path90 === "string" ? path90 : path90.toString();
     if (append || outputFiles.has(pathString)) {
-      (0, import_node_fs4.appendFileSync)(path88, serializedResult);
+      (0, import_node_fs4.appendFileSync)(path90, serializedResult);
     } else {
       outputFiles.add(pathString);
-      (0, import_node_fs4.writeFileSync)(path88, serializedResult);
+      (0, import_node_fs4.writeFileSync)(path90, serializedResult);
     }
   }
 };
@@ -55781,6 +55789,42 @@ function asCriterion(statement) {
   }
   return `THE SYSTEM SHALL ${terminated.charAt(0).toLowerCase()}${terminated.slice(1)}`;
 }
+function assignSuccessCriteria(successCriteria, contracts) {
+  const assignments = /* @__PURE__ */ new Map();
+  if (contracts.length === 0) return assignments;
+  const contractTokens = contracts.map(
+    (contract) => tokenize(
+      [
+        contract.title,
+        contract.summary,
+        ...contract.requirements.map((requirement) => requirement.statement),
+        ...contract.invariants.map((invariant) => invariant.statement)
+      ].join(" ")
+    )
+  );
+  successCriteria.forEach((statement, index) => {
+    const criterionTokens = tokenize(statement);
+    let best = contracts.length - 1;
+    let bestScore = 0;
+    contractTokens.forEach((tokens, contractIndex) => {
+      let score = 0;
+      for (const token of criterionTokens) if (tokens.has(token)) score += 1;
+      if (score > bestScore) {
+        bestScore = score;
+        best = contractIndex;
+      }
+    });
+    const bucket = assignments.get(best) ?? [];
+    bucket.push({ index, statement });
+    assignments.set(best, bucket);
+  });
+  return assignments;
+}
+function tokenize(text24) {
+  return new Set(
+    text24.toLowerCase().split(/[^a-z0-9]+/).filter((token) => token.length >= 4)
+  );
+}
 function compileMissionDocuments(input) {
   const { mission } = input;
   const contracts = topologicalContractOrder(input.contracts);
@@ -55791,6 +55835,7 @@ function compileMissionDocuments(input) {
   }
   const activeRules = input.constitutionRules.filter((rule) => rule.status === "active");
   const primaryUser = mission.targetUsers[0] ?? "user of the system";
+  const criteriaByContract = assignSuccessCriteria(mission.successCriteria, contracts);
   const provenance = [];
   const requirementLines = [
     "# Requirements Document",
@@ -55833,6 +55878,14 @@ function compileMissionDocuments(input) {
       rows.push({
         criterionId: `${number3}.${criterionNumber}`,
         source: `${contract.contractId}/r${contract.revision}/${invariant.invariantId}`
+      });
+    }
+    for (const assigned of criteriaByContract.get(index) ?? []) {
+      criterionNumber += 1;
+      requirementLines.push(`${criterionNumber}. ${asCriterion(assigned.statement)}`);
+      rows.push({
+        criterionId: `${number3}.${criterionNumber}`,
+        source: `mission/sc/${assigned.index}`
       });
     }
     requirementLines.push("");
@@ -55945,6 +55998,9 @@ function compileMissionDocuments(input) {
     for (const invariant of contract.invariants) {
       taskLines.push(`  - Acceptance: ${invariant.statement.trim()}`);
     }
+    for (const assigned of criteriaByContract.get(index) ?? []) {
+      taskLines.push(`  - Acceptance: ${assigned.statement.trim()}`);
+    }
     taskLines.push(`  - Contract: ${contract.contractId} r${contract.revision}`);
     const refs = provenance[index]?.criteria.map((row) => row.criterionId) ?? [];
     if (refs.length > 0) {
@@ -55960,7 +56016,8 @@ function compileMissionDocuments(input) {
     tasks: `${taskLines.join("\n").replace(/\n+$/, "")}
 `,
     provenance,
-    objectiveCount: contracts.length
+    objectiveCount: contracts.length,
+    successCriteria: mission.successCriteria
   };
 }
 function validateCompiledDocuments(documents) {
@@ -55980,6 +56037,13 @@ function validateCompiledDocuments(documents) {
   }
   if (tasksModel.allTasks.some((task) => task.children.length > 0)) {
     problems.push("objectives must be leaf tasks; nested checkbox children were generated");
+  }
+  for (const criterion of documents.successCriteria) {
+    if (!documents.tasks.includes(criterion.trim())) {
+      problems.push(
+        `success criterion is carried by no task in the compiled plan: "${criterion.slice(0, 120)}"`
+      );
+    }
   }
   return problems;
 }
@@ -68101,7 +68165,7 @@ function applyRecoveryDecision(deps, input) {
   let job = input.job;
   const graph = input.graph;
   const retryDelayMs = policyOf2(deps).retryDelayMs;
-  const finish4 = (next, nextAction) => {
+  const finish5 = (next, nextAction) => {
     persistGraph(deps, next, graph);
     return {
       job: persist22(deps, next),
@@ -68129,7 +68193,7 @@ function applyRecoveryDecision(deps, input) {
         retryAt: job.retryAt,
         reasonCode: decision.reasonCode
       });
-      return finish4(job, "wait-retry");
+      return finish5(job, "wait-retry");
     }
     case "WAIT_FOR_RESOURCE": {
       const elapsed = Math.max(0, Date.parse(at) - Date.parse(job.createdAt));
@@ -68143,15 +68207,15 @@ function applyRecoveryDecision(deps, input) {
         reasonCode: decision.reasonCode,
         detail: "waiting for execution capacity rather than spending to avoid the wait"
       });
-      return finish4(job, "wait-retry");
+      return finish5(job, "wait-retry");
     }
     case "REPAIR": {
       job = transition22(deps, job, "DIAGNOSING");
-      return finish4(job, "diagnose");
+      return finish5(job, "diagnose");
     }
     case "REPLAN": {
       job = transition22(deps, job, "DIAGNOSING");
-      return finish4(job, "diagnose");
+      return finish5(job, "diagnose");
     }
     case "RESTART_FRESH_CONTEXT": {
       job = transition22(deps, job, "READY");
@@ -68162,7 +68226,7 @@ function applyRecoveryDecision(deps, input) {
         decisionId: decision.decisionId,
         reasonCode: decision.reasonCode
       });
-      return finish4(job, "retry-strategy-change");
+      return finish5(job, "retry-strategy-change");
     }
     case "EXPAND_CONTEXT": {
       job = transition22(deps, job, "READY");
@@ -68174,7 +68238,7 @@ function applyRecoveryDecision(deps, input) {
         reasonCode: decision.reasonCode,
         detail: "context insufficiency observed; retrieval widens one bounded level"
       });
-      return finish4(job, "retry-strategy-change");
+      return finish5(job, "retry-strategy-change");
     }
     case "RETRY_DIFFERENT_LOCAL_MODE": {
       job = transition22(deps, job, "READY");
@@ -68185,7 +68249,7 @@ function applyRecoveryDecision(deps, input) {
         reason: "LOCAL_DIRECT_TO_HARNESS",
         detail: decision.reason.slice(0, 500)
       });
-      return finish4(job, "retry-strategy-change");
+      return finish5(job, "retry-strategy-change");
     }
     case "ESCALATE_INTELLIGENCE":
     case "ESCALATE_LANE": {
@@ -68197,7 +68261,7 @@ function applyRecoveryDecision(deps, input) {
         reason: decision.health === "STALLED" || decision.health === "OSCILLATING" ? "NO_PROGRESS" : "LOCAL_EXECUTION_ESCALATED",
         detail: decision.reason.slice(0, 500)
       });
-      return finish4(job, "retry-strategy-change");
+      return finish5(job, "retry-strategy-change");
     }
     case "REQUEST_HUMAN_DECISION": {
       job = transition22(deps, job, "NEEDS_CLARIFICATION");
@@ -68223,7 +68287,7 @@ function applyRecoveryDecision(deps, input) {
         category: input.classified.category,
         reasonCode: decision.reasonCode
       });
-      return finish4(job, "clarify");
+      return finish5(job, "clarify");
     }
     case "BLOCK":
     case "FAIL_TASK": {
@@ -72857,6 +72921,12 @@ function acceptanceForObjective(workspace, mission, taskId) {
     const sources = (row.criteria ?? []).map((criterion) => criterion.source).filter((source) => typeof source === "string");
     const statements = [];
     for (const source of sources) {
+      const successCriterion = /^mission\/sc\/(\d+)$/.exec(source);
+      if (successCriterion !== null) {
+        const statement = mission.successCriteria[Number.parseInt(successCriterion[1] ?? "", 10)];
+        if (statement !== void 0) statements.push(statement);
+        continue;
+      }
       const [contractId, , itemId] = source.split("/");
       const contract = contracts.find((candidate) => candidate.contractId === contractId);
       if (contract === void 0) continue;
@@ -72865,7 +72935,7 @@ function acceptanceForObjective(workspace, mission, taskId) {
       const invariant = contract.invariants.find((candidate) => candidate.invariantId === itemId);
       if (invariant !== void 0) statements.push(invariant.statement);
     }
-    return statements.slice(0, 30);
+    return statements.slice(0, 80);
   } catch {
     return [];
   }
@@ -76575,7 +76645,7 @@ function persistAgentResult(deps, jobId, role, raw) {
   }
 }
 async function driveJob(deps, jobId, options = {}) {
-  const emit2 = (kind, message2) => {
+  const emit22 = (kind, message2) => {
     options.onEvent?.({ kind, message: message2 });
   };
   const sleep2 = options.sleep ?? defaultSleep;
@@ -76585,14 +76655,14 @@ async function driveJob(deps, jobId, options = {}) {
   if (job.status !== "CREATED") {
     const resume = await resumeJob(deps, jobId);
     job = resume.job;
-    for (const warning2 of resume.warnings) emit2("note", warning2);
+    for (const warning2 of resume.warnings) emit22("note", warning2);
     if (resume.finalized) {
       return { stop: { kind: "final", status: job.status }, job };
     }
   }
   const probeCache = { probe: void 0 };
   const localManager = createLocalManager(deps.config, (event) => {
-    emit2("local-model", `${event.type}: ${event.detail}`);
+    emit22("local-model", `${event.type}: ${event.detail}`);
     if (event.type === "ready") {
       recordJobEvent(deps, jobId, "local_model_started", { detail: event.detail.slice(0, 200) });
     }
@@ -76649,10 +76719,10 @@ async function driveJob(deps, jobId, options = {}) {
       let lane;
       if (schedulingRuntime !== void 0 && graph !== void 0 && !isFinalJobStatus(job.status)) {
         lane = await buildLaneContext(schedulingRuntime, deps, jobId, job, graph);
-        emitSchedulingTransitions(deps, jobId, schedulingRuntime, lane, emit2);
+        emitSchedulingTransitions(deps, jobId, schedulingRuntime, lane, emit22);
         if (lane.overtakeCandidate !== void 0 && job.status === "READY") {
           promoteNodeForQuotaOvertake(deps, jobId, lane.overtakeCandidate);
-          emit2("note", `quota overtake: ${lane.overtakeCandidate.detail}`);
+          emit22("note", `quota overtake: ${lane.overtakeCandidate.detail}`);
           job = requireJobState(deps.workspace, jobId);
           continue;
         }
@@ -76665,12 +76735,12 @@ async function driveJob(deps, jobId, options = {}) {
         now: scheduleAt,
         scheduling: lane?.context
       });
-      emit2("decision", `${decision.kind}${"reason" in decision ? `: ${decision.reason}` : ""}`);
+      emit22("decision", `${decision.kind}${"reason" in decision ? `: ${decision.reason}` : ""}`);
       if (decision.kind !== "WAIT_QUOTA") unboundedQuotaDefers = 0;
       switch (decision.kind) {
         case "BUILD_GRAPH": {
           const built = await buildJobGraph(deps, jobId);
-          emit2("note", `Runtime graph: ${built.graph.nodes.length} node(s) from the approved task plan.`);
+          emit22("note", `Runtime graph: ${built.graph.nodes.length} node(s) from the approved task plan.`);
           checkpointJob(deps, jobId, "Graph built; classify and plan the first node.");
           break;
         }
@@ -76679,7 +76749,7 @@ async function driveJob(deps, jobId, options = {}) {
             localManager,
             probeCache,
             signal,
-            emit: emit2
+            emit: emit22
           });
           if (outcome === "stop-interrupted") {
             checkpointJob(deps, jobId, "Interrupted during a role run; resume to continue.");
@@ -76701,7 +76771,7 @@ async function driveJob(deps, jobId, options = {}) {
           const apiBridge = apiLane ? laneRouting?.apiBridge : void 0;
           const executionMode = apiLane ? "HARNESS" : localExecution?.mode ?? void 0;
           const harnessProfileName = apiLane ? schedulingRuntime?.apiBinding.profileName ?? void 0 : executionMode === "HARNESS" ? localExecution?.harness?.profileName ?? void 0 : void 0;
-          emit2(
+          emit22(
             "executor-started",
             `${decision.mode} task ${decision.taskId} via ${decision.worker.workerId}${laneName !== void 0 ? ` [${laneName} lane${executionMode !== void 0 ? `/${executionMode}` : ""}]` : ""}`
           );
@@ -76800,7 +76870,7 @@ async function driveJob(deps, jobId, options = {}) {
                 passes: reconstructed.assembled.compactions.map((record32) => record32.level),
                 estimatedTokens: reconstructed.assembled.package.usage.estimatedTokens
               });
-              emit2("note", `context compacted before dispatch (${reconstructed.assembled.compactions.length} pass(es))`);
+              emit22("note", `context compacted before dispatch (${reconstructed.assembled.compactions.length} pass(es))`);
             }
           }
           let apiReservationId;
@@ -76856,7 +76926,7 @@ async function driveJob(deps, jobId, options = {}) {
                   encumberedUsd: reservation.admission.job.encumberedUsd
                 });
               }
-              emit2("waiting", `api budget refused: ${reservation.admission.detail}`);
+              emit22("waiting", `api budget refused: ${reservation.admission.detail}`);
               job = deferJobForQuota(deps, jobId, {
                 nodeId: node.nodeId,
                 taskId: node.parentTaskId,
@@ -76890,7 +76960,7 @@ async function driveJob(deps, jobId, options = {}) {
               remainingUsd: reservation.admission.job.remainingUsd,
               profile: schedulingRuntime.apiBinding.profileName ?? "unknown"
             });
-            emit2(
+            emit22(
               "note",
               `api budget reserved $${reservation.reservation.reservedUsd.toFixed(4)} for task ${node.parentTaskId}`
             );
@@ -76996,7 +77066,7 @@ async function driveJob(deps, jobId, options = {}) {
             ...laneName !== void 0 ? { lane: laneName } : {},
             ...executionMode !== void 0 ? { executionMode } : {},
             ...harnessProfileName !== void 0 ? { runner: harnessProfileName } : {},
-            emit: (message2) => emit2("note", message2)
+            emit: (message2) => emit22("note", message2)
           });
           const dispatch = apiHarnessLane ? (
             // vNext.5: the paid continuity bridge. Same runner, same
@@ -77028,7 +77098,7 @@ async function driveJob(deps, jobId, options = {}) {
               ...deps.clock !== void 0 ? { clock: deps.clock } : {},
               ...deps.idFactory !== void 0 ? { idFactory: deps.idFactory } : {},
               ...signal !== void 0 ? { signal } : {},
-              onProgress: (message2) => emit2("note", message2)
+              onProgress: (message2) => emit22("note", message2)
             })
           ) : localHarnessLane ? await dispatchLocalHarnessExecution({
             workspace: deps.workspace,
@@ -77052,7 +77122,7 @@ async function driveJob(deps, jobId, options = {}) {
             ...deps.clock !== void 0 ? { clock: deps.clock } : {},
             ...deps.idFactory !== void 0 ? { idFactory: deps.idFactory } : {},
             ...signal !== void 0 ? { signal } : {},
-            onProgress: (message2) => emit2("note", message2)
+            onProgress: (message2) => emit22("note", message2)
           }) : localLane ? await dispatchLocalExecution({
             workspace: deps.workspace,
             config: deps.config,
@@ -77071,7 +77141,7 @@ async function driveJob(deps, jobId, options = {}) {
             ...deps.clock !== void 0 ? { clock: deps.clock } : {},
             ...deps.idFactory !== void 0 ? { idFactory: deps.idFactory } : {},
             ...signal !== void 0 ? { signal } : {},
-            onProgress: (message2) => emit2("note", message2),
+            onProgress: (message2) => emit22("note", message2),
             onInferenceCall: () => countLocalInferenceCall(deps, jobId)
           }) : mission !== void 0 ? await driveObjective({
             workspace: deps.workspace,
@@ -77089,7 +77159,7 @@ async function driveJob(deps, jobId, options = {}) {
             ...deps.clock !== void 0 ? { clock: deps.clock } : {},
             ...deps.idFactory !== void 0 ? { idFactory: deps.idFactory } : {},
             ...signal !== void 0 ? { signal } : {},
-            onProgress: (message2) => emit2("note", message2),
+            onProgress: (message2) => emit22("note", message2),
             countWorkerRun: (run) => recordObjectiveWorkerAttempt(deps, jobId, { nodeId: node.nodeId, ...run }),
             recordEvent: (type, payload) => recordJobEvent(deps, jobId, type, payload)
           }) : await dispatchExecutor({
@@ -77105,7 +77175,7 @@ async function driveJob(deps, jobId, options = {}) {
             ...deps.clock !== void 0 ? { clock: deps.clock } : {},
             ...deps.idFactory !== void 0 ? { idFactory: deps.idFactory } : {},
             ...signal !== void 0 ? { signal } : {},
-            onProgress: (message2) => emit2("note", message2)
+            onProgress: (message2) => emit22("note", message2)
           });
           if (localLane) {
             const localResult = dispatch;
@@ -77253,7 +77323,7 @@ async function driveJob(deps, jobId, options = {}) {
                   detail: observedCost.detail.slice(0, 300)
                 });
               }
-              emit2(
+              emit22(
                 "note",
                 `api budget reconciled: ${reconciled.state}${observedCost.costUsd !== null ? ` at $${observedCost.costUsd.toFixed(4)} (${observedCost.source})` : " with UNKNOWN cost (hold retained)"}`
               );
@@ -77338,12 +77408,12 @@ async function driveJob(deps, jobId, options = {}) {
             reliability: reliabilityInput
           });
           if (result.recovery !== void 0) {
-            emit2(
+            emit22(
               "note",
               `recovery: ${result.recovery.action} (${result.recovery.reasonCode}) \u2014 health ${result.recovery.health}`
             );
           }
-          emit2(
+          emit22(
             "executor-finished",
             `task ${decision.taskId}: ${dispatch.evidenceStatus ?? dispatch.failure?.category ?? "unknown"} \u2192 ${result.nextAction}`
           );
@@ -77360,7 +77430,7 @@ async function driveJob(deps, jobId, options = {}) {
         }
         case "WAIT_RETRY": {
           const waitMs = Math.max(0, Date.parse(decision.retryAt) - Date.now());
-          emit2("waiting", `transient failure; retrying in ${Math.ceil(waitMs / 1e3)}s`);
+          emit22("waiting", `transient failure; retrying in ${Math.ceil(waitMs / 1e3)}s`);
           await sleep2(Math.min(waitMs, 6e4), signal);
           break;
         }
@@ -77378,7 +77448,7 @@ async function driveJob(deps, jobId, options = {}) {
               lane,
               apiBinding: schedulingRuntime.apiBinding
             });
-            recordApiGapObservations(deps, jobId, schedulingRuntime, decision, graph, emit2);
+            recordApiGapObservations(deps, jobId, schedulingRuntime, decision, graph, emit22);
           }
           job = deferJobForQuota(deps, jobId, {
             nodeId: decision.nodeId,
@@ -77388,7 +77458,7 @@ async function driveJob(deps, jobId, options = {}) {
             detail: decision.reason,
             pollMs: schedulingRuntime?.policy.deferPollMs ?? 6e4
           });
-          emit2("waiting", `quota: ${decision.reasonCode} \u2014 ${decision.reason}`);
+          emit22("waiting", `quota: ${decision.reasonCode} \u2014 ${decision.reason}`);
           const nowMs = (deps.clock ?? (() => /* @__PURE__ */ new Date()))().getTime();
           const waitMs = Math.max(0, Date.parse(job.retryAt ?? new Date(nowMs).toISOString()) - nowMs);
           const holdMs = schedulingRuntime?.policy.maxQuotaHoldMs ?? 6e5;
@@ -77574,7 +77644,7 @@ function writeApiHandoffCheckpoint(deps, jobId, node, attemptId, bridge) {
   } catch {
   }
 }
-function recordApiGapObservations(deps, jobId, runtime, decision, graph, emit2) {
+function recordApiGapObservations(deps, jobId, runtime, decision, graph, emit22) {
   const bridge = decision.laneRouting?.apiBridge;
   if (bridge === void 0) return;
   const now52 = (deps.clock ?? (() => /* @__PURE__ */ new Date()))();
@@ -77647,7 +77717,7 @@ function recordApiGapObservations(deps, jobId, runtime, decision, graph, emit2) 
     delaySensitivity: bridge.delaySensitivity.level,
     expiresAt: requested.approval.expiresAt
   });
-  emit2(
+  emit22(
     "waiting",
     `api spend approval required (${requested.approval.approvalId}): up to $${safeCost.toFixed(4)} on "${profileName}" for task ${node.parentTaskId}`
   );
@@ -77939,7 +78009,7 @@ function persistAdaptiveDecision(deps, jobId, input) {
     });
   }
 }
-function emitSchedulingTransitions(deps, jobId, runtime, lane, emit2) {
+function emitSchedulingTransitions(deps, jobId, runtime, lane, emit22) {
   const forecast = lane.forecast;
   if (runtime.lastObservedAt !== forecast.observedAt) {
     recordJobEvent(deps, jobId, "quota_snapshot_updated", {
@@ -77958,7 +78028,7 @@ function emitSchedulingTransitions(deps, jobId, runtime, lane, emit2) {
         observedAt: forecast.observedAt,
         staleThresholdMs: runtime.policy.telemetryStaleMs
       });
-      emit2("note", "quota telemetry is stale; scheduling conservatively");
+      emit22("note", "quota telemetry is stale; scheduling conservatively");
     }
     runtime.lastFreshness = forecast.telemetryFreshness;
   }
@@ -77987,7 +78057,7 @@ function emitSchedulingTransitions(deps, jobId, runtime, lane, emit2) {
         resetAt: forecast.schedulerMode === "EXHAUSTED_5H" ? forecast.fiveHourResetAt : forecast.weeklyResetAt
       });
     }
-    emit2("note", `scheduler mode: ${forecast.schedulerMode}`);
+    emit22("note", `scheduler mode: ${forecast.schedulerMode}`);
     runtime.lastMode = forecast.schedulerMode;
   }
   const reserveDelta = runtime.lastReserveRatio === void 0 ? Number.POSITIVE_INFINITY : Math.abs(lane.reserve.ratio - runtime.lastReserveRatio);
@@ -87720,7 +87790,7 @@ var SCORE_ID_PREFIX = 800;
 var SCORE_EXACT_TAG = 600;
 var SCORE_DISPLAY_NAME_TOKEN = 400;
 var SCORE_DESCRIPTION_TOKEN = 200;
-function tokenize(text15) {
+function tokenize2(text15) {
   return text15.toLowerCase().split(/[^a-z0-9]+/u).filter((token) => token.length > 0);
 }
 function clampSearchLimit(requested) {
@@ -87731,8 +87801,8 @@ function scoreEntry(entry2, query, queryTokens) {
   const manifest = entry2.pack.manifest;
   const id = entry2.id.toLowerCase();
   const tags = (manifest?.tags ?? []).map((tag) => tag.toLowerCase());
-  const displayTokens = tokenize(manifest?.displayName ?? "");
-  const descriptionTokens = new Set(tokenize(manifest?.description ?? ""));
+  const displayTokens = tokenize2(manifest?.displayName ?? "");
+  const descriptionTokens = new Set(tokenize2(manifest?.description ?? ""));
   let score = 0;
   if (id === query) score += SCORE_EXACT_ID;
   else if (id.startsWith(query)) score += SCORE_ID_PREFIX;
@@ -87747,7 +87817,7 @@ function scoreEntry(entry2, query, queryTokens) {
 function searchTemplates(catalog, rawQuery, options = {}) {
   const query = rawQuery.trim().toLowerCase();
   if (query.length === 0) return [];
-  const queryTokens = tokenize(query);
+  const queryTokens = tokenize2(query);
   const limit = clampSearchLimit(options.limit);
   return catalog.entries.map((entry2) => ({ entry: entry2, score: scoreEntry(entry2, query, queryTokens) })).filter((result) => result.score > 0).sort((a2, b) => a2.score !== b.score ? b.score - a2.score : a2.entry.ref.localeCompare(b.entry.ref, "en")).slice(0, limit);
 }
@@ -96206,10 +96276,10 @@ var import_node_fs9 = require("fs");
 
 // ../../packages/intake/dist/index.js
 var import_crypto29 = require("crypto");
-var import_fs75 = require("fs");
-var import_path83 = __toESM(require("path"), 1);
-var import_fs76 = require("fs");
-var import_path84 = __toESM(require("path"), 1);
+var import_fs78 = require("fs");
+var import_path87 = __toESM(require("path"), 1);
+var import_fs79 = require("fs");
+var import_path88 = __toESM(require("path"), 1);
 
 // ../../packages/autonomy/dist/index.js
 var import_crypto28 = require("crypto");
@@ -96220,6 +96290,14 @@ var import_fs74 = require("fs");
 var import_path80 = __toESM(require("path"), 1);
 var import_path81 = __toESM(require("path"), 1);
 var import_path82 = __toESM(require("path"), 1);
+var import_net2 = require("net");
+var import_fs75 = require("fs");
+var import_path83 = __toESM(require("path"), 1);
+var import_path84 = __toESM(require("path"), 1);
+var import_fs76 = require("fs");
+var import_path85 = __toESM(require("path"), 1);
+var import_fs77 = require("fs");
+var import_path86 = __toESM(require("path"), 1);
 var SEAL_STATUSES = [
   /** Drafted from mission state; not yet authorized by a human. */
   "DRAFT",
@@ -96402,6 +96480,13 @@ var READINESS_PROBE_KINDS = [
   /** A protocol-level handshake succeeded (SQL ping, broker metadata, …). */
   "PROTOCOL_HANDSHAKE",
   /** The container runtime reports its own healthcheck as healthy. */
+  "CONTAINER_HEALTHCHECK"
+];
+var APPLICATION_LEVEL_PROBES = [
+  "HTTP_STATUS",
+  "HTTP_BODY",
+  "COMMAND_EXIT",
+  "PROTOCOL_HANDSHAKE",
   "CONTAINER_HEALTHCHECK"
 ];
 var ENVIRONMENT_STATUSES = [
@@ -97981,7 +98066,7 @@ async function superviseJob(deps, jobId, options) {
   }
   const ownerId = options.ownerId ?? `sup-${newId5(deps)}`.slice(0, 60);
   const sleep2 = options.sleep ?? supervisorSleep;
-  const emit2 = (kind, message2) => {
+  const emit22 = (kind, message2) => {
     options.onEvent?.({ kind, message: message2 });
   };
   const acquisition = acquireJobLease(deps, jobId, ownerId, policy);
@@ -97998,7 +98083,7 @@ async function superviseJob(deps, jobId, options) {
       }
     );
   }
-  emit2("lease", `lease acquired by ${ownerId} (generation ${acquisition.lease?.generation ?? 1})`);
+  emit22("lease", `lease acquired by ${ownerId} (generation ${acquisition.lease?.generation ?? 1})`);
   const sessionStartedAt = options.sessionStartedAt ?? nowIso4(deps);
   let job = requireJobState(deps.workspace, jobId);
   let supervised = registerSupervisedJob(deps, {
@@ -98036,7 +98121,7 @@ async function superviseJob(deps, jobId, options) {
         progressFingerprint: fingerprint,
         sessionStartedAt
       });
-      emit2("decision", `${decision.action}: ${decision.reason}`);
+      emit22("decision", `${decision.action}: ${decision.reason}`);
       const outcome = await applyDecision(deps, {
         jobId,
         ownerId,
@@ -98046,7 +98131,7 @@ async function superviseJob(deps, jobId, options) {
         fingerprint,
         options,
         sleep: sleep2,
-        emit: emit2
+        emit: emit22
       });
       supervised = outcome.supervised;
       if (outcome.stop !== void 0) {
@@ -99100,6 +99185,7 @@ var PACKAGE_MANAGER_ADD_ARGV = Object.freeze({
   yarn: ["add", "--dev"],
   bun: ["add", "--dev"]
 });
+var ENVIRONMENT_SCHEMA_VERSION = "1.0.0";
 var shortText53 = external_exports.string().max(200);
 var text52 = external_exports.string().max(4e3);
 var readinessProbeSchema = external_exports.object({
@@ -99134,6 +99220,9 @@ var readinessProbeSchema = external_exports.object({
     }
   }
 });
+function isApplicationLevelProbe(probe) {
+  return APPLICATION_LEVEL_PROBES.includes(probe.kind);
+}
 var servicePlanSchema = external_exports.object({
   serviceId: shortText53,
   kind: external_exports.enum(SERVICE_KINDS),
@@ -99223,6 +99312,568 @@ var environmentEvidenceSchema = external_exports.object({
   /** Retained diagnostic log references, workspace-relative. */
   logRefs: external_exports.array(shortText53).max(60).default([])
 }).passthrough();
+function createReadinessProbeExecutor(options) {
+  return async (probe, signal) => {
+    switch (probe.kind) {
+      case "TCP_CONNECT":
+        return probeTcp(probe.host, probe.port ?? 0, probe.timeoutMs, signal);
+      case "HTTP_STATUS":
+      case "HTTP_BODY":
+        return probeHttp(probe, signal);
+      case "COMMAND_EXIT":
+        return probeCommand(probe, options.cwd, signal);
+      case "CONTAINER_HEALTHCHECK":
+        return probeContainerHealth(probe, options.cwd, signal);
+      case "PROTOCOL_HANDSHAKE":
+        return probeCommand(probe, options.cwd, signal);
+      case "PROCESS_ALIVE":
+        return { ready: true, detail: "liveness only: nothing about the service protocol was verified" };
+      default:
+        return { ready: false, detail: `unsupported probe kind ${String(probe.kind)}` };
+    }
+  };
+}
+function probeTcp(host, port, timeoutMs, signal) {
+  return new Promise((resolve2) => {
+    const socket = new import_net2.Socket();
+    let settled = false;
+    const finish22 = (outcome) => {
+      if (settled) return;
+      settled = true;
+      socket.destroy();
+      resolve2(outcome);
+    };
+    socket.setTimeout(timeoutMs);
+    socket.once("connect", () => finish22({ ready: true, detail: `tcp ${host}:${port} accepted` }));
+    socket.once("timeout", () => finish22({ ready: false, detail: `tcp ${host}:${port} timed out` }));
+    socket.once(
+      "error",
+      (error2) => finish22({ ready: false, detail: `tcp ${host}:${port}: ${error2.message}`.slice(0, 200) })
+    );
+    signal?.addEventListener("abort", () => finish22({ ready: false, detail: "cancelled" }), {
+      once: true
+    });
+    socket.connect(port, host);
+  });
+}
+async function probeHttp(probe, signal) {
+  const url = `http://${probe.host}:${probe.port ?? 80}${probe.urlPath ?? "/"}`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), probe.timeoutMs);
+  timer.unref?.();
+  signal?.addEventListener("abort", () => controller.abort(), { once: true });
+  try {
+    const response = await fetch(url, { signal: controller.signal, redirect: "manual" });
+    if (!probe.expectStatus.includes(response.status)) {
+      return {
+        ready: false,
+        detail: `http ${url} returned ${response.status} (expected ${probe.expectStatus.join("/")})`
+      };
+    }
+    if (probe.kind === "HTTP_BODY" && probe.expectBody !== void 0) {
+      const body = (await response.text()).slice(0, 64 * 1024);
+      if (!body.includes(probe.expectBody)) {
+        return { ready: false, detail: `http ${url} body did not contain the expected marker` };
+      }
+      return { ready: true, detail: `http ${url} returned ${response.status} with the expected marker` };
+    }
+    return { ready: true, detail: `http ${url} returned ${response.status}` };
+  } catch (cause) {
+    return {
+      ready: false,
+      detail: `http ${url}: ${(cause instanceof Error ? cause.message : String(cause)).slice(0, 160)}`
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+async function probeCommand(probe, cwd, signal) {
+  const [executable, ...argv2] = probe.argv;
+  if (executable === void 0) return { ready: false, detail: "probe has no command" };
+  const result = await runSafeProcess({
+    executable,
+    argv: argv2,
+    cwd,
+    timeoutMs: probe.timeoutMs,
+    maxStdoutBytes: 64 * 1024,
+    maxStderrBytes: 64 * 1024,
+    ...signal !== void 0 ? { signal } : {}
+  });
+  const label = probe.protocol !== void 0 ? `${probe.protocol} handshake` : executable;
+  return result.status === "ok" ? { ready: true, detail: `${label} succeeded` } : { ready: false, detail: `${label} ${result.status}` };
+}
+async function probeContainerHealth(probe, cwd, signal) {
+  const container = probe.argv[0];
+  if (container === void 0) {
+    return { ready: false, detail: "container healthcheck probe names no container" };
+  }
+  const result = await runSafeProcess({
+    executable: "docker",
+    argv: ["inspect", "--format", "{{.State.Health.Status}}", container],
+    cwd,
+    timeoutMs: probe.timeoutMs,
+    maxStdoutBytes: 4 * 1024,
+    maxStderrBytes: 16 * 1024,
+    ...signal !== void 0 ? { signal } : {}
+  });
+  const status = result.stdout.trim();
+  if (result.status !== "ok") {
+    return { ready: false, detail: `docker inspect ${container} ${result.status}` };
+  }
+  if (status.length === 0 || status === "<no value>") {
+    return {
+      ready: false,
+      detail: `container ${container} declares no healthcheck; readiness cannot be established from it`
+    };
+  }
+  return status === "healthy" ? { ready: true, detail: `container ${container} is healthy` } : { ready: false, detail: `container ${container} is ${status}` };
+}
+function environmentPlanFile(workspace, planId) {
+  assertAutonomyId("environment plan", planId);
+  return autonomyPath(workspace, "environments", "plans", `${planId}.json`);
+}
+function environmentInstanceFile(workspace, instanceId) {
+  assertAutonomyId("environment instance", instanceId);
+  return autonomyPath(workspace, "environments", "instances", `${instanceId}.json`);
+}
+function environmentEvidenceFile(workspace, instanceId) {
+  assertAutonomyId("environment instance", instanceId);
+  return autonomyPath(workspace, "environments", "evidence", `${instanceId}.json`);
+}
+function readEnvironmentPlan(workspace, planId) {
+  return readJsonRecord(
+    environmentPlanFile(workspace, planId),
+    (raw) => environmentPlanSchema.parse(raw)
+  );
+}
+function readEnvironmentInstance(workspace, instanceId) {
+  return readJsonRecord(
+    environmentInstanceFile(workspace, instanceId),
+    (raw) => environmentInstanceSchema.parse(raw)
+  );
+}
+function orderServicesForReadiness(plan) {
+  const byId = new Map(plan.services.map((service) => [service.serviceId, service]));
+  const ordered = [];
+  const state = /* @__PURE__ */ new Map();
+  const visit = (service, trail) => {
+    const mark = state.get(service.serviceId);
+    if (mark === "done") return;
+    if (mark === "visiting") {
+      throw new AutonomyError(
+        "SBA014",
+        `Environment plan ${plan.planId} has a readiness cycle: ${[...trail, service.serviceId].join(" -> ")}.`,
+        { remediation: ["Break the dependency cycle; a cyclic plan can never become ready."] }
+      );
+    }
+    state.set(service.serviceId, "visiting");
+    for (const dependencyId of service.dependsOn) {
+      const dependency = byId.get(dependencyId);
+      if (dependency !== void 0) visit(dependency, [...trail, service.serviceId]);
+    }
+    state.set(service.serviceId, "done");
+    ordered.push(service);
+  };
+  for (const service of plan.services) visit(service, []);
+  return ordered;
+}
+function defaultSleep2(ms, signal) {
+  return new Promise((resolve2) => {
+    const timer = setTimeout(resolve2, ms);
+    signal?.addEventListener("abort", () => {
+      clearTimeout(timer);
+      resolve2();
+    }, { once: true });
+  });
+}
+async function provisionEnvironment(deps, options) {
+  const policy = autonomyPolicyOf(deps).environments;
+  if (!policy.enabled) {
+    throw new AutonomyError(
+      "SBA016",
+      "Environment provisioning is disabled by `autonomy.environments.enabled`.",
+      { remediation: ["Enable it, or provide the environment yourself before the run."] }
+    );
+  }
+  const plan = readEnvironmentPlan(deps.workspace, options.planId);
+  if (plan === void 0) {
+    throw new AutonomyError("SBA014", `No environment plan "${options.planId}" exists.`, {
+      details: { planId: options.planId }
+    });
+  }
+  const ordered = orderServicesForReadiness(plan);
+  const sleep2 = options.sleep ?? defaultSleep2;
+  const probe = options.probeExecutor ?? createReadinessProbeExecutor({ cwd: deps.workspace.rootDir });
+  const emit22 = options.onEvent ?? (() => void 0);
+  let instance = writeInstance(
+    deps,
+    environmentInstanceSchema.parse({
+      schemaVersion: ENVIRONMENT_SCHEMA_VERSION,
+      instanceId: options.instanceId ?? newRecordId(deps, "envi"),
+      planId: plan.planId,
+      ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
+      status: "PROVISIONING",
+      createdAt: nowIso4(deps),
+      services: ordered.map((service) => ({ serviceId: service.serviceId, status: "PENDING" }))
+    })
+  );
+  emitJobEvent(deps, options.jobId, "environment_provision_started", {
+    planId: plan.planId,
+    instanceId: instance.instanceId,
+    services: ordered.length
+  });
+  const startedAtMs = now5(deps).getTime();
+  const provisioned = await options.runtime.provision({
+    plan,
+    workspaceRoot: deps.workspace.rootDir,
+    timeoutMs: policy.readinessTimeoutMs,
+    ...options.signal !== void 0 ? { signal: options.signal } : {}
+  });
+  if (!provisioned.ok) {
+    emit22(`provisioning failed: ${provisioned.detail}`);
+    return finishFailed(deps, options, plan, instance, {
+      failureKind: provisioned.failureKind ?? "RUNTIME_UNAVAILABLE",
+      detail: provisioned.detail
+    });
+  }
+  instance = writeInstance(deps, {
+    ...instance,
+    status: "WAITING_READY",
+    services: instance.services.map((service) => ({
+      ...service,
+      status: "STARTING",
+      startedAt: nowIso4(deps)
+    }))
+  });
+  for (const service of ordered) {
+    const result = await waitForService(deps, {
+      plan,
+      service,
+      instance,
+      probe,
+      sleep: sleep2,
+      policy,
+      runtime: options.runtime,
+      emit: emit22,
+      ...options.signal !== void 0 ? { signal: options.signal } : {}
+    });
+    instance = writeInstance(deps, {
+      ...instance,
+      services: instance.services.map(
+        (entry2) => entry2.serviceId === service.serviceId ? result.state : entry2
+      ),
+      repairs: instance.repairs + result.restarts
+    });
+    if (result.state.status !== "READY") {
+      return finishFailed(deps, options, plan, instance, {
+        failureKind: result.state.failureKind ?? "READINESS_TIMEOUT",
+        detail: result.state.lastProbeDetail ?? `service ${service.serviceId} never became ready`
+      });
+    }
+  }
+  const ready = writeInstance(deps, {
+    ...instance,
+    status: "READY",
+    readyAt: nowIso4(deps)
+  });
+  writeEvidence(deps, plan, ready, now5(deps).getTime() - startedAtMs, []);
+  emitJobEvent(deps, options.jobId, "environment_ready", {
+    instanceId: ready.instanceId,
+    planId: plan.planId
+  });
+  return ready;
+}
+async function waitForService(deps, input) {
+  const { service, probe, sleep: sleep2, policy } = input;
+  const deadlineMs = now5(deps).getTime() + Math.min(service.readinessTimeoutMs, policy.readinessTimeoutMs);
+  const maxRestarts = Math.min(service.maxRestarts, policy.maxServiceRestarts);
+  let state = {
+    serviceId: service.serviceId,
+    status: "WAITING_READY",
+    startedAt: nowIso4(deps),
+    restarts: 0,
+    probeAttempts: 0
+  };
+  let restarts = 0;
+  while (now5(deps).getTime() < deadlineMs) {
+    if (input.signal?.aborted === true) {
+      return { state: { ...state, status: "FAILED", failureKind: "UNKNOWN" }, restarts };
+    }
+    let allReady = true;
+    let lastDetail = "";
+    let lastKind = "";
+    for (const definition of service.probes) {
+      state = { ...state, probeAttempts: state.probeAttempts + 1 };
+      const outcome = await probe(definition, input.signal);
+      lastDetail = outcome.detail;
+      lastKind = definition.kind;
+      if (!outcome.ready) {
+        allReady = false;
+        break;
+      }
+    }
+    if (allReady) {
+      input.emit(`${service.serviceId} ready: ${lastDetail}`);
+      return {
+        state: {
+          ...state,
+          status: "READY",
+          readyAt: nowIso4(deps),
+          lastProbeKind: lastKind,
+          lastProbeDetail: lastDetail
+        },
+        restarts
+      };
+    }
+    state = { ...state, lastProbeKind: lastKind, lastProbeDetail: lastDetail };
+    const elapsedFraction = 1 - (deadlineMs - now5(deps).getTime()) / Math.max(1, service.readinessTimeoutMs);
+    if (restarts < maxRestarts && elapsedFraction > (restarts + 1) / (maxRestarts + 1)) {
+      restarts += 1;
+      input.emit(`${service.serviceId} not ready after ${state.probeAttempts} probes; restarting`);
+      const restarted = await input.runtime.restart({
+        plan: input.plan,
+        service,
+        workspaceRoot: deps.workspace.rootDir,
+        timeoutMs: policy.readinessTimeoutMs,
+        ...input.signal !== void 0 ? { signal: input.signal } : {}
+      });
+      state = {
+        ...state,
+        status: "RESTARTING",
+        restarts,
+        lastProbeDetail: `${lastDetail}; restart: ${restarted.detail}`
+      };
+    }
+    await sleep2(policy.probeIntervalMs, input.signal);
+  }
+  return {
+    state: {
+      ...state,
+      status: "FAILED",
+      restarts,
+      failureKind: state.probeAttempts === 0 ? "DEPENDENCY_UNREADY" : "READINESS_TIMEOUT"
+    },
+    restarts
+  };
+}
+async function finishFailed(deps, options, plan, instance, failure) {
+  const policy = autonomyPolicyOf(deps).environments;
+  const logRefs = [];
+  if (policy.retainDiagnosticsOnFailure) {
+    for (const service of plan.services) {
+      try {
+        const text142 = await options.runtime.logs({
+          plan,
+          service,
+          workspaceRoot: deps.workspace.rootDir,
+          maxBytes: policy.maxLogBytesPerService
+        });
+        if (text142.length > 0) logRefs.push(retainLog(deps, instance.instanceId, service.serviceId, text142));
+      } catch {
+      }
+    }
+  }
+  const failed = writeInstance(deps, {
+    ...instance,
+    status: "FAILED",
+    failureKind: failure.failureKind,
+    failureDetail: failure.detail.slice(0, 4e3),
+    diagnosticsRetained: logRefs.length > 0,
+    services: instance.services.map(
+      (service) => service.status === "READY" ? service : { ...service, status: "FAILED" }
+    )
+  });
+  writeEvidence(deps, plan, failed, null, logRefs);
+  emitJobEvent(deps, options.jobId, "environment_failed", {
+    instanceId: failed.instanceId,
+    planId: plan.planId,
+    failureKind: failure.failureKind,
+    detail: failure.detail.slice(0, 300)
+  });
+  return failed;
+}
+function retainLog(deps, instanceId, serviceId, text142) {
+  const relative = import_path83.default.posix.join(
+    ".specbridge",
+    "autonomy",
+    "environments",
+    "logs",
+    instanceId,
+    `${serviceId}.log`
+  );
+  const absolute = autonomyPath(deps.workspace, "environments", "logs", instanceId, `${serviceId}.log`);
+  (0, import_fs75.mkdirSync)(import_path83.default.dirname(absolute), { recursive: true });
+  (0, import_fs75.writeFileSync)(absolute, text142, "utf8");
+  return relative;
+}
+async function teardownEnvironment(deps, input) {
+  const instance = readEnvironmentInstance(deps.workspace, input.instanceId);
+  if (instance === void 0) {
+    throw new AutonomyError("SBA014", `No environment instance "${input.instanceId}" exists.`);
+  }
+  const plan = readEnvironmentPlan(deps.workspace, instance.planId);
+  if (plan === void 0) {
+    throw new AutonomyError("SBA014", `Environment plan "${instance.planId}" is missing.`);
+  }
+  const policy = autonomyPolicyOf(deps).environments;
+  const retain = input.retain ?? (instance.status === "FAILED" && policy.retainDiagnosticsOnFailure);
+  await input.runtime.teardown({
+    plan,
+    workspaceRoot: deps.workspace.rootDir,
+    timeoutMs: policy.readinessTimeoutMs,
+    retain
+  });
+  const stopped = writeInstance(deps, {
+    ...instance,
+    status: "STOPPED",
+    stoppedAt: nowIso4(deps),
+    diagnosticsRetained: retain,
+    services: instance.services.map((service) => ({ ...service, status: "STOPPED" }))
+  });
+  emitJobEvent(deps, instance.jobId, "environment_torn_down", {
+    instanceId: stopped.instanceId,
+    retained: retain
+  });
+  return stopped;
+}
+function writeEvidence(deps, plan, instance, totalMs, logRefs) {
+  const byId = new Map(plan.services.map((service) => [service.serviceId, service]));
+  const applicationLevelReady = [];
+  const livenessOnlyReady = [];
+  const notReady = [];
+  for (const state of instance.services) {
+    if (state.status !== "READY") {
+      notReady.push(state.serviceId);
+      continue;
+    }
+    const definition = byId.get(state.serviceId);
+    const deep = definition?.probes.some((probe) => isApplicationLevelProbe(probe)) ?? false;
+    (deep ? applicationLevelReady : livenessOnlyReady).push(state.serviceId);
+  }
+  const evidence = environmentEvidenceSchema.parse({
+    schemaVersion: ENVIRONMENT_SCHEMA_VERSION,
+    instanceId: instance.instanceId,
+    planId: plan.planId,
+    recordedAt: nowIso4(deps),
+    status: instance.status,
+    applicationLevelReady,
+    livenessOnlyReady,
+    notReady,
+    totalReadinessMs: totalMs,
+    logRefs: [...logRefs].slice(0, 60)
+  });
+  writeJsonRecord(environmentEvidenceFile(deps.workspace, instance.instanceId), evidence);
+  return evidence;
+}
+function writeInstance(deps, instance) {
+  const validated = environmentInstanceSchema.parse(instance);
+  writeJsonRecord(environmentInstanceFile(deps.workspace, validated.instanceId), validated);
+  return validated;
+}
+function emitJobEvent(deps, jobId, type, payload) {
+  if (jobId === void 0) return;
+  try {
+    recordJobEvent(jobDepsOf(deps), jobId, type, payload);
+  } catch {
+  }
+}
+function createComposeRuntime(options) {
+  const executable = options.executable ?? "docker";
+  const composeArgs = (plan, rest) => {
+    const args = ["compose"];
+    if (plan.composeFile !== void 0) {
+      args.push("-f", import_path84.default.resolve(options.cwd, plan.composeFile));
+    }
+    args.push("--project-name", plan.projectName ?? plan.planId);
+    args.push(...rest);
+    return args;
+  };
+  const run = async (argv2, timeoutMs, signal, maxStdoutBytes = 256 * 1024) => {
+    const result = await runSafeProcess({
+      executable,
+      argv: [...argv2],
+      cwd: options.cwd,
+      timeoutMs,
+      maxStdoutBytes,
+      maxStderrBytes: 256 * 1024,
+      ...signal !== void 0 ? { signal } : {}
+    });
+    return {
+      ok: result.status === "ok",
+      stdout: result.stdout,
+      stderr: result.stderr,
+      status: result.status
+    };
+  };
+  return {
+    label: "docker-compose",
+    async provision(input) {
+      const result = await run(
+        composeArgs(input.plan, ["up", "--detach", "--wait=false"]),
+        input.timeoutMs,
+        input.signal
+      );
+      if (result.ok) return { ok: true, detail: "compose up --detach succeeded" };
+      const combined = `${result.stderr}
+${result.stdout}`.toLowerCase();
+      return {
+        ok: false,
+        detail: firstLine(result.stderr || result.stdout) || `compose up ${result.status}`,
+        failureKind: classifyComposeFailure(combined, result.status)
+      };
+    },
+    async restart(input) {
+      const result = await run(
+        composeArgs(input.plan, ["restart", input.service.name]),
+        input.timeoutMs,
+        input.signal
+      );
+      return {
+        ok: result.ok,
+        detail: result.ok ? `restarted ${input.service.name}` : firstLine(result.stderr) || `restart ${result.status}`
+      };
+    },
+    async logs(input) {
+      const result = await run(
+        composeArgs(input.plan, ["logs", "--no-color", "--tail", "400", input.service.name]),
+        6e4,
+        void 0,
+        input.maxBytes
+      );
+      return result.stdout.slice(0, input.maxBytes);
+    },
+    async teardown(input) {
+      const argv2 = input.retain ? composeArgs(input.plan, ["stop"]) : composeArgs(input.plan, ["down", "--remove-orphans", "--volumes"]);
+      const result = await run(argv2, input.timeoutMs);
+      return {
+        ok: result.ok,
+        detail: result.ok ? input.retain ? "containers stopped and retained for diagnosis" : "compose down removed containers and volumes" : firstLine(result.stderr) || `teardown ${result.status}`
+      };
+    }
+  };
+}
+function firstLine(text142) {
+  return (text142.split("\n").find((line) => line.trim().length > 0) ?? "").trim().slice(0, 400);
+}
+function classifyComposeFailure(combined, status) {
+  if (status === "spawn-failed" || combined.includes("cannot connect to the docker daemon")) {
+    return "RUNTIME_UNAVAILABLE";
+  }
+  if (combined.includes("pull access denied") || combined.includes("manifest unknown") || combined.includes("error pulling image")) {
+    return "IMAGE_PULL_FAILED";
+  }
+  if (combined.includes("address already in use") || combined.includes("port is already allocated")) {
+    return "PORT_CONFLICT";
+  }
+  if (combined.includes("no space left on device") || combined.includes("cannot allocate memory")) {
+    return "RESOURCE_EXHAUSTED";
+  }
+  if (combined.includes("yaml") || combined.includes("services must be a mapping") || combined.includes("unsupported config option")) {
+    return "CONFIGURATION_INVALID";
+  }
+  return "UNKNOWN";
+}
+var BROWSER_SCHEMA_VERSION = "1.0.0";
 var shortText62 = external_exports.string().max(200);
 var text62 = external_exports.string().max(4e3);
 var browserStepSchema = external_exports.object({
@@ -99243,6 +99894,9 @@ var browserStepSchema = external_exports.object({
   label: shortText62.optional(),
   timeoutMs: external_exports.number().int().min(100).max(6e5).optional()
 }).passthrough();
+function isAssertionStep(step2) {
+  return BROWSER_ASSERTION_STEPS.includes(step2.kind);
+}
 var browserScenarioSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
   scenarioId: shortText62,
@@ -99326,11 +99980,444 @@ var browserScenarioResultSchema = external_exports.object({
   /** The first failing step's detail, hoisted for the report. */
   failureDetail: text62.optional()
 }).passthrough();
+function parseViewport(value) {
+  const [width, height] = value.split("x").map((part) => Number.parseInt(part, 10));
+  return { width: width ?? 1280, height: height ?? 800 };
+}
+function browserScenarioFile(workspace, scenarioId) {
+  assertAutonomyId("browser scenario", scenarioId);
+  return autonomyPath(workspace, "browser", `${scenarioId}.json`);
+}
+function browserResultFile(workspace, resultId) {
+  assertAutonomyId("browser result", resultId);
+  return autonomyPath(workspace, "browser", "results", `${resultId}.json`);
+}
+function readBrowserScenario(workspace, scenarioId) {
+  return readJsonRecord(
+    browserScenarioFile(workspace, scenarioId),
+    (raw) => browserScenarioSchema.parse(raw)
+  );
+}
+function listBrowserScenarios(workspace) {
+  return listJsonRecords(
+    autonomyPath(workspace, "browser"),
+    (raw) => browserScenarioSchema.parse(raw)
+  );
+}
 function listBrowserResults(workspace) {
   return listJsonRecords(
     autonomyPath(workspace, "browser", "results"),
     (raw) => browserScenarioResultSchema.parse(raw)
   ).sort((a2, b) => a2.startedAt.localeCompare(b.startedAt));
+}
+async function runBrowserScenario(deps, options) {
+  const policy = autonomyPolicyOf(deps).browser;
+  if (!policy.enabled) {
+    throw new AutonomyError(
+      "SBA018",
+      "Browser verification is disabled by `autonomy.browser.enabled`.",
+      { remediation: ["Enable it, or close UI criteria on other evidence."] }
+    );
+  }
+  const scenario = readBrowserScenario(deps.workspace, options.scenarioId);
+  if (scenario === void 0) {
+    throw new AutonomyError("SBA017", `No browser scenario "${options.scenarioId}" exists.`);
+  }
+  if (scenario.contexts.length > policy.maxContexts) {
+    throw new AutonomyError(
+      "SBA017",
+      `Scenario ${scenario.scenarioId} declares ${scenario.contexts.length} contexts; policy allows ${policy.maxContexts}.`,
+      { remediation: ["Raise autonomy.browser.maxContexts, or split the scenario."] }
+    );
+  }
+  const resultId = options.resultId ?? newRecordId(deps, "br");
+  const startedAt = nowIso4(deps);
+  const startedMs = now5(deps).getTime();
+  emitJobEvent2(deps, options.jobId, "browser_scenario_started", {
+    scenarioId: scenario.scenarioId,
+    resultId,
+    contexts: scenario.contexts.length
+  });
+  const availability = await options.driver.available();
+  if (!availability.ok) {
+    return persist3(
+      deps,
+      browserScenarioResultSchema.parse({
+        schemaVersion: BROWSER_SCHEMA_VERSION,
+        resultId,
+        scenarioId: scenario.scenarioId,
+        ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
+        status: "SKIPPED_NO_RUNTIME",
+        startedAt,
+        finishedAt: nowIso4(deps),
+        driver: options.driver.label,
+        skipReason: availability.reason
+      }),
+      options.jobId
+    );
+  }
+  const steps = [];
+  const evidence = [];
+  let assertionsRun = 0;
+  let assertionsPassed = 0;
+  let failureDetail;
+  let session;
+  try {
+    session = await options.driver.open({
+      scenario,
+      viewport: parseViewport(options.viewport ?? policy.viewports[0] ?? "1280x800"),
+      navigationTimeoutMs: policy.navigationTimeoutMs,
+      ...options.signal !== void 0 ? { signal: options.signal } : {}
+    });
+  } catch (cause) {
+    return persist3(
+      deps,
+      browserScenarioResultSchema.parse({
+        schemaVersion: BROWSER_SCHEMA_VERSION,
+        resultId,
+        scenarioId: scenario.scenarioId,
+        ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
+        status: "ERRORED",
+        startedAt,
+        finishedAt: nowIso4(deps),
+        driver: options.driver.label,
+        failureDetail: (cause instanceof Error ? cause.message : String(cause)).slice(0, 4e3)
+      }),
+      options.jobId
+    );
+  }
+  try {
+    for (const [index, step2] of scenario.steps.entries()) {
+      if (options.signal?.aborted === true) {
+        failureDetail = "the scenario was cancelled";
+        break;
+      }
+      const before = now5(deps).getTime();
+      const outcome = await session.step(step2);
+      const assertion = isAssertionStep(step2);
+      if (assertion) {
+        assertionsRun += 1;
+        if (outcome.ok) assertionsPassed += 1;
+      }
+      let evidenceRef;
+      if (outcome.evidence !== void 0 && policy.captureScreenshots) {
+        evidenceRef = writeEvidenceFile(
+          deps,
+          resultId,
+          `${String(index).padStart(3, "0")}-${outcome.evidence.label}`,
+          outcome.evidence.kind === "SCREENSHOT" ? "png" : "html",
+          outcome.evidence.data
+        );
+        evidence.push({
+          kind: outcome.evidence.kind,
+          ref: evidenceRef,
+          label: outcome.evidence.label,
+          context: step2.context
+        });
+      }
+      steps.push({
+        index,
+        kind: step2.kind,
+        context: step2.context,
+        ok: outcome.ok,
+        detail: outcome.detail.slice(0, 4e3),
+        durationMs: Math.max(0, now5(deps).getTime() - before),
+        ...evidenceRef !== void 0 ? { evidenceRef } : {}
+      });
+      if (!outcome.ok) {
+        failureDetail = `step ${index} (${step2.kind}) in context "${step2.context}": ${outcome.detail}`;
+        const snapshot2 = await session.snapshot(step2.context, policy.maxEvidenceBytes);
+        if (snapshot2.length > 0) {
+          evidence.push({
+            kind: "DOM_SNAPSHOT",
+            ref: writeEvidenceFile(deps, resultId, `${String(index).padStart(3, "0")}-dom`, "html", snapshot2),
+            label: "dom-at-failure",
+            context: step2.context
+          });
+        }
+        break;
+      }
+    }
+    const observations = policy.captureConsole ? [...session.observations()] : [];
+    if (observations.length > 0) {
+      evidence.push({
+        kind: "CONSOLE_LOG",
+        ref: writeEvidenceFile(
+          deps,
+          resultId,
+          "console",
+          "json",
+          `${JSON.stringify(observations, null, 2)}
+`
+        ),
+        label: "console-and-network"
+      });
+    }
+    const status = failureDetail !== void 0 ? "FAILED" : assertionsRun > 0 ? "PASSED" : "FAILED";
+    return persist3(
+      deps,
+      browserScenarioResultSchema.parse({
+        schemaVersion: BROWSER_SCHEMA_VERSION,
+        resultId,
+        scenarioId: scenario.scenarioId,
+        ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
+        status,
+        startedAt,
+        finishedAt: nowIso4(deps),
+        driver: options.driver.label,
+        steps,
+        assertionsRun,
+        assertionsPassed,
+        observations: observations.slice(0, 200),
+        evidence,
+        ...failureDetail !== void 0 ? { failureDetail } : assertionsRun === 0 ? { failureDetail: "the scenario ran no assertions and therefore proved nothing" } : {},
+        durationMs: now5(deps).getTime() - startedMs
+      }),
+      options.jobId
+    );
+  } finally {
+    await session.close();
+  }
+}
+function writeEvidenceFile(deps, resultId, name, extension, data) {
+  const safe = name.replace(/[^A-Za-z0-9._-]/g, "-").slice(0, 60);
+  const absolute = autonomyPath(
+    deps.workspace,
+    "browser",
+    "evidence",
+    resultId,
+    `${safe}.${extension}`
+  );
+  (0, import_fs76.mkdirSync)(import_path85.default.dirname(absolute), { recursive: true });
+  (0, import_fs76.writeFileSync)(absolute, data);
+  return import_path85.default.posix.join(
+    ".specbridge",
+    "autonomy",
+    "browser",
+    "evidence",
+    resultId,
+    `${safe}.${extension}`
+  );
+}
+function persist3(deps, result, jobId) {
+  writeJsonRecord(browserResultFile(deps.workspace, result.resultId), result);
+  emitJobEvent2(deps, jobId, "browser_scenario_completed", {
+    scenarioId: result.scenarioId,
+    resultId: result.resultId,
+    status: result.status,
+    assertionsRun: result.assertionsRun,
+    assertionsPassed: result.assertionsPassed
+  });
+  return result;
+}
+function emitJobEvent2(deps, jobId, type, payload) {
+  if (jobId === void 0) return;
+  try {
+    recordJobEvent(jobDepsOf(deps), jobId, type, payload);
+  } catch {
+  }
+}
+async function loadPlaywright() {
+  try {
+    const specifier = ["play", "wright"].join("");
+    return await import(
+      /* @vite-ignore */
+      specifier
+    );
+  } catch {
+    return void 0;
+  }
+}
+function createPlaywrightDriver() {
+  return {
+    label: "playwright-chromium",
+    async available() {
+      const playwright = await loadPlaywright();
+      if (playwright === void 0) {
+        return {
+          ok: false,
+          reason: "Playwright is not installed in this workspace. Grant the BROWSER_RUNTIME Toolsmith capability, or add playwright as a dev dependency."
+        };
+      }
+      try {
+        const browser = await playwright.chromium.launch({ headless: true });
+        await browser.close();
+        return { ok: true };
+      } catch (cause) {
+        return {
+          ok: false,
+          reason: `Playwright is installed but no browser binary could be launched: ${(cause instanceof Error ? cause.message : String(cause)).slice(0, 200)}`
+        };
+      }
+    },
+    async open(request) {
+      const playwright = await loadPlaywright();
+      if (playwright === void 0) throw new Error("playwright is not installed");
+      const browser = await playwright.chromium.launch({ headless: true });
+      const observations = [];
+      const contexts = /* @__PURE__ */ new Map();
+      for (const name of request.scenario.contexts) {
+        const context = await browser.newContext({ viewport: request.viewport });
+        const page = await context.newPage();
+        page.setDefaultTimeout(request.navigationTimeoutMs);
+        page.on("console", (message2) => {
+          const type = String(message2.type?.() ?? "");
+          if (type !== "error" && type !== "warning") return;
+          observations.push({
+            context: name,
+            kind: type === "error" ? "console-error" : "console-warning",
+            detail: String(message2.text?.() ?? "").slice(0, 2e3),
+            at: (/* @__PURE__ */ new Date()).toISOString()
+          });
+        });
+        page.on("pageerror", (error2) => {
+          observations.push({
+            context: name,
+            kind: "page-error",
+            detail: String(error2?.message ?? error2).slice(0, 2e3),
+            at: (/* @__PURE__ */ new Date()).toISOString()
+          });
+        });
+        page.on("requestfailed", (failed) => {
+          observations.push({
+            context: name,
+            kind: "request-failed",
+            detail: `${String(failed.method?.() ?? "")} ${String(failed.url?.() ?? "")}: ${String(
+              failed.failure?.()?.errorText ?? "failed"
+            )}`.slice(0, 2e3),
+            at: (/* @__PURE__ */ new Date()).toISOString()
+          });
+        });
+        contexts.set(name, { context, page });
+      }
+      const pageFor = (name) => {
+        const entry2 = contexts.get(name);
+        if (entry2 === void 0) throw new Error(`unknown browser context "${name}"`);
+        return entry2.page;
+      };
+      return {
+        async step(step2) {
+          return runStep(pageFor(step2.context), step2, request, observations);
+        },
+        observations: () => observations,
+        async snapshot(context, maxBytes) {
+          try {
+            const html = String(await pageFor(context).content());
+            return html.slice(0, maxBytes);
+          } catch {
+            return "";
+          }
+        },
+        async close() {
+          try {
+            await browser.close();
+          } catch {
+          }
+        }
+      };
+    }
+  };
+}
+async function runStep(page, step2, request, observations) {
+  const timeout = step2.timeoutMs ?? request.navigationTimeoutMs;
+  try {
+    switch (step2.kind) {
+      case "NAVIGATE": {
+        const url = absoluteUrl(request.scenario.baseUrl, step2.url ?? "/");
+        await page.goto(url, { timeout, waitUntil: "domcontentloaded" });
+        return { ok: true, detail: `navigated to ${url}` };
+      }
+      case "RELOAD": {
+        await page.reload({ timeout, waitUntil: "domcontentloaded" });
+        return { ok: true, detail: "reloaded" };
+      }
+      case "CLICK": {
+        await page.click(requireSelector(step2), { timeout });
+        return { ok: true, detail: `clicked ${step2.selector}` };
+      }
+      case "TYPE": {
+        await page.fill(requireSelector(step2), step2.value ?? "", { timeout });
+        return { ok: true, detail: `typed into ${step2.selector}` };
+      }
+      case "FILL_FORM": {
+        for (const [selector, value] of Object.entries(step2.fields ?? {})) {
+          await page.fill(selector, value, { timeout });
+        }
+        return { ok: true, detail: `filled ${Object.keys(step2.fields ?? {}).length} field(s)` };
+      }
+      case "SUBMIT": {
+        await page.press(requireSelector(step2), "Enter", { timeout });
+        return { ok: true, detail: `submitted ${step2.selector}` };
+      }
+      case "WAIT_FOR_SELECTOR": {
+        await page.waitForSelector(requireSelector(step2), { timeout });
+        return { ok: true, detail: `${step2.selector} appeared` };
+      }
+      case "WAIT_FOR_TEXT": {
+        await page.locator(`text=${step2.value ?? ""}`).first().waitFor({ state: "visible", timeout });
+        return { ok: true, detail: "text appeared" };
+      }
+      case "SET_VIEWPORT": {
+        const [width, height] = (step2.viewport ?? "1280x800").split("x").map(Number);
+        await page.setViewportSize({ width: width ?? 1280, height: height ?? 800 });
+        return { ok: true, detail: `viewport ${step2.viewport}` };
+      }
+      case "SCREENSHOT": {
+        const data = await page.screenshot({ fullPage: true });
+        return {
+          ok: true,
+          detail: `captured ${data.length} bytes`,
+          evidence: { kind: "SCREENSHOT", label: step2.label ?? "screenshot", data }
+        };
+      }
+      case "SWITCH_CONTEXT": {
+        return { ok: true, detail: `context switched to ${step2.context}` };
+      }
+      case "EXPECT_SELECTOR": {
+        const count22 = await page.locator(requireSelector(step2)).count();
+        return count22 > 0 ? { ok: true, detail: `${step2.selector} present (${count22})` } : { ok: false, detail: `${step2.selector} was not present` };
+      }
+      case "EXPECT_ABSENT": {
+        const count22 = await page.locator(requireSelector(step2)).count();
+        return count22 === 0 ? { ok: true, detail: `${step2.selector} absent` } : { ok: false, detail: `${step2.selector} was present (${count22})` };
+      }
+      case "EXPECT_TEXT": {
+        const body = String(await page.innerText("body")).slice(0, 2e5);
+        return body.includes(step2.value ?? "") ? { ok: true, detail: "expected text present" } : { ok: false, detail: `expected text was not present on the page` };
+      }
+      case "EXPECT_URL": {
+        const current = String(page.url());
+        return current.includes(step2.url ?? "") ? { ok: true, detail: `url matches (${current})` } : { ok: false, detail: `url is ${current}` };
+      }
+      case "EXPECT_NO_CONSOLE_ERRORS": {
+        const errors = observations.filter(
+          (entry2) => entry2.kind === "console-error" || entry2.kind === "page-error"
+        );
+        return errors.length === 0 ? { ok: true, detail: "no console or page errors" } : { ok: false, detail: `${errors.length} console/page error(s): ${errors[0]?.detail ?? ""}`.slice(0, 500) };
+      }
+      case "EXPECT_NO_FAILED_REQUESTS": {
+        const failed = observations.filter((entry2) => entry2.kind === "request-failed");
+        return failed.length === 0 ? { ok: true, detail: "no failed requests" } : { ok: false, detail: `${failed.length} failed request(s): ${failed[0]?.detail ?? ""}`.slice(0, 500) };
+      }
+      default:
+        return { ok: false, detail: `unsupported step ${String(step2.kind)}` };
+    }
+  } catch (cause) {
+    return {
+      ok: false,
+      detail: `${step2.kind} failed: ${(cause instanceof Error ? cause.message : String(cause)).slice(0, 300)}`
+    };
+  }
+}
+function requireSelector(step2) {
+  if (step2.selector === void 0 || step2.selector.length === 0) {
+    throw new Error(`${step2.kind} needs a selector`);
+  }
+  return step2.selector;
+}
+function absoluteUrl(baseUrl, target) {
+  if (/^https?:\/\//i.test(target)) return target;
+  return `${baseUrl.replace(/\/$/, "")}/${target.replace(/^\//, "")}`;
 }
 var shortText72 = external_exports.string().max(200);
 var text72 = external_exports.string().max(4e3);
@@ -99418,10 +100505,22 @@ var closureLedgerSchema = external_exports.object({
   entries: external_exports.array(closureEntrySchema).max(1e3).default([]),
   /** Gap-closure cycles spent. Bounded by policy. */
   gapCycles: external_exports.number().int().min(0).default(0),
-  /** System-scenario qualification cycles spent. */
+  /**
+   * System-scenario qualification cycles EXECUTED. Incremented only after
+   * scenarios actually ran — never by entering the phase. The distinction
+   * is the vNext.10.1 dogfood's defect 39: a counter bumped by a phase
+   * stamp let the oracle read "the scenarios ran" off a night in which
+   * nothing was ever executed.
+   */
   systemCycles: external_exports.number().int().min(0).default(0),
   /** True once the reproducibility qualification passed. */
-  reproducibilityPassed: external_exports.boolean().default(false)
+  reproducibilityPassed: external_exports.boolean().default(false),
+  /** Reproducibility qualification attempts EXECUTED. Bounded by policy. */
+  reproducibilityCycles: external_exports.number().int().min(0).default(0),
+  /** True once the release qualification passed against the integrated tree. */
+  releaseQualificationPassed: external_exports.boolean().default(false),
+  /** Release qualification attempts EXECUTED. Bounded by policy. */
+  releaseQualificationCycles: external_exports.number().int().min(0).default(0)
 }).passthrough();
 var closureAuditSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
@@ -99487,7 +100586,12 @@ function assessItemClosure(entry2, context, input) {
   if (entry2.attributedNodeIds.length > 0 && !input.attributedNodesComplete) {
     return { status: "IN_PROGRESS", gaps: [] };
   }
-  if (failing.length > 0) gaps.push("EVIDENCE_FAILED");
+  if (failing.length > 0) {
+    if (failing.some((ref) => ref.kind === "SYSTEM_SCENARIO" || ref.kind === "BROWSER_SCENARIO")) {
+      gaps.push("SCENARIO_FAILED");
+    }
+    gaps.push("EVIDENCE_FAILED");
+  }
   if (passing.length === 0) {
     if (staleClosing.length > 0) gaps.push("EVIDENCE_STALE");
     else if (failing.length === 0) gaps.push("NO_EVIDENCE");
@@ -99571,43 +100675,84 @@ function decideClosure(ledger, policy, input) {
   const implementationOwned = unclosed.filter(
     (entry2) => !entry2.requiresSystemScenario && !entry2.requiresBrowserScenario
   );
-  if (implementationOwned.length > 0) {
+  const scenarioRepairs = scenarioOwned.filter((entry2) => {
+    const scenarioRefs = entry2.evidence.filter(
+      (ref) => ref.kind === "SYSTEM_SCENARIO" || ref.kind === "BROWSER_SCENARIO"
+    );
+    const latest = scenarioRefs[scenarioRefs.length - 1];
+    if (latest === void 0 || latest.passed) return false;
+    return !entry2.evidence.some(
+      (ref) => ref.kind === "TRUSTED_VERIFICATION" && ref.passed && ref.recordedAt > latest.recordedAt
+    );
+  });
+  if (implementationOwned.length > 0 || scenarioRepairs.length > 0) {
+    const repairable = implementationOwned.length + scenarioRepairs.length;
     if (ledger.gapCycles >= policy.maxGapClosureCycles) {
       return {
         directive: "BUDGET_EXHAUSTED",
         nextPhase: ledger.phase,
-        rationale: `${implementationOwned.length} sealed item(s) remain unclosed after ${ledger.gapCycles} gap-closure cycles; generating the same work again would not change that`,
-        unclosed: implementationOwned
+        rationale: `${repairable} sealed item(s) remain unclosed after ${ledger.gapCycles} gap-closure cycles; generating the same work again would not change that`,
+        unclosed: [...implementationOwned, ...scenarioRepairs]
       };
     }
     return {
       directive: "GENERATE_GAP_WORK",
       nextPhase: "GAP_IMPLEMENTATION",
-      rationale: `${implementationOwned.length} sealed item(s) are not closed on trusted evidence`,
+      rationale: `${repairable} sealed item(s) are not closed on trusted evidence`,
       // The FULL unclosed list, scenario-owned included: gap work is also
       // the record of which evidence kind each item still needs.
       unclosed
     };
   }
-  void scenarioOwned;
-  const needsSystem = policy.requireSystemScenarios && ledger.entries.some((entry2) => entry2.requiresSystemScenario) && ledger.systemCycles === 0;
-  if (needsSystem) {
+  if (scenarioOwned.length > 0) {
+    if (!policy.requireSystemScenarios) {
+      return {
+        directive: "BUDGET_EXHAUSTED",
+        nextPhase: ledger.phase,
+        rationale: `${scenarioOwned.length} sealed item(s) require scenario evidence, and the policy has disabled the scenario phase; they cannot close on any evidence this run can produce. Re-enable \`requireSystemScenarios\`, or a human waives them.`,
+        unclosed: scenarioOwned
+      };
+    }
+    if (ledger.systemCycles >= policy.maxSystemQualificationCycles) {
+      return {
+        directive: "BUDGET_EXHAUSTED",
+        nextPhase: ledger.phase,
+        rationale: `${scenarioOwned.length} sealed item(s) remain unclosed after ${ledger.systemCycles} executed system-scenario cycle(s)`,
+        unclosed: scenarioOwned
+      };
+    }
     return {
       directive: "RUN_SYSTEM_SCENARIOS",
       nextPhase: "SYSTEM_SCENARIO_QUALIFICATION",
-      rationale: "every item closes; the sealed criteria imply mission-level system scenarios",
-      unclosed: []
+      rationale: `${scenarioOwned.length} sealed item(s) close only on scenario evidence`,
+      unclosed: scenarioOwned
     };
   }
-  if (ledger.phase === "SYSTEM_SCENARIO_QUALIFICATION") {
+  if (policy.requireReleaseQualification && !ledger.releaseQualificationPassed) {
+    if (ledger.releaseQualificationCycles >= policy.maxSystemQualificationCycles) {
+      return {
+        directive: "BUDGET_EXHAUSTED",
+        nextPhase: ledger.phase,
+        rationale: `the integrated tree failed the release qualification ${ledger.releaseQualificationCycles} time(s); every item closes individually, but the product as integrated does not hold`,
+        unclosed: []
+      };
+    }
     return {
       directive: "RUN_RELEASE_QUALIFICATION",
       nextPhase: "RELEASE_QUALIFICATION",
-      rationale: "system scenarios passed; the release qualification is next",
+      rationale: "every item closes; the full trusted verification suite must now pass against the integrated tree",
       unclosed: []
     };
   }
   if (policy.requireReproducibility && !ledger.reproducibilityPassed) {
+    if (ledger.reproducibilityCycles >= policy.maxSystemQualificationCycles) {
+      return {
+        directive: "BUDGET_EXHAUSTED",
+        nextPhase: ledger.phase,
+        rationale: `reproducibility could not be demonstrated in ${ledger.reproducibilityCycles} attempt(s) on this machine; completion is not available without it while the policy requires it`,
+        unclosed: []
+      };
+    }
     return {
       directive: "RUN_REPRODUCIBILITY",
       nextPhase: "REPRODUCIBILITY",
@@ -99618,11 +100763,11 @@ function decideClosure(ledger, policy, input) {
   return {
     directive: "COMPLETE",
     nextPhase: "COMPLETE",
-    rationale: `all ${ledger.entries.length} sealed contract item(s) close on trusted evidence` + (ledger.reproducibilityPassed ? ", reproduced from a clean environment" : ""),
+    rationale: `all ${ledger.entries.length} sealed contract item(s) close on trusted evidence` + (ledger.releaseQualificationPassed ? ", the integrated tree passed the release qualification" : "") + (ledger.reproducibilityPassed ? ", reproduced from a clean environment" : ""),
     unclosed: []
   };
 }
-function missionMayComplete(ledger) {
+function missionMayComplete(ledger, policy) {
   const unclosed = ledger.entries.filter((entry2) => !isClosingStatus(entry2.status));
   if (ledger.entries.length === 0) {
     return {
@@ -99636,6 +100781,20 @@ function missionMayComplete(ledger) {
       mayComplete: false,
       reason: `${unclosed.length} sealed contract item(s) are not closed on trusted evidence`,
       unclosedIds: unclosed.map((entry2) => entry2.itemId).slice(0, 100)
+    };
+  }
+  if (policy.requireReleaseQualification && !ledger.releaseQualificationPassed) {
+    return {
+      mayComplete: false,
+      reason: "every item closes, but the release qualification has not passed against the integrated tree",
+      unclosedIds: []
+    };
+  }
+  if (policy.requireReproducibility && !ledger.reproducibilityPassed) {
+    return {
+      mayComplete: false,
+      reason: "every item closes, but reproducibility has not been demonstrated from a clean environment",
+      unclosedIds: []
     };
   }
   return {
@@ -99952,7 +101111,10 @@ function advanceClosurePhase(deps, input) {
     ...ledger,
     phase: input.phase,
     systemCycles: ledger.systemCycles + (input.systemCycle === true ? 1 : 0),
-    reproducibilityPassed: input.reproducibilityPassed ?? ledger.reproducibilityPassed
+    reproducibilityPassed: input.reproducibilityPassed ?? ledger.reproducibilityPassed,
+    reproducibilityCycles: ledger.reproducibilityCycles + (input.reproducibilityCycle === true ? 1 : 0),
+    releaseQualificationPassed: input.releaseQualificationPassed ?? ledger.releaseQualificationPassed,
+    releaseQualificationCycles: ledger.releaseQualificationCycles + (input.releaseQualificationCycle === true ? 1 : 0)
   });
 }
 function requireLedger(workspace, jobId) {
@@ -99969,14 +101131,14 @@ function saveLedger2(deps, ledger) {
   writeJsonRecord(closureLedgerFile(deps.workspace, next.jobId), next);
   return next;
 }
-function createClosureCompletionGate(workspace) {
+function createClosureCompletionGate(workspace, policy) {
   return {
     assess(jobId) {
       const ledger = readClosureLedger(workspace, jobId);
       if (ledger === void 0) {
         return { mayComplete: true, reason: "no closure ledger governs this job", unclosed: 0 };
       }
-      const verdict = missionMayComplete(ledger);
+      const verdict = missionMayComplete(ledger, policy);
       return {
         mayComplete: verdict.mayComplete,
         reason: verdict.reason,
@@ -99985,6 +101147,7 @@ function createClosureCompletionGate(workspace) {
     }
   };
 }
+var SYSTEM_SCENARIO_SCHEMA_VERSION = "1.0.0";
 var shortText92 = external_exports.string().max(200);
 var text92 = external_exports.string().max(4e3);
 var systemStepSchema = external_exports.object({
@@ -100006,8 +101169,14 @@ var systemScenarioSchema = external_exports.object({
   scenarioId: shortText92,
   name: shortText92,
   intent: text92,
-  /** The environment this scenario needs. Required: that is the point. */
-  environmentPlanId: shortText92,
+  /**
+   * The environment this scenario needs. A scenario that declares none
+   * runs against the workspace itself — an explicit, recorded claim that
+   * the product needs no external services to demonstrate this, not a
+   * shortcut around provisioning. Fault injection requires a plan, since
+   * a fault can only be scoped to a declared service.
+   */
+  environmentPlanId: shortText92.optional(),
   steps: external_exports.array(systemStepSchema).min(1).max(50),
   /** Browser scenarios to run once the system steps pass. */
   browserScenarioIds: external_exports.array(shortText92).max(20).default([]),
@@ -100038,6 +101207,214 @@ var systemScenarioResultSchema = external_exports.object({
   browserResultIds: external_exports.array(shortText92).max(20).default([]),
   failureDetail: text92.optional()
 }).passthrough();
+function scenarioFile(workspace, scenarioId) {
+  assertAutonomyId("system scenario", scenarioId);
+  return autonomyPath(workspace, "system", `${scenarioId}.json`);
+}
+function resultFile(workspace, resultId) {
+  assertAutonomyId("system result", resultId);
+  return autonomyPath(workspace, "system", "results", `${resultId}.json`);
+}
+function saveSystemScenario(deps, input) {
+  const scenario = systemScenarioSchema.parse({
+    schemaVersion: SYSTEM_SCENARIO_SCHEMA_VERSION,
+    scenarioId: input.scenarioId ?? newRecordId(deps, "ss"),
+    createdAt: nowIso4(deps),
+    ...input
+  });
+  writeJsonRecord(scenarioFile(deps.workspace, scenario.scenarioId), scenario);
+  return scenario;
+}
+function readSystemScenario(workspace, scenarioId) {
+  return readJsonRecord(
+    scenarioFile(workspace, scenarioId),
+    (raw) => systemScenarioSchema.parse(raw)
+  );
+}
+function listSystemScenarios(workspace) {
+  return listJsonRecords(
+    autonomyPath(workspace, "system"),
+    (raw) => systemScenarioSchema.parse(raw)
+  ).sort((a2, b) => a2.scenarioId.localeCompare(b.scenarioId));
+}
+async function runSystemScenario(deps, options) {
+  const scenario = readSystemScenario(deps.workspace, options.scenarioId);
+  if (scenario === void 0) {
+    throw new AutonomyError("SBA024", `No system scenario "${options.scenarioId}" exists.`);
+  }
+  const resultId = options.resultId ?? newRecordId(deps, "sr");
+  const startedAt = nowIso4(deps);
+  emit2(deps, options.jobId, "system_qualification_started", {
+    scenarioId: scenario.scenarioId,
+    resultId
+  });
+  if (scenario.environmentPlanId !== void 0 && options.runtime === void 0) {
+    return finish3(deps, options, scenario, {
+      resultId,
+      startedAt,
+      status: "ENVIRONMENT_UNAVAILABLE",
+      failureDetail: `the scenario declares environment plan ${scenario.environmentPlanId} and no environment runtime is available in this session; the product was never exercised`
+    });
+  }
+  const instance = scenario.environmentPlanId === void 0 || options.runtime === void 0 ? void 0 : await provisionEnvironment(deps, {
+    planId: scenario.environmentPlanId,
+    ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
+    runtime: options.runtime,
+    ...options.probeExecutor !== void 0 ? { probeExecutor: options.probeExecutor } : {},
+    ...options.sleep !== void 0 ? { sleep: options.sleep } : {},
+    ...options.signal !== void 0 ? { signal: options.signal } : {}
+  });
+  if (instance !== void 0 && instance.status !== "READY") {
+    return finish3(deps, options, scenario, {
+      resultId,
+      startedAt,
+      status: "ENVIRONMENT_UNAVAILABLE",
+      environmentInstanceId: instance.instanceId,
+      failureDetail: instance.failureDetail ?? `the environment reached ${instance.status}; the product was never exercised`
+    });
+  }
+  const steps = [];
+  const runCommand = options.commandRunner ?? (async (input) => {
+    const [executable, ...argv2] = input.argv;
+    if (executable === void 0) return { ok: false, detail: "empty command" };
+    const result2 = await runSafeProcess({
+      executable,
+      argv: argv2,
+      cwd: input.cwd,
+      timeoutMs: input.timeoutMs,
+      maxStdoutBytes: 512 * 1024,
+      maxStderrBytes: 512 * 1024
+    });
+    return {
+      ok: result2.status === "ok",
+      detail: result2.status === "ok" ? "exited 0" : `${result2.status}: ${(result2.stderr || result2.stdout).split("\n")[0] ?? ""}`.slice(0, 400)
+    };
+  });
+  let failureDetail;
+  for (const step2 of scenario.steps) {
+    if (options.signal?.aborted === true) {
+      failureDetail = "the scenario was cancelled";
+      break;
+    }
+    let faultInjected;
+    if (step2.injectFault !== void 0) {
+      if (scenario.environmentPlanId === void 0 || options.runtime === void 0) {
+        failureDetail = `step "${step2.name}" declares a fault but the scenario declares no environment plan`;
+        break;
+      }
+      faultInjected = await injectFault(deps, {
+        environmentPlanId: scenario.environmentPlanId,
+        runtime: options.runtime,
+        fault: step2.injectFault
+      });
+    }
+    const before = now5(deps).getTime();
+    const outcome = await runCommand({
+      argv: step2.argv,
+      cwd: deps.workspace.rootDir,
+      timeoutMs: step2.timeoutMs
+    });
+    steps.push({
+      stepId: step2.stepId,
+      name: step2.name,
+      ok: outcome.ok,
+      detail: outcome.detail.slice(0, 4e3),
+      durationMs: Math.max(0, now5(deps).getTime() - before),
+      ...faultInjected !== void 0 ? { faultInjected } : {}
+    });
+    if (!outcome.ok) {
+      failureDetail = `system step "${step2.name}" failed: ${outcome.detail}`;
+      break;
+    }
+  }
+  const browserResultIds = [];
+  if (failureDetail === void 0 && options.browserDriver !== void 0) {
+    for (const browserScenarioId of scenario.browserScenarioIds) {
+      const browserResult = await runBrowserScenario(deps, {
+        scenarioId: browserScenarioId,
+        driver: options.browserDriver,
+        ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
+        ...options.signal !== void 0 ? { signal: options.signal } : {}
+      });
+      browserResultIds.push(browserResult.resultId);
+      if (browserResult.status === "FAILED" || browserResult.status === "ERRORED") {
+        failureDetail = `browser scenario ${browserScenarioId}: ${browserResult.failureDetail ?? "failed"}`;
+        break;
+      }
+      if (browserResult.status === "SKIPPED_NO_RUNTIME") {
+        continue;
+      }
+    }
+  }
+  const result = await finish3(deps, options, scenario, {
+    resultId,
+    startedAt,
+    status: failureDetail === void 0 ? "PASSED" : "FAILED",
+    ...instance !== void 0 ? { environmentInstanceId: instance.instanceId } : {},
+    steps,
+    browserResultIds,
+    ...failureDetail !== void 0 ? { failureDetail } : {}
+  });
+  if (options.teardown !== false && instance !== void 0 && options.runtime !== void 0) {
+    await teardownEnvironment(deps, {
+      instanceId: instance.instanceId,
+      runtime: options.runtime,
+      retain: result.status !== "PASSED"
+    });
+  }
+  return result;
+}
+async function injectFault(deps, input) {
+  const plan = readJsonRecord(
+    autonomyPath(deps.workspace, "environments", "plans", `${input.environmentPlanId}.json`),
+    (raw) => raw
+  );
+  const service = plan?.services.find((entry2) => entry2.serviceId === input.fault.serviceId);
+  if (service === void 0) return `unknown service ${input.fault.serviceId}`;
+  await input.runtime.restart({
+    plan,
+    service,
+    workspaceRoot: deps.workspace.rootDir,
+    timeoutMs: 12e4
+  });
+  return `${input.fault.kind} ${input.fault.serviceId}`;
+}
+async function finish3(deps, options, scenario, input) {
+  const result = systemScenarioResultSchema.parse({
+    schemaVersion: SYSTEM_SCENARIO_SCHEMA_VERSION,
+    scenarioId: scenario.scenarioId,
+    ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
+    finishedAt: nowIso4(deps),
+    ...input
+  });
+  writeJsonRecord(resultFile(deps.workspace, result.resultId), result);
+  if (options.registerClosure === true && scenario.itemIds.length > 0 && options.jobId !== void 0) {
+    if (result.status !== "ENVIRONMENT_UNAVAILABLE") {
+      registerClosureEvidence(deps, {
+        jobId: options.jobId,
+        itemIds: scenario.itemIds,
+        kind: "SYSTEM_SCENARIO",
+        ref: result.resultId,
+        passed: result.status === "PASSED",
+        ...result.failureDetail !== void 0 ? { detail: result.failureDetail } : {}
+      });
+    }
+  }
+  emit2(deps, options.jobId, "system_qualification_completed", {
+    scenarioId: scenario.scenarioId,
+    resultId: result.resultId,
+    status: result.status
+  });
+  return result;
+}
+function emit2(deps, jobId, type, payload) {
+  if (jobId === void 0) return;
+  try {
+    recordJobEvent(jobDepsOf(deps), jobId, type, payload);
+  } catch {
+  }
+}
+var REPRODUCIBILITY_SCHEMA_VERSION = "1.0.0";
 var shortText102 = external_exports.string().max(200);
 var text10 = external_exports.string().max(4e3);
 var REPRODUCIBILITY_DIMENSIONS = [
@@ -100087,6 +101464,459 @@ var reproducibilityResultSchema = external_exports.object({
   inconclusiveReason: text10.optional(),
   failureDetail: text10.optional()
 }).passthrough();
+function resultFile2(workspace, runId) {
+  assertAutonomyId("reproducibility run", runId);
+  return autonomyPath(workspace, "reproducibility", `${runId}.json`);
+}
+async function runReproducibilityQualification(deps, options) {
+  const policy = autonomyPolicyOf(deps).closure;
+  const runId = options.runId ?? newRecordId(deps, "rp");
+  const startedAt = nowIso4(deps);
+  const deadline = now5(deps).getTime() + policy.reproducibilityTimeoutMs;
+  const run = options.commandRunner ?? (async (input) => {
+    const [executable, ...argv2] = input.argv;
+    if (executable === void 0) return { outcome: "UNAVAILABLE", detail: "empty command" };
+    const result2 = await runSafeProcess({
+      executable,
+      argv: argv2,
+      cwd: input.cwd,
+      timeoutMs: input.timeoutMs,
+      maxStdoutBytes: 512 * 1024,
+      maxStderrBytes: 512 * 1024
+    });
+    if (result2.status === "ok") return { outcome: "PASSED", detail: "exited 0" };
+    if (result2.status === "spawn-failed") {
+      return {
+        outcome: "UNAVAILABLE",
+        detail: `${executable} could not be started in the clean checkout`
+      };
+    }
+    return {
+      outcome: "FAILED",
+      detail: `${result2.status}: ${(result2.stderr || result2.stdout).split("\n")[0] ?? ""}`.slice(0, 400)
+    };
+  });
+  const steps = [];
+  let failureDetail;
+  let unavailable;
+  for (const step2 of options.steps) {
+    if (options.signal?.aborted === true || now5(deps).getTime() > deadline) {
+      steps.push({
+        stepId: step2.stepId,
+        dimension: step2.dimension,
+        name: step2.name,
+        outcome: "NOT_RUN",
+        detail: "the reproducibility window elapsed before this step ran",
+        durationMs: null
+      });
+      unavailable = unavailable ?? "the reproducibility window elapsed";
+      continue;
+    }
+    const before = now5(deps).getTime();
+    const outcome = await run({
+      argv: step2.argv,
+      cwd: step2.cwd !== void 0 ? `${options.checkoutPath}/${step2.cwd}` : options.checkoutPath,
+      timeoutMs: step2.timeoutMs
+    });
+    steps.push({
+      stepId: step2.stepId,
+      dimension: step2.dimension,
+      name: step2.name,
+      outcome: outcome.outcome,
+      detail: outcome.detail.slice(0, 4e3),
+      durationMs: Math.max(0, now5(deps).getTime() - before)
+    });
+    if (outcome.outcome === "FAILED") {
+      failureDetail = `${step2.name}: ${outcome.detail}`;
+      break;
+    }
+    if (outcome.outcome === "UNAVAILABLE") {
+      unavailable = unavailable ?? `${step2.name}: ${outcome.detail}`;
+    }
+  }
+  const status = failureDetail !== void 0 ? "FAILED" : unavailable !== void 0 ? "INCONCLUSIVE" : steps.length > 0 ? "PASSED" : "NOT_RUN";
+  const result = reproducibilityResultSchema.parse({
+    schemaVersion: REPRODUCIBILITY_SCHEMA_VERSION,
+    runId,
+    ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
+    status,
+    startedAt,
+    finishedAt: nowIso4(deps),
+    checkoutPath: options.checkoutPath.slice(0, 200),
+    ...options.gitHead !== void 0 ? { gitHead: options.gitHead } : {},
+    dimensions: [...new Set(options.steps.map((step2) => step2.dimension))],
+    steps,
+    ...failureDetail !== void 0 ? { failureDetail } : {},
+    ...unavailable !== void 0 ? { inconclusiveReason: unavailable } : {}
+  });
+  writeJsonRecord(resultFile2(deps.workspace, runId), result);
+  if (options.jobId !== void 0) {
+    if (status === "PASSED") {
+      advanceClosurePhase(deps, {
+        jobId: options.jobId,
+        phase: "FINAL_CONTRACT_AUDIT",
+        reproducibilityPassed: true
+      });
+    }
+    if (options.itemIds !== void 0 && options.itemIds.length > 0 && status !== "INCONCLUSIVE") {
+      registerClosureEvidence(deps, {
+        jobId: options.jobId,
+        itemIds: options.itemIds,
+        kind: "REPRODUCIBILITY_RUN",
+        ref: runId,
+        passed: status === "PASSED",
+        ...options.gitHead !== void 0 ? { gitHead: options.gitHead } : {},
+        ...failureDetail !== void 0 ? { detail: failureDetail } : {}
+      });
+    }
+    try {
+      recordJobEvent(jobDepsOf(deps), options.jobId, "reproducibility_completed", {
+        runId,
+        status,
+        dimensions: result.dimensions.length
+      });
+    } catch {
+    }
+  }
+  return result;
+}
+function ensureSystemScenarios(deps, input) {
+  const ledger = readClosureLedger(deps.workspace, input.jobId);
+  const open = ledger?.entries.filter(
+    (entry2) => (entry2.requiresSystemScenario || entry2.requiresBrowserScenario) && !isClosingStatus(entry2.status)
+  ) ?? [];
+  if (open.length === 0) return { scenarios: [], uncovered: [] };
+  const existing = listSystemScenarios(deps.workspace);
+  const openIds = new Set(open.map((entry2) => entry2.itemId));
+  const covering = existing.filter(
+    (scenario) => scenario.itemIds.some((itemId) => openIds.has(itemId))
+  );
+  const covered = new Set(covering.flatMap((scenario) => scenario.itemIds));
+  const uncoveredIds = open.map((entry2) => entry2.itemId).filter((itemId) => !covered.has(itemId));
+  if (uncoveredIds.length === 0) return { scenarios: covering, uncovered: [] };
+  const commands = deps.config.verification.commands;
+  if (commands.length === 0) {
+    return { scenarios: covering, uncovered: uncoveredIds };
+  }
+  const plans = listJsonRecords(
+    autonomyPath(deps.workspace, "environments", "plans"),
+    (raw) => environmentPlanSchema.parse(raw)
+  );
+  const browserScenarioIds = listBrowserScenarios(deps.workspace).map((scenario) => scenario.scenarioId).slice(0, 20);
+  const synthesized = saveSystemScenario(deps, {
+    scenarioId: `ss-default-${input.jobId}`.slice(0, 200),
+    name: "Default mission qualification scenario",
+    intent: "Synthesized deterministically from the trusted verification commands: run the full suite against the integrated product" + (plans.length === 1 ? " with its declared environment provisioned" : "") + (browserScenarioIds.length > 0 ? ", then the authored browser scenarios" : "") + ".",
+    ...plans.length === 1 && plans[0] !== void 0 ? { environmentPlanId: plans[0].planId } : {},
+    steps: commands.slice(0, 50).map((command, index) => ({
+      stepId: `vc-${index + 1}`,
+      name: command.name.slice(0, 200),
+      argv: [...command.argv],
+      timeoutMs: command.timeoutMs
+    })),
+    browserScenarioIds,
+    itemIds: uncoveredIds.slice(0, 100),
+    jobId: input.jobId
+  });
+  return { scenarios: [...covering, synthesized], uncovered: [] };
+}
+async function runSystemScenarioPhase(deps, options) {
+  const { scenarios, uncovered } = ensureSystemScenarios(deps, { jobId: options.jobId });
+  const result = {
+    executed: 0,
+    passed: 0,
+    failed: 0,
+    environmentUnavailable: 0,
+    uncovered
+  };
+  for (const scenario of scenarios) {
+    if (options.signal?.aborted === true) break;
+    options.emit?.(`running system scenario ${scenario.scenarioId} (${scenario.name})`);
+    const run = await runSystemScenario(deps, {
+      scenarioId: scenario.scenarioId,
+      jobId: options.jobId,
+      ...options.runtime !== void 0 ? { runtime: options.runtime } : {},
+      ...options.probeExecutor !== void 0 ? { probeExecutor: options.probeExecutor } : {},
+      ...options.browserDriver !== void 0 ? { browserDriver: options.browserDriver } : {},
+      ...options.signal !== void 0 ? { signal: options.signal } : {},
+      ...options.sleep !== void 0 ? { sleep: options.sleep } : {},
+      ...options.commandRunner !== void 0 ? { commandRunner: options.commandRunner } : {},
+      registerClosure: true
+    });
+    result.executed += 1;
+    if (run.status === "PASSED") result.passed += 1;
+    else if (run.status === "ENVIRONMENT_UNAVAILABLE") result.environmentUnavailable += 1;
+    else result.failed += 1;
+    options.emit?.(`scenario ${scenario.scenarioId}: ${run.status}`);
+  }
+  if (uncovered.length > 0) {
+    options.emit?.(
+      `${uncovered.length} scenario-owned item(s) have no scenario to run (no trusted verification commands to synthesize one from)`
+    );
+  }
+  advanceClosurePhase(deps, {
+    jobId: options.jobId,
+    phase: "SYSTEM_SCENARIO_QUALIFICATION",
+    systemCycle: true
+  });
+  return result;
+}
+async function runReleaseQualificationPhase(deps, options) {
+  const commands = deps.config.verification.commands;
+  advanceClosurePhase(deps, {
+    jobId: options.jobId,
+    phase: "RELEASE_QUALIFICATION",
+    releaseQualificationCycle: true
+  });
+  let passed;
+  let detail;
+  if (commands.length === 0) {
+    passed = false;
+    detail = "no trusted verification commands are configured; the integrated tree cannot be qualified";
+  } else {
+    options.emit?.(`release qualification: running ${commands.length} trusted command(s) against the integrated tree`);
+    const run = options.verify !== void 0 ? await options.verify(commands) : await runVerificationCommands(deps.workspace.rootDir, [...commands], {
+      ...options.signal !== void 0 ? { signal: options.signal } : {}
+    });
+    passed = run.passed;
+    detail = run.passed ? `all ${commands.length} trusted command(s) passed against the integrated tree` : `required command(s) failed: ${run.requiredFailed.join(", ").slice(0, 300)}`;
+  }
+  if (passed) {
+    advanceClosurePhase(deps, {
+      jobId: options.jobId,
+      phase: "RELEASE_QUALIFICATION",
+      releaseQualificationPassed: true
+    });
+  }
+  try {
+    recordJobEvent(jobDepsOf(deps), options.jobId, "release_qualification_completed", {
+      passed,
+      detail: detail.slice(0, 300)
+    });
+  } catch {
+  }
+  options.emit?.(`release qualification: ${passed ? "PASSED" : "FAILED"} \u2014 ${detail}`);
+  return { passed, detail };
+}
+async function runReproducibilityPhase(deps, options) {
+  advanceClosurePhase(deps, {
+    jobId: options.jobId,
+    phase: "REPRODUCIBILITY",
+    reproducibilityCycle: true
+  });
+  const commands = deps.config.verification.commands;
+  if (commands.length === 0) {
+    const detail = "no trusted verification commands are configured; there is nothing to reproduce";
+    options.emit?.(`reproducibility: NOT_RUN \u2014 ${detail}`);
+    return { status: "NOT_RUN", detail };
+  }
+  const runId = newRecordId(deps, "rp");
+  const checkoutPath = autonomyPath(deps.workspace, "reproducibility", "checkouts", runId);
+  (0, import_fs77.mkdirSync)(import_path86.default.dirname(checkoutPath), { recursive: true });
+  const head = await runSafeProcess({
+    executable: "git",
+    argv: ["rev-parse", "HEAD"],
+    cwd: deps.workspace.rootDir,
+    timeoutMs: 6e4,
+    maxStdoutBytes: 4096,
+    maxStderrBytes: 4096
+  });
+  const gitHead = head.status === "ok" ? head.stdout.trim().slice(0, 64) : void 0;
+  const checkout = await runSafeProcess({
+    executable: "git",
+    argv: ["worktree", "add", "--detach", checkoutPath, "HEAD"],
+    cwd: deps.workspace.rootDir,
+    timeoutMs: 3e5,
+    maxStdoutBytes: 64 * 1024,
+    maxStderrBytes: 64 * 1024
+  });
+  if (checkout.status !== "ok") {
+    const detail = `a clean checkout could not be created: ${checkout.stderr.split("\n")[0] ?? checkout.status}`;
+    options.emit?.(`reproducibility: INCONCLUSIVE \u2014 ${detail}`);
+    return { status: "INCONCLUSIVE", detail };
+  }
+  const steps = [];
+  const installer = detectNodeInstaller(deps.workspace);
+  if (installer !== void 0) {
+    steps.push({
+      stepId: "install",
+      dimension: "FRESH_DEPENDENCY_RESOLUTION",
+      name: `${installer.join(" ")} in the clean checkout`,
+      argv: [...installer],
+      timeoutMs: 18e5
+    });
+  }
+  commands.slice(0, 25).forEach((command, index) => {
+    steps.push({
+      stepId: `vc-${index + 1}`,
+      dimension: "REPEATED_QUALIFICATION",
+      name: command.name.slice(0, 200),
+      argv: [...command.argv],
+      timeoutMs: command.timeoutMs
+    });
+  });
+  try {
+    const result = await runReproducibilityQualification(deps, {
+      jobId: options.jobId,
+      steps,
+      checkoutPath,
+      ...gitHead !== void 0 ? { gitHead } : {},
+      runId,
+      ...options.signal !== void 0 ? { signal: options.signal } : {},
+      ...options.commandRunner !== void 0 ? { commandRunner: options.commandRunner } : {}
+    });
+    const detail = result.status === "PASSED" ? `reproduced from a clean checkout of ${gitHead ?? "HEAD"}` : result.failureDetail ?? result.inconclusiveReason ?? `reproducibility ${result.status}`;
+    options.emit?.(`reproducibility: ${result.status} \u2014 ${detail}`);
+    if (result.status === "PASSED") {
+      await removeCheckout(deps.workspace, checkoutPath);
+    } else {
+      options.emit?.(`the checkout is retained for diagnosis at ${checkoutPath}`);
+    }
+    return { status: result.status, detail };
+  } catch (error2) {
+    await removeCheckout(deps.workspace, checkoutPath);
+    throw error2;
+  }
+}
+function detectNodeInstaller(workspace) {
+  const root = workspace.rootDir;
+  if ((0, import_fs77.existsSync)(import_path86.default.join(root, "pnpm-lock.yaml"))) return ["pnpm", "install", "--frozen-lockfile"];
+  if ((0, import_fs77.existsSync)(import_path86.default.join(root, "package-lock.json"))) return ["npm", "ci"];
+  if ((0, import_fs77.existsSync)(import_path86.default.join(root, "yarn.lock"))) return ["yarn", "install", "--frozen-lockfile"];
+  return void 0;
+}
+async function removeCheckout(workspace, checkoutPath) {
+  await runSafeProcess({
+    executable: "git",
+    argv: ["worktree", "remove", "--force", checkoutPath],
+    cwd: workspace.rootDir,
+    timeoutMs: 3e5,
+    maxStdoutBytes: 16 * 1024,
+    maxStderrBytes: 16 * 1024
+  });
+}
+async function runGapRepairs(deps, options) {
+  const policy = deps.config.orchestration.jobs.objectives;
+  const commands = deps.config.verification.commands;
+  const ledger = readClosureLedger(deps.workspace, options.jobId);
+  const result = { repaired: [], failed: [] };
+  for (const item of options.items) {
+    if (options.signal?.aborted === true) {
+      result.failed.push({ gapId: item.gapId, reason: "the run was cancelled" });
+      break;
+    }
+    const entry2 = ledger?.entries.find((candidate) => candidate.itemId === item.itemId);
+    const failureContext = entry2?.evidence.filter((ref) => !ref.passed).slice(-2).map((ref) => `- ${ref.kind} ${ref.ref}: ${(ref.detail ?? "failed").slice(0, 600)}`).join("\n");
+    const fail = (reason) => {
+      options.emit?.(`gap ${item.gapId} (${item.itemId}): ${reason}`);
+      result.failed.push({ gapId: item.gapId, reason });
+      recordGapEvent(deps, options.jobId, item, false, reason);
+    };
+    const worktree = await createWorkerWorktree({
+      workspace: deps.workspace,
+      jobId: options.jobId,
+      workUnitId: `gap-${item.gapId}`.slice(0, 40),
+      attempt: 1
+    });
+    try {
+      const packet = [
+        "You are repairing ONE sealed contract item of an otherwise finished product.",
+        "",
+        `Sealed item ${item.itemId} (${item.gapKind}):`,
+        item.objective,
+        "",
+        ...failureContext !== void 0 && failureContext.length > 0 ? ["The failing evidence on record:", failureContext, ""] : [],
+        "Make the minimal change that makes the sealed statement demonstrably true.",
+        "The FULL trusted verification suite must pass afterwards; do not weaken or skip tests.",
+        "Do not touch .kiro/ or .specbridge/. Do not run git commands that rewrite history, push, or merge."
+      ].join("\n");
+      options.emit?.(`gap ${item.gapId} (${item.itemId}): repair builder started`);
+      const built = await runLargeObjectiveRole({
+        workspace: deps.workspace,
+        config: deps.config,
+        runnerProfile: deps.config.defaultRunner,
+        role: "BUILDER",
+        packet,
+        cwd: worktree.dir,
+        scratchDir: autonomyPath(deps.workspace, "closure", options.jobId, "scratch", item.gapId),
+        timeoutMs: policy.builderTimeoutMs,
+        ...options.signal !== void 0 ? { signal: options.signal } : {}
+      });
+      if (!built.ok) {
+        fail(`repair builder unavailable \u2014 ${built.kind}: ${built.problem.slice(0, 300)}`);
+        continue;
+      }
+      if (built.output.outcome !== "CANDIDATE_COMPLETE") {
+        fail(`repair builder outcome ${built.output.outcome}: ${(built.output.summary ?? "").slice(0, 300)}`);
+        continue;
+      }
+      const collected = await collectWorktreeChanges(worktree, { protectedPaths: [] });
+      if (collected.protectedViolations.length > 0) {
+        fail(`repair touched protected paths: ${collected.protectedViolations.slice(0, 5).join(", ")}`);
+        continue;
+      }
+      if (collected.changedFiles.length === 0) {
+        fail("the repair changed nothing; there is nothing to verify");
+        continue;
+      }
+      const verification = await runWorktreeVerification(worktree, [...commands], options.signal);
+      if (!verification.passed) {
+        fail(`the trusted suite failed in the repair worktree: ${verification.requiredFailed.join(", ").slice(0, 200)}`);
+        continue;
+      }
+      const patchFile = import_path86.default.join(
+        autonomyPath(deps.workspace, "closure", options.jobId, "scratch", item.gapId),
+        "repair.patch"
+      );
+      (0, import_fs77.mkdirSync)(import_path86.default.dirname(patchFile), { recursive: true });
+      (0, import_fs77.writeFileSync)(patchFile, collected.patch, "utf8");
+      const applied = await runSafeProcess({
+        executable: "git",
+        argv: ["apply", "--3way", patchFile],
+        cwd: deps.workspace.rootDir,
+        timeoutMs: 3e5,
+        maxStdoutBytes: 64 * 1024,
+        maxStderrBytes: 64 * 1024
+      });
+      if (applied.status !== "ok") {
+        fail(`the verified repair no longer applies to the canonical tree: ${applied.stderr.split("\n")[0] ?? applied.status}`);
+        continue;
+      }
+      registerClosureEvidence(deps, {
+        jobId: options.jobId,
+        itemIds: [item.itemId],
+        kind: "TRUSTED_VERIFICATION",
+        ref: `gap:${item.gapId}`,
+        passed: true,
+        detail: `Gap repair (${item.gapKind}) verified by the full trusted suite in an isolated worktree.`
+      });
+      advanceClosurePhase(deps, {
+        jobId: options.jobId,
+        phase: "GAP_IMPLEMENTATION",
+        releaseQualificationPassed: false,
+        reproducibilityPassed: false
+      });
+      result.repaired.push(item.gapId);
+      options.emit?.(`gap ${item.gapId} (${item.itemId}): repaired, verified, and integrated`);
+      recordGapEvent(deps, options.jobId, item, true, `${collected.changedFiles.length} file(s) changed`);
+    } finally {
+      await removeWorkerWorktree(deps.workspace, options.jobId, worktree);
+    }
+  }
+  return result;
+}
+function recordGapEvent(deps, jobId, item, ok2, detail) {
+  try {
+    recordJobEvent(jobDepsOf(deps), jobId, "gap_repair_completed", {
+      gapId: item.gapId,
+      itemId: item.itemId,
+      gapKind: item.gapKind,
+      ok: ok2,
+      detail: detail.slice(0, 300)
+    });
+  } catch {
+  }
+}
 var TELEMETRY_SCHEMA_VERSION = "1.0.0";
 var shortText112 = external_exports.string().max(200);
 var text11 = external_exports.string().max(4e3);
@@ -100477,7 +102307,7 @@ async function runUnattendedMission(deps, options) {
     requiresBrowser: surfaces.requiresBrowser
   });
   assertOvernightReady(report);
-  const emit2 = (kind, message2) => options.onEvent?.({ kind, message: message2 });
+  const emit22 = (kind, message2) => options.onEvent?.({ kind, message: message2 });
   if (readJobSeal(deps.workspace, options.jobId) === void 0) {
     bindSealToJob(deps, options.jobId, seal.sealId);
     recordJobEvent(jobDepsOf(deps), options.jobId, "autonomy_seal_bound", {
@@ -100490,12 +102320,12 @@ async function runUnattendedMission(deps, options) {
   }
   if (readClosureLedger(deps.workspace, options.jobId) === void 0) {
     const ledger = buildClosureLedger(deps, { jobId: options.jobId, seal });
-    emit2("closure", `closure ledger built with ${ledger.entries.length} sealed item(s)`);
+    emit22("closure", `closure ledger built with ${ledger.entries.length} sealed item(s)`);
   }
   const supervisedDeps = {
     ...deps,
     ...shouldDelegateAuthority(policy) ? { authorityResolver: createAuthorityResolver({ workspace: deps.workspace, policy }) } : {},
-    completionGate: createClosureCompletionGate(deps.workspace)
+    completionGate: createClosureCompletionGate(deps.workspace, policy.closure)
   };
   const host = typeof options.host === "function" ? options.host(supervisedDeps) : options.host;
   const sessionStartedAt = nowIso4(deps);
@@ -100518,19 +102348,28 @@ async function runUnattendedMission(deps, options) {
       ...options.maxSupervisionCycles !== void 0 ? { maxCycles: options.maxSupervisionCycles } : {},
       ...options.ownerId !== void 0 ? { ownerId: `${options.ownerId}-${cycles}` } : {},
       sessionStartedAt,
-      onEvent: (event) => emit2(event.kind, event.message)
+      onEvent: (event) => emit22(event.kind, event.message)
     });
     const resolution = await resolveSupervisionStop(supervisedDeps, {
       jobId: options.jobId,
       stop: supervision.stop,
-      emit: emit2
+      emit: emit22
     });
     if (resolution.recovery !== void 0) recoveries.push(resolution.recovery);
     if (resolution.stop !== void 0) {
       stop = resolution.stop;
       break;
     }
-    const outcome = runClosureCycle(supervisedDeps, { jobId: options.jobId, missionId: options.missionId, emit: emit2 });
+    const outcome = await runClosureCycle(supervisedDeps, {
+      jobId: options.jobId,
+      missionId: options.missionId,
+      emit: emit22,
+      ...options.signal !== void 0 ? { signal: options.signal } : {},
+      ...options.sleep !== void 0 ? { sleep: options.sleep } : {},
+      ...options.environmentRuntime !== void 0 ? { environmentRuntime: options.environmentRuntime } : {},
+      ...options.probeExecutor !== void 0 ? { probeExecutor: options.probeExecutor } : {},
+      ...options.browserDriver !== void 0 ? { browserDriver: options.browserDriver } : {}
+    });
     audits.push(outcome.audit);
     if (outcome.stop !== void 0) {
       stop = outcome.stop;
@@ -100633,7 +102472,7 @@ function applyRecovery(deps, input) {
   }
   return classification;
 }
-function runClosureCycle(deps, input) {
+async function runClosureCycle(deps, input) {
   const job = requireJobState(deps.workspace, input.jobId);
   const graph = safeGraph(deps, job);
   const completedNodeIds = graph.filter((node) => node.status === "COMPLETED").map((node) => node.nodeId);
@@ -100670,28 +102509,60 @@ function runClosureCycle(deps, input) {
           }
         };
       }
+      const repairs = await runGapRepairs(deps, {
+        jobId: input.jobId,
+        items: generated,
+        ...input.signal !== void 0 ? { signal: input.signal } : {},
+        emit: (message2) => input.emit("closure", message2)
+      });
+      input.emit(
+        "closure",
+        `gap repairs: ${repairs.repaired.length} integrated, ${repairs.failed.length} failed`
+      );
       clearOperationalStateIfNeeded(deps, input.jobId);
       return { audit };
     }
-    case "RUN_SYSTEM_SCENARIOS":
+    case "RUN_SYSTEM_SCENARIOS": {
       enterQualifying(jobDepsOf(deps), input.jobId, {
         phase: "SYSTEM_SCENARIO_QUALIFICATION",
         detail: audit.rationale
       });
-      advanceClosurePhase(deps, {
+      const scenarios = await runSystemScenarioPhase(deps, {
         jobId: input.jobId,
-        phase: "SYSTEM_SCENARIO_QUALIFICATION",
-        systemCycle: true
+        ...input.environmentRuntime !== void 0 ? { runtime: input.environmentRuntime } : {},
+        ...input.probeExecutor !== void 0 ? { probeExecutor: input.probeExecutor } : {},
+        ...input.browserDriver !== void 0 ? { browserDriver: input.browserDriver } : {},
+        ...input.signal !== void 0 ? { signal: input.signal } : {},
+        ...input.sleep !== void 0 ? { sleep: input.sleep } : {},
+        emit: (message2) => input.emit("closure", message2)
       });
+      input.emit(
+        "closure",
+        `system scenarios: ${scenarios.passed}/${scenarios.executed} passed` + (scenarios.environmentUnavailable > 0 ? `, ${scenarios.environmentUnavailable} environment-unavailable` : "") + (scenarios.uncovered.length > 0 ? `, ${scenarios.uncovered.length} item(s) uncovered` : "")
+      );
+      clearOperationalStateIfNeeded(deps, input.jobId);
       return { audit };
-    case "RUN_RELEASE_QUALIFICATION":
+    }
+    case "RUN_RELEASE_QUALIFICATION": {
       enterQualifying(jobDepsOf(deps), input.jobId, { phase: "RELEASE_QUALIFICATION" });
-      advanceClosurePhase(deps, { jobId: input.jobId, phase: "RELEASE_QUALIFICATION" });
+      await runReleaseQualificationPhase(deps, {
+        jobId: input.jobId,
+        ...input.signal !== void 0 ? { signal: input.signal } : {},
+        emit: (message2) => input.emit("closure", message2)
+      });
+      clearOperationalStateIfNeeded(deps, input.jobId);
       return { audit };
-    case "RUN_REPRODUCIBILITY":
+    }
+    case "RUN_REPRODUCIBILITY": {
       enterQualifying(jobDepsOf(deps), input.jobId, { phase: "REPRODUCIBILITY" });
-      advanceClosurePhase(deps, { jobId: input.jobId, phase: "REPRODUCIBILITY" });
+      await runReproducibilityPhase(deps, {
+        jobId: input.jobId,
+        ...input.signal !== void 0 ? { signal: input.signal } : {},
+        emit: (message2) => input.emit("closure", message2)
+      });
+      clearOperationalStateIfNeeded(deps, input.jobId);
       return { audit };
+    }
     case "CONTINUE_IMPLEMENTATION":
     default:
       clearOperationalStateIfNeeded(deps, input.jobId);
@@ -100924,12 +102795,12 @@ function listCertificationRuns(workspace) {
 }
 
 // ../../packages/intake/dist/index.js
-var import_fs77 = require("fs");
-var import_path85 = __toESM(require("path"), 1);
-var import_fs78 = require("fs");
-var import_path86 = __toESM(require("path"), 1);
-var import_fs79 = require("fs");
-var import_path87 = __toESM(require("path"), 1);
+var import_fs80 = require("fs");
+var import_path89 = __toESM(require("path"), 1);
+var import_fs81 = require("fs");
+var import_path90 = __toESM(require("path"), 1);
+var import_fs82 = require("fs");
+var import_path91 = __toESM(require("path"), 1);
 var INTAKE_STATUSES = [
   /** The source specification is ingested; discovery has not run. */
   "INGESTED",
@@ -101652,41 +103523,41 @@ function assertIntakeId(id) {
 function intakeRootDir(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path83.default.join(workspace.rootDir, ".specbridge", INTAKE_DIR_NAME)
+    import_path87.default.join(workspace.rootDir, ".specbridge", INTAKE_DIR_NAME)
   );
 }
 function intakeDir(workspace, intakeId) {
   assertIntakeId(intakeId);
-  return assertInsideWorkspace(workspace.rootDir, import_path83.default.join(intakeRootDir(workspace), intakeId));
+  return assertInsideWorkspace(workspace.rootDir, import_path87.default.join(intakeRootDir(workspace), intakeId));
 }
 function intakePath(workspace, intakeId, ...segments) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path83.default.join(intakeDir(workspace, intakeId), ...segments)
+    import_path87.default.join(intakeDir(workspace, intakeId), ...segments)
   );
 }
 function writeJson(file, value) {
-  (0, import_fs75.mkdirSync)(import_path83.default.dirname(file), { recursive: true });
+  (0, import_fs78.mkdirSync)(import_path87.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(value, null, 2)}
 `);
 }
 function readJson2(file, parse3) {
-  if (!(0, import_fs75.existsSync)(file)) return void 0;
+  if (!(0, import_fs78.existsSync)(file)) return void 0;
   try {
-    return parse3(JSON.parse((0, import_fs75.readFileSync)(file, "utf8")));
+    return parse3(JSON.parse((0, import_fs78.readFileSync)(file, "utf8")));
   } catch {
     return void 0;
   }
 }
 function appendJsonl3(file, value) {
-  (0, import_fs75.mkdirSync)(import_path83.default.dirname(file), { recursive: true });
-  (0, import_fs75.appendFileSync)(file, `${JSON.stringify(value)}
+  (0, import_fs78.mkdirSync)(import_path87.default.dirname(file), { recursive: true });
+  (0, import_fs78.appendFileSync)(file, `${JSON.stringify(value)}
 `, "utf8");
 }
 function readFolded(file, key, parse3) {
-  if (!(0, import_fs75.existsSync)(file)) return [];
+  if (!(0, import_fs78.existsSync)(file)) return [];
   const folded = /* @__PURE__ */ new Map();
-  for (const line of (0, import_fs75.readFileSync)(file, "utf8").split("\n")) {
+  for (const line of (0, import_fs78.readFileSync)(file, "utf8").split("\n")) {
     if (line.trim().length === 0) continue;
     try {
       const value = parse3(JSON.parse(line));
@@ -101719,16 +103590,16 @@ function writeIntakeState(workspace, state) {
 }
 function listIntakes(workspace) {
   const root = intakeRootDir(workspace);
-  if (!(0, import_fs75.existsSync)(root)) return { intakes: [], diagnostics: [] };
+  if (!(0, import_fs78.existsSync)(root)) return { intakes: [], diagnostics: [] };
   const intakes = [];
   const diagnostics = [];
-  for (const entry2 of (0, import_fs75.readdirSync)(root, { withFileTypes: true })) {
+  for (const entry2 of (0, import_fs78.readdirSync)(root, { withFileTypes: true })) {
     if (!entry2.isDirectory()) continue;
     if (!ID_PATTERN10.test(entry2.name)) continue;
-    const file = import_path83.default.join(root, entry2.name, "intake.json");
-    if (!(0, import_fs75.existsSync)(file)) continue;
+    const file = import_path87.default.join(root, entry2.name, "intake.json");
+    if (!(0, import_fs78.existsSync)(file)) continue;
     try {
-      intakes.push(specIntakeStateSchema.parse(JSON.parse((0, import_fs75.readFileSync)(file, "utf8"))));
+      intakes.push(specIntakeStateSchema.parse(JSON.parse((0, import_fs78.readFileSync)(file, "utf8"))));
     } catch (cause) {
       diagnostics.push({
         intakeId: entry2.name,
@@ -101758,8 +103629,8 @@ function sourceFile(workspace, intakeId, contentHash) {
 }
 function storeSourceText(workspace, intakeId, contentHash, content) {
   const file = sourceFile(workspace, intakeId, contentHash);
-  if (!(0, import_fs75.existsSync)(file)) {
-    (0, import_fs75.mkdirSync)(import_path83.default.dirname(file), { recursive: true });
+  if (!(0, import_fs78.existsSync)(file)) {
+    (0, import_fs78.mkdirSync)(import_path87.default.dirname(file), { recursive: true });
     writeFileAtomic(file, content);
   }
   return file;
@@ -101844,7 +103715,7 @@ function approvalFile2(workspace, intakeId) {
 function writeApproval(workspace, approval) {
   const validated = intakeApprovalSchema.parse(approval);
   const file = approvalFile2(workspace, validated.intakeId);
-  if ((0, import_fs75.existsSync)(file)) {
+  if ((0, import_fs78.existsSync)(file)) {
     throw new IntakeError(
       "SBI017",
       `Spec intake "${validated.intakeId}" is already approved; an approval is immutable.`,
@@ -101903,7 +103774,7 @@ function appendIntakeEvent(workspace, intakeId, event) {
 function baselineFile(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path83.default.join(intakeRootDir(workspace), "baseline.json")
+    import_path87.default.join(intakeRootDir(workspace), "baseline.json")
   );
 }
 function readProductBaseline(workspace) {
@@ -102041,7 +103912,7 @@ var STOPWORDS = /* @__PURE__ */ new Set([
   "you",
   "your"
 ]);
-function tokenize2(value) {
+function tokenize3(value) {
   const out = [];
   for (const raw of value.toLowerCase().split(/[^a-z0-9_-]+/)) {
     if (raw.length < 3) continue;
@@ -102057,7 +103928,7 @@ function stem(word) {
   return word;
 }
 function tokenSet(value) {
-  return new Set(tokenize2(value));
+  return new Set(tokenize3(value));
 }
 function containment(needle, haystack) {
   if (needle.size === 0) return 0;
@@ -102518,7 +104389,7 @@ var BUILD_MARKERS = [
 ];
 function detectBuildSystem(rootDir) {
   for (const marker of BUILD_MARKERS) {
-    if ((0, import_fs76.existsSync)(import_path84.default.join(rootDir, marker.file))) return marker.system;
+    if ((0, import_fs79.existsSync)(import_path88.default.join(rootDir, marker.file))) return marker.system;
   }
   return null;
 }
@@ -102555,33 +104426,33 @@ var PUBLIC_INTERFACE_PATTERNS = [
 var TEST_DIR_PATTERN = /^(tests?|spec|specs|__tests__|it|integration-tests?|e2e)$/i;
 function readGitHead(rootDir) {
   try {
-    const dotGit = import_path84.default.join(rootDir, ".git");
-    if (!(0, import_fs76.existsSync)(dotGit)) return null;
+    const dotGit = import_path88.default.join(rootDir, ".git");
+    if (!(0, import_fs79.existsSync)(dotGit)) return null;
     let gitDir = dotGit;
-    if ((0, import_fs76.statSync)(dotGit).isFile()) {
-      const pointer = (0, import_fs76.readFileSync)(dotGit, "utf8").trim();
+    if ((0, import_fs79.statSync)(dotGit).isFile()) {
+      const pointer = (0, import_fs79.readFileSync)(dotGit, "utf8").trim();
       const match = /^gitdir:\s*(.+)$/.exec(pointer);
       if (match === null) return null;
       const target = match[1] ?? "";
-      gitDir = import_path84.default.isAbsolute(target) ? target : import_path84.default.resolve(rootDir, target);
+      gitDir = import_path88.default.isAbsolute(target) ? target : import_path88.default.resolve(rootDir, target);
     }
-    const headFile = import_path84.default.join(gitDir, "HEAD");
-    if (!(0, import_fs76.existsSync)(headFile)) return null;
-    const head = (0, import_fs76.readFileSync)(headFile, "utf8").trim();
+    const headFile = import_path88.default.join(gitDir, "HEAD");
+    if (!(0, import_fs79.existsSync)(headFile)) return null;
+    const head = (0, import_fs79.readFileSync)(headFile, "utf8").trim();
     if (/^[0-9a-f]{40}$/i.test(head)) return head.toLowerCase();
     const refMatch = /^ref:\s*(.+)$/.exec(head);
     if (refMatch === null) return null;
     const ref = (refMatch[1] ?? "").trim();
     for (const dir of refDirsFor(gitDir)) {
-      const refFile = import_path84.default.join(dir, ...ref.split("/"));
-      if (!(0, import_fs76.existsSync)(refFile)) continue;
-      const sha = (0, import_fs76.readFileSync)(refFile, "utf8").trim();
+      const refFile = import_path88.default.join(dir, ...ref.split("/"));
+      if (!(0, import_fs79.existsSync)(refFile)) continue;
+      const sha = (0, import_fs79.readFileSync)(refFile, "utf8").trim();
       if (/^[0-9a-f]{40}$/i.test(sha)) return sha.toLowerCase();
     }
     for (const dir of refDirsFor(gitDir)) {
-      const packed = import_path84.default.join(dir, "packed-refs");
-      if (!(0, import_fs76.existsSync)(packed)) continue;
-      for (const line of (0, import_fs76.readFileSync)(packed, "utf8").split("\n")) {
+      const packed = import_path88.default.join(dir, "packed-refs");
+      if (!(0, import_fs79.existsSync)(packed)) continue;
+      for (const line of (0, import_fs79.readFileSync)(packed, "utf8").split("\n")) {
         const entry2 = /^([0-9a-f]{40})\s+(.+)$/.exec(line.trim());
         if (entry2 !== null && entry2[2] === ref) return (entry2[1] ?? "").toLowerCase();
       }
@@ -102593,12 +104464,12 @@ function readGitHead(rootDir) {
 }
 function refDirsFor(gitDir) {
   const dirs = [gitDir];
-  const commonFile = import_path84.default.join(gitDir, "commondir");
-  if ((0, import_fs76.existsSync)(commonFile)) {
+  const commonFile = import_path88.default.join(gitDir, "commondir");
+  if ((0, import_fs79.existsSync)(commonFile)) {
     try {
-      const target = (0, import_fs76.readFileSync)(commonFile, "utf8").trim();
+      const target = (0, import_fs79.readFileSync)(commonFile, "utf8").trim();
       if (target.length > 0) {
-        dirs.push(import_path84.default.isAbsolute(target) ? target : import_path84.default.resolve(gitDir, target));
+        dirs.push(import_path88.default.isAbsolute(target) ? target : import_path88.default.resolve(gitDir, target));
       }
     } catch {
     }
@@ -102650,7 +104521,7 @@ function groundInRepository(deps, request) {
       summary: `existing Kiro spec with ${folder.files.length} document(s)`,
       authoritative: false,
       topics: [],
-      path: import_path84.default.posix.join(".kiro", "specs", folder.name)
+      path: import_path88.default.posix.join(".kiro", "specs", folder.name)
     });
   }
   for (const steering of safeSteering(workspace, notes)) {
@@ -102661,7 +104532,7 @@ function groundInRepository(deps, request) {
       summary: `steering document (${steering.inclusion})`,
       authoritative: false,
       topics: [],
-      path: import_path84.default.posix.join(".kiro", "steering", steering.fileName)
+      path: import_path88.default.posix.join(".kiro", "steering", steering.fileName)
     });
   }
   const buildSystem = detectBuildSystem(workspace.rootDir);
@@ -102705,7 +104576,7 @@ function groundInRepository(deps, request) {
     });
   }
   for (const container of modules.slice(0, 40)) {
-    const dir = import_path84.default.join(workspace.rootDir, container);
+    const dir = import_path88.default.join(workspace.rootDir, container);
     for (const entry2 of safeReaddir(dir, notes)) {
       if (!entry2.isDirectory()) continue;
       if (MODULE_DENYLIST.has(entry2.name) || entry2.name.startsWith(".")) continue;
@@ -102857,7 +104728,7 @@ function safeSteering(workspace, notes) {
 }
 function safeReaddir(dir, notes) {
   try {
-    return (0, import_fs76.readdirSync)(dir, { withFileTypes: true });
+    return (0, import_fs79.readdirSync)(dir, { withFileTypes: true });
   } catch (cause) {
     notes.push(`Directory ${dir} could not be listed: ${message(cause)}.`);
     return [];
@@ -103669,14 +105540,14 @@ function emptyProjectionMap() {
 function mapFile(workspace, intakeId) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path85.default.join(workspace.rootDir, ".specbridge", "intake", intakeId, "mission-map.json")
+    import_path89.default.join(workspace.rootDir, ".specbridge", "intake", intakeId, "mission-map.json")
   );
 }
 function readProjectionMap(workspace, intakeId) {
   const file = mapFile(workspace, intakeId);
-  if (!(0, import_fs77.existsSync)(file)) return emptyProjectionMap();
+  if (!(0, import_fs80.existsSync)(file)) return emptyProjectionMap();
   try {
-    const raw = JSON.parse((0, import_fs77.readFileSync)(file, "utf8"));
+    const raw = JSON.parse((0, import_fs80.readFileSync)(file, "utf8"));
     return {
       itemContracts: raw.itemContracts ?? {},
       itemDecisions: raw.itemDecisions ?? {},
@@ -103691,7 +105562,7 @@ function readProjectionMap(workspace, intakeId) {
 }
 function writeProjectionMap(workspace, intakeId, map) {
   const file = mapFile(workspace, intakeId);
-  (0, import_fs77.mkdirSync)(import_path85.default.dirname(file), { recursive: true });
+  (0, import_fs80.mkdirSync)(import_path89.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(map, null, 2)}
 `);
 }
@@ -104343,8 +106214,8 @@ function checkProjectionEquivalence(request) {
   let checked = 0;
   let traced = 0;
   for (const stage of stages) {
-    const file = import_path86.default.join(folder.dir, `${stage}.md`);
-    if (!(0, import_fs78.existsSync)(file)) {
+    const file = import_path90.default.join(folder.dir, `${stage}.md`);
+    if (!(0, import_fs81.existsSync)(file)) {
       divergences.push({
         kind: "UNRELATED_ARTIFACT",
         stage,
@@ -104352,7 +106223,7 @@ function checkProjectionEquivalence(request) {
       });
       continue;
     }
-    const content = (0, import_fs78.readFileSync)(file, "utf8");
+    const content = (0, import_fs81.readFileSync)(file, "utf8");
     artifactHashes[stage] = sha256Hex(content);
     for (const statement of extractNormativeStatements(stage, content)) {
       checked += 1;
@@ -104510,7 +106381,7 @@ function withStep(ledger, step2, patch) {
 async function runSealAndBuild(deps, options) {
   const approval = requireApproval(deps.workspace, options.intakeId);
   let ledger = readLifecycle(deps.workspace, options.intakeId) ?? emptyLedger(deps, approval);
-  const emit2 = (kind, message2) => options.onEvent?.({ kind, message: message2 });
+  const emit3 = (kind, message2) => options.onEvent?.({ kind, message: message2 });
   const autonomy = autonomyDepsOf(deps);
   let preflight;
   let unattended;
@@ -104531,7 +106402,7 @@ async function runSealAndBuild(deps, options) {
       updatedAt: nowIso5(deps)
     });
   }
-  const persist3 = (next) => {
+  const persist4 = (next) => {
     const written = writeLifecycle(deps.workspace, {
       ...next,
       updatedAt: nowIso5(deps)
@@ -104541,7 +106412,7 @@ async function runSealAndBuild(deps, options) {
   };
   const begin = (step2) => {
     const record5 = stepOf(ledger, step2);
-    persist3(
+    persist4(
       withStep(ledger, step2, {
         status: "RUNNING",
         startedAt: nowIso5(deps),
@@ -104553,10 +106424,10 @@ async function runSealAndBuild(deps, options) {
       type: "build_step_started",
       step: step2
     });
-    emit2("lifecycle", `${step2} started`);
+    emit3("lifecycle", `${step2} started`);
   };
   const settle = (step2, status, detail, result) => {
-    persist3(
+    persist4(
       withStep(ledger, step2, {
         status,
         settledAt: nowIso5(deps),
@@ -104571,10 +106442,10 @@ async function runSealAndBuild(deps, options) {
       status,
       ...result !== void 0 ? { result } : {}
     });
-    emit2("lifecycle", `${step2} ${status.toLowerCase()}${result !== void 0 ? `: ${result}` : ""}`);
+    emit3("lifecycle", `${step2} ${status.toLowerCase()}${result !== void 0 ? `: ${result}` : ""}`);
   };
   const fail = (step2, detail) => {
-    persist3(
+    persist4(
       withStep(ledger, step2, {
         status: "FAILED",
         settledAt: nowIso5(deps),
@@ -104587,7 +106458,7 @@ async function runSealAndBuild(deps, options) {
       step: step2,
       detail: detail.slice(0, 600)
     });
-    emit2("lifecycle", `${step2} FAILED: ${detail}`);
+    emit3("lifecycle", `${step2} FAILED: ${detail}`);
   };
   if (!isStepSettled(stepOf(ledger, "CONTRACT_READY").status)) {
     const mission = requireMissionState(deps.workspace, approval.missionId);
@@ -104600,7 +106471,7 @@ async function runSealAndBuild(deps, options) {
         settle("CONTRACT_READY", "COMPLETED", `the mission is ${ready.status}`);
       } catch (cause) {
         fail("CONTRACT_READY", messageOf(cause));
-        return finish3(deps, options, ledger, "FAILED", { preflight });
+        return finish4(deps, options, ledger, "FAILED", { preflight });
       }
     }
   }
@@ -104609,7 +106480,7 @@ async function runSealAndBuild(deps, options) {
     const mission = requireMissionState(deps.workspace, approval.missionId);
     if (mission.specName !== void 0) {
       specName = mission.specName;
-      ledger = persist3({ ...ledger, specName });
+      ledger = persist4({ ...ledger, specName });
       settle("SYNTHESIZE", "RECONCILED", `the mission already synthesized "${specName}"`, specName);
     } else {
       begin("SYNTHESIZE");
@@ -104619,7 +106490,7 @@ async function runSealAndBuild(deps, options) {
           specName: intake.specName ?? void 0
         });
         specName = result.specName;
-        ledger = persist3({ ...ledger, specName });
+        ledger = persist4({ ...ledger, specName });
         settle(
           "SYNTHESIZE",
           "COMPLETED",
@@ -104628,14 +106499,14 @@ async function runSealAndBuild(deps, options) {
         );
       } catch (cause) {
         fail("SYNTHESIZE", messageOf(cause));
-        return finish3(deps, options, ledger, "FAILED", { preflight });
+        return finish4(deps, options, ledger, "FAILED", { preflight });
       }
     }
   }
   specName = specName ?? requireMissionState(deps.workspace, approval.missionId).specName;
   if (specName === void 0) {
     fail("SYNTHESIZE", "no spec name is recorded after synthesis");
-    return finish3(deps, options, ledger, "FAILED", { preflight });
+    return finish4(deps, options, ledger, "FAILED", { preflight });
   }
   if (!isStepSettled(stepOf(ledger, "VALIDATE_PROJECTION").status)) {
     begin("VALIDATE_PROJECTION");
@@ -104652,7 +106523,7 @@ async function runSealAndBuild(deps, options) {
           "VALIDATE_PROJECTION",
           `${equivalence.divergences.length} divergence(s): ` + equivalence.divergences.slice(0, 3).map((divergence) => `${divergence.kind} \u2014 ${divergence.detail}`).join(" | ")
         );
-        return finish3(deps, options, ledger, "FAILED", { preflight });
+        return finish4(deps, options, ledger, "FAILED", { preflight });
       }
       appendIntakeEvent(deps.workspace, options.intakeId, {
         at: nowIso5(deps),
@@ -104667,7 +106538,7 @@ async function runSealAndBuild(deps, options) {
       );
     } catch (cause) {
       fail("VALIDATE_PROJECTION", messageOf(cause));
-      return finish3(deps, options, ledger, "FAILED", { preflight });
+      return finish4(deps, options, ledger, "FAILED", { preflight });
     }
   }
   if (!isStepSettled(stepOf(ledger, "DERIVE_APPROVALS").status)) {
@@ -104701,7 +106572,7 @@ async function runSealAndBuild(deps, options) {
         );
       } catch (cause) {
         fail("DERIVE_APPROVALS", messageOf(cause));
-        return finish3(deps, options, ledger, "FAILED", { preflight });
+        return finish4(deps, options, ledger, "FAILED", { preflight });
       }
     }
   }
@@ -104710,7 +106581,7 @@ async function runSealAndBuild(deps, options) {
     const existing = latestExecutableSeal(deps.workspace, approval.missionId);
     if (approval.sealId !== void 0 && existing?.sealId === approval.sealId) {
       sealId = existing.sealId;
-      ledger = persist3({ ...ledger, sealId });
+      ledger = persist4({ ...ledger, sealId });
       settle("SEAL", "RECONCILED", `seal ${sealId} is already authorized`, sealId);
     } else {
       begin("SEAL");
@@ -104727,7 +106598,7 @@ async function runSealAndBuild(deps, options) {
             "SEAL",
             `the seal is missing authority required for unattended execution: ${completeness.missing.join(", ")}`
           );
-          return finish3(deps, options, ledger, "FAILED", { preflight });
+          return finish4(deps, options, ledger, "FAILED", { preflight });
         }
         const seal = sealMission(autonomy, {
           sealId: draft.sealId,
@@ -104735,7 +106606,7 @@ async function runSealAndBuild(deps, options) {
         });
         sealId = seal.sealId;
         bindApprovalSeal(deps.workspace, options.intakeId, seal.sealId);
-        ledger = persist3({ ...ledger, sealId });
+        ledger = persist4({ ...ledger, sealId });
         appendIntakeEvent(deps.workspace, options.intakeId, {
           at: nowIso5(deps),
           type: "seal_created",
@@ -104752,7 +106623,7 @@ async function runSealAndBuild(deps, options) {
         );
       } catch (cause) {
         fail("SEAL", messageOf(cause));
-        return finish3(deps, options, ledger, "FAILED", { preflight });
+        return finish4(deps, options, ledger, "FAILED", { preflight });
       }
     }
   }
@@ -104760,7 +106631,7 @@ async function runSealAndBuild(deps, options) {
     begin("PREFLIGHT");
     try {
       preflight = await runPreflight2(deps, options, approval.missionId, sealId);
-      ledger = persist3({ ...ledger, preflightReportId: preflight.reportId });
+      ledger = persist4({ ...ledger, preflightReportId: preflight.reportId });
       appendIntakeEvent(deps.workspace, options.intakeId, {
         at: nowIso5(deps),
         type: "preflight_completed",
@@ -104770,7 +106641,7 @@ async function runSealAndBuild(deps, options) {
       settle("PREFLIGHT", "COMPLETED", preflight.verdict, preflight.reportId);
     } catch (cause) {
       fail("PREFLIGHT", messageOf(cause));
-      return finish3(deps, options, ledger, "FAILED", { preflight });
+      return finish4(deps, options, ledger, "FAILED", { preflight });
     }
   }
   if (!isStepSettled(stepOf(ledger, "RESOLVE_PREREQUISITES").status)) {
@@ -104778,7 +106649,7 @@ async function runSealAndBuild(deps, options) {
     try {
       if (preflight === void 0) {
         preflight = await runPreflight2(deps, options, approval.missionId, sealId);
-        ledger = persist3(
+        ledger = persist4(
           withStep({ ...ledger, preflightReportId: preflight.reportId }, "PREFLIGHT", {
             detail: preflight.verdict,
             result: preflight.reportId,
@@ -104794,7 +106665,7 @@ async function runSealAndBuild(deps, options) {
         });
       }
       const resolution = resolvePrerequisites(deps, options.intakeId, preflight);
-      ledger = persist3({
+      ledger = persist4({
         ...ledger,
         resolvedPrerequisites: resolution.resolved.slice(0, INTAKE_LIMITS.maxItems),
         humanPrerequisites: resolution.human.slice(0, INTAKE_LIMITS.maxItems)
@@ -104811,7 +106682,7 @@ async function runSealAndBuild(deps, options) {
           "RESOLVE_PREREQUISITES",
           `${resolution.human.length} prerequisite(s) only a person can satisfy: ` + resolution.human.slice(0, 4).join(" | ")
         );
-        return finish3(deps, options, ledger, "HUMAN_PREREQUISITE_REQUIRED", { preflight });
+        return finish4(deps, options, ledger, "HUMAN_PREREQUISITE_REQUIRED", { preflight });
       }
       settle(
         "RESOLVE_PREREQUISITES",
@@ -104820,7 +106691,7 @@ async function runSealAndBuild(deps, options) {
       );
     } catch (cause) {
       fail("RESOLVE_PREREQUISITES", messageOf(cause));
-      return finish3(deps, options, ledger, "FAILED", { preflight });
+      return finish4(deps, options, ledger, "FAILED", { preflight });
     }
   }
   let jobId = ledger.jobId;
@@ -104832,7 +106703,7 @@ async function runSealAndBuild(deps, options) {
       try {
         const job = createJob(deps, { specName, goal: approval.goal });
         jobId = job.jobId;
-        ledger = persist3({ ...ledger, jobId });
+        ledger = persist4({ ...ledger, jobId });
         const intake = requireIntakeState(deps.workspace, options.intakeId);
         writeIntakeState(deps.workspace, { ...intake, jobId, specName, sealId, status: "BUILDING" });
         appendIntakeEvent(deps.workspace, options.intakeId, {
@@ -104844,21 +106715,21 @@ async function runSealAndBuild(deps, options) {
         settle("CREATE_JOB", "COMPLETED", `job created for spec "${specName}"`, jobId);
       } catch (cause) {
         fail("CREATE_JOB", messageOf(cause));
-        return finish3(deps, options, ledger, "FAILED", { preflight });
+        return finish4(deps, options, ledger, "FAILED", { preflight });
       }
     }
   }
   jobId = jobId ?? stepOf(ledger, "CREATE_JOB").result;
   if (jobId === void 0) {
     fail("CREATE_JOB", "no job id is recorded after job creation");
-    return finish3(deps, options, ledger, "FAILED", { preflight });
+    return finish4(deps, options, ledger, "FAILED", { preflight });
   }
   {
     const retry = retryBlockedJob(deps, jobId, {
       reason: "the operator resumed the intake after fixing the cause"
     });
     if (retry.cleared) {
-      emit2("lifecycle", `job ${jobId} unblocked and returned to the schedulable path`);
+      emit3("lifecycle", `job ${jobId} unblocked and returned to the schedulable path`);
       appendIntakeEvent(deps.workspace, options.intakeId, {
         at: nowIso5(deps),
         type: "build_step_started",
@@ -104870,7 +106741,7 @@ async function runSealAndBuild(deps, options) {
   {
     const healed = selfHealOnResume(deps, jobId);
     for (const repair of healed.repairs) {
-      emit2("lifecycle", `self-heal: ${repair.code} \u2014 ${repair.detail.slice(0, 160)}`);
+      emit3("lifecycle", `self-heal: ${repair.code} \u2014 ${repair.detail.slice(0, 160)}`);
     }
     resetSupervisedJobForExplicitResume(autonomyDepsOf(deps), hostOf2(deps), jobId);
   }
@@ -104884,7 +106755,7 @@ async function runSealAndBuild(deps, options) {
       (ccrId) => ccrs.has(ccrId) && ccrs.get(ccrId) !== "NEEDS_HUMAN"
     );
     if (reconciled.closed.length > 0) {
-      emit2(
+      emit3(
         "lifecycle",
         `${reconciled.closed.length} clarification question(s) answered by a recorded change-request decision`
       );
@@ -104892,7 +106763,7 @@ async function runSealAndBuild(deps, options) {
   }
   if (options.launch === false) {
     settle("LAUNCH", "SKIPPED", "launch was not requested; the job is ready to run");
-    return finish3(deps, options, ledger, "LAUNCHED", { preflight });
+    return finish4(deps, options, ledger, "LAUNCHED", { preflight });
   }
   begin("LAUNCH");
   try {
@@ -104909,10 +106780,10 @@ async function runSealAndBuild(deps, options) {
     });
     settle("LAUNCH", "COMPLETED", `the unattended run stopped: ${unattended.stop.kind}`, jobId);
     const finalOutcome = unattended.stop.kind === "completed" ? "COMPLETED" : unattended.stop.kind === "needs-authority" ? "NEEDS_AUTHORITY" : "LAUNCHED";
-    return finish3(deps, options, ledger, finalOutcome, { preflight, unattended });
+    return finish4(deps, options, ledger, finalOutcome, { preflight, unattended });
   } catch (cause) {
     fail("LAUNCH", messageOf(cause));
-    return finish3(deps, options, ledger, "FAILED", { preflight });
+    return finish4(deps, options, ledger, "FAILED", { preflight });
   }
 }
 function validateProjection(deps, approval, specName) {
@@ -105027,7 +106898,7 @@ async function launchUnattended(deps, options, input) {
     ownerId: hostOf2(deps)
   });
 }
-function finish3(deps, options, ledger, outcome, extras) {
+function finish4(deps, options, ledger, outcome, extras) {
   const finished7 = writeLifecycle(deps.workspace, {
     ...ledger,
     outcome,
@@ -105095,7 +106966,7 @@ function startSpecIntake(deps, request) {
     receivedVia: hostOf2(deps),
     byteLength,
     contentHash,
-    storedAt: import_path87.default.posix.join(
+    storedAt: import_path91.default.posix.join(
       ".specbridge",
       "intake",
       intakeId,
@@ -105151,20 +107022,20 @@ function startSpecIntake(deps, request) {
   return { intake, source, mission };
 }
 function startSpecIntakeFromFile(deps, request) {
-  const resolved = import_path87.default.resolve(request.file);
-  if (!(0, import_fs79.existsSync)(resolved)) {
+  const resolved = import_path91.default.resolve(request.file);
+  if (!(0, import_fs82.existsSync)(resolved)) {
     throw new IntakeError("SBI007", `No specification file at ${request.file}.`, {
       remediation: ["Check the path, or pass the specification text with --text."]
     });
   }
-  const size = (0, import_fs79.statSync)(resolved).size;
+  const size = (0, import_fs82.statSync)(resolved).size;
   if (size > INTAKE_LIMITS.maxSourceBytes) {
     throw new IntakeError(
       "SBI006",
       `${request.file} is ${size} bytes, over the ${INTAKE_LIMITS.maxSourceBytes}-byte bound.`
     );
   }
-  const content = (0, import_fs79.readFileSync)(resolved, "utf8");
+  const content = (0, import_fs82.readFileSync)(resolved, "utf8");
   return startSpecIntake(deps, {
     ...request,
     kind: "file",
@@ -110373,10 +112244,10 @@ Examples:
 
 // ../../packages/mcp-server/dist/chunk-FD3VO6XP.js
 var import_buffer7 = require("buffer");
-var import_fs80 = require("fs");
-var import_path88 = __toESM(require("path"), 1);
+var import_fs83 = require("fs");
+var import_path92 = __toESM(require("path"), 1);
 var import_crypto30 = require("crypto");
-var import_path89 = __toESM(require("path"), 1);
+var import_path93 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/core.js
 var NEVER2 = Object.freeze({
@@ -110573,10 +112444,10 @@ function assignProp(target, prop, value) {
     configurable: true
   });
 }
-function getElementAtPath(obj, path88) {
-  if (!path88)
+function getElementAtPath(obj, path90) {
+  if (!path90)
     return obj;
-  return path88.reduce((acc, key) => acc?.[key], obj);
+  return path90.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -110896,11 +112767,11 @@ function aborted2(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path88, issues) {
+function prefixIssues(path90, issues) {
   return issues.map((iss) => {
     var _a;
     (_a = iss).path ?? (_a.path = []);
-    iss.path.unshift(path88);
+    iss.path.unshift(path90);
     return iss;
   });
 }
@@ -120704,12 +122575,12 @@ var EMPTY_COMPLETION_RESULT = {
 };
 
 // ../../packages/mcp-server/dist/chunk-FD3VO6XP.js
-var import_fs81 = require("fs");
-var import_fs82 = require("fs");
-var import_path90 = __toESM(require("path"), 1);
-var import_fs83 = require("fs");
+var import_fs84 = require("fs");
+var import_fs85 = require("fs");
+var import_path94 = __toESM(require("path"), 1);
+var import_fs86 = require("fs");
 var import_os3 = __toESM(require("os"), 1);
-var import_path91 = __toESM(require("path"), 1);
+var import_path95 = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 var import_node_process11 = __toESM(require("process"), 1);
@@ -121016,7 +122887,7 @@ function createLogger(options) {
 `));
   const clock = options.clock ?? (() => /* @__PURE__ */ new Date());
   const threshold = LEVEL_RANK[options.level];
-  const emit2 = (level, event, fields = {}) => {
+  const emit3 = (level, event, fields = {}) => {
     if (LEVEL_RANK[level] > threshold) return;
     const timestamp = clock().toISOString();
     if (options.json) {
@@ -121028,10 +122899,10 @@ function createLogger(options) {
   };
   return {
     level: options.level,
-    error: (event, fields) => emit2("error", event, fields),
-    warn: (event, fields) => emit2("warn", event, fields),
-    info: (event, fields) => emit2("info", event, fields),
-    debug: (event, fields) => emit2("debug", event, fields)
+    error: (event, fields) => emit3("error", event, fields),
+    warn: (event, fields) => emit3("warn", event, fields),
+    info: (event, fields) => emit3("info", event, fields),
+    debug: (event, fields) => emit3("debug", event, fields)
   };
 }
 function parseLogLevel(value) {
@@ -121168,10 +123039,10 @@ function validateProjectRoot(value, source, cwd) {
       remediation: ["Pass a plain filesystem path as --project-root."]
     };
   }
-  const resolved = import_path88.default.resolve(cwd, value);
+  const resolved = import_path92.default.resolve(cwd, value);
   let canonical;
   try {
-    canonical = (0, import_fs80.realpathSync)(resolved);
+    canonical = (0, import_fs83.realpathSync)(resolved);
   } catch {
     return {
       ok: false,
@@ -121184,7 +123055,7 @@ function validateProjectRoot(value, source, cwd) {
   }
   let stats;
   try {
-    stats = (0, import_fs80.statSync)(canonical);
+    stats = (0, import_fs83.statSync)(canonical);
   } catch {
     return {
       ok: false,
@@ -121441,8 +123312,8 @@ var paginationShape = external_exports.object({
   nextCursor: external_exports.string().optional()
 });
 function repoRelative2(workspace, target) {
-  const relative = import_path89.default.isAbsolute(target) ? import_path89.default.relative(workspace.rootDir, target) : target;
-  const posix = relative.split(import_path89.default.sep).join("/");
+  const relative = import_path93.default.isAbsolute(target) ? import_path93.default.relative(workspace.rootDir, target) : target;
+  const posix = relative.split(import_path93.default.sep).join("/");
   return posix === "" ? "." : posix;
 }
 function toDiagnosticView(workspace, diagnostic) {
@@ -121942,7 +123813,7 @@ function registerRunResources(server, context) {
         throw resourceNotFound(`Run "${runId}"`, "List runs with the run_list tool.");
       }
       const directory = runDir(workspace, record5.runId);
-      const artifactNames = (0, import_fs81.existsSync)(directory) ? (0, import_fs81.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
+      const artifactNames = (0, import_fs84.existsSync)(directory) ? (0, import_fs84.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
       return jsonContents(context, uri.href, buildRunDetail(workspace, record5, artifactNames));
     }
   );
@@ -123758,7 +125629,7 @@ function registerRunReadTool(server, context) {
         });
       }
       const directory = runDir(workspace, record5.runId);
-      const artifactNames = (0, import_fs82.existsSync)(directory) ? (0, import_fs82.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS2.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
+      const artifactNames = (0, import_fs85.existsSync)(directory) ? (0, import_fs85.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS2.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
       const detail = buildRunDetail(workspace, record5, artifactNames);
       const lines = [
         `Run ${detail.summary.runId} \u2014 ${detail.summary.runType} for spec "${detail.summary.specName}"${detail.summary.taskId !== void 0 ? `, task ${detail.summary.taskId}` : ""}.`,
@@ -124118,7 +125989,7 @@ function registerSpecRunVerificationTool(server, context) {
         durationMs: command.durationMs,
         timedOut: command.timedOut
       }));
-      const reportPath = result.artifactsDir !== void 0 ? import_path90.default.relative(workspace.rootDir, result.artifactsDir).split(import_path90.default.sep).join("/") : void 0;
+      const reportPath = result.artifactsDir !== void 0 ? import_path94.default.relative(workspace.rootDir, result.artifactsDir).split(import_path94.default.sep).join("/") : void 0;
       const commandLines = commands.map(
         (command) => `- ${command.name}: ${command.disposition}${command.disposition === "executed" ? command.passed ? " (passed)" : ` (FAILED, exit ${command.exitCode ?? "none"})` : ""}`
       );
@@ -124237,18 +126108,18 @@ var conformanceSummaryShape = external_exports.object({
   note: external_exports.string()
 });
 async function invocationFreeConformanceSummary(profile) {
-  const scratch = (0, import_fs83.mkdtempSync)(import_path91.default.join(import_os3.default.tmpdir(), "specbridge-mcp-conformance-"));
+  const scratch = (0, import_fs86.mkdtempSync)(import_path95.default.join(import_os3.default.tmpdir(), "specbridge-mcp-conformance-"));
   let result;
   try {
     result = await runRunnerConformance({
       profile,
       workspaceRoot: scratch,
-      runDir: import_path91.default.join(scratch, ".specbridge-conformance-runs"),
+      runDir: import_path95.default.join(scratch, ".specbridge-conformance-runs"),
       invocationsAllowed: false,
       timeoutMs: RUNNER_PROBE_TIMEOUT_MS
     });
   } finally {
-    (0, import_fs83.rmSync)(scratch, { recursive: true, force: true });
+    (0, import_fs86.rmSync)(scratch, { recursive: true, force: true });
   }
   return {
     passed: result.passed,
@@ -127435,8 +129306,8 @@ async function runMcpServe(argv2, io = {
 }
 
 // ../../packages/mcp-server/dist/index.js
-var import_fs84 = require("fs");
-var import_path92 = __toESM(require("path"), 1);
+var import_fs87 = require("fs");
+var import_path96 = __toESM(require("path"), 1);
 async function runMcpDoctor(options = {}) {
   const checks = [];
   const env = options.env ?? process.env;
@@ -127529,7 +129400,7 @@ async function runMcpDoctor(options = {}) {
   const pluginRoot = env["CLAUDE_PLUGIN_ROOT"];
   if (pluginRoot !== void 0 && pluginRoot.length > 0) {
     const missing = ["dist/mcp-server.cjs", "dist/cli.cjs"].filter(
-      (relative) => !(0, import_fs84.existsSync)(import_path92.default.join(pluginRoot, relative))
+      (relative) => !(0, import_fs87.existsSync)(import_path96.default.join(pluginRoot, relative))
     );
     checks.push(
       missing.length === 0 ? { name: "plugin-bundle", status: "ok", detail: `Bundled executables present under ${pluginRoot}` } : {
@@ -131423,6 +133294,12 @@ function registerOvernight(program2, runtime) {
         // resolver, and the driver must run under those.
         host: (runDeps) => createInProcessDriverHost({ ...runDeps, registry: context.registry }),
         ...options.maxCycles !== void 0 ? { maxCycles: Number(options.maxCycles) } : {},
+        // The production qualification surfaces. Both are honest about
+        // absence at run time: compose reports the daemon down as
+        // ENVIRONMENT_UNAVAILABLE, playwright reports itself missing and
+        // browser checks record SKIPPED_NO_RUNTIME.
+        environmentRuntime: createComposeRuntime({ cwd: context.workspace.rootDir }),
+        browserDriver: createPlaywrightDriver(),
         onEvent: (event) => {
           if (options.json !== true) runtime.out(dim2(`  ${event.kind}: ${event.message}`));
         }

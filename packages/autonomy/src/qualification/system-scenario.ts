@@ -74,8 +74,14 @@ export const systemScenarioSchema = z
     scenarioId: shortText,
     name: shortText,
     intent: text,
-    /** The environment this scenario needs. Required: that is the point. */
-    environmentPlanId: shortText,
+    /**
+     * The environment this scenario needs. A scenario that declares none
+     * runs against the workspace itself — an explicit, recorded claim that
+     * the product needs no external services to demonstrate this, not a
+     * shortcut around provisioning. Fault injection requires a plan, since
+     * a fault can only be scoped to a declared service.
+     */
+    environmentPlanId: shortText.optional(),
     steps: z.array(systemStepSchema).min(1).max(50),
     /** Browser scenarios to run once the system steps pass. */
     browserScenarioIds: z.array(shortText).max(20).default([]),
@@ -155,6 +161,12 @@ export function readSystemScenario(
   );
 }
 
+export function listSystemScenarios(workspace: WorkspaceInfo): SystemScenario[] {
+  return listJsonRecords(autonomyPath(workspace, 'system'), (raw) =>
+    systemScenarioSchema.parse(raw),
+  ).sort((a, b) => a.scenarioId.localeCompare(b.scenarioId));
+}
+
 export function listSystemScenarioResults(workspace: WorkspaceInfo): SystemScenarioResult[] {
   return listJsonRecords(autonomyPath(workspace, 'system', 'results'), (raw) =>
     systemScenarioResultSchema.parse(raw),
@@ -168,7 +180,8 @@ export function listSystemScenarioResults(workspace: WorkspaceInfo): SystemScena
 export interface RunSystemScenarioOptions {
   scenarioId: string;
   jobId?: string | undefined;
-  runtime: EnvironmentRuntime;
+  /** Required when the scenario declares an environment plan. */
+  runtime?: EnvironmentRuntime | undefined;
   probeExecutor?: ProbeExecutor | undefined;
   browserDriver?: BrowserDriver | undefined;
   /** Injected command runner (tests). Production shells out safely. */
@@ -208,16 +221,32 @@ export async function runSystemScenario(
     resultId,
   });
 
-  const instance = await provisionEnvironment(deps, {
-    planId: scenario.environmentPlanId,
-    ...(options.jobId !== undefined ? { jobId: options.jobId } : {}),
-    runtime: options.runtime,
-    ...(options.probeExecutor !== undefined ? { probeExecutor: options.probeExecutor } : {}),
-    ...(options.sleep !== undefined ? { sleep: options.sleep } : {}),
-    ...(options.signal !== undefined ? { signal: options.signal } : {}),
-  });
+  if (scenario.environmentPlanId !== undefined && options.runtime === undefined) {
+    return finish(deps, options, scenario, {
+      resultId,
+      startedAt,
+      status: 'ENVIRONMENT_UNAVAILABLE',
+      failureDetail:
+        `the scenario declares environment plan ${scenario.environmentPlanId} and no ` +
+        'environment runtime is available in this session; the product was never exercised',
+    });
+  }
 
-  if (instance.status !== 'READY') {
+  // A scenario without an environment plan runs against the workspace
+  // itself. A scenario WITH one gets nothing until the environment is READY.
+  const instance =
+    scenario.environmentPlanId === undefined || options.runtime === undefined
+      ? undefined
+      : await provisionEnvironment(deps, {
+          planId: scenario.environmentPlanId,
+          ...(options.jobId !== undefined ? { jobId: options.jobId } : {}),
+          runtime: options.runtime,
+          ...(options.probeExecutor !== undefined ? { probeExecutor: options.probeExecutor } : {}),
+          ...(options.sleep !== undefined ? { sleep: options.sleep } : {}),
+          ...(options.signal !== undefined ? { signal: options.signal } : {}),
+        });
+
+  if (instance !== undefined && instance.status !== 'READY') {
     return finish(deps, options, scenario, {
       resultId,
       startedAt,
@@ -260,8 +289,15 @@ export async function runSystemScenario(
     }
     let faultInjected: string | undefined;
     if (step.injectFault !== undefined) {
+      if (scenario.environmentPlanId === undefined || options.runtime === undefined) {
+        // A fault can only be scoped to a declared service. A scenario that
+        // asks for one without a plan is malformed, and running its steps
+        // anyway would record a pass for a scenario that never happened.
+        failureDetail = `step "${step.name}" declares a fault but the scenario declares no environment plan`;
+        break;
+      }
       faultInjected = await injectFault(deps, {
-        scenario,
+        environmentPlanId: scenario.environmentPlanId,
         runtime: options.runtime,
         fault: step.injectFault,
       });
@@ -313,13 +349,13 @@ export async function runSystemScenario(
     resultId,
     startedAt,
     status: failureDetail === undefined ? 'PASSED' : 'FAILED',
-    environmentInstanceId: instance.instanceId,
+    ...(instance !== undefined ? { environmentInstanceId: instance.instanceId } : {}),
     steps,
     browserResultIds,
     ...(failureDetail !== undefined ? { failureDetail } : {}),
   });
 
-  if (options.teardown !== false) {
+  if (options.teardown !== false && instance !== undefined && options.runtime !== undefined) {
     await teardownEnvironment(deps, {
       instanceId: instance.instanceId,
       runtime: options.runtime,
@@ -332,13 +368,13 @@ export async function runSystemScenario(
 async function injectFault(
   deps: AutonomyDeps,
   input: {
-    scenario: SystemScenario;
+    environmentPlanId: string;
     runtime: EnvironmentRuntime;
     fault: { kind: 'RESTART_SERVICE' | 'STOP_SERVICE'; serviceId: string };
   },
 ): Promise<string> {
   const plan = readJsonRecord(
-    autonomyPath(deps.workspace, 'environments', 'plans', `${input.scenario.environmentPlanId}.json`),
+    autonomyPath(deps.workspace, 'environments', 'plans', `${input.environmentPlanId}.json`),
     (raw) => raw as { services: { serviceId: string; name: string }[]; planId: string },
   );
   const service = plan?.services.find((entry) => entry.serviceId === input.fault.serviceId);

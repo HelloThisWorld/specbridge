@@ -437,6 +437,13 @@ export const closurePolicySchema = z
      * requirement then has to close on other evidence.
      */
     requireSystemScenarios: z.boolean().default(true),
+    /**
+     * Require the release qualification: the full trusted verification suite
+     * must pass against the INTEGRATED tree before completion. Per-unit
+     * verification proves each change in its own worktree; this proves the
+     * changes still hold together after all of them landed.
+     */
+    requireReleaseQualification: z.boolean().default(true),
     /** Run the reproducibility phase (clean build, fresh environment). */
     requireReproducibility: z.boolean().default(true),
     /** Ceiling for one reproducibility qualification. */
@@ -592,6 +599,7 @@ export function autonomyPolicyFingerprint(policy: AutonomyPolicy): string {
       enabled: policy.closure.enabled,
       maxGapClosureCycles: policy.closure.maxGapClosureCycles,
       requireSystemScenarios: policy.closure.requireSystemScenarios,
+      requireReleaseQualification: policy.closure.requireReleaseQualification,
       requireReproducibility: policy.closure.requireReproducibility,
     },
     controlPlaneRepair: {

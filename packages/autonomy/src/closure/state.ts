@@ -111,10 +111,22 @@ export const closureLedgerSchema = z
     entries: z.array(closureEntrySchema).max(1_000).default([]),
     /** Gap-closure cycles spent. Bounded by policy. */
     gapCycles: z.number().int().min(0).default(0),
-    /** System-scenario qualification cycles spent. */
+    /**
+     * System-scenario qualification cycles EXECUTED. Incremented only after
+     * scenarios actually ran — never by entering the phase. The distinction
+     * is the vNext.10.1 dogfood's defect 39: a counter bumped by a phase
+     * stamp let the oracle read "the scenarios ran" off a night in which
+     * nothing was ever executed.
+     */
     systemCycles: z.number().int().min(0).default(0),
     /** True once the reproducibility qualification passed. */
     reproducibilityPassed: z.boolean().default(false),
+    /** Reproducibility qualification attempts EXECUTED. Bounded by policy. */
+    reproducibilityCycles: z.number().int().min(0).default(0),
+    /** True once the release qualification passed against the integrated tree. */
+    releaseQualificationPassed: z.boolean().default(false),
+    /** Release qualification attempts EXECUTED. Bounded by policy. */
+    releaseQualificationCycles: z.number().int().min(0).default(0),
   })
   .passthrough();
 export type ClosureLedger = z.infer<typeof closureLedgerSchema>;

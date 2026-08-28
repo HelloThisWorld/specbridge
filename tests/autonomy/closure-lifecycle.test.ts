@@ -42,6 +42,7 @@ function sealedJob(fixture: ReturnType<typeof setupAutonomyFixture>): {
 function closeEverything(
   fixture: ReturnType<typeof setupAutonomyFixture>,
   jobId: string,
+  options: { scenarios?: boolean } = {},
 ): string[] {
   const ledger = readClosureLedger(fixture.workspace, jobId);
   const nodeIds: string[] = [];
@@ -61,6 +62,7 @@ function closeEverything(
       ref: `run-${index}`,
       passed: true,
     });
+    if (options.scenarios === false) continue;
     if (entry.requiresSystemScenario) {
       registerClosureEvidence(fixture.deps, {
         jobId,
@@ -83,17 +85,55 @@ function closeEverything(
   return nodeIds;
 }
 
+/** What the scenario EXECUTOR does when its scenarios pass: evidence + cycle. */
+function simulateExecutedScenarioCycle(
+  fixture: ReturnType<typeof setupAutonomyFixture>,
+  jobId: string,
+): void {
+  const ledger = readClosureLedger(fixture.workspace, jobId);
+  for (const [index, entry] of (ledger?.entries ?? []).entries()) {
+    if (entry.requiresSystemScenario) {
+      registerClosureEvidence(fixture.deps, {
+        jobId,
+        itemIds: [entry.itemId],
+        kind: 'SYSTEM_SCENARIO',
+        ref: `sr-${index}`,
+        passed: true,
+      });
+    }
+    if (entry.requiresBrowserScenario) {
+      registerClosureEvidence(fixture.deps, {
+        jobId,
+        itemIds: [entry.itemId],
+        kind: 'BROWSER_SCENARIO',
+        ref: `br-${index}`,
+        passed: true,
+      });
+    }
+  }
+  advanceClosurePhase(fixture.deps, {
+    jobId,
+    phase: 'SYSTEM_SCENARIO_QUALIFICATION',
+    systemCycle: true,
+  });
+}
+
 describe('closure lifecycle convergence', () => {
   it('runs the specified phase order and reaches COMPLETE', () => {
     const fixture = setupAutonomyFixture({ spec: true });
     const { jobId } = sealedJob(fixture);
-    const nodeIds = closeEverything(fixture, jobId);
+    // Scenario-owned items start WITHOUT scenario evidence: producing it is
+    // the scenario phase's job, and the sequence below only reaches COMPLETE
+    // through what each phase's executor actually records.
+    const nodeIds = closeEverything(fixture, jobId, { scenarios: false });
 
     const directives: string[] = [];
     const phases: string[] = [];
 
     // The loop the unattended runtime runs, written out so the sequence is
-    // visible rather than implied.
+    // visible rather than implied. Each RUN_* directive is answered with
+    // exactly the ledger writes its EXECUTOR performs on success — a phase
+    // that merely stamped would leave the oracle asking forever.
     for (let cycle = 0; cycle < 8; cycle += 1) {
       const { audit } = runClosureAudit(fixture.deps, {
         jobId,
@@ -105,21 +145,23 @@ describe('closure lifecycle convergence', () => {
       phases.push(audit.phase);
       if (audit.directive === 'COMPLETE') break;
       if (audit.directive === 'RUN_SYSTEM_SCENARIOS') {
-        advanceClosurePhase(fixture.deps, {
-          jobId,
-          phase: 'SYSTEM_SCENARIO_QUALIFICATION',
-          systemCycle: true,
-        });
+        simulateExecutedScenarioCycle(fixture, jobId);
         continue;
       }
       if (audit.directive === 'RUN_RELEASE_QUALIFICATION') {
-        advanceClosurePhase(fixture.deps, { jobId, phase: 'RELEASE_QUALIFICATION' });
+        advanceClosurePhase(fixture.deps, {
+          jobId,
+          phase: 'RELEASE_QUALIFICATION',
+          releaseQualificationCycle: true,
+          releaseQualificationPassed: true,
+        });
         continue;
       }
       if (audit.directive === 'RUN_REPRODUCIBILITY') {
         advanceClosurePhase(fixture.deps, {
           jobId,
           phase: 'FINAL_CONTRACT_AUDIT',
+          reproducibilityCycle: true,
           reproducibilityPassed: true,
         });
         continue;
@@ -134,7 +176,7 @@ describe('closure lifecycle convergence', () => {
       'COMPLETE',
     ]);
     expect(phases[phases.length - 1]).toBe('COMPLETE');
-    expect(() => assertMissionMayComplete(fixture.workspace, jobId)).not.toThrow();
+    expect(() => assertMissionMayComplete(fixture.deps, jobId)).not.toThrow();
   });
 
   it('refuses completion at every point before COMPLETE', () => {
@@ -142,7 +184,7 @@ describe('closure lifecycle convergence', () => {
     const { jobId } = sealedJob(fixture);
 
     // Nothing closed.
-    expect(() => assertMissionMayComplete(fixture.workspace, jobId)).toThrowError(/not closed/);
+    expect(() => assertMissionMayComplete(fixture.deps, jobId)).toThrowError(/not closed/);
 
     // Everything IMPLEMENTED but nothing verified.
     const ledger = readClosureLedger(fixture.workspace, jobId);
@@ -160,7 +202,7 @@ describe('closure lifecycle convergence', () => {
       implementationComplete: true,
       auditId: 'ca-implemented',
     });
-    expect(() => assertMissionMayComplete(fixture.workspace, jobId)).toThrowError(/not closed/);
+    expect(() => assertMissionMayComplete(fixture.deps, jobId)).toThrowError(/not closed/);
   });
 
   it('a single unclosed item blocks the whole mission', () => {
@@ -187,7 +229,7 @@ describe('closure lifecycle convergence', () => {
     });
     expect(audit.directive).toBe('GENERATE_GAP_WORK');
     expect(audit.unclosed.map((entry) => entry.itemId)).toEqual([first]);
-    expect(() => assertMissionMayComplete(fixture.workspace, jobId)).toThrowError(/1 sealed/);
+    expect(() => assertMissionMayComplete(fixture.deps, jobId)).toThrowError(/1 sealed/);
 
     const work = generateGapWork(fixture.deps, { jobId, audit });
     expect(work[0]?.gapKind).toBe('EVIDENCE_FAILED');

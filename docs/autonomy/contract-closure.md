@@ -140,6 +140,46 @@ would be writing product intent, which is the authority the seal reserves.
 The loop is bounded. Exhausting `maxGapClosureCycles` yields
 `BUDGET_EXHAUSTED` — an honest failure, never a completion.
 
+**Gap work is executed, not filed.** Each generated item gets one bounded
+BUILDER in an isolated worktree; its changes land only if the FULL trusted
+verification suite passes there and the patch applies cleanly to the
+canonical tree. A successful repair registers `TRUSTED_VERIFICATION` for the
+item — and resets `releaseQualificationPassed` and `reproducibilityPassed`,
+because those were claims about a tree that no longer exists. (The first
+dogfood generated gap work twelve times and nothing ever ran it; the files
+sat on disk while the audit loop regenerated them.)
+
+## Phases execute — counters count executions
+
+Defect 39 of the vNext.10.1 dogfood: the runtime answered
+`RUN_SYSTEM_SCENARIOS`, `RUN_RELEASE_QUALIFICATION`, and
+`RUN_REPRODUCIBILITY` by stamping the phase onto the ledger and moving on.
+The counters said the phases happened; nothing had ever run.
+`reproducibilityPassed: false` on a COMPLETED job was the tell.
+
+Now every `RUN_*` directive is answered by an EXECUTOR, and the oracle gates
+each transition on the executor's recorded outcome — never on the ladder
+having merely visited a phase:
+
+| Phase                  | Executor runs                                            | The oracle reads              |
+| ---------------------- | -------------------------------------------------------- | ----------------------------- |
+| System scenarios       | saved + synthesized scenarios via `runSystemScenario`     | per-item scenario evidence    |
+| Release qualification  | the full trusted suite against the INTEGRATED tree        | `releaseQualificationPassed`  |
+| Reproducibility        | the suite in a clean detached-worktree checkout           | `reproducibilityPassed`       |
+
+Scenario synthesis is deterministic and composes only things that already
+carry trust: steps are the workspace's trusted verification commands, the
+environment plan is attached only when the workspace has exactly one, and
+browser scenarios only if someone authored them. An item that requires
+evidence no executor can produce here stays open — and the executed-cycle
+bounds (`maxSystemQualificationCycles`) convert that into an honest
+`BUDGET_EXHAUSTED` naming the item, never a quiet pass.
+
+A scenario that ran and FAILED routes to the repair loop first — re-running
+the identical scenario against unrepaired code can only fail identically.
+Once a repair lands after the failure, the item routes back to the scenario
+phase, because only the scenario can close it.
+
 ## The completion gate
 
 ```ts
@@ -150,9 +190,14 @@ It throws rather than returning a boolean because the caller is the code path
 that would otherwise write `COMPLETED`. A boolean is a value somebody can
 forget to check; an exception is not.
 
-There is no argument to this function, no override, and no flag. The ledger
-is the input, and a ledger entry only reaches a closing status through
-`assessItemClosure`, which only reads evidence.
+There is no override and no flag. The ledger is the input, and a ledger entry
+only reaches a closing status through `assessItemClosure`, which only reads
+evidence. The gate also enforces the whole-tree claims the ladder requires —
+`releaseQualificationPassed` and (when the policy requires it)
+`reproducibilityPassed` — so completion can no longer outrun phases the
+oracle still wants. What the ladder requires and what the gate enforces are
+the same facts, read from the same ledger fields, set only by the phase
+executors.
 
 ## Audits are append-only
 
@@ -205,6 +250,7 @@ everywhere else.
     "maxSystemQualificationCycles": 4,
     "maxGapWorkPerCycle": 12,
     "requireSystemScenarios": true,
+    "requireReleaseQualification": true,
     "requireReproducibility": true,
     "reproducibilityTimeoutMs": 3600000
   }

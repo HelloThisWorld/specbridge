@@ -1,4 +1,4 @@
-import type { WorkspaceInfo } from '@specbridge/core';
+import type { ClosurePolicy, WorkspaceInfo } from '@specbridge/core';
 import type { CompletionAssessment, CompletionGate } from '@specbridge/orchestration';
 import { readClosureLedger } from './service.js';
 import { missionMayComplete } from './oracle.js';
@@ -17,7 +17,10 @@ import { missionMayComplete } from './oracle.js';
  * and translate. A gate with logic of its own would be a second place where
  * "is it complete?" is decided.
  */
-export function createClosureCompletionGate(workspace: WorkspaceInfo): CompletionGate {
+export function createClosureCompletionGate(
+  workspace: WorkspaceInfo,
+  policy: ClosurePolicy,
+): CompletionGate {
   return {
     assess(jobId: string): CompletionAssessment {
       const ledger = readClosureLedger(workspace, jobId);
@@ -27,7 +30,7 @@ export function createClosureCompletionGate(workspace: WorkspaceInfo): Completio
         // driver only ever installs a gate for a job that HAS one.
         return { mayComplete: true, reason: 'no closure ledger governs this job', unclosed: 0 };
       }
-      const verdict = missionMayComplete(ledger);
+      const verdict = missionMayComplete(ledger, policy);
       return {
         mayComplete: verdict.mayComplete,
         reason: verdict.reason,

@@ -79,7 +79,14 @@ export function assessItemClosure(
     return { status: 'IN_PROGRESS', gaps: [] };
   }
 
-  if (failing.length > 0) gaps.push('EVIDENCE_FAILED');
+  if (failing.length > 0) {
+    // Name the failure the way the repair loop needs it named: a failed
+    // scenario asks for a repair-then-requalify cycle, not for more tests.
+    if (failing.some((ref) => ref.kind === 'SYSTEM_SCENARIO' || ref.kind === 'BROWSER_SCENARIO')) {
+      gaps.push('SCENARIO_FAILED');
+    }
+    gaps.push('EVIDENCE_FAILED');
+  }
   if (passing.length === 0) {
     if (staleClosing.length > 0) gaps.push('EVIDENCE_STALE');
     else if (failing.length === 0) gaps.push('NO_EVIDENCE');
@@ -217,65 +224,126 @@ export function decideClosure(
   }
 
   // An item that REQUIRES a system or browser scenario can only close in
-  // the scenario phases — holding those phases hostage to its closure is a
+  // the scenario phase — holding that phase hostage to its closure is a
   // deadlock by construction, and the dogfood sat in it: six criteria
   // waiting for scenarios that could not start until the six criteria
   // closed. Gap work is for items ordinary implementation can close; the
-  // scenario-owned remainder advances the ladder instead of blocking it.
+  // scenario-owned remainder is owned by the scenario phase below.
   const scenarioOwned = unclosed.filter(
     (entry) => entry.requiresSystemScenario || entry.requiresBrowserScenario,
   );
   const implementationOwned = unclosed.filter(
     (entry) => !entry.requiresSystemScenario && !entry.requiresBrowserScenario,
   );
+  // A scenario-owned item whose LATEST scenario run failed needs the repair
+  // loop first: re-running the identical scenario against unrepaired code
+  // can only fail identically. Once a passing repair is recorded AFTER the
+  // failure, the item routes back to the scenario phase — only the scenario
+  // itself can close it, and the repair exists to make the rerun worth
+  // running. Judged on evidence order, not on the gap label, so a repaired
+  // item cannot ping-pong back into repair forever.
+  const scenarioRepairs = scenarioOwned.filter((entry) => {
+    const scenarioRefs = entry.evidence.filter(
+      (ref) => ref.kind === 'SYSTEM_SCENARIO' || ref.kind === 'BROWSER_SCENARIO',
+    );
+    const latest = scenarioRefs[scenarioRefs.length - 1];
+    if (latest === undefined || latest.passed) return false;
+    return !entry.evidence.some(
+      (ref) =>
+        ref.kind === 'TRUSTED_VERIFICATION' && ref.passed && ref.recordedAt > latest.recordedAt,
+    );
+  });
 
-  if (implementationOwned.length > 0) {
+  if (implementationOwned.length > 0 || scenarioRepairs.length > 0) {
+    const repairable = implementationOwned.length + scenarioRepairs.length;
     if (ledger.gapCycles >= policy.maxGapClosureCycles) {
       return {
         directive: 'BUDGET_EXHAUSTED',
         nextPhase: ledger.phase,
         rationale:
-          `${implementationOwned.length} sealed item(s) remain unclosed after ${ledger.gapCycles} gap-closure ` +
+          `${repairable} sealed item(s) remain unclosed after ${ledger.gapCycles} gap-closure ` +
           'cycles; generating the same work again would not change that',
-        unclosed: implementationOwned,
+        unclosed: [...implementationOwned, ...scenarioRepairs],
       };
     }
     return {
       directive: 'GENERATE_GAP_WORK',
       nextPhase: 'GAP_IMPLEMENTATION',
-      rationale: `${implementationOwned.length} sealed item(s) are not closed on trusted evidence`,
+      rationale: `${repairable} sealed item(s) are not closed on trusted evidence`,
       // The FULL unclosed list, scenario-owned included: gap work is also
       // the record of which evidence kind each item still needs.
       unclosed,
     };
   }
-  void scenarioOwned; // they close in the phases below, which now get to run
 
-  // Everything closes on its own evidence. The remaining phases are about
-  // whether the SYSTEM works, not whether the items were implemented.
-  const needsSystem =
-    policy.requireSystemScenarios &&
-    ledger.entries.some((entry) => entry.requiresSystemScenario) &&
-    ledger.systemCycles === 0;
-  if (needsSystem) {
+  // Scenario-owned items with no failed run yet: the scenario phase is the
+  // only place they can close, and "the phase ran" is defined by EXECUTED
+  // cycles — evidence of execution, never a stamp.
+  if (scenarioOwned.length > 0) {
+    if (!policy.requireSystemScenarios) {
+      return {
+        directive: 'BUDGET_EXHAUSTED',
+        nextPhase: ledger.phase,
+        rationale:
+          `${scenarioOwned.length} sealed item(s) require scenario evidence, and the policy has ` +
+          'disabled the scenario phase; they cannot close on any evidence this run can produce. ' +
+          'Re-enable `requireSystemScenarios`, or a human waives them.',
+        unclosed: scenarioOwned,
+      };
+    }
+    if (ledger.systemCycles >= policy.maxSystemQualificationCycles) {
+      return {
+        directive: 'BUDGET_EXHAUSTED',
+        nextPhase: ledger.phase,
+        rationale:
+          `${scenarioOwned.length} sealed item(s) remain unclosed after ${ledger.systemCycles} ` +
+          'executed system-scenario cycle(s)',
+        unclosed: scenarioOwned,
+      };
+    }
     return {
       directive: 'RUN_SYSTEM_SCENARIOS',
       nextPhase: 'SYSTEM_SCENARIO_QUALIFICATION',
-      rationale: 'every item closes; the sealed criteria imply mission-level system scenarios',
-      unclosed: [],
+      rationale: `${scenarioOwned.length} sealed item(s) close only on scenario evidence`,
+      unclosed: scenarioOwned,
     };
   }
 
-  if (ledger.phase === 'SYSTEM_SCENARIO_QUALIFICATION') {
+  // Every item closes on its own evidence. The remaining phases are about
+  // whether the SYSTEM works — and each is gated on its own recorded
+  // outcome, never on the ladder having merely visited the phase.
+  if (policy.requireReleaseQualification && !ledger.releaseQualificationPassed) {
+    if (ledger.releaseQualificationCycles >= policy.maxSystemQualificationCycles) {
+      return {
+        directive: 'BUDGET_EXHAUSTED',
+        nextPhase: ledger.phase,
+        rationale:
+          `the integrated tree failed the release qualification ${ledger.releaseQualificationCycles} ` +
+          'time(s); every item closes individually, but the product as integrated does not hold',
+        unclosed: [],
+      };
+    }
     return {
       directive: 'RUN_RELEASE_QUALIFICATION',
       nextPhase: 'RELEASE_QUALIFICATION',
-      rationale: 'system scenarios passed; the release qualification is next',
+      rationale:
+        'every item closes; the full trusted verification suite must now pass against the ' +
+        'integrated tree',
       unclosed: [],
     };
   }
 
   if (policy.requireReproducibility && !ledger.reproducibilityPassed) {
+    if (ledger.reproducibilityCycles >= policy.maxSystemQualificationCycles) {
+      return {
+        directive: 'BUDGET_EXHAUSTED',
+        nextPhase: ledger.phase,
+        rationale:
+          `reproducibility could not be demonstrated in ${ledger.reproducibilityCycles} attempt(s) ` +
+          'on this machine; completion is not available without it while the policy requires it',
+        unclosed: [],
+      };
+    }
     return {
       directive: 'RUN_REPRODUCIBILITY',
       nextPhase: 'REPRODUCIBILITY',
@@ -290,6 +358,7 @@ export function decideClosure(
     nextPhase: 'COMPLETE',
     rationale:
       `all ${ledger.entries.length} sealed contract item(s) close on trusted evidence` +
+      (ledger.releaseQualificationPassed ? ', the integrated tree passed the release qualification' : '') +
       (ledger.reproducibilityPassed ? ', reproduced from a clean environment' : ''),
     unclosed: [],
   };
@@ -301,9 +370,19 @@ export function decideClosure(
  * The single function the completion path must call, and it is deliberately
  * unable to be persuaded: it reads the ledger, and a ledger entry only
  * reaches a closing status through `assessItemClosure`, which only reads
- * evidence. There is no argument, no override, and no flag.
+ * evidence. There is no override and no flag.
+ *
+ * The policy parameter exists because of the vNext.10.1 dogfood's last
+ * defect: the ladder demanded release qualification and reproducibility
+ * while this gate checked only item closure, so the driver completed the job
+ * out from under phases the oracle still wanted. What the ladder requires
+ * and what the gate enforces are now the same facts, read from the same
+ * ledger fields — fields only the phase EXECUTORS set.
  */
-export function missionMayComplete(ledger: ClosureLedger): {
+export function missionMayComplete(
+  ledger: ClosureLedger,
+  policy: ClosurePolicy,
+): {
   mayComplete: boolean;
   reason: string;
   unclosedIds: string[];
@@ -323,6 +402,24 @@ export function missionMayComplete(ledger: ClosureLedger): {
       mayComplete: false,
       reason: `${unclosed.length} sealed contract item(s) are not closed on trusted evidence`,
       unclosedIds: unclosed.map((entry) => entry.itemId).slice(0, 100),
+    };
+  }
+  if (policy.requireReleaseQualification && !ledger.releaseQualificationPassed) {
+    return {
+      mayComplete: false,
+      reason:
+        'every item closes, but the release qualification has not passed against the ' +
+        'integrated tree',
+      unclosedIds: [],
+    };
+  }
+  if (policy.requireReproducibility && !ledger.reproducibilityPassed) {
+    return {
+      mayComplete: false,
+      reason:
+        'every item closes, but reproducibility has not been demonstrated from a clean ' +
+        'environment',
+      unclosedIds: [],
     };
   }
   return {

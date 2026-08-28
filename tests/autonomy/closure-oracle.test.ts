@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { overnightAutonomyPreset } from '@specbridge/core';
 import type { ClosureLedger } from '@specbridge/autonomy';
 import {
+  advanceClosurePhase,
   assertMissionMayComplete,
   attributeNodeToItems,
   buildClosureLedger,
@@ -240,7 +241,7 @@ describe('mission completion authority', () => {
   it('refuses completion while any sealed item is unclosed', () => {
     const fixture = setupAutonomyFixture();
     ledgerFor(fixture);
-    expect(() => assertMissionMayComplete(fixture.workspace, 'job-1')).toThrowError(
+    expect(() => assertMissionMayComplete(fixture.deps, 'job-1')).toThrowError(
       /not closed on trusted evidence/,
     );
   });
@@ -258,8 +259,11 @@ describe('mission completion authority', () => {
       gapCycles: 0,
       systemCycles: 0,
       reproducibilityPassed: false,
+      reproducibilityCycles: 0,
+      releaseQualificationPassed: false,
+      releaseQualificationCycles: 0,
     };
-    const verdict = missionMayComplete(empty);
+    const verdict = missionMayComplete(empty, CLOSURE_POLICY);
     expect(verdict.mayComplete).toBe(false);
     expect(closureRatio(summarizeClosure([]))).toBeNull();
   });
@@ -294,12 +298,28 @@ describe('mission completion authority', () => {
     });
     expect(audited.audit.totals.verified).toBe(ledger.entries.length);
     expect(audited.audit.closureRatio).toBe(1);
-    expect(() => assertMissionMayComplete(fixture.workspace, 'job-1')).not.toThrow();
+    // Item closure is necessary, not sufficient: the whole-tree
+    // qualifications are part of what "complete" claims.
+    expect(() => assertMissionMayComplete(fixture.deps, 'job-1')).toThrowError(
+      /release qualification/,
+    );
+    advanceClosurePhase(fixture.deps, {
+      jobId: 'job-1',
+      phase: 'RELEASE_QUALIFICATION',
+      releaseQualificationPassed: true,
+    });
+    expect(() => assertMissionMayComplete(fixture.deps, 'job-1')).toThrowError(/reproducibility/);
+    advanceClosurePhase(fixture.deps, {
+      jobId: 'job-1',
+      phase: 'FINAL_CONTRACT_AUDIT',
+      reproducibilityPassed: true,
+    });
+    expect(() => assertMissionMayComplete(fixture.deps, 'job-1')).not.toThrow();
   });
 
   it('refuses when there is no ledger at all', () => {
     const fixture = setupAutonomyFixture();
-    expect(() => assertMissionMayComplete(fixture.workspace, 'job-unknown')).toThrowError(
+    expect(() => assertMissionMayComplete(fixture.deps, 'job-unknown')).toThrowError(
       /no closure ledger/,
     );
   });
@@ -384,8 +404,8 @@ describe('gap-closure lifecycle', () => {
     expect(audit.directive).toBe('CONTINUE_IMPLEMENTATION');
   });
 
-  it('sequences system scenarios, release qualification, and reproducibility', () => {
-    const closed: ClosureLedger = {
+  it('sequences the qualification phases on recorded outcomes, never on visits', () => {
+    const base: ClosureLedger = {
       schemaVersion: '1.0.0',
       jobId: 'job-1',
       sealId: 'seal-1',
@@ -398,45 +418,151 @@ describe('gap-closure lifecycle', () => {
           itemId: 'AC-001',
           kind: 'acceptance-criterion',
           statement: 'runs end-to-end against docker compose',
-          status: 'VERIFIED',
+          status: 'IMPLEMENTED',
           attributedNodeIds: ['n1'],
           attributedTaskIds: ['1'],
           evidence: [],
           requiresSystemScenario: true,
           requiresBrowserScenario: false,
-          gaps: [],
+          gaps: ['SCENARIO_MISSING'],
           updatedAt: '2026-08-20T21:00:00.000Z',
         },
       ],
       gapCycles: 0,
       systemCycles: 0,
       reproducibilityPassed: false,
+      reproducibilityCycles: 0,
+      releaseQualificationPassed: false,
+      releaseQualificationCycles: 0,
+    };
+    const verified = {
+      ...(base.entries[0] as NonNullable<(typeof base.entries)[0]>),
+      status: 'VERIFIED' as const,
+      gaps: [],
     };
 
-    const system = decideClosure(closed, CLOSURE_POLICY, { implementationComplete: true });
+    // A scenario-owned item still open sends the ladder to the scenario
+    // phase — however many times the phase was merely ENTERED before.
+    const system = decideClosure(base, CLOSURE_POLICY, { implementationComplete: true });
     expect(system.directive).toBe('RUN_SYSTEM_SCENARIOS');
+    expect(system.unclosed.map((entry) => entry.itemId)).toEqual(['AC-001']);
 
-    const afterSystem = decideClosure(
-      { ...closed, phase: 'SYSTEM_SCENARIO_QUALIFICATION', systemCycles: 1 },
+    // Executed cycles without evidence exhaust the phase honestly.
+    const exhausted = decideClosure(
+      { ...base, systemCycles: CLOSURE_POLICY.maxSystemQualificationCycles },
       CLOSURE_POLICY,
       { implementationComplete: true },
     );
-    expect(afterSystem.directive).toBe('RUN_RELEASE_QUALIFICATION');
+    expect(exhausted.directive).toBe('BUDGET_EXHAUSTED');
+    expect(exhausted.rationale).toMatch(/executed system-scenario cycle/);
 
-    const afterRelease = decideClosure(
-      { ...closed, phase: 'RELEASE_QUALIFICATION', systemCycles: 1 },
+    // Every item closed: the release qualification is gated on ITS recorded
+    // pass, not on the ledger having reached some phase.
+    const release = decideClosure({ ...base, entries: [verified] }, CLOSURE_POLICY, {
+      implementationComplete: true,
+    });
+    expect(release.directive).toBe('RUN_RELEASE_QUALIFICATION');
+
+    const releaseExhausted = decideClosure(
+      {
+        ...base,
+        entries: [verified],
+        releaseQualificationCycles: CLOSURE_POLICY.maxSystemQualificationCycles,
+      },
       CLOSURE_POLICY,
       { implementationComplete: true },
     );
-    expect(afterRelease.directive).toBe('RUN_REPRODUCIBILITY');
+    expect(releaseExhausted.directive).toBe('BUDGET_EXHAUSTED');
+    expect(releaseExhausted.rationale).toMatch(/release qualification/);
+
+    const reproducibility = decideClosure(
+      { ...base, entries: [verified], releaseQualificationPassed: true },
+      CLOSURE_POLICY,
+      { implementationComplete: true },
+    );
+    expect(reproducibility.directive).toBe('RUN_REPRODUCIBILITY');
 
     const done = decideClosure(
-      { ...closed, phase: 'REPRODUCIBILITY', systemCycles: 1, reproducibilityPassed: true },
+      {
+        ...base,
+        entries: [verified],
+        releaseQualificationPassed: true,
+        reproducibilityPassed: true,
+      },
       CLOSURE_POLICY,
       { implementationComplete: true },
     );
     expect(done.directive).toBe('COMPLETE');
     expect(done.rationale).toMatch(/reproduced from a clean environment/);
+  });
+
+  it('routes a failed scenario to repair, and a repaired item back to the scenario', () => {
+    const failedRun = {
+      kind: 'SYSTEM_SCENARIO' as const,
+      ref: 'sr-1',
+      passed: false,
+      recordedAt: '2026-08-20T22:00:00.000Z',
+      detail: 'step "end-to-end" failed',
+    };
+    const entry = {
+      itemId: 'AC-001',
+      kind: 'acceptance-criterion' as const,
+      statement: 'runs end-to-end against docker compose',
+      status: 'IMPLEMENTED' as const,
+      attributedNodeIds: ['n1'],
+      attributedTaskIds: ['1'],
+      evidence: [failedRun],
+      requiresSystemScenario: true,
+      requiresBrowserScenario: false,
+      gaps: ['SCENARIO_FAILED', 'EVIDENCE_FAILED'] as ('SCENARIO_FAILED' | 'EVIDENCE_FAILED')[],
+      updatedAt: '2026-08-20T22:00:00.000Z',
+    };
+    const ledger: ClosureLedger = {
+      schemaVersion: '1.0.0',
+      jobId: 'job-1',
+      sealId: 'seal-1',
+      missionId: 'm-1',
+      createdAt: '2026-08-20T21:00:00.000Z',
+      updatedAt: '2026-08-20T22:00:00.000Z',
+      phase: 'SYSTEM_SCENARIO_QUALIFICATION',
+      entries: [entry],
+      gapCycles: 0,
+      systemCycles: 1,
+      reproducibilityPassed: false,
+      reproducibilityCycles: 0,
+      releaseQualificationPassed: false,
+      releaseQualificationCycles: 0,
+    };
+
+    // Re-running the identical scenario against unrepaired code can only
+    // fail identically: the failure goes to the repair loop first.
+    const repair = decideClosure(ledger, CLOSURE_POLICY, { implementationComplete: true });
+    expect(repair.directive).toBe('GENERATE_GAP_WORK');
+
+    // A repair recorded AFTER the failure routes the item back to the
+    // scenario phase — only the scenario can close it.
+    const repaired = decideClosure(
+      {
+        ...ledger,
+        entries: [
+          {
+            ...entry,
+            evidence: [
+              failedRun,
+              {
+                kind: 'TRUSTED_VERIFICATION' as const,
+                ref: 'gap:g-1',
+                passed: true,
+                recordedAt: '2026-08-20T23:00:00.000Z',
+              },
+            ],
+          },
+        ],
+      },
+      CLOSURE_POLICY,
+      { implementationComplete: true },
+    );
+    expect(repaired.directive).toBe('RUN_SYSTEM_SCENARIOS');
   });
 
   it('writes an append-only audit trail', () => {

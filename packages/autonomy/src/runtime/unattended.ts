@@ -29,7 +29,6 @@ import type { SupervisionResult, SupervisionStop } from '../supervisor/superviso
 import { superviseJob } from '../supervisor/supervisor.js';
 import { createClosureCompletionGate } from '../closure/gate.js';
 import {
-  advanceClosurePhase,
   buildClosureLedger,
   generateGapWork,
   readClosureLedger,
@@ -37,6 +36,15 @@ import {
   runClosureAudit,
 } from '../closure/service.js';
 import type { ClosureAudit } from '../closure/state.js';
+import {
+  runGapRepairs,
+  runReleaseQualificationPhase,
+  runReproducibilityPhase,
+  runSystemScenarioPhase,
+} from '../qualification/mission-qualification.js';
+import type { EnvironmentRuntime } from '../environment/service.js';
+import type { ProbeExecutor } from '../environment/probe-runner.js';
+import type { BrowserDriver } from '../browser/contract.js';
 import { computeAutonomyTelemetry } from '../telemetry/telemetry.js';
 import type { AutonomyTelemetry } from '../telemetry/telemetry.js';
 import type { FailureObservation, RecoveryClassification } from './recovery.js';
@@ -91,6 +99,15 @@ export interface UnattendedOptions {
   /** Bound on supervisor decision cycles per supervision pass. */
   maxSupervisionCycles?: number | undefined;
   ownerId?: string | undefined;
+  /**
+   * How qualification phases reach the outside world. All optional: a phase
+   * that needs one and does not have it records an honest non-result (an
+   * ENVIRONMENT_UNAVAILABLE scenario, a skipped browser check) rather than
+   * a fabricated pass.
+   */
+  environmentRuntime?: EnvironmentRuntime | undefined;
+  probeExecutor?: ProbeExecutor | undefined;
+  browserDriver?: BrowserDriver | undefined;
 }
 
 export type UnattendedStop =
@@ -183,7 +200,7 @@ export async function runUnattendedMission(
     ...(shouldDelegateAuthority(policy)
       ? { authorityResolver: createAuthorityResolver({ workspace: deps.workspace, policy }) }
       : {}),
-    completionGate: createClosureCompletionGate(deps.workspace),
+    completionGate: createClosureCompletionGate(deps.workspace, policy.closure),
   };
 
   // Resolved AFTER supervisedDeps exists, so the driver runs with the
@@ -230,7 +247,18 @@ export async function runUnattendedMission(
 
     // The driver ran out of planned work. That is where the closure
     // lifecycle takes over and decides whether COMPLETED is even available.
-    const outcome = runClosureCycle(supervisedDeps, { jobId: options.jobId, missionId: options.missionId, emit });
+    const outcome = await runClosureCycle(supervisedDeps, {
+      jobId: options.jobId,
+      missionId: options.missionId,
+      emit,
+      ...(options.signal !== undefined ? { signal: options.signal } : {}),
+      ...(options.sleep !== undefined ? { sleep: options.sleep } : {}),
+      ...(options.environmentRuntime !== undefined
+        ? { environmentRuntime: options.environmentRuntime }
+        : {}),
+      ...(options.probeExecutor !== undefined ? { probeExecutor: options.probeExecutor } : {}),
+      ...(options.browserDriver !== undefined ? { browserDriver: options.browserDriver } : {}),
+    });
     audits.push(outcome.audit);
     if (outcome.stop !== undefined) {
       stop = outcome.stop;
@@ -414,11 +442,27 @@ interface ClosureCycleOutcome {
  * reachable only when every sealed item closed on trusted evidence. A run
  * whose task list is finished but whose ledger is not simply goes round
  * again with new work — which is the whole point.
+ *
+ * Every RUN_* directive is answered by EXECUTION. The previous version of
+ * this function answered three of them by stamping the phase onto the
+ * ledger and returning — which is how the dogfood produced a COMPLETED job
+ * whose reproducibility was never attempted. If a phase cannot run here,
+ * the executor records that as its honest result; nothing advances a
+ * counter from this function.
  */
-function runClosureCycle(
+async function runClosureCycle(
   deps: AutonomyDeps,
-  input: { jobId: string; missionId: string; emit: (kind: string, message: string) => void },
-): ClosureCycleOutcome {
+  input: {
+    jobId: string;
+    missionId: string;
+    emit: (kind: string, message: string) => void;
+    signal?: AbortSignal | undefined;
+    sleep?: ((ms: number, signal?: AbortSignal) => Promise<void>) | undefined;
+    environmentRuntime?: EnvironmentRuntime | undefined;
+    probeExecutor?: ProbeExecutor | undefined;
+    browserDriver?: BrowserDriver | undefined;
+  },
+): Promise<ClosureCycleOutcome> {
   const job = requireJobState(deps.workspace, input.jobId);
   const graph = safeGraph(deps, job);
   const completedNodeIds = graph
@@ -467,28 +511,67 @@ function runClosureCycle(
           },
         };
       }
+      // Generated work is EXECUTED, not filed. The next audit judges the
+      // repairs by the evidence they registered — zero repairs is a real
+      // outcome the budget bound will convert into an honest stop.
+      const repairs = await runGapRepairs(deps, {
+        jobId: input.jobId,
+        items: generated,
+        ...(input.signal !== undefined ? { signal: input.signal } : {}),
+        emit: (message) => input.emit('closure', message),
+      });
+      input.emit(
+        'closure',
+        `gap repairs: ${repairs.repaired.length} integrated, ${repairs.failed.length} failed`,
+      );
       clearOperationalStateIfNeeded(deps, input.jobId);
       return { audit };
     }
-    case 'RUN_SYSTEM_SCENARIOS':
+    case 'RUN_SYSTEM_SCENARIOS': {
       enterQualifying(jobDepsOf(deps), input.jobId, {
         phase: 'SYSTEM_SCENARIO_QUALIFICATION',
         detail: audit.rationale,
       });
-      advanceClosurePhase(deps, {
+      const scenarios = await runSystemScenarioPhase(deps, {
         jobId: input.jobId,
-        phase: 'SYSTEM_SCENARIO_QUALIFICATION',
-        systemCycle: true,
+        ...(input.environmentRuntime !== undefined ? { runtime: input.environmentRuntime } : {}),
+        ...(input.probeExecutor !== undefined ? { probeExecutor: input.probeExecutor } : {}),
+        ...(input.browserDriver !== undefined ? { browserDriver: input.browserDriver } : {}),
+        ...(input.signal !== undefined ? { signal: input.signal } : {}),
+        ...(input.sleep !== undefined ? { sleep: input.sleep } : {}),
+        emit: (message) => input.emit('closure', message),
       });
+      input.emit(
+        'closure',
+        `system scenarios: ${scenarios.passed}/${scenarios.executed} passed` +
+          (scenarios.environmentUnavailable > 0
+            ? `, ${scenarios.environmentUnavailable} environment-unavailable`
+            : '') +
+          (scenarios.uncovered.length > 0 ? `, ${scenarios.uncovered.length} item(s) uncovered` : ''),
+      );
+      clearOperationalStateIfNeeded(deps, input.jobId);
       return { audit };
-    case 'RUN_RELEASE_QUALIFICATION':
+    }
+    case 'RUN_RELEASE_QUALIFICATION': {
       enterQualifying(jobDepsOf(deps), input.jobId, { phase: 'RELEASE_QUALIFICATION' });
-      advanceClosurePhase(deps, { jobId: input.jobId, phase: 'RELEASE_QUALIFICATION' });
+      await runReleaseQualificationPhase(deps, {
+        jobId: input.jobId,
+        ...(input.signal !== undefined ? { signal: input.signal } : {}),
+        emit: (message) => input.emit('closure', message),
+      });
+      clearOperationalStateIfNeeded(deps, input.jobId);
       return { audit };
-    case 'RUN_REPRODUCIBILITY':
+    }
+    case 'RUN_REPRODUCIBILITY': {
       enterQualifying(jobDepsOf(deps), input.jobId, { phase: 'REPRODUCIBILITY' });
-      advanceClosurePhase(deps, { jobId: input.jobId, phase: 'REPRODUCIBILITY' });
+      await runReproducibilityPhase(deps, {
+        jobId: input.jobId,
+        ...(input.signal !== undefined ? { signal: input.signal } : {}),
+        emit: (message) => input.emit('closure', message),
+      });
+      clearOperationalStateIfNeeded(deps, input.jobId);
       return { audit };
+    }
     case 'CONTINUE_IMPLEMENTATION':
     default:
       clearOperationalStateIfNeeded(deps, input.jobId);

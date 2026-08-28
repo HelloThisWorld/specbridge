@@ -34950,6 +34950,13 @@ var closurePolicySchema = external_exports.object({
    * requirement then has to close on other evidence.
    */
   requireSystemScenarios: external_exports.boolean().default(true),
+  /**
+   * Require the release qualification: the full trusted verification suite
+   * must pass against the INTEGRATED tree before completion. Per-unit
+   * verification proves each change in its own worktree; this proves the
+   * changes still hold together after all of them landed.
+   */
+  requireReleaseQualification: external_exports.boolean().default(true),
   /** Run the reproducibility phase (clean build, fresh environment). */
   requireReproducibility: external_exports.boolean().default(true),
   /** Ceiling for one reproducibility qualification. */

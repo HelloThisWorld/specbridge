@@ -27,6 +27,8 @@ import {
   readSupervisionLog,
   requiredSurfacesFor,
   revokeSeal,
+  createComposeRuntime,
+  createPlaywrightDriver,
   runOvernightPreflight,
   runUnattendedMission,
   sealMission,
@@ -467,6 +469,12 @@ function registerOvernight(program: Command, runtime: CliRuntime): void {
           host: (runDeps) =>
             createInProcessDriverHost({ ...runDeps, registry: context.registry }),
           ...(options.maxCycles !== undefined ? { maxCycles: Number(options.maxCycles) } : {}),
+          // The production qualification surfaces. Both are honest about
+          // absence at run time: compose reports the daemon down as
+          // ENVIRONMENT_UNAVAILABLE, playwright reports itself missing and
+          // browser checks record SKIPPED_NO_RUNTIME.
+          environmentRuntime: createComposeRuntime({ cwd: context.workspace.rootDir }),
+          browserDriver: createPlaywrightDriver(),
           onEvent: (event) => {
             if (options.json !== true) runtime.out(dim(`  ${event.kind}: ${event.message}`));
           },

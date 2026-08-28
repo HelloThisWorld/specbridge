@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { overnightAutonomyPreset } from '@specbridge/core';
 import type { CompletionGate, JobDeps } from '@specbridge/orchestration';
 import { assessCompletion, completeJobIfDone, createJob, requireJobState } from '@specbridge/orchestration';
 import {
+  advanceClosurePhase,
   attributeNodeToItems,
   bindSealToJob,
   buildClosureLedger,
@@ -11,6 +13,8 @@ import {
   runClosureAudit,
 } from '@specbridge/autonomy';
 import { sealedMission, setupAutonomyFixture } from '../helpers-autonomy.js';
+
+const CLOSURE_POLICY = overnightAutonomyPreset().closure;
 
 /**
  * The completion gate.
@@ -63,7 +67,7 @@ describe('closure completion gate', () => {
   it('abstains for a job with no ledger, so v1.2 jobs are unchanged', () => {
     const { fixture, jobId } = jobFixture();
     expect(hasClosureLedger(fixture.workspace, jobId)).toBe(false);
-    const gate = createClosureCompletionGate(fixture.workspace);
+    const gate = createClosureCompletionGate(fixture.workspace, CLOSURE_POLICY);
     expect(gate.assess(jobId).mayComplete).toBe(true);
   });
 
@@ -73,7 +77,7 @@ describe('closure completion gate', () => {
     bindSealToJob(fixture.deps, jobId, seal.sealId);
     buildClosureLedger(fixture.deps, { jobId, seal });
 
-    const gate = createClosureCompletionGate(fixture.workspace);
+    const gate = createClosureCompletionGate(fixture.workspace, CLOSURE_POLICY);
     const assessment = gate.assess(jobId);
     expect(assessment.mayComplete).toBe(false);
     expect(assessment.unclosed).toBeGreaterThan(0);
@@ -111,7 +115,28 @@ describe('closure completion gate', () => {
       implementationComplete: true,
     });
 
-    expect(createClosureCompletionGate(fixture.workspace).assess(jobId).mayComplete).toBe(true);
+    // Item closure alone is not completion any more: the gate also requires
+    // the release qualification and reproducibility, because the ladder
+    // does. Defect 39's tail was exactly this asymmetry — the ladder still
+    // wanted phases while the gate let the driver complete around them.
+    const gate = createClosureCompletionGate(fixture.workspace, CLOSURE_POLICY);
+    expect(gate.assess(jobId).mayComplete).toBe(false);
+    expect(gate.assess(jobId).reason).toMatch(/release qualification/);
+
+    advanceClosurePhase(fixture.deps, {
+      jobId,
+      phase: 'RELEASE_QUALIFICATION',
+      releaseQualificationPassed: true,
+    });
+    expect(gate.assess(jobId).mayComplete).toBe(false);
+    expect(gate.assess(jobId).reason).toMatch(/reproducibility/);
+
+    advanceClosurePhase(fixture.deps, {
+      jobId,
+      phase: 'FINAL_CONTRACT_AUDIT',
+      reproducibilityPassed: true,
+    });
+    expect(gate.assess(jobId).mayComplete).toBe(true);
   });
 });
 

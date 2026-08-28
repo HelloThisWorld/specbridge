@@ -18,6 +18,20 @@
               "--json"
             ]
           },
+          "closure": {
+            "options": [
+              "--help"
+            ],
+            "subcommands": {
+              "waive": {
+                "options": [
+                  "--by",
+                  "--help",
+                  "--reason"
+                ]
+              }
+            }
+          },
           "policy": {
             "options": [
               "--help",

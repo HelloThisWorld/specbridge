@@ -28332,6 +28332,13 @@ var closurePolicySchema = external_exports.object({
    * requirement then has to close on other evidence.
    */
   requireSystemScenarios: external_exports.boolean().default(true),
+  /**
+   * Require the release qualification: the full trusted verification suite
+   * must pass against the INTEGRATED tree before completion. Per-unit
+   * verification proves each change in its own worktree; this proves the
+   * changes still hold together after all of them landed.
+   */
+  requireReleaseQualification: external_exports.boolean().default(true),
   /** Run the reproducibility phase (clean build, fresh environment). */
   requireReproducibility: external_exports.boolean().default(true),
   /** Ceiling for one reproducibility qualification. */
@@ -33791,6 +33798,42 @@ function asCriterion(statement) {
   }
   return `THE SYSTEM SHALL ${terminated.charAt(0).toLowerCase()}${terminated.slice(1)}`;
 }
+function assignSuccessCriteria(successCriteria, contracts) {
+  const assignments = /* @__PURE__ */ new Map();
+  if (contracts.length === 0) return assignments;
+  const contractTokens = contracts.map(
+    (contract) => tokenize(
+      [
+        contract.title,
+        contract.summary,
+        ...contract.requirements.map((requirement) => requirement.statement),
+        ...contract.invariants.map((invariant) => invariant.statement)
+      ].join(" ")
+    )
+  );
+  successCriteria.forEach((statement, index) => {
+    const criterionTokens = tokenize(statement);
+    let best = contracts.length - 1;
+    let bestScore = 0;
+    contractTokens.forEach((tokens, contractIndex) => {
+      let score = 0;
+      for (const token of criterionTokens) if (tokens.has(token)) score += 1;
+      if (score > bestScore) {
+        bestScore = score;
+        best = contractIndex;
+      }
+    });
+    const bucket = assignments.get(best) ?? [];
+    bucket.push({ index, statement });
+    assignments.set(best, bucket);
+  });
+  return assignments;
+}
+function tokenize(text24) {
+  return new Set(
+    text24.toLowerCase().split(/[^a-z0-9]+/).filter((token) => token.length >= 4)
+  );
+}
 function compileMissionDocuments(input) {
   const { mission } = input;
   const contracts = topologicalContractOrder(input.contracts);
@@ -33801,6 +33844,7 @@ function compileMissionDocuments(input) {
   }
   const activeRules = input.constitutionRules.filter((rule) => rule.status === "active");
   const primaryUser = mission.targetUsers[0] ?? "user of the system";
+  const criteriaByContract = assignSuccessCriteria(mission.successCriteria, contracts);
   const provenance = [];
   const requirementLines = [
     "# Requirements Document",
@@ -33843,6 +33887,14 @@ function compileMissionDocuments(input) {
       rows.push({
         criterionId: `${number3}.${criterionNumber}`,
         source: `${contract.contractId}/r${contract.revision}/${invariant.invariantId}`
+      });
+    }
+    for (const assigned of criteriaByContract.get(index) ?? []) {
+      criterionNumber += 1;
+      requirementLines.push(`${criterionNumber}. ${asCriterion(assigned.statement)}`);
+      rows.push({
+        criterionId: `${number3}.${criterionNumber}`,
+        source: `mission/sc/${assigned.index}`
       });
     }
     requirementLines.push("");
@@ -33955,6 +34007,9 @@ function compileMissionDocuments(input) {
     for (const invariant of contract.invariants) {
       taskLines.push(`  - Acceptance: ${invariant.statement.trim()}`);
     }
+    for (const assigned of criteriaByContract.get(index) ?? []) {
+      taskLines.push(`  - Acceptance: ${assigned.statement.trim()}`);
+    }
     taskLines.push(`  - Contract: ${contract.contractId} r${contract.revision}`);
     const refs = provenance[index]?.criteria.map((row) => row.criterionId) ?? [];
     if (refs.length > 0) {
@@ -33970,7 +34025,8 @@ function compileMissionDocuments(input) {
     tasks: `${taskLines.join("\n").replace(/\n+$/, "")}
 `,
     provenance,
-    objectiveCount: contracts.length
+    objectiveCount: contracts.length,
+    successCriteria: mission.successCriteria
   };
 }
 function validateCompiledDocuments(documents) {
@@ -33990,6 +34046,13 @@ function validateCompiledDocuments(documents) {
   }
   if (tasksModel.allTasks.some((task) => task.children.length > 0)) {
     problems.push("objectives must be leaf tasks; nested checkbox children were generated");
+  }
+  for (const criterion of documents.successCriteria) {
+    if (!documents.tasks.includes(criterion.trim())) {
+      problems.push(
+        `success criterion is carried by no task in the compiled plan: "${criterion.slice(0, 120)}"`
+      );
+    }
   }
   return problems;
 }
@@ -75660,7 +75723,7 @@ var SCORE_ID_PREFIX = 800;
 var SCORE_EXACT_TAG = 600;
 var SCORE_DISPLAY_NAME_TOKEN = 400;
 var SCORE_DESCRIPTION_TOKEN = 200;
-function tokenize(text15) {
+function tokenize2(text15) {
   return text15.toLowerCase().split(/[^a-z0-9]+/u).filter((token) => token.length > 0);
 }
 function clampSearchLimit(requested) {
@@ -75671,8 +75734,8 @@ function scoreEntry(entry, query, queryTokens) {
   const manifest = entry.pack.manifest;
   const id = entry.id.toLowerCase();
   const tags = (manifest?.tags ?? []).map((tag) => tag.toLowerCase());
-  const displayTokens = tokenize(manifest?.displayName ?? "");
-  const descriptionTokens = new Set(tokenize(manifest?.description ?? ""));
+  const displayTokens = tokenize2(manifest?.displayName ?? "");
+  const descriptionTokens = new Set(tokenize2(manifest?.description ?? ""));
   let score = 0;
   if (id === query) score += SCORE_EXACT_ID;
   else if (id.startsWith(query)) score += SCORE_ID_PREFIX;
@@ -75687,7 +75750,7 @@ function scoreEntry(entry, query, queryTokens) {
 function searchTemplates(catalog, rawQuery, options = {}) {
   const query = rawQuery.trim().toLowerCase();
   if (query.length === 0) return [];
-  const queryTokens = tokenize(query);
+  const queryTokens = tokenize2(query);
   const limit = clampSearchLimit(options.limit);
   return catalog.entries.map((entry) => ({ entry, score: scoreEntry(entry, query, queryTokens) })).filter((result) => result.score > 0).sort((a2, b) => a2.score !== b.score ? b.score - a2.score : a2.entry.ref.localeCompare(b.entry.ref, "en")).slice(0, limit);
 }
@@ -82134,10 +82197,22 @@ var closureLedgerSchema = external_exports.object({
   entries: external_exports.array(closureEntrySchema).max(1e3).default([]),
   /** Gap-closure cycles spent. Bounded by policy. */
   gapCycles: external_exports.number().int().min(0).default(0),
-  /** System-scenario qualification cycles spent. */
+  /**
+   * System-scenario qualification cycles EXECUTED. Incremented only after
+   * scenarios actually ran — never by entering the phase. The distinction
+   * is the vNext.10.1 dogfood's defect 39: a counter bumped by a phase
+   * stamp let the oracle read "the scenarios ran" off a night in which
+   * nothing was ever executed.
+   */
   systemCycles: external_exports.number().int().min(0).default(0),
   /** True once the reproducibility qualification passed. */
-  reproducibilityPassed: external_exports.boolean().default(false)
+  reproducibilityPassed: external_exports.boolean().default(false),
+  /** Reproducibility qualification attempts EXECUTED. Bounded by policy. */
+  reproducibilityCycles: external_exports.number().int().min(0).default(0),
+  /** True once the release qualification passed against the integrated tree. */
+  releaseQualificationPassed: external_exports.boolean().default(false),
+  /** Release qualification attempts EXECUTED. Bounded by policy. */
+  releaseQualificationCycles: external_exports.number().int().min(0).default(0)
 }).passthrough();
 var closureAuditSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
@@ -82208,8 +82283,14 @@ var systemScenarioSchema = external_exports.object({
   scenarioId: shortText92,
   name: shortText92,
   intent: text92,
-  /** The environment this scenario needs. Required: that is the point. */
-  environmentPlanId: shortText92,
+  /**
+   * The environment this scenario needs. A scenario that declares none
+   * runs against the workspace itself — an explicit, recorded claim that
+   * the product needs no external services to demonstrate this, not a
+   * shortcut around provisioning. Fault injection requires a plan, since
+   * a fault can only be scoped to a declared service.
+   */
+  environmentPlanId: shortText92.optional(),
   steps: external_exports.array(systemStepSchema).min(1).max(50),
   /** Browser scenarios to run once the system steps pass. */
   browserScenarioIds: external_exports.array(shortText92).max(20).default([]),
@@ -83645,7 +83726,7 @@ var STOPWORDS = /* @__PURE__ */ new Set([
   "you",
   "your"
 ]);
-function tokenize2(value) {
+function tokenize3(value) {
   const out = [];
   for (const raw of value.toLowerCase().split(/[^a-z0-9_-]+/)) {
     if (raw.length < 3) continue;
@@ -83661,7 +83742,7 @@ function stem(word) {
   return word;
 }
 function tokenSet(value) {
-  return new Set(tokenize2(value));
+  return new Set(tokenize3(value));
 }
 function containment(needle, haystack) {
   if (needle.size === 0) return 0;

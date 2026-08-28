@@ -570,7 +570,18 @@ function objectiveFor(statement: string, gap: ClosureGapKind): string {
 
 export function advanceClosurePhase(
   deps: AutonomyDeps,
-  input: { jobId: string; phase: ClosurePhase; systemCycle?: boolean; reproducibilityPassed?: boolean },
+  input: {
+    jobId: string;
+    phase: ClosurePhase;
+    /** One system-scenario cycle was EXECUTED. Never set for a phase entry. */
+    systemCycle?: boolean;
+    reproducibilityPassed?: boolean;
+    /** One reproducibility qualification was EXECUTED. */
+    reproducibilityCycle?: boolean;
+    releaseQualificationPassed?: boolean;
+    /** One release qualification was EXECUTED. */
+    releaseQualificationCycle?: boolean;
+  },
 ): ClosureLedger {
   const ledger = requireLedger(deps.workspace, input.jobId);
   return saveLedger(deps, {
@@ -578,6 +589,12 @@ export function advanceClosurePhase(
     phase: input.phase,
     systemCycles: ledger.systemCycles + (input.systemCycle === true ? 1 : 0),
     reproducibilityPassed: input.reproducibilityPassed ?? ledger.reproducibilityPassed,
+    reproducibilityCycles:
+      ledger.reproducibilityCycles + (input.reproducibilityCycle === true ? 1 : 0),
+    releaseQualificationPassed:
+      input.releaseQualificationPassed ?? ledger.releaseQualificationPassed,
+    releaseQualificationCycles:
+      ledger.releaseQualificationCycles + (input.releaseQualificationCycle === true ? 1 : 0),
   });
 }
 
@@ -588,7 +605,8 @@ export function advanceClosurePhase(
  * path that would otherwise write COMPLETED. A boolean would be a value
  * somebody could forget to check; an exception is not.
  */
-export function assertMissionMayComplete(workspace: WorkspaceInfo, jobId: string): void {
+export function assertMissionMayComplete(deps: AutonomyDeps, jobId: string): void {
+  const workspace = deps.workspace;
   const ledger = readClosureLedger(workspace, jobId);
   if (ledger === undefined) {
     throw new AutonomyError(
@@ -602,7 +620,7 @@ export function assertMissionMayComplete(workspace: WorkspaceInfo, jobId: string
       },
     );
   }
-  const verdict = missionMayComplete(ledger);
+  const verdict = missionMayComplete(ledger, autonomyPolicyOf(deps).closure);
   if (verdict.mayComplete) return;
   throw new AutonomyError('SBA020', `Mission is not complete: ${verdict.reason}.`, {
     remediation: [

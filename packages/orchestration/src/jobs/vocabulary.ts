@@ -607,8 +607,10 @@ export const JOB_EVENT_TYPES = [
   'context_rollover',
   'closure_audit_completed',
   'gap_work_generated',
+  'gap_repair_completed',
   'system_qualification_started',
   'system_qualification_completed',
+  'release_qualification_completed',
   'reproducibility_completed',
 ] as const;
 export type JobEventType = (typeof JOB_EVENT_TYPES)[number];

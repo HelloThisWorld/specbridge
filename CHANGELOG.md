@@ -1,5 +1,61 @@
 # Changelog
 
+## Unreleased
+
+### Every sealed criterion is carried by a task (dogfood defect 37)
+
+The synthesized plan now assigns every mission success criterion to exactly
+one objective: a deterministic token-overlap match against each contract's
+own text, ties to the earlier contract, no match to the most downstream
+objective. The criterion appears verbatim as a task `- Acceptance:` line and
+as a `mission/sc/<n>` provenance row that `acceptanceForObjective` resolves
+back to the byte-identical sealed statement — which is what lets closure
+attribution find it. Synthesis now FAILS CLOSED if any criterion is carried
+by no task: a plan that drops one is not a smaller plan, it is a plan for a
+different product. The StepRelay dogfood paid this defect in eleven human
+waivers — sealed criteria no task owned could close no other way.
+
+### The qualification phases execute (dogfood defect 39)
+
+The closure ladder's three `RUN_*` directives were answered by stamping the
+phase onto the ledger and moving on; `reproducibilityPassed: false` on a
+COMPLETED job was the tell. Each directive now has an executor:
+
+- **System scenarios** — saved scenarios run via `runSystemScenario`; where
+  none covers an open scenario-owned item, one is synthesized
+  deterministically from the trusted verification commands (plus the
+  workspace's environment plan when exactly one exists, plus any authored
+  browser scenarios). Scenarios may now declare no environment plan — an
+  explicit recorded claim that the workspace itself is the environment;
+  fault injection still requires one.
+- **Release qualification** — the full trusted suite runs against the
+  INTEGRATED tree; per-unit verification proved each change in its own
+  worktree, this proves they hold together. Recorded as
+  `releaseQualificationPassed`, required by the new
+  `closure.requireReleaseQualification` policy (default on).
+- **Reproducibility** — the suite runs in a clean detached-worktree checkout
+  with a lockfile-derived install step; only a PASS flips
+  `reproducibilityPassed`, and UNAVAILABLE stays INCONCLUSIVE.
+- **Gap repair** — generated gap work is now executed, not filed: one
+  bounded BUILDER per item in an isolated worktree, landing only if the full
+  trusted suite passes there and the patch applies cleanly. A repair that
+  lands resets the whole-tree flags, because they described a tree that no
+  longer exists. A failed scenario routes to repair before rerun; a repaired
+  item routes back to the scenario phase, judged on evidence order so it
+  cannot ping-pong.
+
+The oracle now gates every transition on recorded outcomes — never on a
+counter a stamp once moved — and `missionMayComplete` enforces the same
+whole-tree requirements the ladder does, so a driver can no longer complete
+a job out from under phases the oracle still wants. Cycle counters count
+EXECUTED cycles only, and each phase's executed-cycle bound converts "this
+evidence cannot be produced here" into an honest `BUDGET_EXHAUSTED` naming
+the items, never a quiet pass.
+
+`autonomyPolicyFingerprint` now covers `requireReleaseQualification`, so
+seals created before this change report a policy change rather than running
+under a completion bar the human never saw. Re-seal to adopt it.
+
 ## 1.10.1 (unreleased) — vNext.10.1 Zero-Touch Spec Intake
 
 vNext.10 made a long-horizon run survive without a person. It started at a
