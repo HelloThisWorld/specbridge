@@ -7,7 +7,7 @@ Generated from the authoritative registries of the `specbridge` MCP server
 (version 1.1.0). Tool names, resource URI templates, and prompt
 names are stable contracts — see docs/stability/public-contracts.md.
 
-## Tools (67)
+## Tools (70)
 
 | Tool | Access | Summary |
 | --- | --- | --- |
@@ -44,6 +44,7 @@ names are stable contracts — see docs/stability/public-contracts.md.
 | `registry_list` | read-only | List configured extension registries |
 | `registry_search` | read-only | Offline registry index search |
 | `registry_show` | read-only | Registry metadata for one extension (no download) |
+| `repository_inspect` | read-only | Bounded repository sections for a deeper implementation question |
 | `run_list` | read-only | Bounded run summaries |
 | `run_read` | read-only | Safe single-run summary |
 | `runner_doctor` | read-only | Runner diagnostics (never a model request) |
@@ -76,7 +77,9 @@ names are stable contracts — see docs/stability/public-contracts.md.
 | `template_preview` | read-only | Render a template without writing (candidate hash) |
 | `template_search` | read-only | Deterministic local template search |
 | `template_show` | read-only | One template in depth (variables, files, README) |
+| `workspace_bootstrap` | write | Build or revalidate the CurrentSystemSnapshot |
 | `workspace_detect` | read-only | Detect the Kiro-compatible workspace |
+| `workspace_snapshot` | read-only | Current-system summary with an explicit freshness verdict |
 | `workunit_read` | read-only | One work unit: projection identity, candidate, evaluations |
 
 Write tools mutate only spec documents and SpecBridge sidecar state through
