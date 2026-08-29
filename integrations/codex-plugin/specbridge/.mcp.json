@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "specbridge": {
+      "command": "node",
+      "args": [
+        "${PLUGIN_ROOT}/dist/mcp-launcher.cjs"
+      ],
+      "enabled": true,
+      "startup_timeout_sec": 15,
+      "tool_timeout_sec": 3600
+    }
+  }
+}

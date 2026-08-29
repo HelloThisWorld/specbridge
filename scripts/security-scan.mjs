@@ -24,11 +24,13 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SOURCE_TREES = [
   'packages',
   'integrations/github-action/src',
+  'integrations/codex-plugin/src',
   'scripts',
 ];
 /** Release-bound bundles: also checked for absolute paths and source maps. */
 const BUNDLE_TREES = [
   'integrations/claude-code-plugin/specbridge/dist',
+  'integrations/codex-plugin/specbridge/dist',
   'integrations/github-action/dist',
 ];
 const SOURCE_EXTENSIONS = new Set(['.ts', '.mts', '.cts', '.js', '.mjs', '.cjs', '.json', '.yml', '.yaml']);
@@ -75,6 +77,7 @@ const SOURCE_RULES = [
         `packages${path.sep}runners${path.sep}src${path.sep}claude-code${path.sep}invocation.ts`,
         `packages${path.sep}runners${path.sep}src${path.sep}gemini-cli${path.sep}invocation.ts`,
         `scripts${path.sep}security-scan.mjs`,
+        `scripts${path.sep}validate-codex-plugin.mjs`,
         `scripts${path.sep}validate-plugin.mjs`,
       ].some((allowed) => file.endsWith(allowed)),
   ],
@@ -137,14 +140,21 @@ for (const tree of BUNDLE_TREES) {
 }
 
 // Plugin manifest: forbidden permission grants.
-const pluginManifest = path.join(
-  ROOT, 'integrations', 'claude-code-plugin', 'specbridge', '.claude-plugin', 'plugin.json',
-);
-if (existsSync(pluginManifest)) {
-  const raw = readFileSync(pluginManifest, 'utf8');
-  for (const forbidden of ['bypassPermissions', 'dangerously', 'Bash(*)', 'Bash(rm']) {
-    if (raw.includes(forbidden)) {
-      record(pluginManifest, 'forbidden-plugin-permission', 0, forbidden);
+const pluginManifests = [
+  path.join(
+    ROOT, 'integrations', 'claude-code-plugin', 'specbridge', '.claude-plugin', 'plugin.json',
+  ),
+  path.join(
+    ROOT, 'integrations', 'codex-plugin', 'specbridge', '.codex-plugin', 'plugin.json',
+  ),
+];
+for (const pluginManifest of pluginManifests) {
+  if (existsSync(pluginManifest)) {
+    const raw = readFileSync(pluginManifest, 'utf8');
+    for (const forbidden of ['bypassPermissions', 'dangerously', 'Bash(*)', 'Bash(rm']) {
+      if (raw.includes(forbidden)) {
+        record(pluginManifest, 'forbidden-plugin-permission', 0, forbidden);
+      }
     }
   }
 }

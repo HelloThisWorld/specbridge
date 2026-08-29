@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### First-class Codex frontend plugin
+
+- Added a native Codex plugin and repository-local marketplace under
+  `integrations/codex-plugin`, with the full 16-skill SpecBridge frontend
+  surface and the same byte-identical bundled CLI/MCP runtime as Claude Code.
+- Added a Windows-safe MCP launcher that separates the installed plugin
+  location from the active project root, walks to the nearest workspace
+  marker, supports an explicit `SPECBRIDGE_PROJECT_ROOT`, and never uses a
+  shell.
+- Kept final approval human-only: the Codex approval skill only prints the
+  reviewed CLI command and stops, while the MCP catalog continues to expose
+  no approval tool.
+- Added deterministic skill synchronization, checksums, current-Codex local
+  install validation, isolated installed-shape MCP verification, natural-
+  language workflow tests, CI gates, and operator/developer documentation.
+
 ### Workspace Bootstrap — vNext.10.2 Phase 1
 
 Repository awareness now starts BEFORE Product Discovery, not after formal

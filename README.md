@@ -34,6 +34,11 @@ Using Claude Code? Install the self-contained plugin instead:
 `/plugin install specbridge@specbridge-plugins` —
 [details](docs/getting-started/claude-code-plugin.md).
 
+Using Codex? Install the local first-class frontend from this checkout:
+`codex plugin marketplace add ./integrations/codex-plugin` →
+`codex plugin add specbridge@specbridge-local` —
+[details](docs/codex-plugin.md).
+
 [![CI](https://github.com/HelloThisWorld/specbridge/actions/workflows/ci.yml/badge.svg)](https://github.com/HelloThisWorld/specbridge/actions/workflows/ci.yml)
 [![skill test](https://github.com/HelloThisWorld/specbridge/actions/workflows/skill-verification.yml/badge.svg)](https://github.com/HelloThisWorld/agent-skill-verification-template)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -134,8 +139,8 @@ rule-ID annotations, Step Summary.
 [GitHub Action](docs/github-action.md) ·
 [CI quality gates](docs/ci-quality-gates.md)
 
-**Evidence-gated task execution** — a runner (or your live Claude Code
-session, via the plugin) implements one approved task per run. The
+**Evidence-gated task execution** — a runner (or your live Claude Code or
+Codex session, via its frontend plugin) implements one approved task per run. The
 repository is snapshotted before and after; model claims are recorded as
 claims; the task checkbox flips only after trusted verification commands
 pass or an explicit, audited manual acceptance.
@@ -161,13 +166,13 @@ and authenticate Claude Code, the Codex CLI, the Gemini CLI, Ollama, or
 your API endpoint yourself; API keys are referenced by environment-variable
 name only and never stored. [Runners](docs/runners.md)
 
-**MCP server and Claude Code plugin** — a local stdio MCP server (64
-typed tools, 7 resources, 4 prompts) exposes the same core, and a
-self-contained Claude Code plugin bundles CLI + server + fourteen skills
-(the eleven v1.0 skills verified against a live model; the `develop`,
-`orchestrate`, and `discover` skills are not yet live-verified).
+**MCP server and frontend plugins** — a local stdio MCP server (70
+typed tools, 7 resources, 4 prompts) exposes the same core. Self-contained
+Claude Code and Codex plugins bundle the shared CLI + server + all 16 skills;
+Codex remains the active conversation rather than spawning a nested runner.
 [MCP server](docs/mcp-server.md) ·
-[plugin](docs/claude-code-plugin.md) ·
+[Claude Code plugin](docs/claude-code-plugin.md) ·
+[Codex plugin](docs/codex-plugin.md) ·
 [skill verification](docs/skill-verification/README.md)
 
 **Governed agent orchestration (v1.1)** — intent assessment before anything
@@ -235,6 +240,7 @@ and reversible. [Migrations & recovery](docs/migrations/README.md)
 | npm | `npm install -g specbridge-cli` | command is `specbridge`; one-off: `npx -p specbridge-cli specbridge doctor` |
 | Standalone archives | [Releases page](https://github.com/HelloThisWorld/specbridge/releases) | windows-x64, linux-x64, macos-x64, macos-arm64, portable Node; `SHA256SUMS` provided; binaries unsigned |
 | Claude Code plugin | `/plugin marketplace add HelloThisWorld/specbridge` | then `/plugin install specbridge@specbridge-plugins` |
+| Codex plugin | `codex plugin marketplace add ./integrations/codex-plugin` | local checkout; then `codex plugin add specbridge@specbridge-local`; [docs](docs/codex-plugin.md) |
 | GitHub Action | `uses: HelloThisWorld/specbridge/integrations/github-action@v1.0.0` | [docs](docs/github-action.md) |
 | From source | `pnpm install && pnpm build` | Node 20+, pnpm 9 |
 
@@ -267,7 +273,8 @@ v0.1 shipped read-only Kiro compatibility with the byte-identical
 round-trip guarantee; v0.2 offline authoring and hash-based approvals;
 v0.3 the runner contract and evidence-gated task execution; v0.4 the
 deterministic drift verification engine and GitHub Action; v0.5 the MCP
-server, interactive execution, and the Claude Code plugin; v0.6.x the
+server, interactive execution, and the Claude Code plugin; the Codex
+frontend shares that control plane and skill surface; v0.6.x the
 capability-driven multi-runner platform (Codex CLI, Gemini CLI, Ollama,
 OpenAI-compatible); v0.7.x templates and the out-of-process extension
 ecosystem. v1.0.0 froze the public contracts, added the unified

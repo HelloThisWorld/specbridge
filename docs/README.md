@@ -7,13 +7,15 @@ reference, grouped by area.
 ## Getting started
 
 - [Installation](getting-started/installation.md) — npm, standalone
-  archives, the Claude Code plugin, from source.
+  archives, Claude Code and Codex plugins, from source.
 - [Quickstart](getting-started/quickstart.md) — 30 read-only seconds in an
   existing Kiro project.
 - [Using an existing Kiro project](getting-started/existing-kiro-project.md)
   — the zero-migration story and `specbridge setup`.
 - [Claude Code plugin](getting-started/claude-code-plugin.md) — install
-  pointer and the twelve skills.
+  pointer and the 16 skills.
+- [Codex plugin](codex-plugin.md) — first-class conversation frontend,
+  local marketplace installation, project-root rules, and validation.
 
 ## Specs & approvals
 
@@ -218,10 +220,10 @@ the intent in the evening, run one command, read the report in the morning.
 - [Extension manifest reference](extensions/manifest.md) — the
   `specbridge-extension.json` schema.
 
-## MCP & Claude Code plugin
+## MCP & frontend plugins
 
 - [MCP server](mcp-server.md) — the local stdio server.
-- [MCP tool reference](mcp/tool-reference.md) — all 47 tools (generated).
+- [MCP tool reference](mcp/tool-reference.md) — all 70 tools (generated).
 - [MCP tools](mcp-tools.md) · [resources](mcp-resources.md) ·
   [prompts](mcp-prompts.md) · [CLI/MCP parity](cli-mcp-parity.md).
 - [Claude Code integration](claude-code-integration.md) — both directions.
@@ -230,9 +232,11 @@ the intent in the evening, run one command, read the report in the morning.
   [development](plugin-development.md) ·
   [marketplace](plugin-marketplace.md) · [security](plugin-security.md) ·
   [release](plugin-release.md).
+- [Codex plugin](codex-plugin.md) — native plugin layout, all 16 shared
+  skills, MCP launch, Windows behavior, human-only approval, and smoke tests.
 - [Skill verification](skill-verification/README.md) — live-model results
-  for the eleven v1.0 plugin skills (the v1.1 `develop` skill is BLOCKED,
-  not yet live-verified).
+  for the historically evaluated Claude Code skill set; deterministic
+  parity and process-level verification cover both frontend bundles in CI.
 
 ## Migrations & recovery
 

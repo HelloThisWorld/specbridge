@@ -1,0 +1,21 @@
+{
+  "name": "specbridge-local",
+  "owner": {
+    "name": "HelloThisWorld"
+  },
+  "description": "Local Codex plugins for SpecBridge, the open spec runtime for existing Kiro projects.",
+  "plugins": [
+    {
+      "name": "specbridge",
+      "source": {
+        "source": "local",
+        "path": "./specbridge"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_USE"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

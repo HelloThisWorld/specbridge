@@ -17,6 +17,8 @@ integrations/claude-code-plugin/specbridge/
 ├── skills/
 │   ├── doctor/SKILL.md        /specbridge:doctor
 │   ├── status/SKILL.md        /specbridge:status [spec]
+│   ├── spec-draft/SKILL.md    /specbridge:spec-draft [feature] [path]
+│   ├── build/SKILL.md         /specbridge:build <specification>
 │   ├── new/SKILL.md           /specbridge:new <spec> [description]
 │   ├── author/SKILL.md        /specbridge:author <spec> <stage> [note]
 │   ├── approve/SKILL.md       /specbridge:approve <spec> <stage>   (human-only)
@@ -139,4 +141,6 @@ the skills and the interactive execution code for `claude -p`,
 See [plugin-installation.md](plugin-installation.md),
 [plugin-development.md](plugin-development.md),
 [plugin-security.md](plugin-security.md), and
-[plugin-release.md](plugin-release.md).
+[plugin-release.md](plugin-release.md). The native frontend with the same
+16-skill control-plane surface is documented at
+[Codex plugin](codex-plugin.md).
