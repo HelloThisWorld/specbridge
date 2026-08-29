@@ -12,6 +12,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
   rmSync,
   writeFileSync,
 } from 'node:fs';
@@ -144,7 +145,7 @@ const originalConfig = '{}\n';
 writeFileSync(configPath, originalConfig);
 
 const launcher = path.join(pluginCopy, 'dist', 'mcp-launcher.cjs');
-const canonicalProjectRoot = path.resolve(projectRoot);
+const canonicalProjectRoot = realpathSync(projectRoot);
 
 try {
   check('installed-shape launcher exists', existsSync(launcher));
@@ -283,7 +284,7 @@ try {
   check(
     'a nested simple path resolves to its Git project root before SpecBridge is initialized',
     path.resolve(gitDetect.result?.structuredContent?.projectRoot ?? '') ===
-      path.resolve(gitProjectRoot),
+      realpathSync(gitProjectRoot),
     JSON.stringify(gitDetect.result?.structuredContent)?.slice(0, 300),
   );
   await closeSession(gitSession);
