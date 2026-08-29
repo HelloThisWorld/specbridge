@@ -89,7 +89,14 @@ jobs:
       - name: Verify the isolated plugin bundle (mandatory self-containment check)
         run: pnpm verify:plugin-bundle
 
-      - name: Claude Code plugin bundle is reproducible
-        if: matrix.os == 'ubuntu-latest'
-        run: git diff --exit-code integrations/claude-code-plugin/specbridge/dist
+      - name: Validate the Codex plugin (deterministic; live CLI when available)
+        run: pnpm validate:codex-plugin
 
+      - name: Verify the isolated Codex plugin bundle and MCP launcher
+        run: pnpm verify:codex-plugin-bundle
+
+      - name: Frontend plugin bundles are reproducible
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          pnpm check:codex-plugin
+          git diff --exit-code integrations/claude-code-plugin/specbridge/dist integrations/codex-plugin/specbridge

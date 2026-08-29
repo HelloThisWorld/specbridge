@@ -1,6 +1,7 @@
 # Installation
 
-Four supported ways to install SpecBridge, all serving the same CLI. Pick
+Five supported ways to install SpecBridge, all serving the same control
+plane. Pick
 one; nothing else is required. Node.js 20+ is needed for every option
 except the standalone archives (which carry their own runtime notes below).
 
@@ -48,7 +49,7 @@ checksums prove integrity, not publisher identity (see the
 
 ## Claude Code plugin
 
-The plugin bundles the CLI, the local MCP server, and twelve skills — no
+The plugin bundles the CLI, the local MCP server, and all 16 skills — no
 npm install needed. Inside Claude Code:
 
 ```text
@@ -60,6 +61,23 @@ npm install needed. Inside Claude Code:
 A release-attached plugin ZIP exists too. Details, verification steps, and
 the ZIP workflow: [plugin installation](../plugin-installation.md), and the
 short overview at [Claude Code plugin](claude-code-plugin.md).
+
+## Codex plugin
+
+The first-class Codex frontend bundles the same CLI and MCP runtime plus all
+16 skills. From a SpecBridge source checkout:
+
+```text
+codex plugin marketplace add ./integrations/codex-plugin
+codex plugin add specbridge@specbridge-local
+codex mcp list
+```
+
+It is a conversation frontend, not the `codex-default` execution runner;
+installing it does not enable or reconfigure any runner. Current Codex uses
+plugin add/remove rather than a separate enable/disable command. See the
+[Codex plugin guide](../codex-plugin.md) for Windows paths, authority rules,
+workflow examples, troubleshooting, and validation.
 
 ## From source
 

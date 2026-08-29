@@ -1,0 +1,41 @@
+{
+  "name": "specbridge",
+  "version": "1.1.0",
+  "description": "Use SpecBridge as a first-class Codex frontend: discuss product work, draft and intake specs, inspect and continue jobs, and operate evidence-governed workflows through the bundled MCP server.",
+  "author": {
+    "name": "HelloThisWorld"
+  },
+  "homepage": "https://github.com/HelloThisWorld/specbridge",
+  "repository": "https://github.com/HelloThisWorld/specbridge",
+  "license": "MIT",
+  "keywords": [
+    "spec-driven-development",
+    "kiro",
+    "mcp",
+    "codex",
+    "ai-agents",
+    "spec-verification"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "SpecBridge",
+    "shortDescription": "Govern product specs and evidence-backed delivery",
+    "longDescription": "Use Codex as the conversation frontend for SpecBridge. Discuss and draft product requirements, run repository-grounded Spec Intake, inspect or continue governed jobs, and use the same local MCP control plane as the Claude Code integration. Final approval remains a human-only CLI action.",
+    "developerName": "HelloThisWorld",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/HelloThisWorld/specbridge",
+    "defaultPrompt": [
+      "Turn what we discussed into a SpecBridge spec",
+      "Show the status of my SpecBridge work",
+      "Check whether SpecBridge is healthy in this project"
+    ],
+    "brandColor": "#2563EB",
+    "screenshots": []
+  }
+}

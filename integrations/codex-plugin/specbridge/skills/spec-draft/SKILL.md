@@ -1,7 +1,8 @@
 ---
 name: spec-draft
-description: Turn a conversation into a SpecBridge-ready specification document. Use when the user asks to capture what was discussed as a spec — "幫我寫成spec", "output to spec", "寫個規格", "把我們聊的整理成規格", "turn this into a spec", "draft the spec" — after (or during) a discussion about what to build. Produces a Markdown specification file shaped for `specbridge spec start`, asks only for genuinely missing PRODUCT decisions, and never invents requirements the user did not state.
+description: "Turn a conversation into a SpecBridge-ready specification document. Use when the user asks to capture what was discussed as a spec — \"幫我寫成spec\", \"output to spec\", \"寫個規格\", \"把我們聊的整理成規格\", \"turn this into a spec\", \"draft the spec\" — after (or during) a discussion about what to build. Produces a Markdown specification file shaped for `specbridge spec start`, asks only for genuinely missing PRODUCT decisions, and never invents requirements the user did not state. Natural-language triggers also include \"把我们刚才聊的写成 spec\" and \"把剛才聊的整理成 spec\"."
 ---
+
 
 # SpecBridge spec-draft (conversation → specification)
 

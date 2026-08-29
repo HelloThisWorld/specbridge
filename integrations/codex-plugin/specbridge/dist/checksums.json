@@ -1,0 +1,22 @@
+{
+  "schema": "specbridge.codex-plugin-checksums/1",
+  "version": "1.1.0",
+  "files": {
+    "THIRD_PARTY_LICENSES.txt": {
+      "sha256": "d1494e312cde68820fc8bb242275d036b2a362d95b59f40d6c7974998edcb0dc",
+      "bytes": 155992
+    },
+    "cli.cjs": {
+      "sha256": "c9aa8976794493be2c2cd911cdeb89c1cece9a0ef012f252f95647a7c4b4309b",
+      "bytes": 5424590
+    },
+    "mcp-launcher.cjs": {
+      "sha256": "205d2730178bcdb5a06e199a42a6a6fb0977f42d706f3d445aec801a60874b3e",
+      "bytes": 4567
+    },
+    "mcp-server.cjs": {
+      "sha256": "efa26804dd2314f85d9a0a3308dd3e706217a967933d46ac2a5db3b9ba7c5644",
+      "bytes": 3542612
+    }
+  }
+}
