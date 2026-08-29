@@ -7,6 +7,9 @@ implementation still reaches the configured large agent; the explicit-only
 [Secondary Objective Builder](orchestration/secondary-objective-builder.md)
 can also use this endpoint for bounded worktree edits. One managed server serves
 every logical role — roles are prompts, not processes.
+Its [Builder Packet compiler](orchestration/builder-packet-compilation.md)
+selects fresh source and tests first, so the direct model needs no repository
+tools for ordinary bounded implementation work.
 
 The local model is a **worker**, never an authority: its answers are
 schema-validated structured proposals that deterministic policy accepts,

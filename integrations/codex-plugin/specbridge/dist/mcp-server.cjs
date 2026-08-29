@@ -51606,6 +51606,8 @@ var CONTEXT_SELECTION_REASONS = [
   "DEPENDENCY_PROXIMITY",
   /** In the same module/package as an already-selected file. */
   "MODULE_PROXIMITY",
+  /** A bounded nearby implementation with the same structural convention. */
+  "REFERENCE_PATTERN",
   /** A declared symbol matched a query symbol. */
   "SYMBOL_MATCH",
   /** Filename/path tokens overlapped the query tokens. */
@@ -52900,6 +52902,7 @@ var DEFAULT_RANKING_WEIGHTS = Object.freeze({
   testSourcePair: 180,
   dependencyProximity: 120,
   moduleProximity: 40,
+  referencePattern: 150,
   tokenOverlapPerToken: 12,
   tokenOverlapCap: 96,
   priorTaskRelevance: 60,
@@ -53037,6 +53040,31 @@ function rankCandidates(index, query, options = {}) {
     for (const dependent of index.dependentsOf(anchor)) {
       add(dependent, "DEPENDENCY_PROXIMITY", weights.dependencyProximity, level2, anchor);
     }
+    const anchorEntry = index.get(anchor);
+    if (anchorEntry !== void 0 && anchorEntry.kind === "source") {
+      const suffixes = structuralSuffixes(anchorEntry.path, anchorEntry.symbols);
+      for (const sibling of index.siblingsIn(anchorEntry.module)) {
+        if (sibling === anchor) continue;
+        const entry = index.get(sibling);
+        if (entry === void 0 || entry.kind !== "source" || entry.language !== anchorEntry.language) {
+          continue;
+        }
+        const sharedImportCount = entry.imports.filter(
+          (specifier) => anchorEntry.imports.includes(specifier)
+        ).length;
+        const sameConvention = structuralSuffixes(entry.path, entry.symbols).some(
+          (suffix) => suffixes.includes(suffix)
+        );
+        if (!sameConvention && sharedImportCount < 2) continue;
+        add(
+          sibling,
+          "REFERENCE_PATTERN",
+          weights.referencePattern + Math.min(30, sharedImportCount * 10),
+          level2,
+          sameConvention ? anchor : `${anchor} (${sharedImportCount} shared imports)`
+        );
+      }
+    }
   }
   const anchorModules = new Set(anchors.map((anchor) => index.get(anchor)?.module ?? ""));
   for (const module2 of anchorModules) {
@@ -53070,6 +53098,16 @@ function rankCandidates(index, query, options = {}) {
     (left, right) => right.score !== left.score ? right.score - left.score : left.path < right.path ? -1 : 1
   );
   return ranked.slice(0, maxCandidates);
+}
+function structuralSuffixes(relativePath, symbols) {
+  const base = relativePath.split("/").at(-1)?.replace(/\.[^.]+$/, "") ?? "";
+  const values = [base, ...symbols];
+  const suffixes = /* @__PURE__ */ new Set();
+  for (const value of values) {
+    const match = value.match(/([A-Z][a-z0-9]{2,})$/);
+    if (match?.[1] !== void 0) suffixes.add(match[1].toLowerCase());
+  }
+  return [...suffixes];
 }
 var DEFAULT_SECTION_OPTIONS = {
   wholeFileUnderChars: 6e3,
@@ -53302,6 +53340,8 @@ function planContextExpansion(input) {
 }
 var shortText3 = external_exports.string().min(1).max(CONTEXT_LIMITS.maxShortTextChars);
 var selectedContextItemSchema = external_exports.object({
+  /** Repository identity when a plan participates in a multi-repo packet. */
+  repositoryId: shortText3.optional(),
   /** Workspace-relative path, forward slashes. */
   path: shortText3,
   /** Content hash the selection was made against. Verified before use. */
@@ -53320,6 +53360,7 @@ var selectedContextItemSchema = external_exports.object({
   detail: shortText3.optional()
 }).passthrough();
 var contextPointerSchema = external_exports.object({
+  repositoryId: shortText3.optional(),
   path: shortText3,
   reason: external_exports.enum(CONTEXT_SELECTION_REASONS),
   /**
@@ -53337,6 +53378,7 @@ var contextPointerSchema = external_exports.object({
   detail: shortText3.optional()
 }).passthrough();
 var excludedCandidateSchema = external_exports.object({
+  repositoryId: shortText3.optional(),
   path: shortText3,
   reason: external_exports.enum(CONTEXT_EXCLUSION_REASONS),
   score: external_exports.number().int(),
@@ -53349,6 +53391,8 @@ var contextSelectionPlanSchema = external_exports.object({
   taskId: shortText3,
   nodeId: shortText3.optional(),
   attemptId: shortText3.optional(),
+  /** Repository identity; paths are unique only within this namespace. */
+  repositoryId: shortText3.optional(),
   strategy: external_exports.enum(CONTEXT_STRATEGIES),
   shape: external_exports.enum(CONTEXT_SHAPES),
   role: external_exports.enum(RETRIEVAL_ROLES),
@@ -53395,6 +53439,17 @@ var contextSelectionPlanSchema = external_exports.object({
   }).passthrough(),
   /** Stable identities of the reusable prompt components (observability). */
   componentHashes: external_exports.record(external_exports.string().nullable()).default({}),
+  /** Phase 5 facts; metrics are evidence for later policy, never eligibility here. */
+  builderPacket: external_exports.object({
+    contextSufficient: external_exports.boolean(),
+    explicitTargetResolved: external_exports.boolean(),
+    targetAmbiguity: external_exports.boolean(),
+    testsFound: external_exports.boolean(),
+    verificationHintsAvailable: external_exports.boolean(),
+    referencePatternFound: external_exports.boolean(),
+    dependencyContextComplete: external_exports.boolean(),
+    sourceBudgetUtilization: external_exports.number().min(0)
+  }).passthrough().optional(),
   createdAt: shortText3
 }).passthrough();
 var RERANK_LIMITS = {
@@ -57797,12 +57852,15 @@ var LOCAL_EXECUTOR_SYSTEM_PROMPT = [
   "  a verification cycle.",
   "- The response must be valid JSON for the provided schema."
 ].join("\n");
-var SECONDARY_BUILDER_PACKET_SCHEMA_VERSION = "1.0.0";
-var SECONDARY_BUILDER_RESULT_SCHEMA_VERSION = "1.0.0";
-var SECONDARY_BUILDER_ATTEMPT_SCHEMA_VERSION = "1.0.0";
+var SECONDARY_BUILDER_PACKET_SCHEMA_VERSION = "1.1.0";
+var SECONDARY_BUILDER_RESULT_SCHEMA_VERSION = "1.1.0";
+var SECONDARY_BUILDER_ATTEMPT_SCHEMA_VERSION = "1.1.0";
 var SECONDARY_BUILDER_LIMITS = {
   ...LOCAL_EXECUTION_LIMITS,
   maxSourceFiles: 16,
+  maxTests: 6,
+  maxReferencePatterns: 4,
+  maxDependencyContext: 12,
   maxSourceFileChars: 32768,
   maxSourceBytes: 262144,
   maxPacketCharacters: 524288,
@@ -57813,11 +57871,60 @@ var boundedText = (max) => external_exports.string().min(1).max(max);
 var shortText42 = boundedText(512);
 var sha256 = external_exports.string().regex(/^[a-f0-9]{64}$/);
 var secondarySourceContextSchema = external_exports.object({
-  /** Worktree-relative path. Whole-file source only in Phase 4. */
+  /** Repository namespace. Paths are unique only within this identity. */
+  repositoryId: shortText42.default("primary"),
+  /** Repository-relative path. */
   path: boundedText(SECONDARY_BUILDER_LIMITS.maxPathChars),
-  /** Hash of the exact UTF-8 content below. */
+  /** Hash of the complete current file bytes. */
   contentHash: sha256,
-  content: external_exports.string().max(SECONDARY_BUILDER_LIMITS.maxSourceFileChars)
+  /** Hash of the exact bounded content below (whole file or section). */
+  sectionHash: sha256.optional(),
+  content: external_exports.string().max(SECONDARY_BUILDER_LIMITS.maxSourceFileChars),
+  reason: external_exports.enum(CONTEXT_SELECTION_REASONS).default("EXPLICIT_ACTION_REFERENCE"),
+  startLine: external_exports.number().int().min(1).optional(),
+  endLine: external_exports.number().int().min(1).optional(),
+  symbols: external_exports.array(shortText42).max(12).default([])
+}).strict();
+var secondaryBuilderTargetSchema = external_exports.object({
+  repositoryId: shortText42,
+  path: boundedText(SECONDARY_BUILDER_LIMITS.maxPathChars),
+  symbols: external_exports.array(shortText42).max(12).default([]),
+  reason: external_exports.enum(CONTEXT_SELECTION_REASONS)
+}).strict();
+var secondaryDependencyContextSchema = external_exports.object({
+  workUnitId: shortText42,
+  summary: boundedText(2e3),
+  changedFiles: external_exports.array(
+    external_exports.object({ repositoryId: shortText42, path: boundedText(SECONDARY_BUILDER_LIMITS.maxPathChars) }).strict()
+  ).max(60),
+  exportedSymbols: external_exports.array(shortText42).max(30).default([]),
+  verificationPassed: external_exports.literal(true)
+}).strict();
+var secondaryBuilderPacketMetricsSchema = external_exports.object({
+  indexedFilesConsidered: external_exports.number().int().min(0),
+  candidateCount: external_exports.number().int().min(0),
+  selectedFiles: external_exports.number().int().min(0),
+  selectedSections: external_exports.number().int().min(0),
+  sourceCharacters: external_exports.number().int().min(0),
+  testCharacters: external_exports.number().int().min(0),
+  referencePatternCount: external_exports.number().int().min(0),
+  dependencyContextCount: external_exports.number().int().min(0),
+  budgetUtilization: external_exports.number().min(0),
+  mandatoryRefsRetained: external_exports.number().int().min(0),
+  expansionDepth: external_exports.number().int().min(0).max(4),
+  staleEntriesEncountered: external_exports.number().int().min(0),
+  selectionDurationMs: external_exports.number().int().min(0),
+  indexReused: external_exports.boolean()
+}).strict();
+var secondaryBuilderPacketQualitySchema = external_exports.object({
+  explicitTargetResolved: external_exports.boolean(),
+  targetAmbiguity: external_exports.boolean(),
+  testsFound: external_exports.boolean(),
+  verificationHintsAvailable: external_exports.boolean(),
+  referencePatternFound: external_exports.boolean(),
+  dependencyContextComplete: external_exports.boolean(),
+  sourceBudgetUtilization: external_exports.number().min(0),
+  contextSufficient: external_exports.boolean()
 }).strict();
 var projectedContractSchema = external_exports.object({
   contractId: shortText42,
@@ -57833,7 +57940,10 @@ var secondaryBuilderPacketSchema = external_exports.object({
   projectionHash: sha256,
   contractSnapshotHash: sha256,
   sourceContextHash: sha256,
+  /** Semantic identity; excludes createdAt and observational metrics. */
+  contentHash: sha256,
   packetHash: sha256,
+  createdAt: shortText42.optional(),
   objective: external_exports.object({
     nodeId: shortText42,
     taskId: shortText42,
@@ -57857,6 +57967,19 @@ var secondaryBuilderPacketSchema = external_exports.object({
     priorWorkEvidence: external_exports.array(boundedText(2e3)).max(30)
   }).strict(),
   sourceContext: external_exports.array(secondarySourceContextSchema).max(SECONDARY_BUILDER_LIMITS.maxSourceFiles),
+  targets: external_exports.array(secondaryBuilderTargetSchema).max(SECONDARY_BUILDER_LIMITS.maxSourceFiles),
+  tests: external_exports.array(secondarySourceContextSchema).max(SECONDARY_BUILDER_LIMITS.maxTests),
+  referencePatterns: external_exports.array(secondarySourceContextSchema).max(SECONDARY_BUILDER_LIMITS.maxReferencePatterns),
+  dependencyContext: external_exports.array(secondaryDependencyContextSchema).max(SECONDARY_BUILDER_LIMITS.maxDependencyContext),
+  priorFailureEvidence: external_exports.array(boundedText(2e3)).max(20),
+  retrievalPlanRef: shortText42,
+  retrievalPlanRefs: external_exports.array(shortText42).max(12),
+  expansion: external_exports.object({
+    level: external_exports.enum(CONTEXT_EXPANSION_LEVELS),
+    remainingLevels: external_exports.number().int().min(0).max(4)
+  }).strict(),
+  contextMetrics: secondaryBuilderPacketMetricsSchema,
+  quality: secondaryBuilderPacketQualitySchema,
   forbiddenChanges: external_exports.array(boundedText(1e3)).max(30),
   verificationHints: external_exports.array(boundedText(1e3)).max(30)
 }).strict();
@@ -57867,16 +57990,26 @@ var secondaryStructuredEditSchema = external_exports.object({
 }).strict();
 var secondaryBuilderResultSchema = external_exports.object({
   schemaVersion: external_exports.literal(SECONDARY_BUILDER_RESULT_SCHEMA_VERSION),
+  status: external_exports.enum(["EDITS", "NEEDS_MORE_CONTEXT"]).default("EDITS"),
   summary: boundedText(SECONDARY_BUILDER_LIMITS.maxSummaryChars),
   edits: external_exports.array(secondaryStructuredEditSchema).max(SECONDARY_BUILDER_LIMITS.maxEdits),
-  notes: external_exports.array(external_exports.string().max(SECONDARY_BUILDER_LIMITS.maxNoteChars)).max(SECONDARY_BUILDER_LIMITS.maxNotes).optional()
-}).strict();
+  notes: external_exports.array(external_exports.string().max(SECONDARY_BUILDER_LIMITS.maxNoteChars)).max(SECONDARY_BUILDER_LIMITS.maxNotes).optional(),
+  needsMoreContextReasons: external_exports.array(external_exports.string().min(1).max(SECONDARY_BUILDER_LIMITS.maxNoteChars)).min(1).max(8).optional()
+}).strict().superRefine((result, context) => {
+  if (result.status === "NEEDS_MORE_CONTEXT" && result.needsMoreContextReasons === void 0) {
+    context.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["needsMoreContextReasons"], message: "required when status is NEEDS_MORE_CONTEXT" });
+  }
+  if (result.status === "NEEDS_MORE_CONTEXT" && result.edits.length > 0) {
+    context.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["edits"], message: "must be empty when more context is required" });
+  }
+});
 var SECONDARY_BUILDER_JSON_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["schemaVersion", "summary", "edits"],
+  required: ["schemaVersion", "status", "summary", "edits"],
   properties: {
     schemaVersion: { type: "string", const: SECONDARY_BUILDER_RESULT_SCHEMA_VERSION },
+    status: { type: "string", enum: ["EDITS", "NEEDS_MORE_CONTEXT"] },
     summary: { type: "string", minLength: 1, maxLength: SECONDARY_BUILDER_LIMITS.maxSummaryChars },
     edits: {
       type: "array",
@@ -57896,6 +58029,12 @@ var SECONDARY_BUILDER_JSON_SCHEMA = {
       type: "array",
       maxItems: SECONDARY_BUILDER_LIMITS.maxNotes,
       items: { type: "string", maxLength: SECONDARY_BUILDER_LIMITS.maxNoteChars }
+    },
+    needsMoreContextReasons: {
+      type: "array",
+      minItems: 1,
+      maxItems: 8,
+      items: { type: "string", minLength: 1, maxLength: SECONDARY_BUILDER_LIMITS.maxNoteChars }
     }
   }
 };
@@ -57903,6 +58042,9 @@ var SECONDARY_BUILDER_SYSTEM_PROMPT = [
   "You are a bounded SECONDARY OBJECTIVE BUILDER, not an agent harness.",
   "You have no shell, git, filesystem, package-manager, test, credential, or tool access.",
   "The packet contains all approved truth and source bytes you may use.",
+  "You have been given the repository context selected for this task; do not explore beyond it.",
+  "Do not invent files, APIs, symbols, or architecture unsupported by the packet.",
+  "If the packet is insufficient to implement safely, return NEEDS_MORE_CONTEXT with bounded reasons and no edits.",
   "Return exactly one JSON document matching the supplied schema.",
   "Return complete UTF-8 file contents using only CREATE or REPLACE.",
   "Never return Markdown, diffs, commands, deletes, renames, symlinks, or authority/config edits.",
@@ -57919,6 +58061,8 @@ var SECONDARY_BUILDER_FAILURES = [
   "VERIFICATION_FAILURE",
   "TIMEOUT",
   "CONTEXT_TOO_LARGE",
+  "INSUFFICIENT_CONTEXT",
+  "AMBIGUOUS_TARGET",
   "CANCELLED"
 ];
 var SECONDARY_BUILDER_ATTEMPT_STATUSES = [
@@ -57927,6 +58071,7 @@ var SECONDARY_BUILDER_ATTEMPT_STATUSES = [
   "PROPOSAL_VALIDATED",
   "EDITS_APPLIED",
   "VERIFICATION_FAILED",
+  "CONTEXT_INSUFFICIENT",
   "CANDIDATE_READY",
   "FAILED"
 ];
@@ -62740,6 +62885,43 @@ var OBJECTIVE_OUTPUT_JSON_SCHEMAS = {
       blockingQuestions: textListJson2
     }
   }
+};
+var BUILDER_PACKET_COMPILATION_SCHEMA_VERSION = "1.0.0";
+var BUILDER_PACKET_COMPILATION_FAILURES = [
+  "INSUFFICIENT_CONTEXT",
+  "AMBIGUOUS_TARGET",
+  "STALE_SOURCE_CONTEXT"
+];
+var builderPacketCompilationResultSchema = external_exports.discriminatedUnion("ok", [
+  external_exports.object({
+    ok: external_exports.literal(true),
+    schemaVersion: external_exports.literal(BUILDER_PACKET_COMPILATION_SCHEMA_VERSION),
+    packet: secondaryBuilderPacketSchema,
+    plans: external_exports.array(contextSelectionPlanSchema).max(12),
+    planRefs: external_exports.array(external_exports.string().min(1).max(512)).max(12),
+    metrics: secondaryBuilderPacketMetricsSchema,
+    quality: secondaryBuilderPacketQualitySchema,
+    repositoryRoots: external_exports.record(external_exports.string().min(1))
+  }).strict(),
+  external_exports.object({
+    ok: external_exports.literal(false),
+    schemaVersion: external_exports.literal(BUILDER_PACKET_COMPILATION_SCHEMA_VERSION),
+    failure: external_exports.object({
+      kind: external_exports.enum(BUILDER_PACKET_COMPILATION_FAILURES),
+      reasons: external_exports.array(external_exports.string().min(1).max(2e3)).min(1).max(8)
+    }).strict(),
+    plans: external_exports.array(contextSelectionPlanSchema).max(12),
+    planRefs: external_exports.array(external_exports.string().min(1).max(512)).max(12),
+    metrics: secondaryBuilderPacketMetricsSchema,
+    quality: secondaryBuilderPacketQualitySchema
+  }).strict()
+]);
+var defaultBudget = {
+  maxSelectedFiles: SECONDARY_BUILDER_LIMITS.maxSourceFiles,
+  maxTests: SECONDARY_BUILDER_LIMITS.maxTests,
+  maxReferencePatterns: SECONDARY_BUILDER_LIMITS.maxReferencePatterns,
+  maxSourceCharacters: SECONDARY_BUILDER_LIMITS.maxSourceBytes,
+  maxCharactersPerSection: SECONDARY_BUILDER_LIMITS.maxSourceFileChars
 };
 var QUOTA_SNAPSHOT_SCHEMA_VERSION = "1.0.0";
 var isoText = external_exports.string().min(1).max(64);

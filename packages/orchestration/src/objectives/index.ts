@@ -13,3 +13,4 @@ export * from './workers.js';
 export * from './integrator.js';
 export * from './objective-driver.js';
 export * from './secondary-builder.js';
+export * from './builder-packet-compiler.js';

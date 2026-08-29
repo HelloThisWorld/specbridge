@@ -100,6 +100,8 @@ import type {
   SecondaryBuilderFailureKind,
   SecondaryObjectiveBuilderSelection,
 } from './secondary-builder.js';
+import { SecondaryBuilderContextCompiler } from './builder-packet-compiler.js';
+import type { VerifiedDependencyContextInput } from './builder-packet-compiler.js';
 import {
   SECONDARY_BUILDER_ATTEMPT_SCHEMA_VERSION,
   buildSecondaryBuilderPacket,
@@ -442,6 +444,7 @@ interface UnitAttemptContext {
 
 interface PreparedAttempt {
   unitId: string;
+  unit: WorkUnit;
   kind: WorkUnit['kind'];
   attempt: number;
   workerId: string;
@@ -450,6 +453,8 @@ interface PreparedAttempt {
   baselineCommit: string;
   record: ReturnType<typeof beginWorker>;
   dependencyPatches: { workUnitId: string; patch: string }[];
+  dependencyContext: VerifiedDependencyContextInput[];
+  missingDependencyIds: string[];
 }
 
 interface ExecutedAttempt {
@@ -630,7 +635,10 @@ function secondaryFailureCategory(kind: SecondaryBuilderFailureKind): FailureCat
     case 'VERIFICATION_FAILURE':
       return 'VERIFICATION_FAILURE';
     case 'CONTEXT_TOO_LARGE':
+    case 'INSUFFICIENT_CONTEXT':
       return 'CAPABILITY_UNAVAILABLE';
+    case 'AMBIGUOUS_TARGET':
+      return 'AMBIGUITY';
     case 'TIMEOUT':
       return 'TRANSIENT_TRANSPORT';
     case 'INFERENCE_UNAVAILABLE':
@@ -653,35 +661,78 @@ async function executeSelectedSecondaryBuilder(
     return { prepared, result: builderFailureResult('secondary builder selection disappeared') };
   }
 
-  let sourceContext;
-  try {
-    sourceContext =
-      typeof selection.sourceContext === 'function'
-        ? await selection.sourceContext({ worktreeRoot: worktree.dir, projection: prepared.projection })
-        : selection.sourceContext;
-  } catch (cause) {
-    const problem = `source context could not be prepared: ${cause instanceof Error ? cause.message : String(cause)}`;
-    return {
-      prepared,
-      result: builderFailureResult(problem),
-      secondaryFailure: { kind: 'STALE_SOURCE_CONTEXT', problem },
-    };
-  }
-
   let packet;
-  try {
-    packet = buildSecondaryBuilderPacket({
-      projection: prepared.projection,
-      sourceContext,
-      verificationHints: input.config.verification.commands.map((command) => command.name),
+  let repositoryRoots: Readonly<Record<string, string>> = { primary: worktree.dir };
+  if (selection.sourceContext !== undefined) {
+    try {
+      const sourceContext =
+        typeof selection.sourceContext === 'function'
+          ? await selection.sourceContext({ worktreeRoot: worktree.dir, projection: prepared.projection })
+          : selection.sourceContext;
+      packet = buildSecondaryBuilderPacket({
+        projection: prepared.projection,
+        sourceContext,
+        verificationHints: input.config.verification.commands.map((command) => command.name),
+      });
+    } catch (cause) {
+      const problem = `source context could not be prepared: ${cause instanceof Error ? cause.message : String(cause)}`;
+      return {
+        prepared,
+        result: builderFailureResult(problem),
+        secondaryFailure: { kind: 'STALE_SOURCE_CONTEXT', problem },
+      };
+    }
+  } else {
+    const compiler = selection.contextCompiler ?? new SecondaryBuilderContextCompiler();
+    let compiled;
+    try {
+      compiled = await compiler.compile({
+        workspace: input.workspace,
+        config: input.config,
+        jobId: input.jobId,
+        objectiveNodeId: input.node.nodeId,
+        workUnit: prepared.unit,
+        projection: prepared.projection,
+        attempt: prepared.attempt,
+        worktreeRoot: worktree.dir,
+        baselineRef: prepared.baselineCommit,
+        dependencyContext: prepared.dependencyContext,
+        missingDependencyIds: prepared.missingDependencyIds,
+        priorFailureEvidence:
+          prepared.unit.latestFailure === undefined
+            ? []
+            : [`${prepared.unit.latestFailure.category}: ${prepared.unit.latestFailure.message}`],
+        verificationHints: input.config.verification.commands.map((command) => command.name),
+        maximumInputCharacters: secondaryBuilderInputCeiling(input.config),
+        createdAt: nowIso(input),
+      });
+    } catch (cause) {
+      const problem = `builder packet compilation failed: ${cause instanceof Error ? cause.message : String(cause)}`;
+      return {
+        prepared,
+        result: builderFailureResult(problem),
+        secondaryFailure: { kind: 'INSUFFICIENT_CONTEXT', problem },
+      };
+    }
+    input.recordEvent(compiled.ok ? 'context_selected' : 'context_insufficient', {
+      nodeId: input.node.nodeId,
+      workUnitId: prepared.unitId,
+      attempt: prepared.attempt,
+      planRefs: compiled.planRefs,
+      metrics: compiled.metrics,
+      quality: compiled.quality,
+      ...(compiled.ok ? {} : { failure: compiled.failure.kind, reasons: compiled.failure.reasons }),
     });
-  } catch (cause) {
-    const problem = `secondary builder packet was refused: ${cause instanceof Error ? cause.message : String(cause)}`;
-    return {
-      prepared,
-      result: builderFailureResult(problem),
-      secondaryFailure: { kind: 'CONTEXT_TOO_LARGE', problem },
-    };
+    if (!compiled.ok) {
+      const problem = `${compiled.failure.kind}: ${compiled.failure.reasons.join('; ')}`;
+      return {
+        prepared,
+        result: builderFailureResult(problem),
+        secondaryFailure: { kind: compiled.failure.kind, problem },
+      };
+    }
+    packet = compiled.packet;
+    repositoryRoots = compiled.repositoryRoots;
   }
 
   const inference =
@@ -756,6 +807,7 @@ async function executeSelectedSecondaryBuilder(
     maximumInputCharacters: secondaryBuilderInputCeiling(input.config),
     maxOutputBytes: input.config.localInference.maxOutputBytes,
     protectedPaths: input.config.execution.protectedPaths,
+    repositoryRoots,
     ...(input.signal !== undefined ? { signal: input.signal } : {}),
     onExecutionEvent: (event) => {
       if (event.stage === 'INFERENCE_COMPLETED') {
@@ -778,7 +830,7 @@ async function executeSelectedSecondaryBuilder(
   });
   if (!executed.ok) {
     persist({
-      status: 'FAILED',
+      status: executed.failure.kind === 'INSUFFICIENT_CONTEXT' ? 'CONTEXT_INSUFFICIENT' : 'FAILED',
       failure: executed.failure,
       ...(executed.rawOutput !== undefined ? { rawOutput: executed.rawOutput.slice(0, 1_048_576) } : {}),
       ...(executed.proposal !== undefined ? { proposal: executed.proposal } : {}),
@@ -910,6 +962,8 @@ async function prepareUnitAttempt(
   // Dependency evidence: verified candidates only — never chat.
   const workEvidence: string[] = [];
   const dependencyPatches: { workUnitId: string; patch: string }[] = [];
+  const dependencyContext: VerifiedDependencyContextInput[] = [];
+  const missingDependencyIds: string[] = [];
   for (const dependencyId of unit.dependsOn) {
     const dependency = findUnit(graph, dependencyId);
     if (dependency === undefined) continue;
@@ -942,6 +996,18 @@ async function prepareUnitAttempt(
       if (patch !== undefined && patch.trim().length > 0) {
         dependencyPatches.push({ workUnitId: resolved.workUnitId, patch });
       }
+      if (candidate.localVerification.passed) {
+        dependencyContext.push({
+          workUnitId: resolved.workUnitId,
+          summary: candidate.claims.summary,
+          changedFiles: candidate.changedFiles.map((file) => ({ repositoryId: 'primary', path: file.path })),
+          verificationPassed: true,
+        });
+      } else {
+        missingDependencyIds.push(resolved.workUnitId);
+      }
+    } else {
+      missingDependencyIds.push(resolved.workUnitId);
     }
   }
 
@@ -1020,6 +1086,7 @@ async function prepareUnitAttempt(
     graph: nextGraph,
     prepared: {
       unitId,
+      unit,
       kind: unit.kind,
       attempt,
       workerId,
@@ -1028,6 +1095,8 @@ async function prepareUnitAttempt(
       baselineCommit,
       record,
       dependencyPatches,
+      dependencyContext,
+      missingDependencyIds,
     },
   };
 }

@@ -38,12 +38,14 @@ import type { ContextExpansionLevel, ContextShape } from './vocabulary.js';
  * diagnostic record that is meant to be safe to display.
  */
 
-export const CONTEXT_SELECTION_PLAN_SCHEMA_VERSION = '1.0.0';
+export const CONTEXT_SELECTION_PLAN_SCHEMA_VERSION = '1.1.0';
 
 const shortText = z.string().min(1).max(CONTEXT_LIMITS.maxShortTextChars);
 
 export const selectedContextItemSchema = z
   .object({
+    /** Repository identity when a plan participates in a multi-repo packet. */
+    repositoryId: shortText.optional(),
     /** Workspace-relative path, forward slashes. */
     path: shortText,
     /** Content hash the selection was made against. Verified before use. */
@@ -76,6 +78,7 @@ export type SelectedContextItem = z.infer<typeof selectedContextItemSchema>;
  */
 export const contextPointerSchema = z
   .object({
+    repositoryId: shortText.optional(),
     path: shortText,
     reason: z.enum(CONTEXT_SELECTION_REASONS),
     /**
@@ -97,6 +100,7 @@ export type ContextPointer = z.infer<typeof contextPointerSchema>;
 
 export const excludedCandidateSchema = z
   .object({
+    repositoryId: shortText.optional(),
     path: shortText,
     reason: z.enum(CONTEXT_EXCLUSION_REASONS),
     score: z.number().int(),
@@ -113,6 +117,8 @@ export const contextSelectionPlanSchema = z
     taskId: shortText,
     nodeId: shortText.optional(),
     attemptId: shortText.optional(),
+    /** Repository identity; paths are unique only within this namespace. */
+    repositoryId: shortText.optional(),
     strategy: z.enum(CONTEXT_STRATEGIES),
     shape: z.enum(CONTEXT_SHAPES),
     role: z.enum(RETRIEVAL_ROLES),
@@ -163,6 +169,20 @@ export const contextSelectionPlanSchema = z
       .passthrough(),
     /** Stable identities of the reusable prompt components (observability). */
     componentHashes: z.record(z.string().nullable()).default({}),
+    /** Phase 5 facts; metrics are evidence for later policy, never eligibility here. */
+    builderPacket: z
+      .object({
+        contextSufficient: z.boolean(),
+        explicitTargetResolved: z.boolean(),
+        targetAmbiguity: z.boolean(),
+        testsFound: z.boolean(),
+        verificationHintsAvailable: z.boolean(),
+        referencePatternFound: z.boolean(),
+        dependencyContextComplete: z.boolean(),
+        sourceBudgetUtilization: z.number().min(0),
+      })
+      .passthrough()
+      .optional(),
     createdAt: shortText,
   })
   .passthrough();
@@ -244,6 +264,15 @@ export function selectWorkingSet(input: SelectWorkingSetInput): SelectWorkingSet
         score: candidate.score,
         detail: truncate(`eligible at expansion level ${candidate.eligibleAtDepth}`),
       });
+      continue;
+    }
+
+    // Once the materialized file bound is full, ranking metadata is enough
+    // to explain the remainder. Do not read bodies merely to reject them.
+    // Mandatory references sort ahead of optional candidates and therefore
+    // cannot be hidden by this optimization.
+    if (input.shape === 'MATERIALIZED' && !candidate.mandatory && selected.length >= maxSelected) {
+      excluded.push({ path: candidate.path, reason: 'RANKED_BELOW_CUTOFF', score: candidate.score });
       continue;
     }
 

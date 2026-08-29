@@ -111,6 +111,11 @@
     "MODEL_DIAGNOSIS",
     "PROVIDER_SIGNAL"
   ],
+  "builderPacketCompilationFailures": [
+    "AMBIGUOUS_TARGET",
+    "INSUFFICIENT_CONTEXT",
+    "STALE_SOURCE_CONTEXT"
+  ],
   "computeLocalities": [
     "LOCAL",
     "REMOTE",
@@ -1043,6 +1048,7 @@
   ],
   "secondaryBuilderAttemptStatuses": [
     "CANDIDATE_READY",
+    "CONTEXT_INSUFFICIENT",
     "EDITS_APPLIED",
     "FAILED",
     "INFERENCE_COMPLETED",
@@ -1051,12 +1057,14 @@
     "VERIFICATION_FAILED"
   ],
   "secondaryBuilderFailures": [
+    "AMBIGUOUS_TARGET",
     "APPLY_FAILURE",
     "CANCELLED",
     "CONTEXT_TOO_LARGE",
     "EMPTY_EDIT_SET",
     "FORBIDDEN_EDIT",
     "INFERENCE_UNAVAILABLE",
+    "INSUFFICIENT_CONTEXT",
     "INVALID_STRUCTURED_OUTPUT",
     "STALE_APPROVED_PROJECTION",
     "STALE_SOURCE_CONTEXT",

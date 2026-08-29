@@ -261,6 +261,8 @@ export const CONTEXT_SELECTION_REASONS = [
   'DEPENDENCY_PROXIMITY',
   /** In the same module/package as an already-selected file. */
   'MODULE_PROXIMITY',
+  /** A bounded nearby implementation with the same structural convention. */
+  'REFERENCE_PATTERN',
   /** A declared symbol matched a query symbol. */
   'SYMBOL_MATCH',
   /** Filename/path tokens overlapped the query tokens. */
