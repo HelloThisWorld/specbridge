@@ -154,6 +154,19 @@ describe('public contract snapshots', () => {
     // and existing truth; nothing writes a contract.
     const BOOTSTRAP_ADDITIONS = ['workspace_bootstrap', 'workspace_snapshot', 'repository_inspect'];
     for (const name of BOOTSTRAP_ADDITIONS) expect(tools).toContain(name);
+    // vNext.10.2 Phase 2 Research Layer. Evidence-only explicit surfaces;
+    // there is no approval, contract-application, or completion tool.
+    const RESEARCH_ADDITIONS = [
+      'research_gate',
+      'research_start',
+      'research_get',
+      'research_list',
+      'research_provider_status',
+    ];
+    for (const name of RESEARCH_ADDITIONS) expect(tools).toContain(name);
+    expect(tools).not.toContain('research_approve');
+    expect(tools).not.toContain('research_apply_contract');
+    expect(tools).not.toContain('research_complete_task');
     expect(
       tools.filter(
         (name) =>
@@ -161,10 +174,11 @@ describe('public contract snapshots', () => {
           !V1_2_ADDITIONS.includes(name) &&
           !MISSION_ADDITIONS.includes(name) &&
           !INTAKE_ADDITIONS.includes(name) &&
-          !BOOTSTRAP_ADDITIONS.includes(name),
+          !BOOTSTRAP_ADDITIONS.includes(name) &&
+          !RESEARCH_ADDITIONS.includes(name),
       ),
     ).toHaveLength(37);
-    expect(tools).toHaveLength(70);
+    expect(tools).toHaveLength(75);
     // No approval tool, no shell, no filesystem, no git — at any version.
     for (const forbidden of tools) {
       expect(forbidden).not.toMatch(/^(.*_approve|.*_shell|.*_exec|.*_git|.*_write_file)$/);

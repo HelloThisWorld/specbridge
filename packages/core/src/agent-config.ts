@@ -2,6 +2,7 @@ import path from 'node:path';
 import { z } from 'zod';
 import { localInferenceConfigSchema } from './local-inference-config.js';
 import { orchestrationPolicySchema } from './orchestration-config.js';
+import { researchPolicySchema } from './research-config.js';
 
 /**
  * The v1 (v0.3–v0.5) `.specbridge/config.json` file schema for agent
@@ -253,6 +254,8 @@ export const agentConfigSchema = z
     orchestration: orchestrationPolicySchema.default({}),
     /** v1.2 managed local inference (additive; disabled by default). */
     localInference: localInferenceConfigSchema.default({}),
+    /** vNext.10.2 optional research escalation (additive; disabled by default). */
+    research: researchPolicySchema.default({}),
   })
   .passthrough()
   .superRefine((config, ctx) => {

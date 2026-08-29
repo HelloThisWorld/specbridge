@@ -84,6 +84,21 @@ describe('state validate — healthy workspaces', () => {
 });
 
 describe('state validate — corruption findings (each exits 1)', () => {
+  it('preserves corrupt and future-major research records as evidence-only findings', async () => {
+    const root = kiroWorkspace();
+    write(root, '.specbridge/research/records/corrupt.json', '{broken');
+    write(root, '.specbridge/research/records/future.json', '{"schemaVersion":"2.0.0"}\n');
+    const before = treeHash(root);
+
+    const { code, report } = await validateJson(root, '--research');
+
+    expect(code).toBe(1);
+    expect(findingAt(report, '.specbridge/research/records/corrupt.json', 'research')?.status).toBe('invalid');
+    expect(findingAt(report, '.specbridge/research/records/future.json', 'research')?.status).toBe('incompatible');
+    expect(report.data.findings.every((candidate) => candidate.recovery === undefined)).toBe(true);
+    expect(treeHash(root)).toBe(before);
+  });
+
   it('flags a v1 config as migration-required', async () => {
     const root = kiroWorkspace();
     write(root, '.specbridge/config.json', V1_CONFIG);

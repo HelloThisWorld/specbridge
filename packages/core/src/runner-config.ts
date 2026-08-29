@@ -9,6 +9,11 @@ import type { OrchestrationPolicy } from './orchestration-config.js';
 import { orchestrationPolicySchema } from './orchestration-config.js';
 import type { AutonomyPolicy } from './autonomy-config.js';
 import { autonomyPolicySchema } from './autonomy-config.js';
+import type { ResearchPolicy } from './research-config.js';
+import { researchPolicySchema } from './research-config.js';
+import { validateRunnerBaseUrl } from './url-safety.js';
+export type { BaseUrlValidation } from './url-safety.js';
+export { isLoopbackHostname, validateRunnerBaseUrl } from './url-safety.js';
 import type {
   AgentConfigFileV1,
   ClaudeRunnerConfig,
@@ -81,75 +86,6 @@ export const BUILT_IN_PROFILE_NAMES = {
 } as const;
 
 export const PROFILE_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
-
-// ---------------------------------------------------------------------------
-// Base URL safety (shared with the Ollama adapter)
-// ---------------------------------------------------------------------------
-
-export interface BaseUrlValidation {
-  ok: boolean;
-  problems: string[];
-  /** True for localhost / 127.0.0.0/8 / [::1]. */
-  loopback: boolean;
-  protocol?: string;
-  hostname?: string;
-  port?: string;
-}
-
-const LOOPBACK_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]', '::1']);
-
-export function isLoopbackHostname(hostname: string): boolean {
-  return LOOPBACK_HOSTNAMES.has(hostname) || /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname);
-}
-
-/**
- * Validate a runner base URL. Rejects: non-http(s) schemes (file:, ftp:, …),
- * embedded credentials, null bytes, query/fragment noise, malformed hosts,
- * and plain-HTTP remote endpoints unless `allowInsecureHttp` is explicitly
- * set for a private development endpoint.
- */
-export function validateRunnerBaseUrl(
-  raw: string,
-  options?: { allowInsecureHttp?: boolean },
-): BaseUrlValidation {
-  const problems: string[] = [];
-  if (raw.includes('\0')) {
-    return { ok: false, problems: ['must not contain null bytes'], loopback: false };
-  }
-  let url: URL;
-  try {
-    url = new URL(raw);
-  } catch {
-    return { ok: false, problems: [`"${raw}" is not a valid absolute URL`], loopback: false };
-  }
-  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-    problems.push(`unsupported URL scheme "${url.protocol}" — only http: and https: are allowed`);
-  }
-  if (url.username !== '' || url.password !== '') {
-    problems.push('must not embed credentials (username/password) in the URL');
-  }
-  if (url.hostname === '') {
-    problems.push('must include a hostname');
-  }
-  if (url.search !== '' || url.hash !== '') {
-    problems.push('must not include a query string or fragment');
-  }
-  const loopback = isLoopbackHostname(url.hostname);
-  if (url.protocol === 'http:' && !loopback && options?.allowInsecureHttp !== true) {
-    problems.push(
-      'remote endpoints must use https: by default. For a private development endpoint, ' +
-        'set "allowInsecureHttp": true on the profile (clearly labeled as insecure).',
-    );
-  }
-  return {
-    ok: problems.length === 0,
-    problems,
-    loopback,
-    protocol: url.protocol,
-    hostname: url.hostname,
-    port: url.port,
-  };
-}
 
 // ---------------------------------------------------------------------------
 // Profile schemas
@@ -589,6 +525,23 @@ export type FallbackConfig = z.infer<typeof fallbacksSchema>;
 // v2 file schema
 // ---------------------------------------------------------------------------
 
+/** Explicit public file shape keeps declaration generation bounded. */
+export interface AgentConfigFileV2 {
+  schemaVersion: string;
+  defaultRunner: string;
+  operationDefaults: OperationDefaults;
+  runnerProfiles: Record<string, RunnerProfileConfig>;
+  runnerPolicy: RunnerPolicy;
+  fallbacks: FallbackConfig;
+  verification: VerificationConfig;
+  execution: ExecutionPolicy;
+  orchestration: OrchestrationPolicy;
+  localInference: LocalInferenceConfig;
+  autonomy: AutonomyPolicy;
+  research: ResearchPolicy;
+  [key: string]: unknown;
+}
+
 /** Key names that look like stored credentials — rejected everywhere. */
 const CREDENTIAL_KEY_PATTERN = /^(api[-_]?keys?|auth[-_]?tokens?|access[-_]?tokens?|secrets?|passwords?|credentials?)$/i;
 
@@ -607,7 +560,7 @@ function credentialKeyIssues(value: unknown, breadcrumb: string[]): string[] {
   return issues;
 }
 
-export const agentConfigV2Schema = z
+const inferredAgentConfigV2Schema = z
   .object({
     schemaVersion: z.string().regex(/^\d+\.\d+\.\d+$/),
     defaultRunner: safeNonEmptyString.default(BUILT_IN_PROFILE_NAMES['claude-code']),
@@ -623,6 +576,8 @@ export const agentConfigV2Schema = z
     localInference: localInferenceConfigSchema.default({}),
     /** vNext.10 overnight autonomy policy (additive; INTERACTIVE by default). */
     autonomy: autonomyPolicySchema.default({}),
+    /** vNext.10.2 optional research escalation (additive; disabled by default). */
+    research: researchPolicySchema.default({}),
   })
   .passthrough()
   .superRefine((config, ctx) => {
@@ -663,7 +618,9 @@ export const agentConfigV2Schema = z
       ctx.addIssue({ code: z.ZodIssueCode.custom, message });
     }
   });
-export type AgentConfigFileV2 = z.infer<typeof agentConfigV2Schema>;
+
+export const agentConfigV2Schema: z.ZodType<AgentConfigFileV2, z.ZodTypeDef, unknown> =
+  inferredAgentConfigV2Schema;
 
 // ---------------------------------------------------------------------------
 // Resolved in-memory model
@@ -691,6 +648,8 @@ export interface AgentConfig {
   localInference: LocalInferenceConfig;
   /** vNext.10 overnight autonomy policy (always resolved, never undefined). */
   autonomy: AutonomyPolicy;
+  /** vNext.10.2 research policy (always resolved, disabled by default). */
+  research: ResearchPolicy;
 }
 
 function builtInClaudeProfile(base?: Partial<ClaudeRunnerConfig>): ClaudeProfileConfig {
@@ -810,6 +769,7 @@ export function resolveAgentConfigFromV1(v1: AgentConfigFileV1): AgentConfig {
     orchestration: v1.orchestration,
     localInference: v1.localInference,
     autonomy: autonomyPolicySchema.parse({}),
+    research: v1.research,
   };
 }
 
@@ -828,6 +788,7 @@ export function resolveAgentConfigFromV2(v2: AgentConfigFileV2): AgentConfig {
     orchestration: v2.orchestration,
     localInference: v2.localInference,
     autonomy: v2.autonomy,
+    research: v2.research,
   };
 }
 
@@ -846,6 +807,7 @@ export function defaultResolvedAgentConfig(): AgentConfig {
     orchestration: orchestrationPolicySchema.parse({}),
     localInference: localInferenceConfigSchema.parse({}),
     autonomy: autonomyPolicySchema.parse({}),
+    research: researchPolicySchema.parse({}),
   };
 }
 

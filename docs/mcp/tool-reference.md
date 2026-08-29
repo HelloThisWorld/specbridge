@@ -7,7 +7,7 @@ Generated from the authoritative registries of the `specbridge` MCP server
 (version 1.1.0). Tool names, resource URI templates, and prompt
 names are stable contracts — see docs/stability/public-contracts.md.
 
-## Tools (70)
+## Tools (75)
 
 | Tool | Access | Summary |
 | --- | --- | --- |
@@ -45,6 +45,11 @@ names are stable contracts — see docs/stability/public-contracts.md.
 | `registry_search` | read-only | Offline registry index search |
 | `registry_show` | read-only | Registry metadata for one extension (no download) |
 | `repository_inspect` | read-only | Bounded repository sections for a deeper implementation question |
+| `research_gate` | write | Deterministic research-escalation decision with reasons |
+| `research_get` | read-only | Read one durable ResearchRecord |
+| `research_list` | read-only | List durable research records and diagnostics |
+| `research_provider_status` | read-only | Normalized provider health without an agent run |
+| `research_start` | write | Execute or exactly reuse one bounded research request |
 | `run_list` | read-only | Bounded run summaries |
 | `run_read` | read-only | Safe single-run summary |
 | `runner_doctor` | read-only | Runner diagnostics (never a model request) |

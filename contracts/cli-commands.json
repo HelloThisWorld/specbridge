@@ -761,6 +761,52 @@
           }
         }
       },
+      "research": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "investigate": {
+            "options": [
+              "--allow-secondary-sources",
+              "--allow-unsourced",
+              "--answer",
+              "--constraint",
+              "--context-ref",
+              "--depth",
+              "--failed-strategy",
+              "--help",
+              "--id",
+              "--job",
+              "--json",
+              "--known-fact",
+              "--observed-failure",
+              "--operation",
+              "--topic"
+            ]
+          },
+          "list": {
+            "options": [
+              "--help",
+              "--json",
+              "--status",
+              "--topic"
+            ]
+          },
+          "show": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          },
+          "status": {
+            "options": [
+              "--help",
+              "--json"
+            ]
+          }
+        }
+      },
       "run": {
         "options": [
           "--help"
@@ -1128,6 +1174,7 @@
               "--help",
               "--json",
               "--registries",
+              "--research",
               "--runs",
               "--spec",
               "--templates"

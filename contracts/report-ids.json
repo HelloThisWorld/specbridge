@@ -16,6 +16,7 @@
     "specbridge.policy-init/1",
     "specbridge.policy-show/1",
     "specbridge.policy-validate/1",
+    "specbridge.research.v1",
     "specbridge.run-list/1",
     "specbridge.run-recover-lock/1",
     "specbridge.run-resume/1",

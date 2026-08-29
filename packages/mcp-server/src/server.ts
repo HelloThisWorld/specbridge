@@ -29,7 +29,8 @@ export function buildMcpServer(context: ServerContext): McpServer {
         '(task_begin → the CURRENT session edits source → task_complete), and deterministic drift ' +
         'verification. Stage approval is intentionally not exposed as a tool: a human approves via ' +
         'the SpecBridge CLI. Task completion is decided by Git evidence and trusted verification ' +
-        'commands, never by model claims.',
+        'commands, never by model claims. Optional research tools return durable evidence only; ' +
+        'research cannot approve product, Mission, task, compatibility, or completion outcomes.',
     },
   );
 

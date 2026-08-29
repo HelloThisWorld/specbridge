@@ -23,3 +23,4 @@ export * from './reliability/index.js';
 export * from './context/index.js';
 export * from './adaptive/index.js';
 export * from './qualification/index.js';
+export * from './research/index.js';
