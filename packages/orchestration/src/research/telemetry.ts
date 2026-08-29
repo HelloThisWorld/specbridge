@@ -5,11 +5,13 @@ import { assertInsideWorkspace, writeFileAtomic } from '@specbridge/core';
 import { z } from 'zod';
 import type {
   ResearchGateDecision,
+  ResearchLifecyclePhase,
   ResearchProviderExecutionResult,
   ResearchUsage,
 } from './contracts.js';
 import {
   RESEARCH_GATE_DECISIONS,
+  RESEARCH_LIFECYCLE_PHASES,
   RESEARCH_TELEMETRY_SCHEMA_VERSION,
 } from './contracts.js';
 import { researchRootDir } from './store.js';
@@ -18,6 +20,24 @@ const decisionCountsSchema = z.object(
   Object.fromEntries(RESEARCH_GATE_DECISIONS.map((decision) => [decision, z.number().int().nonnegative()])) as {
     [K in ResearchGateDecision]: z.ZodNumber;
   },
+);
+
+const phaseCountsSchema = z.object(
+  Object.fromEntries(
+    RESEARCH_LIFECYCLE_PHASES.map((phase) => [
+      phase,
+      z
+        .object({
+          considered: z.number().int().nonnegative().default(0),
+          avoided: z.number().int().nonnegative().default(0),
+          reused: z.number().int().nonnegative().default(0),
+          newQuick: z.number().int().nonnegative().default(0),
+          newDeep: z.number().int().nonnegative().default(0),
+        })
+        .strict()
+        .default({}),
+    ]),
+  ) as unknown as Record<ResearchLifecyclePhase, z.ZodTypeAny>,
 );
 
 export const researchTelemetrySchema = z
@@ -31,6 +51,13 @@ export const researchTelemetrySchema = z
     failedResearch: z.number().int().nonnegative(),
     reusedReports: z.number().int().nonnegative(),
     budgetRefusals: z.number().int().nonnegative(),
+    researchAvoided: z.number().int().nonnegative().default(0),
+    newQuick: z.number().int().nonnegative().default(0),
+    newDeep: z.number().int().nonnegative().default(0),
+    byPhase: phaseCountsSchema.default({}),
+    decisionsPreparedWithResearch: z.number().int().nonnegative().default(0),
+    runtimeReplansCausedByResearch: z.number().int().nonnegative().default(0),
+    researchAvoidanceRatio: z.number().min(0).max(1).default(0),
     reportedUsage: z
       .object({
         inputTokens: z.number().int().nonnegative(),
@@ -53,6 +80,24 @@ function zeroDecisionCounts(): Record<ResearchGateDecision, number> {
     number
   >;
 }
+function zeroPhaseCounts(): Record<ResearchLifecyclePhase, {
+  considered: number;
+  avoided: number;
+  reused: number;
+  newQuick: number;
+  newDeep: number;
+}> {
+  return Object.fromEntries(
+    RESEARCH_LIFECYCLE_PHASES.map((phase) => [
+      phase,
+      { considered: 0, avoided: 0, reused: 0, newQuick: 0, newDeep: 0 },
+    ]),
+  ) as ReturnType<typeof zeroPhaseCounts>;
+}
+
+function avoidanceRatio(avoided: number, considered: number): number {
+  return considered === 0 ? 0 : avoided / considered;
+}
 export function emptyResearchTelemetry(now: Date): ResearchTelemetry {
   return {
     schemaVersion: RESEARCH_TELEMETRY_SCHEMA_VERSION,
@@ -64,6 +109,13 @@ export function emptyResearchTelemetry(now: Date): ResearchTelemetry {
     failedResearch: 0,
     reusedReports: 0,
     budgetRefusals: 0,
+    researchAvoided: 0,
+    newQuick: 0,
+    newDeep: 0,
+    byPhase: zeroPhaseCounts(),
+    decisionsPreparedWithResearch: 0,
+    runtimeReplansCausedByResearch: 0,
+    researchAvoidanceRatio: 0,
     reportedUsage: {
       inputTokens: 0,
       outputTokens: 0,
@@ -110,12 +162,30 @@ export function recordResearchGateTelemetry(
   workspace: WorkspaceInfo,
   decision: ResearchGateDecision,
   now: Date,
+  phase?: ResearchLifecyclePhase,
 ): ResearchTelemetry {
   const current = readResearchTelemetry(workspace, now).telemetry;
+  const avoided = decision !== 'RESEARCH_QUICK' && decision !== 'RESEARCH_DEEP';
+  const researchAvoided = current.researchAvoided + (avoided ? 1 : 0);
+  const gateConsidered = current.gateConsidered + 1;
   return writeTelemetry(workspace, {
     ...current,
-    gateConsidered: current.gateConsidered + 1,
+    gateConsidered,
     decisions: { ...current.decisions, [decision]: current.decisions[decision] + 1 },
+    researchAvoided,
+    researchAvoidanceRatio: avoidanceRatio(researchAvoided, gateConsidered),
+    ...(phase !== undefined
+      ? {
+          byPhase: {
+            ...current.byPhase,
+            [phase]: {
+              ...current.byPhase[phase],
+              considered: current.byPhase[phase].considered + 1,
+              avoided: current.byPhase[phase].avoided + (avoided ? 1 : 0),
+            },
+          },
+        }
+      : {}),
     updatedAt: now.toISOString(),
   });
 }
@@ -136,11 +206,20 @@ function addUsage(current: ResearchTelemetry, usage: ResearchUsage | undefined):
 export function recordResearchReuseTelemetry(
   workspace: WorkspaceInfo,
   now: Date,
+  phase?: ResearchLifecyclePhase,
 ): ResearchTelemetry {
   const current = readResearchTelemetry(workspace, now).telemetry;
   return writeTelemetry(workspace, {
     ...current,
     reusedReports: current.reusedReports + 1,
+    ...(phase !== undefined
+      ? {
+          byPhase: {
+            ...current.byPhase,
+            [phase]: { ...current.byPhase[phase], reused: current.byPhase[phase].reused + 1 },
+          },
+        }
+      : {}),
     updatedAt: now.toISOString(),
   });
 }
@@ -162,6 +241,8 @@ export function recordResearchProviderTelemetry(
   result: ResearchProviderExecutionResult,
   durationMs: number,
   now: Date,
+  depth?: 'QUICK' | 'DEEP',
+  phase?: ResearchLifecyclePhase,
 ): ResearchTelemetry {
   const current = readResearchTelemetry(workspace, now).telemetry;
   const report = result.ok ? result.report : undefined;
@@ -173,8 +254,46 @@ export function recordResearchProviderTelemetry(
     inconclusiveResearch:
       current.inconclusiveResearch + (report?.status === 'INCONCLUSIVE' ? 1 : 0),
     failedResearch: current.failedResearch + (result.ok ? 0 : 1),
+    newQuick: current.newQuick + (depth === 'QUICK' ? 1 : 0),
+    newDeep: current.newDeep + (depth === 'DEEP' ? 1 : 0),
+    ...(phase !== undefined && depth !== undefined
+      ? {
+          byPhase: {
+            ...current.byPhase,
+            [phase]: {
+              ...current.byPhase[phase],
+              newQuick: current.byPhase[phase].newQuick + (depth === 'QUICK' ? 1 : 0),
+              newDeep: current.byPhase[phase].newDeep + (depth === 'DEEP' ? 1 : 0),
+            },
+          },
+        }
+      : {}),
     reportedUsage: addUsage(current, report?.usage),
     totalDurationMs: current.totalDurationMs + Math.max(0, Math.trunc(durationMs)),
+    updatedAt: now.toISOString(),
+  });
+}
+
+export function recordResearchDecisionPreparedTelemetry(
+  workspace: WorkspaceInfo,
+  now: Date,
+): ResearchTelemetry {
+  const current = readResearchTelemetry(workspace, now).telemetry;
+  return writeTelemetry(workspace, {
+    ...current,
+    decisionsPreparedWithResearch: current.decisionsPreparedWithResearch + 1,
+    updatedAt: now.toISOString(),
+  });
+}
+
+export function recordResearchReplanTelemetry(
+  workspace: WorkspaceInfo,
+  now: Date,
+): ResearchTelemetry {
+  const current = readResearchTelemetry(workspace, now).telemetry;
+  return writeTelemetry(workspace, {
+    ...current,
+    runtimeReplansCausedByResearch: current.runtimeReplansCausedByResearch + 1,
     updatedAt: now.toISOString(),
   });
 }

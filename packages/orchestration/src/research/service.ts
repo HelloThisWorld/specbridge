@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { AgentConfig, ResearchPolicy, WorkspaceInfo } from '@specbridge/core';
 import type {
   ResearchBridge,
@@ -5,19 +6,22 @@ import type {
   ResearchFailure,
   ResearchGateInput,
   ResearchGateResult,
+  ResearchLifecycleEffect,
+  ResearchLifecyclePhase,
   ResearchProviderHealth,
   ResearchRecord,
   ResearchRequest,
 } from './contracts.js';
 import {
   RESEARCH_RECORD_SCHEMA_VERSION,
+  RESEARCH_USE_SCHEMA_VERSION,
   researchReportSchema,
   researchRequestSchema,
 } from './contracts.js';
 import { DeerFlowResearchBridge } from './deerflow.js';
 import { evaluateResearchGate } from './gate.js';
 import { findResearchReuse, normalizedQuestionHash, researchRequestHash } from './reuse.js';
-import { listResearchRecords, writeResearchRecord } from './store.js';
+import { listResearchRecords, writeResearchRecord, writeResearchUseRecord } from './store.js';
 import {
   recordResearchBudgetRefusalTelemetry,
   recordResearchGateTelemetry,
@@ -29,16 +33,51 @@ export interface ResearchServiceDeps {
   workspace: WorkspaceInfo;
   config: AgentConfig | { research: ResearchPolicy };
   clock?: () => Date;
+  idFactory?: () => string;
   bridge?: ResearchBridge;
 }
 
 export interface ResearchScope {
   operationId?: string;
   jobId?: string;
+  lifecycle?: {
+    phase: ResearchLifecyclePhase;
+    reason: string;
+    requestedEffect?: ResearchLifecycleEffect;
+    usedBy?: string;
+  };
+  /** Skip exact reuse only for an explicitly current-fact-sensitive request. */
+  refreshCurrentFacts?: boolean;
 }
 
 function nowOf(deps: ResearchServiceDeps): Date {
   return deps.clock?.() ?? new Date();
+}
+
+function newUseId(deps: ResearchServiceDeps): string {
+  return `use-${(deps.idFactory ?? randomUUID)()}`.slice(0, 128);
+}
+
+function recordLifecycleUse(
+  deps: ResearchServiceDeps,
+  researchId: string,
+  scope: ResearchScope,
+  useKind: 'NEW' | 'REUSED',
+  effect?: ResearchLifecycleEffect,
+): void {
+  if (scope.lifecycle === undefined) return;
+  writeResearchUseRecord(deps.workspace, {
+    schemaVersion: RESEARCH_USE_SCHEMA_VERSION,
+    useId: newUseId(deps),
+    researchId,
+    phase: scope.lifecycle.phase,
+    reason: scope.lifecycle.reason,
+    useKind,
+    effect: effect ?? scope.lifecycle.requestedEffect ?? 'EVIDENCE',
+    ...(scope.lifecycle.usedBy !== undefined ? { usedBy: scope.lifecycle.usedBy } : {}),
+    authority: 'EVIDENCE_ONLY',
+    createdAt: nowOf(deps).toISOString(),
+  });
 }
 
 function failure(
@@ -106,9 +145,10 @@ function budgetFailure(
 export function evaluateAndRecordResearchGate(
   deps: ResearchServiceDeps,
   input: ResearchGateInput,
+  phase?: ResearchLifecyclePhase,
 ): ResearchGateResult {
   const result = evaluateResearchGate(input);
-  recordResearchGateTelemetry(deps.workspace, result.decision, nowOf(deps));
+  recordResearchGateTelemetry(deps.workspace, result.decision, nowOf(deps), phase);
   return result;
 }
 
@@ -161,8 +201,11 @@ export async function startResearch(
   const policy = deps.config.research;
   const existing = listResearchRecords(deps.workspace).records;
   const reuse = findResearchReuse(existing, request);
-  if (reuse.exact?.report !== undefined) {
-    recordResearchReuseTelemetry(deps.workspace, nowOf(deps));
+  const refreshCurrentFacts =
+    scope.refreshCurrentFacts === true && request.freshness.currentFactSensitive;
+  if (!refreshCurrentFacts && reuse.exact?.report !== undefined) {
+    recordResearchReuseTelemetry(deps.workspace, nowOf(deps), scope.lifecycle?.phase);
+    recordLifecycleUse(deps, reuse.exact.researchId, scope, 'REUSED');
     return { ok: true, reused: true, record: reuse.exact, report: reuse.exact.report };
   }
   if (existing.some((record) => record.researchId === request.researchId)) {
@@ -221,6 +264,16 @@ export async function startResearch(
           },
         }
       : {}),
+    ...(scope.lifecycle !== undefined
+      ? {
+          lifecycle: {
+            phase: scope.lifecycle.phase,
+            reason: scope.lifecycle.reason,
+            requestedEffect: scope.lifecycle.requestedEffect ?? 'EVIDENCE',
+            ...(scope.lifecycle.usedBy !== undefined ? { usedBy: scope.lifecycle.usedBy } : {}),
+          },
+        }
+      : {}),
     createdAt,
     updatedAt: createdAt,
   };
@@ -256,6 +309,8 @@ export async function startResearch(
     providerResult,
     Math.max(0, Date.now() - started),
     completed,
+    request.depth,
+    scope.lifecycle?.phase,
   );
 
   if (!providerResult.ok) {
@@ -279,5 +334,33 @@ export async function startResearch(
     ...(providerResult.report.usage !== undefined ? { usage: providerResult.report.usage } : {}),
     updatedAt: completed.toISOString(),
   });
+  recordLifecycleUse(deps, record.researchId, scope, 'NEW');
   return { ok: true, reused: false, record, report: providerResult.report };
+}
+
+/** Record a later bounded use of existing evidence, such as a replan. */
+export function recordResearchLifecycleEffect(
+  deps: ResearchServiceDeps,
+  input: {
+    researchId: string;
+    phase: ResearchLifecyclePhase;
+    reason: string;
+    effect: ResearchLifecycleEffect;
+    usedBy?: string;
+  },
+): void {
+  recordLifecycleUse(
+    deps,
+    input.researchId,
+    {
+      lifecycle: {
+        phase: input.phase,
+        reason: input.reason,
+        requestedEffect: input.effect,
+        ...(input.usedBy !== undefined ? { usedBy: input.usedBy } : {}),
+      },
+    },
+    'REUSED',
+    input.effect,
+  );
 }

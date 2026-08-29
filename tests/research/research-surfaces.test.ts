@@ -194,6 +194,8 @@ describe('research MCP surface', () => {
         'research_get',
         'research_list',
         'research_provider_status',
+        'research_consider',
+        'prepare_intake_decision',
       ]) {
         expect(names).toContain(name);
       }
@@ -224,6 +226,66 @@ describe('research MCP surface', () => {
       expect(started.isError).toBe(false);
       expect(started.structured['ok']).toBe(true);
       expect((started.structured['record'] as { status: string }).status).toBe('COMPLETED');
+
+      const considered = await callTool(session, 'research_consider', {
+        phase: 'SPEC_DRAFT',
+        classification: 'EXTERNAL_KNOWLEDGE_GAP',
+        reason: 'Current compatibility behavior is material.',
+        gate: {
+          knowledgeGapDeclared: true,
+          dependsOnExternalFacts: true,
+          dependsOnCurrentFacts: true,
+          materialToProductOrArchitecture: true,
+          repositoryAnswerAvailable: false,
+          priorResearchAvailable: false,
+          engineeringDecisionOnly: false,
+          requiresHumanAuthority: false,
+        },
+        request: {
+          researchId: 'mcp-lifecycle-reuse',
+          depth: 'QUICK',
+          question: 'Does platform X require behavior Y?',
+          questionsToAnswer: ['Is Y required?'],
+          topicTags: ['platform-x'],
+        },
+      });
+      expect((considered.structured['execution'] as { reused: boolean }).reused).toBe(true);
+
+      const prepared = await callTool(session, 'prepare_intake_decision', {
+        questionId: 'q-compatibility',
+        question: 'Which compatibility promise should the product make?',
+        options: [{
+          id: 'A',
+          label: 'Partial compatibility',
+          description: 'Promise selected behavior only.',
+          consequences: ['Requires conformance tests.'],
+        }],
+        research: {
+          classification: 'PRODUCT_AUTHORITY',
+          reason: 'External facts would help prepare this human choice.',
+          gate: {
+            knowledgeGapDeclared: true,
+            dependsOnExternalFacts: true,
+            dependsOnCurrentFacts: true,
+            materialToProductOrArchitecture: true,
+            repositoryAnswerAvailable: false,
+            priorResearchAvailable: false,
+            engineeringDecisionOnly: false,
+            requiresHumanAuthority: true,
+          },
+          request: {
+            researchId: 'mcp-decision-reuse',
+            depth: 'QUICK',
+            question: 'Does platform X require behavior Y?',
+            questionsToAnswer: ['Is Y required?'],
+            topicTags: ['platform-x'],
+          },
+        },
+      });
+      const brief = prepared.structured['brief'] as { requiresHumanDecision: boolean; researchOutcome: string; answer?: string };
+      expect(brief.requiresHumanDecision).toBe(true);
+      expect(brief.researchOutcome).toBe('REUSED');
+      expect(brief.answer).toBeUndefined();
 
       const reused = await callTool(session, 'research_start', {
         researchId: 'mcp-research-2',

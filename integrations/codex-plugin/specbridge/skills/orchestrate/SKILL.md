@@ -46,6 +46,16 @@ model or configured runner was used (recorded escalations with reasons), why it
 repaired rather than replanned (recorded diagnosis + policy), which budget
 was consumed (counters vs budgets).
 
+Research is a sparse escalation inside that runtime, not a default failure
+handler. An `investigation` WorkUnit may use an exact prior ResearchRecord or
+a bounded DeerFlow call only for an explicit external gap, a durable repeated
+UNKNOWN after materially different strategies, contradictory external-system
+behavior, or unknown platform behavior not answered by the repository.
+Authentication, Docker/tool availability, quota, permissions, compilation,
+ordinary tests, product ambiguity, and insufficient selected repository
+context keep their existing recovery paths. Report ResearchRecords as
+`EVIDENCE_ONLY`: they may inform a replan, never prove objective completion.
+
 For MISSION-DRIVEN specs, each job node is an approved Objective executed
 by the objective runtime. Go deeper with `objective_read` (the dynamic work
 graph: units, statuses, conflicts, worker identities), `workunit_read` (one

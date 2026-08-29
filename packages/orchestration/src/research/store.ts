@@ -2,8 +2,13 @@ import { existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import type { Diagnostic, WorkspaceInfo } from '@specbridge/core';
 import { assertInsideWorkspace, writeFileAtomic } from '@specbridge/core';
-import type { ResearchRecord } from './contracts.js';
-import { RESEARCH_RECORD_SCHEMA_VERSION, researchRecordSchema } from './contracts.js';
+import type { ResearchRecord, ResearchUseRecord } from './contracts.js';
+import {
+  RESEARCH_RECORD_SCHEMA_VERSION,
+  RESEARCH_USE_SCHEMA_VERSION,
+  researchRecordSchema,
+  researchUseRecordSchema,
+} from './contracts.js';
 
 export const RESEARCH_DIR_NAME = 'research';
 const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
@@ -13,6 +18,10 @@ export function researchRootDir(workspace: WorkspaceInfo): string {
 }
 export function researchRecordsDir(workspace: WorkspaceInfo): string {
   return assertInsideWorkspace(workspace.rootDir, path.join(researchRootDir(workspace), 'records'));
+}
+
+export function researchUsesDir(workspace: WorkspaceInfo): string {
+  return assertInsideWorkspace(workspace.rootDir, path.join(researchRootDir(workspace), 'uses'));
 }
 
 function assertResearchId(researchId: string): string {
@@ -78,6 +87,45 @@ export function writeResearchRecord(
   mkdirSync(path.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(record, null, 2)}\n`);
   return record;
+}
+
+export function researchUseFile(workspace: WorkspaceInfo, useId: string): string {
+  return assertInsideWorkspace(workspace.rootDir, path.join(researchUsesDir(workspace), `${useId}.json`));
+}
+
+/** Append one immutable lifecycle-use event. It grants no authority. */
+export function writeResearchUseRecord(
+  workspace: WorkspaceInfo,
+  value: ResearchUseRecord,
+): ResearchUseRecord {
+  const record = researchUseRecordSchema.parse(value);
+  const file = researchUseFile(workspace, record.useId);
+  if (existsSync(file)) throw new Error(`research use id ${record.useId} already exists`);
+  mkdirSync(path.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(record, null, 2)}\n`);
+  return record;
+}
+
+export function listResearchUseRecords(workspace: WorkspaceInfo): ResearchUseRecord[] {
+  const dir = researchUsesDir(workspace);
+  if (!existsSync(dir)) return [];
+  const records: ResearchUseRecord[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith('.json')) continue;
+    try {
+      const value = JSON.parse(readFileSync(path.join(dir, entry.name), 'utf8')) as unknown;
+      const version =
+        value !== null && typeof value === 'object' && typeof (value as { schemaVersion?: unknown }).schemaVersion === 'string'
+          ? (value as { schemaVersion: string }).schemaVersion
+          : '';
+      if (majorOf(version) !== majorOf(RESEARCH_USE_SCHEMA_VERSION)) continue;
+      const parsed = researchUseRecordSchema.safeParse(value);
+      if (parsed.success) records.push(parsed.data);
+    } catch {
+      // Preserve unreadable provenance. Status surfaces can still inspect the file.
+    }
+  }
+  return records.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
 export interface ResearchRecordListResult {

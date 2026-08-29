@@ -164,6 +164,8 @@ describe('public contract snapshots', () => {
       'research_provider_status',
     ];
     for (const name of RESEARCH_ADDITIONS) expect(tools).toContain(name);
+    const RESEARCH_LIFECYCLE_ADDITIONS = ['research_consider', 'prepare_intake_decision'];
+    for (const name of RESEARCH_LIFECYCLE_ADDITIONS) expect(tools).toContain(name);
     expect(tools).not.toContain('research_approve');
     expect(tools).not.toContain('research_apply_contract');
     expect(tools).not.toContain('research_complete_task');
@@ -175,10 +177,11 @@ describe('public contract snapshots', () => {
           !MISSION_ADDITIONS.includes(name) &&
           !INTAKE_ADDITIONS.includes(name) &&
           !BOOTSTRAP_ADDITIONS.includes(name) &&
-          !RESEARCH_ADDITIONS.includes(name),
+          !RESEARCH_ADDITIONS.includes(name) &&
+          !RESEARCH_LIFECYCLE_ADDITIONS.includes(name),
       ),
     ).toHaveLength(37);
-    expect(tools).toHaveLength(75);
+    expect(tools).toHaveLength(77);
     // No approval tool, no shell, no filesystem, no git — at any version.
     for (const forbidden of tools) {
       expect(forbidden).not.toMatch(/^(.*_approve|.*_shell|.*_exec|.*_git|.*_write_file)$/);

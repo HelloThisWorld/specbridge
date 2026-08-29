@@ -2,8 +2,26 @@ import { z } from 'zod';
 import type { FailureSource } from '../reliability/vocabulary.js';
 import { FAILURE_SOURCES } from '../reliability/vocabulary.js';
 
-export const RESEARCH_RECORD_SCHEMA_VERSION = '1.0.0';
-export const RESEARCH_TELEMETRY_SCHEMA_VERSION = '1.0.0';
+export const RESEARCH_RECORD_SCHEMA_VERSION = '1.1.0';
+export const RESEARCH_TELEMETRY_SCHEMA_VERSION = '1.1.0';
+export const RESEARCH_USE_SCHEMA_VERSION = '1.0.0';
+
+export const RESEARCH_LIFECYCLE_PHASES = [
+  'CONVERSATION',
+  'SPEC_DRAFT',
+  'INTAKE_DECISION',
+  'RUNTIME_INVESTIGATION',
+] as const;
+export type ResearchLifecyclePhase = (typeof RESEARCH_LIFECYCLE_PHASES)[number];
+
+export const RESEARCH_LIFECYCLE_EFFECTS = [
+  'EVIDENCE',
+  'RECOMMENDATION',
+  'HUMAN_DECISION_PREPARED',
+  'REPLAN',
+  'ENGINEERING_CONSTRAINT',
+] as const;
+export type ResearchLifecycleEffect = (typeof RESEARCH_LIFECYCLE_EFFECTS)[number];
 
 export const RESEARCH_DEPTHS = ['QUICK', 'DEEP'] as const;
 export type ResearchDepth = (typeof RESEARCH_DEPTHS)[number];
@@ -108,6 +126,13 @@ export const researchRequestSchema = z
       .object({
         preferPrimarySources: z.boolean().default(true),
         requireSources: z.boolean().default(true),
+      })
+      .strict()
+      .default({}),
+    freshness: z
+      .object({
+        currentFactSensitive: z.boolean().default(false),
+        subjectVersion: boundedText(128).optional(),
       })
       .strict()
       .default({}),
@@ -235,6 +260,15 @@ export const researchRecordSchema = z
       .object({ operationId: idSchema.optional(), jobId: idSchema.optional() })
       .strict()
       .optional(),
+    lifecycle: z
+      .object({
+        phase: z.enum(RESEARCH_LIFECYCLE_PHASES),
+        reason: boundedText(1_000),
+        requestedEffect: z.enum(RESEARCH_LIFECYCLE_EFFECTS).default('EVIDENCE'),
+        usedBy: boundedText(256).optional(),
+      })
+      .strict()
+      .optional(),
     report: researchReportSchema.optional(),
     failure: researchFailureSchema.optional(),
     providerRefs: z
@@ -295,6 +329,22 @@ export const researchRecordSchema = z
   });
 export type ResearchRecord = z.infer<typeof researchRecordSchema>;
 
+export const researchUseRecordSchema = z
+  .object({
+    schemaVersion: z.string().regex(/^\d+\.\d+\.\d+$/).default(RESEARCH_USE_SCHEMA_VERSION),
+    useId: idSchema,
+    researchId: idSchema,
+    phase: z.enum(RESEARCH_LIFECYCLE_PHASES),
+    reason: boundedText(1_000),
+    useKind: z.enum(['NEW', 'REUSED']),
+    effect: z.enum(RESEARCH_LIFECYCLE_EFFECTS),
+    usedBy: boundedText(256).optional(),
+    authority: z.literal('EVIDENCE_ONLY'),
+    createdAt: z.string().datetime({ offset: true }),
+  })
+  .strict();
+export type ResearchUseRecord = z.infer<typeof researchUseRecordSchema>;
+
 export const researchProviderHealthSchema = z
   .object({
     provider: idSchema,
@@ -349,3 +399,58 @@ export interface ResearchGateResult {
   decision: ResearchGateDecision;
   reasons: string[];
 }
+
+export const UNKNOWN_CLASSIFICATIONS = [
+  'KNOWN_BY_MODEL',
+  'KNOWN_BY_REPOSITORY',
+  'KNOWN_BY_PRIOR_RESEARCH',
+  'ENGINEERING_DECISION',
+  'EXTERNAL_KNOWLEDGE_GAP',
+  'PRODUCT_AUTHORITY',
+  'UNRESOLVED',
+] as const;
+export type UnknownClassification = (typeof UNKNOWN_CLASSIFICATIONS)[number];
+
+export const decisionBriefOptionSchema = z
+  .object({
+    id: idSchema,
+    label: boundedText(200),
+    description: boundedText(1_500),
+    consequences: boundedTextArray(12, 1_000).default([]),
+  })
+  .strict();
+
+export const decisionBriefSchema = z
+  .object({
+    questionId: idSchema,
+    question: boundedText(4_000),
+    context: boundedTextArray(24, 2_000).default([]),
+    options: z.array(decisionBriefOptionSchema).max(8).default([]),
+    recommendation: z
+      .object({
+        optionId: idSchema,
+        rationale: boundedTextArray(12, 1_000).min(1),
+      })
+      .strict()
+      .optional(),
+    researchRefs: z.array(idSchema).max(20).default([]),
+    repositoryEvidenceRefs: boundedTextArray(20, 512).default([]),
+    requiresHumanDecision: z.literal(true),
+    researchOutcome: z
+      .enum(['NOT_NEEDED', 'REUSED', 'COMPLETED', 'INCONCLUSIVE', 'UNAVAILABLE', 'BUDGET_LIMITED'])
+      .default('NOT_NEEDED'),
+  })
+  .strict()
+  .superRefine((brief, ctx) => {
+    if (
+      brief.recommendation !== undefined &&
+      !brief.options.some((option) => option.id === brief.recommendation?.optionId)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['recommendation', 'optionId'],
+        message: 'must identify an option in this brief',
+      });
+    }
+  });
+export type DecisionBrief = z.infer<typeof decisionBriefSchema>;

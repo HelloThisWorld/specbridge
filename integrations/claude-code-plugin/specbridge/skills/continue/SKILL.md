@@ -41,6 +41,14 @@ Then act on what it reports:
 You remember nothing from the earlier session. Trust the recorded state and
 the checkpoint; never narrate what a previous session was "thinking".
 
+If the timeline contains `runtime_research_eligible`, `research_used`, or
+`research_degraded`, explain the recorded phase, reason, ResearchRecord id,
+new-vs-reused status, and fallback. A runtime investigation is a zero-diff
+evidence report for an evaluator/aggregator/replanner; it is not product
+completion and cannot resolve a product-authority ambiguity. DeerFlow outage
+alone is not a reason to block when the recorded strong-reasoning fallback
+remains available.
+
 ## Interactive task runs
 
 For a plain interactive run id:

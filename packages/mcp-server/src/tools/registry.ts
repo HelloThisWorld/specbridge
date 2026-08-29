@@ -83,6 +83,8 @@ import {
   registerWorkunitReadTool,
 } from './objective-tools.js';
 import {
+  registerPrepareIntakeDecisionTool,
+  registerResearchConsiderTool,
   registerResearchGateTool,
   registerResearchGetTool,
   registerResearchListTool,
@@ -186,6 +188,8 @@ export const TOOL_CATALOG: readonly ToolRegistryEntry[] = [
   { name: 'workspace_snapshot', readOnly: true, summary: 'Current-system summary with an explicit freshness verdict' },
   { name: 'repository_inspect', readOnly: true, summary: 'Bounded repository sections for a deeper implementation question' },
   { name: 'research_gate', readOnly: false, summary: 'Deterministic research-escalation decision with reasons' },
+  { name: 'research_consider', readOnly: false, summary: 'Apply sparse research policy in one lifecycle phase' },
+  { name: 'prepare_intake_decision', readOnly: false, summary: 'Prepare evidence and options for one human intake decision' },
   { name: 'research_start', readOnly: false, summary: 'Execute or exactly reuse one bounded research request' },
   { name: 'research_get', readOnly: true, summary: 'Read one durable ResearchRecord' },
   { name: 'research_list', readOnly: true, summary: 'List durable research records and diagnostics' },
@@ -264,6 +268,8 @@ export function registerAllTools(server: McpServer, context: ServerContext): voi
   registerWorkunitReadTool(server, context);
   registerEvaluationReadTool(server, context);
   registerResearchGateTool(server, context);
+  registerResearchConsiderTool(server, context);
+  registerPrepareIntakeDecisionTool(server, context);
   registerResearchStartTool(server, context);
   registerResearchGetTool(server, context);
   registerResearchListTool(server, context);

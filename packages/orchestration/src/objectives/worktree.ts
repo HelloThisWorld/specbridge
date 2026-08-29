@@ -65,6 +65,18 @@ export interface CreateWorktreeInput {
   attempt: number;
 }
 
+/** Read the canonical baseline without creating or mutating a worktree. */
+export async function readCanonicalHead(workspace: WorkspaceInfo): Promise<string> {
+  const head = await git(workspace.rootDir, ['rev-parse', 'HEAD']);
+  if (!head.ok || head.stdout.trim().length === 0) {
+    throw new OrchestrationError('SBO048', 'The repository has no readable HEAD for an investigation baseline.', {
+      remediation: ['Initialize git and commit the current state first.'],
+      failureCategory: 'BLOCKED_DEPENDENCY',
+    });
+  }
+  return head.stdout.trim();
+}
+
 /** Create one detached worktree at the canonical HEAD. */
 export async function createWorkerWorktree(input: CreateWorktreeInput): Promise<WorktreeHandle> {
   const name = `${input.workUnitId}-a${String(input.attempt).padStart(2, '0')}`;
@@ -76,14 +88,7 @@ export async function createWorkerWorktree(input: CreateWorktreeInput): Promise<
     path.join(worktreesRootDir(input.workspace, input.jobId), name),
   );
 
-  const head = await git(input.workspace.rootDir, ['rev-parse', 'HEAD']);
-  if (!head.ok) {
-    throw new OrchestrationError('SBO048', 'Cannot create a worktree: the repository has no readable HEAD.', {
-      remediation: ['Initialize git and commit the current state first.'],
-      failureCategory: 'BLOCKED_DEPENDENCY',
-    });
-  }
-  const baselineCommit = head.stdout.trim();
+  const baselineCommit = await readCanonicalHead(input.workspace);
 
   if (existsSync(dir)) {
     // A crashed previous attempt left a checkout behind; reconcile before

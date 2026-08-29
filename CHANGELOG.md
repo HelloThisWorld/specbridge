@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+### Research-Augmented Lifecycle — vNext.10.2 Phase 3
+
+- Integrated the governed Research Layer across repository-aware
+  conversation, `spec-draft`, Formal Intake decision preparation, and
+  runtime investigation while keeping stable model knowledge, repository
+  truth, and exact prior-research reuse ahead of new provider calls.
+- Added bounded `DecisionBrief`, lifecycle-use provenance, freshness and
+  explicit-refresh metadata, per-phase telemetry, sparse-routing
+  qualification, and two MCP tools for lifecycle consideration and human
+  decision preparation. Research remains `EVIDENCE_ONLY` and cannot answer
+  Intake, mutate contracts, approve a Mission, or prove completion.
+- Wired investigation WorkUnits through bounded packets and ResearchBridge
+  reports as zero-diff candidates, added evidence-backed repeated-UNKNOWN
+  eligibility, bounded replanner handoff, and safe fallback to the existing
+  investigator when DeerFlow is disabled, unavailable, or budget-limited.
+- Regenerated the additive public contracts, MCP reference, Claude and Codex
+  skills, and byte-identical frontend bundles; added Greenfield, Brownfield,
+  runtime, reuse, authority-firewall, and research-avoidance coverage.
+
 ### Governed Research Layer — vNext.10.2 Phase 2
 
 - Added a provider-neutral `ResearchBridge`, deterministic `ResearchGate`,

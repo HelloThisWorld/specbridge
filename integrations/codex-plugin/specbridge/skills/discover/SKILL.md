@@ -33,6 +33,22 @@ Two principles rule this skill:
 
 ## The discovery loop
 
+### Sparse research during product conversation
+
+For a material unknown, use this order silently: stable model knowledge;
+`workspace_snapshot` / focused `repository_inspect`; exact prior
+`ResearchRecord`; delegated engineering choice; human product authority;
+only then material external/current evidence. User unfamiliarity by itself
+is never a research trigger. Use `research_consider` with phase
+`CONVERSATION` for the last case and prefer one coherent bounded brief over
+fragmented calls.
+
+Synthesize evidence as: what was learned, why it matters here, which claims
+are factual, which are recommendations, and what choices remain. For a
+product choice, prepare options and a recommendation but keep the normal
+recorded user-decision path. Research never resolves a Mission question,
+creates a contract, or authorizes synthesis.
+
 1. **Record every material visible exchange** with `mission_record_turn` —
    the user's statements (`speaker: user`), and your own questions,
    interpretations, and presentations (`speaker: agent`). Verbatim text,
