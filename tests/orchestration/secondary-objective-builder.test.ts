@@ -37,6 +37,7 @@ import {
   candidateArtifactSchema,
   captureSecondarySourceContext,
   collectWorktreeChanges,
+  compileSecondaryBuilderPacket,
   contractSnapshotHashOf,
   contextProjectionSchema,
   createWorkerWorktree,
@@ -60,6 +61,7 @@ import {
   storeSecondaryBuilderAttempt,
   storeWorkerRecord,
   storeWorkGraph,
+  workUnitSchema,
 } from '@specbridge/orchestration';
 import { emptyTempDir } from '../helpers.js';
 import { failingCommand, setupExecutionFixture } from '../helpers-execution.js';
@@ -438,6 +440,7 @@ function secondaryMissionFixture(
     verificationFails?: boolean;
     staleProjection?: boolean;
     semanticEvaluationAlways?: boolean;
+    automaticContext?: boolean;
   } = {},
 ): {
   root: string;
@@ -463,6 +466,16 @@ function secondaryMissionFixture(
       },
     },
   });
+  if (options.automaticContext === true) {
+    mkdirSync(path.join(base.root, 'src', 'envelope'), { recursive: true });
+    mkdirSync(path.join(base.root, 'src', 'transport'), { recursive: true });
+    writeFileSync(path.join(base.root, 'src', 'envelope', 'implementation.js'), 'module.exports = { source: "baseline" };\n', 'utf8');
+    writeFileSync(path.join(base.root, 'src', 'transport', 'implementation.js'), 'module.exports = { source: "baseline" };\n', 'utf8');
+    writeFileSync(path.join(base.root, 'src', 'envelope', 'implementation.test.js'), "require('./implementation.js');\n", 'utf8');
+    writeFileSync(path.join(base.root, 'src', 'transport', 'implementation.test.js'), "require('./implementation.js');\n", 'utf8');
+    git(base.root, 'add', 'src');
+    git(base.root, 'commit', '-q', '-m', 'automatic packet fixture source');
+  }
   const missionDeps: MissionDeps = {
     workspace: base.workspace,
     clock: base.clock,
@@ -532,13 +545,17 @@ function secondaryMissionFixture(
         : 'src/transport/implementation.js';
       // No candidate has reached integration while either direct-model call
       // is running: the canonical checkout remains byte-identical.
-      expect(existsSync(path.join(base.root, target))).toBe(false);
+      if (options.automaticContext === true) {
+        expect(readFileSync(path.join(base.root, target), 'utf8')).toContain('baseline');
+      } else {
+        expect(existsSync(path.join(base.root, target))).toBe(false);
+      }
       return {
         ok: true,
         text: validProposal([
           {
             path: target,
-            operation: 'CREATE',
+            operation: options.automaticContext === true ? 'REPLACE' : 'CREATE',
             content: `module.exports = { source: "secondary", unit: "${envelope ? 'envelope' : 'transport'}" };\n`,
           },
         ]),
@@ -562,19 +579,23 @@ function secondaryMissionFixture(
       host: 'test',
       secondaryObjectiveBuilder: {
         selectionReason: 'Phase 4 deterministic qualification explicitly selected this backend.',
-        sourceContext: () => {
-          if (options.staleProjection === true && !contractMutated) {
-            const current = readContractRegistry(base.workspace, mission.missionId)[0]!;
-            storeContractRevision(base.workspace, mission.missionId, {
-              ...current,
-              revision: current.revision + 1,
-              supersedesRevision: current.revision,
-              recordedAt: base.clock().toISOString(),
-            });
-            contractMutated = true;
-          }
-          return [];
-        },
+        ...(options.automaticContext === true
+          ? {}
+          : {
+              sourceContext: () => {
+                if (options.staleProjection === true && !contractMutated) {
+                  const current = readContractRegistry(base.workspace, mission.missionId)[0]!;
+                  storeContractRevision(base.workspace, mission.missionId, {
+                    ...current,
+                    revision: current.revision + 1,
+                    supersedesRevision: current.revision,
+                    recordedAt: base.clock().toISOString(),
+                  });
+                  contractMutated = true;
+                }
+                return [];
+              },
+            }),
         inference: directInference,
       },
     },
@@ -582,6 +603,35 @@ function secondaryMissionFixture(
 }
 
 describe('Secondary Objective Builder governed lifecycle', () => {
+  it('automatically compiles a fresh packet before the governed candidate lifecycle', async () => {
+    const priorScenario = process.env['FAKE_CLAUDE_SCENARIO'];
+    process.env['FAKE_CLAUDE_SCENARIO'] = 'objective-multi';
+    try {
+      const fixture = secondaryMissionFixture({ automaticContext: true });
+      const job = createJob(fixture.driverDeps, {
+        specName: 'steprelay-secondary',
+        goal: 'Exercise automatic Secondary Builder packet compilation.',
+      });
+      const result = await driveJob(fixture.driverDeps, job.jobId, {});
+      const graph = requireGraphRevision(fixture.workspace, job.jobId, result.job.graphRevision);
+      const attempts = readSecondaryBuilderAttempts(
+        fixture.workspace,
+        job.jobId,
+        graph.nodes[0]!.nodeId,
+      );
+      expect(result.stop.kind).toBe('completed');
+      expect(attempts).toHaveLength(2);
+      expect(attempts.every((attempt) => attempt.packet.sourceContext.length > 0)).toBe(true);
+      expect(attempts.every((attempt) => attempt.packet.targets.length === 1)).toBe(true);
+      expect(attempts.every((attempt) => attempt.packet.retrievalPlanRefs.length > 0)).toBe(true);
+      expect(attempts.every((attempt) => attempt.packet.quality.contextSufficient)).toBe(true);
+      expect(attempts.every((attempt) => attempt.status === 'CANDIDATE_READY')).toBe(true);
+    } finally {
+      if (priorScenario === undefined) delete process.env['FAKE_CLAUDE_SCENARIO'];
+      else process.env['FAKE_CLAUDE_SCENARIO'] = priorScenario;
+    }
+  }, 300_000);
+
   it('flows through normal candidate evaluation, aggregation, integration, and trusted verification', async () => {
     const priorScenario = process.env['FAKE_CLAUDE_SCENARIO'];
     process.env['FAKE_CLAUDE_SCENARIO'] = 'objective-multi';
@@ -971,6 +1021,14 @@ describe('real managed-local Secondary Objective Builder qualification', () => {
       throw new Error('set SPECBRIDGE_TEST_LLAMA_SERVER and SPECBRIDGE_TEST_QWEN_GGUF');
     }
     const base = setupExecutionFixture({ git: true });
+    mkdirSync(path.join(base.root, 'src'), { recursive: true });
+    writeFileSync(
+      path.join(base.root, 'src', 'mapper.ts'),
+      'export interface UserDto { name: string }\nexport const mapUser = (name: string): UserDto => ({ name });\n',
+      'utf8',
+    );
+    git(base.root, 'add', 'src/mapper.ts');
+    git(base.root, 'commit', '-q', '-m', 'real packet qualification fixture');
     const handle = await createWorkerWorktree({
       workspace: base.workspace,
       jobId: 'job-real-secondary',
@@ -989,19 +1047,38 @@ describe('real managed-local Secondary Objective Builder qualification', () => {
     const manager = new LocalModelManager({ config: localInference });
     realManagers.push(manager);
     try {
-      mkdirSync(path.join(handle.dir, 'src'), { recursive: true });
-      writeFileSync(
-        path.join(handle.dir, 'src', 'mapper.ts'),
-        'export interface UserDto { name: string }\nexport const mapUser = (name: string): UserDto => ({ name });\n',
-        'utf8',
-      );
-      const packet = buildSecondaryBuilderPacket({
+      const compiled = await compileSecondaryBuilderPacket({
+        workspace: base.workspace,
+        config,
+        jobId: 'job-real-secondary',
+        objectiveNodeId: 'node-1',
+        workUnit: workUnitSchema.parse({
+          workUnitId: 'wu-1',
+          objectiveNodeId: 'node-1',
+          parentTaskId: '1',
+          kind: 'build',
+          title: 'Add id to UserDto mapper',
+          goal: 'Update mapUser in src/mapper.ts to return id and name.',
+          expectedArtifacts: ['src/mapper.ts'],
+          expectedAreas: ['src'],
+          status: 'READY',
+        }),
         projection: projection(),
-        sourceContext: captureSecondarySourceContext(handle.dir, ['src/mapper.ts']),
+        attempt: 1,
+        worktreeRoot: handle.dir,
+        baselineRef: handle.baselineCommit,
+        verificationHints: base.config.verification.commands.map((command) => command.name),
+        maximumInputCharacters: 32_000,
+        createdAt: '2026-08-30T00:00:00.000Z',
+        persist: false,
       });
+      expect(compiled.ok).toBe(true);
+      if (!compiled.ok) throw new Error(compiled.failure.reasons.join('; '));
+      expect(compiled.metrics.selectedFiles).toBeGreaterThan(0);
+      expect(compiled.packet.sourceContext.map((entry) => entry.path)).toContain('src/mapper.ts');
       const result = await executeSecondaryObjectiveBuilder({
         worktreeRoot: handle.dir,
-        packet,
+        packet: compiled.packet,
         inference: managedLocalSecondaryModelInference(manager, config),
         maximumInputCharacters: 32_000,
         maxOutputBytes: localInference.maxOutputBytes,

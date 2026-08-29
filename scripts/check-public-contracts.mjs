@@ -233,6 +233,7 @@ async function buildSnapshots() {
       secondaryBuilderPacket: orchestration.SECONDARY_BUILDER_PACKET_SCHEMA_VERSION,
       secondaryBuilderResult: orchestration.SECONDARY_BUILDER_RESULT_SCHEMA_VERSION,
       secondaryBuilderAttempt: orchestration.SECONDARY_BUILDER_ATTEMPT_SCHEMA_VERSION,
+      builderPacketCompilation: orchestration.BUILDER_PACKET_COMPILATION_SCHEMA_VERSION,
       // Mission families (persisted under .specbridge/missions/).
       missionState: mission.MISSION_STATE_SCHEMA_VERSION,
       missionCoverage: mission.MISSION_COVERAGE_SCHEMA_VERSION,
@@ -360,6 +361,7 @@ async function buildSnapshots() {
       evaluationLayers: [...orchestration.EVALUATION_LAYERS].sort(),
       secondaryBuilderFailures: [...orchestration.SECONDARY_BUILDER_FAILURES].sort(),
       secondaryBuilderAttemptStatuses: [...orchestration.SECONDARY_BUILDER_ATTEMPT_STATUSES].sort(),
+      builderPacketCompilationFailures: [...orchestration.BUILDER_PACKET_COMPILATION_FAILURES].sort(),
       // Survival-runtime vocabulary (vNext.1; additive within 1.x).
       taskAttemptStatuses: [...orchestration.TASK_ATTEMPT_STATUSES].sort(),
       taskCheckpointReasons: [...orchestration.TASK_CHECKPOINT_REASONS].sort(),

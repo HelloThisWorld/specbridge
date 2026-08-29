@@ -5,7 +5,7 @@ Objective runtime. A bounded direct model can propose concrete file edits for
 one build WorkUnit, while SpecBridge retains every authority-bearing action:
 
 ```text
-ContextProjection (approved truth) + explicit bounded source context
+ContextProjection (approved truth) + bounded repository context
         ↓ one SecondaryModelInference request
 strict CREATE/REPLACE proposal
         ↓ SpecBridge validates and writes
@@ -17,8 +17,9 @@ normal candidate → evaluation → aggregation → single-writer integration
 Phase 4 creates capability. It does **not** automatically route Objective work
 to the secondary backend. With no explicit `secondaryObjectiveBuilder`
 selection, BUILDER behavior remains the existing large-agent path. Automatic
-packet compilation, eligibility, routing, repair, and fallback belong to later
-phases.
+eligibility, routing, repair, and fallback belong to later phases. Phase 5
+adds deterministic [Builder Packet compilation](builder-packet-compilation.md)
+without changing this explicit-only selection rule.
 
 ## Not an Agent Harness
 
@@ -43,12 +44,15 @@ heuristically.
 It carries WorkUnit and Objective identity, goal, expected artifacts/areas,
 acceptance criteria, projected contracts, ADRs and approved decisions,
 constitution constraints, verified dependency evidence, fixed forbidden
-changes, verification names, and explicitly prepared source files.
+changes, trusted verification names, and compiler-selected source sections,
+tests, dependency evidence, and reference patterns.
 
 `ContextProjection` remains approved durable truth. Source is deliberately a
-separate `sourceContext` list of worktree-relative path, SHA-256 content hash,
-and bounded current UTF-8 content. Phase 4 callers choose those files
-explicitly; there is no automatic repository retrieval or target inference.
+separate repository context with repository identity, path, selection reason,
+whole-file hash, exact section hash/range, and bounded current UTF-8 content.
+Legacy Phase 4 callers may still provide `sourceContext` explicitly. When an
+explicit Secondary selection omits it, Phase 5 compiles the packet from the
+WorkUnit and existing `RepositoryContextIndex`.
 Immediately before inference, SpecBridge reloads approved Mission truth and
 checks projection freshness, then re-reads every source file and checks its
 hash and bytes. Stale approved truth or source fails the attempt before the
@@ -105,7 +109,10 @@ it is not rebuilt merely because the process restarted.
 
 Failure kinds distinguish inference unavailability, timeout, cancellation,
 invalid structured output, empty edits, forbidden edits, stale approved/source
-context, application failure, verification failure, and an oversized context.
+context, insufficient or ambiguous retrieval, application failure,
+verification failure, and an oversized context. A model may return the
+structured `NEEDS_MORE_CONTEXT` status; this records an insufficient attempt
+and creates no candidate.
 Phase 4 performs no secondary repair retry and no automatic large-model
 fallback.
 

@@ -35,6 +35,7 @@ export interface RankingWeights {
   testSourcePair: number;
   dependencyProximity: number;
   moduleProximity: number;
+  referencePattern: number;
   tokenOverlapPerToken: number;
   tokenOverlapCap: number;
   priorTaskRelevance: number;
@@ -54,6 +55,7 @@ export const DEFAULT_RANKING_WEIGHTS: Readonly<RankingWeights> = Object.freeze({
   testSourcePair: 180,
   dependencyProximity: 120,
   moduleProximity: 40,
+  referencePattern: 150,
   tokenOverlapPerToken: 12,
   tokenOverlapCap: 96,
   priorTaskRelevance: 60,
@@ -316,6 +318,31 @@ export function rankCandidates(
     for (const dependent of index.dependentsOf(anchor)) {
       add(dependent, 'DEPENDENCY_PROXIMITY', weights.dependencyProximity, level2, anchor);
     }
+    const anchorEntry = index.get(anchor);
+    if (anchorEntry !== undefined && anchorEntry.kind === 'source') {
+      const suffixes = structuralSuffixes(anchorEntry.path, anchorEntry.symbols);
+      for (const sibling of index.siblingsIn(anchorEntry.module)) {
+        if (sibling === anchor) continue;
+        const entry = index.get(sibling);
+        if (entry === undefined || entry.kind !== 'source' || entry.language !== anchorEntry.language) {
+          continue;
+        }
+        const sharedImportCount = entry.imports.filter((specifier) =>
+          anchorEntry.imports.includes(specifier),
+        ).length;
+        const sameConvention = structuralSuffixes(entry.path, entry.symbols).some((suffix) =>
+          suffixes.includes(suffix),
+        );
+        if (!sameConvention && sharedImportCount < 2) continue;
+        add(
+          sibling,
+          'REFERENCE_PATTERN',
+          weights.referencePattern + Math.min(30, sharedImportCount * 10),
+          level2,
+          sameConvention ? anchor : `${anchor} (${sharedImportCount} shared imports)`,
+        );
+      }
+    }
   }
   const anchorModules = new Set(anchors.map((anchor) => index.get(anchor)?.module ?? ''));
   for (const module of anchorModules) {
@@ -357,4 +384,16 @@ export function rankCandidates(
     right.score !== left.score ? right.score - left.score : left.path < right.path ? -1 : 1,
   );
   return ranked.slice(0, maxCandidates);
+}
+
+/** Conservative naming conventions such as Mapper, Controller, DTO, Serializer. */
+function structuralSuffixes(relativePath: string, symbols: readonly string[]): string[] {
+  const base = relativePath.split('/').at(-1)?.replace(/\.[^.]+$/, '') ?? '';
+  const values = [base, ...symbols];
+  const suffixes = new Set<string>();
+  for (const value of values) {
+    const match = value.match(/([A-Z][a-z0-9]{2,})$/);
+    if (match?.[1] !== undefined) suffixes.add(match[1].toLowerCase());
+  }
+  return [...suffixes];
 }

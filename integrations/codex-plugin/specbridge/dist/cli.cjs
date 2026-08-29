@@ -50310,8 +50310,6 @@ var import_fs34 = require("fs");
 var import_path36 = __toESM(require("path"), 1);
 var import_fs35 = require("fs");
 var import_path37 = __toESM(require("path"), 1);
-var import_fs36 = require("fs");
-var import_path38 = __toESM(require("path"), 1);
 
 // ../../packages/context/dist/index.js
 var import_crypto10 = require("crypto");
@@ -50402,6 +50400,8 @@ var CONTEXT_SELECTION_REASONS = [
   "DEPENDENCY_PROXIMITY",
   /** In the same module/package as an already-selected file. */
   "MODULE_PROXIMITY",
+  /** A bounded nearby implementation with the same structural convention. */
+  "REFERENCE_PATTERN",
   /** A declared symbol matched a query symbol. */
   "SYMBOL_MATCH",
   /** Filename/path tokens overlapped the query tokens. */
@@ -51963,6 +51963,7 @@ var DEFAULT_RANKING_WEIGHTS = Object.freeze({
   testSourcePair: 180,
   dependencyProximity: 120,
   moduleProximity: 40,
+  referencePattern: 150,
   tokenOverlapPerToken: 12,
   tokenOverlapCap: 96,
   priorTaskRelevance: 60,
@@ -52100,6 +52101,31 @@ function rankCandidates(index, query, options = {}) {
     for (const dependent of index.dependentsOf(anchor)) {
       add2(dependent, "DEPENDENCY_PROXIMITY", weights.dependencyProximity, level2, anchor);
     }
+    const anchorEntry = index.get(anchor);
+    if (anchorEntry !== void 0 && anchorEntry.kind === "source") {
+      const suffixes = structuralSuffixes(anchorEntry.path, anchorEntry.symbols);
+      for (const sibling of index.siblingsIn(anchorEntry.module)) {
+        if (sibling === anchor) continue;
+        const entry2 = index.get(sibling);
+        if (entry2 === void 0 || entry2.kind !== "source" || entry2.language !== anchorEntry.language) {
+          continue;
+        }
+        const sharedImportCount = entry2.imports.filter(
+          (specifier) => anchorEntry.imports.includes(specifier)
+        ).length;
+        const sameConvention = structuralSuffixes(entry2.path, entry2.symbols).some(
+          (suffix) => suffixes.includes(suffix)
+        );
+        if (!sameConvention && sharedImportCount < 2) continue;
+        add2(
+          sibling,
+          "REFERENCE_PATTERN",
+          weights.referencePattern + Math.min(30, sharedImportCount * 10),
+          level2,
+          sameConvention ? anchor : `${anchor} (${sharedImportCount} shared imports)`
+        );
+      }
+    }
   }
   const anchorModules = new Set(anchors.map((anchor) => index.get(anchor)?.module ?? ""));
   for (const module2 of anchorModules) {
@@ -52133,6 +52159,16 @@ function rankCandidates(index, query, options = {}) {
     (left, right) => right.score !== left.score ? right.score - left.score : left.path < right.path ? -1 : 1
   );
   return ranked.slice(0, maxCandidates);
+}
+function structuralSuffixes(relativePath, symbols) {
+  const base = relativePath.split("/").at(-1)?.replace(/\.[^.]+$/, "") ?? "";
+  const values = [base, ...symbols];
+  const suffixes = /* @__PURE__ */ new Set();
+  for (const value of values) {
+    const match = value.match(/([A-Z][a-z0-9]{2,})$/);
+    if (match?.[1] !== void 0) suffixes.add(match[1].toLowerCase());
+  }
+  return [...suffixes];
 }
 var DEFAULT_SECTION_OPTIONS = {
   wholeFileUnderChars: 6e3,
@@ -52654,7 +52690,8 @@ function deduplicateItems(items, options = {}) {
     }
     const digest2 = contentDigest(item);
     const identity3 = sourceIdentity(item);
-    const contentIndex = byContent.get(digest2);
+    const contentKey = identity3?.startsWith("key:repo:") === true ? `${digest2}:${identity3}` : digest2;
+    const contentIndex = byContent.get(contentKey);
     if (contentIndex !== void 0) {
       const incumbent = survivors[contentIndex];
       if (incumbent !== void 0) {
@@ -52662,7 +52699,7 @@ function deduplicateItems(items, options = {}) {
           drop(incumbent, item, "identical-content");
           survivors[contentIndex] = void 0;
           survivors.push(item);
-          byContent.set(digest2, survivors.length - 1);
+          byContent.set(contentKey, survivors.length - 1);
           if (identity3 !== void 0) bySource.set(identity3, survivors.length - 1);
         } else {
           drop(item, incumbent, "identical-content");
@@ -52681,7 +52718,7 @@ function deduplicateItems(items, options = {}) {
           survivors[sourceIndex] = void 0;
           survivors.push(item);
           bySource.set(identity3, survivors.length - 1);
-          byContent.set(digest2, survivors.length - 1);
+          byContent.set(contentKey, survivors.length - 1);
         } else {
           drop(item, incumbent, kind);
         }
@@ -52689,7 +52726,7 @@ function deduplicateItems(items, options = {}) {
       }
       bySource.set(identity3, survivors.length);
     }
-    byContent.set(digest2, survivors.length);
+    byContent.set(contentKey, survivors.length);
     survivors.push(item);
   }
   const kept = survivors.filter((item) => item !== void 0);
@@ -53033,9 +53070,11 @@ function initialExpansionState(input) {
 function beginAttemptExpansion(state, now7) {
   return { ...state, expansionsThisAttempt: 0, updatedAt: now7 };
 }
-var CONTEXT_SELECTION_PLAN_SCHEMA_VERSION = "1.0.0";
+var CONTEXT_SELECTION_PLAN_SCHEMA_VERSION = "1.1.0";
 var shortText3 = external_exports.string().min(1).max(CONTEXT_LIMITS.maxShortTextChars);
 var selectedContextItemSchema = external_exports.object({
+  /** Repository identity when a plan participates in a multi-repo packet. */
+  repositoryId: shortText3.optional(),
   /** Workspace-relative path, forward slashes. */
   path: shortText3,
   /** Content hash the selection was made against. Verified before use. */
@@ -53054,6 +53093,7 @@ var selectedContextItemSchema = external_exports.object({
   detail: shortText3.optional()
 }).passthrough();
 var contextPointerSchema = external_exports.object({
+  repositoryId: shortText3.optional(),
   path: shortText3,
   reason: external_exports.enum(CONTEXT_SELECTION_REASONS),
   /**
@@ -53071,6 +53111,7 @@ var contextPointerSchema = external_exports.object({
   detail: shortText3.optional()
 }).passthrough();
 var excludedCandidateSchema = external_exports.object({
+  repositoryId: shortText3.optional(),
   path: shortText3,
   reason: external_exports.enum(CONTEXT_EXCLUSION_REASONS),
   score: external_exports.number().int(),
@@ -53083,6 +53124,8 @@ var contextSelectionPlanSchema = external_exports.object({
   taskId: shortText3,
   nodeId: shortText3.optional(),
   attemptId: shortText3.optional(),
+  /** Repository identity; paths are unique only within this namespace. */
+  repositoryId: shortText3.optional(),
   strategy: external_exports.enum(CONTEXT_STRATEGIES),
   shape: external_exports.enum(CONTEXT_SHAPES),
   role: external_exports.enum(RETRIEVAL_ROLES),
@@ -53129,6 +53172,17 @@ var contextSelectionPlanSchema = external_exports.object({
   }).passthrough(),
   /** Stable identities of the reusable prompt components (observability). */
   componentHashes: external_exports.record(external_exports.string().nullable()).default({}),
+  /** Phase 5 facts; metrics are evidence for later policy, never eligibility here. */
+  builderPacket: external_exports.object({
+    contextSufficient: external_exports.boolean(),
+    explicitTargetResolved: external_exports.boolean(),
+    targetAmbiguity: external_exports.boolean(),
+    testsFound: external_exports.boolean(),
+    verificationHintsAvailable: external_exports.boolean(),
+    referencePatternFound: external_exports.boolean(),
+    dependencyContextComplete: external_exports.boolean(),
+    sourceBudgetUtilization: external_exports.number().min(0)
+  }).passthrough().optional(),
   createdAt: shortText3
 }).passthrough();
 function truncate(value, max = CONTEXT_LIMITS.maxShortTextChars) {
@@ -53154,6 +53208,10 @@ function selectWorkingSet(input) {
         score: candidate.score,
         detail: truncate(`eligible at expansion level ${candidate.eligibleAtDepth}`)
       });
+      continue;
+    }
+    if (input.shape === "MATERIALIZED" && !candidate.mandatory && selected.length >= maxSelected) {
+      excluded.push({ path: candidate.path, reason: "RANKED_BELOW_CUTOFF", score: candidate.score });
       continue;
     }
     const resolved2 = resolveFresh(input.rootDir, candidate.entry, { withContent: true });
@@ -53952,6 +54010,8 @@ async function buildEfficientContext(input) {
 }
 
 // ../../packages/orchestration/dist/index.js
+var import_fs36 = require("fs");
+var import_path38 = __toESM(require("path"), 1);
 var import_crypto20 = require("crypto");
 var import_fs37 = require("fs");
 var import_path39 = __toESM(require("path"), 1);
@@ -62595,12 +62655,15 @@ ${command.stderrTail}`).join("\n");
     escalated: false
   };
 }
-var SECONDARY_BUILDER_PACKET_SCHEMA_VERSION = "1.0.0";
-var SECONDARY_BUILDER_RESULT_SCHEMA_VERSION = "1.0.0";
-var SECONDARY_BUILDER_ATTEMPT_SCHEMA_VERSION = "1.0.0";
+var SECONDARY_BUILDER_PACKET_SCHEMA_VERSION = "1.1.0";
+var SECONDARY_BUILDER_RESULT_SCHEMA_VERSION = "1.1.0";
+var SECONDARY_BUILDER_ATTEMPT_SCHEMA_VERSION = "1.1.0";
 var SECONDARY_BUILDER_LIMITS = {
   ...LOCAL_EXECUTION_LIMITS,
   maxSourceFiles: 16,
+  maxTests: 6,
+  maxReferencePatterns: 4,
+  maxDependencyContext: 12,
   maxSourceFileChars: 32768,
   maxSourceBytes: 262144,
   maxPacketCharacters: 524288,
@@ -62611,11 +62674,60 @@ var boundedText = (max) => external_exports.string().min(1).max(max);
 var shortText42 = boundedText(512);
 var sha256 = external_exports.string().regex(/^[a-f0-9]{64}$/);
 var secondarySourceContextSchema = external_exports.object({
-  /** Worktree-relative path. Whole-file source only in Phase 4. */
+  /** Repository namespace. Paths are unique only within this identity. */
+  repositoryId: shortText42.default("primary"),
+  /** Repository-relative path. */
   path: boundedText(SECONDARY_BUILDER_LIMITS.maxPathChars),
-  /** Hash of the exact UTF-8 content below. */
+  /** Hash of the complete current file bytes. */
   contentHash: sha256,
-  content: external_exports.string().max(SECONDARY_BUILDER_LIMITS.maxSourceFileChars)
+  /** Hash of the exact bounded content below (whole file or section). */
+  sectionHash: sha256.optional(),
+  content: external_exports.string().max(SECONDARY_BUILDER_LIMITS.maxSourceFileChars),
+  reason: external_exports.enum(CONTEXT_SELECTION_REASONS).default("EXPLICIT_ACTION_REFERENCE"),
+  startLine: external_exports.number().int().min(1).optional(),
+  endLine: external_exports.number().int().min(1).optional(),
+  symbols: external_exports.array(shortText42).max(12).default([])
+}).strict();
+var secondaryBuilderTargetSchema = external_exports.object({
+  repositoryId: shortText42,
+  path: boundedText(SECONDARY_BUILDER_LIMITS.maxPathChars),
+  symbols: external_exports.array(shortText42).max(12).default([]),
+  reason: external_exports.enum(CONTEXT_SELECTION_REASONS)
+}).strict();
+var secondaryDependencyContextSchema = external_exports.object({
+  workUnitId: shortText42,
+  summary: boundedText(2e3),
+  changedFiles: external_exports.array(
+    external_exports.object({ repositoryId: shortText42, path: boundedText(SECONDARY_BUILDER_LIMITS.maxPathChars) }).strict()
+  ).max(60),
+  exportedSymbols: external_exports.array(shortText42).max(30).default([]),
+  verificationPassed: external_exports.literal(true)
+}).strict();
+var secondaryBuilderPacketMetricsSchema = external_exports.object({
+  indexedFilesConsidered: external_exports.number().int().min(0),
+  candidateCount: external_exports.number().int().min(0),
+  selectedFiles: external_exports.number().int().min(0),
+  selectedSections: external_exports.number().int().min(0),
+  sourceCharacters: external_exports.number().int().min(0),
+  testCharacters: external_exports.number().int().min(0),
+  referencePatternCount: external_exports.number().int().min(0),
+  dependencyContextCount: external_exports.number().int().min(0),
+  budgetUtilization: external_exports.number().min(0),
+  mandatoryRefsRetained: external_exports.number().int().min(0),
+  expansionDepth: external_exports.number().int().min(0).max(4),
+  staleEntriesEncountered: external_exports.number().int().min(0),
+  selectionDurationMs: external_exports.number().int().min(0),
+  indexReused: external_exports.boolean()
+}).strict();
+var secondaryBuilderPacketQualitySchema = external_exports.object({
+  explicitTargetResolved: external_exports.boolean(),
+  targetAmbiguity: external_exports.boolean(),
+  testsFound: external_exports.boolean(),
+  verificationHintsAvailable: external_exports.boolean(),
+  referencePatternFound: external_exports.boolean(),
+  dependencyContextComplete: external_exports.boolean(),
+  sourceBudgetUtilization: external_exports.number().min(0),
+  contextSufficient: external_exports.boolean()
 }).strict();
 var projectedContractSchema = external_exports.object({
   contractId: shortText42,
@@ -62631,7 +62743,10 @@ var secondaryBuilderPacketSchema = external_exports.object({
   projectionHash: sha256,
   contractSnapshotHash: sha256,
   sourceContextHash: sha256,
+  /** Semantic identity; excludes createdAt and observational metrics. */
+  contentHash: sha256,
   packetHash: sha256,
+  createdAt: shortText42.optional(),
   objective: external_exports.object({
     nodeId: shortText42,
     taskId: shortText42,
@@ -62655,6 +62770,19 @@ var secondaryBuilderPacketSchema = external_exports.object({
     priorWorkEvidence: external_exports.array(boundedText(2e3)).max(30)
   }).strict(),
   sourceContext: external_exports.array(secondarySourceContextSchema).max(SECONDARY_BUILDER_LIMITS.maxSourceFiles),
+  targets: external_exports.array(secondaryBuilderTargetSchema).max(SECONDARY_BUILDER_LIMITS.maxSourceFiles),
+  tests: external_exports.array(secondarySourceContextSchema).max(SECONDARY_BUILDER_LIMITS.maxTests),
+  referencePatterns: external_exports.array(secondarySourceContextSchema).max(SECONDARY_BUILDER_LIMITS.maxReferencePatterns),
+  dependencyContext: external_exports.array(secondaryDependencyContextSchema).max(SECONDARY_BUILDER_LIMITS.maxDependencyContext),
+  priorFailureEvidence: external_exports.array(boundedText(2e3)).max(20),
+  retrievalPlanRef: shortText42,
+  retrievalPlanRefs: external_exports.array(shortText42).max(12),
+  expansion: external_exports.object({
+    level: external_exports.enum(CONTEXT_EXPANSION_LEVELS),
+    remainingLevels: external_exports.number().int().min(0).max(4)
+  }).strict(),
+  contextMetrics: secondaryBuilderPacketMetricsSchema,
+  quality: secondaryBuilderPacketQualitySchema,
   forbiddenChanges: external_exports.array(boundedText(1e3)).max(30),
   verificationHints: external_exports.array(boundedText(1e3)).max(30)
 }).strict();
@@ -62665,16 +62793,26 @@ var secondaryStructuredEditSchema = external_exports.object({
 }).strict();
 var secondaryBuilderResultSchema = external_exports.object({
   schemaVersion: external_exports.literal(SECONDARY_BUILDER_RESULT_SCHEMA_VERSION),
+  status: external_exports.enum(["EDITS", "NEEDS_MORE_CONTEXT"]).default("EDITS"),
   summary: boundedText(SECONDARY_BUILDER_LIMITS.maxSummaryChars),
   edits: external_exports.array(secondaryStructuredEditSchema).max(SECONDARY_BUILDER_LIMITS.maxEdits),
-  notes: external_exports.array(external_exports.string().max(SECONDARY_BUILDER_LIMITS.maxNoteChars)).max(SECONDARY_BUILDER_LIMITS.maxNotes).optional()
-}).strict();
+  notes: external_exports.array(external_exports.string().max(SECONDARY_BUILDER_LIMITS.maxNoteChars)).max(SECONDARY_BUILDER_LIMITS.maxNotes).optional(),
+  needsMoreContextReasons: external_exports.array(external_exports.string().min(1).max(SECONDARY_BUILDER_LIMITS.maxNoteChars)).min(1).max(8).optional()
+}).strict().superRefine((result, context) => {
+  if (result.status === "NEEDS_MORE_CONTEXT" && result.needsMoreContextReasons === void 0) {
+    context.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["needsMoreContextReasons"], message: "required when status is NEEDS_MORE_CONTEXT" });
+  }
+  if (result.status === "NEEDS_MORE_CONTEXT" && result.edits.length > 0) {
+    context.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["edits"], message: "must be empty when more context is required" });
+  }
+});
 var SECONDARY_BUILDER_JSON_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["schemaVersion", "summary", "edits"],
+  required: ["schemaVersion", "status", "summary", "edits"],
   properties: {
     schemaVersion: { type: "string", const: SECONDARY_BUILDER_RESULT_SCHEMA_VERSION },
+    status: { type: "string", enum: ["EDITS", "NEEDS_MORE_CONTEXT"] },
     summary: { type: "string", minLength: 1, maxLength: SECONDARY_BUILDER_LIMITS.maxSummaryChars },
     edits: {
       type: "array",
@@ -62694,6 +62832,12 @@ var SECONDARY_BUILDER_JSON_SCHEMA = {
       type: "array",
       maxItems: SECONDARY_BUILDER_LIMITS.maxNotes,
       items: { type: "string", maxLength: SECONDARY_BUILDER_LIMITS.maxNoteChars }
+    },
+    needsMoreContextReasons: {
+      type: "array",
+      minItems: 1,
+      maxItems: 8,
+      items: { type: "string", minLength: 1, maxLength: SECONDARY_BUILDER_LIMITS.maxNoteChars }
     }
   }
 };
@@ -62701,6 +62845,9 @@ var SECONDARY_BUILDER_SYSTEM_PROMPT = [
   "You are a bounded SECONDARY OBJECTIVE BUILDER, not an agent harness.",
   "You have no shell, git, filesystem, package-manager, test, credential, or tool access.",
   "The packet contains all approved truth and source bytes you may use.",
+  "You have been given the repository context selected for this task; do not explore beyond it.",
+  "Do not invent files, APIs, symbols, or architecture unsupported by the packet.",
+  "If the packet is insufficient to implement safely, return NEEDS_MORE_CONTEXT with bounded reasons and no edits.",
   "Return exactly one JSON document matching the supplied schema.",
   "Return complete UTF-8 file contents using only CREATE or REPLACE.",
   "Never return Markdown, diffs, commands, deletes, renames, symlinks, or authority/config edits.",
@@ -62764,6 +62911,8 @@ var SECONDARY_BUILDER_FAILURES = [
   "VERIFICATION_FAILURE",
   "TIMEOUT",
   "CONTEXT_TOO_LARGE",
+  "INSUFFICIENT_CONTEXT",
+  "AMBIGUOUS_TARGET",
   "CANCELLED"
 ];
 var SECONDARY_BUILDER_ATTEMPT_STATUSES = [
@@ -62772,6 +62921,7 @@ var SECONDARY_BUILDER_ATTEMPT_STATUSES = [
   "PROPOSAL_VALIDATED",
   "EDITS_APPLIED",
   "VERIFICATION_FAILED",
+  "CONTEXT_INSUFFICIENT",
   "CANDIDATE_READY",
   "FAILED"
 ];
@@ -62833,18 +62983,30 @@ function stableStringify(value) {
   return JSON.stringify(stable(value));
 }
 function packetBody(packet) {
-  return stableStringify(packet);
+  const { createdAt: _createdAt, contextMetrics: _contextMetrics, ...semantic } = packet;
+  return stableStringify(semantic);
 }
 function sourceContextHashOf(sourceContext) {
+  const normalized = external_exports.array(secondarySourceContextSchema).parse(sourceContext);
   return sha256Hex(
     stableStringify(
-      [...sourceContext].map((entry2) => ({ path: entry2.path.replace(/\\/g, "/"), contentHash: entry2.contentHash })).sort((left, right) => left.path.localeCompare(right.path))
+      normalized.map((entry2) => ({
+        repositoryId: entry2.repositoryId,
+        path: entry2.path.replace(/\\/g, "/"),
+        contentHash: entry2.contentHash,
+        sectionHash: entry2.sectionHash ?? sha256Hex(entry2.content),
+        startLine: entry2.startLine ?? null,
+        endLine: entry2.endLine ?? null
+      })).sort((left, right) => `${left.repositoryId}:${left.path}`.localeCompare(`${right.repositoryId}:${right.path}`))
     )
   );
 }
 function buildSecondaryBuilderPacket(input) {
   const sourceContext = external_exports.array(secondarySourceContextSchema).parse(input.sourceContext);
-  const sourceBytes = sourceContext.reduce(
+  const tests = external_exports.array(secondarySourceContextSchema).parse(input.tests ?? []);
+  const referencePatterns = external_exports.array(secondarySourceContextSchema).parse(input.referencePatterns ?? []);
+  const allSourceContext = [...sourceContext, ...tests, ...referencePatterns];
+  const sourceBytes = allSourceContext.reduce(
     (total, entry2) => total + Buffer.byteLength(entry2.content, "utf8"),
     0
   );
@@ -62856,7 +63018,7 @@ function buildSecondaryBuilderPacket(input) {
     packetId: `${input.projection.projectionId}-secondary`,
     projectionHash: input.projection.contentHash,
     contractSnapshotHash: input.projection.contractSnapshotHash,
-    sourceContextHash: sourceContextHashOf(sourceContext),
+    sourceContextHash: sourceContextHashOf(allSourceContext),
     objective: {
       nodeId: input.projection.objectiveNodeId,
       taskId: input.projection.objective.taskId,
@@ -62880,47 +63042,114 @@ function buildSecondaryBuilderPacket(input) {
       priorWorkEvidence: [...input.projection.workEvidence]
     },
     sourceContext,
+    targets: external_exports.array(secondaryBuilderTargetSchema).parse(
+      input.targets ?? sourceContext.map((entry2) => ({
+        repositoryId: entry2.repositoryId,
+        path: entry2.path,
+        symbols: entry2.symbols,
+        reason: entry2.reason
+      }))
+    ),
+    tests,
+    referencePatterns,
+    dependencyContext: external_exports.array(secondaryDependencyContextSchema).parse(input.dependencyContext ?? []),
+    priorFailureEvidence: [...input.priorFailureEvidence ?? []].slice(0, 20),
+    retrievalPlanRef: input.retrievalPlanRefs?.[0] ?? "manual-source-selection",
+    retrievalPlanRefs: [...input.retrievalPlanRefs ?? ["manual-source-selection"]].slice(0, 12),
+    expansion: {
+      level: input.expansionLevel ?? "MINIMAL_BOOTSTRAP",
+      remainingLevels: Math.max(0, 4 - CONTEXT_EXPANSION_LEVELS.indexOf(input.expansionLevel ?? "MINIMAL_BOOTSTRAP"))
+    },
+    contextMetrics: secondaryBuilderPacketMetricsSchema.parse(input.contextMetrics ?? {
+      indexedFilesConsidered: sourceContext.length,
+      candidateCount: sourceContext.length,
+      selectedFiles: allSourceContext.length,
+      selectedSections: allSourceContext.filter((entry2) => entry2.startLine !== void 0).length,
+      sourceCharacters: sourceContext.reduce((sum, entry2) => sum + entry2.content.length, 0),
+      testCharacters: tests.reduce((sum, entry2) => sum + entry2.content.length, 0),
+      referencePatternCount: referencePatterns.length,
+      dependencyContextCount: input.dependencyContext?.length ?? 0,
+      budgetUtilization: sourceBytes / SECONDARY_BUILDER_LIMITS.maxSourceBytes,
+      mandatoryRefsRetained: sourceContext.length,
+      expansionDepth: CONTEXT_EXPANSION_LEVELS.indexOf(input.expansionLevel ?? "MINIMAL_BOOTSTRAP"),
+      staleEntriesEncountered: 0,
+      selectionDurationMs: 0,
+      indexReused: false
+    }),
+    quality: secondaryBuilderPacketQualitySchema.parse(input.quality ?? {
+      explicitTargetResolved: sourceContext.length > 0,
+      targetAmbiguity: false,
+      testsFound: tests.length > 0,
+      verificationHintsAvailable: (input.verificationHints?.length ?? 0) > 0,
+      referencePatternFound: referencePatterns.length > 0,
+      dependencyContextComplete: true,
+      sourceBudgetUtilization: sourceBytes / SECONDARY_BUILDER_LIMITS.maxSourceBytes,
+      contextSufficient: sourceContext.length > 0
+    }),
     forbiddenChanges: [
       "Do not modify .git, .kiro, .specbridge, .codex, .claude, credentials, approvals, contracts, mission state, or closure state.",
       "Do not delete, rename, chmod, create symlinks, emit commands, or request tools.",
       ...input.forbiddenChanges ?? []
     ],
-    verificationHints: [...input.verificationHints ?? []]
+    verificationHints: [...input.verificationHints ?? []],
+    ...input.createdAt !== void 0 ? { createdAt: input.createdAt } : {}
   };
-  const packetHash = sha256Hex(packetBody(base));
-  const packet = secondaryBuilderPacketSchema.parse({ ...base, packetHash });
+  const contentHash = sha256Hex(packetBody(base));
+  const packet = secondaryBuilderPacketSchema.parse({ ...base, contentHash, packetHash: contentHash });
   if (JSON.stringify(packet).length > SECONDARY_BUILDER_LIMITS.maxPacketCharacters) {
     throw new Error(`secondary builder packet exceeds ${SECONDARY_BUILDER_LIMITS.maxPacketCharacters} characters`);
   }
   return packet;
 }
 function validatePacketIdentity(packet) {
-  const { packetHash: claimed, ...body } = packet;
+  const { packetHash: claimed, contentHash, ...body } = packet;
   const actual = sha256Hex(packetBody(body));
-  if (actual !== claimed) return "the packet hash does not match its contents";
-  if (sourceContextHashOf(packet.sourceContext) !== packet.sourceContextHash) {
+  if (actual !== claimed || actual !== contentHash) return "the packet semantic hash does not match its contents";
+  if (sourceContextHashOf([...packet.sourceContext, ...packet.tests, ...packet.referencePatterns]) !== packet.sourceContextHash) {
     return "the source-context manifest hash does not match the packet";
   }
   return void 0;
 }
-function validateSourceFreshness(worktreeRoot, packet, protectedPaths) {
+function validateSourceFreshness(worktreeRoot, packet, protectedPaths, repositoryRoots) {
   const problems = [];
-  const pathFailures = validateEditPaths(
-    { rootDir: worktreeRoot },
-    packet.sourceContext.map((entry2) => ({ path: entry2.path, content: "" })),
-    protectedPaths
-  );
-  problems.push(...pathFailures.map((failure3) => `${failure3.path}: ${failure3.problem}`));
-  if (pathFailures.length > 0) return problems;
-  for (const source of packet.sourceContext) {
-    const target = import_path37.default.join(worktreeRoot, source.path.replace(/\\/g, "/"));
+  const allSources = [...packet.sourceContext, ...packet.tests, ...packet.referencePatterns];
+  for (const repositoryId of new Set(allSources.map((source) => source.repositoryId))) {
+    const repositoryRoot = repositoryRoots[repositoryId] ?? (repositoryId === "primary" ? worktreeRoot : void 0);
+    if (repositoryRoot === void 0) {
+      problems.push(`${repositoryId}: repository root is unavailable`);
+      continue;
+    }
+    const pathFailures = validateEditPaths(
+      { rootDir: repositoryRoot },
+      allSources.filter((entry2) => entry2.repositoryId === repositoryId).map((entry2) => ({ path: entry2.path, content: "" })),
+      protectedPaths
+    );
+    problems.push(...pathFailures.map((failure3) => `${repositoryId}:${failure3.path}: ${failure3.problem}`));
+  }
+  if (problems.length > 0) return problems;
+  for (const source of allSources) {
+    const repositoryRoot = repositoryRoots[source.repositoryId] ?? (source.repositoryId === "primary" ? worktreeRoot : void 0);
+    if (repositoryRoot === void 0) {
+      problems.push(`${source.repositoryId}:${source.path}: repository root is unavailable`);
+      continue;
+    }
+    const normalizedPath = source.path.replace(/\\/g, "/");
+    const resolvedRoot = import_path37.default.resolve(repositoryRoot);
+    const target = import_path37.default.resolve(resolvedRoot, normalizedPath);
+    if (import_path37.default.isAbsolute(normalizedPath) || normalizedPath === ".." || normalizedPath.startsWith("../") || target !== resolvedRoot && !target.startsWith(`${resolvedRoot}${import_path37.default.sep}`)) {
+      problems.push(`${source.repositoryId}:${source.path}: source path escapes its repository`);
+      continue;
+    }
     try {
       if (!(0, import_fs35.lstatSync)(target).isFile()) {
         problems.push(`${source.path}: source is not a regular file`);
         continue;
       }
       const current = (0, import_fs35.readFileSync)(target, "utf8");
-      if (sha256Hex(current) !== source.contentHash || current !== source.content) {
+      if (sha256Hex(source.content) !== (source.sectionHash ?? sha256Hex(source.content))) {
+        problems.push(`${source.repositoryId}:${source.path}: selected section hash does not match packet content`);
+      }
+      if (sha256Hex(current) !== source.contentHash || source.startLine === void 0 && current !== source.content) {
         problems.push(`${source.path}: repository bytes changed after source context was assembled`);
       }
     } catch {
@@ -62933,7 +63162,7 @@ function emptyTelemetry(packet) {
   return {
     inputCharacters: 0,
     outputBytes: 0,
-    sourceFiles: packet.sourceContext.length,
+    sourceFiles: packet.sourceContext.length + packet.tests.length + packet.referencePatterns.length,
     editedFiles: 0,
     durationMs: 0,
     inputTokens: null,
@@ -62958,13 +63187,14 @@ async function executeSecondaryObjectiveBuilder(input) {
   const packet = parsedPacket.data;
   const identityProblem = validatePacketIdentity(packet);
   if (identityProblem !== void 0) return failure(packet, "STALE_SOURCE_CONTEXT", identityProblem);
-  const stale = validateSourceFreshness(input.worktreeRoot, packet, input.protectedPaths ?? []);
+  const stale = validateSourceFreshness(
+    input.worktreeRoot,
+    packet,
+    input.protectedPaths ?? [],
+    input.repositoryRoots ?? {}
+  );
   if (stale.length > 0) return failure(packet, "STALE_SOURCE_CONTEXT", stale.slice(0, 5).join("; "));
-  const userPrompt = [
-    "Implement the approved WorkUnit using only the bounded packet below.",
-    "Return the SECONDARY_BUILDER_RESULT JSON document now.",
-    stableStringify(packet)
-  ].join("\n\n");
+  const userPrompt = renderSecondaryBuilderPrompt(packet);
   const inputCharacters = SECONDARY_BUILDER_SYSTEM_PROMPT.length + userPrompt.length;
   if (inputCharacters > input.maximumInputCharacters) {
     return failure(
@@ -63003,7 +63233,7 @@ async function executeSecondaryObjectiveBuilder(input) {
   let telemetry = {
     inputCharacters,
     outputBytes,
-    sourceFiles: packet.sourceContext.length,
+    sourceFiles: packet.sourceContext.length + packet.tests.length + packet.referencePatterns.length,
     editedFiles: 0,
     durationMs: inferred.durationMs,
     inputTokens: inferred.usage?.inputTokens ?? null,
@@ -63035,6 +63265,14 @@ async function executeSecondaryObjectiveBuilder(input) {
   const proposal = parsed.data;
   telemetry = { ...telemetry, editedFiles: proposal.edits.length };
   input.onExecutionEvent?.({ stage: "PROPOSAL_VALIDATED", proposal, telemetry });
+  if (proposal.status === "NEEDS_MORE_CONTEXT") {
+    return failure(
+      packet,
+      "INSUFFICIENT_CONTEXT",
+      `secondary builder requested more context: ${proposal.needsMoreContextReasons?.join("; ") ?? proposal.summary}`,
+      { rawOutput: inferred.text, proposal, telemetry }
+    );
+  }
   if (proposal.edits.length === 0) {
     return failure(packet, "EMPTY_EDIT_SET", "an implementation WorkUnit must propose at least one edit", {
       rawOutput: inferred.text,
@@ -63097,6 +63335,44 @@ async function executeSecondaryObjectiveBuilder(input) {
   }
   input.onExecutionEvent?.({ stage: "EDITS_APPLIED", proposal, appliedFiles, telemetry });
   return { ok: true, proposal, appliedFiles, telemetry };
+}
+function renderSecondaryBuilderPrompt(packet) {
+  const renderSources = (entries) => entries.length === 0 ? "(none)" : entries.map(
+    (entry2) => [
+      `--- ${entry2.repositoryId}:${entry2.path}${entry2.startLine !== void 0 ? ` lines ${entry2.startLine}-${entry2.endLine}` : ""} ---`,
+      `Selected because: ${entry2.reason}`,
+      entry2.content
+    ].join("\n")
+  ).join("\n\n");
+  return [
+    "PACKET IDENTITY",
+    stableStringify({ workUnitId: packet.workUnit.workUnitId, packetHash: packet.packetHash }),
+    "TASK",
+    `${packet.workUnit.title}
+${packet.workUnit.goal}`,
+    "REQUIRED BEHAVIOR",
+    [...packet.objective.acceptance, ...packet.approvedContext.contracts.flatMap((contract) => contract.requirements)].join("\n- "),
+    "TARGETS",
+    packet.targets.map((target) => `${target.repositoryId}:${target.path} (${target.reason})`).join("\n"),
+    "CURRENT SOURCE",
+    renderSources(packet.sourceContext),
+    "RELEVANT TESTS",
+    renderSources(packet.tests),
+    "REFERENCE PATTERNS (examples only; not requirements)",
+    renderSources(packet.referencePatterns),
+    "DEPENDENCY CONTEXT",
+    packet.dependencyContext.map((dependency) => `${dependency.workUnitId}: ${dependency.summary}`).join("\n") || "(none)",
+    "CONSTRAINTS",
+    packet.approvedContext.constraints.join("\n"),
+    "DO NOT CHANGE",
+    packet.forbiddenChanges.join("\n"),
+    "PRIOR FAILURE EVIDENCE",
+    packet.priorFailureEvidence.join("\n") || "(none)",
+    "VERIFICATION HINTS",
+    packet.verificationHints.join("\n") || "(none configured)",
+    "OUTPUT CONTRACT",
+    "Return exactly one SECONDARY_BUILDER_RESULT JSON document. Use status EDITS with complete CREATE/REPLACE contents, or NEEDS_MORE_CONTEXT with no edits when the supplied evidence is insufficient."
+  ].join("\n\n");
 }
 function secondaryBuilderInputCeiling(config2) {
   return effectiveLocalInputCharacters(config2.localInference);
@@ -74719,6 +74995,666 @@ async function pruneWorktrees(workspace, jobId) {
   await git3(workspace.rootDir, ["worktree", "prune"]);
   return removed;
 }
+var BUILDER_PACKET_COMPILATION_SCHEMA_VERSION = "1.0.0";
+var BUILDER_PACKET_COMPILATION_FAILURES = [
+  "INSUFFICIENT_CONTEXT",
+  "AMBIGUOUS_TARGET",
+  "STALE_SOURCE_CONTEXT"
+];
+var builderPacketCompilationResultSchema = external_exports.discriminatedUnion("ok", [
+  external_exports.object({
+    ok: external_exports.literal(true),
+    schemaVersion: external_exports.literal(BUILDER_PACKET_COMPILATION_SCHEMA_VERSION),
+    packet: secondaryBuilderPacketSchema,
+    plans: external_exports.array(contextSelectionPlanSchema).max(12),
+    planRefs: external_exports.array(external_exports.string().min(1).max(512)).max(12),
+    metrics: secondaryBuilderPacketMetricsSchema,
+    quality: secondaryBuilderPacketQualitySchema,
+    repositoryRoots: external_exports.record(external_exports.string().min(1))
+  }).strict(),
+  external_exports.object({
+    ok: external_exports.literal(false),
+    schemaVersion: external_exports.literal(BUILDER_PACKET_COMPILATION_SCHEMA_VERSION),
+    failure: external_exports.object({
+      kind: external_exports.enum(BUILDER_PACKET_COMPILATION_FAILURES),
+      reasons: external_exports.array(external_exports.string().min(1).max(2e3)).min(1).max(8)
+    }).strict(),
+    plans: external_exports.array(contextSelectionPlanSchema).max(12),
+    planRefs: external_exports.array(external_exports.string().min(1).max(512)).max(12),
+    metrics: secondaryBuilderPacketMetricsSchema,
+    quality: secondaryBuilderPacketQualitySchema
+  }).strict()
+]);
+var SecondaryBuilderContextCompiler = class {
+  compile(input) {
+    return compileSecondaryBuilderPacket(input);
+  }
+};
+var defaultBudget = {
+  maxSelectedFiles: SECONDARY_BUILDER_LIMITS.maxSourceFiles,
+  maxTests: SECONDARY_BUILDER_LIMITS.maxTests,
+  maxReferencePatterns: SECONDARY_BUILDER_LIMITS.maxReferencePatterns,
+  maxSourceCharacters: SECONDARY_BUILDER_LIMITS.maxSourceBytes,
+  maxCharactersPerSection: SECONDARY_BUILDER_LIMITS.maxSourceFileChars
+};
+function boundedBudget(input) {
+  const supplied = input.budget ?? {};
+  return {
+    maxSelectedFiles: Math.max(
+      1,
+      Math.min(SECONDARY_BUILDER_LIMITS.maxSourceFiles, supplied.maxSelectedFiles ?? defaultBudget.maxSelectedFiles)
+    ),
+    maxTests: Math.max(0, Math.min(SECONDARY_BUILDER_LIMITS.maxTests, supplied.maxTests ?? defaultBudget.maxTests)),
+    maxReferencePatterns: Math.max(
+      0,
+      Math.min(
+        SECONDARY_BUILDER_LIMITS.maxReferencePatterns,
+        supplied.maxReferencePatterns ?? defaultBudget.maxReferencePatterns
+      )
+    ),
+    maxSourceCharacters: Math.max(
+      1e3,
+      Math.min(SECONDARY_BUILDER_LIMITS.maxSourceBytes, supplied.maxSourceCharacters ?? defaultBudget.maxSourceCharacters)
+    ),
+    maxCharactersPerSection: Math.max(
+      500,
+      Math.min(
+        SECONDARY_BUILDER_LIMITS.maxSourceFileChars,
+        supplied.maxCharactersPerSection ?? defaultBudget.maxCharactersPerSection
+      )
+    )
+  };
+}
+function normalizePath22(value) {
+  return value.replace(/\\/g, "/").replace(/^\.\//, "").trim();
+}
+function unique(values) {
+  return [...new Set(values.filter((value) => value.length > 0))];
+}
+function safeId(value) {
+  return value.replace(/[^A-Za-z0-9._-]/g, "-").slice(0, 80) || "repository";
+}
+function nowIso2(input) {
+  return input.createdAt ?? (/* @__PURE__ */ new Date()).toISOString();
+}
+async function prepareRepositories(input, createdAt) {
+  if (input.repositories !== void 0) {
+    const seen = /* @__PURE__ */ new Set();
+    return input.repositories.map((repository, position) => {
+      if (seen.has(repository.repositoryId)) {
+        throw new Error(`duplicate repository identity ${repository.repositoryId}`);
+      }
+      seen.add(repository.repositoryId);
+      if (position > 0 && repository.repositoryId !== "primary" && (repository.justification === void 0 || repository.justification.trim() === "")) {
+        throw new Error(`secondary repository ${repository.repositoryId} needs an explicit justification`);
+      }
+      return {
+        repositoryId: repository.repositoryId,
+        rootDir: repository.rootDir,
+        index: repository.index,
+        changedPaths: unique((repository.changedPaths ?? []).map(normalizePath22)),
+        indexReused: repository.indexReused ?? true,
+        staleMetadataPaths: []
+      };
+    });
+  }
+  const canonicalSnapshot = await captureGitSnapshot(input.workspace.rootDir);
+  const base = ensureRepositoryIndex({
+    workspace: input.workspace,
+    config: input.config,
+    now: createdAt,
+    gitSnapshot: canonicalSnapshot
+  });
+  const worktreeSnapshot = await captureGitSnapshot(input.worktreeRoot);
+  const dependencyPaths = (input.dependencyContext ?? []).flatMap(
+    (dependency) => dependency.changedFiles.filter((file) => (file.repositoryId ?? "primary") === "primary").map((file) => normalizePath22(file.path))
+  );
+  const changedPaths = unique([
+    ...canonicalSnapshot.entries.map((entry2) => normalizePath22(entry2.path)),
+    ...worktreeSnapshot.entries.map((entry2) => normalizePath22(entry2.path)),
+    ...dependencyPaths
+  ]);
+  const policy = input.config.orchestration.jobs.context.efficiency;
+  const overlaid = refreshRepositoryIndex(
+    { ...base.state, workspaceKey: workspaceKeyFor(input.worktreeRoot) },
+    {
+      rootDir: input.worktreeRoot,
+      now: createdAt,
+      protectedPaths: indexProtectedPaths(input.config),
+      respectGitignore: policy.respectGitignore,
+      maxEntries: policy.maxIndexedFiles,
+      maxFileBytes: policy.maxIndexedFileBytes,
+      baselineRef: input.baselineRef ?? worktreeSnapshot.head ?? base.state.baselineRef,
+      changedPaths
+    }
+  );
+  return [
+    {
+      repositoryId: "primary",
+      rootDir: input.worktreeRoot,
+      index: new RepositoryContextIndex(overlaid.state),
+      changedPaths,
+      indexReused: true,
+      staleMetadataPaths: overlaid.refreshedPaths
+    }
+  ];
+}
+function workUnitText(input) {
+  return [
+    input.workUnit.title,
+    input.workUnit.goal,
+    ...input.workUnit.expectedArtifacts,
+    ...input.workUnit.expectedAreas
+  ].join("\n");
+}
+function pathRepoHint(reference, repositoryId) {
+  const lower = reference.toLowerCase();
+  const repo = repositoryId.toLowerCase();
+  return lower.startsWith(`${repo}:`) || lower.startsWith(`${repo}/`);
+}
+function areaScore(input, repositoryId, candidatePath) {
+  const haystack = `${repositoryId}/${candidatePath}`.toLowerCase();
+  return input.workUnit.expectedAreas.reduce((score, area) => {
+    const normalized = normalizePath22(area).toLowerCase().replace(/^[^:]+:/, "");
+    return score + (normalized.length >= 2 && haystack.includes(normalized) ? 1 : 0);
+  }, 0);
+}
+function chooseUnique(input, candidates, reference) {
+  if (candidates.length === 0) return { ambiguous: false };
+  if (candidates.length === 1) return { value: candidates[0], ambiguous: false };
+  const hinted = candidates.filter((candidate) => pathRepoHint(reference, candidate.repositoryId));
+  if (hinted.length === 1) return { value: hinted[0], ambiguous: false };
+  const scored = candidates.map((candidate) => ({ candidate, score: areaScore(input, candidate.repositoryId, candidate.path) })).sort((left, right) => right.score - left.score);
+  if ((scored[0]?.score ?? 0) > (scored[1]?.score ?? 0)) {
+    return { value: scored[0].candidate, ambiguous: false };
+  }
+  return { ambiguous: true };
+}
+function locateExplicitTargets(input, repositories) {
+  const text93 = workUnitText(input);
+  const references = unique(extractPathReferences2(text93).map(normalizePath22));
+  const symbols = unique(extractSymbolReferences(text93));
+  const targets = /* @__PURE__ */ new Map();
+  const missing = [];
+  const ambiguous = [];
+  for (const reference of references) {
+    const located = [];
+    for (const repository of repositories) {
+      const repoPrefix = `${repository.repositoryId}:`;
+      const withoutRepo = reference.startsWith(repoPrefix) ? reference.slice(repoPrefix.length) : reference;
+      const exact = repository.index.get(withoutRepo);
+      const paths = exact !== void 0 ? [exact.path] : withoutRepo.includes("/") ? [] : repository.index.namedExactly(withoutRepo);
+      for (const candidatePath of paths) {
+        const entry2 = repository.index.get(candidatePath);
+        if (entry2 !== void 0) {
+          located.push({ repositoryId: repository.repositoryId, path: entry2.path, symbols: entry2.symbols.slice(0, 12) });
+        }
+      }
+    }
+    const selected = chooseUnique(input, located, reference);
+    if (selected.ambiguous) ambiguous.push(reference);
+    else if (selected.value !== void 0) {
+      targets.set(`${selected.value.repositoryId}:${selected.value.path}`, selected.value);
+    } else {
+      missing.push(reference);
+    }
+  }
+  for (const symbol of symbols) {
+    const located = [];
+    for (const repository of repositories) {
+      for (const candidatePath of repository.index.declaring(symbol)) {
+        const entry2 = repository.index.get(candidatePath);
+        if (entry2 !== void 0) {
+          located.push({ repositoryId: repository.repositoryId, path: entry2.path, symbols: [symbol] });
+        }
+      }
+    }
+    if (located.length === 0) continue;
+    const alreadyBound = located.find(
+      (candidate) => targets.has(`${candidate.repositoryId}:${candidate.path}`)
+    );
+    const selected = alreadyBound === void 0 ? chooseUnique(input, located, symbol) : { value: alreadyBound, ambiguous: false };
+    if (selected.ambiguous) ambiguous.push(symbol);
+    else if (selected.value !== void 0) {
+      const key = `${selected.value.repositoryId}:${selected.value.path}`;
+      const previous = targets.get(key);
+      targets.set(key, {
+        ...selected.value,
+        symbols: unique([...previous?.symbols ?? [], symbol]).slice(0, 12)
+      });
+    }
+  }
+  const createsNewArtifact = /\b(create|introduce|new file|add file)\b/i.test(text93);
+  return {
+    targets: [...targets.values()],
+    missing: createsNewArtifact ? [] : missing,
+    ambiguous,
+    explicitEvidence: references.length > 0 || symbols.length > 0
+  };
+}
+function queryFor(input, repository, targets, expansionLevel) {
+  const dependencyPaths = (input.dependencyContext ?? []).flatMap(
+    (dependency) => dependency.changedFiles.filter((file) => (file.repositoryId ?? "primary") === repository.repositoryId).map((file) => normalizePath22(file.path))
+  );
+  const approved = input.projection.contracts.flatMap((contract) => [
+    contract.title,
+    contract.summary,
+    ...contract.requirements,
+    ...contract.invariants
+  ]);
+  const query = buildRetrievalQuery({
+    taskId: input.workUnit.parentTaskId,
+    nodeId: input.objectiveNodeId,
+    attemptId: `${input.workUnit.workUnitId}-a${input.attempt}-secondary`,
+    role: "EXECUTOR",
+    contract: [
+      ...input.workUnit.expectedArtifacts,
+      ...input.workUnit.expectedAreas,
+      ...input.workUnit.relevantContractIds,
+      ...approved
+    ].join("\n"),
+    objective: `${input.workUnit.title}
+${input.workUnit.goal}`,
+    acceptanceCriteria: input.projection.objective.acceptance,
+    currentAction: [
+      input.workUnit.goal,
+      ...targets.filter((target) => target.repositoryId === repository.repositoryId).map((target) => target.path)
+    ].join("\n"),
+    failureText: (input.priorFailureEvidence ?? []).join("\n").slice(0, 2e4),
+    changedPaths: dependencyPaths,
+    checkpointChangedPaths: dependencyPaths,
+    priorRelevantPaths: input.priorRelevantPaths,
+    expansionLevel
+  });
+  query.actionPaths = unique([
+    ...targets.filter((target) => target.repositoryId === repository.repositoryId).map((target) => target.path),
+    ...query.actionPaths
+  ]);
+  return query;
+}
+function contextBudget(input) {
+  const characterCeiling = Math.min(
+    SECONDARY_BUILDER_LIMITS.maxPacketCharacters,
+    input.maximumInputCharacters ?? SECONDARY_BUILDER_LIMITS.maxPacketCharacters
+  );
+  return contextBudgetConfigSchema.parse({
+    modelContextTokens: Math.max(1e3, Math.floor(characterCeiling / 4)),
+    reservedOutputTokens: 0,
+    reservedReasoningTokens: 0,
+    reservedGrowthTokens: 0
+  });
+}
+function itemFor(planEntry, result) {
+  return result.assembled.package.items.find(
+    (item) => item.provenance?.path === planEntry.path && item.layer === "WORKING_SET"
+  );
+}
+function sectionFrom(repository, selected, content) {
+  const entry2 = repository.index.get(selected.path);
+  return secondarySourceContextSchema.parse({
+    repositoryId: repository.repositoryId,
+    path: selected.path,
+    contentHash: selected.contentHash,
+    sectionHash: sha256Hex(content),
+    content,
+    reason: selected.reason,
+    ...selected.startLine !== void 0 ? { startLine: selected.startLine } : {},
+    ...selected.endLine !== void 0 ? { endLine: selected.endLine } : {},
+    symbols: unique([
+      ...selected.symbol !== void 0 ? [selected.symbol] : [],
+      ...entry2?.symbols ?? []
+    ]).slice(0, 12)
+  });
+}
+function priority(targetKeys, repositoryId, selected, kind) {
+  if (targetKeys.has(`${repositoryId}:${selected.path}`)) return 0;
+  if (selected.reason === "EXPLICIT_FAILURE_REFERENCE") return 1;
+  if (kind === "test") return 2;
+  if (selected.reason === "DEPENDENCY_PROXIMITY") return 3;
+  if (selected.reason === "REFERENCE_PATTERN") return 4;
+  return 5;
+}
+function pairedTestMatches(testPath, targetPath) {
+  const stem2 = (value) => value.split("/").at(-1).replace(/\.(?:test|spec)\.[^.]+$/, "").replace(/\.[^.]+$/, "").replace(/(?:[-_.]?(?:test|tests|spec))$/i, "").toLowerCase();
+  if (stem2(testPath) !== stem2(targetPath)) return false;
+  const meaningfulDirs = (value) => value.split("/").slice(0, -1).map((part) => part.toLowerCase()).filter((part) => !["src", "test", "tests", "__tests__"].includes(part));
+  const targetDirs = meaningfulDirs(targetPath);
+  if (targetDirs.length === 0) return true;
+  const testDirs = new Set(meaningfulDirs(testPath));
+  return targetDirs.some((part) => testDirs.has(part));
+}
+async function compileSecondaryBuilderPacket(input) {
+  const startedAt = Date.now();
+  const createdAt = nowIso2(input);
+  const budget = boundedBudget(input);
+  const expansionLevel = input.expansionLevel ?? "ADJACENT_DEPENDENCIES";
+  const expansionDepth = CONTEXT_EXPANSION_LEVELS.indexOf(expansionLevel);
+  const repositories = await prepareRepositories(input, createdAt);
+  const located = locateExplicitTargets(input, repositories);
+  const prepared = repositories.map((repository) => {
+    const query = queryFor(input, repository, located.targets, expansionLevel);
+    return { repository, query, preliminary: rankCandidates(repository.index, query) };
+  });
+  let targets = [...located.targets];
+  const ambiguity = [...located.ambiguous];
+  if (targets.length === 0 && located.missing.length === 0) {
+    const plausible = prepared.flatMap(
+      (entry2) => entry2.preliminary.filter((candidate) => candidate.entry.kind === "source" || candidate.entry.kind === "config").slice(0, 2).map((candidate) => ({ repository: entry2.repository, candidate }))
+    ).sort(
+      (left, right) => right.candidate.score !== left.candidate.score ? right.candidate.score - left.candidate.score : `${left.repository.repositoryId}:${left.candidate.path}`.localeCompare(
+        `${right.repository.repositoryId}:${right.candidate.path}`
+      )
+    );
+    if (plausible[0] !== void 0 && plausible[1] !== void 0 && plausible[0].candidate.score === plausible[1].candidate.score && plausible[0].candidate.entry.module !== plausible[1].candidate.entry.module) {
+      ambiguity.push(
+        `${plausible[0].repository.repositoryId}:${plausible[0].candidate.path} or ${plausible[1].repository.repositoryId}:${plausible[1].candidate.path}`
+      );
+    } else if (plausible[0] !== void 0) {
+      targets = [
+        {
+          repositoryId: plausible[0].repository.repositoryId,
+          path: plausible[0].candidate.path,
+          symbols: plausible[0].candidate.entry.symbols.slice(0, 12)
+        }
+      ];
+      const matching = prepared.find(
+        (entry2) => entry2.repository.repositoryId === plausible[0]?.repository.repositoryId
+      );
+      if (matching !== void 0) {
+        matching.query.actionPaths = unique([plausible[0].candidate.path, ...matching.query.actionPaths]);
+      }
+    }
+  }
+  const policy = input.config.orchestration.jobs.context.efficiency;
+  const allocationPolicy = contextAllocationPolicySchema.parse({
+    pinnedReserveRatio: policy.pinnedReserveRatio,
+    durableReserveRatio: policy.durableReserveRatio,
+    recoveryReserveRatio: policy.recoveryReserveRatio,
+    deltaReserveRatio: policy.deltaReserveRatio,
+    workingSetMaxRatio: policy.workingSetMaxRatio,
+    pointerShapeWorkingSetMaxRatio: policy.pointerShapeWorkingSetMaxRatio,
+    maxSingleItemRatio: policy.maxSingleItemRatio
+  });
+  const results = [];
+  for (const entry2 of prepared) {
+    const planId = [
+      "builder",
+      safeId(input.objectiveNodeId),
+      safeId(input.workUnit.workUnitId),
+      `a${input.attempt}`,
+      safeId(entry2.repository.repositoryId),
+      safeId(expansionLevel.toLowerCase())
+    ].join("-").slice(0, 120);
+    const result = await buildEfficientContext({
+      strategy: "SELECTIVE",
+      shape: "MATERIALIZED",
+      expansionLevel,
+      canonicalItems: [],
+      budget: contextBudget(input),
+      allocationPolicy,
+      createdAt,
+      planId,
+      taskId: input.workUnit.parentTaskId,
+      jobId: input.jobId,
+      nodeId: input.objectiveNodeId,
+      attemptId: `${input.workUnit.workUnitId}-a${input.attempt}-secondary`,
+      executionLane: "LOCAL",
+      executionMode: "DIRECT_MODEL",
+      runner: "secondary-objective-builder",
+      index: entry2.repository.index,
+      rootDir: entry2.repository.rootDir,
+      query: entry2.query,
+      rankOptions: {
+        maxCandidates: policy.maxCandidates,
+        excludedPaths: indexProtectedPaths(input.config)
+      },
+      sectionOptions: {
+        wholeFileUnderChars: Math.min(policy.wholeFileUnderChars, budget.maxCharactersPerSection),
+        targetSectionChars: Math.min(policy.targetSectionChars, budget.maxCharactersPerSection)
+      },
+      maxSelectedItems: budget.maxSelectedFiles,
+      maxPointers: 0
+    });
+    results.push({ repository: entry2.repository, result });
+  }
+  const targetKeys = new Set(targets.map((target) => `${target.repositoryId}:${target.path}`));
+  const selectedSections = results.flatMap(
+    ({ repository, result }) => result.plan.selectedWorkingItems.flatMap((selected) => {
+      const selectedKey = `${repository.repositoryId}:${selected.path}`;
+      const entryKind = repository.index.get(selected.path)?.kind;
+      if (targetKeys.size > 0 && !targetKeys.has(selectedKey) && (selected.reason === "TOKEN_OVERLAP" || selected.reason === "MODULE_PROXIMITY")) {
+        return [];
+      }
+      if (selected.reason === "TEST_SOURCE_PAIR" && !targetKeys.has(selectedKey)) {
+        if (entryKind !== "test") return [];
+        const matchesTarget = targets.some(
+          (target) => target.repositoryId === repository.repositoryId && (repository.index.testsFor(target.path).includes(selected.path) || repository.index.sourcesFor(selected.path).includes(target.path) || pairedTestMatches(selected.path, target.path))
+        );
+        if (!matchesTarget) return [];
+      }
+      const item = itemFor(selected, result);
+      if (item === void 0 || item.content.length > budget.maxCharactersPerSection) return [];
+      return [
+        {
+          repository,
+          selected,
+          kind: entryKind,
+          section: sectionFrom(repository, selected, item.content)
+        }
+      ];
+    })
+  ).sort((left, right) => {
+    const leftPriority = priority(targetKeys, left.repository.repositoryId, left.selected, left.kind);
+    const rightPriority = priority(targetKeys, right.repository.repositoryId, right.selected, right.kind);
+    if (leftPriority !== rightPriority) return leftPriority - rightPriority;
+    return right.selected.score - left.selected.score;
+  });
+  const sourceContext = [];
+  const tests = [];
+  const referencePatterns = [];
+  let usedCharacters = 0;
+  let selectedFileCount = 0;
+  for (const selected of selectedSections) {
+    if (selectedFileCount >= budget.maxSelectedFiles) continue;
+    if (usedCharacters + selected.section.content.length > budget.maxSourceCharacters) continue;
+    if (selected.kind === "test") {
+      if (tests.length >= budget.maxTests) continue;
+      tests.push(selected.section);
+    } else if (selected.selected.reason === "REFERENCE_PATTERN") {
+      if (referencePatterns.length >= budget.maxReferencePatterns) continue;
+      referencePatterns.push(selected.section);
+    } else {
+      sourceContext.push(selected.section);
+    }
+    usedCharacters += selected.section.content.length;
+    selectedFileCount += 1;
+  }
+  const selectedKeys = new Set(
+    [...sourceContext, ...tests, ...referencePatterns].map(
+      (section) => `${section.repositoryId}:${section.path}`
+    )
+  );
+  const unresolvedTargets = targets.filter(
+    (target) => !selectedKeys.has(`${target.repositoryId}:${target.path}`)
+  );
+  const dependencyContext = (input.dependencyContext ?? []).filter((dependency) => dependency.verificationPassed).slice(0, SECONDARY_BUILDER_LIMITS.maxDependencyContext).map((dependency) => ({
+    workUnitId: dependency.workUnitId,
+    summary: dependency.summary.slice(0, 2e3),
+    changedFiles: dependency.changedFiles.slice(0, 60).map((file) => ({
+      repositoryId: file.repositoryId ?? "primary",
+      path: normalizePath22(file.path)
+    })),
+    exportedSymbols: [...dependency.exportedSymbols ?? []].slice(0, 30),
+    verificationPassed: true
+  }));
+  const missingDependencies = [...input.missingDependencyIds ?? []];
+  const sourceCharacters = sourceContext.reduce((sum, section) => sum + section.content.length, 0);
+  const testCharacters = tests.reduce((sum, section) => sum + section.content.length, 0);
+  const planRefs = results.map(({ result }) => `context/plans/${result.plan.planId}`);
+  const metrics = secondaryBuilderPacketMetricsSchema.parse({
+    indexedFilesConsidered: repositories.reduce((sum, repository) => sum + repository.index.size, 0),
+    candidateCount: results.reduce((sum, entry2) => sum + entry2.result.deterministicCandidates.length, 0),
+    selectedFiles: sourceContext.length + tests.length + referencePatterns.length,
+    selectedSections: [...sourceContext, ...tests, ...referencePatterns].filter(
+      (section) => section.startLine !== void 0
+    ).length,
+    sourceCharacters,
+    testCharacters,
+    referencePatternCount: referencePatterns.length,
+    dependencyContextCount: dependencyContext.length,
+    budgetUtilization: usedCharacters / budget.maxSourceCharacters,
+    mandatoryRefsRetained: targets.length - unresolvedTargets.length,
+    expansionDepth,
+    staleEntriesEncountered: results.reduce((sum, entry2) => sum + entry2.result.refreshedPaths.length, 0) + repositories.reduce((sum, repository) => sum + repository.staleMetadataPaths.length, 0),
+    selectionDurationMs: Math.max(0, Date.now() - startedAt),
+    indexReused: repositories.every((repository) => repository.indexReused)
+  });
+  const failureReasons = [
+    ...located.missing.map((reference) => `explicit target ${reference} was not found`),
+    ...unresolvedTargets.map(
+      (target) => `target ${target.repositoryId}:${target.path} could not be materialized within policy`
+    ),
+    ...missingDependencies.map((dependency) => `verified dependency evidence for ${dependency} is missing`),
+    ...sourceContext.length === 0 ? ["no implementable source target was selected"] : []
+  ];
+  const contextSufficient = ambiguity.length === 0 && failureReasons.length === 0;
+  const quality = secondaryBuilderPacketQualitySchema.parse({
+    explicitTargetResolved: located.explicitEvidence && located.missing.length === 0 && targets.length > 0,
+    targetAmbiguity: ambiguity.length > 0,
+    testsFound: tests.length > 0,
+    verificationHintsAvailable: (input.verificationHints?.length ?? 0) > 0,
+    referencePatternFound: referencePatterns.length > 0,
+    dependencyContextComplete: missingDependencies.length === 0,
+    sourceBudgetUtilization: usedCharacters / budget.maxSourceCharacters,
+    contextSufficient
+  });
+  let plans = results.map(({ repository, result }) => {
+    const delivered = new Set(
+      [...sourceContext, ...tests, ...referencePatterns].filter((section) => section.repositoryId === repository.repositoryId).map((section) => section.path)
+    );
+    const dropped = result.plan.selectedWorkingItems.filter((entry2) => !delivered.has(entry2.path));
+    return contextSelectionPlanSchema.parse({
+      ...result.plan,
+      repositoryId: repository.repositoryId,
+      selectedWorkingItems: result.plan.selectedWorkingItems.filter((entry2) => delivered.has(entry2.path)).map((entry2) => ({ ...entry2, repositoryId: repository.repositoryId })),
+      pointers: result.plan.pointers.map((entry2) => ({ ...entry2, repositoryId: repository.repositoryId })),
+      excludedCandidates: [
+        ...result.plan.excludedCandidates.map((entry2) => ({
+          ...entry2,
+          repositoryId: repository.repositoryId
+        })),
+        ...dropped.map((entry2) => ({
+          repositoryId: repository.repositoryId,
+          path: entry2.path,
+          reason: "RANKED_BELOW_CUTOFF",
+          score: entry2.score,
+          detail: "excluded by Builder Packet category or character budget"
+        }))
+      ].slice(0, 200),
+      builderPacket: quality
+    });
+  });
+  const persistPlans = () => {
+    if (input.persist !== false) {
+      for (const plan of plans) writeContextSelectionPlan(input.workspace, plan);
+    }
+  };
+  if (ambiguity.length > 0) {
+    persistPlans();
+    return {
+      ok: false,
+      schemaVersion: BUILDER_PACKET_COMPILATION_SCHEMA_VERSION,
+      failure: {
+        kind: "AMBIGUOUS_TARGET",
+        reasons: ambiguity.slice(0, 8).map((entry2) => `equally plausible target: ${entry2}`)
+      },
+      plans,
+      planRefs,
+      metrics,
+      quality
+    };
+  }
+  if (!contextSufficient) {
+    persistPlans();
+    return {
+      ok: false,
+      schemaVersion: BUILDER_PACKET_COMPILATION_SCHEMA_VERSION,
+      failure: { kind: "INSUFFICIENT_CONTEXT", reasons: failureReasons.slice(0, 8) },
+      plans,
+      planRefs,
+      metrics,
+      quality
+    };
+  }
+  let packet;
+  try {
+    packet = buildSecondaryBuilderPacket({
+      projection: input.projection,
+      sourceContext,
+      targets: targets.map((target) => {
+        const selected = [...sourceContext, ...tests, ...referencePatterns].find(
+          (section) => section.repositoryId === target.repositoryId && section.path === target.path
+        );
+        return {
+          repositoryId: target.repositoryId,
+          path: target.path,
+          symbols: target.symbols,
+          reason: selected?.reason ?? "EXPLICIT_ACTION_REFERENCE"
+        };
+      }),
+      tests,
+      referencePatterns,
+      dependencyContext,
+      priorFailureEvidence: (input.priorFailureEvidence ?? []).map((entry2) => entry2.slice(0, 2e3)).slice(0, 20),
+      verificationHints: (input.verificationHints ?? []).map((hint) => hint.slice(0, 1e3)).slice(0, 30),
+      retrievalPlanRefs: planRefs,
+      expansionLevel,
+      contextMetrics: metrics,
+      quality,
+      createdAt
+    });
+    const inputCharacters = SECONDARY_BUILDER_SYSTEM_PROMPT.length + renderSecondaryBuilderPrompt(packet).length;
+    const inputCeiling = input.maximumInputCharacters ?? SECONDARY_BUILDER_LIMITS.maxPacketCharacters;
+    if (inputCharacters > inputCeiling) {
+      throw new Error(`compiled input is ${inputCharacters} characters; limit is ${inputCeiling}`);
+    }
+  } catch (cause) {
+    const insufficientQuality = secondaryBuilderPacketQualitySchema.parse({
+      ...quality,
+      contextSufficient: false
+    });
+    plans = plans.map((plan) => contextSelectionPlanSchema.parse({
+      ...plan,
+      builderPacket: insufficientQuality
+    }));
+    persistPlans();
+    return {
+      ok: false,
+      schemaVersion: BUILDER_PACKET_COMPILATION_SCHEMA_VERSION,
+      failure: {
+        kind: "INSUFFICIENT_CONTEXT",
+        reasons: [`packet assembly could not fit within policy: ${cause instanceof Error ? cause.message : String(cause)}`.slice(0, 2e3)]
+      },
+      plans,
+      planRefs,
+      metrics,
+      quality: insufficientQuality
+    };
+  }
+  persistPlans();
+  return {
+    ok: true,
+    schemaVersion: BUILDER_PACKET_COMPILATION_SCHEMA_VERSION,
+    packet,
+    plans,
+    planRefs,
+    metrics,
+    quality,
+    repositoryRoots: Object.fromEntries(
+      repositories.map((repository) => [repository.repositoryId, repository.rootDir])
+    )
+  };
+}
 function loadMissionTruth(workspace, mission) {
   return {
     mission,
@@ -74748,7 +75684,7 @@ function decisionKindOf(raw) {
 function persistGraph2(input, graph) {
   return storeWorkGraph(input.workspace, input.jobId, graph);
 }
-function nowIso2(input) {
+function nowIso3(input) {
   return (input.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
 }
 function failResult(category, message2, source, output) {
@@ -74759,7 +75695,7 @@ function failResult(category, message2, source, output) {
   };
 }
 async function decomposeObjective(input, truth, relevantContractIds, acceptance) {
-  const at = nowIso2(input);
+  const at = nowIso3(input);
   const fallback = (reason) => singleUnitGraph({
     jobId: input.jobId,
     node: input.node,
@@ -75039,7 +75975,10 @@ function secondaryFailureCategory(kind) {
     case "VERIFICATION_FAILURE":
       return "VERIFICATION_FAILURE";
     case "CONTEXT_TOO_LARGE":
+    case "INSUFFICIENT_CONTEXT":
       return "CAPABILITY_UNAVAILABLE";
+    case "AMBIGUOUS_TARGET":
+      return "AMBIGUITY";
     case "TIMEOUT":
       return "TRANSIENT_TRANSPORT";
     case "INFERENCE_UNAVAILABLE":
@@ -75055,34 +75994,75 @@ async function executeSelectedSecondaryBuilder(context, prepared, worktree) {
   if (selection === void 0) {
     return { prepared, result: builderFailureResult("secondary builder selection disappeared") };
   }
-  let sourceContext;
-  try {
-    sourceContext = typeof selection.sourceContext === "function" ? await selection.sourceContext({ worktreeRoot: worktree.dir, projection: prepared.projection }) : selection.sourceContext;
-  } catch (cause) {
-    const problem = `source context could not be prepared: ${cause instanceof Error ? cause.message : String(cause)}`;
-    return {
-      prepared,
-      result: builderFailureResult(problem),
-      secondaryFailure: { kind: "STALE_SOURCE_CONTEXT", problem }
-    };
-  }
   let packet;
-  try {
-    packet = buildSecondaryBuilderPacket({
-      projection: prepared.projection,
-      sourceContext,
-      verificationHints: input.config.verification.commands.map((command) => command.name)
+  let repositoryRoots = { primary: worktree.dir };
+  if (selection.sourceContext !== void 0) {
+    try {
+      const sourceContext = typeof selection.sourceContext === "function" ? await selection.sourceContext({ worktreeRoot: worktree.dir, projection: prepared.projection }) : selection.sourceContext;
+      packet = buildSecondaryBuilderPacket({
+        projection: prepared.projection,
+        sourceContext,
+        verificationHints: input.config.verification.commands.map((command) => command.name)
+      });
+    } catch (cause) {
+      const problem = `source context could not be prepared: ${cause instanceof Error ? cause.message : String(cause)}`;
+      return {
+        prepared,
+        result: builderFailureResult(problem),
+        secondaryFailure: { kind: "STALE_SOURCE_CONTEXT", problem }
+      };
+    }
+  } else {
+    const compiler = selection.contextCompiler ?? new SecondaryBuilderContextCompiler();
+    let compiled;
+    try {
+      compiled = await compiler.compile({
+        workspace: input.workspace,
+        config: input.config,
+        jobId: input.jobId,
+        objectiveNodeId: input.node.nodeId,
+        workUnit: prepared.unit,
+        projection: prepared.projection,
+        attempt: prepared.attempt,
+        worktreeRoot: worktree.dir,
+        baselineRef: prepared.baselineCommit,
+        dependencyContext: prepared.dependencyContext,
+        missingDependencyIds: prepared.missingDependencyIds,
+        priorFailureEvidence: prepared.unit.latestFailure === void 0 ? [] : [`${prepared.unit.latestFailure.category}: ${prepared.unit.latestFailure.message}`],
+        verificationHints: input.config.verification.commands.map((command) => command.name),
+        maximumInputCharacters: secondaryBuilderInputCeiling(input.config),
+        createdAt: nowIso3(input)
+      });
+    } catch (cause) {
+      const problem = `builder packet compilation failed: ${cause instanceof Error ? cause.message : String(cause)}`;
+      return {
+        prepared,
+        result: builderFailureResult(problem),
+        secondaryFailure: { kind: "INSUFFICIENT_CONTEXT", problem }
+      };
+    }
+    input.recordEvent(compiled.ok ? "context_selected" : "context_insufficient", {
+      nodeId: input.node.nodeId,
+      workUnitId: prepared.unitId,
+      attempt: prepared.attempt,
+      planRefs: compiled.planRefs,
+      metrics: compiled.metrics,
+      quality: compiled.quality,
+      ...compiled.ok ? {} : { failure: compiled.failure.kind, reasons: compiled.failure.reasons }
     });
-  } catch (cause) {
-    const problem = `secondary builder packet was refused: ${cause instanceof Error ? cause.message : String(cause)}`;
-    return {
-      prepared,
-      result: builderFailureResult(problem),
-      secondaryFailure: { kind: "CONTEXT_TOO_LARGE", problem }
-    };
+    if (!compiled.ok) {
+      const problem = `${compiled.failure.kind}: ${compiled.failure.reasons.join("; ")}`;
+      return {
+        prepared,
+        result: builderFailureResult(problem),
+        secondaryFailure: { kind: compiled.failure.kind, problem }
+      };
+    }
+    packet = compiled.packet;
+    repositoryRoots = compiled.repositoryRoots;
   }
   const inference = selection.inference ?? (input.localManager !== void 0 ? managedLocalSecondaryModelInference(input.localManager, input.config) : void 0);
-  const createdAt = nowIso2(input);
+  const createdAt = nowIso3(input);
   let artifact = secondaryBuilderAttemptSchema.parse({
     schemaVersion: SECONDARY_BUILDER_ATTEMPT_SCHEMA_VERSION,
     attemptId: `${prepared.unitId}-a${String(prepared.attempt).padStart(2, "0")}-secondary`,
@@ -75104,7 +76084,7 @@ async function executeSelectedSecondaryBuilder(context, prepared, worktree) {
     updatedAt: createdAt
   });
   const persist32 = (update) => {
-    artifact = secondaryBuilderAttemptSchema.parse({ ...artifact, ...update, updatedAt: nowIso2(input) });
+    artifact = secondaryBuilderAttemptSchema.parse({ ...artifact, ...update, updatedAt: nowIso3(input) });
     storeSecondaryBuilderAttempt(input.workspace, input.jobId, input.node.nodeId, artifact);
   };
   persist32({});
@@ -75143,6 +76123,7 @@ async function executeSelectedSecondaryBuilder(context, prepared, worktree) {
     maximumInputCharacters: secondaryBuilderInputCeiling(input.config),
     maxOutputBytes: input.config.localInference.maxOutputBytes,
     protectedPaths: input.config.execution.protectedPaths,
+    repositoryRoots,
     ...input.signal !== void 0 ? { signal: input.signal } : {},
     onExecutionEvent: (event) => {
       if (event.stage === "INFERENCE_COMPLETED") {
@@ -75165,7 +76146,7 @@ async function executeSelectedSecondaryBuilder(context, prepared, worktree) {
   });
   if (!executed.ok) {
     persist32({
-      status: "FAILED",
+      status: executed.failure.kind === "INSUFFICIENT_CONTEXT" ? "CONTEXT_INSUFFICIENT" : "FAILED",
       failure: executed.failure,
       ...executed.rawOutput !== void 0 ? { rawOutput: executed.rawOutput.slice(0, 1048576) } : {},
       ...executed.proposal !== void 0 ? { proposal: executed.proposal } : {},
@@ -75279,9 +76260,11 @@ async function prepareUnitAttempt(context, graph, unitId) {
   const { input, truth } = context;
   const unit = requireUnit(graph, unitId);
   const attempt = unit.attempt + 1;
-  const at = nowIso2(input);
+  const at = nowIso3(input);
   const workEvidence = [];
   const dependencyPatches = [];
+  const dependencyContext = [];
+  const missingDependencyIds = [];
   for (const dependencyId of unit.dependsOn) {
     const dependency = findUnit(graph, dependencyId);
     if (dependency === void 0) continue;
@@ -75311,6 +76294,18 @@ async function prepareUnitAttempt(context, graph, unitId) {
       if (patch !== void 0 && patch.trim().length > 0) {
         dependencyPatches.push({ workUnitId: resolved2.workUnitId, patch });
       }
+      if (candidate.localVerification.passed) {
+        dependencyContext.push({
+          workUnitId: resolved2.workUnitId,
+          summary: candidate.claims.summary,
+          changedFiles: candidate.changedFiles.map((file) => ({ repositoryId: "primary", path: file.path })),
+          verificationPassed: true
+        });
+      } else {
+        missingDependencyIds.push(resolved2.workUnitId);
+      }
+    } else {
+      missingDependencyIds.push(resolved2.workUnitId);
     }
   }
   const projectedUnit = unit.relevantContractIds.length > 0 ? unit : { ...unit, relevantContractIds: context.objectiveContractIds.slice(0, 30) };
@@ -75379,6 +76374,7 @@ async function prepareUnitAttempt(context, graph, unitId) {
     graph: nextGraph,
     prepared: {
       unitId,
+      unit,
       kind: unit.kind,
       attempt,
       workerId,
@@ -75386,7 +76382,9 @@ async function prepareUnitAttempt(context, graph, unitId) {
       ...worktree !== void 0 ? { worktree } : {},
       baselineCommit,
       record: record32,
-      dependencyPatches
+      dependencyPatches,
+      dependencyContext,
+      missingDependencyIds
     }
   };
 }
@@ -75511,7 +76509,7 @@ async function foldBuilderOutcome(context, graph, executed) {
     });
   }
   if (!result.ok) {
-    finishWorker(input.workspace, record32, "FAILED", nowIso2(input));
+    finishWorker(input.workspace, record32, "FAILED", nowIso3(input));
     input.recordEvent("candidate_failed", {
       nodeId: input.node.nodeId,
       workUnitId: unitId,
@@ -75545,7 +76543,7 @@ async function foldBuilderOutcome(context, graph, executed) {
     workUnitId: unitId,
     attempt,
     workerId,
-    createdAt: nowIso2(input),
+    createdAt: nowIso3(input),
     baselineCommit: prepared.baselineCommit,
     contextProjectionHash: projection.contentHash,
     contractSnapshotHash: projection.contractSnapshotHash,
@@ -75599,7 +76597,7 @@ async function foldBuilderOutcome(context, graph, executed) {
       secondaryBuilderAttemptSchema.parse({
         ...executed.secondaryAttempt,
         status: "CANDIDATE_READY",
-        updatedAt: nowIso2(input)
+        updatedAt: nowIso3(input)
       })
     );
     input.recordEvent("secondary_candidate_succeeded", {
@@ -75620,7 +76618,7 @@ async function foldBuilderOutcome(context, graph, executed) {
     contractSnapshotHash: candidate.contractSnapshotHash
   });
   if (!acceptance.ok) {
-    finishWorker(input.workspace, record32, "FAILED", nowIso2(input));
+    finishWorker(input.workspace, record32, "FAILED", nowIso3(input));
     return persistGraph2(
       input,
       applyUnitRejection(input, graph, unitId, attempt, {
@@ -75629,7 +76627,7 @@ async function foldBuilderOutcome(context, graph, executed) {
       })
     );
   }
-  finishWorker(input.workspace, record32, "FINISHED", nowIso2(input));
+  finishWorker(input.workspace, record32, "FINISHED", nowIso3(input));
   graph = persistGraph2(input, transitionUnit(graph, unitId, "CANDIDATE_READY"));
   input.recordEvent("candidate_ready", {
     nodeId: input.node.nodeId,
@@ -75656,7 +76654,7 @@ async function foldBuilderOutcome(context, graph, executed) {
         latestFailure: {
           category: "AMBIGUITY",
           message: `The builder is blocked: ${[...result.output.blockingQuestions, result.output.summary].join("; ").slice(0, 1500)}`,
-          at: nowIso2(input)
+          at: nowIso3(input)
         }
       })
     );
@@ -75692,7 +76690,7 @@ async function runUnitAttempt(context, graph, unitId) {
 }
 function applyUnitRejection(input, graph, unitId, attempt, failure3) {
   const unit = requireUnit(graph, unitId);
-  const at = nowIso2(input);
+  const at = nowIso3(input);
   const rejected = transitionUnit(graph, unitId, unit.status === "READY" ? "FAILED" : "REJECTED");
   const withFailure = withUnit(rejected, {
     ...requireUnit(rejected, unitId),
@@ -75760,7 +76758,7 @@ async function resumeStoredCandidate(context, graph, unitId) {
 async function evaluateCandidate(context, graph, unitId, attempt, candidate, projection, patch) {
   const { input, truth } = context;
   const unit = requireUnit(graph, unitId);
-  const at = nowIso2(input);
+  const at = nowIso3(input);
   const deterministic = evaluateDeterministically({
     candidate,
     workUnit: unit,
@@ -75858,7 +76856,7 @@ async function evaluateCandidate(context, graph, unitId, attempt, candidate, pro
   return persistGraph2(input, transitionUnit(graph, unitId, "EVALUATING"));
 }
 function recordConflict(input, graph, unitId, candidate, reasons, affectedContractIds, decisionKindRaw) {
-  const at = nowIso2(input);
+  const at = nowIso3(input);
   const kind = decisionKindOf(decisionKindRaw);
   const contractId = affectedContractIds[0] ?? "unknown-contract";
   const conflict = storeConflict(input.workspace, input.jobId, input.node.nodeId, {
@@ -75916,7 +76914,7 @@ async function runSemanticEvaluation(context, graph, unitId) {
   const { input, truth } = context;
   const unit = requireUnit(graph, unitId);
   const attempt = Math.max(1, unit.attempt);
-  const at = nowIso2(input);
+  const at = nowIso3(input);
   const candidate = readCandidate(input.workspace, input.jobId, input.node.nodeId, unitId, attempt);
   const projection = readProjection(input.workspace, input.jobId, input.node.nodeId, unitId, attempt);
   if (candidate === void 0 || projection === void 0) {
@@ -76067,7 +77065,7 @@ ${correction}`;
     affectedContractIds: output.affectedContractIds,
     ...output.decisionKind !== void 0 ? { decisionKind: output.decisionKind } : {},
     evaluatorWorkerId: selection.worker.workerId,
-    createdAt: nowIso2(input)
+    createdAt: nowIso3(input)
   });
   graph = withUnit(graph, {
     ...requireUnit(graph, unitId),
@@ -76122,7 +77120,7 @@ ${correction}`;
           latestFailure: {
             category: "AMBIGUITY",
             message: `The evaluator needs a ${kind} decision: ${output.reasons.join("; ").slice(0, 1200)}`,
-            at: nowIso2(input)
+            at: nowIso3(input)
           }
         })
       );
@@ -76268,12 +77266,12 @@ async function driveObjective(input) {
                   input.node.nodeId,
                   workerRecords,
                   unit.workUnitId,
-                  nowIso2(input)
+                  nowIso3(input)
                 );
                 reconciled = transitionUnit(reconciled, unit.workUnitId, "READY");
                 continue;
               }
-              finishWorker(input.workspace, accepted.record, "FINISHED", nowIso2(input));
+              finishWorker(input.workspace, accepted.record, "FINISHED", nowIso3(input));
             }
             reconciled = transitionUnit(reconciled, unit.workUnitId, "CANDIDATE_READY");
             reconciled = withUnit(reconciled, {
@@ -76296,7 +77294,7 @@ async function driveObjective(input) {
                   secondaryBuilderAttemptSchema.parse({
                     ...secondaryAttempt,
                     status: "CANDIDATE_READY",
-                    updatedAt: nowIso2(input)
+                    updatedAt: nowIso3(input)
                   })
                 );
               }
@@ -76312,7 +77310,7 @@ async function driveObjective(input) {
             continue;
           }
         }
-        supersedeWorkers(input.workspace, input.jobId, input.node.nodeId, workerRecords, unit.workUnitId, nowIso2(input));
+        supersedeWorkers(input.workspace, input.jobId, input.node.nodeId, workerRecords, unit.workUnitId, nowIso3(input));
         reconciled = transitionUnit(reconciled, unit.workUnitId, unit.status === "BUILDING" ? "READY" : "CANDIDATE_READY");
       } else if (unit.status === "BLOCKED") {
         reconciled = transitionUnit(
@@ -76475,7 +77473,7 @@ async function maybeAggregateSemantically(context, graph) {
   }
   const output = result.output;
   storeAggregationReport(input.workspace, input.jobId, input.node.nodeId, reportName, {
-    synthesizedAt: nowIso2(input),
+    synthesizedAt: nowIso3(input),
     aggregator: selection.worker.workerId,
     sources: reports.map((report) => report.workUnitId),
     ...output
@@ -76524,7 +77522,7 @@ async function maybeAggregateSemantically(context, graph) {
       affectedWorkUnitIds: conflict.claims.map((claim2) => claim2.sourceWorkUnitId),
       decisionKind: kind,
       status: "OPEN",
-      createdAt: nowIso2(input)
+      createdAt: nowIso3(input)
     });
     input.recordEvent("contract_conflict_detected", {
       nodeId: input.node.nodeId,
@@ -76615,7 +77613,7 @@ async function integrateVerifiedCandidates(input, graph) {
     };
   }
   let integrated = graph;
-  const at = nowIso2(input);
+  const at = nowIso3(input);
   for (const entry2 of candidates) {
     integrated = withUnit(transitionUnit(integrated, entry2.unit.workUnitId, "INTEGRATED"), {
       ...requireUnit(transitionUnit(integrated, entry2.unit.workUnitId, "INTEGRATED"), entry2.unit.workUnitId),
@@ -90978,7 +91976,7 @@ function readTemplateRecords(workspace) {
   }
   return { records, diagnostics };
 }
-function nowIso3(clock) {
+function nowIso4(clock) {
   return isoNow(clock);
 }
 function rethrowSpecExists(cause, specName) {
@@ -91153,7 +92151,7 @@ function executeTemplateApplication(workspace, plan, clock = systemClock, record
     schemaVersion: "1.0.0",
     recordId: id,
     type: "template-apply",
-    createdAt: nowIso3(clock),
+    createdAt: nowIso4(clock),
     result: "ok",
     templateRef: plan.templateRef,
     templateId: plan.templateId,
@@ -91273,7 +92271,7 @@ function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) 
     schemaVersion: "1.0.0",
     recordId: id,
     type: "template-install",
-    createdAt: nowIso3(clock),
+    createdAt: nowIso4(clock),
     result: "ok",
     templateRef: plan.ref,
     templateId: plan.templateId,
@@ -91353,7 +92351,7 @@ function executeTemplateUninstall(workspace, plan, clock = systemClock, recordId
     schemaVersion: "1.0.0",
     recordId: id,
     type: "template-uninstall",
-    createdAt: nowIso3(clock),
+    createdAt: nowIso4(clock),
     result: "ok",
     templateRef: plan.ref,
     templateId: plan.templateId,
@@ -91748,7 +92746,7 @@ function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId)
       schemaVersion: "1.0.0",
       recordId: id,
       type: "template-scaffold",
-      createdAt: nowIso3(clock),
+      createdAt: nowIso4(clock),
       result: "ok",
       templateId: plan.templateId,
       kind: plan.kind,
@@ -99862,7 +100860,7 @@ function autonomyPolicyOf(deps3) {
 function now5(deps3) {
   return (deps3.clock ?? (() => /* @__PURE__ */ new Date()))();
 }
-function nowIso4(deps3) {
+function nowIso5(deps3) {
   return now5(deps3).toISOString();
 }
 function newId5(deps3) {
@@ -100167,7 +101165,7 @@ function draftSeal(deps3, request) {
     missionId: mission.missionId,
     ...mission.specName !== void 0 ? { specName: mission.specName } : {},
     status: "DRAFT",
-    createdAt: nowIso4(deps3),
+    createdAt: nowIso5(deps3),
     ...request.supersedes !== void 0 ? { supersedes: request.supersedes } : {},
     ...base,
     presentAuthorityKinds: presentAuthorityKinds(base),
@@ -100254,7 +101252,7 @@ function sealMission(deps3, request) {
   const sealed = missionSealSchema.parse({
     ...existing,
     status: "SEALED",
-    sealedAt: nowIso4(deps3),
+    sealedAt: nowIso5(deps3),
     sealedVia: (request.via ?? hostOf(deps3)).slice(0, SEAL_LIMITS.maxShortTextChars)
   });
   writeJsonRecord(sealFile(deps3.workspace, existing.sealId), sealed);
@@ -100276,7 +101274,7 @@ function revokeSeal(deps3, sealId, reason) {
   const revoked = missionSealSchema.parse({
     ...seal,
     status: "REVOKED",
-    revokedAt: nowIso4(deps3),
+    revokedAt: nowIso5(deps3),
     revokedReason: reason.slice(0, SEAL_LIMITS.maxTextChars)
   });
   writeJsonRecord(sealFile(deps3.workspace, sealId), revoked);
@@ -100347,7 +101345,7 @@ function bindSealToJob(deps3, jobId, sealId) {
     jobId,
     sealId,
     missionId: seal.missionId,
-    boundAt: nowIso4(deps3),
+    boundAt: nowIso5(deps3),
     boundPolicyFingerprint: seal.delegatedAuthority.policyFingerprint
   });
   writeJsonRecord(bindingFile(deps3.workspace, jobId), binding);
@@ -100985,8 +101983,8 @@ function loadSupervisorState(deps3, ownerId) {
   return supervisorStateSchema.parse({
     schemaVersion: SUPERVISOR_SCHEMA_VERSION,
     ownerId,
-    startedAt: nowIso4(deps3),
-    heartbeatAt: nowIso4(deps3),
+    startedAt: nowIso5(deps3),
+    heartbeatAt: nowIso5(deps3),
     pid: process.pid,
     hostname: safeHostname(),
     jobs: []
@@ -101009,7 +102007,7 @@ function findSupervisedJob(state, jobId) {
 }
 function appendSupervisionLog(deps3, entry2) {
   const validated = supervisionLogEntrySchema.parse({
-    at: nowIso4(deps3),
+    at: nowIso5(deps3),
     ownerId: entry2.ownerId,
     ...entry2.jobId !== void 0 ? { jobId: entry2.jobId } : {},
     action: entry2.action,
@@ -101065,13 +102063,13 @@ function registerSupervisedJob(deps3, input) {
       specName: input.specName,
       ...input.sealId !== void 0 ? { sealId: input.sealId } : {},
       status: "REGISTERED",
-      registeredAt: nowIso4(deps3)
+      registeredAt: nowIso5(deps3)
     }
   );
   writeSupervisorState(deps3.workspace, {
     ...upsertSupervisedJob(state, supervised),
     schemaVersion: SUPERVISOR_SCHEMA_VERSION,
-    heartbeatAt: nowIso4(deps3)
+    heartbeatAt: nowIso5(deps3)
   });
   return supervised;
 }
@@ -101153,7 +102151,7 @@ async function superviseJob(deps3, jobId, options) {
     );
   }
   emit22("lease", `lease acquired by ${ownerId} (generation ${acquisition.lease?.generation ?? 1})`);
-  const sessionStartedAt = options.sessionStartedAt ?? nowIso4(deps3);
+  const sessionStartedAt = options.sessionStartedAt ?? nowIso5(deps3);
   let job = requireJobState(deps3.workspace, jobId);
   let supervised = registerSupervisedJob(deps3, {
     jobId,
@@ -101234,7 +102232,7 @@ async function applyDecision(deps3, input) {
         detail: decision.reason
       });
       return {
-        supervised: { ...input.supervised, status: "RELEASED", releasedAt: nowIso4(deps3), releaseReason: decision.reason },
+        supervised: { ...input.supervised, status: "RELEASED", releasedAt: nowIso5(deps3), releaseReason: decision.reason },
         stop: job.status === "COMPLETED" ? { kind: "completed", status: job.status } : { kind: "released", reason: decision.reason }
       };
     }
@@ -101247,7 +102245,7 @@ async function applyDecision(deps3, input) {
         detail: decision.reason
       });
       return {
-        supervised: { ...input.supervised, status: "RELEASED", releasedAt: nowIso4(deps3), releaseReason: decision.reason },
+        supervised: { ...input.supervised, status: "RELEASED", releasedAt: nowIso5(deps3), releaseReason: decision.reason },
         stop: {
           kind: "needs-human",
           status: decision.status,
@@ -101263,7 +102261,7 @@ async function applyDecision(deps3, input) {
         detail: decision.reason
       });
       return {
-        supervised: { ...input.supervised, status: "RELEASED", releasedAt: nowIso4(deps3), releaseReason: decision.reason },
+        supervised: { ...input.supervised, status: "RELEASED", releasedAt: nowIso5(deps3), releaseReason: decision.reason },
         stop: { kind: "gave-up", reason: decision.reason }
       };
     }
@@ -101357,10 +102355,10 @@ function foldDriverOutcome(deps3, input, outcome, action) {
       consecutiveRestarts: 0,
       backoffMs: 0,
       lastProgressFingerprint: after,
-      lastProgressAt: nowIso4(deps3),
+      lastProgressAt: nowIso5(deps3),
       nextAttemptAt: void 0,
       lastAction: unclean ? "DRIVER_DIED" : "DRIVER_EXITED_CLEANLY",
-      lastActionAt: nowIso4(deps3)
+      lastActionAt: nowIso5(deps3)
     });
   }
   const backoffMs = nextBackoffMs(
@@ -101378,7 +102376,7 @@ function foldDriverOutcome(deps3, input, outcome, action) {
     lastProgressFingerprint: after,
     nextAttemptAt: new Date(now5(deps3).getTime() + backoffMs).toISOString(),
     lastAction: unclean ? "DRIVER_DIED" : "DRIVER_EXITED_CLEANLY",
-    lastActionAt: nowIso4(deps3)
+    lastActionAt: nowIso5(deps3)
   });
 }
 async function sleepInSlices(deps3, input) {
@@ -101403,7 +102401,7 @@ function persistSupervised(deps3, ownerId, supervised) {
   writeSupervisorState(deps3.workspace, {
     ...upsertSupervisedJob(state, supervised),
     ownerId,
-    heartbeatAt: nowIso4(deps3)
+    heartbeatAt: nowIso5(deps3)
   });
 }
 function fingerprintOf(deps3, job) {
@@ -101594,7 +102592,7 @@ async function runOvernightPreflight(deps3, request) {
   const policy = autonomyPolicyOf(deps3);
   const projectDir = request.projectDir ?? deps3.workspace.rootDir;
   const run = request.probeRunner ?? createProcessProbeRunner(projectDir);
-  const at = nowIso4(deps3);
+  const at = nowIso5(deps3);
   const checks = [];
   const seal = resolveSeal(deps3, request);
   const add2 = (capability, outcome, observed, extra = {}) => {
@@ -102177,7 +103175,7 @@ function requestToolsmithCapability(deps3, input) {
       grantsUsed: ledger.granted
     }
   );
-  const at = nowIso4(deps3);
+  const at = nowIso5(deps3);
   const request = toolsmithRequestSchema.parse({
     schemaVersion: TOOLSMITH_SCHEMA_VERSION,
     requestId: input.requestId ?? newRecordId(deps3, "ts"),
@@ -102229,11 +103227,11 @@ function loadLedger(deps3, jobId) {
   return readToolsmithLedger(deps3.workspace, jobId) ?? toolsmithLedgerSchema.parse({
     schemaVersion: TOOLSMITH_SCHEMA_VERSION,
     jobId,
-    updatedAt: nowIso4(deps3)
+    updatedAt: nowIso5(deps3)
   });
 }
 function saveLedger(deps3, jobId, ledger) {
-  const next = toolsmithLedgerSchema.parse({ ...ledger, updatedAt: nowIso4(deps3) });
+  const next = toolsmithLedgerSchema.parse({ ...ledger, updatedAt: nowIso5(deps3) });
   writeJsonRecord(ledgerFile(deps3.workspace, jobId), next);
   return next;
 }
@@ -102582,7 +103580,7 @@ async function provisionEnvironment(deps3, options) {
       planId: plan.planId,
       ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
       status: "PROVISIONING",
-      createdAt: nowIso4(deps3),
+      createdAt: nowIso5(deps3),
       services: ordered.map((service) => ({ serviceId: service.serviceId, status: "PENDING" }))
     })
   );
@@ -102611,7 +103609,7 @@ async function provisionEnvironment(deps3, options) {
     services: instance.services.map((service) => ({
       ...service,
       status: "STARTING",
-      startedAt: nowIso4(deps3)
+      startedAt: nowIso5(deps3)
     }))
   });
   for (const service of ordered) {
@@ -102643,7 +103641,7 @@ async function provisionEnvironment(deps3, options) {
   const ready = writeInstance(deps3, {
     ...instance,
     status: "READY",
-    readyAt: nowIso4(deps3)
+    readyAt: nowIso5(deps3)
   });
   writeEvidence(deps3, plan, ready, now5(deps3).getTime() - startedAtMs, []);
   emitJobEvent(deps3, options.jobId, "environment_ready", {
@@ -102659,7 +103657,7 @@ async function waitForService(deps3, input) {
   let state = {
     serviceId: service.serviceId,
     status: "WAITING_READY",
-    startedAt: nowIso4(deps3),
+    startedAt: nowIso5(deps3),
     restarts: 0,
     probeAttempts: 0
   };
@@ -102687,7 +103685,7 @@ async function waitForService(deps3, input) {
         state: {
           ...state,
           status: "READY",
-          readyAt: nowIso4(deps3),
+          readyAt: nowIso5(deps3),
           lastProbeKind: lastKind,
           lastProbeDetail: lastDetail
         },
@@ -102795,7 +103793,7 @@ async function teardownEnvironment(deps3, input) {
   const stopped = writeInstance(deps3, {
     ...instance,
     status: "STOPPED",
-    stoppedAt: nowIso4(deps3),
+    stoppedAt: nowIso5(deps3),
     diagnosticsRetained: retain,
     services: instance.services.map((service) => ({ ...service, status: "STOPPED" }))
   });
@@ -102823,7 +103821,7 @@ function writeEvidence(deps3, plan, instance, totalMs, logRefs) {
     schemaVersion: ENVIRONMENT_SCHEMA_VERSION,
     instanceId: instance.instanceId,
     planId: plan.planId,
-    recordedAt: nowIso4(deps3),
+    recordedAt: nowIso5(deps3),
     status: instance.status,
     applicationLevelReady,
     livenessOnlyReady,
@@ -103100,7 +104098,7 @@ async function runBrowserScenario(deps3, options) {
     );
   }
   const resultId = options.resultId ?? newRecordId(deps3, "br");
-  const startedAt = nowIso4(deps3);
+  const startedAt = nowIso5(deps3);
   const startedMs = now5(deps3).getTime();
   emitJobEvent2(deps3, options.jobId, "browser_scenario_started", {
     scenarioId: scenario.scenarioId,
@@ -103118,7 +104116,7 @@ async function runBrowserScenario(deps3, options) {
         ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
         status: "SKIPPED_NO_RUNTIME",
         startedAt,
-        finishedAt: nowIso4(deps3),
+        finishedAt: nowIso5(deps3),
         driver: options.driver.label,
         skipReason: availability.reason
       }),
@@ -103148,7 +104146,7 @@ async function runBrowserScenario(deps3, options) {
         ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
         status: "ERRORED",
         startedAt,
-        finishedAt: nowIso4(deps3),
+        finishedAt: nowIso5(deps3),
         driver: options.driver.label,
         failureDetail: (cause instanceof Error ? cause.message : String(cause)).slice(0, 4e3)
       }),
@@ -103232,7 +104230,7 @@ async function runBrowserScenario(deps3, options) {
         ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
         status,
         startedAt,
-        finishedAt: nowIso4(deps3),
+        finishedAt: nowIso5(deps3),
         driver: options.driver.label,
         steps,
         assertionsRun,
@@ -103891,7 +104889,7 @@ function readClosureLedger(workspace, jobId) {
   );
 }
 function buildClosureLedger(deps3, input) {
-  const at = nowIso4(deps3);
+  const at = nowIso5(deps3);
   const entries = [];
   const registry2 = readContractRegistry(deps3.workspace, input.seal.missionId);
   const byContract = new Map(registry2.map((contract) => [contract.contractId, contract]));
@@ -103962,7 +104960,7 @@ function entry(at, input) {
 }
 function attributeNodeToItems(deps3, input) {
   const ledger = requireLedger(deps3.workspace, input.jobId);
-  const at = nowIso4(deps3);
+  const at = nowIso5(deps3);
   const entries = ledger.entries.map((existing) => {
     if (!input.itemIds.includes(existing.itemId)) return existing;
     if (existing.attributedNodeIds.includes(input.nodeId)) return existing;
@@ -103977,7 +104975,7 @@ function attributeNodeToItems(deps3, input) {
 }
 function registerClosureEvidence(deps3, input) {
   const ledger = requireLedger(deps3.workspace, input.jobId);
-  const at = nowIso4(deps3);
+  const at = nowIso5(deps3);
   const entries = ledger.entries.map((existing) => {
     if (!input.itemIds.includes(existing.itemId)) return existing;
     return {
@@ -104002,7 +105000,7 @@ function registerClosureEvidence(deps3, input) {
 }
 function waiveClosureItem(deps3, input) {
   const ledger = requireLedger(deps3.workspace, input.jobId);
-  const at = nowIso4(deps3);
+  const at = nowIso5(deps3);
   const entries = ledger.entries.map(
     (existing) => existing.itemId === input.itemId ? {
       ...existing,
@@ -104022,7 +105020,7 @@ function runClosureAudit(deps3, input) {
   const policy = autonomyPolicyOf(deps3).closure;
   const ledger = requireLedger(deps3.workspace, input.jobId);
   const completed = new Set(input.completedNodeIds);
-  const at = nowIso4(deps3);
+  const at = nowIso5(deps3);
   const entries = ledger.entries.map((existing) => {
     const attributedNodesComplete = existing.attributedNodeIds.length > 0 && existing.attributedNodeIds.every((nodeId) => completed.has(nodeId));
     const assessment = assessItemClosure(
@@ -104128,7 +105126,7 @@ function generateGapWork(deps3, input) {
   const policy = autonomyPolicyOf(deps3).closure;
   const ledger = requireLedger(deps3.workspace, input.jobId);
   const byId = new Map(ledger.entries.map((existing) => [existing.itemId, existing]));
-  const at = nowIso4(deps3);
+  const at = nowIso5(deps3);
   const generated = [];
   for (const unclosed of input.audit.unclosed.slice(0, policy.maxGapWorkPerCycle)) {
     const existing = byId.get(unclosed.itemId);
@@ -104196,7 +105194,7 @@ function requireLedger(workspace, jobId) {
   return ledger;
 }
 function saveLedger2(deps3, ledger) {
-  const next = closureLedgerSchema.parse({ ...ledger, updatedAt: nowIso4(deps3) });
+  const next = closureLedgerSchema.parse({ ...ledger, updatedAt: nowIso5(deps3) });
   writeJsonRecord(closureLedgerFile(deps3.workspace, next.jobId), next);
   return next;
 }
@@ -104288,7 +105286,7 @@ function saveSystemScenario(deps3, input) {
   const scenario = systemScenarioSchema.parse({
     schemaVersion: SYSTEM_SCENARIO_SCHEMA_VERSION,
     scenarioId: input.scenarioId ?? newRecordId(deps3, "ss"),
-    createdAt: nowIso4(deps3),
+    createdAt: nowIso5(deps3),
     ...input
   });
   writeJsonRecord(scenarioFile(deps3.workspace, scenario.scenarioId), scenario);
@@ -104312,7 +105310,7 @@ async function runSystemScenario(deps3, options) {
     throw new AutonomyError("SBA024", `No system scenario "${options.scenarioId}" exists.`);
   }
   const resultId = options.resultId ?? newRecordId(deps3, "sr");
-  const startedAt = nowIso4(deps3);
+  const startedAt = nowIso5(deps3);
   emit2(deps3, options.jobId, "system_qualification_started", {
     scenarioId: scenario.scenarioId,
     resultId
@@ -104453,7 +105451,7 @@ async function finish3(deps3, options, scenario, input) {
     schemaVersion: SYSTEM_SCENARIO_SCHEMA_VERSION,
     scenarioId: scenario.scenarioId,
     ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
-    finishedAt: nowIso4(deps3),
+    finishedAt: nowIso5(deps3),
     ...input
   });
   writeJsonRecord(resultFile(deps3.workspace, result.resultId), result);
@@ -104540,7 +105538,7 @@ function resultFile2(workspace, runId) {
 async function runReproducibilityQualification(deps3, options) {
   const policy = autonomyPolicyOf(deps3).closure;
   const runId = options.runId ?? newRecordId(deps3, "rp");
-  const startedAt = nowIso4(deps3);
+  const startedAt = nowIso5(deps3);
   const deadline = now5(deps3).getTime() + policy.reproducibilityTimeoutMs;
   const run = options.commandRunner ?? (async (input) => {
     const [executable, ...argv2] = input.argv;
@@ -104610,7 +105608,7 @@ async function runReproducibilityQualification(deps3, options) {
     ...options.jobId !== void 0 ? { jobId: options.jobId } : {},
     status,
     startedAt,
-    finishedAt: nowIso4(deps3),
+    finishedAt: nowIso5(deps3),
     checkoutPath: options.checkoutPath.slice(0, 200),
     ...options.gitHead !== void 0 ? { gitHead: options.gitHead } : {},
     dimensions: [...new Set(options.steps.map((step2) => step2.dimension))],
@@ -105134,7 +106132,7 @@ function computeAutonomyTelemetry(deps3, input) {
     schemaVersion: TELEMETRY_SCHEMA_VERSION,
     jobId: input.jobId,
     ...binding !== void 0 ? { sealId: binding.sealId, missionId: binding.missionId } : {},
-    recordedAt: nowIso4(deps3),
+    recordedAt: nowIso5(deps3),
     jobStatus: job?.status ?? "UNKNOWN",
     humanInterventionsAfterSeal: interventions.length,
     humanAuthorityEscalations: counters?.authorityEscalations ?? 0,
@@ -105397,7 +106395,7 @@ async function runUnattendedMission(deps3, options) {
     completionGate: createClosureCompletionGate(deps3.workspace, policy.closure)
   };
   const host = typeof options.host === "function" ? options.host(supervisedDeps) : options.host;
-  const sessionStartedAt = nowIso4(deps3);
+  const sessionStartedAt = nowIso5(deps3);
   const startedMs = now5(deps3).getTime();
   const recoveries = [];
   const audits = [];
@@ -106164,7 +107162,7 @@ function missionDepsOf(deps3) {
 function now6(deps3) {
   return (deps3.clock ?? (() => /* @__PURE__ */ new Date()))();
 }
-function nowIso5(deps3) {
+function nowIso6(deps3) {
   return now6(deps3).toISOString();
 }
 function hostOf2(deps3) {
@@ -107703,7 +108701,7 @@ function groundInRepository(deps3, request) {
   return {
     schemaVersion: INTAKE_GROUNDING_SCHEMA_VERSION,
     intakeId: request.intakeId,
-    groundedAt: nowIso5(deps3),
+    groundedAt: nowIso6(deps3),
     baselineCommit: readGitHead(workspace.rootDir),
     existingProduct,
     evidence: evidence.slice(0, INTAKE_LIMITS.maxEvidence),
@@ -107865,12 +108863,12 @@ function analyzeDeltaAuthority(request) {
   const counts = {};
   for (const cls of DELTA_AUTHORITY_CLASSES) counts[cls] = 0;
   for (const item of items) counts[item.classification] = (counts[item.classification] ?? 0) + 1;
-  const modifiedContractIds = unique(
+  const modifiedContractIds = unique2(
     items.filter(
       (item) => item.classification === "EXISTING_SEALED_CONTRACT_CHANGE" || item.classification === "CONTRADICTION"
     ).map((item) => item.existingContractId).filter((id) => id !== void 0)
   );
-  const extendedContractIds = unique(
+  const extendedContractIds = unique2(
     items.filter((item) => item.classification === "EXISTING_CONTRACT_EXTENSION").map((item) => item.existingContractId).filter((id) => id !== void 0)
   );
   const owners = /* @__PURE__ */ new Map();
@@ -107896,7 +108894,7 @@ function analyzeDeltaAuthority(request) {
       relation
     });
   }
-  const newSurfaces = unique(
+  const newSurfaces = unique2(
     items.filter((item) => item.classification === "NEW_DELEGATED_SURFACE").flatMap((item) => item.affectedSurfaces)
   );
   const reasons = [];
@@ -108135,7 +109133,7 @@ function raiseItemForQuestion(item, questionId, why) {
 function statementOf(chunk) {
   return chunk.text.replace(/^(\s*)([-*+]|\d+[.)])\s+/, "").trim();
 }
-function unique(values) {
+function unique2(values) {
   return [...new Set(values)];
 }
 function computeBasisDigest(request) {
@@ -109427,7 +110425,7 @@ function recordDerivedApprovals(request) {
   return { approved, results };
 }
 function emptyLedger(deps3, approval) {
-  const at = nowIso5(deps3);
+  const at = nowIso6(deps3);
   return {
     schemaVersion: INTAKE_LIFECYCLE_SCHEMA_VERSION,
     intakeId: approval.intakeId,
@@ -109476,13 +110474,13 @@ async function runSealAndBuild(deps3, options) {
       outcome: void 0,
       finishedAt: void 0,
       humanPrerequisites: [],
-      updatedAt: nowIso5(deps3)
+      updatedAt: nowIso6(deps3)
     });
   }
   const persist4 = (next) => {
     const written = writeLifecycle(deps3.workspace, {
       ...next,
-      updatedAt: nowIso5(deps3)
+      updatedAt: nowIso6(deps3)
     });
     ledger = written;
     return written;
@@ -109492,12 +110490,12 @@ async function runSealAndBuild(deps3, options) {
     persist4(
       withStep(ledger, step2, {
         status: "RUNNING",
-        startedAt: nowIso5(deps3),
+        startedAt: nowIso6(deps3),
         attempts: record5.attempts + 1
       })
     );
     appendIntakeEvent(deps3.workspace, options.intakeId, {
-      at: nowIso5(deps3),
+      at: nowIso6(deps3),
       type: "build_step_started",
       step: step2
     });
@@ -109507,13 +110505,13 @@ async function runSealAndBuild(deps3, options) {
     persist4(
       withStep(ledger, step2, {
         status,
-        settledAt: nowIso5(deps3),
+        settledAt: nowIso6(deps3),
         detail: detail.slice(0, INTAKE_LIMITS.maxTextChars),
         ...result !== void 0 ? { result } : {}
       })
     );
     appendIntakeEvent(deps3.workspace, options.intakeId, {
-      at: nowIso5(deps3),
+      at: nowIso6(deps3),
       type: "build_step_completed",
       step: step2,
       status,
@@ -109525,12 +110523,12 @@ async function runSealAndBuild(deps3, options) {
     persist4(
       withStep(ledger, step2, {
         status: "FAILED",
-        settledAt: nowIso5(deps3),
+        settledAt: nowIso6(deps3),
         detail: detail.slice(0, INTAKE_LIMITS.maxTextChars)
       })
     );
     appendIntakeEvent(deps3.workspace, options.intakeId, {
-      at: nowIso5(deps3),
+      at: nowIso6(deps3),
       type: "build_step_failed",
       step: step2,
       detail: detail.slice(0, 600)
@@ -109592,7 +110590,7 @@ async function runSealAndBuild(deps3, options) {
       writeProjectionEquivalence(deps3.workspace, equivalence);
       if (!equivalence.equivalent) {
         appendIntakeEvent(deps3.workspace, options.intakeId, {
-          at: nowIso5(deps3),
+          at: nowIso6(deps3),
           type: "projection_diverged",
           divergences: equivalence.divergences.length
         });
@@ -109603,7 +110601,7 @@ async function runSealAndBuild(deps3, options) {
         return finish4(deps3, options, ledger, "FAILED", { preflight });
       }
       appendIntakeEvent(deps3.workspace, options.intakeId, {
-        at: nowIso5(deps3),
+        at: nowIso6(deps3),
         type: "projection_validated",
         checked: equivalence.checkedStatements,
         traced: equivalence.tracedStatements
@@ -109635,7 +110633,7 @@ async function runSealAndBuild(deps3, options) {
         });
         for (const stage of derived.approved) {
           appendIntakeEvent(deps3.workspace, options.intakeId, {
-            at: nowIso5(deps3),
+            at: nowIso6(deps3),
             type: "derived_approval_recorded",
             stage,
             approvalId: approval.approvalId,
@@ -109685,7 +110683,7 @@ async function runSealAndBuild(deps3, options) {
         bindApprovalSeal(deps3.workspace, options.intakeId, seal.sealId);
         ledger = persist4({ ...ledger, sealId });
         appendIntakeEvent(deps3.workspace, options.intakeId, {
-          at: nowIso5(deps3),
+          at: nowIso6(deps3),
           type: "seal_created",
           sealId: seal.sealId,
           approvalId: approval.approvalId,
@@ -109710,7 +110708,7 @@ async function runSealAndBuild(deps3, options) {
       preflight = await runPreflight2(deps3, options, approval.missionId, sealId);
       ledger = persist4({ ...ledger, preflightReportId: preflight.reportId });
       appendIntakeEvent(deps3.workspace, options.intakeId, {
-        at: nowIso5(deps3),
+        at: nowIso6(deps3),
         type: "preflight_completed",
         reportId: preflight.reportId,
         verdict: preflight.verdict
@@ -109730,11 +110728,11 @@ async function runSealAndBuild(deps3, options) {
           withStep({ ...ledger, preflightReportId: preflight.reportId }, "PREFLIGHT", {
             detail: preflight.verdict,
             result: preflight.reportId,
-            settledAt: nowIso5(deps3)
+            settledAt: nowIso6(deps3)
           })
         );
         appendIntakeEvent(deps3.workspace, options.intakeId, {
-          at: nowIso5(deps3),
+          at: nowIso6(deps3),
           type: "preflight_completed",
           reportId: preflight.reportId,
           verdict: preflight.verdict,
@@ -109749,7 +110747,7 @@ async function runSealAndBuild(deps3, options) {
       });
       for (const resolved2 of resolution.resolved) {
         appendIntakeEvent(deps3.workspace, options.intakeId, {
-          at: nowIso5(deps3),
+          at: nowIso6(deps3),
           type: "prerequisite_resolved",
           detail: resolved2.slice(0, 400)
         });
@@ -109784,7 +110782,7 @@ async function runSealAndBuild(deps3, options) {
         const intake = requireIntakeState(deps3.workspace, options.intakeId);
         writeIntakeState(deps3.workspace, { ...intake, jobId, specName, sealId, status: "BUILDING" });
         appendIntakeEvent(deps3.workspace, options.intakeId, {
-          at: nowIso5(deps3),
+          at: nowIso6(deps3),
           type: "job_created",
           jobId,
           specName
@@ -109808,7 +110806,7 @@ async function runSealAndBuild(deps3, options) {
     if (retry.cleared) {
       emit3("lifecycle", `job ${jobId} unblocked and returned to the schedulable path`);
       appendIntakeEvent(deps3.workspace, options.intakeId, {
-        at: nowIso5(deps3),
+        at: nowIso6(deps3),
         type: "build_step_started",
         step: "LAUNCH",
         unblocked: true
@@ -109845,7 +110843,7 @@ async function runSealAndBuild(deps3, options) {
   begin("LAUNCH");
   try {
     appendIntakeEvent(deps3.workspace, options.intakeId, {
-      at: nowIso5(deps3),
+      at: nowIso6(deps3),
       type: "unattended_launched",
       jobId,
       sealId: sealId ?? null
@@ -109886,7 +110884,7 @@ function validateProjection(deps3, approval, specName) {
     workspace: deps3.workspace,
     approval,
     specName,
-    checkedAt: nowIso5(deps3),
+    checkedAt: nowIso6(deps3),
     approvedElements: approvedElements(
       approval,
       contracts.map((contract) => ({
@@ -109979,11 +110977,11 @@ function finish4(deps3, options, ledger, outcome, extras) {
   const finished7 = writeLifecycle(deps3.workspace, {
     ...ledger,
     outcome,
-    updatedAt: nowIso5(deps3),
-    finishedAt: nowIso5(deps3)
+    updatedAt: nowIso6(deps3),
+    finishedAt: nowIso6(deps3)
   });
   appendIntakeEvent(deps3.workspace, options.intakeId, {
-    at: nowIso5(deps3),
+    at: nowIso6(deps3),
     type: "build_finished",
     outcome,
     ...finished7.jobId !== void 0 ? { jobId: finished7.jobId } : {}
@@ -110031,7 +111029,7 @@ function startSpecIntake(deps3, request) {
   const contentHash = sha256Hex(content);
   const storedPath = storeSourceText(deps3.workspace, intakeId, contentHash, content);
   const parsed = parseSpecificationDocument(content);
-  const at = nowIso5(deps3);
+  const at = nowIso6(deps3);
   const goal = request.goal?.trim() ?? deriveGoal(parsed.chunks, name);
   const mission = beginMission(missionDepsOf(deps3), { name, goal });
   const source = writeSpecSource(deps3.workspace, {
@@ -110126,7 +111124,7 @@ function runIntakeDiscovery(deps3, intakeId, options = {}) {
     throw new IntakeError("SBI004", `Spec intake ${intakeId} is ABANDONED and read-only.`);
   }
   const source = requireSpecSource(deps3.workspace, intakeId);
-  const at = nowIso5(deps3);
+  const at = nowIso6(deps3);
   const grounding = writeGrounding(
     deps3.workspace,
     groundInRepository(deps3, {
@@ -110370,7 +111368,7 @@ function answerIntakeQuestion(deps3, intakeId, request, options = {}) {
       `Question ${request.questionId} was never mirrored into the mission and cannot record a governed answer.`
     );
   }
-  const at = nowIso5(deps3);
+  const at = nowIso6(deps3);
   const result = answerQuestion(missionDepsOf(deps3), intake.missionId, {
     questionId: question.missionQuestionId,
     answer
@@ -110442,7 +111440,7 @@ function approveIntake(deps3, request) {
     (decision) => decision.status === "active"
   );
   const source = requireSpecSource(deps3.workspace, request.intakeId);
-  const at = nowIso5(deps3);
+  const at = nowIso6(deps3);
   const approval = writeApproval(
     deps3.workspace,
     buildIntakeApproval({
@@ -110533,7 +111531,7 @@ function requireIntakeFor(deps3, subject) {
 function abandonIntake(deps3, intakeId, reason) {
   const intake = requireIntakeState(deps3.workspace, intakeId);
   if (intake.status === "ABANDONED") return intake;
-  const at = nowIso5(deps3);
+  const at = nowIso6(deps3);
   appendIntakeEvent(deps3.workspace, intakeId, {
     at,
     type: "intake_abandoned",
@@ -110673,7 +111671,7 @@ function recordFeatureOutcome(deps3, intakeId, outcome) {
   features[index] = updated;
   writeProductBaseline(deps3.workspace, {
     ...baseline,
-    updatedAt: nowIso5(deps3),
+    updatedAt: nowIso6(deps3),
     features
   });
 }
@@ -110693,7 +111691,7 @@ function computeIntakeTelemetry(deps3, intakeId) {
   return intakeTelemetrySchema.parse({
     schemaVersion: INTAKE_TELEMETRY_SCHEMA_VERSION,
     intakeId,
-    recordedAt: nowIso5(deps3),
+    recordedAt: nowIso6(deps3),
     status: intake.status,
     discoveryHumanTurns: intake.counters.discoveryHumanTurns,
     productQuestionsAsked: questions.length,
@@ -111499,7 +112497,7 @@ function bootstrapWorkspace(deps3, options = {}) {
   const ensured = ensureRepositoryIndex({
     workspace,
     config: deps3.config,
-    now: nowIso5(deps3),
+    now: nowIso6(deps3),
     // Bootstrap has no Git snapshot to name additions, so the refresh walks
     // for them: a snapshot that missed a brand-new capability file would
     // claim currency over a repository it has not actually seen.
@@ -111549,7 +112547,7 @@ function bootstrapWorkspace(deps3, options = {}) {
     schemaVersion: BOOTSTRAP_SCHEMA_VERSION,
     snapshotId: `snap-${contentHash.slice(0, 12)}`,
     workspaceKey: workspaceKeyFor(workspace.rootDir),
-    createdAt: nowIso5(deps3),
+    createdAt: nowIso6(deps3),
     ...material,
     indexStats: {
       entries: ensured.state.entries.length,
@@ -111592,7 +112590,7 @@ function inspectWorkspace(deps3, options) {
   const ensured = ensureRepositoryIndex({
     workspace,
     config: deps3.config,
-    now: nowIso5(deps3)
+    now: nowIso6(deps3)
   });
   const query = buildRetrievalQuery({
     taskId: "workspace-inspect",

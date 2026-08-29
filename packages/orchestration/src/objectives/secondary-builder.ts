@@ -1,6 +1,7 @@
 import { existsSync, lstatSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { z } from 'zod';
+import { CONTEXT_EXPANSION_LEVELS, CONTEXT_SELECTION_REASONS } from '@specbridge/context';
 import type { AgentConfig } from '@specbridge/core';
 import { effectiveLocalInputCharacters, sha256Hex } from '@specbridge/core';
 import type { LocalModelManager } from '@specbridge/runners';
@@ -10,6 +11,7 @@ import {
   applyValidatedEdits,
   validateEditPaths,
 } from '../scheduling/local-execution.js';
+import type { BuilderPacketCompiler } from './builder-packet-compiler.js';
 import type { ContextProjection } from './state.js';
 
 /**
@@ -23,13 +25,16 @@ import type { ContextProjection } from './state.js';
  * runtime.
  */
 
-export const SECONDARY_BUILDER_PACKET_SCHEMA_VERSION = '1.0.0';
-export const SECONDARY_BUILDER_RESULT_SCHEMA_VERSION = '1.0.0';
-export const SECONDARY_BUILDER_ATTEMPT_SCHEMA_VERSION = '1.0.0';
+export const SECONDARY_BUILDER_PACKET_SCHEMA_VERSION = '1.1.0';
+export const SECONDARY_BUILDER_RESULT_SCHEMA_VERSION = '1.1.0';
+export const SECONDARY_BUILDER_ATTEMPT_SCHEMA_VERSION = '1.1.0';
 
 export const SECONDARY_BUILDER_LIMITS = {
   ...LOCAL_EXECUTION_LIMITS,
   maxSourceFiles: 16,
+  maxTests: 6,
+  maxReferencePatterns: 4,
+  maxDependencyContext: 12,
   maxSourceFileChars: 32_768,
   maxSourceBytes: 262_144,
   maxPacketCharacters: 524_288,
@@ -43,14 +48,81 @@ const sha256 = z.string().regex(/^[a-f0-9]{64}$/);
 
 export const secondarySourceContextSchema = z
   .object({
-    /** Worktree-relative path. Whole-file source only in Phase 4. */
+    /** Repository namespace. Paths are unique only within this identity. */
+    repositoryId: shortText.default('primary'),
+    /** Repository-relative path. */
     path: boundedText(SECONDARY_BUILDER_LIMITS.maxPathChars),
-    /** Hash of the exact UTF-8 content below. */
+    /** Hash of the complete current file bytes. */
     contentHash: sha256,
+    /** Hash of the exact bounded content below (whole file or section). */
+    sectionHash: sha256.optional(),
     content: z.string().max(SECONDARY_BUILDER_LIMITS.maxSourceFileChars),
+    reason: z.enum(CONTEXT_SELECTION_REASONS).default('EXPLICIT_ACTION_REFERENCE'),
+    startLine: z.number().int().min(1).optional(),
+    endLine: z.number().int().min(1).optional(),
+    symbols: z.array(shortText).max(12).default([]),
   })
   .strict();
-export type SecondarySourceContext = z.infer<typeof secondarySourceContextSchema>;
+/** Additive input surface keeps Phase 4's three-field source records valid. */
+export type SecondarySourceContext = z.input<typeof secondarySourceContextSchema>;
+export type NormalizedSecondarySourceContext = z.output<typeof secondarySourceContextSchema>;
+
+export const secondaryBuilderTargetSchema = z
+  .object({
+    repositoryId: shortText,
+    path: boundedText(SECONDARY_BUILDER_LIMITS.maxPathChars),
+    symbols: z.array(shortText).max(12).default([]),
+    reason: z.enum(CONTEXT_SELECTION_REASONS),
+  })
+  .strict();
+
+export const secondaryDependencyContextSchema = z
+  .object({
+    workUnitId: shortText,
+    summary: boundedText(2_000),
+    changedFiles: z
+      .array(
+        z
+          .object({ repositoryId: shortText, path: boundedText(SECONDARY_BUILDER_LIMITS.maxPathChars) })
+          .strict(),
+      )
+      .max(60),
+    exportedSymbols: z.array(shortText).max(30).default([]),
+    verificationPassed: z.literal(true),
+  })
+  .strict();
+
+export const secondaryBuilderPacketMetricsSchema = z
+  .object({
+    indexedFilesConsidered: z.number().int().min(0),
+    candidateCount: z.number().int().min(0),
+    selectedFiles: z.number().int().min(0),
+    selectedSections: z.number().int().min(0),
+    sourceCharacters: z.number().int().min(0),
+    testCharacters: z.number().int().min(0),
+    referencePatternCount: z.number().int().min(0),
+    dependencyContextCount: z.number().int().min(0),
+    budgetUtilization: z.number().min(0),
+    mandatoryRefsRetained: z.number().int().min(0),
+    expansionDepth: z.number().int().min(0).max(4),
+    staleEntriesEncountered: z.number().int().min(0),
+    selectionDurationMs: z.number().int().min(0),
+    indexReused: z.boolean(),
+  })
+  .strict();
+
+export const secondaryBuilderPacketQualitySchema = z
+  .object({
+    explicitTargetResolved: z.boolean(),
+    targetAmbiguity: z.boolean(),
+    testsFound: z.boolean(),
+    verificationHintsAvailable: z.boolean(),
+    referencePatternFound: z.boolean(),
+    dependencyContextComplete: z.boolean(),
+    sourceBudgetUtilization: z.number().min(0),
+    contextSufficient: z.boolean(),
+  })
+  .strict();
 
 const projectedContractSchema = z
   .object({
@@ -70,7 +142,10 @@ export const secondaryBuilderPacketSchema = z
     projectionHash: sha256,
     contractSnapshotHash: sha256,
     sourceContextHash: sha256,
+    /** Semantic identity; excludes createdAt and observational metrics. */
+    contentHash: sha256,
     packetHash: sha256,
+    createdAt: shortText.optional(),
     objective: z
       .object({
         nodeId: shortText,
@@ -104,6 +179,25 @@ export const secondaryBuilderPacketSchema = z
       })
       .strict(),
     sourceContext: z.array(secondarySourceContextSchema).max(SECONDARY_BUILDER_LIMITS.maxSourceFiles),
+    targets: z.array(secondaryBuilderTargetSchema).max(SECONDARY_BUILDER_LIMITS.maxSourceFiles),
+    tests: z.array(secondarySourceContextSchema).max(SECONDARY_BUILDER_LIMITS.maxTests),
+    referencePatterns: z
+      .array(secondarySourceContextSchema)
+      .max(SECONDARY_BUILDER_LIMITS.maxReferencePatterns),
+    dependencyContext: z
+      .array(secondaryDependencyContextSchema)
+      .max(SECONDARY_BUILDER_LIMITS.maxDependencyContext),
+    priorFailureEvidence: z.array(boundedText(2_000)).max(20),
+    retrievalPlanRef: shortText,
+    retrievalPlanRefs: z.array(shortText).max(12),
+    expansion: z
+      .object({
+        level: z.enum(CONTEXT_EXPANSION_LEVELS),
+        remainingLevels: z.number().int().min(0).max(4),
+      })
+      .strict(),
+    contextMetrics: secondaryBuilderPacketMetricsSchema,
+    quality: secondaryBuilderPacketQualitySchema,
     forbiddenChanges: z.array(boundedText(1_000)).max(30),
     verificationHints: z.array(boundedText(1_000)).max(30),
   })
@@ -125,22 +219,37 @@ export type SecondaryStructuredEdit = z.infer<typeof secondaryStructuredEditSche
 export const secondaryBuilderResultSchema = z
   .object({
     schemaVersion: z.literal(SECONDARY_BUILDER_RESULT_SCHEMA_VERSION),
+    status: z.enum(['EDITS', 'NEEDS_MORE_CONTEXT']).default('EDITS'),
     summary: boundedText(SECONDARY_BUILDER_LIMITS.maxSummaryChars),
     edits: z.array(secondaryStructuredEditSchema).max(SECONDARY_BUILDER_LIMITS.maxEdits),
     notes: z
       .array(z.string().max(SECONDARY_BUILDER_LIMITS.maxNoteChars))
       .max(SECONDARY_BUILDER_LIMITS.maxNotes)
       .optional(),
+    needsMoreContextReasons: z
+      .array(z.string().min(1).max(SECONDARY_BUILDER_LIMITS.maxNoteChars))
+      .min(1)
+      .max(8)
+      .optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((result, context) => {
+    if (result.status === 'NEEDS_MORE_CONTEXT' && result.needsMoreContextReasons === undefined) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['needsMoreContextReasons'], message: 'required when status is NEEDS_MORE_CONTEXT' });
+    }
+    if (result.status === 'NEEDS_MORE_CONTEXT' && result.edits.length > 0) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['edits'], message: 'must be empty when more context is required' });
+    }
+  });
 export type SecondaryBuilderResult = z.infer<typeof secondaryBuilderResultSchema>;
 
 export const SECONDARY_BUILDER_JSON_SCHEMA: Record<string, unknown> = {
   type: 'object',
   additionalProperties: false,
-  required: ['schemaVersion', 'summary', 'edits'],
+  required: ['schemaVersion', 'status', 'summary', 'edits'],
   properties: {
     schemaVersion: { type: 'string', const: SECONDARY_BUILDER_RESULT_SCHEMA_VERSION },
+    status: { type: 'string', enum: ['EDITS', 'NEEDS_MORE_CONTEXT'] },
     summary: { type: 'string', minLength: 1, maxLength: SECONDARY_BUILDER_LIMITS.maxSummaryChars },
     edits: {
       type: 'array',
@@ -161,6 +270,12 @@ export const SECONDARY_BUILDER_JSON_SCHEMA: Record<string, unknown> = {
       maxItems: SECONDARY_BUILDER_LIMITS.maxNotes,
       items: { type: 'string', maxLength: SECONDARY_BUILDER_LIMITS.maxNoteChars },
     },
+    needsMoreContextReasons: {
+      type: 'array',
+      minItems: 1,
+      maxItems: 8,
+      items: { type: 'string', minLength: 1, maxLength: SECONDARY_BUILDER_LIMITS.maxNoteChars },
+    },
   },
 };
 
@@ -168,6 +283,9 @@ export const SECONDARY_BUILDER_SYSTEM_PROMPT = [
   'You are a bounded SECONDARY OBJECTIVE BUILDER, not an agent harness.',
   'You have no shell, git, filesystem, package-manager, test, credential, or tool access.',
   'The packet contains all approved truth and source bytes you may use.',
+  'You have been given the repository context selected for this task; do not explore beyond it.',
+  'Do not invent files, APIs, symbols, or architecture unsupported by the packet.',
+  'If the packet is insufficient to implement safely, return NEEDS_MORE_CONTEXT with bounded reasons and no edits.',
   'Return exactly one JSON document matching the supplied schema.',
   'Return complete UTF-8 file contents using only CREATE or REPLACE.',
   'Never return Markdown, diffs, commands, deletes, renames, symlinks, or authority/config edits.',
@@ -214,12 +332,14 @@ export interface SecondaryModelInference {
 export interface SecondaryObjectiveBuilderSelection {
   selectionReason: string;
   workUnitIds?: readonly string[] | undefined;
-  sourceContext:
+  sourceContext?:
     | readonly SecondarySourceContext[]
     | ((input: {
         worktreeRoot: string;
         projection: ContextProjection;
       }) => readonly SecondarySourceContext[] | Promise<readonly SecondarySourceContext[]>);
+  /** Optional provider-neutral compiler seam; the managed deterministic compiler is the default. */
+  contextCompiler?: BuilderPacketCompiler | undefined;
   /** Deterministic fake/custom provider seam; omitted means managed local. */
   inference?: SecondaryModelInference | undefined;
 }
@@ -294,6 +414,8 @@ export const SECONDARY_BUILDER_FAILURES = [
   'VERIFICATION_FAILURE',
   'TIMEOUT',
   'CONTEXT_TOO_LARGE',
+  'INSUFFICIENT_CONTEXT',
+  'AMBIGUOUS_TARGET',
   'CANCELLED',
 ] as const;
 export type SecondaryBuilderFailureKind = (typeof SECONDARY_BUILDER_FAILURES)[number];
@@ -304,6 +426,7 @@ export const SECONDARY_BUILDER_ATTEMPT_STATUSES = [
   'PROPOSAL_VALIDATED',
   'EDITS_APPLIED',
   'VERIFICATION_FAILED',
+  'CONTEXT_INSUFFICIENT',
   'CANDIDATE_READY',
   'FAILED',
 ] as const;
@@ -413,6 +536,8 @@ export interface ExecuteSecondaryBuilderInput {
   maximumInputCharacters: number;
   maxOutputBytes: number;
   protectedPaths?: readonly string[] | undefined;
+  /** Roots for explicitly justified secondary repositories in a cross-repo packet. */
+  repositoryRoots?: Readonly<Record<string, string>> | undefined;
   signal?: AbortSignal | undefined;
   /** Synchronous durability hook called before mutation and after application. */
   onExecutionEvent?: ((event: SecondaryBuilderExecutionEvent) => void) | undefined;
@@ -433,16 +558,25 @@ function stableStringify(value: unknown): string {
   return JSON.stringify(stable(value));
 }
 
-function packetBody(packet: Omit<SecondaryBuilderPacket, 'packetHash'>): string {
-  return stableStringify(packet);
+function packetBody(packet: Omit<SecondaryBuilderPacket, 'packetHash' | 'contentHash'>): string {
+  const { createdAt: _createdAt, contextMetrics: _contextMetrics, ...semantic } = packet;
+  return stableStringify(semantic);
 }
 
 export function sourceContextHashOf(sourceContext: readonly SecondarySourceContext[]): string {
+  const normalized = z.array(secondarySourceContextSchema).parse(sourceContext);
   return sha256Hex(
     stableStringify(
-      [...sourceContext]
-        .map((entry) => ({ path: entry.path.replace(/\\/g, '/'), contentHash: entry.contentHash }))
-        .sort((left, right) => left.path.localeCompare(right.path)),
+      normalized
+        .map((entry) => ({
+          repositoryId: entry.repositoryId,
+          path: entry.path.replace(/\\/g, '/'),
+          contentHash: entry.contentHash,
+          sectionHash: entry.sectionHash ?? sha256Hex(entry.content),
+          startLine: entry.startLine ?? null,
+          endLine: entry.endLine ?? null,
+        }))
+        .sort((left, right) => `${left.repositoryId}:${left.path}`.localeCompare(`${right.repositoryId}:${right.path}`)),
     ),
   );
 }
@@ -489,9 +623,22 @@ export function buildSecondaryBuilderPacket(input: {
   sourceContext: readonly SecondarySourceContext[];
   forbiddenChanges?: readonly string[] | undefined;
   verificationHints?: readonly string[] | undefined;
+  targets?: readonly z.input<typeof secondaryBuilderTargetSchema>[] | undefined;
+  tests?: readonly SecondarySourceContext[] | undefined;
+  referencePatterns?: readonly SecondarySourceContext[] | undefined;
+  dependencyContext?: readonly z.input<typeof secondaryDependencyContextSchema>[] | undefined;
+  priorFailureEvidence?: readonly string[] | undefined;
+  retrievalPlanRefs?: readonly string[] | undefined;
+  expansionLevel?: (typeof CONTEXT_EXPANSION_LEVELS)[number] | undefined;
+  contextMetrics?: z.input<typeof secondaryBuilderPacketMetricsSchema> | undefined;
+  quality?: z.input<typeof secondaryBuilderPacketQualitySchema> | undefined;
+  createdAt?: string | undefined;
 }): SecondaryBuilderPacket {
   const sourceContext = z.array(secondarySourceContextSchema).parse(input.sourceContext);
-  const sourceBytes = sourceContext.reduce(
+  const tests = z.array(secondarySourceContextSchema).parse(input.tests ?? []);
+  const referencePatterns = z.array(secondarySourceContextSchema).parse(input.referencePatterns ?? []);
+  const allSourceContext = [...sourceContext, ...tests, ...referencePatterns];
+  const sourceBytes = allSourceContext.reduce(
     (total, entry) => total + Buffer.byteLength(entry.content, 'utf8'),
     0,
   );
@@ -503,7 +650,7 @@ export function buildSecondaryBuilderPacket(input: {
     packetId: `${input.projection.projectionId}-secondary`,
     projectionHash: input.projection.contentHash,
     contractSnapshotHash: input.projection.contractSnapshotHash,
-    sourceContextHash: sourceContextHashOf(sourceContext),
+    sourceContextHash: sourceContextHashOf(allSourceContext),
     objective: {
       nodeId: input.projection.objectiveNodeId,
       taskId: input.projection.objective.taskId,
@@ -527,15 +674,60 @@ export function buildSecondaryBuilderPacket(input: {
       priorWorkEvidence: [...input.projection.workEvidence],
     },
     sourceContext,
+    targets: z.array(secondaryBuilderTargetSchema).parse(
+      input.targets ?? sourceContext.map((entry) => ({
+        repositoryId: entry.repositoryId,
+        path: entry.path,
+        symbols: entry.symbols,
+        reason: entry.reason,
+      })),
+    ),
+    tests,
+    referencePatterns,
+    dependencyContext: z.array(secondaryDependencyContextSchema).parse(input.dependencyContext ?? []),
+    priorFailureEvidence: [...(input.priorFailureEvidence ?? [])].slice(0, 20),
+    retrievalPlanRef: input.retrievalPlanRefs?.[0] ?? 'manual-source-selection',
+    retrievalPlanRefs: [...(input.retrievalPlanRefs ?? ['manual-source-selection'])].slice(0, 12),
+    expansion: {
+      level: input.expansionLevel ?? 'MINIMAL_BOOTSTRAP',
+      remainingLevels: Math.max(0, 4 - CONTEXT_EXPANSION_LEVELS.indexOf(input.expansionLevel ?? 'MINIMAL_BOOTSTRAP')),
+    },
+    contextMetrics: secondaryBuilderPacketMetricsSchema.parse(input.contextMetrics ?? {
+      indexedFilesConsidered: sourceContext.length,
+      candidateCount: sourceContext.length,
+      selectedFiles: allSourceContext.length,
+      selectedSections: allSourceContext.filter((entry) => entry.startLine !== undefined).length,
+      sourceCharacters: sourceContext.reduce((sum, entry) => sum + entry.content.length, 0),
+      testCharacters: tests.reduce((sum, entry) => sum + entry.content.length, 0),
+      referencePatternCount: referencePatterns.length,
+      dependencyContextCount: input.dependencyContext?.length ?? 0,
+      budgetUtilization: sourceBytes / SECONDARY_BUILDER_LIMITS.maxSourceBytes,
+      mandatoryRefsRetained: sourceContext.length,
+      expansionDepth: CONTEXT_EXPANSION_LEVELS.indexOf(input.expansionLevel ?? 'MINIMAL_BOOTSTRAP'),
+      staleEntriesEncountered: 0,
+      selectionDurationMs: 0,
+      indexReused: false,
+    }),
+    quality: secondaryBuilderPacketQualitySchema.parse(input.quality ?? {
+      explicitTargetResolved: sourceContext.length > 0,
+      targetAmbiguity: false,
+      testsFound: tests.length > 0,
+      verificationHintsAvailable: (input.verificationHints?.length ?? 0) > 0,
+      referencePatternFound: referencePatterns.length > 0,
+      dependencyContextComplete: true,
+      sourceBudgetUtilization: sourceBytes / SECONDARY_BUILDER_LIMITS.maxSourceBytes,
+      contextSufficient: sourceContext.length > 0,
+    }),
     forbiddenChanges: [
       'Do not modify .git, .kiro, .specbridge, .codex, .claude, credentials, approvals, contracts, mission state, or closure state.',
       'Do not delete, rename, chmod, create symlinks, emit commands, or request tools.',
       ...(input.forbiddenChanges ?? []),
     ],
     verificationHints: [...(input.verificationHints ?? [])],
+    ...(input.createdAt !== undefined ? { createdAt: input.createdAt } : {}),
   };
-  const packetHash = sha256Hex(packetBody(base as Omit<SecondaryBuilderPacket, 'packetHash'>));
-  const packet = secondaryBuilderPacketSchema.parse({ ...base, packetHash });
+  const contentHash = sha256Hex(packetBody(base as Omit<SecondaryBuilderPacket, 'packetHash' | 'contentHash'>));
+  const packet = secondaryBuilderPacketSchema.parse({ ...base, contentHash, packetHash: contentHash });
   if (JSON.stringify(packet).length > SECONDARY_BUILDER_LIMITS.maxPacketCharacters) {
     throw new Error(`secondary builder packet exceeds ${SECONDARY_BUILDER_LIMITS.maxPacketCharacters} characters`);
   }
@@ -543,10 +735,10 @@ export function buildSecondaryBuilderPacket(input: {
 }
 
 function validatePacketIdentity(packet: SecondaryBuilderPacket): string | undefined {
-  const { packetHash: claimed, ...body } = packet;
+  const { packetHash: claimed, contentHash, ...body } = packet;
   const actual = sha256Hex(packetBody(body));
-  if (actual !== claimed) return 'the packet hash does not match its contents';
-  if (sourceContextHashOf(packet.sourceContext) !== packet.sourceContextHash) {
+  if (actual !== claimed || actual !== contentHash) return 'the packet semantic hash does not match its contents';
+  if (sourceContextHashOf([...packet.sourceContext, ...packet.tests, ...packet.referencePatterns]) !== packet.sourceContextHash) {
     return 'the source-context manifest hash does not match the packet';
   }
   return undefined;
@@ -556,24 +748,54 @@ function validateSourceFreshness(
   worktreeRoot: string,
   packet: SecondaryBuilderPacket,
   protectedPaths: readonly string[],
+  repositoryRoots: Readonly<Record<string, string>>,
 ): string[] {
   const problems: string[] = [];
-  const pathFailures = validateEditPaths(
-    { rootDir: worktreeRoot },
-    packet.sourceContext.map((entry) => ({ path: entry.path, content: '' })),
-    protectedPaths,
-  );
-  problems.push(...pathFailures.map((failure) => `${failure.path}: ${failure.problem}`));
-  if (pathFailures.length > 0) return problems;
-  for (const source of packet.sourceContext) {
-    const target = path.join(worktreeRoot, source.path.replace(/\\/g, '/'));
+  const allSources = [...packet.sourceContext, ...packet.tests, ...packet.referencePatterns];
+  for (const repositoryId of new Set(allSources.map((source) => source.repositoryId))) {
+    const repositoryRoot = repositoryRoots[repositoryId] ?? (repositoryId === 'primary' ? worktreeRoot : undefined);
+    if (repositoryRoot === undefined) {
+      problems.push(`${repositoryId}: repository root is unavailable`);
+      continue;
+    }
+    const pathFailures = validateEditPaths(
+      { rootDir: repositoryRoot },
+      allSources
+        .filter((entry) => entry.repositoryId === repositoryId)
+        .map((entry) => ({ path: entry.path, content: '' })),
+      protectedPaths,
+    );
+    problems.push(...pathFailures.map((failure) => `${repositoryId}:${failure.path}: ${failure.problem}`));
+  }
+  if (problems.length > 0) return problems;
+  for (const source of allSources) {
+    const repositoryRoot = repositoryRoots[source.repositoryId] ?? (source.repositoryId === 'primary' ? worktreeRoot : undefined);
+    if (repositoryRoot === undefined) {
+      problems.push(`${source.repositoryId}:${source.path}: repository root is unavailable`);
+      continue;
+    }
+    const normalizedPath = source.path.replace(/\\/g, '/');
+    const resolvedRoot = path.resolve(repositoryRoot);
+    const target = path.resolve(resolvedRoot, normalizedPath);
+    if (
+      path.isAbsolute(normalizedPath) ||
+      normalizedPath === '..' ||
+      normalizedPath.startsWith('../') ||
+      (target !== resolvedRoot && !target.startsWith(`${resolvedRoot}${path.sep}`))
+    ) {
+      problems.push(`${source.repositoryId}:${source.path}: source path escapes its repository`);
+      continue;
+    }
     try {
       if (!lstatSync(target).isFile()) {
         problems.push(`${source.path}: source is not a regular file`);
         continue;
       }
       const current = readFileSync(target, 'utf8');
-      if (sha256Hex(current) !== source.contentHash || current !== source.content) {
+      if (sha256Hex(source.content) !== (source.sectionHash ?? sha256Hex(source.content))) {
+        problems.push(`${source.repositoryId}:${source.path}: selected section hash does not match packet content`);
+      }
+      if (sha256Hex(current) !== source.contentHash || (source.startLine === undefined && current !== source.content)) {
         problems.push(`${source.path}: repository bytes changed after source context was assembled`);
       }
     } catch {
@@ -587,7 +809,7 @@ function emptyTelemetry(packet: SecondaryBuilderPacket): SecondaryBuilderTelemet
   return {
     inputCharacters: 0,
     outputBytes: 0,
-    sourceFiles: packet.sourceContext.length,
+    sourceFiles: packet.sourceContext.length + packet.tests.length + packet.referencePatterns.length,
     editedFiles: 0,
     durationMs: 0,
     inputTokens: null,
@@ -622,14 +844,15 @@ export async function executeSecondaryObjectiveBuilder(
   const packet = parsedPacket.data;
   const identityProblem = validatePacketIdentity(packet);
   if (identityProblem !== undefined) return failure(packet, 'STALE_SOURCE_CONTEXT', identityProblem);
-  const stale = validateSourceFreshness(input.worktreeRoot, packet, input.protectedPaths ?? []);
+  const stale = validateSourceFreshness(
+    input.worktreeRoot,
+    packet,
+    input.protectedPaths ?? [],
+    input.repositoryRoots ?? {},
+  );
   if (stale.length > 0) return failure(packet, 'STALE_SOURCE_CONTEXT', stale.slice(0, 5).join('; '));
 
-  const userPrompt = [
-    'Implement the approved WorkUnit using only the bounded packet below.',
-    'Return the SECONDARY_BUILDER_RESULT JSON document now.',
-    stableStringify(packet),
-  ].join('\n\n');
+  const userPrompt = renderSecondaryBuilderPrompt(packet);
   const inputCharacters = SECONDARY_BUILDER_SYSTEM_PROMPT.length + userPrompt.length;
   if (inputCharacters > input.maximumInputCharacters) {
     return failure(
@@ -677,7 +900,7 @@ export async function executeSecondaryObjectiveBuilder(
   let telemetry: SecondaryBuilderTelemetry = {
     inputCharacters,
     outputBytes,
-    sourceFiles: packet.sourceContext.length,
+    sourceFiles: packet.sourceContext.length + packet.tests.length + packet.referencePatterns.length,
     editedFiles: 0,
     durationMs: inferred.durationMs,
     inputTokens: inferred.usage?.inputTokens ?? null,
@@ -709,6 +932,14 @@ export async function executeSecondaryObjectiveBuilder(
   const proposal = parsed.data;
   telemetry = { ...telemetry, editedFiles: proposal.edits.length };
   input.onExecutionEvent?.({ stage: 'PROPOSAL_VALIDATED', proposal, telemetry });
+  if (proposal.status === 'NEEDS_MORE_CONTEXT') {
+    return failure(
+      packet,
+      'INSUFFICIENT_CONTEXT',
+      `secondary builder requested more context: ${proposal.needsMoreContextReasons?.join('; ') ?? proposal.summary}`,
+      { rawOutput: inferred.text, proposal, telemetry },
+    );
+  }
   if (proposal.edits.length === 0) {
     return failure(packet, 'EMPTY_EDIT_SET', 'an implementation WorkUnit must propose at least one edit', {
       rawOutput: inferred.text,
@@ -771,6 +1002,50 @@ export async function executeSecondaryObjectiveBuilder(
   }
   input.onExecutionEvent?.({ stage: 'EDITS_APPLIED', proposal, appliedFiles, telemetry });
   return { ok: true, proposal, appliedFiles, telemetry };
+}
+
+/** Explicit, stable prompt sections keep requirements distinct from examples. */
+export function renderSecondaryBuilderPrompt(packet: SecondaryBuilderPacket): string {
+  const renderSources = (entries: readonly NormalizedSecondarySourceContext[]): string =>
+    entries.length === 0
+      ? '(none)'
+      : entries
+          .map((entry) =>
+            [
+              `--- ${entry.repositoryId}:${entry.path}${entry.startLine !== undefined ? ` lines ${entry.startLine}-${entry.endLine}` : ''} ---`,
+              `Selected because: ${entry.reason}`,
+              entry.content,
+            ].join('\n'),
+          )
+          .join('\n\n');
+  return [
+    'PACKET IDENTITY',
+    stableStringify({ workUnitId: packet.workUnit.workUnitId, packetHash: packet.packetHash }),
+    'TASK',
+    `${packet.workUnit.title}\n${packet.workUnit.goal}`,
+    'REQUIRED BEHAVIOR',
+    [...packet.objective.acceptance, ...packet.approvedContext.contracts.flatMap((contract) => contract.requirements)].join('\n- '),
+    'TARGETS',
+    packet.targets.map((target) => `${target.repositoryId}:${target.path} (${target.reason})`).join('\n'),
+    'CURRENT SOURCE',
+    renderSources(packet.sourceContext),
+    'RELEVANT TESTS',
+    renderSources(packet.tests),
+    'REFERENCE PATTERNS (examples only; not requirements)',
+    renderSources(packet.referencePatterns),
+    'DEPENDENCY CONTEXT',
+    packet.dependencyContext.map((dependency) => `${dependency.workUnitId}: ${dependency.summary}`).join('\n') || '(none)',
+    'CONSTRAINTS',
+    packet.approvedContext.constraints.join('\n'),
+    'DO NOT CHANGE',
+    packet.forbiddenChanges.join('\n'),
+    'PRIOR FAILURE EVIDENCE',
+    packet.priorFailureEvidence.join('\n') || '(none)',
+    'VERIFICATION HINTS',
+    packet.verificationHints.join('\n') || '(none configured)',
+    'OUTPUT CONTRACT',
+    'Return exactly one SECONDARY_BUILDER_RESULT JSON document. Use status EDITS with complete CREATE/REPLACE contents, or NEEDS_MORE_CONTEXT with no edits when the supplied evidence is insufficient.',
+  ].join('\n\n');
 }
 
 /** Effective production ceiling retains the existing localInference semantics. */

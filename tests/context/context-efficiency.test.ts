@@ -179,6 +179,15 @@ describe('authority-aware deduplication', () => {
     expect(result.savedChars).toBe('the same body'.length);
   });
 
+  it('retains byte-identical repository artifacts at distinct paths', () => {
+    const result = deduplicateItems([
+      item({ layer: 'WORKING_SET', content: 'export const stub = true;', dedupeKey: 'repo:src/a.ts' }),
+      item({ layer: 'WORKING_SET', content: 'export const stub = true;', dedupeKey: 'repo:src/b.ts' }),
+    ]);
+    expect(result.items).toHaveLength(2);
+    expect(result.duplicates).toHaveLength(0);
+  });
+
   it('keeps the higher-authority representation when two items conflict', () => {
     const canonical = item({
       layer: 'COMPACTED_HISTORY',

@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+### Builder Packet & Repository Code Retrieval — vNext.10.2 Phase 5
+
+- Added a deterministic `BuilderPacketCompiler` that turns an explicitly
+  Secondary-selected Objective WorkUnit into a small implementation packet by
+  reusing `RepositoryContextIndex`, current worktree bytes, section extraction,
+  bounded structural expansion, and durable `ContextSelectionPlan` records.
+- Added automatic target, test, direct-dependency, and nearby reference-pattern
+  selection with per-section repository/path/hash/range/reason provenance,
+  verified dependency summaries, trusted verification hints, bounded prior
+  failure evidence, multi-repository identity, and stable semantic packet hashes.
+- Added honest `INSUFFICIENT_CONTEXT`, `AMBIGUOUS_TARGET`, and model-returned
+  `NEEDS_MORE_CONTEXT` outcomes. These outcomes create no edit candidate and do
+  not grant the direct model shell, Git, filesystem, repository browsing, or
+  other agent authority.
+- Added deterministic fake-model, stale-index, budget/sectioning,
+  protected-path, multi-repository, hash-stability, and large-fixture coverage,
+  plus a gated real local-model qualification. Default strong-builder routing
+  and explicit-only Secondary selection remain unchanged.
+
 ### Secondary Objective Builder — vNext.10.2 Phase 4
 
 - Added an explicit-only, provider-neutral `SecondaryModelInference` and

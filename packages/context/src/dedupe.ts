@@ -140,8 +140,9 @@ export function deduplicateItems(
 
     const digest = contentDigest(item);
     const identity = sourceIdentity(item);
+    const contentKey = identity?.startsWith('key:repo:') === true ? `${digest}:${identity}` : digest;
 
-    const contentIndex = byContent.get(digest);
+    const contentIndex = byContent.get(contentKey);
     if (contentIndex !== undefined) {
       const incumbent = survivors[contentIndex];
       if (incumbent !== undefined) {
@@ -151,7 +152,7 @@ export function deduplicateItems(
           drop(incumbent, item, 'identical-content');
           survivors[contentIndex] = undefined;
           survivors.push(item);
-          byContent.set(digest, survivors.length - 1);
+          byContent.set(contentKey, survivors.length - 1);
           if (identity !== undefined) bySource.set(identity, survivors.length - 1);
         } else {
           drop(item, incumbent, 'identical-content');
@@ -171,7 +172,7 @@ export function deduplicateItems(
           survivors[sourceIndex] = undefined;
           survivors.push(item);
           bySource.set(identity, survivors.length - 1);
-          byContent.set(digest, survivors.length - 1);
+          byContent.set(contentKey, survivors.length - 1);
         } else {
           drop(item, incumbent, kind);
         }
@@ -180,7 +181,7 @@ export function deduplicateItems(
       bySource.set(identity, survivors.length);
     }
 
-    byContent.set(digest, survivors.length);
+    byContent.set(contentKey, survivors.length);
     survivors.push(item);
   }
 
