@@ -15,6 +15,12 @@ import {
 import { analyzeSpec, requireSpec } from '@specbridge/compat-kiro';
 import { approveStage } from '@specbridge/workflow';
 import type { DriverDeps } from '@specbridge/orchestration';
+import type {
+  ResearchBridge,
+  ResearchProviderExecutionResult,
+  ResearchProviderHealth,
+  ResearchRequest,
+} from '@specbridge/orchestration';
 import {
   createJob,
   driveJob,
@@ -124,7 +130,108 @@ function investigationsFixture(): ExecutionFixture & { driverDeps: DriverDeps; m
   };
 }
 
+class RuntimeResearchBridge implements ResearchBridge {
+  calls = 0;
+  constructor(private readonly unavailable = false) {}
+  providerId(): string { return 'deerflow'; }
+  async health(): Promise<ResearchProviderHealth> {
+    return { provider: 'deerflow', status: 'HEALTHY', checkedAt: '2026-08-29T10:00:00.000Z' };
+  }
+  async investigate(request: ResearchRequest): Promise<ResearchProviderExecutionResult> {
+    this.calls += 1;
+    if (this.unavailable) {
+      return {
+        ok: false,
+        failure: {
+          classification: 'PROVIDER_UNAVAILABLE',
+          failureSource: 'PROVIDER',
+          message: 'DeerFlow is offline in this fixture.',
+          retryable: true,
+        },
+      };
+    }
+    return {
+      ok: true,
+      report: {
+        researchId: request.researchId,
+        provider: 'deerflow',
+        depth: request.depth,
+        status: 'COMPLETED',
+        question: request.question,
+        findings: [{
+          findingId: `finding-${this.calls}`,
+          statement: 'At-least-once delivery requires idempotent completion and explicit redelivery ownership.',
+          kind: 'ENGINEERING_CONSTRAINT',
+          confidence: 'HIGH',
+          sourceRefs: [`source-${this.calls}`],
+        }],
+        sourceRefs: [{ refId: `source-${this.calls}`, url: `https://example.test/broker/${this.calls}` }],
+        recommendations: ['Feed this constraint into the dependent implementation; it is not completion evidence.'],
+        unresolved: [],
+        conflicts: [],
+        classification: ['ENGINEERING_CONSTRAINT'],
+        usage: { totalTokens: 50, durationMs: 5 },
+        startedAt: '2026-08-29T10:00:00.000Z',
+        completedAt: '2026-08-29T10:00:01.000Z',
+      },
+    };
+  }
+}
+
 describe('investigation units and semantic aggregation', () => {
+  it('routes configured investigation units through ResearchBridge as zero-diff evidence', async () => {
+    process.env['FAKE_CLAUDE_SCENARIO'] = 'objective-investigations';
+    const bridge = new RuntimeResearchBridge();
+    const fixture = investigationsFixture();
+    fixture.config.research = {
+      ...fixture.config.research,
+      enabled: true,
+      providers: {
+        ...fixture.config.research.providers,
+        deerflow: { ...fixture.config.research.providers.deerflow, enabled: true },
+      },
+    };
+    fixture.driverDeps.researchBridge = bridge;
+    const job = createJob(fixture.driverDeps, { specName: 'steprelay', goal: 'Implement the transport.' });
+    const result = await driveJob(fixture.driverDeps, job.jobId, {});
+    expect(result.stop.kind).toBe('completed');
+    expect(bridge.calls).toBe(2);
+
+    const graph = requireGraphRevision(fixture.workspace, job.jobId, result.job.graphRevision);
+    const nodeId = graph.nodes[0]!.nodeId;
+    const workGraph = readLatestWorkGraph(fixture.workspace, job.jobId, nodeId)!;
+    for (const unit of workGraph.units.filter((candidate) => candidate.kind === 'investigation')) {
+      const candidate = readCandidate(fixture.workspace, job.jobId, nodeId, unit.workUnitId, unit.attempt)!;
+      expect(candidate.changedFiles).toEqual([]);
+      expect(candidate.claims.researchRefs).toHaveLength(1);
+      expect(candidate.claims.report).toContain('EVIDENCE_ONLY');
+    }
+    const events = readJobEvents(fixture.workspace, job.jobId, { limit: 500 }).events;
+    expect(events.filter((event) => event.type === 'research_used')).toHaveLength(2);
+  }, 300_000);
+
+  it('falls back to the existing investigator when DeerFlow is unavailable', async () => {
+    process.env['FAKE_CLAUDE_SCENARIO'] = 'objective-investigations';
+    const bridge = new RuntimeResearchBridge(true);
+    const fixture = investigationsFixture();
+    fixture.config.research = {
+      ...fixture.config.research,
+      enabled: true,
+      providers: {
+        ...fixture.config.research.providers,
+        deerflow: { ...fixture.config.research.providers.deerflow, enabled: true },
+      },
+    };
+    fixture.driverDeps.researchBridge = bridge;
+    const job = createJob(fixture.driverDeps, { specName: 'steprelay', goal: 'Implement the transport.' });
+    const result = await driveJob(fixture.driverDeps, job.jobId, {});
+    expect(result.stop.kind).toBe('completed');
+    expect(bridge.calls).toBe(2);
+    const events = readJobEvents(fixture.workspace, job.jobId, { limit: 500 }).events;
+    expect(events.filter((event) => event.type === 'research_degraded')).toHaveLength(2);
+    expect(events.filter((event) => event.type === 'research_fallback_started')).toHaveLength(2);
+  }, 300_000);
+
   it('two investigations produce reports, get evaluated, aggregate into one synthesis, and inform the build', async () => {
     process.env['FAKE_CLAUDE_SCENARIO'] = 'objective-investigations';
     const fixture = investigationsFixture();

@@ -612,5 +612,12 @@ export const JOB_EVENT_TYPES = [
   'system_qualification_completed',
   'release_qualification_completed',
   'reproducibility_completed',
+  // Research-augmented lifecycle (vNext.10.2 Phase 3). These events record
+  // evidence flow and fallback only; none grants product or completion authority.
+  'runtime_research_eligible',
+  'research_degraded',
+  'research_fallback_started',
+  'research_used',
+  'research_replan_caused',
 ] as const;
 export type JobEventType = (typeof JOB_EVENT_TYPES)[number];

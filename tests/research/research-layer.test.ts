@@ -336,7 +336,7 @@ describe('Research service, persistence, reuse, budget, and authority firewall',
     );
     expect(result.ok).toBe(true);
     for (const file of authorityFiles) expect(readFileSync(file, 'utf8')).toBe('AUTHORITY-MARKER');
-    expect(RESEARCH_RECORD_SCHEMA_VERSION).toBe('1.0.0');
+    expect(RESEARCH_RECORD_SCHEMA_VERSION).toBe('1.1.0');
   });
 
   it('normalizes provider outage as non-fatal structured failure and fabricates no report', async () => {

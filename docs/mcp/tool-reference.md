@@ -7,7 +7,7 @@ Generated from the authoritative registries of the `specbridge` MCP server
 (version 1.1.0). Tool names, resource URI templates, and prompt
 names are stable contracts — see docs/stability/public-contracts.md.
 
-## Tools (75)
+## Tools (77)
 
 | Tool | Access | Summary |
 | --- | --- | --- |
@@ -41,10 +41,12 @@ names are stable contracts — see docs/stability/public-contracts.md.
 | `orchestration_review_plan` | write | Record the user plan-review decision (hash-bound) |
 | `orchestration_status` | read-only | Governed orchestration state, freshness, and next safe action |
 | `orchestration_submit_plan` | write | Validate and store a context-bound execution plan |
+| `prepare_intake_decision` | write | Prepare evidence and options for one human intake decision |
 | `registry_list` | read-only | List configured extension registries |
 | `registry_search` | read-only | Offline registry index search |
 | `registry_show` | read-only | Registry metadata for one extension (no download) |
 | `repository_inspect` | read-only | Bounded repository sections for a deeper implementation question |
+| `research_consider` | write | Apply sparse research policy in one lifecycle phase |
 | `research_gate` | write | Deterministic research-escalation decision with reasons |
 | `research_get` | read-only | Read one durable ResearchRecord |
 | `research_list` | read-only | List durable research records and diagnostics |

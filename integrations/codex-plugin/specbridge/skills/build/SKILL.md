@@ -56,6 +56,18 @@ present to the user, in plain language and with no SpecBridge vocabulary:
 - **Why the repository and the spec did not settle it** (`evidenceGap`),
 - the candidate answers (`options`), when there are any.
 
+When a question would materially benefit from current/external evidence,
+call `prepare_intake_decision` before presenting it. That shared service
+checks repository evidence and prior ResearchRecords before any new research
+and returns a bounded DecisionBrief: context, options, consequences, an
+optional recommendation, and evidence references. Most direct preferences,
+existing-contract choices, and user-requested explanations need no new
+research; reuse the current brief/report for follow-ups unless the user
+explicitly asks for fresher current facts.
+
+Every DecisionBrief says `requiresHumanDecision: true`. A recommendation is
+not an answer. Present it, then wait for the user's actual choice.
+
 Then ask the user, and wait. Record each answer with `spec_intake_answer`,
 passing what the user actually said — verbatim, not your interpretation of
 it. Discovery re-runs after every answer and may resolve more than the one
@@ -137,6 +149,8 @@ environments, runs browser verification, and closes contracts on evidence.
 ## Hard boundaries
 
 - Never call `spec_intake_answer` with anything the user did not say.
+- Never turn a DecisionBrief or ResearchReport into an intake answer, even
+  when its recommendation appears decisive.
 - Never claim a specification is approved. Only the CLI command approves it.
 - Never re-run `spec_intake_start` for the same specification to "try again";
   re-running discovery is `spec_intake_read`, and a genuinely new document is

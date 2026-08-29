@@ -16,6 +16,13 @@ import {
 } from '@specbridge/mission';
 import type { ClaudeProbe, LocalModelManager } from '@specbridge/runners';
 import type { Clock } from '@specbridge/workflow';
+import type { ResearchBridge } from '../research/index.js';
+import {
+  considerLifecycleResearch,
+  investigationPacketSchema,
+  renderResearchEvidence,
+  researchRequestSchema,
+} from '../research/index.js';
 import { OrchestrationError } from '../errors.js';
 import type { FailureCategory } from '../vocabulary.js';
 import { requiresHuman } from '../jobs/authority.js';
@@ -81,6 +88,7 @@ import {
   collectWorktreeChanges,
   createWorkerWorktree,
   pruneWorktrees,
+  readCanonicalHead,
   removeWorkerWorktree,
   runWorktreeVerification,
 } from './worktree.js';
@@ -123,6 +131,8 @@ export interface ObjectiveDriveInput {
   clock?: Clock | undefined;
   idFactory?: (() => string) | undefined;
   signal?: AbortSignal | undefined;
+  /** Injectable Phase 2 bridge; omitted in production to use configured DeerFlow. */
+  researchBridge?: ResearchBridge | undefined;
   onProgress?: ((message: string) => void) | undefined;
   /**
    * Budget + audit hook into the job service: counts one worker dispatch
@@ -269,7 +279,12 @@ async function decomposeObjective(
     parentTaskId: input.node.parentTaskId,
     kind: 'build',
     title: input.node.title.slice(0, 2_000),
-    goal: `Decompose and implement: ${input.node.title}`.slice(0, 2_000),
+    goal: [
+      `Decompose and implement: ${input.node.title}`,
+      ...(input.node.replanReason !== undefined
+        ? [`Replan evidence: ${input.node.replanReason}. If it identifies an external knowledge gap, schedule a bounded investigation before rebuilding.`]
+        : []),
+    ].join('\n').slice(0, 2_000),
     dependsOn: [],
     expectedArtifacts: [],
     relevantContractIds: relevantContractIds.slice(0, 30),
@@ -414,7 +429,8 @@ interface PreparedAttempt {
   attempt: number;
   workerId: string;
   projection: ContextProjection;
-  worktree: Awaited<ReturnType<typeof createWorkerWorktree>>;
+  worktree?: Awaited<ReturnType<typeof createWorkerWorktree>>;
+  baselineCommit: string;
   record: ReturnType<typeof beginWorker>;
   dependencyPatches: { workUnitId: string; patch: string }[];
 }
@@ -424,6 +440,150 @@ interface ExecutedAttempt {
   result: Awaited<ReturnType<typeof runLargeObjectiveRole<'BUILDER'>>>;
   collected?: Awaited<ReturnType<typeof collectWorktreeChanges>> | undefined;
   verification?: Awaited<ReturnType<typeof runWorktreeVerification>> | undefined;
+  researchId?: string | undefined;
+  countedAsWorker?: boolean | undefined;
+}
+
+async function executeResearchInvestigation(
+  context: UnitAttemptContext,
+  prepared: PreparedAttempt,
+): Promise<ExecutedAttempt | undefined> {
+  if (prepared.kind !== 'investigation' || !context.input.config.research.enabled) return undefined;
+  const { input } = context;
+  const projection = prepared.projection;
+  const unit = projection.workUnit;
+  const researchId = `research-${input.jobId}-${prepared.unitId}-a${prepared.attempt}`.slice(0, 128);
+  const contractFacts = projection.contracts.flatMap((contract) => [
+    `${contract.contractId} r${contract.revision}: ${contract.summary}`,
+    ...contract.requirements.slice(0, 3),
+    ...contract.invariants.slice(0, 3),
+  ]).slice(0, 20);
+  const packet = investigationPacketSchema.parse({
+    investigationId: researchId,
+    goal: unit.goal.slice(0, 4_000),
+    knownFacts: [
+      ...projection.workEvidence,
+      ...projection.decisions.map((decision) => decision.decision),
+    ].map((fact) => fact.slice(0, 2_000)).slice(0, 20),
+    relevantContracts: contractFacts.map((fact) => fact.slice(0, 2_000)).slice(0, 20),
+    currentSystemRefs: [
+      `projection:${projection.projectionId}`,
+      ...projection.contracts.map((contract) => `contract:${contract.contractId}@${contract.revision}`),
+    ].map((ref) => ref.slice(0, 512)).slice(0, 20),
+    observedFailures: [],
+    failedStrategies: [],
+    sourceRefs: [],
+    constraints: projection.constitution.rules
+      .map((rule) => rule.statement.slice(0, 2_000))
+      .slice(0, 20),
+    questionsToAnswer: unit.expectedArtifacts.length > 0
+      ? unit.expectedArtifacts.map((item) => item.slice(0, 1_000)).slice(0, 12)
+      : [unit.goal.slice(0, 1_000)],
+    topicTags: projection.contracts
+      .map((contract) => contract.contractId.slice(0, 64))
+      .slice(0, 16),
+    currentFactSensitive: false,
+  });
+  const request = researchRequestSchema.parse({
+    researchId: packet.investigationId,
+    depth: 'QUICK',
+    question: packet.goal,
+    topicTags: packet.topicTags,
+    context: {
+      knownFacts: packet.knownFacts,
+      observedFailures: packet.observedFailures,
+      failedStrategies: packet.failedStrategies,
+      constraints: [...packet.constraints, ...packet.relevantContracts].slice(0, 20),
+      contextRefs: [...packet.currentSystemRefs, ...packet.sourceRefs].slice(0, 20),
+    },
+    expectedOutput: { questionsToAnswer: packet.questionsToAnswer },
+    sourcePolicy: { preferPrimarySources: true, requireSources: true },
+    freshness: {
+      currentFactSensitive: packet.currentFactSensitive,
+      ...(packet.subjectVersion !== undefined ? { subjectVersion: packet.subjectVersion } : {}),
+    },
+  });
+  input.onProgress?.(`research investigation ${prepared.unitId}: considering prior evidence and provider eligibility`);
+  const lifecycle = await considerLifecycleResearch(
+    {
+      workspace: input.workspace,
+      config: input.config,
+      ...(input.clock !== undefined ? { clock: input.clock } : {}),
+      ...(input.idFactory !== undefined ? { idFactory: input.idFactory } : {}),
+      ...(input.researchBridge !== undefined ? { bridge: input.researchBridge } : {}),
+    },
+    {
+      phase: 'RUNTIME_INVESTIGATION',
+      classification: 'EXTERNAL_KNOWLEDGE_GAP',
+      reason: `Investigation WorkUnit ${prepared.unitId} requests material external evidence.`,
+      requestedEffect: 'EVIDENCE',
+      usedBy: prepared.unitId,
+      gate: {
+        knowledgeGapDeclared: true,
+        dependsOnExternalFacts: true,
+        dependsOnCurrentFacts: false,
+        materialToProductOrArchitecture: true,
+        repositoryAnswerAvailable: false,
+        priorResearchAvailable: false,
+        engineeringDecisionOnly: false,
+        requiresHumanAuthority: false,
+        repeatedUnknown: false,
+        repeatedUnknownAfterDifferentStrategies: false,
+        requestedDepth: 'QUICK',
+      },
+      request,
+      operationId: `${input.jobId}-${prepared.unitId}`.slice(0, 128),
+      jobId: input.jobId,
+      refreshCurrentFacts: false,
+    },
+    input.signal,
+  );
+  if (lifecycle.execution?.ok !== true) {
+    input.recordEvent('research_degraded', {
+      nodeId: input.node.nodeId,
+      workUnitId: prepared.unitId,
+      gateDecision: lifecycle.gate.decision,
+      failure: lifecycle.execution?.ok === false
+        ? lifecycle.execution.failure.classification
+        : 'NOT_ELIGIBLE',
+      fallback: 'STRONG_REASONING',
+    });
+    return undefined;
+  }
+  const report = lifecycle.execution.report;
+  input.recordEvent('research_used', {
+    nodeId: input.node.nodeId,
+    workUnitId: prepared.unitId,
+    researchId: lifecycle.execution.record.researchId,
+    reused: lifecycle.execution.reused,
+    phase: 'RUNTIME_INVESTIGATION',
+    authority: 'EVIDENCE_ONLY',
+  });
+  return {
+    prepared,
+    result: {
+      ok: true,
+      output: {
+        outcome: 'CANDIDATE_COMPLETE',
+        summary: `Research evidence produced for ${unit.title}.`,
+        changedFiles: [],
+        assumptionsDiscovered: report.unresolved,
+        contractChangeRequests: [],
+        knownLimitations: [
+          ...report.conflicts,
+          ...(report.classification.includes('PRODUCT_OPTION')
+            ? ['Research exposed a product option; a human decision remains required.']
+            : []),
+        ],
+        report: renderResearchEvidence(report),
+        blockingQuestions: [],
+      },
+      raw: JSON.stringify(report),
+    },
+    collected: { changedFiles: [], patch: '', protectedViolations: [] },
+    researchId: lifecycle.execution.record.researchId,
+    countedAsWorker: false,
+  };
 }
 
 /**
@@ -503,13 +663,20 @@ async function prepareUnitAttempt(
   });
   storeProjection(input.workspace, input.jobId, input.node.nodeId, projection);
 
-  const worktree = await createWorkerWorktree({
-    workspace: input.workspace,
-    jobId: input.jobId,
-    workUnitId: unit.workUnitId,
-    attempt,
-  });
-  const workerId = `builder-${unit.workUnitId}-a${attempt}`;
+  // A configured research investigation is read-only and therefore needs no
+  // Git worktree. If research later degrades, executeBuilder creates the
+  // ordinary isolated worktree lazily for the existing strong-reasoning path.
+  const researchFirst = unit.kind === 'investigation' && input.config.research.enabled;
+  const worktree = researchFirst
+    ? undefined
+    : await createWorkerWorktree({
+        workspace: input.workspace,
+        jobId: input.jobId,
+        workUnitId: unit.workUnitId,
+        attempt,
+      });
+  const baselineCommit = worktree?.baselineCommit ?? await readCanonicalHead(input.workspace);
+  const workerId = `${researchFirst ? 'investigator' : 'builder'}-${unit.workUnitId}-a${attempt}`;
   const record = beginWorker({
     workspace: input.workspace,
     jobId: input.jobId,
@@ -520,7 +687,7 @@ async function prepareUnitAttempt(
     workerId,
     contextProjectionHash: projection.contentHash,
     contractSnapshotHash: projection.contractSnapshotHash,
-    workspaceIdentity: `worktree:${worktree.name}`,
+    workspaceIdentity: worktree === undefined ? 'ephemeral:research' : `worktree:${worktree.name}`,
     timeoutMs: input.policy.objectives.builderTimeoutMs,
     startedAt: at,
   });
@@ -545,7 +712,17 @@ async function prepareUnitAttempt(
   );
   return {
     graph: nextGraph,
-    prepared: { unitId, kind: unit.kind, attempt, workerId, projection, worktree, record, dependencyPatches },
+    prepared: {
+      unitId,
+      kind: unit.kind,
+      attempt,
+      workerId,
+      projection,
+      ...(worktree !== undefined ? { worktree } : {}),
+      baselineCommit,
+      record,
+      dependencyPatches,
+    },
   };
 }
 
@@ -559,6 +736,23 @@ async function executeBuilder(
   prepared: PreparedAttempt,
 ): Promise<ExecutedAttempt> {
   const { input } = context;
+  const researched = await executeResearchInvestigation(context, prepared);
+  if (researched !== undefined) return researched;
+  if (prepared.worktree === undefined) {
+    prepared.worktree = await createWorkerWorktree({
+      workspace: input.workspace,
+      jobId: input.jobId,
+      workUnitId: prepared.unitId,
+      attempt: prepared.attempt,
+    });
+    input.recordEvent('research_fallback_started', {
+      nodeId: input.node.nodeId,
+      workUnitId: prepared.unitId,
+      fallback: 'STRONG_REASONING',
+      workspaceIdentity: `worktree:${prepared.worktree.name}`,
+    });
+  }
+  const worktree = prepared.worktree;
   // A dependency patch that no longer applies is an ATTEMPT failure, exactly
   // as applyDependencyPatches's own contract says — never a driver death.
   //
@@ -570,7 +764,7 @@ async function executeBuilder(
   // thrown category (REPOSITORY_DIVERGED), where recovery can replan the
   // stale sibling instead of the process dying.
   try {
-    await applyDependencyPatches(prepared.worktree, prepared.dependencyPatches);
+    await applyDependencyPatches(worktree, prepared.dependencyPatches);
   } catch (cause) {
     // The same answer integration already has: one bounded reconciliation by
     // a worker, applying the INTENT of the conflicting sibling patches to
@@ -600,7 +794,7 @@ async function executeBuilder(
       runnerProfile: input.runnerProfile ?? input.config.defaultRunner,
       role: 'BUILDER',
       packet,
-      cwd: prepared.worktree.dir,
+      cwd: worktree.dir,
       scratchDir: path.join(
         jobDir(input.workspace, input.jobId),
         'scratch',
@@ -635,7 +829,7 @@ async function executeBuilder(
     runnerProfile: input.runnerProfile ?? input.config.defaultRunner,
     role: 'BUILDER',
     packet,
-    cwd: prepared.worktree.dir,
+    cwd: worktree.dir,
     scratchDir: path.join(
       jobDir(input.workspace, input.jobId),
       'scratch',
@@ -648,10 +842,10 @@ async function executeBuilder(
   if (result.probe !== undefined) input.probeCache.probe = result.probe;
   if (!result.ok) return { prepared, result };
 
-  const collected = await collectWorktreeChanges(prepared.worktree, { protectedPaths: [] });
+  const collected = await collectWorktreeChanges(worktree, { protectedPaths: [] });
   const verification =
     prepared.kind === 'build' && collected.changedFiles.length > 0
-      ? await runWorktreeVerification(prepared.worktree, input.config.verification.commands, input.signal)
+      ? await runWorktreeVerification(worktree, input.config.verification.commands, input.signal)
       : undefined;
   return { prepared, result, collected, verification };
 }
@@ -669,12 +863,14 @@ async function foldBuilderOutcome(
   const { prepared, result } = executed;
   const { unitId, attempt, workerId, projection, record } = prepared;
 
-  input.countWorkerRun({
-    role: 'BUILDER',
-    workerId,
-    outcome: result.ok ? 'succeeded' : result.kind === 'invalid-output' ? 'invalid-output' : 'failed',
-    ...(result.ok && result.usage !== undefined ? { usage: result.usage } : {}),
-  });
+  if (executed.countedAsWorker !== false) {
+    input.countWorkerRun({
+      role: 'BUILDER',
+      workerId,
+      outcome: result.ok ? 'succeeded' : result.kind === 'invalid-output' ? 'invalid-output' : 'failed',
+      ...(result.ok && result.usage !== undefined ? { usage: result.usage } : {}),
+    });
+  }
 
   if (!result.ok) {
     finishWorker(input.workspace, record, 'FAILED', nowIso(input));
@@ -713,7 +909,7 @@ async function foldBuilderOutcome(
     attempt,
     workerId,
     createdAt: nowIso(input),
-    baselineCommit: prepared.worktree.baselineCommit,
+    baselineCommit: prepared.baselineCommit,
     contextProjectionHash: projection.contentHash,
     contractSnapshotHash: projection.contractSnapshotHash,
     changedFiles: collected.changedFiles,
@@ -735,6 +931,7 @@ async function foldBuilderOutcome(
       contractChangeRequests: result.output.contractChangeRequests,
       knownLimitations: result.output.knownLimitations,
       ...(result.output.report !== undefined ? { report: result.output.report } : {}),
+      researchRefs: executed.researchId !== undefined ? [executed.researchId] : [],
     },
   });
   storeCandidate(input.workspace, input.jobId, input.node.nodeId, candidate, collected.patch, {
@@ -826,7 +1023,9 @@ async function runUnitAttempt(
     const executed = await executeBuilder(context, attempt);
     return await foldBuilderOutcome(context, prepared, executed);
   } finally {
-    await removeWorkerWorktree(input.workspace, input.jobId, attempt.worktree);
+    if (attempt.worktree !== undefined) {
+      await removeWorkerWorktree(input.workspace, input.jobId, attempt.worktree);
+    }
   }
 }
 
@@ -1722,7 +1921,9 @@ export async function driveObjective(input: ObjectiveDriveInput): Promise<Object
       }
     } finally {
       for (const prepared of preparedAttempts) {
-        await removeWorkerWorktree(input.workspace, input.jobId, prepared.worktree);
+        if (prepared.worktree !== undefined) {
+          await removeWorkerWorktree(input.workspace, input.jobId, prepared.worktree);
+        }
       }
     }
   }

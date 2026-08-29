@@ -109,6 +109,20 @@ Drafting rules that mirror the reader:
 
 ## 3. Show the gaps — ask only PRODUCT questions
 
+Before finalizing, classify each genuine gap as `PRODUCT_AUTHORITY`,
+`REPOSITORY_FACT`, `STABLE_MODEL_KNOWLEDGE`, `EXTERNAL_KNOWLEDGE`,
+`ENGINEERING_DECISION`, or `UNRESOLVED`. Resolve repository facts from the
+snapshot/repository, answer stable knowledge directly, and leave engineering
+choices delegated. Only a material external/current gap may go through
+`research_consider` with phase `SPEC_DRAFT`; exact prior research must be
+reused first.
+
+Research findings are evidence, never requirements. A finding such as
+"platforms commonly provision asynchronously" must be explained as a fact
+and possible tradeoff; it becomes an obligation only after the user actually
+chooses that product behavior. Preserve that distinction in the visible gap
+list and never silently promote a recommendation into the draft.
+
 After drafting, list what the conversation never settled. Ask the user only
 questions a product owner must answer (compatibility level, semantic
 definitions, data visibility, changes to promises already shipped). Never ask

@@ -540,9 +540,14 @@
     "replan_started",
     "repository_reconciled",
     "reproducibility_completed",
+    "research_degraded",
+    "research_fallback_started",
+    "research_replan_caused",
+    "research_used",
     "resource_wait_ended",
     "resource_wait_selected",
     "resource_wait_started",
+    "runtime_research_eligible",
     "scheduler_mode_changed",
     "scheduling_decision_created",
     "self_heal_applied",
@@ -934,6 +939,19 @@
     "RESEARCH_QUICK",
     "REUSE_EXISTING"
   ],
+  "researchLifecycleEffects": [
+    "ENGINEERING_CONSTRAINT",
+    "EVIDENCE",
+    "HUMAN_DECISION_PREPARED",
+    "RECOMMENDATION",
+    "REPLAN"
+  ],
+  "researchLifecyclePhases": [
+    "CONVERSATION",
+    "INTAKE_DECISION",
+    "RUNTIME_INVESTIGATION",
+    "SPEC_DRAFT"
+  ],
   "researchProviderHealthStatuses": [
     "AUTH_FAILED",
     "DEGRADED",
@@ -1056,6 +1074,15 @@
     "pre-compaction",
     "recovery",
     "shutdown"
+  ],
+  "unknownClassifications": [
+    "ENGINEERING_DECISION",
+    "EXTERNAL_KNOWLEDGE_GAP",
+    "KNOWN_BY_MODEL",
+    "KNOWN_BY_PRIOR_RESEARCH",
+    "KNOWN_BY_REPOSITORY",
+    "PRODUCT_AUTHORITY",
+    "UNRESOLVED"
   ],
   "verificationStrengths": [
     "DETERMINISTIC",

@@ -290,9 +290,10 @@ async function buildSnapshots() {
       // .specbridge/qualification/).
       dogfoodRun: orchestration.DOGFOOD_RUN_SCHEMA_VERSION,
       qualificationReport: orchestration.QUALIFICATION_REPORT_SCHEMA_VERSION,
-      // Optional Research Layer (vNext.10.2 Phase 2; .specbridge/research/).
+      // Optional Research Layer (vNext.10.2; .specbridge/research/).
       researchRecord: orchestration.RESEARCH_RECORD_SCHEMA_VERSION,
       researchTelemetry: orchestration.RESEARCH_TELEMETRY_SCHEMA_VERSION,
+      researchUse: orchestration.RESEARCH_USE_SCHEMA_VERSION,
     },
     'verification-rules.json': {
       idPattern: 'SBV\\d{3}',
@@ -400,6 +401,10 @@ async function buildSnapshots() {
       researchRecordStatuses: [...orchestration.RESEARCH_RECORD_STATUSES].sort(),
       researchFailureClassifications: [...orchestration.RESEARCH_FAILURE_CLASSIFICATIONS].sort(),
       researchProviderHealthStatuses: [...orchestration.RESEARCH_PROVIDER_HEALTH_STATUSES].sort(),
+      // Phase 3 lifecycle provenance and structurally validated unknowns.
+      researchLifecyclePhases: [...orchestration.RESEARCH_LIFECYCLE_PHASES].sort(),
+      researchLifecycleEffects: [...orchestration.RESEARCH_LIFECYCLE_EFFECTS].sort(),
+      unknownClassifications: [...orchestration.UNKNOWN_CLASSIFICATIONS].sort(),
       // vNext.8 adaptive compute scheduler. Additive within 1.x on the same
       // terms as everything above: members may be appended, never renamed or
       // removed, so persisted adaptive decisions and derived profiles stay

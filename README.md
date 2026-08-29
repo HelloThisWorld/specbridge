@@ -115,15 +115,17 @@ specbridge spec approve airport-demo --build
 [Spec intake](docs/autonomy/spec-intake.md) ·
 [overnight autonomy](docs/autonomy/overnight-autonomy.md)
 
-**Governed Research Layer (vNext.10.2 Phase 2)** — an explicit, optional
+**Research-Augmented Lifecycle (vNext.10.2 Phase 3)** — an explicit, optional
 external-knowledge escalation backed initially by DeerFlow. A deterministic
 ResearchGate keeps repository truth, direct answers, engineering choices, and
 human authority ahead of research cost; bounded QUICK/DEEP reports persist as
 evidence under `.specbridge/research/`, support exact reuse and budgets, and
 cannot approve or complete anything. Research is disabled by default and is
-not yet wired automatically into lifecycle stages.
+wired selectively into conversation, draft, intake preparation, and runtime
+investigation when enabled.
 
-[Research Layer](docs/research/research-layer.md)
+[Research Layer](docs/research/research-layer.md) ·
+[Lifecycle Integration](docs/research/research-lifecycle.md)
 
 **Spec workflow and approvals** — create Kiro-compatible specs offline
 (`spec new`, four workflows, ten templates), analyze them

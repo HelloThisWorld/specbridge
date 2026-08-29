@@ -10,6 +10,8 @@ import type { AttemptActivity } from './health.js';
 import { appendObservation, assessHealth, detectRunaway, strategyKey } from './health.js';
 import type { RecoveryPlan, RecoveryResource } from './recovery.js';
 import { planRecovery } from './recovery.js';
+import { evaluateRuntimeResearchTrigger } from '../research/runtime.js';
+import type { RuntimeResearchTriggerResult } from '../research/runtime.js';
 import {
   FAILURE_ASSESSMENT_SCHEMA_VERSION,
   RECOVERY_DECISION_SCHEMA_VERSION,
@@ -195,6 +197,8 @@ export interface GovernedFailure {
   state: TaskReliabilityState;
   /** The action, hoisted for callers that only branch on it. */
   action: RecoveryAction;
+  /** Evidence-only signal consumed by REPLAN; never a recovery action itself. */
+  researchEligibility?: RuntimeResearchTriggerResult | undefined;
 }
 
 /**
@@ -385,6 +389,31 @@ export function governFailedAttempt(
     ...(input.contextExpansion !== undefined ? { contextExpansion: input.contextExpansion } : {}),
     resource: input.resource,
   });
+  const researchEligibility = evaluateRuntimeResearchTrigger({
+    explicitExternalKnowledgeGap: false,
+    externalAssumptionContradiction: false,
+    unknownToolingOrPlatformBehavior: assessed.source === 'UNKNOWN',
+    repositoryAnswerAvailable: false,
+    productAuthorityAmbiguity: assessed.source === 'REQUIREMENT_CONTRACT' || input.classified.category === 'AMBIGUITY',
+    insufficientRepositoryContext: (input.contextInsufficiencySignals?.length ?? 0) > 0,
+    failureCategory: input.classified.category,
+    failureSource: assessed.source,
+    failureFingerprint: assessed.fingerprint,
+    observations: window,
+  });
+  if (researchEligibility.eligible) {
+    emit(deps, 'runtime_research_eligible', {
+      nodeId: input.nodeId,
+      taskId: input.taskId,
+      attemptId: input.attemptId,
+      failureFingerprint: assessed.fingerprint,
+      depth: researchEligibility.depth,
+      repeatedCount: researchEligibility.repeatedCount,
+      materiallyDistinctStrategies: researchEligibility.materiallyDistinctStrategies,
+      reason: researchEligibility.reason,
+      nextRecovery: plan.action,
+    });
+  }
 
   const decision = writeRecoveryDecision(
     deps.workspace,
@@ -441,7 +470,15 @@ export function governFailedAttempt(
     updatedAt: at,
   });
 
-  return { assessment, decision, health: healthAssessment.health, budget, state, action: plan.action };
+  return {
+    assessment,
+    decision,
+    health: healthAssessment.health,
+    budget,
+    state,
+    action: plan.action,
+    ...(researchEligibility.eligible ? { researchEligibility } : {}),
+  };
 }
 
 /**

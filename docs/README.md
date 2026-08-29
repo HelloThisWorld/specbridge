@@ -103,9 +103,10 @@ the intent in the evening, run one command, read the report in the morning.
   CurrentSystemSnapshot for Brownfield and Greenfield work, bounded
   multi-repo support, and the repository-aware conversation surface.
 - [Governed Research Layer](research/research-layer.md) — optional,
-  provider-neutral external-knowledge escalation: deterministic ResearchGate,
-  bounded QUICK/DEEP requests, durable evidence, exact reuse and budgets,
-  backed initially by DeerFlow. Research is never product authority.
+  provider-neutral Phase 2 contracts, DeerFlow adapter, reuse, and budgets.
+- [Research-Augmented Lifecycle](research/research-lifecycle.md) — sparse
+  conversation/draft/intake/runtime routing, DecisionBriefs, provenance, and
+  authority-safe investigation.
 - [Zero-touch spec intake](autonomy/spec-intake.md) — **submit a
   specification, answer only product questions, approve once, and the build
   runs unattended**. The entry path in front of everything below.

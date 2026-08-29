@@ -324,6 +324,8 @@ export const candidateArtifactSchema = z
         knownLimitations: textList.default([]),
         /** Investigation units: the structured report body. */
         report: z.string().max(16_000).optional(),
+        /** Provider-neutral ResearchRecord ids used as evidence. */
+        researchRefs: z.array(shortText).max(20).optional(),
       })
       .passthrough(),
     /** Set when identity/staleness guards rejected the candidate. */

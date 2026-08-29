@@ -112,6 +112,15 @@ import type { ExecutionLane } from '../scheduling/vocabulary.js';
 import { isSubscriptionExhausted } from '../scheduling/vocabulary.js';
 import type { ExecutorReliabilityInput } from '../jobs/job-service.js';
 import type { AcceptanceCriterion, CriteriaEvidence, RecoveryResource } from '../reliability/index.js';
+import { listFailureAssessments, readTaskReliabilityState } from '../reliability/index.js';
+import type { ResearchBridge } from '../research/index.js';
+import {
+  evaluateRuntimeResearchTrigger,
+  listResearchRecords,
+  recordResearchLifecycleEffect,
+  recordResearchReplanTelemetry,
+  renderResearchEvidence,
+} from '../research/index.js';
 
 /**
  * The long-running job driver.
@@ -132,6 +141,8 @@ import type { AcceptanceCriterion, CriteriaEvidence, RecoveryResource } from '..
 
 export interface DriverDeps extends JobDeps {
   registry: RunnerRegistry;
+  /** Test/embedding seam for the optional research provider. */
+  researchBridge?: ResearchBridge | undefined;
 }
 
 export interface DriverEvent {
@@ -165,6 +176,48 @@ export interface DriveOptions {
    * local lane, and never bypasses harness locality verification.
    */
   localExecutionMode?: LocalExecutionMode | undefined;
+}
+
+function runtimeResearchForJob(deps: DriverDeps, jobId: string) {
+  return listResearchRecords(deps.workspace).records
+    .filter((record) =>
+      record.scope?.jobId === jobId
+      && record.lifecycle?.phase === 'RUNTIME_INVESTIGATION'
+      && record.report !== undefined)
+    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+    .slice(0, 3);
+}
+
+function recordResearchInformedReplan(
+  deps: DriverDeps,
+  jobId: string,
+  nodeId: string,
+  reason: string,
+): void {
+  const records = runtimeResearchForJob(deps, jobId);
+  if (records.length === 0) return;
+  const now = (deps.clock ?? (() => new Date()))();
+  recordResearchReplanTelemetry(deps.workspace, now);
+  for (const record of records) {
+    recordResearchLifecycleEffect({
+      workspace: deps.workspace,
+      config: deps.config,
+      ...(deps.clock !== undefined ? { clock: deps.clock } : {}),
+      ...(deps.idFactory !== undefined ? { idFactory: deps.idFactory } : {}),
+    }, {
+      researchId: record.researchId,
+      phase: 'RUNTIME_INVESTIGATION',
+      reason: `Research informed an accepted replan for ${nodeId}: ${reason}`.slice(0, 1_000),
+      effect: 'REPLAN',
+      usedBy: nodeId,
+    });
+  }
+  recordJobEvent(deps, jobId, 'research_replan_caused', {
+    nodeId,
+    researchIds: records.map((record) => record.researchId),
+    reason: reason.slice(0, 500),
+    authority: 'EVIDENCE_ONLY',
+  });
 }
 
 export type DriverStop =
@@ -966,6 +1019,7 @@ export async function driveJob(
                   ...(deps.clock !== undefined ? { clock: deps.clock } : {}),
                   ...(deps.idFactory !== undefined ? { idFactory: deps.idFactory } : {}),
                   ...(signal !== undefined ? { signal } : {}),
+                  ...(deps.researchBridge !== undefined ? { researchBridge: deps.researchBridge } : {}),
                   onProgress: (message) => emit('note', message),
                   countWorkerRun: (run) =>
                     recordObjectiveWorkerAttempt(deps, jobId, { nodeId: node.nodeId, ...run }),
@@ -2313,7 +2367,7 @@ async function handleRoleDecision(
   };
 
   const activePlan = readActivePlan(deps, jobId, node);
-  const packet = buildPacketFor(role, packetBase, node, activePlan, job);
+  const packet = buildPacketFor(deps, jobId, role, packetBase, node, activePlan, job);
   runtime.emit('role-started', `${role} for task ${node.parentTaskId} on ${decision.worker.workerId}`);
 
   const result = await runRole(deps, jobId, role, decision, packet, runtime);
@@ -2399,6 +2453,8 @@ function readActivePlan(deps: DriverDeps, jobId: string, node: JobNode): Executi
 }
 
 function buildPacketFor(
+  deps: DriverDeps,
+  jobId: string,
   role: AgentContractRole,
   base: { specName: string; taskId: string; taskTitle: string; specExcerpt: string },
   node: JobNode,
@@ -2458,6 +2514,26 @@ function buildPacketFor(
       if (activePlan === undefined) {
         throw new OrchestrationError('SBO031', 'The replanner needs the invalidated plan document.');
       }
+      const latestAssessment = listFailureAssessments(deps.workspace, jobId, { nodeId: node.nodeId }).at(-1);
+      const reliabilityState = readTaskReliabilityState(deps.workspace, jobId, node.nodeId);
+      const researchEligibility = latestAssessment === undefined
+        ? undefined
+        : evaluateRuntimeResearchTrigger({
+            explicitExternalKnowledgeGap: false,
+            externalAssumptionContradiction: false,
+            unknownToolingOrPlatformBehavior: latestAssessment.source === 'UNKNOWN',
+            repositoryAnswerAvailable: false,
+            productAuthorityAmbiguity: latestAssessment.source === 'REQUIREMENT_CONTRACT',
+            insufficientRepositoryContext: false,
+            failureCategory: latestAssessment.category,
+            failureSource: latestAssessment.source,
+            failureFingerprint: latestAssessment.fingerprint,
+            observations: reliabilityState?.observations ?? [],
+          });
+      const researchEvidence = runtimeResearchForJob(deps, jobId).map((record) => ({
+        researchId: record.researchId,
+        summary: renderResearchEvidence(record.report!),
+      }));
       return buildReplannerPacket({
         ...base,
         invalidPlan: activePlan,
@@ -2467,6 +2543,17 @@ function buildPacketFor(
           recommendedAction: node.latestDiagnosis?.recommendedAction ?? 'REPLAN',
         },
         remainingReplans: Math.max(0, job.budgets.maxReplansPerTask - node.replans),
+        ...(researchEligibility?.eligible === true
+          ? {
+              researchEligibility: {
+                reason: researchEligibility.reason,
+                depth: researchEligibility.depth,
+                failureFingerprint: latestAssessment!.fingerprint,
+                failedStrategies: researchEligibility.materiallyDistinctStrategies,
+              },
+            }
+          : {}),
+        ...(researchEvidence.length > 0 ? { researchEvidence } : {}),
       });
     }
   }
@@ -2635,6 +2722,7 @@ async function applyRoleOutput(
       }
       if (output.decision === 'SUPERSEDE_NODE') {
         supersedeNode(deps, jobId, { nodeId: node.nodeId, reason: output.reason });
+        recordResearchInformedReplan(deps, jobId, node.nodeId, output.reason);
         return;
       }
       // A REVISED_PLAN carrying no goal or no steps has revised nothing.
@@ -2686,6 +2774,7 @@ async function applyRoleOutput(
             reason: delegated.reason.slice(0, 300),
           });
           await recordPlan(deps, jobId, { context, candidate, producedByTier }, { replan: true });
+          recordResearchInformedReplan(deps, jobId, node.nodeId, output.reason);
           return;
         }
         if (delegated?.kind === 'NEEDS_AUTHORITY') {
@@ -2712,6 +2801,7 @@ async function applyRoleOutput(
         return;
       }
       await recordPlan(deps, jobId, { context, candidate, producedByTier }, { replan: true });
+      recordResearchInformedReplan(deps, jobId, node.nodeId, output.reason);
       return;
     }
   }

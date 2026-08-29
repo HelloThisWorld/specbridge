@@ -18,6 +18,7 @@ function normalizedRequest(request: ResearchRequest): unknown {
     },
     expectedOutput: { questionsToAnswer: normalize(request.expectedOutput.questionsToAnswer) },
     sourcePolicy: request.sourcePolicy,
+    freshness: request.freshness,
   };
 }
 
