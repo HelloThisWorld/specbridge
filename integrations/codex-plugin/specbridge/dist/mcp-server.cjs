@@ -41079,12 +41079,12 @@ var import_buffer3 = require("buffer");
 var import_crypto4 = require("crypto");
 var import_buffer4 = require("buffer");
 
-// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-client_c7c18fcf9e8f1a4fb91688e8889bdc81/node_modules/@deepseek-ai/dsh-sdk-client/lib/index.js
+// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-client@0.1.1-rc.1_teq4kq266b3dkw7rcc6wolnm4y/node_modules/@deepseek-ai/dsh-sdk-client/lib/index.js
 var import_node_crypto2 = require("crypto");
 var import_node_path6 = require("path");
 var import_node_child_process6 = require("child_process");
 
-// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-protoc_da82cbd0d841623505577e1cffdd1555/node_modules/@deepseek-ai/dsh-sdk-protocol/lib/index.js
+// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-protocol@0.1.1-rc.1_@deepseek-ai+cordis@4.0.1_@deepseek-ai+dsh-invariant_xsjcgguoedzlkqgw4wib2jrjgm/node_modules/@deepseek-ai/dsh-sdk-protocol/lib/index.js
 var import_node_crypto = require("crypto");
 var import_node_string_decoder3 = require("string_decoder");
 var JsonRpcResponseError = class extends Error {
@@ -41321,7 +41321,7 @@ function abortError(reason) {
   return reason instanceof Error ? reason : /* @__PURE__ */ new Error(`JSON-RPC request aborted: ${String(reason)}`);
 }
 
-// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-client_c7c18fcf9e8f1a4fb91688e8889bdc81/node_modules/@deepseek-ai/dsh-sdk-client/lib/index.js
+// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-client@0.1.1-rc.1_teq4kq266b3dkw7rcc6wolnm4y/node_modules/@deepseek-ai/dsh-sdk-client/lib/index.js
 function exitsWithin(child, ms) {
   if (child.exitCode !== null || child.signalCode !== null) return Promise.resolve(true);
   return new Promise((resolve2) => {
