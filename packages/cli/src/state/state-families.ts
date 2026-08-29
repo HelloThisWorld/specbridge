@@ -62,6 +62,11 @@ import {
   registriesConfigPath,
   registryCacheDir,
 } from '@specbridge/registry';
+import {
+  RESEARCH_RECORD_SCHEMA_VERSION,
+  listResearchRecords,
+  researchRecordsDir,
+} from '@specbridge/orchestration';
 
 /**
  * The single registry over every persisted SpecBridge state family.
@@ -124,6 +129,7 @@ export const STATE_FAMILY_IDS = [
   'templates',
   'extensions',
   'registries',
+  'research',
 ] as const;
 export type StateFamilyId = (typeof STATE_FAMILY_IDS)[number];
 
@@ -729,6 +735,50 @@ function collectRegistryFindings(workspace: WorkspaceInfo): StateFinding[] {
 }
 
 // ---------------------------------------------------------------------------
+// research (durable evidence records; preserved and never auto-recovered)
+// ---------------------------------------------------------------------------
+
+function collectResearchFindings(workspace: WorkspaceInfo): StateFinding[] {
+  const findings: StateFinding[] = [];
+  const recordsDir = researchRecordsDir(workspace);
+  const { records, diagnostics } = listResearchRecords(workspace);
+
+  for (const record of records) {
+    findings.push(
+      finding(
+        'research',
+        toRel(workspace, path.join(recordsDir, `${record.researchId}.json`)),
+        'valid',
+        record.schemaVersion,
+        RESEARCH_RECORD_SCHEMA_VERSION,
+        [],
+      ),
+    );
+  }
+
+  for (const diagnostic of diagnostics) {
+    if (diagnostic.file === undefined) continue;
+    const declared = rawSchemaVersion(diagnostic.file);
+    const incompatible = diagnostic.code === 'RESEARCH_UNSUPPORTED_VERSION';
+    findings.push(
+      finding(
+        'research',
+        toRel(workspace, diagnostic.file),
+        incompatible ? 'incompatible' : 'invalid',
+        declared,
+        RESEARCH_RECORD_SCHEMA_VERSION,
+        [
+          diagnostic.message,
+          'Research is durable evidence. The original file is preserved for manual review; no automatic recovery is proposed.',
+        ],
+      ),
+    );
+  }
+
+  return findings;
+}
+
+// ---------------------------------------------------------------------------
 // migrations (interrupted reports; full scans only)
 // ---------------------------------------------------------------------------
 
@@ -846,6 +896,7 @@ export function collectStateFindings(
   if (wants('templates')) findings.push(...collectTemplateFindings(workspace));
   if (wants('extensions')) findings.push(...collectExtensionFindings(workspace));
   if (wants('registries')) findings.push(...collectRegistryFindings(workspace));
+  if (wants('research')) findings.push(...collectResearchFindings(workspace));
   if (wants(MIGRATIONS_FAMILY)) {
     findings.push(...collectInterruptedMigrationFindings(workspace, findings));
   }

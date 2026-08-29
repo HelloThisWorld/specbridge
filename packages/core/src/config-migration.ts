@@ -37,6 +37,7 @@ const KNOWN_V1_TOP_LEVEL = new Set([
   'execution',
   'orchestration',
   'localInference',
+  'research',
 ]);
 const KNOWN_V1_RUNNERS = new Set(['claude-code', 'mock', 'codex', 'ollama']);
 
@@ -179,6 +180,9 @@ export function planConfigMigration(raw: unknown): ConfigMigrationPlanResult {
   const hasLocalInferenceBlock =
     typeof raw === 'object' && raw !== null && 'localInference' in (raw as object);
   if (hasLocalInferenceBlock) changes.push('localInference configuration preserved unchanged');
+  const hasResearchBlock =
+    typeof raw === 'object' && raw !== null && 'research' in (raw as object);
+  if (hasResearchBlock) changes.push('research configuration preserved unchanged');
   changes.push('operationDefaults added (all null — every operation keeps using defaultRunner)');
   changes.push('runnerPolicy added with safe defaults (automatic fallback stays disabled)');
   changes.push('fallbacks added empty (no automatic provider switching)');
@@ -211,6 +215,7 @@ export function planConfigMigration(raw: unknown): ConfigMigrationPlanResult {
     // materialize a policy block the user never wrote.
     ...(hasOrchestrationBlock ? { orchestration: v1.orchestration } : {}),
     ...(hasLocalInferenceBlock ? { localInference: v1.localInference } : {}),
+    ...(hasResearchBlock ? { research: v1.research } : {}),
     ...preservedUnknown,
   };
 

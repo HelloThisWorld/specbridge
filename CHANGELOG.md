@@ -2,6 +2,31 @@
 
 ## Unreleased
 
+### Governed Research Layer — vNext.10.2 Phase 2
+
+- Added a provider-neutral `ResearchBridge`, deterministic `ResearchGate`,
+  bounded QUICK/DEEP requests and reports, durable versioned
+  `.specbridge/research/records/`, exact-hash reuse, tag candidates,
+  per-operation/job budgets, and aggregate research telemetry. Research is
+  disabled by default and remains evidence—not product, Mission, approval,
+  task, closure, or completion authority.
+- Added the initial DeerFlow 2.0 adapter against the current unified Gateway
+  API: inexpensive `GET /health`, stateless
+  `POST /api/langgraph/runs/stream`, bounded SSE parsing, Content-Location
+  thread/run provenance, internal-auth environment-variable names, safe URL
+  policy, provider usage when reported, cancellation, timeouts, and explicit
+  failure classification. Provider outage never blocks a Mission or Job by
+  definition and never fabricates a report.
+- Added explicit `research_gate`, `research_start`, `research_get`,
+  `research_list`, and `research_provider_status` MCP tools plus
+  `specbridge research status|investigate|show|list`. No lifecycle invokes
+  research automatically in this phase.
+- Added fake-server qualification for arbitrary SSE chunk boundaries,
+  malformed/oversized streams, auth/network/timeout/cancellation failures,
+  persistence corruption/version refusal, exact reuse, budgets, sparse
+  research avoidance, and the authority firewall. A real DeerFlow
+  qualification remains opt-in through `SPECBRIDGE_TEST_DEERFLOW_URL`.
+
 ### First-class Codex frontend plugin
 
 - Added a native Codex plugin and repository-local marketplace under
@@ -62,9 +87,10 @@ existing scheduler, the existing audit trail — instead of re-proposing them.
 - **Formal Spec Intake is unchanged** and still performs its own grounding.
   Bootstrap helps the conversation; intake governs product authority.
 
-Explicit non-claims: no vector RAG, no embeddings, no semantic search, no
-DeerFlow/research integration, no secondary builder model, no LLM gateway,
-no external knowledge retrieval, and no autonomous product authority.
+Phase 1 itself made no external knowledge calls. Phase 2 now supplies an
+explicit optional Research Layer, but still no automatic lifecycle research,
+vector RAG, embeddings, semantic search, secondary builder model, LLM
+gateway, or autonomous product authority.
 
 ### Every sealed criterion is carried by a task (dogfood defect 37)
 

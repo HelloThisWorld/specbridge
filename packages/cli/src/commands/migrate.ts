@@ -21,6 +21,7 @@ import { VERIFICATION_POLICY_SCHEMA_VERSION } from '@specbridge/drift';
 import { TEMPLATE_RECORD_SCHEMA_VERSION } from '@specbridge/templates';
 import { EXTENSION_STATE_SCHEMA_VERSION } from '@specbridge/extensions';
 import { REGISTRIES_SCHEMA_VERSION } from '@specbridge/registry';
+import { RESEARCH_RECORD_SCHEMA_VERSION } from '@specbridge/orchestration';
 import {
   createJsonReport,
   dim,
@@ -67,6 +68,7 @@ const CURRENT_FAMILY_VERSIONS: Record<string, string> = {
   templates: TEMPLATE_RECORD_SCHEMA_VERSION,
   extensions: EXTENSION_STATE_SCHEMA_VERSION,
   registries: REGISTRIES_SCHEMA_VERSION,
+  research: RESEARCH_RECORD_SCHEMA_VERSION,
 };
 
 const NO_MIGRATION_NOTE =
@@ -213,7 +215,7 @@ export function registerMigrateCommands(program: Command, runtime: CliRuntime): 
       'after',
       `
 Scans every persisted state family (config, spec-state, runs, evidence,
-policies, templates, extensions, registries) without writing anything.
+policies, templates, extensions, registries, research) without writing anything.
 Migrations never run automatically; this command only detects and reports.
 
 The only migration that has ever existed is configuration v1 → v2; every

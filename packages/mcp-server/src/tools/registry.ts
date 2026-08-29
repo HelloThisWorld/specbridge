@@ -82,6 +82,13 @@ import {
   registerObjectiveReadTool,
   registerWorkunitReadTool,
 } from './objective-tools.js';
+import {
+  registerResearchGateTool,
+  registerResearchGetTool,
+  registerResearchListTool,
+  registerResearchProviderStatusTool,
+  registerResearchStartTool,
+} from './research-tools.js';
 
 /**
  * The complete, closed tool registry.
@@ -178,6 +185,11 @@ export const TOOL_CATALOG: readonly ToolRegistryEntry[] = [
   { name: 'workspace_bootstrap', readOnly: false, summary: 'Build or revalidate the CurrentSystemSnapshot' },
   { name: 'workspace_snapshot', readOnly: true, summary: 'Current-system summary with an explicit freshness verdict' },
   { name: 'repository_inspect', readOnly: true, summary: 'Bounded repository sections for a deeper implementation question' },
+  { name: 'research_gate', readOnly: false, summary: 'Deterministic research-escalation decision with reasons' },
+  { name: 'research_start', readOnly: false, summary: 'Execute or exactly reuse one bounded research request' },
+  { name: 'research_get', readOnly: true, summary: 'Read one durable ResearchRecord' },
+  { name: 'research_list', readOnly: true, summary: 'List durable research records and diagnostics' },
+  { name: 'research_provider_status', readOnly: true, summary: 'Normalized provider health without an agent run' },
 ] as const;
 
 export function registerAllTools(server: McpServer, context: ServerContext): void {
@@ -251,4 +263,9 @@ export function registerAllTools(server: McpServer, context: ServerContext): voi
   registerObjectiveReadTool(server, context);
   registerWorkunitReadTool(server, context);
   registerEvaluationReadTool(server, context);
+  registerResearchGateTool(server, context);
+  registerResearchStartTool(server, context);
+  registerResearchGetTool(server, context);
+  registerResearchListTool(server, context);
+  registerResearchProviderStatusTool(server, context);
 }

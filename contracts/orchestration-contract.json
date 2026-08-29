@@ -903,6 +903,52 @@
     "SMALL",
     "UNKNOWN"
   ],
+  "researchDepths": [
+    "DEEP",
+    "QUICK"
+  ],
+  "researchFailureClassifications": [
+    "AUTHENTICATION",
+    "BUDGET_EXHAUSTED",
+    "CANCELLED",
+    "DISABLED",
+    "INCONCLUSIVE_RESEARCH",
+    "INVALID_REQUEST",
+    "MALFORMED_RESPONSE",
+    "NETWORK",
+    "PROVIDER_UNAVAILABLE",
+    "TIMEOUT"
+  ],
+  "researchFindingKinds": [
+    "COMPATIBILITY_FACT",
+    "DOMAIN_FACT",
+    "ENGINEERING_CONSTRAINT",
+    "PRODUCT_OPTION",
+    "UNRESOLVED_CONFLICT"
+  ],
+  "researchGateDecisions": [
+    "ANSWER_DIRECTLY",
+    "ASK_HUMAN",
+    "ENGINEERING_DECISION",
+    "RESEARCH_DEEP",
+    "RESEARCH_QUICK",
+    "REUSE_EXISTING"
+  ],
+  "researchProviderHealthStatuses": [
+    "AUTH_FAILED",
+    "DEGRADED",
+    "HEALTHY",
+    "UNAVAILABLE",
+    "UNKNOWN"
+  ],
+  "researchRecordStatuses": [
+    "CANCELLED",
+    "COMPLETED",
+    "FAILED",
+    "INCONCLUSIVE",
+    "PENDING",
+    "RUNNING"
+  ],
   "resourceAttributions": [
     "NOT_EXERCISED",
     "REAL",

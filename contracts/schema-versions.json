@@ -52,6 +52,8 @@
   "registryIndex": "1.0.0",
   "repositoryIndex": "1.0.0",
   "reproducibilityRun": "1.0.0",
+  "researchRecord": "1.0.0",
+  "researchTelemetry": "1.0.0",
   "runRecord": "1.0.0",
   "runnerConfig": "2.0.0",
   "runnerContextCapabilities": "1.0.0",

@@ -102,6 +102,10 @@ the intent in the evening, run one command, read the report in the morning.
   current system before product discovery**: the evidence-backed
   CurrentSystemSnapshot for Brownfield and Greenfield work, bounded
   multi-repo support, and the repository-aware conversation surface.
+- [Governed Research Layer](research/research-layer.md) — optional,
+  provider-neutral external-knowledge escalation: deterministic ResearchGate,
+  bounded QUICK/DEEP requests, durable evidence, exact reuse and budgets,
+  backed initially by DeerFlow. Research is never product authority.
 - [Zero-touch spec intake](autonomy/spec-intake.md) — **submit a
   specification, answer only product questions, approve once, and the build
   runs unattended**. The entry path in front of everything below.
@@ -223,7 +227,7 @@ the intent in the evening, run one command, read the report in the morning.
 ## MCP & frontend plugins
 
 - [MCP server](mcp-server.md) — the local stdio server.
-- [MCP tool reference](mcp/tool-reference.md) — all 70 tools (generated).
+- [MCP tool reference](mcp/tool-reference.md) — all 75 tools (generated).
 - [MCP tools](mcp-tools.md) · [resources](mcp-resources.md) ·
   [prompts](mcp-prompts.md) · [CLI/MCP parity](cli-mcp-parity.md).
 - [Claude Code integration](claude-code-integration.md) — both directions.

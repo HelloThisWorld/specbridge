@@ -67,6 +67,7 @@ interface ValidateOptions {
   templates?: boolean;
   extensions?: boolean;
   registries?: boolean;
+  research?: boolean;
 }
 
 interface RecoverOptions {
@@ -85,6 +86,7 @@ function selectedFamilies(options: ValidateOptions): { families?: string[]; spec
   if (options.templates === true) families.push('templates');
   if (options.extensions === true) families.push('extensions');
   if (options.registries === true) families.push('registries');
+  if (options.research === true) families.push('research');
   if (options.all === true || families.length === 0) {
     // Full scan (default): every family plus interrupted-migration reports.
     return { ...(options.spec !== undefined ? { specName: options.spec } : {}) };
@@ -167,6 +169,7 @@ export function registerStateCommands(program: Command, runtime: CliRuntime): vo
     .option('--templates', 'scan template records and installed packs')
     .option('--extensions', 'scan extension state, grants, and installed packages')
     .option('--registries', 'scan registry configuration and caches')
+    .option('--research', 'scan durable research evidence records')
     .option('--json', 'output a machine-readable JSON report')
     .addHelpText(
       'after',
@@ -181,6 +184,7 @@ resolves) · 2 usage error.
 Examples:
   ${CLI_BIN} state validate
   ${CLI_BIN} state validate --spec checkout-flow
+  ${CLI_BIN} state validate --research --json
   ${CLI_BIN} state validate --registries --json`,
     )
     .action((options: ValidateOptions) => {

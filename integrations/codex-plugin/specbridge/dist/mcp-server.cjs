@@ -27973,6 +27973,82 @@ function orchestrationPolicyFingerprint(policy) {
   };
   return JSON.stringify(canonical);
 }
+var LOOPBACK_HOSTNAMES = /* @__PURE__ */ new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
+function isLoopbackHostname(hostname2) {
+  return LOOPBACK_HOSTNAMES.has(hostname2) || /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname2);
+}
+function validateRunnerBaseUrl(raw, options) {
+  const problems = [];
+  if (raw.includes("\0")) {
+    return { ok: false, problems: ["must not contain null bytes"], loopback: false };
+  }
+  let url;
+  try {
+    url = new URL(raw);
+  } catch {
+    return { ok: false, problems: [`"${raw}" is not a valid absolute URL`], loopback: false };
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    problems.push(`unsupported URL scheme "${url.protocol}" \u2014 only http: and https: are allowed`);
+  }
+  if (url.username !== "" || url.password !== "") {
+    problems.push("must not embed credentials (username/password) in the URL");
+  }
+  if (url.hostname === "") problems.push("must include a hostname");
+  if (url.search !== "" || url.hash !== "") {
+    problems.push("must not include a query string or fragment");
+  }
+  const loopback = isLoopbackHostname(url.hostname);
+  if (url.protocol === "http:" && !loopback && options?.allowInsecureHttp !== true) {
+    problems.push(
+      'remote endpoints must use https: by default. For a private development endpoint, set "allowInsecureHttp": true on the profile (clearly labeled as insecure).'
+    );
+  }
+  return {
+    ok: problems.length === 0,
+    problems,
+    loopback,
+    protocol: url.protocol,
+    hostname: url.hostname,
+    port: url.port
+  };
+}
+var RESEARCH_STRATEGIES = ["ON_DEMAND"];
+var environmentVariableNameSchema = external_exports.string().regex(
+  /^[A-Za-z_][A-Za-z0-9_]*$/,
+  "must be an environment-variable NAME; SpecBridge never stores token values"
+);
+var deerFlowResearchProviderConfigSchema = external_exports.object({
+  enabled: external_exports.boolean().default(false),
+  baseUrl: external_exports.string().min(1).max(2048).default("http://127.0.0.1:2026"),
+  /** Name of the environment variable holding the internal-auth token. */
+  internalAuthTokenEnvironmentVariable: environmentVariableNameSchema.nullable().default(null),
+  /** Non-secret isolation key sent with internal authentication. */
+  ownerUserId: external_exports.string().min(1).max(128).regex(/^[A-Za-z0-9._:@-]+$/).default("specbridge"),
+  timeoutMs: external_exports.number().int().min(1e3).max(36e5).default(3e5),
+  maxEventBytes: external_exports.number().int().min(1024).max(2097152).default(262144),
+  maxTotalResponseBytes: external_exports.number().int().min(1024).max(16777216).default(2097152),
+  /** Explicit development-only override for a remote plain-HTTP endpoint. */
+  allowInsecureHttp: external_exports.boolean().default(false)
+}).passthrough().superRefine((config2, ctx) => {
+  const validation = validateRunnerBaseUrl(config2.baseUrl, {
+    allowInsecureHttp: config2.allowInsecureHttp
+  });
+  for (const problem of validation.problems) {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["baseUrl"], message: problem });
+  }
+});
+var researchPolicySchema = external_exports.object({
+  enabled: external_exports.boolean().default(false),
+  provider: external_exports.string().min(1).max(64).regex(/^[a-z][a-z0-9-]*$/).default("deerflow"),
+  strategy: external_exports.enum(RESEARCH_STRATEGIES).default("ON_DEMAND"),
+  maxQuickPerOperation: external_exports.number().int().min(0).max(100).default(5),
+  maxDeepPerOperation: external_exports.number().int().min(0).max(20).default(2),
+  maxResearchPerJob: external_exports.number().int().min(0).max(200).default(6),
+  providers: external_exports.object({
+    deerflow: deerFlowResearchProviderConfigSchema.default({})
+  }).passthrough().default({})
+}).passthrough();
 var AGENT_CONFIG_SCHEMA_VERSION = "1.0.0";
 var FORBIDDEN_PERMISSION_MODE = "bypassPermissions";
 var FORBIDDEN_FLAG_FRAGMENTS = [
@@ -28123,7 +28199,9 @@ var agentConfigSchema = external_exports.object({
    */
   orchestration: orchestrationPolicySchema.default({}),
   /** v1.2 managed local inference (additive; disabled by default). */
-  localInference: localInferenceConfigSchema.default({})
+  localInference: localInferenceConfigSchema.default({}),
+  /** vNext.10.2 optional research escalation (additive; disabled by default). */
+  research: researchPolicySchema.default({})
 }).passthrough().superRefine((config2, ctx) => {
   if (config2.schemaVersion !== void 0 && !config2.schemaVersion.startsWith("1.")) {
     ctx.addIssue({
@@ -28382,48 +28460,6 @@ var BUILT_IN_PROFILE_NAMES = {
   mock: "mock"
 };
 var PROFILE_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
-var LOOPBACK_HOSTNAMES = /* @__PURE__ */ new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
-function isLoopbackHostname(hostname2) {
-  return LOOPBACK_HOSTNAMES.has(hostname2) || /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname2);
-}
-function validateRunnerBaseUrl(raw, options) {
-  const problems = [];
-  if (raw.includes("\0")) {
-    return { ok: false, problems: ["must not contain null bytes"], loopback: false };
-  }
-  let url;
-  try {
-    url = new URL(raw);
-  } catch {
-    return { ok: false, problems: [`"${raw}" is not a valid absolute URL`], loopback: false };
-  }
-  if (url.protocol !== "http:" && url.protocol !== "https:") {
-    problems.push(`unsupported URL scheme "${url.protocol}" \u2014 only http: and https: are allowed`);
-  }
-  if (url.username !== "" || url.password !== "") {
-    problems.push("must not embed credentials (username/password) in the URL");
-  }
-  if (url.hostname === "") {
-    problems.push("must include a hostname");
-  }
-  if (url.search !== "" || url.hash !== "") {
-    problems.push("must not include a query string or fragment");
-  }
-  const loopback = isLoopbackHostname(url.hostname);
-  if (url.protocol === "http:" && !loopback && options?.allowInsecureHttp !== true) {
-    problems.push(
-      'remote endpoints must use https: by default. For a private development endpoint, set "allowInsecureHttp": true on the profile (clearly labeled as insecure).'
-    );
-  }
-  return {
-    ok: problems.length === 0,
-    problems,
-    loopback,
-    protocol: url.protocol,
-    hostname: url.hostname,
-    port: url.port
-  };
-}
 var commandSpecSchema = external_exports.preprocess(
   (value, ctx) => {
     if (typeof value === "string") {
@@ -28506,7 +28542,7 @@ var OPENAI_COMPATIBLE_STRUCTURED_OUTPUT_MODES = [
   "json-object",
   "strict-json-prompt"
 ];
-var environmentVariableNameSchema = external_exports.string().regex(
+var environmentVariableNameSchema2 = external_exports.string().regex(
   /^[A-Za-z_][A-Za-z0-9_]*$/,
   "must be an environment-variable NAME (letters, digits, underscore); SpecBridge never stores key values"
 );
@@ -28547,7 +28583,7 @@ var openAiCompatibleProfileSchema = external_exports.object({
    */
   allowStructuredOutputFallback: external_exports.boolean().default(false),
   /** Name of the environment variable holding the API key (never a value). */
-  apiKeyEnvironmentVariable: environmentVariableNameSchema.nullable().default(null),
+  apiKeyEnvironmentVariable: environmentVariableNameSchema2.nullable().default(null),
   /** Static capability declaration: the endpoint supports GET /models. */
   modelsEndpoint: external_exports.boolean().default(false),
   /** Custom safe headers (credential-bearing header names are rejected). */
@@ -28602,7 +28638,7 @@ var deepseekHarnessProfileSchema = external_exports.object({
   workspaceBoundary: external_exports.enum(DEEPSEEK_HARNESS_WORKSPACE_BOUNDARIES).default("unconfirmed"),
   /** Environment-variable NAMES forwarded from the parent to the runtime
    * child on top of the minimal safe base. Never values. */
-  environmentPassthrough: external_exports.array(environmentVariableNameSchema).default([]),
+  environmentPassthrough: external_exports.array(environmentVariableNameSchema2).default([]),
   /** vNext.4: operator attestation of WHERE this profile's model inference
    * runs. Default 'unconfirmed' — the profile is never eligible for the
    * LOCAL economic lane until locality is attested AND verifiable. */
@@ -28667,7 +28703,7 @@ function credentialKeyIssues(value, breadcrumb) {
   }
   return issues;
 }
-var agentConfigV2Schema = external_exports.object({
+var inferredAgentConfigV2Schema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
   defaultRunner: safeNonEmptyString2.default(BUILT_IN_PROFILE_NAMES["claude-code"]),
   operationDefaults: operationDefaultsSchema.default({}),
@@ -28681,7 +28717,9 @@ var agentConfigV2Schema = external_exports.object({
   /** v1.2 managed local inference (additive; disabled by default). */
   localInference: localInferenceConfigSchema.default({}),
   /** vNext.10 overnight autonomy policy (additive; INTERACTIVE by default). */
-  autonomy: autonomyPolicySchema.default({})
+  autonomy: autonomyPolicySchema.default({}),
+  /** vNext.10.2 optional research escalation (additive; disabled by default). */
+  research: researchPolicySchema.default({})
 }).passthrough().superRefine((config2, ctx) => {
   if (!config2.schemaVersion.startsWith("2.")) {
     ctx.addIssue({
@@ -28720,6 +28758,7 @@ var agentConfigV2Schema = external_exports.object({
     ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message: message2 });
   }
 });
+var agentConfigV2Schema = inferredAgentConfigV2Schema;
 function builtInClaudeProfile(base) {
   return claudeProfileSchema.parse({ runner: "claude-code", ...base ?? {} });
 }
@@ -28816,7 +28855,8 @@ function resolveAgentConfigFromV1(v1) {
     execution: v1.execution,
     orchestration: v1.orchestration,
     localInference: v1.localInference,
-    autonomy: autonomyPolicySchema.parse({})
+    autonomy: autonomyPolicySchema.parse({}),
+    research: v1.research
   };
 }
 function resolveAgentConfigFromV2(v2) {
@@ -28832,7 +28872,8 @@ function resolveAgentConfigFromV2(v2) {
     execution: v2.execution,
     orchestration: v2.orchestration,
     localInference: v2.localInference,
-    autonomy: v2.autonomy
+    autonomy: v2.autonomy,
+    research: v2.research
   };
 }
 function defaultResolvedAgentConfig() {
@@ -28848,7 +28889,8 @@ function defaultResolvedAgentConfig() {
     execution: executionPolicySchema.parse({}),
     orchestration: orchestrationPolicySchema.parse({}),
     localInference: localInferenceConfigSchema.parse({}),
-    autonomy: autonomyPolicySchema.parse({})
+    autonomy: autonomyPolicySchema.parse({}),
+    research: researchPolicySchema.parse({})
   };
 }
 function resolvedConfigDiagnostics(config2) {
@@ -42149,7 +42191,7 @@ Generation blocked (mock scenario).
       durationMs: 0,
       warnings: []
     };
-    const failure = (outcome, reason) => ({
+    const failure2 = (outcome, reason) => ({
       ...base,
       outcome,
       failureReason: reason,
@@ -42164,16 +42206,16 @@ Generation blocked (mock scenario).
           rawStdout: '{"outcome": "completed", "summary": unterminated'
         };
       case "timeout":
-        return failure("timed-out", 'mock scenario "timeout": the simulated agent exceeded its time limit');
+        return failure2("timed-out", 'mock scenario "timeout": the simulated agent exceeded its time limit');
       case "cancelled":
-        return failure("cancelled", 'mock scenario "cancelled": the simulated run was cancelled');
+        return failure2("cancelled", 'mock scenario "cancelled": the simulated run was cancelled');
       case "permission-denied":
-        return failure(
+        return failure2(
           "permission-denied",
           'mock scenario "permission-denied": the simulated agent was denied a tool permission'
         );
       case "failed":
-        return failure("failed", 'mock scenario "failed": the simulated agent reported a failure');
+        return failure2("failed", 'mock scenario "failed": the simulated agent reported a failure');
       case "blocked": {
         const report = {
           schemaVersion: RUNNER_OUTPUT_SCHEMA_VERSION,
@@ -45986,7 +46028,7 @@ var OllamaRunner = class {
   }
   async generateStage(input, execution) {
     const started = Date.now();
-    const failure = (problem, rawStdout = "") => ({
+    const failure2 = (problem, rawStdout = "") => ({
       runner: this.name,
       outcome: problem.outcome,
       failureReason: problem.failureReason,
@@ -45999,7 +46041,7 @@ var OllamaRunner = class {
     });
     const url = this.urlValidation();
     if (!url.ok) {
-      return failure({
+      return failure2({
         outcome: "failed",
         failureReason: `the profile baseUrl is invalid: ${url.problems.join("; ")}`,
         error: runnerError({
@@ -46010,7 +46052,7 @@ var OllamaRunner = class {
     }
     const model = execution.model ?? this.config.model;
     if (model === null || model === void 0) {
-      return failure({
+      return failure2({
         outcome: "failed",
         failureReason: "no model is configured for this profile",
         error: runnerError({
@@ -46021,7 +46063,7 @@ var OllamaRunner = class {
       });
     }
     if (input.prompt.length > this.config.maximumInputCharacters) {
-      return failure({
+      return failure2({
         outcome: "failed",
         failureReason: `the assembled prompt (${input.prompt.length} characters) exceeds maximumInputCharacters (${this.config.maximumInputCharacters})`,
         error: runnerError({
@@ -46051,12 +46093,12 @@ var OllamaRunner = class {
       ...execution.signal !== void 0 ? { signal: execution.signal } : {}
     });
     if (!result.ok) {
-      return failure(classifyHttpFailure(result));
+      return failure2(classifyHttpFailure(result));
     }
     const retained = redactOllamaResponseForRetention(result.bodyText);
     const parsedBody = ollamaChatResponseSchema.safeParse(safeJson2(result.bodyText));
     if (!parsedBody.success) {
-      return failure(
+      return failure2(
         {
           outcome: "malformed-output",
           failureReason: "the endpoint response did not match the Ollama chat response shape",
@@ -46671,7 +46713,7 @@ var OpenAiCompatibleRunner = class {
   }
   async generateStage(input, execution) {
     const started = Date.now();
-    const failure = (problem, rawStdout = "") => ({
+    const failure2 = (problem, rawStdout = "") => ({
       runner: this.name,
       outcome: problem.outcome,
       failureReason: problem.failureReason,
@@ -46684,7 +46726,7 @@ var OpenAiCompatibleRunner = class {
     });
     const url = this.urlValidation();
     if (!url.ok) {
-      return failure({
+      return failure2({
         outcome: "failed",
         failureReason: `the profile baseUrl is invalid: ${url.problems.join("; ")}`,
         error: runnerError({
@@ -46695,7 +46737,7 @@ var OpenAiCompatibleRunner = class {
     }
     const model = execution.model ?? this.config.model;
     if (model === null || model === void 0) {
-      return failure({
+      return failure2({
         outcome: "failed",
         failureReason: "no model is configured for this profile",
         error: runnerError({
@@ -46706,7 +46748,7 @@ var OpenAiCompatibleRunner = class {
       });
     }
     if (input.prompt.length > this.config.maximumInputCharacters) {
-      return failure({
+      return failure2({
         outcome: "failed",
         failureReason: `the assembled prompt (${input.prompt.length} characters) exceeds maximumInputCharacters (${this.config.maximumInputCharacters})`,
         error: runnerError({
@@ -46738,10 +46780,10 @@ var OpenAiCompatibleRunner = class {
           );
           return result;
         }
-        return failure(retry.failure, retry.retained ?? "");
+        return failure2(retry.failure, retry.retained ?? "");
       }
       if (attempt.unsupportedMode) {
-        return failure(
+        return failure2(
           {
             outcome: "failed",
             failureReason: `the endpoint does not support structured-output mode "${this.config.structuredOutput}"`,
@@ -46756,7 +46798,7 @@ var OpenAiCompatibleRunner = class {
           attempt.retained ?? ""
         );
       }
-      return failure(attempt.failure, attempt.retained ?? "");
+      return failure2(attempt.failure, attempt.retained ?? "");
     }
     return this.mapCompleted(attempt.body, attempt.mode, model, started);
   }
@@ -47099,10 +47141,10 @@ var DSH_RUNTIME_SERVER_NAME = "deepseek-harness-sdk-runtime";
 var MAX_RETAINED_DSH_NOTIFICATIONS = 5e3;
 var DshAdapterError = class extends Error {
   failure;
-  constructor(failure) {
-    super(failure.message);
+  constructor(failure2) {
+    super(failure2.message);
     this.name = "DshAdapterError";
-    this.failure = failure;
+    this.failure = failure2;
   }
 };
 function isRecord2(value) {
@@ -47580,20 +47622,20 @@ async function probeDeepSeekHarness(config2, options = {}) {
         detail: `${DSH_RUNTIME_SERVER_NAME} ${handshake.serverVersion}`
       });
     } catch (error2) {
-      const failure = dshFailureOf(error2);
-      const incompatible = failure.kind === "identity-mismatch" || failure.kind === "protocol-violation";
-      status = incompatible ? "incompatible" : failure.kind === "launch" ? "unavailable" : "error";
+      const failure2 = dshFailureOf(error2);
+      const incompatible = failure2.kind === "identity-mismatch" || failure2.kind === "protocol-violation";
+      status = incompatible ? "incompatible" : failure2.kind === "launch" ? "unavailable" : "error";
       capabilities.push({
         id: "protocol-handshake",
         label: "Initialize handshake / server identity",
         available: false,
         required: true,
-        detail: failure.message
+        detail: failure2.message
       });
       diagnostics.push({
         severity: "error",
         code: incompatible ? "RUNNER_INCOMPATIBLE_RUNTIME" : "RUNNER_HANDSHAKE_FAILED",
-        message: `The initialize handshake failed: ${failure.message}`
+        message: `The initialize handshake failed: ${failure2.message}`
       });
     } finally {
       await adapter.close();
@@ -47630,10 +47672,10 @@ var AUTH_PATTERN = /unauthorized|unauthenticated|authentication|api key|401/i;
 var QUOTA_PATTERN = /insufficient_quota|quota|usage limit|out of credits|balance/i;
 var RATE_PATTERN = /rate limit|too many requests|429/i;
 var MODEL_PATTERN = /unknown (model|provider)|model .* not (found|available)|no adapter/i;
-function classifyDshFailure(failure, turnErrors = []) {
-  switch (failure.kind) {
+function classifyDshFailure(failure2, turnErrors = []) {
+  switch (failure2.kind) {
     case "closed-by-adapter": {
-      if (failure.closeCause === "cancelled") {
+      if (failure2.closeCause === "cancelled") {
         return {
           outcome: "cancelled",
           error: runnerError({
@@ -47642,7 +47684,7 @@ function classifyDshFailure(failure, turnErrors = []) {
           })
         };
       }
-      if (failure.closeCause === "timed-out") {
+      if (failure2.closeCause === "timed-out") {
         return {
           outcome: "timed-out",
           error: runnerError({
@@ -47679,7 +47721,7 @@ function classifyDshFailure(failure, turnErrors = []) {
         outcome: "failed",
         error: runnerError({
           code: "runner_incompatible",
-          message: failure.message,
+          message: failure2.message,
           remediation: [
             "Point the profile command at a DeepSeek Harness SDK runtime (`dsh-jsonrpc-agent`)."
           ]
@@ -47704,7 +47746,7 @@ function classifyDshFailure(failure, turnErrors = []) {
         })
       };
     case "rpc-error": {
-      const text15 = failure.message;
+      const text15 = failure2.message;
       if (AUTH_PATTERN.test(text15)) {
         return {
           outcome: "failed",
@@ -47714,7 +47756,7 @@ function classifyDshFailure(failure, turnErrors = []) {
             remediation: [
               "Authenticate the runtime profile yourself (SpecBridge never handles credentials)."
             ],
-            ...failure.rpcCode !== void 0 ? { providerCode: String(failure.rpcCode) } : {}
+            ...failure2.rpcCode !== void 0 ? { providerCode: String(failure2.rpcCode) } : {}
           })
         };
       }
@@ -47724,7 +47766,7 @@ function classifyDshFailure(failure, turnErrors = []) {
           error: runnerError({
             code: "quota_exceeded",
             message: "The provider behind the DeepSeek Harness runtime reported an exhausted quota.",
-            ...failure.rpcCode !== void 0 ? { providerCode: String(failure.rpcCode) } : {}
+            ...failure2.rpcCode !== void 0 ? { providerCode: String(failure2.rpcCode) } : {}
           })
         };
       }
@@ -47735,7 +47777,7 @@ function classifyDshFailure(failure, turnErrors = []) {
             code: "rate_limited",
             message: "The provider behind the DeepSeek Harness runtime reported a rate limit.",
             remediation: ["Wait and retry explicitly."],
-            ...failure.rpcCode !== void 0 ? { providerCode: String(failure.rpcCode) } : {}
+            ...failure2.rpcCode !== void 0 ? { providerCode: String(failure2.rpcCode) } : {}
           })
         };
       }
@@ -47746,7 +47788,7 @@ function classifyDshFailure(failure, turnErrors = []) {
             code: "model_not_found",
             message: "The DeepSeek Harness runtime rejected the configured provider/model route.",
             remediation: ["Fix the profile provider/model to a route the runtime actually mounts."],
-            ...failure.rpcCode !== void 0 ? { providerCode: String(failure.rpcCode) } : {}
+            ...failure2.rpcCode !== void 0 ? { providerCode: String(failure2.rpcCode) } : {}
           })
         };
       }
@@ -47755,7 +47797,7 @@ function classifyDshFailure(failure, turnErrors = []) {
         error: runnerError({
           code: "api_error",
           message: `The DeepSeek Harness runtime returned a protocol error: ${boundedMessage(text15)}`,
-          ...failure.rpcCode !== void 0 ? { providerCode: String(failure.rpcCode) } : {}
+          ...failure2.rpcCode !== void 0 ? { providerCode: String(failure2.rpcCode) } : {}
         })
       };
     }
@@ -47764,7 +47806,7 @@ function classifyDshFailure(failure, turnErrors = []) {
         outcome: "failed",
         error: runnerError({
           code: "process_failed",
-          message: `The DeepSeek Harness runtime process died mid-run: ${boundedMessage(failure.message)}`,
+          message: `The DeepSeek Harness runtime process died mid-run: ${boundedMessage(failure2.message)}`,
           remediation: [
             "Inspect the retained notification log in the run directory; a fresh attempt resumes from the SpecBridge checkpoint."
           ]
@@ -47775,7 +47817,7 @@ function classifyDshFailure(failure, turnErrors = []) {
         outcome: "failed",
         error: runnerError({
           code: "process_failed",
-          message: `The DeepSeek Harness run failed: ${boundedMessage(failure.message)}${turnErrors.length > 0 ? ` (turn errors: ${boundedMessage(turnErrors.join("; "))})` : ""}`
+          message: `The DeepSeek Harness run failed: ${boundedMessage(failure2.message)}${turnErrors.length > 0 ? ` (turn errors: ${boundedMessage(turnErrors.join("; "))})` : ""}`
         })
       };
   }
@@ -47841,9 +47883,9 @@ function collectDshRun(notifications, rootSessionId) {
         const kind = isRecord22(reason) ? reason["kind"] : void 0;
         if (kind === "max-tokens") collection.sawMaxTokens = true;
         if (kind === "error" && collection.errors.length < 20) {
-          const failure = isRecord22(reason) ? reason["error"] : void 0;
-          const message2 = isRecord22(failure) && typeof failure["message"] === "string" ? failure["message"] : "turn failed";
-          const code = isRecord22(failure) && typeof failure["code"] === "string" ? ` [${failure["code"]}]` : "";
+          const failure2 = isRecord22(reason) ? reason["error"] : void 0;
+          const message2 = isRecord22(failure2) && typeof failure2["message"] === "string" ? failure2["message"] : "turn failed";
+          const code = isRecord22(failure2) && typeof failure2["code"] === "string" ? ` [${failure2["code"]}]` : "";
           collection.errors.push(boundedPayloadText(`${message2}${code}`, 500));
         }
         break;
@@ -47969,16 +48011,16 @@ function normalizeDshEvents(notifications, rootSessionId, context, fallbackTimes
         const kind = isRecord22(reason) && typeof reason["kind"] === "string" ? reason["kind"] : "unknown";
         push2("turn.completed", provider, { turn: tolerantCount2(event.data["turn"]) ?? null, reason: kind }, event.time);
         if (kind === "error") {
-          const failure = isRecord22(reason) ? reason["error"] : void 0;
+          const failure2 = isRecord22(reason) ? reason["error"] : void 0;
           push2(
             "error",
             provider,
             {
               message: boundedPayloadText(
-                isRecord22(failure) && typeof failure["message"] === "string" ? failure["message"] : "turn failed",
+                isRecord22(failure2) && typeof failure2["message"] === "string" ? failure2["message"] : "turn failed",
                 500
               ),
-              ...isRecord22(failure) && typeof failure["code"] === "string" ? { code: boundedPayloadText(failure["code"], 120) } : {}
+              ...isRecord22(failure2) && typeof failure2["code"] === "string" ? { code: boundedPayloadText(failure2["code"], 120) } : {}
             },
             event.time
           );
@@ -48335,7 +48377,7 @@ var DeepSeekHarnessRunner = class {
     execution.signal?.addEventListener("abort", onAbort, { once: true });
     let handshake;
     let observation2;
-    let failure;
+    let failure2;
     let continuityChecked = false;
     const onNotification = (notification) => {
       if (!session.resume || continuityChecked) return;
@@ -48355,7 +48397,7 @@ var DeepSeekHarnessRunner = class {
         onNotification
       });
     } catch (error2) {
-      failure = dshFailureOf(error2);
+      failure2 = dshFailureOf(error2);
     } finally {
       clearTimeout(watchdog);
       execution.signal?.removeEventListener("abort", onAbort);
@@ -48366,8 +48408,8 @@ var DeepSeekHarnessRunner = class {
     if (dropped > 0) {
       warnings.push(`the notification stream exceeded the retention cap; ${dropped} notifications were dropped`);
     }
-    if (failure !== void 0) {
-      return this.failureResult(started, session, warnings, handshake, notifications, failure);
+    if (failure2 !== void 0) {
+      return this.failureResult(started, session, warnings, handshake, notifications, failure2);
     }
     return this.successResult(
       started,
@@ -48455,12 +48497,12 @@ var DeepSeekHarnessRunner = class {
       cost: unavailableCost()
     };
   }
-  failureResult(started, session, warnings, handshake, notifications, failure) {
+  failureResult(started, session, warnings, handshake, notifications, failure2) {
     const collection = collectDshRun(notifications, session.sessionId);
-    const classified2 = classifyDshFailure(failure, collection.errors);
+    const classified2 = classifyDshFailure(failure2, collection.errors);
     const flags = {
-      timedOut: failure.closeCause === "timed-out",
-      cancelled: failure.closeCause === "cancelled"
+      timedOut: failure2.closeCause === "timed-out",
+      cancelled: failure2.closeCause === "cancelled"
     };
     const base = this.baseResult(started, session, warnings, handshake, notifications, collection, flags);
     return {
@@ -53442,6 +53484,10 @@ var contextEfficiencyMetricsSchema = external_exports.object({
 var import_fs26 = require("fs");
 var import_path28 = __toESM(require("path"), 1);
 var import_crypto13 = require("crypto");
+var import_fs27 = require("fs");
+var import_path29 = __toESM(require("path"), 1);
+var import_fs28 = require("fs");
+var import_path30 = __toESM(require("path"), 1);
 var ORCHESTRATION_PHASES = [
   /** The run exists; no intent has been assessed yet. */
   "CREATED",
@@ -54301,23 +54347,23 @@ function backoffForAttempt(attempt, options) {
   return Math.min(raw, options.maxBackoffMs);
 }
 function decideNextStep(input, backoff) {
-  const { counters, budgets, failure } = input;
-  if (failure?.category === "CANCELLED") {
+  const { counters, budgets, failure: failure2 } = input;
+  if (failure2?.category === "CANCELLED") {
     return {
       directive: "STOP_FINAL",
       reason: "The run was cancelled. Cancellation is never restarted automatically.",
       backoffMs: 0,
       failureCategory: "CANCELLED",
-      remediation: failure.policy.remediation
+      remediation: failure2.policy.remediation
     };
   }
-  if (failure !== void 0 && failure.policy.terminal) {
+  if (failure2 !== void 0 && failure2.policy.terminal) {
     return {
       directive: "BLOCK",
-      reason: `${failure.category} cannot be retried, repaired, or replanned automatically.`,
+      reason: `${failure2.category} cannot be retried, repaired, or replanned automatically.`,
       backoffMs: 0,
-      failureCategory: failure.category,
-      remediation: failure.policy.remediation
+      failureCategory: failure2.category,
+      remediation: failure2.policy.remediation
     };
   }
   if (input.elapsedMs >= budgets.maxElapsedMs) {
@@ -54340,7 +54386,7 @@ function decideNextStep(input, backoff) {
       ]
     );
   }
-  if (failure?.category === "AMBIGUITY") {
+  if (failure2?.category === "AMBIGUITY") {
     if (counters.clarificationRounds >= budgets.maxClarificationRounds) {
       return budgetStop(
         "maxClarificationRounds",
@@ -54355,10 +54401,10 @@ function decideNextStep(input, backoff) {
       reason: "The request is underspecified; a user decision is required before implementing.",
       backoffMs: 0,
       failureCategory: "AMBIGUITY",
-      remediation: failure.policy.remediation
+      remediation: failure2.policy.remediation
     };
   }
-  if (failure !== void 0 && failure.policy.retryable) {
+  if (failure2 !== void 0 && failure2.policy.retryable) {
     if (counters.transientRetries >= budgets.maxTransientRetries) {
       return budgetStop(
         "maxTransientRetries",
@@ -54368,10 +54414,10 @@ function decideNextStep(input, backoff) {
     }
     return {
       directive: "RETRY",
-      reason: `${failure.category} is safely retryable; retrying the same idempotent operation.`,
+      reason: `${failure2.category} is safely retryable; retrying the same idempotent operation.`,
       backoffMs: backoffForAttempt(counters.transientRetries + 1, backoff),
-      failureCategory: failure.category,
-      remediation: failure.policy.remediation
+      failureCategory: failure2.category,
+      remediation: failure2.policy.remediation
     };
   }
   if (input.stagnated) {
@@ -54396,7 +54442,7 @@ function decideNextStep(input, backoff) {
       ]
     );
   }
-  if (failure !== void 0 && failure.policy.repairable) {
+  if (failure2 !== void 0 && failure2.policy.repairable) {
     if (counters.repairCycles >= budgets.maxRepairCycles) {
       return budgetStop(
         "maxRepairCycles",
@@ -54409,44 +54455,44 @@ function decideNextStep(input, backoff) {
     }
     return {
       directive: "REPAIR",
-      reason: failure.category === "VERIFICATION_FAILURE" ? "A trusted verification command failed; repair the implementation against its output rather than rerunning it." : "The implementation is defective; repair it against the observed failure.",
+      reason: failure2.category === "VERIFICATION_FAILURE" ? "A trusted verification command failed; repair the implementation against its output rather than rerunning it." : "The implementation is defective; repair it against the observed failure.",
       backoffMs: 0,
-      failureCategory: failure.category,
-      remediation: failure.policy.remediation
+      failureCategory: failure2.category,
+      remediation: failure2.policy.remediation
     };
   }
-  if (failure !== void 0 && failure.policy.replannable) {
+  if (failure2 !== void 0 && failure2.policy.replannable) {
     if (counters.replans >= budgets.maxReplans) {
       return budgetStop(
         "maxReplans",
-        `${failure.category} requires replanning, but the replan budget of ${budgets.maxReplans} is exhausted.`,
-        failure.policy.remediation
+        `${failure2.category} requires replanning, but the replan budget of ${budgets.maxReplans} is exhausted.`,
+        failure2.policy.remediation
       );
     }
     return {
       directive: "REPLAN",
-      reason: `${failure.category} invalidates the current plan.`,
+      reason: `${failure2.category} invalidates the current plan.`,
       backoffMs: 0,
-      failureCategory: failure.category,
-      remediation: failure.policy.remediation
+      failureCategory: failure2.category,
+      remediation: failure2.policy.remediation
     };
   }
-  if (failure !== void 0 && failure.policy.clarifiable) {
+  if (failure2 !== void 0 && failure2.policy.clarifiable) {
     return {
       directive: "CLARIFY",
-      reason: `${failure.category} needs a user decision.`,
+      reason: `${failure2.category} needs a user decision.`,
       backoffMs: 0,
-      failureCategory: failure.category,
-      remediation: failure.policy.remediation
+      failureCategory: failure2.category,
+      remediation: failure2.policy.remediation
     };
   }
-  if (failure !== void 0) {
+  if (failure2 !== void 0) {
     return {
       directive: "BLOCK",
-      reason: `${failure.category} has no automatic recovery path.`,
+      reason: `${failure2.category} has no automatic recovery path.`,
       backoffMs: 0,
-      failureCategory: failure.category,
-      remediation: failure.policy.remediation
+      failureCategory: failure2.category,
+      remediation: failure2.policy.remediation
     };
   }
   if (input.readyToVerify === true) {
@@ -55763,7 +55809,7 @@ async function recordActionChecked(deps, orchestrationId, request) {
   }
   return recordAction(deps, orchestrationId, request);
 }
-function applyDirective(deps, input, decision, failure) {
+function applyDirective(deps, input, decision, failure2) {
   let state = input;
   const at = now2(deps).toISOString();
   switch (decision.directive) {
@@ -55777,12 +55823,12 @@ function applyDirective(deps, input, decision, failure) {
         state = transition2(deps, state, "REPAIRING");
         state = record3(deps, state, "repair_started", {
           cycle: state.counters.repairCycles,
-          ...failure !== void 0 ? { fingerprint: failure.fingerprint } : {}
+          ...failure2 !== void 0 ? { fingerprint: failure2.fingerprint } : {}
         });
       }
       return {
         ...state,
-        ...failure !== void 0 ? { repairTargetFingerprint: failure.fingerprint } : {}
+        ...failure2 !== void 0 ? { repairTargetFingerprint: failure2.fingerprint } : {}
       };
     }
     case "REPLAN":
@@ -55798,14 +55844,14 @@ function applyDirective(deps, input, decision, failure) {
     case "BLOCK": {
       state = transition2(deps, state, "BLOCKED");
       state = record3(deps, state, "execution_blocked", {
-        ...failure !== void 0 ? { category: failure.category } : {},
+        ...failure2 !== void 0 ? { category: failure2.category } : {},
         reason: decision.reason
       });
       return {
         ...state,
         blocker: {
-          category: failure?.category ?? "INTERNAL",
-          code: decision.exhaustedBudget ?? failure?.category ?? "BLOCKED",
+          category: failure2?.category ?? "INTERNAL",
+          code: decision.exhaustedBudget ?? failure2?.category ?? "BLOCKED",
           message: decision.reason,
           remediation: decision.remediation,
           at
@@ -64918,6 +64964,1219 @@ var POLICY_SCENARIOS = Object.freeze({
   "governance.invalid-contract-change": () => governanceInvalidContractChange(),
   "governance.approval-is-human-only": () => governanceApprovalHumanOnly()
 });
+var RESEARCH_RECORD_SCHEMA_VERSION = "1.0.0";
+var RESEARCH_TELEMETRY_SCHEMA_VERSION = "1.0.0";
+var RESEARCH_DEPTHS = ["QUICK", "DEEP"];
+var RESEARCH_GATE_DECISIONS = [
+  "ANSWER_DIRECTLY",
+  "REUSE_EXISTING",
+  "ENGINEERING_DECISION",
+  "ASK_HUMAN",
+  "RESEARCH_QUICK",
+  "RESEARCH_DEEP"
+];
+var RESEARCH_FINDING_KINDS = [
+  "DOMAIN_FACT",
+  "ENGINEERING_CONSTRAINT",
+  "COMPATIBILITY_FACT",
+  "PRODUCT_OPTION",
+  "UNRESOLVED_CONFLICT"
+];
+var RESEARCH_RECORD_STATUSES = [
+  "PENDING",
+  "RUNNING",
+  "COMPLETED",
+  "INCONCLUSIVE",
+  "FAILED",
+  "CANCELLED"
+];
+var RESEARCH_FAILURE_CLASSIFICATIONS = [
+  "INVALID_REQUEST",
+  "DISABLED",
+  "PROVIDER_UNAVAILABLE",
+  "AUTHENTICATION",
+  "NETWORK",
+  "TIMEOUT",
+  "MALFORMED_RESPONSE",
+  "INCONCLUSIVE_RESEARCH",
+  "BUDGET_EXHAUSTED",
+  "CANCELLED"
+];
+var RESEARCH_PROVIDER_HEALTH_STATUSES = [
+  "HEALTHY",
+  "DEGRADED",
+  "UNAVAILABLE",
+  "AUTH_FAILED",
+  "UNKNOWN"
+];
+var idSchema = external_exports.string().min(1).max(128).regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/);
+var boundedText = (max) => external_exports.string().trim().min(1).max(max);
+var boundedTextArray = (maxItems, maxText) => external_exports.array(boundedText(maxText)).max(maxItems);
+var SECRET_PATTERNS = [
+  /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/i,
+  /\b(?:bearer|basic)\s+[A-Za-z0-9+/=_-]{12,}/i,
+  /\b(?:sk|ghp|github_pat|xox[baprs])[_-][A-Za-z0-9_-]{12,}\b/i,
+  /\b(?:api[-_ ]?key|auth[-_ ]?token|access[-_ ]?token|password|secret)\s*[:=]\s*\S{8,}/i
+];
+function containsCredentialMaterial(value) {
+  const serialized = JSON.stringify(value);
+  return SECRET_PATTERNS.some((pattern) => pattern.test(serialized));
+}
+var researchRequestSchema = external_exports.object({
+  researchId: idSchema,
+  depth: external_exports.enum(RESEARCH_DEPTHS),
+  question: boundedText(4e3),
+  topicTags: external_exports.array(external_exports.string().trim().min(1).max(64).regex(/^[A-Za-z0-9][A-Za-z0-9._:/-]*$/)).max(16).default([]),
+  context: external_exports.object({
+    knownFacts: boundedTextArray(20, 2e3).default([]),
+    observedFailures: boundedTextArray(10, 2e3).default([]),
+    failedStrategies: boundedTextArray(10, 2e3).default([]),
+    constraints: boundedTextArray(20, 2e3).default([]),
+    /** References only; never repository bodies or transcripts. */
+    contextRefs: external_exports.array(boundedText(512)).max(20).default([])
+  }).strict().default({}),
+  expectedOutput: external_exports.object({
+    questionsToAnswer: boundedTextArray(12, 1e3).min(1)
+  }).strict(),
+  sourcePolicy: external_exports.object({
+    preferPrimarySources: external_exports.boolean().default(true),
+    requireSources: external_exports.boolean().default(true)
+  }).strict().default({})
+}).strict().superRefine((request, ctx) => {
+  const size = Buffer.byteLength(JSON.stringify(request), "utf8");
+  if (size > 64 * 1024) {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message: "bounded research request exceeds 64 KiB" });
+  }
+  if (containsCredentialMaterial(request)) {
+    ctx.addIssue({
+      code: external_exports.ZodIssueCode.custom,
+      message: "research request appears to contain credential material; only bounded non-secret context is allowed"
+    });
+  }
+});
+var researchSourceRefSchema = external_exports.object({
+  refId: idSchema,
+  url: external_exports.string().max(2048).url().refine((value) => {
+    const protocol = new URL(value).protocol;
+    return protocol === "http:" || protocol === "https:";
+  }, "source URLs must use http or https").optional(),
+  title: boundedText(500).optional(),
+  providerSourceId: boundedText(256).optional(),
+  attribution: boundedText(500).optional()
+}).strict();
+var researchFindingSchema = external_exports.object({
+  findingId: idSchema,
+  statement: boundedText(4e3),
+  kind: external_exports.enum(RESEARCH_FINDING_KINDS),
+  confidence: external_exports.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
+  sourceRefs: external_exports.array(idSchema).max(16).default([])
+}).strict();
+var researchUsageSchema = external_exports.object({
+  inputTokens: external_exports.number().int().nonnegative().optional(),
+  outputTokens: external_exports.number().int().nonnegative().optional(),
+  totalTokens: external_exports.number().int().nonnegative().optional(),
+  durationMs: external_exports.number().int().nonnegative().optional(),
+  providerReportedCost: external_exports.number().nonnegative().optional(),
+  subagentCount: external_exports.number().int().nonnegative().optional()
+}).strict().refine((value) => Object.keys(value).length > 0, "usage must contain a provider-reported field");
+var researchReportSchema = external_exports.object({
+  researchId: idSchema,
+  provider: idSchema,
+  depth: external_exports.enum(RESEARCH_DEPTHS),
+  status: external_exports.enum(["COMPLETED", "INCONCLUSIVE"]),
+  question: boundedText(4e3),
+  findings: external_exports.array(researchFindingSchema).max(64),
+  sourceRefs: external_exports.array(researchSourceRefSchema).max(64),
+  recommendations: boundedTextArray(32, 2e3),
+  unresolved: boundedTextArray(32, 2e3),
+  conflicts: boundedTextArray(32, 2e3),
+  classification: external_exports.array(external_exports.enum(RESEARCH_FINDING_KINDS)).max(5),
+  usage: researchUsageSchema.optional(),
+  startedAt: external_exports.string().datetime({ offset: true }),
+  completedAt: external_exports.string().datetime({ offset: true })
+}).strict().superRefine((report, ctx) => {
+  if (Buffer.byteLength(JSON.stringify(report), "utf8") > 256 * 1024) {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message: "bounded research report exceeds 256 KiB" });
+  }
+  const sourceIds = new Set(report.sourceRefs.map((ref) => ref.refId));
+  for (const [index, finding] of report.findings.entries()) {
+    for (const ref of finding.sourceRefs) {
+      if (!sourceIds.has(ref)) {
+        ctx.addIssue({
+          code: external_exports.ZodIssueCode.custom,
+          path: ["findings", index, "sourceRefs"],
+          message: `unknown source reference "${ref}"`
+        });
+      }
+    }
+  }
+  if (report.status === "COMPLETED" && report.findings.length === 0) {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["findings"], message: "completed research needs a finding" });
+  }
+});
+var researchFailureSchema = external_exports.object({
+  classification: external_exports.enum(RESEARCH_FAILURE_CLASSIFICATIONS),
+  failureSource: external_exports.enum(FAILURE_SOURCES),
+  message: boundedText(2e3),
+  retryable: external_exports.boolean()
+}).strict();
+var researchRecordSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/).default(RESEARCH_RECORD_SCHEMA_VERSION),
+  researchId: idSchema,
+  provider: idSchema,
+  depth: external_exports.enum(RESEARCH_DEPTHS),
+  status: external_exports.enum(RESEARCH_RECORD_STATUSES),
+  requestHash: external_exports.string().regex(/^[a-f0-9]{64}$/),
+  normalizedQuestionHash: external_exports.string().regex(/^[a-f0-9]{64}$/),
+  topicTags: external_exports.array(external_exports.string().min(1).max(64)).max(16),
+  request: researchRequestSchema,
+  scope: external_exports.object({ operationId: idSchema.optional(), jobId: idSchema.optional() }).strict().optional(),
+  report: researchReportSchema.optional(),
+  failure: researchFailureSchema.optional(),
+  providerRefs: external_exports.object({ threadId: idSchema.optional(), runId: idSchema.optional() }).strict().optional(),
+  usage: researchUsageSchema.optional(),
+  createdAt: external_exports.string().datetime({ offset: true }),
+  updatedAt: external_exports.string().datetime({ offset: true })
+}).strict().superRefine((record32, ctx) => {
+  if (record32.request.researchId !== record32.researchId) {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["request", "researchId"], message: "must match record researchId" });
+  }
+  if (record32.report !== void 0 && record32.report.researchId !== record32.researchId) {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["report", "researchId"], message: "must match record researchId" });
+  }
+  if (record32.request.depth !== record32.depth) {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["request", "depth"], message: "must match record depth" });
+  }
+  if (record32.topicTags.join("\0") !== record32.request.topicTags.join("\0")) {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["topicTags"], message: "must match request topicTags" });
+  }
+  if (record32.report !== void 0) {
+    if (record32.report.provider !== record32.provider) {
+      ctx.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["report", "provider"], message: "must match record provider" });
+    }
+    if (record32.report.depth !== record32.depth) {
+      ctx.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["report", "depth"], message: "must match record depth" });
+    }
+    if (record32.report.question !== record32.request.question) {
+      ctx.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["report", "question"], message: "must match request question" });
+    }
+  }
+  if (record32.status === "COMPLETED" || record32.status === "INCONCLUSIVE") {
+    if (record32.report === void 0) {
+      ctx.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["report"], message: `${record32.status} records require a report` });
+    } else if (record32.report.status !== record32.status) {
+      ctx.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["report", "status"], message: "must match record status" });
+    }
+    if (record32.failure !== void 0) {
+      ctx.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["failure"], message: `${record32.status} records cannot carry a failure` });
+    }
+  } else if (record32.status === "FAILED" || record32.status === "CANCELLED") {
+    if (record32.failure === void 0) {
+      ctx.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["failure"], message: `${record32.status} records require a failure` });
+    }
+    if (record32.report !== void 0) {
+      ctx.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["report"], message: `${record32.status} records cannot carry a report` });
+    }
+  } else if (record32.report !== void 0 || record32.failure !== void 0) {
+    ctx.addIssue({
+      code: external_exports.ZodIssueCode.custom,
+      message: `${record32.status} records cannot carry a final report or failure`
+    });
+  }
+});
+var researchProviderHealthSchema = external_exports.object({
+  provider: idSchema,
+  status: external_exports.enum(RESEARCH_PROVIDER_HEALTH_STATUSES),
+  checkedAt: external_exports.string().datetime({ offset: true }),
+  latencyMs: external_exports.number().int().nonnegative().optional(),
+  detail: external_exports.string().min(1).max(1e3).optional()
+}).strict();
+var researchGateInputSchema = external_exports.object({
+  knowledgeGapDeclared: external_exports.boolean(),
+  dependsOnExternalFacts: external_exports.boolean(),
+  dependsOnCurrentFacts: external_exports.boolean(),
+  materialToProductOrArchitecture: external_exports.boolean(),
+  repositoryAnswerAvailable: external_exports.boolean(),
+  priorResearchAvailable: external_exports.boolean(),
+  engineeringDecisionOnly: external_exports.boolean(),
+  requiresHumanAuthority: external_exports.boolean(),
+  repeatedUnknown: external_exports.boolean().default(false),
+  repeatedUnknownAfterDifferentStrategies: external_exports.boolean().default(false),
+  requestedDepth: external_exports.enum(RESEARCH_DEPTHS).optional()
+}).strict();
+function evaluateResearchGate(raw) {
+  const input = researchGateInputSchema.parse(raw);
+  if (input.requiresHumanAuthority) {
+    return {
+      decision: "ASK_HUMAN",
+      reasons: ["the decision requires human product authority; research can inform but cannot decide it"]
+    };
+  }
+  if (input.repositoryAnswerAvailable) {
+    return {
+      decision: "ANSWER_DIRECTLY",
+      reasons: ["the current repository or system already contains the answer"]
+    };
+  }
+  if (input.priorResearchAvailable) {
+    return {
+      decision: "REUSE_EXISTING",
+      reasons: ["durable prior research is available, so a repeat provider call is unnecessary"]
+    };
+  }
+  const externalUncertainty = input.dependsOnExternalFacts || input.dependsOnCurrentFacts;
+  if (input.engineeringDecisionOnly && !externalUncertainty) {
+    return {
+      decision: "ENGINEERING_DECISION",
+      reasons: ["this is an engineering choice without material external uncertainty"]
+    };
+  }
+  if (!input.knowledgeGapDeclared) {
+    return {
+      decision: input.engineeringDecisionOnly ? "ENGINEERING_DECISION" : "ANSWER_DIRECTLY",
+      reasons: ["the caller did not declare a remaining knowledge gap"]
+    };
+  }
+  if (!externalUncertainty) {
+    return {
+      decision: input.engineeringDecisionOnly ? "ENGINEERING_DECISION" : "ANSWER_DIRECTLY",
+      reasons: ["the declared gap does not depend on external or current facts"]
+    };
+  }
+  if (!input.materialToProductOrArchitecture) {
+    return {
+      decision: "ANSWER_DIRECTLY",
+      reasons: ["the external uncertainty is not material enough to justify research cost"]
+    };
+  }
+  const deep = input.requestedDepth === "DEEP" || input.repeatedUnknown && input.repeatedUnknownAfterDifferentStrategies;
+  return {
+    decision: deep ? "RESEARCH_DEEP" : "RESEARCH_QUICK",
+    reasons: [
+      "the caller declared a remaining knowledge gap",
+      input.dependsOnCurrentFacts ? "the answer depends on current external facts" : "the answer depends on external facts",
+      "the answer is material to product or architecture",
+      ...deep && input.repeatedUnknownAfterDifferentStrategies ? ["materially different strategies still produced an unknown result"] : []
+    ]
+  };
+}
+var RESEARCH_DIR_NAME = "research";
+var ID_PATTERN9 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
+function researchRootDir(workspace) {
+  return assertInsideWorkspace(workspace.rootDir, import_path29.default.join(workspace.sidecarDir, RESEARCH_DIR_NAME));
+}
+function researchRecordsDir(workspace) {
+  return assertInsideWorkspace(workspace.rootDir, import_path29.default.join(researchRootDir(workspace), "records"));
+}
+function assertResearchId(researchId) {
+  if (!ID_PATTERN9.test(researchId)) throw new Error(`Invalid research id "${researchId}".`);
+  return researchId;
+}
+function researchRecordFile(workspace, researchId) {
+  assertResearchId(researchId);
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path29.default.join(researchRecordsDir(workspace), `${researchId}.json`)
+  );
+}
+function majorOf3(value) {
+  return value.split(".")[0] ?? "";
+}
+function readResearchRecord(workspace, researchId) {
+  const file = researchRecordFile(workspace, researchId);
+  if (!(0, import_fs27.existsSync)(file)) return { kind: "missing" };
+  let value;
+  try {
+    value = JSON.parse((0, import_fs27.readFileSync)(file, "utf8"));
+  } catch (cause) {
+    return { kind: "corrupt", problem: cause instanceof Error ? cause.message : String(cause), file };
+  }
+  const version2 = value !== null && typeof value === "object" ? value.schemaVersion : void 0;
+  if (typeof version2 !== "string") return { kind: "corrupt", problem: "schemaVersion is missing", file };
+  if (majorOf3(version2) !== majorOf3(RESEARCH_RECORD_SCHEMA_VERSION)) {
+    return { kind: "unsupported-version", version: version2, file };
+  }
+  const parsed = researchRecordSchema.safeParse(value);
+  if (!parsed.success) {
+    return {
+      kind: "corrupt",
+      problem: parsed.error.issues.map((issue3) => `${issue3.path.join(".") || "(root)"}: ${issue3.message}`).join("; "),
+      file
+    };
+  }
+  return { kind: "ok", record: parsed.data };
+}
+function writeResearchRecord(workspace, value) {
+  const record32 = researchRecordSchema.parse(value);
+  const file = researchRecordFile(workspace, record32.researchId);
+  (0, import_fs27.mkdirSync)(import_path29.default.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(record32, null, 2)}
+`);
+  return record32;
+}
+function listResearchRecords(workspace) {
+  const dir = researchRecordsDir(workspace);
+  if (!(0, import_fs27.existsSync)(dir)) return { records: [], diagnostics: [] };
+  const records = [];
+  const diagnostics = [];
+  for (const entry of (0, import_fs27.readdirSync)(dir, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
+    const researchId = entry.name.slice(0, -5);
+    if (!ID_PATTERN9.test(researchId)) continue;
+    const read = readResearchRecord(workspace, researchId);
+    if (read.kind === "ok") records.push(read.record);
+    else if (read.kind !== "missing") {
+      diagnostics.push({
+        severity: "warning",
+        code: read.kind === "unsupported-version" ? "RESEARCH_UNSUPPORTED_VERSION" : "RESEARCH_RECORD_UNREADABLE",
+        message: read.kind === "unsupported-version" ? `Research record ${researchId} uses schema ${read.version}; ignoring it.` : `Research record ${researchId} is corrupt; ignoring it and preserving the file.`,
+        file: read.file
+      });
+    }
+  }
+  records.sort(
+    (left, right) => right.createdAt.localeCompare(left.createdAt, "en") || right.researchId.localeCompare(left.researchId, "en")
+  );
+  return { records, diagnostics };
+}
+function normalizeText(value) {
+  return value.trim().replace(/\s+/g, " ").toLocaleLowerCase("en-US");
+}
+function normalizedRequest(request) {
+  const normalize22 = (values) => values.map(normalizeText);
+  return {
+    depth: request.depth,
+    question: normalizeText(request.question),
+    context: {
+      knownFacts: normalize22(request.context.knownFacts),
+      observedFailures: normalize22(request.context.observedFailures),
+      failedStrategies: normalize22(request.context.failedStrategies),
+      constraints: normalize22(request.context.constraints),
+      contextRefs: normalize22(request.context.contextRefs)
+    },
+    expectedOutput: { questionsToAnswer: normalize22(request.expectedOutput.questionsToAnswer) },
+    sourcePolicy: request.sourcePolicy
+  };
+}
+function researchRequestHash(request) {
+  return sha256Hex(JSON.stringify(normalizedRequest(request)));
+}
+function normalizedQuestionHash(question) {
+  return sha256Hex(normalizeText(question));
+}
+function findResearchReuse(records, request) {
+  const reusable = records.filter(
+    (record32) => (record32.status === "COMPLETED" || record32.status === "INCONCLUSIVE") && record32.report !== void 0
+  );
+  const requestHash = researchRequestHash(request);
+  const exact = reusable.find((record32) => record32.requestHash === requestHash);
+  const tags = new Set(request.topicTags.map((tag) => tag.toLocaleLowerCase("en-US")));
+  const candidates = tags.size === 0 ? [] : reusable.filter(
+    (record32) => record32.requestHash !== requestHash && record32.topicTags.some((tag) => tags.has(tag.toLocaleLowerCase("en-US")))
+  );
+  return { ...exact !== void 0 ? { exact } : {}, candidates };
+}
+var payloadSchema = external_exports.object({
+  status: external_exports.enum(["COMPLETED", "INCONCLUSIVE"]),
+  findings: external_exports.array(researchFindingSchema).max(64),
+  sourceRefs: external_exports.array(researchSourceRefSchema).max(64),
+  recommendations: external_exports.array(external_exports.string().trim().min(1).max(2e3)).max(32),
+  unresolved: external_exports.array(external_exports.string().trim().min(1).max(2e3)).max(32),
+  conflicts: external_exports.array(external_exports.string().trim().min(1).max(2e3)).max(32),
+  usage: researchUsageSchema.optional()
+}).strict();
+var DeerFlowStreamError = class extends Error {
+  kind;
+  constructor(kind, message2) {
+    super(message2);
+    this.name = "DeerFlowStreamError";
+    this.kind = kind;
+  }
+};
+function boundedFailure(classification, failureSource, message2, retryable) {
+  return {
+    classification,
+    failureSource,
+    message: message2.slice(0, 2e3),
+    retryable
+  };
+}
+function textFromContent(value) {
+  if (typeof value === "string") return value;
+  if (!Array.isArray(value)) return void 0;
+  const parts = [];
+  for (const part of value) {
+    if (typeof part === "string") parts.push(part);
+    else if (part !== null && typeof part === "object") {
+      const object3 = part;
+      if (typeof object3.text === "string") parts.push(object3.text);
+      else if (typeof object3.content === "string") parts.push(object3.content);
+    }
+  }
+  return parts.length > 0 ? parts.join("") : void 0;
+}
+function assistantTextFromMessage(value) {
+  if (value === null || typeof value !== "object") return void 0;
+  const message2 = value;
+  const role = message2.role ?? message2.type;
+  if (role !== "assistant" && role !== "ai" && role !== "AIMessage" && role !== "AIMessageChunk" && role !== void 0) {
+    return void 0;
+  }
+  return textFromContent(message2.content) ?? (typeof message2.text === "string" ? message2.text : void 0);
+}
+function assistantTextFromEvent(event) {
+  if (event.event === "values") {
+    if (event.data === null || typeof event.data !== "object") return void 0;
+    const messages = event.data.messages;
+    if (!Array.isArray(messages)) return void 0;
+    for (let index = messages.length - 1; index >= 0; index -= 1) {
+      const text93 = assistantTextFromMessage(messages[index]);
+      if (text93 !== void 0) return text93;
+    }
+    return void 0;
+  }
+  if (event.event === "messages" || event.event === "messages-tuple") {
+    if (Array.isArray(event.data)) return assistantTextFromMessage(event.data[0]);
+    return assistantTextFromMessage(event.data);
+  }
+  return void 0;
+}
+function usageFromEvent(value) {
+  if (value === null || typeof value !== "object") return void 0;
+  const root = value;
+  const candidate = root["usage"] ?? root["usage_metadata"] ?? (root["response_metadata"] !== null && typeof root["response_metadata"] === "object" ? root["response_metadata"]["usage"] : void 0);
+  if (candidate === null || typeof candidate !== "object") return void 0;
+  const object3 = candidate;
+  const number3 = (...keys) => {
+    for (const key of keys) {
+      const found = object3[key];
+      if (typeof found === "number" && Number.isFinite(found) && found >= 0) return found;
+    }
+    return void 0;
+  };
+  const usage = {
+    ...number3("inputTokens", "input_tokens", "prompt_tokens") !== void 0 ? { inputTokens: Math.trunc(number3("inputTokens", "input_tokens", "prompt_tokens")) } : {},
+    ...number3("outputTokens", "output_tokens", "completion_tokens") !== void 0 ? { outputTokens: Math.trunc(number3("outputTokens", "output_tokens", "completion_tokens")) } : {},
+    ...number3("totalTokens", "total_tokens") !== void 0 ? { totalTokens: Math.trunc(number3("totalTokens", "total_tokens")) } : {},
+    ...number3("cost", "cost_usd", "providerReportedCost") !== void 0 ? { providerReportedCost: number3("cost", "cost_usd", "providerReportedCost") } : {},
+    ...number3("subagentCount", "subagent_count") !== void 0 ? { subagentCount: Math.trunc(number3("subagentCount", "subagent_count")) } : {}
+  };
+  const parsed = researchUsageSchema.safeParse(usage);
+  return parsed.success ? parsed.data : void 0;
+}
+function parseFrame(frame) {
+  let event = "message";
+  const data = [];
+  let meaningful = false;
+  for (const line of frame.split("\n")) {
+    if (line === "" || line.startsWith(":")) continue;
+    const colon = line.indexOf(":");
+    const field = colon === -1 ? line : line.slice(0, colon);
+    let value = colon === -1 ? "" : line.slice(colon + 1);
+    if (value.startsWith(" ")) value = value.slice(1);
+    if (field === "event") {
+      event = value;
+      meaningful = true;
+    } else if (field === "data") {
+      data.push(value);
+      meaningful = true;
+    }
+  }
+  if (!meaningful) return void 0;
+  if (data.length === 0) {
+    throw new DeerFlowStreamError("MALFORMED_RESPONSE", `SSE event "${event}" has no data field`);
+  }
+  const raw = data.join("\n");
+  if (raw === "[DONE]") return { event: "end", data: {} };
+  try {
+    return { event, data: JSON.parse(raw) };
+  } catch {
+    throw new DeerFlowStreamError("MALFORMED_RESPONSE", `SSE event "${event}" contains malformed JSON`);
+  }
+}
+async function readBoundedDeerFlowSse(response, limits) {
+  const reader = response.body?.getReader();
+  if (reader === void 0) {
+    throw new DeerFlowStreamError("CLOSED_EARLY", "DeerFlow returned no SSE response body");
+  }
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let total = 0;
+  let ended = false;
+  let lastValuesText;
+  const messageChunks = [];
+  let usage;
+  let providerRefs;
+  const normalizeNewlines = (value, final = false) => {
+    const trailingCr = !final && value.endsWith("\r");
+    const complete = trailingCr ? value.slice(0, -1) : value;
+    return complete.replace(/\r\n/g, "\n").replace(/\r/g, "\n") + (trailingCr ? "\r" : "");
+  };
+  const accept = (frame) => {
+    if (Buffer.byteLength(frame, "utf8") > limits.maxEventBytes) {
+      throw new DeerFlowStreamError("RESPONSE_TOO_LARGE", "a DeerFlow SSE event exceeded the configured byte limit");
+    }
+    const event = parseFrame(frame);
+    if (event === void 0) return;
+    if (event.event === "error" || event.event.endsWith(".error") || event.event === "gap") {
+      throw new DeerFlowStreamError("PROVIDER_ERROR", `DeerFlow emitted a ${event.event} event`);
+    }
+    if (event.event === "end") ended = true;
+    if (event.event === "metadata" && event.data !== null && typeof event.data === "object") {
+      const metadata = event.data;
+      const safe = (value) => typeof value === "string" && /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(value) ? value : void 0;
+      const threadId = safe(metadata["thread_id"] ?? metadata["threadId"]);
+      const runId = safe(metadata["run_id"] ?? metadata["runId"]);
+      if (threadId !== void 0 || runId !== void 0) {
+        providerRefs = {
+          ...providerRefs ?? {},
+          ...threadId !== void 0 ? { threadId } : {},
+          ...runId !== void 0 ? { runId } : {}
+        };
+      }
+    }
+    const found = assistantTextFromEvent(event);
+    if (found !== void 0) {
+      if (event.event === "values") lastValuesText = found;
+      else messageChunks.push(found);
+    }
+    usage = usageFromEvent(event.data) ?? usage;
+  };
+  try {
+    for (; ; ) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > limits.maxTotalResponseBytes) {
+        await reader.cancel();
+        throw new DeerFlowStreamError("RESPONSE_TOO_LARGE", "the DeerFlow SSE stream exceeded the configured total byte limit");
+      }
+      buffer += decoder.decode(value, { stream: true });
+      buffer = normalizeNewlines(buffer);
+      let boundary = buffer.indexOf("\n\n");
+      while (boundary !== -1) {
+        const frame = buffer.slice(0, boundary);
+        buffer = buffer.slice(boundary + 2);
+        accept(frame);
+        boundary = buffer.indexOf("\n\n");
+      }
+      if (Buffer.byteLength(buffer, "utf8") > limits.maxEventBytes) {
+        await reader.cancel();
+        throw new DeerFlowStreamError("RESPONSE_TOO_LARGE", "a DeerFlow SSE event exceeded the configured byte limit");
+      }
+    }
+    buffer = normalizeNewlines(buffer + decoder.decode(), true);
+    if (buffer.trim() !== "") accept(buffer);
+  } finally {
+    reader.releaseLock();
+  }
+  if (!ended) throw new DeerFlowStreamError("CLOSED_EARLY", "the DeerFlow stream closed before its end event");
+  const assistantText = lastValuesText ?? (messageChunks.length > 0 ? messageChunks.join("") : void 0);
+  return {
+    ended,
+    ...assistantText !== void 0 ? { assistantText } : {},
+    ...usage !== void 0 ? { usage } : {},
+    ...providerRefs !== void 0 ? { providerRefs } : {}
+  };
+}
+function parseDeerFlowContentLocation(value) {
+  if (value === null || value.length > 1024) return void 0;
+  if (/^[A-Za-z][A-Za-z0-9+.-]*:/.test(value) && !/^https?:/i.test(value)) return void 0;
+  const match = /\/threads\/([^/?#]+)\/runs\/([^/?#]+)/.exec(value);
+  if (match?.[1] === void 0 || match[2] === void 0) return void 0;
+  const safe = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
+  let threadId;
+  let runId;
+  try {
+    threadId = decodeURIComponent(match[1]);
+    runId = decodeURIComponent(match[2]);
+  } catch {
+    return void 0;
+  }
+  return safe.test(threadId) && safe.test(runId) ? { threadId, runId } : void 0;
+}
+function promptFor(request) {
+  return [
+    "You are answering a bounded SpecBridge research request. Research is evidence, never product or completion authority.",
+    "Use external sources only as needed. Do not expose chain-of-thought. Return ONLY one JSON object with this exact shape:",
+    '{"status":"COMPLETED|INCONCLUSIVE","findings":[{"findingId":"finding-1","statement":"...","kind":"DOMAIN_FACT|ENGINEERING_CONSTRAINT|COMPATIBILITY_FACT|PRODUCT_OPTION|UNRESOLVED_CONFLICT","confidence":"LOW|MEDIUM|HIGH","sourceRefs":["source-1"]}],"sourceRefs":[{"refId":"source-1","url":"https://...","title":"...","providerSourceId":"optional","attribution":"short"}],"recommendations":["..."],"unresolved":["..."],"conflicts":["..."]}',
+    "Keep every field bounded. A recommendation is not a requirement. Preserve source disagreement as UNRESOLVED_CONFLICT.",
+    `REQUEST=${JSON.stringify(request)}`
+  ].join("\n");
+}
+function parsePayload(text93) {
+  const trimmed = text93.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  const start = trimmed.indexOf("{");
+  const end = trimmed.lastIndexOf("}");
+  if (start === -1 || end < start) return void 0;
+  try {
+    const parsed = payloadSchema.safeParse(JSON.parse(trimmed.slice(start, end + 1)));
+    return parsed.success ? parsed.data : void 0;
+  } catch {
+    return void 0;
+  }
+}
+async function readSmallText(response, maxBytes) {
+  const reader = response.body?.getReader();
+  if (reader === void 0) {
+    const buffer = Buffer.from(await response.arrayBuffer());
+    return buffer.length <= maxBytes ? buffer.toString("utf8") : void 0;
+  }
+  const chunks = [];
+  let total = 0;
+  try {
+    for (; ; ) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        return void 0;
+      }
+      chunks.push(value);
+    }
+    return Buffer.concat(chunks).toString("utf8");
+  } finally {
+    reader.releaseLock();
+  }
+}
+var DeerFlowResearchBridge = class {
+  config;
+  clock;
+  fetchImpl;
+  environment;
+  constructor(config2, options = {}) {
+    this.config = deerFlowResearchProviderConfigSchema.parse(config2);
+    const safety = validateRunnerBaseUrl(this.config.baseUrl, {
+      allowInsecureHttp: this.config.allowInsecureHttp
+    });
+    if (!safety.ok) throw new Error(`Unsafe DeerFlow base URL: ${safety.problems.join("; ")}`);
+    this.clock = options.clock ?? (() => /* @__PURE__ */ new Date());
+    this.fetchImpl = options.fetch ?? globalThis.fetch;
+    this.environment = options.environment ?? process.env;
+  }
+  providerId() {
+    return "deerflow";
+  }
+  endpoint(relative) {
+    return `${this.config.baseUrl.replace(/\/+$/, "")}${relative}`;
+  }
+  headers() {
+    const name = this.config.internalAuthTokenEnvironmentVariable;
+    if (name === null) return { ok: true, headers: {} };
+    const token = this.environment[name];
+    if (token === void 0 || token.length === 0) {
+      return {
+        ok: false,
+        failure: boundedFailure(
+          "AUTHENTICATION",
+          "AUTHORIZATION",
+          `DeerFlow internal authentication is configured through environment variable ${name}, but that variable is not set.`,
+          false
+        )
+      };
+    }
+    return {
+      ok: true,
+      headers: {
+        "X-DeerFlow-Internal-Token": token,
+        "X-DeerFlow-Owner-User-Id": this.config.ownerUserId
+      }
+    };
+  }
+  async health(signal) {
+    const checkedAt = this.clock().toISOString();
+    const started = Date.now();
+    const headers = this.headers();
+    if (!headers.ok) {
+      return { provider: "deerflow", status: "AUTH_FAILED", checkedAt, detail: headers.failure.message };
+    }
+    const bounded22 = createBoundedAbort(Math.min(this.config.timeoutMs, 3e4), signal);
+    try {
+      let response;
+      try {
+        response = await this.fetchImpl(this.endpoint("/health"), {
+          method: "GET",
+          headers: headers.headers,
+          redirect: "error",
+          signal: bounded22.signal
+        });
+      } catch {
+        return {
+          provider: "deerflow",
+          status: "UNAVAILABLE",
+          checkedAt,
+          latencyMs: Math.max(0, Date.now() - started),
+          detail: signal?.aborted === true ? "health check cancelled" : "health endpoint could not be reached or timed out"
+        };
+      }
+      if (response.status === 401 || response.status === 403) {
+        return { provider: "deerflow", status: "AUTH_FAILED", checkedAt, latencyMs: Math.max(0, Date.now() - started), detail: `health endpoint answered HTTP ${response.status}` };
+      }
+      if (!response.ok) {
+        return { provider: "deerflow", status: "UNAVAILABLE", checkedAt, latencyMs: Math.max(0, Date.now() - started), detail: `health endpoint answered HTTP ${response.status}` };
+      }
+      const text93 = await readSmallText(response, 32 * 1024);
+      if (text93 === void 0) {
+        return { provider: "deerflow", status: "UNKNOWN", checkedAt, latencyMs: Math.max(0, Date.now() - started), detail: "health response was oversized" };
+      }
+      let value;
+      try {
+        value = JSON.parse(text93);
+      } catch {
+        return { provider: "deerflow", status: "UNKNOWN", checkedAt, latencyMs: Math.max(0, Date.now() - started), detail: "health response was not valid JSON" };
+      }
+      const status = value !== null && typeof value === "object" ? value.status : void 0;
+      if (typeof status !== "string") {
+        return { provider: "deerflow", status: "UNKNOWN", checkedAt, latencyMs: Math.max(0, Date.now() - started), detail: "health response did not contain a status" };
+      }
+      const normalized = status.toLocaleLowerCase("en-US");
+      return {
+        provider: "deerflow",
+        status: normalized === "ok" || normalized === "healthy" ? "HEALTHY" : "DEGRADED",
+        checkedAt,
+        latencyMs: Math.max(0, Date.now() - started),
+        ...normalized === "ok" || normalized === "healthy" ? {} : { detail: `provider reported ${status.slice(0, 100)}` }
+      };
+    } finally {
+      bounded22.release();
+    }
+  }
+  async investigate(raw, signal) {
+    const request = researchRequestSchema.parse(raw);
+    const startedAt = this.clock().toISOString();
+    const headers = this.headers();
+    if (!headers.ok) return { ok: false, failure: headers.failure };
+    const bounded22 = createBoundedAbort(this.config.timeoutMs, signal);
+    let providerRefs;
+    try {
+      let response;
+      try {
+        response = await this.fetchImpl(this.endpoint("/api/langgraph/runs/stream"), {
+          method: "POST",
+          redirect: "error",
+          signal: bounded22.signal,
+          headers: { ...headers.headers, "content-type": "application/json", accept: "text/event-stream" },
+          body: JSON.stringify({
+            assistant_id: "lead_agent",
+            input: { messages: [{ type: "human", content: [{ type: "text", text: promptFor(request) }] }] },
+            stream_mode: ["values", "messages-tuple", "custom"],
+            stream_subgraphs: request.depth === "DEEP",
+            config: { recursion_limit: request.depth === "DEEP" ? 300 : 100 },
+            context: {
+              thinking_enabled: request.depth === "DEEP",
+              is_plan_mode: request.depth === "DEEP",
+              subagent_enabled: request.depth === "DEEP"
+            }
+          })
+        });
+      } catch {
+        if (signal?.aborted === true) {
+          return { ok: false, failure: boundedFailure("CANCELLED", "TRANSIENT", "research was cancelled", false) };
+        }
+        if (bounded22.signal.aborted) {
+          return { ok: false, failure: boundedFailure("TIMEOUT", "PROVIDER", `DeerFlow did not complete within ${this.config.timeoutMs} ms`, true) };
+        }
+        return { ok: false, failure: boundedFailure("NETWORK", "PROVIDER", "DeerFlow could not be reached", true) };
+      }
+      providerRefs = parseDeerFlowContentLocation(response.headers.get("content-location"));
+      if (response.status === 401 || response.status === 403) {
+        return { ok: false, failure: boundedFailure("AUTHENTICATION", "AUTHORIZATION", `DeerFlow refused authentication (HTTP ${response.status})`, false), ...providerRefs !== void 0 ? { providerRefs } : {} };
+      }
+      if (!response.ok) {
+        const classification = response.status >= 500 ? "PROVIDER_UNAVAILABLE" : "MALFORMED_RESPONSE";
+        return { ok: false, failure: boundedFailure(classification, "PROVIDER", `DeerFlow answered HTTP ${response.status}`, response.status >= 500), ...providerRefs !== void 0 ? { providerRefs } : {} };
+      }
+      const contentType = response.headers.get("content-type") ?? "";
+      if (!contentType.toLocaleLowerCase("en-US").includes("text/event-stream")) {
+        return { ok: false, failure: boundedFailure("MALFORMED_RESPONSE", "PROVIDER", "DeerFlow did not return an SSE response", false), ...providerRefs !== void 0 ? { providerRefs } : {} };
+      }
+      let stream;
+      try {
+        stream = await readBoundedDeerFlowSse(response, {
+          maxEventBytes: this.config.maxEventBytes,
+          maxTotalResponseBytes: this.config.maxTotalResponseBytes
+        });
+      } catch (cause) {
+        if (signal?.aborted === true) {
+          return { ok: false, failure: boundedFailure("CANCELLED", "TRANSIENT", "research was cancelled", false), ...providerRefs !== void 0 ? { providerRefs } : {} };
+        }
+        if (bounded22.signal.aborted) {
+          return { ok: false, failure: boundedFailure("TIMEOUT", "PROVIDER", `DeerFlow did not complete within ${this.config.timeoutMs} ms`, true), ...providerRefs !== void 0 ? { providerRefs } : {} };
+        }
+        const message2 = cause instanceof DeerFlowStreamError ? cause.message : "DeerFlow returned an unreadable stream";
+        return { ok: false, failure: boundedFailure("MALFORMED_RESPONSE", "PROVIDER", message2, cause instanceof DeerFlowStreamError && cause.kind === "CLOSED_EARLY"), ...providerRefs !== void 0 ? { providerRefs } : {} };
+      }
+      if (stream.assistantText === void 0) {
+        return { ok: false, failure: boundedFailure("MALFORMED_RESPONSE", "PROVIDER", "DeerFlow completed without a final structured answer", false), ...providerRefs !== void 0 ? { providerRefs } : {} };
+      }
+      const payload = parsePayload(stream.assistantText);
+      if (payload === void 0) {
+        return { ok: false, failure: boundedFailure("MALFORMED_RESPONSE", "PROVIDER", "DeerFlow final output did not match the bounded ResearchReport payload", false), ...providerRefs !== void 0 ? { providerRefs } : {} };
+      }
+      const missingRequiredSources = request.sourcePolicy.requireSources && payload.findings.some((finding) => finding.sourceRefs.length === 0);
+      const completedAt = this.clock().toISOString();
+      const providerUsage = payload.usage ?? stream.usage;
+      providerRefs = providerRefs ?? stream.providerRefs;
+      const parsedReport = researchReportSchema.safeParse({
+        researchId: request.researchId,
+        provider: "deerflow",
+        depth: request.depth,
+        status: missingRequiredSources ? "INCONCLUSIVE" : payload.status,
+        question: request.question,
+        findings: payload.findings,
+        sourceRefs: payload.sourceRefs,
+        recommendations: payload.recommendations,
+        unresolved: [
+          ...payload.unresolved,
+          ...missingRequiredSources ? ["The provider returned no source references although sources were required."] : []
+        ],
+        conflicts: payload.conflicts,
+        classification: [...new Set(payload.findings.map((finding) => finding.kind))].filter(
+          (kind) => RESEARCH_FINDING_KINDS.includes(kind)
+        ),
+        ...providerUsage !== void 0 ? { usage: providerUsage } : {},
+        startedAt,
+        completedAt
+      });
+      if (!parsedReport.success) {
+        return {
+          ok: false,
+          failure: boundedFailure(
+            "MALFORMED_RESPONSE",
+            "PROVIDER",
+            "DeerFlow final output contained inconsistent findings or source references",
+            false
+          ),
+          ...providerRefs !== void 0 ? { providerRefs } : {}
+        };
+      }
+      const report = parsedReport.data;
+      if (report.status === "INCONCLUSIVE") {
+        return {
+          ok: true,
+          report,
+          ...providerRefs !== void 0 ? { providerRefs } : {}
+        };
+      }
+      return { ok: true, report, ...providerRefs !== void 0 ? { providerRefs } : {} };
+    } finally {
+      bounded22.release();
+    }
+  }
+};
+var decisionCountsSchema = external_exports.object(
+  Object.fromEntries(RESEARCH_GATE_DECISIONS.map((decision) => [decision, external_exports.number().int().nonnegative()]))
+);
+var researchTelemetrySchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/).default(RESEARCH_TELEMETRY_SCHEMA_VERSION),
+  gateConsidered: external_exports.number().int().nonnegative(),
+  decisions: decisionCountsSchema,
+  providerCalls: external_exports.number().int().nonnegative(),
+  successfulResearch: external_exports.number().int().nonnegative(),
+  inconclusiveResearch: external_exports.number().int().nonnegative(),
+  failedResearch: external_exports.number().int().nonnegative(),
+  reusedReports: external_exports.number().int().nonnegative(),
+  budgetRefusals: external_exports.number().int().nonnegative(),
+  reportedUsage: external_exports.object({
+    inputTokens: external_exports.number().int().nonnegative(),
+    outputTokens: external_exports.number().int().nonnegative(),
+    totalTokens: external_exports.number().int().nonnegative(),
+    providerReportedCost: external_exports.number().nonnegative(),
+    subagentCount: external_exports.number().int().nonnegative(),
+    reports: external_exports.number().int().nonnegative()
+  }).strict(),
+  totalDurationMs: external_exports.number().int().nonnegative(),
+  updatedAt: external_exports.string().datetime({ offset: true })
+}).strict();
+function zeroDecisionCounts() {
+  return Object.fromEntries(RESEARCH_GATE_DECISIONS.map((decision) => [decision, 0]));
+}
+function emptyResearchTelemetry(now5) {
+  return {
+    schemaVersion: RESEARCH_TELEMETRY_SCHEMA_VERSION,
+    gateConsidered: 0,
+    decisions: zeroDecisionCounts(),
+    providerCalls: 0,
+    successfulResearch: 0,
+    inconclusiveResearch: 0,
+    failedResearch: 0,
+    reusedReports: 0,
+    budgetRefusals: 0,
+    reportedUsage: {
+      inputTokens: 0,
+      outputTokens: 0,
+      totalTokens: 0,
+      providerReportedCost: 0,
+      subagentCount: 0,
+      reports: 0
+    },
+    totalDurationMs: 0,
+    updatedAt: now5.toISOString()
+  };
+}
+function researchTelemetryFile(workspace) {
+  return assertInsideWorkspace(workspace.rootDir, import_path30.default.join(researchRootDir(workspace), "telemetry.json"));
+}
+function readResearchTelemetry(workspace, now5 = /* @__PURE__ */ new Date()) {
+  const file = researchTelemetryFile(workspace);
+  if (!(0, import_fs28.existsSync)(file)) return { telemetry: emptyResearchTelemetry(now5) };
+  try {
+    const parsed = researchTelemetrySchema.safeParse(JSON.parse((0, import_fs28.readFileSync)(file, "utf8")));
+    return parsed.success ? { telemetry: parsed.data } : { telemetry: emptyResearchTelemetry(now5), diagnostic: "research telemetry is schema-invalid" };
+  } catch {
+    return { telemetry: emptyResearchTelemetry(now5), diagnostic: "research telemetry is unreadable" };
+  }
+}
+function writeTelemetry(workspace, value) {
+  const telemetry = researchTelemetrySchema.parse(value);
+  const file = researchTelemetryFile(workspace);
+  (0, import_fs28.mkdirSync)(import_path30.default.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(telemetry, null, 2)}
+`);
+  return telemetry;
+}
+function recordResearchGateTelemetry(workspace, decision, now5) {
+  const current = readResearchTelemetry(workspace, now5).telemetry;
+  return writeTelemetry(workspace, {
+    ...current,
+    gateConsidered: current.gateConsidered + 1,
+    decisions: { ...current.decisions, [decision]: current.decisions[decision] + 1 },
+    updatedAt: now5.toISOString()
+  });
+}
+function addUsage(current, usage) {
+  if (usage === void 0) return current.reportedUsage;
+  return {
+    inputTokens: current.reportedUsage.inputTokens + (usage.inputTokens ?? 0),
+    outputTokens: current.reportedUsage.outputTokens + (usage.outputTokens ?? 0),
+    totalTokens: current.reportedUsage.totalTokens + (usage.totalTokens ?? 0),
+    providerReportedCost: current.reportedUsage.providerReportedCost + (usage.providerReportedCost ?? 0),
+    subagentCount: current.reportedUsage.subagentCount + (usage.subagentCount ?? 0),
+    reports: current.reportedUsage.reports + 1
+  };
+}
+function recordResearchReuseTelemetry(workspace, now5) {
+  const current = readResearchTelemetry(workspace, now5).telemetry;
+  return writeTelemetry(workspace, {
+    ...current,
+    reusedReports: current.reusedReports + 1,
+    updatedAt: now5.toISOString()
+  });
+}
+function recordResearchBudgetRefusalTelemetry(workspace, now5) {
+  const current = readResearchTelemetry(workspace, now5).telemetry;
+  return writeTelemetry(workspace, {
+    ...current,
+    budgetRefusals: current.budgetRefusals + 1,
+    updatedAt: now5.toISOString()
+  });
+}
+function recordResearchProviderTelemetry(workspace, result, durationMs, now5) {
+  const current = readResearchTelemetry(workspace, now5).telemetry;
+  const report = result.ok ? result.report : void 0;
+  return writeTelemetry(workspace, {
+    ...current,
+    providerCalls: current.providerCalls + 1,
+    successfulResearch: current.successfulResearch + (report?.status === "COMPLETED" ? 1 : 0),
+    inconclusiveResearch: current.inconclusiveResearch + (report?.status === "INCONCLUSIVE" ? 1 : 0),
+    failedResearch: current.failedResearch + (result.ok ? 0 : 1),
+    reportedUsage: addUsage(current, report?.usage),
+    totalDurationMs: current.totalDurationMs + Math.max(0, Math.trunc(durationMs)),
+    updatedAt: now5.toISOString()
+  });
+}
+function nowOf(deps) {
+  return deps.clock?.() ?? /* @__PURE__ */ new Date();
+}
+function failure(classification, failureSource, message2, retryable = false) {
+  return { classification, failureSource, message: message2, retryable };
+}
+function selectedBridge(deps) {
+  if (deps.bridge !== void 0) return deps.bridge;
+  if (deps.config.research.provider === "deerflow") {
+    return new DeerFlowResearchBridge(deps.config.research.providers.deerflow, {
+      clock: () => nowOf(deps)
+    });
+  }
+  return void 0;
+}
+function providerEnabled(policy) {
+  if (policy.provider === "deerflow") return policy.providers.deerflow.enabled;
+  return false;
+}
+function countedRecords(records) {
+  return records.filter((record32) => record32.status !== "PENDING");
+}
+function budgetFailure(policy, records, request, scope) {
+  const counted = countedRecords(records);
+  if (scope.operationId !== void 0) {
+    const matching = counted.filter((record32) => record32.scope?.operationId === scope.operationId);
+    const used = matching.filter((record32) => record32.depth === request.depth).length;
+    const limit = request.depth === "QUICK" ? policy.maxQuickPerOperation : policy.maxDeepPerOperation;
+    if (used >= limit) {
+      return failure(
+        "BUDGET_EXHAUSTED",
+        "BUDGET",
+        `${request.depth} research budget exhausted for operation ${scope.operationId} (${used}/${limit}); provider was not called.`
+      );
+    }
+  }
+  if (scope.jobId !== void 0) {
+    const used = counted.filter((record32) => record32.scope?.jobId === scope.jobId).length;
+    if (used >= policy.maxResearchPerJob) {
+      return failure(
+        "BUDGET_EXHAUSTED",
+        "BUDGET",
+        `research budget exhausted for job ${scope.jobId} (${used}/${policy.maxResearchPerJob}); provider was not called.`
+      );
+    }
+  }
+  return void 0;
+}
+function evaluateAndRecordResearchGate(deps, input) {
+  const result = evaluateResearchGate(input);
+  recordResearchGateTelemetry(deps.workspace, result.decision, nowOf(deps));
+  return result;
+}
+async function getResearchProviderHealth(deps, signal) {
+  const now5 = nowOf(deps).toISOString();
+  const policy = deps.config.research;
+  if (!policy.enabled) {
+    return {
+      provider: policy.provider,
+      status: "UNKNOWN",
+      checkedAt: now5,
+      detail: "research is disabled; no provider health request was made"
+    };
+  }
+  if (!providerEnabled(policy)) {
+    return {
+      provider: policy.provider,
+      status: "UNKNOWN",
+      checkedAt: now5,
+      detail: "the selected research provider is disabled; no health request was made"
+    };
+  }
+  const bridge = selectedBridge(deps);
+  if (bridge === void 0 || bridge.providerId() !== policy.provider) {
+    return {
+      provider: policy.provider,
+      status: "UNKNOWN",
+      checkedAt: now5,
+      detail: `no ResearchBridge is registered for provider ${policy.provider}`
+    };
+  }
+  return bridge.health(signal);
+}
+async function startResearch(deps, raw, scope = {}, signal) {
+  const request = researchRequestSchema.parse(raw);
+  const policy = deps.config.research;
+  const existing = listResearchRecords(deps.workspace).records;
+  const reuse = findResearchReuse(existing, request);
+  if (reuse.exact?.report !== void 0) {
+    recordResearchReuseTelemetry(deps.workspace, nowOf(deps));
+    return { ok: true, reused: true, record: reuse.exact, report: reuse.exact.report };
+  }
+  if (existing.some((record4) => record4.researchId === request.researchId)) {
+    return {
+      ok: false,
+      failure: failure(
+        "INVALID_REQUEST",
+        "UNKNOWN",
+        `research id ${request.researchId} already belongs to a different request; choose a new id`
+      )
+    };
+  }
+  if (!policy.enabled) {
+    return { ok: false, failure: failure("DISABLED", "AUTHORIZATION", "research is disabled by configuration") };
+  }
+  if (!providerEnabled(policy)) {
+    return {
+      ok: false,
+      failure: failure("PROVIDER_UNAVAILABLE", "PROVIDER", `research provider ${policy.provider} is disabled`)
+    };
+  }
+  const refused = budgetFailure(policy, existing, request, scope);
+  if (refused !== void 0) {
+    recordResearchBudgetRefusalTelemetry(deps.workspace, nowOf(deps));
+    return { ok: false, failure: refused };
+  }
+  const bridge = selectedBridge(deps);
+  if (bridge === void 0 || bridge.providerId() !== policy.provider) {
+    return {
+      ok: false,
+      failure: failure(
+        "PROVIDER_UNAVAILABLE",
+        "PROVIDER",
+        `no ResearchBridge is registered for provider ${policy.provider}`
+      )
+    };
+  }
+  const createdAt = nowOf(deps).toISOString();
+  const baseRecord = {
+    schemaVersion: RESEARCH_RECORD_SCHEMA_VERSION,
+    researchId: request.researchId,
+    provider: bridge.providerId(),
+    depth: request.depth,
+    status: "RUNNING",
+    requestHash: researchRequestHash(request),
+    normalizedQuestionHash: normalizedQuestionHash(request.question),
+    topicTags: request.topicTags,
+    request,
+    ...scope.operationId !== void 0 || scope.jobId !== void 0 ? {
+      scope: {
+        ...scope.operationId !== void 0 ? { operationId: scope.operationId } : {},
+        ...scope.jobId !== void 0 ? { jobId: scope.jobId } : {}
+      }
+    } : {},
+    createdAt,
+    updatedAt: createdAt
+  };
+  writeResearchRecord(deps.workspace, baseRecord);
+  const started = Date.now();
+  let providerResult = await bridge.investigate(request, signal);
+  if (providerResult.ok) {
+    const checked = researchReportSchema.safeParse(providerResult.report);
+    if (!checked.success || checked.data.researchId !== request.researchId || checked.data.provider !== bridge.providerId() || checked.data.depth !== request.depth || checked.data.question !== request.question) {
+      providerResult = {
+        ok: false,
+        failure: failure(
+          "MALFORMED_RESPONSE",
+          "PROVIDER",
+          "the research provider returned a report with invalid or mismatched control-plane identity"
+        ),
+        ...providerResult.providerRefs !== void 0 ? { providerRefs: providerResult.providerRefs } : {}
+      };
+    }
+  }
+  const completed = nowOf(deps);
+  recordResearchProviderTelemetry(
+    deps.workspace,
+    providerResult,
+    Math.max(0, Date.now() - started),
+    completed
+  );
+  if (!providerResult.ok) {
+    const record4 = writeResearchRecord(deps.workspace, {
+      ...baseRecord,
+      status: providerResult.failure.classification === "CANCELLED" ? "CANCELLED" : "FAILED",
+      failure: providerResult.failure,
+      ...providerResult.providerRefs !== void 0 ? { providerRefs: providerResult.providerRefs } : {},
+      updatedAt: completed.toISOString()
+    });
+    return { ok: false, failure: providerResult.failure, record: record4 };
+  }
+  const record32 = writeResearchRecord(deps.workspace, {
+    ...baseRecord,
+    status: providerResult.report.status === "COMPLETED" ? "COMPLETED" : "INCONCLUSIVE",
+    report: providerResult.report,
+    ...providerResult.providerRefs !== void 0 ? { providerRefs: providerResult.providerRefs } : {},
+    ...providerResult.report.usage !== void 0 ? { usage: providerResult.report.usage } : {},
+    updatedAt: completed.toISOString()
+  });
+  return { ok: true, reused: false, record: record32, report: providerResult.report };
+}
 
 // ../../packages/mcp-server/src/errors.ts
 var SBMCP_CODES = {
@@ -70364,20 +71623,20 @@ function registerRunResources(server, context) {
 }
 
 // ../../packages/drift/dist/index.js
-var import_fs27 = require("fs");
-var import_path29 = __toESM(require("path"), 1);
-var import_picomatch = __toESM(require_picomatch2(), 1);
-var import_fs28 = require("fs");
-var import_path30 = __toESM(require("path"), 1);
 var import_fs29 = require("fs");
 var import_path31 = __toESM(require("path"), 1);
+var import_picomatch = __toESM(require_picomatch2(), 1);
 var import_fs30 = require("fs");
 var import_path32 = __toESM(require("path"), 1);
 var import_fs31 = require("fs");
 var import_path33 = __toESM(require("path"), 1);
 var import_fs32 = require("fs");
-var import_crypto14 = require("crypto");
 var import_path34 = __toESM(require("path"), 1);
+var import_fs33 = require("fs");
+var import_path35 = __toESM(require("path"), 1);
+var import_fs34 = require("fs");
+var import_crypto14 = require("crypto");
+var import_path36 = __toESM(require("path"), 1);
 var taskEvidenceSchema = external_exports.object({
   taskId: external_exports.string().min(1),
   status: external_exports.enum(["recorded", "verified", "rejected"]),
@@ -70478,24 +71737,24 @@ var verificationPolicySchema = external_exports.object({
   }
 });
 function policyDir(workspace) {
-  return import_path29.default.join(workspace.sidecarDir, "policies");
+  return import_path31.default.join(workspace.sidecarDir, "policies");
 }
 function policyPath(workspace, specName) {
-  const resolved2 = import_path29.default.resolve(policyDir(workspace), `${specName}.json`);
-  const relative = import_path29.default.relative(workspace.rootDir, resolved2);
-  if (relative.startsWith("..") || import_path29.default.isAbsolute(relative)) {
-    return import_path29.default.join(policyDir(workspace), "invalid-spec-name.json");
+  const resolved2 = import_path31.default.resolve(policyDir(workspace), `${specName}.json`);
+  const relative = import_path31.default.relative(workspace.rootDir, resolved2);
+  if (relative.startsWith("..") || import_path31.default.isAbsolute(relative)) {
+    return import_path31.default.join(policyDir(workspace), "invalid-spec-name.json");
   }
   return resolved2;
 }
 function readVerificationPolicy(workspace, specName, explicitPath) {
-  const filePath = explicitPath !== void 0 ? import_path29.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
-  if (!(0, import_fs27.existsSync)(filePath)) {
+  const filePath = explicitPath !== void 0 ? import_path31.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
+  if (!(0, import_fs29.existsSync)(filePath)) {
     return { path: filePath, exists: false, diagnostics: [] };
   }
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs27.readFileSync)(filePath, "utf8"));
+    parsed = JSON.parse((0, import_fs29.readFileSync)(filePath, "utf8"));
   } catch (cause) {
     return {
       path: filePath,
@@ -70558,7 +71817,7 @@ function resolveEffectivePolicy(workspace, specName, options = {}) {
   const storedMode = policy?.mode ?? "advisory";
   const strictFromCli = options.strict === true && storedMode !== "strict";
   const mode = options.strict === true ? "strict" : storedMode;
-  const workspaceRelativePolicyPath = import_path29.default.relative(workspace.rootDir, read.path).split(import_path29.default.sep).join("/");
+  const workspaceRelativePolicyPath = import_path31.default.relative(workspace.rootDir, read.path).split(import_path31.default.sep).join("/");
   return {
     specName,
     mode,
@@ -70702,33 +71961,33 @@ function mergeNumstat(files, stats) {
 function sniffBinary(absolutePath) {
   let fd;
   try {
-    fd = (0, import_fs28.openSync)(absolutePath, "r");
+    fd = (0, import_fs30.openSync)(absolutePath, "r");
     const buffer = Buffer.alloc(8e3);
-    const bytesRead = (0, import_fs28.readSync)(fd, buffer, 0, buffer.length, 0);
+    const bytesRead = (0, import_fs30.readSync)(fd, buffer, 0, buffer.length, 0);
     return buffer.subarray(0, bytesRead).includes(0);
   } catch {
     return false;
   } finally {
-    if (fd !== void 0) (0, import_fs28.closeSync)(fd);
+    if (fd !== void 0) (0, import_fs30.closeSync)(fd);
   }
 }
 function flagSymlinkEscapes(repoRoot, files) {
   const resolvedRoot = (() => {
     try {
-      return (0, import_fs28.realpathSync)(repoRoot);
+      return (0, import_fs30.realpathSync)(repoRoot);
     } catch {
-      return import_path30.default.resolve(repoRoot);
+      return import_path32.default.resolve(repoRoot);
     }
   })();
   for (const file of files) {
     if (file.changeType === "deleted") continue;
-    const absolute = import_path30.default.join(repoRoot, file.path.split("/").join(import_path30.default.sep));
+    const absolute = import_path32.default.join(repoRoot, file.path.split("/").join(import_path32.default.sep));
     try {
-      const stats = (0, import_fs28.lstatSync)(absolute);
+      const stats = (0, import_fs30.lstatSync)(absolute);
       if (!stats.isSymbolicLink()) continue;
-      const target = (0, import_fs28.realpathSync)(absolute);
-      const relative = import_path30.default.relative(resolvedRoot, target);
-      if (relative.startsWith("..") || import_path30.default.isAbsolute(relative)) {
+      const target = (0, import_fs30.realpathSync)(absolute);
+      const relative = import_path32.default.relative(resolvedRoot, target);
+      if (relative.startsWith("..") || import_path32.default.isAbsolute(relative)) {
         file.symlinkOutsideRepository = true;
       }
     } catch {
@@ -70856,7 +72115,7 @@ async function resolveComparison(repoRoot, request, options = {}) {
     const known = new Set(files.map((file) => file.path));
     for (const token of untracked.stdout.split("\0")) {
       if (token.length === 0 || known.has(token)) continue;
-      const absolute = import_path30.default.join(repoRoot, token.split("/").join(import_path30.default.sep));
+      const absolute = import_path32.default.join(repoRoot, token.split("/").join(import_path32.default.sep));
       files.push({
         path: token,
         changeType: "untracked",
@@ -70936,9 +72195,9 @@ function specMatchReasons(specName, policy, validEvidencePaths, designPathRefere
 function readSpecEvidenceRecords(workspace, specName) {
   const byTask = /* @__PURE__ */ new Map();
   let invalidRecordCount = 0;
-  const specDir = import_path31.default.join(workspace.sidecarDir, "evidence", specName);
-  if ((0, import_fs29.existsSync)(specDir)) {
-    const taskDirs = (0, import_fs29.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
+  const specDir = import_path33.default.join(workspace.sidecarDir, "evidence", specName);
+  if ((0, import_fs31.existsSync)(specDir)) {
+    const taskDirs = (0, import_fs31.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
     for (const taskDir of taskDirs) {
       const { records, diagnostics } = listTaskEvidence(workspace, specName, taskDir);
       invalidRecordCount += diagnostics.length;
@@ -70985,7 +72244,7 @@ async function buildSpecVerificationContext(options) {
     }
     if (effective("tasks") && tasksStage !== void 0) {
       const planHash2 = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(
-        import_path31.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path31.default.sep))
+        import_path33.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path33.default.sep))
       );
       if (planHash2 !== void 0) approved.tasksPlanHash = planHash2;
     }
@@ -71207,7 +72466,7 @@ async function evaluateGlobalRules(rules, context) {
   return { diagnostics, disabledRules };
 }
 function repoRelative2(workspace, absolutePath) {
-  return import_path32.default.relative(workspace.rootDir, absolutePath).split(import_path32.default.sep).join("/");
+  return import_path34.default.relative(workspace.rootDir, absolutePath).split(import_path34.default.sep).join("/");
 }
 function isSpecInfraPath(candidate) {
   return candidate === ".git" || candidate.startsWith(".git/") || candidate.startsWith(".kiro/") || candidate.startsWith(".specbridge/");
@@ -71888,14 +73147,14 @@ var sbv018 = {
     if (designDocument === void 0) return [];
     const designFile = designDocument.filePath;
     const designRepoPath = designFile !== void 0 ? repoRelative2(context.workspace, designFile) : void 0;
-    const specDir = import_path32.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
+    const specDir = import_path34.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
     return context.traceability.designPathReferences.filter((reference) => !reference.isGlob).filter((reference) => {
-      const fromRoot = import_path32.default.join(
+      const fromRoot = import_path34.default.join(
         context.workspace.rootDir,
-        reference.path.split("/").join(import_path32.default.sep)
+        reference.path.split("/").join(import_path34.default.sep)
       );
-      const fromSpecDir = import_path32.default.join(specDir, reference.path.split("/").join(import_path32.default.sep));
-      return !(0, import_fs30.existsSync)(fromRoot) && !(0, import_fs30.existsSync)(fromSpecDir);
+      const fromSpecDir = import_path34.default.join(specDir, reference.path.split("/").join(import_path34.default.sep));
+      return !(0, import_fs32.existsSync)(fromRoot) && !(0, import_fs32.existsSync)(fromSpecDir);
     }).map(
       (reference) => makeDiagnostic({
         rule: this,
@@ -71974,16 +73233,16 @@ var sbv021 = {
   triggeredWhen: "The requested Git comparison cannot be resolved: a ref does not exist locally, no merge base exists, the clone is shallow, or the directory is not a git work tree.",
   resolution: "Fetch the missing refs yourself (SpecBridge never fetches automatically). In GitHub Actions, check out with actions/checkout@v4 and fetch-depth: 0.",
   evaluate(context, resolved2) {
-    const failure = context.comparison.failure;
-    if (context.comparison.ok || failure === void 0) return [];
+    const failure2 = context.comparison.failure;
+    if (context.comparison.ok || failure2 === void 0) return [];
     return [
       makeDiagnostic({
         rule: this,
         severity: resolved2.severity,
-        message: failure.message,
+        message: failure2.message,
         evidence: {
-          reason: failure.reason,
-          shallowClone: failure.shallow,
+          reason: failure2.reason,
+          shallowClone: failure2.shallow,
           comparison: context.comparison.descriptor.label
         }
       })
@@ -72139,9 +73398,9 @@ function loadSpecMatchingInfo(workspace, folder, options) {
     }
   }
   const evidencePaths = /* @__PURE__ */ new Set();
-  const evidenceDir2 = import_path33.default.join(workspace.sidecarDir, "evidence", folder.name);
-  if ((0, import_fs31.existsSync)(evidenceDir2)) {
-    for (const entry of (0, import_fs32.readdirSync)(evidenceDir2, { withFileTypes: true })) {
+  const evidenceDir2 = import_path35.default.join(workspace.sidecarDir, "evidence", folder.name);
+  if ((0, import_fs33.existsSync)(evidenceDir2)) {
+    for (const entry of (0, import_fs34.readdirSync)(evidenceDir2, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
       const { records } = listTaskEvidence(workspace, folder.name, entry.name);
       for (const record4 of records) {
@@ -72250,8 +73509,8 @@ async function verifySpecs(request) {
   let artifactsDir;
   const ensureArtifactsDir = () => {
     if (artifactsDir === void 0) {
-      const base = request.reportsDir ?? import_path34.default.join(workspace.sidecarDir, "reports");
-      artifactsDir = import_path34.default.join(base, verificationId);
+      const base = request.reportsDir ?? import_path36.default.join(workspace.sidecarDir, "reports");
+      artifactsDir = import_path36.default.join(base, verificationId);
     }
     return artifactsDir;
   };
@@ -72274,8 +73533,8 @@ async function verifySpecs(request) {
       onCommandFinished: (result, stdout, stderr) => {
         const dir = ensureArtifactsDir();
         const safeName = result.name.replace(/[^A-Za-z0-9._-]+/g, "-");
-        writeFileAtomic(import_path34.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
-        writeFileAtomic(import_path34.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
+        writeFileAtomic(import_path36.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
+        writeFileAtomic(import_path36.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
       }
     } : {}
   }) : { mode: "none", commands: [], missingRequired: [] };
@@ -72426,7 +73685,7 @@ async function verifySpecs(request) {
   verificationReportSchema.parse(report);
   if (persistArtifacts && artifactsDir !== void 0) {
     writeFileAtomic(
-      import_path34.default.join(artifactsDir, "report.json"),
+      import_path36.default.join(artifactsDir, "report.json"),
       `${JSON.stringify(report, null, 2)}
 `
     );
@@ -75650,17 +76909,17 @@ var TEMPLATE_PROVIDER_TEMPLATES_DIR = "templates";
 var MAX_TEMPLATE_PROVIDER_PACKS = 20;
 
 // ../../packages/extensions/dist/index.js
-var import_fs36 = require("fs");
-var import_path39 = __toESM(require("path"), 1);
+var import_fs38 = require("fs");
+var import_path41 = __toESM(require("path"), 1);
 
 // ../../packages/templates/dist/index.js
-var import_fs33 = require("fs");
-var import_path35 = __toESM(require("path"), 1);
-var import_fs34 = require("fs");
-var import_path36 = __toESM(require("path"), 1);
 var import_fs35 = require("fs");
 var import_path37 = __toESM(require("path"), 1);
+var import_fs36 = require("fs");
 var import_path38 = __toESM(require("path"), 1);
+var import_fs37 = require("fs");
+var import_path39 = __toESM(require("path"), 1);
+var import_path40 = __toESM(require("path"), 1);
 var SPECBRIDGE_VERSION = "1.0.0";
 var TEMPLATE_ERROR_CODES = {
   SBT001: "template not found",
@@ -76489,11 +77748,11 @@ function readTemplatePackDirectory(dir) {
         { path: currentDir }
       );
     }
-    const entries = (0, import_fs33.readdirSync)(currentDir, { withFileTypes: true }).sort(
+    const entries = (0, import_fs35.readdirSync)(currentDir, { withFileTypes: true }).sort(
       (a2, b) => a2.name.localeCompare(b.name, "en")
     );
     for (const entry of entries) {
-      const entryPath = import_path35.default.join(currentDir, entry.name);
+      const entryPath = import_path37.default.join(currentDir, entry.name);
       const entryRelative = relative === "" ? entry.name : `${relative}/${entry.name}`;
       const stat = statNoFollow(entryPath);
       if (stat.isSymbolicLink()) {
@@ -76545,7 +77804,7 @@ function readTemplatePackDirectory(dir) {
           { path: dir }
         );
       }
-      const buffer = (0, import_fs33.readFileSync)(entryPath);
+      const buffer = (0, import_fs35.readFileSync)(entryPath);
       const text15 = buffer.toString("utf8");
       if (!Buffer.from(text15, "utf8").equals(buffer)) {
         throw new TemplateError(
@@ -76571,7 +77830,7 @@ function readTemplatePackDirectory(dir) {
 }
 function statNoFollow(target) {
   try {
-    return (0, import_fs33.lstatSync)(target);
+    return (0, import_fs35.lstatSync)(target);
   } catch (cause) {
     throw new TemplateError(
       "SBT007",
@@ -76849,7 +78108,7 @@ var BUILTIN_TEMPLATE_PACKS = [
   }
 ];
 function projectTemplatesDir(workspace) {
-  return import_path36.default.join(workspace.sidecarDir, "templates");
+  return import_path38.default.join(workspace.sidecarDir, "templates");
 }
 function builtinEntries(options) {
   const entries = [];
@@ -76874,11 +78133,11 @@ function builtinEntries(options) {
 function projectEntries(workspace, options, diagnostics) {
   if (workspace === void 0) return [];
   const dir = projectTemplatesDir(workspace);
-  if (!(0, import_fs34.existsSync)(dir)) return [];
+  if (!(0, import_fs36.existsSync)(dir)) return [];
   const entries = [];
   let names;
   try {
-    names = (0, import_fs34.readdirSync)(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory() && !entry.isSymbolicLink()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
+    names = (0, import_fs36.readdirSync)(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory() && !entry.isSymbolicLink()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
   } catch (cause) {
     diagnostics.push({
       severity: "warning",
@@ -76888,7 +78147,7 @@ function projectEntries(workspace, options, diagnostics) {
     return [];
   }
   for (const name of names) {
-    const packDir = import_path36.default.join(dir, name);
+    const packDir = import_path38.default.join(dir, name);
     let pack;
     try {
       const data = readTemplatePackDirectory(packDir);
@@ -76898,7 +78157,7 @@ function projectEntries(workspace, options, diagnostics) {
       );
     } catch (cause) {
       const message2 = cause instanceof Error ? cause.message : String(cause);
-      const failure = {
+      const failure2 = {
         code: cause instanceof TemplateError ? cause.templateCode : "SBT025",
         category: "files",
         severity: "error",
@@ -76910,7 +78169,7 @@ function projectEntries(workspace, options, diagnostics) {
         manifestText: void 0,
         readme: void 0,
         files: /* @__PURE__ */ new Map(),
-        issues: [failure],
+        issues: [failure2],
         valid: false
       };
     }
@@ -77131,7 +78390,7 @@ var templateRecordSchema = external_exports.discriminatedUnion("type", [
   templateScaffoldRecordSchema
 ]);
 function templateRecordsPath(workspace) {
-  return import_path37.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
+  return import_path39.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
 }
 var recordCounter = 0;
 function newTemplateRecordId(clock = systemClock) {
@@ -77142,8 +78401,8 @@ function appendTemplateRecord(workspace, record4) {
   const validated = templateRecordSchema.parse(record4);
   const filePath = templateRecordsPath(workspace);
   try {
-    (0, import_fs35.mkdirSync)(workspace.sidecarDir, { recursive: true });
-    (0, import_fs35.appendFileSync)(filePath, `${JSON.stringify(validated)}
+    (0, import_fs37.mkdirSync)(workspace.sidecarDir, { recursive: true });
+    (0, import_fs37.appendFileSync)(filePath, `${JSON.stringify(validated)}
 `, "utf8");
   } catch (cause) {
     throw ioError("append template record to", filePath, cause);
@@ -77310,7 +78569,7 @@ function planTemplateApplication(workspace, catalog, request, clock = systemCloc
   };
 }
 function toPosix2(relative) {
-  return relative.split(import_path38.default.sep).join("/");
+  return relative.split(import_path40.default.sep).join("/");
 }
 function executeTemplateApplication(workspace, plan, clock = systemClock, recordId) {
   let creation;
@@ -77340,8 +78599,8 @@ function executeTemplateApplication(workspace, plan, clock = systemClock, record
     })),
     variableNames: plan.variableNames,
     createdPaths: [
-      ...creation.writtenFiles.map((file) => toPosix2(import_path38.default.relative(workspace.rootDir, file))),
-      toPosix2(import_path38.default.relative(workspace.rootDir, creation.statePath))
+      ...creation.writtenFiles.map((file) => toPosix2(import_path40.default.relative(workspace.rootDir, file))),
+      toPosix2(import_path40.default.relative(workspace.rootDir, creation.statePath))
     ]
   };
   appendTemplateRecord(workspace, record4);
@@ -77350,13 +78609,13 @@ function executeTemplateApplication(workspace, plan, clock = systemClock, record
 
 // ../../packages/extensions/dist/index.js
 var import_crypto16 = require("crypto");
-var import_fs37 = require("fs");
-var import_path40 = __toESM(require("path"), 1);
-var import_child_process = require("child_process");
-var import_fs38 = require("fs");
-var import_path41 = __toESM(require("path"), 1);
 var import_fs39 = require("fs");
 var import_path42 = __toESM(require("path"), 1);
+var import_child_process = require("child_process");
+var import_fs40 = require("fs");
+var import_path43 = __toESM(require("path"), 1);
+var import_fs41 = require("fs");
+var import_path44 = __toESM(require("path"), 1);
 var ExtensionError = class extends SpecBridgeError {
   extensionCode;
   /** Actionable next step, always present. */
@@ -77600,7 +78859,7 @@ var FORBIDDEN_LIFECYCLE_SCRIPTS = [
   "postuninstall"
 ];
 function readExtensionPackageDirectory(dir) {
-  const rootStat = (0, import_fs36.lstatSync)(dir, { throwIfNoEntry: false });
+  const rootStat = (0, import_fs38.lstatSync)(dir, { throwIfNoEntry: false });
   if (rootStat === void 0 || !rootStat.isDirectory()) {
     throw new ExtensionError(
       "SBE008",
@@ -77625,7 +78884,7 @@ function readExtensionPackageDirectory(dir) {
         "Flatten the package layout."
       );
     }
-    for (const entry of (0, import_fs36.readdirSync)(currentDir, { withFileTypes: true })) {
+    for (const entry of (0, import_fs38.readdirSync)(currentDir, { withFileTypes: true })) {
       const relativePath = relativePrefix === "" ? entry.name : `${relativePrefix}/${entry.name}`;
       if (entry.isSymbolicLink()) {
         throw new ExtensionError(
@@ -77651,7 +78910,7 @@ function readExtensionPackageDirectory(dir) {
             "Remove the directory before validating or packaging."
           );
         }
-        walk(import_path39.default.join(currentDir, entry.name), relativePath, depth + 1);
+        walk(import_path41.default.join(currentDir, entry.name), relativePath, depth + 1);
         continue;
       }
       if (!entry.isFile()) {
@@ -77668,7 +78927,7 @@ function readExtensionPackageDirectory(dir) {
           "Reduce the package contents."
         );
       }
-      const content = (0, import_fs36.readFileSync)(import_path39.default.join(currentDir, entry.name));
+      const content = (0, import_fs38.readFileSync)(import_path41.default.join(currentDir, entry.name));
       totalBytes += content.length;
       if (totalBytes > EXTENSION_LIMITS.maxExtractedTotalBytes) {
         throw new ExtensionError(
@@ -77941,10 +79200,10 @@ var EXTENSION_STATE_FILE_NAME = "state.json";
 var EXTENSION_GRANTS_FILE_NAME = "grants.json";
 var EXTENSION_STATE_SCHEMA_VERSION = "1.0.0";
 function extensionsDir(workspace) {
-  return import_path40.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
+  return import_path42.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
 }
 function installedRootDir(workspace) {
-  return import_path40.default.join(extensionsDir(workspace), "installed");
+  return import_path42.default.join(extensionsDir(workspace), "installed");
 }
 function installedVersionDir(workspace, id, version2) {
   if (!validateExtensionId(id).valid || parseSemver(version2) === void 0) {
@@ -77954,7 +79213,7 @@ function installedVersionDir(workspace, id, version2) {
       "Use a valid extension ID and X.Y.Z version."
     );
   }
-  const dir = import_path40.default.join(installedRootDir(workspace), id, version2);
+  const dir = import_path42.default.join(installedRootDir(workspace), id, version2);
   assertInsideWorkspace(workspace.rootDir, dir);
   return dir;
 }
@@ -77998,12 +79257,12 @@ function emptyPermissionGrants() {
   return { schemaVersion: EXTENSION_STATE_SCHEMA_VERSION, grants: {} };
 }
 function readValidatedJson(filePath, schema, empty, label) {
-  if (!(0, import_fs37.existsSync)(filePath)) {
+  if (!(0, import_fs39.existsSync)(filePath)) {
     return { value: empty, diagnostics: [], exists: false };
   }
   let text15;
   try {
-    text15 = (0, import_fs37.readFileSync)(filePath, "utf8");
+    text15 = (0, import_fs39.readFileSync)(filePath, "utf8");
   } catch (cause) {
     return {
       value: empty,
@@ -78053,10 +79312,10 @@ function readValidatedJson(filePath, schema, empty, label) {
   return { value: result.data, diagnostics: [], exists: true };
 }
 function extensionStatePath(workspace) {
-  return import_path40.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
+  return import_path42.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
 }
 function permissionGrantsPath(workspace) {
-  return import_path40.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
+  return import_path42.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
 }
 function readExtensionState(workspace) {
   const { value, diagnostics, exists } = readValidatedJson(
@@ -78237,9 +79496,9 @@ function resolveEntrypoint(installedDir, entrypoint) {
   if (problem !== void 0) {
     throw new ExtensionError("SBE012", `entrypoint "${entrypoint}": ${problem}.`, "Fix the extension manifest.");
   }
-  const resolved2 = import_path41.default.join(installedDir, ...entrypoint.split("/"));
-  const relative = import_path41.default.relative(installedDir, resolved2);
-  if (relative.startsWith("..") || import_path41.default.isAbsolute(relative)) {
+  const resolved2 = import_path43.default.join(installedDir, ...entrypoint.split("/"));
+  const relative = import_path43.default.relative(installedDir, resolved2);
+  if (relative.startsWith("..") || import_path43.default.isAbsolute(relative)) {
     throw new ExtensionError(
       "SBE012",
       `entrypoint "${entrypoint}" escapes the installed extension directory.`,
@@ -78247,9 +79506,9 @@ function resolveEntrypoint(installedDir, entrypoint) {
     );
   }
   let current = installedDir;
-  for (const segment of relative.split(import_path41.default.sep)) {
-    current = import_path41.default.join(current, segment);
-    const stat = (0, import_fs38.lstatSync)(current, { throwIfNoEntry: false });
+  for (const segment of relative.split(import_path43.default.sep)) {
+    current = import_path43.default.join(current, segment);
+    const stat = (0, import_fs40.lstatSync)(current, { throwIfNoEntry: false });
     if (stat === void 0) {
       throw new ExtensionError(
         "SBE012",
@@ -78265,7 +79524,7 @@ function resolveEntrypoint(installedDir, entrypoint) {
       );
     }
   }
-  const finalStat = (0, import_fs38.lstatSync)(resolved2, { throwIfNoEntry: false });
+  const finalStat = (0, import_fs40.lstatSync)(resolved2, { throwIfNoEntry: false });
   if (finalStat === void 0 || !finalStat.isFile()) {
     throw new ExtensionError(
       "SBE012",
@@ -78796,14 +80055,14 @@ async function probeExtensionHandshake(enabled, options = {}) {
 }
 function compatibilityOf(workspace, record4, specbridgeVersion) {
   try {
-    const manifestPath = import_path42.default.join(
+    const manifestPath = import_path44.default.join(
       installedVersionDir(workspace, record4.id, record4.version),
       EXTENSION_MANIFEST_FILE_NAME
     );
-    if (!(0, import_fs39.existsSync)(manifestPath)) {
+    if (!(0, import_fs41.existsSync)(manifestPath)) {
       return { compatibility: "unknown", deprecated: false };
     }
-    const parsed = parseExtensionManifest((0, import_fs39.readFileSync)(manifestPath, "utf8"));
+    const parsed = parseExtensionManifest((0, import_fs41.readFileSync)(manifestPath, "utf8"));
     if (parsed.manifest === void 0) {
       return { compatibility: "unknown", deprecated: false };
     }
@@ -80181,10 +81440,10 @@ function registerTemplateApplyTool(server, context) {
 }
 
 // ../../packages/registry/dist/index.js
-var import_fs40 = require("fs");
-var import_path43 = __toESM(require("path"), 1);
-var import_fs41 = require("fs");
-var import_path44 = __toESM(require("path"), 1);
+var import_fs42 = require("fs");
+var import_path45 = __toESM(require("path"), 1);
+var import_fs43 = require("fs");
+var import_path46 = __toESM(require("path"), 1);
 var BUILTIN_REGISTRY_INDEX_JSON = '{\n  "schemaVersion": "1.0.0",\n  "name": "specbridge-examples",\n  "updatedAt": "2026-01-01T00:00:00.000Z",\n  "extensions": [\n    {\n      "id": "example-analyzer",\n      "displayName": "example-analyzer",\n      "description": "Deterministic spec diagnostics contributed by the example-analyzer analyzer extension.",\n      "kind": "analyzer",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-analyzer-1.0.0.specbridge-extension.zip",\n          "sha256": "e6e0948a315b09e53bd18997dce21888af9adbb3997fbf82955399dcf3252a19",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "analyzer",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-exporter",\n      "displayName": "example-exporter",\n      "description": "Candidate export files produced by the example-exporter exporter extension.",\n      "kind": "exporter",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-exporter-1.0.0.specbridge-extension.zip",\n          "sha256": "68f42755a4e56d0e318012ec8c0e3b093e44429182ca93b02d9fb4ce2ec308a3",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "exporter",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-runner",\n      "displayName": "example-runner",\n      "description": "An out-of-process runner adapter provided by the example-runner extension.",\n      "kind": "runner",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-runner-1.0.0.specbridge-extension.zip",\n          "sha256": "5ef3db937d872bfe09495695e9ecb0a3cf3beaf9e006fabdc2972ef55ace80ef",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": true,\n              "repositoryWrite": true,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "runner",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-template-provider",\n      "displayName": "example-template-provider",\n      "description": "Spec template packs contributed by the example-template-provider template-provider extension.",\n      "kind": "template-provider",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-template-provider-1.0.0.specbridge-extension.zip",\n          "sha256": "f7caa11a13473f0891cc8d237ec4f9f2962a2dd1bd2baba4e9d01570de29044b",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": false,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "template-provider",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-verifier",\n      "displayName": "example-verifier",\n      "description": "Verification diagnostics contributed by the example-verifier verifier extension.",\n      "kind": "verifier",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-verifier-1.0.0.specbridge-extension.zip",\n          "sha256": "d531c9078fcbeef6573a95773eefafd409d798bac1223c83748e0229ae0225bf",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "verifier",\n        "specbridge-extension"\n      ]\n    }\n  ]\n}\n';
 var REGISTRY_ERROR_CODES = {
   SBR001: "registry not found",
@@ -80340,20 +81599,20 @@ var cachedRegistrySchema = external_exports.object({
   index: registryIndexSchema
 }).passthrough();
 function registryCacheDir(workspace) {
-  return import_path43.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
+  return import_path45.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
 }
 function registryCachePath(workspace, name) {
-  const target = import_path43.default.join(registryCacheDir(workspace), `${name}.json`);
+  const target = import_path45.default.join(registryCacheDir(workspace), `${name}.json`);
   assertInsideWorkspace(workspace.rootDir, target);
   return target;
 }
 function readRegistryCache(workspace, name) {
   const filePath = registryCachePath(workspace, name);
-  if (!(0, import_fs40.existsSync)(filePath)) {
+  if (!(0, import_fs42.existsSync)(filePath)) {
     return { diagnostics: [] };
   }
   try {
-    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs40.readFileSync)(filePath, "utf8")));
+    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs42.readFileSync)(filePath, "utf8")));
     if (!parsed.success) {
       return {
         diagnostics: [
@@ -80393,9 +81652,9 @@ function resolveRegistryIndex(workspace, source) {
     return { sourceName: source.name, index: parsed.index, origin: "builtin", diagnostics: [] };
   }
   if (source.type === "local-file") {
-    const filePath = import_path43.default.resolve(workspace.rootDir, source.file);
+    const filePath = import_path45.default.resolve(workspace.rootDir, source.file);
     assertInsideWorkspace(workspace.rootDir, filePath);
-    if (!(0, import_fs40.existsSync)(filePath)) {
+    if (!(0, import_fs42.existsSync)(filePath)) {
       return {
         sourceName: source.name,
         index: { schemaVersion: "1.0.0", name: source.name, updatedAt: "unknown", extensions: [] },
@@ -80410,7 +81669,7 @@ function resolveRegistryIndex(workspace, source) {
         ]
       };
     }
-    const text15 = (0, import_fs40.readFileSync)(filePath, "utf8");
+    const text15 = (0, import_fs42.readFileSync)(filePath, "utf8");
     const parsed = parseRegistryIndex(text15);
     if (parsed.index === void 0) {
       throw new RegistryError(
@@ -80506,7 +81765,7 @@ var registriesConfigSchema = external_exports.object({
   registries: external_exports.array(registrySourceSchema).max(20)
 }).passthrough();
 function registriesConfigPath(workspace) {
-  return import_path44.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
+  return import_path46.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
 }
 function defaultRegistriesConfig() {
   return {
@@ -80516,12 +81775,12 @@ function defaultRegistriesConfig() {
 }
 function readRegistriesConfig(workspace) {
   const filePath = registriesConfigPath(workspace);
-  if (!(0, import_fs41.existsSync)(filePath)) {
+  if (!(0, import_fs43.existsSync)(filePath)) {
     return { config: defaultRegistriesConfig(), diagnostics: [], exists: false };
   }
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs41.readFileSync)(filePath, "utf8"));
+    parsed = JSON.parse((0, import_fs43.readFileSync)(filePath, "utf8"));
   } catch (cause) {
     return {
       config: defaultRegistriesConfig(),
@@ -80965,7 +82224,7 @@ function orchestrationDeps(context, workspace) {
   };
 }
 var orchestrationIdArg = external_exports.string().min(1).max(64).describe("Orchestration run id returned by orchestration_begin");
-var boundedText = (max) => external_exports.string().min(1).max(max);
+var boundedText2 = (max) => external_exports.string().min(1).max(max);
 var stateSummaryShape = {
   orchestrationId: external_exports.string(),
   specName: external_exports.string(),
@@ -81136,7 +82395,7 @@ function registerOrchestrationBeginTool(server, context) {
     },
     inputSchema: {
       specName: specNameArg,
-      goal: boundedText(4e3).describe(
+      goal: boundedText2(4e3).describe(
         "The user's stated goal, verbatim. Recorded as data, never executed as instructions."
       ),
       taskId: external_exports.string().max(64).optional().describe("Target task, when the user named one")
@@ -81199,11 +82458,11 @@ function registerOrchestrationAssessIntentTool(server, context) {
     inputSchema: {
       orchestrationId: orchestrationIdArg,
       outcome: external_exports.enum(INTENT_OUTCOMES).describe("Your assessment; SpecBridge may override it"),
-      summary: boundedText(2e3).describe("One-line restatement of the user's request"),
-      reasons: external_exports.array(boundedText(2e3)).max(20).optional(),
+      summary: boundedText2(2e3).describe("One-line restatement of the user's request"),
+      reasons: external_exports.array(boundedText2(2e3)).max(20).optional(),
       provenance: external_exports.array(
         external_exports.object({
-          fact: boundedText(2e3),
+          fact: boundedText2(2e3),
           source: external_exports.enum(PROVENANCE_KINDS),
           reference: external_exports.string().max(512).optional()
         })
@@ -81266,11 +82525,11 @@ function registerOrchestrationClarifyTool(server, context) {
       orchestrationId: orchestrationIdArg,
       questions: external_exports.array(
         external_exports.object({
-          question: boundedText(1024),
-          whyItMatters: boundedText(1024).describe(
+          question: boundedText2(1024),
+          whyItMatters: boundedText2(1024).describe(
             "What the answer changes about the implementation. Required."
           ),
-          options: external_exports.array(boundedText(512)).max(10).optional(),
+          options: external_exports.array(boundedText2(512)).max(10).optional(),
           relatedTaskId: external_exports.string().max(64).optional()
         })
       ).min(1).max(20)
@@ -81327,9 +82586,9 @@ function registerOrchestrationResolveClarificationTool(server, context) {
       decisions: external_exports.array(
         external_exports.object({
           questionId: external_exports.string().min(1).max(64),
-          answer: boundedText(4096),
+          answer: boundedText2(4096),
           source: external_exports.enum(PROVENANCE_KINDS).describe("Use known-from-user for a direct answer from the user"),
-          impact: boundedText(2e3).optional().describe("What this changes about the build"),
+          impact: boundedText2(2e3).optional().describe("What this changes about the build"),
           supersedes: external_exports.string().max(64).optional()
         })
       ).min(1).max(20)
@@ -81390,26 +82649,26 @@ function registerOrchestrationSubmitPlanTool(server, context) {
     inputSchema: {
       orchestrationId: orchestrationIdArg,
       taskId: external_exports.string().min(1).max(64).describe("The approved task this plan implements"),
-      goal: boundedText(2e3),
+      goal: boundedText2(2e3),
       steps: external_exports.array(
         external_exports.object({
           id: external_exports.string().max(64).optional(),
-          description: boundedText(2e3),
+          description: boundedText2(2e3),
           expectedAreas: external_exports.array(external_exports.string().max(512)).max(20).optional(),
-          expectedEvidence: boundedText(2e3).optional()
+          expectedEvidence: boundedText2(2e3).optional()
         })
       ).min(1).max(200),
-      testStrategy: boundedText(2e3),
-      verificationStrategy: boundedText(2e3),
-      nonGoals: external_exports.array(boundedText(2e3)).max(50).optional(),
-      constraints: external_exports.array(boundedText(2e3)).max(50).optional(),
-      relevantEvidence: external_exports.array(boundedText(2e3)).max(50).optional(),
-      assumptions: external_exports.array(boundedText(2e3)).max(50).optional().describe("Labelled assumptions. Planning information, never presented as facts."),
-      openQuestions: external_exports.array(boundedText(2e3)).max(50).optional(),
+      testStrategy: boundedText2(2e3),
+      verificationStrategy: boundedText2(2e3),
+      nonGoals: external_exports.array(boundedText2(2e3)).max(50).optional(),
+      constraints: external_exports.array(boundedText2(2e3)).max(50).optional(),
+      relevantEvidence: external_exports.array(boundedText2(2e3)).max(50).optional(),
+      assumptions: external_exports.array(boundedText2(2e3)).max(50).optional().describe("Labelled assumptions. Planning information, never presented as facts."),
+      openQuestions: external_exports.array(boundedText2(2e3)).max(50).optional(),
       expectedAreas: external_exports.array(external_exports.string().max(512)).max(50).optional().describe("Expected implementation areas. Planning information, not a prediction of fact."),
-      rollbackConsiderations: boundedText(2e3).optional(),
-      replanTriggers: external_exports.array(boundedText(2e3)).max(50).optional(),
-      replanReason: boundedText(2e3).optional().describe("Required in spirit when replacing a plan")
+      rollbackConsiderations: boundedText2(2e3).optional(),
+      replanTriggers: external_exports.array(boundedText2(2e3)).max(50).optional(),
+      replanReason: boundedText2(2e3).optional().describe("Required in spirit when replacing a plan")
     },
     outputSchema: {
       ...stateSummaryShape,
@@ -81499,7 +82758,7 @@ function registerOrchestrationReviewPlanTool(server, context) {
       orchestrationId: orchestrationIdArg,
       planHash: external_exports.string().min(1).max(64).describe("Exact planHash from orchestration_submit_plan"),
       decision: external_exports.enum(["approved", "rejected"]).describe("The user's decision, not yours"),
-      note: boundedText(2e3).optional()
+      note: boundedText2(2e3).optional()
     },
     outputSchema: { ...stateSummaryShape, decision: external_exports.string(), planRevision: external_exports.number().int() },
     handler: async (args) => context.withWriteLock(async () => {
@@ -81536,15 +82795,15 @@ function registerOrchestrationRecordActionTool(server, context) {
     inputSchema: {
       orchestrationId: orchestrationIdArg,
       action: external_exports.enum(ACTION_CATEGORIES),
-      target: boundedText(512).describe("What the action targeted: a path, a verifier, a step"),
+      target: boundedText2(512).describe("What the action targeted: a path, a verifier, a step"),
       result: external_exports.enum(OBSERVATION_RESULTS),
       planStepId: external_exports.string().max(64).optional(),
-      expectedEvidence: boundedText(2e3).optional(),
+      expectedEvidence: boundedText2(2e3).optional(),
       changedFiles: external_exports.array(external_exports.object({ path: external_exports.string().max(1024), contentHash: external_exports.string().max(128).optional() })).max(500).optional().describe("Observed changes. Claims: the completion gate re-derives them from Git."),
       failure: external_exports.object({
         category: external_exports.enum(FAILURE_CATEGORIES),
-        message: boundedText(2e3),
-        source: boundedText(512).describe("Verifier name, tool, or step that failed"),
+        message: boundedText2(2e3),
+        source: boundedText2(512).describe("Verifier name, tool, or step that failed"),
         exitCode: external_exports.number().int().optional(),
         output: external_exports.string().max(16384).optional().describe("Normalized before fingerprinting")
       }).optional(),
@@ -81614,9 +82873,9 @@ function registerOrchestrationCheckpointTool(server, context) {
     },
     inputSchema: {
       orchestrationId: orchestrationIdArg,
-      nextAction: boundedText(2e3).describe("The exact next safe action, in one line"),
-      observations: external_exports.array(boundedText(2e3)).max(50).optional(),
-      latestVerifier: boundedText(2e3).optional()
+      nextAction: boundedText2(2e3).describe("The exact next safe action, in one line"),
+      observations: external_exports.array(boundedText2(2e3)).max(50).optional(),
+      latestVerifier: boundedText2(2e3).optional()
     },
     outputSchema: {
       orchestrationId: external_exports.string(),
@@ -81664,7 +82923,7 @@ function registerOrchestrationFinalizeTool(server, context) {
     inputSchema: {
       orchestrationId: orchestrationIdArg,
       outcome: external_exports.enum(["completed", "aborted", "cancelled"]),
-      reason: boundedText(2e3),
+      reason: boundedText2(2e3),
       evidenceStatus: external_exports.string().max(64).optional().describe("The evidenceStatus task_complete actually returned. Required for completion."),
       interactiveRunId: external_exports.string().max(64).optional()
     },
@@ -82430,14 +83689,14 @@ function registerContractChangeRequestTool(server, context) {
 
 // ../../packages/intake/dist/index.js
 var import_crypto17 = require("crypto");
-var import_fs43 = require("fs");
-var import_path46 = __toESM(require("path"), 1);
-var import_fs44 = require("fs");
-var import_path47 = __toESM(require("path"), 1);
+var import_fs45 = require("fs");
+var import_path48 = __toESM(require("path"), 1);
+var import_fs46 = require("fs");
+var import_path49 = __toESM(require("path"), 1);
 
 // ../../packages/autonomy/dist/index.js
-var import_fs42 = require("fs");
-var import_path45 = __toESM(require("path"), 1);
+var import_fs44 = require("fs");
+var import_path47 = __toESM(require("path"), 1);
 var SEAL_STATUSES = [
   /** Drafted from mission state; not yet authorized by a human. */
   "DRAFT",
@@ -82844,26 +84103,26 @@ var CERTIFICATION_VERDICTS = ["CERTIFIED", "NOT_CERTIFIED", "INCOMPLETE"];
 function autonomyDir(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path45.default.join(workspace.rootDir, ".specbridge", "autonomy")
+    import_path47.default.join(workspace.rootDir, ".specbridge", "autonomy")
   );
 }
 function autonomyPath(workspace, ...segments) {
-  return assertInsideWorkspace(workspace.rootDir, import_path45.default.join(autonomyDir(workspace), ...segments));
+  return assertInsideWorkspace(workspace.rootDir, import_path47.default.join(autonomyDir(workspace), ...segments));
 }
 function readJsonRecord(file, parse3) {
-  if (!(0, import_fs42.existsSync)(file)) return void 0;
+  if (!(0, import_fs44.existsSync)(file)) return void 0;
   try {
-    return parse3(JSON.parse((0, import_fs42.readFileSync)(file, "utf8")));
+    return parse3(JSON.parse((0, import_fs44.readFileSync)(file, "utf8")));
   } catch {
     return void 0;
   }
 }
 function listJsonRecords(dir, parse3) {
-  if (!(0, import_fs42.existsSync)(dir)) return [];
+  if (!(0, import_fs44.existsSync)(dir)) return [];
   const out = [];
-  for (const entry2 of (0, import_fs42.readdirSync)(dir).sort()) {
+  for (const entry2 of (0, import_fs44.readdirSync)(dir).sort()) {
     if (!entry2.endsWith(".json")) continue;
-    const value = readJsonRecord(import_path45.default.join(dir, entry2), parse3);
+    const value = readJsonRecord(import_path47.default.join(dir, entry2), parse3);
     if (value !== void 0) out.push(value);
   }
   return out;
@@ -83996,15 +85255,15 @@ var certificationRunSchema = external_exports.object({
 }).passthrough();
 
 // ../../packages/intake/dist/index.js
-var import_fs45 = require("fs");
-var import_path48 = __toESM(require("path"), 1);
-var import_path49 = __toESM(require("path"), 1);
-var import_fs46 = require("fs");
-var import_path50 = __toESM(require("path"), 1);
 var import_fs47 = require("fs");
+var import_path50 = __toESM(require("path"), 1);
 var import_path51 = __toESM(require("path"), 1);
 var import_fs48 = require("fs");
 var import_path52 = __toESM(require("path"), 1);
+var import_fs49 = require("fs");
+var import_path53 = __toESM(require("path"), 1);
+var import_fs50 = require("fs");
+var import_path54 = __toESM(require("path"), 1);
 var INTAKE_STATUSES = [
   /** The source specification is ingested; discovery has not run. */
   "INGESTED",
@@ -84716,41 +85975,41 @@ function assertIntakeId(id) {
 function intakeRootDir(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path46.default.join(workspace.rootDir, ".specbridge", INTAKE_DIR_NAME)
+    import_path48.default.join(workspace.rootDir, ".specbridge", INTAKE_DIR_NAME)
   );
 }
 function intakeDir(workspace, intakeId) {
   assertIntakeId(intakeId);
-  return assertInsideWorkspace(workspace.rootDir, import_path46.default.join(intakeRootDir(workspace), intakeId));
+  return assertInsideWorkspace(workspace.rootDir, import_path48.default.join(intakeRootDir(workspace), intakeId));
 }
 function intakePath(workspace, intakeId, ...segments) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path46.default.join(intakeDir(workspace, intakeId), ...segments)
+    import_path48.default.join(intakeDir(workspace, intakeId), ...segments)
   );
 }
 function writeJson(file, value) {
-  (0, import_fs43.mkdirSync)(import_path46.default.dirname(file), { recursive: true });
+  (0, import_fs45.mkdirSync)(import_path48.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(value, null, 2)}
 `);
 }
 function readJson2(file, parse3) {
-  if (!(0, import_fs43.existsSync)(file)) return void 0;
+  if (!(0, import_fs45.existsSync)(file)) return void 0;
   try {
-    return parse3(JSON.parse((0, import_fs43.readFileSync)(file, "utf8")));
+    return parse3(JSON.parse((0, import_fs45.readFileSync)(file, "utf8")));
   } catch {
     return void 0;
   }
 }
 function appendJsonl2(file, value) {
-  (0, import_fs43.mkdirSync)(import_path46.default.dirname(file), { recursive: true });
-  (0, import_fs43.appendFileSync)(file, `${JSON.stringify(value)}
+  (0, import_fs45.mkdirSync)(import_path48.default.dirname(file), { recursive: true });
+  (0, import_fs45.appendFileSync)(file, `${JSON.stringify(value)}
 `, "utf8");
 }
 function readFolded(file, key, parse3) {
-  if (!(0, import_fs43.existsSync)(file)) return [];
+  if (!(0, import_fs45.existsSync)(file)) return [];
   const folded = /* @__PURE__ */ new Map();
-  for (const line of (0, import_fs43.readFileSync)(file, "utf8").split("\n")) {
+  for (const line of (0, import_fs45.readFileSync)(file, "utf8").split("\n")) {
     if (line.trim().length === 0) continue;
     try {
       const value = parse3(JSON.parse(line));
@@ -84783,16 +86042,16 @@ function writeIntakeState(workspace, state) {
 }
 function listIntakes(workspace) {
   const root = intakeRootDir(workspace);
-  if (!(0, import_fs43.existsSync)(root)) return { intakes: [], diagnostics: [] };
+  if (!(0, import_fs45.existsSync)(root)) return { intakes: [], diagnostics: [] };
   const intakes = [];
   const diagnostics = [];
-  for (const entry of (0, import_fs43.readdirSync)(root, { withFileTypes: true })) {
+  for (const entry of (0, import_fs45.readdirSync)(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
     if (!ID_PATTERN4.test(entry.name)) continue;
-    const file = import_path46.default.join(root, entry.name, "intake.json");
-    if (!(0, import_fs43.existsSync)(file)) continue;
+    const file = import_path48.default.join(root, entry.name, "intake.json");
+    if (!(0, import_fs45.existsSync)(file)) continue;
     try {
-      intakes.push(specIntakeStateSchema.parse(JSON.parse((0, import_fs43.readFileSync)(file, "utf8"))));
+      intakes.push(specIntakeStateSchema.parse(JSON.parse((0, import_fs45.readFileSync)(file, "utf8"))));
     } catch (cause) {
       diagnostics.push({
         intakeId: entry.name,
@@ -84822,8 +86081,8 @@ function sourceFile(workspace, intakeId, contentHash) {
 }
 function storeSourceText(workspace, intakeId, contentHash, content) {
   const file = sourceFile(workspace, intakeId, contentHash);
-  if (!(0, import_fs43.existsSync)(file)) {
-    (0, import_fs43.mkdirSync)(import_path46.default.dirname(file), { recursive: true });
+  if (!(0, import_fs45.existsSync)(file)) {
+    (0, import_fs45.mkdirSync)(import_path48.default.dirname(file), { recursive: true });
     writeFileAtomic(file, content);
   }
   return file;
@@ -84915,7 +86174,7 @@ function appendIntakeEvent(workspace, intakeId, event) {
 function baselineFile(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path46.default.join(intakeRootDir(workspace), "baseline.json")
+    import_path48.default.join(intakeRootDir(workspace), "baseline.json")
   );
 }
 function readProductBaseline(workspace) {
@@ -85525,7 +86784,7 @@ var BUILD_MARKERS = [
 ];
 function detectBuildSystem(rootDir) {
   for (const marker of BUILD_MARKERS) {
-    if ((0, import_fs44.existsSync)(import_path47.default.join(rootDir, marker.file))) return marker.system;
+    if ((0, import_fs46.existsSync)(import_path49.default.join(rootDir, marker.file))) return marker.system;
   }
   return null;
 }
@@ -85562,33 +86821,33 @@ var PUBLIC_INTERFACE_PATTERNS = [
 var TEST_DIR_PATTERN = /^(tests?|spec|specs|__tests__|it|integration-tests?|e2e)$/i;
 function readGitHead(rootDir) {
   try {
-    const dotGit = import_path47.default.join(rootDir, ".git");
-    if (!(0, import_fs44.existsSync)(dotGit)) return null;
+    const dotGit = import_path49.default.join(rootDir, ".git");
+    if (!(0, import_fs46.existsSync)(dotGit)) return null;
     let gitDir = dotGit;
-    if ((0, import_fs44.statSync)(dotGit).isFile()) {
-      const pointer = (0, import_fs44.readFileSync)(dotGit, "utf8").trim();
+    if ((0, import_fs46.statSync)(dotGit).isFile()) {
+      const pointer = (0, import_fs46.readFileSync)(dotGit, "utf8").trim();
       const match = /^gitdir:\s*(.+)$/.exec(pointer);
       if (match === null) return null;
       const target = match[1] ?? "";
-      gitDir = import_path47.default.isAbsolute(target) ? target : import_path47.default.resolve(rootDir, target);
+      gitDir = import_path49.default.isAbsolute(target) ? target : import_path49.default.resolve(rootDir, target);
     }
-    const headFile = import_path47.default.join(gitDir, "HEAD");
-    if (!(0, import_fs44.existsSync)(headFile)) return null;
-    const head = (0, import_fs44.readFileSync)(headFile, "utf8").trim();
+    const headFile = import_path49.default.join(gitDir, "HEAD");
+    if (!(0, import_fs46.existsSync)(headFile)) return null;
+    const head = (0, import_fs46.readFileSync)(headFile, "utf8").trim();
     if (/^[0-9a-f]{40}$/i.test(head)) return head.toLowerCase();
     const refMatch = /^ref:\s*(.+)$/.exec(head);
     if (refMatch === null) return null;
     const ref = (refMatch[1] ?? "").trim();
     for (const dir of refDirsFor(gitDir)) {
-      const refFile = import_path47.default.join(dir, ...ref.split("/"));
-      if (!(0, import_fs44.existsSync)(refFile)) continue;
-      const sha = (0, import_fs44.readFileSync)(refFile, "utf8").trim();
+      const refFile = import_path49.default.join(dir, ...ref.split("/"));
+      if (!(0, import_fs46.existsSync)(refFile)) continue;
+      const sha = (0, import_fs46.readFileSync)(refFile, "utf8").trim();
       if (/^[0-9a-f]{40}$/i.test(sha)) return sha.toLowerCase();
     }
     for (const dir of refDirsFor(gitDir)) {
-      const packed = import_path47.default.join(dir, "packed-refs");
-      if (!(0, import_fs44.existsSync)(packed)) continue;
-      for (const line of (0, import_fs44.readFileSync)(packed, "utf8").split("\n")) {
+      const packed = import_path49.default.join(dir, "packed-refs");
+      if (!(0, import_fs46.existsSync)(packed)) continue;
+      for (const line of (0, import_fs46.readFileSync)(packed, "utf8").split("\n")) {
         const entry = /^([0-9a-f]{40})\s+(.+)$/.exec(line.trim());
         if (entry !== null && entry[2] === ref) return (entry[1] ?? "").toLowerCase();
       }
@@ -85600,12 +86859,12 @@ function readGitHead(rootDir) {
 }
 function refDirsFor(gitDir) {
   const dirs = [gitDir];
-  const commonFile = import_path47.default.join(gitDir, "commondir");
-  if ((0, import_fs44.existsSync)(commonFile)) {
+  const commonFile = import_path49.default.join(gitDir, "commondir");
+  if ((0, import_fs46.existsSync)(commonFile)) {
     try {
-      const target = (0, import_fs44.readFileSync)(commonFile, "utf8").trim();
+      const target = (0, import_fs46.readFileSync)(commonFile, "utf8").trim();
       if (target.length > 0) {
-        dirs.push(import_path47.default.isAbsolute(target) ? target : import_path47.default.resolve(gitDir, target));
+        dirs.push(import_path49.default.isAbsolute(target) ? target : import_path49.default.resolve(gitDir, target));
       }
     } catch {
     }
@@ -85657,7 +86916,7 @@ function groundInRepository(deps, request) {
       summary: `existing Kiro spec with ${folder.files.length} document(s)`,
       authoritative: false,
       topics: [],
-      path: import_path47.default.posix.join(".kiro", "specs", folder.name)
+      path: import_path49.default.posix.join(".kiro", "specs", folder.name)
     });
   }
   for (const steering of safeSteering(workspace, notes)) {
@@ -85668,7 +86927,7 @@ function groundInRepository(deps, request) {
       summary: `steering document (${steering.inclusion})`,
       authoritative: false,
       topics: [],
-      path: import_path47.default.posix.join(".kiro", "steering", steering.fileName)
+      path: import_path49.default.posix.join(".kiro", "steering", steering.fileName)
     });
   }
   const buildSystem = detectBuildSystem(workspace.rootDir);
@@ -85712,7 +86971,7 @@ function groundInRepository(deps, request) {
     });
   }
   for (const container of modules.slice(0, 40)) {
-    const dir = import_path47.default.join(workspace.rootDir, container);
+    const dir = import_path49.default.join(workspace.rootDir, container);
     for (const entry of safeReaddir(dir, notes)) {
       if (!entry.isDirectory()) continue;
       if (MODULE_DENYLIST.has(entry.name) || entry.name.startsWith(".")) continue;
@@ -85864,7 +87123,7 @@ function safeSteering(workspace, notes) {
 }
 function safeReaddir(dir, notes) {
   try {
-    return (0, import_fs44.readdirSync)(dir, { withFileTypes: true });
+    return (0, import_fs46.readdirSync)(dir, { withFileTypes: true });
   } catch (cause) {
     notes.push(`Directory ${dir} could not be listed: ${message(cause)}.`);
     return [];
@@ -86676,14 +87935,14 @@ function emptyProjectionMap() {
 function mapFile(workspace, intakeId) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path48.default.join(workspace.rootDir, ".specbridge", "intake", intakeId, "mission-map.json")
+    import_path50.default.join(workspace.rootDir, ".specbridge", "intake", intakeId, "mission-map.json")
   );
 }
 function readProjectionMap(workspace, intakeId) {
   const file = mapFile(workspace, intakeId);
-  if (!(0, import_fs45.existsSync)(file)) return emptyProjectionMap();
+  if (!(0, import_fs47.existsSync)(file)) return emptyProjectionMap();
   try {
-    const raw = JSON.parse((0, import_fs45.readFileSync)(file, "utf8"));
+    const raw = JSON.parse((0, import_fs47.readFileSync)(file, "utf8"));
     return {
       itemContracts: raw.itemContracts ?? {},
       itemDecisions: raw.itemDecisions ?? {},
@@ -86698,7 +87957,7 @@ function readProjectionMap(workspace, intakeId) {
 }
 function writeProjectionMap(workspace, intakeId, map) {
   const file = mapFile(workspace, intakeId);
-  (0, import_fs45.mkdirSync)(import_path48.default.dirname(file), { recursive: true });
+  (0, import_fs47.mkdirSync)(import_path50.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(map, null, 2)}
 `);
 }
@@ -87260,7 +88519,7 @@ function startSpecIntake(deps, request) {
     receivedVia: hostOf(deps),
     byteLength,
     contentHash,
-    storedAt: import_path49.default.posix.join(
+    storedAt: import_path51.default.posix.join(
       ".specbridge",
       "intake",
       intakeId,
@@ -87832,7 +89091,7 @@ var repositoryManifestSchema = external_exports.object({
 function repositoryManifestFile(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path50.default.join(workspace.sidecarDir, "repositories.json")
+    import_path52.default.join(workspace.sidecarDir, "repositories.json")
   );
 }
 var DETECTION_DENYLIST = /* @__PURE__ */ new Set([
@@ -87849,10 +89108,10 @@ var DETECTION_DENYLIST = /* @__PURE__ */ new Set([
 ]);
 function readRepositoryManifest(workspace) {
   const file = repositoryManifestFile(workspace);
-  if (!(0, import_fs46.existsSync)(file)) return void 0;
+  if (!(0, import_fs48.existsSync)(file)) return void 0;
   let raw;
   try {
-    raw = JSON.parse((0, import_fs46.readFileSync)(file, "utf8"));
+    raw = JSON.parse((0, import_fs48.readFileSync)(file, "utf8"));
   } catch (cause) {
     throw new IntakeError("SBI018", `The repository manifest at ${file} is not valid JSON.`, {
       remediation: ["Fix or delete .specbridge/repositories.json; without it the workspace root is the repository."],
@@ -87872,7 +89131,7 @@ function resolveRepositories(workspace) {
       }
       seen.add(entry.id);
       const absDir = assertInsideWorkspace(workspace.rootDir, entry.path);
-      if (!(0, import_fs46.existsSync)(absDir) || !(0, import_fs46.statSync)(absDir).isDirectory()) {
+      if (!(0, import_fs48.existsSync)(absDir) || !(0, import_fs48.statSync)(absDir).isDirectory()) {
         throw new IntakeError(
           "SBI018",
           `The repository manifest names "${entry.id}" at ${entry.path}, which is not a directory.`,
@@ -87889,11 +89148,11 @@ function resolveRepositories(workspace) {
   }
   const children = [];
   try {
-    for (const entry of (0, import_fs46.readdirSync)(workspace.rootDir, { withFileTypes: true })) {
+    for (const entry of (0, import_fs48.readdirSync)(workspace.rootDir, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
       if (DETECTION_DENYLIST.has(entry.name) || entry.name.startsWith(".")) continue;
-      const absDir = import_path50.default.join(workspace.rootDir, entry.name);
-      if (!(0, import_fs46.existsSync)(import_path50.default.join(absDir, ".git"))) continue;
+      const absDir = import_path52.default.join(workspace.rootDir, entry.name);
+      if (!(0, import_fs48.existsSync)(import_path52.default.join(absDir, ".git"))) continue;
       if (children.length >= BOOTSTRAP_LIMITS.maxRepositories) {
         notes.push("More child repositories exist than the bootstrap bound; declare a manifest to choose.");
         break;
@@ -87904,7 +89163,7 @@ function resolveRepositories(workspace) {
     notes.push(`The workspace root could not be listed: ${cause instanceof Error ? cause.message : String(cause)}.`);
   }
   if (children.length > 0) {
-    const rootIsRepo = (0, import_fs46.existsSync)(import_path50.default.join(workspace.rootDir, ".git"));
+    const rootIsRepo = (0, import_fs48.existsSync)(import_path52.default.join(workspace.rootDir, ".git"));
     const repositories = rootIsRepo ? [resolved(workspace, rootRepositoryId(workspace), workspace.rootDir, void 0), ...children] : children;
     return {
       repositories: repositories.slice(0, BOOTSTRAP_LIMITS.maxRepositories),
@@ -87919,18 +89178,18 @@ function resolveRepositories(workspace) {
   };
 }
 function rootRepositoryId(workspace) {
-  const base = import_path50.default.basename(workspace.rootDir).replace(/[^A-Za-z0-9._-]/g, "-").replace(/^[^A-Za-z0-9]+/, "");
+  const base = import_path52.default.basename(workspace.rootDir).replace(/[^A-Za-z0-9._-]/g, "-").replace(/^[^A-Za-z0-9]+/, "");
   return base.length > 0 ? base.slice(0, 64) : "workspace";
 }
 function resolved(workspace, repositoryId, absDir, role) {
-  const relPath = import_path50.default.relative(workspace.rootDir, absDir).replace(/\\/g, "/");
+  const relPath = import_path52.default.relative(workspace.rootDir, absDir).replace(/\\/g, "/");
   return {
     repositoryId,
     relPath,
     ...role !== void 0 ? { role } : {},
     absDir,
     gitHead: readGitHead(absDir),
-    isGitRepository: (0, import_fs46.existsSync)(import_path50.default.join(absDir, ".git"))
+    isGitRepository: (0, import_fs48.existsSync)(import_path52.default.join(absDir, ".git"))
   };
 }
 function repositoryOfPath(repositories, workspaceRelativePath) {
@@ -88123,7 +89382,7 @@ function synthesizeSystemFindings(input) {
     });
   }
   const manifestEntries = entries.filter(
-    (entry) => MANIFEST_BASENAMES.has(import_path51.default.posix.basename(entry.path).toLowerCase())
+    (entry) => MANIFEST_BASENAMES.has(import_path53.default.posix.basename(entry.path).toLowerCase())
   );
   const architectureLabels = /* @__PURE__ */ new Map();
   for (const entry of manifestEntries.slice(0, 40)) {
@@ -88168,7 +89427,7 @@ function synthesizeSystemFindings(input) {
     architecture.push({
       findingId: ids("arc"),
       class: "OBSERVED_IMPLEMENTATION",
-      statement: clip3(`${label} (declared by ${import_path51.default.posix.basename(entry.path)}).`),
+      statement: clip3(`${label} (declared by ${import_path53.default.posix.basename(entry.path)}).`),
       evidence: [fileRef(entry)]
     });
   }
@@ -88313,7 +89572,7 @@ function synthesizeSystemFindings(input) {
       findingId: ids("con"),
       class: "OBSERVED_IMPLEMENTATION",
       statement: clip3(
-        `Repository "${repo.repositoryId}" builds with ${import_path51.default.posix.basename(marker.path)}.`
+        `Repository "${repo.repositoryId}" builds with ${import_path53.default.posix.basename(marker.path)}.`
       ),
       evidence: [fileRef(marker)]
     });
@@ -88385,9 +89644,9 @@ function clip3(value) {
 }
 function boundedRead(workspace, relPath) {
   try {
-    const abs = import_path51.default.join(workspace.rootDir, relPath);
-    if (!(0, import_fs47.existsSync)(abs)) return void 0;
-    const body = (0, import_fs47.readFileSync)(abs, "utf8");
+    const abs = import_path53.default.join(workspace.rootDir, relPath);
+    if (!(0, import_fs49.existsSync)(abs)) return void 0;
+    const body = (0, import_fs49.readFileSync)(abs, "utf8");
     return body.length > MAX_MANIFEST_READ_BYTES ? body.slice(0, MAX_MANIFEST_READ_BYTES) : body;
   } catch {
     return void 0;
@@ -88428,25 +89687,25 @@ function safeSeals(workspace) {
   }
 }
 function bootstrapDir(workspace) {
-  return assertInsideWorkspace(workspace.rootDir, import_path52.default.join(workspace.sidecarDir, "bootstrap"));
+  return assertInsideWorkspace(workspace.rootDir, import_path54.default.join(workspace.sidecarDir, "bootstrap"));
 }
 function snapshotFile(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path52.default.join(bootstrapDir(workspace), "current-system-snapshot.json")
+    import_path54.default.join(bootstrapDir(workspace), "current-system-snapshot.json")
   );
 }
 function readCurrentSystemSnapshot(workspace) {
   const file = snapshotFile(workspace);
-  if (!(0, import_fs48.existsSync)(file)) return void 0;
+  if (!(0, import_fs50.existsSync)(file)) return void 0;
   try {
-    return currentSystemSnapshotSchema.parse(JSON.parse((0, import_fs48.readFileSync)(file, "utf8")));
+    return currentSystemSnapshotSchema.parse(JSON.parse((0, import_fs50.readFileSync)(file, "utf8")));
   } catch {
     return void 0;
   }
 }
 function persistSnapshot(workspace, snapshot2) {
-  (0, import_fs48.mkdirSync)(bootstrapDir(workspace), { recursive: true });
+  (0, import_fs50.mkdirSync)(bootstrapDir(workspace), { recursive: true });
   writeFileAtomic(snapshotFile(workspace), `${JSON.stringify(snapshot2, null, 2)}
 `);
 }
@@ -88619,7 +89878,7 @@ function inspectWorkspace(deps, options) {
     }
     let body;
     try {
-      body = (0, import_fs48.readFileSync)(
+      body = (0, import_fs50.readFileSync)(
         assertInsideWorkspace(workspace.rootDir, entry.path),
         "utf8"
       );
@@ -89251,6 +90510,222 @@ function registerEvaluationReadTool(server, context) {
   });
 }
 
+// ../../packages/mcp-server/src/tools/research-tools.ts
+var requestFields = {
+  researchId: external_exports.string().min(1).max(128).optional(),
+  depth: external_exports.enum(RESEARCH_DEPTHS),
+  question: external_exports.string().min(1).max(4e3),
+  topicTags: external_exports.array(external_exports.string().min(1).max(64)).max(16).optional(),
+  knownFacts: external_exports.array(external_exports.string().min(1).max(2e3)).max(20).optional(),
+  observedFailures: external_exports.array(external_exports.string().min(1).max(2e3)).max(10).optional(),
+  failedStrategies: external_exports.array(external_exports.string().min(1).max(2e3)).max(10).optional(),
+  constraints: external_exports.array(external_exports.string().min(1).max(2e3)).max(20).optional(),
+  contextRefs: external_exports.array(external_exports.string().min(1).max(512)).max(20).optional(),
+  questionsToAnswer: external_exports.array(external_exports.string().min(1).max(1e3)).min(1).max(12),
+  preferPrimarySources: external_exports.boolean().optional(),
+  requireSources: external_exports.boolean().optional(),
+  operationId: external_exports.string().min(1).max(128).optional(),
+  jobId: external_exports.string().min(1).max(128).optional()
+};
+var listSummarySchema = external_exports.object({
+  researchId: external_exports.string(),
+  provider: external_exports.string(),
+  depth: external_exports.enum(RESEARCH_DEPTHS),
+  status: external_exports.enum(RESEARCH_RECORD_STATUSES),
+  question: external_exports.string(),
+  topicTags: external_exports.array(external_exports.string()),
+  createdAt: external_exports.string(),
+  updatedAt: external_exports.string()
+});
+function serviceDeps(context) {
+  const workspace = context.requireWorkspace();
+  return {
+    workspace,
+    config: requireAgentConfig(workspace),
+    clock: context.clock
+  };
+}
+function registerResearchGateTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "research_gate",
+    title: "Evaluate the research escalation gate",
+    description: "Apply the deterministic, zero-model-call ResearchGate to structured caller signals. Human authority and repository truth win; research is reserved for material external uncertainty. Records aggregate decision telemetry but creates no product authority.",
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    inputSchema: {
+      knowledgeGapDeclared: external_exports.boolean(),
+      dependsOnExternalFacts: external_exports.boolean(),
+      dependsOnCurrentFacts: external_exports.boolean(),
+      materialToProductOrArchitecture: external_exports.boolean(),
+      repositoryAnswerAvailable: external_exports.boolean(),
+      priorResearchAvailable: external_exports.boolean(),
+      engineeringDecisionOnly: external_exports.boolean(),
+      requiresHumanAuthority: external_exports.boolean(),
+      repeatedUnknown: external_exports.boolean().optional(),
+      repeatedUnknownAfterDifferentStrategies: external_exports.boolean().optional(),
+      requestedDepth: external_exports.enum(RESEARCH_DEPTHS).optional()
+    },
+    outputSchema: {
+      decision: external_exports.enum(RESEARCH_GATE_DECISIONS),
+      reasons: external_exports.array(external_exports.string())
+    },
+    handler: async (args) => context.withWriteLock(async () => {
+      const result = evaluateAndRecordResearchGate(serviceDeps(context), {
+        ...args,
+        repeatedUnknown: args.repeatedUnknown ?? false,
+        repeatedUnknownAfterDifferentStrategies: args.repeatedUnknownAfterDifferentStrategies ?? false
+      });
+      return {
+        text: `${result.decision}: ${result.reasons.join("; ")}`,
+        structured: result
+      };
+    })
+  });
+}
+function registerResearchStartTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "research_start",
+    title: "Run one bounded research request",
+    description: "Explicitly execute or exactly reuse one bounded provider-neutral research request. Research must be enabled, is budgeted and durable, and returns evidence only: it cannot approve a contract, Mission, task, compatibility promise, or completion outcome.",
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+    inputSchema: requestFields,
+    outputSchema: {
+      ok: external_exports.boolean(),
+      reused: external_exports.boolean().optional(),
+      record: researchRecordSchema.optional(),
+      report: researchReportSchema.optional(),
+      failure: researchFailureSchema.optional()
+    },
+    handler: async (args, extras) => context.withWriteLock(async () => {
+      const request = researchRequestSchema.parse({
+        researchId: args.researchId ?? `research-${context.idFactory()}`,
+        depth: args.depth,
+        question: args.question,
+        topicTags: args.topicTags ?? [],
+        context: {
+          knownFacts: args.knownFacts ?? [],
+          observedFailures: args.observedFailures ?? [],
+          failedStrategies: args.failedStrategies ?? [],
+          constraints: args.constraints ?? [],
+          contextRefs: args.contextRefs ?? []
+        },
+        expectedOutput: { questionsToAnswer: args.questionsToAnswer },
+        sourcePolicy: {
+          preferPrimarySources: args.preferPrimarySources ?? true,
+          requireSources: args.requireSources ?? true
+        }
+      });
+      const result = await startResearch(
+        serviceDeps(context),
+        request,
+        {
+          ...args.operationId !== void 0 ? { operationId: args.operationId } : {},
+          ...args.jobId !== void 0 ? { jobId: args.jobId } : {}
+        },
+        extras.signal
+      );
+      return result.ok ? {
+        text: result.reused ? `Reused research ${result.record.researchId}; no provider call was made.` : `Research ${result.record.researchId} finished ${result.record.status}. Evidence is not authority.`,
+        structured: {
+          ok: true,
+          reused: result.reused,
+          record: result.record,
+          report: result.report
+        }
+      } : {
+        text: `Research did not produce a report: ${result.failure.classification} \u2014 ${result.failure.message}`,
+        structured: {
+          ok: false,
+          failure: result.failure,
+          ...result.record !== void 0 ? { record: result.record } : {}
+        }
+      };
+    })
+  });
+}
+function registerResearchGetTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "research_get",
+    title: "Read one durable research record",
+    description: "Read one durable ResearchRecord. Read-only; the record is evidence and cannot confer authority.",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    inputSchema: { researchId: external_exports.string().min(1).max(128) },
+    outputSchema: { found: external_exports.boolean(), record: researchRecordSchema.optional(), problem: external_exports.string().optional() },
+    handler: async (args) => {
+      const read = readResearchRecord(context.requireWorkspace(), args.researchId);
+      if (read.kind === "ok") {
+        return { text: `Research ${args.researchId}: ${read.record.status}.`, structured: { found: true, record: read.record } };
+      }
+      const problem = read.kind === "missing" ? "not found" : read.kind === "unsupported-version" ? `unsupported schema ${read.version}` : `corrupt record preserved at ${read.file}`;
+      return { text: `Research ${args.researchId}: ${problem}.`, structured: { found: false, problem } };
+    }
+  });
+}
+function registerResearchListTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "research_list",
+    title: "List durable research records",
+    description: "List bounded ResearchRecord summaries and diagnostics; corrupt records are skipped and preserved.",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    inputSchema: {
+      status: external_exports.enum(RESEARCH_RECORD_STATUSES).optional(),
+      topicTag: external_exports.string().min(1).max(64).optional(),
+      limit: external_exports.number().int().min(1).max(100).optional()
+    },
+    outputSchema: {
+      records: external_exports.array(listSummarySchema),
+      diagnostics: external_exports.array(external_exports.object({ code: external_exports.string(), message: external_exports.string(), file: external_exports.string().optional() }))
+    },
+    handler: async (args) => {
+      const listed = listResearchRecords(context.requireWorkspace());
+      const records = listed.records.filter((record4) => args.status === void 0 || record4.status === args.status).filter((record4) => args.topicTag === void 0 || record4.topicTags.includes(args.topicTag)).slice(0, args.limit ?? 50).map((record4) => ({
+        researchId: record4.researchId,
+        provider: record4.provider,
+        depth: record4.depth,
+        status: record4.status,
+        question: record4.request.question,
+        topicTags: record4.topicTags,
+        createdAt: record4.createdAt,
+        updatedAt: record4.updatedAt
+      }));
+      return {
+        text: `${records.length} durable research record(s).`,
+        structured: {
+          records,
+          diagnostics: listed.diagnostics.map((diagnostic) => ({
+            code: diagnostic.code,
+            message: diagnostic.message,
+            ...diagnostic.file !== void 0 ? { file: diagnostic.file } : {}
+          }))
+        }
+      };
+    }
+  });
+}
+function registerResearchProviderStatusTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "research_provider_status",
+    title: "Check research provider health",
+    description: "Perform only the provider health check. If research or its provider is disabled, returns configuration status without making a network request.",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    inputSchema: {},
+    outputSchema: {
+      researchEnabled: external_exports.boolean(),
+      providerEnabled: external_exports.boolean(),
+      health: researchProviderHealthSchema
+    },
+    handler: async (_args, extras) => {
+      const deps = serviceDeps(context);
+      const health = await getResearchProviderHealth(deps, extras.signal);
+      const policy = deps.config.research;
+      const providerEnabled2 = policy.provider === "deerflow" && policy.providers.deerflow.enabled;
+      return {
+        text: `Research ${policy.enabled ? "enabled" : "disabled"}; ${health.provider} health: ${health.status}.`,
+        structured: { researchEnabled: policy.enabled, providerEnabled: providerEnabled2, health }
+      };
+    }
+  });
+}
+
 // ../../packages/mcp-server/src/tools/registry.ts
 function registerAllTools(server, context) {
   registerWorkspaceDetectTool(server, context);
@@ -89323,6 +90798,11 @@ function registerAllTools(server, context) {
   registerObjectiveReadTool(server, context);
   registerWorkunitReadTool(server, context);
   registerEvaluationReadTool(server, context);
+  registerResearchGateTool(server, context);
+  registerResearchStartTool(server, context);
+  registerResearchGetTool(server, context);
+  registerResearchListTool(server, context);
+  registerResearchProviderStatusTool(server, context);
 }
 
 // ../../packages/mcp-server/src/server.ts
@@ -89335,7 +90815,7 @@ function buildMcpServer(context) {
     },
     {
       capabilities: { logging: {} },
-      instructions: "SpecBridge exposes existing .kiro specs: read-only inspection tools, validated stage authoring (validate \u2192 human review \u2192 apply), the interactive task lifecycle (task_begin \u2192 the CURRENT session edits source \u2192 task_complete), and deterministic drift verification. Stage approval is intentionally not exposed as a tool: a human approves via the SpecBridge CLI. Task completion is decided by Git evidence and trusted verification commands, never by model claims."
+      instructions: "SpecBridge exposes existing .kiro specs: read-only inspection tools, validated stage authoring (validate \u2192 human review \u2192 apply), the interactive task lifecycle (task_begin \u2192 the CURRENT session edits source \u2192 task_complete), and deterministic drift verification. Stage approval is intentionally not exposed as a tool: a human approves via the SpecBridge CLI. Task completion is decided by Git evidence and trusted verification commands, never by model claims. Optional research tools return durable evidence only; research cannot approve product, Mission, task, compatibility, or completion outcomes."
     }
   );
   registerAllTools(server, context);

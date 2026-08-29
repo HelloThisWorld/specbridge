@@ -34591,6 +34591,82 @@ var orchestrationPolicySchema = external_exports.object({
   /** v1.2 long-running job policy (additive; safe defaults). */
   jobs: jobPolicySchema.default({})
 }).passthrough();
+var LOOPBACK_HOSTNAMES = /* @__PURE__ */ new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
+function isLoopbackHostname(hostname) {
+  return LOOPBACK_HOSTNAMES.has(hostname) || /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname);
+}
+function validateRunnerBaseUrl(raw, options) {
+  const problems = [];
+  if (raw.includes("\0")) {
+    return { ok: false, problems: ["must not contain null bytes"], loopback: false };
+  }
+  let url;
+  try {
+    url = new URL(raw);
+  } catch {
+    return { ok: false, problems: [`"${raw}" is not a valid absolute URL`], loopback: false };
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    problems.push(`unsupported URL scheme "${url.protocol}" \u2014 only http: and https: are allowed`);
+  }
+  if (url.username !== "" || url.password !== "") {
+    problems.push("must not embed credentials (username/password) in the URL");
+  }
+  if (url.hostname === "") problems.push("must include a hostname");
+  if (url.search !== "" || url.hash !== "") {
+    problems.push("must not include a query string or fragment");
+  }
+  const loopback = isLoopbackHostname(url.hostname);
+  if (url.protocol === "http:" && !loopback && options?.allowInsecureHttp !== true) {
+    problems.push(
+      'remote endpoints must use https: by default. For a private development endpoint, set "allowInsecureHttp": true on the profile (clearly labeled as insecure).'
+    );
+  }
+  return {
+    ok: problems.length === 0,
+    problems,
+    loopback,
+    protocol: url.protocol,
+    hostname: url.hostname,
+    port: url.port
+  };
+}
+var RESEARCH_STRATEGIES = ["ON_DEMAND"];
+var environmentVariableNameSchema = external_exports.string().regex(
+  /^[A-Za-z_][A-Za-z0-9_]*$/,
+  "must be an environment-variable NAME; SpecBridge never stores token values"
+);
+var deerFlowResearchProviderConfigSchema = external_exports.object({
+  enabled: external_exports.boolean().default(false),
+  baseUrl: external_exports.string().min(1).max(2048).default("http://127.0.0.1:2026"),
+  /** Name of the environment variable holding the internal-auth token. */
+  internalAuthTokenEnvironmentVariable: environmentVariableNameSchema.nullable().default(null),
+  /** Non-secret isolation key sent with internal authentication. */
+  ownerUserId: external_exports.string().min(1).max(128).regex(/^[A-Za-z0-9._:@-]+$/).default("specbridge"),
+  timeoutMs: external_exports.number().int().min(1e3).max(36e5).default(3e5),
+  maxEventBytes: external_exports.number().int().min(1024).max(2097152).default(262144),
+  maxTotalResponseBytes: external_exports.number().int().min(1024).max(16777216).default(2097152),
+  /** Explicit development-only override for a remote plain-HTTP endpoint. */
+  allowInsecureHttp: external_exports.boolean().default(false)
+}).passthrough().superRefine((config, ctx) => {
+  const validation = validateRunnerBaseUrl(config.baseUrl, {
+    allowInsecureHttp: config.allowInsecureHttp
+  });
+  for (const problem of validation.problems) {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["baseUrl"], message: problem });
+  }
+});
+var researchPolicySchema = external_exports.object({
+  enabled: external_exports.boolean().default(false),
+  provider: external_exports.string().min(1).max(64).regex(/^[a-z][a-z0-9-]*$/).default("deerflow"),
+  strategy: external_exports.enum(RESEARCH_STRATEGIES).default("ON_DEMAND"),
+  maxQuickPerOperation: external_exports.number().int().min(0).max(100).default(5),
+  maxDeepPerOperation: external_exports.number().int().min(0).max(20).default(2),
+  maxResearchPerJob: external_exports.number().int().min(0).max(200).default(6),
+  providers: external_exports.object({
+    deerflow: deerFlowResearchProviderConfigSchema.default({})
+  }).passthrough().default({})
+}).passthrough();
 var AGENT_CONFIG_SCHEMA_VERSION = "1.0.0";
 var FORBIDDEN_PERMISSION_MODE = "bypassPermissions";
 var FORBIDDEN_FLAG_FRAGMENTS = [
@@ -34741,7 +34817,9 @@ var agentConfigSchema = external_exports.object({
    */
   orchestration: orchestrationPolicySchema.default({}),
   /** v1.2 managed local inference (additive; disabled by default). */
-  localInference: localInferenceConfigSchema.default({})
+  localInference: localInferenceConfigSchema.default({}),
+  /** vNext.10.2 optional research escalation (additive; disabled by default). */
+  research: researchPolicySchema.default({})
 }).passthrough().superRefine((config, ctx) => {
   if (config.schemaVersion !== void 0 && !config.schemaVersion.startsWith("1.")) {
     ctx.addIssue({
@@ -35000,48 +35078,6 @@ var BUILT_IN_PROFILE_NAMES = {
   mock: "mock"
 };
 var PROFILE_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
-var LOOPBACK_HOSTNAMES = /* @__PURE__ */ new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
-function isLoopbackHostname(hostname) {
-  return LOOPBACK_HOSTNAMES.has(hostname) || /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname);
-}
-function validateRunnerBaseUrl(raw, options) {
-  const problems = [];
-  if (raw.includes("\0")) {
-    return { ok: false, problems: ["must not contain null bytes"], loopback: false };
-  }
-  let url;
-  try {
-    url = new URL(raw);
-  } catch {
-    return { ok: false, problems: [`"${raw}" is not a valid absolute URL`], loopback: false };
-  }
-  if (url.protocol !== "http:" && url.protocol !== "https:") {
-    problems.push(`unsupported URL scheme "${url.protocol}" \u2014 only http: and https: are allowed`);
-  }
-  if (url.username !== "" || url.password !== "") {
-    problems.push("must not embed credentials (username/password) in the URL");
-  }
-  if (url.hostname === "") {
-    problems.push("must include a hostname");
-  }
-  if (url.search !== "" || url.hash !== "") {
-    problems.push("must not include a query string or fragment");
-  }
-  const loopback = isLoopbackHostname(url.hostname);
-  if (url.protocol === "http:" && !loopback && options?.allowInsecureHttp !== true) {
-    problems.push(
-      'remote endpoints must use https: by default. For a private development endpoint, set "allowInsecureHttp": true on the profile (clearly labeled as insecure).'
-    );
-  }
-  return {
-    ok: problems.length === 0,
-    problems,
-    loopback,
-    protocol: url.protocol,
-    hostname: url.hostname,
-    port: url.port
-  };
-}
 var commandSpecSchema = external_exports.preprocess(
   (value, ctx) => {
     if (typeof value === "string") {
@@ -35124,7 +35160,7 @@ var OPENAI_COMPATIBLE_STRUCTURED_OUTPUT_MODES = [
   "json-object",
   "strict-json-prompt"
 ];
-var environmentVariableNameSchema = external_exports.string().regex(
+var environmentVariableNameSchema2 = external_exports.string().regex(
   /^[A-Za-z_][A-Za-z0-9_]*$/,
   "must be an environment-variable NAME (letters, digits, underscore); SpecBridge never stores key values"
 );
@@ -35165,7 +35201,7 @@ var openAiCompatibleProfileSchema = external_exports.object({
    */
   allowStructuredOutputFallback: external_exports.boolean().default(false),
   /** Name of the environment variable holding the API key (never a value). */
-  apiKeyEnvironmentVariable: environmentVariableNameSchema.nullable().default(null),
+  apiKeyEnvironmentVariable: environmentVariableNameSchema2.nullable().default(null),
   /** Static capability declaration: the endpoint supports GET /models. */
   modelsEndpoint: external_exports.boolean().default(false),
   /** Custom safe headers (credential-bearing header names are rejected). */
@@ -35219,7 +35255,7 @@ var deepseekHarnessProfileSchema = external_exports.object({
   workspaceBoundary: external_exports.enum(DEEPSEEK_HARNESS_WORKSPACE_BOUNDARIES).default("unconfirmed"),
   /** Environment-variable NAMES forwarded from the parent to the runtime
    * child on top of the minimal safe base. Never values. */
-  environmentPassthrough: external_exports.array(environmentVariableNameSchema).default([]),
+  environmentPassthrough: external_exports.array(environmentVariableNameSchema2).default([]),
   /** vNext.4: operator attestation of WHERE this profile's model inference
    * runs. Default 'unconfirmed' — the profile is never eligible for the
    * LOCAL economic lane until locality is attested AND verifiable. */
@@ -35284,7 +35320,7 @@ function credentialKeyIssues(value, breadcrumb) {
   }
   return issues;
 }
-var agentConfigV2Schema = external_exports.object({
+var inferredAgentConfigV2Schema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
   defaultRunner: safeNonEmptyString2.default(BUILT_IN_PROFILE_NAMES["claude-code"]),
   operationDefaults: operationDefaultsSchema.default({}),
@@ -35298,7 +35334,9 @@ var agentConfigV2Schema = external_exports.object({
   /** v1.2 managed local inference (additive; disabled by default). */
   localInference: localInferenceConfigSchema.default({}),
   /** vNext.10 overnight autonomy policy (additive; INTERACTIVE by default). */
-  autonomy: autonomyPolicySchema.default({})
+  autonomy: autonomyPolicySchema.default({}),
+  /** vNext.10.2 optional research escalation (additive; disabled by default). */
+  research: researchPolicySchema.default({})
 }).passthrough().superRefine((config, ctx) => {
   if (!config.schemaVersion.startsWith("2.")) {
     ctx.addIssue({
@@ -35337,6 +35375,7 @@ var agentConfigV2Schema = external_exports.object({
     ctx.addIssue({ code: external_exports.ZodIssueCode.custom, message });
   }
 });
+var agentConfigV2Schema = inferredAgentConfigV2Schema;
 function builtInClaudeProfile(base) {
   return claudeProfileSchema.parse({ runner: "claude-code", ...base ?? {} });
 }
@@ -35433,7 +35472,8 @@ function resolveAgentConfigFromV1(v1) {
     execution: v1.execution,
     orchestration: v1.orchestration,
     localInference: v1.localInference,
-    autonomy: autonomyPolicySchema.parse({})
+    autonomy: autonomyPolicySchema.parse({}),
+    research: v1.research
   };
 }
 function resolveAgentConfigFromV2(v2) {
@@ -35449,7 +35489,8 @@ function resolveAgentConfigFromV2(v2) {
     execution: v2.execution,
     orchestration: v2.orchestration,
     localInference: v2.localInference,
-    autonomy: v2.autonomy
+    autonomy: v2.autonomy,
+    research: v2.research
   };
 }
 function defaultResolvedAgentConfig() {
@@ -35465,7 +35506,8 @@ function defaultResolvedAgentConfig() {
     execution: executionPolicySchema.parse({}),
     orchestration: orchestrationPolicySchema.parse({}),
     localInference: localInferenceConfigSchema.parse({}),
-    autonomy: autonomyPolicySchema.parse({})
+    autonomy: autonomyPolicySchema.parse({}),
+    research: researchPolicySchema.parse({})
   };
 }
 function resolvedConfigDiagnostics(config) {
