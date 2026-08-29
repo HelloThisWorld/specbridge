@@ -181,11 +181,17 @@ export async function collectWorktreeChanges(
   const protectedPrefixes = ['.kiro/', '.specbridge/', ...options.protectedPaths];
   const protectedViolations = changedFiles
     .map((file) => file.path)
-    .filter((filePath) =>
-      protectedPrefixes.some(
-        (prefix) => filePath === prefix.replace(/\/$/, '') || filePath.startsWith(prefix.endsWith('/') ? prefix : `${prefix}/`) || filePath.startsWith(prefix),
-      ),
-    );
+    .filter((filePath) => {
+      const lower = filePath.toLowerCase();
+      return protectedPrefixes.some((prefix) => {
+        const base = prefix
+          .replace(/\\/g, '/')
+          .replace(/\/\*\*?$/, '')
+          .replace(/\/$/, '')
+          .toLowerCase();
+        return lower === base || lower.startsWith(`${base}/`);
+      });
+    });
 
   const diff = await git(handle.dir, ['diff', '--binary', '--cached', handle.baselineCommit], 120_000);
   if (!diff.ok) {

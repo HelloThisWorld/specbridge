@@ -550,6 +550,8 @@
     "runtime_research_eligible",
     "scheduler_mode_changed",
     "scheduling_decision_created",
+    "secondary_builder_attempted",
+    "secondary_candidate_succeeded",
     "self_heal_applied",
     "semantic_review_completed",
     "supervisor_attached",
@@ -1038,6 +1040,28 @@
     "STRONG_REQUIRED",
     "WEEKLY_EXHAUSTED",
     "WEEKLY_QUOTA_PRESSURE"
+  ],
+  "secondaryBuilderAttemptStatuses": [
+    "CANDIDATE_READY",
+    "EDITS_APPLIED",
+    "FAILED",
+    "INFERENCE_COMPLETED",
+    "PREPARED",
+    "PROPOSAL_VALIDATED",
+    "VERIFICATION_FAILED"
+  ],
+  "secondaryBuilderFailures": [
+    "APPLY_FAILURE",
+    "CANCELLED",
+    "CONTEXT_TOO_LARGE",
+    "EMPTY_EDIT_SET",
+    "FORBIDDEN_EDIT",
+    "INFERENCE_UNAVAILABLE",
+    "INVALID_STRUCTURED_OUTPUT",
+    "STALE_APPROVED_PROJECTION",
+    "STALE_SOURCE_CONTEXT",
+    "TIMEOUT",
+    "VERIFICATION_FAILURE"
   ],
   "stateInvariantIds": [
     "API_BUDGET_RECONCILES",

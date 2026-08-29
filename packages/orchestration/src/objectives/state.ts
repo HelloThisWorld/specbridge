@@ -23,7 +23,7 @@ import {
 
 export const WORK_GRAPH_SCHEMA_VERSION = '1.0.0';
 export const CONTEXT_PROJECTION_SCHEMA_VERSION = '1.0.0';
-export const CANDIDATE_ARTIFACT_SCHEMA_VERSION = '1.0.0';
+export const CANDIDATE_ARTIFACT_SCHEMA_VERSION = '1.1.0';
 export const EVALUATION_RECORD_SCHEMA_VERSION = '1.0.0';
 export const CONTRACT_CONFLICT_SCHEMA_VERSION = '1.0.0';
 export const OBJECTIVE_WORKER_SCHEMA_VERSION = '1.0.0';
@@ -328,6 +328,24 @@ export const candidateArtifactSchema = z
         researchRefs: z.array(shortText).max(20).optional(),
       })
       .passthrough(),
+    /** Additive origin metadata; downstream candidate semantics are unchanged. */
+    builderProvenance: z
+      .object({
+        backend: z.enum(['LARGE_AGENT', 'SECONDARY_DIRECT_MODEL']),
+        inferenceProfile: shortText,
+        provider: shortText.optional(),
+        model: shortText.optional(),
+        packetHash: shortText.optional(),
+        sourceContextHash: shortText.optional(),
+        selectionReason: text.optional(),
+        durationMs: z.number().int().min(0).optional(),
+        inputCharacters: z.number().int().min(0).optional(),
+        outputBytes: z.number().int().min(0).optional(),
+        inputTokens: z.number().int().min(0).nullable().optional(),
+        outputTokens: z.number().int().min(0).nullable().optional(),
+      })
+      .passthrough()
+      .optional(),
     /** Set when identity/staleness guards rejected the candidate. */
     rejectedReason: optionalText.optional(),
   })

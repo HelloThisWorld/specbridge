@@ -7,12 +7,12 @@
       "bytes": 155994
     },
     "cli.cjs": {
-      "sha256": "fab1e074ffae87dc195bf01a911fe8a0ddb22f81d8ad667b03375b23e2ac9b33",
-      "bytes": 5545968
+      "sha256": "6379044267e76482b59da2c3b57ce97fe5f758815d10a9fefa0c8267bb53e9a9",
+      "bytes": 5588127
     },
     "mcp-server.cjs": {
-      "sha256": "01f873f0c9a07fc176cd34a6bf9edb43edf8ac84505a4b1819b4e8ba8c80fa16",
-      "bytes": 3636098
+      "sha256": "6b8a8ce0992a5cefa9e15aadbe2e0aa22a97bf341c0db8c8a599a5ba9a8024d5",
+      "bytes": 3644860
     }
   }
 }

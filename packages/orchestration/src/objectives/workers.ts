@@ -55,7 +55,11 @@ export type ObjectiveWorkerResult<Role extends ObjectiveContractRole> =
   | ObjectiveWorkerFailure;
 
 // ---------------------------------------------------------------------------
-// Local worker (llama.cpp; read-only reasoning roles only)
+// Local role worker (llama.cpp; read-only reasoning roles only)
+//
+// BUILDER capability is provided separately by SecondaryObjectiveBuilder:
+// it has a different bounded packet/edit contract and is selected explicitly,
+// so it must not be smuggled through this reasoning-role API.
 // ---------------------------------------------------------------------------
 
 export interface LocalObjectiveInvocation<Role extends ObjectiveContractRole> {
@@ -72,7 +76,11 @@ export async function runLocalObjectiveRole<Role extends ObjectiveContractRole>(
   invocation: LocalObjectiveInvocation<Role>,
 ): Promise<ObjectiveWorkerResult<Role>> {
   if (invocation.role === 'BUILDER') {
-    return { ok: false, kind: 'worker-unavailable', problem: 'BUILDER never runs on the local tier.' };
+    return {
+      ok: false,
+      kind: 'worker-unavailable',
+      problem: 'Use the explicitly selected SecondaryObjectiveBuilder for direct-model BUILDER work.',
+    };
   }
   const local = invocation.config.localInference;
   const system = objectiveRoleSystemPrompt(invocation.role);

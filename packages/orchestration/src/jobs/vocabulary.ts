@@ -619,5 +619,9 @@ export const JOB_EVENT_TYPES = [
   'research_fallback_started',
   'research_used',
   'research_replan_caused',
+  // Secondary Objective Builder (vNext.10.2 Phase 4). Raw proposal and
+  // verification detail live in the durable attempt artifact.
+  'secondary_builder_attempted',
+  'secondary_candidate_succeeded',
 ] as const;
 export type JobEventType = (typeof JOB_EVENT_TYPES)[number];

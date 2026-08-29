@@ -59,6 +59,12 @@ and fail-closed; two edges carry the architecture:
 - `VERIFIED_CANDIDATE` is reachable only from evaluation statuses — a unit
   can never be born verified.
 
+Build units normally use the large-agent builder. Phase 4 also provides an
+explicit-only [Secondary Objective Builder](secondary-objective-builder.md):
+a direct model returns bounded structured edits which SpecBridge applies in
+the same isolated worktree and feeds into this exact lifecycle. Merely enabling
+local inference does not select that backend.
+
 ## Runtime replanning within the objective
 
 Within one approved objective the runtime may split, merge, supersede, or

@@ -12,3 +12,4 @@ export * from './worktree.js';
 export * from './workers.js';
 export * from './integrator.js';
 export * from './objective-driver.js';
+export * from './secondary-builder.js';

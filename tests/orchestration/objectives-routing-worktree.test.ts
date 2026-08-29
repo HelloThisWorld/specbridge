@@ -168,6 +168,21 @@ describe('isolated worktrees', () => {
     await removeWorkerWorktree(workspace, 'job-1', handle);
   });
 
+  it('treats configured glob prefixes and control-plane casing as protected', async () => {
+    const { workspace } = gitFixture();
+    const handle = await createWorkerWorktree({ workspace, jobId: 'job-1', workUnitId: 'wu-case', attempt: 1 });
+    mkdirSync(path.join(handle.dir, 'Generated'), { recursive: true });
+    writeFileSync(path.join(handle.dir, 'Generated', 'control.json'), '{}\n', 'utf8');
+    mkdirSync(path.join(handle.dir, '.SPECBRIDGE'), { recursive: true });
+    writeFileSync(path.join(handle.dir, '.SPECBRIDGE', 'state.json'), '{}\n', 'utf8');
+    const collected = await collectWorktreeChanges(handle, { protectedPaths: ['generated/**'] });
+    expect(collected.protectedViolations).toEqual([
+      '.SPECBRIDGE/state.json',
+      'Generated/control.json',
+    ]);
+    await removeWorkerWorktree(workspace, 'job-1', handle);
+  });
+
   it('a worker committing locally cannot hide changes: the diff is against the recorded baseline', async () => {
     const { workspace } = gitFixture();
     const handle = await createWorkerWorktree({ workspace, jobId: 'job-1', workUnitId: 'wu-3', attempt: 1 });

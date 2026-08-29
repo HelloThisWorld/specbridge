@@ -20,6 +20,8 @@ import {
   objectiveWorkerRecordSchema,
   workGraphSchema,
 } from './state.js';
+import type { SecondaryBuilderAttempt } from './secondary-builder.js';
+import { secondaryBuilderAttemptSchema } from './secondary-builder.js';
 
 /**
  * Objective-runtime persistence:
@@ -34,6 +36,7 @@ import {
  *   evaluations/<wu>-a<n>-<k>.json  evaluation records (immutable)
  *   conflicts/<id>.json          contract conflicts (status-controlled)
  *   workers/<wu>-a<n>-<role>.json   worker identity records (status-controlled)
+ *   secondary-attempts/<wu>-a<n>.json direct-model packet/proposal evidence
  *   reports/<name>.json          aggregation reports (immutable)
  *
  * Same guarantees as every other store: path-checked, atomic, append-only
@@ -349,6 +352,72 @@ export function readCandidatePatch(
   } catch {
     return undefined;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Secondary builder attempts (status-controlled, crash/resume evidence)
+// ---------------------------------------------------------------------------
+
+export function storeSecondaryBuilderAttempt(
+  workspace: WorkspaceInfo,
+  jobId: string,
+  nodeId: string,
+  attempt: SecondaryBuilderAttempt,
+): SecondaryBuilderAttempt {
+  const validated = secondaryBuilderAttemptSchema.parse(attempt);
+  assertSegment(validated.workUnitId, 'work unit id');
+  const file = artifactPath(
+    workspace,
+    jobId,
+    nodeId,
+    'secondary-attempts',
+    `${candidateName(validated.workUnitId, validated.attempt)}.json`,
+  );
+  mkdirSync(path.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}\n`);
+  return validated;
+}
+
+export function readSecondaryBuilderAttempt(
+  workspace: WorkspaceInfo,
+  jobId: string,
+  nodeId: string,
+  workUnitId: string,
+  attempt: number,
+): SecondaryBuilderAttempt | undefined {
+  if (!ID_PATTERN.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return undefined;
+  return readJson(
+    artifactPath(
+      workspace,
+      jobId,
+      nodeId,
+      'secondary-attempts',
+      `${candidateName(workUnitId, attempt)}.json`,
+    ),
+    (raw) => {
+      const result = secondaryBuilderAttemptSchema.safeParse(raw);
+      return result.success ? result.data : undefined;
+    },
+  );
+}
+
+export function readSecondaryBuilderAttempts(
+  workspace: WorkspaceInfo,
+  jobId: string,
+  nodeId: string,
+): SecondaryBuilderAttempt[] {
+  const dir = artifactPath(workspace, jobId, nodeId, 'secondary-attempts');
+  if (!existsSync(dir)) return [];
+  const attempts: SecondaryBuilderAttempt[] = [];
+  for (const name of readdirSync(dir).sort()) {
+    if (!name.endsWith('.json')) continue;
+    const attempt = readJson(path.join(dir, name), (raw) => {
+      const result = secondaryBuilderAttemptSchema.safeParse(raw);
+      return result.success ? result.data : undefined;
+    });
+    if (attempt !== undefined) attempts.push(attempt);
+  }
+  return attempts;
 }
 
 // ---------------------------------------------------------------------------

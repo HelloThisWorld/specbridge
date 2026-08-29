@@ -153,6 +153,9 @@ the intent in the evening, run one command, read the report in the morning.
   compiler that turns contracts into a Kiro spec of Objectives.
 - [Objective decomposition](orchestration/objective-decomposition.md) — the
   dynamic work graph between an approved objective and worker dispatches.
+- [Secondary Objective Builder](orchestration/secondary-objective-builder.md)
+  — explicit direct-model edits inside the existing governed worktree and
+  candidate lifecycle; capability without automatic routing.
 - [Context projection](orchestration/context-projection.md) — share truth,
   not context: what each isolated worker sees, hashed and staleness-checked.
 - [Sub-agent isolation](orchestration/subagent-isolation.md) — worker
