@@ -54,7 +54,7 @@ import {
 } from './graph.js';
 import type { StructuralAggregation } from './graph.js';
 import { integrateObjective } from './integrator.js';
-import { buildContextProjection } from './projection.js';
+import { buildContextProjection, evaluateProjectionFreshness } from './projection.js';
 import type { CandidateArtifact, ContextProjection, EvaluationRecord, WorkGraph, WorkUnit } from './state.js';
 import {
   CANDIDATE_ARTIFACT_SCHEMA_VERSION,
@@ -68,12 +68,14 @@ import {
   readEvaluations,
   readLatestWorkGraph,
   readProjection,
+  readSecondaryBuilderAttempt,
   readWorkerRecords,
   storeAggregationReport,
   storeCandidate,
   storeConflict,
   storeEvaluation,
   storeProjection,
+  storeSecondaryBuilderAttempt,
   storeWorkGraph,
 } from './store.js';
 import {
@@ -93,6 +95,19 @@ import {
   runWorktreeVerification,
 } from './worktree.js';
 import { runLargeObjectiveRole, runLocalObjectiveRole } from './workers.js';
+import type {
+  SecondaryBuilderAttempt,
+  SecondaryBuilderFailureKind,
+  SecondaryObjectiveBuilderSelection,
+} from './secondary-builder.js';
+import {
+  SECONDARY_BUILDER_ATTEMPT_SCHEMA_VERSION,
+  buildSecondaryBuilderPacket,
+  executeSecondaryObjectiveBuilder,
+  managedLocalSecondaryModelInference,
+  secondaryBuilderAttemptSchema,
+  secondaryBuilderInputCeiling,
+} from './secondary-builder.js';
 
 /**
  * The objective driver: one approved objective, end to end.
@@ -133,6 +148,8 @@ export interface ObjectiveDriveInput {
   signal?: AbortSignal | undefined;
   /** Injectable Phase 2 bridge; omitted in production to use configured DeerFlow. */
   researchBridge?: ResearchBridge | undefined;
+  /** Explicit-only Phase 4 selection. Absence preserves the large builder. */
+  secondaryBuilder?: SecondaryObjectiveBuilderSelection | undefined;
   onProgress?: ((message: string) => void) | undefined;
   /**
    * Budget + audit hook into the job service: counts one worker dispatch
@@ -442,6 +459,8 @@ interface ExecutedAttempt {
   verification?: Awaited<ReturnType<typeof runWorktreeVerification>> | undefined;
   researchId?: string | undefined;
   countedAsWorker?: boolean | undefined;
+  secondaryAttempt?: SecondaryBuilderAttempt | undefined;
+  secondaryFailure?: { kind: SecondaryBuilderFailureKind; problem: string } | undefined;
 }
 
 async function executeResearchInvestigation(
@@ -583,6 +602,293 @@ async function executeResearchInvestigation(
     collected: { changedFiles: [], patch: '', protectedViolations: [] },
     researchId: lifecycle.execution.record.researchId,
     countedAsWorker: false,
+  };
+}
+
+function secondarySelected(
+  input: ObjectiveDriveInput,
+  unit: Pick<WorkUnit, 'workUnitId' | 'kind'>,
+): boolean {
+  const selection = input.secondaryBuilder;
+  if (selection === undefined || unit.kind !== 'build') return false;
+  return selection.workUnitIds === undefined || selection.workUnitIds.includes(unit.workUnitId);
+}
+
+function secondaryFailureCategory(kind: SecondaryBuilderFailureKind): FailureCategory {
+  switch (kind) {
+    case 'CANCELLED':
+      return 'CANCELLED';
+    case 'STALE_SOURCE_CONTEXT':
+    case 'STALE_APPROVED_PROJECTION':
+      return 'STALE_CONTEXT';
+    case 'FORBIDDEN_EDIT':
+      return 'SAFETY_POLICY';
+    case 'EMPTY_EDIT_SET':
+    case 'INVALID_STRUCTURED_OUTPUT':
+    case 'APPLY_FAILURE':
+      return 'IMPLEMENTATION_DEFECT';
+    case 'VERIFICATION_FAILURE':
+      return 'VERIFICATION_FAILURE';
+    case 'CONTEXT_TOO_LARGE':
+      return 'CAPABILITY_UNAVAILABLE';
+    case 'TIMEOUT':
+      return 'TRANSIENT_TRANSPORT';
+    case 'INFERENCE_UNAVAILABLE':
+      return 'CAPABILITY_UNAVAILABLE';
+  }
+}
+
+function builderFailureResult(problem: string): Awaited<ReturnType<typeof runLargeObjectiveRole<'BUILDER'>>> {
+  return { ok: false, kind: 'worker-unavailable', problem };
+}
+
+async function executeSelectedSecondaryBuilder(
+  context: UnitAttemptContext,
+  prepared: PreparedAttempt,
+  worktree: NonNullable<PreparedAttempt['worktree']>,
+): Promise<ExecutedAttempt> {
+  const { input } = context;
+  const selection = input.secondaryBuilder;
+  if (selection === undefined) {
+    return { prepared, result: builderFailureResult('secondary builder selection disappeared') };
+  }
+
+  let sourceContext;
+  try {
+    sourceContext =
+      typeof selection.sourceContext === 'function'
+        ? await selection.sourceContext({ worktreeRoot: worktree.dir, projection: prepared.projection })
+        : selection.sourceContext;
+  } catch (cause) {
+    const problem = `source context could not be prepared: ${cause instanceof Error ? cause.message : String(cause)}`;
+    return {
+      prepared,
+      result: builderFailureResult(problem),
+      secondaryFailure: { kind: 'STALE_SOURCE_CONTEXT', problem },
+    };
+  }
+
+  let packet;
+  try {
+    packet = buildSecondaryBuilderPacket({
+      projection: prepared.projection,
+      sourceContext,
+      verificationHints: input.config.verification.commands.map((command) => command.name),
+    });
+  } catch (cause) {
+    const problem = `secondary builder packet was refused: ${cause instanceof Error ? cause.message : String(cause)}`;
+    return {
+      prepared,
+      result: builderFailureResult(problem),
+      secondaryFailure: { kind: 'CONTEXT_TOO_LARGE', problem },
+    };
+  }
+
+  const inference =
+    selection.inference ??
+    (input.localManager !== undefined
+      ? managedLocalSecondaryModelInference(input.localManager, input.config)
+      : undefined);
+  const createdAt = nowIso(input);
+  let artifact = secondaryBuilderAttemptSchema.parse({
+    schemaVersion: SECONDARY_BUILDER_ATTEMPT_SCHEMA_VERSION,
+    attemptId: `${prepared.unitId}-a${String(prepared.attempt).padStart(2, '0')}-secondary`,
+    jobId: input.jobId,
+    objectiveNodeId: input.node.nodeId,
+    workUnitId: prepared.unitId,
+    attempt: prepared.attempt,
+    status: 'PREPARED',
+    builderBackend: 'SECONDARY_DIRECT_MODEL',
+    selectionReason: selection.selectionReason,
+    inferenceProfile: inference?.profile ?? 'localInference',
+    provider: inference?.provider ?? input.config.localInference.provider,
+    ...(inference?.model !== undefined ? { model: inference.model } : {}),
+    packetHash: packet.packetHash,
+    sourceContextHash: packet.sourceContextHash,
+    packet,
+    appliedFiles: [],
+    createdAt,
+    updatedAt: createdAt,
+  });
+  const persist = (update: Partial<SecondaryBuilderAttempt>): void => {
+    artifact = secondaryBuilderAttemptSchema.parse({ ...artifact, ...update, updatedAt: nowIso(input) });
+    storeSecondaryBuilderAttempt(input.workspace, input.jobId, input.node.nodeId, artifact);
+  };
+  persist({});
+
+  // Reload durable truth immediately before inference. The projection was
+  // built from `truth` earlier, but another process may have approved a new
+  // contract/constitution revision while source context was assembled.
+  const currentTruth = loadMissionTruth(input.workspace, input.mission);
+  const freshness = evaluateProjectionFreshness(prepared.projection, {
+    contracts: currentTruth.contracts.map((contract) => ({
+      contractId: contract.contractId,
+      revision: contract.revision,
+    })),
+    constitutionVersion: currentTruth.constitution?.version ?? 0,
+  });
+  if (!freshness.fresh) {
+    const problem = `approved projection is stale: ${freshness.reasons.join('; ')}`;
+    persist({ status: 'FAILED', failure: { kind: 'STALE_APPROVED_PROJECTION', problem } });
+    return {
+      prepared,
+      result: builderFailureResult(problem),
+      secondaryAttempt: artifact,
+      secondaryFailure: { kind: 'STALE_APPROVED_PROJECTION', problem },
+    };
+  }
+
+  if (inference === undefined) {
+    const problem = 'secondary inference is unavailable: no managed local model or explicit inference was provided';
+    persist({ status: 'FAILED', failure: { kind: 'INFERENCE_UNAVAILABLE', problem } });
+    return {
+      prepared,
+      result: builderFailureResult(problem),
+      secondaryAttempt: artifact,
+      secondaryFailure: { kind: 'INFERENCE_UNAVAILABLE', problem },
+    };
+  }
+
+  const executed = await executeSecondaryObjectiveBuilder({
+    worktreeRoot: worktree.dir,
+    packet,
+    inference,
+    maximumInputCharacters: secondaryBuilderInputCeiling(input.config),
+    maxOutputBytes: input.config.localInference.maxOutputBytes,
+    protectedPaths: input.config.execution.protectedPaths,
+    ...(input.signal !== undefined ? { signal: input.signal } : {}),
+    onExecutionEvent: (event) => {
+      if (event.stage === 'INFERENCE_COMPLETED') {
+        persist({
+          status: 'INFERENCE_COMPLETED',
+          rawOutput: event.rawOutput.slice(0, 1_048_576),
+          telemetry: event.telemetry,
+        });
+      } else if (event.stage === 'PROPOSAL_VALIDATED') {
+        persist({ status: 'PROPOSAL_VALIDATED', proposal: event.proposal, telemetry: event.telemetry });
+      } else {
+        persist({
+          status: 'EDITS_APPLIED',
+          proposal: event.proposal,
+          appliedFiles: event.appliedFiles,
+          telemetry: event.telemetry,
+        });
+      }
+    },
+  });
+  if (!executed.ok) {
+    persist({
+      status: 'FAILED',
+      failure: executed.failure,
+      ...(executed.rawOutput !== undefined ? { rawOutput: executed.rawOutput.slice(0, 1_048_576) } : {}),
+      ...(executed.proposal !== undefined ? { proposal: executed.proposal } : {}),
+      appliedFiles: executed.appliedFiles,
+      telemetry: executed.telemetry,
+    });
+    input.recordEvent('secondary_builder_attempted', {
+      nodeId: input.node.nodeId,
+      workUnitId: prepared.unitId,
+      attempt: prepared.attempt,
+      backend: 'SECONDARY_DIRECT_MODEL',
+      failure: executed.failure.kind,
+      durationMs: executed.telemetry.durationMs,
+      inputCharacters: executed.telemetry.inputCharacters,
+      outputBytes: executed.telemetry.outputBytes,
+      inputTokens: executed.telemetry.inputTokens,
+      outputTokens: executed.telemetry.outputTokens,
+      model: artifact.model ?? null,
+      inferenceProfile: artifact.inferenceProfile,
+    });
+    return {
+      prepared,
+      result: builderFailureResult(`${executed.failure.kind}: ${executed.failure.problem}`),
+      secondaryAttempt: artifact,
+      secondaryFailure: executed.failure,
+    };
+  }
+
+  const collected = await collectWorktreeChanges(worktree, {
+    protectedPaths: input.config.execution.protectedPaths,
+  });
+  const verification = await runWorktreeVerification(
+    worktree,
+    input.config.verification.commands,
+    input.signal,
+  );
+  if (!verification.passed) {
+    persist({
+      status: 'VERIFICATION_FAILED',
+      failure: { kind: 'VERIFICATION_FAILURE', problem: 'trusted worktree verification failed' },
+      verification: {
+        ran: verification.ran,
+        passed: verification.passed,
+        commands: verification.commands.map((command) => ({
+          name: command.name,
+          status: command.status,
+          exitCode: command.exitCode ?? null,
+          stdoutTail: command.stdoutTail,
+          stderrTail: command.stderrTail,
+        })),
+      },
+    });
+  } else {
+    persist({
+      verification: {
+        ran: verification.ran,
+        passed: verification.passed,
+        commands: verification.commands.map((command) => ({
+          name: command.name,
+          status: command.status,
+          exitCode: command.exitCode ?? null,
+          stdoutTail: command.stdoutTail,
+          stderrTail: command.stderrTail,
+        })),
+      },
+    });
+  }
+  input.recordEvent('secondary_builder_attempted', {
+    nodeId: input.node.nodeId,
+    workUnitId: prepared.unitId,
+    attempt: prepared.attempt,
+    backend: 'SECONDARY_DIRECT_MODEL',
+    candidateProposed: true,
+    verificationPassed: verification.passed,
+    durationMs: executed.telemetry.durationMs,
+    inputCharacters: executed.telemetry.inputCharacters,
+    outputBytes: executed.telemetry.outputBytes,
+    sourceFiles: executed.telemetry.sourceFiles,
+    editedFiles: executed.telemetry.editedFiles,
+    inputTokens: executed.telemetry.inputTokens,
+    outputTokens: executed.telemetry.outputTokens,
+    model: artifact.model ?? null,
+    inferenceProfile: artifact.inferenceProfile,
+  });
+  return {
+    prepared,
+    result: {
+      ok: true,
+      output: {
+        outcome: 'CANDIDATE_COMPLETE',
+        summary: executed.proposal.summary,
+        changedFiles: executed.appliedFiles,
+        assumptionsDiscovered: [],
+        contractChangeRequests: [],
+        knownLimitations: executed.proposal.notes ?? [],
+        blockingQuestions: [],
+      },
+      raw: JSON.stringify(executed.proposal),
+      usage: {
+        inputTokens: executed.telemetry.inputTokens,
+        outputTokens: executed.telemetry.outputTokens,
+        costUsd: null,
+      },
+    },
+    collected,
+    verification,
+    secondaryAttempt: artifact,
+    ...(!verification.passed
+      ? { secondaryFailure: { kind: 'VERIFICATION_FAILURE' as const, problem: 'trusted worktree verification failed' } }
+      : {}),
   };
 }
 
@@ -753,6 +1059,10 @@ async function executeBuilder(
     });
   }
   const worktree = prepared.worktree;
+  const useSecondary = secondarySelected(input, {
+    workUnitId: prepared.unitId,
+    kind: prepared.kind,
+  });
   // A dependency patch that no longer applies is an ATTEMPT failure, exactly
   // as applyDependencyPatches's own contract says — never a driver death.
   //
@@ -766,6 +1076,14 @@ async function executeBuilder(
   try {
     await applyDependencyPatches(worktree, prepared.dependencyPatches);
   } catch (cause) {
+    if (useSecondary) {
+      const problem = `dependency candidate application failed before secondary inference: ${cause instanceof Error ? cause.message : String(cause)}`;
+      return {
+        prepared,
+        result: builderFailureResult(problem),
+        secondaryFailure: { kind: 'APPLY_FAILURE', problem },
+      };
+    }
     // The same answer integration already has: one bounded reconciliation by
     // a worker, applying the INTENT of the conflicting sibling patches to
     // this worktree. A conflict is deterministic — retrying the raw apply
@@ -822,6 +1140,9 @@ async function executeBuilder(
     }
     if (reconcile.probe !== undefined) input.probeCache.probe = reconcile.probe;
   }
+  if (useSecondary) {
+    return executeSelectedSecondaryBuilder(context, prepared, worktree);
+  }
   const packet = buildBuilderPacket({ projection: prepared.projection });
   const result = await runLargeObjectiveRole({
     workspace: input.workspace,
@@ -842,7 +1163,9 @@ async function executeBuilder(
   if (result.probe !== undefined) input.probeCache.probe = result.probe;
   if (!result.ok) return { prepared, result };
 
-  const collected = await collectWorktreeChanges(worktree, { protectedPaths: [] });
+  const collected = await collectWorktreeChanges(worktree, {
+    protectedPaths: input.config.execution.protectedPaths,
+  });
   const verification =
     prepared.kind === 'build' && collected.changedFiles.length > 0
       ? await runWorktreeVerification(worktree, input.config.verification.commands, input.signal)
@@ -883,7 +1206,12 @@ async function foldBuilderOutcome(
     return persistGraph(
       input,
       applyUnitRejection(input, graph, unitId, attempt, {
-        category: result.kind === 'cancelled' ? 'CANCELLED' : 'TRANSIENT_TOOL',
+        category:
+          executed.secondaryFailure !== undefined
+            ? secondaryFailureCategory(executed.secondaryFailure.kind)
+            : result.kind === 'cancelled'
+              ? 'CANCELLED'
+              : 'TRANSIENT_TOOL',
         message: `The builder worker failed: ${result.problem.slice(0, 400)}`,
       }),
     );
@@ -933,10 +1261,56 @@ async function foldBuilderOutcome(
       ...(result.output.report !== undefined ? { report: result.output.report } : {}),
       researchRefs: executed.researchId !== undefined ? [executed.researchId] : [],
     },
+    builderProvenance:
+      executed.secondaryAttempt !== undefined
+        ? {
+            backend: 'SECONDARY_DIRECT_MODEL',
+            inferenceProfile: executed.secondaryAttempt.inferenceProfile,
+            provider: executed.secondaryAttempt.provider,
+            ...(executed.secondaryAttempt.model !== undefined
+              ? { model: executed.secondaryAttempt.model }
+              : {}),
+            packetHash: executed.secondaryAttempt.packetHash,
+            sourceContextHash: executed.secondaryAttempt.sourceContextHash,
+            selectionReason: executed.secondaryAttempt.selectionReason,
+            ...(executed.secondaryAttempt.telemetry !== undefined
+              ? {
+                  durationMs: executed.secondaryAttempt.telemetry.durationMs,
+                  inputCharacters: executed.secondaryAttempt.telemetry.inputCharacters,
+                  outputBytes: executed.secondaryAttempt.telemetry.outputBytes,
+                  inputTokens: executed.secondaryAttempt.telemetry.inputTokens,
+                  outputTokens: executed.secondaryAttempt.telemetry.outputTokens,
+                }
+              : {}),
+          }
+        : {
+            backend: 'LARGE_AGENT',
+            inferenceProfile: input.runnerProfile ?? input.config.defaultRunner,
+          },
   });
   storeCandidate(input.workspace, input.jobId, input.node.nodeId, candidate, collected.patch, {
     maxCandidateBytes: input.policy.objectives.maxCandidateBytes,
   });
+  if (executed.secondaryAttempt !== undefined && verification?.passed === true) {
+    executed.secondaryAttempt = storeSecondaryBuilderAttempt(
+      input.workspace,
+      input.jobId,
+      input.node.nodeId,
+      secondaryBuilderAttemptSchema.parse({
+        ...executed.secondaryAttempt,
+        status: 'CANDIDATE_READY',
+        updatedAt: nowIso(input),
+      }),
+    );
+    input.recordEvent('secondary_candidate_succeeded', {
+      nodeId: input.node.nodeId,
+      workUnitId: unitId,
+      attempt,
+      candidateId: candidate.candidateId,
+      packetHash: executed.secondaryAttempt.packetHash,
+      model: executed.secondaryAttempt.model ?? null,
+    });
+  }
 
   // Identity gate: the supervisor accepts only the RUNNING record's own
   // identity — a forged, duplicate, or superseded delivery never lands.
@@ -1044,7 +1418,13 @@ function applyUnitRejection(
     ...requireUnit(rejected, unitId),
     latestFailure: { category: failure.category, message: failure.message.slice(0, 2_000), at },
   });
-  const budgetLeft = attempt < input.policy.objectives.maxBuilderAttemptsPerUnit;
+  // Phase 4 establishes capability, not repair/fallback policy: an
+  // explicitly selected secondary attempt runs once. Later phases may make
+  // retry and fallback decisions; the generic Objective retry loop must not
+  // silently invent them here.
+  const budgetLeft =
+    !secondarySelected(input, unit) &&
+    attempt < input.policy.objectives.maxBuilderAttemptsPerUnit;
   const current = requireUnit(withFailure, unitId);
   if (current.status === 'REJECTED') {
     if (budgetLeft && failure.category !== 'CANCELLED') {
@@ -1800,6 +2180,131 @@ export async function driveObjective(input: ObjectiveDriveInput): Promise<Object
     let reconciled = graph;
     for (const unit of graph.units) {
       if (unit.status === 'BUILDING' || unit.status === 'EVALUATING') {
+        if (unit.status === 'BUILDING') {
+          const candidate = readCandidate(
+            input.workspace,
+            input.jobId,
+            input.node.nodeId,
+            unit.workUnitId,
+            unit.attempt,
+          );
+          const projection = readProjection(
+            input.workspace,
+            input.jobId,
+            input.node.nodeId,
+            unit.workUnitId,
+            unit.attempt,
+          );
+          const worker = workerRecords.find(
+            (record) =>
+              record.workUnitId === unit.workUnitId &&
+              record.attempt === unit.attempt &&
+              record.agentRole === 'BUILDER',
+          );
+          const patchPresent =
+            candidate?.patchRef === undefined ||
+            readCandidatePatch(
+              input.workspace,
+              input.jobId,
+              input.node.nodeId,
+              unit.workUnitId,
+              unit.attempt,
+            ) !== undefined;
+          const identityMatches =
+            candidate !== undefined &&
+            projection !== undefined &&
+            worker !== undefined &&
+            (worker.status === 'RUNNING' || worker.status === 'FINISHED') &&
+            candidate.jobId === input.jobId &&
+            candidate.objectiveNodeId === input.node.nodeId &&
+            candidate.workUnitId === unit.workUnitId &&
+            candidate.attempt === unit.attempt &&
+            candidate.workerId === unit.workerId &&
+            candidate.workerId === worker.workerId &&
+            candidate.contextProjectionHash === unit.contextProjectionHash &&
+            candidate.contextProjectionHash === projection.contentHash &&
+            candidate.contextProjectionHash === worker.contextProjectionHash &&
+            candidate.contractSnapshotHash === unit.contractSnapshotHash &&
+            candidate.contractSnapshotHash === projection.contractSnapshotHash &&
+            candidate.contractSnapshotHash === worker.contractSnapshotHash &&
+            patchPresent;
+
+          // `storeCandidate` happens before the worker/graph completion
+          // markers. If the process dies in that narrow window, the complete
+          // identity-bound candidate is the durable continuation point. Do
+          // not spend another builder attempt merely because the status write
+          // was interrupted. A partial/mismatched artifact still falls
+          // through to the ordinary BUILDING -> READY reconciliation below.
+          if (identityMatches) {
+            if (worker.status === 'RUNNING') {
+              const accepted = acceptWorkerResult(
+                input.workspace,
+                input.jobId,
+                input.node.nodeId,
+                graph,
+                {
+                  workerId: candidate.workerId,
+                  agentRole: 'BUILDER',
+                  workUnitId: unit.workUnitId,
+                  attempt: unit.attempt,
+                  contextProjectionHash: candidate.contextProjectionHash,
+                  contractSnapshotHash: candidate.contractSnapshotHash,
+                },
+              );
+              if (!accepted.ok) {
+                supersedeWorkers(
+                  input.workspace,
+                  input.jobId,
+                  input.node.nodeId,
+                  workerRecords,
+                  unit.workUnitId,
+                  nowIso(input),
+                );
+                reconciled = transitionUnit(reconciled, unit.workUnitId, 'READY');
+                continue;
+              }
+              finishWorker(input.workspace, accepted.record, 'FINISHED', nowIso(input));
+            }
+            reconciled = transitionUnit(reconciled, unit.workUnitId, 'CANDIDATE_READY');
+            reconciled = withUnit(reconciled, {
+              ...requireUnit(reconciled, unit.workUnitId),
+              candidateRef: `candidates/${candidate.candidateId}.json`,
+            });
+            if (
+              candidate.builderProvenance?.backend === 'SECONDARY_DIRECT_MODEL' &&
+              candidate.localVerification.passed
+            ) {
+              const secondaryAttempt = readSecondaryBuilderAttempt(
+                input.workspace,
+                input.jobId,
+                input.node.nodeId,
+                unit.workUnitId,
+                unit.attempt,
+              );
+              if (secondaryAttempt !== undefined && secondaryAttempt.status !== 'CANDIDATE_READY') {
+                storeSecondaryBuilderAttempt(
+                  input.workspace,
+                  input.jobId,
+                  input.node.nodeId,
+                  secondaryBuilderAttemptSchema.parse({
+                    ...secondaryAttempt,
+                    status: 'CANDIDATE_READY',
+                    updatedAt: nowIso(input),
+                  }),
+                );
+              }
+            }
+            input.recordEvent('candidate_ready', {
+              nodeId: input.node.nodeId,
+              workUnitId: unit.workUnitId,
+              attempt: unit.attempt,
+              changedFiles: candidate.changedFiles.length,
+              localVerificationPassed: candidate.localVerification.passed,
+              resumed: true,
+            });
+            continue;
+          }
+        }
         // A previous process died mid-dispatch: supersede its workers (late
         // results are refused from now on) and return the unit to its safe
         // predecessor. The interrupted attempt stays consumed.

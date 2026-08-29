@@ -61,6 +61,7 @@ import type { SchedulerDecision } from '../jobs/scheduler.js';
 import { jobDir } from '../jobs/store.js';
 import { findMissionForSpec, readContractRegistry } from '@specbridge/mission';
 import { driveObjective } from '../objectives/objective-driver.js';
+import type { SecondaryObjectiveBuilderSelection } from '../objectives/secondary-builder.js';
 import {
   deferJobForQuota,
   promoteNodeForQuotaOvertake,
@@ -143,6 +144,8 @@ export interface DriverDeps extends JobDeps {
   registry: RunnerRegistry;
   /** Test/embedding seam for the optional research provider. */
   researchBridge?: ResearchBridge | undefined;
+  /** Phase 4 explicit-only Objective builder backend selection. */
+  secondaryObjectiveBuilder?: SecondaryObjectiveBuilderSelection | undefined;
 }
 
 export interface DriverEvent {
@@ -1020,6 +1023,9 @@ export async function driveJob(
                   ...(deps.idFactory !== undefined ? { idFactory: deps.idFactory } : {}),
                   ...(signal !== undefined ? { signal } : {}),
                   ...(deps.researchBridge !== undefined ? { researchBridge: deps.researchBridge } : {}),
+                  ...(deps.secondaryObjectiveBuilder !== undefined
+                    ? { secondaryBuilder: deps.secondaryObjectiveBuilder }
+                    : {}),
                   onProgress: (message) => emit('note', message),
                   countWorkerRun: (run) =>
                     recordObjectiveWorkerAttempt(deps, jobId, { nodeId: node.nodeId, ...run }),

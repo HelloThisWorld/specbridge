@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### Secondary Objective Builder — vNext.10.2 Phase 4
+
+- Added an explicit-only, provider-neutral `SecondaryModelInference` and
+  `SecondaryObjectiveBuilder` path. The existing managed, loopback-only
+  llama.cpp/GGUF service is its first production adapter; normal Objective
+  BUILDER routing remains on the large agent unless a caller explicitly
+  selects the secondary backend.
+- Added bounded approved-context/source-context packets with content hashes,
+  strict CREATE/REPLACE full-file proposals, shared direct-model path and
+  authority validation, isolated Objective worktree application, and the
+  existing trusted verification/candidate/evaluation/integration lifecycle.
+- Added durable secondary attempt, proposal, verification, telemetry, and
+  candidate provenance records for honest failure diagnosis and resume.
+  Direct models receive no shell, git, filesystem tool, credential, approval,
+  contract, Mission, closure, or completion authority.
+
 ### Research-Augmented Lifecycle — vNext.10.2 Phase 3
 
 - Integrated the governed Research Layer across repository-aware

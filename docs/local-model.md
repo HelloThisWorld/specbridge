@@ -2,8 +2,10 @@
 
 SpecBridge can manage a local llama.cpp server as the inexpensive reasoning
 tier for long-running jobs: classification, planning, critique, diagnosis,
-and replanning run against a model on your machine, and only complex work
-and actual implementation reach Claude Code. One managed server serves
+and replanning run against a model on your machine. Normal Objective
+implementation still reaches the configured large agent; the explicit-only
+[Secondary Objective Builder](orchestration/secondary-objective-builder.md)
+can also use this endpoint for bounded worktree edits. One managed server serves
 every logical role — roles are prompts, not processes.
 
 The local model is a **worker**, never an authority: its answers are

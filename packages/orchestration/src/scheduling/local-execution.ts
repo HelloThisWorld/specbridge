@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { z } from 'zod';
 import type { AgentConfig, WorkspaceInfo } from '@specbridge/core';
@@ -47,8 +47,36 @@ export const LOCAL_EXECUTION_LIMITS = {
   maxNotes: 20,
 } as const;
 
-/** Path prefixes the local executor may never write, whatever it proposes. */
-const DENIED_PATH_PREFIXES = ['.git', '.kiro', '.specbridge'] as const;
+/**
+ * Path prefixes no direct model may ever write, whatever it proposes.
+ *
+ * This list is shared by task execution and the Objective secondary builder:
+ * model output is data, never authority. `.kiro` and `.specbridge` contain
+ * approved/product and runtime control-plane state; the remaining entries
+ * are host/agent configuration rather than implementation source.
+ */
+export const DIRECT_MODEL_DENIED_PATH_PREFIXES = [
+  '.git',
+  '.kiro',
+  '.specbridge',
+  '.codex',
+  '.claude',
+] as const;
+
+/** Credential-bearing filenames/directories that generic edits may not target. */
+const CREDENTIAL_PATH_SEGMENTS = new Set([
+  '.aws',
+  '.azure',
+  '.gnupg',
+  '.ssh',
+  '.npmrc',
+  '.pypirc',
+  '.netrc',
+  'credentials',
+  'credentials.json',
+  'id_rsa',
+  'id_ed25519',
+]);
 
 // ---------------------------------------------------------------------------
 // Output contract
@@ -192,34 +220,73 @@ export interface EditValidationFailure {
 
 /** Validate proposed edit paths structurally BEFORE anything is written. */
 export function validateEditPaths(
-  workspace: WorkspaceInfo,
-  edits: readonly LocalExecutorEdit[],
+  workspace: Pick<WorkspaceInfo, 'rootDir'>,
+  edits: readonly { path: string; content: string }[],
   protectedPaths: readonly string[],
 ): EditValidationFailure[] {
   const failures: EditValidationFailure[] = [];
+  const seen = new Set<string>();
   let totalBytes = 0;
   for (const edit of edits) {
     const normalized = edit.path.replace(/\\/g, '/');
-    if (path.isAbsolute(normalized) || normalized.includes('..')) {
+    const segments = normalized.split('/');
+    if (
+      path.posix.isAbsolute(normalized) ||
+      path.win32.isAbsolute(edit.path) ||
+      segments.includes('..') ||
+      segments.includes('.') ||
+      segments.includes('') ||
+      edit.path.includes('\0')
+    ) {
       failures.push({ path: edit.path, problem: 'paths must be workspace-relative without ".."' });
       continue;
     }
-    const denied = DENIED_PATH_PREFIXES.find(
-      (prefix) => normalized === prefix || normalized.startsWith(`${prefix}/`),
-    );
-    if (denied !== undefined) {
-      failures.push({ path: edit.path, problem: `"${denied}" paths may never be edited by the local executor` });
+    if (seen.has(normalized.toLowerCase())) {
+      failures.push({ path: edit.path, problem: 'the same path may be edited only once' });
       continue;
     }
-    const protectedHit = protectedPaths.find(
-      (prefix) => normalized === prefix || normalized.startsWith(`${prefix.replace(/\/$/, '')}/`),
+    seen.add(normalized.toLowerCase());
+    const normalizedLower = normalized.toLowerCase();
+    const denied = DIRECT_MODEL_DENIED_PATH_PREFIXES.find(
+      (prefix) => normalizedLower === prefix || normalizedLower.startsWith(`${prefix}/`),
     );
+    if (denied !== undefined) {
+      failures.push({ path: edit.path, problem: `"${denied}" paths may never be edited by a direct model` });
+      continue;
+    }
+    const credentialSegment = segments.find((segment) => {
+      const lower = segment.toLowerCase();
+      return lower === '.env' || lower.startsWith('.env.') || CREDENTIAL_PATH_SEGMENTS.has(lower);
+    });
+    if (credentialSegment !== undefined) {
+      failures.push({ path: edit.path, problem: `credential-shaped path segment "${credentialSegment}" may not be edited` });
+      continue;
+    }
+    const protectedHit = protectedPaths.find((prefix) => {
+      const base = prefix
+        .replace(/\\/g, '/')
+        .replace(/\/\*\*?$/, '')
+        .replace(/\/$/, '')
+        .toLowerCase();
+      return normalizedLower === base || normalizedLower.startsWith(`${base}/`);
+    });
     if (protectedHit !== undefined) {
       failures.push({ path: edit.path, problem: `"${protectedHit}" is a protected path` });
       continue;
     }
     try {
-      assertInsideWorkspace(workspace.rootDir, path.join(workspace.rootDir, normalized));
+      const target = assertInsideWorkspace(workspace.rootDir, path.join(workspace.rootDir, normalized));
+      // Reject a symlink at the target or anywhere in its existing ancestry.
+      // `assertInsideWorkspace` blocks lexical escapes; this closes the
+      // filesystem indirection escape before any content is written.
+      let cursor = target;
+      while (cursor !== workspace.rootDir && cursor.startsWith(workspace.rootDir)) {
+        if (existsSync(cursor) && lstatSync(cursor).isSymbolicLink()) {
+          failures.push({ path: edit.path, problem: 'symlink targets or ancestors may not be edited' });
+          break;
+        }
+        cursor = path.dirname(cursor);
+      }
     } catch {
       failures.push({ path: edit.path, problem: 'path escapes the workspace' });
       continue;
@@ -235,7 +302,11 @@ export function validateEditPaths(
   return failures;
 }
 
-function applyEdits(workspace: WorkspaceInfo, edits: readonly LocalExecutorEdit[]): string[] {
+/** Apply a proposal only after `validateEditPaths` returned no failures. */
+export function applyValidatedEdits(
+  workspace: Pick<WorkspaceInfo, 'rootDir'>,
+  edits: readonly { path: string; content: string }[],
+): string[] {
   const written: string[] = [];
   for (const edit of edits) {
     const normalized = edit.path.replace(/\\/g, '/');
@@ -478,7 +549,7 @@ export async function dispatchLocalExecution(
 
   let written: string[];
   try {
-    written = applyEdits(input.workspace, output.edits);
+    written = applyValidatedEdits(input.workspace, output.edits);
   } catch (cause) {
     await abort(`edit application failed: ${cause instanceof Error ? cause.message : String(cause)}`);
     return failureResult(
