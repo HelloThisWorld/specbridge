@@ -228,7 +228,7 @@ the intent in the evening, run one command, read the report in the morning.
 ## MCP & frontend plugins
 
 - [MCP server](mcp-server.md) — the local stdio server.
-- [MCP tool reference](mcp/tool-reference.md) — all 75 tools (generated).
+- [MCP tool reference](mcp/tool-reference.md) — all 77 tools (generated).
 - [MCP tools](mcp-tools.md) · [resources](mcp-resources.md) ·
   [prompts](mcp-prompts.md) · [CLI/MCP parity](cli-mcp-parity.md).
 - [Claude Code integration](claude-code-integration.md) — both directions.
