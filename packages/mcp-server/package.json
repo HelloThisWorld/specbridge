@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.29.0",
+    "@specbridge/autonomy": "workspace:*",
     "@specbridge/compat-kiro": "workspace:*",
     "@specbridge/core": "workspace:*",
     "@specbridge/drift": "workspace:*",

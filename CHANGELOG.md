@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+### Telemetry, Token-Conservation Analytics & Operational Reporting — vNext.10.2 Phase 9
+
+- Added a versioned Job/Mission execution telemetry report derived from
+  durable WorkUnit, routing, attempt, research, cooldown, verification,
+  closure, and autonomy facts. Reports keep unknown usage as `null`, expose
+  coverage, deduplicate replayed attempt IDs, redact diagnostics, and remain
+  observational rather than granting authority or completion.
+- Added formal Secondary success/repair/fallback funnels,
+  `StrongBuilderAvoidanceRatio` with Strong evaluator separation, Strong
+  direct/fallback attribution, research avoidance/reuse and lifecycle
+  breakdowns, cooldown productivity/avoidable-idle diagnostics, restart and
+  candidate reuse accounting, completed-work redo detection, and a compact
+  Phase 10-compatible qualification summary.
+- Added `specbridge report job <jobId>` with JSON and verbose formats plus the
+  read-only MCP `job_report` tool. CLI reports persist under
+  `.specbridge/reports/` by default; MCP derives the same contract without
+  writing runtime state.
+- Added deterministic mixed-compute, Strong-only replay, research, cooldown,
+  restart/deduplication, token coverage, intervention, reliability, old-Job,
+  corruption, CLI, and MCP qualification coverage, and regenerated the public
+  contracts, tool reference, and Claude/Codex plugin bundles.
+
 ### Subscription Cooldown Continuation & Compute Survival — vNext.10.2 Phase 8
 
 - Added durable, resource-scoped Strong subscription cooldown state at the

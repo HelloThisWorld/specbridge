@@ -1,4 +1,7 @@
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { executionTelemetryReportFile } from '@specbridge/autonomy';
 import { buildJobGraph, createJob, requireJobState } from '@specbridge/orchestration';
 import { setupOrchestrationFixture } from '../helpers-orchestration.js';
 import type { OrchestrationFixture } from '../helpers-orchestration.js';
@@ -59,6 +62,31 @@ describe('job_list / job_read / job_cancel', () => {
     }
   });
 
+  it('derives a versioned job report without persisting or changing job state', async () => {
+    const fixture = await fixtureWithJob();
+    const before = requireJobState(fixture.workspace, fixture.jobId);
+    const reportFile = executionTelemetryReportFile(fixture.workspace, fixture.jobId);
+    const researchDir = path.join(fixture.root, '.specbridge', 'research');
+    mkdirSync(researchDir, { recursive: true });
+    writeFileSync(path.join(researchDir, 'telemetry.json'), '{corrupt', 'utf8');
+    const session = await connectMcp(fixture.root);
+    try {
+      const result = await callTool(session, 'job_report', { jobId: fixture.jobId });
+      expect(result.isError).toBe(false);
+      expect(result.structured['report']).toMatchObject({
+        schemaVersion: '1.0.0',
+        jobId: fixture.jobId,
+        outcome: { authoritativeJobStatus: 'READY' },
+      });
+      expect((result.structured['report'] as { diagnostics: { code: string }[] }).diagnostics)
+        .toContainEqual(expect.objectContaining({ code: 'RESEARCH_TELEMETRY_UNREADABLE' }));
+      expect(existsSync(reportFile)).toBe(false);
+      expect(requireJobState(fixture.workspace, fixture.jobId)).toEqual(before);
+    } finally {
+      await session.close();
+    }
+  });
+
   it('job_cancel finalizes idempotently and reports honestly', async () => {
     const fixture = await fixtureWithJob();
     const session = await connectMcp(fixture.root);
@@ -84,7 +112,12 @@ describe('job_list / job_read / job_cancel', () => {
     try {
       const tools = await session.client.listTools();
       const jobTools = tools.tools.filter((tool) => tool.name.startsWith('job_'));
-      expect(jobTools.map((tool) => tool.name).sort()).toEqual(['job_cancel', 'job_list', 'job_read']);
+      expect(jobTools.map((tool) => tool.name).sort()).toEqual([
+        'job_cancel',
+        'job_list',
+        'job_read',
+        'job_report',
+      ]);
       // Nothing exposes dispatch, review, approval, or completion for jobs.
       expect(tools.tools.some((tool) => /job_(run|step|dispatch|approve|review|complete)/.test(tool.name))).toBe(
         false,

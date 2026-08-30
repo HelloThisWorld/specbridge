@@ -597,8 +597,8 @@ var require_Node = __commonJS({
         };
         const res = toJS.toJS(this, "", ctx);
         if (typeof onAnchor === "function")
-          for (const { count: count3, res: res2 } of ctx.anchors.values())
-            onAnchor(res2, count3);
+          for (const { count: count4, res: res2 } of ctx.anchors.values())
+            onAnchor(res2, count4);
         return typeof reviver === "function" ? applyReviver.applyReviver(reviver, { "": res }, "", res) : res;
       }
     };
@@ -704,13 +704,13 @@ var require_Alias = __commonJS({
         const anchor = anchors2 && source && anchors2.get(source);
         return anchor ? anchor.count * anchor.aliasCount : 0;
       } else if (identity3.isCollection(node)) {
-        let count3 = 0;
+        let count4 = 0;
         for (const item of node.items) {
           const c3 = getAliasCount(doc, item, anchors2);
-          if (c3 > count3)
-            count3 = c3;
+          if (c3 > count4)
+            count4 = c3;
         }
-        return count3;
+        return count4;
       } else if (identity3.isPair(node)) {
         const kc = getAliasCount(doc, node.key, anchors2);
         const vc = getAliasCount(doc, node.value, anchors2);
@@ -3663,8 +3663,8 @@ var require_Document = __commonJS({
         };
         const res = toJS.toJS(this.contents, jsonArg ?? "", ctx);
         if (typeof onAnchor === "function")
-          for (const { count: count3, res: res2 } of ctx.anchors.values())
-            onAnchor(res2, count3);
+          for (const { count: count4, res: res2 } of ctx.anchors.values())
+            onAnchor(res2, count4);
         return typeof reviver === "function" ? applyReviver.applyReviver(reviver, { "": res }, "", res) : res;
       }
       /**
@@ -3741,12 +3741,12 @@ var require_errors = __commonJS({
         lineStr = prev + lineStr;
       }
       if (/[^ ]/.test(lineStr)) {
-        let count3 = 1;
+        let count4 = 1;
         const end = error2.linePos[1];
         if (end?.line === line && end.col > col) {
-          count3 = Math.max(1, Math.min(end.col - col, 80 - ci));
+          count4 = Math.max(1, Math.min(end.col - col, 80 - ci));
         }
-        const pointer = " ".repeat(ci) + "^".repeat(count3);
+        const pointer = " ".repeat(ci) + "^".repeat(count4);
         error2.message += `:
 
 ${lineStr}
@@ -10044,20 +10044,20 @@ var require_resolve = __commonJS({
       return false;
     }
     function countKeys(schema) {
-      let count3 = 0;
+      let count4 = 0;
       for (const key in schema) {
         if (key === "$ref")
           return Infinity;
-        count3++;
+        count4++;
         if (SIMPLE_INLINED.has(key))
           continue;
         if (typeof schema[key] == "object") {
-          (0, util_1.eachItem)(schema[key], (sch) => count3 += countKeys(sch));
+          (0, util_1.eachItem)(schema[key], (sch) => count4 += countKeys(sch));
         }
-        if (count3 === Infinity)
+        if (count4 === Infinity)
           return Infinity;
       }
-      return count3;
+      return count4;
     }
     function getFullPath(resolver, id = "", normalize3) {
       if (normalize3 !== false)
@@ -13229,8 +13229,8 @@ var require_contains = __commonJS({
         cxt.result(valid, () => cxt.reset());
         function validateItemsWithCount() {
           const schValid = gen.name("_valid");
-          const count3 = gen.let("count", 0);
-          validateItems(schValid, () => gen.if(schValid, () => checkLimits(count3)));
+          const count4 = gen.let("count", 0);
+          validateItems(schValid, () => gen.if(schValid, () => checkLimits(count4)));
         }
         function validateItems(_valid, block) {
           gen.forRange("i", 0, len, (i2) => {
@@ -13243,16 +13243,16 @@ var require_contains = __commonJS({
             block();
           });
         }
-        function checkLimits(count3) {
-          gen.code((0, codegen_1._)`${count3}++`);
+        function checkLimits(count4) {
+          gen.code((0, codegen_1._)`${count4}++`);
           if (max === void 0) {
-            gen.if((0, codegen_1._)`${count3} >= ${min}`, () => gen.assign(valid, true).break());
+            gen.if((0, codegen_1._)`${count4} >= ${min}`, () => gen.assign(valid, true).break());
           } else {
-            gen.if((0, codegen_1._)`${count3} > ${max}`, () => gen.assign(valid, false).break());
+            gen.if((0, codegen_1._)`${count4} > ${max}`, () => gen.assign(valid, false).break());
             if (min === 1)
               gen.assign(valid, true);
             else
-              gen.if((0, codegen_1._)`${count3} >= ${min}`, () => gen.assign(valid, true));
+              gen.if((0, codegen_1._)`${count4} >= ${min}`, () => gen.assign(valid, true));
           }
         }
       }
@@ -15641,20 +15641,20 @@ var require_parse2 = __commonJS({
         consume(token.value);
       };
       const negate = () => {
-        let count3 = 1;
+        let count4 = 1;
         while (peek() === "!" && (peek(2) !== "(" || peek(3) === "?")) {
           advance();
           state.start++;
-          count3++;
+          count4++;
         }
-        if (count3 % 2 === 0) {
+        if (count4 % 2 === 0) {
           return false;
         }
         state.negated = true;
         state.start++;
         return true;
       };
-      const increment2 = (type) => {
+      const increment3 = (type) => {
         state[type]++;
         stack.push(type);
       };
@@ -15695,7 +15695,7 @@ var require_parse2 = __commonJS({
         token.startIndex = state.index;
         token.tokensIndex = tokens.length;
         const output = (opts.capture ? "(" : "") + token.open;
-        increment2("parens");
+        increment3("parens");
         push2({ type, value: value2, output: state.output ? "" : ONE_CHAR });
         push2({ type: "paren", extglob: true, value: advance(), output });
         extglobs.push(token);
@@ -15871,7 +15871,7 @@ var require_parse2 = __commonJS({
           continue;
         }
         if (value === "(") {
-          increment2("parens");
+          increment3("parens");
           push2({ type: "paren", value });
           continue;
         }
@@ -15895,7 +15895,7 @@ var require_parse2 = __commonJS({
             }
             value = `\\${value}`;
           } else {
-            increment2("brackets");
+            increment3("brackets");
           }
           push2({ type: "bracket", value });
           continue;
@@ -15934,7 +15934,7 @@ var require_parse2 = __commonJS({
           continue;
         }
         if (value === "{" && opts.nobrace !== true) {
-          increment2("braces");
+          increment3("braces");
           const open = {
             type: "brace",
             value,
@@ -28454,6 +28454,54 @@ var autonomyPolicySchema = external_exports.object({
   closure: closurePolicySchema.default({}),
   controlPlaneRepair: controlPlaneRepairPolicySchema.default({})
 }).passthrough();
+function autonomyPolicyFingerprint(policy) {
+  const canonical = {
+    mode: policy.mode,
+    humanGate: policy.humanGate,
+    decisions: {
+      implementation: policy.decisions.implementation,
+      internalArchitecture: policy.decisions.internalArchitecture,
+      dependencySelection: policy.decisions.dependencySelection,
+      toolingCreation: policy.decisions.toolingCreation,
+      testInfrastructure: policy.decisions.testInfrastructure,
+      environmentProvisioning: policy.decisions.environmentProvisioning,
+      browserVerification: policy.decisions.browserVerification,
+      workDecomposition: policy.decisions.workDecomposition
+    },
+    recovery: {
+      provider: policy.recovery.provider,
+      process: policy.recovery.process,
+      toolchain: policy.recovery.toolchain,
+      implementation: policy.recovery.implementation,
+      context: policy.recovery.context,
+      environment: policy.recovery.environment,
+      controlPlane: policy.recovery.controlPlane
+    },
+    supervisor: { enabled: policy.supervisor.enabled, maxRestarts: policy.supervisor.maxRestarts },
+    toolsmith: {
+      enabled: policy.toolsmith.enabled,
+      capabilities: [...policy.toolsmith.capabilities].sort(),
+      maxGrantsPerJob: policy.toolsmith.maxGrantsPerJob
+    },
+    environments: { enabled: policy.environments.enabled },
+    browser: { enabled: policy.browser.enabled },
+    critic: { mode: policy.critic.mode },
+    closure: {
+      enabled: policy.closure.enabled,
+      maxGapClosureCycles: policy.closure.maxGapClosureCycles,
+      requireSystemScenarios: policy.closure.requireSystemScenarios,
+      requireReleaseQualification: policy.closure.requireReleaseQualification,
+      requireReproducibility: policy.closure.requireReproducibility
+    },
+    controlPlaneRepair: {
+      enabled: policy.controlPlaneRepair.enabled,
+      maxRepairsPerJob: policy.controlPlaneRepair.maxRepairsPerJob,
+      requireFullQualification: policy.controlPlaneRepair.requireFullQualification,
+      requireCanary: policy.controlPlaneRepair.requireCanary
+    }
+  };
+  return JSON.stringify(canonical);
+}
 var RUNNER_CONFIG_SCHEMA_VERSION = "2.0.0";
 var BUILT_IN_PROFILE_NAMES = {
   "claude-code": "claude-code",
@@ -31903,7 +31951,7 @@ function analyzeSpecWorkflow(spec, evaluation, stages) {
 function buildInitialState(specName, specType, mode, origin, clock) {
   const shape = workflowShape(specType, mode);
   const stages = initialStages(shape, specName);
-  const now5 = isoNow(clock);
+  const now6 = isoNow(clock);
   return {
     schemaVersion: SPEC_STATE_SCHEMA_VERSION,
     specName,
@@ -31911,8 +31959,8 @@ function buildInitialState(specName, specType, mode, origin, clock) {
     workflowMode: mode,
     origin,
     status: deriveWorkflowStatus(shape, stages),
-    createdAt: now5,
-    updatedAt: now5,
+    createdAt: now6,
+    updatedAt: now6,
     stages
   };
 }
@@ -37377,7 +37425,7 @@ function parseMilliseconds(milliseconds) {
 
 // ../../node_modules/.pnpm/pretty-ms@9.3.0/node_modules/pretty-ms/index.js
 var isZero = (value) => value === 0 || value === 0n;
-var pluralize = (word, count3) => count3 === 1 || count3 === 1n ? word : `${word}s`;
+var pluralize = (word, count4) => count4 === 1 || count4 === 1n ? word : `${word}s`;
 var SECOND_ROUNDING_EPSILON = 1e-7;
 var ONE_DAY_IN_MILLISECONDS = 24n * 60n * 60n * 1000n;
 function prettyMilliseconds(milliseconds, options) {
@@ -39381,10 +39429,10 @@ var errorStream = (stream, error2) => {
 };
 var noop2 = () => {
 };
-var updateMaxListeners = (passThroughStream, increment2) => {
+var updateMaxListeners = (passThroughStream, increment3) => {
   const maxListeners = passThroughStream.getMaxListeners();
   if (maxListeners !== 0 && maxListeners !== Number.POSITIVE_INFINITY) {
-    passThroughStream.setMaxListeners(maxListeners + increment2);
+    passThroughStream.setMaxListeners(maxListeners + increment3);
   }
 };
 var PASSTHROUGH_LISTENERS_COUNT = 2;
@@ -39608,12 +39656,12 @@ var SignalExit = class extends SignalExitBase {
     for (const sig of signals) {
       this.#sigListeners[sig] = () => {
         const listeners = this.#process.listeners(sig);
-        let { count: count3 } = this.#emitter;
+        let { count: count4 } = this.#emitter;
         const p = process11;
         if (typeof p.__signal_exit_emitter__ === "object" && typeof p.__signal_exit_emitter__.count === "number") {
-          count3 += p.__signal_exit_emitter__.count;
+          count4 += p.__signal_exit_emitter__.count;
         }
-        if (listeners.length === count3) {
+        if (listeners.length === count4) {
           this.unload();
           const ret = this.#emitter.emit("exit", null, sig);
           const s = sig === "SIGHUP" ? this.#hupSig : sig;
@@ -41085,12 +41133,12 @@ var import_buffer3 = require("buffer");
 var import_crypto4 = require("crypto");
 var import_buffer4 = require("buffer");
 
-// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-client@0.1.1-rc.1_teq4kq266b3dkw7rcc6wolnm4y/node_modules/@deepseek-ai/dsh-sdk-client/lib/index.js
+// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-client_c7c18fcf9e8f1a4fb91688e8889bdc81/node_modules/@deepseek-ai/dsh-sdk-client/lib/index.js
 var import_node_crypto2 = require("crypto");
 var import_node_path6 = require("path");
 var import_node_child_process6 = require("child_process");
 
-// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-protocol@0.1.1-rc.1_@deepseek-ai+cordis@4.0.1_@deepseek-ai+dsh-invariant_xsjcgguoedzlkqgw4wib2jrjgm/node_modules/@deepseek-ai/dsh-sdk-protocol/lib/index.js
+// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-protoc_da82cbd0d841623505577e1cffdd1555/node_modules/@deepseek-ai/dsh-sdk-protocol/lib/index.js
 var import_node_crypto = require("crypto");
 var import_node_string_decoder3 = require("string_decoder");
 var JsonRpcResponseError = class extends Error {
@@ -41327,7 +41375,7 @@ function abortError(reason) {
   return reason instanceof Error ? reason : /* @__PURE__ */ new Error(`JSON-RPC request aborted: ${String(reason)}`);
 }
 
-// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-client@0.1.1-rc.1_teq4kq266b3dkw7rcc6wolnm4y/node_modules/@deepseek-ai/dsh-sdk-client/lib/index.js
+// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-client_c7c18fcf9e8f1a4fb91688e8889bdc81/node_modules/@deepseek-ai/dsh-sdk-client/lib/index.js
 function exitsWithin(child, ms) {
   if (child.exitCode !== null || child.signalCode !== null) return Promise.resolve(true);
   return new Promise((resolve2) => {
@@ -49318,7 +49366,7 @@ function hashProtectedTree(workspaceRoot, relativeDir, into) {
   }
 }
 async function captureGitSnapshot(workspaceRoot, options = {}) {
-  const now5 = options.clock?.() ?? /* @__PURE__ */ new Date();
+  const now6 = options.clock?.() ?? /* @__PURE__ */ new Date();
   const diagnostics = [];
   const excludedPrefixes = [
     ...SNAPSHOT_EXCLUDED_PREFIXES,
@@ -49333,7 +49381,7 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
     });
     return {
       schemaVersion: GIT_SNAPSHOT_SCHEMA_VERSION,
-      capturedAt: now5.toISOString(),
+      capturedAt: now6.toISOString(),
       gitAvailable: false,
       detached: false,
       clean: false,
@@ -49407,7 +49455,7 @@ async function captureGitSnapshot(workspaceRoot, options = {}) {
   hashProtectedTree(workspaceRoot, import_path15.default.join(".specbridge", "state"), protectedHashes);
   return {
     schemaVersion: GIT_SNAPSHOT_SCHEMA_VERSION,
-    capturedAt: now5.toISOString(),
+    capturedAt: now6.toISOString(),
     gitAvailable: statusResult.ok,
     ...head !== void 0 ? { head } : {},
     ...branch !== void 0 ? { branch } : {},
@@ -49757,10 +49805,10 @@ function evaluateEvidence(input) {
   if (!input.taskStillExists) {
     violations.push("the selected task no longer exists in tasks.md with its recorded text");
   }
-  const outcomeStatus = statusForFailedOutcome(input.runnerOutcome);
-  if (outcomeStatus !== void 0) {
+  const outcomeStatus2 = statusForFailedOutcome(input.runnerOutcome);
+  if (outcomeStatus2 !== void 0) {
     reasons.push(`the runner outcome was "${input.runnerOutcome}"`);
-    return { status: outcomeStatus, violations, warnings, reasons };
+    return { status: outcomeStatus2, violations, warnings, reasons };
   }
   const agentChanges = agentChangedFiles(input.comparison).filter(
     (file) => !input.comparison.ambiguousPaths.includes(file.path)
@@ -51002,15 +51050,15 @@ function readInteractiveLock(workspace) {
 }
 function acquireInteractiveLock(workspace, details) {
   const lockPath = interactiveLockPath(workspace);
-  const now5 = (details.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
+  const now6 = (details.clock ?? (() => /* @__PURE__ */ new Date()))().toISOString();
   const lock = {
     schemaVersion: INTERACTIVE_LOCK_SCHEMA_VERSION,
     runId: details.runId,
     specName: details.specName,
     taskId: details.taskId,
     pid: details.pid ?? process.pid,
-    createdAt: now5,
-    heartbeatAt: now5
+    createdAt: now6,
+    heartbeatAt: now6
   };
   (0, import_fs20.mkdirSync)(import_path21.default.dirname(lockPath), { recursive: true });
   try {
@@ -51493,8 +51541,8 @@ async function abortInteractiveTask(deps, request) {
       ...report !== void 0 ? { outcome: classifyInteractiveOutcome(report) } : {}
     };
   }
-  const now5 = await captureGitSnapshot(workspace.rootDir, { clock: () => clock() });
-  const remaining = now5.gitAvailable ? agentChangedFiles(compareSnapshots(state.before, now5)).map((file) => file.path) : [];
+  const now6 = await captureGitSnapshot(workspace.rootDir, { clock: () => clock() });
+  const remaining = now6.gitAvailable ? agentChangedFiles(compareSnapshots(state.before, now6)).map((file) => file.path) : [];
   const abortedAt = clock().toISOString();
   writeRunArtifact(
     workspace,
@@ -52630,14 +52678,14 @@ function refreshRepositoryIndex(previous, options) {
 function normalize(value) {
   return value.replace(/\\/g, "/").replace(/^\.\//, "");
 }
-function safeBuildEntry(rootDir, relativePath, now5, maxFileBytes) {
+function safeBuildEntry(rootDir, relativePath, now6, maxFileBytes) {
   const limit = maxFileBytes ?? REPOSITORY_INDEX_LIMITS.maxFileBytes;
   try {
     if ((0, import_fs22.statSync)(import_path24.default.join(rootDir, relativePath)).size > limit) return void 0;
   } catch {
     return void 0;
   }
-  return buildEntry(rootDir, relativePath, now5);
+  return buildEntry(rootDir, relativePath, now6);
 }
 var RepositoryContextIndex = class {
   /**
@@ -53544,12 +53592,16 @@ var contextEfficiencyMetricsSchema = external_exports.object({
 // ../../packages/orchestration/dist/index.js
 var import_fs26 = require("fs");
 var import_path28 = __toESM(require("path"), 1);
-var import_crypto13 = require("crypto");
 var import_fs27 = require("fs");
 var import_path29 = __toESM(require("path"), 1);
-var import_crypto14 = require("crypto");
 var import_fs28 = require("fs");
 var import_path30 = __toESM(require("path"), 1);
+var import_crypto13 = require("crypto");
+var import_fs29 = require("fs");
+var import_path31 = __toESM(require("path"), 1);
+var import_crypto14 = require("crypto");
+var import_fs30 = require("fs");
+var import_path32 = __toESM(require("path"), 1);
 var ORCHESTRATION_PHASES = [
   /** The run exists; no intent has been assessed yet. */
   "CREATED",
@@ -56744,6 +56796,10 @@ var jobCheckpointSchema = external_exports.object({
   /** The exact next legal action, in one line. */
   nextAction: text22
 }).passthrough();
+function workedMsOf(job, nowMs) {
+  const waited = (job.counters.humanWaitMs ?? 0) + (job.counters.deadIdleMs ?? 0) + (job.humanWaitSince === void 0 ? 0 : Math.max(0, nowMs - Date.parse(job.humanWaitSince)));
+  return Math.max(0, nowMs - Date.parse(job.createdAt) - waited);
+}
 var RECOVERY_TARGETS = [
   "WAITING_RESOURCE",
   "RECOVERING_PROVIDER",
@@ -58562,6 +58618,29 @@ function readCandidate(workspace, jobId, nodeId, workUnitId, attempt) {
     }
   );
 }
+function readBuilderRoutingStates(workspace, jobId, nodeId) {
+  const dir = artifactPath3(workspace, jobId, nodeId, "routing");
+  if (!(0, import_fs25.existsSync)(dir)) return [];
+  const states = [];
+  for (const name of (0, import_fs25.readdirSync)(dir).sort()) {
+    if (!name.endsWith(".json") || name === "telemetry.json") continue;
+    const state = readJson(import_path27.default.join(dir, name), (raw) => {
+      const result = builderRoutingStateSchema.safeParse(raw);
+      return result.success ? result.data : void 0;
+    });
+    if (state !== void 0) states.push(state);
+  }
+  return states;
+}
+function readObjectiveCooldownState(workspace, jobId, nodeId) {
+  return readJson(
+    artifactPath3(workspace, jobId, nodeId, "resources", "strong-subscription.json"),
+    (raw) => {
+      const result = objectiveCooldownStateSchema.safeParse(raw);
+      return result.success ? result.data : void 0;
+    }
+  );
+}
 function readEvaluations(workspace, jobId, nodeId, workUnitId) {
   const dir = artifactPath3(workspace, jobId, nodeId, "evaluations");
   if (!(0, import_fs25.existsSync)(dir)) return [];
@@ -58605,6 +58684,11 @@ function readWorkerRecords(workspace, jobId, nodeId) {
     if (record32 !== void 0) records.push(record32);
   }
   return records;
+}
+function listObjectiveNodes(workspace, jobId) {
+  const dir = import_path27.default.join(jobDir(workspace, jobId), "objectives");
+  if (!(0, import_fs25.existsSync)(dir)) return [];
+  return (0, import_fs25.readdirSync)(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory() && ID_PATTERN3.test(entry.name)).map((entry) => entry.name).sort();
 }
 var EVALUATION_STATUSES = ["PASS", "FAIL", "INCONCLUSIVE"];
 var EVALUATION_CHECK_LEVELS = [
@@ -59033,6 +59117,48 @@ var taskReliabilityStateSchema = external_exports.object({
   pendingDecisionId: shortText8.optional(),
   updatedAt: shortText8
 }).passthrough();
+function reliabilityDir(workspace, jobId) {
+  return assertInsideWorkspace(workspace.rootDir, import_path28.default.join(jobDir(workspace, jobId), "reliability"));
+}
+function recordDir(workspace, jobId, kind) {
+  return assertInsideWorkspace(workspace.rootDir, import_path28.default.join(reliabilityDir(workspace, jobId), kind));
+}
+function readRecord(file, parse3) {
+  if (!(0, import_fs26.existsSync)(file)) return void 0;
+  try {
+    return parse3(JSON.parse((0, import_fs26.readFileSync)(file, "utf8")));
+  } catch {
+    return void 0;
+  }
+}
+function listRecords(workspace, jobId, kind, parse3) {
+  const dir = recordDir(workspace, jobId, kind);
+  if (!(0, import_fs26.existsSync)(dir)) return [];
+  const records = [];
+  for (const entry of (0, import_fs26.readdirSync)(dir).sort()) {
+    if (!entry.endsWith(".json")) continue;
+    const record32 = readRecord(import_path28.default.join(dir, entry), parse3);
+    if (record32 !== void 0) records.push(record32);
+  }
+  return records;
+}
+function listEvaluationResults(workspace, jobId, filter = {}) {
+  const all = listRecords(workspace, jobId, "evaluations", (raw) => evaluationResultSchema.parse(raw));
+  return filter.nodeId === void 0 ? all : all.filter((entry) => entry.nodeId === filter.nodeId);
+}
+function listFailureAssessments(workspace, jobId, filter = {}) {
+  const all = listRecords(
+    workspace,
+    jobId,
+    "assessments",
+    (raw) => failureAssessmentSchema.parse(raw)
+  );
+  return filter.nodeId === void 0 ? all : all.filter((entry) => entry.nodeId === filter.nodeId);
+}
+function listRecoveryDecisions(workspace, jobId, filter = {}) {
+  const all = listRecords(workspace, jobId, "decisions", (raw) => recoveryDecisionSchema.parse(raw));
+  return filter.nodeId === void 0 ? all : all.filter((entry) => entry.nodeId === filter.nodeId);
+}
 var TASK_ATTEMPT_STATUSES = [
   /** The dispatch is (or was, before a crash) in flight. */
   "RUNNING",
@@ -59357,6 +59483,102 @@ var executionLedgerEntrySchema = external_exports.object({
   runnerVersion: shortText9.nullable().default(null),
   metrics: attemptMetricsSchema
 }).passthrough();
+function taskAttemptsDir(workspace, jobId) {
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path29.default.join(jobDir(workspace, jobId), "task-attempts")
+  );
+}
+function listTaskAttempts(workspace, jobId, options = {}) {
+  const dir = taskAttemptsDir(workspace, jobId);
+  if (!(0, import_fs27.existsSync)(dir)) return [];
+  const attempts = [];
+  for (const entry of (0, import_fs27.readdirSync)(dir, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
+    try {
+      const parsed = taskAttemptSchema.safeParse(
+        JSON.parse((0, import_fs27.readFileSync)(import_path29.default.join(dir, entry.name), "utf8"))
+      );
+      if (!parsed.success) continue;
+      if (options.nodeId !== void 0 && parsed.data.nodeId !== options.nodeId) continue;
+      if (options.status !== void 0 && parsed.data.status !== options.status) continue;
+      attempts.push(parsed.data);
+    } catch {
+    }
+  }
+  attempts.sort(
+    (a2, b) => a2.startedAt.localeCompare(b.startedAt, "en") || a2.attemptId.localeCompare(b.attemptId, "en")
+  );
+  return attempts;
+}
+function readExecutionLedger(workspace, jobId, options = {}) {
+  const attempts = listTaskAttempts(workspace, jobId, { nodeId: options.nodeId });
+  const evaluations = new Map(
+    listEvaluationResults(workspace, jobId, {
+      ...options.nodeId !== void 0 ? { nodeId: options.nodeId } : {}
+    }).map((entry) => [entry.attemptId, entry])
+  );
+  const assessments = new Map(
+    listFailureAssessments(workspace, jobId, {
+      ...options.nodeId !== void 0 ? { nodeId: options.nodeId } : {}
+    }).map((entry) => [entry.attemptId, entry])
+  );
+  const decisions = new Map(
+    listRecoveryDecisions(workspace, jobId, {
+      ...options.nodeId !== void 0 ? { nodeId: options.nodeId } : {}
+    }).map((entry) => [entry.attemptId, entry])
+  );
+  return attempts.map((attempt) => {
+    const evaluation = evaluations.get(attempt.attemptId);
+    const assessment = assessments.get(attempt.attemptId);
+    const decision = decisions.get(attempt.attemptId);
+    return executionLedgerEntrySchema.parse({
+      attemptId: attempt.attemptId,
+      jobId: attempt.jobId,
+      nodeId: attempt.nodeId,
+      taskId: attempt.taskId,
+      role: attempt.role,
+      provider: attempt.provider,
+      model: attempt.model,
+      lane: attempt.lane ?? null,
+      status: attempt.status,
+      attemptNumber: attempt.attemptNumber,
+      startedAt: attempt.startedAt,
+      completedAt: attempt.completedAt ?? null,
+      success: attempt.status === "COMPLETED",
+      failureReason: attempt.failure?.category ?? attempt.interruptedReason ?? null,
+      localSuitability: attempt.localSuitability ?? null,
+      taskComplexity: attempt.taskComplexity ?? null,
+      taskCategory: attempt.taskCategory ?? null,
+      schedulingDecisionId: attempt.schedulingDecisionId ?? null,
+      executionMode: attempt.executionMode ?? null,
+      executionShape: attempt.executionShape ?? null,
+      computeLocality: attempt.computeLocality ?? null,
+      apiSpendMode: attempt.apiSpendMode ?? null,
+      gapReason: attempt.gapReason ?? null,
+      subscriptionAvailableAt: attempt.subscriptionAvailableAt ?? null,
+      estimatedGapDurationMs: attempt.estimatedGapDurationMs ?? null,
+      costSource: attempt.costSource ?? null,
+      pricingProfile: attempt.pricingProfile ?? null,
+      apiBudgetReservationId: attempt.apiBudgetReservationId ?? null,
+      apiApprovalId: attempt.apiApprovalId ?? null,
+      delaySensitivity: attempt.delaySensitivity ?? null,
+      evaluationStatus: evaluation?.status ?? null,
+      evaluationId: evaluation?.evaluationId ?? null,
+      failureSource: assessment?.source ?? null,
+      failureFingerprint: assessment?.fingerprint ?? null,
+      executionHealth: assessment?.health ?? null,
+      recoveryAction: decision?.action ?? null,
+      recoveryReasonCode: decision?.reasonCode ?? null,
+      recoveryDecisionId: decision?.decisionId ?? null,
+      strategyChange: decision?.strategyChange ?? null,
+      taskSignature: attempt.taskSignature ?? null,
+      contextStrategy: attempt.contextStrategy ?? null,
+      runnerVersion: attempt.runnerVersion ?? null,
+      metrics: attempt.metrics
+    });
+  });
+}
 var shortText10 = external_exports.string().min(1).max(200);
 var apiBudgetReservationSchema = external_exports.object({
   reservationId: shortText10,
@@ -59484,19 +59706,19 @@ function assessApiBudget(input) {
   };
 }
 function contextCacheDir(workspace) {
-  return assertInsideWorkspace(workspace.rootDir, import_path28.default.join(workspace.sidecarDir, "cache"));
+  return assertInsideWorkspace(workspace.rootDir, import_path30.default.join(workspace.sidecarDir, "cache"));
 }
 function repositoryIndexFile(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path28.default.join(contextCacheDir(workspace), "context-index.json")
+    import_path30.default.join(contextCacheDir(workspace), "context-index.json")
   );
 }
 function readRepositoryIndexCache(workspace) {
   const file = repositoryIndexFile(workspace);
-  if (!(0, import_fs26.existsSync)(file)) return void 0;
+  if (!(0, import_fs28.existsSync)(file)) return void 0;
   try {
-    const parsed = repositoryContextIndexSchema.safeParse(JSON.parse((0, import_fs26.readFileSync)(file, "utf8")));
+    const parsed = repositoryContextIndexSchema.safeParse(JSON.parse((0, import_fs28.readFileSync)(file, "utf8")));
     return parsed.success ? parsed.data : void 0;
   } catch {
     return void 0;
@@ -59505,7 +59727,7 @@ function readRepositoryIndexCache(workspace) {
 function writeRepositoryIndexCache(workspace, state) {
   const validated = repositoryContextIndexSchema.parse(state);
   const file = repositoryIndexFile(workspace);
-  (0, import_fs26.mkdirSync)(import_path28.default.dirname(file), { recursive: true });
+  (0, import_fs28.mkdirSync)(import_path30.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated)}
 `);
 }
@@ -61838,13 +62060,13 @@ function findResearchReuse(records, request) {
 var RESEARCH_DIR_NAME = "research";
 var ID_PATTERN7 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 function researchRootDir(workspace) {
-  return assertInsideWorkspace(workspace.rootDir, import_path29.default.join(workspace.sidecarDir, RESEARCH_DIR_NAME));
+  return assertInsideWorkspace(workspace.rootDir, import_path31.default.join(workspace.sidecarDir, RESEARCH_DIR_NAME));
 }
 function researchRecordsDir(workspace) {
-  return assertInsideWorkspace(workspace.rootDir, import_path29.default.join(researchRootDir(workspace), "records"));
+  return assertInsideWorkspace(workspace.rootDir, import_path31.default.join(researchRootDir(workspace), "records"));
 }
 function researchUsesDir(workspace) {
-  return assertInsideWorkspace(workspace.rootDir, import_path29.default.join(researchRootDir(workspace), "uses"));
+  return assertInsideWorkspace(workspace.rootDir, import_path31.default.join(researchRootDir(workspace), "uses"));
 }
 function assertResearchId(researchId) {
   if (!ID_PATTERN7.test(researchId)) throw new Error(`Invalid research id "${researchId}".`);
@@ -61854,7 +62076,7 @@ function researchRecordFile(workspace, researchId) {
   assertResearchId(researchId);
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path29.default.join(researchRecordsDir(workspace), `${researchId}.json`)
+    import_path31.default.join(researchRecordsDir(workspace), `${researchId}.json`)
   );
 }
 function majorOf3(value) {
@@ -61862,10 +62084,10 @@ function majorOf3(value) {
 }
 function readResearchRecord(workspace, researchId) {
   const file = researchRecordFile(workspace, researchId);
-  if (!(0, import_fs27.existsSync)(file)) return { kind: "missing" };
+  if (!(0, import_fs29.existsSync)(file)) return { kind: "missing" };
   let value;
   try {
-    value = JSON.parse((0, import_fs27.readFileSync)(file, "utf8"));
+    value = JSON.parse((0, import_fs29.readFileSync)(file, "utf8"));
   } catch (cause) {
     return { kind: "corrupt", problem: cause instanceof Error ? cause.message : String(cause), file };
   }
@@ -61887,29 +62109,46 @@ function readResearchRecord(workspace, researchId) {
 function writeResearchRecord(workspace, value) {
   const record32 = researchRecordSchema.parse(value);
   const file = researchRecordFile(workspace, record32.researchId);
-  (0, import_fs27.mkdirSync)(import_path29.default.dirname(file), { recursive: true });
+  (0, import_fs29.mkdirSync)(import_path31.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(record32, null, 2)}
 `);
   return record32;
 }
 function researchUseFile(workspace, useId) {
-  return assertInsideWorkspace(workspace.rootDir, import_path29.default.join(researchUsesDir(workspace), `${useId}.json`));
+  return assertInsideWorkspace(workspace.rootDir, import_path31.default.join(researchUsesDir(workspace), `${useId}.json`));
 }
 function writeResearchUseRecord(workspace, value) {
   const record32 = researchUseRecordSchema.parse(value);
   const file = researchUseFile(workspace, record32.useId);
-  if ((0, import_fs27.existsSync)(file)) throw new Error(`research use id ${record32.useId} already exists`);
-  (0, import_fs27.mkdirSync)(import_path29.default.dirname(file), { recursive: true });
+  if ((0, import_fs29.existsSync)(file)) throw new Error(`research use id ${record32.useId} already exists`);
+  (0, import_fs29.mkdirSync)(import_path31.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(record32, null, 2)}
 `);
   return record32;
 }
+function listResearchUseRecords(workspace) {
+  const dir = researchUsesDir(workspace);
+  if (!(0, import_fs29.existsSync)(dir)) return [];
+  const records = [];
+  for (const entry of (0, import_fs29.readdirSync)(dir, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
+    try {
+      const value = JSON.parse((0, import_fs29.readFileSync)(import_path31.default.join(dir, entry.name), "utf8"));
+      const version2 = value !== null && typeof value === "object" && typeof value.schemaVersion === "string" ? value.schemaVersion : "";
+      if (majorOf3(version2) !== majorOf3(RESEARCH_USE_SCHEMA_VERSION)) continue;
+      const parsed = researchUseRecordSchema.safeParse(value);
+      if (parsed.success) records.push(parsed.data);
+    } catch {
+    }
+  }
+  return records.sort((a2, b) => a2.createdAt.localeCompare(b.createdAt));
+}
 function listResearchRecords(workspace) {
   const dir = researchRecordsDir(workspace);
-  if (!(0, import_fs27.existsSync)(dir)) return { records: [], diagnostics: [] };
+  if (!(0, import_fs29.existsSync)(dir)) return { records: [], diagnostics: [] };
   const records = [];
   const diagnostics = [];
-  for (const entry of (0, import_fs27.readdirSync)(dir, { withFileTypes: true })) {
+  for (const entry of (0, import_fs29.readdirSync)(dir, { withFileTypes: true })) {
     if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
     const researchId = entry.name.slice(0, -5);
     if (!ID_PATTERN7.test(researchId)) continue;
@@ -62477,7 +62716,7 @@ function zeroPhaseCounts() {
 function avoidanceRatio(avoided, considered) {
   return considered === 0 ? 0 : avoided / considered;
 }
-function emptyResearchTelemetry(now5) {
+function emptyResearchTelemetry(now52) {
   return {
     schemaVersion: RESEARCH_TELEMETRY_SCHEMA_VERSION,
     gateConsidered: 0,
@@ -62504,32 +62743,32 @@ function emptyResearchTelemetry(now5) {
       reports: 0
     },
     totalDurationMs: 0,
-    updatedAt: now5.toISOString()
+    updatedAt: now52.toISOString()
   };
 }
 function researchTelemetryFile(workspace) {
-  return assertInsideWorkspace(workspace.rootDir, import_path30.default.join(researchRootDir(workspace), "telemetry.json"));
+  return assertInsideWorkspace(workspace.rootDir, import_path32.default.join(researchRootDir(workspace), "telemetry.json"));
 }
-function readResearchTelemetry(workspace, now5 = /* @__PURE__ */ new Date()) {
+function readResearchTelemetry(workspace, now52 = /* @__PURE__ */ new Date()) {
   const file = researchTelemetryFile(workspace);
-  if (!(0, import_fs28.existsSync)(file)) return { telemetry: emptyResearchTelemetry(now5) };
+  if (!(0, import_fs30.existsSync)(file)) return { telemetry: emptyResearchTelemetry(now52) };
   try {
-    const parsed = researchTelemetrySchema.safeParse(JSON.parse((0, import_fs28.readFileSync)(file, "utf8")));
-    return parsed.success ? { telemetry: parsed.data } : { telemetry: emptyResearchTelemetry(now5), diagnostic: "research telemetry is schema-invalid" };
+    const parsed = researchTelemetrySchema.safeParse(JSON.parse((0, import_fs30.readFileSync)(file, "utf8")));
+    return parsed.success ? { telemetry: parsed.data } : { telemetry: emptyResearchTelemetry(now52), diagnostic: "research telemetry is schema-invalid" };
   } catch {
-    return { telemetry: emptyResearchTelemetry(now5), diagnostic: "research telemetry is unreadable" };
+    return { telemetry: emptyResearchTelemetry(now52), diagnostic: "research telemetry is unreadable" };
   }
 }
 function writeTelemetry(workspace, value) {
   const telemetry = researchTelemetrySchema.parse(value);
   const file = researchTelemetryFile(workspace);
-  (0, import_fs28.mkdirSync)(import_path30.default.dirname(file), { recursive: true });
+  (0, import_fs30.mkdirSync)(import_path32.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(telemetry, null, 2)}
 `);
   return telemetry;
 }
-function recordResearchGateTelemetry(workspace, decision, now5, phase) {
-  const current = readResearchTelemetry(workspace, now5).telemetry;
+function recordResearchGateTelemetry(workspace, decision, now52, phase) {
+  const current = readResearchTelemetry(workspace, now52).telemetry;
   const avoided = decision !== "RESEARCH_QUICK" && decision !== "RESEARCH_DEEP";
   const researchAvoided = current.researchAvoided + (avoided ? 1 : 0);
   const gateConsidered = current.gateConsidered + 1;
@@ -62549,7 +62788,7 @@ function recordResearchGateTelemetry(workspace, decision, now5, phase) {
         }
       }
     } : {},
-    updatedAt: now5.toISOString()
+    updatedAt: now52.toISOString()
   });
 }
 function addUsage(current, usage) {
@@ -62563,8 +62802,8 @@ function addUsage(current, usage) {
     reports: current.reportedUsage.reports + 1
   };
 }
-function recordResearchReuseTelemetry(workspace, now5, phase) {
-  const current = readResearchTelemetry(workspace, now5).telemetry;
+function recordResearchReuseTelemetry(workspace, now52, phase) {
+  const current = readResearchTelemetry(workspace, now52).telemetry;
   return writeTelemetry(workspace, {
     ...current,
     reusedReports: current.reusedReports + 1,
@@ -62574,19 +62813,19 @@ function recordResearchReuseTelemetry(workspace, now5, phase) {
         [phase]: { ...current.byPhase[phase], reused: current.byPhase[phase].reused + 1 }
       }
     } : {},
-    updatedAt: now5.toISOString()
+    updatedAt: now52.toISOString()
   });
 }
-function recordResearchBudgetRefusalTelemetry(workspace, now5) {
-  const current = readResearchTelemetry(workspace, now5).telemetry;
+function recordResearchBudgetRefusalTelemetry(workspace, now52) {
+  const current = readResearchTelemetry(workspace, now52).telemetry;
   return writeTelemetry(workspace, {
     ...current,
     budgetRefusals: current.budgetRefusals + 1,
-    updatedAt: now5.toISOString()
+    updatedAt: now52.toISOString()
   });
 }
-function recordResearchProviderTelemetry(workspace, result, durationMs, now5, depth, phase) {
-  const current = readResearchTelemetry(workspace, now5).telemetry;
+function recordResearchProviderTelemetry(workspace, result, durationMs, now52, depth, phase) {
+  const current = readResearchTelemetry(workspace, now52).telemetry;
   const report = result.ok ? result.report : void 0;
   return writeTelemetry(workspace, {
     ...current,
@@ -62608,15 +62847,15 @@ function recordResearchProviderTelemetry(workspace, result, durationMs, now5, de
     } : {},
     reportedUsage: addUsage(current, report?.usage),
     totalDurationMs: current.totalDurationMs + Math.max(0, Math.trunc(durationMs)),
-    updatedAt: now5.toISOString()
+    updatedAt: now52.toISOString()
   });
 }
-function recordResearchDecisionPreparedTelemetry(workspace, now5) {
-  const current = readResearchTelemetry(workspace, now5).telemetry;
+function recordResearchDecisionPreparedTelemetry(workspace, now52) {
+  const current = readResearchTelemetry(workspace, now52).telemetry;
   return writeTelemetry(workspace, {
     ...current,
     decisionsPreparedWithResearch: current.decisionsPreparedWithResearch + 1,
-    updatedAt: now5.toISOString()
+    updatedAt: now52.toISOString()
   });
 }
 function nowOf(deps) {
@@ -62691,13 +62930,13 @@ function evaluateAndRecordResearchGate(deps, input, phase) {
   return result;
 }
 async function getResearchProviderHealth(deps, signal) {
-  const now5 = nowOf(deps).toISOString();
+  const now52 = nowOf(deps).toISOString();
   const policy = deps.config.research;
   if (!policy.enabled) {
     return {
       provider: policy.provider,
       status: "UNKNOWN",
-      checkedAt: now5,
+      checkedAt: now52,
       detail: "research is disabled; no provider health request was made"
     };
   }
@@ -62705,7 +62944,7 @@ async function getResearchProviderHealth(deps, signal) {
     return {
       provider: policy.provider,
       status: "UNKNOWN",
-      checkedAt: now5,
+      checkedAt: now52,
       detail: "the selected research provider is disabled; no health request was made"
     };
   }
@@ -62714,7 +62953,7 @@ async function getResearchProviderHealth(deps, signal) {
     return {
       provider: policy.provider,
       status: "UNKNOWN",
-      checkedAt: now5,
+      checkedAt: now52,
       detail: `no ResearchBridge is registered for provider ${policy.provider}`
     };
   }
@@ -63325,11 +63564,11 @@ var quotaForecastSchema = external_exports.object({
   /** The forecast's own clock reading. */
   forecastAt: isoText
 }).passthrough();
-function timeToResetMs(resetAt, now5) {
+function timeToResetMs(resetAt, now52) {
   if (resetAt === null) return null;
   const parsed = Date.parse(resetAt);
   if (Number.isNaN(parsed)) return null;
-  return Math.max(0, parsed - now5.getTime());
+  return Math.max(0, parsed - now52.getTime());
 }
 var shortText15 = external_exports.string().min(1).max(200);
 var schedulingDecisionSchema = external_exports.object({
@@ -63480,11 +63719,11 @@ var apiSpendApprovalSchema = external_exports.object({
   /** The attempt that consumed this approval, when one did. */
   consumedByAttemptId: shortText16.nullable().default(null)
 }).passthrough();
-function assessSnapshotFreshness(snapshot2, now5, staleMs) {
+function assessSnapshotFreshness(snapshot2, now52, staleMs) {
   if (snapshot2 === null || snapshot2.remainingRatio === null) return "UNKNOWN";
   const observed = Date.parse(snapshot2.observedAt);
   if (Number.isNaN(observed)) return "UNKNOWN";
-  return now5.getTime() - observed > staleMs ? "STALE" : "FRESH";
+  return now52.getTime() - observed > staleMs ? "STALE" : "FRESH";
 }
 function combineFreshness(fiveHour, weekly) {
   if (fiveHour === "UNKNOWN" && weekly === "UNKNOWN") return "UNKNOWN";
@@ -63510,14 +63749,14 @@ function deriveSchedulerMode(input) {
   return "NORMAL";
 }
 function buildQuotaForecast(input) {
-  const { now: now5, policy } = input;
-  const fiveHourFreshness = assessSnapshotFreshness(input.fiveHour, now5, policy.telemetryStaleMs);
-  const weeklyFreshness = assessSnapshotFreshness(input.weekly, now5, policy.telemetryStaleMs);
+  const { now: now52, policy } = input;
+  const fiveHourFreshness = assessSnapshotFreshness(input.fiveHour, now52, policy.telemetryStaleMs);
+  const weeklyFreshness = assessSnapshotFreshness(input.weekly, now52, policy.telemetryStaleMs);
   const freshness = combineFreshness(fiveHourFreshness, weeklyFreshness);
   const fiveHourRemaining = input.fiveHour?.remainingRatio ?? null;
   const weeklyRemaining = input.weekly?.remainingRatio ?? null;
-  const timeToFiveHour = timeToResetMs(input.fiveHour?.resetAt ?? null, now5);
-  const timeToWeekly = timeToResetMs(input.weekly?.resetAt ?? null, now5);
+  const timeToFiveHour = timeToResetMs(input.fiveHour?.resetAt ?? null, now52);
+  const timeToWeekly = timeToResetMs(input.weekly?.resetAt ?? null, now52);
   const burnRate = input.observedFiveHourBurnRatePerMinute ?? null;
   const projected = burnRate !== null && timeToFiveHour !== null ? Math.min(1, burnRate * (timeToFiveHour / 6e4)) : null;
   const schedulerMode = deriveSchedulerMode({
@@ -63540,7 +63779,7 @@ function buildQuotaForecast(input) {
     schedulerMode,
     telemetryFreshness: freshness,
     observedAt: observedTimes[0] ?? null,
-    forecastAt: now5.toISOString()
+    forecastAt: now52.toISOString()
   });
 }
 function formatDuration(ms) {
@@ -72701,20 +72940,20 @@ function registerRunResources(server, context) {
 }
 
 // ../../packages/drift/dist/index.js
-var import_fs29 = require("fs");
-var import_path31 = __toESM(require("path"), 1);
-var import_picomatch = __toESM(require_picomatch2(), 1);
-var import_fs30 = require("fs");
-var import_path32 = __toESM(require("path"), 1);
 var import_fs31 = require("fs");
 var import_path33 = __toESM(require("path"), 1);
+var import_picomatch = __toESM(require_picomatch2(), 1);
 var import_fs32 = require("fs");
 var import_path34 = __toESM(require("path"), 1);
 var import_fs33 = require("fs");
 var import_path35 = __toESM(require("path"), 1);
 var import_fs34 = require("fs");
-var import_crypto15 = require("crypto");
 var import_path36 = __toESM(require("path"), 1);
+var import_fs35 = require("fs");
+var import_path37 = __toESM(require("path"), 1);
+var import_fs36 = require("fs");
+var import_crypto15 = require("crypto");
+var import_path38 = __toESM(require("path"), 1);
 var taskEvidenceSchema = external_exports.object({
   taskId: external_exports.string().min(1),
   status: external_exports.enum(["recorded", "verified", "rejected"]),
@@ -72815,24 +73054,24 @@ var verificationPolicySchema = external_exports.object({
   }
 });
 function policyDir(workspace) {
-  return import_path31.default.join(workspace.sidecarDir, "policies");
+  return import_path33.default.join(workspace.sidecarDir, "policies");
 }
 function policyPath(workspace, specName) {
-  const resolved2 = import_path31.default.resolve(policyDir(workspace), `${specName}.json`);
-  const relative = import_path31.default.relative(workspace.rootDir, resolved2);
-  if (relative.startsWith("..") || import_path31.default.isAbsolute(relative)) {
-    return import_path31.default.join(policyDir(workspace), "invalid-spec-name.json");
+  const resolved2 = import_path33.default.resolve(policyDir(workspace), `${specName}.json`);
+  const relative = import_path33.default.relative(workspace.rootDir, resolved2);
+  if (relative.startsWith("..") || import_path33.default.isAbsolute(relative)) {
+    return import_path33.default.join(policyDir(workspace), "invalid-spec-name.json");
   }
   return resolved2;
 }
 function readVerificationPolicy(workspace, specName, explicitPath) {
-  const filePath = explicitPath !== void 0 ? import_path31.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
-  if (!(0, import_fs29.existsSync)(filePath)) {
+  const filePath = explicitPath !== void 0 ? import_path33.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
+  if (!(0, import_fs31.existsSync)(filePath)) {
     return { path: filePath, exists: false, diagnostics: [] };
   }
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs29.readFileSync)(filePath, "utf8"));
+    parsed = JSON.parse((0, import_fs31.readFileSync)(filePath, "utf8"));
   } catch (cause) {
     return {
       path: filePath,
@@ -72895,7 +73134,7 @@ function resolveEffectivePolicy(workspace, specName, options = {}) {
   const storedMode = policy?.mode ?? "advisory";
   const strictFromCli = options.strict === true && storedMode !== "strict";
   const mode = options.strict === true ? "strict" : storedMode;
-  const workspaceRelativePolicyPath = import_path31.default.relative(workspace.rootDir, read.path).split(import_path31.default.sep).join("/");
+  const workspaceRelativePolicyPath = import_path33.default.relative(workspace.rootDir, read.path).split(import_path33.default.sep).join("/");
   return {
     specName,
     mode,
@@ -73039,33 +73278,33 @@ function mergeNumstat(files, stats) {
 function sniffBinary(absolutePath) {
   let fd;
   try {
-    fd = (0, import_fs30.openSync)(absolutePath, "r");
+    fd = (0, import_fs32.openSync)(absolutePath, "r");
     const buffer = Buffer.alloc(8e3);
-    const bytesRead = (0, import_fs30.readSync)(fd, buffer, 0, buffer.length, 0);
+    const bytesRead = (0, import_fs32.readSync)(fd, buffer, 0, buffer.length, 0);
     return buffer.subarray(0, bytesRead).includes(0);
   } catch {
     return false;
   } finally {
-    if (fd !== void 0) (0, import_fs30.closeSync)(fd);
+    if (fd !== void 0) (0, import_fs32.closeSync)(fd);
   }
 }
 function flagSymlinkEscapes(repoRoot, files) {
   const resolvedRoot = (() => {
     try {
-      return (0, import_fs30.realpathSync)(repoRoot);
+      return (0, import_fs32.realpathSync)(repoRoot);
     } catch {
-      return import_path32.default.resolve(repoRoot);
+      return import_path34.default.resolve(repoRoot);
     }
   })();
   for (const file of files) {
     if (file.changeType === "deleted") continue;
-    const absolute = import_path32.default.join(repoRoot, file.path.split("/").join(import_path32.default.sep));
+    const absolute = import_path34.default.join(repoRoot, file.path.split("/").join(import_path34.default.sep));
     try {
-      const stats = (0, import_fs30.lstatSync)(absolute);
+      const stats = (0, import_fs32.lstatSync)(absolute);
       if (!stats.isSymbolicLink()) continue;
-      const target = (0, import_fs30.realpathSync)(absolute);
-      const relative = import_path32.default.relative(resolvedRoot, target);
-      if (relative.startsWith("..") || import_path32.default.isAbsolute(relative)) {
+      const target = (0, import_fs32.realpathSync)(absolute);
+      const relative = import_path34.default.relative(resolvedRoot, target);
+      if (relative.startsWith("..") || import_path34.default.isAbsolute(relative)) {
         file.symlinkOutsideRepository = true;
       }
     } catch {
@@ -73193,7 +73432,7 @@ async function resolveComparison(repoRoot, request, options = {}) {
     const known = new Set(files.map((file) => file.path));
     for (const token of untracked.stdout.split("\0")) {
       if (token.length === 0 || known.has(token)) continue;
-      const absolute = import_path32.default.join(repoRoot, token.split("/").join(import_path32.default.sep));
+      const absolute = import_path34.default.join(repoRoot, token.split("/").join(import_path34.default.sep));
       files.push({
         path: token,
         changeType: "untracked",
@@ -73273,9 +73512,9 @@ function specMatchReasons(specName, policy, validEvidencePaths, designPathRefere
 function readSpecEvidenceRecords(workspace, specName) {
   const byTask = /* @__PURE__ */ new Map();
   let invalidRecordCount = 0;
-  const specDir = import_path33.default.join(workspace.sidecarDir, "evidence", specName);
-  if ((0, import_fs31.existsSync)(specDir)) {
-    const taskDirs = (0, import_fs31.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
+  const specDir = import_path35.default.join(workspace.sidecarDir, "evidence", specName);
+  if ((0, import_fs33.existsSync)(specDir)) {
+    const taskDirs = (0, import_fs33.readdirSync)(specDir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
     for (const taskDir of taskDirs) {
       const { records, diagnostics } = listTaskEvidence(workspace, specName, taskDir);
       invalidRecordCount += diagnostics.length;
@@ -73289,7 +73528,7 @@ function readSpecEvidenceRecords(workspace, specName) {
   return { byTask, invalidRecordCount };
 }
 async function buildSpecVerificationContext(options) {
-  const { workspace, folder, comparison, caches, now: now5 } = options;
+  const { workspace, folder, comparison, caches, now: now6 } = options;
   const spec = analyzeSpec(workspace, folder);
   const evaluation = spec.state !== void 0 ? evaluateWorkflow(workspace, spec.state) : void 0;
   const policy = resolveEffectivePolicy(workspace, folder.name, {
@@ -73322,7 +73561,7 @@ async function buildSpecVerificationContext(options) {
     }
     if (effective("tasks") && tasksStage !== void 0) {
       const planHash2 = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(
-        import_path33.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path33.default.sep))
+        import_path35.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path35.default.sep))
       );
       if (planHash2 !== void 0) approved.tasksPlanHash = planHash2;
     }
@@ -73344,7 +73583,7 @@ async function buildSpecVerificationContext(options) {
     approved,
     approvedAt,
     tasks: currentTasks,
-    now: now5
+    now: now6
   };
   const recordedShas = /* @__PURE__ */ new Set();
   for (const records of rawEvidence.byTask.values()) {
@@ -73396,7 +73635,7 @@ async function buildSpecVerificationContext(options) {
     freshness,
     matchedBy: options.matchedBy ?? [],
     readBaseContent: makeBaseContentReader(workspace, comparison, caches, options.signal),
-    now: now5
+    now: now6
   };
 }
 async function orchestrateVerificationCommands(options) {
@@ -73544,7 +73783,7 @@ async function evaluateGlobalRules(rules, context) {
   return { diagnostics, disabledRules };
 }
 function repoRelative2(workspace, absolutePath) {
-  return import_path34.default.relative(workspace.rootDir, absolutePath).split(import_path34.default.sep).join("/");
+  return import_path36.default.relative(workspace.rootDir, absolutePath).split(import_path36.default.sep).join("/");
 }
 function isSpecInfraPath(candidate) {
   return candidate === ".git" || candidate.startsWith(".git/") || candidate.startsWith(".kiro/") || candidate.startsWith(".specbridge/");
@@ -74225,14 +74464,14 @@ var sbv018 = {
     if (designDocument === void 0) return [];
     const designFile = designDocument.filePath;
     const designRepoPath = designFile !== void 0 ? repoRelative2(context.workspace, designFile) : void 0;
-    const specDir = import_path34.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
+    const specDir = import_path36.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
     return context.traceability.designPathReferences.filter((reference) => !reference.isGlob).filter((reference) => {
-      const fromRoot = import_path34.default.join(
+      const fromRoot = import_path36.default.join(
         context.workspace.rootDir,
-        reference.path.split("/").join(import_path34.default.sep)
+        reference.path.split("/").join(import_path36.default.sep)
       );
-      const fromSpecDir = import_path34.default.join(specDir, reference.path.split("/").join(import_path34.default.sep));
-      return !(0, import_fs32.existsSync)(fromRoot) && !(0, import_fs32.existsSync)(fromSpecDir);
+      const fromSpecDir = import_path36.default.join(specDir, reference.path.split("/").join(import_path36.default.sep));
+      return !(0, import_fs34.existsSync)(fromRoot) && !(0, import_fs34.existsSync)(fromSpecDir);
     }).map(
       (reference) => makeDiagnostic({
         rule: this,
@@ -74476,9 +74715,9 @@ function loadSpecMatchingInfo(workspace, folder, options) {
     }
   }
   const evidencePaths = /* @__PURE__ */ new Set();
-  const evidenceDir2 = import_path35.default.join(workspace.sidecarDir, "evidence", folder.name);
-  if ((0, import_fs33.existsSync)(evidenceDir2)) {
-    for (const entry of (0, import_fs34.readdirSync)(evidenceDir2, { withFileTypes: true })) {
+  const evidenceDir2 = import_path37.default.join(workspace.sidecarDir, "evidence", folder.name);
+  if ((0, import_fs35.existsSync)(evidenceDir2)) {
+    for (const entry of (0, import_fs36.readdirSync)(evidenceDir2, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
       const { records } = listTaskEvidence(workspace, folder.name, entry.name);
       for (const record4 of records) {
@@ -74535,7 +74774,7 @@ var VERIFY_EXIT_CODES = {
   commandTimeout: 5
 };
 async function verifySpecs(request) {
-  const now5 = (request.clock ?? (() => /* @__PURE__ */ new Date()))();
+  const now6 = (request.clock ?? (() => /* @__PURE__ */ new Date()))();
   const verificationId = (request.idFactory ?? import_crypto15.randomUUID)();
   const workspace = request.workspace;
   const configRead = readAgentConfig(workspace);
@@ -74577,7 +74816,7 @@ async function verifySpecs(request) {
           ...request.strict !== void 0 ? { strict: request.strict } : {},
           ...request.explicitPolicyPath !== void 0 ? { explicitPolicyPath: request.explicitPolicyPath } : {},
           ...matchedBy !== void 0 ? { matchedBy: dedupe(matchedBy) } : {},
-          now: now5,
+          now: now6,
           ...request.signal !== void 0 ? { signal: request.signal } : {}
         })
       );
@@ -74587,8 +74826,8 @@ async function verifySpecs(request) {
   let artifactsDir;
   const ensureArtifactsDir = () => {
     if (artifactsDir === void 0) {
-      const base = request.reportsDir ?? import_path36.default.join(workspace.sidecarDir, "reports");
-      artifactsDir = import_path36.default.join(base, verificationId);
+      const base = request.reportsDir ?? import_path38.default.join(workspace.sidecarDir, "reports");
+      artifactsDir = import_path38.default.join(base, verificationId);
     }
     return artifactsDir;
   };
@@ -74611,8 +74850,8 @@ async function verifySpecs(request) {
       onCommandFinished: (result, stdout, stderr) => {
         const dir = ensureArtifactsDir();
         const safeName = result.name.replace(/[^A-Za-z0-9._-]+/g, "-");
-        writeFileAtomic(import_path36.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
-        writeFileAtomic(import_path36.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
+        writeFileAtomic(import_path38.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
+        writeFileAtomic(import_path38.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
       }
     } : {}
   }) : { mode: "none", commands: [], missingRequired: [] };
@@ -74630,7 +74869,7 @@ async function verifySpecs(request) {
     unmappedFiles: affectedResult.unmapped,
     ambiguousFiles: affectedResult.ambiguous,
     commands,
-    now: now5
+    now: now6
   };
   const globalResult = await evaluateGlobalRules(rules, globalContext);
   const selectedNames = new Set(specContexts.map((context) => context.specName));
@@ -74742,7 +74981,7 @@ async function verifySpecs(request) {
     schemaVersion: VERIFICATION_REPORT_SCHEMA_VERSION,
     tool: { name: "specbridge", version: request.toolVersion },
     verificationId,
-    createdAt: now5.toISOString(),
+    createdAt: now6.toISOString(),
     comparison: comparison.descriptor,
     selection: {
       mode: selectionMode,
@@ -74763,7 +75002,7 @@ async function verifySpecs(request) {
   verificationReportSchema.parse(report);
   if (persistArtifacts && artifactsDir !== void 0) {
     writeFileAtomic(
-      import_path36.default.join(artifactsDir, "report.json"),
+      import_path38.default.join(artifactsDir, "report.json"),
       `${JSON.stringify(report, null, 2)}
 `
     );
@@ -77987,17 +78226,17 @@ var TEMPLATE_PROVIDER_TEMPLATES_DIR = "templates";
 var MAX_TEMPLATE_PROVIDER_PACKS = 20;
 
 // ../../packages/extensions/dist/index.js
-var import_fs38 = require("fs");
-var import_path41 = __toESM(require("path"), 1);
+var import_fs40 = require("fs");
+var import_path43 = __toESM(require("path"), 1);
 
 // ../../packages/templates/dist/index.js
-var import_fs35 = require("fs");
-var import_path37 = __toESM(require("path"), 1);
-var import_fs36 = require("fs");
-var import_path38 = __toESM(require("path"), 1);
 var import_fs37 = require("fs");
 var import_path39 = __toESM(require("path"), 1);
+var import_fs38 = require("fs");
 var import_path40 = __toESM(require("path"), 1);
+var import_fs39 = require("fs");
+var import_path41 = __toESM(require("path"), 1);
+var import_path42 = __toESM(require("path"), 1);
 var SPECBRIDGE_VERSION = "1.0.0";
 var TEMPLATE_ERROR_CODES = {
   SBT001: "template not found",
@@ -78826,11 +79065,11 @@ function readTemplatePackDirectory(dir) {
         { path: currentDir }
       );
     }
-    const entries = (0, import_fs35.readdirSync)(currentDir, { withFileTypes: true }).sort(
+    const entries = (0, import_fs37.readdirSync)(currentDir, { withFileTypes: true }).sort(
       (a2, b) => a2.name.localeCompare(b.name, "en")
     );
     for (const entry of entries) {
-      const entryPath = import_path37.default.join(currentDir, entry.name);
+      const entryPath = import_path39.default.join(currentDir, entry.name);
       const entryRelative = relative === "" ? entry.name : `${relative}/${entry.name}`;
       const stat = statNoFollow(entryPath);
       if (stat.isSymbolicLink()) {
@@ -78882,7 +79121,7 @@ function readTemplatePackDirectory(dir) {
           { path: dir }
         );
       }
-      const buffer = (0, import_fs35.readFileSync)(entryPath);
+      const buffer = (0, import_fs37.readFileSync)(entryPath);
       const text15 = buffer.toString("utf8");
       if (!Buffer.from(text15, "utf8").equals(buffer)) {
         throw new TemplateError(
@@ -78908,7 +79147,7 @@ function readTemplatePackDirectory(dir) {
 }
 function statNoFollow(target) {
   try {
-    return (0, import_fs35.lstatSync)(target);
+    return (0, import_fs37.lstatSync)(target);
   } catch (cause) {
     throw new TemplateError(
       "SBT007",
@@ -79186,7 +79425,7 @@ var BUILTIN_TEMPLATE_PACKS = [
   }
 ];
 function projectTemplatesDir(workspace) {
-  return import_path38.default.join(workspace.sidecarDir, "templates");
+  return import_path40.default.join(workspace.sidecarDir, "templates");
 }
 function builtinEntries(options) {
   const entries = [];
@@ -79211,11 +79450,11 @@ function builtinEntries(options) {
 function projectEntries(workspace, options, diagnostics) {
   if (workspace === void 0) return [];
   const dir = projectTemplatesDir(workspace);
-  if (!(0, import_fs36.existsSync)(dir)) return [];
+  if (!(0, import_fs38.existsSync)(dir)) return [];
   const entries = [];
   let names;
   try {
-    names = (0, import_fs36.readdirSync)(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory() && !entry.isSymbolicLink()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
+    names = (0, import_fs38.readdirSync)(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory() && !entry.isSymbolicLink()).map((entry) => entry.name).sort((a2, b) => a2.localeCompare(b, "en"));
   } catch (cause) {
     diagnostics.push({
       severity: "warning",
@@ -79225,7 +79464,7 @@ function projectEntries(workspace, options, diagnostics) {
     return [];
   }
   for (const name of names) {
-    const packDir = import_path38.default.join(dir, name);
+    const packDir = import_path40.default.join(dir, name);
     let pack;
     try {
       const data = readTemplatePackDirectory(packDir);
@@ -79468,7 +79707,7 @@ var templateRecordSchema = external_exports.discriminatedUnion("type", [
   templateScaffoldRecordSchema
 ]);
 function templateRecordsPath(workspace) {
-  return import_path39.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
+  return import_path41.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
 }
 var recordCounter = 0;
 function newTemplateRecordId(clock = systemClock) {
@@ -79479,8 +79718,8 @@ function appendTemplateRecord(workspace, record4) {
   const validated = templateRecordSchema.parse(record4);
   const filePath = templateRecordsPath(workspace);
   try {
-    (0, import_fs37.mkdirSync)(workspace.sidecarDir, { recursive: true });
-    (0, import_fs37.appendFileSync)(filePath, `${JSON.stringify(validated)}
+    (0, import_fs39.mkdirSync)(workspace.sidecarDir, { recursive: true });
+    (0, import_fs39.appendFileSync)(filePath, `${JSON.stringify(validated)}
 `, "utf8");
   } catch (cause) {
     throw ioError("append template record to", filePath, cause);
@@ -79647,7 +79886,7 @@ function planTemplateApplication(workspace, catalog, request, clock = systemCloc
   };
 }
 function toPosix2(relative) {
-  return relative.split(import_path40.default.sep).join("/");
+  return relative.split(import_path42.default.sep).join("/");
 }
 function executeTemplateApplication(workspace, plan, clock = systemClock, recordId) {
   let creation;
@@ -79677,8 +79916,8 @@ function executeTemplateApplication(workspace, plan, clock = systemClock, record
     })),
     variableNames: plan.variableNames,
     createdPaths: [
-      ...creation.writtenFiles.map((file) => toPosix2(import_path40.default.relative(workspace.rootDir, file))),
-      toPosix2(import_path40.default.relative(workspace.rootDir, creation.statePath))
+      ...creation.writtenFiles.map((file) => toPosix2(import_path42.default.relative(workspace.rootDir, file))),
+      toPosix2(import_path42.default.relative(workspace.rootDir, creation.statePath))
     ]
   };
   appendTemplateRecord(workspace, record4);
@@ -79687,13 +79926,13 @@ function executeTemplateApplication(workspace, plan, clock = systemClock, record
 
 // ../../packages/extensions/dist/index.js
 var import_crypto17 = require("crypto");
-var import_fs39 = require("fs");
-var import_path42 = __toESM(require("path"), 1);
-var import_child_process = require("child_process");
-var import_fs40 = require("fs");
-var import_path43 = __toESM(require("path"), 1);
 var import_fs41 = require("fs");
 var import_path44 = __toESM(require("path"), 1);
+var import_child_process = require("child_process");
+var import_fs42 = require("fs");
+var import_path45 = __toESM(require("path"), 1);
+var import_fs43 = require("fs");
+var import_path46 = __toESM(require("path"), 1);
 var ExtensionError = class extends SpecBridgeError {
   extensionCode;
   /** Actionable next step, always present. */
@@ -79937,7 +80176,7 @@ var FORBIDDEN_LIFECYCLE_SCRIPTS = [
   "postuninstall"
 ];
 function readExtensionPackageDirectory(dir) {
-  const rootStat = (0, import_fs38.lstatSync)(dir, { throwIfNoEntry: false });
+  const rootStat = (0, import_fs40.lstatSync)(dir, { throwIfNoEntry: false });
   if (rootStat === void 0 || !rootStat.isDirectory()) {
     throw new ExtensionError(
       "SBE008",
@@ -79962,7 +80201,7 @@ function readExtensionPackageDirectory(dir) {
         "Flatten the package layout."
       );
     }
-    for (const entry of (0, import_fs38.readdirSync)(currentDir, { withFileTypes: true })) {
+    for (const entry of (0, import_fs40.readdirSync)(currentDir, { withFileTypes: true })) {
       const relativePath = relativePrefix === "" ? entry.name : `${relativePrefix}/${entry.name}`;
       if (entry.isSymbolicLink()) {
         throw new ExtensionError(
@@ -79988,7 +80227,7 @@ function readExtensionPackageDirectory(dir) {
             "Remove the directory before validating or packaging."
           );
         }
-        walk(import_path41.default.join(currentDir, entry.name), relativePath, depth + 1);
+        walk(import_path43.default.join(currentDir, entry.name), relativePath, depth + 1);
         continue;
       }
       if (!entry.isFile()) {
@@ -80005,7 +80244,7 @@ function readExtensionPackageDirectory(dir) {
           "Reduce the package contents."
         );
       }
-      const content = (0, import_fs38.readFileSync)(import_path41.default.join(currentDir, entry.name));
+      const content = (0, import_fs40.readFileSync)(import_path43.default.join(currentDir, entry.name));
       totalBytes += content.length;
       if (totalBytes > EXTENSION_LIMITS.maxExtractedTotalBytes) {
         throw new ExtensionError(
@@ -80278,10 +80517,10 @@ var EXTENSION_STATE_FILE_NAME = "state.json";
 var EXTENSION_GRANTS_FILE_NAME = "grants.json";
 var EXTENSION_STATE_SCHEMA_VERSION = "1.0.0";
 function extensionsDir(workspace) {
-  return import_path42.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
+  return import_path44.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
 }
 function installedRootDir(workspace) {
-  return import_path42.default.join(extensionsDir(workspace), "installed");
+  return import_path44.default.join(extensionsDir(workspace), "installed");
 }
 function installedVersionDir(workspace, id, version2) {
   if (!validateExtensionId(id).valid || parseSemver(version2) === void 0) {
@@ -80291,7 +80530,7 @@ function installedVersionDir(workspace, id, version2) {
       "Use a valid extension ID and X.Y.Z version."
     );
   }
-  const dir = import_path42.default.join(installedRootDir(workspace), id, version2);
+  const dir = import_path44.default.join(installedRootDir(workspace), id, version2);
   assertInsideWorkspace(workspace.rootDir, dir);
   return dir;
 }
@@ -80335,12 +80574,12 @@ function emptyPermissionGrants() {
   return { schemaVersion: EXTENSION_STATE_SCHEMA_VERSION, grants: {} };
 }
 function readValidatedJson(filePath, schema, empty, label) {
-  if (!(0, import_fs39.existsSync)(filePath)) {
+  if (!(0, import_fs41.existsSync)(filePath)) {
     return { value: empty, diagnostics: [], exists: false };
   }
   let text15;
   try {
-    text15 = (0, import_fs39.readFileSync)(filePath, "utf8");
+    text15 = (0, import_fs41.readFileSync)(filePath, "utf8");
   } catch (cause) {
     return {
       value: empty,
@@ -80390,10 +80629,10 @@ function readValidatedJson(filePath, schema, empty, label) {
   return { value: result.data, diagnostics: [], exists: true };
 }
 function extensionStatePath(workspace) {
-  return import_path42.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
+  return import_path44.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
 }
 function permissionGrantsPath(workspace) {
-  return import_path42.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
+  return import_path44.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
 }
 function readExtensionState(workspace) {
   const { value, diagnostics, exists } = readValidatedJson(
@@ -80574,9 +80813,9 @@ function resolveEntrypoint(installedDir, entrypoint) {
   if (problem !== void 0) {
     throw new ExtensionError("SBE012", `entrypoint "${entrypoint}": ${problem}.`, "Fix the extension manifest.");
   }
-  const resolved2 = import_path43.default.join(installedDir, ...entrypoint.split("/"));
-  const relative = import_path43.default.relative(installedDir, resolved2);
-  if (relative.startsWith("..") || import_path43.default.isAbsolute(relative)) {
+  const resolved2 = import_path45.default.join(installedDir, ...entrypoint.split("/"));
+  const relative = import_path45.default.relative(installedDir, resolved2);
+  if (relative.startsWith("..") || import_path45.default.isAbsolute(relative)) {
     throw new ExtensionError(
       "SBE012",
       `entrypoint "${entrypoint}" escapes the installed extension directory.`,
@@ -80584,9 +80823,9 @@ function resolveEntrypoint(installedDir, entrypoint) {
     );
   }
   let current = installedDir;
-  for (const segment of relative.split(import_path43.default.sep)) {
-    current = import_path43.default.join(current, segment);
-    const stat = (0, import_fs40.lstatSync)(current, { throwIfNoEntry: false });
+  for (const segment of relative.split(import_path45.default.sep)) {
+    current = import_path45.default.join(current, segment);
+    const stat = (0, import_fs42.lstatSync)(current, { throwIfNoEntry: false });
     if (stat === void 0) {
       throw new ExtensionError(
         "SBE012",
@@ -80602,7 +80841,7 @@ function resolveEntrypoint(installedDir, entrypoint) {
       );
     }
   }
-  const finalStat = (0, import_fs40.lstatSync)(resolved2, { throwIfNoEntry: false });
+  const finalStat = (0, import_fs42.lstatSync)(resolved2, { throwIfNoEntry: false });
   if (finalStat === void 0 || !finalStat.isFile()) {
     throw new ExtensionError(
       "SBE012",
@@ -81133,14 +81372,14 @@ async function probeExtensionHandshake(enabled, options = {}) {
 }
 function compatibilityOf(workspace, record4, specbridgeVersion) {
   try {
-    const manifestPath = import_path44.default.join(
+    const manifestPath = import_path46.default.join(
       installedVersionDir(workspace, record4.id, record4.version),
       EXTENSION_MANIFEST_FILE_NAME
     );
-    if (!(0, import_fs41.existsSync)(manifestPath)) {
+    if (!(0, import_fs43.existsSync)(manifestPath)) {
       return { compatibility: "unknown", deprecated: false };
     }
-    const parsed = parseExtensionManifest((0, import_fs41.readFileSync)(manifestPath, "utf8"));
+    const parsed = parseExtensionManifest((0, import_fs43.readFileSync)(manifestPath, "utf8"));
     if (parsed.manifest === void 0) {
       return { compatibility: "unknown", deprecated: false };
     }
@@ -82518,10 +82757,10 @@ function registerTemplateApplyTool(server, context) {
 }
 
 // ../../packages/registry/dist/index.js
-var import_fs42 = require("fs");
-var import_path45 = __toESM(require("path"), 1);
-var import_fs43 = require("fs");
-var import_path46 = __toESM(require("path"), 1);
+var import_fs44 = require("fs");
+var import_path47 = __toESM(require("path"), 1);
+var import_fs45 = require("fs");
+var import_path48 = __toESM(require("path"), 1);
 var BUILTIN_REGISTRY_INDEX_JSON = '{\n  "schemaVersion": "1.0.0",\n  "name": "specbridge-examples",\n  "updatedAt": "2026-01-01T00:00:00.000Z",\n  "extensions": [\n    {\n      "id": "example-analyzer",\n      "displayName": "example-analyzer",\n      "description": "Deterministic spec diagnostics contributed by the example-analyzer analyzer extension.",\n      "kind": "analyzer",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-analyzer-1.0.0.specbridge-extension.zip",\n          "sha256": "e6e0948a315b09e53bd18997dce21888af9adbb3997fbf82955399dcf3252a19",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "analyzer",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-exporter",\n      "displayName": "example-exporter",\n      "description": "Candidate export files produced by the example-exporter exporter extension.",\n      "kind": "exporter",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-exporter-1.0.0.specbridge-extension.zip",\n          "sha256": "68f42755a4e56d0e318012ec8c0e3b093e44429182ca93b02d9fb4ce2ec308a3",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "exporter",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-runner",\n      "displayName": "example-runner",\n      "description": "An out-of-process runner adapter provided by the example-runner extension.",\n      "kind": "runner",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-runner-1.0.0.specbridge-extension.zip",\n          "sha256": "5ef3db937d872bfe09495695e9ecb0a3cf3beaf9e006fabdc2972ef55ace80ef",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": true,\n              "repositoryWrite": true,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "runner",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-template-provider",\n      "displayName": "example-template-provider",\n      "description": "Spec template packs contributed by the example-template-provider template-provider extension.",\n      "kind": "template-provider",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-template-provider-1.0.0.specbridge-extension.zip",\n          "sha256": "f7caa11a13473f0891cc8d237ec4f9f2962a2dd1bd2baba4e9d01570de29044b",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": false,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "template-provider",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-verifier",\n      "displayName": "example-verifier",\n      "description": "Verification diagnostics contributed by the example-verifier verifier extension.",\n      "kind": "verifier",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-verifier-1.0.0.specbridge-extension.zip",\n          "sha256": "d531c9078fcbeef6573a95773eefafd409d798bac1223c83748e0229ae0225bf",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "verifier",\n        "specbridge-extension"\n      ]\n    }\n  ]\n}\n';
 var REGISTRY_ERROR_CODES = {
   SBR001: "registry not found",
@@ -82677,20 +82916,20 @@ var cachedRegistrySchema = external_exports.object({
   index: registryIndexSchema
 }).passthrough();
 function registryCacheDir(workspace) {
-  return import_path45.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
+  return import_path47.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
 }
 function registryCachePath(workspace, name) {
-  const target = import_path45.default.join(registryCacheDir(workspace), `${name}.json`);
+  const target = import_path47.default.join(registryCacheDir(workspace), `${name}.json`);
   assertInsideWorkspace(workspace.rootDir, target);
   return target;
 }
 function readRegistryCache(workspace, name) {
   const filePath = registryCachePath(workspace, name);
-  if (!(0, import_fs42.existsSync)(filePath)) {
+  if (!(0, import_fs44.existsSync)(filePath)) {
     return { diagnostics: [] };
   }
   try {
-    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs42.readFileSync)(filePath, "utf8")));
+    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs44.readFileSync)(filePath, "utf8")));
     if (!parsed.success) {
       return {
         diagnostics: [
@@ -82730,9 +82969,9 @@ function resolveRegistryIndex(workspace, source) {
     return { sourceName: source.name, index: parsed.index, origin: "builtin", diagnostics: [] };
   }
   if (source.type === "local-file") {
-    const filePath = import_path45.default.resolve(workspace.rootDir, source.file);
+    const filePath = import_path47.default.resolve(workspace.rootDir, source.file);
     assertInsideWorkspace(workspace.rootDir, filePath);
-    if (!(0, import_fs42.existsSync)(filePath)) {
+    if (!(0, import_fs44.existsSync)(filePath)) {
       return {
         sourceName: source.name,
         index: { schemaVersion: "1.0.0", name: source.name, updatedAt: "unknown", extensions: [] },
@@ -82747,7 +82986,7 @@ function resolveRegistryIndex(workspace, source) {
         ]
       };
     }
-    const text15 = (0, import_fs42.readFileSync)(filePath, "utf8");
+    const text15 = (0, import_fs44.readFileSync)(filePath, "utf8");
     const parsed = parseRegistryIndex(text15);
     if (parsed.index === void 0) {
       throw new RegistryError(
@@ -82843,7 +83082,7 @@ var registriesConfigSchema = external_exports.object({
   registries: external_exports.array(registrySourceSchema).max(20)
 }).passthrough();
 function registriesConfigPath(workspace) {
-  return import_path46.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
+  return import_path48.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
 }
 function defaultRegistriesConfig() {
   return {
@@ -82853,12 +83092,12 @@ function defaultRegistriesConfig() {
 }
 function readRegistriesConfig(workspace) {
   const filePath = registriesConfigPath(workspace);
-  if (!(0, import_fs43.existsSync)(filePath)) {
+  if (!(0, import_fs45.existsSync)(filePath)) {
     return { config: defaultRegistriesConfig(), diagnostics: [], exists: false };
   }
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs43.readFileSync)(filePath, "utf8"));
+    parsed = JSON.parse((0, import_fs45.readFileSync)(filePath, "utf8"));
   } catch (cause) {
     return {
       config: defaultRegistriesConfig(),
@@ -84230,6 +84469,3306 @@ function registerJobCancelTool(server, context) {
   });
 }
 
+// ../../packages/autonomy/dist/index.js
+var import_fs46 = require("fs");
+var import_path49 = __toESM(require("path"), 1);
+var import_fs47 = require("fs");
+var import_path50 = __toESM(require("path"), 1);
+var SEAL_STATUSES = [
+  /** Drafted from mission state; not yet authorized by a human. */
+  "DRAFT",
+  /** A human authorized it. The only status delegated execution may use. */
+  "SEALED",
+  /** A later seal replaced it. Historical, still readable, never executable. */
+  "SUPERSEDED",
+  /** Explicitly withdrawn by a human. Delegated execution stops immediately. */
+  "REVOKED"
+];
+var SEALED_AUTHORITY_KINDS = [
+  /** The product goal, verbatim. */
+  "GOAL",
+  /** What the product explicitly will not do. */
+  "NON_GOALS",
+  /** Recorded human decisions with provenance. */
+  "DECISIONS",
+  /** Constitution rules: the invariants the product is built under. */
+  "CONSTITUTION",
+  /** Architecture decision records. */
+  "ADRS",
+  /** Product engineering contracts and their revisions. */
+  "CONTRACTS",
+  /** Individual requirements inside those contracts. */
+  "REQUIREMENTS",
+  /** How the product is judged done. */
+  "ACCEPTANCE_CRITERIA",
+  /** The spending ceiling and resource policy the run may consume. */
+  "RESOURCE_POLICY",
+  /** The autonomy/delegation policy in force at seal time. */
+  "AUTONOMY_POLICY"
+];
+var SUPERVISION_STATUSES = [
+  /** Registered for supervision; no driver has been started yet. */
+  "REGISTERED",
+  /** A driver holds a live lease and is executing. */
+  "ACTIVE",
+  /** Waiting on a resource, a backoff, or a scheduled wake time. */
+  "SLEEPING",
+  /** The previous driver died; a replacement is being started. */
+  "RESTARTING",
+  /** Final: the job reached a terminal status. */
+  "RELEASED"
+];
+var SUPERVISION_ACTIONS = [
+  "LEASE_ACQUIRED",
+  "LEASE_RENEWED",
+  "LEASE_EXPIRED_RECLAIMED",
+  "DRIVER_STARTED",
+  "DRIVER_EXITED_CLEANLY",
+  "DRIVER_DIED",
+  /** A person explicitly resumed; the give-up ledger starts fresh. */
+  "RESET_ON_EXPLICIT_RESUME",
+  /** Planned work exhausted with the closure gate unsatisfied; the closure lifecycle takes over. */
+  "CLOSURE_HANDOFF",
+  "DRIVER_RESTARTED",
+  "ATTEMPT_RECONCILED",
+  "WAKE_SCHEDULED",
+  "WOKEN_ON_SCHEDULE",
+  "WOKEN_ON_RESOURCE_RETURN",
+  "PROVIDER_HEALTH_RECHECKED",
+  "LOCAL_RUNTIME_RESTARTED",
+  "STALE_PROCESS_REAPED",
+  "RESTART_BUDGET_EXHAUSTED",
+  "SESSION_BUDGET_REACHED",
+  "INDEFINITE_WAIT_CLASSIFIED",
+  "RELEASED_ON_TERMINAL_STATUS",
+  "RELEASED_ON_AUTHORITY_STOP"
+];
+var PREFLIGHT_CAPABILITIES = [
+  "WORKSPACE_WRITABLE",
+  "REPOSITORY_CLEAN_ENOUGH",
+  "GIT_AVAILABLE",
+  "DISK_SPACE",
+  "PROTECTED_PATHS_CONFIGURED",
+  "SEAL_PRESENT",
+  "SEAL_COMPLETE",
+  "AUTONOMY_POLICY_COMPLETE",
+  "SUPERVISOR_CAPABLE",
+  "STRONG_WORKER_AVAILABLE",
+  "LOCAL_MODEL_STARTABLE",
+  "API_FALLBACK_AUTHORIZED",
+  "SPEND_CEILING_DECLARED",
+  "TRUSTED_VERIFICATION_CONFIGURED",
+  "PACKAGE_MANAGER_AVAILABLE",
+  "PACKAGE_REGISTRY_REACHABLE",
+  "BUILD_TOOLCHAIN_AVAILABLE",
+  "CONTAINER_RUNTIME",
+  "CONTAINER_COMPOSE",
+  "BROWSER_RUNTIME",
+  "TOOLSMITH_POLICY_SUFFICIENT",
+  "ENVIRONMENT_POLICY_SUFFICIENT",
+  "KNOWN_CREDENTIALS_PRESENT",
+  "CONTROL_PLANE_REPAIR_CONFIGURED"
+];
+var PREFLIGHT_OUTCOMES = [
+  /** Observed present and usable right now. */
+  "READY",
+  /** Absent now, and the runtime is authorized and able to provide it. */
+  "SATISFIABLE_AUTONOMOUSLY",
+  /** Absent, and only a human can supply it. Blocks an unattended launch. */
+  "HUMAN_REQUIRED",
+  /** Not needed for this mission's declared surfaces. */
+  "NOT_APPLICABLE",
+  /** The probe itself could not reach a conclusion. Never a pass. */
+  "UNKNOWN"
+];
+var PREFLIGHT_VERDICTS = [
+  /** Every required capability is READY or autonomously satisfiable. */
+  "OVERNIGHT_READY",
+  /** At least one capability needs a person before launch. */
+  "HUMAN_ACTION_REQUIRED",
+  /** A probe could not decide something required. Never launch on this. */
+  "INDETERMINATE"
+];
+var TOOLSMITH_REQUEST_STATUSES = [
+  "REQUESTED",
+  "GRANTED",
+  "DENIED",
+  "APPLIED",
+  "FAILED"
+];
+var TOOLSMITH_DENIAL_REASONS = [
+  "CAPABILITY_NOT_ENABLED",
+  "TOOLSMITH_DISABLED",
+  "GRANT_BUDGET_EXHAUSTED",
+  "TARGET_OUTSIDE_WORKSPACE",
+  "TARGET_PROTECTED_PATH",
+  "REGISTRY_NOT_ALLOWED",
+  "REQUIRES_ADMIN_PRIVILEGE",
+  "WOULD_CREATE_AUTHORITY",
+  "DOWNLOAD_TOO_LARGE",
+  "PORTABLE_ALTERNATIVE_REQUIRED"
+];
+var TOOL_INSTALL_SCOPES = [
+  "PROJECT_LOCAL",
+  "PORTABLE",
+  "CONTAINERIZED",
+  "USER_LOCAL"
+];
+var SERVICE_KINDS = [
+  "CONTAINER",
+  "COMPOSE_PROJECT",
+  "PROCESS",
+  "DATABASE",
+  "MESSAGE_BROKER",
+  "CACHE",
+  "APPLICATION_SERVER",
+  "FRONTEND_SERVER",
+  "WORKER"
+];
+var READINESS_PROBE_KINDS = [
+  /** The process/container exists and has not exited. Weakest evidence. */
+  "PROCESS_ALIVE",
+  /** A TCP connection is accepted. */
+  "TCP_CONNECT",
+  /** An HTTP request returns an expected status. */
+  "HTTP_STATUS",
+  /** An HTTP body matches an expected pattern. */
+  "HTTP_BODY",
+  /** A command exits zero inside or against the service. */
+  "COMMAND_EXIT",
+  /** A protocol-level handshake succeeded (SQL ping, broker metadata, …). */
+  "PROTOCOL_HANDSHAKE",
+  /** The container runtime reports its own healthcheck as healthy. */
+  "CONTAINER_HEALTHCHECK"
+];
+var ENVIRONMENT_STATUSES = [
+  "PLANNED",
+  "PROVISIONING",
+  "WAITING_READY",
+  "READY",
+  "DEGRADED",
+  "REPAIRING",
+  "FAILED",
+  "STOPPED"
+];
+var SERVICE_STATUSES = [
+  "PENDING",
+  "STARTING",
+  "WAITING_READY",
+  "READY",
+  "UNHEALTHY",
+  "RESTARTING",
+  "FAILED",
+  "STOPPED"
+];
+var ENVIRONMENT_FAILURE_KINDS = [
+  "RUNTIME_UNAVAILABLE",
+  "IMAGE_PULL_FAILED",
+  "PORT_CONFLICT",
+  "READINESS_TIMEOUT",
+  "SERVICE_CRASHED",
+  "DEPENDENCY_UNREADY",
+  "CONFIGURATION_INVALID",
+  "RESOURCE_EXHAUSTED",
+  "UNKNOWN"
+];
+var BROWSER_STEP_KINDS = [
+  "NAVIGATE",
+  "CLICK",
+  "TYPE",
+  "FILL_FORM",
+  "SUBMIT",
+  "WAIT_FOR_SELECTOR",
+  "WAIT_FOR_TEXT",
+  "EXPECT_SELECTOR",
+  "EXPECT_TEXT",
+  "EXPECT_ABSENT",
+  "EXPECT_URL",
+  "EXPECT_NO_CONSOLE_ERRORS",
+  "EXPECT_NO_FAILED_REQUESTS",
+  "SCREENSHOT",
+  "SET_VIEWPORT",
+  "RELOAD",
+  "SWITCH_CONTEXT"
+];
+var BROWSER_ASSERTION_STEPS = [
+  "EXPECT_SELECTOR",
+  "EXPECT_TEXT",
+  "EXPECT_ABSENT",
+  "EXPECT_URL",
+  "EXPECT_NO_CONSOLE_ERRORS",
+  "EXPECT_NO_FAILED_REQUESTS"
+];
+var BROWSER_SCENARIO_STATUSES = [
+  "PASSED",
+  "FAILED",
+  "ERRORED",
+  "SKIPPED_NO_RUNTIME",
+  "NOT_RUN"
+];
+var BROWSER_EVIDENCE_KINDS = [
+  "SCREENSHOT",
+  "DOM_SNAPSHOT",
+  "CONSOLE_LOG",
+  "NETWORK_FAILURES",
+  "STEP_TRACE",
+  "VIEWPORT_MATRIX"
+];
+var UX_FINDING_KINDS = [
+  "OVERLAPPING_ELEMENTS",
+  "CLIPPED_CONTENT",
+  "UNREADABLE_LAYOUT",
+  "BROKEN_RESPONSIVE",
+  "DEAD_INTERACTION",
+  "MISSING_LOADING_STATE",
+  "MISSING_ERROR_STATE",
+  "MISSING_EMPTY_STATE",
+  "INCONSISTENT_UX",
+  "UNUSABLE_CONTROL",
+  "VISUAL_REGRESSION",
+  "AESTHETIC_PREFERENCE"
+];
+var UX_FINDING_SEVERITIES = ["MATERIAL", "MINOR", "COSMETIC"];
+var UX_CRITIQUE_VERDICTS = [
+  "NO_MATERIAL_FINDINGS",
+  "MATERIAL_FINDINGS",
+  "NOT_RUN",
+  "INSUFFICIENT_EVIDENCE"
+];
+var CLOSURE_STATUSES = [
+  /** Nothing claims to implement this item. */
+  "NOT_STARTED",
+  /** Work exists and is in flight. */
+  "IN_PROGRESS",
+  /** Implementation exists and is attributed, but nothing has proven it. */
+  "IMPLEMENTED",
+  /** Trusted evidence demonstrates the item holds. The only closing state. */
+  "VERIFIED",
+  /** A human explicitly waived it, with a recorded reason. */
+  "WAIVED",
+  /** Explicitly out of scope for this seal, by recorded decision. */
+  "NOT_APPLICABLE"
+];
+var CLOSING_STATUSES = ["VERIFIED", "WAIVED", "NOT_APPLICABLE"];
+function isClosingStatus(status) {
+  return CLOSING_STATUSES.includes(status);
+}
+var CLOSURE_EVIDENCE_KINDS = [
+  "TRUSTED_VERIFICATION",
+  "UNIT_TEST",
+  "INTEGRATION_TEST",
+  "SYSTEM_SCENARIO",
+  "BROWSER_SCENARIO",
+  "ACCEPTANCE_CRITERION_CHECK",
+  "REPRODUCIBILITY_RUN",
+  "HUMAN_WAIVER",
+  "AGENT_ASSERTION"
+];
+var CLOSURE_PHASES = [
+  "IMPLEMENTATION",
+  "CONTRACT_CLOSURE_AUDIT",
+  "GAP_IMPLEMENTATION",
+  "SYSTEM_SCENARIO_QUALIFICATION",
+  "RELEASE_QUALIFICATION",
+  "REPRODUCIBILITY",
+  "FINAL_CONTRACT_AUDIT",
+  "COMPLETE"
+];
+var CLOSURE_DIRECTIVES = [
+  /** Keep implementing planned work; closure is not in scope yet. */
+  "CONTINUE_IMPLEMENTATION",
+  /** Generate work for the named unclosed items. */
+  "GENERATE_GAP_WORK",
+  /** Run mission-level system acceptance scenarios. */
+  "RUN_SYSTEM_SCENARIOS",
+  /** Run the release qualification. */
+  "RUN_RELEASE_QUALIFICATION",
+  /** Run the clean-environment reproducibility qualification. */
+  "RUN_REPRODUCIBILITY",
+  /** Every sealed item closed on trusted evidence. COMPLETED is available. */
+  "COMPLETE",
+  /** Closure cannot be reached inside the remaining budget. */
+  "BUDGET_EXHAUSTED",
+  /** Closure requires product authority. */
+  "NEEDS_AUTHORITY"
+];
+var CLOSURE_GAP_KINDS = [
+  "NO_IMPLEMENTATION",
+  "NO_EVIDENCE",
+  "EVIDENCE_FAILED",
+  "EVIDENCE_STALE",
+  "EVIDENCE_UNTRUSTED",
+  "SCENARIO_MISSING",
+  "SCENARIO_FAILED",
+  "CRITIC_MATERIAL_FINDING",
+  "REPRODUCIBILITY_FAILED"
+];
+var CONTROL_PLANE_DEFECT_KINDS = [
+  "RUNNER_CONTRACT_MISMATCH",
+  "RUNNER_OUTPUT_PARSE_FAILURE",
+  "PROVIDER_CLI_INCOMPATIBILITY",
+  "STATE_MACHINE_DEADLOCK",
+  "SCHEDULER_STARVATION",
+  "DURABLE_STATE_SCHEMA_REJECTION",
+  "EVIDENCE_PIPELINE_FAILURE",
+  "CONTEXT_ASSEMBLY_FAILURE"
+];
+var CONTROL_PLANE_REPAIR_STAGES = [
+  "DETECTED",
+  "PRODUCT_JOB_CHECKPOINTED",
+  "ISOLATED",
+  "DIAGNOSED",
+  "PATCHED",
+  "REGRESSION_TEST_ADDED",
+  "FOCUSED_TESTS_PASSED",
+  "FULL_QUALIFICATION_PASSED",
+  "ARTIFACT_REBUILT",
+  "ARTIFACT_VERIFIED",
+  "CANARY_PASSED",
+  "ACTIVATED",
+  "PRODUCT_JOB_RESUMED"
+];
+var CONTROL_PLANE_REPAIR_STATUSES = [
+  "IN_PROGRESS",
+  "SUCCEEDED",
+  "ABANDONED",
+  "REJECTED_WEAKENS_INVARIANT",
+  "FAILED_QUALIFICATION",
+  "FAILED_CANARY"
+];
+var PROTECTED_CONTROL_PLANE_INVARIANTS = [
+  "PERMISSION_BYPASS",
+  "PROTECTED_PATH_ENFORCEMENT",
+  "VERIFICATION_AUTHORITY",
+  "APPROVAL_AUTHORITY",
+  "SPEND_AUTHORIZATION",
+  "EVIDENCE_REQUIREMENT",
+  "AUTHORITY_FIREWALL",
+  "COMPLETION_ORACLE"
+];
+var ZERO_TOUCH_FAULTS = [
+  "STRONG_PROVIDER_UNAVAILABLE",
+  "STRONG_QUOTA_EXHAUSTED",
+  "LOCAL_RUNTIME_CRASH",
+  "INVALID_STRUCTURED_OUTPUT",
+  "CONTEXT_EXHAUSTION",
+  "WORKER_PROCESS_TERMINATED",
+  "DRIVER_PROCESS_TERMINATED",
+  "CONTAINER_SERVICE_CRASH",
+  "DELAYED_SERVICE_READINESS",
+  "MISSING_PROJECT_DEPENDENCY",
+  "MISSING_BROWSER_RUNTIME",
+  "FAILING_IMPLEMENTATION_TEST",
+  "WRONG_STRATEGY_REQUIRES_REPLAN",
+  "TRANSIENT_NETWORK_FAILURE",
+  "CONTROL_PLANE_RUNNER_DEFECT",
+  "SEALED_CONTRACT_CHANGE_REQUIRED"
+];
+var ZERO_TOUCH_EXPECTATIONS = ["SELF_RECOVERED", "NEEDS_AUTHORITY"];
+var ZERO_TOUCH_OUTCOMES = [
+  /** The runtime recovered on its own and kept going. */
+  "SELF_RECOVERED",
+  /** The runtime stopped for authority, correctly. */
+  "NEEDS_AUTHORITY",
+  /** The runtime asked a human for something it should have handled. */
+  "ASKED_HUMAN",
+  /** The runtime stopped in a non-recoverable operational state. */
+  "STUCK",
+  /** The runtime took authority it did not have. The worst outcome. */
+  "SELF_AUTHORIZED",
+  /** The scenario could not run here, with a recorded reason. */
+  "SKIPPED_WITH_REASON",
+  "NOT_RUN"
+];
+var CERTIFICATION_VERDICTS = ["CERTIFIED", "NOT_CERTIFIED", "INCOMPLETE"];
+var SBA_CODES = {
+  SBA001: "autonomy disabled by policy",
+  SBA002: "mission seal not found",
+  SBA003: "mission seal invalid",
+  SBA004: "mission seal not executable",
+  SBA005: "mission seal incomplete",
+  SBA006: "autonomy policy drift since seal",
+  SBA007: "product authority required",
+  SBA008: "supervisor lease held by another owner",
+  SBA009: "supervisor state invalid",
+  SBA010: "supervisor restart budget exhausted",
+  SBA011: "overnight preflight refused launch",
+  SBA012: "toolsmith capability denied",
+  SBA013: "toolsmith grant budget exhausted",
+  SBA014: "environment plan invalid",
+  SBA015: "environment provisioning failed",
+  SBA016: "environment runtime unavailable",
+  SBA017: "browser scenario invalid",
+  SBA018: "browser runtime unavailable",
+  SBA019: "ux critique rejected",
+  SBA020: "contract closure incomplete",
+  SBA021: "closure budget exhausted",
+  SBA022: "control plane repair refused",
+  SBA023: "control plane repair would weaken an invariant",
+  SBA024: "autonomy record invalid",
+  SBA025: "certification run invalid"
+};
+var AutonomyError = class extends Error {
+  code;
+  category;
+  remediation;
+  details;
+  retryable;
+  constructor(code, message2, options = {}) {
+    super(message2);
+    this.name = "AutonomyError";
+    this.code = code;
+    this.category = SBA_CODES[code];
+    this.remediation = options.remediation ?? [];
+    this.details = options.details ?? {};
+    this.retryable = options.retryable ?? false;
+  }
+};
+function now3(deps) {
+  return (deps.clock ?? (() => /* @__PURE__ */ new Date()))();
+}
+function nowIso2(deps) {
+  return now3(deps).toISOString();
+}
+var ID_PATTERN4 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+function assertAutonomyId(kind, id) {
+  if (!ID_PATTERN4.test(id)) {
+    throw new AutonomyError("SBA024", `Invalid ${kind} id "${id}".`, {
+      remediation: ["Ids are generated by SpecBridge; pass one returned by an autonomy operation."],
+      details: { kind, id }
+    });
+  }
+  return id;
+}
+function autonomyDir(workspace) {
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path49.default.join(workspace.rootDir, ".specbridge", "autonomy")
+  );
+}
+function autonomyPath(workspace, ...segments) {
+  return assertInsideWorkspace(workspace.rootDir, import_path49.default.join(autonomyDir(workspace), ...segments));
+}
+function readJsonRecord(file, parse3) {
+  if (!(0, import_fs46.existsSync)(file)) return void 0;
+  try {
+    return parse3(JSON.parse((0, import_fs46.readFileSync)(file, "utf8")));
+  } catch {
+    return void 0;
+  }
+}
+function listJsonRecords(dir, parse3) {
+  if (!(0, import_fs46.existsSync)(dir)) return [];
+  const out = [];
+  for (const entry2 of (0, import_fs46.readdirSync)(dir).sort()) {
+    if (!entry2.endsWith(".json")) continue;
+    const value = readJsonRecord(import_path49.default.join(dir, entry2), parse3);
+    if (value !== void 0) out.push(value);
+  }
+  return out;
+}
+function readJsonl2(file, parse3, limit = 5e3) {
+  if (!(0, import_fs46.existsSync)(file)) return { entries: [], skipped: 0 };
+  const lines = (0, import_fs46.readFileSync)(file, "utf8").split("\n").filter((line) => line.trim().length > 0);
+  const slice = lines.slice(-limit);
+  const entries = [];
+  let skipped = 0;
+  for (const line of slice) {
+    try {
+      entries.push(parse3(JSON.parse(line)));
+    } catch {
+      skipped += 1;
+    }
+  }
+  return { entries, skipped };
+}
+var SEAL_LIMITS = {
+  maxShortTextChars: 200,
+  maxTextChars: 4e3,
+  maxListItems: 200,
+  maxContractRefs: 200,
+  maxCriteria: 400,
+  maxSurfaces: 40
+};
+var shortText18 = external_exports.string().max(SEAL_LIMITS.maxShortTextChars);
+var text9 = external_exports.string().max(SEAL_LIMITS.maxTextChars);
+var idList3 = external_exports.array(shortText18).max(SEAL_LIMITS.maxListItems);
+var sealedContractRefSchema = external_exports.object({
+  contractId: shortText18,
+  revision: external_exports.number().int().min(1),
+  title: shortText18,
+  classification: external_exports.enum(["public", "internal"]),
+  compatibilityPolicy: shortText18,
+  /** Requirement ids inside this contract revision, at seal time. */
+  requirementIds: idList3.default([]),
+  /** Invariant ids inside this contract revision, at seal time. */
+  invariantIds: idList3.default([])
+}).passthrough();
+var sealedAcceptanceCriterionSchema = external_exports.object({
+  criterionId: shortText18,
+  statement: text9,
+  /** Contract ids this criterion judges, when it judges specific ones. */
+  contractIds: idList3.default([]),
+  /** Mission decision ids this criterion descends from. */
+  decisionIds: idList3.default([]),
+  impliesSystemScenario: external_exports.boolean().default(false),
+  impliesBrowserScenario: external_exports.boolean().default(false)
+}).passthrough();
+var sealedResourcePolicySchema = external_exports.object({
+  maxApiSpendUsd: external_exports.number().min(0).nullable().default(null),
+  maxWallClockMs: external_exports.number().int().min(6e4).nullable().default(null),
+  /** Lanes the human authorized for this run. */
+  allowedLanes: external_exports.array(external_exports.enum(["LOCAL", "SUBSCRIPTION", "API"])).min(1).default(["LOCAL"])
+}).passthrough();
+var delegatedAuthoritySnapshotSchema = external_exports.object({
+  mode: shortText18,
+  humanGate: shortText18,
+  policyFingerprint: external_exports.string().max(8e3),
+  /** Delegated engineering surfaces, as `surface: AUTO|HUMAN`. */
+  decisions: external_exports.record(shortText18).default({}),
+  /** Delegated recovery surfaces, same shape. */
+  recovery: external_exports.record(shortText18).default({}),
+  /** Toolsmith capability classes the human authorized. */
+  toolsmithCapabilities: external_exports.array(shortText18).max(SEAL_LIMITS.maxSurfaces).default([])
+}).passthrough();
+var missionSealSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  sealId: shortText18,
+  missionId: shortText18,
+  /** The Kiro spec the mission synthesized, when it has one. */
+  specName: shortText18.optional(),
+  status: external_exports.enum(SEAL_STATUSES),
+  createdAt: shortText18,
+  /** Set exactly once, when a human authorizes the draft. */
+  sealedAt: shortText18.optional(),
+  /**
+   * How the human authorization arrived. A free-form CHANNEL label (the
+   * CLI command, the MCP surface) recorded for audit — never a claim that
+   * anything other than a person performed it.
+   */
+  sealedVia: shortText18.optional(),
+  /** Predecessor seal this one replaces. */
+  supersedes: shortText18.optional(),
+  supersededBy: shortText18.optional(),
+  revokedAt: shortText18.optional(),
+  revokedReason: text9.optional(),
+  // --- The authority snapshot ------------------------------------------
+  /** The mission goal, verbatim and bounded. Data, never instructions. */
+  goal: text9,
+  nonGoals: external_exports.array(text9).max(SEAL_LIMITS.maxListItems).default([]),
+  /** Mission decision ids active at seal time. */
+  decisionIds: idList3.default([]),
+  /** Constitution rule ids active at seal time. */
+  constitutionRuleIds: idList3.default([]),
+  /** ADR ids accepted at seal time. */
+  adrIds: idList3.default([]),
+  contracts: external_exports.array(sealedContractRefSchema).max(SEAL_LIMITS.maxContractRefs).default([]),
+  acceptanceCriteria: external_exports.array(sealedAcceptanceCriterionSchema).max(SEAL_LIMITS.maxCriteria).default([]),
+  resourcePolicy: sealedResourcePolicySchema.default({}),
+  delegatedAuthority: delegatedAuthoritySnapshotSchema,
+  /** Authority kinds this seal actually carries, computed at draft time. */
+  presentAuthorityKinds: external_exports.array(external_exports.enum(SEALED_AUTHORITY_KINDS)).max(SEALED_AUTHORITY_KINDS.length).default([]),
+  /**
+   * Hash over the sealed authority content. Recorded so a later audit can
+   * prove the record on disk is the one that was authorized, and so a
+   * re-seal that changes nothing is recognisable as a no-op.
+   */
+  authorityDigest: shortText18
+}).passthrough();
+var sealBindingSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  jobId: shortText18,
+  sealId: shortText18,
+  missionId: shortText18,
+  boundAt: shortText18,
+  /** Autonomy policy fingerprint observed when the binding was made. */
+  boundPolicyFingerprint: external_exports.string().max(8e3)
+}).passthrough();
+function sealsDir(workspace) {
+  return autonomyPath(workspace, "seals");
+}
+function sealFile(workspace, sealId) {
+  assertAutonomyId("seal", sealId);
+  return autonomyPath(workspace, "seals", `${sealId}.json`);
+}
+function bindingFile(workspace, jobId) {
+  assertAutonomyId("job", jobId);
+  return autonomyPath(workspace, "bindings", `${jobId}.json`);
+}
+function readSeal(workspace, sealId) {
+  return readJsonRecord(sealFile(workspace, sealId), (raw) => missionSealSchema.parse(raw));
+}
+function listSeals(workspace, missionId) {
+  const seals = listJsonRecords(sealsDir(workspace), (raw) => missionSealSchema.parse(raw));
+  const filtered = missionId === void 0 ? seals : seals.filter((s) => s.missionId === missionId);
+  return filtered.sort((a2, b) => a2.createdAt.localeCompare(b.createdAt));
+}
+function readSealBinding(workspace, jobId) {
+  return readJsonRecord(bindingFile(workspace, jobId), (raw) => sealBindingSchema.parse(raw));
+}
+function readJobSeal(workspace, jobId) {
+  const binding = readSealBinding(workspace, jobId);
+  if (binding === void 0) return void 0;
+  return readSeal(workspace, binding.sealId);
+}
+var DELEGATED_SURFACES = Object.freeze({
+  "implementation-structure": "implementation",
+  "internal-architecture": "internalArchitecture",
+  "module-layout": "implementation",
+  "algorithm-choice": "implementation",
+  "internal-api-shape": "implementation",
+  "ui-framework": "implementation",
+  "styling-strategy": "implementation",
+  "state-management": "implementation",
+  "new-feature-rest-shape": "implementation",
+  "database-physical-layout": "internalArchitecture",
+  "dependency-choice": "dependencySelection",
+  "build-tooling": "toolingCreation",
+  "testing-tooling": "testInfrastructure",
+  "browser-tooling": "browserVerification",
+  "container-topology": "environmentProvisioning",
+  "broker-topology": "environmentProvisioning",
+  "local-script": "toolingCreation",
+  "test-harness": "testInfrastructure",
+  refactor: "implementation",
+  "debug-instrumentation": "toolingCreation",
+  "benchmark-infrastructure": "testInfrastructure",
+  "work-decomposition": "workDecomposition",
+  "implementation-plan": "workDecomposition",
+  "environment-provisioning": "environmentProvisioning",
+  "toolchain-provisioning": "toolchain",
+  "recovery-strategy": void 0,
+  "provider-placement": void 0,
+  "context-strategy": void 0
+});
+var AUTHORITY_SURFACES = Object.freeze({
+  "sealed-contract-change": "MODIFIES_SEALED_CONTRACT",
+  "product-semantics-change": "CHANGES_PRODUCT_SEMANTICS",
+  "wire-protocol-change": "CHANGES_WIRE_CONTRACT",
+  "persistence-compatibility-change": "CHANGES_PERSISTENCE_COMPATIBILITY",
+  "security-boundary-expansion": "EXPANDS_SECURITY_BOUNDARY",
+  "sealed-requirement-conflict": "SEALED_REQUIREMENTS_CONFLICT",
+  "contract-change-request": "MODIFIES_SEALED_CONTRACT",
+  "human-only-credential": "REQUIRES_HUMAN_CREDENTIAL",
+  "external-irreversible-action": "IRREVERSIBLE_EXTERNAL_EFFECT",
+  "spend-beyond-ceiling": "EXCEEDS_AUTHORIZED_SPEND",
+  "scope-beyond-seal": "OUTSIDE_SEALED_SCOPE"
+});
+var shortText24 = external_exports.string().max(200);
+var text23 = external_exports.string().max(4e3);
+var jobLeaseSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  jobId: shortText24,
+  /** Identity of the owning supervisor. Stable for one supervisor process. */
+  ownerId: shortText24,
+  /** Incremented on every reclaim. Detects a resurrected zombie owner. */
+  generation: external_exports.number().int().min(1),
+  acquiredAt: shortText24,
+  renewedAt: shortText24,
+  /** Liveness deadline. The ONLY field that decides ownership. */
+  expiresAt: shortText24,
+  pid: external_exports.number().int().min(0).optional(),
+  hostname: shortText24.optional(),
+  /** Host label of the process that took the lease (e.g. "cli"). */
+  host: shortText24.optional(),
+  released: external_exports.boolean().default(false),
+  releasedAt: shortText24.optional(),
+  releaseReason: text23.optional()
+}).passthrough();
+var supervisedJobSchema = external_exports.object({
+  jobId: shortText24,
+  specName: shortText24,
+  sealId: shortText24.optional(),
+  status: external_exports.enum(SUPERVISION_STATUSES),
+  registeredAt: shortText24,
+  /** Total driver starts, including the first. */
+  starts: external_exports.number().int().min(0).default(0),
+  /** Restarts after an unclean exit. */
+  restarts: external_exports.number().int().min(0).default(0),
+  /** Restarts since the last observed forward progress. */
+  consecutiveRestarts: external_exports.number().int().min(0).default(0),
+  /**
+   * A progress fingerprint from the last driver exit. The supervisor
+   * compares fingerprints rather than counting completions: "did anything
+   * change" is the question that distinguishes a slow job from a crash
+   * loop, and a job can make real progress without completing a node.
+   */
+  lastProgressFingerprint: shortText24.optional(),
+  lastProgressAt: shortText24.optional(),
+  /** Earliest instant the supervisor may start a driver again. */
+  nextAttemptAt: shortText24.optional(),
+  /** Current backoff, doubled on each unproductive restart. */
+  backoffMs: external_exports.number().int().min(0).default(0),
+  lastAction: external_exports.enum(SUPERVISION_ACTIONS).optional(),
+  lastActionAt: shortText24.optional(),
+  lastDetail: text23.optional(),
+  releasedAt: shortText24.optional(),
+  releaseReason: text23.optional()
+}).passthrough();
+var supervisorStateSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  /** Identity of the supervisor process that last wrote this file. */
+  ownerId: shortText24,
+  startedAt: shortText24,
+  heartbeatAt: shortText24,
+  pid: external_exports.number().int().min(0).optional(),
+  hostname: shortText24.optional(),
+  jobs: external_exports.array(supervisedJobSchema).max(200).default([])
+}).passthrough();
+var supervisionLogEntrySchema = external_exports.object({
+  at: shortText24,
+  ownerId: shortText24,
+  jobId: shortText24.optional(),
+  action: external_exports.enum(SUPERVISION_ACTIONS),
+  detail: text23.optional(),
+  generation: external_exports.number().int().min(0).optional()
+}).passthrough();
+function supervisionLogFile(workspace) {
+  return autonomyPath(workspace, "supervisor", "log.jsonl");
+}
+function readSupervisionLog(workspace, limit = 500) {
+  return readJsonl2(
+    supervisionLogFile(workspace),
+    (raw) => supervisionLogEntrySchema.parse(raw),
+    limit
+  ).entries;
+}
+var shortText33 = external_exports.string().max(200);
+var text32 = external_exports.string().max(4e3);
+var capabilityCheckSchema = external_exports.object({
+  capability: external_exports.enum(PREFLIGHT_CAPABILITIES),
+  outcome: external_exports.enum(PREFLIGHT_OUTCOMES),
+  /** What was observed, in one line. Never a credential or a token. */
+  observed: text32,
+  /** What a person would do about it, when they need to do something. */
+  remediation: external_exports.array(text32).max(6).default([]),
+  /**
+   * The Toolsmith capability that would satisfy this autonomously, present
+   * exactly when the outcome is SATISFIABLE_AUTONOMOUSLY. Naming it keeps
+   * the promise checkable: a report cannot claim self-service for
+   * something no grant could actually provide.
+   */
+  satisfiedBy: shortText33.optional(),
+  /** Measured detail, when the probe measured something (bytes, ms). */
+  measurement: external_exports.number().nullable().default(null),
+  checkedAt: shortText33
+}).passthrough();
+var preflightReportSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  reportId: shortText33,
+  createdAt: shortText33,
+  host: shortText33,
+  /** The mission or spec this preflight was run for. */
+  subject: shortText33,
+  missionId: shortText33.optional(),
+  sealId: shortText33.optional(),
+  autonomyMode: shortText33,
+  humanGate: shortText33,
+  verdict: external_exports.enum(PREFLIGHT_VERDICTS),
+  checks: external_exports.array(capabilityCheckSchema).max(PREFLIGHT_CAPABILITIES.length).default([]),
+  /** Capabilities that need a person, extracted for the headline. */
+  humanActions: external_exports.array(text32).max(40).default([]),
+  /** Capabilities the runtime will provide itself, extracted likewise. */
+  autonomousActions: external_exports.array(text32).max(40).default([]),
+  /**
+   * Capabilities whose probe could not decide. Non-empty means the verdict
+   * is INDETERMINATE, because an unattended launch on an unknown
+   * prerequisite is a guess dressed as a decision.
+   */
+  unknowns: external_exports.array(text32).max(40).default([])
+}).passthrough();
+var DEFAULT_MIN_FREE_DISK = 5 * 1024 * 1024 * 1024;
+var shortText43 = external_exports.string().max(200);
+var text42 = external_exports.string().max(4e3);
+var toolsmithRequestSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  requestId: shortText43,
+  jobId: shortText43,
+  /** `ToolsmithCapability` from @specbridge/core. */
+  capability: shortText43,
+  /** Why the runtime wants it, in one line. Recorded for the operator. */
+  purpose: text42,
+  /** What it acts on: a relative path, a package name, an image reference. */
+  target: shortText43,
+  /** Where the result would live. */
+  scope: external_exports.enum(TOOL_INSTALL_SCOPES),
+  nodeId: shortText43.optional(),
+  requestedAt: shortText43,
+  status: external_exports.enum(TOOLSMITH_REQUEST_STATUSES),
+  decidedAt: shortText43.optional(),
+  denialReason: external_exports.enum(TOOLSMITH_DENIAL_REASONS).optional(),
+  denialDetail: text42.optional(),
+  /**
+   * A portable alternative the broker suggests instead of the denied
+   * request. Present when a machine-global install was refused but a
+   * project-local or containerized route exists: the point of denying
+   * `REQUIRES_ADMIN_PRIVILEGE` is to redirect, not to stop.
+   */
+  suggestedAlternative: text42.optional(),
+  appliedAt: shortText43.optional(),
+  /** What the grant actually produced. Never command output. */
+  outcome: text42.optional(),
+  /** Bytes fetched, when the action fetched something measurable. */
+  bytes: external_exports.number().int().min(0).nullable().default(null),
+  /** Workspace-relative paths the grant created, for the audit. */
+  createdPaths: external_exports.array(shortText43).max(50).default([])
+}).passthrough();
+var toolsmithLedgerSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  jobId: shortText43,
+  granted: external_exports.number().int().min(0).default(0),
+  denied: external_exports.number().int().min(0).default(0),
+  applied: external_exports.number().int().min(0).default(0),
+  failed: external_exports.number().int().min(0).default(0),
+  bytesFetched: external_exports.number().int().min(0).default(0),
+  updatedAt: shortText43
+}).passthrough();
+var CANONICAL_SCOPE = Object.freeze({
+  PROJECT_LOCAL_SCRIPT: "PROJECT_LOCAL",
+  PROJECT_DEPENDENCY: "PROJECT_LOCAL",
+  PACKAGE_MANAGER_INSTALL: "PROJECT_LOCAL",
+  CODE_GENERATION: "PROJECT_LOCAL",
+  PROJECT_LOCAL_TOOLCHAIN: "PROJECT_LOCAL",
+  CONTAINER_IMAGE: "CONTAINERIZED",
+  CONTAINER_LIFECYCLE: "CONTAINERIZED",
+  USER_LOCAL_CLI: "USER_LOCAL",
+  BROWSER_RUNTIME: "USER_LOCAL"
+});
+function toolsmithDir(workspace, jobId) {
+  assertAutonomyId("job", jobId);
+  return autonomyPath(workspace, "toolsmith", jobId);
+}
+function listToolsmithRequests(workspace, jobId) {
+  return listJsonRecords(
+    toolsmithDir(workspace, jobId),
+    (raw) => toolsmithRequestSchema.parse(raw)
+  ).sort((a2, b) => a2.requestedAt.localeCompare(b.requestedAt));
+}
+function writesFileDirectly(capability) {
+  return capability === "PROJECT_LOCAL_SCRIPT" || capability === "CODE_GENERATION";
+}
+function countSelfCreatedTools(workspace, jobId) {
+  return listToolsmithRequests(workspace, jobId).filter(
+    (request) => request.status === "APPLIED" && writesFileDirectly(request.capability)
+  ).length;
+}
+var PACKAGE_MANAGER_INSTALL_ARGV = Object.freeze({
+  pnpm: ["install", "--frozen-lockfile=false"],
+  npm: ["install"],
+  yarn: ["install"],
+  bun: ["install"]
+});
+var PACKAGE_MANAGER_ADD_ARGV = Object.freeze({
+  pnpm: ["add", "-D"],
+  npm: ["install", "--save-dev"],
+  yarn: ["add", "--dev"],
+  bun: ["add", "--dev"]
+});
+var shortText52 = external_exports.string().max(200);
+var text52 = external_exports.string().max(4e3);
+var readinessProbeSchema = external_exports.object({
+  kind: external_exports.enum(READINESS_PROBE_KINDS),
+  /** TCP/HTTP probes: the host to reach. Defaults to 127.0.0.1. */
+  host: shortText52.default("127.0.0.1"),
+  port: external_exports.number().int().min(1).max(65535).optional(),
+  /** HTTP probes: the path to request. */
+  urlPath: shortText52.optional(),
+  /** HTTP_STATUS: the status codes that count as ready. */
+  expectStatus: external_exports.array(external_exports.number().int().min(100).max(599)).max(10).default([200]),
+  /** HTTP_BODY: a bounded pattern the response body must contain. */
+  expectBody: external_exports.string().max(500).optional(),
+  /** COMMAND_EXIT: argv array run against the service. */
+  argv: external_exports.array(external_exports.string().min(1).max(500)).max(30).default([]),
+  /** PROTOCOL_HANDSHAKE: which protocol, for the evidence record. */
+  protocol: shortText52.optional(),
+  timeoutMs: external_exports.number().int().min(100).max(6e5).default(1e4)
+}).passthrough().superRefine((probe, ctx) => {
+  if ((probe.kind === "TCP_CONNECT" || probe.kind === "HTTP_STATUS" || probe.kind === "HTTP_BODY") && probe.port === void 0) {
+    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["port"], message: `${probe.kind} needs a port` });
+  }
+  if (probe.kind === "COMMAND_EXIT") {
+    if (probe.argv.length === 0) {
+      ctx.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["argv"], message: "COMMAND_EXIT needs an argv array" });
+    } else if (probe.argv.length === 1 && /\s/.test(probe.argv[0] ?? "")) {
+      ctx.addIssue({
+        code: external_exports.ZodIssueCode.custom,
+        path: ["argv"],
+        message: `"${probe.argv[0]}" looks like a shell string; readiness probes are argv arrays.`
+      });
+    }
+  }
+});
+var servicePlanSchema = external_exports.object({
+  serviceId: shortText52,
+  kind: external_exports.enum(SERVICE_KINDS),
+  /** Compose service name, container name, or process label. */
+  name: shortText52,
+  /** Service ids that must be READY before this one is probed. */
+  dependsOn: external_exports.array(shortText52).max(20).default([]),
+  probes: external_exports.array(readinessProbeSchema).min(1).max(5),
+  /** Restarts of THIS service before the instance is unhealthy. */
+  maxRestarts: external_exports.number().int().min(0).max(20).default(3),
+  /** Ceiling for this service to become ready. */
+  readinessTimeoutMs: external_exports.number().int().min(1e3).max(36e5).default(12e4),
+  /** Ports the service publishes, for the diagnostics record. */
+  ports: external_exports.array(external_exports.number().int().min(1).max(65535)).max(20).default([])
+}).passthrough();
+var environmentPlanSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  planId: shortText52,
+  name: shortText52,
+  /** Workspace-relative compose file, for COMPOSE_PROJECT services. */
+  composeFile: shortText52.optional(),
+  /** Compose project name, so teardown targets exactly what was started. */
+  projectName: shortText52.optional(),
+  services: external_exports.array(servicePlanSchema).min(1).max(30),
+  createdAt: shortText52,
+  /** The job that authored this plan, when one did. */
+  jobId: shortText52.optional()
+}).passthrough().superRefine((plan, ctx) => {
+  const ids = new Set(plan.services.map((service) => service.serviceId));
+  for (const service of plan.services) {
+    for (const dependency of service.dependsOn) {
+      if (!ids.has(dependency)) {
+        ctx.addIssue({
+          code: external_exports.ZodIssueCode.custom,
+          path: ["services"],
+          message: `service "${service.serviceId}" depends on unknown service "${dependency}"`
+        });
+      }
+    }
+  }
+});
+var serviceStateSchema = external_exports.object({
+  serviceId: shortText52,
+  status: external_exports.enum(SERVICE_STATUSES),
+  startedAt: shortText52.optional(),
+  readyAt: shortText52.optional(),
+  restarts: external_exports.number().int().min(0).default(0),
+  /** Readiness probe attempts made for this service. */
+  probeAttempts: external_exports.number().int().min(0).default(0),
+  /** The probe that last decided readiness, and what it observed. */
+  lastProbeKind: shortText52.optional(),
+  lastProbeDetail: text52.optional(),
+  failureKind: external_exports.enum(ENVIRONMENT_FAILURE_KINDS).optional(),
+  /** Relative path of the retained log, when one was captured. */
+  logRef: shortText52.optional()
+}).passthrough();
+var environmentInstanceSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  instanceId: shortText52,
+  planId: shortText52,
+  jobId: shortText52.optional(),
+  status: external_exports.enum(ENVIRONMENT_STATUSES),
+  createdAt: shortText52,
+  readyAt: shortText52.optional(),
+  stoppedAt: shortText52.optional(),
+  services: external_exports.array(serviceStateSchema).max(30).default([]),
+  failureKind: external_exports.enum(ENVIRONMENT_FAILURE_KINDS).optional(),
+  failureDetail: text52.optional(),
+  /** True when diagnostics were retained rather than cleaned up. */
+  diagnosticsRetained: external_exports.boolean().default(false),
+  /** Total repair attempts across all services. */
+  repairs: external_exports.number().int().min(0).default(0)
+}).passthrough();
+var environmentEvidenceSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  instanceId: shortText52,
+  planId: shortText52,
+  recordedAt: shortText52,
+  status: external_exports.enum(ENVIRONMENT_STATUSES),
+  /** Services confirmed by a probe that spoke the service's own protocol. */
+  applicationLevelReady: external_exports.array(shortText52).max(30).default([]),
+  /** Services confirmed only by liveness. Shallow evidence, named as such. */
+  livenessOnlyReady: external_exports.array(shortText52).max(30).default([]),
+  /** Services that never became ready. */
+  notReady: external_exports.array(shortText52).max(30).default([]),
+  totalReadinessMs: external_exports.number().int().min(0).nullable().default(null),
+  /** Retained diagnostic log references, workspace-relative. */
+  logRefs: external_exports.array(shortText52).max(60).default([])
+}).passthrough();
+var shortText62 = external_exports.string().max(200);
+var text62 = external_exports.string().max(4e3);
+var browserStepSchema = external_exports.object({
+  kind: external_exports.enum(BROWSER_STEP_KINDS),
+  /** Which isolated browser context this step acts in. */
+  context: shortText62.default("default"),
+  /** NAVIGATE / EXPECT_URL: the target URL or expected fragment. */
+  url: external_exports.string().max(2e3).optional(),
+  /** Element locator for interaction and assertion steps. */
+  selector: external_exports.string().max(500).optional(),
+  /** TYPE / FILL_FORM / EXPECT_TEXT: the value or expected text. */
+  value: external_exports.string().max(2e3).optional(),
+  /** FILL_FORM: selector-to-value pairs. */
+  fields: external_exports.record(external_exports.string().max(2e3)).optional(),
+  /** SET_VIEWPORT: `WIDTHxHEIGHT`. */
+  viewport: external_exports.string().regex(/^\d{2,5}x\d{2,5}$/).optional(),
+  /** SCREENSHOT: the evidence label. */
+  label: shortText62.optional(),
+  timeoutMs: external_exports.number().int().min(100).max(6e5).optional()
+}).passthrough();
+var browserScenarioSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  scenarioId: shortText62,
+  name: shortText62,
+  /** What this scenario demonstrates, in one line, for the report. */
+  intent: text62,
+  /** Base URL the application under test is served from. */
+  baseUrl: external_exports.string().max(2e3),
+  /** Named isolated contexts. One entry per simultaneous user. */
+  contexts: external_exports.array(shortText62).min(1).max(16).default(["default"]),
+  steps: external_exports.array(browserStepSchema).min(1).max(200),
+  /** Sealed acceptance criteria this scenario is evidence for. */
+  criterionIds: external_exports.array(shortText62).max(40).default([]),
+  /** Contract ids this scenario is evidence for. */
+  contractIds: external_exports.array(shortText62).max(40).default([]),
+  /** The environment instance the app under test runs in, when it has one. */
+  environmentInstanceId: shortText62.optional(),
+  createdAt: shortText62,
+  jobId: shortText62.optional()
+}).passthrough().superRefine((scenario, ctx) => {
+  const known = new Set(scenario.contexts);
+  for (const [index, step2] of scenario.steps.entries()) {
+    if (!known.has(step2.context)) {
+      ctx.addIssue({
+        code: external_exports.ZodIssueCode.custom,
+        path: ["steps", index, "context"],
+        message: `step names context "${step2.context}", which the scenario does not declare`
+      });
+    }
+  }
+  if (!scenario.steps.some((step2) => BROWSER_ASSERTION_STEPS.includes(step2.kind))) {
+    ctx.addIssue({
+      code: external_exports.ZodIssueCode.custom,
+      path: ["steps"],
+      message: "a browser scenario must contain at least one assertion step"
+    });
+  }
+});
+var stepResultSchema = external_exports.object({
+  index: external_exports.number().int().min(0),
+  kind: external_exports.enum(BROWSER_STEP_KINDS),
+  context: shortText62,
+  ok: external_exports.boolean(),
+  /** One line. Never a page dump. */
+  detail: text62,
+  durationMs: external_exports.number().int().min(0).nullable().default(null),
+  /** Evidence file reference this step produced, when it produced one. */
+  evidenceRef: shortText62.optional()
+}).passthrough();
+var browserObservationSchema = external_exports.object({
+  context: shortText62,
+  kind: external_exports.enum(["console-error", "console-warning", "page-error", "request-failed"]),
+  detail: text62,
+  at: shortText62
+}).passthrough();
+var browserScenarioResultSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  resultId: shortText62,
+  scenarioId: shortText62,
+  jobId: shortText62.optional(),
+  status: external_exports.enum(BROWSER_SCENARIO_STATUSES),
+  startedAt: shortText62,
+  finishedAt: shortText62.optional(),
+  /** Which driver ran it, and whether it was real. */
+  driver: shortText62,
+  /** Present when the status is SKIPPED_NO_RUNTIME. Never a silent pass. */
+  skipReason: text62.optional(),
+  steps: external_exports.array(stepResultSchema).max(200).default([]),
+  assertionsRun: external_exports.number().int().min(0).default(0),
+  assertionsPassed: external_exports.number().int().min(0).default(0),
+  observations: external_exports.array(browserObservationSchema).max(200).default([]),
+  /** Workspace-relative evidence references. */
+  evidence: external_exports.array(
+    external_exports.object({
+      kind: external_exports.enum(BROWSER_EVIDENCE_KINDS),
+      ref: shortText62,
+      label: shortText62.optional(),
+      context: shortText62.optional()
+    }).passthrough()
+  ).max(200).default([]),
+  /** The first failing step's detail, hoisted for the report. */
+  failureDetail: text62.optional()
+}).passthrough();
+function listBrowserResults(workspace) {
+  return listJsonRecords(
+    autonomyPath(workspace, "browser", "results"),
+    (raw) => browserScenarioResultSchema.parse(raw)
+  ).sort((a2, b) => a2.startedAt.localeCompare(b.startedAt));
+}
+var shortText72 = external_exports.string().max(200);
+var text72 = external_exports.string().max(4e3);
+var uxFindingSchema = external_exports.object({
+  findingId: shortText72,
+  kind: external_exports.enum(UX_FINDING_KINDS),
+  severity: external_exports.enum(UX_FINDING_SEVERITIES),
+  /** What is wrong, in one or two sentences a repair task can act on. */
+  statement: text72,
+  /** Where: a selector, a route, a viewport, or an evidence reference. */
+  locus: shortText72.optional(),
+  /** The evidence the finding is drawn from, workspace-relative. */
+  evidenceRef: shortText72.optional(),
+  /** The viewport this was observed at, when it is viewport-specific. */
+  viewport: shortText72.optional()
+}).passthrough();
+var uxCritiqueSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  critiqueId: shortText72,
+  /** The browser result this critique read. */
+  resultId: shortText72,
+  scenarioId: shortText72,
+  jobId: shortText72.optional(),
+  createdAt: shortText72,
+  verdict: external_exports.enum(UX_CRITIQUE_VERDICTS),
+  findings: external_exports.array(uxFindingSchema).max(200).default([]),
+  /**
+   * Which critic produced it. A label for audit, never authority: the
+   * critique's power comes from the policy, not from who ran it.
+   */
+  producedBy: shortText72,
+  /** Present when the verdict is INSUFFICIENT_EVIDENCE. */
+  insufficientReason: text72.optional(),
+  /** Critic-caused repair cycles already spent on this scenario. */
+  repairCycle: external_exports.number().int().min(0).default(0),
+  /** True when the critique was recorded but may not create work. */
+  advisoryOnly: external_exports.boolean().default(false)
+}).passthrough();
+function listCritiques(workspace) {
+  return listJsonRecords(autonomyPath(workspace, "critic"), (raw) => uxCritiqueSchema.parse(raw));
+}
+var shortText82 = external_exports.string().max(200);
+var text82 = external_exports.string().max(4e3);
+var closureEvidenceRefSchema = external_exports.object({
+  kind: external_exports.enum(CLOSURE_EVIDENCE_KINDS),
+  /** Where the evidence lives: a run id, a result id, a report path. */
+  ref: shortText82,
+  /** Did it pass? An evidence ref that failed is recorded, not hidden. */
+  passed: external_exports.boolean(),
+  recordedAt: shortText82,
+  /** Git head the evidence was captured against, when one is known. */
+  gitHead: shortText82.optional(),
+  /** One line describing what it demonstrated. */
+  detail: text82.optional()
+}).passthrough();
+var closureEntrySchema = external_exports.object({
+  /** Stable id: `CTR-001/R1`, `CTR-001#INV-2`, or `AC-003`. */
+  itemId: shortText82,
+  kind: external_exports.enum(["requirement", "invariant", "acceptance-criterion"]),
+  statement: text82,
+  contractId: shortText82.optional(),
+  status: external_exports.enum(CLOSURE_STATUSES),
+  /** Job node ids that claim to implement this item. */
+  attributedNodeIds: external_exports.array(shortText82).max(50).default([]),
+  /** Task ids those nodes implement, for the human-readable report. */
+  attributedTaskIds: external_exports.array(shortText82).max(50).default([]),
+  evidence: external_exports.array(closureEvidenceRefSchema).max(50).default([]),
+  requiresSystemScenario: external_exports.boolean().default(false),
+  requiresBrowserScenario: external_exports.boolean().default(false),
+  /** Why the item is not closed. Empty exactly when it is. */
+  gaps: external_exports.array(external_exports.enum(CLOSURE_GAP_KINDS)).max(10).default([]),
+  /** A human waiver, when one exists. Only a person can create this. */
+  waiver: external_exports.object({ reason: text82, waivedAt: shortText82, waivedBy: shortText82 }).passthrough().optional(),
+  updatedAt: shortText82
+}).passthrough();
+var closureLedgerSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  jobId: shortText82,
+  sealId: shortText82,
+  missionId: shortText82,
+  createdAt: shortText82,
+  updatedAt: shortText82,
+  phase: external_exports.enum(CLOSURE_PHASES),
+  entries: external_exports.array(closureEntrySchema).max(1e3).default([]),
+  /** Gap-closure cycles spent. Bounded by policy. */
+  gapCycles: external_exports.number().int().min(0).default(0),
+  /**
+   * System-scenario qualification cycles EXECUTED. Incremented only after
+   * scenarios actually ran — never by entering the phase. The distinction
+   * is the vNext.10.1 dogfood's defect 39: a counter bumped by a phase
+   * stamp let the oracle read "the scenarios ran" off a night in which
+   * nothing was ever executed.
+   */
+  systemCycles: external_exports.number().int().min(0).default(0),
+  /** True once the reproducibility qualification passed. */
+  reproducibilityPassed: external_exports.boolean().default(false),
+  /** Reproducibility qualification attempts EXECUTED. Bounded by policy. */
+  reproducibilityCycles: external_exports.number().int().min(0).default(0),
+  /** True once the release qualification passed against the integrated tree. */
+  releaseQualificationPassed: external_exports.boolean().default(false),
+  /** Release qualification attempts EXECUTED. Bounded by policy. */
+  releaseQualificationCycles: external_exports.number().int().min(0).default(0)
+}).passthrough();
+var closureAuditSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  auditId: shortText82,
+  jobId: shortText82,
+  sealId: shortText82,
+  createdAt: shortText82,
+  phase: external_exports.enum(CLOSURE_PHASES),
+  directive: external_exports.enum(CLOSURE_DIRECTIVES),
+  /** Counts by closure status, for the headline. */
+  totals: external_exports.object({
+    total: external_exports.number().int().min(0),
+    verified: external_exports.number().int().min(0),
+    implemented: external_exports.number().int().min(0),
+    inProgress: external_exports.number().int().min(0),
+    notStarted: external_exports.number().int().min(0),
+    waived: external_exports.number().int().min(0),
+    notApplicable: external_exports.number().int().min(0)
+  }).passthrough(),
+  /**
+   * Closed items over total. `null` when there are no items at all — a
+   * ratio of 1.0 over an empty ledger would read as "fully closed" for a
+   * seal that promised nothing.
+   */
+  closureRatio: external_exports.number().min(0).max(1).nullable().default(null),
+  /** Item ids that are not closed, with the reason, bounded. */
+  unclosed: external_exports.array(
+    external_exports.object({
+      itemId: shortText82,
+      status: external_exports.enum(CLOSURE_STATUSES),
+      gaps: external_exports.array(external_exports.enum(CLOSURE_GAP_KINDS)).max(10).default([]),
+      statement: text82
+    }).passthrough()
+  ).max(500).default([]),
+  /** One line explaining the directive, for the report. */
+  rationale: text82
+}).passthrough();
+var gapWorkItemSchema = external_exports.object({
+  gapId: shortText82,
+  itemId: shortText82,
+  gapKind: external_exports.enum(CLOSURE_GAP_KINDS),
+  /** What must become true. Derived from the sealed statement, never new. */
+  objective: text82,
+  /** The evidence kind that would close it. */
+  closingEvidence: external_exports.enum(CLOSURE_EVIDENCE_KINDS),
+  createdAt: shortText82,
+  /** The audit that generated it. */
+  auditId: shortText82
+}).passthrough();
+function summarizeClosure(entries) {
+  const totals = {
+    total: entries.length,
+    verified: 0,
+    implemented: 0,
+    inProgress: 0,
+    notStarted: 0,
+    waived: 0,
+    notApplicable: 0
+  };
+  for (const entry2 of entries) {
+    switch (entry2.status) {
+      case "VERIFIED":
+        totals.verified += 1;
+        break;
+      case "IMPLEMENTED":
+        totals.implemented += 1;
+        break;
+      case "IN_PROGRESS":
+        totals.inProgress += 1;
+        break;
+      case "NOT_STARTED":
+        totals.notStarted += 1;
+        break;
+      case "WAIVED":
+        totals.waived += 1;
+        break;
+      case "NOT_APPLICABLE":
+        totals.notApplicable += 1;
+        break;
+      default:
+        break;
+    }
+  }
+  return totals;
+}
+function closureRatio(totals) {
+  if (totals.total === 0) return null;
+  return (totals.verified + totals.waived + totals.notApplicable) / totals.total;
+}
+function missionMayComplete(ledger, policy) {
+  const unclosed = ledger.entries.filter((entry2) => !isClosingStatus(entry2.status));
+  if (ledger.entries.length === 0) {
+    return {
+      mayComplete: false,
+      reason: "the closure ledger is empty: a seal with no auditable contract items cannot be shown to be complete",
+      unclosedIds: []
+    };
+  }
+  if (unclosed.length > 0) {
+    return {
+      mayComplete: false,
+      reason: `${unclosed.length} sealed contract item(s) are not closed on trusted evidence`,
+      unclosedIds: unclosed.map((entry2) => entry2.itemId).slice(0, 100)
+    };
+  }
+  if (policy.requireReleaseQualification && !ledger.releaseQualificationPassed) {
+    return {
+      mayComplete: false,
+      reason: "every item closes, but the release qualification has not passed against the integrated tree",
+      unclosedIds: []
+    };
+  }
+  if (policy.requireReproducibility && !ledger.reproducibilityPassed) {
+    return {
+      mayComplete: false,
+      reason: "every item closes, but reproducibility has not been demonstrated from a clean environment",
+      unclosedIds: []
+    };
+  }
+  return {
+    mayComplete: true,
+    reason: `all ${ledger.entries.length} sealed contract item(s) are closed`,
+    unclosedIds: []
+  };
+}
+function closureLedgerFile(workspace, jobId) {
+  assertAutonomyId("job", jobId);
+  return autonomyPath(workspace, "closure", jobId, "ledger.json");
+}
+function readClosureLedger(workspace, jobId) {
+  return readJsonRecord(
+    closureLedgerFile(workspace, jobId),
+    (raw) => closureLedgerSchema.parse(raw)
+  );
+}
+var shortText92 = external_exports.string().max(200);
+var text92 = external_exports.string().max(4e3);
+var systemStepSchema = external_exports.object({
+  stepId: shortText92,
+  name: shortText92,
+  argv: external_exports.array(external_exports.string().min(1).max(500)).min(1).max(30),
+  /** Workspace-relative working directory. */
+  cwd: shortText92.optional(),
+  timeoutMs: external_exports.number().int().min(1e3).max(36e5).default(6e5),
+  /**
+   * A fault injected before this step: restart a service, or stop it.
+   * Scoped to services in the scenario's own environment plan, so a
+   * scenario cannot reach a container it did not declare.
+   */
+  injectFault: external_exports.object({ kind: external_exports.enum(["RESTART_SERVICE", "STOP_SERVICE"]), serviceId: shortText92 }).passthrough().optional()
+}).passthrough();
+var systemScenarioSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  scenarioId: shortText92,
+  name: shortText92,
+  intent: text92,
+  /**
+   * The environment this scenario needs. A scenario that declares none
+   * runs against the workspace itself — an explicit, recorded claim that
+   * the product needs no external services to demonstrate this, not a
+   * shortcut around provisioning. Fault injection requires a plan, since
+   * a fault can only be scoped to a declared service.
+   */
+  environmentPlanId: shortText92.optional(),
+  steps: external_exports.array(systemStepSchema).min(1).max(50),
+  /** Browser scenarios to run once the system steps pass. */
+  browserScenarioIds: external_exports.array(shortText92).max(20).default([]),
+  /** Sealed items this scenario is evidence for. */
+  itemIds: external_exports.array(shortText92).max(100).default([]),
+  createdAt: shortText92,
+  jobId: shortText92.optional()
+}).passthrough();
+var systemScenarioResultSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  resultId: shortText92,
+  scenarioId: shortText92,
+  jobId: shortText92.optional(),
+  status: external_exports.enum(["PASSED", "FAILED", "ENVIRONMENT_UNAVAILABLE", "NOT_RUN"]),
+  startedAt: shortText92,
+  finishedAt: shortText92.optional(),
+  environmentInstanceId: shortText92.optional(),
+  steps: external_exports.array(
+    external_exports.object({
+      stepId: shortText92,
+      name: shortText92,
+      ok: external_exports.boolean(),
+      detail: text92,
+      durationMs: external_exports.number().int().min(0).nullable().default(null),
+      faultInjected: shortText92.optional()
+    }).passthrough()
+  ).max(50).default([]),
+  browserResultIds: external_exports.array(shortText92).max(20).default([]),
+  failureDetail: text92.optional()
+}).passthrough();
+var shortText102 = external_exports.string().max(200);
+var text10 = external_exports.string().max(4e3);
+var REPRODUCIBILITY_DIMENSIONS = [
+  "CLEAN_CHECKOUT",
+  "NO_BUILD_CACHE",
+  "FRESH_DEPENDENCY_RESOLUTION",
+  "FRESH_ENVIRONMENT",
+  "FRESH_APPLICATION_START",
+  "REPEATED_QUALIFICATION"
+];
+var reproducibilityStepSchema = external_exports.object({
+  stepId: shortText102,
+  dimension: external_exports.enum(REPRODUCIBILITY_DIMENSIONS),
+  name: shortText102,
+  argv: external_exports.array(external_exports.string().min(1).max(500)).min(1).max(30),
+  timeoutMs: external_exports.number().int().min(1e3).max(24 * 36e5).default(18e5),
+  /** Working directory relative to the clean checkout. */
+  cwd: shortText102.optional()
+}).passthrough();
+var reproducibilityResultSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  runId: shortText102,
+  jobId: shortText102.optional(),
+  /**
+   * PASSED requires every declared step to have RUN and passed.
+   * INCONCLUSIVE means something could not be attempted here, which is an
+   * honest outcome and explicitly not a pass.
+   */
+  status: external_exports.enum(["PASSED", "FAILED", "INCONCLUSIVE", "NOT_RUN"]),
+  startedAt: shortText102,
+  finishedAt: shortText102.optional(),
+  /** Where the clean checkout lived, when one was made. */
+  checkoutPath: shortText102.optional(),
+  gitHead: shortText102.optional(),
+  dimensions: external_exports.array(external_exports.enum(REPRODUCIBILITY_DIMENSIONS)).max(10).default([]),
+  steps: external_exports.array(
+    external_exports.object({
+      stepId: shortText102,
+      dimension: external_exports.enum(REPRODUCIBILITY_DIMENSIONS),
+      name: shortText102,
+      outcome: external_exports.enum(["PASSED", "FAILED", "UNAVAILABLE", "NOT_RUN"]),
+      detail: text10,
+      durationMs: external_exports.number().int().min(0).nullable().default(null)
+    }).passthrough()
+  ).max(30).default([]),
+  /** Why the run could not conclude, when it could not. */
+  inconclusiveReason: text10.optional(),
+  failureDetail: text10.optional()
+}).passthrough();
+var TELEMETRY_SCHEMA_VERSION = "1.0.0";
+var shortText112 = external_exports.string().max(200);
+var text11 = external_exports.string().max(4e3);
+var autonomyTelemetrySchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  jobId: shortText112,
+  sealId: shortText112.optional(),
+  missionId: shortText112.optional(),
+  recordedAt: shortText112,
+  /** Job status at the moment this was computed. */
+  jobStatus: shortText112,
+  // --- The product metric ------------------------------------------------
+  /**
+   * Times a human had to act after the intent was sealed, EXCLUDING
+   * intentional authority stops. This is the number vNext.10 exists to
+   * drive to zero.
+   */
+  humanInterventionsAfterSeal: external_exports.number().int().min(0),
+  /** Times the runtime correctly stopped for product authority. */
+  humanAuthorityEscalations: external_exports.number().int().min(0),
+  /**
+   * Authority escalations that happened AFTER the seal instant.
+   *
+   * Separate from the counter above because the boundary is what the
+   * vNext.10.1 intake path made precise: an escalation recorded before the
+   * intent was sealed belongs to discovery, not to the unattended run.
+   * `null` when the seal carries no `sealedAt` and the boundary therefore
+   * cannot be placed — which is a different fact from zero.
+   */
+  humanAuthorityEscalationsAfterSeal: external_exports.number().int().min(0).nullable().default(null),
+  /** The instant the zero-touch boundary starts: when the intent was sealed. */
+  boundaryStartedAt: shortText112.nullable().default(null),
+  // --- Autonomy at work --------------------------------------------------
+  autonomousRecoveryCount: external_exports.number().int().min(0),
+  providerFailovers: external_exports.number().int().min(0),
+  providerFailures: external_exports.number().int().min(0),
+  quotaWaits: external_exports.number().int().min(0),
+  contextRollovers: external_exports.number().int().min(0),
+  toolsmithActions: external_exports.number().int().min(0),
+  selfCreatedTools: external_exports.number().int().min(0),
+  toolchainRepairs: external_exports.number().int().min(0),
+  environmentRepairs: external_exports.number().int().min(0),
+  controlPlaneRepairs: external_exports.number().int().min(0),
+  gapClosureCycles: external_exports.number().int().min(0),
+  systemQualificationCycles: external_exports.number().int().min(0),
+  browserScenariosRun: external_exports.number().int().min(0),
+  uxCritiquesRun: external_exports.number().int().min(0),
+  driverRestarts: external_exports.number().int().min(0),
+  supervisorWakeups: external_exports.number().int().min(0),
+  // --- Measurements. null means UNKNOWN, never zero. ---------------------
+  elapsedWallTimeMs: external_exports.number().int().min(0).nullable(),
+  reportedTokens: external_exports.number().int().min(0).nullable(),
+  reportedCostUsd: external_exports.number().min(0).nullable(),
+  contractClosureRatio: external_exports.number().min(0).max(1).nullable(),
+  /** Closure detail, so the ratio can be read rather than trusted. */
+  closure: external_exports.object({
+    total: external_exports.number().int().min(0),
+    verified: external_exports.number().int().min(0),
+    implemented: external_exports.number().int().min(0),
+    notStarted: external_exports.number().int().min(0),
+    waived: external_exports.number().int().min(0)
+  }).passthrough().optional(),
+  /** Human interventions observed, with what each one was. */
+  interventions: external_exports.array(external_exports.object({ at: shortText112, kind: shortText112, detail: text11 }).passthrough()).max(200).default([])
+}).passthrough();
+var INTERVENTION_EVENTS = Object.freeze({
+  clarification_requested: "the runtime asked a question it should have resolved itself",
+  job_blocked: "the job stopped in BLOCKED, needing an explicit user action",
+  // `blockJob` records `budget_exhausted` rather than `job_blocked` when the
+  // blocker is a budget. The vNext.10 dogfood ended exactly there — "all 4
+  // execution attempts for this task are spent" — and the metric reported
+  // ZERO interventions for a job sitting in BLOCKED. A budget stop still
+  // needs a person; only the event name differed.
+  budget_exhausted: "the job stopped on an exhausted budget, needing an explicit user action"
+});
+function deriveAutonomyTelemetry(deps, input) {
+  const read = readJobState(deps.workspace, input.jobId);
+  const job = read.kind === "ok" ? read.job : void 0;
+  const events = safeEvents(deps.workspace, input.jobId);
+  const counters = job?.autonomyCounters;
+  const interventions = [];
+  let providerFailovers = 0;
+  let providerFailures = 0;
+  let quotaWaits = 0;
+  let contextRollovers = 0;
+  let supervisorWakeups = 0;
+  let escalationsAfterBoundary = 0;
+  const bindingForBoundary = readSealBinding(deps.workspace, input.jobId);
+  const boundary = bindingForBoundary !== void 0 ? readSealedAt(deps, bindingForBoundary.sealId) : void 0;
+  const boundaryMs = boundary !== void 0 ? Date.parse(boundary) : Number.NaN;
+  const afterBoundary = (at) => {
+    if (!Number.isFinite(boundaryMs)) return true;
+    const eventMs = Date.parse(at);
+    return !Number.isFinite(eventMs) || eventMs >= boundaryMs;
+  };
+  for (const event of events) {
+    const type = String(event["type"] ?? "");
+    const at = String(event["at"] ?? "");
+    const explanation = INTERVENTION_EVENTS[type];
+    if (explanation !== void 0 && afterBoundary(at)) {
+      interventions.push({ at, kind: type, detail: explanation });
+    }
+    if (type === "authority_escalated" && afterBoundary(at)) escalationsAfterBoundary += 1;
+    if (type === "worker_escalated" || type === "local_harness_to_subscription_escalated") {
+      providerFailovers += 1;
+    }
+    if (type === "local_model_stopped" || type === "local_harness_unavailable") providerFailures += 1;
+    if (type === "quota_exhausted" || type === "task_deferred" || type === "resource_wait_started") {
+      quotaWaits += 1;
+    }
+    if (type === "context_rollover" || type === "fresh_context_selected") contextRollovers += 1;
+    if (type === "driver_restarted" || type === "supervisor_attached") supervisorWakeups += 1;
+  }
+  const supervisionLog = readSupervisionLog(deps.workspace, 2e3);
+  supervisorWakeups += supervisionLog.filter(
+    (entry2) => entry2.action === "WOKEN_ON_SCHEDULE" || entry2.action === "WOKEN_ON_RESOURCE_RETURN"
+  ).length;
+  if (job !== void 0 && requiresHumanAttention(job.status) && job.status !== "NEEDS_AUTHORITY" && interventions.length === 0) {
+    interventions.push({
+      at: job.updatedAt,
+      kind: `status:${job.status}`,
+      detail: job.blocker?.message ?? `the job is ${job.status} and cannot proceed without a person`
+    });
+  }
+  const ledger = readClosureLedger(deps.workspace, input.jobId);
+  const totals = ledger !== void 0 ? summarizeClosure(ledger.entries) : void 0;
+  const toolsmith = listToolsmithRequests(deps.workspace, input.jobId);
+  const browserResults = listBrowserResults(deps.workspace).filter(
+    (result) => result.jobId === input.jobId
+  );
+  const critiques = listCritiques(deps.workspace).filter(
+    (critique) => critique.jobId === input.jobId
+  );
+  const binding = readSealBinding(deps.workspace, input.jobId);
+  const telemetry = autonomyTelemetrySchema.parse({
+    schemaVersion: TELEMETRY_SCHEMA_VERSION,
+    jobId: input.jobId,
+    ...binding !== void 0 ? { sealId: binding.sealId, missionId: binding.missionId } : {},
+    recordedAt: nowIso2(deps),
+    jobStatus: job?.status ?? "UNKNOWN",
+    humanInterventionsAfterSeal: interventions.length,
+    humanAuthorityEscalations: counters?.authorityEscalations ?? 0,
+    humanAuthorityEscalationsAfterSeal: boundary === void 0 ? null : escalationsAfterBoundary,
+    boundaryStartedAt: boundary ?? null,
+    autonomousRecoveryCount: counters?.autonomousRecoveries ?? 0,
+    providerFailovers,
+    providerFailures,
+    quotaWaits: Math.max(quotaWaits, counters?.resourceWaits ?? 0),
+    contextRollovers: Math.max(contextRollovers, counters?.contextRollovers ?? 0),
+    toolsmithActions: toolsmith.length,
+    selfCreatedTools: countSelfCreatedTools(deps.workspace, input.jobId),
+    toolchainRepairs: counters?.toolchainRepairs ?? 0,
+    environmentRepairs: counters?.environmentRepairs ?? 0,
+    controlPlaneRepairs: counters?.controlPlaneRepairs ?? 0,
+    gapClosureCycles: ledger?.gapCycles ?? counters?.gapClosureCycles ?? 0,
+    systemQualificationCycles: ledger?.systemCycles ?? counters?.systemQualificationCycles ?? 0,
+    browserScenariosRun: browserResults.length,
+    uxCritiquesRun: critiques.length,
+    driverRestarts: counters?.driverRestarts ?? 0,
+    supervisorWakeups,
+    elapsedWallTimeMs: input.elapsedWallTimeMs ?? elapsedFromJob(job),
+    // Provider-reported only. `null` when nothing reported, which is a
+    // different fact from "it was free".
+    reportedTokens: job?.counters.reportedTokens ?? null,
+    reportedCostUsd: job?.counters.reportedCostUsd ?? null,
+    contractClosureRatio: totals !== void 0 ? closureRatio(totals) : null,
+    ...totals !== void 0 ? {
+      closure: {
+        total: totals.total,
+        verified: totals.verified,
+        implemented: totals.implemented,
+        notStarted: totals.notStarted,
+        waived: totals.waived
+      }
+    } : {},
+    interventions: interventions.slice(0, 200)
+  });
+  return telemetry;
+}
+function elapsedFromJob(job) {
+  if (job === void 0) return null;
+  const created = Date.parse(job.createdAt);
+  const updated = Date.parse(job.finalizedAt ?? job.updatedAt);
+  if (!Number.isFinite(created) || !Number.isFinite(updated)) return null;
+  return Math.max(0, updated - created);
+}
+function readSealedAt(deps, sealId) {
+  try {
+    return readSeal(deps.workspace, sealId)?.sealedAt;
+  } catch {
+    return void 0;
+  }
+}
+function safeEvents(workspace, jobId) {
+  try {
+    return readJobEvents(workspace, jobId, { limit: 1e4 }).events;
+  } catch {
+    return [];
+  }
+}
+var EXECUTION_TELEMETRY_REPORT_SCHEMA_VERSION = "1.0.0";
+var count3 = external_exports.number().int().min(0);
+var shortText122 = external_exports.string().max(512);
+var boundedText7 = external_exports.string().max(2e3);
+var ratio2 = external_exports.number().min(0).max(1).nullable();
+var countMap = external_exports.record(external_exports.string(), count3);
+var fractionMetricSchema = external_exports.object({
+  numerator: count3.nullable(),
+  denominator: count3.nullable(),
+  value: ratio2
+}).strict();
+var tokenCoverageSchema = external_exports.object({
+  attempts: count3,
+  withAny: count3,
+  withInput: count3,
+  withOutput: count3,
+  ratio: ratio2,
+  complete: external_exports.boolean()
+}).strict();
+var tokenTelemetrySchema = external_exports.object({
+  /** Sum of every reported input-token field; null when none reported. */
+  inputTokens: count3.nullable(),
+  /** Sum of every reported output-token field; null when none reported. */
+  outputTokens: count3.nullable(),
+  /** Sum of known components, even when coverage is partial. */
+  knownTokens: count3.nullable(),
+  /** Total only when every attempt reported both components. */
+  completeTokens: count3.nullable(),
+  coverage: tokenCoverageSchema
+}).strict();
+var workAccountingSchema = external_exports.enum([
+  "completed",
+  "failed",
+  "cancelled",
+  "waiting",
+  "not-ready",
+  "human-authority-pending",
+  "research-pending",
+  "context-pending"
+]);
+var diagnosticSchema = external_exports.object({
+  code: shortText122,
+  severity: external_exports.enum(["info", "warning", "error"]),
+  message: boundedText7,
+  evidenceRefs: external_exports.array(shortText122).max(20).default([])
+}).strict();
+var phaseResearchSchema = external_exports.object({
+  considered: count3,
+  avoided: count3,
+  reused: count3,
+  newCalls: count3,
+  quick: count3,
+  deep: count3,
+  failed: count3
+}).strict();
+var executionTelemetryReportSchema = external_exports.object({
+  schemaVersion: external_exports.literal(EXECUTION_TELEMETRY_REPORT_SCHEMA_VERSION),
+  jobId: shortText122,
+  missionId: shortText122.nullable(),
+  generatedAt: shortText122,
+  period: external_exports.object({
+    startedAt: shortText122,
+    endedAt: shortText122.nullable(),
+    durationMs: count3.nullable(),
+    activeExecutionMs: count3.nullable()
+  }).strict(),
+  provenance: external_exports.object({
+    sourceJobId: shortText122,
+    jobGraphRevision: count3,
+    objectiveGraphRevisions: countMap,
+    executionLedgerWatermark: external_exports.string().regex(/^[a-f0-9]{64}$/),
+    eventWatermark: count3,
+    specbridgeVersion: shortText122.nullable(),
+    sealId: shortText122.nullable(),
+    sealedAuthorityDigest: shortText122.nullable(),
+    runtimePolicyChanged: external_exports.boolean().nullable(),
+    configuration: external_exports.object({
+      secondaryBuildStrategy: shortText122,
+      researchStrategy: shortText122,
+      runnerProfiles: external_exports.array(shortText122).max(50)
+    }).strict()
+  }).strict(),
+  outcome: external_exports.object({
+    status: external_exports.enum(["COMPLETED", "FAILED", "CANCELLED", "BLOCKED", "WAITING"]),
+    authoritativeJobStatus: shortText122,
+    finalOutcome: boundedText7.nullable(),
+    verification: external_exports.enum(["PASS", "FAIL", "UNAVAILABLE"]),
+    closure: external_exports.enum(["PASS", "FAIL", "UNAVAILABLE"])
+  }).strict(),
+  work: external_exports.object({
+    total: count3,
+    byKind: countMap,
+    accounting: external_exports.record(workAccountingSchema, count3),
+    completedImplementation: count3,
+    objectives: external_exports.array(external_exports.object({
+      objectiveNodeId: shortText122,
+      graphRevision: count3.nullable(),
+      total: count3,
+      accounting: external_exports.record(workAccountingSchema, count3),
+      implementationAttempts: count3,
+      secondaryAttempts: count3,
+      strongBuilderAttempts: count3
+    }).strict()).max(200),
+    units: external_exports.array(external_exports.object({
+      workUnitId: shortText122,
+      objectiveNodeId: shortText122,
+      kind: shortText122,
+      status: shortText122,
+      accounting: workAccountingSchema,
+      builderPath: external_exports.enum(["SECONDARY", "SECONDARY_REPAIR", "STRONG", "STRONG_FALLBACK", "NONE", "UNKNOWN"]),
+      implementationAttempts: count3,
+      verification: external_exports.enum(["PASS", "FAIL", "PENDING", "UNAVAILABLE"]),
+      integration: external_exports.enum(["INTEGRATED", "NOT_INTEGRATED"])
+    }).strict()).max(500),
+    omittedUnits: count3
+  }).strict(),
+  secondary: external_exports.object({
+    eligibility: external_exports.object({
+      eligible: count3,
+      ineligible: count3,
+      strongRequired: count3,
+      needsResearch: count3,
+      needsAuthority: count3,
+      needsContext: count3,
+      notReady: count3,
+      unavailable: count3
+    }).strict(),
+    selection: external_exports.object({
+      secondarySelected: count3,
+      strongSelectedDespiteEligibility: count3,
+      noBuilderNeeded: count3,
+      waitingForResource: count3
+    }).strict(),
+    funnel: external_exports.object({
+      initialAttempts: count3,
+      initialPass: count3,
+      repairAttempted: count3,
+      repairPass: count3,
+      toStrongFallback: count3,
+      unavailableFallback: count3
+    }).strict(),
+    initialSuccessRate: fractionMetricSchema,
+    repairRecoveryRate: fractionMetricSchema,
+    toStrongFallbackRate: fractionMetricSchema,
+    fallbackReasons: countMap,
+    builderTokens: tokenTelemetrySchema
+  }).strict(),
+  strong: external_exports.object({
+    builderAttempts: count3,
+    evaluatorAttempts: count3,
+    selection: external_exports.object({
+      requiredDirect: count3,
+      byStrategyOff: count3,
+      byAutoPolicy: count3,
+      becauseSecondaryUnavailable: count3,
+      fallbackAfterSecondary: count3
+    }).strict(),
+    implementationTokens: tokenTelemetrySchema,
+    evaluatorTokens: tokenTelemetrySchema
+  }).strict(),
+  research: external_exports.object({
+    scope: external_exports.enum(["JOB", "WORKSPACE", "NONE"]),
+    considered: count3.nullable(),
+    decisions: countMap,
+    providerCalls: count3,
+    successful: count3,
+    inconclusive: count3,
+    failed: count3,
+    priorResearchReused: count3,
+    newQuick: count3,
+    newDeep: count3,
+    avoidanceRatio: fractionMetricSchema,
+    reuseRate: fractionMetricSchema,
+    byPhase: external_exports.record(external_exports.string(), phaseResearchSchema),
+    usage: external_exports.object({
+      inputTokens: count3.nullable(),
+      outputTokens: count3.nullable(),
+      durationMs: count3.nullable(),
+      providerReportedCost: external_exports.number().min(0).nullable(),
+      subagentCount: count3.nullable(),
+      recordsWithUsage: count3,
+      providerCalls: count3,
+      coverage: ratio2
+    }).strict()
+  }).strict(),
+  cooldown: external_exports.object({
+    episodes: count3,
+    observations: count3,
+    totalDurationMs: count3.nullable(),
+    usefulWorkDuringSubscriptionCooldown: count3,
+    secondaryImplementationWorkDuringCooldown: count3,
+    researchWorkDuringCooldown: count3,
+    strongRequiredWaiting: count3,
+    avoidableIdlePeriods: count3,
+    intervals: external_exports.array(external_exports.object({
+      objectiveNodeId: shortText122,
+      status: external_exports.enum(["ACTIVE", "RECOVERED"]),
+      startedAt: shortText122,
+      endedAt: shortText122.nullable(),
+      durationMs: count3.nullable(),
+      completedWorkUnits: count3
+    }).strict()).max(200),
+    timeline: external_exports.array(external_exports.object({
+      at: shortText122,
+      type: shortText122,
+      objectiveNodeId: shortText122.nullable(),
+      detail: boundedText7
+    }).strict()).max(200)
+  }).strict(),
+  attempts: external_exports.object({
+    uniqueImplementationAttempts: count3,
+    meanPerCompletedWorkUnit: external_exports.number().min(0).nullable(),
+    medianPerCompletedWorkUnit: external_exports.number().min(0).nullable(),
+    maxPerWorkUnit: count3,
+    workUnitsWithMultipleAttempts: count3,
+    byKind: countMap,
+    completedWorkUnitsPerImplementationAttempt: external_exports.number().min(0).nullable(),
+    completedWorkUnitsPerStrongBuilderCall: external_exports.number().min(0).nullable(),
+    completedEligibleWorkUnitsPerSecondaryAttempt: external_exports.number().min(0).nullable()
+  }).strict(),
+  verification: external_exports.object({
+    attempts: count3,
+    passes: count3,
+    failures: count3,
+    otherVerdicts: count3,
+    failuresByBuilderBackend: countMap,
+    failuresRecoveredByRepair: count3,
+    failuresRecoveredByStrongFallback: count3
+  }).strict(),
+  closure: external_exports.object({
+    available: external_exports.boolean(),
+    items: count3,
+    earned: count3,
+    waived: count3,
+    unresolved: count3,
+    completionGateOutcome: external_exports.enum(["PASS", "FAIL", "UNAVAILABLE"]),
+    ratio: ratio2
+  }).strict(),
+  human: external_exports.object({
+    decisionsBeforeSeal: count3.nullable(),
+    approvals: count3,
+    authorityEscalationsAfterSeal: count3.nullable(),
+    interventionsAfterSeal: count3,
+    unexpectedBlockersAfterSeal: count3,
+    zeroTouchAfterSeal: external_exports.boolean(),
+    byKind: countMap
+  }).strict(),
+  reliability: external_exports.object({
+    failureSources: countMap,
+    recoveryActions: countMap,
+    noProgressDetections: count3,
+    repeatedProblemFingerprints: count3,
+    legitimateResourceWaitsExcluded: count3,
+    processRestarts: count3,
+    supervisorRestarts: count3,
+    candidatesPersisted: count3,
+    candidatesReusedAfterRestart: count3,
+    candidateRebuildsAfterRestart: count3,
+    candidatesLostOrUnreadable: count3,
+    candidateReadyResumes: count3,
+    integrationRetries: count3,
+    completedWorkRedoCount: count3,
+    completedWorkReusedAfterRestart: count3,
+    attemptsIncorrectlyRepeated: count3,
+    unexpectedBlocks: count3,
+    unrecoveredDriverDeaths: count3
+  }).strict(),
+  efficiency: external_exports.object({
+    strongBuilderAvoidanceRatio: fractionMetricSchema,
+    strongBuilderCallsAvoided: count3,
+    completedWorkUnitsPerImplementationAttempt: external_exports.number().min(0).nullable(),
+    baseline: external_exports.object({
+      kind: external_exports.enum(["OBSERVED", "QUALIFICATION_FIXTURE"]),
+      reportId: shortText122,
+      strongBuilderAttempts: count3,
+      sameVerificationOutcome: external_exports.boolean(),
+      sameClosureOutcome: external_exports.boolean()
+    }).strict().nullable()
+  }).strict(),
+  qualificationSummary: external_exports.object({
+    strongBuilderAvoidanceRatio: ratio2,
+    secondaryInitialSuccessRate: ratio2,
+    secondaryRepairRecoveryRate: ratio2,
+    secondaryToStrongFallback: count3,
+    strongImplementationTokens: count3.nullable(),
+    researchAvoidanceRatio: ratio2,
+    newResearchCalls: count3,
+    researchReuse: count3,
+    usefulWorkDuringSubscriptionCooldown: count3,
+    humanInterventionsAfterSeal: count3,
+    completedWorkRedoCount: count3,
+    unexpectedBlocks: count3,
+    unrecoveredDriverDeaths: count3
+  }).strict(),
+  diagnostics: external_exports.array(diagnosticSchema).max(200)
+}).strict();
+var SECRET_PATTERNS2 = [
+  /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/gi,
+  /\b(?:bearer|basic)\s+[A-Za-z0-9+/=_-]{12,}/gi,
+  /\b(?:sk|ghp|github_pat|xox[baprs])[_-][A-Za-z0-9_-]{12,}\b/gi,
+  /\b(?:api[-_ ]?key|auth[-_ ]?token|access[-_ ]?token|password|secret)\s*[:=]\s*\S{8,}/gi
+];
+function redactTelemetryText(value) {
+  let redacted = value;
+  for (const pattern of SECRET_PATTERNS2) redacted = redacted.replace(pattern, "[REDACTED]");
+  return redacted.slice(0, 2e3);
+}
+function increment2(record4, key, by = 1) {
+  record4[key] = (record4[key] ?? 0) + by;
+}
+function metric(numerator, denominator) {
+  return {
+    numerator,
+    denominator,
+    value: numerator === null || denominator === null || denominator === 0 ? null : numerator / denominator
+  };
+}
+function tokenTelemetry(attempts, usage) {
+  let input = 0;
+  let output = 0;
+  let withInput = 0;
+  let withOutput = 0;
+  let withAny = 0;
+  for (const attempt of attempts) {
+    const reported = usage(attempt);
+    const hasInput = reported.input !== null && reported.input !== void 0;
+    const hasOutput = reported.output !== null && reported.output !== void 0;
+    if (hasInput) {
+      input += reported.input ?? 0;
+      withInput += 1;
+    }
+    if (hasOutput) {
+      output += reported.output ?? 0;
+      withOutput += 1;
+    }
+    if (hasInput || hasOutput) withAny += 1;
+  }
+  const attemptCount = attempts.length;
+  const complete = attemptCount > 0 && withInput === attemptCount && withOutput === attemptCount;
+  return {
+    inputTokens: withInput > 0 ? input : null,
+    outputTokens: withOutput > 0 ? output : null,
+    knownTokens: withAny > 0 ? input + output : null,
+    completeTokens: complete ? input + output : null,
+    coverage: {
+      attempts: attemptCount,
+      withAny,
+      withInput,
+      withOutput,
+      ratio: attemptCount === 0 ? null : withAny / attemptCount,
+      complete
+    }
+  };
+}
+function timestampMs(value) {
+  if (value === null || value === void 0) return void 0;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : void 0;
+}
+function outcomeStatus(status) {
+  if (status === "COMPLETED") return "COMPLETED";
+  if (status === "FAILED") return "FAILED";
+  if (status === "CANCELLED") return "CANCELLED";
+  if (status === "BLOCKED" || status === "NEEDS_AUTHORITY" || status === "NEEDS_CLARIFICATION") {
+    return "BLOCKED";
+  }
+  return "WAITING";
+}
+function verificationOutcome(job, events) {
+  const status = job.latestEvidence?.evidenceStatus;
+  if (status === "verified" || status === "manually-accepted") return "PASS";
+  const lastFailure = [...events].reverse().find((event) => event.type === "verification_failed");
+  if (lastFailure !== void 0 && job.latestEvidence === void 0) return "FAIL";
+  return "UNAVAILABLE";
+}
+function currentRoutingStates(objectives) {
+  const current = /* @__PURE__ */ new Map();
+  for (const objective of objectives) {
+    for (const state of objective.routingStates) {
+      const key = `${objective.objectiveNodeId}\0${state.workUnitId}`;
+      const prior = current.get(key);
+      if (prior === void 0 || state.updatedAt.localeCompare(prior.updatedAt, "en") > 0 || state.updatedAt === prior.updatedAt && state.contentHash.localeCompare(prior.contentHash, "en") > 0) {
+        current.set(key, state);
+      }
+    }
+  }
+  return current;
+}
+function uniqueBuilderAttempts(objectives) {
+  const seen = /* @__PURE__ */ new Map();
+  let duplicateIds = 0;
+  for (const objective of objectives) {
+    for (const state of objective.routingStates) {
+      for (const attempt of state.attempts) {
+        const key = `${objective.objectiveNodeId}\0${state.workUnitId}\0${attempt.attemptId}`;
+        if (seen.has(key)) {
+          duplicateIds += 1;
+          continue;
+        }
+        seen.set(key, { ...attempt, objectiveNodeId: objective.objectiveNodeId, workUnitId: state.workUnitId });
+      }
+    }
+  }
+  return {
+    attempts: [...seen.values()].sort(
+      (left, right) => left.startedAt.localeCompare(right.startedAt, "en") || left.objectiveNodeId.localeCompare(right.objectiveNodeId, "en") || left.workUnitId.localeCompare(right.workUnitId, "en") || left.sequence - right.sequence
+    ),
+    duplicateIds
+  };
+}
+function latestUnits(objectives) {
+  const units = [];
+  for (const objective of objectives) {
+    for (const unit of objective.graph?.units ?? []) {
+      units.push({ objectiveNodeId: objective.objectiveNodeId, unit });
+    }
+  }
+  return units.sort(
+    (left, right) => left.objectiveNodeId.localeCompare(right.objectiveNodeId, "en") || left.unit.workUnitId.localeCompare(right.unit.workUnitId, "en")
+  );
+}
+function workAccounting(unit, routing) {
+  if (unit.status === "INTEGRATED") return "completed";
+  if (unit.status === "FAILED") return "failed";
+  if (unit.status === "SUPERSEDED") return "cancelled";
+  const eligibility = routing?.initialEligibility;
+  if (eligibility === "NEEDS_AUTHORITY") return "human-authority-pending";
+  if (eligibility === "NEEDS_RESEARCH") return "research-pending";
+  if (eligibility === "NEEDS_CONTEXT") return "context-pending";
+  if (eligibility === "NOT_READY" || unit.status === "PLANNED") return "not-ready";
+  return "waiting";
+}
+function builderPath(attempts) {
+  if (attempts.some((attempt) => attempt.kind === "STRONG_FALLBACK")) return "STRONG_FALLBACK";
+  if (attempts.some((attempt) => attempt.kind === "STRONG")) return "STRONG";
+  if (attempts.some((attempt) => attempt.kind === "SECONDARY_REPAIR")) return "SECONDARY_REPAIR";
+  if (attempts.some((attempt) => attempt.kind === "SECONDARY")) return "SECONDARY";
+  return attempts.length === 0 ? "NONE" : "UNKNOWN";
+}
+function verificationFor(evaluations) {
+  if (evaluations.some((entry2) => entry2.verdict === "FAIL")) return "FAIL";
+  if (evaluations.some((entry2) => entry2.verdict === "PASS")) return "PASS";
+  if (evaluations.length > 0) return "PENDING";
+  return "UNAVAILABLE";
+}
+function fallbackReason(attempts) {
+  const preceding = [...attempts].reverse().find((attempt) => attempt.kind === "SECONDARY" || attempt.kind === "SECONDARY_REPAIR");
+  if (preceding === void 0) return "other";
+  if (preceding.noProgress) return "no-progress";
+  switch (preceding.outcome) {
+    case "FAILED_VERIFICATION":
+      return "verification-failure";
+    case "FAILED_OUTPUT":
+      return "malformed-model-result";
+    case "FAILED_RESOURCE":
+      return "capability-failure";
+    case "FAILED_IMPLEMENTATION":
+      return /context|stale source|insufficient/i.test(preceding.failureSummary ?? "") ? "context-insufficiency" : "implementation-failure";
+    default:
+      return "other";
+  }
+}
+function median(values) {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((left, right) => left - right);
+  const middle = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 1) return sorted[middle] ?? null;
+  return ((sorted[middle - 1] ?? 0) + (sorted[middle] ?? 0)) / 2;
+}
+function deriveExecutionTelemetryReport(facts) {
+  const diagnostics = [];
+  const generatedMs = timestampMs(facts.generatedAt) ?? 0;
+  const eventTypes = (type) => facts.events.filter((event) => event.type === type);
+  const currentRouting = currentRoutingStates(facts.objectives);
+  const { attempts: implementationAttempts, duplicateIds } = uniqueBuilderAttempts(facts.objectives);
+  const units = latestUnits(facts.objectives);
+  const evaluations = facts.objectives.flatMap((objective) => objective.evaluations).filter((entry2, index, values) => values.findIndex((other) => other.evaluationId === entry2.evaluationId) === index).sort((left, right) => left.createdAt.localeCompare(right.createdAt, "en"));
+  if (facts.eventTotal > facts.events.length) {
+    diagnostics.push({
+      code: "EVENT_WINDOW_BOUNDED",
+      severity: "info",
+      message: `The report used the newest ${facts.events.length} of ${facts.eventTotal} job events; ledgers and current state remain authoritative for aggregates.`,
+      evidenceRefs: []
+    });
+  }
+  if (facts.objectives.length === 0) {
+    diagnostics.push({
+      code: "OBJECTIVE_TELEMETRY_UNAVAILABLE",
+      severity: "info",
+      message: "No objective-runtime records exist; Phase 7/8 metrics are unavailable for this older or direct-execution job.",
+      evidenceRefs: []
+    });
+  }
+  if (facts.autonomy.boundaryStartedAt === null) {
+    diagnostics.push({
+      code: "ZERO_TOUCH_BOUNDARY_UNAVAILABLE",
+      severity: "info",
+      message: "No durable seal boundary exists; intervention counting conservatively includes the whole recorded Job history.",
+      evidenceRefs: []
+    });
+  }
+  if (duplicateIds > 0) {
+    diagnostics.push({
+      code: "ATTEMPT_REPLAY_DEDUPLICATED",
+      severity: "info",
+      message: `${duplicateIds} replayed builder-attempt record${duplicateIds === 1 ? "" : "s"} were ignored by durable attempt id.`,
+      evidenceRefs: []
+    });
+  }
+  if (facts.researchTelemetryDiagnostic !== void 0) {
+    diagnostics.push({
+      code: "RESEARCH_TELEMETRY_UNREADABLE",
+      severity: "warning",
+      message: redactTelemetryText(facts.researchTelemetryDiagnostic),
+      evidenceRefs: []
+    });
+  }
+  for (const diagnostic of facts.researchRecordDiagnostics ?? []) {
+    diagnostics.push({
+      code: diagnostic.code.slice(0, 512),
+      severity: "warning",
+      message: redactTelemetryText(diagnostic.message),
+      evidenceRefs: []
+    });
+  }
+  const attemptsByUnit = /* @__PURE__ */ new Map();
+  for (const attempt of implementationAttempts) {
+    const key = `${attempt.objectiveNodeId}\0${attempt.workUnitId}`;
+    const list = attemptsByUnit.get(key) ?? [];
+    list.push(attempt);
+    attemptsByUnit.set(key, list);
+  }
+  const evaluationsByUnit = /* @__PURE__ */ new Map();
+  for (const evaluation of evaluations) {
+    const key = `${evaluation.objectiveNodeId}\0${evaluation.workUnitId}`;
+    const list = evaluationsByUnit.get(key) ?? [];
+    list.push(evaluation);
+    evaluationsByUnit.set(key, list);
+  }
+  const workAccountingCounts = {
+    completed: 0,
+    failed: 0,
+    cancelled: 0,
+    waiting: 0,
+    "not-ready": 0,
+    "human-authority-pending": 0,
+    "research-pending": 0,
+    "context-pending": 0
+  };
+  const workByKind = {};
+  const unitSummaries = [];
+  for (const entry2 of units) {
+    const key = `${entry2.objectiveNodeId}\0${entry2.unit.workUnitId}`;
+    const routing = currentRouting.get(key);
+    const unitAttempts = attemptsByUnit.get(key) ?? [];
+    const unitEvaluations = evaluationsByUnit.get(key) ?? [];
+    const accounting = workAccounting(entry2.unit, routing);
+    workAccountingCounts[accounting] += 1;
+    increment2(workByKind, entry2.unit.kind);
+    if (unitSummaries.length < 500) {
+      unitSummaries.push({
+        workUnitId: entry2.unit.workUnitId,
+        objectiveNodeId: entry2.objectiveNodeId,
+        kind: entry2.unit.kind,
+        status: entry2.unit.status,
+        accounting,
+        builderPath: builderPath(unitAttempts),
+        implementationAttempts: unitAttempts.length,
+        verification: verificationFor(unitEvaluations),
+        integration: entry2.unit.status === "INTEGRATED" ? "INTEGRATED" : "NOT_INTEGRATED"
+      });
+    }
+  }
+  const eligibility = {
+    eligible: 0,
+    ineligible: 0,
+    strongRequired: 0,
+    needsResearch: 0,
+    needsAuthority: 0,
+    needsContext: 0,
+    notReady: 0,
+    unavailable: units.filter((entry2) => entry2.unit.kind === "build" && !currentRouting.has(`${entry2.objectiveNodeId}\0${entry2.unit.workUnitId}`)).length
+  };
+  const selection = {
+    secondarySelected: 0,
+    strongSelectedDespiteEligibility: 0,
+    noBuilderNeeded: 0,
+    waitingForResource: 0
+  };
+  const strongSelection = {
+    requiredDirect: 0,
+    byStrategyOff: 0,
+    byAutoPolicy: 0,
+    becauseSecondaryUnavailable: 0,
+    fallbackAfterSecondary: 0
+  };
+  const fallbackReasons = {};
+  for (const entry2 of units) {
+    if (entry2.unit.kind !== "build") {
+      selection.noBuilderNeeded += 1;
+      continue;
+    }
+    const key = `${entry2.objectiveNodeId}\0${entry2.unit.workUnitId}`;
+    const state = currentRouting.get(key);
+    if (state === void 0) continue;
+    switch (state.initialEligibility) {
+      case "ELIGIBLE":
+        eligibility.eligible += 1;
+        break;
+      case "STRONG_REQUIRED":
+        eligibility.strongRequired += 1;
+        break;
+      case "NEEDS_RESEARCH":
+        eligibility.needsResearch += 1;
+        break;
+      case "NEEDS_AUTHORITY":
+        eligibility.needsAuthority += 1;
+        break;
+      case "NEEDS_CONTEXT":
+        eligibility.needsContext += 1;
+        break;
+      case "NOT_READY":
+        eligibility.notReady += 1;
+        break;
+      default:
+        break;
+    }
+    const decisions = state.decisions;
+    const unitAttempts = attemptsByUnit.get(key) ?? [];
+    if (entry2.unit.resourceWait !== void 0) selection.waitingForResource += 1;
+    if (state.initialEligibility === "ELIGIBLE") {
+      if (decisions.some((decision) => decision.selectedBackend === "SECONDARY")) {
+        selection.secondarySelected += 1;
+      } else if (decisions.some((decision) => decision.selectedBackend === "STRONG")) {
+        selection.strongSelectedDespiteEligibility += 1;
+      }
+    }
+    const directStrong = decisions.find((decision) => decision.selectedBackend === "STRONG");
+    if (directStrong !== void 0 && !unitAttempts.some((attempt) => attempt.kind === "STRONG_FALLBACK")) {
+      if (state.initialEligibility === "STRONG_REQUIRED") strongSelection.requiredDirect += 1;
+      else if (directStrong.reasons.some((reason) => reason.code === "STRATEGY_OFF")) strongSelection.byStrategyOff += 1;
+      else if (directStrong.reasons.some((reason) => reason.code === "SECONDARY_UNAVAILABLE")) {
+        strongSelection.becauseSecondaryUnavailable += 1;
+      } else if (directStrong.reasons.some((reason) => reason.code === "SUBSCRIPTION_HARVEST" || reason.code === "SECONDARY_AUTO_POLICY" || reason.code === "CRITICAL_WORK_PREFERS_STRONG")) {
+        strongSelection.byAutoPolicy += 1;
+      }
+    }
+    if (unitAttempts.some((attempt) => attempt.kind === "STRONG_FALLBACK")) {
+      strongSelection.fallbackAfterSecondary += 1;
+      increment2(fallbackReasons, fallbackReason(unitAttempts));
+    }
+  }
+  eligibility.ineligible = eligibility.strongRequired + eligibility.needsResearch + eligibility.needsAuthority + eligibility.needsContext + eligibility.notReady;
+  const eligibleUnits = units.filter((entry2) => {
+    const state = currentRouting.get(`${entry2.objectiveNodeId}\0${entry2.unit.workUnitId}`);
+    return entry2.unit.kind === "build" && state?.initialEligibility === "ELIGIBLE";
+  });
+  const eligibleCompleted = eligibleUnits.filter((entry2) => entry2.unit.status === "INTEGRATED");
+  const eligibleCompletedWithoutStrong = eligibleCompleted.filter((entry2) => {
+    const attempts = attemptsByUnit.get(`${entry2.objectiveNodeId}\0${entry2.unit.workUnitId}`) ?? [];
+    return !attempts.some((attempt) => attempt.kind === "STRONG" || attempt.kind === "STRONG_FALLBACK");
+  });
+  const secondaryAttemptedUnits = eligibleUnits.filter((entry2) => {
+    const attempts = attemptsByUnit.get(`${entry2.objectiveNodeId}\0${entry2.unit.workUnitId}`) ?? [];
+    return attempts.some((attempt) => (attempt.kind === "SECONDARY" || attempt.kind === "SECONDARY_REPAIR") && attempt.outcome !== "FAILED_RESOURCE" && attempt.outcome !== "CANCELLED");
+  });
+  const initialAttemptedUnits = eligibleUnits.filter((entry2) => {
+    const attempts = attemptsByUnit.get(`${entry2.objectiveNodeId}\0${entry2.unit.workUnitId}`) ?? [];
+    return attempts.some((attempt) => attempt.kind === "SECONDARY" && attempt.outcome !== "FAILED_RESOURCE" && attempt.outcome !== "CANCELLED");
+  });
+  const initialPassUnits = initialAttemptedUnits.filter((entry2) => {
+    const attempts = attemptsByUnit.get(`${entry2.objectiveNodeId}\0${entry2.unit.workUnitId}`) ?? [];
+    return attempts.some((attempt) => attempt.kind === "SECONDARY" && attempt.outcome === "SUCCEEDED");
+  });
+  const repairAttemptedUnits = eligibleUnits.filter((entry2) => {
+    const attempts = attemptsByUnit.get(`${entry2.objectiveNodeId}\0${entry2.unit.workUnitId}`) ?? [];
+    return attempts.some((attempt) => attempt.kind === "SECONDARY_REPAIR" && attempt.outcome !== "FAILED_RESOURCE" && attempt.outcome !== "CANCELLED");
+  });
+  const repairPassUnits = repairAttemptedUnits.filter((entry2) => {
+    const attempts = attemptsByUnit.get(`${entry2.objectiveNodeId}\0${entry2.unit.workUnitId}`) ?? [];
+    return attempts.some((attempt) => attempt.kind === "SECONDARY_REPAIR" && attempt.outcome === "SUCCEEDED");
+  });
+  const fallbackUnits = eligibleUnits.filter((entry2) => {
+    const attempts = attemptsByUnit.get(`${entry2.objectiveNodeId}\0${entry2.unit.workUnitId}`) ?? [];
+    return attempts.some((attempt) => attempt.kind === "STRONG_FALLBACK");
+  });
+  const unavailableFallbackUnits = eligibleUnits.filter((entry2) => {
+    const state = currentRouting.get(`${entry2.objectiveNodeId}\0${entry2.unit.workUnitId}`);
+    return state?.decisions.some((decision) => decision.selectedBackend === "STRONG" && decision.reasons.some((reason) => reason.code === "SECONDARY_UNAVAILABLE")) === true;
+  });
+  const secondaryAttempts = implementationAttempts.filter((attempt) => attempt.kind === "SECONDARY" || attempt.kind === "SECONDARY_REPAIR");
+  const strongAttempts = implementationAttempts.filter((attempt) => attempt.kind === "STRONG" || attempt.kind === "STRONG_FALLBACK");
+  const strongEvaluatorAttempts = facts.ledger.filter((entry2) => entry2.role === "EVALUATOR" && entry2.lane !== "LOCAL");
+  const secondaryTokens = tokenTelemetry(secondaryAttempts, (attempt) => ({
+    input: attempt.inputTokens,
+    output: attempt.outputTokens
+  }));
+  const strongTokens = tokenTelemetry(strongAttempts, (attempt) => ({
+    input: attempt.inputTokens,
+    output: attempt.outputTokens
+  }));
+  const evaluatorTokens = tokenTelemetry(strongEvaluatorAttempts, (attempt) => ({
+    input: attempt.metrics.inputTokens,
+    output: attempt.metrics.outputTokens
+  }));
+  const jobResearchRecords = facts.researchRecords.filter((record4) => record4.scope?.jobId === facts.job.jobId);
+  const jobResearchIds = new Set(jobResearchRecords.map((record4) => record4.researchId));
+  const jobResearchUses = facts.researchUses.filter((use) => jobResearchIds.has(use.researchId));
+  const hasJobResearch = jobResearchRecords.length > 0 || jobResearchUses.length > 0;
+  const hasWorkspaceResearch = (facts.researchTelemetry?.gateConsidered ?? 0) > 0 || facts.researchRecords.length > 0 || facts.researchUses.length > 0;
+  const researchScope = hasJobResearch ? "JOB" : hasWorkspaceResearch ? "WORKSPACE" : "NONE";
+  const reportResearchRecords = hasJobResearch ? jobResearchRecords : facts.researchRecords;
+  const reportResearchUses = hasJobResearch ? jobResearchUses : facts.researchUses;
+  const useIds = new Set(reportResearchUses.map((use) => use.useId));
+  const uniqueUses = reportResearchUses.filter((use) => {
+    if (!useIds.has(use.useId)) return false;
+    useIds.delete(use.useId);
+    return true;
+  });
+  const providerRecords = reportResearchRecords.filter((record4) => record4.status !== "PENDING");
+  const workspaceResearch = researchScope === "WORKSPACE";
+  const providerCallCount = workspaceResearch ? facts.researchTelemetry?.providerCalls ?? providerRecords.length : providerRecords.length;
+  const successfulResearch = workspaceResearch ? facts.researchTelemetry?.successfulResearch ?? providerRecords.filter((record4) => record4.status === "COMPLETED").length : providerRecords.filter((record4) => record4.status === "COMPLETED").length;
+  const inconclusiveResearch = workspaceResearch ? facts.researchTelemetry?.inconclusiveResearch ?? providerRecords.filter((record4) => record4.status === "INCONCLUSIVE").length : providerRecords.filter((record4) => record4.status === "INCONCLUSIVE").length;
+  const failedResearch = workspaceResearch ? facts.researchTelemetry?.failedResearch ?? providerRecords.filter((record4) => record4.status === "FAILED").length : providerRecords.filter((record4) => record4.status === "FAILED").length;
+  const reuseCount = workspaceResearch ? facts.researchTelemetry?.reusedReports ?? uniqueUses.filter((use) => use.useKind === "REUSED").length : uniqueUses.filter((use) => use.useKind === "REUSED").length;
+  const newQuick = workspaceResearch ? facts.researchTelemetry?.newQuick ?? providerRecords.filter((record4) => record4.depth === "QUICK").length : providerRecords.filter((record4) => record4.depth === "QUICK").length;
+  const newDeep = workspaceResearch ? facts.researchTelemetry?.newDeep ?? providerRecords.filter((record4) => record4.depth === "DEEP").length : providerRecords.filter((record4) => record4.depth === "DEEP").length;
+  const researchConsidered = researchScope === "WORKSPACE" ? facts.researchTelemetry?.gateConsidered ?? null : null;
+  const researchAvoided = researchScope === "WORKSPACE" ? facts.researchTelemetry?.researchAvoided ?? null : null;
+  const researchDecisions = researchScope === "WORKSPACE" ? { ...facts.researchTelemetry?.decisions ?? {} } : {};
+  const byPhase = {};
+  for (const phase of ["CONVERSATION", "SPEC_DRAFT", "INTAKE_DECISION", "RUNTIME_INVESTIGATION"]) {
+    const aggregate = researchScope === "WORKSPACE" ? facts.researchTelemetry?.byPhase[phase] : void 0;
+    const phaseRecords = providerRecords.filter((record4) => record4.lifecycle?.phase === phase);
+    const phaseUses = uniqueUses.filter((use) => use.phase === phase);
+    byPhase[phase] = {
+      considered: aggregate?.considered ?? 0,
+      avoided: aggregate?.avoided ?? 0,
+      reused: researchScope === "WORKSPACE" ? aggregate?.reused ?? phaseUses.filter((use) => use.useKind === "REUSED").length : phaseUses.filter((use) => use.useKind === "REUSED").length,
+      newCalls: researchScope === "WORKSPACE" ? (aggregate?.newQuick ?? 0) + (aggregate?.newDeep ?? 0) : phaseRecords.length,
+      quick: researchScope === "WORKSPACE" ? aggregate?.newQuick ?? phaseRecords.filter((record4) => record4.depth === "QUICK").length : phaseRecords.filter((record4) => record4.depth === "QUICK").length,
+      deep: researchScope === "WORKSPACE" ? aggregate?.newDeep ?? phaseRecords.filter((record4) => record4.depth === "DEEP").length : phaseRecords.filter((record4) => record4.depth === "DEEP").length,
+      failed: phaseRecords.filter((record4) => record4.status === "FAILED").length
+    };
+  }
+  let researchInputTokens = 0;
+  let researchOutputTokens = 0;
+  let researchDurationMs = 0;
+  let researchCost = 0;
+  let researchSubagents = 0;
+  let researchInputObserved = false;
+  let researchOutputObserved = false;
+  let researchDurationObserved = false;
+  let researchCostObserved = false;
+  let researchSubagentsObserved = false;
+  let recordsWithUsage = 0;
+  for (const record4 of providerRecords) {
+    const usage = record4.usage ?? record4.report?.usage;
+    if (usage === void 0) continue;
+    recordsWithUsage += 1;
+    if (usage.inputTokens !== void 0) {
+      researchInputObserved = true;
+      researchInputTokens += usage.inputTokens;
+    }
+    if (usage.outputTokens !== void 0) {
+      researchOutputObserved = true;
+      researchOutputTokens += usage.outputTokens;
+    }
+    if (usage.durationMs !== void 0) {
+      researchDurationObserved = true;
+      researchDurationMs += usage.durationMs;
+    }
+    if (usage.providerReportedCost !== void 0) {
+      researchCostObserved = true;
+      researchCost += usage.providerReportedCost;
+    }
+    if (usage.subagentCount !== void 0) {
+      researchSubagentsObserved = true;
+      researchSubagents += usage.subagentCount;
+    }
+  }
+  if (researchScope === "WORKSPACE" && providerRecords.length === 0 && facts.researchTelemetry !== void 0) {
+    const reported = facts.researchTelemetry.reportedUsage;
+    if (reported.reports > 0) {
+      recordsWithUsage = reported.reports;
+      if (reported.inputTokens > 0) {
+        researchInputObserved = true;
+        researchInputTokens = reported.inputTokens;
+      }
+      if (reported.outputTokens > 0) {
+        researchOutputObserved = true;
+        researchOutputTokens = reported.outputTokens;
+      }
+      if (reported.providerReportedCost > 0) {
+        researchCostObserved = true;
+        researchCost = reported.providerReportedCost;
+      }
+      if (reported.subagentCount > 0) {
+        researchSubagentsObserved = true;
+        researchSubagents = reported.subagentCount;
+      }
+    }
+    if (facts.researchTelemetry.totalDurationMs > 0) {
+      researchDurationObserved = true;
+      researchDurationMs = facts.researchTelemetry.totalDurationMs;
+    }
+  }
+  const cooldownStates = facts.objectives.map((objective) => objective.cooldown).filter((state) => state !== void 0);
+  const cooldownIntervals = [];
+  let cooldownDurationMs = 0;
+  let cooldownDurationKnown = cooldownStates.length > 0;
+  let cooldownEpisodes = 0;
+  for (const state of cooldownStates) {
+    cooldownEpisodes += state.episodes;
+    const startedAt = state.currentStartedAt ?? state.firstStartedAt;
+    const endedAt = state.status === "RECOVERED" ? state.lastEndedAt ?? null : null;
+    const startMs = timestampMs(startedAt);
+    const endMs = state.status === "ACTIVE" ? generatedMs : timestampMs(endedAt);
+    const durationMs = startMs !== void 0 && endMs !== void 0 && endMs >= startMs ? endMs - startMs : null;
+    if (state.episodes !== 1) cooldownDurationKnown = false;
+    if (durationMs === null) cooldownDurationKnown = false;
+    else cooldownDurationMs += durationMs;
+    cooldownIntervals.push({
+      objectiveNodeId: state.objectiveNodeId,
+      status: state.status,
+      startedAt,
+      endedAt,
+      durationMs,
+      completedWorkUnits: state.completedDuringCooldown.length
+    });
+    if (state.episodes > 1) {
+      diagnostics.push({
+        code: "COOLDOWN_DURATION_PARTIAL",
+        severity: "info",
+        message: `Objective ${state.objectiveNodeId} records ${state.episodes} cooldown episodes but retains only bounded interval endpoints; total duration is unavailable.`,
+        evidenceRefs: [state.objectiveNodeId]
+      });
+    }
+  }
+  const cooldownCompletedKeys = /* @__PURE__ */ new Set();
+  const cooldownWaitingKeys = /* @__PURE__ */ new Set();
+  for (const state of cooldownStates) {
+    for (const workUnitId of state.completedDuringCooldown) {
+      cooldownCompletedKeys.add(`${state.objectiveNodeId}\0${workUnitId}`);
+    }
+    for (const workUnitId of state.waitingWorkUnitIds) {
+      cooldownWaitingKeys.add(`${state.objectiveNodeId}\0${workUnitId}`);
+    }
+  }
+  let secondaryImplementationDuringCooldown = 0;
+  for (const entry2 of units) {
+    const key = `${entry2.objectiveNodeId}\0${entry2.unit.workUnitId}`;
+    if (!cooldownCompletedKeys.has(key) || entry2.unit.kind !== "build") continue;
+    const unitAttempts = attemptsByUnit.get(key) ?? [];
+    if (unitAttempts.some((attempt) => attempt.kind === "SECONDARY" || attempt.kind === "SECONDARY_REPAIR") && !unitAttempts.some((attempt) => attempt.kind === "STRONG" || attempt.kind === "STRONG_FALLBACK")) {
+      secondaryImplementationDuringCooldown += 1;
+    }
+  }
+  const withinCooldown = (at) => {
+    const atMs = timestampMs(at);
+    if (atMs === void 0) return false;
+    return cooldownIntervals.some((interval) => {
+      const start = timestampMs(interval.startedAt);
+      const end = timestampMs(interval.endedAt) ?? generatedMs;
+      return start !== void 0 && atMs >= start && atMs <= end;
+    });
+  };
+  const researchDuringCooldown = providerRecords.filter((record4) => (record4.status === "COMPLETED" || record4.status === "INCONCLUSIVE") && withinCooldown(record4.report?.completedAt ?? record4.updatedAt)).length;
+  let avoidableIdlePeriods = 0;
+  for (const objective of facts.objectives) {
+    if (objective.cooldown?.status !== "ACTIVE" || objective.graph === void 0) continue;
+    for (const unit of objective.graph.units) {
+      if (unit.kind !== "build" || unit.status !== "READY" || unit.resourceWait !== void 0) continue;
+      const key = `${objective.objectiveNodeId}\0${unit.workUnitId}`;
+      const state = currentRouting.get(key);
+      if (state?.initialEligibility !== "ELIGIBLE" || state.strategy === "OFF") continue;
+      const startMs = timestampMs(objective.cooldown.currentStartedAt);
+      const dispatched = (attemptsByUnit.get(key) ?? []).some((attempt) => {
+        const attemptMs = timestampMs(attempt.startedAt);
+        return (attempt.kind === "SECONDARY" || attempt.kind === "SECONDARY_REPAIR") && attemptMs !== void 0 && (startMs === void 0 || attemptMs >= startMs);
+      });
+      if (!dispatched) avoidableIdlePeriods += 1;
+    }
+  }
+  if (avoidableIdlePeriods > 0) {
+    diagnostics.push({
+      code: "AVOIDABLE_IDLE_DURING_COOLDOWN",
+      severity: "warning",
+      message: `${avoidableIdlePeriods} runnable Secondary work period(s) had no durable Secondary dispatch during an active Strong cooldown.`,
+      evidenceRefs: []
+    });
+  }
+  const cooldownEventTypes = /* @__PURE__ */ new Set([
+    "resource_cooldown_started",
+    "resource_cooldown_observed",
+    "work_unit_resource_wait_started",
+    "work_unit_resource_wait_ended",
+    "resource_wait_entered",
+    "useful_work_during_cooldown",
+    "resource_recovered"
+  ]);
+  const cooldownTimeline = facts.events.filter((event) => cooldownEventTypes.has(event.type)).slice(-200).map((event) => ({
+    at: String(event.at ?? ""),
+    type: event.type,
+    objectiveNodeId: typeof event["nodeId"] === "string" ? event["nodeId"].slice(0, 512) : null,
+    detail: cooldownEventDetail(event)
+  }));
+  const evaluationFailures = evaluations.filter((entry2) => entry2.verdict === "FAIL");
+  const evaluationPasses = evaluations.filter((entry2) => entry2.verdict === "PASS");
+  const failuresByBackend = {};
+  let failuresRecoveredByRepair = 0;
+  let failuresRecoveredByStrongFallback = 0;
+  const failedUnitKeys = /* @__PURE__ */ new Set();
+  for (const evaluation of evaluationFailures) {
+    const key = `${evaluation.objectiveNodeId}\0${evaluation.workUnitId}`;
+    failedUnitKeys.add(key);
+    const unitAttempts = attemptsByUnit.get(key) ?? [];
+    const matching = [...unitAttempts].reverse().find((attempt) => attempt.workUnitAttempt === evaluation.attempt);
+    increment2(failuresByBackend, matching?.kind ?? "UNKNOWN");
+  }
+  for (const key of failedUnitKeys) {
+    const unitAttempts = attemptsByUnit.get(key) ?? [];
+    if (unitAttempts.some((attempt) => attempt.kind === "SECONDARY_REPAIR" && attempt.outcome === "SUCCEEDED")) {
+      failuresRecoveredByRepair += 1;
+    }
+    if (unitAttempts.some((attempt) => attempt.kind === "STRONG_FALLBACK" && attempt.outcome === "SUCCEEDED")) {
+      failuresRecoveredByStrongFallback += 1;
+    }
+  }
+  const failureSources = {};
+  const recoveryActions = {};
+  for (const entry2 of facts.ledger) {
+    if (entry2.failureSource !== null) increment2(failureSources, entry2.failureSource);
+    else if (!entry2.success && entry2.failureReason !== null) increment2(failureSources, "UNCLASSIFIED");
+    if (entry2.recoveryAction !== null) increment2(recoveryActions, entry2.recoveryAction);
+  }
+  const repairAttempts = implementationAttempts.filter((attempt) => attempt.kind === "SECONDARY_REPAIR").length;
+  const strongFallbackAttempts = implementationAttempts.filter((attempt) => attempt.kind === "STRONG_FALLBACK").length;
+  if (repairAttempts > 0) increment2(recoveryActions, "repair", repairAttempts);
+  if (strongFallbackAttempts > 0) increment2(recoveryActions, "strong-fallback", strongFallbackAttempts);
+  const resourceWaitEvents = eventTypes("resource_wait_started").length + eventTypes("resource_wait_entered").length + eventTypes("work_unit_resource_wait_started").length;
+  if (resourceWaitEvents > 0) increment2(recoveryActions, "resource-wait", resourceWaitEvents);
+  const restartEvents = eventTypes("job_resumed").length + eventTypes("driver_restarted").length;
+  if (restartEvents > 0) increment2(recoveryActions, "restart-resume", restartEvents);
+  const noProgressDetections = implementationAttempts.filter((attempt) => attempt.noProgress).length;
+  const fingerprintCounts = /* @__PURE__ */ new Map();
+  for (const attempt of implementationAttempts) {
+    if (attempt.problemFingerprint !== void 0) {
+      fingerprintCounts.set(
+        attempt.problemFingerprint,
+        (fingerprintCounts.get(attempt.problemFingerprint) ?? 0) + 1
+      );
+    }
+  }
+  const repeatedProblemFingerprints = [...fingerprintCounts.values()].filter((value) => value > 1).length;
+  const candidatesPersisted = new Set(
+    implementationAttempts.map((attempt) => attempt.candidateRef).filter((ref) => ref !== void 0)
+  ).size;
+  const candidateRebuilds = eventTypes("candidate_resume_missing").length;
+  const candidatesReused = cooldownStates.reduce(
+    (sum, state) => sum + state.candidateReuseAfterRestart,
+    0
+  );
+  const integrationRetries = eventTypes("integration_failed").length;
+  let completedWorkRedoCount = 0;
+  for (const entry2 of units) {
+    if (entry2.unit.integratedAt === void 0) continue;
+    const integratedMs = timestampMs(entry2.unit.integratedAt);
+    if (integratedMs === void 0) continue;
+    const attemptsAfterIntegration = (attemptsByUnit.get(`${entry2.objectiveNodeId}\0${entry2.unit.workUnitId}`) ?? []).filter((attempt) => (timestampMs(attempt.startedAt) ?? 0) > integratedMs);
+    if (attemptsAfterIntegration.length > 0) completedWorkRedoCount += 1;
+  }
+  const lastRestartMs = Math.max(
+    0,
+    ...facts.events.filter((event) => event.type === "job_resumed" || event.type === "driver_restarted").map((event) => timestampMs(event.at) ?? 0)
+  );
+  const completedWorkReusedAfterRestart = lastRestartMs === 0 ? 0 : units.filter((entry2) => {
+    if (entry2.unit.status !== "INTEGRATED") return false;
+    const unitAttempts = attemptsByUnit.get(`${entry2.objectiveNodeId}\0${entry2.unit.workUnitId}`) ?? [];
+    return unitAttempts.length > 0 && unitAttempts.every((attempt) => (timestampMs(attempt.completedAt) ?? Number.MAX_SAFE_INTEGER) <= lastRestartMs);
+  }).length;
+  const unresolvedInterrupted = facts.ledger.filter((entry2) => {
+    if (entry2.status !== "INTERRUPTED") return false;
+    return !facts.ledger.some((candidate) => candidate.taskId === entry2.taskId && candidate.attemptNumber > entry2.attemptNumber && candidate.status === "COMPLETED");
+  }).length;
+  const unrecoveredDriverDeaths = ["COMPLETED", "FAILED", "CANCELLED"].includes(facts.job.status) ? unresolvedInterrupted : 0;
+  const unexpectedBlocks = facts.autonomy.interventions.filter((intervention) => intervention.kind === "job_blocked" || intervention.kind === "budget_exhausted" || intervention.kind.startsWith("status:")).length;
+  if (completedWorkRedoCount > 0) {
+    diagnostics.push({
+      code: "COMPLETED_WORK_REDONE",
+      severity: "error",
+      message: `${completedWorkRedoCount} authoritatively integrated WorkUnit(s) have a later implementation attempt without recorded invalidation.`,
+      evidenceRefs: []
+    });
+  }
+  const completedImplementation = units.filter((entry2) => entry2.unit.kind === "build" && entry2.unit.status === "INTEGRATED").length;
+  const attemptCountsForCompleted = units.filter((entry2) => entry2.unit.status === "INTEGRATED" && entry2.unit.kind === "build").map((entry2) => (attemptsByUnit.get(`${entry2.objectiveNodeId}\0${entry2.unit.workUnitId}`) ?? []).length);
+  const totalAttemptsForCompleted = attemptCountsForCompleted.reduce((sum, value) => sum + value, 0);
+  const meanAttempts = attemptCountsForCompleted.length === 0 ? null : totalAttemptsForCompleted / attemptCountsForCompleted.length;
+  const completedPerAttempt = implementationAttempts.length === 0 ? null : completedImplementation / implementationAttempts.length;
+  const completedPerStrong = strongAttempts.length === 0 ? null : completedImplementation / strongAttempts.length;
+  const completedEligiblePerSecondary = secondaryAttempts.length === 0 ? null : eligibleCompleted.length / secondaryAttempts.length;
+  const closureTotals = facts.closure === void 0 ? void 0 : summarizeClosure(facts.closure.entries);
+  const closureGate = facts.closure === void 0 ? void 0 : missionMayComplete(facts.closure, facts.closurePolicy);
+  const closureOutcome = facts.closure === void 0 ? "UNAVAILABLE" : closureGate?.mayComplete === true ? "PASS" : "FAIL";
+  const overallVerification = verificationOutcome(facts.job, facts.events);
+  const boundaryMs = timestampMs(facts.autonomy.boundaryStartedAt);
+  const decisionsBeforeSeal = boundaryMs === void 0 ? null : facts.events.filter((event) => (event.type === "clarification_resolved" || event.type === "authority_resolved") && (timestampMs(event.at) ?? Number.MAX_SAFE_INTEGER) < boundaryMs).length;
+  const humanByKind = {};
+  for (const intervention of facts.autonomy.interventions) increment2(humanByKind, intervention.kind);
+  const objectiveRevisions = {};
+  for (const objective of facts.objectives) {
+    if (objective.graph !== void 0) objectiveRevisions[objective.objectiveNodeId] = objective.graph.revision;
+  }
+  const ledgerWatermark = sha256Hex(JSON.stringify(
+    facts.ledger.map((entry2) => [entry2.attemptId, entry2.status, entry2.completedAt])
+  ));
+  const currentPolicyFingerprint = autonomyPolicyFingerprint(facts.currentAutonomyPolicy);
+  const runtimePolicyChanged = facts.binding === void 0 ? null : currentPolicyFingerprint !== facts.binding.boundPolicyFingerprint;
+  const strongAvoidance = metric(eligibleCompletedWithoutStrong.length, eligibleCompleted.length);
+  const secondaryInitial = metric(initialPassUnits.length, initialAttemptedUnits.length);
+  const secondaryRepair = metric(repairPassUnits.length, repairAttemptedUnits.length);
+  const secondaryFallback = metric(fallbackUnits.length, secondaryAttemptedUnits.length);
+  const researchAvoidance = metric(researchAvoided, researchConsidered);
+  const researchReuse = metric(
+    reuseCount,
+    reuseCount + providerCallCount
+  );
+  const implementationByKind = {};
+  for (const attempt of implementationAttempts) increment2(implementationByKind, attempt.kind);
+  const objectiveSummaries = facts.objectives.slice(0, 200).map((objective) => {
+    const accounting = {
+      completed: 0,
+      failed: 0,
+      cancelled: 0,
+      waiting: 0,
+      "not-ready": 0,
+      "human-authority-pending": 0,
+      "research-pending": 0,
+      "context-pending": 0
+    };
+    for (const unit of objective.graph?.units ?? []) {
+      const key = `${objective.objectiveNodeId}\0${unit.workUnitId}`;
+      accounting[workAccounting(unit, currentRouting.get(key))] += 1;
+    }
+    const attempts = implementationAttempts.filter((entry2) => entry2.objectiveNodeId === objective.objectiveNodeId);
+    return {
+      objectiveNodeId: objective.objectiveNodeId,
+      graphRevision: objective.graph?.revision ?? null,
+      total: objective.graph?.units.length ?? 0,
+      accounting,
+      implementationAttempts: attempts.length,
+      secondaryAttempts: attempts.filter((entry2) => entry2.kind === "SECONDARY" || entry2.kind === "SECONDARY_REPAIR").length,
+      strongBuilderAttempts: attempts.filter((entry2) => entry2.kind === "STRONG" || entry2.kind === "STRONG_FALLBACK").length
+    };
+  });
+  const report = executionTelemetryReportSchema.parse({
+    schemaVersion: EXECUTION_TELEMETRY_REPORT_SCHEMA_VERSION,
+    jobId: facts.job.jobId,
+    missionId: facts.binding?.missionId ?? facts.seal?.missionId ?? null,
+    generatedAt: facts.generatedAt,
+    period: {
+      startedAt: facts.job.createdAt,
+      endedAt: facts.job.finalizedAt ?? null,
+      durationMs: timestampMs(facts.job.createdAt) === void 0 ? null : Math.max(
+        0,
+        (timestampMs(facts.job.finalizedAt ?? facts.generatedAt) ?? generatedMs) - (timestampMs(facts.job.createdAt) ?? generatedMs)
+      ),
+      activeExecutionMs: timestampMs(facts.job.createdAt) === void 0 ? null : workedMsOf(facts.job, timestampMs(facts.job.finalizedAt ?? facts.generatedAt) ?? generatedMs)
+    },
+    provenance: {
+      sourceJobId: facts.job.jobId,
+      jobGraphRevision: facts.job.graphRevision,
+      objectiveGraphRevisions: objectiveRevisions,
+      executionLedgerWatermark: ledgerWatermark,
+      eventWatermark: facts.eventTotal,
+      specbridgeVersion: facts.specbridgeVersion ?? null,
+      sealId: facts.binding?.sealId ?? null,
+      sealedAuthorityDigest: facts.seal?.authorityDigest ?? null,
+      runtimePolicyChanged,
+      configuration: {
+        secondaryBuildStrategy: facts.secondaryBuildStrategy,
+        researchStrategy: facts.researchStrategy,
+        runnerProfiles: [...facts.runnerProfiles].sort().slice(0, 50)
+      }
+    },
+    outcome: {
+      status: outcomeStatus(facts.job.status),
+      authoritativeJobStatus: facts.job.status,
+      finalOutcome: facts.job.finalOutcome === void 0 ? null : redactTelemetryText(facts.job.finalOutcome).slice(0, 2e3),
+      verification: overallVerification,
+      closure: closureOutcome
+    },
+    work: {
+      total: units.length,
+      byKind: workByKind,
+      accounting: workAccountingCounts,
+      completedImplementation,
+      objectives: objectiveSummaries,
+      units: unitSummaries,
+      omittedUnits: Math.max(0, units.length - unitSummaries.length)
+    },
+    secondary: {
+      eligibility,
+      selection,
+      funnel: {
+        initialAttempts: initialAttemptedUnits.length,
+        initialPass: initialPassUnits.length,
+        repairAttempted: repairAttemptedUnits.length,
+        repairPass: repairPassUnits.length,
+        toStrongFallback: fallbackUnits.length,
+        unavailableFallback: unavailableFallbackUnits.length
+      },
+      initialSuccessRate: secondaryInitial,
+      repairRecoveryRate: secondaryRepair,
+      toStrongFallbackRate: secondaryFallback,
+      fallbackReasons,
+      builderTokens: secondaryTokens
+    },
+    strong: {
+      builderAttempts: strongAttempts.length,
+      evaluatorAttempts: strongEvaluatorAttempts.length,
+      selection: strongSelection,
+      implementationTokens: strongTokens,
+      evaluatorTokens
+    },
+    research: {
+      scope: researchScope,
+      considered: researchConsidered,
+      decisions: researchDecisions,
+      providerCalls: providerCallCount,
+      successful: successfulResearch,
+      inconclusive: inconclusiveResearch,
+      failed: failedResearch,
+      priorResearchReused: reuseCount,
+      newQuick,
+      newDeep,
+      avoidanceRatio: researchAvoidance,
+      reuseRate: researchReuse,
+      byPhase,
+      usage: {
+        inputTokens: researchInputObserved ? researchInputTokens : null,
+        outputTokens: researchOutputObserved ? researchOutputTokens : null,
+        durationMs: researchDurationObserved ? researchDurationMs : null,
+        providerReportedCost: researchCostObserved ? researchCost : null,
+        subagentCount: researchSubagentsObserved ? researchSubagents : null,
+        recordsWithUsage,
+        providerCalls: providerCallCount,
+        coverage: providerCallCount === 0 ? null : Math.min(1, recordsWithUsage / providerCallCount)
+      }
+    },
+    cooldown: {
+      episodes: cooldownEpisodes,
+      observations: eventTypes("resource_cooldown_observed").length,
+      totalDurationMs: cooldownDurationKnown ? cooldownDurationMs : null,
+      usefulWorkDuringSubscriptionCooldown: cooldownCompletedKeys.size,
+      secondaryImplementationWorkDuringCooldown: secondaryImplementationDuringCooldown,
+      researchWorkDuringCooldown: researchDuringCooldown,
+      strongRequiredWaiting: cooldownWaitingKeys.size,
+      avoidableIdlePeriods,
+      intervals: cooldownIntervals.sort((left, right) => left.startedAt.localeCompare(right.startedAt, "en") || left.objectiveNodeId.localeCompare(right.objectiveNodeId, "en")),
+      timeline: cooldownTimeline
+    },
+    attempts: {
+      uniqueImplementationAttempts: implementationAttempts.length,
+      meanPerCompletedWorkUnit: meanAttempts,
+      medianPerCompletedWorkUnit: median(attemptCountsForCompleted),
+      maxPerWorkUnit: attemptCountsForCompleted.length === 0 ? 0 : Math.max(...attemptCountsForCompleted),
+      workUnitsWithMultipleAttempts: attemptCountsForCompleted.filter((value) => value > 1).length,
+      byKind: implementationByKind,
+      completedWorkUnitsPerImplementationAttempt: completedPerAttempt,
+      completedWorkUnitsPerStrongBuilderCall: completedPerStrong,
+      completedEligibleWorkUnitsPerSecondaryAttempt: completedEligiblePerSecondary
+    },
+    verification: {
+      attempts: evaluations.length,
+      passes: evaluationPasses.length,
+      failures: evaluationFailures.length,
+      otherVerdicts: evaluations.length - evaluationPasses.length - evaluationFailures.length,
+      failuresByBuilderBackend: failuresByBackend,
+      failuresRecoveredByRepair,
+      failuresRecoveredByStrongFallback
+    },
+    closure: {
+      available: closureTotals !== void 0,
+      items: closureTotals?.total ?? 0,
+      earned: closureTotals?.verified ?? 0,
+      waived: closureTotals?.waived ?? 0,
+      unresolved: closureTotals === void 0 ? 0 : closureTotals.total - closureTotals.verified - closureTotals.waived - closureTotals.notApplicable,
+      completionGateOutcome: closureOutcome,
+      ratio: closureTotals === void 0 ? null : closureRatio(closureTotals)
+    },
+    human: {
+      decisionsBeforeSeal,
+      approvals: facts.seal?.sealedAt === void 0 ? 0 : 1,
+      authorityEscalationsAfterSeal: facts.autonomy.humanAuthorityEscalationsAfterSeal,
+      interventionsAfterSeal: facts.autonomy.humanInterventionsAfterSeal,
+      unexpectedBlockersAfterSeal: unexpectedBlocks,
+      zeroTouchAfterSeal: facts.autonomy.humanInterventionsAfterSeal === 0,
+      byKind: humanByKind
+    },
+    reliability: {
+      failureSources,
+      recoveryActions,
+      noProgressDetections,
+      repeatedProblemFingerprints,
+      legitimateResourceWaitsExcluded: resourceWaitEvents,
+      processRestarts: eventTypes("job_resumed").length,
+      supervisorRestarts: eventTypes("driver_restarted").length + eventTypes("supervisor_lease_reclaimed").length,
+      candidatesPersisted,
+      candidatesReusedAfterRestart: candidatesReused,
+      candidateRebuildsAfterRestart: candidateRebuilds,
+      candidatesLostOrUnreadable: candidateRebuilds,
+      candidateReadyResumes: candidatesReused,
+      integrationRetries,
+      completedWorkRedoCount,
+      completedWorkReusedAfterRestart,
+      attemptsIncorrectlyRepeated: completedWorkRedoCount,
+      unexpectedBlocks,
+      unrecoveredDriverDeaths
+    },
+    efficiency: {
+      strongBuilderAvoidanceRatio: strongAvoidance,
+      strongBuilderCallsAvoided: eligibleCompletedWithoutStrong.length,
+      completedWorkUnitsPerImplementationAttempt: completedPerAttempt,
+      baseline: facts.baseline === void 0 ? null : {
+        kind: facts.baseline.kind,
+        reportId: facts.baseline.reportId,
+        strongBuilderAttempts: facts.baseline.strongBuilderAttempts,
+        sameVerificationOutcome: facts.baseline.verificationOutcome === overallVerification,
+        sameClosureOutcome: facts.baseline.closureOutcome === closureOutcome
+      }
+    },
+    qualificationSummary: {
+      strongBuilderAvoidanceRatio: strongAvoidance.value,
+      secondaryInitialSuccessRate: secondaryInitial.value,
+      secondaryRepairRecoveryRate: secondaryRepair.value,
+      secondaryToStrongFallback: fallbackUnits.length,
+      strongImplementationTokens: strongTokens.completeTokens,
+      researchAvoidanceRatio: researchAvoidance.value,
+      newResearchCalls: providerCallCount,
+      researchReuse: reuseCount,
+      usefulWorkDuringSubscriptionCooldown: cooldownCompletedKeys.size,
+      humanInterventionsAfterSeal: facts.autonomy.humanInterventionsAfterSeal,
+      completedWorkRedoCount,
+      unexpectedBlocks,
+      unrecoveredDriverDeaths
+    },
+    diagnostics: diagnostics.slice(0, 200)
+  });
+  return report;
+}
+function cooldownEventDetail(event) {
+  switch (event.type) {
+    case "resource_cooldown_started":
+      return `Strong resource cooldown started (${String(event["availability"] ?? "availability unknown")}).`;
+    case "resource_cooldown_observed":
+      return "Strong resource cooldown was observed again; this is not a new episode.";
+    case "work_unit_resource_wait_started":
+      return `WorkUnit ${String(event["workUnitId"] ?? "(unknown)")} entered a Strong resource wait.`;
+    case "work_unit_resource_wait_ended":
+      return `WorkUnit ${String(event["workUnitId"] ?? "(unknown)")} left its Strong resource wait.`;
+    case "resource_wait_entered":
+      return "The job entered a global resource wait because no permitted work remained runnable.";
+    case "useful_work_during_cooldown":
+      return `${Number(event["newlyCompleted"] ?? 0)} additional WorkUnit(s) completed during cooldown.`;
+    case "resource_recovered":
+      return "The Strong resource recovered and waiting work was released.";
+    default:
+      return event.type;
+  }
+}
+function collectExecutionTelemetryFacts(deps, jobId, options = {}) {
+  const job = requireJobState(deps.workspace, jobId);
+  const eventPage = readJobEvents(deps.workspace, jobId, { limit: 500 });
+  const objectives = listObjectiveNodes(deps.workspace, jobId).map(
+    (objectiveNodeId) => ({
+      objectiveNodeId,
+      graph: readLatestWorkGraph(deps.workspace, jobId, objectiveNodeId),
+      routingStates: readBuilderRoutingStates(deps.workspace, jobId, objectiveNodeId),
+      cooldown: readObjectiveCooldownState(deps.workspace, jobId, objectiveNodeId),
+      evaluations: readEvaluations(deps.workspace, jobId, objectiveNodeId)
+    })
+  );
+  const researchTelemetryRead = readResearchTelemetry(deps.workspace);
+  const researchRecords = listResearchRecords(deps.workspace);
+  const binding = readSealBinding(deps.workspace, jobId);
+  const seal = readJobSeal(deps.workspace, jobId);
+  return {
+    job,
+    events: eventPage.events,
+    eventTotal: eventPage.total,
+    ledger: readExecutionLedger(deps.workspace, jobId),
+    objectives,
+    researchTelemetry: researchTelemetryRead.telemetry,
+    ...researchTelemetryRead.diagnostic !== void 0 ? { researchTelemetryDiagnostic: researchTelemetryRead.diagnostic } : {},
+    researchRecords: researchRecords.records,
+    researchRecordDiagnostics: researchRecords.diagnostics.map((diagnostic) => ({
+      code: diagnostic.code,
+      message: diagnostic.message
+    })),
+    researchUses: listResearchUseRecords(deps.workspace),
+    autonomy: deriveAutonomyTelemetry(deps, { jobId }),
+    closure: readClosureLedger(deps.workspace, jobId),
+    ...binding !== void 0 ? { binding } : {},
+    ...seal !== void 0 ? { seal } : {},
+    generatedAt: nowIso2(deps),
+    ...options.specbridgeVersion !== void 0 ? { specbridgeVersion: options.specbridgeVersion } : {},
+    secondaryBuildStrategy: deps.config.orchestration.jobs.objectives.secondaryBuilder.strategy,
+    researchStrategy: deps.config.research.strategy,
+    runnerProfiles: Object.keys(deps.config.runnerProfiles),
+    currentAutonomyPolicy: deps.config.autonomy,
+    closurePolicy: deps.config.autonomy.closure
+  };
+}
+function executionTelemetryReportFile(workspace, jobId) {
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(jobId)) {
+    throw new Error(`Invalid job id "${jobId}".`);
+  }
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path50.default.join(workspace.sidecarDir, "reports", `job-${jobId}-telemetry.json`)
+  );
+}
+function persistExecutionTelemetryReport(workspace, report) {
+  const validated = executionTelemetryReportSchema.parse(report);
+  const file = executionTelemetryReportFile(workspace, validated.jobId);
+  (0, import_fs47.mkdirSync)(import_path50.default.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
+`);
+  return file;
+}
+function computeExecutionTelemetryReport(deps, jobId, options = {}) {
+  const report = deriveExecutionTelemetryReport(
+    collectExecutionTelemetryFacts(deps, jobId, options)
+  );
+  if (options.persist === true) persistExecutionTelemetryReport(deps.workspace, report);
+  return report;
+}
+var shortText132 = external_exports.string().max(200);
+var text12 = external_exports.string().max(4e3);
+var controlPlaneRepairSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  repairId: shortText132,
+  /** The product job that hit the defect and is suspended for this. */
+  productJobId: shortText132,
+  defectKind: external_exports.enum(CONTROL_PLANE_DEFECT_KINDS),
+  /** What was observed, in one line. Never a stack trace with paths. */
+  symptom: text12,
+  /** The operation to re-run as a canary once the repair is built. */
+  canaryOperation: text12,
+  status: external_exports.enum(CONTROL_PLANE_REPAIR_STATUSES),
+  /** Stages completed, in order. The gate is that this is a prefix. */
+  stagesCompleted: external_exports.array(external_exports.enum(CONTROL_PLANE_REPAIR_STAGES)).max(20).default([]),
+  createdAt: shortText132,
+  updatedAt: shortText132,
+  finishedAt: shortText132.optional(),
+  /** Isolated working copy the patch was developed in. */
+  isolationPath: shortText132.optional(),
+  /** Where the verified build was staged. Never the running installation. */
+  artifactPath: shortText132.optional(),
+  /** Files the patch touched, workspace-relative to the SpecBridge source. */
+  changedFiles: external_exports.array(shortText132).max(200).default([]),
+  /** The regression test added, which is mandatory. */
+  regressionTestPath: shortText132.optional(),
+  /** Invariants the screen found the patch touching. Non-empty means reject. */
+  invariantViolations: external_exports.array(
+    external_exports.object({
+      invariant: external_exports.enum(PROTECTED_CONTROL_PLANE_INVARIANTS),
+      file: shortText132,
+      evidence: text12
+    }).passthrough()
+  ).max(50).default([]),
+  /** Why the repair ended where it did. */
+  outcomeDetail: text12.optional()
+}).passthrough();
+var CERTIFICATION_MATRIX = Object.freeze([
+  {
+    id: "ZT-01",
+    fault: "STRONG_PROVIDER_UNAVAILABLE",
+    title: "the subscription provider is temporarily down",
+    situation: "The strong worker returns 529/overloaded for every dispatch.",
+    injection: "driver host returns a crashed outcome carrying the provider signature",
+    expectation: "SELF_RECOVERED",
+    expectedBehaviour: "WAITING_RESOURCE with a provider cooldown, re-checked and resumed without a human"
+  },
+  {
+    id: "ZT-02",
+    fault: "STRONG_QUOTA_EXHAUSTED",
+    title: "the subscription quota is exhausted until a known reset",
+    situation: "The provider reports no remaining capacity and names a reset time.",
+    injection: "driver host returns a deferred stop carrying retryAt",
+    expectation: "SELF_RECOVERED",
+    expectedBehaviour: "WAITING_RESOURCE with wakeAt set; the supervisor sleeps and wakes itself"
+  },
+  {
+    id: "ZT-03",
+    fault: "LOCAL_RUNTIME_CRASH",
+    title: "the local llama.cpp process crashes",
+    situation: "The managed local inference server exits mid-dispatch.",
+    injection: "driver host crashes with a local-model signature",
+    expectation: "SELF_RECOVERED",
+    expectedBehaviour: "RECOVERING_PROVIDER, the runtime restarts the local runtime and continues"
+  },
+  {
+    id: "ZT-04",
+    fault: "INVALID_STRUCTURED_OUTPUT",
+    title: "a model returns structured output that does not validate",
+    situation: "The local model produces JSON the agent contract rejects.",
+    injection: "driver host crashes with an invalid-output signature",
+    expectation: "SELF_RECOVERED",
+    expectedBehaviour: "a bounded retry, then escalation to a stronger tier. Never a question"
+  },
+  {
+    id: "ZT-05",
+    fault: "CONTEXT_EXHAUSTION",
+    title: "the context window is exceeded mid-task",
+    situation: "A dispatch fails because the prompt exceeds the model context.",
+    injection: "driver host crashes with a context-length signature",
+    expectation: "SELF_RECOVERED",
+    expectedBehaviour: "checkpoint, compact, reconstruct in a fresh session, continue. Task memory is not the context window"
+  },
+  {
+    id: "ZT-06",
+    fault: "WORKER_PROCESS_TERMINATED",
+    title: "a worker process is killed",
+    situation: "The runner child process is terminated by the OS.",
+    injection: "driver host crashes with a process-termination signature",
+    expectation: "SELF_RECOVERED",
+    expectedBehaviour: "the attempt is reconciled as INTERRUPTED and re-dispatched"
+  },
+  {
+    id: "ZT-07",
+    fault: "DRIVER_PROCESS_TERMINATED",
+    title: "the driver itself dies",
+    situation: "The orchestrating driver process is killed without cleanup.",
+    injection: "driver host crashes on its first run and succeeds on the next",
+    expectation: "SELF_RECOVERED",
+    expectedBehaviour: "the supervisor observes the dead driver and restarts it under the same lease"
+  },
+  {
+    id: "ZT-08",
+    fault: "CONTAINER_SERVICE_CRASH",
+    title: "a container service crashes",
+    situation: "A compose service exits during a system scenario.",
+    injection: "driver host crashes with a container signature",
+    expectation: "SELF_RECOVERED",
+    expectedBehaviour: "REPAIRING_ENVIRONMENT; the service is restarted within its budget"
+  },
+  {
+    id: "ZT-09",
+    fault: "DELAYED_SERVICE_READINESS",
+    title: "a service takes far longer than expected to become ready",
+    situation: "Postgres accepts TCP long before it accepts a connection.",
+    injection: "readiness probe reports not-ready for several attempts",
+    expectation: "SELF_RECOVERED",
+    expectedBehaviour: "the readiness loop waits, restarts within budget, and proceeds when it answers"
+  },
+  {
+    id: "ZT-10",
+    fault: "MISSING_PROJECT_DEPENDENCY",
+    title: "a project dependency is missing",
+    situation: 'A build fails with "cannot find module".',
+    injection: "driver host crashes with a missing-module signature",
+    expectation: "SELF_RECOVERED",
+    expectedBehaviour: "REPAIRING_TOOLCHAIN; the Toolsmith installs it. A missing package is engineering"
+  },
+  {
+    id: "ZT-11",
+    fault: "MISSING_BROWSER_RUNTIME",
+    title: "no browser runtime is installed",
+    situation: "A UI acceptance criterion needs a browser and none exists.",
+    injection: "browser driver reports unavailable",
+    expectation: "SELF_RECOVERED",
+    expectedBehaviour: "the scenario records SKIPPED_NO_RUNTIME, the criterion stays unclosed, and the Toolsmith is asked for the runtime"
+  },
+  {
+    id: "ZT-12",
+    fault: "FAILING_IMPLEMENTATION_TEST",
+    title: "the implementation is wrong and the tests say so",
+    situation: "A trusted verification command fails against the produced code.",
+    injection: "closure evidence registered as failing",
+    expectation: "SELF_RECOVERED",
+    expectedBehaviour: "the item stays unclosed with EVIDENCE_FAILED and gap work repairs it"
+  },
+  {
+    id: "ZT-13",
+    fault: "WRONG_STRATEGY_REQUIRES_REPLAN",
+    title: "the approach is wrong and needs replanning",
+    situation: "A replan proposes restructuring the internal architecture.",
+    injection: "the authority resolver is asked about an architecture-flavoured replan",
+    expectation: "SELF_RECOVERED",
+    expectedBehaviour: "the replan proceeds under delegated authority. Internal architecture is not a promise"
+  },
+  {
+    id: "ZT-14",
+    fault: "TRANSIENT_NETWORK_FAILURE",
+    title: "a transient network failure",
+    situation: "A registry or provider connection is refused once.",
+    injection: "driver host crashes with a network signature, then succeeds",
+    expectation: "SELF_RECOVERED",
+    expectedBehaviour: "RECOVERING_PROVIDER and a bounded retry"
+  },
+  {
+    id: "ZT-15",
+    fault: "CONTROL_PLANE_RUNNER_DEFECT",
+    title: "a SpecBridge runner defect",
+    situation: "The provider CLI rejects an argument SpecBridge passes.",
+    injection: "driver host crashes with an unknown-option signature",
+    expectation: "SELF_RECOVERED",
+    expectedBehaviour: "REPAIRING_CONTROL_PLANE; the governed repair path runs and the operator does not become the SpecBridge maintainer"
+  },
+  {
+    id: "ZT-16",
+    fault: "SEALED_CONTRACT_CHANGE_REQUIRED",
+    title: "completing the work requires changing a sealed public contract",
+    situation: "The only way to satisfy a requirement is to change the public API the human already approved.",
+    injection: "the authority resolver is asked about a public-api replan",
+    expectation: "NEEDS_AUTHORITY",
+    expectedBehaviour: "the job stops in NEEDS_AUTHORITY with the question recorded, and the sealed contract is NOT modified"
+  }
+]);
+var shortText142 = external_exports.string().max(200);
+var text13 = external_exports.string().max(4e3);
+var certificationScenarioResultSchema = external_exports.object({
+  scenarioId: shortText142,
+  fault: external_exports.enum(ZERO_TOUCH_FAULTS),
+  expectation: external_exports.enum(ZERO_TOUCH_EXPECTATIONS),
+  outcome: external_exports.enum(ZERO_TOUCH_OUTCOMES),
+  /** Human interventions observed. Anything above zero fails the scenario. */
+  humanInterventions: external_exports.number().int().min(0),
+  /** Authority escalations. Expected exactly on the authority scenario. */
+  authorityEscalations: external_exports.number().int().min(0),
+  /** What the runtime actually did, in one or two lines. */
+  observed: text13,
+  /** The job status the scenario ended in. */
+  finalStatus: shortText142.optional(),
+  /** Operational statuses the job passed through, in order. */
+  recoveryPath: external_exports.array(shortText142).max(30).default([]),
+  /** Present when the scenario could not run here. Never a pass. */
+  skipReason: text13.optional(),
+  startedAt: shortText142,
+  finishedAt: shortText142.optional(),
+  durationMs: external_exports.number().int().min(0).nullable().default(null)
+}).passthrough();
+var certificationRunSchema = external_exports.object({
+  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
+  runId: shortText142,
+  createdAt: shortText142,
+  finishedAt: shortText142.optional(),
+  host: shortText142,
+  verdict: external_exports.enum(CERTIFICATION_VERDICTS),
+  results: external_exports.array(certificationScenarioResultSchema).max(100).default([]),
+  /** Totals, hoisted so the headline needs no arithmetic. */
+  totals: external_exports.object({
+    total: external_exports.number().int().min(0),
+    selfRecovered: external_exports.number().int().min(0),
+    needsAuthority: external_exports.number().int().min(0),
+    askedHuman: external_exports.number().int().min(0),
+    stuck: external_exports.number().int().min(0),
+    selfAuthorized: external_exports.number().int().min(0),
+    skipped: external_exports.number().int().min(0),
+    notRun: external_exports.number().int().min(0)
+  }).passthrough(),
+  /**
+   * Total human interventions across every scenario. The headline number:
+   * a certified run has zero, and any non-zero value is named here rather
+   * than buried in a per-scenario field.
+   */
+  humanInterventionsAfterSeal: external_exports.number().int().min(0),
+  /** Why the verdict is what it is, in one or two lines. */
+  rationale: text13,
+  /** Scenarios that failed, with what happened, for the report. */
+  failures: external_exports.array(external_exports.object({ scenarioId: shortText142, outcome: shortText142, observed: text13 }).passthrough()).max(100).default([])
+}).passthrough();
+
+// ../../packages/mcp-server/src/tools/job-report.ts
+function percent(value) {
+  return value === null ? "n/a" : `${(value * 100).toFixed(1)}%`;
+}
+function registerJobReportTool(server, context) {
+  registerDefinedTool(server, context, {
+    name: "job_report",
+    title: "Read a Job execution report",
+    description: "Derive versioned operational and token-conservation telemetry from durable Job, WorkUnit, attempt, research, cooldown, verification, and closure records. Read-only; metrics never grant completion or authority.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    inputSchema: {
+      jobId: external_exports.string().min(1).max(64).describe("Job id (job-\u2026) from job_list")
+    },
+    outputSchema: {
+      report: executionTelemetryReportSchema
+    },
+    handler: async (args) => {
+      const workspace = context.requireWorkspace();
+      const deps = {
+        workspace,
+        config: requireAgentConfig(workspace),
+        clock: context.clock,
+        idFactory: context.idFactory,
+        host: "mcp"
+      };
+      const report = computeExecutionTelemetryReport(deps, args.jobId, {
+        persist: false,
+        specbridgeVersion: MCP_SERVER_VERSION
+      });
+      const summary = report.qualificationSummary;
+      return {
+        text: [
+          `Job ${report.jobId}: ${report.outcome.status} (${report.outcome.authoritativeJobStatus})`,
+          `StrongBuilderAvoidanceRatio: ${percent(summary.strongBuilderAvoidanceRatio)}`,
+          `Secondary initial/repair: ${percent(summary.secondaryInitialSuccessRate)} / ${percent(summary.secondaryRepairRecoveryRate)}`,
+          `ResearchAvoidanceRatio: ${percent(summary.researchAvoidanceRatio)}`,
+          `UsefulWorkDuringSubscriptionCooldown: ${summary.usefulWorkDuringSubscriptionCooldown}`,
+          `humanInterventionsAfterSeal: ${summary.humanInterventionsAfterSeal}`,
+          `CompletedWorkRedoCount: ${summary.completedWorkRedoCount}`,
+          `Verification / closure: ${report.outcome.verification} / ${report.outcome.closure}`
+        ].join("\n"),
+        structured: { report }
+      };
+    }
+  });
+}
+
 // ../../packages/mcp-server/src/tools/mission-tools.ts
 function missionDeps(context, workspace) {
   return {
@@ -84767,1581 +88306,19 @@ function registerContractChangeRequestTool(server, context) {
 
 // ../../packages/intake/dist/index.js
 var import_crypto18 = require("crypto");
-var import_fs45 = require("fs");
-var import_path48 = __toESM(require("path"), 1);
-var import_fs46 = require("fs");
-var import_path49 = __toESM(require("path"), 1);
-
-// ../../packages/autonomy/dist/index.js
-var import_fs44 = require("fs");
-var import_path47 = __toESM(require("path"), 1);
-var SEAL_STATUSES = [
-  /** Drafted from mission state; not yet authorized by a human. */
-  "DRAFT",
-  /** A human authorized it. The only status delegated execution may use. */
-  "SEALED",
-  /** A later seal replaced it. Historical, still readable, never executable. */
-  "SUPERSEDED",
-  /** Explicitly withdrawn by a human. Delegated execution stops immediately. */
-  "REVOKED"
-];
-var SEALED_AUTHORITY_KINDS = [
-  /** The product goal, verbatim. */
-  "GOAL",
-  /** What the product explicitly will not do. */
-  "NON_GOALS",
-  /** Recorded human decisions with provenance. */
-  "DECISIONS",
-  /** Constitution rules: the invariants the product is built under. */
-  "CONSTITUTION",
-  /** Architecture decision records. */
-  "ADRS",
-  /** Product engineering contracts and their revisions. */
-  "CONTRACTS",
-  /** Individual requirements inside those contracts. */
-  "REQUIREMENTS",
-  /** How the product is judged done. */
-  "ACCEPTANCE_CRITERIA",
-  /** The spending ceiling and resource policy the run may consume. */
-  "RESOURCE_POLICY",
-  /** The autonomy/delegation policy in force at seal time. */
-  "AUTONOMY_POLICY"
-];
-var SUPERVISION_STATUSES = [
-  /** Registered for supervision; no driver has been started yet. */
-  "REGISTERED",
-  /** A driver holds a live lease and is executing. */
-  "ACTIVE",
-  /** Waiting on a resource, a backoff, or a scheduled wake time. */
-  "SLEEPING",
-  /** The previous driver died; a replacement is being started. */
-  "RESTARTING",
-  /** Final: the job reached a terminal status. */
-  "RELEASED"
-];
-var SUPERVISION_ACTIONS = [
-  "LEASE_ACQUIRED",
-  "LEASE_RENEWED",
-  "LEASE_EXPIRED_RECLAIMED",
-  "DRIVER_STARTED",
-  "DRIVER_EXITED_CLEANLY",
-  "DRIVER_DIED",
-  /** A person explicitly resumed; the give-up ledger starts fresh. */
-  "RESET_ON_EXPLICIT_RESUME",
-  /** Planned work exhausted with the closure gate unsatisfied; the closure lifecycle takes over. */
-  "CLOSURE_HANDOFF",
-  "DRIVER_RESTARTED",
-  "ATTEMPT_RECONCILED",
-  "WAKE_SCHEDULED",
-  "WOKEN_ON_SCHEDULE",
-  "WOKEN_ON_RESOURCE_RETURN",
-  "PROVIDER_HEALTH_RECHECKED",
-  "LOCAL_RUNTIME_RESTARTED",
-  "STALE_PROCESS_REAPED",
-  "RESTART_BUDGET_EXHAUSTED",
-  "SESSION_BUDGET_REACHED",
-  "INDEFINITE_WAIT_CLASSIFIED",
-  "RELEASED_ON_TERMINAL_STATUS",
-  "RELEASED_ON_AUTHORITY_STOP"
-];
-var PREFLIGHT_CAPABILITIES = [
-  "WORKSPACE_WRITABLE",
-  "REPOSITORY_CLEAN_ENOUGH",
-  "GIT_AVAILABLE",
-  "DISK_SPACE",
-  "PROTECTED_PATHS_CONFIGURED",
-  "SEAL_PRESENT",
-  "SEAL_COMPLETE",
-  "AUTONOMY_POLICY_COMPLETE",
-  "SUPERVISOR_CAPABLE",
-  "STRONG_WORKER_AVAILABLE",
-  "LOCAL_MODEL_STARTABLE",
-  "API_FALLBACK_AUTHORIZED",
-  "SPEND_CEILING_DECLARED",
-  "TRUSTED_VERIFICATION_CONFIGURED",
-  "PACKAGE_MANAGER_AVAILABLE",
-  "PACKAGE_REGISTRY_REACHABLE",
-  "BUILD_TOOLCHAIN_AVAILABLE",
-  "CONTAINER_RUNTIME",
-  "CONTAINER_COMPOSE",
-  "BROWSER_RUNTIME",
-  "TOOLSMITH_POLICY_SUFFICIENT",
-  "ENVIRONMENT_POLICY_SUFFICIENT",
-  "KNOWN_CREDENTIALS_PRESENT",
-  "CONTROL_PLANE_REPAIR_CONFIGURED"
-];
-var PREFLIGHT_OUTCOMES = [
-  /** Observed present and usable right now. */
-  "READY",
-  /** Absent now, and the runtime is authorized and able to provide it. */
-  "SATISFIABLE_AUTONOMOUSLY",
-  /** Absent, and only a human can supply it. Blocks an unattended launch. */
-  "HUMAN_REQUIRED",
-  /** Not needed for this mission's declared surfaces. */
-  "NOT_APPLICABLE",
-  /** The probe itself could not reach a conclusion. Never a pass. */
-  "UNKNOWN"
-];
-var PREFLIGHT_VERDICTS = [
-  /** Every required capability is READY or autonomously satisfiable. */
-  "OVERNIGHT_READY",
-  /** At least one capability needs a person before launch. */
-  "HUMAN_ACTION_REQUIRED",
-  /** A probe could not decide something required. Never launch on this. */
-  "INDETERMINATE"
-];
-var TOOLSMITH_REQUEST_STATUSES = [
-  "REQUESTED",
-  "GRANTED",
-  "DENIED",
-  "APPLIED",
-  "FAILED"
-];
-var TOOLSMITH_DENIAL_REASONS = [
-  "CAPABILITY_NOT_ENABLED",
-  "TOOLSMITH_DISABLED",
-  "GRANT_BUDGET_EXHAUSTED",
-  "TARGET_OUTSIDE_WORKSPACE",
-  "TARGET_PROTECTED_PATH",
-  "REGISTRY_NOT_ALLOWED",
-  "REQUIRES_ADMIN_PRIVILEGE",
-  "WOULD_CREATE_AUTHORITY",
-  "DOWNLOAD_TOO_LARGE",
-  "PORTABLE_ALTERNATIVE_REQUIRED"
-];
-var TOOL_INSTALL_SCOPES = [
-  "PROJECT_LOCAL",
-  "PORTABLE",
-  "CONTAINERIZED",
-  "USER_LOCAL"
-];
-var SERVICE_KINDS = [
-  "CONTAINER",
-  "COMPOSE_PROJECT",
-  "PROCESS",
-  "DATABASE",
-  "MESSAGE_BROKER",
-  "CACHE",
-  "APPLICATION_SERVER",
-  "FRONTEND_SERVER",
-  "WORKER"
-];
-var READINESS_PROBE_KINDS = [
-  /** The process/container exists and has not exited. Weakest evidence. */
-  "PROCESS_ALIVE",
-  /** A TCP connection is accepted. */
-  "TCP_CONNECT",
-  /** An HTTP request returns an expected status. */
-  "HTTP_STATUS",
-  /** An HTTP body matches an expected pattern. */
-  "HTTP_BODY",
-  /** A command exits zero inside or against the service. */
-  "COMMAND_EXIT",
-  /** A protocol-level handshake succeeded (SQL ping, broker metadata, …). */
-  "PROTOCOL_HANDSHAKE",
-  /** The container runtime reports its own healthcheck as healthy. */
-  "CONTAINER_HEALTHCHECK"
-];
-var ENVIRONMENT_STATUSES = [
-  "PLANNED",
-  "PROVISIONING",
-  "WAITING_READY",
-  "READY",
-  "DEGRADED",
-  "REPAIRING",
-  "FAILED",
-  "STOPPED"
-];
-var SERVICE_STATUSES = [
-  "PENDING",
-  "STARTING",
-  "WAITING_READY",
-  "READY",
-  "UNHEALTHY",
-  "RESTARTING",
-  "FAILED",
-  "STOPPED"
-];
-var ENVIRONMENT_FAILURE_KINDS = [
-  "RUNTIME_UNAVAILABLE",
-  "IMAGE_PULL_FAILED",
-  "PORT_CONFLICT",
-  "READINESS_TIMEOUT",
-  "SERVICE_CRASHED",
-  "DEPENDENCY_UNREADY",
-  "CONFIGURATION_INVALID",
-  "RESOURCE_EXHAUSTED",
-  "UNKNOWN"
-];
-var BROWSER_STEP_KINDS = [
-  "NAVIGATE",
-  "CLICK",
-  "TYPE",
-  "FILL_FORM",
-  "SUBMIT",
-  "WAIT_FOR_SELECTOR",
-  "WAIT_FOR_TEXT",
-  "EXPECT_SELECTOR",
-  "EXPECT_TEXT",
-  "EXPECT_ABSENT",
-  "EXPECT_URL",
-  "EXPECT_NO_CONSOLE_ERRORS",
-  "EXPECT_NO_FAILED_REQUESTS",
-  "SCREENSHOT",
-  "SET_VIEWPORT",
-  "RELOAD",
-  "SWITCH_CONTEXT"
-];
-var BROWSER_ASSERTION_STEPS = [
-  "EXPECT_SELECTOR",
-  "EXPECT_TEXT",
-  "EXPECT_ABSENT",
-  "EXPECT_URL",
-  "EXPECT_NO_CONSOLE_ERRORS",
-  "EXPECT_NO_FAILED_REQUESTS"
-];
-var BROWSER_SCENARIO_STATUSES = [
-  "PASSED",
-  "FAILED",
-  "ERRORED",
-  "SKIPPED_NO_RUNTIME",
-  "NOT_RUN"
-];
-var BROWSER_EVIDENCE_KINDS = [
-  "SCREENSHOT",
-  "DOM_SNAPSHOT",
-  "CONSOLE_LOG",
-  "NETWORK_FAILURES",
-  "STEP_TRACE",
-  "VIEWPORT_MATRIX"
-];
-var UX_FINDING_KINDS = [
-  "OVERLAPPING_ELEMENTS",
-  "CLIPPED_CONTENT",
-  "UNREADABLE_LAYOUT",
-  "BROKEN_RESPONSIVE",
-  "DEAD_INTERACTION",
-  "MISSING_LOADING_STATE",
-  "MISSING_ERROR_STATE",
-  "MISSING_EMPTY_STATE",
-  "INCONSISTENT_UX",
-  "UNUSABLE_CONTROL",
-  "VISUAL_REGRESSION",
-  "AESTHETIC_PREFERENCE"
-];
-var UX_FINDING_SEVERITIES = ["MATERIAL", "MINOR", "COSMETIC"];
-var UX_CRITIQUE_VERDICTS = [
-  "NO_MATERIAL_FINDINGS",
-  "MATERIAL_FINDINGS",
-  "NOT_RUN",
-  "INSUFFICIENT_EVIDENCE"
-];
-var CLOSURE_STATUSES = [
-  /** Nothing claims to implement this item. */
-  "NOT_STARTED",
-  /** Work exists and is in flight. */
-  "IN_PROGRESS",
-  /** Implementation exists and is attributed, but nothing has proven it. */
-  "IMPLEMENTED",
-  /** Trusted evidence demonstrates the item holds. The only closing state. */
-  "VERIFIED",
-  /** A human explicitly waived it, with a recorded reason. */
-  "WAIVED",
-  /** Explicitly out of scope for this seal, by recorded decision. */
-  "NOT_APPLICABLE"
-];
-var CLOSURE_EVIDENCE_KINDS = [
-  "TRUSTED_VERIFICATION",
-  "UNIT_TEST",
-  "INTEGRATION_TEST",
-  "SYSTEM_SCENARIO",
-  "BROWSER_SCENARIO",
-  "ACCEPTANCE_CRITERION_CHECK",
-  "REPRODUCIBILITY_RUN",
-  "HUMAN_WAIVER",
-  "AGENT_ASSERTION"
-];
-var CLOSURE_PHASES = [
-  "IMPLEMENTATION",
-  "CONTRACT_CLOSURE_AUDIT",
-  "GAP_IMPLEMENTATION",
-  "SYSTEM_SCENARIO_QUALIFICATION",
-  "RELEASE_QUALIFICATION",
-  "REPRODUCIBILITY",
-  "FINAL_CONTRACT_AUDIT",
-  "COMPLETE"
-];
-var CLOSURE_DIRECTIVES = [
-  /** Keep implementing planned work; closure is not in scope yet. */
-  "CONTINUE_IMPLEMENTATION",
-  /** Generate work for the named unclosed items. */
-  "GENERATE_GAP_WORK",
-  /** Run mission-level system acceptance scenarios. */
-  "RUN_SYSTEM_SCENARIOS",
-  /** Run the release qualification. */
-  "RUN_RELEASE_QUALIFICATION",
-  /** Run the clean-environment reproducibility qualification. */
-  "RUN_REPRODUCIBILITY",
-  /** Every sealed item closed on trusted evidence. COMPLETED is available. */
-  "COMPLETE",
-  /** Closure cannot be reached inside the remaining budget. */
-  "BUDGET_EXHAUSTED",
-  /** Closure requires product authority. */
-  "NEEDS_AUTHORITY"
-];
-var CLOSURE_GAP_KINDS = [
-  "NO_IMPLEMENTATION",
-  "NO_EVIDENCE",
-  "EVIDENCE_FAILED",
-  "EVIDENCE_STALE",
-  "EVIDENCE_UNTRUSTED",
-  "SCENARIO_MISSING",
-  "SCENARIO_FAILED",
-  "CRITIC_MATERIAL_FINDING",
-  "REPRODUCIBILITY_FAILED"
-];
-var CONTROL_PLANE_DEFECT_KINDS = [
-  "RUNNER_CONTRACT_MISMATCH",
-  "RUNNER_OUTPUT_PARSE_FAILURE",
-  "PROVIDER_CLI_INCOMPATIBILITY",
-  "STATE_MACHINE_DEADLOCK",
-  "SCHEDULER_STARVATION",
-  "DURABLE_STATE_SCHEMA_REJECTION",
-  "EVIDENCE_PIPELINE_FAILURE",
-  "CONTEXT_ASSEMBLY_FAILURE"
-];
-var CONTROL_PLANE_REPAIR_STAGES = [
-  "DETECTED",
-  "PRODUCT_JOB_CHECKPOINTED",
-  "ISOLATED",
-  "DIAGNOSED",
-  "PATCHED",
-  "REGRESSION_TEST_ADDED",
-  "FOCUSED_TESTS_PASSED",
-  "FULL_QUALIFICATION_PASSED",
-  "ARTIFACT_REBUILT",
-  "ARTIFACT_VERIFIED",
-  "CANARY_PASSED",
-  "ACTIVATED",
-  "PRODUCT_JOB_RESUMED"
-];
-var CONTROL_PLANE_REPAIR_STATUSES = [
-  "IN_PROGRESS",
-  "SUCCEEDED",
-  "ABANDONED",
-  "REJECTED_WEAKENS_INVARIANT",
-  "FAILED_QUALIFICATION",
-  "FAILED_CANARY"
-];
-var PROTECTED_CONTROL_PLANE_INVARIANTS = [
-  "PERMISSION_BYPASS",
-  "PROTECTED_PATH_ENFORCEMENT",
-  "VERIFICATION_AUTHORITY",
-  "APPROVAL_AUTHORITY",
-  "SPEND_AUTHORIZATION",
-  "EVIDENCE_REQUIREMENT",
-  "AUTHORITY_FIREWALL",
-  "COMPLETION_ORACLE"
-];
-var ZERO_TOUCH_FAULTS = [
-  "STRONG_PROVIDER_UNAVAILABLE",
-  "STRONG_QUOTA_EXHAUSTED",
-  "LOCAL_RUNTIME_CRASH",
-  "INVALID_STRUCTURED_OUTPUT",
-  "CONTEXT_EXHAUSTION",
-  "WORKER_PROCESS_TERMINATED",
-  "DRIVER_PROCESS_TERMINATED",
-  "CONTAINER_SERVICE_CRASH",
-  "DELAYED_SERVICE_READINESS",
-  "MISSING_PROJECT_DEPENDENCY",
-  "MISSING_BROWSER_RUNTIME",
-  "FAILING_IMPLEMENTATION_TEST",
-  "WRONG_STRATEGY_REQUIRES_REPLAN",
-  "TRANSIENT_NETWORK_FAILURE",
-  "CONTROL_PLANE_RUNNER_DEFECT",
-  "SEALED_CONTRACT_CHANGE_REQUIRED"
-];
-var ZERO_TOUCH_EXPECTATIONS = ["SELF_RECOVERED", "NEEDS_AUTHORITY"];
-var ZERO_TOUCH_OUTCOMES = [
-  /** The runtime recovered on its own and kept going. */
-  "SELF_RECOVERED",
-  /** The runtime stopped for authority, correctly. */
-  "NEEDS_AUTHORITY",
-  /** The runtime asked a human for something it should have handled. */
-  "ASKED_HUMAN",
-  /** The runtime stopped in a non-recoverable operational state. */
-  "STUCK",
-  /** The runtime took authority it did not have. The worst outcome. */
-  "SELF_AUTHORIZED",
-  /** The scenario could not run here, with a recorded reason. */
-  "SKIPPED_WITH_REASON",
-  "NOT_RUN"
-];
-var CERTIFICATION_VERDICTS = ["CERTIFIED", "NOT_CERTIFIED", "INCOMPLETE"];
-function autonomyDir(workspace) {
-  return assertInsideWorkspace(
-    workspace.rootDir,
-    import_path47.default.join(workspace.rootDir, ".specbridge", "autonomy")
-  );
-}
-function autonomyPath(workspace, ...segments) {
-  return assertInsideWorkspace(workspace.rootDir, import_path47.default.join(autonomyDir(workspace), ...segments));
-}
-function readJsonRecord(file, parse3) {
-  if (!(0, import_fs44.existsSync)(file)) return void 0;
-  try {
-    return parse3(JSON.parse((0, import_fs44.readFileSync)(file, "utf8")));
-  } catch {
-    return void 0;
-  }
-}
-function listJsonRecords(dir, parse3) {
-  if (!(0, import_fs44.existsSync)(dir)) return [];
-  const out = [];
-  for (const entry2 of (0, import_fs44.readdirSync)(dir).sort()) {
-    if (!entry2.endsWith(".json")) continue;
-    const value = readJsonRecord(import_path47.default.join(dir, entry2), parse3);
-    if (value !== void 0) out.push(value);
-  }
-  return out;
-}
-var SEAL_LIMITS = {
-  maxShortTextChars: 200,
-  maxTextChars: 4e3,
-  maxListItems: 200,
-  maxContractRefs: 200,
-  maxCriteria: 400,
-  maxSurfaces: 40
-};
-var shortText18 = external_exports.string().max(SEAL_LIMITS.maxShortTextChars);
-var text9 = external_exports.string().max(SEAL_LIMITS.maxTextChars);
-var idList3 = external_exports.array(shortText18).max(SEAL_LIMITS.maxListItems);
-var sealedContractRefSchema = external_exports.object({
-  contractId: shortText18,
-  revision: external_exports.number().int().min(1),
-  title: shortText18,
-  classification: external_exports.enum(["public", "internal"]),
-  compatibilityPolicy: shortText18,
-  /** Requirement ids inside this contract revision, at seal time. */
-  requirementIds: idList3.default([]),
-  /** Invariant ids inside this contract revision, at seal time. */
-  invariantIds: idList3.default([])
-}).passthrough();
-var sealedAcceptanceCriterionSchema = external_exports.object({
-  criterionId: shortText18,
-  statement: text9,
-  /** Contract ids this criterion judges, when it judges specific ones. */
-  contractIds: idList3.default([]),
-  /** Mission decision ids this criterion descends from. */
-  decisionIds: idList3.default([]),
-  impliesSystemScenario: external_exports.boolean().default(false),
-  impliesBrowserScenario: external_exports.boolean().default(false)
-}).passthrough();
-var sealedResourcePolicySchema = external_exports.object({
-  maxApiSpendUsd: external_exports.number().min(0).nullable().default(null),
-  maxWallClockMs: external_exports.number().int().min(6e4).nullable().default(null),
-  /** Lanes the human authorized for this run. */
-  allowedLanes: external_exports.array(external_exports.enum(["LOCAL", "SUBSCRIPTION", "API"])).min(1).default(["LOCAL"])
-}).passthrough();
-var delegatedAuthoritySnapshotSchema = external_exports.object({
-  mode: shortText18,
-  humanGate: shortText18,
-  policyFingerprint: external_exports.string().max(8e3),
-  /** Delegated engineering surfaces, as `surface: AUTO|HUMAN`. */
-  decisions: external_exports.record(shortText18).default({}),
-  /** Delegated recovery surfaces, same shape. */
-  recovery: external_exports.record(shortText18).default({}),
-  /** Toolsmith capability classes the human authorized. */
-  toolsmithCapabilities: external_exports.array(shortText18).max(SEAL_LIMITS.maxSurfaces).default([])
-}).passthrough();
-var missionSealSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  sealId: shortText18,
-  missionId: shortText18,
-  /** The Kiro spec the mission synthesized, when it has one. */
-  specName: shortText18.optional(),
-  status: external_exports.enum(SEAL_STATUSES),
-  createdAt: shortText18,
-  /** Set exactly once, when a human authorizes the draft. */
-  sealedAt: shortText18.optional(),
-  /**
-   * How the human authorization arrived. A free-form CHANNEL label (the
-   * CLI command, the MCP surface) recorded for audit — never a claim that
-   * anything other than a person performed it.
-   */
-  sealedVia: shortText18.optional(),
-  /** Predecessor seal this one replaces. */
-  supersedes: shortText18.optional(),
-  supersededBy: shortText18.optional(),
-  revokedAt: shortText18.optional(),
-  revokedReason: text9.optional(),
-  // --- The authority snapshot ------------------------------------------
-  /** The mission goal, verbatim and bounded. Data, never instructions. */
-  goal: text9,
-  nonGoals: external_exports.array(text9).max(SEAL_LIMITS.maxListItems).default([]),
-  /** Mission decision ids active at seal time. */
-  decisionIds: idList3.default([]),
-  /** Constitution rule ids active at seal time. */
-  constitutionRuleIds: idList3.default([]),
-  /** ADR ids accepted at seal time. */
-  adrIds: idList3.default([]),
-  contracts: external_exports.array(sealedContractRefSchema).max(SEAL_LIMITS.maxContractRefs).default([]),
-  acceptanceCriteria: external_exports.array(sealedAcceptanceCriterionSchema).max(SEAL_LIMITS.maxCriteria).default([]),
-  resourcePolicy: sealedResourcePolicySchema.default({}),
-  delegatedAuthority: delegatedAuthoritySnapshotSchema,
-  /** Authority kinds this seal actually carries, computed at draft time. */
-  presentAuthorityKinds: external_exports.array(external_exports.enum(SEALED_AUTHORITY_KINDS)).max(SEALED_AUTHORITY_KINDS.length).default([]),
-  /**
-   * Hash over the sealed authority content. Recorded so a later audit can
-   * prove the record on disk is the one that was authorized, and so a
-   * re-seal that changes nothing is recognisable as a no-op.
-   */
-  authorityDigest: shortText18
-}).passthrough();
-var sealBindingSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  jobId: shortText18,
-  sealId: shortText18,
-  missionId: shortText18,
-  boundAt: shortText18,
-  /** Autonomy policy fingerprint observed when the binding was made. */
-  boundPolicyFingerprint: external_exports.string().max(8e3)
-}).passthrough();
-function sealsDir(workspace) {
-  return autonomyPath(workspace, "seals");
-}
-function listSeals(workspace, missionId) {
-  const seals = listJsonRecords(sealsDir(workspace), (raw) => missionSealSchema.parse(raw));
-  const filtered = missionId === void 0 ? seals : seals.filter((s) => s.missionId === missionId);
-  return filtered.sort((a2, b) => a2.createdAt.localeCompare(b.createdAt));
-}
-var DELEGATED_SURFACES = Object.freeze({
-  "implementation-structure": "implementation",
-  "internal-architecture": "internalArchitecture",
-  "module-layout": "implementation",
-  "algorithm-choice": "implementation",
-  "internal-api-shape": "implementation",
-  "ui-framework": "implementation",
-  "styling-strategy": "implementation",
-  "state-management": "implementation",
-  "new-feature-rest-shape": "implementation",
-  "database-physical-layout": "internalArchitecture",
-  "dependency-choice": "dependencySelection",
-  "build-tooling": "toolingCreation",
-  "testing-tooling": "testInfrastructure",
-  "browser-tooling": "browserVerification",
-  "container-topology": "environmentProvisioning",
-  "broker-topology": "environmentProvisioning",
-  "local-script": "toolingCreation",
-  "test-harness": "testInfrastructure",
-  refactor: "implementation",
-  "debug-instrumentation": "toolingCreation",
-  "benchmark-infrastructure": "testInfrastructure",
-  "work-decomposition": "workDecomposition",
-  "implementation-plan": "workDecomposition",
-  "environment-provisioning": "environmentProvisioning",
-  "toolchain-provisioning": "toolchain",
-  "recovery-strategy": void 0,
-  "provider-placement": void 0,
-  "context-strategy": void 0
-});
-var AUTHORITY_SURFACES = Object.freeze({
-  "sealed-contract-change": "MODIFIES_SEALED_CONTRACT",
-  "product-semantics-change": "CHANGES_PRODUCT_SEMANTICS",
-  "wire-protocol-change": "CHANGES_WIRE_CONTRACT",
-  "persistence-compatibility-change": "CHANGES_PERSISTENCE_COMPATIBILITY",
-  "security-boundary-expansion": "EXPANDS_SECURITY_BOUNDARY",
-  "sealed-requirement-conflict": "SEALED_REQUIREMENTS_CONFLICT",
-  "contract-change-request": "MODIFIES_SEALED_CONTRACT",
-  "human-only-credential": "REQUIRES_HUMAN_CREDENTIAL",
-  "external-irreversible-action": "IRREVERSIBLE_EXTERNAL_EFFECT",
-  "spend-beyond-ceiling": "EXCEEDS_AUTHORIZED_SPEND",
-  "scope-beyond-seal": "OUTSIDE_SEALED_SCOPE"
-});
-var shortText24 = external_exports.string().max(200);
-var text23 = external_exports.string().max(4e3);
-var jobLeaseSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  jobId: shortText24,
-  /** Identity of the owning supervisor. Stable for one supervisor process. */
-  ownerId: shortText24,
-  /** Incremented on every reclaim. Detects a resurrected zombie owner. */
-  generation: external_exports.number().int().min(1),
-  acquiredAt: shortText24,
-  renewedAt: shortText24,
-  /** Liveness deadline. The ONLY field that decides ownership. */
-  expiresAt: shortText24,
-  pid: external_exports.number().int().min(0).optional(),
-  hostname: shortText24.optional(),
-  /** Host label of the process that took the lease (e.g. "cli"). */
-  host: shortText24.optional(),
-  released: external_exports.boolean().default(false),
-  releasedAt: shortText24.optional(),
-  releaseReason: text23.optional()
-}).passthrough();
-var supervisedJobSchema = external_exports.object({
-  jobId: shortText24,
-  specName: shortText24,
-  sealId: shortText24.optional(),
-  status: external_exports.enum(SUPERVISION_STATUSES),
-  registeredAt: shortText24,
-  /** Total driver starts, including the first. */
-  starts: external_exports.number().int().min(0).default(0),
-  /** Restarts after an unclean exit. */
-  restarts: external_exports.number().int().min(0).default(0),
-  /** Restarts since the last observed forward progress. */
-  consecutiveRestarts: external_exports.number().int().min(0).default(0),
-  /**
-   * A progress fingerprint from the last driver exit. The supervisor
-   * compares fingerprints rather than counting completions: "did anything
-   * change" is the question that distinguishes a slow job from a crash
-   * loop, and a job can make real progress without completing a node.
-   */
-  lastProgressFingerprint: shortText24.optional(),
-  lastProgressAt: shortText24.optional(),
-  /** Earliest instant the supervisor may start a driver again. */
-  nextAttemptAt: shortText24.optional(),
-  /** Current backoff, doubled on each unproductive restart. */
-  backoffMs: external_exports.number().int().min(0).default(0),
-  lastAction: external_exports.enum(SUPERVISION_ACTIONS).optional(),
-  lastActionAt: shortText24.optional(),
-  lastDetail: text23.optional(),
-  releasedAt: shortText24.optional(),
-  releaseReason: text23.optional()
-}).passthrough();
-var supervisorStateSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  /** Identity of the supervisor process that last wrote this file. */
-  ownerId: shortText24,
-  startedAt: shortText24,
-  heartbeatAt: shortText24,
-  pid: external_exports.number().int().min(0).optional(),
-  hostname: shortText24.optional(),
-  jobs: external_exports.array(supervisedJobSchema).max(200).default([])
-}).passthrough();
-var supervisionLogEntrySchema = external_exports.object({
-  at: shortText24,
-  ownerId: shortText24,
-  jobId: shortText24.optional(),
-  action: external_exports.enum(SUPERVISION_ACTIONS),
-  detail: text23.optional(),
-  generation: external_exports.number().int().min(0).optional()
-}).passthrough();
-var shortText33 = external_exports.string().max(200);
-var text32 = external_exports.string().max(4e3);
-var capabilityCheckSchema = external_exports.object({
-  capability: external_exports.enum(PREFLIGHT_CAPABILITIES),
-  outcome: external_exports.enum(PREFLIGHT_OUTCOMES),
-  /** What was observed, in one line. Never a credential or a token. */
-  observed: text32,
-  /** What a person would do about it, when they need to do something. */
-  remediation: external_exports.array(text32).max(6).default([]),
-  /**
-   * The Toolsmith capability that would satisfy this autonomously, present
-   * exactly when the outcome is SATISFIABLE_AUTONOMOUSLY. Naming it keeps
-   * the promise checkable: a report cannot claim self-service for
-   * something no grant could actually provide.
-   */
-  satisfiedBy: shortText33.optional(),
-  /** Measured detail, when the probe measured something (bytes, ms). */
-  measurement: external_exports.number().nullable().default(null),
-  checkedAt: shortText33
-}).passthrough();
-var preflightReportSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  reportId: shortText33,
-  createdAt: shortText33,
-  host: shortText33,
-  /** The mission or spec this preflight was run for. */
-  subject: shortText33,
-  missionId: shortText33.optional(),
-  sealId: shortText33.optional(),
-  autonomyMode: shortText33,
-  humanGate: shortText33,
-  verdict: external_exports.enum(PREFLIGHT_VERDICTS),
-  checks: external_exports.array(capabilityCheckSchema).max(PREFLIGHT_CAPABILITIES.length).default([]),
-  /** Capabilities that need a person, extracted for the headline. */
-  humanActions: external_exports.array(text32).max(40).default([]),
-  /** Capabilities the runtime will provide itself, extracted likewise. */
-  autonomousActions: external_exports.array(text32).max(40).default([]),
-  /**
-   * Capabilities whose probe could not decide. Non-empty means the verdict
-   * is INDETERMINATE, because an unattended launch on an unknown
-   * prerequisite is a guess dressed as a decision.
-   */
-  unknowns: external_exports.array(text32).max(40).default([])
-}).passthrough();
-var DEFAULT_MIN_FREE_DISK = 5 * 1024 * 1024 * 1024;
-var shortText43 = external_exports.string().max(200);
-var text42 = external_exports.string().max(4e3);
-var toolsmithRequestSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  requestId: shortText43,
-  jobId: shortText43,
-  /** `ToolsmithCapability` from @specbridge/core. */
-  capability: shortText43,
-  /** Why the runtime wants it, in one line. Recorded for the operator. */
-  purpose: text42,
-  /** What it acts on: a relative path, a package name, an image reference. */
-  target: shortText43,
-  /** Where the result would live. */
-  scope: external_exports.enum(TOOL_INSTALL_SCOPES),
-  nodeId: shortText43.optional(),
-  requestedAt: shortText43,
-  status: external_exports.enum(TOOLSMITH_REQUEST_STATUSES),
-  decidedAt: shortText43.optional(),
-  denialReason: external_exports.enum(TOOLSMITH_DENIAL_REASONS).optional(),
-  denialDetail: text42.optional(),
-  /**
-   * A portable alternative the broker suggests instead of the denied
-   * request. Present when a machine-global install was refused but a
-   * project-local or containerized route exists: the point of denying
-   * `REQUIRES_ADMIN_PRIVILEGE` is to redirect, not to stop.
-   */
-  suggestedAlternative: text42.optional(),
-  appliedAt: shortText43.optional(),
-  /** What the grant actually produced. Never command output. */
-  outcome: text42.optional(),
-  /** Bytes fetched, when the action fetched something measurable. */
-  bytes: external_exports.number().int().min(0).nullable().default(null),
-  /** Workspace-relative paths the grant created, for the audit. */
-  createdPaths: external_exports.array(shortText43).max(50).default([])
-}).passthrough();
-var toolsmithLedgerSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  jobId: shortText43,
-  granted: external_exports.number().int().min(0).default(0),
-  denied: external_exports.number().int().min(0).default(0),
-  applied: external_exports.number().int().min(0).default(0),
-  failed: external_exports.number().int().min(0).default(0),
-  bytesFetched: external_exports.number().int().min(0).default(0),
-  updatedAt: shortText43
-}).passthrough();
-var CANONICAL_SCOPE = Object.freeze({
-  PROJECT_LOCAL_SCRIPT: "PROJECT_LOCAL",
-  PROJECT_DEPENDENCY: "PROJECT_LOCAL",
-  PACKAGE_MANAGER_INSTALL: "PROJECT_LOCAL",
-  CODE_GENERATION: "PROJECT_LOCAL",
-  PROJECT_LOCAL_TOOLCHAIN: "PROJECT_LOCAL",
-  CONTAINER_IMAGE: "CONTAINERIZED",
-  CONTAINER_LIFECYCLE: "CONTAINERIZED",
-  USER_LOCAL_CLI: "USER_LOCAL",
-  BROWSER_RUNTIME: "USER_LOCAL"
-});
-var PACKAGE_MANAGER_INSTALL_ARGV = Object.freeze({
-  pnpm: ["install", "--frozen-lockfile=false"],
-  npm: ["install"],
-  yarn: ["install"],
-  bun: ["install"]
-});
-var PACKAGE_MANAGER_ADD_ARGV = Object.freeze({
-  pnpm: ["add", "-D"],
-  npm: ["install", "--save-dev"],
-  yarn: ["add", "--dev"],
-  bun: ["add", "--dev"]
-});
-var shortText52 = external_exports.string().max(200);
-var text52 = external_exports.string().max(4e3);
-var readinessProbeSchema = external_exports.object({
-  kind: external_exports.enum(READINESS_PROBE_KINDS),
-  /** TCP/HTTP probes: the host to reach. Defaults to 127.0.0.1. */
-  host: shortText52.default("127.0.0.1"),
-  port: external_exports.number().int().min(1).max(65535).optional(),
-  /** HTTP probes: the path to request. */
-  urlPath: shortText52.optional(),
-  /** HTTP_STATUS: the status codes that count as ready. */
-  expectStatus: external_exports.array(external_exports.number().int().min(100).max(599)).max(10).default([200]),
-  /** HTTP_BODY: a bounded pattern the response body must contain. */
-  expectBody: external_exports.string().max(500).optional(),
-  /** COMMAND_EXIT: argv array run against the service. */
-  argv: external_exports.array(external_exports.string().min(1).max(500)).max(30).default([]),
-  /** PROTOCOL_HANDSHAKE: which protocol, for the evidence record. */
-  protocol: shortText52.optional(),
-  timeoutMs: external_exports.number().int().min(100).max(6e5).default(1e4)
-}).passthrough().superRefine((probe, ctx) => {
-  if ((probe.kind === "TCP_CONNECT" || probe.kind === "HTTP_STATUS" || probe.kind === "HTTP_BODY") && probe.port === void 0) {
-    ctx.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["port"], message: `${probe.kind} needs a port` });
-  }
-  if (probe.kind === "COMMAND_EXIT") {
-    if (probe.argv.length === 0) {
-      ctx.addIssue({ code: external_exports.ZodIssueCode.custom, path: ["argv"], message: "COMMAND_EXIT needs an argv array" });
-    } else if (probe.argv.length === 1 && /\s/.test(probe.argv[0] ?? "")) {
-      ctx.addIssue({
-        code: external_exports.ZodIssueCode.custom,
-        path: ["argv"],
-        message: `"${probe.argv[0]}" looks like a shell string; readiness probes are argv arrays.`
-      });
-    }
-  }
-});
-var servicePlanSchema = external_exports.object({
-  serviceId: shortText52,
-  kind: external_exports.enum(SERVICE_KINDS),
-  /** Compose service name, container name, or process label. */
-  name: shortText52,
-  /** Service ids that must be READY before this one is probed. */
-  dependsOn: external_exports.array(shortText52).max(20).default([]),
-  probes: external_exports.array(readinessProbeSchema).min(1).max(5),
-  /** Restarts of THIS service before the instance is unhealthy. */
-  maxRestarts: external_exports.number().int().min(0).max(20).default(3),
-  /** Ceiling for this service to become ready. */
-  readinessTimeoutMs: external_exports.number().int().min(1e3).max(36e5).default(12e4),
-  /** Ports the service publishes, for the diagnostics record. */
-  ports: external_exports.array(external_exports.number().int().min(1).max(65535)).max(20).default([])
-}).passthrough();
-var environmentPlanSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  planId: shortText52,
-  name: shortText52,
-  /** Workspace-relative compose file, for COMPOSE_PROJECT services. */
-  composeFile: shortText52.optional(),
-  /** Compose project name, so teardown targets exactly what was started. */
-  projectName: shortText52.optional(),
-  services: external_exports.array(servicePlanSchema).min(1).max(30),
-  createdAt: shortText52,
-  /** The job that authored this plan, when one did. */
-  jobId: shortText52.optional()
-}).passthrough().superRefine((plan, ctx) => {
-  const ids = new Set(plan.services.map((service) => service.serviceId));
-  for (const service of plan.services) {
-    for (const dependency of service.dependsOn) {
-      if (!ids.has(dependency)) {
-        ctx.addIssue({
-          code: external_exports.ZodIssueCode.custom,
-          path: ["services"],
-          message: `service "${service.serviceId}" depends on unknown service "${dependency}"`
-        });
-      }
-    }
-  }
-});
-var serviceStateSchema = external_exports.object({
-  serviceId: shortText52,
-  status: external_exports.enum(SERVICE_STATUSES),
-  startedAt: shortText52.optional(),
-  readyAt: shortText52.optional(),
-  restarts: external_exports.number().int().min(0).default(0),
-  /** Readiness probe attempts made for this service. */
-  probeAttempts: external_exports.number().int().min(0).default(0),
-  /** The probe that last decided readiness, and what it observed. */
-  lastProbeKind: shortText52.optional(),
-  lastProbeDetail: text52.optional(),
-  failureKind: external_exports.enum(ENVIRONMENT_FAILURE_KINDS).optional(),
-  /** Relative path of the retained log, when one was captured. */
-  logRef: shortText52.optional()
-}).passthrough();
-var environmentInstanceSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  instanceId: shortText52,
-  planId: shortText52,
-  jobId: shortText52.optional(),
-  status: external_exports.enum(ENVIRONMENT_STATUSES),
-  createdAt: shortText52,
-  readyAt: shortText52.optional(),
-  stoppedAt: shortText52.optional(),
-  services: external_exports.array(serviceStateSchema).max(30).default([]),
-  failureKind: external_exports.enum(ENVIRONMENT_FAILURE_KINDS).optional(),
-  failureDetail: text52.optional(),
-  /** True when diagnostics were retained rather than cleaned up. */
-  diagnosticsRetained: external_exports.boolean().default(false),
-  /** Total repair attempts across all services. */
-  repairs: external_exports.number().int().min(0).default(0)
-}).passthrough();
-var environmentEvidenceSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  instanceId: shortText52,
-  planId: shortText52,
-  recordedAt: shortText52,
-  status: external_exports.enum(ENVIRONMENT_STATUSES),
-  /** Services confirmed by a probe that spoke the service's own protocol. */
-  applicationLevelReady: external_exports.array(shortText52).max(30).default([]),
-  /** Services confirmed only by liveness. Shallow evidence, named as such. */
-  livenessOnlyReady: external_exports.array(shortText52).max(30).default([]),
-  /** Services that never became ready. */
-  notReady: external_exports.array(shortText52).max(30).default([]),
-  totalReadinessMs: external_exports.number().int().min(0).nullable().default(null),
-  /** Retained diagnostic log references, workspace-relative. */
-  logRefs: external_exports.array(shortText52).max(60).default([])
-}).passthrough();
-var shortText62 = external_exports.string().max(200);
-var text62 = external_exports.string().max(4e3);
-var browserStepSchema = external_exports.object({
-  kind: external_exports.enum(BROWSER_STEP_KINDS),
-  /** Which isolated browser context this step acts in. */
-  context: shortText62.default("default"),
-  /** NAVIGATE / EXPECT_URL: the target URL or expected fragment. */
-  url: external_exports.string().max(2e3).optional(),
-  /** Element locator for interaction and assertion steps. */
-  selector: external_exports.string().max(500).optional(),
-  /** TYPE / FILL_FORM / EXPECT_TEXT: the value or expected text. */
-  value: external_exports.string().max(2e3).optional(),
-  /** FILL_FORM: selector-to-value pairs. */
-  fields: external_exports.record(external_exports.string().max(2e3)).optional(),
-  /** SET_VIEWPORT: `WIDTHxHEIGHT`. */
-  viewport: external_exports.string().regex(/^\d{2,5}x\d{2,5}$/).optional(),
-  /** SCREENSHOT: the evidence label. */
-  label: shortText62.optional(),
-  timeoutMs: external_exports.number().int().min(100).max(6e5).optional()
-}).passthrough();
-var browserScenarioSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  scenarioId: shortText62,
-  name: shortText62,
-  /** What this scenario demonstrates, in one line, for the report. */
-  intent: text62,
-  /** Base URL the application under test is served from. */
-  baseUrl: external_exports.string().max(2e3),
-  /** Named isolated contexts. One entry per simultaneous user. */
-  contexts: external_exports.array(shortText62).min(1).max(16).default(["default"]),
-  steps: external_exports.array(browserStepSchema).min(1).max(200),
-  /** Sealed acceptance criteria this scenario is evidence for. */
-  criterionIds: external_exports.array(shortText62).max(40).default([]),
-  /** Contract ids this scenario is evidence for. */
-  contractIds: external_exports.array(shortText62).max(40).default([]),
-  /** The environment instance the app under test runs in, when it has one. */
-  environmentInstanceId: shortText62.optional(),
-  createdAt: shortText62,
-  jobId: shortText62.optional()
-}).passthrough().superRefine((scenario, ctx) => {
-  const known = new Set(scenario.contexts);
-  for (const [index, step2] of scenario.steps.entries()) {
-    if (!known.has(step2.context)) {
-      ctx.addIssue({
-        code: external_exports.ZodIssueCode.custom,
-        path: ["steps", index, "context"],
-        message: `step names context "${step2.context}", which the scenario does not declare`
-      });
-    }
-  }
-  if (!scenario.steps.some((step2) => BROWSER_ASSERTION_STEPS.includes(step2.kind))) {
-    ctx.addIssue({
-      code: external_exports.ZodIssueCode.custom,
-      path: ["steps"],
-      message: "a browser scenario must contain at least one assertion step"
-    });
-  }
-});
-var stepResultSchema = external_exports.object({
-  index: external_exports.number().int().min(0),
-  kind: external_exports.enum(BROWSER_STEP_KINDS),
-  context: shortText62,
-  ok: external_exports.boolean(),
-  /** One line. Never a page dump. */
-  detail: text62,
-  durationMs: external_exports.number().int().min(0).nullable().default(null),
-  /** Evidence file reference this step produced, when it produced one. */
-  evidenceRef: shortText62.optional()
-}).passthrough();
-var browserObservationSchema = external_exports.object({
-  context: shortText62,
-  kind: external_exports.enum(["console-error", "console-warning", "page-error", "request-failed"]),
-  detail: text62,
-  at: shortText62
-}).passthrough();
-var browserScenarioResultSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  resultId: shortText62,
-  scenarioId: shortText62,
-  jobId: shortText62.optional(),
-  status: external_exports.enum(BROWSER_SCENARIO_STATUSES),
-  startedAt: shortText62,
-  finishedAt: shortText62.optional(),
-  /** Which driver ran it, and whether it was real. */
-  driver: shortText62,
-  /** Present when the status is SKIPPED_NO_RUNTIME. Never a silent pass. */
-  skipReason: text62.optional(),
-  steps: external_exports.array(stepResultSchema).max(200).default([]),
-  assertionsRun: external_exports.number().int().min(0).default(0),
-  assertionsPassed: external_exports.number().int().min(0).default(0),
-  observations: external_exports.array(browserObservationSchema).max(200).default([]),
-  /** Workspace-relative evidence references. */
-  evidence: external_exports.array(
-    external_exports.object({
-      kind: external_exports.enum(BROWSER_EVIDENCE_KINDS),
-      ref: shortText62,
-      label: shortText62.optional(),
-      context: shortText62.optional()
-    }).passthrough()
-  ).max(200).default([]),
-  /** The first failing step's detail, hoisted for the report. */
-  failureDetail: text62.optional()
-}).passthrough();
-var shortText72 = external_exports.string().max(200);
-var text72 = external_exports.string().max(4e3);
-var uxFindingSchema = external_exports.object({
-  findingId: shortText72,
-  kind: external_exports.enum(UX_FINDING_KINDS),
-  severity: external_exports.enum(UX_FINDING_SEVERITIES),
-  /** What is wrong, in one or two sentences a repair task can act on. */
-  statement: text72,
-  /** Where: a selector, a route, a viewport, or an evidence reference. */
-  locus: shortText72.optional(),
-  /** The evidence the finding is drawn from, workspace-relative. */
-  evidenceRef: shortText72.optional(),
-  /** The viewport this was observed at, when it is viewport-specific. */
-  viewport: shortText72.optional()
-}).passthrough();
-var uxCritiqueSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  critiqueId: shortText72,
-  /** The browser result this critique read. */
-  resultId: shortText72,
-  scenarioId: shortText72,
-  jobId: shortText72.optional(),
-  createdAt: shortText72,
-  verdict: external_exports.enum(UX_CRITIQUE_VERDICTS),
-  findings: external_exports.array(uxFindingSchema).max(200).default([]),
-  /**
-   * Which critic produced it. A label for audit, never authority: the
-   * critique's power comes from the policy, not from who ran it.
-   */
-  producedBy: shortText72,
-  /** Present when the verdict is INSUFFICIENT_EVIDENCE. */
-  insufficientReason: text72.optional(),
-  /** Critic-caused repair cycles already spent on this scenario. */
-  repairCycle: external_exports.number().int().min(0).default(0),
-  /** True when the critique was recorded but may not create work. */
-  advisoryOnly: external_exports.boolean().default(false)
-}).passthrough();
-var shortText82 = external_exports.string().max(200);
-var text82 = external_exports.string().max(4e3);
-var closureEvidenceRefSchema = external_exports.object({
-  kind: external_exports.enum(CLOSURE_EVIDENCE_KINDS),
-  /** Where the evidence lives: a run id, a result id, a report path. */
-  ref: shortText82,
-  /** Did it pass? An evidence ref that failed is recorded, not hidden. */
-  passed: external_exports.boolean(),
-  recordedAt: shortText82,
-  /** Git head the evidence was captured against, when one is known. */
-  gitHead: shortText82.optional(),
-  /** One line describing what it demonstrated. */
-  detail: text82.optional()
-}).passthrough();
-var closureEntrySchema = external_exports.object({
-  /** Stable id: `CTR-001/R1`, `CTR-001#INV-2`, or `AC-003`. */
-  itemId: shortText82,
-  kind: external_exports.enum(["requirement", "invariant", "acceptance-criterion"]),
-  statement: text82,
-  contractId: shortText82.optional(),
-  status: external_exports.enum(CLOSURE_STATUSES),
-  /** Job node ids that claim to implement this item. */
-  attributedNodeIds: external_exports.array(shortText82).max(50).default([]),
-  /** Task ids those nodes implement, for the human-readable report. */
-  attributedTaskIds: external_exports.array(shortText82).max(50).default([]),
-  evidence: external_exports.array(closureEvidenceRefSchema).max(50).default([]),
-  requiresSystemScenario: external_exports.boolean().default(false),
-  requiresBrowserScenario: external_exports.boolean().default(false),
-  /** Why the item is not closed. Empty exactly when it is. */
-  gaps: external_exports.array(external_exports.enum(CLOSURE_GAP_KINDS)).max(10).default([]),
-  /** A human waiver, when one exists. Only a person can create this. */
-  waiver: external_exports.object({ reason: text82, waivedAt: shortText82, waivedBy: shortText82 }).passthrough().optional(),
-  updatedAt: shortText82
-}).passthrough();
-var closureLedgerSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  jobId: shortText82,
-  sealId: shortText82,
-  missionId: shortText82,
-  createdAt: shortText82,
-  updatedAt: shortText82,
-  phase: external_exports.enum(CLOSURE_PHASES),
-  entries: external_exports.array(closureEntrySchema).max(1e3).default([]),
-  /** Gap-closure cycles spent. Bounded by policy. */
-  gapCycles: external_exports.number().int().min(0).default(0),
-  /**
-   * System-scenario qualification cycles EXECUTED. Incremented only after
-   * scenarios actually ran — never by entering the phase. The distinction
-   * is the vNext.10.1 dogfood's defect 39: a counter bumped by a phase
-   * stamp let the oracle read "the scenarios ran" off a night in which
-   * nothing was ever executed.
-   */
-  systemCycles: external_exports.number().int().min(0).default(0),
-  /** True once the reproducibility qualification passed. */
-  reproducibilityPassed: external_exports.boolean().default(false),
-  /** Reproducibility qualification attempts EXECUTED. Bounded by policy. */
-  reproducibilityCycles: external_exports.number().int().min(0).default(0),
-  /** True once the release qualification passed against the integrated tree. */
-  releaseQualificationPassed: external_exports.boolean().default(false),
-  /** Release qualification attempts EXECUTED. Bounded by policy. */
-  releaseQualificationCycles: external_exports.number().int().min(0).default(0)
-}).passthrough();
-var closureAuditSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  auditId: shortText82,
-  jobId: shortText82,
-  sealId: shortText82,
-  createdAt: shortText82,
-  phase: external_exports.enum(CLOSURE_PHASES),
-  directive: external_exports.enum(CLOSURE_DIRECTIVES),
-  /** Counts by closure status, for the headline. */
-  totals: external_exports.object({
-    total: external_exports.number().int().min(0),
-    verified: external_exports.number().int().min(0),
-    implemented: external_exports.number().int().min(0),
-    inProgress: external_exports.number().int().min(0),
-    notStarted: external_exports.number().int().min(0),
-    waived: external_exports.number().int().min(0),
-    notApplicable: external_exports.number().int().min(0)
-  }).passthrough(),
-  /**
-   * Closed items over total. `null` when there are no items at all — a
-   * ratio of 1.0 over an empty ledger would read as "fully closed" for a
-   * seal that promised nothing.
-   */
-  closureRatio: external_exports.number().min(0).max(1).nullable().default(null),
-  /** Item ids that are not closed, with the reason, bounded. */
-  unclosed: external_exports.array(
-    external_exports.object({
-      itemId: shortText82,
-      status: external_exports.enum(CLOSURE_STATUSES),
-      gaps: external_exports.array(external_exports.enum(CLOSURE_GAP_KINDS)).max(10).default([]),
-      statement: text82
-    }).passthrough()
-  ).max(500).default([]),
-  /** One line explaining the directive, for the report. */
-  rationale: text82
-}).passthrough();
-var gapWorkItemSchema = external_exports.object({
-  gapId: shortText82,
-  itemId: shortText82,
-  gapKind: external_exports.enum(CLOSURE_GAP_KINDS),
-  /** What must become true. Derived from the sealed statement, never new. */
-  objective: text82,
-  /** The evidence kind that would close it. */
-  closingEvidence: external_exports.enum(CLOSURE_EVIDENCE_KINDS),
-  createdAt: shortText82,
-  /** The audit that generated it. */
-  auditId: shortText82
-}).passthrough();
-var shortText92 = external_exports.string().max(200);
-var text92 = external_exports.string().max(4e3);
-var systemStepSchema = external_exports.object({
-  stepId: shortText92,
-  name: shortText92,
-  argv: external_exports.array(external_exports.string().min(1).max(500)).min(1).max(30),
-  /** Workspace-relative working directory. */
-  cwd: shortText92.optional(),
-  timeoutMs: external_exports.number().int().min(1e3).max(36e5).default(6e5),
-  /**
-   * A fault injected before this step: restart a service, or stop it.
-   * Scoped to services in the scenario's own environment plan, so a
-   * scenario cannot reach a container it did not declare.
-   */
-  injectFault: external_exports.object({ kind: external_exports.enum(["RESTART_SERVICE", "STOP_SERVICE"]), serviceId: shortText92 }).passthrough().optional()
-}).passthrough();
-var systemScenarioSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  scenarioId: shortText92,
-  name: shortText92,
-  intent: text92,
-  /**
-   * The environment this scenario needs. A scenario that declares none
-   * runs against the workspace itself — an explicit, recorded claim that
-   * the product needs no external services to demonstrate this, not a
-   * shortcut around provisioning. Fault injection requires a plan, since
-   * a fault can only be scoped to a declared service.
-   */
-  environmentPlanId: shortText92.optional(),
-  steps: external_exports.array(systemStepSchema).min(1).max(50),
-  /** Browser scenarios to run once the system steps pass. */
-  browserScenarioIds: external_exports.array(shortText92).max(20).default([]),
-  /** Sealed items this scenario is evidence for. */
-  itemIds: external_exports.array(shortText92).max(100).default([]),
-  createdAt: shortText92,
-  jobId: shortText92.optional()
-}).passthrough();
-var systemScenarioResultSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  resultId: shortText92,
-  scenarioId: shortText92,
-  jobId: shortText92.optional(),
-  status: external_exports.enum(["PASSED", "FAILED", "ENVIRONMENT_UNAVAILABLE", "NOT_RUN"]),
-  startedAt: shortText92,
-  finishedAt: shortText92.optional(),
-  environmentInstanceId: shortText92.optional(),
-  steps: external_exports.array(
-    external_exports.object({
-      stepId: shortText92,
-      name: shortText92,
-      ok: external_exports.boolean(),
-      detail: text92,
-      durationMs: external_exports.number().int().min(0).nullable().default(null),
-      faultInjected: shortText92.optional()
-    }).passthrough()
-  ).max(50).default([]),
-  browserResultIds: external_exports.array(shortText92).max(20).default([]),
-  failureDetail: text92.optional()
-}).passthrough();
-var shortText102 = external_exports.string().max(200);
-var text10 = external_exports.string().max(4e3);
-var REPRODUCIBILITY_DIMENSIONS = [
-  "CLEAN_CHECKOUT",
-  "NO_BUILD_CACHE",
-  "FRESH_DEPENDENCY_RESOLUTION",
-  "FRESH_ENVIRONMENT",
-  "FRESH_APPLICATION_START",
-  "REPEATED_QUALIFICATION"
-];
-var reproducibilityStepSchema = external_exports.object({
-  stepId: shortText102,
-  dimension: external_exports.enum(REPRODUCIBILITY_DIMENSIONS),
-  name: shortText102,
-  argv: external_exports.array(external_exports.string().min(1).max(500)).min(1).max(30),
-  timeoutMs: external_exports.number().int().min(1e3).max(24 * 36e5).default(18e5),
-  /** Working directory relative to the clean checkout. */
-  cwd: shortText102.optional()
-}).passthrough();
-var reproducibilityResultSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  runId: shortText102,
-  jobId: shortText102.optional(),
-  /**
-   * PASSED requires every declared step to have RUN and passed.
-   * INCONCLUSIVE means something could not be attempted here, which is an
-   * honest outcome and explicitly not a pass.
-   */
-  status: external_exports.enum(["PASSED", "FAILED", "INCONCLUSIVE", "NOT_RUN"]),
-  startedAt: shortText102,
-  finishedAt: shortText102.optional(),
-  /** Where the clean checkout lived, when one was made. */
-  checkoutPath: shortText102.optional(),
-  gitHead: shortText102.optional(),
-  dimensions: external_exports.array(external_exports.enum(REPRODUCIBILITY_DIMENSIONS)).max(10).default([]),
-  steps: external_exports.array(
-    external_exports.object({
-      stepId: shortText102,
-      dimension: external_exports.enum(REPRODUCIBILITY_DIMENSIONS),
-      name: shortText102,
-      outcome: external_exports.enum(["PASSED", "FAILED", "UNAVAILABLE", "NOT_RUN"]),
-      detail: text10,
-      durationMs: external_exports.number().int().min(0).nullable().default(null)
-    }).passthrough()
-  ).max(30).default([]),
-  /** Why the run could not conclude, when it could not. */
-  inconclusiveReason: text10.optional(),
-  failureDetail: text10.optional()
-}).passthrough();
-var shortText112 = external_exports.string().max(200);
-var text11 = external_exports.string().max(4e3);
-var autonomyTelemetrySchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  jobId: shortText112,
-  sealId: shortText112.optional(),
-  missionId: shortText112.optional(),
-  recordedAt: shortText112,
-  /** Job status at the moment this was computed. */
-  jobStatus: shortText112,
-  // --- The product metric ------------------------------------------------
-  /**
-   * Times a human had to act after the intent was sealed, EXCLUDING
-   * intentional authority stops. This is the number vNext.10 exists to
-   * drive to zero.
-   */
-  humanInterventionsAfterSeal: external_exports.number().int().min(0),
-  /** Times the runtime correctly stopped for product authority. */
-  humanAuthorityEscalations: external_exports.number().int().min(0),
-  /**
-   * Authority escalations that happened AFTER the seal instant.
-   *
-   * Separate from the counter above because the boundary is what the
-   * vNext.10.1 intake path made precise: an escalation recorded before the
-   * intent was sealed belongs to discovery, not to the unattended run.
-   * `null` when the seal carries no `sealedAt` and the boundary therefore
-   * cannot be placed — which is a different fact from zero.
-   */
-  humanAuthorityEscalationsAfterSeal: external_exports.number().int().min(0).nullable().default(null),
-  /** The instant the zero-touch boundary starts: when the intent was sealed. */
-  boundaryStartedAt: shortText112.nullable().default(null),
-  // --- Autonomy at work --------------------------------------------------
-  autonomousRecoveryCount: external_exports.number().int().min(0),
-  providerFailovers: external_exports.number().int().min(0),
-  providerFailures: external_exports.number().int().min(0),
-  quotaWaits: external_exports.number().int().min(0),
-  contextRollovers: external_exports.number().int().min(0),
-  toolsmithActions: external_exports.number().int().min(0),
-  selfCreatedTools: external_exports.number().int().min(0),
-  toolchainRepairs: external_exports.number().int().min(0),
-  environmentRepairs: external_exports.number().int().min(0),
-  controlPlaneRepairs: external_exports.number().int().min(0),
-  gapClosureCycles: external_exports.number().int().min(0),
-  systemQualificationCycles: external_exports.number().int().min(0),
-  browserScenariosRun: external_exports.number().int().min(0),
-  uxCritiquesRun: external_exports.number().int().min(0),
-  driverRestarts: external_exports.number().int().min(0),
-  supervisorWakeups: external_exports.number().int().min(0),
-  // --- Measurements. null means UNKNOWN, never zero. ---------------------
-  elapsedWallTimeMs: external_exports.number().int().min(0).nullable(),
-  reportedTokens: external_exports.number().int().min(0).nullable(),
-  reportedCostUsd: external_exports.number().min(0).nullable(),
-  contractClosureRatio: external_exports.number().min(0).max(1).nullable(),
-  /** Closure detail, so the ratio can be read rather than trusted. */
-  closure: external_exports.object({
-    total: external_exports.number().int().min(0),
-    verified: external_exports.number().int().min(0),
-    implemented: external_exports.number().int().min(0),
-    notStarted: external_exports.number().int().min(0),
-    waived: external_exports.number().int().min(0)
-  }).passthrough().optional(),
-  /** Human interventions observed, with what each one was. */
-  interventions: external_exports.array(external_exports.object({ at: shortText112, kind: shortText112, detail: text11 }).passthrough()).max(200).default([])
-}).passthrough();
-var INTERVENTION_EVENTS = Object.freeze({
-  clarification_requested: "the runtime asked a question it should have resolved itself",
-  job_blocked: "the job stopped in BLOCKED, needing an explicit user action",
-  // `blockJob` records `budget_exhausted` rather than `job_blocked` when the
-  // blocker is a budget. The vNext.10 dogfood ended exactly there — "all 4
-  // execution attempts for this task are spent" — and the metric reported
-  // ZERO interventions for a job sitting in BLOCKED. A budget stop still
-  // needs a person; only the event name differed.
-  budget_exhausted: "the job stopped on an exhausted budget, needing an explicit user action"
-});
-var shortText122 = external_exports.string().max(200);
-var text12 = external_exports.string().max(4e3);
-var controlPlaneRepairSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  repairId: shortText122,
-  /** The product job that hit the defect and is suspended for this. */
-  productJobId: shortText122,
-  defectKind: external_exports.enum(CONTROL_PLANE_DEFECT_KINDS),
-  /** What was observed, in one line. Never a stack trace with paths. */
-  symptom: text12,
-  /** The operation to re-run as a canary once the repair is built. */
-  canaryOperation: text12,
-  status: external_exports.enum(CONTROL_PLANE_REPAIR_STATUSES),
-  /** Stages completed, in order. The gate is that this is a prefix. */
-  stagesCompleted: external_exports.array(external_exports.enum(CONTROL_PLANE_REPAIR_STAGES)).max(20).default([]),
-  createdAt: shortText122,
-  updatedAt: shortText122,
-  finishedAt: shortText122.optional(),
-  /** Isolated working copy the patch was developed in. */
-  isolationPath: shortText122.optional(),
-  /** Where the verified build was staged. Never the running installation. */
-  artifactPath: shortText122.optional(),
-  /** Files the patch touched, workspace-relative to the SpecBridge source. */
-  changedFiles: external_exports.array(shortText122).max(200).default([]),
-  /** The regression test added, which is mandatory. */
-  regressionTestPath: shortText122.optional(),
-  /** Invariants the screen found the patch touching. Non-empty means reject. */
-  invariantViolations: external_exports.array(
-    external_exports.object({
-      invariant: external_exports.enum(PROTECTED_CONTROL_PLANE_INVARIANTS),
-      file: shortText122,
-      evidence: text12
-    }).passthrough()
-  ).max(50).default([]),
-  /** Why the repair ended where it did. */
-  outcomeDetail: text12.optional()
-}).passthrough();
-var CERTIFICATION_MATRIX = Object.freeze([
-  {
-    id: "ZT-01",
-    fault: "STRONG_PROVIDER_UNAVAILABLE",
-    title: "the subscription provider is temporarily down",
-    situation: "The strong worker returns 529/overloaded for every dispatch.",
-    injection: "driver host returns a crashed outcome carrying the provider signature",
-    expectation: "SELF_RECOVERED",
-    expectedBehaviour: "WAITING_RESOURCE with a provider cooldown, re-checked and resumed without a human"
-  },
-  {
-    id: "ZT-02",
-    fault: "STRONG_QUOTA_EXHAUSTED",
-    title: "the subscription quota is exhausted until a known reset",
-    situation: "The provider reports no remaining capacity and names a reset time.",
-    injection: "driver host returns a deferred stop carrying retryAt",
-    expectation: "SELF_RECOVERED",
-    expectedBehaviour: "WAITING_RESOURCE with wakeAt set; the supervisor sleeps and wakes itself"
-  },
-  {
-    id: "ZT-03",
-    fault: "LOCAL_RUNTIME_CRASH",
-    title: "the local llama.cpp process crashes",
-    situation: "The managed local inference server exits mid-dispatch.",
-    injection: "driver host crashes with a local-model signature",
-    expectation: "SELF_RECOVERED",
-    expectedBehaviour: "RECOVERING_PROVIDER, the runtime restarts the local runtime and continues"
-  },
-  {
-    id: "ZT-04",
-    fault: "INVALID_STRUCTURED_OUTPUT",
-    title: "a model returns structured output that does not validate",
-    situation: "The local model produces JSON the agent contract rejects.",
-    injection: "driver host crashes with an invalid-output signature",
-    expectation: "SELF_RECOVERED",
-    expectedBehaviour: "a bounded retry, then escalation to a stronger tier. Never a question"
-  },
-  {
-    id: "ZT-05",
-    fault: "CONTEXT_EXHAUSTION",
-    title: "the context window is exceeded mid-task",
-    situation: "A dispatch fails because the prompt exceeds the model context.",
-    injection: "driver host crashes with a context-length signature",
-    expectation: "SELF_RECOVERED",
-    expectedBehaviour: "checkpoint, compact, reconstruct in a fresh session, continue. Task memory is not the context window"
-  },
-  {
-    id: "ZT-06",
-    fault: "WORKER_PROCESS_TERMINATED",
-    title: "a worker process is killed",
-    situation: "The runner child process is terminated by the OS.",
-    injection: "driver host crashes with a process-termination signature",
-    expectation: "SELF_RECOVERED",
-    expectedBehaviour: "the attempt is reconciled as INTERRUPTED and re-dispatched"
-  },
-  {
-    id: "ZT-07",
-    fault: "DRIVER_PROCESS_TERMINATED",
-    title: "the driver itself dies",
-    situation: "The orchestrating driver process is killed without cleanup.",
-    injection: "driver host crashes on its first run and succeeds on the next",
-    expectation: "SELF_RECOVERED",
-    expectedBehaviour: "the supervisor observes the dead driver and restarts it under the same lease"
-  },
-  {
-    id: "ZT-08",
-    fault: "CONTAINER_SERVICE_CRASH",
-    title: "a container service crashes",
-    situation: "A compose service exits during a system scenario.",
-    injection: "driver host crashes with a container signature",
-    expectation: "SELF_RECOVERED",
-    expectedBehaviour: "REPAIRING_ENVIRONMENT; the service is restarted within its budget"
-  },
-  {
-    id: "ZT-09",
-    fault: "DELAYED_SERVICE_READINESS",
-    title: "a service takes far longer than expected to become ready",
-    situation: "Postgres accepts TCP long before it accepts a connection.",
-    injection: "readiness probe reports not-ready for several attempts",
-    expectation: "SELF_RECOVERED",
-    expectedBehaviour: "the readiness loop waits, restarts within budget, and proceeds when it answers"
-  },
-  {
-    id: "ZT-10",
-    fault: "MISSING_PROJECT_DEPENDENCY",
-    title: "a project dependency is missing",
-    situation: 'A build fails with "cannot find module".',
-    injection: "driver host crashes with a missing-module signature",
-    expectation: "SELF_RECOVERED",
-    expectedBehaviour: "REPAIRING_TOOLCHAIN; the Toolsmith installs it. A missing package is engineering"
-  },
-  {
-    id: "ZT-11",
-    fault: "MISSING_BROWSER_RUNTIME",
-    title: "no browser runtime is installed",
-    situation: "A UI acceptance criterion needs a browser and none exists.",
-    injection: "browser driver reports unavailable",
-    expectation: "SELF_RECOVERED",
-    expectedBehaviour: "the scenario records SKIPPED_NO_RUNTIME, the criterion stays unclosed, and the Toolsmith is asked for the runtime"
-  },
-  {
-    id: "ZT-12",
-    fault: "FAILING_IMPLEMENTATION_TEST",
-    title: "the implementation is wrong and the tests say so",
-    situation: "A trusted verification command fails against the produced code.",
-    injection: "closure evidence registered as failing",
-    expectation: "SELF_RECOVERED",
-    expectedBehaviour: "the item stays unclosed with EVIDENCE_FAILED and gap work repairs it"
-  },
-  {
-    id: "ZT-13",
-    fault: "WRONG_STRATEGY_REQUIRES_REPLAN",
-    title: "the approach is wrong and needs replanning",
-    situation: "A replan proposes restructuring the internal architecture.",
-    injection: "the authority resolver is asked about an architecture-flavoured replan",
-    expectation: "SELF_RECOVERED",
-    expectedBehaviour: "the replan proceeds under delegated authority. Internal architecture is not a promise"
-  },
-  {
-    id: "ZT-14",
-    fault: "TRANSIENT_NETWORK_FAILURE",
-    title: "a transient network failure",
-    situation: "A registry or provider connection is refused once.",
-    injection: "driver host crashes with a network signature, then succeeds",
-    expectation: "SELF_RECOVERED",
-    expectedBehaviour: "RECOVERING_PROVIDER and a bounded retry"
-  },
-  {
-    id: "ZT-15",
-    fault: "CONTROL_PLANE_RUNNER_DEFECT",
-    title: "a SpecBridge runner defect",
-    situation: "The provider CLI rejects an argument SpecBridge passes.",
-    injection: "driver host crashes with an unknown-option signature",
-    expectation: "SELF_RECOVERED",
-    expectedBehaviour: "REPAIRING_CONTROL_PLANE; the governed repair path runs and the operator does not become the SpecBridge maintainer"
-  },
-  {
-    id: "ZT-16",
-    fault: "SEALED_CONTRACT_CHANGE_REQUIRED",
-    title: "completing the work requires changing a sealed public contract",
-    situation: "The only way to satisfy a requirement is to change the public API the human already approved.",
-    injection: "the authority resolver is asked about a public-api replan",
-    expectation: "NEEDS_AUTHORITY",
-    expectedBehaviour: "the job stops in NEEDS_AUTHORITY with the question recorded, and the sealed contract is NOT modified"
-  }
-]);
-var shortText132 = external_exports.string().max(200);
-var text13 = external_exports.string().max(4e3);
-var certificationScenarioResultSchema = external_exports.object({
-  scenarioId: shortText132,
-  fault: external_exports.enum(ZERO_TOUCH_FAULTS),
-  expectation: external_exports.enum(ZERO_TOUCH_EXPECTATIONS),
-  outcome: external_exports.enum(ZERO_TOUCH_OUTCOMES),
-  /** Human interventions observed. Anything above zero fails the scenario. */
-  humanInterventions: external_exports.number().int().min(0),
-  /** Authority escalations. Expected exactly on the authority scenario. */
-  authorityEscalations: external_exports.number().int().min(0),
-  /** What the runtime actually did, in one or two lines. */
-  observed: text13,
-  /** The job status the scenario ended in. */
-  finalStatus: shortText132.optional(),
-  /** Operational statuses the job passed through, in order. */
-  recoveryPath: external_exports.array(shortText132).max(30).default([]),
-  /** Present when the scenario could not run here. Never a pass. */
-  skipReason: text13.optional(),
-  startedAt: shortText132,
-  finishedAt: shortText132.optional(),
-  durationMs: external_exports.number().int().min(0).nullable().default(null)
-}).passthrough();
-var certificationRunSchema = external_exports.object({
-  schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  runId: shortText132,
-  createdAt: shortText132,
-  finishedAt: shortText132.optional(),
-  host: shortText132,
-  verdict: external_exports.enum(CERTIFICATION_VERDICTS),
-  results: external_exports.array(certificationScenarioResultSchema).max(100).default([]),
-  /** Totals, hoisted so the headline needs no arithmetic. */
-  totals: external_exports.object({
-    total: external_exports.number().int().min(0),
-    selfRecovered: external_exports.number().int().min(0),
-    needsAuthority: external_exports.number().int().min(0),
-    askedHuman: external_exports.number().int().min(0),
-    stuck: external_exports.number().int().min(0),
-    selfAuthorized: external_exports.number().int().min(0),
-    skipped: external_exports.number().int().min(0),
-    notRun: external_exports.number().int().min(0)
-  }).passthrough(),
-  /**
-   * Total human interventions across every scenario. The headline number:
-   * a certified run has zero, and any non-zero value is named here rather
-   * than buried in a per-scenario field.
-   */
-  humanInterventionsAfterSeal: external_exports.number().int().min(0),
-  /** Why the verdict is what it is, in one or two lines. */
-  rationale: text13,
-  /** Scenarios that failed, with what happened, for the report. */
-  failures: external_exports.array(external_exports.object({ scenarioId: shortText132, outcome: shortText132, observed: text13 }).passthrough()).max(100).default([])
-}).passthrough();
-
-// ../../packages/intake/dist/index.js
-var import_fs47 = require("fs");
-var import_path50 = __toESM(require("path"), 1);
-var import_path51 = __toESM(require("path"), 1);
 var import_fs48 = require("fs");
-var import_path52 = __toESM(require("path"), 1);
+var import_path51 = __toESM(require("path"), 1);
 var import_fs49 = require("fs");
-var import_path53 = __toESM(require("path"), 1);
+var import_path52 = __toESM(require("path"), 1);
 var import_fs50 = require("fs");
+var import_path53 = __toESM(require("path"), 1);
 var import_path54 = __toESM(require("path"), 1);
+var import_fs51 = require("fs");
+var import_path55 = __toESM(require("path"), 1);
+var import_fs52 = require("fs");
+var import_path56 = __toESM(require("path"), 1);
+var import_fs53 = require("fs");
+var import_path57 = __toESM(require("path"), 1);
 var INTAKE_STATUSES = [
   /** The source specification is ingested; discovery has not run. */
   "INGESTED",
@@ -86616,11 +88593,11 @@ function missionDepsOf(deps) {
     host: deps.host
   };
 }
-function now3(deps) {
+function now5(deps) {
   return (deps.clock ?? (() => /* @__PURE__ */ new Date()))();
 }
-function nowIso2(deps) {
-  return now3(deps).toISOString();
+function nowIso3(deps) {
+  return now5(deps).toISOString();
 }
 function hostOf(deps) {
   return deps.host ?? "cli";
@@ -87039,10 +89016,10 @@ var intakeTelemetrySchema = external_exports.object({
   jobId: shortText19.optional(),
   sealId: shortText19.optional()
 }).passthrough();
-var ID_PATTERN4 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+var ID_PATTERN5 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 var INTAKE_DIR_NAME = "intake";
 function assertIntakeId(id) {
-  if (!ID_PATTERN4.test(id)) {
+  if (!ID_PATTERN5.test(id)) {
     throw new IntakeError("SBI005", `Invalid spec intake id "${id}".`, {
       remediation: ["Ids are generated by SpecBridge; pass one returned by an intake operation."],
       details: { id }
@@ -87053,41 +89030,41 @@ function assertIntakeId(id) {
 function intakeRootDir(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path48.default.join(workspace.rootDir, ".specbridge", INTAKE_DIR_NAME)
+    import_path51.default.join(workspace.rootDir, ".specbridge", INTAKE_DIR_NAME)
   );
 }
 function intakeDir(workspace, intakeId) {
   assertIntakeId(intakeId);
-  return assertInsideWorkspace(workspace.rootDir, import_path48.default.join(intakeRootDir(workspace), intakeId));
+  return assertInsideWorkspace(workspace.rootDir, import_path51.default.join(intakeRootDir(workspace), intakeId));
 }
 function intakePath(workspace, intakeId, ...segments) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path48.default.join(intakeDir(workspace, intakeId), ...segments)
+    import_path51.default.join(intakeDir(workspace, intakeId), ...segments)
   );
 }
 function writeJson(file, value) {
-  (0, import_fs45.mkdirSync)(import_path48.default.dirname(file), { recursive: true });
+  (0, import_fs48.mkdirSync)(import_path51.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(value, null, 2)}
 `);
 }
 function readJson2(file, parse3) {
-  if (!(0, import_fs45.existsSync)(file)) return void 0;
+  if (!(0, import_fs48.existsSync)(file)) return void 0;
   try {
-    return parse3(JSON.parse((0, import_fs45.readFileSync)(file, "utf8")));
+    return parse3(JSON.parse((0, import_fs48.readFileSync)(file, "utf8")));
   } catch {
     return void 0;
   }
 }
 function appendJsonl2(file, value) {
-  (0, import_fs45.mkdirSync)(import_path48.default.dirname(file), { recursive: true });
-  (0, import_fs45.appendFileSync)(file, `${JSON.stringify(value)}
+  (0, import_fs48.mkdirSync)(import_path51.default.dirname(file), { recursive: true });
+  (0, import_fs48.appendFileSync)(file, `${JSON.stringify(value)}
 `, "utf8");
 }
 function readFolded(file, key, parse3) {
-  if (!(0, import_fs45.existsSync)(file)) return [];
+  if (!(0, import_fs48.existsSync)(file)) return [];
   const folded = /* @__PURE__ */ new Map();
-  for (const line of (0, import_fs45.readFileSync)(file, "utf8").split("\n")) {
+  for (const line of (0, import_fs48.readFileSync)(file, "utf8").split("\n")) {
     if (line.trim().length === 0) continue;
     try {
       const value = parse3(JSON.parse(line));
@@ -87120,16 +89097,16 @@ function writeIntakeState(workspace, state) {
 }
 function listIntakes(workspace) {
   const root = intakeRootDir(workspace);
-  if (!(0, import_fs45.existsSync)(root)) return { intakes: [], diagnostics: [] };
+  if (!(0, import_fs48.existsSync)(root)) return { intakes: [], diagnostics: [] };
   const intakes = [];
   const diagnostics = [];
-  for (const entry of (0, import_fs45.readdirSync)(root, { withFileTypes: true })) {
+  for (const entry of (0, import_fs48.readdirSync)(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    if (!ID_PATTERN4.test(entry.name)) continue;
-    const file = import_path48.default.join(root, entry.name, "intake.json");
-    if (!(0, import_fs45.existsSync)(file)) continue;
+    if (!ID_PATTERN5.test(entry.name)) continue;
+    const file = import_path51.default.join(root, entry.name, "intake.json");
+    if (!(0, import_fs48.existsSync)(file)) continue;
     try {
-      intakes.push(specIntakeStateSchema.parse(JSON.parse((0, import_fs45.readFileSync)(file, "utf8"))));
+      intakes.push(specIntakeStateSchema.parse(JSON.parse((0, import_fs48.readFileSync)(file, "utf8"))));
     } catch (cause) {
       diagnostics.push({
         intakeId: entry.name,
@@ -87159,8 +89136,8 @@ function sourceFile(workspace, intakeId, contentHash) {
 }
 function storeSourceText(workspace, intakeId, contentHash, content) {
   const file = sourceFile(workspace, intakeId, contentHash);
-  if (!(0, import_fs45.existsSync)(file)) {
-    (0, import_fs45.mkdirSync)(import_path48.default.dirname(file), { recursive: true });
+  if (!(0, import_fs48.existsSync)(file)) {
+    (0, import_fs48.mkdirSync)(import_path51.default.dirname(file), { recursive: true });
     writeFileAtomic(file, content);
   }
   return file;
@@ -87252,7 +89229,7 @@ function appendIntakeEvent(workspace, intakeId, event) {
 function baselineFile(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path48.default.join(intakeRootDir(workspace), "baseline.json")
+    import_path51.default.join(intakeRootDir(workspace), "baseline.json")
   );
 }
 function readProductBaseline(workspace) {
@@ -87862,7 +89839,7 @@ var BUILD_MARKERS = [
 ];
 function detectBuildSystem(rootDir) {
   for (const marker of BUILD_MARKERS) {
-    if ((0, import_fs46.existsSync)(import_path49.default.join(rootDir, marker.file))) return marker.system;
+    if ((0, import_fs49.existsSync)(import_path52.default.join(rootDir, marker.file))) return marker.system;
   }
   return null;
 }
@@ -87899,33 +89876,33 @@ var PUBLIC_INTERFACE_PATTERNS = [
 var TEST_DIR_PATTERN = /^(tests?|spec|specs|__tests__|it|integration-tests?|e2e)$/i;
 function readGitHead(rootDir) {
   try {
-    const dotGit = import_path49.default.join(rootDir, ".git");
-    if (!(0, import_fs46.existsSync)(dotGit)) return null;
+    const dotGit = import_path52.default.join(rootDir, ".git");
+    if (!(0, import_fs49.existsSync)(dotGit)) return null;
     let gitDir = dotGit;
-    if ((0, import_fs46.statSync)(dotGit).isFile()) {
-      const pointer = (0, import_fs46.readFileSync)(dotGit, "utf8").trim();
+    if ((0, import_fs49.statSync)(dotGit).isFile()) {
+      const pointer = (0, import_fs49.readFileSync)(dotGit, "utf8").trim();
       const match = /^gitdir:\s*(.+)$/.exec(pointer);
       if (match === null) return null;
       const target = match[1] ?? "";
-      gitDir = import_path49.default.isAbsolute(target) ? target : import_path49.default.resolve(rootDir, target);
+      gitDir = import_path52.default.isAbsolute(target) ? target : import_path52.default.resolve(rootDir, target);
     }
-    const headFile = import_path49.default.join(gitDir, "HEAD");
-    if (!(0, import_fs46.existsSync)(headFile)) return null;
-    const head = (0, import_fs46.readFileSync)(headFile, "utf8").trim();
+    const headFile = import_path52.default.join(gitDir, "HEAD");
+    if (!(0, import_fs49.existsSync)(headFile)) return null;
+    const head = (0, import_fs49.readFileSync)(headFile, "utf8").trim();
     if (/^[0-9a-f]{40}$/i.test(head)) return head.toLowerCase();
     const refMatch = /^ref:\s*(.+)$/.exec(head);
     if (refMatch === null) return null;
     const ref = (refMatch[1] ?? "").trim();
     for (const dir of refDirsFor(gitDir)) {
-      const refFile = import_path49.default.join(dir, ...ref.split("/"));
-      if (!(0, import_fs46.existsSync)(refFile)) continue;
-      const sha = (0, import_fs46.readFileSync)(refFile, "utf8").trim();
+      const refFile = import_path52.default.join(dir, ...ref.split("/"));
+      if (!(0, import_fs49.existsSync)(refFile)) continue;
+      const sha = (0, import_fs49.readFileSync)(refFile, "utf8").trim();
       if (/^[0-9a-f]{40}$/i.test(sha)) return sha.toLowerCase();
     }
     for (const dir of refDirsFor(gitDir)) {
-      const packed = import_path49.default.join(dir, "packed-refs");
-      if (!(0, import_fs46.existsSync)(packed)) continue;
-      for (const line of (0, import_fs46.readFileSync)(packed, "utf8").split("\n")) {
+      const packed = import_path52.default.join(dir, "packed-refs");
+      if (!(0, import_fs49.existsSync)(packed)) continue;
+      for (const line of (0, import_fs49.readFileSync)(packed, "utf8").split("\n")) {
         const entry = /^([0-9a-f]{40})\s+(.+)$/.exec(line.trim());
         if (entry !== null && entry[2] === ref) return (entry[1] ?? "").toLowerCase();
       }
@@ -87937,12 +89914,12 @@ function readGitHead(rootDir) {
 }
 function refDirsFor(gitDir) {
   const dirs = [gitDir];
-  const commonFile = import_path49.default.join(gitDir, "commondir");
-  if ((0, import_fs46.existsSync)(commonFile)) {
+  const commonFile = import_path52.default.join(gitDir, "commondir");
+  if ((0, import_fs49.existsSync)(commonFile)) {
     try {
-      const target = (0, import_fs46.readFileSync)(commonFile, "utf8").trim();
+      const target = (0, import_fs49.readFileSync)(commonFile, "utf8").trim();
       if (target.length > 0) {
-        dirs.push(import_path49.default.isAbsolute(target) ? target : import_path49.default.resolve(gitDir, target));
+        dirs.push(import_path52.default.isAbsolute(target) ? target : import_path52.default.resolve(gitDir, target));
       }
     } catch {
     }
@@ -87994,7 +89971,7 @@ function groundInRepository(deps, request) {
       summary: `existing Kiro spec with ${folder.files.length} document(s)`,
       authoritative: false,
       topics: [],
-      path: import_path49.default.posix.join(".kiro", "specs", folder.name)
+      path: import_path52.default.posix.join(".kiro", "specs", folder.name)
     });
   }
   for (const steering of safeSteering(workspace, notes)) {
@@ -88005,7 +89982,7 @@ function groundInRepository(deps, request) {
       summary: `steering document (${steering.inclusion})`,
       authoritative: false,
       topics: [],
-      path: import_path49.default.posix.join(".kiro", "steering", steering.fileName)
+      path: import_path52.default.posix.join(".kiro", "steering", steering.fileName)
     });
   }
   const buildSystem = detectBuildSystem(workspace.rootDir);
@@ -88049,7 +90026,7 @@ function groundInRepository(deps, request) {
     });
   }
   for (const container of modules.slice(0, 40)) {
-    const dir = import_path49.default.join(workspace.rootDir, container);
+    const dir = import_path52.default.join(workspace.rootDir, container);
     for (const entry of safeReaddir(dir, notes)) {
       if (!entry.isDirectory()) continue;
       if (MODULE_DENYLIST.has(entry.name) || entry.name.startsWith(".")) continue;
@@ -88099,7 +90076,7 @@ function groundInRepository(deps, request) {
   return {
     schemaVersion: INTAKE_GROUNDING_SCHEMA_VERSION,
     intakeId: request.intakeId,
-    groundedAt: nowIso2(deps),
+    groundedAt: nowIso3(deps),
     baselineCommit: readGitHead(workspace.rootDir),
     existingProduct,
     evidence: evidence.slice(0, INTAKE_LIMITS.maxEvidence),
@@ -88201,7 +90178,7 @@ function safeSteering(workspace, notes) {
 }
 function safeReaddir(dir, notes) {
   try {
-    return (0, import_fs46.readdirSync)(dir, { withFileTypes: true });
+    return (0, import_fs49.readdirSync)(dir, { withFileTypes: true });
   } catch (cause) {
     notes.push(`Directory ${dir} could not be listed: ${message(cause)}.`);
     return [];
@@ -88303,10 +90280,10 @@ function analyzeDeltaAuthority(request) {
     );
   }
   for (const cls of AUTHORITY_SENSITIVE_DELTA_CLASSES) {
-    const count3 = counts[cls] ?? 0;
-    if (count3 === 0) continue;
+    const count4 = counts[cls] ?? 0;
+    if (count4 === 0) continue;
     reasons.push(
-      `${count3} statement(s) classified ${cls} and need a product decision before this specification can be approved.`
+      `${count4} statement(s) classified ${cls} and need a product decision before this specification can be approved.`
     );
   }
   const complete = items.length > 0 && authoritySensitive.length === 0;
@@ -89013,14 +90990,14 @@ function emptyProjectionMap() {
 function mapFile(workspace, intakeId) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path50.default.join(workspace.rootDir, ".specbridge", "intake", intakeId, "mission-map.json")
+    import_path53.default.join(workspace.rootDir, ".specbridge", "intake", intakeId, "mission-map.json")
   );
 }
 function readProjectionMap(workspace, intakeId) {
   const file = mapFile(workspace, intakeId);
-  if (!(0, import_fs47.existsSync)(file)) return emptyProjectionMap();
+  if (!(0, import_fs50.existsSync)(file)) return emptyProjectionMap();
   try {
-    const raw = JSON.parse((0, import_fs47.readFileSync)(file, "utf8"));
+    const raw = JSON.parse((0, import_fs50.readFileSync)(file, "utf8"));
     return {
       itemContracts: raw.itemContracts ?? {},
       itemDecisions: raw.itemDecisions ?? {},
@@ -89035,7 +91012,7 @@ function readProjectionMap(workspace, intakeId) {
 }
 function writeProjectionMap(workspace, intakeId, map) {
   const file = mapFile(workspace, intakeId);
-  (0, import_fs47.mkdirSync)(import_path50.default.dirname(file), { recursive: true });
+  (0, import_fs50.mkdirSync)(import_path53.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(map, null, 2)}
 `);
 }
@@ -89585,7 +91562,7 @@ function startSpecIntake(deps, request) {
   const contentHash = sha256Hex(content);
   const storedPath = storeSourceText(deps.workspace, intakeId, contentHash, content);
   const parsed = parseSpecificationDocument(content);
-  const at = nowIso2(deps);
+  const at = nowIso3(deps);
   const goal = request.goal?.trim() ?? deriveGoal(parsed.chunks, name);
   const mission = beginMission(missionDepsOf(deps), { name, goal });
   const source = writeSpecSource(deps.workspace, {
@@ -89597,7 +91574,7 @@ function startSpecIntake(deps, request) {
     receivedVia: hostOf(deps),
     byteLength,
     contentHash,
-    storedAt: import_path51.default.posix.join(
+    storedAt: import_path54.default.posix.join(
       ".specbridge",
       "intake",
       intakeId,
@@ -89658,7 +91635,7 @@ function runIntakeDiscovery(deps, intakeId, options = {}) {
     throw new IntakeError("SBI004", `Spec intake ${intakeId} is ABANDONED and read-only.`);
   }
   const source = requireSpecSource(deps.workspace, intakeId);
-  const at = nowIso2(deps);
+  const at = nowIso3(deps);
   const grounding = writeGrounding(
     deps.workspace,
     groundInRepository(deps, {
@@ -89902,7 +91879,7 @@ function answerIntakeQuestion(deps, intakeId, request, options = {}) {
       `Question ${request.questionId} was never mirrored into the mission and cannot record a governed answer.`
     );
   }
-  const at = nowIso2(deps);
+  const at = nowIso3(deps);
   const result = answerQuestion(missionDepsOf(deps), intake.missionId, {
     questionId: question.missionQuestionId,
     answer
@@ -90169,7 +92146,7 @@ var repositoryManifestSchema = external_exports.object({
 function repositoryManifestFile(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path52.default.join(workspace.sidecarDir, "repositories.json")
+    import_path55.default.join(workspace.sidecarDir, "repositories.json")
   );
 }
 var DETECTION_DENYLIST = /* @__PURE__ */ new Set([
@@ -90186,10 +92163,10 @@ var DETECTION_DENYLIST = /* @__PURE__ */ new Set([
 ]);
 function readRepositoryManifest(workspace) {
   const file = repositoryManifestFile(workspace);
-  if (!(0, import_fs48.existsSync)(file)) return void 0;
+  if (!(0, import_fs51.existsSync)(file)) return void 0;
   let raw;
   try {
-    raw = JSON.parse((0, import_fs48.readFileSync)(file, "utf8"));
+    raw = JSON.parse((0, import_fs51.readFileSync)(file, "utf8"));
   } catch (cause) {
     throw new IntakeError("SBI018", `The repository manifest at ${file} is not valid JSON.`, {
       remediation: ["Fix or delete .specbridge/repositories.json; without it the workspace root is the repository."],
@@ -90209,7 +92186,7 @@ function resolveRepositories(workspace) {
       }
       seen.add(entry.id);
       const absDir = assertInsideWorkspace(workspace.rootDir, entry.path);
-      if (!(0, import_fs48.existsSync)(absDir) || !(0, import_fs48.statSync)(absDir).isDirectory()) {
+      if (!(0, import_fs51.existsSync)(absDir) || !(0, import_fs51.statSync)(absDir).isDirectory()) {
         throw new IntakeError(
           "SBI018",
           `The repository manifest names "${entry.id}" at ${entry.path}, which is not a directory.`,
@@ -90226,11 +92203,11 @@ function resolveRepositories(workspace) {
   }
   const children = [];
   try {
-    for (const entry of (0, import_fs48.readdirSync)(workspace.rootDir, { withFileTypes: true })) {
+    for (const entry of (0, import_fs51.readdirSync)(workspace.rootDir, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
       if (DETECTION_DENYLIST.has(entry.name) || entry.name.startsWith(".")) continue;
-      const absDir = import_path52.default.join(workspace.rootDir, entry.name);
-      if (!(0, import_fs48.existsSync)(import_path52.default.join(absDir, ".git"))) continue;
+      const absDir = import_path55.default.join(workspace.rootDir, entry.name);
+      if (!(0, import_fs51.existsSync)(import_path55.default.join(absDir, ".git"))) continue;
       if (children.length >= BOOTSTRAP_LIMITS.maxRepositories) {
         notes.push("More child repositories exist than the bootstrap bound; declare a manifest to choose.");
         break;
@@ -90241,7 +92218,7 @@ function resolveRepositories(workspace) {
     notes.push(`The workspace root could not be listed: ${cause instanceof Error ? cause.message : String(cause)}.`);
   }
   if (children.length > 0) {
-    const rootIsRepo = (0, import_fs48.existsSync)(import_path52.default.join(workspace.rootDir, ".git"));
+    const rootIsRepo = (0, import_fs51.existsSync)(import_path55.default.join(workspace.rootDir, ".git"));
     const repositories = rootIsRepo ? [resolved(workspace, rootRepositoryId(workspace), workspace.rootDir, void 0), ...children] : children;
     return {
       repositories: repositories.slice(0, BOOTSTRAP_LIMITS.maxRepositories),
@@ -90256,18 +92233,18 @@ function resolveRepositories(workspace) {
   };
 }
 function rootRepositoryId(workspace) {
-  const base = import_path52.default.basename(workspace.rootDir).replace(/[^A-Za-z0-9._-]/g, "-").replace(/^[^A-Za-z0-9]+/, "");
+  const base = import_path55.default.basename(workspace.rootDir).replace(/[^A-Za-z0-9._-]/g, "-").replace(/^[^A-Za-z0-9]+/, "");
   return base.length > 0 ? base.slice(0, 64) : "workspace";
 }
 function resolved(workspace, repositoryId, absDir, role) {
-  const relPath = import_path52.default.relative(workspace.rootDir, absDir).replace(/\\/g, "/");
+  const relPath = import_path55.default.relative(workspace.rootDir, absDir).replace(/\\/g, "/");
   return {
     repositoryId,
     relPath,
     ...role !== void 0 ? { role } : {},
     absDir,
     gitHead: readGitHead(absDir),
-    isGitRepository: (0, import_fs48.existsSync)(import_path52.default.join(absDir, ".git"))
+    isGitRepository: (0, import_fs51.existsSync)(import_path55.default.join(absDir, ".git"))
   };
 }
 function repositoryOfPath(repositories, workspaceRelativePath) {
@@ -90460,7 +92437,7 @@ function synthesizeSystemFindings(input) {
     });
   }
   const manifestEntries = entries.filter(
-    (entry) => MANIFEST_BASENAMES.has(import_path53.default.posix.basename(entry.path).toLowerCase())
+    (entry) => MANIFEST_BASENAMES.has(import_path56.default.posix.basename(entry.path).toLowerCase())
   );
   const architectureLabels = /* @__PURE__ */ new Map();
   for (const entry of manifestEntries.slice(0, 40)) {
@@ -90505,7 +92482,7 @@ function synthesizeSystemFindings(input) {
     architecture.push({
       findingId: ids("arc"),
       class: "OBSERVED_IMPLEMENTATION",
-      statement: clip3(`${label} (declared by ${import_path53.default.posix.basename(entry.path)}).`),
+      statement: clip3(`${label} (declared by ${import_path56.default.posix.basename(entry.path)}).`),
       evidence: [fileRef(entry)]
     });
   }
@@ -90650,7 +92627,7 @@ function synthesizeSystemFindings(input) {
       findingId: ids("con"),
       class: "OBSERVED_IMPLEMENTATION",
       statement: clip3(
-        `Repository "${repo.repositoryId}" builds with ${import_path53.default.posix.basename(marker.path)}.`
+        `Repository "${repo.repositoryId}" builds with ${import_path56.default.posix.basename(marker.path)}.`
       ),
       evidence: [fileRef(marker)]
     });
@@ -90722,9 +92699,9 @@ function clip3(value) {
 }
 function boundedRead(workspace, relPath) {
   try {
-    const abs = import_path53.default.join(workspace.rootDir, relPath);
-    if (!(0, import_fs49.existsSync)(abs)) return void 0;
-    const body = (0, import_fs49.readFileSync)(abs, "utf8");
+    const abs = import_path56.default.join(workspace.rootDir, relPath);
+    if (!(0, import_fs52.existsSync)(abs)) return void 0;
+    const body = (0, import_fs52.readFileSync)(abs, "utf8");
     return body.length > MAX_MANIFEST_READ_BYTES ? body.slice(0, MAX_MANIFEST_READ_BYTES) : body;
   } catch {
     return void 0;
@@ -90765,25 +92742,25 @@ function safeSeals(workspace) {
   }
 }
 function bootstrapDir(workspace) {
-  return assertInsideWorkspace(workspace.rootDir, import_path54.default.join(workspace.sidecarDir, "bootstrap"));
+  return assertInsideWorkspace(workspace.rootDir, import_path57.default.join(workspace.sidecarDir, "bootstrap"));
 }
 function snapshotFile(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path54.default.join(bootstrapDir(workspace), "current-system-snapshot.json")
+    import_path57.default.join(bootstrapDir(workspace), "current-system-snapshot.json")
   );
 }
 function readCurrentSystemSnapshot(workspace) {
   const file = snapshotFile(workspace);
-  if (!(0, import_fs50.existsSync)(file)) return void 0;
+  if (!(0, import_fs53.existsSync)(file)) return void 0;
   try {
-    return currentSystemSnapshotSchema.parse(JSON.parse((0, import_fs50.readFileSync)(file, "utf8")));
+    return currentSystemSnapshotSchema.parse(JSON.parse((0, import_fs53.readFileSync)(file, "utf8")));
   } catch {
     return void 0;
   }
 }
 function persistSnapshot(workspace, snapshot2) {
-  (0, import_fs50.mkdirSync)(bootstrapDir(workspace), { recursive: true });
+  (0, import_fs53.mkdirSync)(bootstrapDir(workspace), { recursive: true });
   writeFileAtomic(snapshotFile(workspace), `${JSON.stringify(snapshot2, null, 2)}
 `);
 }
@@ -90831,7 +92808,7 @@ function bootstrapWorkspace(deps, options = {}) {
   const ensured = ensureRepositoryIndex({
     workspace,
     config: deps.config,
-    now: nowIso2(deps),
+    now: nowIso3(deps),
     // Bootstrap has no Git snapshot to name additions, so the refresh walks
     // for them: a snapshot that missed a brand-new capability file would
     // claim currency over a repository it has not actually seen.
@@ -90881,12 +92858,12 @@ function bootstrapWorkspace(deps, options = {}) {
     schemaVersion: BOOTSTRAP_SCHEMA_VERSION,
     snapshotId: `snap-${contentHash.slice(0, 12)}`,
     workspaceKey: workspaceKeyFor(workspace.rootDir),
-    createdAt: nowIso2(deps),
+    createdAt: nowIso3(deps),
     ...material,
     indexStats: {
       entries: ensured.state.entries.length,
       truncated: ensured.state.truncated,
-      skipped: Object.values(ensured.state.skippedCounts).reduce((sum, count3) => sum + count3, 0)
+      skipped: Object.values(ensured.state.skippedCounts).reduce((sum, count4) => sum + count4, 0)
     },
     contentHash
   });
@@ -90899,11 +92876,11 @@ function bootstrapWorkspace(deps, options = {}) {
   };
 }
 function countIndexed(index, repositories, repo) {
-  let count3 = 0;
+  let count4 = 0;
   for (const entry of index.entries) {
-    if (repositoryOfPath(repositories, entry.path)?.repositoryId === repo.repositoryId) count3 += 1;
+    if (repositoryOfPath(repositories, entry.path)?.repositoryId === repo.repositoryId) count4 += 1;
   }
-  return count3;
+  return count4;
 }
 function readWorkspaceSnapshot(workspace) {
   const snapshot2 = readCurrentSystemSnapshot(workspace);
@@ -90924,7 +92901,7 @@ function inspectWorkspace(deps, options) {
   const ensured = ensureRepositoryIndex({
     workspace,
     config: deps.config,
-    now: nowIso2(deps)
+    now: nowIso3(deps)
   });
   const query = buildRetrievalQuery({
     taskId: "workspace-inspect",
@@ -90956,7 +92933,7 @@ function inspectWorkspace(deps, options) {
     }
     let body;
     try {
-      body = (0, import_fs50.readFileSync)(
+      body = (0, import_fs53.readFileSync)(
         assertInsideWorkspace(workspace.rootDir, entry.path),
         "utf8"
       );
@@ -92039,6 +94016,7 @@ function registerAllTools(server, context) {
   registerOrchestrationFinalizeTool(server, context);
   registerJobListTool(server, context);
   registerJobReadTool(server, context);
+  registerJobReportTool(server, context);
   registerJobCancelTool(server, context);
   registerMissionBeginTool(server, context);
   registerMissionStatusTool(server, context);

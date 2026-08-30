@@ -7,7 +7,7 @@ Generated from the authoritative registries of the `specbridge` MCP server
 (version 1.1.0). Tool names, resource URI templates, and prompt
 names are stable contracts — see docs/stability/public-contracts.md.
 
-## Tools (77)
+## Tools (78)
 
 | Tool | Access | Summary |
 | --- | --- | --- |
@@ -22,6 +22,7 @@ names are stable contracts — see docs/stability/public-contracts.md.
 | `job_cancel` | write | Cancel a job (final, idempotent, evidence preserved) |
 | `job_list` | read-only | List long-running orchestration jobs |
 | `job_read` | read-only | One job in depth: graph, attempts, questions, checkpoint |
+| `job_report` | read-only | Durable Job operational and token-conservation report |
 | `mission_answer` | write | Record the user’s answer to one discovery question |
 | `mission_assess` | write | Record a governed structured discovery assessment |
 | `mission_begin` | write | Begin Mission Discovery from a product direction |

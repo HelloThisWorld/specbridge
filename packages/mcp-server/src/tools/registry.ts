@@ -54,6 +54,7 @@ import {
   registerOrchestrationSubmitPlanTool,
 } from './orchestration-tools.js';
 import { registerJobCancelTool, registerJobListTool, registerJobReadTool } from './job-tools.js';
+import { registerJobReportTool } from './job-report.js';
 import {
   registerContractChangeRequestTool,
   registerContractListTool,
@@ -159,6 +160,7 @@ export const TOOL_CATALOG: readonly ToolRegistryEntry[] = [
   { name: 'orchestration_finalize', readOnly: false, summary: 'Close a run (completion needs verified evidence)' },
   { name: 'job_list', readOnly: true, summary: 'List long-running orchestration jobs' },
   { name: 'job_read', readOnly: true, summary: 'One job in depth: graph, attempts, questions, checkpoint' },
+  { name: 'job_report', readOnly: true, summary: 'Durable Job operational and token-conservation report' },
   { name: 'job_cancel', readOnly: false, summary: 'Cancel a job (final, idempotent, evidence preserved)' },
   { name: 'mission_begin', readOnly: false, summary: 'Begin Mission Discovery from a product direction' },
   { name: 'mission_status', readOnly: true, summary: 'List missions with lifecycle status and readiness' },
@@ -246,6 +248,7 @@ export function registerAllTools(server: McpServer, context: ServerContext): voi
   registerOrchestrationFinalizeTool(server, context);
   registerJobListTool(server, context);
   registerJobReadTool(server, context);
+  registerJobReportTool(server, context);
   registerJobCancelTool(server, context);
   registerMissionBeginTool(server, context);
   registerMissionStatusTool(server, context);

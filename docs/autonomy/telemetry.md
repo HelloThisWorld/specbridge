@@ -89,6 +89,11 @@ first process restart — and process restarts are the normal case here.
 specbridge autonomy report <jobId>
 ```
 
+For the Phase 9 Job/WorkUnit routing, research, cooldown, token-conservation,
+verification, and closure report, see
+[Execution telemetry and token conservation](execution-telemetry.md) and run
+`specbridge report job <jobId>`.
+
 ```
 Autonomy
   ✓ humanInterventionsAfterSeal: 0
