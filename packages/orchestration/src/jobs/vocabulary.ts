@@ -623,5 +623,8 @@ export const JOB_EVENT_TYPES = [
   // verification detail live in the durable attempt artifact.
   'secondary_builder_attempted',
   'secondary_candidate_succeeded',
+  // Phase 6 admission evidence. This records eligibility only; it never
+  // selects an execution lane or model.
+  'secondary_readiness_assessed',
 ] as const;
 export type JobEventType = (typeof JOB_EVENT_TYPES)[number];

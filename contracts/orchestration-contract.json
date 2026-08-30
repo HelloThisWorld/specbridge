@@ -127,6 +127,11 @@
     "SMALL",
     "UNKNOWN"
   ],
+  "decisionEntropies": [
+    "HIGH",
+    "LOW",
+    "MEDIUM"
+  ],
   "defectSources": [
     "CONFIGURATION",
     "CONTEXT_RETRIEVAL",
@@ -140,6 +145,12 @@
     "HIGH",
     "LOW",
     "MEDIUM"
+  ],
+  "dependencyReadinessStates": [
+    "AMBIGUOUS",
+    "INCOMPLETE",
+    "READY",
+    "STALE"
   ],
   "dogfoodRunStatuses": [
     "ABANDONED",
@@ -397,6 +408,11 @@
     "RUNTIME_FAILURE",
     "UNNECESSARY_CLARIFICATION"
   ],
+  "implementationSpecificities": [
+    "ABSTRACT",
+    "BOUNDED",
+    "CONCRETE"
+  ],
   "intentOutcomes": [
     "BLOCKED",
     "NEEDS_CLARIFICATION",
@@ -557,6 +573,7 @@
     "scheduling_decision_created",
     "secondary_builder_attempted",
     "secondary_candidate_succeeded",
+    "secondary_readiness_assessed",
     "self_heal_applied",
     "semantic_review_completed",
     "supervisor_attached",
@@ -607,6 +624,12 @@
     "RUNNING",
     "WAITING_RESOURCE",
     "WAITING_RETRY"
+  ],
+  "knowledgeStates": [
+    "EXTERNAL_UNKNOWN",
+    "KNOWN",
+    "RESOLVED_BY_RESEARCH",
+    "UNCERTAIN"
   ],
   "laneDecisions": [
     "API",
@@ -909,6 +932,11 @@
     "PASS",
     "PASS_WITH_LIMITATIONS"
   ],
+  "repositoryMutationScopes": [
+    "BOUNDED",
+    "BROAD",
+    "UNKNOWN"
+  ],
   "repositorySizeClasses": [
     "LARGE",
     "MEDIUM",
@@ -1071,6 +1099,14 @@
     "TIMEOUT",
     "VERIFICATION_FAILURE"
   ],
+  "secondaryEligibilityStatuses": [
+    "ELIGIBLE",
+    "NEEDS_AUTHORITY",
+    "NEEDS_CONTEXT",
+    "NEEDS_RESEARCH",
+    "NOT_READY",
+    "STRONG_REQUIRED"
+  ],
   "stateInvariantIds": [
     "API_BUDGET_RECONCILES",
     "ATTEMPTS_REFERENCE_KNOWN_NODES",
@@ -1119,6 +1155,46 @@
   "verificationStrengths": [
     "DETERMINISTIC",
     "NONE"
+  ],
+  "workReadinessContextStates": [
+    "AMBIGUOUS",
+    "INSUFFICIENT",
+    "SUFFICIENT"
+  ],
+  "workReadinessReasonCodes": [
+    "ABSTRACT_IMPLEMENTATION",
+    "APPROVED_AUTHORITY",
+    "AUTHORITY_UNRESOLVED",
+    "BOUNDED_TARGET",
+    "BROAD_MUTATION_SCOPE",
+    "CONCRETE_TARGET",
+    "CONTEXT_INSUFFICIENT",
+    "CONTEXT_SUFFICIENT",
+    "CONTRACT_MUTATION_REQUIRED",
+    "DEPENDENCIES_READY",
+    "DEPENDENCY_AMBIGUOUS",
+    "DEPENDENCY_NOT_READY",
+    "DEPENDENCY_STALE",
+    "HIGH_DECISION_ENTROPY",
+    "KNOWLEDGE_EXTERNAL_UNKNOWN",
+    "KNOWLEDGE_UNCERTAIN",
+    "KNOWN_IMPLEMENTATION_FACTS",
+    "LOW_DECISION_ENTROPY",
+    "MEDIUM_DECISION_ENTROPY",
+    "NO_TRUSTED_VERIFICATION",
+    "PARENT_COMPLEXITY_ADVISORY",
+    "REFERENCE_PATTERN_AVAILABLE",
+    "RESEARCH_RESOLVED",
+    "STRONG_VERIFICATION",
+    "TARGET_AMBIGUOUS",
+    "TEST_COVERAGE_AVAILABLE",
+    "UNKNOWN_MUTATION_SCOPE",
+    "WEAK_TRUSTED_VERIFICATION"
+  ],
+  "workReadinessVerificationStrengths": [
+    "NONE",
+    "STRONG",
+    "WEAK"
   ],
   "workUnitKinds": [
     "build",

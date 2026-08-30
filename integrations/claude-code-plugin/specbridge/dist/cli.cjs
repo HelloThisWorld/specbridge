@@ -23673,8 +23673,8 @@ function isSpecBridgeError(value) {
   return value instanceof SpecBridgeError;
 }
 function ioError(action, targetPath, cause) {
-  const reason = cause instanceof Error ? cause.message : String(cause);
-  return new SpecBridgeError("IO_ERROR", `Failed to ${action} ${targetPath}: ${reason}`, {
+  const reason2 = cause instanceof Error ? cause.message : String(cause);
+  return new SpecBridgeError("IO_ERROR", `Failed to ${action} ${targetPath}: ${reason2}`, {
     path: targetPath
   });
 }
@@ -32407,8 +32407,8 @@ var throwOnGracefulCancel = ({
 })] : [];
 var sendOnAbort = async ({ subprocess, cancelSignal, forceKillAfterDelay, context, controller: { signal } }) => {
   await onAbortedSignal(cancelSignal, signal);
-  const reason = getReason(cancelSignal);
-  await sendAbort(subprocess, reason);
+  const reason2 = getReason(cancelSignal);
+  await sendAbort(subprocess, reason2);
   killOnTimeout({
     kill: subprocess.kill,
     forceKillAfterDelay,
@@ -32418,13 +32418,13 @@ var sendOnAbort = async ({ subprocess, cancelSignal, forceKillAfterDelay, contex
   context.terminationReason ??= "gracefulCancel";
   throw cancelSignal.reason;
 };
-var getReason = ({ reason }) => {
-  if (!(reason instanceof DOMException)) {
-    return reason;
+var getReason = ({ reason: reason2 }) => {
+  if (!(reason2 instanceof DOMException)) {
+    return reason2;
   }
-  const error2 = new Error(reason.message);
+  const error2 = new Error(reason2.message);
   Object.defineProperty(error2, "stack", {
-    value: reason.stack,
+    value: reason2.stack,
     enumerable: false,
     configurable: true,
     writable: true
@@ -37403,8 +37403,8 @@ var JsonRpcLineTransport = class {
 function objectParams(params) {
   return params && typeof params === "object" && !Array.isArray(params) ? params : {};
 }
-function abortError(reason) {
-  return reason instanceof Error ? reason : /* @__PURE__ */ new Error(`JSON-RPC request aborted: ${String(reason)}`);
+function abortError(reason2) {
+  return reason2 instanceof Error ? reason2 : /* @__PURE__ */ new Error(`JSON-RPC request aborted: ${String(reason2)}`);
 }
 
 // ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-client@0.1.1-rc.1_teq4kq266b3dkw7rcc6wolnm4y/node_modules/@deepseek-ai/dsh-sdk-client/lib/index.js
@@ -37824,8 +37824,8 @@ var HarnessClient = class {
       setTimeout(resolve2, STREAM_SETTLE_MS);
     })]);
   }
-  closedError(reason) {
-    const parts = [reason];
+  closedError(reason2) {
+    const parts = [reason2];
     if (this.spawnError !== void 0) parts.push(`spawn error: ${this.spawnError.message}`);
     if (this.exitCode !== void 0) parts.push(`exit code: ${String(this.exitCode)}`);
     if (this.stderrTail.length > 0) parts.push(`stderr tail:
@@ -38280,10 +38280,10 @@ Generation blocked (mock scenario).
       durationMs: 0,
       warnings: []
     };
-    const failure3 = (outcome, reason) => ({
+    const failure3 = (outcome, reason2) => ({
       ...base,
       outcome,
-      failureReason: reason,
+      failureReason: reason2,
       rawStdout: ""
     });
     switch (scenario) {
@@ -41327,18 +41327,18 @@ Your previous response was not a valid structured result. Validation problems: $
       ...result.process !== void 0 ? { process: result.process } : {}
     };
   }
-  capabilityRefusal(started, reason, remediation) {
+  capabilityRefusal(started, reason2, remediation) {
     return {
       runner: this.name,
       outcome: "failed",
-      failureReason: `the installed Gemini CLI is incompatible with this operation: ${reason}`,
+      failureReason: `the installed Gemini CLI is incompatible with this operation: ${reason2}`,
       rawStdout: "",
       rawStderr: "",
       durationMs: Math.max(0, Date.now() - started),
       warnings: [],
       error: runnerError({
         code: "runner_incompatible",
-        message: `The installed Gemini CLI lacks required safety capabilities: ${reason}.`,
+        message: `The installed Gemini CLI lacks required safety capabilities: ${reason2}.`,
         remediation
       })
     };
@@ -43991,11 +43991,11 @@ function collectDshRun(notifications, rootSessionId) {
         collection.nativeCompactionObserved = true;
         break;
       case "turn/end": {
-        const reason = event.data["reason"];
-        const kind = isRecord22(reason) ? reason["kind"] : void 0;
+        const reason2 = event.data["reason"];
+        const kind = isRecord22(reason2) ? reason2["kind"] : void 0;
         if (kind === "max-tokens") collection.sawMaxTokens = true;
         if (kind === "error" && collection.errors.length < 20) {
-          const failure3 = isRecord22(reason) ? reason["error"] : void 0;
+          const failure3 = isRecord22(reason2) ? reason2["error"] : void 0;
           const message2 = isRecord22(failure3) && typeof failure3["message"] === "string" ? failure3["message"] : "turn failed";
           const code2 = isRecord22(failure3) && typeof failure3["code"] === "string" ? ` [${failure3["code"]}]` : "";
           collection.errors.push(boundedPayloadText(`${message2}${code2}`, 500));
@@ -44119,11 +44119,11 @@ function normalizeDshEvents(notifications, rootSessionId, context, fallbackTimes
         push2("turn.started", provider, { turn: tolerantCount2(event.data["turn"]) ?? null }, event.time);
         break;
       case "turn/end": {
-        const reason = event.data["reason"];
-        const kind = isRecord22(reason) && typeof reason["kind"] === "string" ? reason["kind"] : "unknown";
+        const reason2 = event.data["reason"];
+        const kind = isRecord22(reason2) && typeof reason2["kind"] === "string" ? reason2["kind"] : "unknown";
         push2("turn.completed", provider, { turn: tolerantCount2(event.data["turn"]) ?? null, reason: kind }, event.time);
         if (kind === "error") {
-          const failure3 = isRecord22(reason) ? reason["error"] : void 0;
+          const failure3 = isRecord22(reason2) ? reason2["error"] : void 0;
           push2(
             "error",
             provider,
@@ -45855,7 +45855,7 @@ var LocalModelManager = class {
     this.idleTimer.unref?.();
   }
   /** Stop the managed server and reap the child. Safe to call repeatedly. */
-  async stop(reason = "stop requested") {
+  async stop(reason2 = "stop requested") {
     if (this.idleTimer !== void 0) {
       clearTimeout(this.idleTimer);
       this.idleTimer = void 0;
@@ -45875,7 +45875,7 @@ var LocalModelManager = class {
     if (this.currentStatus !== "failed") {
       this.currentStatus = "stopped";
     }
-    this.emit("stopped", reason);
+    this.emit("stopped", reason2);
   }
 };
 async function requestOnce(request, structuredOutput) {
@@ -49940,8 +49940,8 @@ async function completeInteractiveTask(deps3, request) {
 async function abortInteractiveTask(deps3, request) {
   const clock = deps3.clock ?? systemClock;
   const { workspace } = deps3;
-  const reason = request.reason.trim();
-  if (reason.length === 0) {
+  const reason2 = request.reason.trim();
+  if (reason2.length === 0) {
     return blocked("run-state-invalid", "task_abort requires a non-empty reason.", []);
   }
   const loaded = loadInteractiveRun(workspace, request.runId);
@@ -49964,25 +49964,25 @@ async function abortInteractiveTask(deps3, request) {
     workspace,
     request.runId,
     "abort.json",
-    `${JSON.stringify({ reason, abortedAt, remainingChangedPaths: remaining }, null, 2)}
+    `${JSON.stringify({ reason: reason2, abortedAt, remainingChangedPaths: remaining }, null, 2)}
 `
   );
   updateRunRecord(workspace, request.runId, {
     lifecycleStatus: "ABORTED",
-    abortReason: reason,
+    abortReason: reason2,
     outcome: "cancelled",
     finishedAt: abortedAt
   });
   appendRunEvent(workspace, request.runId, {
     at: abortedAt,
     type: "interactive-abort",
-    reason
+    reason: reason2
   });
   const release = releaseInteractiveLock(workspace, request.runId);
   return {
     kind: "aborted",
     runId: request.runId,
-    reason,
+    reason: reason2,
     remainingChangedPaths: remaining,
     abortedNow: true,
     lockReleased: release.released
@@ -51396,10 +51396,10 @@ function scanWorkspace(options) {
   const skipped = [];
   const skippedCounts = {};
   let truncated = false;
-  const note = (relativePath, reason) => {
-    skippedCounts[reason] = (skippedCounts[reason] ?? 0) + 1;
+  const note = (relativePath, reason2) => {
+    skippedCounts[reason2] = (skippedCounts[reason2] ?? 0) + 1;
     if (skipped.length < REPOSITORY_INDEX_LIMITS.maxSkippedRecorded) {
-      skipped.push({ path: relativePath, reason });
+      skipped.push({ path: relativePath, reason: reason2 });
     }
   };
   const walk = (relativeDir, scopes) => {
@@ -51998,7 +51998,7 @@ function rankCandidates(index, query, options = {}) {
   const excluded = new Set((options.excludedPaths ?? []).map((value) => value.replace(/\\/g, "/")));
   const accumulators = /* @__PURE__ */ new Map();
   const nonMandatoryChanged = /* @__PURE__ */ new Set();
-  const add2 = (relativePath, reason, score, depth, detail) => {
+  const add2 = (relativePath, reason2, score, depth, detail) => {
     if (score <= 0) return;
     const normalized = relativePath.replace(/\\/g, "/");
     if (excluded.has(normalized)) return;
@@ -52008,15 +52008,15 @@ function rankCandidates(index, query, options = {}) {
     if (existing === void 0) {
       accumulators.set(entry2.path, {
         entry: entry2,
-        signals: [{ reason, score, ...detail !== void 0 ? { detail } : {} }],
+        signals: [{ reason: reason2, score, ...detail !== void 0 ? { detail } : {} }],
         eligibleAtDepth: depth
       });
       return;
     }
     existing.eligibleAtDepth = Math.min(existing.eligibleAtDepth, depth);
-    const sameReason = existing.signals.find((signal) => signal.reason === reason);
+    const sameReason = existing.signals.find((signal) => signal.reason === reason2);
     if (sameReason === void 0) {
-      existing.signals.push({ reason, score, ...detail !== void 0 ? { detail } : {} });
+      existing.signals.push({ reason: reason2, score, ...detail !== void 0 ? { detail } : {} });
     } else if (score > sameReason.score) {
       sameReason.score = score;
       if (detail !== void 0) sameReason.detail = detail;
@@ -52982,11 +52982,11 @@ var contextExpansionStateSchema = external_exports.object({
 }).passthrough();
 function planContextExpansion(input) {
   const currentLevel = input.state.level;
-  const stay = (refusalReason, reason, returnToReliability = false) => ({
+  const stay = (refusalReason, reason2, returnToReliability = false) => ({
     expand: false,
     nextLevel: currentLevel,
     refusalReason,
-    reason,
+    reason: reason2,
     returnToReliability
   });
   if (input.strategy !== "PROGRESSIVE") {
@@ -55296,7 +55296,7 @@ function recordAssessment(deps3, missionId, input) {
       affectedSurfaces: assessment.surfaces,
       materiality: assessment.level,
       ...assessment.raisedFrom !== void 0 ? { materialityRaisedFrom: assessment.raisedFrom } : {},
-      materialityReasons: assessment.reasons.slice(0, MISSION_LIMITS.maxListItems).map((reason) => reason.slice(0, MISSION_LIMITS.maxTextChars)),
+      materialityReasons: assessment.reasons.slice(0, MISSION_LIMITS.maxListItems).map((reason2) => reason2.slice(0, MISSION_LIMITS.maxTextChars)),
       options: (question.options ?? []).slice(0, 10),
       status: "open",
       ...question.sourceTurnId !== void 0 ? { sourceTurnId: question.sourceTurnId } : {},
@@ -55697,23 +55697,23 @@ function markContractReady(deps3, missionId) {
   }
   return { mission, coverage };
 }
-function reopenDiscovery(deps3, missionId, reason) {
+function reopenDiscovery(deps3, missionId, reason2) {
   let mission = requireMissionState(deps3.workspace, missionId);
   assertNotFinal(mission);
   if (DISCOVERY_STATUSES.includes(mission.status) && mission.status !== "CONTRACT_READY") {
     return mission;
   }
   mission = transition(deps3, mission, "DISCOVERING");
-  mission = record2(deps3, mission, "status_changed", { reason: reason.slice(0, 500), reopened: true });
+  mission = record2(deps3, mission, "status_changed", { reason: reason2.slice(0, 500), reopened: true });
   return persist(deps3, mission);
 }
-function abandonMission(deps3, missionId, reason) {
+function abandonMission(deps3, missionId, reason2) {
   let mission = requireMissionState(deps3.workspace, missionId);
   if (isFinalMissionStatus(mission.status)) return mission;
   const at = now(deps3).toISOString();
   mission = transition(deps3, mission, "ABANDONED");
-  mission = record2(deps3, mission, "mission_abandoned", { reason: reason.slice(0, 500) });
-  return persist(deps3, { ...mission, abandonedAt: at, abandonReason: reason.slice(0, MISSION_LIMITS.maxTextChars) });
+  mission = record2(deps3, mission, "mission_abandoned", { reason: reason2.slice(0, 500) });
+  return persist(deps3, { ...mission, abandonedAt: at, abandonReason: reason2.slice(0, MISSION_LIMITS.maxTextChars) });
 }
 function createContractChangeRequest(deps3, missionId, request) {
   let mission = requireMissionState(deps3.workspace, missionId);
@@ -57229,20 +57229,20 @@ function assessProgress(input) {
   const progressed = !identical && input.next.result !== "no-change";
   const consecutive = progressed ? 0 : input.consecutiveNoProgress + 1;
   const stagnated = consecutive >= input.maxNoProgressCycles;
-  let reason;
+  let reason2;
   if (progressed) {
-    reason = "The observation differs from the previous one; the run advanced.";
+    reason2 = "The observation differs from the previous one; the run advanced.";
   } else if (identical) {
-    reason = "The action category, plan revision, failure identity, and working tree are all unchanged since the previous observation \u2014 the same approach produced the same result.";
+    reason2 = "The action category, plan revision, failure identity, and working tree are all unchanged since the previous observation \u2014 the same approach produced the same result.";
   } else {
-    reason = "The action produced no observable change.";
+    reason2 = "The action produced no observable change.";
   }
-  return { progressed, consecutiveNoProgress: consecutive, stagnated, reason };
+  return { progressed, consecutiveNoProgress: consecutive, stagnated, reason: reason2 };
 }
-function budgetStop(budget, reason, remediation) {
+function budgetStop(budget, reason2, remediation) {
   return {
     directive: "STOP_BUDGET_EXHAUSTED",
-    reason,
+    reason: reason2,
     backoffMs: 0,
     failureCategory: "BUDGET_EXHAUSTED",
     remediation,
@@ -60665,7 +60665,7 @@ function selectWorker(input) {
     "COMPETING_PLANS_DIVERGED",
     "CONTEXT_LIMIT_EXCEEDED"
   ];
-  const sticky = input.nodeEscalations.find((reason) => STICKY_REASONS.includes(reason));
+  const sticky = input.nodeEscalations.find((reason2) => STICKY_REASONS.includes(reason2));
   if (sticky !== void 0 && large !== void 0) {
     return {
       worker: large,
@@ -62494,9 +62494,9 @@ async function dispatchLocalExecution(input) {
     );
   }
   input.onProgress?.(`local executor: run ${begin.runId} started for task ${begin.task.id}`);
-  const abort = async (reason) => {
+  const abort = async (reason2) => {
     try {
-      await abortInteractiveTask(deps3, { runId: begin.runId, reason: reason.slice(0, 500) });
+      await abortInteractiveTask(deps3, { runId: begin.runId, reason: reason2.slice(0, 500) });
     } catch {
     }
   };
@@ -63377,6 +63377,574 @@ ${packet.workUnit.goal}`,
 function secondaryBuilderInputCeiling(config2) {
   return effectiveLocalInputCharacters(config2.localInference);
 }
+var WORK_READINESS_ASSESSMENT_SCHEMA_VERSION = "1.0.0";
+var SECONDARY_ELIGIBILITY_DECISION_SCHEMA_VERSION = "1.0.0";
+var WORK_READINESS_TELEMETRY_SCHEMA_VERSION = "1.0.0";
+var KNOWLEDGE_STATES = [
+  "KNOWN",
+  "RESOLVED_BY_RESEARCH",
+  "UNCERTAIN",
+  "EXTERNAL_UNKNOWN"
+];
+var DECISION_ENTROPIES = ["LOW", "MEDIUM", "HIGH"];
+var IMPLEMENTATION_SPECIFICITIES = ["ABSTRACT", "BOUNDED", "CONCRETE"];
+var WORK_READINESS_VERIFICATION_STRENGTHS = ["NONE", "WEAK", "STRONG"];
+var WORK_READINESS_CONTEXT_STATES = ["SUFFICIENT", "INSUFFICIENT", "AMBIGUOUS"];
+var REPOSITORY_MUTATION_SCOPES = ["BOUNDED", "BROAD", "UNKNOWN"];
+var DEPENDENCY_READINESS_STATES = ["READY", "INCOMPLETE", "STALE", "AMBIGUOUS"];
+var SECONDARY_ELIGIBILITY_STATUSES = [
+  "ELIGIBLE",
+  "STRONG_REQUIRED",
+  "NEEDS_RESEARCH",
+  "NEEDS_AUTHORITY",
+  "NEEDS_CONTEXT",
+  "NOT_READY"
+];
+var WORK_READINESS_REASON_CODES = [
+  "AUTHORITY_UNRESOLVED",
+  "CONTRACT_MUTATION_REQUIRED",
+  "CONTEXT_INSUFFICIENT",
+  "TARGET_AMBIGUOUS",
+  "KNOWLEDGE_EXTERNAL_UNKNOWN",
+  "KNOWLEDGE_UNCERTAIN",
+  "HIGH_DECISION_ENTROPY",
+  "ABSTRACT_IMPLEMENTATION",
+  "NO_TRUSTED_VERIFICATION",
+  "WEAK_TRUSTED_VERIFICATION",
+  "DEPENDENCY_NOT_READY",
+  "DEPENDENCY_STALE",
+  "DEPENDENCY_AMBIGUOUS",
+  "BROAD_MUTATION_SCOPE",
+  "UNKNOWN_MUTATION_SCOPE",
+  "CONCRETE_TARGET",
+  "BOUNDED_TARGET",
+  "STRONG_VERIFICATION",
+  "REFERENCE_PATTERN_AVAILABLE",
+  "TEST_COVERAGE_AVAILABLE",
+  "RESEARCH_RESOLVED",
+  "CONTEXT_SUFFICIENT",
+  "DEPENDENCIES_READY",
+  "KNOWN_IMPLEMENTATION_FACTS",
+  "LOW_DECISION_ENTROPY",
+  "MEDIUM_DECISION_ENTROPY",
+  "APPROVED_AUTHORITY",
+  "PARENT_COMPLEXITY_ADVISORY"
+];
+var shortText52 = external_exports.string().min(1).max(512);
+var boundedText2 = external_exports.string().min(1).max(2e3);
+var sha2562 = external_exports.string().regex(/^[a-f0-9]{64}$/);
+var workReadinessReasonSchema = external_exports.object({
+  code: external_exports.enum(WORK_READINESS_REASON_CODES),
+  message: boundedText2,
+  evidenceRefs: external_exports.array(shortText52).max(30).default([])
+}).strict();
+var workReadinessInputIdentitySchema = external_exports.object({
+  workUnitHash: sha2562,
+  packetHash: sha2562.nullable(),
+  packetQualityHash: sha2562,
+  projectionHash: sha2562,
+  researchEvidenceHash: sha2562,
+  verificationPolicyHash: sha2562,
+  dependencyStateHash: sha2562
+}).strict();
+var workReadinessAssessmentSchema = external_exports.object({
+  schemaVersion: external_exports.literal(WORK_READINESS_ASSESSMENT_SCHEMA_VERSION),
+  assessmentId: shortText52,
+  jobId: shortText52,
+  objectiveNodeId: shortText52,
+  workUnitId: shortText52,
+  attempt: external_exports.number().int().min(1),
+  parentObjectiveComplexity: external_exports.enum(["LOW", "MEDIUM", "HIGH"]).nullable(),
+  knowledgeState: external_exports.enum(KNOWLEDGE_STATES),
+  decisionEntropy: external_exports.enum(DECISION_ENTROPIES),
+  implementationSpecificity: external_exports.enum(IMPLEMENTATION_SPECIFICITIES),
+  verificationStrength: external_exports.enum(WORK_READINESS_VERIFICATION_STRENGTHS),
+  contextState: external_exports.enum(WORK_READINESS_CONTEXT_STATES),
+  authorityRisk: external_exports.boolean(),
+  contractMutationRisk: external_exports.boolean(),
+  repositoryMutationScope: external_exports.enum(REPOSITORY_MUTATION_SCOPES),
+  dependencyState: external_exports.enum(DEPENDENCY_READINESS_STATES),
+  reasons: external_exports.array(workReadinessReasonSchema).min(1).max(40),
+  evidenceRefs: external_exports.array(shortText52).max(80),
+  inputIdentity: workReadinessInputIdentitySchema,
+  inputHash: sha2562,
+  contentHash: sha2562,
+  assessedAt: shortText52
+}).strict();
+var secondaryEligibilityDecisionSchema = external_exports.object({
+  schemaVersion: external_exports.literal(SECONDARY_ELIGIBILITY_DECISION_SCHEMA_VERSION),
+  decisionId: shortText52,
+  jobId: shortText52,
+  objectiveNodeId: shortText52,
+  workUnitId: shortText52,
+  attempt: external_exports.number().int().min(1),
+  status: external_exports.enum(SECONDARY_ELIGIBILITY_STATUSES),
+  reasons: external_exports.array(workReadinessReasonSchema).min(1).max(40),
+  assessmentRef: shortText52,
+  assessmentHash: sha2562,
+  contentHash: sha2562,
+  decidedAt: shortText52
+}).strict();
+var workReadinessRecordSchema = external_exports.object({
+  assessment: workReadinessAssessmentSchema,
+  decision: secondaryEligibilityDecisionSchema
+}).strict().superRefine((record32, context) => {
+  if (record32.assessment.contentHash !== record32.decision.assessmentHash) {
+    context.addIssue({
+      code: external_exports.ZodIssueCode.custom,
+      path: ["decision", "assessmentHash"],
+      message: "must reference the assessment content hash"
+    });
+  }
+  for (const field of ["jobId", "objectiveNodeId", "workUnitId", "attempt"]) {
+    if (record32.assessment[field] !== record32.decision[field]) {
+      context.addIssue({
+        code: external_exports.ZodIssueCode.custom,
+        path: ["decision", field],
+        message: `must match assessment.${field}`
+      });
+    }
+  }
+});
+var countRecordSchema = external_exports.record(external_exports.string(), external_exports.number().int().min(0));
+var workReadinessTelemetrySchema = external_exports.object({
+  schemaVersion: external_exports.literal(WORK_READINESS_TELEMETRY_SCHEMA_VERSION),
+  assessmentCount: external_exports.number().int().min(0),
+  statusCounts: countRecordSchema,
+  reasonCodeDistribution: countRecordSchema,
+  decisionEntropyDistribution: countRecordSchema,
+  verificationStrengthDistribution: countRecordSchema,
+  contextStateDistribution: countRecordSchema,
+  generatedAt: shortText52
+}).strict();
+function stableValue(value) {
+  if (Array.isArray(value)) return value.map(stableValue);
+  if (value !== null && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).filter(([, entry2]) => entry2 !== void 0).sort(([left], [right]) => left.localeCompare(right, "en")).map(([key, entry2]) => [key, stableValue(entry2)])
+    );
+  }
+  return value;
+}
+function stableStringify2(value) {
+  return JSON.stringify(stableValue(value));
+}
+function semanticWorkUnit(unit) {
+  return {
+    workUnitId: unit.workUnitId,
+    objectiveNodeId: unit.objectiveNodeId,
+    parentTaskId: unit.parentTaskId,
+    kind: unit.kind,
+    title: unit.title,
+    goal: unit.goal,
+    dependsOn: [...unit.dependsOn].sort(),
+    expectedArtifacts: unit.expectedArtifacts,
+    relevantContractIds: [...unit.relevantContractIds].sort(),
+    relevantAdrIds: [...unit.relevantAdrIds].sort(),
+    relevantConstitutionRuleIds: [...unit.relevantConstitutionRuleIds].sort(),
+    expectedAreas: [...unit.expectedAreas].sort(),
+    operatorDecision: unit.operatorDecision ?? null
+  };
+}
+function workText(unit) {
+  return [unit.title, unit.goal, ...unit.expectedArtifacts, ...unit.expectedAreas].join("\n");
+}
+function qualityOf(input) {
+  return input.packet?.quality ?? input.compilation?.quality;
+}
+function relevantResearchRecords(input) {
+  const explicit = new Set(input.relevantResearchIds ?? []);
+  const evidenceText = [
+    ...input.projection.workEvidence,
+    ...input.packet?.approvedContext.priorWorkEvidence ?? []
+  ].join("\n");
+  return [...input.researchRecords ?? []].filter(
+    (record32) => explicit.has(record32.researchId) || record32.lifecycle?.usedBy === input.workUnit.workUnitId || record32.lifecycle?.usedBy !== void 0 && input.workUnit.dependsOn.includes(record32.lifecycle.usedBy) || evidenceText.includes(record32.researchId)
+  ).sort((left, right) => left.researchId.localeCompare(right.researchId, "en"));
+}
+function researchRecordIdentity(records) {
+  return sha256Hex(stableStringify2(records.map((record32) => ({
+    researchId: record32.researchId,
+    status: record32.status,
+    requestHash: record32.requestHash,
+    lifecycle: record32.lifecycle ?? null,
+    report: record32.report ?? null,
+    failure: record32.failure ?? null
+  }))));
+}
+function compilationQualityIdentity(input) {
+  const compilation = input.compilation;
+  if (compilation === void 0) {
+    return sha256Hex(stableStringify2({ quality: input.packet?.quality ?? null }));
+  }
+  return sha256Hex(stableStringify2({
+    ok: compilation.ok,
+    quality: compilation.quality,
+    planRefs: [...compilation.planRefs].sort(),
+    ...compilation.ok ? {} : { failure: compilation.failure }
+  }));
+}
+function buildWorkReadinessInputIdentity(input) {
+  const research = relevantResearchRecords(input);
+  const dependencyState = dependencyStateOf(input);
+  return workReadinessInputIdentitySchema.parse({
+    workUnitHash: sha256Hex(stableStringify2(semanticWorkUnit(input.workUnit))),
+    packetHash: input.packet?.contentHash ?? null,
+    packetQualityHash: compilationQualityIdentity(input),
+    projectionHash: input.projection.contentHash,
+    researchEvidenceHash: researchRecordIdentity(research),
+    verificationPolicyHash: sha256Hex(stableStringify2(input.verificationCommands.map((command) => ({
+      name: command.name,
+      argv: command.argv,
+      required: command.required,
+      timeoutMs: command.timeoutMs
+    })))),
+    dependencyStateHash: sha256Hex(stableStringify2({
+      state: dependencyState,
+      missingDependencyIds: [...input.missingDependencyIds ?? []].sort(),
+      packetDependencies: input.packet?.dependencyContext.map((dependency) => ({
+        workUnitId: dependency.workUnitId,
+        changedFiles: dependency.changedFiles,
+        verificationPassed: dependency.verificationPassed
+      })) ?? []
+    }))
+  });
+}
+function contextStateOf(input) {
+  if (input.compilation?.ok === false) {
+    return input.compilation.failure.kind === "AMBIGUOUS_TARGET" ? "AMBIGUOUS" : "INSUFFICIENT";
+  }
+  const quality = qualityOf(input);
+  if (quality?.targetAmbiguity === true) return "AMBIGUOUS";
+  return quality?.contextSufficient === true ? "SUFFICIENT" : "INSUFFICIENT";
+}
+function dependencyStateOf(input) {
+  if (input.dependencyState !== void 0) return input.dependencyState;
+  if ((input.missingDependencyIds?.length ?? 0) > 0) return "INCOMPLETE";
+  if (qualityOf(input)?.dependencyContextComplete === false) return "INCOMPLETE";
+  return "READY";
+}
+var EXTERNAL_UNKNOWN_PATTERN = /\b(?:unknown|unresolved|determine|investigate|research)\b[^\n]{0,100}\b(?:external|third[- ]party|vendor|library|sdk|protocol|remote api|current api)\b|\b(?:external|third[- ]party|vendor|library|sdk|protocol|remote api|current api)\b[^\n]{0,100}\b(?:unknown|unresolved|semantics?|behavio[u]?r)\b/i;
+var UNCERTAIN_PATTERN = /\b(?:unresolved|uncertain|unknown which|ambiguous ownership|conflicting evidence|which .{0,60} authoritative|root cause)\b/i;
+var HIGH_ENTROPY_PATTERN = /\b(?:design|choose|decide|architect|architecture boundary|consistency semantics|transaction strategy|distributed transaction|concurren(?:cy|t)|race condition|compare[- ]and[- ]swap|\bCAS\b|ordering guarantees?|delivery semantics|security[- ]sensitive|root cause|ambiguous ownership|reconcile semantics|replace .{0,50} architecture)\b/i;
+var LOW_ENTROPY_PATTERN = /\b(?:add (?:a |the )?field|propagat\w*|dto|mapper|mapping|seriali[sz]\w*|controller wiring|wire\w*|fixture|rename|boilerplate|scaffold|existing interface|nearby pattern|validation rule|mechanical|find[- ]and[- ]replace)\b/i;
+var ABSTRACT_PATTERN = /\b(?:improve|rethink|moderni[sz]e|redesign|refactor the architecture|improve .{0,50} architecture)\b/i;
+var BROAD_SCOPE_PATTERN = /\b(?:repository[- ]wide|across unrelated modules|all modules|new architecture boundary|replace .{0,60} architecture|architecture[- ]wide migration|system[- ]wide migration|replace event[- ]driven architecture)\b/i;
+var AUTHORITY_PATTERN = /\b(?:whether .{0,100}(?:visible|retained|allowed|public|compatible)|product behavio[u]?r|compatibility promise|sensitive data visibility|deleted records? remain visible|retention policy|user[- ]facing semantics|choose .{0,60} product|decide .{0,60} product)\b/i;
+var CONTRACT_MUTATION_PATTERN = /\b(?:change|revise|break|deprecate|replace|relax|tighten)\b[^\n]{0,100}\b(?:contract|public api|api compatibility|compatibility guarantee|wire format)\b|\b(?:contract|public api|api compatibility|compatibility guarantee|wire format)\b[^\n]{0,100}\b(?:change|revision|breaking|deprecat)\b/i;
+var STRONG_VERIFICATION_PATTERN = /\b(?:test|tests|vitest|jest|pytest|mocha|cargo test|go test|dotnet test|integration|e2e|schema|fixture|verify|verification|snapshot)\b/i;
+function resolvedResearch(records) {
+  return records.filter((record32) => {
+    const report = record32.status === "COMPLETED" ? record32.report : void 0;
+    if (report === void 0 || report.unresolved.length > 0 || report.conflicts.length > 0) return false;
+    return report.findings.some(
+      (finding2) => finding2.kind === "DOMAIN_FACT" || finding2.kind === "ENGINEERING_CONSTRAINT" || finding2.kind === "COMPATIBILITY_FACT"
+    );
+  });
+}
+function knowledgeStateOf(input, records) {
+  const text93 = workText(input.workUnit);
+  if (resolvedResearch(records).length > 0) return "RESOLVED_BY_RESEARCH";
+  if (EXTERNAL_UNKNOWN_PATTERN.test(text93)) return "EXTERNAL_UNKNOWN";
+  if (UNCERTAIN_PATTERN.test(text93)) return "UNCERTAIN";
+  return "KNOWN";
+}
+function implementationSpecificityOf(input) {
+  const text93 = workText(input.workUnit);
+  const quality = qualityOf(input);
+  if (quality?.explicitTargetResolved === true) return "CONCRETE";
+  const artifactLooksConcrete = input.workUnit.expectedArtifacts.some(
+    (artifact) => /(?:^|\/)[^/]+\.[A-Za-z0-9]+$/.test(artifact) || /\b(?:class|interface|method|function|field|symbol)\b/i.test(artifact)
+  );
+  if (artifactLooksConcrete && quality?.contextSufficient === true) return "CONCRETE";
+  if (ABSTRACT_PATTERN.test(text93) && input.workUnit.expectedAreas.length === 0) return "ABSTRACT";
+  if (input.workUnit.expectedAreas.length > 0 || (input.packet?.targets.length ?? 0) > 0 || quality?.contextSufficient === true) return "BOUNDED";
+  return "ABSTRACT";
+}
+function decisionEntropyOf(input, specificity) {
+  const text93 = workText(input.workUnit);
+  const quality = qualityOf(input);
+  if (HIGH_ENTROPY_PATTERN.test(text93)) return "HIGH";
+  if (LOW_ENTROPY_PATTERN.test(text93) && specificity === "CONCRETE" && (quality?.explicitTargetResolved === true || quality?.referencePatternFound === true)) return "LOW";
+  if (specificity === "CONCRETE" && quality?.referencePatternFound === true && quality.testsFound) return "LOW";
+  return "MEDIUM";
+}
+function verificationStrengthOf(input) {
+  if (input.verificationCommands.length === 0) return "NONE";
+  const rendered = input.verificationCommands.map((command) => `${command.name} ${command.argv.join(" ")}`).join("\n");
+  return STRONG_VERIFICATION_PATTERN.test(rendered) ? "STRONG" : "WEAK";
+}
+function repositoryMutationScopeOf(input) {
+  const text93 = workText(input.workUnit);
+  if (BROAD_SCOPE_PATTERN.test(text93)) return "BROAD";
+  const quality = qualityOf(input);
+  if (quality?.explicitTargetResolved !== true && input.workUnit.expectedAreas.length === 0 && (input.packet?.targets.length ?? 0) === 0) return "UNKNOWN";
+  return "BOUNDED";
+}
+function hasApprovedAuthority(input) {
+  return input.workUnit.operatorDecision !== void 0 || input.projection.decisions.length > 0;
+}
+function researchCarriesUnapprovedProductOption(records) {
+  return records.some(
+    (record32) => record32.report !== void 0 && (record32.report.classification.includes("PRODUCT_OPTION") || record32.report.findings.some((finding2) => finding2.kind === "PRODUCT_OPTION") || record32.report.recommendations.length > 0 && (record32.lifecycle?.requestedEffect === "RECOMMENDATION" || record32.lifecycle?.requestedEffect === "HUMAN_DECISION_PREPARED"))
+  );
+}
+function reason(code2, message2, evidenceRefs = []) {
+  return workReadinessReasonSchema.parse({
+    code: code2,
+    message: message2.slice(0, 2e3),
+    evidenceRefs: [...new Set(evidenceRefs)].sort().slice(0, 30)
+  });
+}
+function uniqueReasons(reasons) {
+  const byCode = /* @__PURE__ */ new Map();
+  for (const entry2 of reasons) if (!byCode.has(entry2.code)) byCode.set(entry2.code, entry2);
+  return [...byCode.values()].sort((left, right) => left.code.localeCompare(right.code, "en"));
+}
+function assessmentBody(assessment) {
+  return stableStringify2(assessment);
+}
+function assessWorkReadiness(input) {
+  const identity3 = buildWorkReadinessInputIdentity(input);
+  const inputHash = sha256Hex(stableStringify2(identity3));
+  const research = relevantResearchRecords(input);
+  const quality = qualityOf(input);
+  const specificity = implementationSpecificityOf(input);
+  const entropy = decisionEntropyOf(input, specificity);
+  const verification = verificationStrengthOf(input);
+  const contextState = contextStateOf(input);
+  const dependencyState = dependencyStateOf(input);
+  const mutationScope = repositoryMutationScopeOf(input);
+  const knowledgeState = knowledgeStateOf(input, research);
+  const approvedAuthority = hasApprovedAuthority(input);
+  const text93 = workText(input.workUnit);
+  const researchProductOption = researchCarriesUnapprovedProductOption(research);
+  const authorityRisk = (AUTHORITY_PATTERN.test(text93) || researchProductOption) && !approvedAuthority;
+  const contractMutationRisk = CONTRACT_MUTATION_PATTERN.test(text93) && !approvedAuthority;
+  const packetRef = input.packet === void 0 ? [] : [`builder-packet:${input.packet.contentHash}`];
+  const projectionRef = [`projection:${input.projection.contentHash}`];
+  const researchRefs = research.map((record32) => `research:${record32.researchId}`);
+  const verificationRefs = input.verificationCommands.map((command) => `verification:${command.name}`);
+  const dependencyRefs = input.workUnit.dependsOn.map((dependency) => `dependency:${dependency}`);
+  const reasons = [];
+  if (authorityRisk) {
+    reasons.push(reason(
+      "AUTHORITY_UNRESOLVED",
+      "The WorkUnit still requires an unapproved product or human-authority decision.",
+      [...projectionRef, ...researchRefs]
+    ));
+  } else if (approvedAuthority) {
+    reasons.push(reason(
+      "APPROVED_AUTHORITY",
+      "Relevant approved product authority is present in the durable projection or operator decision.",
+      projectionRef
+    ));
+  }
+  if (contractMutationRisk) {
+    reasons.push(reason(
+      "CONTRACT_MUTATION_REQUIRED",
+      "The WorkUnit proposes changing a public or product contract without a relevant approved decision.",
+      projectionRef
+    ));
+  }
+  if (knowledgeState === "RESOLVED_BY_RESEARCH") {
+    reasons.push(reason("RESEARCH_RESOLVED", "Relevant completed research resolved the engineering knowledge gap.", researchRefs));
+  } else if (knowledgeState === "EXTERNAL_UNKNOWN") {
+    reasons.push(reason(
+      "KNOWLEDGE_EXTERNAL_UNKNOWN",
+      "A material external or current fact remains unresolved.",
+      [...projectionRef, ...researchRefs]
+    ));
+  } else if (knowledgeState === "UNCERTAIN") {
+    reasons.push(reason(
+      "KNOWLEDGE_UNCERTAIN",
+      "Material implementation uncertainty remains in the delegated WorkUnit.",
+      [...projectionRef, ...packetRef]
+    ));
+  } else {
+    reasons.push(reason("KNOWN_IMPLEMENTATION_FACTS", "Implementation facts are known from approved truth and repository evidence.", [...projectionRef, ...packetRef]));
+  }
+  reasons.push(
+    entropy === "HIGH" ? reason("HIGH_DECISION_ENTROPY", "Several materially different implementation choices or semantics remain open.", packetRef) : entropy === "LOW" ? reason("LOW_DECISION_ENTROPY", "The WorkUnit has one strongly indicated implementation shape.", packetRef) : reason("MEDIUM_DECISION_ENTROPY", "The WorkUnit is bounded but retains ordinary implementation choices.", packetRef)
+  );
+  reasons.push(
+    specificity === "CONCRETE" ? reason("CONCRETE_TARGET", "The implementation target is explicitly resolved and concrete.", packetRef) : specificity === "BOUNDED" ? reason("BOUNDED_TARGET", "The implementation area is bounded by durable repository evidence.", packetRef) : reason("ABSTRACT_IMPLEMENTATION", "The WorkUnit does not identify a sufficiently bounded implementation target.", packetRef)
+  );
+  reasons.push(
+    verification === "STRONG" ? reason("STRONG_VERIFICATION", "Trusted machine-checkable tests or verifiers are configured.", verificationRefs) : verification === "WEAK" ? reason("WEAK_TRUSTED_VERIFICATION", "Only weak trusted verification such as compile or lint is configured.", verificationRefs) : reason("NO_TRUSTED_VERIFICATION", "No trusted machine-checkable verification is configured.")
+  );
+  if (quality?.testsFound === true) {
+    reasons.push(reason("TEST_COVERAGE_AVAILABLE", "Phase 5 selected relevant tests for the target.", packetRef));
+  }
+  if (quality?.referencePatternFound === true) {
+    reasons.push(reason("REFERENCE_PATTERN_AVAILABLE", "Phase 5 selected an established implementation pattern.", packetRef));
+  }
+  reasons.push(
+    contextState === "SUFFICIENT" ? reason("CONTEXT_SUFFICIENT", "Phase 5 reports sufficient, fresh, bounded implementation context.", packetRef) : contextState === "AMBIGUOUS" ? reason("TARGET_AMBIGUOUS", "Phase 5 found more than one materially plausible target.", packetRef) : reason("CONTEXT_INSUFFICIENT", "Phase 5 could not assemble sufficient bounded implementation context.", packetRef)
+  );
+  if (mutationScope === "BROAD") {
+    reasons.push(reason("BROAD_MUTATION_SCOPE", "The WorkUnit crosses an architecture-wide or unrelated-module boundary.", packetRef));
+  } else if (mutationScope === "UNKNOWN") {
+    reasons.push(reason("UNKNOWN_MUTATION_SCOPE", "The expected repository mutation surface is not bounded.", packetRef));
+  }
+  if (dependencyState === "READY") {
+    reasons.push(reason("DEPENDENCIES_READY", "All declared dependency evidence is verified and current.", dependencyRefs));
+  } else if (dependencyState === "STALE") {
+    reasons.push(reason("DEPENDENCY_STALE", "At least one dependency changed after the readiness inputs were assembled.", dependencyRefs));
+  } else if (dependencyState === "AMBIGUOUS") {
+    reasons.push(reason("DEPENDENCY_AMBIGUOUS", "Dependency evidence cannot be resolved to one current candidate.", dependencyRefs));
+  } else {
+    reasons.push(reason("DEPENDENCY_NOT_READY", "At least one declared dependency lacks an accepted verified candidate.", dependencyRefs));
+  }
+  if (input.parentObjectiveComplexity !== void 0) {
+    reasons.push(reason(
+      "PARENT_COMPLEXITY_ADVISORY",
+      `Parent Objective complexity ${input.parentObjectiveComplexity} is recorded as advisory and does not veto this WorkUnit.`
+    ));
+  }
+  const evidenceRefs = [.../* @__PURE__ */ new Set([
+    ...projectionRef,
+    ...packetRef,
+    ...researchRefs,
+    ...verificationRefs,
+    ...dependencyRefs
+  ])].sort().slice(0, 80);
+  const body = {
+    schemaVersion: WORK_READINESS_ASSESSMENT_SCHEMA_VERSION,
+    assessmentId: `${input.workUnit.workUnitId}-a${String(input.attempt).padStart(2, "0")}-readiness`,
+    jobId: input.jobId,
+    objectiveNodeId: input.objectiveNodeId,
+    workUnitId: input.workUnit.workUnitId,
+    attempt: input.attempt,
+    parentObjectiveComplexity: input.parentObjectiveComplexity ?? null,
+    knowledgeState,
+    decisionEntropy: entropy,
+    implementationSpecificity: specificity,
+    verificationStrength: verification,
+    contextState,
+    authorityRisk,
+    contractMutationRisk,
+    repositoryMutationScope: mutationScope,
+    dependencyState,
+    reasons: uniqueReasons(reasons),
+    evidenceRefs,
+    inputIdentity: identity3,
+    inputHash
+  };
+  return workReadinessAssessmentSchema.parse({
+    ...body,
+    contentHash: sha256Hex(assessmentBody(body)),
+    assessedAt: input.assessedAt ?? (/* @__PURE__ */ new Date()).toISOString()
+  });
+}
+function decisionStatusOf(assessment) {
+  if (assessment.authorityRisk || assessment.contractMutationRisk) return "NEEDS_AUTHORITY";
+  if (assessment.knowledgeState === "EXTERNAL_UNKNOWN") return "NEEDS_RESEARCH";
+  if (assessment.dependencyState !== "READY") return "NOT_READY";
+  if (assessment.contextState !== "SUFFICIENT") return "NEEDS_CONTEXT";
+  if (assessment.knowledgeState === "UNCERTAIN" || assessment.decisionEntropy === "HIGH" || assessment.implementationSpecificity === "ABSTRACT" || assessment.verificationStrength !== "STRONG" || assessment.repositoryMutationScope !== "BOUNDED") return "STRONG_REQUIRED";
+  return "ELIGIBLE";
+}
+var DECISION_REASON_CODES = {
+  NEEDS_AUTHORITY: ["AUTHORITY_UNRESOLVED", "CONTRACT_MUTATION_REQUIRED"],
+  NEEDS_RESEARCH: ["KNOWLEDGE_EXTERNAL_UNKNOWN"],
+  NOT_READY: ["DEPENDENCY_NOT_READY", "DEPENDENCY_STALE", "DEPENDENCY_AMBIGUOUS"],
+  NEEDS_CONTEXT: ["CONTEXT_INSUFFICIENT", "TARGET_AMBIGUOUS"],
+  STRONG_REQUIRED: [
+    "KNOWLEDGE_UNCERTAIN",
+    "HIGH_DECISION_ENTROPY",
+    "ABSTRACT_IMPLEMENTATION",
+    "NO_TRUSTED_VERIFICATION",
+    "WEAK_TRUSTED_VERIFICATION",
+    "BROAD_MUTATION_SCOPE",
+    "UNKNOWN_MUTATION_SCOPE"
+  ],
+  ELIGIBLE: [
+    "KNOWN_IMPLEMENTATION_FACTS",
+    "RESEARCH_RESOLVED",
+    "LOW_DECISION_ENTROPY",
+    "MEDIUM_DECISION_ENTROPY",
+    "CONCRETE_TARGET",
+    "BOUNDED_TARGET",
+    "STRONG_VERIFICATION",
+    "REFERENCE_PATTERN_AVAILABLE",
+    "TEST_COVERAGE_AVAILABLE",
+    "CONTEXT_SUFFICIENT",
+    "DEPENDENCIES_READY"
+  ]
+};
+function decisionBody(decision) {
+  return stableStringify2(decision);
+}
+function readinessAssessmentRef(assessment) {
+  return `readiness/${assessment.workUnitId}-a${String(assessment.attempt).padStart(2, "0")}.json`;
+}
+function decideSecondaryEligibility(assessment, decidedAt = (/* @__PURE__ */ new Date()).toISOString()) {
+  const status = decisionStatusOf(assessment);
+  const relevantCodes = new Set(DECISION_REASON_CODES[status]);
+  let reasons = assessment.reasons.filter((entry2) => relevantCodes.has(entry2.code));
+  if (reasons.length === 0) reasons = [assessment.reasons[0]];
+  const body = {
+    schemaVersion: SECONDARY_ELIGIBILITY_DECISION_SCHEMA_VERSION,
+    decisionId: `${assessment.workUnitId}-a${String(assessment.attempt).padStart(2, "0")}-secondary-eligibility`,
+    jobId: assessment.jobId,
+    objectiveNodeId: assessment.objectiveNodeId,
+    workUnitId: assessment.workUnitId,
+    attempt: assessment.attempt,
+    status,
+    reasons,
+    assessmentRef: readinessAssessmentRef(assessment),
+    assessmentHash: assessment.contentHash
+  };
+  return secondaryEligibilityDecisionSchema.parse({
+    ...body,
+    contentHash: sha256Hex(decisionBody(body)),
+    decidedAt
+  });
+}
+function isWorkReadinessAssessmentFresh(assessment, input) {
+  const identity3 = buildWorkReadinessInputIdentity(input);
+  return assessment.inputHash === sha256Hex(stableStringify2(identity3));
+}
+function assessAndDecideWorkReadiness(input, previous) {
+  const parsedPrevious = previous === void 0 ? void 0 : workReadinessRecordSchema.safeParse({
+    assessment: previous.assessment,
+    decision: previous.decision
+  });
+  if (parsedPrevious?.success === true && isWorkReadinessAssessmentFresh(parsedPrevious.data.assessment, input)) {
+    return { ...parsedPrevious.data, reused: true };
+  }
+  const assessment = assessWorkReadiness(input);
+  const decision = decideSecondaryEligibility(assessment, input.assessedAt);
+  return { assessment, decision, reused: false };
+}
+function emptyCount(values) {
+  return Object.fromEntries(values.map((value) => [value, 0]));
+}
+function summarizeWorkReadiness(records, generatedAt = (/* @__PURE__ */ new Date()).toISOString()) {
+  const statuses = emptyCount(SECONDARY_ELIGIBILITY_STATUSES);
+  const reasons = emptyCount(WORK_READINESS_REASON_CODES);
+  const entropies = emptyCount(DECISION_ENTROPIES);
+  const verification = emptyCount(WORK_READINESS_VERIFICATION_STRENGTHS);
+  const contexts = emptyCount(WORK_READINESS_CONTEXT_STATES);
+  for (const record32 of records) {
+    statuses[record32.decision.status] += 1;
+    entropies[record32.assessment.decisionEntropy] += 1;
+    verification[record32.assessment.verificationStrength] += 1;
+    contexts[record32.assessment.contextState] += 1;
+    for (const entry2 of record32.decision.reasons) reasons[entry2.code] += 1;
+  }
+  return workReadinessTelemetrySchema.parse({
+    schemaVersion: WORK_READINESS_TELEMETRY_SCHEMA_VERSION,
+    assessmentCount: records.length,
+    statusCounts: statuses,
+    reasonCodeDistribution: reasons,
+    decisionEntropyDistribution: entropies,
+    verificationStrengthDistribution: verification,
+    contextStateDistribution: contexts,
+    generatedAt
+  });
+}
 var ID_PATTERN3 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 function assertSegment(value, what) {
   if (!ID_PATTERN3.test(value)) {
@@ -63570,6 +64138,59 @@ function readSecondaryBuilderAttempt(workspace, jobId, nodeId, workUnitId, attem
       return result.success ? result.data : void 0;
     }
   );
+}
+function storeWorkReadinessRecord(workspace, jobId, nodeId, record32) {
+  const validated = workReadinessRecordSchema.parse(record32);
+  assertSegment(validated.assessment.workUnitId, "work unit id");
+  const file = artifactPath3(
+    workspace,
+    jobId,
+    nodeId,
+    "readiness",
+    `${candidateName(validated.assessment.workUnitId, validated.assessment.attempt)}.json`
+  );
+  (0, import_fs34.mkdirSync)(import_path36.default.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
+`);
+  return validated;
+}
+function readWorkReadinessRecord(workspace, jobId, nodeId, workUnitId, attempt) {
+  if (!ID_PATTERN3.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return void 0;
+  return readJson(
+    artifactPath3(
+      workspace,
+      jobId,
+      nodeId,
+      "readiness",
+      `${candidateName(workUnitId, attempt)}.json`
+    ),
+    (raw) => {
+      const result = workReadinessRecordSchema.safeParse(raw);
+      return result.success ? result.data : void 0;
+    }
+  );
+}
+function readWorkReadinessRecords(workspace, jobId, nodeId) {
+  const dir = artifactPath3(workspace, jobId, nodeId, "readiness");
+  if (!(0, import_fs34.existsSync)(dir)) return [];
+  const records = [];
+  for (const name of (0, import_fs34.readdirSync)(dir).sort()) {
+    if (!/-a\d+\.json$/.test(name)) continue;
+    const record32 = readJson(import_path36.default.join(dir, name), (raw) => {
+      const result = workReadinessRecordSchema.safeParse(raw);
+      return result.success ? result.data : void 0;
+    });
+    if (record32 !== void 0) records.push(record32);
+  }
+  return records;
+}
+function storeWorkReadinessTelemetry(workspace, jobId, nodeId, telemetry) {
+  const validated = workReadinessTelemetrySchema.parse(telemetry);
+  const file = artifactPath3(workspace, jobId, nodeId, "readiness", "telemetry.json");
+  (0, import_fs34.mkdirSync)(import_path36.default.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
+`);
+  return validated;
 }
 function storeEvaluation(workspace, jobId, nodeId, evaluation) {
   const validated = evaluationRecordSchema.parse(evaluation);
@@ -63927,40 +64548,40 @@ var RELIABILITY_LIMITS = {
   /** Bounded per-task fingerprint history used by loop detection. */
   maxFingerprintHistory: 12
 };
-var shortText52 = external_exports.string().min(1).max(RELIABILITY_LIMITS.maxShortTextChars);
+var shortText6 = external_exports.string().min(1).max(RELIABILITY_LIMITS.maxShortTextChars);
 var text4 = external_exports.string().min(1).max(RELIABILITY_LIMITS.maxTextChars);
 var semver22 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
 var evaluationCheckSchema = external_exports.object({
   level: external_exports.enum(EVALUATION_CHECK_LEVELS),
   /** Stable identifier of the check itself (verifier name, criterion id). */
-  name: shortText52,
+  name: shortText6,
   outcome: external_exports.enum(EVALUATION_CHECK_OUTCOMES),
   /** False for advisory checks that never by themselves fail a task. */
   required: external_exports.boolean().default(true),
   /** Bounded, safe detail. Never raw model prose, never a stack trace. */
   detail: text4.optional(),
   /** Evidence reference (run id, verifier result key, criterion id). */
-  evidenceRef: shortText52.optional(),
+  evidenceRef: shortText6.optional(),
   durationMs: external_exports.number().int().min(0).nullable().default(null)
 }).passthrough();
 var semanticFindingSchema = external_exports.object({
   /** Acceptance criterion or contract id this finding relates to, if any. */
-  criterionId: shortText52.optional(),
+  criterionId: shortText6.optional(),
   severity: external_exports.enum(["blocking", "concern", "note"]),
   /** Bounded structured observation. Never chain-of-thought. */
   observation: text4,
   /** Repository path the finding points at, when it points at one. */
-  path: shortText52.optional()
+  path: shortText6.optional()
 }).passthrough();
 var evaluationResultSchema = external_exports.object({
   schemaVersion: semver22,
-  evaluationId: shortText52,
-  jobId: shortText52,
-  nodeId: shortText52,
-  taskId: shortText52,
-  attemptId: shortText52,
+  evaluationId: shortText6,
+  jobId: shortText6,
+  nodeId: shortText6,
+  taskId: shortText6,
+  attemptId: shortText6,
   /** The economic lane the evaluated attempt ran on, for cross-lane analysis. */
-  lane: shortText52.nullable().default(null),
+  lane: shortText6.nullable().default(null),
   status: external_exports.enum(EVALUATION_STATUSES),
   /** Deterministic checks, in level order. Always populated. */
   deterministicChecks: external_exports.array(evaluationCheckSchema).max(RELIABILITY_LIMITS.maxChecks).default([]),
@@ -63969,15 +64590,15 @@ var evaluationResultSchema = external_exports.object({
   /** Structured semantic findings; proposals only, never authority. */
   semanticFindings: external_exports.array(semanticFindingSchema).max(RELIABILITY_LIMITS.maxFindings).default([]),
   /** Acceptance-criteria ids that did not hold. */
-  failedCriteria: external_exports.array(shortText52).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  failedCriteria: external_exports.array(shortText6).max(RELIABILITY_LIMITS.maxListItems).default([]),
   /** Run ids, verifier keys, patch refs backing this verdict. */
-  evidenceRefs: external_exports.array(shortText52).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
+  evidenceRefs: external_exports.array(shortText6).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
   /**
    * Normalized failure fingerprints observed during evaluation. These feed
    * no-progress detection directly, which is why they live on the durable
    * record rather than being recomputed from logs.
    */
-  failureSignals: external_exports.array(shortText52).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  failureSignals: external_exports.array(shortText6).max(RELIABILITY_LIMITS.maxListItems).default([]),
   /** Ordered, safe explanation of how the status was reached. */
   reasons: external_exports.array(text4).max(RELIABILITY_LIMITS.maxListItems).default([]),
   /**
@@ -63986,16 +64607,16 @@ var evaluationResultSchema = external_exports.object({
    * deterministic" invariant is auditable after the fact.
    */
   semanticReviewRan: external_exports.boolean().default(false),
-  createdAt: shortText52
+  createdAt: shortText6
 }).passthrough();
 var failureAssessmentSchema = external_exports.object({
   schemaVersion: semver22,
-  assessmentId: shortText52,
-  jobId: shortText52,
-  nodeId: shortText52,
-  taskId: shortText52,
-  attemptId: shortText52,
-  lane: shortText52.nullable().default(null),
+  assessmentId: shortText6,
+  jobId: shortText6,
+  nodeId: shortText6,
+  taskId: shortText6,
+  attemptId: shortText6,
+  lane: shortText6.nullable().default(null),
   /** The existing stable failure taxonomy, unchanged. */
   category: external_exports.enum(FAILURE_CATEGORIES),
   source: external_exports.enum(FAILURE_SOURCES),
@@ -64004,9 +64625,9 @@ var failureAssessmentSchema = external_exports.object({
   /** What this assessment rests on. Not a fabricated confidence number. */
   basis: external_exports.enum(ASSESSMENT_BASES),
   /** Deterministic identity of the failure (see failureFingerprint). */
-  fingerprint: shortText52,
+  fingerprint: shortText6,
   /** Identity of the working-tree change set this failure came with. */
-  diffFingerprint: shortText52.nullable().default(null),
+  diffFingerprint: shortText6.nullable().default(null),
   /** How many attempts on this task have ended with this fingerprint. */
   repeatedCount: external_exports.number().int().min(1).default(1),
   /** Bounded, safe statement of the likely cause. Never model prose. */
@@ -64017,8 +64638,8 @@ var failureAssessmentSchema = external_exports.object({
   health: external_exports.enum(EXECUTION_HEALTH_STATES).default("HEALTHY"),
   /** Runaway signals that fired, when the attempt was stopped for one. */
   runawaySignals: external_exports.array(external_exports.enum(RUNAWAY_SIGNALS)).max(RUNAWAY_SIGNALS.length).default([]),
-  evidenceRefs: external_exports.array(shortText52).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
-  createdAt: shortText52
+  evidenceRefs: external_exports.array(shortText6).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
+  createdAt: shortText6
 }).passthrough();
 var budgetSnapshotSchema = external_exports.object({
   attemptsUsed: external_exports.number().int().min(0),
@@ -64043,38 +64664,38 @@ var budgetSnapshotSchema = external_exports.object({
   reportedTokens: external_exports.number().int().min(0).nullable().default(null)
 }).passthrough();
 var recoveryStrategySchema = external_exports.object({
-  lane: shortText52.nullable().default(null),
-  executionMode: shortText52.nullable().default(null),
+  lane: shortText6.nullable().default(null),
+  executionMode: shortText6.nullable().default(null),
   planRevision: external_exports.number().int().min(0).default(0),
   /** Whether the next attempt starts from a rebuilt context. */
   freshContext: external_exports.boolean().default(false),
   /** Stable digest of the four fields above, for equality comparison. */
-  key: shortText52
+  key: shortText6
 }).passthrough();
 var recoveryDecisionSchema = external_exports.object({
   schemaVersion: semver22,
-  decisionId: shortText52,
-  jobId: shortText52,
-  nodeId: shortText52,
-  taskId: shortText52,
+  decisionId: shortText6,
+  jobId: shortText6,
+  nodeId: shortText6,
+  taskId: shortText6,
   /** The attempt whose failure this decision responds to. */
-  attemptId: shortText52,
+  attemptId: shortText6,
   /** The assessment this decision was made from. */
-  assessmentId: shortText52.optional(),
+  assessmentId: shortText6.optional(),
   /** The evaluation this decision was made from, when one exists. */
-  evaluationId: shortText52.optional(),
+  evaluationId: shortText6.optional(),
   action: external_exports.enum(RECOVERY_ACTIONS),
   reasonCode: external_exports.enum(RECOVERY_REASON_CODES),
   /** Bounded, safe explanation. Written by policy, never by a model. */
   reason: text4,
-  failureFingerprint: shortText52.nullable().default(null),
+  failureFingerprint: shortText6.nullable().default(null),
   health: external_exports.enum(EXECUTION_HEALTH_STATES),
   /** What dimension of strategy this decision changes. */
   strategyChange: external_exports.enum(RECOVERY_STRATEGY_DIMENSIONS),
   previousStrategy: recoveryStrategySchema.optional(),
   nextStrategy: recoveryStrategySchema.optional(),
   budgetSnapshot: budgetSnapshotSchema,
-  evidenceRefs: external_exports.array(shortText52).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
+  evidenceRefs: external_exports.array(shortText6).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
   /**
    * What a human would need to do to unblock this task, when the action
    * stops automatic continuation. Bounded and actionable.
@@ -64092,28 +64713,28 @@ var recoveryDecisionSchema = external_exports.object({
   }).passthrough().optional(),
   /** True when the decision was persisted but its attempt has not run yet. */
   applied: external_exports.boolean().default(false),
-  createdAt: shortText52
+  createdAt: shortText6
 }).passthrough();
 var reliabilityObservationSchema = external_exports.object({
-  attemptId: shortText52,
+  attemptId: shortText6,
   attemptNumber: external_exports.number().int().min(1),
-  failureFingerprint: shortText52.nullable().default(null),
-  diffFingerprint: shortText52.nullable().default(null),
-  strategyKey: shortText52.nullable().default(null),
+  failureFingerprint: shortText6.nullable().default(null),
+  diffFingerprint: shortText6.nullable().default(null),
+  strategyKey: shortText6.nullable().default(null),
   evaluationStatus: external_exports.enum(EVALUATION_STATUSES).nullable().default(null),
-  lane: shortText52.nullable().default(null),
-  at: shortText52
+  lane: shortText6.nullable().default(null),
+  at: shortText6
 }).passthrough();
 var taskReliabilityStateSchema = external_exports.object({
   schemaVersion: semver22,
-  jobId: shortText52,
-  nodeId: shortText52,
-  taskId: shortText52,
+  jobId: shortText6,
+  nodeId: shortText6,
+  taskId: shortText6,
   health: external_exports.enum(EXECUTION_HEALTH_STATES).default("HEALTHY"),
   /** Rolling window, oldest first. */
   observations: external_exports.array(reliabilityObservationSchema).max(RELIABILITY_LIMITS.maxFingerprintHistory).default([]),
   /** Strategy keys already tried and failed on this task. */
-  exhaustedStrategies: external_exports.array(shortText52).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  exhaustedStrategies: external_exports.array(shortText6).max(RELIABILITY_LIMITS.maxListItems).default([]),
   /** Cumulative counters — the raw material for cost-of-failure analysis. */
   evaluationsFailed: external_exports.number().int().min(0).default(0),
   evaluationsInconclusive: external_exports.number().int().min(0).default(0),
@@ -64126,8 +64747,8 @@ var taskReliabilityStateSchema = external_exports.object({
   failedAttemptTokens: external_exports.number().int().min(0).nullable().default(null),
   failedAttemptCostUsd: external_exports.number().min(0).nullable().default(null),
   /** The decision the task is currently acting on, when one is pending. */
-  pendingDecisionId: shortText52.optional(),
-  updatedAt: shortText52
+  pendingDecisionId: shortText6.optional(),
+  updatedAt: shortText6
 }).passthrough();
 var TASK_RELIABILITY_SCHEMA_VERSION = "1.0.0";
 var ID_PATTERN4 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
@@ -64321,7 +64942,7 @@ var SURVIVAL_LIMITS = {
   maxShortTextChars: STATE_LIMITS.maxShortTextChars,
   maxCheckpointsPerTask: 500
 };
-var shortText6 = external_exports.string().min(1).max(SURVIVAL_LIMITS.maxShortTextChars);
+var shortText7 = external_exports.string().min(1).max(SURVIVAL_LIMITS.maxShortTextChars);
 var text5 = external_exports.string().min(1).max(SURVIVAL_LIMITS.maxTextChars);
 var textList3 = external_exports.array(text5).max(SURVIVAL_LIMITS.maxListItems);
 var semver3 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
@@ -64368,28 +64989,28 @@ var attemptMetricsSchema = external_exports.object({
 }).passthrough();
 var taskAttemptSchema = external_exports.object({
   schemaVersion: semver3,
-  attemptId: shortText6,
-  jobId: shortText6,
+  attemptId: shortText7,
+  jobId: shortText7,
   /** Runtime graph node this attempt executes (the Task's runtime identity). */
-  nodeId: shortText6,
+  nodeId: shortText7,
   /** The approved task id (stable across graph revisions). */
-  taskId: shortText6,
+  taskId: shortText7,
   role: external_exports.enum(AGENT_ROLES),
   /** Worker identity as the scheduler assigned it. */
-  workerId: shortText6,
+  workerId: shortText7,
   /**
    * Provider identity (runner/profile name). Identity is recorded for the
    * ledger and for audit — runtime logic branches on capabilities, never
    * on this value.
    */
-  provider: shortText6,
+  provider: shortText7,
   /** Model identity when known; null when the provider does not say. */
-  model: shortText6.nullable().default(null),
+  model: shortText7.nullable().default(null),
   status: external_exports.enum(TASK_ATTEMPT_STATUSES),
   /** 1-based position within this task's attempt history. */
   attemptNumber: external_exports.number().int().min(1),
-  startedAt: shortText6,
-  completedAt: shortText6.optional(),
+  startedAt: shortText7,
+  completedAt: shortText7.optional(),
   /** Bounded outcome summary — a claim, never evidence. */
   resultSummary: text5.optional(),
   failure: external_exports.object({
@@ -64397,58 +65018,58 @@ var taskAttemptSchema = external_exports.object({
     message: text5
   }).passthrough().optional(),
   /** Why an INTERRUPTED attempt was reconciled (e.g. "process-restart"). */
-  interruptedReason: shortText6.optional(),
+  interruptedReason: shortText7.optional(),
   /** Task checkpoints persisted during this attempt, oldest first. */
-  checkpointIds: external_exports.array(shortText6).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  checkpointIds: external_exports.array(shortText7).max(SURVIVAL_LIMITS.maxListItems).default([]),
   /** Execution run id (`.specbridge/runs/<id>`) when the evidence path ran. */
-  runId: shortText6.optional(),
+  runId: shortText7.optional(),
   /** The interrupted/failed attempt this one continues from (lineage). */
-  resumedFromAttemptId: shortText6.optional(),
+  resumedFromAttemptId: shortText7.optional(),
   /** Provider session reference — WORKING MEMORY only, never canonical. */
-  providerSessionId: shortText6.optional(),
+  providerSessionId: shortText7.optional(),
   /** Scheduling lane (vNext.2: LOCAL / SUBSCRIPTION), when assigned. */
-  lane: shortText6.optional(),
+  lane: shortText7.optional(),
   // vNext.2 scheduling attribution (additive; audit and ledger inputs,
   // never runtime policy — policy reads live configuration and telemetry).
   /** Deterministic local-suitability class the scheduler assigned. */
-  localSuitability: shortText6.optional(),
+  localSuitability: shortText7.optional(),
   /** Complexity class the task carried when the attempt was scheduled. */
-  taskComplexity: shortText6.optional(),
+  taskComplexity: shortText7.optional(),
   /** Coarse task category from the suitability classifier. */
-  taskCategory: shortText6.optional(),
+  taskCategory: shortText7.optional(),
   /** The SchedulingDecision that routed this attempt, when one exists. */
-  schedulingDecisionId: shortText6.optional(),
+  schedulingDecisionId: shortText7.optional(),
   // vNext.4 local execution attribution (additive; absent on pre-vNext.4
   // attempts and on every SUBSCRIPTION attempt).
   /** LOCAL execution mode: DIRECT_MODEL or HARNESS. Orthogonal to lane. */
-  executionMode: shortText6.optional(),
+  executionMode: shortText7.optional(),
   /** Deterministic execution shape the resolver classified. */
-  executionShape: shortText6.optional(),
+  executionShape: shortText7.optional(),
   /** Verified compute locality of the runner that executed this attempt. */
-  computeLocality: shortText6.optional(),
+  computeLocality: shortText7.optional(),
   // vNext.5 API-lane attribution (additive; absent on every LOCAL and
   // SUBSCRIPTION attempt and on every pre-vNext.5 record). Each field is
   // ORTHOGONAL: `lane` says whether this was paid, `provider`/`model` say
   // which intelligence ran it, `executionMode`/`computeLocality` say how
   // and where. Nothing is ever collapsed into a compound value.
   /** The spend authorization mode in force when the attempt was dispatched. */
-  apiSpendMode: shortText6.optional(),
+  apiSpendMode: shortText7.optional(),
   /** Why subscription capacity was unavailable (the gap's cause). */
-  gapReason: shortText6.optional(),
+  gapReason: shortText7.optional(),
   /** When subscription capacity was expected back, when known. */
-  subscriptionAvailableAt: shortText6.optional(),
+  subscriptionAvailableAt: shortText7.optional(),
   /** Expected gap duration in milliseconds, when known. */
   estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null).optional(),
   /** How the recorded cost was determined (see API_COST_SOURCES). */
-  costSource: shortText6.optional(),
+  costSource: shortText7.optional(),
   /** Operator pricing profile the estimate used, for attribution. */
-  pricingProfile: shortText6.optional(),
+  pricingProfile: shortText7.optional(),
   /** The budget reservation funding this attempt. */
-  apiBudgetReservationId: shortText6.optional(),
+  apiBudgetReservationId: shortText7.optional(),
   /** The bounded human authorization this attempt consumed, when one applied. */
-  apiApprovalId: shortText6.optional(),
+  apiApprovalId: shortText7.optional(),
   /** Deterministic delay-sensitivity level that justified paid bridging. */
-  delaySensitivity: shortText6.optional(),
+  delaySensitivity: shortText7.optional(),
   // vNext.8 adaptive attribution (additive; absent on every pre-vNext.8
   // record). These three exist so historical observations can be GROUPED
   // and their runtime identity CHECKED without re-deriving either from
@@ -64456,46 +65077,46 @@ var taskAttemptSchema = external_exports.object({
   // months later under changed heuristics would silently re-file old
   // attempts into buckets they were never measured in.
   /** The coarse TaskSignature key this attempt was dispatched under. */
-  taskSignature: shortText6.optional(),
+  taskSignature: shortText7.optional(),
   /** vNext.7 context strategy in force for this attempt. */
-  contextStrategy: shortText6.optional(),
+  contextStrategy: shortText7.optional(),
   /**
    * Runner/runtime version when the provider reported one. Absent means
    * UNKNOWN — never assumed to match the version running now, because a
    * silent version change is exactly the case this field exists to catch.
    */
-  runnerVersion: shortText6.optional(),
+  runnerVersion: shortText7.optional(),
   metrics: attemptMetricsSchema.default({})
 }).passthrough();
 var checkpointDecisionSchema = external_exports.object({
   decision: text5,
   rationale: text5.optional(),
-  at: shortText6.optional(),
-  decidedBy: shortText6.optional()
+  at: shortText7.optional(),
+  decidedBy: shortText7.optional()
 }).passthrough();
 var failedApproachSchema = external_exports.object({
   approach: text5,
   reason: text5,
-  at: shortText6.optional(),
+  at: shortText7.optional(),
   /** Evidence reference (run id, test name) backing the failure claim. */
-  evidenceRef: shortText6.optional()
+  evidenceRef: shortText7.optional()
 }).passthrough();
 var checkpointTestResultSchema = external_exports.object({
-  name: shortText6,
+  name: shortText7,
   status: external_exports.enum(["passed", "failed", "skipped", "unknown"]),
   summary: text5.optional()
 }).passthrough();
 var checkpointRepositoryStateSchema = external_exports.object({
-  branch: shortText6.optional(),
-  head: shortText6.optional(),
+  branch: shortText7.optional(),
+  head: shortText7.optional(),
   detached: external_exports.boolean().optional(),
   clean: external_exports.boolean().optional(),
   /** Paths dirty at checkpoint time (bounded; the diff itself lives in runs/). */
-  dirtyPaths: external_exports.array(shortText6).max(SURVIVAL_LIMITS.maxChangedFiles).default([]),
+  dirtyPaths: external_exports.array(shortText7).max(SURVIVAL_LIMITS.maxChangedFiles).default([]),
   /** Reference to a stored diff artifact, when one exists. */
-  diffRef: shortText6.optional(),
+  diffRef: shortText7.optional(),
   /** The commit execution started from, when known. */
-  baselineHead: shortText6.optional()
+  baselineHead: shortText7.optional()
 }).passthrough();
 var checkpointPinnedContextSchema = external_exports.object({
   /** The task contract: what this task IS, verbatim and bounded. */
@@ -64508,12 +65129,12 @@ var checkpointPinnedContextSchema = external_exports.object({
 }).passthrough();
 var taskCheckpointSchema = external_exports.object({
   schemaVersion: semver3,
-  checkpointId: shortText6,
-  jobId: shortText6,
-  nodeId: shortText6,
-  taskId: shortText6,
+  checkpointId: shortText7,
+  jobId: shortText7,
+  nodeId: shortText7,
+  taskId: shortText7,
   /** The attempt that persisted this checkpoint. */
-  attemptId: shortText6,
+  attemptId: shortText7,
   /** 1-based, strictly increasing per task. */
   seq: external_exports.number().int().min(1),
   reason: external_exports.enum(TASK_CHECKPOINT_REASONS),
@@ -64525,7 +65146,7 @@ var taskCheckpointSchema = external_exports.object({
   importantDecisions: external_exports.array(checkpointDecisionSchema).max(SURVIVAL_LIMITS.maxListItems).default([]),
   failedApproaches: external_exports.array(failedApproachSchema).max(SURVIVAL_LIMITS.maxListItems).default([]),
   changedFiles: external_exports.array(
-    external_exports.object({ path: shortText6, note: shortText6.optional() }).passthrough()
+    external_exports.object({ path: shortText7, note: shortText7.optional() }).passthrough()
   ).max(SURVIVAL_LIMITS.maxChangedFiles).default([]),
   repositoryState: checkpointRepositoryStateSchema.default({}),
   testResults: external_exports.array(checkpointTestResultSchema).max(SURVIVAL_LIMITS.maxListItems).default([]),
@@ -64534,48 +65155,48 @@ var taskCheckpointSchema = external_exports.object({
   /** The exact next actions, in order. Resume continues from here. */
   nextActions: external_exports.array(text5).min(1).max(SURVIVAL_LIMITS.maxListItems),
   /** Artifact references (run ids, agent results, candidate refs). */
-  relevantArtifacts: external_exports.array(shortText6).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  relevantArtifacts: external_exports.array(shortText7).max(SURVIVAL_LIMITS.maxListItems).default([]),
   /** Context references worth re-retrieving (paths, docs), never content. */
-  relevantContextReferences: external_exports.array(shortText6).max(SURVIVAL_LIMITS.maxListItems).default([]),
-  createdAt: shortText6
+  relevantContextReferences: external_exports.array(shortText7).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  createdAt: shortText7
 }).passthrough();
 var executionLedgerEntrySchema = external_exports.object({
-  attemptId: shortText6,
-  jobId: shortText6,
-  nodeId: shortText6,
-  taskId: shortText6,
+  attemptId: shortText7,
+  jobId: shortText7,
+  nodeId: shortText7,
+  taskId: shortText7,
   role: external_exports.enum(AGENT_ROLES),
-  provider: shortText6,
-  model: shortText6.nullable(),
-  lane: shortText6.nullable(),
+  provider: shortText7,
+  model: shortText7.nullable(),
+  lane: shortText7.nullable(),
   status: external_exports.enum(TASK_ATTEMPT_STATUSES),
   attemptNumber: external_exports.number().int().min(1),
-  startedAt: shortText6,
-  completedAt: shortText6.nullable(),
+  startedAt: shortText7,
+  completedAt: shortText7.nullable(),
   success: external_exports.boolean(),
-  failureReason: shortText6.nullable(),
+  failureReason: shortText7.nullable(),
   // vNext.2 scheduling attribution (additive; null when never assigned).
-  localSuitability: shortText6.nullable().default(null),
-  taskComplexity: shortText6.nullable().default(null),
-  taskCategory: shortText6.nullable().default(null),
-  schedulingDecisionId: shortText6.nullable().default(null),
+  localSuitability: shortText7.nullable().default(null),
+  taskComplexity: shortText7.nullable().default(null),
+  taskCategory: shortText7.nullable().default(null),
+  schedulingDecisionId: shortText7.nullable().default(null),
   // vNext.4 local execution attribution (additive; null when unassigned).
-  executionMode: shortText6.nullable().default(null),
-  executionShape: shortText6.nullable().default(null),
-  computeLocality: shortText6.nullable().default(null),
+  executionMode: shortText7.nullable().default(null),
+  executionShape: shortText7.nullable().default(null),
+  computeLocality: shortText7.nullable().default(null),
   // vNext.5 API economics (additive; null on every unpaid attempt). These
   // are what makes later analysis possible without a second database:
   // cost per successful task, cost by task type, bridge success rate, and
   // money spent versus subscription wait avoided all derive from here.
-  apiSpendMode: shortText6.nullable().default(null),
-  gapReason: shortText6.nullable().default(null),
-  subscriptionAvailableAt: shortText6.nullable().default(null),
+  apiSpendMode: shortText7.nullable().default(null),
+  gapReason: shortText7.nullable().default(null),
+  subscriptionAvailableAt: shortText7.nullable().default(null),
   estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null),
-  costSource: shortText6.nullable().default(null),
-  pricingProfile: shortText6.nullable().default(null),
-  apiBudgetReservationId: shortText6.nullable().default(null),
-  apiApprovalId: shortText6.nullable().default(null),
-  delaySensitivity: shortText6.nullable().default(null),
+  costSource: shortText7.nullable().default(null),
+  pricingProfile: shortText7.nullable().default(null),
+  apiBudgetReservationId: shortText7.nullable().default(null),
+  apiApprovalId: shortText7.nullable().default(null),
+  delaySensitivity: shortText7.nullable().default(null),
   // vNext.6 reliability attribution (additive; null on every pre-vNext.6
   // record and on any attempt the reliability layer did not govern).
   //
@@ -64587,27 +65208,27 @@ var executionLedgerEntrySchema = external_exports.object({
   // which questions were worth asking would foreclose the ones that turn
   // out to matter.
   /** Verdict on this attempt: PASS / FAIL / INCONCLUSIVE. */
-  evaluationStatus: shortText6.nullable().default(null),
-  evaluationId: shortText6.nullable().default(null),
+  evaluationStatus: shortText7.nullable().default(null),
+  evaluationId: shortText7.nullable().default(null),
   /** WHERE the failure came from, orthogonal to `failureReason`. */
-  failureSource: shortText6.nullable().default(null),
+  failureSource: shortText7.nullable().default(null),
   /** Deterministic failure identity, for cross-attempt repetition analysis. */
-  failureFingerprint: shortText6.nullable().default(null),
+  failureFingerprint: shortText7.nullable().default(null),
   /** Deterministic progress health at the time of the failure. */
-  executionHealth: shortText6.nullable().default(null),
+  executionHealth: shortText7.nullable().default(null),
   /** The recovery action SpecBridge chose after this attempt. */
-  recoveryAction: shortText6.nullable().default(null),
-  recoveryReasonCode: shortText6.nullable().default(null),
-  recoveryDecisionId: shortText6.nullable().default(null),
+  recoveryAction: shortText7.nullable().default(null),
+  recoveryReasonCode: shortText7.nullable().default(null),
+  recoveryDecisionId: shortText7.nullable().default(null),
   /** Which dimension of strategy the recovery changed, if any. */
-  strategyChange: shortText6.nullable().default(null),
+  strategyChange: shortText7.nullable().default(null),
   // vNext.8 adaptive attribution (additive; null on every pre-vNext.8
   // record). The adaptive layer reads history through this read model, so
   // the grouping key and the runtime identity have to travel with the
   // observation rather than being reconstructed from it.
-  taskSignature: shortText6.nullable().default(null),
-  contextStrategy: shortText6.nullable().default(null),
-  runnerVersion: shortText6.nullable().default(null),
+  taskSignature: shortText7.nullable().default(null),
+  contextStrategy: shortText7.nullable().default(null),
+  runnerVersion: shortText7.nullable().default(null),
   metrics: attemptMetricsSchema
 }).passthrough();
 var ID_PATTERN5 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
@@ -64872,7 +65493,7 @@ function completeTaskAttempt(deps3, input) {
   };
   return updateTaskAttempt(deps3.workspace, finalized);
 }
-function reconcileInterruptedAttempts(deps3, jobId, reason = "process-restart") {
+function reconcileInterruptedAttempts(deps3, jobId, reason2 = "process-restart") {
   const running = listTaskAttempts(deps3.workspace, jobId, { status: "RUNNING" });
   const reconciled = [];
   for (const attempt of running) {
@@ -64880,7 +65501,7 @@ function reconcileInterruptedAttempts(deps3, jobId, reason = "process-restart") 
       ...attempt,
       status: "INTERRUPTED",
       completedAt: now22(deps3),
-      interruptedReason: reason
+      interruptedReason: reason2
     };
     reconciled.push(updateTaskAttempt(deps3.workspace, interrupted));
   }
@@ -65083,14 +65704,14 @@ function summarizeExecutionLedger(entries) {
   return { totalAttempts: entries.length, byProvider, reliability };
 }
 var API_BUDGET_SCHEMA_VERSION = "1.0.0";
-var shortText7 = external_exports.string().min(1).max(200);
+var shortText8 = external_exports.string().min(1).max(200);
 var apiBudgetReservationSchema = external_exports.object({
-  reservationId: shortText7,
-  jobId: shortText7,
-  nodeId: shortText7,
-  taskId: shortText7,
+  reservationId: shortText8,
+  jobId: shortText8,
+  nodeId: shortText8,
+  taskId: shortText8,
   /** The durable attempt this reservation funds; null until dispatch. */
-  attemptId: shortText7.nullable().default(null),
+  attemptId: shortText8.nullable().default(null),
   state: external_exports.enum(API_BUDGET_RESERVATION_STATES),
   /** The safe estimated cost held at reservation time, in USD. */
   reservedUsd: external_exports.number().min(0),
@@ -65099,16 +65720,16 @@ var apiBudgetReservationSchema = external_exports.object({
   /** How `reconciledUsd` was determined. */
   costSource: external_exports.enum(API_COST_SOURCES).default("ESTIMATED_PRE_DISPATCH"),
   /** The API profile the reservation was made for (audit). */
-  profileName: shortText7.nullable().default(null),
-  createdAt: shortText7,
-  updatedAt: shortText7,
+  profileName: shortText8.nullable().default(null),
+  createdAt: shortText8,
+  updatedAt: shortText8,
   detail: external_exports.string().max(1e3).default("")
 }).passthrough();
 var apiBudgetStateSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  jobId: shortText7,
+  jobId: shortText8,
   reservations: external_exports.array(apiBudgetReservationSchema).max(5e3).default([]),
-  updatedAt: shortText7
+  updatedAt: shortText8
 }).passthrough();
 function budgetDir(workspace, jobId) {
   return assertInsideWorkspace(workspace.rootDir, import_path41.default.join(jobDir(workspace, jobId), "api-budget"));
@@ -65362,7 +65983,7 @@ function reconcileApiBudget(input) {
     }
   );
 }
-function reconcileInterruptedApiReservations(workspace, jobId, now52, reason = "process-restart") {
+function reconcileInterruptedApiReservations(workspace, jobId, now52, reason2 = "process-restart") {
   const iso = now52.toISOString();
   if (!(0, import_fs39.existsSync)(budgetFile(workspace, jobId))) return [];
   return withBudgetLock(workspace, jobId, iso, (state) => {
@@ -65374,7 +65995,7 @@ function reconcileInterruptedApiReservations(workspace, jobId, now52, reason = "
         state: "UNKNOWN",
         costSource: "UNKNOWN",
         updatedAt: iso,
-        detail: `The owning attempt was interrupted (${reason}); remote usage cannot be ruled out, so this reservation stays charged against the budget.`
+        detail: `The owning attempt was interrupted (${reason2}); remote usage cannot be ruled out, so this reservation stays charged against the budget.`
       };
       reconciled.push(updated);
       return updated;
@@ -66354,7 +66975,7 @@ var ADAPTIVE_DRIFT_SIGNALS = [
   "RUNTIME_IDENTITY_CHANGED"
 ];
 var ADAPTIVE_PROFILE_SCHEMA_VERSION = "1.0.0";
-var shortText8 = external_exports.string().min(1).max(200);
+var shortText9 = external_exports.string().min(1).max(200);
 var metricSummarySchema = external_exports.object({
   observations: external_exports.number().int().min(0),
   p50: external_exports.number().nullable().default(null),
@@ -66365,9 +66986,9 @@ var profileSchema = external_exports.object({
   profileKey: external_exports.string().min(1).max(400),
   signaturePart: external_exports.string().max(400),
   targetPart: external_exports.string().max(400),
-  lane: shortText8.nullable().default(null),
-  executionMode: shortText8.nullable().default(null),
-  runner: shortText8.nullable().default(null),
+  lane: shortText9.nullable().default(null),
+  executionMode: shortText9.nullable().default(null),
+  runner: shortText9.nullable().default(null),
   samples: external_exports.number().int().min(0),
   weightedSamples: external_exports.number().min(0),
   verifiedSuccesses: external_exports.number().int().min(0),
@@ -66400,8 +67021,8 @@ var profileSchema = external_exports.object({
   runtimeIdentities: external_exports.array(external_exports.string().max(300)).max(50).default([]),
   latestRuntimeIdentity: external_exports.string().max(300).nullable().default(null),
   safetyEvents: external_exports.number().int().min(0).default(0),
-  firstObservedAt: shortText8.nullable().default(null),
-  lastObservedAt: shortText8.nullable().default(null),
+  firstObservedAt: shortText9.nullable().default(null),
+  lastObservedAt: shortText9.nullable().default(null),
   drift: external_exports.object({
     detected: external_exports.boolean().default(false),
     signals: external_exports.array(external_exports.enum(ADAPTIVE_DRIFT_SIGNALS)).max(16).default([]),
@@ -66418,7 +67039,7 @@ var adaptiveProfileCacheSchema = external_exports.object({
   sourceFingerprint: external_exports.string().min(1).max(200),
   observationCount: external_exports.number().int().min(0).default(0),
   droppedByAge: external_exports.number().int().min(0).default(0),
-  builtAt: shortText8,
+  builtAt: shortText9,
   profiles: external_exports.array(profileSchema).max(2e4).default([])
 }).passthrough();
 function adaptiveCacheDir(workspace) {
@@ -66481,12 +67102,12 @@ function fromProfileCache(cache) {
 }
 var adaptiveCalibrationRecordSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  jobId: shortText8,
-  nodeId: shortText8,
-  taskId: shortText8,
-  attemptId: shortText8,
-  decisionId: shortText8.nullable().default(null),
-  candidateId: shortText8,
+  jobId: shortText9,
+  nodeId: shortText9,
+  taskId: shortText9,
+  attemptId: shortText9,
+  decisionId: shortText9.nullable().default(null),
+  candidateId: shortText9,
   /** What was predicted before dispatch. */
   predictedSuccessProbability: external_exports.number().min(0).max(1).nullable().default(null),
   predictedWallTimeMs: external_exports.number().min(0).nullable().default(null),
@@ -66494,9 +67115,9 @@ var adaptiveCalibrationRecordSchema = external_exports.object({
   predictedContextTokens: external_exports.number().min(0).nullable().default(null),
   predictedFiveHourBurnRatio: external_exports.number().min(0).max(1).nullable().default(null),
   predictedApiCostUsd: external_exports.number().min(0).nullable().default(null),
-  predictedConfidence: shortText8,
+  predictedConfidence: shortText9,
   /** What was observed. Null stays null; nothing is back-filled. */
-  observedOutcome: shortText8,
+  observedOutcome: shortText9,
   observedVerified: external_exports.boolean().nullable().default(null),
   observedWallTimeMs: external_exports.number().min(0).nullable().default(null),
   observedInputTokens: external_exports.number().min(0).nullable().default(null),
@@ -66510,7 +67131,7 @@ var adaptiveCalibrationRecordSchema = external_exports.object({
   costError: external_exports.number().nullable().default(null),
   /** Brier-style squared error of the success forecast, when resolvable. */
   successBrierScore: external_exports.number().min(0).max(1).nullable().default(null),
-  createdAt: shortText8
+  createdAt: shortText9
 }).passthrough();
 var ADAPTIVE_CALIBRATION_SCHEMA_VERSION = "1.0.0";
 function adaptiveJobDir(workspace, jobId) {
@@ -66555,20 +67176,20 @@ function readAdaptiveCalibration(workspace, jobId, options = {}) {
   return options.limit !== void 0 ? records.slice(-options.limit) : records;
 }
 var ADAPTIVE_DECISION_SCHEMA_VERSION = "1.0.0";
-var shortText9 = external_exports.string().min(1).max(200);
+var shortText10 = external_exports.string().min(1).max(200);
 var candidateShape = external_exports.object({
-  candidateId: shortText9,
-  lane: shortText9,
-  executionMode: shortText9.nullable().default(null),
-  runner: shortText9.nullable().default(null),
-  model: shortText9.nullable().default(null),
-  profile: shortText9.nullable().default(null),
-  contextStrategy: shortText9,
-  computeLocality: shortText9,
+  candidateId: shortText10,
+  lane: shortText10,
+  executionMode: shortText10.nullable().default(null),
+  runner: shortText10.nullable().default(null),
+  model: shortText10.nullable().default(null),
+  profile: shortText10.nullable().default(null),
+  contextStrategy: shortText10,
+  computeLocality: shortText10,
   heuristicChoice: external_exports.boolean().default(false)
 }).passthrough();
 var predictionShape = external_exports.object({
-  candidateId: shortText9,
+  candidateId: shortText10,
   level: external_exports.enum(PROFILE_FALLBACK_LEVELS),
   profileKey: external_exports.string().max(400).nullable().default(null),
   confidence: external_exports.enum(PREDICTION_CONFIDENCE_LEVELS),
@@ -66600,14 +67221,14 @@ var predictionShape = external_exports.object({
   safetyEvents: external_exports.number().int().min(0).default(0),
   sampleCount: external_exports.number().int().min(0),
   weightedSampleCount: external_exports.number().min(0),
-  lastObservedAt: shortText9.nullable().default(null),
+  lastObservedAt: shortText10.nullable().default(null),
   /** Utility score and its itemized components. */
   score: external_exports.number(),
   scoreComponents: external_exports.array(
     external_exports.object({
-      name: shortText9,
+      name: shortText10,
       raw: external_exports.number().nullable().default(null),
-      unit: shortText9,
+      unit: shortText10,
       normalized: external_exports.number(),
       weight: external_exports.number(),
       contribution: external_exports.number(),
@@ -66617,36 +67238,36 @@ var predictionShape = external_exports.object({
 }).passthrough();
 var adaptiveSchedulingDecisionSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  decisionId: shortText9,
-  jobId: shortText9,
-  nodeId: shortText9,
-  taskId: shortText9,
+  decisionId: shortText10,
+  jobId: shortText10,
+  nodeId: shortText10,
+  taskId: shortText10,
   mode: external_exports.enum(ADAPTIVE_SCHEDULER_MODES),
   /** The coarse grouping key this decision was made under. */
   taskSignature: external_exports.string().max(400),
   /** Fine-grained current features: audit only, never the grouping key. */
   signatureFeatures: external_exports.record(external_exports.unknown()).default({}),
   /** The lane hard policy selected before adaptive ranking ran. */
-  heuristicLane: shortText9,
-  heuristicReasonCode: shortText9,
+  heuristicLane: shortText10,
+  heuristicReasonCode: shortText10,
   eligibleCandidates: external_exports.array(candidateShape).max(32).default([]),
   rejectedCandidates: external_exports.array(
     external_exports.object({
-      candidateId: shortText9,
-      lane: shortText9,
-      executionMode: shortText9.nullable().default(null),
-      runner: shortText9.nullable().default(null),
+      candidateId: shortText10,
+      lane: shortText10,
+      executionMode: shortText10.nullable().default(null),
+      runner: shortText10.nullable().default(null),
       code: external_exports.enum(ADAPTIVE_VETO_CODES),
       detail: external_exports.string().max(600).default("")
     }).passthrough()
   ).max(32).default([]),
   predictions: external_exports.array(predictionShape).max(32).default([]),
   /** What the deterministic scheduler chose. */
-  heuristicCandidateId: shortText9.nullable().default(null),
+  heuristicCandidateId: shortText10.nullable().default(null),
   /** What ranking preferred, before gating. */
-  recommendedCandidateId: shortText9.nullable().default(null),
+  recommendedCandidateId: shortText10.nullable().default(null),
   /** What actually executes. */
-  selectedCandidateId: shortText9.nullable().default(null),
+  selectedCandidateId: shortText10.nullable().default(null),
   adaptiveApplied: external_exports.boolean().default(false),
   /**
    * True when the recommendation differed from the heuristic choice. In
@@ -66663,8 +67284,8 @@ var adaptiveSchedulingDecisionSchema = external_exports.object({
   explanation: external_exports.array(external_exports.string().max(600)).max(24).default([]),
   /** Profile-store provenance, so a decision is reproducible. */
   profileObservations: external_exports.number().int().min(0).default(0),
-  profileBuiltAt: shortText9.nullable().default(null),
-  createdAt: shortText9
+  profileBuiltAt: shortText10.nullable().default(null),
+  createdAt: shortText10
 }).passthrough();
 function adaptiveDir(workspace, jobId) {
   return assertInsideWorkspace(workspace.rootDir, import_path44.default.join(jobDir(workspace, jobId), "adaptive"));
@@ -67902,7 +68523,7 @@ function evaluateAttempt(input) {
     failedCriteria: [...input.failedCriteria ?? []].slice(0, 50),
     evidenceRefs: [...input.evidenceRefs ?? []].slice(0, 40),
     failureSignals: [...input.failureSignals ?? []].slice(0, 50),
-    reasons: reasons.slice(0, 50).map((reason) => reason.slice(0, 2e3)),
+    reasons: reasons.slice(0, 50).map((reason2) => reason2.slice(0, 2e3)),
     semanticReviewRan,
     createdAt: input.createdAt
   });
@@ -68155,10 +68776,10 @@ function planRecovery(input) {
     freshContext: false
   });
   const same = (dimension = "SAME") => dimension === "SAME" ? previousStrategy : previousStrategy;
-  const stop = (action, reasonCode, reason, remediation) => ({
+  const stop = (action, reasonCode, reason2, remediation) => ({
     action,
     reasonCode,
-    reason,
+    reason: reason2,
     strategyChange: "SAME",
     previousStrategy,
     nextStrategy: same(),
@@ -68448,11 +69069,11 @@ function contractMismatch(evaluation) {
   );
   return failedLevels.size > 0 && [...failedLevels].every((level) => level === "ACCEPTANCE_CRITERIA");
 }
-function replanPlan(input, previousStrategy, reasonCode, reason) {
+function replanPlan(input, previousStrategy, reasonCode, reason2) {
   return {
     action: "REPLAN",
     reasonCode,
-    reason,
+    reason: reason2,
     strategyChange: "PLAN",
     previousStrategy,
     // A replan deliberately leaves lane and execution mode UNDECIDED.
@@ -69458,7 +70079,7 @@ function recordCriticVerdict(deps3, jobId, result) {
     nodeId: node.nodeId,
     planRevision: node.planRevision,
     verdict: result.verdict,
-    reasons: result.reasons.slice(0, 10).map((reason) => reason.slice(0, 200))
+    reasons: result.reasons.slice(0, 10).map((reason2) => reason2.slice(0, 200))
   });
   if (result.verdict === "REVISE" || result.verdict === "ESCALATE") {
     job = transition22(deps3, job, "PLANNING");
@@ -70570,12 +71191,12 @@ function answerClarification(deps3, jobId, answers) {
   }
   return persist22(deps3, job);
 }
-function cancelJob(deps3, jobId, reason) {
+function cancelJob(deps3, jobId, reason2) {
   let job = requireJobState(deps3.workspace, jobId);
   if (isFinalJobStatus(job.status)) return job;
   const at = now4(deps3).toISOString();
   job = transition22(deps3, job, "CANCELLED");
-  job = record22(deps3, job, "job_cancelled", { reason: reason.slice(0, 500) });
+  job = record22(deps3, job, "job_cancelled", { reason: reason2.slice(0, 500) });
   return persist22(deps3, { ...job, finalizedAt: at, finalOutcome: "CANCELLED" });
 }
 var TRANSIENT_UNIT_FAILURES = ["TRANSIENT_TOOL", "TRANSIENT_TRANSPORT"];
@@ -71205,7 +71826,7 @@ var AGENT_OUTPUT_LIMITS = {
   maxSteps: 40,
   maxResponseBytes: 262144
 };
-var shortText10 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxShortChars);
+var shortText11 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxShortChars);
 var text6 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxTextChars);
 var textList4 = external_exports.array(text6).max(AGENT_OUTPUT_LIMITS.maxListItems);
 var classifierOutputSchema = external_exports.object({
@@ -71215,7 +71836,7 @@ var classifierOutputSchema = external_exports.object({
   reasons: textList4.default([])
 });
 var plannerStepSchema = external_exports.object({
-  id: shortText10,
+  id: shortText11,
   action: text6,
   /** What observable evidence would show this step succeeded. */
   expectedEvidence: text6.optional()
@@ -71895,8 +72516,8 @@ var RESEARCH_PROVIDER_HEALTH_STATUSES = [
   "UNKNOWN"
 ];
 var idSchema = external_exports.string().min(1).max(128).regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/);
-var boundedText2 = (max) => external_exports.string().trim().min(1).max(max);
-var boundedTextArray = (maxItems, maxText) => external_exports.array(boundedText2(maxText)).max(maxItems);
+var boundedText3 = (max) => external_exports.string().trim().min(1).max(max);
+var boundedTextArray = (maxItems, maxText) => external_exports.array(boundedText3(maxText)).max(maxItems);
 var SECRET_PATTERNS = [
   /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/i,
   /\b(?:bearer|basic)\s+[A-Za-z0-9+/=_-]{12,}/i,
@@ -71910,7 +72531,7 @@ function containsCredentialMaterial(value) {
 var researchRequestSchema = external_exports.object({
   researchId: idSchema,
   depth: external_exports.enum(RESEARCH_DEPTHS),
-  question: boundedText2(4e3),
+  question: boundedText3(4e3),
   topicTags: external_exports.array(external_exports.string().trim().min(1).max(64).regex(/^[A-Za-z0-9][A-Za-z0-9._:/-]*$/)).max(16).default([]),
   context: external_exports.object({
     knownFacts: boundedTextArray(20, 2e3).default([]),
@@ -71918,7 +72539,7 @@ var researchRequestSchema = external_exports.object({
     failedStrategies: boundedTextArray(10, 2e3).default([]),
     constraints: boundedTextArray(20, 2e3).default([]),
     /** References only; never repository bodies or transcripts. */
-    contextRefs: external_exports.array(boundedText2(512)).max(20).default([])
+    contextRefs: external_exports.array(boundedText3(512)).max(20).default([])
   }).strict().default({}),
   expectedOutput: external_exports.object({
     questionsToAnswer: boundedTextArray(12, 1e3).min(1)
@@ -71929,7 +72550,7 @@ var researchRequestSchema = external_exports.object({
   }).strict().default({}),
   freshness: external_exports.object({
     currentFactSensitive: external_exports.boolean().default(false),
-    subjectVersion: boundedText2(128).optional()
+    subjectVersion: boundedText3(128).optional()
   }).strict().default({})
 }).strict().superRefine((request, ctx) => {
   const size = Buffer.byteLength(JSON.stringify(request), "utf8");
@@ -71949,13 +72570,13 @@ var researchSourceRefSchema = external_exports.object({
     const protocol = new URL(value).protocol;
     return protocol === "http:" || protocol === "https:";
   }, "source URLs must use http or https").optional(),
-  title: boundedText2(500).optional(),
-  providerSourceId: boundedText2(256).optional(),
-  attribution: boundedText2(500).optional()
+  title: boundedText3(500).optional(),
+  providerSourceId: boundedText3(256).optional(),
+  attribution: boundedText3(500).optional()
 }).strict();
 var researchFindingSchema = external_exports.object({
   findingId: idSchema,
-  statement: boundedText2(4e3),
+  statement: boundedText3(4e3),
   kind: external_exports.enum(RESEARCH_FINDING_KINDS),
   confidence: external_exports.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
   sourceRefs: external_exports.array(idSchema).max(16).default([])
@@ -71973,7 +72594,7 @@ var researchReportSchema = external_exports.object({
   provider: idSchema,
   depth: external_exports.enum(RESEARCH_DEPTHS),
   status: external_exports.enum(["COMPLETED", "INCONCLUSIVE"]),
-  question: boundedText2(4e3),
+  question: boundedText3(4e3),
   findings: external_exports.array(researchFindingSchema).max(64),
   sourceRefs: external_exports.array(researchSourceRefSchema).max(64),
   recommendations: boundedTextArray(32, 2e3),
@@ -72006,7 +72627,7 @@ var researchReportSchema = external_exports.object({
 var researchFailureSchema = external_exports.object({
   classification: external_exports.enum(RESEARCH_FAILURE_CLASSIFICATIONS),
   failureSource: external_exports.enum(FAILURE_SOURCES),
-  message: boundedText2(2e3),
+  message: boundedText3(2e3),
   retryable: external_exports.boolean()
 }).strict();
 var researchRecordSchema = external_exports.object({
@@ -72022,9 +72643,9 @@ var researchRecordSchema = external_exports.object({
   scope: external_exports.object({ operationId: idSchema.optional(), jobId: idSchema.optional() }).strict().optional(),
   lifecycle: external_exports.object({
     phase: external_exports.enum(RESEARCH_LIFECYCLE_PHASES),
-    reason: boundedText2(1e3),
+    reason: boundedText3(1e3),
     requestedEffect: external_exports.enum(RESEARCH_LIFECYCLE_EFFECTS).default("EVIDENCE"),
-    usedBy: boundedText2(256).optional()
+    usedBy: boundedText3(256).optional()
   }).strict().optional(),
   report: researchReportSchema.optional(),
   failure: researchFailureSchema.optional(),
@@ -72084,10 +72705,10 @@ var researchUseRecordSchema = external_exports.object({
   useId: idSchema,
   researchId: idSchema,
   phase: external_exports.enum(RESEARCH_LIFECYCLE_PHASES),
-  reason: boundedText2(1e3),
+  reason: boundedText3(1e3),
   useKind: external_exports.enum(["NEW", "REUSED"]),
   effect: external_exports.enum(RESEARCH_LIFECYCLE_EFFECTS),
-  usedBy: boundedText2(256).optional(),
+  usedBy: boundedText3(256).optional(),
   authority: external_exports.literal("EVIDENCE_ONLY"),
   createdAt: external_exports.string().datetime({ offset: true })
 }).strict();
@@ -72122,13 +72743,13 @@ var UNKNOWN_CLASSIFICATIONS = [
 ];
 var decisionBriefOptionSchema = external_exports.object({
   id: idSchema,
-  label: boundedText2(200),
-  description: boundedText2(1500),
+  label: boundedText3(200),
+  description: boundedText3(1500),
   consequences: boundedTextArray(12, 1e3).default([])
 }).strict();
 var decisionBriefSchema = external_exports.object({
   questionId: idSchema,
-  question: boundedText2(4e3),
+  question: boundedText3(4e3),
   context: boundedTextArray(24, 2e3).default([]),
   options: external_exports.array(decisionBriefOptionSchema).max(8).default([]),
   recommendation: external_exports.object({
@@ -73272,18 +73893,18 @@ function recordResearchLifecycleEffect(deps3, input) {
     input.effect
   );
 }
-var boundedText3 = (max) => external_exports.string().trim().min(1).max(max);
-var boundedTextArray2 = (maxItems, maxText) => external_exports.array(boundedText3(maxText)).max(maxItems);
+var boundedText4 = (max) => external_exports.string().trim().min(1).max(max);
+var boundedTextArray2 = (maxItems, maxText) => external_exports.array(boundedText4(maxText)).max(maxItems);
 var lifecycleResearchInputSchema = external_exports.object({
   phase: external_exports.enum(["CONVERSATION", "SPEC_DRAFT", "INTAKE_DECISION", "RUNTIME_INVESTIGATION"]),
   classification: external_exports.enum(UNKNOWN_CLASSIFICATIONS),
-  reason: boundedText3(1e3),
+  reason: boundedText4(1e3),
   requestedEffect: external_exports.enum(["EVIDENCE", "RECOMMENDATION", "HUMAN_DECISION_PREPARED", "REPLAN", "ENGINEERING_CONSTRAINT"]).default("EVIDENCE"),
-  usedBy: boundedText3(256).optional(),
+  usedBy: boundedText4(256).optional(),
   gate: researchGateInputSchema,
   request: researchRequestSchema.optional(),
-  operationId: boundedText3(128).optional(),
-  jobId: boundedText3(128).optional(),
+  operationId: boundedText4(128).optional(),
+  jobId: boundedText4(128).optional(),
   refreshCurrentFacts: external_exports.boolean().default(false)
 }).strict().superRefine((value, context) => {
   if (value.request !== void 0 && (value.gate.requestedDepth ?? "QUICK") !== value.request.depth) {
@@ -73339,11 +73960,11 @@ async function considerLifecycleResearch(deps3, raw, signal) {
   return { classification: input.classification, gate, execution };
 }
 var decisionPreparationInputSchema = external_exports.object({
-  questionId: boundedText3(128),
-  question: boundedText3(4e3),
+  questionId: boundedText4(128),
+  question: boundedText4(4e3),
   context: boundedTextArray2(20, 2e3).default([]),
   options: external_exports.array(decisionBriefOptionSchema).max(8).default([]),
-  recommendation: external_exports.object({ optionId: boundedText3(128), rationale: boundedTextArray2(12, 1e3).min(1) }).strict().optional(),
+  recommendation: external_exports.object({ optionId: boundedText4(128), rationale: boundedTextArray2(12, 1e3).min(1) }).strict().optional(),
   repositoryEvidenceRefs: boundedTextArray2(20, 512).default([]),
   research: lifecycleResearchInputSchema.optional()
 }).strict();
@@ -73878,13 +74499,13 @@ var OBJECTIVE_OUTPUT_LIMITS = {
   maxUnits: 30,
   maxResponseBytes: 262144
 };
-var shortText11 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxShortChars);
+var shortText12 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxShortChars);
 var text7 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxTextChars);
 var textList5 = external_exports.array(text7).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
-var shortList = external_exports.array(shortText11).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
+var shortList = external_exports.array(shortText12).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
 var decomposerUnitSchema = external_exports.object({
   /** Proposal-local id ("a", "b", …); SpecBridge assigns the real ids. */
-  id: shortText11,
+  id: shortText12,
   kind: external_exports.enum(WORK_UNIT_KINDS),
   title: text7,
   goal: text7,
@@ -73913,7 +74534,7 @@ var evaluatorOutputSchema = external_exports.object({
    * "architecture-contract-change", "product-behavior-change", …). The
    * deterministic authority table routes it; the evaluator only names it.
    */
-  decisionKind: shortText11.optional()
+  decisionKind: shortText12.optional()
 });
 var aggregatorOutputSchema = external_exports.object({
   /** One bounded synthesis of the input artifacts. */
@@ -73921,7 +74542,7 @@ var aggregatorOutputSchema = external_exports.object({
   /** Structured findings, each tied to its source artifact. */
   findings: external_exports.array(
     external_exports.object({
-      sourceWorkUnitId: shortText11,
+      sourceWorkUnitId: shortText12,
       finding: text7
     })
   ).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems).default([]),
@@ -73930,15 +74551,15 @@ var aggregatorOutputSchema = external_exports.object({
   /** Contract changes the synthesis suggests — requests, never approvals. */
   contractChangeSuggestions: external_exports.array(
     external_exports.object({
-      contractId: shortText11,
+      contractId: shortText12,
       problem: text7,
       proposal: text7
     })
   ).max(10).default([]),
   conflictsDetected: external_exports.array(
     external_exports.object({
-      contractId: shortText11,
-      claims: external_exports.array(external_exports.object({ sourceWorkUnitId: shortText11, claim: text7 })).min(1).max(10)
+      contractId: shortText12,
+      claims: external_exports.array(external_exports.object({ sourceWorkUnitId: shortText12, claim: text7 })).min(1).max(10)
     })
   ).max(10).default([])
 });
@@ -73950,7 +74571,7 @@ var builderOutputSchema = external_exports.object({
   assumptionsDiscovered: textList5.default([]),
   contractChangeRequests: external_exports.array(
     external_exports.object({
-      contractId: shortText11,
+      contractId: shortText12,
       problem: text7,
       proposal: text7
     })
@@ -74345,9 +74966,9 @@ async function integrateObjective(input) {
   }
   const runId = started.runId;
   input.onProgress?.(`integration run ${runId} started for objective task ${input.taskId}`);
-  const abort = async (reason) => {
+  const abort = async (reason2) => {
     try {
-      await abortInteractiveTask(interactiveDeps2, { runId, reason: reason.slice(0, 500) });
+      await abortInteractiveTask(interactiveDeps2, { runId, reason: reason2.slice(0, 500) });
     } catch {
     }
   };
@@ -74481,7 +75102,7 @@ function contractSnapshotHashOf(contracts, constitutionVersion) {
   const canonical = [...contracts].map((contract) => `${contract.contractId}@${contract.revision}`).sort().join(",");
   return sha256Hex(`constitution@${constitutionVersion};${canonical}`);
 }
-function stableStringify2(value) {
+function stableStringify3(value) {
   const sorted = (input) => {
     if (Array.isArray(input)) return input.map(sorted);
     if (input !== null && typeof input === "object") {
@@ -74561,10 +75182,10 @@ function buildContextProjection(input) {
     workEvidence: (input.workEvidence ?? []).slice(0, OBJECTIVE_LIMITS.maxListItems).map((item) => bounded2(item, OBJECTIVE_LIMITS.maxTextChars)),
     contractSnapshotHash
   };
-  let serialized = stableStringify2(body);
+  let serialized = stableStringify3(body);
   while (serialized.length > input.maxProjectionChars && body.specExcerpts.length > 0) {
     body.specExcerpts.pop();
-    serialized = stableStringify2(body);
+    serialized = stableStringify3(body);
   }
   return contextProjectionSchema.parse({ ...body, contentHash: sha256Hex(serialized) });
 }
@@ -74742,7 +75363,7 @@ function evaluateDeterministically(input) {
     layer: "deterministic",
     verdict,
     checks,
-    reasons: reasons.slice(0, 30).map((reason) => reason.slice(0, 2e3)),
+    reasons: reasons.slice(0, 30).map((reason2) => reason2.slice(0, 2e3)),
     evidenceRefs: [
       ...input.candidate.patchRef !== void 0 ? [input.candidate.patchRef] : [],
       ...input.candidate.localVerification.commands.map((command) => `verify:${command.name}:${command.status}`)
@@ -75696,12 +76317,12 @@ function failResult(category, message2, source, output) {
 }
 async function decomposeObjective(input, truth, relevantContractIds, acceptance) {
   const at = nowIso3(input);
-  const fallback = (reason) => singleUnitGraph({
+  const fallback = (reason2) => singleUnitGraph({
     jobId: input.jobId,
     node: input.node,
     relevantContractIds,
     createdAt: at,
-    reason
+    reason: reason2
   });
   if (!input.policy.objectives.enabled) {
     const graph2 = persistGraph2(input, fallback("objective decomposition is disabled by policy"));
@@ -75985,6 +76606,83 @@ function secondaryFailureCategory(kind) {
       return "CAPABILITY_UNAVAILABLE";
   }
 }
+function readinessFailureCategory(status) {
+  switch (status) {
+    case "NEEDS_AUTHORITY":
+      return "SAFETY_POLICY";
+    case "NOT_READY":
+      return "BLOCKED_DEPENDENCY";
+    case "NEEDS_CONTEXT":
+      return "AMBIGUITY";
+    case "NEEDS_RESEARCH":
+    case "STRONG_REQUIRED":
+      return "CAPABILITY_UNAVAILABLE";
+    case "ELIGIBLE":
+      return "INTERNAL";
+  }
+}
+function recordSecondaryReadiness(context, prepared, packet, compilation) {
+  const { input } = context;
+  const prior = readWorkReadinessRecord(
+    input.workspace,
+    input.jobId,
+    input.node.nodeId,
+    prepared.unitId,
+    prepared.attempt
+  );
+  const assessedAt = nowIso3(input);
+  const result = assessAndDecideWorkReadiness(
+    {
+      jobId: input.jobId,
+      objectiveNodeId: input.node.nodeId,
+      workUnit: prepared.unit,
+      projection: prepared.projection,
+      attempt: prepared.attempt,
+      parentObjectiveComplexity: input.node.complexity,
+      ...packet !== void 0 ? { packet } : {},
+      ...compilation !== void 0 ? { compilation } : {},
+      verificationCommands: input.config.verification.commands,
+      missingDependencyIds: prepared.missingDependencyIds,
+      researchRecords: listResearchRecords(input.workspace).records,
+      assessedAt
+    },
+    prior
+  );
+  storeWorkReadinessRecord(input.workspace, input.jobId, input.node.nodeId, {
+    assessment: result.assessment,
+    decision: result.decision
+  });
+  storeWorkReadinessTelemetry(
+    input.workspace,
+    input.jobId,
+    input.node.nodeId,
+    summarizeWorkReadiness(
+      readWorkReadinessRecords(input.workspace, input.jobId, input.node.nodeId),
+      assessedAt
+    )
+  );
+  input.recordEvent("secondary_readiness_assessed", {
+    nodeId: input.node.nodeId,
+    workUnitId: prepared.unitId,
+    attempt: prepared.attempt,
+    assessmentHash: result.assessment.contentHash,
+    inputHash: result.assessment.inputHash,
+    status: result.decision.status,
+    knowledgeState: result.assessment.knowledgeState,
+    decisionEntropy: result.assessment.decisionEntropy,
+    implementationSpecificity: result.assessment.implementationSpecificity,
+    verificationStrength: result.assessment.verificationStrength,
+    contextState: result.assessment.contextState,
+    repositoryMutationScope: result.assessment.repositoryMutationScope,
+    dependencyState: result.assessment.dependencyState,
+    authorityRisk: result.assessment.authorityRisk,
+    contractMutationRisk: result.assessment.contractMutationRisk,
+    reasons: result.decision.reasons.map((entry2) => entry2.code),
+    reused: result.reused,
+    routingChanged: false
+  });
+  return result.decision;
+}
 function builderFailureResult(problem) {
   return { ok: false, kind: "worker-unavailable", problem };
 }
@@ -75995,6 +76693,7 @@ async function executeSelectedSecondaryBuilder(context, prepared, worktree) {
     return { prepared, result: builderFailureResult("secondary builder selection disappeared") };
   }
   let packet;
+  let compilation;
   let repositoryRoots = { primary: worktree.dir };
   if (selection.sourceContext !== void 0) {
     try {
@@ -76041,6 +76740,7 @@ async function executeSelectedSecondaryBuilder(context, prepared, worktree) {
         secondaryFailure: { kind: "INSUFFICIENT_CONTEXT", problem }
       };
     }
+    compilation = compiled;
     input.recordEvent(compiled.ok ? "context_selected" : "context_insufficient", {
       nodeId: input.node.nodeId,
       workUnitId: prepared.unitId,
@@ -76051,15 +76751,32 @@ async function executeSelectedSecondaryBuilder(context, prepared, worktree) {
       ...compiled.ok ? {} : { failure: compiled.failure.kind, reasons: compiled.failure.reasons }
     });
     if (!compiled.ok) {
+      const readinessDecision2 = recordSecondaryReadiness(context, prepared, void 0, compiled);
       const problem = `${compiled.failure.kind}: ${compiled.failure.reasons.join("; ")}`;
       return {
         prepared,
         result: builderFailureResult(problem),
-        secondaryFailure: { kind: compiled.failure.kind, problem }
+        secondaryFailure: { kind: compiled.failure.kind, problem },
+        readinessDecision: readinessDecision2
       };
     }
     packet = compiled.packet;
     repositoryRoots = compiled.repositoryRoots;
+  }
+  if (packet === void 0) {
+    return { prepared, result: builderFailureResult("secondary builder packet was not produced") };
+  }
+  const readinessDecision = recordSecondaryReadiness(context, prepared, packet, compilation);
+  if (readinessDecision.status !== "ELIGIBLE") {
+    const problem = [
+      `Secondary execution is not eligible: ${readinessDecision.status}`,
+      ...readinessDecision.reasons.map((entry2) => `${entry2.code}: ${entry2.message}`)
+    ].join("; ").slice(0, 2e3);
+    return {
+      prepared,
+      result: builderFailureResult(problem),
+      readinessDecision
+    };
   }
   const inference = selection.inference ?? (input.localManager !== void 0 ? managedLocalSecondaryModelInference(input.localManager, input.config) : void 0);
   const createdAt = nowIso3(input);
@@ -76519,7 +77236,7 @@ async function foldBuilderOutcome(context, graph, executed) {
     return persistGraph2(
       input,
       applyUnitRejection(input, graph, unitId, attempt, {
-        category: executed.secondaryFailure !== void 0 ? secondaryFailureCategory(executed.secondaryFailure.kind) : result.kind === "cancelled" ? "CANCELLED" : "TRANSIENT_TOOL",
+        category: executed.readinessDecision !== void 0 ? readinessFailureCategory(executed.readinessDecision.status) : executed.secondaryFailure !== void 0 ? secondaryFailureCategory(executed.secondaryFailure.kind) : result.kind === "cancelled" ? "CANCELLED" : "TRANSIENT_TOOL",
         message: `The builder worker failed: ${result.problem.slice(0, 400)}`
       })
     );
@@ -76899,12 +77616,12 @@ function recordConflict(input, graph, unitId, candidate, reasons, affectedContra
 function deterministicReadjudication(output, deterministic) {
   if (output.verdict !== "FAIL" && output.verdict !== "CONFLICT") return void 0;
   const passed = deterministic.checks.filter((check22) => check22.passed).map((check22) => check22.name);
-  for (const reason of output.reasons) {
+  for (const reason2 of output.reasons) {
     for (const name of passed) {
-      if (!reason.includes(name)) continue;
+      if (!reason2.includes(name)) continue;
       const claimsFailed = new RegExp(
         `${name}[^.]{0,80}(FAILED|failed)|deterministic[^.]{0,80}${name}`
-      ).test(reason) && /FAILED|failed/.test(reason);
+      ).test(reason2) && /FAILED|failed/.test(reason2);
       if (claimsFailed) return name;
     }
   }
@@ -77678,30 +78395,30 @@ function timeToResetMs(resetAt, now52) {
   if (Number.isNaN(parsed)) return null;
   return Math.max(0, parsed - now52.getTime());
 }
-var shortText12 = external_exports.string().min(1).max(200);
+var shortText13 = external_exports.string().min(1).max(200);
 var schedulingDecisionSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  decisionId: shortText12,
-  jobId: shortText12,
-  nodeId: shortText12,
-  taskId: shortText12,
+  decisionId: shortText13,
+  jobId: shortText13,
+  nodeId: shortText13,
+  taskId: shortText13,
   selectedLane: external_exports.enum(LANE_DECISIONS),
   /** Worker/provider identity for run lanes; null for DEFER. */
-  selectedProvider: shortText12.nullable(),
+  selectedProvider: shortText13.nullable(),
   schedulerMode: external_exports.enum(SCHEDULER_MODES),
   reasonCode: external_exports.enum(SCHEDULING_REASON_CODES),
   /** The forecast the decision was made against. */
   quotaSnapshot: quotaForecastSchema,
   /** Bounded copy of the workload estimate. */
   workloadEstimate: external_exports.object({
-    complexity: shortText12,
-    localSuitability: shortText12,
-    taskCategory: shortText12.nullable().default(null),
+    complexity: shortText13,
+    localSuitability: shortText13,
+    taskCategory: shortText13.nullable().default(null),
     expectedWallTimeMs: external_exports.number().int().min(0),
     expectedFiveHourBurnRatio: external_exports.number().min(0).max(1),
     expectedWeeklyBurnRatio: external_exports.number().min(0).max(1),
-    confidence: shortText12,
-    basis: shortText12
+    confidence: shortText13,
+    basis: shortText13
   }).passthrough().nullable(),
   /** The dynamic reserve ratio in force. */
   reserveRatio: external_exports.number().min(0).max(1).nullable(),
@@ -77730,15 +78447,15 @@ var schedulingDecisionSchema = external_exports.object({
     reasonCode: external_exports.enum(LOCAL_EXECUTION_MODE_REASONS),
     shape: external_exports.enum(LOCAL_EXECUTION_SHAPES),
     /** Runner identity for the mode (e.g. "local-llamacpp", "deepseek-harness"). */
-    runner: shortText12.nullable().default(null),
+    runner: shortText13.nullable().default(null),
     /** Model identity when known; null when the provider does not say. */
-    model: shortText12.nullable().default(null),
+    model: shortText13.nullable().default(null),
     /** Verified compute locality of the selected runner. */
     computeLocality: external_exports.enum(COMPUTE_LOCALITIES).default("UNKNOWN"),
     /** Grounds for the locality verdict (bounded, recorded verbatim). */
     localityEvidence: external_exports.string().max(500).nullable().default(null),
     /** Status of the LOCAL harness binding when the decision was made. */
-    harnessBindingStatus: shortText12.nullable().default(null),
+    harnessBindingStatus: shortText13.nullable().default(null),
     detail: external_exports.string().max(1e3).default("")
   }).passthrough().nullable().default(null),
   /**
@@ -77761,7 +78478,7 @@ var schedulingDecisionSchema = external_exports.object({
     /** Why subscription capacity was unavailable. */
     gapReason: external_exports.enum(SUBSCRIPTION_GAP_REASONS),
     /** When capacity is expected back (ISO); null when unknown. */
-    subscriptionAvailableAt: shortText12.nullable().default(null),
+    subscriptionAvailableAt: shortText13.nullable().default(null),
     estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null),
     gapConfidence: external_exports.enum(GAP_FORECAST_CONFIDENCE).default("UNKNOWN"),
     delaySensitivity: external_exports.enum(DELAY_SENSITIVITIES),
@@ -77774,25 +78491,25 @@ var schedulingDecisionSchema = external_exports.object({
     safeCostUsd: external_exports.number().min(0).nullable().default(null),
     currency: external_exports.string().max(8).default("USD"),
     costSource: external_exports.enum(API_COST_SOURCES).default("UNKNOWN"),
-    pricingSource: shortText12.nullable().default(null),
+    pricingSource: shortText13.nullable().default(null),
     /** Remaining job API budget at decision time; null when unbounded. */
     budgetRemainingUsd: external_exports.number().min(0).nullable().default(null),
     budgetEncumberedUsd: external_exports.number().min(0).nullable().default(null),
     /** The API profile that would have run it, and its verified locality. */
-    apiProfile: shortText12.nullable().default(null),
-    apiRunner: shortText12.nullable().default(null),
-    apiModel: shortText12.nullable().default(null),
+    apiProfile: shortText13.nullable().default(null),
+    apiRunner: shortText13.nullable().default(null),
+    apiModel: shortText13.nullable().default(null),
     computeLocality: external_exports.enum(COMPUTE_LOCALITIES).default("UNKNOWN"),
-    bindingStatus: shortText12.nullable().default(null),
+    bindingStatus: shortText13.nullable().default(null),
     /** The bounded authorization consulted, when one existed. */
-    approvalId: shortText12.nullable().default(null),
-    approvalStatus: shortText12.nullable().default(null),
+    approvalId: shortText13.nullable().default(null),
+    approvalStatus: shortText13.nullable().default(null),
     detail: external_exports.string().max(2e3).default("")
   }).passthrough().nullable().default(null),
   /** For DEFER: when capacity is expected to return, when known. */
-  deferUntil: shortText12.nullable().default(null),
+  deferUntil: shortText13.nullable().default(null),
   detail: external_exports.string().max(2e3),
-  createdAt: shortText12
+  createdAt: shortText13
 }).passthrough();
 function schedulingDir(workspace, jobId) {
   return assertInsideWorkspace(workspace.rootDir, import_path53.default.join(jobDir(workspace, jobId), "scheduling"));
@@ -78037,9 +78754,9 @@ async function dispatchLocalHarnessExecution(input) {
     );
   }
   input.onProgress?.(`${label}: run ${begin.runId} started for task ${begin.task.id}`);
-  const abort = async (reason) => {
+  const abort = async (reason2) => {
     try {
-      await abortInteractiveTask(deps3, { runId: begin.runId, reason: reason.slice(0, 500) });
+      await abortInteractiveTask(deps3, { runId: begin.runId, reason: reason2.slice(0, 500) });
     } catch {
     }
   };
@@ -78340,21 +79057,21 @@ function computeObservedApiCost(input) {
   };
 }
 var API_SPEND_APPROVAL_SCHEMA_VERSION = "1.0.0";
-var shortText13 = external_exports.string().min(1).max(200);
+var shortText14 = external_exports.string().min(1).max(200);
 var apiSpendApprovalSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  approvalId: shortText13,
-  jobId: shortText13,
-  nodeId: shortText13,
-  taskId: shortText13,
+  approvalId: shortText14,
+  jobId: shortText14,
+  nodeId: shortText14,
+  taskId: shortText14,
   /**
    * Deterministic fingerprint of the WORK this approval covers. A
    * materially changed task produces a different fingerprint and the old
    * approval no longer authorizes anything.
    */
-  taskFingerprint: shortText13,
+  taskFingerprint: shortText14,
   /** The API profile the approval is scoped to. */
-  profileName: shortText13,
+  profileName: shortText14,
   /** Maximum authorized spend for this task, in USD. */
   maxAuthorizedCostUsd: external_exports.number().min(0),
   currency: external_exports.literal("USD").default("USD"),
@@ -78363,15 +79080,15 @@ var apiSpendApprovalSchema = external_exports.object({
   status: external_exports.enum(API_APPROVAL_STATUSES),
   /** Why the bridge was proposed — recorded verbatim for the decider. */
   rationale: external_exports.string().max(2e3).default(""),
-  requestedAt: shortText13,
+  requestedAt: shortText14,
   /** After this the approval is stale even if never used. */
-  expiresAt: shortText13,
-  decidedAt: shortText13.nullable().default(null),
+  expiresAt: shortText14,
+  decidedAt: shortText14.nullable().default(null),
   /** Who decided. Human identity only; never a model or a runner. */
-  decidedBy: shortText13.nullable().default(null),
+  decidedBy: shortText14.nullable().default(null),
   decisionNote: external_exports.string().max(1e3).nullable().default(null),
   /** The attempt that consumed this approval, when one did. */
-  consumedByAttemptId: shortText13.nullable().default(null)
+  consumedByAttemptId: shortText14.nullable().default(null)
 }).passthrough();
 function taskSpendFingerprint(node) {
   const canonical = JSON.stringify({
@@ -78902,20 +79619,20 @@ function subscriptionGapReasonFor(reasonCode) {
   }
 }
 function buildSubscriptionGapForecast(input) {
-  const { reason, forecast, now: now52 } = input;
-  if (reason === "SUBSCRIPTION_WORKER_UNAVAILABLE") {
+  const { reason: reason2, forecast, now: now52 } = input;
+  if (reason2 === "SUBSCRIPTION_WORKER_UNAVAILABLE") {
     return {
-      reason,
+      reason: reason2,
       expectedAvailableAt: null,
       timeUntilAvailableMs: null,
       confidence: "UNKNOWN",
       detail: "No subscription worker is available; this is a configuration gap, not a quota window, so no return time exists."
     };
   }
-  const preferred = input.deferUntil ?? (reason === "WEEKLY_EXHAUSTED" ? forecast.weeklyResetAt : forecast.fiveHourResetAt);
+  const preferred = input.deferUntil ?? (reason2 === "WEEKLY_EXHAUSTED" ? forecast.weeklyResetAt : forecast.fiveHourResetAt);
   if (preferred === null) {
     return {
-      reason,
+      reason: reason2,
       expectedAvailableAt: null,
       timeUntilAvailableMs: null,
       confidence: "UNKNOWN",
@@ -78925,7 +79642,7 @@ function buildSubscriptionGapForecast(input) {
   const parsed = Date.parse(preferred);
   if (Number.isNaN(parsed)) {
     return {
-      reason,
+      reason: reason2,
       expectedAvailableAt: null,
       timeUntilAvailableMs: null,
       confidence: "UNKNOWN",
@@ -78935,11 +79652,11 @@ function buildSubscriptionGapForecast(input) {
   const timeUntilAvailableMs = Math.max(0, parsed - now52.getTime());
   const confidence = forecast.telemetryFreshness === "FRESH" ? "HIGH" : "MEDIUM";
   return {
-    reason,
+    reason: reason2,
     expectedAvailableAt: new Date(parsed).toISOString(),
     timeUntilAvailableMs,
     confidence,
-    detail: `Subscription capacity (${reason}) is expected back in ${formatDuration(timeUntilAvailableMs)} at ${new Date(parsed).toISOString()} (telemetry ${forecast.telemetryFreshness}).`
+    detail: `Subscription capacity (${reason2}) is expected back in ${formatDuration(timeUntilAvailableMs)} at ${new Date(parsed).toISOString()} (telemetry ${forecast.telemetryFreshness}).`
   };
 }
 function formatDuration(ms) {
@@ -80038,10 +80755,10 @@ function evaluateGates(input) {
     };
   }
   if (!meetsConfidence(recommended.prediction.confidence, policy.minimumConfidence)) {
-    const reason = recommended.prediction.drift.detected ? "DRIFT_DETECTED" : "CONFIDENCE_BELOW_THRESHOLD";
+    const reason2 = recommended.prediction.drift.detected ? "DRIFT_DETECTED" : "CONFIDENCE_BELOW_THRESHOLD";
     return {
       passes: false,
-      reason,
+      reason: reason2,
       detail: `Confidence ${recommended.prediction.confidence} is below the configured ${policy.minimumConfidence} floor` + (recommended.prediction.drift.detected ? ` after drift was detected (${recommended.prediction.drift.detail}).` : ".")
     };
   }
@@ -80566,7 +81283,7 @@ function assessNode(runtime, deps3, jobId, job, node, forecast, reserve, observa
 function runtimeResearchForJob(deps3, jobId) {
   return listResearchRecords(deps3.workspace).records.filter((record32) => record32.scope?.jobId === jobId && record32.lifecycle?.phase === "RUNTIME_INVESTIGATION" && record32.report !== void 0).sort((left, right) => right.updatedAt.localeCompare(left.updatedAt)).slice(0, 3);
 }
-function recordResearchInformedReplan(deps3, jobId, nodeId, reason) {
+function recordResearchInformedReplan(deps3, jobId, nodeId, reason2) {
   const records = runtimeResearchForJob(deps3, jobId);
   if (records.length === 0) return;
   const now52 = (deps3.clock ?? (() => /* @__PURE__ */ new Date()))();
@@ -80580,7 +81297,7 @@ function recordResearchInformedReplan(deps3, jobId, nodeId, reason) {
     }, {
       researchId: record32.researchId,
       phase: "RUNTIME_INVESTIGATION",
-      reason: `Research informed an accepted replan for ${nodeId}: ${reason}`.slice(0, 1e3),
+      reason: `Research informed an accepted replan for ${nodeId}: ${reason2}`.slice(0, 1e3),
       effect: "REPLAN",
       usedBy: nodeId
     });
@@ -80588,7 +81305,7 @@ function recordResearchInformedReplan(deps3, jobId, nodeId, reason) {
   recordJobEvent(deps3, jobId, "research_replan_caused", {
     nodeId,
     researchIds: records.map((record32) => record32.researchId),
-    reason: reason.slice(0, 500),
+    reason: reason2.slice(0, 500),
     authority: "EVIDENCE_ONLY"
   });
 }
@@ -83100,54 +83817,54 @@ var QUALIFICATION_LIMITS = {
   maxEvidenceRefs: 50,
   maxTimelineEntries: 1e3
 };
-var shortText14 = external_exports.string().min(1).max(QUALIFICATION_LIMITS.maxShortTextChars);
+var shortText15 = external_exports.string().min(1).max(QUALIFICATION_LIMITS.maxShortTextChars);
 var text8 = external_exports.string().min(1).max(QUALIFICATION_LIMITS.maxTextChars);
 var textList6 = external_exports.array(text8).max(QUALIFICATION_LIMITS.maxListItems);
-var refList = external_exports.array(shortText14).max(QUALIFICATION_LIMITS.maxEvidenceRefs);
+var refList = external_exports.array(shortText15).max(QUALIFICATION_LIMITS.maxEvidenceRefs);
 var semver4 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
 var count2 = external_exports.number().int().min(0);
 var runtimeVersionsSchema = external_exports.object({
-  specBridgeVersion: shortText14.nullable().default(null),
-  specBridgeCommit: shortText14.nullable().default(null),
-  nodeVersion: shortText14.nullable().default(null),
-  platform: shortText14.nullable().default(null),
+  specBridgeVersion: shortText15.nullable().default(null),
+  specBridgeCommit: shortText15.nullable().default(null),
+  nodeVersion: shortText15.nullable().default(null),
+  platform: shortText15.nullable().default(null),
   /** Local model identity as configured/reported. */
-  localModel: shortText14.nullable().default(null),
+  localModel: shortText15.nullable().default(null),
   /** DeepSeek Harness / DSH SDK versions when the harness reported them. */
-  harnessVersion: shortText14.nullable().default(null),
-  harnessSdkVersion: shortText14.nullable().default(null),
+  harnessVersion: shortText15.nullable().default(null),
+  harnessSdkVersion: shortText15.nullable().default(null),
   /** Subscription agent CLI version when probed. */
-  subscriptionRunnerVersion: shortText14.nullable().default(null),
+  subscriptionRunnerVersion: shortText15.nullable().default(null),
   /** Codex CLI version when that runner was exercised. */
-  codexVersion: shortText14.nullable().default(null),
+  codexVersion: shortText15.nullable().default(null),
   /** vNext.7 context strategy in force. */
-  contextStrategy: shortText14.nullable().default(null),
+  contextStrategy: shortText15.nullable().default(null),
   /** vNext.8 adaptive mode in force. */
-  adaptiveMode: shortText14.nullable().default(null),
+  adaptiveMode: shortText15.nullable().default(null),
   /** Fingerprint of the orchestration policy the run was bound to. */
-  policyFingerprint: shortText14.nullable().default(null)
+  policyFingerprint: shortText15.nullable().default(null)
 }).passthrough();
 var dogfoodTargetSchema = external_exports.object({
   kind: external_exports.enum(DOGFOOD_TARGET_KINDS),
   /** Product name, e.g. "StepRelay". */
-  name: shortText14,
+  name: shortText15,
   /** Configured repository path, as given. Null when unavailable. */
-  repositoryPath: shortText14.nullable().default(null),
+  repositoryPath: shortText15.nullable().default(null),
   /** Whether that path resolved to a readable repository at preflight. */
   available: external_exports.boolean().default(false),
   /** Why the target was unavailable, when it was not. */
   unavailableReason: text8.nullable().default(null),
-  startingCommit: shortText14.nullable().default(null),
-  endingCommit: shortText14.nullable().default(null),
-  branch: shortText14.nullable().default(null),
+  startingCommit: shortText15.nullable().default(null),
+  endingCommit: shortText15.nullable().default(null),
+  branch: shortText15.nullable().default(null),
   /** Isolated worktree the dogfood was confined to, when one was used. */
-  worktreePath: shortText14.nullable().default(null),
+  worktreePath: shortText15.nullable().default(null),
   /** The approved spec/mission the Mission was declared against. */
-  missionSpec: shortText14.nullable().default(null)
+  missionSpec: shortText15.nullable().default(null)
 }).passthrough();
 var dogfoodRunSchema = external_exports.object({
   schemaVersion: semver4,
-  runId: shortText14,
+  runId: shortText15,
   status: external_exports.enum(DOGFOOD_RUN_STATUSES),
   profile: external_exports.enum(QUALIFICATION_PROFILES),
   target: dogfoodTargetSchema,
@@ -83157,15 +83874,15 @@ var dogfoodRunSchema = external_exports.object({
    * Comparing it across iterations is how a report can say whether run #3
    * differed from run #1 in the system or only in the weather.
    */
-  configurationFingerprint: shortText14,
+  configurationFingerprint: shortText15,
   /** The Mission this run is dogfooding, when one is bound. */
-  missionId: shortText14.nullable().default(null),
+  missionId: shortText15.nullable().default(null),
   /** The long-running Job carrying the Mission's work, when one is bound. */
-  jobId: shortText14.nullable().default(null),
+  jobId: shortText15.nullable().default(null),
   /** Iteration number within a series of dogfood runs against one target. */
   iteration: external_exports.number().int().min(1).default(1),
   /** The run this iteration continues from, for progress/regression views. */
-  previousRunId: shortText14.nullable().default(null),
+  previousRunId: shortText15.nullable().default(null),
   /** Human-stated Mission direction, recorded verbatim and bounded. */
   missionDirection: text8.nullable().default(null),
   /**
@@ -83176,17 +83893,17 @@ var dogfoodRunSchema = external_exports.object({
   approvedScope: textList6.default([]),
   scopeChanges: external_exports.array(
     external_exports.object({
-      at: shortText14,
+      at: shortText15,
       originalScope: text8,
       newScope: text8,
       reason: text8,
-      authority: shortText14,
+      authority: shortText15,
       effectOnQualification: text8
     }).passthrough()
   ).max(QUALIFICATION_LIMITS.maxListItems).default([]),
-  startedAt: shortText14,
-  updatedAt: shortText14,
-  finalizedAt: shortText14.nullable().default(null),
+  startedAt: shortText15,
+  updatedAt: shortText15,
+  finalizedAt: shortText15.nullable().default(null),
   /** Wall-clock milliseconds the run has been active, excluding pauses. */
   activeMs: count2.default(0),
   /** Wall-clock milliseconds the run spent deliberately paused. */
@@ -83196,16 +83913,16 @@ var dogfoodRunSchema = external_exports.object({
 }).passthrough();
 var observedTransitionSchema = external_exports.object({
   /** What changed: an event type, status transition, or decision code. */
-  subject: shortText14,
-  from: shortText14.nullable().default(null),
-  to: shortText14.nullable().default(null),
+  subject: shortText15,
+  from: shortText15.nullable().default(null),
+  to: shortText15.nullable().default(null),
   /** Bounded explanation of why this transition mattered to the claim. */
   detail: text8.optional()
 }).passthrough();
 var scenarioResultSchema = external_exports.object({
   schemaVersion: semver4,
-  runId: shortText14,
-  scenarioId: shortText14,
+  runId: shortText15,
+  scenarioId: shortText15,
   area: external_exports.enum(QUALIFICATION_AREAS),
   executionKind: external_exports.enum(SCENARIO_EXECUTION_KINDS),
   requirement: external_exports.enum(SCENARIO_REQUIREMENTS),
@@ -83224,38 +83941,38 @@ var scenarioResultSchema = external_exports.object({
   /** How each resource this scenario touched was actually exercised. */
   resourceAttribution: external_exports.record(external_exports.enum(QUALIFICATION_RESOURCES), external_exports.enum(RESOURCE_ATTRIBUTIONS)).default({}),
   /** Which executor produced this result (`cli`, `regression-suite`, …). */
-  executor: shortText14,
+  executor: shortText15,
   durationMs: count2.nullable().default(null),
-  recordedAt: shortText14
+  recordedAt: shortText15
 }).passthrough();
 var humanInterventionSchema = external_exports.object({
   schemaVersion: semver4,
-  runId: shortText14,
-  interventionId: shortText14,
+  runId: shortText15,
+  interventionId: shortText15,
   kind: external_exports.enum(HUMAN_INTERVENTION_KINDS),
-  at: shortText14,
+  at: shortText15,
   /** What the human did, bounded and non-sensitive. */
   description: text8,
   /** Why it was necessary, in the recorder's own words. */
   reason: text8,
   /** The Job/node/task the intervention touched, when scoped to one. */
-  jobId: shortText14.nullable().default(null),
-  nodeId: shortText14.nullable().default(null),
-  taskId: shortText14.nullable().default(null),
+  jobId: shortText15.nullable().default(null),
+  nodeId: shortText15.nullable().default(null),
+  taskId: shortText15.nullable().default(null),
   /**
    * The governance boundary that required it, when kind is
    * REQUIRED_BY_POLICY — a decision kind, approval gate, or spend mode.
    * Absent on every other kind, which is how a policy-required
    * intervention is told from one that merely claims to be.
    */
-  policyBoundary: shortText14.nullable().default(null),
+  policyBoundary: shortText15.nullable().default(null),
   /** Durable references: question id, approval id, commit, decision id. */
   evidenceRefs: refList.default([])
 }).passthrough();
 var faultInjectionRecordSchema = external_exports.object({
   schemaVersion: semver4,
-  runId: shortText14,
-  faultId: shortText14,
+  runId: shortText15,
+  faultId: shortText15,
   faultClass: external_exports.enum(FAULT_CLASSES),
   boundary: external_exports.enum(FAULT_BOUNDARIES),
   triggerMode: external_exports.enum(FAULT_TRIGGER_MODES),
@@ -83268,26 +83985,26 @@ var faultInjectionRecordSchema = external_exports.object({
   /** What was observed after injection. */
   observed: text8.nullable().default(null),
   /** The scenario that injected it. */
-  scenarioId: shortText14.nullable().default(null),
-  injectedAt: shortText14,
-  resolvedAt: shortText14.nullable().default(null)
+  scenarioId: shortText15.nullable().default(null),
+  injectedAt: shortText15,
+  resolvedAt: shortText15.nullable().default(null)
 }).passthrough();
 var invariantViolationSchema = external_exports.object({
   invariantId: external_exports.enum(STATE_INVARIANT_IDS),
   /** What was found, bounded and specific enough to act on. */
   detail: text8,
   /** The record that violates it. */
-  subject: shortText14,
+  subject: shortText15,
   /** True when this invariant is release-blocking. */
   blocking: external_exports.boolean()
 }).passthrough();
 var invariantAuditSchema = external_exports.object({
   schemaVersion: semver4,
-  runId: shortText14,
-  auditId: shortText14,
+  runId: shortText15,
+  auditId: shortText15,
   phase: external_exports.enum(INVARIANT_AUDIT_PHASES),
-  jobId: shortText14.nullable().default(null),
-  at: shortText14,
+  jobId: shortText15.nullable().default(null),
+  at: shortText15,
   /** Invariants actually evaluated in this audit. */
   checked: external_exports.array(external_exports.enum(STATE_INVARIANT_IDS)).max(QUALIFICATION_LIMITS.maxListItems).default([]),
   violations: external_exports.array(invariantViolationSchema).max(QUALIFICATION_LIMITS.maxObservations).default([]),
@@ -83296,8 +84013,8 @@ var invariantAuditSchema = external_exports.object({
 }).passthrough();
 var dogfoodDefectSchema = external_exports.object({
   schemaVersion: semver4,
-  runId: shortText14,
-  defectId: shortText14,
+  runId: shortText15,
+  defectId: shortText15,
   source: external_exports.enum(DEFECT_SOURCES),
   /** What was observed to go wrong. */
   observedFailure: text8,
@@ -83308,15 +84025,15 @@ var dogfoodDefectSchema = external_exports.object({
   /** The fix, when one was applied. */
   fix: text8.nullable().default(null),
   /** The regression test covering it. Null means the fix is uncovered. */
-  regressionTest: shortText14.nullable().default(null),
+  regressionTest: shortText15.nullable().default(null),
   /** Whether the fix changed a public contract. */
   changesPublicContract: external_exports.boolean().default(false),
   /** Whether the fix affects a guarantee an earlier phase committed to. */
   affectsPriorPhaseGuarantee: external_exports.boolean().default(false),
   /** True while the defect remains open. */
   blocking: external_exports.boolean().default(false),
-  discoveredAt: shortText14,
-  resolvedAt: shortText14.nullable().default(null)
+  discoveredAt: shortText15,
+  resolvedAt: shortText15.nullable().default(null)
 }).passthrough();
 var qualificationLimitationSchema = external_exports.object({
   class: external_exports.enum(LIMITATION_CLASSES),
@@ -83329,13 +84046,13 @@ var releaseBlockerSchema = external_exports.object({
   evidenceRefs: refList.default([])
 }).passthrough();
 var timelineEntrySchema = external_exports.object({
-  at: shortText14,
+  at: shortText15,
   /** The durable event type this milestone came from. */
-  eventType: shortText14,
+  eventType: shortText15,
   /** Human-readable milestone label. */
-  milestone: shortText14,
-  jobId: shortText14.nullable().default(null),
-  nodeId: shortText14.nullable().default(null)
+  milestone: shortText15,
+  jobId: shortText15.nullable().default(null),
+  nodeId: shortText15.nullable().default(null)
 }).passthrough();
 var autonomyScorecardSchema = external_exports.object({
   missionCompleted: external_exports.boolean().nullable().default(null),
@@ -83447,10 +84164,10 @@ var contextReportSchema = external_exports.object({
   contextPerVerifiedTask: external_exports.number().min(0).nullable().default(null),
   /** Attempts retried where the recorded cause was context insufficiency. */
   retriesAttributableToContext: count2,
-  strategy: shortText14.nullable().default(null)
+  strategy: shortText15.nullable().default(null)
 }).passthrough();
 var adaptiveReportSchema = external_exports.object({
-  mode: shortText14.nullable().default(null),
+  mode: shortText15.nullable().default(null),
   heuristicDecisions: count2,
   shadowRecommendations: count2,
   shadowDisagreements: count2,
@@ -83495,22 +84212,22 @@ var scenarioSummarySchema = external_exports.object({
 }).passthrough();
 var dogfoodQualificationReportSchema = external_exports.object({
   schemaVersion: semver4,
-  runId: shortText14,
-  generatedAt: shortText14,
+  runId: shortText15,
+  generatedAt: shortText15,
   profile: external_exports.enum(QUALIFICATION_PROFILES),
   status: external_exports.enum(DOGFOOD_RUN_STATUSES),
   target: dogfoodTargetSchema,
   versions: runtimeVersionsSchema,
-  configurationFingerprint: shortText14,
-  missionId: shortText14.nullable().default(null),
-  jobId: shortText14.nullable().default(null),
+  configurationFingerprint: shortText15,
+  missionId: shortText15.nullable().default(null),
+  jobId: shortText15.nullable().default(null),
   iteration: external_exports.number().int().min(1),
-  previousRunId: shortText14.nullable().default(null),
+  previousRunId: shortText15.nullable().default(null),
   missionDirection: text8.nullable().default(null),
   approvedScope: textList6,
   scopeChanges: external_exports.array(external_exports.record(external_exports.string(), external_exports.unknown())).max(QUALIFICATION_LIMITS.maxListItems),
-  startedAt: shortText14,
-  finalizedAt: shortText14.nullable(),
+  startedAt: shortText15,
+  finalizedAt: shortText15.nullable(),
   durationMs: count2.nullable(),
   activeMs: count2,
   pausedMs: count2,
@@ -88557,11 +89274,11 @@ async function resolveComparison(repoRoot, request, options = {}) {
     headSha: null,
     label: request.mode === "diff" ? `${request.base}...${request.head}` : request.mode === "working-tree" ? "working tree vs HEAD" : "staged changes vs HEAD"
   };
-  const failed = (reason, message2, shallow = false) => ({
+  const failed = (reason2, message2, shallow = false) => ({
     ok: false,
     descriptor,
     changedFiles: [],
-    failure: { reason, message: message2, shallow }
+    failure: { reason: reason2, message: message2, shallow }
   });
   const inside = await git4(repoRoot, ["rev-parse", "--is-inside-work-tree"], signal);
   if (!inside.ok || inside.stdout.trim() !== "true") {
@@ -89442,13 +90159,13 @@ function staleEvidenceDiagnostics(rule, context, resolved2, codes) {
     if (assessment === void 0 || assessment.bucket !== "stale") continue;
     const best = assessment.best;
     if (best === void 0) continue;
-    const matching = best.reasons.filter((reason) => codes.has(reason.code));
+    const matching = best.reasons.filter((reason2) => codes.has(reason2.code));
     if (matching.length === 0) continue;
     diagnostics.push(
       makeDiagnostic({
         rule,
         severity: resolved2.severity,
-        message: `Task ${task.id} is checked but its evidence is stale: ${matching.map((reason) => reason.message).join("; ")}.`,
+        message: `Task ${task.id} is checked but its evidence is stale: ${matching.map((reason2) => reason2.message).join("; ")}.`,
         specName: context.specName,
         taskId: task.id,
         file: taskFileLocation(context, task),
@@ -89456,7 +90173,7 @@ function staleEvidenceDiagnostics(rule, context, resolved2, codes) {
           runId: best.record.runId,
           evidenceStatus: best.record.status,
           manualAcceptance: best.manual,
-          reasons: matching.map((reason) => ({ code: reason.code, message: reason.message })),
+          reasons: matching.map((reason2) => ({ code: reason2.code, message: reason2.message })),
           evaluatedAt: best.record.evaluatedAt
         }
       })
@@ -98541,15 +99258,15 @@ function buildRecoveryActions(workspace, findings2) {
       });
       continue;
     }
-    const sha2563 = trySha256File(absolute);
-    if (sha2563 === void 0) continue;
+    const sha2564 = trySha256File(absolute);
+    if (sha2564 === void 0) continue;
     actions.push({
       actionId: `a${actions.length + 1}`,
       kind: recovery.kind,
       reason: recovery.reason,
       risk: recovery.risk,
       file: proposal.path,
-      sha256: sha2563,
+      sha256: sha2564,
       reversible: true,
       confidence: recovery.confidence,
       requiresAcknowledgement: true
@@ -100955,22 +101672,22 @@ var SEAL_LIMITS = {
   maxCriteria: 400,
   maxSurfaces: 40
 };
-var shortText15 = external_exports.string().max(SEAL_LIMITS.maxShortTextChars);
+var shortText16 = external_exports.string().max(SEAL_LIMITS.maxShortTextChars);
 var text9 = external_exports.string().max(SEAL_LIMITS.maxTextChars);
-var idList3 = external_exports.array(shortText15).max(SEAL_LIMITS.maxListItems);
+var idList3 = external_exports.array(shortText16).max(SEAL_LIMITS.maxListItems);
 var sealedContractRefSchema = external_exports.object({
-  contractId: shortText15,
+  contractId: shortText16,
   revision: external_exports.number().int().min(1),
-  title: shortText15,
+  title: shortText16,
   classification: external_exports.enum(["public", "internal"]),
-  compatibilityPolicy: shortText15,
+  compatibilityPolicy: shortText16,
   /** Requirement ids inside this contract revision, at seal time. */
   requirementIds: idList3.default([]),
   /** Invariant ids inside this contract revision, at seal time. */
   invariantIds: idList3.default([])
 }).passthrough();
 var sealedAcceptanceCriterionSchema = external_exports.object({
-  criterionId: shortText15,
+  criterionId: shortText16,
   statement: text9,
   /** Contract ids this criterion judges, when it judges specific ones. */
   contractIds: idList3.default([]),
@@ -100986,36 +101703,36 @@ var sealedResourcePolicySchema = external_exports.object({
   allowedLanes: external_exports.array(external_exports.enum(["LOCAL", "SUBSCRIPTION", "API"])).min(1).default(["LOCAL"])
 }).passthrough();
 var delegatedAuthoritySnapshotSchema = external_exports.object({
-  mode: shortText15,
-  humanGate: shortText15,
+  mode: shortText16,
+  humanGate: shortText16,
   policyFingerprint: external_exports.string().max(8e3),
   /** Delegated engineering surfaces, as `surface: AUTO|HUMAN`. */
-  decisions: external_exports.record(shortText15).default({}),
+  decisions: external_exports.record(shortText16).default({}),
   /** Delegated recovery surfaces, same shape. */
-  recovery: external_exports.record(shortText15).default({}),
+  recovery: external_exports.record(shortText16).default({}),
   /** Toolsmith capability classes the human authorized. */
-  toolsmithCapabilities: external_exports.array(shortText15).max(SEAL_LIMITS.maxSurfaces).default([])
+  toolsmithCapabilities: external_exports.array(shortText16).max(SEAL_LIMITS.maxSurfaces).default([])
 }).passthrough();
 var missionSealSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  sealId: shortText15,
-  missionId: shortText15,
+  sealId: shortText16,
+  missionId: shortText16,
   /** The Kiro spec the mission synthesized, when it has one. */
-  specName: shortText15.optional(),
+  specName: shortText16.optional(),
   status: external_exports.enum(SEAL_STATUSES),
-  createdAt: shortText15,
+  createdAt: shortText16,
   /** Set exactly once, when a human authorizes the draft. */
-  sealedAt: shortText15.optional(),
+  sealedAt: shortText16.optional(),
   /**
    * How the human authorization arrived. A free-form CHANNEL label (the
    * CLI command, the MCP surface) recorded for audit — never a claim that
    * anything other than a person performed it.
    */
-  sealedVia: shortText15.optional(),
+  sealedVia: shortText16.optional(),
   /** Predecessor seal this one replaces. */
-  supersedes: shortText15.optional(),
-  supersededBy: shortText15.optional(),
-  revokedAt: shortText15.optional(),
+  supersedes: shortText16.optional(),
+  supersededBy: shortText16.optional(),
+  revokedAt: shortText16.optional(),
   revokedReason: text9.optional(),
   // --- The authority snapshot ------------------------------------------
   /** The mission goal, verbatim and bounded. Data, never instructions. */
@@ -101038,14 +101755,14 @@ var missionSealSchema = external_exports.object({
    * prove the record on disk is the one that was authorized, and so a
    * re-seal that changes nothing is recognisable as a no-op.
    */
-  authorityDigest: shortText15
+  authorityDigest: shortText16
 }).passthrough();
 var sealBindingSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  jobId: shortText15,
-  sealId: shortText15,
-  missionId: shortText15,
-  boundAt: shortText15,
+  jobId: shortText16,
+  sealId: shortText16,
+  missionId: shortText16,
+  boundAt: shortText16,
   /** Autonomy policy fingerprint observed when the binding was made. */
   boundPolicyFingerprint: external_exports.string().max(8e3)
 }).passthrough();
@@ -101269,13 +101986,13 @@ function markSuperseded(deps3, sealId, bySealId) {
     missionSealSchema.parse({ ...previous, status: "SUPERSEDED", supersededBy: bySealId })
   );
 }
-function revokeSeal(deps3, sealId, reason) {
+function revokeSeal(deps3, sealId, reason2) {
   const seal = requireSeal(deps3.workspace, sealId);
   const revoked = missionSealSchema.parse({
     ...seal,
     status: "REVOKED",
     revokedAt: nowIso5(deps3),
-    revokedReason: reason.slice(0, SEAL_LIMITS.maxTextChars)
+    revokedReason: reason2.slice(0, SEAL_LIMITS.maxTextChars)
   });
   writeJsonRecord(sealFile(deps3.workspace, sealId), revoked);
   return revoked;
@@ -101417,10 +102134,10 @@ function evaluateAuthority(request) {
   }
   const executability = assessSealExecutability(request.seal, request.policy);
   if (!executability.executable) {
-    const reason = executability.reason === "AUTONOMY_POLICY_DRIFT" ? "AUTONOMY_POLICY_DRIFT" : executability.reason === "SEAL_NOT_EXECUTABLE" ? "SEAL_NOT_EXECUTABLE" : "NO_SEAL_BOUND";
+    const reason2 = executability.reason === "AUTONOMY_POLICY_DRIFT" ? "AUTONOMY_POLICY_DRIFT" : executability.reason === "SEAL_NOT_EXECUTABLE" ? "SEAL_NOT_EXECUTABLE" : "NO_SEAL_BOUND";
     return {
       verdict: "NEEDS_AUTHORITY",
-      reason,
+      reason: reason2,
       surface,
       question: executability.detail ?? "This job has no delegated authority; a human decision is required to proceed.",
       whyItMatters: "Delegated engineering authority comes from a sealed Mission. Without one, the runtime has not been given permission to decide anything on its own.",
@@ -101464,16 +102181,16 @@ function exceedsCeiling(spend) {
   if (spend.ceilingUsd === null || spend.requestedUsd === null) return true;
   return spend.requestedUsd > spend.ceilingUsd;
 }
-function decided(verdict, reason, surface, signals2) {
-  return { verdict, reason, surface, question: "", whyItMatters: "", observedSignals: signals2 };
+function decided(verdict, reason2, surface, signals2) {
+  return { verdict, reason: reason2, surface, question: "", whyItMatters: "", observedSignals: signals2 };
 }
-function needsAuthority(surface, reason, request, signals2) {
+function needsAuthority(surface, reason2, request, signals2) {
   return {
     verdict: "NEEDS_AUTHORITY",
-    reason,
+    reason: reason2,
     surface,
     question: authorityQuestion(surface, request),
-    whyItMatters: authorityRationale(reason),
+    whyItMatters: authorityRationale(reason2),
     observedSignals: signals2
   };
 }
@@ -101508,8 +102225,8 @@ function authorityQuestion(surface, request) {
 function formatUsd2(value) {
   return value === null ? "unknown" : `$${value.toFixed(2)}`;
 }
-function authorityRationale(reason) {
-  switch (reason) {
+function authorityRationale(reason2) {
+  switch (reason2) {
     case "MODIFIES_SEALED_CONTRACT":
       return "A sealed contract is a promise a human made. An agent may propose a change to one; it may never make it.";
     case "CHANGES_PRODUCT_SEMANTICS":
@@ -101806,12 +102523,12 @@ function claimLease(input) {
     ...previousOwnerId !== void 0 ? { previousOwnerId } : {}
   };
 }
-function releaseLeaseRecord(lease, now23, reason) {
+function releaseLeaseRecord(lease, now23, reason2) {
   return {
     ...lease,
     released: true,
     releasedAt: now23.toISOString(),
-    releaseReason: reason.slice(0, 4e3)
+    releaseReason: reason2.slice(0, 4e3)
   };
 }
 function nextBackoffMs(current, floorMs, ceilingMs) {
@@ -102118,11 +102835,11 @@ function renewJobLease(deps3, jobId, ownerId, policy) {
   });
   return writeLease(deps3.workspace, claim2.lease);
 }
-function releaseJobLease(deps3, jobId, ownerId, reason) {
+function releaseJobLease(deps3, jobId, ownerId, reason2) {
   const existing = readLease(deps3.workspace, jobId);
   if (existing === void 0 || existing.ownerId !== ownerId) return;
-  writeLease(deps3.workspace, releaseLeaseRecord(existing, now5(deps3), reason));
-  appendSupervisionLog(deps3, { ownerId, jobId, action: "RELEASED_ON_TERMINAL_STATUS", detail: reason });
+  writeLease(deps3.workspace, releaseLeaseRecord(existing, now5(deps3), reason2));
+  appendSupervisionLog(deps3, { ownerId, jobId, action: "RELEASED_ON_TERMINAL_STATUS", detail: reason2 });
 }
 async function superviseJob(deps3, jobId, options) {
   const policy = autonomyPolicyOf(deps3).supervisor;
@@ -105874,10 +106591,10 @@ async function runGapRepairs(deps3, options) {
     }
     const entry2 = ledger?.entries.find((candidate) => candidate.itemId === item.itemId);
     const failureContext = entry2?.evidence.filter((ref) => !ref.passed).slice(-2).map((ref) => `- ${ref.kind} ${ref.ref}: ${(ref.detail ?? "failed").slice(0, 600)}`).join("\n");
-    const fail = (reason) => {
-      options.emit?.(`gap ${item.gapId} (${item.itemId}): ${reason}`);
-      result.failed.push({ gapId: item.gapId, reason });
-      recordGapEvent(deps3, options.jobId, item, false, reason);
+    const fail = (reason2) => {
+      options.emit?.(`gap ${item.gapId} (${item.itemId}): ${reason2}`);
+      result.failed.push({ gapId: item.gapId, reason: reason2 });
+      recordGapEvent(deps3, options.jobId, item, false, reason2);
     };
     const worktree = await createWorkerWorktree({
       workspace: deps3.workspace,
@@ -107197,48 +107914,48 @@ var INTAKE_LIMITS = {
   maxEvidence: 600,
   maxRefsPerRecord: 40
 };
-var shortText16 = external_exports.string().min(1).max(INTAKE_LIMITS.maxShortTextChars);
+var shortText17 = external_exports.string().min(1).max(INTAKE_LIMITS.maxShortTextChars);
 var text14 = external_exports.string().min(1).max(INTAKE_LIMITS.maxTextChars);
 var optionalText3 = external_exports.string().max(INTAKE_LIMITS.maxTextChars);
-var idList4 = external_exports.array(shortText16).max(INTAKE_LIMITS.maxRefsPerRecord);
+var idList4 = external_exports.array(shortText17).max(INTAKE_LIMITS.maxRefsPerRecord);
 var textList7 = external_exports.array(text14).max(INTAKE_LIMITS.maxItems);
 var semver5 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
-var sha2562 = external_exports.string().regex(/^[0-9a-f]{64}$/);
+var sha2563 = external_exports.string().regex(/^[0-9a-f]{64}$/);
 var sourceChunkSchema = external_exports.object({
   /** Stable within the document ("C-0001", "C-0002", …). */
-  chunkId: shortText16,
+  chunkId: shortText17,
   /** Heading path this chunk sits under, outermost first. */
-  headingPath: external_exports.array(shortText16).max(8).default([]),
+  headingPath: external_exports.array(shortText17).max(8).default([]),
   kind: external_exports.enum(SOURCE_CHUNK_KINDS),
   text: external_exports.string().max(INTAKE_LIMITS.maxChunkChars),
   /** True when the record's `text` was truncated relative to the source. */
   truncated: external_exports.boolean().default(false),
   startOffset: external_exports.number().int().min(0),
   endOffset: external_exports.number().int().min(0),
-  contentHash: shortText16
+  contentHash: shortText17
 }).passthrough();
 var specSourceSchema = external_exports.object({
   schemaVersion: semver5,
-  intakeId: shortText16,
+  intakeId: shortText17,
   kind: external_exports.enum(SPEC_SOURCE_KINDS),
   /** Original path, for a file source. Recorded for audit, never re-read. */
   originPath: optionalText3.optional(),
-  receivedAt: shortText16,
+  receivedAt: shortText17,
   /** Host label of the process that ingested it ("cli", "mcp", "plugin"). */
-  receivedVia: shortText16,
+  receivedVia: shortText17,
   byteLength: external_exports.number().int().min(1),
-  contentHash: sha2562,
+  contentHash: sha2563,
   /** Workspace-relative path of the stored verbatim copy. */
-  storedAt: shortText16,
+  storedAt: shortText17,
   /** Section headings found, in document order. */
-  outline: external_exports.array(shortText16).max(200).default([]),
+  outline: external_exports.array(shortText17).max(200).default([]),
   chunks: external_exports.array(sourceChunkSchema).max(INTAKE_LIMITS.maxChunks).default([])
 }).passthrough();
 var repositoryEvidenceSchema = external_exports.object({
-  evidenceId: shortText16,
+  evidenceId: shortText17,
   kind: external_exports.enum(REPOSITORY_EVIDENCE_KINDS),
   /** Stable identity: a contract id, spec name, module path, mission id. */
-  ref: shortText16,
+  ref: shortText17,
   summary: text14,
   /** True when this is existing PRODUCT AUTHORITY rather than context. */
   authoritative: external_exports.boolean().default(false),
@@ -107249,27 +107966,27 @@ var repositoryEvidenceSchema = external_exports.object({
 }).passthrough();
 var repositoryGroundingSchema = external_exports.object({
   schemaVersion: semver5,
-  intakeId: shortText16,
-  groundedAt: shortText16,
+  intakeId: shortText17,
+  groundedAt: shortText17,
   /** Git head at grounding time, when the workspace is a repository. */
-  baselineCommit: shortText16.nullable().default(null),
+  baselineCommit: shortText17.nullable().default(null),
   /** True when this workspace already carries SpecBridge product truth. */
   existingProduct: external_exports.boolean().default(false),
   evidence: external_exports.array(repositoryEvidenceSchema).max(INTAKE_LIMITS.maxEvidence).default([]),
   /** Prior missions whose contracts are active product authority. */
   priorMissionIds: idList4.default([]),
   /** Existing spec names, for name-collision and reuse decisions. */
-  existingSpecNames: external_exports.array(shortText16).max(INTAKE_LIMITS.maxItems).default([]),
+  existingSpecNames: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
   /** Detected build system, e.g. "pnpm", "gradle", "maven", or null. */
-  buildSystem: shortText16.nullable().default(null),
+  buildSystem: shortText17.nullable().default(null),
   /** Top-level module/subproject directories worth extending. */
-  modules: external_exports.array(shortText16).max(INTAKE_LIMITS.maxItems).default([]),
+  modules: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
   /** Deterministic notes about what was and was not observable. */
   notes: textList7.default([])
 }).passthrough();
 var deltaItemSchema = external_exports.object({
   /** Stable within the analysis ("D-001", …). */
-  itemId: shortText16,
+  itemId: shortText17,
   statement: text14,
   /** Source chunks this item was extracted from. */
   sourceChunkIds: idList4.default([]),
@@ -107279,23 +107996,23 @@ var deltaItemSchema = external_exports.object({
   /** Surfaces this item would permanently affect, if any. */
   affectedSurfaces: external_exports.array(external_exports.enum(IRREVERSIBLE_SURFACES)).max(IRREVERSIBLE_SURFACES.length).default([]),
   /** The existing contract this item relates to, when it relates to one. */
-  existingContractId: shortText16.optional(),
+  existingContractId: shortText17.optional(),
   existingContractRevision: external_exports.number().int().min(1).optional(),
   /** The prior mission owning that contract. */
-  existingMissionId: shortText16.optional(),
+  existingMissionId: shortText17.optional(),
   /** Requirement/invariant ids inside that contract this item touches. */
   existingElementIds: idList4.default([]),
   /** True when this item is a public product promise (new or existing). */
   publicSurface: external_exports.boolean().default(false),
   /** The question raised for this item, when one was raised. */
-  questionId: shortText16.optional()
+  questionId: shortText17.optional()
 }).passthrough();
 var deltaAuthorityAnalysisSchema = external_exports.object({
   schemaVersion: semver5,
-  intakeId: shortText16,
-  analyzedAt: shortText16,
+  intakeId: shortText17,
+  analyzedAt: shortText17,
   /** Digest over the grounding + source this analysis was computed from. */
-  basisDigest: shortText16,
+  basisDigest: shortText17,
   items: external_exports.array(deltaItemSchema).max(INTAKE_LIMITS.maxItems).default([]),
   /** Counts per class, so a summary needs no re-scan. */
   counts: external_exports.record(external_exports.number().int().min(0)).default({}),
@@ -107315,10 +108032,10 @@ var deltaAuthorityAnalysisSchema = external_exports.object({
    */
   affectedContracts: external_exports.array(
     external_exports.object({
-      contractId: shortText16,
-      missionId: shortText16,
-      missionName: shortText16.optional(),
-      title: shortText16,
+      contractId: shortText17,
+      missionId: shortText17,
+      missionName: shortText17.optional(),
+      title: shortText17,
       revision: external_exports.number().int().min(1),
       relation: external_exports.enum(["EXTENDED", "CHANGED"])
     }).passthrough()
@@ -107330,7 +108047,7 @@ var deltaAuthorityAnalysisSchema = external_exports.object({
   reasons: textList7.default([])
 }).passthrough();
 var productQuestionSchema = external_exports.object({
-  questionId: shortText16,
+  questionId: shortText17,
   kind: external_exports.enum(PRODUCT_QUESTION_KINDS),
   question: text14,
   whyItMatters: text14,
@@ -107346,31 +108063,31 @@ var productQuestionSchema = external_exports.object({
   /** Source chunks that raised it. */
   sourceChunkIds: idList4.default([]),
   /** The delta item this question blocks, when it blocks one. */
-  deltaItemId: shortText16.optional(),
+  deltaItemId: shortText17.optional(),
   /** Every admitted question is blocking; recorded so it can be asserted. */
   blocking: external_exports.literal(true).default(true),
   /** Mission question id, once the question is mirrored into the mission. */
-  missionQuestionId: shortText16.optional(),
+  missionQuestionId: shortText17.optional(),
   status: external_exports.enum(["open", "answered"]).default("open"),
   answer: optionalText3.optional(),
-  answeredAt: shortText16.optional(),
+  answeredAt: shortText17.optional(),
   /** Mission decision id recording the human answer. */
-  decisionId: shortText16.optional(),
-  askedAt: shortText16
+  decisionId: shortText17.optional(),
+  askedAt: shortText17
 }).passthrough();
 var questionRefusalSchema = external_exports.object({
-  refusalId: shortText16,
+  refusalId: shortText17,
   candidate: text14,
   reason: external_exports.enum(QUESTION_REFUSAL_REASONS),
   /** The engineering surface it asked about, for ENGINEERING_DECISION. */
   engineeringSurface: external_exports.enum(ENGINEERING_QUESTION_SURFACES).optional(),
   /** The evidence that answered it, for ANSWERED_BY_* reasons. */
-  answeredBy: shortText16.optional(),
+  answeredBy: shortText17.optional(),
   detail: text14,
-  refusedAt: shortText16
+  refusedAt: shortText17
 }).passthrough();
 var chunkCoverageSchema = external_exports.object({
-  chunkId: shortText16,
+  chunkId: shortText17,
   state: external_exports.enum(CHUNK_COVERAGE_STATES),
   /** What carries it: a delta item id, question id, or evidence id. */
   carriedBy: idList4.default([])
@@ -107388,105 +108105,105 @@ var intakeReadinessSchema = external_exports.object({
 }).passthrough();
 var intakeApprovalSchema = external_exports.object({
   schemaVersion: semver5,
-  approvalId: shortText16,
-  intakeId: shortText16,
-  missionId: shortText16,
-  approvedAt: shortText16,
-  approvedVia: shortText16,
+  approvalId: shortText17,
+  intakeId: shortText17,
+  missionId: shortText17,
+  approvedAt: shortText17,
+  approvedVia: shortText17,
   /** Digest of exactly the bytes the human submitted. */
-  sourceContentHash: sha2562,
+  sourceContentHash: sha2563,
   /** Digest over the approved canonical truth. The authority fingerprint. */
-  authorityDigest: shortText16,
+  authorityDigest: shortText17,
   /** Digest of the delta analysis that was current at approval time. */
-  deltaBasisDigest: shortText16,
+  deltaBasisDigest: shortText17,
   // --- What was approved, by reference ---------------------------------
   goal: text14,
   nonGoals: textList7.default([]),
   /** Mission decision ids active at approval time. */
-  decisionIds: external_exports.array(shortText16).max(INTAKE_LIMITS.maxItems).default([]),
-  constitutionRuleIds: external_exports.array(shortText16).max(INTAKE_LIMITS.maxItems).default([]),
-  adrIds: external_exports.array(shortText16).max(INTAKE_LIMITS.maxItems).default([]),
+  decisionIds: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
+  constitutionRuleIds: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
+  adrIds: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
   /** Contracts this intake creates, by id. */
-  newContractIds: external_exports.array(shortText16).max(INTAKE_LIMITS.maxItems).default([]),
+  newContractIds: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
   /** Existing contracts this intake extends, by id. */
-  extendedContractIds: external_exports.array(shortText16).max(INTAKE_LIMITS.maxItems).default([]),
+  extendedContractIds: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
   /** Existing contracts this intake would change. Human-visible, always. */
-  changedContractIds: external_exports.array(shortText16).max(INTAKE_LIMITS.maxItems).default([]),
+  changedContractIds: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
   acceptanceCriteria: textList7.default([]),
   /** Product questions and the human's recorded answers. */
   resolvedQuestions: external_exports.array(
     external_exports.object({
-      questionId: shortText16,
+      questionId: shortText17,
       question: text14,
       answer: text14,
-      decisionId: shortText16.optional()
+      decisionId: shortText17.optional()
     }).passthrough()
   ).max(INTAKE_LIMITS.maxQuestions).default([]),
   /** Resource authorization carried into the seal. */
   maxApiSpendUsd: external_exports.number().min(0).nullable().default(null),
   allowedLanes: external_exports.array(external_exports.enum(["LOCAL", "SUBSCRIPTION", "API"])).min(1).default(["LOCAL"]),
   /** The seal this approval produced, once the lifecycle created it. */
-  sealId: shortText16.optional()
+  sealId: shortText17.optional()
 }).passthrough();
 var projectionElementSchema = external_exports.object({
   /** The stage the element was found in. */
-  stage: shortText16,
+  stage: shortText17,
   /** Line number in the compiled document, 1-based. */
   line: external_exports.number().int().min(1),
   statement: text14,
   /** The approved element this traces to, when it traces to one. */
-  tracesTo: shortText16.optional()
+  tracesTo: shortText17.optional()
 }).passthrough();
 var projectionDivergenceSchema = external_exports.object({
   kind: external_exports.enum(DIVERGENCE_KINDS),
-  stage: shortText16.optional(),
+  stage: shortText17.optional(),
   detail: text14,
   /** The offending statement, bounded. */
   statement: optionalText3.optional()
 }).passthrough();
 var projectionEquivalenceSchema = external_exports.object({
   schemaVersion: semver5,
-  intakeId: shortText16,
-  approvalId: shortText16,
-  specName: shortText16,
-  checkedAt: shortText16,
+  intakeId: shortText17,
+  approvalId: shortText17,
+  specName: shortText17,
+  checkedAt: shortText17,
   equivalent: external_exports.boolean(),
   /** Normative statements checked, per stage. */
   checkedStatements: external_exports.number().int().min(0).default(0),
   tracedStatements: external_exports.number().int().min(0).default(0),
   divergences: external_exports.array(projectionDivergenceSchema).max(INTAKE_LIMITS.maxItems).default([]),
   /** Digest of each compiled artifact, so the verdict names its subject. */
-  artifactHashes: external_exports.record(sha2562).default({})
+  artifactHashes: external_exports.record(sha2563).default({})
 }).passthrough();
 var buildStepRecordSchema = external_exports.object({
   step: external_exports.enum(BUILD_LIFECYCLE_STEPS),
   status: external_exports.enum(BUILD_STEP_STATUSES),
-  startedAt: shortText16.optional(),
-  settledAt: shortText16.optional(),
+  startedAt: shortText17.optional(),
+  settledAt: shortText17.optional(),
   detail: optionalText3.optional(),
   /** Identity of what this step produced (spec name, seal id, job id). */
-  result: shortText16.optional(),
+  result: shortText17.optional(),
   /** Attempts made on this step, so a loop is visible rather than silent. */
   attempts: external_exports.number().int().min(0).default(0)
 }).passthrough();
 var buildLifecycleSchema = external_exports.object({
   schemaVersion: semver5,
-  intakeId: shortText16,
-  approvalId: shortText16,
-  missionId: shortText16,
-  startedAt: shortText16,
-  updatedAt: shortText16,
+  intakeId: shortText17,
+  approvalId: shortText17,
+  missionId: shortText17,
+  startedAt: shortText17,
+  updatedAt: shortText17,
   steps: external_exports.array(buildStepRecordSchema).max(BUILD_LIFECYCLE_STEPS.length),
-  specName: shortText16.optional(),
-  sealId: shortText16.optional(),
-  jobId: shortText16.optional(),
-  preflightReportId: shortText16.optional(),
+  specName: shortText17.optional(),
+  sealId: shortText17.optional(),
+  jobId: shortText17.optional(),
+  preflightReportId: shortText17.optional(),
   outcome: external_exports.enum(BUILD_OUTCOMES).optional(),
   /** Prerequisites the runtime resolved by itself, for the record. */
   resolvedPrerequisites: textList7.default([]),
   /** Prerequisites that genuinely need a person. */
   humanPrerequisites: textList7.default([]),
-  finishedAt: shortText16.optional()
+  finishedAt: shortText17.optional()
 }).passthrough();
 var intakeCountersSchema = external_exports.object({
   sourceChunks: external_exports.number().int().min(0).default(0),
@@ -107511,62 +108228,62 @@ var intakeSequencesSchema = external_exports.object({
 }).passthrough();
 var specIntakeStateSchema = external_exports.object({
   schemaVersion: semver5,
-  intakeId: shortText16,
+  intakeId: shortText17,
   /** The user-chosen name; also the default spec name. */
   name: external_exports.string().min(1).max(INTAKE_LIMITS.maxNameChars),
   status: external_exports.enum(INTAKE_STATUSES),
   /** The mission this intake drives. Created by the intake, never by hand. */
-  missionId: shortText16,
-  createdAt: shortText16,
-  updatedAt: shortText16,
-  host: shortText16,
+  missionId: shortText17,
+  createdAt: shortText17,
+  updatedAt: shortText17,
+  host: shortText17,
   /** Digest of the submitted specification. Identity of the ask. */
-  sourceContentHash: sha2562,
+  sourceContentHash: sha2563,
   /** Repository head when the intake began. */
-  baselineCommit: shortText16.nullable().default(null),
+  baselineCommit: shortText17.nullable().default(null),
   counters: intakeCountersSchema.default({}),
   sequences: intakeSequencesSchema.default({}),
   /** Set once the human approves. */
-  approvalId: shortText16.optional(),
-  approvedAt: shortText16.optional(),
+  approvalId: shortText17.optional(),
+  approvedAt: shortText17.optional(),
   /** Set by the lifecycle. */
-  specName: shortText16.optional(),
-  sealId: shortText16.optional(),
-  jobId: shortText16.optional(),
-  abandonedAt: shortText16.optional(),
+  specName: shortText17.optional(),
+  sealId: shortText17.optional(),
+  jobId: shortText17.optional(),
+  abandonedAt: shortText17.optional(),
   abandonReason: optionalText3.optional()
 }).passthrough();
 var featureLineageSchema = external_exports.object({
-  intakeId: shortText16,
-  missionId: shortText16,
-  name: shortText16,
-  recordedAt: shortText16,
-  baselineCommit: shortText16.nullable().default(null),
+  intakeId: shortText17,
+  missionId: shortText17,
+  name: shortText17,
+  recordedAt: shortText17,
+  baselineCommit: shortText17.nullable().default(null),
   /** Seals that were already authorized when this feature began. */
-  predecessorSealIds: external_exports.array(shortText16).max(INTAKE_LIMITS.maxItems).default([]),
-  sealId: shortText16.optional(),
-  specName: shortText16.optional(),
-  jobId: shortText16.optional(),
-  newContractIds: external_exports.array(shortText16).max(INTAKE_LIMITS.maxItems).default([]),
-  extendedContractIds: external_exports.array(shortText16).max(INTAKE_LIMITS.maxItems).default([]),
-  changedContractIds: external_exports.array(shortText16).max(INTAKE_LIMITS.maxItems).default([]),
+  predecessorSealIds: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
+  sealId: shortText17.optional(),
+  specName: shortText17.optional(),
+  jobId: shortText17.optional(),
+  newContractIds: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
+  extendedContractIds: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
+  changedContractIds: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
   /** Commits the implementation produced, filled in at closure. */
-  implementationCommits: external_exports.array(shortText16).max(INTAKE_LIMITS.maxItems).default([]),
+  implementationCommits: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
   /** Closure ledger reference, filled in when the job closes. */
-  closureEvidenceRef: shortText16.optional(),
+  closureEvidenceRef: shortText17.optional(),
   outcome: external_exports.enum(BUILD_OUTCOMES).optional()
 }).passthrough();
 var productBaselineSchema = external_exports.object({
   schemaVersion: semver5,
-  updatedAt: shortText16,
+  updatedAt: shortText17,
   /** Features in the order they were intaken, oldest first. */
   features: external_exports.array(featureLineageSchema).max(INTAKE_LIMITS.maxItems).default([])
 }).passthrough();
 var intakeTelemetrySchema = external_exports.object({
   schemaVersion: semver5,
-  intakeId: shortText16,
-  recordedAt: shortText16,
-  status: shortText16,
+  intakeId: shortText17,
+  recordedAt: shortText17,
+  status: shortText17,
   /** Human turns spent answering product questions before approval. */
   discoveryHumanTurns: external_exports.number().int().min(0),
   /** Product questions asked. Legitimate; never a defect. */
@@ -107580,9 +108297,9 @@ var intakeTelemetrySchema = external_exports.object({
   /** Correct authority stops after the approval. Not interventions. */
   humanAuthorityEscalationsAfterSeal: external_exports.number().int().min(0).nullable(),
   /** ISO instant the boundary starts at: the human approval. */
-  boundaryStartedAt: shortText16.nullable().default(null),
-  jobId: shortText16.optional(),
-  sealId: shortText16.optional()
+  boundaryStartedAt: shortText17.nullable().default(null),
+  jobId: shortText17.optional(),
+  sealId: shortText17.optional()
 }).passthrough();
 var ID_PATTERN11 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 var INTAKE_DIR_NAME = "intake";
@@ -111528,20 +112245,20 @@ function requireIntakeFor(deps3, subject) {
   }
   return found;
 }
-function abandonIntake(deps3, intakeId, reason) {
+function abandonIntake(deps3, intakeId, reason2) {
   const intake = requireIntakeState(deps3.workspace, intakeId);
   if (intake.status === "ABANDONED") return intake;
   const at = nowIso6(deps3);
   appendIntakeEvent(deps3.workspace, intakeId, {
     at,
     type: "intake_abandoned",
-    reason: clip(reason, 500)
+    reason: clip(reason2, 500)
   });
   return writeIntakeState(deps3.workspace, {
     ...intake,
     status: "ABANDONED",
     abandonedAt: at,
-    abandonReason: clip(reason, INTAKE_LIMITS.maxTextChars)
+    abandonReason: clip(reason2, INTAKE_LIMITS.maxTextChars)
   });
 }
 function summaryOf(deps3, intake) {
@@ -113027,7 +113744,7 @@ Examples:
       runtime.out(okLine("Specification ready."));
       runtime.out(dim2(`  Approve and build: ${CLI_BIN} spec approve ${name} --build`));
     } else {
-      for (const reason of discovery.readiness.reasons) runtime.out(warnLine(reason));
+      for (const reason2 of discovery.readiness.reasons) runtime.out(warnLine(reason2));
       runtime.exitCode = EXIT_CODES.gateFailure;
     }
   });
@@ -113063,7 +113780,7 @@ Examples:
         runtime.out(okLine("Specification ready."));
         runtime.out(dim2(`  Approve and build: ${CLI_BIN} spec approve ${name} --build`));
       } else {
-        for (const reason of result.discovery.readiness.reasons) runtime.out(warnLine(reason));
+        for (const reason2 of result.discovery.readiness.reasons) runtime.out(warnLine(reason2));
       }
     }
   );
@@ -113805,7 +114522,7 @@ function renderTaskRunReport(runtime, workspace, report) {
   }
   runtime.out();
   runtime.out(sectionTitle("Evidence"));
-  for (const reason of report.reasons) runtime.out(infoLine(reason));
+  for (const reason2 of report.reasons) runtime.out(infoLine(reason2));
   for (const violation of report.violations) runtime.out(failLine(`VIOLATION: ${violation}`));
   for (const warning2 of report.warnings) runtime.out(warnLine(warning2));
   runtime.out(
@@ -115089,8 +115806,8 @@ Example:
   ${CLI_BIN} spec accept-task notification-preferences --task 2.3 \\
     --run 8d4f1c22-\u2026 --reason "Verified manually in the local dev environment."`
   ).action(async (name, options) => {
-    const reason = options.reason?.trim() ?? "";
-    if (reason.length === 0) {
+    const reason2 = options.reason?.trim() ?? "";
+    if (reason2.length === 0) {
       throw new SpecBridgeError("INVALID_ARGUMENT", "Manual acceptance requires a non-empty --reason.");
     }
     const taskId = options.task?.trim() ?? "";
@@ -115159,7 +115876,7 @@ Example:
       evaluatedAt: acceptedAt,
       manualAcceptance: {
         actor: "local-user",
-        reason,
+        reason: reason2,
         acceptedAt,
         ...referencedRunId !== void 0 ? { referencedRunId } : {}
       },
@@ -115174,7 +115891,7 @@ Example:
             taskId: task.id,
             status: "manually-accepted",
             actor: "local-user",
-            reason,
+            reason: reason2,
             acceptedAt,
             referencedRunId: referencedRunId ?? null,
             evidencePath,
@@ -115189,7 +115906,7 @@ Example:
     runtime.out(okLine(`Task ${task.id} checkbox updated`, "(surgical [ ] \u2192 [x] edit)"));
     runtime.out(okLine("Recorded as MANUALLY ACCEPTED", `actor: local-user`));
     runtime.out(warnLine("No automated verification was performed for this acceptance."));
-    runtime.out(`  Reason: ${reason}`);
+    runtime.out(`  Reason: ${reason2}`);
     if (referencedRunId !== void 0) runtime.out(`  Referenced run: ${referencedRunId}`);
     const tasksApproved = spec2.state !== void 0 && stateStage(spec2.state, "tasks")?.status === "approved";
     if (update.approvalRehashed) {
@@ -125385,7 +126102,7 @@ var Protocol = class {
           }
         };
       }
-      const cancel = (reason) => {
+      const cancel = (reason2) => {
         this._responseHandlers.delete(messageId);
         this._progressHandlers.delete(messageId);
         this._cleanupTimeout(messageId);
@@ -125394,10 +126111,10 @@ var Protocol = class {
           method: "notifications/cancelled",
           params: {
             requestId: messageId,
-            reason: String(reason)
+            reason: String(reason2)
           }
         }, { relatedRequestId, resumptionToken, onresumptiontoken }).catch((error3) => this._onerror(new Error(`Failed to send cancellation: ${error3}`)));
-        const error2 = reason instanceof McpError ? reason : new McpError(ErrorCode.RequestTimeout, String(reason));
+        const error2 = reason2 instanceof McpError ? reason2 : new McpError(ErrorCode.RequestTimeout, String(reason2));
         reject(error2);
       };
       this._responseHandlers.set(messageId, (response) => {
@@ -132193,7 +132910,7 @@ function orchestrationDeps(context, workspace) {
   };
 }
 var orchestrationIdArg = external_exports.string().min(1).max(64).describe("Orchestration run id returned by orchestration_begin");
-var boundedText4 = (max) => external_exports.string().min(1).max(max);
+var boundedText5 = (max) => external_exports.string().min(1).max(max);
 var stateSummaryShape = {
   orchestrationId: external_exports.string(),
   specName: external_exports.string(),
@@ -132364,7 +133081,7 @@ function registerOrchestrationBeginTool(server, context) {
     },
     inputSchema: {
       specName: specNameArg,
-      goal: boundedText4(4e3).describe(
+      goal: boundedText5(4e3).describe(
         "The user's stated goal, verbatim. Recorded as data, never executed as instructions."
       ),
       taskId: external_exports.string().max(64).optional().describe("Target task, when the user named one")
@@ -132427,11 +133144,11 @@ function registerOrchestrationAssessIntentTool(server, context) {
     inputSchema: {
       orchestrationId: orchestrationIdArg,
       outcome: external_exports.enum(INTENT_OUTCOMES).describe("Your assessment; SpecBridge may override it"),
-      summary: boundedText4(2e3).describe("One-line restatement of the user's request"),
-      reasons: external_exports.array(boundedText4(2e3)).max(20).optional(),
+      summary: boundedText5(2e3).describe("One-line restatement of the user's request"),
+      reasons: external_exports.array(boundedText5(2e3)).max(20).optional(),
       provenance: external_exports.array(
         external_exports.object({
-          fact: boundedText4(2e3),
+          fact: boundedText5(2e3),
           source: external_exports.enum(PROVENANCE_KINDS),
           reference: external_exports.string().max(512).optional()
         })
@@ -132494,11 +133211,11 @@ function registerOrchestrationClarifyTool(server, context) {
       orchestrationId: orchestrationIdArg,
       questions: external_exports.array(
         external_exports.object({
-          question: boundedText4(1024),
-          whyItMatters: boundedText4(1024).describe(
+          question: boundedText5(1024),
+          whyItMatters: boundedText5(1024).describe(
             "What the answer changes about the implementation. Required."
           ),
-          options: external_exports.array(boundedText4(512)).max(10).optional(),
+          options: external_exports.array(boundedText5(512)).max(10).optional(),
           relatedTaskId: external_exports.string().max(64).optional()
         })
       ).min(1).max(20)
@@ -132555,9 +133272,9 @@ function registerOrchestrationResolveClarificationTool(server, context) {
       decisions: external_exports.array(
         external_exports.object({
           questionId: external_exports.string().min(1).max(64),
-          answer: boundedText4(4096),
+          answer: boundedText5(4096),
           source: external_exports.enum(PROVENANCE_KINDS).describe("Use known-from-user for a direct answer from the user"),
-          impact: boundedText4(2e3).optional().describe("What this changes about the build"),
+          impact: boundedText5(2e3).optional().describe("What this changes about the build"),
           supersedes: external_exports.string().max(64).optional()
         })
       ).min(1).max(20)
@@ -132618,26 +133335,26 @@ function registerOrchestrationSubmitPlanTool(server, context) {
     inputSchema: {
       orchestrationId: orchestrationIdArg,
       taskId: external_exports.string().min(1).max(64).describe("The approved task this plan implements"),
-      goal: boundedText4(2e3),
+      goal: boundedText5(2e3),
       steps: external_exports.array(
         external_exports.object({
           id: external_exports.string().max(64).optional(),
-          description: boundedText4(2e3),
+          description: boundedText5(2e3),
           expectedAreas: external_exports.array(external_exports.string().max(512)).max(20).optional(),
-          expectedEvidence: boundedText4(2e3).optional()
+          expectedEvidence: boundedText5(2e3).optional()
         })
       ).min(1).max(200),
-      testStrategy: boundedText4(2e3),
-      verificationStrategy: boundedText4(2e3),
-      nonGoals: external_exports.array(boundedText4(2e3)).max(50).optional(),
-      constraints: external_exports.array(boundedText4(2e3)).max(50).optional(),
-      relevantEvidence: external_exports.array(boundedText4(2e3)).max(50).optional(),
-      assumptions: external_exports.array(boundedText4(2e3)).max(50).optional().describe("Labelled assumptions. Planning information, never presented as facts."),
-      openQuestions: external_exports.array(boundedText4(2e3)).max(50).optional(),
+      testStrategy: boundedText5(2e3),
+      verificationStrategy: boundedText5(2e3),
+      nonGoals: external_exports.array(boundedText5(2e3)).max(50).optional(),
+      constraints: external_exports.array(boundedText5(2e3)).max(50).optional(),
+      relevantEvidence: external_exports.array(boundedText5(2e3)).max(50).optional(),
+      assumptions: external_exports.array(boundedText5(2e3)).max(50).optional().describe("Labelled assumptions. Planning information, never presented as facts."),
+      openQuestions: external_exports.array(boundedText5(2e3)).max(50).optional(),
       expectedAreas: external_exports.array(external_exports.string().max(512)).max(50).optional().describe("Expected implementation areas. Planning information, not a prediction of fact."),
-      rollbackConsiderations: boundedText4(2e3).optional(),
-      replanTriggers: external_exports.array(boundedText4(2e3)).max(50).optional(),
-      replanReason: boundedText4(2e3).optional().describe("Required in spirit when replacing a plan")
+      rollbackConsiderations: boundedText5(2e3).optional(),
+      replanTriggers: external_exports.array(boundedText5(2e3)).max(50).optional(),
+      replanReason: boundedText5(2e3).optional().describe("Required in spirit when replacing a plan")
     },
     outputSchema: {
       ...stateSummaryShape,
@@ -132727,7 +133444,7 @@ function registerOrchestrationReviewPlanTool(server, context) {
       orchestrationId: orchestrationIdArg,
       planHash: external_exports.string().min(1).max(64).describe("Exact planHash from orchestration_submit_plan"),
       decision: external_exports.enum(["approved", "rejected"]).describe("The user's decision, not yours"),
-      note: boundedText4(2e3).optional()
+      note: boundedText5(2e3).optional()
     },
     outputSchema: { ...stateSummaryShape, decision: external_exports.string(), planRevision: external_exports.number().int() },
     handler: async (args) => context.withWriteLock(async () => {
@@ -132764,15 +133481,15 @@ function registerOrchestrationRecordActionTool(server, context) {
     inputSchema: {
       orchestrationId: orchestrationIdArg,
       action: external_exports.enum(ACTION_CATEGORIES),
-      target: boundedText4(512).describe("What the action targeted: a path, a verifier, a step"),
+      target: boundedText5(512).describe("What the action targeted: a path, a verifier, a step"),
       result: external_exports.enum(OBSERVATION_RESULTS),
       planStepId: external_exports.string().max(64).optional(),
-      expectedEvidence: boundedText4(2e3).optional(),
+      expectedEvidence: boundedText5(2e3).optional(),
       changedFiles: external_exports.array(external_exports.object({ path: external_exports.string().max(1024), contentHash: external_exports.string().max(128).optional() })).max(500).optional().describe("Observed changes. Claims: the completion gate re-derives them from Git."),
       failure: external_exports.object({
         category: external_exports.enum(FAILURE_CATEGORIES),
-        message: boundedText4(2e3),
-        source: boundedText4(512).describe("Verifier name, tool, or step that failed"),
+        message: boundedText5(2e3),
+        source: boundedText5(512).describe("Verifier name, tool, or step that failed"),
         exitCode: external_exports.number().int().optional(),
         output: external_exports.string().max(16384).optional().describe("Normalized before fingerprinting")
       }).optional(),
@@ -132842,9 +133559,9 @@ function registerOrchestrationCheckpointTool(server, context) {
     },
     inputSchema: {
       orchestrationId: orchestrationIdArg,
-      nextAction: boundedText4(2e3).describe("The exact next safe action, in one line"),
-      observations: external_exports.array(boundedText4(2e3)).max(50).optional(),
-      latestVerifier: boundedText4(2e3).optional()
+      nextAction: boundedText5(2e3).describe("The exact next safe action, in one line"),
+      observations: external_exports.array(boundedText5(2e3)).max(50).optional(),
+      latestVerifier: boundedText5(2e3).optional()
     },
     outputSchema: {
       orchestrationId: external_exports.string(),
@@ -132892,7 +133609,7 @@ function registerOrchestrationFinalizeTool(server, context) {
     inputSchema: {
       orchestrationId: orchestrationIdArg,
       outcome: external_exports.enum(["completed", "aborted", "cancelled"]),
-      reason: boundedText4(2e3),
+      reason: boundedText5(2e3),
       evidenceStatus: external_exports.string().max(64).optional().describe("The evidenceStatus task_complete actually returned. Required for completion."),
       interactiveRunId: external_exports.string().max(64).optional()
     },
@@ -136524,7 +137241,7 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
     for (const evaluation of evaluations) {
       const line = `  evaluation ${evaluation.evaluationId} [${evaluation.layer}] ${evaluation.verdict}`;
       runtime.out(evaluation.verdict === "PASS" ? okLine(line) : blockedLine(line));
-      for (const reason of evaluation.reasons.slice(0, 5)) runtime.out(dim2(`      ${reason}`));
+      for (const reason2 of evaluation.reasons.slice(0, 5)) runtime.out(dim2(`      ${reason2}`));
     }
   });
   orchestrate.command("quota").description("Show subscription quota telemetry and the derived scheduler forecast (read-only)").option("--json", "output a machine-readable JSON report").action((options) => {
@@ -136923,8 +137640,8 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
         `  mode ${adaptiveSummary.mode}; ${adaptiveSummary.profileCount} profile(s) from ${adaptiveSummary.observations} observation(s); ${adaptiveSummary.decisions} recent decision(s), ${adaptiveSummary.applied} applied, ${adaptiveSummary.disagreements} disagreement(s)`
       )
     );
-    for (const [reason, count3] of Object.entries(adaptiveSummary.fallbackReasons)) {
-      runtime.out(dim2(`    fell back ${count3}x: ${reason}`));
+    for (const [reason2, count3] of Object.entries(adaptiveSummary.fallbackReasons)) {
+      runtime.out(dim2(`    fell back ${count3}x: ${reason2}`));
     }
     runtime.out(dim2(`    detail: ${CLI_BIN} orchestrate adaptive ${jobId}`));
     runtime.out(reportTitle("Ready tasks"));
@@ -137451,8 +138168,8 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
     } else {
       const line = `  latest evaluation: ${latestEvaluation.status}`;
       runtime.out(latestEvaluation.status === "PASS" ? okLine(line) : failLine(line));
-      for (const reason of latestEvaluation.reasons.slice(0, 6)) {
-        runtime.out(dim2(`    ${reason.slice(0, 200)}`));
+      for (const reason2 of latestEvaluation.reasons.slice(0, 6)) {
+        runtime.out(dim2(`    ${reason2.slice(0, 200)}`));
       }
     }
     if (failedChecks.length > 0) {
@@ -138470,7 +139187,7 @@ function registerMissionCommands(program2, runtime) {
     );
     if (overview.coverage !== void 0 && !overview.coverage.contractReady) {
       runtime.out(sectionTitle("Not contract-ready"));
-      for (const reason of overview.coverage.reasons) runtime.out(warnLine(reason));
+      for (const reason2 of overview.coverage.reasons) runtime.out(warnLine(reason2));
     }
     if (overview.openQuestions.length > 0) {
       runtime.out(sectionTitle("Open questions"));
@@ -138515,7 +139232,7 @@ function registerMissionCommands(program2, runtime) {
     }
     runtime.out(reportTitle("Discovery coverage"));
     runtime.out(coverage.contractReady ? okLine("CONTRACT_READY gate: satisfied") : blockedLine("CONTRACT_READY gate: not satisfied"));
-    for (const reason of coverage.reasons) runtime.out(dim2(`  ${reason}`));
+    for (const reason2 of coverage.reasons) runtime.out(dim2(`  ${reason2}`));
     runtime.out(sectionTitle("Topics"));
     for (const topic of coverage.topics) {
       if (topic.status === "unknown" && !topic.required) continue;
@@ -139296,7 +140013,7 @@ function registerWorkspaceCommands(program2, runtime) {
     runtime.out(reportTitle(`Current system \u2014 ${snapshot2.mode}`));
     if (freshness.status === "STALE") {
       runtime.out(warnLine("STALE: the repositories moved since this snapshot was taken."));
-      for (const reason of freshness.reasons.slice(0, 5)) runtime.out(dim2(`  ${reason}`));
+      for (const reason2 of freshness.reasons.slice(0, 5)) runtime.out(dim2(`  ${reason2}`));
       runtime.out(dim2("  Re-run `specbridge workspace bootstrap` before relying on it."));
     } else {
       runtime.out(okLine(`fresh as of ${snapshot2.createdAt}`));

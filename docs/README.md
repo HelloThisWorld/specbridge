@@ -159,6 +159,9 @@ the intent in the evening, run one command, read the report in the morning.
 - [Builder Packet compilation](orchestration/builder-packet-compilation.md)
   — deterministic, fresh, bounded source/test/dependency retrieval for an
   explicitly selected Secondary Builder; context quality without routing.
+- [Secondary Work Readiness](orchestration/secondary-work-readiness.md)
+  — deterministic Phase 6 per-WorkUnit admission, blockers, freshness, and
+  telemetry without automatic routing.
 - [Context projection](orchestration/context-projection.md) — share truth,
   not context: what each isolated worker sees, hashed and staleness-checked.
 - [Sub-agent isolation](orchestration/subagent-isolation.md) — worker

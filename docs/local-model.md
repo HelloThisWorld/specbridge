@@ -9,7 +9,11 @@ can also use this endpoint for bounded worktree edits. One managed server serves
 every logical role — roles are prompts, not processes.
 Its [Builder Packet compiler](orchestration/builder-packet-compilation.md)
 selects fresh source and tests first, so the direct model needs no repository
-tools for ordinary bounded implementation work.
+tools for ordinary bounded implementation work. Phase 6
+[Secondary Work Readiness](orchestration/secondary-work-readiness.md) then
+checks the individual WorkUnit's knowledge, entropy, specificity, trusted
+verification, context, authority, mutation scope, and dependencies. This is
+admission evidence only; it does not automatically route work to the model.
 
 The local model is a **worker**, never an authority: its answers are
 schema-validated structured proposals that deterministic policy accepts,

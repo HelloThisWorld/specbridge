@@ -52,6 +52,8 @@ import {
   readLatestWorkGraph,
   readSecondaryBuilderAttempt,
   readSecondaryBuilderAttempts,
+  readWorkReadinessRecord,
+  readWorkReadinessTelemetry,
   readWorkerRecord,
   requireGraphRevision,
   removeWorkerWorktree,
@@ -441,6 +443,7 @@ function secondaryMissionFixture(
     staleProjection?: boolean;
     semanticEvaluationAlways?: boolean;
     automaticContext?: boolean;
+    noVerification?: boolean;
   } = {},
 ): {
   root: string;
@@ -454,6 +457,7 @@ function secondaryMissionFixture(
     useFakeClaude: true,
     defaultRunner: 'claude-code',
     ...(options.verificationFails === true ? { verificationCommands: [failingCommand()] } : {}),
+    ...(options.noVerification === true ? { verificationCommands: [] } : {}),
     extraConfig: {
       orchestration: {
         jobs: {
@@ -466,16 +470,14 @@ function secondaryMissionFixture(
       },
     },
   });
-  if (options.automaticContext === true) {
-    mkdirSync(path.join(base.root, 'src', 'envelope'), { recursive: true });
-    mkdirSync(path.join(base.root, 'src', 'transport'), { recursive: true });
-    writeFileSync(path.join(base.root, 'src', 'envelope', 'implementation.js'), 'module.exports = { source: "baseline" };\n', 'utf8');
-    writeFileSync(path.join(base.root, 'src', 'transport', 'implementation.js'), 'module.exports = { source: "baseline" };\n', 'utf8');
-    writeFileSync(path.join(base.root, 'src', 'envelope', 'implementation.test.js'), "require('./implementation.js');\n", 'utf8');
-    writeFileSync(path.join(base.root, 'src', 'transport', 'implementation.test.js'), "require('./implementation.js');\n", 'utf8');
-    git(base.root, 'add', 'src');
-    git(base.root, 'commit', '-q', '-m', 'automatic packet fixture source');
-  }
+  mkdirSync(path.join(base.root, 'src', 'envelope'), { recursive: true });
+  mkdirSync(path.join(base.root, 'src', 'transport'), { recursive: true });
+  writeFileSync(path.join(base.root, 'src', 'envelope', 'implementation.js'), 'module.exports = { source: "baseline" };\n', 'utf8');
+  writeFileSync(path.join(base.root, 'src', 'transport', 'implementation.js'), 'module.exports = { source: "baseline" };\n', 'utf8');
+  writeFileSync(path.join(base.root, 'src', 'envelope', 'implementation.test.js'), "require('./implementation.js');\n", 'utf8');
+  writeFileSync(path.join(base.root, 'src', 'transport', 'implementation.test.js'), "require('./implementation.js');\n", 'utf8');
+  git(base.root, 'add', 'src');
+  git(base.root, 'commit', '-q', '-m', 'secondary packet fixture source');
   const missionDeps: MissionDeps = {
     workspace: base.workspace,
     clock: base.clock,
@@ -545,17 +547,13 @@ function secondaryMissionFixture(
         : 'src/transport/implementation.js';
       // No candidate has reached integration while either direct-model call
       // is running: the canonical checkout remains byte-identical.
-      if (options.automaticContext === true) {
-        expect(readFileSync(path.join(base.root, target), 'utf8')).toContain('baseline');
-      } else {
-        expect(existsSync(path.join(base.root, target))).toBe(false);
-      }
+      expect(readFileSync(path.join(base.root, target), 'utf8')).toContain('baseline');
       return {
         ok: true,
         text: validProposal([
           {
             path: target,
-            operation: options.automaticContext === true ? 'REPLACE' : 'CREATE',
+            operation: 'REPLACE',
             content: `module.exports = { source: "secondary", unit: "${envelope ? 'envelope' : 'transport'}" };\n`,
           },
         ]),
@@ -582,7 +580,7 @@ function secondaryMissionFixture(
         ...(options.automaticContext === true
           ? {}
           : {
-              sourceContext: () => {
+              sourceContext: ({ worktreeRoot }) => {
                 if (options.staleProjection === true && !contractMutated) {
                   const current = readContractRegistry(base.workspace, mission.missionId)[0]!;
                   storeContractRevision(base.workspace, mission.missionId, {
@@ -593,7 +591,12 @@ function secondaryMissionFixture(
                   });
                   contractMutated = true;
                 }
-                return [];
+                return captureSecondarySourceContext(worktreeRoot, [
+                  'src/envelope/implementation.js',
+                  'src/transport/implementation.js',
+                  'src/envelope/implementation.test.js',
+                  'src/transport/implementation.test.js',
+                ]);
               },
             }),
         inference: directInference,
@@ -626,6 +629,67 @@ describe('Secondary Objective Builder governed lifecycle', () => {
       expect(attempts.every((attempt) => attempt.packet.retrievalPlanRefs.length > 0)).toBe(true);
       expect(attempts.every((attempt) => attempt.packet.quality.contextSufficient)).toBe(true);
       expect(attempts.every((attempt) => attempt.status === 'CANDIDATE_READY')).toBe(true);
+      const workGraph = readLatestWorkGraph(
+        fixture.workspace,
+        job.jobId,
+        graph.nodes[0]!.nodeId,
+      )!;
+      for (const unit of workGraph.units.filter((entry) => entry.kind === 'build')) {
+        expect(readWorkReadinessRecord(
+          fixture.workspace,
+          job.jobId,
+          graph.nodes[0]!.nodeId,
+          unit.workUnitId,
+          unit.attempt,
+        )?.decision.status).toBe('ELIGIBLE');
+      }
+      expect(readWorkReadinessTelemetry(
+        fixture.workspace,
+        job.jobId,
+        graph.nodes[0]!.nodeId,
+      )).toMatchObject({
+        assessmentCount: 2,
+        statusCounts: { ELIGIBLE: 2 },
+      });
+    } finally {
+      if (priorScenario === undefined) delete process.env['FAKE_CLAUDE_SCENARIO'];
+      else process.env['FAKE_CLAUDE_SCENARIO'] = priorScenario;
+    }
+  }, 300_000);
+
+  it('records a non-eligible explicit attempt before inference without changing routing', async () => {
+    const priorScenario = process.env['FAKE_CLAUDE_SCENARIO'];
+    process.env['FAKE_CLAUDE_SCENARIO'] = 'objective-multi';
+    try {
+      const fixture = secondaryMissionFixture({ noVerification: true });
+      const job = createJob(fixture.driverDeps, {
+        specName: 'steprelay-secondary',
+        goal: 'Exercise Secondary readiness admission without trusted verification.',
+      });
+      const result = await driveJob(fixture.driverDeps, job.jobId, {});
+      const graph = requireGraphRevision(fixture.workspace, job.jobId, result.job.graphRevision);
+      const workGraph = readLatestWorkGraph(
+        fixture.workspace,
+        job.jobId,
+        graph.nodes[0]!.nodeId,
+      )!;
+      const first = workGraph.units.find((unit) => unit.kind === 'build')!;
+      const readiness = readWorkReadinessRecord(
+        fixture.workspace,
+        job.jobId,
+        graph.nodes[0]!.nodeId,
+        first.workUnitId,
+        first.attempt,
+      );
+      expect(result.stop.kind).toBe('blocked');
+      expect(fixture.inferenceCalls()).toBe(0);
+      expect(readiness?.assessment.verificationStrength).toBe('NONE');
+      expect(readiness?.decision.status).toBe('STRONG_REQUIRED');
+      expect(readSecondaryBuilderAttempts(
+        fixture.workspace,
+        job.jobId,
+        graph.nodes[0]!.nodeId,
+      )).toHaveLength(0);
     } finally {
       if (priorScenario === undefined) delete process.env['FAKE_CLAUDE_SCENARIO'];
       else process.env['FAKE_CLAUDE_SCENARIO'] = priorScenario;
@@ -689,15 +753,17 @@ describe('Secondary Objective Builder governed lifecycle', () => {
       });
       const result = await driveJob(fixture.driverDeps, job.jobId, {});
       expect(result.stop.kind).not.toBe('completed');
-      expect(existsSync(path.join(fixture.root, 'src', 'envelope', 'implementation.js'))).toBe(false);
-      expect(existsSync(path.join(fixture.root, 'src', 'transport', 'implementation.js'))).toBe(false);
+      expect(readFileSync(path.join(fixture.root, 'src', 'envelope', 'implementation.js'), 'utf8'))
+        .toContain('baseline');
+      expect(readFileSync(path.join(fixture.root, 'src', 'transport', 'implementation.js'), 'utf8'))
+        .toContain('baseline');
 
       const jobGraph = requireGraphRevision(fixture.workspace, job.jobId, result.job.graphRevision);
       const attempts = readSecondaryBuilderAttempts(fixture.workspace, job.jobId, jobGraph.nodes[0]!.nodeId);
       expect(attempts.length).toBeGreaterThan(0);
       expect(attempts.every((attempt) => attempt.status === 'VERIFICATION_FAILED')).toBe(true);
       expect(attempts.every((attempt) => attempt.failure?.kind === 'VERIFICATION_FAILURE')).toBe(true);
-      expect(attempts.every((attempt) => attempt.packet.sourceContext.length === 0)).toBe(true);
+      expect(attempts.every((attempt) => attempt.packet.sourceContext.length > 0)).toBe(true);
       expect(attempts.every((attempt) => (attempt.proposal?.edits.length ?? 0) > 0)).toBe(true);
       expect(attempts.every((attempt) => attempt.appliedFiles.length > 0)).toBe(true);
       expect(attempts.every((attempt) => attempt.verification?.commands[0]?.status === 'nonzero-exit')).toBe(true);
@@ -726,7 +792,8 @@ describe('Secondary Objective Builder governed lifecycle', () => {
         failure: { kind: 'STALE_APPROVED_PROJECTION' },
       });
       expect(stale?.rawOutput).toBeUndefined();
-      expect(existsSync(path.join(fixture.root, 'src', 'envelope', 'implementation.js'))).toBe(false);
+      expect(readFileSync(path.join(fixture.root, 'src', 'envelope', 'implementation.js'), 'utf8'))
+        .toContain('baseline');
     } finally {
       if (priorScenario === undefined) delete process.env['FAKE_CLAUDE_SCENARIO'];
       else process.env['FAKE_CLAUDE_SCENARIO'] = priorScenario;
@@ -796,7 +863,8 @@ describe('Secondary Objective Builder governed lifecycle', () => {
           return { ...building, status: 'BUILDING' as const };
         }),
       });
-      expect(existsSync(path.join(fixture.root, candidate.changedFiles[0]!.path))).toBe(false);
+      expect(readFileSync(path.join(fixture.root, candidate.changedFiles[0]!.path), 'utf8'))
+        .toContain('baseline');
 
       const resumed = await driveObjective({
         workspace: fixture.workspace,
@@ -926,7 +994,8 @@ describe('Secondary Objective Builder governed lifecycle', () => {
       mkdirSync(path.dirname(proposedPath), { recursive: true });
       writeFileSync(proposedPath, 'interrupted secondary proposal\n', 'utf8');
 
-      expect(existsSync(path.join(fixture.root, candidate.changedFiles[0]!.path))).toBe(false);
+      expect(readFileSync(path.join(fixture.root, candidate.changedFiles[0]!.path), 'utf8'))
+        .toContain('baseline');
       expect(readSecondaryBuilderAttempt(
         fixture.workspace,
         job.jobId,

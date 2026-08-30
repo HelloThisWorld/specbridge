@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+### Secondary Eligibility & Work Readiness — vNext.10.2 Phase 6
+
+- Added deterministic, versioned `WorkReadinessAssessment` and
+  `SecondaryEligibilityDecision` records for individual Objective WorkUnits,
+  covering knowledge, decision entropy, implementation specificity, trusted
+  verification, Phase 5 context quality, authority/contract risk, repository
+  mutation scope, and dependency readiness.
+- Added typed, explainable blocker precedence for `ELIGIBLE`,
+  `STRONG_REQUIRED`, `NEEDS_RESEARCH`, `NEEDS_AUTHORITY`, `NEEDS_CONTEXT`, and
+  `NOT_READY`, including research-resolved engineering work without allowing
+  recommendations to replace approved product authority.
+- Added stable input-bound assessment identity, durable Objective records,
+  aggregate readiness telemetry, inspect rendering, and a compatibility bridge
+  that leaves non-Objective task-level suitability behavior intact.
+- Integrated admission after Builder Packet compilation for explicitly selected
+  Secondary attempts. Parent Objective complexity is advisory, and default
+  builder routing, automatic fallback, repair, quota/economic policy, and model
+  selection remain unchanged.
+
 ### Builder Packet & Repository Code Retrieval — vNext.10.2 Phase 5
 
 - Added a deterministic `BuilderPacketCompiler` that turns an explicitly

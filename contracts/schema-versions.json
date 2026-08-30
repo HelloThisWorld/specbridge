@@ -64,6 +64,7 @@
   "secondaryBuilderAttempt": "1.1.0",
   "secondaryBuilderPacket": "1.1.0",
   "secondaryBuilderResult": "1.1.0",
+  "secondaryEligibilityDecision": "1.0.0",
   "specIntakeApproval": "1.0.0",
   "specIntakeDelta": "1.0.0",
   "specIntakeGrounding": "1.0.0",
@@ -85,5 +86,7 @@
   "verificationPolicy": "1.0.0",
   "verificationReport": "1.0.0",
   "workGraph": "1.0.0",
+  "workReadinessAssessment": "1.0.0",
+  "workReadinessTelemetry": "1.0.0",
   "zeroTouchCertification": "1.0.0"
 }

@@ -117,9 +117,10 @@ worktree.
 Missing explicit targets, unresolved verified dependencies, protected or
 unmaterializable target source, and equal plausible targets stop compilation.
 During inference the model may also return `NEEDS_MORE_CONTEXT` with bounded
-reasons and no edits. Both paths create no candidate. Phase 6 may use recorded
-quality facts for eligibility; Phase 7 may decide widening, repair, or
-fallback. Neither policy exists in Phase 5.
+reasons and no edits. Both paths create no candidate. Phase 6 consumes the
+recorded quality facts for
+[Secondary Work Readiness](secondary-work-readiness.md); Phase 7 may decide
+widening, repair, or fallback. Neither policy exists in Phase 5.
 
 Metrics record indexed files considered, ranked candidates, selected files
 and sections, source/test characters, reference/dependency counts, budget
@@ -144,5 +145,6 @@ the local server/model environment variables documented in
 are present.
 
 Builder Packet compilation does not decide which model should execute the
-task. Phase 6 eligibility, Phase 7 routing/repair/fallback, LLM Gateway,
-Vector RAG, and OpenMind are not implemented here.
+task. Phase 6 consumes its results as admission evidence; Phase 7
+routing/repair/fallback, LLM Gateway, Vector RAG, and OpenMind are not
+implemented here.
