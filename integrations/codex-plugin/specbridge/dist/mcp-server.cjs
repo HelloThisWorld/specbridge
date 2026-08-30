@@ -33306,6 +33306,13 @@ function recordAssessment(deps, missionId, input) {
   let mission = requireMissionState(deps.workspace, missionId);
   assertDiscoveryOpen(mission, "a discovery assessment");
   const at = now(deps).toISOString();
+  const incomingFacts = input.facts?.length ?? 0;
+  if (mission.counters.facts + incomingFacts > MISSION_LIMITS.maxFacts) {
+    throw new MissionError(
+      "SBM006",
+      `Recording ${incomingFacts} fact(s) would exceed the mission's ${MISSION_LIMITS.maxFacts}-fact bound (${mission.counters.facts} already recorded).`
+    );
+  }
   const factIds = [];
   const questionIds = [];
   const decisionIds = [];
@@ -91228,6 +91235,7 @@ function emptyProjectionMap() {
   return {
     itemContracts: {},
     itemDecisions: {},
+    itemFacts: {},
     surfaceContracts: {},
     topicDecisions: {}
   };
@@ -91246,6 +91254,7 @@ function readProjectionMap(workspace, intakeId) {
     return {
       itemContracts: raw.itemContracts ?? {},
       itemDecisions: raw.itemDecisions ?? {},
+      itemFacts: raw.itemFacts ?? {},
       surfaceContracts: raw.surfaceContracts ?? {},
       topicDecisions: raw.topicDecisions ?? {},
       ...raw.sourceTurnId !== void 0 ? { sourceTurnId: raw.sourceTurnId } : {},
@@ -91366,6 +91375,7 @@ function compileMissionTruth(deps, intakeDeps3, request) {
   const decisions = [];
   const contracts = [];
   const compiledItemIds = [];
+  const compiledFactItemIds = [];
   if (map.fieldsWritten !== true) {
     for (const chunk of request.source.chunks) {
       if (facts.length >= FACT_BUDGET / 2) break;
@@ -91378,6 +91388,7 @@ function compileMissionTruth(deps, intakeDeps3, request) {
       });
     }
   }
+  const sourceFactCount = facts.length;
   const pendingBySurface = /* @__PURE__ */ new Map();
   for (const item of request.analysis.items) {
     if (blocked2.has(item.itemId)) continue;
@@ -91385,8 +91396,8 @@ function compileMissionTruth(deps, intakeDeps3, request) {
     if (item.classification === "CONTRADICTION") continue;
     if (item.classification === "EXISTING_SEALED_CONTRACT_CHANGE") continue;
     const bearsContract = item.classification !== "IMPLEMENTATION_DETAIL" && item.classification !== "EXISTING_CONTRACT_COMPATIBLE";
-    if (map.itemDecisions[item.itemId] === void 0) {
-      if (bearsContract && decisions.length < decisionBudget) {
+    if (bearsContract && map.itemDecisions[item.itemId] === void 0) {
+      if (decisions.length < decisionBudget) {
         compiledItemIds.push(item.itemId);
         decisions.push({
           decision: clip(item.statement, INTAKE_LIMITS.maxTextChars),
@@ -91395,17 +91406,19 @@ function compileMissionTruth(deps, intakeDeps3, request) {
           sourceTurnId,
           topics: item.topics.slice(0, 8)
         });
-      } else if (bearsContract) {
+      } else {
         overflowItemIds.push(item.itemId);
         continue;
-      } else if (facts.length < FACT_BUDGET) {
-        facts.push({
-          statement: clip(item.statement, INTAKE_LIMITS.maxTextChars),
-          provenance: "known-from-user",
-          sourceTurnId,
-          topics: item.topics.slice(0, 8)
-        });
       }
+    }
+    if (!bearsContract && map.itemFacts[item.itemId] === void 0 && facts.length < FACT_BUDGET) {
+      compiledFactItemIds.push(item.itemId);
+      facts.push({
+        statement: clip(item.statement, INTAKE_LIMITS.maxTextChars),
+        provenance: "known-from-user",
+        sourceTurnId,
+        topics: item.topics.slice(0, 8)
+      });
     }
     if (!bearsContract) continue;
     if (isExclusion(item)) continue;
@@ -91433,6 +91446,10 @@ function compileMissionTruth(deps, intakeDeps3, request) {
     const itemId = compiledItemIds[index];
     const decisionId = decisionAssessment.decisionIds[index];
     if (itemId !== void 0 && decisionId !== void 0) map.itemDecisions[itemId] = decisionId;
+  });
+  compiledFactItemIds.forEach((itemId, index) => {
+    const factId = decisionAssessment.factIds[sourceFactCount + index];
+    if (factId !== void 0) map.itemFacts[itemId] = factId;
   });
   topicDecisionInputs.forEach((_, index) => {
     const topic = resolvedTopics[index];
