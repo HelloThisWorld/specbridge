@@ -20,6 +20,7 @@ import type { ResearchBridge } from '../research/index.js';
 import {
   considerLifecycleResearch,
   investigationPacketSchema,
+  listResearchRecords,
   renderResearchEvidence,
   researchRequestSchema,
 } from '../research/index.js';
@@ -69,6 +70,8 @@ import {
   readLatestWorkGraph,
   readProjection,
   readSecondaryBuilderAttempt,
+  readWorkReadinessRecord,
+  readWorkReadinessRecords,
   readWorkerRecords,
   storeAggregationReport,
   storeCandidate,
@@ -76,6 +79,8 @@ import {
   storeEvaluation,
   storeProjection,
   storeSecondaryBuilderAttempt,
+  storeWorkReadinessRecord,
+  storeWorkReadinessTelemetry,
   storeWorkGraph,
 } from './store.js';
 import {
@@ -101,7 +106,10 @@ import type {
   SecondaryObjectiveBuilderSelection,
 } from './secondary-builder.js';
 import { SecondaryBuilderContextCompiler } from './builder-packet-compiler.js';
-import type { VerifiedDependencyContextInput } from './builder-packet-compiler.js';
+import type {
+  BuilderPacketCompilationResult,
+  VerifiedDependencyContextInput,
+} from './builder-packet-compiler.js';
 import {
   SECONDARY_BUILDER_ATTEMPT_SCHEMA_VERSION,
   buildSecondaryBuilderPacket,
@@ -110,6 +118,12 @@ import {
   secondaryBuilderAttemptSchema,
   secondaryBuilderInputCeiling,
 } from './secondary-builder.js';
+import type { SecondaryBuilderPacket } from './secondary-builder.js';
+import type { SecondaryEligibilityDecision, SecondaryEligibilityStatus } from './work-readiness.js';
+import {
+  assessAndDecideWorkReadiness,
+  summarizeWorkReadiness,
+} from './work-readiness.js';
 
 /**
  * The objective driver: one approved objective, end to end.
@@ -466,6 +480,7 @@ interface ExecutedAttempt {
   countedAsWorker?: boolean | undefined;
   secondaryAttempt?: SecondaryBuilderAttempt | undefined;
   secondaryFailure?: { kind: SecondaryBuilderFailureKind; problem: string } | undefined;
+  readinessDecision?: SecondaryEligibilityDecision | undefined;
 }
 
 async function executeResearchInvestigation(
@@ -646,6 +661,90 @@ function secondaryFailureCategory(kind: SecondaryBuilderFailureKind): FailureCat
   }
 }
 
+function readinessFailureCategory(status: SecondaryEligibilityStatus): FailureCategory {
+  switch (status) {
+    case 'NEEDS_AUTHORITY':
+      return 'SAFETY_POLICY';
+    case 'NOT_READY':
+      return 'BLOCKED_DEPENDENCY';
+    case 'NEEDS_CONTEXT':
+      return 'AMBIGUITY';
+    case 'NEEDS_RESEARCH':
+    case 'STRONG_REQUIRED':
+      return 'CAPABILITY_UNAVAILABLE';
+    case 'ELIGIBLE':
+      return 'INTERNAL';
+  }
+}
+
+function recordSecondaryReadiness(
+  context: UnitAttemptContext,
+  prepared: PreparedAttempt,
+  packet: SecondaryBuilderPacket | undefined,
+  compilation: BuilderPacketCompilationResult | undefined,
+): SecondaryEligibilityDecision {
+  const { input } = context;
+  const prior = readWorkReadinessRecord(
+    input.workspace,
+    input.jobId,
+    input.node.nodeId,
+    prepared.unitId,
+    prepared.attempt,
+  );
+  const assessedAt = nowIso(input);
+  const result = assessAndDecideWorkReadiness(
+    {
+      jobId: input.jobId,
+      objectiveNodeId: input.node.nodeId,
+      workUnit: prepared.unit,
+      projection: prepared.projection,
+      attempt: prepared.attempt,
+      parentObjectiveComplexity: input.node.complexity,
+      ...(packet !== undefined ? { packet } : {}),
+      ...(compilation !== undefined ? { compilation } : {}),
+      verificationCommands: input.config.verification.commands,
+      missingDependencyIds: prepared.missingDependencyIds,
+      researchRecords: listResearchRecords(input.workspace).records,
+      assessedAt,
+    },
+    prior,
+  );
+  storeWorkReadinessRecord(input.workspace, input.jobId, input.node.nodeId, {
+    assessment: result.assessment,
+    decision: result.decision,
+  });
+  storeWorkReadinessTelemetry(
+    input.workspace,
+    input.jobId,
+    input.node.nodeId,
+    summarizeWorkReadiness(
+      readWorkReadinessRecords(input.workspace, input.jobId, input.node.nodeId),
+      assessedAt,
+    ),
+  );
+  input.recordEvent('secondary_readiness_assessed', {
+    nodeId: input.node.nodeId,
+    workUnitId: prepared.unitId,
+    attempt: prepared.attempt,
+    assessmentHash: result.assessment.contentHash,
+    inputHash: result.assessment.inputHash,
+    status: result.decision.status,
+    knowledgeState: result.assessment.knowledgeState,
+    decisionEntropy: result.assessment.decisionEntropy,
+    implementationSpecificity: result.assessment.implementationSpecificity,
+    verificationStrength: result.assessment.verificationStrength,
+    contextState: result.assessment.contextState,
+    repositoryMutationScope: result.assessment.repositoryMutationScope,
+    dependencyState: result.assessment.dependencyState,
+    authorityRisk: result.assessment.authorityRisk,
+    contractMutationRisk: result.assessment.contractMutationRisk,
+    reasons: result.decision.reasons.map((entry) => entry.code),
+    reused: result.reused,
+    routingChanged: false,
+  });
+  return result.decision;
+}
+
 function builderFailureResult(problem: string): Awaited<ReturnType<typeof runLargeObjectiveRole<'BUILDER'>>> {
   return { ok: false, kind: 'worker-unavailable', problem };
 }
@@ -661,7 +760,8 @@ async function executeSelectedSecondaryBuilder(
     return { prepared, result: builderFailureResult('secondary builder selection disappeared') };
   }
 
-  let packet;
+  let packet: SecondaryBuilderPacket | undefined;
+  let compilation: BuilderPacketCompilationResult | undefined;
   let repositoryRoots: Readonly<Record<string, string>> = { primary: worktree.dir };
   if (selection.sourceContext !== undefined) {
     try {
@@ -714,6 +814,7 @@ async function executeSelectedSecondaryBuilder(
         secondaryFailure: { kind: 'INSUFFICIENT_CONTEXT', problem },
       };
     }
+    compilation = compiled;
     input.recordEvent(compiled.ok ? 'context_selected' : 'context_insufficient', {
       nodeId: input.node.nodeId,
       workUnitId: prepared.unitId,
@@ -724,15 +825,33 @@ async function executeSelectedSecondaryBuilder(
       ...(compiled.ok ? {} : { failure: compiled.failure.kind, reasons: compiled.failure.reasons }),
     });
     if (!compiled.ok) {
+      const readinessDecision = recordSecondaryReadiness(context, prepared, undefined, compiled);
       const problem = `${compiled.failure.kind}: ${compiled.failure.reasons.join('; ')}`;
       return {
         prepared,
         result: builderFailureResult(problem),
         secondaryFailure: { kind: compiled.failure.kind, problem },
+        readinessDecision,
       };
     }
     packet = compiled.packet;
     repositoryRoots = compiled.repositoryRoots;
+  }
+
+  if (packet === undefined) {
+    return { prepared, result: builderFailureResult('secondary builder packet was not produced') };
+  }
+  const readinessDecision = recordSecondaryReadiness(context, prepared, packet, compilation);
+  if (readinessDecision.status !== 'ELIGIBLE') {
+    const problem = [
+      `Secondary execution is not eligible: ${readinessDecision.status}`,
+      ...readinessDecision.reasons.map((entry) => `${entry.code}: ${entry.message}`),
+    ].join('; ').slice(0, 2_000);
+    return {
+      prepared,
+      result: builderFailureResult(problem),
+      readinessDecision,
+    };
   }
 
   const inference =
@@ -1276,7 +1395,9 @@ async function foldBuilderOutcome(
       input,
       applyUnitRejection(input, graph, unitId, attempt, {
         category:
-          executed.secondaryFailure !== undefined
+          executed.readinessDecision !== undefined
+            ? readinessFailureCategory(executed.readinessDecision.status)
+            : executed.secondaryFailure !== undefined
             ? secondaryFailureCategory(executed.secondaryFailure.kind)
             : result.kind === 'cancelled'
               ? 'CANCELLED'

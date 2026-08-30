@@ -22,6 +22,11 @@ import {
 } from './state.js';
 import type { SecondaryBuilderAttempt } from './secondary-builder.js';
 import { secondaryBuilderAttemptSchema } from './secondary-builder.js';
+import type { WorkReadinessRecord, WorkReadinessTelemetry } from './work-readiness.js';
+import {
+  workReadinessRecordSchema,
+  workReadinessTelemetrySchema,
+} from './work-readiness.js';
 
 /**
  * Objective-runtime persistence:
@@ -37,6 +42,8 @@ import { secondaryBuilderAttemptSchema } from './secondary-builder.js';
  *   conflicts/<id>.json          contract conflicts (status-controlled)
  *   workers/<wu>-a<n>-<role>.json   worker identity records (status-controlled)
  *   secondary-attempts/<wu>-a<n>.json direct-model packet/proposal evidence
+ *   readiness/<wu>-a<n>.json    derived WorkUnit assessment + eligibility
+ *   readiness/telemetry.json    aggregate readiness distributions
  *   reports/<name>.json          aggregation reports (immutable)
  *
  * Same guarantees as every other store: path-checked, atomic, append-only
@@ -418,6 +425,99 @@ export function readSecondaryBuilderAttempts(
     if (attempt !== undefined) attempts.push(attempt);
   }
   return attempts;
+}
+
+// ---------------------------------------------------------------------------
+// Work readiness (derived execution policy, never canonical product truth)
+// ---------------------------------------------------------------------------
+
+export function storeWorkReadinessRecord(
+  workspace: WorkspaceInfo,
+  jobId: string,
+  nodeId: string,
+  record: WorkReadinessRecord,
+): WorkReadinessRecord {
+  const validated = workReadinessRecordSchema.parse(record);
+  assertSegment(validated.assessment.workUnitId, 'work unit id');
+  const file = artifactPath(
+    workspace,
+    jobId,
+    nodeId,
+    'readiness',
+    `${candidateName(validated.assessment.workUnitId, validated.assessment.attempt)}.json`,
+  );
+  mkdirSync(path.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}\n`);
+  return validated;
+}
+
+export function readWorkReadinessRecord(
+  workspace: WorkspaceInfo,
+  jobId: string,
+  nodeId: string,
+  workUnitId: string,
+  attempt: number,
+): WorkReadinessRecord | undefined {
+  if (!ID_PATTERN.test(workUnitId) || !Number.isInteger(attempt) || attempt < 1) return undefined;
+  return readJson(
+    artifactPath(
+      workspace,
+      jobId,
+      nodeId,
+      'readiness',
+      `${candidateName(workUnitId, attempt)}.json`,
+    ),
+    (raw) => {
+      const result = workReadinessRecordSchema.safeParse(raw);
+      return result.success ? result.data : undefined;
+    },
+  );
+}
+
+export function readWorkReadinessRecords(
+  workspace: WorkspaceInfo,
+  jobId: string,
+  nodeId: string,
+): WorkReadinessRecord[] {
+  const dir = artifactPath(workspace, jobId, nodeId, 'readiness');
+  if (!existsSync(dir)) return [];
+  const records: WorkReadinessRecord[] = [];
+  for (const name of readdirSync(dir).sort()) {
+    if (!/-a\d+\.json$/.test(name)) continue;
+    const record = readJson(path.join(dir, name), (raw) => {
+      const result = workReadinessRecordSchema.safeParse(raw);
+      return result.success ? result.data : undefined;
+    });
+    if (record !== undefined) records.push(record);
+  }
+  return records;
+}
+
+export function storeWorkReadinessTelemetry(
+  workspace: WorkspaceInfo,
+  jobId: string,
+  nodeId: string,
+  telemetry: WorkReadinessTelemetry,
+): WorkReadinessTelemetry {
+  const validated = workReadinessTelemetrySchema.parse(telemetry);
+  const file = artifactPath(workspace, jobId, nodeId, 'readiness', 'telemetry.json');
+  mkdirSync(path.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}\n`);
+  return validated;
+}
+
+export function readWorkReadinessTelemetry(
+  workspace: WorkspaceInfo,
+  jobId: string,
+  nodeId: string,
+): WorkReadinessTelemetry | undefined {
+  return readJson(
+    artifactPath(workspace, jobId, nodeId, 'readiness', 'telemetry.json'),
+    (raw) => {
+      const result = workReadinessTelemetrySchema.safeParse(raw);
+      return result.success ? result.data : undefined;
+    },
+  );
 }
 
 // ---------------------------------------------------------------------------
