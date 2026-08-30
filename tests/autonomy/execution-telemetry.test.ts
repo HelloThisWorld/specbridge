@@ -499,6 +499,42 @@ describe('Phase 9 execution telemetry qualification', () => {
     expect(report.diagnostics).toContainEqual(expect.objectContaining({ code: 'COMPLETED_WORK_REDONE' }));
   });
 
+  it('reports candidate-bound runtime mutation and real duplicate dispatches without counting replayed records', () => {
+    const stableFacts = mixedFacts();
+    stableFacts.runtimeIdentity = {
+      startDigest: sha256Hex('runtime-a'),
+      endDigest: sha256Hex('runtime-a'),
+    };
+    const stable = deriveExecutionTelemetryReport(stableFacts);
+    expect(stable.provenance).toMatchObject({
+      runtimeStartDigest: sha256Hex('runtime-a'),
+      runtimeEndDigest: sha256Hex('runtime-a'),
+    });
+    expect(stable.reliability.runtimeMutation).toBe(0);
+    expect(stable.reliability.duplicateDispatches).toBe(0);
+
+    const changedFacts = mixedFacts();
+    changedFacts.runtimeIdentity = {
+      startDigest: sha256Hex('runtime-a'),
+      endDigest: sha256Hex('runtime-b'),
+    };
+    const objective = changedFacts.objectives[0]!;
+    const original = objective.routingStates[0]!;
+    objective.routingStates = [
+      ...objective.routingStates,
+      builderRoutingStateSchema.parse({
+        ...original,
+        attempts: [{ ...original.attempts[0]!, attemptId: 'duplicate-real-dispatch' }],
+        contentHash: sha256Hex('duplicate-real-dispatch-state'),
+      }),
+    ];
+    const changed = deriveExecutionTelemetryReport(changedFacts);
+    expect(changed.reliability.runtimeMutation).toBe(1);
+    expect(changed.reliability.duplicateDispatches).toBe(1);
+    expect(changed.qualificationSummary).toMatchObject({ runtimeMutation: 1, duplicateDispatches: 1 });
+    expect(changed.diagnostics).toContainEqual(expect.objectContaining({ code: 'DUPLICATE_BUILDER_DISPATCH' }));
+  });
+
   it('keeps quota, environment, verification, and model-output failure sources distinct', () => {
     const facts = mixedFacts();
     const template = facts.ledger[0]!;

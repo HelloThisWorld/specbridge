@@ -212,9 +212,20 @@ export const sealBindingSchema = z
     boundAt: shortText,
     /** Autonomy policy fingerprint observed when the binding was made. */
     boundPolicyFingerprint: z.string().max(8_000),
+    /**
+     * Optional frozen SpecBridge runtime used by a production Mission. This
+     * is identity only; it grants no authority and contains no local path.
+     */
+    runtimeIdentity: z.object({
+      version: shortText,
+      commit: z.string().regex(/^[a-f0-9]{7,64}$/),
+      digest: z.string().regex(/^[a-f0-9]{64}$/),
+      qualificationRunId: shortText,
+    }).strict().nullable().default(null),
   })
   .passthrough();
 export type SealBinding = z.infer<typeof sealBindingSchema>;
+export type SealedRuntimeIdentity = NonNullable<SealBinding['runtimeIdentity']>;
 
 /** Structural completeness of a draft seal, computed deterministically. */
 export interface SealCompleteness {

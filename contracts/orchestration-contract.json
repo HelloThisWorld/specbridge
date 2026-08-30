@@ -392,6 +392,22 @@
     "MEDIUM",
     "UNKNOWN"
   ],
+  "historicalFaultIds": [
+    "FAULT-001",
+    "FAULT-002",
+    "FAULT-003",
+    "FAULT-004",
+    "FAULT-005",
+    "FAULT-006",
+    "FAULT-007",
+    "FAULT-008",
+    "FAULT-009",
+    "FAULT-010",
+    "FAULT-011",
+    "FAULT-012",
+    "FAULT-013",
+    "FAULT-014"
+  ],
   "humanAttentionJobStatuses": [
     "BLOCKED",
     "NEEDS_AUTHORITY",
@@ -745,6 +761,53 @@
     "LOW",
     "MEDIUM",
     "NONE"
+  ],
+  "productionEvidenceKinds": [
+    "COMMIT",
+    "FIXTURE",
+    "LOG_ARTIFACT",
+    "QUALIFICATION_JSON",
+    "REPORT",
+    "TEST_RUN"
+  ],
+  "productionGateIds": [
+    "brownfield-zero-touch",
+    "closure-completion",
+    "deerflow-failure-fallback",
+    "frontend-integration",
+    "full-repository-suite",
+    "greenfield-zero-touch",
+    "historical-fault-replay",
+    "public-contract-integrity",
+    "real-local-model",
+    "release-reproducibility",
+    "research-lifecycle",
+    "restart-resume",
+    "secondary-builder",
+    "secondary-repair",
+    "security-authority",
+    "strong-fallback",
+    "subscription-cooldown",
+    "telemetry-report",
+    "unattended-soak",
+    "workspace-bootstrap"
+  ],
+  "productionGateResults": [
+    "FAIL",
+    "PASS",
+    "SKIPPED_NOT_ALLOWED"
+  ],
+  "productionQualificationArtifacts": [
+    "PRODUCTION_READY.json",
+    "historical-fault-coverage.json",
+    "production-candidate.json",
+    "production-qualification-manifest.json",
+    "production-qualification-report.md",
+    "production-release-decision.json"
+  ],
+  "productionReleaseDecisions": [
+    "NOT_READY",
+    "READY"
   ],
   "profileFallbackLevels": [
     "EXACT",

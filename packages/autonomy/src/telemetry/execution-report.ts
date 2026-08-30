@@ -49,7 +49,7 @@ import {
 } from './telemetry.js';
 
 /** Stable public-ish contract consumed by CLI, MCP, and Phase 10 qualification. */
-export const EXECUTION_TELEMETRY_REPORT_SCHEMA_VERSION = '1.0.0';
+export const EXECUTION_TELEMETRY_REPORT_SCHEMA_VERSION = '1.1.0';
 
 const count = z.number().int().min(0);
 const shortText = z.string().max(512);
@@ -135,6 +135,8 @@ export const executionTelemetryReportSchema = z.object({
     sealId: shortText.nullable(),
     sealedAuthorityDigest: shortText.nullable(),
     runtimePolicyChanged: z.boolean().nullable(),
+    runtimeStartDigest: z.string().regex(/^[a-f0-9]{64}$/).nullable(),
+    runtimeEndDigest: z.string().regex(/^[a-f0-9]{64}$/).nullable(),
     configuration: z.object({
       secondaryBuildStrategy: shortText,
       researchStrategy: shortText,
@@ -323,8 +325,10 @@ export const executionTelemetryReportSchema = z.object({
     completedWorkRedoCount: count,
     completedWorkReusedAfterRestart: count,
     attemptsIncorrectlyRepeated: count,
+    duplicateDispatches: count,
     unexpectedBlocks: count,
     unrecoveredDriverDeaths: count,
+    runtimeMutation: count.nullable(),
   }).strict(),
   efficiency: z.object({
     strongBuilderAvoidanceRatio: fractionMetricSchema,
@@ -350,8 +354,11 @@ export const executionTelemetryReportSchema = z.object({
     usefulWorkDuringSubscriptionCooldown: count,
     humanInterventionsAfterSeal: count,
     completedWorkRedoCount: count,
+    lostCandidates: count,
+    duplicateDispatches: count,
     unexpectedBlocks: count,
     unrecoveredDriverDeaths: count,
+    runtimeMutation: count.nullable(),
   }).strict(),
   diagnostics: z.array(diagnosticSchema).max(200),
 }).strict();
@@ -393,6 +400,11 @@ export interface ExecutionTelemetryFacts {
   runnerProfiles: readonly string[];
   currentAutonomyPolicy: AutonomyPolicy;
   closurePolicy: ClosurePolicy;
+  /** Candidate-bound identity supplied by Phase 10 qualification. */
+  runtimeIdentity?: {
+    startDigest: string;
+    endDigest: string;
+  } | undefined;
   baseline?: {
     kind: 'OBSERVED' | 'QUALIFICATION_FIXTURE';
     reportId: string;
@@ -527,6 +539,7 @@ interface UniqueBuilderAttempt extends BuilderRoutingAttempt {
 function uniqueBuilderAttempts(objectives: readonly ObjectiveTelemetryFacts[]): {
   attempts: UniqueBuilderAttempt[];
   duplicateIds: number;
+  duplicateDispatches: number;
 } {
   const seen = new Map<string, UniqueBuilderAttempt>();
   let duplicateIds = 0;
@@ -542,15 +555,24 @@ function uniqueBuilderAttempts(objectives: readonly ObjectiveTelemetryFacts[]): 
       }
     }
   }
-  return {
-    attempts: [...seen.values()].sort(
+  const attempts = [...seen.values()].sort(
       (left, right) =>
         left.startedAt.localeCompare(right.startedAt, 'en')
         || left.objectiveNodeId.localeCompare(right.objectiveNodeId, 'en')
         || left.workUnitId.localeCompare(right.workUnitId, 'en')
         || left.sequence - right.sequence,
-    ),
+    );
+  const logicalDispatches = new Set<string>();
+  let duplicateDispatches = 0;
+  for (const attempt of attempts) {
+    const key = `${attempt.objectiveNodeId}\u0000${attempt.workUnitId}\u0000${attempt.workUnitAttempt}\u0000${attempt.kind}`;
+    if (logicalDispatches.has(key)) duplicateDispatches += 1;
+    else logicalDispatches.add(key);
+  }
+  return {
+    attempts,
     duplicateIds,
+    duplicateDispatches,
   };
 }
 
@@ -637,7 +659,11 @@ export function deriveExecutionTelemetryReport(
   const generatedMs = timestampMs(facts.generatedAt) ?? 0;
   const eventTypes = (type: string): JobEvent[] => facts.events.filter((event) => event.type === type);
   const currentRouting = currentRoutingStates(facts.objectives);
-  const { attempts: implementationAttempts, duplicateIds } = uniqueBuilderAttempts(facts.objectives);
+  const {
+    attempts: implementationAttempts,
+    duplicateIds,
+    duplicateDispatches,
+  } = uniqueBuilderAttempts(facts.objectives);
   const units = latestUnits(facts.objectives);
   const evaluations = facts.objectives
     .flatMap((objective) => objective.evaluations)
@@ -673,6 +699,14 @@ export function deriveExecutionTelemetryReport(
       code: 'ATTEMPT_REPLAY_DEDUPLICATED',
       severity: 'info',
       message: `${duplicateIds} replayed builder-attempt record${duplicateIds === 1 ? '' : 's'} were ignored by durable attempt id.`,
+      evidenceRefs: [],
+    });
+  }
+  if (duplicateDispatches > 0) {
+    diagnostics.push({
+      code: 'DUPLICATE_BUILDER_DISPATCH',
+      severity: 'error',
+      message: `${duplicateDispatches} duplicate logical builder dispatch${duplicateDispatches === 1 ? '' : 'es'} were recorded for the same WorkUnit attempt and builder kind.`,
       evidenceRefs: [],
     });
   }
@@ -1305,6 +1339,13 @@ export function deriveExecutionTelemetryReport(
   const runtimePolicyChanged = facts.binding === undefined
     ? null
     : currentPolicyFingerprint !== facts.binding.boundPolicyFingerprint;
+  const runtimeStartDigest = facts.runtimeIdentity?.startDigest
+    ?? facts.binding?.runtimeIdentity?.digest
+    ?? null;
+  const runtimeEndDigest = facts.runtimeIdentity?.endDigest ?? null;
+  const runtimeMutation = runtimeStartDigest === null || runtimeEndDigest === null
+    ? null
+    : runtimeStartDigest === runtimeEndDigest ? 0 : 1;
 
   const strongAvoidance = metric(eligibleCompletedWithoutStrong.length, eligibleCompleted.length);
   const secondaryInitial = metric(initialPassUnits.length, initialAttemptedUnits.length);
@@ -1380,6 +1421,8 @@ export function deriveExecutionTelemetryReport(
       sealId: facts.binding?.sealId ?? null,
       sealedAuthorityDigest: facts.seal?.authorityDigest ?? null,
       runtimePolicyChanged,
+      runtimeStartDigest,
+      runtimeEndDigest,
       configuration: {
         secondaryBuildStrategy: facts.secondaryBuildStrategy,
         researchStrategy: facts.researchStrategy,
@@ -1526,8 +1569,10 @@ export function deriveExecutionTelemetryReport(
       completedWorkRedoCount,
       completedWorkReusedAfterRestart,
       attemptsIncorrectlyRepeated: completedWorkRedoCount,
+      duplicateDispatches,
       unexpectedBlocks,
       unrecoveredDriverDeaths,
+      runtimeMutation,
     },
     efficiency: {
       strongBuilderAvoidanceRatio: strongAvoidance,
@@ -1555,8 +1600,11 @@ export function deriveExecutionTelemetryReport(
       usefulWorkDuringSubscriptionCooldown: cooldownCompletedKeys.size,
       humanInterventionsAfterSeal: facts.autonomy.humanInterventionsAfterSeal,
       completedWorkRedoCount,
+      lostCandidates: candidateRebuilds,
+      duplicateDispatches,
       unexpectedBlocks,
       unrecoveredDriverDeaths,
+      runtimeMutation,
     },
     diagnostics: diagnostics.slice(0, 200),
   });

@@ -127,6 +127,15 @@ investigation when enabled.
 [Research Layer](docs/research/research-layer.md) ·
 [Lifecycle Integration](docs/research/research-lifecycle.md)
 
+**Production qualification and release freeze (vNext.10.2 Phase 10)** —
+freeze one clean candidate, bind every A-T gate and all fourteen historical
+StepRelay fault replays to its commit/runtime digest, then derive a strict
+`READY` or `NOT_READY`. Missing real local-model, DeerFlow, soak, security,
+closure, or reproducibility evidence cannot be waived into a pass, and the
+`PRODUCTION_READY` marker is emitted only for a completely passing manifest.
+
+[Production qualification](docs/orchestration/production-qualification.md)
+
 **Spec workflow and approvals** — create Kiro-compatible specs offline
 (`spec new`, four workflows, ten templates), analyze them
 deterministically, and gate every stage behind an explicit human approval

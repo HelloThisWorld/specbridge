@@ -74,7 +74,7 @@ describe('job_list / job_read / job_cancel', () => {
       const result = await callTool(session, 'job_report', { jobId: fixture.jobId });
       expect(result.isError).toBe(false);
       expect(result.structured['report']).toMatchObject({
-        schemaVersion: '1.0.0',
+        schemaVersion: '1.1.0',
         jobId: fixture.jobId,
         outcome: { authoritativeJobStatus: 'READY' },
       });

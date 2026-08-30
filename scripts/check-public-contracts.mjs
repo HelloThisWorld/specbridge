@@ -264,6 +264,7 @@ async function buildSnapshots() {
       controlPlaneRepair: autonomy.REPAIR_SCHEMA_VERSION,
       autonomyTelemetry: autonomy.TELEMETRY_SCHEMA_VERSION,
       zeroTouchCertification: autonomy.CERTIFICATION_SCHEMA_VERSION,
+      executionTelemetryReport: autonomy.EXECUTION_TELEMETRY_REPORT_SCHEMA_VERSION,
       // Zero-Touch Spec Intake families (vNext.10.1; persisted under
       // .specbridge/intake/).
       specIntakeState: intake.INTAKE_STATE_SCHEMA_VERSION,
@@ -301,6 +302,7 @@ async function buildSnapshots() {
       // .specbridge/qualification/).
       dogfoodRun: orchestration.DOGFOOD_RUN_SCHEMA_VERSION,
       qualificationReport: orchestration.QUALIFICATION_REPORT_SCHEMA_VERSION,
+      productionQualification: orchestration.PRODUCTION_QUALIFICATION_SCHEMA_VERSION,
       // Optional Research Layer (vNext.10.2; .specbridge/research/).
       researchRecord: orchestration.RESEARCH_RECORD_SCHEMA_VERSION,
       researchTelemetry: orchestration.RESEARCH_TELEMETRY_SCHEMA_VERSION,
@@ -472,6 +474,14 @@ async function buildSnapshots() {
         (scenario) => scenario.id,
       ).sort(),
       qualificationArtifacts: Object.values(orchestration.QUALIFICATION_ARTIFACTS).sort(),
+      productionGateResults: [...orchestration.PRODUCTION_GATE_RESULTS].sort(),
+      productionReleaseDecisions: [...orchestration.PRODUCTION_RELEASE_DECISIONS].sort(),
+      productionEvidenceKinds: [...orchestration.PRODUCTION_EVIDENCE_KINDS].sort(),
+      productionGateIds: [...orchestration.PRODUCTION_GATE_IDS].sort(),
+      historicalFaultIds: [...orchestration.HISTORICAL_FAULT_IDS].sort(),
+      productionQualificationArtifacts: Object.values(
+        orchestration.PRODUCTION_QUALIFICATION_ARTIFACTS,
+      ).sort(),
     },
     // Context-lifecycle vocabulary (vNext.1). Every value is stable within
     // 1.x: members may be appended, never renamed or removed.

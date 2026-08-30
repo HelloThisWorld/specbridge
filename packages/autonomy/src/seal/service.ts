@@ -556,7 +556,12 @@ export function requireExecutableSeal(seal: MissionSeal | undefined, policy: Aut
 // Job binding
 // ---------------------------------------------------------------------------
 
-export function bindSealToJob(deps: AutonomyDeps, jobId: string, sealId: string): SealBinding {
+export function bindSealToJob(
+  deps: AutonomyDeps,
+  jobId: string,
+  sealId: string,
+  options: { runtimeIdentity?: SealBinding['runtimeIdentity'] | undefined } = {},
+): SealBinding {
   const seal = requireSeal(deps.workspace, sealId);
   requireExecutableSeal(seal, autonomyPolicyOf(deps));
   const binding = sealBindingSchema.parse({
@@ -566,6 +571,7 @@ export function bindSealToJob(deps: AutonomyDeps, jobId: string, sealId: string)
     missionId: seal.missionId,
     boundAt: nowIso(deps),
     boundPolicyFingerprint: seal.delegatedAuthority.policyFingerprint,
+    runtimeIdentity: options.runtimeIdentity ?? null,
   });
   writeJsonRecord(bindingFile(deps.workspace, jobId), binding);
   return binding;

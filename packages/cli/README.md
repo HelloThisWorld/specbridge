@@ -51,6 +51,17 @@ specbridge report job <jobId> --json
 The report is observational and never grants authority or completion. JSON
 output preserves unknown usage as `null` and includes coverage metadata.
 
+Freeze and finalize a vNext.10.2 production qualification candidate:
+
+```bash
+specbridge orchestrate qualify freeze <run-id>
+specbridge orchestrate qualify release <run-id> --evidence <evidence.json>
+```
+
+The finalizer emits a deterministic `READY` or `NOT_READY`, preserves a
+finalized failure instead of overwriting it, and never tags or publishes a
+release.
+
 Full documentation, examples, templates, the extension SDK, and the Claude
 Code plugin live in the repository:
 <https://github.com/HelloThisWorld/specbridge>

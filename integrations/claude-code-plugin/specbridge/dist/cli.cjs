@@ -50649,11 +50649,11 @@ function computeContextUsage(config2, estimatedTokens) {
   };
 }
 function assessContextHealth(config2, estimatedTokens) {
-  const ratio4 = estimatedTokens / usableInputTokens(config2);
-  if (ratio4 >= config2.hardStopThreshold) return "OVERFLOW";
-  if (ratio4 >= config2.emergencyCompactionThreshold) return "FORCE_COMPACT";
-  if (ratio4 >= config2.proactiveCompactionThreshold) return "PROACTIVE_COMPACT";
-  if (ratio4 >= config2.prepareThreshold) return "PREPARE";
+  const ratio5 = estimatedTokens / usableInputTokens(config2);
+  if (ratio5 >= config2.hardStopThreshold) return "OVERFLOW";
+  if (ratio5 >= config2.emergencyCompactionThreshold) return "FORCE_COMPACT";
+  if (ratio5 >= config2.proactiveCompactionThreshold) return "PROACTIVE_COMPACT";
+  if (ratio5 >= config2.prepareThreshold) return "PREPARE";
   return "HEALTHY";
 }
 var ContextBudgetError = class extends Error {
@@ -67666,10 +67666,10 @@ function dominantFailureSource(observations) {
   }
   let best = null;
   let bestCount = 0;
-  for (const [source, count22] of [...counts.entries()].sort((a2, b) => a2[0] < b[0] ? -1 : 1)) {
-    if (count22 > bestCount) {
+  for (const [source, count32] of [...counts.entries()].sort((a2, b) => a2[0] < b[0] ? -1 : 1)) {
+    if (count32 > bestCount) {
       best = source;
-      bestCount = count22;
+      bestCount = count32;
     }
   }
   return best;
@@ -85983,6 +85983,15 @@ function writeQualificationArtifact(workspace, runId, name, contents) {
   writeFileAtomic(file, contents);
   return file;
 }
+function qualificationArtifactPath(workspace, runId, name) {
+  if (!ARTIFACT_NAME_PATTERN.test(name)) {
+    throw new OrchestrationError("SBO052", `Invalid qualification artifact name "${name}".`);
+  }
+  return assertInsideWorkspace(
+    workspace.rootDir,
+    import_path57.default.join(recordDir2(workspace, runId, "reports"), name)
+  );
+}
 var PROFILE_ORDER = ["offline", "local", "subscription", "full"];
 function profileSatisfies(profile, minimum) {
   return PROFILE_ORDER.indexOf(profile) >= PROFILE_ORDER.indexOf(minimum);
@@ -87404,11 +87413,11 @@ function computeVerdict(input) {
     ["dependentsOnFailedPredecessors", "DEPENDENT_WORK_ON_UNVERIFIED_PREDECESSOR", "dependent work built on an unverified predecessor"]
   ];
   for (const [condition, blockerClass, description] of zeroToleranceBlockers) {
-    const count22 = zeroTolerance[condition];
-    if (count22 === 0) continue;
+    const count32 = zeroTolerance[condition];
+    if (count32 === 0) continue;
     blockers.push({
       class: blockerClass,
-      detail: `Zero-tolerance condition "${condition}" was observed ${count22} time(s): ${description}.`,
+      detail: `Zero-tolerance condition "${condition}" was observed ${count32} time(s): ${description}.`,
       evidenceRefs: []
     });
   }
@@ -87488,7 +87497,7 @@ function computeVerdict(input) {
   basis.push(
     `Required scenarios: ${scenarios.requiredPassed} passed, ${scenarios.requiredFailed} failed, ${scenarios.requiredUnproven} unproven, of ${scenarios.requiredTotal}.`
   );
-  const observedConditions = Object.entries(zeroTolerance).filter(([, count22]) => count22 > 0).map(([condition, count22]) => `${condition}=${count22}`);
+  const observedConditions = Object.entries(zeroTolerance).filter(([, count32]) => count32 > 0).map(([condition, count32]) => `${condition}=${count32}`);
   basis.push(
     observedConditions.length === 0 ? "Zero-tolerance conditions observed: none." : `Zero-tolerance conditions observed: ${observedConditions.join(", ")}.`
   );
@@ -87806,8 +87815,8 @@ function renderQualificationMarkdown(report) {
   push2();
   push2("| Condition | Observed |");
   push2("| --- | --- |");
-  for (const [condition, count22] of Object.entries(report.zeroTolerance)) {
-    push2(`| ${condition} | ${count22} |`);
+  for (const [condition, count32] of Object.entries(report.zeroTolerance)) {
+    push2(`| ${condition} | ${count32} |`);
   }
   push2();
   push2("## Autonomy");
@@ -89900,6 +89909,448 @@ function runQualificationScenarios(input) {
 function executeQualificationRun(input) {
   const run = input.run.status === "PREFLIGHT" || input.run.status === "PAUSED" ? markRunRunning(input.deps, input.run.runId, "Qualification scenarios started.") : input.run;
   return runQualificationScenarios({ ...input, run });
+}
+var PRODUCTION_QUALIFICATION_SCHEMA_VERSION = "1.0.0";
+var PRODUCTION_QUALIFICATION_RELEASE = "vNext.10.2";
+var PRODUCTION_GATE_RESULTS = ["PASS", "FAIL", "SKIPPED_NOT_ALLOWED"];
+var PRODUCTION_RELEASE_DECISIONS = ["READY", "NOT_READY"];
+var PRODUCTION_EVIDENCE_KINDS = [
+  "TEST_RUN",
+  "REPORT",
+  "FIXTURE",
+  "LOG_ARTIFACT",
+  "QUALIFICATION_JSON",
+  "COMMIT"
+];
+var PRODUCTION_QUALIFICATION_GATES = Object.freeze([
+  { letter: "A", id: "full-repository-suite", title: "Full repository suite", required: true, evidenceExpectation: "Frozen install, lint, typecheck, build, full test, smoke, and security command logs." },
+  { letter: "B", id: "public-contract-integrity", title: "Public contract and generated artifact integrity", required: true, evidenceExpectation: "Public-contract, registry, MCP documentation, and reproducible bundle checks." },
+  { letter: "C", id: "greenfield-zero-touch", title: "Greenfield zero-touch qualification", required: true, evidenceExpectation: "A sealed empty-project Mission reaches authoritative completion without intervention." },
+  { letter: "D", id: "brownfield-zero-touch", title: "Brownfield zero-touch qualification", required: true, evidenceExpectation: "A sealed existing-project Mission preserves existing behavior and reaches closure." },
+  { letter: "E", id: "workspace-bootstrap", title: "Workspace Bootstrap qualification", required: true, evidenceExpectation: "Bootstrap creates only governed workspace state and preserves project authority." },
+  { letter: "F", id: "research-lifecycle", title: "Research lifecycle qualification", required: true, evidenceExpectation: "Avoidance, reuse, QUICK/DEEP provider behavior, provenance, and lifecycle fallback evidence." },
+  { letter: "G", id: "deerflow-failure-fallback", title: "DeerFlow failure and fallback qualification", required: true, evidenceExpectation: "Auth, quota, timeout, malformed output, and absence degrade without product authority." },
+  { letter: "H", id: "secondary-builder", title: "Secondary Builder qualification", required: true, evidenceExpectation: "Eligibility, packet authority, isolated edits, verification, and routing evidence." },
+  { letter: "I", id: "real-local-model", title: "Real local-model qualification", required: true, evidenceExpectation: "A real configured local model is identified and completes an eligible unit safely." },
+  { letter: "J", id: "secondary-repair", title: "Secondary failure and repair qualification", required: true, evidenceExpectation: "Bounded repair, no-progress detection, and durable attempt-chain evidence." },
+  { letter: "K", id: "strong-fallback", title: "Strong fallback qualification", required: true, evidenceExpectation: "Strong receives original work, current source, Secondary diff/failure, history, and research references." },
+  { letter: "L", id: "subscription-cooldown", title: "Strong subscription cooldown qualification", required: true, evidenceExpectation: "Fake-time cooldown continuation, useful independent work, wait, restart, and resume evidence." },
+  { letter: "M", id: "restart-resume", title: "Restart and resume qualification", required: true, evidenceExpectation: "Durable restart-boundary replay without lost candidates or completed-work redo." },
+  { letter: "N", id: "historical-fault-replay", title: "Historical StepRelay fault replay", required: true, evidenceExpectation: "Every versioned historical fault catalog entry passes its deterministic regression." },
+  { letter: "O", id: "unattended-soak", title: "Long unattended soak", required: true, evidenceExpectation: "Bounded 1-3 hour or accelerated long-horizon workload with injected faults and zero runtime mutation." },
+  { letter: "P", id: "security-authority", title: "Security and authority qualification", required: true, evidenceExpectation: "Traversal, symlink, protected writes, credentials, endpoint, provider claim, approval, and MCP cases fail closed." },
+  { letter: "Q", id: "frontend-integration", title: "Frontend integration qualification", required: true, evidenceExpectation: "Codex and Claude bundles, launchers, schemas, and supported Windows paths validate." },
+  { letter: "R", id: "closure-completion", title: "Final closure and completion qualification", required: true, evidenceExpectation: "Trusted evidence closes every sealed item before authoritative COMPLETED." },
+  { letter: "S", id: "telemetry-report", title: "Telemetry and report qualification", required: true, evidenceExpectation: "Durable telemetry agrees with gate facts and zero-tolerance counters." },
+  { letter: "T", id: "release-reproducibility", title: "Release reproducibility qualification", required: true, evidenceExpectation: "The same clean candidate rebuilds without source, contract, or bundle drift." }
+]);
+var PRODUCTION_GATE_IDS = PRODUCTION_QUALIFICATION_GATES.map((gate) => gate.id);
+var HISTORICAL_FAULT_CATALOG = Object.freeze([
+  { id: "FAULT-001", description: "Supervisor backoff keeps the process alive", historicalSymptom: "The supervisor silently exited while waiting for its next retry.", regressionTargets: ["tests/autonomy/supervisor.test.ts"], expectedOutcome: "The process remains live through backoff and resumes the same durable job." },
+  { id: "FAULT-002", description: "CANDIDATE_READY restart recovery", historicalSymptom: "A persisted candidate was ignored or rebuilt after process restart.", regressionTargets: ["tests/orchestration/subscription-cooldown.test.ts"], expectedOutcome: "The persisted candidate resumes at evaluation/integration without rebuilding." },
+  { id: "FAULT-003", description: "Human answer routing", historicalSymptom: "A human answer failed to reach the blocked work that requested it.", regressionTargets: ["tests/orchestration/steprelay-mission-e2e.test.ts"], expectedOutcome: "The answer resolves the original question and the same job continues." },
+  { id: "FAULT-004", description: "Dependency patch conflict reconciliation", historicalSymptom: "Conflicting dependency patches killed a builder or corrupted integration.", regressionTargets: ["tests/orchestration/objectives-resume-parallel.test.ts"], expectedOutcome: "One bounded reconciliation preserves both dependency intents or fails honestly." },
+  { id: "FAULT-005", description: "Stale dependency patch handling", historicalSymptom: "A stale patch was applied to a newer dependency state.", regressionTargets: ["tests/orchestration/objectives-resume-parallel.test.ts"], expectedOutcome: "Freshness is checked and the stale attempt is rebuilt without source corruption." },
+  { id: "FAULT-006", description: "Sibling invalidation containment", historicalSymptom: "Progress by one sibling invalidated unrelated in-flight work.", regressionTargets: ["tests/orchestration/objectives-resume-parallel.test.ts"], expectedOutcome: "Only materially dependent stale work is invalidated." },
+  { id: "FAULT-007", description: "Bounded evidence state remains writable", historicalSymptom: "Evidence caps made the durable state impossible to write.", regressionTargets: ["tests/drift/evidence-and-state.test.ts"], expectedOutcome: "Evidence is bounded deterministically and state remains writable." },
+  { id: "FAULT-008", description: "Git index residue recovery", historicalSymptom: "A dead integration left conflict residue in the canonical Git index.", regressionTargets: ["tests/orchestration/objectives-aggregation-e2e.test.ts"], expectedOutcome: "Residue is detected and cleared before a safe retry." },
+  { id: "FAULT-009", description: "Completion cannot bypass closure", historicalSymptom: "A job reported completion while sealed items remained open.", regressionTargets: ["tests/autonomy/completion-gate.test.ts"], expectedOutcome: "Authoritative completion refuses every unclosed sealed item." },
+  { id: "FAULT-010", description: "Closure handoff survives failure", historicalSymptom: "A crash between implementation and closure lost the handoff.", regressionTargets: ["tests/autonomy/closure-lifecycle.test.ts"], expectedOutcome: "The durable closure phase resumes without repeating completed implementation." },
+  { id: "FAULT-011", description: "Earned evidence reaches the closure ledger", historicalSymptom: "Verified work existed but its evidence never reached closure.", regressionTargets: ["tests/autonomy/closure-oracle.test.ts"], expectedOutcome: "Trusted earned evidence is attributed to and closes the correct ledger item." },
+  { id: "FAULT-012", description: "Scenario-owned closure work does not deadlock", historicalSymptom: "Scenario-owned closure items waited on the scenario that they themselves blocked.", regressionTargets: ["tests/autonomy/closure-oracle.test.ts"], expectedOutcome: "Scenario evidence follows the bounded qualification/repair sequence." },
+  { id: "FAULT-013", description: "Acceptance evidence attribution", historicalSymptom: "Evidence for one criterion incorrectly closed another criterion.", regressionTargets: ["tests/autonomy/mission-qualification.test.ts"], expectedOutcome: "Evidence closes only the exact sealed requirement or criterion it proves." },
+  { id: "FAULT-014", description: "Authentication and quota classification", historicalSymptom: "Authentication failure was treated as quota, or quota as implementation failure.", regressionTargets: ["tests/research/deerflow.test.ts", "tests/orchestration/quota-driver.test.ts"], expectedOutcome: "Auth, quota, provider, and implementation failures retain distinct recovery semantics." }
+]);
+var HISTORICAL_FAULT_IDS = HISTORICAL_FAULT_CATALOG.map((fault) => fault.id);
+var shortText18 = external_exports.string().min(1).max(500);
+var boundedText6 = external_exports.string().min(1).max(4e3);
+var sha2565 = external_exports.string().regex(/^[a-f0-9]{64}$/);
+var semver5 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
+var count22 = external_exports.number().int().min(0);
+var ratio3 = external_exports.number().min(0).max(1).nullable();
+var credentialShape = /(?:\b(?:bearer|basic)\s+[A-Za-z0-9+/=_-]{12,}|\b(?:api[-_ ]?key|auth[-_ ]?token|access[-_ ]?token|password|secret)\s*[:=]\s*\S{8,}|:\/\/[^/\s]+@)/i;
+var safeShortText = shortText18.refine((value) => !credentialShape.test(value), "must not contain credential-shaped text");
+var safeBoundedText = boundedText6.refine((value) => !credentialShape.test(value), "must not contain credential-shaped text");
+var productionRuntimeEntrySchema = external_exports.object({
+  path: external_exports.string().min(1).max(1e3),
+  content: external_exports.union([external_exports.string(), external_exports.instanceof(Buffer)])
+}).strict();
+var productionBundleIdentitySchema = external_exports.object({
+  name: shortText18,
+  version: shortText18,
+  digest: sha2565
+}).strict();
+var productionCandidateIdentitySchema = external_exports.object({
+  release: external_exports.literal(PRODUCTION_QUALIFICATION_RELEASE),
+  version: semver5,
+  commit: external_exports.string().regex(/^[a-f0-9]{7,64}$/),
+  runtimeDigest: sha2565,
+  runtimeFileCount: count22,
+  schemaVersions: external_exports.record(semver5),
+  bundles: external_exports.array(productionBundleIdentitySchema).max(50),
+  sourceTreeClean: external_exports.boolean(),
+  frozenAt: shortText18
+}).strict();
+var productionEvidenceRefSchema = external_exports.object({
+  kind: external_exports.enum(PRODUCTION_EVIDENCE_KINDS),
+  ref: external_exports.string().min(1).max(1e3).refine((value) => !credentialShape.test(value), "must not contain credential-shaped text"),
+  digest: sha2565,
+  observedAt: shortText18,
+  candidateCommit: external_exports.string().regex(/^[a-f0-9]{7,64}$/),
+  runtimeDigest: sha2565,
+  producer: safeShortText
+}).strict();
+var productionGateObservationSchema = external_exports.object({
+  id: external_exports.string().min(1).max(100),
+  result: external_exports.enum(PRODUCTION_GATE_RESULTS),
+  summary: safeBoundedText,
+  evidence: external_exports.array(productionEvidenceRefSchema).max(100).default([]),
+  diagnostics: external_exports.array(safeBoundedText).max(100).default([])
+}).strict();
+var historicalFaultObservationSchema = external_exports.object({
+  id: external_exports.string().regex(/^FAULT-\d{3}$/),
+  result: external_exports.enum(PRODUCTION_GATE_RESULTS),
+  evidence: external_exports.array(productionEvidenceRefSchema).max(50).default([]),
+  diagnostics: external_exports.array(safeBoundedText).max(50).default([])
+}).strict();
+var productionEnvironmentSchema = external_exports.object({
+  os: shortText18,
+  nodeVersion: shortText18,
+  pnpmVersion: shortText18,
+  gitVersion: shortText18,
+  localModel: external_exports.object({
+    provider: shortText18,
+    model: shortText18,
+    modelHash: sha2565.nullable(),
+    context: shortText18,
+    inferenceProfile: shortText18
+  }).strict().nullable(),
+  deerFlow: external_exports.object({
+    provider: shortText18,
+    apiVersion: shortText18.nullable(),
+    endpointIdentity: safeShortText
+  }).strict().nullable(),
+  frontends: external_exports.array(external_exports.object({ name: shortText18, version: shortText18, digest: sha2565 }).strict()).max(50)
+}).strict();
+var productionQualificationMetricsSchema = external_exports.object({
+  humanInterventionsAfterSeal: count22.nullable(),
+  unexpectedBlocks: count22.nullable(),
+  unrecoveredDriverDeaths: count22.nullable(),
+  completedWorkRedoCount: count22.nullable(),
+  lostCandidates: count22.nullable(),
+  duplicateDispatches: count22.nullable(),
+  runtimeMutation: count22.nullable(),
+  zeroTouchAfterSeal: external_exports.boolean().nullable(),
+  finalJobStatus: shortText18.nullable(),
+  controlPlaneSelfRepairEnabled: external_exports.boolean().nullable(),
+  runtimeStartDigest: sha2565.nullable(),
+  runtimeEndDigest: sha2565.nullable(),
+  usefulWorkDuringSubscriptionCooldown: count22.nullable(),
+  strongBuilderAvoidanceRatio: ratio3,
+  researchAvoidanceRatio: ratio3,
+  soakDurationMs: count22.nullable()
+}).strict();
+var productionQualificationEvidenceFileSchema = external_exports.object({
+  gates: external_exports.array(productionGateObservationSchema).max(PRODUCTION_QUALIFICATION_GATES.length * 2).default([]),
+  historicalFaults: external_exports.array(historicalFaultObservationSchema).max(HISTORICAL_FAULT_CATALOG.length * 2).default([]),
+  metrics: productionQualificationMetricsSchema.partial().default({}),
+  localModel: productionEnvironmentSchema.shape.localModel.optional(),
+  deerFlow: productionEnvironmentSchema.shape.deerFlow.optional(),
+  frontends: productionEnvironmentSchema.shape.frontends.optional(),
+  knownLimitations: external_exports.array(safeBoundedText).max(100).default([])
+}).strict();
+function emptyProductionQualificationMetrics() {
+  return productionQualificationMetricsSchema.parse({
+    humanInterventionsAfterSeal: null,
+    unexpectedBlocks: null,
+    unrecoveredDriverDeaths: null,
+    completedWorkRedoCount: null,
+    lostCandidates: null,
+    duplicateDispatches: null,
+    runtimeMutation: null,
+    zeroTouchAfterSeal: null,
+    finalJobStatus: null,
+    controlPlaneSelfRepairEnabled: null,
+    runtimeStartDigest: null,
+    runtimeEndDigest: null,
+    usefulWorkDuringSubscriptionCooldown: null,
+    strongBuilderAvoidanceRatio: null,
+    researchAvoidanceRatio: null,
+    soakDurationMs: null
+  });
+}
+var materializedGateSchema = productionGateObservationSchema.extend({
+  letter: shortText18,
+  title: shortText18,
+  required: external_exports.literal(true),
+  evidenceExpectation: boundedText6
+}).strict();
+var materializedFaultSchema = historicalFaultObservationSchema.extend({
+  description: shortText18,
+  historicalSymptom: boundedText6,
+  regressionTargets: external_exports.array(shortText18).min(1),
+  expectedOutcome: boundedText6
+}).strict();
+var productionReadyMarkerSchema = external_exports.object({
+  status: external_exports.literal("PRODUCTION_READY"),
+  release: external_exports.literal(PRODUCTION_QUALIFICATION_RELEASE),
+  version: semver5,
+  commit: external_exports.string().regex(/^[a-f0-9]{7,64}$/),
+  runtimeDigest: sha2565,
+  qualificationRunId: shortText18,
+  manifest: shortText18,
+  report: shortText18
+}).strict();
+var productionQualificationManifestSchema = external_exports.object({
+  schemaVersion: external_exports.literal(PRODUCTION_QUALIFICATION_SCHEMA_VERSION),
+  release: external_exports.literal(PRODUCTION_QUALIFICATION_RELEASE),
+  qualificationRunId: shortText18,
+  candidate: productionCandidateIdentitySchema,
+  environment: productionEnvironmentSchema,
+  gates: external_exports.array(materializedGateSchema).length(PRODUCTION_QUALIFICATION_GATES.length),
+  historicalFaults: external_exports.array(materializedFaultSchema).length(HISTORICAL_FAULT_CATALOG.length),
+  metrics: productionQualificationMetricsSchema,
+  knownLimitations: external_exports.array(safeBoundedText).max(100),
+  decision: external_exports.object({
+    status: external_exports.enum(PRODUCTION_RELEASE_DECISIONS),
+    failedRequiredGateIds: external_exports.array(shortText18),
+    blockers: external_exports.array(boundedText6)
+  }).strict(),
+  marker: productionReadyMarkerSchema.nullable(),
+  generatedAt: shortText18
+}).strict();
+var PRODUCTION_QUALIFICATION_ARTIFACTS = Object.freeze({
+  candidate: "production-candidate.json",
+  manifest: "production-qualification-manifest.json",
+  report: "production-qualification-report.md",
+  decision: "production-release-decision.json",
+  marker: "PRODUCTION_READY.json",
+  faultCoverage: "historical-fault-coverage.json"
+});
+function normalizeRuntimePath(value) {
+  const normalized = value.replace(/\\/g, "/").replace(/^\.\//, "");
+  if (normalized.length === 0 || normalized.startsWith("/") || /^[A-Za-z]:\//.test(normalized) || normalized.split("/").includes("..")) {
+    throw new Error(`Runtime identity accepts only contained repository-relative paths: ${value}`);
+  }
+  return normalized;
+}
+function computeProductionRuntimeDigest(entries) {
+  if (entries.length === 0) throw new Error("Runtime identity requires at least one production file.");
+  const normalized = entries.map((entry2) => {
+    const parsed = productionRuntimeEntrySchema.parse(entry2);
+    return {
+      path: normalizeRuntimePath(parsed.path),
+      digest: sha256Hex(parsed.content)
+    };
+  }).sort((left, right) => left.path.localeCompare(right.path));
+  for (let index = 1; index < normalized.length; index += 1) {
+    if (normalized[index - 1]?.path === normalized[index]?.path) {
+      throw new Error(`Duplicate runtime identity path: ${normalized[index]?.path ?? ""}`);
+    }
+  }
+  return {
+    digest: sha256Hex(JSON.stringify(normalized)),
+    fileCount: normalized.length
+  };
+}
+function createProductionCandidate(input) {
+  const runtime = computeProductionRuntimeDigest(input.runtimeEntries);
+  return productionCandidateIdentitySchema.parse({
+    release: PRODUCTION_QUALIFICATION_RELEASE,
+    version: input.version,
+    commit: input.commit,
+    runtimeDigest: runtime.digest,
+    runtimeFileCount: runtime.fileCount,
+    schemaVersions: { ...input.schemaVersions },
+    bundles: [...input.bundles].sort((left, right) => left.name.localeCompare(right.name)),
+    sourceTreeClean: input.sourceTreeClean,
+    frozenAt: input.frozenAt
+  });
+}
+var ZERO_METRICS = [
+  "humanInterventionsAfterSeal",
+  "unexpectedBlocks",
+  "unrecoveredDriverDeaths",
+  "completedWorkRedoCount",
+  "lostCandidates",
+  "duplicateDispatches",
+  "runtimeMutation"
+];
+function evidenceBlockers(evidence, candidate, subject) {
+  if (evidence.length === 0) return [`${subject} has no evidence reference.`];
+  const blockers = [];
+  for (const item of evidence) {
+    if (item.candidateCommit !== candidate.commit || item.runtimeDigest !== candidate.runtimeDigest) {
+      blockers.push(`${subject} evidence ${item.ref} belongs to a different candidate.`);
+    }
+  }
+  return blockers;
+}
+function buildProductionQualificationManifest(input) {
+  const candidate = productionCandidateIdentitySchema.parse(input.candidate);
+  const environment = productionEnvironmentSchema.parse(input.environment);
+  const metrics = productionQualificationMetricsSchema.parse(input.metrics);
+  const parsedGates = input.gates.map((gate) => productionGateObservationSchema.parse(gate));
+  const parsedFaults = input.historicalFaults.map((fault) => historicalFaultObservationSchema.parse(fault));
+  const blockers = [];
+  const knownGateIds = new Set(PRODUCTION_GATE_IDS);
+  for (const observation2 of parsedGates) {
+    if (!knownGateIds.has(observation2.id)) blockers.push(`Unrecognized production gate ${observation2.id}.`);
+    if (parsedGates.filter((gate) => gate.id === observation2.id).length > 1) blockers.push(`Duplicate production gate ${observation2.id}.`);
+  }
+  const gates = PRODUCTION_QUALIFICATION_GATES.map((definition) => {
+    const observation2 = parsedGates.find((gate) => gate.id === definition.id) ?? {
+      id: definition.id,
+      result: "SKIPPED_NOT_ALLOWED",
+      summary: "No qualification evidence was recorded for this mandatory gate.",
+      evidence: [],
+      diagnostics: []
+    };
+    if (observation2.result !== "PASS") blockers.push(`Gate ${definition.id} is ${observation2.result}.`);
+    else blockers.push(...evidenceBlockers(observation2.evidence, candidate, `Gate ${definition.id}`));
+    return materializedGateSchema.parse({ ...definition, ...observation2 });
+  });
+  const knownFaultIds = new Set(HISTORICAL_FAULT_IDS);
+  for (const observation2 of parsedFaults) {
+    if (!knownFaultIds.has(observation2.id)) blockers.push(`Unrecognized historical fault ${observation2.id}.`);
+    if (parsedFaults.filter((fault) => fault.id === observation2.id).length > 1) blockers.push(`Duplicate historical fault ${observation2.id}.`);
+  }
+  const historicalFaults = HISTORICAL_FAULT_CATALOG.map((definition) => {
+    const observation2 = parsedFaults.find((fault) => fault.id === definition.id) ?? {
+      id: definition.id,
+      result: "SKIPPED_NOT_ALLOWED",
+      evidence: [],
+      diagnostics: []
+    };
+    if (observation2.result !== "PASS") blockers.push(`Historical fault ${definition.id} is ${observation2.result}.`);
+    else blockers.push(...evidenceBlockers(observation2.evidence, candidate, `Historical fault ${definition.id}`));
+    return materializedFaultSchema.parse({ ...definition, ...observation2 });
+  });
+  if (!candidate.sourceTreeClean) blockers.push("The release candidate source tree was not clean when frozen.");
+  for (const metricName of ZERO_METRICS) {
+    const value = metrics[metricName];
+    if (value === null) blockers.push(`Required metric ${metricName} is unavailable.`);
+    else if (value !== 0) blockers.push(`Required metric ${metricName} is ${String(value)}, expected 0.`);
+  }
+  if (metrics.zeroTouchAfterSeal !== true) blockers.push("zeroTouchAfterSeal is not true.");
+  if (metrics.finalJobStatus !== "COMPLETED") blockers.push("The canonical qualification Job did not reach authoritative COMPLETED.");
+  if (metrics.controlPlaneSelfRepairEnabled !== false) blockers.push("Control-plane self-repair was not proven disabled.");
+  if (metrics.runtimeStartDigest !== candidate.runtimeDigest) blockers.push("Mission start runtime digest does not match the frozen candidate.");
+  if (metrics.runtimeEndDigest !== candidate.runtimeDigest) blockers.push("Mission end runtime digest does not match the frozen candidate.");
+  const uniqueBlockers = [...new Set(blockers)];
+  const status = uniqueBlockers.length === 0 ? "READY" : "NOT_READY";
+  const failedRequiredGateIds = new Set(gates.filter((gate) => gate.result !== "PASS" || evidenceBlockers(gate.evidence, candidate, `Gate ${gate.id}`).length > 0).map((gate) => gate.id));
+  if (historicalFaults.some((fault) => fault.result !== "PASS" || evidenceBlockers(fault.evidence, candidate, `Historical fault ${fault.id}`).length > 0)) {
+    failedRequiredGateIds.add("historical-fault-replay");
+  }
+  if (!candidate.sourceTreeClean || metrics.runtimeMutation !== 0 || metrics.runtimeStartDigest !== candidate.runtimeDigest || metrics.runtimeEndDigest !== candidate.runtimeDigest) {
+    failedRequiredGateIds.add("release-reproducibility");
+  }
+  if (metrics.controlPlaneSelfRepairEnabled !== false) failedRequiredGateIds.add("security-authority");
+  if (metrics.zeroTouchAfterSeal !== true || metrics.finalJobStatus !== "COMPLETED" || metrics.humanInterventionsAfterSeal !== 0 || metrics.unexpectedBlocks !== 0) {
+    failedRequiredGateIds.add("closure-completion");
+  }
+  if (metrics.unrecoveredDriverDeaths !== 0 || metrics.completedWorkRedoCount !== 0 || metrics.lostCandidates !== 0 || metrics.duplicateDispatches !== 0) {
+    failedRequiredGateIds.add("restart-resume");
+  }
+  if (ZERO_METRICS.some((metric2) => metrics[metric2] === null)) failedRequiredGateIds.add("telemetry-report");
+  const marker = status === "READY" ? productionReadyMarkerSchema.parse({
+    status: "PRODUCTION_READY",
+    release: PRODUCTION_QUALIFICATION_RELEASE,
+    version: candidate.version,
+    commit: candidate.commit,
+    runtimeDigest: candidate.runtimeDigest,
+    qualificationRunId: input.qualificationRunId,
+    manifest: PRODUCTION_QUALIFICATION_ARTIFACTS.manifest,
+    report: PRODUCTION_QUALIFICATION_ARTIFACTS.report
+  }) : null;
+  return productionQualificationManifestSchema.parse({
+    schemaVersion: PRODUCTION_QUALIFICATION_SCHEMA_VERSION,
+    release: PRODUCTION_QUALIFICATION_RELEASE,
+    qualificationRunId: input.qualificationRunId,
+    candidate,
+    environment,
+    gates,
+    historicalFaults,
+    metrics,
+    knownLimitations: [...input.knownLimitations ?? []],
+    decision: { status, failedRequiredGateIds: [...failedRequiredGateIds], blockers: uniqueBlockers },
+    marker,
+    generatedAt: input.generatedAt
+  });
+}
+function displayMetric(value) {
+  return value === null ? "UNAVAILABLE" : String(value);
+}
+function renderProductionQualificationMarkdown(manifest) {
+  const parsed = productionQualificationManifestSchema.parse(manifest);
+  const lines = [];
+  const push2 = (line = "") => {
+    lines.push(line);
+  };
+  push2(`# SpecBridge ${parsed.release} Production Qualification Report`);
+  push2();
+  push2("## Candidate");
+  push2();
+  push2(`- Version: ${parsed.candidate.version}`);
+  push2(`- Commit: \`${parsed.candidate.commit}\``);
+  push2(`- Runtime digest: \`${parsed.candidate.runtimeDigest}\``);
+  push2(`- Runtime files: ${parsed.candidate.runtimeFileCount}`);
+  push2(`- Frozen: ${parsed.candidate.frozenAt}`);
+  push2(`- Clean source tree: ${String(parsed.candidate.sourceTreeClean)}`);
+  push2();
+  push2("## Gate matrix");
+  push2();
+  push2("| Gate | Qualification | Result | Evidence |");
+  push2("| --- | --- | --- | ---: |");
+  for (const gate of parsed.gates) push2(`| ${gate.letter} | ${gate.title} | ${gate.result} | ${gate.evidence.length} |`);
+  push2();
+  push2("## Historical StepRelay fault replay");
+  push2();
+  for (const fault of parsed.historicalFaults) push2(`- ${fault.id} ${fault.description} \u2014 ${fault.result}`);
+  push2();
+  push2("## Zero-tolerance and runtime facts");
+  push2();
+  for (const metric2 of ZERO_METRICS) push2(`- ${metric2}: ${displayMetric(parsed.metrics[metric2])}`);
+  push2(`- zeroTouchAfterSeal: ${displayMetric(parsed.metrics.zeroTouchAfterSeal)}`);
+  push2(`- finalJobStatus: ${displayMetric(parsed.metrics.finalJobStatus)}`);
+  push2(`- controlPlaneSelfRepairEnabled: ${displayMetric(parsed.metrics.controlPlaneSelfRepairEnabled)}`);
+  push2(`- usefulWorkDuringSubscriptionCooldown: ${displayMetric(parsed.metrics.usefulWorkDuringSubscriptionCooldown)}`);
+  push2(`- strongBuilderAvoidanceRatio: ${displayMetric(parsed.metrics.strongBuilderAvoidanceRatio)}`);
+  push2(`- researchAvoidanceRatio: ${displayMetric(parsed.metrics.researchAvoidanceRatio)}`);
+  push2(`- soakDurationMs: ${displayMetric(parsed.metrics.soakDurationMs)}`);
+  push2();
+  push2("## Environment");
+  push2();
+  push2(`- OS: ${parsed.environment.os}`);
+  push2(`- Node: ${parsed.environment.nodeVersion}`);
+  push2(`- pnpm: ${parsed.environment.pnpmVersion}`);
+  push2(`- Git: ${parsed.environment.gitVersion}`);
+  push2(`- Local model: ${parsed.environment.localModel?.model ?? "NOT_EXERCISED"}`);
+  push2(`- DeerFlow: ${parsed.environment.deerFlow?.provider ?? "NOT_EXERCISED"}`);
+  push2();
+  push2("## Known limitations");
+  push2();
+  if (parsed.knownLimitations.length === 0) push2("- None recorded.");
+  else for (const limitation of parsed.knownLimitations) push2(`- ${limitation}`);
+  push2();
+  push2("## Release decision");
+  push2();
+  push2(`**${parsed.decision.status}**`);
+  if (parsed.decision.blockers.length > 0) {
+    push2();
+    push2("Blockers:");
+    push2();
+    for (const blocker of parsed.decision.blockers) push2(`- ${blocker}`);
+  }
+  if (parsed.marker !== null) {
+    push2();
+    push2(`Marker: **${parsed.marker.status}**`);
+  }
+  push2();
+  push2(`Generated ${parsed.generatedAt} from candidate-bound evidence for run ${parsed.qualificationRunId}.`);
+  return `${lines.join("\n")}
+`;
 }
 
 // ../../packages/reporting/dist/index.js
@@ -100935,15 +101386,15 @@ function buildRecoveryActions(workspace, findings2) {
       });
       continue;
     }
-    const sha2566 = trySha256File(absolute);
-    if (sha2566 === void 0) continue;
+    const sha2567 = trySha256File(absolute);
+    if (sha2567 === void 0) continue;
     actions.push({
       actionId: `a${actions.length + 1}`,
       kind: recovery.kind,
       reason: recovery.reason,
       risk: recovery.risk,
       file: proposal.path,
-      sha256: sha2566,
+      sha256: sha2567,
       reversible: true,
       confidence: recovery.confidence,
       requiresAcknowledgement: true
@@ -103351,22 +103802,22 @@ var SEAL_LIMITS = {
   maxCriteria: 400,
   maxSurfaces: 40
 };
-var shortText18 = external_exports.string().max(SEAL_LIMITS.maxShortTextChars);
+var shortText19 = external_exports.string().max(SEAL_LIMITS.maxShortTextChars);
 var text9 = external_exports.string().max(SEAL_LIMITS.maxTextChars);
-var idList3 = external_exports.array(shortText18).max(SEAL_LIMITS.maxListItems);
+var idList3 = external_exports.array(shortText19).max(SEAL_LIMITS.maxListItems);
 var sealedContractRefSchema = external_exports.object({
-  contractId: shortText18,
+  contractId: shortText19,
   revision: external_exports.number().int().min(1),
-  title: shortText18,
+  title: shortText19,
   classification: external_exports.enum(["public", "internal"]),
-  compatibilityPolicy: shortText18,
+  compatibilityPolicy: shortText19,
   /** Requirement ids inside this contract revision, at seal time. */
   requirementIds: idList3.default([]),
   /** Invariant ids inside this contract revision, at seal time. */
   invariantIds: idList3.default([])
 }).passthrough();
 var sealedAcceptanceCriterionSchema = external_exports.object({
-  criterionId: shortText18,
+  criterionId: shortText19,
   statement: text9,
   /** Contract ids this criterion judges, when it judges specific ones. */
   contractIds: idList3.default([]),
@@ -103382,36 +103833,36 @@ var sealedResourcePolicySchema = external_exports.object({
   allowedLanes: external_exports.array(external_exports.enum(["LOCAL", "SUBSCRIPTION", "API"])).min(1).default(["LOCAL"])
 }).passthrough();
 var delegatedAuthoritySnapshotSchema = external_exports.object({
-  mode: shortText18,
-  humanGate: shortText18,
+  mode: shortText19,
+  humanGate: shortText19,
   policyFingerprint: external_exports.string().max(8e3),
   /** Delegated engineering surfaces, as `surface: AUTO|HUMAN`. */
-  decisions: external_exports.record(shortText18).default({}),
+  decisions: external_exports.record(shortText19).default({}),
   /** Delegated recovery surfaces, same shape. */
-  recovery: external_exports.record(shortText18).default({}),
+  recovery: external_exports.record(shortText19).default({}),
   /** Toolsmith capability classes the human authorized. */
-  toolsmithCapabilities: external_exports.array(shortText18).max(SEAL_LIMITS.maxSurfaces).default([])
+  toolsmithCapabilities: external_exports.array(shortText19).max(SEAL_LIMITS.maxSurfaces).default([])
 }).passthrough();
 var missionSealSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  sealId: shortText18,
-  missionId: shortText18,
+  sealId: shortText19,
+  missionId: shortText19,
   /** The Kiro spec the mission synthesized, when it has one. */
-  specName: shortText18.optional(),
+  specName: shortText19.optional(),
   status: external_exports.enum(SEAL_STATUSES),
-  createdAt: shortText18,
+  createdAt: shortText19,
   /** Set exactly once, when a human authorizes the draft. */
-  sealedAt: shortText18.optional(),
+  sealedAt: shortText19.optional(),
   /**
    * How the human authorization arrived. A free-form CHANNEL label (the
    * CLI command, the MCP surface) recorded for audit — never a claim that
    * anything other than a person performed it.
    */
-  sealedVia: shortText18.optional(),
+  sealedVia: shortText19.optional(),
   /** Predecessor seal this one replaces. */
-  supersedes: shortText18.optional(),
-  supersededBy: shortText18.optional(),
-  revokedAt: shortText18.optional(),
+  supersedes: shortText19.optional(),
+  supersededBy: shortText19.optional(),
+  revokedAt: shortText19.optional(),
   revokedReason: text9.optional(),
   // --- The authority snapshot ------------------------------------------
   /** The mission goal, verbatim and bounded. Data, never instructions. */
@@ -103434,16 +103885,26 @@ var missionSealSchema = external_exports.object({
    * prove the record on disk is the one that was authorized, and so a
    * re-seal that changes nothing is recognisable as a no-op.
    */
-  authorityDigest: shortText18
+  authorityDigest: shortText19
 }).passthrough();
 var sealBindingSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  jobId: shortText18,
-  sealId: shortText18,
-  missionId: shortText18,
-  boundAt: shortText18,
+  jobId: shortText19,
+  sealId: shortText19,
+  missionId: shortText19,
+  boundAt: shortText19,
   /** Autonomy policy fingerprint observed when the binding was made. */
-  boundPolicyFingerprint: external_exports.string().max(8e3)
+  boundPolicyFingerprint: external_exports.string().max(8e3),
+  /**
+   * Optional frozen SpecBridge runtime used by a production Mission. This
+   * is identity only; it grants no authority and contains no local path.
+   */
+  runtimeIdentity: external_exports.object({
+    version: shortText19,
+    commit: external_exports.string().regex(/^[a-f0-9]{7,64}$/),
+    digest: external_exports.string().regex(/^[a-f0-9]{64}$/),
+    qualificationRunId: shortText19
+  }).strict().nullable().default(null)
 }).passthrough();
 function sealsDir(workspace) {
   return autonomyPath(workspace, "seals");
@@ -103733,7 +104194,7 @@ function requireExecutableSeal(seal, policy) {
     details: { reason: assessment.reason ?? "UNKNOWN" }
   });
 }
-function bindSealToJob(deps4, jobId, sealId) {
+function bindSealToJob(deps4, jobId, sealId, options = {}) {
   const seal = requireSeal(deps4.workspace, sealId);
   requireExecutableSeal(seal, autonomyPolicyOf(deps4));
   const binding = sealBindingSchema.parse({
@@ -103742,7 +104203,8 @@ function bindSealToJob(deps4, jobId, sealId) {
     sealId,
     missionId: seal.missionId,
     boundAt: nowIso5(deps4),
-    boundPolicyFingerprint: seal.delegatedAuthority.policyFingerprint
+    boundPolicyFingerprint: seal.delegatedAuthority.policyFingerprint,
+    runtimeIdentity: options.runtimeIdentity ?? null
   });
   writeJsonRecord(bindingFile(deps4.workspace, jobId), binding);
   return binding;
@@ -108610,23 +109072,23 @@ function formatMeasurement(value, unit) {
       return String(value);
   }
 }
-var EXECUTION_TELEMETRY_REPORT_SCHEMA_VERSION = "1.0.0";
+var EXECUTION_TELEMETRY_REPORT_SCHEMA_VERSION = "1.1.0";
 var count3 = external_exports.number().int().min(0);
 var shortText122 = external_exports.string().max(512);
-var boundedText6 = external_exports.string().max(2e3);
-var ratio3 = external_exports.number().min(0).max(1).nullable();
+var boundedText7 = external_exports.string().max(2e3);
+var ratio4 = external_exports.number().min(0).max(1).nullable();
 var countMap = external_exports.record(external_exports.string(), count3);
 var fractionMetricSchema = external_exports.object({
   numerator: count3.nullable(),
   denominator: count3.nullable(),
-  value: ratio3
+  value: ratio4
 }).strict();
 var tokenCoverageSchema = external_exports.object({
   attempts: count3,
   withAny: count3,
   withInput: count3,
   withOutput: count3,
-  ratio: ratio3,
+  ratio: ratio4,
   complete: external_exports.boolean()
 }).strict();
 var tokenTelemetrySchema = external_exports.object({
@@ -108653,7 +109115,7 @@ var workAccountingSchema = external_exports.enum([
 var diagnosticSchema = external_exports.object({
   code: shortText122,
   severity: external_exports.enum(["info", "warning", "error"]),
-  message: boundedText6,
+  message: boundedText7,
   evidenceRefs: external_exports.array(shortText122).max(20).default([])
 }).strict();
 var phaseResearchSchema = external_exports.object({
@@ -108686,6 +109148,8 @@ var executionTelemetryReportSchema = external_exports.object({
     sealId: shortText122.nullable(),
     sealedAuthorityDigest: shortText122.nullable(),
     runtimePolicyChanged: external_exports.boolean().nullable(),
+    runtimeStartDigest: external_exports.string().regex(/^[a-f0-9]{64}$/).nullable(),
+    runtimeEndDigest: external_exports.string().regex(/^[a-f0-9]{64}$/).nullable(),
     configuration: external_exports.object({
       secondaryBuildStrategy: shortText122,
       researchStrategy: shortText122,
@@ -108695,7 +109159,7 @@ var executionTelemetryReportSchema = external_exports.object({
   outcome: external_exports.object({
     status: external_exports.enum(["COMPLETED", "FAILED", "CANCELLED", "BLOCKED", "WAITING"]),
     authoritativeJobStatus: shortText122,
-    finalOutcome: boundedText6.nullable(),
+    finalOutcome: boundedText7.nullable(),
     verification: external_exports.enum(["PASS", "FAIL", "UNAVAILABLE"]),
     closure: external_exports.enum(["PASS", "FAIL", "UNAVAILABLE"])
   }).strict(),
@@ -108792,7 +109256,7 @@ var executionTelemetryReportSchema = external_exports.object({
       subagentCount: count3.nullable(),
       recordsWithUsage: count3,
       providerCalls: count3,
-      coverage: ratio3
+      coverage: ratio4
     }).strict()
   }).strict(),
   cooldown: external_exports.object({
@@ -108816,7 +109280,7 @@ var executionTelemetryReportSchema = external_exports.object({
       at: shortText122,
       type: shortText122,
       objectiveNodeId: shortText122.nullable(),
-      detail: boundedText6
+      detail: boundedText7
     }).strict()).max(200)
   }).strict(),
   attempts: external_exports.object({
@@ -108846,7 +109310,7 @@ var executionTelemetryReportSchema = external_exports.object({
     waived: count3,
     unresolved: count3,
     completionGateOutcome: external_exports.enum(["PASS", "FAIL", "UNAVAILABLE"]),
-    ratio: ratio3
+    ratio: ratio4
   }).strict(),
   human: external_exports.object({
     decisionsBeforeSeal: count3.nullable(),
@@ -108874,8 +109338,10 @@ var executionTelemetryReportSchema = external_exports.object({
     completedWorkRedoCount: count3,
     completedWorkReusedAfterRestart: count3,
     attemptsIncorrectlyRepeated: count3,
+    duplicateDispatches: count3,
     unexpectedBlocks: count3,
-    unrecoveredDriverDeaths: count3
+    unrecoveredDriverDeaths: count3,
+    runtimeMutation: count3.nullable()
   }).strict(),
   efficiency: external_exports.object({
     strongBuilderAvoidanceRatio: fractionMetricSchema,
@@ -108890,19 +109356,22 @@ var executionTelemetryReportSchema = external_exports.object({
     }).strict().nullable()
   }).strict(),
   qualificationSummary: external_exports.object({
-    strongBuilderAvoidanceRatio: ratio3,
-    secondaryInitialSuccessRate: ratio3,
-    secondaryRepairRecoveryRate: ratio3,
+    strongBuilderAvoidanceRatio: ratio4,
+    secondaryInitialSuccessRate: ratio4,
+    secondaryRepairRecoveryRate: ratio4,
     secondaryToStrongFallback: count3,
     strongImplementationTokens: count3.nullable(),
-    researchAvoidanceRatio: ratio3,
+    researchAvoidanceRatio: ratio4,
     newResearchCalls: count3,
     researchReuse: count3,
     usefulWorkDuringSubscriptionCooldown: count3,
     humanInterventionsAfterSeal: count3,
     completedWorkRedoCount: count3,
+    lostCandidates: count3,
+    duplicateDispatches: count3,
     unexpectedBlocks: count3,
-    unrecoveredDriverDeaths: count3
+    unrecoveredDriverDeaths: count3,
+    runtimeMutation: count3.nullable()
   }).strict(),
   diagnostics: external_exports.array(diagnosticSchema).max(200)
 }).strict();
@@ -109013,11 +109482,20 @@ function uniqueBuilderAttempts(objectives) {
       }
     }
   }
+  const attempts = [...seen.values()].sort(
+    (left, right) => left.startedAt.localeCompare(right.startedAt, "en") || left.objectiveNodeId.localeCompare(right.objectiveNodeId, "en") || left.workUnitId.localeCompare(right.workUnitId, "en") || left.sequence - right.sequence
+  );
+  const logicalDispatches = /* @__PURE__ */ new Set();
+  let duplicateDispatches = 0;
+  for (const attempt of attempts) {
+    const key = `${attempt.objectiveNodeId}\0${attempt.workUnitId}\0${attempt.workUnitAttempt}\0${attempt.kind}`;
+    if (logicalDispatches.has(key)) duplicateDispatches += 1;
+    else logicalDispatches.add(key);
+  }
   return {
-    attempts: [...seen.values()].sort(
-      (left, right) => left.startedAt.localeCompare(right.startedAt, "en") || left.objectiveNodeId.localeCompare(right.objectiveNodeId, "en") || left.workUnitId.localeCompare(right.workUnitId, "en") || left.sequence - right.sequence
-    ),
-    duplicateIds
+    attempts,
+    duplicateIds,
+    duplicateDispatches
   };
 }
 function latestUnits(objectives) {
@@ -109084,7 +109562,11 @@ function deriveExecutionTelemetryReport(facts) {
   const generatedMs = timestampMs(facts.generatedAt) ?? 0;
   const eventTypes = (type) => facts.events.filter((event) => event.type === type);
   const currentRouting = currentRoutingStates(facts.objectives);
-  const { attempts: implementationAttempts, duplicateIds } = uniqueBuilderAttempts(facts.objectives);
+  const {
+    attempts: implementationAttempts,
+    duplicateIds,
+    duplicateDispatches
+  } = uniqueBuilderAttempts(facts.objectives);
   const units = latestUnits(facts.objectives);
   const evaluations = facts.objectives.flatMap((objective) => objective.evaluations).filter((entry2, index, values) => values.findIndex((other) => other.evaluationId === entry2.evaluationId) === index).sort((left, right) => left.createdAt.localeCompare(right.createdAt, "en"));
   if (facts.eventTotal > facts.events.length) {
@@ -109116,6 +109598,14 @@ function deriveExecutionTelemetryReport(facts) {
       code: "ATTEMPT_REPLAY_DEDUPLICATED",
       severity: "info",
       message: `${duplicateIds} replayed builder-attempt record${duplicateIds === 1 ? "" : "s"} were ignored by durable attempt id.`,
+      evidenceRefs: []
+    });
+  }
+  if (duplicateDispatches > 0) {
+    diagnostics.push({
+      code: "DUPLICATE_BUILDER_DISPATCH",
+      severity: "error",
+      message: `${duplicateDispatches} duplicate logical builder dispatch${duplicateDispatches === 1 ? "" : "es"} were recorded for the same WorkUnit attempt and builder kind.`,
       evidenceRefs: []
     });
   }
@@ -109630,6 +110120,9 @@ function deriveExecutionTelemetryReport(facts) {
   ));
   const currentPolicyFingerprint = autonomyPolicyFingerprint(facts.currentAutonomyPolicy);
   const runtimePolicyChanged = facts.binding === void 0 ? null : currentPolicyFingerprint !== facts.binding.boundPolicyFingerprint;
+  const runtimeStartDigest = facts.runtimeIdentity?.startDigest ?? facts.binding?.runtimeIdentity?.digest ?? null;
+  const runtimeEndDigest = facts.runtimeIdentity?.endDigest ?? null;
+  const runtimeMutation = runtimeStartDigest === null || runtimeEndDigest === null ? null : runtimeStartDigest === runtimeEndDigest ? 0 : 1;
   const strongAvoidance = metric(eligibleCompletedWithoutStrong.length, eligibleCompleted.length);
   const secondaryInitial = metric(initialPassUnits.length, initialAttemptedUnits.length);
   const secondaryRepair = metric(repairPassUnits.length, repairAttemptedUnits.length);
@@ -109691,6 +110184,8 @@ function deriveExecutionTelemetryReport(facts) {
       sealId: facts.binding?.sealId ?? null,
       sealedAuthorityDigest: facts.seal?.authorityDigest ?? null,
       runtimePolicyChanged,
+      runtimeStartDigest,
+      runtimeEndDigest,
       configuration: {
         secondaryBuildStrategy: facts.secondaryBuildStrategy,
         researchStrategy: facts.researchStrategy,
@@ -109829,8 +110324,10 @@ function deriveExecutionTelemetryReport(facts) {
       completedWorkRedoCount,
       completedWorkReusedAfterRestart,
       attemptsIncorrectlyRepeated: completedWorkRedoCount,
+      duplicateDispatches,
       unexpectedBlocks,
-      unrecoveredDriverDeaths
+      unrecoveredDriverDeaths,
+      runtimeMutation
     },
     efficiency: {
       strongBuilderAvoidanceRatio: strongAvoidance,
@@ -109856,8 +110353,11 @@ function deriveExecutionTelemetryReport(facts) {
       usefulWorkDuringSubscriptionCooldown: cooldownCompletedKeys.size,
       humanInterventionsAfterSeal: facts.autonomy.humanInterventionsAfterSeal,
       completedWorkRedoCount,
+      lostCandidates: candidateRebuilds,
+      duplicateDispatches,
       unexpectedBlocks,
-      unrecoveredDriverDeaths
+      unrecoveredDriverDeaths,
+      runtimeMutation
     },
     diagnostics: diagnostics.slice(0, 200)
   });
@@ -110937,48 +111437,48 @@ var INTAKE_LIMITS = {
   maxEvidence: 600,
   maxRefsPerRecord: 40
 };
-var shortText19 = external_exports.string().min(1).max(INTAKE_LIMITS.maxShortTextChars);
+var shortText20 = external_exports.string().min(1).max(INTAKE_LIMITS.maxShortTextChars);
 var text14 = external_exports.string().min(1).max(INTAKE_LIMITS.maxTextChars);
 var optionalText3 = external_exports.string().max(INTAKE_LIMITS.maxTextChars);
-var idList4 = external_exports.array(shortText19).max(INTAKE_LIMITS.maxRefsPerRecord);
+var idList4 = external_exports.array(shortText20).max(INTAKE_LIMITS.maxRefsPerRecord);
 var textList7 = external_exports.array(text14).max(INTAKE_LIMITS.maxItems);
-var semver5 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
-var sha2565 = external_exports.string().regex(/^[0-9a-f]{64}$/);
+var semver6 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
+var sha2566 = external_exports.string().regex(/^[0-9a-f]{64}$/);
 var sourceChunkSchema = external_exports.object({
   /** Stable within the document ("C-0001", "C-0002", …). */
-  chunkId: shortText19,
+  chunkId: shortText20,
   /** Heading path this chunk sits under, outermost first. */
-  headingPath: external_exports.array(shortText19).max(8).default([]),
+  headingPath: external_exports.array(shortText20).max(8).default([]),
   kind: external_exports.enum(SOURCE_CHUNK_KINDS),
   text: external_exports.string().max(INTAKE_LIMITS.maxChunkChars),
   /** True when the record's `text` was truncated relative to the source. */
   truncated: external_exports.boolean().default(false),
   startOffset: external_exports.number().int().min(0),
   endOffset: external_exports.number().int().min(0),
-  contentHash: shortText19
+  contentHash: shortText20
 }).passthrough();
 var specSourceSchema = external_exports.object({
-  schemaVersion: semver5,
-  intakeId: shortText19,
+  schemaVersion: semver6,
+  intakeId: shortText20,
   kind: external_exports.enum(SPEC_SOURCE_KINDS),
   /** Original path, for a file source. Recorded for audit, never re-read. */
   originPath: optionalText3.optional(),
-  receivedAt: shortText19,
+  receivedAt: shortText20,
   /** Host label of the process that ingested it ("cli", "mcp", "plugin"). */
-  receivedVia: shortText19,
+  receivedVia: shortText20,
   byteLength: external_exports.number().int().min(1),
-  contentHash: sha2565,
+  contentHash: sha2566,
   /** Workspace-relative path of the stored verbatim copy. */
-  storedAt: shortText19,
+  storedAt: shortText20,
   /** Section headings found, in document order. */
-  outline: external_exports.array(shortText19).max(200).default([]),
+  outline: external_exports.array(shortText20).max(200).default([]),
   chunks: external_exports.array(sourceChunkSchema).max(INTAKE_LIMITS.maxChunks).default([])
 }).passthrough();
 var repositoryEvidenceSchema = external_exports.object({
-  evidenceId: shortText19,
+  evidenceId: shortText20,
   kind: external_exports.enum(REPOSITORY_EVIDENCE_KINDS),
   /** Stable identity: a contract id, spec name, module path, mission id. */
-  ref: shortText19,
+  ref: shortText20,
   summary: text14,
   /** True when this is existing PRODUCT AUTHORITY rather than context. */
   authoritative: external_exports.boolean().default(false),
@@ -110988,28 +111488,28 @@ var repositoryEvidenceSchema = external_exports.object({
   path: optionalText3.optional()
 }).passthrough();
 var repositoryGroundingSchema = external_exports.object({
-  schemaVersion: semver5,
-  intakeId: shortText19,
-  groundedAt: shortText19,
+  schemaVersion: semver6,
+  intakeId: shortText20,
+  groundedAt: shortText20,
   /** Git head at grounding time, when the workspace is a repository. */
-  baselineCommit: shortText19.nullable().default(null),
+  baselineCommit: shortText20.nullable().default(null),
   /** True when this workspace already carries SpecBridge product truth. */
   existingProduct: external_exports.boolean().default(false),
   evidence: external_exports.array(repositoryEvidenceSchema).max(INTAKE_LIMITS.maxEvidence).default([]),
   /** Prior missions whose contracts are active product authority. */
   priorMissionIds: idList4.default([]),
   /** Existing spec names, for name-collision and reuse decisions. */
-  existingSpecNames: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
+  existingSpecNames: external_exports.array(shortText20).max(INTAKE_LIMITS.maxItems).default([]),
   /** Detected build system, e.g. "pnpm", "gradle", "maven", or null. */
-  buildSystem: shortText19.nullable().default(null),
+  buildSystem: shortText20.nullable().default(null),
   /** Top-level module/subproject directories worth extending. */
-  modules: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
+  modules: external_exports.array(shortText20).max(INTAKE_LIMITS.maxItems).default([]),
   /** Deterministic notes about what was and was not observable. */
   notes: textList7.default([])
 }).passthrough();
 var deltaItemSchema = external_exports.object({
   /** Stable within the analysis ("D-001", …). */
-  itemId: shortText19,
+  itemId: shortText20,
   statement: text14,
   /** Source chunks this item was extracted from. */
   sourceChunkIds: idList4.default([]),
@@ -111019,23 +111519,23 @@ var deltaItemSchema = external_exports.object({
   /** Surfaces this item would permanently affect, if any. */
   affectedSurfaces: external_exports.array(external_exports.enum(IRREVERSIBLE_SURFACES)).max(IRREVERSIBLE_SURFACES.length).default([]),
   /** The existing contract this item relates to, when it relates to one. */
-  existingContractId: shortText19.optional(),
+  existingContractId: shortText20.optional(),
   existingContractRevision: external_exports.number().int().min(1).optional(),
   /** The prior mission owning that contract. */
-  existingMissionId: shortText19.optional(),
+  existingMissionId: shortText20.optional(),
   /** Requirement/invariant ids inside that contract this item touches. */
   existingElementIds: idList4.default([]),
   /** True when this item is a public product promise (new or existing). */
   publicSurface: external_exports.boolean().default(false),
   /** The question raised for this item, when one was raised. */
-  questionId: shortText19.optional()
+  questionId: shortText20.optional()
 }).passthrough();
 var deltaAuthorityAnalysisSchema = external_exports.object({
-  schemaVersion: semver5,
-  intakeId: shortText19,
-  analyzedAt: shortText19,
+  schemaVersion: semver6,
+  intakeId: shortText20,
+  analyzedAt: shortText20,
   /** Digest over the grounding + source this analysis was computed from. */
-  basisDigest: shortText19,
+  basisDigest: shortText20,
   items: external_exports.array(deltaItemSchema).max(INTAKE_LIMITS.maxItems).default([]),
   /** Counts per class, so a summary needs no re-scan. */
   counts: external_exports.record(external_exports.number().int().min(0)).default({}),
@@ -111055,10 +111555,10 @@ var deltaAuthorityAnalysisSchema = external_exports.object({
    */
   affectedContracts: external_exports.array(
     external_exports.object({
-      contractId: shortText19,
-      missionId: shortText19,
-      missionName: shortText19.optional(),
-      title: shortText19,
+      contractId: shortText20,
+      missionId: shortText20,
+      missionName: shortText20.optional(),
+      title: shortText20,
       revision: external_exports.number().int().min(1),
       relation: external_exports.enum(["EXTENDED", "CHANGED"])
     }).passthrough()
@@ -111070,7 +111570,7 @@ var deltaAuthorityAnalysisSchema = external_exports.object({
   reasons: textList7.default([])
 }).passthrough();
 var productQuestionSchema = external_exports.object({
-  questionId: shortText19,
+  questionId: shortText20,
   kind: external_exports.enum(PRODUCT_QUESTION_KINDS),
   question: text14,
   whyItMatters: text14,
@@ -111086,31 +111586,31 @@ var productQuestionSchema = external_exports.object({
   /** Source chunks that raised it. */
   sourceChunkIds: idList4.default([]),
   /** The delta item this question blocks, when it blocks one. */
-  deltaItemId: shortText19.optional(),
+  deltaItemId: shortText20.optional(),
   /** Every admitted question is blocking; recorded so it can be asserted. */
   blocking: external_exports.literal(true).default(true),
   /** Mission question id, once the question is mirrored into the mission. */
-  missionQuestionId: shortText19.optional(),
+  missionQuestionId: shortText20.optional(),
   status: external_exports.enum(["open", "answered"]).default("open"),
   answer: optionalText3.optional(),
-  answeredAt: shortText19.optional(),
+  answeredAt: shortText20.optional(),
   /** Mission decision id recording the human answer. */
-  decisionId: shortText19.optional(),
-  askedAt: shortText19
+  decisionId: shortText20.optional(),
+  askedAt: shortText20
 }).passthrough();
 var questionRefusalSchema = external_exports.object({
-  refusalId: shortText19,
+  refusalId: shortText20,
   candidate: text14,
   reason: external_exports.enum(QUESTION_REFUSAL_REASONS),
   /** The engineering surface it asked about, for ENGINEERING_DECISION. */
   engineeringSurface: external_exports.enum(ENGINEERING_QUESTION_SURFACES).optional(),
   /** The evidence that answered it, for ANSWERED_BY_* reasons. */
-  answeredBy: shortText19.optional(),
+  answeredBy: shortText20.optional(),
   detail: text14,
-  refusedAt: shortText19
+  refusedAt: shortText20
 }).passthrough();
 var chunkCoverageSchema = external_exports.object({
-  chunkId: shortText19,
+  chunkId: shortText20,
   state: external_exports.enum(CHUNK_COVERAGE_STATES),
   /** What carries it: a delta item id, question id, or evidence id. */
   carriedBy: idList4.default([])
@@ -111127,106 +111627,106 @@ var intakeReadinessSchema = external_exports.object({
   reasons: textList7.default([])
 }).passthrough();
 var intakeApprovalSchema = external_exports.object({
-  schemaVersion: semver5,
-  approvalId: shortText19,
-  intakeId: shortText19,
-  missionId: shortText19,
-  approvedAt: shortText19,
-  approvedVia: shortText19,
+  schemaVersion: semver6,
+  approvalId: shortText20,
+  intakeId: shortText20,
+  missionId: shortText20,
+  approvedAt: shortText20,
+  approvedVia: shortText20,
   /** Digest of exactly the bytes the human submitted. */
-  sourceContentHash: sha2565,
+  sourceContentHash: sha2566,
   /** Digest over the approved canonical truth. The authority fingerprint. */
-  authorityDigest: shortText19,
+  authorityDigest: shortText20,
   /** Digest of the delta analysis that was current at approval time. */
-  deltaBasisDigest: shortText19,
+  deltaBasisDigest: shortText20,
   // --- What was approved, by reference ---------------------------------
   goal: text14,
   nonGoals: textList7.default([]),
   /** Mission decision ids active at approval time. */
-  decisionIds: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
-  constitutionRuleIds: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
-  adrIds: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
+  decisionIds: external_exports.array(shortText20).max(INTAKE_LIMITS.maxItems).default([]),
+  constitutionRuleIds: external_exports.array(shortText20).max(INTAKE_LIMITS.maxItems).default([]),
+  adrIds: external_exports.array(shortText20).max(INTAKE_LIMITS.maxItems).default([]),
   /** Contracts this intake creates, by id. */
-  newContractIds: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
+  newContractIds: external_exports.array(shortText20).max(INTAKE_LIMITS.maxItems).default([]),
   /** Existing contracts this intake extends, by id. */
-  extendedContractIds: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
+  extendedContractIds: external_exports.array(shortText20).max(INTAKE_LIMITS.maxItems).default([]),
   /** Existing contracts this intake would change. Human-visible, always. */
-  changedContractIds: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
+  changedContractIds: external_exports.array(shortText20).max(INTAKE_LIMITS.maxItems).default([]),
   acceptanceCriteria: textList7.default([]),
   /** Product questions and the human's recorded answers. */
   resolvedQuestions: external_exports.array(
     external_exports.object({
-      questionId: shortText19,
+      questionId: shortText20,
       question: text14,
       answer: text14,
-      decisionId: shortText19.optional()
+      decisionId: shortText20.optional()
     }).passthrough()
   ).max(INTAKE_LIMITS.maxQuestions).default([]),
   /** Resource authorization carried into the seal. */
   maxApiSpendUsd: external_exports.number().min(0).nullable().default(null),
   allowedLanes: external_exports.array(external_exports.enum(["LOCAL", "SUBSCRIPTION", "API"])).min(1).default(["LOCAL"]),
   /** The seal this approval produced, once the lifecycle created it. */
-  sealId: shortText19.optional()
+  sealId: shortText20.optional()
 }).passthrough();
 var projectionElementSchema = external_exports.object({
   /** The stage the element was found in. */
-  stage: shortText19,
+  stage: shortText20,
   /** Line number in the compiled document, 1-based. */
   line: external_exports.number().int().min(1),
   statement: text14,
   /** The approved element this traces to, when it traces to one. */
-  tracesTo: shortText19.optional()
+  tracesTo: shortText20.optional()
 }).passthrough();
 var projectionDivergenceSchema = external_exports.object({
   kind: external_exports.enum(DIVERGENCE_KINDS),
-  stage: shortText19.optional(),
+  stage: shortText20.optional(),
   detail: text14,
   /** The offending statement, bounded. */
   statement: optionalText3.optional()
 }).passthrough();
 var projectionEquivalenceSchema = external_exports.object({
-  schemaVersion: semver5,
-  intakeId: shortText19,
-  approvalId: shortText19,
-  specName: shortText19,
-  checkedAt: shortText19,
+  schemaVersion: semver6,
+  intakeId: shortText20,
+  approvalId: shortText20,
+  specName: shortText20,
+  checkedAt: shortText20,
   equivalent: external_exports.boolean(),
   /** Normative statements checked, per stage. */
   checkedStatements: external_exports.number().int().min(0).default(0),
   tracedStatements: external_exports.number().int().min(0).default(0),
   divergences: external_exports.array(projectionDivergenceSchema).max(INTAKE_LIMITS.maxItems).default([]),
   /** Digest of each compiled artifact, so the verdict names its subject. */
-  artifactHashes: external_exports.record(sha2565).default({})
+  artifactHashes: external_exports.record(sha2566).default({})
 }).passthrough();
 var buildStepRecordSchema = external_exports.object({
   step: external_exports.enum(BUILD_LIFECYCLE_STEPS),
   status: external_exports.enum(BUILD_STEP_STATUSES),
-  startedAt: shortText19.optional(),
-  settledAt: shortText19.optional(),
+  startedAt: shortText20.optional(),
+  settledAt: shortText20.optional(),
   detail: optionalText3.optional(),
   /** Identity of what this step produced (spec name, seal id, job id). */
-  result: shortText19.optional(),
+  result: shortText20.optional(),
   /** Attempts made on this step, so a loop is visible rather than silent. */
   attempts: external_exports.number().int().min(0).default(0)
 }).passthrough();
 var buildLifecycleSchema = external_exports.object({
-  schemaVersion: semver5,
-  intakeId: shortText19,
-  approvalId: shortText19,
-  missionId: shortText19,
-  startedAt: shortText19,
-  updatedAt: shortText19,
+  schemaVersion: semver6,
+  intakeId: shortText20,
+  approvalId: shortText20,
+  missionId: shortText20,
+  startedAt: shortText20,
+  updatedAt: shortText20,
   steps: external_exports.array(buildStepRecordSchema).max(BUILD_LIFECYCLE_STEPS.length),
-  specName: shortText19.optional(),
-  sealId: shortText19.optional(),
-  jobId: shortText19.optional(),
-  preflightReportId: shortText19.optional(),
+  specName: shortText20.optional(),
+  sealId: shortText20.optional(),
+  jobId: shortText20.optional(),
+  preflightReportId: shortText20.optional(),
   outcome: external_exports.enum(BUILD_OUTCOMES).optional(),
   /** Prerequisites the runtime resolved by itself, for the record. */
   resolvedPrerequisites: textList7.default([]),
   /** Prerequisites that genuinely need a person. */
   humanPrerequisites: textList7.default([]),
-  finishedAt: shortText19.optional()
+  finishedAt: shortText20.optional()
 }).passthrough();
 var intakeCountersSchema = external_exports.object({
   sourceChunks: external_exports.number().int().min(0).default(0),
@@ -111250,63 +111750,63 @@ var intakeSequencesSchema = external_exports.object({
   evidence: external_exports.number().int().min(0).default(0)
 }).passthrough();
 var specIntakeStateSchema = external_exports.object({
-  schemaVersion: semver5,
-  intakeId: shortText19,
+  schemaVersion: semver6,
+  intakeId: shortText20,
   /** The user-chosen name; also the default spec name. */
   name: external_exports.string().min(1).max(INTAKE_LIMITS.maxNameChars),
   status: external_exports.enum(INTAKE_STATUSES),
   /** The mission this intake drives. Created by the intake, never by hand. */
-  missionId: shortText19,
-  createdAt: shortText19,
-  updatedAt: shortText19,
-  host: shortText19,
+  missionId: shortText20,
+  createdAt: shortText20,
+  updatedAt: shortText20,
+  host: shortText20,
   /** Digest of the submitted specification. Identity of the ask. */
-  sourceContentHash: sha2565,
+  sourceContentHash: sha2566,
   /** Repository head when the intake began. */
-  baselineCommit: shortText19.nullable().default(null),
+  baselineCommit: shortText20.nullable().default(null),
   counters: intakeCountersSchema.default({}),
   sequences: intakeSequencesSchema.default({}),
   /** Set once the human approves. */
-  approvalId: shortText19.optional(),
-  approvedAt: shortText19.optional(),
+  approvalId: shortText20.optional(),
+  approvedAt: shortText20.optional(),
   /** Set by the lifecycle. */
-  specName: shortText19.optional(),
-  sealId: shortText19.optional(),
-  jobId: shortText19.optional(),
-  abandonedAt: shortText19.optional(),
+  specName: shortText20.optional(),
+  sealId: shortText20.optional(),
+  jobId: shortText20.optional(),
+  abandonedAt: shortText20.optional(),
   abandonReason: optionalText3.optional()
 }).passthrough();
 var featureLineageSchema = external_exports.object({
-  intakeId: shortText19,
-  missionId: shortText19,
-  name: shortText19,
-  recordedAt: shortText19,
-  baselineCommit: shortText19.nullable().default(null),
+  intakeId: shortText20,
+  missionId: shortText20,
+  name: shortText20,
+  recordedAt: shortText20,
+  baselineCommit: shortText20.nullable().default(null),
   /** Seals that were already authorized when this feature began. */
-  predecessorSealIds: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
-  sealId: shortText19.optional(),
-  specName: shortText19.optional(),
-  jobId: shortText19.optional(),
-  newContractIds: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
-  extendedContractIds: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
-  changedContractIds: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
+  predecessorSealIds: external_exports.array(shortText20).max(INTAKE_LIMITS.maxItems).default([]),
+  sealId: shortText20.optional(),
+  specName: shortText20.optional(),
+  jobId: shortText20.optional(),
+  newContractIds: external_exports.array(shortText20).max(INTAKE_LIMITS.maxItems).default([]),
+  extendedContractIds: external_exports.array(shortText20).max(INTAKE_LIMITS.maxItems).default([]),
+  changedContractIds: external_exports.array(shortText20).max(INTAKE_LIMITS.maxItems).default([]),
   /** Commits the implementation produced, filled in at closure. */
-  implementationCommits: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
+  implementationCommits: external_exports.array(shortText20).max(INTAKE_LIMITS.maxItems).default([]),
   /** Closure ledger reference, filled in when the job closes. */
-  closureEvidenceRef: shortText19.optional(),
+  closureEvidenceRef: shortText20.optional(),
   outcome: external_exports.enum(BUILD_OUTCOMES).optional()
 }).passthrough();
 var productBaselineSchema = external_exports.object({
-  schemaVersion: semver5,
-  updatedAt: shortText19,
+  schemaVersion: semver6,
+  updatedAt: shortText20,
   /** Features in the order they were intaken, oldest first. */
   features: external_exports.array(featureLineageSchema).max(INTAKE_LIMITS.maxItems).default([])
 }).passthrough();
 var intakeTelemetrySchema = external_exports.object({
-  schemaVersion: semver5,
-  intakeId: shortText19,
-  recordedAt: shortText19,
-  status: shortText19,
+  schemaVersion: semver6,
+  intakeId: shortText20,
+  recordedAt: shortText20,
+  status: shortText20,
   /** Human turns spent answering product questions before approval. */
   discoveryHumanTurns: external_exports.number().int().min(0),
   /** Product questions asked. Legitimate; never a defect. */
@@ -111320,9 +111820,9 @@ var intakeTelemetrySchema = external_exports.object({
   /** Correct authority stops after the approval. Not interventions. */
   humanAuthorityEscalationsAfterSeal: external_exports.number().int().min(0).nullable(),
   /** ISO instant the boundary starts at: the human approval. */
-  boundaryStartedAt: shortText19.nullable().default(null),
-  jobId: shortText19.optional(),
-  sealId: shortText19.optional()
+  boundaryStartedAt: shortText20.nullable().default(null),
+  jobId: shortText20.optional(),
+  sealId: shortText20.optional()
 }).passthrough();
 var ID_PATTERN11 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 var INTAKE_DIR_NAME = "intake";
@@ -135933,7 +136433,7 @@ function orchestrationDeps(context, workspace) {
   };
 }
 var orchestrationIdArg = external_exports.string().min(1).max(64).describe("Orchestration run id returned by orchestration_begin");
-var boundedText7 = (max) => external_exports.string().min(1).max(max);
+var boundedText8 = (max) => external_exports.string().min(1).max(max);
 var stateSummaryShape = {
   orchestrationId: external_exports.string(),
   specName: external_exports.string(),
@@ -136104,7 +136604,7 @@ function registerOrchestrationBeginTool(server, context) {
     },
     inputSchema: {
       specName: specNameArg,
-      goal: boundedText7(4e3).describe(
+      goal: boundedText8(4e3).describe(
         "The user's stated goal, verbatim. Recorded as data, never executed as instructions."
       ),
       taskId: external_exports.string().max(64).optional().describe("Target task, when the user named one")
@@ -136167,11 +136667,11 @@ function registerOrchestrationAssessIntentTool(server, context) {
     inputSchema: {
       orchestrationId: orchestrationIdArg,
       outcome: external_exports.enum(INTENT_OUTCOMES).describe("Your assessment; SpecBridge may override it"),
-      summary: boundedText7(2e3).describe("One-line restatement of the user's request"),
-      reasons: external_exports.array(boundedText7(2e3)).max(20).optional(),
+      summary: boundedText8(2e3).describe("One-line restatement of the user's request"),
+      reasons: external_exports.array(boundedText8(2e3)).max(20).optional(),
       provenance: external_exports.array(
         external_exports.object({
-          fact: boundedText7(2e3),
+          fact: boundedText8(2e3),
           source: external_exports.enum(PROVENANCE_KINDS),
           reference: external_exports.string().max(512).optional()
         })
@@ -136234,11 +136734,11 @@ function registerOrchestrationClarifyTool(server, context) {
       orchestrationId: orchestrationIdArg,
       questions: external_exports.array(
         external_exports.object({
-          question: boundedText7(1024),
-          whyItMatters: boundedText7(1024).describe(
+          question: boundedText8(1024),
+          whyItMatters: boundedText8(1024).describe(
             "What the answer changes about the implementation. Required."
           ),
-          options: external_exports.array(boundedText7(512)).max(10).optional(),
+          options: external_exports.array(boundedText8(512)).max(10).optional(),
           relatedTaskId: external_exports.string().max(64).optional()
         })
       ).min(1).max(20)
@@ -136295,9 +136795,9 @@ function registerOrchestrationResolveClarificationTool(server, context) {
       decisions: external_exports.array(
         external_exports.object({
           questionId: external_exports.string().min(1).max(64),
-          answer: boundedText7(4096),
+          answer: boundedText8(4096),
           source: external_exports.enum(PROVENANCE_KINDS).describe("Use known-from-user for a direct answer from the user"),
-          impact: boundedText7(2e3).optional().describe("What this changes about the build"),
+          impact: boundedText8(2e3).optional().describe("What this changes about the build"),
           supersedes: external_exports.string().max(64).optional()
         })
       ).min(1).max(20)
@@ -136358,26 +136858,26 @@ function registerOrchestrationSubmitPlanTool(server, context) {
     inputSchema: {
       orchestrationId: orchestrationIdArg,
       taskId: external_exports.string().min(1).max(64).describe("The approved task this plan implements"),
-      goal: boundedText7(2e3),
+      goal: boundedText8(2e3),
       steps: external_exports.array(
         external_exports.object({
           id: external_exports.string().max(64).optional(),
-          description: boundedText7(2e3),
+          description: boundedText8(2e3),
           expectedAreas: external_exports.array(external_exports.string().max(512)).max(20).optional(),
-          expectedEvidence: boundedText7(2e3).optional()
+          expectedEvidence: boundedText8(2e3).optional()
         })
       ).min(1).max(200),
-      testStrategy: boundedText7(2e3),
-      verificationStrategy: boundedText7(2e3),
-      nonGoals: external_exports.array(boundedText7(2e3)).max(50).optional(),
-      constraints: external_exports.array(boundedText7(2e3)).max(50).optional(),
-      relevantEvidence: external_exports.array(boundedText7(2e3)).max(50).optional(),
-      assumptions: external_exports.array(boundedText7(2e3)).max(50).optional().describe("Labelled assumptions. Planning information, never presented as facts."),
-      openQuestions: external_exports.array(boundedText7(2e3)).max(50).optional(),
+      testStrategy: boundedText8(2e3),
+      verificationStrategy: boundedText8(2e3),
+      nonGoals: external_exports.array(boundedText8(2e3)).max(50).optional(),
+      constraints: external_exports.array(boundedText8(2e3)).max(50).optional(),
+      relevantEvidence: external_exports.array(boundedText8(2e3)).max(50).optional(),
+      assumptions: external_exports.array(boundedText8(2e3)).max(50).optional().describe("Labelled assumptions. Planning information, never presented as facts."),
+      openQuestions: external_exports.array(boundedText8(2e3)).max(50).optional(),
       expectedAreas: external_exports.array(external_exports.string().max(512)).max(50).optional().describe("Expected implementation areas. Planning information, not a prediction of fact."),
-      rollbackConsiderations: boundedText7(2e3).optional(),
-      replanTriggers: external_exports.array(boundedText7(2e3)).max(50).optional(),
-      replanReason: boundedText7(2e3).optional().describe("Required in spirit when replacing a plan")
+      rollbackConsiderations: boundedText8(2e3).optional(),
+      replanTriggers: external_exports.array(boundedText8(2e3)).max(50).optional(),
+      replanReason: boundedText8(2e3).optional().describe("Required in spirit when replacing a plan")
     },
     outputSchema: {
       ...stateSummaryShape,
@@ -136467,7 +136967,7 @@ function registerOrchestrationReviewPlanTool(server, context) {
       orchestrationId: orchestrationIdArg,
       planHash: external_exports.string().min(1).max(64).describe("Exact planHash from orchestration_submit_plan"),
       decision: external_exports.enum(["approved", "rejected"]).describe("The user's decision, not yours"),
-      note: boundedText7(2e3).optional()
+      note: boundedText8(2e3).optional()
     },
     outputSchema: { ...stateSummaryShape, decision: external_exports.string(), planRevision: external_exports.number().int() },
     handler: async (args) => context.withWriteLock(async () => {
@@ -136504,15 +137004,15 @@ function registerOrchestrationRecordActionTool(server, context) {
     inputSchema: {
       orchestrationId: orchestrationIdArg,
       action: external_exports.enum(ACTION_CATEGORIES),
-      target: boundedText7(512).describe("What the action targeted: a path, a verifier, a step"),
+      target: boundedText8(512).describe("What the action targeted: a path, a verifier, a step"),
       result: external_exports.enum(OBSERVATION_RESULTS),
       planStepId: external_exports.string().max(64).optional(),
-      expectedEvidence: boundedText7(2e3).optional(),
+      expectedEvidence: boundedText8(2e3).optional(),
       changedFiles: external_exports.array(external_exports.object({ path: external_exports.string().max(1024), contentHash: external_exports.string().max(128).optional() })).max(500).optional().describe("Observed changes. Claims: the completion gate re-derives them from Git."),
       failure: external_exports.object({
         category: external_exports.enum(FAILURE_CATEGORIES),
-        message: boundedText7(2e3),
-        source: boundedText7(512).describe("Verifier name, tool, or step that failed"),
+        message: boundedText8(2e3),
+        source: boundedText8(512).describe("Verifier name, tool, or step that failed"),
         exitCode: external_exports.number().int().optional(),
         output: external_exports.string().max(16384).optional().describe("Normalized before fingerprinting")
       }).optional(),
@@ -136582,9 +137082,9 @@ function registerOrchestrationCheckpointTool(server, context) {
     },
     inputSchema: {
       orchestrationId: orchestrationIdArg,
-      nextAction: boundedText7(2e3).describe("The exact next safe action, in one line"),
-      observations: external_exports.array(boundedText7(2e3)).max(50).optional(),
-      latestVerifier: boundedText7(2e3).optional()
+      nextAction: boundedText8(2e3).describe("The exact next safe action, in one line"),
+      observations: external_exports.array(boundedText8(2e3)).max(50).optional(),
+      latestVerifier: boundedText8(2e3).optional()
     },
     outputSchema: {
       orchestrationId: external_exports.string(),
@@ -136632,7 +137132,7 @@ function registerOrchestrationFinalizeTool(server, context) {
     inputSchema: {
       orchestrationId: orchestrationIdArg,
       outcome: external_exports.enum(["completed", "aborted", "cancelled"]),
-      reason: boundedText7(2e3),
+      reason: boundedText8(2e3),
       evidenceStatus: external_exports.string().max(64).optional().describe("The evidenceStatus task_complete actually returned. Required for completion."),
       interactiveRunId: external_exports.string().max(64).optional()
     },
@@ -140344,7 +140844,7 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
       return;
     }
     runtime.out(reportTitle("Subscription quota"));
-    const percent3 = (ratio4) => ratio4 === null ? "unknown" : `${(ratio4 * 100).toFixed(1)}%`;
+    const percent3 = (ratio5) => ratio5 === null ? "unknown" : `${(ratio5 * 100).toFixed(1)}%`;
     const untilText = (ms) => ms === null ? "unknown" : `${Math.round(ms / 6e4)}m`;
     runtime.out(
       infoLine(
@@ -141416,6 +141916,90 @@ function git5(cwd, ...args) {
     return null;
   }
 }
+function commandVersion(cwd, command, ...args) {
+  try {
+    return (0, import_node_child_process7.execFileSync)(command, args, {
+      cwd,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"]
+    }).trim().slice(0, 500) || "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+function isProductionRuntimePath(relativePath) {
+  const normalized = relativePath.replace(/\\/g, "/");
+  return normalized === "package.json" || normalized === "pnpm-lock.yaml" || normalized.startsWith("contracts/") || /^packages\/[^/]+\/(?:package\.json|src\/)/.test(normalized) || normalized.startsWith("integrations/github-action/dist/") || normalized.startsWith("integrations/claude-code-plugin/specbridge/dist/") || normalized.startsWith("integrations/claude-code-plugin/specbridge/.claude-plugin/") || normalized.startsWith("integrations/codex-plugin/specbridge/dist/") || normalized.startsWith("integrations/codex-plugin/specbridge/.codex-plugin/") || normalized === "integrations/codex-plugin/specbridge/.mcp.json";
+}
+function jsonFile(file) {
+  return JSON.parse((0, import_node_fs20.readFileSync)(file, "utf8"));
+}
+function collectProductionCandidate(repositoryRoot, frozenAt) {
+  const commit = git5(repositoryRoot, "rev-parse", "HEAD")?.trim();
+  const tracked = git5(repositoryRoot, "ls-files", "-z");
+  if (commit === void 0 || commit === null || tracked === null) {
+    throw new SpecBridgeError(
+      "INVALID_ARGUMENT",
+      "Production qualification requires a readable Git checkout of the SpecBridge release candidate."
+    );
+  }
+  const runtimePaths = tracked.split("\0").filter((entry2) => entry2.length > 0 && isProductionRuntimePath(entry2)).sort();
+  const runtimeEntries = runtimePaths.map((relativePath) => {
+    const absolute = import_node_path24.default.join(repositoryRoot, relativePath);
+    if ((0, import_node_fs20.lstatSync)(absolute).isSymbolicLink()) {
+      throw new SpecBridgeError(
+        "INVALID_ARGUMENT",
+        `Runtime identity refuses the tracked symlink ${relativePath}.`
+      );
+    }
+    return { path: relativePath, content: (0, import_node_fs20.readFileSync)(absolute) };
+  });
+  const dirty = (git5(repositoryRoot, "status", "--porcelain", "--untracked-files=normal") ?? "").split(/\r?\n/).map((line) => line.trim()).filter((line) => line.length > 0 && !line.includes(".specbridge/"));
+  const rootPackage = jsonFile(import_node_path24.default.join(repositoryRoot, "package.json"));
+  const schemaVersions = jsonFile(import_node_path24.default.join(repositoryRoot, "contracts", "schema-versions.json"));
+  const bundleSpecs = [
+    {
+      name: "claude-code-plugin",
+      manifest: "integrations/claude-code-plugin/specbridge/.claude-plugin/plugin.json",
+      checksums: "integrations/claude-code-plugin/specbridge/dist/checksums.json"
+    },
+    {
+      name: "codex-plugin",
+      manifest: "integrations/codex-plugin/specbridge/.codex-plugin/plugin.json",
+      checksums: "integrations/codex-plugin/specbridge/dist/checksums.json"
+    }
+  ];
+  const bundles = bundleSpecs.map((bundle) => {
+    const manifest = jsonFile(import_node_path24.default.join(repositoryRoot, bundle.manifest));
+    return {
+      name: bundle.name,
+      version: String(manifest["version"] ?? rootPackage["version"] ?? "unknown"),
+      digest: sha256Hex((0, import_node_fs20.readFileSync)(import_node_path24.default.join(repositoryRoot, bundle.checksums)))
+    };
+  });
+  return createProductionCandidate({
+    version: String(rootPackage["version"] ?? ""),
+    commit,
+    runtimeEntries,
+    schemaVersions: Object.fromEntries(
+      Object.entries(schemaVersions).map(([key, value]) => [key, String(value)])
+    ),
+    bundles,
+    sourceTreeClean: dirty.length === 0,
+    frozenAt
+  });
+}
+function productionEnvironment(repositoryRoot, candidate) {
+  return {
+    os: `${process.platform} ${process.arch}`,
+    nodeVersion: process.version,
+    pnpmVersion: commandVersion(repositoryRoot, "pnpm", "--version"),
+    gitVersion: commandVersion(repositoryRoot, "git", "--version"),
+    localModel: null,
+    deerFlow: null,
+    frontends: candidate.bundles.map((bundle) => ({ ...bundle }))
+  };
+}
 function inspectTargetRepository(repositoryPath) {
   if (!(0, import_node_fs20.existsSync)(repositoryPath)) return null;
   const inside = git5(repositoryPath, "rev-parse", "--is-inside-work-tree");
@@ -141701,6 +142285,172 @@ function registerOrchestrateQualifyCommands(orchestrate, runtime) {
       runtime.out(dim2(`    target ${run.target.name} (${run.target.kind}); started ${run.startedAt}`));
     }
   });
+  qualify.command("freeze").description("Freeze the vNext.10.2 production candidate for one qualification run").argument("<run-id>", "qualification run id").option("--json", "output the machine-readable candidate identity").action((runId, options) => {
+    const context = loadExecutionContext(runtime);
+    requireDogfoodRun(context.workspace, runId);
+    const repositoryRoot = context.workspace.gitRootDir ?? context.workspace.rootDir;
+    const file = qualificationArtifactPath(
+      context.workspace,
+      runId,
+      PRODUCTION_QUALIFICATION_ARTIFACTS.candidate
+    );
+    let candidate;
+    if ((0, import_node_fs20.existsSync)(file)) {
+      candidate = productionCandidateIdentitySchema.parse(JSON.parse((0, import_node_fs20.readFileSync)(file, "utf8")));
+    } else {
+      candidate = collectProductionCandidate(repositoryRoot, runtime.now().toISOString());
+      if (!candidate.sourceTreeClean) {
+        throw new SpecBridgeError(
+          "INVALID_ARGUMENT",
+          "Refusing to freeze a production candidate from a dirty source tree.",
+          { remediation: ["Commit or remove every source/runtime change, then start a fresh candidate freeze."] }
+        );
+      }
+      writeQualificationArtifact(
+        context.workspace,
+        runId,
+        PRODUCTION_QUALIFICATION_ARTIFACTS.candidate,
+        `${JSON.stringify(candidate, null, 2)}
+`
+      );
+    }
+    if (options.json === true) {
+      jsonOut5(runtime, "orchestrate-qualify-freeze", { runId, candidate });
+      return;
+    }
+    runtime.out(reportTitle(`Production candidate \u2014 ${runId}`));
+    runtime.out(okLine(`  commit ${candidate.commit}`));
+    runtime.out(dim2(`  runtime ${candidate.runtimeDigest} (${candidate.runtimeFileCount} files)`));
+    runtime.out(dim2(`  identity: .specbridge/qualification/${runId}/reports/${PRODUCTION_QUALIFICATION_ARTIFACTS.candidate}`));
+  });
+  qualify.command("release").description("Finalize the vNext.10.2 A-T production qualification (never auto-publishes)").argument("<run-id>", "qualification run id with a frozen production candidate").option("--evidence <file>", "candidate-bound gate evidence JSON").option("--json", "output the compact machine release decision").option("--markdown", "print the full production qualification report").option("--no-write", "derive a preview without persisting final artifacts").action(
+    (runId, options) => {
+      const context = loadExecutionContext(runtime);
+      requireDogfoodRun(context.workspace, runId);
+      const repositoryRoot = context.workspace.gitRootDir ?? context.workspace.rootDir;
+      const candidateFile = qualificationArtifactPath(
+        context.workspace,
+        runId,
+        PRODUCTION_QUALIFICATION_ARTIFACTS.candidate
+      );
+      if (!(0, import_node_fs20.existsSync)(candidateFile)) {
+        throw new SpecBridgeError(
+          "INVALID_ARGUMENT",
+          `No frozen production candidate exists for ${runId}.`,
+          { remediation: [`Run \`${CLI_BIN} orchestrate qualify freeze ${runId}\` before executing qualification gates.`] }
+        );
+      }
+      const candidate = productionCandidateIdentitySchema.parse(
+        JSON.parse((0, import_node_fs20.readFileSync)(candidateFile, "utf8"))
+      );
+      const currentCandidate = collectProductionCandidate(repositoryRoot, runtime.now().toISOString());
+      const evidence = options.evidence === void 0 ? productionQualificationEvidenceFileSchema.parse({}) : productionQualificationEvidenceFileSchema.parse(
+        JSON.parse((0, import_node_fs20.readFileSync)(import_node_path24.default.resolve(options.evidence), "utf8"))
+      );
+      const baseMetrics = emptyProductionQualificationMetrics();
+      const runtimeChanged = candidate.commit !== currentCandidate.commit || candidate.runtimeDigest !== currentCandidate.runtimeDigest || !currentCandidate.sourceTreeClean;
+      const metrics = productionQualificationMetricsSchema.parse({
+        ...baseMetrics,
+        ...evidence.metrics,
+        runtimeMutation: runtimeChanged ? 1 : 0,
+        runtimeStartDigest: candidate.runtimeDigest,
+        runtimeEndDigest: currentCandidate.runtimeDigest,
+        controlPlaneSelfRepairEnabled: context.config.autonomy.controlPlaneRepair.enabled
+      });
+      const baseEnvironment = productionEnvironment(repositoryRoot, candidate);
+      const environment = {
+        ...baseEnvironment,
+        ...evidence.localModel === void 0 ? {} : { localModel: evidence.localModel },
+        ...evidence.deerFlow === void 0 ? {} : { deerFlow: evidence.deerFlow },
+        ...evidence.frontends === void 0 ? {} : { frontends: evidence.frontends }
+      };
+      const manifest = buildProductionQualificationManifest({
+        qualificationRunId: runId,
+        candidate,
+        environment,
+        gates: evidence.gates,
+        historicalFaults: evidence.historicalFaults,
+        metrics,
+        knownLimitations: evidence.knownLimitations,
+        generatedAt: runtime.now().toISOString()
+      });
+      const markdown = renderProductionQualificationMarkdown(manifest);
+      if (options.write !== false) {
+        const manifestFile = qualificationArtifactPath(
+          context.workspace,
+          runId,
+          PRODUCTION_QUALIFICATION_ARTIFACTS.manifest
+        );
+        if ((0, import_node_fs20.existsSync)(manifestFile)) {
+          throw new SpecBridgeError(
+            "INVALID_ARGUMENT",
+            `Production qualification ${runId} was already finalized; its evidence is immutable.`,
+            { remediation: ["Start a new qualification run for a rerun or a changed release candidate."] }
+          );
+        }
+        writeQualificationArtifact(
+          context.workspace,
+          runId,
+          PRODUCTION_QUALIFICATION_ARTIFACTS.manifest,
+          `${JSON.stringify(manifest, null, 2)}
+`
+        );
+        writeQualificationArtifact(
+          context.workspace,
+          runId,
+          PRODUCTION_QUALIFICATION_ARTIFACTS.report,
+          markdown
+        );
+        writeQualificationArtifact(
+          context.workspace,
+          runId,
+          PRODUCTION_QUALIFICATION_ARTIFACTS.decision,
+          `${JSON.stringify(manifest.decision, null, 2)}
+`
+        );
+        writeQualificationArtifact(
+          context.workspace,
+          runId,
+          PRODUCTION_QUALIFICATION_ARTIFACTS.faultCoverage,
+          `${JSON.stringify(manifest.historicalFaults, null, 2)}
+`
+        );
+        if (manifest.marker !== null) {
+          writeQualificationArtifact(
+            context.workspace,
+            runId,
+            PRODUCTION_QUALIFICATION_ARTIFACTS.marker,
+            `${JSON.stringify(manifest.marker, null, 2)}
+`
+          );
+        }
+      }
+      if (options.json === true) {
+        jsonOut5(runtime, "orchestrate-qualify-release", {
+          runId,
+          release: manifest.release,
+          candidate: manifest.candidate,
+          decision: manifest.decision,
+          marker: manifest.marker
+        });
+      } else if (options.markdown === true) {
+        runtime.outRaw(markdown);
+      } else {
+        runtime.out(reportTitle(`Production qualification \u2014 ${manifest.release}`));
+        runtime.out(
+          manifest.decision.status === "READY" ? okLine("  READY \u2014 PRODUCTION_READY marker emitted") : failLine(`  NOT_READY \u2014 ${manifest.decision.blockers.length} blocker(s)`)
+        );
+        for (const gateId of manifest.decision.failedRequiredGateIds) {
+          runtime.out(blockedLine(`  ${gateId}`));
+        }
+        if (options.write !== false) {
+          runtime.out(dim2(`  Final artifacts: .specbridge/qualification/${runId}/reports/`));
+        }
+        runtime.out(dim2("  This command never tags or publishes a release."));
+      }
+      runtime.exitCode = manifest.decision.status === "READY" ? EXIT_CODES.ok : EXIT_CODES.gateFailure;
+    }
+  );
   qualify.command("report").description("Build the DogfoodQualificationReport for one run and write its artifacts").argument("<run-id>", "qualification run id").option("--json", "output the machine-readable summary").option("--markdown", "print the human-readable report to stdout").option("--no-write", "do not persist artifacts into the run directory").action(
     (runId, options) => {
       const workspace = runtime.workspace();

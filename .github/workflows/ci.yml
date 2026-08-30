@@ -45,6 +45,10 @@ jobs:
       - name: Test (compatibility fixtures, round-trip byte identity, CLI, drift, action)
         run: pnpm test
 
+      - name: Phase 10 deterministic release gates (A-T matrix, historical catalog, zero-touch closure)
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 20
+        run: pnpm qualification:vnext-10-2:fast
+
       - name: Large-repository performance suite (informational budgets)
         # Heavy ~9,000-file fixtures: one representative combination is enough,
         # and isolating it keeps the main test run's workers responsive.
