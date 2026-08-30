@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Fixes
+
+- Made repeated spec-intake discovery durably idempotent for implementation-
+  detail facts, so answering several product questions and approving a large
+  intake no longer re-appends the same facts until the mission bound is hit.
+  Oversized fact assessments are now rejected before any records or events
+  are written, preventing a partial facts file from advancing beyond mission
+  state.
+
 ### Production Qualification, Historical Fault Replay & Release Freeze — vNext.10.2 Phase 10
 
 - Added a frozen production candidate identity bound to the exact commit,
