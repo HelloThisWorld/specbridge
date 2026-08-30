@@ -5,9 +5,11 @@ import {
   readContract,
   readDecisions,
   readFacts,
+  readMissionEvents,
   readTurns,
   recordAssessment,
   recordTurn,
+  requireMissionState,
 } from '@specbridge/mission';
 import { setupMissionFixture, startedMission } from '../helpers-mission.js';
 
@@ -165,6 +167,36 @@ describe('decision provenance governance', () => {
 });
 
 describe('fact history', () => {
+  it('rejects an over-capacity fact batch before writing any partial records', () => {
+    const fixture = setupMissionFixture();
+    const { missionId, firstTurnId } = startedMission(fixture);
+    recordAssessment(fixture.deps, missionId, {
+      facts: Array.from({ length: 499 }, (_, index) => ({
+        statement: `Bounded fact ${index + 1}.`,
+        provenance: 'known-from-user' as const,
+        sourceTurnId: firstTurnId,
+      })),
+    });
+    const factsBefore = readFacts(fixture.workspace, missionId);
+    const stateBefore = requireMissionState(fixture.workspace, missionId);
+    const eventsBefore = readMissionEvents(fixture.workspace, missionId, { limit: 2_000 });
+
+    expect(() =>
+      recordAssessment(fixture.deps, missionId, {
+        facts: [
+          { statement: 'Fact 500.', provenance: 'known-from-user', sourceTurnId: firstTurnId },
+          { statement: 'Fact 501.', provenance: 'known-from-user', sourceTurnId: firstTurnId },
+        ],
+      }),
+    ).toThrow(/would exceed.*500-fact bound/i);
+
+    expect(readFacts(fixture.workspace, missionId)).toEqual(factsBefore);
+    expect(requireMissionState(fixture.workspace, missionId)).toEqual(stateBefore);
+    expect(readMissionEvents(fixture.workspace, missionId, { limit: 2_000 })).toEqual(
+      eventsBefore,
+    );
+  });
+
   it('supersession appends; the current view folds; history is preserved', () => {
     const fixture = setupMissionFixture();
     const { missionId, firstTurnId } = startedMission(fixture);

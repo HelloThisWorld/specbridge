@@ -14,13 +14,19 @@ import {
   readApproval,
   readIntakeEvents,
   readProductBaseline,
+  readProjectionMap,
   requireIntakeState,
   recordDerivedApprovals,
   runIntakeDiscovery,
   runSealAndBuild,
   startSpecIntake,
 } from '@specbridge/intake';
-import { readContractRegistry, readDecisions, requireMissionState } from '@specbridge/mission';
+import {
+  readContractRegistry,
+  readDecisions,
+  readFacts,
+  requireMissionState,
+} from '@specbridge/mission';
 import { allAvailableProbeRunner } from '../helpers-autonomy.js';
 import type { IntakeFixture } from '../helpers-intake.js';
 import { goldenSpecText, setupIntakeFixture } from '../helpers-intake.js';
@@ -59,6 +65,44 @@ function readyGoldenIntake(fixture: IntakeFixture): string {
 }
 
 describe('spec intake — the single human approval', () => {
+  it('does not duplicate implementation-detail facts across answers or approval', () => {
+    const fixture = setupIntakeFixture();
+    const implementationNotes = Array.from(
+      { length: 150 },
+      (_, index) =>
+        `- Keep internal helper ${String(index + 1).padStart(3, '0')} in its own implementation file.`,
+    );
+    const started = startSpecIntake(fixture.intake, {
+      name: 'steprelay-workbench-heavy',
+      kind: 'text',
+      content: [goldenSpecText(), '', '## Implementation notes', '', ...implementationNotes].join(
+        '\n',
+      ),
+    });
+    const id = started.intake.intakeId;
+    let discovery = runIntakeDiscovery(fixture.intake, id);
+    for (const question of discovery.questions.filter((candidate) => candidate.status === 'open')) {
+      discovery = answerIntakeQuestion(fixture.intake, id, {
+        questionId: question.questionId,
+        answer: question.options[0] ?? 'The strict reading holds.',
+      }).discovery;
+    }
+    expect(discovery.readiness.ready).toBe(true);
+
+    const beforeApproval = readFacts(fixture.workspace, started.mission.missionId);
+    expect(beforeApproval.length).toBeGreaterThan(120);
+    const detailItemIds = discovery.analysis.items
+      .filter((item) => item.statement.startsWith('Keep internal helper'))
+      .map((item) => item.itemId);
+    const projection = readProjectionMap(fixture.workspace, id);
+    expect(detailItemIds).toHaveLength(150);
+    for (const itemId of detailItemIds) expect(projection.itemFacts[itemId]).toBeDefined();
+
+    approveIntake(fixture.intake, { intakeId: id, via: 'cli' });
+    const afterApproval = readFacts(fixture.workspace, started.mission.missionId);
+    expect(afterApproval).toEqual(beforeApproval);
+  });
+
   it('records ONE immutable authority record binding the canonical result', () => {
     const fixture = setupIntakeFixture();
     const id = readyGoldenIntake(fixture);

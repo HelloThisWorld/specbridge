@@ -44,6 +44,9 @@ import { fixturePath } from '../helpers.js';
  */
 
 const FAKE_LLAMA = fixturePath('fake-llama', 'fake-llama-server.mjs');
+// This end-to-end scenario launches git-backed orchestration work and can be
+// delayed substantially when the Windows CI runner executes the full suite.
+const END_TO_END_DRIVER_TIMEOUT_MS = 120_000;
 
 function virtualClock(startIso: string): { clock: () => Date; advance: (ms: number) => void } {
   let nowMs = Date.parse(startIso);
@@ -263,7 +266,7 @@ describe('quota-aware driver scheduling', () => {
     ]) {
       expect(types).toContain(expected);
     }
-  });
+  }, END_TO_END_DRIVER_TIMEOUT_MS);
 
   it('stops bounded local attempts and escalates to the subscription lane, history preserved', async () => {
     const fixture = quotaFixture({

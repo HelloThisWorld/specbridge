@@ -83,6 +83,8 @@ export interface MissionProjectionMap {
   itemContracts: Record<string, string>;
   /** Delta item id → the decision id recording it. */
   itemDecisions: Record<string, string>;
+  /** Implementation-detail delta item id → the fact id recording it. */
+  itemFacts: Record<string, string>;
   /** Surface → contract id, so a second pass extends rather than duplicates. */
   surfaceContracts: Record<string, string>;
   /** Required topic → the decision id that resolved it. */
@@ -107,6 +109,7 @@ function emptyProjectionMap(): MissionProjectionMap {
   return {
     itemContracts: {},
     itemDecisions: {},
+    itemFacts: {},
     surfaceContracts: {},
     topicDecisions: {},
   };
@@ -130,6 +133,7 @@ export function readProjectionMap(
     return {
       itemContracts: raw.itemContracts ?? {},
       itemDecisions: raw.itemDecisions ?? {},
+      itemFacts: raw.itemFacts ?? {},
       surfaceContracts: raw.surfaceContracts ?? {},
       topicDecisions: raw.topicDecisions ?? {},
       ...(raw.sourceTurnId !== undefined ? { sourceTurnId: raw.sourceTurnId } : {}),
@@ -376,6 +380,7 @@ export function compileMissionTruth(
   const decisions: DecisionInput[] = [];
   const contracts: ContractInput[] = [];
   const compiledItemIds: string[] = [];
+  const compiledFactItemIds: string[] = [];
 
   // --- Facts: what the specification says, before any judgment ------------
   // Recorded once, on the first pass, so the mission carries the ask itself
@@ -392,6 +397,7 @@ export function compileMissionTruth(
       });
     }
   }
+  const sourceFactCount = facts.length;
 
   // --- Decisions and contracts for settled items ---------------------------
   //
@@ -418,8 +424,8 @@ export function compileMissionTruth(
       item.classification !== 'IMPLEMENTATION_DETAIL' &&
       item.classification !== 'EXISTING_CONTRACT_COMPATIBLE';
 
-    if (map.itemDecisions[item.itemId] === undefined) {
-      if (bearsContract && decisions.length < decisionBudget) {
+    if (bearsContract && map.itemDecisions[item.itemId] === undefined) {
+      if (decisions.length < decisionBudget) {
         compiledItemIds.push(item.itemId);
         decisions.push({
           decision: clip(item.statement, INTAKE_LIMITS.maxTextChars),
@@ -428,20 +434,26 @@ export function compileMissionTruth(
           sourceTurnId,
           topics: (item.topics as DiscoveryTopic[]).slice(0, 8),
         });
-      } else if (bearsContract) {
+      } else {
         // Over the bound. Recorded as an overflow rather than dropped
         // silently: the caller turns it into an UNACCOUNTED coverage entry,
         // which holds the intake open and says exactly why.
         overflowItemIds.push(item.itemId);
         continue;
-      } else if (facts.length < FACT_BUDGET) {
-        facts.push({
-          statement: clip(item.statement, INTAKE_LIMITS.maxTextChars),
-          provenance: 'known-from-user',
-          sourceTurnId,
-          topics: (item.topics as DiscoveryTopic[]).slice(0, 8),
-        });
       }
+    }
+    if (
+      !bearsContract &&
+      map.itemFacts[item.itemId] === undefined &&
+      facts.length < FACT_BUDGET
+    ) {
+      compiledFactItemIds.push(item.itemId);
+      facts.push({
+        statement: clip(item.statement, INTAKE_LIMITS.maxTextChars),
+        provenance: 'known-from-user',
+        sourceTurnId,
+        topics: (item.topics as DiscoveryTopic[]).slice(0, 8),
+      });
     }
 
     if (!bearsContract) continue;
@@ -493,6 +505,10 @@ export function compileMissionTruth(
     const itemId = compiledItemIds[index];
     const decisionId = decisionAssessment.decisionIds[index];
     if (itemId !== undefined && decisionId !== undefined) map.itemDecisions[itemId] = decisionId;
+  });
+  compiledFactItemIds.forEach((itemId, index) => {
+    const factId = decisionAssessment.factIds[sourceFactCount + index];
+    if (factId !== undefined) map.itemFacts[itemId] = factId;
   });
   topicDecisionInputs.forEach((_, index) => {
     const topic = resolvedTopics[index];

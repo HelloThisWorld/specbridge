@@ -456,6 +456,18 @@ export function recordAssessment(
   assertDiscoveryOpen(mission, 'a discovery assessment');
   const at = now(deps).toISOString();
 
+  // Capacity is a property of the whole assessment, not of the next append.
+  // Refuse an oversized batch before writing any record or event so callers
+  // never observe a facts file ahead of the persisted mission high-water mark.
+  const incomingFacts = input.facts?.length ?? 0;
+  if (mission.counters.facts + incomingFacts > MISSION_LIMITS.maxFacts) {
+    throw new MissionError(
+      'SBM006',
+      `Recording ${incomingFacts} fact(s) would exceed the mission's ` +
+        `${MISSION_LIMITS.maxFacts}-fact bound (${mission.counters.facts} already recorded).`,
+    );
+  }
+
   const factIds: string[] = [];
   const questionIds: string[] = [];
   const decisionIds: string[] = [];
