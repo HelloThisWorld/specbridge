@@ -23673,8 +23673,8 @@ function isSpecBridgeError(value) {
   return value instanceof SpecBridgeError;
 }
 function ioError(action, targetPath, cause) {
-  const reason2 = cause instanceof Error ? cause.message : String(cause);
-  return new SpecBridgeError("IO_ERROR", `Failed to ${action} ${targetPath}: ${reason2}`, {
+  const reason3 = cause instanceof Error ? cause.message : String(cause);
+  return new SpecBridgeError("IO_ERROR", `Failed to ${action} ${targetPath}: ${reason3}`, {
     path: targetPath
   });
 }
@@ -24621,6 +24621,10 @@ var objectiveParallelismSchema = external_exports.object({
   maxConcurrentBuilders: external_exports.number().int().min(1).max(8).default(3)
 }).passthrough();
 var SEMANTIC_EVALUATION_MODES = ["auto", "always", "disabled"];
+var secondaryBuilderRoutingPolicySchema = external_exports.object({
+  strategy: external_exports.enum(["OFF", "AUTO", "PREFER"]).default("OFF"),
+  maxRepairAttempts: external_exports.number().int().min(0).max(3).default(1)
+}).passthrough();
 var objectivesPolicySchema = external_exports.object({
   enabled: external_exports.boolean().default(true),
   /** Hard ceiling on work units in one objective's graph. */
@@ -24631,6 +24635,8 @@ var objectivesPolicySchema = external_exports.object({
   maxBuilderAttemptsPerUnit: external_exports.number().int().min(1).max(10).default(2),
   builderTimeoutMs: external_exports.number().int().min(6e4).max(24 * 36e5).default(12e5),
   semanticEvaluation: external_exports.enum(SEMANTIC_EVALUATION_MODES).default("auto"),
+  /** Optional Phase 7 Secondary routing; OFF preserves pre-Phase-7 behavior. */
+  secondaryBuilder: secondaryBuilderRoutingPolicySchema.default({}),
   parallelism: objectiveParallelismSchema.default({}),
   /** Serialized size ceiling for one candidate patch artifact. */
   maxCandidateBytes: external_exports.number().int().min(10240).max(2e7).default(2e6),
@@ -32407,8 +32413,8 @@ var throwOnGracefulCancel = ({
 })] : [];
 var sendOnAbort = async ({ subprocess, cancelSignal, forceKillAfterDelay, context, controller: { signal } }) => {
   await onAbortedSignal(cancelSignal, signal);
-  const reason2 = getReason(cancelSignal);
-  await sendAbort(subprocess, reason2);
+  const reason3 = getReason(cancelSignal);
+  await sendAbort(subprocess, reason3);
   killOnTimeout({
     kill: subprocess.kill,
     forceKillAfterDelay,
@@ -32418,13 +32424,13 @@ var sendOnAbort = async ({ subprocess, cancelSignal, forceKillAfterDelay, contex
   context.terminationReason ??= "gracefulCancel";
   throw cancelSignal.reason;
 };
-var getReason = ({ reason: reason2 }) => {
-  if (!(reason2 instanceof DOMException)) {
-    return reason2;
+var getReason = ({ reason: reason3 }) => {
+  if (!(reason3 instanceof DOMException)) {
+    return reason3;
   }
-  const error2 = new Error(reason2.message);
+  const error2 = new Error(reason3.message);
   Object.defineProperty(error2, "stack", {
-    value: reason2.stack,
+    value: reason3.stack,
     enumerable: false,
     configurable: true,
     writable: true
@@ -37403,8 +37409,8 @@ var JsonRpcLineTransport = class {
 function objectParams(params) {
   return params && typeof params === "object" && !Array.isArray(params) ? params : {};
 }
-function abortError(reason2) {
-  return reason2 instanceof Error ? reason2 : /* @__PURE__ */ new Error(`JSON-RPC request aborted: ${String(reason2)}`);
+function abortError(reason3) {
+  return reason3 instanceof Error ? reason3 : /* @__PURE__ */ new Error(`JSON-RPC request aborted: ${String(reason3)}`);
 }
 
 // ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-client@0.1.1-rc.1_teq4kq266b3dkw7rcc6wolnm4y/node_modules/@deepseek-ai/dsh-sdk-client/lib/index.js
@@ -37824,8 +37830,8 @@ var HarnessClient = class {
       setTimeout(resolve2, STREAM_SETTLE_MS);
     })]);
   }
-  closedError(reason2) {
-    const parts = [reason2];
+  closedError(reason3) {
+    const parts = [reason3];
     if (this.spawnError !== void 0) parts.push(`spawn error: ${this.spawnError.message}`);
     if (this.exitCode !== void 0) parts.push(`exit code: ${String(this.exitCode)}`);
     if (this.stderrTail.length > 0) parts.push(`stderr tail:
@@ -38280,10 +38286,10 @@ Generation blocked (mock scenario).
       durationMs: 0,
       warnings: []
     };
-    const failure3 = (outcome, reason2) => ({
+    const failure3 = (outcome, reason3) => ({
       ...base,
       outcome,
-      failureReason: reason2,
+      failureReason: reason3,
       rawStdout: ""
     });
     switch (scenario) {
@@ -41327,18 +41333,18 @@ Your previous response was not a valid structured result. Validation problems: $
       ...result.process !== void 0 ? { process: result.process } : {}
     };
   }
-  capabilityRefusal(started, reason2, remediation) {
+  capabilityRefusal(started, reason3, remediation) {
     return {
       runner: this.name,
       outcome: "failed",
-      failureReason: `the installed Gemini CLI is incompatible with this operation: ${reason2}`,
+      failureReason: `the installed Gemini CLI is incompatible with this operation: ${reason3}`,
       rawStdout: "",
       rawStderr: "",
       durationMs: Math.max(0, Date.now() - started),
       warnings: [],
       error: runnerError({
         code: "runner_incompatible",
-        message: `The installed Gemini CLI lacks required safety capabilities: ${reason2}.`,
+        message: `The installed Gemini CLI lacks required safety capabilities: ${reason3}.`,
         remediation
       })
     };
@@ -43991,11 +43997,11 @@ function collectDshRun(notifications, rootSessionId) {
         collection.nativeCompactionObserved = true;
         break;
       case "turn/end": {
-        const reason2 = event.data["reason"];
-        const kind = isRecord22(reason2) ? reason2["kind"] : void 0;
+        const reason3 = event.data["reason"];
+        const kind = isRecord22(reason3) ? reason3["kind"] : void 0;
         if (kind === "max-tokens") collection.sawMaxTokens = true;
         if (kind === "error" && collection.errors.length < 20) {
-          const failure3 = isRecord22(reason2) ? reason2["error"] : void 0;
+          const failure3 = isRecord22(reason3) ? reason3["error"] : void 0;
           const message2 = isRecord22(failure3) && typeof failure3["message"] === "string" ? failure3["message"] : "turn failed";
           const code2 = isRecord22(failure3) && typeof failure3["code"] === "string" ? ` [${failure3["code"]}]` : "";
           collection.errors.push(boundedPayloadText(`${message2}${code2}`, 500));
@@ -44119,11 +44125,11 @@ function normalizeDshEvents(notifications, rootSessionId, context, fallbackTimes
         push2("turn.started", provider, { turn: tolerantCount2(event.data["turn"]) ?? null }, event.time);
         break;
       case "turn/end": {
-        const reason2 = event.data["reason"];
-        const kind = isRecord22(reason2) && typeof reason2["kind"] === "string" ? reason2["kind"] : "unknown";
+        const reason3 = event.data["reason"];
+        const kind = isRecord22(reason3) && typeof reason3["kind"] === "string" ? reason3["kind"] : "unknown";
         push2("turn.completed", provider, { turn: tolerantCount2(event.data["turn"]) ?? null, reason: kind }, event.time);
         if (kind === "error") {
-          const failure3 = isRecord22(reason2) ? reason2["error"] : void 0;
+          const failure3 = isRecord22(reason3) ? reason3["error"] : void 0;
           push2(
             "error",
             provider,
@@ -45855,7 +45861,7 @@ var LocalModelManager = class {
     this.idleTimer.unref?.();
   }
   /** Stop the managed server and reap the child. Safe to call repeatedly. */
-  async stop(reason2 = "stop requested") {
+  async stop(reason3 = "stop requested") {
     if (this.idleTimer !== void 0) {
       clearTimeout(this.idleTimer);
       this.idleTimer = void 0;
@@ -45875,7 +45881,7 @@ var LocalModelManager = class {
     if (this.currentStatus !== "failed") {
       this.currentStatus = "stopped";
     }
-    this.emit("stopped", reason2);
+    this.emit("stopped", reason3);
   }
 };
 async function requestOnce(request, structuredOutput) {
@@ -49940,8 +49946,8 @@ async function completeInteractiveTask(deps3, request) {
 async function abortInteractiveTask(deps3, request) {
   const clock = deps3.clock ?? systemClock;
   const { workspace } = deps3;
-  const reason2 = request.reason.trim();
-  if (reason2.length === 0) {
+  const reason3 = request.reason.trim();
+  if (reason3.length === 0) {
     return blocked("run-state-invalid", "task_abort requires a non-empty reason.", []);
   }
   const loaded = loadInteractiveRun(workspace, request.runId);
@@ -49964,25 +49970,25 @@ async function abortInteractiveTask(deps3, request) {
     workspace,
     request.runId,
     "abort.json",
-    `${JSON.stringify({ reason: reason2, abortedAt, remainingChangedPaths: remaining }, null, 2)}
+    `${JSON.stringify({ reason: reason3, abortedAt, remainingChangedPaths: remaining }, null, 2)}
 `
   );
   updateRunRecord(workspace, request.runId, {
     lifecycleStatus: "ABORTED",
-    abortReason: reason2,
+    abortReason: reason3,
     outcome: "cancelled",
     finishedAt: abortedAt
   });
   appendRunEvent(workspace, request.runId, {
     at: abortedAt,
     type: "interactive-abort",
-    reason: reason2
+    reason: reason3
   });
   const release = releaseInteractiveLock(workspace, request.runId);
   return {
     kind: "aborted",
     runId: request.runId,
-    reason: reason2,
+    reason: reason3,
     remainingChangedPaths: remaining,
     abortedNow: true,
     lockReleased: release.released
@@ -51396,10 +51402,10 @@ function scanWorkspace(options) {
   const skipped = [];
   const skippedCounts = {};
   let truncated = false;
-  const note = (relativePath, reason2) => {
-    skippedCounts[reason2] = (skippedCounts[reason2] ?? 0) + 1;
+  const note = (relativePath, reason3) => {
+    skippedCounts[reason3] = (skippedCounts[reason3] ?? 0) + 1;
     if (skipped.length < REPOSITORY_INDEX_LIMITS.maxSkippedRecorded) {
-      skipped.push({ path: relativePath, reason: reason2 });
+      skipped.push({ path: relativePath, reason: reason3 });
     }
   };
   const walk = (relativeDir, scopes) => {
@@ -51998,7 +52004,7 @@ function rankCandidates(index, query, options = {}) {
   const excluded = new Set((options.excludedPaths ?? []).map((value) => value.replace(/\\/g, "/")));
   const accumulators = /* @__PURE__ */ new Map();
   const nonMandatoryChanged = /* @__PURE__ */ new Set();
-  const add2 = (relativePath, reason2, score, depth, detail) => {
+  const add2 = (relativePath, reason3, score, depth, detail) => {
     if (score <= 0) return;
     const normalized = relativePath.replace(/\\/g, "/");
     if (excluded.has(normalized)) return;
@@ -52008,15 +52014,15 @@ function rankCandidates(index, query, options = {}) {
     if (existing === void 0) {
       accumulators.set(entry2.path, {
         entry: entry2,
-        signals: [{ reason: reason2, score, ...detail !== void 0 ? { detail } : {} }],
+        signals: [{ reason: reason3, score, ...detail !== void 0 ? { detail } : {} }],
         eligibleAtDepth: depth
       });
       return;
     }
     existing.eligibleAtDepth = Math.min(existing.eligibleAtDepth, depth);
-    const sameReason = existing.signals.find((signal) => signal.reason === reason2);
+    const sameReason = existing.signals.find((signal) => signal.reason === reason3);
     if (sameReason === void 0) {
-      existing.signals.push({ reason: reason2, score, ...detail !== void 0 ? { detail } : {} });
+      existing.signals.push({ reason: reason3, score, ...detail !== void 0 ? { detail } : {} });
     } else if (score > sameReason.score) {
       sameReason.score = score;
       if (detail !== void 0) sameReason.detail = detail;
@@ -52982,11 +52988,11 @@ var contextExpansionStateSchema = external_exports.object({
 }).passthrough();
 function planContextExpansion(input) {
   const currentLevel = input.state.level;
-  const stay = (refusalReason, reason2, returnToReliability = false) => ({
+  const stay = (refusalReason, reason3, returnToReliability = false) => ({
     expand: false,
     nextLevel: currentLevel,
     refusalReason,
-    reason: reason2,
+    reason: reason3,
     returnToReliability
   });
   if (input.strategy !== "PROGRESSIVE") {
@@ -55296,7 +55302,7 @@ function recordAssessment(deps3, missionId, input) {
       affectedSurfaces: assessment.surfaces,
       materiality: assessment.level,
       ...assessment.raisedFrom !== void 0 ? { materialityRaisedFrom: assessment.raisedFrom } : {},
-      materialityReasons: assessment.reasons.slice(0, MISSION_LIMITS.maxListItems).map((reason2) => reason2.slice(0, MISSION_LIMITS.maxTextChars)),
+      materialityReasons: assessment.reasons.slice(0, MISSION_LIMITS.maxListItems).map((reason3) => reason3.slice(0, MISSION_LIMITS.maxTextChars)),
       options: (question.options ?? []).slice(0, 10),
       status: "open",
       ...question.sourceTurnId !== void 0 ? { sourceTurnId: question.sourceTurnId } : {},
@@ -55697,23 +55703,23 @@ function markContractReady(deps3, missionId) {
   }
   return { mission, coverage };
 }
-function reopenDiscovery(deps3, missionId, reason2) {
+function reopenDiscovery(deps3, missionId, reason3) {
   let mission = requireMissionState(deps3.workspace, missionId);
   assertNotFinal(mission);
   if (DISCOVERY_STATUSES.includes(mission.status) && mission.status !== "CONTRACT_READY") {
     return mission;
   }
   mission = transition(deps3, mission, "DISCOVERING");
-  mission = record2(deps3, mission, "status_changed", { reason: reason2.slice(0, 500), reopened: true });
+  mission = record2(deps3, mission, "status_changed", { reason: reason3.slice(0, 500), reopened: true });
   return persist(deps3, mission);
 }
-function abandonMission(deps3, missionId, reason2) {
+function abandonMission(deps3, missionId, reason3) {
   let mission = requireMissionState(deps3.workspace, missionId);
   if (isFinalMissionStatus(mission.status)) return mission;
   const at = now(deps3).toISOString();
   mission = transition(deps3, mission, "ABANDONED");
-  mission = record2(deps3, mission, "mission_abandoned", { reason: reason2.slice(0, 500) });
-  return persist(deps3, { ...mission, abandonedAt: at, abandonReason: reason2.slice(0, MISSION_LIMITS.maxTextChars) });
+  mission = record2(deps3, mission, "mission_abandoned", { reason: reason3.slice(0, 500) });
+  return persist(deps3, { ...mission, abandonedAt: at, abandonReason: reason3.slice(0, MISSION_LIMITS.maxTextChars) });
 }
 function createContractChangeRequest(deps3, missionId, request) {
   let mission = requireMissionState(deps3.workspace, missionId);
@@ -57229,20 +57235,20 @@ function assessProgress(input) {
   const progressed = !identical && input.next.result !== "no-change";
   const consecutive = progressed ? 0 : input.consecutiveNoProgress + 1;
   const stagnated = consecutive >= input.maxNoProgressCycles;
-  let reason2;
+  let reason3;
   if (progressed) {
-    reason2 = "The observation differs from the previous one; the run advanced.";
+    reason3 = "The observation differs from the previous one; the run advanced.";
   } else if (identical) {
-    reason2 = "The action category, plan revision, failure identity, and working tree are all unchanged since the previous observation \u2014 the same approach produced the same result.";
+    reason3 = "The action category, plan revision, failure identity, and working tree are all unchanged since the previous observation \u2014 the same approach produced the same result.";
   } else {
-    reason2 = "The action produced no observable change.";
+    reason3 = "The action produced no observable change.";
   }
-  return { progressed, consecutiveNoProgress: consecutive, stagnated, reason: reason2 };
+  return { progressed, consecutiveNoProgress: consecutive, stagnated, reason: reason3 };
 }
-function budgetStop(budget, reason2, remediation) {
+function budgetStop(budget, reason3, remediation) {
   return {
     directive: "STOP_BUDGET_EXHAUSTED",
-    reason: reason2,
+    reason: reason3,
     backoffMs: 0,
     failureCategory: "BUDGET_EXHAUSTED",
     remediation,
@@ -60665,7 +60671,7 @@ function selectWorker(input) {
     "COMPETING_PLANS_DIVERGED",
     "CONTEXT_LIMIT_EXCEEDED"
   ];
-  const sticky = input.nodeEscalations.find((reason2) => STICKY_REASONS.includes(reason2));
+  const sticky = input.nodeEscalations.find((reason3) => STICKY_REASONS.includes(reason3));
   if (sticky !== void 0 && large !== void 0) {
     return {
       worker: large,
@@ -61642,6 +61648,25 @@ function scheduleNext(input) {
   if (scheduling !== void 0 && scheduling.policy.enabled && laneRouting !== void 0) {
     const routing = laneRouting.routing;
     if (routing.lane === "DEFER" || routing.lane === "REQUIRE_APPROVAL") {
+      if (routing.lane === "DEFER" && scheduling.resourceAwareObjectiveNodes?.has(node.nodeId) === true) {
+        const controller = selectWorker({
+          role: "EXECUTOR",
+          complexity: node.complexity,
+          policy,
+          workers,
+          nodeEscalations: escalations
+        });
+        return {
+          kind: "DISPATCH_EXECUTOR",
+          nodeId: node.nodeId,
+          taskId: node.parentTaskId,
+          worker: controller.worker,
+          mode,
+          compactFirst: false,
+          objectiveResourceController: true,
+          reason: `${baseReason} Strong is quota-deferred, so the Objective resource controller searches the bounded READY WorkUnit set for permitted Secondary or research work.`
+        };
+      }
       return {
         kind: "WAIT_QUOTA",
         nodeId: node.nodeId,
@@ -61798,6 +61823,19 @@ var optionalText2 = external_exports.string().max(OBJECTIVE_LIMITS.maxTextChars)
 var textList22 = external_exports.array(text3).max(OBJECTIVE_LIMITS.maxListItems);
 var idList2 = external_exports.array(shortText32).max(OBJECTIVE_LIMITS.maxListItems);
 var semver2 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
+var workUnitResourceWaitSchema = external_exports.object({
+  reason: external_exports.literal("RESOURCE_COOLDOWN"),
+  resourceClass: external_exports.literal("STRONG_SUBSCRIPTION"),
+  availability: external_exports.enum(["QUOTA_EXHAUSTED", "COOLDOWN", "RATE_LIMITED"]),
+  since: shortText32,
+  lastObservedAt: shortText32,
+  /** Provider/telemetry reset instant when known; absence remains unknown. */
+  wakeAt: shortText32.optional(),
+  /** Phase 7 content identity, when routing admission produced one. */
+  routingWorkIdentity: shortText32.optional(),
+  /** Sticky Secondary→Strong handoff is pending for this identity. */
+  fallbackPending: external_exports.boolean().default(false)
+}).strict();
 var workUnitSchema = external_exports.object({
   workUnitId: shortText32,
   /** The objective (job graph node) this unit belongs to. */
@@ -61828,6 +61866,8 @@ var workUnitSchema = external_exports.object({
   candidateRef: shortText32.optional(),
   /** Evaluation record references, oldest first. */
   evaluationRefs: idList2.default([]),
+  /** Recoverable resource gating; the unit itself remains READY. */
+  resourceWait: workUnitResourceWaitSchema.optional(),
   latestFailure: external_exports.object({
     category: external_exports.enum(FAILURE_CATEGORIES),
     message: text3,
@@ -62494,9 +62534,9 @@ async function dispatchLocalExecution(input) {
     );
   }
   input.onProgress?.(`local executor: run ${begin.runId} started for task ${begin.task.id}`);
-  const abort = async (reason2) => {
+  const abort = async (reason3) => {
     try {
-      await abortInteractiveTask(deps3, { runId: begin.runId, reason: reason2.slice(0, 500) });
+      await abortInteractiveTask(deps3, { runId: begin.runId, reason: reason3.slice(0, 500) });
     } catch {
     }
   };
@@ -63945,6 +63985,664 @@ function summarizeWorkReadiness(records, generatedAt = (/* @__PURE__ */ new Date
     generatedAt
   });
 }
+var BUILDER_ROUTING_DECISION_SCHEMA_VERSION = "1.0.0";
+var BUILDER_ROUTING_STATE_SCHEMA_VERSION = "1.0.0";
+var BUILDER_ROUTING_TELEMETRY_SCHEMA_VERSION = "1.0.0";
+var SECONDARY_BUILD_STRATEGIES = ["OFF", "AUTO", "PREFER"];
+var SECONDARY_AVAILABILITY_STATUSES = [
+  "AVAILABLE",
+  "UNAVAILABLE",
+  "MISCONFIGURED",
+  "UNHEALTHY",
+  "START_FAILED",
+  "TIMEOUT"
+];
+var BUILDER_ROUTING_BACKENDS = [
+  "SECONDARY",
+  "STRONG",
+  "RESEARCH",
+  "AUTHORITY",
+  "CONTEXT_RECOVERY",
+  "WAIT"
+];
+var BUILDER_ROUTING_REASON_CODES = [
+  "SECONDARY_ELIGIBLE",
+  "SECONDARY_PREFERRED_POLICY",
+  "SECONDARY_AUTO_POLICY",
+  "SECONDARY_AVAILABLE",
+  "SECONDARY_UNAVAILABLE",
+  "EXPLICIT_SECONDARY_SELECTION",
+  "STRATEGY_OFF",
+  "STRONG_REQUIRED",
+  "RESEARCH_REQUIRED",
+  "AUTHORITY_REQUIRED",
+  "CONTEXT_RECOVERY_REQUIRED",
+  "DEPENDENCY_NOT_READY",
+  "SUBSCRIPTION_CONSERVE",
+  "SUBSCRIPTION_HARVEST",
+  "SUBSCRIPTION_EXHAUSTED",
+  "CRITICAL_WORK_PREFERS_STRONG",
+  "SECONDARY_REPAIR_EXHAUSTED",
+  "SECONDARY_NO_PROGRESS",
+  "SECONDARY_VERIFICATION_FAILED",
+  "SECONDARY_RESOURCE_FAILURE",
+  "PRIOR_CANDIDATE_REPLAY_FAILED",
+  "STRONG_FALLBACK"
+];
+var shortText6 = external_exports.string().min(1).max(512);
+var boundedText3 = external_exports.string().min(1).max(2e3);
+var sha2563 = external_exports.string().regex(/^[a-f0-9]{64}$/);
+var builderRoutingReasonSchema = external_exports.object({
+  code: external_exports.enum(BUILDER_ROUTING_REASON_CODES),
+  message: boundedText3,
+  evidenceRefs: external_exports.array(shortText6).max(30).default([])
+}).strict();
+var secondaryAvailabilitySchema = external_exports.object({
+  status: external_exports.enum(SECONDARY_AVAILABILITY_STATUSES),
+  detail: boundedText3
+}).strict();
+var builderRoutingDecisionSchema = external_exports.object({
+  schemaVersion: external_exports.literal(BUILDER_ROUTING_DECISION_SCHEMA_VERSION),
+  decisionId: shortText6,
+  jobId: shortText6,
+  objectiveNodeId: shortText6,
+  workUnitId: shortText6,
+  workUnitAttempt: external_exports.number().int().min(1),
+  workIdentity: sha2563,
+  strategy: external_exports.enum(SECONDARY_BUILD_STRATEGIES),
+  eligibility: external_exports.enum([
+    "ELIGIBLE",
+    "STRONG_REQUIRED",
+    "NEEDS_RESEARCH",
+    "NEEDS_AUTHORITY",
+    "NEEDS_CONTEXT",
+    "NOT_READY"
+  ]),
+  selectedBackend: external_exports.enum(BUILDER_ROUTING_BACKENDS),
+  reasons: external_exports.array(builderRoutingReasonSchema).min(1).max(30),
+  secondaryAvailability: external_exports.enum(SECONDARY_AVAILABILITY_STATUSES),
+  quotaState: shortText6.optional(),
+  assessmentRef: shortText6,
+  assessmentHash: sha2563,
+  decidedAt: shortText6,
+  contentHash: sha2563
+}).strict();
+var BUILDER_ATTEMPT_KINDS = [
+  "SECONDARY",
+  "SECONDARY_REPAIR",
+  "STRONG",
+  "STRONG_FALLBACK"
+];
+var BUILDER_ATTEMPT_OUTCOMES = [
+  "CANDIDATE_READY",
+  "SUCCEEDED",
+  "FAILED_VERIFICATION",
+  "FAILED_IMPLEMENTATION",
+  "FAILED_RESOURCE",
+  "FAILED_OUTPUT",
+  "CANCELLED"
+];
+var builderRoutingAttemptSchema = external_exports.object({
+  attemptId: shortText6,
+  sequence: external_exports.number().int().min(1),
+  workUnitAttempt: external_exports.number().int().min(1),
+  kind: external_exports.enum(BUILDER_ATTEMPT_KINDS),
+  outcome: external_exports.enum(BUILDER_ATTEMPT_OUTCOMES),
+  candidateRef: shortText6.optional(),
+  patchRef: shortText6.optional(),
+  changedFiles: external_exports.array(shortText6).max(500).default([]),
+  packetHash: sha2563.optional(),
+  verificationSummary: external_exports.array(boundedText3).max(30).default([]),
+  failureSummary: boundedText3.optional(),
+  problemFingerprint: sha2563.optional(),
+  candidatePatchHash: sha2563.optional(),
+  noProgress: external_exports.boolean().default(false),
+  durationMs: external_exports.number().int().min(0).optional(),
+  inputTokens: external_exports.number().int().min(0).nullable().optional(),
+  outputTokens: external_exports.number().int().min(0).nullable().optional(),
+  startedAt: shortText6,
+  completedAt: shortText6
+}).strict();
+var builderRoutingStateSchema = external_exports.object({
+  schemaVersion: external_exports.literal(BUILDER_ROUTING_STATE_SCHEMA_VERSION),
+  jobId: shortText6,
+  objectiveNodeId: shortText6,
+  workUnitId: shortText6,
+  workIdentity: sha2563,
+  strategy: external_exports.enum(SECONDARY_BUILD_STRATEGIES),
+  initialEligibility: external_exports.enum([
+    "ELIGIBLE",
+    "STRONG_REQUIRED",
+    "NEEDS_RESEARCH",
+    "NEEDS_AUTHORITY",
+    "NEEDS_CONTEXT",
+    "NOT_READY"
+  ]),
+  decisions: external_exports.array(builderRoutingDecisionSchema).max(30),
+  attempts: external_exports.array(builderRoutingAttemptSchema).max(12),
+  repairAttemptsUsed: external_exports.number().int().min(0).max(10),
+  maxRepairAttempts: external_exports.number().int().min(0).max(10),
+  escalationStatus: external_exports.enum(["NONE", "STRONG_FALLBACK_REQUIRED", "COMPLETE", "FAILED"]),
+  finalBackend: external_exports.enum(["SECONDARY", "STRONG"]).optional(),
+  createdAt: shortText6,
+  updatedAt: shortText6,
+  contentHash: sha2563
+}).strict();
+var routingCountsSchema = external_exports.record(external_exports.string(), external_exports.number().int().min(0));
+var builderRoutingTelemetrySchema = external_exports.object({
+  schemaVersion: external_exports.literal(BUILDER_ROUTING_TELEMETRY_SCHEMA_VERSION),
+  eligibleImplementationUnits: external_exports.number().int().min(0),
+  eligibleCompletedUnits: external_exports.number().int().min(0),
+  eligibleCompletedWithoutStrong: external_exports.number().int().min(0),
+  strongBuilderAvoidanceRatio: external_exports.number().min(0).max(1).nullable(),
+  outcomeCounts: routingCountsSchema,
+  routeCounts: routingCountsSchema,
+  repairAttempts: external_exports.number().int().min(0),
+  secondaryInputTokens: external_exports.number().int().min(0).nullable(),
+  secondaryOutputTokens: external_exports.number().int().min(0).nullable(),
+  secondaryLatencyMs: external_exports.number().int().min(0),
+  generatedAt: shortText6
+}).strict();
+function stableValue2(value) {
+  if (Array.isArray(value)) return value.map(stableValue2);
+  if (value !== null && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).filter(([, entry2]) => entry2 !== void 0).sort(([left], [right]) => left.localeCompare(right, "en")).map(([key, entry2]) => [key, stableValue2(entry2)])
+    );
+  }
+  return value;
+}
+function stableStringify3(value) {
+  return JSON.stringify(stableValue2(value));
+}
+function stateHash(state) {
+  const { createdAt: _createdAt, updatedAt: _updatedAt, ...semantic } = state;
+  return sha256Hex(stableStringify3(semantic));
+}
+function buildBuilderRoutingWorkIdentity(input) {
+  const identity3 = input.assessment.inputIdentity;
+  return sha256Hex(stableStringify3({
+    workUnitHash: identity3.workUnitHash,
+    contractSnapshotHash: input.packet?.contractSnapshotHash ?? null,
+    researchEvidenceHash: identity3.researchEvidenceHash,
+    verificationPolicyHash: identity3.verificationPolicyHash,
+    dependencyStateHash: identity3.dependencyStateHash,
+    targets: input.packet?.targets.map((target) => ({
+      repositoryId: target.repositoryId,
+      path: target.path,
+      symbols: target.symbols
+    })) ?? []
+  }));
+}
+function reason2(code2, message2, evidenceRefs = []) {
+  return builderRoutingReasonSchema.parse({ code: code2, message: message2, evidenceRefs: [...evidenceRefs].slice(0, 30) });
+}
+function decisionHash(decision) {
+  const { decidedAt: _decidedAt, ...semantic } = decision;
+  return sha256Hex(stableStringify3(semantic));
+}
+function decideBuilderRouting(input) {
+  const eligibility = input.decision.status;
+  const reasons = [];
+  let selectedBackend;
+  if (eligibility === "NEEDS_RESEARCH") {
+    selectedBackend = "RESEARCH";
+    reasons.push(reason2("RESEARCH_REQUIRED", "External knowledge must be resolved before implementation."));
+  } else if (eligibility === "NEEDS_AUTHORITY") {
+    selectedBackend = "AUTHORITY";
+    reasons.push(reason2("AUTHORITY_REQUIRED", "Human or approved-contract authority is required before implementation."));
+  } else if (eligibility === "NEEDS_CONTEXT") {
+    selectedBackend = "CONTEXT_RECOVERY";
+    reasons.push(reason2("CONTEXT_RECOVERY_REQUIRED", "Bounded context recovery must run before implementation."));
+  } else if (eligibility === "NOT_READY") {
+    selectedBackend = "WAIT";
+    reasons.push(reason2("DEPENDENCY_NOT_READY", "Dependencies or durable state are not ready; no builder tokens are spent."));
+  } else if (eligibility === "STRONG_REQUIRED") {
+    selectedBackend = "STRONG";
+    reasons.push(reason2("STRONG_REQUIRED", "Phase 6 requires Strong reasoning for this WorkUnit."));
+  } else {
+    reasons.push(reason2("SECONDARY_ELIGIBLE", "Phase 6 admits this WorkUnit to Secondary routing."));
+    const prior = input.priorState?.workIdentity === input.workIdentity ? input.priorState : void 0;
+    const last = prior?.attempts.at(-1);
+    const stickyStrong = prior?.escalationStatus === "STRONG_FALLBACK_REQUIRED" || prior?.escalationStatus === "FAILED" || prior?.attempts.some((attempt) => attempt.kind === "STRONG_FALLBACK") === true;
+    if (input.forceStrongReason !== void 0) {
+      selectedBackend = "STRONG";
+      reasons.push(reason2("PRIOR_CANDIDATE_REPLAY_FAILED", input.forceStrongReason.slice(0, 2e3)));
+      reasons.push(reason2("STRONG_FALLBACK", "Strong receives the preserved patch as evidence and reconciles it explicitly."));
+    } else if (stickyStrong) {
+      selectedBackend = "STRONG";
+      reasons.push(reason2(
+        last?.noProgress === true ? "SECONDARY_NO_PROGRESS" : "SECONDARY_REPAIR_EXHAUSTED",
+        last?.noProgress === true ? "Secondary repeated the same problem for this content identity." : "The bounded Secondary repair budget is exhausted for this content identity."
+      ));
+      reasons.push(reason2("STRONG_FALLBACK", "Strong continues from the preserved Secondary candidate and failure evidence."));
+    } else if (input.explicitSecondarySelection === true) {
+      if (input.availability.status === "AVAILABLE") {
+        selectedBackend = "SECONDARY";
+        reasons.push(reason2("EXPLICIT_SECONDARY_SELECTION", "The caller explicitly selected Secondary for qualification or controlled execution."));
+        reasons.push(reason2("SECONDARY_AVAILABLE", input.availability.detail));
+      } else {
+        selectedBackend = "STRONG";
+        reasons.push(reason2("SECONDARY_UNAVAILABLE", input.availability.detail));
+        reasons.push(reason2("STRONG_FALLBACK", "Optional Secondary is unavailable; Strong remains the runnable builder."));
+      }
+    } else if (input.strategy === "OFF") {
+      selectedBackend = "STRONG";
+      reasons.push(reason2("STRATEGY_OFF", "Automatic Secondary execution is disabled."));
+    } else if (input.availability.status !== "AVAILABLE") {
+      selectedBackend = "STRONG";
+      reasons.push(reason2("SECONDARY_UNAVAILABLE", input.availability.detail));
+      reasons.push(reason2("STRONG_FALLBACK", "Optional Secondary is unavailable; Strong remains the runnable builder."));
+    } else if (input.strategy === "PREFER") {
+      selectedBackend = "SECONDARY";
+      reasons.push(reason2("SECONDARY_PREFERRED_POLICY", "PREFER routes eligible work to a usable Secondary first."));
+      reasons.push(reason2("SECONDARY_AVAILABLE", input.availability.detail));
+    } else if (input.schedulerMode === "HARVEST") {
+      selectedBackend = "STRONG";
+      reasons.push(reason2("SUBSCRIPTION_HARVEST", "HARVEST uses prepaid Strong capacity that would otherwise expire."));
+    } else if (input.critical === true) {
+      selectedBackend = "STRONG";
+      reasons.push(reason2("CRITICAL_WORK_PREFERS_STRONG", "Existing criticality policy prefers Strong execution."));
+    } else {
+      selectedBackend = "SECONDARY";
+      reasons.push(reason2("SECONDARY_AUTO_POLICY", "AUTO selected Secondary from current deterministic scheduler facts."));
+      reasons.push(reason2("SECONDARY_AVAILABLE", input.availability.detail));
+      if (input.schedulerMode === "CONSERVE") {
+        reasons.push(reason2("SUBSCRIPTION_CONSERVE", "CONSERVE protects scarce prepaid Strong capacity."));
+      } else if (input.schedulerMode === "EXHAUSTED_5H" || input.schedulerMode === "EXHAUSTED_WEEKLY") {
+        reasons.push(reason2("SUBSCRIPTION_EXHAUSTED", "Prepaid Strong capacity is exhausted; eligible local work remains runnable."));
+      }
+    }
+  }
+  const base = {
+    schemaVersion: BUILDER_ROUTING_DECISION_SCHEMA_VERSION,
+    decisionId: `${input.decision.workUnitId}-a${String(input.decision.attempt).padStart(2, "0")}-route`,
+    jobId: input.decision.jobId,
+    objectiveNodeId: input.decision.objectiveNodeId,
+    workUnitId: input.decision.workUnitId,
+    workUnitAttempt: input.decision.attempt,
+    workIdentity: input.workIdentity,
+    strategy: input.strategy,
+    eligibility,
+    selectedBackend,
+    reasons,
+    secondaryAvailability: input.availability.status,
+    ...input.schedulerMode !== void 0 ? { quotaState: input.schedulerMode } : {},
+    assessmentRef: input.decision.assessmentRef,
+    assessmentHash: input.decision.assessmentHash,
+    decidedAt: input.decidedAt
+  };
+  return builderRoutingDecisionSchema.parse({ ...base, contentHash: decisionHash(base) });
+}
+function recordBuilderRoutingDecision(input) {
+  const same = input.prior?.workIdentity === input.decision.workIdentity ? input.prior : void 0;
+  const base = {
+    schemaVersion: BUILDER_ROUTING_STATE_SCHEMA_VERSION,
+    jobId: input.decision.jobId,
+    objectiveNodeId: input.decision.objectiveNodeId,
+    workUnitId: input.decision.workUnitId,
+    workIdentity: input.decision.workIdentity,
+    strategy: input.decision.strategy,
+    initialEligibility: same?.initialEligibility ?? input.decision.eligibility,
+    decisions: [...same?.decisions ?? [], input.decision].slice(-30),
+    attempts: same?.attempts ?? [],
+    repairAttemptsUsed: same?.repairAttemptsUsed ?? 0,
+    maxRepairAttempts: input.maxRepairAttempts,
+    escalationStatus: same?.escalationStatus ?? "NONE",
+    ...same?.finalBackend !== void 0 ? { finalBackend: same.finalBackend } : {},
+    createdAt: same?.createdAt ?? input.at,
+    updatedAt: input.at
+  };
+  return builderRoutingStateSchema.parse({ ...base, contentHash: stateHash(base) });
+}
+function builderAttemptKindFor(decision, state) {
+  if (decision.selectedBackend === "SECONDARY") {
+    const ranSecondary = state.attempts.some((attempt) => (attempt.kind === "SECONDARY" || attempt.kind === "SECONDARY_REPAIR") && attempt.outcome !== "FAILED_RESOURCE" && attempt.outcome !== "CANCELLED");
+    return ranSecondary ? "SECONDARY_REPAIR" : "SECONDARY";
+  }
+  const hasSecondaryEvidence = state.attempts.some((attempt) => attempt.kind === "SECONDARY" || attempt.kind === "SECONDARY_REPAIR");
+  return hasSecondaryEvidence ? "STRONG_FALLBACK" : "STRONG";
+}
+function builderProblemFingerprint(input) {
+  const candidatePatchHash = input.candidatePatch === void 0 ? void 0 : sha256Hex(input.candidatePatch.replace(/\r\n/g, "\n").trim());
+  return {
+    problemFingerprint: sha256Hex(stableStringify3({
+      failureKind: input.failureKind,
+      verificationSummary: [...input.verificationSummary ?? []],
+      candidatePatchHash: candidatePatchHash ?? null
+    })),
+    ...candidatePatchHash !== void 0 ? { candidatePatchHash } : {}
+  };
+}
+function appendBuilderRoutingAttempt(state, attemptInput) {
+  const previousFingerprints = new Set(
+    state.attempts.filter((entry2) => entry2.kind === "SECONDARY" || entry2.kind === "SECONDARY_REPAIR").map((entry2) => entry2.problemFingerprint).filter((entry2) => entry2 !== void 0)
+  );
+  const noProgress = attemptInput.problemFingerprint !== void 0 && previousFingerprints.has(attemptInput.problemFingerprint);
+  const attempt = builderRoutingAttemptSchema.parse({
+    ...attemptInput,
+    sequence: state.attempts.length + 1,
+    noProgress
+  });
+  const attempts = [...state.attempts, attempt].slice(-12);
+  const repairAttemptsUsed = attempts.filter((entry2) => entry2.kind === "SECONDARY_REPAIR" && entry2.outcome !== "FAILED_RESOURCE" && entry2.outcome !== "CANCELLED").length;
+  const passed = attempt.outcome === "SUCCEEDED";
+  const secondaryFailure = (attempt.kind === "SECONDARY" || attempt.kind === "SECONDARY_REPAIR") && attempt.outcome !== "CANDIDATE_READY" && attempt.outcome !== "SUCCEEDED" && attempt.outcome !== "CANCELLED";
+  const requiresStrong = secondaryFailure && (attempt.outcome === "FAILED_RESOURCE" || attempt.noProgress || repairAttemptsUsed >= state.maxRepairAttempts);
+  const escalationStatus = passed ? "COMPLETE" : requiresStrong ? "STRONG_FALLBACK_REQUIRED" : attempt.kind === "STRONG" || attempt.kind === "STRONG_FALLBACK" ? "FAILED" : "NONE";
+  const base = {
+    ...state,
+    attempts,
+    repairAttemptsUsed,
+    escalationStatus,
+    ...passed ? { finalBackend: attempt.kind === "SECONDARY" || attempt.kind === "SECONDARY_REPAIR" ? "SECONDARY" : "STRONG" } : {},
+    updatedAt: attempt.completedAt
+  };
+  const { contentHash: _contentHash, ...withoutHash } = base;
+  return builderRoutingStateSchema.parse({ ...withoutHash, contentHash: stateHash(withoutHash) });
+}
+function finalizeBuilderRoutingAttempt(input) {
+  const index = input.state.attempts.findIndex((attempt) => attempt.workUnitAttempt === input.workUnitAttempt && attempt.kind === input.kind);
+  if (index < 0) return input.state;
+  const attempts = input.state.attempts.map((attempt, attemptIndex) => {
+    if (attemptIndex !== index) return attempt;
+    return builderRoutingAttemptSchema.parse({
+      ...attempt,
+      outcome: input.outcome,
+      ...input.failureSummary !== void 0 ? { failureSummary: input.failureSummary.slice(0, 2e3) } : {},
+      ...input.verificationSummary !== void 0 ? { verificationSummary: [...input.verificationSummary].map((entry2) => entry2.slice(0, 2e3)).slice(0, 30) } : {},
+      ...input.problemFingerprint !== void 0 ? { problemFingerprint: input.problemFingerprint } : {},
+      ...input.candidatePatchHash !== void 0 ? { candidatePatchHash: input.candidatePatchHash } : {},
+      completedAt: input.completedAt
+    });
+  });
+  const updatedAttempt = attempts[index];
+  const repairAttemptsUsed = attempts.filter((entry2) => entry2.kind === "SECONDARY_REPAIR" && entry2.outcome !== "FAILED_RESOURCE" && entry2.outcome !== "CANCELLED").length;
+  const previousFingerprints = new Set(
+    attempts.slice(0, index).filter((entry2) => entry2.kind === "SECONDARY" || entry2.kind === "SECONDARY_REPAIR").map((entry2) => entry2.problemFingerprint).filter((entry2) => entry2 !== void 0)
+  );
+  const noProgress = updatedAttempt.problemFingerprint !== void 0 && previousFingerprints.has(updatedAttempt.problemFingerprint);
+  attempts[index] = builderRoutingAttemptSchema.parse({ ...updatedAttempt, noProgress });
+  const secondaryFailure = (input.kind === "SECONDARY" || input.kind === "SECONDARY_REPAIR") && input.outcome !== "SUCCEEDED" && input.outcome !== "CANCELLED";
+  const requiresStrong = secondaryFailure && (input.outcome === "FAILED_RESOURCE" || noProgress || repairAttemptsUsed >= input.state.maxRepairAttempts);
+  const escalationStatus = input.outcome === "SUCCEEDED" ? "COMPLETE" : requiresStrong ? "STRONG_FALLBACK_REQUIRED" : input.kind === "STRONG" || input.kind === "STRONG_FALLBACK" ? "FAILED" : "NONE";
+  const base = {
+    ...input.state,
+    attempts,
+    repairAttemptsUsed,
+    escalationStatus,
+    ...input.outcome === "SUCCEEDED" ? { finalBackend: input.kind === "SECONDARY" || input.kind === "SECONDARY_REPAIR" ? "SECONDARY" : "STRONG" } : {},
+    updatedAt: input.completedAt
+  };
+  const { contentHash: _contentHash, ...withoutHash } = base;
+  return builderRoutingStateSchema.parse({ ...withoutHash, contentHash: stateHash(withoutHash) });
+}
+function summarizeBuilderRouting(states, generatedAt) {
+  const current = [...states].sort((left, right) => left.updatedAt.localeCompare(right.updatedAt));
+  const eligible = current.filter((state) => state.initialEligibility === "ELIGIBLE");
+  const completed = eligible.filter((state) => state.escalationStatus === "COMPLETE");
+  const withoutStrong = completed.filter((state) => !state.attempts.some((attempt) => attempt.kind === "STRONG" || attempt.kind === "STRONG_FALLBACK"));
+  const outcomeCounts = {
+    SecondaryEligible: eligible.length,
+    SecondarySelected: 0,
+    SecondaryInitialPass: 0,
+    SecondaryRepairPass: 0,
+    SecondaryToStrongFallback: 0,
+    StrongRequiredDirect: 0,
+    SecondaryUnavailableFallback: 0,
+    NoModelNeeded: 0
+  };
+  const routeCounts = {};
+  let secondaryInputTokens = 0;
+  let secondaryOutputTokens = 0;
+  let inputTokensObserved = false;
+  let outputTokensObserved = false;
+  let secondaryLatencyMs = 0;
+  for (const state of current) {
+    for (const decision of state.decisions) {
+      routeCounts[decision.selectedBackend] = (routeCounts[decision.selectedBackend] ?? 0) + 1;
+      if (decision.selectedBackend === "SECONDARY") outcomeCounts["SecondarySelected"] += 1;
+      if (decision.eligibility === "STRONG_REQUIRED" && decision.selectedBackend === "STRONG") {
+        outcomeCounts["StrongRequiredDirect"] += 1;
+      }
+      if (decision.selectedBackend === "STRONG" && decision.reasons.some((entry2) => entry2.code === "SECONDARY_UNAVAILABLE")) {
+        outcomeCounts["SecondaryUnavailableFallback"] += 1;
+      }
+      if (["RESEARCH", "AUTHORITY", "CONTEXT_RECOVERY", "WAIT"].includes(decision.selectedBackend)) {
+        outcomeCounts["NoModelNeeded"] += 1;
+      }
+    }
+    for (const attempt of state.attempts) {
+      if (attempt.kind === "SECONDARY" && attempt.outcome === "SUCCEEDED") outcomeCounts["SecondaryInitialPass"] += 1;
+      if (attempt.kind === "SECONDARY_REPAIR" && attempt.outcome === "SUCCEEDED") outcomeCounts["SecondaryRepairPass"] += 1;
+      if (attempt.kind === "STRONG_FALLBACK") outcomeCounts["SecondaryToStrongFallback"] += 1;
+      if (attempt.kind === "SECONDARY" || attempt.kind === "SECONDARY_REPAIR") {
+        secondaryLatencyMs += attempt.durationMs ?? 0;
+        if (attempt.inputTokens !== void 0 && attempt.inputTokens !== null) {
+          inputTokensObserved = true;
+          secondaryInputTokens += attempt.inputTokens;
+        }
+        if (attempt.outputTokens !== void 0 && attempt.outputTokens !== null) {
+          outputTokensObserved = true;
+          secondaryOutputTokens += attempt.outputTokens;
+        }
+      }
+    }
+  }
+  return builderRoutingTelemetrySchema.parse({
+    schemaVersion: BUILDER_ROUTING_TELEMETRY_SCHEMA_VERSION,
+    eligibleImplementationUnits: eligible.length,
+    eligibleCompletedUnits: completed.length,
+    eligibleCompletedWithoutStrong: withoutStrong.length,
+    strongBuilderAvoidanceRatio: completed.length === 0 ? null : withoutStrong.length / completed.length,
+    outcomeCounts,
+    routeCounts,
+    repairAttempts: current.reduce((sum, state) => sum + state.repairAttemptsUsed, 0),
+    secondaryInputTokens: inputTokensObserved ? secondaryInputTokens : null,
+    secondaryOutputTokens: outputTokensObserved ? secondaryOutputTokens : null,
+    secondaryLatencyMs,
+    generatedAt
+  });
+}
+var OBJECTIVE_COOLDOWN_STATE_SCHEMA_VERSION = "1.0.0";
+var STRONG_RESOURCE_AVAILABILITIES = [
+  "AVAILABLE",
+  "QUOTA_EXHAUSTED",
+  "COOLDOWN",
+  "RATE_LIMITED"
+];
+var shortText7 = external_exports.string().min(1).max(512);
+var idList22 = external_exports.array(shortText7).max(30);
+var sha2564 = external_exports.string().regex(/^[a-f0-9]{64}$/);
+var strongResourceSnapshotSchema = external_exports.object({
+  resourceClass: external_exports.literal("STRONG_SUBSCRIPTION"),
+  /** Narrowest trustworthy identity available without introducing ModelTarget. */
+  resourceIdentity: shortText7,
+  availability: external_exports.enum(STRONG_RESOURCE_AVAILABILITIES),
+  observedAt: shortText7,
+  wakeAt: shortText7.optional(),
+  detail: external_exports.string().min(1).max(2e3)
+}).strict();
+var objectiveCooldownStateSchema = external_exports.object({
+  schemaVersion: external_exports.literal(OBJECTIVE_COOLDOWN_STATE_SCHEMA_VERSION),
+  jobId: shortText7,
+  objectiveNodeId: shortText7,
+  resourceClass: external_exports.literal("STRONG_SUBSCRIPTION"),
+  resourceIdentity: shortText7,
+  status: external_exports.enum(["ACTIVE", "RECOVERED"]),
+  episodes: external_exports.number().int().min(1),
+  firstStartedAt: shortText7,
+  currentStartedAt: shortText7.optional(),
+  lastEndedAt: shortText7.optional(),
+  lastAvailability: external_exports.enum(STRONG_RESOURCE_AVAILABILITIES),
+  lastObservedAt: shortText7,
+  wakeAt: shortText7.optional(),
+  completedBeforeCurrentCooldown: idList22.default([]),
+  completedDuringCooldown: idList22.default([]),
+  waitingWorkUnitIds: idList22.default([]),
+  strongAttemptsAvoided: external_exports.number().int().min(0).default(0),
+  resourceRechecks: external_exports.number().int().min(0).default(0),
+  candidateReuseAfterRestart: external_exports.number().int().min(0).default(0),
+  updatedAt: shortText7,
+  contentHash: sha2564
+}).strict();
+function stateHash2(state) {
+  return sha256Hex(JSON.stringify(state));
+}
+function validatedState(base) {
+  return objectiveCooldownStateSchema.parse({ ...base, contentHash: stateHash2(base) });
+}
+function strongResourceFromScheduler(input) {
+  const identity3 = input.resourceIdentity ?? "subscription:strong";
+  if (input.schedulerMode === "EXHAUSTED_5H") {
+    return strongResourceSnapshotSchema.parse({
+      resourceClass: "STRONG_SUBSCRIPTION",
+      resourceIdentity: identity3,
+      availability: "QUOTA_EXHAUSTED",
+      observedAt: input.observedAt,
+      ...input.fiveHourResetAt != null ? { wakeAt: input.fiveHourResetAt } : {},
+      detail: "The five-hour Strong subscription window is exhausted."
+    });
+  }
+  if (input.schedulerMode === "EXHAUSTED_WEEKLY") {
+    return strongResourceSnapshotSchema.parse({
+      resourceClass: "STRONG_SUBSCRIPTION",
+      resourceIdentity: identity3,
+      availability: "QUOTA_EXHAUSTED",
+      observedAt: input.observedAt,
+      ...input.weeklyResetAt != null ? { wakeAt: input.weeklyResetAt } : {},
+      detail: "The weekly Strong subscription window is exhausted."
+    });
+  }
+  return strongResourceSnapshotSchema.parse({
+    resourceClass: "STRONG_SUBSCRIPTION",
+    resourceIdentity: identity3,
+    availability: "AVAILABLE",
+    observedAt: input.observedAt,
+    detail: "Strong subscription capacity is currently available."
+  });
+}
+function quotaFailureResource(input) {
+  return strongResourceSnapshotSchema.parse({
+    resourceClass: "STRONG_SUBSCRIPTION",
+    resourceIdentity: input.resourceIdentity ?? "subscription:strong",
+    availability: /rate.?limit|\b429\b/i.test(input.detail) ? "RATE_LIMITED" : "QUOTA_EXHAUSTED",
+    observedAt: input.observedAt,
+    ...input.wakeAt !== void 0 ? { wakeAt: input.wakeAt } : {},
+    detail: input.detail.slice(0, 2e3)
+  });
+}
+function isStrongResourceCooling(snapshot2) {
+  return snapshot2.availability !== "AVAILABLE";
+}
+function completedIds(graph) {
+  return graph.units.filter((unit) => unit.status === "VERIFIED_CANDIDATE" || unit.status === "INTEGRATED").map((unit) => unit.workUnitId).sort();
+}
+function observeObjectiveCooldown(input) {
+  const { prior, resource } = input;
+  if (!isStrongResourceCooling(resource)) {
+    if (prior === void 0) return void 0;
+    const base2 = {
+      ...prior,
+      status: "RECOVERED",
+      lastEndedAt: prior.status === "ACTIVE" ? input.at : prior.lastEndedAt,
+      currentStartedAt: void 0,
+      lastAvailability: resource.availability,
+      lastObservedAt: resource.observedAt,
+      wakeAt: void 0,
+      waitingWorkUnitIds: [],
+      updatedAt: input.at
+    };
+    const { contentHash: _contentHash2, ...withoutHash2 } = base2;
+    return validatedState(withoutHash2);
+  }
+  if (prior === void 0 || prior.status === "RECOVERED") {
+    return validatedState({
+      schemaVersion: OBJECTIVE_COOLDOWN_STATE_SCHEMA_VERSION,
+      jobId: input.graph.jobId,
+      objectiveNodeId: input.graph.objectiveNodeId,
+      resourceClass: "STRONG_SUBSCRIPTION",
+      resourceIdentity: resource.resourceIdentity,
+      status: "ACTIVE",
+      episodes: (prior?.episodes ?? 0) + 1,
+      firstStartedAt: prior?.firstStartedAt ?? input.at,
+      currentStartedAt: input.at,
+      ...prior?.lastEndedAt !== void 0 ? { lastEndedAt: prior.lastEndedAt } : {},
+      lastAvailability: resource.availability,
+      lastObservedAt: resource.observedAt,
+      ...resource.wakeAt !== void 0 ? { wakeAt: resource.wakeAt } : {},
+      completedBeforeCurrentCooldown: completedIds(input.graph),
+      completedDuringCooldown: prior?.completedDuringCooldown ?? [],
+      waitingWorkUnitIds: [],
+      strongAttemptsAvoided: prior?.strongAttemptsAvoided ?? 0,
+      resourceRechecks: prior?.resourceRechecks ?? 0,
+      candidateReuseAfterRestart: prior?.candidateReuseAfterRestart ?? 0,
+      updatedAt: input.at
+    });
+  }
+  const before = new Set(prior.completedBeforeCurrentCooldown);
+  const during = new Set(prior.completedDuringCooldown);
+  for (const id of completedIds(input.graph)) if (!before.has(id)) during.add(id);
+  const base = {
+    ...prior,
+    lastAvailability: resource.availability,
+    lastObservedAt: resource.observedAt,
+    ...resource.wakeAt !== void 0 ? { wakeAt: resource.wakeAt } : {},
+    completedDuringCooldown: [...during].sort(),
+    waitingWorkUnitIds: input.graph.units.filter((unit) => unit.resourceWait?.resourceClass === "STRONG_SUBSCRIPTION").map((unit) => unit.workUnitId).sort(),
+    resourceRechecks: prior.resourceRechecks + (input.recheck === true ? 1 : 0),
+    updatedAt: input.at
+  };
+  const { contentHash: _contentHash, ...withoutHash } = base;
+  return validatedState(withoutHash);
+}
+function noteStrongAttemptAvoided(state, waitingWorkUnitIds, at) {
+  const waiting = /* @__PURE__ */ new Set([...state.waitingWorkUnitIds, ...waitingWorkUnitIds]);
+  const base = {
+    ...state,
+    waitingWorkUnitIds: [...waiting].sort(),
+    strongAttemptsAvoided: state.strongAttemptsAvoided + waitingWorkUnitIds.length,
+    updatedAt: at
+  };
+  const { contentHash: _contentHash, ...withoutHash } = base;
+  return validatedState(withoutHash);
+}
+function noteCandidateReuseAfterRestart(state, at) {
+  const base = {
+    ...state,
+    candidateReuseAfterRestart: state.candidateReuseAfterRestart + 1,
+    updatedAt: at
+  };
+  const { contentHash: _contentHash, ...withoutHash } = base;
+  return validatedState(withoutHash);
+}
+function markUnitWaitingForStrong(input) {
+  const prior = input.unit.resourceWait;
+  const wait = {
+    reason: "RESOURCE_COOLDOWN",
+    resourceClass: "STRONG_SUBSCRIPTION",
+    availability: input.resource.availability === "AVAILABLE" ? "COOLDOWN" : input.resource.availability,
+    since: prior?.since ?? input.resource.observedAt,
+    lastObservedAt: input.resource.observedAt,
+    ...input.resource.wakeAt !== void 0 ? { wakeAt: input.resource.wakeAt } : {},
+    ...input.routingWorkIdentity !== void 0 ? { routingWorkIdentity: input.routingWorkIdentity } : prior?.routingWorkIdentity !== void 0 ? { routingWorkIdentity: prior.routingWorkIdentity } : {},
+    fallbackPending: input.fallbackPending ?? prior?.fallbackPending ?? false
+  };
+  return { unit: { ...input.unit, resourceWait: wait }, newlyWaiting: prior === void 0 };
+}
+function clearRecoveredStrongWaits(graph) {
+  const recoveredWorkUnitIds = [];
+  const units = graph.units.map((unit) => {
+    if (unit.resourceWait?.resourceClass !== "STRONG_SUBSCRIPTION") return unit;
+    recoveredWorkUnitIds.push(unit.workUnitId);
+    const { resourceWait: _resourceWait, ...rest } = unit;
+    return rest;
+  });
+  return { graph: { ...graph, units }, recoveredWorkUnitIds };
+}
+function isStrongQuotaFailure(detail) {
+  return /\b(quota|usage limit|rate.?limit|too many requests|429|plan limit|capacity exhausted)\b/i.test(detail);
+}
 var ID_PATTERN3 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 function assertSegment(value, what) {
   if (!ID_PATTERN3.test(value)) {
@@ -64191,6 +64889,87 @@ function storeWorkReadinessTelemetry(workspace, jobId, nodeId, telemetry) {
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return validated;
+}
+function routingStateName(workUnitId, workIdentity) {
+  assertSegment(workUnitId, "work unit id");
+  if (!/^[a-f0-9]{64}$/.test(workIdentity)) {
+    throw new OrchestrationError("SBO040", `Invalid builder routing work identity "${workIdentity}".`);
+  }
+  return `${workUnitId}-${workIdentity.slice(0, 16)}.json`;
+}
+function storeBuilderRoutingState(workspace, jobId, nodeId, state) {
+  const validated = builderRoutingStateSchema.parse(state);
+  const file = artifactPath3(
+    workspace,
+    jobId,
+    nodeId,
+    "routing",
+    routingStateName(validated.workUnitId, validated.workIdentity)
+  );
+  (0, import_fs34.mkdirSync)(import_path36.default.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
+`);
+  return validated;
+}
+function readBuilderRoutingState(workspace, jobId, nodeId, workUnitId, workIdentity) {
+  let name;
+  try {
+    name = routingStateName(workUnitId, workIdentity);
+  } catch {
+    return void 0;
+  }
+  return readJson(
+    artifactPath3(workspace, jobId, nodeId, "routing", name),
+    (raw) => {
+      const result = builderRoutingStateSchema.safeParse(raw);
+      return result.success ? result.data : void 0;
+    }
+  );
+}
+function readBuilderRoutingStates(workspace, jobId, nodeId) {
+  const dir = artifactPath3(workspace, jobId, nodeId, "routing");
+  if (!(0, import_fs34.existsSync)(dir)) return [];
+  const states = [];
+  for (const name of (0, import_fs34.readdirSync)(dir).sort()) {
+    if (!name.endsWith(".json") || name === "telemetry.json") continue;
+    const state = readJson(import_path36.default.join(dir, name), (raw) => {
+      const result = builderRoutingStateSchema.safeParse(raw);
+      return result.success ? result.data : void 0;
+    });
+    if (state !== void 0) states.push(state);
+  }
+  return states;
+}
+function storeBuilderRoutingTelemetry(workspace, jobId, nodeId, telemetry) {
+  const validated = builderRoutingTelemetrySchema.parse(telemetry);
+  const file = artifactPath3(workspace, jobId, nodeId, "routing", "telemetry.json");
+  (0, import_fs34.mkdirSync)(import_path36.default.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
+`);
+  return validated;
+}
+function storeObjectiveCooldownState(workspace, jobId, nodeId, state) {
+  const validated = objectiveCooldownStateSchema.parse(state);
+  const file = artifactPath3(
+    workspace,
+    jobId,
+    nodeId,
+    "resources",
+    "strong-subscription.json"
+  );
+  (0, import_fs34.mkdirSync)(import_path36.default.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
+`);
+  return validated;
+}
+function readObjectiveCooldownState(workspace, jobId, nodeId) {
+  return readJson(
+    artifactPath3(workspace, jobId, nodeId, "resources", "strong-subscription.json"),
+    (raw) => {
+      const result = objectiveCooldownStateSchema.safeParse(raw);
+      return result.success ? result.data : void 0;
+    }
+  );
 }
 function storeEvaluation(workspace, jobId, nodeId, evaluation) {
   const validated = evaluationRecordSchema.parse(evaluation);
@@ -64548,40 +65327,40 @@ var RELIABILITY_LIMITS = {
   /** Bounded per-task fingerprint history used by loop detection. */
   maxFingerprintHistory: 12
 };
-var shortText6 = external_exports.string().min(1).max(RELIABILITY_LIMITS.maxShortTextChars);
+var shortText8 = external_exports.string().min(1).max(RELIABILITY_LIMITS.maxShortTextChars);
 var text4 = external_exports.string().min(1).max(RELIABILITY_LIMITS.maxTextChars);
 var semver22 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
 var evaluationCheckSchema = external_exports.object({
   level: external_exports.enum(EVALUATION_CHECK_LEVELS),
   /** Stable identifier of the check itself (verifier name, criterion id). */
-  name: shortText6,
+  name: shortText8,
   outcome: external_exports.enum(EVALUATION_CHECK_OUTCOMES),
   /** False for advisory checks that never by themselves fail a task. */
   required: external_exports.boolean().default(true),
   /** Bounded, safe detail. Never raw model prose, never a stack trace. */
   detail: text4.optional(),
   /** Evidence reference (run id, verifier result key, criterion id). */
-  evidenceRef: shortText6.optional(),
+  evidenceRef: shortText8.optional(),
   durationMs: external_exports.number().int().min(0).nullable().default(null)
 }).passthrough();
 var semanticFindingSchema = external_exports.object({
   /** Acceptance criterion or contract id this finding relates to, if any. */
-  criterionId: shortText6.optional(),
+  criterionId: shortText8.optional(),
   severity: external_exports.enum(["blocking", "concern", "note"]),
   /** Bounded structured observation. Never chain-of-thought. */
   observation: text4,
   /** Repository path the finding points at, when it points at one. */
-  path: shortText6.optional()
+  path: shortText8.optional()
 }).passthrough();
 var evaluationResultSchema = external_exports.object({
   schemaVersion: semver22,
-  evaluationId: shortText6,
-  jobId: shortText6,
-  nodeId: shortText6,
-  taskId: shortText6,
-  attemptId: shortText6,
+  evaluationId: shortText8,
+  jobId: shortText8,
+  nodeId: shortText8,
+  taskId: shortText8,
+  attemptId: shortText8,
   /** The economic lane the evaluated attempt ran on, for cross-lane analysis. */
-  lane: shortText6.nullable().default(null),
+  lane: shortText8.nullable().default(null),
   status: external_exports.enum(EVALUATION_STATUSES),
   /** Deterministic checks, in level order. Always populated. */
   deterministicChecks: external_exports.array(evaluationCheckSchema).max(RELIABILITY_LIMITS.maxChecks).default([]),
@@ -64590,15 +65369,15 @@ var evaluationResultSchema = external_exports.object({
   /** Structured semantic findings; proposals only, never authority. */
   semanticFindings: external_exports.array(semanticFindingSchema).max(RELIABILITY_LIMITS.maxFindings).default([]),
   /** Acceptance-criteria ids that did not hold. */
-  failedCriteria: external_exports.array(shortText6).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  failedCriteria: external_exports.array(shortText8).max(RELIABILITY_LIMITS.maxListItems).default([]),
   /** Run ids, verifier keys, patch refs backing this verdict. */
-  evidenceRefs: external_exports.array(shortText6).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
+  evidenceRefs: external_exports.array(shortText8).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
   /**
    * Normalized failure fingerprints observed during evaluation. These feed
    * no-progress detection directly, which is why they live on the durable
    * record rather than being recomputed from logs.
    */
-  failureSignals: external_exports.array(shortText6).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  failureSignals: external_exports.array(shortText8).max(RELIABILITY_LIMITS.maxListItems).default([]),
   /** Ordered, safe explanation of how the status was reached. */
   reasons: external_exports.array(text4).max(RELIABILITY_LIMITS.maxListItems).default([]),
   /**
@@ -64607,16 +65386,16 @@ var evaluationResultSchema = external_exports.object({
    * deterministic" invariant is auditable after the fact.
    */
   semanticReviewRan: external_exports.boolean().default(false),
-  createdAt: shortText6
+  createdAt: shortText8
 }).passthrough();
 var failureAssessmentSchema = external_exports.object({
   schemaVersion: semver22,
-  assessmentId: shortText6,
-  jobId: shortText6,
-  nodeId: shortText6,
-  taskId: shortText6,
-  attemptId: shortText6,
-  lane: shortText6.nullable().default(null),
+  assessmentId: shortText8,
+  jobId: shortText8,
+  nodeId: shortText8,
+  taskId: shortText8,
+  attemptId: shortText8,
+  lane: shortText8.nullable().default(null),
   /** The existing stable failure taxonomy, unchanged. */
   category: external_exports.enum(FAILURE_CATEGORIES),
   source: external_exports.enum(FAILURE_SOURCES),
@@ -64625,9 +65404,9 @@ var failureAssessmentSchema = external_exports.object({
   /** What this assessment rests on. Not a fabricated confidence number. */
   basis: external_exports.enum(ASSESSMENT_BASES),
   /** Deterministic identity of the failure (see failureFingerprint). */
-  fingerprint: shortText6,
+  fingerprint: shortText8,
   /** Identity of the working-tree change set this failure came with. */
-  diffFingerprint: shortText6.nullable().default(null),
+  diffFingerprint: shortText8.nullable().default(null),
   /** How many attempts on this task have ended with this fingerprint. */
   repeatedCount: external_exports.number().int().min(1).default(1),
   /** Bounded, safe statement of the likely cause. Never model prose. */
@@ -64638,8 +65417,8 @@ var failureAssessmentSchema = external_exports.object({
   health: external_exports.enum(EXECUTION_HEALTH_STATES).default("HEALTHY"),
   /** Runaway signals that fired, when the attempt was stopped for one. */
   runawaySignals: external_exports.array(external_exports.enum(RUNAWAY_SIGNALS)).max(RUNAWAY_SIGNALS.length).default([]),
-  evidenceRefs: external_exports.array(shortText6).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
-  createdAt: shortText6
+  evidenceRefs: external_exports.array(shortText8).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
+  createdAt: shortText8
 }).passthrough();
 var budgetSnapshotSchema = external_exports.object({
   attemptsUsed: external_exports.number().int().min(0),
@@ -64664,38 +65443,38 @@ var budgetSnapshotSchema = external_exports.object({
   reportedTokens: external_exports.number().int().min(0).nullable().default(null)
 }).passthrough();
 var recoveryStrategySchema = external_exports.object({
-  lane: shortText6.nullable().default(null),
-  executionMode: shortText6.nullable().default(null),
+  lane: shortText8.nullable().default(null),
+  executionMode: shortText8.nullable().default(null),
   planRevision: external_exports.number().int().min(0).default(0),
   /** Whether the next attempt starts from a rebuilt context. */
   freshContext: external_exports.boolean().default(false),
   /** Stable digest of the four fields above, for equality comparison. */
-  key: shortText6
+  key: shortText8
 }).passthrough();
 var recoveryDecisionSchema = external_exports.object({
   schemaVersion: semver22,
-  decisionId: shortText6,
-  jobId: shortText6,
-  nodeId: shortText6,
-  taskId: shortText6,
+  decisionId: shortText8,
+  jobId: shortText8,
+  nodeId: shortText8,
+  taskId: shortText8,
   /** The attempt whose failure this decision responds to. */
-  attemptId: shortText6,
+  attemptId: shortText8,
   /** The assessment this decision was made from. */
-  assessmentId: shortText6.optional(),
+  assessmentId: shortText8.optional(),
   /** The evaluation this decision was made from, when one exists. */
-  evaluationId: shortText6.optional(),
+  evaluationId: shortText8.optional(),
   action: external_exports.enum(RECOVERY_ACTIONS),
   reasonCode: external_exports.enum(RECOVERY_REASON_CODES),
   /** Bounded, safe explanation. Written by policy, never by a model. */
   reason: text4,
-  failureFingerprint: shortText6.nullable().default(null),
+  failureFingerprint: shortText8.nullable().default(null),
   health: external_exports.enum(EXECUTION_HEALTH_STATES),
   /** What dimension of strategy this decision changes. */
   strategyChange: external_exports.enum(RECOVERY_STRATEGY_DIMENSIONS),
   previousStrategy: recoveryStrategySchema.optional(),
   nextStrategy: recoveryStrategySchema.optional(),
   budgetSnapshot: budgetSnapshotSchema,
-  evidenceRefs: external_exports.array(shortText6).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
+  evidenceRefs: external_exports.array(shortText8).max(RELIABILITY_LIMITS.maxEvidenceRefs).default([]),
   /**
    * What a human would need to do to unblock this task, when the action
    * stops automatic continuation. Bounded and actionable.
@@ -64713,28 +65492,28 @@ var recoveryDecisionSchema = external_exports.object({
   }).passthrough().optional(),
   /** True when the decision was persisted but its attempt has not run yet. */
   applied: external_exports.boolean().default(false),
-  createdAt: shortText6
+  createdAt: shortText8
 }).passthrough();
 var reliabilityObservationSchema = external_exports.object({
-  attemptId: shortText6,
+  attemptId: shortText8,
   attemptNumber: external_exports.number().int().min(1),
-  failureFingerprint: shortText6.nullable().default(null),
-  diffFingerprint: shortText6.nullable().default(null),
-  strategyKey: shortText6.nullable().default(null),
+  failureFingerprint: shortText8.nullable().default(null),
+  diffFingerprint: shortText8.nullable().default(null),
+  strategyKey: shortText8.nullable().default(null),
   evaluationStatus: external_exports.enum(EVALUATION_STATUSES).nullable().default(null),
-  lane: shortText6.nullable().default(null),
-  at: shortText6
+  lane: shortText8.nullable().default(null),
+  at: shortText8
 }).passthrough();
 var taskReliabilityStateSchema = external_exports.object({
   schemaVersion: semver22,
-  jobId: shortText6,
-  nodeId: shortText6,
-  taskId: shortText6,
+  jobId: shortText8,
+  nodeId: shortText8,
+  taskId: shortText8,
   health: external_exports.enum(EXECUTION_HEALTH_STATES).default("HEALTHY"),
   /** Rolling window, oldest first. */
   observations: external_exports.array(reliabilityObservationSchema).max(RELIABILITY_LIMITS.maxFingerprintHistory).default([]),
   /** Strategy keys already tried and failed on this task. */
-  exhaustedStrategies: external_exports.array(shortText6).max(RELIABILITY_LIMITS.maxListItems).default([]),
+  exhaustedStrategies: external_exports.array(shortText8).max(RELIABILITY_LIMITS.maxListItems).default([]),
   /** Cumulative counters — the raw material for cost-of-failure analysis. */
   evaluationsFailed: external_exports.number().int().min(0).default(0),
   evaluationsInconclusive: external_exports.number().int().min(0).default(0),
@@ -64747,8 +65526,8 @@ var taskReliabilityStateSchema = external_exports.object({
   failedAttemptTokens: external_exports.number().int().min(0).nullable().default(null),
   failedAttemptCostUsd: external_exports.number().min(0).nullable().default(null),
   /** The decision the task is currently acting on, when one is pending. */
-  pendingDecisionId: shortText6.optional(),
-  updatedAt: shortText6
+  pendingDecisionId: shortText8.optional(),
+  updatedAt: shortText8
 }).passthrough();
 var TASK_RELIABILITY_SCHEMA_VERSION = "1.0.0";
 var ID_PATTERN4 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
@@ -64942,7 +65721,7 @@ var SURVIVAL_LIMITS = {
   maxShortTextChars: STATE_LIMITS.maxShortTextChars,
   maxCheckpointsPerTask: 500
 };
-var shortText7 = external_exports.string().min(1).max(SURVIVAL_LIMITS.maxShortTextChars);
+var shortText9 = external_exports.string().min(1).max(SURVIVAL_LIMITS.maxShortTextChars);
 var text5 = external_exports.string().min(1).max(SURVIVAL_LIMITS.maxTextChars);
 var textList3 = external_exports.array(text5).max(SURVIVAL_LIMITS.maxListItems);
 var semver3 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
@@ -64989,28 +65768,28 @@ var attemptMetricsSchema = external_exports.object({
 }).passthrough();
 var taskAttemptSchema = external_exports.object({
   schemaVersion: semver3,
-  attemptId: shortText7,
-  jobId: shortText7,
+  attemptId: shortText9,
+  jobId: shortText9,
   /** Runtime graph node this attempt executes (the Task's runtime identity). */
-  nodeId: shortText7,
+  nodeId: shortText9,
   /** The approved task id (stable across graph revisions). */
-  taskId: shortText7,
+  taskId: shortText9,
   role: external_exports.enum(AGENT_ROLES),
   /** Worker identity as the scheduler assigned it. */
-  workerId: shortText7,
+  workerId: shortText9,
   /**
    * Provider identity (runner/profile name). Identity is recorded for the
    * ledger and for audit — runtime logic branches on capabilities, never
    * on this value.
    */
-  provider: shortText7,
+  provider: shortText9,
   /** Model identity when known; null when the provider does not say. */
-  model: shortText7.nullable().default(null),
+  model: shortText9.nullable().default(null),
   status: external_exports.enum(TASK_ATTEMPT_STATUSES),
   /** 1-based position within this task's attempt history. */
   attemptNumber: external_exports.number().int().min(1),
-  startedAt: shortText7,
-  completedAt: shortText7.optional(),
+  startedAt: shortText9,
+  completedAt: shortText9.optional(),
   /** Bounded outcome summary — a claim, never evidence. */
   resultSummary: text5.optional(),
   failure: external_exports.object({
@@ -65018,58 +65797,58 @@ var taskAttemptSchema = external_exports.object({
     message: text5
   }).passthrough().optional(),
   /** Why an INTERRUPTED attempt was reconciled (e.g. "process-restart"). */
-  interruptedReason: shortText7.optional(),
+  interruptedReason: shortText9.optional(),
   /** Task checkpoints persisted during this attempt, oldest first. */
-  checkpointIds: external_exports.array(shortText7).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  checkpointIds: external_exports.array(shortText9).max(SURVIVAL_LIMITS.maxListItems).default([]),
   /** Execution run id (`.specbridge/runs/<id>`) when the evidence path ran. */
-  runId: shortText7.optional(),
+  runId: shortText9.optional(),
   /** The interrupted/failed attempt this one continues from (lineage). */
-  resumedFromAttemptId: shortText7.optional(),
+  resumedFromAttemptId: shortText9.optional(),
   /** Provider session reference — WORKING MEMORY only, never canonical. */
-  providerSessionId: shortText7.optional(),
+  providerSessionId: shortText9.optional(),
   /** Scheduling lane (vNext.2: LOCAL / SUBSCRIPTION), when assigned. */
-  lane: shortText7.optional(),
+  lane: shortText9.optional(),
   // vNext.2 scheduling attribution (additive; audit and ledger inputs,
   // never runtime policy — policy reads live configuration and telemetry).
   /** Deterministic local-suitability class the scheduler assigned. */
-  localSuitability: shortText7.optional(),
+  localSuitability: shortText9.optional(),
   /** Complexity class the task carried when the attempt was scheduled. */
-  taskComplexity: shortText7.optional(),
+  taskComplexity: shortText9.optional(),
   /** Coarse task category from the suitability classifier. */
-  taskCategory: shortText7.optional(),
+  taskCategory: shortText9.optional(),
   /** The SchedulingDecision that routed this attempt, when one exists. */
-  schedulingDecisionId: shortText7.optional(),
+  schedulingDecisionId: shortText9.optional(),
   // vNext.4 local execution attribution (additive; absent on pre-vNext.4
   // attempts and on every SUBSCRIPTION attempt).
   /** LOCAL execution mode: DIRECT_MODEL or HARNESS. Orthogonal to lane. */
-  executionMode: shortText7.optional(),
+  executionMode: shortText9.optional(),
   /** Deterministic execution shape the resolver classified. */
-  executionShape: shortText7.optional(),
+  executionShape: shortText9.optional(),
   /** Verified compute locality of the runner that executed this attempt. */
-  computeLocality: shortText7.optional(),
+  computeLocality: shortText9.optional(),
   // vNext.5 API-lane attribution (additive; absent on every LOCAL and
   // SUBSCRIPTION attempt and on every pre-vNext.5 record). Each field is
   // ORTHOGONAL: `lane` says whether this was paid, `provider`/`model` say
   // which intelligence ran it, `executionMode`/`computeLocality` say how
   // and where. Nothing is ever collapsed into a compound value.
   /** The spend authorization mode in force when the attempt was dispatched. */
-  apiSpendMode: shortText7.optional(),
+  apiSpendMode: shortText9.optional(),
   /** Why subscription capacity was unavailable (the gap's cause). */
-  gapReason: shortText7.optional(),
+  gapReason: shortText9.optional(),
   /** When subscription capacity was expected back, when known. */
-  subscriptionAvailableAt: shortText7.optional(),
+  subscriptionAvailableAt: shortText9.optional(),
   /** Expected gap duration in milliseconds, when known. */
   estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null).optional(),
   /** How the recorded cost was determined (see API_COST_SOURCES). */
-  costSource: shortText7.optional(),
+  costSource: shortText9.optional(),
   /** Operator pricing profile the estimate used, for attribution. */
-  pricingProfile: shortText7.optional(),
+  pricingProfile: shortText9.optional(),
   /** The budget reservation funding this attempt. */
-  apiBudgetReservationId: shortText7.optional(),
+  apiBudgetReservationId: shortText9.optional(),
   /** The bounded human authorization this attempt consumed, when one applied. */
-  apiApprovalId: shortText7.optional(),
+  apiApprovalId: shortText9.optional(),
   /** Deterministic delay-sensitivity level that justified paid bridging. */
-  delaySensitivity: shortText7.optional(),
+  delaySensitivity: shortText9.optional(),
   // vNext.8 adaptive attribution (additive; absent on every pre-vNext.8
   // record). These three exist so historical observations can be GROUPED
   // and their runtime identity CHECKED without re-deriving either from
@@ -65077,46 +65856,46 @@ var taskAttemptSchema = external_exports.object({
   // months later under changed heuristics would silently re-file old
   // attempts into buckets they were never measured in.
   /** The coarse TaskSignature key this attempt was dispatched under. */
-  taskSignature: shortText7.optional(),
+  taskSignature: shortText9.optional(),
   /** vNext.7 context strategy in force for this attempt. */
-  contextStrategy: shortText7.optional(),
+  contextStrategy: shortText9.optional(),
   /**
    * Runner/runtime version when the provider reported one. Absent means
    * UNKNOWN — never assumed to match the version running now, because a
    * silent version change is exactly the case this field exists to catch.
    */
-  runnerVersion: shortText7.optional(),
+  runnerVersion: shortText9.optional(),
   metrics: attemptMetricsSchema.default({})
 }).passthrough();
 var checkpointDecisionSchema = external_exports.object({
   decision: text5,
   rationale: text5.optional(),
-  at: shortText7.optional(),
-  decidedBy: shortText7.optional()
+  at: shortText9.optional(),
+  decidedBy: shortText9.optional()
 }).passthrough();
 var failedApproachSchema = external_exports.object({
   approach: text5,
   reason: text5,
-  at: shortText7.optional(),
+  at: shortText9.optional(),
   /** Evidence reference (run id, test name) backing the failure claim. */
-  evidenceRef: shortText7.optional()
+  evidenceRef: shortText9.optional()
 }).passthrough();
 var checkpointTestResultSchema = external_exports.object({
-  name: shortText7,
+  name: shortText9,
   status: external_exports.enum(["passed", "failed", "skipped", "unknown"]),
   summary: text5.optional()
 }).passthrough();
 var checkpointRepositoryStateSchema = external_exports.object({
-  branch: shortText7.optional(),
-  head: shortText7.optional(),
+  branch: shortText9.optional(),
+  head: shortText9.optional(),
   detached: external_exports.boolean().optional(),
   clean: external_exports.boolean().optional(),
   /** Paths dirty at checkpoint time (bounded; the diff itself lives in runs/). */
-  dirtyPaths: external_exports.array(shortText7).max(SURVIVAL_LIMITS.maxChangedFiles).default([]),
+  dirtyPaths: external_exports.array(shortText9).max(SURVIVAL_LIMITS.maxChangedFiles).default([]),
   /** Reference to a stored diff artifact, when one exists. */
-  diffRef: shortText7.optional(),
+  diffRef: shortText9.optional(),
   /** The commit execution started from, when known. */
-  baselineHead: shortText7.optional()
+  baselineHead: shortText9.optional()
 }).passthrough();
 var checkpointPinnedContextSchema = external_exports.object({
   /** The task contract: what this task IS, verbatim and bounded. */
@@ -65129,12 +65908,12 @@ var checkpointPinnedContextSchema = external_exports.object({
 }).passthrough();
 var taskCheckpointSchema = external_exports.object({
   schemaVersion: semver3,
-  checkpointId: shortText7,
-  jobId: shortText7,
-  nodeId: shortText7,
-  taskId: shortText7,
+  checkpointId: shortText9,
+  jobId: shortText9,
+  nodeId: shortText9,
+  taskId: shortText9,
   /** The attempt that persisted this checkpoint. */
-  attemptId: shortText7,
+  attemptId: shortText9,
   /** 1-based, strictly increasing per task. */
   seq: external_exports.number().int().min(1),
   reason: external_exports.enum(TASK_CHECKPOINT_REASONS),
@@ -65146,7 +65925,7 @@ var taskCheckpointSchema = external_exports.object({
   importantDecisions: external_exports.array(checkpointDecisionSchema).max(SURVIVAL_LIMITS.maxListItems).default([]),
   failedApproaches: external_exports.array(failedApproachSchema).max(SURVIVAL_LIMITS.maxListItems).default([]),
   changedFiles: external_exports.array(
-    external_exports.object({ path: shortText7, note: shortText7.optional() }).passthrough()
+    external_exports.object({ path: shortText9, note: shortText9.optional() }).passthrough()
   ).max(SURVIVAL_LIMITS.maxChangedFiles).default([]),
   repositoryState: checkpointRepositoryStateSchema.default({}),
   testResults: external_exports.array(checkpointTestResultSchema).max(SURVIVAL_LIMITS.maxListItems).default([]),
@@ -65155,48 +65934,48 @@ var taskCheckpointSchema = external_exports.object({
   /** The exact next actions, in order. Resume continues from here. */
   nextActions: external_exports.array(text5).min(1).max(SURVIVAL_LIMITS.maxListItems),
   /** Artifact references (run ids, agent results, candidate refs). */
-  relevantArtifacts: external_exports.array(shortText7).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  relevantArtifacts: external_exports.array(shortText9).max(SURVIVAL_LIMITS.maxListItems).default([]),
   /** Context references worth re-retrieving (paths, docs), never content. */
-  relevantContextReferences: external_exports.array(shortText7).max(SURVIVAL_LIMITS.maxListItems).default([]),
-  createdAt: shortText7
+  relevantContextReferences: external_exports.array(shortText9).max(SURVIVAL_LIMITS.maxListItems).default([]),
+  createdAt: shortText9
 }).passthrough();
 var executionLedgerEntrySchema = external_exports.object({
-  attemptId: shortText7,
-  jobId: shortText7,
-  nodeId: shortText7,
-  taskId: shortText7,
+  attemptId: shortText9,
+  jobId: shortText9,
+  nodeId: shortText9,
+  taskId: shortText9,
   role: external_exports.enum(AGENT_ROLES),
-  provider: shortText7,
-  model: shortText7.nullable(),
-  lane: shortText7.nullable(),
+  provider: shortText9,
+  model: shortText9.nullable(),
+  lane: shortText9.nullable(),
   status: external_exports.enum(TASK_ATTEMPT_STATUSES),
   attemptNumber: external_exports.number().int().min(1),
-  startedAt: shortText7,
-  completedAt: shortText7.nullable(),
+  startedAt: shortText9,
+  completedAt: shortText9.nullable(),
   success: external_exports.boolean(),
-  failureReason: shortText7.nullable(),
+  failureReason: shortText9.nullable(),
   // vNext.2 scheduling attribution (additive; null when never assigned).
-  localSuitability: shortText7.nullable().default(null),
-  taskComplexity: shortText7.nullable().default(null),
-  taskCategory: shortText7.nullable().default(null),
-  schedulingDecisionId: shortText7.nullable().default(null),
+  localSuitability: shortText9.nullable().default(null),
+  taskComplexity: shortText9.nullable().default(null),
+  taskCategory: shortText9.nullable().default(null),
+  schedulingDecisionId: shortText9.nullable().default(null),
   // vNext.4 local execution attribution (additive; null when unassigned).
-  executionMode: shortText7.nullable().default(null),
-  executionShape: shortText7.nullable().default(null),
-  computeLocality: shortText7.nullable().default(null),
+  executionMode: shortText9.nullable().default(null),
+  executionShape: shortText9.nullable().default(null),
+  computeLocality: shortText9.nullable().default(null),
   // vNext.5 API economics (additive; null on every unpaid attempt). These
   // are what makes later analysis possible without a second database:
   // cost per successful task, cost by task type, bridge success rate, and
   // money spent versus subscription wait avoided all derive from here.
-  apiSpendMode: shortText7.nullable().default(null),
-  gapReason: shortText7.nullable().default(null),
-  subscriptionAvailableAt: shortText7.nullable().default(null),
+  apiSpendMode: shortText9.nullable().default(null),
+  gapReason: shortText9.nullable().default(null),
+  subscriptionAvailableAt: shortText9.nullable().default(null),
   estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null),
-  costSource: shortText7.nullable().default(null),
-  pricingProfile: shortText7.nullable().default(null),
-  apiBudgetReservationId: shortText7.nullable().default(null),
-  apiApprovalId: shortText7.nullable().default(null),
-  delaySensitivity: shortText7.nullable().default(null),
+  costSource: shortText9.nullable().default(null),
+  pricingProfile: shortText9.nullable().default(null),
+  apiBudgetReservationId: shortText9.nullable().default(null),
+  apiApprovalId: shortText9.nullable().default(null),
+  delaySensitivity: shortText9.nullable().default(null),
   // vNext.6 reliability attribution (additive; null on every pre-vNext.6
   // record and on any attempt the reliability layer did not govern).
   //
@@ -65208,27 +65987,27 @@ var executionLedgerEntrySchema = external_exports.object({
   // which questions were worth asking would foreclose the ones that turn
   // out to matter.
   /** Verdict on this attempt: PASS / FAIL / INCONCLUSIVE. */
-  evaluationStatus: shortText7.nullable().default(null),
-  evaluationId: shortText7.nullable().default(null),
+  evaluationStatus: shortText9.nullable().default(null),
+  evaluationId: shortText9.nullable().default(null),
   /** WHERE the failure came from, orthogonal to `failureReason`. */
-  failureSource: shortText7.nullable().default(null),
+  failureSource: shortText9.nullable().default(null),
   /** Deterministic failure identity, for cross-attempt repetition analysis. */
-  failureFingerprint: shortText7.nullable().default(null),
+  failureFingerprint: shortText9.nullable().default(null),
   /** Deterministic progress health at the time of the failure. */
-  executionHealth: shortText7.nullable().default(null),
+  executionHealth: shortText9.nullable().default(null),
   /** The recovery action SpecBridge chose after this attempt. */
-  recoveryAction: shortText7.nullable().default(null),
-  recoveryReasonCode: shortText7.nullable().default(null),
-  recoveryDecisionId: shortText7.nullable().default(null),
+  recoveryAction: shortText9.nullable().default(null),
+  recoveryReasonCode: shortText9.nullable().default(null),
+  recoveryDecisionId: shortText9.nullable().default(null),
   /** Which dimension of strategy the recovery changed, if any. */
-  strategyChange: shortText7.nullable().default(null),
+  strategyChange: shortText9.nullable().default(null),
   // vNext.8 adaptive attribution (additive; null on every pre-vNext.8
   // record). The adaptive layer reads history through this read model, so
   // the grouping key and the runtime identity have to travel with the
   // observation rather than being reconstructed from it.
-  taskSignature: shortText7.nullable().default(null),
-  contextStrategy: shortText7.nullable().default(null),
-  runnerVersion: shortText7.nullable().default(null),
+  taskSignature: shortText9.nullable().default(null),
+  contextStrategy: shortText9.nullable().default(null),
+  runnerVersion: shortText9.nullable().default(null),
   metrics: attemptMetricsSchema
 }).passthrough();
 var ID_PATTERN5 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
@@ -65493,7 +66272,7 @@ function completeTaskAttempt(deps3, input) {
   };
   return updateTaskAttempt(deps3.workspace, finalized);
 }
-function reconcileInterruptedAttempts(deps3, jobId, reason2 = "process-restart") {
+function reconcileInterruptedAttempts(deps3, jobId, reason3 = "process-restart") {
   const running = listTaskAttempts(deps3.workspace, jobId, { status: "RUNNING" });
   const reconciled = [];
   for (const attempt of running) {
@@ -65501,7 +66280,7 @@ function reconcileInterruptedAttempts(deps3, jobId, reason2 = "process-restart")
       ...attempt,
       status: "INTERRUPTED",
       completedAt: now22(deps3),
-      interruptedReason: reason2
+      interruptedReason: reason3
     };
     reconciled.push(updateTaskAttempt(deps3.workspace, interrupted));
   }
@@ -65704,14 +66483,14 @@ function summarizeExecutionLedger(entries) {
   return { totalAttempts: entries.length, byProvider, reliability };
 }
 var API_BUDGET_SCHEMA_VERSION = "1.0.0";
-var shortText8 = external_exports.string().min(1).max(200);
+var shortText10 = external_exports.string().min(1).max(200);
 var apiBudgetReservationSchema = external_exports.object({
-  reservationId: shortText8,
-  jobId: shortText8,
-  nodeId: shortText8,
-  taskId: shortText8,
+  reservationId: shortText10,
+  jobId: shortText10,
+  nodeId: shortText10,
+  taskId: shortText10,
   /** The durable attempt this reservation funds; null until dispatch. */
-  attemptId: shortText8.nullable().default(null),
+  attemptId: shortText10.nullable().default(null),
   state: external_exports.enum(API_BUDGET_RESERVATION_STATES),
   /** The safe estimated cost held at reservation time, in USD. */
   reservedUsd: external_exports.number().min(0),
@@ -65720,16 +66499,16 @@ var apiBudgetReservationSchema = external_exports.object({
   /** How `reconciledUsd` was determined. */
   costSource: external_exports.enum(API_COST_SOURCES).default("ESTIMATED_PRE_DISPATCH"),
   /** The API profile the reservation was made for (audit). */
-  profileName: shortText8.nullable().default(null),
-  createdAt: shortText8,
-  updatedAt: shortText8,
+  profileName: shortText10.nullable().default(null),
+  createdAt: shortText10,
+  updatedAt: shortText10,
   detail: external_exports.string().max(1e3).default("")
 }).passthrough();
 var apiBudgetStateSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  jobId: shortText8,
+  jobId: shortText10,
   reservations: external_exports.array(apiBudgetReservationSchema).max(5e3).default([]),
-  updatedAt: shortText8
+  updatedAt: shortText10
 }).passthrough();
 function budgetDir(workspace, jobId) {
   return assertInsideWorkspace(workspace.rootDir, import_path41.default.join(jobDir(workspace, jobId), "api-budget"));
@@ -65983,7 +66762,7 @@ function reconcileApiBudget(input) {
     }
   );
 }
-function reconcileInterruptedApiReservations(workspace, jobId, now52, reason2 = "process-restart") {
+function reconcileInterruptedApiReservations(workspace, jobId, now52, reason3 = "process-restart") {
   const iso = now52.toISOString();
   if (!(0, import_fs39.existsSync)(budgetFile(workspace, jobId))) return [];
   return withBudgetLock(workspace, jobId, iso, (state) => {
@@ -65995,7 +66774,7 @@ function reconcileInterruptedApiReservations(workspace, jobId, now52, reason2 = 
         state: "UNKNOWN",
         costSource: "UNKNOWN",
         updatedAt: iso,
-        detail: `The owning attempt was interrupted (${reason2}); remote usage cannot be ruled out, so this reservation stays charged against the budget.`
+        detail: `The owning attempt was interrupted (${reason3}); remote usage cannot be ruled out, so this reservation stays charged against the budget.`
       };
       reconciled.push(updated);
       return updated;
@@ -66975,7 +67754,7 @@ var ADAPTIVE_DRIFT_SIGNALS = [
   "RUNTIME_IDENTITY_CHANGED"
 ];
 var ADAPTIVE_PROFILE_SCHEMA_VERSION = "1.0.0";
-var shortText9 = external_exports.string().min(1).max(200);
+var shortText11 = external_exports.string().min(1).max(200);
 var metricSummarySchema = external_exports.object({
   observations: external_exports.number().int().min(0),
   p50: external_exports.number().nullable().default(null),
@@ -66986,9 +67765,9 @@ var profileSchema = external_exports.object({
   profileKey: external_exports.string().min(1).max(400),
   signaturePart: external_exports.string().max(400),
   targetPart: external_exports.string().max(400),
-  lane: shortText9.nullable().default(null),
-  executionMode: shortText9.nullable().default(null),
-  runner: shortText9.nullable().default(null),
+  lane: shortText11.nullable().default(null),
+  executionMode: shortText11.nullable().default(null),
+  runner: shortText11.nullable().default(null),
   samples: external_exports.number().int().min(0),
   weightedSamples: external_exports.number().min(0),
   verifiedSuccesses: external_exports.number().int().min(0),
@@ -67021,8 +67800,8 @@ var profileSchema = external_exports.object({
   runtimeIdentities: external_exports.array(external_exports.string().max(300)).max(50).default([]),
   latestRuntimeIdentity: external_exports.string().max(300).nullable().default(null),
   safetyEvents: external_exports.number().int().min(0).default(0),
-  firstObservedAt: shortText9.nullable().default(null),
-  lastObservedAt: shortText9.nullable().default(null),
+  firstObservedAt: shortText11.nullable().default(null),
+  lastObservedAt: shortText11.nullable().default(null),
   drift: external_exports.object({
     detected: external_exports.boolean().default(false),
     signals: external_exports.array(external_exports.enum(ADAPTIVE_DRIFT_SIGNALS)).max(16).default([]),
@@ -67039,7 +67818,7 @@ var adaptiveProfileCacheSchema = external_exports.object({
   sourceFingerprint: external_exports.string().min(1).max(200),
   observationCount: external_exports.number().int().min(0).default(0),
   droppedByAge: external_exports.number().int().min(0).default(0),
-  builtAt: shortText9,
+  builtAt: shortText11,
   profiles: external_exports.array(profileSchema).max(2e4).default([])
 }).passthrough();
 function adaptiveCacheDir(workspace) {
@@ -67102,12 +67881,12 @@ function fromProfileCache(cache) {
 }
 var adaptiveCalibrationRecordSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  jobId: shortText9,
-  nodeId: shortText9,
-  taskId: shortText9,
-  attemptId: shortText9,
-  decisionId: shortText9.nullable().default(null),
-  candidateId: shortText9,
+  jobId: shortText11,
+  nodeId: shortText11,
+  taskId: shortText11,
+  attemptId: shortText11,
+  decisionId: shortText11.nullable().default(null),
+  candidateId: shortText11,
   /** What was predicted before dispatch. */
   predictedSuccessProbability: external_exports.number().min(0).max(1).nullable().default(null),
   predictedWallTimeMs: external_exports.number().min(0).nullable().default(null),
@@ -67115,9 +67894,9 @@ var adaptiveCalibrationRecordSchema = external_exports.object({
   predictedContextTokens: external_exports.number().min(0).nullable().default(null),
   predictedFiveHourBurnRatio: external_exports.number().min(0).max(1).nullable().default(null),
   predictedApiCostUsd: external_exports.number().min(0).nullable().default(null),
-  predictedConfidence: shortText9,
+  predictedConfidence: shortText11,
   /** What was observed. Null stays null; nothing is back-filled. */
-  observedOutcome: shortText9,
+  observedOutcome: shortText11,
   observedVerified: external_exports.boolean().nullable().default(null),
   observedWallTimeMs: external_exports.number().min(0).nullable().default(null),
   observedInputTokens: external_exports.number().min(0).nullable().default(null),
@@ -67131,7 +67910,7 @@ var adaptiveCalibrationRecordSchema = external_exports.object({
   costError: external_exports.number().nullable().default(null),
   /** Brier-style squared error of the success forecast, when resolvable. */
   successBrierScore: external_exports.number().min(0).max(1).nullable().default(null),
-  createdAt: shortText9
+  createdAt: shortText11
 }).passthrough();
 var ADAPTIVE_CALIBRATION_SCHEMA_VERSION = "1.0.0";
 function adaptiveJobDir(workspace, jobId) {
@@ -67176,20 +67955,20 @@ function readAdaptiveCalibration(workspace, jobId, options = {}) {
   return options.limit !== void 0 ? records.slice(-options.limit) : records;
 }
 var ADAPTIVE_DECISION_SCHEMA_VERSION = "1.0.0";
-var shortText10 = external_exports.string().min(1).max(200);
+var shortText12 = external_exports.string().min(1).max(200);
 var candidateShape = external_exports.object({
-  candidateId: shortText10,
-  lane: shortText10,
-  executionMode: shortText10.nullable().default(null),
-  runner: shortText10.nullable().default(null),
-  model: shortText10.nullable().default(null),
-  profile: shortText10.nullable().default(null),
-  contextStrategy: shortText10,
-  computeLocality: shortText10,
+  candidateId: shortText12,
+  lane: shortText12,
+  executionMode: shortText12.nullable().default(null),
+  runner: shortText12.nullable().default(null),
+  model: shortText12.nullable().default(null),
+  profile: shortText12.nullable().default(null),
+  contextStrategy: shortText12,
+  computeLocality: shortText12,
   heuristicChoice: external_exports.boolean().default(false)
 }).passthrough();
 var predictionShape = external_exports.object({
-  candidateId: shortText10,
+  candidateId: shortText12,
   level: external_exports.enum(PROFILE_FALLBACK_LEVELS),
   profileKey: external_exports.string().max(400).nullable().default(null),
   confidence: external_exports.enum(PREDICTION_CONFIDENCE_LEVELS),
@@ -67221,14 +68000,14 @@ var predictionShape = external_exports.object({
   safetyEvents: external_exports.number().int().min(0).default(0),
   sampleCount: external_exports.number().int().min(0),
   weightedSampleCount: external_exports.number().min(0),
-  lastObservedAt: shortText10.nullable().default(null),
+  lastObservedAt: shortText12.nullable().default(null),
   /** Utility score and its itemized components. */
   score: external_exports.number(),
   scoreComponents: external_exports.array(
     external_exports.object({
-      name: shortText10,
+      name: shortText12,
       raw: external_exports.number().nullable().default(null),
-      unit: shortText10,
+      unit: shortText12,
       normalized: external_exports.number(),
       weight: external_exports.number(),
       contribution: external_exports.number(),
@@ -67238,36 +68017,36 @@ var predictionShape = external_exports.object({
 }).passthrough();
 var adaptiveSchedulingDecisionSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  decisionId: shortText10,
-  jobId: shortText10,
-  nodeId: shortText10,
-  taskId: shortText10,
+  decisionId: shortText12,
+  jobId: shortText12,
+  nodeId: shortText12,
+  taskId: shortText12,
   mode: external_exports.enum(ADAPTIVE_SCHEDULER_MODES),
   /** The coarse grouping key this decision was made under. */
   taskSignature: external_exports.string().max(400),
   /** Fine-grained current features: audit only, never the grouping key. */
   signatureFeatures: external_exports.record(external_exports.unknown()).default({}),
   /** The lane hard policy selected before adaptive ranking ran. */
-  heuristicLane: shortText10,
-  heuristicReasonCode: shortText10,
+  heuristicLane: shortText12,
+  heuristicReasonCode: shortText12,
   eligibleCandidates: external_exports.array(candidateShape).max(32).default([]),
   rejectedCandidates: external_exports.array(
     external_exports.object({
-      candidateId: shortText10,
-      lane: shortText10,
-      executionMode: shortText10.nullable().default(null),
-      runner: shortText10.nullable().default(null),
+      candidateId: shortText12,
+      lane: shortText12,
+      executionMode: shortText12.nullable().default(null),
+      runner: shortText12.nullable().default(null),
       code: external_exports.enum(ADAPTIVE_VETO_CODES),
       detail: external_exports.string().max(600).default("")
     }).passthrough()
   ).max(32).default([]),
   predictions: external_exports.array(predictionShape).max(32).default([]),
   /** What the deterministic scheduler chose. */
-  heuristicCandidateId: shortText10.nullable().default(null),
+  heuristicCandidateId: shortText12.nullable().default(null),
   /** What ranking preferred, before gating. */
-  recommendedCandidateId: shortText10.nullable().default(null),
+  recommendedCandidateId: shortText12.nullable().default(null),
   /** What actually executes. */
-  selectedCandidateId: shortText10.nullable().default(null),
+  selectedCandidateId: shortText12.nullable().default(null),
   adaptiveApplied: external_exports.boolean().default(false),
   /**
    * True when the recommendation differed from the heuristic choice. In
@@ -67284,8 +68063,8 @@ var adaptiveSchedulingDecisionSchema = external_exports.object({
   explanation: external_exports.array(external_exports.string().max(600)).max(24).default([]),
   /** Profile-store provenance, so a decision is reproducible. */
   profileObservations: external_exports.number().int().min(0).default(0),
-  profileBuiltAt: shortText10.nullable().default(null),
-  createdAt: shortText10
+  profileBuiltAt: shortText12.nullable().default(null),
+  createdAt: shortText12
 }).passthrough();
 function adaptiveDir(workspace, jobId) {
   return assertInsideWorkspace(workspace.rootDir, import_path44.default.join(jobDir(workspace, jobId), "adaptive"));
@@ -68523,7 +69302,7 @@ function evaluateAttempt(input) {
     failedCriteria: [...input.failedCriteria ?? []].slice(0, 50),
     evidenceRefs: [...input.evidenceRefs ?? []].slice(0, 40),
     failureSignals: [...input.failureSignals ?? []].slice(0, 50),
-    reasons: reasons.slice(0, 50).map((reason2) => reason2.slice(0, 2e3)),
+    reasons: reasons.slice(0, 50).map((reason3) => reason3.slice(0, 2e3)),
     semanticReviewRan,
     createdAt: input.createdAt
   });
@@ -68776,10 +69555,10 @@ function planRecovery(input) {
     freshContext: false
   });
   const same = (dimension = "SAME") => dimension === "SAME" ? previousStrategy : previousStrategy;
-  const stop = (action, reasonCode, reason2, remediation) => ({
+  const stop = (action, reasonCode, reason3, remediation) => ({
     action,
     reasonCode,
-    reason: reason2,
+    reason: reason3,
     strategyChange: "SAME",
     previousStrategy,
     nextStrategy: same(),
@@ -69069,11 +69848,11 @@ function contractMismatch(evaluation) {
   );
   return failedLevels.size > 0 && [...failedLevels].every((level) => level === "ACCEPTANCE_CRITERIA");
 }
-function replanPlan(input, previousStrategy, reasonCode, reason2) {
+function replanPlan(input, previousStrategy, reasonCode, reason3) {
   return {
     action: "REPLAN",
     reasonCode,
-    reason: reason2,
+    reason: reason3,
     strategyChange: "PLAN",
     previousStrategy,
     // A replan deliberately leaves lane and execution mode UNDECIDED.
@@ -70079,7 +70858,7 @@ function recordCriticVerdict(deps3, jobId, result) {
     nodeId: node.nodeId,
     planRevision: node.planRevision,
     verdict: result.verdict,
-    reasons: result.reasons.slice(0, 10).map((reason2) => reason2.slice(0, 200))
+    reasons: result.reasons.slice(0, 10).map((reason3) => reason3.slice(0, 200))
   });
   if (result.verdict === "REVISE" || result.verdict === "ESCALATE") {
     job = transition22(deps3, job, "PLANNING");
@@ -70234,6 +71013,49 @@ function beginExecutorDispatch(deps3, jobId, input) {
     provider: attempt.provider,
     ...attempt.resumedFromAttemptId !== void 0 ? { resumedFromAttemptId: attempt.resumedFromAttemptId } : {}
   });
+  persistGraph(deps3, job, graph);
+  return persist22(deps3, job);
+}
+function yieldExecutorForResourceWait(deps3, jobId, input) {
+  assertJobsEnabled(deps3);
+  let job = requireJobState(deps3.workspace, jobId);
+  let graph = requireGraphRevision(deps3.workspace, jobId, job.graphRevision);
+  const node = requireNode(graph, input.nodeId);
+  if (node.status !== "RUNNING" && node.status !== "REPAIRING") {
+    throw new OrchestrationError(
+      "SBO030",
+      `Node ${node.nodeId} cannot yield for a resource wait from ${node.status}.`
+    );
+  }
+  if (job.currentAttemptId !== void 0) {
+    const attempt = readTaskAttempt(deps3.workspace, jobId, job.currentAttemptId);
+    if (attempt !== void 0 && !isFinalAttemptStatus(attempt.status)) {
+      completeTaskAttempt(
+        { workspace: deps3.workspace, clock: deps3.clock, idFactory: deps3.idFactory },
+        {
+          jobId,
+          attemptId: attempt.attemptId,
+          status: "CANCELLED",
+          resultSummary: `Yielded without an implementation attempt: ${input.detail.slice(0, 1500)}`
+        }
+      );
+    }
+    job = record22(deps3, job, "attempt_completed", {
+      nodeId: node.nodeId,
+      taskId: node.parentTaskId,
+      attemptId: job.currentAttemptId,
+      status: "CANCELLED",
+      resourceDeferred: true,
+      implementationAttemptConsumed: false
+    });
+  }
+  graph = transitionNode(graph, node.nodeId, "READY");
+  job = transition22(deps3, job, "READY");
+  job = {
+    ...job,
+    currentAttemptId: void 0,
+    currentNodeId: node.nodeId
+  };
   persistGraph(deps3, job, graph);
   return persist22(deps3, job);
 }
@@ -71191,12 +72013,12 @@ function answerClarification(deps3, jobId, answers) {
   }
   return persist22(deps3, job);
 }
-function cancelJob(deps3, jobId, reason2) {
+function cancelJob(deps3, jobId, reason3) {
   let job = requireJobState(deps3.workspace, jobId);
   if (isFinalJobStatus(job.status)) return job;
   const at = now4(deps3).toISOString();
   job = transition22(deps3, job, "CANCELLED");
-  job = record22(deps3, job, "job_cancelled", { reason: reason2.slice(0, 500) });
+  job = record22(deps3, job, "job_cancelled", { reason: reason3.slice(0, 500) });
   return persist22(deps3, { ...job, finalizedAt: at, finalOutcome: "CANCELLED" });
 }
 var TRANSIENT_UNIT_FAILURES = ["TRANSIENT_TOOL", "TRANSIENT_TRANSPORT"];
@@ -71826,7 +72648,7 @@ var AGENT_OUTPUT_LIMITS = {
   maxSteps: 40,
   maxResponseBytes: 262144
 };
-var shortText11 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxShortChars);
+var shortText13 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxShortChars);
 var text6 = external_exports.string().min(1).max(AGENT_OUTPUT_LIMITS.maxTextChars);
 var textList4 = external_exports.array(text6).max(AGENT_OUTPUT_LIMITS.maxListItems);
 var classifierOutputSchema = external_exports.object({
@@ -71836,7 +72658,7 @@ var classifierOutputSchema = external_exports.object({
   reasons: textList4.default([])
 });
 var plannerStepSchema = external_exports.object({
-  id: shortText11,
+  id: shortText13,
   action: text6,
   /** What observable evidence would show this step succeeded. */
   expectedEvidence: text6.optional()
@@ -72516,8 +73338,8 @@ var RESEARCH_PROVIDER_HEALTH_STATUSES = [
   "UNKNOWN"
 ];
 var idSchema = external_exports.string().min(1).max(128).regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/);
-var boundedText3 = (max) => external_exports.string().trim().min(1).max(max);
-var boundedTextArray = (maxItems, maxText) => external_exports.array(boundedText3(maxText)).max(maxItems);
+var boundedText4 = (max) => external_exports.string().trim().min(1).max(max);
+var boundedTextArray = (maxItems, maxText) => external_exports.array(boundedText4(maxText)).max(maxItems);
 var SECRET_PATTERNS = [
   /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/i,
   /\b(?:bearer|basic)\s+[A-Za-z0-9+/=_-]{12,}/i,
@@ -72531,7 +73353,7 @@ function containsCredentialMaterial(value) {
 var researchRequestSchema = external_exports.object({
   researchId: idSchema,
   depth: external_exports.enum(RESEARCH_DEPTHS),
-  question: boundedText3(4e3),
+  question: boundedText4(4e3),
   topicTags: external_exports.array(external_exports.string().trim().min(1).max(64).regex(/^[A-Za-z0-9][A-Za-z0-9._:/-]*$/)).max(16).default([]),
   context: external_exports.object({
     knownFacts: boundedTextArray(20, 2e3).default([]),
@@ -72539,7 +73361,7 @@ var researchRequestSchema = external_exports.object({
     failedStrategies: boundedTextArray(10, 2e3).default([]),
     constraints: boundedTextArray(20, 2e3).default([]),
     /** References only; never repository bodies or transcripts. */
-    contextRefs: external_exports.array(boundedText3(512)).max(20).default([])
+    contextRefs: external_exports.array(boundedText4(512)).max(20).default([])
   }).strict().default({}),
   expectedOutput: external_exports.object({
     questionsToAnswer: boundedTextArray(12, 1e3).min(1)
@@ -72550,7 +73372,7 @@ var researchRequestSchema = external_exports.object({
   }).strict().default({}),
   freshness: external_exports.object({
     currentFactSensitive: external_exports.boolean().default(false),
-    subjectVersion: boundedText3(128).optional()
+    subjectVersion: boundedText4(128).optional()
   }).strict().default({})
 }).strict().superRefine((request, ctx) => {
   const size = Buffer.byteLength(JSON.stringify(request), "utf8");
@@ -72570,13 +73392,13 @@ var researchSourceRefSchema = external_exports.object({
     const protocol = new URL(value).protocol;
     return protocol === "http:" || protocol === "https:";
   }, "source URLs must use http or https").optional(),
-  title: boundedText3(500).optional(),
-  providerSourceId: boundedText3(256).optional(),
-  attribution: boundedText3(500).optional()
+  title: boundedText4(500).optional(),
+  providerSourceId: boundedText4(256).optional(),
+  attribution: boundedText4(500).optional()
 }).strict();
 var researchFindingSchema = external_exports.object({
   findingId: idSchema,
-  statement: boundedText3(4e3),
+  statement: boundedText4(4e3),
   kind: external_exports.enum(RESEARCH_FINDING_KINDS),
   confidence: external_exports.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
   sourceRefs: external_exports.array(idSchema).max(16).default([])
@@ -72594,7 +73416,7 @@ var researchReportSchema = external_exports.object({
   provider: idSchema,
   depth: external_exports.enum(RESEARCH_DEPTHS),
   status: external_exports.enum(["COMPLETED", "INCONCLUSIVE"]),
-  question: boundedText3(4e3),
+  question: boundedText4(4e3),
   findings: external_exports.array(researchFindingSchema).max(64),
   sourceRefs: external_exports.array(researchSourceRefSchema).max(64),
   recommendations: boundedTextArray(32, 2e3),
@@ -72627,7 +73449,7 @@ var researchReportSchema = external_exports.object({
 var researchFailureSchema = external_exports.object({
   classification: external_exports.enum(RESEARCH_FAILURE_CLASSIFICATIONS),
   failureSource: external_exports.enum(FAILURE_SOURCES),
-  message: boundedText3(2e3),
+  message: boundedText4(2e3),
   retryable: external_exports.boolean()
 }).strict();
 var researchRecordSchema = external_exports.object({
@@ -72643,9 +73465,9 @@ var researchRecordSchema = external_exports.object({
   scope: external_exports.object({ operationId: idSchema.optional(), jobId: idSchema.optional() }).strict().optional(),
   lifecycle: external_exports.object({
     phase: external_exports.enum(RESEARCH_LIFECYCLE_PHASES),
-    reason: boundedText3(1e3),
+    reason: boundedText4(1e3),
     requestedEffect: external_exports.enum(RESEARCH_LIFECYCLE_EFFECTS).default("EVIDENCE"),
-    usedBy: boundedText3(256).optional()
+    usedBy: boundedText4(256).optional()
   }).strict().optional(),
   report: researchReportSchema.optional(),
   failure: researchFailureSchema.optional(),
@@ -72705,10 +73527,10 @@ var researchUseRecordSchema = external_exports.object({
   useId: idSchema,
   researchId: idSchema,
   phase: external_exports.enum(RESEARCH_LIFECYCLE_PHASES),
-  reason: boundedText3(1e3),
+  reason: boundedText4(1e3),
   useKind: external_exports.enum(["NEW", "REUSED"]),
   effect: external_exports.enum(RESEARCH_LIFECYCLE_EFFECTS),
-  usedBy: boundedText3(256).optional(),
+  usedBy: boundedText4(256).optional(),
   authority: external_exports.literal("EVIDENCE_ONLY"),
   createdAt: external_exports.string().datetime({ offset: true })
 }).strict();
@@ -72743,13 +73565,13 @@ var UNKNOWN_CLASSIFICATIONS = [
 ];
 var decisionBriefOptionSchema = external_exports.object({
   id: idSchema,
-  label: boundedText3(200),
-  description: boundedText3(1500),
+  label: boundedText4(200),
+  description: boundedText4(1500),
   consequences: boundedTextArray(12, 1e3).default([])
 }).strict();
 var decisionBriefSchema = external_exports.object({
   questionId: idSchema,
-  question: boundedText3(4e3),
+  question: boundedText4(4e3),
   context: boundedTextArray(24, 2e3).default([]),
   options: external_exports.array(decisionBriefOptionSchema).max(8).default([]),
   recommendation: external_exports.object({
@@ -73893,18 +74715,18 @@ function recordResearchLifecycleEffect(deps3, input) {
     input.effect
   );
 }
-var boundedText4 = (max) => external_exports.string().trim().min(1).max(max);
-var boundedTextArray2 = (maxItems, maxText) => external_exports.array(boundedText4(maxText)).max(maxItems);
+var boundedText5 = (max) => external_exports.string().trim().min(1).max(max);
+var boundedTextArray2 = (maxItems, maxText) => external_exports.array(boundedText5(maxText)).max(maxItems);
 var lifecycleResearchInputSchema = external_exports.object({
   phase: external_exports.enum(["CONVERSATION", "SPEC_DRAFT", "INTAKE_DECISION", "RUNTIME_INVESTIGATION"]),
   classification: external_exports.enum(UNKNOWN_CLASSIFICATIONS),
-  reason: boundedText4(1e3),
+  reason: boundedText5(1e3),
   requestedEffect: external_exports.enum(["EVIDENCE", "RECOMMENDATION", "HUMAN_DECISION_PREPARED", "REPLAN", "ENGINEERING_CONSTRAINT"]).default("EVIDENCE"),
-  usedBy: boundedText4(256).optional(),
+  usedBy: boundedText5(256).optional(),
   gate: researchGateInputSchema,
   request: researchRequestSchema.optional(),
-  operationId: boundedText4(128).optional(),
-  jobId: boundedText4(128).optional(),
+  operationId: boundedText5(128).optional(),
+  jobId: boundedText5(128).optional(),
   refreshCurrentFacts: external_exports.boolean().default(false)
 }).strict().superRefine((value, context) => {
   if (value.request !== void 0 && (value.gate.requestedDepth ?? "QUICK") !== value.request.depth) {
@@ -73960,11 +74782,11 @@ async function considerLifecycleResearch(deps3, raw, signal) {
   return { classification: input.classification, gate, execution };
 }
 var decisionPreparationInputSchema = external_exports.object({
-  questionId: boundedText4(128),
-  question: boundedText4(4e3),
+  questionId: boundedText5(128),
+  question: boundedText5(4e3),
   context: boundedTextArray2(20, 2e3).default([]),
   options: external_exports.array(decisionBriefOptionSchema).max(8).default([]),
-  recommendation: external_exports.object({ optionId: boundedText4(128), rationale: boundedTextArray2(12, 1e3).min(1) }).strict().optional(),
+  recommendation: external_exports.object({ optionId: boundedText5(128), rationale: boundedTextArray2(12, 1e3).min(1) }).strict().optional(),
   repositoryEvidenceRefs: boundedTextArray2(20, 512).default([]),
   research: lifecycleResearchInputSchema.optional()
 }).strict();
@@ -74471,7 +75293,9 @@ function aggregateStructurally(graph) {
   };
 }
 function selectDispatchSet(input) {
-  const ready = readyUnits(input.graph);
+  const ready = readyUnits(input.graph).filter(
+    (unit) => input.unavailableWorkUnitIds?.has(unit.workUnitId) !== true
+  );
   if (ready.length === 0) return [];
   const first = ready[0];
   if (!input.parallelism.enabled || input.unresolvedDecision) return [first];
@@ -74499,13 +75323,13 @@ var OBJECTIVE_OUTPUT_LIMITS = {
   maxUnits: 30,
   maxResponseBytes: 262144
 };
-var shortText12 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxShortChars);
+var shortText14 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxShortChars);
 var text7 = external_exports.string().min(1).max(OBJECTIVE_OUTPUT_LIMITS.maxTextChars);
 var textList5 = external_exports.array(text7).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
-var shortList = external_exports.array(shortText12).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
+var shortList = external_exports.array(shortText14).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems);
 var decomposerUnitSchema = external_exports.object({
   /** Proposal-local id ("a", "b", …); SpecBridge assigns the real ids. */
-  id: shortText12,
+  id: shortText14,
   kind: external_exports.enum(WORK_UNIT_KINDS),
   title: text7,
   goal: text7,
@@ -74534,7 +75358,7 @@ var evaluatorOutputSchema = external_exports.object({
    * "architecture-contract-change", "product-behavior-change", …). The
    * deterministic authority table routes it; the evaluator only names it.
    */
-  decisionKind: shortText12.optional()
+  decisionKind: shortText14.optional()
 });
 var aggregatorOutputSchema = external_exports.object({
   /** One bounded synthesis of the input artifacts. */
@@ -74542,7 +75366,7 @@ var aggregatorOutputSchema = external_exports.object({
   /** Structured findings, each tied to its source artifact. */
   findings: external_exports.array(
     external_exports.object({
-      sourceWorkUnitId: shortText12,
+      sourceWorkUnitId: shortText14,
       finding: text7
     })
   ).max(OBJECTIVE_OUTPUT_LIMITS.maxListItems).default([]),
@@ -74551,15 +75375,15 @@ var aggregatorOutputSchema = external_exports.object({
   /** Contract changes the synthesis suggests — requests, never approvals. */
   contractChangeSuggestions: external_exports.array(
     external_exports.object({
-      contractId: shortText12,
+      contractId: shortText14,
       problem: text7,
       proposal: text7
     })
   ).max(10).default([]),
   conflictsDetected: external_exports.array(
     external_exports.object({
-      contractId: shortText12,
-      claims: external_exports.array(external_exports.object({ sourceWorkUnitId: shortText12, claim: text7 })).min(1).max(10)
+      contractId: shortText14,
+      claims: external_exports.array(external_exports.object({ sourceWorkUnitId: shortText14, claim: text7 })).min(1).max(10)
     })
   ).max(10).default([])
 });
@@ -74571,7 +75395,7 @@ var builderOutputSchema = external_exports.object({
   assumptionsDiscovered: textList5.default([]),
   contractChangeRequests: external_exports.array(
     external_exports.object({
-      contractId: shortText12,
+      contractId: shortText14,
       problem: text7,
       proposal: text7
     })
@@ -74966,9 +75790,9 @@ async function integrateObjective(input) {
   }
   const runId = started.runId;
   input.onProgress?.(`integration run ${runId} started for objective task ${input.taskId}`);
-  const abort = async (reason2) => {
+  const abort = async (reason3) => {
     try {
-      await abortInteractiveTask(interactiveDeps2, { runId, reason: reason2.slice(0, 500) });
+      await abortInteractiveTask(interactiveDeps2, { runId, reason: reason3.slice(0, 500) });
     } catch {
     }
   };
@@ -75102,7 +75926,7 @@ function contractSnapshotHashOf(contracts, constitutionVersion) {
   const canonical = [...contracts].map((contract) => `${contract.contractId}@${contract.revision}`).sort().join(",");
   return sha256Hex(`constitution@${constitutionVersion};${canonical}`);
 }
-function stableStringify3(value) {
+function stableStringify4(value) {
   const sorted = (input) => {
     if (Array.isArray(input)) return input.map(sorted);
     if (input !== null && typeof input === "object") {
@@ -75182,10 +76006,10 @@ function buildContextProjection(input) {
     workEvidence: (input.workEvidence ?? []).slice(0, OBJECTIVE_LIMITS.maxListItems).map((item) => bounded2(item, OBJECTIVE_LIMITS.maxTextChars)),
     contractSnapshotHash
   };
-  let serialized = stableStringify3(body);
+  let serialized = stableStringify4(body);
   while (serialized.length > input.maxProjectionChars && body.specExcerpts.length > 0) {
     body.specExcerpts.pop();
-    serialized = stableStringify3(body);
+    serialized = stableStringify4(body);
   }
   return contextProjectionSchema.parse({ ...body, contentHash: sha256Hex(serialized) });
 }
@@ -75363,7 +76187,7 @@ function evaluateDeterministically(input) {
     layer: "deterministic",
     verdict,
     checks,
-    reasons: reasons.slice(0, 30).map((reason2) => reason2.slice(0, 2e3)),
+    reasons: reasons.slice(0, 30).map((reason3) => reason3.slice(0, 2e3)),
     evidenceRefs: [
       ...input.candidate.patchRef !== void 0 ? [input.candidate.patchRef] : [],
       ...input.candidate.localVerification.commands.map((command) => `verify:${command.name}:${command.status}`)
@@ -76317,12 +77141,12 @@ function failResult(category, message2, source, output) {
 }
 async function decomposeObjective(input, truth, relevantContractIds, acceptance) {
   const at = nowIso3(input);
-  const fallback = (reason2) => singleUnitGraph({
+  const fallback = (reason3) => singleUnitGraph({
     jobId: input.jobId,
     node: input.node,
     relevantContractIds,
     createdAt: at,
-    reason: reason2
+    reason: reason3
   });
   if (!input.policy.objectives.enabled) {
     const graph2 = persistGraph2(input, fallback("objective decomposition is disabled by policy"));
@@ -76575,10 +77399,23 @@ async function executeResearchInvestigation(context, prepared) {
     countedAsWorker: false
   };
 }
+function secondarySelectionFor(input, unit) {
+  if (unit.kind !== "build") return void 0;
+  const explicit = input.secondaryBuilder;
+  if (explicit !== void 0 && (explicit.workUnitIds === void 0 || explicit.workUnitIds.includes(unit.workUnitId))) {
+    return { selection: explicit, explicit: true };
+  }
+  const policy = input.policy.objectives.secondaryBuilder;
+  if (policy.strategy === "OFF") return void 0;
+  return {
+    selection: {
+      selectionReason: `Phase 7 ${policy.strategy} routing selected eligible implementation work.`
+    },
+    explicit: false
+  };
+}
 function secondarySelected(input, unit) {
-  const selection = input.secondaryBuilder;
-  if (selection === void 0 || unit.kind !== "build") return false;
-  return selection.workUnitIds === void 0 || selection.workUnitIds.includes(unit.workUnitId);
+  return secondarySelectionFor(input, unit) !== void 0;
 }
 function secondaryFailureCategory(kind) {
   switch (kind) {
@@ -76681,17 +77518,54 @@ function recordSecondaryReadiness(context, prepared, packet, compilation) {
     reused: result.reused,
     routingChanged: false
   });
-  return result.decision;
+  return result;
 }
 function builderFailureResult(problem) {
   return { ok: false, kind: "worker-unavailable", problem };
 }
-async function executeSelectedSecondaryBuilder(context, prepared, worktree) {
-  const { input } = context;
-  const selection = input.secondaryBuilder;
-  if (selection === void 0) {
-    return { prepared, result: builderFailureResult("secondary builder selection disappeared") };
+function resourceDeferredAttempt(prepared, resource, evidence = {}, resourceRefusalObserved = false) {
+  return {
+    prepared,
+    result: builderFailureResult(
+      `Strong execution was not dispatched: ${resource.detail}`.slice(0, 2e3)
+    ),
+    countedAsWorker: false,
+    resourceWait: resource,
+    ...resourceRefusalObserved ? { resourceRefusalObserved: true } : {},
+    ...evidence
+  };
+}
+function priorAttemptEvidence(prepared) {
+  const evidence = [];
+  if (prepared.unit.latestFailure !== void 0) {
+    evidence.push(
+      `${prepared.unit.latestFailure.category}: ${prepared.unit.latestFailure.message}`.slice(0, 2e3)
+    );
   }
+  if (prepared.priorCandidate !== void 0) {
+    evidence.push(
+      `Continue the existing candidate; changed files: ${prepared.priorCandidate.changedFiles.map((entry2) => entry2.path).slice(0, 30).join(", ") || "(none)"}. Do not redesign unrelated code.`.slice(0, 2e3)
+    );
+    evidence.push(`Prior candidate summary: ${prepared.priorCandidate.claims.summary}`.slice(0, 2e3));
+  }
+  if (prepared.priorCandidatePatch !== void 0 && prepared.priorCandidatePatch.trim().length > 0) {
+    evidence.push(`Prior candidate diff excerpt:
+${prepared.priorCandidatePatch.slice(0, 1900)}`);
+  }
+  return evidence.slice(0, 20);
+}
+async function prepareSecondaryAdmission(context, prepared, worktree, resolved2) {
+  const { input } = context;
+  const selection = resolved2.selection;
+  const priorFailureEvidence = priorAttemptEvidence(prepared);
+  const previousSecondaryAttempt = prepared.attempt > 1 ? readSecondaryBuilderAttempt(
+    input.workspace,
+    input.jobId,
+    input.node.nodeId,
+    prepared.unitId,
+    prepared.attempt - 1
+  ) : void 0;
+  const repairExpansionLevel = previousSecondaryAttempt?.failure?.kind === "INSUFFICIENT_CONTEXT" && previousSecondaryAttempt.packet.expansion.level === "ADJACENT_DEPENDENCIES" ? CONTEXT_EXPANSION_LEVELS[CONTEXT_EXPANSION_LEVELS.indexOf(previousSecondaryAttempt.packet.expansion.level) + 1] : void 0;
   let packet;
   let compilation;
   let repositoryRoots = { primary: worktree.dir };
@@ -76701,14 +77575,17 @@ async function executeSelectedSecondaryBuilder(context, prepared, worktree) {
       packet = buildSecondaryBuilderPacket({
         projection: prepared.projection,
         sourceContext,
-        verificationHints: input.config.verification.commands.map((command) => command.name)
+        verificationHints: input.config.verification.commands.map((command) => command.name),
+        priorFailureEvidence
       });
     } catch (cause) {
       const problem = `source context could not be prepared: ${cause instanceof Error ? cause.message : String(cause)}`;
+      const readiness2 = recordSecondaryReadiness(context, prepared, void 0, void 0);
       return {
-        prepared,
-        result: builderFailureResult(problem),
-        secondaryFailure: { kind: "STALE_SOURCE_CONTEXT", problem }
+        resolved: resolved2,
+        repositoryRoots,
+        readiness: readiness2,
+        failure: { kind: "STALE_SOURCE_CONTEXT", problem }
       };
     }
   } else {
@@ -76727,17 +77604,20 @@ async function executeSelectedSecondaryBuilder(context, prepared, worktree) {
         baselineRef: prepared.baselineCommit,
         dependencyContext: prepared.dependencyContext,
         missingDependencyIds: prepared.missingDependencyIds,
-        priorFailureEvidence: prepared.unit.latestFailure === void 0 ? [] : [`${prepared.unit.latestFailure.category}: ${prepared.unit.latestFailure.message}`],
+        priorFailureEvidence,
+        ...repairExpansionLevel !== void 0 ? { expansionLevel: repairExpansionLevel } : {},
         verificationHints: input.config.verification.commands.map((command) => command.name),
         maximumInputCharacters: secondaryBuilderInputCeiling(input.config),
         createdAt: nowIso3(input)
       });
     } catch (cause) {
       const problem = `builder packet compilation failed: ${cause instanceof Error ? cause.message : String(cause)}`;
+      const readiness2 = recordSecondaryReadiness(context, prepared, void 0, void 0);
       return {
-        prepared,
-        result: builderFailureResult(problem),
-        secondaryFailure: { kind: "INSUFFICIENT_CONTEXT", problem }
+        resolved: resolved2,
+        repositoryRoots,
+        readiness: readiness2,
+        failure: { kind: "INSUFFICIENT_CONTEXT", problem }
       };
     }
     compilation = compiled;
@@ -76751,22 +77631,206 @@ async function executeSelectedSecondaryBuilder(context, prepared, worktree) {
       ...compiled.ok ? {} : { failure: compiled.failure.kind, reasons: compiled.failure.reasons }
     });
     if (!compiled.ok) {
-      const readinessDecision2 = recordSecondaryReadiness(context, prepared, void 0, compiled);
-      const problem = `${compiled.failure.kind}: ${compiled.failure.reasons.join("; ")}`;
+      const readiness2 = recordSecondaryReadiness(context, prepared, void 0, compiled);
       return {
-        prepared,
-        result: builderFailureResult(problem),
-        secondaryFailure: { kind: compiled.failure.kind, problem },
-        readinessDecision: readinessDecision2
+        resolved: resolved2,
+        compilation: compiled,
+        repositoryRoots,
+        readiness: readiness2,
+        failure: {
+          kind: compiled.failure.kind,
+          problem: `${compiled.failure.kind}: ${compiled.failure.reasons.join("; ")}`
+        }
       };
     }
     packet = compiled.packet;
     repositoryRoots = compiled.repositoryRoots;
   }
-  if (packet === void 0) {
-    return { prepared, result: builderFailureResult("secondary builder packet was not produced") };
+  const readiness = recordSecondaryReadiness(context, prepared, packet, compilation);
+  return {
+    resolved: resolved2,
+    packet,
+    ...compilation !== void 0 ? { compilation } : {},
+    repositoryRoots,
+    readiness
+  };
+}
+async function probeSecondaryAvailability(input, resolved2) {
+  if (resolved2.selection.inference !== void 0) {
+    return {
+      status: "AVAILABLE",
+      detail: "The explicitly supplied provider-neutral Secondary inference is available."
+    };
   }
-  const readinessDecision = recordSecondaryReadiness(context, prepared, packet, compilation);
+  if (input.localManager === void 0 || !input.config.localInference.enabled) {
+    return {
+      status: "UNAVAILABLE",
+      detail: "Managed local inference is disabled or no local manager is available."
+    };
+  }
+  const started = await input.localManager.ensureStarted(input.signal);
+  if (started.ok) {
+    return {
+      status: "AVAILABLE",
+      detail: "The managed loopback Secondary endpoint passed its bounded startup/health check."
+    };
+  }
+  const status = started.kind === "invalid-config" || started.kind === "executable-missing" || started.kind === "model-missing" ? "MISCONFIGURED" : started.kind === "startup-timeout" ? "TIMEOUT" : started.kind === "spawn-failed" || started.kind === "process-exited" ? "START_FAILED" : started.kind === "restart-budget-exhausted" ? "UNHEALTHY" : "UNAVAILABLE";
+  return { status, detail: started.problem.slice(0, 2e3) };
+}
+function persistRoutingDecision(context, prepared, admission, availability, forceStrongReason) {
+  const { input } = context;
+  const workIdentity = buildBuilderRoutingWorkIdentity({
+    assessment: admission.readiness.assessment,
+    ...admission.packet !== void 0 ? { packet: admission.packet } : {}
+  });
+  const prior = readBuilderRoutingState(
+    input.workspace,
+    input.jobId,
+    input.node.nodeId,
+    prepared.unitId,
+    workIdentity
+  );
+  const decision = decideBuilderRouting({
+    decision: admission.readiness.decision,
+    workIdentity,
+    strategy: input.policy.objectives.secondaryBuilder.strategy,
+    availability,
+    ...input.schedulerMode !== void 0 ? { schedulerMode: input.schedulerMode } : {},
+    explicitSecondarySelection: admission.resolved.explicit,
+    ...forceStrongReason !== void 0 ? { forceStrongReason } : {},
+    ...prior !== void 0 ? { priorState: prior } : {},
+    decidedAt: nowIso3(input)
+  });
+  let state = recordBuilderRoutingDecision({
+    ...prior !== void 0 ? { prior } : {},
+    decision,
+    maxRepairAttempts: input.policy.objectives.secondaryBuilder.maxRepairAttempts,
+    at: decision.decidedAt
+  });
+  state = storeBuilderRoutingState(input.workspace, input.jobId, input.node.nodeId, state);
+  storeBuilderRoutingTelemetry(
+    input.workspace,
+    input.jobId,
+    input.node.nodeId,
+    summarizeBuilderRouting(
+      readBuilderRoutingStates(input.workspace, input.jobId, input.node.nodeId),
+      decision.decidedAt
+    )
+  );
+  input.recordEvent("builder_routing_decided", {
+    nodeId: input.node.nodeId,
+    workUnitId: prepared.unitId,
+    attempt: prepared.attempt,
+    strategy: decision.strategy,
+    eligibility: decision.eligibility,
+    selectedBackend: decision.selectedBackend,
+    secondaryAvailability: decision.secondaryAvailability,
+    quotaState: decision.quotaState ?? null,
+    reasons: decision.reasons.map((entry2) => entry2.code),
+    contentHash: decision.contentHash
+  });
+  return {
+    decision,
+    state,
+    ...decision.selectedBackend === "SECONDARY" || decision.selectedBackend === "STRONG" ? { kind: builderAttemptKindFor(decision, state) } : {}
+  };
+}
+function persistRoutingState(input, state) {
+  const stored = storeBuilderRoutingState(input.workspace, input.jobId, input.node.nodeId, state);
+  storeBuilderRoutingTelemetry(
+    input.workspace,
+    input.jobId,
+    input.node.nodeId,
+    summarizeBuilderRouting(
+      readBuilderRoutingStates(input.workspace, input.jobId, input.node.nodeId),
+      stored.updatedAt
+    )
+  );
+  return stored;
+}
+function routingOutcomeForFailure(executed) {
+  const secondary = executed.secondaryFailure?.kind;
+  if (secondary === "CANCELLED" || !executed.result.ok && executed.result.kind === "cancelled") {
+    return "CANCELLED";
+  }
+  if (secondary === "INFERENCE_UNAVAILABLE" || secondary === "TIMEOUT") return "FAILED_RESOURCE";
+  if (secondary === "INVALID_STRUCTURED_OUTPUT") return "FAILED_OUTPUT";
+  if (secondary !== void 0) return "FAILED_IMPLEMENTATION";
+  if (!executed.result.ok && executed.result.kind === "invalid-output") return "FAILED_OUTPUT";
+  if (!executed.result.ok && executed.result.kind === "worker-unavailable") return "FAILED_RESOURCE";
+  return "FAILED_IMPLEMENTATION";
+}
+function verificationSummaryOf(executed) {
+  return (executed.verification?.commands ?? []).map((command) => `${command.name}: ${command.status}${command.exitCode !== void 0 ? ` (${command.exitCode ?? "no exit"})` : ""}`.slice(0, 2e3));
+}
+function recordRoutingAttempt(context, executed, outcome, candidate) {
+  if (executed.routingState === void 0 || executed.routingDecision === void 0 || executed.routingAttemptKind === void 0) return void 0;
+  const { input } = context;
+  const patch = executed.collected?.patch ?? preparedPatch(executed.prepared);
+  const verificationSummary = verificationSummaryOf(executed);
+  const failureSummary = !executed.result.ok ? executed.result.problem : executed.secondaryFailure?.problem ?? (outcome === "FAILED_VERIFICATION" ? "Trusted verification rejected the candidate." : void 0);
+  const fingerprint = outcome === "CANDIDATE_READY" ? void 0 : builderProblemFingerprint({
+    failureKind: executed.secondaryFailure?.kind ?? outcome,
+    verificationSummary,
+    ...patch !== void 0 ? { candidatePatch: patch } : {}
+  });
+  const completedAt = nowIso3(input);
+  const next = appendBuilderRoutingAttempt(executed.routingState, {
+    attemptId: `${executed.prepared.unitId}-a${String(executed.prepared.attempt).padStart(2, "0")}-${executed.routingAttemptKind.toLowerCase()}`,
+    workUnitAttempt: executed.prepared.attempt,
+    kind: executed.routingAttemptKind,
+    outcome,
+    ...candidate !== void 0 ? { candidateRef: `candidates/${candidate.candidateId}.json` } : {},
+    ...candidate?.patchRef !== void 0 ? { patchRef: candidate.patchRef } : {},
+    changedFiles: (candidate?.changedFiles ?? executed.collected?.changedFiles ?? []).map((entry2) => entry2.path),
+    ...executed.secondaryAttempt?.packetHash !== void 0 ? { packetHash: executed.secondaryAttempt.packetHash } : {},
+    verificationSummary,
+    ...failureSummary !== void 0 ? { failureSummary: failureSummary.slice(0, 2e3) } : {},
+    ...fingerprint?.problemFingerprint !== void 0 ? { problemFingerprint: fingerprint.problemFingerprint } : {},
+    ...fingerprint?.candidatePatchHash !== void 0 ? { candidatePatchHash: fingerprint.candidatePatchHash } : {},
+    ...executed.secondaryAttempt?.telemetry?.durationMs !== void 0 ? { durationMs: executed.secondaryAttempt.telemetry.durationMs } : {},
+    ...executed.secondaryAttempt?.telemetry?.inputTokens !== void 0 ? { inputTokens: executed.secondaryAttempt.telemetry.inputTokens } : {},
+    ...executed.secondaryAttempt?.telemetry?.outputTokens !== void 0 ? { outputTokens: executed.secondaryAttempt.telemetry.outputTokens } : {},
+    startedAt: executed.routingDecision.decidedAt,
+    completedAt
+  });
+  const stored = persistRoutingState(input, next);
+  executed.routingState = stored;
+  input.recordEvent("builder_routing_attempt_completed", {
+    nodeId: input.node.nodeId,
+    workUnitId: executed.prepared.unitId,
+    workUnitAttempt: executed.prepared.attempt,
+    attemptKind: executed.routingAttemptKind,
+    outcome,
+    repairAttemptsUsed: stored.repairAttemptsUsed,
+    maxRepairAttempts: stored.maxRepairAttempts,
+    escalationStatus: stored.escalationStatus,
+    noProgress: stored.attempts.at(-1)?.noProgress ?? false
+  });
+  return stored;
+}
+function preparedPatch(prepared) {
+  return prepared.priorCandidatePatch;
+}
+async function executeSelectedSecondaryBuilder(context, prepared, worktree, admission) {
+  const { input } = context;
+  const selection = admission.resolved.selection;
+  const packet = admission.packet;
+  const repositoryRoots = admission.repositoryRoots;
+  const readinessDecision = admission.readiness.decision;
+  if (packet === void 0) {
+    const failure3 = admission.failure ?? {
+      kind: "INSUFFICIENT_CONTEXT",
+      problem: "secondary builder packet was not produced"
+    };
+    return {
+      prepared,
+      result: builderFailureResult(failure3.problem),
+      secondaryFailure: failure3,
+      readinessDecision
+    };
+  }
   if (readinessDecision.status !== "ELIGIBLE") {
     const problem = [
       `Secondary execution is not eligible: ${readinessDecision.status}`,
@@ -77025,6 +78089,25 @@ async function prepareUnitAttempt(context, graph, unitId) {
       missingDependencyIds.push(resolved2.workUnitId);
     }
   }
+  const priorCandidate = unit.attempt > 0 ? readCandidate(
+    input.workspace,
+    input.jobId,
+    input.node.nodeId,
+    unit.workUnitId,
+    unit.attempt
+  ) : void 0;
+  const priorCandidatePatch = unit.attempt > 0 ? readCandidatePatch(
+    input.workspace,
+    input.jobId,
+    input.node.nodeId,
+    unit.workUnitId,
+    unit.attempt
+  ) : void 0;
+  if (priorCandidate !== void 0) {
+    workEvidence.push(
+      `Prior ${priorCandidate.builderProvenance?.backend ?? "builder"} candidate for this WorkUnit: ` + priorCandidate.claims.summary.slice(0, 700)
+    );
+  }
   const projectedUnit = unit.relevantContractIds.length > 0 ? unit : { ...unit, relevantContractIds: context.objectiveContractIds.slice(0, 30) };
   const projection = buildContextProjection({
     jobId: input.jobId,
@@ -77101,7 +78184,9 @@ async function prepareUnitAttempt(context, graph, unitId) {
       record: record32,
       dependencyPatches,
       dependencyContext,
-      missingDependencyIds
+      missingDependencyIds,
+      ...priorCandidate !== void 0 ? { priorCandidate } : {},
+      ...priorCandidatePatch !== void 0 ? { priorCandidatePatch } : {}
     }
   };
 }
@@ -77124,22 +78209,15 @@ async function executeBuilder(context, prepared) {
     });
   }
   const worktree = prepared.worktree;
-  const useSecondary = secondarySelected(input, {
-    workUnitId: prepared.unitId,
-    kind: prepared.kind
-  });
+  let forceStrongReason;
   try {
     await applyDependencyPatches(worktree, prepared.dependencyPatches);
   } catch (cause) {
-    if (useSecondary) {
-      const problem = `dependency candidate application failed before secondary inference: ${cause instanceof Error ? cause.message : String(cause)}`;
-      return {
-        prepared,
-        result: builderFailureResult(problem),
-        secondaryFailure: { kind: "APPLY_FAILURE", problem }
-      };
-    }
     const message2 = cause instanceof Error ? cause.message : String(cause);
+    forceStrongReason = `Dependency candidate replay required Strong reconciliation: ${message2}`;
+    if (isStrongResourceCooling(context.strongResource)) {
+      return resourceDeferredAttempt(prepared, context.strongResource);
+    }
     input.onProgress?.(
       `dependency patches conflict in ${prepared.unitId}'s worktree; attempting one bounded reconciliation`
     );
@@ -77185,10 +78263,92 @@ async function executeBuilder(context, prepared) {
     }
     if (reconcile.probe !== void 0) input.probeCache.probe = reconcile.probe;
   }
-  if (useSecondary) {
-    return executeSelectedSecondaryBuilder(context, prepared, worktree);
+  if (prepared.priorCandidatePatch !== void 0 && prepared.priorCandidatePatch.trim().length > 0) {
+    try {
+      await applyDependencyPatches(worktree, [{
+        workUnitId: `${prepared.unitId}-prior-candidate`,
+        patch: prepared.priorCandidatePatch
+      }]);
+      input.recordEvent("builder_candidate_replayed", {
+        nodeId: input.node.nodeId,
+        workUnitId: prepared.unitId,
+        attempt: prepared.attempt,
+        priorAttempt: prepared.priorCandidate?.attempt ?? prepared.attempt - 1
+      });
+    } catch (cause) {
+      forceStrongReason = `The prior Secondary candidate could not be replayed cleanly on the current baseline: ${cause instanceof Error ? cause.message : String(cause)}`;
+    }
   }
-  const packet = buildBuilderPacket({ projection: prepared.projection });
+  const explicitOrAutomatic = secondarySelectionFor(input, {
+    workUnitId: prepared.unitId,
+    kind: prepared.kind
+  });
+  let admission;
+  let routed;
+  if (explicitOrAutomatic !== void 0) {
+    admission = await prepareSecondaryAdmission(context, prepared, worktree, explicitOrAutomatic);
+    const shouldProbe = admission.readiness.decision.status === "ELIGIBLE" && forceStrongReason === void 0;
+    const availability = shouldProbe ? await probeSecondaryAvailability(input, explicitOrAutomatic) : {
+      status: "UNAVAILABLE",
+      detail: admission.readiness.decision.status !== "ELIGIBLE" ? `Secondary was not probed because readiness is ${admission.readiness.decision.status}.` : "Secondary was not probed because Strong reconciliation is already required."
+    };
+    routed = persistRoutingDecision(
+      context,
+      prepared,
+      admission,
+      availability,
+      forceStrongReason
+    );
+    if (routed.decision.selectedBackend === "SECONDARY") {
+      const executed = await executeSelectedSecondaryBuilder(context, prepared, worktree, admission);
+      return {
+        ...executed,
+        routingDecision: routed.decision,
+        routingState: routed.state,
+        ...routed.kind !== void 0 ? { routingAttemptKind: routed.kind } : {}
+      };
+    }
+    if (routed.decision.selectedBackend !== "STRONG") {
+      const problem = [
+        `Builder routing selected ${routed.decision.selectedBackend} for ${routed.decision.eligibility}.`,
+        ...routed.decision.reasons.map((entry2) => `${entry2.code}: ${entry2.message}`)
+      ].join(" ").slice(0, 2e3);
+      return {
+        prepared,
+        result: builderFailureResult(problem),
+        countedAsWorker: false,
+        readinessDecision: admission.readiness.decision,
+        routingDecision: routed.decision,
+        routingState: routed.state
+      };
+    }
+  }
+  const attemptKind = routed?.kind ?? "STRONG";
+  if (isStrongResourceCooling(context.strongResource)) {
+    return resourceDeferredAttempt(prepared, context.strongResource, {
+      ...admission !== void 0 ? { readinessDecision: admission.readiness.decision } : {},
+      ...routed !== void 0 ? {
+        routingDecision: routed.decision,
+        routingState: routed.state,
+        routingAttemptKind: attemptKind
+      } : {}
+    });
+  }
+  const normalPacket = buildBuilderPacket({ projection: prepared.projection });
+  const priorAttempts = routed?.state.attempts.slice(-3) ?? [];
+  const packet = attemptKind === "STRONG_FALLBACK" ? [
+    normalPacket,
+    "",
+    "PHASE 7 STRONG FALLBACK \u2014 continue the current WorkUnit; do not restart discovery or redesign unrelated code.",
+    "The prior Secondary implementation is evidence, not authority. Repair, partially replace, or fully replace it as needed.",
+    "Never change approved product truth, answer human-only questions, or mutate contracts without authority.",
+    `Prior candidate changed files: ${prepared.priorCandidate?.changedFiles.map((entry2) => entry2.path).join(", ") || "(none recorded)"}`,
+    `Prior candidate summary: ${prepared.priorCandidate?.claims.summary ?? "(none recorded)"}`,
+    "Bounded attempt history:",
+    ...priorAttempts.map((attempt) => `${attempt.sequence}. ${attempt.kind} ${attempt.outcome}: ${attempt.failureSummary ?? "(no failure summary)"}`.slice(0, 2e3)),
+    "Prior candidate diff (already replayed when safe; supplied so replacement is explicit):",
+    fence2((prepared.priorCandidatePatch ?? "(none recorded)").slice(0, 12e3), 12e3)
+  ].join("\n") : normalPacket;
   const result = await runLargeObjectiveRole({
     workspace: input.workspace,
     config: input.config,
@@ -77206,17 +78366,99 @@ async function executeBuilder(context, prepared) {
     cachedProbe: input.probeCache.probe
   });
   if (result.probe !== void 0) input.probeCache.probe = result.probe;
-  if (!result.ok) return { prepared, result };
+  if (!result.ok && isStrongQuotaFailure(result.problem)) {
+    const resource = quotaFailureResource({
+      observedAt: nowIso3(input),
+      detail: result.problem,
+      resourceIdentity: context.strongResource.resourceIdentity
+    });
+    context.strongResource = resource;
+    return resourceDeferredAttempt(prepared, resource, {
+      ...admission !== void 0 ? { readinessDecision: admission.readiness.decision } : {},
+      ...routed !== void 0 ? {
+        routingDecision: routed.decision,
+        routingState: routed.state,
+        routingAttemptKind: attemptKind
+      } : {}
+    }, true);
+  }
+  if (!result.ok) {
+    return {
+      prepared,
+      result,
+      ...admission !== void 0 ? { readinessDecision: admission.readiness.decision } : {},
+      ...routed !== void 0 ? {
+        routingDecision: routed.decision,
+        routingState: routed.state,
+        routingAttemptKind: attemptKind
+      } : {}
+    };
+  }
   const collected = await collectWorktreeChanges(worktree, {
     protectedPaths: input.config.execution.protectedPaths
   });
   const verification = prepared.kind === "build" && collected.changedFiles.length > 0 ? await runWorktreeVerification(worktree, input.config.verification.commands, input.signal) : void 0;
-  return { prepared, result, collected, verification };
+  return {
+    prepared,
+    result,
+    collected,
+    verification,
+    ...admission !== void 0 ? { readinessDecision: admission.readiness.decision } : {},
+    ...routed !== void 0 ? {
+      routingDecision: routed.decision,
+      routingState: routed.state,
+      routingAttemptKind: attemptKind
+    } : {}
+  };
 }
 async function foldBuilderOutcome(context, graph, executed) {
   const { input } = context;
   const { prepared, result } = executed;
   const { unitId, attempt, workerId, projection, record: record32 } = prepared;
+  if (executed.resourceWait !== void 0) {
+    supersedeWorkers(
+      input.workspace,
+      input.jobId,
+      input.node.nodeId,
+      [record32],
+      unitId,
+      nowIso3(input)
+    );
+    const marked = markUnitWaitingForStrong({
+      unit: prepared.unit,
+      resource: executed.resourceWait,
+      ...executed.routingDecision?.workIdentity !== void 0 ? { routingWorkIdentity: executed.routingDecision.workIdentity } : {},
+      fallbackPending: executed.routingState?.escalationStatus === "STRONG_FALLBACK_REQUIRED"
+    });
+    const ready = transitionUnit(graph, unitId, "READY");
+    const nextGraph = persistGraph2(input, withUnit(ready, { ...marked.unit, status: "READY" }));
+    const observed = observeObjectiveCooldown({
+      prior: context.cooldownState,
+      graph: nextGraph,
+      resource: executed.resourceWait,
+      at: nowIso3(input)
+    });
+    if (observed !== void 0) {
+      context.cooldownState = marked.newlyWaiting && executed.resourceRefusalObserved !== true ? noteStrongAttemptAvoided(observed, [unitId], nowIso3(input)) : observed;
+      storeObjectiveCooldownState(
+        input.workspace,
+        input.jobId,
+        input.node.nodeId,
+        context.cooldownState
+      );
+    }
+    input.recordEvent(marked.newlyWaiting ? "work_unit_resource_wait_started" : "resource_cooldown_observed", {
+      nodeId: input.node.nodeId,
+      workUnitId: unitId,
+      resourceClass: "STRONG_SUBSCRIPTION",
+      availability: executed.resourceWait.availability,
+      wakeAt: executed.resourceWait.wakeAt ?? null,
+      fallbackPending: marked.unit.resourceWait?.fallbackPending ?? false,
+      implementationAttemptConsumed: false,
+      providerRefusalObserved: executed.resourceRefusalObserved === true
+    });
+    return nextGraph;
+  }
   if (executed.countedAsWorker !== false) {
     input.countWorkerRun({
       role: "BUILDER",
@@ -77226,6 +78468,7 @@ async function foldBuilderOutcome(context, graph, executed) {
     });
   }
   if (!result.ok) {
+    recordRoutingAttempt(context, executed, routingOutcomeForFailure(executed));
     finishWorker(input.workspace, record32, "FAILED", nowIso3(input));
     input.recordEvent("candidate_failed", {
       nodeId: input.node.nodeId,
@@ -77237,7 +78480,8 @@ async function foldBuilderOutcome(context, graph, executed) {
       input,
       applyUnitRejection(input, graph, unitId, attempt, {
         category: executed.readinessDecision !== void 0 ? readinessFailureCategory(executed.readinessDecision.status) : executed.secondaryFailure !== void 0 ? secondaryFailureCategory(executed.secondaryFailure.kind) : result.kind === "cancelled" ? "CANCELLED" : "TRANSIENT_TOOL",
-        message: `The builder worker failed: ${result.problem.slice(0, 400)}`
+        message: `The builder worker failed: ${result.problem.slice(0, 400)}`,
+        phase7Retry: executed.routingDecision === void 0 || executed.routingDecision.selectedBackend === "SECONDARY" || executed.routingDecision.selectedBackend === "STRONG"
       })
     );
   }
@@ -77291,6 +78535,11 @@ async function foldBuilderOutcome(context, graph, executed) {
       packetHash: executed.secondaryAttempt.packetHash,
       sourceContextHash: executed.secondaryAttempt.sourceContextHash,
       selectionReason: executed.secondaryAttempt.selectionReason,
+      ...executed.routingDecision !== void 0 ? {
+        routingDecisionHash: executed.routingDecision.contentHash,
+        routingWorkIdentity: executed.routingDecision.workIdentity,
+        routingAttemptKind: executed.routingAttemptKind
+      } : {},
       ...executed.secondaryAttempt.telemetry !== void 0 ? {
         durationMs: executed.secondaryAttempt.telemetry.durationMs,
         inputCharacters: executed.secondaryAttempt.telemetry.inputCharacters,
@@ -77300,12 +78549,23 @@ async function foldBuilderOutcome(context, graph, executed) {
       } : {}
     } : {
       backend: "LARGE_AGENT",
-      inferenceProfile: input.runnerProfile ?? input.config.defaultRunner
+      inferenceProfile: input.runnerProfile ?? input.config.defaultRunner,
+      ...executed.routingDecision !== void 0 ? {
+        routingDecisionHash: executed.routingDecision.contentHash,
+        routingWorkIdentity: executed.routingDecision.workIdentity,
+        routingAttemptKind: executed.routingAttemptKind
+      } : {}
     }
   });
   storeCandidate(input.workspace, input.jobId, input.node.nodeId, candidate, collected.patch, {
     maxCandidateBytes: input.policy.objectives.maxCandidateBytes
   });
+  recordRoutingAttempt(
+    context,
+    executed,
+    verification?.passed === false ? "FAILED_VERIFICATION" : "CANDIDATE_READY",
+    candidate
+  );
   if (executed.secondaryAttempt !== void 0 && verification?.passed === true) {
     executed.secondaryAttempt = storeSecondaryBuilderAttempt(
       input.workspace,
@@ -77354,6 +78614,13 @@ async function foldBuilderOutcome(context, graph, executed) {
     localVerificationPassed: candidate.localVerification.passed
   });
   if (collected.protectedViolations.length > 0) {
+    finalizeRoutingForCandidate(context, {
+      workUnitId: unitId,
+      workUnitAttempt: attempt,
+      outcome: "FAILED_IMPLEMENTATION",
+      failureSummary: `Protected paths touched: ${collected.protectedViolations.slice(0, 5).join(", ")}`,
+      candidatePatch: collected.patch
+    });
     return persistGraph2(
       input,
       applyUnitRejection(input, graph, unitId, attempt, {
@@ -77363,6 +78630,13 @@ async function foldBuilderOutcome(context, graph, executed) {
     );
   }
   if (result.output.outcome === "BLOCKED") {
+    finalizeRoutingForCandidate(context, {
+      workUnitId: unitId,
+      workUnitAttempt: attempt,
+      outcome: "FAILED_IMPLEMENTATION",
+      failureSummary: `Builder blocked: ${[...result.output.blockingQuestions, result.output.summary].join("; ").slice(0, 1500)}`,
+      candidatePatch: collected.patch
+    });
     const blocked2 = transitionUnit(graph, unitId, "BLOCKED");
     graph = persistGraph2(
       input,
@@ -77383,6 +78657,13 @@ async function foldBuilderOutcome(context, graph, executed) {
     return graph;
   }
   if (result.output.outcome === "FAILED") {
+    finalizeRoutingForCandidate(context, {
+      workUnitId: unitId,
+      workUnitAttempt: attempt,
+      outcome: "FAILED_IMPLEMENTATION",
+      failureSummary: `Builder reported failure: ${result.output.summary.slice(0, 400)}`,
+      candidatePatch: collected.patch
+    });
     return persistGraph2(
       input,
       applyUnitRejection(input, graph, unitId, attempt, {
@@ -77413,7 +78694,17 @@ function applyUnitRejection(input, graph, unitId, attempt, failure3) {
     ...requireUnit(rejected, unitId),
     latestFailure: { category: failure3.category, message: failure3.message.slice(0, 2e3), at }
   });
-  const budgetLeft = !secondarySelected(input, unit) && attempt < input.policy.objectives.maxBuilderAttemptsPerUnit;
+  const phase7Enabled = input.policy.objectives.secondaryBuilder.strategy !== "OFF";
+  const phase7MaximumAttempts = input.policy.objectives.secondaryBuilder.maxRepairAttempts + 2;
+  const retryableForPhase7 = [
+    "VERIFICATION_FAILURE",
+    "IMPLEMENTATION_DEFECT",
+    "CAPABILITY_UNAVAILABLE",
+    "TRANSIENT_TRANSPORT",
+    "TRANSIENT_TOOL",
+    "NO_PROGRESS"
+  ].includes(failure3.category) && failure3.phase7Retry !== false;
+  const budgetLeft = phase7Enabled ? retryableForPhase7 && attempt < phase7MaximumAttempts : !secondarySelected(input, unit) && attempt < input.policy.objectives.maxBuilderAttemptsPerUnit;
   const current = requireUnit(withFailure, unitId);
   if (current.status === "REJECTED") {
     if (budgetLeft && failure3.category !== "CANCELLED") {
@@ -77422,6 +78713,45 @@ function applyUnitRejection(input, graph, unitId, attempt, failure3) {
     return transitionUnit(withFailure, unitId, "FAILED");
   }
   return withFailure;
+}
+function finalizeRoutingForCandidate(context, input) {
+  const states = readBuilderRoutingStates(
+    context.input.workspace,
+    context.input.jobId,
+    context.input.node.nodeId
+  ).filter((state2) => state2.workUnitId === input.workUnitId).sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
+  const state = states.find((entry2) => entry2.attempts.some((attempt2) => attempt2.workUnitAttempt === input.workUnitAttempt && attempt2.outcome === "CANDIDATE_READY"));
+  if (state === void 0) return void 0;
+  const attempt = state.attempts.find((entry2) => entry2.workUnitAttempt === input.workUnitAttempt && entry2.outcome === "CANDIDATE_READY");
+  if (attempt === void 0) return void 0;
+  const fingerprint = input.outcome === "SUCCEEDED" ? void 0 : builderProblemFingerprint({
+    failureKind: input.outcome,
+    verificationSummary: input.verificationSummary,
+    ...input.candidatePatch !== void 0 ? { candidatePatch: input.candidatePatch } : {}
+  });
+  const finalized = finalizeBuilderRoutingAttempt({
+    state,
+    workUnitAttempt: input.workUnitAttempt,
+    kind: attempt.kind,
+    outcome: input.outcome,
+    ...input.failureSummary !== void 0 ? { failureSummary: input.failureSummary } : {},
+    ...input.verificationSummary !== void 0 ? { verificationSummary: input.verificationSummary } : {},
+    ...fingerprint?.problemFingerprint !== void 0 ? { problemFingerprint: fingerprint.problemFingerprint } : {},
+    ...fingerprint?.candidatePatchHash !== void 0 ? { candidatePatchHash: fingerprint.candidatePatchHash } : {},
+    completedAt: nowIso3(context.input)
+  });
+  const stored = persistRoutingState(context.input, finalized);
+  context.input.recordEvent("builder_routing_candidate_finalized", {
+    nodeId: context.input.node.nodeId,
+    workUnitId: input.workUnitId,
+    workUnitAttempt: input.workUnitAttempt,
+    attemptKind: attempt.kind,
+    outcome: input.outcome,
+    repairAttemptsUsed: stored.repairAttemptsUsed,
+    escalationStatus: stored.escalationStatus,
+    noProgress: stored.attempts.find((entry2) => entry2.workUnitAttempt === input.workUnitAttempt && entry2.kind === attempt.kind)?.noProgress ?? false
+  });
+  return stored;
 }
 async function resumeStoredCandidate(context, graph, unitId) {
   const { input } = context;
@@ -77454,6 +78784,13 @@ async function resumeStoredCandidate(context, graph, unitId) {
   if (priorDeterministic !== void 0) {
     if (priorDeterministic.verdict !== "PASS") {
       graph = persistGraph2(input, transitionUnit(graph, unitId, "REJECTED"));
+      finalizeRoutingForCandidate(context, {
+        workUnitId: unitId,
+        workUnitAttempt: attempt,
+        outcome: "FAILED_VERIFICATION",
+        failureSummary: `Stored deterministic evaluation ${priorDeterministic.verdict}: ${priorDeterministic.reasons.join("; ").slice(0, 1200)}`,
+        candidatePatch: patch
+      });
       return persistGraph2(input, transitionUnit(graph, unitId, "READY"));
     }
     if (!semanticEvaluationRequired(
@@ -77462,6 +78799,11 @@ async function resumeStoredCandidate(context, graph, unitId) {
       candidate,
       priorDeterministic
     )) {
+      finalizeRoutingForCandidate(context, {
+        workUnitId: unitId,
+        workUnitAttempt: attempt,
+        outcome: "SUCCEEDED"
+      });
       return persistGraph2(input, transitionUnit(graph, unitId, "VERIFIED_CANDIDATE"));
     }
     input.onProgress?.(
@@ -77502,6 +78844,13 @@ async function evaluateCandidate(context, graph, unitId, attempt, candidate, pro
     verdict: deterministic.verdict
   });
   if (deterministic.verdict === "CONFLICT") {
+    finalizeRoutingForCandidate(context, {
+      workUnitId: unitId,
+      workUnitAttempt: attempt,
+      outcome: "FAILED_IMPLEMENTATION",
+      failureSummary: `Contract conflict: ${deterministic.reasons.join("; ").slice(0, 1200)}`,
+      candidatePatch: patch
+    });
     return persistGraph2(input, recordConflict(input, graph, unitId, candidate, deterministic.reasons, deterministic.affectedContractIds, deterministic.decisionKind));
   }
   if (deterministic.verdict === "FAIL") {
@@ -77513,11 +78862,20 @@ async function evaluateCandidate(context, graph, unitId, attempt, candidate, pro
       (command) => command.status !== "ok"
     );
     const verificationUnavailable = failedChecks.length === 1 && failedChecks[0]?.name === "local-verification" && failedCommands.length > 0 && failedCommands.every((command) => isUnavailableStatus(command.status));
+    const failureSummary = `Deterministic evaluation failed: ${deterministic.reasons.join("; ").slice(0, 1200)}`;
+    finalizeRoutingForCandidate(context, {
+      workUnitId: unitId,
+      workUnitAttempt: attempt,
+      outcome: verificationUnavailable ? "FAILED_IMPLEMENTATION" : "FAILED_VERIFICATION",
+      failureSummary,
+      verificationSummary: failedCommands.map((command) => `${command.name}: ${command.status} (${command.exitCode ?? "no exit"})`),
+      candidatePatch: patch
+    });
     return persistGraph2(
       input,
       applyUnitRejection(input, graph, unitId, attempt, {
         category: stale ? "STALE_CONTEXT" : verificationUnavailable ? "CAPABILITY_UNAVAILABLE" : "VERIFICATION_FAILURE",
-        message: `Deterministic evaluation failed: ${deterministic.reasons.join("; ").slice(0, 1200)}`
+        message: failureSummary
       })
     );
   }
@@ -77568,6 +78926,11 @@ async function evaluateCandidate(context, graph, unitId, attempt, candidate, pro
     return persistGraph2(input, graph);
   }
   if (!semanticEvaluationRequired(input.policy.objectives.semanticEvaluation, unit, candidate, deterministic)) {
+    finalizeRoutingForCandidate(context, {
+      workUnitId: unitId,
+      workUnitAttempt: attempt,
+      outcome: "SUCCEEDED"
+    });
     return persistGraph2(input, transitionUnit(graph, unitId, "VERIFIED_CANDIDATE"));
   }
   return persistGraph2(input, transitionUnit(graph, unitId, "EVALUATING"));
@@ -77616,12 +78979,12 @@ function recordConflict(input, graph, unitId, candidate, reasons, affectedContra
 function deterministicReadjudication(output, deterministic) {
   if (output.verdict !== "FAIL" && output.verdict !== "CONFLICT") return void 0;
   const passed = deterministic.checks.filter((check22) => check22.passed).map((check22) => check22.name);
-  for (const reason2 of output.reasons) {
+  for (const reason3 of output.reasons) {
     for (const name of passed) {
-      if (!reason2.includes(name)) continue;
+      if (!reason3.includes(name)) continue;
       const claimsFailed = new RegExp(
         `${name}[^.]{0,80}(FAILED|failed)|deterministic[^.]{0,80}${name}`
-      ).test(reason2) && /FAILED|failed/.test(reason2);
+      ).test(reason3) && /FAILED|failed/.test(reason3);
       if (claimsFailed) return name;
     }
   }
@@ -77798,8 +79161,20 @@ ${correction}`;
   });
   switch (output.verdict) {
     case "PASS":
+      finalizeRoutingForCandidate(context, {
+        workUnitId: unitId,
+        workUnitAttempt: attempt,
+        outcome: "SUCCEEDED"
+      });
       return persistGraph2(input, transitionUnit(graph, unitId, "VERIFIED_CANDIDATE"));
     case "FAIL":
+      finalizeRoutingForCandidate(context, {
+        workUnitId: unitId,
+        workUnitAttempt: attempt,
+        outcome: "FAILED_IMPLEMENTATION",
+        failureSummary: `Semantic evaluation failed: ${output.reasons.join("; ").slice(0, 1200)}`,
+        candidatePatch: patch
+      });
       return persistGraph2(
         input,
         applyUnitRejection(input, graph, unitId, attempt, {
@@ -77808,6 +79183,13 @@ ${correction}`;
         })
       );
     case "CONFLICT":
+      finalizeRoutingForCandidate(context, {
+        workUnitId: unitId,
+        workUnitAttempt: attempt,
+        outcome: "FAILED_IMPLEMENTATION",
+        failureSummary: `Semantic conflict: ${output.reasons.join("; ").slice(0, 1200)}`,
+        candidatePatch: patch
+      });
       return persistGraph2(
         input,
         recordConflict(input, graph, unitId, candidate, output.reasons, output.affectedContractIds, output.decisionKind)
@@ -77820,6 +79202,11 @@ ${correction}`;
           workUnitId: unitId,
           decisionKind: kind,
           resolution: "autonomous"
+        });
+        finalizeRoutingForCandidate(context, {
+          workUnitId: unitId,
+          workUnitAttempt: attempt,
+          outcome: "SUCCEEDED"
         });
         return persistGraph2(input, transitionUnit(graph, unitId, "VERIFIED_CANDIDATE"));
       }
@@ -77920,7 +79307,23 @@ async function driveObjective(input) {
   const truth = loadMissionTruth(input.workspace, input.mission);
   const relevantContractIds = contractsForObjective(input.workspace, input.mission, input.node.parentTaskId);
   const acceptance = acceptanceForObjective(input.workspace, input.mission, input.node.parentTaskId);
-  const context = { input, truth, acceptance, objectiveContractIds: relevantContractIds };
+  const resourceObservedAt = nowIso3(input);
+  const strongResource = input.strongResource ?? strongResourceFromScheduler({
+    schedulerMode: input.schedulerMode,
+    observedAt: resourceObservedAt
+  });
+  const context = {
+    input,
+    truth,
+    acceptance,
+    objectiveContractIds: relevantContractIds,
+    strongResource,
+    cooldownState: readObjectiveCooldownState(
+      input.workspace,
+      input.jobId,
+      input.node.nodeId
+    )
+  };
   let graph = readLatestWorkGraph(input.workspace, input.jobId, input.node.nodeId);
   if (graph !== void 0 && graph.objectiveFingerprint !== input.node.taskFingerprint) {
     return failResult(
@@ -78024,6 +79427,14 @@ async function driveObjective(input) {
               localVerificationPassed: candidate.localVerification.passed,
               resumed: true
             });
+            if (context.cooldownState?.status === "ACTIVE") {
+              context.cooldownState = storeObjectiveCooldownState(
+                input.workspace,
+                input.jobId,
+                input.node.nodeId,
+                noteCandidateReuseAfterRestart(context.cooldownState, nowIso3(input))
+              );
+            }
             continue;
           }
         }
@@ -78045,12 +79456,102 @@ async function driveObjective(input) {
   } else {
     graph = await decomposeObjective(input, truth, relevantContractIds, acceptance);
   }
+  const priorCooldown = context.cooldownState;
+  if (isStrongResourceCooling(context.strongResource)) {
+    const observed = observeObjectiveCooldown({
+      prior: priorCooldown,
+      graph,
+      resource: context.strongResource,
+      at: nowIso3(input),
+      recheck: priorCooldown?.status === "ACTIVE"
+    });
+    if (observed !== void 0) {
+      context.cooldownState = storeObjectiveCooldownState(
+        input.workspace,
+        input.jobId,
+        input.node.nodeId,
+        observed
+      );
+      input.recordEvent(
+        priorCooldown?.status === "ACTIVE" ? "resource_cooldown_observed" : "resource_cooldown_started",
+        {
+          nodeId: input.node.nodeId,
+          resourceClass: observed.resourceClass,
+          resourceIdentity: observed.resourceIdentity,
+          availability: observed.lastAvailability,
+          wakeAt: observed.wakeAt ?? null,
+          resourceRechecks: observed.resourceRechecks
+        }
+      );
+    }
+  } else {
+    const recovered = clearRecoveredStrongWaits(graph);
+    if (recovered.recoveredWorkUnitIds.length > 0) {
+      graph = persistGraph2(input, recovered.graph);
+      for (const workUnitId of recovered.recoveredWorkUnitIds) {
+        input.recordEvent("work_unit_resource_wait_ended", {
+          nodeId: input.node.nodeId,
+          workUnitId,
+          resourceClass: "STRONG_SUBSCRIPTION"
+        });
+      }
+    }
+    if (priorCooldown !== void 0) {
+      const observed = observeObjectiveCooldown({
+        prior: priorCooldown,
+        graph,
+        resource: context.strongResource,
+        at: nowIso3(input)
+      });
+      if (observed !== void 0) {
+        context.cooldownState = storeObjectiveCooldownState(
+          input.workspace,
+          input.jobId,
+          input.node.nodeId,
+          observed
+        );
+        if (priorCooldown.status === "ACTIVE") {
+          input.recordEvent("resource_recovered", {
+            nodeId: input.node.nodeId,
+            resourceClass: observed.resourceClass,
+            completedDuringCooldown: observed.completedDuringCooldown.length,
+            waitingReleased: recovered.recoveredWorkUnitIds.length
+          });
+        }
+      }
+    }
+  }
   const maxLoops = input.policy.objectives.maxWorkUnits * (input.policy.objectives.maxBuilderAttemptsPerUnit + 2) + 10;
   for (let loop = 0; loop < maxLoops; loop += 1) {
     if (input.signal?.aborted === true) {
       return failResult("CANCELLED", "The objective drive was interrupted.", "objective:cancelled");
     }
     graph = persistGraph2(input, promoteReadyUnits(graph));
+    if (isStrongResourceCooling(context.strongResource)) {
+      const before = context.cooldownState?.completedDuringCooldown.length ?? 0;
+      const observed = observeObjectiveCooldown({
+        prior: context.cooldownState,
+        graph,
+        resource: context.strongResource,
+        at: nowIso3(input)
+      });
+      if (observed !== void 0) {
+        context.cooldownState = storeObjectiveCooldownState(
+          input.workspace,
+          input.jobId,
+          input.node.nodeId,
+          observed
+        );
+        if (observed.completedDuringCooldown.length > before) {
+          input.recordEvent("useful_work_during_cooldown", {
+            nodeId: input.node.nodeId,
+            newlyCompleted: observed.completedDuringCooldown.length - before,
+            totalCompleted: observed.completedDuringCooldown.length,
+            completedWorkUnitIds: observed.completedDuringCooldown
+          });
+        }
+      }
+    }
     const evaluating = graph.units.find((unit) => unit.status === "EVALUATING");
     if (evaluating !== void 0) {
       graph = await runSemanticEvaluation(context, graph, evaluating.workUnitId);
@@ -78072,12 +79573,39 @@ async function driveObjective(input) {
       if (semanticStop !== void 0) return semanticStop;
       return integrateVerifiedCandidates(input, graph);
     }
+    const unavailableWorkUnitIds = isStrongResourceCooling(context.strongResource) ? new Set(
+      graph.units.filter((unit) => unit.resourceWait?.resourceClass === "STRONG_SUBSCRIPTION").map((unit) => unit.workUnitId)
+    ) : void 0;
     const anyReady = selectDispatchSet({
       graph,
       parallelism: input.policy.objectives.parallelism,
-      unresolvedDecision: graph.units.some((unit) => unit.status === "BLOCKED")
+      unresolvedDecision: graph.units.some((unit) => unit.status === "BLOCKED"),
+      ...unavailableWorkUnitIds !== void 0 ? { unavailableWorkUnitIds } : {}
     });
     if (anyReady.length === 0) {
+      if (unavailableWorkUnitIds !== void 0 && unavailableWorkUnitIds.size > 0) {
+        const waitingWorkUnitIds = [...unavailableWorkUnitIds].sort();
+        input.recordEvent("resource_wait_entered", {
+          nodeId: input.node.nodeId,
+          resourceClass: "STRONG_SUBSCRIPTION",
+          waitingWorkUnitIds,
+          runnableCandidates: 0,
+          wakeAt: context.strongResource.wakeAt ?? null,
+          usefulWorkDuringCooldown: context.cooldownState?.completedDuringCooldown.length ?? 0
+        });
+        return {
+          evidenceStatus: void 0,
+          runId: void 0,
+          resourceWait: {
+            kind: context.strongResource.availability === "RATE_LIMITED" ? "PROVIDER_RATE_LIMIT" : context.strongResource.wakeAt !== void 0 ? "SUBSCRIPTION_QUOTA_RESET" : "PROVIDER_COOLDOWN",
+            resourceClass: "STRONG_SUBSCRIPTION",
+            detail: `No permitted builder candidate is currently runnable; ${waitingWorkUnitIds.length} READY WorkUnit(s) require the cooling Strong subscription.`,
+            ...context.strongResource.wakeAt !== void 0 ? { wakeAt: context.strongResource.wakeAt } : {},
+            waitingWorkUnitIds,
+            usefulWorkDuringCooldown: context.cooldownState?.completedDuringCooldown.length ?? 0
+          }
+        };
+      }
       input.recordEvent("aggregation_completed", {
         nodeId: input.node.nodeId,
         integrationReady: false,
@@ -78395,30 +79923,30 @@ function timeToResetMs(resetAt, now52) {
   if (Number.isNaN(parsed)) return null;
   return Math.max(0, parsed - now52.getTime());
 }
-var shortText13 = external_exports.string().min(1).max(200);
+var shortText15 = external_exports.string().min(1).max(200);
 var schedulingDecisionSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  decisionId: shortText13,
-  jobId: shortText13,
-  nodeId: shortText13,
-  taskId: shortText13,
+  decisionId: shortText15,
+  jobId: shortText15,
+  nodeId: shortText15,
+  taskId: shortText15,
   selectedLane: external_exports.enum(LANE_DECISIONS),
   /** Worker/provider identity for run lanes; null for DEFER. */
-  selectedProvider: shortText13.nullable(),
+  selectedProvider: shortText15.nullable(),
   schedulerMode: external_exports.enum(SCHEDULER_MODES),
   reasonCode: external_exports.enum(SCHEDULING_REASON_CODES),
   /** The forecast the decision was made against. */
   quotaSnapshot: quotaForecastSchema,
   /** Bounded copy of the workload estimate. */
   workloadEstimate: external_exports.object({
-    complexity: shortText13,
-    localSuitability: shortText13,
-    taskCategory: shortText13.nullable().default(null),
+    complexity: shortText15,
+    localSuitability: shortText15,
+    taskCategory: shortText15.nullable().default(null),
     expectedWallTimeMs: external_exports.number().int().min(0),
     expectedFiveHourBurnRatio: external_exports.number().min(0).max(1),
     expectedWeeklyBurnRatio: external_exports.number().min(0).max(1),
-    confidence: shortText13,
-    basis: shortText13
+    confidence: shortText15,
+    basis: shortText15
   }).passthrough().nullable(),
   /** The dynamic reserve ratio in force. */
   reserveRatio: external_exports.number().min(0).max(1).nullable(),
@@ -78447,15 +79975,15 @@ var schedulingDecisionSchema = external_exports.object({
     reasonCode: external_exports.enum(LOCAL_EXECUTION_MODE_REASONS),
     shape: external_exports.enum(LOCAL_EXECUTION_SHAPES),
     /** Runner identity for the mode (e.g. "local-llamacpp", "deepseek-harness"). */
-    runner: shortText13.nullable().default(null),
+    runner: shortText15.nullable().default(null),
     /** Model identity when known; null when the provider does not say. */
-    model: shortText13.nullable().default(null),
+    model: shortText15.nullable().default(null),
     /** Verified compute locality of the selected runner. */
     computeLocality: external_exports.enum(COMPUTE_LOCALITIES).default("UNKNOWN"),
     /** Grounds for the locality verdict (bounded, recorded verbatim). */
     localityEvidence: external_exports.string().max(500).nullable().default(null),
     /** Status of the LOCAL harness binding when the decision was made. */
-    harnessBindingStatus: shortText13.nullable().default(null),
+    harnessBindingStatus: shortText15.nullable().default(null),
     detail: external_exports.string().max(1e3).default("")
   }).passthrough().nullable().default(null),
   /**
@@ -78478,7 +80006,7 @@ var schedulingDecisionSchema = external_exports.object({
     /** Why subscription capacity was unavailable. */
     gapReason: external_exports.enum(SUBSCRIPTION_GAP_REASONS),
     /** When capacity is expected back (ISO); null when unknown. */
-    subscriptionAvailableAt: shortText13.nullable().default(null),
+    subscriptionAvailableAt: shortText15.nullable().default(null),
     estimatedGapDurationMs: external_exports.number().int().min(0).nullable().default(null),
     gapConfidence: external_exports.enum(GAP_FORECAST_CONFIDENCE).default("UNKNOWN"),
     delaySensitivity: external_exports.enum(DELAY_SENSITIVITIES),
@@ -78491,25 +80019,25 @@ var schedulingDecisionSchema = external_exports.object({
     safeCostUsd: external_exports.number().min(0).nullable().default(null),
     currency: external_exports.string().max(8).default("USD"),
     costSource: external_exports.enum(API_COST_SOURCES).default("UNKNOWN"),
-    pricingSource: shortText13.nullable().default(null),
+    pricingSource: shortText15.nullable().default(null),
     /** Remaining job API budget at decision time; null when unbounded. */
     budgetRemainingUsd: external_exports.number().min(0).nullable().default(null),
     budgetEncumberedUsd: external_exports.number().min(0).nullable().default(null),
     /** The API profile that would have run it, and its verified locality. */
-    apiProfile: shortText13.nullable().default(null),
-    apiRunner: shortText13.nullable().default(null),
-    apiModel: shortText13.nullable().default(null),
+    apiProfile: shortText15.nullable().default(null),
+    apiRunner: shortText15.nullable().default(null),
+    apiModel: shortText15.nullable().default(null),
     computeLocality: external_exports.enum(COMPUTE_LOCALITIES).default("UNKNOWN"),
-    bindingStatus: shortText13.nullable().default(null),
+    bindingStatus: shortText15.nullable().default(null),
     /** The bounded authorization consulted, when one existed. */
-    approvalId: shortText13.nullable().default(null),
-    approvalStatus: shortText13.nullable().default(null),
+    approvalId: shortText15.nullable().default(null),
+    approvalStatus: shortText15.nullable().default(null),
     detail: external_exports.string().max(2e3).default("")
   }).passthrough().nullable().default(null),
   /** For DEFER: when capacity is expected to return, when known. */
-  deferUntil: shortText13.nullable().default(null),
+  deferUntil: shortText15.nullable().default(null),
   detail: external_exports.string().max(2e3),
-  createdAt: shortText13
+  createdAt: shortText15
 }).passthrough();
 function schedulingDir(workspace, jobId) {
   return assertInsideWorkspace(workspace.rootDir, import_path53.default.join(jobDir(workspace, jobId), "scheduling"));
@@ -78754,9 +80282,9 @@ async function dispatchLocalHarnessExecution(input) {
     );
   }
   input.onProgress?.(`${label}: run ${begin.runId} started for task ${begin.task.id}`);
-  const abort = async (reason2) => {
+  const abort = async (reason3) => {
     try {
-      await abortInteractiveTask(deps3, { runId: begin.runId, reason: reason2.slice(0, 500) });
+      await abortInteractiveTask(deps3, { runId: begin.runId, reason: reason3.slice(0, 500) });
     } catch {
     }
   };
@@ -79057,21 +80585,21 @@ function computeObservedApiCost(input) {
   };
 }
 var API_SPEND_APPROVAL_SCHEMA_VERSION = "1.0.0";
-var shortText14 = external_exports.string().min(1).max(200);
+var shortText16 = external_exports.string().min(1).max(200);
 var apiSpendApprovalSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  approvalId: shortText14,
-  jobId: shortText14,
-  nodeId: shortText14,
-  taskId: shortText14,
+  approvalId: shortText16,
+  jobId: shortText16,
+  nodeId: shortText16,
+  taskId: shortText16,
   /**
    * Deterministic fingerprint of the WORK this approval covers. A
    * materially changed task produces a different fingerprint and the old
    * approval no longer authorizes anything.
    */
-  taskFingerprint: shortText14,
+  taskFingerprint: shortText16,
   /** The API profile the approval is scoped to. */
-  profileName: shortText14,
+  profileName: shortText16,
   /** Maximum authorized spend for this task, in USD. */
   maxAuthorizedCostUsd: external_exports.number().min(0),
   currency: external_exports.literal("USD").default("USD"),
@@ -79080,15 +80608,15 @@ var apiSpendApprovalSchema = external_exports.object({
   status: external_exports.enum(API_APPROVAL_STATUSES),
   /** Why the bridge was proposed — recorded verbatim for the decider. */
   rationale: external_exports.string().max(2e3).default(""),
-  requestedAt: shortText14,
+  requestedAt: shortText16,
   /** After this the approval is stale even if never used. */
-  expiresAt: shortText14,
-  decidedAt: shortText14.nullable().default(null),
+  expiresAt: shortText16,
+  decidedAt: shortText16.nullable().default(null),
   /** Who decided. Human identity only; never a model or a runner. */
-  decidedBy: shortText14.nullable().default(null),
+  decidedBy: shortText16.nullable().default(null),
   decisionNote: external_exports.string().max(1e3).nullable().default(null),
   /** The attempt that consumed this approval, when one did. */
-  consumedByAttemptId: shortText14.nullable().default(null)
+  consumedByAttemptId: shortText16.nullable().default(null)
 }).passthrough();
 function taskSpendFingerprint(node) {
   const canonical = JSON.stringify({
@@ -79619,20 +81147,20 @@ function subscriptionGapReasonFor(reasonCode) {
   }
 }
 function buildSubscriptionGapForecast(input) {
-  const { reason: reason2, forecast, now: now52 } = input;
-  if (reason2 === "SUBSCRIPTION_WORKER_UNAVAILABLE") {
+  const { reason: reason3, forecast, now: now52 } = input;
+  if (reason3 === "SUBSCRIPTION_WORKER_UNAVAILABLE") {
     return {
-      reason: reason2,
+      reason: reason3,
       expectedAvailableAt: null,
       timeUntilAvailableMs: null,
       confidence: "UNKNOWN",
       detail: "No subscription worker is available; this is a configuration gap, not a quota window, so no return time exists."
     };
   }
-  const preferred = input.deferUntil ?? (reason2 === "WEEKLY_EXHAUSTED" ? forecast.weeklyResetAt : forecast.fiveHourResetAt);
+  const preferred = input.deferUntil ?? (reason3 === "WEEKLY_EXHAUSTED" ? forecast.weeklyResetAt : forecast.fiveHourResetAt);
   if (preferred === null) {
     return {
-      reason: reason2,
+      reason: reason3,
       expectedAvailableAt: null,
       timeUntilAvailableMs: null,
       confidence: "UNKNOWN",
@@ -79642,7 +81170,7 @@ function buildSubscriptionGapForecast(input) {
   const parsed = Date.parse(preferred);
   if (Number.isNaN(parsed)) {
     return {
-      reason: reason2,
+      reason: reason3,
       expectedAvailableAt: null,
       timeUntilAvailableMs: null,
       confidence: "UNKNOWN",
@@ -79652,11 +81180,11 @@ function buildSubscriptionGapForecast(input) {
   const timeUntilAvailableMs = Math.max(0, parsed - now52.getTime());
   const confidence = forecast.telemetryFreshness === "FRESH" ? "HIGH" : "MEDIUM";
   return {
-    reason: reason2,
+    reason: reason3,
     expectedAvailableAt: new Date(parsed).toISOString(),
     timeUntilAvailableMs,
     confidence,
-    detail: `Subscription capacity (${reason2}) is expected back in ${formatDuration(timeUntilAvailableMs)} at ${new Date(parsed).toISOString()} (telemetry ${forecast.telemetryFreshness}).`
+    detail: `Subscription capacity (${reason3}) is expected back in ${formatDuration(timeUntilAvailableMs)} at ${new Date(parsed).toISOString()} (telemetry ${forecast.telemetryFreshness}).`
   };
 }
 function formatDuration(ms) {
@@ -80755,10 +82283,10 @@ function evaluateGates(input) {
     };
   }
   if (!meetsConfidence(recommended.prediction.confidence, policy.minimumConfidence)) {
-    const reason2 = recommended.prediction.drift.detected ? "DRIFT_DETECTED" : "CONFIDENCE_BELOW_THRESHOLD";
+    const reason3 = recommended.prediction.drift.detected ? "DRIFT_DETECTED" : "CONFIDENCE_BELOW_THRESHOLD";
     return {
       passes: false,
-      reason: reason2,
+      reason: reason3,
       detail: `Confidence ${recommended.prediction.confidence} is below the configured ${policy.minimumConfidence} floor` + (recommended.prediction.drift.detected ? ` after drift was detected (${recommended.prediction.drift.detail}).` : ".")
     };
   }
@@ -80958,6 +82486,7 @@ function createSchedulingRuntime(config2, workspace, input) {
     apiBridgeEnabled,
     subscriptionWorkerAvailable: input.subscriptionWorkerAvailable ?? true,
     verificationAvailable: config2.verification.commands.length > 0,
+    missionDriven: input.missionDriven,
     adaptivePolicy: policy.adaptive,
     adaptiveEnabled: policy.adaptive.mode !== "HEURISTIC",
     contextStrategy: config2.orchestration.jobs.context.efficiency.strategy,
@@ -81072,7 +82601,8 @@ async function buildLaneContext(runtime, deps3, jobId, job, graph) {
       policy: runtime.policy,
       forecast,
       reserveRatio: reserve.ratio,
-      routings
+      routings,
+      ...runtime.missionDriven ? { resourceAwareObjectiveNodes: new Set(ready.map((node) => node.nodeId)) } : {}
     },
     forecast,
     reserve,
@@ -81283,7 +82813,7 @@ function assessNode(runtime, deps3, jobId, job, node, forecast, reserve, observa
 function runtimeResearchForJob(deps3, jobId) {
   return listResearchRecords(deps3.workspace).records.filter((record32) => record32.scope?.jobId === jobId && record32.lifecycle?.phase === "RUNTIME_INVESTIGATION" && record32.report !== void 0).sort((left, right) => right.updatedAt.localeCompare(left.updatedAt)).slice(0, 3);
 }
-function recordResearchInformedReplan(deps3, jobId, nodeId, reason2) {
+function recordResearchInformedReplan(deps3, jobId, nodeId, reason3) {
   const records = runtimeResearchForJob(deps3, jobId);
   if (records.length === 0) return;
   const now52 = (deps3.clock ?? (() => /* @__PURE__ */ new Date()))();
@@ -81297,7 +82827,7 @@ function recordResearchInformedReplan(deps3, jobId, nodeId, reason2) {
     }, {
       researchId: record32.researchId,
       phase: "RUNTIME_INVESTIGATION",
-      reason: `Research informed an accepted replan for ${nodeId}: ${reason2}`.slice(0, 1e3),
+      reason: `Research informed an accepted replan for ${nodeId}: ${reason3}`.slice(0, 1e3),
       effect: "REPLAN",
       usedBy: nodeId
     });
@@ -81305,7 +82835,7 @@ function recordResearchInformedReplan(deps3, jobId, nodeId, reason2) {
   recordJobEvent(deps3, jobId, "research_replan_caused", {
     nodeId,
     researchIds: records.map((record32) => record32.researchId),
-    reason: reason2.slice(0, 500),
+    reason: reason3.slice(0, 500),
     authority: "EVIDENCE_ONLY"
   });
 }
@@ -81688,7 +83218,7 @@ async function driveJob(deps3, jobId, options = {}) {
             // A LOCAL harness attempt records the HARNESS profile as its
             // provider — the lane stays LOCAL, and the two remain separate
             // fields rather than one compound value.
-            provider: harnessProfileName ?? decision.worker.runnerProfile ?? decision.worker.workerId,
+            provider: decision.objectiveResourceController === true ? "objective-resource-controller" : harnessProfileName ?? decision.worker.runnerProfile ?? decision.worker.workerId,
             ...apiLane && schedulingRuntime?.apiBinding.model != null ? { model: schedulingRuntime.apiBinding.model } : localExecution?.harness?.model != null ? { model: localExecution.harness.model } : {},
             ...laneName !== void 0 ? { lane: laneName } : {},
             ...executionMode !== void 0 ? { executionMode } : {},
@@ -81875,6 +83405,16 @@ async function driveJob(deps3, jobId, options = {}) {
             ...signal !== void 0 ? { signal } : {},
             ...deps3.researchBridge !== void 0 ? { researchBridge: deps3.researchBridge } : {},
             ...deps3.secondaryObjectiveBuilder !== void 0 ? { secondaryBuilder: deps3.secondaryObjectiveBuilder } : {},
+            ...lane?.forecast.schedulerMode !== void 0 ? { schedulerMode: lane.forecast.schedulerMode } : {},
+            ...lane?.forecast !== void 0 ? {
+              strongResource: strongResourceFromScheduler({
+                schedulerMode: lane.forecast.schedulerMode,
+                observedAt: lane.forecast.observedAt ?? scheduleAt.toISOString(),
+                fiveHourResetAt: lane.forecast.fiveHourResetAt,
+                weeklyResetAt: lane.forecast.weeklyResetAt,
+                resourceIdentity: `subscription:${decision.worker.runnerProfile ?? decision.worker.workerId}`
+              })
+            } : {},
             onProgress: (message2) => emit22("note", message2),
             countWorkerRun: (run) => recordObjectiveWorkerAttempt(deps3, jobId, { nodeId: node.nodeId, ...run }),
             recordEvent: (type, payload) => recordJobEvent(deps3, jobId, type, payload)
@@ -81893,6 +83433,36 @@ async function driveJob(deps3, jobId, options = {}) {
             ...signal !== void 0 ? { signal } : {},
             onProgress: (message2) => emit22("note", message2)
           });
+          const objectiveResourceWait = mission !== void 0 ? dispatch.resourceWait : void 0;
+          if (objectiveResourceWait !== void 0) {
+            yieldExecutorForResourceWait(deps3, jobId, {
+              nodeId: node.nodeId,
+              detail: objectiveResourceWait.detail
+            });
+            job = enterResourceWait(deps3, jobId, {
+              kind: objectiveResourceWait.kind,
+              detail: objectiveResourceWait.detail,
+              ...objectiveResourceWait.wakeAt !== void 0 ? { wakeAt: objectiveResourceWait.wakeAt } : {},
+              nodeId: node.nodeId
+            });
+            checkpointJob(
+              deps3,
+              jobId,
+              `Waiting for Strong resource recovery; ${objectiveResourceWait.waitingWorkUnitIds.length} WorkUnit(s) remain durably READY.`
+            );
+            emit22(
+              "waiting",
+              `${objectiveResourceWait.detail} Useful work during cooldown: ${objectiveResourceWait.usefulWorkDuringCooldown} WorkUnit(s).`
+            );
+            return {
+              stop: {
+                kind: "deferred",
+                until: objectiveResourceWait.wakeAt ?? null,
+                reason: objectiveResourceWait.detail
+              },
+              job
+            };
+          }
           if (localLane) {
             const localResult = dispatch;
             if (localResult.failure !== void 0) {
@@ -83817,54 +85387,54 @@ var QUALIFICATION_LIMITS = {
   maxEvidenceRefs: 50,
   maxTimelineEntries: 1e3
 };
-var shortText15 = external_exports.string().min(1).max(QUALIFICATION_LIMITS.maxShortTextChars);
+var shortText17 = external_exports.string().min(1).max(QUALIFICATION_LIMITS.maxShortTextChars);
 var text8 = external_exports.string().min(1).max(QUALIFICATION_LIMITS.maxTextChars);
 var textList6 = external_exports.array(text8).max(QUALIFICATION_LIMITS.maxListItems);
-var refList = external_exports.array(shortText15).max(QUALIFICATION_LIMITS.maxEvidenceRefs);
+var refList = external_exports.array(shortText17).max(QUALIFICATION_LIMITS.maxEvidenceRefs);
 var semver4 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
 var count2 = external_exports.number().int().min(0);
 var runtimeVersionsSchema = external_exports.object({
-  specBridgeVersion: shortText15.nullable().default(null),
-  specBridgeCommit: shortText15.nullable().default(null),
-  nodeVersion: shortText15.nullable().default(null),
-  platform: shortText15.nullable().default(null),
+  specBridgeVersion: shortText17.nullable().default(null),
+  specBridgeCommit: shortText17.nullable().default(null),
+  nodeVersion: shortText17.nullable().default(null),
+  platform: shortText17.nullable().default(null),
   /** Local model identity as configured/reported. */
-  localModel: shortText15.nullable().default(null),
+  localModel: shortText17.nullable().default(null),
   /** DeepSeek Harness / DSH SDK versions when the harness reported them. */
-  harnessVersion: shortText15.nullable().default(null),
-  harnessSdkVersion: shortText15.nullable().default(null),
+  harnessVersion: shortText17.nullable().default(null),
+  harnessSdkVersion: shortText17.nullable().default(null),
   /** Subscription agent CLI version when probed. */
-  subscriptionRunnerVersion: shortText15.nullable().default(null),
+  subscriptionRunnerVersion: shortText17.nullable().default(null),
   /** Codex CLI version when that runner was exercised. */
-  codexVersion: shortText15.nullable().default(null),
+  codexVersion: shortText17.nullable().default(null),
   /** vNext.7 context strategy in force. */
-  contextStrategy: shortText15.nullable().default(null),
+  contextStrategy: shortText17.nullable().default(null),
   /** vNext.8 adaptive mode in force. */
-  adaptiveMode: shortText15.nullable().default(null),
+  adaptiveMode: shortText17.nullable().default(null),
   /** Fingerprint of the orchestration policy the run was bound to. */
-  policyFingerprint: shortText15.nullable().default(null)
+  policyFingerprint: shortText17.nullable().default(null)
 }).passthrough();
 var dogfoodTargetSchema = external_exports.object({
   kind: external_exports.enum(DOGFOOD_TARGET_KINDS),
   /** Product name, e.g. "StepRelay". */
-  name: shortText15,
+  name: shortText17,
   /** Configured repository path, as given. Null when unavailable. */
-  repositoryPath: shortText15.nullable().default(null),
+  repositoryPath: shortText17.nullable().default(null),
   /** Whether that path resolved to a readable repository at preflight. */
   available: external_exports.boolean().default(false),
   /** Why the target was unavailable, when it was not. */
   unavailableReason: text8.nullable().default(null),
-  startingCommit: shortText15.nullable().default(null),
-  endingCommit: shortText15.nullable().default(null),
-  branch: shortText15.nullable().default(null),
+  startingCommit: shortText17.nullable().default(null),
+  endingCommit: shortText17.nullable().default(null),
+  branch: shortText17.nullable().default(null),
   /** Isolated worktree the dogfood was confined to, when one was used. */
-  worktreePath: shortText15.nullable().default(null),
+  worktreePath: shortText17.nullable().default(null),
   /** The approved spec/mission the Mission was declared against. */
-  missionSpec: shortText15.nullable().default(null)
+  missionSpec: shortText17.nullable().default(null)
 }).passthrough();
 var dogfoodRunSchema = external_exports.object({
   schemaVersion: semver4,
-  runId: shortText15,
+  runId: shortText17,
   status: external_exports.enum(DOGFOOD_RUN_STATUSES),
   profile: external_exports.enum(QUALIFICATION_PROFILES),
   target: dogfoodTargetSchema,
@@ -83874,15 +85444,15 @@ var dogfoodRunSchema = external_exports.object({
    * Comparing it across iterations is how a report can say whether run #3
    * differed from run #1 in the system or only in the weather.
    */
-  configurationFingerprint: shortText15,
+  configurationFingerprint: shortText17,
   /** The Mission this run is dogfooding, when one is bound. */
-  missionId: shortText15.nullable().default(null),
+  missionId: shortText17.nullable().default(null),
   /** The long-running Job carrying the Mission's work, when one is bound. */
-  jobId: shortText15.nullable().default(null),
+  jobId: shortText17.nullable().default(null),
   /** Iteration number within a series of dogfood runs against one target. */
   iteration: external_exports.number().int().min(1).default(1),
   /** The run this iteration continues from, for progress/regression views. */
-  previousRunId: shortText15.nullable().default(null),
+  previousRunId: shortText17.nullable().default(null),
   /** Human-stated Mission direction, recorded verbatim and bounded. */
   missionDirection: text8.nullable().default(null),
   /**
@@ -83893,17 +85463,17 @@ var dogfoodRunSchema = external_exports.object({
   approvedScope: textList6.default([]),
   scopeChanges: external_exports.array(
     external_exports.object({
-      at: shortText15,
+      at: shortText17,
       originalScope: text8,
       newScope: text8,
       reason: text8,
-      authority: shortText15,
+      authority: shortText17,
       effectOnQualification: text8
     }).passthrough()
   ).max(QUALIFICATION_LIMITS.maxListItems).default([]),
-  startedAt: shortText15,
-  updatedAt: shortText15,
-  finalizedAt: shortText15.nullable().default(null),
+  startedAt: shortText17,
+  updatedAt: shortText17,
+  finalizedAt: shortText17.nullable().default(null),
   /** Wall-clock milliseconds the run has been active, excluding pauses. */
   activeMs: count2.default(0),
   /** Wall-clock milliseconds the run spent deliberately paused. */
@@ -83913,16 +85483,16 @@ var dogfoodRunSchema = external_exports.object({
 }).passthrough();
 var observedTransitionSchema = external_exports.object({
   /** What changed: an event type, status transition, or decision code. */
-  subject: shortText15,
-  from: shortText15.nullable().default(null),
-  to: shortText15.nullable().default(null),
+  subject: shortText17,
+  from: shortText17.nullable().default(null),
+  to: shortText17.nullable().default(null),
   /** Bounded explanation of why this transition mattered to the claim. */
   detail: text8.optional()
 }).passthrough();
 var scenarioResultSchema = external_exports.object({
   schemaVersion: semver4,
-  runId: shortText15,
-  scenarioId: shortText15,
+  runId: shortText17,
+  scenarioId: shortText17,
   area: external_exports.enum(QUALIFICATION_AREAS),
   executionKind: external_exports.enum(SCENARIO_EXECUTION_KINDS),
   requirement: external_exports.enum(SCENARIO_REQUIREMENTS),
@@ -83941,38 +85511,38 @@ var scenarioResultSchema = external_exports.object({
   /** How each resource this scenario touched was actually exercised. */
   resourceAttribution: external_exports.record(external_exports.enum(QUALIFICATION_RESOURCES), external_exports.enum(RESOURCE_ATTRIBUTIONS)).default({}),
   /** Which executor produced this result (`cli`, `regression-suite`, …). */
-  executor: shortText15,
+  executor: shortText17,
   durationMs: count2.nullable().default(null),
-  recordedAt: shortText15
+  recordedAt: shortText17
 }).passthrough();
 var humanInterventionSchema = external_exports.object({
   schemaVersion: semver4,
-  runId: shortText15,
-  interventionId: shortText15,
+  runId: shortText17,
+  interventionId: shortText17,
   kind: external_exports.enum(HUMAN_INTERVENTION_KINDS),
-  at: shortText15,
+  at: shortText17,
   /** What the human did, bounded and non-sensitive. */
   description: text8,
   /** Why it was necessary, in the recorder's own words. */
   reason: text8,
   /** The Job/node/task the intervention touched, when scoped to one. */
-  jobId: shortText15.nullable().default(null),
-  nodeId: shortText15.nullable().default(null),
-  taskId: shortText15.nullable().default(null),
+  jobId: shortText17.nullable().default(null),
+  nodeId: shortText17.nullable().default(null),
+  taskId: shortText17.nullable().default(null),
   /**
    * The governance boundary that required it, when kind is
    * REQUIRED_BY_POLICY — a decision kind, approval gate, or spend mode.
    * Absent on every other kind, which is how a policy-required
    * intervention is told from one that merely claims to be.
    */
-  policyBoundary: shortText15.nullable().default(null),
+  policyBoundary: shortText17.nullable().default(null),
   /** Durable references: question id, approval id, commit, decision id. */
   evidenceRefs: refList.default([])
 }).passthrough();
 var faultInjectionRecordSchema = external_exports.object({
   schemaVersion: semver4,
-  runId: shortText15,
-  faultId: shortText15,
+  runId: shortText17,
+  faultId: shortText17,
   faultClass: external_exports.enum(FAULT_CLASSES),
   boundary: external_exports.enum(FAULT_BOUNDARIES),
   triggerMode: external_exports.enum(FAULT_TRIGGER_MODES),
@@ -83985,26 +85555,26 @@ var faultInjectionRecordSchema = external_exports.object({
   /** What was observed after injection. */
   observed: text8.nullable().default(null),
   /** The scenario that injected it. */
-  scenarioId: shortText15.nullable().default(null),
-  injectedAt: shortText15,
-  resolvedAt: shortText15.nullable().default(null)
+  scenarioId: shortText17.nullable().default(null),
+  injectedAt: shortText17,
+  resolvedAt: shortText17.nullable().default(null)
 }).passthrough();
 var invariantViolationSchema = external_exports.object({
   invariantId: external_exports.enum(STATE_INVARIANT_IDS),
   /** What was found, bounded and specific enough to act on. */
   detail: text8,
   /** The record that violates it. */
-  subject: shortText15,
+  subject: shortText17,
   /** True when this invariant is release-blocking. */
   blocking: external_exports.boolean()
 }).passthrough();
 var invariantAuditSchema = external_exports.object({
   schemaVersion: semver4,
-  runId: shortText15,
-  auditId: shortText15,
+  runId: shortText17,
+  auditId: shortText17,
   phase: external_exports.enum(INVARIANT_AUDIT_PHASES),
-  jobId: shortText15.nullable().default(null),
-  at: shortText15,
+  jobId: shortText17.nullable().default(null),
+  at: shortText17,
   /** Invariants actually evaluated in this audit. */
   checked: external_exports.array(external_exports.enum(STATE_INVARIANT_IDS)).max(QUALIFICATION_LIMITS.maxListItems).default([]),
   violations: external_exports.array(invariantViolationSchema).max(QUALIFICATION_LIMITS.maxObservations).default([]),
@@ -84013,8 +85583,8 @@ var invariantAuditSchema = external_exports.object({
 }).passthrough();
 var dogfoodDefectSchema = external_exports.object({
   schemaVersion: semver4,
-  runId: shortText15,
-  defectId: shortText15,
+  runId: shortText17,
+  defectId: shortText17,
   source: external_exports.enum(DEFECT_SOURCES),
   /** What was observed to go wrong. */
   observedFailure: text8,
@@ -84025,15 +85595,15 @@ var dogfoodDefectSchema = external_exports.object({
   /** The fix, when one was applied. */
   fix: text8.nullable().default(null),
   /** The regression test covering it. Null means the fix is uncovered. */
-  regressionTest: shortText15.nullable().default(null),
+  regressionTest: shortText17.nullable().default(null),
   /** Whether the fix changed a public contract. */
   changesPublicContract: external_exports.boolean().default(false),
   /** Whether the fix affects a guarantee an earlier phase committed to. */
   affectsPriorPhaseGuarantee: external_exports.boolean().default(false),
   /** True while the defect remains open. */
   blocking: external_exports.boolean().default(false),
-  discoveredAt: shortText15,
-  resolvedAt: shortText15.nullable().default(null)
+  discoveredAt: shortText17,
+  resolvedAt: shortText17.nullable().default(null)
 }).passthrough();
 var qualificationLimitationSchema = external_exports.object({
   class: external_exports.enum(LIMITATION_CLASSES),
@@ -84046,13 +85616,13 @@ var releaseBlockerSchema = external_exports.object({
   evidenceRefs: refList.default([])
 }).passthrough();
 var timelineEntrySchema = external_exports.object({
-  at: shortText15,
+  at: shortText17,
   /** The durable event type this milestone came from. */
-  eventType: shortText15,
+  eventType: shortText17,
   /** Human-readable milestone label. */
-  milestone: shortText15,
-  jobId: shortText15.nullable().default(null),
-  nodeId: shortText15.nullable().default(null)
+  milestone: shortText17,
+  jobId: shortText17.nullable().default(null),
+  nodeId: shortText17.nullable().default(null)
 }).passthrough();
 var autonomyScorecardSchema = external_exports.object({
   missionCompleted: external_exports.boolean().nullable().default(null),
@@ -84164,10 +85734,10 @@ var contextReportSchema = external_exports.object({
   contextPerVerifiedTask: external_exports.number().min(0).nullable().default(null),
   /** Attempts retried where the recorded cause was context insufficiency. */
   retriesAttributableToContext: count2,
-  strategy: shortText15.nullable().default(null)
+  strategy: shortText17.nullable().default(null)
 }).passthrough();
 var adaptiveReportSchema = external_exports.object({
-  mode: shortText15.nullable().default(null),
+  mode: shortText17.nullable().default(null),
   heuristicDecisions: count2,
   shadowRecommendations: count2,
   shadowDisagreements: count2,
@@ -84212,22 +85782,22 @@ var scenarioSummarySchema = external_exports.object({
 }).passthrough();
 var dogfoodQualificationReportSchema = external_exports.object({
   schemaVersion: semver4,
-  runId: shortText15,
-  generatedAt: shortText15,
+  runId: shortText17,
+  generatedAt: shortText17,
   profile: external_exports.enum(QUALIFICATION_PROFILES),
   status: external_exports.enum(DOGFOOD_RUN_STATUSES),
   target: dogfoodTargetSchema,
   versions: runtimeVersionsSchema,
-  configurationFingerprint: shortText15,
-  missionId: shortText15.nullable().default(null),
-  jobId: shortText15.nullable().default(null),
+  configurationFingerprint: shortText17,
+  missionId: shortText17.nullable().default(null),
+  jobId: shortText17.nullable().default(null),
   iteration: external_exports.number().int().min(1),
-  previousRunId: shortText15.nullable().default(null),
+  previousRunId: shortText17.nullable().default(null),
   missionDirection: text8.nullable().default(null),
   approvedScope: textList6,
   scopeChanges: external_exports.array(external_exports.record(external_exports.string(), external_exports.unknown())).max(QUALIFICATION_LIMITS.maxListItems),
-  startedAt: shortText15,
-  finalizedAt: shortText15.nullable(),
+  startedAt: shortText17,
+  finalizedAt: shortText17.nullable(),
   durationMs: count2.nullable(),
   activeMs: count2,
   pausedMs: count2,
@@ -89274,11 +90844,11 @@ async function resolveComparison(repoRoot, request, options = {}) {
     headSha: null,
     label: request.mode === "diff" ? `${request.base}...${request.head}` : request.mode === "working-tree" ? "working tree vs HEAD" : "staged changes vs HEAD"
   };
-  const failed = (reason2, message2, shallow = false) => ({
+  const failed = (reason3, message2, shallow = false) => ({
     ok: false,
     descriptor,
     changedFiles: [],
-    failure: { reason: reason2, message: message2, shallow }
+    failure: { reason: reason3, message: message2, shallow }
   });
   const inside = await git4(repoRoot, ["rev-parse", "--is-inside-work-tree"], signal);
   if (!inside.ok || inside.stdout.trim() !== "true") {
@@ -90159,13 +91729,13 @@ function staleEvidenceDiagnostics(rule, context, resolved2, codes) {
     if (assessment === void 0 || assessment.bucket !== "stale") continue;
     const best = assessment.best;
     if (best === void 0) continue;
-    const matching = best.reasons.filter((reason2) => codes.has(reason2.code));
+    const matching = best.reasons.filter((reason3) => codes.has(reason3.code));
     if (matching.length === 0) continue;
     diagnostics.push(
       makeDiagnostic({
         rule,
         severity: resolved2.severity,
-        message: `Task ${task.id} is checked but its evidence is stale: ${matching.map((reason2) => reason2.message).join("; ")}.`,
+        message: `Task ${task.id} is checked but its evidence is stale: ${matching.map((reason3) => reason3.message).join("; ")}.`,
         specName: context.specName,
         taskId: task.id,
         file: taskFileLocation(context, task),
@@ -90173,7 +91743,7 @@ function staleEvidenceDiagnostics(rule, context, resolved2, codes) {
           runId: best.record.runId,
           evidenceStatus: best.record.status,
           manualAcceptance: best.manual,
-          reasons: matching.map((reason2) => ({ code: reason2.code, message: reason2.message })),
+          reasons: matching.map((reason3) => ({ code: reason3.code, message: reason3.message })),
           evaluatedAt: best.record.evaluatedAt
         }
       })
@@ -99258,15 +100828,15 @@ function buildRecoveryActions(workspace, findings2) {
       });
       continue;
     }
-    const sha2564 = trySha256File(absolute);
-    if (sha2564 === void 0) continue;
+    const sha2566 = trySha256File(absolute);
+    if (sha2566 === void 0) continue;
     actions.push({
       actionId: `a${actions.length + 1}`,
       kind: recovery.kind,
       reason: recovery.reason,
       risk: recovery.risk,
       file: proposal.path,
-      sha256: sha2564,
+      sha256: sha2566,
       reversible: true,
       confidence: recovery.confidence,
       requiresAcknowledgement: true
@@ -101672,22 +103242,22 @@ var SEAL_LIMITS = {
   maxCriteria: 400,
   maxSurfaces: 40
 };
-var shortText16 = external_exports.string().max(SEAL_LIMITS.maxShortTextChars);
+var shortText18 = external_exports.string().max(SEAL_LIMITS.maxShortTextChars);
 var text9 = external_exports.string().max(SEAL_LIMITS.maxTextChars);
-var idList3 = external_exports.array(shortText16).max(SEAL_LIMITS.maxListItems);
+var idList3 = external_exports.array(shortText18).max(SEAL_LIMITS.maxListItems);
 var sealedContractRefSchema = external_exports.object({
-  contractId: shortText16,
+  contractId: shortText18,
   revision: external_exports.number().int().min(1),
-  title: shortText16,
+  title: shortText18,
   classification: external_exports.enum(["public", "internal"]),
-  compatibilityPolicy: shortText16,
+  compatibilityPolicy: shortText18,
   /** Requirement ids inside this contract revision, at seal time. */
   requirementIds: idList3.default([]),
   /** Invariant ids inside this contract revision, at seal time. */
   invariantIds: idList3.default([])
 }).passthrough();
 var sealedAcceptanceCriterionSchema = external_exports.object({
-  criterionId: shortText16,
+  criterionId: shortText18,
   statement: text9,
   /** Contract ids this criterion judges, when it judges specific ones. */
   contractIds: idList3.default([]),
@@ -101703,36 +103273,36 @@ var sealedResourcePolicySchema = external_exports.object({
   allowedLanes: external_exports.array(external_exports.enum(["LOCAL", "SUBSCRIPTION", "API"])).min(1).default(["LOCAL"])
 }).passthrough();
 var delegatedAuthoritySnapshotSchema = external_exports.object({
-  mode: shortText16,
-  humanGate: shortText16,
+  mode: shortText18,
+  humanGate: shortText18,
   policyFingerprint: external_exports.string().max(8e3),
   /** Delegated engineering surfaces, as `surface: AUTO|HUMAN`. */
-  decisions: external_exports.record(shortText16).default({}),
+  decisions: external_exports.record(shortText18).default({}),
   /** Delegated recovery surfaces, same shape. */
-  recovery: external_exports.record(shortText16).default({}),
+  recovery: external_exports.record(shortText18).default({}),
   /** Toolsmith capability classes the human authorized. */
-  toolsmithCapabilities: external_exports.array(shortText16).max(SEAL_LIMITS.maxSurfaces).default([])
+  toolsmithCapabilities: external_exports.array(shortText18).max(SEAL_LIMITS.maxSurfaces).default([])
 }).passthrough();
 var missionSealSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  sealId: shortText16,
-  missionId: shortText16,
+  sealId: shortText18,
+  missionId: shortText18,
   /** The Kiro spec the mission synthesized, when it has one. */
-  specName: shortText16.optional(),
+  specName: shortText18.optional(),
   status: external_exports.enum(SEAL_STATUSES),
-  createdAt: shortText16,
+  createdAt: shortText18,
   /** Set exactly once, when a human authorizes the draft. */
-  sealedAt: shortText16.optional(),
+  sealedAt: shortText18.optional(),
   /**
    * How the human authorization arrived. A free-form CHANNEL label (the
    * CLI command, the MCP surface) recorded for audit — never a claim that
    * anything other than a person performed it.
    */
-  sealedVia: shortText16.optional(),
+  sealedVia: shortText18.optional(),
   /** Predecessor seal this one replaces. */
-  supersedes: shortText16.optional(),
-  supersededBy: shortText16.optional(),
-  revokedAt: shortText16.optional(),
+  supersedes: shortText18.optional(),
+  supersededBy: shortText18.optional(),
+  revokedAt: shortText18.optional(),
   revokedReason: text9.optional(),
   // --- The authority snapshot ------------------------------------------
   /** The mission goal, verbatim and bounded. Data, never instructions. */
@@ -101755,14 +103325,14 @@ var missionSealSchema = external_exports.object({
    * prove the record on disk is the one that was authorized, and so a
    * re-seal that changes nothing is recognisable as a no-op.
    */
-  authorityDigest: shortText16
+  authorityDigest: shortText18
 }).passthrough();
 var sealBindingSchema = external_exports.object({
   schemaVersion: external_exports.string().regex(/^\d+\.\d+\.\d+$/),
-  jobId: shortText16,
-  sealId: shortText16,
-  missionId: shortText16,
-  boundAt: shortText16,
+  jobId: shortText18,
+  sealId: shortText18,
+  missionId: shortText18,
+  boundAt: shortText18,
   /** Autonomy policy fingerprint observed when the binding was made. */
   boundPolicyFingerprint: external_exports.string().max(8e3)
 }).passthrough();
@@ -101986,13 +103556,13 @@ function markSuperseded(deps3, sealId, bySealId) {
     missionSealSchema.parse({ ...previous, status: "SUPERSEDED", supersededBy: bySealId })
   );
 }
-function revokeSeal(deps3, sealId, reason2) {
+function revokeSeal(deps3, sealId, reason3) {
   const seal = requireSeal(deps3.workspace, sealId);
   const revoked = missionSealSchema.parse({
     ...seal,
     status: "REVOKED",
     revokedAt: nowIso5(deps3),
-    revokedReason: reason2.slice(0, SEAL_LIMITS.maxTextChars)
+    revokedReason: reason3.slice(0, SEAL_LIMITS.maxTextChars)
   });
   writeJsonRecord(sealFile(deps3.workspace, sealId), revoked);
   return revoked;
@@ -102134,10 +103704,10 @@ function evaluateAuthority(request) {
   }
   const executability = assessSealExecutability(request.seal, request.policy);
   if (!executability.executable) {
-    const reason2 = executability.reason === "AUTONOMY_POLICY_DRIFT" ? "AUTONOMY_POLICY_DRIFT" : executability.reason === "SEAL_NOT_EXECUTABLE" ? "SEAL_NOT_EXECUTABLE" : "NO_SEAL_BOUND";
+    const reason3 = executability.reason === "AUTONOMY_POLICY_DRIFT" ? "AUTONOMY_POLICY_DRIFT" : executability.reason === "SEAL_NOT_EXECUTABLE" ? "SEAL_NOT_EXECUTABLE" : "NO_SEAL_BOUND";
     return {
       verdict: "NEEDS_AUTHORITY",
-      reason: reason2,
+      reason: reason3,
       surface,
       question: executability.detail ?? "This job has no delegated authority; a human decision is required to proceed.",
       whyItMatters: "Delegated engineering authority comes from a sealed Mission. Without one, the runtime has not been given permission to decide anything on its own.",
@@ -102181,16 +103751,16 @@ function exceedsCeiling(spend) {
   if (spend.ceilingUsd === null || spend.requestedUsd === null) return true;
   return spend.requestedUsd > spend.ceilingUsd;
 }
-function decided(verdict, reason2, surface, signals2) {
-  return { verdict, reason: reason2, surface, question: "", whyItMatters: "", observedSignals: signals2 };
+function decided(verdict, reason3, surface, signals2) {
+  return { verdict, reason: reason3, surface, question: "", whyItMatters: "", observedSignals: signals2 };
 }
-function needsAuthority(surface, reason2, request, signals2) {
+function needsAuthority(surface, reason3, request, signals2) {
   return {
     verdict: "NEEDS_AUTHORITY",
-    reason: reason2,
+    reason: reason3,
     surface,
     question: authorityQuestion(surface, request),
-    whyItMatters: authorityRationale(reason2),
+    whyItMatters: authorityRationale(reason3),
     observedSignals: signals2
   };
 }
@@ -102225,8 +103795,8 @@ function authorityQuestion(surface, request) {
 function formatUsd2(value) {
   return value === null ? "unknown" : `$${value.toFixed(2)}`;
 }
-function authorityRationale(reason2) {
-  switch (reason2) {
+function authorityRationale(reason3) {
+  switch (reason3) {
     case "MODIFIES_SEALED_CONTRACT":
       return "A sealed contract is a promise a human made. An agent may propose a change to one; it may never make it.";
     case "CHANGES_PRODUCT_SEMANTICS":
@@ -102523,12 +104093,12 @@ function claimLease(input) {
     ...previousOwnerId !== void 0 ? { previousOwnerId } : {}
   };
 }
-function releaseLeaseRecord(lease, now23, reason2) {
+function releaseLeaseRecord(lease, now23, reason3) {
   return {
     ...lease,
     released: true,
     releasedAt: now23.toISOString(),
-    releaseReason: reason2.slice(0, 4e3)
+    releaseReason: reason3.slice(0, 4e3)
   };
 }
 function nextBackoffMs(current, floorMs, ceilingMs) {
@@ -102835,11 +104405,11 @@ function renewJobLease(deps3, jobId, ownerId, policy) {
   });
   return writeLease(deps3.workspace, claim2.lease);
 }
-function releaseJobLease(deps3, jobId, ownerId, reason2) {
+function releaseJobLease(deps3, jobId, ownerId, reason3) {
   const existing = readLease(deps3.workspace, jobId);
   if (existing === void 0 || existing.ownerId !== ownerId) return;
-  writeLease(deps3.workspace, releaseLeaseRecord(existing, now5(deps3), reason2));
-  appendSupervisionLog(deps3, { ownerId, jobId, action: "RELEASED_ON_TERMINAL_STATUS", detail: reason2 });
+  writeLease(deps3.workspace, releaseLeaseRecord(existing, now5(deps3), reason3));
+  appendSupervisionLog(deps3, { ownerId, jobId, action: "RELEASED_ON_TERMINAL_STATUS", detail: reason3 });
 }
 async function superviseJob(deps3, jobId, options) {
   const policy = autonomyPolicyOf(deps3).supervisor;
@@ -106591,10 +108161,10 @@ async function runGapRepairs(deps3, options) {
     }
     const entry2 = ledger?.entries.find((candidate) => candidate.itemId === item.itemId);
     const failureContext = entry2?.evidence.filter((ref) => !ref.passed).slice(-2).map((ref) => `- ${ref.kind} ${ref.ref}: ${(ref.detail ?? "failed").slice(0, 600)}`).join("\n");
-    const fail = (reason2) => {
-      options.emit?.(`gap ${item.gapId} (${item.itemId}): ${reason2}`);
-      result.failed.push({ gapId: item.gapId, reason: reason2 });
-      recordGapEvent(deps3, options.jobId, item, false, reason2);
+    const fail = (reason3) => {
+      options.emit?.(`gap ${item.gapId} (${item.itemId}): ${reason3}`);
+      result.failed.push({ gapId: item.gapId, reason: reason3 });
+      recordGapEvent(deps3, options.jobId, item, false, reason3);
     };
     const worktree = await createWorkerWorktree({
       workspace: deps3.workspace,
@@ -107914,48 +109484,48 @@ var INTAKE_LIMITS = {
   maxEvidence: 600,
   maxRefsPerRecord: 40
 };
-var shortText17 = external_exports.string().min(1).max(INTAKE_LIMITS.maxShortTextChars);
+var shortText19 = external_exports.string().min(1).max(INTAKE_LIMITS.maxShortTextChars);
 var text14 = external_exports.string().min(1).max(INTAKE_LIMITS.maxTextChars);
 var optionalText3 = external_exports.string().max(INTAKE_LIMITS.maxTextChars);
-var idList4 = external_exports.array(shortText17).max(INTAKE_LIMITS.maxRefsPerRecord);
+var idList4 = external_exports.array(shortText19).max(INTAKE_LIMITS.maxRefsPerRecord);
 var textList7 = external_exports.array(text14).max(INTAKE_LIMITS.maxItems);
 var semver5 = external_exports.string().regex(/^\d+\.\d+\.\d+$/);
-var sha2563 = external_exports.string().regex(/^[0-9a-f]{64}$/);
+var sha2565 = external_exports.string().regex(/^[0-9a-f]{64}$/);
 var sourceChunkSchema = external_exports.object({
   /** Stable within the document ("C-0001", "C-0002", …). */
-  chunkId: shortText17,
+  chunkId: shortText19,
   /** Heading path this chunk sits under, outermost first. */
-  headingPath: external_exports.array(shortText17).max(8).default([]),
+  headingPath: external_exports.array(shortText19).max(8).default([]),
   kind: external_exports.enum(SOURCE_CHUNK_KINDS),
   text: external_exports.string().max(INTAKE_LIMITS.maxChunkChars),
   /** True when the record's `text` was truncated relative to the source. */
   truncated: external_exports.boolean().default(false),
   startOffset: external_exports.number().int().min(0),
   endOffset: external_exports.number().int().min(0),
-  contentHash: shortText17
+  contentHash: shortText19
 }).passthrough();
 var specSourceSchema = external_exports.object({
   schemaVersion: semver5,
-  intakeId: shortText17,
+  intakeId: shortText19,
   kind: external_exports.enum(SPEC_SOURCE_KINDS),
   /** Original path, for a file source. Recorded for audit, never re-read. */
   originPath: optionalText3.optional(),
-  receivedAt: shortText17,
+  receivedAt: shortText19,
   /** Host label of the process that ingested it ("cli", "mcp", "plugin"). */
-  receivedVia: shortText17,
+  receivedVia: shortText19,
   byteLength: external_exports.number().int().min(1),
-  contentHash: sha2563,
+  contentHash: sha2565,
   /** Workspace-relative path of the stored verbatim copy. */
-  storedAt: shortText17,
+  storedAt: shortText19,
   /** Section headings found, in document order. */
-  outline: external_exports.array(shortText17).max(200).default([]),
+  outline: external_exports.array(shortText19).max(200).default([]),
   chunks: external_exports.array(sourceChunkSchema).max(INTAKE_LIMITS.maxChunks).default([])
 }).passthrough();
 var repositoryEvidenceSchema = external_exports.object({
-  evidenceId: shortText17,
+  evidenceId: shortText19,
   kind: external_exports.enum(REPOSITORY_EVIDENCE_KINDS),
   /** Stable identity: a contract id, spec name, module path, mission id. */
-  ref: shortText17,
+  ref: shortText19,
   summary: text14,
   /** True when this is existing PRODUCT AUTHORITY rather than context. */
   authoritative: external_exports.boolean().default(false),
@@ -107966,27 +109536,27 @@ var repositoryEvidenceSchema = external_exports.object({
 }).passthrough();
 var repositoryGroundingSchema = external_exports.object({
   schemaVersion: semver5,
-  intakeId: shortText17,
-  groundedAt: shortText17,
+  intakeId: shortText19,
+  groundedAt: shortText19,
   /** Git head at grounding time, when the workspace is a repository. */
-  baselineCommit: shortText17.nullable().default(null),
+  baselineCommit: shortText19.nullable().default(null),
   /** True when this workspace already carries SpecBridge product truth. */
   existingProduct: external_exports.boolean().default(false),
   evidence: external_exports.array(repositoryEvidenceSchema).max(INTAKE_LIMITS.maxEvidence).default([]),
   /** Prior missions whose contracts are active product authority. */
   priorMissionIds: idList4.default([]),
   /** Existing spec names, for name-collision and reuse decisions. */
-  existingSpecNames: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
+  existingSpecNames: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
   /** Detected build system, e.g. "pnpm", "gradle", "maven", or null. */
-  buildSystem: shortText17.nullable().default(null),
+  buildSystem: shortText19.nullable().default(null),
   /** Top-level module/subproject directories worth extending. */
-  modules: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
+  modules: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
   /** Deterministic notes about what was and was not observable. */
   notes: textList7.default([])
 }).passthrough();
 var deltaItemSchema = external_exports.object({
   /** Stable within the analysis ("D-001", …). */
-  itemId: shortText17,
+  itemId: shortText19,
   statement: text14,
   /** Source chunks this item was extracted from. */
   sourceChunkIds: idList4.default([]),
@@ -107996,23 +109566,23 @@ var deltaItemSchema = external_exports.object({
   /** Surfaces this item would permanently affect, if any. */
   affectedSurfaces: external_exports.array(external_exports.enum(IRREVERSIBLE_SURFACES)).max(IRREVERSIBLE_SURFACES.length).default([]),
   /** The existing contract this item relates to, when it relates to one. */
-  existingContractId: shortText17.optional(),
+  existingContractId: shortText19.optional(),
   existingContractRevision: external_exports.number().int().min(1).optional(),
   /** The prior mission owning that contract. */
-  existingMissionId: shortText17.optional(),
+  existingMissionId: shortText19.optional(),
   /** Requirement/invariant ids inside that contract this item touches. */
   existingElementIds: idList4.default([]),
   /** True when this item is a public product promise (new or existing). */
   publicSurface: external_exports.boolean().default(false),
   /** The question raised for this item, when one was raised. */
-  questionId: shortText17.optional()
+  questionId: shortText19.optional()
 }).passthrough();
 var deltaAuthorityAnalysisSchema = external_exports.object({
   schemaVersion: semver5,
-  intakeId: shortText17,
-  analyzedAt: shortText17,
+  intakeId: shortText19,
+  analyzedAt: shortText19,
   /** Digest over the grounding + source this analysis was computed from. */
-  basisDigest: shortText17,
+  basisDigest: shortText19,
   items: external_exports.array(deltaItemSchema).max(INTAKE_LIMITS.maxItems).default([]),
   /** Counts per class, so a summary needs no re-scan. */
   counts: external_exports.record(external_exports.number().int().min(0)).default({}),
@@ -108032,10 +109602,10 @@ var deltaAuthorityAnalysisSchema = external_exports.object({
    */
   affectedContracts: external_exports.array(
     external_exports.object({
-      contractId: shortText17,
-      missionId: shortText17,
-      missionName: shortText17.optional(),
-      title: shortText17,
+      contractId: shortText19,
+      missionId: shortText19,
+      missionName: shortText19.optional(),
+      title: shortText19,
       revision: external_exports.number().int().min(1),
       relation: external_exports.enum(["EXTENDED", "CHANGED"])
     }).passthrough()
@@ -108047,7 +109617,7 @@ var deltaAuthorityAnalysisSchema = external_exports.object({
   reasons: textList7.default([])
 }).passthrough();
 var productQuestionSchema = external_exports.object({
-  questionId: shortText17,
+  questionId: shortText19,
   kind: external_exports.enum(PRODUCT_QUESTION_KINDS),
   question: text14,
   whyItMatters: text14,
@@ -108063,31 +109633,31 @@ var productQuestionSchema = external_exports.object({
   /** Source chunks that raised it. */
   sourceChunkIds: idList4.default([]),
   /** The delta item this question blocks, when it blocks one. */
-  deltaItemId: shortText17.optional(),
+  deltaItemId: shortText19.optional(),
   /** Every admitted question is blocking; recorded so it can be asserted. */
   blocking: external_exports.literal(true).default(true),
   /** Mission question id, once the question is mirrored into the mission. */
-  missionQuestionId: shortText17.optional(),
+  missionQuestionId: shortText19.optional(),
   status: external_exports.enum(["open", "answered"]).default("open"),
   answer: optionalText3.optional(),
-  answeredAt: shortText17.optional(),
+  answeredAt: shortText19.optional(),
   /** Mission decision id recording the human answer. */
-  decisionId: shortText17.optional(),
-  askedAt: shortText17
+  decisionId: shortText19.optional(),
+  askedAt: shortText19
 }).passthrough();
 var questionRefusalSchema = external_exports.object({
-  refusalId: shortText17,
+  refusalId: shortText19,
   candidate: text14,
   reason: external_exports.enum(QUESTION_REFUSAL_REASONS),
   /** The engineering surface it asked about, for ENGINEERING_DECISION. */
   engineeringSurface: external_exports.enum(ENGINEERING_QUESTION_SURFACES).optional(),
   /** The evidence that answered it, for ANSWERED_BY_* reasons. */
-  answeredBy: shortText17.optional(),
+  answeredBy: shortText19.optional(),
   detail: text14,
-  refusedAt: shortText17
+  refusedAt: shortText19
 }).passthrough();
 var chunkCoverageSchema = external_exports.object({
-  chunkId: shortText17,
+  chunkId: shortText19,
   state: external_exports.enum(CHUNK_COVERAGE_STATES),
   /** What carries it: a delta item id, question id, or evidence id. */
   carriedBy: idList4.default([])
@@ -108105,105 +109675,105 @@ var intakeReadinessSchema = external_exports.object({
 }).passthrough();
 var intakeApprovalSchema = external_exports.object({
   schemaVersion: semver5,
-  approvalId: shortText17,
-  intakeId: shortText17,
-  missionId: shortText17,
-  approvedAt: shortText17,
-  approvedVia: shortText17,
+  approvalId: shortText19,
+  intakeId: shortText19,
+  missionId: shortText19,
+  approvedAt: shortText19,
+  approvedVia: shortText19,
   /** Digest of exactly the bytes the human submitted. */
-  sourceContentHash: sha2563,
+  sourceContentHash: sha2565,
   /** Digest over the approved canonical truth. The authority fingerprint. */
-  authorityDigest: shortText17,
+  authorityDigest: shortText19,
   /** Digest of the delta analysis that was current at approval time. */
-  deltaBasisDigest: shortText17,
+  deltaBasisDigest: shortText19,
   // --- What was approved, by reference ---------------------------------
   goal: text14,
   nonGoals: textList7.default([]),
   /** Mission decision ids active at approval time. */
-  decisionIds: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
-  constitutionRuleIds: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
-  adrIds: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
+  decisionIds: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
+  constitutionRuleIds: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
+  adrIds: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
   /** Contracts this intake creates, by id. */
-  newContractIds: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
+  newContractIds: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
   /** Existing contracts this intake extends, by id. */
-  extendedContractIds: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
+  extendedContractIds: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
   /** Existing contracts this intake would change. Human-visible, always. */
-  changedContractIds: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
+  changedContractIds: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
   acceptanceCriteria: textList7.default([]),
   /** Product questions and the human's recorded answers. */
   resolvedQuestions: external_exports.array(
     external_exports.object({
-      questionId: shortText17,
+      questionId: shortText19,
       question: text14,
       answer: text14,
-      decisionId: shortText17.optional()
+      decisionId: shortText19.optional()
     }).passthrough()
   ).max(INTAKE_LIMITS.maxQuestions).default([]),
   /** Resource authorization carried into the seal. */
   maxApiSpendUsd: external_exports.number().min(0).nullable().default(null),
   allowedLanes: external_exports.array(external_exports.enum(["LOCAL", "SUBSCRIPTION", "API"])).min(1).default(["LOCAL"]),
   /** The seal this approval produced, once the lifecycle created it. */
-  sealId: shortText17.optional()
+  sealId: shortText19.optional()
 }).passthrough();
 var projectionElementSchema = external_exports.object({
   /** The stage the element was found in. */
-  stage: shortText17,
+  stage: shortText19,
   /** Line number in the compiled document, 1-based. */
   line: external_exports.number().int().min(1),
   statement: text14,
   /** The approved element this traces to, when it traces to one. */
-  tracesTo: shortText17.optional()
+  tracesTo: shortText19.optional()
 }).passthrough();
 var projectionDivergenceSchema = external_exports.object({
   kind: external_exports.enum(DIVERGENCE_KINDS),
-  stage: shortText17.optional(),
+  stage: shortText19.optional(),
   detail: text14,
   /** The offending statement, bounded. */
   statement: optionalText3.optional()
 }).passthrough();
 var projectionEquivalenceSchema = external_exports.object({
   schemaVersion: semver5,
-  intakeId: shortText17,
-  approvalId: shortText17,
-  specName: shortText17,
-  checkedAt: shortText17,
+  intakeId: shortText19,
+  approvalId: shortText19,
+  specName: shortText19,
+  checkedAt: shortText19,
   equivalent: external_exports.boolean(),
   /** Normative statements checked, per stage. */
   checkedStatements: external_exports.number().int().min(0).default(0),
   tracedStatements: external_exports.number().int().min(0).default(0),
   divergences: external_exports.array(projectionDivergenceSchema).max(INTAKE_LIMITS.maxItems).default([]),
   /** Digest of each compiled artifact, so the verdict names its subject. */
-  artifactHashes: external_exports.record(sha2563).default({})
+  artifactHashes: external_exports.record(sha2565).default({})
 }).passthrough();
 var buildStepRecordSchema = external_exports.object({
   step: external_exports.enum(BUILD_LIFECYCLE_STEPS),
   status: external_exports.enum(BUILD_STEP_STATUSES),
-  startedAt: shortText17.optional(),
-  settledAt: shortText17.optional(),
+  startedAt: shortText19.optional(),
+  settledAt: shortText19.optional(),
   detail: optionalText3.optional(),
   /** Identity of what this step produced (spec name, seal id, job id). */
-  result: shortText17.optional(),
+  result: shortText19.optional(),
   /** Attempts made on this step, so a loop is visible rather than silent. */
   attempts: external_exports.number().int().min(0).default(0)
 }).passthrough();
 var buildLifecycleSchema = external_exports.object({
   schemaVersion: semver5,
-  intakeId: shortText17,
-  approvalId: shortText17,
-  missionId: shortText17,
-  startedAt: shortText17,
-  updatedAt: shortText17,
+  intakeId: shortText19,
+  approvalId: shortText19,
+  missionId: shortText19,
+  startedAt: shortText19,
+  updatedAt: shortText19,
   steps: external_exports.array(buildStepRecordSchema).max(BUILD_LIFECYCLE_STEPS.length),
-  specName: shortText17.optional(),
-  sealId: shortText17.optional(),
-  jobId: shortText17.optional(),
-  preflightReportId: shortText17.optional(),
+  specName: shortText19.optional(),
+  sealId: shortText19.optional(),
+  jobId: shortText19.optional(),
+  preflightReportId: shortText19.optional(),
   outcome: external_exports.enum(BUILD_OUTCOMES).optional(),
   /** Prerequisites the runtime resolved by itself, for the record. */
   resolvedPrerequisites: textList7.default([]),
   /** Prerequisites that genuinely need a person. */
   humanPrerequisites: textList7.default([]),
-  finishedAt: shortText17.optional()
+  finishedAt: shortText19.optional()
 }).passthrough();
 var intakeCountersSchema = external_exports.object({
   sourceChunks: external_exports.number().int().min(0).default(0),
@@ -108228,62 +109798,62 @@ var intakeSequencesSchema = external_exports.object({
 }).passthrough();
 var specIntakeStateSchema = external_exports.object({
   schemaVersion: semver5,
-  intakeId: shortText17,
+  intakeId: shortText19,
   /** The user-chosen name; also the default spec name. */
   name: external_exports.string().min(1).max(INTAKE_LIMITS.maxNameChars),
   status: external_exports.enum(INTAKE_STATUSES),
   /** The mission this intake drives. Created by the intake, never by hand. */
-  missionId: shortText17,
-  createdAt: shortText17,
-  updatedAt: shortText17,
-  host: shortText17,
+  missionId: shortText19,
+  createdAt: shortText19,
+  updatedAt: shortText19,
+  host: shortText19,
   /** Digest of the submitted specification. Identity of the ask. */
-  sourceContentHash: sha2563,
+  sourceContentHash: sha2565,
   /** Repository head when the intake began. */
-  baselineCommit: shortText17.nullable().default(null),
+  baselineCommit: shortText19.nullable().default(null),
   counters: intakeCountersSchema.default({}),
   sequences: intakeSequencesSchema.default({}),
   /** Set once the human approves. */
-  approvalId: shortText17.optional(),
-  approvedAt: shortText17.optional(),
+  approvalId: shortText19.optional(),
+  approvedAt: shortText19.optional(),
   /** Set by the lifecycle. */
-  specName: shortText17.optional(),
-  sealId: shortText17.optional(),
-  jobId: shortText17.optional(),
-  abandonedAt: shortText17.optional(),
+  specName: shortText19.optional(),
+  sealId: shortText19.optional(),
+  jobId: shortText19.optional(),
+  abandonedAt: shortText19.optional(),
   abandonReason: optionalText3.optional()
 }).passthrough();
 var featureLineageSchema = external_exports.object({
-  intakeId: shortText17,
-  missionId: shortText17,
-  name: shortText17,
-  recordedAt: shortText17,
-  baselineCommit: shortText17.nullable().default(null),
+  intakeId: shortText19,
+  missionId: shortText19,
+  name: shortText19,
+  recordedAt: shortText19,
+  baselineCommit: shortText19.nullable().default(null),
   /** Seals that were already authorized when this feature began. */
-  predecessorSealIds: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
-  sealId: shortText17.optional(),
-  specName: shortText17.optional(),
-  jobId: shortText17.optional(),
-  newContractIds: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
-  extendedContractIds: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
-  changedContractIds: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
+  predecessorSealIds: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
+  sealId: shortText19.optional(),
+  specName: shortText19.optional(),
+  jobId: shortText19.optional(),
+  newContractIds: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
+  extendedContractIds: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
+  changedContractIds: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
   /** Commits the implementation produced, filled in at closure. */
-  implementationCommits: external_exports.array(shortText17).max(INTAKE_LIMITS.maxItems).default([]),
+  implementationCommits: external_exports.array(shortText19).max(INTAKE_LIMITS.maxItems).default([]),
   /** Closure ledger reference, filled in when the job closes. */
-  closureEvidenceRef: shortText17.optional(),
+  closureEvidenceRef: shortText19.optional(),
   outcome: external_exports.enum(BUILD_OUTCOMES).optional()
 }).passthrough();
 var productBaselineSchema = external_exports.object({
   schemaVersion: semver5,
-  updatedAt: shortText17,
+  updatedAt: shortText19,
   /** Features in the order they were intaken, oldest first. */
   features: external_exports.array(featureLineageSchema).max(INTAKE_LIMITS.maxItems).default([])
 }).passthrough();
 var intakeTelemetrySchema = external_exports.object({
   schemaVersion: semver5,
-  intakeId: shortText17,
-  recordedAt: shortText17,
-  status: shortText17,
+  intakeId: shortText19,
+  recordedAt: shortText19,
+  status: shortText19,
   /** Human turns spent answering product questions before approval. */
   discoveryHumanTurns: external_exports.number().int().min(0),
   /** Product questions asked. Legitimate; never a defect. */
@@ -108297,9 +109867,9 @@ var intakeTelemetrySchema = external_exports.object({
   /** Correct authority stops after the approval. Not interventions. */
   humanAuthorityEscalationsAfterSeal: external_exports.number().int().min(0).nullable(),
   /** ISO instant the boundary starts at: the human approval. */
-  boundaryStartedAt: shortText17.nullable().default(null),
-  jobId: shortText17.optional(),
-  sealId: shortText17.optional()
+  boundaryStartedAt: shortText19.nullable().default(null),
+  jobId: shortText19.optional(),
+  sealId: shortText19.optional()
 }).passthrough();
 var ID_PATTERN11 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 var INTAKE_DIR_NAME = "intake";
@@ -112245,20 +113815,20 @@ function requireIntakeFor(deps3, subject) {
   }
   return found;
 }
-function abandonIntake(deps3, intakeId, reason2) {
+function abandonIntake(deps3, intakeId, reason3) {
   const intake = requireIntakeState(deps3.workspace, intakeId);
   if (intake.status === "ABANDONED") return intake;
   const at = nowIso6(deps3);
   appendIntakeEvent(deps3.workspace, intakeId, {
     at,
     type: "intake_abandoned",
-    reason: clip(reason2, 500)
+    reason: clip(reason3, 500)
   });
   return writeIntakeState(deps3.workspace, {
     ...intake,
     status: "ABANDONED",
     abandonedAt: at,
-    abandonReason: clip(reason2, INTAKE_LIMITS.maxTextChars)
+    abandonReason: clip(reason3, INTAKE_LIMITS.maxTextChars)
   });
 }
 function summaryOf(deps3, intake) {
@@ -113744,7 +115314,7 @@ Examples:
       runtime.out(okLine("Specification ready."));
       runtime.out(dim2(`  Approve and build: ${CLI_BIN} spec approve ${name} --build`));
     } else {
-      for (const reason2 of discovery.readiness.reasons) runtime.out(warnLine(reason2));
+      for (const reason3 of discovery.readiness.reasons) runtime.out(warnLine(reason3));
       runtime.exitCode = EXIT_CODES.gateFailure;
     }
   });
@@ -113780,7 +115350,7 @@ Examples:
         runtime.out(okLine("Specification ready."));
         runtime.out(dim2(`  Approve and build: ${CLI_BIN} spec approve ${name} --build`));
       } else {
-        for (const reason2 of result.discovery.readiness.reasons) runtime.out(warnLine(reason2));
+        for (const reason3 of result.discovery.readiness.reasons) runtime.out(warnLine(reason3));
       }
     }
   );
@@ -114522,7 +116092,7 @@ function renderTaskRunReport(runtime, workspace, report) {
   }
   runtime.out();
   runtime.out(sectionTitle("Evidence"));
-  for (const reason2 of report.reasons) runtime.out(infoLine(reason2));
+  for (const reason3 of report.reasons) runtime.out(infoLine(reason3));
   for (const violation of report.violations) runtime.out(failLine(`VIOLATION: ${violation}`));
   for (const warning2 of report.warnings) runtime.out(warnLine(warning2));
   runtime.out(
@@ -115806,8 +117376,8 @@ Example:
   ${CLI_BIN} spec accept-task notification-preferences --task 2.3 \\
     --run 8d4f1c22-\u2026 --reason "Verified manually in the local dev environment."`
   ).action(async (name, options) => {
-    const reason2 = options.reason?.trim() ?? "";
-    if (reason2.length === 0) {
+    const reason3 = options.reason?.trim() ?? "";
+    if (reason3.length === 0) {
       throw new SpecBridgeError("INVALID_ARGUMENT", "Manual acceptance requires a non-empty --reason.");
     }
     const taskId = options.task?.trim() ?? "";
@@ -115876,7 +117446,7 @@ Example:
       evaluatedAt: acceptedAt,
       manualAcceptance: {
         actor: "local-user",
-        reason: reason2,
+        reason: reason3,
         acceptedAt,
         ...referencedRunId !== void 0 ? { referencedRunId } : {}
       },
@@ -115891,7 +117461,7 @@ Example:
             taskId: task.id,
             status: "manually-accepted",
             actor: "local-user",
-            reason: reason2,
+            reason: reason3,
             acceptedAt,
             referencedRunId: referencedRunId ?? null,
             evidencePath,
@@ -115906,7 +117476,7 @@ Example:
     runtime.out(okLine(`Task ${task.id} checkbox updated`, "(surgical [ ] \u2192 [x] edit)"));
     runtime.out(okLine("Recorded as MANUALLY ACCEPTED", `actor: local-user`));
     runtime.out(warnLine("No automated verification was performed for this acceptance."));
-    runtime.out(`  Reason: ${reason2}`);
+    runtime.out(`  Reason: ${reason3}`);
     if (referencedRunId !== void 0) runtime.out(`  Referenced run: ${referencedRunId}`);
     const tasksApproved = spec2.state !== void 0 && stateStage(spec2.state, "tasks")?.status === "approved";
     if (update.approvalRehashed) {
@@ -126102,7 +127672,7 @@ var Protocol = class {
           }
         };
       }
-      const cancel = (reason2) => {
+      const cancel = (reason3) => {
         this._responseHandlers.delete(messageId);
         this._progressHandlers.delete(messageId);
         this._cleanupTimeout(messageId);
@@ -126111,10 +127681,10 @@ var Protocol = class {
           method: "notifications/cancelled",
           params: {
             requestId: messageId,
-            reason: String(reason2)
+            reason: String(reason3)
           }
         }, { relatedRequestId, resumptionToken, onresumptiontoken }).catch((error3) => this._onerror(new Error(`Failed to send cancellation: ${error3}`)));
-        const error2 = reason2 instanceof McpError ? reason2 : new McpError(ErrorCode.RequestTimeout, String(reason2));
+        const error2 = reason3 instanceof McpError ? reason3 : new McpError(ErrorCode.RequestTimeout, String(reason3));
         reject(error2);
       };
       this._responseHandlers.set(messageId, (response) => {
@@ -132910,7 +134480,7 @@ function orchestrationDeps(context, workspace) {
   };
 }
 var orchestrationIdArg = external_exports.string().min(1).max(64).describe("Orchestration run id returned by orchestration_begin");
-var boundedText5 = (max) => external_exports.string().min(1).max(max);
+var boundedText6 = (max) => external_exports.string().min(1).max(max);
 var stateSummaryShape = {
   orchestrationId: external_exports.string(),
   specName: external_exports.string(),
@@ -133081,7 +134651,7 @@ function registerOrchestrationBeginTool(server, context) {
     },
     inputSchema: {
       specName: specNameArg,
-      goal: boundedText5(4e3).describe(
+      goal: boundedText6(4e3).describe(
         "The user's stated goal, verbatim. Recorded as data, never executed as instructions."
       ),
       taskId: external_exports.string().max(64).optional().describe("Target task, when the user named one")
@@ -133144,11 +134714,11 @@ function registerOrchestrationAssessIntentTool(server, context) {
     inputSchema: {
       orchestrationId: orchestrationIdArg,
       outcome: external_exports.enum(INTENT_OUTCOMES).describe("Your assessment; SpecBridge may override it"),
-      summary: boundedText5(2e3).describe("One-line restatement of the user's request"),
-      reasons: external_exports.array(boundedText5(2e3)).max(20).optional(),
+      summary: boundedText6(2e3).describe("One-line restatement of the user's request"),
+      reasons: external_exports.array(boundedText6(2e3)).max(20).optional(),
       provenance: external_exports.array(
         external_exports.object({
-          fact: boundedText5(2e3),
+          fact: boundedText6(2e3),
           source: external_exports.enum(PROVENANCE_KINDS),
           reference: external_exports.string().max(512).optional()
         })
@@ -133211,11 +134781,11 @@ function registerOrchestrationClarifyTool(server, context) {
       orchestrationId: orchestrationIdArg,
       questions: external_exports.array(
         external_exports.object({
-          question: boundedText5(1024),
-          whyItMatters: boundedText5(1024).describe(
+          question: boundedText6(1024),
+          whyItMatters: boundedText6(1024).describe(
             "What the answer changes about the implementation. Required."
           ),
-          options: external_exports.array(boundedText5(512)).max(10).optional(),
+          options: external_exports.array(boundedText6(512)).max(10).optional(),
           relatedTaskId: external_exports.string().max(64).optional()
         })
       ).min(1).max(20)
@@ -133272,9 +134842,9 @@ function registerOrchestrationResolveClarificationTool(server, context) {
       decisions: external_exports.array(
         external_exports.object({
           questionId: external_exports.string().min(1).max(64),
-          answer: boundedText5(4096),
+          answer: boundedText6(4096),
           source: external_exports.enum(PROVENANCE_KINDS).describe("Use known-from-user for a direct answer from the user"),
-          impact: boundedText5(2e3).optional().describe("What this changes about the build"),
+          impact: boundedText6(2e3).optional().describe("What this changes about the build"),
           supersedes: external_exports.string().max(64).optional()
         })
       ).min(1).max(20)
@@ -133335,26 +134905,26 @@ function registerOrchestrationSubmitPlanTool(server, context) {
     inputSchema: {
       orchestrationId: orchestrationIdArg,
       taskId: external_exports.string().min(1).max(64).describe("The approved task this plan implements"),
-      goal: boundedText5(2e3),
+      goal: boundedText6(2e3),
       steps: external_exports.array(
         external_exports.object({
           id: external_exports.string().max(64).optional(),
-          description: boundedText5(2e3),
+          description: boundedText6(2e3),
           expectedAreas: external_exports.array(external_exports.string().max(512)).max(20).optional(),
-          expectedEvidence: boundedText5(2e3).optional()
+          expectedEvidence: boundedText6(2e3).optional()
         })
       ).min(1).max(200),
-      testStrategy: boundedText5(2e3),
-      verificationStrategy: boundedText5(2e3),
-      nonGoals: external_exports.array(boundedText5(2e3)).max(50).optional(),
-      constraints: external_exports.array(boundedText5(2e3)).max(50).optional(),
-      relevantEvidence: external_exports.array(boundedText5(2e3)).max(50).optional(),
-      assumptions: external_exports.array(boundedText5(2e3)).max(50).optional().describe("Labelled assumptions. Planning information, never presented as facts."),
-      openQuestions: external_exports.array(boundedText5(2e3)).max(50).optional(),
+      testStrategy: boundedText6(2e3),
+      verificationStrategy: boundedText6(2e3),
+      nonGoals: external_exports.array(boundedText6(2e3)).max(50).optional(),
+      constraints: external_exports.array(boundedText6(2e3)).max(50).optional(),
+      relevantEvidence: external_exports.array(boundedText6(2e3)).max(50).optional(),
+      assumptions: external_exports.array(boundedText6(2e3)).max(50).optional().describe("Labelled assumptions. Planning information, never presented as facts."),
+      openQuestions: external_exports.array(boundedText6(2e3)).max(50).optional(),
       expectedAreas: external_exports.array(external_exports.string().max(512)).max(50).optional().describe("Expected implementation areas. Planning information, not a prediction of fact."),
-      rollbackConsiderations: boundedText5(2e3).optional(),
-      replanTriggers: external_exports.array(boundedText5(2e3)).max(50).optional(),
-      replanReason: boundedText5(2e3).optional().describe("Required in spirit when replacing a plan")
+      rollbackConsiderations: boundedText6(2e3).optional(),
+      replanTriggers: external_exports.array(boundedText6(2e3)).max(50).optional(),
+      replanReason: boundedText6(2e3).optional().describe("Required in spirit when replacing a plan")
     },
     outputSchema: {
       ...stateSummaryShape,
@@ -133444,7 +135014,7 @@ function registerOrchestrationReviewPlanTool(server, context) {
       orchestrationId: orchestrationIdArg,
       planHash: external_exports.string().min(1).max(64).describe("Exact planHash from orchestration_submit_plan"),
       decision: external_exports.enum(["approved", "rejected"]).describe("The user's decision, not yours"),
-      note: boundedText5(2e3).optional()
+      note: boundedText6(2e3).optional()
     },
     outputSchema: { ...stateSummaryShape, decision: external_exports.string(), planRevision: external_exports.number().int() },
     handler: async (args) => context.withWriteLock(async () => {
@@ -133481,15 +135051,15 @@ function registerOrchestrationRecordActionTool(server, context) {
     inputSchema: {
       orchestrationId: orchestrationIdArg,
       action: external_exports.enum(ACTION_CATEGORIES),
-      target: boundedText5(512).describe("What the action targeted: a path, a verifier, a step"),
+      target: boundedText6(512).describe("What the action targeted: a path, a verifier, a step"),
       result: external_exports.enum(OBSERVATION_RESULTS),
       planStepId: external_exports.string().max(64).optional(),
-      expectedEvidence: boundedText5(2e3).optional(),
+      expectedEvidence: boundedText6(2e3).optional(),
       changedFiles: external_exports.array(external_exports.object({ path: external_exports.string().max(1024), contentHash: external_exports.string().max(128).optional() })).max(500).optional().describe("Observed changes. Claims: the completion gate re-derives them from Git."),
       failure: external_exports.object({
         category: external_exports.enum(FAILURE_CATEGORIES),
-        message: boundedText5(2e3),
-        source: boundedText5(512).describe("Verifier name, tool, or step that failed"),
+        message: boundedText6(2e3),
+        source: boundedText6(512).describe("Verifier name, tool, or step that failed"),
         exitCode: external_exports.number().int().optional(),
         output: external_exports.string().max(16384).optional().describe("Normalized before fingerprinting")
       }).optional(),
@@ -133559,9 +135129,9 @@ function registerOrchestrationCheckpointTool(server, context) {
     },
     inputSchema: {
       orchestrationId: orchestrationIdArg,
-      nextAction: boundedText5(2e3).describe("The exact next safe action, in one line"),
-      observations: external_exports.array(boundedText5(2e3)).max(50).optional(),
-      latestVerifier: boundedText5(2e3).optional()
+      nextAction: boundedText6(2e3).describe("The exact next safe action, in one line"),
+      observations: external_exports.array(boundedText6(2e3)).max(50).optional(),
+      latestVerifier: boundedText6(2e3).optional()
     },
     outputSchema: {
       orchestrationId: external_exports.string(),
@@ -133609,7 +135179,7 @@ function registerOrchestrationFinalizeTool(server, context) {
     inputSchema: {
       orchestrationId: orchestrationIdArg,
       outcome: external_exports.enum(["completed", "aborted", "cancelled"]),
-      reason: boundedText5(2e3),
+      reason: boundedText6(2e3),
       evidenceStatus: external_exports.string().max(64).optional().describe("The evidenceStatus task_complete actually returned. Required for completion."),
       interactiveRunId: external_exports.string().max(64).optional()
     },
@@ -137241,7 +138811,7 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
     for (const evaluation of evaluations) {
       const line = `  evaluation ${evaluation.evaluationId} [${evaluation.layer}] ${evaluation.verdict}`;
       runtime.out(evaluation.verdict === "PASS" ? okLine(line) : blockedLine(line));
-      for (const reason2 of evaluation.reasons.slice(0, 5)) runtime.out(dim2(`      ${reason2}`));
+      for (const reason3 of evaluation.reasons.slice(0, 5)) runtime.out(dim2(`      ${reason3}`));
     }
   });
   orchestrate.command("quota").description("Show subscription quota telemetry and the derived scheduler forecast (read-only)").option("--json", "output a machine-readable JSON report").action((options) => {
@@ -137640,8 +139210,8 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
         `  mode ${adaptiveSummary.mode}; ${adaptiveSummary.profileCount} profile(s) from ${adaptiveSummary.observations} observation(s); ${adaptiveSummary.decisions} recent decision(s), ${adaptiveSummary.applied} applied, ${adaptiveSummary.disagreements} disagreement(s)`
       )
     );
-    for (const [reason2, count3] of Object.entries(adaptiveSummary.fallbackReasons)) {
-      runtime.out(dim2(`    fell back ${count3}x: ${reason2}`));
+    for (const [reason3, count3] of Object.entries(adaptiveSummary.fallbackReasons)) {
+      runtime.out(dim2(`    fell back ${count3}x: ${reason3}`));
     }
     runtime.out(dim2(`    detail: ${CLI_BIN} orchestrate adaptive ${jobId}`));
     runtime.out(reportTitle("Ready tasks"));
@@ -138168,8 +139738,8 @@ function registerOrchestrateJobCommands(orchestrate, runtime) {
     } else {
       const line = `  latest evaluation: ${latestEvaluation.status}`;
       runtime.out(latestEvaluation.status === "PASS" ? okLine(line) : failLine(line));
-      for (const reason2 of latestEvaluation.reasons.slice(0, 6)) {
-        runtime.out(dim2(`    ${reason2.slice(0, 200)}`));
+      for (const reason3 of latestEvaluation.reasons.slice(0, 6)) {
+        runtime.out(dim2(`    ${reason3.slice(0, 200)}`));
       }
     }
     if (failedChecks.length > 0) {
@@ -139187,7 +140757,7 @@ function registerMissionCommands(program2, runtime) {
     );
     if (overview.coverage !== void 0 && !overview.coverage.contractReady) {
       runtime.out(sectionTitle("Not contract-ready"));
-      for (const reason2 of overview.coverage.reasons) runtime.out(warnLine(reason2));
+      for (const reason3 of overview.coverage.reasons) runtime.out(warnLine(reason3));
     }
     if (overview.openQuestions.length > 0) {
       runtime.out(sectionTitle("Open questions"));
@@ -139232,7 +140802,7 @@ function registerMissionCommands(program2, runtime) {
     }
     runtime.out(reportTitle("Discovery coverage"));
     runtime.out(coverage.contractReady ? okLine("CONTRACT_READY gate: satisfied") : blockedLine("CONTRACT_READY gate: not satisfied"));
-    for (const reason2 of coverage.reasons) runtime.out(dim2(`  ${reason2}`));
+    for (const reason3 of coverage.reasons) runtime.out(dim2(`  ${reason3}`));
     runtime.out(sectionTitle("Topics"));
     for (const topic of coverage.topics) {
       if (topic.status === "unknown" && !topic.required) continue;
@@ -140013,7 +141583,7 @@ function registerWorkspaceCommands(program2, runtime) {
     runtime.out(reportTitle(`Current system \u2014 ${snapshot2.mode}`));
     if (freshness.status === "STALE") {
       runtime.out(warnLine("STALE: the repositories moved since this snapshot was taken."));
-      for (const reason2 of freshness.reasons.slice(0, 5)) runtime.out(dim2(`  ${reason2}`));
+      for (const reason3 of freshness.reasons.slice(0, 5)) runtime.out(dim2(`  ${reason3}`));
       runtime.out(dim2("  Re-run `specbridge workspace bootstrap` before relying on it."));
     } else {
       runtime.out(okLine(`fresh as of ${snapshot2.createdAt}`));

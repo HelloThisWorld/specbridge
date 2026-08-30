@@ -162,6 +162,12 @@ the intent in the evening, run one command, read the report in the morning.
 - [Secondary Work Readiness](orchestration/secondary-work-readiness.md)
   — deterministic Phase 6 per-WorkUnit admission, blockers, freshness, and
   telemetry without automatic routing.
+- [Adaptive Secondary routing](orchestration/adaptive-secondary-routing.md)
+  — Phase 7 OFF/AUTO/PREFER routing, bounded repair, preserved candidate
+  continuation, Strong fallback, resume state, and token-avoidance telemetry.
+- [Subscription cooldown continuation](orchestration/subscription-cooldown-continuation.md)
+  — Phase 8 resource-scoped Strong waits, mixed READY-set continuation,
+  restart/recovery, no-redo guarantees, and fake five-hour qualification.
 - [Context projection](orchestration/context-projection.md) — share truth,
   not context: what each isolated worker sees, hashed and staleness-checked.
 - [Sub-agent isolation](orchestration/subagent-isolation.md) — worker

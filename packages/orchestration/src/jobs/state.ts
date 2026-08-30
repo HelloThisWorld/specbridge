@@ -492,6 +492,8 @@ export const jobCheckpointSchema = z
     counters: jobCountersSchema,
     budgets: jobBudgetsSchema,
     blocker: orchestrationBlockerSchema.optional(),
+    /** Durable resource/provider wait copied for long-sleep restart audit. */
+    operationalWait: operationalWaitSchema.optional(),
     /** The exact next legal action, in one line. */
     nextAction: text,
   })

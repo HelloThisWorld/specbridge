@@ -1,5 +1,6 @@
 import path from 'node:path';
 import type { AgentConfig, WorkspaceInfo } from '@specbridge/core';
+import { CONTEXT_EXPANSION_LEVELS } from '@specbridge/context';
 import type {
   MissionAdr,
   MissionConstitution,
@@ -26,6 +27,7 @@ import {
 } from '../research/index.js';
 import { OrchestrationError } from '../errors.js';
 import type { FailureCategory } from '../vocabulary.js';
+import type { SchedulerMode } from '../scheduling/vocabulary.js';
 import { requiresHuman } from '../jobs/authority.js';
 import { fence } from '../agents/prompts.js';
 import type { JobDecisionKind } from '../jobs/vocabulary.js';
@@ -64,19 +66,25 @@ import {
 } from './state.js';
 import {
   readAggregationReport,
+  readBuilderRoutingState,
+  readBuilderRoutingStates,
   readCandidate,
   readCandidatePatch,
   readEvaluations,
   readLatestWorkGraph,
+  readObjectiveCooldownState,
   readProjection,
   readSecondaryBuilderAttempt,
   readWorkReadinessRecord,
   readWorkReadinessRecords,
   readWorkerRecords,
   storeAggregationReport,
+  storeBuilderRoutingState,
+  storeBuilderRoutingTelemetry,
   storeCandidate,
   storeConflict,
   storeEvaluation,
+  storeObjectiveCooldownState,
   storeProjection,
   storeSecondaryBuilderAttempt,
   storeWorkReadinessRecord,
@@ -124,6 +132,37 @@ import {
   assessAndDecideWorkReadiness,
   summarizeWorkReadiness,
 } from './work-readiness.js';
+import type {
+  BuilderAttemptKind,
+  BuilderRoutingDecision,
+  BuilderRoutingState,
+  SecondaryAvailability,
+} from './builder-routing.js';
+import type {
+  ObjectiveCooldownState,
+  StrongResourceSnapshot,
+} from './resource-cooldown.js';
+import {
+  clearRecoveredStrongWaits,
+  isStrongQuotaFailure,
+  isStrongResourceCooling,
+  markUnitWaitingForStrong,
+  noteCandidateReuseAfterRestart,
+  noteStrongAttemptAvoided,
+  observeObjectiveCooldown,
+  quotaFailureResource,
+  strongResourceFromScheduler,
+} from './resource-cooldown.js';
+import {
+  appendBuilderRoutingAttempt,
+  buildBuilderRoutingWorkIdentity,
+  builderAttemptKindFor,
+  builderProblemFingerprint,
+  decideBuilderRouting,
+  finalizeBuilderRoutingAttempt,
+  recordBuilderRoutingDecision,
+  summarizeBuilderRouting,
+} from './builder-routing.js';
 
 /**
  * The objective driver: one approved objective, end to end.
@@ -166,6 +205,13 @@ export interface ObjectiveDriveInput {
   researchBridge?: ResearchBridge | undefined;
   /** Explicit-only Phase 4 selection. Absence preserves the large builder. */
   secondaryBuilder?: SecondaryObjectiveBuilderSelection | undefined;
+  /** Current deterministic quota/economic mode for Phase 7 AUTO routing. */
+  schedulerMode?: SchedulerMode | undefined;
+  /**
+   * Phase 8 Strong resource fact. When omitted, it is derived from
+   * `schedulerMode` for backward-compatible callers.
+   */
+  strongResource?: StrongResourceSnapshot | undefined;
   onProgress?: ((message: string) => void) | undefined;
   /**
    * Budget + audit hook into the job service: counts one worker dispatch
@@ -201,6 +247,21 @@ export interface ObjectiveDriveResult {
    */
   usage?:
     | { inputTokens: number | null; outputTokens: number | null; costUsd: number | null }
+    | undefined;
+  /**
+   * No permitted candidate remains runnable solely because Strong is
+   * cooling down. The job driver folds this into WAITING_RESOURCE without
+   * consuming an implementation attempt.
+   */
+  resourceWait?:
+    | {
+        kind: 'SUBSCRIPTION_QUOTA_RESET' | 'PROVIDER_RATE_LIMIT' | 'PROVIDER_COOLDOWN';
+        resourceClass: 'STRONG_SUBSCRIPTION';
+        detail: string;
+        wakeAt?: string | undefined;
+        waitingWorkUnitIds: string[];
+        usefulWorkDuringCooldown: number;
+      }
     | undefined;
 }
 
@@ -454,6 +515,10 @@ interface UnitAttemptContext {
   acceptance: string[];
   /** The objective's contract set: the projection fallback for units that declared none. */
   objectiveContractIds: string[];
+  /** One immutable resource observation for this drive/attempt boundary. */
+  strongResource: StrongResourceSnapshot;
+  /** Mutable handle to the durable aggregate; every mutation is persisted. */
+  cooldownState?: ObjectiveCooldownState | undefined;
 }
 
 interface PreparedAttempt {
@@ -469,6 +534,9 @@ interface PreparedAttempt {
   dependencyPatches: { workUnitId: string; patch: string }[];
   dependencyContext: VerifiedDependencyContextInput[];
   missingDependencyIds: string[];
+  /** The previous failed candidate, replayed before repair/fallback. */
+  priorCandidate?: CandidateArtifact | undefined;
+  priorCandidatePatch?: string | undefined;
 }
 
 interface ExecutedAttempt {
@@ -481,6 +549,13 @@ interface ExecutedAttempt {
   secondaryAttempt?: SecondaryBuilderAttempt | undefined;
   secondaryFailure?: { kind: SecondaryBuilderFailureKind; problem: string } | undefined;
   readinessDecision?: SecondaryEligibilityDecision | undefined;
+  routingDecision?: BuilderRoutingDecision | undefined;
+  routingState?: BuilderRoutingState | undefined;
+  routingAttemptKind?: BuilderAttemptKind | undefined;
+  /** Strong was selected but not runnable; no implementation attempt exists. */
+  resourceWait?: StrongResourceSnapshot | undefined;
+  /** The provider established cooldown by refusing this dispatch. */
+  resourceRefusalObserved?: boolean | undefined;
 }
 
 async function executeResearchInvestigation(
@@ -625,13 +700,38 @@ async function executeResearchInvestigation(
   };
 }
 
+interface ResolvedSecondarySelection {
+  selection: SecondaryObjectiveBuilderSelection;
+  explicit: boolean;
+}
+
+function secondarySelectionFor(
+  input: ObjectiveDriveInput,
+  unit: Pick<WorkUnit, 'workUnitId' | 'kind'>,
+): ResolvedSecondarySelection | undefined {
+  if (unit.kind !== 'build') return undefined;
+  const explicit = input.secondaryBuilder;
+  if (
+    explicit !== undefined
+    && (explicit.workUnitIds === undefined || explicit.workUnitIds.includes(unit.workUnitId))
+  ) {
+    return { selection: explicit, explicit: true };
+  }
+  const policy = input.policy.objectives.secondaryBuilder;
+  if (policy.strategy === 'OFF') return undefined;
+  return {
+    selection: {
+      selectionReason: `Phase 7 ${policy.strategy} routing selected eligible implementation work.`,
+    },
+    explicit: false,
+  };
+}
+
 function secondarySelected(
   input: ObjectiveDriveInput,
   unit: Pick<WorkUnit, 'workUnitId' | 'kind'>,
 ): boolean {
-  const selection = input.secondaryBuilder;
-  if (selection === undefined || unit.kind !== 'build') return false;
-  return selection.workUnitIds === undefined || selection.workUnitIds.includes(unit.workUnitId);
+  return secondarySelectionFor(input, unit) !== undefined;
 }
 
 function secondaryFailureCategory(kind: SecondaryBuilderFailureKind): FailureCategory {
@@ -682,7 +782,7 @@ function recordSecondaryReadiness(
   prepared: PreparedAttempt,
   packet: SecondaryBuilderPacket | undefined,
   compilation: BuilderPacketCompilationResult | undefined,
-): SecondaryEligibilityDecision {
+): ReturnType<typeof assessAndDecideWorkReadiness> {
   const { input } = context;
   const prior = readWorkReadinessRecord(
     input.workspace,
@@ -742,24 +842,94 @@ function recordSecondaryReadiness(
     reused: result.reused,
     routingChanged: false,
   });
-  return result.decision;
+  return result;
 }
 
 function builderFailureResult(problem: string): Awaited<ReturnType<typeof runLargeObjectiveRole<'BUILDER'>>> {
   return { ok: false, kind: 'worker-unavailable', problem };
 }
 
-async function executeSelectedSecondaryBuilder(
+function resourceDeferredAttempt(
+  prepared: PreparedAttempt,
+  resource: StrongResourceSnapshot,
+  evidence: Pick<
+    ExecutedAttempt,
+    'readinessDecision' | 'routingDecision' | 'routingState' | 'routingAttemptKind'
+  > = {},
+  resourceRefusalObserved = false,
+): ExecutedAttempt {
+  return {
+    prepared,
+    result: builderFailureResult(
+      `Strong execution was not dispatched: ${resource.detail}`.slice(0, 2_000),
+    ),
+    countedAsWorker: false,
+    resourceWait: resource,
+    ...(resourceRefusalObserved ? { resourceRefusalObserved: true } : {}),
+    ...evidence,
+  };
+}
+
+interface SecondaryAdmission {
+  resolved: ResolvedSecondarySelection;
+  packet?: SecondaryBuilderPacket | undefined;
+  compilation?: BuilderPacketCompilationResult | undefined;
+  repositoryRoots: Readonly<Record<string, string>>;
+  readiness: ReturnType<typeof assessAndDecideWorkReadiness>;
+  failure?: { kind: SecondaryBuilderFailureKind; problem: string } | undefined;
+}
+
+function priorAttemptEvidence(prepared: PreparedAttempt): string[] {
+  const evidence: string[] = [];
+  if (prepared.unit.latestFailure !== undefined) {
+    evidence.push(
+      `${prepared.unit.latestFailure.category}: ${prepared.unit.latestFailure.message}`.slice(0, 2_000),
+    );
+  }
+  if (prepared.priorCandidate !== undefined) {
+    evidence.push(
+      `Continue the existing candidate; changed files: ${prepared.priorCandidate.changedFiles
+        .map((entry) => entry.path)
+        .slice(0, 30)
+        .join(', ') || '(none)'}. Do not redesign unrelated code.`.slice(0, 2_000),
+    );
+    evidence.push(`Prior candidate summary: ${prepared.priorCandidate.claims.summary}`.slice(0, 2_000));
+  }
+  if (prepared.priorCandidatePatch !== undefined && prepared.priorCandidatePatch.trim().length > 0) {
+    evidence.push(`Prior candidate diff excerpt:\n${prepared.priorCandidatePatch.slice(0, 1_900)}`);
+  }
+  return evidence.slice(0, 20);
+}
+
+async function prepareSecondaryAdmission(
   context: UnitAttemptContext,
   prepared: PreparedAttempt,
   worktree: NonNullable<PreparedAttempt['worktree']>,
-): Promise<ExecutedAttempt> {
+  resolved: ResolvedSecondarySelection,
+): Promise<SecondaryAdmission> {
   const { input } = context;
-  const selection = input.secondaryBuilder;
-  if (selection === undefined) {
-    return { prepared, result: builderFailureResult('secondary builder selection disappeared') };
-  }
-
+  const selection = resolved.selection;
+  const priorFailureEvidence = priorAttemptEvidence(prepared);
+  const previousSecondaryAttempt = prepared.attempt > 1
+    ? readSecondaryBuilderAttempt(
+        input.workspace,
+        input.jobId,
+        input.node.nodeId,
+        prepared.unitId,
+        prepared.attempt - 1,
+      )
+    : undefined;
+  // Phase 5 starts direct-model packets at ADJACENT_DEPENDENCIES. A model's
+  // explicit NEEDS_MORE_CONTEXT result earns exactly one deterministic
+  // widening step for the bounded repair; subsequent retries cannot walk the
+  // expansion ladder or multiply the implementation-repair budget.
+  const repairExpansionLevel =
+    previousSecondaryAttempt?.failure?.kind === 'INSUFFICIENT_CONTEXT'
+    && previousSecondaryAttempt.packet.expansion.level === 'ADJACENT_DEPENDENCIES'
+      ? CONTEXT_EXPANSION_LEVELS[
+          CONTEXT_EXPANSION_LEVELS.indexOf(previousSecondaryAttempt.packet.expansion.level) + 1
+        ]
+      : undefined;
   let packet: SecondaryBuilderPacket | undefined;
   let compilation: BuilderPacketCompilationResult | undefined;
   let repositoryRoots: Readonly<Record<string, string>> = { primary: worktree.dir };
@@ -773,18 +943,21 @@ async function executeSelectedSecondaryBuilder(
         projection: prepared.projection,
         sourceContext,
         verificationHints: input.config.verification.commands.map((command) => command.name),
+        priorFailureEvidence,
       });
     } catch (cause) {
       const problem = `source context could not be prepared: ${cause instanceof Error ? cause.message : String(cause)}`;
+      const readiness = recordSecondaryReadiness(context, prepared, undefined, undefined);
       return {
-        prepared,
-        result: builderFailureResult(problem),
-        secondaryFailure: { kind: 'STALE_SOURCE_CONTEXT', problem },
+        resolved,
+        repositoryRoots,
+        readiness,
+        failure: { kind: 'STALE_SOURCE_CONTEXT', problem },
       };
     }
   } else {
     const compiler = selection.contextCompiler ?? new SecondaryBuilderContextCompiler();
-    let compiled;
+    let compiled: BuilderPacketCompilationResult;
     try {
       compiled = await compiler.compile({
         workspace: input.workspace,
@@ -798,20 +971,20 @@ async function executeSelectedSecondaryBuilder(
         baselineRef: prepared.baselineCommit,
         dependencyContext: prepared.dependencyContext,
         missingDependencyIds: prepared.missingDependencyIds,
-        priorFailureEvidence:
-          prepared.unit.latestFailure === undefined
-            ? []
-            : [`${prepared.unit.latestFailure.category}: ${prepared.unit.latestFailure.message}`],
+        priorFailureEvidence,
+        ...(repairExpansionLevel !== undefined ? { expansionLevel: repairExpansionLevel } : {}),
         verificationHints: input.config.verification.commands.map((command) => command.name),
         maximumInputCharacters: secondaryBuilderInputCeiling(input.config),
         createdAt: nowIso(input),
       });
     } catch (cause) {
       const problem = `builder packet compilation failed: ${cause instanceof Error ? cause.message : String(cause)}`;
+      const readiness = recordSecondaryReadiness(context, prepared, undefined, undefined);
       return {
-        prepared,
-        result: builderFailureResult(problem),
-        secondaryFailure: { kind: 'INSUFFICIENT_CONTEXT', problem },
+        resolved,
+        repositoryRoots,
+        readiness,
+        failure: { kind: 'INSUFFICIENT_CONTEXT', problem },
       };
     }
     compilation = compiled;
@@ -825,23 +998,283 @@ async function executeSelectedSecondaryBuilder(
       ...(compiled.ok ? {} : { failure: compiled.failure.kind, reasons: compiled.failure.reasons }),
     });
     if (!compiled.ok) {
-      const readinessDecision = recordSecondaryReadiness(context, prepared, undefined, compiled);
-      const problem = `${compiled.failure.kind}: ${compiled.failure.reasons.join('; ')}`;
+      const readiness = recordSecondaryReadiness(context, prepared, undefined, compiled);
       return {
-        prepared,
-        result: builderFailureResult(problem),
-        secondaryFailure: { kind: compiled.failure.kind, problem },
-        readinessDecision,
+        resolved,
+        compilation: compiled,
+        repositoryRoots,
+        readiness,
+        failure: {
+          kind: compiled.failure.kind,
+          problem: `${compiled.failure.kind}: ${compiled.failure.reasons.join('; ')}`,
+        },
       };
     }
     packet = compiled.packet;
     repositoryRoots = compiled.repositoryRoots;
   }
+  const readiness = recordSecondaryReadiness(context, prepared, packet, compilation);
+  return {
+    resolved,
+    packet,
+    ...(compilation !== undefined ? { compilation } : {}),
+    repositoryRoots,
+    readiness,
+  };
+}
 
-  if (packet === undefined) {
-    return { prepared, result: builderFailureResult('secondary builder packet was not produced') };
+async function probeSecondaryAvailability(
+  input: ObjectiveDriveInput,
+  resolved: ResolvedSecondarySelection,
+): Promise<SecondaryAvailability> {
+  if (resolved.selection.inference !== undefined) {
+    return {
+      status: 'AVAILABLE',
+      detail: 'The explicitly supplied provider-neutral Secondary inference is available.',
+    };
   }
-  const readinessDecision = recordSecondaryReadiness(context, prepared, packet, compilation);
+  if (input.localManager === undefined || !input.config.localInference.enabled) {
+    return {
+      status: 'UNAVAILABLE',
+      detail: 'Managed local inference is disabled or no local manager is available.',
+    };
+  }
+  const started = await input.localManager.ensureStarted(input.signal);
+  if (started.ok) {
+    return {
+      status: 'AVAILABLE',
+      detail: 'The managed loopback Secondary endpoint passed its bounded startup/health check.',
+    };
+  }
+  const status: SecondaryAvailability['status'] =
+    started.kind === 'invalid-config'
+    || started.kind === 'executable-missing'
+    || started.kind === 'model-missing'
+      ? 'MISCONFIGURED'
+      : started.kind === 'startup-timeout'
+        ? 'TIMEOUT'
+        : started.kind === 'spawn-failed' || started.kind === 'process-exited'
+          ? 'START_FAILED'
+          : started.kind === 'restart-budget-exhausted'
+            ? 'UNHEALTHY'
+            : 'UNAVAILABLE';
+  return { status, detail: started.problem.slice(0, 2_000) };
+}
+
+function persistRoutingDecision(
+  context: UnitAttemptContext,
+  prepared: PreparedAttempt,
+  admission: SecondaryAdmission,
+  availability: SecondaryAvailability,
+  forceStrongReason?: string | undefined,
+): { decision: BuilderRoutingDecision; state: BuilderRoutingState; kind?: BuilderAttemptKind | undefined } {
+  const { input } = context;
+  const workIdentity = buildBuilderRoutingWorkIdentity({
+    assessment: admission.readiness.assessment,
+    ...(admission.packet !== undefined ? { packet: admission.packet } : {}),
+  });
+  const prior = readBuilderRoutingState(
+    input.workspace,
+    input.jobId,
+    input.node.nodeId,
+    prepared.unitId,
+    workIdentity,
+  );
+  const decision = decideBuilderRouting({
+    decision: admission.readiness.decision,
+    workIdentity,
+    strategy: input.policy.objectives.secondaryBuilder.strategy,
+    availability,
+    ...(input.schedulerMode !== undefined ? { schedulerMode: input.schedulerMode } : {}),
+    explicitSecondarySelection: admission.resolved.explicit,
+    ...(forceStrongReason !== undefined ? { forceStrongReason } : {}),
+    ...(prior !== undefined ? { priorState: prior } : {}),
+    decidedAt: nowIso(input),
+  });
+  let state = recordBuilderRoutingDecision({
+    ...(prior !== undefined ? { prior } : {}),
+    decision,
+    maxRepairAttempts: input.policy.objectives.secondaryBuilder.maxRepairAttempts,
+    at: decision.decidedAt,
+  });
+  state = storeBuilderRoutingState(input.workspace, input.jobId, input.node.nodeId, state);
+  storeBuilderRoutingTelemetry(
+    input.workspace,
+    input.jobId,
+    input.node.nodeId,
+    summarizeBuilderRouting(
+      readBuilderRoutingStates(input.workspace, input.jobId, input.node.nodeId),
+      decision.decidedAt,
+    ),
+  );
+  input.recordEvent('builder_routing_decided', {
+    nodeId: input.node.nodeId,
+    workUnitId: prepared.unitId,
+    attempt: prepared.attempt,
+    strategy: decision.strategy,
+    eligibility: decision.eligibility,
+    selectedBackend: decision.selectedBackend,
+    secondaryAvailability: decision.secondaryAvailability,
+    quotaState: decision.quotaState ?? null,
+    reasons: decision.reasons.map((entry) => entry.code),
+    contentHash: decision.contentHash,
+  });
+  return {
+    decision,
+    state,
+    ...(
+      decision.selectedBackend === 'SECONDARY' || decision.selectedBackend === 'STRONG'
+        ? { kind: builderAttemptKindFor(decision, state) }
+        : {}
+    ),
+  };
+}
+
+function persistRoutingState(
+  input: ObjectiveDriveInput,
+  state: BuilderRoutingState,
+): BuilderRoutingState {
+  const stored = storeBuilderRoutingState(input.workspace, input.jobId, input.node.nodeId, state);
+  storeBuilderRoutingTelemetry(
+    input.workspace,
+    input.jobId,
+    input.node.nodeId,
+    summarizeBuilderRouting(
+      readBuilderRoutingStates(input.workspace, input.jobId, input.node.nodeId),
+      stored.updatedAt,
+    ),
+  );
+  return stored;
+}
+
+function routingOutcomeForFailure(executed: ExecutedAttempt):
+  | 'FAILED_IMPLEMENTATION'
+  | 'FAILED_RESOURCE'
+  | 'FAILED_OUTPUT'
+  | 'CANCELLED' {
+  const secondary = executed.secondaryFailure?.kind;
+  if (secondary === 'CANCELLED' || (!executed.result.ok && executed.result.kind === 'cancelled')) {
+    return 'CANCELLED';
+  }
+  if (secondary === 'INFERENCE_UNAVAILABLE' || secondary === 'TIMEOUT') return 'FAILED_RESOURCE';
+  if (secondary === 'INVALID_STRUCTURED_OUTPUT') return 'FAILED_OUTPUT';
+  // The generic Objective worker result has only broad transport-shaped
+  // failure kinds. Once the governed Secondary path supplied its typed
+  // failure, that type is authoritative: NEEDS_MORE_CONTEXT, verification,
+  // edit validation, and application failures are implementation/context
+  // outcomes, not provider outages merely because they are wrapped as an
+  // unsuccessful worker result.
+  if (secondary !== undefined) return 'FAILED_IMPLEMENTATION';
+  if (!executed.result.ok && executed.result.kind === 'invalid-output') return 'FAILED_OUTPUT';
+  if (!executed.result.ok && executed.result.kind === 'worker-unavailable') return 'FAILED_RESOURCE';
+  return 'FAILED_IMPLEMENTATION';
+}
+
+function verificationSummaryOf(executed: ExecutedAttempt): string[] {
+  return (executed.verification?.commands ?? []).map((command) =>
+    `${command.name}: ${command.status}${command.exitCode !== undefined ? ` (${command.exitCode ?? 'no exit'})` : ''}`.slice(0, 2_000));
+}
+
+function recordRoutingAttempt(
+  context: UnitAttemptContext,
+  executed: ExecutedAttempt,
+  outcome: 'CANDIDATE_READY' | 'FAILED_VERIFICATION' | 'FAILED_IMPLEMENTATION' | 'FAILED_RESOURCE' | 'FAILED_OUTPUT' | 'CANCELLED',
+  candidate?: CandidateArtifact | undefined,
+): BuilderRoutingState | undefined {
+  if (
+    executed.routingState === undefined
+    || executed.routingDecision === undefined
+    || executed.routingAttemptKind === undefined
+  ) return undefined;
+  const { input } = context;
+  const patch = executed.collected?.patch ?? preparedPatch(executed.prepared);
+  const verificationSummary = verificationSummaryOf(executed);
+  const failureSummary = !executed.result.ok
+    ? executed.result.problem
+    : executed.secondaryFailure?.problem
+      ?? (outcome === 'FAILED_VERIFICATION' ? 'Trusted verification rejected the candidate.' : undefined);
+  const fingerprint = outcome === 'CANDIDATE_READY'
+    ? undefined
+    : builderProblemFingerprint({
+        failureKind: executed.secondaryFailure?.kind ?? outcome,
+        verificationSummary,
+        ...(patch !== undefined ? { candidatePatch: patch } : {}),
+      });
+  const completedAt = nowIso(input);
+  const next = appendBuilderRoutingAttempt(executed.routingState, {
+    attemptId: `${executed.prepared.unitId}-a${String(executed.prepared.attempt).padStart(2, '0')}-${executed.routingAttemptKind.toLowerCase()}`,
+    workUnitAttempt: executed.prepared.attempt,
+    kind: executed.routingAttemptKind,
+    outcome,
+    ...(candidate !== undefined ? { candidateRef: `candidates/${candidate.candidateId}.json` } : {}),
+    ...(candidate?.patchRef !== undefined ? { patchRef: candidate.patchRef } : {}),
+    changedFiles: (candidate?.changedFiles ?? executed.collected?.changedFiles ?? []).map((entry) => entry.path),
+    ...(executed.secondaryAttempt?.packetHash !== undefined
+      ? { packetHash: executed.secondaryAttempt.packetHash }
+      : {}),
+    verificationSummary,
+    ...(failureSummary !== undefined ? { failureSummary: failureSummary.slice(0, 2_000) } : {}),
+    ...(fingerprint?.problemFingerprint !== undefined
+      ? { problemFingerprint: fingerprint.problemFingerprint }
+      : {}),
+    ...(fingerprint?.candidatePatchHash !== undefined
+      ? { candidatePatchHash: fingerprint.candidatePatchHash }
+      : {}),
+    ...(executed.secondaryAttempt?.telemetry?.durationMs !== undefined
+      ? { durationMs: executed.secondaryAttempt.telemetry.durationMs }
+      : {}),
+    ...(executed.secondaryAttempt?.telemetry?.inputTokens !== undefined
+      ? { inputTokens: executed.secondaryAttempt.telemetry.inputTokens }
+      : {}),
+    ...(executed.secondaryAttempt?.telemetry?.outputTokens !== undefined
+      ? { outputTokens: executed.secondaryAttempt.telemetry.outputTokens }
+      : {}),
+    startedAt: executed.routingDecision.decidedAt,
+    completedAt,
+  });
+  const stored = persistRoutingState(input, next);
+  executed.routingState = stored;
+  input.recordEvent('builder_routing_attempt_completed', {
+    nodeId: input.node.nodeId,
+    workUnitId: executed.prepared.unitId,
+    workUnitAttempt: executed.prepared.attempt,
+    attemptKind: executed.routingAttemptKind,
+    outcome,
+    repairAttemptsUsed: stored.repairAttemptsUsed,
+    maxRepairAttempts: stored.maxRepairAttempts,
+    escalationStatus: stored.escalationStatus,
+    noProgress: stored.attempts.at(-1)?.noProgress ?? false,
+  });
+  return stored;
+}
+
+function preparedPatch(prepared: PreparedAttempt): string | undefined {
+  return prepared.priorCandidatePatch;
+}
+
+async function executeSelectedSecondaryBuilder(
+  context: UnitAttemptContext,
+  prepared: PreparedAttempt,
+  worktree: NonNullable<PreparedAttempt['worktree']>,
+  admission: SecondaryAdmission,
+): Promise<ExecutedAttempt> {
+  const { input } = context;
+  const selection = admission.resolved.selection;
+  const packet = admission.packet;
+  const repositoryRoots = admission.repositoryRoots;
+  const readinessDecision = admission.readiness.decision;
+  if (packet === undefined) {
+    const failure = admission.failure ?? {
+      kind: 'INSUFFICIENT_CONTEXT' as const,
+      problem: 'secondary builder packet was not produced',
+    };
+    return {
+      prepared,
+      result: builderFailureResult(failure.problem),
+      secondaryFailure: failure,
+      readinessDecision,
+    };
+  }
   if (readinessDecision.status !== 'ELIGIBLE') {
     const problem = [
       `Secondary execution is not eligible: ${readinessDecision.status}`,
@@ -1130,6 +1563,35 @@ async function prepareUnitAttempt(
     }
   }
 
+  // Phase 7 continuation evidence. A rejected Secondary candidate is not
+  // discarded: the next bounded repair/fallback attempt replays its patch
+  // and receives its structured claims. This is deliberately separate from
+  // dependency evidence because it belongs to this WorkUnit's own chain.
+  const priorCandidate = unit.attempt > 0
+    ? readCandidate(
+        input.workspace,
+        input.jobId,
+        input.node.nodeId,
+        unit.workUnitId,
+        unit.attempt,
+      )
+    : undefined;
+  const priorCandidatePatch = unit.attempt > 0
+    ? readCandidatePatch(
+        input.workspace,
+        input.jobId,
+        input.node.nodeId,
+        unit.workUnitId,
+        unit.attempt,
+      )
+    : undefined;
+  if (priorCandidate !== undefined) {
+    workEvidence.push(
+      `Prior ${priorCandidate.builderProvenance?.backend ?? 'builder'} candidate for this WorkUnit: `
+      + priorCandidate.claims.summary.slice(0, 700),
+    );
+  }
+
   const projectedUnit: WorkUnit =
     unit.relevantContractIds.length > 0
       ? unit
@@ -1216,6 +1678,8 @@ async function prepareUnitAttempt(
       dependencyPatches,
       dependencyContext,
       missingDependencyIds,
+      ...(priorCandidate !== undefined ? { priorCandidate } : {}),
+      ...(priorCandidatePatch !== undefined ? { priorCandidatePatch } : {}),
     },
   };
 }
@@ -1247,10 +1711,7 @@ async function executeBuilder(
     });
   }
   const worktree = prepared.worktree;
-  const useSecondary = secondarySelected(input, {
-    workUnitId: prepared.unitId,
-    kind: prepared.kind,
-  });
+  let forceStrongReason: string | undefined;
   // A dependency patch that no longer applies is an ATTEMPT failure, exactly
   // as applyDependencyPatches's own contract says — never a driver death.
   //
@@ -1264,20 +1725,16 @@ async function executeBuilder(
   try {
     await applyDependencyPatches(worktree, prepared.dependencyPatches);
   } catch (cause) {
-    if (useSecondary) {
-      const problem = `dependency candidate application failed before secondary inference: ${cause instanceof Error ? cause.message : String(cause)}`;
-      return {
-        prepared,
-        result: builderFailureResult(problem),
-        secondaryFailure: { kind: 'APPLY_FAILURE', problem },
-      };
-    }
     // The same answer integration already has: one bounded reconciliation by
     // a worker, applying the INTENT of the conflicting sibling patches to
     // this worktree. A conflict is deterministic — retrying the raw apply
     // can only fail identically, which is how three attempts burned on one
     // conflict before this branch existed.
     const message = cause instanceof Error ? cause.message : String(cause);
+    forceStrongReason = `Dependency candidate replay required Strong reconciliation: ${message}`;
+    if (isStrongResourceCooling(context.strongResource)) {
+      return resourceDeferredAttempt(prepared, context.strongResource);
+    }
     input.onProgress?.(
       `dependency patches conflict in ${prepared.unitId}'s worktree; attempting one bounded reconciliation`,
     );
@@ -1328,10 +1785,115 @@ async function executeBuilder(
     }
     if (reconcile.probe !== undefined) input.probeCache.probe = reconcile.probe;
   }
-  if (useSecondary) {
-    return executeSelectedSecondaryBuilder(context, prepared, worktree);
+
+  if (prepared.priorCandidatePatch !== undefined && prepared.priorCandidatePatch.trim().length > 0) {
+    try {
+      await applyDependencyPatches(worktree, [{
+        workUnitId: `${prepared.unitId}-prior-candidate`,
+        patch: prepared.priorCandidatePatch,
+      }]);
+      input.recordEvent('builder_candidate_replayed', {
+        nodeId: input.node.nodeId,
+        workUnitId: prepared.unitId,
+        attempt: prepared.attempt,
+        priorAttempt: prepared.priorCandidate?.attempt ?? prepared.attempt - 1,
+      });
+    } catch (cause) {
+      forceStrongReason =
+        `The prior Secondary candidate could not be replayed cleanly on the current baseline: `
+        + `${cause instanceof Error ? cause.message : String(cause)}`;
+    }
   }
-  const packet = buildBuilderPacket({ projection: prepared.projection });
+
+  const explicitOrAutomatic = secondarySelectionFor(input, {
+    workUnitId: prepared.unitId,
+    kind: prepared.kind,
+  });
+  // OFF with no explicit qualification selection is the exact legacy
+  // Strong-only path: no packet compilation, readiness gate, provider probe,
+  // or routing record is introduced. This keeps existing projects from
+  // changing behavior merely by upgrading. AUTO/PREFER and explicit Phase 4
+  // selection enter the new Phase 5 → 6 → 7 admission/routing path below.
+  let admission: SecondaryAdmission | undefined;
+  let routed: ReturnType<typeof persistRoutingDecision> | undefined;
+  if (explicitOrAutomatic !== undefined) {
+    admission = await prepareSecondaryAdmission(context, prepared, worktree, explicitOrAutomatic);
+    const shouldProbe =
+      admission.readiness.decision.status === 'ELIGIBLE'
+      && forceStrongReason === undefined;
+    const availability: SecondaryAvailability = shouldProbe
+      ? await probeSecondaryAvailability(input, explicitOrAutomatic)
+      : {
+          status: 'UNAVAILABLE',
+          detail:
+            admission.readiness.decision.status !== 'ELIGIBLE'
+              ? `Secondary was not probed because readiness is ${admission.readiness.decision.status}.`
+              : 'Secondary was not probed because Strong reconciliation is already required.',
+        };
+    routed = persistRoutingDecision(
+      context,
+      prepared,
+      admission,
+      availability,
+      forceStrongReason,
+    );
+
+    if (routed.decision.selectedBackend === 'SECONDARY') {
+      const executed = await executeSelectedSecondaryBuilder(context, prepared, worktree, admission);
+      return {
+        ...executed,
+        routingDecision: routed.decision,
+        routingState: routed.state,
+        ...(routed.kind !== undefined ? { routingAttemptKind: routed.kind } : {}),
+      };
+    }
+    if (routed.decision.selectedBackend !== 'STRONG') {
+      const problem = [
+        `Builder routing selected ${routed.decision.selectedBackend} for ${routed.decision.eligibility}.`,
+        ...routed.decision.reasons.map((entry) => `${entry.code}: ${entry.message}`),
+      ].join(' ').slice(0, 2_000);
+      return {
+        prepared,
+        result: builderFailureResult(problem),
+        countedAsWorker: false,
+        readinessDecision: admission.readiness.decision,
+        routingDecision: routed.decision,
+        routingState: routed.state,
+      };
+    }
+  }
+
+  const attemptKind = routed?.kind ?? 'STRONG';
+  if (isStrongResourceCooling(context.strongResource)) {
+    return resourceDeferredAttempt(prepared, context.strongResource, {
+      ...(admission !== undefined ? { readinessDecision: admission.readiness.decision } : {}),
+      ...(routed !== undefined
+        ? {
+            routingDecision: routed.decision,
+            routingState: routed.state,
+            routingAttemptKind: attemptKind,
+          }
+        : {}),
+    });
+  }
+  const normalPacket = buildBuilderPacket({ projection: prepared.projection });
+  const priorAttempts = routed?.state.attempts.slice(-3) ?? [];
+  const packet = attemptKind === 'STRONG_FALLBACK'
+    ? [
+        normalPacket,
+        '',
+        'PHASE 7 STRONG FALLBACK — continue the current WorkUnit; do not restart discovery or redesign unrelated code.',
+        'The prior Secondary implementation is evidence, not authority. Repair, partially replace, or fully replace it as needed.',
+        'Never change approved product truth, answer human-only questions, or mutate contracts without authority.',
+        `Prior candidate changed files: ${prepared.priorCandidate?.changedFiles.map((entry) => entry.path).join(', ') || '(none recorded)'}`,
+        `Prior candidate summary: ${prepared.priorCandidate?.claims.summary ?? '(none recorded)'}`,
+        'Bounded attempt history:',
+        ...priorAttempts.map((attempt) =>
+          `${attempt.sequence}. ${attempt.kind} ${attempt.outcome}: ${attempt.failureSummary ?? '(no failure summary)'}`.slice(0, 2_000)),
+        'Prior candidate diff (already replayed when safe; supplied so replacement is explicit):',
+        fence((prepared.priorCandidatePatch ?? '(none recorded)').slice(0, 12_000), 12_000),
+      ].join('\n')
+    : normalPacket;
   const result = await runLargeObjectiveRole({
     workspace: input.workspace,
     config: input.config,
@@ -1349,7 +1911,38 @@ async function executeBuilder(
     cachedProbe: input.probeCache.probe,
   });
   if (result.probe !== undefined) input.probeCache.probe = result.probe;
-  if (!result.ok) return { prepared, result };
+  if (!result.ok && isStrongQuotaFailure(result.problem)) {
+    const resource = quotaFailureResource({
+      observedAt: nowIso(input),
+      detail: result.problem,
+      resourceIdentity: context.strongResource.resourceIdentity,
+    });
+    context.strongResource = resource;
+    return resourceDeferredAttempt(prepared, resource, {
+      ...(admission !== undefined ? { readinessDecision: admission.readiness.decision } : {}),
+      ...(routed !== undefined
+        ? {
+            routingDecision: routed.decision,
+            routingState: routed.state,
+            routingAttemptKind: attemptKind,
+          }
+        : {}),
+    }, true);
+  }
+  if (!result.ok) {
+    return {
+      prepared,
+      result,
+      ...(admission !== undefined ? { readinessDecision: admission.readiness.decision } : {}),
+      ...(routed !== undefined
+        ? {
+            routingDecision: routed.decision,
+            routingState: routed.state,
+            routingAttemptKind: attemptKind,
+          }
+        : {}),
+    };
+  }
 
   const collected = await collectWorktreeChanges(worktree, {
     protectedPaths: input.config.execution.protectedPaths,
@@ -1358,7 +1951,20 @@ async function executeBuilder(
     prepared.kind === 'build' && collected.changedFiles.length > 0
       ? await runWorktreeVerification(worktree, input.config.verification.commands, input.signal)
       : undefined;
-  return { prepared, result, collected, verification };
+  return {
+    prepared,
+    result,
+    collected,
+    verification,
+    ...(admission !== undefined ? { readinessDecision: admission.readiness.decision } : {}),
+    ...(routed !== undefined
+      ? {
+          routingDecision: routed.decision,
+          routingState: routed.state,
+          routingAttemptKind: attemptKind,
+        }
+      : {}),
+  };
 }
 
 /**
@@ -1374,6 +1980,59 @@ async function foldBuilderOutcome(
   const { prepared, result } = executed;
   const { unitId, attempt, workerId, projection, record } = prepared;
 
+  if (executed.resourceWait !== undefined) {
+    // No builder owned a valid implementation attempt: return BUILDING to
+    // READY, restore the prior attempt number, and attach only the temporary
+    // resource constraint. Readiness/routing state remains untouched.
+    supersedeWorkers(
+      input.workspace,
+      input.jobId,
+      input.node.nodeId,
+      [record],
+      unitId,
+      nowIso(input),
+    );
+    const marked = markUnitWaitingForStrong({
+      unit: prepared.unit,
+      resource: executed.resourceWait,
+      ...(executed.routingDecision?.workIdentity !== undefined
+        ? { routingWorkIdentity: executed.routingDecision.workIdentity }
+        : {}),
+      fallbackPending:
+        executed.routingState?.escalationStatus === 'STRONG_FALLBACK_REQUIRED',
+    });
+    const ready = transitionUnit(graph, unitId, 'READY');
+    const nextGraph = persistGraph(input, withUnit(ready, { ...marked.unit, status: 'READY' }));
+    const observed = observeObjectiveCooldown({
+      prior: context.cooldownState,
+      graph: nextGraph,
+      resource: executed.resourceWait,
+      at: nowIso(input),
+    });
+    if (observed !== undefined) {
+      context.cooldownState = marked.newlyWaiting && executed.resourceRefusalObserved !== true
+        ? noteStrongAttemptAvoided(observed, [unitId], nowIso(input))
+        : observed;
+      storeObjectiveCooldownState(
+        input.workspace,
+        input.jobId,
+        input.node.nodeId,
+        context.cooldownState,
+      );
+    }
+    input.recordEvent(marked.newlyWaiting ? 'work_unit_resource_wait_started' : 'resource_cooldown_observed', {
+      nodeId: input.node.nodeId,
+      workUnitId: unitId,
+      resourceClass: 'STRONG_SUBSCRIPTION',
+      availability: executed.resourceWait.availability,
+      wakeAt: executed.resourceWait.wakeAt ?? null,
+      fallbackPending: marked.unit.resourceWait?.fallbackPending ?? false,
+      implementationAttemptConsumed: false,
+      providerRefusalObserved: executed.resourceRefusalObserved === true,
+    });
+    return nextGraph;
+  }
+
   if (executed.countedAsWorker !== false) {
     input.countWorkerRun({
       role: 'BUILDER',
@@ -1384,6 +2043,7 @@ async function foldBuilderOutcome(
   }
 
   if (!result.ok) {
+    recordRoutingAttempt(context, executed, routingOutcomeForFailure(executed));
     finishWorker(input.workspace, record, 'FAILED', nowIso(input));
     input.recordEvent('candidate_failed', {
       nodeId: input.node.nodeId,
@@ -1403,6 +2063,10 @@ async function foldBuilderOutcome(
               ? 'CANCELLED'
               : 'TRANSIENT_TOOL',
         message: `The builder worker failed: ${result.problem.slice(0, 400)}`,
+        phase7Retry:
+          executed.routingDecision === undefined
+          || executed.routingDecision.selectedBackend === 'SECONDARY'
+          || executed.routingDecision.selectedBackend === 'STRONG',
       }),
     );
   }
@@ -1463,6 +2127,13 @@ async function foldBuilderOutcome(
             packetHash: executed.secondaryAttempt.packetHash,
             sourceContextHash: executed.secondaryAttempt.sourceContextHash,
             selectionReason: executed.secondaryAttempt.selectionReason,
+            ...(executed.routingDecision !== undefined
+              ? {
+                  routingDecisionHash: executed.routingDecision.contentHash,
+                  routingWorkIdentity: executed.routingDecision.workIdentity,
+                  routingAttemptKind: executed.routingAttemptKind,
+                }
+              : {}),
             ...(executed.secondaryAttempt.telemetry !== undefined
               ? {
                   durationMs: executed.secondaryAttempt.telemetry.durationMs,
@@ -1476,11 +2147,24 @@ async function foldBuilderOutcome(
         : {
             backend: 'LARGE_AGENT',
             inferenceProfile: input.runnerProfile ?? input.config.defaultRunner,
+            ...(executed.routingDecision !== undefined
+              ? {
+                  routingDecisionHash: executed.routingDecision.contentHash,
+                  routingWorkIdentity: executed.routingDecision.workIdentity,
+                  routingAttemptKind: executed.routingAttemptKind,
+                }
+              : {}),
           },
   });
   storeCandidate(input.workspace, input.jobId, input.node.nodeId, candidate, collected.patch, {
     maxCandidateBytes: input.policy.objectives.maxCandidateBytes,
   });
+  recordRoutingAttempt(
+    context,
+    executed,
+    verification?.passed === false ? 'FAILED_VERIFICATION' : 'CANDIDATE_READY',
+    candidate,
+  );
   if (executed.secondaryAttempt !== undefined && verification?.passed === true) {
     executed.secondaryAttempt = storeSecondaryBuilderAttempt(
       input.workspace,
@@ -1533,6 +2217,13 @@ async function foldBuilderOutcome(
   });
 
   if (collected.protectedViolations.length > 0) {
+    finalizeRoutingForCandidate(context, {
+      workUnitId: unitId,
+      workUnitAttempt: attempt,
+      outcome: 'FAILED_IMPLEMENTATION',
+      failureSummary: `Protected paths touched: ${collected.protectedViolations.slice(0, 5).join(', ')}`,
+      candidatePatch: collected.patch,
+    });
     return persistGraph(
       input,
       applyUnitRejection(input, graph, unitId, attempt, {
@@ -1542,6 +2233,13 @@ async function foldBuilderOutcome(
     );
   }
   if (result.output.outcome === 'BLOCKED') {
+    finalizeRoutingForCandidate(context, {
+      workUnitId: unitId,
+      workUnitAttempt: attempt,
+      outcome: 'FAILED_IMPLEMENTATION',
+      failureSummary: `Builder blocked: ${[...result.output.blockingQuestions, result.output.summary].join('; ').slice(0, 1_500)}`,
+      candidatePatch: collected.patch,
+    });
     const blocked = transitionUnit(graph, unitId, 'BLOCKED');
     graph = persistGraph(
       input,
@@ -1564,6 +2262,13 @@ async function foldBuilderOutcome(
     return graph;
   }
   if (result.output.outcome === 'FAILED') {
+    finalizeRoutingForCandidate(context, {
+      workUnitId: unitId,
+      workUnitAttempt: attempt,
+      outcome: 'FAILED_IMPLEMENTATION',
+      failureSummary: `Builder reported failure: ${result.output.summary.slice(0, 400)}`,
+      candidatePatch: collected.patch,
+    });
     return persistGraph(
       input,
       applyUnitRejection(input, graph, unitId, attempt, {
@@ -1599,7 +2304,7 @@ function applyUnitRejection(
   graph: WorkGraph,
   unitId: string,
   attempt: number,
-  failure: { category: FailureCategory; message: string },
+  failure: { category: FailureCategory; message: string; phase7Retry?: boolean | undefined },
 ): WorkGraph {
   const unit = requireUnit(graph, unitId);
   const at = nowIso(input);
@@ -1608,13 +2313,23 @@ function applyUnitRejection(
     ...requireUnit(rejected, unitId),
     latestFailure: { category: failure.category, message: failure.message.slice(0, 2_000), at },
   });
-  // Phase 4 establishes capability, not repair/fallback policy: an
-  // explicitly selected secondary attempt runs once. Later phases may make
-  // retry and fallback decisions; the generic Objective retry loop must not
-  // silently invent them here.
-  const budgetLeft =
-    !secondarySelected(input, unit) &&
-    attempt < input.policy.objectives.maxBuilderAttemptsPerUnit;
+  // Phase 7 owns a separate, non-multiplicative chain: Secondary initial +
+  // bounded implementation repair(s) + one Strong fallback. It is active
+  // only for AUTO/PREFER, so OFF preserves Phase 4's explicit one-shot
+  // qualification behavior and the pre-Phase-7 generic Objective budget.
+  const phase7Enabled = input.policy.objectives.secondaryBuilder.strategy !== 'OFF';
+  const phase7MaximumAttempts = input.policy.objectives.secondaryBuilder.maxRepairAttempts + 2;
+  const retryableForPhase7 = [
+    'VERIFICATION_FAILURE',
+    'IMPLEMENTATION_DEFECT',
+    'CAPABILITY_UNAVAILABLE',
+    'TRANSIENT_TRANSPORT',
+    'TRANSIENT_TOOL',
+    'NO_PROGRESS',
+  ].includes(failure.category) && failure.phase7Retry !== false;
+  const budgetLeft = phase7Enabled
+    ? retryableForPhase7 && attempt < phase7MaximumAttempts
+    : !secondarySelected(input, unit) && attempt < input.policy.objectives.maxBuilderAttemptsPerUnit;
   const current = requireUnit(withFailure, unitId);
   if (current.status === 'REJECTED') {
     if (budgetLeft && failure.category !== 'CANCELLED') {
@@ -1623,6 +2338,67 @@ function applyUnitRejection(
     return transitionUnit(withFailure, unitId, 'FAILED');
   }
   return withFailure;
+}
+
+function finalizeRoutingForCandidate(
+  context: UnitAttemptContext,
+  input: {
+    workUnitId: string;
+    workUnitAttempt: number;
+    outcome: 'SUCCEEDED' | 'FAILED_VERIFICATION' | 'FAILED_IMPLEMENTATION';
+    failureSummary?: string | undefined;
+    verificationSummary?: readonly string[] | undefined;
+    candidatePatch?: string | undefined;
+  },
+): BuilderRoutingState | undefined {
+  const states = readBuilderRoutingStates(
+    context.input.workspace,
+    context.input.jobId,
+    context.input.node.nodeId,
+  )
+    .filter((state) => state.workUnitId === input.workUnitId)
+    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
+  const state = states.find((entry) => entry.attempts.some((attempt) =>
+    attempt.workUnitAttempt === input.workUnitAttempt && attempt.outcome === 'CANDIDATE_READY'));
+  if (state === undefined) return undefined;
+  const attempt = state.attempts.find((entry) =>
+    entry.workUnitAttempt === input.workUnitAttempt && entry.outcome === 'CANDIDATE_READY');
+  if (attempt === undefined) return undefined;
+  const fingerprint = input.outcome === 'SUCCEEDED'
+    ? undefined
+    : builderProblemFingerprint({
+        failureKind: input.outcome,
+        verificationSummary: input.verificationSummary,
+        ...(input.candidatePatch !== undefined ? { candidatePatch: input.candidatePatch } : {}),
+      });
+  const finalized = finalizeBuilderRoutingAttempt({
+    state,
+    workUnitAttempt: input.workUnitAttempt,
+    kind: attempt.kind,
+    outcome: input.outcome,
+    ...(input.failureSummary !== undefined ? { failureSummary: input.failureSummary } : {}),
+    ...(input.verificationSummary !== undefined ? { verificationSummary: input.verificationSummary } : {}),
+    ...(fingerprint?.problemFingerprint !== undefined
+      ? { problemFingerprint: fingerprint.problemFingerprint }
+      : {}),
+    ...(fingerprint?.candidatePatchHash !== undefined
+      ? { candidatePatchHash: fingerprint.candidatePatchHash }
+      : {}),
+    completedAt: nowIso(context.input),
+  });
+  const stored = persistRoutingState(context.input, finalized);
+  context.input.recordEvent('builder_routing_candidate_finalized', {
+    nodeId: context.input.node.nodeId,
+    workUnitId: input.workUnitId,
+    workUnitAttempt: input.workUnitAttempt,
+    attemptKind: attempt.kind,
+    outcome: input.outcome,
+    repairAttemptsUsed: stored.repairAttemptsUsed,
+    escalationStatus: stored.escalationStatus,
+    noProgress: stored.attempts.find((entry) =>
+      entry.workUnitAttempt === input.workUnitAttempt && entry.kind === attempt.kind)?.noProgress ?? false,
+  });
+  return stored;
 }
 
 // ---------------------------------------------------------------------------
@@ -1683,6 +2459,13 @@ async function resumeStoredCandidate(
       // A stored non-PASS cannot resume into evaluation; the candidate is
       // already judged. Back to READY for a rebuild.
       graph = persistGraph(input, transitionUnit(graph, unitId, 'REJECTED'));
+      finalizeRoutingForCandidate(context, {
+        workUnitId: unitId,
+        workUnitAttempt: attempt,
+        outcome: 'FAILED_VERIFICATION',
+        failureSummary: `Stored deterministic evaluation ${priorDeterministic.verdict}: ${priorDeterministic.reasons.join('; ').slice(0, 1_200)}`,
+        candidatePatch: patch,
+      });
       return persistGraph(input, transitionUnit(graph, unitId, 'READY'));
     }
     if (
@@ -1693,6 +2476,11 @@ async function resumeStoredCandidate(
         priorDeterministic,
       )
     ) {
+      finalizeRoutingForCandidate(context, {
+        workUnitId: unitId,
+        workUnitAttempt: attempt,
+        outcome: 'SUCCEEDED',
+      });
       return persistGraph(input, transitionUnit(graph, unitId, 'VERIFIED_CANDIDATE'));
     }
     input.onProgress?.(
@@ -1744,6 +2532,13 @@ async function evaluateCandidate(
   });
 
   if (deterministic.verdict === 'CONFLICT') {
+    finalizeRoutingForCandidate(context, {
+      workUnitId: unitId,
+      workUnitAttempt: attempt,
+      outcome: 'FAILED_IMPLEMENTATION',
+      failureSummary: `Contract conflict: ${deterministic.reasons.join('; ').slice(0, 1_200)}`,
+      candidatePatch: patch,
+    });
     return persistGraph(input, recordConflict(input, graph, unitId, candidate, deterministic.reasons, deterministic.affectedContractIds, deterministic.decisionKind));
   }
   if (deterministic.verdict === 'FAIL') {
@@ -1769,6 +2564,16 @@ async function evaluateCandidate(
       failedChecks[0]?.name === 'local-verification' &&
       failedCommands.length > 0 &&
       failedCommands.every((command) => isUnavailableStatus(command.status));
+    const failureSummary = `Deterministic evaluation failed: ${deterministic.reasons.join('; ').slice(0, 1_200)}`;
+    finalizeRoutingForCandidate(context, {
+      workUnitId: unitId,
+      workUnitAttempt: attempt,
+      outcome: verificationUnavailable ? 'FAILED_IMPLEMENTATION' : 'FAILED_VERIFICATION',
+      failureSummary,
+      verificationSummary: failedCommands.map((command) =>
+        `${command.name}: ${command.status} (${command.exitCode ?? 'no exit'})`),
+      candidatePatch: patch,
+    });
     return persistGraph(
       input,
       applyUnitRejection(input, graph, unitId, attempt, {
@@ -1777,7 +2582,7 @@ async function evaluateCandidate(
           : verificationUnavailable
             ? 'CAPABILITY_UNAVAILABLE'
             : 'VERIFICATION_FAILURE',
-        message: `Deterministic evaluation failed: ${deterministic.reasons.join('; ').slice(0, 1_200)}`,
+        message: failureSummary,
       }),
     );
   }
@@ -1837,6 +2642,11 @@ async function evaluateCandidate(
   // parks in EVALUATING; the drive loop picks it up (which is also the
   // crash-resume path for an interrupted evaluation).
   if (!semanticEvaluationRequired(input.policy.objectives.semanticEvaluation, unit, candidate, deterministic)) {
+    finalizeRoutingForCandidate(context, {
+      workUnitId: unitId,
+      workUnitAttempt: attempt,
+      outcome: 'SUCCEEDED',
+    });
     return persistGraph(input, transitionUnit(graph, unitId, 'VERIFIED_CANDIDATE'));
   }
   return persistGraph(input, transitionUnit(graph, unitId, 'EVALUATING'));
@@ -2160,8 +2970,20 @@ ${correction}`;
 
   switch (output.verdict) {
     case 'PASS':
+      finalizeRoutingForCandidate(context, {
+        workUnitId: unitId,
+        workUnitAttempt: attempt,
+        outcome: 'SUCCEEDED',
+      });
       return persistGraph(input, transitionUnit(graph, unitId, 'VERIFIED_CANDIDATE'));
     case 'FAIL':
+      finalizeRoutingForCandidate(context, {
+        workUnitId: unitId,
+        workUnitAttempt: attempt,
+        outcome: 'FAILED_IMPLEMENTATION',
+        failureSummary: `Semantic evaluation failed: ${output.reasons.join('; ').slice(0, 1_200)}`,
+        candidatePatch: patch,
+      });
       return persistGraph(
         input,
         applyUnitRejection(input, graph, unitId, attempt, {
@@ -2170,6 +2992,13 @@ ${correction}`;
         }),
       );
     case 'CONFLICT':
+      finalizeRoutingForCandidate(context, {
+        workUnitId: unitId,
+        workUnitAttempt: attempt,
+        outcome: 'FAILED_IMPLEMENTATION',
+        failureSummary: `Semantic conflict: ${output.reasons.join('; ').slice(0, 1_200)}`,
+        candidatePatch: patch,
+      });
       return persistGraph(
         input,
         recordConflict(input, graph, unitId, candidate, output.reasons, output.affectedContractIds, output.decisionKind),
@@ -2184,6 +3013,11 @@ ${correction}`;
           workUnitId: unitId,
           decisionKind: kind,
           resolution: 'autonomous',
+        });
+        finalizeRoutingForCandidate(context, {
+          workUnitId: unitId,
+          workUnitAttempt: attempt,
+          outcome: 'SUCCEEDED',
         });
         return persistGraph(input, transitionUnit(graph, unitId, 'VERIFIED_CANDIDATE'));
       }
@@ -2354,7 +3188,23 @@ export async function driveObjective(input: ObjectiveDriveInput): Promise<Object
   const truth = loadMissionTruth(input.workspace, input.mission);
   const relevantContractIds = contractsForObjective(input.workspace, input.mission, input.node.parentTaskId);
   const acceptance = acceptanceForObjective(input.workspace, input.mission, input.node.parentTaskId);
-  const context: UnitAttemptContext = { input, truth, acceptance, objectiveContractIds: relevantContractIds };
+  const resourceObservedAt = nowIso(input);
+  const strongResource = input.strongResource ?? strongResourceFromScheduler({
+    schedulerMode: input.schedulerMode,
+    observedAt: resourceObservedAt,
+  });
+  const context: UnitAttemptContext = {
+    input,
+    truth,
+    acceptance,
+    objectiveContractIds: relevantContractIds,
+    strongResource,
+    cooldownState: readObjectiveCooldownState(
+      input.workspace,
+      input.jobId,
+      input.node.nodeId,
+    ),
+  };
 
   // Load or create the work graph, reconciling interruptions first.
   let graph = readLatestWorkGraph(input.workspace, input.jobId, input.node.nodeId);
@@ -2492,6 +3342,14 @@ export async function driveObjective(input: ObjectiveDriveInput): Promise<Object
               localVerificationPassed: candidate.localVerification.passed,
               resumed: true,
             });
+            if (context.cooldownState?.status === 'ACTIVE') {
+              context.cooldownState = storeObjectiveCooldownState(
+                input.workspace,
+                input.jobId,
+                input.node.nodeId,
+                noteCandidateReuseAfterRestart(context.cooldownState, nowIso(input)),
+              );
+            }
             continue;
           }
         }
@@ -2521,6 +3379,72 @@ export async function driveObjective(input: ObjectiveDriveInput): Promise<Object
     graph = await decomposeObjective(input, truth, relevantContractIds, acceptance);
   }
 
+  const priorCooldown = context.cooldownState;
+  if (isStrongResourceCooling(context.strongResource)) {
+    const observed = observeObjectiveCooldown({
+      prior: priorCooldown,
+      graph,
+      resource: context.strongResource,
+      at: nowIso(input),
+      recheck: priorCooldown?.status === 'ACTIVE',
+    });
+    if (observed !== undefined) {
+      context.cooldownState = storeObjectiveCooldownState(
+        input.workspace,
+        input.jobId,
+        input.node.nodeId,
+        observed,
+      );
+      input.recordEvent(
+        priorCooldown?.status === 'ACTIVE' ? 'resource_cooldown_observed' : 'resource_cooldown_started',
+        {
+          nodeId: input.node.nodeId,
+          resourceClass: observed.resourceClass,
+          resourceIdentity: observed.resourceIdentity,
+          availability: observed.lastAvailability,
+          wakeAt: observed.wakeAt ?? null,
+          resourceRechecks: observed.resourceRechecks,
+        },
+      );
+    }
+  } else {
+    const recovered = clearRecoveredStrongWaits(graph);
+    if (recovered.recoveredWorkUnitIds.length > 0) {
+      graph = persistGraph(input, recovered.graph);
+      for (const workUnitId of recovered.recoveredWorkUnitIds) {
+        input.recordEvent('work_unit_resource_wait_ended', {
+          nodeId: input.node.nodeId,
+          workUnitId,
+          resourceClass: 'STRONG_SUBSCRIPTION',
+        });
+      }
+    }
+    if (priorCooldown !== undefined) {
+      const observed = observeObjectiveCooldown({
+        prior: priorCooldown,
+        graph,
+        resource: context.strongResource,
+        at: nowIso(input),
+      });
+      if (observed !== undefined) {
+        context.cooldownState = storeObjectiveCooldownState(
+          input.workspace,
+          input.jobId,
+          input.node.nodeId,
+          observed,
+        );
+        if (priorCooldown.status === 'ACTIVE') {
+          input.recordEvent('resource_recovered', {
+            nodeId: input.node.nodeId,
+            resourceClass: observed.resourceClass,
+            completedDuringCooldown: observed.completedDuringCooldown.length,
+            waitingReleased: recovered.recoveredWorkUnitIds.length,
+          });
+        }
+      }
+    }
+  }
+
   // The bounded drive loop: each iteration either dispatches at least one
   // worker, integrates, or exits — countWorkerRun throws on budget
   // exhaustion, and this valve guards against a cycle that dispatches
@@ -2531,6 +3455,32 @@ export async function driveObjective(input: ObjectiveDriveInput): Promise<Object
       return failResult('CANCELLED', 'The objective drive was interrupted.', 'objective:cancelled');
     }
     graph = persistGraph(input, promoteReadyUnits(graph));
+
+    if (isStrongResourceCooling(context.strongResource)) {
+      const before = context.cooldownState?.completedDuringCooldown.length ?? 0;
+      const observed = observeObjectiveCooldown({
+        prior: context.cooldownState,
+        graph,
+        resource: context.strongResource,
+        at: nowIso(input),
+      });
+      if (observed !== undefined) {
+        context.cooldownState = storeObjectiveCooldownState(
+          input.workspace,
+          input.jobId,
+          input.node.nodeId,
+          observed,
+        );
+        if (observed.completedDuringCooldown.length > before) {
+          input.recordEvent('useful_work_during_cooldown', {
+            nodeId: input.node.nodeId,
+            newlyCompleted: observed.completedDuringCooldown.length - before,
+            totalCompleted: observed.completedDuringCooldown.length,
+            completedWorkUnitIds: observed.completedDuringCooldown,
+          });
+        }
+      }
+    }
 
     // Units awaiting semantic evaluation resume here (also the crash path).
     const evaluating = graph.units.find((unit) => unit.status === 'EVALUATING');
@@ -2574,12 +3524,54 @@ export async function driveObjective(input: ObjectiveDriveInput): Promise<Object
       if (semanticStop !== undefined) return semanticStop;
       return integrateVerifiedCandidates(input, graph);
     }
+    const unavailableWorkUnitIds = isStrongResourceCooling(context.strongResource)
+      ? new Set(
+          graph.units
+            .filter((unit) => unit.resourceWait?.resourceClass === 'STRONG_SUBSCRIPTION')
+            .map((unit) => unit.workUnitId),
+        )
+      : undefined;
     const anyReady = selectDispatchSet({
       graph,
       parallelism: input.policy.objectives.parallelism,
       unresolvedDecision: graph.units.some((unit) => unit.status === 'BLOCKED'),
+      ...(unavailableWorkUnitIds !== undefined ? { unavailableWorkUnitIds } : {}),
     });
     if (anyReady.length === 0) {
+      if (unavailableWorkUnitIds !== undefined && unavailableWorkUnitIds.size > 0) {
+        const waitingWorkUnitIds = [...unavailableWorkUnitIds].sort();
+        input.recordEvent('resource_wait_entered', {
+          nodeId: input.node.nodeId,
+          resourceClass: 'STRONG_SUBSCRIPTION',
+          waitingWorkUnitIds,
+          runnableCandidates: 0,
+          wakeAt: context.strongResource.wakeAt ?? null,
+          usefulWorkDuringCooldown:
+            context.cooldownState?.completedDuringCooldown.length ?? 0,
+        });
+        return {
+          evidenceStatus: undefined,
+          runId: undefined,
+          resourceWait: {
+            kind:
+              context.strongResource.availability === 'RATE_LIMITED'
+                ? 'PROVIDER_RATE_LIMIT'
+                : context.strongResource.wakeAt !== undefined
+                  ? 'SUBSCRIPTION_QUOTA_RESET'
+                  : 'PROVIDER_COOLDOWN',
+            resourceClass: 'STRONG_SUBSCRIPTION',
+            detail:
+              `No permitted builder candidate is currently runnable; ${waitingWorkUnitIds.length} `
+              + `READY WorkUnit(s) require the cooling Strong subscription.`,
+            ...(context.strongResource.wakeAt !== undefined
+              ? { wakeAt: context.strongResource.wakeAt }
+              : {}),
+            waitingWorkUnitIds,
+            usefulWorkDuringCooldown:
+              context.cooldownState?.completedDuringCooldown.length ?? 0,
+          },
+        };
+      }
       // Nothing dispatchable: either genuinely finished-with-failures or
       // structurally stuck. Both are honest failures for job-level policy.
       input.recordEvent('aggregation_completed', {

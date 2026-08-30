@@ -237,6 +237,10 @@ async function buildSnapshots() {
       workReadinessAssessment: orchestration.WORK_READINESS_ASSESSMENT_SCHEMA_VERSION,
       secondaryEligibilityDecision: orchestration.SECONDARY_ELIGIBILITY_DECISION_SCHEMA_VERSION,
       workReadinessTelemetry: orchestration.WORK_READINESS_TELEMETRY_SCHEMA_VERSION,
+      builderRoutingDecision: orchestration.BUILDER_ROUTING_DECISION_SCHEMA_VERSION,
+      builderRoutingState: orchestration.BUILDER_ROUTING_STATE_SCHEMA_VERSION,
+      builderRoutingTelemetry: orchestration.BUILDER_ROUTING_TELEMETRY_SCHEMA_VERSION,
+      objectiveCooldownState: orchestration.OBJECTIVE_COOLDOWN_STATE_SCHEMA_VERSION,
       // Mission families (persisted under .specbridge/missions/).
       missionState: mission.MISSION_STATE_SCHEMA_VERSION,
       missionCoverage: mission.MISSION_COVERAGE_SCHEMA_VERSION,
@@ -374,6 +378,7 @@ async function buildSnapshots() {
       dependencyReadinessStates: [...orchestration.DEPENDENCY_READINESS_STATES].sort(),
       secondaryEligibilityStatuses: [...orchestration.SECONDARY_ELIGIBILITY_STATUSES].sort(),
       workReadinessReasonCodes: [...orchestration.WORK_READINESS_REASON_CODES].sort(),
+      strongResourceAvailabilities: [...orchestration.STRONG_RESOURCE_AVAILABILITIES].sort(),
       // Survival-runtime vocabulary (vNext.1; additive within 1.x).
       taskAttemptStatuses: [...orchestration.TASK_ATTEMPT_STATUSES].sort(),
       taskCheckpointReasons: [...orchestration.TASK_CHECKPOINT_REASONS].sort(),

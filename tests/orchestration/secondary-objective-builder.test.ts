@@ -36,6 +36,7 @@ import {
   buildSecondaryBuilderPacket,
   candidateArtifactSchema,
   captureSecondarySourceContext,
+  clearOperationalState,
   collectWorktreeChanges,
   compileSecondaryBuilderPacket,
   contractSnapshotHashOf,
@@ -49,7 +50,12 @@ import {
   managedLocalSecondaryModelInference,
   objectiveDir,
   readCandidate,
+  readBuilderRoutingStates,
+  readBuilderRoutingTelemetry,
   readLatestWorkGraph,
+  readObjectiveCooldownState,
+  readJobEvents,
+  readJobCheckpoint,
   readSecondaryBuilderAttempt,
   readSecondaryBuilderAttempts,
   readWorkReadinessRecord,
@@ -444,6 +450,10 @@ function secondaryMissionFixture(
     semanticEvaluationAlways?: boolean;
     automaticContext?: boolean;
     noVerification?: boolean;
+    secondaryVerificationFails?: boolean;
+    secondaryNeedsMoreContextOnce?: boolean;
+    secondaryStrategy?: 'OFF' | 'AUTO' | 'PREFER';
+    omitSecondarySelection?: boolean;
   } = {},
 ): {
   root: string;
@@ -457,6 +467,20 @@ function secondaryMissionFixture(
     useFakeClaude: true,
     defaultRunner: 'claude-code',
     ...(options.verificationFails === true ? { verificationCommands: [failingCommand()] } : {}),
+    ...(options.secondaryVerificationFails === true
+      ? {
+          verificationCommands: [{
+            name: 'reject-secondary-fixture',
+            argv: [
+              process.execPath,
+              '-e',
+              "const fs=require('fs');const p=['src/envelope/implementation.js','src/transport/implementation.js'];const bad=p.some(f=>fs.existsSync(f)&&fs.readFileSync(f,'utf8').includes('secondary'));process.exit(bad?1:0)",
+            ],
+            timeoutMs: 60_000,
+            required: true,
+          }],
+        }
+      : {}),
     ...(options.noVerification === true ? { verificationCommands: [] } : {}),
     extraConfig: {
       orchestration: {
@@ -464,8 +488,17 @@ function secondaryMissionFixture(
           routing: { classifier: 'disabled', critic: 'disabled' },
           planReview: 'auto',
           ...(options.semanticEvaluationAlways === true
-            ? { objectives: { semanticEvaluation: 'always' } }
-            : {}),
+            ? {
+                objectives: {
+                  semanticEvaluation: 'always',
+                  ...(options.secondaryStrategy !== undefined
+                    ? { secondaryBuilder: { strategy: options.secondaryStrategy } }
+                    : {}),
+                },
+              }
+            : options.secondaryStrategy !== undefined
+              ? { objectives: { secondaryBuilder: { strategy: options.secondaryStrategy } } }
+              : {}),
         },
       },
     },
@@ -535,6 +568,7 @@ function secondaryMissionFixture(
   git(base.root, 'commit', '-q', '-m', 'approved secondary mission spec');
 
   let inferenceCalls = 0;
+  const inferenceCallsByTarget = new Map<string, number>();
   const directInference: SecondaryModelInference = {
     profile: 'fake-secondary-objective',
     provider: 'deterministic-fake',
@@ -545,9 +579,25 @@ function secondaryMissionFixture(
       const target = envelope
         ? 'src/envelope/implementation.js'
         : 'src/transport/implementation.js';
+      const targetCalls = (inferenceCallsByTarget.get(target) ?? 0) + 1;
+      inferenceCallsByTarget.set(target, targetCalls);
       // No candidate has reached integration while either direct-model call
       // is running: the canonical checkout remains byte-identical.
       expect(readFileSync(path.join(base.root, target), 'utf8')).toContain('baseline');
+      if (options.secondaryNeedsMoreContextOnce === true && targetCalls === 1) {
+        return {
+          ok: true,
+          text: JSON.stringify({
+            schemaVersion: SECONDARY_BUILDER_RESULT_SCHEMA_VERSION,
+            status: 'NEEDS_MORE_CONTEXT',
+            summary: 'The adjacent dependency packet is insufficient.',
+            edits: [],
+            needsMoreContextReasons: ['The surrounding module contract is required.'],
+          }),
+          durationMs: 5,
+          usage: { inputTokens: 80, outputTokens: 20 },
+        };
+      }
       return {
         ok: true,
         text: validProposal([
@@ -575,37 +625,370 @@ function secondaryMissionFixture(
       clock: base.clock,
       idFactory: base.idFactory,
       host: 'test',
-      secondaryObjectiveBuilder: {
-        selectionReason: 'Phase 4 deterministic qualification explicitly selected this backend.',
-        ...(options.automaticContext === true
-          ? {}
-          : {
-              sourceContext: ({ worktreeRoot }) => {
-                if (options.staleProjection === true && !contractMutated) {
-                  const current = readContractRegistry(base.workspace, mission.missionId)[0]!;
-                  storeContractRevision(base.workspace, mission.missionId, {
-                    ...current,
-                    revision: current.revision + 1,
-                    supersedesRevision: current.revision,
-                    recordedAt: base.clock().toISOString(),
-                  });
-                  contractMutated = true;
-                }
-                return captureSecondarySourceContext(worktreeRoot, [
-                  'src/envelope/implementation.js',
-                  'src/transport/implementation.js',
-                  'src/envelope/implementation.test.js',
-                  'src/transport/implementation.test.js',
-                ]);
-              },
-            }),
-        inference: directInference,
-      },
+      ...(options.omitSecondarySelection === true
+        ? {}
+        : {
+            secondaryObjectiveBuilder: {
+              selectionReason: 'Phase 4 deterministic qualification explicitly selected this backend.',
+              ...(options.automaticContext === true
+                ? {}
+                : {
+                    sourceContext: ({ worktreeRoot }: { worktreeRoot: string }) => {
+                      if (options.staleProjection === true && !contractMutated) {
+                        const current = readContractRegistry(base.workspace, mission.missionId)[0]!;
+                        storeContractRevision(base.workspace, mission.missionId, {
+                          ...current,
+                          revision: current.revision + 1,
+                          supersedesRevision: current.revision,
+                          recordedAt: base.clock().toISOString(),
+                        });
+                        contractMutated = true;
+                      }
+                      return captureSecondarySourceContext(worktreeRoot, [
+                        'src/envelope/implementation.js',
+                        'src/transport/implementation.js',
+                        'src/envelope/implementation.test.js',
+                        'src/transport/implementation.test.js',
+                      ]);
+                    },
+                  }),
+              inference: directInference,
+            },
+          }),
     },
   };
 }
 
 describe('Secondary Objective Builder governed lifecycle', () => {
+  it('continues an entire eligible Objective through a five-hour Strong cooldown', async () => {
+    const priorScenario = process.env['FAKE_CLAUDE_SCENARIO'];
+    process.env['FAKE_CLAUDE_SCENARIO'] = 'objective-multi';
+    try {
+      const fixture = secondaryMissionFixture({ secondaryStrategy: 'PREFER' });
+      const observedAt = fixture.driverDeps.clock!().toISOString();
+      const resetAt = new Date(Date.parse(observedAt) + 5 * 3_600_000).toISOString();
+      let cooling = false;
+      const quota = {
+        source: 'phase8-five-hour-fixture',
+        getFiveHourQuota: () => {
+          return Promise.resolve({
+            window: 'five-hour' as const,
+            remainingRatio: cooling ? 0 : 1,
+            usedRatio: cooling ? 1 : 0,
+            resetAt,
+            observedAt: fixture.driverDeps.clock!().toISOString(),
+            source: 'phase8-five-hour-fixture',
+          });
+        },
+        getWeeklyQuota: () => Promise.resolve({
+          window: 'weekly' as const,
+          remainingRatio: 0.8,
+          usedRatio: 0.2,
+          resetAt: null,
+          observedAt: fixture.driverDeps.clock!().toISOString(),
+          source: 'phase8-five-hour-fixture',
+        }),
+      };
+      const job = createJob(fixture.driverDeps, {
+        specName: 'steprelay-secondary',
+        goal: 'Continue permitted Secondary work while Strong is cooling down.',
+      });
+      const result = await driveJob(fixture.driverDeps, job.jobId, {
+        quotaTelemetryProvider: quota,
+        onEvent: (event) => {
+          if (event.kind === 'decision' && event.message.includes('no execution plan')) cooling = true;
+        },
+      });
+      const jobGraph = requireGraphRevision(fixture.workspace, job.jobId, result.job.graphRevision);
+      const nodeId = jobGraph.nodes[0]!.nodeId;
+      const workGraph = readLatestWorkGraph(fixture.workspace, job.jobId, nodeId)!;
+      const cooldown = readObjectiveCooldownState(fixture.workspace, job.jobId, nodeId);
+      const events = readJobEvents(fixture.workspace, job.jobId, { limit: 2_000 }).events;
+
+      expect(result.stop.kind).toBe('completed');
+      expect(result.job.status).toBe('COMPLETED');
+      expect(fixture.inferenceCalls()).toBe(2);
+      expect(workGraph.units.filter((unit) => unit.kind === 'build').every(
+        (unit) => unit.status === 'INTEGRATED' && unit.attempt === 1,
+      )).toBe(true);
+      expect(cooldown).toMatchObject({
+        status: 'ACTIVE',
+        completedDuringCooldown: ['wu-1', 'wu-2'],
+        strongAttemptsAvoided: 0,
+      });
+      expect(events.some((event) => event.type === 'resource_cooldown_started')).toBe(true);
+      expect(events.some((event) => event.type === 'useful_work_during_cooldown')).toBe(true);
+      expect(events.some((event) => event.type === 'resource_wait_started')).toBe(false);
+    } finally {
+      if (priorScenario === undefined) delete process.env['FAKE_CLAUDE_SCENARIO'];
+      else process.env['FAKE_CLAUDE_SCENARIO'] = priorScenario;
+    }
+  }, 300_000);
+
+  it('enters durable resource wait under OFF only after every Strong-only candidate is removed', async () => {
+    const priorScenario = process.env['FAKE_CLAUDE_SCENARIO'];
+    process.env['FAKE_CLAUDE_SCENARIO'] = 'objective-multi';
+    try {
+      const fixture = secondaryMissionFixture({
+        omitSecondarySelection: true,
+        secondaryStrategy: 'OFF',
+      });
+      const observedAt = fixture.driverDeps.clock!().toISOString();
+      const resetAt = new Date(Date.parse(observedAt) + 5 * 3_600_000).toISOString();
+      let cooling = false;
+      let recovered = false;
+      const quota = {
+        source: 'phase8-off-fixture',
+        getFiveHourQuota: () => {
+          const available = recovered || !cooling;
+          return Promise.resolve({
+            window: 'five-hour' as const,
+            remainingRatio: available ? 1 : 0,
+            usedRatio: available ? 0 : 1,
+            resetAt: available ? null : resetAt,
+            observedAt: fixture.driverDeps.clock!().toISOString(),
+            source: 'phase8-off-fixture',
+          });
+        },
+        getWeeklyQuota: () => Promise.resolve(null),
+      };
+      const job = createJob(fixture.driverDeps, {
+        specName: 'steprelay-secondary',
+        goal: 'Respect OFF while Strong subscription is cooling down.',
+      });
+      const result = await driveJob(fixture.driverDeps, job.jobId, {
+        quotaTelemetryProvider: quota,
+        onEvent: (event) => {
+          if (event.kind === 'decision' && event.message.includes('no execution plan')) cooling = true;
+        },
+      });
+      const jobGraph = requireGraphRevision(fixture.workspace, job.jobId, result.job.graphRevision);
+      const node = jobGraph.nodes[0]!;
+      const workGraph = readLatestWorkGraph(fixture.workspace, job.jobId, node.nodeId)!;
+      const cooldown = readObjectiveCooldownState(fixture.workspace, job.jobId, node.nodeId);
+
+      expect(result.stop.kind).toBe('deferred');
+      expect(result.job.status).toBe('WAITING_RESOURCE');
+      expect(result.job.blocker).toBeUndefined();
+      expect(result.job.operationalWait).toMatchObject({
+        kind: 'SUBSCRIPTION_QUOTA_RESET',
+        wakeAt: resetAt,
+      });
+      expect(readJobCheckpoint(fixture.workspace, job.jobId)?.operationalWait).toMatchObject({
+        kind: 'SUBSCRIPTION_QUOTA_RESET',
+        wakeAt: resetAt,
+      });
+      expect(fixture.inferenceCalls()).toBe(0);
+      expect(workGraph.units.filter((unit) => unit.kind !== 'integration').every(
+        (unit) => unit.status === 'READY' && unit.attempt === 0
+          && unit.resourceWait?.resourceClass === 'STRONG_SUBSCRIPTION',
+      )).toBe(true);
+      expect(node.attempts.filter((attempt) => attempt.role === 'EXECUTOR')).toHaveLength(0);
+      expect(readBuilderRoutingStates(fixture.workspace, job.jobId, node.nodeId)).toHaveLength(0);
+      expect(cooldown?.strongAttemptsAvoided).toBeGreaterThan(0);
+
+      recovered = true;
+      clearOperationalState(fixture.driverDeps, job.jobId, {
+        resolution: 'the supervisor observed the subscription reset',
+      });
+      const resumed = await driveJob(fixture.driverDeps, job.jobId, {
+        quotaTelemetryProvider: quota,
+      });
+      const recoveredGraph = readLatestWorkGraph(fixture.workspace, job.jobId, node.nodeId)!;
+      const recoveredState = readObjectiveCooldownState(fixture.workspace, job.jobId, node.nodeId);
+      expect(resumed.stop.kind).toBe('completed');
+      expect(recoveredGraph.units.filter((unit) => unit.kind !== 'integration').every(
+        (unit) => unit.status === 'INTEGRATED' && unit.attempt === 1 && unit.resourceWait === undefined,
+      )).toBe(true);
+      expect(recoveredState).toMatchObject({ status: 'RECOVERED' });
+    } finally {
+      if (priorScenario === undefined) delete process.env['FAKE_CLAUDE_SCENARIO'];
+      else process.env['FAKE_CLAUDE_SCENARIO'] = priorScenario;
+    }
+  }, 300_000);
+
+  it('preserves sticky Strong fallback and Secondary evidence across cooldown recovery', async () => {
+    const priorScenario = process.env['FAKE_CLAUDE_SCENARIO'];
+    process.env['FAKE_CLAUDE_SCENARIO'] = 'objective-multi';
+    try {
+      const fixture = secondaryMissionFixture({
+        secondaryStrategy: 'PREFER',
+        secondaryVerificationFails: true,
+      });
+      const observedAt = fixture.driverDeps.clock!().toISOString();
+      const resetAt = new Date(Date.parse(observedAt) + 5 * 3_600_000).toISOString();
+      let cooling = false;
+      let recovered = false;
+      const quota = {
+        source: 'phase8-fallback-fixture',
+        getFiveHourQuota: () => {
+          const available = recovered || !cooling;
+          return Promise.resolve({
+            window: 'five-hour' as const,
+            remainingRatio: available ? 1 : 0,
+            usedRatio: available ? 0 : 1,
+            resetAt: available ? null : resetAt,
+            observedAt: fixture.driverDeps.clock!().toISOString(),
+            source: 'phase8-fallback-fixture',
+          });
+        },
+        getWeeklyQuota: () => Promise.resolve(null),
+      };
+      const job = createJob(fixture.driverDeps, {
+        specName: 'steprelay-secondary',
+        goal: 'Preserve a bounded Secondary to Strong handoff through cooldown.',
+      });
+      const waiting = await driveJob(fixture.driverDeps, job.jobId, {
+        quotaTelemetryProvider: quota,
+        onEvent: (event) => {
+          if (event.kind === 'decision' && event.message.includes('no execution plan')) cooling = true;
+        },
+      });
+      const jobGraph = requireGraphRevision(fixture.workspace, job.jobId, waiting.job.graphRevision);
+      const nodeId = jobGraph.nodes[0]!.nodeId;
+      const waitingGraph = readLatestWorkGraph(fixture.workspace, job.jobId, nodeId)!;
+      const beforeRecovery = readBuilderRoutingStates(fixture.workspace, job.jobId, nodeId);
+
+      expect(waiting.stop.kind).toBe('deferred');
+      expect(waiting.job.status).toBe('WAITING_RESOURCE');
+      expect(waitingGraph.units.filter((unit) => unit.kind === 'build').every(
+        (unit) => unit.status === 'READY' && unit.attempt === 2
+          && unit.resourceWait?.fallbackPending === true,
+      )).toBe(true);
+      expect(beforeRecovery).toHaveLength(2);
+      expect(beforeRecovery.every((state) =>
+        state.escalationStatus === 'STRONG_FALLBACK_REQUIRED'
+        && state.repairAttemptsUsed === 1
+        && state.attempts.map((attempt) => attempt.kind).join(',') === 'SECONDARY,SECONDARY_REPAIR',
+      )).toBe(true);
+
+      // Fresh process/supervisor cycle: only durable WorkGraph/routing files
+      // survive. Recovery must not reopen the Secondary chain.
+      recovered = true;
+      clearOperationalState(fixture.driverDeps, job.jobId, {
+        resolution: 'the supervisor observed the subscription reset',
+      });
+      const resumed = await driveJob(fixture.driverDeps, job.jobId, {
+        quotaTelemetryProvider: quota,
+      });
+      const afterRecovery = readBuilderRoutingStates(fixture.workspace, job.jobId, nodeId);
+      const completedGraph = readLatestWorkGraph(fixture.workspace, job.jobId, nodeId)!;
+
+      expect(resumed.stop.kind).toBe('completed');
+      expect(completedGraph.units.filter((unit) => unit.kind === 'build').every(
+        (unit) => unit.status === 'INTEGRATED' && unit.attempt === 3
+          && unit.resourceWait === undefined,
+      )).toBe(true);
+      expect(afterRecovery.every((state) =>
+        state.repairAttemptsUsed === 1
+        && state.attempts.at(-1)?.kind === 'STRONG_FALLBACK'
+        && state.finalBackend === 'STRONG',
+      )).toBe(true);
+    } finally {
+      if (priorScenario === undefined) delete process.env['FAKE_CLAUDE_SCENARIO'];
+      else process.env['FAKE_CLAUDE_SCENARIO'] = priorScenario;
+    }
+  }, 300_000);
+
+  it('turns an active Strong quota refusal into resource state without consuming implementation budget', async () => {
+    const priorScenario = process.env['FAKE_CLAUDE_SCENARIO'];
+    process.env['FAKE_CLAUDE_SCENARIO'] = 'objective-multi-builder-quota';
+    try {
+      const fixture = secondaryMissionFixture({
+        omitSecondarySelection: true,
+        secondaryStrategy: 'OFF',
+      });
+      const job = createJob(fixture.driverDeps, {
+        specName: 'steprelay-secondary',
+        goal: 'Classify an active subscription refusal as resource availability.',
+      });
+      const result = await driveJob(fixture.driverDeps, job.jobId, {});
+      const jobGraph = requireGraphRevision(fixture.workspace, job.jobId, result.job.graphRevision);
+      const node = jobGraph.nodes[0]!;
+      const workGraph = readLatestWorkGraph(fixture.workspace, job.jobId, node.nodeId)!;
+      const cooldown = readObjectiveCooldownState(fixture.workspace, job.jobId, node.nodeId);
+
+      expect(result.stop.kind).toBe('deferred');
+      expect(result.job.status).toBe('WAITING_RESOURCE');
+      expect(result.job.operationalWait).toMatchObject({ kind: 'PROVIDER_COOLDOWN' });
+      expect(result.job.blocker).toBeUndefined();
+      expect(node.attempts.filter((attempt) => attempt.role === 'EXECUTOR')).toHaveLength(0);
+      expect(workGraph.units.filter((unit) => unit.kind !== 'integration').every(
+        (unit) => unit.status === 'READY' && unit.attempt === 0
+          && unit.latestFailure === undefined && unit.resourceWait !== undefined,
+      )).toBe(true);
+      expect(cooldown).toMatchObject({
+        status: 'ACTIVE',
+        lastAvailability: 'QUOTA_EXHAUSTED',
+        // First call established cooldown; the later sibling was gated.
+        strongAttemptsAvoided: 1,
+      });
+    } finally {
+      if (priorScenario === undefined) delete process.env['FAKE_CLAUDE_SCENARIO'];
+      else process.env['FAKE_CLAUDE_SCENARIO'] = priorScenario;
+    }
+  }, 300_000);
+
+  it('keeps OFF on the legacy Strong-only runtime without automatic Secondary work', async () => {
+    const priorScenario = process.env['FAKE_CLAUDE_SCENARIO'];
+    process.env['FAKE_CLAUDE_SCENARIO'] = 'objective-multi';
+    try {
+      const fixture = secondaryMissionFixture({
+        omitSecondarySelection: true,
+        secondaryStrategy: 'OFF',
+      });
+      const job = createJob(fixture.driverDeps, {
+        specName: 'steprelay-secondary',
+        goal: 'Qualify the Phase 7 OFF compatibility path.',
+      });
+      const result = await driveJob(fixture.driverDeps, job.jobId, {});
+      expect(result.stop.kind).toBe('completed');
+      expect(fixture.inferenceCalls()).toBe(0);
+      const jobGraph = requireGraphRevision(fixture.workspace, job.jobId, result.job.graphRevision);
+      expect(readBuilderRoutingStates(
+        fixture.workspace,
+        job.jobId,
+        jobGraph.nodes[0]!.nodeId,
+      )).toHaveLength(0);
+    } finally {
+      if (priorScenario === undefined) delete process.env['FAKE_CLAUDE_SCENARIO'];
+      else process.env['FAKE_CLAUDE_SCENARIO'] = priorScenario;
+    }
+  }, 300_000);
+
+  it('falls through from PREFER to Strong when automatic Secondary is unavailable', async () => {
+    const priorScenario = process.env['FAKE_CLAUDE_SCENARIO'];
+    process.env['FAKE_CLAUDE_SCENARIO'] = 'objective-multi';
+    try {
+      const fixture = secondaryMissionFixture({
+        automaticContext: true,
+        omitSecondarySelection: true,
+        secondaryStrategy: 'PREFER',
+      });
+      const job = createJob(fixture.driverDeps, {
+        specName: 'steprelay-secondary',
+        goal: 'Qualify immediate Strong fallback when optional Secondary is unavailable.',
+      });
+      const result = await driveJob(fixture.driverDeps, job.jobId, {});
+      expect(result.stop.kind).toBe('completed');
+      expect(fixture.inferenceCalls()).toBe(0);
+      const jobGraph = requireGraphRevision(fixture.workspace, job.jobId, result.job.graphRevision);
+      const states = readBuilderRoutingStates(
+        fixture.workspace,
+        job.jobId,
+        jobGraph.nodes[0]!.nodeId,
+      );
+      expect(states).toHaveLength(2);
+      expect(states.every((state) =>
+        state.decisions[0]?.selectedBackend === 'STRONG'
+        && state.decisions[0]?.reasons.some((reason) => reason.code === 'SECONDARY_UNAVAILABLE')
+        && state.finalBackend === 'STRONG')).toBe(true);
+    } finally {
+      if (priorScenario === undefined) delete process.env['FAKE_CLAUDE_SCENARIO'];
+      else process.env['FAKE_CLAUDE_SCENARIO'] = priorScenario;
+    }
+  }, 300_000);
+
   it('automatically compiles a fresh packet before the governed candidate lifecycle', async () => {
     const priorScenario = process.env['FAKE_CLAUDE_SCENARIO'];
     process.env['FAKE_CLAUDE_SCENARIO'] = 'objective-multi';
@@ -736,6 +1119,148 @@ describe('Secondary Objective Builder governed lifecycle', () => {
       expect(attempts.every((attempt) => attempt.status === 'CANDIDATE_READY')).toBe(true);
       expect(attempts.every((attempt) => attempt.verification?.passed === true)).toBe(true);
       expect(attempts.every((attempt) => attempt.proposal?.edits.length === 1)).toBe(true);
+      const routing = readBuilderRoutingStates(fixture.workspace, job.jobId, node.nodeId);
+      expect(routing).toHaveLength(2);
+      expect(routing.every((state) => state.finalBackend === 'SECONDARY')).toBe(true);
+      expect(readBuilderRoutingTelemetry(fixture.workspace, job.jobId, node.nodeId))
+        .toMatchObject({
+          eligibleCompletedUnits: 2,
+          eligibleCompletedWithoutStrong: 2,
+          strongBuilderAvoidanceRatio: 1,
+        });
+    } finally {
+      if (priorScenario === undefined) delete process.env['FAKE_CLAUDE_SCENARIO'];
+      else process.env['FAKE_CLAUDE_SCENARIO'] = priorScenario;
+    }
+  }, 300_000);
+
+  it('repairs once, detects repeated Secondary failure, and lets Strong continue the preserved candidate', async () => {
+    const priorScenario = process.env['FAKE_CLAUDE_SCENARIO'];
+    process.env['FAKE_CLAUDE_SCENARIO'] = 'objective-multi';
+    try {
+      const fixture = secondaryMissionFixture({
+        secondaryStrategy: 'PREFER',
+        secondaryVerificationFails: true,
+      });
+      const job = createJob(fixture.driverDeps, {
+        specName: 'steprelay-secondary',
+        goal: 'Exercise bounded Secondary repair and Strong continuation.',
+      });
+      const result = await driveJob(fixture.driverDeps, job.jobId, {});
+      const jobGraph = requireGraphRevision(fixture.workspace, job.jobId, result.job.graphRevision);
+      const nodeId = jobGraph.nodes[0]!.nodeId;
+      const workGraph = readLatestWorkGraph(fixture.workspace, job.jobId, nodeId)!;
+      const diagnosticStates = readBuilderRoutingStates(fixture.workspace, job.jobId, nodeId);
+      expect(
+        result.stop.kind,
+        JSON.stringify({
+          stop: result.stop,
+          jobStatus: result.job.status,
+          units: workGraph.units.map((unit) => ({
+            id: unit.workUnitId,
+            status: unit.status,
+            attempt: unit.attempt,
+            failure: unit.latestFailure,
+          })),
+          routing: diagnosticStates.map((state) => ({
+            workUnitId: state.workUnitId,
+            identity: state.workIdentity.slice(0, 12),
+            escalation: state.escalationStatus,
+            decisions: state.decisions.map((decision) => ({
+              attempt: decision.workUnitAttempt,
+              backend: decision.selectedBackend,
+              reasons: decision.reasons.map((reason) => reason.code),
+            })),
+            attempts: state.attempts.map((attempt) => ({
+              attempt: attempt.workUnitAttempt,
+              kind: attempt.kind,
+              outcome: attempt.outcome,
+              noProgress: attempt.noProgress,
+            })),
+          })),
+        }, null, 2),
+      ).toBe('completed');
+
+      const buildUnits = workGraph.units.filter((unit) => unit.kind === 'build');
+      expect(buildUnits.every((unit) => unit.attempt === 3 && unit.status === 'INTEGRATED')).toBe(true);
+      expect(fixture.inferenceCalls()).toBe(4);
+
+      const states = readBuilderRoutingStates(fixture.workspace, job.jobId, nodeId);
+      expect(states).toHaveLength(2);
+      for (const state of states) {
+        expect(state.attempts.map((attempt) => [attempt.kind, attempt.outcome])).toEqual([
+          ['SECONDARY', 'FAILED_VERIFICATION'],
+          ['SECONDARY_REPAIR', 'FAILED_VERIFICATION'],
+          ['STRONG_FALLBACK', 'SUCCEEDED'],
+        ]);
+        expect(state.attempts[1]?.noProgress).toBe(true);
+        expect(state.repairAttemptsUsed).toBe(1);
+        expect(state.finalBackend).toBe('STRONG');
+      }
+      expect(readBuilderRoutingTelemetry(fixture.workspace, job.jobId, nodeId)).toMatchObject({
+        eligibleCompletedUnits: 2,
+        eligibleCompletedWithoutStrong: 0,
+        strongBuilderAvoidanceRatio: 0,
+        repairAttempts: 2,
+      });
+      for (const unit of buildUnits) {
+        expect(readCandidate(
+          fixture.workspace,
+          job.jobId,
+          nodeId,
+          unit.workUnitId,
+          unit.attempt,
+        )?.builderProvenance).toMatchObject({
+          backend: 'LARGE_AGENT',
+          routingAttemptKind: 'STRONG_FALLBACK',
+        });
+      }
+      expect(readFileSync(path.join(fixture.root, 'src', 'envelope', 'implementation.js'), 'utf8'))
+        .not.toContain('secondary');
+      expect(readFileSync(path.join(fixture.root, 'src', 'transport', 'implementation.js'), 'utf8'))
+        .not.toContain('secondary');
+    } finally {
+      if (priorScenario === undefined) delete process.env['FAKE_CLAUDE_SCENARIO'];
+      else process.env['FAKE_CLAUDE_SCENARIO'] = priorScenario;
+    }
+  }, 300_000);
+
+  it('widens Phase 5 context exactly once when Secondary requests more context', async () => {
+    const priorScenario = process.env['FAKE_CLAUDE_SCENARIO'];
+    process.env['FAKE_CLAUDE_SCENARIO'] = 'objective-multi';
+    try {
+      const fixture = secondaryMissionFixture({
+        automaticContext: true,
+        secondaryNeedsMoreContextOnce: true,
+        secondaryStrategy: 'PREFER',
+      });
+      const job = createJob(fixture.driverDeps, {
+        specName: 'steprelay-secondary',
+        goal: 'Exercise one bounded Phase 7 context widening.',
+      });
+      const result = await driveJob(fixture.driverDeps, job.jobId, {});
+      expect(result.stop.kind).toBe('completed');
+      expect(fixture.inferenceCalls()).toBe(4);
+
+      const jobGraph = requireGraphRevision(fixture.workspace, job.jobId, result.job.graphRevision);
+      const nodeId = jobGraph.nodes[0]!.nodeId;
+      const attempts = readSecondaryBuilderAttempts(fixture.workspace, job.jobId, nodeId);
+      expect(attempts).toHaveLength(4);
+      for (const unitId of ['wu-1', 'wu-2']) {
+        const chain = attempts
+          .filter((attempt) => attempt.workUnitId === unitId)
+          .sort((left, right) => left.attempt - right.attempt);
+        expect(chain.map((attempt) => attempt.packet.expansion.level)).toEqual([
+          'ADJACENT_DEPENDENCIES',
+          'MODULE_CONTEXT',
+        ]);
+        expect(chain.map((attempt) => attempt.status)).toEqual(['CONTEXT_INSUFFICIENT', 'CANDIDATE_READY']);
+      }
+      const states = readBuilderRoutingStates(fixture.workspace, job.jobId, nodeId);
+      expect(states).toHaveLength(2);
+      expect(states.every((state) =>
+        state.attempts.map((attempt) => attempt.kind).join(',') === 'SECONDARY,SECONDARY_REPAIR'
+        && state.finalBackend === 'SECONDARY')).toBe(true);
     } finally {
       if (priorScenario === undefined) delete process.env['FAKE_CLAUDE_SCENARIO'];
       else process.env['FAKE_CLAUDE_SCENARIO'] = priorScenario;

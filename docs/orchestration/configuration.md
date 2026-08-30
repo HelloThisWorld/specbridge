@@ -78,6 +78,42 @@ Trusted verification commands still come only from `verification.commands`,
 as argv arrays — never from plan text, spec text, clarification text, or
 repository content.
 
+## Objective Secondary routing (vNext.10.2 Phase 7)
+
+Automatic direct-model implementation is opt-in and scoped to Objective
+WorkUnits that Phase 6 marks `ELIGIBLE`:
+
+```json
+{
+  "orchestration": {
+    "jobs": {
+      "objectives": {
+        "secondaryBuilder": {
+          "strategy": "OFF",
+          "maxRepairAttempts": 1
+        }
+      }
+    }
+  }
+}
+```
+
+`OFF` is the backward-compatible default. `PREFER` chooses an available
+Secondary first for eligible work; `AUTO` combines eligibility and health with
+the existing deterministic quota/economic mode. Neither mode can override a
+readiness blocker or authorize API spend. `maxRepairAttempts` accepts 0–3 and
+counts only code/context repair after a Secondary implementation actually ran.
+See [Adaptive Secondary routing](adaptive-secondary-routing.md) for the full
+attempt, fallback, resume, and telemetry semantics.
+
+During a Strong subscription cooldown, mission Objectives enter the Phase 8
+resource controller. READY WorkUnits that require Strong remain durably
+resource-waiting while independent permitted Secondary or research work
+continues. The Job uses `WAITING_RESOURCE` only after the runnable candidate
+set becomes empty. This does not add a configuration switch or change API
+spend authority. `PREFER`, `AUTO`, and `OFF` retain the meanings above. See
+[Subscription cooldown continuation](subscription-cooldown-continuation.md).
+
 ## Inspecting and validating
 
 ```bash

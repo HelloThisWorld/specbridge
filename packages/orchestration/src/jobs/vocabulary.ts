@@ -626,5 +626,18 @@ export const JOB_EVENT_TYPES = [
   // Phase 6 admission evidence. This records eligibility only; it never
   // selects an execution lane or model.
   'secondary_readiness_assessed',
+  // Phase 7 builder routing and bounded repair/fallback evidence.
+  'builder_routing_decided',
+  'builder_routing_attempt_completed',
+  'builder_routing_candidate_finalized',
+  // Phase 8 resource-scoped continuation. Per-unit waits are durable on the
+  // WorkGraph; these events make episode boundaries and useful work visible.
+  'resource_cooldown_started',
+  'resource_cooldown_observed',
+  'work_unit_resource_wait_started',
+  'work_unit_resource_wait_ended',
+  'resource_wait_entered',
+  'useful_work_during_cooldown',
+  'resource_recovered',
 ] as const;
 export type JobEventType = (typeof JOB_EVENT_TYPES)[number];

@@ -455,6 +455,11 @@ export interface DispatchSetInput {
   parallelism: { enabled: boolean; maxConcurrentBuilders: number };
   /** True when an unresolved NEEDS_DECISION / conflict exists right now. */
   unresolvedDecision: boolean;
+  /**
+   * READY units whose permitted compute is temporarily unavailable. They
+   * stay READY/durable, but cannot hide a later runnable sibling.
+   */
+  unavailableWorkUnitIds?: ReadonlySet<string> | undefined;
 }
 
 /**
@@ -471,7 +476,9 @@ export interface DispatchSetInput {
  * When uncertain: serialize — never guess parallel.
  */
 export function selectDispatchSet(input: DispatchSetInput): WorkUnit[] {
-  const ready = readyUnits(input.graph);
+  const ready = readyUnits(input.graph).filter(
+    (unit) => input.unavailableWorkUnitIds?.has(unit.workUnitId) !== true,
+  );
   if (ready.length === 0) return [];
   const first = ready[0]!;
   if (!input.parallelism.enabled || input.unresolvedDecision) return [first];

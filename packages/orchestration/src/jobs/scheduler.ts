@@ -51,6 +51,8 @@ export type SchedulerDecision =
       laneRouting?: NodeLaneRouting;
       /** vNext.2: context must be compacted/reconstructed before dispatch. */
       compactFirst?: boolean;
+      /** Phase 8: outer admission into the WorkUnit resource controller. */
+      objectiveResourceController?: boolean;
     }
   | { kind: 'WAIT_RETRY'; retryAt: string; reason: string }
   | {
@@ -109,6 +111,11 @@ export interface LaneSchedulingContext {
   reserveRatio: number;
   /** Per-node lane assessments, keyed by nodeId. */
   routings: ReadonlyMap<string, NodeLaneRouting>;
+  /**
+   * Mission-driven nodes whose Objective runtime can reduce its own
+   * WorkUnit candidate set when the outer Strong lane is deferred.
+   */
+  resourceAwareObjectiveNodes?: ReadonlySet<string> | undefined;
 }
 
 /** Escalation reasons recorded for a node, in order (sticky routing input). */
@@ -566,6 +573,30 @@ export function scheduleNext(input: ScheduleInput): SchedulerDecision {
   if (scheduling !== undefined && scheduling.policy.enabled && laneRouting !== undefined) {
     const routing = laneRouting.routing;
     if (routing.lane === 'DEFER' || routing.lane === 'REQUIRE_APPROVAL') {
+      if (
+        routing.lane === 'DEFER'
+        && scheduling.resourceAwareObjectiveNodes?.has(node.nodeId) === true
+      ) {
+        const controller = selectWorker({
+          role: 'EXECUTOR',
+          complexity: node.complexity,
+          policy,
+          workers,
+          nodeEscalations: escalations,
+        });
+        return {
+          kind: 'DISPATCH_EXECUTOR',
+          nodeId: node.nodeId,
+          taskId: node.parentTaskId,
+          worker: controller.worker,
+          mode,
+          compactFirst: false,
+          objectiveResourceController: true,
+          reason:
+            `${baseReason} Strong is quota-deferred, so the Objective resource controller `
+            + 'searches the bounded READY WorkUnit set for permitted Secondary or research work.',
+        };
+      }
       return {
         kind: 'WAIT_QUOTA',
         nodeId: node.nodeId,

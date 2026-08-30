@@ -14,15 +14,16 @@ isolated Objective worktree
 normal candidate → evaluation → aggregation → single-writer integration
 ```
 
-Phase 4 creates capability. It does **not** automatically route Objective work
-to the secondary backend. With no explicit `secondaryObjectiveBuilder`
-selection, BUILDER behavior remains the existing large-agent path. Automatic
-eligibility, routing, repair, and fallback belong to later phases. Phase 5
+Phase 4 creates capability. By itself it does **not** automatically route
+Objective work to the secondary backend. Phase 5
 adds deterministic [Builder Packet compilation](builder-packet-compilation.md)
 without changing this explicit-only selection rule. Phase 6 adds
 [Secondary Work Readiness](secondary-work-readiness.md): an explicitly selected
-attempt must be eligible before inference, but eligibility still does not
-select or automatically route a backend.
+attempt must be eligible before inference, but eligibility still does not mean
+Secondary is mandatory. Phase 7 adds opt-in
+[Adaptive Secondary routing](adaptive-secondary-routing.md). Its compatibility
+default is `OFF`; `AUTO` and `PREFER` may select this same governed backend and
+use bounded repair plus repair-oriented Strong fallback.
 
 ## Not an Agent Harness
 
@@ -116,10 +117,12 @@ context, insufficient or ambiguous retrieval, application failure,
 verification failure, and an oversized context. A model may return the
 structured `NEEDS_MORE_CONTEXT` status; this records an insufficient attempt
 and creates no candidate.
-Phase 4 performs no secondary repair retry and no automatic large-model
-fallback. Phase 6 preserves that behavior: a readiness blocker is recorded
-with its own research, authority, context, dependency, or strong-reasoning
-meaning and is never converted into a silent fallback.
+An explicit Phase 4 qualification under the default `OFF` policy remains a
+one-shot path. Phase 7 `AUTO`/`PREFER` production routing adds the separately
+persisted bounded attempt chain described in
+[Adaptive Secondary routing](adaptive-secondary-routing.md). A readiness
+blocker retains its research, authority, context, dependency, or
+strong-reasoning meaning and is never converted into a silent Secondary call.
 
 ## Qualification
 

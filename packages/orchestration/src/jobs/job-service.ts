@@ -1067,6 +1067,64 @@ export function beginExecutorDispatch(
   return persist(deps, job);
 }
 
+/**
+ * Yield an Objective controller dispatch because every remaining candidate
+ * is gated by a temporary resource cooldown.
+ *
+ * The survival attempt is closed for audit, but no NodeAttempt is appended:
+ * quota refusal is not an implementation attempt and therefore consumes
+ * neither `maxTaskAttempts` nor the normal agent-run budget. The WorkGraph
+ * already contains the durable per-WorkUnit wait and all completed
+ * candidates before this is called.
+ */
+export function yieldExecutorForResourceWait(
+  deps: JobDeps,
+  jobId: string,
+  input: { nodeId: string; detail: string },
+): JobState {
+  assertJobsEnabled(deps);
+  let job = requireJobState(deps.workspace, jobId);
+  let graph = requireGraphRevision(deps.workspace, jobId, job.graphRevision);
+  const node = requireNode(graph, input.nodeId);
+  if (node.status !== 'RUNNING' && node.status !== 'REPAIRING') {
+    throw new OrchestrationError(
+      'SBO030',
+      `Node ${node.nodeId} cannot yield for a resource wait from ${node.status}.`,
+    );
+  }
+  if (job.currentAttemptId !== undefined) {
+    const attempt = readTaskAttempt(deps.workspace, jobId, job.currentAttemptId);
+    if (attempt !== undefined && !isFinalAttemptStatus(attempt.status)) {
+      completeTaskAttempt(
+        { workspace: deps.workspace, clock: deps.clock, idFactory: deps.idFactory },
+        {
+          jobId,
+          attemptId: attempt.attemptId,
+          status: 'CANCELLED',
+          resultSummary: `Yielded without an implementation attempt: ${input.detail.slice(0, 1_500)}`,
+        },
+      );
+    }
+    job = record(deps, job, 'attempt_completed', {
+      nodeId: node.nodeId,
+      taskId: node.parentTaskId,
+      attemptId: job.currentAttemptId,
+      status: 'CANCELLED',
+      resourceDeferred: true,
+      implementationAttemptConsumed: false,
+    });
+  }
+  graph = transitionNode(graph, node.nodeId, 'READY');
+  job = transition(deps, job, 'READY');
+  job = {
+    ...job,
+    currentAttemptId: undefined,
+    currentNodeId: node.nodeId,
+  };
+  persistGraph(deps, job, graph);
+  return persist(deps, job);
+}
+
 export interface ExecutorOutcome {
   context: AttemptContext;
   mode: 'implement' | 'repair';
@@ -3021,6 +3079,7 @@ export function checkpointJob(deps: JobDeps, jobId: string, nextAction: string):
     counters: job.counters,
     budgets: job.budgets,
     ...(job.blocker !== undefined ? { blocker: job.blocker } : {}),
+    ...(job.operationalWait !== undefined ? { operationalWait: job.operationalWait } : {}),
     nextAction: nextAction.slice(0, 2_000),
   });
   writeJobCheckpoint(deps.workspace, jobId, checkpoint);
