@@ -43,6 +43,7 @@ import { registerMissionCommands } from './commands/mission.js';
 import { registerAutonomyCommands } from './commands/autonomy.js';
 import { registerWorkspaceCommands } from './commands/workspace.js';
 import { registerResearchCommands } from './commands/research.js';
+import { registerReportCommands } from './commands/report.js';
 
 function buildProgram(runtime: CliRuntime): Command {
   const program = new Command();
@@ -115,6 +116,7 @@ honest error; nothing pretends to work before it does.`,
   registerAutonomyCommands(program, runtime);
   registerWorkspaceCommands(program, runtime);
   registerResearchCommands(program, runtime);
+  registerReportCommands(program, runtime);
 
   return program;
 }

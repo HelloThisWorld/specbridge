@@ -4,3 +4,4 @@ export * from './html-report.js';
 export * from './verification-terminal.js';
 export * from './verification-markdown.js';
 export * from './verification-html.js';
+export * from './execution-telemetry.js';

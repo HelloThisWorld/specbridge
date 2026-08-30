@@ -129,6 +129,9 @@ the intent in the evening, run one command, read the report in the morning.
   self-repair that cannot weaken its own constraints.
 - [Autonomy telemetry](autonomy/telemetry.md) — the honest report, where an
   unknown is `null` and never zero.
+- [Execution telemetry and token conservation](autonomy/execution-telemetry.md)
+  — versioned Phase 9 Job/WorkUnit routing, research, cooldown, reliability,
+  verification, and closure analytics without new authority.
 - [Zero-touch certification](autonomy/certification.md) — the sixteen-fault
   matrix, and the three defects it found.
 - [Operator setup](autonomy/operator-setup.md) — the evening checklist.
@@ -243,7 +246,7 @@ the intent in the evening, run one command, read the report in the morning.
 ## MCP & frontend plugins
 
 - [MCP server](mcp-server.md) — the local stdio server.
-- [MCP tool reference](mcp/tool-reference.md) — all 77 tools (generated).
+- [MCP tool reference](mcp/tool-reference.md) — all 78 tools (generated).
 - [MCP tools](mcp-tools.md) · [resources](mcp-resources.md) ·
   [prompts](mcp-prompts.md) · [CLI/MCP parity](cli-mcp-parity.md).
 - [Claude Code integration](claude-code-integration.md) — both directions.

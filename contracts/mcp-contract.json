@@ -27,6 +27,7 @@
     "job_cancel",
     "job_list",
     "job_read",
+    "job_report",
     "mission_answer",
     "mission_assess",
     "mission_begin",

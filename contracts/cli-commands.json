@@ -761,6 +761,21 @@
           }
         }
       },
+      "report": {
+        "options": [
+          "--help"
+        ],
+        "subcommands": {
+          "job": {
+            "options": [
+              "--help",
+              "--json",
+              "--no-persist",
+              "--verbose"
+            ]
+          }
+        }
+      },
       "research": {
         "options": [
           "--help"

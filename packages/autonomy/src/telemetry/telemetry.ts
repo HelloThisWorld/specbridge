@@ -163,7 +163,7 @@ export interface ComputeTelemetryInput {
  * would be wrong after the first process restart, and process restarts are
  * the normal case here.
  */
-export function computeAutonomyTelemetry(
+export function deriveAutonomyTelemetry(
   deps: AutonomyDeps,
   input: ComputeTelemetryInput,
 ): AutonomyTelemetry {
@@ -306,6 +306,22 @@ export function computeAutonomyTelemetry(
     interventions: interventions.slice(0, 200),
   });
 
+  return telemetry;
+}
+
+/**
+ * Compute and persist the legacy autonomy telemetry snapshot.
+ *
+ * New read-only reporting surfaces use `deriveAutonomyTelemetry` so a report
+ * request cannot mutate runtime state.  This wrapper preserves the existing
+ * command/runtime behaviour for callers that intentionally materialize the
+ * snapshot under `.specbridge/autonomy/telemetry/`.
+ */
+export function computeAutonomyTelemetry(
+  deps: AutonomyDeps,
+  input: ComputeTelemetryInput,
+): AutonomyTelemetry {
+  const telemetry = deriveAutonomyTelemetry(deps, input);
   writeJsonRecord(telemetryFile(deps.workspace, input.jobId), telemetry);
   return telemetry;
 }

@@ -40,6 +40,17 @@ specbridge spec show <name>
 specbridge compat check  # proves byte-identical .kiro round-trips
 ```
 
+Inspect a durable Job's operational and token-conservation telemetry:
+
+```bash
+specbridge report job <jobId>
+specbridge report job <jobId> --verbose
+specbridge report job <jobId> --json
+```
+
+The report is observational and never grants authority or completion. JSON
+output preserves unknown usage as `null` and includes coverage metadata.
+
 Full documentation, examples, templates, the extension SDK, and the Claude
 Code plugin live in the repository:
 <https://github.com/HelloThisWorld/specbridge>
