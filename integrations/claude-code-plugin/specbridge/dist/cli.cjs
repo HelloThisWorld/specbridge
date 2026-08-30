@@ -59646,6 +59646,8 @@ var jobCheckpointSchema = external_exports.object({
   counters: jobCountersSchema,
   budgets: jobBudgetsSchema,
   blocker: orchestrationBlockerSchema.optional(),
+  /** Durable resource/provider wait copied for long-sleep restart audit. */
+  operationalWait: operationalWaitSchema.optional(),
   /** The exact next legal action, in one line. */
   nextAction: text22
 }).passthrough();
@@ -72220,6 +72222,7 @@ function checkpointJob(deps3, jobId, nextAction) {
     counters: job.counters,
     budgets: job.budgets,
     ...job.blocker !== void 0 ? { blocker: job.blocker } : {},
+    ...job.operationalWait !== void 0 ? { operationalWait: job.operationalWait } : {},
     nextAction: nextAction.slice(0, 2e3)
   });
   writeJobCheckpoint(deps3.workspace, jobId, checkpoint);
