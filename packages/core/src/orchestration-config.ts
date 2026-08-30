@@ -254,6 +254,31 @@ export const SEMANTIC_EVALUATION_MODES = ['auto', 'always', 'disabled'] as const
 export type SemanticEvaluationMode = (typeof SEMANTIC_EVALUATION_MODES)[number];
 
 /**
+ * Phase 7 Objective-builder routing policy.
+ *
+ * OFF is the compatibility default. AUTO and PREFER may select the optional
+ * direct local builder only after Phase 6 has admitted the WorkUnit. A
+ * Secondary outage never blocks a permitted Strong builder, and the repair
+ * bound is independent from structured-output correction budgets.
+ */
+export interface SecondaryBuilderRoutingPolicy {
+  strategy: 'OFF' | 'AUTO' | 'PREFER';
+  maxRepairAttempts: number;
+  [key: string]: unknown;
+}
+
+export const secondaryBuilderRoutingPolicySchema: z.ZodType<
+  SecondaryBuilderRoutingPolicy,
+  z.ZodTypeDef,
+  unknown
+> = z
+  .object({
+    strategy: z.enum(['OFF', 'AUTO', 'PREFER'] as const).default('OFF'),
+    maxRepairAttempts: z.number().int().min(0).max(3).default(1),
+  })
+  .passthrough() as unknown as z.ZodType<SecondaryBuilderRoutingPolicy, z.ZodTypeDef, unknown>;
+
+/**
  * Objective decomposition policy (additive, defaulted). Governs the runtime
  * level BETWEEN an approved objective (a leaf task in tasks.md) and worker
  * dispatches: dynamic work graphs, isolated builder worktrees, candidate
@@ -277,6 +302,8 @@ export const objectivesPolicySchema = z
       .max(24 * 3_600_000)
       .default(1_200_000),
     semanticEvaluation: z.enum(SEMANTIC_EVALUATION_MODES).default('auto'),
+    /** Optional Phase 7 Secondary routing; OFF preserves pre-Phase-7 behavior. */
+    secondaryBuilder: secondaryBuilderRoutingPolicySchema.default({}),
     parallelism: objectiveParallelismSchema.default({}),
     /** Serialized size ceiling for one candidate patch artifact. */
     maxCandidateBytes: z.number().int().min(10_240).max(20_000_000).default(2_000_000),

@@ -110,6 +110,12 @@ export interface SchedulingRuntime {
   subscriptionWorkerAvailable: boolean;
   verificationAvailable: boolean;
   /**
+   * Mission objectives own a finer WorkUnit candidate set. During a Strong
+   * cooldown the outer scheduler may enter that controller so it can run
+   * Secondary/research candidates instead of globally deferring the node.
+   */
+  missionDriven: boolean;
+  /**
    * vNext.8 adaptive compute scheduler.
    *
    * `adaptiveEnabled` is false in HEURISTIC mode, and when it is false no
@@ -207,6 +213,7 @@ export function createSchedulingRuntime(
     apiBridgeEnabled,
     subscriptionWorkerAvailable: input.subscriptionWorkerAvailable ?? true,
     verificationAvailable: config.verification.commands.length > 0,
+    missionDriven: input.missionDriven,
     adaptivePolicy: policy.adaptive,
     adaptiveEnabled: policy.adaptive.mode !== 'HEURISTIC',
     contextStrategy: config.orchestration.jobs.context.efficiency.strategy as ContextStrategy,
@@ -421,6 +428,9 @@ export async function buildLaneContext(
       forecast,
       reserveRatio: reserve.ratio,
       routings,
+      ...(runtime.missionDriven
+        ? { resourceAwareObjectiveNodes: new Set(ready.map((node) => node.nodeId)) }
+        : {}),
     },
     forecast,
     reserve,

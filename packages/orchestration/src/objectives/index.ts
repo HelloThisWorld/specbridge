@@ -15,3 +15,5 @@ export * from './objective-driver.js';
 export * from './secondary-builder.js';
 export * from './builder-packet-compiler.js';
 export * from './work-readiness.js';
+export * from './builder-routing.js';
+export * from './resource-cooldown.js';

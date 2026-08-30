@@ -169,6 +169,11 @@ function stageMarkdownFor(stage) {
 const stageMatch = /Stage to produce: (\w+)/.exec(stdin);
 const roleMatch = /SpecBridge orchestration role: (\w+)/.exec(stdin);
 
+if (scenario === 'objective-multi-builder-quota' && roleMatch?.[1] === 'BUILDER') {
+  process.stderr.write('Error: subscription usage limit reached; quota is exhausted\n');
+  process.exit(3);
+}
+
 // Mirror the real CLI contract: --json-schema takes the schema itself. A
 // filesystem path (the historical SpecBridge defect) fails here exactly as
 // Claude Code fails, with the diagnostic on stderr and no stdout envelope.
@@ -372,7 +377,7 @@ if (roleMatch !== null) {
               },
             ],
           }
-        : scenario === 'objective-multi'
+        : scenario === 'objective-multi' || scenario === 'objective-multi-builder-quota'
         ? {
             decision: 'WORK_GRAPH',
             reason: 'The protocol and the transport are independently buildable.',

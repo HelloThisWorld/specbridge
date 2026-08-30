@@ -326,6 +326,52 @@ describe('scheduleNext', () => {
     }
   });
 
+  it('admits a quota-deferred mission node into the Objective resource controller', () => {
+    let { graph } = buildFixtureGraph();
+    const first = graph.nodes[0] as JobNode;
+    graph = withNode(graph, {
+      ...first,
+      complexity: 'LOW',
+      planRevision: 1,
+      planApproved: true,
+      attempts: [
+        { attempt: 1, role: 'CLASSIFIER', workerId: LOCAL_WORKER_ID, startedAt: 't', outcome: 'succeeded' },
+      ],
+    });
+    const routing = {
+      routing: {
+        lane: 'DEFER',
+        reasonCode: 'FIVE_HOUR_EXHAUSTED',
+        detail: 'Strong subscription is cooling down.',
+        deferUntil: '2026-08-01T15:00:00.000Z',
+        compactFirst: false,
+      },
+    } as never;
+    const scheduling = {
+      policy: { ...policy.scheduler, enabled: true },
+      forecast: {
+        schedulerMode: 'EXHAUSTED_5H',
+        fiveHourResetAt: '2026-08-01T15:00:00.000Z',
+      },
+      reserveRatio: 0,
+      routings: new Map([[first.nodeId, routing]]),
+      resourceAwareObjectiveNodes: new Set([first.nodeId]),
+    } as never;
+
+    const admitted = schedule({ graph, scheduling });
+    expect(admitted).toMatchObject({
+      kind: 'DISPATCH_EXECUTOR',
+      objectiveResourceController: true,
+    });
+    if (admitted.kind === 'DISPATCH_EXECUTOR') expect(admitted.lane).toBeUndefined();
+
+    const globallyDeferred = schedule({
+      graph,
+      scheduling: { ...(scheduling as object), resourceAwareObjectiveNodes: new Set() } as never,
+    });
+    expect(globallyDeferred).toMatchObject({ kind: 'WAIT_QUOTA' });
+  });
+
   it('a plan awaiting human review yields AWAIT_HUMAN, not a dispatch', () => {
     let { graph } = buildFixtureGraph();
     const first = graph.nodes[0] as JobNode;

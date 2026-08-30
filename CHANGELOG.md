@@ -2,6 +2,46 @@
 
 ## Unreleased
 
+### Subscription Cooldown Continuation & Compute Survival — vNext.10.2 Phase 8
+
+- Added durable, resource-scoped Strong subscription cooldown state at the
+  Objective/WorkUnit boundary. Quota refusal keeps readiness unchanged,
+  restores the pre-dispatch implementation-attempt number, and records a
+  recoverable wait instead of an implementation defect or human blocker.
+- Changed mission Objective scheduling so an outer Strong quota defer enters
+  the bounded WorkUnit candidate controller. Resource-waiting Strong units no
+  longer hide later READY Secondary/research candidates; dependencies remain
+  authoritative and the Job enters `WAITING_RESOURCE` only when no permitted
+  candidate remains runnable.
+- Preserved candidates, `CANDIDATE_READY` resume, completed Secondary work,
+  and sticky Secondary-to-Strong fallback state across process/supervisor
+  restart and resource recovery. PREFER/AUTO/OFF and API-spend semantics are
+  unchanged, and availability flips never preempt an owned attempt.
+- Added resource episode telemetry and deterministic qualification over a
+  15-WorkUnit mixed graph and fake five-hour outage: eight useful Secondary
+  completions during cooldown, four Strong waits, one restart, final
+  completion, and zero redo, candidate loss, duplicate dispatch, avoidable
+  idle periods, repair-budget resets, unexpected blocks, or human actions.
+
+### Adaptive Secondary Routing, Repair & Strong Fallback — vNext.10.2 Phase 7
+
+- Added additive `OFF` (default), `AUTO`, and `PREFER` Objective-builder
+  routing after Phase 6 eligibility, using existing subscription economic
+  modes and normalized local availability without changing API spend,
+  authority, execution-lane, or compute-locality policy.
+- Added versioned, explainable routing decisions and durable content-bound
+  attempt chains with one Secondary repair by default, deterministic
+  no-progress fingerprints, sticky Strong fallback, restart-safe freshness,
+  and one bounded Phase 5 context widening for `NEEDS_MORE_CONTEXT`.
+- Preserved failed Secondary candidates, patches, changed files, verification
+  evidence, and provider telemetry. Repair replays that work, and Strong
+  fallback receives it in a bounded continuation packet while remaining free
+  to repair or replace bad code through the normal candidate lifecycle.
+- Added routing/outcome/cost telemetry and `StrongBuilderAvoidanceRatio`, plus
+  OFF/PREFER/AUTO, unavailable-provider, repair/fallback, no-progress,
+  persistence, material-reset, API-guard, and mixed 15-unit qualification
+  coverage.
+
 ### Secondary Eligibility & Work Readiness — vNext.10.2 Phase 6
 
 - Added deterministic, versioned `WorkReadinessAssessment` and

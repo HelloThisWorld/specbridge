@@ -12,8 +12,10 @@ selects fresh source and tests first, so the direct model needs no repository
 tools for ordinary bounded implementation work. Phase 6
 [Secondary Work Readiness](orchestration/secondary-work-readiness.md) then
 checks the individual WorkUnit's knowledge, entropy, specificity, trusted
-verification, context, authority, mutation scope, and dependencies. This is
-admission evidence only; it does not automatically route work to the model.
+verification, context, authority, mutation scope, and dependencies. Phase 7
+[Adaptive Secondary routing](orchestration/adaptive-secondary-routing.md) can
+then opt eligible Objective work into `AUTO` or `PREFER`; the default remains
+`OFF`, and an unavailable local model immediately falls through to Strong.
 
 The local model is a **worker**, never an authority: its answers are
 schema-validated structured proposals that deterministic policy accepts,

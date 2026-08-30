@@ -51,6 +51,32 @@ const semver = z.string().regex(/^\d+\.\d+\.\d+$/);
 // Work units and the work graph
 // ---------------------------------------------------------------------------
 
+/**
+ * A temporary compute constraint on one otherwise-READY WorkUnit.
+ *
+ * This is deliberately orthogonal to `status`: quota does not make the
+ * implementation invalid and does not change Phase 6 readiness. Keeping the
+ * unit READY while recording the unavailable resource lets the candidate
+ * selector continue over independent siblings and makes a restart reproduce
+ * the same runnable set from disk.
+ */
+export const workUnitResourceWaitSchema = z
+  .object({
+    reason: z.literal('RESOURCE_COOLDOWN'),
+    resourceClass: z.literal('STRONG_SUBSCRIPTION'),
+    availability: z.enum(['QUOTA_EXHAUSTED', 'COOLDOWN', 'RATE_LIMITED']),
+    since: shortText,
+    lastObservedAt: shortText,
+    /** Provider/telemetry reset instant when known; absence remains unknown. */
+    wakeAt: shortText.optional(),
+    /** Phase 7 content identity, when routing admission produced one. */
+    routingWorkIdentity: shortText.optional(),
+    /** Sticky Secondary→Strong handoff is pending for this identity. */
+    fallbackPending: z.boolean().default(false),
+  })
+  .strict();
+export type WorkUnitResourceWait = z.infer<typeof workUnitResourceWaitSchema>;
+
 export const workUnitSchema = z
   .object({
     workUnitId: shortText,
@@ -82,6 +108,8 @@ export const workUnitSchema = z
     candidateRef: shortText.optional(),
     /** Evaluation record references, oldest first. */
     evaluationRefs: idList.default([]),
+    /** Recoverable resource gating; the unit itself remains READY. */
+    resourceWait: workUnitResourceWaitSchema.optional(),
     latestFailure: z
       .object({
         category: z.enum(FAILURE_CATEGORIES),

@@ -27,6 +27,13 @@ import {
   workReadinessRecordSchema,
   workReadinessTelemetrySchema,
 } from './work-readiness.js';
+import type { BuilderRoutingState, BuilderRoutingTelemetry } from './builder-routing.js';
+import {
+  builderRoutingStateSchema,
+  builderRoutingTelemetrySchema,
+} from './builder-routing.js';
+import type { ObjectiveCooldownState } from './resource-cooldown.js';
+import { objectiveCooldownStateSchema } from './resource-cooldown.js';
 
 /**
  * Objective-runtime persistence:
@@ -44,6 +51,9 @@ import {
  *   secondary-attempts/<wu>-a<n>.json direct-model packet/proposal evidence
  *   readiness/<wu>-a<n>.json    derived WorkUnit assessment + eligibility
  *   readiness/telemetry.json    aggregate readiness distributions
+ *   routing/<wu>-<identity>.json Phase 7 routing + bounded attempt chain
+ *   routing/telemetry.json       Secondary/Strong outcome distributions
+ *   resources/strong-subscription.json Phase 8 cooldown/continuation facts
  *   reports/<name>.json          aggregation reports (immutable)
  *
  * Same guarantees as every other store: path-checked, atomic, append-only
@@ -515,6 +525,142 @@ export function readWorkReadinessTelemetry(
     artifactPath(workspace, jobId, nodeId, 'readiness', 'telemetry.json'),
     (raw) => {
       const result = workReadinessTelemetrySchema.safeParse(raw);
+      return result.success ? result.data : undefined;
+    },
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Builder routing (content-identity-bound, crash/resume state)
+// ---------------------------------------------------------------------------
+
+function routingStateName(workUnitId: string, workIdentity: string): string {
+  assertSegment(workUnitId, 'work unit id');
+  if (!/^[a-f0-9]{64}$/.test(workIdentity)) {
+    throw new OrchestrationError('SBO040', `Invalid builder routing work identity "${workIdentity}".`);
+  }
+  return `${workUnitId}-${workIdentity.slice(0, 16)}.json`;
+}
+
+export function storeBuilderRoutingState(
+  workspace: WorkspaceInfo,
+  jobId: string,
+  nodeId: string,
+  state: BuilderRoutingState,
+): BuilderRoutingState {
+  const validated = builderRoutingStateSchema.parse(state);
+  const file = artifactPath(
+    workspace,
+    jobId,
+    nodeId,
+    'routing',
+    routingStateName(validated.workUnitId, validated.workIdentity),
+  );
+  mkdirSync(path.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}\n`);
+  return validated;
+}
+
+export function readBuilderRoutingState(
+  workspace: WorkspaceInfo,
+  jobId: string,
+  nodeId: string,
+  workUnitId: string,
+  workIdentity: string,
+): BuilderRoutingState | undefined {
+  let name: string;
+  try {
+    name = routingStateName(workUnitId, workIdentity);
+  } catch {
+    return undefined;
+  }
+  return readJson(
+    artifactPath(workspace, jobId, nodeId, 'routing', name),
+    (raw) => {
+      const result = builderRoutingStateSchema.safeParse(raw);
+      return result.success ? result.data : undefined;
+    },
+  );
+}
+
+export function readBuilderRoutingStates(
+  workspace: WorkspaceInfo,
+  jobId: string,
+  nodeId: string,
+): BuilderRoutingState[] {
+  const dir = artifactPath(workspace, jobId, nodeId, 'routing');
+  if (!existsSync(dir)) return [];
+  const states: BuilderRoutingState[] = [];
+  for (const name of readdirSync(dir).sort()) {
+    if (!name.endsWith('.json') || name === 'telemetry.json') continue;
+    const state = readJson(path.join(dir, name), (raw) => {
+      const result = builderRoutingStateSchema.safeParse(raw);
+      return result.success ? result.data : undefined;
+    });
+    if (state !== undefined) states.push(state);
+  }
+  return states;
+}
+
+export function storeBuilderRoutingTelemetry(
+  workspace: WorkspaceInfo,
+  jobId: string,
+  nodeId: string,
+  telemetry: BuilderRoutingTelemetry,
+): BuilderRoutingTelemetry {
+  const validated = builderRoutingTelemetrySchema.parse(telemetry);
+  const file = artifactPath(workspace, jobId, nodeId, 'routing', 'telemetry.json');
+  mkdirSync(path.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}\n`);
+  return validated;
+}
+
+export function readBuilderRoutingTelemetry(
+  workspace: WorkspaceInfo,
+  jobId: string,
+  nodeId: string,
+): BuilderRoutingTelemetry | undefined {
+  return readJson(
+    artifactPath(workspace, jobId, nodeId, 'routing', 'telemetry.json'),
+    (raw) => {
+      const result = builderRoutingTelemetrySchema.safeParse(raw);
+      return result.success ? result.data : undefined;
+    },
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Objective resource cooldown (status-controlled operational evidence)
+// ---------------------------------------------------------------------------
+
+export function storeObjectiveCooldownState(
+  workspace: WorkspaceInfo,
+  jobId: string,
+  nodeId: string,
+  state: ObjectiveCooldownState,
+): ObjectiveCooldownState {
+  const validated = objectiveCooldownStateSchema.parse(state);
+  const file = artifactPath(
+    workspace,
+    jobId,
+    nodeId,
+    'resources',
+    'strong-subscription.json',
+  );
+  mkdirSync(path.dirname(file), { recursive: true });
+  writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}\n`);
+  return validated;
+}
+
+export function readObjectiveCooldownState(
+  workspace: WorkspaceInfo,
+  jobId: string,
+  nodeId: string,
+): ObjectiveCooldownState | undefined {
+  return readJson(
+    artifactPath(workspace, jobId, nodeId, 'resources', 'strong-subscription.json'),
+    (raw) => {
+      const result = objectiveCooldownStateSchema.safeParse(raw);
       return result.success ? result.data : undefined;
     },
   );

@@ -34276,6 +34276,10 @@ var objectiveParallelismSchema = external_exports.object({
   maxConcurrentBuilders: external_exports.number().int().min(1).max(8).default(3)
 }).passthrough();
 var SEMANTIC_EVALUATION_MODES = ["auto", "always", "disabled"];
+var secondaryBuilderRoutingPolicySchema = external_exports.object({
+  strategy: external_exports.enum(["OFF", "AUTO", "PREFER"]).default("OFF"),
+  maxRepairAttempts: external_exports.number().int().min(0).max(3).default(1)
+}).passthrough();
 var objectivesPolicySchema = external_exports.object({
   enabled: external_exports.boolean().default(true),
   /** Hard ceiling on work units in one objective's graph. */
@@ -34286,6 +34290,8 @@ var objectivesPolicySchema = external_exports.object({
   maxBuilderAttemptsPerUnit: external_exports.number().int().min(1).max(10).default(2),
   builderTimeoutMs: external_exports.number().int().min(6e4).max(24 * 36e5).default(12e5),
   semanticEvaluation: external_exports.enum(SEMANTIC_EVALUATION_MODES).default("auto"),
+  /** Optional Phase 7 Secondary routing; OFF preserves pre-Phase-7 behavior. */
+  secondaryBuilder: secondaryBuilderRoutingPolicySchema.default({}),
   parallelism: objectiveParallelismSchema.default({}),
   /** Serialized size ceiling for one candidate patch artifact. */
   maxCandidateBytes: external_exports.number().int().min(10240).max(2e7).default(2e6),

@@ -130,6 +130,7 @@ suitability policy remains in place for non-Objective scheduler flows. A small
 compatibility bridge can translate an Objective readiness record where needed,
 without reapplying parent-complexity vetoes.
 
-Phase 7 owns automatic routing, availability, quota/economic policy, repair,
-and fallback. Phase 8 cooldown continuation, LLM Gateway, remote-model
+Phase 7 implements [automatic routing, availability, bounded repair, and
+Strong fallback](adaptive-secondary-routing.md) while keeping this admission
+record separate from resource preference. Phase 8 cooldown continuation, LLM Gateway, remote-model
 registries, learned routing, and OpenMind are also outside Phase 6.

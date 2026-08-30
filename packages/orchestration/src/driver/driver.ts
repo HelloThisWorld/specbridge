@@ -26,7 +26,7 @@ import { OrchestrationError } from '../errors.js';
 import { executionPlanSchema } from '../state.js';
 import type { ExecutionPlan } from '../state.js';
 import { resolveDelegatedAuthority, screenReplanForApprovedIntentImpact } from '../jobs/authority.js';
-import { escalateAuthority } from '../jobs/autonomous-states.js';
+import { enterResourceWait, escalateAuthority } from '../jobs/autonomous-states.js';
 import { findNode } from '../jobs/graph.js';
 import type { JobDeps } from '../jobs/job-service.js';
 import {
@@ -62,10 +62,12 @@ import { jobDir } from '../jobs/store.js';
 import { findMissionForSpec, readContractRegistry } from '@specbridge/mission';
 import { driveObjective } from '../objectives/objective-driver.js';
 import type { SecondaryObjectiveBuilderSelection } from '../objectives/secondary-builder.js';
+import { strongResourceFromScheduler } from '../objectives/resource-cooldown.js';
 import {
   deferJobForQuota,
   promoteNodeForQuotaOvertake,
   recordObjectiveWorkerAttempt,
+  yieldExecutorForResourceWait,
 } from '../jobs/job-service.js';
 import type { QuotaTelemetryProvider } from '../quota/telemetry.js';
 import type { SchedulingDecisionRecord } from '../scheduling/decisions.js';
@@ -751,7 +753,9 @@ export async function driveJob(
             // provider — the lane stays LOCAL, and the two remain separate
             // fields rather than one compound value.
             provider:
-              harnessProfileName ?? decision.worker.runnerProfile ?? decision.worker.workerId,
+              decision.objectiveResourceController === true
+                ? 'objective-resource-controller'
+                : harnessProfileName ?? decision.worker.runnerProfile ?? decision.worker.workerId,
             ...(apiLane && schedulingRuntime?.apiBinding.model != null
               ? { model: schedulingRuntime.apiBinding.model }
               : localExecution?.harness?.model != null
@@ -1026,6 +1030,21 @@ export async function driveJob(
                   ...(deps.secondaryObjectiveBuilder !== undefined
                     ? { secondaryBuilder: deps.secondaryObjectiveBuilder }
                     : {}),
+                  ...(lane?.forecast.schedulerMode !== undefined
+                    ? { schedulerMode: lane.forecast.schedulerMode }
+                    : {}),
+                  ...(lane?.forecast !== undefined
+                    ? {
+                        strongResource: strongResourceFromScheduler({
+                          schedulerMode: lane.forecast.schedulerMode,
+                          observedAt: lane.forecast.observedAt ?? scheduleAt.toISOString(),
+                          fiveHourResetAt: lane.forecast.fiveHourResetAt,
+                          weeklyResetAt: lane.forecast.weeklyResetAt,
+                          resourceIdentity:
+                            `subscription:${decision.worker.runnerProfile ?? decision.worker.workerId}`,
+                        }),
+                      }
+                    : {}),
                   onProgress: (message) => emit('note', message),
                   countWorkerRun: (run) =>
                     recordObjectiveWorkerAttempt(deps, jobId, { nodeId: node.nodeId, ...run }),
@@ -1047,6 +1066,43 @@ export async function driveJob(
                   ...(signal !== undefined ? { signal } : {}),
                   onProgress: (message) => emit('note', message),
                 });
+
+          const objectiveResourceWait = mission !== undefined
+            ? (dispatch as Awaited<ReturnType<typeof driveObjective>>).resourceWait
+            : undefined;
+          if (objectiveResourceWait !== undefined) {
+            yieldExecutorForResourceWait(deps, jobId, {
+              nodeId: node.nodeId,
+              detail: objectiveResourceWait.detail,
+            });
+            job = enterResourceWait(deps, jobId, {
+              kind: objectiveResourceWait.kind,
+              detail: objectiveResourceWait.detail,
+              ...(objectiveResourceWait.wakeAt !== undefined
+                ? { wakeAt: objectiveResourceWait.wakeAt }
+                : {}),
+              nodeId: node.nodeId,
+            });
+            checkpointJob(
+              deps,
+              jobId,
+              `Waiting for Strong resource recovery; ${objectiveResourceWait.waitingWorkUnitIds.length} `
+                + 'WorkUnit(s) remain durably READY.',
+            );
+            emit(
+              'waiting',
+              `${objectiveResourceWait.detail} Useful work during cooldown: `
+                + `${objectiveResourceWait.usefulWorkDuringCooldown} WorkUnit(s).`,
+            );
+            return {
+              stop: {
+                kind: 'deferred',
+                until: objectiveResourceWait.wakeAt ?? null,
+                reason: objectiveResourceWait.detail,
+              },
+              job,
+            };
+          }
 
           // vNext.2: local failures stay visible, and a declined/exhausted
           // local attempt escalates STICKILY before the outcome is folded, so
