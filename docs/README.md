@@ -90,6 +90,10 @@ reference, grouped by area.
 - [Dogfood & release qualification (vNext.9)](orchestration/dogfood-qualification.md) —
   the scenario matrix, fail-closed preflight, scoped fault injection, state
   invariant auditing, and the evidence-based release gate.
+- [Production qualification and release freeze (vNext.10.2 Phase 10)](orchestration/production-qualification.md)
+  — frozen candidate identity, the mandatory A-T gate matrix, historical
+  StepRelay replay, real-resource/soak evidence, and deterministic
+  `READY`/`NOT_READY` release authority.
 - [Orchestration configuration](orchestration/configuration.md) — every
   policy knob, with defaults.
 

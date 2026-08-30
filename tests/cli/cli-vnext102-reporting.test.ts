@@ -34,7 +34,7 @@ describe('specbridge report job', () => {
     expect(result.code).toBe(0);
     expect(result.stderr).toBe('');
     expect(JSON.parse(result.stdout)).toMatchObject({
-      schemaVersion: '1.0.0',
+      schemaVersion: '1.1.0',
       jobId: job.jobId,
       outcome: { authoritativeJobStatus: 'CREATED' },
       human: { zeroTouchAfterSeal: true },

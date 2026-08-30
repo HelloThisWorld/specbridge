@@ -575,6 +575,12 @@
                   "--json"
                 ]
               },
+              "freeze": {
+                "options": [
+                  "--help",
+                  "--json"
+                ]
+              },
               "preflight": {
                 "options": [
                   "--help",
@@ -582,6 +588,15 @@
                   "--profile",
                   "--target",
                   "--target-name"
+                ]
+              },
+              "release": {
+                "options": [
+                  "--evidence",
+                  "--help",
+                  "--json",
+                  "--markdown",
+                  "--no-write"
                 ]
               },
               "report": {

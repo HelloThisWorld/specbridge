@@ -13,6 +13,10 @@ Everything here is **opt-in**. A workspace that never runs a qualification
 command behaves exactly as it did before vNext.9: no file is created, no
 policy changes, and no ordinary job is affected.
 
+vNext.10.2 Phase 10 consumes this durable evidence through the stricter
+[production qualification and release freeze](production-qualification.md).
+The vNext.9 verdict is not itself a `PRODUCTION_READY` marker.
+
 ---
 
 ## The two modes

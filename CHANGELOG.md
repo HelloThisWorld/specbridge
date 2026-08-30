@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+### Production Qualification, Historical Fault Replay & Release Freeze — vNext.10.2 Phase 10
+
+- Added a frozen production candidate identity bound to the exact commit,
+  tracked runtime bytes, public schema versions, and Claude/Codex bundle
+  digests. Release finalization detects candidate/runtime mutation, refuses
+  control-plane self-repair, preserves finalized failure evidence, and never
+  tags or publishes automatically.
+- Added the mandatory A-T production gate manifest with
+  `PASS`/`FAIL`/`SKIPPED_NOT_ALLOWED`, candidate-bound evidence references,
+  deterministic `READY`/`NOT_READY`, and a `PRODUCTION_READY` marker that can
+  exist only when all twenty gates and zero-tolerance facts pass.
+- Added a durable fourteen-entry StepRelay historical fault catalog and named
+  fast, fault-replay, Secondary, Research, cooldown, and soak qualification
+  groups. Representative Phase 10 deterministic gates now run explicitly in
+  CI in addition to the full test suite.
+- Added `orchestrate qualify freeze` and one-shot `orchestrate qualify release`
+  surfaces, production reports/artifacts, Mission runtime pinning, credential-
+  shaped evidence refusal, and execution telemetry 1.1 fields for runtime
+  mutation, lost candidates, and logical duplicate dispatches.
+
 ### Telemetry, Token-Conservation Analytics & Operational Reporting — vNext.10.2 Phase 9
 
 - Added a versioned Job/Mission execution telemetry report derived from

@@ -13,6 +13,7 @@ import {
   latestExecutableSeal,
   listSeals,
   readJobSeal,
+  readSealBinding,
   refineIntentImpactUnderSeal,
   revokeSeal,
   screenTextForAuthoritySurfaces,
@@ -313,6 +314,21 @@ describe('authority firewall', () => {
 });
 
 describe('delegated authority resolver', () => {
+  it('pins a qualified runtime identity without granting additional authority', () => {
+    const fixture = setupAutonomyFixture();
+    const { seal } = sealedMission(fixture);
+    const runtimeIdentity = {
+      version: '1.1.0',
+      commit: 'a'.repeat(40),
+      digest: 'b'.repeat(64),
+      qualificationRunId: 'qual-release-001',
+    };
+    bindSealToJob(fixture.deps, 'job-runtime-pinned', seal.sealId, { runtimeIdentity });
+
+    expect(readSealBinding(fixture.workspace, 'job-runtime-pinned')?.runtimeIdentity).toEqual(runtimeIdentity);
+    expect(readJobSeal(fixture.workspace, 'job-runtime-pinned')?.sealId).toBe(seal.sealId);
+  });
+
   it('lets an architecture-flavoured replan proceed under a seal', () => {
     const fixture = setupAutonomyFixture();
     const { seal } = sealedMission(fixture);
