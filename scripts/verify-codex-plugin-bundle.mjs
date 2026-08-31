@@ -48,10 +48,21 @@ function waitForExit(child, timeoutMs = 20_000) {
   });
 }
 
-function startMcp(launcher, options) {
-  const child = spawn(process.execPath, [launcher], {
+function startMcp(pluginRoot, options) {
+  const mcp = JSON.parse(readFileSync(path.join(pluginRoot, '.mcp.json'), 'utf8'));
+  const configured = mcp.mcpServers.specbridge;
+  const args = configured.args;
+  const env = {
+    ...process.env,
+    SPECBRIDGE_PLUGIN_CACHE_ROOT: options.cacheRoot ?? pluginCache,
+    ...(options.env ?? {}),
+  };
+  if (!Object.hasOwn(options.env ?? {}, 'SPECBRIDGE_PROJECT_ROOT')) {
+    delete env.SPECBRIDGE_PROJECT_ROOT;
+  }
+  const child = spawn(process.execPath, args, {
     cwd: options.cwd,
-    env: { ...process.env, ...(options.env ?? {}) },
+    env,
     stdio: ['pipe', 'pipe', 'pipe'],
     shell: false,
     windowsHide: true,
@@ -123,9 +134,13 @@ async function closeSession(session) {
 }
 
 const isolatedBase = mkdtempSync(path.join(os.tmpdir(), 'specbridge codex plugin '));
-const pluginCopy = path.join(isolatedBase, 'installed plugin');
+const pluginCache = path.join(isolatedBase, 'plugin cache');
+const stalePlugin = path.join(pluginCache, 'specbridge-local', 'specbridge', '1.0.0-stale');
+const pluginCopy = path.join(pluginCache, 'specbridge-local', 'specbridge', '1.1.0');
 const projectRoot = path.join(isolatedBase, 'project with spaces');
 const nestedCwd = path.join(projectRoot, 'src', 'nested', 'working-dir');
+cpSync(pluginSource, stalePlugin, { recursive: true });
+rmSync(path.join(stalePlugin, 'dist', 'mcp-server.cjs'));
 cpSync(pluginSource, pluginCopy, { recursive: true });
 mkdirSync(path.join(projectRoot, '.kiro', 'steering'), { recursive: true });
 mkdirSync(path.join(projectRoot, '.kiro', 'specs', 'sample-spec'), { recursive: true });
@@ -162,12 +177,17 @@ try {
     ),
   );
 
-  const session = startMcp(launcher, { cwd: nestedCwd });
+  const session = startMcp(pluginCopy, { cwd: nestedCwd });
   const initialized = await initialize(session);
   check(
     'launcher starts the shared MCP bundle from a nested path containing spaces',
     initialized.result?.serverInfo?.name === 'specbridge',
     JSON.stringify(initialized.result?.serverInfo),
+  );
+  check(
+    'self-locating loader selects the newest matching cached plugin installation',
+    !session.stderr().includes('bundle_missing'),
+    session.stderr().slice(0, 300),
   );
 
   session.send({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} });
@@ -249,7 +269,7 @@ try {
     !normalizedOutput.includes(repoRoot.replaceAll('\\', '/').toLowerCase()),
   );
 
-  const overrideSession = startMcp(launcher, {
+  const overrideSession = startMcp(pluginCopy, {
     cwd: pluginCopy,
     env: { SPECBRIDGE_PROJECT_ROOT: projectRoot, PWD: pluginCopy },
   });
@@ -272,7 +292,7 @@ try {
   const gitNestedCwd = path.join(gitProjectRoot, 'src', 'nested');
   mkdirSync(path.join(gitProjectRoot, '.git'), { recursive: true });
   mkdirSync(gitNestedCwd, { recursive: true });
-  const gitSession = startMcp(launcher, { cwd: gitNestedCwd });
+  const gitSession = startMcp(pluginCopy, { cwd: gitNestedCwd });
   await initialize(gitSession);
   gitSession.send({
     jsonrpc: '2.0',
@@ -289,10 +309,17 @@ try {
   );
   await closeSession(gitSession);
 
-  const brokenPlugin = path.join(isolatedBase, 'broken plugin');
+  const brokenCache = path.join(isolatedBase, 'broken cache');
+  const brokenPlugin = path.join(brokenCache, 'specbridge-local', 'specbridge', '1.1.0');
   mkdirSync(path.join(brokenPlugin, 'dist'), { recursive: true });
+  mkdirSync(path.join(brokenPlugin, '.codex-plugin'), { recursive: true });
+  cpSync(path.join(pluginCopy, '.mcp.json'), path.join(brokenPlugin, '.mcp.json'));
+  cpSync(
+    path.join(pluginCopy, '.codex-plugin', 'plugin.json'),
+    path.join(brokenPlugin, '.codex-plugin', 'plugin.json'),
+  );
   cpSync(launcher, path.join(brokenPlugin, 'dist', 'mcp-launcher.cjs'));
-  const broken = startMcp(path.join(brokenPlugin, 'dist', 'mcp-launcher.cjs'), { cwd: projectRoot });
+  const broken = startMcp(brokenPlugin, { cwd: projectRoot, cacheRoot: brokenCache });
   const brokenExit = await waitForExit(broken.child);
   check(
     'missing MCP bundle fails usefully on stderr and keeps stdout clean',

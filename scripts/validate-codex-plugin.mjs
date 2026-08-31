@@ -107,8 +107,18 @@ check(server !== undefined, '.mcp.json must define mcpServers.specbridge');
 if (server !== undefined) {
   check(server.command === 'node', 'Codex MCP command must be node');
   check(
-    Array.isArray(server.args) && server.args.length === 1 && server.args[0] === '${PLUGIN_ROOT}/dist/mcp-launcher.cjs',
-    'Codex MCP must launch ${PLUGIN_ROOT}/dist/mcp-launcher.cjs as one argv item',
+    Array.isArray(server.args) &&
+      server.args.length === 2 &&
+      server.args[0] === '-e' &&
+      server.args[1].includes('SPECBRIDGE_PLUGIN_CACHE_ROOT') &&
+      server.args[1].includes('process._eval') &&
+      server.args[1].includes("manifest.name==='specbridge'") &&
+      server.args[1].includes('installed.birthtimeMs') &&
+      server.args[1].includes('b.installedAt-a.installedAt') &&
+      server.args[1].includes("readFileSync(file,'utf8')") &&
+      server.args[1].includes('loaded._compile(') &&
+      !server.args.some((arg) => arg.includes('${PLUGIN_ROOT}')),
+    'Codex MCP must locate its matching installed cache entry and memory-load the launcher without placeholder or Node realpath walks',
   );
   check(server.cwd === undefined, 'Codex MCP config must not force cwd to the plugin cache');
   check(server.env === undefined, 'Codex MCP config must not inject environment values');

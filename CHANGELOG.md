@@ -4,6 +4,10 @@
 
 ### Fixes
 
+- Fixed the Codex plugin MCP bootstrap on Windows: it no longer depends on an
+  unexpanded `${PLUGIN_ROOT}` argument or a sandbox-denied Node realpath walk.
+  The installed plugin is resolved from Codex's cache, the newest matching
+  cache entry is selected, and the bundled server is loaded in-process.
 - Made repeated spec-intake discovery durably idempotent for implementation-
   detail facts, so answering several product questions and approving a large
   intake no longer re-appends the same facts until the mission bound is hit.
