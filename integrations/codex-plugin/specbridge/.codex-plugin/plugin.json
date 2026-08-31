@@ -1,6 +1,6 @@
 {
   "name": "specbridge",
-  "version": "1.1.0+codex.20260831074258",
+  "version": "1.1.0",
   "description": "Use SpecBridge as a first-class Codex frontend: discuss product work, draft and intake specs, inspect and continue jobs, and operate evidence-governed workflows through the bundled MCP server.",
   "author": {
     "name": "HelloThisWorld"

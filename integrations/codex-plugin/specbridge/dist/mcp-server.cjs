@@ -29,9 +29,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/identity.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/identity.js
 var require_identity = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/identity.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/identity.js"(exports2) {
     "use strict";
     var ALIAS = /* @__PURE__ */ Symbol.for("yaml.alias");
     var DOC = /* @__PURE__ */ Symbol.for("yaml.document");
@@ -86,9 +86,9 @@ var require_identity = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/visit.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/visit.js
 var require_visit = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/visit.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/visit.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var BREAK = /* @__PURE__ */ Symbol("break visit");
@@ -244,9 +244,9 @@ var require_visit = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/directives.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/directives.js
 var require_directives = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/directives.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/directives.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var visit = require_visit();
@@ -415,9 +415,9 @@ var require_directives = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/anchors.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/anchors.js
 var require_anchors = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/anchors.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/anchors.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var visit = require_visit();
@@ -485,9 +485,9 @@ var require_anchors = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/applyReviver.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/applyReviver.js
 var require_applyReviver = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/applyReviver.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/applyReviver.js"(exports2) {
     "use strict";
     function applyReviver(reviver, obj, key, val) {
       if (val && typeof val === "object") {
@@ -535,9 +535,9 @@ var require_applyReviver = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/toJS.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/toJS.js
 var require_toJS = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/toJS.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/toJS.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     function toJS(value, arg, ctx) {
@@ -565,9 +565,9 @@ var require_toJS = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Node.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Node.js
 var require_Node = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Node.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Node.js"(exports2) {
     "use strict";
     var applyReviver = require_applyReviver();
     var identity3 = require_identity();
@@ -606,9 +606,9 @@ var require_Node = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Alias.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Alias.js
 var require_Alias = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Alias.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Alias.js"(exports2) {
     "use strict";
     var anchors = require_anchors();
     var visit = require_visit();
@@ -722,9 +722,9 @@ var require_Alias = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Scalar.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Scalar.js
 var require_Scalar = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Scalar.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Scalar.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var Node = require_Node();
@@ -752,9 +752,9 @@ var require_Scalar = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/createNode.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/createNode.js
 var require_createNode = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/createNode.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/createNode.js"(exports2) {
     "use strict";
     var Alias = require_Alias();
     var identity3 = require_identity();
@@ -827,9 +827,9 @@ var require_createNode = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Collection.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Collection.js
 var require_Collection = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Collection.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Collection.js"(exports2) {
     "use strict";
     var createNode = require_createNode();
     var identity3 = require_identity();
@@ -970,9 +970,9 @@ var require_Collection = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyComment.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyComment.js
 var require_stringifyComment = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyComment.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyComment.js"(exports2) {
     "use strict";
     var stringifyComment = (str) => str.replace(/^(?!$)(?: $)?/gm, "#");
     function indentComment(comment, indent) {
@@ -987,9 +987,9 @@ var require_stringifyComment = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/foldFlowLines.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/foldFlowLines.js
 var require_foldFlowLines = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/foldFlowLines.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/foldFlowLines.js"(exports2) {
     "use strict";
     var FOLD_FLOW = "flow";
     var FOLD_BLOCK = "block";
@@ -1123,9 +1123,9 @@ ${indent}${text15.slice(fold + 1, end2)}`;
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyString.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyString.js
 var require_stringifyString = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyString.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyString.js"(exports2) {
     "use strict";
     var Scalar = require_Scalar();
     var foldFlowLines = require_foldFlowLines();
@@ -1406,9 +1406,9 @@ ${indent}`);
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringify.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringify.js
 var require_stringify = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringify.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringify.js"(exports2) {
     "use strict";
     var anchors = require_anchors();
     var identity3 = require_identity();
@@ -1530,9 +1530,9 @@ ${ctx.indent}${str}`;
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyPair.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyPair.js
 var require_stringifyPair = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyPair.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyPair.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var Scalar = require_Scalar();
@@ -1663,9 +1663,9 @@ ${ctx.indent}`;
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/log.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/log.js
 var require_log = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/log.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/log.js"(exports2) {
     "use strict";
     var node_process = require("process");
     function debug(logLevel, ...messages) {
@@ -1685,9 +1685,9 @@ var require_log = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/merge.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/merge.js
 var require_merge = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/merge.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/merge.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var Scalar = require_Scalar();
@@ -1745,9 +1745,9 @@ var require_merge = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/addPairToJSMap.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/addPairToJSMap.js
 var require_addPairToJSMap = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/addPairToJSMap.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/addPairToJSMap.js"(exports2) {
     "use strict";
     var log = require_log();
     var merge2 = require_merge();
@@ -1809,9 +1809,9 @@ var require_addPairToJSMap = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Pair.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Pair.js
 var require_Pair = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Pair.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Pair.js"(exports2) {
     "use strict";
     var createNode = require_createNode();
     var stringifyPair = require_stringifyPair();
@@ -1849,9 +1849,9 @@ var require_Pair = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyCollection.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyCollection.js
 var require_stringifyCollection = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyCollection.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyCollection.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var stringify = require_stringify();
@@ -2000,9 +2000,9 @@ ${indent}${end}`;
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLMap.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLMap.js
 var require_YAMLMap = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLMap.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLMap.js"(exports2) {
     "use strict";
     var stringifyCollection = require_stringifyCollection();
     var addPairToJSMap = require_addPairToJSMap();
@@ -2144,9 +2144,9 @@ var require_YAMLMap = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/map.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/map.js
 var require_map = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/map.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/map.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var YAMLMap = require_YAMLMap();
@@ -2166,9 +2166,9 @@ var require_map = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLSeq.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLSeq.js
 var require_YAMLSeq = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLSeq.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLSeq.js"(exports2) {
     "use strict";
     var createNode = require_createNode();
     var stringifyCollection = require_stringifyCollection();
@@ -2282,9 +2282,9 @@ var require_YAMLSeq = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/seq.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/seq.js
 var require_seq = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/seq.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/seq.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var YAMLSeq = require_YAMLSeq();
@@ -2304,9 +2304,9 @@ var require_seq = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/string.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/string.js
 var require_string = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/string.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/string.js"(exports2) {
     "use strict";
     var stringifyString = require_stringifyString();
     var string3 = {
@@ -2323,9 +2323,9 @@ var require_string = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/null.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/null.js
 var require_null = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/null.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/null.js"(exports2) {
     "use strict";
     var Scalar = require_Scalar();
     var nullTag = {
@@ -2341,9 +2341,9 @@ var require_null = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/bool.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/bool.js
 var require_bool = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/bool.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/bool.js"(exports2) {
     "use strict";
     var Scalar = require_Scalar();
     var boolTag = {
@@ -2365,9 +2365,9 @@ var require_bool = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyNumber.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyNumber.js
 var require_stringifyNumber = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyNumber.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyNumber.js"(exports2) {
     "use strict";
     function stringifyNumber({ format: format2, minFractionDigits, tag, value }) {
       if (typeof value === "bigint")
@@ -2392,9 +2392,9 @@ var require_stringifyNumber = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/float.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/float.js
 var require_float = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/float.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/float.js"(exports2) {
     "use strict";
     var Scalar = require_Scalar();
     var stringifyNumber = require_stringifyNumber();
@@ -2438,9 +2438,9 @@ var require_float = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/int.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/int.js
 var require_int = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/int.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/int.js"(exports2) {
     "use strict";
     var stringifyNumber = require_stringifyNumber();
     var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
@@ -2483,9 +2483,9 @@ var require_int = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/schema.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/schema.js
 var require_schema = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/schema.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/schema.js"(exports2) {
     "use strict";
     var map = require_map();
     var _null4 = require_null();
@@ -2511,9 +2511,9 @@ var require_schema = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/json/schema.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/json/schema.js
 var require_schema2 = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/json/schema.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/json/schema.js"(exports2) {
     "use strict";
     var Scalar = require_Scalar();
     var map = require_map();
@@ -2578,9 +2578,9 @@ var require_schema2 = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/binary.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/binary.js
 var require_binary = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/binary.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/binary.js"(exports2) {
     "use strict";
     var node_buffer = require("buffer");
     var Scalar = require_Scalar();
@@ -2644,9 +2644,9 @@ var require_binary = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/pairs.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/pairs.js
 var require_pairs = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/pairs.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/pairs.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var Pair = require_Pair();
@@ -2722,9 +2722,9 @@ ${cn.comment}` : item.comment;
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/omap.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/omap.js
 var require_omap = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/omap.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/omap.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var toJS = require_toJS();
@@ -2800,9 +2800,9 @@ var require_omap = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/bool.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/bool.js
 var require_bool2 = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/bool.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/bool.js"(exports2) {
     "use strict";
     var Scalar = require_Scalar();
     function boolStringify({ value, source }, ctx) {
@@ -2832,9 +2832,9 @@ var require_bool2 = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/float.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/float.js
 var require_float2 = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/float.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/float.js"(exports2) {
     "use strict";
     var Scalar = require_Scalar();
     var stringifyNumber = require_stringifyNumber();
@@ -2881,9 +2881,9 @@ var require_float2 = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/int.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/int.js
 var require_int2 = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/int.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/int.js"(exports2) {
     "use strict";
     var stringifyNumber = require_stringifyNumber();
     var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
@@ -2960,9 +2960,9 @@ var require_int2 = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/set.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/set.js
 var require_set = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/set.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/set.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var Pair = require_Pair();
@@ -3049,9 +3049,9 @@ var require_set = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/timestamp.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/timestamp.js
 var require_timestamp = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/timestamp.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/timestamp.js"(exports2) {
     "use strict";
     var stringifyNumber = require_stringifyNumber();
     function parseSexagesimal(str, asBigInt) {
@@ -3137,9 +3137,9 @@ var require_timestamp = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/schema.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/schema.js
 var require_schema3 = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/schema.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/schema.js"(exports2) {
     "use strict";
     var map = require_map();
     var _null4 = require_null();
@@ -3181,9 +3181,9 @@ var require_schema3 = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/tags.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/tags.js
 var require_tags = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/tags.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/tags.js"(exports2) {
     "use strict";
     var map = require_map();
     var _null4 = require_null();
@@ -3275,9 +3275,9 @@ var require_tags = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/Schema.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/Schema.js
 var require_Schema = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/Schema.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/Schema.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var map = require_map();
@@ -3307,9 +3307,9 @@ var require_Schema = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyDocument.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyDocument.js
 var require_stringifyDocument = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyDocument.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyDocument.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var stringify = require_stringify();
@@ -3387,9 +3387,9 @@ var require_stringifyDocument = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/Document.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/Document.js
 var require_Document = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/Document.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/Document.js"(exports2) {
     "use strict";
     var Alias = require_Alias();
     var Collection = require_Collection();
@@ -3696,9 +3696,9 @@ var require_Document = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/errors.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/errors.js
 var require_errors = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/errors.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/errors.js"(exports2) {
     "use strict";
     var YAMLError = class extends Error {
       constructor(name, pos, code, message2) {
@@ -3761,9 +3761,9 @@ ${pointer}
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-props.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-props.js
 var require_resolve_props = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-props.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-props.js"(exports2) {
     "use strict";
     function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIndent, startOnNewline }) {
       let spaceBefore = false;
@@ -3895,9 +3895,9 @@ var require_resolve_props = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-contains-newline.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-contains-newline.js
 var require_util_contains_newline = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-contains-newline.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-contains-newline.js"(exports2) {
     "use strict";
     function containsNewline(key) {
       if (!key)
@@ -3937,9 +3937,9 @@ var require_util_contains_newline = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-flow-indent-check.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-flow-indent-check.js
 var require_util_flow_indent_check = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-flow-indent-check.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-flow-indent-check.js"(exports2) {
     "use strict";
     var utilContainsNewline = require_util_contains_newline();
     function flowIndentCheck(indent, fc, onError) {
@@ -3955,9 +3955,9 @@ var require_util_flow_indent_check = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-map-includes.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-map-includes.js
 var require_util_map_includes = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-map-includes.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-map-includes.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     function mapIncludes(ctx, items, search) {
@@ -3971,9 +3971,9 @@ var require_util_map_includes = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-map.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-map.js
 var require_resolve_block_map = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-map.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-map.js"(exports2) {
     "use strict";
     var Pair = require_Pair();
     var YAMLMap = require_YAMLMap();
@@ -4079,9 +4079,9 @@ var require_resolve_block_map = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-seq.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-seq.js
 var require_resolve_block_seq = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-seq.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-seq.js"(exports2) {
     "use strict";
     var YAMLSeq = require_YAMLSeq();
     var resolveProps = require_resolve_props();
@@ -4130,9 +4130,9 @@ var require_resolve_block_seq = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-end.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-end.js
 var require_resolve_end = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-end.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-end.js"(exports2) {
     "use strict";
     function resolveEnd(end, offset, reqSpace, onError) {
       let comment = "";
@@ -4173,9 +4173,9 @@ var require_resolve_end = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-collection.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-collection.js
 var require_resolve_flow_collection = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-collection.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-collection.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var Pair = require_Pair();
@@ -4367,9 +4367,9 @@ var require_resolve_flow_collection = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-collection.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-collection.js
 var require_compose_collection = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-collection.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-collection.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var Scalar = require_Scalar();
@@ -4432,9 +4432,9 @@ var require_compose_collection = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-scalar.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-scalar.js
 var require_resolve_block_scalar = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-scalar.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-scalar.js"(exports2) {
     "use strict";
     var Scalar = require_Scalar();
     function resolveBlockScalar(ctx, scalar, onError) {
@@ -4615,9 +4615,9 @@ var require_resolve_block_scalar = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-scalar.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-scalar.js
 var require_resolve_flow_scalar = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-scalar.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-scalar.js"(exports2) {
     "use strict";
     var Scalar = require_Scalar();
     var resolveEnd = require_resolve_end();
@@ -4835,9 +4835,9 @@ var require_resolve_flow_scalar = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-scalar.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-scalar.js
 var require_compose_scalar = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-scalar.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-scalar.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var Scalar = require_Scalar();
@@ -4916,9 +4916,9 @@ var require_compose_scalar = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-empty-scalar-position.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-empty-scalar-position.js
 var require_util_empty_scalar_position = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-empty-scalar-position.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-empty-scalar-position.js"(exports2) {
     "use strict";
     function emptyScalarPosition(offset, before, pos) {
       if (before) {
@@ -4946,9 +4946,9 @@ var require_util_empty_scalar_position = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-node.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-node.js
 var require_compose_node = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-node.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-node.js"(exports2) {
     "use strict";
     var Alias = require_Alias();
     var identity3 = require_identity();
@@ -5052,9 +5052,9 @@ var require_compose_node = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-doc.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-doc.js
 var require_compose_doc = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-doc.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-doc.js"(exports2) {
     "use strict";
     var Document = require_Document();
     var composeNode = require_compose_node();
@@ -5095,9 +5095,9 @@ var require_compose_doc = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/composer.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/composer.js
 var require_composer = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/composer.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/composer.js"(exports2) {
     "use strict";
     var node_process = require("process");
     var directives = require_directives();
@@ -5303,9 +5303,9 @@ ${end.comment}` : end.comment;
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-scalar.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-scalar.js
 var require_cst_scalar = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-scalar.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-scalar.js"(exports2) {
     "use strict";
     var resolveBlockScalar = require_resolve_block_scalar();
     var resolveFlowScalar = require_resolve_flow_scalar();
@@ -5488,9 +5488,9 @@ var require_cst_scalar = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-stringify.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-stringify.js
 var require_cst_stringify = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-stringify.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-stringify.js"(exports2) {
     "use strict";
     var stringify = (cst) => "type" in cst ? stringifyToken(cst) : stringifyItem(cst);
     function stringifyToken(token) {
@@ -5549,9 +5549,9 @@ var require_cst_stringify = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-visit.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-visit.js
 var require_cst_visit = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-visit.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-visit.js"(exports2) {
     "use strict";
     var BREAK = /* @__PURE__ */ Symbol("break visit");
     var SKIP = /* @__PURE__ */ Symbol("skip children");
@@ -5611,9 +5611,9 @@ var require_cst_visit = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst.js
 var require_cst = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst.js"(exports2) {
     "use strict";
     var cstScalar = require_cst_scalar();
     var cstStringify = require_cst_stringify();
@@ -5713,9 +5713,9 @@ var require_cst = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/lexer.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/lexer.js
 var require_lexer = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/lexer.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/lexer.js"(exports2) {
     "use strict";
     var cst = require_cst();
     function isEmpty(ch) {
@@ -6302,9 +6302,9 @@ var require_lexer = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/line-counter.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/line-counter.js
 var require_line_counter = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/line-counter.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/line-counter.js"(exports2) {
     "use strict";
     var LineCounter = class {
       constructor() {
@@ -6333,9 +6333,9 @@ var require_line_counter = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/parser.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/parser.js
 var require_parser = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/parser.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/parser.js"(exports2) {
     "use strict";
     var node_process = require("process");
     var cst = require_cst();
@@ -7207,9 +7207,9 @@ var require_parser = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/public-api.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/public-api.js
 var require_public_api = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/public-api.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/public-api.js"(exports2) {
     "use strict";
     var composer = require_composer();
     var Document = require_Document();
@@ -7304,9 +7304,9 @@ var require_public_api = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/index.js
+// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/index.js
 var require_dist = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/index.js"(exports2) {
+  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/index.js"(exports2) {
     "use strict";
     var composer = require_composer();
     var Document = require_Document();
@@ -7356,9 +7356,9 @@ var require_dist = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/windows.js
+// ../../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/windows.js
 var require_windows = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/windows.js"(exports2, module2) {
+  "../../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/windows.js"(exports2, module2) {
     "use strict";
     module2.exports = isexe;
     isexe.sync = sync;
@@ -7397,9 +7397,9 @@ var require_windows = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/mode.js
+// ../../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/mode.js
 var require_mode = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/mode.js"(exports2, module2) {
+  "../../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/mode.js"(exports2, module2) {
     "use strict";
     module2.exports = isexe;
     isexe.sync = sync;
@@ -7431,9 +7431,9 @@ var require_mode = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/index.js
+// ../../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/index.js
 var require_isexe = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/index.js"(exports2, module2) {
+  "../../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/index.js"(exports2, module2) {
     "use strict";
     var fs = require("fs");
     var core;
@@ -7487,9 +7487,9 @@ var require_isexe = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/which@2.0.2/node_modules/which/which.js
+// ../../node_modules/.pnpm/which@2.0.2/node_modules/which/which.js
 var require_which = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/which@2.0.2/node_modules/which/which.js"(exports2, module2) {
+  "../../node_modules/.pnpm/which@2.0.2/node_modules/which/which.js"(exports2, module2) {
     "use strict";
     var isWindows = process.platform === "win32" || process.env.OSTYPE === "cygwin" || process.env.OSTYPE === "msys";
     var path41 = require("path");
@@ -7584,9 +7584,9 @@ var require_which = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/path-key@3.1.1/node_modules/path-key/index.js
+// ../../node_modules/.pnpm/path-key@3.1.1/node_modules/path-key/index.js
 var require_path_key = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/path-key@3.1.1/node_modules/path-key/index.js"(exports2, module2) {
+  "../../node_modules/.pnpm/path-key@3.1.1/node_modules/path-key/index.js"(exports2, module2) {
     "use strict";
     var pathKey2 = (options = {}) => {
       const environment = options.env || process.env;
@@ -7601,9 +7601,9 @@ var require_path_key = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js
+// ../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js
 var require_resolveCommand = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js"(exports2, module2) {
+  "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js"(exports2, module2) {
     "use strict";
     var path41 = require("path");
     var which = require_which();
@@ -7643,9 +7643,9 @@ var require_resolveCommand = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/escape.js
+// ../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/escape.js
 var require_escape = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/escape.js"(exports2, module2) {
+  "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/escape.js"(exports2, module2) {
     "use strict";
     var metaCharsRegExp = /([()\][%!^"`<>&|;, *?])/g;
     function escapeCommand(arg) {
@@ -7668,17 +7668,17 @@ var require_escape = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/shebang-regex@3.0.0/node_modules/shebang-regex/index.js
+// ../../node_modules/.pnpm/shebang-regex@3.0.0/node_modules/shebang-regex/index.js
 var require_shebang_regex = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/shebang-regex@3.0.0/node_modules/shebang-regex/index.js"(exports2, module2) {
+  "../../node_modules/.pnpm/shebang-regex@3.0.0/node_modules/shebang-regex/index.js"(exports2, module2) {
     "use strict";
     module2.exports = /^#!(.*)/;
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/shebang-command@2.0.0/node_modules/shebang-command/index.js
+// ../../node_modules/.pnpm/shebang-command@2.0.0/node_modules/shebang-command/index.js
 var require_shebang_command = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/shebang-command@2.0.0/node_modules/shebang-command/index.js"(exports2, module2) {
+  "../../node_modules/.pnpm/shebang-command@2.0.0/node_modules/shebang-command/index.js"(exports2, module2) {
     "use strict";
     var shebangRegex = require_shebang_regex();
     module2.exports = (string3 = "") => {
@@ -7696,9 +7696,9 @@ var require_shebang_command = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/readShebang.js
+// ../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/readShebang.js
 var require_readShebang = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/readShebang.js"(exports2, module2) {
+  "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/readShebang.js"(exports2, module2) {
     "use strict";
     var fs = require("fs");
     var shebangCommand = require_shebang_command();
@@ -7718,9 +7718,9 @@ var require_readShebang = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js
+// ../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js
 var require_parse = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js"(exports2, module2) {
+  "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js"(exports2, module2) {
     "use strict";
     var path41 = require("path");
     var resolveCommand = require_resolveCommand();
@@ -7780,9 +7780,9 @@ var require_parse = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/enoent.js
+// ../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/enoent.js
 var require_enoent = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/enoent.js"(exports2, module2) {
+  "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/enoent.js"(exports2, module2) {
     "use strict";
     var isWin = process.platform === "win32";
     function notFoundError(original, syscall) {
@@ -7830,9 +7830,9 @@ var require_enoent = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/index.js
+// ../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/index.js
 var require_cross_spawn = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/index.js"(exports2, module2) {
+  "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/index.js"(exports2, module2) {
     "use strict";
     var cp = require("child_process");
     var parse3 = require_parse();
@@ -7857,9 +7857,9 @@ var require_cross_spawn = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/code.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/code.js
 var require_code = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/code.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/code.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.regexpCode = exports2.getEsmExportName = exports2.getProperty = exports2.safeStringify = exports2.stringify = exports2.strConcat = exports2.addCodeArg = exports2.str = exports2._ = exports2.nil = exports2._Code = exports2.Name = exports2.IDENTIFIER = exports2._CodeOrName = void 0;
@@ -8011,9 +8011,9 @@ var require_code = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/scope.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/scope.js
 var require_scope = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/scope.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/scope.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ValueScope = exports2.ValueScopeName = exports2.Scope = exports2.varKinds = exports2.UsedValueState = void 0;
@@ -8156,9 +8156,9 @@ var require_scope = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/index.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/index.js
 var require_codegen = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/index.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.or = exports2.and = exports2.not = exports2.CodeGen = exports2.operators = exports2.varKinds = exports2.ValueScopeName = exports2.ValueScope = exports2.Scope = exports2.Name = exports2.regexpCode = exports2.stringify = exports2.getProperty = exports2.nil = exports2.strConcat = exports2.str = exports2._ = void 0;
@@ -8876,9 +8876,9 @@ var require_codegen = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/util.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/util.js
 var require_util = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/util.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/util.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.checkStrictMode = exports2.getErrorPath = exports2.Type = exports2.useFunc = exports2.setEvaluated = exports2.evaluatedPropsToName = exports2.mergeEvaluated = exports2.eachItem = exports2.unescapeJsonPointer = exports2.escapeJsonPointer = exports2.escapeFragment = exports2.unescapeFragment = exports2.schemaRefOrVal = exports2.schemaHasRulesButRef = exports2.schemaHasRules = exports2.checkUnknownRules = exports2.alwaysValidSchema = exports2.toHash = void 0;
@@ -9043,9 +9043,9 @@ var require_util = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/names.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/names.js
 var require_names = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/names.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/names.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -9082,9 +9082,9 @@ var require_names = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/errors.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/errors.js
 var require_errors2 = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/errors.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/errors.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.extendErrors = exports2.resetErrorsCount = exports2.reportExtraError = exports2.reportError = exports2.keyword$DataError = exports2.keywordError = void 0;
@@ -9204,9 +9204,9 @@ var require_errors2 = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/boolSchema.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/boolSchema.js
 var require_boolSchema = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/boolSchema.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/boolSchema.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.boolOrEmptySchema = exports2.topBoolOrEmptySchema = void 0;
@@ -9255,9 +9255,9 @@ var require_boolSchema = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/rules.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/rules.js
 var require_rules = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/rules.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/rules.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getRules = exports2.isJSONType = void 0;
@@ -9286,9 +9286,9 @@ var require_rules = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/applicability.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/applicability.js
 var require_applicability = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/applicability.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/applicability.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.shouldUseRule = exports2.shouldUseGroup = exports2.schemaHasRulesForType = void 0;
@@ -9309,9 +9309,9 @@ var require_applicability = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/dataType.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/dataType.js
 var require_dataType = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/dataType.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/dataType.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.reportTypeError = exports2.checkDataTypes = exports2.checkDataType = exports2.coerceAndCheckDataType = exports2.getJSONTypes = exports2.getSchemaTypes = exports2.DataType = void 0;
@@ -9493,9 +9493,9 @@ var require_dataType = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/defaults.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/defaults.js
 var require_defaults = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/defaults.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/defaults.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.assignDefaults = void 0;
@@ -9530,9 +9530,9 @@ var require_defaults = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/code.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/code.js
 var require_code2 = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/code.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/code.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.validateUnion = exports2.validateArray = exports2.usePattern = exports2.callValidateCode = exports2.schemaProperties = exports2.allSchemaProperties = exports2.noPropertyInData = exports2.propertyInData = exports2.isOwnProperty = exports2.hasPropFunc = exports2.reportMissingProp = exports2.checkMissingProp = exports2.checkReportMissingProp = void 0;
@@ -9663,9 +9663,9 @@ var require_code2 = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/keyword.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/keyword.js
 var require_keyword = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/keyword.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/keyword.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.validateKeywordUsage = exports2.validSchemaType = exports2.funcKeywordCode = exports2.macroKeywordCode = void 0;
@@ -9781,9 +9781,9 @@ var require_keyword = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/subschema.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/subschema.js
 var require_subschema = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/subschema.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/subschema.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.extendSubschemaMode = exports2.extendSubschemaData = exports2.getSubschema = void 0;
@@ -9864,9 +9864,9 @@ var require_subschema = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal/index.js
+// ../../node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal/index.js
 var require_fast_deep_equal = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal/index.js"(exports2, module2) {
+  "../../node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal/index.js"(exports2, module2) {
     "use strict";
     module2.exports = function equal(a2, b) {
       if (a2 === b) return true;
@@ -9899,9 +9899,9 @@ var require_fast_deep_equal = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/json-schema-traverse@1.0.0/node_modules/json-schema-traverse/index.js
+// ../../node_modules/.pnpm/json-schema-traverse@1.0.0/node_modules/json-schema-traverse/index.js
 var require_json_schema_traverse = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/json-schema-traverse@1.0.0/node_modules/json-schema-traverse/index.js"(exports2, module2) {
+  "../../node_modules/.pnpm/json-schema-traverse@1.0.0/node_modules/json-schema-traverse/index.js"(exports2, module2) {
     "use strict";
     var traverse = module2.exports = function(schema, opts, cb) {
       if (typeof opts == "function") {
@@ -9987,9 +9987,9 @@ var require_json_schema_traverse = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/resolve.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/resolve.js
 var require_resolve = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/resolve.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/resolve.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getSchemaRefs = exports2.resolveUrl = exports2.normalizeId = exports2._getFullPath = exports2.getFullPath = exports2.inlineRef = void 0;
@@ -10143,9 +10143,9 @@ var require_resolve = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/index.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/index.js
 var require_validate = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/index.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getData = exports2.KeywordCxt = exports2.validateFunctionCode = void 0;
@@ -10651,9 +10651,9 @@ var require_validate = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/validation_error.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/validation_error.js
 var require_validation_error = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/validation_error.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/validation_error.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var ValidationError = class extends Error {
@@ -10667,9 +10667,9 @@ var require_validation_error = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/ref_error.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/ref_error.js
 var require_ref_error = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/ref_error.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/ref_error.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var resolve_1 = require_resolve();
@@ -10684,9 +10684,9 @@ var require_ref_error = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/index.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/index.js
 var require_compile = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/index.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.resolveSchema = exports2.getCompilingSchema = exports2.resolveRef = exports2.compileSchema = exports2.SchemaEnv = void 0;
@@ -10908,9 +10908,9 @@ var require_compile = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/data.json
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/data.json
 var require_data = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/data.json"(exports2, module2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/data.json"(exports2, module2) {
     module2.exports = {
       $id: "https://raw.githubusercontent.com/ajv-validator/ajv/master/lib/refs/data.json#",
       description: "Meta-schema for $data reference (JSON AnySchema extension proposal)",
@@ -10927,9 +10927,9 @@ var require_data = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/utils.js
+// ../../node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/utils.js
 var require_utils = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/utils.js"(exports2, module2) {
+  "../../node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/utils.js"(exports2, module2) {
     "use strict";
     var isUUID = RegExp.prototype.test.bind(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/iu);
     var isIPv4 = RegExp.prototype.test.bind(/^(?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)$/u);
@@ -11240,9 +11240,9 @@ var require_utils = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/schemes.js
+// ../../node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/schemes.js
 var require_schemes = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/schemes.js"(exports2, module2) {
+  "../../node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/schemes.js"(exports2, module2) {
     "use strict";
     var { isUUID } = require_utils();
     var URN_REG = /([\da-z][\d\-a-z]{0,31}):((?:[\w!$'()*+,\-.:;=@]|%[\da-f]{2})+)/iu;
@@ -11450,9 +11450,9 @@ var require_schemes = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/index.js
+// ../../node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/index.js
 var require_fast_uri = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/index.js"(exports2, module2) {
+  "../../node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/index.js"(exports2, module2) {
     "use strict";
     var { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, escapePreservingEscapes, reescapeHostDelimiters, isIPv4, nonSimpleDomain } = require_utils();
     var { SCHEMES, getSchemeHandler } = require_schemes();
@@ -11736,9 +11736,9 @@ var require_fast_uri = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/uri.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/uri.js
 var require_uri = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/uri.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/uri.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var uri = require_fast_uri();
@@ -11747,9 +11747,9 @@ var require_uri = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/core.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/core.js
 var require_core = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/core.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/core.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CodeGen = exports2.Name = exports2.nil = exports2.stringify = exports2.str = exports2._ = exports2.KeywordCxt = void 0;
@@ -12358,9 +12358,9 @@ var require_core = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/id.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/id.js
 var require_id = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/id.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/id.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var def = {
@@ -12373,9 +12373,9 @@ var require_id = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/ref.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/ref.js
 var require_ref = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/ref.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/ref.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.callRef = exports2.getValidate = void 0;
@@ -12495,9 +12495,9 @@ var require_ref = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/index.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/index.js
 var require_core2 = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/index.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var id_1 = require_id();
@@ -12516,9 +12516,9 @@ var require_core2 = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitNumber.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitNumber.js
 var require_limitNumber = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitNumber.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitNumber.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -12548,9 +12548,9 @@ var require_limitNumber = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/multipleOf.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/multipleOf.js
 var require_multipleOf = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/multipleOf.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/multipleOf.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -12576,9 +12576,9 @@ var require_multipleOf = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/ucs2length.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/ucs2length.js
 var require_ucs2length = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/ucs2length.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/ucs2length.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     function ucs2length(str) {
@@ -12602,9 +12602,9 @@ var require_ucs2length = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitLength.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitLength.js
 var require_limitLength = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitLength.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitLength.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -12634,9 +12634,9 @@ var require_limitLength = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/pattern.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/pattern.js
 var require_pattern = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/pattern.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/pattern.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -12671,9 +12671,9 @@ var require_pattern = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitProperties.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitProperties.js
 var require_limitProperties = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitProperties.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitProperties.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -12700,9 +12700,9 @@ var require_limitProperties = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/required.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/required.js
 var require_required = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/required.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/required.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -12782,9 +12782,9 @@ var require_required = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitItems.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitItems.js
 var require_limitItems = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitItems.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitItems.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -12811,9 +12811,9 @@ var require_limitItems = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/equal.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/equal.js
 var require_equal = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/equal.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/equal.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var equal = require_fast_deep_equal();
@@ -12822,9 +12822,9 @@ var require_equal = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js
 var require_uniqueItems = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var dataType_1 = require_dataType();
@@ -12889,9 +12889,9 @@ var require_uniqueItems = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/const.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/const.js
 var require_const = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/const.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/const.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -12918,9 +12918,9 @@ var require_const = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/enum.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/enum.js
 var require_enum = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/enum.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/enum.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -12967,9 +12967,9 @@ var require_enum = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/index.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/index.js
 var require_validation = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/index.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var limitNumber_1 = require_limitNumber();
@@ -13005,9 +13005,9 @@ var require_validation = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js
 var require_additionalItems = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.validateAdditionalItems = void 0;
@@ -13058,9 +13058,9 @@ var require_additionalItems = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items.js
 var require_items = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.validateTuple = void 0;
@@ -13115,9 +13115,9 @@ var require_items = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js
 var require_prefixItems = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var items_1 = require_items();
@@ -13132,9 +13132,9 @@ var require_prefixItems = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items2020.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items2020.js
 var require_items2020 = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items2020.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items2020.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -13167,9 +13167,9 @@ var require_items2020 = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/contains.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/contains.js
 var require_contains = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/contains.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/contains.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -13261,9 +13261,9 @@ var require_contains = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/dependencies.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/dependencies.js
 var require_dependencies = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/dependencies.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/dependencies.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.validateSchemaDeps = exports2.validatePropertyDeps = exports2.error = void 0;
@@ -13355,9 +13355,9 @@ var require_dependencies = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js
 var require_propertyNames = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -13398,9 +13398,9 @@ var require_propertyNames = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js
 var require_additionalProperties = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -13504,9 +13504,9 @@ var require_additionalProperties = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/properties.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/properties.js
 var require_properties = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/properties.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/properties.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var validate_1 = require_validate();
@@ -13562,9 +13562,9 @@ var require_properties = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js
 var require_patternProperties = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -13636,9 +13636,9 @@ var require_patternProperties = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/not.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/not.js
 var require_not = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/not.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/not.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var util_1 = require_util();
@@ -13667,9 +13667,9 @@ var require_not = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/anyOf.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/anyOf.js
 var require_anyOf = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/anyOf.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/anyOf.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -13684,9 +13684,9 @@ var require_anyOf = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/oneOf.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/oneOf.js
 var require_oneOf = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/oneOf.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/oneOf.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -13742,9 +13742,9 @@ var require_oneOf = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/allOf.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/allOf.js
 var require_allOf = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/allOf.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/allOf.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var util_1 = require_util();
@@ -13769,9 +13769,9 @@ var require_allOf = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/if.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/if.js
 var require_if = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/if.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/if.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -13838,9 +13838,9 @@ var require_if = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/thenElse.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/thenElse.js
 var require_thenElse = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/thenElse.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/thenElse.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var util_1 = require_util();
@@ -13856,9 +13856,9 @@ var require_thenElse = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/index.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/index.js
 var require_applicator = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/index.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var additionalItems_1 = require_additionalItems();
@@ -13904,9 +13904,9 @@ var require_applicator = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/format.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/format.js
 var require_format = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/format.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/format.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -13994,9 +13994,9 @@ var require_format = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/index.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/index.js
 var require_format2 = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/index.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var format_1 = require_format();
@@ -14005,9 +14005,9 @@ var require_format2 = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/metadata.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/metadata.js
 var require_metadata = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/metadata.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/metadata.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.contentVocabulary = exports2.metadataVocabulary = void 0;
@@ -14028,9 +14028,9 @@ var require_metadata = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/draft7.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/draft7.js
 var require_draft7 = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/draft7.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/draft7.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var core_1 = require_core2();
@@ -14050,9 +14050,9 @@ var require_draft7 = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/types.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/types.js
 var require_types = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/types.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.DiscrError = void 0;
@@ -14064,9 +14064,9 @@ var require_types = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/index.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/index.js
 var require_discriminator = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/index.js"(exports2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -14169,9 +14169,9 @@ var require_discriminator = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/json-schema-draft-07.json
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/json-schema-draft-07.json
 var require_json_schema_draft_07 = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/json-schema-draft-07.json"(exports2, module2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/json-schema-draft-07.json"(exports2, module2) {
     module2.exports = {
       $schema: "http://json-schema.org/draft-07/schema#",
       $id: "http://json-schema.org/draft-07/schema#",
@@ -14326,9 +14326,9 @@ var require_json_schema_draft_07 = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/ajv.js
+// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/ajv.js
 var require_ajv = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/ajv.js"(exports2, module2) {
+  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/ajv.js"(exports2, module2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.MissingRefError = exports2.ValidationError = exports2.CodeGen = exports2.Name = exports2.nil = exports2.stringify = exports2.str = exports2._ = exports2.KeywordCxt = exports2.Ajv = void 0;
@@ -14396,9 +14396,9 @@ var require_ajv = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/formats.js
+// ../../node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/formats.js
 var require_formats = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/formats.js"(exports2) {
+  "../../node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/formats.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.formatNames = exports2.fastFormats = exports2.fullFormats = void 0;
@@ -14599,9 +14599,9 @@ var require_formats = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/limit.js
+// ../../node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/limit.js
 var require_limit = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/limit.js"(exports2) {
+  "../../node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/limit.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.formatLimitDefinition = void 0;
@@ -14671,9 +14671,9 @@ var require_limit = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/index.js
+// ../../node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/index.js
 var require_dist2 = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/index.js"(exports2, module2) {
+  "../../node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/index.js"(exports2, module2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var formats_1 = require_formats();
@@ -14713,9 +14713,9 @@ var require_dist2 = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/constants.js
+// ../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/constants.js
 var require_constants = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/constants.js"(exports2, module2) {
+  "../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/constants.js"(exports2, module2) {
     "use strict";
     var WIN_SLASH = "\\\\/";
     var WIN_NO_SLASH = `[^${WIN_SLASH}]`;
@@ -14915,9 +14915,9 @@ var require_constants = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/utils.js
+// ../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/utils.js
 var require_utils2 = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/utils.js"(exports2) {
+  "../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/utils.js"(exports2) {
     "use strict";
     var {
       REGEX_BACKSLASH,
@@ -14979,9 +14979,9 @@ var require_utils2 = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/scan.js
+// ../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/scan.js
 var require_scan = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/scan.js"(exports2, module2) {
+  "../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/scan.js"(exports2, module2) {
     "use strict";
     var utils = require_utils2();
     var {
@@ -15309,9 +15309,9 @@ var require_scan = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/parse.js
+// ../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/parse.js
 var require_parse2 = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/parse.js"(exports2, module2) {
+  "../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/parse.js"(exports2, module2) {
     "use strict";
     var constants4 = require_constants();
     var utils = require_utils2();
@@ -16323,9 +16323,9 @@ var require_parse2 = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/picomatch.js
+// ../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/picomatch.js
 var require_picomatch = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/picomatch.js"(exports2, module2) {
+  "../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/picomatch.js"(exports2, module2) {
     "use strict";
     var scan = require_scan();
     var parse3 = require_parse2();
@@ -16463,9 +16463,9 @@ var require_picomatch = __commonJS({
   }
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/index.js
+// ../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/index.js
 var require_picomatch2 = __commonJS({
-  "../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/index.js"(exports2, module2) {
+  "../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/index.js"(exports2, module2) {
     "use strict";
     var pico = require_picomatch();
     var utils = require_utils2();
@@ -16516,10 +16516,10 @@ function parseLogLevel(value) {
   return LOG_LEVELS.includes(value) ? value : void 0;
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
+// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 var import_node_process = __toESM(require("process"), 1);
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/core.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/core.js
 var NEVER = Object.freeze({
   status: "aborted"
 });
@@ -16578,7 +16578,7 @@ function config(newConfig) {
   return globalConfig;
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/util.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/util.js
 var util_exports = {};
 __export(util_exports, {
   BIGINT_FORMAT_RANGES: () => BIGINT_FORMAT_RANGES,
@@ -17099,7 +17099,7 @@ var Class = class {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/errors.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/errors.js
 var initializer = (inst, def) => {
   inst.name = "$ZodError";
   Object.defineProperty(inst, "_zod", {
@@ -17174,7 +17174,7 @@ function formatError(error2, _mapper) {
   return fieldErrors;
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/parse.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/parse.js
 var _parse = (_Err) => (schema, value, _ctx, _params) => {
   const ctx = _ctx ? Object.assign(_ctx, { async: false }) : { async: false };
   const result = schema._zod.run({ value, issues: [] }, ctx);
@@ -17226,7 +17226,7 @@ var _safeParseAsync = (_Err) => async (schema, value, _ctx) => {
 };
 var safeParseAsync = /* @__PURE__ */ _safeParseAsync($ZodRealError);
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/regexes.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/regexes.js
 var cuid = /^[cC][^\s-]{8,}$/;
 var cuid2 = /^[0-9a-z]+$/;
 var ulid = /^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$/;
@@ -17284,7 +17284,7 @@ var _null = /null/i;
 var lowercase = /^[^A-Z]*$/;
 var uppercase = /^[^a-z]*$/;
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/checks.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/checks.js
 var $ZodCheck = /* @__PURE__ */ $constructor("$ZodCheck", (inst, def) => {
   var _a;
   inst._zod ?? (inst._zod = {});
@@ -17669,7 +17669,7 @@ var $ZodCheckOverwrite = /* @__PURE__ */ $constructor("$ZodCheckOverwrite", (ins
   };
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/doc.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/doc.js
 var Doc = class {
   constructor(args = []) {
     this.content = [];
@@ -17705,14 +17705,14 @@ var Doc = class {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/versions.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/versions.js
 var version = {
   major: 4,
   minor: 0,
   patch: 0
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/schemas.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/schemas.js
 var $ZodType = /* @__PURE__ */ $constructor("$ZodType", (inst, def) => {
   var _a;
   inst ?? (inst = {});
@@ -18950,7 +18950,7 @@ function handleRefineResult(result, payload, input, inst) {
   }
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/locales/en.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/locales/en.js
 var parsedType = (data) => {
   const t = typeof data;
   switch (t) {
@@ -19068,7 +19068,7 @@ function en_default() {
   };
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/registries.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/registries.js
 var $ZodRegistry = class {
   constructor() {
     this._map = /* @__PURE__ */ new Map();
@@ -19116,7 +19116,7 @@ function registry() {
 }
 var globalRegistry = /* @__PURE__ */ registry();
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/api.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/api.js
 function _string(Class2, params) {
   return new Class2({
     type: "string",
@@ -19555,7 +19555,7 @@ function _refine(Class2, fn, _params) {
   return schema;
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/to-json-schema.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/to-json-schema.js
 var JSONSchemaGenerator = class {
   constructor(params) {
     this.counter = 0;
@@ -20322,7 +20322,7 @@ function isTransforming(_schema, _ctx) {
   throw new Error(`Unknown schema type: ${def.type}`);
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/iso.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/iso.js
 var iso_exports = {};
 __export(iso_exports, {
   ZodISODate: () => ZodISODate,
@@ -20363,7 +20363,7 @@ function duration2(params) {
   return _isoDuration(ZodISODuration, params);
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/errors.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/errors.js
 var initializer2 = (inst, issues) => {
   $ZodError.init(inst, issues);
   inst.name = "ZodError";
@@ -20397,13 +20397,13 @@ var ZodRealError = $constructor("ZodError", initializer2, {
   Parent: Error
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/parse.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/parse.js
 var parse2 = /* @__PURE__ */ _parse(ZodRealError);
 var parseAsync2 = /* @__PURE__ */ _parseAsync(ZodRealError);
 var safeParse2 = /* @__PURE__ */ _safeParse(ZodRealError);
 var safeParseAsync2 = /* @__PURE__ */ _safeParseAsync(ZodRealError);
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/schemas.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/schemas.js
 var ZodType = /* @__PURE__ */ $constructor("ZodType", (inst, def) => {
   $ZodType.init(inst, def);
   inst.def = def;
@@ -21014,10 +21014,10 @@ function preprocess(fn, schema) {
   return pipe(transform(fn), schema);
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/external.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/external.js
 config(en_default());
 
-// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/types.js
+// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/types.js
 var LATEST_PROTOCOL_VERSION = "2025-11-25";
 var SUPPORTED_PROTOCOL_VERSIONS = [LATEST_PROTOCOL_VERSION, "2025-06-18", "2025-03-26", "2024-11-05", "2024-10-07"];
 var RELATED_TASK_META_KEY = "io.modelcontextprotocol/related-task";
@@ -22548,7 +22548,7 @@ var UrlElicitationRequiredError = class extends McpError {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/stdio.js
+// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/stdio.js
 var ReadBuffer = class {
   append(chunk) {
     this._buffer = this._buffer ? Buffer.concat([this._buffer, chunk]) : chunk;
@@ -22576,7 +22576,7 @@ function serializeMessage(message2) {
   return JSON.stringify(message2) + "\n";
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
+// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 var StdioServerTransport = class {
   constructor(_stdin = import_node_process.default.stdin, _stdout = import_node_process.default.stdout) {
     this._stdin = _stdin;
@@ -22651,7 +22651,7 @@ var import_fs2 = require("fs");
 var import_fs3 = require("fs");
 var import_path2 = __toESM(require("path"), 1);
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/external.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/external.js
 var external_exports = {};
 __export(external_exports, {
   BRAND: () => BRAND,
@@ -22763,7 +22763,7 @@ __export(external_exports, {
   void: () => voidType
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/util.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/util.js
 var util;
 (function(util2) {
   util2.assertEqual = (_) => {
@@ -22897,7 +22897,7 @@ var getParsedType2 = (data) => {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/ZodError.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/ZodError.js
 var ZodIssueCode = util.arrayToEnum([
   "invalid_type",
   "invalid_literal",
@@ -23015,7 +23015,7 @@ ZodError2.create = (issues) => {
   return error2;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/locales/en.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/locales/en.js
 var errorMap = (issue3, _ctx) => {
   let message2;
   switch (issue3.code) {
@@ -23118,7 +23118,7 @@ var errorMap = (issue3, _ctx) => {
 };
 var en_default2 = errorMap;
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/errors.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/errors.js
 var overrideErrorMap = en_default2;
 function setErrorMap(map) {
   overrideErrorMap = map;
@@ -23127,7 +23127,7 @@ function getErrorMap() {
   return overrideErrorMap;
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
   const { data, path: path41, errorMaps, issueData } = params;
   const fullPath = [...path41, ...issueData.path || []];
@@ -23237,14 +23237,14 @@ var isDirty = (x) => x.status === "dirty";
 var isValid = (x) => x.status === "valid";
 var isAsync = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/errorUtil.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil;
 (function(errorUtil2) {
   errorUtil2.errToObj = (message2) => typeof message2 === "string" ? { message: message2 } : message2 || {};
   errorUtil2.toString = (message2) => typeof message2 === "string" ? message2 : message2?.message;
 })(errorUtil || (errorUtil = {}));
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
   constructor(parent, value, path41, key) {
     this._cachedPath = [];
@@ -34353,7 +34353,7 @@ var import_buffer = require("buffer");
 var import_fs11 = require("fs");
 var import_path11 = __toESM(require("path"), 1);
 
-// ../../../../../specbridge/node_modules/.pnpm/is-plain-obj@4.1.0/node_modules/is-plain-obj/index.js
+// ../../node_modules/.pnpm/is-plain-obj@4.1.0/node_modules/is-plain-obj/index.js
 function isPlainObject2(value) {
   if (typeof value !== "object" || value === null) {
     return false;
@@ -34362,7 +34362,7 @@ function isPlainObject2(value) {
   return (prototype === null || prototype === Object.prototype || Object.getPrototypeOf(prototype) === null) && !(Symbol.toStringTag in value) && !(Symbol.iterator in value);
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/file-url.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/file-url.js
 var import_node_url = require("url");
 var safeNormalizeFileUrl = (file, name) => {
   const fileString = normalizeFileUrl(normalizeDenoExecPath(file));
@@ -34375,7 +34375,7 @@ var normalizeDenoExecPath = (file) => isDenoExecPath(file) ? file.toString() : f
 var isDenoExecPath = (file) => typeof file !== "string" && file && Object.getPrototypeOf(file) === String.prototype;
 var normalizeFileUrl = (file) => file instanceof URL ? (0, import_node_url.fileURLToPath)(file) : file;
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/parameters.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/parameters.js
 var normalizeParameters = (rawFile, rawArguments = [], rawOptions = {}) => {
   const filePath = safeNormalizeFileUrl(rawFile, "First argument");
   const [commandArguments, options] = isPlainObject2(rawArguments) ? [[], rawArguments] : [rawArguments, rawOptions];
@@ -34396,10 +34396,10 @@ var normalizeParameters = (rawFile, rawArguments = [], rawOptions = {}) => {
   return [filePath, normalizedArguments, options];
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/template.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/template.js
 var import_node_child_process = require("child_process");
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/uint-array.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/uint-array.js
 var import_node_string_decoder = require("string_decoder");
 var { toString: objectToString } = Object.prototype;
 var isArrayBuffer = (value) => objectToString.call(value) === "[object ArrayBuffer]";
@@ -34446,7 +34446,7 @@ var getJoinLength = (uint8Arrays) => {
   return joinLength;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/template.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/template.js
 var isTemplateString = (templates) => Array.isArray(templates) && Array.isArray(templates.raw);
 var parseTemplates = (templates, expressions) => {
   let tokens = [];
@@ -34546,20 +34546,20 @@ var getSubprocessResult = ({ stdout }) => {
   throw new TypeError(`Unexpected "${typeof stdout}" stdout in template expression`);
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/main-sync.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/main-sync.js
 var import_node_child_process3 = require("child_process");
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/specific.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/specific.js
 var import_node_util = require("util");
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/standard-stream.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/standard-stream.js
 var import_node_process2 = __toESM(require("process"), 1);
 var isStandardStream = (stream) => STANDARD_STREAMS.includes(stream);
 var STANDARD_STREAMS = [import_node_process2.default.stdin, import_node_process2.default.stdout, import_node_process2.default.stderr];
 var STANDARD_STREAMS_ALIASES = ["stdin", "stdout", "stderr"];
 var getStreamName = (fdNumber) => STANDARD_STREAMS_ALIASES[fdNumber] ?? `stdio[${fdNumber}]`;
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/specific.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/specific.js
 var normalizeFdSpecificOptions = (options) => {
   const optionsCopy = { ...options };
   for (const optionName of FD_SPECIFIC_OPTIONS) {
@@ -34629,7 +34629,7 @@ var DEFAULT_OPTIONS = {
 var FD_SPECIFIC_OPTIONS = ["lines", "buffer", "maxBuffer", "verbose", "stripFinalNewline"];
 var getFdSpecificValue = (optionArray, fdNumber) => fdNumber === "ipc" ? optionArray.at(-1) : optionArray[fdNumber];
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/values.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/values.js
 var isVerbose = ({ verbose }, fdNumber) => getFdVerbose(verbose, fdNumber) !== "none";
 var isFullVerbose = ({ verbose }, fdNumber) => !["none", "short"].includes(getFdVerbose(verbose, fdNumber));
 var getVerboseFunction = ({ verbose }, fdNumber) => {
@@ -34641,10 +34641,10 @@ var getFdGenericVerbose = (verbose) => verbose.find((fdVerbose) => isVerboseFunc
 var isVerboseFunction = (fdVerbose) => typeof fdVerbose === "function";
 var VERBOSE_VALUES = ["none", "short", "full"];
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/log.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/log.js
 var import_node_util3 = require("util");
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/escape.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/escape.js
 var import_node_process3 = require("process");
 var import_node_util2 = require("util");
 var joinCommand = (filePath, rawArguments) => {
@@ -34689,7 +34689,7 @@ var quoteString = (escapedArgument) => {
 };
 var NO_ESCAPE_REGEXP = /^[\w./-]+$/;
 
-// ../../../../../specbridge/node_modules/.pnpm/is-unicode-supported@2.1.0/node_modules/is-unicode-supported/index.js
+// ../../node_modules/.pnpm/is-unicode-supported@2.1.0/node_modules/is-unicode-supported/index.js
 var import_node_process4 = __toESM(require("process"), 1);
 function isUnicodeSupported() {
   const { env } = import_node_process4.default;
@@ -34700,7 +34700,7 @@ function isUnicodeSupported() {
   return Boolean(env.WT_SESSION) || Boolean(env.TERMINUS_SUBLIME) || env.ConEmuTask === "{cmd::Cmder}" || TERM_PROGRAM === "Terminus-Sublime" || TERM_PROGRAM === "vscode" || TERM === "xterm-256color" || TERM === "alacritty" || TERM === "rxvt-unicode" || TERM === "rxvt-unicode-256color" || env.TERMINAL_EMULATOR === "JetBrains-JediTerm";
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/figures@6.1.0/node_modules/figures/index.js
+// ../../node_modules/.pnpm/figures@6.1.0/node_modules/figures/index.js
 var common = {
   circleQuestionMark: "(?)",
   questionMarkPrefix: "(?)",
@@ -34976,7 +34976,7 @@ var figures = shouldUseMain ? mainSymbols : fallbackSymbols;
 var figures_default = figures;
 var replacements = Object.entries(specialMainSymbols);
 
-// ../../../../../specbridge/node_modules/.pnpm/yoctocolors@2.1.2/node_modules/yoctocolors/base.js
+// ../../node_modules/.pnpm/yoctocolors@2.1.2/node_modules/yoctocolors/base.js
 var import_node_tty = __toESM(require("tty"), 1);
 var hasColors = import_node_tty.default?.WriteStream?.prototype?.hasColors?.() ?? false;
 var format = (open, close) => {
@@ -35046,7 +35046,7 @@ var bgMagentaBright = format(105, 49);
 var bgCyanBright = format(106, 49);
 var bgWhiteBright = format(107, 49);
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/default.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/default.js
 var defaultVerboseFunction = ({
   type,
   message: message2,
@@ -35085,7 +35085,7 @@ var COLORS = {
   duration: () => gray
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/custom.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/custom.js
 var applyVerboseOnLines = (printedLines, verboseInfo, fdNumber) => {
   const verboseFunction = getVerboseFunction(verboseInfo, fdNumber);
   return printedLines.map(({ verboseLine, verboseObject }) => applyVerboseFunction(verboseLine, verboseObject, verboseFunction)).filter((printedLine) => printedLine !== void 0).map((printedLine) => appendNewline(printedLine)).join("");
@@ -35102,7 +35102,7 @@ var applyVerboseFunction = (verboseLine, verboseObject, verboseFunction) => {
 var appendNewline = (printedLine) => printedLine.endsWith("\n") ? printedLine : `${printedLine}
 `;
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/log.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/log.js
 var verboseLog = ({ type, verboseMessage, fdNumber, verboseInfo, result }) => {
   const verboseObject = getVerboseObject({ type, result, verboseInfo });
   const printedLines = getPrintedLines(verboseMessage, verboseObject);
@@ -35136,7 +35136,7 @@ var serializeVerboseMessage = (message2) => {
 };
 var TAB_SIZE = 2;
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/start.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/start.js
 var logCommand = (escapedCommand, verboseInfo) => {
   if (!isVerbose(verboseInfo)) {
     return;
@@ -35148,7 +35148,7 @@ var logCommand = (escapedCommand, verboseInfo) => {
   });
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/info.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/info.js
 var getVerboseInfo = (verbose, escapedCommand, rawOptions) => {
   validateVerbose(verbose);
   const commandId = getCommandId(verbose);
@@ -35176,12 +35176,12 @@ var validateVerbose = (verbose) => {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/duration.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/duration.js
 var import_node_process5 = require("process");
 var getStartTime = () => import_node_process5.hrtime.bigint();
 var getDurationMs = (startTime) => Number(import_node_process5.hrtime.bigint() - startTime) / 1e6;
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/command.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/command.js
 var handleCommand = (filePath, rawArguments, rawOptions) => {
   const startTime = getStartTime();
   const { command, escapedCommand } = joinCommand(filePath, rawArguments);
@@ -35196,16 +35196,16 @@ var handleCommand = (filePath, rawArguments, rawOptions) => {
   };
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/options.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/options.js
 var import_node_path5 = __toESM(require("path"), 1);
 var import_node_process9 = __toESM(require("process"), 1);
 var import_cross_spawn = __toESM(require_cross_spawn(), 1);
 
-// ../../../../../specbridge/node_modules/.pnpm/npm-run-path@6.0.0/node_modules/npm-run-path/index.js
+// ../../node_modules/.pnpm/npm-run-path@6.0.0/node_modules/npm-run-path/index.js
 var import_node_process6 = __toESM(require("process"), 1);
 var import_node_path2 = __toESM(require("path"), 1);
 
-// ../../../../../specbridge/node_modules/.pnpm/path-key@4.0.0/node_modules/path-key/index.js
+// ../../node_modules/.pnpm/path-key@4.0.0/node_modules/path-key/index.js
 function pathKey(options = {}) {
   const {
     env = process.env,
@@ -35217,7 +35217,7 @@ function pathKey(options = {}) {
   return Object.keys(env).reverse().find((key) => key.toUpperCase() === "PATH") || "Path";
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/unicorn-magic@0.3.0/node_modules/unicorn-magic/node.js
+// ../../node_modules/.pnpm/unicorn-magic@0.3.0/node_modules/unicorn-magic/node.js
 var import_node_util4 = require("util");
 var import_node_child_process2 = require("child_process");
 var import_node_path = __toESM(require("path"), 1);
@@ -35241,7 +35241,7 @@ function traversePathUp(startPath) {
 }
 var TEN_MEGABYTES_IN_BYTES = 10 * 1024 * 1024;
 
-// ../../../../../specbridge/node_modules/.pnpm/npm-run-path@6.0.0/node_modules/npm-run-path/index.js
+// ../../node_modules/.pnpm/npm-run-path@6.0.0/node_modules/npm-run-path/index.js
 var npmRunPath = ({
   cwd = import_node_process6.default.cwd(),
   path: pathOption = import_node_process6.default.env[pathKey()],
@@ -35282,10 +35282,10 @@ var npmRunPathEnv = ({ env = import_node_process6.default.env, ...options } = {}
   return env;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/kill.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/kill.js
 var import_promises = require("timers/promises");
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/final-error.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/final-error.js
 var getFinalError = (originalError, message2, isSync) => {
   const ErrorClass = isSync ? ExecaSyncError : ExecaError;
   const options = originalError instanceof DiscardedError ? {} : { cause: originalError };
@@ -35317,13 +35317,13 @@ var ExecaSyncError = class extends Error {
 };
 setErrorName(ExecaSyncError, ExecaSyncError.name);
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/signal.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/signal.js
 var import_node_os3 = require("os");
 
-// ../../../../../specbridge/node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/main.js
+// ../../node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/main.js
 var import_node_os2 = require("os");
 
-// ../../../../../specbridge/node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/realtime.js
+// ../../node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/realtime.js
 var getRealtimeSignals = () => {
   const length = SIGRTMAX - SIGRTMIN + 1;
   return Array.from({ length }, getRealtimeSignal);
@@ -35338,10 +35338,10 @@ var getRealtimeSignal = (value, index) => ({
 var SIGRTMIN = 34;
 var SIGRTMAX = 64;
 
-// ../../../../../specbridge/node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/signals.js
+// ../../node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/signals.js
 var import_node_os = require("os");
 
-// ../../../../../specbridge/node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/core.js
+// ../../node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/core.js
 var SIGNALS = [
   {
     name: "SIGHUP",
@@ -35614,7 +35614,7 @@ var SIGNALS = [
   }
 ];
 
-// ../../../../../specbridge/node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/signals.js
+// ../../node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/signals.js
 var getSignals = () => {
   const realtimeSignals = getRealtimeSignals();
   const signals2 = [...SIGNALS, ...realtimeSignals].map(normalizeSignal);
@@ -35636,7 +35636,7 @@ var normalizeSignal = ({
   return { name, number: number3, description, supported, action, forced, standard };
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/main.js
+// ../../node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/main.js
 var getSignalsByName = () => {
   const signals2 = getSignals();
   return Object.fromEntries(signals2.map(getSignalByName));
@@ -35687,7 +35687,7 @@ var findSignalByNumber = (number3, signals2) => {
 };
 var signalsByNumber = getSignalsByNumber();
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/signal.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/signal.js
 var normalizeKillSignal = (killSignal) => {
   const optionName = "option `killSignal`";
   if (killSignal === 0) {
@@ -35731,7 +35731,7 @@ var getAvailableSignalNames = () => Object.keys(import_node_os3.constants.signal
 var getAvailableSignalIntegers = () => [...new Set(Object.values(import_node_os3.constants.signals).sort((signalInteger, signalIntegerTwo) => signalInteger - signalIntegerTwo))].join(", ");
 var getSignalDescription = (signal) => signalsByName[signal].description;
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/kill.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/kill.js
 var normalizeForceKillAfterDelay = (forceKillAfterDelay) => {
   if (forceKillAfterDelay === false) {
     return forceKillAfterDelay;
@@ -35798,7 +35798,7 @@ var killOnTimeout = async ({ kill, forceKillAfterDelay, context, controllerSigna
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/abort-signal.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/abort-signal.js
 var import_node_events = require("events");
 var onAbortedSignal = async (mainSignal, stopSignal) => {
   if (!mainSignal.aborted) {
@@ -35806,7 +35806,7 @@ var onAbortedSignal = async (mainSignal, stopSignal) => {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/cancel.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/cancel.js
 var validateCancelSignal = ({ cancelSignal }) => {
   if (cancelSignal !== void 0 && Object.prototype.toString.call(cancelSignal) !== "[object AbortSignal]") {
     throw new Error(`The \`cancelSignal\` option must be an AbortSignal: ${String(cancelSignal)}`);
@@ -35820,13 +35820,13 @@ var terminateOnCancel = async (subprocess, cancelSignal, context, { signal }) =>
   throw cancelSignal.reason;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/graceful.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/graceful.js
 var import_promises3 = require("timers/promises");
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/send.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/send.js
 var import_node_util5 = require("util");
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/validation.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/validation.js
 var validateIpcMethod = ({ methodName, isSubprocess, ipc, isConnected: isConnected2 }) => {
   validateIpcOption(methodName, isSubprocess, ipc);
   validateConnection(methodName, isSubprocess, isConnected2);
@@ -35898,7 +35898,7 @@ var disconnect = (anyProcess) => {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/deferred.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/deferred.js
 var createDeferred = () => {
   const methods = {};
   const promise = new Promise((resolve2, reject) => {
@@ -35907,7 +35907,7 @@ var createDeferred = () => {
   return Object.assign(promise, methods);
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/fd-options.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/fd-options.js
 var getToStream = (destination, to = "stdin") => {
   const isWritable = true;
   const { options, fileDescriptors } = SUBPROCESS_OPTIONS.get(destination);
@@ -35987,10 +35987,10 @@ var serializeOptionValue = (value) => {
   return typeof value === "number" ? `${value}` : "Stream";
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/strict.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/strict.js
 var import_node_events5 = require("events");
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/max-listeners.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/max-listeners.js
 var import_node_events2 = require("events");
 var incrementMaxListeners = (eventEmitter, maxListenersIncrement, signal) => {
   const maxListeners = eventEmitter.getMaxListeners();
@@ -36003,14 +36003,14 @@ var incrementMaxListeners = (eventEmitter, maxListenersIncrement, signal) => {
   });
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/forward.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/forward.js
 var import_node_events4 = require("events");
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/incoming.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/incoming.js
 var import_node_events3 = require("events");
 var import_promises2 = require("timers/promises");
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/reference.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/reference.js
 var addReference = (channel, reference) => {
   if (reference) {
     addReferenceCount(channel);
@@ -36040,7 +36040,7 @@ var redoAddedReferences = (channel, isSubprocess) => {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/incoming.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/incoming.js
 var onMessage = async ({ anyProcess, channel, isSubprocess, ipcEmitter }, wrappedMessage) => {
   if (handleStrictResponse(wrappedMessage) || handleAbort(wrappedMessage)) {
     return;
@@ -36081,7 +36081,7 @@ var onDisconnect = async ({ anyProcess, channel, isSubprocess, ipcEmitter, bound
 };
 var INCOMING_MESSAGES = /* @__PURE__ */ new WeakMap();
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/forward.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/forward.js
 var getIpcEmitter = (anyProcess, channel, isSubprocess) => {
   if (IPC_EMITTERS.has(anyProcess)) {
     return IPC_EMITTERS.get(anyProcess);
@@ -36120,7 +36120,7 @@ var isConnected = (anyProcess) => {
   return ipcEmitter === void 0 ? anyProcess.channel !== null : ipcEmitter.connected;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/strict.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/strict.js
 var handleSendStrict = ({ anyProcess, channel, isSubprocess, message: message2, strict }) => {
   if (!strict) {
     return message2;
@@ -36203,7 +36203,7 @@ var throwOnDisconnect = async (anyProcess, isSubprocess, { signal }) => {
 var REQUEST_TYPE = "execa:ipc:request";
 var RESPONSE_TYPE = "execa:ipc:response";
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/outgoing.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/outgoing.js
 var startSendMessage = (anyProcess, wrappedMessage, strict) => {
   if (!OUTGOING_MESSAGES.has(anyProcess)) {
     OUTGOING_MESSAGES.set(anyProcess, /* @__PURE__ */ new Set());
@@ -36230,7 +36230,7 @@ var OUTGOING_MESSAGES = /* @__PURE__ */ new WeakMap();
 var hasMessageListeners = (anyProcess, ipcEmitter) => ipcEmitter.listenerCount("message") > getMinListenerCount(anyProcess);
 var getMinListenerCount = (anyProcess) => SUBPROCESS_OPTIONS.has(anyProcess) && !getFdSpecificValue(SUBPROCESS_OPTIONS.get(anyProcess).options.buffer, "ipc") ? 1 : 0;
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/send.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/send.js
 var sendMessage = ({ anyProcess, channel, isSubprocess, ipc }, message2, { strict = false } = {}) => {
   const methodName = "sendMessage";
   validateIpcMethod({
@@ -36300,7 +36300,7 @@ var getSendMethod = (anyProcess) => {
 };
 var PROCESS_SEND_METHODS = /* @__PURE__ */ new WeakMap();
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/graceful.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/graceful.js
 var sendAbort = (subprocess, message2) => {
   const methodName = "cancelSignal";
   validateConnection(methodName, false, subprocess.connected);
@@ -36351,7 +36351,7 @@ var abortOnDisconnect = () => {
 };
 var cancelController = new AbortController();
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/graceful.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/graceful.js
 var validateGracefulCancel = ({ gracefulCancel, cancelSignal, ipc, serialization }) => {
   if (!gracefulCancel) {
     return;
@@ -36407,7 +36407,7 @@ var getReason = ({ reason }) => {
   return error2;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/timeout.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/timeout.js
 var import_promises4 = require("timers/promises");
 var validateTimeout = ({ timeout }) => {
   if (timeout !== void 0 && (!Number.isFinite(timeout) || timeout < 0)) {
@@ -36422,7 +36422,7 @@ var killAfterTimeout = async (subprocess, timeout, context, { signal }) => {
   throw new DiscardedError();
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/node.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/node.js
 var import_node_process7 = require("process");
 var import_node_path3 = __toESM(require("path"), 1);
 var mapNode = ({ options }) => {
@@ -36463,7 +36463,7 @@ var handleNodeOption = (file, commandArguments, {
   ];
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/ipc-input.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/ipc-input.js
 var import_node_v8 = require("v8");
 var validateIpcInputOption = ({ ipcInput, ipc, serialization }) => {
   if (ipcInput === void 0) {
@@ -36499,7 +36499,7 @@ var sendIpcInput = async (subprocess, ipcInput) => {
   await subprocess.sendMessage(ipcInput);
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/encoding-option.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/encoding-option.js
 var validateEncoding = ({ encoding }) => {
   if (ENCODINGS.has(encoding)) {
     return;
@@ -36541,7 +36541,7 @@ var ENCODING_ALIASES = {
 };
 var serializeEncoding = (encoding) => typeof encoding === "string" ? `"${encoding}"` : String(encoding);
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/cwd.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/cwd.js
 var import_node_fs = require("fs");
 var import_node_path4 = __toESM(require("path"), 1);
 var import_node_process8 = __toESM(require("process"), 1);
@@ -36577,7 +36577,7 @@ ${originalMessage}`;
   return originalMessage;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/options.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/options.js
 var normalizeOptions = (filePath, rawArguments, rawOptions) => {
   rawOptions.cwd = normalizeCwd(rawOptions.cwd);
   const [processedFile, processedArguments, processedOptions] = handleNodeOption(filePath, rawArguments, rawOptions);
@@ -36648,13 +36648,13 @@ var getEnv = ({ env: envOption, extendEnv, preferLocal, node, localDirectory, no
   return env;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/shell.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/shell.js
 var concatenateShell = (file, commandArguments, options) => options.shell && commandArguments.length > 0 ? [[file, ...commandArguments].join(" "), [], options] : [file, commandArguments, options];
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/message.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/message.js
 var import_node_util6 = require("util");
 
-// ../../../../../specbridge/node_modules/.pnpm/strip-final-newline@4.0.0/node_modules/strip-final-newline/index.js
+// ../../node_modules/.pnpm/strip-final-newline@4.0.0/node_modules/strip-final-newline/index.js
 function stripFinalNewline(input) {
   if (typeof input === "string") {
     return stripFinalNewlineString(input);
@@ -36671,11 +36671,11 @@ var LF_BINARY = LF.codePointAt(0);
 var CR = "\r";
 var CR_BINARY = CR.codePointAt(0);
 
-// ../../../../../specbridge/node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/index.js
+// ../../node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/index.js
 var import_node_events6 = require("events");
 var import_promises5 = require("stream/promises");
 
-// ../../../../../specbridge/node_modules/.pnpm/is-stream@4.0.1/node_modules/is-stream/index.js
+// ../../node_modules/.pnpm/is-stream@4.0.1/node_modules/is-stream/index.js
 function isStream(stream, { checkOpen = true } = {}) {
   return stream !== null && typeof stream === "object" && (stream.writable || stream.readable || !checkOpen || stream.writable === void 0 && stream.readable === void 0) && typeof stream.pipe === "function";
 }
@@ -36689,7 +36689,7 @@ function isDuplexStream(stream, options) {
   return isWritableStream(stream, options) && isReadableStream(stream, options);
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/@sec-ant+readable-stream@0.4.1/node_modules/@sec-ant/readable-stream/dist/ponyfill/asyncIterator.js
+// ../../node_modules/.pnpm/@sec-ant+readable-stream@0.4.1/node_modules/@sec-ant/readable-stream/dist/ponyfill/asyncIterator.js
 var a = Object.getPrototypeOf(
   Object.getPrototypeOf(
     /* istanbul ignore next */
@@ -36777,7 +36777,7 @@ function h({ preventCancel: r = false } = {}) {
   return s[n] = t, s;
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/stream.js
+// ../../node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/stream.js
 var getAsyncIterable = (stream) => {
   if (isReadableStream(stream, { checkOpen: false }) && nodeImports.on !== void 0) {
     return getStreamIterable(stream);
@@ -36825,7 +36825,7 @@ var handleStreamEnd = async (stream, controller, state) => {
 };
 var nodeImports = {};
 
-// ../../../../../specbridge/node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/contents.js
+// ../../node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/contents.js
 var getStreamContents = async (stream, { init, convertChunk, getSize, truncateChunk, addChunk, getFinalChunk, finalize }, { maxBuffer = Number.POSITIVE_INFINITY } = {}) => {
   const asyncIterable = getAsyncIterable(stream);
   const state = init();
@@ -36920,7 +36920,7 @@ var MaxBufferError = class extends Error {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/utils.js
+// ../../node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/utils.js
 var identity2 = (value) => value;
 var noop = () => void 0;
 var getContentsProperty = ({ contents }) => contents;
@@ -36929,7 +36929,7 @@ var throwObjectStream = (chunk) => {
 };
 var getLengthProperty = (convertedChunk) => convertedChunk.length;
 
-// ../../../../../specbridge/node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/array.js
+// ../../node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/array.js
 async function getStreamAsArray(stream, options) {
   return getStreamContents(stream, arrayMethods, options);
 }
@@ -36956,7 +36956,7 @@ var arrayMethods = {
   finalize: getContentsProperty
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/array-buffer.js
+// ../../node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/array-buffer.js
 async function getStreamAsArrayBuffer(stream, options) {
   return getStreamContents(stream, arrayBufferMethods, options);
 }
@@ -37009,7 +37009,7 @@ var arrayBufferMethods = {
   finalize: finalizeArrayBuffer
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/string.js
+// ../../node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/string.js
 async function getStreamAsString(stream, options) {
   return getStreamContents(stream, stringMethods, options);
 }
@@ -37038,10 +37038,10 @@ var stringMethods = {
   finalize: getContentsProperty
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/index.js
+// ../../node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/index.js
 Object.assign(nodeImports, { on: import_node_events6.on, finished: import_promises5.finished });
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/max-buffer.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/max-buffer.js
 var handleMaxBuffer = ({ error: error2, stream, readableObjectMode, lines, encoding, fdNumber }) => {
   if (!(error2 instanceof MaxBufferError)) {
     throw error2;
@@ -37100,7 +37100,7 @@ var truncateMaxBufferSync = (result, isMaxBuffer, maxBuffer) => {
 };
 var getMaxBufferSync = ([, stdoutMaxBuffer]) => stdoutMaxBuffer;
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/message.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/message.js
 var createMessages = ({
   stdio,
   all,
@@ -37218,7 +37218,7 @@ var serializeMessageItem = (messageItem) => {
   return "";
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/result.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/result.js
 var makeSuccessResult = ({
   command,
   escapedCommand,
@@ -37391,7 +37391,7 @@ var normalizeExitPayload = (rawExitCode, rawSignal) => {
   return { exitCode, signal, signalDescription };
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/parse-ms@4.0.0/node_modules/parse-ms/index.js
+// ../../node_modules/.pnpm/parse-ms@4.0.0/node_modules/parse-ms/index.js
 var toZeroIfInfinity = (value) => Number.isFinite(value) ? value : 0;
 function parseNumber(milliseconds) {
   return {
@@ -37430,7 +37430,7 @@ function parseMilliseconds(milliseconds) {
   throw new TypeError("Expected a finite number or bigint");
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/pretty-ms@9.3.0/node_modules/pretty-ms/index.js
+// ../../node_modules/.pnpm/pretty-ms@9.3.0/node_modules/pretty-ms/index.js
 var isZero = (value) => value === 0 || value === 0n;
 var pluralize = (word, count4) => count4 === 1 || count4 === 1n ? word : `${word}s`;
 var SECOND_ROUNDING_EPSILON = 1e-7;
@@ -37529,7 +37529,7 @@ function prettyMilliseconds(milliseconds, options) {
   return sign + result.join(separator);
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/error.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/error.js
 var logError = (result, verboseInfo) => {
   if (result.failed) {
     verboseLog({
@@ -37541,7 +37541,7 @@ var logError = (result, verboseInfo) => {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/complete.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/complete.js
 var logResult = (result, verboseInfo) => {
   if (!isVerbose(verboseInfo)) {
     return;
@@ -37559,7 +37559,7 @@ var logDuration = (result, verboseInfo) => {
   });
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/reject.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/reject.js
 var handleResult2 = (result, verboseInfo, { reject }) => {
   logResult(result, verboseInfo);
   if (result.failed && reject) {
@@ -37568,10 +37568,10 @@ var handleResult2 = (result, verboseInfo, { reject }) => {
   return result;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/handle-sync.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/handle-sync.js
 var import_node_fs3 = require("fs");
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/type.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/type.js
 var getStdioItemType = (value, optionName) => {
   if (isAsyncGenerator(value)) {
     return "asyncGenerator";
@@ -37697,7 +37697,7 @@ var TYPE_TO_MESSAGE = {
   uint8Array: "a Uint8Array"
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/object-mode.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/object-mode.js
 var getTransformObjectModes = (objectMode, index, newTransforms, direction) => direction === "output" ? getOutputObjectModes(objectMode, index, newTransforms) : getInputObjectModes(objectMode, index, newTransforms);
 var getOutputObjectModes = (objectMode, index, newTransforms) => {
   const writableObjectMode = index !== 0 && newTransforms[index - 1].value.readableObjectMode;
@@ -37717,7 +37717,7 @@ var getFdObjectMode = (stdioItems, direction) => {
   return direction === "input" ? lastTransform.value.writableObjectMode : lastTransform.value.readableObjectMode;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/normalize.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/normalize.js
 var normalizeTransforms = (stdioItems, optionName, direction, options) => [
   ...stdioItems.filter(({ type }) => !TRANSFORM_TYPES.has(type)),
   ...getTransforms(stdioItems, optionName, direction, options)
@@ -37811,7 +37811,7 @@ var normalizeGenerator = ({ stdioItem, stdioItem: { value }, index, newTransform
 };
 var sortTransforms = (newTransforms, direction) => direction === "input" ? newTransforms.reverse() : newTransforms;
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/direction.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/direction.js
 var import_node_process10 = __toESM(require("process"), 1);
 var getStreamDirection = (stdioItems, fdNumber, optionName) => {
   const directions = stdioItems.map((stdioItem) => getStdioItemDirection(stdioItem, fdNumber));
@@ -37861,10 +37861,10 @@ var getStandardStreamDirection = (value) => {
 };
 var DEFAULT_DIRECTION = "output";
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/array.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/array.js
 var normalizeIpcStdioArray = (stdioArray, ipc) => ipc && !stdioArray.includes("ipc") ? [...stdioArray, "ipc"] : stdioArray;
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/stdio-option.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/stdio-option.js
 var normalizeStdioOption = ({ stdio, ipc, buffer, ...options }, verboseInfo, isSync) => {
   const stdioArray = getStdioArray(stdio, options).map((stdioOption, fdNumber) => addDefaultValue2(stdioOption, fdNumber));
   return isSync ? normalizeStdioSync(stdioArray, buffer, verboseInfo) : normalizeIpcStdioArray(stdioArray, ipc);
@@ -37898,7 +37898,7 @@ var addDefaultValue2 = (stdioOption, fdNumber) => {
 var normalizeStdioSync = (stdioArray, buffer, verboseInfo) => stdioArray.map((stdioOption, fdNumber) => !buffer[fdNumber] && fdNumber !== 0 && !isFullVerbose(verboseInfo, fdNumber) && isOutputPipeOnly(stdioOption) ? "ignore" : stdioOption);
 var isOutputPipeOnly = (stdioOption) => stdioOption === "pipe" || Array.isArray(stdioOption) && stdioOption.every((item) => item === "pipe");
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/native.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/native.js
 var import_node_fs2 = require("fs");
 var import_node_tty2 = __toESM(require("tty"), 1);
 var handleNativeStream = ({ stdioItem, stdioItem: { type }, isStdioArray, fdNumber, direction, isSync }) => {
@@ -37967,7 +37967,7 @@ var getStandardStream = (fdNumber, value, optionName) => {
   return standardStream;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/input-option.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/input-option.js
 var handleInputOptions = ({ input, inputFile }, fdNumber) => fdNumber === 0 ? [
   ...handleInputOption(input),
   ...handleInputFileOption(inputFile)
@@ -38003,7 +38003,7 @@ var getInputFileType = (inputFile) => {
   throw new Error("The `inputFile` option must be a file path string or a file URL.");
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/duplicate.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/duplicate.js
 var filterDuplicates = (stdioItems) => stdioItems.filter((stdioItemOne, indexOne) => stdioItems.every((stdioItemTwo, indexTwo) => stdioItemOne.value !== stdioItemTwo.value || indexOne >= indexTwo || stdioItemOne.type === "generator" || stdioItemOne.type === "asyncGenerator"));
 var getDuplicateStream = ({ stdioItem: { type, value, optionName }, direction, fileDescriptors, isSync }) => {
   const otherStdioItems = getOtherStdioItems(fileDescriptors, type);
@@ -38078,7 +38078,7 @@ var throwOnDuplicateStream = (stdioItem, optionName, type) => {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/handle.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/handle.js
 var handleStdio = (addProperties3, options, verboseInfo, isSync) => {
   const stdio = normalizeStdioOption(options, verboseInfo, isSync);
   const initialFileDescriptors = stdio.map((stdioOption, fdNumber) => getFileDescriptor({
@@ -38238,7 +38238,7 @@ var forwardStdio = (stdioItems) => {
   return type === "native" ? value : "pipe";
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/handle-sync.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/handle-sync.js
 var handleStdioSync = (options, verboseInfo) => handleStdio(addPropertiesSync, options, verboseInfo, true);
 var forbiddenIfSync = ({ type, optionName }) => {
   throwInvalidSyncValue(optionName, TYPE_TO_MESSAGE[type]);
@@ -38284,14 +38284,14 @@ var addPropertiesSync = {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/strip-newline.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/strip-newline.js
 var stripNewline = (value, { stripFinalNewline: stripFinalNewline2 }, fdNumber) => getStripFinalNewline(stripFinalNewline2, fdNumber) && value !== void 0 && !Array.isArray(value) ? stripFinalNewline(value) : value;
 var getStripFinalNewline = (stripFinalNewline2, fdNumber) => fdNumber === "all" ? stripFinalNewline2[1] || stripFinalNewline2[2] : stripFinalNewline2[fdNumber];
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/generator.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/generator.js
 var import_node_stream = require("stream");
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/split.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/split.js
 var getSplitLinesGenerator = (binary, preserveNewlines, skipped, state) => binary || skipped ? void 0 : initializeSplitLines(preserveNewlines, state);
 var splitLinesSync = (chunk, preserveNewlines, objectMode) => objectMode ? chunk.flatMap((item) => splitLinesItemSync(item, preserveNewlines)) : splitLinesItemSync(chunk, preserveNewlines);
 var splitLinesItemSync = (chunk, preserveNewlines) => {
@@ -38371,7 +38371,7 @@ var linesUint8ArrayInfo = {
   concatBytes: concatUint8Array
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/validate.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/validate.js
 var import_node_buffer = require("buffer");
 var getValidateTransformInput = (writableObjectMode, optionName) => writableObjectMode ? void 0 : validateStringTransformInput.bind(void 0, optionName);
 var validateStringTransformInput = function* (optionName, chunk) {
@@ -38400,7 +38400,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/encoding-transform.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/encoding-transform.js
 var import_node_buffer2 = require("buffer");
 var import_node_string_decoder2 = require("string_decoder");
 var getEncodingTransformGenerator = (binary, encoding, skipped) => {
@@ -38435,7 +38435,7 @@ var encodingStringFinal = function* (stringDecoder) {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/run-async.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/run-async.js
 var import_node_util7 = require("util");
 var pushChunks = (0, import_node_util7.callbackify)(async (getChunks, state, getChunksArguments, transformStream) => {
   state.currentIterable = getChunks(...getChunksArguments);
@@ -38483,7 +38483,7 @@ var identityGenerator = function* (chunk) {
   yield chunk;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/run-sync.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/run-sync.js
 var pushChunksSync = (getChunksSync, getChunksArguments, transformStream, done) => {
   try {
     for (const chunk of getChunksSync(...getChunksArguments)) {
@@ -38525,7 +38525,7 @@ var identityGenerator2 = function* (chunk) {
   yield chunk;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/generator.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/generator.js
 var generatorToStream = ({
   value,
   value: { transform: transform2, final, writableObjectMode, readableObjectMode },
@@ -38579,7 +38579,7 @@ var addInternalGenerators = ({ transform: transform2, final, binary, writableObj
   ].filter(Boolean);
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/input-sync.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/input-sync.js
 var addInputOptionsSync = (fileDescriptors, options) => {
   for (const fdNumber of getInputFdNumbers(fileDescriptors)) {
     addInputOptionSync(fileDescriptors, fdNumber, options);
@@ -38612,10 +38612,10 @@ var validateSerializable = (newContents) => {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/output-sync.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/output-sync.js
 var import_node_fs4 = require("fs");
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/output.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/output.js
 var shouldLogOutput = ({ stdioItems, encoding, verboseInfo, fdNumber }) => fdNumber !== "all" && isFullVerbose(verboseInfo, fdNumber) && !BINARY_ENCODINGS.has(encoding) && fdUsesVerbose(fdNumber) && (stdioItems.some(({ type, value }) => type === "native" && PIPED_STDIO_VALUES.has(value)) || stdioItems.every(({ type }) => TRANSFORM_TYPES.has(type)));
 var fdUsesVerbose = (fdNumber) => fdNumber === 1 || fdNumber === 2;
 var PIPED_STDIO_VALUES = /* @__PURE__ */ new Set(["pipe", "overlapped"]);
@@ -38642,7 +38642,7 @@ var logLine = (line, fdNumber, verboseInfo) => {
   });
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/output-sync.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/output-sync.js
 var transformOutputSync = ({ fileDescriptors, syncResult: { output }, options, isMaxBuffer, verboseInfo }) => {
   if (output === null) {
     return { output: Array.from({ length: 3 }) };
@@ -38745,7 +38745,7 @@ var writeToFiles = (serializedResult, stdioItems, outputFiles) => {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/all-sync.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/all-sync.js
 var getAllSync = ([, stdout, stderr], options) => {
   if (!options.all) {
     return;
@@ -38768,7 +38768,7 @@ var getAllSync = ([, stdout, stderr], options) => {
   return `${stdout}${stderr}`;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/exit-async.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/exit-async.js
 var import_node_events7 = require("events");
 var waitForExit = async (subprocess, context) => {
   const [exitCode, signal] = await waitForExitOrError(subprocess);
@@ -38802,7 +38802,7 @@ var waitForSuccessfulExit = async (exitPromise) => {
 var isSubprocessErrorExit = (exitCode, signal) => exitCode === void 0 && signal === void 0;
 var isFailedExit = (exitCode, signal) => exitCode !== 0 || signal !== null;
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/exit-sync.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/exit-sync.js
 var getExitResultSync = ({ error: error2, status: exitCode, signal, output }, { maxBuffer }) => {
   const resultError = getResultError(error2, exitCode, signal);
   const timedOut = resultError?.code === "ETIMEDOUT";
@@ -38822,7 +38822,7 @@ var getResultError = (error2, exitCode, signal) => {
   return isFailedExit(exitCode, signal) ? new DiscardedError() : void 0;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/main-sync.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/main-sync.js
 var execaCoreSync = (rawFile, rawArguments, rawOptions) => {
   const { file, commandArguments, command, escapedCommand, startTime, verboseInfo, options, fileDescriptors } = handleSyncArguments(rawFile, rawArguments, rawOptions);
   const result = spawnSubprocessSync({
@@ -38954,14 +38954,14 @@ var getSyncResult = ({ error: error2, exitCode, signal, timedOut, isMaxBuffer, s
   isSync: true
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/main-async.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/main-async.js
 var import_node_events14 = require("events");
 var import_node_child_process5 = require("child_process");
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/methods.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/methods.js
 var import_node_process11 = __toESM(require("process"), 1);
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/get-one.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/get-one.js
 var import_node_events8 = require("events");
 var getOneMessage = ({ anyProcess, channel, isSubprocess, ipc }, { reference = true, filter } = {}) => {
   validateIpcMethod({
@@ -39016,7 +39016,7 @@ var throwOnStrictError = async (ipcEmitter, isSubprocess, { signal }) => {
   throw getStrictResponseError(error2, isSubprocess);
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/get-each.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/get-each.js
 var import_node_events9 = require("events");
 var getEachMessage = ({ anyProcess, channel, isSubprocess, ipc }, { reference = true } = {}) => loopOnMessages({
   anyProcess,
@@ -39095,7 +39095,7 @@ var throwIfStrictError = ({ error: error2 }) => {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/methods.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/methods.js
 var addIpcMethods = (subprocess, { ipc }) => {
   Object.assign(subprocess, getIpcMethods(subprocess, false, ipc));
 };
@@ -39134,7 +39134,7 @@ var getIpcMethods = (anyProcess, isSubprocess, ipc) => ({
   })
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/early-error.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/early-error.js
 var import_node_child_process4 = require("child_process");
 var import_node_stream2 = require("stream");
 var handleEarlyError = ({ error: error2, command, escapedCommand, fileDescriptors, options, startTime, verboseInfo }) => {
@@ -39183,7 +39183,7 @@ var duplex = () => new import_node_stream2.Duplex({ read() {
 } });
 var handleDummyPromise = async (error2, verboseInfo, options) => handleResult2(error2, verboseInfo, options);
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/handle-async.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/handle-async.js
 var import_node_fs5 = require("fs");
 var import_node_buffer3 = require("buffer");
 var import_node_stream3 = require("stream");
@@ -39228,7 +39228,7 @@ var addPropertiesAsync = {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/@sindresorhus+merge-streams@4.0.0/node_modules/@sindresorhus/merge-streams/index.js
+// ../../node_modules/.pnpm/@sindresorhus+merge-streams@4.0.0/node_modules/@sindresorhus/merge-streams/index.js
 var import_node_events10 = require("events");
 var import_node_stream4 = require("stream");
 var import_promises6 = require("stream/promises");
@@ -39445,7 +39445,7 @@ var updateMaxListeners = (passThroughStream, increment3) => {
 var PASSTHROUGH_LISTENERS_COUNT = 2;
 var PASSTHROUGH_LISTENERS_PER_STREAM = 1;
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/pipeline.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/pipeline.js
 var import_promises7 = require("stream/promises");
 var pipeStreams = (source, destination) => {
   source.pipe(destination);
@@ -39483,7 +39483,7 @@ var abortSourceStream = (source) => {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/output-async.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/output-async.js
 var pipeOutputAsync = (subprocess, fileDescriptors, controller) => {
   const pipeGroups = /* @__PURE__ */ new Map();
   for (const [fdNumber, { stdioItems, direction }] of Object.entries(fileDescriptors)) {
@@ -39535,10 +39535,10 @@ var setStandardStreamMaxListeners = (stream, { signal }) => {
 };
 var MAX_LISTENERS_INCREMENT = 2;
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/cleanup.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/cleanup.js
 var import_node_events11 = require("events");
 
-// ../../../../../specbridge/node_modules/.pnpm/signal-exit@4.1.0/node_modules/signal-exit/dist/mjs/signals.js
+// ../../node_modules/.pnpm/signal-exit@4.1.0/node_modules/signal-exit/dist/mjs/signals.js
 var signals = [];
 signals.push("SIGHUP", "SIGINT", "SIGTERM");
 if (process.platform !== "win32") {
@@ -39562,7 +39562,7 @@ if (process.platform === "linux") {
   signals.push("SIGIO", "SIGPOLL", "SIGPWR", "SIGSTKFLT");
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/signal-exit@4.1.0/node_modules/signal-exit/dist/mjs/index.js
+// ../../node_modules/.pnpm/signal-exit@4.1.0/node_modules/signal-exit/dist/mjs/index.js
 var processOk = (process11) => !!process11 && typeof process11 === "object" && typeof process11.removeListener === "function" && typeof process11.emit === "function" && typeof process11.reallyExit === "function" && typeof process11.listeners === "function" && typeof process11.kill === "function" && typeof process11.pid === "number" && typeof process11.on === "function";
 var kExitEmitter = /* @__PURE__ */ Symbol.for("signal-exit emitter");
 var global2 = globalThis;
@@ -39789,7 +39789,7 @@ var {
   unload
 } = signalExitWrap(processOk(process10) ? new SignalExit(process10) : new SignalExitFallback());
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/cleanup.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/cleanup.js
 var cleanupOnExit = (subprocess, { cleanup, detached }, { signal }) => {
   if (!cleanup || detached) {
     return;
@@ -39802,7 +39802,7 @@ var cleanupOnExit = (subprocess, { cleanup, detached }, { signal }) => {
   });
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/pipe-arguments.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/pipe-arguments.js
 var normalizePipeArguments = ({ source, sourcePromise, boundOptions, createNested }, ...pipeArguments) => {
   const startTime = getStartTime();
   const {
@@ -39875,7 +39875,7 @@ var getSourceStream = (source, from) => {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/throw.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/throw.js
 var handlePipeArgumentsError = ({
   sourceStream,
   sourceError,
@@ -39924,7 +39924,7 @@ var createNonCommandError = ({ error: error2, fileDescriptors, sourceOptions, st
 });
 var PIPE_COMMAND_MESSAGE = "source.pipe(destination)";
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/sequence.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/sequence.js
 var waitForBothSubprocesses = async (subprocessPromises) => {
   const [
     { status: sourceStatus, reason: sourceReason, value: sourceResult = sourceReason },
@@ -39942,7 +39942,7 @@ var waitForBothSubprocesses = async (subprocessPromises) => {
   return destinationResult;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/streaming.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/streaming.js
 var import_promises8 = require("stream/promises");
 var pipeSubprocessStream = (sourceStream, destinationStream, maxListenersController) => {
   const mergedStream = MERGED_STREAMS.has(destinationStream) ? pipeMoreSubprocessStream(sourceStream, destinationStream) : pipeFirstSubprocessStream(sourceStream, destinationStream);
@@ -39973,7 +39973,7 @@ var MERGED_STREAMS = /* @__PURE__ */ new WeakMap();
 var SOURCE_LISTENERS_PER_PIPE = 2;
 var DESTINATION_LISTENERS_PER_PIPE = 1;
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/abort.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/abort.js
 var import_node_util8 = require("util");
 var unpipeOnAbort = (unpipeSignal, unpipeContext) => unpipeSignal === void 0 ? [] : [unpipeOnSignalAbort(unpipeSignal, unpipeContext)];
 var unpipeOnSignalAbort = async (unpipeSignal, { sourceStream, mergedStream, fileDescriptors, sourceOptions, startTime }) => {
@@ -39988,7 +39988,7 @@ var unpipeOnSignalAbort = async (unpipeSignal, { sourceStream, mergedStream, fil
   });
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/setup.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/setup.js
 var pipeToSubprocess = (sourceInfo, ...pipeArguments) => {
   if (isPlainObject2(pipeArguments[0])) {
     return pipeToSubprocess.bind(void 0, {
@@ -40047,10 +40047,10 @@ var handlePipePromise = async ({
 };
 var getSubprocessPromises = (sourcePromise, destination) => Promise.allSettled([sourcePromise, destination]);
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/contents.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/contents.js
 var import_promises9 = require("timers/promises");
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/iterate.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/iterate.js
 var import_node_events12 = require("events");
 var import_node_stream5 = require("stream");
 var iterateOnSubprocessStream = ({ subprocessStdout, subprocess, binary, shouldEncode, encoding, preserveNewlines }) => {
@@ -40143,7 +40143,7 @@ var getGenerators = ({ binary, shouldEncode, encoding, shouldSplit, preserveNewl
   getSplitLinesGenerator(binary, preserveNewlines, !shouldSplit, {})
 ].filter(Boolean);
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/contents.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/contents.js
 var getStreamOutput = async ({ stream, onStreamEnd, fdNumber, encoding, buffer, maxBuffer, lines, allMixed, stripFinalNewline: stripFinalNewline2, verboseInfo, streamInfo }) => {
   const logPromise = logOutputAsync({
     stream,
@@ -40234,7 +40234,7 @@ var getBufferedData = async (streamPromise) => {
 };
 var handleBufferedData = ({ bufferedData }) => isArrayBuffer(bufferedData) ? new Uint8Array(bufferedData) : bufferedData;
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/wait-stream.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/wait-stream.js
 var import_promises10 = require("stream/promises");
 var waitForStream = async (stream, fdNumber, streamInfo, { isSameDirection, stopOnExit = false } = {}) => {
   const state = handleStdinDestroy(stream, streamInfo);
@@ -40287,7 +40287,7 @@ var isInputFileDescriptor = ({ fileDescriptors }, fdNumber) => fdNumber !== "all
 var isStreamAbort = (error2) => error2?.code === "ERR_STREAM_PREMATURE_CLOSE";
 var isStreamEpipe = (error2) => error2?.code === "EPIPE";
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/stdio.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/stdio.js
 var waitForStdioStreams = ({ subprocess, encoding, buffer, maxBuffer, lines, stripFinalNewline: stripFinalNewline2, verboseInfo, streamInfo }) => subprocess.stdio.map((stream, fdNumber) => waitForSubprocessStream({
   stream,
   fdNumber,
@@ -40328,7 +40328,7 @@ var waitForSubprocessStream = async ({ stream, fdNumber, encoding, buffer, maxBu
   return output;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/all-async.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/all-async.js
 var makeAllStream = ({ stdout, stderr }, { all }) => all && (stdout || stderr) ? mergeStreams([stdout, stderr].filter(Boolean)) : void 0;
 var waitForAllStream = ({ subprocess, encoding, buffer, maxBuffer, lines, stripFinalNewline: stripFinalNewline2, verboseInfo, streamInfo }) => waitForSubprocessStream({
   ...getAllStream(subprocess, buffer),
@@ -40356,10 +40356,10 @@ var getAllStream = ({ stdout, stderr, all }, [, bufferStdout, bufferStderr]) => 
 };
 var getAllMixed = ({ all, stdout, stderr }) => all && stdout && stderr && stdout.readableObjectMode !== stderr.readableObjectMode;
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/wait-subprocess.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/wait-subprocess.js
 var import_node_events13 = require("events");
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/ipc.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/ipc.js
 var shouldLogIpc = (verboseInfo) => isFullVerbose(verboseInfo, "ipc");
 var logIpcOutput = (message2, verboseInfo) => {
   const verboseMessage = serializeVerboseMessage(message2);
@@ -40371,7 +40371,7 @@ var logIpcOutput = (message2, verboseInfo) => {
   });
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/buffer-messages.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/buffer-messages.js
 var waitForIpcOutput = async ({
   subprocess,
   buffer: bufferArray,
@@ -40409,7 +40409,7 @@ var getBufferedIpcOutput = async (ipcOutputPromise, ipcOutput) => {
   return ipcOutput;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/wait-subprocess.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/wait-subprocess.js
 var waitForSubprocessResult = async ({
   subprocess,
   options: {
@@ -40525,7 +40525,7 @@ var throwOnSubprocessError = async (subprocess, { signal }) => {
   throw error2;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/concurrent.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/concurrent.js
 var initializeConcurrentStreams = () => ({
   readableDestroy: /* @__PURE__ */ new WeakMap(),
   writableFinal: /* @__PURE__ */ new WeakMap(),
@@ -40551,11 +40551,11 @@ var waitForConcurrentStreams = async ({ resolve: resolve2, promises }, subproces
   return !isSubprocessExit;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/readable.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/readable.js
 var import_node_stream6 = require("stream");
 var import_node_util9 = require("util");
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/shared.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/shared.js
 var import_promises11 = require("stream/promises");
 var safeWaitForSubprocessStdin = async (subprocessStdin) => {
   if (subprocessStdin === void 0) {
@@ -40595,7 +40595,7 @@ var destroyOtherStream = (stream, isOpen, error2) => {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/readable.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/readable.js
 var createReadable = ({ subprocess, concurrentStreams, encoding }, { from, binary: binaryOption = true, preserveNewlines = true } = {}) => {
   const binary = binaryOption || BINARY_ENCODINGS.has(encoding);
   const { subprocessStdout, waitReadableDestroy } = getSubprocessStdout(subprocess, from, concurrentStreams);
@@ -40680,7 +40680,7 @@ var destroyOtherReadable = (stream, error2) => {
   destroyOtherStream(stream, stream.readable, error2);
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/writable.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/writable.js
 var import_node_stream7 = require("stream");
 var import_node_util10 = require("util");
 var createWritable = ({ subprocess, concurrentStreams }, { to } = {}) => {
@@ -40746,7 +40746,7 @@ var destroyOtherWritable = (stream, error2) => {
   destroyOtherStream(stream, stream.writable, error2);
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/duplex.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/duplex.js
 var import_node_stream8 = require("stream");
 var import_node_util11 = require("util");
 var createDuplex = ({ subprocess, concurrentStreams, encoding }, { from, to, binary: binaryOption = true, preserveNewlines = true } = {}) => {
@@ -40800,7 +40800,7 @@ var onDuplexDestroy = async ({ subprocessStdout, subprocessStdin, subprocess, wa
   ]);
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/iterable.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/iterable.js
 var createIterable = (subprocess, encoding, {
   from,
   binary: binaryOption = false,
@@ -40829,7 +40829,7 @@ var iterateOnStdoutData = async function* (onStdoutData, subprocessStdout, subpr
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/add.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/add.js
 var addConvertedStreams = (subprocess, { encoding }) => {
   const concurrentStreams = initializeConcurrentStreams();
   subprocess.readable = createReadable.bind(void 0, { subprocess, concurrentStreams, encoding });
@@ -40839,7 +40839,7 @@ var addConvertedStreams = (subprocess, { encoding }) => {
   subprocess[Symbol.asyncIterator] = createIterable.bind(void 0, subprocess, encoding, {});
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/promise.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/promise.js
 var mergePromise = (subprocess, promise) => {
   for (const [property, descriptor] of descriptors) {
     const value = descriptor.value.bind(promise);
@@ -40853,7 +40853,7 @@ var descriptors = ["then", "catch", "finally"].map((property) => [
   Reflect.getOwnPropertyDescriptor(nativePromisePrototype, property)
 ]);
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/main-async.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/main-async.js
 var execaCoreAsync = (rawFile, rawArguments, rawOptions, createNested) => {
   const { file, commandArguments, command, escapedCommand, startTime, verboseInfo, options, fileDescriptors } = handleAsyncArguments(rawFile, rawArguments, rawOptions);
   const { subprocess, promise } = spawnSubprocessAsync({
@@ -41008,7 +41008,7 @@ var getAsyncResult = ({ errorInfo, exitCode, signal, stdio, all, ipcOutput, cont
   startTime
 });
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/bind.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/bind.js
 var mergeOptions = (boundOptions, options) => {
   const newOptions = Object.fromEntries(
     Object.entries(options).map(([optionName, optionValue]) => [
@@ -41026,7 +41026,7 @@ var mergeOption = (optionName, boundOptionValue, optionValue) => {
 };
 var DEEP_OPTIONS = /* @__PURE__ */ new Set(["env", ...FD_SPECIFIC_OPTIONS]);
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/create.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/create.js
 var createExeca = (mapArguments, boundOptions, deepOptions, setBoundExeca) => {
   const createNested = (mapArguments2, boundOptions2, setBoundExeca2) => createExeca(mapArguments2, boundOptions2, deepOptions, setBoundExeca2);
   const boundExeca = (...execaArguments) => callBoundExeca({
@@ -41072,7 +41072,7 @@ var parseArguments = ({ mapArguments, firstArgument, nextArguments, deepOptions,
   };
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/command.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/command.js
 var mapCommandAsync = ({ file, commandArguments }) => parseCommand(file, commandArguments);
 var mapCommandSync = ({ file, commandArguments }) => ({ ...parseCommand(file, commandArguments), isSync: true });
 var parseCommand = (command, unusedArguments) => {
@@ -41103,7 +41103,7 @@ var parseCommandString = (command) => {
 };
 var SPACES_REGEXP = / +/g;
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/script.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/script.js
 var setScriptSync = (boundExeca, createNested, boundOptions) => {
   boundExeca.sync = createNested(mapScriptSync, boundOptions);
   boundExeca.s = boundExeca.sync;
@@ -41114,7 +41114,7 @@ var getScriptOptions = (options) => ({ options: { ...getScriptStdinOption(option
 var getScriptStdinOption = ({ input, inputFile, stdio }) => input === void 0 && inputFile === void 0 && stdio === void 0 ? { stdin: "inherit" } : {};
 var deepScriptOptions = { preferLocal: true };
 
-// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/index.js
+// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/index.js
 var execa = createExeca(() => ({}));
 var execaSync = createExeca(() => ({ isSync: true }));
 var execaCommand = createExeca(mapCommandAsync);
@@ -41140,12 +41140,12 @@ var import_buffer3 = require("buffer");
 var import_crypto4 = require("crypto");
 var import_buffer4 = require("buffer");
 
-// ../../../../../specbridge/node_modules/.pnpm/@deepseek-ai+dsh-sdk-client@0.1.1-rc.1_teq4kq266b3dkw7rcc6wolnm4y/node_modules/@deepseek-ai/dsh-sdk-client/lib/index.js
+// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-client@0.1.1-rc.1_teq4kq266b3dkw7rcc6wolnm4y/node_modules/@deepseek-ai/dsh-sdk-client/lib/index.js
 var import_node_crypto2 = require("crypto");
 var import_node_path6 = require("path");
 var import_node_child_process6 = require("child_process");
 
-// ../../../../../specbridge/node_modules/.pnpm/@deepseek-ai+dsh-sdk-protocol@0.1.1-rc.1_@deepseek-ai+cordis@4.0.1_@deepseek-ai+dsh-invariant_xsjcgguoedzlkqgw4wib2jrjgm/node_modules/@deepseek-ai/dsh-sdk-protocol/lib/index.js
+// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-protocol@0.1.1-rc.1_@deepseek-ai+cordis@4.0.1_@deepseek-ai+dsh-invariant_xsjcgguoedzlkqgw4wib2jrjgm/node_modules/@deepseek-ai/dsh-sdk-protocol/lib/index.js
 var import_node_crypto = require("crypto");
 var import_node_string_decoder3 = require("string_decoder");
 var JsonRpcResponseError = class extends Error {
@@ -41382,7 +41382,7 @@ function abortError(reason) {
   return reason instanceof Error ? reason : /* @__PURE__ */ new Error(`JSON-RPC request aborted: ${String(reason)}`);
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/@deepseek-ai+dsh-sdk-client@0.1.1-rc.1_teq4kq266b3dkw7rcc6wolnm4y/node_modules/@deepseek-ai/dsh-sdk-client/lib/index.js
+// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-client@0.1.1-rc.1_teq4kq266b3dkw7rcc6wolnm4y/node_modules/@deepseek-ai/dsh-sdk-client/lib/index.js
 function exitsWithin(child, ms) {
   if (child.exitCode !== null || child.signalCode !== null) return Promise.resolve(true);
   return new Promise((resolve2) => {
@@ -68248,7 +68248,7 @@ function validateProjectRoot(value, source, cwd) {
   return { ok: true, projectRoot: canonical, source };
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/mini/schemas.js
+// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/mini/schemas.js
 var ZodMiniType = /* @__PURE__ */ $constructor("ZodMiniType", (inst, def) => {
   if (!inst._zod)
     throw new Error("Uninitialized schema in ZodMiniType.");
@@ -68294,7 +68294,7 @@ function object2(shape, params) {
   return new ZodMiniObject(def);
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-compat.js
+// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-compat.js
 function isZ4Schema(s) {
   const schema = s;
   return !!schema._zod;
@@ -68438,12 +68438,12 @@ function getLiteralValue(schema) {
   return void 0;
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/interfaces.js
+// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/interfaces.js
 function isTerminal(status) {
   return status === "completed" || status === "failed" || status === "cancelled";
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/Options.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/Options.js
 var ignoreOverride = /* @__PURE__ */ Symbol("Let zodToJsonSchema decide on which parser to use");
 var defaultOptions = {
   name: void 0,
@@ -68477,7 +68477,7 @@ var getDefaultOptions = (options) => typeof options === "string" ? {
   ...options
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/Refs.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/Refs.js
 var getRefs = (options) => {
   const _options = getDefaultOptions(options);
   const currentPath = _options.name !== void 0 ? [..._options.basePath, _options.definitionPath, _options.name] : _options.basePath;
@@ -68498,7 +68498,7 @@ var getRefs = (options) => {
   };
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/errorMessages.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/errorMessages.js
 function addErrorMessage(res, key, errorMessage2, refs) {
   if (!refs?.errorMessages)
     return;
@@ -68514,7 +68514,7 @@ function setResponseValueAndErrors(res, key, value, errorMessage2, refs) {
   addErrorMessage(res, key, errorMessage2, refs);
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/getRelativePath.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/getRelativePath.js
 var getRelativePath = (pathA, pathB) => {
   let i2 = 0;
   for (; i2 < pathA.length && i2 < pathB.length; i2++) {
@@ -68524,7 +68524,7 @@ var getRelativePath = (pathA, pathB) => {
   return [(pathA.length - i2).toString(), ...pathB.slice(i2)].join("/");
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/any.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/any.js
 function parseAnyDef(refs) {
   if (refs.target !== "openAi") {
     return {};
@@ -68540,7 +68540,7 @@ function parseAnyDef(refs) {
   };
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/array.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/array.js
 function parseArrayDef(def, refs) {
   const res = {
     type: "array"
@@ -68564,7 +68564,7 @@ function parseArrayDef(def, refs) {
   return res;
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/bigint.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/bigint.js
 function parseBigintDef(def, refs) {
   const res = {
     type: "integer",
@@ -68610,24 +68610,24 @@ function parseBigintDef(def, refs) {
   return res;
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/boolean.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/boolean.js
 function parseBooleanDef() {
   return {
     type: "boolean"
   };
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/branded.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/branded.js
 function parseBrandedDef(_def, refs) {
   return parseDef(_def.type._def, refs);
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/catch.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/catch.js
 var parseCatchDef = (def, refs) => {
   return parseDef(def.innerType._def, refs);
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/date.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/date.js
 function parseDateDef(def, refs, overrideDateStrategy) {
   const strategy = overrideDateStrategy ?? refs.dateStrategy;
   if (Array.isArray(strategy)) {
@@ -68686,7 +68686,7 @@ var integerDateParser = (def, refs) => {
   return res;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/default.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/default.js
 function parseDefaultDef(_def, refs) {
   return {
     ...parseDef(_def.innerType._def, refs),
@@ -68694,12 +68694,12 @@ function parseDefaultDef(_def, refs) {
   };
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/effects.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/effects.js
 function parseEffectsDef(_def, refs) {
   return refs.effectStrategy === "input" ? parseDef(_def.schema._def, refs) : parseAnyDef(refs);
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/enum.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/enum.js
 function parseEnumDef(def) {
   return {
     type: "string",
@@ -68707,7 +68707,7 @@ function parseEnumDef(def) {
   };
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/intersection.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/intersection.js
 var isJsonSchema7AllOfType = (type) => {
   if ("type" in type && type.type === "string")
     return false;
@@ -68749,7 +68749,7 @@ function parseIntersectionDef(def, refs) {
   } : void 0;
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/literal.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/literal.js
 function parseLiteralDef(def, refs) {
   const parsedType2 = typeof def.value;
   if (parsedType2 !== "bigint" && parsedType2 !== "number" && parsedType2 !== "boolean" && parsedType2 !== "string") {
@@ -68769,7 +68769,7 @@ function parseLiteralDef(def, refs) {
   };
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/string.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/string.js
 var emojiRegex2 = void 0;
 var zodPatterns = {
   /**
@@ -69094,7 +69094,7 @@ function stringifyRegExpWithFlags(regex, refs) {
   return pattern;
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/record.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/record.js
 function parseRecordDef(def, refs) {
   if (refs.target === "openAi") {
     console.warn("Warning: OpenAI may not support records in schemas! Try an array of key-value pairs instead.");
@@ -69146,7 +69146,7 @@ function parseRecordDef(def, refs) {
   return schema;
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/map.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/map.js
 function parseMapDef(def, refs) {
   if (refs.mapStrategy === "record") {
     return parseRecordDef(def, refs);
@@ -69171,7 +69171,7 @@ function parseMapDef(def, refs) {
   };
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/nativeEnum.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/nativeEnum.js
 function parseNativeEnumDef(def) {
   const object3 = def.values;
   const actualKeys = Object.keys(def.values).filter((key) => {
@@ -69185,7 +69185,7 @@ function parseNativeEnumDef(def) {
   };
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/never.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/never.js
 function parseNeverDef(refs) {
   return refs.target === "openAi" ? void 0 : {
     not: parseAnyDef({
@@ -69195,7 +69195,7 @@ function parseNeverDef(refs) {
   };
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/null.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/null.js
 function parseNullDef(refs) {
   return refs.target === "openApi3" ? {
     enum: ["null"],
@@ -69205,7 +69205,7 @@ function parseNullDef(refs) {
   };
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/union.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/union.js
 var primitiveMappings = {
   ZodString: "string",
   ZodNumber: "number",
@@ -69273,7 +69273,7 @@ var asAnyOf = (def, refs) => {
   return anyOf.length ? { anyOf } : void 0;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/nullable.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/nullable.js
 function parseNullableDef(def, refs) {
   if (["ZodString", "ZodNumber", "ZodBigInt", "ZodBoolean", "ZodNull"].includes(def.innerType._def.typeName) && (!def.innerType._def.checks || !def.innerType._def.checks.length)) {
     if (refs.target === "openApi3") {
@@ -69305,7 +69305,7 @@ function parseNullableDef(def, refs) {
   return base && { anyOf: [base, { type: "null" }] };
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/number.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/number.js
 function parseNumberDef(def, refs) {
   const res = {
     type: "number"
@@ -69354,7 +69354,7 @@ function parseNumberDef(def, refs) {
   return res;
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/object.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/object.js
 function parseObjectDef(def, refs) {
   const forceOptionalIntoNullable = refs.target === "openAi";
   const result = {
@@ -69424,7 +69424,7 @@ function safeIsOptional(schema) {
   }
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/optional.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/optional.js
 var parseOptionalDef = (def, refs) => {
   if (refs.currentPath.toString() === refs.propertyPath?.toString()) {
     return parseDef(def.innerType._def, refs);
@@ -69443,7 +69443,7 @@ var parseOptionalDef = (def, refs) => {
   } : parseAnyDef(refs);
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/pipeline.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/pipeline.js
 var parsePipelineDef = (def, refs) => {
   if (refs.pipeStrategy === "input") {
     return parseDef(def.in._def, refs);
@@ -69463,12 +69463,12 @@ var parsePipelineDef = (def, refs) => {
   };
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/promise.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/promise.js
 function parsePromiseDef(def, refs) {
   return parseDef(def.type._def, refs);
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/set.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/set.js
 function parseSetDef(def, refs) {
   const items = parseDef(def.valueType._def, {
     ...refs,
@@ -69488,7 +69488,7 @@ function parseSetDef(def, refs) {
   return schema;
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/tuple.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/tuple.js
 function parseTupleDef(def, refs) {
   if (def.rest) {
     return {
@@ -69516,24 +69516,24 @@ function parseTupleDef(def, refs) {
   }
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/undefined.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/undefined.js
 function parseUndefinedDef(refs) {
   return {
     not: parseAnyDef(refs)
   };
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/unknown.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/unknown.js
 function parseUnknownDef(refs) {
   return parseAnyDef(refs);
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/readonly.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/readonly.js
 var parseReadonlyDef = (def, refs) => {
   return parseDef(def.innerType._def, refs);
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/selectParser.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/selectParser.js
 var selectParser = (def, typeName, refs) => {
   switch (typeName) {
     case ZodFirstPartyTypeKind.ZodString:
@@ -69609,7 +69609,7 @@ var selectParser = (def, typeName, refs) => {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parseDef.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parseDef.js
 function parseDef(def, refs, forceResolution = false) {
   const seenItem = refs.seen.get(def);
   if (refs.override) {
@@ -69665,7 +69665,7 @@ var addMeta = (def, refs, jsonSchema) => {
   return jsonSchema;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/zodToJsonSchema.js
+// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/zodToJsonSchema.js
 var zodToJsonSchema = (schema, options) => {
   const refs = getRefs(options);
   let definitions = typeof options === "object" && options.definitions ? Object.entries(options.definitions).reduce((acc, [name2, schema2]) => ({
@@ -69727,7 +69727,7 @@ var zodToJsonSchema = (schema, options) => {
   return combined;
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-json-schema-compat.js
+// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-json-schema-compat.js
 function mapMiniTarget(t) {
   if (!t)
     return "draft-7";
@@ -69769,7 +69769,7 @@ function parseWithCompat(schema, data) {
   return result.data;
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js
+// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js
 var DEFAULT_REQUEST_TIMEOUT_MSEC = 6e4;
 var Protocol = class {
   constructor(_options) {
@@ -70723,7 +70723,7 @@ function mergeCapabilities(base, additional) {
   return result;
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/validation/ajv-provider.js
+// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/validation/ajv-provider.js
 var import_ajv = __toESM(require_ajv(), 1);
 var import_ajv_formats = __toESM(require_dist2(), 1);
 function createDefaultAjvInstance() {
@@ -70791,7 +70791,7 @@ var AjvJsonSchemaValidator = class {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/server.js
+// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/server.js
 var ExperimentalServerTasks = class {
   constructor(_server) {
     this._server = _server;
@@ -71004,7 +71004,7 @@ var ExperimentalServerTasks = class {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/helpers.js
+// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/helpers.js
 function assertToolsCallTaskCapability(requests, method, entityName) {
   if (!requests) {
     throw new Error(`${entityName} does not support task creation (required for ${method})`);
@@ -71039,7 +71039,7 @@ function assertClientRequestTaskCapability(requests, method, entityName) {
   }
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/index.js
+// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/index.js
 var Server = class extends Protocol {
   /**
    * Initializes this server with the given name and version information.
@@ -71419,7 +71419,7 @@ var Server = class extends Protocol {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/completable.js
+// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/completable.js
 var COMPLETABLE_SYMBOL = /* @__PURE__ */ Symbol.for("mcp.completable");
 function isCompletable(schema) {
   return !!schema && typeof schema === "object" && COMPLETABLE_SYMBOL in schema;
@@ -71433,7 +71433,7 @@ var McpZodTypeKind;
   McpZodTypeKind2["Completable"] = "McpCompletable";
 })(McpZodTypeKind || (McpZodTypeKind = {}));
 
-// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/uriTemplate.js
+// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/uriTemplate.js
 var MAX_TEMPLATE_LENGTH = 1e6;
 var MAX_VARIABLE_LENGTH = 1e6;
 var MAX_TEMPLATE_EXPRESSIONS = 1e4;
@@ -71655,7 +71655,7 @@ var UriTemplate = class _UriTemplate {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/toolNameValidation.js
+// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/toolNameValidation.js
 var TOOL_NAME_REGEX = /^[A-Za-z0-9._-]{1,128}$/;
 function validateToolName(name) {
   const warnings = [];
@@ -71713,7 +71713,7 @@ function validateAndWarnToolName(name) {
   return result.isValid;
 }
 
-// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/mcp-server.js
+// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/mcp-server.js
 var ExperimentalMcpServerTasks = class {
   constructor(_mcpServer) {
     this._mcpServer = _mcpServer;
@@ -71728,7 +71728,7 @@ var ExperimentalMcpServerTasks = class {
   }
 };
 
-// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/mcp.js
+// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/mcp.js
 var McpServer = class {
   constructor(serverInfo, options) {
     this._registeredResources = {};
